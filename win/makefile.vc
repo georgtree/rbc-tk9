@@ -1,0 +1,83 @@
+#------------------------------------------------------------- -*- makefile -*-
+#
+# Makefile for rbc
+#
+# Basic build, test and install
+#   nmake /f makefile.vc INSTALLDIR=c:\tcl TCLDIR=c:\path\to\tcl\sources TKDIR=c:\path\to\tk\sources
+#   nmake /f makefile.vc INSTALLDIR=c:\tcl test TCLDIR=c:\path\to\tcl\sources TKDIR=c:\path\to\tk\sources
+#   nmake /f makefile.vc INSTALLDIR=c:\tcl install TCLDIR=c:\path\to\tcl\sources TKDIR=c:\path\to\tk\sources
+# Note this extension needs both Tcl and Tk *source* to build.
+#
+# For other build options (debug, static etc.),
+# See TIP 477 (https://core.tcl.tk/tips/doc/trunk/tip/477.md) for
+# detailed documentation.
+# 
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+#------------------------------------------------------------------------------
+
+
+PROJECT = rbc
+NEED_TK = 1
+NEED_TK_SOURCE = 1
+NEED_TCL_SOURCE = 1
+
+!include "rules-ext.vc"
+
+PRJ_OBJS = \
+     $(TMP_DIR)\rbcAlloc.obj \
+     $(TMP_DIR)\rbcBind.obj \
+     $(TMP_DIR)\rbcCanvEps.obj \
+     $(TMP_DIR)\rbcChain.obj \
+     $(TMP_DIR)\rbcColor.obj \
+     $(TMP_DIR)\rbcConfig.obj \
+     $(TMP_DIR)\rbcGraph.obj \
+     $(TMP_DIR)\rbcGrAxis.obj \
+     $(TMP_DIR)\rbcGrBar.obj \
+     $(TMP_DIR)\rbcGrElem.obj \
+     $(TMP_DIR)\rbcGrGrid.obj \
+     $(TMP_DIR)\rbcGrHairs.obj \
+     $(TMP_DIR)\rbcGrLegd.obj \
+     $(TMP_DIR)\rbcGrLine.obj \
+     $(TMP_DIR)\rbcGrMarker.obj \
+     $(TMP_DIR)\rbcGrMisc.obj \
+     $(TMP_DIR)\rbcGrPen.obj \
+     $(TMP_DIR)\rbcGrPs.obj \
+     $(TMP_DIR)\rbcImage.obj \
+     $(TMP_DIR)\rbcInt.obj \
+     $(TMP_DIR)\rbcList.obj \
+     $(TMP_DIR)\rbcParse.obj \
+     $(TMP_DIR)\rbcPs.obj \
+     $(TMP_DIR)\rbcSpline.obj \
+     $(TMP_DIR)\rbcText.obj \
+     $(TMP_DIR)\rbcTile.obj \
+     $(TMP_DIR)\rbcUtil.obj \
+     $(TMP_DIR)\rbcVecMath.obj \
+     $(TMP_DIR)\rbcVecCmd.obj \
+     $(TMP_DIR)\rbcVector.obj \
+     $(TMP_DIR)\rbcWinDraw.obj \
+     $(TMP_DIR)\rbcWinImage.obj \
+     $(TMP_DIR)\rbcWindow.obj \
+     $(TMP_DIR)\rbcWinop.obj \
+     $(TMP_DIR)\rbcWinUtil.obj \
+     $(TMP_DIR)\rbcStubInit.obj \
+     $(TMP_DIR)\rbcStubLib.obj
+
+PRJ_STUBOBJS = $(TMP_DIR)\rbcStubLib.obj
+
+PRJ_DEFINES = -DRBCAPI=MODULE_SCOPE  -D_CRT_SECURE_NO_WARNINGS -DWIN32=1 -wd4244 -wd4267
+
+!include "$(_RULESDIR)\targets.vc"
+
+install: default-install-docs-html install-demos
+pkgindex: default-pkgindex-tea
+default-install-libraries: install-prologues install-headers
+install-prologues:
+	@$(CPY) $(LIBDIR)\*.pro "$(SCRIPT_INSTALL_DIR)"
+install-headers:
+	echo "Installing headers to $(INCLUDE_INSTALL_DIR)"
+	@$(CPY) $(GENERICDIR)\rbcDecls.h "$(INCLUDE_INSTALL_DIR)"
+	@$(CPY) $(GENERICDIR)\rbcStubLib.c "$(INCLUDE_INSTALL_DIR)"
+install-demos: default-install-demos
+
