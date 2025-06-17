@@ -29,7 +29,7 @@ Incompatibilities \[la]#incompatibilities\[ra]
 .RE
 .SH Name
 .PP
-vector − Vector data type for Tcl
+vector \- Vector data type for Tcl
 .SH Synopsis
 .PP
 \fBvector create\fP \fIvecName\fP ?\fIvecName\fP ...? ?\fIswitches\fP?
@@ -365,15 +365,15 @@ Tcl command are also destroyed.
 The vector has optional switches that affect how the vector is created.  They are as follows:
 .RS
 .IP \(bu 2
-\fB−variable\fP \fIvarName\fP \- Specifies the name of a Tcl variable to be mapped to the vector. If the variable already
+\fB\-variable\fP \fIvarName\fP \- Specifies the name of a Tcl variable to be mapped to the vector. If the variable already
 exists, it is first deleted, then recreated. If \fIvarName\fP is the empty string, then no variable will be mapped. You
 can always map a variable back to the vector using the vector's \fBvariable\fP operation.
 .IP \(bu 2
-\fB−command\fP \fIcmdName\fP \- Maps a Tcl command to the vector. The vector can be accessed using \fIcmdName\fP and one of the
+\fB\-command\fP \fIcmdName\fP \- Maps a Tcl command to the vector. The vector can be accessed using \fIcmdName\fP and one of the
 vector instance operations. A Tcl command by that name cannot already exist. If \fIcmdName\fP is the empty string, no
 command mapping will be made.
 .IP \(bu 2
-\fB−watchunset\fP \fIboolean\fP \- Indicates that the vector should automatically delete itself if the variable associated
+\fB\-watchunset\fP \fIboolean\fP \- Indicates that the vector should automatically delete itself if the variable associated
 with the vector is unset. By default, the vector will not be deleted. This is different from previous releases. Set
 \fIboolean\fP to "true" to get the old behavior.
 .RS
@@ -408,10 +408,10 @@ l l
 l l
 .
 Operator	Description
-\fB− !\fP	Unary minus and logical NOT. The unary minus flips the sign of each component in the vector. The logical not operator returns a vector of whose values are 0.0 or 1.0. For each non\-zero component 1.0 is returned, 0.0 otherwise.
+\fB\- !\fP	Unary minus and logical NOT. The unary minus flips the sign of each component in the vector. The logical not operator returns a vector of whose values are 0.0 or 1.0. For each non\-zero component 1.0 is returned, 0.0 otherwise.
 \fB^\fP	Exponentiation.
 \fB* / %\fP	Multiply, divide, remainder.
-\fB+ −\fP	Add and subtract.
+\fB+ \-\fP	Add and subtract.
 \fB<< >>\fP	Left and right shift. Circularly shifts the values of the vector (not implemented yet).
 \fB< > <= >=\fP	Boolean less, greater, less than or equal, and greater than or equal. Each operator returns a vector of ones and zeros. If the condition is true, 1.0 is the component value, 0.0 otherwise.
 \fB== !=\fP	Boolean equal and not equal. Each operator returns a vector of ones and zeros. If the condition is true, 1.0 is the component value, 0.0 otherwise.
@@ -544,16 +544,16 @@ values.
 .RE
 .IP
 Reads binary values from a Tcl channel. Values are either appended to the end of the vector or placed at a given index
-(using the \fB−at\fP option), overwriting existing values. Data is read until EOF is found on the channel or a specified
+(using the \fB\-at\fP option), overwriting existing values. Data is read until EOF is found on the channel or a specified
 number of values \fIlength\fP are read (note that this is not necessarily the same as the number of bytes). The following
 switches are supported:
 .RS
 .IP \(bu 2
-\fB−swap\fP \- Swap bytes and words. The default endian is the host machine.
+\fB\-swap\fP \- Swap bytes and words. The default endian is the host machine.
 .IP \(bu 2
-\fB−at\fP \fIindex\fP \- New values will start at vector index \fIindex\fP\&. This will overwrite any current values.
+\fB\-at\fP \fIindex\fP \- New values will start at vector index \fIindex\fP\&. This will overwrite any current values.
 .IP \(bu 2
-\fB−format\fP \fIformat\fP \- Specifies the format of the data. \fIFormat\fP can be one of the following: \fB\fCi1\fR, \fB\fCi2\fR,
+\fB\-format\fP \fIformat\fP \- Specifies the format of the data. \fIFormat\fP can be one of the following: \fB\fCi1\fR, \fB\fCi2\fR,
 \fB\fCi4\fR, \fB\fCi8\fR, \fB\fCu1\fR, \fB\fCu2\fR, \fB\fCu4\fR, \fB\fCu8\fR, \fB\fCr4\fR, \fB\fCr8\fR, or \fB\fCr16\fR\&. The number indicates the number of bytes
 required for each value. The letter indicates the type: \fB\fCi\fR for signed, \fB\fCu\fR for unsigned, \fB\fCr\fR or real. The
 default format is \fB\fCr16\fR\&.

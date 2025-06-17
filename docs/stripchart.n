@@ -59,7 +59,7 @@ Future incompatibility \[la]#future-incompatibility\[ra]
 .RE
 .SH Name
 .PP
-stripchart − 2D strip chart for plotting x and y coordinate data.
+stripchart \- 2D strip chart for plotting x and y coordinate data.
 .SH Synopsis
 .PP
 \fBstripchart\fP \fIpathName\fP ?\fIoption value\fP? ...
@@ -73,7 +73,7 @@ The \fBstripchart\fP is essentially the same as the \fBgraph\fP widget. It works
 .PP
 The use of a strip chart differs in that the X\-axis typically refers to time points. Data values are added at
 intervals. The strip chart lets you automatically maintain a view of the most recent time points. The axis options
-\fB−shiftby\fP and \fB−autorange\fP control this. You can specify different line styles for data points (see the \fB−styles\fP
+\fB\-shiftby\fP and \fB\-autorange\fP control this. You can specify different line styles for data points (see the \fB\-styles\fP
 option).
 .SH Introduction
 .PP
@@ -97,7 +97,7 @@ perpendicular lines are drawn across the plotting area, intersecting at the curr
 \fB\fCelement\fR \- An element represents a set of data points. Elements can be plotted with a symbol at each data point and
 lines connecting the points. The appearance of the element, such as its symbol, line width, and color is configurable.
 .IP \(bu 2
-\fB\fCgrid\fR \- Extends the major and minor ticks of the X−axis and/or Y−axis across the plotting area.
+\fB\fCgrid\fR \- Extends the major and minor ticks of the X\-axis and/or Y\-axis across the plotting area.
 .IP \(bu 2
 \fB\fClegend\fR \- The legend displays the name and symbol of each data element. The legend can be drawn in any margin or in
 the plotting area.
@@ -108,7 +108,7 @@ strings, bitmaps, connected line segments, images, polygons, or embedded widgets
 .IP \(bu 2
 \fB\fCpen\fR \- Pens define attributes (both symbol and line style) for elements. Data elements use pens to specify how they
 should be drawn. A data element may use many pens at once. Here, the particular pen used for a data point is
-determined from each element's weight vector (see the element's \fB−weight\fP and \fB−style\fP options).
+determined from each element's weight vector (see the element's \fB\-weight\fP and \fB\-style\fP options).
 .IP \(bu 2
 \fB\fCpostscript\fR \- The widget can generate encapsulated PostScript output. This component has several options to configure
 how the PostScript is generated.
@@ -161,7 +161,7 @@ change the title of the strip chart to "My Plot", you use the new command and th
 .RS
 .nf
 # Change the title.
-\&.s configure −title "My Plot"
+\&.s configure \-title "My Plot"
 .fi
 .RE
 .PP
@@ -171,13 +171,13 @@ data elements, you use the new command and the \fBelement\fP component.
 .RS
 .nf
 # Create a new element named "line1"
-\&.s element create line1 −xdata {0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0}\\
-        −ydata {26.18 50.46 72.85 93.31 111.86 128.47 143.14 155.85 166.60 175.38}
+\&.s element create line1 \-xdata {0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0}\\
+        \-ydata {26.18 50.46 72.85 93.31 111.86 128.47 143.14 155.85 166.60 175.38}
 .fi
 .RE
 .PP
 The element's X and Y coordinates are specified using lists of numbers.  Alternately, Rbc vectors could be used to hold
-the X−Y coordinates.
+the X\-Y coordinates.
 .PP
 .RS
 .nf
@@ -185,7 +185,7 @@ the X−Y coordinates.
 vector xVec yVec
 xVec set { 0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0 }
 yVec set { 26.18 50.46 72.85 93.31 111.86 128.47 143.14 155.85 166.60 175.38 }
-\&.s element create line1 −xdata xVec −ydata yVec
+\&.s element create line1 \-xdata xVec \-ydata yVec
 .fi
 .RE
 .PP
@@ -194,7 +194,7 @@ values.
 .PP
 .RS
 .nf
-# Change the X−Y coordinates of the first point.
+# Change the X\-Y coordinates of the first point.
 set xVec(0) 0.18
 set yVec(0) 25.18
 .fi
@@ -220,7 +220,7 @@ dashed or solid lines, colors, line width, etc.
 .RE
 .PP
 Four coordinate axes are automatically created: \fB\fCx\fR, \fB\fCx2\fR, \fB\fCy\fR, and \fB\fCy2\fR\&. And by default, elements are mapped onto the
-axes \fB\fCx\fR and \fB\fCy\fR\&.  This can be changed with the \fB−mapx\fP and \fB−mapy\fP options.
+axes \fB\fCx\fR and \fB\fCy\fR\&.  This can be changed with the \fB\-mapx\fP and \fB\-mapy\fP options.
 .PP
 .RS
 .nf
@@ -239,7 +239,7 @@ Axes can be configured in many ways too. For example, you change the scale of th
 .fi
 .RE
 .PP
-Axis limits are reset by simply specifying new axis limits using the \fB−min\fP and \fB−max\fP configuration options.
+Axis limits are reset by simply specifying new axis limits using the \fB\-min\fP and \fB\-max\fP configuration options.
 .PP
 .RS
 .nf
@@ -249,7 +249,7 @@ Axis limits are reset by simply specifying new axis limits using the \fB−min\f
 .RE
 .PP
 By default, the limits of the axis are determined from data values. To reset back to the default limits, set the
-\fB−min\fP and \fB−max\fP options to the empty value.
+\fB\-min\fP and \fB\-max\fP options to the empty value.
 .PP
 .RS
 .nf
@@ -260,7 +260,7 @@ By default, the limits of the axis are determined from data values. To reset bac
 .RE
 .PP
 It's common with strip charts to automatically maintain a view of the most recent time points. You can do this my
-setting the \fB−autorange\fP option.
+setting the \fB\-autorange\fP option.
 .PP
 .RS
 .nf
@@ -272,7 +272,7 @@ If the time points are added in X\-coordinates 1.0 unit, only the last twenty ti
 is added, the view will march along.
 .PP
 Sometimes the rate of data is so high that changing the axis limits with each additional time point is prohibitive. You
-can use the \fB−shiftby\fP option to define an increment to shift the view when needed.
+can use the \fB\-shiftby\fP option to define an increment to shift the view when needed.
 .PP
 .RS
 .nf
@@ -292,7 +292,7 @@ using the \fBlegend\fP component.
 .fi
 .RE
 .PP
-To prevent the legend from being displayed, turn on the \fB−hide\fP option.
+To prevent the legend from being displayed, turn on the \fB\-hide\fP option.
 .PP
 .RS
 .nf
@@ -309,14 +309,14 @@ using the \fBmarker\fP operation.
 .RS
 .nf
 # Create a label for the first data point of "line1".
-\&.s marker create text −name first_marker −coords {0.2 26.18} −text "start" −anchor se −xoffset \-10 −yoffset \-10
+\&.s marker create text \-name first_marker \-coords {0.2 26.18} \-text "start" \-anchor se \-xoffset \-10 \-yoffset \-10
 .fi
 .RE
 .PP
 This creates a text marker named \fB\fCfirst_marker\fR\&. It will display the text "start" near the coordinates of the first data
-point. The \fB−anchor\fP, \fB−xoffset\fP, and \fB−yoffset\fP options are used to display the marker above and to the left of
+point. The \fB\-anchor\fP, \fB\-xoffset\fP, and \fB\-yoffset\fP options are used to display the marker above and to the left of
 the data point, so that the actual data point isn't covered by the marker. By default, markers are drawn last, on top of
-data. You can change this with the \fB−under\fP option.
+data. You can change this with the \fB\-under\fP option.
 .PP
 .RS
 .nf
@@ -330,8 +330,8 @@ You can add cross hairs or grid lines using the \fBcrosshairs\fP and \fBgrid\fP 
 .RS
 .nf
 # Display both cross hairs and grid lines.
-\&.s crosshairs configure −hide no −color red
-\&.s grid configure −hide no −dashes {2 2}
+\&.s crosshairs configure \-hide no \-color red
+\&.s grid configure \-hide no \-dashes {2 2}
 .fi
 .RE
 .PP
@@ -340,12 +340,12 @@ Finally, to get hard copy of the strip chart, use the \fBpostscript\fP operation
 .RS
 .nf
 # Print the strip chart into file "file.ps"
-\&.s postscript output file.ps −maxpect yes −decorations no
+\&.s postscript output file.ps \-maxpect yes \-decorations no
 .fi
 .RE
 .PP
-This generates a file \fB\fCfile.ps\fR containing the encapsulated PostScript of the strip chart. The option \fB−maxpect\fP says
-to scale the plot to the size of the page. Turning off the \fB−decorations\fP option indicates that no borders or color
+This generates a file \fB\fCfile.ps\fR containing the encapsulated PostScript of the strip chart. The option \fB\-maxpect\fP says
+to scale the plot to the size of the page. Turning off the \fB\-decorations\fP option indicates that no borders or color
 backgrounds should be displayed (i.e. the background of the margins, legend, and plotting area will be white).
 .SH Stripchart operations
 .RS
@@ -379,85 +379,85 @@ the current options for \fIpathName\fP is returned. If \fIoption\fP is specified
 option\fIoption\fP is set to \fIvalue\fP\&. The following options are valid for the stripchart.
 .RS
 .IP \(bu 2
-\fB−background\fP \fIcolor\fP \- Sets the background color. This includes the margins and legend, but not the plotting area.
+\fB\-background\fP \fIcolor\fP \- Sets the background color. This includes the margins and legend, but not the plotting area.
 .IP \(bu 2
-\fB−borderwidth\fP \fIpixels\fP \- Sets the width of the 3−D border around the outside edge of the widget.The \fB−relief\fP
+\fB\-borderwidth\fP \fIpixels\fP \- Sets the width of the 3\-D border around the outside edge of the widget.The \fB\-relief\fP
 option determines if the border is to be drawn. The default is \fB\fC2\fR\&.
 .IP \(bu 2
-\fB−bottommargin\fP \fIpixels\fP \- Specifies the size of the margin below the X−coordinate axis. If \fIpixels\fP is \fB\fC0\fR, the
+\fB\-bottommargin\fP \fIpixels\fP \- Specifies the size of the margin below the X\-coordinate axis. If \fIpixels\fP is \fB\fC0\fR, the
 size of the margin is selected automatically. The default is \fB\fC0\fR\&.
 .IP \(bu 2
-\fB−bufferelements\fP \fIboolean\fP \- Indicates whether to draw elements into a pixmap before displaying them on the
+\fB\-bufferelements\fP \fIboolean\fP \- Indicates whether to draw elements into a pixmap before displaying them on the
 screen. The advantage of buffering elements is when markers are used heavily. Markers can be moved and redrawn
 without requiring every element to be redrawn again. The disadvantage is that it takes slightly longer to draw the
 graph. If \fIboolean\fP is true, data elements are drawn to an internal pixmap. The option should be turned off if the
 plot is updated frequently. See the \fBSpeed tips \[la]#speed-tips\[ra]\fP section. The default is \fB\fC1\fR\&.
 .IP \(bu 2
-\fB−buffergraph\fP \fIboolean\fP \- Indicates whether to draw the graph into a pixmap first. If \fIboolean\fP is true, the
+\fB\-buffergraph\fP \fIboolean\fP \- Indicates whether to draw the graph into a pixmap first. If \fIboolean\fP is true, the
 entire graph is drawn into a pixmap and then copied onto the screen. This reduces flashing. If false, the graph is
 drawn directly into the window. Especially under Windows, turning off the option can be helpful when the stripchart
-is updated frequently. Turning off this option also turns \fB−bufferelements\fP off. See the \fBSpeed
+is updated frequently. Turning off this option also turns \fB\-bufferelements\fP off. See the \fBSpeed
 tips \[la]#speed-tips\[ra]\fP section. The default is \fB\fC1\fR\&.
 .IP \(bu 2
-\fB−cursor\fP \fIcursor\fP \- Specifies the widget's cursor. The default cursor is \fB\fCcrosshair\fR\&.
+\fB\-cursor\fP \fIcursor\fP \- Specifies the widget's cursor. The default cursor is \fB\fCcrosshair\fR\&.
 .IP \(bu 2
-\fB−font\fP \fIfontName\fP \- Specifies the title font. The default is \fB\fC*\-Helvetica\-Bold\-R\-Normal\-*\-18\-180\-*\fR\&.
+\fB\-font\fP \fIfontName\fP \- Specifies the title font. The default is \fB\fC*\-Helvetica\-Bold\-R\-Normal\-*\-18\-180\-*\fR\&.
 .IP \(bu 2
-\fB−halo\fP \fIpixels\fP \- Specifies a maximum distance to consider when searching for the closest data point (see the
+\fB\-halo\fP \fIpixels\fP \- Specifies a maximum distance to consider when searching for the closest data point (see the
 element's \fBclosest\fP operation below). Data points further than \fIpixels\fP away are ignored. The default is \fB\fC0.5i\fR\&.
 .IP \(bu 2
-\fB−height\fP \fIpixels\fP \- Specifies the requested height of widget. The default is \fB\fC4i\fR\&.
+\fB\-height\fP \fIpixels\fP \- Specifies the requested height of widget. The default is \fB\fC4i\fR\&.
 .IP \(bu 2
-\fB−invertxy\fP \fIboolean\fP \- Indicates whether the placement X−axis and Y−axis should be inverted. If\fIboolean\fP is true,
+\fB\-invertxy\fP \fIboolean\fP \- Indicates whether the placement X\-axis and Y\-axis should be inverted. If\fIboolean\fP is true,
 the X and Y axes are swapped. The default is \fB\fC0\fR\&.
 .IP \(bu 2
-\fB−justify\fP \fIjustify\fP \- Specifies how the title should be justified. This matters only when the title contains more
+\fB\-justify\fP \fIjustify\fP \- Specifies how the title should be justified. This matters only when the title contains more
 than one line of text. \fIJustify\fP must be \fB\fCleft\fR,\fB\fCright\fR, or \fB\fCcenter\fR\&. The default is \fB\fCcenter\fR\&.
 .IP \(bu 2
-\fB−leftmargin\fP \fIpixels\fP \- Sets the size of the margin from the left edge of the window to the Y−coordinate axis. If
+\fB\-leftmargin\fP \fIpixels\fP \- Sets the size of the margin from the left edge of the window to the Y\-coordinate axis. If
 \fIpixels\fP is \fB\fC0\fR, the size is calculated automatically. The default is \fB\fC0\fR\&.
 .IP \(bu 2
-\fB−plotbackground\fP \fIcolor\fP \- Specifies the background color of the plotting area. The default is \fB\fCwhite\fR\&.
+\fB\-plotbackground\fP \fIcolor\fP \- Specifies the background color of the plotting area. The default is \fB\fCwhite\fR\&.
 .IP \(bu 2
-\fB−plotborderwidth\fP \fIpixels\fP \- Sets the width of the 3\-D border around the plotting area. The \fB−plotrelief\fP
+\fB\-plotborderwidth\fP \fIpixels\fP \- Sets the width of the 3\-D border around the plotting area. The \fB\-plotrelief\fP
 option determines if a border is drawn. The default is\fB\fC2\fR\&.
 .IP \(bu 2
-\fB−plotpadx\fP \fIpad\fP \- Sets the amount of padding to be added to the left and right sides of the plotting area. \fIPad\fP
+\fB\-plotpadx\fP \fIpad\fP \- Sets the amount of padding to be added to the left and right sides of the plotting area. \fIPad\fP
 can be a list of one or two screen distances.If \fIpad\fP has two elements, the left side of the plotting area entry
 is padded by the first distance and the right side by the second. If \fIpad\fPis just one distance, both the left and
 right sides are padded evenly.The default is \fB\fC8\fR\&.
 .IP \(bu 2
-\fB−plotpady\fP \fIpad\fP \- Sets the amount of padding to be added to the top and bottom of the plotting area. \fIPad\fP can
+\fB\-plotpady\fP \fIpad\fP \- Sets the amount of padding to be added to the top and bottom of the plotting area. \fIPad\fP can
 be a list of one or two screen distances. If\fIpad\fP has two elements, the top of the plotting area is padded by the
 first distance and the bottom by the second. If \fIpad\fP is just one distance, both the top and bottom are padded
 evenly. The default is \fB\fC8\fR\&.
 .IP \(bu 2
-\fB−plotrelief\fP \fIrelief\fP \- Specifies the 3\-D effect for the plotting area. \fIRelief\fP indicates how the interior of
+\fB\-plotrelief\fP \fIrelief\fP \- Specifies the 3\-D effect for the plotting area. \fIRelief\fP indicates how the interior of
 the plotting area should appear relative to rest of the stripchart; for example, \fB\fCraised\fR means the plot should
 appear to protrude from the strip chart, relative to the surface of the stripchart. The default is \fB\fCsunken\fR\&.
 .IP \(bu 2
-\fB−relief\fP \fIrelief\fP \- Specifies the 3\-D effect for the widget. \fIRelief\fP indicates how the strip chart should appear
+\fB\-relief\fP \fIrelief\fP \- Specifies the 3\-D effect for the widget. \fIRelief\fP indicates how the strip chart should appear
 relative to widget it is packed into; for example, \fB\fCraised\fR means the strip chart should appear to protrude. The
 default is \fB\fCflat\fR\&.
 .IP \(bu 2
-\fB−rightmargin\fP \fIpixels\fP \- Sets the size of margin from the plotting area to the right edge of the window. By
+\fB\-rightmargin\fP \fIpixels\fP \- Sets the size of margin from the plotting area to the right edge of the window. By
 default, the legend is displayed in this margin. If \fIpixels\fPis than 1, the margin size is selected automatically.
 .IP \(bu 2
-\fB−takefocus\fP \fIfocus\fP \- Provides information used when moving the focus from window to window via keyboard
+\fB\-takefocus\fP \fIfocus\fP \- Provides information used when moving the focus from window to window via keyboard
 traversal (e.g., Tab and Shift\-Tab). If \fIfocus\fP is \fB\fC0\fR,this means that this window should be skipped entirely during
 keyboard traversal. \fB\fC1\fR means that the this window should always receive the input focus. An empty value means that
 the traversal scripts make the decision whether to focus on the window. The default is \fB\fC""\fR\&.
 .IP \(bu 2
-\fB−tile\fP \fIimage\fP \- Specifies a tiled background. If \fIimage\fP isn't \fB\fC""\fR, the background is tiled using
-\fIimage\fP\&. Otherwise, the normal background color is drawn(see the \fB−background\fP option). \fIImage\fP must be an image
+\fB\-tile\fP \fIimage\fP \- Specifies a tiled background. If \fIimage\fP isn't \fB\fC""\fR, the background is tiled using
+\fIimage\fP\&. Otherwise, the normal background color is drawn(see the \fB\-background\fP option). \fIImage\fP must be an image
 created using the Tk \fBimage\fP command. The default is \fB\fC""\fR\&.
 .IP \(bu 2
-\fB−title\fP \fItext\fP \- Sets the title to \fItext\fP\&. If \fItext\fP is \fB\fC""\fR, no title will be displayed.
+\fB\-title\fP \fItext\fP \- Sets the title to \fItext\fP\&. If \fItext\fP is \fB\fC""\fR, no title will be displayed.
 .IP \(bu 2
-\fB−topmargin\fP \fIpixels\fP \- Specifies the size of the margin above the x2 axis. If \fIpixels\fP is \fB\fC0\fR,the margin size is
+\fB\-topmargin\fP \fIpixels\fP \- Specifies the size of the margin above the x2 axis. If \fIpixels\fP is \fB\fC0\fR,the margin size is
 calculated automatically.
 .IP \(bu 2
-\fB−width\fP \fIpixels\fP \- Specifies the requested width of the widget. The default is \fB\fC5i\fR\&.
+\fB\-width\fP \fIpixels\fP \- Specifies the requested width of the widget. The default is \fB\fC5i\fR\&.
 .RS
 .IP \(bu 2
 \fIpathName\fP \fBcrosshairs\fP \fIoperation\fP ?\fIarg\fP?
@@ -490,7 +490,7 @@ See the \fBGrid component \[la]#grid-component\[ra]\fP section.
 .RE
 .IP
 Performs an inverse coordinate transformation, mapping window coordinates back to graph coordinates, using the
-standard X−axis and Y−axis. Returns a list of containing the graph coordinates.
+standard X\-axis and Y\-axis. Returns a list of containing the graph coordinates.
 .RS
 .IP \(bu 2
 \fIpathName\fP \fBlegend\fP \fIoperation\fP ?\fIarg\fP? ...
@@ -534,8 +534,8 @@ a Tk photo image that must already exist.
 \fIpathName\fP \fBtransform\fP \fIx y\fP
 .RE
 .IP
-Performs a coordinate transformation, mapping graph coordinates to window coordinates, using the standard X−axis and
-Y−axis. Returns a list containing the X−Y screen coordinates.
+Performs a coordinate transformation, mapping graph coordinates to window coordinates, using the standard X\-axis and
+Y\-axis. Returns a list containing the X\-Y screen coordinates.
 .RS
 .IP \(bu 2
 \fIpathName\fP \fBxaxis\fP \fIoperation\fP ?\fIarg\fP? ... 
@@ -556,7 +556,7 @@ where each component has its own configuration options and operations that speci
 the strip chart.
 .SS Axis components
 .PP
-Four coordinate axes are automatically created: two X−coordinate axes (\fB\fCx\fR and \fB\fCx2\fR) and two Y−coordinate axes (\fB\fCy\fR, and
+Four coordinate axes are automatically created: two X\-coordinate axes (\fB\fCx\fR and \fB\fCx2\fR) and two Y\-coordinate axes (\fB\fCy\fR, and
 \fB\fCy2\fR). By default, the axis \fB\fCx\fR is located in the bottom margin, \fB\fCy\fR in the left margin, \fB\fCx2\fR in the top margin, and
 \fB\fCy2\fR in the right margin.
 .PP
@@ -577,13 +577,13 @@ You can create and use several axes. To create an axis, invoke the axis componen
 .fi
 .RE
 .PP
-You map data elements to an axis using the element's \fB−mapy\fP and \fB−mapx\fP configuration options. They specify the
+You map data elements to an axis using the element's \fB\-mapy\fP and \fB\-mapx\fP configuration options. They specify the
 coordinate axes an element is mapped onto.
 .PP
 .RS
 .nf
 # Now map the temperature data to this axis.
-\&.s element create "temp" −xdata $x −ydata $tempData −mapy temperature
+\&.s element create "temp" \-xdata $x \-ydata $tempData \-mapy temperature
 .fi
 .RE
 .PP
@@ -624,13 +624,13 @@ is returned. If one or more \fIoption\fP and \fIvalue\fP pairs are specified, th
 set to \fIvalue\fP\&. The following options are valid for axes.
 .RS
 .IP \(bu 2
-\fB−autorange\fP \fIrange\fP \- Sets the range of values for the axis to \fIrange\fP\&. The axis limits are automatically reset
+\fB\-autorange\fP \fIrange\fP \- Sets the range of values for the axis to \fIrange\fP\&. The axis limits are automatically reset
 to display the most recent data points in this range. If \fIrange\fP is 0.0, the range is determined from the limits of
-the data. If \fB−min\fP or \fB\-max\fP are specified, they override this option. The default is \fB\fC0.0\fR\&.
+the data. If \fB\-min\fP or \fB\-max\fP are specified, they override this option. The default is \fB\fC0.0\fR\&.
 .IP \(bu 2
-\fB−color\fP \fIcolor\fP \- Sets the color of the axis and tick labels. The default is \fB\fCblack\fR\&.
+\fB\-color\fP \fIcolor\fP \- Sets the color of the axis and tick labels. The default is \fB\fCblack\fR\&.
 .IP \(bu 2
-\fB−command\fP \fIprefix\fP \- Specifies a Tcl command to be invoked when formatting the axis tick labels. \fIPrefix\fP is a
+\fB\-command\fP \fIprefix\fP \- Specifies a Tcl command to be invoked when formatting the axis tick labels. \fIPrefix\fP is a
 string containing the name of a Tcl proc and any extra arguments for the procedure. This command is invoked for each
 major tick on the axis. Two additional arguments are passed to the procedure: the path name of the widget and the
 current the numeric value of the tick. The procedure returns the formatted tick label. If \fB\fC""\fR is returned, no label
@@ -641,73 +641,73 @@ Please note that this procedure is invoked while the strip chart is
 redrawn. You may query the configuration options. But do not reset them,
 because this can have unexpected results.
 .IP \(bu 2
-\fB−descending\fP \fIboolean\fP \- Indicates whether the values along the axis are monotonically increasing or
+\fB\-descending\fP \fIboolean\fP \- Indicates whether the values along the axis are monotonically increasing or
 decreasing. If \fIboolean\fP is true, the axis values will be decreasing. The default is \fB\fC0\fR\&.
 .IP \(bu 2
-\fB−hide\fP \fIboolean\fP \- Indicates whether the axis is displayed.
+\fB\-hide\fP \fIboolean\fP \- Indicates whether the axis is displayed.
 .IP \(bu 2
-\fB−justify\fP \fIjustify\fP \- Specifies how the axis title should be justified. This matters only when the axis title
+\fB\-justify\fP \fIjustify\fP \- Specifies how the axis title should be justified. This matters only when the axis title
 contains more than one line of text. \fIJustify\fP must be \fB\fCleft\fR, \fB\fCright\fR, or \fB\fCcenter\fR\&. The default is \fB\fCcenter\fR\&.
 .IP \(bu 2
-\fB−limits\fP \fIformatStr\fP \- Specifies a printf\-like description to format the minimum and maximum limits of the
+\fB\-limits\fP \fIformatStr\fP \- Specifies a printf\-like description to format the minimum and maximum limits of the
 axis. The limits are displayed at the top/bottom or left/right sides of the plotting area. \fIFormatStr\fP is a list of
 one or two format descriptions. If one description is supplied, both the minimum and maximum limits are formatted in
 the same way. If two, the first designates the format for the minimum limit, the second for the maximum. If \fB\fC""\fR is
 given as either description, then the that limit will not be displayed. The default is \fB\fC""\fR\&.
 .IP \(bu 2
-\fB−linewidth\fP \fIpixels\fP \- Sets the width of the axis and tick lines. The default is \fB\fC1\fR pixel.
+\fB\-linewidth\fP \fIpixels\fP \- Sets the width of the axis and tick lines. The default is \fB\fC1\fR pixel.
 .IP \(bu 2
-\fB−logscale\fP \fIboolean\fP \- Indicates whether the scale of the axis is logarithmic or linear. If \fIboolean\fP is true,
+\fB\-logscale\fP \fIboolean\fP \- Indicates whether the scale of the axis is logarithmic or linear. If \fIboolean\fP is true,
 the axis is logarithmic. The default scale is linear.
 .IP \(bu 2
-\fB−loose\fP \fIboolean\fP \- Indicates whether the limits of the axis should fit the data points tightly, at the outermost
+\fB\-loose\fP \fIboolean\fP \- Indicates whether the limits of the axis should fit the data points tightly, at the outermost
 data points, or loosely, at the outer tick intervals. This is relevant only when the axis limit is automatically
 calculated. If \fIboolean\fP is true, the axis range is "loose". The default is \fB\fC0\fR\&.
 .IP \(bu 2
-\fB−majorticks\fP \fImajorList\fP \- Specifies where to display major axis ticks. You can use this option to display ticks
+\fB\-majorticks\fP \fImajorList\fP \- Specifies where to display major axis ticks. You can use this option to display ticks
 at non\-uniform intervals. \fIMajorList\fP is a list of axis coordinates designating the location of major ticks. No
 minor ticks are drawn. If \fImajorList\fP is \fB\fC""\fR, major ticks will be automatically computed. The default is \fB\fC""\fR\&.
 .IP \(bu 2
-\fB−max\fP \fIvalue\fP \- Sets the maximum limit of \fIaxisName\fP\&. Any data point greater than \fIvalue\fP is not displayed. If
+\fB\-max\fP \fIvalue\fP \- Sets the maximum limit of \fIaxisName\fP\&. Any data point greater than \fIvalue\fP is not displayed. If
 \fIvalue\fP is \fB\fC""\fR, the maximum limit is calculated using the largest data value. The default is \fB\fC""\fR\&.
 .IP \(bu 2
-\fB−min\fP \fIvalue\fP \- Sets the minimum limit of \fIaxisName\fP\&. Any data point less than \fIvalue\fP is not displayed. If
+\fB\-min\fP \fIvalue\fP \- Sets the minimum limit of \fIaxisName\fP\&. Any data point less than \fIvalue\fP is not displayed. If
 \fIvalue\fP is \fB\fC""\fR, the minimum limit is calculated using the smallest data value. The default is \fB\fC""\fR\&.
 .IP \(bu 2
-\fB−minorticks\fP \fIminorList\fP \- Specifies where to display minor axis ticks. You can use this option to display minor
+\fB\-minorticks\fP \fIminorList\fP \- Specifies where to display minor axis ticks. You can use this option to display minor
 ticks at non\-uniform intervals. \fIMinorList\fP is a list of real values, ranging from 0.0 to 1.0, designating the
-placement of a minor tick. No minor ticks are drawn if the \fB−majortick\fP option is also set. If \fIminorList\fP is
+placement of a minor tick. No minor ticks are drawn if the \fB\-majortick\fP option is also set. If \fIminorList\fP is
 \fB\fC""\fR, minor ticks will be automatically computed. The default is \fB\fC""\fR\&.
 .IP \(bu 2
-\fB−rotate\fP \fItheta\fP \- Specifies the how many degrees to rotate the axis tick labels. \fITheta\fP is a real value
+\fB\-rotate\fP \fItheta\fP \- Specifies the how many degrees to rotate the axis tick labels. \fITheta\fP is a real value
 representing the number of degrees to rotate the tick labels. The default is \fB\fC0.0\fR degrees.
 .IP \(bu 2
-\fB−shiftby\fP \fIvalue\fP \- Specifies how much to automatically shift the range of the axis. When the new data exceeds
+\fB\-shiftby\fP \fIvalue\fP \- Specifies how much to automatically shift the range of the axis. When the new data exceeds
 the current axis maximum, the maximum is increased in increments of \fIvalue\fP\&. You can use this option to prevent the
 axis limits from being recomputed at each new time point. If \fIvalue\fP is 0.0, then no automatic shifting is done. The
 default is \fB\fC0.0\fR\&.
 .IP \(bu 2
-\fB−showticks\fP \fIboolean\fP \- Indicates whether axis ticks should be drawn. If \fIboolean\fP is true, ticks are drawn. If
+\fB\-showticks\fP \fIboolean\fP \- Indicates whether axis ticks should be drawn. If \fIboolean\fP is true, ticks are drawn. If
 false, only the axis line is drawn. The default is \fB\fC1\fR\&.
 .IP \(bu 2
-\fB−stepsize\fP \fIvalue\fP \- Specifies the interval between major axis ticks. If \fIvalue\fP isn't a valid interval (must be
+\fB\-stepsize\fP \fIvalue\fP \- Specifies the interval between major axis ticks. If \fIvalue\fP isn't a valid interval (must be
 less than the axis range), the request is ignored and the step size is automatically calculated.
 .IP \(bu 2
-\fB−subdivisions\fP \fInumber\fP \- Indicates how many minor axis ticks are to be drawn. For example, if \fInumber\fP is two,
+\fB\-subdivisions\fP \fInumber\fP \- Indicates how many minor axis ticks are to be drawn. For example, if \fInumber\fP is two,
 only one minor tick is drawn. If \fInumber\fP is one, no minor ticks are displayed. The default is \fB\fC2\fR\&.
 .IP \(bu 2
-\fB−tickfont\fP \fIfontName\fP \- Specifies the font for axis tick labels. The default is
+\fB\-tickfont\fP \fIfontName\fP \- Specifies the font for axis tick labels. The default is
 \fB\fC*\-Courier\-Bold\-R\-Normal\-*\-100\-*\fR\&.
 .IP \(bu 2
-\fB−ticklength\fP \fIpixels\fP \- Sets the length of major and minor ticks (minor ticks are half the length of major
+\fB\-ticklength\fP \fIpixels\fP \- Sets the length of major and minor ticks (minor ticks are half the length of major
 ticks). If \fIpixels\fP is less than zero, the axis will be inverted with ticks drawn pointing towards the plot. The
 default is \fB\fC0.1i\fR\&.
 .IP \(bu 2
-\fB−title\fP \fItext\fP \- Sets the title of the axis. If \fItext\fP is \fB\fC""\fR, no axis title will be displayed.
+\fB\-title\fP \fItext\fP \- Sets the title of the axis. If \fItext\fP is \fB\fC""\fR, no axis title will be displayed.
 .IP \(bu 2
-\fB−titlecolor\fP \fIcolor\fP \- Sets the color of the axis title. The default is \fB\fCblack\fR\&.
+\fB\-titlecolor\fP \fIcolor\fP \- Sets the color of the axis title. The default is \fB\fCblack\fR\&.
 .IP \(bu 2
-\fB−titlefont\fP \fIfontName\fP \- Specifies the font for axis title. The default is
+\fB\-titlefont\fP \fIfontName\fP \- Specifies the font for axis title. The default is
 \fB\fC*\-Helvetica\-Bold\-R\-Normal\-*\-14\-140\-*\fR\&.
 .RE
 .IP
@@ -830,18 +830,18 @@ the current options forthe cross hairs is returned. If \fIoption\fP is specified
 option\fIoption\fP is set to \fIvalue\fP\&. The following options are available for cross hairs.
 .RS
 .IP \(bu 2
-\fB−color\fP \fIcolor\fP \- Sets the color of the cross hairs. The default is \fB\fCblack\fR\&.
+\fB\-color\fP \fIcolor\fP \- Sets the color of the cross hairs. The default is \fB\fCblack\fR\&.
 .IP \(bu 2
-\fB−dashes\fP \fIdashList\fP \- Sets the dash style of the cross hairs. \fIDashList\fP is a list of up to 11numbers that
+\fB\-dashes\fP \fIdashList\fP \- Sets the dash style of the cross hairs. \fIDashList\fP is a list of up to 11numbers that
  alternately represent the lengths of the dashes and gaps onthe cross hair lines. Each number must be between 1
  and 255. If\fIdashList\fP is \fB\fC""\fR, the cross hairs will be solid lines.
 .IP \(bu 2
-\fB−hide\fP \fIboolean\fP \- Indicates whether cross hairs are drawn. If \fIboolean\fP is true, crosshairs are not drawn. The
+\fB\-hide\fP \fIboolean\fP \- Indicates whether cross hairs are drawn. If \fIboolean\fP is true, crosshairs are not drawn. The
  default is \fB\fCyes\fR\&.
 .IP \(bu 2
-\fB−linewidth\fP \fIpixels\fP \- Set the width of the cross hair lines. The default is \fB\fC1\fR\&.
+\fB\-linewidth\fP \fIpixels\fP \- Set the width of the cross hair lines. The default is \fB\fC1\fR\&.
 .IP \(bu 2
-\fB−position\fP \fIpos\fP \- Specifies the screen position where the cross hairs intersect. \fIPos\fPmust be in the form
+\fB\-position\fP \fIpos\fP \- Specifies the screen position where the cross hairs intersect. \fIPos\fPmust be in the form
  "\fI@x,y\fP", where \fIx\fP and \fIy\fP are the windowcoordinates of the intersection.
 .RE
 .IP
@@ -906,14 +906,14 @@ Finds the data point closest to the window coordinates \fIx\fP and \fIy\fP in th
 an element, that must not be hidden. If no elements are specified, then all visible elements are searched. It returns
 via the array variable \fIvarName\fP the name of the closest element, the index of its closest point, and the
 graph coordinates of the point. Returns \fB\fC0\fR, if no data point within the threshold distance can be found, otherwise \fB\fC1\fR
-is returned. The following \fIoption\fP−\fIvalue\fP pairs are available.
+is returned. The following \fIoption\fP\-\fIvalue\fP pairs are available.
 .RS
 .IP \(bu 2
-\fB−halo\fP \fIpixels\fP \- Specifies a threshold distance where selected data points are ignored.\fIPixels\fP is a valid
+\fB\-halo\fP \fIpixels\fP \- Specifies a threshold distance where selected data points are ignored.\fIPixels\fP is a valid
  screen distance, such as \fB\fC2\fR or \fB\fC1.2i\fR\&. If this option isn't specified, then it defaults to the value of
- the stripchart's \fB−halo\fP option.
+ the stripchart's \fB\-halo\fP option.
 .IP \(bu 2
-\fB−interpolate\fP \fIboolean\fP \- Indicates that both the data points and interpolated points along the line segment
+\fB\-interpolate\fP \fIboolean\fP \- Indicates that both the data points and interpolated points along the line segment
  formed should be considered. If \fIboolean\fP is true, the closest line segment will be selected instead of the closest
  point. If this option isn't specified, \fIboolean\fP defaults to \fB\fC0\fR\&.
 .RS
@@ -928,82 +928,82 @@ current options for\fIelemName\fP is returned. If \fIoption\fP is specified, but
 \fIoption\fP is set to \fIvalue\fP\&. The following options are valid for elements.
 .RS
 .IP \(bu 2
-\fB−activepen\fP \fIpenName\fP \- Specifies pen to use to draw active element. If \fIpenName\fP is \fB\fC""\fR, no active elements
+\fB\-activepen\fP \fIpenName\fP \- Specifies pen to use to draw active element. If \fIpenName\fP is \fB\fC""\fR, no active elements
  will be drawn. The default is \fB\fCactiveLine\fR\&.
 .IP \(bu 2
-\fB−color\fP \fIcolor\fP \- Sets the color of the traces connecting the data points.
+\fB\-color\fP \fIcolor\fP \- Sets the color of the traces connecting the data points.
 .IP \(bu 2
-\fB−dashes\fP \fIdashList\fP \- Sets the dash style of element line. \fIDashList\fP is a list of up to 11numbers that
+\fB\-dashes\fP \fIdashList\fP \- Sets the dash style of element line. \fIDashList\fP is a list of up to 11numbers that
  alternately represent the lengths of the dashes and gaps on the element line. Each number must be between 1
  and 255. If \fIdashList\fPis \fB\fC""\fR, the lines will be solid.
 .IP \(bu 2
-\fB−data\fP \fIcoordList\fP \- Specifies the X−Y coordinates of the data. \fICoordList\fP is a list of numeric expressions
- representing the X−Y coordinate pairs of each data point.
+\fB\-data\fP \fIcoordList\fP \- Specifies the X\-Y coordinates of the data. \fICoordList\fP is a list of numeric expressions
+ representing the X\-Y coordinate pairs of each data point.
 .IP \(bu 2
-\fB−fill\fP \fIcolor\fP \- Sets the interior color of symbols. If \fIcolor\fP is \fB\fC""\fR, then the interior of the symbol is
- transparent. If \fIcolor\fP is \fB\fCdefcolor\fR, then the color will be the same as the \fB−color\fP option. The default
+\fB\-fill\fP \fIcolor\fP \- Sets the interior color of symbols. If \fIcolor\fP is \fB\fC""\fR, then the interior of the symbol is
+ transparent. If \fIcolor\fP is \fB\fCdefcolor\fR, then the color will be the same as the \fB\-color\fP option. The default
  is\fB\fCdefcolor\fR\&.
 .IP \(bu 2
-\fB−hide\fP \fIboolean\fP \- Indicates whether the element is displayed. The default is \fB\fCno\fR\&.
+\fB\-hide\fP \fIboolean\fP \- Indicates whether the element is displayed. The default is \fB\fCno\fR\&.
 .IP \(bu 2
-\fB−label\fP \fItext\fP \- Sets the element's label in the legend. If \fItext\fP is \fB\fC""\fR, the element will have no entry in
+\fB\-label\fP \fItext\fP \- Sets the element's label in the legend. If \fItext\fP is \fB\fC""\fR, the element will have no entry in
  the legend. The default label is the element's name.
 .IP \(bu 2
-\fB−linewidth\fP \fIpixels\fP \- Sets the width of the connecting lines between data points. If \fIpixels\fPis \fB\fC0\fR, no
+\fB\-linewidth\fP \fIpixels\fP \- Sets the width of the connecting lines between data points. If \fIpixels\fPis \fB\fC0\fR, no
  connecting lines will be drawn between symbols. The default is \fB\fC0\fR\&.
 .IP \(bu 2
-\fB−mapx\fP \fIxAxis\fP \- Selects the X−axis to map the element's X−coordinates onto. \fIXAxis\fP must be the name of an
+\fB\-mapx\fP \fIxAxis\fP \- Selects the X\-axis to map the element's X\-coordinates onto. \fIXAxis\fP must be the name of an
  axis. The default is \fB\fCx\fR\&.
 .IP \(bu 2
-\fB−mapy\fP \fIyAxis\fP \- Selects the Y−axis to map the element's Y−coordinates onto. \fIYAxis\fP must be the name of an
+\fB\-mapy\fP \fIyAxis\fP \- Selects the Y\-axis to map the element's Y\-coordinates onto. \fIYAxis\fP must be the name of an
  axis. The default is \fB\fCy\fR\&.
 .IP \(bu 2
-\fB−offdash\fP \fIcolor\fP \- Sets the color of the stripes when traces are dashed (see the\fB−dashes\fP option). If \fIcolor\fP
+\fB\-offdash\fP \fIcolor\fP \- Sets the color of the stripes when traces are dashed (see the\fB\-dashes\fP option). If \fIcolor\fP
  is \fB\fC""\fR, then the "off" pixels will represent gaps instead of stripes. If \fIcolor\fP is \fB\fCdefcolor\fR, then the color
- will be the same as the \fB−color\fP option. The default is\fB\fCdefcolor\fR\&.
+ will be the same as the \fB\-color\fP option. The default is\fB\fCdefcolor\fR\&.
 .IP \(bu 2
-\fB−outline\fP \fIcolor\fP \- Sets the color or the outline around each symbol. If \fIcolor\fP is \fB\fC""\fR,then no outline is
- drawn. If \fIcolor\fP is \fB\fCdefcolor\fR, then the color will be the same as the \fB−color\fP option. The default is
+\fB\-outline\fP \fIcolor\fP \- Sets the color or the outline around each symbol. If \fIcolor\fP is \fB\fC""\fR,then no outline is
+ drawn. If \fIcolor\fP is \fB\fCdefcolor\fR, then the color will be the same as the \fB\-color\fP option. The default is
  \fB\fCdefcolor\fR\&.
 .IP \(bu 2
-\fB−outlinewidth\fP \fIpixels\fP \- Sets the width of the outline bordering each symbol. If \fIpixels\fP is \fB\fC0\fR,no outline
+\fB\-outlinewidth\fP \fIpixels\fP \- Sets the width of the outline bordering each symbol. If \fIpixels\fP is \fB\fC0\fR,no outline
  will be drawn. The default is \fB\fC1\fR\&.
 .IP \(bu 2
-\fB−pixels\fP \fIpixels\fP \- Sets the size of symbols. If \fIpixels\fP is \fB\fC0\fR, no symbols will be drawn.The default is
+\fB\-pixels\fP \fIpixels\fP \- Sets the size of symbols. If \fIpixels\fP is \fB\fC0\fR, no symbols will be drawn.The default is
  \fB\fC0.125i\fR\&.
 .IP \(bu 2
-\fB−scalesymbols\fP \fIboolean\fP \- If \fIboolean\fP is true, the size of the symbols drawn for \fIelemName\fP will change with
- scale of the X−axis and Y−axis. At the time this option is set, the current ranges of the axes are saved as the
- normalized scales(i.e scale factor is 1.0) and the element is drawn at its designated size (see the \fB−pixels\fP
- option). As the scale of the axes change, the symbol will be scaled according to the smaller of the X−axis and
- Y−axis scales. If \fIboolean\fP is false, the element's symbols are drawn at the designated size, regardless of axis
+\fB\-scalesymbols\fP \fIboolean\fP \- If \fIboolean\fP is true, the size of the symbols drawn for \fIelemName\fP will change with
+ scale of the X\-axis and Y\-axis. At the time this option is set, the current ranges of the axes are saved as the
+ normalized scales(i.e scale factor is 1.0) and the element is drawn at its designated size (see the \fB\-pixels\fP
+ option). As the scale of the axes change, the symbol will be scaled according to the smaller of the X\-axis and
+ Y\-axis scales. If \fIboolean\fP is false, the element's symbols are drawn at the designated size, regardless of axis
  scales. The default is \fB\fC0\fR\&.
 .IP \(bu 2
-\fB−smooth\fP \fIsmooth\fP \- Specifies how connecting line segments are drawn between data points.\fISmooth\fP can be either
+\fB\-smooth\fP \fIsmooth\fP \- Specifies how connecting line segments are drawn between data points.\fISmooth\fP can be either
  \fB\fClinear\fR, \fB\fCstep\fR, \fB\fCnatural\fR, or \fB\fCquadratic\fR\&. If\fIsmooth\fP is \fB\fClinear\fR, a single line segment is drawn, connecting
  both data points. When \fIsmooth\fP is \fB\fCstep\fR, two line segments are drawn. The first is a horizontal line segment
  which steps the next x\-coordinate.The second is a vertical line, moving to the next y\-coordinate. Both\fInatural\fP and
  \fIquadratic\fP generate multiple segments between data points. If \fInatural\fP, the segments are generated using a cubic
  spline.If \fIquadratic\fP, a quadratic spline is used. The default is \fIlinear\fP\&.
 .IP \(bu 2
-\fB−styles\fP \fIstyleList\fP \- Specifies what pen to use based upon the range of weights given.\fIStyleList\fP is a list of
+\fB\-styles\fP \fIstyleList\fP \- Specifies what pen to use based upon the range of weights given.\fIStyleList\fP is a list of
  style specifications. Each style specification,in turn, is a list consisting of a pen name, and optionally a
- minimum and maximum range. Data points whose weight (see the \fB−weight\fP option)falls in this range, are drawn with
+ minimum and maximum range. Data points whose weight (see the \fB\-weight\fP option)falls in this range, are drawn with
  this pen. If no range is specified it defaults to the number of the pen in the list.
 .IP \(bu 2
-\fB−symbol\fP \fIsymbol\fP \- Specifies the symbol for data points. \fISymbol\fP can be either \fB\fCsquare\fR,\fB\fCcircle\fR, \fB\fCdiamond\fR,
+\fB\-symbol\fP \fIsymbol\fP \- Specifies the symbol for data points. \fISymbol\fP can be either \fB\fCsquare\fR,\fB\fCcircle\fR, \fB\fCdiamond\fR,
  \fB\fCplus\fR, \fB\fCcross\fR, \fB\fCsplus\fR, \fB\fCscross\fR, \fB\fCtriangle\fR,\fB\fC""\fR (where no symbol is drawn), or a bitmap. Bitmaps are specified
  as "\fIsource\fP ?\fImask\fP?", where \fIsource\fP is the name of the bitmap, and\fImask\fP is the bitmap's optional mask. The
  default is \fB\fCcircle\fR\&.
 .IP \(bu 2
-\fB−weights\fP \fIwVec\fP \- Specifies the weights of the individual data points. This, in conjunction with the list pen
- styles (see the \fB−styles\fP option)controls how data points are drawn. \fIWVec\fP is the name of a BLT vector or a list
+\fB\-weights\fP \fIwVec\fP \- Specifies the weights of the individual data points. This, in conjunction with the list pen
+ styles (see the \fB\-styles\fP option)controls how data points are drawn. \fIWVec\fP is the name of a BLT vector or a list
  of numeric expressions representing the weights for each data point.
 .IP \(bu 2
-\fB−xdata\fP \fIxVec\fP \- Specifies the x\-coordinates of the data. \fIXVec\fP is the name of a RBCvector or a list of numeric
+\fB\-xdata\fP \fIxVec\fP \- Specifies the x\-coordinates of the data. \fIXVec\fP is the name of a RBCvector or a list of numeric
  expressions.
 .IP \(bu 2
-\fB−ydata\fP \fIyVec\fP \- Specifies the y\-coordinates of the data. \fIYVec\fP is the name of a RBCvector or a list of numeric
+\fB\-ydata\fP \fIyVec\fP \- Specifies the y\-coordinates of the data. \fIYVec\fP is the name of a RBCvector or a list of numeric
  expressions.
 .RE
 .IP
@@ -1086,24 +1086,24 @@ current grid options for \fIpathName\fP is returned. If \fIoption\fP is specifie
 option\fIoption\fP is set to \fIvalue\fP\&. The following options are valid for grid lines.
 .RS
 .IP \(bu 2
-\fB−color\fP \fIcolor\fP \- Sets the color of the grid lines. The default is \fB\fCblack\fR\&.
+\fB\-color\fP \fIcolor\fP \- Sets the color of the grid lines. The default is \fB\fCblack\fR\&.
 .IP \(bu 2
-\fB−dashes\fP \fIdashList\fP \- Sets the dash style of the grid lines. \fIDashList\fP is a list of up to 11numbers that
+\fB\-dashes\fP \fIdashList\fP \- Sets the dash style of the grid lines. \fIDashList\fP is a list of up to 11numbers that
  alternately represent the lengths of the dashes and gaps on the grid lines. Each number must be between 1
  and 255. If \fIdashList\fP is\fB\fC""\fR, the grid will be solid lines.
 .IP \(bu 2
-\fB−hide\fP \fIboolean\fP \- Indicates whether the grid should be drawn. If \fIboolean\fP is true, grid lines are not
+\fB\-hide\fP \fIboolean\fP \- Indicates whether the grid should be drawn. If \fIboolean\fP is true, grid lines are not
  shown. The default is \fB\fCyes\fR\&.
 .IP \(bu 2
-\fB−linewidth\fP \fIpixels\fP \- Sets the width of grid lines. The default width is \fB\fC1\fR\&.
+\fB\-linewidth\fP \fIpixels\fP \- Sets the width of grid lines. The default width is \fB\fC1\fR\&.
 .IP \(bu 2
-\fB−mapx\fP \fIxAxis\fP \- Specifies the X−axis to display grid lines. \fIXAxis\fP must be the name of an axis. The default is
+\fB\-mapx\fP \fIxAxis\fP \- Specifies the X\-axis to display grid lines. \fIXAxis\fP must be the name of an axis. The default is
  \fB\fCx\fR\&.
 .IP \(bu 2
-\fB−mapy\fP \fIyAxis\fP \- Specifies the Y−axis to display grid lines. \fIYAxis\fP must be the name of an axis. The default is
+\fB\-mapy\fP \fIyAxis\fP \- Specifies the Y\-axis to display grid lines. \fIYAxis\fP must be the name of an axis. The default is
  \fB\fCy\fR\&.
 .IP \(bu 2
-\fB−minor\fP \fIboolean\fP \- Indicates whether the grid lines should be drawn for minor ticks. If\fIboolean\fP is true, the
+\fB\-minor\fP \fIboolean\fP \- Indicates whether the grid lines should be drawn for minor ticks. If\fIboolean\fP is true, the
  lines will appear at minor tick intervals. The default is \fB\fC1\fR\&.
 .RE
 .IP
@@ -1166,21 +1166,21 @@ current legend options for \fIpathName\fP is returned. If \fIoption\fP is specif
 option\fIoption\fP is set to \fIvalue\fP\&. The following options are valid for the legend.
 .RS
 .IP \(bu 2
-\fB−activebackground\fP \fIcolor\fP \- Sets the background color for active legend entries. All legend entries marked
+\fB\-activebackground\fP \fIcolor\fP \- Sets the background color for active legend entries. All legend entries marked
  active (see the legend \fBactivate\fP operation) are drawn using this background color.
 .IP \(bu 2
-\fB−activeborderwidth\fP \fIpixels\fP \- Sets the width of the 3\-D border around the outside edge of the active legend
+\fB\-activeborderwidth\fP \fIpixels\fP \- Sets the width of the 3\-D border around the outside edge of the active legend
  entries. The default is \fB\fC2\fR\&.
 .IP \(bu 2
-\fB−activeforeground\fP \fIcolor\fP \- Sets the foreground color for active legend entries. All legend entries marked as
+\fB\-activeforeground\fP \fIcolor\fP \- Sets the foreground color for active legend entries. All legend entries marked as
  active (see the legend \fBactivate\fP operation) are drawn using this foreground color.
 .IP \(bu 2
-\fB−activerelief\fP \fIrelief\fP \- Specifies the 3\-D effect desired for active legend entries. \fIRelief\fPdenotes how the
+\fB\-activerelief\fP \fIrelief\fP \- Specifies the 3\-D effect desired for active legend entries. \fIRelief\fPdenotes how the
  interior of the entry should appear relative to the legend; for example, \fB\fCraised\fR means the entry should appear to
  protrude from the legend, relative to the surface of the legend. The default is\fB\fCflat\fR\&.
 .IP \(bu 2
-\fB−anchor\fP \fIanchor\fP \- Tells how to position the legend relative to the positioning point for the legend. This is
- dependent on the value of the \fB−position\fP option.The default is \fB\fCcenter\fR\&.
+\fB\-anchor\fP \fIanchor\fP \- Tells how to position the legend relative to the positioning point for the legend. This is
+ dependent on the value of the \fB\-position\fP option.The default is \fB\fCcenter\fR\&.
 .RS
 .IP \(bu 2
 \fB\fCleft\fR or \fB\fCright\fR \- The anchor describes how to position the legend vertically.
@@ -1197,51 +1197,51 @@ option\fIoption\fP is set to \fIvalue\fP\&. The following options are valid for 
  be drawn such that occupies the upper right corner of the plotting area.
 .RE
 .IP \(bu 2
-\fB−background\fP \fIcolor\fP \- Sets the background color of the legend. If \fIcolor\fP is \fB\fC""\fR, the legend background with
+\fB\-background\fP \fIcolor\fP \- Sets the background color of the legend. If \fIcolor\fP is \fB\fC""\fR, the legend background with
  be transparent.
 .IP \(bu 2
-\fB−borderwidth\fP \fIpixels\fP \- Sets the width of the 3\-D border around the outside edge of the legend(if such border
+\fB\-borderwidth\fP \fIpixels\fP \- Sets the width of the 3\-D border around the outside edge of the legend(if such border
  is being drawn; the \fBrelief\fP option determines this). The default is \fB\fC2\fR pixels.
 .IP \(bu 2
-\fB−font\fP \fIfontName\fP \- \fIFontName\fP specifies a font to use when drawing the labels of each element into the
+\fB\-font\fP \fIfontName\fP \- \fIFontName\fP specifies a font to use when drawing the labels of each element into the
  legend. The default is\fB\fC*\-Helvetica\-Bold\-R\-Normal\-*\-12\-120\-*\fR\&.
 .IP \(bu 2
-\fB−foreground\fP \fIcolor\fP \- Sets the foreground color of the text drawn for the element's label. The default is
+\fB\-foreground\fP \fIcolor\fP \- Sets the foreground color of the text drawn for the element's label. The default is
  \fB\fCblack\fR\&.
 .IP \(bu 2
-\fB−hide\fP \fIboolean\fP \- Indicates whether the legend should be displayed. If \fIboolean\fP is true,the legend will not be
+\fB\-hide\fP \fIboolean\fP \- Indicates whether the legend should be displayed. If \fIboolean\fP is true,the legend will not be
  draw. The default is \fB\fCno\fR\&.
 .IP \(bu 2
-\fB−ipadx\fP \fIpad\fP \- Sets the amount of internal padding to be added to the width of each legend entry. \fIPad\fP can be
+\fB\-ipadx\fP \fIpad\fP \- Sets the amount of internal padding to be added to the width of each legend entry. \fIPad\fP can be
  a list of one or two screen distances. If\fIpad\fP has two elements, the left side of the legend entry is padded by the
  first distance and the right side by the second. If \fIpad\fP is just one distance, both the left and right sides are
  padded evenly. The default is \fB\fC2\fR\&.
 .IP \(bu 2
-\fB−ipady\fP \fIpad\fP \- Sets an amount of internal padding to be added to the height of each legend entry. \fIPad\fP can be
+\fB\-ipady\fP \fIpad\fP \- Sets an amount of internal padding to be added to the height of each legend entry. \fIPad\fP can be
  a list of one or two screen distances. If\fIpad\fP has two elements, the top of the entry is padded by the first
  distance and the bottom by the second. If \fIpad\fP is just one distance,both the top and bottom of the entry are
  padded evenly. The default is\fB\fC2\fR\&.
 .IP \(bu 2
-\fB−padx\fP \fIpad\fP \- Sets the padding to the left and right exteriors of the legend. \fIPad\fPcan be a list of one or two
+\fB\-padx\fP \fIpad\fP \- Sets the padding to the left and right exteriors of the legend. \fIPad\fPcan be a list of one or two
  screen distances. If \fIpad\fP has two elements,the left side of the legend is padded by the first distance and
  the right side by the second. If \fIpad\fP has just one distance, both the left and right sides are padded evenly. The
  default is \fB\fC4\fR\&.
 .IP \(bu 2
-\fB−pady\fP \fIpad\fP \- Sets the padding above and below the legend. \fIPad\fP can be a list of one or two screen
+\fB\-pady\fP \fIpad\fP \- Sets the padding above and below the legend. \fIPad\fP can be a list of one or two screen
  distances. If \fIpad\fP has two elements, the area above the legend is padded by the first distance and the area below
  by the second.If \fIpad\fP is just one distance, both the top and bottom areas are padded evenly. The default is \fB\fC0\fR\&.
 .IP \(bu 2
-\fB−position\fP \fIpos\fP \- Specifies where the legend is drawn. The \fB−anchor\fP option also affects where the legend is
+\fB\-position\fP \fIpos\fP \- Specifies where the legend is drawn. The \fB\-anchor\fP option also affects where the legend is
  positioned. If \fIpos\fP is \fB\fCleft\fR, \fB\fCleft\fR, \fB\fCtop\fR, or\fB\fCbottom\fR, the legend is drawn in the specified margin. If \fIpos\fP
  is\fB\fCplotarea\fR, then the legend is drawn inside the plotting area at a particular anchor. If \fIpos\fP is in the form
  "\fI@x,y\fP", where \fIx\fP and\fIy\fP are the window coordinates, the legend is drawn in the plotting area at the specified
  coordinates. The default is \fB\fCright\fR\&.
 .IP \(bu 2
-\fB−raised\fP \fIboolean\fP \- Indicates whether the legend is above or below the data elements. This matters only if the
+\fB\-raised\fP \fIboolean\fP \- Indicates whether the legend is above or below the data elements. This matters only if the
  legend is in the plotting area. If \fIboolean\fP is true, the legend will be drawn on top of any elements that may
  overlap it. The default is \fB\fCno\fR\&.
 .IP \(bu 2
-\fB−relief\fP \fIrelief\fP \- Specifies the 3\-D effect for the border around the legend. \fIRelief\fP specifies how the
+\fB\-relief\fP \fIrelief\fP \- Specifies the 3\-D effect for the border around the legend. \fIRelief\fP specifies how the
  interior of the legend should appear relative to the stripchart; for example, \fB\fCraised\fR means the legend should
  appear to protrude from the strip chart, relative to the surface of the stripchart. The default is \fB\fCsunken\fR\&.
 .RE
@@ -1275,7 +1275,7 @@ returned.
 Pens define attributes (both symbol and line style) for elements. Pens mirror the configuration options of data elements
 that pertain to how symbols and lines are drawn. Data elements use pens to determine how they are drawn. A data element
 may use several pens at once. In this case, the pen used for a particular data point is determined from each element's
-weight vector (see the element's \fB−weight\fP and \fB−style\fP options).
+weight vector (see the element's \fB\-weight\fP and \fB\-style\fP options).
 .PP
 One pen, called \fB\fCactiveLine\fR, is automatically created. It's used as the default active pen for elements. So you can
 change the active attributes for all elements by simply re configuring this pen.
@@ -1294,7 +1294,7 @@ You can create and use any number of pens. To create a pen, invoke the pen compo
 .fi
 .RE
 .PP
-You map pens to a data element using either the element's \fB−pen\fP or \fB−activepen\fP options.
+You map pens to a data element using either the element's \fB\-pen\fP or \fB\-activepen\fP options.
 .PP
 .RS
 .nf
@@ -1303,7 +1303,7 @@ You map pens to a data element using either the element's \fB−pen\fP or \fB−
 .RE
 .PP
 An element can use several pens at once. This is done by specifying the name of the pen in the element's style list (see
-the \fB−styles\fP option).
+the \fB\-styles\fP option).
 .PP
 .RS
 .nf
@@ -1333,39 +1333,39 @@ returned. If one or more \fIoption\fP and \fIvalue\fPpairs are specified, then f
 to \fIvalue\fP\&. The following options are valid for pens.
 .RS
 .IP \(bu 2
-\fB−color\fP \fIcolor\fP \- Sets the color of the traces connecting the data points.
+\fB\-color\fP \fIcolor\fP \- Sets the color of the traces connecting the data points.
 .IP \(bu 2
-\fB−dashes\fP \fIdashList\fP \- Sets the dash style of element line. \fIDashList\fP is a list of up to 11numbers that
+\fB\-dashes\fP \fIdashList\fP \- Sets the dash style of element line. \fIDashList\fP is a list of up to 11numbers that
 alternately represent the lengths of the dashes and gaps on the element line. Each number must be between 1
 and 255. If \fIdashList\fPis \fB\fC""\fR, the lines will be solid.
 .IP \(bu 2
-\fB−fill\fP \fIcolor\fP \- Sets the interior color of symbols. If \fIcolor\fP is \fB\fC""\fR, then the interior of the symbol is
-transparent. If \fIcolor\fP is \fB\fCdefcolor\fR, then the color will be the same as the \fB−color\fP option. The default
+\fB\-fill\fP \fIcolor\fP \- Sets the interior color of symbols. If \fIcolor\fP is \fB\fC""\fR, then the interior of the symbol is
+transparent. If \fIcolor\fP is \fB\fCdefcolor\fR, then the color will be the same as the \fB\-color\fP option. The default
 is\fB\fCdefcolor\fR\&.
 .IP \(bu 2
-\fB−linewidth\fP \fIpixels\fP \- Sets the width of the connecting lines between data points. If \fIpixels\fPis \fB\fC0\fR, no
+\fB\-linewidth\fP \fIpixels\fP \- Sets the width of the connecting lines between data points. If \fIpixels\fPis \fB\fC0\fR, no
 connecting lines will be drawn between symbols. The default is \fB\fC0\fR\&.
 .IP \(bu 2
-\fB−offdash\fP \fIcolor\fP \- Sets the color of the stripes when traces are dashed (see the\fB−dashes\fP option). If \fIcolor\fP
+\fB\-offdash\fP \fIcolor\fP \- Sets the color of the stripes when traces are dashed (see the\fB\-dashes\fP option). If \fIcolor\fP
 is \fB\fC""\fR, then the "off" pixels will represent gaps instead of stripes. If \fIcolor\fP is \fB\fCdefcolor\fR, then the color will
-be the same as the \fB−color\fP option. The default is\fB\fCdefcolor\fR\&.
+be the same as the \fB\-color\fP option. The default is\fB\fCdefcolor\fR\&.
 .IP \(bu 2
-\fB−outline\fP \fIcolor\fP \- Sets the color or the outline around each symbol. If \fIcolor\fP is \fB\fC""\fR,then no outline is
-drawn. If \fIcolor\fP is \fB\fCdefcolor\fR, then the color will be the same as the \fB−color\fP option. The default is
+\fB\-outline\fP \fIcolor\fP \- Sets the color or the outline around each symbol. If \fIcolor\fP is \fB\fC""\fR,then no outline is
+drawn. If \fIcolor\fP is \fB\fCdefcolor\fR, then the color will be the same as the \fB\-color\fP option. The default is
 \fB\fCdefcolor\fR\&.
 .IP \(bu 2
-\fB−outlinewidth\fP \fIpixels\fP \- Sets the width of the outline bordering each symbol. If \fIpixels\fP is \fB\fC0\fR,no outline will
+\fB\-outlinewidth\fP \fIpixels\fP \- Sets the width of the outline bordering each symbol. If \fIpixels\fP is \fB\fC0\fR,no outline will
 be drawn. The default is \fB\fC1\fR\&.
 .IP \(bu 2
-\fB−pixels\fP \fIpixels\fP \- Sets the size of symbols. If \fIpixels\fP is \fB\fC0\fR, no symbols will be drawn.The default is
+\fB\-pixels\fP \fIpixels\fP \- Sets the size of symbols. If \fIpixels\fP is \fB\fC0\fR, no symbols will be drawn.The default is
 \fB\fC0.125i\fR\&.
 .IP \(bu 2
-\fB−symbol\fP \fIsymbol\fP \- Specifies the symbol for data points. \fISymbol\fP can be either \fB\fCsquare\fR,\fB\fCcircle\fR, \fB\fCdiamond\fR,
+\fB\-symbol\fP \fIsymbol\fP \- Specifies the symbol for data points. \fISymbol\fP can be either \fB\fCsquare\fR,\fB\fCcircle\fR, \fB\fCdiamond\fR,
 \fB\fCplus\fR, \fB\fCcross\fR, \fB\fCsplus\fR, \fB\fCscross\fR, \fB\fCtriangle\fR,\fB\fC""\fR (where no symbol is drawn), or a bitmap. Bitmaps are specified
 as"\fIsource\fP ?\fImask\fP?", where \fIsource\fP is the name of the bitmap, and \fImask\fP is the bitmap's optional mask. The
 default is \fB\fCcircle\fR\&.
 .IP \(bu 2
-\fB−type\fP \fIelemType\fP \- Specifies the type of element the pen is to be used with. This option should only be employed
+\fB\-type\fP \fIelemType\fP \- Specifies the type of element the pen is to be used with. This option should only be employed
 when creating the pen. This is for those that wish to mix different types of elements (bars and lines) on the
 same graph. The default type is "line".
 .RE
@@ -1426,21 +1426,21 @@ describing \fIoption\fP is returned. If one or more\fIoption\fP and \fIvalue\fP 
 the postscript option \fIoption\fP is set to \fIvalue\fP\&. The following postscript options are available.
 .RS
 .IP \(bu 2
-\fB−center\fP \fIboolean\fP \- Indicates whether the plot should be centered on the PostScript page. If\fIboolean\fP is false,
+\fB\-center\fP \fIboolean\fP \- Indicates whether the plot should be centered on the PostScript page. If\fIboolean\fP is false,
 the plot will be placed in the upper left corner of the page. The default is \fB\fC1\fR\&.
 .IP \(bu 2
-\fB−colormap\fP \fIvarName\fP \- \fIVarName\fP must be the name of a global array variable that specifies a color mapping from
+\fB\-colormap\fP \fIvarName\fP \- \fIVarName\fP must be the name of a global array variable that specifies a color mapping from
 the X color name to PostScript. Each element of \fIvarName\fP must consist of PostScript code to set a particular color
 value (e.g. ''\fB\fC1.0 1.0 0.0 setrgbcolor\fR\&''). When outputting color information in PostScript, the array variable
 \fIvarName\fP is checked to see if an element of the name of the color exists. If so, it uses the value of the element
 as the PostScript command to set the color. If this option hasn't been specified, or if there isn't an entry in
 \fIvarName\fPfor a given color, then it uses the red, green, and blue intensities from the X color.
 .IP \(bu 2
-\fB−colormode\fP \fImode\fP \- Specifies how to output color information. \fIMode\fP must be either \fB\fCcolor\fR(for full color
+\fB\-colormode\fP \fImode\fP \- Specifies how to output color information. \fIMode\fP must be either \fB\fCcolor\fR(for full color
 output), \fB\fCgray\fR (convert all colors to their gray\-scale equivalents) or \fB\fCmono\fR (convert foreground colors to black
 and background colors to white). The default mode is \fB\fCcolor\fR\&.
 .IP \(bu 2
-\fB−fontmap\fP \fIvarName\fP \- \fIVarName\fP must be the name of a global array variable that specifies a font mapping from
+\fB\-fontmap\fP \fIvarName\fP \- \fIVarName\fP must be the name of a global array variable that specifies a font mapping from
 the X font name to PostScript. Each element of\fIvarName\fP must consist of a Tcl list with one or two elements, which
 are the name and point size of a PostScript font. When outputting PostScript commands for a particular font, the
 array variable \fIvarName\fP is checked to see an element of the specified font exists. If there is such an element,
@@ -1449,39 +1449,39 @@ from the list, the point size of the X font is used). Otherwise the X font is ex
 PostScript font to use. This works only for fonts whose foundry property is \fIAdobe\fP (such as Times,
 Helvetica,Courier, etc.). If all of this fails then the font defaults to\fB\fCHelvetica\-Bold\fR\&.
 .IP \(bu 2
-\fB−decorations\fP \fIboolean\fP \- Indicates if PostScript commands to generate color backgrounds and 3\-D borders should
+\fB\-decorations\fP \fIboolean\fP \- Indicates if PostScript commands to generate color backgrounds and 3\-D borders should
 be output. If \fIboolean\fP is false, the background will be white and no 3\-D borders will be generated. The default is
 \fB\fC1\fR\&.
 .IP \(bu 2
-\fB−height\fP \fIpixels\fP \- Sets the height of the plot. This lets you plot the stripchart with a height different from
+\fB\-height\fP \fIpixels\fP \- Sets the height of the plot. This lets you plot the stripchart with a height different from
 the one displayed on the screen. If \fIpixels\fP is 0,the height is the same as the displayed height. The default is
 \fB\fC0\fR\&.
 .IP \(bu 2
-\fB−landscape\fP \fIboolean\fP \- If \fIboolean\fP is true, this specifies the printed area is to be rotated90 degrees. In
+\fB\-landscape\fP \fIboolean\fP \- If \fIboolean\fP is true, this specifies the printed area is to be rotated90 degrees. In
 non\-rotated output the X\-axis of the printed area runs along the short dimension of the page (''portrait''
 orientation); in rotated output the X\-axis runs along the long dimension of the page(''landscape''
 orientation). Defaults to \fB\fC0\fR\&.
 .IP \(bu 2
-\fB−maxpect\fP \fIboolean\fP \- Indicates to scale the the plot so that it fills the PostScript page.The aspect ratio of
+\fB\-maxpect\fP \fIboolean\fP \- Indicates to scale the the plot so that it fills the PostScript page.The aspect ratio of
 the strip chart is still retained. The default is \fB\fC0\fR\&.
 .IP \(bu 2
-\fB−padx\fP \fIpad\fP \- Sets the horizontal padding for the left and right page borders. The borders are exterior to the
+\fB\-padx\fP \fIpad\fP \- Sets the horizontal padding for the left and right page borders. The borders are exterior to the
 plot. \fIPad\fP can be a list of one or two screen distances. If \fIpad\fP has two elements, the left border is padded by
 the first distance and the right border by the second. If \fIpad\fP has just one distance, both the left and right
 borders are padded evenly.The default is \fB\fC1i\fR\&.
 .IP \(bu 2
-\fB−pady\fP \fIpad\fP \- Sets the vertical padding for the top and bottom page borders. The borders are exterior to the
+\fB\-pady\fP \fIpad\fP \- Sets the vertical padding for the top and bottom page borders. The borders are exterior to the
 plot. \fIPad\fP can be a list of one or two screen distances. If \fIpad\fP has two elements, the top border is padded by the
 first distance and the bottom border by the second. If \fIpad\fP has just one distance, both the top and bottom borders
 are padded evenly. The default is \fB\fC1i\fR\&.
 .IP \(bu 2
-\fB−paperheight\fP \fIpixels\fP \- Sets the height of the postscript page. This can be used to select between different
+\fB\-paperheight\fP \fIpixels\fP \- Sets the height of the postscript page. This can be used to select between different
 page sizes (letter, A4, etc). The default height is\fB\fC11.0i\fR\&.
 .IP \(bu 2
-\fB−paperwidth\fP \fIpixels\fP \- Sets the width of the postscript page. This can be used to select between different page
+\fB\-paperwidth\fP \fIpixels\fP \- Sets the width of the postscript page. This can be used to select between different page
 sizes (letter, A4, etc). The default width is \fB\fC8.5i\fR\&.
 .IP \(bu 2
-\fB−width\fP \fIpixels\fP \- Sets the width of the plot. This lets you plot the strip chart with a width different from the
+\fB\-width\fP \fIpixels\fP \- Sets the width of the plot. This lets you plot the strip chart with a width different from the
 one drawn on the screen. If \fIpixels\fP is 0, the width is the same as the widget's width. The default is \fB\fC0\fR\&.
 .RE
 .IP
@@ -1507,7 +1507,7 @@ generated. \fIOption\fP and \fIvalue\fP can be anything accepted by the postscri
 Markers are simple drawing procedures used to annotate or highlight areas of the strip chart. Markers have various
 types: text strings, bitmaps, images, connected lines, windows, or polygons. They can be associated with a particular
 element, so that when the element is hidden or un\-hidden, so is the marker. By default, markers are the last items
-drawn, so that data elements will appear in behind them. You can change this by configuring the \fB−under\fP option.
+drawn, so that data elements will appear in behind them. You can change this by configuring the \fB\-under\fP option.
 .PP
 Markers, in contrast to elements, don't affect the scaling of the coordinate axes. They can also have \fIelastic\fP
 coordinates (specified by \fB\fC\-Inf\fR and \fB\fCInf\fR respectively) that translate into the minimum or maximum limit of the
@@ -1552,36 +1552,36 @@ The following options are valid for all markers. Each type of marker also has it
 described in the sections below.
 .RS
 .IP \(bu 2
-\fB−coords\fP \fIcoordList\fP \- Specifies the coordinates of the marker. \fICoordList\fP is a list of graph coordinates. The
+\fB\-coords\fP \fIcoordList\fP \- Specifies the coordinates of the marker. \fICoordList\fP is a list of graph coordinates. The
 number of coordinates required is dependent on the type of marker. Text, image, and window markers need only two
-coordinates (an X−Y coordinate). Bitmap markers can take either two or four coordinates(if four, they represent the
+coordinates (an X\-Y coordinate). Bitmap markers can take either two or four coordinates(if four, they represent the
 corners of the bitmap). Line markers need at least four coordinates, polygons at least six. If \fIcoordList\fP is\fB\fC""\fR,
 the marker will not be displayed. The default is \fB\fC""\fR\&.
 .IP \(bu 2
-\fB−element\fP \fIelemName\fP \- Links the marker with the element \fIelemName\fP\&. The marker is drawn only if the element is
+\fB\-element\fP \fIelemName\fP \- Links the marker with the element \fIelemName\fP\&. The marker is drawn only if the element is
 also currently displayed (see the element's \fBshow\fPoperation). If \fIelemName\fP is \fB\fC""\fR, the marker is always
 drawn. Thedefault is \fB\fC""\fR\&.
 .IP \(bu 2
-\fB−hide\fP \fIboolean\fP \- Indicates whether the marker is drawn. If \fIboolean\fP is true, the marker is not drawn. The
+\fB\-hide\fP \fIboolean\fP \- Indicates whether the marker is drawn. If \fIboolean\fP is true, the marker is not drawn. The
 default is \fB\fCno\fR\&.
 .IP \(bu 2
-\fB−mapx\fP \fIxAxis\fP \- Specifies the X−axis to map the marker's X−coordinates onto. \fIXAxis\fP must the name of an
+\fB\-mapx\fP \fIxAxis\fP \- Specifies the X\-axis to map the marker's X\-coordinates onto. \fIXAxis\fP must the name of an
 axis. The default is \fB\fCx\fR\&.
 .IP \(bu 2
-\fB−mapy\fP \fIyAxis\fP \- Specifies the Y−axis to map the marker's Y−coordinates onto. \fIYAxis\fP must the name of an
+\fB\-mapy\fP \fIyAxis\fP \- Specifies the Y\-axis to map the marker's Y\-coordinates onto. \fIYAxis\fP must the name of an
 axis. The default is \fB\fCy\fR\&.
 .IP \(bu 2
-\fB−name\fP \fImarkerId\fP \- Changes the identifier for the marker. The identifier \fImarkerId\fP can not already be used by
+\fB\-name\fP \fImarkerId\fP \- Changes the identifier for the marker. The identifier \fImarkerId\fP can not already be used by
 another marker. If this option isn't specified, the marker's name is uniquely generated.
 .IP \(bu 2
-\fB−under\fP \fIboolean\fP \- Indicates whether the marker is drawn below/above data elements. If \fIboolean\fP is true, the
+\fB\-under\fP \fIboolean\fP \- Indicates whether the marker is drawn below/above data elements. If \fIboolean\fP is true, the
 marker is be drawn underneath the data element symbols and lines. Otherwise, the marker is drawn on top of the
 element. The default is \fB\fC0\fR\&.
 .IP \(bu 2
-\fB−xoffset\fP \fIpixels\fP \- Specifies a screen distance to offset the marker horizontally. \fIPixels\fP is a valid screen
+\fB\-xoffset\fP \fIpixels\fP \- Specifies a screen distance to offset the marker horizontally. \fIPixels\fP is a valid screen
 distance, such as \fB\fC2\fR or \fB\fC1.2i\fR\&. The default is \fB\fC0\fR\&.
 .IP \(bu 2
-\fB−yoffset\fP \fIpixels\fP \- Specifies a screen distance to offset the markers vertically. \fIPixels\fP is a valid screen
+\fB\-yoffset\fP \fIpixels\fP \- Specifies a screen distance to offset the markers vertically. \fIPixels\fP is a valid screen
 distance, such as \fB\fC2\fR or \fB\fC1.2i\fR\&. The default is \fB\fC0\fR\&.
 .RE
 .IP
@@ -1603,7 +1603,7 @@ resource name is the name of the marker.
 .IP
 Creates a marker of the selected type. \fIType\fP may be either \fB\fCtext\fR, \fB\fCline\fR, \fB\fCbitmap\fR, \fB\fCimage\fR, \fB\fCpolygon\fR, or
 \fB\fCwindow\fR\&. This command returns the marker identifier, used as the \fImarkerId\fP argument in the other marker\-related
-commands. If the \fB−name\fP option is used, this overrides the normal marker identifier. If the name provided is
+commands. If the \fB\-name\fP option is used, this overrides the normal marker identifier. If the name provided is
 already used for another marker, the new marker will replace the old.
 .RS
 .IP \(bu 2
@@ -1645,23 +1645,23 @@ Bitmap markers are created with the marker's \fBcreate\fP operation in the form:
 .RE
 .IP
 There may be many \fIoption\fP\-\fIvalue\fP pairs, each sets a configuration options for the marker. These same
-\fIoption\fP−\fIvalue\fP pairs may be used with the marker's \fBconfigure\fP operation.
+\fIoption\fP\-\fIvalue\fP pairs may be used with the marker's \fBconfigure\fP operation.
 .PP
 The following options are specific to bitmap markers:
 .RS
 .IP \(bu 2
-\fB−background\fP \fIcolor\fP \- Sets the background color of the bitmap. If \fIcolor\fP is \fB\fC""\fR, the background color will be
+\fB\-background\fP \fIcolor\fP \- Sets the background color of the bitmap. If \fIcolor\fP is \fB\fC""\fR, the background color will be
 transparent. The default background color is \fB\fCwhite\fR\&.
 .IP \(bu 2
-\fB−bitmap\fP \fIbitmap\fP \- Specifies the bitmap to be displayed. If \fIbitmap\fP is \fB\fC""\fR, the marker will not be
+\fB\-bitmap\fP \fIbitmap\fP \- Specifies the bitmap to be displayed. If \fIbitmap\fP is \fB\fC""\fR, the marker will not be
 displayed. The default is \fB\fC""\fR\&.
 .IP \(bu 2
-\fB−foreground\fP \fIcolor\fP \- Sets the foreground color of the bitmap. The default foreground color is \fB\fCblack\fR\&.
+\fB\-foreground\fP \fIcolor\fP \- Sets the foreground color of the bitmap. The default foreground color is \fB\fCblack\fR\&.
 .IP \(bu 2
-\fB−mask\fP \fImask\fP \- Specifies a mask for the bitmap to be displayed. This mask is a bitmap itself, denoting the
+\fB\-mask\fP \fImask\fP \- Specifies a mask for the bitmap to be displayed. This mask is a bitmap itself, denoting the
 pixels that are transparent. If \fImask\fP is \fB\fC""\fR, all pixels of the bitmap will be drawn. The default is \fB\fC""\fR\&.
 .IP \(bu 2
-\fB−rotate\fP \fItheta\fP \- Sets the rotation of the bitmap. \fITheta\fP is a real number representing the angle of rotation
+\fB\-rotate\fP \fItheta\fP \- Sets the rotation of the bitmap. \fITheta\fP is a real number representing the angle of rotation
 in degrees. The marker is first rotated and then placed according to its anchor position. The default rotation is
 \fB\fC0.0\fR\&.
 .RE
@@ -1676,13 +1676,13 @@ marker's \fBcreate\fP operation in the form:
 .PP
 There may be many \fIoption\fP\-\fIvalue\fP pairs,
 each sets a configuration option for the marker. These same
-\fIoption\fP−\fIvalue\fP pairs may be used with the marker's \fBconfigure\fP
+\fIoption\fP\-\fIvalue\fP pairs may be used with the marker's \fBconfigure\fP
 operation.
 .PP
 The following options are specific to image markers:
 .RS
 .IP \(bu 2
-\fB−anchor\fP \fIanchor\fP
+\fB\-anchor\fP \fIanchor\fP
 .RE
 .PP
 \fIAnchor\fP tells how to position the image relative to the positioning
@@ -1693,7 +1693,7 @@ by the image will be at the positioning point. This option defaults to
 \fB\fCcenter\fR\&.
 .RS
 .IP \(bu 2
-\fB−image\fP \fIimage\fP
+\fB\-image\fP \fIimage\fP
 .RE
 .PP
 Specifies the image to be drawn. If \fIimage\fP is \fB\fC""\fR, the marker will not
@@ -1713,18 +1713,18 @@ There may be many \fIoption\fP\-\fIvalue\fP pairs, each sets a configuration opt
 The following options are specific to line markers:
 .RS
 .IP \(bu 2
-\fB−background\fP \fIcolor\fP \- Sets the background color of the line. The option is affects the line color only when the
-\fB−stipple\fP option is set. If this option isn't specified then it defaults to \fB\fCwhite\fR\&.
+\fB\-background\fP \fIcolor\fP \- Sets the background color of the line. The option is affects the line color only when the
+\fB\-stipple\fP option is set. If this option isn't specified then it defaults to \fB\fCwhite\fR\&.
 .IP \(bu 2
-\fB−dashes\fP \fIdashList\fP \- Sets the dash style of the line. \fIDashList\fP is a list of up to 11 numbers that alternately
+\fB\-dashes\fP \fIdashList\fP \- Sets the dash style of the line. \fIDashList\fP is a list of up to 11 numbers that alternately
 represent the lengths of the dashes and gaps on the line. Each number must be between 1 and 255. If \fIdashList\fP is
 \fB\fC""\fR, the marker line will be solid.
 .IP \(bu 2
-\fB−foreground\fP \fIcolor\fP \- Sets the foreground color. The default foreground color is \fB\fCblack\fR\&.
+\fB\-foreground\fP \fIcolor\fP \- Sets the foreground color. The default foreground color is \fB\fCblack\fR\&.
 .IP \(bu 2
-\fB−linewidth\fP \fIpixels\fP \- Sets the width of the lines. The default width is \fB\fC0\fR\&.
+\fB\-linewidth\fP \fIpixels\fP \- Sets the width of the lines. The default width is \fB\fC0\fR\&.
 .IP \(bu 2
-\fB−stipple\fP \fIbitmap\fP \- Specifies a stipple pattern used to draw the line, rather than a solid line. \fIBitmap\fP
+\fB\-stipple\fP \fIbitmap\fP \- Specifies a stipple pattern used to draw the line, rather than a solid line. \fIBitmap\fP
 specifies a bitmap to use as the stipple pattern. If \fIbitmap\fP is \fB\fC""\fR, then the line is drawn in a solid
 fashion. The default is \fB\fC""\fR\&.
 .RE
@@ -1740,27 +1740,27 @@ operation in the form:
 .RE
 .PP
 There may be many \fIoption\fP\-\fIvalue\fP pairs, each sets a
-configuration option for the marker. These same \fIoption\fP−\fIvalue\fP pairs
+configuration option for the marker. These same \fIoption\fP\-\fIvalue\fP pairs
 may be used with the \fBmarker configure\fP command to change the marker's
 configuration. The following options are supported for polygon markers:
 .RS
 .IP \(bu 2
-\fB−dashes\fP \fIdashList\fP \- Sets the dash style of the outline of the polygon. \fIDashList\fP is a list of up to 11 numbers
+\fB\-dashes\fP \fIdashList\fP \- Sets the dash style of the outline of the polygon. \fIDashList\fP is a list of up to 11 numbers
 that alternately represent the lengths of the dashes and gaps on the outline. Each number must be between 1
 and 255. If \fIdashList\fP is \fB\fC""\fR, the outline will be a solid line.
 .IP \(bu 2
-\fB−fill\fP \fIcolor\fP \- Sets the fill color of the polygon. If \fIcolor\fP is \fB\fC""\fR, then the interior of the polygon is
+\fB\-fill\fP \fIcolor\fP \- Sets the fill color of the polygon. If \fIcolor\fP is \fB\fC""\fR, then the interior of the polygon is
 transparent. The default is \fB\fCwhite\fR\&.
 .IP \(bu 2
-\fB−linewidth\fP \fIpixels\fP \- Sets the width of the outline of the polygon. If \fIpixels\fP is zero, no outline is
+\fB\-linewidth\fP \fIpixels\fP \- Sets the width of the outline of the polygon. If \fIpixels\fP is zero, no outline is
 drawn. The default is \fB\fC0\fR\&.
 .IP \(bu 2
-\fB−outline\fP \fIcolor\fP \- Sets the color of the outline of the polygon. If the polygon is stippled (see the
-\fB−stipple\fP option), then this represents the foreground color of the stipple. The default is \fB\fCblack\fR\&.
+\fB\-outline\fP \fIcolor\fP \- Sets the color of the outline of the polygon. If the polygon is stippled (see the
+\fB\-stipple\fP option), then this represents the foreground color of the stipple. The default is \fB\fCblack\fR\&.
 .IP \(bu 2
-\fB−stipple\fP \fIbitmap\fP \- Specifies that the polygon should be drawn with a stippled pattern rather than a solid
+\fB\-stipple\fP \fIbitmap\fP \- Specifies that the polygon should be drawn with a stippled pattern rather than a solid
 color. \fIBitmap\fP specifies a bitmap to use as the stipple pattern. If \fIbitmap\fP is \fB\fC""\fR, then the polygon is filled
-with a solid color (if the \fB−fill\fP option is set). The default is \fB\fC""\fR\&.
+with a solid color (if the \fB\-fill\fP option is set). The default is \fB\fC""\fR\&.
 .RE
 .SS Text markers
 .PP
@@ -1774,41 +1774,41 @@ operation in the form:
 .RE
 .IP
 There may be many \fIoption\fP\-\fIvalue\fP pairs, each sets a configuration option for the text marker. These same
-\fIoption\fP−\fIvalue\fP pairs may be used with the marker's \fBconfigure\fP operation.
+\fIoption\fP\-\fIvalue\fP pairs may be used with the marker's \fBconfigure\fP operation.
 .IP
 The following options are specific to text markers:
 .RS
 .IP \(bu 2
-\fB−anchor\fP \fIanchor\fP \- \fIAnchor\fP tells how to position the text relative to the positioning point for the text. For
+\fB\-anchor\fP \fIanchor\fP \- \fIAnchor\fP tells how to position the text relative to the positioning point for the text. For
 example, if \fIanchor\fP is \fB\fCcenter\fR then the text is centered on the point; if \fIanchor\fP is \fB\fCn\fR then the text will be
 drawn such that the top center point of the rectangular region occupied by the text will be at the positioning
 point. This default is \fB\fCcenter\fR\&.
 .IP \(bu 2
-\fB−background\fP \fIcolor\fP \- Sets the background color of the text string. If \fIcolor\fP is \fB\fC""\fR, the background will be
+\fB\-background\fP \fIcolor\fP \- Sets the background color of the text string. If \fIcolor\fP is \fB\fC""\fR, the background will be
 transparent. The default is \fB\fCwhite\fR\&.
 .IP \(bu 2
-\fB−font\fP \fIfontName\fP \- Specifies the font of the text. The default is \fB\fC*\-Helvetica\-Bold\-R\-Normal\-*\-120\-*\fR\&.
+\fB\-font\fP \fIfontName\fP \- Specifies the font of the text. The default is \fB\fC*\-Helvetica\-Bold\-R\-Normal\-*\-120\-*\fR\&.
 .IP \(bu 2
-\fB−foreground\fP \fIcolor\fP \- Sets the foreground color of the text. The default is \fB\fCblack\fR\&.
+\fB\-foreground\fP \fIcolor\fP \- Sets the foreground color of the text. The default is \fB\fCblack\fR\&.
 .IP \(bu 2
-\fB−justify\fP \fIjustify\fP \- Specifies how the text should be justified. This matters only when the marker contains more
+\fB\-justify\fP \fIjustify\fP \- Specifies how the text should be justified. This matters only when the marker contains more
 than one line of text. \fIJustify\fP must be \fB\fCleft\fR, \fB\fCright\fR, or \fB\fCcenter\fR\&. The default is \fB\fCcenter\fR\&.
 .IP \(bu 2
-\fB−padx\fP \fIpad\fP \- Sets the padding to the left and right exteriors of the text. \fIPad\fP can be a list of one or two
+\fB\-padx\fP \fIpad\fP \- Sets the padding to the left and right exteriors of the text. \fIPad\fP can be a list of one or two
 screen distances. If \fIpad\fP has two elements, the left side of the text is padded by the first distance and the right
 side by the second. If \fIpad\fP has just one distance, both the left and right sides are padded evenly. The default is
 \fB\fC4\fR\&.
 .IP \(bu 2
-\fB−pady\fP \fIpad\fP \- Sets the padding above and below the text. \fIPad\fP can be a list of one or two screen distances. If
+\fB\-pady\fP \fIpad\fP \- Sets the padding above and below the text. \fIPad\fP can be a list of one or two screen distances. If
 \fIpad\fP has two elements, the area above the text is padded by the first distance and the area below by the second. If
 \fIpad\fP is just one distance, both the top and bottom areas are padded evenly. The default is \fB\fC4\fR\&.
 .IP \(bu 2
-\fB−rotate\fP \fItheta\fP \- Specifies the number of degrees to rotate the text. \fITheta\fP is a real number representing the
+\fB\-rotate\fP \fItheta\fP \- Specifies the number of degrees to rotate the text. \fITheta\fP is a real number representing the
 angle of rotation. The marker is first rotated along its center and is then drawn according to its anchor
 position. The default is \fB\fC0.0\fR\&.
 .IP \(bu 2
-\fB−text\fP \fItext\fP \- Specifies the text of the marker. The exact way the text is displayed may be affected by other
-options such as \fB−anchor\fP or \fB−rotate\fP\&.
+\fB\-text\fP \fItext\fP \- Specifies the text of the marker. The exact way the text is displayed may be affected by other
+options such as \fB\-anchor\fP or \fB\-rotate\fP\&.
 .RE
 .SS Window markers
 .PP
@@ -1819,24 +1819,24 @@ are created with the marker's \fBcreate\fP operation in the form:
 \fIpathName\fP \fBmarker create window\fP ?\fIoption value\fP? ...
 .RE
 .IP
-There may be many \fIoption\fP\-\fIvalue\fP pairs, each sets a configuration option for the marker. These same \fIoption\fP−\fIvalue\fP
+There may be many \fIoption\fP\-\fIvalue\fP pairs, each sets a configuration option for the marker. These same \fIoption\fP\-\fIvalue\fP
 pairs may be used with the marker's \fBconfigure\fP command.
 .IP
 The following options are specific to window markers:
 .RS
 .IP \(bu 2
-\fB−anchor\fP \fIanchor\fP \- \fIAnchor\fP tells how to position the widget relative to the positioning point for the
+\fB\-anchor\fP \fIanchor\fP \- \fIAnchor\fP tells how to position the widget relative to the positioning point for the
 widget. For example, if \fIanchor\fP is \fB\fCcenter\fR then the widget is centered on the point; if \fIanchor\fP is \fB\fCn\fR then the
 widget will be displayed such that the top center point of the rectangular region occupied by the widget will be at
 the positioning point. This option defaults to \fB\fCcenter\fR\&.
 .IP \(bu 2
-\fB−height\fP \fIpixels\fP \- Specifies the height to assign to the marker's window. If this option isn't specified, or if
+\fB\-height\fP \fIpixels\fP \- Specifies the height to assign to the marker's window. If this option isn't specified, or if
 it is specified as \fB\fC""\fR, then the window is given whatever height the widget requests internally.
 .IP \(bu 2
-\fB−width\fP \fIpixels\fP \- Specifies the width to assign to the marker's window. If this option isn't specified, or if it
+\fB\-width\fP \fIpixels\fP \- Specifies the width to assign to the marker's window. If this option isn't specified, or if it
 is specified as \fB\fC""\fR, then the window is given whatever width the widget requests internally.
 .IP \(bu 2
-\fB−window\fP \fIpathName\fP \- Specifies the widget to be managed. \fIPathName\fP must be a child of the \fBstripchart\fP
+\fB\-window\fP \fIpathName\fP \- Specifies the widget to be managed. \fIPathName\fP must be a child of the \fBstripchart\fP
 widget.
 .RE
 .SH Graph component bindings
@@ -1851,15 +1851,15 @@ and a marker, only the uppermost component is selected. This isn't true for lege
 element (or marker) binding commands will be invoked if both items are picked.
 .PP
 It is possible for multiple bindings to match a particular event. This could occur, for example, if one binding is
-associated with the element name and another is associated with one of the element's tags (see the \fB−bindtags\fP
+associated with the element name and another is associated with one of the element's tags (see the \fB\-bindtags\fP
 option). When this occurs, all of the matching bindings are invoked. A binding associated with the element name is
 invoked first, followed by one binding for each of the element's bindtags. If there are multiple matching bindings for a
 single tag, then only the most specific binding is invoked. A continue command in a binding script terminates that
 script, and a break command terminates that script and skips any remaining scripts for the event, just as for the bind
 command.
 .PP
-The \fB−bindtags\fP option for these components controls addition tag names which can be matched. Implicitly elements and
-markers always have tags matching their names. Setting the value of the \fB−bindtags\fP option doesn't change this.
+The \fB\-bindtags\fP option for these components controls addition tag names which can be matched. Implicitly elements and
+markers always have tags matching their names. Setting the value of the \fB\-bindtags\fP option doesn't change this.
 .SH C language API
 .PP
 You can manipulate data elements from the C language. There may be situations where it is too expensive to translate the
@@ -1923,12 +1923,12 @@ If your data is generated as floating point values, the time required to convert
 strings can be significant, especially when there any many data points. You can avoid the redundant string\-to\-decimal
 conversions using the C API to BLT vectors.
 .IP \(bu 2
-Data elements without symbols are drawn faster than with symbols. Set the data element's \fB−symbol\fP option to
+Data elements without symbols are drawn faster than with symbols. Set the data element's \fB\-symbol\fP option to
 \fB\fCnone\fR\&. If you need to draw symbols, try using the simple symbols such as \fB\fCsplus\fR and \fB\fCscross\fR\&.
 .IP \(bu 2
 Don't stipple or dash the element. Solid lines are much faster.
 .IP \(bu 2
-If you update data elements frequently, try turning off the widget's \fB−bufferelements\fP option. When the strip chart
+If you update data elements frequently, try turning off the widget's \fB\-bufferelements\fP option. When the strip chart
 is first displayed, it draws data elements into an internal pixmap. The pixmap acts as a cache, so that when the strip
 chart needs to be redrawn again, and the data elements or coordinate axes haven't changed, the pixmap is simply copied
 to the screen. This is especially useful when you are using markers to highlight points and regions on the strip
@@ -1943,7 +1943,7 @@ The PostScript output generated for polygons with more than 1500 points may exce
 PostScript Language Reference Manual, page 568). The work\-around is to break the polygon into separate pieces.
 .SH Future incompatibility
 .PP
-The \fB−mapped\fP options are obsoleted and will be removed. You can achieve the same results using the \fB−hide\fP option
+The \fB\-mapped\fP options are obsoleted and will be removed. You can achieve the same results using the \fB\-hide\fP option
 instead.
 .PP
 .RS

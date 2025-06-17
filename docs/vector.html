@@ -246,7 +246,7 @@
 <li><a href="#incompatibilities">Incompatibilities</a></li>
 </ul>
 <h2 id="name">Name</h2>
-<p>vector − Vector data type for Tcl</p>
+<p>vector - Vector data type for Tcl</p>
 <h2 id="synopsis">Synopsis</h2>
 <p><strong>vector create</strong> <em>vecName</em> ?<em>vecName</em> …?
 ?<em>switches</em>?</p>
@@ -508,18 +508,18 @@ unset, the vector and its Tcl command are also destroyed.</p>
 <p>The vector has optional switches that affect how the vector is
 created. They are as follows:</p>
 <ul>
-<li><p><strong>−variable</strong> <em>varName</em> - Specifies the name
+<li><p><strong>-variable</strong> <em>varName</em> - Specifies the name
 of a Tcl variable to be mapped to the vector. If the variable already
 exists, it is first deleted, then recreated. If <em>varName</em> is the
 empty string, then no variable will be mapped. You can always map a
 variable back to the vector using the vector’s <strong>variable</strong>
 operation.</p></li>
-<li><p><strong>−command</strong> <em>cmdName</em> - Maps a Tcl command
+<li><p><strong>-command</strong> <em>cmdName</em> - Maps a Tcl command
 to the vector. The vector can be accessed using <em>cmdName</em> and one
 of the vector instance operations. A Tcl command by that name cannot
 already exist. If <em>cmdName</em> is the empty string, no command
 mapping will be made.</p></li>
-<li><p><strong>−watchunset</strong> <em>boolean</em> - Indicates that
+<li><p><strong>-watchunset</strong> <em>boolean</em> - Indicates that
 the vector should automatically delete itself if the variable associated
 with the vector is unset. By default, the vector will not be deleted.
 This is different from previous releases. Set <em>boolean</em> to “true”
@@ -553,7 +553,7 @@ precedence:</p></li>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;"><strong>− !</strong></td>
+<td style="text-align: left;"><strong>- !</strong></td>
 <td style="text-align: left;">Unary minus and logical NOT. The unary
 minus flips the sign of each component in the vector. The logical not
 operator returns a vector of whose values are 0.0 or 1.0. For each
@@ -568,7 +568,7 @@ non-zero component 1.0 is returned, 0.0 otherwise.</td>
 <td style="text-align: left;">Multiply, divide, remainder.</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>+ −</strong></td>
+<td style="text-align: left;"><strong>+ -</strong></td>
 <td style="text-align: left;">Add and subtract.</td>
 </tr>
 <tr class="odd">
@@ -779,17 +779,17 @@ values.</p></li>
 ?<em>length</em>? ?<em>switches</em>?</p>
 <p>Reads binary values from a Tcl channel. Values are either appended to
 the end of the vector or placed at a given index (using the
-<strong>−at</strong> option), overwriting existing values. Data is read
+<strong>-at</strong> option), overwriting existing values. Data is read
 until EOF is found on the channel or a specified number of values
 <em>length</em> are read (note that this is not necessarily the same as
 the number of bytes). The following switches are supported:</p>
 <ul>
-<li><p><strong>−swap</strong> - Swap bytes and words. The default endian
+<li><p><strong>-swap</strong> - Swap bytes and words. The default endian
 is the host machine.</p></li>
-<li><p><strong>−at</strong> <em>index</em> - New values will start at
+<li><p><strong>-at</strong> <em>index</em> - New values will start at
 vector index <em>index</em>. This will overwrite any current
 values.</p></li>
-<li><p><strong>−format</strong> <em>format</em> - Specifies the format
+<li><p><strong>-format</strong> <em>format</em> - Specifies the format
 of the data. <em>Format</em> can be one of the following:
 <code>i1</code>, <code>i2</code>, <code>i4</code>, <code>i8</code>,
 <code>u1</code>, <code>u2</code>, <code>u4</code>, <code>u8</code>,

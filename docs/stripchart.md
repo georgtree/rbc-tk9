@@ -30,7 +30,7 @@
 
 ## Name
 
-stripchart − 2D strip chart for plotting x and y coordinate data.
+stripchart - 2D strip chart for plotting x and y coordinate data.
 
 ## Synopsis
 
@@ -46,7 +46,7 @@ The **stripchart** is essentially the same as the **graph** widget. It works alm
 
 The use of a strip chart differs in that the X-axis typically refers to time points. Data values are added at
 intervals. The strip chart lets you automatically maintain a view of the most recent time points. The axis options
-**−shiftby** and **−autorange** control this. You can specify different line styles for data points (see the **−styles**
+**-shiftby** and **-autorange** control this. You can specify different line styles for data points (see the **-styles**
 option).
 
 ## Introduction
@@ -72,7 +72,7 @@ postscript, and annotation markers.
 
 - `element` - An element represents a set of data points. Elements can be plotted with a symbol at each data point and
   lines connecting the points. The appearance of the element, such as its symbol, line width, and color is configurable.
-- `grid` - Extends the major and minor ticks of the X−axis and/or Y−axis across the plotting area.
+- `grid` - Extends the major and minor ticks of the X-axis and/or Y-axis across the plotting area.
 - `legend` - The legend displays the name and symbol of each data element. The legend can be drawn in any margin or in
   the plotting area.
 - `marker` - Markers are used annotate or highlight areas of the graph. For example, you could use a polygon marker to
@@ -80,7 +80,7 @@ postscript, and annotation markers.
   strings, bitmaps, connected line segments, images, polygons, or embedded widgets.
 - `pen` - Pens define attributes (both symbol and line style) for elements. Data elements use pens to specify how they
   should be drawn. A data element may use many pens at once. Here, the particular pen used for a data point is
-  determined from each element's weight vector (see the element's **−weight** and **−style** options).
+  determined from each element's weight vector (see the element's **-weight** and **-style** options).
 - `postscript` - The widget can generate encapsulated PostScript output. This component has several options to configure
   how the PostScript is generated.
 
@@ -124,7 +124,7 @@ change the title of the strip chart to "My Plot", you use the new command and th
 
 ```tcl
 # Change the title.
-.s configure −title "My Plot"
+.s configure -title "My Plot"
 ```
 
 A strip chart has several components. To access a particular component you use the component's name. For example, to add
@@ -132,26 +132,26 @@ data elements, you use the new command and the **element** component.
 
 ```tcl
 # Create a new element named "line1"
-.s element create line1 −xdata {0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0}\
-        −ydata {26.18 50.46 72.85 93.31 111.86 128.47 143.14 155.85 166.60 175.38}
+.s element create line1 -xdata {0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0}\
+        -ydata {26.18 50.46 72.85 93.31 111.86 128.47 143.14 155.85 166.60 175.38}
 ```
 
 The element's X and Y coordinates are specified using lists of numbers.  Alternately, Rbc vectors could be used to hold
-the X−Y coordinates.
+the X-Y coordinates.
 
 ```tcl
 # Create two vectors and add them to the strip chart.
 vector xVec yVec
 xVec set { 0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0 }
 yVec set { 26.18 50.46 72.85 93.31 111.86 128.47 143.14 155.85 166.60 175.38 }
-.s element create line1 −xdata xVec −ydata yVec
+.s element create line1 -xdata xVec -ydata yVec
 ```
 
 The advantage of using vectors is that when you modify one, the graph is automatically redrawn to display the new
 values.
 
 ```tcl
-# Change the X−Y coordinates of the first point.
+# Change the X-Y coordinates of the first point.
 set xVec(0) 0.18
 set yVec(0) 25.18
 ```
@@ -172,7 +172,7 @@ dashed or solid lines, colors, line width, etc.
 ```
 
 Four coordinate axes are automatically created: `x`, `x2`, `y`, and `y2`. And by default, elements are mapped onto the
-axes `x` and `y`.  This can be changed with the **−mapx** and **−mapy** options.
+axes `x` and `y`.  This can be changed with the **-mapx** and **-mapy** options.
 
 ```tcl
 # Map "line1" on the alternate Y-axis "y2".
@@ -187,7 +187,7 @@ Axes can be configured in many ways too. For example, you change the scale of th
 .s axis configure y -logscale yes
 ```
 
-Axis limits are reset by simply specifying new axis limits using the **−min** and **−max** configuration options.
+Axis limits are reset by simply specifying new axis limits using the **-min** and **-max** configuration options.
 
 ```tcl
 .s axis configure x -min 1.0 -max 1.5
@@ -195,7 +195,7 @@ Axis limits are reset by simply specifying new axis limits using the **−min** 
 ```
 
 By default, the limits of the axis are determined from data values. To reset back to the default limits, set the
-**−min** and **−max** options to the empty value.
+**-min** and **-max** options to the empty value.
 
 ```tcl
 # Reset the axes to autoscale again.
@@ -204,7 +204,7 @@ By default, the limits of the axis are determined from data values. To reset bac
 ```
 
 It's common with strip charts to automatically maintain a view of the most recent time points. You can do this my
-setting the **−autorange** option.
+setting the **-autorange** option.
 
 ```tcl
 .s axis configure x -autorange 20.0
@@ -214,7 +214,7 @@ If the time points are added in X-coordinates 1.0 unit, only the last twenty tim
 is added, the view will march along.
 
 Sometimes the rate of data is so high that changing the axis limits with each additional time point is prohibitive. You
-can use the **−shiftby** option to define an increment to shift the view when needed.
+can use the **-shiftby** option to define an increment to shift the view when needed.
 
 ```tcl
 .s axis configure x -shiftby 15.0
@@ -230,7 +230,7 @@ using the **legend** component.
 .s legend configure -position left -relief raised -font fixed -fg blue
 ```
 
-To prevent the legend from being displayed, turn on the **−hide** option.
+To prevent the legend from being displayed, turn on the **-hide** option.
 
 ```tcl
 # Don’t display the legend.
@@ -244,13 +244,13 @@ using the **marker** operation.
 
 ```tcl
 # Create a label for the first data point of "line1".
-.s marker create text −name first_marker −coords {0.2 26.18} −text "start" −anchor se −xoffset -10 −yoffset -10
+.s marker create text -name first_marker -coords {0.2 26.18} -text "start" -anchor se -xoffset -10 -yoffset -10
 ```
 
 This creates a text marker named `first_marker`. It will display the text "start" near the coordinates of the first data
-point. The **−anchor**, **−xoffset**, and **−yoffset** options are used to display the marker above and to the left of
+point. The **-anchor**, **-xoffset**, and **-yoffset** options are used to display the marker above and to the left of
 the data point, so that the actual data point isn't covered by the marker. By default, markers are drawn last, on top of
-data. You can change this with the **−under** option.
+data. You can change this with the **-under** option.
 
 ```tcl
 # Draw the label before elements are drawn.
@@ -261,19 +261,19 @@ You can add cross hairs or grid lines using the **crosshairs** and **grid** oper
 
 ```tcl
 # Display both cross hairs and grid lines.
-.s crosshairs configure −hide no −color red
-.s grid configure −hide no −dashes {2 2}
+.s crosshairs configure -hide no -color red
+.s grid configure -hide no -dashes {2 2}
 ```
 
 Finally, to get hard copy of the strip chart, use the **postscript** operation.
 
 ```tcl
 # Print the strip chart into file "file.ps"
-.s postscript output file.ps −maxpect yes −decorations no
+.s postscript output file.ps -maxpect yes -decorations no
 ```
 
-This generates a file `file.ps` containing the encapsulated PostScript of the strip chart. The option **−maxpect** says
-to scale the plot to the size of the page. Turning off the **−decorations** option indicates that no borders or color
+This generates a file `file.ps` containing the encapsulated PostScript of the strip chart. The option **-maxpect** says
+to scale the plot to the size of the page. Turning off the **-decorations** option indicates that no borders or color
 backgrounds should be displayed (i.e. the background of the margins, legend, and plotting area will be white).
 
 ## Stripchart operations
@@ -299,85 +299,85 @@ backgrounds should be displayed (i.e. the background of the margins, legend, and
   *option* is returned. If one or more *option* and*value* pairs are specified, then for each pair, the stripchart
   option*option* is set to *value*. The following options are valid for the stripchart.
 
-  - **−background** *color* - Sets the background color. This includes the margins and legend, but not the plotting area.
+  - **-background** *color* - Sets the background color. This includes the margins and legend, but not the plotting area.
 
-  - **−borderwidth** *pixels* - Sets the width of the 3−D border around the outside edge of the widget.The **−relief**
+  - **-borderwidth** *pixels* - Sets the width of the 3-D border around the outside edge of the widget.The **-relief**
     option determines if the border is to be drawn. The default is `2`.
 
-  - **−bottommargin** *pixels* - Specifies the size of the margin below the X−coordinate axis. If *pixels* is `0`, the
+  - **-bottommargin** *pixels* - Specifies the size of the margin below the X-coordinate axis. If *pixels* is `0`, the
     size of the margin is selected automatically. The default is `0`.
 
-  - **−bufferelements** *boolean* - Indicates whether to draw elements into a pixmap before displaying them on the
+  - **-bufferelements** *boolean* - Indicates whether to draw elements into a pixmap before displaying them on the
     screen. The advantage of buffering elements is when markers are used heavily. Markers can be moved and redrawn
     without requiring every element to be redrawn again. The disadvantage is that it takes slightly longer to draw the
     graph. If *boolean* is true, data elements are drawn to an internal pixmap. The option should be turned off if the
     plot is updated frequently. See the **[Speed tips](#speed-tips)** section. The default is `1`.
 
-  - **−buffergraph** *boolean* - Indicates whether to draw the graph into a pixmap first. If *boolean* is true, the
+  - **-buffergraph** *boolean* - Indicates whether to draw the graph into a pixmap first. If *boolean* is true, the
     entire graph is drawn into a pixmap and then copied onto the screen. This reduces flashing. If false, the graph is
     drawn directly into the window. Especially under Windows, turning off the option can be helpful when the stripchart
-    is updated frequently. Turning off this option also turns **−bufferelements** off. See the **[Speed
+    is updated frequently. Turning off this option also turns **-bufferelements** off. See the **[Speed
     tips](#speed-tips)** section. The default is `1`.
 
-  - **−cursor** *cursor* - Specifies the widget's cursor. The default cursor is `crosshair`.
+  - **-cursor** *cursor* - Specifies the widget's cursor. The default cursor is `crosshair`.
 
-  - **−font** *fontName* - Specifies the title font. The default is `*-Helvetica-Bold-R-Normal-*-18-180-*`.
+  - **-font** *fontName* - Specifies the title font. The default is `*-Helvetica-Bold-R-Normal-*-18-180-*`.
 
-  - **−halo** *pixels* - Specifies a maximum distance to consider when searching for the closest data point (see the
+  - **-halo** *pixels* - Specifies a maximum distance to consider when searching for the closest data point (see the
     element's **closest** operation below). Data points further than *pixels* away are ignored. The default is `0.5i`.
 
-  - **−height** *pixels* - Specifies the requested height of widget. The default is `4i`.
+  - **-height** *pixels* - Specifies the requested height of widget. The default is `4i`.
 
-  - **−invertxy** *boolean* - Indicates whether the placement X−axis and Y−axis should be inverted. If*boolean* is true,
+  - **-invertxy** *boolean* - Indicates whether the placement X-axis and Y-axis should be inverted. If*boolean* is true,
     the X and Y axes are swapped. The default is `0`.
 
-  - **−justify** *justify* - Specifies how the title should be justified. This matters only when the title contains more
+  - **-justify** *justify* - Specifies how the title should be justified. This matters only when the title contains more
     than one line of text. *Justify* must be `left`,`right`, or `center`. The default is `center`.
 
-  - **−leftmargin** *pixels* - Sets the size of the margin from the left edge of the window to the Y−coordinate axis. If
+  - **-leftmargin** *pixels* - Sets the size of the margin from the left edge of the window to the Y-coordinate axis. If
     *pixels* is `0`, the size is calculated automatically. The default is `0`.
 
-  - **−plotbackground** *color* - Specifies the background color of the plotting area. The default is `white`.
+  - **-plotbackground** *color* - Specifies the background color of the plotting area. The default is `white`.
 
-  - **−plotborderwidth** *pixels* - Sets the width of the 3-D border around the plotting area. The **−plotrelief**
+  - **-plotborderwidth** *pixels* - Sets the width of the 3-D border around the plotting area. The **-plotrelief**
     option determines if a border is drawn. The default is`2`.
 
-  - **−plotpadx** *pad* - Sets the amount of padding to be added to the left and right sides of the plotting area. *Pad*
+  - **-plotpadx** *pad* - Sets the amount of padding to be added to the left and right sides of the plotting area. *Pad*
     can be a list of one or two screen distances.If *pad* has two elements, the left side of the plotting area entry
     is padded by the first distance and the right side by the second. If *pad*is just one distance, both the left and
     right sides are padded evenly.The default is `8`.
 
-  - **−plotpady** *pad* - Sets the amount of padding to be added to the top and bottom of the plotting area. *Pad* can
+  - **-plotpady** *pad* - Sets the amount of padding to be added to the top and bottom of the plotting area. *Pad* can
     be a list of one or two screen distances. If*pad* has two elements, the top of the plotting area is padded by the
     first distance and the bottom by the second. If *pad* is just one distance, both the top and bottom are padded
     evenly. The default is `8`.
 
-  - **−plotrelief** *relief* - Specifies the 3-D effect for the plotting area. *Relief* indicates how the interior of
+  - **-plotrelief** *relief* - Specifies the 3-D effect for the plotting area. *Relief* indicates how the interior of
     the plotting area should appear relative to rest of the stripchart; for example, `raised` means the plot should
     appear to protrude from the strip chart, relative to the surface of the stripchart. The default is `sunken`.
 
-  - **−relief** *relief* - Specifies the 3-D effect for the widget. *Relief* indicates how the strip chart should appear
+  - **-relief** *relief* - Specifies the 3-D effect for the widget. *Relief* indicates how the strip chart should appear
     relative to widget it is packed into; for example, `raised` means the strip chart should appear to protrude. The
     default is `flat`.
 
-  - **−rightmargin** *pixels* - Sets the size of margin from the plotting area to the right edge of the window. By
+  - **-rightmargin** *pixels* - Sets the size of margin from the plotting area to the right edge of the window. By
     default, the legend is displayed in this margin. If *pixels*is than 1, the margin size is selected automatically.
 
-  - **−takefocus** *focus* - Provides information used when moving the focus from window to window via keyboard
+  - **-takefocus** *focus* - Provides information used when moving the focus from window to window via keyboard
     traversal (e.g., Tab and Shift-Tab). If *focus* is `0`,this means that this window should be skipped entirely during
     keyboard traversal. `1` means that the this window should always receive the input focus. An empty value means that
     the traversal scripts make the decision whether to focus on the window. The default is `""`.
 
-  - **−tile** *image* - Specifies a tiled background. If *image* isn't `""`, the background is tiled using
-    *image*. Otherwise, the normal background color is drawn(see the **−background** option). *Image* must be an image
+  - **-tile** *image* - Specifies a tiled background. If *image* isn't `""`, the background is tiled using
+    *image*. Otherwise, the normal background color is drawn(see the **-background** option). *Image* must be an image
     created using the Tk **image** command. The default is `""`.
 
-  - **−title** *text* - Sets the title to *text*. If *text* is `""`, no title will be displayed.
+  - **-title** *text* - Sets the title to *text*. If *text* is `""`, no title will be displayed.
 
-  - **−topmargin** *pixels* - Specifies the size of the margin above the x2 axis. If *pixels* is `0`,the margin size is
+  - **-topmargin** *pixels* - Specifies the size of the margin above the x2 axis. If *pixels* is `0`,the margin size is
     calculated automatically.
 
-  - **−width** *pixels* - Specifies the requested width of the widget. The default is `5i`.
+  - **-width** *pixels* - Specifies the requested width of the widget. The default is `5i`.
 
 - *pathName* **crosshairs** *operation* ?*arg*?
 
@@ -399,7 +399,7 @@ backgrounds should be displayed (i.e. the background of the margins, legend, and
 - *pathName* **invtransform** *winX winY*
 
   Performs an inverse coordinate transformation, mapping window coordinates back to graph coordinates, using the
-  standard X−axis and Y−axis. Returns a list of containing the graph coordinates.
+  standard X-axis and Y-axis. Returns a list of containing the graph coordinates.
 
 - *pathName* **legend** *operation* ?*arg*? ...
 
@@ -429,8 +429,8 @@ backgrounds should be displayed (i.e. the background of the margins, legend, and
 
 - *pathName* **transform** *x y*
 
-  Performs a coordinate transformation, mapping graph coordinates to window coordinates, using the standard X−axis and
-  Y−axis. Returns a list containing the X−Y screen coordinates.
+  Performs a coordinate transformation, mapping graph coordinates to window coordinates, using the standard X-axis and
+  Y-axis. Returns a list containing the X-Y screen coordinates.
 
 - *pathName* **xaxis** *operation* ?*arg*? ... 
 - *pathName* **x2axis** *operation* ?*arg*? ...
@@ -448,7 +448,7 @@ the strip chart.
 
 ### Axis components
 
-Four coordinate axes are automatically created: two X−coordinate axes (`x` and `x2`) and two Y−coordinate axes (`y`, and
+Four coordinate axes are automatically created: two X-coordinate axes (`x` and `x2`) and two Y-coordinate axes (`y`, and
 `y2`). By default, the axis `x` is located in the bottom margin, `y` in the left margin, `x2` in the top margin, and
 `y2` in the right margin.
 
@@ -467,12 +467,12 @@ You can create and use several axes. To create an axis, invoke the axis componen
 .s axis create temperature
 ```
 
-You map data elements to an axis using the element's **−mapy** and **−mapx** configuration options. They specify the
+You map data elements to an axis using the element's **-mapy** and **-mapx** configuration options. They specify the
 coordinate axes an element is mapped onto.
 
 ```tcl
 # Now map the temperature data to this axis.
-.s element create "temp" −xdata $x −ydata $tempData −mapy temperature
+.s element create "temp" -xdata $x -ydata $tempData -mapy temperature
 ```
 
 While you can have many axes, only four axes can be displayed simultaneously. They are drawn in each of the margins
@@ -505,13 +505,13 @@ can define non-uniform tick intervals, such as for time-series plots.
   is returned. If one or more *option* and *value* pairs are specified, then for each pair, the axis option *option* is
   set to *value*. The following options are valid for axes.
 
-  - **−autorange** *range* - Sets the range of values for the axis to *range*. The axis limits are automatically reset
+  - **-autorange** *range* - Sets the range of values for the axis to *range*. The axis limits are automatically reset
     to display the most recent data points in this range. If *range* is 0.0, the range is determined from the limits of
-    the data. If **−min** or **-max** are specified, they override this option. The default is `0.0`.
+    the data. If **-min** or **-max** are specified, they override this option. The default is `0.0`.
 
-  - **−color** *color* - Sets the color of the axis and tick labels. The default is `black`.
+  - **-color** *color* - Sets the color of the axis and tick labels. The default is `black`.
 
-  - **−command** *prefix* - Specifies a Tcl command to be invoked when formatting the axis tick labels. *Prefix* is a
+  - **-command** *prefix* - Specifies a Tcl command to be invoked when formatting the axis tick labels. *Prefix* is a
     string containing the name of a Tcl proc and any extra arguments for the procedure. This command is invoked for each
     major tick on the axis. Two additional arguments are passed to the procedure: the path name of the widget and the
     current the numeric value of the tick. The procedure returns the formatted tick label. If `""` is returned, no label
@@ -522,73 +522,73 @@ can define non-uniform tick intervals, such as for time-series plots.
     redrawn. You may query the configuration options. But do not reset them,
     because this can have unexpected results.
 
-  - **−descending** *boolean* - Indicates whether the values along the axis are monotonically increasing or
+  - **-descending** *boolean* - Indicates whether the values along the axis are monotonically increasing or
     decreasing. If *boolean* is true, the axis values will be decreasing. The default is `0`.
 
-  - **−hide** *boolean* - Indicates whether the axis is displayed.
+  - **-hide** *boolean* - Indicates whether the axis is displayed.
 
-  - **−justify** *justify* - Specifies how the axis title should be justified. This matters only when the axis title
+  - **-justify** *justify* - Specifies how the axis title should be justified. This matters only when the axis title
     contains more than one line of text. *Justify* must be `left`, `right`, or `center`. The default is `center`.
 
-  - **−limits** *formatStr* - Specifies a printf-like description to format the minimum and maximum limits of the
+  - **-limits** *formatStr* - Specifies a printf-like description to format the minimum and maximum limits of the
     axis. The limits are displayed at the top/bottom or left/right sides of the plotting area. *FormatStr* is a list of
     one or two format descriptions. If one description is supplied, both the minimum and maximum limits are formatted in
     the same way. If two, the first designates the format for the minimum limit, the second for the maximum. If `""` is
     given as either description, then the that limit will not be displayed. The default is `""`.
 
-  - **−linewidth** *pixels* - Sets the width of the axis and tick lines. The default is `1` pixel.
+  - **-linewidth** *pixels* - Sets the width of the axis and tick lines. The default is `1` pixel.
 
-  - **−logscale** *boolean* - Indicates whether the scale of the axis is logarithmic or linear. If *boolean* is true,
+  - **-logscale** *boolean* - Indicates whether the scale of the axis is logarithmic or linear. If *boolean* is true,
     the axis is logarithmic. The default scale is linear.
 
-  - **−loose** *boolean* - Indicates whether the limits of the axis should fit the data points tightly, at the outermost
+  - **-loose** *boolean* - Indicates whether the limits of the axis should fit the data points tightly, at the outermost
     data points, or loosely, at the outer tick intervals. This is relevant only when the axis limit is automatically
     calculated. If *boolean* is true, the axis range is "loose". The default is `0`.
 
-  - **−majorticks** *majorList* - Specifies where to display major axis ticks. You can use this option to display ticks
+  - **-majorticks** *majorList* - Specifies where to display major axis ticks. You can use this option to display ticks
     at non-uniform intervals. *MajorList* is a list of axis coordinates designating the location of major ticks. No
     minor ticks are drawn. If *majorList* is `""`, major ticks will be automatically computed. The default is `""`.
 
-  - **−max** *value* - Sets the maximum limit of *axisName*. Any data point greater than *value* is not displayed. If
+  - **-max** *value* - Sets the maximum limit of *axisName*. Any data point greater than *value* is not displayed. If
     *value* is `""`, the maximum limit is calculated using the largest data value. The default is `""`.
 
-  - **−min** *value* - Sets the minimum limit of *axisName*. Any data point less than *value* is not displayed. If
+  - **-min** *value* - Sets the minimum limit of *axisName*. Any data point less than *value* is not displayed. If
     *value* is `""`, the minimum limit is calculated using the smallest data value. The default is `""`.
 
-  - **−minorticks** *minorList* - Specifies where to display minor axis ticks. You can use this option to display minor
+  - **-minorticks** *minorList* - Specifies where to display minor axis ticks. You can use this option to display minor
     ticks at non-uniform intervals. *MinorList* is a list of real values, ranging from 0.0 to 1.0, designating the
-    placement of a minor tick. No minor ticks are drawn if the **−majortick** option is also set. If *minorList* is
+    placement of a minor tick. No minor ticks are drawn if the **-majortick** option is also set. If *minorList* is
     `""`, minor ticks will be automatically computed. The default is `""`.
 
-  - **−rotate** *theta* - Specifies the how many degrees to rotate the axis tick labels. *Theta* is a real value
+  - **-rotate** *theta* - Specifies the how many degrees to rotate the axis tick labels. *Theta* is a real value
     representing the number of degrees to rotate the tick labels. The default is `0.0` degrees.
 
-  - **−shiftby** *value* - Specifies how much to automatically shift the range of the axis. When the new data exceeds
+  - **-shiftby** *value* - Specifies how much to automatically shift the range of the axis. When the new data exceeds
     the current axis maximum, the maximum is increased in increments of *value*. You can use this option to prevent the
     axis limits from being recomputed at each new time point. If *value* is 0.0, then no automatic shifting is done. The
     default is `0.0`.
 
-  - **−showticks** *boolean* - Indicates whether axis ticks should be drawn. If *boolean* is true, ticks are drawn. If
+  - **-showticks** *boolean* - Indicates whether axis ticks should be drawn. If *boolean* is true, ticks are drawn. If
     false, only the axis line is drawn. The default is `1`.
 
-  - **−stepsize** *value* - Specifies the interval between major axis ticks. If *value* isn't a valid interval (must be
+  - **-stepsize** *value* - Specifies the interval between major axis ticks. If *value* isn't a valid interval (must be
     less than the axis range), the request is ignored and the step size is automatically calculated.
 
-  - **−subdivisions** *number* - Indicates how many minor axis ticks are to be drawn. For example, if *number* is two,
+  - **-subdivisions** *number* - Indicates how many minor axis ticks are to be drawn. For example, if *number* is two,
     only one minor tick is drawn. If *number* is one, no minor ticks are displayed. The default is `2`.
 
-  - **−tickfont** *fontName* - Specifies the font for axis tick labels. The default is
+  - **-tickfont** *fontName* - Specifies the font for axis tick labels. The default is
     `*-Courier-Bold-R-Normal-*-100-*`.
 
-  - **−ticklength** *pixels* - Sets the length of major and minor ticks (minor ticks are half the length of major
+  - **-ticklength** *pixels* - Sets the length of major and minor ticks (minor ticks are half the length of major
     ticks). If *pixels* is less than zero, the axis will be inverted with ticks drawn pointing towards the plot. The
     default is `0.1i`.
 
-  - **−title** *text* - Sets the title of the axis. If *text* is `""`, no axis title will be displayed.
+  - **-title** *text* - Sets the title of the axis. If *text* is `""`, no axis title will be displayed.
 
-  - **−titlecolor** *color* - Sets the color of the axis title. The default is `black`.
+  - **-titlecolor** *color* - Sets the color of the axis title. The default is `black`.
 
-  - **−titlefont** *fontName* - Specifies the font for axis title. The default is
+  - **-titlefont** *fontName* - Specifies the font for axis title. The default is
     `*-Helvetica-Bold-R-Normal-*-14-140-*`.
 
   Axis configuration options may be also be set by the **option** command.  The resource class is `Axis`. The resource
@@ -684,18 +684,18 @@ The following operations are available for cross hairs:
   *option* is returned. If one or more *option* and*value* pairs are specified, then for each pair, the cross hairs
   option*option* is set to *value*. The following options are available for cross hairs.
 
-   - **−color** *color* - Sets the color of the cross hairs. The default is `black`.
+   - **-color** *color* - Sets the color of the cross hairs. The default is `black`.
 
-   - **−dashes** *dashList* - Sets the dash style of the cross hairs. *DashList* is a list of up to 11numbers that
+   - **-dashes** *dashList* - Sets the dash style of the cross hairs. *DashList* is a list of up to 11numbers that
      alternately represent the lengths of the dashes and gaps onthe cross hair lines. Each number must be between 1
      and 255. If*dashList* is `""`, the cross hairs will be solid lines.
 
-   - **−hide** *boolean* - Indicates whether cross hairs are drawn. If *boolean* is true, crosshairs are not drawn. The
+   - **-hide** *boolean* - Indicates whether cross hairs are drawn. If *boolean* is true, crosshairs are not drawn. The
      default is `yes`.
 
-   - **−linewidth** *pixels* - Set the width of the cross hair lines. The default is `1`.
+   - **-linewidth** *pixels* - Set the width of the cross hair lines. The default is `1`.
 
-   - **−position** *pos* - Specifies the screen position where the cross hairs intersect. *Pos*must be in the form
+   - **-position** *pos* - Specifies the screen position where the cross hairs intersect. *Pos*must be in the form
      "*@x,y*", where *x* and *y* are the windowcoordinates of the intersection.
 
   Cross hairs configuration options may be also be set by the **option** command. The resource name and class are
@@ -746,13 +746,13 @@ The following operations are available for elements.
   an element, that must not be hidden. If no elements are specified, then all visible elements are searched. It returns
   via the array variable *varName* the name of the closest element, the index of its closest point, and the
   graph coordinates of the point. Returns `0`, if no data point within the threshold distance can be found, otherwise `1`
-  is returned. The following *option*−*value* pairs are available.
+  is returned. The following *option*-*value* pairs are available.
 
-   - **−halo** *pixels* - Specifies a threshold distance where selected data points are ignored.*Pixels* is a valid
+   - **-halo** *pixels* - Specifies a threshold distance where selected data points are ignored.*Pixels* is a valid
      screen distance, such as `2` or `1.2i`. If this option isn't specified, then it defaults to the value of
-     the stripchart's **−halo** option.
+     the stripchart's **-halo** option.
 
-   - **−interpolate** *boolean* - Indicates that both the data points and interpolated points along the line segment
+   - **-interpolate** *boolean* - Indicates that both the data points and interpolated points along the line segment
      formed should be considered. If *boolean* is true, the closest line segment will be selected instead of the closest
      point. If this option isn't specified, *boolean* defaults to `0`.
 
@@ -763,82 +763,82 @@ The following operations are available for elements.
   *option* is returned. If one or more*option* and *value* pairs are specified, then for each pair, the element option
   *option* is set to *value*. The following options are valid for elements.
 
-   - **−activepen** *penName* - Specifies pen to use to draw active element. If *penName* is `""`, no active elements
+   - **-activepen** *penName* - Specifies pen to use to draw active element. If *penName* is `""`, no active elements
      will be drawn. The default is `activeLine`.
 
-   - **−color** *color* - Sets the color of the traces connecting the data points.
+   - **-color** *color* - Sets the color of the traces connecting the data points.
 
-   - **−dashes** *dashList* - Sets the dash style of element line. *DashList* is a list of up to 11numbers that
+   - **-dashes** *dashList* - Sets the dash style of element line. *DashList* is a list of up to 11numbers that
      alternately represent the lengths of the dashes and gaps on the element line. Each number must be between 1
      and 255. If *dashList*is `""`, the lines will be solid.
 
-   - **−data** *coordList* - Specifies the X−Y coordinates of the data. *CoordList* is a list of numeric expressions
-     representing the X−Y coordinate pairs of each data point.
+   - **-data** *coordList* - Specifies the X-Y coordinates of the data. *CoordList* is a list of numeric expressions
+     representing the X-Y coordinate pairs of each data point.
 
-   - **−fill** *color* - Sets the interior color of symbols. If *color* is `""`, then the interior of the symbol is
-     transparent. If *color* is `defcolor`, then the color will be the same as the **−color** option. The default
+   - **-fill** *color* - Sets the interior color of symbols. If *color* is `""`, then the interior of the symbol is
+     transparent. If *color* is `defcolor`, then the color will be the same as the **-color** option. The default
      is`defcolor`.
 
-   - **−hide** *boolean* - Indicates whether the element is displayed. The default is `no`.
+   - **-hide** *boolean* - Indicates whether the element is displayed. The default is `no`.
 
-   - **−label** *text* - Sets the element's label in the legend. If *text* is `""`, the element will have no entry in
+   - **-label** *text* - Sets the element's label in the legend. If *text* is `""`, the element will have no entry in
      the legend. The default label is the element's name.
 
-   - **−linewidth** *pixels* - Sets the width of the connecting lines between data points. If *pixels*is `0`, no
+   - **-linewidth** *pixels* - Sets the width of the connecting lines between data points. If *pixels*is `0`, no
      connecting lines will be drawn between symbols. The default is `0`.
 
-   - **−mapx** *xAxis* - Selects the X−axis to map the element's X−coordinates onto. *XAxis* must be the name of an
+   - **-mapx** *xAxis* - Selects the X-axis to map the element's X-coordinates onto. *XAxis* must be the name of an
      axis. The default is `x`.
 
-   - **−mapy** *yAxis* - Selects the Y−axis to map the element's Y−coordinates onto. *YAxis* must be the name of an
+   - **-mapy** *yAxis* - Selects the Y-axis to map the element's Y-coordinates onto. *YAxis* must be the name of an
      axis. The default is `y`.
 
-   - **−offdash** *color* - Sets the color of the stripes when traces are dashed (see the**−dashes** option). If *color*
+   - **-offdash** *color* - Sets the color of the stripes when traces are dashed (see the**-dashes** option). If *color*
      is `""`, then the "off" pixels will represent gaps instead of stripes. If *color* is `defcolor`, then the color
-     will be the same as the **−color** option. The default is`defcolor`.
+     will be the same as the **-color** option. The default is`defcolor`.
 
-   - **−outline** *color* - Sets the color or the outline around each symbol. If *color* is `""`,then no outline is
-     drawn. If *color* is `defcolor`, then the color will be the same as the **−color** option. The default is
+   - **-outline** *color* - Sets the color or the outline around each symbol. If *color* is `""`,then no outline is
+     drawn. If *color* is `defcolor`, then the color will be the same as the **-color** option. The default is
      `defcolor`.
 
-   - **−outlinewidth** *pixels* - Sets the width of the outline bordering each symbol. If *pixels* is `0`,no outline
+   - **-outlinewidth** *pixels* - Sets the width of the outline bordering each symbol. If *pixels* is `0`,no outline
      will be drawn. The default is `1`.
 
-   - **−pixels** *pixels* - Sets the size of symbols. If *pixels* is `0`, no symbols will be drawn.The default is
+   - **-pixels** *pixels* - Sets the size of symbols. If *pixels* is `0`, no symbols will be drawn.The default is
      `0.125i`.
 
-   - **−scalesymbols** *boolean* - If *boolean* is true, the size of the symbols drawn for *elemName* will change with
-     scale of the X−axis and Y−axis. At the time this option is set, the current ranges of the axes are saved as the
-     normalized scales(i.e scale factor is 1.0) and the element is drawn at its designated size (see the **−pixels**
-     option). As the scale of the axes change, the symbol will be scaled according to the smaller of the X−axis and
-     Y−axis scales. If *boolean* is false, the element's symbols are drawn at the designated size, regardless of axis
+   - **-scalesymbols** *boolean* - If *boolean* is true, the size of the symbols drawn for *elemName* will change with
+     scale of the X-axis and Y-axis. At the time this option is set, the current ranges of the axes are saved as the
+     normalized scales(i.e scale factor is 1.0) and the element is drawn at its designated size (see the **-pixels**
+     option). As the scale of the axes change, the symbol will be scaled according to the smaller of the X-axis and
+     Y-axis scales. If *boolean* is false, the element's symbols are drawn at the designated size, regardless of axis
      scales. The default is `0`.
 
-   - **−smooth** *smooth* - Specifies how connecting line segments are drawn between data points.*Smooth* can be either
+   - **-smooth** *smooth* - Specifies how connecting line segments are drawn between data points.*Smooth* can be either
      `linear`, `step`, `natural`, or `quadratic`. If*smooth* is `linear`, a single line segment is drawn, connecting
      both data points. When *smooth* is `step`, two line segments are drawn. The first is a horizontal line segment
      which steps the next x-coordinate.The second is a vertical line, moving to the next y-coordinate. Both*natural* and
      *quadratic* generate multiple segments between data points. If *natural*, the segments are generated using a cubic
      spline.If *quadratic*, a quadratic spline is used. The default is *linear*.
 
-   - **−styles** *styleList* - Specifies what pen to use based upon the range of weights given.*StyleList* is a list of
+   - **-styles** *styleList* - Specifies what pen to use based upon the range of weights given.*StyleList* is a list of
      style specifications. Each style specification,in turn, is a list consisting of a pen name, and optionally a
-     minimum and maximum range. Data points whose weight (see the **−weight** option)falls in this range, are drawn with
+     minimum and maximum range. Data points whose weight (see the **-weight** option)falls in this range, are drawn with
      this pen. If no range is specified it defaults to the number of the pen in the list.
 
-   - **−symbol** *symbol* - Specifies the symbol for data points. *Symbol* can be either `square`,`circle`, `diamond`,
+   - **-symbol** *symbol* - Specifies the symbol for data points. *Symbol* can be either `square`,`circle`, `diamond`,
      `plus`, `cross`, `splus`, `scross`, `triangle`,`""` (where no symbol is drawn), or a bitmap. Bitmaps are specified
      as "*source* ?*mask*?", where *source* is the name of the bitmap, and*mask* is the bitmap's optional mask. The
      default is `circle`.
 
-   - **−weights** *wVec* - Specifies the weights of the individual data points. This, in conjunction with the list pen
-     styles (see the **−styles** option)controls how data points are drawn. *WVec* is the name of a BLT vector or a list
+   - **-weights** *wVec* - Specifies the weights of the individual data points. This, in conjunction with the list pen
+     styles (see the **-styles** option)controls how data points are drawn. *WVec* is the name of a BLT vector or a list
      of numeric expressions representing the weights for each data point.
 
-   - **−xdata** *xVec* - Specifies the x-coordinates of the data. *XVec* is the name of a RBCvector or a list of numeric
+   - **-xdata** *xVec* - Specifies the x-coordinates of the data. *XVec* is the name of a RBCvector or a list of numeric
      expressions.
 
-   - **−ydata** *yVec* - Specifies the y-coordinates of the data. *YVec* is the name of a RBCvector or a list of numeric
+   - **-ydata** *yVec* - Specifies the y-coordinates of the data. *YVec* is the name of a RBCvector or a list of numeric
      expressions.
 
   Element configuration options may also be set by the **option** command.  The resource class is `Element`. The
@@ -900,24 +900,24 @@ operations are available for grid lines.
   *option* is returned. If one or more *option* and*value* pairs are specified, then for each pair, the grid line
   option*option* is set to *value*. The following options are valid for grid lines.
 
-   - **−color** *color* - Sets the color of the grid lines. The default is `black`.
+   - **-color** *color* - Sets the color of the grid lines. The default is `black`.
 
-   - **−dashes** *dashList* - Sets the dash style of the grid lines. *DashList* is a list of up to 11numbers that
+   - **-dashes** *dashList* - Sets the dash style of the grid lines. *DashList* is a list of up to 11numbers that
      alternately represent the lengths of the dashes and gaps on the grid lines. Each number must be between 1
      and 255. If *dashList* is`""`, the grid will be solid lines.
 
-   - **−hide** *boolean* - Indicates whether the grid should be drawn. If *boolean* is true, grid lines are not
+   - **-hide** *boolean* - Indicates whether the grid should be drawn. If *boolean* is true, grid lines are not
      shown. The default is `yes`.
 
-   - **−linewidth** *pixels* - Sets the width of grid lines. The default width is `1`.
+   - **-linewidth** *pixels* - Sets the width of grid lines. The default width is `1`.
 
-   - **−mapx** *xAxis* - Specifies the X−axis to display grid lines. *XAxis* must be the name of an axis. The default is
+   - **-mapx** *xAxis* - Specifies the X-axis to display grid lines. *XAxis* must be the name of an axis. The default is
      `x`.
 
-   - **−mapy** *yAxis* - Specifies the Y−axis to display grid lines. *YAxis* must be the name of an axis. The default is
+   - **-mapy** *yAxis* - Specifies the Y-axis to display grid lines. *YAxis* must be the name of an axis. The default is
      `y`.
 
-   - **−minor** *boolean* - Indicates whether the grid lines should be drawn for minor ticks. If*boolean* is true, the
+   - **-minor** *boolean* - Indicates whether the grid lines should be drawn for minor ticks. If*boolean* is true, the
      lines will appear at minor tick intervals. The default is `1`.
 
   Grid configuration options may also be set by the **option** command.
@@ -965,21 +965,21 @@ The following operations are valid for the legend.
   *option* is returned. If one or more *option* and*value* pairs are specified, then for each pair, the legend
   option*option* is set to *value*. The following options are valid for the legend.
 
-   - **−activebackground** *color* - Sets the background color for active legend entries. All legend entries marked
+   - **-activebackground** *color* - Sets the background color for active legend entries. All legend entries marked
      active (see the legend **activate** operation) are drawn using this background color.
 
-   - **−activeborderwidth** *pixels* - Sets the width of the 3-D border around the outside edge of the active legend
+   - **-activeborderwidth** *pixels* - Sets the width of the 3-D border around the outside edge of the active legend
      entries. The default is `2`.
 
-   - **−activeforeground** *color* - Sets the foreground color for active legend entries. All legend entries marked as
+   - **-activeforeground** *color* - Sets the foreground color for active legend entries. All legend entries marked as
      active (see the legend **activate** operation) are drawn using this foreground color.
 
-   - **−activerelief** *relief* - Specifies the 3-D effect desired for active legend entries. *Relief*denotes how the
+   - **-activerelief** *relief* - Specifies the 3-D effect desired for active legend entries. *Relief*denotes how the
      interior of the entry should appear relative to the legend; for example, `raised` means the entry should appear to
      protrude from the legend, relative to the surface of the legend. The default is`flat`.
 
-   - **−anchor** *anchor* - Tells how to position the legend relative to the positioning point for the legend. This is
-     dependent on the value of the **−position** option.The default is `center`.
+   - **-anchor** *anchor* - Tells how to position the legend relative to the positioning point for the legend. This is
+     dependent on the value of the **-position** option.The default is `center`.
 
        - `left` or `right` - The anchor describes how to position the legend vertically.
        - `top` or `bottom` - The anchor describes how to position the legend horizontally.
@@ -991,51 +991,51 @@ The following operations are valid for the legend.
          *anchor* is `center` then the legend is centered in the plotting area; if *anchor* is `ne` then the legend will
          be drawn such that occupies the upper right corner of the plotting area.
  
-   - **−background** *color* - Sets the background color of the legend. If *color* is `""`, the legend background with
+   - **-background** *color* - Sets the background color of the legend. If *color* is `""`, the legend background with
      be transparent.
 
-   - **−borderwidth** *pixels* - Sets the width of the 3-D border around the outside edge of the legend(if such border
+   - **-borderwidth** *pixels* - Sets the width of the 3-D border around the outside edge of the legend(if such border
      is being drawn; the **relief** option determines this). The default is `2` pixels.
 
-   - **−font** *fontName* - *FontName* specifies a font to use when drawing the labels of each element into the
+   - **-font** *fontName* - *FontName* specifies a font to use when drawing the labels of each element into the
      legend. The default is`*-Helvetica-Bold-R-Normal-*-12-120-*`.
 
-   - **−foreground** *color* - Sets the foreground color of the text drawn for the element's label. The default is
+   - **-foreground** *color* - Sets the foreground color of the text drawn for the element's label. The default is
      `black`.
 
-   - **−hide** *boolean* - Indicates whether the legend should be displayed. If *boolean* is true,the legend will not be
+   - **-hide** *boolean* - Indicates whether the legend should be displayed. If *boolean* is true,the legend will not be
      draw. The default is `no`.
 
-   - **−ipadx** *pad* - Sets the amount of internal padding to be added to the width of each legend entry. *Pad* can be
+   - **-ipadx** *pad* - Sets the amount of internal padding to be added to the width of each legend entry. *Pad* can be
      a list of one or two screen distances. If*pad* has two elements, the left side of the legend entry is padded by the
      first distance and the right side by the second. If *pad* is just one distance, both the left and right sides are
      padded evenly. The default is `2`.
 
-   - **−ipady** *pad* - Sets an amount of internal padding to be added to the height of each legend entry. *Pad* can be
+   - **-ipady** *pad* - Sets an amount of internal padding to be added to the height of each legend entry. *Pad* can be
      a list of one or two screen distances. If*pad* has two elements, the top of the entry is padded by the first
      distance and the bottom by the second. If *pad* is just one distance,both the top and bottom of the entry are
      padded evenly. The default is`2`.
 
-   - **−padx** *pad* - Sets the padding to the left and right exteriors of the legend. *Pad*can be a list of one or two
+   - **-padx** *pad* - Sets the padding to the left and right exteriors of the legend. *Pad*can be a list of one or two
      screen distances. If *pad* has two elements,the left side of the legend is padded by the first distance and
      the right side by the second. If *pad* has just one distance, both the left and right sides are padded evenly. The
      default is `4`.
 
-   - **−pady** *pad* - Sets the padding above and below the legend. *Pad* can be a list of one or two screen
+   - **-pady** *pad* - Sets the padding above and below the legend. *Pad* can be a list of one or two screen
      distances. If *pad* has two elements, the area above the legend is padded by the first distance and the area below
      by the second.If *pad* is just one distance, both the top and bottom areas are padded evenly. The default is `0`.
 
-   - **−position** *pos* - Specifies where the legend is drawn. The **−anchor** option also affects where the legend is
+   - **-position** *pos* - Specifies where the legend is drawn. The **-anchor** option also affects where the legend is
      positioned. If *pos* is `left`, `left`, `top`, or`bottom`, the legend is drawn in the specified margin. If *pos*
      is`plotarea`, then the legend is drawn inside the plotting area at a particular anchor. If *pos* is in the form
      "*@x,y*", where *x* and*y* are the window coordinates, the legend is drawn in the plotting area at the specified
      coordinates. The default is `right`.
 
-   - **−raised** *boolean* - Indicates whether the legend is above or below the data elements. This matters only if the
+   - **-raised** *boolean* - Indicates whether the legend is above or below the data elements. This matters only if the
      legend is in the plotting area. If *boolean* is true, the legend will be drawn on top of any elements that may
      overlap it. The default is `no`.
 
-   - **−relief** *relief* - Specifies the 3-D effect for the border around the legend. *Relief* specifies how the
+   - **-relief** *relief* - Specifies the 3-D effect for the border around the legend. *Relief* specifies how the
      interior of the legend should appear relative to the stripchart; for example, `raised` means the legend should
      appear to protrude from the strip chart, relative to the surface of the stripchart. The default is `sunken`.
 
@@ -1063,7 +1063,7 @@ The following operations are valid for the legend.
 Pens define attributes (both symbol and line style) for elements. Pens mirror the configuration options of data elements
 that pertain to how symbols and lines are drawn. Data elements use pens to determine how they are drawn. A data element
 may use several pens at once. In this case, the pen used for a particular data point is determined from each element's
-weight vector (see the element's **−weight** and **−style** options).
+weight vector (see the element's **-weight** and **-style** options).
 
 One pen, called `activeLine`, is automatically created. It's used as the default active pen for elements. So you can
 change the active attributes for all elements by simply re configuring this pen.
@@ -1078,14 +1078,14 @@ You can create and use any number of pens. To create a pen, invoke the pen compo
 .s pen create myPen
 ```
 
-You map pens to a data element using either the element's **−pen** or **−activepen** options.
+You map pens to a data element using either the element's **-pen** or **-activepen** options.
 
 ```tcl
 .s element create "line1" -xdata $x -ydata $tempData -pen myPen
 ```
 
 An element can use several pens at once. This is done by specifying the name of the pen in the element's style list (see
-the **−styles** option).
+the **-styles** option).
 
 ```tcl
 .s element configure "line1" -styles {myPen 2.0 3.0}
@@ -1108,39 +1108,39 @@ The following operations are available for pen components.
   returned. If one or more *option* and *value*pairs are specified, then for each pair, the pen option *option* is set
   to *value*. The following options are valid for pens.
 
-  - **−color** *color* - Sets the color of the traces connecting the data points.
+  - **-color** *color* - Sets the color of the traces connecting the data points.
 
-  - **−dashes** *dashList* - Sets the dash style of element line. *DashList* is a list of up to 11numbers that
+  - **-dashes** *dashList* - Sets the dash style of element line. *DashList* is a list of up to 11numbers that
     alternately represent the lengths of the dashes and gaps on the element line. Each number must be between 1
     and 255. If *dashList*is `""`, the lines will be solid.
 
-  - **−fill** *color* - Sets the interior color of symbols. If *color* is `""`, then the interior of the symbol is
-    transparent. If *color* is `defcolor`, then the color will be the same as the **−color** option. The default
+  - **-fill** *color* - Sets the interior color of symbols. If *color* is `""`, then the interior of the symbol is
+    transparent. If *color* is `defcolor`, then the color will be the same as the **-color** option. The default
     is`defcolor`.
 
-  - **−linewidth** *pixels* - Sets the width of the connecting lines between data points. If *pixels*is `0`, no
+  - **-linewidth** *pixels* - Sets the width of the connecting lines between data points. If *pixels*is `0`, no
     connecting lines will be drawn between symbols. The default is `0`.
 
-  - **−offdash** *color* - Sets the color of the stripes when traces are dashed (see the**−dashes** option). If *color*
+  - **-offdash** *color* - Sets the color of the stripes when traces are dashed (see the**-dashes** option). If *color*
     is `""`, then the "off" pixels will represent gaps instead of stripes. If *color* is `defcolor`, then the color will
-    be the same as the **−color** option. The default is`defcolor`.
+    be the same as the **-color** option. The default is`defcolor`.
 
-  - **−outline** *color* - Sets the color or the outline around each symbol. If *color* is `""`,then no outline is
-    drawn. If *color* is `defcolor`, then the color will be the same as the **−color** option. The default is
+  - **-outline** *color* - Sets the color or the outline around each symbol. If *color* is `""`,then no outline is
+    drawn. If *color* is `defcolor`, then the color will be the same as the **-color** option. The default is
     `defcolor`.
 
-  - **−outlinewidth** *pixels* - Sets the width of the outline bordering each symbol. If *pixels* is `0`,no outline will
+  - **-outlinewidth** *pixels* - Sets the width of the outline bordering each symbol. If *pixels* is `0`,no outline will
     be drawn. The default is `1`.
 
-  - **−pixels** *pixels* - Sets the size of symbols. If *pixels* is `0`, no symbols will be drawn.The default is
+  - **-pixels** *pixels* - Sets the size of symbols. If *pixels* is `0`, no symbols will be drawn.The default is
     `0.125i`.
 
-  - **−symbol** *symbol* - Specifies the symbol for data points. *Symbol* can be either `square`,`circle`, `diamond`,
+  - **-symbol** *symbol* - Specifies the symbol for data points. *Symbol* can be either `square`,`circle`, `diamond`,
     `plus`, `cross`, `splus`, `scross`, `triangle`,`""` (where no symbol is drawn), or a bitmap. Bitmaps are specified
     as"*source* ?*mask*?", where *source* is the name of the bitmap, and *mask* is the bitmap's optional mask. The
     default is `circle`.
 
-  - **−type** *elemType* - Specifies the type of element the pen is to be used with. This option should only be employed
+  - **-type** *elemType* - Specifies the type of element the pen is to be used with. This option should only be employed
     when creating the pen. This is for those that wish to mix different types of elements (bars and lines) on the
     same graph. The default type is "line".
 
@@ -1188,21 +1188,21 @@ The following postscript operations are available.
   describing *option* is returned. If one or more*option* and *value* pairs are specified, then for each pair,
   the postscript option *option* is set to *value*. The following postscript options are available.
 
-  - **−center** *boolean* - Indicates whether the plot should be centered on the PostScript page. If*boolean* is false,
+  - **-center** *boolean* - Indicates whether the plot should be centered on the PostScript page. If*boolean* is false,
     the plot will be placed in the upper left corner of the page. The default is `1`.
 
-  - **−colormap** *varName* - *VarName* must be the name of a global array variable that specifies a color mapping from
+  - **-colormap** *varName* - *VarName* must be the name of a global array variable that specifies a color mapping from
     the X color name to PostScript. Each element of *varName* must consist of PostScript code to set a particular color
     value (e.g. ''`1.0 1.0 0.0 setrgbcolor`''). When outputting color information in PostScript, the array variable
     *varName* is checked to see if an element of the name of the color exists. If so, it uses the value of the element
     as the PostScript command to set the color. If this option hasn't been specified, or if there isn't an entry in
     *varName*for a given color, then it uses the red, green, and blue intensities from the X color.
 
-  - **−colormode** *mode* - Specifies how to output color information. *Mode* must be either `color`(for full color
+  - **-colormode** *mode* - Specifies how to output color information. *Mode* must be either `color`(for full color
     output), `gray` (convert all colors to their gray-scale equivalents) or `mono` (convert foreground colors to black
     and background colors to white). The default mode is `color`.
 
-  - **−fontmap** *varName* - *VarName* must be the name of a global array variable that specifies a font mapping from
+  - **-fontmap** *varName* - *VarName* must be the name of a global array variable that specifies a font mapping from
     the X font name to PostScript. Each element of*varName* must consist of a Tcl list with one or two elements, which
     are the name and point size of a PostScript font. When outputting PostScript commands for a particular font, the
     array variable *varName* is checked to see an element of the specified font exists. If there is such an element,
@@ -1211,39 +1211,39 @@ The following postscript operations are available.
     PostScript font to use. This works only for fonts whose foundry property is *Adobe* (such as Times,
     Helvetica,Courier, etc.). If all of this fails then the font defaults to`Helvetica-Bold`.
 
-  - **−decorations** *boolean* - Indicates if PostScript commands to generate color backgrounds and 3-D borders should
+  - **-decorations** *boolean* - Indicates if PostScript commands to generate color backgrounds and 3-D borders should
     be output. If *boolean* is false, the background will be white and no 3-D borders will be generated. The default is
     `1`.
 
-  - **−height** *pixels* - Sets the height of the plot. This lets you plot the stripchart with a height different from
+  - **-height** *pixels* - Sets the height of the plot. This lets you plot the stripchart with a height different from
     the one displayed on the screen. If *pixels* is 0,the height is the same as the displayed height. The default is
     `0`.
 
-  - **−landscape** *boolean* - If *boolean* is true, this specifies the printed area is to be rotated90 degrees. In
+  - **-landscape** *boolean* - If *boolean* is true, this specifies the printed area is to be rotated90 degrees. In
     non-rotated output the X-axis of the printed area runs along the short dimension of the page (''portrait''
     orientation); in rotated output the X-axis runs along the long dimension of the page(''landscape''
     orientation). Defaults to `0`.
 
-  - **−maxpect** *boolean* - Indicates to scale the the plot so that it fills the PostScript page.The aspect ratio of
+  - **-maxpect** *boolean* - Indicates to scale the the plot so that it fills the PostScript page.The aspect ratio of
     the strip chart is still retained. The default is `0`.
 
-  - **−padx** *pad* - Sets the horizontal padding for the left and right page borders. The borders are exterior to the
+  - **-padx** *pad* - Sets the horizontal padding for the left and right page borders. The borders are exterior to the
     plot. *Pad* can be a list of one or two screen distances. If *pad* has two elements, the left border is padded by
     the first distance and the right border by the second. If *pad* has just one distance, both the left and right
     borders are padded evenly.The default is `1i`.
 
-  - **−pady** *pad* - Sets the vertical padding for the top and bottom page borders. The borders are exterior to the
+  - **-pady** *pad* - Sets the vertical padding for the top and bottom page borders. The borders are exterior to the
     plot. *Pad* can be a list of one or two screen distances. If *pad* has two elements, the top border is padded by the
     first distance and the bottom border by the second. If *pad* has just one distance, both the top and bottom borders
     are padded evenly. The default is `1i`.
 
-  - **−paperheight** *pixels* - Sets the height of the postscript page. This can be used to select between different
+  - **-paperheight** *pixels* - Sets the height of the postscript page. This can be used to select between different
     page sizes (letter, A4, etc). The default height is`11.0i`.
 
-  - **−paperwidth** *pixels* - Sets the width of the postscript page. This can be used to select between different page
+  - **-paperwidth** *pixels* - Sets the width of the postscript page. This can be used to select between different page
     sizes (letter, A4, etc). The default width is `8.5i`.
 
-  - **−width** *pixels* - Sets the width of the plot. This lets you plot the strip chart with a width different from the
+  - **-width** *pixels* - Sets the width of the plot. This lets you plot the strip chart with a width different from the
     one drawn on the screen. If *pixels* is 0, the width is the same as the widget's width. The default is `0`.
 
   Postscript configuration options may be also be set by the **option** command. The resource name and class are
@@ -1265,7 +1265,7 @@ The following postscript operations are available.
 Markers are simple drawing procedures used to annotate or highlight areas of the strip chart. Markers have various
 types: text strings, bitmaps, images, connected lines, windows, or polygons. They can be associated with a particular
 element, so that when the element is hidden or un-hidden, so is the marker. By default, markers are the last items
-drawn, so that data elements will appear in behind them. You can change this by configuring the **−under** option.
+drawn, so that data elements will appear in behind them. You can change this by configuring the **-under** option.
 
 Markers, in contrast to elements, don't affect the scaling of the coordinate axes. They can also have *elastic*
 coordinates (specified by `-Inf` and `Inf` respectively) that translate into the minimum or maximum limit of the
@@ -1301,36 +1301,36 @@ The following operations are available for markers.
   The following options are valid for all markers. Each type of marker also has its own type-specific options. They are
   described in the sections below.
 
-  - **−coords** *coordList* - Specifies the coordinates of the marker. *CoordList* is a list of graph coordinates. The
+  - **-coords** *coordList* - Specifies the coordinates of the marker. *CoordList* is a list of graph coordinates. The
     number of coordinates required is dependent on the type of marker. Text, image, and window markers need only two
-    coordinates (an X−Y coordinate). Bitmap markers can take either two or four coordinates(if four, they represent the
+    coordinates (an X-Y coordinate). Bitmap markers can take either two or four coordinates(if four, they represent the
     corners of the bitmap). Line markers need at least four coordinates, polygons at least six. If *coordList* is`""`,
     the marker will not be displayed. The default is `""`.
 
-  - **−element** *elemName* - Links the marker with the element *elemName*. The marker is drawn only if the element is
+  - **-element** *elemName* - Links the marker with the element *elemName*. The marker is drawn only if the element is
     also currently displayed (see the element's **show**operation). If *elemName* is `""`, the marker is always
     drawn. Thedefault is `""`.
 
-  - **−hide** *boolean* - Indicates whether the marker is drawn. If *boolean* is true, the marker is not drawn. The
+  - **-hide** *boolean* - Indicates whether the marker is drawn. If *boolean* is true, the marker is not drawn. The
     default is `no`.
 
-  - **−mapx** *xAxis* - Specifies the X−axis to map the marker's X−coordinates onto. *XAxis* must the name of an
+  - **-mapx** *xAxis* - Specifies the X-axis to map the marker's X-coordinates onto. *XAxis* must the name of an
     axis. The default is `x`.
 
-  - **−mapy** *yAxis* - Specifies the Y−axis to map the marker's Y−coordinates onto. *YAxis* must the name of an
+  - **-mapy** *yAxis* - Specifies the Y-axis to map the marker's Y-coordinates onto. *YAxis* must the name of an
     axis. The default is `y`.
 
-  - **−name** *markerId* - Changes the identifier for the marker. The identifier *markerId* can not already be used by
+  - **-name** *markerId* - Changes the identifier for the marker. The identifier *markerId* can not already be used by
     another marker. If this option isn't specified, the marker's name is uniquely generated.
 
-  - **−under** *boolean* - Indicates whether the marker is drawn below/above data elements. If *boolean* is true, the
+  - **-under** *boolean* - Indicates whether the marker is drawn below/above data elements. If *boolean* is true, the
     marker is be drawn underneath the data element symbols and lines. Otherwise, the marker is drawn on top of the
     element. The default is `0`.
 
-  - **−xoffset** *pixels* - Specifies a screen distance to offset the marker horizontally. *Pixels* is a valid screen
+  - **-xoffset** *pixels* - Specifies a screen distance to offset the marker horizontally. *Pixels* is a valid screen
     distance, such as `2` or `1.2i`. The default is `0`.
 
-  - **−yoffset** *pixels* - Specifies a screen distance to offset the markers vertically. *Pixels* is a valid screen
+  - **-yoffset** *pixels* - Specifies a screen distance to offset the markers vertically. *Pixels* is a valid screen
     distance, such as `2` or `1.2i`. The default is `0`.
 
   Marker configuration options may also be set by the **option** command.  The resource class is either `BitmapMarker`,
@@ -1347,7 +1347,7 @@ The following operations are available for markers.
 
   Creates a marker of the selected type. *Type* may be either `text`, `line`, `bitmap`, `image`, `polygon`, or
   `window`. This command returns the marker identifier, used as the *markerId* argument in the other marker-related
-  commands. If the **−name** option is used, this overrides the normal marker identifier. If the name provided is
+  commands. If the **-name** option is used, this overrides the normal marker identifier. If the name provided is
   already used for another marker, the new marker will replace the old.
 
 - *pathName* **marker delete** ?*name*? ...
@@ -1380,22 +1380,22 @@ Bitmap markers are created with the marker's **create** operation in the form:
 - *pathName* **marker create bitmap** ?*option value*? ... 
 
   There may be many *option*-*value* pairs, each sets a configuration options for the marker. These same
-  *option*−*value* pairs may be used with the marker's **configure** operation.
+  *option*-*value* pairs may be used with the marker's **configure** operation.
 
 The following options are specific to bitmap markers:
 
-  - **−background** *color* - Sets the background color of the bitmap. If *color* is `""`, the background color will be
+  - **-background** *color* - Sets the background color of the bitmap. If *color* is `""`, the background color will be
     transparent. The default background color is `white`.
 
-  - **−bitmap** *bitmap* - Specifies the bitmap to be displayed. If *bitmap* is `""`, the marker will not be
+  - **-bitmap** *bitmap* - Specifies the bitmap to be displayed. If *bitmap* is `""`, the marker will not be
     displayed. The default is `""`.
 
-  - **−foreground** *color* - Sets the foreground color of the bitmap. The default foreground color is `black`.
+  - **-foreground** *color* - Sets the foreground color of the bitmap. The default foreground color is `black`.
 
-  - **−mask** *mask* - Specifies a mask for the bitmap to be displayed. This mask is a bitmap itself, denoting the
+  - **-mask** *mask* - Specifies a mask for the bitmap to be displayed. This mask is a bitmap itself, denoting the
     pixels that are transparent. If *mask* is `""`, all pixels of the bitmap will be drawn. The default is `""`.
 
-  - **−rotate** *theta* - Sets the rotation of the bitmap. *Theta* is a real number representing the angle of rotation
+  - **-rotate** *theta* - Sets the rotation of the bitmap. *Theta* is a real number representing the angle of rotation
     in degrees. The marker is first rotated and then placed according to its anchor position. The default rotation is
     `0.0`.
 
@@ -1408,12 +1408,12 @@ marker's **create** operation in the form:
 
 There may be many *option*-*value* pairs,
 each sets a configuration option for the marker. These same
-*option*−*value* pairs may be used with the marker's **configure**
+*option*-*value* pairs may be used with the marker's **configure**
 operation.
 
 The following options are specific to image markers:
 
-  - **−anchor** *anchor*
+  - **-anchor** *anchor*
 
 *Anchor* tells how to position the image relative to the positioning
 point for the image. For example, if *anchor* is `center` then the image
@@ -1422,7 +1422,7 @@ drawn such that the top center point of the rectangular region occupied
 by the image will be at the positioning point. This option defaults to
 `center`.
 
-  - **−image** *image*
+  - **-image** *image*
 
 Specifies the image to be drawn. If *image* is `""`, the marker will not
 be drawn. The default is `""`.
@@ -1439,18 +1439,18 @@ are created with marker's **create** operation in the form:
 
   The following options are specific to line markers:
 
-  - **−background** *color* - Sets the background color of the line. The option is affects the line color only when the
-    **−stipple** option is set. If this option isn't specified then it defaults to `white`.
+  - **-background** *color* - Sets the background color of the line. The option is affects the line color only when the
+    **-stipple** option is set. If this option isn't specified then it defaults to `white`.
 
-  - **−dashes** *dashList* - Sets the dash style of the line. *DashList* is a list of up to 11 numbers that alternately
+  - **-dashes** *dashList* - Sets the dash style of the line. *DashList* is a list of up to 11 numbers that alternately
     represent the lengths of the dashes and gaps on the line. Each number must be between 1 and 255. If *dashList* is
     `""`, the marker line will be solid.
 
-  - **−foreground** *color* - Sets the foreground color. The default foreground color is `black`.
+  - **-foreground** *color* - Sets the foreground color. The default foreground color is `black`.
 
-  - **−linewidth** *pixels* - Sets the width of the lines. The default width is `0`.
+  - **-linewidth** *pixels* - Sets the width of the lines. The default width is `0`.
 
-  - **−stipple** *bitmap* - Specifies a stipple pattern used to draw the line, rather than a solid line. *Bitmap*
+  - **-stipple** *bitmap* - Specifies a stipple pattern used to draw the line, rather than a solid line. *Bitmap*
     specifies a bitmap to use as the stipple pattern. If *bitmap* is `""`, then the line is drawn in a solid
     fashion. The default is `""`.
 
@@ -1464,26 +1464,26 @@ operation in the form:
 - *pathName* **marker create polygon** ?*option value*? ... 
 
 There may be many *option*-*value* pairs, each sets a
-configuration option for the marker. These same *option*−*value* pairs
+configuration option for the marker. These same *option*-*value* pairs
 may be used with the **marker configure** command to change the marker's
 configuration. The following options are supported for polygon markers:
 
-  - **−dashes** *dashList* - Sets the dash style of the outline of the polygon. *DashList* is a list of up to 11 numbers
+  - **-dashes** *dashList* - Sets the dash style of the outline of the polygon. *DashList* is a list of up to 11 numbers
     that alternately represent the lengths of the dashes and gaps on the outline. Each number must be between 1
     and 255. If *dashList* is `""`, the outline will be a solid line.
 
-  - **−fill** *color* - Sets the fill color of the polygon. If *color* is `""`, then the interior of the polygon is
+  - **-fill** *color* - Sets the fill color of the polygon. If *color* is `""`, then the interior of the polygon is
     transparent. The default is `white`.
 
-  - **−linewidth** *pixels* - Sets the width of the outline of the polygon. If *pixels* is zero, no outline is
+  - **-linewidth** *pixels* - Sets the width of the outline of the polygon. If *pixels* is zero, no outline is
     drawn. The default is `0`.
 
-  - **−outline** *color* - Sets the color of the outline of the polygon. If the polygon is stippled (see the
-    **−stipple** option), then this represents the foreground color of the stipple. The default is `black`.
+  - **-outline** *color* - Sets the color of the outline of the polygon. If the polygon is stippled (see the
+    **-stipple** option), then this represents the foreground color of the stipple. The default is `black`.
 
-  - **−stipple** *bitmap* - Specifies that the polygon should be drawn with a stippled pattern rather than a solid
+  - **-stipple** *bitmap* - Specifies that the polygon should be drawn with a stippled pattern rather than a solid
     color. *Bitmap* specifies a bitmap to use as the stipple pattern. If *bitmap* is `""`, then the polygon is filled
-    with a solid color (if the **−fill** option is set). The default is `""`.
+    with a solid color (if the **-fill** option is set). The default is `""`.
 
 ### Text markers
 
@@ -1495,40 +1495,40 @@ operation in the form:
 - *pathName* **marker create text** ?*option value*? ...
 
   There may be many *option*-*value* pairs, each sets a configuration option for the text marker. These same
-  *option*−*value* pairs may be used with the marker's **configure** operation.
+  *option*-*value* pairs may be used with the marker's **configure** operation.
 
   The following options are specific to text markers:
 
-  - **−anchor** *anchor* - *Anchor* tells how to position the text relative to the positioning point for the text. For
+  - **-anchor** *anchor* - *Anchor* tells how to position the text relative to the positioning point for the text. For
     example, if *anchor* is `center` then the text is centered on the point; if *anchor* is `n` then the text will be
     drawn such that the top center point of the rectangular region occupied by the text will be at the positioning
     point. This default is `center`.
 
-  - **−background** *color* - Sets the background color of the text string. If *color* is `""`, the background will be
+  - **-background** *color* - Sets the background color of the text string. If *color* is `""`, the background will be
     transparent. The default is `white`.
 
-  - **−font** *fontName* - Specifies the font of the text. The default is `*-Helvetica-Bold-R-Normal-*-120-*`.
+  - **-font** *fontName* - Specifies the font of the text. The default is `*-Helvetica-Bold-R-Normal-*-120-*`.
 
-  - **−foreground** *color* - Sets the foreground color of the text. The default is `black`.
+  - **-foreground** *color* - Sets the foreground color of the text. The default is `black`.
 
-  - **−justify** *justify* - Specifies how the text should be justified. This matters only when the marker contains more
+  - **-justify** *justify* - Specifies how the text should be justified. This matters only when the marker contains more
     than one line of text. *Justify* must be `left`, `right`, or `center`. The default is `center`.
 
-  - **−padx** *pad* - Sets the padding to the left and right exteriors of the text. *Pad* can be a list of one or two
+  - **-padx** *pad* - Sets the padding to the left and right exteriors of the text. *Pad* can be a list of one or two
     screen distances. If *pad* has two elements, the left side of the text is padded by the first distance and the right
     side by the second. If *pad* has just one distance, both the left and right sides are padded evenly. The default is
     `4`.
 
-  - **−pady** *pad* - Sets the padding above and below the text. *Pad* can be a list of one or two screen distances. If
+  - **-pady** *pad* - Sets the padding above and below the text. *Pad* can be a list of one or two screen distances. If
     *pad* has two elements, the area above the text is padded by the first distance and the area below by the second. If
     *pad* is just one distance, both the top and bottom areas are padded evenly. The default is `4`.
 
-  - **−rotate** *theta* - Specifies the number of degrees to rotate the text. *Theta* is a real number representing the
+  - **-rotate** *theta* - Specifies the number of degrees to rotate the text. *Theta* is a real number representing the
     angle of rotation. The marker is first rotated along its center and is then drawn according to its anchor
     position. The default is `0.0`.
 
-  - **−text** *text* - Specifies the text of the marker. The exact way the text is displayed may be affected by other
-    options such as **−anchor** or **−rotate**.
+  - **-text** *text* - Specifies the text of the marker. The exact way the text is displayed may be affected by other
+    options such as **-anchor** or **-rotate**.
 
 ### Window markers
 
@@ -1537,23 +1537,23 @@ are created with the marker's **create** operation in the form:
 
 - *pathName* **marker create window** ?*option value*? ...
 
-  There may be many *option*-*value* pairs, each sets a configuration option for the marker. These same *option*−*value*
+  There may be many *option*-*value* pairs, each sets a configuration option for the marker. These same *option*-*value*
   pairs may be used with the marker's **configure** command.
 
   The following options are specific to window markers:
 
-  - **−anchor** *anchor* - *Anchor* tells how to position the widget relative to the positioning point for the
+  - **-anchor** *anchor* - *Anchor* tells how to position the widget relative to the positioning point for the
     widget. For example, if *anchor* is `center` then the widget is centered on the point; if *anchor* is `n` then the
     widget will be displayed such that the top center point of the rectangular region occupied by the widget will be at
     the positioning point. This option defaults to `center`.
 
-  - **−height** *pixels* - Specifies the height to assign to the marker's window. If this option isn't specified, or if
+  - **-height** *pixels* - Specifies the height to assign to the marker's window. If this option isn't specified, or if
     it is specified as `""`, then the window is given whatever height the widget requests internally.
 
-  - **−width** *pixels* - Specifies the width to assign to the marker's window. If this option isn't specified, or if it
+  - **-width** *pixels* - Specifies the width to assign to the marker's window. If this option isn't specified, or if it
     is specified as `""`, then the window is given whatever width the widget requests internally.
 
-  - **−window** *pathName* - Specifies the widget to be managed. *PathName* must be a child of the **stripchart**
+  - **-window** *pathName* - Specifies the widget to be managed. *PathName* must be a child of the **stripchart**
     widget.
 
 ## Graph component bindings
@@ -1568,15 +1568,15 @@ and a marker, only the uppermost component is selected. This isn't true for lege
 element (or marker) binding commands will be invoked if both items are picked.
 
 It is possible for multiple bindings to match a particular event. This could occur, for example, if one binding is
-associated with the element name and another is associated with one of the element's tags (see the **−bindtags**
+associated with the element name and another is associated with one of the element's tags (see the **-bindtags**
 option). When this occurs, all of the matching bindings are invoked. A binding associated with the element name is
 invoked first, followed by one binding for each of the element's bindtags. If there are multiple matching bindings for a
 single tag, then only the most specific binding is invoked. A continue command in a binding script terminates that
 script, and a break command terminates that script and skips any remaining scripts for the event, just as for the bind
 command.
 
-The **−bindtags** option for these components controls addition tag names which can be matched. Implicitly elements and
-markers always have tags matching their names. Setting the value of the **−bindtags** option doesn't change this.
+The **-bindtags** option for these components controls addition tag names which can be matched. Implicitly elements and
+markers always have tags matching their names. Setting the value of the **-bindtags** option doesn't change this.
 
 ## C language API
 
@@ -1636,10 +1636,10 @@ a big problem, here are a few tips to speed up displays.
 - If your data is generated as floating point values, the time required to convert the data values to and from ASCII
   strings can be significant, especially when there any many data points. You can avoid the redundant string-to-decimal
   conversions using the C API to BLT vectors.
-- Data elements without symbols are drawn faster than with symbols. Set the data element's **−symbol** option to
+- Data elements without symbols are drawn faster than with symbols. Set the data element's **-symbol** option to
   `none`. If you need to draw symbols, try using the simple symbols such as `splus` and `scross`.
 - Don't stipple or dash the element. Solid lines are much faster.
-- If you update data elements frequently, try turning off the widget's **−bufferelements** option. When the strip chart
+- If you update data elements frequently, try turning off the widget's **-bufferelements** option. When the strip chart
   is first displayed, it draws data elements into an internal pixmap. The pixmap acts as a cache, so that when the strip
   chart needs to be redrawn again, and the data elements or coordinate axes haven't changed, the pixmap is simply copied
   to the screen. This is especially useful when you are using markers to highlight points and regions on the strip
@@ -1656,7 +1656,7 @@ PostScript Language Reference Manual, page 568). The work-around is to break the
 
 ## Future incompatibility
 
-The **−mapped** options are obsoleted and will be removed. You can achieve the same results using the **−hide** option
+The **-mapped** options are obsoleted and will be removed. You can achieve the same results using the **-hide** option
 instead.
 
 ```tcl

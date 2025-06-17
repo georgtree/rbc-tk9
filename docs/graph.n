@@ -55,7 +55,7 @@ Keywords \[la]#keywords\[ra]
 .RE
 .SH Name
 .PP
-graph − 2D graph for plotting X−Y coordinate data.
+graph \- 2D graph for plotting X\-Y coordinate data.
 .SH Synopsis
 .PP
 \fBgraph\fP \fIpathName\fP ?\fIoption value\fP? ...

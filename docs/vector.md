@@ -16,7 +16,7 @@
 
 ## Name
 
-vector − Vector data type for Tcl
+vector - Vector data type for Tcl
 
 ## Synopsis
 
@@ -306,15 +306,15 @@ puts $vecName(:)
 
   The vector has optional switches that affect how the vector is created.  They are as follows:
 
-  - **−variable** *varName* - Specifies the name of a Tcl variable to be mapped to the vector. If the variable already
+  - **-variable** *varName* - Specifies the name of a Tcl variable to be mapped to the vector. If the variable already
     exists, it is first deleted, then recreated. If *varName* is the empty string, then no variable will be mapped. You
     can always map a variable back to the vector using the vector's **variable** operation.
 
-  - **−command** *cmdName* - Maps a Tcl command to the vector. The vector can be accessed using *cmdName* and one of the
+  - **-command** *cmdName* - Maps a Tcl command to the vector. The vector can be accessed using *cmdName* and one of the
     vector instance operations. A Tcl command by that name cannot already exist. If *cmdName* is the empty string, no
     command mapping will be made.
 
-  - **−watchunset** *boolean* - Indicates that the vector should automatically delete itself if the variable associated
+  - **-watchunset** *boolean* - Indicates that the vector should automatically delete itself if the variable associated
     with the vector is unset. By default, the vector will not be deleted. This is different from previous releases. Set
     *boolean* to "true" to get the old behavior.
 
@@ -333,10 +333,10 @@ puts $vecName(:)
 
 | Operator            | Description                                                                                                                                                                                                                        |
 |:--------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **− !**             | Unary minus and logical NOT. The unary minus flips the sign of each component in the vector. The logical not operator returns a vector of whose values are 0.0 or 1.0. For each non-zero component 1.0 is returned, 0.0 otherwise. |
+| **- !**             | Unary minus and logical NOT. The unary minus flips the sign of each component in the vector. The logical not operator returns a vector of whose values are 0.0 or 1.0. For each non-zero component 1.0 is returned, 0.0 otherwise. |
 | **\^**              | Exponentiation.                                                                                                                                                                                                                    |
 | **\* / %**          | Multiply, divide, remainder.                                                                                                                                                                                                       |
-| **+ −**             | Add and subtract.                                                                                                                                                                                                                  |
+| **+ -**             | Add and subtract.                                                                                                                                                                                                                  |
 | **\<\< \>\>**       | Left and right shift. Circularly shifts the values of the vector (not implemented yet).                                                                                                                                            |
 | **\< \> \<= \>=**   | Boolean less, greater, less than or equal, and greater than or equal. Each operator returns a vector of ones and zeros. If the condition is true, 1.0 is the component value, 0.0 otherwise.                                       |
 | **== !=**           | Boolean equal and not equal. Each operator returns a vector of ones and zeros. If the condition is true, 1.0 is the component value, 0.0 otherwise.                                                                                |
@@ -426,15 +426,15 @@ You can also use the vector's Tcl command to query or modify it. The general for
 - *vecName* **binread** *channel* ?*length*? ?*switches*?
 
   Reads binary values from a Tcl channel. Values are either appended to the end of the vector or placed at a given index
-  (using the **−at** option), overwriting existing values. Data is read until EOF is found on the channel or a specified
+  (using the **-at** option), overwriting existing values. Data is read until EOF is found on the channel or a specified
   number of values *length* are read (note that this is not necessarily the same as the number of bytes). The following
   switches are supported:
 
-  - **−swap** - Swap bytes and words. The default endian is the host machine.
+  - **-swap** - Swap bytes and words. The default endian is the host machine.
 
-  - **−at** *index* - New values will start at vector index *index*. This will overwrite any current values.
+  - **-at** *index* - New values will start at vector index *index*. This will overwrite any current values.
 
-  - **−format** *format* - Specifies the format of the data. *Format* can be one of the following: `i1`, `i2`,
+  - **-format** *format* - Specifies the format of the data. *Format* can be one of the following: `i1`, `i2`,
     `i4`, `i8`, `u1`, `u2`, `u4`, `u8`, `r4`, `r8`, or `r16`. The number indicates the number of bytes
     required for each value. The letter indicates the type: `i` for signed, `u` for unsigned, `r` or real. The
     default format is `r16`.

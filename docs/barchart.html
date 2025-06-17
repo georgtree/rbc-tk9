@@ -262,7 +262,7 @@ bindings</a></li>
 <li><a href="#limitations">Limitations</a></li>
 </ul>
 <h2 id="name">Name</h2>
-<p>barchart − Bar chart for plotting X-Y coordinate data.</p>
+<p>barchart - Bar chart for plotting X-Y coordinate data.</p>
 <h2 id="synopsis">Synopsis</h2>
 <p><strong>barchart</strong> <em>pathName</em> ?<em>option value</em>?
 …</p>
@@ -287,8 +287,8 @@ components: coordinate axes, data elements, legend, grid, cross hairs,
 pens, postscript, and annotation markers. Each component can be queried
 or modified.</p>
 <ul>
-<li><p><code>axis</code> - Up to four coordinate axes (two X−coordinate
-and two Y−coordinate axes) can be displayed, but you can create and use
+<li><p><code>axis</code> - Up to four coordinate axes (two X-coordinate
+and two Y-coordinate axes) can be displayed, but you can create and use
 any number of axes. Axes control what region of data is displayed and
 how the data is scaled. Each axis consists of the axis line, title,
 major and minor ticks, and tick labels. Tick labels display the value at
@@ -312,7 +312,7 @@ abscissa) is stacked on the previous. Or they can be drawn side-by-side
 as thin bars. The width of each bar is a function of the number of data
 points with the same abscissa.</p></li>
 <li><p><code>grid</code> - Extends the major and minor ticks of the
-X−axis and/or Y−axis across the plotting area.</p></li>
+X-axis and/or Y-axis across the plotting area.</p></li>
 <li><p><code>legend</code> - The legend displays the name and symbol of
 each data element. The legend can be drawn in any margin or in the
 plotting area.</p></li>
@@ -325,7 +325,7 @@ widgets.</p></li>
 elements use pens to specify how they should be drawn. A data element
 may use many pens at once. Here the particular pen used for a data point
 is determined from each element’s weight vector (see the element’s
-<strong>−weight</strong> and <strong>−style</strong> options).</p></li>
+<strong>-weight</strong> and <strong>-style</strong> options).</p></li>
 <li><p><code>postscript</code> - The widget can generate encapsulated
 PostScript output. This component has several options to configure how
 the PostScript is generated.</p></li>
@@ -401,7 +401,7 @@ class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb6-1"><a href="#c
 points (in this case there are ten). The bars will be drawn centered at
 the x-coordinate of the data point. All the bars will have the same
 attributes (colors, stipple, etc). The width of each bar is by default
-one unit. You can change this with using the <strong>−barwidth</strong>
+one unit. You can change this with using the <strong>-barwidth</strong>
 option.</p>
 <div class="sourceCode" id="cb7"><pre
 class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Change the scale of the x-coordinate data</span></span>
@@ -414,7 +414,7 @@ of the data point.</p>
 value), the bars representing those data points may be drawn in various
 ways. The default is to overlay the bars, one on top of the other. The
 ordering is determined from the of element display list. If the stacked
-mode is selected (using the <strong>−barmode</strong> configuration
+mode is selected (using the <strong>-barmode</strong> configuration
 option), the bars are stacked, each bar above the previous.</p>
 <div class="sourceCode" id="cb8"><pre
 class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Display the elements as stacked.</span></span>
@@ -441,24 +441,24 @@ class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb11-1"><a href="#
 <p>Four coordinate axes are automatically created: <code>x</code>,
 <code>x2</code>, <code>y</code>, and <code>y2</code>. And by default,
 elements are mapped onto the axes <code>x</code> and <code>y</code>.
-This can be changed with the <strong>−mapx</strong> and
-<strong>−mapy</strong> options.</p>
+This can be changed with the <strong>-mapx</strong> and
+<strong>-mapy</strong> options.</p>
 <div class="sourceCode" id="cb12"><pre
 class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Map &quot;e1&quot; on the alternate y axis &quot;y2&quot;.</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>.b element <span class="ot">configure</span> e1<span class="ot"> -mapy</span> y2</span></code></pre></div>
 <p>Axes can be configured in many ways too. For example, you change the
-scale of the Y−axis from linear to log using the <strong>axis</strong>
+scale of the Y-axis from linear to log using the <strong>axis</strong>
 component.</p>
 <div class="sourceCode" id="cb13"><pre
 class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Y-axis is log scale.</span></span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>.b axis <span class="ot">configure</span> <span class="ot">y -logscale</span> yes</span></code></pre></div>
 <p>One important way axes are used is to zoom in on a particular data
 region. Zooming is done by simply specifying new axis limits using the
-<strong>−min</strong> and <strong>−max</strong> configuration
+<strong>-min</strong> and <strong>-max</strong> configuration
 options.</p>
 <div class="sourceCode" id="cb14"><pre
-class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>.b axis <span class="ot">configure</span> <span class="ot">x</span> −min <span class="fl">1.0</span> −max <span class="fl">1.5</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>.b axis <span class="ot">configure</span> <span class="ot">y</span> −min <span class="fl">12.0</span> −max <span class="fl">55.15</span></span></code></pre></div>
+class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>.b axis <span class="ot">configure</span> <span class="ot">x -min</span> <span class="fl">1.0</span><span class="ot"> -max</span> <span class="fl">1.5</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>.b axis <span class="ot">configure</span> <span class="ot">y -min</span> <span class="fl">12.0</span><span class="ot"> -max</span> <span class="fl">55.15</span></span></code></pre></div>
 <p>To zoom interactively, you link the<strong>axis configure</strong>
 operations with some user interaction (such as pressing the mouse
 button), using the <strong>bind</strong> command. To convert between
@@ -467,16 +467,16 @@ operation.</p>
 <div class="sourceCode" id="cb15"><pre
 class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Click the button to set a new minimum</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="kw">bind</span> .b &lt;ButtonPress<span class="dv">-1</span>&gt; <span class="kw">{</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    %W axis <span class="ot">configure</span> <span class="ot">x</span> −min <span class="kw">[</span>%W axis invtransform <span class="ot">x</span> %<span class="ot">x</span><span class="kw">]</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    %W axis <span class="ot">configure</span> <span class="ot">x</span> −min <span class="kw">[</span>%W axis invtransform <span class="ot">x</span> %<span class="ot">y</span><span class="kw">]</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    %W axis <span class="ot">configure</span> <span class="ot">x -min</span> <span class="kw">[</span>%W axis invtransform <span class="ot">x</span> %<span class="ot">x</span><span class="kw">]</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    %W axis <span class="ot">configure</span> <span class="ot">x -min</span> <span class="kw">[</span>%W axis invtransform <span class="ot">x</span> %<span class="ot">y</span><span class="kw">]</span></span>
 <span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="kw">}</span></span></code></pre></div>
 <p>By default, the limits of the axis are determined from data values.
-To reset back to the default limits, set the <strong>−min</strong> and
-<strong>−max</strong> options to the empty value.</p>
+To reset back to the default limits, set the <strong>-min</strong> and
+<strong>-max</strong> options to the empty value.</p>
 <div class="sourceCode" id="cb16"><pre
 class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Reset the axes to autoscale again.</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>.b axis <span class="ot">configure</span> <span class="ot">x</span> −min <span class="kw">{}</span> −max <span class="kw">{}</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>.b axis <span class="ot">configure</span> <span class="ot">y</span> −min <span class="kw">{}</span> −max <span class="kw">{}</span></span></code></pre></div>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>.b axis <span class="ot">configure</span> <span class="ot">x -min</span> <span class="kw">{}</span><span class="ot"> -max</span> <span class="kw">{}</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>.b axis <span class="ot">configure</span> <span class="ot">y -min</span> <span class="kw">{}</span><span class="ot"> -max</span> <span class="kw">{}</span></span></code></pre></div>
 <p>By default, the legend is drawn in the right margin. You can change
 this or any legend configuration options using the
 <strong>legend</strong> component.</p>
@@ -484,10 +484,10 @@ this or any legend configuration options using the
 class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Configure the legend font, color, and relief</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>.b legend <span class="ot">configure -position</span> left<span class="ot"> -relief</span> raised<span class="ot"> -font</span> fixed<span class="ot"> -fg</span> blue</span></code></pre></div>
 <p>To prevent the legend from being displayed, turn on the
-<strong>−hide</strong> option.</p>
+<strong>-hide</strong> option.</p>
 <div class="sourceCode" id="cb18"><pre
 class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Don’t display the legend.</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>.b legend <span class="ot">configure</span> −hide yes</span></code></pre></div>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>.b legend <span class="ot">configure -hide</span> yes</span></code></pre></div>
 <p>The <strong>barchart</strong> has simple drawing procedures called
 markers. They can be used to highlight or annotate data in the graph.
 The types of markers available are bitmaps, polygons, lines, or windows.
@@ -502,7 +502,7 @@ display a horizontal line stretching across the plotting area at the
 y-coordinate 10.0. The coordinates “-Inf” and “Inf” indicate the
 relative minimum and maximum of the axis (in this case the x-axis). By
 default, markers are drawn last, on top of the bars. You can change this
-with the <strong>−under</strong> option.</p>
+with the <strong>-under</strong> option.</p>
 <div class="sourceCode" id="cb20"><pre
 class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Draw the marker before elements are drawn.</span></span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>.b marker <span class="ot">configure</span> low_water<span class="ot"> -under</span> yes</span></code></pre></div>
@@ -519,8 +519,8 @@ class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb22-1"><a href="#
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>.b <span class="ot">postscript</span> output <span class="kw">file</span>.ps<span class="ot"> -maxpect</span> yes<span class="ot"> -decorations</span> no</span></code></pre></div>
 <p>This generates a file <code>file.ps</code> containing the
 encapsulated PostScript of the graph. The option
-<strong>−maxpect</strong> says to scale the plot to the size of the
-page. Turning off the <strong>−decorations</strong> option denotes that
+<strong>-maxpect</strong> says to scale the plot to the size of the
+page. Turning off the <strong>-decorations</strong> option denotes that
 no borders or color backgrounds should be drawn (i.e. the background of
 the margins, legend, and plotting area will be white).</p>
 <h2 id="barchart-operations">Barchart operations</h2>
@@ -545,10 +545,10 @@ If one or more <em>option</em> and <em>value</em> pairs are specified,
 then for each pair, the option <em>option</em> is set to <em>value</em>.
 The following options are valid.</p>
 <ul>
-<li><p><strong>−background</strong> <em>color</em> - Sets the background
+<li><p><strong>-background</strong> <em>color</em> - Sets the background
 color. This includes the margins and legend, but not the plotting
 area.</p></li>
-<li><p><strong>−barmode</strong> <em>mode</em> - Indicates how related
+<li><p><strong>-barmode</strong> <em>mode</em> - Indicates how related
 bar elements will be drawn. Related elements have data points with the
 same abscissas (X-coordinates). <em>Mode</em> indicates how those
 segments should be drawn. <em>Mode</em> can be <code>infront</code>,
@@ -564,88 +564,88 @@ right-to-left.</li>
 <li><code>overlap</code> - Like <code>aligned</code> but segments
 slightly overlap each other.</li>
 </ul></li>
-<li><p><strong>−barwidth</strong> <em>value</em> - Specifies the width
+<li><p><strong>-barwidth</strong> <em>value</em> - Specifies the width
 of the bars. This value can be overrided by the individual elements
-using their <strong>−barwidth</strong> configuration option.
+using their <strong>-barwidth</strong> configuration option.
 <em>Value</em> is the width in terms of graph coordinates. The default
 width is <code>1.0</code>.</p></li>
-<li><p><strong>−borderwidth</strong> <em>pixels</em> - Sets the width of
-the 3−D border around the outside edge of the widget. The
-<strong>−relief</strong> option determines if the border is to be drawn.
+<li><p><strong>-borderwidth</strong> <em>pixels</em> - Sets the width of
+the 3-D border around the outside edge of the widget. The
+<strong>-relief</strong> option determines if the border is to be drawn.
 The default is <code>2</code>.</p></li>
-<li><p><strong>−bottommargin</strong> <em>pixels</em> - Specifies the
-size of the margin below the X−coordinate axis. If <em>pixels</em> is
+<li><p><strong>-bottommargin</strong> <em>pixels</em> - Specifies the
+size of the margin below the X-coordinate axis. If <em>pixels</em> is
 <code>0</code>, the size of the margin is selected automatically. The
 default is <code>0</code>.</p></li>
-<li><p><strong>−bufferelements</strong> <em>boolean</em> - Indicates
+<li><p><strong>-bufferelements</strong> <em>boolean</em> - Indicates
 whether an internal pixmap to buffer the display of data elements should
 be used. If <em>boolean</em> is true, data elements are drawn to an
 internal pixmap. This option is especially useful when the graph is
 redrawn frequently while the remains data unchanged (for example, moving
 a marker across the plot). See the <strong><a href="#speed-tips">Speed
 tips</a></strong> section. The default is <code>1</code>.</p></li>
-<li><p><strong>−cursor</strong> <em>cursor</em> - Specifies the widget’s
+<li><p><strong>-cursor</strong> <em>cursor</em> - Specifies the widget’s
 cursor. The default cursor is <code>crosshair</code>.</p></li>
-<li><p><strong>−font</strong> <em>fontName</em> - Specifies the font of
+<li><p><strong>-font</strong> <em>fontName</em> - Specifies the font of
 the graph title. The default is
 <code>*-Helvetica-Bold-R-Normal-*-18-180-*</code>.</p></li>
-<li><p><strong>−halo</strong> <em>pixels</em> - Specifies a maximum
+<li><p><strong>-halo</strong> <em>pixels</em> - Specifies a maximum
 distance to consider when searching for the closest data point (see the
 element’s <strong>closest</strong> operation below). Data points further
 than <em>pixels</em> away are ignored. The default is
 <code>0.5i</code>.</p></li>
-<li><p><strong>−height</strong> <em>pixels</em> - Specifies the
+<li><p><strong>-height</strong> <em>pixels</em> - Specifies the
 requested height of widget. The default is <code>4i</code>.</p></li>
-<li><p><strong>−invertxy</strong> <em>boolean</em> - Indicates whether
-the placement X−axis and Y−axis should be inverted. If <em>boolean</em>
+<li><p><strong>-invertxy</strong> <em>boolean</em> - Indicates whether
+the placement X-axis and Y-axis should be inverted. If <em>boolean</em>
 is true, the X and Y axes are swapped. The default is
 <code>0</code>.</p></li>
-<li><p><strong>−justify</strong> <em>justify</em> - Specifies how the
+<li><p><strong>-justify</strong> <em>justify</em> - Specifies how the
 title should be justified. This matters only when the title contains
 more than one line of text. <em>Justify</em> must be <code>left</code>,
 <code>right</code>, or <code>center</code>. The default is
 <code>center</code>.</p></li>
-<li><p><strong>−leftmargin</strong> <em>pixels</em> - Sets the size of
-the margin from the left edge of the window to the Y−coordinate axis. If
+<li><p><strong>-leftmargin</strong> <em>pixels</em> - Sets the size of
+the margin from the left edge of the window to the Y-coordinate axis. If
 <em>pixels</em> is <code>0</code>, the size is calculated automatically.
 The default is <code>0</code>.</p></li>
-<li><p><strong>−plotbackground</strong> <em>color</em> - Specifies the
+<li><p><strong>-plotbackground</strong> <em>color</em> - Specifies the
 background color of the plotting area. The default is
 <code>white</code>.</p></li>
-<li><p><strong>−plotborderwidth</strong> <em>pixels</em> - Sets the
+<li><p><strong>-plotborderwidth</strong> <em>pixels</em> - Sets the
 width of the 3-D border around the plotting area. The
-<strong>−plotrelief</strong> option determines if a border is drawn. The
+<strong>-plotrelief</strong> option determines if a border is drawn. The
 default is <code>2</code>.</p></li>
-<li><p><strong>−plotpadx</strong> <em>pad</em> - Sets the amount of
+<li><p><strong>-plotpadx</strong> <em>pad</em> - Sets the amount of
 padding to be added to the left and right sides of the plotting area.
 <em>Pad</em> can be a list of one or two screen distances. If
 <em>pad</em> has two elements, the left side of the plotting area entry
 is padded by the first distance and the right side by the second. If
 <em>pad</em> is just one distance, both the left and right sides are
 padded evenly. The default is <code>8</code>.</p></li>
-<li><p><strong>−plotpady</strong> <em>pad</em> - Sets the amount of
+<li><p><strong>-plotpady</strong> <em>pad</em> - Sets the amount of
 padding to be added to the top and bottom of the plotting area.
 <em>Pad</em> can be a list of one or two screen distances. If
 <em>pad</em> has two elements, the top of the plotting area is padded by
 the first distance and the bottom by the second. If <em>pad</em> is just
 one distance, both the top and bottom are padded evenly. The default is
 <code>8</code>.</p></li>
-<li><p><strong>−plotrelief</strong> <em>relief</em> - Specifies the 3-D
+<li><p><strong>-plotrelief</strong> <em>relief</em> - Specifies the 3-D
 effect for the plotting area. <em>Relief</em> specifies how the interior
 of the plotting area should appear relative to rest of the graph; for
 example, <code>raised</code> means the plot should appear to protrude
 from the graph, relative to the surface of the graph. The default is
 <code>sunken</code>.</p></li>
-<li><p><strong>−relief</strong> <em>relief</em> - Specifies the 3-D
+<li><p><strong>-relief</strong> <em>relief</em> - Specifies the 3-D
 effect for the barchart widget. <em>Relief</em> specifies how the graph
 should appear relative to widget it is packed into; for example,
 <code>raised</code> means the graph should appear to protrude. The
 default is <code>flat</code>.</p></li>
-<li><p><strong>−rightmargin</strong> <em>pixels</em> - Sets the size of
+<li><p><strong>-rightmargin</strong> <em>pixels</em> - Sets the size of
 margin from the plotting area to the right edge of the window. By
 default, the legend is drawn in this margin. If <em>pixels</em> is than
 1, the margin size is selected automatically.</p></li>
-<li><p><strong>−takefocus</strong> <em>focus</em> - Provides information
+<li><p><strong>-takefocus</strong> <em>focus</em> - Provides information
 used when moving the focus from window to window via keyboard traversal
 (e.g., Tab and Shift-Tab). If <em>focus</em> is <code>0</code>, this
 means that this window should be skipped entirely during keyboard
@@ -653,19 +653,19 @@ traversal. <code>1</code> means that the this window should always
 receive the input focus. An empty value means that the traversal scripts
 make the decision whether to focus on the window. The default is
 <code>""</code>.</p></li>
-<li><p><strong>−tile</strong> <em>image</em> - Specifies a tiled
+<li><p><strong>-tile</strong> <em>image</em> - Specifies a tiled
 background for the widget. If <em>image</em> isn’t <code>""</code>, the
 background is tiled using <em>image</em>. Otherwise, the normal
-background color is drawn (see the <strong>−background</strong> option).
+background color is drawn (see the <strong>-background</strong> option).
 <em>Image</em> must be an image created using the Tk
 <strong>image</strong> command. The default is <code>""</code>.</p></li>
-<li><p><strong>−title</strong> <em>text</em> - Sets the title to
+<li><p><strong>-title</strong> <em>text</em> - Sets the title to
 <em>text</em>. If <em>text</em> is <code>""</code>, no title will be
 displayed.</p></li>
-<li><p><strong>−topmargin</strong> <em>pixels</em> - Specifies the size
+<li><p><strong>-topmargin</strong> <em>pixels</em> - Specifies the size
 of the margin above the x2 axis. If <em>pixels</em> is <code>0</code>,
 the margin size is calculated automatically.</p></li>
-<li><p><strong>−width</strong> <em>pixels</em> - Specifies the requested
+<li><p><strong>-width</strong> <em>pixels</em> - Specifies the requested
 width of the widget. The default is <code>5i</code>.</p></li>
 </ul></li>
 <li><p><em>pathName</em> <strong>crosshairs</strong> <em>operation</em>
@@ -688,8 +688,8 @@ section.</p></li>
 <li><p><em>pathName</em> <strong>invtransform</strong> <em>winX
 winY</em></p>
 <p>Performs an inverse coordinate transformation, mapping window
-coordinates back to graph coordinates, using the standard X−axis and
-Y−axis. Returns a list of containing the X-Y graph coordinates.</p></li>
+coordinates back to graph coordinates, using the standard X-axis and
+Y-axis. Returns a list of containing the X-Y graph coordinates.</p></li>
 <li><p><em>pathName</em> <strong>inside</strong> <em>x y</em></p>
 <p>Returns <code>1</code> is the designated screen coordinate
 (<em>x</em> and <em>y</em>) is inside the plotting area and
@@ -720,8 +720,8 @@ image <em>photoName</em>. <em>PhotoName</em> is the name of a Tk photo
 image that must already exist.</p></li>
 <li><p><em>pathName</em> <strong>transform</strong> <em>x y</em></p>
 <p>Performs a coordinate transformation, mapping graph coordinates to
-window coordinates, using the standard X−axis and Y−axis. Returns a list
-containing the X−Y screen coordinates.</p></li>
+window coordinates, using the standard X-axis and Y-axis. Returns a list
+containing the X-Y screen coordinates.</p></li>
 <li><p><em>pathName</em> <strong>xaxis</strong> <em>operation</em>
 ?<em>arg</em>? …</p></li>
 <li><p><em>pathName</em> <strong>x2axis</strong> <em>operation</em>
@@ -741,8 +741,8 @@ graph is partitioned, where each component has its own configuration
 options and operations that specifically control that aspect or part of
 the graph.</p>
 <h3 id="axis-components">Axis components</h3>
-<p>Four coordinate axes are automatically created: two X−coordinate axes
-(<code>x</code> and <code>x2</code>) and two Y−coordinate axes
+<p>Four coordinate axes are automatically created: two X-coordinate axes
+(<code>x</code> and <code>x2</code>) and two Y-coordinate axes
 (<code>y</code>, and <code>y2</code>). By default, the axis
 <code>x</code> is located in the bottom margin, <code>y</code> in the
 left margin, <code>x2</code> in the top margin, and <code>y2</code> in
@@ -760,12 +760,12 @@ axis component and its create operation.</p>
 <div class="sourceCode" id="cb23"><pre
 class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a new axis called &quot;temperature&quot;</span></span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>.b axis <span class="ot">create</span> temperature</span></code></pre></div>
-<p>You map data elements to an axis using the element’s −mapy and −mapx
+<p>You map data elements to an axis using the element’s -mapy and -mapx
 configuration options. They specify the coordinate axes an element is
 mapped onto.</p>
 <div class="sourceCode" id="cb24"><pre
 class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Now map the temperature data to this axis.</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>.b element <span class="ot">create</span> <span class="st">&quot;temp&quot;</span> −xdata <span class="dt">$x</span> −ydata <span class="dt">$tempData</span> −mapy temperature</span></code></pre></div>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>.b element <span class="ot">create</span> <span class="st">&quot;temp&quot;</span><span class="ot"> -xdata</span> <span class="dt">$x</span><span class="ot"> -ydata</span> <span class="dt">$tempData</span><span class="ot"> -mapy</span> temperature</span></code></pre></div>
 <p>While you can have many axes, only four axes can be displayed
 simultaneously. They are drawn in each of the margins surrounding the
 plotting area. The axes <code>x</code> and <code>y</code> are drawn in
@@ -807,15 +807,15 @@ and <em>value</em> pairs are specified, then for each pair, the axis
 option <em>option</em> is set to <em>value</em>. The following options
 are valid for axes.</p>
 <ul>
-<li><p><strong>−autorange</strong> <em>range</em> - Sets the range of
+<li><p><strong>-autorange</strong> <em>range</em> - Sets the range of
 values for the axis to <em>range</em>. The axis limits are automatically
 reset to display the most recent data points in this range. If
 <em>range</em> is 0.0, the range is determined from the limits of the
-data. If <strong>−min</strong> or <strong>-max</strong> are specified,
+data. If <strong>-min</strong> or <strong>-max</strong> are specified,
 they override this option. The default is <code>0.0</code>.</p></li>
-<li><p><strong>−color</strong> <em>color</em> - Sets the color of the
+<li><p><strong>-color</strong> <em>color</em> - Sets the color of the
 axis and tick labels. The default is <code>black</code>.</p></li>
-<li><p><strong>−command</strong> <em>prefix</em> - Specifies a Tcl
+<li><p><strong>-command</strong> <em>prefix</em> - Specifies a Tcl
 command to be invoked when formatting the axis tick labels.
 <em>Prefix</em> is a string containing the name of a Tcl proc and any
 extra arguments for the procedure. This command is invoked for each
@@ -830,18 +830,18 @@ can get the standard tick labels again by setting <em>prefix</em> to
 redrawn. You may query the widget’s configuration options. But do not
 reset options, because this can have unexpected results.</p>
 <ul>
-<li><p><strong>−descending</strong> <em>boolean</em> - Indicates whether
+<li><p><strong>-descending</strong> <em>boolean</em> - Indicates whether
 the values along the axis are monotonically increasing or decreasing. If
 <em>boolean</em> is true, the axis values will be decreasing. The
 default is <code>0</code>.</p></li>
-<li><p><strong>−hide</strong> <em>boolean</em> - Indicates whether the
+<li><p><strong>-hide</strong> <em>boolean</em> - Indicates whether the
 axis is displayed.</p></li>
-<li><p><strong>−justify</strong> <em>justify</em> - Specifies how the
+<li><p><strong>-justify</strong> <em>justify</em> - Specifies how the
 axis title should be justified. This matters only when the axis title
 contains more than one line of text. <em>Justify</em> must be
 <code>left</code>, <code>right</code>, or <code>center</code>. The
 default is <code>center</code>.</p></li>
-<li><p><strong>−limits</strong> <em>formatStr</em> - Specifies a
+<li><p><strong>-limits</strong> <em>formatStr</em> - Specifies a
 printf-like description to format the minimum and maximum limits of the
 axis. The limits are displayed at the top/bottom or left/right sides of
 the plotting area. <em>FormatStr</em> is a list of one or two format
@@ -850,76 +850,76 @@ maximum limits are formatted in the same way. If two, the first
 designates the format for the minimum limit, the second for the maximum.
 If <code>""</code> is given as either description, then the that limit
 will not be displayed. The default is <code>""</code>.</p></li>
-<li><p><strong>−linewidth</strong> <em>pixels</em> - Sets the width of
+<li><p><strong>-linewidth</strong> <em>pixels</em> - Sets the width of
 the axis and tick lines. The default is <code>1</code> pixel.</p></li>
-<li><p><strong>−logscale</strong> <em>boolean</em> - Indicates whether
+<li><p><strong>-logscale</strong> <em>boolean</em> - Indicates whether
 the scale of the axis is logarithmic or linear. If <em>boolean</em> is
 true, the axis is logarithmic. The default scale is linear.</p></li>
-<li><p><strong>−loose</strong> <em>boolean</em> - Indicates whether the
+<li><p><strong>-loose</strong> <em>boolean</em> - Indicates whether the
 limits of the axis should fit the data points tightly, at the outermost
 data points, or loosely, at the outer tick intervals. This is relevant
 only when the axis limit is automatically calculated. If
 <em>boolean</em> is true, the axis range is "loose". The default is
 <code>0</code>.</p></li>
-<li><p><strong>−majorticks</strong> <em>majorList</em> - Specifies where
+<li><p><strong>-majorticks</strong> <em>majorList</em> - Specifies where
 to display major axis ticks. You can use this option to display ticks at
 non-uniform intervals. <em>MajorList</em> is a list of axis coordinates
 designating the location of major ticks. No minor ticks are drawn. If
 <em>majorList</em> is <code>""</code>, major ticks will be automatically
 computed. The default is <code>""</code>.</p></li>
-<li><p><strong>−max</strong> <em>value</em> - Sets the maximum limit of
+<li><p><strong>-max</strong> <em>value</em> - Sets the maximum limit of
 <em>axisName</em>. Any data point greater than <em>value</em> is not
 displayed. If <em>value</em> is <code>""</code>, the maximum limit is
 calculated using the largest data value. The default is
 <code>""</code>.</p></li>
-<li><p><strong>−min</strong> <em>value</em> - Sets the minimum limit of
+<li><p><strong>-min</strong> <em>value</em> - Sets the minimum limit of
 <em>axisName</em>. Any data point less than <em>value</em> is not
 displayed. If <em>value</em> is <code>""</code>, the minimum limit is
 calculated using the smallest data value. The default is
 <code>""</code>.</p></li>
-<li><p><strong>−minorticks</strong> <em>minorList</em> - Specifies where
+<li><p><strong>-minorticks</strong> <em>minorList</em> - Specifies where
 to display minor axis ticks. You can use this option to display minor
 ticks at non-uniform intervals. <em>MinorList</em> is a list of real
 values, ranging from 0.0 to 1.0, designating the placement of a minor
-tick. No minor ticks are drawn if the <strong>−majortick</strong> option
+tick. No minor ticks are drawn if the <strong>-majortick</strong> option
 is also set. If <em>minorList</em> is <code>""</code>, minor ticks will
 be automatically computed. The default is <code>""</code>.</p></li>
-<li><p><strong>−rotate</strong> <em>theta</em> - Specifies the how many
+<li><p><strong>-rotate</strong> <em>theta</em> - Specifies the how many
 degrees to rotate the axis tick labels. <em>Theta</em> is a real value
 representing the number of degrees to rotate the tick labels. The
 default is <code>0.0</code> degrees.</p></li>
-<li><p><strong>−shiftby</strong> <em>value</em> - Specifies how much to
+<li><p><strong>-shiftby</strong> <em>value</em> - Specifies how much to
 automatically shift the range of the axis. When the new data exceeds the
 current axis maximum, the maximum is increased in increments of
 <em>value</em>. You can use this option to prevent the axis limits from
 being recomputed at each new time point. If <em>value</em> is 0.0, then
 no automatic shifting is down. The default is <code>0.0</code>.</p></li>
-<li><p><strong>−showticks</strong> <em>boolean</em> - Indicates whether
+<li><p><strong>-showticks</strong> <em>boolean</em> - Indicates whether
 axis ticks should be drawn. If <em>boolean</em> is true, ticks are
 drawn. If false, only the axis line is drawn. The default is
 <code>1</code>.</p></li>
-<li><p><strong>−stepsize</strong> <em>value</em> - Specifies the
+<li><p><strong>-stepsize</strong> <em>value</em> - Specifies the
 interval between major axis ticks. If <em>value</em> isn’t a valid
 interval (must be less than the axis range), the request is ignored and
 the step size is automatically calculated.</p></li>
-<li><p><strong>−subdivisions</strong> <em>number</em> - Indicates how
+<li><p><strong>-subdivisions</strong> <em>number</em> - Indicates how
 many minor axis ticks are to be drawn. For example, if <em>number</em>
 is two, only one minor tick is drawn. If <em>number</em> is one, no
 minor ticks are displayed. The default is <code>2</code>.</p></li>
-<li><p><strong>−tickfont</strong> <em>fontName</em> - Specifies the font
+<li><p><strong>-tickfont</strong> <em>fontName</em> - Specifies the font
 for axis tick labels. The default is
 <code>*-Courier-Bold-R-Normal-*-100-*</code>.</p></li>
-<li><p><strong>−ticklength</strong> <em>pixels</em> - Sets the length of
+<li><p><strong>-ticklength</strong> <em>pixels</em> - Sets the length of
 major and minor ticks (minor ticks are half the length of major ticks).
 If <em>pixels</em> is less than zero, the axis will be inverted with
 ticks drawn pointing towards the plot. The default is
 <code>0.1i</code>.</p></li>
-<li><p><strong>−title</strong> <em>text</em> - Sets the title of the
+<li><p><strong>-title</strong> <em>text</em> - Sets the title of the
 axis. If <em>text</em> is <code>""</code>, no axis title will be
 displayed.</p></li>
-<li><p><strong>−titlecolor</strong> <em>color</em> - Sets the color of
+<li><p><strong>-titlecolor</strong> <em>color</em> - Sets the color of
 the axis title. The default is <code>black</code>.</p></li>
-<li><p><strong>−titlefont</strong> <em>fontName</em> - Specifies the
+<li><p><strong>-titlefont</strong> <em>fontName</em> - Specifies the
 font for axis title. The default is
 <code>*-Helvetica-Bold-R-Normal-*-14-140-*</code>.</p></li>
 </ul>
@@ -1032,19 +1032,19 @@ specified, but not <em>value</em>, then a list describing
 option <em>option</em> is set to <em>value</em>. The following options
 are available for cross hairs.</p>
 <ul>
-<li><p><strong>−color</strong> <em>color</em> - Sets the color of the
+<li><p><strong>-color</strong> <em>color</em> - Sets the color of the
 cross hairs. The default is <code>black</code>.</p></li>
-<li><p><strong>−dashes</strong> <em>dashList</em> - Sets the dash style
+<li><p><strong>-dashes</strong> <em>dashList</em> - Sets the dash style
 of the cross hairs. <em>DashList</em> is a list of up to 11 numbers that
 alternately represent the lengths of the dashes and gaps on the cross
 hair lines. Each number must be between 1 and 255. If <em>dashList</em>
 is <code>""</code>, the cross hairs will be solid lines.</p></li>
-<li><p><strong>−hide</strong> <em>boolean</em> - Indicates whether cross
+<li><p><strong>-hide</strong> <em>boolean</em> - Indicates whether cross
 hairs are drawn. If <em>boolean</em> is true, cross hairs are not drawn.
 The default is <code>yes</code>.</p></li>
-<li><p><strong>−linewidth</strong> <em>pixels</em> - Set the width of
+<li><p><strong>-linewidth</strong> <em>pixels</em> - Set the width of
 the cross hair lines. The default is <code>1</code>.</p></li>
-<li><p><strong>−position</strong> <em>pos</em> - Specifies the screen
+<li><p><strong>-position</strong> <em>pos</em> - Specifies the screen
 position where the cross hairs intersect. <em>Pos</em> must be in the
 form “<em><span class="citation" data-cites="x">@x</span>,y</em>”, where
 <em>x</em> and <em>y</em> are the window coordinates of the
@@ -1118,11 +1118,11 @@ point within the threshold distance can be found, <code>""</code> is
 returned. The following <em>option</em>-<em>value</em> pairs are
 available.</p>
 <ul>
-<li><strong>−halo</strong> <em>pixels</em> - Specifies a threshold
+<li><strong>-halo</strong> <em>pixels</em> - Specifies a threshold
 distance where selected data points are ignored. <em>Pixels</em> is a
 valid screen distance, such as <code>2</code> or <code>1.2i</code>. If
 this option isn’t specified, then it defaults to the value of the
-<strong>barchart</strong>’s <strong>−halo</strong> option.</li>
+<strong>barchart</strong>’s <strong>-halo</strong> option.</li>
 </ul></li>
 <li><p><em>pathName</em> <strong>element configure</strong>
 <em>elemName</em> ?<em>elemName</em> … ?<em>option value</em>? …</p>
@@ -1135,63 +1135,63 @@ returned. If one or more <em>option</em> and <em>value</em> pairs are
 specified, then for each pair, the element option <em>option</em> is set
 to <em>value</em>. The following options are valid for elements.</p>
 <ul>
-<li><p><strong>−activepen</strong> <em>penName</em> - Specifies pen to
+<li><p><strong>-activepen</strong> <em>penName</em> - Specifies pen to
 use to draw active element. If <em>penName</em> is <code>""</code>, no
 active elements will be drawn. The default is
 <code>activeLine</code>.</p></li>
-<li><p><strong>−bindtags</strong> <em>tagList</em> - Specifies the
+<li><p><strong>-bindtags</strong> <em>tagList</em> - Specifies the
 binding tags for the element. <em>TagList</em> is a list of binding tag
 names. The tags and their order will determine how events for elements.
 Each tag in the list matching the current event sequence will have its
 Tcl command executed. Implicitly the name of the element is always the
 first tag in the list. The default value is <code>all</code>.</p></li>
-<li><p><strong>−background</strong> <em>color</em> - Sets the the color
+<li><p><strong>-background</strong> <em>color</em> - Sets the the color
 of the border around each bar. The default is
 <code>white</code>.</p></li>
-<li><p><strong>−barwidth</strong> <em>value</em> - Specifies the width
+<li><p><strong>-barwidth</strong> <em>value</em> - Specifies the width
 the bars drawn for the element. <em>Value</em> is the width in
 X-coordinates. If this option isn’t specified, the width of each bar is
-the value of the widget’s <strong>−barwidth</strong> option.</p></li>
-<li><p><strong>−baseline</strong> <em>value</em> - Specifies the
+the value of the widget’s <strong>-barwidth</strong> option.</p></li>
+<li><p><strong>-baseline</strong> <em>value</em> - Specifies the
 baseline of the bar segments. This affects how bars are drawn since bars
 are drawn from their respective y-coordinate the baseline. By default
 the baseline is <code>0.0</code>.</p></li>
-<li><p><strong>−borderwidth</strong> <em>pixels</em> - Sets the border
+<li><p><strong>-borderwidth</strong> <em>pixels</em> - Sets the border
 width of the 3-D border drawn around the outside of each bar. The
-<strong>−relief</strong> option determines if such a border is drawn.
+<strong>-relief</strong> option determines if such a border is drawn.
 <em>Pixels</em> must be a valid screen distance like <code>2</code> or
 <code>0.25i</code>. The default is <code>2</code>.</p></li>
-<li><p><strong>−data</strong> <em>coordList</em> - Specifies the X−Y
+<li><p><strong>-data</strong> <em>coordList</em> - Specifies the X-Y
 coordinates of the data. <em>CoordList</em> is a list of numeric
-expressions representing the X−Y coordinate pairs of each data
+expressions representing the X-Y coordinate pairs of each data
 point.</p></li>
-<li><p><strong>−foreground</strong> <em>color</em> - Sets the color of
+<li><p><strong>-foreground</strong> <em>color</em> - Sets the color of
 the interior of the bars.</p></li>
-<li><p><strong>−hide</strong> <em>boolean</em> - Indicates whether the
+<li><p><strong>-hide</strong> <em>boolean</em> - Indicates whether the
 element is displayed. The default is <code>no</code>.</p></li>
-<li><p><strong>−label</strong> <em>text</em> - Sets the element’s label
+<li><p><strong>-label</strong> <em>text</em> - Sets the element’s label
 in the legend. If <em>text</em> is <code>""</code>, the element will
 have no entry in the legend. The default label is the element’s
 name.</p></li>
-<li><p><strong>−mapx</strong> <em>xAxis</em> - Selects the X−axis to map
-the element’s X−coordinates onto. <em>XAxis</em> must be the name of an
+<li><p><strong>-mapx</strong> <em>xAxis</em> - Selects the X-axis to map
+the element’s X-coordinates onto. <em>XAxis</em> must be the name of an
 axis. The default is <code>x</code>.</p></li>
-<li><p><strong>−mapy</strong> <em>yAxis</em> - Selects the Y−axis to map
-the element’s Y−coordinates onto. <em>YAxis</em> must be the name of an
+<li><p><strong>-mapy</strong> <em>yAxis</em> - Selects the Y-axis to map
+the element’s Y-coordinates onto. <em>YAxis</em> must be the name of an
 axis. The default is <code>y</code>.</p></li>
-<li><p><strong>−relief</strong> <em>string</em> - Specifies the 3-D
+<li><p><strong>-relief</strong> <em>string</em> - Specifies the 3-D
 effect desired for bars. <em>Relief</em> indicates how the interior of
 the bar should appear relative to the surface of the chart; for example,
 <code>raised</code> means the bar should appear to protrude from the
 surface of the plotting area. The default is
 <code>raised</code>.</p></li>
-<li><p><strong>−stipple</strong> <em>bitmap</em> - Specifies a stipple
+<li><p><strong>-stipple</strong> <em>bitmap</em> - Specifies a stipple
 pattern with which to draw the bars. If <em>bitmap</em> is
 <code>""</code>, then the bar is drawn in a solid fashion.</p></li>
-<li><p><strong>−xdata</strong> <em>xVector</em> - Specifies the
+<li><p><strong>-xdata</strong> <em>xVector</em> - Specifies the
 x-coordinate vector of the data. <em>XVector</em> is the name of a BLT
 vector or a list of numeric expressions.</p></li>
-<li><p><strong>−ydata</strong> <em>yVector</em> - Specifies the
+<li><p><strong>-ydata</strong> <em>yVector</em> - Specifies the
 y-coordinate vector of the data. <em>YVector</em> is the name of a BLT
 vector or a list of numeric expressions.</p></li>
 </ul>
@@ -1258,27 +1258,27 @@ specified, but not <em>value</em>, then a list describing
 option <em>option</em> is set to <em>value</em>. The following options
 are valid for grid lines.</p>
 <ul>
-<li><p><strong>−color</strong> <em>color</em> - Sets the color of the
+<li><p><strong>-color</strong> <em>color</em> - Sets the color of the
 grid lines. The default is <code>black</code>.</p></li>
-<li><p><strong>−dashes</strong> <em>dashList</em> - Sets the dash style
+<li><p><strong>-dashes</strong> <em>dashList</em> - Sets the dash style
 of the grid lines. <em>DashList</em> is a list of up to 11 numbers that
 alternately represent the lengths of the dashes and gaps on the grid
 lines. Each number must be between 1 and 255. If <em>dashList</em> is
 <code>""</code>, the grid will be solid lines.</p></li>
-<li><p><strong>−hide</strong> <em>boolean</em> - Indicates whether the
+<li><p><strong>-hide</strong> <em>boolean</em> - Indicates whether the
 grid should be drawn. If <em>boolean</em> is true, grid lines are not
 shown. The default is <code>yes</code>.</p></li>
-<li><p><strong>−linewidth</strong> <em>pixels</em> - Sets the width of
+<li><p><strong>-linewidth</strong> <em>pixels</em> - Sets the width of
 grid lines. The default width is <code>1</code>.</p></li>
-<li><p><strong>−mapx</strong> <em>xAxis</em> - Specifies the X−axis to
+<li><p><strong>-mapx</strong> <em>xAxis</em> - Specifies the X-axis to
 display grid lines. <em>XAxis</em> must be the name of an axis or
 <code>""</code> for no grid lines. The default is
 <code>""</code>.</p></li>
-<li><p><strong>−mapy</strong> <em>yAxis</em> - Specifies the Y−axis to
+<li><p><strong>-mapy</strong> <em>yAxis</em> - Specifies the Y-axis to
 display grid lines. <em>YAxis</em> must be the name of an axis or
 <code>""</code> for no grid lines. The default is
 <code>y</code>.</p></li>
-<li><p><strong>−minor</strong> <em>boolean</em> - Indicates whether the
+<li><p><strong>-minor</strong> <em>boolean</em> - Indicates whether the
 grid lines should be drawn for minor ticks. If <em>boolean</em> is true,
 the lines will appear at minor tick intervals. The default is
 <code>1</code>.</p></li>
@@ -1345,26 +1345,26 @@ specified, but not <em>value</em>, then a list describing
 option <em>option</em> is set to <em>value</em>. The following options
 are valid for the legend.</p>
 <ul>
-<li><p><strong>−activebackground</strong> <em>color</em> - Sets the
+<li><p><strong>-activebackground</strong> <em>color</em> - Sets the
 background color for active legend entries. All legend entries marked
 active (see the legend <strong>activate</strong> operation) are drawn
 using this background color.</p></li>
-<li><p><strong>−activeborderwidth</strong> <em>pixels</em> - Sets the
+<li><p><strong>-activeborderwidth</strong> <em>pixels</em> - Sets the
 width of the 3-D border around the outside edge of the active legend
 entries. The default is <code>2</code>.</p></li>
-<li><p><strong>−activeforeground</strong> <em>color</em> - Sets the
+<li><p><strong>-activeforeground</strong> <em>color</em> - Sets the
 foreground color for active legend entries. All legend entries marked as
 active (see the legend <strong>activate</strong> operation) are drawn
 using this foreground color.</p></li>
-<li><p><strong>−activerelief</strong> <em>relief</em> - Specifies the
+<li><p><strong>-activerelief</strong> <em>relief</em> - Specifies the
 3-D effect desired for active legend entries. <em>Relief</em> denotes
 how the interior of the entry should appear relative to the legend; for
 example, <code>raised</code> means the entry should appear to protrude
 from the legend, relative to the surface of the legend. The default is
 <code>flat</code>.</p></li>
-<li><p><strong>−anchor</strong> <em>anchor</em> - Tells how to position
+<li><p><strong>-anchor</strong> <em>anchor</em> - Tells how to position
 the legend relative to the positioning point for the legend. This is
-dependent on the value of the <strong>−position</strong> option. The
+dependent on the value of the <strong>-position</strong> option. The
 default is <code>center</code>.</p>
 <ul>
 <li><code>left</code> or <code>right</code> - The anchor describes how
@@ -1383,57 +1383,57 @@ legend relative to the plotting area. For example, if <em>anchor</em> is
 <em>anchor</em> is <code>ne</code> then the legend will be drawn such
 that occupies the upper right corner of the plotting area.</li>
 </ul></li>
-<li><p><strong>−background</strong> <em>color</em> - Sets the background
+<li><p><strong>-background</strong> <em>color</em> - Sets the background
 color of the legend. If <em>color</em> is <code>""</code>, the legend
 background with be transparent.</p></li>
-<li><p><strong>−bindtags</strong> <em>tagList</em> - Specifies the
+<li><p><strong>-bindtags</strong> <em>tagList</em> - Specifies the
 binding tags for legend entries. <em>TagList</em> is a list of binding
 tag names. The tags and their order will determine how events for legend
 entries. Each tag in the list matching the current event sequence will
 have its Tcl command executed. The default value is
 <code>all</code>.</p></li>
-<li><p><strong>−borderwidth</strong> <em>pixels</em> - Sets the width of
+<li><p><strong>-borderwidth</strong> <em>pixels</em> - Sets the width of
 the 3-D border around the outside edge of the legend (if such border is
 being drawn; the <strong>relief</strong> option determines this). The
 default is <code>2</code> pixels.</p></li>
-<li><p><strong>−font</strong> <em>fontName</em> - <em>FontName</em>
+<li><p><strong>-font</strong> <em>fontName</em> - <em>FontName</em>
 specifies a font to use when drawing the labels of each element into the
 legend. The default is
 <code>*-Helvetica-Bold-R-Normal-*-12-120-*</code>.</p></li>
-<li><p><strong>−foreground</strong> <em>color</em> - Sets the foreground
+<li><p><strong>-foreground</strong> <em>color</em> - Sets the foreground
 color of the text drawn for the element’s label. The default is
 <code>black</code>.</p></li>
-<li><p><strong>−hide</strong> <em>boolean</em> - Indicates whether the
+<li><p><strong>-hide</strong> <em>boolean</em> - Indicates whether the
 legend should be displayed. If <em>boolean</em> is true, the legend will
 not be draw. The default is <code>no</code>.</p></li>
-<li><p><strong>−ipadx</strong> <em>pad</em> - Sets the amount of
+<li><p><strong>-ipadx</strong> <em>pad</em> - Sets the amount of
 internal padding to be added to the width of each legend entry.
 <em>Pad</em> can be a list of one or two screen distances. If
 <em>pad</em> has two elements, the left side of the legend entry is
 padded by the first distance and the right side by the second. If
 <em>pad</em> is just one distance, both the left and right sides are
 padded evenly. The default is <code>2</code>.</p></li>
-<li><p><strong>−ipady</strong> <em>pad</em> - Sets an amount of internal
+<li><p><strong>-ipady</strong> <em>pad</em> - Sets an amount of internal
 padding to be added to the height of each legend entry. <em>Pad</em> can
 be a list of one or two screen distances. If <em>pad</em> has two
 elements, the top of the entry is padded by the first distance and the
 bottom by the second. If <em>pad</em> is just one distance, both the top
 and bottom of the entry are padded evenly. The default is
 <code>2</code>.</p></li>
-<li><p><strong>−padx</strong> <em>pad</em> - Sets the padding to the
+<li><p><strong>-padx</strong> <em>pad</em> - Sets the padding to the
 left and right exteriors of the legend. <em>Pad</em> can be a list of
 one or two screen distances. If <em>pad</em> has two elements, the left
 side of the legend is padded by the first distance and the right side by
 the second. If <em>pad</em> has just one distance, both the left and
 right sides are padded evenly. The default is <code>4</code>.</p></li>
-<li><p><strong>−pady</strong> <em>pad</em> - Sets the padding above and
+<li><p><strong>-pady</strong> <em>pad</em> - Sets the padding above and
 below the legend. <em>Pad</em> can be a list of one or two screen
 distances. If <em>pad</em> has two elements, the area above the legend
 is padded by the first distance and the area below by the second. If
 <em>pad</em> is just one distance, both the top and bottom areas are
 padded evenly. The default is <code>0</code>.</p></li>
-<li><p><strong>−position</strong> <em>pos</em> - Specifies where the
-legend is drawn. The <strong>−anchor</strong> option also affects where
+<li><p><strong>-position</strong> <em>pos</em> - Specifies where the
+legend is drawn. The <strong>-anchor</strong> option also affects where
 the legend is positioned. If <em>pos</em> is <code>left</code>,
 <code>left</code>, <code>top</code>, or <code>bottom</code>, the legend
 is drawn in the specified margin. If <em>pos</em> is
@@ -1443,12 +1443,12 @@ class="citation" data-cites="x">@x</span>,y</em>”, where <em>x</em> and
 <em>y</em> are the window coordinates, the legend is drawn in the
 plotting area at the specified coordinates. The default is
 <code>right</code>.</p></li>
-<li><p><strong>−raised</strong> <em>boolean</em> - Indicates whether the
+<li><p><strong>-raised</strong> <em>boolean</em> - Indicates whether the
 legend is above or below the data elements. This matters only if the
 legend is in the plotting area. If <em>boolean</em> is true, the legend
 will be drawn on top of any elements that may overlap it. The default is
 <code>no</code>.</p></li>
-<li><p><strong>−relief</strong> <em>relief</em> - Specifies the 3-D
+<li><p><strong>-relief</strong> <em>relief</em> - Specifies the 3-D
 effect for the border around the legend. <em>Relief</em> specifies how
 the interior of the legend should appear relative to the bar chart; for
 example, <code>raised</code> means the legend should appear to protrude
@@ -1480,7 +1480,7 @@ options of data elements that pertain to how symbols and lines are
 drawn. Data elements use pens to determine how they are drawn. A data
 element may use several pens at once. In this case, the pen used for a
 particular data point is determined from each element’s weight vector
-(see the element’s <strong>−weight</strong> and <strong>−style</strong>
+(see the element’s <strong>-weight</strong> and <strong>-style</strong>
 options).</p>
 <p>One pen, called <code>activeBar</code>, is automatically created.
 It’s used as the default active pen for elements. So you can change the
@@ -1492,13 +1492,13 @@ component and its create operation.</p>
 <div class="sourceCode" id="cb33"><pre
 class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>.g pen <span class="ot">create</span> myPen</span></code></pre></div>
 <p>You map pens to a data element using either the element’s
-<strong>−pen</strong> or <strong>−activepen</strong> options.</p>
+<strong>-pen</strong> or <strong>-activepen</strong> options.</p>
 <div class="sourceCode" id="cb34"><pre
 class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>.g element <span class="ot">create</span> <span class="st">&quot;e1&quot;</span><span class="ot"> -xdata</span> <span class="dt">$x</span><span class="ot"> -ydata</span> <span class="dt">$tempData</span> \</span>
 <span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>    -pen myPen</span></code></pre></div>
 <p>An element can use several pens at once. This is done by specifying
 the name of the pen in the element’s style list (see the
-<strong>−styles</strong> option).</p>
+<strong>-styles</strong> option).</p>
 <div class="sourceCode" id="cb35"><pre
 class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>.g element <span class="ot">configure</span> <span class="st">&quot;e1&quot;</span><span class="ot"> -styles</span> <span class="kw">{</span> myPen <span class="fl">2.0</span> <span class="fl">3.0</span> <span class="kw">}</span></span></code></pre></div>
 <p>This says that any data point with a weight between 2.0 and 3.0 is to
@@ -1522,26 +1522,26 @@ a list describing <em>option</em> is returned. If one or more
 pair, the pen option <em>option</em> is set to <em>value</em>. The
 following options are valid for pens.</p>
 <ul>
-<li><p><strong>−background</strong> <em>color</em> - Sets the the color
+<li><p><strong>-background</strong> <em>color</em> - Sets the the color
 of the border around each bar. The default is
 <code>white</code>.</p></li>
-<li><p><strong>−borderwidth</strong> <em>pixels</em> - Sets the border
+<li><p><strong>-borderwidth</strong> <em>pixels</em> - Sets the border
 width of the 3-D border drawn around the outside of each bar. The
-<strong>−relief</strong> option determines if such a border is drawn.
+<strong>-relief</strong> option determines if such a border is drawn.
 <em>Pixels</em> must be a valid screen distance like <code>2</code> or
 <code>0.25i</code>. The default is <code>2</code>.</p></li>
-<li><p><strong>−foreground</strong> <em>color</em> - Sets the color of
+<li><p><strong>-foreground</strong> <em>color</em> - Sets the color of
 the interior of the bars.</p></li>
-<li><p><strong>−relief</strong> <em>string</em> - Specifies the 3-D
+<li><p><strong>-relief</strong> <em>string</em> - Specifies the 3-D
 effect desired for bars. <em>Relief</em> indicates how the interior of
 the bar should appear relative to the surface of the chart; for example,
 <code>raised</code> means the bar should appear to protrude from the bar
 chart, relative to the surface of the plotting area. The default is
 <code>raised</code>.</p></li>
-<li><p><strong>−stipple</strong> <em>bitmap</em> - Specifies a stipple
+<li><p><strong>-stipple</strong> <em>bitmap</em> - Specifies a stipple
 pattern with which to draw the bars. If <em>bitmap</em> is
 <code>""</code>, then the bar is drawn in a solid fashion.</p></li>
-<li><p><strong>−type</strong> <em>elemType</em> - Specifies the type of
+<li><p><strong>-type</strong> <em>elemType</em> - Specifies the type of
 element the pen is to be used with. This option should only be employed
 when creating the pen. This is for those that wish to mix different
 types of elements (bars and lines) on the same graph. The default type
@@ -1593,11 +1593,11 @@ and <em>value</em> pairs are specified, then for each pair, the
 postscript option <em>option</em> is set to <em>value</em>. The
 following postscript options are available.</p>
 <ul>
-<li><p><strong>−center</strong> <em>boolean</em> - Indicates whether the
+<li><p><strong>-center</strong> <em>boolean</em> - Indicates whether the
 plot should be centered on the PostScript page. If <em>boolean</em> is
 false, the plot will be placed in the upper left corner of the page. The
 default is <code>1</code>.</p></li>
-<li><p><strong>−colormap</strong> <em>varName</em> - <em>VarName</em>
+<li><p><strong>-colormap</strong> <em>varName</em> - <em>VarName</em>
 must be the name of a global array variable that specifies a color
 mapping from the X color name to PostScript. Each element of
 <em>varName</em> must consist of PostScript code to set a particular
@@ -1608,13 +1608,13 @@ exists. If so, it uses its value as the PostScript command to set the
 color. If this option hasn’t been specified, or if there isn’t an entry
 in <em>varName</em> for a given color, then it uses the red, green, and
 blue intensities from the X color.</p></li>
-<li><p><strong>−colormode</strong> <em>mode</em> - Specifies how to
+<li><p><strong>-colormode</strong> <em>mode</em> - Specifies how to
 output color information. <em>Mode</em> must be either
 <code>color</code> (for full color output), <code>gray</code> (convert
 all colors to their gray-scale equivalents) or <code>mono</code>
 (convert foreground colors to black and background colors to white). The
 default mode is <code>color</code>.</p></li>
-<li><p><strong>−fontmap</strong> <em>varName</em> - <em>VarName</em>
+<li><p><strong>-fontmap</strong> <em>varName</em> - <em>VarName</em>
 must be the name of a global array variable that specifies a font
 mapping from the X font name to PostScript. Each element of
 <em>varName</em> must consist of a Tcl list with one or two elements;
@@ -1628,47 +1628,47 @@ examined in an attempt to guess what PostScript font to use. This works
 only for fonts whose foundry property is <em>Adobe</em> (such as Times,
 Helvetica, Courier, etc.). If all of this fails then the font defaults
 to <code>Helvetica-Bold</code>.</p></li>
-<li><p><strong>−decorations</strong> <em>boolean</em> - Indicates
+<li><p><strong>-decorations</strong> <em>boolean</em> - Indicates
 whether PostScript commands to generate color backgrounds and 3-D
 borders will be output. If <em>boolean</em> is false, the graph will
 background will be white and no 3-D borders will be generated. The
 default is <code>1</code>.</p></li>
-<li><p><strong>−height</strong> <em>pixels</em> - Sets the height of the
+<li><p><strong>-height</strong> <em>pixels</em> - Sets the height of the
 plot. This lets you print the bar chart with a height different from the
 one drawn on the screen. If <em>pixels</em> is 0, the height is the same
 as the widget’s height. The default is <code>0</code>.</p></li>
-<li><p><strong>−landscape</strong> <em>boolean</em> - If
+<li><p><strong>-landscape</strong> <em>boolean</em> - If
 <em>boolean</em> is true, this specifies the printed area is to be
-rotated 90 degrees. In non-rotated output the X−axis of the printed area
+rotated 90 degrees. In non-rotated output the X-axis of the printed area
 runs along the short dimension of the page (‘’portrait’’ orientation);
-in rotated output the X−axis runs along the long dimension of the page
+in rotated output the X-axis runs along the long dimension of the page
 (‘’landscape’’ orientation). Defaults to <code>0</code>.</p></li>
-<li><p><strong>−maxpect</strong> <em>boolean</em> - Indicates to scale
+<li><p><strong>-maxpect</strong> <em>boolean</em> - Indicates to scale
 the plot so that it fills the PostScript page. The aspect ratio of the
 barchart is still retained. The default is <code>0</code>.</p></li>
-<li><p><strong>−padx</strong> <em>pad</em> - Sets the horizontal padding
+<li><p><strong>-padx</strong> <em>pad</em> - Sets the horizontal padding
 for the left and right page borders. The borders are exterior to the
 plot. <em>Pad</em> can be a list of one or two screen distances. If
 <em>pad</em> has two elements, the left border is padded by the first
 distance and the right border by the second. If <em>pad</em> has just
 one distance, both the left and right borders are padded evenly. The
 default is <code>1i</code>.</p></li>
-<li><p><strong>−pady</strong> <em>pad</em> - Sets the vertical padding
+<li><p><strong>-pady</strong> <em>pad</em> - Sets the vertical padding
 for the top and bottom page borders. The borders are exterior to the
 plot. <em>Pad</em> can be a list of one or two screen distances. If
 <em>pad</em> has two elements, the top border is padded by the first
 distance and the bottom border by the second. If <em>pad</em> has just
 one distance, both the top and bottom borders are padded evenly. The
 default is <code>1i</code>.</p></li>
-<li><p><strong>−paperheight</strong> <em>pixels</em> - Sets the height
+<li><p><strong>-paperheight</strong> <em>pixels</em> - Sets the height
 of the postscript page. This can be used to select between different
 page sizes (letter, A4, etc). The default height is
 <code>11.0i</code>.</p></li>
-<li><p><strong>−paperwidth</strong> <em>pixels</em> - Sets the width of
+<li><p><strong>-paperwidth</strong> <em>pixels</em> - Sets the width of
 the postscript page. This can be used to select between different page
 sizes (letter, A4, etc). The default width is
 <code>8.5i</code>.</p></li>
-<li><p><strong>−width</strong> <em>pixels</em> - Sets the width of the
+<li><p><strong>-width</strong> <em>pixels</em> - Sets the width of the
 plot. This lets you generate a plot of a width different from that of
 the widget. If <em>pixels</em> is 0, the width is the same as the
 widget’s width. The default is <code>0</code>.</p></li>
@@ -1695,7 +1695,7 @@ images, connected lines, windows, or polygons. They can be associated
 with a particular element, so that when the element is hidden or
 un-hidden, so is the marker. By default, markers are the last items
 drawn, so that data elements will appear in behind them. You can change
-this by configuring the <strong>−under</strong> option.</p>
+this by configuring the <strong>-under</strong> option.</p>
 <p>Markers, in contrast to elements, don’t affect the scaling of the
 coordinate axes. They can also have <em>elastic</em> coordinates
 (specified by <code>-Inf</code> and <code>Inf</code> respectively) that
@@ -1756,51 +1756,51 @@ then for each pair, the marker option <em>option</em> is set to
 also has its own type-specific options. They are described in the
 sections below.</p>
 <ul>
-<li><p><strong>−bindtags</strong> <em>tagList</em> - Specifies the
+<li><p><strong>-bindtags</strong> <em>tagList</em> - Specifies the
 binding tags for the marker. <em>TagList</em> is a list of binding tag
 names. The tags and their order will determine how events for markers
 are handled. Each tag in the list matching the current event sequence
 will have its Tcl command executed. Implicitly the name of the marker is
 always the first tag in the list. The default value is
 <code>all</code>.</p></li>
-<li><p><strong>−coords</strong> <em>coordList</em> - Specifies the
+<li><p><strong>-coords</strong> <em>coordList</em> - Specifies the
 coordinates of the marker. <em>CoordList</em> is a list of graph
 coordinates. The number of coordinates required is dependent on the type
 of marker. Text, image, and window markers need only two coordinates (an
-X−Y coordinate). Bitmap markers can take either two or four coordinates
+X-Y coordinate). Bitmap markers can take either two or four coordinates
 (if four, they represent the corners of the bitmap). Line markers need
 at least four coordinates, polygons at least six. If <em>coordList</em>
 is <code>""</code>, the marker will not be displayed. The default is
 <code>""</code>.</p></li>
-<li><p><strong>−element</strong> <em>elemName</em> - Links the marker
+<li><p><strong>-element</strong> <em>elemName</em> - Links the marker
 with the element <em>elemName</em>. The marker is drawn only if the
 element is also currently displayed (see the element’s
 <strong>show</strong> operation). If <em>elemName</em> is
 <code>""</code>, the marker is always drawn. The default is
 <code>""</code>.</p></li>
-<li><p><strong>−hide</strong> <em>boolean</em> - Indicates whether the
+<li><p><strong>-hide</strong> <em>boolean</em> - Indicates whether the
 marker is drawn. If <em>boolean</em> is true, the marker is not drawn.
 The default is <code>no</code>.</p></li>
-<li><p><strong>−mapx</strong> <em>xAxis</em> - Specifies the X−axis to
-map the marker’s X−coordinates onto. <em>XAxis</em> must the name of an
+<li><p><strong>-mapx</strong> <em>xAxis</em> - Specifies the X-axis to
+map the marker’s X-coordinates onto. <em>XAxis</em> must the name of an
 axis. The default is <code>x</code>.</p></li>
-<li><p><strong>−mapy</strong> <em>yAxis</em> - Specifies the Y−axis to
-map the marker’s Y−coordinates onto. <em>YAxis</em> must the name of an
+<li><p><strong>-mapy</strong> <em>yAxis</em> - Specifies the Y-axis to
+map the marker’s Y-coordinates onto. <em>YAxis</em> must the name of an
 axis. The default is <code>y</code>.</p></li>
-<li><p><strong>−name</strong> <em>markerId</em> - Changes the identifier
+<li><p><strong>-name</strong> <em>markerId</em> - Changes the identifier
 for the marker. The identifier <em>markerId</em> can not already be used
 by another marker. If this option isn’t specified, the marker’s name is
 uniquely generated.</p></li>
-<li><p><strong>−under</strong> <em>boolean</em> - Indicates whether the
+<li><p><strong>-under</strong> <em>boolean</em> - Indicates whether the
 marker is drawn below/above data elements. If <em>boolean</em> is true,
 the marker is be drawn underneath the data elements. Otherwise, the
 marker is drawn on top of the element. The default is
 <code>0</code>.</p></li>
-<li><p><strong>−xoffset</strong> <em>pixels</em> - Specifies a screen
+<li><p><strong>-xoffset</strong> <em>pixels</em> - Specifies a screen
 distance to offset the marker horizontally. <em>Pixels</em> is a valid
 screen distance, such as <code>2</code> or <code>1.2i</code>. The
 default is <code>0</code>.</p></li>
-<li><p><strong>−yoffset</strong> <em>pixels</em> - Specifies a screen
+<li><p><strong>-yoffset</strong> <em>pixels</em> - Specifies a screen
 distance to offset the markers vertically. <em>Pixels</em> is a valid
 screen distance, such as <code>2</code> or <code>1.2i</code>. The
 default is <code>0</code>.</p></li>
@@ -1822,7 +1822,7 @@ class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb38-1"><a href="#
 <code>image</code>, <code>polygon</code>, or <code>window</code>. This
 command returns the marker identifier, used as the <em>markerId</em>
 argument in the other marker-related commands. If the
-<strong>−name</strong> option is used, this overrides the normal marker
+<strong>-name</strong> option is used, this overrides the normal marker
 identifier. If the name provided is already used for another marker, the
 new marker will replace the old.</p></li>
 <li><p><em>pathName</em> <strong>marker delete</strong> ?<em>name</em>?
@@ -1860,29 +1860,29 @@ value</em>? …</li>
 </ul>
 <p>There may be many <em>option</em>-<em>value</em> pairs, each sets a
 configuration options for the marker. These same
-<em>option</em>−<em>value</em> pairs may be used with the marker’s
+<em>option</em>-<em>value</em> pairs may be used with the marker’s
 <strong>configure</strong> operation.</p>
 <p>The following options are specific to bitmap markers:</p>
 <ul>
-<li><p><strong>−background</strong> <em>color</em> - Same as the
-<strong>−fill</strong> option.</p></li>
-<li><p><strong>−bitmap</strong> <em>bitmap</em> - Specifies the bitmap
+<li><p><strong>-background</strong> <em>color</em> - Same as the
+<strong>-fill</strong> option.</p></li>
+<li><p><strong>-bitmap</strong> <em>bitmap</em> - Specifies the bitmap
 to be displayed. If <em>bitmap</em> is <code>""</code>, the marker will
 not be displayed. The default is <code>""</code>.</p></li>
-<li><p><strong>−fill</strong> <em>color</em> - Sets the background color
+<li><p><strong>-fill</strong> <em>color</em> - Sets the background color
 of the bitmap. If <em>color</em> is the empty string, no background will
 be transparent. The default background color is
 <code>""</code>.</p></li>
-<li><p><strong>−foreground</strong> <em>color</em> - Same as the
-<strong>−outline</strong> option.</p></li>
-<li><p><strong>−mask</strong> <em>mask</em> - Specifies a mask for the
+<li><p><strong>-foreground</strong> <em>color</em> - Same as the
+<strong>-outline</strong> option.</p></li>
+<li><p><strong>-mask</strong> <em>mask</em> - Specifies a mask for the
 bitmap to be displayed. This mask is a bitmap itself, denoting the
 pixels that are transparent. If <em>mask</em> is <code>""</code>, all
 pixels of the bitmap will be drawn. The default is
 <code>""</code>.</p></li>
-<li><p><strong>−outline</strong> <em>color</em> - Sets the foreground
+<li><p><strong>-outline</strong> <em>color</em> - Sets the foreground
 color of the bitmap. The default value is <code>black</code>.</p></li>
-<li><p><strong>−rotate</strong> <em>theta</em> - Sets the rotation of
+<li><p><strong>-rotate</strong> <em>theta</em> - Sets the rotation of
 the bitmap. <em>Theta</em> is a real number representing the angle of
 rotation in degrees. The marker is first rotated and then placed
 according to its anchor position. The default rotation is
@@ -1896,19 +1896,19 @@ marker’s <strong>create</strong> operation in the form:</p>
 ?<em>option value</em>? …</p>
 <p>There may be many <em>option</em>-<em>value</em> pairs, each sets a
 configuration option for the marker. These same
-<em>option</em>−<em>value</em> pairs may be used with the marker’s
+<em>option</em>-<em>value</em> pairs may be used with the marker’s
 <strong>configure</strong> operation.</p></li>
 </ul>
 <p>The following options are specific to image markers:</p>
 <ul>
-<li><p><strong>−anchor</strong> <em>anchor</em> - <em>Anchor</em> tells
+<li><p><strong>-anchor</strong> <em>anchor</em> - <em>Anchor</em> tells
 how to position the image relative to the positioning point for the
 image. For example, if <em>anchor</em> is <code>center</code> then the
 image is centered on the point; if <em>anchor</em> is <code>n</code>
 then the image will be drawn such that the top center point of the
 rectangular region occupied by the image will be at the positioning
 point. This option defaults to <code>center</code>.</p></li>
-<li><p><strong>−image</strong> <em>image</em> - Specifies the image to
+<li><p><strong>-image</strong> <em>image</em> - Specifies the image to
 be drawn. If <em>image</em> is <code>""</code>, the marker will not be
 drawn. The default is <code>""</code>.</p></li>
 </ul>
@@ -1925,21 +1925,21 @@ configuration option for the marker. These same
 <strong>configure</strong> operation.</p>
 <p>The following options are specific to line markers:</p>
 <ul>
-<li><p><strong>−dashes</strong> <em>dashList</em> - Sets the dash style
+<li><p><strong>-dashes</strong> <em>dashList</em> - Sets the dash style
 of the line. <em>DashList</em> is a list of up to 11 numbers that
 alternately represent the lengths of the dashes and gaps on the line.
 Each number must be between 1 and 255. If <em>dashList</em> is
 <code>""</code>, the marker line will be solid.</p></li>
-<li><p><strong>−fill</strong> <em>color</em> - Sets the background color
+<li><p><strong>-fill</strong> <em>color</em> - Sets the background color
 of the line. This color is used with striped lines (see the
-<strong>−fdashes</strong> option). If <em>color</em> is the empty
+<strong>-fdashes</strong> option). If <em>color</em> is the empty
 string, no background color is drawn (the line will be dashed, not
 striped). The default background color is <code>""</code>.</p></li>
-<li><p><strong>−linewidth</strong> <em>pixels</em> - Sets the width of
+<li><p><strong>-linewidth</strong> <em>pixels</em> - Sets the width of
 the lines. The default width is <code>0</code>.</p></li>
-<li><p><strong>−outline</strong> <em>color</em> - Sets the foreground
+<li><p><strong>-outline</strong> <em>color</em> - Sets the foreground
 color of the line. The default value is <code>black</code>.</p></li>
-<li><p><strong>−stipple</strong> <em>bitmap</em> - Specifies a stipple
+<li><p><strong>-stipple</strong> <em>bitmap</em> - Specifies a stipple
 pattern used to draw the line, rather than a solid line. <em>Bitmap</em>
 specifies a bitmap to use as the stipple pattern. If <em>bitmap</em> is
 <code>""</code>, then the line is drawn in a solid fashion. The default
@@ -1956,30 +1956,30 @@ connected. Polygon markers are created using the marker
 ?<em>option value</em>? …</p>
 <p>There may be many <em>option</em>-<em>value</em> pairs, each sets a
 configuration option for the marker. These same
-<em>option</em>−<em>value</em> pairs may be used with the <strong>marker
+<em>option</em>-<em>value</em> pairs may be used with the <strong>marker
 configure</strong> command to change the marker’s configuration. The
 following options are supported for polygon markers:</p>
 <ul>
-<li><p><strong>−dashes</strong> <em>dashList</em> - Sets the dash style
+<li><p><strong>-dashes</strong> <em>dashList</em> - Sets the dash style
 of the outline of the polygon. <em>DashList</em> is a list of up to 11
 numbers that alternately represent the lengths of the dashes and gaps on
 the outline. Each number must be between 1 and 255. If <em>dashList</em>
 is <code>""</code>, the outline will be a solid line.</p></li>
-<li><p><strong>−fill</strong> <em>color</em> - Sets the fill color of
+<li><p><strong>-fill</strong> <em>color</em> - Sets the fill color of
 the polygon. If <em>color</em> is <code>""</code>, then the interior of
 the polygon is transparent. The default is <code>white</code>.</p></li>
-<li><p><strong>−linewidth</strong> <em>pixels</em> - Sets the width of
+<li><p><strong>-linewidth</strong> <em>pixels</em> - Sets the width of
 the outline of the polygon. If <em>pixels</em> is zero, no outline is
 drawn. The default is <code>0</code>.</p></li>
-<li><p><strong>−outline</strong> <em>color</em> - Sets the color of the
+<li><p><strong>-outline</strong> <em>color</em> - Sets the color of the
 outline of the polygon. If the polygon is stippled (see the
-<strong>−stipple</strong> option), then this represents the foreground
+<strong>-stipple</strong> option), then this represents the foreground
 color of the stipple. The default is <code>black</code>.</p></li>
-<li><p><strong>−stipple</strong> <em>bitmap</em> - Specifies that the
+<li><p><strong>-stipple</strong> <em>bitmap</em> - Specifies that the
 polygon should be drawn with a stippled pattern rather than a solid
 color. <em>Bitmap</em> specifies a bitmap to use as the stipple pattern.
 If <em>bitmap</em> is <code>""</code>, then the polygon is filled with a
-solid color (if the <strong>−fill</strong> option is set). The default
+solid color (if the <strong>-fill</strong> option is set). The default
 is <code>""</code>.</p></li>
 </ul></li>
 </ul>
@@ -1993,56 +1993,56 @@ regions of the graph. Text markers are created with the
 value</em>? …</p>
 <p>There may be many <em>option</em>-<em>value</em> pairs, each sets a
 configuration option for the text marker. These same
-<em>option</em>−<em>value</em> pairs may be used with the marker’s
+<em>option</em>-<em>value</em> pairs may be used with the marker’s
 <strong>configure</strong> operation.</p>
 <p>The following options are specific to text markers:</p>
 <ul>
-<li><p><strong>−anchor</strong> <em>anchor</em> - <em>Anchor</em> tells
+<li><p><strong>-anchor</strong> <em>anchor</em> - <em>Anchor</em> tells
 how to position the text relative to the positioning point for the text.
 For example, if <em>anchor</em> is <code>center</code> then the text is
 centered on the point; if <em>anchor</em> is <code>n</code> then the
 text will be drawn such that the top center point of the rectangular
 region occupied by the text will be at the positioning point. This
 default is <code>center</code>.</p></li>
-<li><p><strong>−background</strong> <em>color</em> - Same as the
-<strong>−fill</strong> option.</p></li>
-<li><p><strong>−font</strong> <em>fontName</em> - Specifies the font of
+<li><p><strong>-background</strong> <em>color</em> - Same as the
+<strong>-fill</strong> option.</p></li>
+<li><p><strong>-font</strong> <em>fontName</em> - Specifies the font of
 the text. The default is
 <code>*-Helvetica-Bold-R-Normal-*-120-*</code>.</p></li>
-<li><p><strong>−fill</strong> <em>color</em> - Sets the background color
+<li><p><strong>-fill</strong> <em>color</em> - Sets the background color
 of the text. If <em>color</em> is the empty string, no background will
 be transparent. The default background color is
 <code>""</code>.</p></li>
-<li><p><strong>−foreground</strong> <em>color</em> - Same as the
-<strong>−outline</strong> option.</p></li>
-<li><p><strong>−justify</strong> <em>justify</em> - Specifies how the
+<li><p><strong>-foreground</strong> <em>color</em> - Same as the
+<strong>-outline</strong> option.</p></li>
+<li><p><strong>-justify</strong> <em>justify</em> - Specifies how the
 text should be justified. This matters only when the marker contains
 more than one line of text. <em>Justify</em> must be <code>left</code>,
 <code>right</code>, or <code>center</code>. The default is
 <code>center</code>.</p></li>
-<li><p><strong>−outline</strong> <em>color</em> - Sets the color of the
+<li><p><strong>-outline</strong> <em>color</em> - Sets the color of the
 text. The default value is <code>black</code>.</p></li>
-<li><p><strong>−padx</strong> <em>pad</em> - Sets the padding to the
+<li><p><strong>-padx</strong> <em>pad</em> - Sets the padding to the
 left and right exteriors of the text. <em>Pad</em> can be a list of one
 or two screen distances. If <em>pad</em> has two elements, the left side
 of the text is padded by the first distance and the right side by the
 second. If <em>pad</em> has just one distance, both the left and right
 sides are padded evenly. The default is <code>4</code>.</p></li>
-<li><p><strong>−pady</strong> <em>pad</em> - Sets the padding above and
+<li><p><strong>-pady</strong> <em>pad</em> - Sets the padding above and
 below the text. <em>Pad</em> can be a list of one or two screen
 distances. If <em>pad</em> has two elements, the area above the text is
 padded by the first distance and the area below by the second. If
 <em>pad</em> is just one distance, both the top and bottom areas are
 padded evenly. The default is <code>4</code>.</p></li>
-<li><p><strong>−rotate</strong> <em>theta</em> - Specifies the number of
+<li><p><strong>-rotate</strong> <em>theta</em> - Specifies the number of
 degrees to rotate the text. <em>Theta</em> is a real number representing
 the angle of rotation. The marker is first rotated along its center and
 is then drawn according to its anchor position. The default is
 <code>0.0</code>.</p></li>
-<li><p><strong>−text</strong> <em>text</em> - Specifies the text of the
+<li><p><strong>-text</strong> <em>text</em> - Specifies the text of the
 marker. The exact way the text is displayed may be affected by other
-options such as <strong>−anchor</strong> or
-<strong>−rotate</strong>.</p></li>
+options such as <strong>-anchor</strong> or
+<strong>-rotate</strong>.</p></li>
 </ul></li>
 </ul>
 <h3 id="window-markers">Window markers</h3>
@@ -2054,26 +2054,26 @@ form:</p>
 ?<em>option value</em>? …</p>
 <p>There may be many <em>option</em>-<em>value</em> pairs, each sets a
 configuration option for the marker. These same
-<em>option</em>−<em>value</em> pairs may be used with the marker’s
+<em>option</em>-<em>value</em> pairs may be used with the marker’s
 <strong>configure</strong> command.</p>
 <p>The following options are specific to window markers:</p>
 <ul>
-<li><p><strong>−anchor</strong> <em>anchor</em> - <em>Anchor</em> tells
+<li><p><strong>-anchor</strong> <em>anchor</em> - <em>Anchor</em> tells
 how to position the widget relative to the positioning point for the
 widget. For example, if <em>anchor</em> is <code>center</code> then the
 widget is centered on the point; if <em>anchor</em> is <code>n</code>
 then the widget will be displayed such that the top center point of the
 rectangular region occupied by the widget will be at the positioning
 point. This option defaults to <code>center</code>.</p></li>
-<li><p><strong>−height</strong> <em>pixels</em> - Specifies the height
+<li><p><strong>-height</strong> <em>pixels</em> - Specifies the height
 to assign to the marker’s window. If this option isn’t specified, or if
 it is specified as <code>""</code>, then the window is given whatever
 height the widget requests internally.</p></li>
-<li><p><strong>−width</strong> <em>pixels</em> - Specifies the width to
+<li><p><strong>-width</strong> <em>pixels</em> - Specifies the width to
 assign to the marker’s window. If this option isn’t specified, or if it
 is specified as <code>""</code>, then the window is given whatever width
 the widget requests internally.</p></li>
-<li><p><strong>−window</strong> <em>pathName</em> - Specifies the widget
+<li><p><strong>-window</strong> <em>pathName</em> - Specifies the widget
 to be managed by the barchart. <em>PathName</em> must be a child of the
 <strong>barchart</strong> widget.</p></li>
 </ul></li>
@@ -2094,7 +2094,7 @@ invoked if both items are picked.</p>
 <p>It is possible for multiple bindings to match a particular event.
 This could occur, for example, if one binding is associated with the
 element name and another is associated with one of the element’s tags
-(see the <strong>−bindtags</strong> option). When this occurs, all of
+(see the <strong>-bindtags</strong> option). When this occurs, all of
 the matching bindings are invoked. A binding associated with the element
 name is invoked first, followed by one binding for each of the element’s
 bindtags. If there are multiple matching bindings for a single tag, then
@@ -2102,10 +2102,10 @@ only the most specific binding is invoked. A continue command in a
 binding script terminates that script, and a break command terminates
 that script and skips any remaining scripts for the event, just as for
 the bind command.</p>
-<p>The <strong>−bindtags</strong> option for these components controls
+<p>The <strong>-bindtags</strong> option for these components controls
 addition tag names which can be matched. Implicitly elements and markers
 always have tags matching their names. Setting the value of the
-<strong>−bindtags</strong> option doesn’t change this.</p>
+<strong>-bindtags</strong> option doesn’t change this.</p>
 <h2 id="c-language-api">C language API</h2>
 <p>You can manipulate data elements from the C language. There may be
 situations where it is too expensive to translate the data values from
@@ -2164,7 +2164,7 @@ the redundant string-to-decimal conversions using the C API to BLT
 vectors.</li>
 <li>Don’t stipple or dash the element. Solid bars are much faster.</li>
 <li>If you update data elements frequently, try turning off the widget’s
-<strong>−bufferelements</strong> option. When the bar chart is first
+<strong>-bufferelements</strong> option. When the bar chart is first
 displayed, it draws data elements into an internal pixmap. The pixmap
 acts as a cache, so that when the bar chart needs to be redrawn again,
 and the data elements or coordinate axes haven’t changed, the pixmap is

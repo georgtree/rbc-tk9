@@ -28,7 +28,7 @@
 
 ## Name
 
-graph − 2D graph for plotting X−Y coordinate data.
+graph - 2D graph for plotting X-Y coordinate data.
 
 ## Synopsis
 
