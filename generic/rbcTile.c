@@ -16,12 +16,12 @@
 
 #include "rbcTile.h"
 
-#define TILE_THREAD_KEY	"Rbc Tile Data"
+#define TILE_THREAD_KEY    "Rbc Tile Data"
 #define TILE_MAGIC ((unsigned int) 0x46170277)
 
 typedef struct {
     Tcl_HashTable tileTable; /* Hash table of tile structures keyed by
-			      * the name of the image. */
+                  * the name of the image. */
     Tcl_Interp *interp;
 } TileInterpData;
 
@@ -34,7 +34,7 @@ typedef struct {
     Tcl_HashTable *tablePtr;
     Pixmap pixmap; /* Pixmap generated from image. */
     Pixmap mask; /* Monochrome pixmap used as
-		  * transparency mask. */
+          * transparency mask. */
     GC gc; /* GC */
     Tk_Image tkImage; /* Tk image token. */
     Rbc_Chain *clients; /* Chain of clients sharing this tile. */
@@ -47,20 +47,20 @@ typedef struct {
 * will be changed and the clients of the
 * tile will be notified (if they supplied
 * a TileChangedProc routine. */
-#define TILE_NOTIFY_PENDING	1
+#define TILE_NOTIFY_PENDING    1
 
 typedef struct Rbc_TileClientStruct {
     unsigned int magic;
     Tk_Window tkwin; /* Client window. */
     int xOrigin, yOrigin; /* Tiling origin in relation to the
-			   * client window. */
+               * client window. */
     Rbc_TileChangedProc *notifyProc; /* If non-NULL, routine to
-				      * call to when tile image changes. */
+                      * call to when tile image changes. */
     ClientData clientData; /* Data to pass to when calling the above
-			    * routine. */
+                * routine. */
     Tile *tilePtr; /* Pointer to actual tile information */
     Rbc_ChainLink *linkPtr; /* Pointer to client entry in the server's
-			     * client list.  Used to delete the client */
+                 * client list.  Used to delete the client */
 } TileClient;
 
 typedef struct {
@@ -115,31 +115,31 @@ RedrawTile(tkwin, tilePtr)
 
     Tk_MakeWindowExist(tkwin);
     if ((width != tilePtr->width) || (height != tilePtr->height)) {
-	Pixmap pixmap;
+    Pixmap pixmap;
 
-	/*
-	 * Create the new pixmap *before* destroying the old one.  I don't
-	 * why this happens, but if you delete the old pixmap first, the
-	 * old pixmap sometimes gets used in the client's GCs.  I suspect
-	 * it has something to do with the way Tk reallocates X resource
-	 * identifiers.
-	 */
-	pixmap = Tk_GetPixmap(Tk_Display(tkwin), Tk_WindowId(tkwin), width,
-			      height, Tk_Depth(tkwin));
-	if (tilePtr->pixmap != None) {
-	    Tk_FreePixmap(Tk_Display(tkwin), tilePtr->pixmap);
-	}
-	tilePtr->pixmap = pixmap;
+    /*
+     * Create the new pixmap *before* destroying the old one.  I don't
+     * why this happens, but if you delete the old pixmap first, the
+     * old pixmap sometimes gets used in the client's GCs.  I suspect
+     * it has something to do with the way Tk reallocates X resource
+     * identifiers.
+     */
+    pixmap = Tk_GetPixmap(Tk_Display(tkwin), Tk_WindowId(tkwin), width,
+                  height, Tk_Depth(tkwin));
+    if (tilePtr->pixmap != None) {
+        Tk_FreePixmap(Tk_Display(tkwin), tilePtr->pixmap);
+    }
+    tilePtr->pixmap = pixmap;
     }
     Tk_RedrawImage(tilePtr->tkImage, 0, 0, width, height, tilePtr->pixmap,
-		   0, 0);
+           0, 0);
 
     gcMask = (GCTile | GCFillStyle);
     gcValues.fill_style = FillTiled;
     gcValues.tile = tilePtr->pixmap;
     newGC = Tk_GetGC(tkwin, gcMask, &gcValues);
     if (tilePtr->gc != NULL) {
-	Tk_FreeGC(Tk_Display(tkwin), tilePtr->gc);
+    Tk_FreeGC(Tk_Display(tkwin), tilePtr->gc);
     }
     tilePtr->gc = newGC;
     tilePtr->width = width;
@@ -147,21 +147,21 @@ RedrawTile(tkwin, tilePtr)
 
     if (tilePtr->mask != None) {
 #ifdef WIN32
-	Tk_FreePixmap(Tk_Display(tkwin), tilePtr->mask);
+    Tk_FreePixmap(Tk_Display(tkwin), tilePtr->mask);
 #else
-	XFreePixmap(Tk_Display(tkwin), tilePtr->mask);
+    XFreePixmap(Tk_Display(tkwin), tilePtr->mask);
 #endif /* WIN32 */
-	tilePtr->mask = None;
+    tilePtr->mask = None;
     }
     photo = Tk_FindPhoto(tilePtr->interp,
-			  Rbc_NameOfImage(tilePtr->tkImage));
+              Rbc_NameOfImage(tilePtr->tkImage));
     if (photo != NULL) {
-	Tk_PhotoImageBlock src;
+    Tk_PhotoImageBlock src;
 
-	Tk_PhotoGetImage(photo, &src);
-	if ((src.offset[3] < src.pixelSize) && (src.offset[3] >= 0)) {
-	    tilePtr->mask = Rbc_PhotoImageMask(tkwin, src);
-	}
+    Tk_PhotoGetImage(photo, &src);
+    if ((src.offset[3] < src.pixelSize) && (src.offset[3] >= 0)) {
+        tilePtr->mask = Rbc_PhotoImageMask(tkwin, src);
+    }
     }
 }
 
@@ -190,25 +190,25 @@ UpdateTile(clientData)
 
     tilePtr->flags &= ~TILE_NOTIFY_PENDING;
     if (Tk_ImageIsDeleted(tilePtr->tkImage)) {
-	if (tilePtr->pixmap != None) {
-	    Tk_FreePixmap(tilePtr->display, tilePtr->pixmap);
-	}
-	tilePtr->pixmap = None;
+    if (tilePtr->pixmap != None) {
+        Tk_FreePixmap(tilePtr->display, tilePtr->pixmap);
+    }
+    tilePtr->pixmap = None;
     } else {
-	/* Pick any client window to generate the new pixmap. */
-	linkPtr = Rbc_ChainFirstLink(tilePtr->clients);
-	clientPtr = Rbc_ChainGetValue(linkPtr);
-	RedrawTile(clientPtr->tkwin, tilePtr);
+    /* Pick any client window to generate the new pixmap. */
+    linkPtr = Rbc_ChainFirstLink(tilePtr->clients);
+    clientPtr = Rbc_ChainGetValue(linkPtr);
+    RedrawTile(clientPtr->tkwin, tilePtr);
     }
 
     /* Notify each of the tile's clients that the pixmap has changed. */
 
     for (linkPtr = Rbc_ChainFirstLink(tilePtr->clients); linkPtr != NULL;
     linkPtr = Rbc_ChainNextLink(linkPtr)) {
-	clientPtr = Rbc_ChainGetValue(linkPtr);
-	if (clientPtr->notifyProc != NULL) {
-	    (*clientPtr->notifyProc) (clientPtr->clientData, clientPtr);
-	}
+    clientPtr = Rbc_ChainGetValue(linkPtr);
+    if (clientPtr->notifyProc != NULL) {
+        (*clientPtr->notifyProc) (clientPtr->clientData, clientPtr);
+    }
     }
 }
 
@@ -237,14 +237,14 @@ UpdateTile(clientData)
 static void
 ImageChangedProc(clientData, x, y, width, height, imageWidth, imageHeight)
     ClientData clientData;
-    int x, y, width, height;	/* Not used. */
+    int x, y, width, height;    /* Not used. */
     int imageWidth, imageHeight; /* Not used. */
 {
     Tile *tilePtr = (Tile *) clientData;
 
     if (!(tilePtr->flags & TILE_NOTIFY_PENDING)) {
-	Tcl_DoWhenIdle(UpdateTile, tilePtr);
-	tilePtr->flags |= TILE_NOTIFY_PENDING;
+    Tcl_DoWhenIdle(UpdateTile, tilePtr);
+    tilePtr->flags |= TILE_NOTIFY_PENDING;
     }
 }
 
@@ -272,28 +272,28 @@ DestroyTile(tilePtr)
     TileClient *clientPtr;
 
     if (tilePtr->flags & TILE_NOTIFY_PENDING) {
-	Tcl_CancelIdleCall(UpdateTile, tilePtr);
+    Tcl_CancelIdleCall(UpdateTile, tilePtr);
     }
     for (linkPtr = Rbc_ChainFirstLink(tilePtr->clients); linkPtr != NULL;
     linkPtr = Rbc_ChainNextLink(linkPtr)) {
-	clientPtr = Rbc_ChainGetValue(linkPtr);
-	ckfree((char *)clientPtr);
+    clientPtr = Rbc_ChainGetValue(linkPtr);
+    ckfree((char *)clientPtr);
     }
     Rbc_ChainDestroy(tilePtr->clients);
 
     if (tilePtr->hashPtr != NULL) {
-	Tcl_DeleteHashEntry(tilePtr->hashPtr);
+    Tcl_DeleteHashEntry(tilePtr->hashPtr);
     }
     if (tilePtr->pixmap != None) {
-	Tk_FreePixmap(tilePtr->display, tilePtr->pixmap);
+    Tk_FreePixmap(tilePtr->display, tilePtr->pixmap);
     }
     Tk_FreeImage(tilePtr->tkImage);
 
     if (tilePtr->gc != NULL) {
-	Tk_FreeGC(tilePtr->display, tilePtr->gc);
+    Tk_FreeGC(tilePtr->display, tilePtr->gc);
     }
     if (tilePtr->name != NULL) {
-	ckfree((char *)tilePtr->name);
+    ckfree((char *)tilePtr->name);
     }
     ckfree((char *)tilePtr);
 }
@@ -335,10 +335,10 @@ CreateTile(interp, tkwin, imageName)
      * Get the image. Funnel all change notifications to a single routine.
      */
     tkImage = Tk_GetImage(interp, tkwin, imageName, ImageChangedProc,
-			  tilePtr);
+              tilePtr);
     if (tkImage == NULL) {
-	ckfree((char *)tilePtr);
-	return NULL;
+    ckfree((char *)tilePtr);
+    return NULL;
     }
 
     /*
@@ -379,14 +379,14 @@ DestroyClient(clientPtr)
 
     /* Remove the client from the server's list */
     if (clientPtr->linkPtr != NULL) {
-	Rbc_ChainDeleteLink(tilePtr->clients, clientPtr->linkPtr);
+    Rbc_ChainDeleteLink(tilePtr->clients, clientPtr->linkPtr);
     }
     if (Rbc_ChainGetLength(tilePtr->clients) == 0) {
-	/*
-	 * If there are no more clients of the tile, then remove the
-	 * pixmap, image, and the server record.
-	 */
-	DestroyTile(tilePtr);
+    /*
+     * If there are no more clients of the tile, then remove the
+     * pixmap, image, and the server record.
+     */
+    DestroyTile(tilePtr);
     }
     ckfree((char *)clientPtr);
 }
@@ -432,16 +432,16 @@ CreateClient(
     key.depth = Tk_Depth(tkwin);
     hPtr = Tcl_CreateHashEntry(&dataPtr->tileTable, (char *)&key, &isNew);
     if (isNew) {
-	tilePtr = CreateTile(interp, tkwin, name);
-	if (tilePtr == NULL) {
-	    Tcl_DeleteHashEntry(hPtr);
-	    return NULL;
-	}
-	tilePtr->hashPtr = hPtr;
-	tilePtr->tablePtr = &(dataPtr->tileTable);
-	Tcl_SetHashValue(hPtr, tilePtr);
+    tilePtr = CreateTile(interp, tkwin, name);
+    if (tilePtr == NULL) {
+        Tcl_DeleteHashEntry(hPtr);
+        return NULL;
+    }
+    tilePtr->hashPtr = hPtr;
+    tilePtr->tablePtr = &(dataPtr->tileTable);
+    Tcl_SetHashValue(hPtr, tilePtr);
     } else {
-	tilePtr = Tcl_GetHashValue(hPtr);
+    tilePtr = Tcl_GetHashValue(hPtr);
     }
     clientPtr = RbcCalloc(1, sizeof(TileClient));
     assert(clientPtr);
@@ -482,9 +482,9 @@ TileInterpDeleteProc(clientData, interp)
 
     for (hPtr = Tcl_FirstHashEntry(&(dataPtr->tileTable), &cursor);
     hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
-	tilePtr = Tcl_GetHashValue(hPtr);
-	tilePtr->hashPtr = NULL;
-	DestroyTile(tilePtr);
+    tilePtr = Tcl_GetHashValue(hPtr);
+    tilePtr->hashPtr = NULL;
+    DestroyTile(tilePtr);
     }
     Tcl_DeleteHashTable(&(dataPtr->tileTable));
     Tcl_DeleteAssocData(interp, TILE_THREAD_KEY);
@@ -514,14 +514,14 @@ GetTileInterpData(interp)
     Tcl_InterpDeleteProc *proc;
 
     dataPtr = (TileInterpData *)
-	      Tcl_GetAssocData(interp, TILE_THREAD_KEY, &proc);
+          Tcl_GetAssocData(interp, TILE_THREAD_KEY, &proc);
     if (dataPtr == NULL) {
-	dataPtr = (TileInterpData *)ckalloc(sizeof(TileInterpData));
-	assert(dataPtr);
-	dataPtr->interp = interp;
-	Tcl_SetAssocData(interp, TILE_THREAD_KEY, TileInterpDeleteProc,
-			 dataPtr);
-	Tcl_InitHashTable(&(dataPtr->tileTable), sizeof(TileKey)/sizeof(int));
+    dataPtr = (TileInterpData *)ckalloc(sizeof(TileInterpData));
+    assert(dataPtr);
+    dataPtr->interp = interp;
+    Tcl_SetAssocData(interp, TILE_THREAD_KEY, TileInterpDeleteProc,
+             dataPtr);
+    Tcl_InitHashTable(&(dataPtr->tileTable), sizeof(TileKey)/sizeof(int));
     }
     return dataPtr;
 }
@@ -557,7 +557,7 @@ Rbc_GetTile(interp, tkwin, imageName, tokenPtr)
 
     clientPtr = CreateClient(interp, tkwin, imageName);
     if (clientPtr == NULL) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     *tokenPtr = clientPtr;
     return TCL_OK;
@@ -584,7 +584,7 @@ Rbc_FreeTile(clientPtr)
     TileClient *clientPtr; /* Tile to be deleted */
 {
     if ((clientPtr == NULL) || (clientPtr->magic != TILE_MAGIC)) {
-	return;			/* No tile */
+    return;            /* No tile */
     }
     DestroyClient(clientPtr);
 }
@@ -611,10 +611,10 @@ Rbc_NameOfTile(clientPtr)
     TileClient *clientPtr; /* Tile to query */
 {
     if (clientPtr == NULL) {
-	return "";
+    return "";
     }
     if (clientPtr->magic != TILE_MAGIC) {
-	return "not a tile";
+    return "not a tile";
     }
     return clientPtr->tilePtr->name;
 }
@@ -639,7 +639,7 @@ Rbc_PixmapOfTile(clientPtr)
     TileClient *clientPtr; /* Tile to query */
 {
     if ((clientPtr == NULL) || (clientPtr->magic != TILE_MAGIC)) {
-	return None;
+    return None;
     }
     return clientPtr->tilePtr->pixmap;
 }
@@ -666,8 +666,8 @@ Rbc_SizeOfTile(clientPtr, widthPtr, heightPtr)
     int *heightPtr; /* Returned dimensions of the tile (out) */
 {
     if ((clientPtr == NULL) || (clientPtr->magic != TILE_MAGIC)) {
-	*widthPtr = *heightPtr = 0;
-	return;			/* No tile given. */
+    *widthPtr = *heightPtr = 0;
+    return;            /* No tile given. */
     }
     *widthPtr = clientPtr->tilePtr->width;
     *heightPtr = clientPtr->tilePtr->height;
@@ -696,8 +696,8 @@ Rbc_SetTileChangedProc(clientPtr, notifyProc, clientData)
     ClientData clientData;
 {
     if ((clientPtr != NULL) && (clientPtr->magic == TILE_MAGIC)) {
-	clientPtr->notifyProc = notifyProc;
-	clientPtr->clientData = clientData;
+    clientPtr->notifyProc = notifyProc;
+    clientPtr->clientData = clientData;
     }
 }
 
@@ -729,9 +729,9 @@ Rbc_SetTileOrigin(tkwin, clientPtr, x, y)
     int y;
 {
     while (!Tk_IsTopLevel(tkwin)) {
-	x += Tk_X(tkwin) + Tk_Changes(tkwin)->border_width;
-	y += Tk_Y(tkwin) + Tk_Changes(tkwin)->border_width;
-	tkwin = Tk_Parent(tkwin);
+    x += Tk_X(tkwin) + Tk_Changes(tkwin)->border_width;
+    y += Tk_Y(tkwin) + Tk_Changes(tkwin)->border_width;
+    tkwin = Tk_Parent(tkwin);
     }
     XSetTSOrigin(Tk_Display(tkwin), clientPtr->tilePtr->gc, -x, -y);
     clientPtr->xOrigin = -x;
@@ -767,9 +767,9 @@ Rbc_SetTSOrigin(tkwin, clientPtr, x, y)
 
 #ifdef WIN32
 MODULE_SCOPE const int tkpWinRopModes[];
-#define MASKPAT		0x00E20746 /* dest = (src & pat) | (!src & dst) */
-#define COPYFG		0x00CA0749 /* dest = (pat & src) | (!pat & dst) */
-#define COPYBG		0x00AC0744 /* dest = (!pat & src) | (pat & dst) */
+#define MASKPAT        0x00E20746 /* dest = (src & pat) | (!src & dst) */
+#define COPYFG        0x00CA0749 /* dest = (pat & src) | (!pat & dst) */
+#define COPYBG        0x00AC0744 /* dest = (!pat & src) | (pat & dst) */
 
 /*
  *--------------------------------------------------------------
@@ -791,7 +791,7 @@ TileRegion(srcDC, destDC, maskDC, clientPtr, x, y, width, height)
     HDC srcDC; /* Source device context. */
     HDC destDC; /* Destination device context. */
     HDC maskDC; /* If non-NULL, device context of the
-		 * mask tile mask. */
+         * mask tile mask. */
     TileClient *clientPtr;
     int x;
     int y;
@@ -802,38 +802,38 @@ TileRegion(srcDC, destDC, maskDC, clientPtr, x, y, width, height)
     int destX, destY;
     int destWidth, destHeight;
     int srcX, srcY;
-    int startX, startY;		/* Starting upper left corner of region. */
+    int startX, startY;        /* Starting upper left corner of region. */
     int delta;
     int left, top, right, bottom;
 
     startX = x;
     if (x < clientPtr->xOrigin) {
-	delta = (clientPtr->xOrigin - x) % tilePtr->width;
-	if (delta > 0) {
-	    startX -= (tilePtr->width - delta);
-	}
+    delta = (clientPtr->xOrigin - x) % tilePtr->width;
+    if (delta > 0) {
+        startX -= (tilePtr->width - delta);
+    }
     } else if (x > clientPtr->xOrigin) {
-	delta = (x - clientPtr->xOrigin) % tilePtr->width;
-	if (delta > 0) {
-	    startX -= delta;
-	}
+    delta = (x - clientPtr->xOrigin) % tilePtr->width;
+    if (delta > 0) {
+        startX -= delta;
+    }
     }
     startY = y;
     if (y < clientPtr->yOrigin) {
-	delta = (clientPtr->yOrigin - y) % tilePtr->height;
-	if (delta > 0) {
-	    startY -= (tilePtr->height - delta);
-	}
+    delta = (clientPtr->yOrigin - y) % tilePtr->height;
+    if (delta > 0) {
+        startY -= (tilePtr->height - delta);
+    }
     } else if (y >= clientPtr->yOrigin) {
-	delta = (y - clientPtr->yOrigin) % tilePtr->height;
-	if (delta > 0) {
-	    startY -= delta;
-	}
+    delta = (y - clientPtr->yOrigin) % tilePtr->height;
+    if (delta > 0) {
+        startY -= delta;
+    }
     }
 #ifdef notdef
     PurifyPrintf("tile is (%d,%d,%d,%d)\n",
-		 clientPtr->xOrigin, clientPtr->yOrigin,
-		 tilePtr->width, tilePtr->height);
+         clientPtr->xOrigin, clientPtr->yOrigin,
+         tilePtr->width, tilePtr->height);
     PurifyPrintf("region is (%d,%d,%d,%d)\n", x, y, width, height);
     PurifyPrintf("starting at %d,%d\n", startX, startY);
 #endif
@@ -842,55 +842,55 @@ TileRegion(srcDC, destDC, maskDC, clientPtr, x, y, width, height)
     top = y;
     bottom = y + height;
     for (y = startY; y < bottom; y += tilePtr->height) {
-	srcY = 0;
-	destY = y;
-	destHeight = tilePtr->height;
-	if (y < top) {
-	    srcY = (top - y);
-	    destHeight = tilePtr->height - srcY;
-	    destY = top;
-	}
-	if ((destY + destHeight) > bottom) {
-	    destHeight = (bottom - destY);
-	}
-	for (x = startX; x < right; x += tilePtr->width) {
-	    srcX = 0;
-	    destX = x;
-	    destWidth = tilePtr->width;
-	    if (x < left) {
-		srcX = (left - x);
-		destWidth = tilePtr->width - srcX;
-		destX = left;
-	    }
-	    if ((destX + destWidth) > right) {
-		destWidth = (right - destX);
-	    }
+    srcY = 0;
+    destY = y;
+    destHeight = tilePtr->height;
+    if (y < top) {
+        srcY = (top - y);
+        destHeight = tilePtr->height - srcY;
+        destY = top;
+    }
+    if ((destY + destHeight) > bottom) {
+        destHeight = (bottom - destY);
+    }
+    for (x = startX; x < right; x += tilePtr->width) {
+        srcX = 0;
+        destX = x;
+        destWidth = tilePtr->width;
+        if (x < left) {
+        srcX = (left - x);
+        destWidth = tilePtr->width - srcX;
+        destX = left;
+        }
+        if ((destX + destWidth) > right) {
+        destWidth = (right - destX);
+        }
 #ifdef notdef
-	    PurifyPrintf("drawing pattern (%d,%d,%d,%d) at %d,%d\n",
-			 srcX , srcY, destWidth, destHeight, destX, destY);
+        PurifyPrintf("drawing pattern (%d,%d,%d,%d) at %d,%d\n",
+             srcX , srcY, destWidth, destHeight, destX, destY);
 #endif
-	    if (tilePtr->mask != None) { /* With transparency. */
+        if (tilePtr->mask != None) { /* With transparency. */
 #ifdef notdef
-		HDC maskDC;
-		TkWinDCState maskState;
+        HDC maskDC;
+        TkWinDCState maskState;
 
-		maskDC = TkWinGetDrawableDC(tilePtr->display,
-					    tilePtr->mask, &maskState);
-		SetBkColor(destDC, RGB(255, 255, 255));
-		SetTextColor(destDC, RGB(0, 0, 0));
+        maskDC = TkWinGetDrawableDC(tilePtr->display,
+                        tilePtr->mask, &maskState);
+        SetBkColor(destDC, RGB(255, 255, 255));
+        SetTextColor(destDC, RGB(0, 0, 0));
 #endif
-		BitBlt(destDC, destX, destY, destWidth, destHeight, maskDC,
-		       0, 0, SRCAND);
-		BitBlt(destDC, destX, destY, destWidth, destHeight, srcDC,
-		       srcX, srcY, SRCPAINT);
+        BitBlt(destDC, destX, destY, destWidth, destHeight, maskDC,
+               0, 0, SRCAND);
+        BitBlt(destDC, destX, destY, destWidth, destHeight, srcDC,
+               srcX, srcY, SRCPAINT);
 #ifdef notdef
-		TkWinReleaseDrawableDC(tilePtr->mask, maskDC, &maskState);
+        TkWinReleaseDrawableDC(tilePtr->mask, maskDC, &maskState);
 #endif
-	    } else {		/* Opaque tile. */
-		BitBlt(destDC, destX, destY, destWidth, destHeight,
-		       srcDC, srcX, srcY, SRCCOPY);
-	    }
-	}
+        } else {        /* Opaque tile. */
+        BitBlt(destDC, destX, destY, destWidth, destHeight,
+               srcDC, srcX, srcY, SRCCOPY);
+        }
+    }
     }
 }
 
@@ -930,7 +930,7 @@ Rbc_TilePolygon(
     int width, height;
 
     if (drawable == None) {
-	return;
+    return;
     }
     tilePtr = clientPtr->tilePtr;
 
@@ -940,18 +940,18 @@ Rbc_TilePolygon(
 
     endPtr = pointArr + nPoints;
     for (pointPtr = pointArr; pointPtr < endPtr; pointPtr++) {
-	if (pointPtr->x < bbox.left) {
-	    bbox.left = pointPtr->x;
-	}
-	if (pointPtr->x > bbox.right) {
-	    bbox.right = pointPtr->x;
-	}
-	if (pointPtr->y < bbox.top) {
-	    bbox.top = pointPtr->y;
-	}
-	if (pointPtr->y > bbox.bottom) {
-	    bbox.bottom = pointPtr->y;
-	}
+    if (pointPtr->x < bbox.left) {
+        bbox.left = pointPtr->x;
+    }
+    if (pointPtr->x > bbox.right) {
+        bbox.right = pointPtr->x;
+    }
+    if (pointPtr->y < bbox.top) {
+        bbox.top = pointPtr->y;
+    }
+    if (pointPtr->y > bbox.bottom) {
+        bbox.bottom = pointPtr->y;
+    }
     }
     width = bbox.right - bbox.left + 1;
     height = bbox.bottom - bbox.top + 1;
@@ -960,9 +960,9 @@ Rbc_TilePolygon(
     /* Allocate and fill an array of POINTS to create the polygon path. */
     p = winPts = (POINT *)ckalloc(sizeof(POINT) * nPoints);
     for (pointPtr = pointArr; pointPtr < endPtr; pointPtr++) {
-	p->x = pointPtr->x - bbox.left;
-	p->y = pointPtr->y - bbox.top;
-	p++;
+    p->x = pointPtr->x - bbox.left;
+    p->y = pointPtr->y - bbox.top;
+    p++;
     }
 
     hDC = TkWinGetDrawableDC(Tk_Display(tkwin), drawable, &state);
@@ -981,19 +981,19 @@ Rbc_TilePolygon(
 
     /* Tile the bounding box. */
     if (tilePtr->mask != None) {
-	TkWinDCState maskState;
-	HDC maskDC;
+    TkWinDCState maskState;
+    HDC maskDC;
 
-	maskDC = TkWinGetDrawableDC(tilePtr->display, tilePtr->mask,
-				    &maskState);
-	SetBkColor(hDC, RGB(255, 255, 255));
-	SetTextColor(hDC, RGB(0, 0, 0));
-	TileRegion(memDC, hDC, maskDC, clientPtr, bbox.left, bbox.top, width,
-		   height);
-	TkWinReleaseDrawableDC(tilePtr->mask, maskDC, &maskState);
+    maskDC = TkWinGetDrawableDC(tilePtr->display, tilePtr->mask,
+                    &maskState);
+    SetBkColor(hDC, RGB(255, 255, 255));
+    SetTextColor(hDC, RGB(0, 0, 0));
+    TileRegion(memDC, hDC, maskDC, clientPtr, bbox.left, bbox.top, width,
+           height);
+    TkWinReleaseDrawableDC(tilePtr->mask, maskDC, &maskState);
     } else {
-	TileRegion(memDC, hDC, NULL, clientPtr, bbox.left, bbox.top, width,
-		   height);
+    TileRegion(memDC, hDC, NULL, clientPtr, bbox.left, bbox.top, width,
+           height);
     }
     SelectBitmap(memDC, oldBitmap);
     DeleteDC(memDC);
@@ -1033,7 +1033,7 @@ Rbc_TileRectangle(
     TkWinDrawable *twdPtr;
 
     if (drawable == None) {
-	return;
+    return;
     }
     tilePtr = clientPtr->tilePtr;
     hDC = TkWinGetDrawableDC(Tk_Display(tkwin), drawable, &state);
@@ -1045,17 +1045,17 @@ Rbc_TileRectangle(
 
     /* Tile the bounding box. */
     if (tilePtr->mask != None) {
-	TkWinDCState maskState;
-	HDC maskDC;
+    TkWinDCState maskState;
+    HDC maskDC;
 
-	maskDC = TkWinGetDrawableDC(tilePtr->display, tilePtr->mask,
-				    &maskState);
-	SetBkColor(hDC, RGB(255, 255, 255));
-	SetTextColor(hDC, RGB(0, 0, 0));
-	TileRegion(memDC, hDC, maskDC, clientPtr, x, y, width, height);
-	TkWinReleaseDrawableDC(tilePtr->mask, maskDC, &maskState);
+    maskDC = TkWinGetDrawableDC(tilePtr->display, tilePtr->mask,
+                    &maskState);
+    SetBkColor(hDC, RGB(255, 255, 255));
+    SetTextColor(hDC, RGB(0, 0, 0));
+    TileRegion(memDC, hDC, maskDC, clientPtr, x, y, width, height);
+    TkWinReleaseDrawableDC(tilePtr->mask, maskDC, &maskState);
     } else {
-	TileRegion(memDC, hDC, NULL, clientPtr, x, y, width, height);
+    TileRegion(memDC, hDC, NULL, clientPtr, x, y, width, height);
     }
     SelectBitmap(memDC, oldBitmap);
     DeleteDC(memDC);
@@ -1093,7 +1093,7 @@ Rbc_TileRectangles(
     XRectangle *rectPtr, *endPtr;
 
     if (drawable == None) {
-	return;
+    return;
     }
     tilePtr = clientPtr->tilePtr;
     hDC = TkWinGetDrawableDC(Tk_Display(tkwin), drawable, &state);
@@ -1106,23 +1106,23 @@ Rbc_TileRectangles(
     endPtr = rectArr + nRectangles;
     /* Tile the bounding box. */
     if (tilePtr->mask != None) {
-	TkWinDCState maskState;
-	HDC maskDC;
+    TkWinDCState maskState;
+    HDC maskDC;
 
-	maskDC = TkWinGetDrawableDC(tilePtr->display, tilePtr->mask,
-				    &maskState);
-	SetBkColor(hDC, RGB(255, 255, 255));
-	SetTextColor(hDC, RGB(0, 0, 0));
-	for (rectPtr = rectArr; rectPtr < endPtr; rectPtr++) {
-	    TileRegion(memDC, hDC, maskDC, clientPtr, (int)rectPtr->x,
-		       (int)rectPtr->y, (int)rectPtr->width, (int)rectPtr->height);
-	}
-	TkWinReleaseDrawableDC(tilePtr->mask, maskDC, &maskState);
+    maskDC = TkWinGetDrawableDC(tilePtr->display, tilePtr->mask,
+                    &maskState);
+    SetBkColor(hDC, RGB(255, 255, 255));
+    SetTextColor(hDC, RGB(0, 0, 0));
+    for (rectPtr = rectArr; rectPtr < endPtr; rectPtr++) {
+        TileRegion(memDC, hDC, maskDC, clientPtr, (int)rectPtr->x,
+               (int)rectPtr->y, (int)rectPtr->width, (int)rectPtr->height);
+    }
+    TkWinReleaseDrawableDC(tilePtr->mask, maskDC, &maskState);
     } else {
-	for (rectPtr = rectArr; rectPtr < endPtr; rectPtr++) {
-	    TileRegion(memDC, hDC, NULL, clientPtr, (int)rectPtr->x,
-		       (int)rectPtr->y, (int)rectPtr->width, (int)rectPtr->height);
-	}
+    for (rectPtr = rectArr; rectPtr < endPtr; rectPtr++) {
+        TileRegion(memDC, hDC, NULL, clientPtr, (int)rectPtr->x,
+               (int)rectPtr->y, (int)rectPtr->width, (int)rectPtr->height);
+    }
     }
     SelectBitmap(memDC, oldBitmap);
     DeleteDC(memDC);
@@ -1166,7 +1166,7 @@ RectangleMask(display, drawable, x, y, width, height, mask, xOrigin, yOrigin)
 
     bitmap = Tk_GetPixmap(display, drawable, width, height, 1);
     gcMask = (GCForeground | GCBackground | GCFillStyle |
-	      GCTileStipXOrigin | GCTileStipYOrigin | GCStipple);
+          GCTileStipXOrigin | GCTileStipYOrigin | GCStipple);
     gcValues.foreground = 0x1;
     gcValues.background = 0x0;
     gcValues.fill_style = FillOpaqueStippled;
@@ -1211,18 +1211,18 @@ Rbc_TileRectangle(
     display = Tk_Display(tkwin);
     tilePtr = clientPtr->tilePtr;
     if (clientPtr->tilePtr->mask != None) {
-	Pixmap mask;
+    Pixmap mask;
 
-	mask = RectangleMask(display, drawable, x, y, width, height,
-			     tilePtr->mask, clientPtr->xOrigin, clientPtr->yOrigin);
-	XSetClipMask(display, tilePtr->gc, mask);
-	XSetClipOrigin(display, tilePtr->gc, x, y);
-	XFillRectangle(display, drawable, tilePtr->gc, x, y, width, height);
-	XSetClipMask(display, tilePtr->gc, None);
-	XSetClipOrigin(display, tilePtr->gc, 0, 0);
-	Tk_FreePixmap(display, mask);
+    mask = RectangleMask(display, drawable, x, y, width, height,
+                 tilePtr->mask, clientPtr->xOrigin, clientPtr->yOrigin);
+    XSetClipMask(display, tilePtr->gc, mask);
+    XSetClipOrigin(display, tilePtr->gc, x, y);
+    XFillRectangle(display, drawable, tilePtr->gc, x, y, width, height);
+    XSetClipMask(display, tilePtr->gc, None);
+    XSetClipOrigin(display, tilePtr->gc, 0, 0);
+    Tk_FreePixmap(display, mask);
     } else {
-	XFillRectangle(display, drawable, tilePtr->gc, x, y, width, height);
+    XFillRectangle(display, drawable, tilePtr->gc, x, y, width, height);
     }
 }
 
@@ -1255,16 +1255,16 @@ Rbc_TileRectangles(
 
     tilePtr = clientPtr->tilePtr;
     if (tilePtr->mask != None) {
-	XRectangle *rectPtr, *endPtr;
+    XRectangle *rectPtr, *endPtr;
 
-	endPtr = rectArr + nRectangles;
-	for (rectPtr = rectArr; rectPtr < endPtr; rectPtr++) {
-	    Rbc_TileRectangle(tkwin, drawable, clientPtr, rectPtr->x,
-			      rectPtr->y, rectPtr->width, rectPtr->height);
-	}
+    endPtr = rectArr + nRectangles;
+    for (rectPtr = rectArr; rectPtr < endPtr; rectPtr++) {
+        Rbc_TileRectangle(tkwin, drawable, clientPtr, rectPtr->x,
+                  rectPtr->y, rectPtr->width, rectPtr->height);
+    }
     } else {
-	XFillRectangles(Tk_Display(tkwin), drawable, tilePtr->gc, rectArr,
-			nRectangles);
+    XFillRectangles(Tk_Display(tkwin), drawable, tilePtr->gc, rectArr,
+            nRectangles);
     }
 }
 
@@ -1304,25 +1304,25 @@ PolygonMask(display, pointArr, nPoints, regionPtr, mask, xOrigin, yOrigin)
     width = regionPtr->right - regionPtr->left + 1;
     height = regionPtr->bottom - regionPtr->top + 1;
     bitmap =
-	Tk_GetPixmap(display, DefaultRootWindow(display), width, height, 1);
+    Tk_GetPixmap(display, DefaultRootWindow(display), width, height, 1);
 
     destArr = (XPoint *)ckalloc(sizeof(XPoint) * nPoints);
     endPtr = destArr + nPoints;
     srcPtr = pointArr;
     for (destPtr = destArr; destPtr < endPtr; destPtr++) {
-	destPtr->x = srcPtr->x - regionPtr->left;
-	destPtr->y = srcPtr->y - regionPtr->top;
-	srcPtr++;
+    destPtr->x = srcPtr->x - regionPtr->left;
+    destPtr->y = srcPtr->y - regionPtr->top;
+    srcPtr++;
     }
     gc = XCreateGC(display, bitmap, 0, NULL);
     XFillRectangle(display, bitmap, gc, 0, 0, width, height);
     XSetForeground(display, gc, 0x01);
     XSetFillStyle(display, gc, FillStippled);
     XSetTSOrigin(display, gc, xOrigin - regionPtr->left,
-		 yOrigin - regionPtr->top);
+         yOrigin - regionPtr->top);
     XSetStipple(display, gc, mask);
     XFillPolygon(display, bitmap, gc, destArr, nPoints, Complex,
-		 CoordModeOrigin);
+         CoordModeOrigin);
     XFreeGC(display, gc);
     ckfree((char *)destArr);
     return bitmap;
@@ -1359,40 +1359,40 @@ Rbc_TilePolygon(
     display = Tk_Display(tkwin);
     tilePtr = clientPtr->tilePtr;
     if (tilePtr->mask != None) {
-	XPoint *pointPtr, *endPtr;
-	Region2D region;
-	Pixmap mask;
+    XPoint *pointPtr, *endPtr;
+    Region2D region;
+    Pixmap mask;
 
-	/* Determine the bounding box of the polygon. */
-	pointPtr = pointArr;
-	region.left = region.right = pointPtr->x;
-	region.top = region.bottom = pointPtr->y;
+    /* Determine the bounding box of the polygon. */
+    pointPtr = pointArr;
+    region.left = region.right = pointPtr->x;
+    region.top = region.bottom = pointPtr->y;
 
-	endPtr = pointArr + nPoints;
-	for (pointPtr = pointArr; pointPtr < endPtr; pointPtr++) {
-	    if (region.left > pointPtr->x) {
-		region.left = pointPtr->x;
-	    } else if (region.right < pointPtr->x) {
-		region.right = pointPtr->x;
-	    }
-	    if (region.top > pointPtr->y) {
-		region.top = pointPtr->y;
-	    } else if (region.bottom < pointPtr->y) {
-		region.bottom = pointPtr->y;
-	    }
-	}
-	mask = PolygonMask(display, pointArr, nPoints, &region,
-			   tilePtr->mask, clientPtr->xOrigin, clientPtr->yOrigin);
-	XSetClipMask(display, tilePtr->gc, mask);
-	XSetClipOrigin(display, tilePtr->gc, region.left, region.top);
-	XFillPolygon(display, drawable, tilePtr->gc, pointArr,
-		     nPoints, Complex, CoordModeOrigin);
-	XSetClipMask(display, tilePtr->gc, None);
-	XSetClipOrigin(display, tilePtr->gc, 0, 0);
-	Tk_FreePixmap(display, mask);
+    endPtr = pointArr + nPoints;
+    for (pointPtr = pointArr; pointPtr < endPtr; pointPtr++) {
+        if (region.left > pointPtr->x) {
+        region.left = pointPtr->x;
+        } else if (region.right < pointPtr->x) {
+        region.right = pointPtr->x;
+        }
+        if (region.top > pointPtr->y) {
+        region.top = pointPtr->y;
+        } else if (region.bottom < pointPtr->y) {
+        region.bottom = pointPtr->y;
+        }
+    }
+    mask = PolygonMask(display, pointArr, nPoints, &region,
+               tilePtr->mask, clientPtr->xOrigin, clientPtr->yOrigin);
+    XSetClipMask(display, tilePtr->gc, mask);
+    XSetClipOrigin(display, tilePtr->gc, region.left, region.top);
+    XFillPolygon(display, drawable, tilePtr->gc, pointArr,
+             nPoints, Complex, CoordModeOrigin);
+    XSetClipMask(display, tilePtr->gc, None);
+    XSetClipOrigin(display, tilePtr->gc, 0, 0);
+    Tk_FreePixmap(display, mask);
     } else {
-	XFillPolygon(display, drawable, tilePtr->gc, pointArr,
-		     nPoints, Complex, CoordModeOrigin);
+    XFillPolygon(display, drawable, tilePtr->gc, pointArr,
+             nPoints, Complex, CoordModeOrigin);
     }
 }
 #endif

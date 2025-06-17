@@ -16,144 +16,144 @@
 
 typedef struct {
     char *name; /* Pen style identifier.  If NULL pen
-		 * was statically allocated. */
-    Rbc_Uid classUid;		/* Type of pen */
-    char *typeId;		/* String token identifying the type of pen */
-    unsigned int flags;		/* Indicates if the pen element is active or
-				 * normal */
-    int refCount;		/* Reference count for elements using
-				 * this pen. */
+         * was statically allocated. */
+    Rbc_Uid classUid;        /* Type of pen */
+    char *typeId;        /* String token identifying the type of pen */
+    unsigned int flags;        /* Indicates if the pen element is active or
+                 * normal */
+    int refCount;        /* Reference count for elements using
+                 * this pen. */
     Tcl_HashEntry *hashPtr;
-    Tk_ConfigSpec *specsPtr;	/* Configuration specifications */
+    Tk_ConfigSpec *specsPtr;    /* Configuration specifications */
 
     PenConfigureProc *configProc;
     PenDestroyProc *destroyProc;
 
-    XColor *fgColor;		/* Foreground color of bar */
-    Tk_3DBorder border;		/* 3D border and background color */
-    int borderWidth;		/* 3D border width of bar */
-    int relief;			/* Relief of the bar */
-    Pixmap stipple;		/* Stipple */
-    GC gc;			/* Graphics context */
+    XColor *fgColor;        /* Foreground color of bar */
+    Tk_3DBorder border;        /* 3D border and background color */
+    int borderWidth;        /* 3D border width of bar */
+    int relief;            /* Relief of the bar */
+    Pixmap stipple;        /* Stipple */
+    GC gc;            /* Graphics context */
 
     /* Error bar attributes. */
-    int errorBarShow;		/* Describes which error bars to
-				 * display: none, x, y, or * both. */
+    int errorBarShow;        /* Describes which error bars to
+                 * display: none, x, y, or * both. */
 
-    int errorBarLineWidth;	/* Width of the error bar segments. */
+    int errorBarLineWidth;    /* Width of the error bar segments. */
 
     int errorBarCapWidth;
-    XColor *errorBarColor;	/* Color of the error bar. */
+    XColor *errorBarColor;    /* Color of the error bar. */
 
-    GC errorBarGC;		/* Error bar graphics context. */
+    GC errorBarGC;        /* Error bar graphics context. */
 
     /* Show value attributes. */
-    int valueShow;		/* Indicates whether to display data value.
-				 * Values are x, y, or none. */
+    int valueShow;        /* Indicates whether to display data value.
+                 * Values are x, y, or none. */
 
-    char *valueFormat;		/* A printf format string. */
-    TextStyle valueStyle;	/* Text attributes (color, font,
-				 * rotation, etc.) of the value. */
+    char *valueFormat;        /* A printf format string. */
+    TextStyle valueStyle;    /* Text attributes (color, font,
+                 * rotation, etc.) of the value. */
 
 } BarPen;
 
 typedef struct {
-    Weight weight;		/* Weight range where this pen is valid. */
+    Weight weight;        /* Weight range where this pen is valid. */
 
-    BarPen *penPtr;		/* Pen to draw */
+    BarPen *penPtr;        /* Pen to draw */
 
-    Segment2D *xErrorBars;	/* Point to start of this pen's X-error bar
-				 * segments in the element's array. */
+    Segment2D *xErrorBars;    /* Point to start of this pen's X-error bar
+                 * segments in the element's array. */
 
-    Segment2D *yErrorBars;	/* Point to start of this pen's Y-error bar
-				 * segments in the element's array. */
-    int xErrorBarCnt;		/* # of error bars for this pen. */
+    Segment2D *yErrorBars;    /* Point to start of this pen's Y-error bar
+                 * segments in the element's array. */
+    int xErrorBarCnt;        /* # of error bars for this pen. */
 
-    int yErrorBarCnt;		/* # of error bars for this pen. */
+    int yErrorBarCnt;        /* # of error bars for this pen. */
 
-    int errorBarCapWidth;	/* Length of the cap ends on each
-				 * error bar. */
+    int errorBarCapWidth;    /* Length of the cap ends on each
+                 * error bar. */
 
-    int symbolSize;		/* Size of the pen's symbol scaled to the
-				 * current graph size. */
+    int symbolSize;        /* Size of the pen's symbol scaled to the
+                 * current graph size. */
 
     /* Bar chart specific data. */
-    XRectangle *rectangles;	/* Indicates starting location in bar
-				 * array for this pen. */
-    int nRects;			/* Number of bar segments for this pen. */
+    XRectangle *rectangles;    /* Indicates starting location in bar
+                 * array for this pen. */
+    int nRects;            /* Number of bar segments for this pen. */
 
 } BarPenStyle;
 
 typedef struct {
-    char *name;			/* Identifier to refer the
-				 * element. Used in the "insert",
-				 * "delete", or "show", commands. */
+    char *name;            /* Identifier to refer the
+                 * element. Used in the "insert",
+                 * "delete", or "show", commands. */
 
-    Rbc_Uid classUid;		/* Type of element; either
-				 * rbcBarElementUid, rbcLineElementUid, or
-				 * rbcStripElementUid. */
+    Rbc_Uid classUid;        /* Type of element; either
+                 * rbcBarElementUid, rbcLineElementUid, or
+                 * rbcStripElementUid. */
 
-    Graph *graphPtr;		/* Graph widget of element*/
-    unsigned int flags;		/* Indicates if the entire element is
-				 * active, or if coordinates need to
-				 * be calculated */
+    Graph *graphPtr;        /* Graph widget of element*/
+    unsigned int flags;        /* Indicates if the entire element is
+                 * active, or if coordinates need to
+                 * be calculated */
     char **tags;
-    int hidden;			/* If non-zero, don't display the element. */
+    int hidden;            /* If non-zero, don't display the element. */
 
     Tcl_HashEntry *hashPtr;
-    char *label;		/* Label displayed in legend */
-    int labelRelief;		/* Relief of label in legend. */
+    char *label;        /* Label displayed in legend */
+    int labelRelief;        /* Relief of label in legend. */
 
     Axis2D axes;
-    ElemVector x, y, w;		/* Contains array of numeric values */
+    ElemVector x, y, w;        /* Contains array of numeric values */
 
-    ElemVector xError;		/* Relative/symmetric X error values. */
-    ElemVector yError;		/* Relative/symmetric Y error values. */
-    ElemVector xHigh, xLow;	/* Absolute/asymmetric X-coordinate high/low
-				   error values. */
-    ElemVector yHigh, yLow;	/* Absolute/asymmetric Y-coordinate high/low
-				   error values. */
+    ElemVector xError;        /* Relative/symmetric X error values. */
+    ElemVector yError;        /* Relative/symmetric Y error values. */
+    ElemVector xHigh, xLow;    /* Absolute/asymmetric X-coordinate high/low
+                   error values. */
+    ElemVector yHigh, yLow;    /* Absolute/asymmetric Y-coordinate high/low
+                   error values. */
 
-    int *activeIndices;		/* Array of indices (malloc-ed) that
-				 * indicate the data points have been
-				 * selected as active (drawn with
-				 * "active" colors). */
+    int *activeIndices;        /* Array of indices (malloc-ed) that
+                 * indicate the data points have been
+                 * selected as active (drawn with
+                 * "active" colors). */
 
-    int nActiveIndices;		/* Number of active data points. Special
-				 * case: if nActiveIndices < 0 and the
-				 * active bit is set in "flags", then all
-				 * data points are drawn active. */
+    int nActiveIndices;        /* Number of active data points. Special
+                 * case: if nActiveIndices < 0 and the
+                 * active bit is set in "flags", then all
+                 * data points are drawn active. */
 
-    ElementProcs *procsPtr;	/* Class information for bar elements */
-    Tk_ConfigSpec *specsPtr;	/* Configuration specifications */
+    ElementProcs *procsPtr;    /* Class information for bar elements */
+    Tk_ConfigSpec *specsPtr;    /* Configuration specifications */
 
-    Segment2D *xErrorBars;	/* Point to start of this pen's X-error bar
-				 * segments in the element's array. */
-    Segment2D *yErrorBars;	/* Point to start of this pen's Y-error bar
-				 * segments in the element's array. */
-    int xErrorBarCnt;		/* # of error bars for this pen. */
-    int yErrorBarCnt;		/* # of error bars for this pen. */
+    Segment2D *xErrorBars;    /* Point to start of this pen's X-error bar
+                 * segments in the element's array. */
+    Segment2D *yErrorBars;    /* Point to start of this pen's Y-error bar
+                 * segments in the element's array. */
+    int xErrorBarCnt;        /* # of error bars for this pen. */
+    int yErrorBarCnt;        /* # of error bars for this pen. */
 
-    int *xErrorToData;		/* Maps individual error bar segments back
-				 * to the data point associated with it. */
-    int *yErrorToData;		/* Maps individual error bar segments back
-				 * to the data point associated with it. */
+    int *xErrorToData;        /* Maps individual error bar segments back
+                 * to the data point associated with it. */
+    int *yErrorToData;        /* Maps individual error bar segments back
+                 * to the data point associated with it. */
 
-    int errorBarCapWidth;	/* Length of cap on error bars */
+    int errorBarCapWidth;    /* Length of cap on error bars */
 
-    BarPen *activePenPtr;	/* Standard Pens */
+    BarPen *activePenPtr;    /* Standard Pens */
     BarPen *normalPenPtr;
 
-    Rbc_Chain *palette;		/* Chain of pen style information. */
+    Rbc_Chain *palette;        /* Chain of pen style information. */
 
     /* Symbol scaling */
-    int scaleSymbols;		/* If non-zero, the symbols will scale
-				 * in size as the graph is zoomed
-				 * in/out.  */
+    int scaleSymbols;        /* If non-zero, the symbols will scale
+                 * in size as the graph is zoomed
+                 * in/out.  */
 
-    double xRange, yRange;	/* Initial X-axis and Y-axis ranges:
-				 * used to scale the size of element's
-				 * symbol. */
+    double xRange, yRange;    /* Initial X-axis and Y-axis ranges:
+                 * used to scale the size of element's
+                 * symbol. */
     int state;
     /*
      * Bar specific attributes
@@ -161,11 +161,11 @@ typedef struct {
     BarPen builtinPen;
 
     int *rectToData;
-    XRectangle *rectangles;	/* Array of rectangles comprising the bar
-				 * segments of the element. */
-    int nRects;			/* # of visible bar segments for element */
+    XRectangle *rectangles;    /* Array of rectangles comprising the bar
+                 * segments of the element. */
+    int nRects;            /* # of visible bar segments for element */
 
-    int padX;			/* Spacing on either side of bar */
+    int padX;            /* Spacing on either side of bar */
     double barWidth;
     int nActive;
 
@@ -196,55 +196,55 @@ Tk_CustomOption rbcBarModeOption = {
     StringToBarMode, BarModeToString, (ClientData)0
 };
 
-#define DEF_BAR_ACTIVE_PEN		"activeBar"
-#define DEF_BAR_AXIS_X			"x"
-#define DEF_BAR_AXIS_Y			"y"
-#define DEF_BAR_BACKGROUND		"navyblue"
-#define DEF_BAR_BG_MONO			BLACK
-#define DEF_BAR_BORDERWIDTH		"2"
-#define DEF_BAR_DATA			(char *)NULL
-#define DEF_BAR_ERRORBAR_COLOR		"defcolor"
-#define DEF_BAR_ERRORBAR_LINE_WIDTH	"1"
-#define DEF_BAR_ERRORBAR_CAP_WIDTH	"1"
-#define DEF_BAR_FOREGROUND		"blue"
-#define DEF_BAR_FG_MONO			WHITE
-#define DEF_BAR_HIDE			"no"
-#define DEF_BAR_LABEL			(char *)NULL
-#define DEF_BAR_LABEL_RELIEF		"flat"
-#define DEF_BAR_NORMAL_STIPPLE		""
-#define DEF_BAR_RELIEF			"raised"
-#define DEF_BAR_SHOW_ERRORBARS		"both"
-#define DEF_BAR_STATE			"normal"
-#define DEF_BAR_STYLES			""
-#define DEF_BAR_TAGS			"all"
-#define DEF_BAR_WIDTH			"0.0"
-#define DEF_BAR_DATA			(char *)NULL
+#define DEF_BAR_ACTIVE_PEN        "activeBar"
+#define DEF_BAR_AXIS_X            "x"
+#define DEF_BAR_AXIS_Y            "y"
+#define DEF_BAR_BACKGROUND        "navyblue"
+#define DEF_BAR_BG_MONO            BLACK
+#define DEF_BAR_BORDERWIDTH        "2"
+#define DEF_BAR_DATA            (char *)NULL
+#define DEF_BAR_ERRORBAR_COLOR        "defcolor"
+#define DEF_BAR_ERRORBAR_LINE_WIDTH    "1"
+#define DEF_BAR_ERRORBAR_CAP_WIDTH    "1"
+#define DEF_BAR_FOREGROUND        "blue"
+#define DEF_BAR_FG_MONO            WHITE
+#define DEF_BAR_HIDE            "no"
+#define DEF_BAR_LABEL            (char *)NULL
+#define DEF_BAR_LABEL_RELIEF        "flat"
+#define DEF_BAR_NORMAL_STIPPLE        ""
+#define DEF_BAR_RELIEF            "raised"
+#define DEF_BAR_SHOW_ERRORBARS        "both"
+#define DEF_BAR_STATE            "normal"
+#define DEF_BAR_STYLES            ""
+#define DEF_BAR_TAGS            "all"
+#define DEF_BAR_WIDTH            "0.0"
+#define DEF_BAR_DATA            (char *)NULL
 
-#define DEF_PEN_ACTIVE_BACKGROUND		"red"
-#define DEF_PEN_ACTIVE_BG_MONO		WHITE
-#define DEF_PEN_ACTIVE_FOREGROUND     	"pink"
-#define DEF_PEN_ACTIVE_FG_MONO		BLACK
-#define DEF_PEN_BORDERWIDTH		"2"
-#define DEF_PEN_NORMAL_BACKGROUND	"navyblue"
-#define DEF_PEN_NORMAL_BG_MONO		BLACK
-#define DEF_PEN_NORMAL_FOREGROUND	"blue"
-#define DEF_PEN_NORMAL_FG_MONO		WHITE
-#define DEF_PEN_RELIEF			"raised"
-#define DEF_PEN_STIPPLE			""
-#define DEF_PEN_TYPE			"bar"
-#define	DEF_PEN_VALUE_ANCHOR		"s"
-#define	DEF_PEN_VALUE_COLOR		RGB_BLACK
-#define	DEF_PEN_VALUE_FONT		STD_FONT_SMALL
-#define	DEF_PEN_VALUE_FORMAT		"%g"
-#define	DEF_PEN_VALUE_ROTATE		(char *)NULL
-#define	DEF_PEN_VALUE_SHADOW		(char *)NULL
-#define DEF_PEN_SHOW_VALUES		"no"
+#define DEF_PEN_ACTIVE_BACKGROUND        "red"
+#define DEF_PEN_ACTIVE_BG_MONO        WHITE
+#define DEF_PEN_ACTIVE_FOREGROUND         "pink"
+#define DEF_PEN_ACTIVE_FG_MONO        BLACK
+#define DEF_PEN_BORDERWIDTH        "2"
+#define DEF_PEN_NORMAL_BACKGROUND    "navyblue"
+#define DEF_PEN_NORMAL_BG_MONO        BLACK
+#define DEF_PEN_NORMAL_FOREGROUND    "blue"
+#define DEF_PEN_NORMAL_FG_MONO        WHITE
+#define DEF_PEN_RELIEF            "raised"
+#define DEF_PEN_STIPPLE            ""
+#define DEF_PEN_TYPE            "bar"
+#define    DEF_PEN_VALUE_ANCHOR        "s"
+#define    DEF_PEN_VALUE_COLOR        RGB_BLACK
+#define    DEF_PEN_VALUE_FONT        STD_FONT_SMALL
+#define    DEF_PEN_VALUE_FORMAT        "%g"
+#define    DEF_PEN_VALUE_ROTATE        (char *)NULL
+#define    DEF_PEN_VALUE_SHADOW        (char *)NULL
+#define DEF_PEN_SHOW_VALUES        "no"
 
 #define FreeElemVector(v) \
     if ((v).clientId != NULL) { \
-	Rbc_FreeVectorId((v).clientId); \
+    Rbc_FreeVectorId((v).clientId); \
     } else if ((v).valueArr != NULL) { \
-	ckfree((char *)(v).valueArr); \
+    ckfree((char *)(v).valueArr); \
     }
 
 static Tk_ConfigSpec barPenConfigSpecs[] = {
@@ -402,16 +402,16 @@ NameOfBarMode(
     BarMode mode)
 {
     switch (mode) {
-	case MODE_INFRONT:
-	    return "infront";
-	case MODE_OVERLAP:
-	    return "overlap";
-	case MODE_STACKED:
-	    return "stacked";
-	case MODE_ALIGNED:
-	    return "aligned";
-	default:
-	    return "unknown mode value";
+    case MODE_INFRONT:
+        return "infront";
+    case MODE_OVERLAP:
+        return "overlap";
+    case MODE_STACKED:
+        return "stacked";
+    case MODE_ALIGNED:
+        return "aligned";
+    default:
+        return "unknown mode value";
     }
 }
 
@@ -445,32 +445,32 @@ NameOfBarMode(
  */
 static int
 StringToBarMode(
-    ClientData clientData,	/* Not used. */
-    Tcl_Interp *interp,		/* Interpreter to send results back to */
-    Tk_Window tkwin,		/* Not used. */
-    const char *string,		/* Mode style string */
-    char *widgRec,		/* Cubicle structure record */
-    Tcl_Size offset)			/* Offset of style in record */
+    ClientData clientData,    /* Not used. */
+    Tcl_Interp *interp,        /* Interpreter to send results back to */
+    Tk_Window tkwin,        /* Not used. */
+    const char *string,        /* Mode style string */
+    char *widgRec,        /* Cubicle structure record */
+    Tcl_Size offset)            /* Offset of style in record */
 {
     BarMode *modePtr = (BarMode *)(widgRec + offset);
     int index;
     static const struct barModeMap {
-	char *name;
-	BarMode mode;
+    char *name;
+    BarMode mode;
     } barModes[] = {
-	{"aligned", MODE_ALIGNED},
-	{"infront", MODE_INFRONT},
-	{"normal",  MODE_INFRONT},
-	{"overlap", MODE_OVERLAP},
-	{"stacked", MODE_STACKED},
-	{NULL, (BarMode)0}
+    {"aligned", MODE_ALIGNED},
+    {"infront", MODE_INFRONT},
+    {"normal",  MODE_INFRONT},
+    {"overlap", MODE_OVERLAP},
+    {"stacked", MODE_STACKED},
+    {NULL, (BarMode)0}
     };
     Tcl_Obj *obj = Tcl_NewStringObj(string, -1);
 
     Tcl_IncrRefCount(obj);
     if (Tcl_GetIndexFromObjStruct(interp, obj, barModes,
-	sizeof(struct barModeMap), "mode", 0, &index) != TCL_OK) {
-	return TCL_ERROR;
+    sizeof(struct barModeMap), "mode", 0, &index) != TCL_OK) {
+    return TCL_ERROR;
     }
     Tcl_DecrRefCount(obj);
     *modePtr = barModes[index].mode;
@@ -482,20 +482,20 @@ StringToBarMode(
     c = string[0];
     length = strlen(string);
     if ((c == 'n') && (strncmp(string, "normal", length) == 0)) {
-	*modePtr = MODE_INFRONT;
+    *modePtr = MODE_INFRONT;
     } else if ((c == 'i') && (strncmp(string, "infront", length) == 0)) {
-	*modePtr = MODE_INFRONT;
+    *modePtr = MODE_INFRONT;
     } else if ((c == 's') && (strncmp(string, "stacked", length) == 0)) {
-	*modePtr = MODE_STACKED;
+    *modePtr = MODE_STACKED;
     } else if ((c == 'a') && (strncmp(string, "aligned", length) == 0)) {
-	*modePtr = MODE_ALIGNED;
+    *modePtr = MODE_ALIGNED;
     } else if ((c == 'o') && (strncmp(string, "overlap", length) == 0)) {
-	*modePtr = MODE_OVERLAP;
+    *modePtr = MODE_OVERLAP;
     } else {
-	Tcl_AppendResult(interp, "bad mode argument \"", string,
-			 "\": should be \"infront\", \"stacked\", \"overlap\", or \"aligned\"",
-			 (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "bad mode argument \"", string,
+             "\": should be \"infront\", \"stacked\", \"overlap\", or \"aligned\"",
+             (char *)NULL);
+    return TCL_ERROR;
     }
     return TCL_OK;
 */
@@ -518,11 +518,11 @@ StringToBarMode(
  */
 static const char *
 BarModeToString(
-    ClientData clientData,	/* Not used. */
-    Tk_Window tkwin,		/* Not used. */
-    char *widgRec,		/* Row/column structure record */
-    Tcl_Size offset,			/* Offset of mode in Partition record */
-    Tcl_FreeProc **freeProcPtr)	/* Not used. */
+    ClientData clientData,    /* Not used. */
+    Tk_Window tkwin,        /* Not used. */
+    char *widgRec,        /* Row/column structure record */
+    Tcl_Size offset,            /* Offset of mode in Partition record */
+    Tcl_FreeProc **freeProcPtr)    /* Not used. */
 {
     BarMode mode = *(BarMode *)(widgRec + offset);
 
@@ -553,9 +553,9 @@ ClearPalette(
     Rbc_ChainLink *linkPtr;
 
     for (linkPtr = Rbc_ChainFirstLink(palette); linkPtr != NULL;
-	    linkPtr = Rbc_ChainNextLink(linkPtr)) {
-	stylePtr = Rbc_ChainGetValue(linkPtr);
-	stylePtr->xErrorBarCnt = stylePtr->yErrorBarCnt = stylePtr->nRects = 0;
+        linkPtr = Rbc_ChainNextLink(linkPtr)) {
+    stylePtr = Rbc_ChainGetValue(linkPtr);
+    stylePtr->xErrorBarCnt = stylePtr->yErrorBarCnt = stylePtr->nRects = 0;
     }
 }
 
@@ -589,43 +589,43 @@ ConfigurePen(
     Rbc_ResetTextStyle(graphPtr->tkwin, &(bpPtr->valueStyle));
     gcMask = GCForeground;
     if (bpPtr->fgColor != NULL) {
-	defColor = bpPtr->fgColor->pixel;
-	gcValues.foreground = bpPtr->fgColor->pixel;
+    defColor = bpPtr->fgColor->pixel;
+    gcValues.foreground = bpPtr->fgColor->pixel;
     } else if (bpPtr->border != NULL) {
-	defColor = Tk_3DBorderColor(bpPtr->border)->pixel;
-	gcValues.foreground = Tk_3DBorderColor(bpPtr->border)->pixel;
+    defColor = Tk_3DBorderColor(bpPtr->border)->pixel;
+    gcValues.foreground = Tk_3DBorderColor(bpPtr->border)->pixel;
     } else {
-	defColor = BlackPixel(graphPtr->display,
-			      Tk_ScreenNumber(graphPtr->tkwin));
+    defColor = BlackPixel(graphPtr->display,
+                  Tk_ScreenNumber(graphPtr->tkwin));
     }
     if ((bpPtr->fgColor != NULL) && (bpPtr->border != NULL)) {
-	gcMask |= GCBackground;
-	gcValues.background = Tk_3DBorderColor(bpPtr->border)->pixel;
-	fillStyle = FillOpaqueStippled;
+    gcMask |= GCBackground;
+    gcValues.background = Tk_3DBorderColor(bpPtr->border)->pixel;
+    fillStyle = FillOpaqueStippled;
     } else {
-	fillStyle = FillStippled;
+    fillStyle = FillStippled;
     }
     if (bpPtr->stipple != None) {
-	gcValues.stipple = bpPtr->stipple;
-	gcValues.fill_style = fillStyle;
-	gcMask |= (GCStipple | GCFillStyle);
+    gcValues.stipple = bpPtr->stipple;
+    gcValues.fill_style = fillStyle;
+    gcMask |= (GCStipple | GCFillStyle);
     }
     newGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
     if (bpPtr->gc != NULL) {
-	Tk_FreeGC(graphPtr->display, bpPtr->gc);
+    Tk_FreeGC(graphPtr->display, bpPtr->gc);
     }
     bpPtr->gc = newGC;
 
     gcMask = GCForeground | GCLineWidth;
     if (bpPtr->errorBarColor == COLOR_DEFAULT) {
-	gcValues.foreground = defColor;
+    gcValues.foreground = defColor;
     } else {
-	gcValues.foreground = bpPtr->errorBarColor->pixel;
+    gcValues.foreground = bpPtr->errorBarColor->pixel;
     }
     gcValues.line_width = LineWidth(bpPtr->errorBarLineWidth);
     newGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
     if (bpPtr->errorBarGC != NULL) {
-	Tk_FreeGC(graphPtr->display, bpPtr->errorBarGC);
+    Tk_FreeGC(graphPtr->display, bpPtr->errorBarGC);
     }
     bpPtr->errorBarGC = newGC;
 
@@ -656,10 +656,10 @@ DestroyPen(
 
     Rbc_FreeTextStyle(graphPtr->display, &(bpPtr->valueStyle));
     if (bpPtr->gc != NULL) {
-	Tk_FreeGC(graphPtr->display, bpPtr->gc);
+    Tk_FreeGC(graphPtr->display, bpPtr->gc);
     }
     if (bpPtr->errorBarGC != NULL) {
-	Tk_FreeGC(graphPtr->display, bpPtr->errorBarGC);
+    Tk_FreeGC(graphPtr->display, bpPtr->errorBarGC);
     }
 }
 
@@ -719,7 +719,7 @@ Rbc_BarPen(
     InitPen(penPtr);
     penPtr->name = RbcStrdup(penName);
     if (strcmp(penName, "activeBar") == 0) {
-	penPtr->flags = ACTIVE_PEN;
+    penPtr->flags = ACTIVE_PEN;
     }
     return (Pen *) penPtr;
 }
@@ -753,28 +753,28 @@ CheckStacks(
     register int i;
 
     if ((graphPtr->mode != MODE_STACKED) || (graphPtr->nStacks == 0)) {
-	return;
+    return;
     }
     infoPtr = graphPtr->freqArr;
     for (i = 0; i < graphPtr->nStacks; i++) {
-	if ((infoPtr->axes.x == pairPtr->x) &&
-		(infoPtr->axes.y == pairPtr->y)) {
-	    /*
+    if ((infoPtr->axes.x == pairPtr->x) &&
+        (infoPtr->axes.y == pairPtr->y)) {
+        /*
 
-	     * Check if any of the y-values (because of stacking) are
-	     * greater than the current limits of the graph.
-	     */
-	    if (infoPtr->sum < 0.0) {
-		if (*minPtr > infoPtr->sum) {
-		    *minPtr = infoPtr->sum;
-		}
-	    } else {
-		if (*maxPtr < infoPtr->sum) {
-		    *maxPtr = infoPtr->sum;
-		}
-	    }
-	}
-	infoPtr++;
+         * Check if any of the y-values (because of stacking) are
+         * greater than the current limits of the graph.
+         */
+        if (infoPtr->sum < 0.0) {
+        if (*minPtr > infoPtr->sum) {
+            *minPtr = infoPtr->sum;
+        }
+        } else {
+        if (*maxPtr < infoPtr->sum) {
+            *maxPtr = infoPtr->sum;
+        }
+        }
+    }
+    infoPtr++;
     }
 }
 
@@ -806,25 +806,25 @@ ConfigureBar(
     Rbc_ChainLink *linkPtr;
 
     if (ConfigurePen(graphPtr, (Pen *)&(barPtr->builtinPen)) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     /*
      * Point to the static normal pen if no external pens have
      * been selected.
      */
     if (barPtr->normalPenPtr == NULL) {
-	barPtr->normalPenPtr = &(barPtr->builtinPen);
+    barPtr->normalPenPtr = &(barPtr->builtinPen);
     }
     linkPtr = Rbc_ChainFirstLink(barPtr->palette);
     if (linkPtr != NULL) {
-	BarPenStyle *stylePtr;
+    BarPenStyle *stylePtr;
 
-	stylePtr = Rbc_ChainGetValue(linkPtr);
-	stylePtr->penPtr = barPtr->normalPenPtr;
+    stylePtr = Rbc_ChainGetValue(linkPtr);
+    stylePtr->penPtr = barPtr->normalPenPtr;
     }
     if (Rbc_ConfigModified(graphPtr->interp, barPtr->specsPtr, "-barwidth", "-*data",
-			   "-map*", "-label", "-hide", "-x", "-y", (char *)NULL)) {
-	barPtr->flags |= MAP_ITEM;
+               "-map*", "-label", "-hide", "-x", "-y", (char *)NULL)) {
+    barPtr->flags |= MAP_ITEM;
     }
     return TCL_OK;
 }
@@ -859,11 +859,11 @@ GetBarExtents(
 
     nPoints = NumberOfPoints(barPtr);
     if (nPoints < 1) {
-	return;			/* No data points */
+    return;            /* No data points */
     }
     barWidth = graphPtr->barWidth;
     if (barPtr->barWidth > 0.0) {
-	barWidth = barPtr->barWidth;
+    barWidth = barPtr->barWidth;
     }
     middle = barWidth * 0.5;
     extsPtr->left = barPtr->x.min - middle;
@@ -872,7 +872,7 @@ GetBarExtents(
     extsPtr->top = barPtr->y.min;
     extsPtr->bottom = barPtr->y.max;
     if (extsPtr->bottom < graphPtr->baseline) {
-	extsPtr->bottom = graphPtr->baseline;
+    extsPtr->bottom = graphPtr->baseline;
     }
     /*
      * Handle "stacked" bar elements specially.
@@ -881,109 +881,109 @@ GetBarExtents(
      * the minimum/maximum limits of the element's data points.
      */
     if ((graphPtr->mode == MODE_STACKED) && (graphPtr->nStacks > 0)) {
-	CheckStacks(graphPtr, &(elemPtr->axes), &(extsPtr->top),
-		    &(extsPtr->bottom));
+    CheckStacks(graphPtr, &(elemPtr->axes), &(extsPtr->top),
+            &(extsPtr->bottom));
     }
     /* Warning: You get what you deserve if the x-axis is logScale */
     if (elemPtr->axes.x->logScale) {
-	extsPtr->left = Rbc_FindElemVectorMinimum(&(barPtr->x), DBL_MIN) +
-			middle;
+    extsPtr->left = Rbc_FindElemVectorMinimum(&(barPtr->x), DBL_MIN) +
+            middle;
     }
     /* Fix y-min limits for barchart */
     if (elemPtr->axes.y->logScale) {
-	if ((extsPtr->top <= 0.0) || (extsPtr->top > 1.0)) {
-	    extsPtr->top = 1.0;
-	}
+    if ((extsPtr->top <= 0.0) || (extsPtr->top > 1.0)) {
+        extsPtr->top = 1.0;
+    }
     } else {
-	if (extsPtr->top > 0.0) {
-	    extsPtr->top = 0.0;
-	}
+    if (extsPtr->top > 0.0) {
+        extsPtr->top = 0.0;
+    }
     }
     /* Correct the extents for error bars if they exist. */
     if (elemPtr->xError.nValues > 0) {
-	register int i;
-	double x;
+    register int i;
+    double x;
 
-	/* Correct the data limits for error bars */
-	nPoints = MIN(elemPtr->xError.nValues, nPoints);
-	for (i = 0; i < nPoints; i++) {
-	    x = elemPtr->x.valueArr[i] + elemPtr->xError.valueArr[i];
-	    if (x > extsPtr->right) {
-		extsPtr->right = x;
-	    }
-	    x = elemPtr->x.valueArr[i] - elemPtr->xError.valueArr[i];
-	    if (elemPtr->axes.x->logScale) {
-		if (x < 0.0) {
-		    x = -x;	/* Mirror negative values, instead
-				 * of ignoring them. */
-		}
-		if ((x > DBL_MIN) && (x < extsPtr->left)) {
-		    extsPtr->left = x;
-		}
-	    } else if (x < extsPtr->left) {
-		extsPtr->left = x;
-	    }
-	}
+    /* Correct the data limits for error bars */
+    nPoints = MIN(elemPtr->xError.nValues, nPoints);
+    for (i = 0; i < nPoints; i++) {
+        x = elemPtr->x.valueArr[i] + elemPtr->xError.valueArr[i];
+        if (x > extsPtr->right) {
+        extsPtr->right = x;
+        }
+        x = elemPtr->x.valueArr[i] - elemPtr->xError.valueArr[i];
+        if (elemPtr->axes.x->logScale) {
+        if (x < 0.0) {
+            x = -x;    /* Mirror negative values, instead
+                 * of ignoring them. */
+        }
+        if ((x > DBL_MIN) && (x < extsPtr->left)) {
+            extsPtr->left = x;
+        }
+        } else if (x < extsPtr->left) {
+        extsPtr->left = x;
+        }
+    }
     } else {
-	if ((elemPtr->xHigh.nValues > 0) &&
-		(elemPtr->xHigh.max > extsPtr->right)) {
-	    extsPtr->right = elemPtr->xHigh.max;
-	}
-	if (elemPtr->xLow.nValues > 0) {
-	    double left;
+    if ((elemPtr->xHigh.nValues > 0) &&
+        (elemPtr->xHigh.max > extsPtr->right)) {
+        extsPtr->right = elemPtr->xHigh.max;
+    }
+    if (elemPtr->xLow.nValues > 0) {
+        double left;
 
-	    if ((elemPtr->xLow.min <= 0.0) &&
-		    (elemPtr->axes.x->logScale)) {
-		left = Rbc_FindElemVectorMinimum(&elemPtr->xLow, DBL_MIN);
-	    } else {
-		left = elemPtr->xLow.min;
-	    }
-	    if (left < extsPtr->left) {
-		extsPtr->left = left;
-	    }
-	}
+        if ((elemPtr->xLow.min <= 0.0) &&
+            (elemPtr->axes.x->logScale)) {
+        left = Rbc_FindElemVectorMinimum(&elemPtr->xLow, DBL_MIN);
+        } else {
+        left = elemPtr->xLow.min;
+        }
+        if (left < extsPtr->left) {
+        extsPtr->left = left;
+        }
+    }
     }
     if (elemPtr->yError.nValues > 0) {
-	register int i;
-	double y;
+    register int i;
+    double y;
 
-	nPoints = MIN(elemPtr->yError.nValues, nPoints);
-	for (i = 0; i < nPoints; i++) {
-	    y = elemPtr->y.valueArr[i] + elemPtr->yError.valueArr[i];
-	    if (y > extsPtr->bottom) {
-		extsPtr->bottom = y;
-	    }
-	    y = elemPtr->y.valueArr[i] - elemPtr->yError.valueArr[i];
-	    if (elemPtr->axes.y->logScale) {
-		if (y < 0.0) {
-		    y = -y;	/* Mirror negative values, instead
-				 * of ignoring them. */
-		}
-		if ((y > DBL_MIN) && (y < extsPtr->left)) {
-		    extsPtr->top = y;
-		}
-	    } else if (y < extsPtr->top) {
-		extsPtr->top = y;
-	    }
-	}
+    nPoints = MIN(elemPtr->yError.nValues, nPoints);
+    for (i = 0; i < nPoints; i++) {
+        y = elemPtr->y.valueArr[i] + elemPtr->yError.valueArr[i];
+        if (y > extsPtr->bottom) {
+        extsPtr->bottom = y;
+        }
+        y = elemPtr->y.valueArr[i] - elemPtr->yError.valueArr[i];
+        if (elemPtr->axes.y->logScale) {
+        if (y < 0.0) {
+            y = -y;    /* Mirror negative values, instead
+                 * of ignoring them. */
+        }
+        if ((y > DBL_MIN) && (y < extsPtr->left)) {
+            extsPtr->top = y;
+        }
+        } else if (y < extsPtr->top) {
+        extsPtr->top = y;
+        }
+    }
     } else {
-	if ((elemPtr->yHigh.nValues > 0) &&
-		(elemPtr->yHigh.max > extsPtr->bottom)) {
-	    extsPtr->bottom = elemPtr->yHigh.max;
-	}
-	if (elemPtr->yLow.nValues > 0) {
-	    double top;
+    if ((elemPtr->yHigh.nValues > 0) &&
+        (elemPtr->yHigh.max > extsPtr->bottom)) {
+        extsPtr->bottom = elemPtr->yHigh.max;
+    }
+    if (elemPtr->yLow.nValues > 0) {
+        double top;
 
-	    if ((elemPtr->yLow.min <= 0.0) &&
-		    (elemPtr->axes.y->logScale)) {
-		top = Rbc_FindElemVectorMinimum(&elemPtr->yLow, DBL_MIN);
-	    } else {
-		top = elemPtr->yLow.min;
-	    }
-	    if (top < extsPtr->top) {
-		extsPtr->top = top;
-	    }
-	}
+        if ((elemPtr->yLow.min <= 0.0) &&
+            (elemPtr->axes.y->logScale)) {
+        top = Rbc_FindElemVectorMinimum(&elemPtr->yLow, DBL_MIN);
+        } else {
+        top = elemPtr->yLow.min;
+        }
+        if (top < extsPtr->top) {
+        extsPtr->top = top;
+        }
+    }
     }
 }
 
@@ -992,7 +992,7 @@ GetBarExtents(
  *
  * ClosestBar --
  *
- *      Find the bar segment closest to the window coordinates	point
+ *      Find the bar segment closest to the window coordinates    point
  *      specified.
  *
  *      Note:  This does not return the height of the stacked segment
@@ -1008,9 +1008,9 @@ GetBarExtents(
  */
 static void
 ClosestBar(
-    Graph *graphPtr,		/* Graph widget record */
-    Element *elemPtr,		/* Bar element */
-    ClosestSearch *searchPtr)	/* Info of closest point in element */
+    Graph *graphPtr,        /* Graph widget record */
+    Element *elemPtr,        /* Bar element */
+    ClosestSearch *searchPtr)    /* Info of closest point in element */
 {
     Bar *barPtr = (Bar *)elemPtr;
     Point2D *pointPtr, *endPtr;
@@ -1026,47 +1026,47 @@ ClosestBar(
 
     rectPtr = barPtr->rectangles;
     for (i = 0; i < barPtr->nRects; i++) {
-	if (PointInRectangle(rectPtr, searchPtr->x, searchPtr->y)) {
-	    imin = barPtr->rectToData[i];
-	    minDist = 0.0;
-	    break;
-	}
-	left = rectPtr->x, top = rectPtr->y;
-	right = (double)(rectPtr->x + rectPtr->width);
-	bottom = (double)(rectPtr->y + rectPtr->height);
-	outline[4].x = outline[3].x = outline[0].x = left;
-	outline[4].y = outline[1].y = outline[0].y = top;
-	outline[2].x = outline[1].x = right;
-	outline[3].y = outline[2].y = bottom;
+    if (PointInRectangle(rectPtr, searchPtr->x, searchPtr->y)) {
+        imin = barPtr->rectToData[i];
+        minDist = 0.0;
+        break;
+    }
+    left = rectPtr->x, top = rectPtr->y;
+    right = (double)(rectPtr->x + rectPtr->width);
+    bottom = (double)(rectPtr->y + rectPtr->height);
+    outline[4].x = outline[3].x = outline[0].x = left;
+    outline[4].y = outline[1].y = outline[0].y = top;
+    outline[2].x = outline[1].x = right;
+    outline[3].y = outline[2].y = bottom;
 
-	for (pointPtr = outline, endPtr = outline + 4; pointPtr < endPtr;
-		pointPtr++) {
-	    t = Rbc_GetProjection(searchPtr->x, searchPtr->y,
-				  pointPtr, pointPtr + 1);
-	    if (t.x > right) {
-		t.x = right;
-	    } else if (t.x < left) {
-		t.x = left;
-	    }
-	    if (t.y > bottom) {
-		t.y = bottom;
-	    } else if (t.y < top) {
-		t.y = top;
-	    }
-	    dist = hypot((t.x - searchPtr->x), (t.y - searchPtr->y));
-	    if (dist < minDist) {
-		minDist = dist;
-		imin = barPtr->rectToData[i];
-	    }
-	}
-	rectPtr++;
+    for (pointPtr = outline, endPtr = outline + 4; pointPtr < endPtr;
+        pointPtr++) {
+        t = Rbc_GetProjection(searchPtr->x, searchPtr->y,
+                  pointPtr, pointPtr + 1);
+        if (t.x > right) {
+        t.x = right;
+        } else if (t.x < left) {
+        t.x = left;
+        }
+        if (t.y > bottom) {
+        t.y = bottom;
+        } else if (t.y < top) {
+        t.y = top;
+        }
+        dist = hypot((t.x - searchPtr->x), (t.y - searchPtr->y));
+        if (dist < minDist) {
+        minDist = dist;
+        imin = barPtr->rectToData[i];
+        }
+    }
+    rectPtr++;
     }
     if (minDist < searchPtr->dist) {
-	searchPtr->elemPtr = (Element *)elemPtr;
-	searchPtr->dist = minDist;
-	searchPtr->index = imin;
-	searchPtr->point.x = (double)barPtr->x.valueArr[imin];
-	searchPtr->point.y = (double)barPtr->y.valueArr[imin];
+    searchPtr->elemPtr = (Element *)elemPtr;
+    searchPtr->dist = minDist;
+    searchPtr->index = imin;
+    searchPtr->point.x = (double)barPtr->x.valueArr[imin];
+    searchPtr->point.y = (double)barPtr->y.valueArr[imin];
     }
 }
 
@@ -1095,107 +1095,107 @@ MergePens(
     Rbc_ChainLink *linkPtr;
 
     if (Rbc_ChainGetLength(barPtr->palette) < 2) {
-	linkPtr = Rbc_ChainFirstLink(barPtr->palette);
-	stylePtr = Rbc_ChainGetValue(linkPtr);
-	stylePtr->nRects = barPtr->nRects;
-	stylePtr->rectangles = barPtr->rectangles;
-	stylePtr->symbolSize = barPtr->rectangles->width / 2;
-	stylePtr->xErrorBarCnt = barPtr->xErrorBarCnt;
-	stylePtr->xErrorBars = barPtr->xErrorBars;
-	stylePtr->yErrorBarCnt = barPtr->yErrorBarCnt;
-	stylePtr->yErrorBars = barPtr->yErrorBars;
-	return;
+    linkPtr = Rbc_ChainFirstLink(barPtr->palette);
+    stylePtr = Rbc_ChainGetValue(linkPtr);
+    stylePtr->nRects = barPtr->nRects;
+    stylePtr->rectangles = barPtr->rectangles;
+    stylePtr->symbolSize = barPtr->rectangles->width / 2;
+    stylePtr->xErrorBarCnt = barPtr->xErrorBarCnt;
+    stylePtr->xErrorBars = barPtr->xErrorBars;
+    stylePtr->yErrorBarCnt = barPtr->yErrorBarCnt;
+    stylePtr->yErrorBars = barPtr->yErrorBars;
+    return;
     }
     /* We have more than one style. Group bar segments of like pen
      * styles together.  */
 
     if (barPtr->nRects > 0) {
-	XRectangle *rectangles;
-	int *rectToData;
-	int dataIndex;
-	register XRectangle *rectPtr;
-	register int *indexPtr;
-	register int i;
+    XRectangle *rectangles;
+    int *rectToData;
+    int dataIndex;
+    register XRectangle *rectPtr;
+    register int *indexPtr;
+    register int i;
 
-	rectangles = (XRectangle *)ckalloc(barPtr->nRects * sizeof(XRectangle));
-	rectToData = (int *)ckalloc(barPtr->nRects * sizeof(int));
-	assert(rectangles && rectToData);
+    rectangles = (XRectangle *)ckalloc(barPtr->nRects * sizeof(XRectangle));
+    rectToData = (int *)ckalloc(barPtr->nRects * sizeof(int));
+    assert(rectangles && rectToData);
 
-	rectPtr = rectangles, indexPtr = rectToData;
-	for (linkPtr = Rbc_ChainFirstLink(barPtr->palette); linkPtr != NULL;
-		linkPtr = Rbc_ChainNextLink(linkPtr)) {
-	    stylePtr = Rbc_ChainGetValue(linkPtr);
-	    stylePtr->symbolSize = rectPtr->width / 2;
-	    stylePtr->rectangles = rectPtr;
-	    for (i = 0; i < barPtr->nRects; i++) {
-		dataIndex = barPtr->rectToData[i];
-		if (dataToStyle[dataIndex] == (PenStyle *)stylePtr) {
-		    *rectPtr++ = barPtr->rectangles[i];
-		    *indexPtr++ = dataIndex;
-		}
-	    }
-	    stylePtr->nRects = rectPtr - stylePtr->rectangles;
-	}
-	ckfree((char *)barPtr->rectangles);
-	barPtr->rectangles = rectangles;
-	ckfree((char *)barPtr->rectToData);
-	barPtr->rectToData = rectToData;
+    rectPtr = rectangles, indexPtr = rectToData;
+    for (linkPtr = Rbc_ChainFirstLink(barPtr->palette); linkPtr != NULL;
+        linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        stylePtr = Rbc_ChainGetValue(linkPtr);
+        stylePtr->symbolSize = rectPtr->width / 2;
+        stylePtr->rectangles = rectPtr;
+        for (i = 0; i < barPtr->nRects; i++) {
+        dataIndex = barPtr->rectToData[i];
+        if (dataToStyle[dataIndex] == (PenStyle *)stylePtr) {
+            *rectPtr++ = barPtr->rectangles[i];
+            *indexPtr++ = dataIndex;
+        }
+        }
+        stylePtr->nRects = rectPtr - stylePtr->rectangles;
+    }
+    ckfree((char *)barPtr->rectangles);
+    barPtr->rectangles = rectangles;
+    ckfree((char *)barPtr->rectToData);
+    barPtr->rectToData = rectToData;
     }
     if (barPtr->xErrorBarCnt > 0) {
-	Segment2D *errorBars, *segPtr;
-	int *errorToData, *indexPtr;
-	int dataIndex;
-	register int i;
+    Segment2D *errorBars, *segPtr;
+    int *errorToData, *indexPtr;
+    int dataIndex;
+    register int i;
 
-	errorBars = (Segment2D *)ckalloc(barPtr->xErrorBarCnt * sizeof(Segment2D));
-	errorToData = (int *)ckalloc(barPtr->xErrorBarCnt * sizeof(int));
-	assert(errorBars);
-	segPtr = errorBars, indexPtr = errorToData;
-	for (linkPtr = Rbc_ChainFirstLink(barPtr->palette);
-		linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
-	    stylePtr = Rbc_ChainGetValue(linkPtr);
-	    stylePtr->xErrorBars = segPtr;
-	    for (i = 0; i < barPtr->xErrorBarCnt; i++) {
-		dataIndex = barPtr->xErrorToData[i];
-		if (dataToStyle[dataIndex] == (PenStyle *)stylePtr) {
-		    *segPtr++ = barPtr->xErrorBars[i];
-		    *indexPtr++ = dataIndex;
-		}
-	    }
-	    stylePtr->xErrorBarCnt = segPtr - stylePtr->xErrorBars;
-	}
-	ckfree((char *)barPtr->xErrorBars);
-	barPtr->xErrorBars = errorBars;
-	ckfree((char *)barPtr->xErrorToData);
-	barPtr->xErrorToData = errorToData;
+    errorBars = (Segment2D *)ckalloc(barPtr->xErrorBarCnt * sizeof(Segment2D));
+    errorToData = (int *)ckalloc(barPtr->xErrorBarCnt * sizeof(int));
+    assert(errorBars);
+    segPtr = errorBars, indexPtr = errorToData;
+    for (linkPtr = Rbc_ChainFirstLink(barPtr->palette);
+        linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        stylePtr = Rbc_ChainGetValue(linkPtr);
+        stylePtr->xErrorBars = segPtr;
+        for (i = 0; i < barPtr->xErrorBarCnt; i++) {
+        dataIndex = barPtr->xErrorToData[i];
+        if (dataToStyle[dataIndex] == (PenStyle *)stylePtr) {
+            *segPtr++ = barPtr->xErrorBars[i];
+            *indexPtr++ = dataIndex;
+        }
+        }
+        stylePtr->xErrorBarCnt = segPtr - stylePtr->xErrorBars;
+    }
+    ckfree((char *)barPtr->xErrorBars);
+    barPtr->xErrorBars = errorBars;
+    ckfree((char *)barPtr->xErrorToData);
+    barPtr->xErrorToData = errorToData;
     }
     if (barPtr->yErrorBarCnt > 0) {
-	Segment2D *errorBars, *segPtr;
-	int *errorToData, *indexPtr;
-	int dataIndex;
-	register int i;
+    Segment2D *errorBars, *segPtr;
+    int *errorToData, *indexPtr;
+    int dataIndex;
+    register int i;
 
-	errorBars = (Segment2D *)ckalloc(barPtr->yErrorBarCnt * sizeof(Segment2D));
-	errorToData = (int *)ckalloc(barPtr->yErrorBarCnt * sizeof(int));
-	assert(errorBars);
-	segPtr = errorBars, indexPtr = errorToData;
-	for (linkPtr = Rbc_ChainFirstLink(barPtr->palette);
-		linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
-	    stylePtr = Rbc_ChainGetValue(linkPtr);
-	    stylePtr->yErrorBars = segPtr;
-	    for (i = 0; i < barPtr->yErrorBarCnt; i++) {
-		dataIndex = barPtr->yErrorToData[i];
-		if (dataToStyle[dataIndex] == (PenStyle *)stylePtr) {
-		    *segPtr++ = barPtr->yErrorBars[i];
-		    *indexPtr++ = dataIndex;
-		}
-	    }
-	    stylePtr->yErrorBarCnt = segPtr - stylePtr->yErrorBars;
-	}
-	ckfree((char *)barPtr->yErrorBars);
-	barPtr->yErrorBars = errorBars;
-	ckfree((char *)barPtr->yErrorToData);
-	barPtr->yErrorToData = errorToData;
+    errorBars = (Segment2D *)ckalloc(barPtr->yErrorBarCnt * sizeof(Segment2D));
+    errorToData = (int *)ckalloc(barPtr->yErrorBarCnt * sizeof(int));
+    assert(errorBars);
+    segPtr = errorBars, indexPtr = errorToData;
+    for (linkPtr = Rbc_ChainFirstLink(barPtr->palette);
+        linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        stylePtr = Rbc_ChainGetValue(linkPtr);
+        stylePtr->yErrorBars = segPtr;
+        for (i = 0; i < barPtr->yErrorBarCnt; i++) {
+        dataIndex = barPtr->yErrorToData[i];
+        if (dataToStyle[dataIndex] == (PenStyle *)stylePtr) {
+            *segPtr++ = barPtr->yErrorBars[i];
+            *indexPtr++ = dataIndex;
+        }
+        }
+        stylePtr->yErrorBarCnt = segPtr - stylePtr->yErrorBars;
+    }
+    ckfree((char *)barPtr->yErrorBars);
+    barPtr->yErrorBars = errorBars;
+    ckfree((char *)barPtr->yErrorToData);
+    barPtr->yErrorToData = errorToData;
     }
 }
 
@@ -1219,38 +1219,38 @@ MapActiveBars(
     Bar *barPtr)
 {
     if (barPtr->activeRects != NULL) {
-	ckfree((char *)barPtr->activeRects);
-	barPtr->activeRects = NULL;
+    ckfree((char *)barPtr->activeRects);
+    barPtr->activeRects = NULL;
     }
     if (barPtr->activeToData != NULL) {
-	ckfree((char *)barPtr->activeToData);
-	barPtr->activeToData = NULL;
+    ckfree((char *)barPtr->activeToData);
+    barPtr->activeToData = NULL;
     }
     barPtr->nActive = 0;
 
     if (barPtr->nActiveIndices > 0) {
-	XRectangle *activeRects;
-	int *activeToData;
-	register int i, n;
-	register int count;
+    XRectangle *activeRects;
+    int *activeToData;
+    register int i, n;
+    register int count;
 
-	activeRects = (XRectangle *)ckalloc(sizeof(XRectangle) * barPtr->nActiveIndices);
-	assert(activeRects);
-	activeToData = (int *)ckalloc(sizeof(int) * barPtr->nActiveIndices);
-	assert(activeToData);
-	count = 0;
-	for (i = 0; i < barPtr->nRects; i++) {
-	    for (n = 0; n < barPtr->nActiveIndices; n++) {
-		if (barPtr->rectToData[i] == barPtr->activeIndices[n]) {
-		    activeRects[count] = barPtr->rectangles[i];
-		    activeToData[count] = i;
-		    count++;
-		}
-	    }
-	}
-	barPtr->nActive = count;
-	barPtr->activeRects = activeRects;
-	barPtr->activeToData = activeToData;
+    activeRects = (XRectangle *)ckalloc(sizeof(XRectangle) * barPtr->nActiveIndices);
+    assert(activeRects);
+    activeToData = (int *)ckalloc(sizeof(int) * barPtr->nActiveIndices);
+    assert(activeToData);
+    count = 0;
+    for (i = 0; i < barPtr->nRects; i++) {
+        for (n = 0; n < barPtr->nActiveIndices; n++) {
+        if (barPtr->rectToData[i] == barPtr->activeIndices[n]) {
+            activeRects[count] = barPtr->rectangles[i];
+            activeToData[count] = i;
+            count++;
+        }
+        }
+    }
+    barPtr->nActive = count;
+    barPtr->activeRects = activeRects;
+    barPtr->activeToData = activeToData;
     }
     barPtr->flags &= ~ACTIVE_PENDING;
 }
@@ -1277,35 +1277,35 @@ ResetBar(
     /* Release any storage associated with the display of the bar */
     ClearPalette(barPtr->palette);
     if (barPtr->activeRects != NULL) {
-	ckfree((char *)barPtr->activeRects);
+    ckfree((char *)barPtr->activeRects);
     }
     if (barPtr->activeToData != NULL) {
-	ckfree((char *)barPtr->activeToData);
+    ckfree((char *)barPtr->activeToData);
     }
     if (barPtr->xErrorBars != NULL) {
-	ckfree((char *)barPtr->xErrorBars);
+    ckfree((char *)barPtr->xErrorBars);
     }
     if (barPtr->xErrorToData != NULL) {
-	ckfree((char *)barPtr->xErrorToData);
+    ckfree((char *)barPtr->xErrorToData);
     }
     if (barPtr->yErrorBars != NULL) {
-	ckfree((char *)barPtr->yErrorBars);
+    ckfree((char *)barPtr->yErrorBars);
     }
     if (barPtr->yErrorToData != NULL) {
-	ckfree((char *)barPtr->yErrorToData);
+    ckfree((char *)barPtr->yErrorToData);
     }
     if (barPtr->rectangles != NULL) {
-	ckfree((char *)barPtr->rectangles);
+    ckfree((char *)barPtr->rectangles);
     }
     if (barPtr->rectToData != NULL) {
-	ckfree((char *)barPtr->rectToData);
+    ckfree((char *)barPtr->rectToData);
     }
     barPtr->activeToData = barPtr->xErrorToData = barPtr->yErrorToData =
-			       barPtr->rectToData = NULL;
+                   barPtr->rectToData = NULL;
     barPtr->activeRects = barPtr->rectangles = NULL;
     barPtr->xErrorBars = barPtr->yErrorBars = NULL;
     barPtr->nActive = barPtr->xErrorBarCnt = barPtr->yErrorBarCnt =
-			  barPtr->nRects = 0;
+              barPtr->nRects = 0;
 }
 
 /*
@@ -1341,13 +1341,13 @@ MapBar(
     Bar *barPtr = (Bar *)elemPtr;
     FreqKey key;
     PenStyle **dataToStyle;
-    Point2D c1, c2;		/* Two opposite corners of the rectangle
-				 * in graph coordinates. */
+    Point2D c1, c2;        /* Two opposite corners of the rectangle
+                 * in graph coordinates. */
     double *x, *y;
     double barWidth, barOffset;
     double baseline;
     double dx, dy;
-    int *rectToData;		/* Maps rectangles to data point indices */
+    int *rectToData;        /* Maps rectangles to data point indices */
     int height;
     int invertBar;
     int nPoints, count;
@@ -1360,11 +1360,11 @@ MapBar(
     ResetBar(barPtr);
     nPoints = NumberOfPoints(barPtr);
     if (nPoints < 1) {
-	return;			/* No data points */
+    return;            /* No data points */
     }
     barWidth = graphPtr->barWidth;
     if (barPtr->barWidth > 0.0) {
-	barWidth = barPtr->barWidth;
+    barWidth = barPtr->barWidth;
     }
     baseline = (barPtr->axes.y->logScale) ? 1.0 : graphPtr->baseline;
     barOffset = barWidth * 0.5;
@@ -1381,129 +1381,129 @@ MapBar(
     x = barPtr->x.valueArr, y = barPtr->y.valueArr;
     count = 0;
     for (i = 0; i < nPoints; i++) {
-	if (((x[i] - barWidth) > barPtr->axes.x->axisRange.max) ||
-		((x[i] + barWidth) < barPtr->axes.x->axisRange.min)) {
-	    continue;		/* Abscissa is out of range of the x-axis */
-	}
-	c1.x = x[i] - barOffset;
-	c1.y = y[i];
-	c2.x = c1.x + barWidth;
-	c2.y = baseline;
+    if (((x[i] - barWidth) > barPtr->axes.x->axisRange.max) ||
+        ((x[i] + barWidth) < barPtr->axes.x->axisRange.min)) {
+        continue;        /* Abscissa is out of range of the x-axis */
+    }
+    c1.x = x[i] - barOffset;
+    c1.y = y[i];
+    c2.x = c1.x + barWidth;
+    c2.y = baseline;
 
-	/*
-	 * If the mode is "aligned" or "stacked" we need to adjust the
-	 * x or y coordinates of the two corners.
-	 */
+    /*
+     * If the mode is "aligned" or "stacked" we need to adjust the
+     * x or y coordinates of the two corners.
+     */
 
-	if ((graphPtr->nStacks > 0) && (graphPtr->mode != MODE_INFRONT)) {
-	    Tcl_HashEntry *hPtr;
+    if ((graphPtr->nStacks > 0) && (graphPtr->mode != MODE_INFRONT)) {
+        Tcl_HashEntry *hPtr;
 
-	    key.value = x[i];
-	    key.axes = barPtr->axes;
-	    hPtr = Tcl_FindHashEntry(&(graphPtr->freqTable), (char *)&key);
-	    if (hPtr != NULL) {
-		FreqInfo *infoPtr;
-		double slice, width;
+        key.value = x[i];
+        key.axes = barPtr->axes;
+        hPtr = Tcl_FindHashEntry(&(graphPtr->freqTable), (char *)&key);
+        if (hPtr != NULL) {
+        FreqInfo *infoPtr;
+        double slice, width;
 
-		infoPtr = (FreqInfo *)Tcl_GetHashValue(hPtr);
-		switch (graphPtr->mode) {
-		    case MODE_STACKED:
-			c2.y = infoPtr->lastY;
-			c1.y += c2.y;
-			infoPtr->lastY = c1.y;
-			break;
+        infoPtr = (FreqInfo *)Tcl_GetHashValue(hPtr);
+        switch (graphPtr->mode) {
+            case MODE_STACKED:
+            c2.y = infoPtr->lastY;
+            c1.y += c2.y;
+            infoPtr->lastY = c1.y;
+            break;
 
-		    case MODE_ALIGNED:
-			infoPtr->count++;
-			slice = barWidth / (double)infoPtr->freq;
-			c1.x += slice * (infoPtr->freq - infoPtr->count);
-			c2.x = c1.x + slice;
-			break;
+            case MODE_ALIGNED:
+            infoPtr->count++;
+            slice = barWidth / (double)infoPtr->freq;
+            c1.x += slice * (infoPtr->freq - infoPtr->count);
+            c2.x = c1.x + slice;
+            break;
 
-		    case MODE_OVERLAP:
-			infoPtr->count++;
-			slice = barWidth / (double)(infoPtr->freq * 2);
-			width = slice * (infoPtr->freq + 1);
-			c1.x += slice * (infoPtr->freq - infoPtr->count);
-			c2.x = c1.x + width;
-			break;
-		    case MODE_INFRONT:
-			break;
-		}
-	    }
-	}
-	invertBar = FALSE;
-	if (c1.y < c2.y) {
-	    double temp;
+            case MODE_OVERLAP:
+            infoPtr->count++;
+            slice = barWidth / (double)(infoPtr->freq * 2);
+            width = slice * (infoPtr->freq + 1);
+            c1.x += slice * (infoPtr->freq - infoPtr->count);
+            c2.x = c1.x + width;
+            break;
+            case MODE_INFRONT:
+            break;
+        }
+        }
+    }
+    invertBar = FALSE;
+    if (c1.y < c2.y) {
+        double temp;
 
-	    /* Handle negative bar values by swapping ordinates */
-	    temp = c1.y, c1.y = c2.y, c2.y = temp;
-	    invertBar = TRUE;
-	}
-	/*
-	 * Get the two corners of the bar segment and compute the rectangle
-	 */
-	c1 = Rbc_Map2D(graphPtr, c1.x, c1.y, &barPtr->axes);
-	c2 = Rbc_Map2D(graphPtr, c2.x, c2.y, &barPtr->axes);
+        /* Handle negative bar values by swapping ordinates */
+        temp = c1.y, c1.y = c2.y, c2.y = temp;
+        invertBar = TRUE;
+    }
+    /*
+     * Get the two corners of the bar segment and compute the rectangle
+     */
+    c1 = Rbc_Map2D(graphPtr, c1.x, c1.y, &barPtr->axes);
+    c2 = Rbc_Map2D(graphPtr, c2.x, c2.y, &barPtr->axes);
 
-	/* Bound the bars vertically by the size of the graph window */
-	if (c1.y < 0.0) {
-	    c1.y = 0.0;
-	} else if (c1.y > (double)graphPtr->height) {
-	    c1.y = (double)graphPtr->height;
-	}
-	if (c2.y < 0.0) {
-	    c2.y = 0.0;
-	} else if (c2.y > (double)graphPtr->height) {
-	    c2.y = (double)graphPtr->height;
-	}
-	dx = c1.x - c2.x;
-	dy = c1.y - c2.y;
-	height = (int)Round(FABS(dy));
-	if (invertBar) {
-	    rectPtr->y = (short int)MIN(c1.y, c2.y);
-	} else {
-	    rectPtr->y = (short int)(MAX(c1.y, c2.y)) - height;
-	}
-	rectPtr->x = (short int)MIN(c1.x, c2.x);
-	rectPtr->width = (short int)Round(FABS(dx)) + 1;
-	if (rectPtr->width < 1) {
-	    rectPtr->width = 1;
-	}
-	rectPtr->height = height + 1;
-	if (rectPtr->height < 1) {
-	    rectPtr->height = 1;
-	}
-	rectToData[count] = i;	/* Save the data index corresponding to the
-				 * rectangle */
-	rectPtr++;
-	count++;
+    /* Bound the bars vertically by the size of the graph window */
+    if (c1.y < 0.0) {
+        c1.y = 0.0;
+    } else if (c1.y > (double)graphPtr->height) {
+        c1.y = (double)graphPtr->height;
+    }
+    if (c2.y < 0.0) {
+        c2.y = 0.0;
+    } else if (c2.y > (double)graphPtr->height) {
+        c2.y = (double)graphPtr->height;
+    }
+    dx = c1.x - c2.x;
+    dy = c1.y - c2.y;
+    height = (int)Round(FABS(dy));
+    if (invertBar) {
+        rectPtr->y = (short int)MIN(c1.y, c2.y);
+    } else {
+        rectPtr->y = (short int)(MAX(c1.y, c2.y)) - height;
+    }
+    rectPtr->x = (short int)MIN(c1.x, c2.x);
+    rectPtr->width = (short int)Round(FABS(dx)) + 1;
+    if (rectPtr->width < 1) {
+        rectPtr->width = 1;
+    }
+    rectPtr->height = height + 1;
+    if (rectPtr->height < 1) {
+        rectPtr->height = 1;
+    }
+    rectToData[count] = i;    /* Save the data index corresponding to the
+                 * rectangle */
+    rectPtr++;
+    count++;
     }
     barPtr->nRects = count;
     barPtr->rectangles = rectangles;
     barPtr->rectToData = rectToData;
     if (barPtr->nActiveIndices > 0) {
-	MapActiveBars(barPtr);
+    MapActiveBars(barPtr);
     }
 
     size = 20;
     if (count > 0) {
-	size = rectangles->width;
+    size = rectangles->width;
     }
     /* Set the symbol size of all the pen styles. */
     for (linkPtr = Rbc_ChainFirstLink(barPtr->palette); linkPtr != NULL;
-	    linkPtr = Rbc_ChainNextLink(linkPtr)) {
-	stylePtr = Rbc_ChainGetValue(linkPtr);
-	stylePtr->symbolSize = size;
-	stylePtr->errorBarCapWidth = (stylePtr->penPtr->errorBarCapWidth > 0)
-				     ? stylePtr->penPtr->errorBarCapWidth : (int)(size * 0.6666666);
-	stylePtr->errorBarCapWidth /= 2;
+        linkPtr = Rbc_ChainNextLink(linkPtr)) {
+    stylePtr = Rbc_ChainGetValue(linkPtr);
+    stylePtr->symbolSize = size;
+    stylePtr->errorBarCapWidth = (stylePtr->penPtr->errorBarCapWidth > 0)
+                     ? stylePtr->penPtr->errorBarCapWidth : (int)(size * 0.6666666);
+    stylePtr->errorBarCapWidth /= 2;
     }
     dataToStyle = Rbc_StyleMap((Element *)barPtr);
     if (((barPtr->yHigh.nValues > 0) && (barPtr->yLow.nValues > 0)) ||
-	    ((barPtr->xHigh.nValues > 0) && (barPtr->xLow.nValues > 0)) ||
-	    (barPtr->xError.nValues > 0) || (barPtr->yError.nValues > 0)) {
-	Rbc_MapErrorBars(graphPtr, (Element *)barPtr, dataToStyle);
+        ((barPtr->xHigh.nValues > 0) && (barPtr->xLow.nValues > 0)) ||
+        (barPtr->xError.nValues > 0) || (barPtr->yError.nValues > 0)) {
+    Rbc_MapErrorBars(graphPtr, (Element *)barPtr, dataToStyle);
     }
     MergePens(barPtr, dataToStyle);
     ckfree((char *)dataToStyle);
@@ -1541,7 +1541,7 @@ DrawSymbol(
     int radius;
 
     if ((penPtr->border == NULL) && (penPtr->fgColor == NULL)) {
-	return;
+    return;
     }
     radius = (size / 2);
     size--;
@@ -1550,7 +1550,7 @@ DrawSymbol(
     y -= radius;
     XSetTSOrigin(graphPtr->display, penPtr->gc, x, y);
     XFillRectangle(graphPtr->display, drawable, penPtr->gc, x, y,
-		   size, size);
+           size, size);
     XSetTSOrigin(graphPtr->display, penPtr->gc, 0, 0);
 }
 
@@ -1580,20 +1580,20 @@ DrawBarSegments(
     register XRectangle *rectPtr;
 
     if ((penPtr->border == NULL) && (penPtr->fgColor == NULL)) {
-	return;
+    return;
     }
     XFillRectangles(graphPtr->display, drawable, penPtr->gc, rectangles,
-		    nRects);
+            nRects);
     if ((penPtr->border != NULL) && (penPtr->borderWidth > 0) &&
-	    (penPtr->relief != TK_RELIEF_FLAT)) {
-	XRectangle *endPtr;
+        (penPtr->relief != TK_RELIEF_FLAT)) {
+    XRectangle *endPtr;
 
-	for (rectPtr = rectangles, endPtr = rectangles + nRects;
-		rectPtr < endPtr; rectPtr++) {
-	    Rbc_Draw3DRectangle(graphPtr->tkwin, drawable, penPtr->border,
-				rectPtr->x, rectPtr->y, rectPtr->width, rectPtr->height,
-				penPtr->borderWidth, penPtr->relief);
-	}
+    for (rectPtr = rectangles, endPtr = rectangles + nRects;
+        rectPtr < endPtr; rectPtr++) {
+        Rbc_Draw3DRectangle(graphPtr->tkwin, drawable, penPtr->border,
+                rectPtr->x, rectPtr->y, rectPtr->width, rectPtr->height,
+                penPtr->borderWidth, penPtr->relief);
+    }
     }
 }
 
@@ -1632,37 +1632,37 @@ DrawBarValues(
     count = 0;
     fmt = penPtr->valueFormat;
     if (fmt == NULL) {
-	fmt = "%g";
+    fmt = "%g";
     }
     for (rectPtr = rectangles, endPtr = rectangles + nRects; rectPtr < endPtr;
-	    rectPtr++) {
-	x = barPtr->x.valueArr[rectToData[count]];
-	y = barPtr->y.valueArr[rectToData[count]];
-	count++;
-	if (penPtr->valueShow == SHOW_X) {
-	    sprintf(string, fmt, x);
-	} else if (penPtr->valueShow == SHOW_Y) {
-	    sprintf(string, fmt, y);
-	} else if (penPtr->valueShow == SHOW_BOTH) {
-	    sprintf(string, fmt, x);
-	    strcat(string, ",");
-	    sprintf(string + strlen(string), fmt, y);
-	}
-	if (graphPtr->inverted) {
-	    anchorPos.y = rectPtr->y + rectPtr->height * 0.5;
-	    anchorPos.x = rectPtr->x + rectPtr->width;
-	    if (y < graphPtr->baseline) {
-		anchorPos.x -= rectPtr->width;
-	    }
-	} else {
-	    anchorPos.x = rectPtr->x + rectPtr->width * 0.5;
-	    anchorPos.y = rectPtr->y;
-	    if (y < graphPtr->baseline) {
-		anchorPos.y += rectPtr->height;
-	    }
-	}
-	Rbc_DrawText(graphPtr->tkwin, drawable, string, &(penPtr->valueStyle),
-		     (int)anchorPos.x, (int)anchorPos.y);
+        rectPtr++) {
+    x = barPtr->x.valueArr[rectToData[count]];
+    y = barPtr->y.valueArr[rectToData[count]];
+    count++;
+    if (penPtr->valueShow == SHOW_X) {
+        sprintf(string, fmt, x);
+    } else if (penPtr->valueShow == SHOW_Y) {
+        sprintf(string, fmt, y);
+    } else if (penPtr->valueShow == SHOW_BOTH) {
+        sprintf(string, fmt, x);
+        strcat(string, ",");
+        sprintf(string + strlen(string), fmt, y);
+    }
+    if (graphPtr->inverted) {
+        anchorPos.y = rectPtr->y + rectPtr->height * 0.5;
+        anchorPos.x = rectPtr->x + rectPtr->width;
+        if (y < graphPtr->baseline) {
+        anchorPos.x -= rectPtr->width;
+        }
+    } else {
+        anchorPos.x = rectPtr->x + rectPtr->width * 0.5;
+        anchorPos.y = rectPtr->y;
+        if (y < graphPtr->baseline) {
+        anchorPos.y += rectPtr->height;
+        }
+    }
+    Rbc_DrawText(graphPtr->tkwin, drawable, string, &(penPtr->valueStyle),
+             (int)anchorPos.x, (int)anchorPos.y);
     }
 }
 
@@ -1702,27 +1702,27 @@ DrawNormalBar(
 
     count = 0;
     for (linkPtr = Rbc_ChainFirstLink(barPtr->palette); linkPtr != NULL;
-	    linkPtr = Rbc_ChainNextLink(linkPtr)) {
-	stylePtr = Rbc_ChainGetValue(linkPtr);
-	penPtr = stylePtr->penPtr;
-	if (stylePtr->nRects > 0) {
-	    DrawBarSegments(graphPtr, drawable, penPtr, stylePtr->rectangles,
-			    stylePtr->nRects);
-	}
-	if ((stylePtr->xErrorBarCnt > 0) && (penPtr->errorBarShow & SHOW_X)) {
-	    Rbc_Draw2DSegments(graphPtr->display, drawable, penPtr->errorBarGC,
-			       stylePtr->xErrorBars, stylePtr->xErrorBarCnt);
-	}
-	if ((stylePtr->yErrorBarCnt > 0) && (penPtr->errorBarShow & SHOW_Y)) {
-	    Rbc_Draw2DSegments(graphPtr->display, drawable, penPtr->errorBarGC,
-			       stylePtr->yErrorBars, stylePtr->yErrorBarCnt);
-	}
-	if (penPtr->valueShow != SHOW_NONE) {
-	    DrawBarValues(graphPtr, drawable, barPtr, penPtr,
-			  stylePtr->rectangles, stylePtr->nRects,
-			  barPtr->rectToData + count);
-	}
-	count += stylePtr->nRects;
+        linkPtr = Rbc_ChainNextLink(linkPtr)) {
+    stylePtr = Rbc_ChainGetValue(linkPtr);
+    penPtr = stylePtr->penPtr;
+    if (stylePtr->nRects > 0) {
+        DrawBarSegments(graphPtr, drawable, penPtr, stylePtr->rectangles,
+                stylePtr->nRects);
+    }
+    if ((stylePtr->xErrorBarCnt > 0) && (penPtr->errorBarShow & SHOW_X)) {
+        Rbc_Draw2DSegments(graphPtr->display, drawable, penPtr->errorBarGC,
+                   stylePtr->xErrorBars, stylePtr->xErrorBarCnt);
+    }
+    if ((stylePtr->yErrorBarCnt > 0) && (penPtr->errorBarShow & SHOW_Y)) {
+        Rbc_Draw2DSegments(graphPtr->display, drawable, penPtr->errorBarGC,
+                   stylePtr->yErrorBars, stylePtr->yErrorBarCnt);
+    }
+    if (penPtr->valueShow != SHOW_NONE) {
+        DrawBarValues(graphPtr, drawable, barPtr, penPtr,
+              stylePtr->rectangles, stylePtr->nRects,
+              barPtr->rectToData + count);
+    }
+    count += stylePtr->nRects;
     }
 }
 
@@ -1753,27 +1753,27 @@ DrawActiveBar(
     Bar *barPtr = (Bar *)elemPtr;
 
     if (barPtr->activePenPtr != NULL) {
-	BarPen *penPtr = barPtr->activePenPtr;
+    BarPen *penPtr = barPtr->activePenPtr;
 
-	if (barPtr->nActiveIndices > 0) {
-	    if (barPtr->flags & ACTIVE_PENDING) {
-		MapActiveBars(barPtr);
-	    }
-	    DrawBarSegments(graphPtr, drawable, penPtr, barPtr->activeRects,
-			    barPtr->nActive);
-	    if (penPtr->valueShow != SHOW_NONE) {
-		DrawBarValues(graphPtr, drawable, barPtr, penPtr,
-			      barPtr->activeRects, barPtr->nActive,
-			      barPtr->activeToData);
-	    }
-	} else if (barPtr->nActiveIndices < 0) {
-	    DrawBarSegments(graphPtr, drawable, penPtr, barPtr->rectangles,
-			    barPtr->nRects);
-	    if (penPtr->valueShow != SHOW_NONE) {
-		DrawBarValues(graphPtr, drawable, barPtr, penPtr,
-			      barPtr->rectangles, barPtr->nRects, barPtr->rectToData);
-	    }
-	}
+    if (barPtr->nActiveIndices > 0) {
+        if (barPtr->flags & ACTIVE_PENDING) {
+        MapActiveBars(barPtr);
+        }
+        DrawBarSegments(graphPtr, drawable, penPtr, barPtr->activeRects,
+                barPtr->nActive);
+        if (penPtr->valueShow != SHOW_NONE) {
+        DrawBarValues(graphPtr, drawable, barPtr, penPtr,
+                  barPtr->activeRects, barPtr->nActive,
+                  barPtr->activeToData);
+        }
+    } else if (barPtr->nActiveIndices < 0) {
+        DrawBarSegments(graphPtr, drawable, penPtr, barPtr->rectangles,
+                barPtr->nRects);
+        if (penPtr->valueShow != SHOW_NONE) {
+        DrawBarValues(graphPtr, drawable, barPtr, penPtr,
+                  barPtr->rectangles, barPtr->nRects, barPtr->rectToData);
+        }
+    }
     }
 }
 
@@ -1809,29 +1809,29 @@ SymbolToPostScript(
     BarPen *bpPtr = barPtr->normalPenPtr;
 
     if ((bpPtr->border == NULL) && (bpPtr->fgColor == NULL)) {
-	return;
+    return;
     }
     /*
      * Build a PostScript procedure to draw the fill and outline of
      * the symbol after the path of the symbol shape has been formed
      */
     Rbc_AppendToPostScript(psToken, "\n",
-			   "/DrawSymbolProc {\n",
-			   "  gsave\n    ", (char *)NULL);
+               "/DrawSymbolProc {\n",
+               "  gsave\n    ", (char *)NULL);
     if (bpPtr->stipple != None) {
-	if (bpPtr->border != NULL) {
-	    Rbc_BackgroundToPostScript(psToken,Tk_3DBorderColor(bpPtr->border));
-	    Rbc_AppendToPostScript(psToken, "    Fill\n    ", (char *)NULL);
-	}
-	if (bpPtr->fgColor != NULL) {
-	    Rbc_ForegroundToPostScript(psToken, bpPtr->fgColor);
-	} else {
-	    Rbc_ForegroundToPostScript(psToken,Tk_3DBorderColor(bpPtr->border));
-	}
-	Rbc_StippleToPostScript(psToken, graphPtr->display, bpPtr->stipple);
+    if (bpPtr->border != NULL) {
+        Rbc_BackgroundToPostScript(psToken,Tk_3DBorderColor(bpPtr->border));
+        Rbc_AppendToPostScript(psToken, "    Fill\n    ", (char *)NULL);
+    }
+    if (bpPtr->fgColor != NULL) {
+        Rbc_ForegroundToPostScript(psToken, bpPtr->fgColor);
+    } else {
+        Rbc_ForegroundToPostScript(psToken,Tk_3DBorderColor(bpPtr->border));
+    }
+    Rbc_StippleToPostScript(psToken, graphPtr->display, bpPtr->stipple);
     } else if (bpPtr->fgColor != NULL) {
-	Rbc_ForegroundToPostScript(psToken, bpPtr->fgColor);
-	Rbc_AppendToPostScript(psToken, "    fill\n", (char *)NULL);
+    Rbc_ForegroundToPostScript(psToken, bpPtr->fgColor);
+    Rbc_AppendToPostScript(psToken, "    fill\n", (char *)NULL);
     }
     Rbc_AppendToPostScript(psToken, "  grestore\n", (char *)NULL);
     Rbc_AppendToPostScript(psToken, "} def\n\n", (char *)NULL);
@@ -1864,42 +1864,42 @@ SegmentsToPostScript(
     XRectangle *endPtr;
 
     if ((penPtr->border == NULL) && (penPtr->fgColor == NULL)) {
-	return;
+    return;
     }
     for (endPtr = rectPtr + nRects; rectPtr < endPtr; rectPtr++) {
-	if ((rectPtr->width < 1) || (rectPtr->height < 1)) {
-	    continue;
-	}
-	if (penPtr->stipple != None) {
-	    Rbc_RegionToPostScript(psToken,
-				   (double)rectPtr->x, (double)rectPtr->y,
-				   (int)rectPtr->width - 1, (int)rectPtr->height - 1);
-	    if (penPtr->border != NULL) {
-		Rbc_BackgroundToPostScript(psToken,
-					   Tk_3DBorderColor(penPtr->border));
-		Rbc_AppendToPostScript(psToken, "Fill\n", (char *)NULL);
-	    }
-	    if (penPtr->fgColor != NULL) {
-		Rbc_ForegroundToPostScript(psToken, penPtr->fgColor);
-	    } else {
-		Rbc_ForegroundToPostScript(psToken,
-					   Tk_3DBorderColor(penPtr->border));
-	    }
-	    Rbc_StippleToPostScript(psToken, graphPtr->display,
-				    penPtr->stipple);
-	} else if (penPtr->fgColor != NULL) {
-	    Rbc_ForegroundToPostScript(psToken, penPtr->fgColor);
-	    Rbc_RectangleToPostScript(psToken,
-				      (double)rectPtr->x, (double)rectPtr->y,
-				      (int)rectPtr->width - 1, (int)rectPtr->height - 1);
-	}
-	if ((penPtr->border != NULL) && (penPtr->borderWidth > 0) &&
-		(penPtr->relief != TK_RELIEF_FLAT)) {
-	    Rbc_Draw3DRectangleToPostScript(psToken, penPtr->border,
-					    (double)rectPtr->x, (double)rectPtr->y,
-					    (int)rectPtr->width, (int)rectPtr->height,
-					    penPtr->borderWidth, penPtr->relief);
-	}
+    if ((rectPtr->width < 1) || (rectPtr->height < 1)) {
+        continue;
+    }
+    if (penPtr->stipple != None) {
+        Rbc_RegionToPostScript(psToken,
+                   (double)rectPtr->x, (double)rectPtr->y,
+                   (int)rectPtr->width - 1, (int)rectPtr->height - 1);
+        if (penPtr->border != NULL) {
+        Rbc_BackgroundToPostScript(psToken,
+                       Tk_3DBorderColor(penPtr->border));
+        Rbc_AppendToPostScript(psToken, "Fill\n", (char *)NULL);
+        }
+        if (penPtr->fgColor != NULL) {
+        Rbc_ForegroundToPostScript(psToken, penPtr->fgColor);
+        } else {
+        Rbc_ForegroundToPostScript(psToken,
+                       Tk_3DBorderColor(penPtr->border));
+        }
+        Rbc_StippleToPostScript(psToken, graphPtr->display,
+                    penPtr->stipple);
+    } else if (penPtr->fgColor != NULL) {
+        Rbc_ForegroundToPostScript(psToken, penPtr->fgColor);
+        Rbc_RectangleToPostScript(psToken,
+                      (double)rectPtr->x, (double)rectPtr->y,
+                      (int)rectPtr->width - 1, (int)rectPtr->height - 1);
+    }
+    if ((penPtr->border != NULL) && (penPtr->borderWidth > 0) &&
+        (penPtr->relief != TK_RELIEF_FLAT)) {
+        Rbc_Draw3DRectangleToPostScript(psToken, penPtr->border,
+                        (double)rectPtr->x, (double)rectPtr->y,
+                        (int)rectPtr->width, (int)rectPtr->height,
+                        penPtr->borderWidth, penPtr->relief);
+    }
     }
 }
 
@@ -1938,37 +1938,37 @@ BarValuesToPostScript(
     count = 0;
     fmt = penPtr->valueFormat;
     if (fmt == NULL) {
-	fmt = "%g";
+    fmt = "%g";
     }
     for (rectPtr = rectangles, endPtr = rectangles + nRects; rectPtr < endPtr;
-	    rectPtr++) {
-	x = barPtr->x.valueArr[rectToData[count]];
-	y = barPtr->y.valueArr[rectToData[count]];
-	count++;
-	if (penPtr->valueShow == SHOW_X) {
-	    sprintf(string, fmt, x);
-	} else if (penPtr->valueShow == SHOW_Y) {
-	    sprintf(string, fmt, y);
-	} else if (penPtr->valueShow == SHOW_BOTH) {
-	    sprintf(string, fmt, x);
-	    strcat(string, ",");
-	    sprintf(string + strlen(string), fmt, y);
-	}
-	if (graphPtr->inverted) {
-	    anchorPos.y = rectPtr->y + rectPtr->height * 0.5;
-	    anchorPos.x = rectPtr->x + rectPtr->width;
-	    if (y < graphPtr->baseline) {
-		anchorPos.x -= rectPtr->width;
-	    }
-	} else {
-	    anchorPos.x = rectPtr->x + rectPtr->width * 0.5;
-	    anchorPos.y = rectPtr->y;
-	    if (y < graphPtr->baseline) {
-		anchorPos.y += rectPtr->height;
-	    }
-	}
-	Rbc_TextToPostScript(psToken, string, &(penPtr->valueStyle),
-			     anchorPos.x, anchorPos.y);
+        rectPtr++) {
+    x = barPtr->x.valueArr[rectToData[count]];
+    y = barPtr->y.valueArr[rectToData[count]];
+    count++;
+    if (penPtr->valueShow == SHOW_X) {
+        sprintf(string, fmt, x);
+    } else if (penPtr->valueShow == SHOW_Y) {
+        sprintf(string, fmt, y);
+    } else if (penPtr->valueShow == SHOW_BOTH) {
+        sprintf(string, fmt, x);
+        strcat(string, ",");
+        sprintf(string + strlen(string), fmt, y);
+    }
+    if (graphPtr->inverted) {
+        anchorPos.y = rectPtr->y + rectPtr->height * 0.5;
+        anchorPos.x = rectPtr->x + rectPtr->width;
+        if (y < graphPtr->baseline) {
+        anchorPos.x -= rectPtr->width;
+        }
+    } else {
+        anchorPos.x = rectPtr->x + rectPtr->width * 0.5;
+        anchorPos.y = rectPtr->y;
+        if (y < graphPtr->baseline) {
+        anchorPos.y += rectPtr->height;
+        }
+    }
+    Rbc_TextToPostScript(psToken, string, &(penPtr->valueStyle),
+                 anchorPos.x, anchorPos.y);
     }
 }
 
@@ -1998,26 +1998,26 @@ ActiveBarToPostScript(
     Bar *barPtr = (Bar *)elemPtr;
 
     if (barPtr->activePenPtr != NULL) {
-	BarPen *penPtr = barPtr->activePenPtr;
+    BarPen *penPtr = barPtr->activePenPtr;
 
-	if (barPtr->nActiveIndices > 0) {
-	    if (barPtr->flags & ACTIVE_PENDING) {
-		MapActiveBars(barPtr);
-	    }
-	    SegmentsToPostScript(graphPtr, psToken, penPtr,
-				 barPtr->activeRects, barPtr->nActive);
-	    if (penPtr->valueShow != SHOW_NONE) {
-		BarValuesToPostScript(graphPtr, psToken, barPtr, penPtr,
-				      barPtr->activeRects, barPtr->nActive, barPtr->activeToData);
-	    }
-	} else if (barPtr->nActiveIndices < 0) {
-	    SegmentsToPostScript(graphPtr, psToken, penPtr,
-				 barPtr->rectangles, barPtr->nRects);
-	    if (penPtr->valueShow != SHOW_NONE) {
-		BarValuesToPostScript(graphPtr, psToken, barPtr, penPtr,
-				      barPtr->rectangles, barPtr->nRects, barPtr->rectToData);
-	    }
-	}
+    if (barPtr->nActiveIndices > 0) {
+        if (barPtr->flags & ACTIVE_PENDING) {
+        MapActiveBars(barPtr);
+        }
+        SegmentsToPostScript(graphPtr, psToken, penPtr,
+                 barPtr->activeRects, barPtr->nActive);
+        if (penPtr->valueShow != SHOW_NONE) {
+        BarValuesToPostScript(graphPtr, psToken, barPtr, penPtr,
+                      barPtr->activeRects, barPtr->nActive, barPtr->activeToData);
+        }
+    } else if (barPtr->nActiveIndices < 0) {
+        SegmentsToPostScript(graphPtr, psToken, penPtr,
+                 barPtr->rectangles, barPtr->nRects);
+        if (penPtr->valueShow != SHOW_NONE) {
+        BarValuesToPostScript(graphPtr, psToken, barPtr, penPtr,
+                      barPtr->rectangles, barPtr->nRects, barPtr->rectToData);
+        }
+    }
     }
 }
 
@@ -2052,35 +2052,35 @@ NormalBarToPostScript(
 
     count = 0;
     for (linkPtr = Rbc_ChainFirstLink(barPtr->palette); linkPtr != NULL;
-	    linkPtr = Rbc_ChainNextLink(linkPtr)) {
-	stylePtr = Rbc_ChainGetValue(linkPtr);
-	penPtr = stylePtr->penPtr;
-	if (stylePtr->nRects > 0) {
-	    SegmentsToPostScript(graphPtr, psToken, penPtr,
-				 stylePtr->rectangles, stylePtr->nRects);
-	}
-	colorPtr = penPtr->errorBarColor;
-	if (colorPtr == COLOR_DEFAULT) {
-	    colorPtr = penPtr->fgColor;
-	}
-	if ((stylePtr->xErrorBarCnt > 0) && (penPtr->errorBarShow & SHOW_X)) {
-	    Rbc_LineAttributesToPostScript(psToken, colorPtr,
-					   penPtr->errorBarLineWidth, NULL, CapButt, JoinMiter);
-	    Rbc_2DSegmentsToPostScript(psToken, stylePtr->xErrorBars,
-				       stylePtr->xErrorBarCnt);
-	}
-	if ((stylePtr->yErrorBarCnt > 0) && (penPtr->errorBarShow & SHOW_Y)) {
-	    Rbc_LineAttributesToPostScript(psToken, colorPtr,
-					   penPtr->errorBarLineWidth, NULL, CapButt, JoinMiter);
-	    Rbc_2DSegmentsToPostScript(psToken, stylePtr->yErrorBars,
-				       stylePtr->yErrorBarCnt);
-	}
-	if (penPtr->valueShow != SHOW_NONE) {
-	    BarValuesToPostScript(graphPtr, psToken, barPtr, penPtr,
-				  stylePtr->rectangles, stylePtr->nRects,
-				  barPtr->rectToData + count);
-	}
-	count += stylePtr->nRects;
+        linkPtr = Rbc_ChainNextLink(linkPtr)) {
+    stylePtr = Rbc_ChainGetValue(linkPtr);
+    penPtr = stylePtr->penPtr;
+    if (stylePtr->nRects > 0) {
+        SegmentsToPostScript(graphPtr, psToken, penPtr,
+                 stylePtr->rectangles, stylePtr->nRects);
+    }
+    colorPtr = penPtr->errorBarColor;
+    if (colorPtr == COLOR_DEFAULT) {
+        colorPtr = penPtr->fgColor;
+    }
+    if ((stylePtr->xErrorBarCnt > 0) && (penPtr->errorBarShow & SHOW_X)) {
+        Rbc_LineAttributesToPostScript(psToken, colorPtr,
+                       penPtr->errorBarLineWidth, NULL, CapButt, JoinMiter);
+        Rbc_2DSegmentsToPostScript(psToken, stylePtr->xErrorBars,
+                       stylePtr->xErrorBarCnt);
+    }
+    if ((stylePtr->yErrorBarCnt > 0) && (penPtr->errorBarShow & SHOW_Y)) {
+        Rbc_LineAttributesToPostScript(psToken, colorPtr,
+                       penPtr->errorBarLineWidth, NULL, CapButt, JoinMiter);
+        Rbc_2DSegmentsToPostScript(psToken, stylePtr->yErrorBars,
+                       stylePtr->yErrorBarCnt);
+    }
+    if (penPtr->valueShow != SHOW_NONE) {
+        BarValuesToPostScript(graphPtr, psToken, barPtr, penPtr,
+                  stylePtr->rectangles, stylePtr->nRects,
+                  barPtr->rectToData + count);
+    }
+    count += stylePtr->nRects;
     }
 }
 
@@ -2107,11 +2107,11 @@ DestroyBar(
     Bar *barPtr = (Bar *)elemPtr;
 
     if (barPtr->normalPenPtr != &(barPtr->builtinPen)) {
-	Rbc_FreePen(graphPtr, (Pen *)barPtr->normalPenPtr);
+    Rbc_FreePen(graphPtr, (Pen *)barPtr->normalPenPtr);
     }
     DestroyPen(graphPtr, (Pen *)&(barPtr->builtinPen));
     if (barPtr->activePenPtr != NULL) {
-	Rbc_FreePen(graphPtr, (Pen *)barPtr->activePenPtr);
+    Rbc_FreePen(graphPtr, (Pen *)barPtr->activePenPtr);
     }
     FreeElemVector(barPtr->x);
     FreeElemVector(barPtr->y);
@@ -2125,14 +2125,14 @@ DestroyBar(
 
     ResetBar(barPtr);
     if (barPtr->activeIndices != NULL) {
-	ckfree((char *)barPtr->activeIndices);
+    ckfree((char *)barPtr->activeIndices);
     }
     if (barPtr->palette != NULL) {
-	Rbc_FreePalette(graphPtr, barPtr->palette);
-	Rbc_ChainDestroy(barPtr->palette);
+    Rbc_FreePalette(graphPtr, barPtr->palette);
+    Rbc_ChainDestroy(barPtr->palette);
     }
     if (barPtr->tags != NULL) {
-	ckfree((char *)barPtr->tags);
+    ckfree((char *)barPtr->tags);
     }
 }
 
@@ -2233,16 +2233,16 @@ Rbc_InitFreqTable(
      * includes the array of frequency information and the table itself
      */
     if (graphPtr->freqArr != NULL) {
-	ckfree((char *)graphPtr->freqArr);
-	graphPtr->freqArr = NULL;
+    ckfree((char *)graphPtr->freqArr);
+    graphPtr->freqArr = NULL;
     }
     if (graphPtr->nStacks > 0) {
-	Tcl_DeleteHashTable(&(graphPtr->freqTable));
-	graphPtr->nStacks = 0;
+    Tcl_DeleteHashTable(&(graphPtr->freqTable));
+    graphPtr->nStacks = 0;
     }
     if (graphPtr->mode == MODE_INFRONT) {
-	return;			/* No frequency table is needed for
-				 * "infront" mode */
+    return;            /* No frequency table is needed for
+                 * "infront" mode */
     }
     Tcl_InitHashTable(&(graphPtr->freqTable), sizeof(FreqKey) / sizeof(int));
 
@@ -2254,57 +2254,57 @@ Rbc_InitFreqTable(
     Tcl_InitHashTable(&freqTable, sizeof(FreqKey) / sizeof(int));
     nSegs = nStacks = 0;
     for (linkPtr = Rbc_ChainFirstLink(graphPtr->elements.displayList);
-	    linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
-	elemPtr = Rbc_ChainGetValue(linkPtr);
-	if ((elemPtr->hidden) || (elemPtr->classUid != rbcBarElementUid)) {
-	    continue;
-	}
-	nSegs++;
-	barPtr = (Bar *)elemPtr;
-	xArr = barPtr->x.valueArr;
-	nPoints = NumberOfPoints(barPtr);
-	for (i = 0; i < nPoints; i++) {
-	    key.value = xArr[i];
-	    key.axes = barPtr->axes;
-	    hPtr = Tcl_CreateHashEntry(&freqTable, (char *)&key, &isNew);
-	    assert(hPtr != NULL);
-	    if (isNew) {
-		count = 1;
-	    } else {
-		count = (Tcl_Size)Tcl_GetHashValue(hPtr);
-		if (count == 1) {
-		    nStacks++;
-		}
-		count++;
-	    }
-	    Tcl_SetHashValue(hPtr, (ClientData)count);
-	}
+        linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+    elemPtr = Rbc_ChainGetValue(linkPtr);
+    if ((elemPtr->hidden) || (elemPtr->classUid != rbcBarElementUid)) {
+        continue;
+    }
+    nSegs++;
+    barPtr = (Bar *)elemPtr;
+    xArr = barPtr->x.valueArr;
+    nPoints = NumberOfPoints(barPtr);
+    for (i = 0; i < nPoints; i++) {
+        key.value = xArr[i];
+        key.axes = barPtr->axes;
+        hPtr = Tcl_CreateHashEntry(&freqTable, (char *)&key, &isNew);
+        assert(hPtr != NULL);
+        if (isNew) {
+        count = 1;
+        } else {
+        count = (Tcl_Size)Tcl_GetHashValue(hPtr);
+        if (count == 1) {
+            nStacks++;
+        }
+        count++;
+        }
+        Tcl_SetHashValue(hPtr, (ClientData)count);
+    }
     }
     if (nSegs == 0) {
-	return;			/* No bar elements to be displayed */
+    return;            /* No bar elements to be displayed */
     }
     if (nStacks > 0) {
-	FreqInfo *infoPtr;
-	FreqKey *keyPtr;
-	Tcl_HashEntry *h2Ptr;
+    FreqInfo *infoPtr;
+    FreqKey *keyPtr;
+    Tcl_HashEntry *h2Ptr;
 
-	graphPtr->freqArr = RbcCalloc(nStacks, sizeof(FreqInfo));
-	assert(graphPtr->freqArr);
-	infoPtr = graphPtr->freqArr;
-	for (hPtr = Tcl_FirstHashEntry(&freqTable, &cursor); hPtr != NULL;
-		hPtr = Tcl_NextHashEntry(&cursor)) {
-	    count = (Tcl_Size)Tcl_GetHashValue(hPtr);
-	    keyPtr = (FreqKey *)Tcl_GetHashKey(&freqTable, hPtr);
-	    if (count > 1) {
-		h2Ptr = Tcl_CreateHashEntry(&(graphPtr->freqTable),
-		    (char *)keyPtr, &isNew);
-		count = (Tcl_Size)Tcl_GetHashValue(hPtr);
-		infoPtr->freq = count;
-		infoPtr->axes = keyPtr->axes;
-		Tcl_SetHashValue(h2Ptr, infoPtr);
-		infoPtr++;
-	    }
-	}
+    graphPtr->freqArr = RbcCalloc(nStacks, sizeof(FreqInfo));
+    assert(graphPtr->freqArr);
+    infoPtr = graphPtr->freqArr;
+    for (hPtr = Tcl_FirstHashEntry(&freqTable, &cursor); hPtr != NULL;
+        hPtr = Tcl_NextHashEntry(&cursor)) {
+        count = (Tcl_Size)Tcl_GetHashValue(hPtr);
+        keyPtr = (FreqKey *)Tcl_GetHashKey(&freqTable, hPtr);
+        if (count > 1) {
+        h2Ptr = Tcl_CreateHashEntry(&(graphPtr->freqTable),
+            (char *)keyPtr, &isNew);
+        count = (Tcl_Size)Tcl_GetHashValue(hPtr);
+        infoPtr->freq = count;
+        infoPtr->axes = keyPtr->axes;
+        Tcl_SetHashValue(h2Ptr, infoPtr);
+        infoPtr++;
+        }
+    }
     }
     Tcl_DeleteHashTable(&freqTable);
     graphPtr->nStacks = nStacks;
@@ -2347,38 +2347,38 @@ Rbc_ComputeStacks(
     double *xArr, *yArr;
 
     if ((graphPtr->mode != MODE_STACKED) || (graphPtr->nStacks == 0)) {
-	return;
+    return;
     }
     /* Reset the sums for all duplicate values to zero. */
 
     infoPtr = graphPtr->freqArr;
     for (i = 0; i < graphPtr->nStacks; i++) {
-	infoPtr->sum = 0.0;
-	infoPtr++;
+    infoPtr->sum = 0.0;
+    infoPtr++;
     }
 
     /* Look at each bar point, adding the ordinates of duplicate abscissas */
 
     for (linkPtr = Rbc_ChainFirstLink(graphPtr->elements.displayList);
-	    linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
-	elemPtr = Rbc_ChainGetValue(linkPtr);
-	if ((elemPtr->hidden) || (elemPtr->classUid != rbcBarElementUid)) {
-	    continue;
-	}
-	barPtr = (Bar *)elemPtr;
-	xArr = barPtr->x.valueArr;
-	yArr = barPtr->y.valueArr;
-	nPoints = NumberOfPoints(barPtr);
-	for (i = 0; i < nPoints; i++) {
-	    key.value = xArr[i];
-	    key.axes = barPtr->axes;
-	    hPtr = Tcl_FindHashEntry(&(graphPtr->freqTable), (char *)&key);
-	    if (hPtr == NULL) {
-		continue;
-	    }
-	    infoPtr = (FreqInfo *)Tcl_GetHashValue(hPtr);
-	    infoPtr->sum += yArr[i];
-	}
+        linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+    elemPtr = Rbc_ChainGetValue(linkPtr);
+    if ((elemPtr->hidden) || (elemPtr->classUid != rbcBarElementUid)) {
+        continue;
+    }
+    barPtr = (Bar *)elemPtr;
+    xArr = barPtr->x.valueArr;
+    yArr = barPtr->y.valueArr;
+    nPoints = NumberOfPoints(barPtr);
+    for (i = 0; i < nPoints; i++) {
+        key.value = xArr[i];
+        key.axes = barPtr->axes;
+        hPtr = Tcl_FindHashEntry(&(graphPtr->freqTable), (char *)&key);
+        if (hPtr == NULL) {
+        continue;
+        }
+        infoPtr = (FreqInfo *)Tcl_GetHashValue(hPtr);
+        infoPtr->sum += yArr[i];
+    }
     }
 }
 
@@ -2404,10 +2404,10 @@ Rbc_ResetStacks(
     register FreqInfo *infoPtr, *endPtr;
 
     for (infoPtr = graphPtr->freqArr,
-	    endPtr = graphPtr->freqArr + graphPtr->nStacks;
-	    infoPtr < endPtr; infoPtr++) {
-	infoPtr->lastY = 0.0;
-	infoPtr->count = 0;
+        endPtr = graphPtr->freqArr + graphPtr->nStacks;
+        infoPtr < endPtr; infoPtr++) {
+    infoPtr->lastY = 0.0;
+    infoPtr->count = 0;
     }
 }
 

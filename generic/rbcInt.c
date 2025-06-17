@@ -41,9 +41,9 @@ extern RbcStubs rbcStubs;
  */
 BOOL APIENTRY
 DllMain(
-    HINSTANCE hInst,      	/* Library instance handle. */
-    DWORD reason,		    /* Reason this function is being called. */
-    LPVOID reserved)		/* Not used. */
+    HINSTANCE hInst,          /* Library instance handle. */
+    DWORD reason,            /* Reason this function is being called. */
+    LPVOID reserved)        /* Not used. */
 {
     return TRUE;
 }
@@ -97,27 +97,27 @@ Rbc_Init (interp)
     const char **cmd;
 
    if (Tcl_InitStubs(interp, TCL_VERSION, 0) == NULL) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
 
     if (Tk_InitStubs(interp, TK_VERSION, 0) == NULL) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
 
     static const char *ExportList[] = {
-	"barchart", "graph", "spline", "stripchart", "vector",
-	"winop", NULL
+    "barchart", "graph", "spline", "stripchart", "vector",
+    "winop", NULL
     };
 
     nsPtr = Tcl_CreateNamespace(interp, "rbc", NULL, NULL);
     if (nsPtr == NULL) {
-	    return TCL_ERROR;
+        return TCL_ERROR;
     }
 
     for ( cmd = ExportList; *cmd != NULL ; cmd++ ) {
-	if (Tcl_Export(interp, nsPtr, *cmd, 0) != TCL_OK) {
-	    return TCL_ERROR;
-	}
+    if (Tcl_Export(interp, nsPtr, *cmd, 0) != TCL_OK) {
+        return TCL_ERROR;
+    }
     }
 
     Rbc_VectorInit(interp);
@@ -127,7 +127,7 @@ Rbc_Init (interp)
     Rbc_SplineInit(interp);
 
     Tcl_PkgProvideEx(interp, PACKAGE_NAME, PACKAGE_VERSION,
-		     (ClientData) &rbcStubs);
+             (ClientData) &rbcStubs);
 
     return TCL_OK;
 }

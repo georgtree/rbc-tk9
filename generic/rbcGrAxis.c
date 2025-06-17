@@ -25,27 +25,27 @@
 /*
  * Round x in terms of units
  */
-#define UROUND(x,u)		(Round((x)/(u))*(u))
-#define UCEIL(x,u)		(ceil((x)/(u))*(u))
-#define UFLOOR(x,u)		(floor((x)/(u))*(u))
+#define UROUND(x,u)        (Round((x)/(u))*(u))
+#define UCEIL(x,u)        (ceil((x)/(u))*(u))
+#define UFLOOR(x,u)        (floor((x)/(u))*(u))
 
-#define LENGTH_MAJOR_TICK 	0.030	/* Length of a major tick */
-#define LENGTH_MINOR_TICK 	0.015	/* Length of a minor (sub)tick */
-#define LENGTH_LABEL_TICK 	0.040	/* Distance from graph to start of the
+#define LENGTH_MAJOR_TICK     0.030    /* Length of a major tick */
+#define LENGTH_MINOR_TICK     0.015    /* Length of a minor (sub)tick */
+#define LENGTH_LABEL_TICK     0.040    /* Distance from graph to start of the
 * label */
-#define NUMDIGITS		15	/* Specifies the number of
+#define NUMDIGITS        15    /* Specifies the number of
 * digits of accuracy used when
 * outputting axis tick labels. */
-#define AVG_TICK_NUM_CHARS	16	/* Assumed average tick label size */
+#define AVG_TICK_NUM_CHARS    16    /* Assumed average tick label size */
 
-#define TICK_RANGE_TIGHT	0
-#define TICK_RANGE_LOOSE	1
-#define TICK_RANGE_ALWAYS_LOOSE	2
+#define TICK_RANGE_TIGHT    0
+#define TICK_RANGE_LOOSE    1
+#define TICK_RANGE_ALWAYS_LOOSE    2
 
-#define AXIS_TITLE_PAD		2	/* Padding for axis title. */
-#define AXIS_LINE_PAD		1	/* Padding for axis line. */
+#define AXIS_TITLE_PAD        2    /* Padding for axis title. */
+#define AXIS_LINE_PAD        1    /* Padding for axis line. */
 
-#define HORIZMARGIN(m)	(!((m)->site & 0x1))	/* Even sites are horizontal */
+#define HORIZMARGIN(m)    (!((m)->site & 0x1))    /* Even sites are horizontal */
 
 typedef enum AxisComponents {
     MAJOR_TICK, MINOR_TICK, TICK_LABEL, AXIS_LINE
@@ -107,42 +107,42 @@ static Tk_CustomOption looseOption = {
 
 /* Axis flags: */
 
-#define DEF_AXIS_COMMAND		(char *)NULL
-#define DEF_AXIS_DESCENDING		"no"
-#define DEF_AXIS_FOREGROUND		RGB_BLACK
-#define DEF_AXIS_FG_MONO		RGB_BLACK
-#define DEF_AXIS_HIDE			"no"
-#define DEF_AXIS_JUSTIFY		"center"
-#define DEF_AXIS_LIMITS_FORMAT	        (char *)NULL
-#define DEF_AXIS_LINE_WIDTH		"1"
-#define DEF_AXIS_LOGSCALE		"no"
-#define DEF_AXIS_LOOSE			"no"
-#define DEF_AXIS_RANGE			"0.0"
-#define DEF_AXIS_ROTATE			"0.0"
-#define DEF_AXIS_SCROLL_INCREMENT 	"10"
-#define DEF_AXIS_SHIFTBY		"0.0"
-#define DEF_AXIS_SHOWTICKS		"yes"
-#define DEF_AXIS_STEP			"0.0"
-#define DEF_AXIS_STEP			"0.0"
-#define DEF_AXIS_SUBDIVISIONS		"2"
-#define DEF_AXIS_TAGS			"all"
-#define DEF_AXIS_TICKS			"0"
+#define DEF_AXIS_COMMAND        (char *)NULL
+#define DEF_AXIS_DESCENDING        "no"
+#define DEF_AXIS_FOREGROUND        RGB_BLACK
+#define DEF_AXIS_FG_MONO        RGB_BLACK
+#define DEF_AXIS_HIDE            "no"
+#define DEF_AXIS_JUSTIFY        "center"
+#define DEF_AXIS_LIMITS_FORMAT            (char *)NULL
+#define DEF_AXIS_LINE_WIDTH        "1"
+#define DEF_AXIS_LOGSCALE        "no"
+#define DEF_AXIS_LOOSE            "no"
+#define DEF_AXIS_RANGE            "0.0"
+#define DEF_AXIS_ROTATE            "0.0"
+#define DEF_AXIS_SCROLL_INCREMENT     "10"
+#define DEF_AXIS_SHIFTBY        "0.0"
+#define DEF_AXIS_SHOWTICKS        "yes"
+#define DEF_AXIS_STEP            "0.0"
+#define DEF_AXIS_STEP            "0.0"
+#define DEF_AXIS_SUBDIVISIONS        "2"
+#define DEF_AXIS_TAGS            "all"
+#define DEF_AXIS_TICKS            "0"
 
 #ifdef WIN32
-#define DEF_AXIS_TICK_FONT		"{Arial Narrow} 8"
+#define DEF_AXIS_TICK_FONT        "{Arial Narrow} 8"
 #else
-#define DEF_AXIS_TICK_FONT		"TkSmallCaptionFont"
+#define DEF_AXIS_TICK_FONT        "TkSmallCaptionFont"
 #endif
 
-#define DEF_AXIS_TICK_LENGTH		"8"
-#define DEF_AXIS_TITLE_ALTERNATE	"0"
-#define DEF_AXIS_TITLE_FG		RGB_BLACK
-#define DEF_AXIS_TITLE_FONT		STD_FONT
-#define DEF_AXIS_X_STEP_BARCHART	"1.0"
+#define DEF_AXIS_TICK_LENGTH        "8"
+#define DEF_AXIS_TITLE_ALTERNATE    "0"
+#define DEF_AXIS_TITLE_FG        RGB_BLACK
+#define DEF_AXIS_TITLE_FONT        STD_FONT
+#define DEF_AXIS_X_STEP_BARCHART    "1.0"
 #define DEF_AXIS_X_SUBDIVISIONS_BARCHART "0"
-#define DEF_AXIS_BACKGROUND		(char *)NULL
-#define DEF_AXIS_BORDERWIDTH		"0"
-#define DEF_AXIS_RELIEF			"flat"
+#define DEF_AXIS_BACKGROUND        (char *)NULL
+#define DEF_AXIS_BORDERWIDTH        "0"
+#define DEF_AXIS_RELIEF            "flat"
 
 static Tk_ConfigSpec configSpecs[] = {
     {TK_CONFIG_DOUBLE, "-autorange", "autoRange", "AutoRange", DEF_AXIS_RANGE, offsetof(Axis, windowSize), ALL_GRAPHS | TK_CONFIG_DONT_SET_DEFAULT},
@@ -303,7 +303,7 @@ SetAxisRange(rangePtr, min, max)
     rangePtr->max = max;
     rangePtr->range = max - min;
     if (FABS(rangePtr->range) < DBL_EPSILON) {
-	rangePtr->range = 1.0;
+    rangePtr->range = 1.0;
     }
     rangePtr->scale = 1.0 / rangePtr->range;
 }
@@ -338,15 +338,15 @@ InRange(x, rangePtr)
 {
     if (rangePtr->range < DBL_EPSILON) {
 #ifdef notdef
-	return (((rangePtr->max - x) >= (FABS(x) * DBL_EPSILON)) &&
-		((x - rangePtr->min) >= (FABS(x) * DBL_EPSILON)));
+    return (((rangePtr->max - x) >= (FABS(x) * DBL_EPSILON)) &&
+        ((x - rangePtr->min) >= (FABS(x) * DBL_EPSILON)));
 #endif
-	return (FABS(rangePtr->max - x) >= DBL_EPSILON);
+    return (FABS(rangePtr->max - x) >= DBL_EPSILON);
     } else {
-	double norm;
+    double norm;
 
-	norm = (x - rangePtr->min) * rangePtr->scale;
-	return ((norm >= -DBL_EPSILON) && ((norm - 1.0) < DBL_EPSILON));
+    norm = (x - rangePtr->min) * rangePtr->scale;
+    return ((norm >= -DBL_EPSILON) && ((norm - 1.0) < DBL_EPSILON));
     }
 }
 
@@ -383,7 +383,7 @@ AxisIsHorizontal(graphPtr, axisPtr)
 static int
 StringToAnyAxis(clientData, interp, tkwin, string, widgRec, offset)
     ClientData clientData; /* Class identifier of the type of
-			    * axis we are looking for. */
+                * axis we are looking for. */
     Tcl_Interp *interp; /* Interpreter to send results back to. */
     Tk_Window tkwin; /* Used to look up pointer to graph. */
     const char *string; /* String representing new value. */
@@ -397,12 +397,12 @@ StringToAnyAxis(clientData, interp, tkwin, string, widgRec, offset)
 
     graphPtr = Rbc_GetGraphFromWindowData(tkwin);
     if (*axisPtrPtr != NULL) {
-	FreeAxis(graphPtr, *axisPtrPtr);
+    FreeAxis(graphPtr, *axisPtrPtr);
     }
     if (string[0] == '\0') {
-	axisPtr = NULL;
+    axisPtr = NULL;
     } else if (GetAxis(graphPtr, string, classUid, &axisPtr) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     *axisPtrPtr = axisPtr;
     return TCL_OK;
@@ -427,7 +427,7 @@ StringToAnyAxis(clientData, interp, tkwin, string, widgRec, offset)
 static int
 StringToAxis(clientData, interp, tkwin, string, widgRec, offset)
     ClientData clientData; /* Class identifier of the type of
-			    * axis we are looking for. */
+                * axis we are looking for. */
     Tcl_Interp *interp; /* Interpreter to send results back to. */
     Tk_Window tkwin; /* Used to look up pointer to graph. */
     const char *string; /* String representing new value. */
@@ -440,10 +440,10 @@ StringToAxis(clientData, interp, tkwin, string, widgRec, offset)
 
     graphPtr = Rbc_GetGraphFromWindowData(tkwin);
     if (*axisPtrPtr != NULL) {
-	FreeAxis(graphPtr, *axisPtrPtr);
+    FreeAxis(graphPtr, *axisPtrPtr);
     }
     if (GetAxis(graphPtr, string, classUid, axisPtrPtr) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     return TCL_OK;
 }
@@ -473,7 +473,7 @@ AxisToString(clientData, tkwin, widgRec, offset, freeProcPtr)
     Axis *axisPtr = *(Axis **)(widgRec + offset);
 
     if (axisPtr == NULL) {
-	return "";
+    return "";
     }
     return axisPtr->name;
 }
@@ -508,22 +508,22 @@ StringToFormat(clientData, interp, tkwin, string, widgRec, offset)
     Tcl_Size argc;
 
     if (axisPtr->limitsFormats != NULL) {
-	ckfree((char *)axisPtr->limitsFormats);
+    ckfree((char *)axisPtr->limitsFormats);
     }
     axisPtr->limitsFormats = NULL;
     axisPtr->nFormats = 0;
 
     if ((string == NULL) || (*string == '\0')) {
-	return TCL_OK;
+    return TCL_OK;
     }
     if (Tcl_SplitList(interp, string, &argc, (const char ***)&argv) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     if (argc > 2) {
-	Tcl_AppendResult(interp, "too many elements in limits format list \"",
-			 string, "\"", (char *)NULL);
-	ckfree((char *)argv);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "too many elements in limits format list \"",
+             string, "\"", (char *)NULL);
+    ckfree((char *)argv);
+    return TCL_ERROR;
     }
     axisPtr->limitsFormats = argv;
     axisPtr->nFormats = argc;
@@ -556,7 +556,7 @@ FormatToString(clientData, tkwin, widgRec, offset, freeProcPtr)
     Axis *axisPtr = (Axis *)(widgRec);
 
     if (axisPtr->nFormats == 0) {
-	return "";
+    return "";
     }
     *freeProcPtr = (Tcl_FreeProc *)Tcl_Free;
     return Tcl_Merge(axisPtr->nFormats, (const char *const *)axisPtr->limitsFormats);
@@ -582,7 +582,7 @@ FormatToString(clientData, tkwin, widgRec, offset, freeProcPtr)
 static int
 StringToLimit(clientData, interp, tkwin, string, widgRec, offset)
     ClientData clientData; /* Either AXIS_CONFIG_MIN or AXIS_CONFIG_MAX.
-			    * Indicates which axis limit to set. */
+                * Indicates which axis limit to set. */
     Tcl_Interp *interp; /* Interpreter to send results back to */
     Tk_Window tkwin; /* Not used. */
     const char *string; /* String representing new value. */
@@ -592,9 +592,9 @@ StringToLimit(clientData, interp, tkwin, string, widgRec, offset)
     double *limitPtr = (double *)(widgRec + offset);
 
     if ((string == NULL) || (*string == '\0')) {
-	*limitPtr = VALUE_UNDEFINED;
+    *limitPtr = VALUE_UNDEFINED;
     } else if (Tcl_ExprDouble(interp, string, limitPtr) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     return TCL_OK;
 }
@@ -627,16 +627,16 @@ LimitToString(clientData, tkwin, widgRec, offset, freeProcPtr)
 
     result = "";
     if (DEFINED(limit)) {
-	char string[TCL_DOUBLE_SPACE + 1];
-	Graph *graphPtr;
+    char string[TCL_DOUBLE_SPACE + 1];
+    Graph *graphPtr;
 
-	graphPtr = Rbc_GetGraphFromWindowData(tkwin);
-	Tcl_PrintDouble(graphPtr->interp, limit, string);
-	result = RbcStrdup(string);
-	if (result == NULL) {
-	    return "";
-	}
-	*freeProcPtr = (Tcl_FreeProc *)Tcl_Free;
+    graphPtr = Rbc_GetGraphFromWindowData(tkwin);
+    Tcl_PrintDouble(graphPtr->interp, limit, string);
+    result = RbcStrdup(string);
+    if (result == NULL) {
+        return "";
+    }
+    *freeProcPtr = (Tcl_FreeProc *)Tcl_Free;
     }
     return result;
 }
@@ -674,41 +674,41 @@ StringToTicks(clientData, interp, tkwin, string, widgRec, offset)
     nTicks = 0;
     ticksPtr = NULL;
     if ((string != NULL) && (*string != '\0')) {
-	Tcl_Size nExprs;
-	const char **exprArr;
+    Tcl_Size nExprs;
+    const char **exprArr;
 
-	if (Tcl_SplitList(interp, string, &nExprs, &exprArr) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	if (nExprs > 0) {
-	    register int i;
-	    int result = TCL_ERROR;
-	    double value;
+    if (Tcl_SplitList(interp, string, &nExprs, &exprArr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (nExprs > 0) {
+        register int i;
+        int result = TCL_ERROR;
+        double value;
 
-	    ticksPtr = (Ticks *)ckalloc(sizeof(Ticks) + (nExprs * sizeof(double)));
-	    assert(ticksPtr);
-	    for (i = 0; i < nExprs; i++) {
-		result = Tcl_ExprDouble(interp, exprArr[i], &value);
-		if (result != TCL_OK) {
-		    break;
-		}
-		ticksPtr->values[i] = value;
-	    }
-	    ckfree((char *)exprArr);
-	    if (result != TCL_OK) {
-		ckfree((char *)ticksPtr);
-		return TCL_ERROR;
-	    }
-	    nTicks = nExprs;
-	}
+        ticksPtr = (Ticks *)ckalloc(sizeof(Ticks) + (nExprs * sizeof(double)));
+        assert(ticksPtr);
+        for (i = 0; i < nExprs; i++) {
+        result = Tcl_ExprDouble(interp, exprArr[i], &value);
+        if (result != TCL_OK) {
+            break;
+        }
+        ticksPtr->values[i] = value;
+        }
+        ckfree((char *)exprArr);
+        if (result != TCL_OK) {
+        ckfree((char *)ticksPtr);
+        return TCL_ERROR;
+        }
+        nTicks = nExprs;
+    }
     }
     axisPtr->flags &= ~mask;
     if (ticksPtr != NULL) {
-	axisPtr->flags |= mask;
-	ticksPtr->nTicks = nTicks;
+    axisPtr->flags |= mask;
+    ticksPtr->nTicks = nTicks;
     }
     if (*ticksPtrPtr != NULL) {
-	ckfree((char *)*ticksPtrPtr);
+    ckfree((char *)*ticksPtrPtr);
     }
     *ticksPtrPtr = ticksPtr;
     return TCL_OK;
@@ -745,13 +745,13 @@ TicksToString(clientData, tkwin, widgRec, offset, freeProcPtr)
     Graph *graphPtr;
 
     if (ticksPtr == NULL) {
-	return "";
+    return "";
     }
     Tcl_DStringInit(&dString);
     graphPtr = Rbc_GetGraphFromWindowData(tkwin);
     for (i = 0; i < ticksPtr->nTicks; i++) {
-	Tcl_PrintDouble(graphPtr->interp, ticksPtr->values[i], string);
-	Tcl_DStringAppendElement(&dString, string);
+    Tcl_PrintDouble(graphPtr->interp, ticksPtr->values[i], string);
+    Tcl_DStringAppendElement(&dString, string);
     }
     *freeProcPtr = (Tcl_FreeProc *)Tcl_Free;
     result = RbcStrdup(Tcl_DStringValue(&dString));
@@ -765,9 +765,9 @@ TicksToString(clientData, tkwin, widgRec, offset, freeProcPtr)
  * StringToLoose --
  *
  *      Convert a string to one of three values.
- *      	0 - false, no, off
- *      	1 - true, yes, on
- *      	2 - always
+ *          0 - false, no, off
+ *          1 - true, yes, on
+ *          2 - always
  *
  * Results:
  *      If the string is successfully converted, TCL_OK is returned.
@@ -795,29 +795,29 @@ StringToLoose(clientData, interp, tkwin, string, widgRec, offset)
     int values[2];
 
     if (Tcl_SplitList(interp, string, &argc, &argv) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     if ((argc < 1) || (argc > 2)) {
-	Tcl_AppendResult(interp, "wrong # elements in loose value \"",
-			 string, "\"", (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "wrong # elements in loose value \"",
+             string, "\"", (char *)NULL);
+    return TCL_ERROR;
     }
     for (i = 0; i < argc; i++) {
-	if ((argv[i][0] == 'a') && (strcmp(argv[i], "always") == 0)) {
-	    values[i] = TICK_RANGE_ALWAYS_LOOSE;
-	} else {
-	    int bool;
+    if ((argv[i][0] == 'a') && (strcmp(argv[i], "always") == 0)) {
+        values[i] = TICK_RANGE_ALWAYS_LOOSE;
+    } else {
+        int bool;
 
-	    if (Tcl_GetBoolean(interp, argv[i], &bool) != TCL_OK) {
-		ckfree((char *)argv);
-		return TCL_ERROR;
-	    }
-	    values[i] = bool;
-	}
+        if (Tcl_GetBoolean(interp, argv[i], &bool) != TCL_OK) {
+        ckfree((char *)argv);
+        return TCL_ERROR;
+        }
+        values[i] = bool;
+    }
     }
     axisPtr->looseMin = axisPtr->looseMax = values[0];
     if (argc > 1) {
-	axisPtr->looseMax = values[1];
+    axisPtr->looseMax = values[1];
     }
     ckfree((char *)argv);
     return TCL_OK;
@@ -852,20 +852,20 @@ LooseToString(clientData, tkwin, widgRec, offset, freeProcPtr)
 
     Tcl_DStringInit(&dString);
     if (axisPtr->looseMin == TICK_RANGE_TIGHT) {
-	Tcl_DStringAppendElement(&dString, "0");
+    Tcl_DStringAppendElement(&dString, "0");
     } else if (axisPtr->looseMin == TICK_RANGE_LOOSE) {
-	Tcl_DStringAppendElement(&dString, "1");
+    Tcl_DStringAppendElement(&dString, "1");
     } else if (axisPtr->looseMin == TICK_RANGE_ALWAYS_LOOSE) {
-	Tcl_DStringAppendElement(&dString, "always");
+    Tcl_DStringAppendElement(&dString, "always");
     }
     if (axisPtr->looseMin != axisPtr->looseMax) {
-	if (axisPtr->looseMax == TICK_RANGE_TIGHT) {
-	    Tcl_DStringAppendElement(&dString, "0");
-	} else if (axisPtr->looseMax == TICK_RANGE_LOOSE) {
-	    Tcl_DStringAppendElement(&dString, "1");
-	} else if (axisPtr->looseMax == TICK_RANGE_ALWAYS_LOOSE) {
-	    Tcl_DStringAppendElement(&dString, "always");
-	}
+    if (axisPtr->looseMax == TICK_RANGE_TIGHT) {
+        Tcl_DStringAppendElement(&dString, "0");
+    } else if (axisPtr->looseMax == TICK_RANGE_LOOSE) {
+        Tcl_DStringAppendElement(&dString, "1");
+    } else if (axisPtr->looseMax == TICK_RANGE_ALWAYS_LOOSE) {
+        Tcl_DStringAppendElement(&dString, "always");
+    }
     }
     result = RbcStrdup(Tcl_DStringValue(&dString));
     Tcl_DStringFree(&dString);
@@ -896,9 +896,9 @@ FreeLabels(chainPtr)
     TickLabel *labelPtr;
 
     for (linkPtr = Rbc_ChainFirstLink(chainPtr); linkPtr != NULL;
-	    linkPtr = Rbc_ChainNextLink(linkPtr)) {
-	labelPtr = Rbc_ChainGetValue(linkPtr);
-	ckfree((char *)labelPtr);
+        linkPtr = Rbc_ChainNextLink(linkPtr)) {
+    labelPtr = Rbc_ChainGetValue(linkPtr);
+    ckfree((char *)labelPtr);
     }
     Rbc_ChainReset(chainPtr);
 }
@@ -931,35 +931,35 @@ MakeLabel(graphPtr, axisPtr, value)
 
     /* Generate a default tick label based upon the tick value.  */
     if (axisPtr->logScale) {
-	sprintf(string, "1E%d", ROUND(value));
+    sprintf(string, "1E%d", ROUND(value));
     } else {
-	sprintf(string, "%.*g", NUMDIGITS, value);
+    sprintf(string, "%.*g", NUMDIGITS, value);
     }
 
     if (axisPtr->formatCmd != NULL) {
-	Tcl_Interp *interp = graphPtr->interp;
-	Tk_Window tkwin = graphPtr->tkwin;
+    Tcl_Interp *interp = graphPtr->interp;
+    Tk_Window tkwin = graphPtr->tkwin;
 
-	/*
-	 * A Tcl proc was designated to format tick labels. Append the path
-	 * name of the widget and the default tick label as arguments when
-	 * invoking it. Copy and save the new label from the interpreter
-	 * result.
-	 */
-	Tcl_ResetResult(interp);
-	if (Tcl_VarEval(interp, axisPtr->formatCmd, " ", Tk_PathName(tkwin),
-			" ", string, (char *)NULL) != TCL_OK) {
-	    Tcl_BackgroundError(interp);
-	} else {
-	    /*
-	     * The proc could return a string of any length, so arbitrarily
-	     * limit it to what will fit in the return string.
-	     */
-	    strncpy(string, Tcl_GetStringResult(interp), TICK_LABEL_SIZE);
-	    string[TICK_LABEL_SIZE] = '\0';
+    /*
+     * A Tcl proc was designated to format tick labels. Append the path
+     * name of the widget and the default tick label as arguments when
+     * invoking it. Copy and save the new label from the interpreter
+     * result.
+     */
+    Tcl_ResetResult(interp);
+    if (Tcl_VarEval(interp, axisPtr->formatCmd, " ", Tk_PathName(tkwin),
+            " ", string, (char *)NULL) != TCL_OK) {
+        Tcl_BackgroundError(interp);
+    } else {
+        /*
+         * The proc could return a string of any length, so arbitrarily
+         * limit it to what will fit in the return string.
+         */
+        strncpy(string, Tcl_GetStringResult(interp), TICK_LABEL_SIZE);
+        string[TICK_LABEL_SIZE] = '\0';
 
-	    Tcl_ResetResult(interp); /* Clear the interpreter's result. */
-	}
+        Tcl_ResetResult(interp); /* Clear the interpreter's result. */
+    }
     }
     labelPtr = (TickLabel *)ckalloc(sizeof(TickLabel) + strlen(string));
     assert(labelPtr);
@@ -995,11 +995,11 @@ Rbc_InvHMap(graphPtr, axisPtr, x)
 
     x = (double)(x - graphPtr->hOffset) * graphPtr->hScale;
     if (axisPtr->descending) {
-	x = 1.0 - x;
+    x = 1.0 - x;
     }
     value = (x * axisPtr->axisRange.range) + axisPtr->axisRange.min;
     if (axisPtr->logScale) {
-	value = EXP10(value);
+    value = EXP10(value);
     }
     return value;
 }
@@ -1031,11 +1031,11 @@ Rbc_InvVMap(graphPtr, axisPtr, y)
 
     y = (double)(y - graphPtr->vOffset) * graphPtr->vScale;
     if (axisPtr->descending) {
-	y = 1.0 - y;
+    y = 1.0 - y;
     }
     value = ((1.0 - y) * axisPtr->axisRange.range) + axisPtr->axisRange.min;
     if (axisPtr->logScale) {
-	value = EXP10(value);
+    value = EXP10(value);
     }
     return value;
 }
@@ -1064,12 +1064,12 @@ Rbc_HMap(graphPtr, axisPtr, x)
     double x;
 {
     if ((axisPtr->logScale) && (x != 0.0)) {
-	x = log10(FABS(x));
+    x = log10(FABS(x));
     }
     /* Map graph coordinate to normalized coordinates [0..1] */
     x = (x - axisPtr->axisRange.min) * axisPtr->axisRange.scale;
     if (axisPtr->descending) {
-	x = 1.0 - x;
+    x = 1.0 - x;
     }
     return (x * graphPtr->hRange + graphPtr->hOffset);
 }
@@ -1098,12 +1098,12 @@ Rbc_VMap(graphPtr, axisPtr, y)
     double y;
 {
     if ((axisPtr->logScale) && (y != 0.0)) {
-	y = log10(FABS(y));
+    y = log10(FABS(y));
     }
     /* Map graph coordinate to normalized coordinates [0..1] */
     y = (y - axisPtr->axisRange.min) * axisPtr->axisRange.scale;
     if (axisPtr->descending) {
-	y = 1.0 - y;
+    y = 1.0 - y;
     }
     return (((1.0 - y) * graphPtr->vRange) + graphPtr->vOffset);
 }
@@ -1133,11 +1133,11 @@ Rbc_Map2D(graphPtr, x, y, axesPtr)
     Point2D point;
 
     if (graphPtr->inverted) {
-	point.x = Rbc_HMap(graphPtr, axesPtr->y, y);
-	point.y = Rbc_VMap(graphPtr, axesPtr->x, x);
+    point.x = Rbc_HMap(graphPtr, axesPtr->y, y);
+    point.y = Rbc_VMap(graphPtr, axesPtr->x, x);
     } else {
-	point.x = Rbc_HMap(graphPtr, axesPtr->x, x);
-	point.y = Rbc_VMap(graphPtr, axesPtr->y, y);
+    point.x = Rbc_HMap(graphPtr, axesPtr->x, x);
+    point.y = Rbc_VMap(graphPtr, axesPtr->y, y);
     }
     return point;
 }
@@ -1167,11 +1167,11 @@ Rbc_InvMap2D(graphPtr, x, y, axesPtr)
     Point2D point;
 
     if (graphPtr->inverted) {
-	point.x = Rbc_InvVMap(graphPtr, axesPtr->x, y);
-	point.y = Rbc_InvHMap(graphPtr, axesPtr->y, x);
+    point.x = Rbc_InvVMap(graphPtr, axesPtr->x, y);
+    point.y = Rbc_InvHMap(graphPtr, axesPtr->y, x);
     } else {
-	point.x = Rbc_InvHMap(graphPtr, axesPtr->x, x);
-	point.y = Rbc_InvVMap(graphPtr, axesPtr->y, y);
+    point.x = Rbc_InvHMap(graphPtr, axesPtr->x, x);
+    point.y = Rbc_InvVMap(graphPtr, axesPtr->y, y);
     }
     return point;
 }
@@ -1197,10 +1197,10 @@ GetDataLimits(axisPtr, min, max)
     double min, max;
 {
     if (axisPtr->valueRange.min > min) {
-	axisPtr->valueRange.min = min;
+    axisPtr->valueRange.min = min;
     }
     if (axisPtr->valueRange.max < max) {
-	axisPtr->valueRange.max = max;
+    axisPtr->valueRange.max = max;
     }
 }
 
@@ -1233,35 +1233,35 @@ FixAxisRange(axisPtr)
     max = axisPtr->valueRange.max;
 
     if (min == DBL_MAX) {
-	if (DEFINED(axisPtr->reqMin)) {
-	    min = axisPtr->reqMin;
-	} else {
-	    min = (axisPtr->logScale) ? 0.001 : 0.0;
-	}
+    if (DEFINED(axisPtr->reqMin)) {
+        min = axisPtr->reqMin;
+    } else {
+        min = (axisPtr->logScale) ? 0.001 : 0.0;
+    }
     }
     if (max == -DBL_MAX) {
-	if (DEFINED(axisPtr->reqMax)) {
-	    max = axisPtr->reqMax;
-	} else {
-	    max = 1.0;
-	}
+    if (DEFINED(axisPtr->reqMax)) {
+        max = axisPtr->reqMax;
+    } else {
+        max = 1.0;
+    }
     }
     if (min >= max) {
-	double value;
+    double value;
 
-	/*
-	 * There is no range of data (i.e. min is not less than max),
-	 * so manufacture one.
-	 */
-	value = min;
-	if (value == 0.0) {
-	    min = -0.1, max = 0.1;
-	} else {
-	    double x;
+    /*
+     * There is no range of data (i.e. min is not less than max),
+     * so manufacture one.
+     */
+    value = min;
+    if (value == 0.0) {
+        min = -0.1, max = 0.1;
+    } else {
+        double x;
 
-	    x = FABS(value) * 0.1;
-	    min = value - x, max = value + x;
-	}
+        x = FABS(value) * 0.1;
+        min = value - x, max = value + x;
+    }
     }
     SetAxisRange(&axisPtr->valueRange, min, max);
 
@@ -1273,54 +1273,54 @@ FixAxisRange(axisPtr)
     axisPtr->min = min;
     axisPtr->max = max;
     if (DEFINED(axisPtr->reqMin)) {
-	axisPtr->min = axisPtr->reqMin;
+    axisPtr->min = axisPtr->reqMin;
     }
     if (DEFINED(axisPtr->reqMax)) {
-	axisPtr->max = axisPtr->reqMax;
+    axisPtr->max = axisPtr->reqMax;
     }
 
     if (axisPtr->max < axisPtr->min) {
 
-	/*
-	 * If the limits still don't make sense, it's because one
-	 * limit configuration option (-min or -max) was set and the
-	 * other default (based upon the data) is too small or large.
-	 * Remedy this by making up a new min or max from the
-	 * user-defined limit.
-	 */
+    /*
+     * If the limits still don't make sense, it's because one
+     * limit configuration option (-min or -max) was set and the
+     * other default (based upon the data) is too small or large.
+     * Remedy this by making up a new min or max from the
+     * user-defined limit.
+     */
 
-	if (!DEFINED(axisPtr->reqMin)) {
-	    axisPtr->min = axisPtr->max - (FABS(axisPtr->max) * 0.1);
-	}
-	if (!DEFINED(axisPtr->reqMax)) {
-	    axisPtr->max = axisPtr->min + (FABS(axisPtr->max) * 0.1);
-	}
+    if (!DEFINED(axisPtr->reqMin)) {
+        axisPtr->min = axisPtr->max - (FABS(axisPtr->max) * 0.1);
+    }
+    if (!DEFINED(axisPtr->reqMax)) {
+        axisPtr->max = axisPtr->min + (FABS(axisPtr->max) * 0.1);
+    }
     }
     /*
      * If a window size is defined, handle auto ranging by shifting
      * the axis limits.
      */
     if ((axisPtr->windowSize > 0.0) &&
-	    (!DEFINED(axisPtr->reqMin)) && (!DEFINED(axisPtr->reqMax))) {
-	if (axisPtr->shiftBy < 0.0) {
-	    axisPtr->shiftBy = 0.0;
-	}
-	max = axisPtr->min + axisPtr->windowSize;
-	if (axisPtr->max >= max) {
-	    if (axisPtr->shiftBy > 0.0) {
-		max = UCEIL(axisPtr->max, axisPtr->shiftBy);
-	    }
-	    axisPtr->min = max - axisPtr->windowSize;
-	}
-	axisPtr->max = max;
+        (!DEFINED(axisPtr->reqMin)) && (!DEFINED(axisPtr->reqMax))) {
+    if (axisPtr->shiftBy < 0.0) {
+        axisPtr->shiftBy = 0.0;
+    }
+    max = axisPtr->min + axisPtr->windowSize;
+    if (axisPtr->max >= max) {
+        if (axisPtr->shiftBy > 0.0) {
+        max = UCEIL(axisPtr->max, axisPtr->shiftBy);
+        }
+        axisPtr->min = max - axisPtr->windowSize;
+    }
+    axisPtr->max = max;
     }
     if ((axisPtr->max != axisPtr->prevMax) ||
-	    (axisPtr->min != axisPtr->prevMin)) {
-	/* Indicate if the axis limits have changed */
-	axisPtr->flags |= AXIS_DIRTY;
-	/* and save the previous minimum and maximum values */
-	axisPtr->prevMin = axisPtr->min;
-	axisPtr->prevMax = axisPtr->max;
+        (axisPtr->min != axisPtr->prevMin)) {
+    /* Indicate if the axis limits have changed */
+    axisPtr->flags |= AXIS_DIRTY;
+    /* and save the previous minimum and maximum values */
+    axisPtr->prevMin = axisPtr->min;
+    axisPtr->prevMax = axisPtr->max;
     }
 }
 
@@ -1346,34 +1346,34 @@ static double
 NiceNum(x, round)
     double x;
     int round; /* If non-zero, round. Otherwise take ceiling
-		* of value. */
+        * of value. */
 {
-    double expt;		/* Exponent of x */
-    double frac;		/* Fractional part of x */
-    double nice;		/* Nice, rounded fraction */
+    double expt;        /* Exponent of x */
+    double frac;        /* Fractional part of x */
+    double nice;        /* Nice, rounded fraction */
 
     expt = floor(log10(x));
-    frac = x / EXP10(expt);	/* between 1 and 10 */
+    frac = x / EXP10(expt);    /* between 1 and 10 */
     if (round) {
-	if (frac < 1.5) {
-	    nice = 1.0;
-	} else if (frac < 3.0) {
-	    nice = 2.0;
-	} else if (frac < 7.0) {
-	    nice = 5.0;
-	} else {
-	    nice = 10.0;
-	}
+    if (frac < 1.5) {
+        nice = 1.0;
+    } else if (frac < 3.0) {
+        nice = 2.0;
+    } else if (frac < 7.0) {
+        nice = 5.0;
     } else {
-	if (frac <= 1.0) {
-	    nice = 1.0;
-	} else if (frac <= 2.0) {
-	    nice = 2.0;
-	} else if (frac <= 5.0) {
-	    nice = 5.0;
-	} else {
-	    nice = 10.0;
-	}
+        nice = 10.0;
+    }
+    } else {
+    if (frac <= 1.0) {
+        nice = 1.0;
+    } else if (frac <= 2.0) {
+        nice = 2.0;
+    } else if (frac <= 5.0) {
+        nice = 5.0;
+    } else {
+        nice = 10.0;
+    }
     }
     return nice * EXP10(expt);
 }
@@ -1404,27 +1404,27 @@ GenerateTicks(sweepPtr)
     assert(ticksPtr);
 
     if (sweepPtr->step == 0.0) {
-	static double logTable[] = { /* Precomputed log10 values [1..10] */
-	    0.0,
-	    0.301029995663981, 0.477121254719662,
-	    0.602059991327962, 0.698970004336019,
-	    0.778151250383644, 0.845098040014257,
-	    0.903089986991944, 0.954242509439325,
-	    1.0
-	};
-	/* Hack: A zero step indicates to use log values. */
-	for (i = 0; i < sweepPtr->nSteps; i++) {
-	    ticksPtr->values[i] = logTable[i];
-	}
+    static double logTable[] = { /* Precomputed log10 values [1..10] */
+        0.0,
+        0.301029995663981, 0.477121254719662,
+        0.602059991327962, 0.698970004336019,
+        0.778151250383644, 0.845098040014257,
+        0.903089986991944, 0.954242509439325,
+        1.0
+    };
+    /* Hack: A zero step indicates to use log values. */
+    for (i = 0; i < sweepPtr->nSteps; i++) {
+        ticksPtr->values[i] = logTable[i];
+    }
     } else {
-	double value;
+    double value;
 
-	value = sweepPtr->initial; /* Start from smallest axis tick */
-	for (i = 0; i < sweepPtr->nSteps; i++) {
-	    value = UROUND(value, sweepPtr->step);
-	    ticksPtr->values[i] = value;
-	    value += sweepPtr->step;
-	}
+    value = sweepPtr->initial; /* Start from smallest axis tick */
+    for (i = 0; i < sweepPtr->nSteps; i++) {
+        value = UROUND(value, sweepPtr->step);
+        ticksPtr->values[i] = value;
+        value += sweepPtr->step;
+    }
     }
     ticksPtr->nTicks = sweepPtr->nSteps;
     return ticksPtr;
@@ -1524,44 +1524,44 @@ LogScaleAxis(axisPtr, min, max)
     range = tickMax - tickMin;
 
     if (range > 10) {
-	/* There are too many decades to display a major tick at every
-	 * decade.  Instead, treat the axis as a linear scale.  */
-	range = NiceNum(range, 0);
-	majorStep = NiceNum(range / DEF_NUM_TICKS, 1);
-	tickMin = UFLOOR(tickMin, majorStep);
-	tickMax = UCEIL(tickMax, majorStep);
-	nMajor = (int)((tickMax - tickMin) / majorStep) + 1;
-	minorStep = EXP10(floor(log10(majorStep)));
-	if (minorStep == majorStep) {
-	    nMinor = 4, minorStep = 0.2;
-	} else {
-	    nMinor = Round(majorStep / minorStep) - 1;
-	}
+    /* There are too many decades to display a major tick at every
+     * decade.  Instead, treat the axis as a linear scale.  */
+    range = NiceNum(range, 0);
+    majorStep = NiceNum(range / DEF_NUM_TICKS, 1);
+    tickMin = UFLOOR(tickMin, majorStep);
+    tickMax = UCEIL(tickMax, majorStep);
+    nMajor = (int)((tickMax - tickMin) / majorStep) + 1;
+    minorStep = EXP10(floor(log10(majorStep)));
+    if (minorStep == majorStep) {
+        nMinor = 4, minorStep = 0.2;
     } else {
-	if (tickMin == tickMax) {
-	    tickMax++;
-	}
-	majorStep = 1.0;
-	nMajor = (int)(tickMax - tickMin + 1); /* FIXME: Check this. */
+        nMinor = Round(majorStep / minorStep) - 1;
+    }
+    } else {
+    if (tickMin == tickMax) {
+        tickMax++;
+    }
+    majorStep = 1.0;
+    nMajor = (int)(tickMax - tickMin + 1); /* FIXME: Check this. */
 
-	minorStep = 0.0;	/* This is a special hack to pass
-				 * information to the GenerateTicks
-				 * routine. An interval of 0.0 tells
-				 *	1) this is a minor sweep and
-				 *	2) the axis is log scale.
-				 */
-	nMinor = 10;
+    minorStep = 0.0;    /* This is a special hack to pass
+                 * information to the GenerateTicks
+                 * routine. An interval of 0.0 tells
+                 *    1) this is a minor sweep and
+                 *    2) the axis is log scale.
+                 */
+    nMinor = 10;
     }
     if ((axisPtr->looseMin == TICK_RANGE_TIGHT) ||
-	    ((axisPtr->looseMin == TICK_RANGE_LOOSE) &&
-	     (DEFINED(axisPtr->reqMin)))) {
-	tickMin = min;
-	nMajor++;
+        ((axisPtr->looseMin == TICK_RANGE_LOOSE) &&
+         (DEFINED(axisPtr->reqMin)))) {
+    tickMin = min;
+    nMajor++;
     }
     if ((axisPtr->looseMax == TICK_RANGE_TIGHT) ||
-	    ((axisPtr->looseMax == TICK_RANGE_LOOSE) &&
-	     (DEFINED(axisPtr->reqMax)))) {
-	tickMax = max;
+        ((axisPtr->looseMax == TICK_RANGE_LOOSE) &&
+         (DEFINED(axisPtr->reqMax)))) {
+    tickMax = max;
     }
     axisPtr->majorSweep.step = majorStep;
     axisPtr->majorSweep.initial = floor(tickMin);
@@ -1647,16 +1647,16 @@ LinearScaleAxis(axisPtr, min, max)
 
     /* Calculate the major tick stepping. */
     if (axisPtr->reqStep > 0.0) {
-	/* An interval was designated by the user.  Keep scaling it
-	 * until it fits comfortably within the current range of the
-	 * axis.  */
-	step = axisPtr->reqStep;
-	while ((2 * step) >= range) {
-	    step *= 0.5;
-	}
+    /* An interval was designated by the user.  Keep scaling it
+     * until it fits comfortably within the current range of the
+     * axis.  */
+    step = axisPtr->reqStep;
+    while ((2 * step) >= range) {
+        step *= 0.5;
+    }
     } else {
-	range = NiceNum(range, 0);
-	step = NiceNum(range / DEF_NUM_TICKS, 1);
+    range = NiceNum(range, 0);
+    step = NiceNum(range / DEF_NUM_TICKS, 1);
     }
 
     /* Find the outer tick values. Add 0.0 to prevent getting -0.0. */
@@ -1678,29 +1678,29 @@ LinearScaleAxis(axisPtr, min, max)
      * assume that user would have picked a different number).
      */
     if ((axisPtr->looseMin == TICK_RANGE_TIGHT) ||
-	    ((axisPtr->looseMin == TICK_RANGE_LOOSE) &&
-	     (DEFINED(axisPtr->reqMin)))) {
-	axisMin = min;
+        ((axisPtr->looseMin == TICK_RANGE_LOOSE) &&
+         (DEFINED(axisPtr->reqMin)))) {
+    axisMin = min;
     }
     if ((axisPtr->looseMax == TICK_RANGE_TIGHT) ||
-	    ((axisPtr->looseMax == TICK_RANGE_LOOSE) &&
-	     (DEFINED(axisPtr->reqMax)))) {
-	axisMax = max;
+        ((axisPtr->looseMax == TICK_RANGE_LOOSE) &&
+         (DEFINED(axisPtr->reqMax)))) {
+    axisMax = max;
     }
     SetAxisRange(&axisPtr->axisRange, axisMin, axisMax);
 
     /* Now calculate the minor tick step and number. */
 
     if ((axisPtr->reqNumMinorTicks > 0) &&
-	    ((axisPtr->flags & AXIS_CONFIG_MAJOR) == 0)) {
-	nTicks = axisPtr->reqNumMinorTicks - 1;
-	step = 1.0 / (nTicks + 1);
+        ((axisPtr->flags & AXIS_CONFIG_MAJOR) == 0)) {
+    nTicks = axisPtr->reqNumMinorTicks - 1;
+    step = 1.0 / (nTicks + 1);
     } else {
-	nTicks = 0;		/* No minor ticks. */
-	step = 0.5;		/* Don't set the minor tick interval
-				 * to 0.0. It makes the GenerateTicks
-				 * routine create minor log-scale tick
-				 * marks.  */
+    nTicks = 0;        /* No minor ticks. */
+    step = 0.5;        /* Don't set the minor tick interval
+                 * to 0.0. It makes the GenerateTicks
+                 * routine create minor log-scale tick
+                 * marks.  */
     }
     axisPtr->minorSweep.initial = axisPtr->minorSweep.step = step;
     axisPtr->minorSweep.nSteps = nTicks;
@@ -1726,16 +1726,16 @@ SweepTicks(axisPtr)
     Axis *axisPtr;
 {
     if ((axisPtr->flags & AXIS_CONFIG_MAJOR) == 0) {
-	if (axisPtr->t1Ptr != NULL) {
-	    ckfree((char *)axisPtr->t1Ptr);
-	}
-	axisPtr->t1Ptr = GenerateTicks(&axisPtr->majorSweep);
+    if (axisPtr->t1Ptr != NULL) {
+        ckfree((char *)axisPtr->t1Ptr);
+    }
+    axisPtr->t1Ptr = GenerateTicks(&axisPtr->majorSweep);
     }
     if ((axisPtr->flags & AXIS_CONFIG_MINOR) == 0) {
-	if (axisPtr->t2Ptr != NULL) {
-	    ckfree((char *)axisPtr->t2Ptr);
-	}
-	axisPtr->t2Ptr = GenerateTicks(&axisPtr->minorSweep);
+    if (axisPtr->t2Ptr != NULL) {
+        ckfree((char *)axisPtr->t2Ptr);
+    }
+    axisPtr->t2Ptr = GenerateTicks(&axisPtr->minorSweep);
     }
 }
 
@@ -1773,60 +1773,60 @@ Rbc_ResetAxes(graphPtr)
      */
     Rbc_InitFreqTable(graphPtr);
     if ((graphPtr->mode == MODE_STACKED) && (graphPtr->nStacks > 0)) {
-	Rbc_ComputeStacks(graphPtr);
+    Rbc_ComputeStacks(graphPtr);
     }
     /*
      * Step 1:  Reset all axes. Initialize the data limits of the axis to
-     *		impossible values.
+     *        impossible values.
      */
     for (hPtr = Tcl_FirstHashEntry(&graphPtr->axes.table, &cursor);
-	    hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
-	axisPtr = (Axis *)Tcl_GetHashValue(hPtr);
-	axisPtr->min = axisPtr->valueRange.min = DBL_MAX;
-	axisPtr->max = axisPtr->valueRange.max = -DBL_MAX;
+        hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
+    axisPtr = (Axis *)Tcl_GetHashValue(hPtr);
+    axisPtr->min = axisPtr->valueRange.min = DBL_MAX;
+    axisPtr->max = axisPtr->valueRange.max = -DBL_MAX;
     }
 
     /*
      * Step 2:  For each element that's to be displayed, get the smallest
-     *		and largest data values mapped to each X and Y-axis.  This
-     *		will be the axis limits if the user doesn't override them
-     *		with -min and -max options.
+     *        and largest data values mapped to each X and Y-axis.  This
+     *        will be the axis limits if the user doesn't override them
+     *        with -min and -max options.
      */
     for (linkPtr = Rbc_ChainFirstLink(graphPtr->elements.displayList);
-	    linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
-	elemPtr = Rbc_ChainGetValue(linkPtr);
-	(*elemPtr->procsPtr->extentsProc) (elemPtr, &exts);
-	GetDataLimits(elemPtr->axes.x, exts.left, exts.right);
-	GetDataLimits(elemPtr->axes.y, exts.top, exts.bottom);
+        linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+    elemPtr = Rbc_ChainGetValue(linkPtr);
+    (*elemPtr->procsPtr->extentsProc) (elemPtr, &exts);
+    GetDataLimits(elemPtr->axes.x, exts.left, exts.right);
+    GetDataLimits(elemPtr->axes.y, exts.top, exts.bottom);
     }
     /*
      * Step 3:  Now that we know the range of data values for each axis,
-     *		set axis limits and compute a sweep to generate tick values.
+     *        set axis limits and compute a sweep to generate tick values.
      */
     for (hPtr = Tcl_FirstHashEntry(&graphPtr->axes.table, &cursor);
-	    hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
-	axisPtr = (Axis *)Tcl_GetHashValue(hPtr);
-	FixAxisRange(axisPtr);
+        hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
+    axisPtr = (Axis *)Tcl_GetHashValue(hPtr);
+    FixAxisRange(axisPtr);
 
-	/* Calculate min/max tick (major/minor) layouts */
-	min = axisPtr->min;
-	max = axisPtr->max;
-	if ((DEFINED(axisPtr->scrollMin)) && (min < axisPtr->scrollMin)) {
-	    min = axisPtr->scrollMin;
-	}
-	if ((DEFINED(axisPtr->scrollMax)) && (max > axisPtr->scrollMax)) {
-	    max = axisPtr->scrollMax;
-	}
-	if (axisPtr->logScale) {
-	    LogScaleAxis(axisPtr, min, max);
-	} else {
-	    LinearScaleAxis(axisPtr, min, max);
-	}
+    /* Calculate min/max tick (major/minor) layouts */
+    min = axisPtr->min;
+    max = axisPtr->max;
+    if ((DEFINED(axisPtr->scrollMin)) && (min < axisPtr->scrollMin)) {
+        min = axisPtr->scrollMin;
+    }
+    if ((DEFINED(axisPtr->scrollMax)) && (max > axisPtr->scrollMax)) {
+        max = axisPtr->scrollMax;
+    }
+    if (axisPtr->logScale) {
+        LogScaleAxis(axisPtr, min, max);
+    } else {
+        LinearScaleAxis(axisPtr, min, max);
+    }
 
-	if ((axisPtr->flags & (AXIS_DIRTY | AXIS_ONSCREEN)) ==
-		(AXIS_DIRTY | AXIS_ONSCREEN)) {
-	    graphPtr->flags |= REDRAW_BACKING_STORE;
-	}
+    if ((axisPtr->flags & (AXIS_DIRTY | AXIS_ONSCREEN)) ==
+        (AXIS_DIRTY | AXIS_ONSCREEN)) {
+        graphPtr->flags |= REDRAW_BACKING_STORE;
+    }
     }
 
     graphPtr->flags &= ~RESET_AXES;
@@ -1835,7 +1835,7 @@ Rbc_ResetAxes(graphPtr)
      * When any axis changes, we need to layout the entire graph.
      */
     graphPtr->flags |= (GET_AXIS_GEOMETRY | LAYOUT_NEEDED |
-			MAP_ALL | REDRAW_WORLD);
+            MAP_ALL | REDRAW_WORLD);
 }
 
 /*
@@ -1877,7 +1877,7 @@ ResetTextStyles(graphPtr, axisPtr)
 
     newGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
     if (axisPtr->tickGC != NULL) {
-	Tk_FreeGC(graphPtr->display, axisPtr->tickGC);
+    Tk_FreeGC(graphPtr->display, axisPtr->tickGC);
     }
     axisPtr->tickGC = newGC;
 }
@@ -1908,40 +1908,40 @@ DestroyAxis(graphPtr, axisPtr)
     flags = Rbc_GraphType(graphPtr);
     Tk_FreeOptions(configSpecs, (char *)axisPtr, graphPtr->display, flags);
     if (graphPtr->bindTable != NULL) {
-	Rbc_DeleteBindings(graphPtr->bindTable, axisPtr);
+    Rbc_DeleteBindings(graphPtr->bindTable, axisPtr);
     }
     if (axisPtr->linkPtr != NULL) {
-	Rbc_ChainDeleteLink(axisPtr->chainPtr, axisPtr->linkPtr);
+    Rbc_ChainDeleteLink(axisPtr->chainPtr, axisPtr->linkPtr);
     }
     if (axisPtr->name != NULL) {
-	ckfree((char *)axisPtr->name);
+    ckfree((char *)axisPtr->name);
     }
     if (axisPtr->hashPtr != NULL) {
-	Tcl_DeleteHashEntry(axisPtr->hashPtr);
+    Tcl_DeleteHashEntry(axisPtr->hashPtr);
     }
     Rbc_FreeTextStyle(graphPtr->display, &axisPtr->titleTextStyle);
     Rbc_FreeTextStyle(graphPtr->display, &axisPtr->limitsTextStyle);
     Rbc_FreeTextStyle(graphPtr->display, &axisPtr->tickTextStyle);
 
     if (axisPtr->tickGC != NULL) {
-	Tk_FreeGC(graphPtr->display, axisPtr->tickGC);
+    Tk_FreeGC(graphPtr->display, axisPtr->tickGC);
     }
     if (axisPtr->t1Ptr != NULL) {
-	ckfree((char *)axisPtr->t1Ptr);
+    ckfree((char *)axisPtr->t1Ptr);
     }
     if (axisPtr->t2Ptr != NULL) {
-	ckfree((char *)axisPtr->t2Ptr);
+    ckfree((char *)axisPtr->t2Ptr);
     }
     if (axisPtr->limitsFormats != NULL) {
-	ckfree((char *)axisPtr->limitsFormats);
+    ckfree((char *)axisPtr->limitsFormats);
     }
     FreeLabels(axisPtr->tickLabels);
     Rbc_ChainDestroy(axisPtr->tickLabels);
     if (axisPtr->segments != NULL) {
-	ckfree((char *)axisPtr->segments);
+    ckfree((char *)axisPtr->segments);
     }
     if (axisPtr->tags != NULL) {
-	ckfree((char *)axisPtr->tags);
+    ckfree((char *)axisPtr->tags);
     }
     ckfree((char *)axisPtr);
 }
@@ -1970,9 +1970,9 @@ AxisOffsets(graphPtr, axisPtr, margin, axisOffset, infoPtr)
     int axisOffset;
     AxisInfo *infoPtr;
 {
-    int pad;			/* Offset of axis from interior region. This
-				 * includes a possible border and the axis
-				 * line width. */
+    int pad;            /* Offset of axis from interior region. This
+                 * includes a possible border and the axis
+                 * line width. */
     int p;
     int majorOffset, minorOffset, labelOffset;
     int offset;
@@ -1983,129 +1983,129 @@ AxisOffsets(graphPtr, axisPtr, margin, axisOffset, infoPtr)
     majorOffset = minorOffset = 0;
     labelOffset = AXIS_TITLE_PAD;
     if (axisPtr->lineWidth > 0) {
-	majorOffset = ABS(axisPtr->tickLength);
-	minorOffset = 10 * majorOffset / 15;
-	labelOffset = majorOffset + AXIS_TITLE_PAD + axisPtr->lineWidth / 2;
+    majorOffset = ABS(axisPtr->tickLength);
+    minorOffset = 10 * majorOffset / 15;
+    labelOffset = majorOffset + AXIS_TITLE_PAD + axisPtr->lineWidth / 2;
     }
     /* Adjust offset for the interior border width and the line width */
     pad = axisPtr->lineWidth + 1;
     if (graphPtr->plotBorderWidth > 0) {
-	pad += graphPtr->plotBorderWidth + 1;
+    pad += graphPtr->plotBorderWidth + 1;
     }
     offset = axisOffset + 1 + pad;
     if ((margin == MARGIN_LEFT) || (margin == MARGIN_TOP)) {
-	majorOffset = -majorOffset;
-	minorOffset = -minorOffset;
-	labelOffset = -labelOffset;
+    majorOffset = -majorOffset;
+    minorOffset = -minorOffset;
+    labelOffset = -labelOffset;
     }
     /*
      * Pre-calculate the x-coordinate positions of the axis, tick labels, and
      * the individual major and minor ticks.
      */
-    p = 0;		/* Suppress compiler warning */
+    p = 0;        /* Suppress compiler warning */
 
     switch (margin) {
-	case MARGIN_TOP:
-	    p = graphPtr->top - axisOffset - pad;
-	    if (axisPtr->titleAlternate) {
-		x = graphPtr->right + AXIS_TITLE_PAD;
-		y = graphPtr->top - axisOffset - (axisPtr->height  / 2);
-		axisPtr->titleTextStyle.anchor = TK_ANCHOR_W;
-	    } else {
-		x = (graphPtr->right + graphPtr->left) / 2;
-		y = graphPtr->top - axisOffset - axisPtr->height - AXIS_TITLE_PAD;
-		axisPtr->titleTextStyle.anchor = TK_ANCHOR_N;
-	    }
-	    axisPtr->tickTextStyle.anchor = TK_ANCHOR_S;
-	    offset = axisPtr->borderWidth + axisPtr->lineWidth / 2;
-	    axisPtr->region.left = graphPtr->hOffset - offset - 2;
-	    axisPtr->region.right = graphPtr->hOffset + graphPtr->hRange +
-				    offset - 1;
-	    axisPtr->region.top = p + labelOffset - 1;
-	    axisPtr->region.bottom = p;
-	    axisPtr->titlePos.x = x;
-	    axisPtr->titlePos.y = y;
-	    break;
+    case MARGIN_TOP:
+        p = graphPtr->top - axisOffset - pad;
+        if (axisPtr->titleAlternate) {
+        x = graphPtr->right + AXIS_TITLE_PAD;
+        y = graphPtr->top - axisOffset - (axisPtr->height  / 2);
+        axisPtr->titleTextStyle.anchor = TK_ANCHOR_W;
+        } else {
+        x = (graphPtr->right + graphPtr->left) / 2;
+        y = graphPtr->top - axisOffset - axisPtr->height - AXIS_TITLE_PAD;
+        axisPtr->titleTextStyle.anchor = TK_ANCHOR_N;
+        }
+        axisPtr->tickTextStyle.anchor = TK_ANCHOR_S;
+        offset = axisPtr->borderWidth + axisPtr->lineWidth / 2;
+        axisPtr->region.left = graphPtr->hOffset - offset - 2;
+        axisPtr->region.right = graphPtr->hOffset + graphPtr->hRange +
+                    offset - 1;
+        axisPtr->region.top = p + labelOffset - 1;
+        axisPtr->region.bottom = p;
+        axisPtr->titlePos.x = x;
+        axisPtr->titlePos.y = y;
+        break;
 
-	case MARGIN_BOTTOM:
-	    p = graphPtr->bottom + axisOffset + pad;
-	    if (axisPtr->titleAlternate) {
-		x = graphPtr->right + AXIS_TITLE_PAD;
-		y = graphPtr->bottom + axisOffset + (axisPtr->height / 2);
-		axisPtr->titleTextStyle.anchor = TK_ANCHOR_W;
-	    } else {
-		x = (graphPtr->right + graphPtr->left) / 2;
-		y = graphPtr->bottom + axisOffset + axisPtr->height +
-		    AXIS_TITLE_PAD;
-		axisPtr->titleTextStyle.anchor = TK_ANCHOR_S;
-	    }
-	    axisPtr->tickTextStyle.anchor = TK_ANCHOR_N;
-	    offset = axisPtr->borderWidth + axisPtr->lineWidth / 2;
-	    axisPtr->region.left = graphPtr->hOffset - offset - 2;
-	    axisPtr->region.right = graphPtr->hOffset + graphPtr->hRange +
-				    offset - 1;
+    case MARGIN_BOTTOM:
+        p = graphPtr->bottom + axisOffset + pad;
+        if (axisPtr->titleAlternate) {
+        x = graphPtr->right + AXIS_TITLE_PAD;
+        y = graphPtr->bottom + axisOffset + (axisPtr->height / 2);
+        axisPtr->titleTextStyle.anchor = TK_ANCHOR_W;
+        } else {
+        x = (graphPtr->right + graphPtr->left) / 2;
+        y = graphPtr->bottom + axisOffset + axisPtr->height +
+            AXIS_TITLE_PAD;
+        axisPtr->titleTextStyle.anchor = TK_ANCHOR_S;
+        }
+        axisPtr->tickTextStyle.anchor = TK_ANCHOR_N;
+        offset = axisPtr->borderWidth + axisPtr->lineWidth / 2;
+        axisPtr->region.left = graphPtr->hOffset - offset - 2;
+        axisPtr->region.right = graphPtr->hOffset + graphPtr->hRange +
+                    offset - 1;
 
-	    axisPtr->region.top = graphPtr->bottom + axisOffset +
-				  axisPtr->lineWidth - axisPtr->lineWidth / 2;
-	    axisPtr->region.bottom = graphPtr->bottom + axisOffset +
-				     axisPtr->lineWidth + labelOffset + 1;
-	    axisPtr->titlePos.x = x;
-	    axisPtr->titlePos.y = y;
-	    break;
+        axisPtr->region.top = graphPtr->bottom + axisOffset +
+                  axisPtr->lineWidth - axisPtr->lineWidth / 2;
+        axisPtr->region.bottom = graphPtr->bottom + axisOffset +
+                     axisPtr->lineWidth + labelOffset + 1;
+        axisPtr->titlePos.x = x;
+        axisPtr->titlePos.y = y;
+        break;
 
-	case MARGIN_LEFT:
-	    p = graphPtr->left - axisOffset - pad;
-	    if (axisPtr->titleAlternate) {
-		x = graphPtr->left - axisOffset - (axisPtr->width / 2);
-		y = graphPtr->top - AXIS_TITLE_PAD;
-		axisPtr->titleTextStyle.anchor = TK_ANCHOR_SW;
-	    } else {
-		x = graphPtr->left - axisOffset - axisPtr->width -
-		    graphPtr->plotBorderWidth;
-		y = (graphPtr->bottom + graphPtr->top) / 2;
-		axisPtr->titleTextStyle.anchor = TK_ANCHOR_W;
-	    }
-	    axisPtr->tickTextStyle.anchor = TK_ANCHOR_E;
-	    axisPtr->region.left = graphPtr->left - offset + labelOffset - 1;
-	    axisPtr->region.right = graphPtr->left - offset + 2;
+    case MARGIN_LEFT:
+        p = graphPtr->left - axisOffset - pad;
+        if (axisPtr->titleAlternate) {
+        x = graphPtr->left - axisOffset - (axisPtr->width / 2);
+        y = graphPtr->top - AXIS_TITLE_PAD;
+        axisPtr->titleTextStyle.anchor = TK_ANCHOR_SW;
+        } else {
+        x = graphPtr->left - axisOffset - axisPtr->width -
+            graphPtr->plotBorderWidth;
+        y = (graphPtr->bottom + graphPtr->top) / 2;
+        axisPtr->titleTextStyle.anchor = TK_ANCHOR_W;
+        }
+        axisPtr->tickTextStyle.anchor = TK_ANCHOR_E;
+        axisPtr->region.left = graphPtr->left - offset + labelOffset - 1;
+        axisPtr->region.right = graphPtr->left - offset + 2;
 
-	    offset = axisPtr->borderWidth + axisPtr->lineWidth / 2;
-	    axisPtr->region.top = graphPtr->vOffset - offset - 2;
-	    axisPtr->region.bottom = graphPtr->vOffset + graphPtr->vRange +
-				     offset - 1;
-	    axisPtr->titlePos.x = x;
-	    axisPtr->titlePos.y = y;
-	    break;
+        offset = axisPtr->borderWidth + axisPtr->lineWidth / 2;
+        axisPtr->region.top = graphPtr->vOffset - offset - 2;
+        axisPtr->region.bottom = graphPtr->vOffset + graphPtr->vRange +
+                     offset - 1;
+        axisPtr->titlePos.x = x;
+        axisPtr->titlePos.y = y;
+        break;
 
-	case MARGIN_RIGHT:
-	    p = graphPtr->right + axisOffset + pad;
-	    if (axisPtr->titleAlternate) {
-		x = graphPtr->right + axisOffset + (axisPtr->width / 2);
-		y = graphPtr->top - AXIS_TITLE_PAD;
-		axisPtr->titleTextStyle.anchor = TK_ANCHOR_SE;
-	    } else {
-		x = graphPtr->right + axisOffset + axisPtr->width +
-		    AXIS_TITLE_PAD;
-		y = (graphPtr->bottom + graphPtr->top) / 2;
-		axisPtr->titleTextStyle.anchor = TK_ANCHOR_E;
-	    }
-	    axisPtr->tickTextStyle.anchor = TK_ANCHOR_W;
+    case MARGIN_RIGHT:
+        p = graphPtr->right + axisOffset + pad;
+        if (axisPtr->titleAlternate) {
+        x = graphPtr->right + axisOffset + (axisPtr->width / 2);
+        y = graphPtr->top - AXIS_TITLE_PAD;
+        axisPtr->titleTextStyle.anchor = TK_ANCHOR_SE;
+        } else {
+        x = graphPtr->right + axisOffset + axisPtr->width +
+            AXIS_TITLE_PAD;
+        y = (graphPtr->bottom + graphPtr->top) / 2;
+        axisPtr->titleTextStyle.anchor = TK_ANCHOR_E;
+        }
+        axisPtr->tickTextStyle.anchor = TK_ANCHOR_W;
 
-	    axisPtr->region.left = graphPtr->right + axisOffset +
-				   axisPtr->lineWidth - axisPtr->lineWidth / 2;
-	    axisPtr->region.right = graphPtr->right + axisOffset +
-				    labelOffset + axisPtr->lineWidth + 1;
+        axisPtr->region.left = graphPtr->right + axisOffset +
+                   axisPtr->lineWidth - axisPtr->lineWidth / 2;
+        axisPtr->region.right = graphPtr->right + axisOffset +
+                    labelOffset + axisPtr->lineWidth + 1;
 
-	    offset = axisPtr->borderWidth + axisPtr->lineWidth / 2;
-	    axisPtr->region.top = graphPtr->vOffset - offset - 2;
-	    axisPtr->region.bottom = graphPtr->vOffset + graphPtr->vRange +
-				     offset - 1;
-	    axisPtr->titlePos.x = x;
-	    axisPtr->titlePos.y = y;
-	    break;
+        offset = axisPtr->borderWidth + axisPtr->lineWidth / 2;
+        axisPtr->region.top = graphPtr->vOffset - offset - 2;
+        axisPtr->region.bottom = graphPtr->vOffset + graphPtr->vRange +
+                     offset - 1;
+        axisPtr->titlePos.x = x;
+        axisPtr->titlePos.y = y;
+        break;
 
-	case MARGIN_NONE:
-	    break;
+    case MARGIN_NONE:
+        break;
     }
     infoPtr->axis = p - (axisPtr->lineWidth / 2);
     infoPtr->t1 = p + majorOffset;
@@ -2113,11 +2113,11 @@ AxisOffsets(graphPtr, axisPtr, margin, axisOffset, infoPtr)
     infoPtr->label = p + labelOffset;
 
     if (axisPtr->tickLength < 0) {
-	int hold;
+    int hold;
 
-	hold = infoPtr->t1;
-	infoPtr->t1 = infoPtr->axis;
-	infoPtr->axis = hold;
+    hold = infoPtr->t1;
+    infoPtr->t1 = infoPtr->axis;
+    infoPtr->axis = hold;
     }
 }
 
@@ -2148,17 +2148,17 @@ MakeAxisLine(graphPtr, axisPtr, line, segPtr)
     min = axisPtr->axisRange.min;
     max = axisPtr->axisRange.max;
     if (axisPtr->logScale) {
-	min = EXP10(min);
-	max = EXP10(max);
+    min = EXP10(min);
+    max = EXP10(max);
     }
     if (AxisIsHorizontal(graphPtr, axisPtr)) {
-	segPtr->p.x = Rbc_HMap(graphPtr, axisPtr, min);
-	segPtr->q.x = Rbc_HMap(graphPtr, axisPtr, max);
-	segPtr->p.y = segPtr->q.y = line;
+    segPtr->p.x = Rbc_HMap(graphPtr, axisPtr, min);
+    segPtr->q.x = Rbc_HMap(graphPtr, axisPtr, max);
+    segPtr->p.y = segPtr->q.y = line;
     } else {
-	segPtr->q.x = segPtr->p.x = line;
-	segPtr->p.y = Rbc_VMap(graphPtr, axisPtr, min);
-	segPtr->q.y = Rbc_VMap(graphPtr, axisPtr, max);
+    segPtr->q.x = segPtr->p.x = line;
+    segPtr->p.y = Rbc_VMap(graphPtr, axisPtr, min);
+    segPtr->q.y = Rbc_VMap(graphPtr, axisPtr, max);
     }
 }
 
@@ -2186,16 +2186,16 @@ MakeTick(graphPtr, axisPtr, value, tick, line, segPtr)
     Segment2D *segPtr;
 {
     if (axisPtr->logScale) {
-	value = EXP10(value);
+    value = EXP10(value);
     }
     if (AxisIsHorizontal(graphPtr, axisPtr)) {
-	segPtr->p.x = segPtr->q.x = Rbc_HMap(graphPtr, axisPtr, value);
-	segPtr->p.y = line;
-	segPtr->q.y = tick;
+    segPtr->p.x = segPtr->q.x = Rbc_HMap(graphPtr, axisPtr, value);
+    segPtr->p.y = line;
+    segPtr->q.y = tick;
     } else {
-	segPtr->p.x = line;
-	segPtr->p.y = segPtr->q.y = Rbc_VMap(graphPtr, axisPtr, value);
-	segPtr->q.x = tick;
+    segPtr->p.x = line;
+    segPtr->p.y = segPtr->q.y = Rbc_VMap(graphPtr, axisPtr, value);
+    segPtr->q.x = tick;
     }
 }
 
@@ -2242,14 +2242,14 @@ MapAxis(graphPtr, axisPtr, offset, margin)
     /* Save all line coordinates in an array of line segments. */
 
     if (axisPtr->segments != NULL) {
-	ckfree((char *)axisPtr->segments);
+    ckfree((char *)axisPtr->segments);
     }
     nMajorTicks = nMinorTicks = 0;
     if (axisPtr->t1Ptr != NULL) {
-	nMajorTicks = axisPtr->t1Ptr->nTicks;
+    nMajorTicks = axisPtr->t1Ptr->nTicks;
     }
     if (axisPtr->t2Ptr != NULL) {
-	nMinorTicks = axisPtr->t2Ptr->nTicks;
+    nMinorTicks = axisPtr->t2Ptr->nTicks;
     }
     arraySize = 1 + (nMajorTicks * (nMinorTicks + 1));
     segments = (Segment2D *)ckalloc(arraySize * sizeof(Segment2D));
@@ -2257,68 +2257,68 @@ MapAxis(graphPtr, axisPtr, offset, margin)
 
     segPtr = segments;
     if (axisPtr->lineWidth > 0) {
-	/* Axis baseline */
-	MakeAxisLine(graphPtr, axisPtr, info.axis, segPtr);
-	segPtr++;
+    /* Axis baseline */
+    MakeAxisLine(graphPtr, axisPtr, info.axis, segPtr);
+    segPtr++;
     }
     if (axisPtr->showTicks) {
-	double t1, t2;
-	double labelPos;
-	register int i, j;
-	int isHoriz;
-	TickLabel *labelPtr;
-	Rbc_ChainLink *linkPtr;
-	Segment2D seg;
+    double t1, t2;
+    double labelPos;
+    register int i, j;
+    int isHoriz;
+    TickLabel *labelPtr;
+    Rbc_ChainLink *linkPtr;
+    Segment2D seg;
 
-	isHoriz = AxisIsHorizontal(graphPtr, axisPtr);
-	for (i = 0; i < axisPtr->t1Ptr->nTicks; i++) {
-	    t1 = axisPtr->t1Ptr->values[i];
-	    /* Minor ticks */
-	    for (j = 0; j < axisPtr->t2Ptr->nTicks; j++) {
-		t2 = t1 +
-		     (axisPtr->majorSweep.step * axisPtr->t2Ptr->values[j]);
-		if (InRange(t2, &axisPtr->axisRange)) {
-		    MakeTick(graphPtr, axisPtr, t2, info.t2, info.axis,
-			     segPtr);
-		    segPtr++;
-		}
-	    }
-	    if (!InRange(t1, &axisPtr->axisRange)) {
-		continue;
-	    }
-	    /* Major tick */
-	    MakeTick(graphPtr, axisPtr, t1, info.t1, info.axis, segPtr);
-	    segPtr++;
-	}
+    isHoriz = AxisIsHorizontal(graphPtr, axisPtr);
+    for (i = 0; i < axisPtr->t1Ptr->nTicks; i++) {
+        t1 = axisPtr->t1Ptr->values[i];
+        /* Minor ticks */
+        for (j = 0; j < axisPtr->t2Ptr->nTicks; j++) {
+        t2 = t1 +
+             (axisPtr->majorSweep.step * axisPtr->t2Ptr->values[j]);
+        if (InRange(t2, &axisPtr->axisRange)) {
+            MakeTick(graphPtr, axisPtr, t2, info.t2, info.axis,
+                 segPtr);
+            segPtr++;
+        }
+        }
+        if (!InRange(t1, &axisPtr->axisRange)) {
+        continue;
+        }
+        /* Major tick */
+        MakeTick(graphPtr, axisPtr, t1, info.t1, info.axis, segPtr);
+        segPtr++;
+    }
 
-	linkPtr = Rbc_ChainFirstLink(axisPtr->tickLabels);
-	labelPos = (double)info.label;
+    linkPtr = Rbc_ChainFirstLink(axisPtr->tickLabels);
+    labelPos = (double)info.label;
 
-	for (i = 0; i < axisPtr->t1Ptr->nTicks; i++) {
-	    t1 = axisPtr->t1Ptr->values[i];
-	    if (axisPtr->labelOffset) {
-		t1 += axisPtr->majorSweep.step * 0.5;
-	    }
-	    if (!InRange(t1, &axisPtr->axisRange)) {
-		continue;
-	    }
-	    labelPtr = Rbc_ChainGetValue(linkPtr);
-	    linkPtr = Rbc_ChainNextLink(linkPtr);
-	    MakeTick(graphPtr, axisPtr, t1, info.t1, info.axis, &seg);
-	    /* Save tick label X-Y position. */
-	    if (isHoriz) {
-		labelPtr->anchorPos.x = seg.p.x;
-		labelPtr->anchorPos.y = labelPos;
-	    } else {
-		labelPtr->anchorPos.x = labelPos;
-		labelPtr->anchorPos.y = seg.p.y;
-	    }
-	}
+    for (i = 0; i < axisPtr->t1Ptr->nTicks; i++) {
+        t1 = axisPtr->t1Ptr->values[i];
+        if (axisPtr->labelOffset) {
+        t1 += axisPtr->majorSweep.step * 0.5;
+        }
+        if (!InRange(t1, &axisPtr->axisRange)) {
+        continue;
+        }
+        labelPtr = Rbc_ChainGetValue(linkPtr);
+        linkPtr = Rbc_ChainNextLink(linkPtr);
+        MakeTick(graphPtr, axisPtr, t1, info.t1, info.axis, &seg);
+        /* Save tick label X-Y position. */
+        if (isHoriz) {
+        labelPtr->anchorPos.x = seg.p.x;
+        labelPtr->anchorPos.y = labelPos;
+        } else {
+        labelPtr->anchorPos.x = labelPos;
+        labelPtr->anchorPos.y = seg.p.y;
+        }
+    }
     }
     if (AxisIsHorizontal(graphPtr, axisPtr)) {
-	axisPtr->width = graphPtr->right - graphPtr->left;
+    axisPtr->width = graphPtr->right - graphPtr->left;
     } else {
-	axisPtr->height = graphPtr->bottom - graphPtr->top;
+    axisPtr->height = graphPtr->bottom - graphPtr->top;
     }
     axisPtr->segments = segments;
     axisPtr->nSegments = segPtr - segments;
@@ -2333,14 +2333,14 @@ MapAxis(graphPtr, axisPtr, offset, margin)
  *      Adjusts the offsets of the viewport according to the scroll mode.
  *      This is to accommodate both "listbox" and "canvas" style scrolling.
  *
- *      "canvas"	The viewport scrolls within the range of world
+ *      "canvas"    The viewport scrolls within the range of world
  *              coordinates.  This way the viewport always displays
  *              a full page of the world.  If the world is smaller
  *              than the viewport, then (bizarrely) the world and
  *              viewport are inverted so that the world moves up
  *              and down within the viewport.
  *
- *      "listbox"	The viewport can scroll beyond the range of world
+ *      "listbox"    The viewport can scroll beyond the range of world
  *              coordinates.  Every entry can be displayed at the
  *              top of the viewport.  This also means that the
  *              scrollbar thumb weirdly shrinks as the last entry
@@ -2363,19 +2363,19 @@ AdjustViewport(offset, windowSize)
      * within the window.
      */
     if (windowSize > 1.0) {
-	if (windowSize < (1.0 - offset)) {
-	    offset = 1.0 - windowSize;
-	}
-	if (offset > 0.0) {
-	    offset = 0.0;
-	}
+    if (windowSize < (1.0 - offset)) {
+        offset = 1.0 - windowSize;
+    }
+    if (offset > 0.0) {
+        offset = 0.0;
+    }
     } else {
-	if ((offset + windowSize) > 1.0) {
-	    offset = 1.0 - windowSize;
-	}
-	if (offset < 0.0) {
-	    offset = 0.0;
-	}
+    if ((offset + windowSize) > 1.0) {
+        offset = 1.0 - windowSize;
+    }
+    if (offset < 0.0) {
+        offset = 0.0;
+    }
     }
     return offset;
 }
@@ -2416,40 +2416,40 @@ GetAxisScrollInfo(
     c = s[0];
     length = strlen(s);
     if ((c == 's') && (strncmp(s, "scroll", length) == 0)) {
-	assert(objc == 3);
-	/* scroll number unit/page */
-	if (Tcl_GetIntFromObj(interp, objv[1], &count) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	s = Tcl_GetString(objv[2]);
-	c = s[0];
-	length = strlen(s);
-	if ((c == 'u') && (strncmp(s, "units", length) == 0)) {
-	    fract = (double)count * scrollUnits;
-	} else if ((c == 'p') && (strncmp(s, "pages", length) == 0)) {
-	    /* A page is 90% of the view-able window. */
-	    fract = (double)count * windowSize * 0.9;
-	} else {
-	    Tcl_AppendResult(interp, "unknown \"scroll\" units \"", s,
-			     "\"", (char *)NULL);
-	    return TCL_ERROR;
-	}
-	offset += fract;
-    } else if ((c == 'm') && (strncmp(s, "moveto", length) == 0)) {
-	assert(objc == 2);
-	/* moveto fraction */
-	if (Tcl_GetDoubleFromObj(interp, objv[1], &fract) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	offset = fract;
+    assert(objc == 3);
+    /* scroll number unit/page */
+    if (Tcl_GetIntFromObj(interp, objv[1], &count) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    s = Tcl_GetString(objv[2]);
+    c = s[0];
+    length = strlen(s);
+    if ((c == 'u') && (strncmp(s, "units", length) == 0)) {
+        fract = (double)count * scrollUnits;
+    } else if ((c == 'p') && (strncmp(s, "pages", length) == 0)) {
+        /* A page is 90% of the view-able window. */
+        fract = (double)count * windowSize * 0.9;
     } else {
-	/* Treat like "scroll units" */
-	if (Tcl_GetInt(interp, s, &count) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	fract = (double)count * scrollUnits;
-	offset += fract;
-	/* CHECK THIS: return TCL_OK; */
+        Tcl_AppendResult(interp, "unknown \"scroll\" units \"", s,
+                 "\"", (char *)NULL);
+        return TCL_ERROR;
+    }
+    offset += fract;
+    } else if ((c == 'm') && (strncmp(s, "moveto", length) == 0)) {
+    assert(objc == 2);
+    /* moveto fraction */
+    if (Tcl_GetDoubleFromObj(interp, objv[1], &fract) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    offset = fract;
+    } else {
+    /* Treat like "scroll units" */
+    if (Tcl_GetInt(interp, s, &count) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    fract = (double)count * scrollUnits;
+    offset += fract;
+    /* CHECK THIS: return TCL_OK; */
     }
     *offsetPtr = AdjustViewport(offset, windowSize);
     return TCL_OK;
@@ -2480,98 +2480,98 @@ DrawAxis(graphPtr, drawable, axisPtr)
     Axis *axisPtr;
 {
     if (axisPtr->border != NULL) {
-	Rbc_Fill3DRectangle(graphPtr->tkwin, drawable, axisPtr->border,
-			    axisPtr->region.left + graphPtr->plotBorderWidth,
-			    axisPtr->region.top + graphPtr->plotBorderWidth,
-			    axisPtr->region.right - axisPtr->region.left,
-			    axisPtr->region.bottom - axisPtr->region.top,
-			    axisPtr->borderWidth, axisPtr->relief);
+    Rbc_Fill3DRectangle(graphPtr->tkwin, drawable, axisPtr->border,
+                axisPtr->region.left + graphPtr->plotBorderWidth,
+                axisPtr->region.top + graphPtr->plotBorderWidth,
+                axisPtr->region.right - axisPtr->region.left,
+                axisPtr->region.bottom - axisPtr->region.top,
+                axisPtr->borderWidth, axisPtr->relief);
     }
     if (axisPtr->title != NULL) {
-	Rbc_DrawText(graphPtr->tkwin, drawable, axisPtr->title,
-		     &axisPtr->titleTextStyle, (int)axisPtr->titlePos.x,
-		     (int)axisPtr->titlePos.y);
+    Rbc_DrawText(graphPtr->tkwin, drawable, axisPtr->title,
+             &axisPtr->titleTextStyle, (int)axisPtr->titlePos.x,
+             (int)axisPtr->titlePos.y);
     }
     if (axisPtr->scrollCmdPrefix != NULL) {
-	double viewWidth, viewMin, viewMax;
-	double worldWidth, worldMin, worldMax;
-	double fract;
-	int isHoriz;
+    double viewWidth, viewMin, viewMax;
+    double worldWidth, worldMin, worldMax;
+    double fract;
+    int isHoriz;
 
-	worldMin = axisPtr->valueRange.min;
-	worldMax = axisPtr->valueRange.max;
-	if (DEFINED(axisPtr->scrollMin)) {
-	    worldMin = axisPtr->scrollMin;
-	}
-	if (DEFINED(axisPtr->scrollMax)) {
-	    worldMax = axisPtr->scrollMax;
-	}
-	viewMin = axisPtr->min;
-	viewMax = axisPtr->max;
-	if (viewMin < worldMin) {
-	    viewMin = worldMin;
-	}
-	if (viewMax > worldMax) {
-	    viewMax = worldMax;
-	}
-	if (axisPtr->logScale) {
-	    worldMin = log10(worldMin);
-	    worldMax = log10(worldMax);
-	    viewMin = log10(viewMin);
-	    viewMax = log10(viewMax);
-	}
-	worldWidth = worldMax - worldMin;
-	viewWidth = viewMax - viewMin;
-	isHoriz = AxisIsHorizontal(graphPtr, axisPtr);
+    worldMin = axisPtr->valueRange.min;
+    worldMax = axisPtr->valueRange.max;
+    if (DEFINED(axisPtr->scrollMin)) {
+        worldMin = axisPtr->scrollMin;
+    }
+    if (DEFINED(axisPtr->scrollMax)) {
+        worldMax = axisPtr->scrollMax;
+    }
+    viewMin = axisPtr->min;
+    viewMax = axisPtr->max;
+    if (viewMin < worldMin) {
+        viewMin = worldMin;
+    }
+    if (viewMax > worldMax) {
+        viewMax = worldMax;
+    }
+    if (axisPtr->logScale) {
+        worldMin = log10(worldMin);
+        worldMax = log10(worldMax);
+        viewMin = log10(viewMin);
+        viewMax = log10(viewMax);
+    }
+    worldWidth = worldMax - worldMin;
+    viewWidth = viewMax - viewMin;
+    isHoriz = AxisIsHorizontal(graphPtr, axisPtr);
 
-	if (isHoriz != axisPtr->descending) {
-	    fract = (viewMin - worldMin) / worldWidth;
-	} else {
-	    fract = (worldMax - viewMax) / worldWidth;
-	}
-	fract = AdjustViewport(fract, viewWidth / worldWidth);
+    if (isHoriz != axisPtr->descending) {
+        fract = (viewMin - worldMin) / worldWidth;
+    } else {
+        fract = (worldMax - viewMax) / worldWidth;
+    }
+    fract = AdjustViewport(fract, viewWidth / worldWidth);
 
-	if (isHoriz != axisPtr->descending) {
-	    viewMin = (fract * worldWidth);
-	    axisPtr->min = viewMin + worldMin;
-	    axisPtr->max = axisPtr->min + viewWidth;
-	    viewMax = viewMin + viewWidth;
-	    if (axisPtr->logScale) {
-		axisPtr->min = EXP10(axisPtr->min);
-		axisPtr->max = EXP10(axisPtr->max);
-	    }
-	    Rbc_UpdateScrollbar(graphPtr->interp, axisPtr->scrollCmdPrefix,
-				(viewMin / worldWidth), (viewMax / worldWidth));
-	} else {
-	    viewMax = (fract * worldWidth);
-	    axisPtr->max = worldMax - viewMax;
-	    axisPtr->min = axisPtr->max - viewWidth;
-	    viewMin = viewMax + viewWidth;
-	    if (axisPtr->logScale) {
-		axisPtr->min = EXP10(axisPtr->min);
-		axisPtr->max = EXP10(axisPtr->max);
-	    }
-	    Rbc_UpdateScrollbar(graphPtr->interp, axisPtr->scrollCmdPrefix,
-				(viewMax / worldWidth), (viewMin / worldWidth));
-	}
+    if (isHoriz != axisPtr->descending) {
+        viewMin = (fract * worldWidth);
+        axisPtr->min = viewMin + worldMin;
+        axisPtr->max = axisPtr->min + viewWidth;
+        viewMax = viewMin + viewWidth;
+        if (axisPtr->logScale) {
+        axisPtr->min = EXP10(axisPtr->min);
+        axisPtr->max = EXP10(axisPtr->max);
+        }
+        Rbc_UpdateScrollbar(graphPtr->interp, axisPtr->scrollCmdPrefix,
+                (viewMin / worldWidth), (viewMax / worldWidth));
+    } else {
+        viewMax = (fract * worldWidth);
+        axisPtr->max = worldMax - viewMax;
+        axisPtr->min = axisPtr->max - viewWidth;
+        viewMin = viewMax + viewWidth;
+        if (axisPtr->logScale) {
+        axisPtr->min = EXP10(axisPtr->min);
+        axisPtr->max = EXP10(axisPtr->max);
+        }
+        Rbc_UpdateScrollbar(graphPtr->interp, axisPtr->scrollCmdPrefix,
+                (viewMax / worldWidth), (viewMin / worldWidth));
+    }
     }
     if (axisPtr->showTicks) {
-	register Rbc_ChainLink *linkPtr;
-	TickLabel *labelPtr;
+    register Rbc_ChainLink *linkPtr;
+    TickLabel *labelPtr;
 
-	for (linkPtr = Rbc_ChainFirstLink(axisPtr->tickLabels); linkPtr != NULL;
-		linkPtr = Rbc_ChainNextLink(linkPtr)) {
-	    /* Draw major tick labels */
-	    labelPtr = Rbc_ChainGetValue(linkPtr);
-	    Rbc_DrawText(graphPtr->tkwin, drawable, labelPtr->string,
-			 &axisPtr->tickTextStyle, (int)labelPtr->anchorPos.x,
-			 (int)labelPtr->anchorPos.y);
-	}
+    for (linkPtr = Rbc_ChainFirstLink(axisPtr->tickLabels); linkPtr != NULL;
+        linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        /* Draw major tick labels */
+        labelPtr = Rbc_ChainGetValue(linkPtr);
+        Rbc_DrawText(graphPtr->tkwin, drawable, labelPtr->string,
+             &axisPtr->tickTextStyle, (int)labelPtr->anchorPos.x,
+             (int)labelPtr->anchorPos.y);
+    }
     }
     if ((axisPtr->nSegments > 0) && (axisPtr->lineWidth > 0)) {
-	/* Draw the tick marks and axis line. */
-	Rbc_Draw2DSegments(graphPtr->display, drawable, axisPtr->tickGC,
-			   axisPtr->segments, axisPtr->nSegments);
+    /* Draw the tick marks and axis line. */
+    Rbc_Draw2DSegments(graphPtr->display, drawable, axisPtr->tickGC,
+               axisPtr->segments, axisPtr->nSegments);
     }
 }
 
@@ -2600,26 +2600,26 @@ AxisToPostScript(psToken, axisPtr)
     Axis *axisPtr;
 {
     if (axisPtr->title != NULL) {
-	Rbc_TextToPostScript(psToken, axisPtr->title, &axisPtr->titleTextStyle,
-			     axisPtr->titlePos.x, axisPtr->titlePos.y);
+    Rbc_TextToPostScript(psToken, axisPtr->title, &axisPtr->titleTextStyle,
+                 axisPtr->titlePos.x, axisPtr->titlePos.y);
     }
     if (axisPtr->showTicks) {
-	register Rbc_ChainLink *linkPtr;
-	TickLabel *labelPtr;
+    register Rbc_ChainLink *linkPtr;
+    TickLabel *labelPtr;
 
-	for (linkPtr = Rbc_ChainFirstLink(axisPtr->tickLabels);
-		linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
-	    labelPtr = Rbc_ChainGetValue(linkPtr);
-	    Rbc_TextToPostScript(psToken, labelPtr->string,
-				 &axisPtr->tickTextStyle, labelPtr->anchorPos.x,
-				 labelPtr->anchorPos.y);
-	}
+    for (linkPtr = Rbc_ChainFirstLink(axisPtr->tickLabels);
+        linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        labelPtr = Rbc_ChainGetValue(linkPtr);
+        Rbc_TextToPostScript(psToken, labelPtr->string,
+                 &axisPtr->tickTextStyle, labelPtr->anchorPos.x,
+                 labelPtr->anchorPos.y);
+    }
     }
     if ((axisPtr->nSegments > 0) && (axisPtr->lineWidth > 0)) {
-	Rbc_LineAttributesToPostScript(psToken, axisPtr->tickTextStyle.color,
-				       axisPtr->lineWidth, (Rbc_Dashes *)NULL, CapButt, JoinMiter);
-	Rbc_2DSegmentsToPostScript(psToken, axisPtr->segments,
-				   axisPtr->nSegments);
+    Rbc_LineAttributesToPostScript(psToken, axisPtr->tickTextStyle.color,
+                       axisPtr->lineWidth, (Rbc_Dashes *)NULL, CapButt, JoinMiter);
+    Rbc_2DSegmentsToPostScript(psToken, axisPtr->segments,
+                   axisPtr->nSegments);
     }
 }
 
@@ -2647,17 +2647,17 @@ MakeGridLine(graphPtr, axisPtr, value, segPtr)
     Segment2D *segPtr;
 {
     if (axisPtr->logScale) {
-	value = EXP10(value);
+    value = EXP10(value);
     }
     /* Grid lines run orthogonally to the axis */
     if (AxisIsHorizontal(graphPtr, axisPtr)) {
-	segPtr->p.y = graphPtr->top;
-	segPtr->q.y = graphPtr->bottom;
-	segPtr->p.x = segPtr->q.x = Rbc_HMap(graphPtr, axisPtr, value);
+    segPtr->p.y = graphPtr->top;
+    segPtr->q.y = graphPtr->bottom;
+    segPtr->p.x = segPtr->q.x = Rbc_HMap(graphPtr, axisPtr, value);
     } else {
-	segPtr->p.x = graphPtr->left;
-	segPtr->q.x = graphPtr->right;
-	segPtr->p.y = segPtr->q.y = Rbc_VMap(graphPtr, axisPtr, value);
+    segPtr->p.x = graphPtr->left;
+    segPtr->q.x = graphPtr->right;
+    segPtr->p.y = segPtr->q.y = Rbc_VMap(graphPtr, axisPtr, value);
     }
 }
 
@@ -2694,56 +2694,56 @@ Rbc_GetAxisSegments(graphPtr, axisPtr, segPtrPtr, nSegmentsPtr)
     *nSegmentsPtr = 0;
     *segPtrPtr = NULL;
     if (axisPtr == NULL) {
-	return;
+    return;
     }
     t1Ptr = axisPtr->t1Ptr;
     if (t1Ptr == NULL) {
-	t1Ptr = GenerateTicks(&axisPtr->majorSweep);
+    t1Ptr = GenerateTicks(&axisPtr->majorSweep);
     }
     t2Ptr = axisPtr->t2Ptr;
     if (t2Ptr == NULL) {
-	t2Ptr = GenerateTicks(&axisPtr->minorSweep);
+    t2Ptr = GenerateTicks(&axisPtr->minorSweep);
     }
 
     needed = t1Ptr->nTicks;
     if (graphPtr->gridPtr->minorGrid) {
-	needed += (t1Ptr->nTicks * t2Ptr->nTicks);
+    needed += (t1Ptr->nTicks * t2Ptr->nTicks);
     }
     if (needed == 0) {
-	return;
+    return;
     }
     segments = (Segment2D *)ckalloc(sizeof(Segment2D) * needed);
     if (segments == NULL) {
-	return;			/* Can't allocate memory for grid. */
+    return;            /* Can't allocate memory for grid. */
     }
 
     segPtr = segments;
     for (i = 0; i < t1Ptr->nTicks; i++) {
-	value = t1Ptr->values[i];
-	if (graphPtr->gridPtr->minorGrid) {
-	    register int j;
-	    double subValue;
+    value = t1Ptr->values[i];
+    if (graphPtr->gridPtr->minorGrid) {
+        register int j;
+        double subValue;
 
-	    for (j = 0; j < t2Ptr->nTicks; j++) {
-		subValue = value +
-			   (axisPtr->majorSweep.step * t2Ptr->values[j]);
-		if (InRange(subValue, &axisPtr->axisRange)) {
-		    MakeGridLine(graphPtr, axisPtr, subValue, segPtr);
-		    segPtr++;
-		}
-	    }
-	}
-	if (InRange(value, &axisPtr->axisRange)) {
-	    MakeGridLine(graphPtr, axisPtr, value, segPtr);
-	    segPtr++;
-	}
+        for (j = 0; j < t2Ptr->nTicks; j++) {
+        subValue = value +
+               (axisPtr->majorSweep.step * t2Ptr->values[j]);
+        if (InRange(subValue, &axisPtr->axisRange)) {
+            MakeGridLine(graphPtr, axisPtr, subValue, segPtr);
+            segPtr++;
+        }
+        }
+    }
+    if (InRange(value, &axisPtr->axisRange)) {
+        MakeGridLine(graphPtr, axisPtr, value, segPtr);
+        segPtr++;
+    }
     }
 
     if (t1Ptr != axisPtr->t1Ptr) {
-	ckfree((char *)t1Ptr);	/* Free generated ticks. */
+    ckfree((char *)t1Ptr);    /* Free generated ticks. */
     }
     if (t2Ptr != axisPtr->t2Ptr) {
-	ckfree((char *)t2Ptr);	/* Free generated ticks. */
+    ckfree((char *)t2Ptr);    /* Free generated ticks. */
     }
     *nSegmentsPtr = segPtr - segments;
     assert(*nSegmentsPtr <= needed);
@@ -2775,102 +2775,102 @@ GetAxisGeometry(graphPtr, axisPtr)
     FreeLabels(axisPtr->tickLabels);
     height = 0;
     if (axisPtr->lineWidth > 0) {
-	/* Leave room for axis baseline (and pad) */
-	height += axisPtr->lineWidth + 2;
+    /* Leave room for axis baseline (and pad) */
+    height += axisPtr->lineWidth + 2;
     }
     if (axisPtr->showTicks) {
-	int pad;
-	register int i, nLabels;
-	int lw, lh;
-	double x, x2;
-	int maxWidth, maxHeight;
-	TickLabel *labelPtr;
+    int pad;
+    register int i, nLabels;
+    int lw, lh;
+    double x, x2;
+    int maxWidth, maxHeight;
+    TickLabel *labelPtr;
 
-	SweepTicks(axisPtr);
+    SweepTicks(axisPtr);
 
-	if (axisPtr->t1Ptr->nTicks < 0) {
-	    fprintf(stderr, "%s major ticks can't be %d\n",
-		    axisPtr->name, axisPtr->t1Ptr->nTicks);
-	    abort();
-	}
-	if (axisPtr->t1Ptr->nTicks > MAXTICKS) {
-	    fprintf(stderr, "too big, %s major ticks can't be %d\n",
-		    axisPtr->name, axisPtr->t1Ptr->nTicks);
-	    abort();
-	}
+    if (axisPtr->t1Ptr->nTicks < 0) {
+        fprintf(stderr, "%s major ticks can't be %d\n",
+            axisPtr->name, axisPtr->t1Ptr->nTicks);
+        abort();
+    }
+    if (axisPtr->t1Ptr->nTicks > MAXTICKS) {
+        fprintf(stderr, "too big, %s major ticks can't be %d\n",
+            axisPtr->name, axisPtr->t1Ptr->nTicks);
+        abort();
+    }
 
-	maxHeight = maxWidth = 0;
-	nLabels = 0;
-	for (i = 0; i < axisPtr->t1Ptr->nTicks; i++) {
-	    x2 = x = axisPtr->t1Ptr->values[i];
-	    if (axisPtr->labelOffset) {
-		x2 += axisPtr->majorSweep.step * 0.5;
-	    }
-	    if (!InRange(x2, &axisPtr->axisRange)) {
-		continue;
-	    }
-	    labelPtr = MakeLabel(graphPtr, axisPtr, x);
-	    Rbc_ChainAppend(axisPtr->tickLabels, labelPtr);
-	    nLabels++;
-	    /*
-	     * Get the dimensions of each tick label.
-	     * Remember tick labels can be multi-lined and/or rotated.
-	     */
-	    Rbc_GetTextExtents(&axisPtr->tickTextStyle, labelPtr->string,
-			       &lw, &lh);
-	    labelPtr->width = lw;
-	    labelPtr->height = lh;
+    maxHeight = maxWidth = 0;
+    nLabels = 0;
+    for (i = 0; i < axisPtr->t1Ptr->nTicks; i++) {
+        x2 = x = axisPtr->t1Ptr->values[i];
+        if (axisPtr->labelOffset) {
+        x2 += axisPtr->majorSweep.step * 0.5;
+        }
+        if (!InRange(x2, &axisPtr->axisRange)) {
+        continue;
+        }
+        labelPtr = MakeLabel(graphPtr, axisPtr, x);
+        Rbc_ChainAppend(axisPtr->tickLabels, labelPtr);
+        nLabels++;
+        /*
+         * Get the dimensions of each tick label.
+         * Remember tick labels can be multi-lined and/or rotated.
+         */
+        Rbc_GetTextExtents(&axisPtr->tickTextStyle, labelPtr->string,
+                   &lw, &lh);
+        labelPtr->width = lw;
+        labelPtr->height = lh;
 
-	    if (axisPtr->tickTextStyle.theta > 0.0) {
-		double rotWidth, rotHeight;
+        if (axisPtr->tickTextStyle.theta > 0.0) {
+        double rotWidth, rotHeight;
 
-		Rbc_GetBoundingBox(lw, lh, axisPtr->tickTextStyle.theta,
-				   &rotWidth, &rotHeight, (Point2D *)NULL);
-		lw = ROUND(rotWidth);
-		lh = ROUND(rotHeight);
-	    }
-	    if (maxWidth < lw) {
-		maxWidth = lw;
-	    }
-	    if (maxHeight < lh) {
-		maxHeight = lh;
-	    }
-	}
-	assert(nLabels <= axisPtr->t1Ptr->nTicks);
+        Rbc_GetBoundingBox(lw, lh, axisPtr->tickTextStyle.theta,
+                   &rotWidth, &rotHeight, (Point2D *)NULL);
+        lw = ROUND(rotWidth);
+        lh = ROUND(rotHeight);
+        }
+        if (maxWidth < lw) {
+        maxWidth = lw;
+        }
+        if (maxHeight < lh) {
+        maxHeight = lh;
+        }
+    }
+    assert(nLabels <= axisPtr->t1Ptr->nTicks);
 
-	/* Because the axis cap style is "CapProjecting", we need to
-	 * account for an extra 1.5 linewidth at the end of each
-	 * line.  */
+    /* Because the axis cap style is "CapProjecting", we need to
+     * account for an extra 1.5 linewidth at the end of each
+     * line.  */
 
-	pad = ((axisPtr->lineWidth * 15) / 10);
+    pad = ((axisPtr->lineWidth * 15) / 10);
 
-	if (AxisIsHorizontal(graphPtr, axisPtr)) {
-	    height += maxHeight + pad;
-	} else {
-	    height += maxWidth + pad;
-	}
-	if (axisPtr->lineWidth > 0) {
-	    /* Distance from axis line to tick label. */
-	    height += AXIS_TITLE_PAD;
-	    height += ABS(axisPtr->tickLength);
-	}
+    if (AxisIsHorizontal(graphPtr, axisPtr)) {
+        height += maxHeight + pad;
+    } else {
+        height += maxWidth + pad;
+    }
+    if (axisPtr->lineWidth > 0) {
+        /* Distance from axis line to tick label. */
+        height += AXIS_TITLE_PAD;
+        height += ABS(axisPtr->tickLength);
+    }
     }
 
     if (axisPtr->title != NULL) {
-	if (axisPtr->titleAlternate) {
-	    if (height < axisPtr->titleHeight) {
-		height = axisPtr->titleHeight;
-	    }
-	} else {
-	    height += axisPtr->titleHeight + AXIS_TITLE_PAD;
-	}
+    if (axisPtr->titleAlternate) {
+        if (height < axisPtr->titleHeight) {
+        height = axisPtr->titleHeight;
+        }
+    } else {
+        height += axisPtr->titleHeight + AXIS_TITLE_PAD;
+    }
     }
 
     /* Correct for orientation of the axis. */
     if (AxisIsHorizontal(graphPtr, axisPtr)) {
-	axisPtr->height = height;
+    axisPtr->height = height;
     } else {
-	axisPtr->width = height;
+    axisPtr->width = height;
     }
 }
 
@@ -2912,29 +2912,29 @@ GetMarginGeometry(graphPtr, marginPtr)
     count = 0;
     length = width = height = 0;
     for (linkPtr = Rbc_ChainFirstLink(marginPtr->axes); linkPtr != NULL;
-	    linkPtr = Rbc_ChainNextLink(linkPtr)) {
-	axisPtr = Rbc_ChainGetValue(linkPtr);
-	if ((!axisPtr->hidden) && (axisPtr->flags & AXIS_ONSCREEN)) {
-	    count++;
-	    if (graphPtr->flags & GET_AXIS_GEOMETRY) {
-		GetAxisGeometry(graphPtr, axisPtr);
-	    }
-	    if ((axisPtr->titleAlternate) && (length < axisPtr->titleWidth)) {
-		length = axisPtr->titleWidth;
-	    }
-	    if (isHoriz) {
-		height += axisPtr->height;
-	    } else {
-		width += axisPtr->width;
-	    }
-	}
+        linkPtr = Rbc_ChainNextLink(linkPtr)) {
+    axisPtr = Rbc_ChainGetValue(linkPtr);
+    if ((!axisPtr->hidden) && (axisPtr->flags & AXIS_ONSCREEN)) {
+        count++;
+        if (graphPtr->flags & GET_AXIS_GEOMETRY) {
+        GetAxisGeometry(graphPtr, axisPtr);
+        }
+        if ((axisPtr->titleAlternate) && (length < axisPtr->titleWidth)) {
+        length = axisPtr->titleWidth;
+        }
+        if (isHoriz) {
+        height += axisPtr->height;
+        } else {
+        width += axisPtr->width;
+        }
+    }
     }
     /* Enforce a minimum size for margins. */
     if (width < 3) {
-	width = 3;
+    width = 3;
     }
     if (height < 3) {
-	height = 3;
+    height = 3;
     }
     marginPtr->nAxes = count;
     marginPtr->axesTitleLength = length;
@@ -2971,9 +2971,9 @@ ComputeMargins(graphPtr)
     int insets;
 
     /*
-     * Step 1:	Compute the amount of space needed to display the
-     *		axes (there many be 0 or more) associated with the
-     *		margin.
+     * Step 1:    Compute the amount of space needed to display the
+     *        axes (there many be 0 or more) associated with the
+     *        margin.
      */
     top = GetMarginGeometry(graphPtr, &graphPtr->topMargin);
     bottom = GetMarginGeometry(graphPtr, &graphPtr->bottomMargin);
@@ -2984,37 +2984,37 @@ ComputeMargins(graphPtr)
      * Step 2:  Add the graph title height to the top margin.
      */
     if (graphPtr->title != NULL) {
-	top += graphPtr->titleTextStyle.height;
+    top += graphPtr->titleTextStyle.height;
     }
     insets = 2 * (graphPtr->inset + graphPtr->plotBorderWidth);
 
     /*
      * Step 3:  Use the current estimate of the plot area to compute
-     *		the legend size.  Add it to the proper margin.
+     *        the legend size.  Add it to the proper margin.
      */
     width = graphPtr->width - (insets + left + right);
     height = graphPtr->height - (insets + top + bottom);
     Rbc_MapLegend(graphPtr->legend, width, height);
     if (!Rbc_LegendIsHidden(graphPtr->legend)) {
-	switch (Rbc_LegendSite(graphPtr->legend)) {
-	    case LEGEND_RIGHT:
-		right += Rbc_LegendWidth(graphPtr->legend) + 2;
-		break;
-	    case LEGEND_LEFT:
-		left += Rbc_LegendWidth(graphPtr->legend) + 2;
-		break;
-	    case LEGEND_TOP:
-		top += Rbc_LegendHeight(graphPtr->legend) + 2;
-		break;
-	    case LEGEND_BOTTOM:
-		bottom += Rbc_LegendHeight(graphPtr->legend) + 2;
-		break;
-	    case LEGEND_XY:
-	    case LEGEND_PLOT:
-	    case LEGEND_WINDOW:
-		/* Do nothing. */
-		break;
-	}
+    switch (Rbc_LegendSite(graphPtr->legend)) {
+        case LEGEND_RIGHT:
+        right += Rbc_LegendWidth(graphPtr->legend) + 2;
+        break;
+        case LEGEND_LEFT:
+        left += Rbc_LegendWidth(graphPtr->legend) + 2;
+        break;
+        case LEGEND_TOP:
+        top += Rbc_LegendHeight(graphPtr->legend) + 2;
+        break;
+        case LEGEND_BOTTOM:
+        bottom += Rbc_LegendHeight(graphPtr->legend) + 2;
+        break;
+        case LEGEND_XY:
+        case LEGEND_PLOT:
+        case LEGEND_WINDOW:
+        /* Do nothing. */
+        break;
+    }
     }
 
     /*
@@ -3024,64 +3024,64 @@ ComputeMargins(graphPtr)
     height = graphPtr->height - (insets + top + bottom);
 
     /*
-     * Step 5:	If necessary, correct for the requested plot area
-     *		aspect ratio.
+     * Step 5:    If necessary, correct for the requested plot area
+     *        aspect ratio.
      */
     if (graphPtr->aspect > 0.0) {
-	double ratio;
+    double ratio;
 
-	/*
-	 * Shrink one dimension of the plotarea to fit the requested
-	 * width/height aspect ratio.
-	 */
-	ratio = (double)width / (double)height;
-	if (ratio > graphPtr->aspect) {
-	    int scaledWidth;
+    /*
+     * Shrink one dimension of the plotarea to fit the requested
+     * width/height aspect ratio.
+     */
+    ratio = (double)width / (double)height;
+    if (ratio > graphPtr->aspect) {
+        int scaledWidth;
 
-	    /* Shrink the width. */
-	    scaledWidth = (int)(height * graphPtr->aspect);
-	    if (scaledWidth < 1) {
-		scaledWidth = 1;
-	    }
-	    right += (width - scaledWidth); /* Add the difference to
-					     * the right margin. */
-	    /* CHECK THIS: width = scaledWidth; */
-	} else {
-	    int scaledHeight;
+        /* Shrink the width. */
+        scaledWidth = (int)(height * graphPtr->aspect);
+        if (scaledWidth < 1) {
+        scaledWidth = 1;
+        }
+        right += (width - scaledWidth); /* Add the difference to
+                         * the right margin. */
+        /* CHECK THIS: width = scaledWidth; */
+    } else {
+        int scaledHeight;
 
-	    /* Shrink the height. */
-	    scaledHeight = (int)(width / graphPtr->aspect);
-	    if (scaledHeight < 1) {
-		scaledHeight = 1;
-	    }
-	    top += (height - scaledHeight); /* Add the difference to
-					    * the top margin. */
-	    /* CHECK THIS: height = scaledHeight; */
-	}
+        /* Shrink the height. */
+        scaledHeight = (int)(width / graphPtr->aspect);
+        if (scaledHeight < 1) {
+        scaledHeight = 1;
+        }
+        top += (height - scaledHeight); /* Add the difference to
+                        * the top margin. */
+        /* CHECK THIS: height = scaledHeight; */
+    }
     }
 
     /*
-     * Step 6:	If there's multiple axes in a margin, the axis
-     *		titles will be displayed in the adjoining marging.
-     *		Make sure there's room for the longest axis titles.
+     * Step 6:    If there's multiple axes in a margin, the axis
+     *        titles will be displayed in the adjoining marging.
+     *        Make sure there's room for the longest axis titles.
      */
 
     if (top < graphPtr->leftMargin.axesTitleLength) {
-	top = graphPtr->leftMargin.axesTitleLength;
+    top = graphPtr->leftMargin.axesTitleLength;
     }
     if (right < graphPtr->bottomMargin.axesTitleLength) {
-	right = graphPtr->bottomMargin.axesTitleLength;
+    right = graphPtr->bottomMargin.axesTitleLength;
     }
     if (top < graphPtr->rightMargin.axesTitleLength) {
-	top = graphPtr->rightMargin.axesTitleLength;
+    top = graphPtr->rightMargin.axesTitleLength;
     }
     if (right < graphPtr->topMargin.axesTitleLength) {
-	right = graphPtr->topMargin.axesTitleLength;
+    right = graphPtr->topMargin.axesTitleLength;
     }
 
     /*
      * Step 7:  Override calculated values with requested margin
-     *		sizes.
+     *        sizes.
      */
 
     graphPtr->leftMargin.width = left;
@@ -3090,16 +3090,16 @@ ComputeMargins(graphPtr)
     graphPtr->bottomMargin.height = bottom;
 
     if (graphPtr->leftMargin.reqSize > 0) {
-	graphPtr->leftMargin.width = graphPtr->leftMargin.reqSize;
+    graphPtr->leftMargin.width = graphPtr->leftMargin.reqSize;
     }
     if (graphPtr->rightMargin.reqSize > 0) {
-	graphPtr->rightMargin.width = graphPtr->rightMargin.reqSize;
+    graphPtr->rightMargin.width = graphPtr->rightMargin.reqSize;
     }
     if (graphPtr->topMargin.reqSize > 0) {
-	graphPtr->topMargin.height = graphPtr->topMargin.reqSize;
+    graphPtr->topMargin.height = graphPtr->topMargin.reqSize;
     }
     if (graphPtr->bottomMargin.reqSize > 0) {
-	graphPtr->bottomMargin.height = graphPtr->bottomMargin.reqSize;
+    graphPtr->bottomMargin.height = graphPtr->bottomMargin.reqSize;
     }
 }
 
@@ -3201,22 +3201,22 @@ Rbc_LayoutMargins(graphPtr)
 
     ComputeMargins(graphPtr);
     left = graphPtr->leftMargin.width + graphPtr->inset +
-	   graphPtr->plotBorderWidth;
+       graphPtr->plotBorderWidth;
     right = graphPtr->rightMargin.width + graphPtr->inset +
-	    graphPtr->plotBorderWidth;
+        graphPtr->plotBorderWidth;
     top = graphPtr->topMargin.height + graphPtr->inset +
-	  graphPtr->plotBorderWidth;
+      graphPtr->plotBorderWidth;
     bottom = graphPtr->bottomMargin.height + graphPtr->inset +
-	     graphPtr->plotBorderWidth;
+         graphPtr->plotBorderWidth;
 
     /* Based upon the margins, calculate the space left for the graph. */
     width = graphPtr->width - (left + right);
     height = graphPtr->height - (top + bottom);
     if (width < 1) {
-	width = 1;
+    width = 1;
     }
     if (height < 1) {
-	height = 1;
+    height = 1;
     }
     graphPtr->left = left;
     graphPtr->right = left + width;
@@ -3229,10 +3229,10 @@ Rbc_LayoutMargins(graphPtr)
     graphPtr->hRange = width - PADDING(graphPtr->padX);
 
     if (graphPtr->vRange < 1) {
-	graphPtr->vRange = 1;
+    graphPtr->vRange = 1;
     }
     if (graphPtr->hRange < 1) {
-	graphPtr->hRange = 1;
+    graphPtr->hRange = 1;
     }
     graphPtr->hScale = 1.0 / (double)graphPtr->hRange;
     graphPtr->vScale = 1.0 / (double)graphPtr->vRange;
@@ -3273,36 +3273,36 @@ ConfigureAxis(graphPtr, axisPtr)
     /* Check the requested axis limits. Can't allow -min to be greater
      * than -max, or have undefined log scale limits.  */
     if (((DEFINED(axisPtr->reqMin)) && (DEFINED(axisPtr->reqMax))) &&
-	    (axisPtr->reqMin >= axisPtr->reqMax)) {
-	sprintf(errMsg, "impossible limits (min %g >= max %g) for axis \"%s\"",
-		axisPtr->reqMin, axisPtr->reqMax, axisPtr->name);
-	Tcl_AppendResult(graphPtr->interp, errMsg, (char *)NULL);
-	/* Bad values, turn on axis auto-scaling */
-	axisPtr->reqMin = axisPtr->reqMax = VALUE_UNDEFINED;
-	return TCL_ERROR;
+        (axisPtr->reqMin >= axisPtr->reqMax)) {
+    sprintf(errMsg, "impossible limits (min %g >= max %g) for axis \"%s\"",
+        axisPtr->reqMin, axisPtr->reqMax, axisPtr->name);
+    Tcl_AppendResult(graphPtr->interp, errMsg, (char *)NULL);
+    /* Bad values, turn on axis auto-scaling */
+    axisPtr->reqMin = axisPtr->reqMax = VALUE_UNDEFINED;
+    return TCL_ERROR;
     }
     if ((axisPtr->logScale) && (DEFINED(axisPtr->reqMin)) &&
-	    (axisPtr->reqMin <= 0.0)) {
-	sprintf(errMsg, "bad logscale limits (min=%g,max=%g) for axis \"%s\"",
-		axisPtr->reqMin, axisPtr->reqMax, axisPtr->name);
-	Tcl_AppendResult(graphPtr->interp, errMsg, (char *)NULL);
-	/* Bad minimum value, turn on auto-scaling */
-	axisPtr->reqMin = VALUE_UNDEFINED;
-	return TCL_ERROR;
+        (axisPtr->reqMin <= 0.0)) {
+    sprintf(errMsg, "bad logscale limits (min=%g,max=%g) for axis \"%s\"",
+        axisPtr->reqMin, axisPtr->reqMax, axisPtr->name);
+    Tcl_AppendResult(graphPtr->interp, errMsg, (char *)NULL);
+    /* Bad minimum value, turn on auto-scaling */
+    axisPtr->reqMin = VALUE_UNDEFINED;
+    return TCL_ERROR;
     }
     axisPtr->tickTextStyle.theta = FMOD(axisPtr->tickTextStyle.theta, 360.0);
     if (axisPtr->tickTextStyle.theta < 0.0) {
-	axisPtr->tickTextStyle.theta += 360.0;
+    axisPtr->tickTextStyle.theta += 360.0;
     }
     ResetTextStyles(graphPtr, axisPtr);
 
     axisPtr->titleWidth = axisPtr->titleHeight = 0;
     if (axisPtr->title != NULL) {
-	int w, h;
+    int w, h;
 
-	Rbc_GetTextExtents(&axisPtr->titleTextStyle, axisPtr->title, &w, &h);
-	axisPtr->titleWidth = (short int)w;
-	axisPtr->titleHeight = (short int)h;
+    Rbc_GetTextExtents(&axisPtr->titleTextStyle, axisPtr->title, &w, &h);
+    axisPtr->titleWidth = (short int)w;
+    axisPtr->titleHeight = (short int)h;
     }
 
     /*
@@ -3349,50 +3349,50 @@ CreateAxis(graphPtr, name, margin)
     int isNew;
 
     if (name[0] == '-') {
-	Tcl_AppendResult(graphPtr->interp, "name of axis \"", name,
-			 "\" can't start with a '-'", (char *)NULL);
-	return NULL;
+    Tcl_AppendResult(graphPtr->interp, "name of axis \"", name,
+             "\" can't start with a '-'", (char *)NULL);
+    return NULL;
     }
     hPtr = Tcl_CreateHashEntry(&graphPtr->axes.table, name, &isNew);
     if (!isNew) {
-	axisPtr = (Axis *)Tcl_GetHashValue(hPtr);
-	if (!axisPtr->deletePending) {
-	    Tcl_AppendResult(graphPtr->interp, "axis \"", name,
-			     "\" already exists in \"", Tk_PathName(graphPtr->tkwin), "\"",
-			     (char *)NULL);
-	    return NULL;
-	}
-	axisPtr->deletePending = FALSE;
+    axisPtr = (Axis *)Tcl_GetHashValue(hPtr);
+    if (!axisPtr->deletePending) {
+        Tcl_AppendResult(graphPtr->interp, "axis \"", name,
+                 "\" already exists in \"", Tk_PathName(graphPtr->tkwin), "\"",
+                 (char *)NULL);
+        return NULL;
+    }
+    axisPtr->deletePending = FALSE;
     } else {
-	axisPtr = RbcCalloc(1, sizeof(Axis));
-	assert(axisPtr);
+    axisPtr = RbcCalloc(1, sizeof(Axis));
+    assert(axisPtr);
 
-	axisPtr->name = RbcStrdup(name);
-	axisPtr->hashPtr = hPtr;
-	axisPtr->classUid = NULL;
-	axisPtr->looseMin = axisPtr->looseMax = TICK_RANGE_TIGHT;
-	axisPtr->reqNumMinorTicks = 2;
-	axisPtr->scrollUnits = 10;
-	axisPtr->showTicks = TRUE;
-	axisPtr->reqMin = axisPtr->reqMax = VALUE_UNDEFINED;
-	axisPtr->scrollMin = axisPtr->scrollMax = VALUE_UNDEFINED;
+    axisPtr->name = RbcStrdup(name);
+    axisPtr->hashPtr = hPtr;
+    axisPtr->classUid = NULL;
+    axisPtr->looseMin = axisPtr->looseMax = TICK_RANGE_TIGHT;
+    axisPtr->reqNumMinorTicks = 2;
+    axisPtr->scrollUnits = 10;
+    axisPtr->showTicks = TRUE;
+    axisPtr->reqMin = axisPtr->reqMax = VALUE_UNDEFINED;
+    axisPtr->scrollMin = axisPtr->scrollMax = VALUE_UNDEFINED;
 
-	if ((graphPtr->classUid == rbcBarElementUid) &&
-		((margin == MARGIN_TOP) || (margin == MARGIN_BOTTOM))) {
-	    axisPtr->reqStep = 1.0;
-	    axisPtr->reqNumMinorTicks = 0;
-	}
-	if ((margin == MARGIN_RIGHT) || (margin == MARGIN_TOP)) {
-	    axisPtr->hidden = TRUE;
-	}
-	Rbc_InitTextStyle(&axisPtr->titleTextStyle);
-	Rbc_InitTextStyle(&axisPtr->limitsTextStyle);
-	Rbc_InitTextStyle(&axisPtr->tickTextStyle);
-	axisPtr->tickLabels = Rbc_ChainCreate();
-	axisPtr->lineWidth = 1;
-	axisPtr->tickTextStyle.padX.side1 = 2;
-	axisPtr->tickTextStyle.padX.side2 = 2;
-	Tcl_SetHashValue(hPtr, axisPtr);
+    if ((graphPtr->classUid == rbcBarElementUid) &&
+        ((margin == MARGIN_TOP) || (margin == MARGIN_BOTTOM))) {
+        axisPtr->reqStep = 1.0;
+        axisPtr->reqNumMinorTicks = 0;
+    }
+    if ((margin == MARGIN_RIGHT) || (margin == MARGIN_TOP)) {
+        axisPtr->hidden = TRUE;
+    }
+    Rbc_InitTextStyle(&axisPtr->titleTextStyle);
+    Rbc_InitTextStyle(&axisPtr->limitsTextStyle);
+    Rbc_InitTextStyle(&axisPtr->tickTextStyle);
+    axisPtr->tickLabels = Rbc_ChainCreate();
+    axisPtr->lineWidth = 1;
+    axisPtr->tickTextStyle.padX.side1 = 2;
+    axisPtr->tickTextStyle.padX.side2 = 2;
+    Tcl_SetHashValue(hPtr, axisPtr);
     }
     return axisPtr;
 }
@@ -3414,24 +3414,24 @@ CreateAxis(graphPtr, name, margin)
  */
 static int
 NameToAxis(
-    Graph *graphPtr,	/* Graph widget record. */
-    const char *name,	/* Name of the axis to be searched for. */
-    Axis **axisPtrPtr)	/* (out) Pointer to found axis structure. */
+    Graph *graphPtr,    /* Graph widget record. */
+    const char *name,    /* Name of the axis to be searched for. */
+    Axis **axisPtrPtr)    /* (out) Pointer to found axis structure. */
 {
     Tcl_HashEntry *hPtr;
 
     hPtr = Tcl_FindHashEntry(&graphPtr->axes.table, name);
     if (hPtr != NULL) {
-	Axis *axisPtr;
+    Axis *axisPtr;
 
-	axisPtr = (Axis *)Tcl_GetHashValue(hPtr);
-	if (!axisPtr->deletePending) {
-	    *axisPtrPtr = axisPtr;
-	    return TCL_OK;
-	}
+    axisPtr = (Axis *)Tcl_GetHashValue(hPtr);
+    if (!axisPtr->deletePending) {
+        *axisPtrPtr = axisPtr;
+        return TCL_OK;
+    }
     }
     Tcl_AppendResult(graphPtr->interp, "can't find axis \"", name,
-		     "\" in \"", Tk_PathName(graphPtr->tkwin), "\"", (char *)NULL);
+             "\" in \"", Tk_PathName(graphPtr->tkwin), "\"", (char *)NULL);
     *axisPtrPtr = NULL;
     return TCL_ERROR;
 }
@@ -3461,19 +3461,19 @@ GetAxis(graphPtr, axisName, classUid, axisPtrPtr)
     Axis *axisPtr;
 
     if (NameToAxis(graphPtr, axisName, &axisPtr) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     if (classUid != NULL) {
-	if ((axisPtr->refCount == 0) || (axisPtr->classUid == NULL)) {
-	    /* Set the axis type on the first use of it. */
-	    axisPtr->classUid = classUid;
-	} else if (axisPtr->classUid != classUid) {
-	    Tcl_AppendResult(graphPtr->interp, "axis \"", axisName,
-			     "\" is already in use on an opposite ", axisPtr->classUid,
-			     "-axis", (char *)NULL);
-	    return TCL_ERROR;
-	}
-	axisPtr->refCount++;
+    if ((axisPtr->refCount == 0) || (axisPtr->classUid == NULL)) {
+        /* Set the axis type on the first use of it. */
+        axisPtr->classUid = classUid;
+    } else if (axisPtr->classUid != classUid) {
+        Tcl_AppendResult(graphPtr->interp, "axis \"", axisName,
+                 "\" is already in use on an opposite ", axisPtr->classUid,
+                 "-axis", (char *)NULL);
+        return TCL_ERROR;
+    }
+    axisPtr->refCount++;
     }
     *axisPtrPtr = axisPtr;
     return TCL_OK;
@@ -3501,7 +3501,7 @@ FreeAxis(graphPtr, axisPtr)
 {
     axisPtr->refCount--;
     if ((axisPtr->deletePending) && (axisPtr->refCount == 0)) {
-	DestroyAxis(graphPtr, axisPtr);
+    DestroyAxis(graphPtr, axisPtr);
     }
 }
 
@@ -3530,14 +3530,14 @@ Rbc_DestroyAxes(graphPtr)
     int i;
 
     for (hPtr = Tcl_FirstHashEntry(&graphPtr->axes.table, &cursor);
-	    hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
-	axisPtr = (Axis *)Tcl_GetHashValue(hPtr);
-	axisPtr->hashPtr = NULL;
-	DestroyAxis(graphPtr, axisPtr);
+        hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
+    axisPtr = (Axis *)Tcl_GetHashValue(hPtr);
+    axisPtr->hashPtr = NULL;
+    DestroyAxis(graphPtr, axisPtr);
     }
     Tcl_DeleteHashTable(&graphPtr->axes.table);
     for (i = 0; i < 4; i++) {
-	Rbc_ChainDestroy(graphPtr->axisChain[i]);
+    Rbc_ChainDestroy(graphPtr->axisChain[i]);
     }
     Tcl_DeleteHashTable(&graphPtr->axes.tagTable);
     Rbc_ChainDestroy(graphPtr->axes.displayList);
@@ -3570,34 +3570,34 @@ Rbc_DefaultAxes(graphPtr)
 
     flags = Rbc_GraphType(graphPtr);
     for (i = 0; i < 4; i++) {
-	chainPtr = Rbc_ChainCreate();
-	graphPtr->axisChain[i] = chainPtr;
+    chainPtr = Rbc_ChainCreate();
+    graphPtr->axisChain[i] = chainPtr;
 
-	/* Create a default axis for each chain. */
-	axisPtr = CreateAxis(graphPtr, axisNames[i], i);
-	if (axisPtr == NULL) {
-	    return TCL_ERROR;
-	}
-	axisPtr->refCount = 1;	/* Default axes are assumed in use. */
-	axisPtr->classUid = (i & 1) ? rbcYAxisUid : rbcXAxisUid;
-	axisPtr->flags |= AXIS_ONSCREEN;
+    /* Create a default axis for each chain. */
+    axisPtr = CreateAxis(graphPtr, axisNames[i], i);
+    if (axisPtr == NULL) {
+        return TCL_ERROR;
+    }
+    axisPtr->refCount = 1;    /* Default axes are assumed in use. */
+    axisPtr->classUid = (i & 1) ? rbcYAxisUid : rbcXAxisUid;
+    axisPtr->flags |= AXIS_ONSCREEN;
 
-	/*
-	 * Rbc_ConfigureWidgetComponent creates a temporary child window
-	 * by the name of the axis.  It's used so that the Tk routines
-	 * that access the X resource database can describe a single
-	 * component and not the entire graph.
-	 */
-	if (Rbc_ConfigureWidgetComponent(graphPtr->interp, graphPtr->tkwin,
-		     axisPtr->name, "Axis", configSpecs, 0,
-		     (Tcl_Obj *const *)NULL, (char *)axisPtr, flags) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	if (ConfigureAxis(graphPtr, axisPtr) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	axisPtr->linkPtr = Rbc_ChainAppend(chainPtr, axisPtr);
-	axisPtr->chainPtr = chainPtr;
+    /*
+     * Rbc_ConfigureWidgetComponent creates a temporary child window
+     * by the name of the axis.  It's used so that the Tk routines
+     * that access the X resource database can describe a single
+     * component and not the entire graph.
+     */
+    if (Rbc_ConfigureWidgetComponent(graphPtr->interp, graphPtr->tkwin,
+             axisPtr->name, "Axis", configSpecs, 0,
+             (Tcl_Obj *const *)NULL, (char *)axisPtr, flags) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (ConfigureAxis(graphPtr, axisPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    axisPtr->linkPtr = Rbc_ChainAppend(chainPtr, axisPtr);
+    axisPtr->chainPtr = chainPtr;
     }
     return TCL_OK;
 }
@@ -3627,7 +3627,7 @@ BindOp(
     Tcl_Interp *interp = graphPtr->interp;
 
     return Rbc_ConfigureBindingsFromObj(interp, graphPtr->bindTable,
-	Rbc_MakeAxisTag(graphPtr, axisPtr->name), objc, objv);
+    Rbc_MakeAxisTag(graphPtr, axisPtr->name), objc, objv);
 }
 
 /*
@@ -3655,7 +3655,7 @@ CgetOp(
     Tcl_Obj *const objv[])
 {
     return Tk_ConfigureValue(graphPtr->interp, graphPtr->tkwin, configSpecs,
-	(char *)axisPtr, Tcl_GetString(objv[0]), Rbc_GraphType(graphPtr));
+    (char *)axisPtr, Tcl_GetString(objv[0]), Rbc_GraphType(graphPtr));
 }
 
 /*
@@ -3687,26 +3687,26 @@ ConfigureOp(
 
     flags = TK_CONFIG_ARGV_ONLY | Rbc_GraphType(graphPtr);
     if (objc == 0) {
-	return Tk_ConfigureInfo(graphPtr->interp, graphPtr->tkwin, configSpecs,
-		(char *)axisPtr, (char *)NULL, flags);
+    return Tk_ConfigureInfo(graphPtr->interp, graphPtr->tkwin, configSpecs,
+        (char *)axisPtr, (char *)NULL, flags);
     } else if (objc == 1) {
-	return Tk_ConfigureInfo(graphPtr->interp, graphPtr->tkwin, configSpecs,
-		(char *)axisPtr, Tcl_GetString(objv[0]), flags);
+    return Tk_ConfigureInfo(graphPtr->interp, graphPtr->tkwin, configSpecs,
+        (char *)axisPtr, Tcl_GetString(objv[0]), flags);
     }
     if (Tk_ConfigureWidget(graphPtr->interp, graphPtr->tkwin, configSpecs,
-	       objc, objv, axisPtr, flags) != TCL_OK) {
-	return TCL_ERROR;
+           objc, objv, axisPtr, flags) != TCL_OK) {
+    return TCL_ERROR;
     }
     if (ConfigureAxis(graphPtr, axisPtr) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     if (axisPtr->flags & AXIS_ONSCREEN) {
-	if (!Rbc_ConfigModified(graphPtr->interp, configSpecs, "-*color", "-background", "-bg",
-				(char *)NULL)) {
-	    graphPtr->flags |= REDRAW_BACKING_STORE;
-	}
-	graphPtr->flags |= DRAW_MARGINS;
-	Rbc_EventuallyRedrawGraph(graphPtr);
+    if (!Rbc_ConfigModified(graphPtr->interp, configSpecs, "-*color", "-background", "-bg",
+                (char *)NULL)) {
+        graphPtr->flags |= REDRAW_BACKING_STORE;
+    }
+    graphPtr->flags |= DRAW_MARGINS;
+    Rbc_EventuallyRedrawGraph(graphPtr);
     }
     return TCL_OK;
 }
@@ -3741,14 +3741,14 @@ LimitsOp(
     Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
 
     if (graphPtr->flags & RESET_AXES) {
-	Rbc_ResetAxes(graphPtr);
+    Rbc_ResetAxes(graphPtr);
     }
     if (axisPtr->logScale) {
-	min = EXP10(axisPtr->axisRange.min);
-	max = EXP10(axisPtr->axisRange.max);
+    min = EXP10(axisPtr->axisRange.min);
+    max = EXP10(axisPtr->axisRange.max);
     } else {
-	min = axisPtr->axisRange.min;
-	max = axisPtr->axisRange.max;
+    min = axisPtr->axisRange.min;
+    max = axisPtr->axisRange.max;
     }
     Tcl_ListObjAppendElement(NULL, resultObj, Tcl_NewDoubleObj(min));
     Tcl_ListObjAppendElement(NULL, resultObj, Tcl_NewDoubleObj(max));
@@ -3782,14 +3782,14 @@ InvTransformOp(
     Tcl_Obj *const objv[])
 {
     Tcl_Interp *interp = graphPtr->interp;
-    int x;			/* Integer window coordinate*/
-    double y;			/* Real graph coordinate */
+    int x;            /* Integer window coordinate*/
+    double y;            /* Real graph coordinate */
 
     if (graphPtr->flags & RESET_AXES) {
-	Rbc_ResetAxes(graphPtr);
+    Rbc_ResetAxes(graphPtr);
     }
     if (Tcl_GetIntFromObj(interp, objv[0], &x) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     /*
      * Is the axis vertical or horizontal?
@@ -3799,9 +3799,9 @@ InvTransformOp(
      * element (using either -mapx or -mapy options).
      */
     if (AxisIsHorizontal(graphPtr, axisPtr)) {
-	y = Rbc_InvHMap(graphPtr, axisPtr, (double)x);
+    y = Rbc_InvHMap(graphPtr, axisPtr, (double)x);
     } else {
-	y = Rbc_InvVMap(graphPtr, axisPtr, (double)x);
+    y = Rbc_InvVMap(graphPtr, axisPtr, (double)x);
     }
     Tcl_SetObjResult(interp, Tcl_NewDoubleObj(y));
     return TCL_OK;
@@ -3837,15 +3837,15 @@ TransformOp(
     double x;
 
     if (graphPtr->flags & RESET_AXES) {
-	Rbc_ResetAxes(graphPtr);
+    Rbc_ResetAxes(graphPtr);
     }
     if (Tcl_ExprDoubleObj(interp, objv[0], &x) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     if (AxisIsHorizontal(graphPtr, axisPtr)) {
-	x = Rbc_HMap(graphPtr, axisPtr, x);
+    x = Rbc_HMap(graphPtr, axisPtr, x);
     } else {
-	x = Rbc_VMap(graphPtr, axisPtr, x);
+    x = Rbc_VMap(graphPtr, axisPtr, x);
     }
     Tcl_SetObjResult(interp, Tcl_NewIntObj((int)x));
     return TCL_OK;
@@ -3887,58 +3887,58 @@ UseOp(
 
     chainPtr = graphPtr->margins[margin].axes;
     if (objc == 0) {
-	Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
+    Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
 
-	for (linkPtr = Rbc_ChainFirstLink(chainPtr); linkPtr!= NULL;
-		linkPtr = Rbc_ChainNextLink(linkPtr)) {
-	    axisPtr = Rbc_ChainGetValue(linkPtr);
-	    Tcl_ListObjAppendElement(NULL, resultObj,
-		Tcl_NewStringObj(axisPtr->name, -1));
-	}
+    for (linkPtr = Rbc_ChainFirstLink(chainPtr); linkPtr!= NULL;
+        linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        axisPtr = Rbc_ChainGetValue(linkPtr);
+        Tcl_ListObjAppendElement(NULL, resultObj,
+        Tcl_NewStringObj(axisPtr->name, -1));
+    }
 
-	Tcl_SetObjResult(interp, resultObj);
-	return TCL_OK;
+    Tcl_SetObjResult(interp, resultObj);
+    return TCL_OK;
     }
     if ((margin == MARGIN_BOTTOM) || (margin == MARGIN_TOP)) {
-	classUid = (graphPtr->inverted) ? rbcYAxisUid : rbcXAxisUid;
+    classUid = (graphPtr->inverted) ? rbcYAxisUid : rbcXAxisUid;
     } else {
-	classUid = (graphPtr->inverted) ? rbcXAxisUid : rbcYAxisUid;
+    classUid = (graphPtr->inverted) ? rbcXAxisUid : rbcYAxisUid;
     }
     if (Tcl_ListObjGetElements(interp, objv[0], &nNames, &names) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
 
     for (linkPtr = Rbc_ChainFirstLink(chainPtr); linkPtr!= NULL;
-	    linkPtr = Rbc_ChainNextLink(linkPtr)) {
-	axisPtr = Rbc_ChainGetValue(linkPtr);
-	axisPtr->linkPtr = NULL;
-	axisPtr->flags &= ~AXIS_ONSCREEN;
-	/* Clear the axis type if it's not currently used.*/
-	if (axisPtr->refCount == 0) {
-	    axisPtr->classUid = NULL;
-	}
+        linkPtr = Rbc_ChainNextLink(linkPtr)) {
+    axisPtr = Rbc_ChainGetValue(linkPtr);
+    axisPtr->linkPtr = NULL;
+    axisPtr->flags &= ~AXIS_ONSCREEN;
+    /* Clear the axis type if it's not currently used.*/
+    if (axisPtr->refCount == 0) {
+        axisPtr->classUid = NULL;
+    }
     }
     Rbc_ChainReset(chainPtr);
     for (i = 0; i < nNames; i++) {
-	if (NameToAxis(graphPtr, Tcl_GetString(names[i]), &axisPtr) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	if (axisPtr->classUid == NULL) {
-	    axisPtr->classUid = classUid;
-	} else if (axisPtr->classUid != classUid) {
-	    Tcl_SetObjResult(interp, Tcl_ObjPrintf("wrong type axis \"%s\": "
-		"can't use %s type axis.", axisPtr->name, classUid));
-	    return TCL_ERROR;
-	}
-	if (axisPtr->linkPtr != NULL) {
-	    /* Move the axis from the old margin's "use" list to the new. */
-	    Rbc_ChainUnlinkLink(axisPtr->chainPtr, axisPtr->linkPtr);
-	    Rbc_ChainAppendLink(chainPtr, axisPtr->linkPtr);
-	} else {
-	    axisPtr->linkPtr = Rbc_ChainAppend(chainPtr, axisPtr);
-	}
-	axisPtr->chainPtr = chainPtr;
-	axisPtr->flags |= AXIS_ONSCREEN;
+    if (NameToAxis(graphPtr, Tcl_GetString(names[i]), &axisPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (axisPtr->classUid == NULL) {
+        axisPtr->classUid = classUid;
+    } else if (axisPtr->classUid != classUid) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("wrong type axis \"%s\": "
+        "can't use %s type axis.", axisPtr->name, classUid));
+        return TCL_ERROR;
+    }
+    if (axisPtr->linkPtr != NULL) {
+        /* Move the axis from the old margin's "use" list to the new. */
+        Rbc_ChainUnlinkLink(axisPtr->chainPtr, axisPtr->linkPtr);
+        Rbc_ChainAppendLink(chainPtr, axisPtr->linkPtr);
+    } else {
+        axisPtr->linkPtr = Rbc_ChainAppend(chainPtr, axisPtr);
+    }
+    axisPtr->chainPtr = chainPtr;
+    axisPtr->flags |= AXIS_ONSCREEN;
     }
     graphPtr->flags |= (GET_AXIS_GEOMETRY | LAYOUT_NEEDED | RESET_AXES);
     /* When any axis changes, we need to layout the entire graph.  */
@@ -3972,22 +3972,22 @@ BindVirtualOp(
     Tcl_Interp *interp = graphPtr->interp;
 
     if (objc == 3) {
-	Tcl_HashEntry *hPtr;
-	Tcl_HashSearch cursor;
-	char *tagName;
-	Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
+    Tcl_HashEntry *hPtr;
+    Tcl_HashSearch cursor;
+    char *tagName;
+    Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
 
-	for (hPtr = Tcl_FirstHashEntry(&graphPtr->axes.tagTable, &cursor);
-		hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
-	    tagName = Tcl_GetHashKey(&graphPtr->axes.tagTable, hPtr);
-	    Tcl_ListObjAppendElement(NULL, resultObj,
-		Tcl_NewStringObj(tagName, -1));
-	}
-	Tcl_SetObjResult(interp, resultObj);
-	return TCL_OK;
+    for (hPtr = Tcl_FirstHashEntry(&graphPtr->axes.tagTable, &cursor);
+        hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
+        tagName = Tcl_GetHashKey(&graphPtr->axes.tagTable, hPtr);
+        Tcl_ListObjAppendElement(NULL, resultObj,
+        Tcl_NewStringObj(tagName, -1));
+    }
+    Tcl_SetObjResult(interp, resultObj);
+    return TCL_OK;
     }
     return Rbc_ConfigureBindingsFromObj(interp, graphPtr->bindTable,
-	Rbc_MakeAxisTag(graphPtr, Tcl_GetString(objv[3])), objc-4, objv+4);
+    Rbc_MakeAxisTag(graphPtr, Tcl_GetString(objv[3])), objc-4, objv+4);
 }
 
 /*
@@ -4016,16 +4016,16 @@ CreateVirtualOp(
 
     axisPtr = CreateAxis(graphPtr, Tcl_GetString(objv[3]), MARGIN_NONE);
     if (axisPtr == NULL) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     flags = Rbc_GraphType(graphPtr);
     if (Rbc_ConfigureWidgetComponent(graphPtr->interp, graphPtr->tkwin,
-		 axisPtr->name, "Axis", configSpecs, objc-4, objv+4,
-		 (char *)axisPtr, flags) != TCL_OK) {
-	goto error;
+         axisPtr->name, "Axis", configSpecs, objc-4, objv+4,
+         (char *)axisPtr, flags) != TCL_OK) {
+    goto error;
     }
     if (ConfigureAxis(graphPtr, axisPtr) != TCL_OK) {
-	goto error;
+    goto error;
     }
     Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj(axisPtr->name, -1));
     return TCL_OK;
@@ -4059,7 +4059,7 @@ CgetVirtualOp(
     Axis *axisPtr;
 
     if (NameToAxis(graphPtr, Tcl_GetString(objv[3]), &axisPtr) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     return CgetOp(graphPtr, axisPtr, /*dummy*/0, objc-4, objv+4);
 }
@@ -4096,28 +4096,28 @@ ConfigureVirtualOp(
     objc -= 3;
     objv += 3;
     for (i = 0; i < objc; i++) {
-	const char *str = Tcl_GetString(objv[i]);
-	if (str[0] == '-') {
-	    break;
-	}
-	if (NameToAxis(graphPtr, str, &axisPtr) != TCL_OK) {
-	    return TCL_ERROR;
-	}
+    const char *str = Tcl_GetString(objv[i]);
+    if (str[0] == '-') {
+        break;
     }
-    nNames = i;			/* Number of pen names specified */
-    nOpts = objc - i;		/* Number of options specified */
-    options = objv + i;		/* Start of options in objv  */
+    if (NameToAxis(graphPtr, str, &axisPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    }
+    nNames = i;            /* Number of pen names specified */
+    nOpts = objc - i;        /* Number of options specified */
+    options = objv + i;        /* Start of options in objv  */
 
     for (i = 0; i < nNames; i++) {
-	if (NameToAxis(graphPtr, Tcl_GetString(objv[i]), &axisPtr) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	if (ConfigureOp(graphPtr, axisPtr, /*dummy*/0, nOpts, options) != TCL_OK) {
-	    break;
-	}
+    if (NameToAxis(graphPtr, Tcl_GetString(objv[i]), &axisPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (ConfigureOp(graphPtr, axisPtr, /*dummy*/0, nOpts, options) != TCL_OK) {
+        break;
+    }
     }
     if (i < nNames) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     return TCL_OK;
 }
@@ -4150,13 +4150,13 @@ DeleteVirtualOp(
     Axis *axisPtr;
 
     for (i = 3; i < objc; i++) {
-	if (NameToAxis(graphPtr, Tcl_GetString(objv[i]), &axisPtr) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	axisPtr->deletePending = TRUE;
-	if (axisPtr->refCount == 0) {
-	    DestroyAxis(graphPtr, axisPtr);
-	}
+    if (NameToAxis(graphPtr, Tcl_GetString(objv[i]), &axisPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    axisPtr->deletePending = TRUE;
+    if (axisPtr->refCount == 0) {
+        DestroyAxis(graphPtr, axisPtr);
+    }
     }
     return TCL_OK;
 }
@@ -4191,19 +4191,19 @@ GetOp(
     axisPtr = (Axis *)Rbc_GetCurrentItem(graphPtr->bindTable);
     /* Report only on axes. */
     if ((axisPtr != NULL) &&
-	    ((axisPtr->classUid == rbcXAxisUid) ||
-	     (axisPtr->classUid == rbcYAxisUid) ||
-	     (axisPtr->classUid == NULL))) {
-	const char *s = Tcl_GetString(objv[3]);
-	const char c = s[0];
+        ((axisPtr->classUid == rbcXAxisUid) ||
+         (axisPtr->classUid == rbcYAxisUid) ||
+         (axisPtr->classUid == NULL))) {
+    const char *s = Tcl_GetString(objv[3]);
+    const char c = s[0];
 
-	if ((c == 'c') && (strcmp(s, "current") == 0)) {
+    if ((c == 'c') && (strcmp(s, "current") == 0)) {
 //            Tcl_SetResult(interp, axisPtr->name, TCL_VOLATILE);
-	    Tcl_SetObjResult(interp, Tcl_NewStringObj(axisPtr->name, -1));
-	} else if ((c == 'd') && (strcmp(s, "detail") == 0)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(axisPtr->name, -1));
+    } else if ((c == 'd') && (strcmp(s, "detail") == 0)) {
 //            Tcl_SetResult(interp, axisPtr->detail, TCL_VOLATILE);
-	    Tcl_SetObjResult(interp, Tcl_NewStringObj(axisPtr->detail, -1));
-	}
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(axisPtr->detail, -1));
+    }
     }
     return TCL_OK;
 }
@@ -4234,7 +4234,7 @@ InvTransformVirtualOp(
     Axis *axisPtr;
 
     if (NameToAxis(graphPtr, Tcl_GetString(objv[3]), &axisPtr) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     return InvTransformOp(graphPtr, axisPtr, /*dummy*/0, objc-4, objv+4);
 }
@@ -4265,7 +4265,7 @@ LimitsVirtualOp(
     Axis *axisPtr;
 
     if (NameToAxis(graphPtr, Tcl_GetString(objv[3]), &axisPtr) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     return LimitsOp(graphPtr, axisPtr, /*dummy*/0,  objc-4, objv+4);
 }
@@ -4299,23 +4299,23 @@ NamesVirtualOp(
     Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
 
     for (hPtr = Tcl_FirstHashEntry(&graphPtr->axes.table, &cursor);
-	    hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
-	axisPtr = (Axis *)Tcl_GetHashValue(hPtr);
-	if (axisPtr->deletePending) {
-	    continue;
-	}
-	if (objc == 3) {
-	    Tcl_ListObjAppendElement(NULL, resultObj,
-		Tcl_NewStringObj(axisPtr->name, -1));
-	    continue;
-	}
-	for (i = 3; i < objc; i++) {
-	    if (Tcl_StringMatch(axisPtr->name, Tcl_GetString(objv[i]))) {
-		Tcl_ListObjAppendElement(NULL, resultObj,
-		    Tcl_NewStringObj(axisPtr->name, -1));
-		break;
-	    }
-	}
+        hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
+    axisPtr = (Axis *)Tcl_GetHashValue(hPtr);
+    if (axisPtr->deletePending) {
+        continue;
+    }
+    if (objc == 3) {
+        Tcl_ListObjAppendElement(NULL, resultObj,
+        Tcl_NewStringObj(axisPtr->name, -1));
+        continue;
+    }
+    for (i = 3; i < objc; i++) {
+        if (Tcl_StringMatch(axisPtr->name, Tcl_GetString(objv[i]))) {
+        Tcl_ListObjAppendElement(NULL, resultObj,
+            Tcl_NewStringObj(axisPtr->name, -1));
+        break;
+        }
+    }
     }
     Tcl_SetObjResult(interp, resultObj);
     return TCL_OK;
@@ -4326,7 +4326,7 @@ NamesVirtualOp(
  *
  * TransformVirtualOp --
  *
- *	Maps the given axis-value to a window coordinate.
+ *    Maps the given axis-value to a window coordinate.
  *
  * Results:
  *      Returns a standard Tcl result. The interpreter result contains
@@ -4348,7 +4348,7 @@ TransformVirtualOp(
     Axis *axisPtr;
 
     if (NameToAxis(graphPtr, Tcl_GetString(objv[3]), &axisPtr) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     return TransformOp(graphPtr, axisPtr, /*dummy*/0, objc-4, objv+4);
 }
@@ -4382,31 +4382,31 @@ ViewOp(
     double viewWidth, worldWidth;
 
     if (NameToAxis(graphPtr, Tcl_GetString(objv[3]), &axisPtr) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     worldMin = axisPtr->valueRange.min;
     worldMax = axisPtr->valueRange.max;
     /* Override data dimensions with user-selected limits. */
     if (DEFINED(axisPtr->scrollMin)) {
-	worldMin = axisPtr->scrollMin;
+    worldMin = axisPtr->scrollMin;
     }
     if (DEFINED(axisPtr->scrollMax)) {
-	worldMax = axisPtr->scrollMax;
+    worldMax = axisPtr->scrollMax;
     }
     viewMin = axisPtr->min;
     viewMax = axisPtr->max;
     /* Bound the view within scroll region. */
     if (viewMin < worldMin) {
-	viewMin = worldMin;
+    viewMin = worldMin;
     }
     if (viewMax > worldMax) {
-	viewMax = worldMax;
+    viewMax = worldMax;
     }
     if (axisPtr->logScale) {
-	worldMin = log10(worldMin);
-	worldMax = log10(worldMax);
-	viewMin = log10(viewMin);
-	viewMax = log10(viewMax);
+    worldMin = log10(worldMin);
+    worldMax = log10(worldMax);
+    viewMin = log10(viewMin);
+    viewMax = log10(viewMax);
     }
     worldWidth = worldMax - worldMin;
     viewWidth = viewMax - viewMin;
@@ -4416,41 +4416,41 @@ ViewOp(
      * axis minimum around, we move the maximum instead. */
 
     if (AxisIsHorizontal(graphPtr, axisPtr) != axisPtr->descending) {
-	axisOffset = viewMin - worldMin;
-	scrollUnits = (double)axisPtr->scrollUnits * graphPtr->hScale;
+    axisOffset = viewMin - worldMin;
+    scrollUnits = (double)axisPtr->scrollUnits * graphPtr->hScale;
     } else {
-	axisOffset = worldMax - viewMax;
-	scrollUnits = (double)axisPtr->scrollUnits * graphPtr->vScale;
+    axisOffset = worldMax - viewMax;
+    scrollUnits = (double)axisPtr->scrollUnits * graphPtr->vScale;
     }
     if (objc == 4) {
-	Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
+    Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
 
-	/* Note: Bound the fractions between 0.0 and 1.0 to support
-	 * "canvas"-style scrolling. */
-	fract = axisOffset / worldWidth;
-	Tcl_ListObjAppendElement(NULL, resultObj,
-	    Tcl_NewDoubleObj(CLAMP(fract, 0.0, 1.0)));
-	fract = (axisOffset + viewWidth) / worldWidth;
-	Tcl_ListObjAppendElement(NULL, resultObj,
-	    Tcl_NewDoubleObj(CLAMP(fract, 0.0, 1.0)));
-	Tcl_SetObjResult(interp, resultObj);
-	return TCL_OK;
+    /* Note: Bound the fractions between 0.0 and 1.0 to support
+     * "canvas"-style scrolling. */
+    fract = axisOffset / worldWidth;
+    Tcl_ListObjAppendElement(NULL, resultObj,
+        Tcl_NewDoubleObj(CLAMP(fract, 0.0, 1.0)));
+    fract = (axisOffset + viewWidth) / worldWidth;
+    Tcl_ListObjAppendElement(NULL, resultObj,
+        Tcl_NewDoubleObj(CLAMP(fract, 0.0, 1.0)));
+    Tcl_SetObjResult(interp, resultObj);
+    return TCL_OK;
     }
     fract = axisOffset / worldWidth;
     if (GetAxisScrollInfo(interp, objc-4, objv+4, &fract,
-		viewWidth / worldWidth, scrollUnits) != TCL_OK) {
-	return TCL_ERROR;
+        viewWidth / worldWidth, scrollUnits) != TCL_OK) {
+    return TCL_ERROR;
     }
     if (AxisIsHorizontal(graphPtr, axisPtr) != axisPtr->descending) {
-	axisPtr->reqMin = (fract * worldWidth) + worldMin;
-	axisPtr->reqMax = axisPtr->reqMin + viewWidth;
+    axisPtr->reqMin = (fract * worldWidth) + worldMin;
+    axisPtr->reqMax = axisPtr->reqMin + viewWidth;
     } else {
-	axisPtr->reqMax = worldMax - (fract * worldWidth);
-	axisPtr->reqMin = axisPtr->reqMax - viewWidth;
+    axisPtr->reqMax = worldMax - (fract * worldWidth);
+    axisPtr->reqMin = axisPtr->reqMax - viewWidth;
     }
     if (axisPtr->logScale) {
-	axisPtr->reqMin = EXP10(axisPtr->reqMin);
-	axisPtr->reqMax = EXP10(axisPtr->reqMax);
+    axisPtr->reqMin = EXP10(axisPtr->reqMin);
+    axisPtr->reqMax = EXP10(axisPtr->reqMax);
     }
     graphPtr->flags |= (GET_AXIS_GEOMETRY | LAYOUT_NEEDED | RESET_AXES);
     Rbc_EventuallyRedrawGraph(graphPtr);
@@ -4482,23 +4482,23 @@ Rbc_VirtualAxisOp(
     Rbc_Op proc;
     int result;
     static Rbc_OpSpec axisOps[] = {
-	{"bind",         (Rbc_Op)BindVirtualOp,         3, 6, "axisName sequence command"},
-	{"cget",         (Rbc_Op)CgetVirtualOp,         5, 5, "axisName option"},
-	{"configure",    (Rbc_Op)ConfigureVirtualOp,    4, 0, "axisName ?axisName?... ?option value?..."},
-	{"create",       (Rbc_Op)CreateVirtualOp,       4, 0, "axisName ?option value?..."},
-	{"delete",       (Rbc_Op)DeleteVirtualOp,       3, 0, "?axisName?..."},
-	{"get",          (Rbc_Op)GetOp,                 4, 4, "name"},
-	{"invtransform", (Rbc_Op)InvTransformVirtualOp, 5, 5, "axisName value"},
-	{"limits",       (Rbc_Op)LimitsVirtualOp,       4, 4, "axisName"},
-	{"names",        (Rbc_Op)NamesVirtualOp,        3, 0, "?pattern?..."},
-	{"transform",    (Rbc_Op)TransformVirtualOp,    5, 5, "axisName value"},
-	{"view",         (Rbc_Op)ViewOp,                4, 7, "axisName ?moveto fract? ?scroll number what?"},
-	RBC_OPSPEC_END
+    {"bind",         (Rbc_Op)BindVirtualOp,         3, 6, "axisName sequence command"},
+    {"cget",         (Rbc_Op)CgetVirtualOp,         5, 5, "axisName option"},
+    {"configure",    (Rbc_Op)ConfigureVirtualOp,    4, 0, "axisName ?axisName?... ?option value?..."},
+    {"create",       (Rbc_Op)CreateVirtualOp,       4, 0, "axisName ?option value?..."},
+    {"delete",       (Rbc_Op)DeleteVirtualOp,       3, 0, "?axisName?..."},
+    {"get",          (Rbc_Op)GetOp,                 4, 4, "name"},
+    {"invtransform", (Rbc_Op)InvTransformVirtualOp, 5, 5, "axisName value"},
+    {"limits",       (Rbc_Op)LimitsVirtualOp,       4, 4, "axisName"},
+    {"names",        (Rbc_Op)NamesVirtualOp,        3, 0, "?pattern?..."},
+    {"transform",    (Rbc_Op)TransformVirtualOp,    5, 5, "axisName value"},
+    {"view",         (Rbc_Op)ViewOp,                4, 7, "axisName ?moveto fract? ?scroll number what?"},
+    RBC_OPSPEC_END
     };
 
     proc = Rbc_GetOpFromObj(interp, axisOps, RBC_OP_ARG2, objc, objv);
     if (proc == NULL) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     result = (*proc) (graphPtr, objc, objv);
     return result;
@@ -4530,19 +4530,19 @@ Rbc_AxisOp(
     Rbc_Op proc;
     Axis *axisPtr;
     static Rbc_OpSpec axisOps[] = {
-	{"bind",         (Rbc_Op)BindOp,         2, 5, "sequence command"},
-	{"cget",         (Rbc_Op)CgetOp,         4, 4, "option"},
-	{"configure",    (Rbc_Op)ConfigureOp,    3, 0, "?option value?..."},
-	{"invtransform", (Rbc_Op)InvTransformOp, 4, 4, "value"},
-	{"limits",       (Rbc_Op)LimitsOp,       3, 3, ""},
-	{"transform",    (Rbc_Op)TransformOp,    4, 4, "value"},
-	{"use",          (Rbc_Op)UseOp,          3, 4, "?axisName?"},
-	RBC_OPSPEC_END
+    {"bind",         (Rbc_Op)BindOp,         2, 5, "sequence command"},
+    {"cget",         (Rbc_Op)CgetOp,         4, 4, "option"},
+    {"configure",    (Rbc_Op)ConfigureOp,    3, 0, "?option value?..."},
+    {"invtransform", (Rbc_Op)InvTransformOp, 4, 4, "value"},
+    {"limits",       (Rbc_Op)LimitsOp,       3, 3, ""},
+    {"transform",    (Rbc_Op)TransformOp,    4, 4, "value"},
+    {"use",          (Rbc_Op)UseOp,          3, 4, "?axisName?"},
+    RBC_OPSPEC_END
     };
 
     proc = Rbc_GetOpFromObj(graphPtr->interp, axisOps, RBC_OP_ARG2, objc, objv);
     if (proc == NULL) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     axisPtr = Rbc_GetFirstAxis(graphPtr->margins[margin].axes);
     result = (*proc)(graphPtr, axisPtr, margin, objc-3, objv+3);
@@ -4575,20 +4575,20 @@ Rbc_MapAxes(graphPtr)
     int offset;
 
     for (margin = 0; margin < 4; margin++) {
-	chainPtr = graphPtr->margins[margin].axes;
-	offset = 0;
-	for (linkPtr = Rbc_ChainFirstLink(chainPtr); linkPtr != NULL;
-		linkPtr = Rbc_ChainNextLink(linkPtr)) {
-	    axisPtr = Rbc_ChainGetValue(linkPtr);
-	    if ((!axisPtr->hidden) && (axisPtr->flags & AXIS_ONSCREEN)) {
-		MapAxis(graphPtr, axisPtr, offset, margin);
-		if (AxisIsHorizontal(graphPtr, axisPtr)) {
-		    offset += axisPtr->height;
-		} else {
-		    offset += axisPtr->width;
-		}
-	    }
-	}
+    chainPtr = graphPtr->margins[margin].axes;
+    offset = 0;
+    for (linkPtr = Rbc_ChainFirstLink(chainPtr); linkPtr != NULL;
+        linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        axisPtr = Rbc_ChainGetValue(linkPtr);
+        if ((!axisPtr->hidden) && (axisPtr->flags & AXIS_ONSCREEN)) {
+        MapAxis(graphPtr, axisPtr, offset, margin);
+        if (AxisIsHorizontal(graphPtr, axisPtr)) {
+            offset += axisPtr->height;
+        } else {
+            offset += axisPtr->width;
+        }
+        }
+    }
     }
 }
 
@@ -4617,13 +4617,13 @@ Rbc_DrawAxes(graphPtr, drawable)
     register int i;
 
     for (i = 0; i < 4; i++) {
-	for (linkPtr = Rbc_ChainFirstLink(graphPtr->margins[i].axes);
-		linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
-	    axisPtr = Rbc_ChainGetValue(linkPtr);
-	    if ((!axisPtr->hidden) && (axisPtr->flags & AXIS_ONSCREEN)) {
-		DrawAxis(graphPtr, drawable, axisPtr);
-	    }
-	}
+    for (linkPtr = Rbc_ChainFirstLink(graphPtr->margins[i].axes);
+        linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        axisPtr = Rbc_ChainGetValue(linkPtr);
+        if ((!axisPtr->hidden) && (axisPtr->flags & AXIS_ONSCREEN)) {
+        DrawAxis(graphPtr, drawable, axisPtr);
+        }
+    }
     }
 }
 
@@ -4652,13 +4652,13 @@ Rbc_AxesToPostScript(graphPtr, psToken)
     register int i;
 
     for (i = 0; i < 4; i++) {
-	for (linkPtr = Rbc_ChainFirstLink(graphPtr->margins[i].axes);
-		linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
-	    axisPtr = Rbc_ChainGetValue(linkPtr);
-	    if ((!axisPtr->hidden) && (axisPtr->flags & AXIS_ONSCREEN)) {
-		AxisToPostScript(psToken, axisPtr);
-	    }
-	}
+    for (linkPtr = Rbc_ChainFirstLink(graphPtr->margins[i].axes);
+        linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        axisPtr = Rbc_ChainGetValue(linkPtr);
+        if ((!axisPtr->hidden) && (axisPtr->flags & AXIS_ONSCREEN)) {
+        AxisToPostScript(psToken, axisPtr);
+        }
+    }
     }
 }
 
@@ -4698,64 +4698,64 @@ Rbc_DrawAxisLimits(graphPtr, drawable)
 
 #define SPACING 8
     vMin = vMax = graphPtr->left + graphPtr->padLeft + 2;
-    hMin = hMax = graphPtr->bottom - graphPtr->padBottom - 2;	/* Offsets */
+    hMin = hMax = graphPtr->bottom - graphPtr->padBottom - 2;    /* Offsets */
 
     for (hPtr = Tcl_FirstHashEntry(&graphPtr->axes.table, &cursor);
-	    hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
-	axisPtr = (Axis *)Tcl_GetHashValue(hPtr);
+        hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
+    axisPtr = (Axis *)Tcl_GetHashValue(hPtr);
 
-	if (axisPtr->nFormats == 0) {
-	    continue;
-	}
-	isHoriz = AxisIsHorizontal(graphPtr, axisPtr);
-	minPtr = maxPtr = NULL;
-	minFormat = maxFormat = axisPtr->limitsFormats[0];
-	if (axisPtr->nFormats > 1) {
-	    maxFormat = axisPtr->limitsFormats[1];
-	}
-	if (minFormat[0] != '\0') {
-	    minPtr = minString;
-	    sprintf(minString, minFormat, axisPtr->axisRange.min);
-	}
-	if (maxFormat[0] != '\0') {
-	    maxPtr = maxString;
-	    sprintf(maxString, maxFormat, axisPtr->axisRange.max);
-	}
-	if (axisPtr->descending) {
-	    char *tmp;
+    if (axisPtr->nFormats == 0) {
+        continue;
+    }
+    isHoriz = AxisIsHorizontal(graphPtr, axisPtr);
+    minPtr = maxPtr = NULL;
+    minFormat = maxFormat = axisPtr->limitsFormats[0];
+    if (axisPtr->nFormats > 1) {
+        maxFormat = axisPtr->limitsFormats[1];
+    }
+    if (minFormat[0] != '\0') {
+        minPtr = minString;
+        sprintf(minString, minFormat, axisPtr->axisRange.min);
+    }
+    if (maxFormat[0] != '\0') {
+        maxPtr = maxString;
+        sprintf(maxString, maxFormat, axisPtr->axisRange.max);
+    }
+    if (axisPtr->descending) {
+        char *tmp;
 
-	    tmp = minPtr, minPtr = maxPtr, maxPtr = tmp;
-	}
-	if (maxPtr != NULL) {
-	    if (isHoriz) {
-		axisPtr->limitsTextStyle.theta = 90.0;
-		axisPtr->limitsTextStyle.anchor = TK_ANCHOR_SE;
-		Rbc_DrawText2(graphPtr->tkwin, drawable, maxPtr,
-			      &axisPtr->limitsTextStyle, graphPtr->right, hMax, &textDim);
-		hMax -= (textDim.height + SPACING);
-	    } else {
-		axisPtr->limitsTextStyle.theta = 0.0;
-		axisPtr->limitsTextStyle.anchor = TK_ANCHOR_NW;
-		Rbc_DrawText2(graphPtr->tkwin, drawable, maxPtr,
-			      &axisPtr->limitsTextStyle, vMax, graphPtr->top, &textDim);
-		vMax += (textDim.width + SPACING);
-	    }
-	}
-	if (minPtr != NULL) {
-	    axisPtr->limitsTextStyle.anchor = TK_ANCHOR_SW;
-	    if (isHoriz) {
-		axisPtr->limitsTextStyle.theta = 90.0;
-		Rbc_DrawText2(graphPtr->tkwin, drawable, minPtr,
-			      &axisPtr->limitsTextStyle, graphPtr->left, hMin, &textDim);
-		hMin -= (textDim.height + SPACING);
-	    } else {
-		axisPtr->limitsTextStyle.theta = 0.0;
-		Rbc_DrawText2(graphPtr->tkwin, drawable, minPtr,
-			      &axisPtr->limitsTextStyle, vMin, graphPtr->bottom, &textDim);
-		vMin += (textDim.width + SPACING);
-	    }
-	}
-    }				/* Loop on axes */
+        tmp = minPtr, minPtr = maxPtr, maxPtr = tmp;
+    }
+    if (maxPtr != NULL) {
+        if (isHoriz) {
+        axisPtr->limitsTextStyle.theta = 90.0;
+        axisPtr->limitsTextStyle.anchor = TK_ANCHOR_SE;
+        Rbc_DrawText2(graphPtr->tkwin, drawable, maxPtr,
+                  &axisPtr->limitsTextStyle, graphPtr->right, hMax, &textDim);
+        hMax -= (textDim.height + SPACING);
+        } else {
+        axisPtr->limitsTextStyle.theta = 0.0;
+        axisPtr->limitsTextStyle.anchor = TK_ANCHOR_NW;
+        Rbc_DrawText2(graphPtr->tkwin, drawable, maxPtr,
+                  &axisPtr->limitsTextStyle, vMax, graphPtr->top, &textDim);
+        vMax += (textDim.width + SPACING);
+        }
+    }
+    if (minPtr != NULL) {
+        axisPtr->limitsTextStyle.anchor = TK_ANCHOR_SW;
+        if (isHoriz) {
+        axisPtr->limitsTextStyle.theta = 90.0;
+        Rbc_DrawText2(graphPtr->tkwin, drawable, minPtr,
+                  &axisPtr->limitsTextStyle, graphPtr->left, hMin, &textDim);
+        hMin -= (textDim.height + SPACING);
+        } else {
+        axisPtr->limitsTextStyle.theta = 0.0;
+        Rbc_DrawText2(graphPtr->tkwin, drawable, minPtr,
+                  &axisPtr->limitsTextStyle, vMin, graphPtr->bottom, &textDim);
+        vMin += (textDim.width + SPACING);
+        }
+    }
+    }                /* Loop on axes */
 }
 
 /*
@@ -4788,60 +4788,60 @@ Rbc_AxisLimitsToPostScript(graphPtr, psToken)
 
 #define SPACING 8
     vMin = vMax = graphPtr->left + graphPtr->padLeft + 2;
-    hMin = hMax = graphPtr->bottom - graphPtr->padBottom - 2;	/* Offsets */
+    hMin = hMax = graphPtr->bottom - graphPtr->padBottom - 2;    /* Offsets */
     for (hPtr = Tcl_FirstHashEntry(&graphPtr->axes.table, &cursor);
-	    hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
-	axisPtr = (Axis *)Tcl_GetHashValue(hPtr);
+        hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
+    axisPtr = (Axis *)Tcl_GetHashValue(hPtr);
 
-	if (axisPtr->nFormats == 0) {
-	    continue;
-	}
-	minFmt = maxFmt = axisPtr->limitsFormats[0];
-	if (axisPtr->nFormats > 1) {
-	    maxFmt = axisPtr->limitsFormats[1];
-	}
-	if (*maxFmt != '\0') {
-	    sprintf(string, maxFmt, axisPtr->axisRange.max);
-	    Rbc_GetTextExtents(&axisPtr->tickTextStyle, string, &textWidth,
-			       &textHeight);
-	    if ((textWidth > 0) && (textHeight > 0)) {
-		if (axisPtr->classUid == rbcXAxisUid) {
-		    axisPtr->limitsTextStyle.theta = 90.0;
-		    axisPtr->limitsTextStyle.anchor = TK_ANCHOR_SE;
-		    Rbc_TextToPostScript(psToken, string,
-					 &axisPtr->limitsTextStyle,
-					 (double)graphPtr->right, hMax);
-		    hMax -= (textWidth + SPACING);
-		} else {
-		    axisPtr->limitsTextStyle.theta = 0.0;
-		    axisPtr->limitsTextStyle.anchor = TK_ANCHOR_NW;
-		    Rbc_TextToPostScript(psToken, string,
-					 &axisPtr->limitsTextStyle, vMax, (double)graphPtr->top);
-		    vMax += (textWidth + SPACING);
-		}
-	    }
-	}
-	if (*minFmt != '\0') {
-	    sprintf(string, minFmt, axisPtr->axisRange.min);
-	    Rbc_GetTextExtents(&axisPtr->tickTextStyle, string, &textWidth,
-			       &textHeight);
-	    if ((textWidth > 0) && (textHeight > 0)) {
-		axisPtr->limitsTextStyle.anchor = TK_ANCHOR_SW;
-		if (axisPtr->classUid == rbcXAxisUid) {
-		    axisPtr->limitsTextStyle.theta = 90.0;
-		    Rbc_TextToPostScript(psToken, string,
-					 &axisPtr->limitsTextStyle,
-					 (double)graphPtr->left, hMin);
-		    hMin -= (textWidth + SPACING);
-		} else {
-		    axisPtr->limitsTextStyle.theta = 0.0;
-		    Rbc_TextToPostScript(psToken, string,
-					 &axisPtr->limitsTextStyle,
-					 vMin, (double)graphPtr->bottom);
-		    vMin += (textWidth + SPACING);
-		}
-	    }
-	}
+    if (axisPtr->nFormats == 0) {
+        continue;
+    }
+    minFmt = maxFmt = axisPtr->limitsFormats[0];
+    if (axisPtr->nFormats > 1) {
+        maxFmt = axisPtr->limitsFormats[1];
+    }
+    if (*maxFmt != '\0') {
+        sprintf(string, maxFmt, axisPtr->axisRange.max);
+        Rbc_GetTextExtents(&axisPtr->tickTextStyle, string, &textWidth,
+                   &textHeight);
+        if ((textWidth > 0) && (textHeight > 0)) {
+        if (axisPtr->classUid == rbcXAxisUid) {
+            axisPtr->limitsTextStyle.theta = 90.0;
+            axisPtr->limitsTextStyle.anchor = TK_ANCHOR_SE;
+            Rbc_TextToPostScript(psToken, string,
+                     &axisPtr->limitsTextStyle,
+                     (double)graphPtr->right, hMax);
+            hMax -= (textWidth + SPACING);
+        } else {
+            axisPtr->limitsTextStyle.theta = 0.0;
+            axisPtr->limitsTextStyle.anchor = TK_ANCHOR_NW;
+            Rbc_TextToPostScript(psToken, string,
+                     &axisPtr->limitsTextStyle, vMax, (double)graphPtr->top);
+            vMax += (textWidth + SPACING);
+        }
+        }
+    }
+    if (*minFmt != '\0') {
+        sprintf(string, minFmt, axisPtr->axisRange.min);
+        Rbc_GetTextExtents(&axisPtr->tickTextStyle, string, &textWidth,
+                   &textHeight);
+        if ((textWidth > 0) && (textHeight > 0)) {
+        axisPtr->limitsTextStyle.anchor = TK_ANCHOR_SW;
+        if (axisPtr->classUid == rbcXAxisUid) {
+            axisPtr->limitsTextStyle.theta = 90.0;
+            Rbc_TextToPostScript(psToken, string,
+                     &axisPtr->limitsTextStyle,
+                     (double)graphPtr->left, hMin);
+            hMin -= (textWidth + SPACING);
+        } else {
+            axisPtr->limitsTextStyle.theta = 0.0;
+            Rbc_TextToPostScript(psToken, string,
+                     &axisPtr->limitsTextStyle,
+                     vMin, (double)graphPtr->bottom);
+            vMin += (textWidth + SPACING);
+        }
+        }
+    }
     }
 }
 
@@ -4868,7 +4868,7 @@ Rbc_GetFirstAxis(chainPtr)
 
     linkPtr = Rbc_ChainFirstLink(chainPtr);
     if (linkPtr == NULL) {
-	return NULL;
+    return NULL;
     }
     return Rbc_ChainGetValue(linkPtr);
 }
@@ -4901,62 +4901,62 @@ Rbc_NearestAxis(graphPtr, x, y)
     Point2D bbox[5];
 
     for (hPtr = Tcl_FirstHashEntry(&graphPtr->axes.table, &cursor);
-	    hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
-	axisPtr = (Axis *)Tcl_GetHashValue(hPtr);
-	if ((axisPtr->hidden) || (!(axisPtr->flags & AXIS_ONSCREEN))) {
-	    continue;		/* Don't check hidden axes or axes
-				 * that are virtual. */
-	}
-	if (axisPtr->showTicks) {
-	    register Rbc_ChainLink *linkPtr;
-	    TickLabel *labelPtr;
-	    Point2D t;
+        hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
+    axisPtr = (Axis *)Tcl_GetHashValue(hPtr);
+    if ((axisPtr->hidden) || (!(axisPtr->flags & AXIS_ONSCREEN))) {
+        continue;        /* Don't check hidden axes or axes
+                 * that are virtual. */
+    }
+    if (axisPtr->showTicks) {
+        register Rbc_ChainLink *linkPtr;
+        TickLabel *labelPtr;
+        Point2D t;
 
-	    for (linkPtr = Rbc_ChainFirstLink(axisPtr->tickLabels);
-		    linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
-		labelPtr = Rbc_ChainGetValue(linkPtr);
-		Rbc_GetBoundingBox(labelPtr->width, labelPtr->height,
-				   axisPtr->tickTextStyle.theta, &rotWidth, &rotHeight, bbox);
-		width = ROUND(rotWidth);
-		height = ROUND(rotHeight);
-		t = Rbc_TranslatePoint(&labelPtr->anchorPos, width, height, axisPtr->tickTextStyle.anchor);
-		t.x = x - t.x - (width * 0.5);
-		t.y = y - t.y - (height * 0.5);
+        for (linkPtr = Rbc_ChainFirstLink(axisPtr->tickLabels);
+            linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        labelPtr = Rbc_ChainGetValue(linkPtr);
+        Rbc_GetBoundingBox(labelPtr->width, labelPtr->height,
+                   axisPtr->tickTextStyle.theta, &rotWidth, &rotHeight, bbox);
+        width = ROUND(rotWidth);
+        height = ROUND(rotHeight);
+        t = Rbc_TranslatePoint(&labelPtr->anchorPos, width, height, axisPtr->tickTextStyle.anchor);
+        t.x = x - t.x - (width * 0.5);
+        t.y = y - t.y - (height * 0.5);
 
-		bbox[4] = bbox[0];
-		if (Rbc_PointInPolygon(&t, bbox, 5)) {
-		    axisPtr->detail = "label";
-		    return axisPtr;
-		}
-	    }
-	}
-	if (axisPtr->title != NULL) { /* and then the title string. */
-	    Point2D t;
+        bbox[4] = bbox[0];
+        if (Rbc_PointInPolygon(&t, bbox, 5)) {
+            axisPtr->detail = "label";
+            return axisPtr;
+        }
+        }
+    }
+    if (axisPtr->title != NULL) { /* and then the title string. */
+        Point2D t;
 
-	    Rbc_GetTextExtents(&axisPtr->titleTextStyle, axisPtr->title,&width,
-			       &height);
-	    Rbc_GetBoundingBox(width, height, axisPtr->titleTextStyle.theta,
-			       &rotWidth, &rotHeight, bbox);
-	    width = ROUND(rotWidth);
-	    height = ROUND(rotHeight);
-	    t = Rbc_TranslatePoint(&axisPtr->titlePos, width, height, axisPtr->titleTextStyle.anchor);
-	    /* Translate the point so that the 0,0 is the upper left
-	     * corner of the bounding box.  */
-	    t.x = x - t.x - (width / 2);
-	    t.y = y - t.y - (height / 2);
+        Rbc_GetTextExtents(&axisPtr->titleTextStyle, axisPtr->title,&width,
+                   &height);
+        Rbc_GetBoundingBox(width, height, axisPtr->titleTextStyle.theta,
+                   &rotWidth, &rotHeight, bbox);
+        width = ROUND(rotWidth);
+        height = ROUND(rotHeight);
+        t = Rbc_TranslatePoint(&axisPtr->titlePos, width, height, axisPtr->titleTextStyle.anchor);
+        /* Translate the point so that the 0,0 is the upper left
+         * corner of the bounding box.  */
+        t.x = x - t.x - (width / 2);
+        t.y = y - t.y - (height / 2);
 
-	    bbox[4] = bbox[0];
-	    if (Rbc_PointInPolygon(&t, bbox, 5)) {
-		axisPtr->detail = "title";
-		return axisPtr;
-	    }
-	}
-	if (axisPtr->lineWidth > 0) { /* Check for the axis region */
-	    if (PointInRegion(&axisPtr->region, x, y)) {
-		axisPtr->detail = "line";
-		return axisPtr;
-	    }
-	}
+        bbox[4] = bbox[0];
+        if (Rbc_PointInPolygon(&t, bbox, 5)) {
+        axisPtr->detail = "title";
+        return axisPtr;
+        }
+    }
+    if (axisPtr->lineWidth > 0) { /* Check for the axis region */
+        if (PointInRegion(&axisPtr->region, x, y)) {
+        axisPtr->detail = "line";
+        return axisPtr;
+        }
+    }
     }
     return NULL;
 }

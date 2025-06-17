@@ -14,17 +14,17 @@
 
 #include <tcl.h>
 
-#define Rbc_ChainGetLength(c)	(((c) == NULL) ? 0 : (c)->nLinks)
-#define Rbc_ChainFirstLink(c)	(((c) == NULL) ? NULL : (c)->headPtr)
-#define Rbc_ChainLastLink(c)	(((c) == NULL) ? NULL : (c)->tailPtr)
-#define Rbc_ChainPrevLink(l)	((l)->prevPtr)
-#define Rbc_ChainNextLink(l) 	((l)->nextPtr)
-#define Rbc_ChainGetValue(l)  	((l)->clientData)
+#define Rbc_ChainGetLength(c)    (((c) == NULL) ? 0 : (c)->nLinks)
+#define Rbc_ChainFirstLink(c)    (((c) == NULL) ? NULL : (c)->headPtr)
+#define Rbc_ChainLastLink(c)    (((c) == NULL) ? NULL : (c)->tailPtr)
+#define Rbc_ChainPrevLink(l)    ((l)->prevPtr)
+#define Rbc_ChainNextLink(l)     ((l)->nextPtr)
+#define Rbc_ChainGetValue(l)      ((l)->clientData)
 #define Rbc_ChainSetValue(l, value) ((l)->clientData = (ClientData)(value))
 #define Rbc_ChainAppendLink(c, l) \
-	(Rbc_ChainLinkBefore((c), (l), (Rbc_ChainLink *)NULL))
+    (Rbc_ChainLinkBefore((c), (l), (Rbc_ChainLink *)NULL))
 #define Rbc_ChainPrependLink(c, l) \
-	(Rbc_ChainLinkAfter((c), (l), (Rbc_ChainLink *)NULL))
+    (Rbc_ChainLinkAfter((c), (l), (Rbc_ChainLink *)NULL))
 
 typedef struct Rbc_ChainLinkStruct Rbc_ChainLink;
 
@@ -33,8 +33,8 @@ typedef struct Rbc_ChainLinkStruct Rbc_ChainLink;
  */
 
 struct Rbc_ChainLinkStruct {
-    Rbc_ChainLink *prevPtr;	/* Link to the previous link */
-    Rbc_ChainLink *nextPtr;	/* Link to the next link */
+    Rbc_ChainLink *prevPtr;    /* Link to the previous link */
+    Rbc_ChainLink *nextPtr;    /* Link to the next link */
     ClientData clientData; /* Pointer to the data object */
 };
 
@@ -45,8 +45,8 @@ typedef int (Rbc_ChainCompareProc) (Rbc_ChainLink **l1PtrPtr,  Rbc_ChainLink **l
  */
 
 typedef struct {
-    Rbc_ChainLink *headPtr;	/* Pointer to first element in chain */
-    Rbc_ChainLink *tailPtr;	/* Pointer to last element in chain */
+    Rbc_ChainLink *headPtr;    /* Pointer to first element in chain */
+    Rbc_ChainLink *tailPtr;    /* Pointer to last element in chain */
     int nLinks; /* Number of elements in chain */
 } Rbc_Chain;
 

@@ -35,12 +35,12 @@
 void
 Rbc_ExpandParseValue(parsePtr, needed)
     ParseValue *parsePtr; /* Information about buffer that
-			   * must be expanded.  If the clientData
-			   * in the structure is non-zero, it
-			   * means that the current buffer is
-			   * dynamically allocated. */
+               * must be expanded.  If the clientData
+               * in the structure is non-zero, it
+               * means that the current buffer is
+               * dynamically allocated. */
     int needed; /* Minimum amount of additional space
-		 * to allocate. */
+         * to allocate. */
 {
     int size;
     char *buffer;
@@ -51,9 +51,9 @@ Rbc_ExpandParseValue(parsePtr, needed)
      */
     size = (parsePtr->end - parsePtr->buffer) + 1;
     if (size < needed) {
-	size += needed;
+    size += needed;
     } else {
-	size += size;
+    size += size;
     }
     buffer = (char *) ckalloc((unsigned int) size);
 
@@ -64,7 +64,7 @@ Rbc_ExpandParseValue(parsePtr, needed)
     memcpy((void *) buffer, (void *) parsePtr->buffer, (size_t) (parsePtr->next - parsePtr->buffer));
     parsePtr->next = buffer + (parsePtr->next - parsePtr->buffer);
     if (parsePtr->clientData != 0) {
-	ckfree((char *)parsePtr->buffer);
+    ckfree((char *)parsePtr->buffer);
     }
     parsePtr->buffer = buffer;
     parsePtr->end = buffer + size - 1;
@@ -100,13 +100,13 @@ Rbc_ExpandParseValue(parsePtr, needed)
 int
 Rbc_ParseNestedCmd(interp, string, flags, termPtr, parsePtr)
     Tcl_Interp *interp; /* Interpreter to use for nested command
-			 * evaluations and error messages. */
+             * evaluations and error messages. */
     char *string; /* Character just after opening bracket. */
     int flags; /* Flags to pass to nested Tcl_Eval. */
     char **termPtr; /* Store address of terminating character
-		     * here. */
+             * here. */
     ParseValue *parsePtr; /* Information about where to place
-			   * result of command. */
+               * result of command. */
 {
     int result, length, shortfall;
     Interp *iPtr = (Interp *) interp;
@@ -115,21 +115,21 @@ Rbc_ParseNestedCmd(interp, string, flags, termPtr, parsePtr)
     result = Tcl_Eval(interp, string);
     *termPtr = (string + iPtr->termOffset);
     if (result != TCL_OK) {
-	/*
-	 * The increment below results in slightly cleaner message in
-	 * the errorInfo variable (the close-bracket will appear).
-	 */
+    /*
+     * The increment below results in slightly cleaner message in
+     * the errorInfo variable (the close-bracket will appear).
+     */
 
-	if (**termPtr == ']') {
-	    *termPtr += 1;
-	}
-	return result;
+    if (**termPtr == ']') {
+        *termPtr += 1;
+    }
+    return result;
     }
     (*termPtr) += 1;
     length = strlen(iPtr->result);
     shortfall = length + 1 - (parsePtr->end - parsePtr->next);
     if (shortfall > 0) {
-	(*parsePtr->expandProc)(parsePtr, shortfall);
+    (*parsePtr->expandProc)(parsePtr, shortfall);
     }
     strcpy(parsePtr->next, iPtr->result);
     parsePtr->next += length;
@@ -169,11 +169,11 @@ Rbc_ParseNestedCmd(interp, string, flags, termPtr, parsePtr)
 int
 Rbc_ParseBraces(interp, string, termPtr, parsePtr)
     Tcl_Interp *interp; /* Interpreter to use for nested command
-			 * evaluations and error messages. */
+             * evaluations and error messages. */
     char *string; /* Character just after opening bracket. */
     char **termPtr; /* Store address of terminating character here. */
     ParseValue *parsePtr; /* Information about where to place
-			   * result of command. */
+               * result of command. */
 {
     int level;
     register char *src, *dest, *end;
@@ -191,62 +191,62 @@ Rbc_ParseBraces(interp, string, termPtr, parsePtr)
      */
 
     for (;;) {
-	c = *src;
-	src++;
+    c = *src;
+    src++;
 
-	if (dest == end) {
-	    parsePtr->next = dest;
-	    (*parsePtr->expandProc)(parsePtr, 20);
-	    dest = parsePtr->next;
-	    end = parsePtr->end;
-	}
-	*dest = c;
-	dest++;
+    if (dest == end) {
+        parsePtr->next = dest;
+        (*parsePtr->expandProc)(parsePtr, 20);
+        dest = parsePtr->next;
+        end = parsePtr->end;
+    }
+    *dest = c;
+    dest++;
 
-	if (CHAR_TYPE(src - 1, lastChar)== TCL_NORMAL) {
-	    continue;
-	} else if (c == '{') {
-	    level++;
-	} else if (c == '}') {
-	    level--;
-	    if (level == 0) {
-		dest--; /* Don't copy the last close brace. */
-		break;
-	    }
-	} else if (c == '\\') {
-	    int count;
+    if (CHAR_TYPE(src - 1, lastChar)== TCL_NORMAL) {
+        continue;
+    } else if (c == '{') {
+        level++;
+    } else if (c == '}') {
+        level--;
+        if (level == 0) {
+        dest--; /* Don't copy the last close brace. */
+        break;
+        }
+    } else if (c == '\\') {
+        int count;
 
-	    /*
-	     * Must always squish out backslash-newlines, even when in
-	     * braces.  This is needed so that this sequence can appear
-	     * anywhere in a command, such as the middle of an expression.
-	     */
+        /*
+         * Must always squish out backslash-newlines, even when in
+         * braces.  This is needed so that this sequence can appear
+         * anywhere in a command, such as the middle of an expression.
+         */
 
-	    if (*src == '\n') {
+        if (*src == '\n') {
 //                dest[-1] = Tcl_UtfBackslash(src - 1, &count);
-		Tcl_UtfBackslash(src - 1, &count, dest-1);
-		src += count - 1;
-	    } else {
-		char dummy[4];
-		Tcl_UtfBackslash(src - 1, &count, dummy);
-		while (count > 1) {
-		    if (dest == end) {
-			parsePtr->next = dest;
-			(*parsePtr->expandProc)(parsePtr, 20);
-			dest = parsePtr->next;
-			end = parsePtr->end;
-		    }
-		    *dest = *src;
-		    dest++;
-		    src++;
-		    count--;
-		}
-	    }
-	} else if (c == '\0') {
-	    Tcl_AppendResult(interp, "missing close-brace", (char *) NULL);
-	    *termPtr = string - 1;
-	    return TCL_ERROR;
-	}
+        Tcl_UtfBackslash(src - 1, &count, dest-1);
+        src += count - 1;
+        } else {
+        char dummy[4];
+        Tcl_UtfBackslash(src - 1, &count, dummy);
+        while (count > 1) {
+            if (dest == end) {
+            parsePtr->next = dest;
+            (*parsePtr->expandProc)(parsePtr, 20);
+            dest = parsePtr->next;
+            end = parsePtr->end;
+            }
+            *dest = *src;
+            dest++;
+            src++;
+            count--;
+        }
+        }
+    } else if (c == '\0') {
+        Tcl_AppendResult(interp, "missing close-brace", (char *) NULL);
+        *termPtr = string - 1;
+        return TCL_ERROR;
+    }
     }
 
     *dest = '\0';
@@ -287,17 +287,17 @@ Rbc_ParseBraces(interp, string, termPtr, parsePtr)
 int
 Rbc_ParseQuotes(interp, string, termChar, flags, termPtr, parsePtr)
     Tcl_Interp *interp; /* Interpreter to use for nested command
-			 * evaluations and error messages. */
+             * evaluations and error messages. */
     char *string; /* Character just after opening double-
-		   * quote. */
+           * quote. */
     int termChar; /* Character that terminates "quoted" string
-		   * (usually double-quote, but sometimes
-		   * right-paren or something else). */
+           * (usually double-quote, but sometimes
+           * right-paren or something else). */
     int flags; /* Flags to pass to nested Tcl_Eval calls. */
     char **termPtr; /* Store address of terminating character
-		     * here. */
+             * here. */
     ParseValue *parsePtr; /* Information about where to place
-			   * fully-substituted result of parse. */
+               * fully-substituted result of parse. */
 {
     register char *src, *dest, c;
     char *lastChar = string + strlen(string);
@@ -306,75 +306,75 @@ Rbc_ParseQuotes(interp, string, termChar, flags, termPtr, parsePtr)
     dest = parsePtr->next;
 
     for (;;) {
-	if (dest == parsePtr->end) {
-	    /*
-	     * Target buffer space is about to run out.  Make more space.
-	     */
-	    parsePtr->next = dest;
-	    (*parsePtr->expandProc)(parsePtr, 1);
-	    dest = parsePtr->next;
-	}
-	c = *src;
-	src++;
-	if (c == termChar) {
-	    *dest = '\0';
-	    parsePtr->next = dest;
-	    *termPtr = src;
-	    return TCL_OK;
-	} else if (CHAR_TYPE(src - 1, lastChar)== TCL_NORMAL) {
+    if (dest == parsePtr->end) {
+        /*
+         * Target buffer space is about to run out.  Make more space.
+         */
+        parsePtr->next = dest;
+        (*parsePtr->expandProc)(parsePtr, 1);
+        dest = parsePtr->next;
+    }
+    c = *src;
+    src++;
+    if (c == termChar) {
+        *dest = '\0';
+        parsePtr->next = dest;
+        *termPtr = src;
+        return TCL_OK;
+    } else if (CHAR_TYPE(src - 1, lastChar)== TCL_NORMAL) {
 copy:
-	    *dest = c;
-	    dest++;
-	    continue;
-	} else if (c == '$') {
-	    int length;
-	    const char *value;
-	    /* (const char**) */
-	    value = Tcl_ParseVar(interp, src - 1, (const char**)termPtr);
-	    if (value == NULL) {
-		return TCL_ERROR;
-	    }
-	    src = *termPtr;
-	    length = strlen(value);
-	    if ((parsePtr->end - dest) <= length) {
-		parsePtr->next = dest;
-		(*parsePtr->expandProc)(parsePtr, length);
-		dest = parsePtr->next;
-	    }
-	    strcpy(dest, value);
-	    dest += length;
-	    continue;
-	} else if (c == '[') {
-	    int result;
+        *dest = c;
+        dest++;
+        continue;
+    } else if (c == '$') {
+        int length;
+        const char *value;
+        /* (const char**) */
+        value = Tcl_ParseVar(interp, src - 1, (const char**)termPtr);
+        if (value == NULL) {
+        return TCL_ERROR;
+        }
+        src = *termPtr;
+        length = strlen(value);
+        if ((parsePtr->end - dest) <= length) {
+        parsePtr->next = dest;
+        (*parsePtr->expandProc)(parsePtr, length);
+        dest = parsePtr->next;
+        }
+        strcpy(dest, value);
+        dest += length;
+        continue;
+    } else if (c == '[') {
+        int result;
 
-	    parsePtr->next = dest;
-	    result = Rbc_ParseNestedCmd(interp, src, flags, termPtr, parsePtr);
-	    if (result != TCL_OK) {
-		return result;
-	    }
-	    src = *termPtr;
-	    dest = parsePtr->next;
-	    continue;
-	} else if (c == '\\') {
-	    int nRead, nWritten;
+        parsePtr->next = dest;
+        result = Rbc_ParseNestedCmd(interp, src, flags, termPtr, parsePtr);
+        if (result != TCL_OK) {
+        return result;
+        }
+        src = *termPtr;
+        dest = parsePtr->next;
+        continue;
+    } else if (c == '\\') {
+        int nRead, nWritten;
 
-	    src--;
+        src--;
 //            *dest = Tcl_Backslash(src, &nRead);
 //            dest++;
-	    nWritten = Tcl_UtfBackslash(src, &nRead, dest);
-	    dest += nWritten;
-	    src += nRead;
-	    continue;
-	} else if (c == '\0') {
-	    char buf[30];
+        nWritten = Tcl_UtfBackslash(src, &nRead, dest);
+        dest += nWritten;
+        src += nRead;
+        continue;
+    } else if (c == '\0') {
+        char buf[30];
 
-	    Tcl_ResetResult(interp);
-	    sprintf(buf, "missing %c", termChar);
-	    Tcl_SetResult(interp, buf, TCL_VOLATILE);
-	    *termPtr = string - 1;
-	    return TCL_ERROR;
-	} else {
-	    goto copy;
-	}
+        Tcl_ResetResult(interp);
+        sprintf(buf, "missing %c", termChar);
+        Tcl_SetResult(interp, buf, TCL_VOLATILE);
+        *termPtr = string - 1;
+        return TCL_ERROR;
+    } else {
+        goto copy;
+    }
     }
 }

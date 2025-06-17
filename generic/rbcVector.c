@@ -42,10 +42,10 @@ static double
 MakeNaN(void)
 {
     union Real {
-	struct DoubleWord {
-	    int lo, hi;
-	} doubleWord;
-	double number;
+    struct DoubleWord {
+        int lo, hi;
+    } doubleWord;
+    double number;
     } real;
 
     real.doubleWord.lo = real.doubleWord.hi = 0x7FFFFFFF;
@@ -66,20 +66,20 @@ static double
 MakeNaN(void)
 {
     /* copied over from generic/tclStrToD.c */
-#   define NAN_START	0x7FF8
-#   define NAN_MASK	(((Tcl_WideUInt) 1) << 51)
-    int signum = 0;	/* Sign bit (1=negative, 0=nonnegative. */
+#   define NAN_START    0x7FF8
+#   define NAN_MASK    (((Tcl_WideUInt) 1) << 51)
+    int signum = 0;    /* Sign bit (1=negative, 0=nonnegative. */
     union {
-	Tcl_WideUInt iv;
-	double dv;
+    Tcl_WideUInt iv;
+    double dv;
     } theNaN;
 
     theNaN.iv = 0;
     theNaN.iv &= NAN_MASK - 1;
     if (signum) {
-	theNaN.iv |= ((Tcl_WideUInt) (0x8000 | NAN_START)) << 48;
+    theNaN.iv |= ((Tcl_WideUInt) (0x8000 | NAN_START)) << 48;
     } else {
-	theNaN.iv |= ((Tcl_WideUInt) NAN_START) << 48;
+    theNaN.iv |= ((Tcl_WideUInt) NAN_START) << 48;
     }
     return theNaN.dv;
 
@@ -151,7 +151,7 @@ VectorObjCmd(dataPtr, interp, objc, objv)
     Rbc_Op proc;
     proc = Rbc_GetOpFromObj(interp, vectorOpCmd, RBC_OP_ARG1, objc, objv);
     if (NULL == proc) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
 
     return proc(dataPtr, interp, objc, objv);
@@ -171,17 +171,17 @@ static Tcl_Size ParseBool(
     int *dst = (int *)dstPtr;
 
     if (objc == 0) {
-	/* Deep voodoo here. objv[0] is the option argument, but we ignore
-	 * which option is. However, if we end up here, it means that objv[-1]
-	 * holds the option name that trigger the call.
-	 */
-	Tcl_AppendResult(interp, "\"", Tcl_GetString(objv[-1]),
-	    "\" option requires an additional argument", NULL);
-	return -1;
+    /* Deep voodoo here. objv[0] is the option argument, but we ignore
+     * which option is. However, if we end up here, it means that objv[-1]
+     * holds the option name that trigger the call.
+     */
+    Tcl_AppendResult(interp, "\"", Tcl_GetString(objv[-1]),
+        "\" option requires an additional argument", NULL);
+    return -1;
     }
     if (Tcl_GetBooleanFromObj(interp, objv[0], &value) == TCL_OK) {
-	*dst = value;
-	return 1;
+    *dst = value;
+    return 1;
     }
     return -1;
 }
@@ -223,12 +223,12 @@ VectorCreateObjCmd(clientData, interp, objc, objv)
     Tcl_DString ds;
     register int i;
     const Tcl_ArgvInfo argsTable[] = {
-	{TCL_ARGV_STRING,  "-command",    NULL,      &cmdName,     NULL, NULL},
-	{TCL_ARGV_GENFUNC, "-flush",      ParseBool, &flush,       NULL, NULL},
-	{TCL_ARGV_INT,     "-length",     NULL,      &defLen,      NULL, NULL},
-	{TCL_ARGV_STRING,  "-variable",   NULL,      &varName,     NULL, NULL},
-	{TCL_ARGV_GENFUNC, "-watchunset", ParseBool, &freeOnUnset, NULL, NULL},
-	TCL_ARGV_TABLE_END
+    {TCL_ARGV_STRING,  "-command",    NULL,      &cmdName,     NULL, NULL},
+    {TCL_ARGV_GENFUNC, "-flush",      ParseBool, &flush,       NULL, NULL},
+    {TCL_ARGV_INT,     "-length",     NULL,      &defLen,      NULL, NULL},
+    {TCL_ARGV_STRING,  "-variable",   NULL,      &varName,     NULL, NULL},
+    {TCL_ARGV_GENFUNC, "-watchunset", ParseBool, &freeOnUnset, NULL, NULL},
+    TCL_ARGV_TABLE_END
     };
 
     /*
@@ -243,39 +243,39 @@ VectorCreateObjCmd(clientData, interp, objc, objv)
 
     count = objc - 1; /* start at "create" */
     if (Tcl_ParseArgsObjv(interp, argsTable, &count, objv+1, &objNameArray)) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
 
     /* finished parsing arguments -> do some sanity checks: */
     Tcl_DStringInit(&ds);
     resultPtr = Tcl_NewObj();
     if (defLen < 0) {
-	Tcl_AppendStringsToObj(resultPtr, "value for \"-length\" option "
-	    "must be zero or greater", NULL);
-	Tcl_SetObjResult(interp, resultPtr);
-	goto error;
+    Tcl_AppendStringsToObj(resultPtr, "value for \"-length\" option "
+        "must be zero or greater", NULL);
+    Tcl_SetObjResult(interp, resultPtr);
+    goto error;
     }
     if (count == 1) {
-	/* T_PAO always returns at least 1, "create" */
-	Tcl_AppendStringsToObj(resultPtr, "no vector names supplied", NULL);
-	Tcl_SetObjResult(interp, resultPtr);
-	goto error;
+    /* T_PAO always returns at least 1, "create" */
+    Tcl_AppendStringsToObj(resultPtr, "no vector names supplied", NULL);
+    Tcl_SetObjResult(interp, resultPtr);
+    goto error;
     } else if (count > 2) {
-	/* more than one vector was specified */
-	if ((cmdName != NULL) && (cmdName[0] != '\0')) {
-	    Tcl_AppendStringsToObj(resultPtr,
-		"can't specify more than one vector with \"-command\" switch",
-		NULL);
-	    Tcl_SetObjResult(interp, resultPtr);
-	    goto error;
-	}
-	if ((varName != NULL) && (varName[0] != '\0')) {
-	    Tcl_AppendStringsToObj(resultPtr,
-		"can't specify more than one vector with \"-variable\" switch",
-		NULL);
-	    Tcl_SetObjResult(interp, resultPtr);
-	    goto error;
-	}
+    /* more than one vector was specified */
+    if ((cmdName != NULL) && (cmdName[0] != '\0')) {
+        Tcl_AppendStringsToObj(resultPtr,
+        "can't specify more than one vector with \"-command\" switch",
+        NULL);
+        Tcl_SetObjResult(interp, resultPtr);
+        goto error;
+    }
+    if ((varName != NULL) && (varName[0] != '\0')) {
+        Tcl_AppendStringsToObj(resultPtr,
+        "can't specify more than one vector with \"-variable\" switch",
+        NULL);
+        Tcl_SetObjResult(interp, resultPtr);
+        goto error;
+    }
     }
 
     /* Now process the vector names and check their validity
@@ -285,101 +285,101 @@ VectorCreateObjCmd(clientData, interp, objc, objv)
      */
     vPtr = NULL;
     for (i = 1; i < count; i++) {
-	char *leftParen, *rightParen; /* positions of left and right parens in vector specification */
-	int isNew, size, first, last;
-	char *vecName; /* name of a vector */
+    char *leftParen, *rightParen; /* positions of left and right parens in vector specification */
+    int isNew, size, first, last;
+    char *vecName; /* name of a vector */
 
-	Tcl_DStringFree(&ds);
-	Tcl_DStringAppend(&ds, Tcl_GetString(objNameArray[i]), -1);
-	vecName = Tcl_DStringValue(&ds);
-	size = defLen; /* set to default value */
-	first = last = 0;
+    Tcl_DStringFree(&ds);
+    Tcl_DStringAppend(&ds, Tcl_GetString(objNameArray[i]), -1);
+    vecName = Tcl_DStringValue(&ds);
+    size = defLen; /* set to default value */
+    first = last = 0;
 
-	leftParen = strchr(vecName, '(');
-	rightParen = strchr(vecName, ')');
-	if (((leftParen != NULL) && (rightParen == NULL)) ||
-	    ((leftParen == NULL) && (rightParen != NULL)) ||
-	    (leftParen > rightParen))
-	{
-	    Tcl_AppendStringsToObj(resultPtr, "bad vector specification \"",
-		vecName, "\"", NULL);
-	    Tcl_SetObjResult(interp, resultPtr);
-	    goto error;
-	}
-	if (leftParen != NULL) {
-	    int result;
-	    char *colon;
+    leftParen = strchr(vecName, '(');
+    rightParen = strchr(vecName, ')');
+    if (((leftParen != NULL) && (rightParen == NULL)) ||
+        ((leftParen == NULL) && (rightParen != NULL)) ||
+        (leftParen > rightParen))
+    {
+        Tcl_AppendStringsToObj(resultPtr, "bad vector specification \"",
+        vecName, "\"", NULL);
+        Tcl_SetObjResult(interp, resultPtr);
+        goto error;
+    }
+    if (leftParen != NULL) {
+        int result;
+        char *colon;
 
-	    *rightParen = '\0';
-	    colon = strchr(leftParen + 1, ':');
-	    if (colon != NULL) {
-		/* Specification is in the form vecName(first:last) */
-		*colon = '\0';
-		result = Tcl_GetInt(interp, leftParen + 1, &first);
-		if ((*(colon + 1) != '\0') && (result == TCL_OK)) {
-		    result = Tcl_GetInt(interp, colon + 1, &last);
-		    if (first > last) {
-			Tcl_AppendStringsToObj(resultPtr,
-			    "bad vector range \"", vecName, "\"", NULL);
-			Tcl_SetObjResult(interp, resultPtr);
-			result = TCL_ERROR;
-		    }
-		    size = (last - first) + 1;
-		}
-		*colon = ':';
-	    } else {
-		/* Specification is in the form vecName(size) */
-		result = Tcl_GetInt(interp, leftParen + 1, &size);
-	    }
-	    *rightParen = ')';
-	    if (result != TCL_OK) {
-		goto error;
-	    }
-	    if (size < 0) {
-		Tcl_AppendStringsToObj(resultPtr, "bad vector size \"",
-		    vecName, "\"", NULL);
-		Tcl_SetObjResult(interp, resultPtr);
-		goto error;
-	    }
-	}
-	if (leftParen != NULL) {
-	    *leftParen = '\0';
-	}
+        *rightParen = '\0';
+        colon = strchr(leftParen + 1, ':');
+        if (colon != NULL) {
+        /* Specification is in the form vecName(first:last) */
+        *colon = '\0';
+        result = Tcl_GetInt(interp, leftParen + 1, &first);
+        if ((*(colon + 1) != '\0') && (result == TCL_OK)) {
+            result = Tcl_GetInt(interp, colon + 1, &last);
+            if (first > last) {
+            Tcl_AppendStringsToObj(resultPtr,
+                "bad vector range \"", vecName, "\"", NULL);
+            Tcl_SetObjResult(interp, resultPtr);
+            result = TCL_ERROR;
+            }
+            size = (last - first) + 1;
+        }
+        *colon = ':';
+        } else {
+        /* Specification is in the form vecName(size) */
+        result = Tcl_GetInt(interp, leftParen + 1, &size);
+        }
+        *rightParen = ')';
+        if (result != TCL_OK) {
+        goto error;
+        }
+        if (size < 0) {
+        Tcl_AppendStringsToObj(resultPtr, "bad vector size \"",
+            vecName, "\"", NULL);
+        Tcl_SetObjResult(interp, resultPtr);
+        goto error;
+        }
+    }
+    if (leftParen != NULL) {
+        *leftParen = '\0';
+    }
 
-	/*
-	 * actually create the vector:
-	 */
-	vPtr = Rbc_VectorCreate(dataPtr, vecName,
-		(cmdName == NULL) ? vecName : cmdName,
-		(varName == NULL) ? vecName : varName, &isNew);
+    /*
+     * actually create the vector:
+     */
+    vPtr = Rbc_VectorCreate(dataPtr, vecName,
+        (cmdName == NULL) ? vecName : cmdName,
+        (varName == NULL) ? vecName : varName, &isNew);
 
-	if (leftParen != NULL) {
-	    *leftParen = '(';
-	}
-	if (vPtr == NULL) {
-	    goto error;
-	}
-	vPtr->freeOnUnset = freeOnUnset;
-	vPtr->flush = flush;
-	vPtr->offset = first;
-	if (size > 0) {
-	    if (Rbc_VectorChangeLength(vPtr, size) != TCL_OK) {
-		goto error;
-	    }
-	}
-	if (!isNew) {
-	    if (vPtr->flush) {
-		VectorFlushCache(vPtr);
-	    }
-	    Rbc_VectorUpdateClients(vPtr);
-	}
+    if (leftParen != NULL) {
+        *leftParen = '(';
+    }
+    if (vPtr == NULL) {
+        goto error;
+    }
+    vPtr->freeOnUnset = freeOnUnset;
+    vPtr->flush = flush;
+    vPtr->offset = first;
+    if (size > 0) {
+        if (Rbc_VectorChangeLength(vPtr, size) != TCL_OK) {
+        goto error;
+        }
+    }
+    if (!isNew) {
+        if (vPtr->flush) {
+        VectorFlushCache(vPtr);
+        }
+        Rbc_VectorUpdateClients(vPtr);
+    }
     }
 
     ckfree(objNameArray);
     Tcl_DStringFree(&ds);
     if (vPtr != NULL) {
-	/* Return the name of the last vector created  */
-	Tcl_AppendStringsToObj(resultPtr, vPtr->name , NULL);
+    /* Return the name of the last vector created  */
+    Tcl_AppendStringsToObj(resultPtr, vPtr->name , NULL);
     }
     Tcl_SetObjResult(interp, resultPtr);
     return TCL_OK;
@@ -418,10 +418,10 @@ VectorDestroyObjCmd(clientData, interp, objc, objv)
     VectorObject *vPtr;
     register int i;
     for (i = 2; i < objc; i++) {
-	if (Rbc_VectorLookupName(dataPtr, Tcl_GetString(objv[i]), &vPtr) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	Rbc_VectorFree(vPtr);
+    if (Rbc_VectorLookupName(dataPtr, Tcl_GetString(objv[i]), &vPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    Rbc_VectorFree(vPtr);
     }
 
     return TCL_OK;
@@ -485,10 +485,10 @@ VectorNamesObjCmd(clientData, interp, objc, objv)
 
     resultPtr = Tcl_NewListObj(0, NULL);
     for (hPtr = Tcl_FirstHashEntry(&(dataPtr->vectorTable), &cursor); hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
-	name = Tcl_GetHashKey(&(dataPtr->vectorTable), hPtr);
-	if ((objc == 2) || (Tcl_StringMatch(name, Tcl_GetString(objv[2])))) {
-	    Tcl_ListObjAppendElement(interp, resultPtr, Tcl_NewStringObj(name, -1));
-	}
+    name = Tcl_GetHashKey(&(dataPtr->vectorTable), hPtr);
+    if ((objc == 2) || (Tcl_StringMatch(name, Tcl_GetString(objv[2])))) {
+        Tcl_ListObjAppendElement(interp, resultPtr, Tcl_NewStringObj(name, -1));
+    }
     }
     Tcl_SetObjResult(interp, resultPtr);
     return TCL_OK;
@@ -521,16 +521,16 @@ Rbc_VectorGetInterpData(interp)
 
     dataPtr = (VectorInterpData *) Tcl_GetAssocData(interp, VECTOR_THREAD_KEY, &proc);
     if (dataPtr == NULL) {
-	dataPtr = (VectorInterpData *) ckalloc(sizeof(VectorInterpData));
-	/***	assert(dataPtr); */
-	dataPtr->interp = interp;
-	dataPtr->nextId = 0;
-	Tcl_SetAssocData(interp, VECTOR_THREAD_KEY, VectorInterpDeleteProc, dataPtr);
-	Tcl_InitHashTable(&(dataPtr->vectorTable), TCL_STRING_KEYS);
-	Tcl_InitHashTable(&(dataPtr->mathProcTable), TCL_STRING_KEYS);
-	Tcl_InitHashTable(&(dataPtr->indexProcTable), TCL_STRING_KEYS);
-	Rbc_VectorInstallMathFunctions(&(dataPtr->mathProcTable));
-	Rbc_VectorInstallSpecialIndices(&(dataPtr->indexProcTable));
+    dataPtr = (VectorInterpData *) ckalloc(sizeof(VectorInterpData));
+    /***    assert(dataPtr); */
+    dataPtr->interp = interp;
+    dataPtr->nextId = 0;
+    Tcl_SetAssocData(interp, VECTOR_THREAD_KEY, VectorInterpDeleteProc, dataPtr);
+    Tcl_InitHashTable(&(dataPtr->vectorTable), TCL_STRING_KEYS);
+    Tcl_InitHashTable(&(dataPtr->mathProcTable), TCL_STRING_KEYS);
+    Tcl_InitHashTable(&(dataPtr->indexProcTable), TCL_STRING_KEYS);
+    Rbc_VectorInstallMathFunctions(&(dataPtr->mathProcTable));
+    Rbc_VectorInstallSpecialIndices(&(dataPtr->indexProcTable));
 #ifdef HAVE_SRAND48
 //        what does this do??
 //        srand48(time((time_t *) NULL));
@@ -567,9 +567,9 @@ VectorInterpDeleteProc(clientData, interp)
     VectorObject *vPtr;
 
     for (hPtr = Tcl_FirstHashEntry(&(dataPtr->vectorTable), &cursor); hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
-	vPtr = (VectorObject *) Tcl_GetHashValue(hPtr);
-	vPtr->hashPtr = NULL;
-	Rbc_VectorFree(vPtr);
+    vPtr = (VectorObject *) Tcl_GetHashValue(hPtr);
+    vPtr->hashPtr = NULL;
+    Rbc_VectorFree(vPtr);
     }
     Tcl_DeleteHashTable(&(dataPtr->vectorTable));
 
@@ -663,103 +663,103 @@ Rbc_VectorCreate(dataPtr, vecName, cmdName, varName, newPtr)
     /* process the vector name: */
     vecName = BuildQualifiedName(interp, vecName, &qualVecNamePtr);
     if (ParseQualifiedName(interp, vecName, &nsPtr, &vecNameTail) != TCL_OK) {
-	Tcl_AppendStringsToObj(resultPtr, "unknown namespace in \"", vecName,
-			       "\"", NULL);
-	Tcl_SetObjResult(interp, resultPtr);
-	return NULL;
+    Tcl_AppendStringsToObj(resultPtr, "unknown namespace in \"", vecName,
+                   "\"", NULL);
+    Tcl_SetObjResult(interp, resultPtr);
+    return NULL;
     }
 
     if ((vecNameTail[0] == '#') && (strcmp(vecNameTail, "#auto") == 0)) {
-	/* generate a unique automatic name for the vector: */
-	char string[200];
+    /* generate a unique automatic name for the vector: */
+    char string[200];
 
-	do {
-	    sprintf(string, "vector%d", dataPtr->nextId++);
-	    qualVecName = GetQualifiedName(nsPtr, string, &qualVecNamePtr);
-	    hPtr = Tcl_FindHashEntry(&(dataPtr->vectorTable), qualVecName);
-	} while (hPtr != NULL);
-	isAutoName = 1;
+    do {
+        sprintf(string, "vector%d", dataPtr->nextId++);
+        qualVecName = GetQualifiedName(nsPtr, string, &qualVecNamePtr);
+        hPtr = Tcl_FindHashEntry(&(dataPtr->vectorTable), qualVecName);
+    } while (hPtr != NULL);
+    isAutoName = 1;
     } else {
-	/* check correct vector name syntax: */
-	register const char *p;
+    /* check correct vector name syntax: */
+    register const char *p;
 
-	for (p = vecNameTail; *p != '\0'; p++) {
-	    if (!VECTOR_CHAR(*p)) {
-		Tcl_AppendStringsToObj(
-		    resultPtr,
-		    "bad vector name \"",
-		    vecName,
-		    "\": must contain digits, letters, underscore, or period",
-		    NULL);
-		Tcl_SetObjResult(interp, resultPtr);
-		goto error;
-	    }
-	}
-	qualVecName = (char *) vecName;
-	vPtr = Rbc_VectorParseElement((Tcl_Interp *) NULL, dataPtr, qualVecName, (char **) NULL, NS_SEARCH_CURRENT);
+    for (p = vecNameTail; *p != '\0'; p++) {
+        if (!VECTOR_CHAR(*p)) {
+        Tcl_AppendStringsToObj(
+            resultPtr,
+            "bad vector name \"",
+            vecName,
+            "\": must contain digits, letters, underscore, or period",
+            NULL);
+        Tcl_SetObjResult(interp, resultPtr);
+        goto error;
+        }
+    }
+    qualVecName = (char *) vecName;
+    vPtr = Rbc_VectorParseElement((Tcl_Interp *) NULL, dataPtr, qualVecName, (char **) NULL, NS_SEARCH_CURRENT);
     }
 
     if (vPtr == NULL) {
-	hPtr = Tcl_CreateHashEntry(&(dataPtr->vectorTable), qualVecName, &isNew);
-	vPtr = Rbc_VectorNew(dataPtr);
-	vPtr->hashPtr = hPtr;
+    hPtr = Tcl_CreateHashEntry(&(dataPtr->vectorTable), qualVecName, &isNew);
+    vPtr = Rbc_VectorNew(dataPtr);
+    vPtr->hashPtr = hPtr;
 
-	vPtr->name = Tcl_GetHashKey(&(dataPtr->vectorTable), hPtr);
+    vPtr->name = Tcl_GetHashKey(&(dataPtr->vectorTable), hPtr);
 
 #ifdef NAMESPACE_DELETE_NOTIFY
-	/* Not Implemented Yet */
-	/***	Rbc_CreateNsDeleteNotify(interp, nsPtr, vPtr, VectorInstDeleteProc); */
+    /* Not Implemented Yet */
+    /***    Rbc_CreateNsDeleteNotify(interp, nsPtr, vPtr, VectorInstDeleteProc); */
 #endif /* NAMESPACE_DELETE_NOTIFY */
 
-	Tcl_SetHashValue(hPtr, vPtr);
+    Tcl_SetHashValue(hPtr, vPtr);
     }
 
     /* process the command name: */
     if (cmdName != NULL) {
-	Tcl_CmdInfo cmdInfo;
+    Tcl_CmdInfo cmdInfo;
 
-	if (isAutoName) {
-	    cmdName = qualVecName;
-	} else {
-	    cmdName = BuildQualifiedName(interp, cmdName, &qualVecNamePtr);
-	}
-	nsPtr = NULL;
-	vecNameTail = NULL;
-	if (ParseQualifiedName(interp, cmdName, &nsPtr, &vecNameTail) != TCL_OK) {
-	    Tcl_AppendStringsToObj(resultPtr, "unknown namespace in \"",
-				   cmdName, "\"", NULL);
-	    Tcl_SetObjResult(interp, resultPtr);
-	    return NULL;
-	}
+    if (isAutoName) {
+        cmdName = qualVecName;
+    } else {
+        cmdName = BuildQualifiedName(interp, cmdName, &qualVecNamePtr);
+    }
+    nsPtr = NULL;
+    vecNameTail = NULL;
+    if (ParseQualifiedName(interp, cmdName, &nsPtr, &vecNameTail) != TCL_OK) {
+        Tcl_AppendStringsToObj(resultPtr, "unknown namespace in \"",
+                   cmdName, "\"", NULL);
+        Tcl_SetObjResult(interp, resultPtr);
+        return NULL;
+    }
 
-	if (Tcl_GetCommandInfo(interp, cmdName, &cmdInfo)) {
-	    if (vPtr != cmdInfo.objClientData) {
-		Tcl_AppendStringsToObj(resultPtr, "command \"", cmdName,
-				       "\" already exists", NULL);
-		Tcl_SetObjResult(interp, resultPtr);
-		goto error;
-	    }
-	}
+    if (Tcl_GetCommandInfo(interp, cmdName, &cmdInfo)) {
+        if (vPtr != cmdInfo.objClientData) {
+        Tcl_AppendStringsToObj(resultPtr, "command \"", cmdName,
+                       "\" already exists", NULL);
+        Tcl_SetObjResult(interp, resultPtr);
+        goto error;
+        }
+    }
     }
 
     if (vPtr->cmdToken != 0) {
-	DeleteCommand(vPtr); /* Command already exists, delete old first */
+    DeleteCommand(vPtr); /* Command already exists, delete old first */
     }
 
     if (cmdName != NULL) {
-	vPtr->cmdToken = Tcl_CreateObjCommand(interp, cmdName, Rbc_VectorInstanceObjCmd, vPtr, VectorInstDeleteProc);
+    vPtr->cmdToken = Tcl_CreateObjCommand(interp, cmdName, Rbc_VectorInstanceObjCmd, vPtr, VectorInstDeleteProc);
     }
 
     /* process array variable: */
     if (varName != NULL && varName[0] != '\0') {
-	if ((varName[0] == '#') && (strcmp(varName, "#auto") == 0)) {
-			varName = vPtr->name;
-		} else {
-			varName = BuildQualifiedName(interp, varName, &qualVecNamePtr);
-		}
-		if (Rbc_VectorMapVariable(interp, vPtr, varName) != TCL_OK) {
-	    goto error;
-	}
+    if ((varName[0] == '#') && (strcmp(varName, "#auto") == 0)) {
+            varName = vPtr->name;
+        } else {
+            varName = BuildQualifiedName(interp, varName, &qualVecNamePtr);
+        }
+        if (Rbc_VectorMapVariable(interp, vPtr, varName) != TCL_OK) {
+        goto error;
+    }
     }
 
     *newPtr = isNew;
@@ -768,7 +768,7 @@ Rbc_VectorCreate(dataPtr, vecName, cmdName, varName, newPtr)
 
 error:
     if (vPtr != NULL) {
-	Rbc_VectorFree(vPtr);
+    Rbc_VectorFree(vPtr);
     }
     Tcl_DStringFree(&qualVecNamePtr);
     return NULL;
@@ -834,41 +834,41 @@ Rbc_VectorFree(vPtr)
     VectorClient *clientPtr;
 
     if (vPtr->cmdToken != 0) {
-	DeleteCommand(vPtr);
+    DeleteCommand(vPtr);
     }
 
     if (vPtr->arrayName != NULL) {
-	UnmapVariable(vPtr);
+    UnmapVariable(vPtr);
     }
     vPtr->length = 0;
 
     /* Immediately notify clients that vector is going away */
     if (vPtr->notifyFlags & NOTIFY_PENDING) {
-	vPtr->notifyFlags &= ~NOTIFY_PENDING;
-	Tcl_CancelIdleCall(VectorNotifyClients, vPtr);
+    vPtr->notifyFlags &= ~NOTIFY_PENDING;
+    Tcl_CancelIdleCall(VectorNotifyClients, vPtr);
     }
     vPtr->notifyFlags |= NOTIFY_DESTROYED;
     VectorNotifyClients(vPtr);
 
     for (linkPtr = Rbc_ChainFirstLink(vPtr->chainPtr); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
-	clientPtr = Rbc_ChainGetValue(linkPtr);
-	ckfree((char *) clientPtr);
+    clientPtr = Rbc_ChainGetValue(linkPtr);
+    ckfree((char *) clientPtr);
     }
     Rbc_ChainDestroy(vPtr->chainPtr);
     if ((vPtr->valueArr != NULL) && (vPtr->freeProc != TCL_STATIC)) {
-	if (vPtr->freeProc == TCL_DYNAMIC) {
-	    ckfree((char *) vPtr->valueArr);
-	} else {
-	    (*vPtr->freeProc)((char *) vPtr->valueArr);
-	}
+    if (vPtr->freeProc == TCL_DYNAMIC) {
+        ckfree((char *) vPtr->valueArr);
+    } else {
+        (*vPtr->freeProc)((char *) vPtr->valueArr);
+    }
     }
     if (vPtr->hashPtr != NULL) {
-	Tcl_DeleteHashEntry(vPtr->hashPtr);
+    Tcl_DeleteHashEntry(vPtr->hashPtr);
     }
 #ifdef NAMESPACE_DELETE_NOTIFY
     if (vPtr->nsPtr != NULL) {
-	/* Not Implemented Yet */
-	/*** Rbc_DestroyNsDeleteNotify(vPtr->interp, vPtr->nsPtr, vPtr); */
+    /* Not Implemented Yet */
+    /*** Rbc_DestroyNsDeleteNotify(vPtr->interp, vPtr->nsPtr, vPtr); */
     }
 #endif /* NAMESPACE_DELETE_NOTIFY */
     ckfree((char *) vPtr);
@@ -899,7 +899,7 @@ Rbc_VectorDuplicate(destPtr, srcPtr)
 
     length = srcPtr->last - srcPtr->first + 1;
     if (Rbc_VectorChangeLength(destPtr, length) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     nBytes = length * sizeof(double);
     memcpy(destPtr->valueArr, srcPtr->valueArr + srcPtr->first, nBytes);
@@ -938,7 +938,7 @@ Rbc_VectorFlushCache(vPtr)
     Tcl_Interp *interp = vPtr->interp;
 
     if (vPtr->arrayName == NULL) {
-	return; /* Doesn't use the variable API */
+    return; /* Doesn't use the variable API */
     }
 
     /* Turn off the trace temporarily so that we can unset all the
@@ -973,8 +973,8 @@ Rbc_VectorFlushCache(vPtr)
  *
  * Side effects:
  *      Traces are set for the new variable. The new variable name is
- *	    saved in a malloc'ed string in vPtr->arrayName.  If this
- *	    variable is non-NULL, it indicates that a Tcl variable has
+ *        saved in a malloc'ed string in vPtr->arrayName.  If this
+ *        variable is non-NULL, it indicates that a Tcl variable has
  *      been mapped to this vector.
  *
  * ----------------------------------------------------------------------
@@ -989,11 +989,11 @@ Rbc_VectorMapVariable(interp, vPtr, name)
     Tcl_Namespace *varNsPtr;
 
     if (vPtr->arrayName != NULL) {
-	UnmapVariable(vPtr);
+    UnmapVariable(vPtr);
     }
     if ((name == NULL) || (name[0] == '\0')) {
-	/* If the variable name is the empty string, simply return after removing any existing variable. */
-	return TCL_OK;
+    /* If the variable name is the empty string, simply return after removing any existing variable. */
+    return TCL_OK;
     }
 
     /*
@@ -1018,9 +1018,9 @@ Rbc_VectorMapVariable(interp, vPtr, name)
     vPtr->varFlags = (varNsPtr != NULL) ? (TCL_NAMESPACE_ONLY| TCL_GLOBAL_ONLY) : 0;
 
     if (result != NULL) {
-	/* Trace the array on reads, writes, and unsets */
-	/*printf("trace on %s with variable %s\n",vPtr->name,name);*/
-	Tcl_TraceVar2(interp, name, NULL, (TRACE_ALL | vPtr->varFlags), (Tcl_VarTraceProc *) VectorVarTrace, vPtr);
+    /* Trace the array on reads, writes, and unsets */
+    /*printf("trace on %s with variable %s\n",vPtr->name,name);*/
+    Tcl_TraceVar2(interp, name, NULL, (TRACE_ALL | vPtr->varFlags), (Tcl_VarTraceProc *) VectorVarTrace, vPtr);
     }
 
     vPtr->arrayName = RbcStrdup(name);
@@ -1052,54 +1052,54 @@ int
 Rbc_VectorReset(vPtr, valueArr, length, size, freeProc)
     VectorObject *vPtr;
     double *valueArr; /* Array containing the elements of th
-		       * vector. If NULL, indicates to reset the
-		       * vector.*/
+               * vector. If NULL, indicates to reset the
+               * vector.*/
     int length; /* The number of elements that the vector currently holds. */
     int size; /* The maximum number of elements that the  array can hold. */
     Tcl_FreeProc *freeProc; /* Address of memory deallocation routine
-			     * for the array of values.  Can also be
-			     * TCL_STATIC, TCL_DYNAMIC, or TCL_VOLATILE. */
+                 * for the array of values.  Can also be
+                 * TCL_STATIC, TCL_DYNAMIC, or TCL_VOLATILE. */
 {
     if (vPtr->valueArr != valueArr) { /* New array of values resides
-	 * in different memory than
-	 * the current vector.  */
-	if ((valueArr == NULL) || (size == 0)) {
-	    /* Empty array. Set up default values */
-	    freeProc = TCL_STATIC;
-	    valueArr = NULL;
-	    size = length = 0;
-	} else if (freeProc == TCL_VOLATILE) {
-	    double *newArr;
-	    /* Data is volatile. Make a copy of the value array.  */
-	    newArr = (double *) ckalloc(size * sizeof(double));
-	    if (newArr == NULL) {
-		Tcl_AppendResult(vPtr->interp, "can't allocate ",
-				 Rbc_Itoa(size), " elements for vector \"", vPtr->name,
-				 "\"", (char *) NULL);
-		return TCL_ERROR;
-	    }
-	    memcpy((char *) newArr, (char *) valueArr, sizeof(double) * length);
-	    valueArr = newArr;
-	    freeProc = TCL_DYNAMIC;
-	}
+     * in different memory than
+     * the current vector.  */
+    if ((valueArr == NULL) || (size == 0)) {
+        /* Empty array. Set up default values */
+        freeProc = TCL_STATIC;
+        valueArr = NULL;
+        size = length = 0;
+    } else if (freeProc == TCL_VOLATILE) {
+        double *newArr;
+        /* Data is volatile. Make a copy of the value array.  */
+        newArr = (double *) ckalloc(size * sizeof(double));
+        if (newArr == NULL) {
+        Tcl_AppendResult(vPtr->interp, "can't allocate ",
+                 Rbc_Itoa(size), " elements for vector \"", vPtr->name,
+                 "\"", (char *) NULL);
+        return TCL_ERROR;
+        }
+        memcpy((char *) newArr, (char *) valueArr, sizeof(double) * length);
+        valueArr = newArr;
+        freeProc = TCL_DYNAMIC;
+    }
 
-	if (vPtr->freeProc != TCL_STATIC) {
-	    /* Old data was dynamically allocated. Free it before
-	     * attaching new data.  */
-	    if (vPtr->freeProc == TCL_DYNAMIC) {
-		ckfree((char *) vPtr->valueArr);
-	    } else {
-		vPtr->freeProc((char *) vPtr->valueArr);
-	    }
-	}
-	vPtr->freeProc = freeProc;
-	vPtr->valueArr = valueArr;
-	vPtr->size = size;
+    if (vPtr->freeProc != TCL_STATIC) {
+        /* Old data was dynamically allocated. Free it before
+         * attaching new data.  */
+        if (vPtr->freeProc == TCL_DYNAMIC) {
+        ckfree((char *) vPtr->valueArr);
+        } else {
+        vPtr->freeProc((char *) vPtr->valueArr);
+        }
+    }
+    vPtr->freeProc = freeProc;
+    vPtr->valueArr = valueArr;
+    vPtr->size = size;
     }
 
     vPtr->length = length;
     if (vPtr->flush) {
-	Rbc_VectorFlushCache(vPtr);
+    Rbc_VectorFlushCache(vPtr);
     }
     Rbc_VectorUpdateClients(vPtr);
     return TCL_OK;
@@ -1134,15 +1134,15 @@ VectorNotifyClients(clientData)
     Rbc_VectorNotify notify;
 
     notify = (vPtr->notifyFlags & NOTIFY_DESTROYED) ? RBC_VECTOR_NOTIFY_DESTROY
-	     : RBC_VECTOR_NOTIFY_UPDATE;
+         : RBC_VECTOR_NOTIFY_UPDATE;
     vPtr->notifyFlags &= ~(NOTIFY_UPDATED| NOTIFY_DESTROYED | NOTIFY_PENDING);
 
     for (linkPtr = Rbc_ChainFirstLink(vPtr->chainPtr); linkPtr != NULL;
-	    linkPtr = Rbc_ChainNextLink(linkPtr)) {
-	clientPtr = Rbc_ChainGetValue(linkPtr);
-	if (clientPtr->proc != NULL) {
-	    (*clientPtr->proc) (vPtr->interp, clientPtr->clientData, notify);
-	}
+        linkPtr = Rbc_ChainNextLink(linkPtr)) {
+    clientPtr = Rbc_ChainGetValue(linkPtr);
+    if (clientPtr->proc != NULL) {
+        (*clientPtr->proc) (vPtr->interp, clientPtr->clientData, notify);
+    }
     }
     /*
      * Some clients may not handle the "destroy" callback properly
@@ -1151,11 +1151,11 @@ VectorNotifyClients(clientData)
      * vector's server has gone away.
      */
     if (notify == RBC_VECTOR_NOTIFY_DESTROY) {
-	for (linkPtr = Rbc_ChainFirstLink(vPtr->chainPtr); linkPtr != NULL;
-		linkPtr = Rbc_ChainNextLink(linkPtr)) {
-	    clientPtr = Rbc_ChainGetValue(linkPtr);
-	    clientPtr->serverPtr = NULL;
-	}
+    for (linkPtr = Rbc_ChainFirstLink(vPtr->chainPtr); linkPtr != NULL;
+        linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        clientPtr = Rbc_ChainGetValue(linkPtr);
+        clientPtr->serverPtr = NULL;
+    }
     }
 }
 
@@ -1181,7 +1181,7 @@ Rbc_VectorNotifyPending(clientId)
     VectorClient *clientPtr = (VectorClient *)clientId;
 
     if ((clientPtr == NULL) || (clientPtr->magic != VECTOR_MAGIC) || (clientPtr->serverPtr == NULL)) {
-	return 0;
+    return 0;
     }
     return (clientPtr->serverPtr->notifyFlags & NOTIFY_PENDING);
 }
@@ -1217,7 +1217,7 @@ VectorFlushCache(vPtr)
     Tcl_Interp *interp = vPtr->interp;
 
     if (vPtr->arrayName == NULL) {
-	return; /* Doesn't use the variable API */
+    return; /* Doesn't use the variable API */
     }
 
     /* Turn off the trace temporarily so that we can unset all the
@@ -1277,59 +1277,59 @@ Rbc_VectorChangeLength(vPtr, length)
     freeProc = TCL_STATIC;
 
     if (length > 0) {
-	int wanted, used;
+    int wanted, used;
 
-	wanted = length;
-	used = vPtr->length;
+    wanted = length;
+    used = vPtr->length;
 
-	/* Compute the new size by doubling old size until it's big enough */
-	newSize = DEF_ARRAY_SIZE;
-	if (wanted > DEF_ARRAY_SIZE) {
-	    while (newSize < wanted) {
-		newSize += newSize;
-	    }
-	}
-	freeProc = vPtr->freeProc;
-	if (newSize == vPtr->size) {
-	    /* Same size, use current array. */
-	    newArr = vPtr->valueArr;
-	} else {
-	    /* Dynamically allocate memory for the new array. */
-	    newArr = (double *) ckalloc(newSize * sizeof(double));
-	    if (newArr == NULL) {
-		resultPtr = Tcl_NewStringObj("", -1);
-		Tcl_AppendStringsToObj(resultPtr, "can't allocate ", Rbc_Itoa(newSize), " elements for vector \"", vPtr->name, "\"", NULL);
-		Tcl_SetObjResult(vPtr->interp, resultPtr);
-		return TCL_ERROR;
-	    }
-	    if (used > wanted) {
-		used = wanted;
-	    }
-	    /* Copy any previous data */
-	    if (used > 0) {
-		memcpy(newArr, vPtr->valueArr, used * sizeof(double));
-	    }
-	    freeProc = TCL_DYNAMIC;
-	}
-	/* Clear any new slots that we're now using in the array */
-	if (wanted > used) {
-	    memset(newArr + used, 0, (wanted - used) * sizeof(double));
-	}
+    /* Compute the new size by doubling old size until it's big enough */
+    newSize = DEF_ARRAY_SIZE;
+    if (wanted > DEF_ARRAY_SIZE) {
+        while (newSize < wanted) {
+        newSize += newSize;
+        }
+    }
+    freeProc = vPtr->freeProc;
+    if (newSize == vPtr->size) {
+        /* Same size, use current array. */
+        newArr = vPtr->valueArr;
+    } else {
+        /* Dynamically allocate memory for the new array. */
+        newArr = (double *) ckalloc(newSize * sizeof(double));
+        if (newArr == NULL) {
+        resultPtr = Tcl_NewStringObj("", -1);
+        Tcl_AppendStringsToObj(resultPtr, "can't allocate ", Rbc_Itoa(newSize), " elements for vector \"", vPtr->name, "\"", NULL);
+        Tcl_SetObjResult(vPtr->interp, resultPtr);
+        return TCL_ERROR;
+        }
+        if (used > wanted) {
+        used = wanted;
+        }
+        /* Copy any previous data */
+        if (used > 0) {
+        memcpy(newArr, vPtr->valueArr, used * sizeof(double));
+        }
+        freeProc = TCL_DYNAMIC;
+    }
+    /* Clear any new slots that we're now using in the array */
+    if (wanted > used) {
+        memset(newArr + used, 0, (wanted - used) * sizeof(double));
+    }
     }
     if ((newArr != vPtr->valueArr) && (vPtr->valueArr != NULL)) {
-	/*
-	 * We're not using the old storage anymore, so free it if it's
-	 * not static.  It's static because the user previously reset
-	 * the vector with a statically allocated array (setting freeProc
-	 * to TCL_STATIC).
-	 */
-	if (vPtr->freeProc != TCL_STATIC) {
-	    if (vPtr->freeProc == TCL_DYNAMIC) {
-		ckfree((char *) vPtr->valueArr);
-	    } else {
-		(*vPtr->freeProc)((char *) vPtr->valueArr);
-	    }
-	}
+    /*
+     * We're not using the old storage anymore, so free it if it's
+     * not static.  It's static because the user previously reset
+     * the vector with a statically allocated array (setting freeProc
+     * to TCL_STATIC).
+     */
+    if (vPtr->freeProc != TCL_STATIC) {
+        if (vPtr->freeProc == TCL_DYNAMIC) {
+        ckfree((char *) vPtr->valueArr);
+        } else {
+        (*vPtr->freeProc)((char *) vPtr->valueArr);
+        }
+    }
     }
     vPtr->valueArr = newArr;
     vPtr->size = newSize;
@@ -1370,11 +1370,11 @@ Rbc_VectorLookupName(dataPtr, vecName, vPtrPtr)
 
     vPtr = Rbc_VectorParseElement(dataPtr->interp, dataPtr, vecName, &endPtr, NS_SEARCH_BOTH);
     if (vPtr == NULL) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     if (*endPtr != '\0') {
-	Tcl_AppendResult(dataPtr->interp, "extra characters after vector name", (char *) NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(dataPtr->interp, "extra characters after vector name", (char *) NULL);
+    return TCL_ERROR;
     }
     *vPtrPtr = vPtr;
     return TCL_OK;
@@ -1404,19 +1404,19 @@ Rbc_VectorUpdateRange(vPtr)
 
     min = DBL_MAX, max = -DBL_MAX;
     for (i = 0; i < vPtr->length; i++) {
-	if (FINITE(vPtr->valueArr[i])) {
-	    min = max = vPtr->valueArr[i];
-	    break;
-	}
+    if (FINITE(vPtr->valueArr[i])) {
+        min = max = vPtr->valueArr[i];
+        break;
+    }
     }
     for (/* empty */; i < vPtr->length; i++) {
-	if (FINITE(vPtr->valueArr[i])) {
-	    if (min > vPtr->valueArr[i]) {
-		min = vPtr->valueArr[i];
-	    } else if (max < vPtr->valueArr[i]) {
-		max = vPtr->valueArr[i];
-	    }
-	}
+    if (FINITE(vPtr->valueArr[i])) {
+        if (min > vPtr->valueArr[i]) {
+        min = vPtr->valueArr[i];
+        } else if (max < vPtr->valueArr[i]) {
+        max = vPtr->valueArr[i];
+        }
+    }
     }
     vPtr->min = min;
     vPtr->max = max;
@@ -1458,69 +1458,69 @@ Rbc_VectorGetIndex(interp, vPtr, string, indexPtr, flags, procPtrPtr)
     c = string[0];
 
     if (c == '\0') {
-	/* check out the empty string, or else Tcl_ExprLong will return 0 */
-	if (interp != NULL) {
-	    Tcl_AppendResult(interp, "can not use the empty string as index",
-		(char *) NULL);
-	}
-	return TCL_ERROR;
+    /* check out the empty string, or else Tcl_ExprLong will return 0 */
+    if (interp != NULL) {
+        Tcl_AppendResult(interp, "can not use the empty string as index",
+        (char *) NULL);
+    }
+    return TCL_ERROR;
     } else if (c == 'e') {
-	/* check for "end" and "end-N" */
-	Tcl_Size idx;
-	int result;
+    /* check for "end" and "end-N" */
+    Tcl_Size idx;
+    int result;
 
-	if (vPtr->length < 1) {
-	    if (interp != NULL) {
-		Tcl_AppendResult(interp, "bad index \"", string, "\": vector is empty", (char *) NULL);
-	    }
-	    return TCL_ERROR;
-	}
-	stringObj = Tcl_NewStringObj(string, -1);
-	Tcl_IncrRefCount(stringObj);
-	result = Tcl_GetIntForIndex(interp, stringObj, vPtr->length - 1, &idx);
-	if (result == TCL_OK) {
-	    /* index must be in the valid range */
-	    if (idx >= 0 && idx < vPtr->length) {
-		*indexPtr = (int)idx;
-	    } else {
-		if (interp != NULL) {
-		    Tcl_AppendResult(interp, "index \"", string,
-			"\" is out of range", (char *) NULL);
-		}
-		result = TCL_ERROR;
-	    }
-	}
-	Tcl_DecrRefCount(stringObj);
-	return result;
+    if (vPtr->length < 1) {
+        if (interp != NULL) {
+        Tcl_AppendResult(interp, "bad index \"", string, "\": vector is empty", (char *) NULL);
+        }
+        return TCL_ERROR;
+    }
+    stringObj = Tcl_NewStringObj(string, -1);
+    Tcl_IncrRefCount(stringObj);
+    result = Tcl_GetIntForIndex(interp, stringObj, vPtr->length - 1, &idx);
+    if (result == TCL_OK) {
+        /* index must be in the valid range */
+        if (idx >= 0 && idx < vPtr->length) {
+        *indexPtr = (int)idx;
+        } else {
+        if (interp != NULL) {
+            Tcl_AppendResult(interp, "index \"", string,
+            "\" is out of range", (char *) NULL);
+        }
+        result = TCL_ERROR;
+        }
+    }
+    Tcl_DecrRefCount(stringObj);
+    return result;
     } else if ((c == '+') && (strcmp(string, "++end") == 0)) {
-	*indexPtr = vPtr->length;
-	return TCL_OK;
+    *indexPtr = vPtr->length;
+    return TCL_OK;
     }
     if (procPtrPtr != NULL) {
-	Tcl_HashEntry *hPtr;
+    Tcl_HashEntry *hPtr;
 
-	hPtr = Tcl_FindHashEntry(&(vPtr->dataPtr->indexProcTable), string);
-	if (hPtr != NULL) {
-	    *indexPtr = SPECIAL_INDEX;
-	    *procPtrPtr = (Rbc_VectorIndexProc *) Tcl_GetHashValue(hPtr);
-	    return TCL_OK;
-	}
+    hPtr = Tcl_FindHashEntry(&(vPtr->dataPtr->indexProcTable), string);
+    if (hPtr != NULL) {
+        *indexPtr = SPECIAL_INDEX;
+        *procPtrPtr = (Rbc_VectorIndexProc *) Tcl_GetHashValue(hPtr);
+        return TCL_OK;
+    }
     }
     if (Tcl_GetInt(interp, (char *) string, &value) != TCL_OK) {
-	long int lvalue;
-	/*
-	 * Unlike Tcl_GetInt, Tcl_ExprLong needs a valid interpreter,
-	 * but the interp passed in may be NULL.  So we have to use
-	 * vPtr->interp and then reset the result.
-	 */
-	if (Tcl_ExprLong(vPtr->interp, (char *) string, &lvalue) != TCL_OK) {
-	    Tcl_ResetResult(vPtr->interp);
-	    if (interp != NULL) {
-		Tcl_AppendResult(interp, "bad index \"", string, "\"", (char *) NULL);
-	    }
-	    return TCL_ERROR;
-	}
-	value = (int)lvalue;
+    long int lvalue;
+    /*
+     * Unlike Tcl_GetInt, Tcl_ExprLong needs a valid interpreter,
+     * but the interp passed in may be NULL.  So we have to use
+     * vPtr->interp and then reset the result.
+     */
+    if (Tcl_ExprLong(vPtr->interp, (char *) string, &lvalue) != TCL_OK) {
+        Tcl_ResetResult(vPtr->interp);
+        if (interp != NULL) {
+        Tcl_AppendResult(interp, "bad index \"", string, "\"", (char *) NULL);
+        }
+        return TCL_ERROR;
+    }
+    value = (int)lvalue;
     }
     /*
      * Correct the index by the current value of the offset. This makes
@@ -1530,10 +1530,10 @@ Rbc_VectorGetIndex(interp, vPtr, string, indexPtr, flags, procPtrPtr)
     value -= vPtr->offset;
 
     if ((value < 0) || ((flags & INDEX_CHECK) && (value >= vPtr->length))) {
-	if (interp != NULL) {
-	    Tcl_AppendResult(interp, "index \"", string, "\" is out of range", (char *) NULL);
-	}
-	return TCL_ERROR;
+    if (interp != NULL) {
+        Tcl_AppendResult(interp, "index \"", string, "\" is out of range", (char *) NULL);
+    }
+    return TCL_ERROR;
     }
     *indexPtr = value;
     return TCL_OK;
@@ -1571,44 +1571,44 @@ Rbc_VectorGetIndexRange(interp, vPtr, string, flags, procPtrPtr)
 
     colon = NULL;
     if (flags & INDEX_COLON) {
-	colon = strchr(string, ':');
+    colon = strchr(string, ':');
     }
     if (colon != NULL) {
-	/* there is a colon in the index specification */
-	if (string == colon) {
-	    vPtr->first = 0; /* Default to the first index */
-	} else {
-	    int result;
-
-	    *colon = '\0';
-	    result = Rbc_VectorGetIndex(interp, vPtr, string, &ielem, flags, (Rbc_VectorIndexProc **) NULL);
-	    *colon = ':';
-	    if (result != TCL_OK) {
-		return TCL_ERROR;
-	    }
-	    vPtr->first = ielem;
-	}
-	if (*(colon + 1) == '\0') {
-	    /* Default to the last index */
-	    vPtr->last = (vPtr->length > 0) ? vPtr->length - 1 : 0;
-	} else {
-	    if (Rbc_VectorGetIndex(interp, vPtr, colon + 1, &ielem, flags, (Rbc_VectorIndexProc **) NULL) != TCL_OK) {
-		return TCL_ERROR;
-	    }
-	    vPtr->last = ielem;
-	}
-	if (vPtr->first > vPtr->last) {
-	    if (interp != NULL) {
-		Tcl_AppendResult(interp, "bad range \"", string, "\" (first > last)", (char *) NULL);
-	    }
-	    return TCL_ERROR;
-	}
+    /* there is a colon in the index specification */
+    if (string == colon) {
+        vPtr->first = 0; /* Default to the first index */
     } else {
-	/* there is no colon in the index */
-	if (Rbc_VectorGetIndex(interp, vPtr, string, &ielem, flags, procPtrPtr) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	vPtr->last = vPtr->first = ielem;
+        int result;
+
+        *colon = '\0';
+        result = Rbc_VectorGetIndex(interp, vPtr, string, &ielem, flags, (Rbc_VectorIndexProc **) NULL);
+        *colon = ':';
+        if (result != TCL_OK) {
+        return TCL_ERROR;
+        }
+        vPtr->first = ielem;
+    }
+    if (*(colon + 1) == '\0') {
+        /* Default to the last index */
+        vPtr->last = (vPtr->length > 0) ? vPtr->length - 1 : 0;
+    } else {
+        if (Rbc_VectorGetIndex(interp, vPtr, colon + 1, &ielem, flags, (Rbc_VectorIndexProc **) NULL) != TCL_OK) {
+        return TCL_ERROR;
+        }
+        vPtr->last = ielem;
+    }
+    if (vPtr->first > vPtr->last) {
+        if (interp != NULL) {
+        Tcl_AppendResult(interp, "bad range \"", string, "\" (first > last)", (char *) NULL);
+        }
+        return TCL_ERROR;
+    }
+    } else {
+    /* there is no colon in the index */
+    if (Rbc_VectorGetIndex(interp, vPtr, string, &ielem, flags, procPtrPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    vPtr->last = vPtr->first = ielem;
     }
     return TCL_OK;
 }
@@ -1643,57 +1643,57 @@ Rbc_VectorParseElement(interp, dataPtr, start, endPtr, flags)
     p = (char *) start;
     /* Find the end of the vector name */
     while (VECTOR_CHAR(*p)) {
-	p++;
+    p++;
     }
     saved = *p;
     *p = '\0';
 
     vPtr = GetVectorObject(dataPtr, start, flags);
     if (vPtr == NULL) {
-	if (interp != NULL) {
-	    Tcl_AppendResult(interp, "can't find vector \"", start, "\"", (char *) NULL);
-	}
-	*p = saved;
-	return NULL;
+    if (interp != NULL) {
+        Tcl_AppendResult(interp, "can't find vector \"", start, "\"", (char *) NULL);
+    }
+    *p = saved;
+    return NULL;
     }
     *p = saved;
     vPtr->first = 0;
     vPtr->last = vPtr->length - 1;
     if (*p == '(') {
-	int count, result;
+    int count, result;
 
-	start = p + 1;
-	p++;
+    start = p + 1;
+    p++;
 
-	/* Find the matching right parenthesis */
-	count = 1;
-	while (*p != '\0') {
-	    if (*p == ')') {
-		count--;
-		if (count == 0) {
-		    break;
-		}
-	    } else if (*p == '(') {
-		count++;
-	    }
-	    p++;
-	}
-	if (count > 0) {
-	    if (interp != NULL) {
-		Tcl_AppendResult(interp, "unbalanced parentheses \"", start, "\"", (char *) NULL);
-	    }
-	    return NULL;
-	}
-	*p = '\0';
-	result = Rbc_VectorGetIndexRange(interp, vPtr, start, (INDEX_COLON | INDEX_CHECK), (Rbc_VectorIndexProc **) NULL);
-	*p = ')';
-	if (result != TCL_OK) {
-	    return NULL;
-	}
-	p++;
+    /* Find the matching right parenthesis */
+    count = 1;
+    while (*p != '\0') {
+        if (*p == ')') {
+        count--;
+        if (count == 0) {
+            break;
+        }
+        } else if (*p == '(') {
+        count++;
+        }
+        p++;
+    }
+    if (count > 0) {
+        if (interp != NULL) {
+        Tcl_AppendResult(interp, "unbalanced parentheses \"", start, "\"", (char *) NULL);
+        }
+        return NULL;
+    }
+    *p = '\0';
+    result = Rbc_VectorGetIndexRange(interp, vPtr, start, (INDEX_COLON | INDEX_CHECK), (Rbc_VectorIndexProc **) NULL);
+    *p = ')';
+    if (result != TCL_OK) {
+        return NULL;
+    }
+    p++;
     }
     if (endPtr != NULL) {
-	*endPtr = p;
+    *endPtr = p;
     }
     return vPtr;
 }
@@ -1721,16 +1721,16 @@ Rbc_VectorUpdateClients(vPtr)
     vPtr->dirty++;
     vPtr->max = vPtr->min = rbcNaN;
     if (vPtr->notifyFlags & NOTIFY_NEVER) {
-	return;
+    return;
     }
     vPtr->notifyFlags |= NOTIFY_UPDATED;
     if (vPtr->notifyFlags & NOTIFY_ALWAYS) {
-	VectorNotifyClients(vPtr);
-	return;
+    VectorNotifyClients(vPtr);
+    return;
     }
     if (!(vPtr->notifyFlags & NOTIFY_PENDING)) {
-	vPtr->notifyFlags |= NOTIFY_PENDING;
-	Tcl_DoWhenIdle(VectorNotifyClients, vPtr);
+    vPtr->notifyFlags |= NOTIFY_PENDING;
+    Tcl_DoWhenIdle(VectorNotifyClients, vPtr);
     }
 }
 
@@ -1766,104 +1766,104 @@ VectorVarTrace(clientData, interp, part1, part2, flags)
     static char message[MAX_ERR_MSG + 1];
 
     if (part2 == NULL) {
-	if (flags & TCL_TRACE_UNSETS) {
-	    /* vector is deleted via an unset on the whole array variable */
-	    ckfree((char *) vPtr->arrayName);
-	    vPtr->arrayName = NULL;
-	    if (vPtr->freeOnUnset) {
-		Rbc_VectorFree(vPtr);
-	    }
-	}
-	return NULL;
+    if (flags & TCL_TRACE_UNSETS) {
+        /* vector is deleted via an unset on the whole array variable */
+        ckfree((char *) vPtr->arrayName);
+        vPtr->arrayName = NULL;
+        if (vPtr->freeOnUnset) {
+        Rbc_VectorFree(vPtr);
+        }
+    }
+    return NULL;
     }
     if (Rbc_VectorGetIndexRange(interp, vPtr, part2, INDEX_ALL_FLAGS, &indexProc) != TCL_OK) {
-	goto error;
+    goto error;
     }
     first = vPtr->first;
     last = vPtr->last;
     varFlags = TCL_LEAVE_ERR_MSG | (TCL_GLOBAL_ONLY & flags);
     if (flags & TCL_TRACE_WRITES) {
-	double value;
-	Tcl_Obj *objPtr;
+    double value;
+    Tcl_Obj *objPtr;
 
-	if (first == SPECIAL_INDEX || last == SPECIAL_INDEX) {
-	    /* Tried to set "min" or "max" */
-	    return "read-only index";
-	}
-	objPtr = Tcl_GetVar2Ex(interp, part1, part2, varFlags);
-	if (objPtr == NULL) {
-	    goto error;
-	}
-	if (Rbc_GetDouble(interp, objPtr, &value) != TCL_OK) {
-	    if ((last == first) && (first >= 0)) {
-		/* Single numeric index. Reset the array element to
-		 * its old value on errors */
-		Tcl_SetVar2Ex(interp, part1, part2, objPtr, varFlags);
-	    }
-	    goto error;
-	}
-	if (first == vPtr->length || last == vPtr->length) {
-	    if (Rbc_VectorChangeLength(vPtr, vPtr->length + 1) != TCL_OK) {
-		return "error resizing vector";
-	    }
-	}
-	/* Set possibly an entire range of values */
-	Rbc_ReplicateValue(vPtr, first, last, value);
+    if (first == SPECIAL_INDEX || last == SPECIAL_INDEX) {
+        /* Tried to set "min" or "max" */
+        return "read-only index";
+    }
+    objPtr = Tcl_GetVar2Ex(interp, part1, part2, varFlags);
+    if (objPtr == NULL) {
+        goto error;
+    }
+    if (Rbc_GetDouble(interp, objPtr, &value) != TCL_OK) {
+        if ((last == first) && (first >= 0)) {
+        /* Single numeric index. Reset the array element to
+         * its old value on errors */
+        Tcl_SetVar2Ex(interp, part1, part2, objPtr, varFlags);
+        }
+        goto error;
+    }
+    if (first == vPtr->length || last == vPtr->length) {
+        if (Rbc_VectorChangeLength(vPtr, vPtr->length + 1) != TCL_OK) {
+        return "error resizing vector";
+        }
+    }
+    /* Set possibly an entire range of values */
+    Rbc_ReplicateValue(vPtr, first, last, value);
     } else if (flags & TCL_TRACE_READS) {
-	double value;
-	Tcl_Obj *objPtr;
+    double value;
+    Tcl_Obj *objPtr;
 
-	if (first == vPtr->length || last == vPtr->length) {
-	    return "write-only index";
-	}
-	if (vPtr->length == 0) {
-	    if (Tcl_SetVar2(interp, part1, part2, "", varFlags) == NULL) {
-		goto error;
-	    }
-	    return NULL;
-	}
-	if (first == last) {
-	    if (first >= 0) {
-		value = vPtr->valueArr[first];
-	    } else {
-		vPtr->first = 0, vPtr->last = vPtr->length - 1;
-		value = (*indexProc)((Rbc_Vector *) vPtr);
-	    }
-	    objPtr = Tcl_NewDoubleObj(value);
-	    if (Tcl_SetVar2Ex(interp, part1, part2, objPtr, varFlags) == NULL) {
-		Tcl_DecrRefCount(objPtr);
-		goto error;
-	    }
-	} else {
-	    objPtr = Rbc_GetValues(vPtr, first, last);
-	    if (Tcl_SetVar2Ex(interp, part1, part2, objPtr, varFlags) == NULL) {
-		Tcl_DecrRefCount(objPtr);
-		goto error;
-	    }
-	}
-    } else if (flags & TCL_TRACE_UNSETS) {
-	register int i, j;
-
-	if ((first == vPtr->length) || (first == SPECIAL_INDEX)) {
-	    return "special vector index";
-	}
-	/*
-	 * Collapse the vector from the point of the first unset element.
-	 * Also flush any array variable entries so that the shift is
-	 * reflected when the array variable is read.
-	 */
-	for (i = first, j = last + 1; j < vPtr->length; i++, j++) {
-	    vPtr->valueArr[i] = vPtr->valueArr[j];
-	}
-	vPtr->length -= ((last - first) + 1);
-	if (vPtr->flush) {
-	    VectorFlushCache(vPtr);
-	}
+    if (first == vPtr->length || last == vPtr->length) {
+        return "write-only index";
+    }
+    if (vPtr->length == 0) {
+        if (Tcl_SetVar2(interp, part1, part2, "", varFlags) == NULL) {
+        goto error;
+        }
+        return NULL;
+    }
+    if (first == last) {
+        if (first >= 0) {
+        value = vPtr->valueArr[first];
+        } else {
+        vPtr->first = 0, vPtr->last = vPtr->length - 1;
+        value = (*indexProc)((Rbc_Vector *) vPtr);
+        }
+        objPtr = Tcl_NewDoubleObj(value);
+        if (Tcl_SetVar2Ex(interp, part1, part2, objPtr, varFlags) == NULL) {
+        Tcl_DecrRefCount(objPtr);
+        goto error;
+        }
     } else {
-	return "unknown variable trace flag";
+        objPtr = Rbc_GetValues(vPtr, first, last);
+        if (Tcl_SetVar2Ex(interp, part1, part2, objPtr, varFlags) == NULL) {
+        Tcl_DecrRefCount(objPtr);
+        goto error;
+        }
+    }
+    } else if (flags & TCL_TRACE_UNSETS) {
+    register int i, j;
+
+    if ((first == vPtr->length) || (first == SPECIAL_INDEX)) {
+        return "special vector index";
+    }
+    /*
+     * Collapse the vector from the point of the first unset element.
+     * Also flush any array variable entries so that the shift is
+     * reflected when the array variable is read.
+     */
+    for (i = first, j = last + 1; j < vPtr->length; i++, j++) {
+        vPtr->valueArr[i] = vPtr->valueArr[j];
+    }
+    vPtr->length -= ((last - first) + 1);
+    if (vPtr->flush) {
+        VectorFlushCache(vPtr);
+    }
+    } else {
+    return "unknown variable trace flag";
     }
     if (flags & (TCL_TRACE_UNSETS| TCL_TRACE_WRITES)) {
-	Rbc_VectorUpdateClients(vPtr);
+    Rbc_VectorUpdateClients(vPtr);
     }
     Tcl_ResetResult(interp);
     return NULL;
@@ -1900,12 +1900,12 @@ BuildQualifiedName(interp, name, fullName)
     Tcl_Interp *interp; /* the interpreter in which to lookup the variable or command */
     const char *name; /* the name of a variable, or command to build the qualified name for */
     Tcl_DString *fullName; /* string pointer to save the qualified name into
-			    * (free or uninitialized DString) */
+                * (free or uninitialized DString) */
 {
     Tcl_Namespace *nsPtr;
 
     if (name == NULL) {
-	return NULL;
+    return NULL;
     }
 
     Tcl_DStringInit(fullName);
@@ -1913,16 +1913,16 @@ BuildQualifiedName(interp, name, fullName)
     nsPtr = Tcl_GetCurrentNamespace(interp);
 
     if ((name[0] == ':') && (name[1] == ':')) {
-	/* we have a fully qualified name already -> just return the given name */
-	Tcl_DStringAppend(fullName, name, -1);
-	return Tcl_DStringValue(fullName);
+    /* we have a fully qualified name already -> just return the given name */
+    Tcl_DStringAppend(fullName, name, -1);
+    return Tcl_DStringValue(fullName);
     }
 
     /* build a qualified name */
     Tcl_DStringAppend(fullName, nsPtr->fullName, -1);
     if (Tcl_DStringLength(fullName)> 2) {
-	/* namespace is not the root namespace, so we need a separator */
-	Tcl_DStringAppend(fullName, "::", -1);
+    /* namespace is not the root namespace, so we need a separator */
+    Tcl_DStringAppend(fullName, "::", -1);
     }
     Tcl_DStringAppend(fullName, name, -1);
     return Tcl_DStringValue(fullName);
@@ -1963,27 +1963,27 @@ ParseQualifiedName(interp, qualName, nsPtrPtr, namePtrPtr)
     colon = NULL;
     p = (char *) (qualName + strlen(qualName));
     while (--p > qualName) {
-	if ((*p == ':') && (*(p - 1) == ':')) {
-	    p++; /* just after the last "::" */
-	    colon = p - 2;
-	    break;
-	}
+    if ((*p == ':') && (*(p - 1) == ':')) {
+        p++; /* just after the last "::" */
+        colon = p - 2;
+        break;
+    }
     }
     if (colon == NULL) {
-	*nsPtrPtr = NULL;
-	*namePtrPtr = (char *) qualName;
-	return TCL_OK;
+    *nsPtrPtr = NULL;
+    *namePtrPtr = (char *) qualName;
+    return TCL_OK;
     }
     *colon = '\0';
     if (qualName[0] == '\0') {
-	nsPtr = Tcl_GetGlobalNamespace(interp);
+    nsPtr = Tcl_GetGlobalNamespace(interp);
     } else {
-	nsPtr = Tcl_FindNamespace(interp, (char *) qualName,
-				  (Tcl_Namespace *) NULL, 0);
+    nsPtr = Tcl_FindNamespace(interp, (char *) qualName,
+                  (Tcl_Namespace *) NULL, 0);
     }
     *colon = ':';
     if (nsPtr == NULL) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     *nsPtrPtr = nsPtr;
     *namePtrPtr = p;
@@ -2016,8 +2016,8 @@ GetQualifiedName(nsPtr, name, resultPtr)
 {
     Tcl_DStringInit(resultPtr);
     if ((nsPtr->fullName[0] != ':') || (nsPtr->fullName[1] != ':')
-	    || (nsPtr->fullName[2] != '\0')) {
-	Tcl_DStringAppend(resultPtr, nsPtr->fullName, -1);
+        || (nsPtr->fullName[2] != '\0')) {
+    Tcl_DStringAppend(resultPtr, nsPtr->fullName, -1);
     }
     Tcl_DStringAppend(resultPtr, "::", -1);
     Tcl_DStringAppend(resultPtr, (char *) name, -1);
@@ -2053,20 +2053,20 @@ static VectorObject *
     nsPtr = NULL;
     vecName = name;
     if (ParseQualifiedName(dataPtr->interp, name, &nsPtr, &vecName) != TCL_OK) {
-	return NULL; /* Can't find namespace. */
+    return NULL; /* Can't find namespace. */
     }
     vPtr = NULL;
     if (nsPtr != NULL) {
-	vPtr = FindVectorInNamespace(dataPtr, nsPtr, vecName);
+    vPtr = FindVectorInNamespace(dataPtr, nsPtr, vecName);
     } else {
-	if (flags & NS_SEARCH_CURRENT) {
-	    nsPtr = Tcl_GetCurrentNamespace(dataPtr->interp);
-	    vPtr = FindVectorInNamespace(dataPtr, nsPtr, vecName);
-	}
-	if ((vPtr == NULL) && (flags & NS_SEARCH_GLOBAL)) {
-	    nsPtr = Tcl_GetGlobalNamespace(dataPtr->interp);
-	    vPtr = FindVectorInNamespace(dataPtr, nsPtr, vecName);
-	}
+    if (flags & NS_SEARCH_CURRENT) {
+        nsPtr = Tcl_GetCurrentNamespace(dataPtr->interp);
+        vPtr = FindVectorInNamespace(dataPtr, nsPtr, vecName);
+    }
+    if ((vPtr == NULL) && (flags & NS_SEARCH_GLOBAL)) {
+        nsPtr = Tcl_GetGlobalNamespace(dataPtr->interp);
+        vPtr = FindVectorInNamespace(dataPtr, nsPtr, vecName);
+    }
     }
     return vPtr;
 }
@@ -2101,7 +2101,7 @@ FindVectorInNamespace(dataPtr, nsPtr, vecName)
     hPtr = Tcl_FindHashEntry(&(dataPtr->vectorTable), name);
     Tcl_DStringFree(&dString);
     if (hPtr != NULL) {
-	return (VectorObject *) Tcl_GetHashValue(hPtr);
+    return (VectorObject *) Tcl_GetHashValue(hPtr);
     }
     return NULL;
 }
@@ -2133,7 +2133,7 @@ Rbc_GetValues(vPtr, first, last)
 
     listObjPtr = Tcl_NewListObj(0, NULL);
     for (i = first; i <= last; i++) {
-	Tcl_ListObjAppendElement(vPtr->interp, listObjPtr, Tcl_NewDoubleObj(vPtr->valueArr[i]));
+    Tcl_ListObjAppendElement(vPtr->interp, listObjPtr, Tcl_NewDoubleObj(vPtr->valueArr[i]));
     }
     return listObjPtr;
 }
@@ -2163,7 +2163,7 @@ Rbc_ReplicateValue(vPtr, first, last, value)
     register int i;
 
     for (i = first; i <= last; i++) {
-	vPtr->valueArr[i] = value;
+    vPtr->valueArr[i] = value;
     }
     vPtr->notifyFlags |= UPDATE_RANGE;
 }
@@ -2195,10 +2195,10 @@ DeleteCommand(vPtr)
     cmdName = Tcl_GetCommandName(interp, vPtr->cmdToken);
 
     if (Tcl_GetCommandInfo(interp, cmdName, &cmdInfo)) {
-	/* Disable the callback before deleting the Tcl command.*/
-	cmdInfo.deleteProc = NULL;
-	Tcl_SetCommandInfo(interp, cmdName, &cmdInfo);
-	Tcl_DeleteCommand(interp, cmdName);
+    /* Disable the callback before deleting the Tcl command.*/
+    cmdInfo.deleteProc = NULL;
+    Tcl_SetCommandInfo(interp, cmdName, &cmdInfo);
+    Tcl_DeleteCommand(interp, cmdName);
     }
     vPtr->cmdToken = 0;
 }
@@ -2226,12 +2226,12 @@ UnmapVariable(vPtr)
     Tcl_Interp *interp = vPtr->interp;
 
     if (vPtr->arrayName == NULL) {
-	return;
+    return;
     }
 
     /* Unset the entire array */
     Tcl_UntraceVar2(interp, vPtr->arrayName, NULL,
-		    (TRACE_ALL | vPtr->varFlags), (Tcl_VarTraceProc *) VectorVarTrace, vPtr);
+            (TRACE_ALL | vPtr->varFlags), (Tcl_VarTraceProc *) VectorVarTrace, vPtr);
     Tcl_UnsetVar2(interp, vPtr->arrayName, (char *) NULL, vPtr->varFlags);
 
     /* free the space */
@@ -2263,13 +2263,13 @@ Rbc_GetDouble(interp, objPtr, valuePtr)
 {
     /* First try to extract the value as a double precision number. */
     if (Tcl_GetDoubleFromObj(interp, objPtr, valuePtr) == TCL_OK) {
-	return TCL_OK;
+    return TCL_OK;
     }
     Tcl_ResetResult(interp);
 
     /* Then try to parse it as an expression. */
     if (Tcl_ExprDoubleObj(interp, objPtr, valuePtr) == TCL_OK) {
-	return TCL_OK;
+    return TCL_OK;
     }
     return TCL_ERROR;
 }
@@ -2296,16 +2296,16 @@ Rbc_GetDouble(interp, objPtr, valuePtr)
  */
 void
 Rbc_FreeVectorId(clientId)
-    Rbc_VectorId clientId;	/* Client token identifying the vector */
+    Rbc_VectorId clientId;    /* Client token identifying the vector */
 {
     VectorClient *clientPtr = (VectorClient *)clientId;
 
     if (clientPtr->magic != VECTOR_MAGIC) {
-	return;			/* Not a valid token */
+    return;            /* Not a valid token */
     }
     if (clientPtr->serverPtr != NULL) {
-	/* Remove the client from the server's list */
-	Rbc_ChainDeleteLink(clientPtr->serverPtr->chainPtr, clientPtr->linkPtr);
+    /* Remove the client from the server's list */
+    Rbc_ChainDeleteLink(clientPtr->serverPtr->chainPtr, clientPtr->linkPtr);
     }
     ckfree((char *)clientPtr);
 }
@@ -2337,12 +2337,12 @@ Rbc_GetVectorById(interp, clientId, vecPtrPtr)
     VectorClient *clientPtr = (VectorClient *)clientId;
 
     if (clientPtr->magic != VECTOR_MAGIC) {
-	Tcl_AppendResult(interp, "bad vector token", (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "bad vector token", (char *)NULL);
+    return TCL_ERROR;
     }
     if (clientPtr->serverPtr == NULL) {
-	Tcl_AppendResult(interp, "vector no longer exists", (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "vector no longer exists", (char *)NULL);
+    return TCL_ERROR;
     }
     Rbc_VectorUpdateRange(clientPtr->serverPtr);
     *vecPtrPtr = (Rbc_Vector *) clientPtr->serverPtr;
@@ -2370,11 +2370,11 @@ Rbc_VectorExists2(
     Tcl_Interp *interp,
     const char *vecName)
 {
-    VectorInterpData *dataPtr;	/* Interpreter-specific data. */
+    VectorInterpData *dataPtr;    /* Interpreter-specific data. */
 
     dataPtr = Rbc_VectorGetInterpData(interp);
     if (GetVectorObject(dataPtr, vecName, NS_SEARCH_BOTH) != NULL) {
-	return TRUE;
+    return TRUE;
     }
     return FALSE;
 }
@@ -2403,7 +2403,7 @@ Rbc_AllocVectorId(
     Tcl_Interp *interp,
     const char *name)
 {
-    VectorInterpData *dataPtr;	/* Interpreter-specific data. */
+    VectorInterpData *dataPtr;    /* Interpreter-specific data. */
     VectorObject *vPtr;
     VectorClient *clientPtr;
     Rbc_VectorId clientId;
@@ -2422,7 +2422,7 @@ Rbc_AllocVectorId(
     ckfree((char *)nameCopy);
 
     if (result != TCL_OK) {
-	return (Rbc_VectorId) 0;
+    return (Rbc_VectorId) 0;
     }
     /* Allocate a new client structure */
     clientPtr = RbcCalloc(1, sizeof(VectorClient));
@@ -2458,15 +2458,15 @@ void
 Rbc_SetVectorChangedProc(clientId, proc, clientData)
     Rbc_VectorId clientId; /* Client token identifying the vector */
     Rbc_VectorChangedProc *proc; /* Address of routine to call when the contents
-				  * of the vector change. If NULL, no routine
-				  * will be called */
+                  * of the vector change. If NULL, no routine
+                  * will be called */
     ClientData clientData; /* One word of information to pass along when
-			    * the above routine is called */
+                * the above routine is called */
 {
     VectorClient *clientPtr = (VectorClient *)clientId;
 
     if (clientPtr->magic != VECTOR_MAGIC) {
-	return;			/* Not a valid token */
+    return;            /* Not a valid token */
     }
     clientPtr->clientData = clientData;
     clientPtr->proc = proc;
@@ -2494,7 +2494,7 @@ Rbc_NameOfVectorId(clientId)
     VectorClient *clientPtr = (VectorClient *)clientId;
 
     if ((clientPtr->magic != VECTOR_MAGIC) || (clientPtr->serverPtr == NULL)) {
-	return NULL;
+    return NULL;
     }
     return clientPtr->serverPtr->name;
 }
@@ -2522,7 +2522,7 @@ Rbc_GetVector(
     const char *name,
     Rbc_Vector **vecPtrPtr)
 {
-    VectorInterpData *dataPtr;	/* Interpreter-specific data. */
+    VectorInterpData *dataPtr;    /* Interpreter-specific data. */
     VectorObject *vPtr;
     char *nameCopy;
     int result;
@@ -2538,7 +2538,7 @@ Rbc_GetVector(
     result = Rbc_VectorLookupName(dataPtr, nameCopy, &vPtr);
     ckfree((char *)nameCopy);
     if (result != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     Rbc_VectorUpdateRange(vPtr);
     *vecPtrPtr = (Rbc_Vector *) vPtr;
@@ -2572,15 +2572,15 @@ Rbc_CreateVector2(
     int initialSize,
     Rbc_Vector **vecPtrPtr)
 {
-    VectorInterpData *dataPtr;	/* Interpreter-specific data. */
+    VectorInterpData *dataPtr;    /* Interpreter-specific data. */
     VectorObject *vPtr;
     int isNew;
     char *nameCopy;
 
     if (initialSize < 0) {
-	Tcl_AppendResult(interp, "bad vector size \"", Rbc_Itoa(initialSize),
-			 "\"", (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "bad vector size \"", Rbc_Itoa(initialSize),
+             "\"", (char *)NULL);
+    return TCL_ERROR;
     }
     dataPtr = Rbc_VectorGetInterpData(interp);
 
@@ -2589,15 +2589,15 @@ Rbc_CreateVector2(
     ckfree((char *)nameCopy);
 
     if (vPtr == NULL) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     if (initialSize > 0) {
-	if (Rbc_VectorChangeLength(vPtr, initialSize) != TCL_OK) {
-	    return TCL_ERROR;
-	}
+    if (Rbc_VectorChangeLength(vPtr, initialSize) != TCL_OK) {
+        return TCL_ERROR;
+    }
     }
     if (vecPtrPtr != NULL) {
-	*vecPtrPtr = (Rbc_Vector *) vPtr;
+    *vecPtrPtr = (Rbc_Vector *) vPtr;
     }
     return TCL_OK;
 }
@@ -2654,12 +2654,12 @@ Rbc_ResizeVector(vecPtr, length)
     VectorObject *vPtr = (VectorObject *)vecPtr;
 
     if (Rbc_VectorChangeLength(vPtr, length) != TCL_OK) {
-	Tcl_AppendResult(vPtr->interp, "can't resize vector \"", vPtr->name,
-			 "\"", (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(vPtr->interp, "can't resize vector \"", vPtr->name,
+             "\"", (char *)NULL);
+    return TCL_ERROR;
     }
     if (vPtr->flush) {
-	Rbc_VectorFlushCache(vPtr);
+    Rbc_VectorFlushCache(vPtr);
     }
     Rbc_VectorUpdateClients(vPtr);
     return TCL_OK;
@@ -2713,21 +2713,21 @@ int
 Rbc_ResetVector(vecPtr, valueArr, length, size, freeProc)
     Rbc_Vector *vecPtr;
     double *valueArr; /* Array containing the elements of the
-		       * vector. If NULL, indicates to reset the
-		       * vector.*/
+               * vector. If NULL, indicates to reset the
+               * vector.*/
     int length; /* The number of elements that the vector
-		 * currently holds. */
+         * currently holds. */
     int size; /* The maximum number of elements that the
-	       * array can hold. */
+           * array can hold. */
     Tcl_FreeProc *freeProc; /* Address of memory deallocation routine
-			     * for the array of values.  Can also be
-			     * TCL_STATIC, TCL_DYNAMIC, or TCL_VOLATILE. */
+                 * for the array of values.  Can also be
+                 * TCL_STATIC, TCL_DYNAMIC, or TCL_VOLATILE. */
 {
     VectorObject *vPtr = (VectorObject *)vecPtr;
 
     if (size < 0) {
-	Tcl_AppendResult(vPtr->interp, "bad array size", (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(vPtr->interp, "bad array size", (char *)NULL);
+    return TCL_ERROR;
     }
     return Rbc_VectorReset(vPtr, valueArr, length, size, freeProc);
 }

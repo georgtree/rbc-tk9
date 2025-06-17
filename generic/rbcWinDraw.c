@@ -20,58 +20,58 @@
  * Data structure for setting graphics context.
  */
 typedef struct {
-    int function;		/* logical operation */
-    unsigned long plane_mask;	/* plane mask */
-    unsigned long foreground;	/* foreground pixel */
-    unsigned long background;	/* background pixel */
-    int line_width;		/* line width */
-    int line_style;		/* LineSolid, LineOnOffDash, LineDoubleDash */
-    int cap_style;		/* CapNotLast, CapButt,
-				   CapRound, CapProjecting */
-    int join_style;		/* JoinMiter, JoinRound, JoinBevel */
-    int fill_style;		/* FillSolid, FillTiled,
-				   FillStippled, FillOpaeueStippled */
-    int fill_rule;		/* EvenOddRule, WindingRule */
-    int arc_mode;		/* ArcChord, ArcPieSlice */
-    Pixmap tile;		/* tile pixmap for tiling operations */
-    Pixmap stipple;		/* stipple 1 plane pixmap for stipping */
-    int ts_x_origin;		/* offset for tile or stipple operations */
+    int function;        /* logical operation */
+    unsigned long plane_mask;    /* plane mask */
+    unsigned long foreground;    /* foreground pixel */
+    unsigned long background;    /* background pixel */
+    int line_width;        /* line width */
+    int line_style;        /* LineSolid, LineOnOffDash, LineDoubleDash */
+    int cap_style;        /* CapNotLast, CapButt,
+                   CapRound, CapProjecting */
+    int join_style;        /* JoinMiter, JoinRound, JoinBevel */
+    int fill_style;        /* FillSolid, FillTiled,
+                   FillStippled, FillOpaeueStippled */
+    int fill_rule;        /* EvenOddRule, WindingRule */
+    int arc_mode;        /* ArcChord, ArcPieSlice */
+    Pixmap tile;        /* tile pixmap for tiling operations */
+    Pixmap stipple;        /* stipple 1 plane pixmap for stipping */
+    int ts_x_origin;        /* offset for tile or stipple operations */
     int ts_y_origin;
-    Font font;			/* default text font for text operations */
-    int subwindow_mode;		/* ClipByChildren, IncludeInferiors */
-    Bool graphics_exposures;	/* boolean, should exposures be generated */
-    int clip_x_origin;		/* origin for clipping */
+    Font font;            /* default text font for text operations */
+    int subwindow_mode;        /* ClipByChildren, IncludeInferiors */
+    Bool graphics_exposures;    /* boolean, should exposures be generated */
+    int clip_x_origin;        /* origin for clipping */
     int clip_y_origin;
-    Pixmap clip_mask;		/* bitmap clipping; other calls for rects */
-    int dash_offset;		/* patterned/dashed line information */
-    char dashes;		/* If -1, indicates that the extended
-				 * information below is available. */
+    Pixmap clip_mask;        /* bitmap clipping; other calls for rects */
+    int dash_offset;        /* patterned/dashed line information */
+    char dashes;        /* If -1, indicates that the extended
+                 * information below is available. */
     int nDashValues;
     char dashValues[12];
 } XGCValuesEx;
 
 const int tkpWinRopModes[] = {
-    R2_BLACK,			/* GXclear */
-    R2_MASKPEN,			/* GXand */
-    R2_MASKPENNOT,		/* GXandReverse */
-    R2_COPYPEN,			/* GXcopy */
-    R2_MASKNOTPEN,		/* GXandInverted */
-    R2_NOT,			/* GXnoop */
-    R2_XORPEN,			/* GXxor */
-    R2_MERGEPEN,		/* GXor */
-    R2_NOTMERGEPEN,		/* GXnor */
-    R2_NOTXORPEN,		/* GXequiv */
-    R2_NOT,			/* GXinvert */
-    R2_MERGEPENNOT,		/* GXorReverse */
-    R2_NOTCOPYPEN,		/* GXcopyInverted */
-    R2_MERGENOTPEN,		/* GXorInverted */
-    R2_NOTMASKPEN,		/* GXnand */
-    R2_WHITE			/* GXset */
+    R2_BLACK,            /* GXclear */
+    R2_MASKPEN,            /* GXand */
+    R2_MASKPENNOT,        /* GXandReverse */
+    R2_COPYPEN,            /* GXcopy */
+    R2_MASKNOTPEN,        /* GXandInverted */
+    R2_NOT,            /* GXnoop */
+    R2_XORPEN,            /* GXxor */
+    R2_MERGEPEN,        /* GXor */
+    R2_NOTMERGEPEN,        /* GXnor */
+    R2_NOTXORPEN,        /* GXequiv */
+    R2_NOT,            /* GXinvert */
+    R2_MERGEPENNOT,        /* GXorReverse */
+    R2_NOTCOPYPEN,        /* GXcopyInverted */
+    R2_MERGENOTPEN,        /* GXorInverted */
+    R2_NOTMASKPEN,        /* GXnand */
+    R2_WHITE            /* GXset */
 };
 
-#define MASKPAT		0x00E20746 /* dest = (src & pat) | (!src & dst) */
-#define COPYFG		0x00CA0749 /* dest = (pat & src) | (!pat & dst) */
-#define COPYBG		0x00AC0744 /* dest = (!pat & src) | (pat & dst) */
+#define MASKPAT        0x00E20746 /* dest = (src & pat) | (!src & dst) */
+#define COPYFG        0x00CA0749 /* dest = (pat & src) | (!pat & dst) */
+#define COPYBG        0x00AC0744 /* dest = (!pat & src) | (pat & dst) */
 /*
  * Translation table between X gc functions and Win32 BitBlt op modes.  Some
  * of the operations defined in X don't have names, so we have to construct
@@ -79,28 +79,28 @@ const int tkpWinRopModes[] = {
  * useful, but at least it's accurate.
  */
 
-#define NOTSRCAND	(DWORD)0x00220326 /* dest = (NOT src) AND dest */
-#define NOTSRCINVERT	(DWORD)0x00990066 /* dest = (NOT src) XOR dest */
-#define SRCORREVERSE	(DWORD)0x00DD0228 /* dest = src OR (NOT dest) */
-#define SRCNAND		(DWORD)0x007700E6 /* dest = NOT (src AND dest) */
+#define NOTSRCAND    (DWORD)0x00220326 /* dest = (NOT src) AND dest */
+#define NOTSRCINVERT    (DWORD)0x00990066 /* dest = (NOT src) XOR dest */
+#define SRCORREVERSE    (DWORD)0x00DD0228 /* dest = src OR (NOT dest) */
+#define SRCNAND        (DWORD)0x007700E6 /* dest = NOT (src AND dest) */
 
 static int bltModes[] = {
-    BLACKNESS,			/* GXclear */
-    SRCAND,			/* GXand */
-    SRCERASE,			/* GXandReverse */
-    SRCCOPY,			/* GXcopy */
-    NOTSRCAND,			/* GXandInverted */
-    PATCOPY,			/* GXnoop */
-    SRCINVERT,			/* GXxor */
-    SRCPAINT,			/* GXor */
-    NOTSRCERASE,		/* GXnor */
-    NOTSRCINVERT,		/* GXequiv */
-    DSTINVERT,			/* GXinvert */
-    SRCORREVERSE,		/* GXorReverse */
-    NOTSRCCOPY,			/* GXcopyInverted */
-    MERGEPAINT,			/* GXorInverted */
-    SRCNAND,			/* GXnand */
-    WHITENESS			/* GXset */
+    BLACKNESS,            /* GXclear */
+    SRCAND,            /* GXand */
+    SRCERASE,            /* GXandReverse */
+    SRCCOPY,            /* GXcopy */
+    NOTSRCAND,            /* GXandInverted */
+    PATCOPY,            /* GXnoop */
+    SRCINVERT,            /* GXxor */
+    SRCPAINT,            /* GXor */
+    NOTSRCERASE,        /* GXnor */
+    NOTSRCINVERT,        /* GXequiv */
+    DSTINVERT,            /* GXinvert */
+    SRCORREVERSE,        /* GXorReverse */
+    NOTSRCCOPY,            /* GXcopyInverted */
+    MERGEPAINT,            /* GXorInverted */
+    SRCNAND,            /* GXnand */
+    WHITENESS            /* GXset */
 };
 
 /*
@@ -126,18 +126,18 @@ Rbc_GetSystemPalette()
     DWORD flags;
 
     hPalette = NULL;
-    hDC = GetDC(NULL);		/* Get the desktop device context */
+    hDC = GetDC(NULL);        /* Get the desktop device context */
     flags = GetDeviceCaps(hDC, RASTERCAPS);
     if (flags & RC_PALETTE) {
-	LOGPALETTE *palettePtr;
+    LOGPALETTE *palettePtr;
 
-	palettePtr = (LOGPALETTE *)
-		     GlobalAlloc(GPTR, sizeof(LOGPALETTE) + 256 * sizeof(PALETTEENTRY));
-	palettePtr->palVersion = 0x300;
-	palettePtr->palNumEntries = 256;
-	GetSystemPaletteEntries(hDC, 0, 256, palettePtr->palPalEntry);
-	hPalette = CreatePalette(palettePtr);
-	GlobalFree(palettePtr);
+    palettePtr = (LOGPALETTE *)
+             GlobalAlloc(GPTR, sizeof(LOGPALETTE) + 256 * sizeof(PALETTEENTRY));
+    palettePtr->palVersion = 0x300;
+    palettePtr->palNumEntries = 256;
+    GetSystemPaletteEntries(hDC, 0, 256, palettePtr->palPalEntry);
+    hPalette = CreatePalette(palettePtr);
+    GlobalFree(palettePtr);
     }
     ReleaseDC(NULL, hDC);
     return hPalette;
@@ -191,38 +191,38 @@ Rbc_GetBitmapData(display, bitmap, width, height, pitchPtr)
     hBitmap = ((TkWinDrawable *)bitmap)->bitmap.handle;
     dc = TkWinGetDrawableDC(display, bitmap, &state);
     result = GetDIBits(dc, hBitmap, 0, height, (LPVOID)NULL,
-		       (BITMAPINFO *)bmiPtr, DIB_RGB_COLORS);
+               (BITMAPINFO *)bmiPtr, DIB_RGB_COLORS);
     TkWinReleaseDrawableDC(bitmap, dc, &state);
     if (!result) {
-	GlobalUnlock(hMem);
-	GlobalFree(hMem);
-	return NULL;
+    GlobalUnlock(hMem);
+    GlobalFree(hMem);
+    return NULL;
     }
     imageSize = bmiPtr->biSizeImage;
     GlobalUnlock(hMem);
     bytesPerRow = ((width + 31) & ~31) / 8;
     if (imageSize == 0) {
-	imageSize = bytesPerRow * height;
+    imageSize = bytesPerRow * height;
     }
     hMem2 = GlobalReAlloc(hMem, size + imageSize, 0);
     if (hMem2 == NULL) {
-	GlobalFree(hMem);
-	return NULL;
+    GlobalFree(hMem);
+    return NULL;
     }
     hMem = hMem2;
     bmiPtr = (LPBITMAPINFOHEADER)GlobalLock(hMem);
     dc = TkWinGetDrawableDC(display, bitmap, &state);
     result = GetDIBits(dc, hBitmap, 0, height, (unsigned char *)bmiPtr + size,
-		       (BITMAPINFO *)bmiPtr, DIB_RGB_COLORS);
+               (BITMAPINFO *)bmiPtr, DIB_RGB_COLORS);
     TkWinReleaseDrawableDC(bitmap, dc, &state);
     bits = NULL;
     if (!result) {
-	OutputDebugStringA("GetDIBits failed\n");
+    OutputDebugStringA("GetDIBits failed\n");
     } else {
-	bits = (unsigned char *)ckalloc(imageSize);
-	if (bits != NULL) {
-	    memcpy (bits, (unsigned char *)bmiPtr + size, imageSize);
-	}
+    bits = (unsigned char *)ckalloc(imageSize);
+    if (bits != NULL) {
+        memcpy (bits, (unsigned char *)bmiPtr + size, imageSize);
+    }
     }
     *pitchPtr = bytesPerRow;
     GlobalUnlock(hMem);
@@ -404,7 +404,7 @@ Rbc_EmulateXWarpPointer(display, srcWindow, destWindow, srcX, srcY, srcWidth, sr
     hWnd = Tk_GetHWND(destWindow);
     point.x = destX, point.y = destY;
     if (ClientToScreen(hWnd, &point)) {
-	SetCursorPos(point.x, point.y);
+    SetCursorPos(point.x, point.y);
     }
 }
 
@@ -471,16 +471,16 @@ GetDashInfo(dc, gc, infoPtr)
     dashValue = 0;
     dashOffset = gc->dash_offset;
     if ((int)gc->dashes == -1) {
-	XGCValuesEx *gcPtr = (XGCValuesEx *)gc;
+    XGCValuesEx *gcPtr = (XGCValuesEx *)gc;
 
-	if (gcPtr->nDashValues == 1) {
-	    dashValue = gcPtr->dashValues[0];
-	}
+    if (gcPtr->nDashValues == 1) {
+        dashValue = gcPtr->dashValues[0];
+    }
     } else if (gc->dashes > 0) {
-	dashValue = (int)gc->dashes;
+    dashValue = (int)gc->dashes;
     }
     if (dashValue == 0) {
-	return FALSE;
+    return FALSE;
     }
     infoPtr->dc = dc;
     infoPtr->nBits = dashValue;
@@ -535,14 +535,14 @@ CreateGC()
 
     gcPtr = (XGCValuesEx *)ckalloc(sizeof(XGCValuesEx));
     if (gcPtr == NULL) {
-	return NULL;
+    return NULL;
     }
     gcPtr->arc_mode = ArcPieSlice;
     gcPtr->background = 0xffffff;
     gcPtr->cap_style = CapNotLast;
     gcPtr->clip_mask = None;
     gcPtr->clip_x_origin = gcPtr->clip_y_origin = 0;
-    gcPtr->dash_offset	= 0;
+    gcPtr->dash_offset    = 0;
     gcPtr->fill_rule = WindingRule;
     gcPtr->fill_style = FillSolid;
     gcPtr->font = None;
@@ -559,7 +559,7 @@ CreateGC()
     gcPtr->ts_x_origin = gcPtr->ts_y_origin = 0;
 
     gcPtr->dashes = -1;    /* Mark that this an extended GC */
-    gcPtr->nDashValues	= 0;
+    gcPtr->nDashValues    = 0;
 
     return gcPtr;
 }
@@ -590,85 +590,85 @@ Rbc_EmulateXCreateGC(display, drawable, mask, srcPtr)
 
     destPtr = CreateGC();
     if (destPtr == NULL) {
-	return None;
+    return None;
     }
     if (mask & GCFunction) {
-	destPtr->function = srcPtr->function;
+    destPtr->function = srcPtr->function;
     }
     if (mask & GCPlaneMask) {
-	destPtr->plane_mask = srcPtr->plane_mask;
+    destPtr->plane_mask = srcPtr->plane_mask;
     }
     if (mask & GCForeground) {
-	destPtr->foreground = srcPtr->foreground;
+    destPtr->foreground = srcPtr->foreground;
     }
     if (mask & GCBackground) {
-	destPtr->background = srcPtr->background;
+    destPtr->background = srcPtr->background;
     }
     if (mask & GCLineWidth) {
-	destPtr->line_width = srcPtr->line_width;
+    destPtr->line_width = srcPtr->line_width;
     }
     if (mask & GCLineStyle) {
-	destPtr->line_style = srcPtr->line_style;
+    destPtr->line_style = srcPtr->line_style;
     }
     if (mask & GCCapStyle) {
-	destPtr->cap_style = srcPtr->cap_style;
+    destPtr->cap_style = srcPtr->cap_style;
     }
     if (mask & GCJoinStyle) {
-	destPtr->join_style = srcPtr->join_style;
+    destPtr->join_style = srcPtr->join_style;
     }
     if (mask & GCFillStyle) {
-	destPtr->fill_style = srcPtr->fill_style;
+    destPtr->fill_style = srcPtr->fill_style;
     }
     if (mask & GCFillRule) {
-	destPtr->fill_rule = srcPtr->fill_rule;
+    destPtr->fill_rule = srcPtr->fill_rule;
     }
     if (mask & GCArcMode) {
-	destPtr->arc_mode = srcPtr->arc_mode;
+    destPtr->arc_mode = srcPtr->arc_mode;
     }
     if (mask & GCTile) {
-	destPtr->tile = srcPtr->tile;
+    destPtr->tile = srcPtr->tile;
     }
     if (mask & GCStipple) {
-	destPtr->stipple = srcPtr->stipple;
+    destPtr->stipple = srcPtr->stipple;
     }
     if (mask & GCTileStipXOrigin) {
-	destPtr->ts_x_origin = srcPtr->ts_x_origin;
+    destPtr->ts_x_origin = srcPtr->ts_x_origin;
     }
     if (mask & GCTileStipXOrigin) {
-	destPtr->ts_y_origin = srcPtr->ts_y_origin;
+    destPtr->ts_y_origin = srcPtr->ts_y_origin;
     }
     if (mask & GCFont) {
-	destPtr->font = srcPtr->font;
+    destPtr->font = srcPtr->font;
     }
     if (mask & GCSubwindowMode) {
-	destPtr->subwindow_mode = srcPtr->subwindow_mode;
+    destPtr->subwindow_mode = srcPtr->subwindow_mode;
     }
     if (mask & GCGraphicsExposures) {
-	destPtr->graphics_exposures = srcPtr->graphics_exposures;
+    destPtr->graphics_exposures = srcPtr->graphics_exposures;
     }
     if (mask & GCClipXOrigin) {
-	destPtr->clip_x_origin = srcPtr->clip_x_origin;
+    destPtr->clip_x_origin = srcPtr->clip_x_origin;
     }
     if (mask & GCClipYOrigin) {
-	destPtr->clip_y_origin = srcPtr->clip_y_origin;
+    destPtr->clip_y_origin = srcPtr->clip_y_origin;
     }
     if (mask & GCDashOffset) {
-	destPtr->dash_offset = srcPtr->dash_offset;
+    destPtr->dash_offset = srcPtr->dash_offset;
     }
     if (mask & GCDashList) {
-	destPtr->dashes = srcPtr->dashes;
+    destPtr->dashes = srcPtr->dashes;
     }
     if (mask & GCClipMask) {
-	struct ClipMask {
-	    int type;		/* TKP_CLIP_PIXMAP or TKP_CLIP_REGION */
-	    Pixmap pixmap;
-	} *clipPtr;
+    struct ClipMask {
+        int type;        /* TKP_CLIP_PIXMAP or TKP_CLIP_REGION */
+        Pixmap pixmap;
+    } *clipPtr;
 
-	clipPtr = (struct ClipMask *)ckalloc(sizeof(struct ClipMask));
+    clipPtr = (struct ClipMask *)ckalloc(sizeof(struct ClipMask));
 #define TKP_CLIP_PIXMAP 0
-	clipPtr->type = TKP_CLIP_PIXMAP;
-	clipPtr->pixmap = srcPtr->clip_mask;
-	destPtr->clip_mask = (Pixmap) clipPtr;
+    clipPtr->type = TKP_CLIP_PIXMAP;
+    clipPtr->pixmap = srcPtr->clip_mask;
+    destPtr->clip_mask = (Pixmap) clipPtr;
     }
     return (GC)destPtr;
 }
@@ -730,102 +730,102 @@ Rbc_GCToPen(dc, gc)
     nValues = 0;
     lineWidth = (gc->line_width < 1) ? 1 : gc->line_width;
     if ((gc->line_style == LineOnOffDash) ||
-	    (gc->line_style == LineDoubleDash)) {
-	XGCValuesEx *gcPtr = (XGCValuesEx *)gc;
+        (gc->line_style == LineDoubleDash)) {
+    XGCValuesEx *gcPtr = (XGCValuesEx *)gc;
 
-	if ((int)gc->dashes == -1) {
-	    register int i;
+    if ((int)gc->dashes == -1) {
+        register int i;
 
-	    nValues = strlen(gcPtr->dashValues);
-	    for (i = 0; i < nValues; i++) {
-		dashArr[i] = (DWORD)gcPtr->dashValues[i];
-	    }
-	    if (nValues == 1) {
-		dashArr[1] = dashArr[0];
-		nValues = 2;
-	    }
-	} else {
-	    dashArr[1] = dashArr[0] = (DWORD) gc->dashes;
-	    nValues = 2;
-	    gc->dashes = -1;
-	}
+        nValues = strlen(gcPtr->dashValues);
+        for (i = 0; i < nValues; i++) {
+        dashArr[i] = (DWORD)gcPtr->dashValues[i];
+        }
+        if (nValues == 1) {
+        dashArr[1] = dashArr[0];
+        nValues = 2;
+        }
+    } else {
+        dashArr[1] = dashArr[0] = (DWORD) gc->dashes;
+        nValues = 2;
+        gc->dashes = -1;
+    }
     }
 
     switch (nValues) {
-	case 0:
-	    lineStyle = PS_SOLID;
-	    break;
-	case 3:
-	    lineStyle = PS_DASHDOT;
-	    break;
-	case 4:
-	    lineStyle = PS_DASHDOTDOT;
-	    break;
-	case 2:
-	default:
-	    /* PS_DASH style dash length is too long. */
-	    lineStyle = PS_DOT;
-	    break;
+    case 0:
+        lineStyle = PS_SOLID;
+        break;
+    case 3:
+        lineStyle = PS_DASHDOT;
+        break;
+    case 4:
+        lineStyle = PS_DASHDOTDOT;
+        break;
+    case 2:
+    default:
+        /* PS_DASH style dash length is too long. */
+        lineStyle = PS_DOT;
+        break;
     }
 
     lBrush.lbStyle = BS_SOLID;
     lBrush.lbColor = gc->foreground;
-    lBrush.lbHatch = 0;		/* Value is ignored when style is BS_SOLID. */
+    lBrush.lbHatch = 0;        /* Value is ignored when style is BS_SOLID. */
 
     lineAttrs = 0;
     switch (gc->cap_style) {
-	case CapNotLast:
-	case CapButt:
-	    lineAttrs |= PS_ENDCAP_FLAT;
-	    break;
-	case CapRound:
-	    lineAttrs |= PS_ENDCAP_ROUND;
-	    break;
-	default:
-	    lineAttrs |= PS_ENDCAP_SQUARE;
-	    break;
+    case CapNotLast:
+    case CapButt:
+        lineAttrs |= PS_ENDCAP_FLAT;
+        break;
+    case CapRound:
+        lineAttrs |= PS_ENDCAP_ROUND;
+        break;
+    default:
+        lineAttrs |= PS_ENDCAP_SQUARE;
+        break;
     }
     switch (gc->join_style) {
-	case JoinMiter:
-	    lineAttrs |= PS_JOIN_MITER;
-	    break;
-	case JoinBevel:
-	    lineAttrs |= PS_JOIN_BEVEL;
-	    break;
-	case JoinRound:
-	default:
-	    lineAttrs |= PS_JOIN_ROUND;
-	    break;
+    case JoinMiter:
+        lineAttrs |= PS_JOIN_MITER;
+        break;
+    case JoinBevel:
+        lineAttrs |= PS_JOIN_BEVEL;
+        break;
+    case JoinRound:
+    default:
+        lineAttrs |= PS_JOIN_ROUND;
+        break;
     }
     SetBkMode(dc, TRANSPARENT);
 
     if (Rbc_GetPlatformId() == VER_PLATFORM_WIN32_NT) {
-	/* Windows NT/2000/XP. */
-	if (nValues > 0) {
-	    lineStyle = PS_USERSTYLE;
-	    dashPtr = dashArr;
-	} else {
-	    dashPtr = NULL;
-	}
-	if (lineWidth > 1) {
-	    /* Limit the use of geometric pens to thick lines. */
-	    pen = ExtCreatePen(PS_GEOMETRIC | lineAttrs | lineStyle, lineWidth,
-			       &lBrush, nValues, dashPtr);
-	} else {
-	    /* Cosmetic pens are much faster. */
-	    pen = ExtCreatePen(PS_COSMETIC | lineAttrs | lineStyle, 1, &lBrush,
-			       nValues, dashPtr);
-	}
+    /* Windows NT/2000/XP. */
+    if (nValues > 0) {
+        lineStyle = PS_USERSTYLE;
+        dashPtr = dashArr;
     } else {
-	/* Windows 95/98. */
-	if ((lineStyle == PS_SOLID) && (lineWidth > 1)) {
-	    /* Use geometric pens with solid, thick lines only. */
-	    pen = ExtCreatePen(PS_GEOMETRIC | lineAttrs | lineStyle, lineWidth,
-			       &lBrush, 0, NULL);
-	} else {
-	    /* Otherwise sacrifice thick lines for dashes. */
-	    pen = ExtCreatePen(PS_COSMETIC | lineStyle, 1, &lBrush, 0, NULL);
-	}
+        dashPtr = NULL;
+    }
+    if (lineWidth > 1) {
+        /* Limit the use of geometric pens to thick lines. */
+        pen = ExtCreatePen(PS_GEOMETRIC | lineAttrs | lineStyle, lineWidth,
+                   &lBrush, nValues, dashPtr);
+    } else {
+        /* Cosmetic pens are much faster. */
+        pen = ExtCreatePen(PS_COSMETIC | lineAttrs | lineStyle, 1, &lBrush,
+                   nValues, dashPtr);
+    }
+    } else {
+    /* Windows 95/98. */
+    if ((lineStyle == PS_SOLID) && (lineWidth > 1)) {
+        /* Use geometric pens with solid, thick lines only. */
+        pen = ExtCreatePen(PS_GEOMETRIC | lineAttrs | lineStyle, lineWidth,
+                   &lBrush, 0, NULL);
+    } else {
+        /* Otherwise sacrifice thick lines for dashes. */
+        pen = ExtCreatePen(PS_COSMETIC | lineStyle, 1, &lBrush, 0, NULL);
+    }
     }
     assert(pen != NULL);
     return pen;
@@ -873,7 +873,7 @@ Rbc_EmulateXDrawRectangles(display, drawable, gc, rectArr, nRects)
     register int i;
 
     if (drawable == None) {
-	return;
+    return;
     }
     dc = TkWinGetDrawableDC(display, drawable, &state);
     pen = Rbc_GCToPen(dc, gc);
@@ -883,9 +883,9 @@ Rbc_EmulateXDrawRectangles(display, drawable, gc, rectArr, nRects)
     SetROP2(dc, tkpWinRopModes[gc->function]);
     rectPtr = rectArr;
     for (i = 0; i < nRects; i++, rectPtr++) {
-	Rectangle(dc, (int)rectPtr->x, (int)rectPtr->y,
-		  (int)(rectPtr->x + rectPtr->width + 1),
-		  (int)(rectPtr->y + rectPtr->height + 1));
+    Rectangle(dc, (int)rectPtr->x, (int)rectPtr->y,
+          (int)(rectPtr->x + rectPtr->width + 1),
+          (int)(rectPtr->y + rectPtr->height + 1));
     }
     DeletePen(SelectPen(dc, oldPen));
     DeleteBrush(SelectBrush(dc, oldBrush));
@@ -952,19 +952,19 @@ DrawMiniArc(
     int i, j;
 
     if (width > MINIARCS) {
-	return;
+    return;
     }
     arc = arcis[width];
     for (i = 0; i <= width; i++) {
-	for (j = 0; j <= width; j++) {
-	    bit = (mask & *arc);
-	    if (bit & OUTLINE) {
-		SetPixelV(dc, x + i, y + j, outer);
-	    } else if (bit & FILL) {
-		SetPixelV(dc, x + i, y + j, inner);
-	    }
-	    arc++;
-	}
+    for (j = 0; j <= width; j++) {
+        bit = (mask & *arc);
+        if (bit & OUTLINE) {
+        SetPixelV(dc, x + i, y + j, outer);
+        } else if (bit & FILL) {
+        SetPixelV(dc, x + i, y + j, inner);
+        }
+        arc++;
+    }
     }
 }
 
@@ -1000,13 +1000,13 @@ DrawArc(dc, arcMode, arcPtr, pen, brush)
     double dx, dy;
 
     if ((arcPtr->angle1 == 0) && (arcPtr->angle2 == 23040)) {
-	/* Handle special case of circle or ellipse */
-	Ellipse(dc, arcPtr->x, arcPtr->y, arcPtr->x + arcPtr->width + 1,
-		arcPtr->y + arcPtr->height + 1);
-	return;
+    /* Handle special case of circle or ellipse */
+    Ellipse(dc, arcPtr->x, arcPtr->y, arcPtr->x + arcPtr->width + 1,
+        arcPtr->y + arcPtr->height + 1);
+    return;
     }
     start = arcPtr->angle1, extent = arcPtr->angle2;
-    clockwise = (extent < 0);	/* Non-zero if clockwise */
+    clockwise = (extent < 0);    /* Non-zero if clockwise */
 
     /*
      * Compute the absolute starting and ending angles in normalized radians.
@@ -1014,16 +1014,16 @@ DrawArc(dc, arcMode, arcPtr, pen, brush)
      */
     start = start % (64 * 360);
     if (start < 0) {
-	start += (64 * 360);
+    start += (64 * 360);
     }
     extent = (start + extent) % (64 * 360);
     if (extent < 0) {
-	extent += (64 * 360);
+    extent += (64 * 360);
     }
     if (clockwise) {
-	int tmp = start;
-	start = extent;
-	extent = tmp;
+    int tmp = start;
+    start = extent;
+    extent = tmp;
     }
 #define XAngleToRadians(a) ((double)(a) / 64 * M_PI / 180);
     radian_start = XAngleToRadians(start);
@@ -1051,22 +1051,22 @@ DrawArc(dc, arcMode, arcPtr, pen, brush)
      */
 
     if (brush == 0) {
-	/*
-	 * Note that this call will leave a gap of one pixel at the
-	 * end of the arc for thin arcs.  We can't use ArcTo because
-	 * it's only supported under Windows NT.
-	 */
-	Arc(dc, arcPtr->x, arcPtr->y, arcPtr->x + arcPtr->width + 1,
-	    arcPtr->y + arcPtr->height + 1, xstart, ystart, xend, yend);
-	/* FIXME: */
+    /*
+     * Note that this call will leave a gap of one pixel at the
+     * end of the arc for thin arcs.  We can't use ArcTo because
+     * it's only supported under Windows NT.
+     */
+    Arc(dc, arcPtr->x, arcPtr->y, arcPtr->x + arcPtr->width + 1,
+        arcPtr->y + arcPtr->height + 1, xstart, ystart, xend, yend);
+    /* FIXME: */
     } else {
-	if (arcMode == ArcChord) {
-	    Chord(dc, arcPtr->x, arcPtr->y, arcPtr->x + arcPtr->width + 1,
-		  arcPtr->y + arcPtr->height + 1, xstart, ystart, xend, yend);
-	} else if (arcMode == ArcPieSlice) {
-	    Pie(dc, arcPtr->x, arcPtr->y, arcPtr->x + arcPtr->width + 1,
-		arcPtr->y + arcPtr->height + 1, xstart, ystart, xend, yend);
-	}
+    if (arcMode == ArcChord) {
+        Chord(dc, arcPtr->x, arcPtr->y, arcPtr->x + arcPtr->width + 1,
+          arcPtr->y + arcPtr->height + 1, xstart, ystart, xend, yend);
+    } else if (arcMode == ArcPieSlice) {
+        Pie(dc, arcPtr->x, arcPtr->y, arcPtr->x + arcPtr->width + 1,
+        arcPtr->y + arcPtr->height + 1, xstart, ystart, xend, yend);
+    }
     }
 }
 
@@ -1108,7 +1108,7 @@ Rbc_EmulateXDrawArcs(display, drawable, gc, arcArr, nArcs)
 
 //    display->request++;
     if (drawable == None) {
-	return;
+    return;
     }
     dc = TkWinGetDrawableDC(display, drawable, &state);
     SetROP2(dc, tkpWinRopModes[gc->function]);
@@ -1118,7 +1118,7 @@ Rbc_EmulateXDrawArcs(display, drawable, gc, arcArr, nArcs)
     oldBrush = SelectBrush(dc, brush);
     endPtr = arcArr + nArcs;
     for (arcPtr = arcArr; arcPtr < endPtr; arcPtr++) {
-	DrawArc(dc, gc->arc_mode, arcPtr, pen, 0);
+    DrawArc(dc, gc->arc_mode, arcPtr, pen, 0);
     }
     DeleteBrush(SelectBrush(dc, oldBrush));
     DeletePen(SelectPen(dc, oldPen));
@@ -1156,7 +1156,7 @@ Rbc_EmulateXFillArcs(display, drawable, gc, arcArr, nArcs)
 
 //    display->request++;
     if (drawable == None) {
-	return;
+    return;
     }
     dc = TkWinGetDrawableDC(display, drawable, &state);
     SetROP2(dc, tkpWinRopModes[gc->function]);
@@ -1166,7 +1166,7 @@ Rbc_EmulateXFillArcs(display, drawable, gc, arcArr, nArcs)
     oldBrush = SelectBrush(dc, brush);
     endPtr = arcArr + nArcs;
     for (arcPtr = arcArr; arcPtr < endPtr; arcPtr++) {
-	DrawArc(dc, gc->arc_mode, arcPtr, pen, brush);
+    DrawArc(dc, gc->arc_mode, arcPtr, pen, brush);
     }
     DeleteBrush(SelectBrush(dc, oldBrush));
     DeletePen(SelectPen(dc, oldPen));
@@ -1194,14 +1194,14 @@ DrawDot(
     int y, /* y-coordinates of point */
     LPARAM clientData
     )
-{				/* Line information */
+{                /* Line information */
     DashInfo *infoPtr = (DashInfo *) clientData;
     int count;
 
     infoPtr->count++;
     count = (infoPtr->count + infoPtr->offset) / infoPtr->nBits;
     if (count & 0x1) {
-	SetPixelV(infoPtr->dc, x, y, infoPtr->color);
+    SetPixelV(infoPtr->dc, x, y, infoPtr->color);
     }
 }
 
@@ -1234,31 +1234,31 @@ Rbc_EmulateXDrawLine(display, drawable, gc, x1, y1, x2, y2)
     HDC dc;
 
     if (drawable == None) {
-	return;
+    return;
     }
     dc = TkWinGetDrawableDC(display, drawable, &state);
     SetROP2(dc, tkpWinRopModes[gc->function]);
     if (gc->line_style != LineSolid) {
-	/* Handle dotted lines specially */
-	DashInfo info;
+    /* Handle dotted lines specially */
+    DashInfo info;
 
-	if (!GetDashInfo(dc, gc, &info)) {
-	    goto solidLine;
-	}
-	LineDDA(x1, y1, x2, y2, DrawDot, (LPARAM)&info);
+    if (!GetDashInfo(dc, gc, &info)) {
+        goto solidLine;
+    }
+    LineDDA(x1, y1, x2, y2, DrawDot, (LPARAM)&info);
     } else {
-	HPEN pen, oldPen;
-	HBRUSH brush, oldBrush;
+    HPEN pen, oldPen;
+    HBRUSH brush, oldBrush;
 
 solidLine:
-	pen = Rbc_GCToPen(dc, gc);
-	oldPen = SelectPen(dc, pen);
-	brush = CreateSolidBrush(gc->foreground);
-	oldBrush = SelectBrush(dc, brush);
-	MoveToEx(dc, x1, y1, (LPPOINT)NULL);
-	LineTo(dc, x2, y2);
-	DeletePen(SelectPen(dc, oldPen));
-	DeleteBrush(SelectBrush(dc, oldBrush));
+    pen = Rbc_GCToPen(dc, gc);
+    oldPen = SelectPen(dc, pen);
+    brush = CreateSolidBrush(gc->foreground);
+    oldBrush = SelectBrush(dc, brush);
+    MoveToEx(dc, x1, y1, (LPPOINT)NULL);
+    LineTo(dc, x2, y2);
+    DeletePen(SelectPen(dc, oldPen));
+    DeleteBrush(SelectBrush(dc, oldBrush));
     }
     TkWinReleaseDrawableDC(drawable, dc, &state);
 }
@@ -1294,7 +1294,7 @@ DrawLine(display, drawable, gc, points, nPoints)
     HBRUSH brush, oldBrush;
 
     if (drawable == None) {
-	return;
+    return;
     }
     dc = TkWinGetDrawableDC(display, drawable, &state);
     pen = Rbc_GCToPen(dc, gc);
@@ -1312,15 +1312,15 @@ DrawLine(display, drawable, gc, points, nPoints)
      * cap uniformity for unbearably slow polyline draws.
      */
     if (gc->line_width > 1) {
-	size = 100;
+    size = 100;
     } else {
-	size = nPoints;
+    size = nPoints;
     }
     for (i = nPoints; i > 0; i -= size) {
-	n = MIN(i, size);
-	Polyline(dc, points + start, n + extra);
-	start += (n - 1);
-	extra = 1;
+    n = MIN(i, size);
+    Polyline(dc, points + start, n + extra);
+    start += (n - 1);
+    extra = 1;
     }
     DeletePen(SelectPen(dc, oldPen));
     DeleteBrush(SelectBrush(dc, oldBrush));
@@ -1352,66 +1352,66 @@ Rbc_EmulateXDrawLines(display, drawable, gc, pointArr, nPoints, mode)
     int mode;
 {
     if (drawable == None) {
-	return;
+    return;
     }
     if (gc->line_style != LineSolid) { /* Handle dotted lines specially */
-	DashInfo info;
-	TkWinDCState state;
-	HDC dc;
-	int result;
+    DashInfo info;
+    TkWinDCState state;
+    HDC dc;
+    int result;
 
-	dc = TkWinGetDrawableDC(display, drawable, &state);
-	SetROP2(dc, tkpWinRopModes[gc->function]);
-	result = GetDashInfo(dc, gc, &info);
-	if (result) {
-	    register XPoint *p1, *p2;
-	    register int i;
+    dc = TkWinGetDrawableDC(display, drawable, &state);
+    SetROP2(dc, tkpWinRopModes[gc->function]);
+    result = GetDashInfo(dc, gc, &info);
+    if (result) {
+        register XPoint *p1, *p2;
+        register int i;
 
-	    p1 = pointArr;
-	    p2 = p1 + 1;
-	    for (i = 1; i < nPoints; i++, p1++, p2++) {
-		LineDDA(p1->x, p1->y, p2->x, p2->y, DrawDot, (LPARAM)&info);
-	    }
-	    result = TCL_OK;
-	}
-	TkWinReleaseDrawableDC(drawable, dc, &state);
-	if (result) {
-	    return;
-	}
+        p1 = pointArr;
+        p2 = p1 + 1;
+        for (i = 1; i < nPoints; i++, p1++, p2++) {
+        LineDDA(p1->x, p1->y, p2->x, p2->y, DrawDot, (LPARAM)&info);
+        }
+        result = TCL_OK;
+    }
+    TkWinReleaseDrawableDC(drawable, dc, &state);
+    if (result) {
+        return;
+    }
     } else {
-	POINT *points, *destPtr;
-	XPoint *srcPtr, *endPtr;
+    POINT *points, *destPtr;
+    XPoint *srcPtr, *endPtr;
 
-	points = (POINT *)ckalloc(sizeof(POINT) * nPoints);
-	if (points == NULL) {
-	    return;
-	}
-	endPtr = pointArr + nPoints;
-	if (mode == CoordModeOrigin) {
-	    destPtr = points;
-	    for (srcPtr = pointArr; srcPtr < endPtr; srcPtr++) {
-		destPtr->x = (int)srcPtr->x;
-		destPtr->y = (int)srcPtr->y;
-		destPtr++;
-	    }
-	} else {
-	    POINT *lastPtr;
+    points = (POINT *)ckalloc(sizeof(POINT) * nPoints);
+    if (points == NULL) {
+        return;
+    }
+    endPtr = pointArr + nPoints;
+    if (mode == CoordModeOrigin) {
+        destPtr = points;
+        for (srcPtr = pointArr; srcPtr < endPtr; srcPtr++) {
+        destPtr->x = (int)srcPtr->x;
+        destPtr->y = (int)srcPtr->y;
+        destPtr++;
+        }
+    } else {
+        POINT *lastPtr;
 
-	    srcPtr = pointArr;
-	    destPtr = points;
-	    destPtr->x = (int)srcPtr->x;
-	    destPtr->y = (int)srcPtr->y;
-	    lastPtr = destPtr;
-	    srcPtr++, destPtr++;
-	    for (/*empty*/; srcPtr < endPtr; srcPtr++) {
-		destPtr->x = lastPtr->x + (int)srcPtr->x;
-		destPtr->y = lastPtr->y + (int)srcPtr->y;
-		lastPtr = destPtr;
-		destPtr++;
-	    }
-	}
-	DrawLine(display, drawable, gc, points, nPoints);
-	ckfree((char *)points);
+        srcPtr = pointArr;
+        destPtr = points;
+        destPtr->x = (int)srcPtr->x;
+        destPtr->y = (int)srcPtr->y;
+        lastPtr = destPtr;
+        srcPtr++, destPtr++;
+        for (/*empty*/; srcPtr < endPtr; srcPtr++) {
+        destPtr->x = lastPtr->x + (int)srcPtr->x;
+        destPtr->y = lastPtr->y + (int)srcPtr->y;
+        lastPtr = destPtr;
+        destPtr++;
+        }
+    }
+    DrawLine(display, drawable, gc, points, nPoints);
+    ckfree((char *)points);
     }
 }
 
@@ -1451,35 +1451,35 @@ Rbc_EmulateXDrawSegments(display, drawable, gc, segArr, nSegments)
 
 //    display->request++;
     if (drawable == None) {
-	return;
+    return;
     }
     dc = TkWinGetDrawableDC(display, drawable, &state);
     SetROP2(dc, tkpWinRopModes[gc->function]);
     if (gc->line_style != LineSolid) {
-	/* Handle dotted lines specially */
-	DashInfo info;
+    /* Handle dotted lines specially */
+    DashInfo info;
 
-	if (!GetDashInfo(dc, gc, &info)) {
-	    goto solidLine;
-	}
-	endPtr = segArr + nSegments;
-	for (segPtr = segArr; segPtr < endPtr; segPtr++) {
-	    info.count = 0; /* Reset dash counter after every segment. */
-	    LineDDA(segPtr->x1, segPtr->y1, segPtr->x2, segPtr->y2, DrawDot,
-		    (LPARAM)&info);
-	}
+    if (!GetDashInfo(dc, gc, &info)) {
+        goto solidLine;
+    }
+    endPtr = segArr + nSegments;
+    for (segPtr = segArr; segPtr < endPtr; segPtr++) {
+        info.count = 0; /* Reset dash counter after every segment. */
+        LineDDA(segPtr->x1, segPtr->y1, segPtr->x2, segPtr->y2, DrawDot,
+            (LPARAM)&info);
+    }
     } else {
-	HPEN pen, oldPen;
+    HPEN pen, oldPen;
 
 solidLine:
-	pen = Rbc_GCToPen(dc, gc);
-	oldPen = SelectPen(dc, pen);
-	endPtr = segArr + nSegments;
-	for (segPtr = segArr; segPtr < endPtr; segPtr++) {
-	    MoveToEx(dc, segPtr->x1, segPtr->y1, (LPPOINT)NULL);
-	    LineTo(dc, segPtr->x2, segPtr->y2);
-	}
-	DeletePen(SelectPen(dc, oldPen));
+    pen = Rbc_GCToPen(dc, gc);
+    oldPen = SelectPen(dc, pen);
+    endPtr = segArr + nSegments;
+    for (segPtr = segArr; segPtr < endPtr; segPtr++) {
+        MoveToEx(dc, segPtr->x1, segPtr->y1, (LPPOINT)NULL);
+        LineTo(dc, segPtr->x2, segPtr->y2);
+    }
+    DeletePen(SelectPen(dc, oldPen));
     }
     TkWinReleaseDrawableDC(drawable, dc, &state);
 }
@@ -1520,7 +1520,7 @@ Rbc_EmulateXDrawRectangle(display, drawable, gc, x, y, width, height)
     HDC dc;
 
     if (drawable == None) {
-	return;
+    return;
     }
     dc = TkWinGetDrawableDC(display, drawable, &state);
     pen = Rbc_GCToPen(dc, gc);
@@ -1529,22 +1529,22 @@ Rbc_EmulateXDrawRectangle(display, drawable, gc, x, y, width, height)
     oldBrush = SelectBrush(dc, brush);
     SetROP2(dc, tkpWinRopModes[gc->function]);
     if (gc->line_style != LineSolid) {
-	/* Handle dotted lines specially */
-	register int x2, y2;
-	DashInfo info;
+    /* Handle dotted lines specially */
+    register int x2, y2;
+    DashInfo info;
 
-	if (!GetDashInfo(dc, gc, &info)) {
-	    goto solidLine;
-	}
-	x2 = x + width;
-	y2 = y + height;
-	LineDDA(x, y, x2, y, DrawDot, (LPARAM)&info);
-	LineDDA(x2, y, x2, y2, DrawDot, (LPARAM)&info);
-	LineDDA(x2, y2, x, y2, DrawDot, (LPARAM)&info);
-	LineDDA(x, y2, x, y, DrawDot, (LPARAM)&info);
+    if (!GetDashInfo(dc, gc, &info)) {
+        goto solidLine;
+    }
+    x2 = x + width;
+    y2 = y + height;
+    LineDDA(x, y, x2, y, DrawDot, (LPARAM)&info);
+    LineDDA(x2, y, x2, y2, DrawDot, (LPARAM)&info);
+    LineDDA(x2, y2, x, y2, DrawDot, (LPARAM)&info);
+    LineDDA(x, y2, x, y, DrawDot, (LPARAM)&info);
     } else {
 solidLine:
-	Rectangle(dc, x, y, x + width + 1, y + height + 1);
+    Rectangle(dc, x, y, x + width + 1, y + height + 1);
     }
     DeletePen(SelectPen(dc, oldPen));
     DeleteBrush(SelectBrush(dc, oldBrush));
@@ -1578,20 +1578,20 @@ Rbc_EmulateXDrawPoints(display, drawable, gc, pointArr, nPoints, mode)
     XPoint *pointArr;
     int nPoints;
     int mode;
-{				/* Ignored. CoordModeOrigin is assumed. */
+{                /* Ignored. CoordModeOrigin is assumed. */
     HDC dc;
     register XPoint *pointPtr, *endPtr;
     TkWinDCState state;
 
 //    display->request++;
     if (drawable == None) {
-	return;
+    return;
     }
     dc = TkWinGetDrawableDC(display, drawable, &state);
     SetROP2(dc, tkpWinRopModes[gc->function]);
     endPtr = pointArr + nPoints;
     for (pointPtr = pointArr; pointPtr < endPtr; pointPtr++) {
-	SetPixelV(dc, pointPtr->x, pointPtr->y, gc->foreground);
+    SetPixelV(dc, pointPtr->x, pointPtr->y, gc->foreground);
     }
     TkWinReleaseDrawableDC(drawable, dc, &state);
 }
@@ -1649,10 +1649,10 @@ Rbc_EmulateXDrawString(display, drawable, gc, x, y, string, length)
     int length;
 {
     if (drawable == None) {
-	return;
+    return;
     }
     Tk_DrawChars(display, drawable, gc, (Tk_Font)gc->font, string, length,
-		 x, y);
+         x, y);
 }
 
 /*
@@ -1672,7 +1672,7 @@ Rbc_EmulateXDrawString(display, drawable, gc, x, y, string, length)
  */
 static void
 TileArea(destDC, srcDC, tileOriginX, tileOriginY, tileWidth, tileHeight,
-	 x, y, width, height)
+     x, y, width, height)
       HDC destDC, srcDC;
       int tileOriginX;
       int tileOriginY;
@@ -1692,30 +1692,30 @@ TileArea(destDC, srcDC, tileOriginX, tileOriginY, tileWidth, tileHeight,
 
     xOrigin = x, yOrigin = y;
     if (x < tileOriginX) {
-	delta = (tileOriginX - x) % tileWidth;
-	if (delta > 0) {
-	    xOrigin -= (tileWidth - delta);
-	}
+    delta = (tileOriginX - x) % tileWidth;
+    if (delta > 0) {
+        xOrigin -= (tileWidth - delta);
+    }
     } else if (x > tileOriginX) {
-	delta = (x - tileOriginX) % tileWidth;
-	if (delta > 0) {
-	    xOrigin -= delta;
-	}
+    delta = (x - tileOriginX) % tileWidth;
+    if (delta > 0) {
+        xOrigin -= delta;
+    }
     }
     if (y < tileOriginY) {
-	delta = (tileOriginY - y) % tileHeight;
-	if (delta > 0) {
-	    yOrigin -= (tileHeight - delta);
-	}
+    delta = (tileOriginY - y) % tileHeight;
+    if (delta > 0) {
+        yOrigin -= (tileHeight - delta);
+    }
     } else if (y >= tileOriginY) {
-	delta = (y - tileOriginY) % tileHeight;
-	if (delta > 0) {
-	    yOrigin -= delta;
-	}
+    delta = (y - tileOriginY) % tileHeight;
+    if (delta > 0) {
+        yOrigin -= delta;
+    }
     }
 #ifdef notdef
     PurifyPrintf("tile is (%d,%d,%d,%d)\n", tileOriginX, tileOriginY,
-		 tileWidth, tileHeight);
+         tileWidth, tileHeight);
     PurifyPrintf("region is (%d,%d,%d,%d)\n", x, y, width, height);
     PurifyPrintf("starting at %d,%d\n", xOrigin, yOrigin);
 #endif
@@ -1724,36 +1724,36 @@ TileArea(destDC, srcDC, tileOriginX, tileOriginY, tileWidth, tileHeight,
     top = y;
     bottom = y + height;
     for (y = yOrigin; y < bottom; y += tileHeight) {
-	srcY = 0;
-	destY = y;
-	destHeight = tileHeight;
-	if (y < top) {
-	    srcY = (top - y);
-	    destHeight = tileHeight - srcY;
-	    destY = top;
-	}
-	if ((destY + destHeight) > bottom) {
-	    destHeight = (bottom - destY);
-	}
-	for (x = xOrigin; x < right; x += tileWidth) {
-	    srcX = 0;
-	    destX = x;
-	    destWidth = tileWidth;
-	    if (x < left) {
-		srcX = (left - x);
-		destWidth = tileWidth - srcX;
-		destX = left;
-	    }
-	    if ((destX + destWidth) > right) {
-		destWidth = (right - destX);
-	    }
+    srcY = 0;
+    destY = y;
+    destHeight = tileHeight;
+    if (y < top) {
+        srcY = (top - y);
+        destHeight = tileHeight - srcY;
+        destY = top;
+    }
+    if ((destY + destHeight) > bottom) {
+        destHeight = (bottom - destY);
+    }
+    for (x = xOrigin; x < right; x += tileWidth) {
+        srcX = 0;
+        destX = x;
+        destWidth = tileWidth;
+        if (x < left) {
+        srcX = (left - x);
+        destWidth = tileWidth - srcX;
+        destX = left;
+        }
+        if ((destX + destWidth) > right) {
+        destWidth = (right - destX);
+        }
 #ifdef notdef
-	    PurifyPrintf("drawing pattern (%d,%d,%d,%d) at %d,%d\n",
-			 srcX , srcY, destWidth, destHeight, destX, destY);
+        PurifyPrintf("drawing pattern (%d,%d,%d,%d) at %d,%d\n",
+             srcX , srcY, destWidth, destHeight, destX, destY);
 #endif
-	    BitBlt(destDC, destX, destY, destWidth, destHeight,
-		   srcDC, srcX, srcY, SRCCOPY);
-	}
+        BitBlt(destDC, destX, destY, destWidth, destHeight,
+           srcDC, srcX, srcY, SRCCOPY);
+    }
     }
 }
 
@@ -1792,103 +1792,103 @@ Rbc_EmulateXFillRectangles(display, drawable, gc, rectArr, nRectangles)
     register XRectangle *rectPtr, *endPtr;
 
     if (drawable == None) {
-	return;
+    return;
     }
     hDC = TkWinGetDrawableDC(display, drawable, &state);
     SetROP2(hDC, tkpWinRopModes[gc->function]);
 
     switch (gc->fill_style) {
-	case FillTiled:
-	    if (gc->tile == None) {
-		goto fillSolid;
-	    }
+    case FillTiled:
+        if (gc->tile == None) {
+        goto fillSolid;
+        }
 #ifdef notdef
-	    if ((GetDeviceCaps(hDC, RASTERCAPS) & RC_BITBLT) == 0) {
-		goto fillSolid;
-	    }
+        if ((GetDeviceCaps(hDC, RASTERCAPS) & RC_BITBLT) == 0) {
+        goto fillSolid;
+        }
 #endif
-	    twdPtr = (TkWinDrawable *)gc->tile;
-	    GetObject(twdPtr->bitmap.handle, sizeof(BITMAP), &bm);
-	    memDC = CreateCompatibleDC(hDC);
-	    oldBitmap = SelectBitmap(memDC, twdPtr->bitmap.handle);
-	    endPtr = rectArr + nRectangles;
-	    for (rectPtr = rectArr; rectPtr < endPtr; rectPtr++) {
-		TileArea(hDC, memDC, gc->ts_x_origin, gc->ts_y_origin, bm.bmWidth,
-			 bm.bmHeight, (int)rectPtr->x, (int)rectPtr->y,
-			 (int)rectPtr->width, (int)rectPtr->height);
-	    }
-	    SelectBitmap(memDC, oldBitmap);
-	    DeleteDC(memDC);
-	    break;
+        twdPtr = (TkWinDrawable *)gc->tile;
+        GetObject(twdPtr->bitmap.handle, sizeof(BITMAP), &bm);
+        memDC = CreateCompatibleDC(hDC);
+        oldBitmap = SelectBitmap(memDC, twdPtr->bitmap.handle);
+        endPtr = rectArr + nRectangles;
+        for (rectPtr = rectArr; rectPtr < endPtr; rectPtr++) {
+        TileArea(hDC, memDC, gc->ts_x_origin, gc->ts_y_origin, bm.bmWidth,
+             bm.bmHeight, (int)rectPtr->x, (int)rectPtr->y,
+             (int)rectPtr->width, (int)rectPtr->height);
+        }
+        SelectBitmap(memDC, oldBitmap);
+        DeleteDC(memDC);
+        break;
 
-	case FillOpaqueStippled:
-	case FillStippled:
-	    if (gc->stipple == None) {
-		goto fillSolid;
-	    }
-	    twdPtr = (TkWinDrawable *)gc->stipple;
-	    if (twdPtr->type != TWD_BITMAP) {
-		Tcl_Panic("unexpected drawable type in stipple");
-	    }
-	    hBrush = CreatePatternBrush(twdPtr->bitmap.handle);
-	    SetBrushOrgEx(hDC, gc->ts_x_origin, gc->ts_y_origin, NULL);
-	    oldBrush = SelectBrush(hDC, hBrush);
-	    memDC = CreateCompatibleDC(hDC);
+    case FillOpaqueStippled:
+    case FillStippled:
+        if (gc->stipple == None) {
+        goto fillSolid;
+        }
+        twdPtr = (TkWinDrawable *)gc->stipple;
+        if (twdPtr->type != TWD_BITMAP) {
+        Tcl_Panic("unexpected drawable type in stipple");
+        }
+        hBrush = CreatePatternBrush(twdPtr->bitmap.handle);
+        SetBrushOrgEx(hDC, gc->ts_x_origin, gc->ts_y_origin, NULL);
+        oldBrush = SelectBrush(hDC, hBrush);
+        memDC = CreateCompatibleDC(hDC);
 
-	    /*
-	     * For each rectangle, create a drawing surface which is the size of
-	     * the rectangle and fill it with the background color.  Then merge the
-	     * result with the stipple pattern.
-	     */
-	    hFgBrush = CreateSolidBrush(gc->foreground);
-	    hBgBrush = CreateSolidBrush(gc->background);
-	    endPtr = rectArr + nRectangles;
-	    for (rectPtr = rectArr; rectPtr < endPtr; rectPtr++) {
-		hBitmap = CreateCompatibleBitmap(hDC, rectPtr->width,
-						 rectPtr->height);
-		oldBitmap = SelectObject(memDC, hBitmap);
-		rect.left = rect.top = 0;
-		rect.right = rectPtr->width;
-		rect.bottom = rectPtr->height;
-		FillRect(memDC, &rect, hFgBrush);
-		BitBlt(hDC, rectPtr->x, rectPtr->y, rectPtr->width, rectPtr->height,
-		       memDC, 0, 0, COPYBG);
-		if (gc->fill_style == FillOpaqueStippled) {
-		    FillRect(memDC, &rect, hBgBrush);
-		    BitBlt(hDC, rectPtr->x, rectPtr->y, rectPtr->width,
-			   rectPtr->height, memDC, 0, 0, COPYFG);
-		}
-		SelectObject(memDC, oldBitmap);
-		DeleteObject(hBitmap);
-	    }
-	    DeleteBrush(hFgBrush);
-	    DeleteBrush(hBgBrush);
-	    DeleteDC(memDC);
-	    SelectBrush(hDC, oldBrush);
-	    DeleteBrush(hBrush);
-	    break;
+        /*
+         * For each rectangle, create a drawing surface which is the size of
+         * the rectangle and fill it with the background color.  Then merge the
+         * result with the stipple pattern.
+         */
+        hFgBrush = CreateSolidBrush(gc->foreground);
+        hBgBrush = CreateSolidBrush(gc->background);
+        endPtr = rectArr + nRectangles;
+        for (rectPtr = rectArr; rectPtr < endPtr; rectPtr++) {
+        hBitmap = CreateCompatibleBitmap(hDC, rectPtr->width,
+                         rectPtr->height);
+        oldBitmap = SelectObject(memDC, hBitmap);
+        rect.left = rect.top = 0;
+        rect.right = rectPtr->width;
+        rect.bottom = rectPtr->height;
+        FillRect(memDC, &rect, hFgBrush);
+        BitBlt(hDC, rectPtr->x, rectPtr->y, rectPtr->width, rectPtr->height,
+               memDC, 0, 0, COPYBG);
+        if (gc->fill_style == FillOpaqueStippled) {
+            FillRect(memDC, &rect, hBgBrush);
+            BitBlt(hDC, rectPtr->x, rectPtr->y, rectPtr->width,
+               rectPtr->height, memDC, 0, 0, COPYFG);
+        }
+        SelectObject(memDC, oldBitmap);
+        DeleteObject(hBitmap);
+        }
+        DeleteBrush(hFgBrush);
+        DeleteBrush(hBgBrush);
+        DeleteDC(memDC);
+        SelectBrush(hDC, oldBrush);
+        DeleteBrush(hBrush);
+        break;
 
-	case FillSolid:
+    case FillSolid:
 fillSolid:
-	    memDC = CreateCompatibleDC(hDC);
-	    hFgBrush = CreateSolidBrush(gc->foreground);
-	    endPtr = rectArr + nRectangles;
-	    for (rectPtr = rectArr; rectPtr < endPtr; rectPtr++) {
-		hBitmap = CreateCompatibleBitmap(hDC, rectPtr->width,
-						 rectPtr->height);
-		oldBitmap = SelectObject(memDC, hBitmap);
-		rect.left = rect.top = 0;
-		rect.right = rectPtr->width;
-		rect.bottom = rectPtr->height;
-		FillRect(memDC, &rect, hFgBrush);
-		BitBlt(hDC, rectPtr->x, rectPtr->y, rectPtr->width, rectPtr->height,
-		       memDC, 0, 0, SRCCOPY);
-		SelectObject(memDC, oldBitmap);
-		DeleteObject(hBitmap);
-	    }
-	    DeleteBrush(hFgBrush);
-	    DeleteDC(memDC);
-	    break;
+        memDC = CreateCompatibleDC(hDC);
+        hFgBrush = CreateSolidBrush(gc->foreground);
+        endPtr = rectArr + nRectangles;
+        for (rectPtr = rectArr; rectPtr < endPtr; rectPtr++) {
+        hBitmap = CreateCompatibleBitmap(hDC, rectPtr->width,
+                         rectPtr->height);
+        oldBitmap = SelectObject(memDC, hBitmap);
+        rect.left = rect.top = 0;
+        rect.right = rectPtr->width;
+        rect.bottom = rectPtr->height;
+        FillRect(memDC, &rect, hFgBrush);
+        BitBlt(hDC, rectPtr->x, rectPtr->y, rectPtr->width, rectPtr->height,
+               memDC, 0, 0, SRCCOPY);
+        SelectObject(memDC, oldBitmap);
+        DeleteObject(hBitmap);
+        }
+        DeleteBrush(hFgBrush);
+        DeleteDC(memDC);
+        break;
     }
     TkWinReleaseDrawableDC(drawable, hDC, &state);
 }
@@ -1923,7 +1923,7 @@ Rbc_EmulateXFillRectangle(display, drawable, gc, x, y, width, height)
     TkWinDCState state;
 
     if (drawable == None) {
-	return;
+    return;
     }
     hDC = TkWinGetDrawableDC(display, drawable, &state);
     SetROP2(hDC, tkpWinRopModes[gc->function]);
@@ -1932,96 +1932,96 @@ Rbc_EmulateXFillRectangle(display, drawable, gc, x, y, width, height)
     rect.bottom = height;
 
     switch (gc->fill_style) {
-	case FillTiled: {
-		TkWinDrawable *twdPtr;
-		HBITMAP oldBitmap;
-		HDC memDC;
-		BITMAP bm;
+    case FillTiled: {
+        TkWinDrawable *twdPtr;
+        HBITMAP oldBitmap;
+        HDC memDC;
+        BITMAP bm;
 
-		if (gc->tile == None) {
-		    goto fillSolid;
-		}
+        if (gc->tile == None) {
+            goto fillSolid;
+        }
 #ifdef notdef
-		if ((GetDeviceCaps(hDC, RASTERCAPS) & RC_BITBLT) == 0) {
-		    goto fillSolid;
-		}
+        if ((GetDeviceCaps(hDC, RASTERCAPS) & RC_BITBLT) == 0) {
+            goto fillSolid;
+        }
 #endif
-		twdPtr = (TkWinDrawable *)gc->tile;
-		/* The tiling routine needs to know the size of the bitmap */
-		GetObject(twdPtr->bitmap.handle, sizeof(BITMAP), &bm);
+        twdPtr = (TkWinDrawable *)gc->tile;
+        /* The tiling routine needs to know the size of the bitmap */
+        GetObject(twdPtr->bitmap.handle, sizeof(BITMAP), &bm);
 
-		memDC = CreateCompatibleDC(hDC);
-		oldBitmap = SelectBitmap(memDC, twdPtr->bitmap.handle);
-		TileArea(hDC, memDC, gc->ts_x_origin, gc->ts_y_origin, bm.bmWidth,
-			 bm.bmHeight, x, y, width, height);
-		SelectBitmap(memDC, oldBitmap);
-		DeleteDC(memDC);
-	    }
-	    break;
+        memDC = CreateCompatibleDC(hDC);
+        oldBitmap = SelectBitmap(memDC, twdPtr->bitmap.handle);
+        TileArea(hDC, memDC, gc->ts_x_origin, gc->ts_y_origin, bm.bmWidth,
+             bm.bmHeight, x, y, width, height);
+        SelectBitmap(memDC, oldBitmap);
+        DeleteDC(memDC);
+        }
+        break;
 
-	case FillOpaqueStippled:
-	case FillStippled: {
-		TkWinDrawable *twdPtr;
-		HBRUSH oldBrush, hBrush;
-		HBRUSH hBrushFg, hBrushBg;
-		HBITMAP oldBitmap, hBitmap;
-		HDC memDC;
+    case FillOpaqueStippled:
+    case FillStippled: {
+        TkWinDrawable *twdPtr;
+        HBRUSH oldBrush, hBrush;
+        HBRUSH hBrushFg, hBrushBg;
+        HBITMAP oldBitmap, hBitmap;
+        HDC memDC;
 
-		if (gc->stipple == None) {
-		    goto fillSolid;
-		}
-		twdPtr = (TkWinDrawable *)gc->stipple;
-		if (twdPtr->type != TWD_BITMAP) {
-		    Tcl_Panic("unexpected drawable type in stipple");
-		}
-		hBrush = CreatePatternBrush(twdPtr->bitmap.handle);
-		SetBrushOrgEx(hDC, gc->ts_x_origin, gc->ts_y_origin, NULL);
-		oldBrush = SelectBrush(hDC, hBrush);
-		memDC = CreateCompatibleDC(hDC);
+        if (gc->stipple == None) {
+            goto fillSolid;
+        }
+        twdPtr = (TkWinDrawable *)gc->stipple;
+        if (twdPtr->type != TWD_BITMAP) {
+            Tcl_Panic("unexpected drawable type in stipple");
+        }
+        hBrush = CreatePatternBrush(twdPtr->bitmap.handle);
+        SetBrushOrgEx(hDC, gc->ts_x_origin, gc->ts_y_origin, NULL);
+        oldBrush = SelectBrush(hDC, hBrush);
+        memDC = CreateCompatibleDC(hDC);
 
-		hBrushFg = CreateSolidBrush(gc->foreground);
-		hBrushBg = CreateSolidBrush(gc->background);
-		hBitmap = CreateCompatibleBitmap(hDC, width, height);
-		oldBitmap = SelectObject(memDC, hBitmap);
-		FillRect(memDC, &rect, hBrushFg);
-		SetBkMode(hDC, TRANSPARENT);
-		BitBlt(hDC, x, y, width, height, memDC, 0, 0, COPYFG);
-		if (gc->fill_style == FillOpaqueStippled) {
-		    FillRect(memDC, &rect, hBrushBg);
-		    BitBlt(hDC, x, y, width, height, memDC, 0, 0, COPYBG);
-		}
-		SelectBrush(hDC, oldBrush);
-		SelectBitmap(memDC, oldBitmap);
-		DeleteBrush(hBrushFg);
-		DeleteBrush(hBrushBg);
-		DeleteBrush(hBrush);
-		DeleteBitmap(hBitmap);
-		DeleteDC(memDC);
-	    }
-	    break;
+        hBrushFg = CreateSolidBrush(gc->foreground);
+        hBrushBg = CreateSolidBrush(gc->background);
+        hBitmap = CreateCompatibleBitmap(hDC, width, height);
+        oldBitmap = SelectObject(memDC, hBitmap);
+        FillRect(memDC, &rect, hBrushFg);
+        SetBkMode(hDC, TRANSPARENT);
+        BitBlt(hDC, x, y, width, height, memDC, 0, 0, COPYFG);
+        if (gc->fill_style == FillOpaqueStippled) {
+            FillRect(memDC, &rect, hBrushBg);
+            BitBlt(hDC, x, y, width, height, memDC, 0, 0, COPYBG);
+        }
+        SelectBrush(hDC, oldBrush);
+        SelectBitmap(memDC, oldBitmap);
+        DeleteBrush(hBrushFg);
+        DeleteBrush(hBrushBg);
+        DeleteBrush(hBrush);
+        DeleteBitmap(hBitmap);
+        DeleteDC(memDC);
+        }
+        break;
 
-	case FillSolid: {
-		HBRUSH hBrush;
-		HBITMAP oldBitmap, hBitmap;
-		HDC memDC;
+    case FillSolid: {
+        HBRUSH hBrush;
+        HBITMAP oldBitmap, hBitmap;
+        HDC memDC;
 
 fillSolid:
-		/* TkWinFillRect(hDC, x, y, width, height, gc->foreground);  */
-		memDC = CreateCompatibleDC(hDC);
-		hBrush = CreateSolidBrush(gc->foreground);
-		hBitmap = CreateCompatibleBitmap(hDC, width, height);
-		oldBitmap = SelectBitmap(memDC, hBitmap);
-		rect.left = rect.top = 0;
-		rect.right = width;
-		rect.bottom = height;
-		FillRect(memDC, &rect, hBrush);
-		BitBlt(hDC, x, y, width, height, memDC, 0, 0, SRCCOPY);
-		SelectObject(memDC, oldBitmap);
-		DeleteBitmap(hBitmap);
-		DeleteBrush(hBrush);
-		DeleteDC(memDC);
-	    }
-	    break;
+        /* TkWinFillRect(hDC, x, y, width, height, gc->foreground);  */
+        memDC = CreateCompatibleDC(hDC);
+        hBrush = CreateSolidBrush(gc->foreground);
+        hBitmap = CreateCompatibleBitmap(hDC, width, height);
+        oldBitmap = SelectBitmap(memDC, hBitmap);
+        rect.left = rect.top = 0;
+        rect.right = width;
+        rect.bottom = height;
+        FillRect(memDC, &rect, hBrush);
+        BitBlt(hDC, x, y, width, height, memDC, 0, 0, SRCCOPY);
+        SelectObject(memDC, oldBitmap);
+        DeleteBitmap(hBitmap);
+        DeleteBrush(hBrush);
+        DeleteDC(memDC);
+        }
+        break;
     }
     TkWinReleaseDrawableDC(drawable, hDC, &state);
 }
@@ -2112,48 +2112,48 @@ PixelateBitmap(display, drawable, srcBitmap, maskBitmap, width, height, gc, dest
     TkWinDCState state;
 
     srcBits = Rbc_GetBitmapData(display, srcBitmap, width, height,
-				&bytesPerRow);
+                &bytesPerRow);
     if (srcBits == NULL) {
-	return;
+    return;
     }
     hDC = TkWinGetDrawableDC(display, drawable, &state);
     if (maskBitmap != None) {
-	register unsigned char *maskPtr;
-	unsigned char *maskBits;
-	maskBits = Rbc_GetBitmapData(display, maskBitmap, width, height,
-				     &bytesPerRow);
-	bytesPerRow = ((width + 31) & ~31) / 8;
-	for (dy = destY, y = height - 1; y >= 0; y--, dy++) {
-	    maskPtr = maskBits + (bytesPerRow * y);
-	    srcPtr = srcBits + (bytesPerRow * y);
-	    for (dx = destX, x = 0; x < width; x++, dx++) {
-		bitPos = x % 8;
-		pixel = (*maskPtr & (0x80 >> bitPos));
-		if (pixel) {
-		    pixel = (*srcPtr & (0x80 >> bitPos));
-		    DrawPixel(hDC, dx, dy,
-			      (pixel) ? gc->foreground : gc->background);
-		}
-		if (bitPos == 7) {
-		    srcPtr++, maskPtr++;
-		}
-	    }			/* x */
-	}
-	ckfree((char *)maskBits);
+    register unsigned char *maskPtr;
+    unsigned char *maskBits;
+    maskBits = Rbc_GetBitmapData(display, maskBitmap, width, height,
+                     &bytesPerRow);
+    bytesPerRow = ((width + 31) & ~31) / 8;
+    for (dy = destY, y = height - 1; y >= 0; y--, dy++) {
+        maskPtr = maskBits + (bytesPerRow * y);
+        srcPtr = srcBits + (bytesPerRow * y);
+        for (dx = destX, x = 0; x < width; x++, dx++) {
+        bitPos = x % 8;
+        pixel = (*maskPtr & (0x80 >> bitPos));
+        if (pixel) {
+            pixel = (*srcPtr & (0x80 >> bitPos));
+            DrawPixel(hDC, dx, dy,
+                  (pixel) ? gc->foreground : gc->background);
+        }
+        if (bitPos == 7) {
+            srcPtr++, maskPtr++;
+        }
+        }            /* x */
+    }
+    ckfree((char *)maskBits);
     } else {
-	bytesPerRow = ((width + 31) & ~31) / 8;
-	for (dy = destY, y = height - 1; y >= 0; y--, dy++) {
-	    srcPtr = srcBits + (bytesPerRow * y);
-	    for (dx = destX, x = 0; x < width; x++, dx++) {
-		bitPos = x % 8;
-		pixel = (*srcPtr & (0x80 >> bitPos));
-		DrawPixel(hDC, dx, dy,
-			  (pixel) ? gc->foreground : gc->background);
-		if (bitPos == 7) {
-		    srcPtr++;
-		}
-	    }
-	}
+    bytesPerRow = ((width + 31) & ~31) / 8;
+    for (dy = destY, y = height - 1; y >= 0; y--, dy++) {
+        srcPtr = srcBits + (bytesPerRow * y);
+        for (dx = destX, x = 0; x < width; x++, dx++) {
+        bitPos = x % 8;
+        pixel = (*srcPtr & (0x80 >> bitPos));
+        DrawPixel(hDC, dx, dy,
+              (pixel) ? gc->foreground : gc->background);
+        if (bitPos == 7) {
+            srcPtr++;
+        }
+        }
+    }
     }
     TkWinReleaseDrawableDC(drawable, hDC, &state);
     ckfree((char *)srcBits);
@@ -2208,89 +2208,89 @@ Rbc_EmulateXCopyPlane(display, src, dest, gc, srcX, srcY, width, height, destX, 
 //    display->request++;
 
     if (plane != 1) {
-	Tcl_Panic("Unexpected plane specified for XCopyPlane");
+    Tcl_Panic("Unexpected plane specified for XCopyPlane");
     }
     srcDC = TkWinGetDrawableDC(display, src, &srcState);
 
     if (src != dest) {
-	destDC = TkWinGetDrawableDC(display, dest, &destState);
+    destDC = TkWinGetDrawableDC(display, dest, &destState);
     } else {
-	destDC = srcDC;
+    destDC = srcDC;
     }
     if ((clipPtr == NULL) || (clipPtr->type == TKP_CLIP_REGION)) {
-	/*
-	 * Case 1: opaque bitmaps.  Windows handles the conversion
-	 * from one bit to multiple bits by setting 0 to the
-	 * foreground color, and 1 to the background color (seems
-	 * backwards, but there you are).
-	 */
-	if ((clipPtr != NULL) && (clipPtr->type == TKP_CLIP_REGION)) {
-	    SelectClipRgn(destDC, (HRGN) clipPtr->value.region);
-	    OffsetClipRgn(destDC, gc->clip_x_origin, gc->clip_y_origin);
-	}
-	SetBkMode(destDC, OPAQUE);
-	SetBkColor(destDC, gc->foreground);
-	SetTextColor(destDC, gc->background);
-	BitBlt(destDC, destX, destY, width, height, srcDC, srcX, srcY,
-	       SRCCOPY);
+    /*
+     * Case 1: opaque bitmaps.  Windows handles the conversion
+     * from one bit to multiple bits by setting 0 to the
+     * foreground color, and 1 to the background color (seems
+     * backwards, but there you are).
+     */
+    if ((clipPtr != NULL) && (clipPtr->type == TKP_CLIP_REGION)) {
+        SelectClipRgn(destDC, (HRGN) clipPtr->value.region);
+        OffsetClipRgn(destDC, gc->clip_x_origin, gc->clip_y_origin);
+    }
+    SetBkMode(destDC, OPAQUE);
+    SetBkColor(destDC, gc->foreground);
+    SetTextColor(destDC, gc->background);
+    BitBlt(destDC, destX, destY, width, height, srcDC, srcX, srcY,
+           SRCCOPY);
 
-	SelectClipRgn(destDC, NULL);
+    SelectClipRgn(destDC, NULL);
 
     } else if (clipPtr->type == TKP_CLIP_PIXMAP) {
-	Drawable mask;
-	/*
-	 * Case 2: transparent bitmaps are handled by setting the
-	 * destination to the foreground color whenever the source
-	 * pixel is set.
-	 */
-	/*
-	 * Case 3: two arbitrary bitmaps.  Copy the source rectangle
-	 * into a color pixmap.  Use the result as a brush when
-	 * copying the clip mask into the destination.
-	 */
-	mask = clipPtr->value.pixmap;
+    Drawable mask;
+    /*
+     * Case 2: transparent bitmaps are handled by setting the
+     * destination to the foreground color whenever the source
+     * pixel is set.
+     */
+    /*
+     * Case 3: two arbitrary bitmaps.  Copy the source rectangle
+     * into a color pixmap.  Use the result as a brush when
+     * copying the clip mask into the destination.
+     */
+    mask = clipPtr->value.pixmap;
 
 #if WINDEBUG
-	PurifyPrintf("mask %s src\n", (mask == src) ? "==" : "!=");
-	PurifyPrintf("GetDeviceCaps=%x\n",
-		     GetDeviceCaps(destDC, TECHNOLOGY) & DT_RASDISPLAY);
+    PurifyPrintf("mask %s src\n", (mask == src) ? "==" : "!=");
+    PurifyPrintf("GetDeviceCaps=%x\n",
+             GetDeviceCaps(destDC, TECHNOLOGY) & DT_RASDISPLAY);
 #endif
-	{
-	    HDC maskDC;
-	    TkWinDCState maskState;
+    {
+        HDC maskDC;
+        TkWinDCState maskState;
 
-	    if (mask != src) {
-		maskDC = TkWinGetDrawableDC(display, mask, &maskState);
-	    } else {
-		maskDC = srcDC;
-	    }
-	    SetBkMode(destDC, OPAQUE);
-	    SetTextColor(destDC, gc->background);
-	    SetBkColor(destDC, gc->foreground);
-	    BitBlt(destDC, destX, destY, width, height, srcDC, srcX, srcY,
-		   SRCINVERT);
-	    /*
-	     * Make sure we treat the mask as a monochrome bitmap.
-	     * We can get alpha-blending with non-black/white fg/bg
-	     * color selections.
-	     */
-	    SetTextColor(destDC, RGB(255,255,255));
-	    SetBkColor(destDC, RGB(0,0,0));
+        if (mask != src) {
+        maskDC = TkWinGetDrawableDC(display, mask, &maskState);
+        } else {
+        maskDC = srcDC;
+        }
+        SetBkMode(destDC, OPAQUE);
+        SetTextColor(destDC, gc->background);
+        SetBkColor(destDC, gc->foreground);
+        BitBlt(destDC, destX, destY, width, height, srcDC, srcX, srcY,
+           SRCINVERT);
+        /*
+         * Make sure we treat the mask as a monochrome bitmap.
+         * We can get alpha-blending with non-black/white fg/bg
+         * color selections.
+         */
+        SetTextColor(destDC, RGB(255,255,255));
+        SetBkColor(destDC, RGB(0,0,0));
 
-	    /* FIXME: Handle gc->clip_?_origin's */
-	    BitBlt(destDC, destX, destY, width, height, maskDC, 0, 0, SRCAND);
+        /* FIXME: Handle gc->clip_?_origin's */
+        BitBlt(destDC, destX, destY, width, height, maskDC, 0, 0, SRCAND);
 
-	    SetTextColor(destDC, gc->background);
-	    SetBkColor(destDC, gc->foreground);
-	    BitBlt(destDC, destX, destY, width, height, srcDC, srcX, srcY,
-		   SRCINVERT);
-	    if (mask != src) {
-		TkWinReleaseDrawableDC(mask, maskDC, &maskState);
-	    }
-	}
+        SetTextColor(destDC, gc->background);
+        SetBkColor(destDC, gc->foreground);
+        BitBlt(destDC, destX, destY, width, height, srcDC, srcX, srcY,
+           SRCINVERT);
+        if (mask != src) {
+        TkWinReleaseDrawableDC(mask, maskDC, &maskState);
+        }
+    }
     }
     if (src != dest) {
-	TkWinReleaseDrawableDC(dest, destDC, &destState);
+    TkWinReleaseDrawableDC(dest, destDC, &destState);
     }
     TkWinReleaseDrawableDC(src, srcDC, &srcState);
 }
@@ -2328,9 +2328,9 @@ Rbc_EmulateXCopyArea(display, src, dest, gc, srcX, srcY, width, height, destX, d
     unsigned int width; /* Width of area. */
     unsigned int height; /* Height of area. */
     int destX; /* Destination X-coordinate (in screen
-		* coordinates). */
+        * coordinates). */
     int destY; /* Destination Y-coordinate (in screen
-		* coordinates). */
+        * coordinates). */
 {
     HDC srcDC, destDC;
     TkWinDCState srcState, destState;
@@ -2338,22 +2338,22 @@ Rbc_EmulateXCopyArea(display, src, dest, gc, srcX, srcY, width, height, destX, d
 
     srcDC = TkWinGetDrawableDC(display, src, &srcState);
     if (src != dest) {
-	destDC = TkWinGetDrawableDC(display, dest, &destState);
+    destDC = TkWinGetDrawableDC(display, dest, &destState);
     } else {
-	destDC = srcDC;
+    destDC = srcDC;
     }
     clipPtr = (TkpClipMask *)gc->clip_mask;
     if ((clipPtr != NULL) && (clipPtr->type == TKP_CLIP_REGION)) {
-	SelectClipRgn(destDC, (HRGN)clipPtr->value.region);
-	OffsetClipRgn(destDC, gc->clip_x_origin, gc->clip_y_origin);
+    SelectClipRgn(destDC, (HRGN)clipPtr->value.region);
+    OffsetClipRgn(destDC, gc->clip_x_origin, gc->clip_y_origin);
     }
 
     BitBlt(destDC, destX, destY, width, height, srcDC, srcX, srcY,
-	   bltModes[gc->function]);
+       bltModes[gc->function]);
     SelectClipRgn(destDC, NULL);
 
     if (src != dest) {
-	TkWinReleaseDrawableDC(dest, destDC, &destState);
+    TkWinReleaseDrawableDC(dest, destDC, &destState);
     }
     TkWinReleaseDrawableDC(src, srcDC, &srcState);
 }
@@ -2377,7 +2377,7 @@ static void
 StippleRegion(display, hDC, gc, x, y, width, height)
     Display *display;
     HDC hDC; /* Device context: For polygons, clip
-	      * region will be installed. */
+          * region will be installed. */
     GC gc;
     int x;
     int y;
@@ -2394,38 +2394,38 @@ StippleRegion(display, hDC, gc, x, y, width, height)
     int dx, dy;
     int left, top, right, bottom;
     int srcX, srcY;
-    int startX, startY;		/* Starting upper left corner of region. */
+    int startX, startY;        /* Starting upper left corner of region. */
 
     twdPtr = (TkWinDrawable *)gc->stipple;
     GetObject(twdPtr->bitmap.handle, sizeof(BITMAP), &bm);
 
     startX = x;
     if (x < gc->ts_x_origin) {
-	dx = (gc->ts_x_origin - x) % bm.bmWidth;
-	if (dx > 0) {
-	    startX -= (bm.bmWidth - dx);
-	}
+    dx = (gc->ts_x_origin - x) % bm.bmWidth;
+    if (dx > 0) {
+        startX -= (bm.bmWidth - dx);
+    }
     } else if (x > gc->ts_x_origin) {
-	dx = (x - gc->ts_x_origin) % bm.bmWidth;
-	if (dx > 0) {
-	    startX -= dx;
-	}
+    dx = (x - gc->ts_x_origin) % bm.bmWidth;
+    if (dx > 0) {
+        startX -= dx;
+    }
     }
     startY = y;
     if (y < gc->ts_y_origin) {
-	dy = (gc->ts_y_origin - y) % bm.bmHeight;
-	if (dy > 0) {
-	    startY -= (bm.bmHeight - dy);
-	}
+    dy = (gc->ts_y_origin - y) % bm.bmHeight;
+    if (dy > 0) {
+        startY -= (bm.bmHeight - dy);
+    }
     } else if (y >= gc->ts_y_origin) {
-	dy = (y - gc->ts_y_origin) % bm.bmHeight;
-	if (dy > 0) {
-	    startY -= dy;
-	}
+    dy = (y - gc->ts_y_origin) % bm.bmHeight;
+    if (dy > 0) {
+        startY -= dy;
+    }
     }
 #ifdef notdef
     PurifyPrintf("tile is (%d,%d,%d,%d)\n", gc->ts_x_origin, gc->ts_y_origin,
-		 bm.bmWidth, bm.bmHeight);
+         bm.bmWidth, bm.bmHeight);
     PurifyPrintf("region is (%d,%d,%d,%d)\n", x, y, width, height);
     PurifyPrintf("starting at %d,%d\n", startX, startY);
 #endif
@@ -2438,73 +2438,73 @@ StippleRegion(display, hDC, gc, x, y, width, height)
     oldBitmap = SelectBitmap(memDC, twdPtr->bitmap.handle);
     mask = gc->stipple;
     if (gc->fill_style == FillStippled) { /* With transparency. */
-	if (gc->clip_mask != None) {
-	    TkpClipMask *clipPtr;
+    if (gc->clip_mask != None) {
+        TkpClipMask *clipPtr;
 
-	    mask = gc->stipple;
-	    clipPtr = (TkpClipMask *)gc->clip_mask;
-	    if  (clipPtr->type == TKP_CLIP_PIXMAP) {
-		mask = clipPtr->value.pixmap;
-	    }
-	}
-	if (mask != gc->stipple) {
-	    maskDC = TkWinGetDrawableDC(display, mask, &maskState);
-	}
+        mask = gc->stipple;
+        clipPtr = (TkpClipMask *)gc->clip_mask;
+        if  (clipPtr->type == TKP_CLIP_PIXMAP) {
+        mask = clipPtr->value.pixmap;
+        }
+    }
+    if (mask != gc->stipple) {
+        maskDC = TkWinGetDrawableDC(display, mask, &maskState);
+    }
     }
 
     for (y = startY; y < bottom; y += bm.bmHeight) {
-	srcY = 0;
-	destY = y;
-	destHeight = bm.bmHeight;
-	if (y < top) {
-	    srcY = (top - y);
-	    destHeight = bm.bmHeight - srcY;
-	    destY = top;
-	}
-	if ((destY + destHeight) > bottom) {
-	    destHeight = (bottom - destY);
-	}
-	for (x = startX; x < right; x += bm.bmWidth) {
-	    srcX = 0;
-	    destX = x;
-	    destWidth = bm.bmWidth;
-	    if (x < left) {
-		srcX = (left - x);
-		destWidth = bm.bmWidth - srcX;
-		destX = left;
-	    }
-	    if ((destX + destWidth) > right) {
-		destWidth = (right - destX);
-	    }
+    srcY = 0;
+    destY = y;
+    destHeight = bm.bmHeight;
+    if (y < top) {
+        srcY = (top - y);
+        destHeight = bm.bmHeight - srcY;
+        destY = top;
+    }
+    if ((destY + destHeight) > bottom) {
+        destHeight = (bottom - destY);
+    }
+    for (x = startX; x < right; x += bm.bmWidth) {
+        srcX = 0;
+        destX = x;
+        destWidth = bm.bmWidth;
+        if (x < left) {
+        srcX = (left - x);
+        destWidth = bm.bmWidth - srcX;
+        destX = left;
+        }
+        if ((destX + destWidth) > right) {
+        destWidth = (right - destX);
+        }
 #ifdef notdef
-	    PurifyPrintf("drawing pattern (%d,%d,%d,%d) at %d,%d\n",
-			 srcX , srcY, destWidth, destHeight, destX, destY);
+        PurifyPrintf("drawing pattern (%d,%d,%d,%d) at %d,%d\n",
+             srcX , srcY, destWidth, destHeight, destX, destY);
 #endif
-	    if (gc->fill_style == FillStippled) { /* With transparency. */
-		SetBkMode(hDC, OPAQUE);
-		SetTextColor(hDC, gc->background);
-		SetBkColor(hDC, gc->foreground);
-		BitBlt(hDC, destX, destY, destWidth, destHeight, memDC,
-		       srcX, srcY, SRCINVERT);
-		SetTextColor(hDC, RGB(255,255,255));
-		SetBkColor(hDC, RGB(0,0,0));
-		BitBlt(hDC, destX, destY, destWidth, destHeight, maskDC,
-		       srcX, srcY, SRCAND);
-		SetTextColor(hDC, gc->background);
-		SetBkColor(hDC, gc->foreground);
-		BitBlt(hDC, destX, destY, destWidth, destHeight, memDC,
-		       srcX, srcY, SRCINVERT);
-	    } else if (gc->fill_style == FillOpaqueStippled) { /* Opaque. */
-		SetBkColor(hDC, gc->foreground);
-		SetTextColor(hDC, gc->background);
-		BitBlt(hDC, destX, destY, destWidth, destHeight, memDC,
-		       srcX, srcY, SRCCOPY);
-	    }
-	}
+        if (gc->fill_style == FillStippled) { /* With transparency. */
+        SetBkMode(hDC, OPAQUE);
+        SetTextColor(hDC, gc->background);
+        SetBkColor(hDC, gc->foreground);
+        BitBlt(hDC, destX, destY, destWidth, destHeight, memDC,
+               srcX, srcY, SRCINVERT);
+        SetTextColor(hDC, RGB(255,255,255));
+        SetBkColor(hDC, RGB(0,0,0));
+        BitBlt(hDC, destX, destY, destWidth, destHeight, maskDC,
+               srcX, srcY, SRCAND);
+        SetTextColor(hDC, gc->background);
+        SetBkColor(hDC, gc->foreground);
+        BitBlt(hDC, destX, destY, destWidth, destHeight, memDC,
+               srcX, srcY, SRCINVERT);
+        } else if (gc->fill_style == FillOpaqueStippled) { /* Opaque. */
+        SetBkColor(hDC, gc->foreground);
+        SetTextColor(hDC, gc->background);
+        BitBlt(hDC, destX, destY, destWidth, destHeight, memDC,
+               srcX, srcY, SRCCOPY);
+        }
+    }
     }
     SelectBitmap(memDC, oldBitmap);
     if (maskDC != memDC) {
-	TkWinReleaseDrawableDC(mask, maskDC, &maskState);
+    TkWinReleaseDrawableDC(mask, maskDC, &maskState);
     }
     DeleteDC(memDC);
 }
@@ -2545,7 +2545,7 @@ Rbc_EmulateXFillPolygon(display, drawable, gc, pointPtr, nPoints, shape, mode)
     int fillMode;
 
     if (drawable == None) {
-	return;
+    return;
     }
 
     /* Determine the bounding box of the polygon. */
@@ -2558,63 +2558,63 @@ Rbc_EmulateXFillPolygon(display, drawable, gc, pointPtr, nPoints, shape, mode)
     winPts = (POINT *)ckalloc(sizeof(POINT) * nPoints);
     endPtr = winPts + nPoints;
     for (p = winPts; p < endPtr; p++) {
-	if (pointPtr->x < bbox.left) {
-	    bbox.left = pointPtr->x;
-	}
-	if (pointPtr->x > bbox.right) {
-	    bbox.right = pointPtr->x;
-	}
-	if (pointPtr->y < bbox.top) {
-	    bbox.top = pointPtr->y;
-	}
-	if (pointPtr->y > bbox.bottom) {
-	    bbox.bottom = pointPtr->y;
-	}
-	p->x = pointPtr->x;
-	p->y = pointPtr->y;
-	pointPtr++;
+    if (pointPtr->x < bbox.left) {
+        bbox.left = pointPtr->x;
+    }
+    if (pointPtr->x > bbox.right) {
+        bbox.right = pointPtr->x;
+    }
+    if (pointPtr->y < bbox.top) {
+        bbox.top = pointPtr->y;
+    }
+    if (pointPtr->y > bbox.bottom) {
+        bbox.bottom = pointPtr->y;
+    }
+    p->x = pointPtr->x;
+    p->y = pointPtr->y;
+    pointPtr++;
     }
 
     SetROP2(hDC, tkpWinRopModes[gc->function]);
     fillMode = (gc->fill_rule == EvenOddRule) ? ALTERNATE : WINDING;
 
     if ((gc->fill_style == FillStippled) ||
-	    (gc->fill_style == FillOpaqueStippled)) {
-	int width, height;
+        (gc->fill_style == FillOpaqueStippled)) {
+    int width, height;
 
-	/* Points are offsets within the bounding box. */
-	for (p = winPts; p < endPtr; p++) {
-	    p->x -= bbox.left;
-	    p->y -= bbox.top;
-	}
-	/* Use the polygon as a clip path. */
-	LPtoDP(hDC, winPts, nPoints);
-	hRgn = CreatePolygonRgn(winPts, nPoints, fillMode);
-	SelectClipRgn(hDC, hRgn);
-	OffsetClipRgn(hDC, bbox.left, bbox.top);
+    /* Points are offsets within the bounding box. */
+    for (p = winPts; p < endPtr; p++) {
+        p->x -= bbox.left;
+        p->y -= bbox.top;
+    }
+    /* Use the polygon as a clip path. */
+    LPtoDP(hDC, winPts, nPoints);
+    hRgn = CreatePolygonRgn(winPts, nPoints, fillMode);
+    SelectClipRgn(hDC, hRgn);
+    OffsetClipRgn(hDC, bbox.left, bbox.top);
 
-	/* Tile the bounding box. */
-	width = bbox.right - bbox.left + 1;
-	height = bbox.bottom - bbox.top + 1;
-	StippleRegion(display, hDC, gc, bbox.left, bbox.top, width, height);
+    /* Tile the bounding box. */
+    width = bbox.right - bbox.left + 1;
+    height = bbox.bottom - bbox.top + 1;
+    StippleRegion(display, hDC, gc, bbox.left, bbox.top, width, height);
 
-	SelectClipRgn(hDC, NULL);
-	DeleteRgn(hRgn);
+    SelectClipRgn(hDC, NULL);
+    DeleteRgn(hRgn);
     } else {
-	HPEN oldPen;
-	HBRUSH oldBrush;
+    HPEN oldPen;
+    HBRUSH oldBrush;
 
-	/*
-	 * FIXME: Right now, we're assuming that it's solid or
-	 * stippled and ignoring tiling. I'll merge the bits from
-	 * Rbc_TilePolygon later.
-	 */
-	oldPen = SelectPen(hDC, GetStockObject(NULL_PEN));
-	oldBrush = SelectBrush(hDC, CreateSolidBrush(gc->foreground));
-	SetPolyFillMode(hDC, fillMode);
-	Polygon(hDC, winPts, nPoints);
-	SelectPen(hDC, oldPen);
-	DeleteBrush(SelectBrush(hDC, oldBrush));
+    /*
+     * FIXME: Right now, we're assuming that it's solid or
+     * stippled and ignoring tiling. I'll merge the bits from
+     * Rbc_TilePolygon later.
+     */
+    oldPen = SelectPen(hDC, GetStockObject(NULL_PEN));
+    oldBrush = SelectBrush(hDC, CreateSolidBrush(gc->foreground));
+    SetPolyFillMode(hDC, fillMode);
+    Polygon(hDC, winPts, nPoints);
+    SelectPen(hDC, oldPen);
+    DeleteBrush(SelectBrush(hDC, oldBrush));
     }
     ckfree((char *)winPts);
     TkWinReleaseDrawableDC(drawable, hDC, &state);

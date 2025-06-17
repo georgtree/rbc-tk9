@@ -14,7 +14,7 @@
 
 #include "tcl.h"
 
-#define TCL_BRACKET_TERM	  1
+#define TCL_BRACKET_TERM      1
 
 /*
  * A table used to classify input characters to assist in parsing
@@ -29,17 +29,17 @@
 #define TCL_RESULT_SIZE 200
 #endif
 
-#define STATIC_STRING_SPACE	150
-#define UCHAR(c)		((unsigned char) (c))
-#define TCL_NORMAL		0x01
-#define TCL_SPACE		0x02
-#define TCL_COMMAND_END		0x04
-#define TCL_QUOTE		0x08
-#define TCL_OPEN_BRACKET	0x10
-#define TCL_OPEN_BRACE		0x20
-#define TCL_CLOSE_BRACE		0x40
-#define TCL_BACKSLASH		0x80
-#define TCL_DOLLAR		0x00
+#define STATIC_STRING_SPACE    150
+#define UCHAR(c)        ((unsigned char) (c))
+#define TCL_NORMAL        0x01
+#define TCL_SPACE        0x02
+#define TCL_COMMAND_END        0x04
+#define TCL_QUOTE        0x08
+#define TCL_OPEN_BRACKET    0x10
+#define TCL_OPEN_BRACE        0x20
+#define TCL_CLOSE_BRACE        0x40
+#define TCL_BACKSLASH        0x80
+#define TCL_DOLLAR        0x00
 
 static unsigned char tclTypeTable[] = {
     /*
@@ -155,31 +155,31 @@ static unsigned char tclTypeTable[] = {
 };
 
 #define CHAR_TYPE(src,last) \
-	(((src)==(last))?TCL_COMMAND_END:(tclTypeTable+128)[(int)*(src)])
+    (((src)==(last))?TCL_COMMAND_END:(tclTypeTable+128)[(int)*(src)])
 
 /*
- *	The following data structure is used by various parsing
- *	procedures to hold information about where to store the
- *	results of parsing (e.g. the substituted contents of a quoted
- *	argument, or the result of a nested command).  At any given
- *	time, the space available for output is fixed, but a procedure
- *	may be called to expand the space available if the current
- *	space runs out.
+ *    The following data structure is used by various parsing
+ *    procedures to hold information about where to store the
+ *    results of parsing (e.g. the substituted contents of a quoted
+ *    argument, or the result of a nested command).  At any given
+ *    time, the space available for output is fixed, but a procedure
+ *    may be called to expand the space available if the current
+ *    space runs out.
  */
 typedef struct ParseValueStruct ParseValue;
 
 struct ParseValueStruct {
     char *buffer; /* Address of first character in
-	 * output buffer. */
+     * output buffer. */
     char *next; /* Place to store next character in
-	 * output buffer. */
+     * output buffer. */
     char *end; /* Address of the last usable character
-	 * in the buffer. */
+     * in the buffer. */
     void (*expandProc)(ParseValue *pvPtr, int needed);
     /* Procedure to call when space runs out;
      * it will make more space. */
     ClientData clientData; /* Arbitrary information for use of
-	 * expandProc. */
+     * expandProc. */
 };
 
 typedef void **TclHandle;
@@ -195,36 +195,36 @@ typedef struct ExecEnvStruct ExecEnv;
 typedef struct LiteralEntryStruct LiteralEntry;
 struct LiteralEntryStruct {
     LiteralEntry *nextPtr; /* Points to next entry in this
-	 * hash bucket or NULL if end of
-	 * chain. */
+     * hash bucket or NULL if end of
+     * chain. */
     Tcl_Obj *objPtr; /* Points to Tcl object that
-	 * holds the literal's bytes and
-	 * length. */
+     * holds the literal's bytes and
+     * length. */
     int refCount; /* If in an interpreter's global
-	 * literal table, the number of
-	 * ByteCode structures that share
-	 * the literal object; the literal
-	 * entry can be freed when refCount
-	 * drops to 0. If in a local literal
-	 * table, -1. */
+     * literal table, the number of
+     * ByteCode structures that share
+     * the literal object; the literal
+     * entry can be freed when refCount
+     * drops to 0. If in a local literal
+     * table, -1. */
 };
 
 typedef struct {
     LiteralEntry **buckets; /* Pointer to bucket array. Each
-	 * element points to first entry in
-	 * bucket's hash chain, or NULL. */
+     * element points to first entry in
+     * bucket's hash chain, or NULL. */
     LiteralEntry *staticBuckets[TCL_SMALL_HASH_TABLE];
     /* Bucket array used for small
      * tables to avoid mallocs and
      * frees. */
     int numBuckets; /* Total number of buckets allocated
-	 * at **buckets. */
+     * at **buckets. */
     int numEntries; /* Total number of entries present
-	 * in table. */
+     * in table. */
     int rebuildSize; /* Enlarge table when numEntries
-	 * gets to be this large. */
+     * gets to be this large. */
     int mask; /* Mask value used in hashing
-	 * function. */
+     * function. */
 } LiteralTable;
 
 /*
@@ -256,24 +256,24 @@ typedef struct {
      */
 
     char *result; /* If the last command returned a string
-	 * result, this points to it. Should not be
-	 * accessed directly; see comment above. */
+     * result, this points to it. Should not be
+     * accessed directly; see comment above. */
     Tcl_FreeProc *freeProc; /* Zero means a string result is statically
-	 * allocated. TCL_DYNAMIC means string
-	 * result was allocated with ckalloc and
-	 * should be freed with ckfree. Other values
-	 * give address of procedure to invoke to
-	 * free the string result. Tcl_Eval must
-	 * free it before executing next command. */
+     * allocated. TCL_DYNAMIC means string
+     * result was allocated with ckalloc and
+     * should be freed with ckfree. Other values
+     * give address of procedure to invoke to
+     * free the string result. Tcl_Eval must
+     * free it before executing next command. */
     int errorLine; /* When TCL_ERROR is returned, this gives
-	 * the line number in the command where the
-	 * error occurred (1 means first line). */
+     * the line number in the command where the
+     * error occurred (1 means first line). */
     Tcl_Obj *objResultPtr; /* If the last command returned an object
-	 * result, this points to it. Should not be
-	 * accessed directly; see comment above. */
+     * result, this points to it. Should not be
+     * accessed directly; see comment above. */
 
     TclHandle handle; /* Handle used to keep track of when this
-	 * interp is deleted. */
+     * interp is deleted. */
 
     Namespace *globalNsPtr; /* The interpreter's global namespace. */
     Tcl_HashTable *hiddenCmdTablePtr;
@@ -281,12 +281,12 @@ typedef struct {
      * track of hidden commands on a per-interp
      * basis. */
     ClientData interpInfo; /* Information used by tclInterp.c to keep
-	 * track of master/slave interps on
-	 * a per-interp basis. */
+     * track of master/slave interps on
+     * a per-interp basis. */
     Tcl_HashTable mathFuncTable;/* Contains all the math functions currently
-	 * defined for the interpreter.  Indexed by
-	 * strings (function names); values have
-	 * type (MathFunc *). */
+     * defined for the interpreter.  Indexed by
+     * strings (function names); values have
+     * type (MathFunc *). */
 
     /*
      * Information related to procedures and variables. See tclProc.c
@@ -294,30 +294,30 @@ typedef struct {
      */
 
     int numLevels; /* Keeps track of how many nested calls to
-	 * Tcl_Eval are in progress for this
-	 * interpreter.  It's used to delay deletion
-	 * of the table until all Tcl_Eval
-	 * invocations are completed. */
+     * Tcl_Eval are in progress for this
+     * interpreter.  It's used to delay deletion
+     * of the table until all Tcl_Eval
+     * invocations are completed. */
     int maxNestingDepth; /* If numLevels exceeds this value then Tcl
-	 * assumes that infinite recursion has
-	 * occurred and it generates an error. */
+     * assumes that infinite recursion has
+     * occurred and it generates an error. */
     CallFrame *framePtr; /* Points to top-most in stack of all nested
-	 * procedure invocations.  NULL means there
-	 * are no active procedures. */
+     * procedure invocations.  NULL means there
+     * are no active procedures. */
     CallFrame *varFramePtr; /* Points to the call frame whose variables
-	 * are currently in use (same as framePtr
-	 * unless an "uplevel" command is
-	 * executing). NULL means no procedure is
-	 * active or "uplevel 0" is executing. */
+     * are currently in use (same as framePtr
+     * unless an "uplevel" command is
+     * executing). NULL means no procedure is
+     * active or "uplevel 0" is executing. */
     ActiveVarTrace *activeTracePtr;
     /* First in list of active traces for
      * interp, or NULL if no active traces. */
     int returnCode; /* Completion code to return if current
-	 * procedure exits with TCL_RETURN code. */
+     * procedure exits with TCL_RETURN code. */
     char *errorInfo; /* Value to store in errorInfo if returnCode
-	 * is TCL_ERROR.  Malloc'ed, may be NULL */
+     * is TCL_ERROR.  Malloc'ed, may be NULL */
     char *errorCode; /* Value to store in errorCode if returnCode
-	 * is TCL_ERROR.  Malloc'ed, may be NULL */
+     * is TCL_ERROR.  Malloc'ed, may be NULL */
 
     /*
      * Information used by Tcl_AppendResult to keep track of partial
@@ -325,12 +325,12 @@ typedef struct {
      */
 
     char *appendResult; /* Storage space for results generated
-	 * by Tcl_AppendResult.  Malloc-ed.  NULL
-	 * means not yet allocated. */
+     * by Tcl_AppendResult.  Malloc-ed.  NULL
+     * means not yet allocated. */
     int appendAvl; /* Total amount of space available at
-	 * partialResult. */
+     * partialResult. */
     int appendUsed; /* Number of non-null bytes currently
-	 * stored at partialResult. */
+     * stored at partialResult. */
 
     /*
      * A cache of compiled regular expressions.  See Tcl_RegExpCompile
@@ -342,12 +342,12 @@ typedef struct {
 
 #define NUM_REGEXPS 5
     char *patterns[NUM_REGEXPS];/* Strings corresponding to compiled
-	 * regular expression patterns.  NULL
-	 * means that this slot isn't used.
-	 * Malloc-ed. */
+     * regular expression patterns.  NULL
+     * means that this slot isn't used.
+     * Malloc-ed. */
     int patLengths[NUM_REGEXPS];/* Number of non-null characters in
-	 * corresponding entry in patterns.
-	 * -1 means entry isn't used. */
+     * corresponding entry in patterns.
+     * -1 means entry isn't used. */
     TclRegexp *regexps[NUM_REGEXPS];
     /* Compiled forms of above strings.  Also
      * malloc-ed, or NULL if not in use yet. */
@@ -357,60 +357,60 @@ typedef struct {
      */
 
     Tcl_HashTable packageTable; /* Describes all of the packages loaded
-	 * in or available to this interpreter.
-	 * Keys are package names, values are
-	 * (Package *) pointers. */
+     * in or available to this interpreter.
+     * Keys are package names, values are
+     * (Package *) pointers. */
     char *packageUnknown; /* Command to invoke during "package
-	 * require" commands for packages that
-	 * aren't described in packageTable.
-	 * Malloc'ed, may be NULL. */
+     * require" commands for packages that
+     * aren't described in packageTable.
+     * Malloc'ed, may be NULL. */
 
     /*
      * Miscellaneous information:
      */
 
     int cmdCount; /* Total number of times a command procedure
-	 * has been called for this interpreter. */
+     * has been called for this interpreter. */
     int evalFlags; /* Flags to control next call to Tcl_Eval.
-	 * Normally zero, but may be set before
-	 * calling Tcl_Eval.  See below for valid
-	 * values. */
+     * Normally zero, but may be set before
+     * calling Tcl_Eval.  See below for valid
+     * values. */
     int termOffset; /* Offset of character just after last one
-	 * compiled or executed by Tcl_EvalObj. */
+     * compiled or executed by Tcl_EvalObj. */
     LiteralTable literalTable; /* Contains LiteralEntry's describing all
-	 * Tcl objects holding literals of scripts
-	 * compiled by the interpreter. Indexed by
-	 * the string representations of literals.
-	 * Used to avoid creating duplicate
-	 * objects. */
+     * Tcl objects holding literals of scripts
+     * compiled by the interpreter. Indexed by
+     * the string representations of literals.
+     * Used to avoid creating duplicate
+     * objects. */
     int compileEpoch; /* Holds the current "compilation epoch"
-	 * for this interpreter. This is
-	 * incremented to invalidate existing
-	 * ByteCodes when, e.g., a command with a
-	 * compile procedure is redefined. */
+     * for this interpreter. This is
+     * incremented to invalidate existing
+     * ByteCodes when, e.g., a command with a
+     * compile procedure is redefined. */
     Proc *compiledProcPtr; /* If a procedure is being compiled, a
-	 * pointer to its Proc structure; otherwise,
-	 * this is NULL. Set by ObjInterpProc in
-	 * tclProc.c and used by tclCompile.c to
-	 * process local variables appropriately. */
+     * pointer to its Proc structure; otherwise,
+     * this is NULL. Set by ObjInterpProc in
+     * tclProc.c and used by tclCompile.c to
+     * process local variables appropriately. */
     char *scriptFile; /* NULL means there is no nested source
-	 * command active;  otherwise this points to
-	 * the name of the file being sourced (it's
-	 * not malloc-ed:  it points to an argument
-	 * to Tcl_EvalFile. */
+     * command active;  otherwise this points to
+     * the name of the file being sourced (it's
+     * not malloc-ed:  it points to an argument
+     * to Tcl_EvalFile. */
     int flags; /* Various flag bits.  See below. */
     long randSeed; /* Seed used for rand() function. */
     Trace *tracePtr; /* List of traces for this interpreter. */
     Tcl_HashTable *assocData; /* Hash table for associating data with
-	 * this interpreter. Cleaned up when
-	 * this interpreter is deleted. */
+     * this interpreter. Cleaned up when
+     * this interpreter is deleted. */
     ExecEnv *execEnvPtr; /* Execution environment for Tcl bytecode
-	 * execution. Contains a pointer to the
-	 * Tcl evaluation stack. */
+     * execution. Contains a pointer to the
+     * Tcl evaluation stack. */
     Tcl_Obj *emptyObjPtr; /* Points to an object holding an empty
-						   * string. Returned by Tcl_ObjSetVar2 when
-						   * variable traces change a variable in a
-						   * gross way. */
+                           * string. Returned by Tcl_ObjSetVar2 when
+                           * variable traces change a variable in a
+                           * gross way. */
     char resultSpace[TCL_RESULT_SIZE + 1];
     /* Static space holding small results. */
     Tcl_ThreadId threadId; /* ID of thread that owns the interpreter */
@@ -421,7 +421,7 @@ typedef struct {
      */
 #ifdef TCL_COMPILE_STATS
     ByteCodeStats stats; /* Holds compilation and execution
-						  * statistics for this interpreter. */
+                          * statistics for this interpreter. */
 #endif /* TCL_COMPILE_STATS */
 } Interp;
 

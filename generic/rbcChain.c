@@ -40,7 +40,7 @@ Rbc_ChainCreate()
 
     chainPtr = (Rbc_Chain *) ckalloc(sizeof(Rbc_Chain));
     if (chainPtr != NULL) {
-	Rbc_ChainInit(chainPtr);
+    Rbc_ChainInit(chainPtr);
     }
     return chainPtr;
 }
@@ -89,24 +89,24 @@ Rbc_ChainLinkAfter(chainPtr, linkPtr, afterPtr)
     Rbc_ChainLink *linkPtr, *afterPtr;
 {
     if (chainPtr->headPtr == NULL) {
-	chainPtr->tailPtr = chainPtr->headPtr = linkPtr;
+    chainPtr->tailPtr = chainPtr->headPtr = linkPtr;
     } else {
-	if (afterPtr == NULL) {
-	    /* Prepend to the front of the chain */
-	    linkPtr->nextPtr = chainPtr->headPtr;
-	    linkPtr->prevPtr = NULL;
-	    chainPtr->headPtr->prevPtr = linkPtr;
-	    chainPtr->headPtr = linkPtr;
-	} else {
-	    linkPtr->nextPtr = afterPtr->nextPtr;
-	    linkPtr->prevPtr = afterPtr;
-	    if (afterPtr == chainPtr->tailPtr) {
-		chainPtr->tailPtr = linkPtr;
-	    } else {
-		afterPtr->nextPtr->prevPtr = linkPtr;
-	    }
-	    afterPtr->nextPtr = linkPtr;
-	}
+    if (afterPtr == NULL) {
+        /* Prepend to the front of the chain */
+        linkPtr->nextPtr = chainPtr->headPtr;
+        linkPtr->prevPtr = NULL;
+        chainPtr->headPtr->prevPtr = linkPtr;
+        chainPtr->headPtr = linkPtr;
+    } else {
+        linkPtr->nextPtr = afterPtr->nextPtr;
+        linkPtr->prevPtr = afterPtr;
+        if (afterPtr == chainPtr->tailPtr) {
+        chainPtr->tailPtr = linkPtr;
+        } else {
+        afterPtr->nextPtr->prevPtr = linkPtr;
+        }
+        afterPtr->nextPtr = linkPtr;
+    }
     }
     chainPtr->nLinks++;
 }
@@ -132,24 +132,24 @@ Rbc_ChainLinkBefore(chainPtr, linkPtr, beforePtr)
     Rbc_ChainLink *beforePtr;    /* Entry to link before */
 {
     if (chainPtr->headPtr == NULL) {
-	chainPtr->tailPtr = chainPtr->headPtr = linkPtr;
+    chainPtr->tailPtr = chainPtr->headPtr = linkPtr;
     } else {
-	if (beforePtr == NULL) {
-	    /* Append to the end of the chain. */
-	    linkPtr->nextPtr = NULL;
-	    linkPtr->prevPtr = chainPtr->tailPtr;
-	    chainPtr->tailPtr->nextPtr = linkPtr;
-	    chainPtr->tailPtr = linkPtr;
-	} else {
-	    linkPtr->prevPtr = beforePtr->prevPtr;
-	    linkPtr->nextPtr = beforePtr;
-	    if (beforePtr == chainPtr->headPtr) {
-		chainPtr->headPtr = linkPtr;
-	    } else {
-		beforePtr->prevPtr->nextPtr = linkPtr;
-	    }
-	    beforePtr->prevPtr = linkPtr;
-	}
+    if (beforePtr == NULL) {
+        /* Append to the end of the chain. */
+        linkPtr->nextPtr = NULL;
+        linkPtr->prevPtr = chainPtr->tailPtr;
+        chainPtr->tailPtr->nextPtr = linkPtr;
+        chainPtr->tailPtr = linkPtr;
+    } else {
+        linkPtr->prevPtr = beforePtr->prevPtr;
+        linkPtr->nextPtr = beforePtr;
+        if (beforePtr == chainPtr->headPtr) {
+        chainPtr->headPtr = linkPtr;
+        } else {
+        beforePtr->prevPtr->nextPtr = linkPtr;
+        }
+        beforePtr->prevPtr = linkPtr;
+    }
     }
     chainPtr->nLinks++;
 }
@@ -203,15 +203,15 @@ Rbc_ChainReset(chainPtr)
     Rbc_Chain *chainPtr;/* Chain to clear */
 {
     if (chainPtr != NULL) {
-	Rbc_ChainLink *oldPtr;
-	Rbc_ChainLink *linkPtr = chainPtr->headPtr;
+    Rbc_ChainLink *oldPtr;
+    Rbc_ChainLink *linkPtr = chainPtr->headPtr;
 
-	while (linkPtr != NULL) {
-	    oldPtr = linkPtr;
-	    linkPtr = linkPtr->nextPtr;
-	    ckfree((char *) oldPtr);
-	}
-	Rbc_ChainInit(chainPtr);
+    while (linkPtr != NULL) {
+        oldPtr = linkPtr;
+        linkPtr = linkPtr->nextPtr;
+        ckfree((char *) oldPtr);
+    }
+    Rbc_ChainInit(chainPtr);
     }
 }
 
@@ -237,8 +237,8 @@ Rbc_ChainDestroy(chainPtr)
     Rbc_Chain *chainPtr; /* The chain to destroy. */
 {
     if (chainPtr != NULL) {
-	Rbc_ChainReset(chainPtr);
-	ckfree((char *) chainPtr);
+    Rbc_ChainReset(chainPtr);
+    ckfree((char *) chainPtr);
     }
 }
 
@@ -268,23 +268,23 @@ Rbc_ChainUnlinkLink(chainPtr, linkPtr)
 
     unlinked = FALSE;
     if (chainPtr->headPtr == linkPtr) {
-	chainPtr->headPtr = linkPtr->nextPtr;
-	unlinked = TRUE;
+    chainPtr->headPtr = linkPtr->nextPtr;
+    unlinked = TRUE;
     }
     if (chainPtr->tailPtr == linkPtr) {
-	chainPtr->tailPtr = linkPtr->prevPtr;
-	unlinked = TRUE;
+    chainPtr->tailPtr = linkPtr->prevPtr;
+    unlinked = TRUE;
     }
     if (linkPtr->nextPtr != NULL) {
-	linkPtr->nextPtr->prevPtr = linkPtr->prevPtr;
-	unlinked = TRUE;
+    linkPtr->nextPtr->prevPtr = linkPtr->prevPtr;
+    unlinked = TRUE;
     }
     if (linkPtr->prevPtr != NULL) {
-	linkPtr->prevPtr->nextPtr = linkPtr->nextPtr;
-	unlinked = TRUE;
+    linkPtr->prevPtr->nextPtr = linkPtr->nextPtr;
+    unlinked = TRUE;
     }
     if (unlinked) {
-	chainPtr->nLinks--;
+    chainPtr->nLinks--;
     }
     linkPtr->prevPtr = linkPtr->nextPtr = NULL;
 }
@@ -396,8 +396,8 @@ Rbc_ChainAllocLink(extraSize)
     linkPtr = RbcCalloc(1, linkSize + extraSize);
     assert(linkPtr);
     if (extraSize > 0) {
-	/* Point clientData at the memory beyond the normal structure. */
-	linkPtr->clientData = (ClientData)((char *)linkPtr + linkSize);
+    /* Point clientData at the memory beyond the normal structure. */
+    linkPtr->clientData = (ClientData)((char *)linkPtr + linkSize);
     }
     return linkPtr;
 }

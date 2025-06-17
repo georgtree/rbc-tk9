@@ -39,31 +39,31 @@ extern "C" {
  */
 
 /* 0 */
-RBCAPI int		Rbc_CreateVector(Tcl_Interp *interp, const char *vecName,
-				int size, Rbc_Vector **vecPtrPtr);
+RBCAPI int        Rbc_CreateVector(Tcl_Interp *interp, const char *vecName,
+                int size, Rbc_Vector **vecPtrPtr);
 /* 1 */
-RBCAPI int		Rbc_GetVector(Tcl_Interp *interp, const char *vecName,
-				Rbc_Vector **vecPtrPtr);
+RBCAPI int        Rbc_GetVector(Tcl_Interp *interp, const char *vecName,
+                Rbc_Vector **vecPtrPtr);
 /* 2 */
-RBCAPI int		Rbc_ResizeVector(Rbc_Vector *vecPtr, int nValues);
+RBCAPI int        Rbc_ResizeVector(Rbc_Vector *vecPtr, int nValues);
 /* 3 */
-RBCAPI char *		Rbc_NameOfVector(Rbc_Vector *vecPtr);
+RBCAPI char *        Rbc_NameOfVector(Rbc_Vector *vecPtr);
 /* 4 */
-RBCAPI int		Rbc_ResetVector(Rbc_Vector *vecPtr, double *dataArr,
-				int nValues, int arraySize,
-				Tcl_FreeProc *freeProc);
+RBCAPI int        Rbc_ResetVector(Rbc_Vector *vecPtr, double *dataArr,
+                int nValues, int arraySize,
+                Tcl_FreeProc *freeProc);
 /* 5 */
-RBCAPI double *		Rbc_VectorData(Rbc_Vector *v);
+RBCAPI double *        Rbc_VectorData(Rbc_Vector *v);
 /* 6 */
-RBCAPI int		Rbc_VectorLength(Rbc_Vector *v);
+RBCAPI int        Rbc_VectorLength(Rbc_Vector *v);
 /* 7 */
-RBCAPI int		Rbc_VectorSize(Rbc_Vector *v);
+RBCAPI int        Rbc_VectorSize(Rbc_Vector *v);
 /* 8 */
-RBCAPI int		Rbc_VectorDirty(Rbc_Vector *v);
+RBCAPI int        Rbc_VectorDirty(Rbc_Vector *v);
 /* 9 */
-RBCAPI int		Rbc_VectorExists2(Tcl_Interp *ip, const char *name);
+RBCAPI int        Rbc_VectorExists2(Tcl_Interp *ip, const char *name);
 /* 10 */
-RBCAPI void		Rbc_FreeVector(Rbc_Vector *v);
+RBCAPI void        Rbc_FreeVector(Rbc_Vector *v);
 
 typedef struct RbcStubs {
     int magic;
@@ -95,27 +95,27 @@ extern const RbcStubs *rbcStubsPtr;
  */
 
 #define Rbc_CreateVector \
-	(rbcStubsPtr->rbc_CreateVector) /* 0 */
+    (rbcStubsPtr->rbc_CreateVector) /* 0 */
 #define Rbc_GetVector \
-	(rbcStubsPtr->rbc_GetVector) /* 1 */
+    (rbcStubsPtr->rbc_GetVector) /* 1 */
 #define Rbc_ResizeVector \
-	(rbcStubsPtr->rbc_ResizeVector) /* 2 */
+    (rbcStubsPtr->rbc_ResizeVector) /* 2 */
 #define Rbc_NameOfVector \
-	(rbcStubsPtr->rbc_NameOfVector) /* 3 */
+    (rbcStubsPtr->rbc_NameOfVector) /* 3 */
 #define Rbc_ResetVector \
-	(rbcStubsPtr->rbc_ResetVector) /* 4 */
+    (rbcStubsPtr->rbc_ResetVector) /* 4 */
 #define Rbc_VectorData \
-	(rbcStubsPtr->rbc_VectorData) /* 5 */
+    (rbcStubsPtr->rbc_VectorData) /* 5 */
 #define Rbc_VectorLength \
-	(rbcStubsPtr->rbc_VectorLength) /* 6 */
+    (rbcStubsPtr->rbc_VectorLength) /* 6 */
 #define Rbc_VectorSize \
-	(rbcStubsPtr->rbc_VectorSize) /* 7 */
+    (rbcStubsPtr->rbc_VectorSize) /* 7 */
 #define Rbc_VectorDirty \
-	(rbcStubsPtr->rbc_VectorDirty) /* 8 */
+    (rbcStubsPtr->rbc_VectorDirty) /* 8 */
 #define Rbc_VectorExists2 \
-	(rbcStubsPtr->rbc_VectorExists2) /* 9 */
+    (rbcStubsPtr->rbc_VectorExists2) /* 9 */
 #define Rbc_FreeVector \
-	(rbcStubsPtr->rbc_FreeVector) /* 10 */
+    (rbcStubsPtr->rbc_FreeVector) /* 10 */
 
 #endif /* defined(USE_RBC_STUBS) */
 

@@ -139,7 +139,7 @@ Rbc_VectorInstanceObjCmd(clientData, interp, objc, objv)
     proc = Rbc_GetOpFromObj(interp, vectorInstOpCmd, RBC_OP_ARG1, objc, objv);
 
     if (NULL == proc) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
 
     /* reset selected indices */
@@ -179,29 +179,29 @@ AppendOp(
     VectorObject *v2Ptr;
 
     for (i = 2; i < objc; i++) {
-	v2Ptr = Rbc_VectorParseElement((Tcl_Interp *) NULL, vPtr->dataPtr,
-		Tcl_GetString(objv[i]), (char **) NULL,
-		NS_SEARCH_BOTH);
-	if (v2Ptr != NULL) {
-	    result = AppendVector(vPtr, v2Ptr);
-	} else {
-	    Tcl_Size nElem;
-	    Tcl_Obj **elemObjArr;
+    v2Ptr = Rbc_VectorParseElement((Tcl_Interp *) NULL, vPtr->dataPtr,
+        Tcl_GetString(objv[i]), (char **) NULL,
+        NS_SEARCH_BOTH);
+    if (v2Ptr != NULL) {
+        result = AppendVector(vPtr, v2Ptr);
+    } else {
+        Tcl_Size nElem;
+        Tcl_Obj **elemObjArr;
 
-	    if (Tcl_ListObjGetElements(interp, objv[i], &nElem, &elemObjArr) != TCL_OK) {
-		return TCL_ERROR;
-	    }
-	    result = AppendList(vPtr, (int)nElem, elemObjArr);
-	}
-	if (result != TCL_OK) {
-	    return TCL_ERROR;
-	}
+        if (Tcl_ListObjGetElements(interp, objv[i], &nElem, &elemObjArr) != TCL_OK) {
+        return TCL_ERROR;
+        }
+        result = AppendList(vPtr, (int)nElem, elemObjArr);
+    }
+    if (result != TCL_OK) {
+        return TCL_ERROR;
+    }
     }
     if (objc > 2) {
-	if (vPtr->flush) {
-	    Rbc_VectorFlushCache(vPtr);
-	}
-	Rbc_VectorUpdateClients(vPtr);
+    if (vPtr->flush) {
+        Rbc_VectorFlushCache(vPtr);
+    }
+    Rbc_VectorUpdateClients(vPtr);
     }
     return TCL_OK;
 }
@@ -240,77 +240,77 @@ ArithOp(
 
     v2Ptr = Rbc_VectorParseElement((Tcl_Interp *)NULL, vPtr->dataPtr, Tcl_GetString(objv[2]), (char **)NULL, NS_SEARCH_BOTH);
     if (v2Ptr != NULL) {
-	register int j;
-	int length;
+    register int j;
+    int length;
 
-	length = v2Ptr->last - v2Ptr->first + 1;
-	if (length != vPtr->length) {
-	    Tcl_AppendResult(interp, "vectors \"", Tcl_GetString(objv[0]),
-		"\" and \"", Tcl_GetString(objv[2]),
-		"\" are not the same length", (char *)NULL);
-	    return TCL_ERROR;
-	}
-	string = Tcl_GetString(objv[1]);
-	listObjPtr = Tcl_NewListObj(0, (Tcl_Obj **)NULL);
-	switch (string[0]) {
-	    case '*':
-		for (i = 0, j = v2Ptr->first; i < vPtr->length; i++, j++) {
-		    value = vPtr->valueArr[i] * v2Ptr->valueArr[j];
-		    Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
-		}
-		break;
-	    case '/':
-		for (i = 0, j = v2Ptr->first; i < vPtr->length; i++, j++) {
-		    value = vPtr->valueArr[i] / v2Ptr->valueArr[j];
-		    Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
-		}
-		break;
-	    case '-':
-		for (i = 0, j = v2Ptr->first; i < vPtr->length; i++, j++) {
-		    value = vPtr->valueArr[i] - v2Ptr->valueArr[j];
-		    Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
-		}
-		break;
-	    case '+':
-		for (i = 0, j = v2Ptr->first; i < vPtr->length; i++, j++) {
-		    value = vPtr->valueArr[i] + v2Ptr->valueArr[j];
-		    Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
-		}
-		break;
-	}
-	Tcl_SetObjResult(interp, listObjPtr);
+    length = v2Ptr->last - v2Ptr->first + 1;
+    if (length != vPtr->length) {
+        Tcl_AppendResult(interp, "vectors \"", Tcl_GetString(objv[0]),
+        "\" and \"", Tcl_GetString(objv[2]),
+        "\" are not the same length", (char *)NULL);
+        return TCL_ERROR;
+    }
+    string = Tcl_GetString(objv[1]);
+    listObjPtr = Tcl_NewListObj(0, (Tcl_Obj **)NULL);
+    switch (string[0]) {
+        case '*':
+        for (i = 0, j = v2Ptr->first; i < vPtr->length; i++, j++) {
+            value = vPtr->valueArr[i] * v2Ptr->valueArr[j];
+            Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
+        }
+        break;
+        case '/':
+        for (i = 0, j = v2Ptr->first; i < vPtr->length; i++, j++) {
+            value = vPtr->valueArr[i] / v2Ptr->valueArr[j];
+            Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
+        }
+        break;
+        case '-':
+        for (i = 0, j = v2Ptr->first; i < vPtr->length; i++, j++) {
+            value = vPtr->valueArr[i] - v2Ptr->valueArr[j];
+            Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
+        }
+        break;
+        case '+':
+        for (i = 0, j = v2Ptr->first; i < vPtr->length; i++, j++) {
+            value = vPtr->valueArr[i] + v2Ptr->valueArr[j];
+            Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
+        }
+        break;
+    }
+    Tcl_SetObjResult(interp, listObjPtr);
     } else if (Rbc_GetDouble(interp, objv[2], &scalar) == TCL_OK) {
-	listObjPtr = Tcl_NewListObj(0, (Tcl_Obj **)NULL);
-	string = Tcl_GetString(objv[1]);
-	switch (string[0]) {
-	    case '*':
-		for (i = 0; i < vPtr->length; i++) {
-		    value = vPtr->valueArr[i] * scalar;
-		    Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
-		}
-		break;
-	    case '/':
-		for (i = 0; i < vPtr->length; i++) {
-		    value = vPtr->valueArr[i] / scalar;
-		    Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
-		}
-		break;
-	    case '-':
-		for (i = 0; i < vPtr->length; i++) {
-		    value = vPtr->valueArr[i] - scalar;
-		    Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
-		}
-		break;
-	    case '+':
-		for (i = 0; i < vPtr->length; i++) {
-		    value = vPtr->valueArr[i] + scalar;
-		    Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
-		}
-		break;
-	}
-	Tcl_SetObjResult(interp, listObjPtr);
+    listObjPtr = Tcl_NewListObj(0, (Tcl_Obj **)NULL);
+    string = Tcl_GetString(objv[1]);
+    switch (string[0]) {
+        case '*':
+        for (i = 0; i < vPtr->length; i++) {
+            value = vPtr->valueArr[i] * scalar;
+            Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
+        }
+        break;
+        case '/':
+        for (i = 0; i < vPtr->length; i++) {
+            value = vPtr->valueArr[i] / scalar;
+            Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
+        }
+        break;
+        case '-':
+        for (i = 0; i < vPtr->length; i++) {
+            value = vPtr->valueArr[i] - scalar;
+            Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
+        }
+        break;
+        case '+':
+        for (i = 0; i < vPtr->length; i++) {
+            value = vPtr->valueArr[i] + scalar;
+            Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
+        }
+        break;
+    }
+    Tcl_SetObjResult(interp, listObjPtr);
     } else {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     return TCL_OK;
 }
@@ -338,73 +338,73 @@ static Tcl_Size ParseFormat(
     const char *string;
 
     static const struct NativeFmtValue rtable[] = {
-	{sizeof(float),  FMT_FLOAT},
-	{sizeof(double), FMT_DOUBLE},
-	{-1,             FMT_UNKNOWN}
+    {sizeof(float),  FMT_FLOAT},
+    {sizeof(double), FMT_DOUBLE},
+    {-1,             FMT_UNKNOWN}
     };
     static const struct NativeFmtValue itable[] = {
-	{sizeof(char),      FMT_CHAR},
-	{sizeof(short),     FMT_SHORT},
-	{sizeof(int),       FMT_INT},
-	{sizeof(long),      FMT_LONG},
-	{sizeof(long long), FMT_LONGLONG},
-	{-1,                FMT_UNKNOWN}
+    {sizeof(char),      FMT_CHAR},
+    {sizeof(short),     FMT_SHORT},
+    {sizeof(int),       FMT_INT},
+    {sizeof(long),      FMT_LONG},
+    {sizeof(long long), FMT_LONGLONG},
+    {-1,                FMT_UNKNOWN}
     };
     static const struct NativeFmtValue utable[] = {
-	{sizeof(unsigned char),      FMT_UCHAR},
-	{sizeof(unsigned short),     FMT_USHORT},
-	{sizeof(unsigned int),       FMT_UINT},
-	{sizeof(unsigned long),      FMT_ULONG},
-	{sizeof(unsigned long long), FMT_ULONGLONG},
-	{-1,                         FMT_UNKNOWN}
+    {sizeof(unsigned char),      FMT_UCHAR},
+    {sizeof(unsigned short),     FMT_USHORT},
+    {sizeof(unsigned int),       FMT_UINT},
+    {sizeof(unsigned long),      FMT_ULONG},
+    {sizeof(unsigned long long), FMT_ULONGLONG},
+    {-1,                         FMT_UNKNOWN}
     };
 
     if (objc == 0) {
-	Tcl_SetObjResult(interp, Tcl_ObjPrintf(
-	    "option \"%s\" requires an additional argument",
-	    Tcl_GetString(objv[-1])));
-	return -1;
+    Tcl_SetObjResult(interp, Tcl_ObjPrintf(
+        "option \"%s\" requires an additional argument",
+        Tcl_GetString(objv[-1])));
+    return -1;
     }
 
     string = Tcl_GetStringFromObj(objv[0], &len);
     if (len < 2) {
-	Tcl_AppendResult(interp, "unknown binary format \"", string,
-	    "\"", NULL);
-	return -1;
+    Tcl_AppendResult(interp, "unknown binary format \"", string,
+        "\"", NULL);
+    return -1;
     }
     if (Tcl_GetInt(NULL, string + 1, &size) != TCL_OK) {
-	Tcl_AppendResult(interp, "unknown binary format \"", string,
-	    "\": incorrect byte size", NULL);
-	return -1;
+    Tcl_AppendResult(interp, "unknown binary format \"", string,
+        "\": incorrect byte size", NULL);
+    return -1;
     }
 
     switch (tolower(string[0])) {
-	case 'r':
-	case 'f':
-	    table = rtable;
-	    break;
-	case 'i':
-	    table = itable;
-	    break;
-	case 'u':
-	    table = utable;
-	    break;
-	default:
-	    Tcl_AppendResult(interp, "unknown binary format \"", string,
-	    "\": should be either i#, r#, u# (where # is size in bytes)",
-	    NULL);
-	    return -1;
+    case 'r':
+    case 'f':
+        table = rtable;
+        break;
+    case 'i':
+        table = itable;
+        break;
+    case 'u':
+        table = utable;
+        break;
+    default:
+        Tcl_AppendResult(interp, "unknown binary format \"", string,
+        "\": should be either i#, r#, u# (where # is size in bytes)",
+        NULL);
+        return -1;
     }
 
     for (cursor = table; cursor->size != -1; cursor++) {
-	if (cursor->size == size) {
-	    *(struct NativeFmtValue *)dstPtr = *cursor;
-	    return 1;
-	}
+    if (cursor->size == size) {
+        *(struct NativeFmtValue *)dstPtr = *cursor;
+        return 1;
+    }
     }
 
     Tcl_AppendResult(interp, "can't handle format \"", string, "\"",
-	NULL);
+    NULL);
     return -1;
 }
 
@@ -421,20 +421,20 @@ static Tcl_Size ParseAt(
     int first;
 
     if (objc == 0) {
-	Tcl_SetObjResult(interp, Tcl_ObjPrintf(
-	    "option \"%s\" requires an additional argument",
-	    Tcl_GetString(objv[-1])));
-	return -1;
+    Tcl_SetObjResult(interp, Tcl_ObjPrintf(
+        "option \"%s\" requires an additional argument",
+        Tcl_GetString(objv[-1])));
+    return -1;
     }
     string = Tcl_GetString(objv[0]);
     if (Rbc_VectorGetIndex(interp, vPtr, string, &first, 0,
-	    (Rbc_VectorIndexProc **) NULL) != TCL_OK) {
-	return -1;
+        (Rbc_VectorIndexProc **) NULL) != TCL_OK) {
+    return -1;
     }
     if (first > vPtr->length || first < 0) {
-	Tcl_AppendResult(interp, "index \"", string, "\" is out of range",
-	    NULL);
-	return -1;
+    Tcl_AppendResult(interp, "index \"", string, "\" is out of range",
+        NULL);
+    return -1;
     }
     *(int *)dstPtr = first;
     return 1;
@@ -489,54 +489,54 @@ BinreadOp(
     string = Tcl_GetString(objv[2]);
     channel = Tcl_GetChannel(interp, string, &mode);
     if (channel == NULL) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     if ((mode & TCL_READABLE) == 0) {
-	Tcl_AppendResult(interp, "channel \"", string,
-	     "\" wasn't opened for reading", (char *) NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "channel \"", string,
+         "\" wasn't opened for reading", (char *) NULL);
+    return TCL_ERROR;
     }
 
     if (objc > 3) {
-	string = Tcl_GetString(objv[3]);
-	if (string[0] != '-') {
-	    long int value;
-	    /* Get the number of values to read */
-	    if (Tcl_GetLongFromObj(interp, objv[3], &value) != TCL_OK) {
-		return TCL_ERROR;
-	    }
-	    if (value < 0) {
-		Tcl_AppendResult(interp, "count can't be negative",
-				 (char *) NULL);
-		return TCL_ERROR;
-	    }
-	    count = (int) value;
-	    objc--;
-	    objv++;
-	}
+    string = Tcl_GetString(objv[3]);
+    if (string[0] != '-') {
+        long int value;
+        /* Get the number of values to read */
+        if (Tcl_GetLongFromObj(interp, objv[3], &value) != TCL_OK) {
+        return TCL_ERROR;
+        }
+        if (value < 0) {
+        Tcl_AppendResult(interp, "count can't be negative",
+                 (char *) NULL);
+        return TCL_ERROR;
+        }
+        count = (int) value;
+        objc--;
+        objv++;
+    }
     }
 
     /* Process any options that remain */
     argc = objc - 2;
     objv += 2;
     if (argc > 1) {
-	const Tcl_ArgvInfo binreadOpts[] = {
-	    {TCL_ARGV_CONSTANT, "-swap",   (void *)TRUE, &swap,  NULL, NULL},
-	    {TCL_ARGV_GENFUNC,  "-format", ParseFormat,  &nfmt,  NULL, NULL},
-	    {TCL_ARGV_GENFUNC,  "-at",     ParseAt,      &first, NULL, vPtr},
-	    TCL_ARGV_TABLE_END
-	};
-	if (Tcl_ParseArgsObjv(interp, binreadOpts, &argc, objv, NULL) != TCL_OK) {
-	    return TCL_ERROR;
-	}
+    const Tcl_ArgvInfo binreadOpts[] = {
+        {TCL_ARGV_CONSTANT, "-swap",   (void *)TRUE, &swap,  NULL, NULL},
+        {TCL_ARGV_GENFUNC,  "-format", ParseFormat,  &nfmt,  NULL, NULL},
+        {TCL_ARGV_GENFUNC,  "-at",     ParseAt,      &first, NULL, vPtr},
+        TCL_ARGV_TABLE_END
+    };
+    if (Tcl_ParseArgsObjv(interp, binreadOpts, &argc, objv, NULL) != TCL_OK) {
+        return TCL_ERROR;
+    }
     }
 
     fmt = nfmt.format;
     size = nfmt.size;
     if (count == 0) {
-	arraySize = BUFFER_SIZE * size;
+    arraySize = BUFFER_SIZE * size;
     } else {
-	arraySize = count * size;
+    arraySize = count * size;
     }
 
     byteArr = (char *) ckalloc(arraySize);
@@ -546,46 +546,46 @@ BinreadOp(
     Tcl_GetChannelOption(interp, channel, "-translation", &ds);
     /* switch channel to binary */
     if (Tcl_SetChannelOption(interp, channel, "-translation", "binary") != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     total = 0;
     while (!Tcl_Eof(channel)) {
-	bytesRead = Tcl_Read(channel, byteArr, arraySize);
-	if (bytesRead < 0) {
-	    Tcl_AppendResult(interp, "error reading channel: ",
-		Tcl_PosixError(interp), NULL);
-	    goto error;
-	}
-	if ((bytesRead % size) != 0) {
-	    Tcl_AppendResult(interp, "error reading channel: short read", NULL);
-	    goto error;
-	}
-	length = bytesRead / size;
-	if (CopyValues(vPtr, byteArr, fmt, size, length, swap, &first) != TCL_OK) {
-	    goto error;
-	}
-	total += length;
-	if (count > 0) {
-	    break;
-	}
+    bytesRead = Tcl_Read(channel, byteArr, arraySize);
+    if (bytesRead < 0) {
+        Tcl_AppendResult(interp, "error reading channel: ",
+        Tcl_PosixError(interp), NULL);
+        goto error;
+    }
+    if ((bytesRead % size) != 0) {
+        Tcl_AppendResult(interp, "error reading channel: short read", NULL);
+        goto error;
+    }
+    length = bytesRead / size;
+    if (CopyValues(vPtr, byteArr, fmt, size, length, swap, &first) != TCL_OK) {
+        goto error;
+    }
+    total += length;
+    if (count > 0) {
+        break;
+    }
     }
     ckfree(byteArr);
 
     if (vPtr->flush) {
-	Rbc_VectorFlushCache(vPtr);
+    Rbc_VectorFlushCache(vPtr);
     }
     Rbc_VectorUpdateClients(vPtr);
 
     /* Set the result as the number of values read */
     Tcl_SetObjResult(interp, Tcl_NewIntObj(total));
     Tcl_SetChannelOption(interp, channel, "-translation",
-	Tcl_DStringValue(&ds));
+    Tcl_DStringValue(&ds));
     Tcl_DStringFree(&ds);
     return TCL_OK;
 
 error:
     Tcl_SetChannelOption(interp, channel, "-translation",
-	Tcl_DStringValue(&ds));
+    Tcl_DStringValue(&ds));
     Tcl_DStringFree(&ds);
     return TCL_ERROR;
 }
@@ -651,14 +651,14 @@ DeleteOp(
 
     /* FIXME: Don't delete vector with no indices.  */
     if (objc == 2) {
-	Rbc_VectorFree(vPtr);
-	return TCL_OK;
+    Rbc_VectorFree(vPtr);
+    return TCL_OK;
     }
     /*
      * Allocate an "unset" bitmap the size of the vector.
      */
     unsetArr = (unsigned char *) RbcCalloc(sizeof(unsigned char),
-					   (vPtr->length + 7) / 8);
+                       (vPtr->length + 7) / 8);
     /***    assert(unsetArr); */
 
 #define SetBit(i) \
@@ -667,29 +667,29 @@ DeleteOp(
     (unsetArr[(i) >> 3] & (1 << ((i) & 0x07)))
 
     for (i = 2; i < objc; i++) {
-	string = Tcl_GetString(objv[i]);
-	if (Rbc_VectorGetIndexRange(interp, vPtr, string, (INDEX_COLON | INDEX_CHECK), (Rbc_VectorIndexProc **) NULL) != TCL_OK) {
-	    ckfree((char *) unsetArr);
-	    return TCL_ERROR;
-	}
-	for (j = vPtr->first; j <= vPtr->last; j++) {
-	    SetBit(j); /* Mark the range of elements for deletion. */
-	}
+    string = Tcl_GetString(objv[i]);
+    if (Rbc_VectorGetIndexRange(interp, vPtr, string, (INDEX_COLON | INDEX_CHECK), (Rbc_VectorIndexProc **) NULL) != TCL_OK) {
+        ckfree((char *) unsetArr);
+        return TCL_ERROR;
+    }
+    for (j = vPtr->first; j <= vPtr->last; j++) {
+        SetBit(j); /* Mark the range of elements for deletion. */
+    }
     }
     count = 0;
     for (i = 0; i < vPtr->length; i++) {
-	if (GetBit(i)) {
-	    continue; /* Skip elements marked for deletion. */
-	}
-	if (count < i) {
-	    vPtr->valueArr[count] = vPtr->valueArr[i];
-	}
-	count++;
+    if (GetBit(i)) {
+        continue; /* Skip elements marked for deletion. */
+    }
+    if (count < i) {
+        vPtr->valueArr[count] = vPtr->valueArr[i];
+    }
+    count++;
     }
     ckfree((char *) unsetArr);
     vPtr->length = count;
     if (vPtr->flush) {
-	Rbc_VectorFlushCache(vPtr);
+    Rbc_VectorFlushCache(vPtr);
     }
     Rbc_VectorUpdateClients(vPtr);
     return TCL_OK;
@@ -724,23 +724,23 @@ DupOp(
     char *string;
 
     for (i = 2; i < objc; i++) {
-	string = Tcl_GetString(objv[i]);
-	v2Ptr = Rbc_VectorCreate(vPtr->dataPtr, string, string, string, &isNew);
-	if (v2Ptr == NULL) {
-	    return TCL_ERROR;
-	}
-	if (v2Ptr == vPtr) {
-	    continue;
-	}
-	if (Rbc_VectorDuplicate(v2Ptr, vPtr) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	if (!isNew) {
-	    if (v2Ptr->flush) {
-		Rbc_VectorFlushCache(v2Ptr);
-	    }
-	    Rbc_VectorUpdateClients(v2Ptr);
-	}
+    string = Tcl_GetString(objv[i]);
+    v2Ptr = Rbc_VectorCreate(vPtr->dataPtr, string, string, string, &isNew);
+    if (v2Ptr == NULL) {
+        return TCL_ERROR;
+    }
+    if (v2Ptr == vPtr) {
+        continue;
+    }
+    if (Rbc_VectorDuplicate(v2Ptr, vPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (!isNew) {
+        if (v2Ptr->flush) {
+        Rbc_VectorFlushCache(v2Ptr);
+        }
+        Rbc_VectorUpdateClients(v2Ptr);
+    }
     }
     return TCL_OK;
 }
@@ -769,10 +769,10 @@ ExprOp(
     Tcl_Obj * const objv[])
 {
     if (Rbc_ExprVector(interp, Tcl_GetString(objv[2]), (Rbc_Vector *) vPtr) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     if (vPtr->flush) {
-	Rbc_VectorFlushCache(vPtr);
+    Rbc_VectorFlushCache(vPtr);
     }
     Rbc_VectorUpdateClients(vPtr);
     return TCL_OK;
@@ -808,42 +808,42 @@ IndexOp(
 
     string = Tcl_GetString(objv[2]);
     if (Rbc_VectorGetIndexRange(interp, vPtr, string, INDEX_ALL_FLAGS, (Rbc_VectorIndexProc **) NULL) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     first = vPtr->first, last = vPtr->last;
     if (objc == 3) {
-	Tcl_Obj *listObjPtr;
+    Tcl_Obj *listObjPtr;
 
-	if (first == vPtr->length || last == vPtr->length) {
-	    Tcl_AppendResult(interp, "can't get index \"", string, "\"",
-			     (char *) NULL);
-	    return TCL_ERROR; /* Can't read from index "++end" */
-	}
-	listObjPtr = Rbc_GetValues(vPtr, first, last);
-	Tcl_SetObjResult(interp, listObjPtr);
+    if (first == vPtr->length || last == vPtr->length) {
+        Tcl_AppendResult(interp, "can't get index \"", string, "\"",
+                 (char *) NULL);
+        return TCL_ERROR; /* Can't read from index "++end" */
+    }
+    listObjPtr = Rbc_GetValues(vPtr, first, last);
+    Tcl_SetObjResult(interp, listObjPtr);
     } else {
-	double value;
+    double value;
 
-	/* FIXME: huh? Why set values here?.  */
-	if (first == SPECIAL_INDEX) {
-	    Tcl_AppendResult(interp, "can't set index \"", string, "\"",
-			     (char *) NULL);
-	    return TCL_ERROR; /* Tried to set "min" or "max" */
-	}
-	if (Rbc_GetDouble(vPtr->interp, objv[3], &value) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	if (first == vPtr->length) {
-	    if (Rbc_VectorChangeLength(vPtr, vPtr->length + 1) != TCL_OK) {
-		return TCL_ERROR;
-	    }
-	}
-	Rbc_ReplicateValue(vPtr, first, last, value);
-	Tcl_SetObjResult(interp, objv[3]);
-	if (vPtr->flush) {
-	    Rbc_VectorFlushCache(vPtr);
-	}
-	Rbc_VectorUpdateClients(vPtr);
+    /* FIXME: huh? Why set values here?.  */
+    if (first == SPECIAL_INDEX) {
+        Tcl_AppendResult(interp, "can't set index \"", string, "\"",
+                 (char *) NULL);
+        return TCL_ERROR; /* Tried to set "min" or "max" */
+    }
+    if (Rbc_GetDouble(vPtr->interp, objv[3], &value) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (first == vPtr->length) {
+        if (Rbc_VectorChangeLength(vPtr, vPtr->length + 1) != TCL_OK) {
+        return TCL_ERROR;
+        }
+    }
+    Rbc_ReplicateValue(vPtr, first, last, value);
+    Tcl_SetObjResult(interp, objv[3]);
+    if (vPtr->flush) {
+        Rbc_VectorFlushCache(vPtr);
+    }
+    Rbc_VectorUpdateClients(vPtr);
     }
     return TCL_OK;
 }
@@ -876,23 +876,23 @@ LengthOp(
     Tcl_Obj * const objv[])
 {
     if (objc == 3) {
-	int size;
+    int size;
 
-	if (Tcl_GetIntFromObj(interp, objv[2], &size) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	if (size < 0) {
-	    Tcl_AppendResult(interp, "bad vector size \"", Tcl_GetString(
-				 objv[2]), "\"", (char *) NULL);
-	    return TCL_ERROR;
-	}
-	if (Rbc_VectorChangeLength(vPtr, size) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	if (vPtr->flush) {
-	    Rbc_VectorFlushCache(vPtr);
-	}
-	Rbc_VectorUpdateClients(vPtr);
+    if (Tcl_GetIntFromObj(interp, objv[2], &size) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (size < 0) {
+        Tcl_AppendResult(interp, "bad vector size \"", Tcl_GetString(
+                 objv[2]), "\"", (char *) NULL);
+        return TCL_ERROR;
+    }
+    if (Rbc_VectorChangeLength(vPtr, size) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (vPtr->flush) {
+        Rbc_VectorFlushCache(vPtr);
+    }
+    Rbc_VectorUpdateClients(vPtr);
     }
     Tcl_SetObjResult(interp, Tcl_NewIntObj(vPtr->length));
     return TCL_OK;
@@ -938,38 +938,38 @@ MergeOp(
     refSize = -1;
     nElem = 0;
     for (i = 2; i < objc; i++) {
-	if (Rbc_VectorLookupName(vPtr->dataPtr, Tcl_GetString(objv[i]), &v2Ptr) != TCL_OK) {
-	    ckfree((char *) vecArr);
-	    return TCL_ERROR;
-	}
-	/* Check that all the vectors are the same length */
-	length = v2Ptr->last - v2Ptr->first + 1;
-	if (refSize < 0) {
-	    refSize = length;
-	} else if (length != refSize) {
-	    Tcl_AppendResult(vPtr->interp, "vectors \"", vPtr->name,
-			     "\" and \"", v2Ptr->name, "\" differ in length",
-			     (char *) NULL);
-	    ckfree((char *) vecArr);
-	    return TCL_ERROR;
-	}
-	*vPtrPtr++ = v2Ptr;
-	nElem += refSize;
+    if (Rbc_VectorLookupName(vPtr->dataPtr, Tcl_GetString(objv[i]), &v2Ptr) != TCL_OK) {
+        ckfree((char *) vecArr);
+        return TCL_ERROR;
+    }
+    /* Check that all the vectors are the same length */
+    length = v2Ptr->last - v2Ptr->first + 1;
+    if (refSize < 0) {
+        refSize = length;
+    } else if (length != refSize) {
+        Tcl_AppendResult(vPtr->interp, "vectors \"", vPtr->name,
+                 "\" and \"", v2Ptr->name, "\" differ in length",
+                 (char *) NULL);
+        ckfree((char *) vecArr);
+        return TCL_ERROR;
+    }
+    *vPtrPtr++ = v2Ptr;
+    nElem += refSize;
     }
     *vPtrPtr = NULL;
 
     valueArr = (double *) ckalloc(sizeof(double) * nElem);
     if (valueArr == NULL) {
-	Tcl_AppendResult(vPtr->interp, "not enough memory to allocate ",
-			 Rbc_Itoa(nElem), " vector elements", (char *) NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(vPtr->interp, "not enough memory to allocate ",
+             Rbc_Itoa(nElem), " vector elements", (char *) NULL);
+    return TCL_ERROR;
     }
     /* Merge the values from each of the vectors into the current vector */
     valuePtr = valueArr;
     for (i = 0; i < refSize; i++) {
-	for (vPtrPtr = vecArr; *vPtrPtr != NULL; vPtrPtr++) {
-	    *valuePtr++ = (*vPtrPtr)->valueArr[i + (*vPtrPtr)->first];
-	}
+    for (vPtrPtr = vecArr; *vPtrPtr != NULL; vPtrPtr++) {
+        *valuePtr++ = (*vPtrPtr)->valueArr[i + (*vPtrPtr)->first];
+    }
     }
     ckfree((char *) vecArr);
     Rbc_VectorReset(vPtr, valueArr, nElem, nElem, TCL_DYNAMIC);
@@ -1005,38 +1005,38 @@ NormalizeOp(
     Rbc_VectorUpdateRange(vPtr);
     range = vPtr->max - vPtr->min;
     if (objc > 2) {
-	VectorObject *v2Ptr;
-	int isNew;
-	char *string;
+    VectorObject *v2Ptr;
+    int isNew;
+    char *string;
 
-	string = Tcl_GetString(objv[2]);
-	v2Ptr = Rbc_VectorCreate(vPtr->dataPtr, string, string, string, &isNew);
-	if (v2Ptr == NULL) {
-	    return TCL_ERROR;
-	}
-	if (Rbc_VectorChangeLength(v2Ptr, vPtr->length) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	for (i = 0; i < vPtr->length; i++) {
-	    v2Ptr->valueArr[i] = (vPtr->valueArr[i] - vPtr->min) / range;
-	}
-	Rbc_VectorUpdateRange(v2Ptr);
-	if (!isNew) {
-	    if (v2Ptr->flush) {
-		Rbc_VectorFlushCache(v2Ptr);
-	    }
-	    Rbc_VectorUpdateClients(v2Ptr);
-	}
+    string = Tcl_GetString(objv[2]);
+    v2Ptr = Rbc_VectorCreate(vPtr->dataPtr, string, string, string, &isNew);
+    if (v2Ptr == NULL) {
+        return TCL_ERROR;
+    }
+    if (Rbc_VectorChangeLength(v2Ptr, vPtr->length) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    for (i = 0; i < vPtr->length; i++) {
+        v2Ptr->valueArr[i] = (vPtr->valueArr[i] - vPtr->min) / range;
+    }
+    Rbc_VectorUpdateRange(v2Ptr);
+    if (!isNew) {
+        if (v2Ptr->flush) {
+        Rbc_VectorFlushCache(v2Ptr);
+        }
+        Rbc_VectorUpdateClients(v2Ptr);
+    }
     } else {
-	double norm;
-	Tcl_Obj *listObjPtr;
+    double norm;
+    Tcl_Obj *listObjPtr;
 
-	listObjPtr = Tcl_NewListObj(0, (Tcl_Obj **) NULL);
-	for (i = 0; i < vPtr->length; i++) {
-	    norm = (vPtr->valueArr[i] - vPtr->min) / range;
-	    Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(norm));
-	}
-	Tcl_SetObjResult(interp, listObjPtr);
+    listObjPtr = Tcl_NewListObj(0, (Tcl_Obj **) NULL);
+    for (i = 0; i < vPtr->length; i++) {
+        norm = (vPtr->valueArr[i] - vPtr->min) / range;
+        Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(norm));
+    }
+    Tcl_SetObjResult(interp, listObjPtr);
     }
     return TCL_OK;
 }
@@ -1067,12 +1067,12 @@ OffsetOp(
     Tcl_Obj * const objv[])
 {
     if (objc == 3) {
-	int newOffset;
+    int newOffset;
 
-	if (Tcl_GetIntFromObj(interp, objv[2], &newOffset) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	vPtr->offset = newOffset;
+    if (Tcl_GetIntFromObj(interp, objv[2], &newOffset) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    vPtr->offset = newOffset;
     }
     Tcl_SetObjResult(interp, Tcl_NewIntObj(vPtr->offset));
     return TCL_OK;
@@ -1113,41 +1113,41 @@ PopulateOp(
     string = Tcl_GetString(objv[2]);
     v2Ptr = Rbc_VectorCreate(vPtr->dataPtr, string, string, string, &isNew);
     if (v2Ptr == NULL) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     if (vPtr->length == 0) {
-	return TCL_OK; /* Source vector is empty. */
+    return TCL_OK; /* Source vector is empty. */
     }
     if (Tcl_GetIntFromObj(interp, objv[3], &density) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     if (density < 1) {
-	Tcl_AppendResult(interp, "bad density \"", Tcl_GetString(objv[3]), "\"", (char *) NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "bad density \"", Tcl_GetString(objv[3]), "\"", (char *) NULL);
+    return TCL_ERROR;
     }
     size = (vPtr->length - 1) * (density + 1) + 1;
     if (Rbc_VectorChangeLength(v2Ptr, size) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     count = 0;
     valuePtr = v2Ptr->valueArr;
     for (i = 0; i < (vPtr->length - 1); i++) {
-	range = vPtr->valueArr[i + 1] - vPtr->valueArr[i];
-	slice = range / (double) (density + 1);
-	for (j = 0; j <= density; j++) {
-	    *valuePtr = vPtr->valueArr[i] + (slice * (double) j);
-	    valuePtr++;
-	    count++;
-	}
+    range = vPtr->valueArr[i + 1] - vPtr->valueArr[i];
+    slice = range / (double) (density + 1);
+    for (j = 0; j <= density; j++) {
+        *valuePtr = vPtr->valueArr[i] + (slice * (double) j);
+        valuePtr++;
+        count++;
+    }
     }
     count++;
     *valuePtr = vPtr->valueArr[i];
     /*** assert(count == v2Ptr->length); */
     if (!isNew) {
-	if (v2Ptr->flush) {
-	    Rbc_VectorFlushCache(v2Ptr);
-	}
-	Rbc_VectorUpdateClients(v2Ptr);
+    if (v2Ptr->flush) {
+        Rbc_VectorFlushCache(v2Ptr);
+    }
+    Rbc_VectorUpdateClients(v2Ptr);
     }
     return TCL_OK;
 }
@@ -1178,11 +1178,11 @@ RandomOp(
     register int i;
 
     for (i = 0; i < vPtr->length; i++) {
-	vPtr->valueArr[i] = drand48();
+    vPtr->valueArr[i] = drand48();
     }
 #endif
     if (vPtr->flush) {
-	Rbc_VectorFlushCache(vPtr);
+    Rbc_VectorFlushCache(vPtr);
     }
     Rbc_VectorUpdateClients(vPtr);
     return TCL_OK;
@@ -1217,21 +1217,21 @@ RangeOp(
     register int i;
 
     if ((Rbc_VectorGetIndex(interp, vPtr, Tcl_GetString(objv[2]), &first, INDEX_CHECK, (Rbc_VectorIndexProc **) NULL) != TCL_OK)
-	    || (Rbc_VectorGetIndex(interp, vPtr, Tcl_GetString(objv[3]), &last, INDEX_CHECK, (Rbc_VectorIndexProc **) NULL) != TCL_OK)) {
-	return TCL_ERROR;
+        || (Rbc_VectorGetIndex(interp, vPtr, Tcl_GetString(objv[3]), &last, INDEX_CHECK, (Rbc_VectorIndexProc **) NULL) != TCL_OK)) {
+    return TCL_ERROR;
     }
     listObjPtr = Tcl_NewListObj(0, NULL);
     if (first > last) {
-	/* Return the list reversed */
-	for (i = last; i <= first; i++) {
-	    Tcl_ListObjAppendElement(interp, listObjPtr,
-		Tcl_NewDoubleObj(vPtr->valueArr[i]));
-	}
+    /* Return the list reversed */
+    for (i = last; i <= first; i++) {
+        Tcl_ListObjAppendElement(interp, listObjPtr,
+        Tcl_NewDoubleObj(vPtr->valueArr[i]));
+    }
     } else {
-	for (i = first; i <= last; i++) {
-	    Tcl_ListObjAppendElement(interp, listObjPtr,
-		Tcl_NewDoubleObj(vPtr->valueArr[i]));
-	}
+    for (i = first; i <= last; i++) {
+        Tcl_ListObjAppendElement(interp, listObjPtr,
+        Tcl_NewDoubleObj(vPtr->valueArr[i]));
+    }
     }
     Tcl_SetObjResult(interp, listObjPtr);
     return TCL_OK;
@@ -1271,28 +1271,28 @@ SearchOp(
     wantValue = FALSE;
     string = Tcl_GetString(objv[2]);
     if ((string[0] == '-') && (strcmp(string, "-value") == 0)) {
-	wantValue = TRUE;
-	objv++, objc--;
+    wantValue = TRUE;
+    objv++, objc--;
     }
     if (Rbc_GetDouble(interp, objv[2], &min) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     max = min;
     if ((objc > 3) && (Rbc_GetDouble(interp, objv[3], &max) != TCL_OK)) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     if ((min - max) >= DBL_EPSILON) {
-	return TCL_OK; /* Bogus range. Don't bother looking. */
+    return TCL_OK; /* Bogus range. Don't bother looking. */
     }
     listObjPtr = Tcl_NewListObj(0, (Tcl_Obj **) NULL);
 
     for (i = 0; i < vPtr->length; i++) {
-	if (InRange(vPtr->valueArr[i], min, max)) {
-	    Tcl_ListObjAppendElement(interp, listObjPtr,
-		wantValue ?
-		    Tcl_NewDoubleObj(vPtr->valueArr[i]) :
-		    Tcl_NewIntObj(i + vPtr->offset));
-	}
+    if (InRange(vPtr->valueArr[i], min, max)) {
+        Tcl_ListObjAppendElement(interp, listObjPtr,
+        wantValue ?
+            Tcl_NewDoubleObj(vPtr->valueArr[i]) :
+            Tcl_NewIntObj(i + vPtr->offset));
+    }
     }
     Tcl_SetObjResult(interp, listObjPtr);
     return TCL_OK;
@@ -1327,35 +1327,35 @@ SeqOp(
     char *string;
 
     if (Rbc_GetDouble(interp, objv[2], &start) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     fillVector = FALSE;
     string = Tcl_GetString(objv[3]);
     if ((string[0] == 'e') && (strcmp(string, "end") == 0)) {
-	fillVector = TRUE;
+    fillVector = TRUE;
     } else if (Rbc_GetDouble(interp, objv[3], &finish) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     step = 1.0;
     if ((objc == 5) && (Rbc_GetDouble(interp, objv[4], &step) != TCL_OK)) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     if (fillVector) {
-	nSteps = vPtr->length;
+    nSteps = vPtr->length;
     } else {
-	nSteps = (int) ((finish - start) / step) + 1;
+    nSteps = (int) ((finish - start) / step) + 1;
     }
     if (nSteps > 0) {
-	if (Rbc_VectorChangeLength(vPtr, nSteps) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	for (i = 0; i < nSteps; i++) {
-	    vPtr->valueArr[i] = start + (step * (double) i);
-	}
-	if (vPtr->flush) {
-	    Rbc_VectorFlushCache(vPtr);
-	}
-	Rbc_VectorUpdateClients(vPtr);
+    if (Rbc_VectorChangeLength(vPtr, nSteps) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    for (i = 0; i < nSteps; i++) {
+        vPtr->valueArr[i] = start + (step * (double) i);
+    }
+    if (vPtr->flush) {
+        Rbc_VectorFlushCache(vPtr);
+    }
+    Rbc_VectorUpdateClients(vPtr);
     }
     return TCL_OK;
 }
@@ -1394,38 +1394,38 @@ SetOp(
 
     v2Ptr = Rbc_VectorParseElement((Tcl_Interp *) NULL, vPtr->dataPtr, Tcl_GetString(objv[2]), NULL, NS_SEARCH_BOTH);
     if (v2Ptr != NULL) {
-	if (vPtr == v2Ptr) {
-	    VectorObject *tmpPtr;
-	    /*
-	     * Source and destination vectors are the same.  Copy the
-	     * source first into a temporary vector to avoid memory
-	     * overlaps.
-	     */
-	    tmpPtr = Rbc_VectorNew(vPtr->dataPtr);
-	    result = Rbc_VectorDuplicate(tmpPtr, v2Ptr);
-	    if (result == TCL_OK) {
-		result = Rbc_VectorDuplicate(vPtr, tmpPtr);
-	    }
-	    Rbc_VectorFree(tmpPtr);
-	} else {
-	    result = Rbc_VectorDuplicate(vPtr, v2Ptr);
-	}
-    } else if (Tcl_ListObjGetElements(interp, objv[2], &nElem, &elemObjArr) == TCL_OK) {
-	result = CopyList(vPtr, (int)nElem, elemObjArr);
+    if (vPtr == v2Ptr) {
+        VectorObject *tmpPtr;
+        /*
+         * Source and destination vectors are the same.  Copy the
+         * source first into a temporary vector to avoid memory
+         * overlaps.
+         */
+        tmpPtr = Rbc_VectorNew(vPtr->dataPtr);
+        result = Rbc_VectorDuplicate(tmpPtr, v2Ptr);
+        if (result == TCL_OK) {
+        result = Rbc_VectorDuplicate(vPtr, tmpPtr);
+        }
+        Rbc_VectorFree(tmpPtr);
     } else {
-	return TCL_ERROR;
+        result = Rbc_VectorDuplicate(vPtr, v2Ptr);
+    }
+    } else if (Tcl_ListObjGetElements(interp, objv[2], &nElem, &elemObjArr) == TCL_OK) {
+    result = CopyList(vPtr, (int)nElem, elemObjArr);
+    } else {
+    return TCL_ERROR;
     }
 
     if (result == TCL_OK) {
-	/*
-	 * The vector has changed; so flush the array indices (they're
-	 * wrong now), find the new range of the data, and notify
-	 * the vector's clients that it's been modified.
-	 */
-	if (vPtr->flush) {
-	    Rbc_VectorFlushCache(vPtr);
-	}
-	Rbc_VectorUpdateClients(vPtr);
+    /*
+     * The vector has changed; so flush the array indices (they're
+     * wrong now), find the new range of the data, and notify
+     * the vector's clients that it's been modified.
+     */
+    if (vPtr->flush) {
+        Rbc_VectorFlushCache(vPtr);
+    }
+    Rbc_VectorUpdateClients(vPtr);
     }
     return result;
 }
@@ -1465,27 +1465,27 @@ SortOp(
 
     reverse = FALSE;
     if (objc > 2) {
-	Tcl_Size length;
-	string = Tcl_GetStringFromObj(objv[2], &length);
-	if (string[0] == '-') {
-	    if ((length > 1) && (strncmp(string, "-reverse", length) == 0)) {
-		reverse = TRUE;
-	    } else {
-		Tcl_AppendResult(interp, "unknown flag \"", string,
-		    "\": should be \"-reverse\"", (char *) NULL);
-		return TCL_ERROR;
-	    }
-	    objc--;
-	    objv++;
-	}
+    Tcl_Size length;
+    string = Tcl_GetStringFromObj(objv[2], &length);
+    if (string[0] == '-') {
+        if ((length > 1) && (strncmp(string, "-reverse", length) == 0)) {
+        reverse = TRUE;
+        } else {
+        Tcl_AppendResult(interp, "unknown flag \"", string,
+            "\": should be \"-reverse\"", (char *) NULL);
+        return TCL_ERROR;
+        }
+        objc--;
+        objv++;
+    }
     }
     if (objc > 2) {
-	iArr = SortVectors(vPtr, interp, objc - 2, objv + 2);
+    iArr = SortVectors(vPtr, interp, objc - 2, objv + 2);
     } else {
-	iArr = Rbc_VectorSortIndex(&vPtr, 1);
+    iArr = Rbc_VectorSortIndex(&vPtr, 1);
     }
     if (iArr == NULL) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     refSize = vPtr->length;
 
@@ -1498,10 +1498,10 @@ SortOp(
     mergeArr = (double *) ckalloc(nBytes);
     memcpy((char *) mergeArr, (char *) vPtr->valueArr, nBytes);
     for (n = 0; n < refSize; n++) {
-	vPtr->valueArr[n] = mergeArr[iArr[n]];
+    vPtr->valueArr[n] = mergeArr[iArr[n]];
     }
     if (vPtr->flush) {
-	Rbc_VectorFlushCache(vPtr);
+    Rbc_VectorFlushCache(vPtr);
     }
     Rbc_VectorUpdateClients(vPtr);
 
@@ -1509,23 +1509,23 @@ SortOp(
      * must be the same size as the iArr though.  */
     result = TCL_ERROR;
     for (i = 2; i < objc; i++) {
-	if (Rbc_VectorLookupName(vPtr->dataPtr, Tcl_GetString(objv[i]), &v2Ptr) != TCL_OK) {
-	    goto error;
-	}
-	if (v2Ptr->length != refSize) {
-	    Tcl_AppendResult(interp, "vector \"", v2Ptr->name,
-			     "\" is not the same size as \"", vPtr->name, "\"",
-			     (char *) NULL);
-	    goto error;
-	}
-	memcpy((char *) mergeArr, (char *) v2Ptr->valueArr, nBytes);
-	for (n = 0; n < refSize; n++) {
-	    v2Ptr->valueArr[n] = mergeArr[iArr[n]];
-	}
-	Rbc_VectorUpdateClients(v2Ptr);
-	if (v2Ptr->flush) {
-	    Rbc_VectorFlushCache(v2Ptr);
-	}
+    if (Rbc_VectorLookupName(vPtr->dataPtr, Tcl_GetString(objv[i]), &v2Ptr) != TCL_OK) {
+        goto error;
+    }
+    if (v2Ptr->length != refSize) {
+        Tcl_AppendResult(interp, "vector \"", v2Ptr->name,
+                 "\" is not the same size as \"", vPtr->name, "\"",
+                 (char *) NULL);
+        goto error;
+    }
+    memcpy((char *) mergeArr, (char *) v2Ptr->valueArr, nBytes);
+    for (n = 0; n < refSize; n++) {
+        v2Ptr->valueArr[n] = mergeArr[iArr[n]];
+    }
+    Rbc_VectorUpdateClients(v2Ptr);
+    if (v2Ptr->flush) {
+        Rbc_VectorFlushCache(v2Ptr);
+    }
     }
     result = TCL_OK;
 error:
@@ -1564,10 +1564,10 @@ SplitOp(
     if (nVectors == 0) return TCL_OK;
 
     if ((vPtr->length % nVectors) != 0) {
-	Tcl_SetObjResult(interp,
-	    Tcl_ObjPrintf("can't split vector \"%s\" into %d even parts.",
-		vPtr->name, nVectors));
-	return TCL_ERROR;
+    Tcl_SetObjResult(interp,
+        Tcl_ObjPrintf("can't split vector \"%s\" into %d even parts.",
+        vPtr->name, nVectors));
+    return TCL_ERROR;
     }
 
     VectorObject *v2Ptr;
@@ -1577,20 +1577,20 @@ SplitOp(
 
     extra = vPtr->length / nVectors;
     for (i = 0; i < nVectors; i++) {
-	string = Tcl_GetString(objv[i + 2]);
-	v2Ptr = Rbc_VectorCreate(vPtr->dataPtr, string, string, string, &isNew);
-	oldSize = v2Ptr->length;
-	newSize = oldSize + extra;
-	if (Rbc_VectorChangeLength(v2Ptr, newSize) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	for (j = i, k = oldSize; j < vPtr->length; j += nVectors, k++) {
-	    v2Ptr->valueArr[k] = vPtr->valueArr[j];
-	}
-	Rbc_VectorUpdateClients(v2Ptr);
-	if (v2Ptr->flush) {
-	    Rbc_VectorFlushCache(v2Ptr);
-	}
+    string = Tcl_GetString(objv[i + 2]);
+    v2Ptr = Rbc_VectorCreate(vPtr->dataPtr, string, string, string, &isNew);
+    oldSize = v2Ptr->length;
+    newSize = oldSize + extra;
+    if (Rbc_VectorChangeLength(v2Ptr, newSize) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    for (j = i, k = oldSize; j < vPtr->length; j += nVectors, k++) {
+        v2Ptr->valueArr[k] = vPtr->valueArr[j];
+    }
+    Rbc_VectorUpdateClients(v2Ptr);
+    if (v2Ptr->flush) {
+        Rbc_VectorFlushCache(v2Ptr);
+    }
     }
     return TCL_OK;
 }
@@ -1618,12 +1618,12 @@ VariableOp(
     Tcl_Obj * const objv[])
 {
     if (objc > 2) {
-	if (Rbc_VectorMapVariable(interp, vPtr, Tcl_GetString(objv[2])) != TCL_OK) {
-	    return TCL_ERROR;
-	}
+    if (Rbc_VectorMapVariable(interp, vPtr, Tcl_GetString(objv[2])) != TCL_OK) {
+        return TCL_ERROR;
+    }
     }
     if (vPtr->arrayName != NULL) {
-	Tcl_SetResult(interp, vPtr->arrayName, TCL_VOLATILE);
+    Tcl_SetResult(interp, vPtr->arrayName, TCL_VOLATILE);
     }
     return TCL_OK;
 }
@@ -1654,11 +1654,11 @@ AppendVector(destPtr, srcPtr)
     oldSize = destPtr->length;
     newSize = oldSize + srcPtr->last - srcPtr->first + 1;
     if (Rbc_VectorChangeLength(destPtr, newSize) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     nBytes = (newSize - oldSize) * sizeof(double);
     memcpy((char *) (destPtr->valueArr + oldSize), (srcPtr->valueArr
-	    + srcPtr->first), nBytes);
+        + srcPtr->first), nBytes);
     destPtr->notifyFlags |= UPDATE_RANGE;
     return TCL_OK;
 }
@@ -1691,15 +1691,15 @@ AppendList(vPtr, objc, objv)
 
     oldSize = vPtr->length;
     if (Rbc_VectorChangeLength(vPtr, vPtr->length + objc) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     count = oldSize;
     for (i = 0; i < objc; i++) {
-	if (Rbc_GetDouble(vPtr->interp, objv[i], &value) != TCL_OK) {
-	    Rbc_VectorChangeLength(vPtr, count);
-	    return TCL_ERROR;
-	}
-	vPtr->valueArr[count++] = value;
+    if (Rbc_GetDouble(vPtr->interp, objv[i], &value) != TCL_OK) {
+        Rbc_VectorChangeLength(vPtr, count);
+        return TCL_ERROR;
+    }
+    vPtr->valueArr[count++] = value;
     }
     vPtr->notifyFlags |= UPDATE_RANGE;
     return TCL_OK;
@@ -1734,81 +1734,81 @@ CopyValues(vPtr, byteArr, fmt, size, length, swap, indexPtr)
     int newSize;
 
     if ((swap) && (size > 1)) {
-	int nBytes = size * length;
-	register unsigned char *p;
-	register int left, right;
+    int nBytes = size * length;
+    register unsigned char *p;
+    register int left, right;
 
-	for (i = 0; i < nBytes; i += size) {
-	    p = (unsigned char *) (byteArr + i);
-	    for (left = 0, right = size - 1; left < right; left++, right--) {
-		p[left] ^= p[right];
-		p[right] ^= p[left];
-		p[left] ^= p[right];
-	    }
-	}
+    for (i = 0; i < nBytes; i += size) {
+        p = (unsigned char *) (byteArr + i);
+        for (left = 0, right = size - 1; left < right; left++, right--) {
+        p[left] ^= p[right];
+        p[right] ^= p[left];
+        p[left] ^= p[right];
+        }
+    }
     }
     newSize = *indexPtr + length;
     if (newSize > vPtr->length) {
-	if (Rbc_VectorChangeLength(vPtr, newSize) != TCL_OK) {
-	    return TCL_ERROR;
-	}
+    if (Rbc_VectorChangeLength(vPtr, newSize) != TCL_OK) {
+        return TCL_ERROR;
+    }
     }
 #define CopyArrayToVector(vPtr, arr) \
-	    for (i = 0, n = *indexPtr; i < length; i++, n++) { \
-		(vPtr)->valueArr[n] = (double)(arr)[i]; \
-	    }
+        for (i = 0, n = *indexPtr; i < length; i++, n++) { \
+        (vPtr)->valueArr[n] = (double)(arr)[i]; \
+        }
 
     switch (fmt) {
-	case FMT_CHAR:
-	    CopyArrayToVector(vPtr, (char *)byteArr);
-	    break;
+    case FMT_CHAR:
+        CopyArrayToVector(vPtr, (char *)byteArr);
+        break;
 
-	case FMT_UCHAR:
-	    CopyArrayToVector(vPtr, (unsigned char *)byteArr);
-	    break;
+    case FMT_UCHAR:
+        CopyArrayToVector(vPtr, (unsigned char *)byteArr);
+        break;
 
-	case FMT_INT:
-	    CopyArrayToVector(vPtr, (int *)byteArr);
-	    break;
+    case FMT_INT:
+        CopyArrayToVector(vPtr, (int *)byteArr);
+        break;
 
-	case FMT_UINT:
-	    CopyArrayToVector(vPtr, (unsigned int *)byteArr);
-	    break;
+    case FMT_UINT:
+        CopyArrayToVector(vPtr, (unsigned int *)byteArr);
+        break;
 
-	case FMT_LONG:
-	    CopyArrayToVector(vPtr, (long *)byteArr);
-	    break;
+    case FMT_LONG:
+        CopyArrayToVector(vPtr, (long *)byteArr);
+        break;
 
-	case FMT_ULONG:
-	    CopyArrayToVector(vPtr, (unsigned long *)byteArr);
-	    break;
+    case FMT_ULONG:
+        CopyArrayToVector(vPtr, (unsigned long *)byteArr);
+        break;
 
-	case FMT_LONGLONG:
-	    CopyArrayToVector(vPtr, (long long *)byteArr);
-	    break;
+    case FMT_LONGLONG:
+        CopyArrayToVector(vPtr, (long long *)byteArr);
+        break;
 
-	case FMT_ULONGLONG:
-	    CopyArrayToVector(vPtr, (unsigned long long *)byteArr);
-	    break;
+    case FMT_ULONGLONG:
+        CopyArrayToVector(vPtr, (unsigned long long *)byteArr);
+        break;
 
-	case FMT_SHORT:
-	    CopyArrayToVector(vPtr, (short int *)byteArr);
-	    break;
+    case FMT_SHORT:
+        CopyArrayToVector(vPtr, (short int *)byteArr);
+        break;
 
-	case FMT_USHORT:
-	    CopyArrayToVector(vPtr, (unsigned short int *)byteArr);
-	    break;
+    case FMT_USHORT:
+        CopyArrayToVector(vPtr, (unsigned short int *)byteArr);
+        break;
 
-	case FMT_FLOAT:
-	    CopyArrayToVector(vPtr, (float *)byteArr);
-	    break;
+    case FMT_FLOAT:
+        CopyArrayToVector(vPtr, (float *)byteArr);
+        break;
 
-	case FMT_DOUBLE:
-	    CopyArrayToVector(vPtr, (double *)byteArr);
-	    break;
+    case FMT_DOUBLE:
+        CopyArrayToVector(vPtr, (double *)byteArr);
+        break;
 
-	case FMT_UNKNOWN:
-	    break;
+    case FMT_UNKNOWN:
+        break;
     }
     *indexPtr += length;
     return TCL_OK;
@@ -1847,12 +1847,12 @@ InRange(value, min, max)
 
     range = max - min;
     if (range < DBL_EPSILON) {
-	return (FABS(max - value)< DBL_EPSILON);
+    return (FABS(max - value)< DBL_EPSILON);
     } else {
-	double norm;
+    double norm;
 
-	norm = (value - min) / range;
-	return ((norm >= -DBL_EPSILON) && ((norm - 1.0) < DBL_EPSILON));
+    norm = (value - min) / range;
+    return ((norm >= -DBL_EPSILON) && ((norm - 1.0) < DBL_EPSILON));
     }
 }
 
@@ -1881,14 +1881,14 @@ CopyList(vPtr, objc, objv)
     double value;
 
     if (Rbc_VectorChangeLength(vPtr, objc) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     for (i = 0; i < objc; i++) {
-	if (Rbc_GetDouble(vPtr->interp, objv[i], &value) != TCL_OK) {
-	    Rbc_VectorChangeLength(vPtr, i);
-	    return TCL_ERROR;
-	}
-	vPtr->valueArr[i] = value;
+    if (Rbc_GetDouble(vPtr->interp, objv[i], &value) != TCL_OK) {
+        Rbc_VectorChangeLength(vPtr, i);
+        return TCL_ERROR;
+    }
+    vPtr->valueArr[i] = value;
     }
     return TCL_OK;
 }
@@ -1921,7 +1921,7 @@ Rbc_VectorSortIndex(vPtrPtr, nVectors)
     length = vPtr->last - vPtr->first + 1;
     indexArr = (int *) ckalloc(sizeof(int) * length);
     for (i = vPtr->first; i <= vPtr->last; i++) {
-	indexArr[i] = i;
+    indexArr[i] = i;
     }
     sortVectorArr = vPtrPtr;
     nSortVectors = nVectors;
@@ -1959,16 +1959,16 @@ SortVectors(vPtr, interp, objc, objv)
     vPtrArray[0] = vPtr;
     iArr = NULL;
     for (i = 0; i < objc; i++) {
-	if (Rbc_VectorLookupName(vPtr->dataPtr, Tcl_GetString(objv[i]), &v2Ptr) != TCL_OK) {
-	    goto error;
-	}
-	if (v2Ptr->length != vPtr->length) {
-	    Tcl_AppendResult(interp, "vector \"", v2Ptr->name,
-			     "\" is not the same size as \"", vPtr->name, "\"",
-			     (char *)NULL);
-	    goto error;
-	}
-	vPtrArray[i + 1] = v2Ptr;
+    if (Rbc_VectorLookupName(vPtr->dataPtr, Tcl_GetString(objv[i]), &v2Ptr) != TCL_OK) {
+        goto error;
+    }
+    if (v2Ptr->length != vPtr->length) {
+        Tcl_AppendResult(interp, "vector \"", v2Ptr->name,
+                 "\" is not the same size as \"", vPtr->name, "\"",
+                 (char *)NULL);
+        goto error;
+    }
+    vPtrArray[i + 1] = v2Ptr;
     }
     iArr = Rbc_VectorSortIndex(vPtrArray, objc + 1);
 error:
@@ -2003,13 +2003,13 @@ CompareVectors(a, b)
 
     sign = (reverse) ? -1 : 1;
     for (i = 0; i < nSortVectors; i++) {
-	vPtr = sortVectorArr[i];
-	delta = vPtr->valueArr[*(int *) a] - vPtr->valueArr[*(int *) b];
-	if (delta < 0.0) {
-	    return (-1 * sign);
-	} else if (delta > 0.0) {
-	    return (1 * sign);
-	}
+    vPtr = sortVectorArr[i];
+    delta = vPtr->valueArr[*(int *) a] - vPtr->valueArr[*(int *) b];
+    if (delta < 0.0) {
+        return (-1 * sign);
+    } else if (delta > 0.0) {
+        return (1 * sign);
+    }
     }
     return 0;
 }

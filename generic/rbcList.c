@@ -42,11 +42,11 @@ FindString(listPtr, key)
 
     c = key[0];
     for (nodePtr = listPtr->headPtr; nodePtr != NULL;
-	    nodePtr = nodePtr->nextPtr) {
-	if ((c == nodePtr->key.string[0]) &&
-		(strcmp(key, nodePtr->key.string) == 0)) {
-	    return nodePtr;
-	}
+        nodePtr = nodePtr->nextPtr) {
+    if ((c == nodePtr->key.string[0]) &&
+        (strcmp(key, nodePtr->key.string) == 0)) {
+        return nodePtr;
+    }
     }
     return NULL;
 }
@@ -74,10 +74,10 @@ FindOneWord(listPtr, key)
     register struct Rbc_ListNodeStruct *nodePtr;
 
     for (nodePtr = listPtr->headPtr; nodePtr != NULL;
-	    nodePtr = nodePtr->nextPtr) {
-	if (key == nodePtr->key.oneWordValue) {
-	    return nodePtr;
-	}
+        nodePtr = nodePtr->nextPtr) {
+    if (key == nodePtr->key.oneWordValue) {
+        return nodePtr;
+    }
     }
     return NULL;
 }
@@ -107,10 +107,10 @@ FindArray(listPtr, key)
 
     nBytes = sizeof(int) * listPtr->type;
     for (nodePtr = listPtr->headPtr; nodePtr != NULL;
-	    nodePtr = nodePtr->nextPtr) {
-	if (memcmp(key, nodePtr->key.words, nBytes) == 0) {
-	    return nodePtr;
-	}
+        nodePtr = nodePtr->nextPtr) {
+    if (memcmp(key, nodePtr->key.words, nBytes) == 0) {
+        return nodePtr;
+    }
     }
     return NULL;
 }
@@ -160,7 +160,7 @@ Rbc_ListCreate(type)
 
     listPtr = (struct Rbc_ListStruct *)ckalloc(sizeof(struct Rbc_ListStruct));
     if (listPtr != NULL) {
-	Rbc_ListInit(listPtr, type);
+    Rbc_ListInit(listPtr, type);
     }
     return listPtr;
 }
@@ -193,11 +193,11 @@ Rbc_ListCreateNode(listPtr, key)
     int keySize;
 
     if (listPtr->type == TCL_STRING_KEYS) {
-	keySize = strlen(key) + 1;
+    keySize = strlen(key) + 1;
     } else if (listPtr->type == TCL_ONE_WORD_KEYS) {
-	keySize = sizeof(int);
+    keySize = sizeof(int);
     } else {
-	keySize = sizeof(int) * listPtr->type;
+    keySize = sizeof(int) * listPtr->type;
     }
     nodePtr = RbcCalloc(1, sizeof(struct Rbc_ListNodeStruct) + keySize - 4);
     assert(nodePtr);
@@ -205,15 +205,15 @@ Rbc_ListCreateNode(listPtr, key)
     nodePtr->nextPtr = nodePtr->prevPtr = NULL;
     nodePtr->listPtr = listPtr;
     switch (listPtr->type) {
-	case TCL_STRING_KEYS:
-	    strcpy(nodePtr->key.string, key);
-	    break;
-	case TCL_ONE_WORD_KEYS:
-	    nodePtr->key.oneWordValue = key;
-	    break;
-	default:
-	    memcpy(nodePtr->key.words, key, keySize);
-	    break;
+    case TCL_STRING_KEYS:
+        strcpy(nodePtr->key.string, key);
+        break;
+    case TCL_ONE_WORD_KEYS:
+        nodePtr->key.oneWordValue = key;
+        break;
+    default:
+        memcpy(nodePtr->key.words, key, keySize);
+        break;
     }
     return nodePtr;
 }
@@ -240,15 +240,15 @@ Rbc_ListReset(listPtr)
     struct Rbc_ListStruct *listPtr; /* List to clear */
 {
     if (listPtr != NULL) {
-	register struct Rbc_ListNodeStruct *oldPtr;
-	register struct Rbc_ListNodeStruct *nodePtr = listPtr->headPtr;
+    register struct Rbc_ListNodeStruct *oldPtr;
+    register struct Rbc_ListNodeStruct *nodePtr = listPtr->headPtr;
 
-	while (nodePtr != NULL) {
-	    oldPtr = nodePtr;
-	    nodePtr = nodePtr->nextPtr;
-	    FreeNode(oldPtr);
-	}
-	Rbc_ListInit(listPtr, listPtr->type);
+    while (nodePtr != NULL) {
+        oldPtr = nodePtr;
+        nodePtr = nodePtr->nextPtr;
+        FreeNode(oldPtr);
+    }
+    Rbc_ListInit(listPtr, listPtr->type);
     }
 }
 
@@ -272,8 +272,8 @@ Rbc_ListDestroy(listPtr)
    struct Rbc_ListStruct *listPtr;
 {
     if (listPtr != NULL) {
-	Rbc_ListReset(listPtr);
-	ckfree((char *)listPtr);
+    Rbc_ListReset(listPtr);
+    ckfree((char *)listPtr);
     }
 }
 
@@ -324,24 +324,24 @@ Rbc_ListLinkAfter(listPtr, nodePtr, afterPtr)
     struct Rbc_ListNodeStruct *afterPtr;
 {
     if (listPtr->headPtr == NULL) {
-	listPtr->tailPtr = listPtr->headPtr = nodePtr;
+    listPtr->tailPtr = listPtr->headPtr = nodePtr;
     } else {
-	if (afterPtr == NULL) {
-	    /* Prepend to the front of the list */
-	    nodePtr->nextPtr = listPtr->headPtr;
-	    nodePtr->prevPtr = NULL;
-	    listPtr->headPtr->prevPtr = nodePtr;
-	    listPtr->headPtr = nodePtr;
-	} else {
-	    nodePtr->nextPtr = afterPtr->nextPtr;
-	    nodePtr->prevPtr = afterPtr;
-	    if (afterPtr == listPtr->tailPtr) {
-		listPtr->tailPtr = nodePtr;
-	    } else {
-		afterPtr->nextPtr->prevPtr = nodePtr;
-	    }
-	    afterPtr->nextPtr = nodePtr;
-	}
+    if (afterPtr == NULL) {
+        /* Prepend to the front of the list */
+        nodePtr->nextPtr = listPtr->headPtr;
+        nodePtr->prevPtr = NULL;
+        listPtr->headPtr->prevPtr = nodePtr;
+        listPtr->headPtr = nodePtr;
+    } else {
+        nodePtr->nextPtr = afterPtr->nextPtr;
+        nodePtr->prevPtr = afterPtr;
+        if (afterPtr == listPtr->tailPtr) {
+        listPtr->tailPtr = nodePtr;
+        } else {
+        afterPtr->nextPtr->prevPtr = nodePtr;
+        }
+        afterPtr->nextPtr = nodePtr;
+    }
     }
     nodePtr->listPtr = listPtr;
     listPtr->nNodes++;
@@ -369,24 +369,24 @@ Rbc_ListLinkBefore(listPtr, nodePtr, beforePtr)
     struct Rbc_ListNodeStruct *beforePtr;      /* Node to link before */
 {
     if (listPtr->headPtr == NULL) {
-	listPtr->tailPtr = listPtr->headPtr = nodePtr;
+    listPtr->tailPtr = listPtr->headPtr = nodePtr;
     } else {
-	if (beforePtr == NULL) {
-	    /* Append onto the end of the list */
-	    nodePtr->nextPtr = NULL;
-	    nodePtr->prevPtr = listPtr->tailPtr;
-	    listPtr->tailPtr->nextPtr = nodePtr;
-	    listPtr->tailPtr = nodePtr;
-	} else {
-	    nodePtr->prevPtr = beforePtr->prevPtr;
-	    nodePtr->nextPtr = beforePtr;
-	    if (beforePtr == listPtr->headPtr) {
-		listPtr->headPtr = nodePtr;
-	    } else {
-		beforePtr->prevPtr->nextPtr = nodePtr;
-	    }
-	    beforePtr->prevPtr = nodePtr;
-	}
+    if (beforePtr == NULL) {
+        /* Append onto the end of the list */
+        nodePtr->nextPtr = NULL;
+        nodePtr->prevPtr = listPtr->tailPtr;
+        listPtr->tailPtr->nextPtr = nodePtr;
+        listPtr->tailPtr = nodePtr;
+    } else {
+        nodePtr->prevPtr = beforePtr->prevPtr;
+        nodePtr->nextPtr = beforePtr;
+        if (beforePtr == listPtr->headPtr) {
+        listPtr->headPtr = nodePtr;
+        } else {
+        beforePtr->prevPtr->nextPtr = nodePtr;
+        }
+        beforePtr->prevPtr = nodePtr;
+    }
     }
     nodePtr->listPtr = listPtr;
     listPtr->nNodes++;
@@ -413,20 +413,20 @@ Rbc_ListUnlinkNode(nodePtr)
 
     listPtr = nodePtr->listPtr;
     if (listPtr != NULL) {
-	if (listPtr->headPtr == nodePtr) {
-	    listPtr->headPtr = nodePtr->nextPtr;
-	}
-	if (listPtr->tailPtr == nodePtr) {
-	    listPtr->tailPtr = nodePtr->prevPtr;
-	}
-	if (nodePtr->nextPtr != NULL) {
-	    nodePtr->nextPtr->prevPtr = nodePtr->prevPtr;
-	}
-	if (nodePtr->prevPtr != NULL) {
-	    nodePtr->prevPtr->nextPtr = nodePtr->nextPtr;
-	}
-	nodePtr->listPtr = NULL;
-	listPtr->nNodes--;
+    if (listPtr->headPtr == nodePtr) {
+        listPtr->headPtr = nodePtr->nextPtr;
+    }
+    if (listPtr->tailPtr == nodePtr) {
+        listPtr->tailPtr = nodePtr->prevPtr;
+    }
+    if (nodePtr->nextPtr != NULL) {
+        nodePtr->nextPtr->prevPtr = nodePtr->prevPtr;
+    }
+    if (nodePtr->prevPtr != NULL) {
+        nodePtr->prevPtr->nextPtr = nodePtr->nextPtr;
+    }
+    nodePtr->listPtr = NULL;
+    listPtr->nNodes--;
     }
 }
 
@@ -452,14 +452,14 @@ Rbc_ListGetNode(listPtr, key)
     const char *key; /* Key to match */
 {
     if (listPtr != NULL) {
-	switch (listPtr->type) {
-	    case TCL_STRING_KEYS:
-		return FindString(listPtr, key);
-	    case TCL_ONE_WORD_KEYS:
-		return FindOneWord(listPtr, key);
-	    default:
-		return FindArray(listPtr, key);
-	}
+    switch (listPtr->type) {
+        case TCL_STRING_KEYS:
+        return FindString(listPtr, key);
+        case TCL_ONE_WORD_KEYS:
+        return FindOneWord(listPtr, key);
+        default:
+        return FindArray(listPtr, key);
+    }
     }
     return NULL;
 }
@@ -511,7 +511,7 @@ Rb_ListDeleteNodeByKey(listPtr, key)
 
     nodePtr = Rbc_ListGetNode(listPtr, key);
     if (nodePtr != NULL) {
-	Rbc_ListDeleteNode(nodePtr);
+    Rbc_ListDeleteNode(nodePtr);
     }
 }
 
@@ -593,29 +593,29 @@ Rbc_ListNode
 Rbc_ListGetNthNode(listPtr, position, direction)
     struct Rbc_ListStruct *listPtr; /* List to traverse */
     int position; /* Index of node to select from front
-		   * or back of the list. */
+           * or back of the list. */
     int direction;
 {
     register struct Rbc_ListNodeStruct *nodePtr;
 
     if (listPtr != NULL) {
-	if (direction > 0) {
-	    for (nodePtr = listPtr->headPtr; nodePtr != NULL;
-		    nodePtr = nodePtr->nextPtr) {
-		if (position == 0) {
-		    return nodePtr;
-		}
-		position--;
-	    }
-	} else {
-	    for (nodePtr = listPtr->tailPtr; nodePtr != NULL;
-		    nodePtr = nodePtr->prevPtr) {
-		if (position == 0) {
-		    return nodePtr;
-		}
-		position--;
-	    }
-	}
+    if (direction > 0) {
+        for (nodePtr = listPtr->headPtr; nodePtr != NULL;
+            nodePtr = nodePtr->nextPtr) {
+        if (position == 0) {
+            return nodePtr;
+        }
+        position--;
+        }
+    } else {
+        for (nodePtr = listPtr->tailPtr; nodePtr != NULL;
+            nodePtr = nodePtr->prevPtr) {
+        if (position == 0) {
+            return nodePtr;
+        }
+        position--;
+        }
+    }
     }
     return NULL;
 }
@@ -646,28 +646,28 @@ Rbc_ListSort(listPtr, proc)
     register int i;
 
     if (listPtr->nNodes < 2) {
-	return;
+    return;
     }
     nodeArr = (struct Rbc_ListNodeStruct **)ckalloc(sizeof(Rbc_List) * (listPtr->nNodes + 1));
     if (nodeArr == NULL) {
-	return;			/* Out of memory. */
+    return;            /* Out of memory. */
     }
     i = 0;
     for (nodePtr = listPtr->headPtr; nodePtr != NULL;
-	    nodePtr = nodePtr->nextPtr) {
-	nodeArr[i++] = nodePtr;
+        nodePtr = nodePtr->nextPtr) {
+    nodeArr[i++] = nodePtr;
     }
     qsort((char *)nodeArr, listPtr->nNodes,
-	  sizeof(struct Rbc_ListNodeStruct *), (QSortCompareProc *)proc);
+      sizeof(struct Rbc_ListNodeStruct *), (QSortCompareProc *)proc);
 
     /* Rethread the list. */
     nodePtr = nodeArr[0];
     listPtr->headPtr = nodePtr;
     nodePtr->prevPtr = NULL;
     for (i = 1; i < listPtr->nNodes; i++) {
-	nodePtr->nextPtr = nodeArr[i];
-	nodePtr->nextPtr->prevPtr = nodePtr;
-	nodePtr = nodePtr->nextPtr;
+    nodePtr->nextPtr = nodeArr[i];
+    nodePtr->nextPtr->prevPtr = nodePtr;
+    nodePtr = nodePtr->nextPtr;
     }
     listPtr->tailPtr = nodePtr;
     nodePtr->nextPtr = NULL;

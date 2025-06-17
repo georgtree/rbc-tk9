@@ -76,31 +76,31 @@ Rbc_GetXY(
     int x, y;
 
     if ((string == NULL) || (*string == '\0')) {
-	*xPtr = *yPtr = -SHRT_MAX;
-	return TCL_OK;
+    *xPtr = *yPtr = -SHRT_MAX;
+    return TCL_OK;
     }
     if (*string != '@') {
-	goto badFormat;
+    goto badFormat;
     }
     comma = strchr(string + 1, ',');
     if (comma == NULL) {
-	goto badFormat;
+    goto badFormat;
     }
     *comma = '\0';
     result = ((Tk_GetPixels(interp, tkwin, string + 1, &x) == TCL_OK) &&
-	      (Tk_GetPixels(interp, tkwin, comma + 1, &y) == TCL_OK));
+          (Tk_GetPixels(interp, tkwin, comma + 1, &y) == TCL_OK));
     *comma = ',';
     if (!result) {
-	Tcl_AppendResult(interp, ": can't parse position \"", string, "\"",
-			 (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, ": can't parse position \"", string, "\"",
+             (char *)NULL);
+    return TCL_ERROR;
     }
     *xPtr = x, *yPtr = y;
     return TCL_OK;
 
 badFormat:
     Tcl_AppendResult(interp, "bad position \"", string,
-		     "\": should be \"@x,y\"", (char *)NULL);
+             "\": should be \"@x,y\"", (char *)NULL);
     return TCL_ERROR;
 }
 
@@ -135,7 +135,7 @@ StringToPoint(clientData, interp, tkwin, string, widgRec, offset)
     int x, y;
 
     if (Rbc_GetXY(interp, tkwin, string, &x, &y) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     pointPtr->x = x, pointPtr->y = y;
     return TCL_OK;
@@ -169,12 +169,12 @@ PointToString(clientData, tkwin, widgRec, offset, freeProcPtr)
 
     result = "";
     if ((pointPtr->x != -SHRT_MAX) && (pointPtr->y != -SHRT_MAX)) {
-	char string[200];
+    char string[200];
 
-	sprintf(string, "@%d,%d", pointPtr->x, pointPtr->y);
-	result = RbcStrdup(string);
-	assert(result);
-	*freeProcPtr = (Tcl_FreeProc *)Tcl_Free;
+    sprintf(string, "@%d,%d", pointPtr->x, pointPtr->y);
+    result = RbcStrdup(string);
+    assert(result);
+    *freeProcPtr = (Tcl_FreeProc *)Tcl_Free;
     }
     return result;
 }
@@ -208,27 +208,27 @@ GetColorPair(
 
     length = strlen(fgStr);
     if (fgStr[0] == '\0') {
-	fgColor = NULL;
+    fgColor = NULL;
     } else if ((allowDefault) && (fgStr[0] == 'd') &&
-	       (strncmp(fgStr, "defcolor", length) == 0)) {
-	fgColor = COLOR_DEFAULT;
+           (strncmp(fgStr, "defcolor", length) == 0)) {
+    fgColor = COLOR_DEFAULT;
     } else {
-	fgColor = Tk_GetColor(interp, tkwin, Tk_GetUid(fgStr));
-	if (fgColor == NULL) {
-	    return TCL_ERROR;
-	}
+    fgColor = Tk_GetColor(interp, tkwin, Tk_GetUid(fgStr));
+    if (fgColor == NULL) {
+        return TCL_ERROR;
+    }
     }
     length = strlen(bgStr);
     if (bgStr[0] == '\0') {
-	bgColor = NULL;
+    bgColor = NULL;
     } else if ((allowDefault) && (bgStr[0] == 'd') &&
-	       (strncmp(bgStr, "defcolor", length) == 0)) {
-	bgColor = COLOR_DEFAULT;
+           (strncmp(bgStr, "defcolor", length) == 0)) {
+    bgColor = COLOR_DEFAULT;
     } else {
-	bgColor = Tk_GetColor(interp, tkwin, Tk_GetUid(bgStr));
-	if (bgColor == NULL) {
-	    return TCL_ERROR;
-	}
+    bgColor = Tk_GetColor(interp, tkwin, Tk_GetUid(bgStr));
+    if (bgColor == NULL) {
+        return TCL_ERROR;
+    }
     }
     pairPtr->fgColor = fgColor;
     pairPtr->bgColor = bgColor;
@@ -255,10 +255,10 @@ Rbc_FreeColorPair(pairPtr)
     ColorPair *pairPtr;
 {
     if ((pairPtr->bgColor != NULL) && (pairPtr->bgColor != COLOR_DEFAULT)) {
-	Tk_FreeColor(pairPtr->bgColor);
+    Tk_FreeColor(pairPtr->bgColor);
     }
     if ((pairPtr->fgColor != NULL) && (pairPtr->fgColor != COLOR_DEFAULT)) {
-	Tk_FreeColor(pairPtr->fgColor);
+    Tk_FreeColor(pairPtr->fgColor);
     }
     pairPtr->bgColor = pairPtr->fgColor = NULL;
 }
@@ -294,34 +294,34 @@ StringToColorPair(clientData, interp, tkwin, string, widgRec, offset)
 
     sample.fgColor = sample.bgColor = NULL;
     if ((string != NULL) && (*string != '\0')) {
-	Tcl_Size nColors;
-	const char **colors;
-	int result;
+    Tcl_Size nColors;
+    const char **colors;
+    int result;
 
-	if (Tcl_SplitList(interp, string, &nColors, &colors) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	switch (nColors) {
-	    case 0:
-		result = TCL_OK;
-		break;
-	    case 1:
-		result = GetColorPair(interp, tkwin, colors[0], "", &sample,
-			  (int)allowDefault);
-		break;
-	    case 2:
-		result = GetColorPair(interp, tkwin, colors[0], colors[1],
-			  &sample, (int)allowDefault);
-		break;
-	    default:
-		result = TCL_ERROR;
-		Tcl_AppendResult(interp, "too many names in colors list",
-			 (char *)NULL);
-	}
-	ckfree((char *)colors);
-	if (result != TCL_OK) {
-	    return TCL_ERROR;
-	}
+    if (Tcl_SplitList(interp, string, &nColors, &colors) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    switch (nColors) {
+        case 0:
+        result = TCL_OK;
+        break;
+        case 1:
+        result = GetColorPair(interp, tkwin, colors[0], "", &sample,
+              (int)allowDefault);
+        break;
+        case 2:
+        result = GetColorPair(interp, tkwin, colors[0], colors[1],
+              &sample, (int)allowDefault);
+        break;
+        default:
+        result = TCL_ERROR;
+        Tcl_AppendResult(interp, "too many names in colors list",
+             (char *)NULL);
+    }
+    ckfree((char *)colors);
+    if (result != TCL_OK) {
+        return TCL_ERROR;
+    }
     }
     Rbc_FreeColorPair(pairPtr);
     *pairPtr = sample;
@@ -348,11 +348,11 @@ NameOfColor(colorPtr)
     XColor *colorPtr;
 {
     if (colorPtr == NULL) {
-	return "";
+    return "";
     } else if (colorPtr == COLOR_DEFAULT) {
-	return "defcolor";
+    return "defcolor";
     } else {
-	return Tk_NameOfColor(colorPtr);
+    return Tk_NameOfColor(colorPtr);
     }
 }
 
@@ -388,7 +388,7 @@ ColorPairToString(clientData, tkwin, widgRec, offset, freeProcPtr)
     Tcl_DStringAppendElement(&dString, NameOfColor(pairPtr->bgColor));
     result = Tcl_DStringValue(&dString);
     if (result == dString.staticSpace) {
-	result = RbcStrdup(result);
+    result = RbcStrdup(result);
     }
     *freeProcPtr = (Tcl_FreeProc *)Tcl_Free;
     return result;
@@ -423,24 +423,24 @@ Rbc_PointInSegments(samplePtr, segments, nSegments, halo)
 
     minDist = DBL_MAX;
     for (segPtr = segments, endPtr = segments + nSegments; segPtr < endPtr;
-	    segPtr++) {
-	t = Rbc_GetProjection((int)samplePtr->x, (int)samplePtr->y, &segPtr->p, &segPtr->q);
-	if (segPtr->p.x > segPtr->q.x) {
-	    right = segPtr->p.x, left = segPtr->q.x;
-	} else {
-	    right = segPtr->q.x, left = segPtr->p.x;
-	}
-	if (segPtr->p.y > segPtr->q.y) {
-	    bottom = segPtr->p.y, top = segPtr->q.y;
-	} else {
-	    bottom = segPtr->q.y, top = segPtr->p.y;
-	}
-	p.x = BOUND(t.x, left, right);
-	p.y = BOUND(t.y, top, bottom);
-	dist = hypot(p.x - samplePtr->x, p.y - samplePtr->y);
-	if (dist < minDist) {
-	    minDist = dist;
-	}
+        segPtr++) {
+    t = Rbc_GetProjection((int)samplePtr->x, (int)samplePtr->y, &segPtr->p, &segPtr->q);
+    if (segPtr->p.x > segPtr->q.x) {
+        right = segPtr->p.x, left = segPtr->q.x;
+    } else {
+        right = segPtr->q.x, left = segPtr->p.x;
+    }
+    if (segPtr->p.y > segPtr->q.y) {
+        bottom = segPtr->p.y, top = segPtr->q.y;
+    } else {
+        bottom = segPtr->q.y, top = segPtr->p.y;
+    }
+    p.x = BOUND(t.x, left, right);
+    p.y = BOUND(t.y, top, bottom);
+    dist = hypot(p.x - samplePtr->x, p.y - samplePtr->y);
+    if (dist < minDist) {
+        minDist = dist;
+    }
     }
     return (minDist < halo);
 }
@@ -472,13 +472,13 @@ Rbc_PointInPolygon(samplePtr, points, nPoints)
 
     count = 0;
     for (p = points, q = p + 1, endPtr = p + nPoints; q < endPtr; p++, q++) {
-	if (((p->y <= samplePtr->y) && (samplePtr->y < q->y)) ||
-		((q->y <= samplePtr->y) && (samplePtr->y < p->y))) {
-	    b = (q->x - p->x) * (samplePtr->y - p->y) / (q->y - p->y) + p->x;
-	    if (samplePtr->x < b) {
-		count++;	/* Count the number of intersections. */
-	    }
-	}
+    if (((p->y <= samplePtr->y) && (samplePtr->y < q->y)) ||
+        ((q->y <= samplePtr->y) && (samplePtr->y < p->y))) {
+        b = (q->x - p->x) * (samplePtr->y - p->y) / (q->y - p->y) + p->x;
+        if (samplePtr->x < b) {
+        count++;    /* Count the number of intersections. */
+        }
+    }
     }
     return (count & 0x01);
 }
@@ -508,43 +508,43 @@ Rbc_RegionInPolygon(extsPtr, points, nPoints, enclosed)
     register Point2D *pointPtr, *endPtr;
 
     if (enclosed) {
-	/*
-	 * All points of the polygon must be inside the rectangle.
-	 */
-	for (pointPtr = points, endPtr = points + nPoints; pointPtr < endPtr;
-		pointPtr++) {
-	    if ((pointPtr->x < extsPtr->left) ||
-		    (pointPtr->x > extsPtr->right) ||
-		    (pointPtr->y < extsPtr->top) ||
-		    (pointPtr->y > extsPtr->bottom)) {
-		return FALSE;	/* One point is exterior. */
-	    }
-	}
-	return TRUE;
+    /*
+     * All points of the polygon must be inside the rectangle.
+     */
+    for (pointPtr = points, endPtr = points + nPoints; pointPtr < endPtr;
+        pointPtr++) {
+        if ((pointPtr->x < extsPtr->left) ||
+            (pointPtr->x > extsPtr->right) ||
+            (pointPtr->y < extsPtr->top) ||
+            (pointPtr->y > extsPtr->bottom)) {
+        return FALSE;    /* One point is exterior. */
+        }
+    }
+    return TRUE;
     } else {
-	Point2D p, q;
+    Point2D p, q;
 
-	/*
-	 * If any segment of the polygon clips the bounding region, the
-	 * polygon overlaps the rectangle.
-	 */
-	points[nPoints] = points[0];
-	for (pointPtr = points, endPtr = points + nPoints; pointPtr < endPtr;
-		pointPtr++) {
-	    p = *pointPtr;
-	    q = *(pointPtr + 1);
-	    if (Rbc_LineRectClip(extsPtr, &p, &q)) {
-		return TRUE;
-	    }
-	}
-	/*
-	 * Otherwise the polygon and rectangle are either disjoint
-	 * or enclosed.  Check if one corner of the rectangle is
-	 * inside the polygon.
-	 */
-	p.x = extsPtr->left;
-	p.y = extsPtr->top;
-	return Rbc_PointInPolygon(&p, points, nPoints);
+    /*
+     * If any segment of the polygon clips the bounding region, the
+     * polygon overlaps the rectangle.
+     */
+    points[nPoints] = points[0];
+    for (pointPtr = points, endPtr = points + nPoints; pointPtr < endPtr;
+        pointPtr++) {
+        p = *pointPtr;
+        q = *(pointPtr + 1);
+        if (Rbc_LineRectClip(extsPtr, &p, &q)) {
+        return TRUE;
+        }
+    }
+    /*
+     * Otherwise the polygon and rectangle are either disjoint
+     * or enclosed.  Check if one corner of the rectangle is
+     * inside the polygon.
+     */
+    p.x = extsPtr->left;
+    p.y = extsPtr->top;
+    return Rbc_PointInPolygon(&p, points, nPoints);
     }
 }
 
@@ -579,9 +579,9 @@ Rbc_GraphExtents(graphPtr, extsPtr)
     extsPtr->left = (double)(graphPtr->hOffset - graphPtr->padX.side1);
     extsPtr->top = (double)(graphPtr->vOffset - graphPtr->padY.side1);
     extsPtr->right = (double)(graphPtr->hOffset + graphPtr->hRange +
-			      graphPtr->padX.side2);
+                  graphPtr->padX.side2);
     extsPtr->bottom = (double)(graphPtr->vOffset + graphPtr->vRange +
-			       graphPtr->padY.side2);
+                   graphPtr->padY.side2);
 }
 
 /*
@@ -609,26 +609,26 @@ ClipTest (ds, dr, t1, t2)
     double t;
 
     if (ds < 0.0) {
-	t = dr / ds;
-	if (t > *t2) {
-	    return FALSE;
-	}
-	if (t > *t1) {
-	    *t1 = t;
-	}
+    t = dr / ds;
+    if (t > *t2) {
+        return FALSE;
+    }
+    if (t > *t1) {
+        *t1 = t;
+    }
     } else if (ds > 0.0) {
-	t = dr / ds;
-	if (t < *t1) {
-	    return FALSE;
-	}
-	if (t < *t2) {
-	    *t2 = t;
-	}
+    t = dr / ds;
+    if (t < *t1) {
+        return FALSE;
+    }
+    if (t < *t2) {
+        *t2 = t;
+    }
     } else {
-	/* d = 0, so line is parallel to this clipping edge */
-	if (dr < 0.0) { /* Line is outside clipping edge */
-	    return FALSE;
-	}
+    /* d = 0, so line is parallel to this clipping edge */
+    if (dr < 0.0) { /* Line is outside clipping edge */
+        return FALSE;
+    }
     }
     return TRUE;
 }
@@ -658,7 +658,7 @@ int
 Rbc_LineRectClip(extsPtr, p, q)
     Extents2D *extsPtr; /* Rectangular region to clip. */
     Point2D *p, *q; /* (in/out) Coordinates of original
-		     * and clipped line segment. */
+             * and clipped line segment. */
 {
     double t1, t2;
     double dx, dy;
@@ -667,27 +667,27 @@ Rbc_LineRectClip(extsPtr, p, q)
     t2 = 1.0;
     dx = q->x - p->x;
     if ((ClipTest (-dx, p->x - extsPtr->left, &t1, &t2)) &&
-	    (ClipTest (dx, extsPtr->right - p->x, &t1, &t2))) {
-	dy = q->y - p->y;
-	if ((ClipTest (-dy, p->y - extsPtr->top, &t1, &t2)) &&
-		(ClipTest (dy, extsPtr->bottom - p->y, &t1, &t2))) {
-	    if (t2 < 1.0) {
-		q->x = p->x + t2 * dx;
-		q->y = p->y + t2 * dy;
-	    }
-	    if (t1 > 0.0) {
-		p->x += t1 * dx;
-		p->y += t1 * dy;
-	    }
-	    return TRUE;
-	}
+        (ClipTest (dx, extsPtr->right - p->x, &t1, &t2))) {
+    dy = q->y - p->y;
+    if ((ClipTest (-dy, p->y - extsPtr->top, &t1, &t2)) &&
+        (ClipTest (dy, extsPtr->bottom - p->y, &t1, &t2))) {
+        if (t2 < 1.0) {
+        q->x = p->x + t2 * dx;
+        q->y = p->y + t2 * dy;
+        }
+        if (t1 > 0.0) {
+        p->x += t1 * dx;
+        p->y += t1 * dy;
+        }
+        return TRUE;
+    }
     }
     return FALSE;
 }
 
 #define EPSILON  FLT_EPSILON
-#define AddVertex(vx, vy)	    r->x=(vx), r->y=(vy), r++, count++
-#define LastVertex(vx, vy)	    r->x=(vx), r->y=(vy), count++
+#define AddVertex(vx, vy)        r->x=(vx), r->y=(vy), r++, count++
+#define LastVertex(vx, vy)        r->x=(vx), r->y=(vy), count++
 
 /*
  *----------------------------------------------------------------------
@@ -724,94 +724,94 @@ Rbc_PolyRectClip(extsPtr, points, nPoints, clipPts)
     double tinx, tiny;
     double xin, yin, xout, yout;
     int count;
-    register Point2D *p;	/* First vertex of input polygon edge. */
-    register Point2D *q;	/* Last vertex of input polygon edge. */
+    register Point2D *p;    /* First vertex of input polygon edge. */
+    register Point2D *q;    /* Last vertex of input polygon edge. */
     register Point2D *r;
 
     r = clipPts;
-    count = 0;			/* Counts # of vertices in output polygon. */
+    count = 0;            /* Counts # of vertices in output polygon. */
 
     points[nPoints] = points[0];
 
     for (p = points, q = p + 1, endPtr = p + nPoints; p < endPtr; p++, q++) {
-	dx = q->x - p->x;	/* X-direction */
-	dy = q->y - p->y;	/* Y-direction */
+    dx = q->x - p->x;    /* X-direction */
+    dy = q->y - p->y;    /* Y-direction */
 
-	if (FABS(dx) < EPSILON) {
-	    dx = (p->x > extsPtr->left) ? -EPSILON : EPSILON ;
-	}
-	if (FABS(dy) < EPSILON) {
-	    dy = (p->y > extsPtr->top) ? -EPSILON : EPSILON ;
-	}
+    if (FABS(dx) < EPSILON) {
+        dx = (p->x > extsPtr->left) ? -EPSILON : EPSILON ;
+    }
+    if (FABS(dy) < EPSILON) {
+        dy = (p->y > extsPtr->top) ? -EPSILON : EPSILON ;
+    }
 
-	if (dx > 0.0) {		/* Left */
-	    xin = extsPtr->left;
-	    xout = extsPtr->right + 1.0;
-	} else {		/* Right */
-	    xin = extsPtr->right + 1.0;
-	    xout = extsPtr->left;
-	}
-	if (dy > 0.0) {		/* Top */
-	    yin = extsPtr->top;
-	    yout = extsPtr->bottom + 1.0;
-	} else {		/* Bottom */
-	    yin = extsPtr->bottom + 1.0;
-	    yout = extsPtr->top;
-	}
+    if (dx > 0.0) {        /* Left */
+        xin = extsPtr->left;
+        xout = extsPtr->right + 1.0;
+    } else {        /* Right */
+        xin = extsPtr->right + 1.0;
+        xout = extsPtr->left;
+    }
+    if (dy > 0.0) {        /* Top */
+        yin = extsPtr->top;
+        yout = extsPtr->bottom + 1.0;
+    } else {        /* Bottom */
+        yin = extsPtr->bottom + 1.0;
+        yout = extsPtr->top;
+    }
 
-	tinx = (xin - p->x) / dx;
-	tiny = (yin - p->y) / dy;
+    tinx = (xin - p->x) / dx;
+    tiny = (yin - p->y) / dy;
 
-	if (tinx < tiny) {	/* Hits x first */
-	    tin1 = tinx;
-	    tin2 = tiny;
-	} else {		/* Hits y first */
-	    tin1 = tiny;
-	    tin2 = tinx;
-	}
+    if (tinx < tiny) {    /* Hits x first */
+        tin1 = tinx;
+        tin2 = tiny;
+    } else {        /* Hits y first */
+        tin1 = tiny;
+        tin2 = tinx;
+    }
 
-	if (tin1 <= 1.0) {
-	    if (tin1 > 0.0) {
-		AddVertex(xin, yin);
-	    }
-	    if (tin2 <= 1.0) {
-		double toutx, touty, tout1;
+    if (tin1 <= 1.0) {
+        if (tin1 > 0.0) {
+        AddVertex(xin, yin);
+        }
+        if (tin2 <= 1.0) {
+        double toutx, touty, tout1;
 
-		toutx = (xout - p->x) / dx;
-		touty = (yout - p->y) / dy;
-		tout1 = MIN(toutx, touty);
+        toutx = (xout - p->x) / dx;
+        touty = (yout - p->y) / dy;
+        tout1 = MIN(toutx, touty);
 
-		if ((tin2 > 0.0) || (tout1 > 0.0)) {
-		    if (tin2 <= tout1) {
-			if (tin2 > 0.0) {
-			    if (tinx > tiny) {
-				AddVertex(xin, p->y + tinx * dy);
-			    } else {
-				AddVertex(p->x + tiny * dx, yin);
-			    }
-			}
-			if (tout1 < 1.0) {
-			    if (toutx < touty) {
-				AddVertex(xout, p->y + toutx * dy);
-			    } else {
-				AddVertex(p->x + touty * dx, yout);
-			    }
-			} else {
-			    AddVertex(q->x, q->y);
-			}
-		    } else {
-			if (tinx > tiny) {
-			    AddVertex(xin, yout);
-			} else {
-			    AddVertex(xout, yin);
-			}
-		    }
-		}
-	    }
-	}
+        if ((tin2 > 0.0) || (tout1 > 0.0)) {
+            if (tin2 <= tout1) {
+            if (tin2 > 0.0) {
+                if (tinx > tiny) {
+                AddVertex(xin, p->y + tinx * dy);
+                } else {
+                AddVertex(p->x + tiny * dx, yin);
+                }
+            }
+            if (tout1 < 1.0) {
+                if (toutx < touty) {
+                AddVertex(xout, p->y + toutx * dy);
+                } else {
+                AddVertex(p->x + touty * dx, yout);
+                }
+            } else {
+                AddVertex(q->x, q->y);
+            }
+            } else {
+            if (tinx > tiny) {
+                AddVertex(xin, yout);
+            } else {
+                AddVertex(xout, yin);
+            }
+            }
+        }
+        }
+    }
     }
     if (count > 0) {
-	LastVertex(clipPts[0].x, clipPts[0].y);
+    LastVertex(clipPts[0].x, clipPts[0].y);
     }
     return count;
 }
@@ -851,60 +851,60 @@ Rbc_GetProjection(x, y, p, q)
 
     /* Test for horizontal and vertical lines */
     if (FABS(dx) < DBL_EPSILON) {
-	t.x = p->x, t.y = (double)y;
+    t.x = p->x, t.y = (double)y;
     } else if (FABS(dy) < DBL_EPSILON) {
-	t.x = (double)x, t.y = p->y;
+    t.x = (double)x, t.y = p->y;
     } else {
-	double m1, m2;		/* Slope of both lines */
-	double b1, b2;		/* y-intercepts */
-	double midX, midY;	/* Midpoint of line segment. */
-	double ax, ay, bx, by;
+    double m1, m2;        /* Slope of both lines */
+    double b1, b2;        /* y-intercepts */
+    double midX, midY;    /* Midpoint of line segment. */
+    double ax, ay, bx, by;
 
-	/* Compute the slop and intercept of the line segment. */
-	m1 = (dy / dx);
-	b1 = p->y - (p->x * m1);
+    /* Compute the slop and intercept of the line segment. */
+    m1 = (dy / dx);
+    b1 = p->y - (p->x * m1);
 
-	/*
-	 * Compute the slope and intercept of a second line segment:
-	 * one that intersects through sample X-Y coordinate with a
-	 * slope perpendicular to original line.
-	 */
+    /*
+     * Compute the slope and intercept of a second line segment:
+     * one that intersects through sample X-Y coordinate with a
+     * slope perpendicular to original line.
+     */
 
-	/* Find midpoint of original segment. */
-	midX = (p->x + q->x) * 0.5;
-	midY = (p->y + q->y) * 0.5;
+    /* Find midpoint of original segment. */
+    midX = (p->x + q->x) * 0.5;
+    midY = (p->y + q->y) * 0.5;
 
-	/* Rotate the line 90 degrees */
-	ax = midX - (0.5 * dy);
-	ay = midY - (0.5 * -dx);
-	bx = midX + (0.5 * dy);
-	by = midY + (0.5 * -dx);
+    /* Rotate the line 90 degrees */
+    ax = midX - (0.5 * dy);
+    ay = midY - (0.5 * -dx);
+    bx = midX + (0.5 * dy);
+    by = midY + (0.5 * -dx);
 
-	m2 = (ay - by) / (ax - bx);
-	b2 = y - (x * m2);
+    m2 = (ay - by) / (ax - bx);
+    b2 = y - (x * m2);
 
-	/*
-	 * Given the equations of two lines which contain the same point,
-	 *
-	 *    y = m1 * x + b1
-	 *    y = m2 * x + b2
-	 *
-	 * solve for the intersection.
-	 *
-	 *    x = (b2 - b1) / (m1 - m2)
-	 *    y = m1 * x + b1
-	 *
-	 */
+    /*
+     * Given the equations of two lines which contain the same point,
+     *
+     *    y = m1 * x + b1
+     *    y = m2 * x + b2
+     *
+     * solve for the intersection.
+     *
+     *    x = (b2 - b1) / (m1 - m2)
+     *    y = m1 * x + b1
+     *
+     */
 
-	t.x = (b2 - b1) / (m1 - m2);
-	t.y = m1 * t.x + b1;
+    t.x = (b2 - b1) / (m1 - m2);
+    t.y = m1 * t.x + b1;
     }
     return t;
 }
 
 #define SetColor(c,r,g,b) ((c)->red = (int)((r) * 65535.0), \
-			   (c)->green = (int)((g) * 65535.0), \
-			   (c)->blue = (int)((b) * 65535.0))
+               (c)->green = (int)((g) * 65535.0), \
+               (c)->blue = (int)((b) * 65535.0))
 
 #ifdef notdef
 /*
@@ -941,29 +941,29 @@ XColorToHSV(colorPtr, hsvPtr)
 
     range = (double)(max - min);
     if (max != min) {
-	hsvPtr->sat = range / (double)max;
+    hsvPtr->sat = range / (double)max;
     }
     if (hsvPtr->sat > 0.0) {
-	double red, green, blue;
+    double red, green, blue;
 
-	/* Normalize the RGB values */
-	red = (double)(max - colorPtr->red) / range;
-	green = (double)(max - colorPtr->green) / range;
-	blue = (double)(max - colorPtr->blue) / range;
+    /* Normalize the RGB values */
+    red = (double)(max - colorPtr->red) / range;
+    green = (double)(max - colorPtr->green) / range;
+    blue = (double)(max - colorPtr->blue) / range;
 
-	if (colorPtr->red == max) {
-	    hsvPtr->hue = (blue - green);
-	} else if (colorPtr->green == max) {
-	    hsvPtr->hue = 2 + (red - blue);
-	} else if (colorPtr->blue == max) {
-	    hsvPtr->hue = 4 + (green - red);
-	}
-	hsvPtr->hue *= 60.0;
+    if (colorPtr->red == max) {
+        hsvPtr->hue = (blue - green);
+    } else if (colorPtr->green == max) {
+        hsvPtr->hue = 2 + (red - blue);
+    } else if (colorPtr->blue == max) {
+        hsvPtr->hue = 4 + (green - red);
+    }
+    hsvPtr->hue *= 60.0;
     } else {
-	hsvPtr->sat = 0.5;
+    hsvPtr->sat = 0.5;
     }
     if (hsvPtr->hue < 0.0) {
-	hsvPtr->hue += 360.0;
+    hsvPtr->hue += 360.0;
     }
 }
 
@@ -992,13 +992,13 @@ HSVToXColor(hsvPtr, colorPtr)
     int quadrant;
 
     if (hsvPtr->val < 0.0) {
-	hsvPtr->val = 0.0;
+    hsvPtr->val = 0.0;
     } else if (hsvPtr->val > 1.0) {
-	hsvPtr->val = 1.0;
+    hsvPtr->val = 1.0;
     }
     if (hsvPtr->sat == 0.0) {
-	SetColor(colorPtr, hsvPtr->val, hsvPtr->val, hsvPtr->val);
-	return;
+    SetColor(colorPtr, hsvPtr->val, hsvPtr->val, hsvPtr->val);
+    return;
     }
     hue = FMOD(hsvPtr->hue, 360.0) / 60.0;
     quadrant = (int)floor(hue);
@@ -1008,24 +1008,24 @@ HSVToXColor(hsvPtr, colorPtr)
     t = hsvPtr->val * (1 - (hsvPtr->sat * (1 - frac)));
 
     switch (quadrant) {
-	case 0:
-	    SetColor(colorPtr, hsvPtr->val, t, p);
-	    break;
-	case 1:
-	    SetColor(colorPtr, q, hsvPtr->val, p);
-	    break;
-	case 2:
-	    SetColor(colorPtr, p, hsvPtr->val, t);
-	    break;
-	case 3:
-	    SetColor(colorPtr, p, q, hsvPtr->val);
-	    break;
-	case 4:
-	    SetColor(colorPtr, t, p, hsvPtr->val);
-	    break;
-	case 5:
-	    SetColor(colorPtr, hsvPtr->val, p, q);
-	    break;
+    case 0:
+        SetColor(colorPtr, hsvPtr->val, t, p);
+        break;
+    case 1:
+        SetColor(colorPtr, q, hsvPtr->val, p);
+        break;
+    case 2:
+        SetColor(colorPtr, p, hsvPtr->val, t);
+        break;
+    case 3:
+        SetColor(colorPtr, p, q, hsvPtr->val);
+        break;
+    case 4:
+        SetColor(colorPtr, t, p, hsvPtr->val);
+        break;
+    case 5:
+        SetColor(colorPtr, hsvPtr->val, p, q);
+        break;
     }
 }
 #endif /* notdef */
@@ -1066,52 +1066,52 @@ Rbc_AdjustViewport(offset, worldSize, windowSize, scrollUnits, scrollMode)
     int scrollMode;
 {
     switch (scrollMode) {
-	case RBC_SCROLL_MODE_CANVAS:
+    case RBC_SCROLL_MODE_CANVAS:
 
-	    /*
-	     * Canvas-style scrolling allows the world to be scrolled
-	     * within the window.
-	     */
+        /*
+         * Canvas-style scrolling allows the world to be scrolled
+         * within the window.
+         */
 
-	    if (worldSize < windowSize) {
-		if ((worldSize - offset) > windowSize) {
-		    offset = worldSize - windowSize;
-		}
-		if (offset > 0) {
-		    offset = 0;
-		}
-	    } else {
-		if ((offset + windowSize) > worldSize) {
-		    offset = worldSize - windowSize;
-		}
-		if (offset < 0) {
-		    offset = 0;
-		}
-	    }
-	    break;
+        if (worldSize < windowSize) {
+        if ((worldSize - offset) > windowSize) {
+            offset = worldSize - windowSize;
+        }
+        if (offset > 0) {
+            offset = 0;
+        }
+        } else {
+        if ((offset + windowSize) > worldSize) {
+            offset = worldSize - windowSize;
+        }
+        if (offset < 0) {
+            offset = 0;
+        }
+        }
+        break;
 
-	case RBC_SCROLL_MODE_LISTBOX:
-	    if (offset < 0) {
-		offset = 0;
-	    }
-	    if (offset >= worldSize) {
-		offset = worldSize - scrollUnits;
-	    }
-	    break;
+    case RBC_SCROLL_MODE_LISTBOX:
+        if (offset < 0) {
+        offset = 0;
+        }
+        if (offset >= worldSize) {
+        offset = worldSize - scrollUnits;
+        }
+        break;
 
-	case RBC_SCROLL_MODE_HIERBOX:
+    case RBC_SCROLL_MODE_HIERBOX:
 
-	    /*
-	     * Hierbox-style scrolling allows the world to be scrolled
-	     * within the window.
-	     */
-	    if ((offset + windowSize) > worldSize) {
-		offset = worldSize - windowSize;
-	    }
-	    if (offset < 0) {
-		offset = 0;
-	    }
-	    break;
+        /*
+         * Hierbox-style scrolling allows the world to be scrolled
+         * within the window.
+         */
+        if ((offset + windowSize) > worldSize) {
+        offset = worldSize - windowSize;
+        }
+        if (offset < 0) {
+        offset = 0;
+        }
+        break;
     }
     return offset;
 }
@@ -1133,7 +1133,7 @@ Rbc_AdjustViewport(offset, worldSize, windowSize, scrollUnits, scrollMode)
  */
 int
 Rbc_GetScrollInfo(interp, argc, argv, offsetPtr, worldSize, windowSize,
-		  scrollUnits, scrollMode)
+          scrollUnits, scrollMode)
     Tcl_Interp *interp;
     int argc;
     char **argv;
@@ -1152,45 +1152,45 @@ Rbc_GetScrollInfo(interp, argc, argv, offsetPtr, worldSize, windowSize,
     c = argv[0][0];
     length = strlen(argv[0]);
     if ((c == 's') && (strncmp(argv[0], "scroll", length) == 0)) {
-	if (argc != 3) {
-	    return TCL_ERROR;
-	}
-	/* scroll number unit/page */
-	if (Tcl_GetInt(interp, argv[1], &count) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	c = argv[2][0];
-	length = strlen(argv[2]);
-	if ((c == 'u') && (strncmp(argv[2], "units", length) == 0)) {
-	    fract = (double)count *scrollUnits;
-	} else if ((c == 'p') && (strncmp(argv[2], "pages", length) == 0)) {
-	    /* A page is 90% of the view-able window. */
-	    fract = (double)count *windowSize * 0.9;
-	} else {
-	    Tcl_AppendResult(interp, "unknown \"scroll\" units \"", argv[2],
-			     "\"", (char *)NULL);
-	    return TCL_ERROR;
-	}
-	offset += (int)fract;
-    } else if ((c == 'm') && (strncmp(argv[0], "moveto", length) == 0)) {
-	if (argc != 2) {
-	    return TCL_ERROR;
-	}
-	/* moveto fraction */
-	if (Tcl_GetDouble(interp, argv[1], &fract) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	offset = (int)(worldSize * fract);
+    if (argc != 3) {
+        return TCL_ERROR;
+    }
+    /* scroll number unit/page */
+    if (Tcl_GetInt(interp, argv[1], &count) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    c = argv[2][0];
+    length = strlen(argv[2]);
+    if ((c == 'u') && (strncmp(argv[2], "units", length) == 0)) {
+        fract = (double)count *scrollUnits;
+    } else if ((c == 'p') && (strncmp(argv[2], "pages", length) == 0)) {
+        /* A page is 90% of the view-able window. */
+        fract = (double)count *windowSize * 0.9;
     } else {
-	/* Treat like "scroll units" */
-	if (Tcl_GetInt(interp, argv[0], &count) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	fract = (double)count *scrollUnits;
-	offset += (int)fract;
+        Tcl_AppendResult(interp, "unknown \"scroll\" units \"", argv[2],
+                 "\"", (char *)NULL);
+        return TCL_ERROR;
+    }
+    offset += (int)fract;
+    } else if ((c == 'm') && (strncmp(argv[0], "moveto", length) == 0)) {
+    if (argc != 2) {
+        return TCL_ERROR;
+    }
+    /* moveto fraction */
+    if (Tcl_GetDouble(interp, argv[1], &fract) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    offset = (int)(worldSize * fract);
+    } else {
+    /* Treat like "scroll units" */
+    if (Tcl_GetInt(interp, argv[0], &count) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    fract = (double)count *scrollUnits;
+    offset += (int)fract;
     }
     *offsetPtr = Rbc_AdjustViewport(offset, worldSize, windowSize, scrollUnits,
-				    scrollMode);
+                    scrollMode);
     return TCL_OK;
 }
 
@@ -1212,7 +1212,7 @@ Rbc_GetScrollInfo(interp, argc, argv, offsetPtr, worldSize, windowSize,
  */
 int
 Rbc_GetScrollInfoFromObj(interp, objc, objv, offsetPtr, worldSize, windowSize,
-			 scrollUnits, scrollMode)
+             scrollUnits, scrollMode)
     Tcl_Interp *interp;
     int objc;
     Tcl_Obj *const *objv;
@@ -1234,46 +1234,46 @@ Rbc_GetScrollInfoFromObj(interp, objc, objv, offsetPtr, worldSize, windowSize,
     c = string[0];
     length = strlen(string);
     if ((c == 's') && (strncmp(string, "scroll", length) == 0)) {
-	if (objc != 3) {
-	    return TCL_ERROR;
-	}
-	/* scroll number unit/page */
-	if (Tcl_GetIntFromObj(interp, objv[1], &count) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	string = Tcl_GetString(objv[2]);
-	c = string[0];
-	length = strlen(string);
-	if ((c == 'u') && (strncmp(string, "units", length) == 0)) {
-	    fract = (double)count *scrollUnits;
-	} else if ((c == 'p') && (strncmp(string, "pages", length) == 0)) {
-	    /* A page is 90% of the view-able window. */
-	    fract = (double)count *windowSize * 0.9;
-	} else {
-	    Tcl_AppendResult(interp, "unknown \"scroll\" units \"",
-			     Tcl_GetString(objv[2]), "\"", (char *)NULL);
-	    return TCL_ERROR;
-	}
-	offset += (int)fract;
-    } else if ((c == 'm') && (strncmp(string, "moveto", length) == 0)) {
-	if (objc != 2) {
-	    return TCL_ERROR;
-	}
-	/* moveto fraction */
-	if (Tcl_GetDoubleFromObj(interp, objv[1], &fract) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	offset = (int)(worldSize * fract);
+    if (objc != 3) {
+        return TCL_ERROR;
+    }
+    /* scroll number unit/page */
+    if (Tcl_GetIntFromObj(interp, objv[1], &count) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    string = Tcl_GetString(objv[2]);
+    c = string[0];
+    length = strlen(string);
+    if ((c == 'u') && (strncmp(string, "units", length) == 0)) {
+        fract = (double)count *scrollUnits;
+    } else if ((c == 'p') && (strncmp(string, "pages", length) == 0)) {
+        /* A page is 90% of the view-able window. */
+        fract = (double)count *windowSize * 0.9;
     } else {
-	/* Treat like "scroll units" */
-	if (Tcl_GetIntFromObj(interp, objv[0], &count) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	fract = (double)count *scrollUnits;
-	offset += (int)fract;
+        Tcl_AppendResult(interp, "unknown \"scroll\" units \"",
+                 Tcl_GetString(objv[2]), "\"", (char *)NULL);
+        return TCL_ERROR;
+    }
+    offset += (int)fract;
+    } else if ((c == 'm') && (strncmp(string, "moveto", length) == 0)) {
+    if (objc != 2) {
+        return TCL_ERROR;
+    }
+    /* moveto fraction */
+    if (Tcl_GetDoubleFromObj(interp, objv[1], &fract) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    offset = (int)(worldSize * fract);
+    } else {
+    /* Treat like "scroll units" */
+    if (Tcl_GetIntFromObj(interp, objv[0], &count) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    fract = (double)count *scrollUnits;
+    offset += (int)fract;
     }
     *offsetPtr = Rbc_AdjustViewport(offset, worldSize, windowSize, scrollUnits,
-				    scrollMode);
+                    scrollMode);
     return TCL_OK;
 }
 #endif /* TCL_MAJOR_VERSION >= 8 */
@@ -1310,7 +1310,7 @@ Rbc_UpdateScrollbar(interp, scrollCmd, firstFract, lastFract)
     sprintf(string, " %f %f", firstFract, lastFract);
     Tcl_DStringAppend(&dString, string, -1);
     if (Tcl_GlobalEval(interp, Tcl_DStringValue(&dString)) != TCL_OK) {
-	Tcl_BackgroundError(interp);
+    Tcl_BackgroundError(interp);
     }
     Tcl_DStringFree(&dString);
 }
@@ -1384,22 +1384,22 @@ Rbc_GetPrivateGC(tkwin, gcMask, valuePtr)
     display = Tk_Display(tkwin);
 
     if (drawable == None) {
-	Drawable root;
-	int depth;
+    Drawable root;
+    int depth;
 
-	root = RootWindow(display, Tk_ScreenNumber(tkwin));
-	depth = Tk_Depth(tkwin);
+    root = RootWindow(display, Tk_ScreenNumber(tkwin));
+    depth = Tk_Depth(tkwin);
 
-	if (depth == DefaultDepth(display, Tk_ScreenNumber(tkwin))) {
-	    drawable = root;
-	} else {
-	    pixmap = Tk_GetPixmap(display, root, 1, 1, depth);
-	    drawable = pixmap;
-	}
+    if (depth == DefaultDepth(display, Tk_ScreenNumber(tkwin))) {
+        drawable = root;
+    } else {
+        pixmap = Tk_GetPixmap(display, root, 1, 1, depth);
+        drawable = pixmap;
+    }
     }
     gc = Rbc_GetPrivateGCFromDrawable(display, drawable, gcMask, valuePtr);
     if (pixmap != None) {
-	Tk_FreePixmap(display, pixmap);
+    Tk_FreePixmap(display, pixmap);
     }
     return gc;
 }
@@ -1462,7 +1462,7 @@ Rbc_SetDashes(display, gc, dashesPtr)
     Rbc_Dashes *dashesPtr;
 {
     XSetDashes(display, gc, dashesPtr->offset,
-	       (const char *)dashesPtr->values, strlen((char *)dashesPtr->values));
+           (const char *)dashesPtr->values, strlen((char *)dashesPtr->values));
 }
 #endif
 
@@ -1491,34 +1491,34 @@ FindSplit(points, i, j, split)
 
     maxDist = -1.0;
     if ((i + 1) < j) {
-	register int k;
-	double a, b, c;
-	double sqDist;
+    register int k;
+    double a, b, c;
+    double sqDist;
 
-	/*
-	 *
-	 * sqDist P(k) =  |  1  P(i).x  P(i).y  |
-	 *		  |  1  P(j).x  P(j).y  |
-	 *                |  1  P(k).x  P(k).y  |
-	 *              ---------------------------
-	  *       (P(i).x - P(j).x)^2 + (P(i).y - P(j).y)^2
-	 */
+    /*
+     *
+     * sqDist P(k) =  |  1  P(i).x  P(i).y  |
+     *          |  1  P(j).x  P(j).y  |
+     *                |  1  P(k).x  P(k).y  |
+     *              ---------------------------
+      *       (P(i).x - P(j).x)^2 + (P(i).y - P(j).y)^2
+     */
 
-	a = points[i].y - points[j].y;
-	b = points[j].x - points[i].x;
-	c = (points[i].x * points[j].y) - (points[i].y * points[j].x);
-	for (k = (i + 1); k < j; k++) {
-	    sqDist = (points[k].x * a) + (points[k].y * b) + c;
-	    if (sqDist < 0.0) {
-		sqDist = -sqDist;
-	    }
-	    if (sqDist > maxDist) {
-		maxDist = sqDist;	/* Track the maximum. */
-		*split = k;
-	    }
-	}
-	/* Correction for segment length---should be redone if can == 0 */
-	maxDist *= maxDist / (a * a + b * b);
+    a = points[i].y - points[j].y;
+    b = points[j].x - points[i].x;
+    c = (points[i].x * points[j].y) - (points[i].y * points[j].x);
+    for (k = (i + 1); k < j; k++) {
+        sqDist = (points[k].x * a) + (points[k].y * b) + c;
+        if (sqDist < 0.0) {
+        sqDist = -sqDist;
+        }
+        if (sqDist > maxDist) {
+        maxDist = sqDist;    /* Track the maximum. */
+        *split = k;
+        }
+    }
+    /* Correction for segment length---should be redone if can == 0 */
+    maxDist *= maxDist / (a * a + b * b);
     }
     return maxDist;
 }
@@ -1546,14 +1546,14 @@ Rbc_SimplifyLine(inputPts, low, high, tolerance, indices)
     double tolerance;
     int indices[];
 {
-#define StackPush(a)	s++, stack[s] = (a)
-#define StackPop(a)	(a) = stack[s], s--
-#define StackEmpty()	(s < 0)
-#define StackTop()	stack[s]
+#define StackPush(a)    s++, stack[s] = (a)
+#define StackPop(a)    (a) = stack[s], s--
+#define StackEmpty()    (s < 0)
+#define StackTop()    stack[s]
     int *stack;
     int split = -1;
     double sqDist, sqTolerance;
-    int s = -1;			/* Points to top stack item. */
+    int s = -1;            /* Points to top stack item. */
     int count;
 
     stack = (int *)ckalloc(sizeof(int) * (high - low + 1));
@@ -1562,13 +1562,13 @@ Rbc_SimplifyLine(inputPts, low, high, tolerance, indices)
     indices[count++] = 0;
     sqTolerance = tolerance * tolerance;
     while (!StackEmpty()) {
-	sqDist = FindSplit(inputPts, low, StackTop(), &split);
-	if (sqDist > sqTolerance) {
-	    StackPush(split);
-	} else {
-	    indices[count++] = StackTop();
-	    StackPop(low);
-	}
+    sqDist = FindSplit(inputPts, low, StackTop(), &split);
+    if (sqDist > sqTolerance) {
+        StackPush(split);
+    } else {
+        indices[count++] = StackTop();
+        StackPop(low);
+    }
     }
     ckfree((char *)stack);
     return count;
@@ -1602,15 +1602,15 @@ Rbc_Draw2DSegments(display, drawable, gc, segPtr, nSegments)
 
     xSegArr = (XSegment *)ckalloc(nSegments * sizeof(XSegment));
     if (xSegArr == NULL) {
-	return;
+    return;
     }
     xSegPtr = xSegArr;
     for (endPtr = segPtr + nSegments; segPtr < endPtr; segPtr++) {
-	xSegPtr->x1 = (short int)segPtr->p.x;
-	xSegPtr->y1 = (short int)segPtr->p.y;
-	xSegPtr->x2 = (short int)segPtr->q.x;
-	xSegPtr->y2 = (short int)segPtr->q.y;
-	xSegPtr++;
+    xSegPtr->x1 = (short int)segPtr->p.x;
+    xSegPtr->y1 = (short int)segPtr->p.y;
+    xSegPtr->x2 = (short int)segPtr->q.x;
+    xSegPtr->y2 = (short int)segPtr->q.y;
+    xSegPtr++;
     }
     XDrawSegments(display, drawable, gc, xSegArr, nSegments);
     ckfree((char *)xSegArr);
@@ -1646,105 +1646,105 @@ Rbc_DrawArrow(display, drawable, gc, x, y, arrowHeight, orientation)
     a = arrowHeight / 2 + 1;
     b = arrowHeight;
     switch (orientation) {
-	case ARROW_UP:
-	    /*
-	     *            0
-	     *            +
-	     *           / \
-	     *          /   \
-	     *         /     \  a
-	     *        /       \
-	     *   x,y /         \
-	     *      +-----------+
-	     *     1      b      2
-	     */
-	    arrow[0].x = x;
-	    arrow[0].y = y - a;
-	    arrow[1].x = arrow[0].x - b;
-	    arrow[1].y = arrow[0].y + b;
-	    arrow[2].x = arrow[0].x + b;
-	    arrow[2].y = arrow[0].y + b;
-	    arrow[3].x = arrow[0].x;
-	    arrow[3].y = arrow[0].y;
-	    break;
+    case ARROW_UP:
+        /*
+         *            0
+         *            +
+         *           / \
+         *          /   \
+         *         /     \  a
+         *        /       \
+         *   x,y /         \
+         *      +-----------+
+         *     1      b      2
+         */
+        arrow[0].x = x;
+        arrow[0].y = y - a;
+        arrow[1].x = arrow[0].x - b;
+        arrow[1].y = arrow[0].y + b;
+        arrow[2].x = arrow[0].x + b;
+        arrow[2].y = arrow[0].y + b;
+        arrow[3].x = arrow[0].x;
+        arrow[3].y = arrow[0].y;
+        break;
 
-	case ARROW_DOWN:
-	    /*
-	     *     1      b      2
-	     *      +-----------+
-	     *       \         /
-	     *        \  x,y  /
-	     *         \     /  a
-	     *          \   /
-	     *           \ /
-	     *            +
-	     *            0
-	     */
-	    arrow[0].x = x;
-	    arrow[0].y = y + a;
-	    arrow[1].x = arrow[0].x - b;
-	    arrow[1].y = arrow[0].y - b;
-	    arrow[2].x = arrow[0].x + b;
-	    arrow[2].y = arrow[0].y - b;
-	    arrow[3].x = arrow[0].x;
-	    arrow[3].y = arrow[0].y;
-	    break;
+    case ARROW_DOWN:
+        /*
+         *     1      b      2
+         *      +-----------+
+         *       \         /
+         *        \  x,y  /
+         *         \     /  a
+         *          \   /
+         *           \ /
+         *            +
+         *            0
+         */
+        arrow[0].x = x;
+        arrow[0].y = y + a;
+        arrow[1].x = arrow[0].x - b;
+        arrow[1].y = arrow[0].y - b;
+        arrow[2].x = arrow[0].x + b;
+        arrow[2].y = arrow[0].y - b;
+        arrow[3].x = arrow[0].x;
+        arrow[3].y = arrow[0].y;
+        break;
 
-	case ARROW_RIGHT:
-	    /*
-	     *       2
-	     *	 +
-	     *       |\
-	     *       | \
-	     *       |  \
-	     *       |   \
-	     *       |    \
-	     *       | x,y + 0
-	     *       |    /
-	     *	 |   /
-	     *       |  /
-	     *       | /
-	     *       |/
-	     *       +
-	     *       1
-	     */
-	    arrow[0].x = x + a;
-	    arrow[0].y = y;
-	    arrow[1].x = arrow[0].x - b;
-	    arrow[1].y = arrow[0].y + b;
-	    arrow[2].x = arrow[0].x - b;
-	    arrow[2].y = arrow[0].y - b;
-	    arrow[3].x = arrow[0].x;
-	    arrow[3].y = arrow[0].y;
-	    break;
+    case ARROW_RIGHT:
+        /*
+         *       2
+         *     +
+         *       |\
+         *       | \
+         *       |  \
+         *       |   \
+         *       |    \
+         *       | x,y + 0
+         *       |    /
+         *     |   /
+         *       |  /
+         *       | /
+         *       |/
+         *       +
+         *       1
+         */
+        arrow[0].x = x + a;
+        arrow[0].y = y;
+        arrow[1].x = arrow[0].x - b;
+        arrow[1].y = arrow[0].y + b;
+        arrow[2].x = arrow[0].x - b;
+        arrow[2].y = arrow[0].y - b;
+        arrow[3].x = arrow[0].x;
+        arrow[3].y = arrow[0].y;
+        break;
 
-	case ARROW_LEFT:
-	    /*
-	     *              2
-	     *	       	+
-	     *             /|
-	     *            /	|
-	     *           /	|
-	     *          /	|
-	     *         /  	|
-	     *       0+ x,y |
-	     *         \  	|
-	     *	    \	|
-	     *           \	|
-	     *            \ |
-	     *             \|
-	     *       	+
-	     *             	1
-	     */
-	    arrow[0].x = x - a;
-	    arrow[0].y = y;
-	    arrow[1].x = arrow[0].x + b;
-	    arrow[1].y = arrow[0].y + b;
-	    arrow[2].x = arrow[0].x + b;
-	    arrow[2].y = arrow[0].y - b;
-	    arrow[3].x = arrow[0].x;
-	    arrow[3].y = arrow[0].y;
-	    break;
+    case ARROW_LEFT:
+        /*
+         *              2
+         *               +
+         *             /|
+         *            /    |
+         *           /    |
+         *          /    |
+         *         /      |
+         *       0+ x,y |
+         *         \      |
+         *        \    |
+         *           \    |
+         *            \ |
+         *             \|
+         *           +
+         *                 1
+         */
+        arrow[0].x = x - a;
+        arrow[0].y = y;
+        arrow[1].x = arrow[0].x + b;
+        arrow[1].y = arrow[0].y + b;
+        arrow[2].x = arrow[0].x + b;
+        arrow[2].y = arrow[0].y - b;
+        arrow[3].x = arrow[0].x;
+        arrow[3].y = arrow[0].y;
+        break;
 
     }
     XFillPolygon(display, drawable, gc, arrow, 4, Convex, CoordModeOrigin);
@@ -1774,7 +1774,7 @@ Rbc_MaxRequestSize(Display *display, unsigned int elemSize)
 #ifdef HAVE_XEXTENDEDMAXREQUESTSIZE
     size = XExtendedMaxRequestSize(display);
     if (size == 0) {
-	size = XMaxRequestSize(display);
+    size = XMaxRequestSize(display);
     }
 #else
     size = XMaxRequestSize(display);
@@ -1806,44 +1806,44 @@ Rbc_Fill3DRectangle(tkwin, drawable, border, x, y, width, height, borderWidth, r
     Tk_3DBorder border; /* Token for border to draw. */
     int x, y, width, height; /* Outside area of rectangular region. */
     int borderWidth; /* Desired width for border, in
-		      * pixels. Border will be *inside* region. */
+              * pixels. Border will be *inside* region. */
     int relief; /* Indicates 3D effect: TK_RELIEF_FLAT,
-		 * TK_RELIEF_RAISED, or TK_RELIEF_SUNKEN. */
+         * TK_RELIEF_RAISED, or TK_RELIEF_SUNKEN. */
 {
 #ifndef notdef
     if ((borderWidth > 1) && (width > 2) && (height > 2) &&
-	    ((relief == TK_RELIEF_SUNKEN) || (relief == TK_RELIEF_RAISED))) {
-	GC lightGC, darkGC;
-	int x2, y2;
+        ((relief == TK_RELIEF_SUNKEN) || (relief == TK_RELIEF_RAISED))) {
+    GC lightGC, darkGC;
+    int x2, y2;
 
-	x2 = x + width - 1;
-	y2 = y + height - 1;
+    x2 = x + width - 1;
+    y2 = y + height - 1;
 #define TK_3D_LIGHT2_GC TK_3D_DARK_GC+1
 #define TK_3D_DARK2_GC TK_3D_DARK_GC+2
-	if (relief == TK_RELIEF_RAISED) {
-	    lightGC = Tk_3DBorderGC(tkwin, border, TK_3D_FLAT_GC);
+    if (relief == TK_RELIEF_RAISED) {
+        lightGC = Tk_3DBorderGC(tkwin, border, TK_3D_FLAT_GC);
 #ifdef WIN32
-	    darkGC = Tk_3DBorderGC(tkwin, border, TK_3D_DARK_GC);
+        darkGC = Tk_3DBorderGC(tkwin, border, TK_3D_DARK_GC);
 #else
-	    darkGC = DefaultGC(Tk_Display(tkwin), Tk_ScreenNumber(tkwin));
+        darkGC = DefaultGC(Tk_Display(tkwin), Tk_ScreenNumber(tkwin));
 #endif
-	} else {
+    } else {
 #ifdef WIN32
-	    lightGC = Tk_3DBorderGC(tkwin, border, TK_3D_LIGHT_GC);
+        lightGC = Tk_3DBorderGC(tkwin, border, TK_3D_LIGHT_GC);
 #else
-	    lightGC = DefaultGC(Tk_Display(tkwin), Tk_ScreenNumber(tkwin));
+        lightGC = DefaultGC(Tk_Display(tkwin), Tk_ScreenNumber(tkwin));
 #endif
-	    darkGC = Tk_3DBorderGC(tkwin, border, TK_3D_FLAT_GC);
-	}
-	XDrawLine(Tk_Display(tkwin), drawable, lightGC, x, y, x2, y);
-	XDrawLine(Tk_Display(tkwin), drawable, darkGC, x2, y2, x2, y);
-	XDrawLine(Tk_Display(tkwin), drawable, darkGC, x2, y2, x, y2);
-	XDrawLine(Tk_Display(tkwin), drawable, lightGC, x, y, x, y2);
-	x++, y++, width -= 2, height -= 2, borderWidth--;
+        darkGC = Tk_3DBorderGC(tkwin, border, TK_3D_FLAT_GC);
+    }
+    XDrawLine(Tk_Display(tkwin), drawable, lightGC, x, y, x2, y);
+    XDrawLine(Tk_Display(tkwin), drawable, darkGC, x2, y2, x2, y);
+    XDrawLine(Tk_Display(tkwin), drawable, darkGC, x2, y2, x, y2);
+    XDrawLine(Tk_Display(tkwin), drawable, lightGC, x, y, x, y2);
+    x++, y++, width -= 2, height -= 2, borderWidth--;
     }
 #endif
     Tk_Fill3DRectangle(tkwin, drawable, border, x, y, width, height,
-		       borderWidth, relief);
+               borderWidth, relief);
 }
 
 
@@ -1870,42 +1870,42 @@ Rbc_Draw3DRectangle(tkwin, drawable, border, x, y, width, height, borderWidth, r
     Tk_3DBorder border; /* Token for border to draw. */
     int x, y, width, height; /* Outside area of rectangular region. */
     int borderWidth; /* Desired width for border, in
-		      * pixels. Border will be *inside* region. */
+              * pixels. Border will be *inside* region. */
     int relief; /* Indicates 3D effect: TK_RELIEF_FLAT,
-		 * TK_RELIEF_RAISED, or TK_RELIEF_SUNKEN. */
+         * TK_RELIEF_RAISED, or TK_RELIEF_SUNKEN. */
 {
 #ifndef notdef
     if ((borderWidth > 1) && (width > 2) && (height > 2) &&
-	    ((relief == TK_RELIEF_SUNKEN) || (relief == TK_RELIEF_RAISED))) {
-	GC lightGC, darkGC;
-	int x2, y2;
+        ((relief == TK_RELIEF_SUNKEN) || (relief == TK_RELIEF_RAISED))) {
+    GC lightGC, darkGC;
+    int x2, y2;
 
-	x2 = x + width - 1;
-	y2 = y + height - 1;
-	if (relief == TK_RELIEF_RAISED) {
-	    lightGC = Tk_3DBorderGC(tkwin, border, TK_3D_FLAT_GC);
+    x2 = x + width - 1;
+    y2 = y + height - 1;
+    if (relief == TK_RELIEF_RAISED) {
+        lightGC = Tk_3DBorderGC(tkwin, border, TK_3D_FLAT_GC);
 #ifdef WIN32
-	    darkGC = Tk_3DBorderGC(tkwin, border, TK_3D_DARK_GC);
+        darkGC = Tk_3DBorderGC(tkwin, border, TK_3D_DARK_GC);
 #else
-	    darkGC = DefaultGC(Tk_Display(tkwin), Tk_ScreenNumber(tkwin));
+        darkGC = DefaultGC(Tk_Display(tkwin), Tk_ScreenNumber(tkwin));
 #endif
-	} else {
+    } else {
 #ifdef WIN32
-	    lightGC = Tk_3DBorderGC(tkwin, border, TK_3D_LIGHT_GC);
+        lightGC = Tk_3DBorderGC(tkwin, border, TK_3D_LIGHT_GC);
 #else
-	    lightGC = DefaultGC(Tk_Display(tkwin), Tk_ScreenNumber(tkwin));
+        lightGC = DefaultGC(Tk_Display(tkwin), Tk_ScreenNumber(tkwin));
 #endif
-	    darkGC = Tk_3DBorderGC(tkwin, border, TK_3D_FLAT_GC);
-	}
-	XDrawLine(Tk_Display(tkwin), drawable, darkGC, x2, y2, x2, y);
-	XDrawLine(Tk_Display(tkwin), drawable, lightGC, x, y, x2, y);
-	XDrawLine(Tk_Display(tkwin), drawable, darkGC, x2, y2, x, y2);
-	XDrawLine(Tk_Display(tkwin), drawable, lightGC, x, y, x, y2);
-	x++, y++, width -= 2, height -= 2, borderWidth--;
+        darkGC = Tk_3DBorderGC(tkwin, border, TK_3D_FLAT_GC);
+    }
+    XDrawLine(Tk_Display(tkwin), drawable, darkGC, x2, y2, x2, y);
+    XDrawLine(Tk_Display(tkwin), drawable, lightGC, x, y, x2, y);
+    XDrawLine(Tk_Display(tkwin), drawable, darkGC, x2, y2, x, y2);
+    XDrawLine(Tk_Display(tkwin), drawable, lightGC, x, y, x, y2);
+    x++, y++, width -= 2, height -= 2, borderWidth--;
     }
 #endif
     Tk_Draw3DRectangle(tkwin, drawable, border, x, y, width, height,
-		       borderWidth, relief);
+               borderWidth, relief);
 }
 
 #ifdef notdef
@@ -1919,36 +1919,36 @@ typedef struct {
 typedef struct {
     Screen *screen; /* Screen on which the border will be used. */
     Visual *visual; /* Visual for all windows and pixmaps using
-		     * the border. */
+             * the border. */
     int depth; /* Number of bits per pixel of drawables where
-		* the border will be used. */
+        * the border will be used. */
     Colormap colormap; /* Colormap out of which pixels are
-			* allocated. */
+            * allocated. */
     int refCount; /* Number of active uses of this color
-		   * (each active use corresponds to a
-		   * call to Rbc_Get3DBorder).  If this
-		   * count is 0, then this structure is
-		   * no longer valid and it isn't
-		   * present in borderTable: it is being
-		   * kept around only because there are
-		   * objects referring to it.  The
-		   * structure is freed when refCount is
-		   * 0. */
+           * (each active use corresponds to a
+           * call to Rbc_Get3DBorder).  If this
+           * count is 0, then this structure is
+           * no longer valid and it isn't
+           * present in borderTable: it is being
+           * kept around only because there are
+           * objects referring to it.  The
+           * structure is freed when refCount is
+           * 0. */
     XColor *bgColorPtr; /* Color of face. */
     XColor *shadows[4];
     Pixmap darkStipple; /* Stipple pattern to use for drawing
-			 * shadows areas.  Used for displays with
-			 * <= 64 colors or where colormap has filled
-			 * up. */
+             * shadows areas.  Used for displays with
+             * <= 64 colors or where colormap has filled
+             * up. */
     Pixmap lightStipple; /* Stipple pattern to use for drawing
-			  * shadows areas.  Used for displays with
-			  * <= 64 colors or where colormap has filled
-			  * up. */
+              * shadows areas.  Used for displays with
+              * <= 64 colors or where colormap has filled
+              * up. */
     GC bgGC; /* Used (if necessary) to draw areas in
-	      * the background color. */
+          * the background color. */
     GC lightGC, darkGC;
     Tcl_HashEntry *hashPtr; /* Entry in borderTable (needed in
-			     * order to delete structure). */
+                 * order to delete structure). */
     struct Rbc_3DBorderStruct *nextPtr;
 } Border, *Rbc_3DBorder;
 
@@ -1975,50 +1975,50 @@ Rbc_Draw3DRectangle(tkwin, drawable, border, x, y, width, height, borderWidth, r
     Rbc_3DBorder *borderPtr; /* Border to draw. */
     int x, y, width, height; /* Outside area of rectangular region. */
     int borderWidth; /* Desired width for border, in
-		      * pixels. Border will be *inside* region. */
+              * pixels. Border will be *inside* region. */
     int relief; /* Indicates 3D effect: TK_RELIEF_FLAT,
-		 * TK_RELIEF_RAISED, or TK_RELIEF_SUNKEN. */
+         * TK_RELIEF_RAISED, or TK_RELIEF_SUNKEN. */
 {
     if ((width > (2 * borderWidth)) && (height > (2 * borderWidth))) {
-	int x2, y2;
-	int i;
+    int x2, y2;
+    int i;
 
-	x2 = x + width - 1;
-	y2 = y + height - 1;
+    x2 = x + width - 1;
+    y2 = y + height - 1;
 
-	XSetForeground(borderPtr->lightGC, borderPtr->shadows[0]);
-	XSetForeground(borderPtr->darkGC, borderPtr->shadows[3]);
-	XDrawLine(Tk_Display(tkwin), drawable, borderPtr->lightGC,
-		  x, y, x2, y);
-	XDrawLine(Tk_Display(tkwin), drawable, borderPtr->lightGC,
-		  x, y, x, y2);
-	XDrawLine(Tk_Display(tkwin), drawable, borderPtr->darkGC,
-		  x2, y, x2, y2);
-	XDrawLine(Tk_Display(tkwin), drawable, borderPtr->darkGC,
-		  x2, y2, x, y2);
-	XSetForeground(borderPtr->lightGC, borderPtr->shadows[1]);
-	XSetForeground(borderPtr->darkGC, borderPtr->shadows[2]);
-	for (i = 1; i < (borderWidth - 1); i++) {
+    XSetForeground(borderPtr->lightGC, borderPtr->shadows[0]);
+    XSetForeground(borderPtr->darkGC, borderPtr->shadows[3]);
+    XDrawLine(Tk_Display(tkwin), drawable, borderPtr->lightGC,
+          x, y, x2, y);
+    XDrawLine(Tk_Display(tkwin), drawable, borderPtr->lightGC,
+          x, y, x, y2);
+    XDrawLine(Tk_Display(tkwin), drawable, borderPtr->darkGC,
+          x2, y, x2, y2);
+    XDrawLine(Tk_Display(tkwin), drawable, borderPtr->darkGC,
+          x2, y2, x, y2);
+    XSetForeground(borderPtr->lightGC, borderPtr->shadows[1]);
+    XSetForeground(borderPtr->darkGC, borderPtr->shadows[2]);
+    for (i = 1; i < (borderWidth - 1); i++) {
 
-	    /*
-	     *  +---------
-	     *  |+-------
-	     *  ||+-----
-	     *  |||
-	     *  |||
-	     *  ||
-	     *  |
-	     */
-	    x++, y++, x2--, y2--;
-	    XDrawLine(Tk_Display(tkwin), drawable, borderPtr->lightGC,
-		      x, y, x2, y);
-	    XDrawLine(Tk_Display(tkwin), drawable, borderPtr->lightGC,
-		      x, y, x, y2);
-	    XDrawLine(Tk_Display(tkwin), drawable, borderPtr->darkGC,
-		      x2, y, x2, y2);
-	    XDrawLine(Tk_Display(tkwin), drawable, borderPtr->darkGC,
-		      x2, y2, x, y2);
-	}
+        /*
+         *  +---------
+         *  |+-------
+         *  ||+-----
+         *  |||
+         *  |||
+         *  ||
+         *  |
+         */
+        x++, y++, x2--, y2--;
+        XDrawLine(Tk_Display(tkwin), drawable, borderPtr->lightGC,
+              x, y, x2, y);
+        XDrawLine(Tk_Display(tkwin), drawable, borderPtr->lightGC,
+              x, y, x, y2);
+        XDrawLine(Tk_Display(tkwin), drawable, borderPtr->darkGC,
+              x2, y, x2, y2);
+        XDrawLine(Tk_Display(tkwin), drawable, borderPtr->darkGC,
+              x2, y2, x, y2);
+    }
     }
 }
 
@@ -2044,17 +2044,17 @@ Rbc_Fill3DRectangle(tkwin, drawable, border, x, y, width, height, borderWidth, r
     Tk_3DBorder border; /* Token for border to draw. */
     int x, y, width, height; /* Outside area of rectangular region. */
     int borderWidth; /* Desired width for border, in
-		      * pixels. Border will be *inside* region. */
+              * pixels. Border will be *inside* region. */
     int relief; /* Indicates 3D effect: TK_RELIEF_FLAT,
-		 * TK_RELIEF_RAISED, or TK_RELIEF_SUNKEN. */
+         * TK_RELIEF_RAISED, or TK_RELIEF_SUNKEN. */
 {
     Rbc_3DBorder *borderPtr;
 
     XFillRectangle(Tk_Display(tkwin), drawable, borderPtr->bgGC, x, y, width,
-		   height);
+           height);
     if ((borderWidth > 0) && (relief != TK_RELIEF_FLAT)) {
-	Rbc_Draw3DRectangle(tkwin, drawable, borderPtr, x, y, width, height,
-			    borderWidth, relief);
+    Rbc_Draw3DRectangle(tkwin, drawable, borderPtr, x, y, width, height,
+                borderWidth, relief);
     }
 }
 
@@ -2082,22 +2082,22 @@ FreeBorder(display, borderPtr)
     int i;
 
     if (borderPtr->bgColorPtr != NULL) {
-	Tk_FreeColor(display, borderPtr->bgColorPtr);
+    Tk_FreeColor(display, borderPtr->bgColorPtr);
     }
     for (i = 0; i < 4; i++) {
-	Tk_FreeColor(display, borderPtr->shadows[i]);
+    Tk_FreeColor(display, borderPtr->shadows[i]);
     }
     if (borderPtr->tile != NULL) {
-	Rbc_FreeTile(tile);
+    Rbc_FreeTile(tile);
     }
     if (borderPtr->darkGC != NULL) {
-	Rbc_FreePrivateGC(display, borderPtr->darkGC);
+    Rbc_FreePrivateGC(display, borderPtr->darkGC);
     }
     if (borderPtr->lightGC != NULL) {
-	Rbc_FreePrivateGC(tkwin, borderPtr->lightGC);
+    Rbc_FreePrivateGC(tkwin, borderPtr->lightGC);
     }
     if (borderPtr->bgGC != NULL) {
-	Rbc_FreePrivateGC(tkwin, borderPtr->bgGC);
+    Rbc_FreePrivateGC(tkwin, borderPtr->bgGC);
     }
     ckree((char *)borderPtr);
 }
@@ -2126,23 +2126,23 @@ Rbc_Free3DBorder(display, border)
 
     borderPtr->refCount--;
     if (borderPtr->refCount >= 0) {
-	/* Search for the border in the bucket. Start at the head. */
-	headPtr = Tcl_GetHashValue(borderPtr->hashPtr);
-	lastPtr = NULL;
-	while ((headPtr != borderPtr) && (headPtr != NULL)) {
-	    lastPtr = headPtr;
-	    headPtr = headPtr->next;
-	}
-	if (headPtr == NULL) {
-	    return;		/* This can't happen. It means that
-				 * we could not find the border. */
-	}
-	if (lastPtr != NULL) {
-	    lastPtr->next = borderPtr->next;
-	} else {
-	    Tcl_DeleteHashEntry(borderPtr->hashPtr);
-	}
-	FreeBorder(display, borderPtr);
+    /* Search for the border in the bucket. Start at the head. */
+    headPtr = Tcl_GetHashValue(borderPtr->hashPtr);
+    lastPtr = NULL;
+    while ((headPtr != borderPtr) && (headPtr != NULL)) {
+        lastPtr = headPtr;
+        headPtr = headPtr->next;
+    }
+    if (headPtr == NULL) {
+        return;        /* This can't happen. It means that
+                 * we could not find the border. */
+    }
+    if (lastPtr != NULL) {
+        lastPtr->next = borderPtr->next;
+    } else {
+        Tcl_DeleteHashEntry(borderPtr->hashPtr);
+    }
+    FreeBorder(display, borderPtr);
     }
 }
 
@@ -2179,15 +2179,15 @@ Rbc_Get3DBorder(interp, tkwin, borderName)
     lastBorderPtr = NULL;
     hPtr = Tcl_CreateHashEntry(&dataPtr->borderTable, borderName, &isNew);
     if (!isNew) {
-	borderPtr = lastBorderPtr = Tcl_GetHashValue(hPtr);
-	while (borderPtr != NULL) {
-	    if ((Tk_Screen(tkwin) == borderPtr->screen) &&
-		    (Tk_Colormap(tkwin) == borderPtr->colormap)) {
-		borderPtr->refCount++;
-		return borderPtr;
-	    }
-	    borderPtr = borderPtr->nextPtr;
-	}
+    borderPtr = lastBorderPtr = Tcl_GetHashValue(hPtr);
+    while (borderPtr != NULL) {
+        if ((Tk_Screen(tkwin) == borderPtr->screen) &&
+            (Tk_Colormap(tkwin) == borderPtr->colormap)) {
+        borderPtr->refCount++;
+        return borderPtr;
+        }
+        borderPtr = borderPtr->nextPtr;
+    }
     }
     /* Create a new border. */
     argv = NULL;
@@ -2195,15 +2195,15 @@ Rbc_Get3DBorder(interp, tkwin, borderName)
     tile = NULL;
 
     if (Tcl_SplitList(interp, borderName, &argc, &argv) != TCL_OK) {
-	goto error;
+    goto error;
     }
     colorName = borderName;
     if ((argc == 2) && (Rbc_GetTile(interp, tkwin, argv[0], &tile) == TCL_OK)) {
-	colorName = argv[1];
+    colorName = argv[1];
     }
     bgColorPtr = Tk_GetColor(interp, tkwin, colorName);
     if (bgColorPtr == NULL) {
-	goto error;
+    goto error;
     }
 
     /* Create a new border */
@@ -2221,48 +2221,48 @@ Rbc_Get3DBorder(interp, tkwin, borderName)
     borderPtr->hashPtr = lastBorderPtr->hashPtr;
     lastBorderPtr->nextPtr = lastBorderPtr;
     {
-	HSV hsv;
-	XColor color;
-	double sat, sat0, diff, step, hstep;
-	int count;
+    HSV hsv;
+    XColor color;
+    double sat, sat0, diff, step, hstep;
+    int count;
 
-	/* Convert the face (background) color to HSV */
-	XColorToHSV(borderPtr->bgColorPtr, &hsv);
+    /* Convert the face (background) color to HSV */
+    XColorToHSV(borderPtr->bgColorPtr, &hsv);
 
-	/* Using the color as the baseline intensity, pick a set of
-	 * colors around the intensity. */
-#define UFLOOR(x,u)		(floor((x)*(u))/(u))
-	diff = hsv.sat - UFLOOR(hsv.sat, 0.2);
-	sat = 0.1 + (diff - 0.1);
-	sat0 = hsv.sat;
-	count = 0;
-	for (sat = 0.1 + (diff - 0.1); sat <= 1.0; sat += 0.2) {
-	    if (FABS(sat0 - sat) >= 0.1) {
-		hsv.sat = sat;
-		HSVToXColor(&hsv, &color);
-		borderPtr->shadows[count] = Tk_GetColorByValue(tkwin, &color);
-		count++;
-	    }
-	}
+    /* Using the color as the baseline intensity, pick a set of
+     * colors around the intensity. */
+#define UFLOOR(x,u)        (floor((x)*(u))/(u))
+    diff = hsv.sat - UFLOOR(hsv.sat, 0.2);
+    sat = 0.1 + (diff - 0.1);
+    sat0 = hsv.sat;
+    count = 0;
+    for (sat = 0.1 + (diff - 0.1); sat <= 1.0; sat += 0.2) {
+        if (FABS(sat0 - sat) >= 0.1) {
+        hsv.sat = sat;
+        HSVToXColor(&hsv, &color);
+        borderPtr->shadows[count] = Tk_GetColorByValue(tkwin, &color);
+        count++;
+        }
+    }
     }
     Tcl_SetHashValue(hPtr, borderPtr);
     if (argv != NULL) {
-	ckfree((char *)argv);
+    ckfree((char *)argv);
     }
     return TCL_OK;
 
 error:
     if (argv != NULL) {
-	ckfree((char *)argv);
+    ckfree((char *)argv);
     }
     if (tile != NULL) {
-	Rbc_FreeTile(tile);
+    Rbc_FreeTile(tile);
     }
     if (bgColorPtr != NULL) {
-	Tk_FreeColor(bgColorPtr);
+    Tk_FreeColor(bgColorPtr);
     }
     if (isNew) {
-	Tcl_DeleteHashEntry(&borderTable, hPtr);
+    Tcl_DeleteHashEntry(&borderTable, hPtr);
     }
     return NULL;
 }

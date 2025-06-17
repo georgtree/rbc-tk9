@@ -12,16 +12,16 @@
 #ifndef _RBCGRLEGEND
 #define _RBCGRLEGEND
 
-#define LEGEND_RIGHT	(1<<0)	/* Right margin */
-#define LEGEND_LEFT	(1<<1)	/* Left margin */
-#define LEGEND_BOTTOM	(1<<2)	/* Bottom margin */
-#define LEGEND_TOP	(1<<3)	/* Top margin, below the graph title. */
-#define LEGEND_PLOT	(1<<4)	/* Plot area */
-#define LEGEND_XY	(1<<5)	/* Screen coordinates in the plotting
+#define LEGEND_RIGHT    (1<<0)    /* Right margin */
+#define LEGEND_LEFT    (1<<1)    /* Left margin */
+#define LEGEND_BOTTOM    (1<<2)    /* Bottom margin */
+#define LEGEND_TOP    (1<<3)    /* Top margin, below the graph title. */
+#define LEGEND_PLOT    (1<<4)    /* Plot area */
+#define LEGEND_XY    (1<<5)    /* Screen coordinates in the plotting
 * area. */
-#define LEGEND_WINDOW	(1<<6)	/* External window. */
+#define LEGEND_WINDOW    (1<<6)    /* External window. */
 #define LEGEND_IN_MARGIN \
-	(LEGEND_RIGHT | LEGEND_LEFT | LEGEND_BOTTOM | LEGEND_TOP)
+    (LEGEND_RIGHT | LEGEND_LEFT | LEGEND_BOTTOM | LEGEND_TOP)
 #define LEGEND_IN_PLOT  (LEGEND_PLOT | LEGEND_XY)
 
 int Rbc_CreateLegend (Graph *graphPtr);

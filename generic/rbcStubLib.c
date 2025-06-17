@@ -41,16 +41,16 @@ const RbcStubs *rbcStubsPtr;
 
 const char *
 Rbc_InitStubs(
-	Tcl_Interp *interp,
-	const char *version,
-	int exact
+    Tcl_Interp *interp,
+    const char *version,
+    int exact
 ) {
     const char *result;
     void *data;
 
     result = Tcl_PkgRequireEx(interp, "rbc", (const char *) version, exact, &data);
     if (!result || !data) {
-	return NULL;
+    return NULL;
     }
 
     rbcStubsPtr = (const RbcStubs *) data;

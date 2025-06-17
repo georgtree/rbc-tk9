@@ -68,10 +68,10 @@ GetRealizedWindow(
 
     tkwin = Tk_NameToWindow(interp, string, Tk_MainWindow(interp));
     if (tkwin == NULL) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     if (Tk_WindowId(tkwin) == None) {
-	Tk_MakeWindowExist(tkwin);
+    Tk_MakeWindowExist(tkwin);
     }
     *tkwinPtr = tkwin;
     return TCL_OK;
@@ -100,26 +100,26 @@ StringToWindow(
     int xid;
 
     if (string[0] == '.') {
-	Tk_Window tkwin;
+    Tk_Window tkwin;
 
-	if (GetRealizedWindow(interp, string, &tkwin) != TCL_OK) {
-	    return None;
-	}
-	if (Tk_IsTopLevel(tkwin)) {
-	    return Rbc_GetRealWindowId(tkwin);
-	} else {
-	    return Tk_WindowId(tkwin);
-	}
+    if (GetRealizedWindow(interp, string, &tkwin) != TCL_OK) {
+        return None;
+    }
+    if (Tk_IsTopLevel(tkwin)) {
+        return Rbc_GetRealWindowId(tkwin);
+    } else {
+        return Tk_WindowId(tkwin);
+    }
     } else if (Tcl_GetInt(interp, string, &xid) == TCL_OK) {
 #ifdef WIN32
-	static TkWinWindow tkWinWindow;
+    static TkWinWindow tkWinWindow;
 
-	tkWinWindow.handle = (HWND)INT2PTR(xid);
-	tkWinWindow.winPtr = NULL;
-	tkWinWindow.type = TWD_WINDOW;
-	return (Window)&tkWinWindow;
+    tkWinWindow.handle = (HWND)INT2PTR(xid);
+    tkWinWindow.winPtr = NULL;
+    tkWinWindow.type = TWD_WINDOW;
+    return (Window)&tkWinWindow;
 #else
-	return (Window)xid;
+    return (Window)xid;
 #endif
     }
     return None;
@@ -155,9 +155,9 @@ GetWindowSize(
 
     result = GetWindowRect(winPtr->handle, &region);
     if (result) {
-	*widthPtr = region.right - region.left;
-	*heightPtr = region.bottom - region.top;
-	return TCL_OK;
+    *widthPtr = region.right - region.left;
+    *heightPtr = region.bottom - region.top;
+    return TCL_OK;
     }
     return TCL_ERROR;
 }
@@ -221,14 +221,14 @@ GetWindowSize(
 
     tkwin = Tk_MainWindow(interp);
     handler = Tk_CreateErrorHandler(Tk_Display(tkwin), any, X_GetGeometry,
-				    any, XGeometryErrorProc, &result);
+                    any, XGeometryErrorProc, &result);
     result = XGetGeometry(Tk_Display(tkwin), window, &root, &x, &y,
-			  (unsigned int *)widthPtr, (unsigned int *)heightPtr,
-			  (unsigned int *)&borderWidth, (unsigned int *)&depth);
+              (unsigned int *)widthPtr, (unsigned int *)heightPtr,
+              (unsigned int *)&borderWidth, (unsigned int *)&depth);
     Tk_DeleteErrorHandler(handler);
     XSync(Tk_Display(tkwin), False);
     if (result) {
-	return TCL_OK;
+    return TCL_OK;
     }
     return TCL_ERROR;
 }
@@ -270,7 +270,7 @@ ColormapOp(
     Tcl_Obj *resultObj;
 
     if (GetRealizedWindow(interp, Tcl_GetString(objv[2]), &tkwin) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     /* Initially, we assume all color cells are allocated. */
     memset((char *)inUse, 0, sizeof(int) * MAXCOLORS);
@@ -282,30 +282,30 @@ ColormapOp(
      */
     nFree = 0;
     for (indexPtr = pixelValues, i = 0; i < MAXCOLORS; i++, indexPtr++) {
-	if (!XAllocColorCells(Tk_Display(tkwin), Tk_Colormap(tkwin),
-			      False, NULL, 0, indexPtr, 1)) {
-	    break;
-	}
-	inUse[*indexPtr] = TRUE;/* Indicate the cell is unallocated */
-	nFree++;
+    if (!XAllocColorCells(Tk_Display(tkwin), Tk_Colormap(tkwin),
+                  False, NULL, 0, indexPtr, 1)) {
+        break;
+    }
+    inUse[*indexPtr] = TRUE;/* Indicate the cell is unallocated */
+    nFree++;
     }
     XFreeColors(Tk_Display(tkwin), Tk_Colormap(tkwin), pixelValues, nFree, 0);
     for (colorPtr = colorArr, i = 0; i < MAXCOLORS; i++, colorPtr++) {
-	colorPtr->pixel = i;
+    colorPtr->pixel = i;
     }
     XQueryColors(Tk_Display(tkwin), Tk_Colormap(tkwin), colorArr, MAXCOLORS);
 
     resultObj = Tcl_NewListObj(0, NULL);
     for (colorPtr = colorArr, i = 0; i < MAXCOLORS; i++, colorPtr++) {
-	if (!inUse[colorPtr->pixel]) {
-	    Tcl_ListObjAppendElement(NULL, resultObj,
-		Tcl_ObjPrintf("#%02x%02x%02x",
-		    (colorPtr->red >> 8),
-		    (colorPtr->green >> 8),
-		    (colorPtr->blue >> 8)));
-	    Tcl_ListObjAppendElement(NULL, resultObj,
-		Tcl_NewWideIntObj(colorPtr->pixel));
-	}
+    if (!inUse[colorPtr->pixel]) {
+        Tcl_ListObjAppendElement(NULL, resultObj,
+        Tcl_ObjPrintf("#%02x%02x%02x",
+            (colorPtr->red >> 8),
+            (colorPtr->green >> 8),
+            (colorPtr->blue >> 8)));
+        Tcl_ListObjAppendElement(NULL, resultObj,
+        Tcl_NewWideIntObj(colorPtr->pixel));
+    }
     }
     Tcl_SetObjResult(interp, resultObj);
     return TCL_OK;
@@ -338,12 +338,12 @@ LowerOp(
     Tk_Window tkwin;
 
     for (i = 2; i < objc; i++) {
-	tkwin = Tk_NameToWindow(interp, Tcl_GetString(objv[i]),
-	    Tk_MainWindow(interp));
-	if (NULL == tkwin) {
-	    return TCL_ERROR;
-	}
-	Tk_RestackWindow(tkwin, Below, NULL);
+    tkwin = Tk_NameToWindow(interp, Tcl_GetString(objv[i]),
+        Tk_MainWindow(interp));
+    if (NULL == tkwin) {
+        return TCL_ERROR;
+    }
+    Tk_RestackWindow(tkwin, Below, NULL);
     }
     return TCL_OK;
 }
@@ -375,12 +375,12 @@ RaiseOp(
     Tk_Window tkwin;
 
     for (i = 2; i < objc; i++) {
-	tkwin = Tk_NameToWindow(interp, Tcl_GetString(objv[i]),
-	    Tk_MainWindow(interp));
-	if (NULL == tkwin) {
-	    return TCL_ERROR;
-	}
-	Tk_RestackWindow(tkwin, Above, NULL);
+    tkwin = Tk_NameToWindow(interp, Tcl_GetString(objv[i]),
+        Tk_MainWindow(interp));
+    if (NULL == tkwin) {
+        return TCL_ERROR;
+    }
+    Tk_RestackWindow(tkwin, Above, NULL);
     }
     return TCL_OK;
 }
@@ -413,27 +413,27 @@ MapOp(
 
     display = Tk_Display(Tk_MainWindow(interp));
     for (i = 2; i < objc; i++) {
-	const char *arg = Tcl_GetString(objv[i]);
-	if (arg[0] == '.') {
-	    Tk_Window tkwin;
-	    Tk_FakeWin *fakePtr;
+    const char *arg = Tcl_GetString(objv[i]);
+    if (arg[0] == '.') {
+        Tk_Window tkwin;
+        Tk_FakeWin *fakePtr;
 
-	    if (GetRealizedWindow(interp, arg, &tkwin) != TCL_OK) {
-		return TCL_ERROR;
-	    }
-	    fakePtr = (Tk_FakeWin *) tkwin;
-	    fakePtr->flags |= TK_MAPPED;
-	    window = Tk_WindowId(tkwin);
-	} else {
-	    int xid;
+        if (GetRealizedWindow(interp, arg, &tkwin) != TCL_OK) {
+        return TCL_ERROR;
+        }
+        fakePtr = (Tk_FakeWin *) tkwin;
+        fakePtr->flags |= TK_MAPPED;
+        window = Tk_WindowId(tkwin);
+    } else {
+        int xid;
 
-	    if (Tcl_GetInt(interp, arg, &xid) != TCL_OK) {
-		return TCL_ERROR;
-	    }
-	    window = (Window)xid;
-	}
+        if (Tcl_GetInt(interp, arg, &xid) != TCL_OK) {
+        return TCL_ERROR;
+        }
+        window = (Window)xid;
+    }
 /*TODO: use Tk_MapWindow instead */
-	XMapWindow(display, window);
+    XMapWindow(display, window);
     }
     return TCL_OK;
 }
@@ -466,19 +466,19 @@ MoveOp(
 //    Display *display;
 
     tkwin = Tk_NameToWindow(interp, Tcl_GetString(objv[2]),
-	Tk_MainWindow(interp));
+    Tk_MainWindow(interp));
 //    display = Tk_Display(tkwin);
 //    window = StringToWindow(interp, Tcl_GetString(objv[2]));
     if (NULL == tkwin) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     if (Tk_GetPixelsFromObj(interp, tkwin, objv[3], &x) != TCL_OK) {
-	Tcl_AppendResult(interp, ": bad window x-coordinate", (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, ": bad window x-coordinate", (char *)NULL);
+    return TCL_ERROR;
     }
     if (Tk_GetPixelsFromObj(interp, tkwin, objv[4], &y) != TCL_OK) {
-	Tcl_AppendResult(interp, ": bad window y-coordinate", (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, ": bad window y-coordinate", (char *)NULL);
+    return TCL_ERROR;
     }
 //    XMoveWindow(display, window, x, y);
     Tk_MoveWindow(tkwin, x, y);
@@ -513,28 +513,28 @@ UnmapOp(
 
     display = Tk_Display(Tk_MainWindow(interp));
     for (i = 2; i < objc; i++) {
-	const char *arg = Tcl_GetString(objv[i]);
-	if (arg[0] == '.') {
-	    Tk_Window tkwin;
-	    Tk_FakeWin *fakePtr;
+    const char *arg = Tcl_GetString(objv[i]);
+    if (arg[0] == '.') {
+        Tk_Window tkwin;
+        Tk_FakeWin *fakePtr;
 
-	    if (GetRealizedWindow(interp, arg, &tkwin) != TCL_OK) {
-		return TCL_ERROR;
-	    }
-	    fakePtr = (Tk_FakeWin *) tkwin;
-	    fakePtr->flags &= ~TK_MAPPED;
-	    window = Tk_WindowId(tkwin);
-	} else {
-	    int xid;
+        if (GetRealizedWindow(interp, arg, &tkwin) != TCL_OK) {
+        return TCL_ERROR;
+        }
+        fakePtr = (Tk_FakeWin *) tkwin;
+        fakePtr->flags &= ~TK_MAPPED;
+        window = Tk_WindowId(tkwin);
+    } else {
+        int xid;
 
-	    if (Tcl_GetInt(interp, arg, &xid) != TCL_OK) {
-		return TCL_ERROR;
-	    }
-	    window = (Window)xid;
-	}
+        if (Tcl_GetInt(interp, arg, &xid) != TCL_OK) {
+        return TCL_ERROR;
+        }
+        window = (Window)xid;
+    }
 /* TODO: use Tk_UnmapWindow instead */
 //        XMapWindow(display, window);
-	XUnmapWindow(display, window);
+    XUnmapWindow(display, window);
     }
     return TCL_OK;
 }
@@ -564,18 +564,18 @@ ChangesOp(
     Tk_Window tkwin;
 
     if (GetRealizedWindow(interp, Tcl_GetString(objv[2]), &tkwin) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     if (Tk_IsTopLevel(tkwin)) {
-	XSetWindowAttributes attrs;
-	Window window;
-	unsigned int mask;
+    XSetWindowAttributes attrs;
+    Window window;
+    unsigned int mask;
 
-	window = Rbc_GetRealWindowId(tkwin);
-	attrs.backing_store = WhenMapped;
-	attrs.save_under = True;
-	mask = CWBackingStore | CWSaveUnder;
-	XChangeWindowAttributes(Tk_Display(tkwin), window, mask, &attrs);
+    window = Rbc_GetRealWindowId(tkwin);
+    attrs.backing_store = WhenMapped;
+    attrs.save_under = True;
+    mask = CWBackingStore | CWSaveUnder;
+    XChangeWindowAttributes(Tk_Display(tkwin), window, mask, &attrs);
     }
     return TCL_OK;
 }
@@ -609,9 +609,9 @@ QueryOp(
 
     /* GetCursorPos */
     if (XQueryPointer(Tk_Display(tkwin), Tk_WindowId(tkwin), &root,
-		      &child, &rootX, &rootY, &childX, &childY, &mask)) {
+              &child, &rootX, &rootY, &childX, &childY, &mask)) {
 
-	Tcl_SetObjResult(interp, Tcl_ObjPrintf("@%d,%d", rootX, rootY));
+    Tcl_SetObjResult(interp, Tcl_ObjPrintf("@%d,%d", rootX, rootY));
     }
     return TCL_OK;
 }
@@ -642,29 +642,29 @@ WarpToOp(
     mainWindow = (Tk_Window)clientData;
 
     if (objc > 2) {
-	const char *arg = Tcl_GetString(objv[2]);
-	if (arg[0] == '@') {
-	    int x, y;
-	    Window root;
+    const char *arg = Tcl_GetString(objv[2]);
+    if (arg[0] == '@') {
+        int x, y;
+        Window root;
 
-	    if (Rbc_GetXY(interp, mainWindow, arg, &x, &y) != TCL_OK) {
-		return TCL_ERROR;
-	    }
-	    root = RootWindow(Tk_Display(mainWindow),
-			      Tk_ScreenNumber(mainWindow));
-	    XWarpPointer(Tk_Display(mainWindow), None, root, 0, 0, 0, 0, x, y);
-	} else {
-	    if (GetRealizedWindow(interp, arg, &tkwin) != TCL_OK) {
-		return TCL_ERROR;
-	    }
-	    if (!Tk_IsMapped(tkwin)) {
-		Tcl_AppendResult(interp, "can't warp to unmapped window \"",
-				 Tk_PathName(tkwin), "\"", (char *)NULL);
-		return TCL_ERROR;
-	    }
-	    XWarpPointer(Tk_Display(tkwin), None, Tk_WindowId(tkwin),
-			 0, 0, 0, 0, Tk_Width(tkwin) / 2, Tk_Height(tkwin) / 2);
-	}
+        if (Rbc_GetXY(interp, mainWindow, arg, &x, &y) != TCL_OK) {
+        return TCL_ERROR;
+        }
+        root = RootWindow(Tk_Display(mainWindow),
+                  Tk_ScreenNumber(mainWindow));
+        XWarpPointer(Tk_Display(mainWindow), None, root, 0, 0, 0, 0, x, y);
+    } else {
+        if (GetRealizedWindow(interp, arg, &tkwin) != TCL_OK) {
+        return TCL_ERROR;
+        }
+        if (!Tk_IsMapped(tkwin)) {
+        Tcl_AppendResult(interp, "can't warp to unmapped window \"",
+                 Tk_PathName(tkwin), "\"", (char *)NULL);
+        return TCL_ERROR;
+        }
+        XWarpPointer(Tk_Display(tkwin), None, Tk_WindowId(tkwin),
+             0, 0, 0, 0, Tk_Width(tkwin) / 2, Tk_Height(tkwin) / 2);
+    }
     }
     return QueryOp(clientData, interp, 0, NULL);
 }
@@ -695,17 +695,17 @@ ReparentOp(
     Tk_Window tkwin;
 
     if (GetRealizedWindow(interp, Tcl_GetString(objv[2]), &tkwin) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     if (objc == 4) {
-	Tk_Window newParent;
+    Tk_Window newParent;
 
-	if (GetRealizedWindow(interp, Tcl_GetString(objv[3]), &newParent) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	Rbc_RelinkWindow2(tkwin, Rbc_GetRealWindowId(tkwin), newParent, 0, 0);
+    if (GetRealizedWindow(interp, Tcl_GetString(objv[3]), &newParent) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    Rbc_RelinkWindow2(tkwin, Rbc_GetRealWindowId(tkwin), newParent, 0, 0);
     } else {
-	Rbc_UnlinkWindow(tkwin);
+    Rbc_UnlinkWindow(tkwin);
     }
     return TCL_OK;
 }
@@ -753,38 +753,38 @@ ConvolveOp(
 
     srcPhoto = Tk_FindPhoto(interp, srcName);
     if (srcPhoto == NULL) {
-	Tcl_AppendResult(interp, "source image \"", srcName, "\" doesn't",
-			 " exist or is not a photo image", (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "source image \"", srcName, "\" doesn't",
+             " exist or is not a photo image", (char *)NULL);
+    return TCL_ERROR;
     }
     destPhoto = Tk_FindPhoto(interp, destName);
     if (destPhoto == NULL) {
-	Tcl_AppendResult(interp, "destination image \"", destName, "\" doesn't",
-			 " exist or is not a photo image", (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "destination image \"", destName, "\" doesn't",
+             " exist or is not a photo image", (char *)NULL);
+    return TCL_ERROR;
     }
     if (Tcl_ListObjGetElements(interp, objv[4], &nValues, &valueArr) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
 
     kernel = NULL;
     if (nValues == 0) {
-	Tcl_AppendResult(interp, "empty kernel", (char *)NULL);
-	goto error;
+    Tcl_AppendResult(interp, "empty kernel", (char *)NULL);
+    goto error;
     }
     dim = (int)sqrt((double)nValues);
     if ((dim * dim) != (int)nValues) {
-	Tcl_AppendResult(interp, "kernel must be square", (char *)NULL);
-	goto error;
+    Tcl_AppendResult(interp, "kernel must be square", (char *)NULL);
+    goto error;
     }
     kernel = (double *)ckalloc(sizeof(double) * nValues);
     sum = 0.0;
     for (i = 0; i < nValues; i++) {
-	if (Tcl_GetDoubleFromObj(interp, valueArr[i], &value) != TCL_OK) {
-	    goto error;
-	}
-	kernel[i] = value;
-	sum += value;
+    if (Tcl_GetDoubleFromObj(interp, valueArr[i], &value) != TCL_OK) {
+        goto error;
+    }
+    kernel[i] = value;
+    sum += value;
     }
     filter.kernel = kernel;
     filter.support = dim * 0.5;
@@ -799,7 +799,7 @@ ConvolveOp(
     result = TCL_OK;
 error:
     if (kernel != NULL) {
-	ckfree((char *)kernel);
+    ckfree((char *)kernel);
     }
     return result;
 }
@@ -836,34 +836,34 @@ QuantizeOp(
 
     srcPhoto = Tk_FindPhoto(interp, srcName);
     if (srcPhoto == NULL) {
-	Tcl_AppendResult(interp, "source image \"", srcName, "\" doesn't",
-			 " exist or is not a photo image", (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "source image \"", srcName, "\" doesn't",
+             " exist or is not a photo image", (char *)NULL);
+    return TCL_ERROR;
     }
     Tk_PhotoGetImage(srcPhoto, &src);
     if ((src.width <= 1) || (src.height <= 1)) {
-	Tcl_AppendResult(interp, "source image \"", srcName, "\" is empty",
-			 (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "source image \"", srcName, "\" is empty",
+             (char *)NULL);
+    return TCL_ERROR;
     }
     destPhoto = Tk_FindPhoto(interp, destName);
     if (destPhoto == NULL) {
-	Tcl_AppendResult(interp, "destination image \"", destName, "\" doesn't",
-			 " exist or is not a photo image", (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "destination image \"", destName, "\" doesn't",
+             " exist or is not a photo image", (char *)NULL);
+    return TCL_ERROR;
     }
     Tk_PhotoGetImage(destPhoto, &dest);
     if ((dest.width != src.width) || (dest.height != src.height)) {
-	Tk_PhotoSetSize(interp, destPhoto, src.width, src.height);
+    Tk_PhotoSetSize(interp, destPhoto, src.width, src.height);
     }
     if (Tcl_GetIntFromObj(interp, objv[4], &nColors) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     srcImage = Rbc_PhotoToColorImage(srcPhoto);
     destImage = Rbc_PhotoToColorImage(destPhoto);
     result = Rbc_QuantizeColorImage(srcImage, destImage, nColors);
     if (result == TCL_OK) {
-	Rbc_ColorImageToPhoto(interp, destImage, destPhoto);
+    Rbc_ColorImageToPhoto(interp, destImage, destPhoto);
     }
     Rbc_FreeColorImage(srcImage);
     Rbc_FreeColorImage(destImage);
@@ -893,14 +893,14 @@ ReadJPEGOp(
     Tcl_Obj *const objv[])
 {
 #if HAVE_JPEGLIB_H
-    Tk_PhotoHandle photo;	/* The photo image to write into. */
+    Tk_PhotoHandle photo;    /* The photo image to write into. */
     const char *name = Tcl_GetString(objv[3]);
 
     photo = Tk_FindPhoto(interp, name);
     if (photo == NULL) {
-	Tcl_AppendResult(interp, "image \"", name, "\" doesn't",
-			 " exist or is not a photo image", (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "image \"", name, "\" doesn't",
+             " exist or is not a photo image", (char *)NULL);
+    return TCL_ERROR;
     }
     return Rbc_JPEGToPhoto(interp, Tcl_GetString(objv[2]), photo);
 #else
@@ -942,29 +942,29 @@ GradientOp(
     const char *name = Tcl_GetString(objv[2]);
 
     static const char *gradientTypes[] = {
-	"linear", "radial", "rectangular", "blank", NULL
+    "linear", "radial", "rectangular", "blank", NULL
     };
     enum gradienType {
-	GT_LINEAR, GT_RADIAL, GT_RECTANGULAR, GT_BLANK
+    GT_LINEAR, GT_RADIAL, GT_RECTANGULAR, GT_BLANK
     };
     int index;
 
     tkwin = Tk_MainWindow(interp);
     photo = Tk_FindPhoto(interp, name);
     if (photo == NULL) {
-	Tcl_AppendResult(interp, "source image \"", name, "\" doesn't",
-			 " exist or is not a photo image", (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "source image \"", name, "\" doesn't",
+             " exist or is not a photo image", (char *)NULL);
+    return TCL_ERROR;
     }
     Tk_PhotoGetImage(photo, &src);
     leftPtr = Tk_AllocColorFromObj(interp, tkwin, objv[3]);
     if (leftPtr == NULL) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     rightPtr = Tk_AllocColorFromObj(interp, tkwin, objv[4]);
     if (rightPtr == NULL) {
-	Tk_FreeColorFromObj(tkwin, objv[3]);
-	return TCL_ERROR;
+    Tk_FreeColorFromObj(tkwin, objv[3]);
+    return TCL_ERROR;
     }
     left[0] = (double)(leftPtr->red >> 8);
     left[1] = (double)(leftPtr->green >> 8);
@@ -977,107 +977,107 @@ GradientOp(
     destPtr = Rbc_ColorImageBits(destImage);
 
     if (Tcl_GetIndexFromObj(interp, objv[5], gradientTypes, "gradient type",
-	    0, &index) != TCL_OK) {
-	goto done;
+        0, &index) != TCL_OK) {
+    goto done;
     }
 
-#define CLAMP(c)	((((c) < 0.0) ? 0.0 : ((c) > 1.0) ? 1.0 : (c)))
+#define CLAMP(c)    ((((c) < 0.0) ? 0.0 : ((c) > 1.0) ? 1.0 : (c)))
 //    if (strcmp(argv[5], "linear") == 0) {
     switch (index) {
     case GT_LINEAR:
-	{
-	    register int x, y;
-	    double t;
+    {
+        register int x, y;
+        double t;
 
-	    for (y = 0; y < src.height; y++) {
-		for (x = 0; x < src.width; x++) {
-		    t = (double)x * (drand48() * 0.10 - 0.05);
-		    t = CLAMP(t);
-		    destPtr->Red = (unsigned char)(left[0] + t * range[0]);
-		    destPtr->Green = (unsigned char)(left[1] + t * range[1]);
-		    destPtr->Blue = (unsigned char)(left[2] + t * range[2]);
-		    destPtr->Alpha = (unsigned char)-1;
-		    destPtr++;
-		}
-	    }
-	}
-	break;
+        for (y = 0; y < src.height; y++) {
+        for (x = 0; x < src.width; x++) {
+            t = (double)x * (drand48() * 0.10 - 0.05);
+            t = CLAMP(t);
+            destPtr->Red = (unsigned char)(left[0] + t * range[0]);
+            destPtr->Green = (unsigned char)(left[1] + t * range[1]);
+            destPtr->Blue = (unsigned char)(left[2] + t * range[2]);
+            destPtr->Alpha = (unsigned char)-1;
+            destPtr++;
+        }
+        }
+    }
+    break;
 //    } else if (strcmp(argv[5], "radial") == 0) {
     case GT_RADIAL:
-	{
-	    register int x, y;
-	    register double dx, dy;
-	    double dy2;
-	    double t;
-	    double midX, midY;
+    {
+        register int x, y;
+        register double dx, dy;
+        double dy2;
+        double t;
+        double midX, midY;
 
-	    midX = midY = 0.5;
-	    for (y = 0; y < src.height; y++) {
-		dy = (y / (double)src.height) - midY;
-		dy2 = dy * dy;
-		for (x = 0; x < src.width; x++) {
-		    dx = (x / (double)src.width) - midX;
-		    t = 1.0  - (double)sqrt(dx * dx + dy2);
-		    t += t * (drand48() * 0.10 - 0.05);
-		    t = CLAMP(t);
-		    destPtr->Red = (unsigned char)(left[0] + t * range[0]);
-		    destPtr->Green = (unsigned char)(left[1] + t * range[1]);
-		    destPtr->Blue = (unsigned char)(left[2] + t * range[2]);
-		    destPtr->Alpha = (unsigned char)-1;
-		    destPtr++;
-		}
-	    }
-	}
-	break;
+        midX = midY = 0.5;
+        for (y = 0; y < src.height; y++) {
+        dy = (y / (double)src.height) - midY;
+        dy2 = dy * dy;
+        for (x = 0; x < src.width; x++) {
+            dx = (x / (double)src.width) - midX;
+            t = 1.0  - (double)sqrt(dx * dx + dy2);
+            t += t * (drand48() * 0.10 - 0.05);
+            t = CLAMP(t);
+            destPtr->Red = (unsigned char)(left[0] + t * range[0]);
+            destPtr->Green = (unsigned char)(left[1] + t * range[1]);
+            destPtr->Blue = (unsigned char)(left[2] + t * range[2]);
+            destPtr->Alpha = (unsigned char)-1;
+            destPtr++;
+        }
+        }
+    }
+    break;
 //    } else if (strcmp(argv[5], "rectangular") == 0) {
     case GT_RECTANGULAR:
-	{
-	    register int x, y;
-	    register double dx, dy;
-	    double t, px, py;
-	    double midX, midY;
-	    double cosTheta, sinTheta;
-	    double angle;
+    {
+        register int x, y;
+        register double dx, dy;
+        double t, px, py;
+        double midX, midY;
+        double cosTheta, sinTheta;
+        double angle;
 
-	    angle = M_PI_2 * -0.3;
-	    cosTheta = cos(angle);
-	    sinTheta = sin(angle);
+        angle = M_PI_2 * -0.3;
+        cosTheta = cos(angle);
+        sinTheta = sin(angle);
 
-	    midX = 0.5, midY = 0.5;
-	    for (y = 0; y < src.height; y++) {
-		dy = (y / (double)src.height) - midY;
-		for (x = 0; x < src.width; x++) {
-		    dx = (x / (double)src.width) - midX;
-		    px = dx * cosTheta - dy * sinTheta;
-		    py = dx * sinTheta + dy * cosTheta;
-		    t = FABS(px) + FABS(py);
-		    t += t * (drand48() * 0.10 - 0.05);
-		    t = CLAMP(t);
-		    destPtr->Red = (unsigned char)(left[0] + t * range[0]);
-		    destPtr->Green = (unsigned char)(left[1] + t * range[1]);
-		    destPtr->Blue = (unsigned char)(left[2] + t * range[2]);
-		    destPtr->Alpha = (unsigned char)-1;
-		    destPtr++;
-		}
-	    }
-	};
-	break;
+        midX = 0.5, midY = 0.5;
+        for (y = 0; y < src.height; y++) {
+        dy = (y / (double)src.height) - midY;
+        for (x = 0; x < src.width; x++) {
+            dx = (x / (double)src.width) - midX;
+            px = dx * cosTheta - dy * sinTheta;
+            py = dx * sinTheta + dy * cosTheta;
+            t = FABS(px) + FABS(py);
+            t += t * (drand48() * 0.10 - 0.05);
+            t = CLAMP(t);
+            destPtr->Red = (unsigned char)(left[0] + t * range[0]);
+            destPtr->Green = (unsigned char)(left[1] + t * range[1]);
+            destPtr->Blue = (unsigned char)(left[2] + t * range[2]);
+            destPtr->Alpha = (unsigned char)-1;
+            destPtr++;
+        }
+        }
+    };
+    break;
 //    } else if (strcmp(argv[5], "blank") == 0) {
     case GT_BLANK:
-	{
-	    register int x, y;
+    {
+        register int x, y;
 
-	    for (y = 0; y < src.height; y++) {
-		for (x = 0; x < src.width; x++) {
-		    destPtr->Red = (unsigned char)0xFF;
-		    destPtr->Green = (unsigned char)0xFF;
-		    destPtr->Blue = (unsigned char)0xFF;
-		    destPtr->Alpha = (unsigned char)-1;
-		    destPtr++;
-		}
-	    }
-	}
-	break;
+        for (y = 0; y < src.height; y++) {
+        for (x = 0; x < src.width; x++) {
+            destPtr->Red = (unsigned char)0xFF;
+            destPtr->Green = (unsigned char)0xFF;
+            destPtr->Blue = (unsigned char)0xFF;
+            destPtr->Alpha = (unsigned char)-1;
+            destPtr++;
+        }
+        }
+    }
+    break;
     }
 
     Rbc_ColorImageToPhoto(interp, destImage, photo);
@@ -1119,59 +1119,59 @@ ResampleOp(
 
     srcPhoto = Tk_FindPhoto(interp, srcName);
     if (srcPhoto == NULL) {
-	Tcl_AppendResult(interp, "source image \"", srcName, "\" doesn't",
-			 " exist or is not a photo image", (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "source image \"", srcName, "\" doesn't",
+             " exist or is not a photo image", (char *)NULL);
+    return TCL_ERROR;
     }
     destPhoto = Tk_FindPhoto(interp, destName);
     if (destPhoto == NULL) {
-	Tcl_AppendResult(interp, "destination image \"", destName, "\" doesn't",
-			 " exist or is not a photo image", (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "destination image \"", destName, "\" doesn't",
+             " exist or is not a photo image", (char *)NULL);
+    return TCL_ERROR;
     }
     filterObj = (objc > 4) ? objv[4] : Tcl_NewStringObj("none", -1);
     if (Rbc_GetResampleFilterFromObj(interp, filterObj, &filterPtr) != TCL_OK) {
-	Tcl_BounceRefCount(filterObj);
-	return TCL_ERROR;
+    Tcl_BounceRefCount(filterObj);
+    return TCL_ERROR;
     }
     Tcl_BounceRefCount(filterObj);
     vertFilterPtr = horzFilterPtr = filterPtr;
     if ((filterPtr != NULL) && (objc > 5)) {
-	if (Rbc_GetResampleFilterFromObj(interp, objv[5], &filterPtr) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	vertFilterPtr = filterPtr;
+    if (Rbc_GetResampleFilterFromObj(interp, objv[5], &filterPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    vertFilterPtr = filterPtr;
     }
     Tk_PhotoGetImage(srcPhoto, &src);
     if ((src.width <= 1) || (src.height <= 1)) {
-	Tcl_AppendResult(interp, "source image \"", srcName, "\" is empty",
-			 (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "source image \"", srcName, "\" is empty",
+             (char *)NULL);
+    return TCL_ERROR;
     }
     Tk_PhotoGetImage(destPhoto, &dest);
     if ((dest.width <= 1) || (dest.height <= 1)) {
-	Tk_PhotoSetSize(interp, destPhoto, src.width, src.height);
-	goto copyImage;
+    Tk_PhotoSetSize(interp, destPhoto, src.width, src.height);
+    goto copyImage;
     }
     if ((src.width == dest.width) && (src.height == dest.height)) {
 copyImage:
-	/* Source and destination image sizes are the same. Don't
-	 * resample. Simply make copy of image */
-	dest.width = src.width;
-	dest.height = src.height;
-	dest.pixelPtr = src.pixelPtr;
-	dest.pixelSize = src.pixelSize;
-	dest.pitch = src.pitch;
-	dest.offset[0] = src.offset[0];
-	dest.offset[1] = src.offset[1];
-	dest.offset[2] = src.offset[2];
-	Tk_PhotoPutBlock(interp, destPhoto, &dest, 0, 0, dest.width, dest.height, TK_PHOTO_COMPOSITE_SET);
-	return TCL_OK;
+    /* Source and destination image sizes are the same. Don't
+     * resample. Simply make copy of image */
+    dest.width = src.width;
+    dest.height = src.height;
+    dest.pixelPtr = src.pixelPtr;
+    dest.pixelSize = src.pixelSize;
+    dest.pitch = src.pitch;
+    dest.offset[0] = src.offset[0];
+    dest.offset[1] = src.offset[1];
+    dest.offset[2] = src.offset[2];
+    Tk_PhotoPutBlock(interp, destPhoto, &dest, 0, 0, dest.width, dest.height, TK_PHOTO_COMPOSITE_SET);
+    return TCL_OK;
     }
     if (filterPtr == NULL) {
-	Rbc_ResizePhoto(interp, srcPhoto, 0, 0, src.width, src.height, destPhoto);
+    Rbc_ResizePhoto(interp, srcPhoto, 0, 0, src.width, src.height, destPhoto);
     } else {
-	Rbc_ResamplePhoto(interp, srcPhoto, 0, 0, src.width, src.height, destPhoto, horzFilterPtr, vertFilterPtr);
+    Rbc_ResamplePhoto(interp, srcPhoto, 0, 0, src.width, src.height, destPhoto, horzFilterPtr, vertFilterPtr);
     }
     return TCL_OK;
 }
@@ -1206,18 +1206,18 @@ RotateOp(
 
     srcPhoto = Tk_FindPhoto(interp, srcName);
     if (srcPhoto == NULL) {
-	Tcl_AppendResult(interp, "image \"", srcName, "\" doesn't",
-			 " exist or is not a photo image", (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "image \"", srcName, "\" doesn't",
+             " exist or is not a photo image", (char *)NULL);
+    return TCL_ERROR;
     }
     destPhoto = Tk_FindPhoto(interp, destName);
     if (destPhoto == NULL) {
-	Tcl_AppendResult(interp, "destination image \"", destName, "\" doesn't",
-			 " exist or is not a photo image", (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "destination image \"", destName, "\" doesn't",
+             " exist or is not a photo image", (char *)NULL);
+    return TCL_ERROR;
     }
     if (Tcl_ExprDoubleObj(interp, objv[4], &theta) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     srcImage = Rbc_PhotoToColorImage(srcPhoto);
     destImage = Rbc_RotateColorImage(srcImage, theta);
@@ -1264,24 +1264,24 @@ SnapOp(
     tkwin = Tk_MainWindow(interp);
     window = StringToWindow(interp, wname);
     if (window == None) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     if (GetWindowSize(interp, window, &width, &height) != TCL_OK) {
-	Tcl_AppendResult(interp, "can't get window geometry of \"", wname,
-			 "\"", (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "can't get window geometry of \"", wname,
+             "\"", (char *)NULL);
+    return TCL_ERROR;
     }
     destWidth = width, destHeight = height;
     if ((objc > 4) && (Rbc_GetPixelsFromObj(interp, tkwin, objv[4],
-	    PIXELS_POSITIVE, &destWidth) != TCL_OK)) {
-	return TCL_ERROR;
+        PIXELS_POSITIVE, &destWidth) != TCL_OK)) {
+    return TCL_ERROR;
     }
     if ((objc > 5) && (Rbc_GetPixelsFromObj(interp, tkwin, objv[5],
-	    PIXELS_POSITIVE, &destHeight) != TCL_OK)) {
-	return TCL_ERROR;
+        PIXELS_POSITIVE, &destHeight) != TCL_OK)) {
+    return TCL_ERROR;
     }
     return Rbc_SnapPhoto(interp, tkwin, window, 0, 0, width, height, destWidth,
-	destHeight, Tcl_GetString(objv[3]), GAMMA);
+    destHeight, Tcl_GetString(objv[3]), GAMMA);
 }
 
 /*
@@ -1319,65 +1319,65 @@ SubsampleOp(
 
     srcPhoto = Tk_FindPhoto(interp, srcName);
     if (srcPhoto == NULL) {
-	Tcl_AppendResult(interp, "source image \"", srcName, "\" doesn't",
-			 " exist or is not a photo image", (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "source image \"", srcName, "\" doesn't",
+             " exist or is not a photo image", (char *)NULL);
+    return TCL_ERROR;
     }
     destPhoto = Tk_FindPhoto(interp, destName);
     if (destPhoto == NULL) {
-	Tcl_AppendResult(interp, "destination image \"", destName, "\" doesn't",
-	    " exist or is not a photo image", (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "destination image \"", destName, "\" doesn't",
+        " exist or is not a photo image", (char *)NULL);
+    return TCL_ERROR;
     }
     tkwin = (Tk_Window)clientData;
     flag = PIXELS_NONNEGATIVE;
     if (Rbc_GetPixelsFromObj(interp, tkwin, objv[4], flag, &x) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     if (Rbc_GetPixelsFromObj(interp, tkwin, objv[5], flag, &y) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     flag = PIXELS_POSITIVE;
     if (Rbc_GetPixelsFromObj(interp, tkwin, objv[6], flag, &width) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     if (Rbc_GetPixelsFromObj(interp, tkwin, objv[7], flag, &height) != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     filterObj = (objc > 8) ? objv[8] : Tcl_NewStringObj("box", -1);
     if (Rbc_GetResampleFilterFromObj(interp, filterObj, &filterPtr) != TCL_OK) {
-	Tcl_BounceRefCount(filterObj);
-	return TCL_ERROR;
+    Tcl_BounceRefCount(filterObj);
+    return TCL_ERROR;
     }
     Tcl_BounceRefCount(filterObj);
     vertFilterPtr = horzFilterPtr = filterPtr;
     if ((filterPtr != NULL) && (objc > 9)) {
-	if (Rbc_GetResampleFilterFromObj(interp, objv[9], &filterPtr) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	vertFilterPtr = filterPtr;
+    if (Rbc_GetResampleFilterFromObj(interp, objv[9], &filterPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    vertFilterPtr = filterPtr;
     }
     Tk_PhotoGetImage(srcPhoto, &src);
     Tk_PhotoGetImage(destPhoto, &dest);
     if ((src.width <= 1) || (src.height <= 1)) {
-	Tcl_SetObjResult(interp, Tcl_ObjPrintf("source image \"%s\" is empty",
-	    srcName));
-	return TCL_ERROR;
+    Tcl_SetObjResult(interp, Tcl_ObjPrintf("source image \"%s\" is empty",
+        srcName));
+    return TCL_ERROR;
     }
     if (((x + width) > src.width) || ((y + height) > src.height)) {
-	Tcl_SetObjResult(interp, Tcl_ObjPrintf("nonsensical dimensions "
-	    "for subregion: x=%d y=%d width=%d height=%d",
-	    x, y, width, height));
-	return TCL_ERROR;
+    Tcl_SetObjResult(interp, Tcl_ObjPrintf("nonsensical dimensions "
+        "for subregion: x=%d y=%d width=%d height=%d",
+        x, y, width, height));
+    return TCL_ERROR;
     }
     if ((dest.width <= 1) || (dest.height <= 1)) {
-	Tk_PhotoSetSize(interp, destPhoto, width, height);
+    Tk_PhotoSetSize(interp, destPhoto, width, height);
     }
     if (filterPtr == NULL) {
-	Rbc_ResizePhoto(interp, srcPhoto, x, y, width, height, destPhoto);
+    Rbc_ResizePhoto(interp, srcPhoto, x, y, width, height, destPhoto);
     } else {
-	Rbc_ResamplePhoto(interp, srcPhoto, x, y, width, height, destPhoto,
-	    horzFilterPtr, vertFilterPtr);
+    Rbc_ResamplePhoto(interp, srcPhoto, x, y, width, height, destPhoto,
+        horzFilterPtr, vertFilterPtr);
     }
 
     return TCL_OK;
@@ -1421,7 +1421,7 @@ ImageOp(
 
     proc = Rbc_GetOpFromObj(interp, imageOps, RBC_OP_ARG2, objc, objv);
     if (proc == NULL) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     clientData = (ClientData)Tk_MainWindow(interp);
     result = (*proc) (clientData, interp, objc-1, objv+1);
@@ -1480,7 +1480,7 @@ WinopCmd(
 
     proc = Rbc_GetOpFromObj(interp, winOps, RBC_OP_ARG1, objc, objv);
     if (proc == NULL) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     clientData = (ClientData)Tk_MainWindow(interp);
     result = (*proc) (clientData, interp, objc, objv);

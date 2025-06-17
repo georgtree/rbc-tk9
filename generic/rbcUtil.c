@@ -20,8 +20,8 @@ strtolower(s)
 register char *s;
 {
     while (*s != '\0') {
-	*s = tolower(UCHAR(*s));
-	s++;
+    *s = tolower(UCHAR(*s));
+    s++;
     }
 }
 #endif /* !HAVE_STRTOLOWER */
@@ -187,9 +187,9 @@ strcasecmp(s1, s2)
     unsigned char *t = (unsigned char *)s2;
 
     for ( /* empty */ ; (caseTable[*s] == caseTable[*t]); s++, t++) {
-	if (*s == '\0') {
-	    return 0;
-	}
+    if (*s == '\0') {
+        return 0;
+    }
     }
     return (caseTable[*s] - caseTable[*t]);
 }
@@ -223,12 +223,12 @@ strncasecmp(s1, s2, length)
     register unsigned char *t = (unsigned char *)s2;
 
     for ( /* empty */ ; (length > 0); s++, t++, length--) {
-	if (caseTable[*s] != caseTable[*t]) {
-	    return (caseTable[*s] - caseTable[*t]);
-	}
-	if (*s == '\0') {
-	    return 0;
-	}
+    if (caseTable[*s] != caseTable[*t]) {
+        return (caseTable[*s] - caseTable[*t]);
+    }
+    if (*s == '\0') {
+        return 0;
+    }
     }
     return 0;
 }
@@ -268,108 +268,108 @@ Rbc_DictionaryCompare(left, right)
     int secondaryDiff = 0;
 
     for (;;) {
-	if ((isdigit(UCHAR(*right))) && (isdigit(UCHAR(*left)))) {
-	    /*
-	     * There are decimal numbers embedded in the two
-	     * strings.  Compare them as numbers, rather than
-	     * strings.  If one number has more leading zeros than
-	     * the other, the number with more leading zeros sorts
-	     * later, but only as a secondary choice.
-	     */
+    if ((isdigit(UCHAR(*right))) && (isdigit(UCHAR(*left)))) {
+        /*
+         * There are decimal numbers embedded in the two
+         * strings.  Compare them as numbers, rather than
+         * strings.  If one number has more leading zeros than
+         * the other, the number with more leading zeros sorts
+         * later, but only as a secondary choice.
+         */
 
-	    zeros = 0;
-	    while ((*right == '0') && (isdigit(UCHAR(right[1])))) {
-		right++;
-		zeros--;
-	    }
-	    while ((*left == '0') && (isdigit(UCHAR(left[1])))) {
-		left++;
-		zeros++;
-	    }
-	    if (secondaryDiff == 0) {
-		secondaryDiff = zeros;
-	    }
+        zeros = 0;
+        while ((*right == '0') && (isdigit(UCHAR(right[1])))) {
+        right++;
+        zeros--;
+        }
+        while ((*left == '0') && (isdigit(UCHAR(left[1])))) {
+        left++;
+        zeros++;
+        }
+        if (secondaryDiff == 0) {
+        secondaryDiff = zeros;
+        }
 
-	    /*
-	     * The code below compares the numbers in the two
-	     * strings without ever converting them to integers.  It
-	     * does this by first comparing the lengths of the
-	     * numbers and then comparing the digit values.
-	     */
+        /*
+         * The code below compares the numbers in the two
+         * strings without ever converting them to integers.  It
+         * does this by first comparing the lengths of the
+         * numbers and then comparing the digit values.
+         */
 
-	    diff = 0;
-	    for (;;) {
-		if (diff == 0) {
-		    diff = UCHAR(*left) - UCHAR(*right);
-		}
-		right++;
-		left++;
+        diff = 0;
+        for (;;) {
+        if (diff == 0) {
+            diff = UCHAR(*left) - UCHAR(*right);
+        }
+        right++;
+        left++;
 
-		/* Ignore commas in numbers. */
-		if (*left == ',') {
-		    left++;
-		}
-		if (*right == ',') {
-		    right++;
-		}
+        /* Ignore commas in numbers. */
+        if (*left == ',') {
+            left++;
+        }
+        if (*right == ',') {
+            right++;
+        }
 
-		if (!isdigit(UCHAR(*right))) { /* INTL: digit */
-		    if (isdigit(UCHAR(*left))) { /* INTL: digit */
-			return 1;
-		    } else {
-			/*
-			 * The two numbers have the same length. See
-			 * if their values are different.
-			 */
+        if (!isdigit(UCHAR(*right))) { /* INTL: digit */
+            if (isdigit(UCHAR(*left))) { /* INTL: digit */
+            return 1;
+            } else {
+            /*
+             * The two numbers have the same length. See
+             * if their values are different.
+             */
 
-			if (diff != 0) {
-			    return diff;
-			}
-			break;
-		    }
-		} else if (!isdigit(UCHAR(*left))) { /* INTL: digit */
-		    return -1;
-		}
-	    }
-	    continue;
-	}
+            if (diff != 0) {
+                return diff;
+            }
+            break;
+            }
+        } else if (!isdigit(UCHAR(*left))) { /* INTL: digit */
+            return -1;
+        }
+        }
+        continue;
+    }
 
-	/*
-	 * Convert character to Unicode for comparison purposes.  If either
-	 * string is at the terminating null, do a byte-wise comparison and
-	 * bail out immediately.
-	 */
-	if ((*left != '\0') && (*right != '\0')) {
-	    left += Tcl_UtfToUniChar(left, &uniLeft);
-	    right += Tcl_UtfToUniChar(right, &uniRight);
-	    /*
-	     * Convert both chars to lower for the comparison, because
-	     * dictionary sorts are case insensitve.  Convert to lower, not
-	     * upper, so chars between Z and a will sort before A (where most
-	     * other interesting punctuations occur)
-	     */
-	    uniLeftLower = Tcl_UniCharToLower(uniLeft);
-	    uniRightLower = Tcl_UniCharToLower(uniRight);
-	} else {
-	    diff = UCHAR(*left) - UCHAR(*right);
-	    break;
-	}
+    /*
+     * Convert character to Unicode for comparison purposes.  If either
+     * string is at the terminating null, do a byte-wise comparison and
+     * bail out immediately.
+     */
+    if ((*left != '\0') && (*right != '\0')) {
+        left += Tcl_UtfToUniChar(left, &uniLeft);
+        right += Tcl_UtfToUniChar(right, &uniRight);
+        /*
+         * Convert both chars to lower for the comparison, because
+         * dictionary sorts are case insensitve.  Convert to lower, not
+         * upper, so chars between Z and a will sort before A (where most
+         * other interesting punctuations occur)
+         */
+        uniLeftLower = Tcl_UniCharToLower(uniLeft);
+        uniRightLower = Tcl_UniCharToLower(uniRight);
+    } else {
+        diff = UCHAR(*left) - UCHAR(*right);
+        break;
+    }
 
-	diff = uniLeftLower - uniRightLower;
-	if (diff) {
-	    return diff;
-	} else if (secondaryDiff == 0) {
-	    if (Tcl_UniCharIsUpper(uniLeft) &&
-		    Tcl_UniCharIsLower(uniRight)) {
-		secondaryDiff = -1;
-	    } else if (Tcl_UniCharIsUpper(uniRight)
-		       && Tcl_UniCharIsLower(uniLeft)) {
-		secondaryDiff = 1;
-	    }
-	}
+    diff = uniLeftLower - uniRightLower;
+    if (diff) {
+        return diff;
+    } else if (secondaryDiff == 0) {
+        if (Tcl_UniCharIsUpper(uniLeft) &&
+            Tcl_UniCharIsLower(uniRight)) {
+        secondaryDiff = -1;
+        } else if (Tcl_UniCharIsUpper(uniRight)
+               && Tcl_UniCharIsLower(uniLeft)) {
+        secondaryDiff = 1;
+        }
+    }
     }
     if (diff == 0) {
-	diff = secondaryDiff;
+    diff = secondaryDiff;
     }
     return diff;
 }
@@ -398,10 +398,10 @@ Rbc_Assert(testExpr, fileName, lineNumber)
 {
 #ifdef WINDEBUG
     PurifyPrintf("line %d of %s: Assert \"%s\" failed\n", lineNumber,
-		 fileName, testExpr);
+         fileName, testExpr);
 #endif
     fprintf(stderr, "line %d of %s: Assert \"%s\" failed\n",
-	    lineNumber, fileName, testExpr);
+        lineNumber, fileName, testExpr);
     fflush(stderr);
     abort();
 }
@@ -458,7 +458,7 @@ Rbc_DStringAppendElements (Tcl_DString *dsPtr, ...)
 
     va_start(argList, dsPtr);
     while ((elem = va_arg(argList, const char *)) != NULL) {
-	Tcl_DStringAppendElement(dsPtr, elem);
+    Tcl_DStringAppendElement(dsPtr, elem);
     }
     va_end(argList);
 }
@@ -651,14 +651,14 @@ Rbc_GetUid(string)
     Tcl_Size refCount;
 
     if (!uidInitialized) {
-	Tcl_InitHashTable(&uidTable, TCL_STRING_KEYS);
-	uidInitialized = 1;
+    Tcl_InitHashTable(&uidTable, TCL_STRING_KEYS);
+    uidInitialized = 1;
     }
     hPtr = Tcl_CreateHashEntry(&uidTable, string, &isNew);
     if (isNew) {
-	refCount = 0;
+    refCount = 0;
     } else {
-	refCount = (Tcl_Size)Tcl_GetHashValue(hPtr);
+    refCount = (Tcl_Size)Tcl_GetHashValue(hPtr);
     }
     refCount++;
     Tcl_SetHashValue(hPtr, (ClientData)refCount);
@@ -688,22 +688,22 @@ Rbc_FreeUid(uid)
     Tcl_HashEntry *hPtr;
 
     if (!uidInitialized) {
-	Tcl_InitHashTable(&uidTable, TCL_STRING_KEYS);
-	uidInitialized = 1;
+    Tcl_InitHashTable(&uidTable, TCL_STRING_KEYS);
+    uidInitialized = 1;
     }
     hPtr = Tcl_FindHashEntry(&uidTable, uid);
     if (hPtr) {
-	Tcl_Size refCount;
+    Tcl_Size refCount;
 
-	refCount = (Tcl_Size)Tcl_GetHashValue(hPtr);
-	refCount--;
-	if (refCount == 0) {
-	    Tcl_DeleteHashEntry(hPtr);
-	} else {
-	    Tcl_SetHashValue(hPtr, (ClientData)refCount);
-	}
+    refCount = (Tcl_Size)Tcl_GetHashValue(hPtr);
+    refCount--;
+    if (refCount == 0) {
+        Tcl_DeleteHashEntry(hPtr);
     } else {
-	fprintf(stderr, "tried to release unknown identifier \"%s\"\n", uid);
+        Tcl_SetHashValue(hPtr, (ClientData)refCount);
+    }
+    } else {
+    fprintf(stderr, "tried to release unknown identifier \"%s\"\n", uid);
     }
 }
 
@@ -730,12 +730,12 @@ Rbc_FindUid(string)
     Tcl_HashEntry *hPtr;
 
     if (!uidInitialized) {
-	Tcl_InitHashTable(&uidTable, TCL_STRING_KEYS);
-	uidInitialized = 1;
+    Tcl_InitHashTable(&uidTable, TCL_STRING_KEYS);
+    uidInitialized = 1;
     }
     hPtr = Tcl_FindHashEntry(&uidTable, string);
     if (hPtr == NULL) {
-	return NULL;
+    return NULL;
     }
     return (Rbc_Uid) Tcl_GetHashKey(&uidTable, hPtr);
 }
@@ -762,31 +762,31 @@ Rbc_FindUid(string)
  */
 Rbc_Op
 Rbc_GetOpFromObj(
-    Tcl_Interp *interp,		/* Interpreter to report errors to */
-    Rbc_OpSpec specArr[],	/* Op specification array */
-    int operPos,		/* Position of operation in argument list. */
-    int objc,			/* Number of arguments in the argument vector.
-				 * This includes any prefixed arguments */
-    Tcl_Obj *const objv[])	/* Argument vector */
+    Tcl_Interp *interp,        /* Interpreter to report errors to */
+    Rbc_OpSpec specArr[],    /* Op specification array */
+    int operPos,        /* Position of operation in argument list. */
+    int objc,            /* Number of arguments in the argument vector.
+                 * This includes any prefixed arguments */
+    Tcl_Obj *const objv[])    /* Argument vector */
 {
     Rbc_Op result = NULL;
     int index;
 
     if (objc <= operPos) {
-	Tcl_WrongNumArgs(interp, objc, objv, "subcommand ?arg ...?");
-	goto done;
+    Tcl_WrongNumArgs(interp, objc, objv, "subcommand ?arg ...?");
+    goto done;
     }
 
     if (Tcl_GetIndexFromObjStruct(interp, objv[operPos], specArr,
-	sizeof(Rbc_OpSpec), "subcommand", 0, &index) != TCL_OK) {
-	goto done;
+    sizeof(Rbc_OpSpec), "subcommand", 0, &index) != TCL_OK) {
+    goto done;
     }
 
     if ((objc < specArr[index].minArgs) || (
-	    (specArr[index].maxArgs > 0) &&
-	    (objc > specArr[index].maxArgs))) {
-	Tcl_WrongNumArgs(interp, operPos+1, objv, specArr[index].usage);
-	goto done;
+        (specArr[index].maxArgs > 0) &&
+        (objc > specArr[index].maxArgs))) {
+    Tcl_WrongNumArgs(interp, operPos+1, objv, specArr[index].usage);
+    goto done;
     }
     result = specArr[index].proc;
 

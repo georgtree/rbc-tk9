@@ -25,13 +25,13 @@ enum ColorIndices { RED, GREEN, BLUE };
 #define R0	(cubePtr->r0)
 #define R1	(cubePtr->r1)
 #define G0	(cubePtr->g0)
-#define G1	(cubePtr->g1)
-#define B0	(cubePtr->b0)
-#define B1	(cubePtr->b1)
+#define G1    (cubePtr->g1)
+#define B0    (cubePtr->b0)
+#define B1    (cubePtr->b1)
 
 typedef struct {
-    int r0, r1;			/* min, max values:
-				 * min exclusive max inclusive */
+    int r0, r1;            /* min, max values:
+                 * min exclusive max inclusive */
     int g0, g1;
     int b0, b1;
     int vol;
@@ -46,11 +46,11 @@ typedef struct {
  *----------------------------------------------------------------------
  */
 typedef struct {
-    long int wt[33][33][33];	/* # pixels in voxel */
-    long int mR[33][33][33];	/* Sum over voxel of red pixel values */
-    long int mG[33][33][33];	/* Sum over voxel of green pixel values */
-    long int mB[33][33][33];	/* Sum over voxel of blue pixel values */
-    long int gm2[33][33][33];	/* Variance */
+    long int wt[33][33][33];    /* # pixels in voxel */
+    long int mR[33][33][33];    /* Sum over voxel of red pixel values */
+    long int mG[33][33][33];    /* Sum over voxel of green pixel values */
+    long int mB[33][33][33];    /* Sum over voxel of blue pixel values */
+    long int gm2[33][33][33];    /* Variance */
 } ColorImageStatistics;
 
 static void ZoomImageVertically (Rbc_ColorImage src, Rbc_ColorImage dest, ResampleFilter *filterPtr);
@@ -165,15 +165,15 @@ Rbc_GammaCorrectColorImage(src, newGamma)
 
     invGamma = 1.0 / newGamma;
     for (i = 0; i < 256; i++) {
-	value = 255.0 * pow((double)i / 255.0, invGamma);
-	lut[i] = (unsigned char)CLAMP(value);
+    value = 255.0 * pow((double)i / 255.0, invGamma);
+    lut[i] = (unsigned char)CLAMP(value);
     }
     nPixels = Rbc_ColorImageWidth(src) * Rbc_ColorImageHeight(src);
     srcPtr = Rbc_ColorImageBits(src);
     for (endPtr = srcPtr + nPixels; srcPtr < endPtr; srcPtr++) {
-	srcPtr->Red = lut[srcPtr->Red];
-	srcPtr->Green = lut[srcPtr->Green];
-	srcPtr->Blue = lut[srcPtr->Blue];
+    srcPtr->Red = lut[srcPtr->Red];
+    srcPtr->Green = lut[srcPtr->Green];
+    srcPtr->Blue = lut[srcPtr->Blue];
     }
 }
 
@@ -215,10 +215,10 @@ Rbc_ColorImageToGreyscale(image)
     nPixels = width * height;
     srcPtr = Rbc_ColorImageBits(image);
     for (endPtr = srcPtr + nPixels; srcPtr < endPtr; srcPtr++) {
-	Y = ((0.212671 * (double)srcPtr->Red) +
-	     (0.715160 * (double)srcPtr->Green) +
-	     (0.072169 * (double)srcPtr->Blue));
-	srcPtr->Red = srcPtr->Green = srcPtr->Blue = (unsigned char)CLAMP(Y);
+    Y = ((0.212671 * (double)srcPtr->Red) +
+         (0.715160 * (double)srcPtr->Green) +
+         (0.072169 * (double)srcPtr->Blue));
+    srcPtr->Red = srcPtr->Green = srcPtr->Blue = (unsigned char)CLAMP(Y);
     }
 }
 
@@ -261,7 +261,7 @@ Rbc_ColorImageToPhoto(
     dest.pixelPtr = (unsigned char *)Rbc_ColorImageBits(src);
     Tk_PhotoSetSize(interp, photo, width, height);
     Tk_PhotoPutBlock(interp, photo, &dest, 0, 0, width, height,
-	TK_PHOTO_COMPOSITE_SET);
+    TK_PHOTO_COMPOSITE_SET);
 }
 
 /*
@@ -294,22 +294,22 @@ Rbc_PhotoRegionToColorImage(photo, x, y, width, height)
 
     Tk_PhotoGetImage(photo, &src);
     if (x < 0) {
-	x = 0;
+    x = 0;
     }
     if (y < 0) {
-	y = 0;
+    y = 0;
     }
     if (width < 0) {
-	width = src.width;
+    width = src.width;
     }
     if (height < 0) {
-	height = src.height;
+    height = src.height;
     }
     if ((x + width) > src.width) {
-	width = src.width - x;
+    width = src.width - x;
     }
     if ((height + y) > src.height) {
-	height = src.width - y;
+    height = src.width - y;
     }
     image = Rbc_CreateColorImage(width, height);
     destPtr = Rbc_ColorImageBits(image);
@@ -322,44 +322,44 @@ Rbc_PhotoRegionToColorImage(photo, x, y, width, height)
     offA = src.offset[3];
 
     if (src.pixelSize == 4) {
-	for (y = 0; y < height; y++) {
-	    srcData = src.pixelPtr + offset;
-	    for (x = 0; x < width; x++) {
-		destPtr->Red = srcData[offR];
-		destPtr->Green = srcData[offG];
-		destPtr->Blue = srcData[offB];
-		destPtr->Alpha = srcData[offA];
-		srcData += src.pixelSize;
-		destPtr++;
-	    }
-	    offset += src.pitch;
-	}
+    for (y = 0; y < height; y++) {
+        srcData = src.pixelPtr + offset;
+        for (x = 0; x < width; x++) {
+        destPtr->Red = srcData[offR];
+        destPtr->Green = srcData[offG];
+        destPtr->Blue = srcData[offB];
+        destPtr->Alpha = srcData[offA];
+        srcData += src.pixelSize;
+        destPtr++;
+        }
+        offset += src.pitch;
+    }
     } else if (src.pixelSize == 3) {
-	for (y = 0; y < height; y++) {
-	    srcData = src.pixelPtr + offset;
-	    for (x = 0; x < width; x++) {
-		destPtr->Red = srcData[offR];
-		destPtr->Green = srcData[offG];
-		destPtr->Blue = srcData[offB];
-		/* No transparency information */
-		destPtr->Alpha = (unsigned char)-1;
-		srcData += src.pixelSize;
-		destPtr++;
-	    }
-	    offset += src.pitch;
-	}
+    for (y = 0; y < height; y++) {
+        srcData = src.pixelPtr + offset;
+        for (x = 0; x < width; x++) {
+        destPtr->Red = srcData[offR];
+        destPtr->Green = srcData[offG];
+        destPtr->Blue = srcData[offB];
+        /* No transparency information */
+        destPtr->Alpha = (unsigned char)-1;
+        srcData += src.pixelSize;
+        destPtr++;
+        }
+        offset += src.pitch;
+    }
     } else {
-	for (y = 0; y < height; y++) {
-	    srcData = src.pixelPtr + offset;
-	    for (x = 0; x < width; x++) {
-		destPtr->Red = destPtr->Green = destPtr->Blue = srcData[offA];
-		/* No transparency information */
-		destPtr->Alpha = (unsigned char)-1;
-		srcData += src.pixelSize;
-		destPtr++;
-	    }
-	    offset += src.pitch;
-	}
+    for (y = 0; y < height; y++) {
+        srcData = src.pixelPtr + offset;
+        for (x = 0; x < width; x++) {
+        destPtr->Red = destPtr->Green = destPtr->Blue = srcData[offA];
+        /* No transparency information */
+        destPtr->Alpha = (unsigned char)-1;
+        srcData += src.pixelSize;
+        destPtr++;
+        }
+        offset += src.pitch;
+    }
     }
     return image;
 }
@@ -398,51 +398,51 @@ Rbc_PhotoToColorImage(photo)
     destPtr = Rbc_ColorImageBits(image);
     offset = 0;
     if (src.pixelSize == 4) {
-	for (y = 0; y < height; y++) {
-	    srcData = src.pixelPtr + offset;
-	    for (x = 0; x < width; x++) {
-		destPtr->Red = srcData[src.offset[0]];
-		destPtr->Green = srcData[src.offset[1]];
-		destPtr->Blue = srcData[src.offset[2]];
-		destPtr->Alpha = srcData[src.offset[3]];
-		srcData += src.pixelSize;
-		destPtr++;
-	    }
-	    offset += src.pitch;
-	}
+    for (y = 0; y < height; y++) {
+        srcData = src.pixelPtr + offset;
+        for (x = 0; x < width; x++) {
+        destPtr->Red = srcData[src.offset[0]];
+        destPtr->Green = srcData[src.offset[1]];
+        destPtr->Blue = srcData[src.offset[2]];
+        destPtr->Alpha = srcData[src.offset[3]];
+        srcData += src.pixelSize;
+        destPtr++;
+        }
+        offset += src.pitch;
+    }
     } else if (src.pixelSize == 3) {
-	for (y = 0; y < height; y++) {
-	    srcData = src.pixelPtr + offset;
-	    for (x = 0; x < width; x++) {
-		destPtr->Red = srcData[src.offset[0]];
-		destPtr->Green = srcData[src.offset[1]];
-		destPtr->Blue = srcData[src.offset[2]];
-		/* No transparency information */
-		destPtr->Alpha = (unsigned char)-1;
-		srcData += src.pixelSize;
-		destPtr++;
-	    }
-	    offset += src.pitch;
-	}
+    for (y = 0; y < height; y++) {
+        srcData = src.pixelPtr + offset;
+        for (x = 0; x < width; x++) {
+        destPtr->Red = srcData[src.offset[0]];
+        destPtr->Green = srcData[src.offset[1]];
+        destPtr->Blue = srcData[src.offset[2]];
+        /* No transparency information */
+        destPtr->Alpha = (unsigned char)-1;
+        srcData += src.pixelSize;
+        destPtr++;
+        }
+        offset += src.pitch;
+    }
     } else {
-	for (y = 0; y < height; y++) {
-	    srcData = src.pixelPtr + offset;
-	    for (x = 0; x < width; x++) {
-		destPtr->Red = destPtr->Green = destPtr->Blue =
-						    srcData[src.offset[0]];
-		/* No transparency information */
-		destPtr->Alpha = (unsigned char)-1;
-		srcData += src.pixelSize;
-		destPtr++;
-	    }
-	    offset += src.pitch;
-	}
+    for (y = 0; y < height; y++) {
+        srcData = src.pixelPtr + offset;
+        for (x = 0; x < width; x++) {
+        destPtr->Red = destPtr->Green = destPtr->Blue =
+                            srcData[src.offset[0]];
+        /* No transparency information */
+        destPtr->Alpha = (unsigned char)-1;
+        srcData += src.pixelSize;
+        destPtr++;
+        }
+        offset += src.pitch;
+    }
     }
     return image;
 }
 
 /*
- *	filter function definitions
+ *    filter function definitions
  */
 
 static ResampleFilterProc DefaultFilter;
@@ -480,11 +480,11 @@ DefaultFilter(x)
     double x;
 {
     if (x < 0.0) {
-	x = -x;
+    x = -x;
     }
     if (x < 1.0) {
-	/* f(x) = 2x^3 - 3x^2 + 1, -1 <= x <= 1 */
-	return (2.0 * x - 3.0) * x * x + 1.0;
+    /* f(x) = 2x^3 - 3x^2 + 1, -1 <= x <= 1 */
+    return (2.0 * x - 3.0) * x * x + 1.0;
     }
     return 0.0;
 }
@@ -542,7 +542,7 @@ BoxFilter(x)
     double x;
 {
     if ((x < -0.5) || (x > 0.5)) {
-	return 0.0;
+    return 0.0;
     }
     return 1.0;
 }
@@ -567,10 +567,10 @@ TriangleFilter(x)
     double x;
 {
     if (x < 0.0) {
-	x = -x;
+    x = -x;
     }
     if (x < 1.0) {
-	return (1.0 - x);
+    return (1.0 - x);
     }
     return 0.0;
 }
@@ -595,14 +595,14 @@ BellFilter(x)
     double x;
 {
     if (x < 0.0) {
-	x = -x;
+    x = -x;
     }
     if (x < 0.5) {
-	return (0.75 - (x * x));
+    return (0.75 - (x * x));
     }
     if (x < 1.5) {
-	x = (x - 1.5);
-	return (0.5 * (x * x));
+    x = (x - 1.5);
+    return (0.5 * (x * x));
     }
     return 0.0;
 }
@@ -629,14 +629,14 @@ BSplineFilter(x)
     double x2;
 
     if (x < 0.0) {
-	x = -x;
+    x = -x;
     }
     if (x < 1) {
-	x2 = x * x;
-	return ((.5 * x2 * x) - x2 + (2.0 / 3.0));
+    x2 = x * x;
+    return ((.5 * x2 * x) - x2 + (2.0 / 3.0));
     } else if (x < 2) {
-	x = 2 - x;
-	return ((x * x * x) / 6.0);
+    x = 2 - x;
+    return ((x * x * x) / 6.0);
     }
     return 0.0;
 }
@@ -644,8 +644,8 @@ BSplineFilter(x)
 /*
  *
  * Infinite Filters:
- *      Sinc		perfect lowpass filter
- *      Bessel		circularly symmetric 2-D filter
+ *      Sinc        perfect lowpass filter
+ *      Bessel        circularly symmetric 2-D filter
  *      Gaussian
  *      Lanczos3
  *      Mitchell
@@ -672,7 +672,7 @@ SincFilter(x)
 {
     x *= M_PI;
     if (x == 0.0) {
-	return 1.0;
+    return 1.0;
     }
     return (sin(x) / x);
 }
@@ -711,7 +711,7 @@ BesselFilter(x)
 #endif
 }
 
-#define SQRT_2PI	0.79788456080286541	/* sqrt(2.0 / M_PI) */
+#define SQRT_2PI    0.79788456080286541    /* sqrt(2.0 / M_PI) */
 
 /*
  *--------------------------------------------------------------
@@ -755,16 +755,16 @@ Lanczos3Filter(x)
     double x;
 {
     if (x < 0) {
-	x = -x;
+    x = -x;
     }
     if (x < 3.0) {
-	return (SincFilter(x) * SincFilter(x / 3.0));
+    return (SincFilter(x) * SincFilter(x / 3.0));
     }
     return 0.0;
 }
 
-#define	B		0.3333333333333333	/* (1.0 / 3.0) */
-#define	C		0.3333333333333333	/* (1.0 / 3.0) */
+#define    B        0.3333333333333333    /* (1.0 / 3.0) */
+#define    C        0.3333333333333333    /* (1.0 / 3.0) */
 
 /*
  *--------------------------------------------------------------
@@ -789,16 +789,16 @@ MitchellFilter(x)
 
     x2 = x * x;
     if (x < 0) {
-	x = -x;
+    x = -x;
     }
     if (x < 1.0) {
-	x = (((12.0 - 9.0 * B - 6.0 * C) * (x * x2)) +
-	     ((-18.0 + 12.0 * B + 6.0 * C) * x2) + (6.0 - 2 * B));
-	return (x / 6.0);
+    x = (((12.0 - 9.0 * B - 6.0 * C) * (x * x2)) +
+         ((-18.0 + 12.0 * B + 6.0 * C) * x2) + (6.0 - 2 * B));
+    return (x / 6.0);
     } else if (x < 2.0) {
-	x = (((-1.0 * B - 6.0 * C) * (x * x2)) + ((6.0 * B + 30.0 * C) * x2) +
-	     ((-12.0 * B - 48.0 * C) * x) + (8.0 * B + 24 * C));
-	return (x / 6.0);
+    x = (((-1.0 * B - 6.0 * C) * (x * x2)) + ((6.0 * B + 30.0 * C) * x2) +
+         ((-12.0 * B - 48.0 * C) * x) + (8.0 * B + 24 * C));
+    return (x / 6.0);
     }
     return 0.0;
 }
@@ -823,19 +823,19 @@ CatRomFilter(x)
     double x;
 {
     if (x < -2.) {
-	return 0.0;
+    return 0.0;
     }
     if (x < -1.0) {
-	return 0.5 * (4.0 + x * (8.0 + x * (5.0 + x)));
+    return 0.5 * (4.0 + x * (8.0 + x * (5.0 + x)));
     }
     if (x < 0.0) {
-	return 0.5 * (2.0 + x * x * (-5.0 + x * -3.0));
+    return 0.5 * (2.0 + x * x * (-5.0 + x * -3.0));
     }
     if (x < 1.0) {
-	return 0.5 * (2.0 + x * x * (-5.0 + x * 3.0));
+    return 0.5 * (2.0 + x * x * (-5.0 + x * 3.0));
     }
     if (x < 2.0) {
-	return 0.5 * (4.0 + x * (-8.0 + x * (5.0 - x)));
+    return 0.5 * (4.0 + x * (-8.0 + x * (5.0 - x)));
     }
     return 0.0;
 }
@@ -860,43 +860,43 @@ GiFilter(x)
     double x;
 {
     if (x > 1.5) {
-	return 0.0;
+    return 0.0;
     } else if (x < -1.5) {
-	return 1.0;
+    return 1.0;
     } else {
 #define I6 0.166666666666667
 #define I4 0.25
 #define I3 0.333333333333333
-	double x2 = x * x;
-	double x3 = x2 * x;
+    double x2 = x * x;
+    double x3 = x2 * x;
 
-	if (x > 0.5) {
-	    return .5625  - ( x3 * I6 - 3 * x2 * I4 + 1.125 * x);
-	} else if (x > -0.5) {
-	    return 0.5    - (0.75 * x - x3 * I3);
-	} else {
-	    return 0.4375 + (-x3 * I6 - 3 * x2 * I4 - 1.125 * x);
-	}
+    if (x > 0.5) {
+        return .5625  - ( x3 * I6 - 3 * x2 * I4 + 1.125 * x);
+    } else if (x > -0.5) {
+        return 0.5    - (0.75 * x - x3 * I3);
+    } else {
+        return 0.4375 + (-x3 * I6 - 3 * x2 * I4 - 1.125 * x);
+    }
     }
 }
 
 static ResampleFilter filterTable[] = {
-    /* name,     function,		support */
-    {"bell",     BellFilter,		1.5	 },
-    {"bessel",   BesselFilter,		3.2383   },
-    {"box",      BoxFilter,		0.5      },
-    {"bspline",  BSplineFilter,		2.0	 },
-    {"catrom",   CatRomFilter,		2.0	 },
-    {"default",  DefaultFilter,		1.0	 },
-    {"dummy",    DummyFilter,		0.5	 },
-    {"gauss8",   GaussianFilter,	8.0	 },
-    {"gaussian", GaussianFilter,	1.25	 },
-    {"gi",	 GiFilter,		1.25	 },
-    {"lanczos3", Lanczos3Filter,	3.0	 },
-    {"mitchell", MitchellFilter,	2.0	 },
-    {"none",     (ResampleFilterProc *)NULL,	0.0	 },
-    {"sinc",     SincFilter,		4.0	 },
-    {"triangle", TriangleFilter,	1.0	 },
+    /* name,     function,        support */
+    {"bell",     BellFilter,        1.5     },
+    {"bessel",   BesselFilter,        3.2383   },
+    {"box",      BoxFilter,        0.5      },
+    {"bspline",  BSplineFilter,        2.0     },
+    {"catrom",   CatRomFilter,        2.0     },
+    {"default",  DefaultFilter,        1.0     },
+    {"dummy",    DummyFilter,        0.5     },
+    {"gauss8",   GaussianFilter,    8.0     },
+    {"gaussian", GaussianFilter,    1.25     },
+    {"gi",     GiFilter,        1.25     },
+    {"lanczos3", Lanczos3Filter,    3.0     },
+    {"mitchell", MitchellFilter,    2.0     },
+    {"none",     (ResampleFilterProc *)NULL,    0.0     },
+    {"sinc",     SincFilter,        4.0     },
+    {"triangle", TriangleFilter,    1.0     },
     {NULL, NULL, 0.0}
 };
 
@@ -930,8 +930,8 @@ Rbc_GetResampleFilterFromObj(
     int index;
 
     if (Tcl_GetIndexFromObjStruct(interp, filterObj, filterTable,
-	    sizeof(ResampleFilter), "filter", 0, &index) != TCL_OK) {
-	return TCL_ERROR;
+        sizeof(ResampleFilter), "filter", 0, &index) != TCL_OK) {
+    return TCL_ERROR;
     }
     *filterPtrPtr = filterTable[index].proc == NULL ? NULL : &(filterTable[index]);
     return TCL_OK;
@@ -945,48 +945,48 @@ Rbc_GetResampleFilterFromObj(
  *
  * The following operations are defined:
  *
- *	S * n		Scaled integer times an integer.
- *	S1 + S2		Scaled integer plus another scaled integer.
+ *    S * n        Scaled integer times an integer.
+ *    S1 + S2        Scaled integer plus another scaled integer.
  *
  */
 
-#define float2si(f)	(int)((f) * 16384.0 + 0.5)
-#define uchar2si(b)	(((int)(b)) << 14)
-#define si2int(s)	(((s) + 8192) >> 14)
+#define float2si(f)    (int)((f) * 16384.0 + 0.5)
+#define uchar2si(b)    (((int)(b)) << 14)
+#define si2int(s)    (((s) + 8192) >> 14)
 
 #ifdef notdef
 typedef struct {
     int pixel;
     union Weight {
-	int i;			/* Fixed point, scaled integer. */
-	float f;
+    int i;            /* Fixed point, scaled integer. */
+    float f;
     } weight;
 } Sample;
 
 typedef struct {
-    int count;			/* Number of contributors */
-    Sample *samples;		/* Array of contributors */
+    int count;            /* Number of contributors */
+    Sample *samples;        /* Array of contributors */
 } Contribution;
 
 typedef struct {
     int pixel;
     union Weight {
-	int i;			/* Fixed point, scaled integer. */
-	float f;
+    int i;            /* Fixed point, scaled integer. */
+    float f;
     } weight;
 } Sample;
 #endif
 
 
 typedef union {
-    int i;			/* Fixed point, scaled integer. */
+    int i;            /* Fixed point, scaled integer. */
     float f;
 } Weight;
 
 typedef struct {
-    int count;			/* Number of samples. */
+    int count;            /* Number of samples. */
     int start;
-    Weight weights[1];		/* Array of weights. */
+    Weight weights[1];        /* Array of weights. */
 } Sample;
 
 /*
@@ -1017,7 +1017,7 @@ ComputeWeights(srcWidth, destWidth, filterPtr, samplePtrPtr)
     register Sample *s;
     register Weight *weight;
     register int x, i;
-    register int left, right;	/* filter bounds */
+    register int left, right;    /* filter bounds */
     double factor, sum;
     size_t size;
 
@@ -1025,84 +1025,84 @@ ComputeWeights(srcWidth, destWidth, filterPtr, samplePtrPtr)
     scale = (double)destWidth / (double)srcWidth;
 
     if (scale < 1.0) {
-	double radius, fscale;
+    double radius, fscale;
 
-	/* Downsample */
+    /* Downsample */
 
-	radius = filterPtr->support / scale;
-	fscale = 1.0 / scale;
-	filterSize = (int)(radius * 2 + 2);
+    radius = filterPtr->support / scale;
+    fscale = 1.0 / scale;
+    filterSize = (int)(radius * 2 + 2);
 
-	size = sizeof(Sample) + (filterSize - 1) * sizeof(Weight);
-	samples = RbcCalloc(destWidth, size);
-	assert(samples);
+    size = sizeof(Sample) + (filterSize - 1) * sizeof(Weight);
+    samples = RbcCalloc(destWidth, size);
+    assert(samples);
 
-	s = samples;
-	for (x = 0; x < destWidth; x++) {
-	    center = (double)x * fscale;
+    s = samples;
+    for (x = 0; x < destWidth; x++) {
+        center = (double)x * fscale;
 
-	    /* Determine bounds of filter and its density */
-	    left = (int)(center - radius + 0.5);
-	    if (left < 0) {
-		left = 0;
-	    }
-	    right = (int)(center + radius + 0.5);
-	    if (right >= srcWidth) {
-		right = srcWidth - 1;
-	    }
-	    sum = 0.0;
-	    s->start = left;
-	    for (weight = s->weights, i = left; i <= right; i++, weight++) {
-		weight->f = (float)
-			    (*filterPtr->proc) (((double)i + 0.5 - center) * scale);
-		sum += weight->f;
-	    }
-	    s->count = right - left + 1;
+        /* Determine bounds of filter and its density */
+        left = (int)(center - radius + 0.5);
+        if (left < 0) {
+        left = 0;
+        }
+        right = (int)(center + radius + 0.5);
+        if (right >= srcWidth) {
+        right = srcWidth - 1;
+        }
+        sum = 0.0;
+        s->start = left;
+        for (weight = s->weights, i = left; i <= right; i++, weight++) {
+        weight->f = (float)
+                (*filterPtr->proc) (((double)i + 0.5 - center) * scale);
+        sum += weight->f;
+        }
+        s->count = right - left + 1;
 
-	    factor = (sum == 0.0) ? 1.0 : (1.0 / sum);
-	    for (weight = s->weights, i = left; i <= right; i++, weight++) {
-		weight->f = (float)(weight->f * factor);
-		weight->i = float2si(weight->f);
-	    }
-	    s = (Sample *)((char *)s + size);
-	}
+        factor = (sum == 0.0) ? 1.0 : (1.0 / sum);
+        for (weight = s->weights, i = left; i <= right; i++, weight++) {
+        weight->f = (float)(weight->f * factor);
+        weight->i = float2si(weight->f);
+        }
+        s = (Sample *)((char *)s + size);
+    }
     } else {
-	double fscale;
-	/* Upsample */
+    double fscale;
+    /* Upsample */
 
-	filterSize = (int)(filterPtr->support * 2 + 2);
-	size = sizeof(Sample) + (filterSize - 1) * sizeof(Weight);
-	samples = RbcCalloc(destWidth, size);
-	assert(samples);
+    filterSize = (int)(filterPtr->support * 2 + 2);
+    size = sizeof(Sample) + (filterSize - 1) * sizeof(Weight);
+    samples = RbcCalloc(destWidth, size);
+    assert(samples);
 
-	fscale = 1.0 / scale;
+    fscale = 1.0 / scale;
 
-	s = samples;
-	for (x = 0; x < destWidth; x++) {
-	    center = (double)x * fscale;
-	    left = (int)(center - filterPtr->support + 0.5);
-	    if (left < 0) {
-		left = 0;
-	    }
-	    right = (int)(center + filterPtr->support + 0.5);
-	    if (right >= srcWidth) {
-		right = srcWidth - 1;
-	    }
-	    sum = 0.0;
-	    s->start = left;
-	    for (weight = s->weights, i = left; i <= right; i++, weight++) {
-		weight->f = (float)
-			    (*filterPtr->proc) ((double)i - center + 0.5);
-		sum += weight->f;
-	    }
-	    s->count = right - left + 1;
-	    factor = (sum == 0.0) ? 1.0 : (1.0 / sum);
-	    for (weight = s->weights, i = left; i <= right; i++, weight++) {
-		weight->f = (float)(weight->f * factor);
-		weight->i = float2si(weight->f);
-	    }
-	    s = (Sample *)((char *)s + size);
-	}
+    s = samples;
+    for (x = 0; x < destWidth; x++) {
+        center = (double)x * fscale;
+        left = (int)(center - filterPtr->support + 0.5);
+        if (left < 0) {
+        left = 0;
+        }
+        right = (int)(center + filterPtr->support + 0.5);
+        if (right >= srcWidth) {
+        right = srcWidth - 1;
+        }
+        sum = 0.0;
+        s->start = left;
+        for (weight = s->weights, i = left; i <= right; i++, weight++) {
+        weight->f = (float)
+                (*filterPtr->proc) ((double)i - center + 0.5);
+        sum += weight->f;
+        }
+        s->count = right - left + 1;
+        factor = (sum == 0.0) ? 1.0 : (1.0 / sum);
+        for (weight = s->weights, i = left; i <= right; i++, weight++) {
+        weight->f = (float)(weight->f * factor);
+        weight->i = float2si(weight->f);
+        }
+        s = (Sample *)((char *)s + size);
+    }
     }
     *samplePtrPtr = samples;
     return size;
@@ -1143,7 +1143,7 @@ ZoomImageVertically(src, dest, filterPtr)
     register Pix32 *srcPtr, *destPtr;
     register Weight *weight;
     int x, i;
-    size_t size;		/* Size of sample. */
+    size_t size;        /* Size of sample. */
 
     srcWidth = Rbc_ColorImageWidth(src);
     srcHeight = Rbc_ColorImageHeight(src);
@@ -1156,25 +1156,25 @@ ZoomImageVertically(src, dest, filterPtr)
 
     /* Apply filter to zoom vertically from tmp to destination */
     for (x = 0; x < srcWidth; x++) {
-	srcColumnPtr = Rbc_ColorImageBits(src) + x;
-	destPtr = Rbc_ColorImageBits(dest) + x;
-	for (s = samples; s < endPtr; s = (Sample *)((char *)s + size)) {
-	    red = green = blue = alpha = 0;
-	    srcPtr = srcColumnPtr + (s->start * srcWidth);
-	    for (weight = s->weights, i = 0; i < s->count; i++, weight++) {
-		red += srcPtr->Red * weight->i;
-		green += srcPtr->Green * weight->i;
-		blue += srcPtr->Blue * weight->i;
-		alpha += srcPtr->Alpha * weight->i;
-		srcPtr += srcWidth;
-	    }
-	    destPtr->Red = SICLAMP(red);
-	    destPtr->Green = SICLAMP(green);
-	    destPtr->Blue = SICLAMP(blue);
-	    destPtr->Alpha = SICLAMP(alpha);
-	    destPtr += destWidth;
+    srcColumnPtr = Rbc_ColorImageBits(src) + x;
+    destPtr = Rbc_ColorImageBits(dest) + x;
+    for (s = samples; s < endPtr; s = (Sample *)((char *)s + size)) {
+        red = green = blue = alpha = 0;
+        srcPtr = srcColumnPtr + (s->start * srcWidth);
+        for (weight = s->weights, i = 0; i < s->count; i++, weight++) {
+        red += srcPtr->Red * weight->i;
+        green += srcPtr->Green * weight->i;
+        blue += srcPtr->Blue * weight->i;
+        alpha += srcPtr->Alpha * weight->i;
+        srcPtr += srcWidth;
+        }
+        destPtr->Red = SICLAMP(red);
+        destPtr->Green = SICLAMP(green);
+        destPtr->Blue = SICLAMP(blue);
+        destPtr->Alpha = SICLAMP(alpha);
+        destPtr += destWidth;
 
-	}
+    }
     }
     /* Free the memory allocated for filter weights */
     ckfree((char *)samples);
@@ -1208,7 +1208,7 @@ ZoomImageHorizontally(src, dest, filterPtr)
     int y, i;
     register Pix32 *srcPtr, *destPtr;
     register Pix32 *srcRowPtr;
-    size_t size;		/* Size of sample. */
+    size_t size;        /* Size of sample. */
 
     srcWidth = Rbc_ColorImageWidth(src);
     srcHeight = Rbc_ColorImageHeight(src);
@@ -1222,23 +1222,23 @@ ZoomImageHorizontally(src, dest, filterPtr)
     srcRowPtr = Rbc_ColorImageBits(src);
     destPtr = Rbc_ColorImageBits(dest);
     for (y = 0; y < srcHeight; y++) {
-	for (s = samples; s < endPtr; s = (Sample *)((char *)s + size)) {
-	    red = green = blue = alpha = 0;
-	    srcPtr = srcRowPtr + s->start;
-	    for (weight = s->weights, i = 0; i < s->count; i++, weight++) {
-		red += srcPtr->Red * weight->i;
-		green += srcPtr->Green * weight->i;
-		blue += srcPtr->Blue * weight->i;
-		alpha += srcPtr->Alpha * weight->i;
-		srcPtr++;
-	    }
-	    destPtr->Red = SICLAMP(red);
-	    destPtr->Green = SICLAMP(green);
-	    destPtr->Blue = SICLAMP(blue);
-	    destPtr->Alpha = SICLAMP(alpha);
-	    destPtr++;
-	}
-	srcRowPtr += srcWidth;
+    for (s = samples; s < endPtr; s = (Sample *)((char *)s + size)) {
+        red = green = blue = alpha = 0;
+        srcPtr = srcRowPtr + s->start;
+        for (weight = s->weights, i = 0; i < s->count; i++, weight++) {
+        red += srcPtr->Red * weight->i;
+        green += srcPtr->Green * weight->i;
+        blue += srcPtr->Blue * weight->i;
+        alpha += srcPtr->Alpha * weight->i;
+        srcPtr++;
+        }
+        destPtr->Red = SICLAMP(red);
+        destPtr->Green = SICLAMP(green);
+        destPtr->Blue = SICLAMP(blue);
+        destPtr->Alpha = SICLAMP(alpha);
+        destPtr++;
+    }
+    srcRowPtr += srcWidth;
     }
     /* free the memory allocated for horizontal filter weights */
     ckfree((char *)samples);
@@ -1315,7 +1315,7 @@ Rbc_ResamplePhoto(interp, srcPhoto, x, y, width, height, destPhoto, horzFilterPt
     Tk_PhotoGetImage(destPhoto, &dest);
     srcImage = Rbc_PhotoRegionToColorImage(srcPhoto, x, y, width, height);
     destImage = Rbc_ResampleColorImage(srcImage, dest.width, dest.height,
-				       horzFilterPtr, vertFilterPtr);
+                       horzFilterPtr, vertFilterPtr);
     Rbc_FreeColorImage(srcImage);
     Rbc_ColorImageToPhoto(interp, destImage, destPhoto);
     Rbc_FreeColorImage(destImage);
@@ -1346,12 +1346,12 @@ Rbc_ResizePhoto(interp, srcPhoto, x, y, width, height, destPhoto)
     Tcl_Interp *interp;
     Tk_PhotoHandle srcPhoto; /* Source photo image to scaled. */
     register int x, y; /* Region of source photo to be
-			* scaled. */
+            * scaled. */
     int width, height;
     Tk_PhotoHandle destPhoto; /* (out) Resulting scaled photo image.
-			       * Scaling factors are derived from
-			       * the destination photo's
-			       * dimensions. */
+                   * Scaling factors are derived from
+                   * the destination photo's
+                   * dimensions. */
 {
     double xScale, yScale;
     Rbc_ColorImage destImage;
@@ -1372,55 +1372,55 @@ Rbc_ResizePhoto(interp, srcPhoto, x, y, width, height, destPhoto)
     mapX = (int *)ckalloc(sizeof(int) * dest.width);
     mapY = (int *)ckalloc(sizeof(int) * dest.height);
     for (x = 0; x < dest.width; x++) {
-	sx = (int)(xScale * (double)(x + left));
-	if (sx > right) {
-	    sx = right;
-	}
-	mapX[x] = sx;
+    sx = (int)(xScale * (double)(x + left));
+    if (sx > right) {
+        sx = right;
+    }
+    mapX[x] = sx;
     }
     for (y = 0; y < dest.height; y++) {
-	sy = (int)(yScale * (double)(y + top));
-	if (sy > bottom) {
-	    sy = bottom;
-	}
-	mapY[y] = sy;
+    sy = (int)(yScale * (double)(y + top));
+    if (sy > bottom) {
+        sy = bottom;
+    }
+    mapY[y] = sy;
     }
     destPtr = Rbc_ColorImageBits(destImage);
     if (src.pixelSize == 4) {
-	for (y = 0; y < dest.height; y++) {
-	    srcRowPtr = src.pixelPtr + (mapY[y] * src.pitch);
-	    for (x = 0; x < dest.width; x++) {
-		srcPtr = srcRowPtr + (mapX[x] * src.pixelSize);
-		destPtr->Red = srcPtr[src.offset[0]];
-		destPtr->Green = srcPtr[src.offset[1]];
-		destPtr->Blue = srcPtr[src.offset[2]];
-		destPtr->Alpha = srcPtr[src.offset[3]];
-		destPtr++;
-	    }
-	}
+    for (y = 0; y < dest.height; y++) {
+        srcRowPtr = src.pixelPtr + (mapY[y] * src.pitch);
+        for (x = 0; x < dest.width; x++) {
+        srcPtr = srcRowPtr + (mapX[x] * src.pixelSize);
+        destPtr->Red = srcPtr[src.offset[0]];
+        destPtr->Green = srcPtr[src.offset[1]];
+        destPtr->Blue = srcPtr[src.offset[2]];
+        destPtr->Alpha = srcPtr[src.offset[3]];
+        destPtr++;
+        }
+    }
     } else if (src.pixelSize == 3) {
-	for (y = 0; y < dest.height; y++) {
-	    srcRowPtr = src.pixelPtr + (mapY[y] * src.pitch);
-	    for (x = 0; x < dest.width; x++) {
-		srcPtr = srcRowPtr + (mapX[x] * src.pixelSize);
-		destPtr->Red = srcPtr[src.offset[0]];
-		destPtr->Green = srcPtr[src.offset[1]];
-		destPtr->Blue = srcPtr[src.offset[2]];
-		destPtr->Alpha = (unsigned char)-1;
-		destPtr++;
-	    }
-	}
+    for (y = 0; y < dest.height; y++) {
+        srcRowPtr = src.pixelPtr + (mapY[y] * src.pitch);
+        for (x = 0; x < dest.width; x++) {
+        srcPtr = srcRowPtr + (mapX[x] * src.pixelSize);
+        destPtr->Red = srcPtr[src.offset[0]];
+        destPtr->Green = srcPtr[src.offset[1]];
+        destPtr->Blue = srcPtr[src.offset[2]];
+        destPtr->Alpha = (unsigned char)-1;
+        destPtr++;
+        }
+    }
     } else  {
-	for (y = 0; y < dest.height; y++) {
-	    srcRowPtr = src.pixelPtr + (mapY[y] * src.pitch);
-	    for (x = 0; x < dest.width; x++) {
-		srcPtr = srcRowPtr + (mapX[x] * src.pixelSize);
-		destPtr->Red = destPtr->Green = destPtr->Blue =
-						    srcPtr[src.offset[0]];
-		destPtr->Alpha = (unsigned char)-1;
-		destPtr++;
-	    }
-	}
+    for (y = 0; y < dest.height; y++) {
+        srcRowPtr = src.pixelPtr + (mapY[y] * src.pitch);
+        for (x = 0; x < dest.width; x++) {
+        srcPtr = srcRowPtr + (mapX[x] * src.pixelSize);
+        destPtr->Red = destPtr->Green = destPtr->Blue =
+                            srcPtr[src.offset[0]];
+        destPtr->Alpha = (unsigned char)-1;
+        destPtr++;
+        }
+    }
     }
     ckfree((char *)mapX);
     ckfree((char *)mapY);
@@ -1453,7 +1453,7 @@ Rbc_ResizeColorImage(src, x, y, width, height, destWidth, destHeight)
     register int x, y; /* Region of source image to scaled. */
     int width, height;
     int destWidth, destHeight; /* Requested dimensions of the scaled
-				* image. */
+                * image. */
 {
     register int sx, sy;
     double xScale, yScale;
@@ -1471,28 +1471,28 @@ Rbc_ResizeColorImage(src, x, y, width, height, destWidth, destHeight)
     mapX = (int *)ckalloc(sizeof(int) * destWidth);
     mapY = (int *)ckalloc(sizeof(int) * destHeight);
     for (x = 0; x < destWidth; x++) {
-	sx = (int)(xScale * (double)(x + left));
-	if (sx > right) {
-	    sx = right;
-	}
-	mapX[x] = sx;
+    sx = (int)(xScale * (double)(x + left));
+    if (sx > right) {
+        sx = right;
+    }
+    mapX[x] = sx;
     }
     for (y = 0; y < destHeight; y++) {
-	sy = (int)(yScale * (double)(y + top));
-	if (sy > bottom) {
-	    sy = bottom;
-	}
-	mapY[y] = sy;
+    sy = (int)(yScale * (double)(y + top));
+    if (sy > bottom) {
+        sy = bottom;
+    }
+    mapY[y] = sy;
     }
     destPtr = Rbc_ColorImageBits(dest);
     for (y = 0; y < destHeight; y++) {
-	srcRowPtr = Rbc_ColorImageBits(src) +
-		    (Rbc_ColorImageWidth(src) * mapY[y]);
-	for (x = 0; x < destWidth; x++) {
-	    srcPtr = srcRowPtr + mapX[x];
-	    destPtr->value = srcPtr->value; /* Copy the pixel. */
-	    destPtr++;
-	}
+    srcRowPtr = Rbc_ColorImageBits(src) +
+            (Rbc_ColorImageWidth(src) * mapY[y]);
+    for (x = 0; x < destWidth; x++) {
+        srcPtr = srcRowPtr + mapX[x];
+        destPtr->value = srcPtr->value; /* Copy the pixel. */
+        destPtr++;
+    }
     }
     ckfree((char *)mapX);
     ckfree((char *)mapY);
@@ -1520,13 +1520,13 @@ Rbc_ResizeColorImage(src, x, y, width, height, destWidth, destHeight)
  */
 Rbc_ColorImage
 Rbc_ResizeColorSubimage(src, regionX, regionY, regionWidth,
-		regionHeight, destWidth, destHeight)
+        regionHeight, destWidth, destHeight)
     Rbc_ColorImage src; /* Source color image to be scaled. */
     int regionX;
     int regionY; /* Offset of subimage in destination. */
     int regionWidth, regionHeight;  /* Dimension of subimage. */
     int destWidth, destHeight; /* Dimensions of the entire scaled
-				* image. */
+                * image. */
 {
     Rbc_ColorImage dest;
     Pix32 *srcPtr, *srcRowPtr, *destPtr;
@@ -1546,30 +1546,30 @@ Rbc_ResizeColorSubimage(src, regionX, regionY, regionWidth,
 
     /* Precompute scaling factors for each row and column. */
     for (x = 0; x < regionWidth; x++) {
-	sx = (int)(xScale * (double)(x + regionX));
-	if (sx >= srcWidth) {
-	    sx = srcWidth - 1;
-	}
-	mapX[x] = sx;
+    sx = (int)(xScale * (double)(x + regionX));
+    if (sx >= srcWidth) {
+        sx = srcWidth - 1;
+    }
+    mapX[x] = sx;
     }
     for (y = 0; y < regionHeight; y++) {
-	sy = (int)(yScale * (double)(y + regionY));
-	if (sy > srcHeight) {
-	    sy = srcHeight - 1;
-	}
-	mapY[y] = sy;
+    sy = (int)(yScale * (double)(y + regionY));
+    if (sy > srcHeight) {
+        sy = srcHeight - 1;
+    }
+    mapY[y] = sy;
     }
 
     dest = Rbc_CreateColorImage(regionWidth, regionHeight);
     destPtr = Rbc_ColorImageBits(dest);
     for (y = 0; y < regionHeight; y++) {
-	srcRowPtr = Rbc_ColorImageBits(src) +
-		    (Rbc_ColorImageWidth(src) * mapY[y]);
-	for (x = 0; x < regionWidth; x++) {
-	    srcPtr = srcRowPtr + mapX[x];
-	    destPtr->value = srcPtr->value; /* Copy the pixel. */
-	    destPtr++;
-	}
+    srcRowPtr = Rbc_ColorImageBits(src) +
+            (Rbc_ColorImageWidth(src) * mapY[y]);
+    for (x = 0; x < regionWidth; x++) {
+        srcPtr = srcRowPtr + mapX[x];
+        destPtr->value = srcPtr->value; /* Copy the pixel. */
+        destPtr++;
+    }
     }
     ckfree((char *)mapX);
     ckfree((char *)mapY);
@@ -1600,7 +1600,7 @@ Rbc_ConvolveColorImage(src, filterPtr)
 {
     Rbc_ColorImage dest;
     register Pix32 *srcPtr, *destPtr;
-#define MAXROWS	24
+#define MAXROWS    24
     register int sx, sy, dx, dy;
     register int x, y;
     double red, green, blue;
@@ -1614,47 +1614,47 @@ Rbc_ConvolveColorImage(src, filterPtr)
     dest = Rbc_CreateColorImage(width, height);
     radius = (int)filterPtr->support;
     if (radius < 1) {
-	radius = 1;
+    radius = 1;
     }
     destPtr = Rbc_ColorImageBits(dest);
     for (dy = 0; dy < height; dy++) {
-	for (dx = 0; dx < width; dx++) {
-	    red = green = blue = 0.0;
-	    valuePtr = filterPtr->kernel;
-	    for (sy = (dy - radius); sy <= (dy + radius); sy++) {
-		y = sy;
-		if (y < 0) {
-		    y = 0;
-		} else if (y >= height) {
-		    y = height - 1;
-		}
-		for (sx = (dx - radius); sx <= (dx + radius); sx++) {
-		    x = sx;
-		    if (x < 0) {
-			x = 0;
-		    } else if (sx >= width) {
-			x = width - 1;
-		    }
-		    srcPtr = Rbc_ColorImagePixel(src, x, y);
-		    red += *valuePtr * (double)srcPtr->Red;
-		    green += *valuePtr * (double)srcPtr->Green;
-		    blue += *valuePtr * (double)srcPtr->Blue;
+    for (dx = 0; dx < width; dx++) {
+        red = green = blue = 0.0;
+        valuePtr = filterPtr->kernel;
+        for (sy = (dy - radius); sy <= (dy + radius); sy++) {
+        y = sy;
+        if (y < 0) {
+            y = 0;
+        } else if (y >= height) {
+            y = height - 1;
+        }
+        for (sx = (dx - radius); sx <= (dx + radius); sx++) {
+            x = sx;
+            if (x < 0) {
+            x = 0;
+            } else if (sx >= width) {
+            x = width - 1;
+            }
+            srcPtr = Rbc_ColorImagePixel(src, x, y);
+            red += *valuePtr * (double)srcPtr->Red;
+            green += *valuePtr * (double)srcPtr->Green;
+            blue += *valuePtr * (double)srcPtr->Blue;
 #ifdef notdef
-		    fprintf(stderr, "%d,%d = r=%f,g=%f,b=%f\n", x, y,
-			    red, green, blue);
+            fprintf(stderr, "%d,%d = r=%f,g=%f,b=%f\n", x, y,
+                red, green, blue);
 #endif
-		    valuePtr++;
-		}
-	    }
-	    red /= filterPtr->sum;
-	    green /= filterPtr->sum;
-	    blue /= filterPtr->sum;
-	    destPtr->Red = (unsigned char)CLAMP(red);
-	    destPtr->Green = (unsigned char)CLAMP(green);
-	    destPtr->Blue = (unsigned char)CLAMP(blue);
-	    destPtr->Alpha = (unsigned char)-1;
-	    destPtr++;
-	}
+            valuePtr++;
+        }
+        }
+        red /= filterPtr->sum;
+        green /= filterPtr->sum;
+        blue /= filterPtr->sum;
+        destPtr->Red = (unsigned char)CLAMP(red);
+        destPtr->Green = (unsigned char)CLAMP(green);
+        destPtr->Blue = (unsigned char)CLAMP(blue);
+        destPtr->Alpha = (unsigned char)-1;
+        destPtr++;
+    }
     }
     return dest;
 }
@@ -1678,7 +1678,7 @@ Rbc_ConvolveColorImage(src, filterPtr)
  */
 int
 Rbc_SnapPhoto(interp, tkwin, drawable, x, y, width, height, destWidth,
-	      destHeight, photoName, inputGamma)
+          destHeight, photoName, inputGamma)
     Tcl_Interp *interp; /* Interpreter to report errors back to */
     Tk_Window tkwin;
     Drawable drawable; /* Window or pixmap to be snapped */
@@ -1688,34 +1688,34 @@ Rbc_SnapPhoto(interp, tkwin, drawable, x, y, width, height, destWidth,
     char *photoName; /* Name of an existing Tk photo image. */
     double inputGamma;
 {
-    Tk_PhotoHandle photo;	/* The photo image to write into. */
+    Tk_PhotoHandle photo;    /* The photo image to write into. */
     Rbc_ColorImage image;
 
     photo = Tk_FindPhoto(interp, photoName);
     if (photo == NULL) {
-	Tcl_AppendResult(interp, "can't find photo \"", photoName, "\"",
-			 (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "can't find photo \"", photoName, "\"",
+             (char *)NULL);
+    return TCL_ERROR;
     }
     image = Rbc_DrawableToColorImage(tkwin, drawable, x, y, width, height, inputGamma);
     if (image == NULL) {
-	Tcl_AppendResult(interp,
-			 "can't grab window or pixmap (possibly obscured?)", (char *)NULL);
-	return TCL_ERROR;	/* Can't grab window image */
+    Tcl_AppendResult(interp,
+             "can't grab window or pixmap (possibly obscured?)", (char *)NULL);
+    return TCL_ERROR;    /* Can't grab window image */
     }
     if ((destWidth != width) || (destHeight != height)) {
-	Rbc_ColorImage destImage;
+    Rbc_ColorImage destImage;
 
-	/*
-	 * The requested size for the destination image is different than
-	 * that of the source snapshot.  Resample the image as necessary.
-	 * We'll use a cheap box filter. I'm assuming that the destination
-	 * image will typically be smaller than the original.
-	 */
-	destImage = Rbc_ResampleColorImage(image, destWidth, destHeight,
-					   rbcBoxFilterPtr, rbcBoxFilterPtr);
-	Rbc_FreeColorImage(image);
-	image = destImage;
+    /*
+     * The requested size for the destination image is different than
+     * that of the source snapshot.  Resample the image as necessary.
+     * We'll use a cheap box filter. I'm assuming that the destination
+     * image will typically be smaller than the original.
+     */
+    destImage = Rbc_ResampleColorImage(image, destWidth, destHeight,
+                       rbcBoxFilterPtr, rbcBoxFilterPtr);
+    Rbc_FreeColorImage(image);
+    image = destImage;
     }
     Rbc_ColorImageToPhoto(interp, image, photo);
     Rbc_FreeColorImage(image);
@@ -1751,7 +1751,7 @@ Rbc_JPEGToPhoto(interp, fileName, photo)
 
     image = Rbc_JPEGToColorImage(interp, fileName);
     if (image == NULL) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     Rbc_ColorImageToPhoto(image, photo);
     Rbc_FreeColorImage(image);
@@ -1802,7 +1802,7 @@ ShearY(src, dest, y, offset, frac, bgColor)
 
     destPtr = destRowPtr;
     for (x = 0; x < offset; x++) {
-	*destPtr++ = bgColor;
+    *destPtr++ = bgColor;
     }
     destPtr = destRowPtr + offset;
     srcPtr = srcRowPtr;
@@ -1815,46 +1815,46 @@ ShearY(src, dest, y, offset, frac, bgColor)
 
     ifrac = float2si(frac);
     for (x = 0; x < srcWidth; x++, dx++) { /* Loop through row pixels */
-	leftRed = srcPtr->Red * ifrac;
-	leftGreen = srcPtr->Green * ifrac;
-	leftBlue = srcPtr->Blue * ifrac;
-	leftAlpha = srcPtr->Alpha * ifrac;
-	if ((dx >= 0) && (dx < destWidth)) {
-	    red = uchar2si(srcPtr->Red) - (leftRed - oldLeftRed);
-	    green = uchar2si(srcPtr->Green) - (leftGreen - oldLeftGreen);
-	    blue = uchar2si(srcPtr->Blue) - (leftBlue - oldLeftBlue);
-	    alpha = uchar2si(srcPtr->Alpha) - (leftAlpha - oldLeftAlpha);
-	    destPtr->Red = SICLAMP(red);
-	    destPtr->Green = SICLAMP(green);
-	    destPtr->Blue = SICLAMP(blue);
-	    destPtr->Alpha = SICLAMP(alpha);
-	}
-	oldLeftRed = leftRed;
-	oldLeftGreen = leftGreen;
-	oldLeftBlue = leftBlue;
-	oldLeftAlpha = leftAlpha;
-	srcPtr++, destPtr++;
+    leftRed = srcPtr->Red * ifrac;
+    leftGreen = srcPtr->Green * ifrac;
+    leftBlue = srcPtr->Blue * ifrac;
+    leftAlpha = srcPtr->Alpha * ifrac;
+    if ((dx >= 0) && (dx < destWidth)) {
+        red = uchar2si(srcPtr->Red) - (leftRed - oldLeftRed);
+        green = uchar2si(srcPtr->Green) - (leftGreen - oldLeftGreen);
+        blue = uchar2si(srcPtr->Blue) - (leftBlue - oldLeftBlue);
+        alpha = uchar2si(srcPtr->Alpha) - (leftAlpha - oldLeftAlpha);
+        destPtr->Red = SICLAMP(red);
+        destPtr->Green = SICLAMP(green);
+        destPtr->Blue = SICLAMP(blue);
+        destPtr->Alpha = SICLAMP(alpha);
+    }
+    oldLeftRed = leftRed;
+    oldLeftGreen = leftGreen;
+    oldLeftBlue = leftBlue;
+    oldLeftAlpha = leftAlpha;
+    srcPtr++, destPtr++;
     }
     x = srcWidth + offset;
     destPtr = Rbc_ColorImageBits(dest) + (y * destWidth) + x;
     if (x < destWidth) {
-	leftRed = uchar2si(bgColor.Red);
-	leftGreen = uchar2si(bgColor.Green);
-	leftBlue = uchar2si(bgColor.Blue);
-	leftAlpha = uchar2si(bgColor.Alpha);
+    leftRed = uchar2si(bgColor.Red);
+    leftGreen = uchar2si(bgColor.Green);
+    leftBlue = uchar2si(bgColor.Blue);
+    leftAlpha = uchar2si(bgColor.Alpha);
 
-	red = leftRed + oldLeftRed - (bgColor.Red * ifrac);
-	green = leftGreen + oldLeftGreen - (bgColor.Green * ifrac);
-	blue = leftBlue + oldLeftBlue - (bgColor.Blue * ifrac);
-	alpha = leftAlpha + oldLeftAlpha - (bgColor.Alpha * ifrac);
-	destPtr->Red = SICLAMP(red);
-	destPtr->Green = SICLAMP(green);
-	destPtr->Blue = SICLAMP(blue);
-	destPtr->Alpha = SICLAMP(alpha);
-	destPtr++;
+    red = leftRed + oldLeftRed - (bgColor.Red * ifrac);
+    green = leftGreen + oldLeftGreen - (bgColor.Green * ifrac);
+    blue = leftBlue + oldLeftBlue - (bgColor.Blue * ifrac);
+    alpha = leftAlpha + oldLeftAlpha - (bgColor.Alpha * ifrac);
+    destPtr->Red = SICLAMP(red);
+    destPtr->Green = SICLAMP(green);
+    destPtr->Blue = SICLAMP(blue);
+    destPtr->Alpha = SICLAMP(alpha);
+    destPtr++;
     }
     for (x++; x < destWidth; x++) {
-	*destPtr++ = bgColor;
+    *destPtr++ = bgColor;
     }
 }
 
@@ -1906,10 +1906,10 @@ ShearX(src, dest, x, offset, frac, bgColor)
     destPtr = Rbc_ColorImageBits(dest) + x;
 #endif
     for (y = 0; y < offset; y++) {
-	destPtr = Rbc_ColorImagePixel(dest, x, y);
-	*destPtr = bgColor;
+    destPtr = Rbc_ColorImagePixel(dest, x, y);
+    *destPtr = bgColor;
 #ifdef notdef
-	destPtr += destWidth;
+    destPtr += destWidth;
 #endif
     }
 
@@ -1924,29 +1924,29 @@ ShearX(src, dest, x, offset, frac, bgColor)
     dy = offset;
     ifrac = float2si(frac);
     for (y = 0; y < srcHeight; y++, dy++) {
-	srcPtr = Rbc_ColorImagePixel(src, x, y);
-	leftRed = srcPtr->Red * ifrac;
-	leftGreen = srcPtr->Green * ifrac;
-	leftBlue = srcPtr->Blue * ifrac;
-	leftAlpha = srcPtr->Alpha * ifrac;
-	if ((dy >= 0) && (dy < destHeight)) {
-	    destPtr = Rbc_ColorImagePixel(dest, x, dy);
-	    red = uchar2si(srcPtr->Red) - (leftRed - oldLeftRed);
-	    green = uchar2si(srcPtr->Green) - (leftGreen - oldLeftGreen);
-	    blue = uchar2si(srcPtr->Blue) - (leftBlue - oldLeftBlue);
-	    alpha = uchar2si(srcPtr->Alpha) - (leftAlpha - oldLeftAlpha);
-	    destPtr->Red = SICLAMP(red);
-	    destPtr->Green = SICLAMP(green);
-	    destPtr->Blue = SICLAMP(blue);
-	    destPtr->Alpha = SICLAMP(alpha);
-	}
-	oldLeftRed = leftRed;
-	oldLeftGreen = leftGreen;
-	oldLeftBlue = leftBlue;
-	oldLeftAlpha = leftAlpha;
+    srcPtr = Rbc_ColorImagePixel(src, x, y);
+    leftRed = srcPtr->Red * ifrac;
+    leftGreen = srcPtr->Green * ifrac;
+    leftBlue = srcPtr->Blue * ifrac;
+    leftAlpha = srcPtr->Alpha * ifrac;
+    if ((dy >= 0) && (dy < destHeight)) {
+        destPtr = Rbc_ColorImagePixel(dest, x, dy);
+        red = uchar2si(srcPtr->Red) - (leftRed - oldLeftRed);
+        green = uchar2si(srcPtr->Green) - (leftGreen - oldLeftGreen);
+        blue = uchar2si(srcPtr->Blue) - (leftBlue - oldLeftBlue);
+        alpha = uchar2si(srcPtr->Alpha) - (leftAlpha - oldLeftAlpha);
+        destPtr->Red = SICLAMP(red);
+        destPtr->Green = SICLAMP(green);
+        destPtr->Blue = SICLAMP(blue);
+        destPtr->Alpha = SICLAMP(alpha);
+    }
+    oldLeftRed = leftRed;
+    oldLeftGreen = leftGreen;
+    oldLeftBlue = leftBlue;
+    oldLeftAlpha = leftAlpha;
 #ifdef notdef
-	srcPtr += srcWidth;
-	destPtr += destWidth;
+    srcPtr += srcWidth;
+    destPtr += destWidth;
 #endif
     }
     y = srcHeight + offset;
@@ -1954,30 +1954,30 @@ ShearX(src, dest, x, offset, frac, bgColor)
     destPtr = Rbc_ColorImageBits(dest) + (y * destWidth) + x + offset;
 #endif
     if (y < destHeight) {
-	leftRed = uchar2si(bgColor.Red);
-	leftGreen = uchar2si(bgColor.Green);
-	leftBlue = uchar2si(bgColor.Blue);
-	leftAlpha = uchar2si(bgColor.Alpha);
+    leftRed = uchar2si(bgColor.Red);
+    leftGreen = uchar2si(bgColor.Green);
+    leftBlue = uchar2si(bgColor.Blue);
+    leftAlpha = uchar2si(bgColor.Alpha);
 
-	destPtr = Rbc_ColorImagePixel(dest, x, y);
-	red = leftRed + oldLeftRed - (bgColor.Red * ifrac);
-	green = leftGreen + oldLeftGreen - (bgColor.Green * ifrac);
-	blue = leftBlue + oldLeftBlue - (bgColor.Blue  * ifrac);
-	alpha = leftAlpha + oldLeftAlpha - (bgColor.Alpha  * ifrac);
-	destPtr->Red = SICLAMP(red);
-	destPtr->Green = SICLAMP(green);
-	destPtr->Blue = SICLAMP(blue);
-	destPtr->Alpha = SICLAMP(alpha);
+    destPtr = Rbc_ColorImagePixel(dest, x, y);
+    red = leftRed + oldLeftRed - (bgColor.Red * ifrac);
+    green = leftGreen + oldLeftGreen - (bgColor.Green * ifrac);
+    blue = leftBlue + oldLeftBlue - (bgColor.Blue  * ifrac);
+    alpha = leftAlpha + oldLeftAlpha - (bgColor.Alpha  * ifrac);
+    destPtr->Red = SICLAMP(red);
+    destPtr->Green = SICLAMP(green);
+    destPtr->Blue = SICLAMP(blue);
+    destPtr->Alpha = SICLAMP(alpha);
 #ifdef notdef
-	destPtr += destWidth;
+    destPtr += destWidth;
 #endif
     }
 
     for (y++; y < destHeight; y++) {
-	destPtr = Rbc_ColorImagePixel(dest, x, y);
-	*destPtr = bgColor;
+    destPtr = Rbc_ColorImagePixel(dest, x, y);
+    *destPtr = bgColor;
 #ifdef notdef
-	destPtr += destWidth;
+    destPtr += destWidth;
 #endif
     }
 }
@@ -2034,18 +2034,18 @@ Rotate45(src, theta, bgColor)
     tmp1 = Rbc_CreateColorImage(tmpWidth, tmpHeight);
     assert(tmp1);
 
-    if (tanTheta >= 0.0) {	/* Positive angle */
-	for (y = 0; y < tmpHeight; y++) {
-	    skewf = (y + 0.5) * tanTheta;
-	    skewi = (int)floor(skewf);
-	    ShearY(src, tmp1, y, skewi, skewf - skewi, bgColor);
-	}
-    } else {			/* Negative angle */
-	for (y = 0; y < tmpHeight; y++) {
-	    skewf = ((y - srcHeight) + 0.5) * tanTheta;
-	    skewi = (int)floor(skewf);
-	    ShearY(src, tmp1, y, skewi, skewf - skewi, bgColor);
-	}
+    if (tanTheta >= 0.0) {    /* Positive angle */
+    for (y = 0; y < tmpHeight; y++) {
+        skewf = (y + 0.5) * tanTheta;
+        skewi = (int)floor(skewf);
+        ShearY(src, tmp1, y, skewi, skewf - skewi, bgColor);
+    }
+    } else {            /* Negative angle */
+    for (y = 0; y < tmpHeight; y++) {
+        skewf = ((y - srcHeight) + 0.5) * tanTheta;
+        skewi = (int)floor(skewf);
+        ShearY(src, tmp1, y, skewi, skewf - skewi, bgColor);
+    }
     }
     tmpHeight = (int)(srcWidth * FABS(sinTheta) + srcHeight * cosTheta) + 1;
 
@@ -2054,15 +2054,15 @@ Rotate45(src, theta, bgColor)
 
     /* 2nd shear */
 
-    if (sinTheta > 0.0) {	/* Positive angle */
-	skewf = (srcWidth - 1) * sinTheta;
-    } else {			/* Negative angle */
-	skewf = (srcWidth - tmpWidth) * -sinTheta;
+    if (sinTheta > 0.0) {    /* Positive angle */
+    skewf = (srcWidth - 1) * sinTheta;
+    } else {            /* Negative angle */
+    skewf = (srcWidth - tmpWidth) * -sinTheta;
     }
     for (x = 0; x < tmpWidth; x++) {
-	skewi = (int)floor(skewf);
-	ShearX(tmp1, tmp2, x, skewi, skewf - skewi, bgColor);
-	skewf -= sinTheta;
+    skewi = (int)floor(skewf);
+    ShearX(tmp1, tmp2, x, skewi, skewf - skewi, bgColor);
+    skewf -= sinTheta;
     }
 
     Rbc_FreeColorImage(tmp1);
@@ -2074,15 +2074,15 @@ Rotate45(src, theta, bgColor)
     dest = Rbc_CreateColorImage(tmpWidth, tmpHeight);
     assert(dest);
 
-    if (sinTheta >= 0.0) {	/* Positive angle */
-	skewf = (srcWidth - 1) * sinTheta * -tanTheta;
-    } else {			/* Negative angle */
-	skewf = tanTheta * ((srcWidth - 1) * -sinTheta - (tmpHeight - 1));
+    if (sinTheta >= 0.0) {    /* Positive angle */
+    skewf = (srcWidth - 1) * sinTheta * -tanTheta;
+    } else {            /* Negative angle */
+    skewf = tanTheta * ((srcWidth - 1) * -sinTheta - (tmpHeight - 1));
     }
     for (y = 0; y < tmpHeight; y++) {
-	skewi = (int)floor(skewf);
-	ShearY(tmp2, dest, y, skewi, skewf - skewi, bgColor);
-	skewf += tanTheta;
+    skewi = (int)floor(skewf);
+    ShearY(tmp2, dest, y, skewi, skewf - skewi, bgColor);
+    skewf += tanTheta;
     }
     Rbc_FreeColorImage(tmp2);
     return dest;
@@ -2154,11 +2154,11 @@ Rotate90(src)
     offset = (height - 1) * width;
 
     for (x = 0; x < width; x++) {
-	destPtr = Rbc_ColorImageBits(dest) + offset + x;
-	for (y = 0; y < height; y++) {
-	    *destPtr = *srcPtr++;
-	    destPtr -= width;
-	}
+    destPtr = Rbc_ColorImageBits(dest) + offset + x;
+    for (y = 0; y < height; y++) {
+        *destPtr = *srcPtr++;
+        destPtr -= width;
+    }
     }
     return dest;
 }
@@ -2196,11 +2196,11 @@ Rotate180(src)
     srcPtr = Rbc_ColorImageBits(src);
     offset = (height - 1) * width;
     for (y = 0; y < height; y++) {
-	destPtr = Rbc_ColorImageBits(dest) + offset + width - 1;
-	for (x = 0; x < width; x++) {
-	    *destPtr-- = *srcPtr++;
-	}
-	offset -= width;
+    destPtr = Rbc_ColorImageBits(dest) + offset + width - 1;
+    for (x = 0; x < width; x++) {
+        *destPtr-- = *srcPtr++;
+    }
+    offset -= width;
     }
     return dest;
 }
@@ -2237,11 +2237,11 @@ Rotate270(src)
 
     srcPtr = Rbc_ColorImageBits(src);
     for (x = width - 1; x >= 0; x--) {
-	destPtr = Rbc_ColorImageBits(dest) + x;
-	for (y = 0; y < height; y++) {
-	    *destPtr = *srcPtr++;
-	    destPtr += width;
-	}
+    destPtr = Rbc_ColorImageBits(dest) + x;
+    for (y = 0; y < height; y++) {
+        *destPtr = *srcPtr++;
+        destPtr += width;
+    }
     }
     return dest;
 }
@@ -2269,25 +2269,25 @@ Rbc_RotateColorImage(src, angle)
     Rbc_ColorImage dest, tmp;
     int quadrant;
 
-    tmp = src;			/* Suppress compiler warning. */
+    tmp = src;            /* Suppress compiler warning. */
 
     /* Make the angle positive between 0 and 360 degrees. */
     angle = FMOD(angle, 360.0);
     if (angle < 0.0) {
-	angle += 360.0;
+    angle += 360.0;
     }
     quadrant = ROTATE_0;
     if ((angle > 45.0) && (angle <= 135.0)) {
-	quadrant = ROTATE_90;
-	angle -= 90.0;
+    quadrant = ROTATE_90;
+    angle -= 90.0;
     } else if ((angle > 135.0) && (angle <= 225.0)) {
-	quadrant = ROTATE_180;
-	angle -= 180.0;
+    quadrant = ROTATE_180;
+    angle -= 180.0;
     } else if ((angle > 225.0) && (angle <= 315.0)) {
-	quadrant = ROTATE_270;
-	angle -= 270.0;
+    quadrant = ROTATE_270;
+    angle -= 270.0;
     } else if (angle > 315.0) {
-	angle -= 360.0;
+    angle -= 360.0;
     }
     /*
      * If necessary, create a temporary image that's been rotated
@@ -2295,43 +2295,43 @@ Rbc_RotateColorImage(src, angle)
      * -45 to 45 degrees to arrive at its final angle.
      */
     switch (quadrant) {
-	case ROTATE_270:		/* 270 degrees */
-	    tmp = Rotate270(src);
-	    break;
+    case ROTATE_270:        /* 270 degrees */
+        tmp = Rotate270(src);
+        break;
 
-	case ROTATE_90:		/* 90 degrees */
-	    tmp = Rotate90(src);
-	    break;
+    case ROTATE_90:        /* 90 degrees */
+        tmp = Rotate90(src);
+        break;
 
-	case ROTATE_180:		/* 180 degrees */
-	    tmp = Rotate180(src);
-	    break;
+    case ROTATE_180:        /* 180 degrees */
+        tmp = Rotate180(src);
+        break;
 
-	case ROTATE_0:		/* 0 degrees */
-	    if (angle == 0.0) {
-		tmp = CopyColorImage(src); /* Make a copy of the source. */
-	    }
-	    break;
+    case ROTATE_0:        /* 0 degrees */
+        if (angle == 0.0) {
+        tmp = CopyColorImage(src); /* Make a copy of the source. */
+        }
+        break;
     }
 
     assert((angle >= -45.0) && (angle <= 45.0));
 
     dest = tmp;
     if (angle != 0.0) {
-	double theta;
-	Pix32 *srcPtr;
-	Pix32 bgColor;
+    double theta;
+    Pix32 *srcPtr;
+    Pix32 bgColor;
 
-	/* FIXME: pick up background blending color from somewhere */
-	srcPtr = Rbc_ColorImageBits(src);
-	bgColor = *srcPtr;
-	bgColor.Red = bgColor.Green = bgColor.Blue = 0xFF;
-	bgColor.Alpha = 0x00;	/* Transparent background */
-	theta = (angle / 180.0) * M_PI;
-	dest = Rotate45(tmp, theta, bgColor);
-	if (tmp != src) {
-	    Rbc_FreeColorImage(tmp);
-	}
+    /* FIXME: pick up background blending color from somewhere */
+    srcPtr = Rbc_ColorImageBits(src);
+    bgColor = *srcPtr;
+    bgColor.Red = bgColor.Green = bgColor.Blue = 0xFF;
+    bgColor.Alpha = 0x00;    /* Transparent background */
+    theta = (angle / 180.0) * M_PI;
+    dest = Rotate45(tmp, theta, bgColor);
+    if (tmp != src) {
+        Rbc_FreeColorImage(tmp);
+    }
     }
     return dest;
 }
@@ -2356,7 +2356,7 @@ GetColorImageStatistics(image)
     Rbc_ColorImage image;
 {
     register int r, g, b;
-#define MAX_INTENSITIES	256
+#define MAX_INTENSITIES    256
     unsigned int sqr[MAX_INTENSITIES];
     int numPixels;
     Pix32 *srcPtr, *endPtr;
@@ -2368,26 +2368,26 @@ GetColorImageStatistics(image)
 
     /* Precompute table of squares. */
     for (i = 0; i < MAX_INTENSITIES; i++) {
-	sqr[i] = i * i;
+    sqr[i] = i * i;
     }
     numPixels = Rbc_ColorImageWidth(image) * Rbc_ColorImageHeight(image);
 
     for (srcPtr = Rbc_ColorImageBits(image), endPtr = srcPtr + numPixels;
-	    srcPtr < endPtr; srcPtr++) {
-	/*
-	 * Reduce the number of bits (5) per color component. This
-	 * will keep the table size (2^15) reasonable without perceptually
-	 * affecting the final image.
-	 */
-	r = (srcPtr->Red >> 3) + 1;
-	g = (srcPtr->Green >> 3) + 1;
-	b = (srcPtr->Blue >> 3) + 1;
-	s->wt[r][g][b] += 1;
-	s->mR[r][g][b] += srcPtr->Red;
-	s->mG[r][g][b] += srcPtr->Green;
-	s->mB[r][g][b] += srcPtr->Blue;
-	s->gm2[r][g][b] += sqr[srcPtr->Red] + sqr[srcPtr->Green] +
-			   sqr[srcPtr->Blue];
+        srcPtr < endPtr; srcPtr++) {
+    /*
+     * Reduce the number of bits (5) per color component. This
+     * will keep the table size (2^15) reasonable without perceptually
+     * affecting the final image.
+     */
+    r = (srcPtr->Red >> 3) + 1;
+    g = (srcPtr->Green >> 3) + 1;
+    b = (srcPtr->Blue >> 3) + 1;
+    s->wt[r][g][b] += 1;
+    s->mR[r][g][b] += srcPtr->Red;
+    s->mG[r][g][b] += srcPtr->Green;
+    s->mB[r][g][b] += srcPtr->Blue;
+    s->gm2[r][g][b] += sqr[srcPtr->Red] + sqr[srcPtr->Green] +
+               sqr[srcPtr->Blue];
     }
     return s;
 }
@@ -2432,34 +2432,34 @@ M3d(s)
     unsigned int line2, area2[33];
 
     for (r = 1, r0 = 0; r <= 32; r++, r0++) {
-	for (i = 0; i <= 32; ++i) {
-	    area2[i] = area[i] = rArea[i] = gArea[i] = bArea[i] = 0;
-	}
-	for (g = 1; g <= 32; g++) {
-	    line2 = line = rLine = gLine = bLine = 0;
-	    for (b = 1; b <= 32; b++) {
-		/* ind1 = RGBIndex(r, g, b); */
+    for (i = 0; i <= 32; ++i) {
+        area2[i] = area[i] = rArea[i] = gArea[i] = bArea[i] = 0;
+    }
+    for (g = 1; g <= 32; g++) {
+        line2 = line = rLine = gLine = bLine = 0;
+        for (b = 1; b <= 32; b++) {
+        /* ind1 = RGBIndex(r, g, b); */
 
-		line += s->wt[r][g][b];
-		rLine += s->mR[r][g][b];
-		gLine += s->mG[r][g][b];
-		bLine += s->mB[r][g][b];
-		line2 += s->gm2[r][g][b];
+        line += s->wt[r][g][b];
+        rLine += s->mR[r][g][b];
+        gLine += s->mG[r][g][b];
+        bLine += s->mB[r][g][b];
+        line2 += s->gm2[r][g][b];
 
-		area[b] += line;
-		rArea[b] += rLine;
-		gArea[b] += gLine;
-		bArea[b] += bLine;
-		area2[b] += line2;
+        area[b] += line;
+        rArea[b] += rLine;
+        gArea[b] += gLine;
+        bArea[b] += bLine;
+        area2[b] += line2;
 
-		/* ind2 = ind1 - 1089; [r0][g][b] */
-		s->wt[r][g][b] = s->wt[r0][g][b] + area[b];
-		s->mR[r][g][b] = s->mR[r0][g][b] + rArea[b];
-		s->mG[r][g][b] = s->mG[r0][g][b] + gArea[b];
-		s->mB[r][g][b] = s->mB[r0][g][b] + bArea[b];
-		s->gm2[r][g][b] = s->gm2[r0][g][b] + area2[b];
-	    }
-	}
+        /* ind2 = ind1 - 1089; [r0][g][b] */
+        s->wt[r][g][b] = s->wt[r0][g][b] + area[b];
+        s->mR[r][g][b] = s->mR[r0][g][b] + rArea[b];
+        s->mG[r][g][b] = s->mG[r0][g][b] + gArea[b];
+        s->mB[r][g][b] = s->mB[r0][g][b] + bArea[b];
+        s->gm2[r][g][b] = s->gm2[r0][g][b] + area2[b];
+        }
+    }
     }
 }
 
@@ -2484,7 +2484,7 @@ Volume(cubePtr, m)
     long int m[33][33][33];
 {
     return (m[R1][G1][B1] - m[R1][G1][B0] - m[R1][G0][B1] + m[R1][G0][B0] -
-	    m[R0][G1][B1] + m[R0][G1][B0] + m[R0][G0][B1] - m[R0][G0][B0]);
+        m[R0][G1][B1] + m[R0][G1][B0] + m[R0][G0][B1] - m[R0][G0][B0]);
 }
 
 /*
@@ -2519,15 +2519,15 @@ static long int
 Bottom(cubePtr, dir, m)
     Cube *cubePtr;
     unsigned char dir;
-    long int m[33][33][33];	/* Moment */
+    long int m[33][33][33];    /* Moment */
 {
     switch (dir) {
-	case RED:
-	    return -m[R0][G1][B1] + m[R0][G1][B0] + m[R0][G0][B1] - m[R0][G0][B0];
-	case GREEN:
-	    return -m[R1][G0][B1] + m[R1][G0][B0] + m[R0][G0][B1] - m[R0][G0][B0];
-	case BLUE:
-	    return -m[R1][G1][B0] + m[R1][G0][B0] + m[R0][G1][B0] - m[R0][G0][B0];
+    case RED:
+        return -m[R0][G1][B1] + m[R0][G1][B0] + m[R0][G0][B1] - m[R0][G0][B0];
+    case GREEN:
+        return -m[R1][G0][B1] + m[R1][G0][B0] + m[R0][G0][B1] - m[R0][G0][B0];
+    case BLUE:
+        return -m[R1][G1][B0] + m[R1][G0][B0] + m[R0][G1][B0] - m[R0][G0][B0];
     }
     return 0;
 }
@@ -2556,17 +2556,17 @@ Top(cubePtr, dir, pos, m)
     long int m[33][33][33];
 {
     switch (dir) {
-	case RED:
-	    return (m[pos][G1][B1] - m[pos][G1][B0] -
-		    m[pos][G0][B1] + m[pos][G0][B0]);
+    case RED:
+        return (m[pos][G1][B1] - m[pos][G1][B0] -
+            m[pos][G0][B1] + m[pos][G0][B0]);
 
-	case GREEN:
-	    return (m[R1][pos][B1] - m[R1][pos][B0] -
-		    m[R0][pos][B1] + m[R0][pos][B0]);
+    case GREEN:
+        return (m[R1][pos][B1] - m[R1][pos][B0] -
+            m[R0][pos][B1] + m[R0][pos][B0]);
 
-	case BLUE:
-	    return (m[R1][G1][pos] - m[R1][G0][pos] -
-		    m[R0][G1][pos] + m[R0][G0][pos]);
+    case BLUE:
+        return (m[R1][G1][pos] - m[R1][G0][pos] -
+            m[R0][G1][pos] + m[R0][G0][pos]);
     }
     return 0;
 }
@@ -2598,9 +2598,9 @@ Variance(cubePtr, s)
     dG = Volume(cubePtr, s->mG);
     dB = Volume(cubePtr, s->mB);
     xx = (s->gm2[R1][G1][B1] - s->gm2[R1][G1][B0] -
-	  s->gm2[R1][G0][B1] + s->gm2[R1][G0][B0] -
-	  s->gm2[R0][G1][B1] + s->gm2[R0][G1][B0] +
-	  s->gm2[R0][G0][B1] - s->gm2[R0][G0][B0]);
+      s->gm2[R1][G0][B1] + s->gm2[R1][G0][B0] -
+      s->gm2[R0][G1][B1] + s->gm2[R0][G1][B0] +
+      s->gm2[R0][G0][B1] - s->gm2[R0][G0][B0]);
     return (xx - (dR * dR + dG * dG + dB * dB) / Volume(cubePtr, s->wt));
 }
 
@@ -2645,32 +2645,32 @@ Maximize(cubePtr, dir, first, last, cut, rWhole, gWhole, bWhole, wWhole, s)
     max = 0.0;
     *cut = -1;
     for (i = first; i < last; i++) {
-	rHalf = rBase + Top(cubePtr, dir, i, s->mR);
-	gHalf = gBase + Top(cubePtr, dir, i, s->mG);
-	bHalf = bBase + Top(cubePtr, dir, i, s->mB);
-	wHalf = wBase + Top(cubePtr, dir, i, s->wt);
+    rHalf = rBase + Top(cubePtr, dir, i, s->mR);
+    gHalf = gBase + Top(cubePtr, dir, i, s->mG);
+    bHalf = bBase + Top(cubePtr, dir, i, s->mB);
+    wHalf = wBase + Top(cubePtr, dir, i, s->wt);
 
-	/* Now half_x is sum over lower half of box, if split at i */
-	if (wHalf == 0) {	/* subbox could be empty of pixels! */
-	    continue;		/* never split into an empty box */
-	} else {
-	    temp = ((double)rHalf * rHalf + (float)gHalf * gHalf +
-		    (double)bHalf * bHalf) / wHalf;
-	}
-	rHalf = rWhole - rHalf;
-	gHalf = gWhole - gHalf;
-	bHalf = bWhole - bHalf;
-	wHalf = wWhole - wHalf;
-	if (wHalf == 0) {	/* Subbox could be empty of pixels! */
-	    continue;		/* never split into an empty box */
-	} else {
-	    temp += ((double)rHalf * rHalf + (float)gHalf * gHalf +
-		     (double)bHalf * bHalf) / wHalf;
-	}
-	if (temp > max) {
-	    max = temp;
-	    *cut = i;
-	}
+    /* Now half_x is sum over lower half of box, if split at i */
+    if (wHalf == 0) {    /* subbox could be empty of pixels! */
+        continue;        /* never split into an empty box */
+    } else {
+        temp = ((double)rHalf * rHalf + (float)gHalf * gHalf +
+            (double)bHalf * bHalf) / wHalf;
+    }
+    rHalf = rWhole - rHalf;
+    gHalf = gWhole - gHalf;
+    bHalf = bWhole - bHalf;
+    wHalf = wWhole - wHalf;
+    if (wHalf == 0) {    /* Subbox could be empty of pixels! */
+        continue;        /* never split into an empty box */
+    } else {
+        temp += ((double)rHalf * rHalf + (float)gHalf * gHalf +
+             (double)bHalf * bHalf) / wHalf;
+    }
+    if (temp > max) {
+        max = temp;
+        *cut = i;
+    }
     }
     return max;
 }
@@ -2706,47 +2706,47 @@ Cut(set1, set2, s)
     wWhole = Volume(set1, s->wt);
 
     rMax = Maximize(set1, RED, set1->r0 + 1, set1->r1, &rCut,
-		    rWhole, gWhole, bWhole, wWhole, s);
+            rWhole, gWhole, bWhole, wWhole, s);
     gMax = Maximize(set1, GREEN, set1->g0 + 1, set1->g1, &gCut,
-		    rWhole, gWhole, bWhole, wWhole, s);
+            rWhole, gWhole, bWhole, wWhole, s);
     bMax = Maximize(set1, BLUE, set1->b0 + 1, set1->b1, &bCut,
-		    rWhole, gWhole, bWhole, wWhole, s);
+            rWhole, gWhole, bWhole, wWhole, s);
 
     if ((rMax >= gMax) && (rMax >= bMax)) {
-	dir = RED;
-	if (rCut < 0) {
-	    return 0;		/* can't split the box */
-	}
+    dir = RED;
+    if (rCut < 0) {
+        return 0;        /* can't split the box */
+    }
     } else {
-	dir = ((gMax >= rMax) && (gMax >= bMax)) ? GREEN : BLUE;
+    dir = ((gMax >= rMax) && (gMax >= bMax)) ? GREEN : BLUE;
     }
     set2->r1 = set1->r1;
     set2->g1 = set1->g1;
     set2->b1 = set1->b1;
 
     switch (dir) {
-	case RED:
-	    set2->r0 = set1->r1 = rCut;
-	    set2->g0 = set1->g0;
-	    set2->b0 = set1->b0;
-	    break;
+    case RED:
+        set2->r0 = set1->r1 = rCut;
+        set2->g0 = set1->g0;
+        set2->b0 = set1->b0;
+        break;
 
-	case GREEN:
-	    set2->g0 = set1->g1 = gCut;
-	    set2->r0 = set1->r0;
-	    set2->b0 = set1->b0;
-	    break;
+    case GREEN:
+        set2->g0 = set1->g1 = gCut;
+        set2->r0 = set1->r0;
+        set2->b0 = set1->b0;
+        break;
 
-	case BLUE:
-	    set2->b0 = set1->b1 = bCut;
-	    set2->r0 = set1->r0;
-	    set2->g0 = set1->g0;
-	    break;
+    case BLUE:
+        set2->b0 = set1->b1 = bCut;
+        set2->r0 = set1->r0;
+        set2->g0 = set1->g0;
+        break;
     }
     set1->vol = (set1->r1 - set1->r0) * (set1->g1 - set1->g0) *
-		(set1->b1 - set1->b0);
+        (set1->b1 - set1->b0);
     set2->vol = (set2->r1 - set2->r0) * (set2->g1 - set2->g0) *
-		(set2->b1 - set2->b0);
+        (set2->b1 - set2->b0);
     return 1;
 }
 
@@ -2781,35 +2781,35 @@ SplitColorSpace(s, cubes, nColors)
     cubes[0].r0 = cubes[0].g0 = cubes[0].b0 = 0;
     cubes[0].r1 = cubes[0].g1 = cubes[0].b1 = 32;
     for (i = 1, n = 0; i < nColors; i++) {
-	if (Cut(cubes + n, cubes + i, s)) {
-	    /*
-	     * Volume test ensures we won't try to cut one-cell box
-	     */
-	    vv[n] = vv[i] = 0.0;
-	    if (cubes[n].vol > 1) {
-		vv[n] = Variance(cubes + n, s);
-	    }
-	    if (cubes[i].vol > 1) {
-		vv[i] = Variance(cubes + i, s);
-	    }
-	} else {
-	    vv[n] = 0.0;	/* don't try to split this box again */
-	    i--;		/* didn't create box i */
-	}
+    if (Cut(cubes + n, cubes + i, s)) {
+        /*
+         * Volume test ensures we won't try to cut one-cell box
+         */
+        vv[n] = vv[i] = 0.0;
+        if (cubes[n].vol > 1) {
+        vv[n] = Variance(cubes + n, s);
+        }
+        if (cubes[i].vol > 1) {
+        vv[i] = Variance(cubes + i, s);
+        }
+    } else {
+        vv[n] = 0.0;    /* don't try to split this box again */
+        i--;        /* didn't create box i */
+    }
 
-	n = 0;
-	temp = vv[0];
-	for (k = 1; k <= i; k++) {
-	    if (vv[k] > temp) {
-		temp = vv[k];
-		n = k;
-	    }
-	}
-	if (temp <= 0.0) {
-	    i++;
-	    fprintf(stderr, "Only got %d boxes\n", i);
-	    break;
-	}
+    n = 0;
+    temp = vv[0];
+    for (k = 1; k <= i; k++) {
+        if (vv[k] > temp) {
+        temp = vv[k];
+        n = k;
+        }
+    }
+    if (temp <= 0.0) {
+        i++;
+        fprintf(stderr, "Only got %d boxes\n", i);
+        break;
+    }
     }
     ckfree((char *)vv);
     return i;
@@ -2839,11 +2839,11 @@ Mark(cubePtr, label, tag)
     register int r, g, b;
 
     for (r = R0 + 1; r <= R1; r++) {
-	for (g = G0 + 1; g <= G1; g++) {
-	    for (b = B0 + 1; b <= B1; b++) {
-		tag[r][g][b] = label;
-	    }
-	}
+    for (g = G0 + 1; g <= G1; g++) {
+        for (b = B0 + 1; b <= B1; b++) {
+        tag[r][g][b] = label;
+        }
+    }
     }
 }
 
@@ -2880,19 +2880,19 @@ CreateColorLookupTable(s, cubes, nColors)
 
     color.Alpha = (unsigned char)-1;
     for (cubePtr = cubes, i = 0; i < nColors; i++, cubePtr++) {
-	weight = Volume(cubePtr, s->wt);
-	if (weight) {
-	    red = (Volume(cubePtr, s->mR) / weight) * (NC + 1);
-	    green = (Volume(cubePtr, s->mG) / weight) * (NC + 1);
-	    blue = (Volume(cubePtr, s->mB) / weight) * (NC + 1);
-	} else {
-	    fprintf(stderr, "bogus box %d\n", i);
-	    red = green = blue = 0;
-	}
-	color.Red = red >> 8;
-	color.Green = green >> 8;
-	color.Blue = blue >> 8;
-	Mark(cubePtr, color.value, (unsigned int (*)[33][33])lut);
+    weight = Volume(cubePtr, s->wt);
+    if (weight) {
+        red = (Volume(cubePtr, s->mR) / weight) * (NC + 1);
+        green = (Volume(cubePtr, s->mG) / weight) * (NC + 1);
+        blue = (Volume(cubePtr, s->mB) / weight) * (NC + 1);
+    } else {
+        fprintf(stderr, "bogus box %d\n", i);
+        red = green = blue = 0;
+    }
+    color.Red = red >> 8;
+    color.Green = green >> 8;
+    color.Blue = blue >> 8;
+    Mark(cubePtr, color.value, (unsigned int (*)[33][33])lut);
     }
     return lut;
 }
@@ -2930,9 +2930,9 @@ MapColors(src, dest, lut)
     srcPtr = Rbc_ColorImageBits(src);
     destPtr = Rbc_ColorImageBits(dest);
     for (endPtr = destPtr + count; destPtr < endPtr; srcPtr++, destPtr++) {
-	alpha = srcPtr->Alpha;
-	destPtr->value = lut[srcPtr->Red>>3][srcPtr->Green>>3][srcPtr->Blue>>3];
-	destPtr->Alpha = alpha;
+    alpha = srcPtr->Alpha;
+    destPtr->value = lut[srcPtr->Red>>3][srcPtr->Green>>3][srcPtr->Blue>>3];
+    destPtr->Alpha = alpha;
     }
 }
 
@@ -3034,12 +3034,12 @@ Rbc_SetRegion(x, y, width, height, regionPtr)
  * display images.
  */
 typedef struct TkImageStruct {
-    Tk_Window tkwin;		/* Window passed to Tk_GetImage (needed to
-				 * "re-get" the image later if the manager
-				 * changes). */
-    Display *display;		/* Display for tkwin.  Needed because when
-				 * the image is eventually freed tkwin may
-				 * not exist anymore. */
+    Tk_Window tkwin;        /* Window passed to Tk_GetImage (needed to
+                 * "re-get" the image later if the manager
+                 * changes). */
+    Display *display;        /* Display for tkwin.  Needed because when
+                 * the image is eventually freed tkwin may
+                 * not exist anymore. */
     struct TkImageMasterStruct *masterPtr;
     /* Master for this image (identifiers image
      * manager, for example). */
@@ -3051,8 +3051,8 @@ typedef struct TkImageStruct {
      * in a way that affects redisplay. */
     ClientData widgetClientData;
     /* Argument to pass to changeProc. */
-    struct Image *nextPtr;	/* Next in list of all image instances
-				 * associated with the same name. */
+    struct Image *nextPtr;    /* Next in list of all image instances
+                 * associated with the same name. */
 
 } TkImage;
 
@@ -3063,21 +3063,21 @@ typedef struct TkImageStruct {
  * these structures.
  */
 typedef struct TkImageMasterStruct {
-    Tk_ImageType *typePtr;	/* Information about image type.  NULL means
-				 * that no image manager owns this image:  the
-				 * image was deleted. */
-    ClientData masterData;	/* One-word argument to pass to image mgr
-				 * when dealing with the master, as opposed
-				 * to instances. */
-    int width, height;		/* Last known dimensions for image. */
-    Tcl_HashTable *tablePtr;	/* Pointer to hash table containing image
-				 * (the imageTable field in some TkMainInfo
-				 * structure). */
-    Tcl_HashEntry *hPtr;	/* Hash entry in mainPtr->imageTable for
-				 * this structure (used to delete the hash
-				 * entry). */
-    TkImage *instancePtr;	/* Pointer to first in list of instances
-				 * derived from this name. */
+    Tk_ImageType *typePtr;    /* Information about image type.  NULL means
+                 * that no image manager owns this image:  the
+                 * image was deleted. */
+    ClientData masterData;    /* One-word argument to pass to image mgr
+                 * when dealing with the master, as opposed
+                 * to instances. */
+    int width, height;        /* Last known dimensions for image. */
+    Tcl_HashTable *tablePtr;    /* Pointer to hash table containing image
+                 * (the imageTable field in some TkMainInfo
+                 * structure). */
+    Tcl_HashEntry *hPtr;    /* Hash entry in mainPtr->imageTable for
+                 * this structure (used to delete the hash
+                 * entry). */
+    TkImage *instancePtr;    /* Pointer to first in list of instances
+                 * derived from this name. */
 } TkImageMaster;
 
 
@@ -3085,29 +3085,29 @@ typedef struct TkPhotoMasterStruct TkPhotoMaster;
 typedef struct TkColorTableStruct TkColorTable;
 
 typedef struct TkPhotoInstanceStruct {
-    TkPhotoMaster *masterPtr;	/* Pointer to master for image. */
-    Display *display;		/* Display for windows using this instance. */
-    Colormap colormap;		/* The image may only be used in windows with
-				 * this particular colormap. */
+    TkPhotoMaster *masterPtr;    /* Pointer to master for image. */
+    Display *display;        /* Display for windows using this instance. */
+    Colormap colormap;        /* The image may only be used in windows with
+                 * this particular colormap. */
     struct TkPhotoInstanceStruct *nextPtr;
     /* Pointer to the next instance in the list
      * of instances associated with this master. */
-    int refCount;		/* Number of instances using this structure. */
-    Tk_Uid palette;		/* Palette for these particular instances. */
-    double outputGamma;		/* Gamma value for these instances. */
-    Tk_Uid defaultPalette;	/* Default palette to use if a palette
-				 * is not specified for the master. */
-    TkColorTable *colorTablePtr;	/* Pointer to information about colors
-				 * allocated for image display in windows
-				 * like this one. */
-    Pixmap pixels;		/* X pixmap containing dithered image. */
-    int width, height;		/* Dimensions of the pixmap. */
-    char *error;		/* Error image, used in dithering. */
-    XImage *imagePtr;		/* Image structure for converted pixels. */
-    XVisualInfo visualInfo;	/* Information about the visual that these
-				 * windows are using. */
-    GC gc;			/* Graphics context for writing images
-				 * to the pixmap. */
+    int refCount;        /* Number of instances using this structure. */
+    Tk_Uid palette;        /* Palette for these particular instances. */
+    double outputGamma;        /* Gamma value for these instances. */
+    Tk_Uid defaultPalette;    /* Default palette to use if a palette
+                 * is not specified for the master. */
+    TkColorTable *colorTablePtr;    /* Pointer to information about colors
+                 * allocated for image display in windows
+                 * like this one. */
+    Pixmap pixels;        /* X pixmap containing dithered image. */
+    int width, height;        /* Dimensions of the pixmap. */
+    char *error;        /* Error image, used in dithering. */
+    XImage *imagePtr;        /* Image structure for converted pixels. */
+    XVisualInfo visualInfo;    /* Information about the visual that these
+                 * windows are using. */
+    GC gc;            /* Graphics context for writing images
+                 * to the pixmap. */
 } TkPhotoInstance;
 
 /*
@@ -3133,7 +3133,7 @@ Tk_ImageIsDeleted(tkImage)
     TkImage *imagePtr = (TkImage *) tkImage;
 
     if (imagePtr->masterPtr == NULL) {
-	return TRUE;
+    return TRUE;
     }
     return (imagePtr->masterPtr->typePtr == NULL);
 }
@@ -3208,8 +3208,8 @@ Tk_ImageGetPhotoPixmap(tkImage)
     TkImage *imagePtr = (TkImage *)tkImage;
 
     if (strcmp(imagePtr->masterPtr->typePtr->name, "photo") == 0) {
-	TkPhotoInstance *instPtr = (TkPhotoInstance *)imagePtr->instanceData;
-	return instPtr->pixels;
+    TkPhotoInstance *instPtr = (TkPhotoInstance *)imagePtr->instanceData;
+    return instPtr->pixels;
     }
     return None;
 }
@@ -3235,8 +3235,8 @@ Tk_ImageGetPhotoGC(photoImage)
 {
     TkImage *imagePtr = (TkImage *) photoImage;
     if (strcmp(imagePtr->masterPtr->typePtr->name, "photo") == 0) {
-	TkPhotoInstance *instPtr = (TkPhotoInstance *)imagePtr->instanceData;
-	return instPtr->gc;
+    TkPhotoInstance *instPtr = (TkPhotoInstance *)imagePtr->instanceData;
+    return instPtr->gc;
     }
     return NULL;
 }
@@ -3292,15 +3292,15 @@ Rbc_CreateTemporaryImage(interp, tkwin, clientData)
     ClientData clientData;
 {
     Tk_Image token;
-    char *name;			/* Contains image name. */
+    char *name;            /* Contains image name. */
 
     if (Tcl_Eval(interp, "image create photo") != TCL_OK) {
-	return NULL;
+    return NULL;
     }
     name = (char *)Tcl_GetStringResult(interp);
     token = Tk_GetImage(interp, tkwin, name, TempImageChangedProc, clientData);
     if (token == NULL) {
-	return NULL;
+    return NULL;
     }
     return token;
 }
@@ -3326,11 +3326,11 @@ Rbc_DestroyTemporaryImage(interp, tkImage)
     Tk_Image tkImage;
 {
     if (tkImage != NULL) {
-	if (Tcl_VarEval(interp, "image delete ", Rbc_NameOfImage(tkImage),
-			(char *)NULL) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	Tk_FreeImage(tkImage);
+    if (Tcl_VarEval(interp, "image delete ", Rbc_NameOfImage(tkImage),
+            (char *)NULL) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    Tk_FreeImage(tkImage);
     }
     return TCL_OK;
 }

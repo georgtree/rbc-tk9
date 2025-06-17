@@ -43,11 +43,11 @@ GetWindowHandle(tkwin)
 
     window = Tk_WindowId(tkwin);
     if (window == None) {
-	Tk_MakeWindowExist(tkwin);
+    Tk_MakeWindowExist(tkwin);
     }
     hWnd = Tk_GetHWND(Tk_WindowId(tkwin));
     if (Tk_IsTopLevel(tkwin)) {
-	hWnd = GetParent(hWnd);
+    hWnd = GetParent(hWnd);
     }
     return hWnd;
 }
@@ -106,8 +106,8 @@ rbcGetParent(display, window)
     unsigned int count;
 
     if (XQueryTree(display, window, &root, &parent, &dummy, &count) > 0) {
-	XFree(dummy);
-	return parent;
+    XFree(dummy);
+    return parent;
     }
     return None;
 }
@@ -136,13 +136,13 @@ GetWindowId(tkwin)
     Tk_MakeWindowExist(tkwin);
     window = Tk_WindowId(tkwin);
     if (Tk_IsTopLevel(tkwin)) {
-	Window parent;
+    Window parent;
 
-	parent = rbcGetParent(Tk_Display(tkwin), window);
-	if (parent != None) {
-	    window = parent;
-	}
-	window = parent;
+    parent = rbcGetParent(Tk_Display(tkwin), window);
+    if (parent != None) {
+        window = parent;
+    }
+    window = parent;
     }
     return window;
 }
@@ -218,9 +218,9 @@ Rbc_SetWindowInstanceData(
     int isNew;
 
     if (!assocData) {
-	assocData = (Tcl_HashTable *)ckalloc(sizeof(Tcl_HashTable));
-	Tcl_InitHashTable(assocData, TCL_ONE_WORD_KEYS);
-	Tcl_SetAssocData(interp, INST_DATA_KEY, AssocDataCleanup, assocData);
+    assocData = (Tcl_HashTable *)ckalloc(sizeof(Tcl_HashTable));
+    Tcl_InitHashTable(assocData, TCL_ONE_WORD_KEYS);
+    Tcl_SetAssocData(interp, INST_DATA_KEY, AssocDataCleanup, assocData);
     }
 
     entryPtr = Tcl_CreateHashEntry(assocData, tkwin, &isNew);

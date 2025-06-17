@@ -33,12 +33,12 @@ Rbc_GetPlatformId()
     static int platformId = 0;
 
     if (platformId == 0) {
-	OSVERSIONINFO opsysInfo;
+    OSVERSIONINFO opsysInfo;
 
-	opsysInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-	if (GetVersionEx(&opsysInfo)) {
-	    platformId = opsysInfo.dwPlatformId;
-	}
+    opsysInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+    if (GetVersionEx(&opsysInfo)) {
+        platformId = opsysInfo.dwPlatformId;
+    }
     }
     return platformId;
 }
@@ -65,16 +65,16 @@ Rbc_LastError()
     int length;
 
     FormatMessageA(
-	FORMAT_MESSAGE_FROM_SYSTEM,
-	NULL,
-	GetLastError(),
-	MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),	/* Default language */
-	buffer,
-	1024,
-	NULL);
+    FORMAT_MESSAGE_FROM_SYSTEM,
+    NULL,
+    GetLastError(),
+    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),    /* Default language */
+    buffer,
+    1024,
+    NULL);
     length = strlen(buffer);
     if (buffer[length - 2] == '\r') {
-	buffer[length - 2] = '\0';
+    buffer[length - 2] = '\0';
     }
     return buffer;
 }

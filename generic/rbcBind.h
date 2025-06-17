@@ -25,38 +25,38 @@ typedef void (Rbc_BindTagProc) (Rbc_BindTable bindTable, ClientData object, Clie
 typedef struct Rbc_BindTableStruct {
     unsigned int flags;
     Tk_BindingTable bindingTable; /* Table of all bindings currently defined.
-				   * NULL means that no bindings exist, so the
-				   * table hasn't been created.  Each "object"
-				   * used for this table is either a Tk_Uid for
-				   * a tag or the address of an item named by
-				   * id. */
+                   * NULL means that no bindings exist, so the
+                   * table hasn't been created.  Each "object"
+                   * used for this table is either a Tk_Uid for
+                   * a tag or the address of an item named by
+                   * id. */
     ClientData currentItem; /* The item currently containing the mouse
-			     * pointer, or NULL if none. */
+                 * pointer, or NULL if none. */
     ClientData currentContext; /* One word indicating what kind of object
-				* was picked. */
+                * was picked. */
     ClientData newItem; /* The item that is about to become the
-			 * current one, or NULL.  This field is
-			 * used to detect deletions of the new
-			 * current item pointer that occur during
-			 * Leave processing of the previous current
-			 * tab.  */
+             * current one, or NULL.  This field is
+             * used to detect deletions of the new
+             * current item pointer that occur during
+             * Leave processing of the previous current
+             * tab.  */
     ClientData newContext; /* One-word indicating what kind of object
-			    * was just picked. */
+                * was just picked. */
     ClientData focusItem;
     ClientData focusContext;
     XEvent pickEvent; /* The event upon which the current choice
-		       * of the current tab is based.  Must be saved
-		       * so that if the current item is deleted,
-		       * we can pick another. */
+               * of the current tab is based.  Must be saved
+               * so that if the current item is deleted,
+               * we can pick another. */
     int activePick; /* The pick event has been initialized so
-		     * that we can repick it */
+             * that we can repick it */
     int state; /* Last known modifier state.  Used to
-		* defer picking a new current object
-		* while buttons are down. */
+        * defer picking a new current object
+        * while buttons are down. */
     ClientData clientData;
     Tk_Window tkwin;
     Rbc_BindPickProc *pickProc; /* Routine to report the item the mouse is
-				 * currently over. */
+                 * currently over. */
     Rbc_BindTagProc *tagProc; /* Routine to report tags picked items. */
 } Rbc_BindTableStruct;
 

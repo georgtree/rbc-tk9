@@ -27,9 +27,9 @@
  * types.
  */
 
-#define TWD_BITMAP	1
-#define TWD_WINDOW	2
-#define TWD_WINDC	3
+#define TWD_BITMAP    1
+#define TWD_WINDOW    2
+#define TWD_WINDC    3
 
 #endif /* WIN32 */
 

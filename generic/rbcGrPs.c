@@ -32,27 +32,27 @@ extern Tk_CustomOption rbcDistanceOption;
 extern Tk_CustomOption rbcPositiveDistanceOption;
 extern Tk_CustomOption rbcPadOption;
 
-#define DEF_PS_CENTER		"yes"
-#define DEF_PS_COLOR_MAP	(char *)NULL
-#define DEF_PS_COLOR_MODE	"color"
-#define DEF_PS_DECORATIONS	"yes"
-#define DEF_PS_FONT_MAP		(char *)NULL
-#define DEF_PS_FOOTER		"no"
-#define DEF_PS_HEIGHT		"0"
-#define DEF_PS_LANDSCAPE	"no"
-#define DEF_PS_MAXPECT		"no"
-#define DEF_PS_PADX		"1.0i"
-#define DEF_PS_PADY		"1.0i"
-#define DEF_PS_PAPERHEIGHT	"11.0i"
-#define DEF_PS_PAPERWIDTH	"8.5i"
-#define DEF_PS_PREVIEW		"no"
+#define DEF_PS_CENTER        "yes"
+#define DEF_PS_COLOR_MAP    (char *)NULL
+#define DEF_PS_COLOR_MODE    "color"
+#define DEF_PS_DECORATIONS    "yes"
+#define DEF_PS_FONT_MAP        (char *)NULL
+#define DEF_PS_FOOTER        "no"
+#define DEF_PS_HEIGHT        "0"
+#define DEF_PS_LANDSCAPE    "no"
+#define DEF_PS_MAXPECT        "no"
+#define DEF_PS_PADX        "1.0i"
+#define DEF_PS_PADY        "1.0i"
+#define DEF_PS_PAPERHEIGHT    "11.0i"
+#define DEF_PS_PAPERWIDTH    "8.5i"
+#define DEF_PS_PREVIEW        "no"
 #define DEF_PS_PREVIEW_FORMAT   "epsi"
-#define DEF_PS_WIDTH		"0"
+#define DEF_PS_WIDTH        "0"
 
 static Tk_ConfigSpec configSpecs[] = {
     {TK_CONFIG_BOOLEAN, "-center", "center", "Center",
-	DEF_PS_CENTER, offsetof(PostScript, center),
-	TK_CONFIG_DONT_SET_DEFAULT},
+    DEF_PS_CENTER, offsetof(PostScript, center),
+    TK_CONFIG_DONT_SET_DEFAULT},
     {TK_CONFIG_STRING, "-colormap", "colorMap", "ColorMap",
      DEF_PS_COLOR_MAP, offsetof(PostScript, colorVarName),
      TK_CONFIG_NULL_OK},
@@ -133,9 +133,9 @@ static int CreateWindowsEPS (Graph *graphPtr, PsToken psToken, FILE *f);
  *      Convert the string representation of a PostScript color mode
  *      into the enumerated type representing the color level:
  *
- *          PS_MODE_COLOR 	- Full color
- *          PS_MODE_GREYSCALE  	- Color converted to greyscale
- *          PS_MODE_MONOCHROME 	- Only black and white
+ *          PS_MODE_COLOR     - Full color
+ *          PS_MODE_GREYSCALE      - Color converted to greyscale
+ *          PS_MODE_MONOCHROME     - Only black and white
  *
  * Results:
  *      A standard Tcl result.  The color level is written into the
@@ -164,17 +164,17 @@ StringToColorMode(clientData, interp, tkwin, string, widgRec, offset)
     c = string[0];
     length = strlen(string);
     if ((c == 'c') && (strncmp(string, "color", length) == 0)) {
-	*modePtr = PS_MODE_COLOR;
+    *modePtr = PS_MODE_COLOR;
     } else if ((c == 'g') && (strncmp(string, "grayscale", length) == 0)) {
-	*modePtr = PS_MODE_GREYSCALE;
+    *modePtr = PS_MODE_GREYSCALE;
     } else if ((c == 'g') && (strncmp(string, "greyscale", length) == 0)) {
-	*modePtr = PS_MODE_GREYSCALE;
+    *modePtr = PS_MODE_GREYSCALE;
     } else if ((c == 'm') && (strncmp(string, "monochrome", length) == 0)) {
-	*modePtr = PS_MODE_MONOCHROME;
+    *modePtr = PS_MODE_MONOCHROME;
     } else {
-	Tcl_AppendResult(interp, "bad color mode \"", string, "\": should be \
+    Tcl_AppendResult(interp, "bad color mode \"", string, "\": should be \
 \"color\", \"greyscale\", or \"monochrome\"", (char *)NULL);
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     return TCL_OK;
 }
@@ -200,14 +200,14 @@ NameOfColorMode(colorMode)
     PsColorMode colorMode;
 {
     switch (colorMode) {
-	case PS_MODE_COLOR:
-	    return "color";
-	case PS_MODE_GREYSCALE:
-	    return "greyscale";
-	case PS_MODE_MONOCHROME:
-	    return "monochrome";
-	default:
-	    return "unknown color mode";
+    case PS_MODE_COLOR:
+        return "color";
+    case PS_MODE_GREYSCALE:
+        return "greyscale";
+    case PS_MODE_MONOCHROME:
+        return "monochrome";
+    default:
+        return "unknown color mode";
     }
 }
 
@@ -249,9 +249,9 @@ ColorModeToString(clientData, tkwin, widgRec, offset, freeProcPtr)
  *      an enumerated type representing the desired format.  The
  *      available formats are:
  *
- *        PS_PREVIEW_WMF 	- Windows Metafile.
- *        PS_PREVIEW_TIFF  	- TIFF bitmap image.
- *        PS_PREVIEW_EPSI 	- Device independent ASCII preview
+ *        PS_PREVIEW_WMF     - Windows Metafile.
+ *        PS_PREVIEW_TIFF      - TIFF bitmap image.
+ *        PS_PREVIEW_EPSI     - Device independent ASCII preview
  *
  * Results:
  *      A standard Tcl result.  The format is written into the
@@ -280,25 +280,25 @@ StringToFormat(clientData, interp, tkwin, string, widgRec, offset)
     c = string[0];
     length = strlen(string);
     if ((c == 'c') && (strncmp(string, "epsi", length) == 0)) {
-	*formatPtr = PS_PREVIEW_EPSI;
+    *formatPtr = PS_PREVIEW_EPSI;
 #ifdef WIN32
 #ifdef HAVE_TIFF_H
     } else if ((c == 't') && (strncmp(string, "tiff", length) == 0)) {
-	*formatPtr = PS_PREVIEW_TIFF;
+    *formatPtr = PS_PREVIEW_TIFF;
 #endif /* HAVE_TIFF_H */
     } else if ((c == 'w') && (strncmp(string, "wmf", length) == 0)) {
-	*formatPtr = PS_PREVIEW_WMF;
+    *formatPtr = PS_PREVIEW_WMF;
 #endif /* WIN32 */
     } else {
-	Tcl_AppendResult(interp, "bad format \"", string, "\": should be ",
+    Tcl_AppendResult(interp, "bad format \"", string, "\": should be ",
 #ifdef WIN32
 #ifdef HAVE_TIFF_H
-			 "\"tiff\" or ",
+             "\"tiff\" or ",
 #endif /* HAVE_TIFF_H */
-			 "\"wmf\" or ",
+             "\"wmf\" or ",
 #endif /* WIN32 */
-			 "\"epsi\"", (char *)NULL);
-	return TCL_ERROR;
+             "\"epsi\"", (char *)NULL);
+    return TCL_ERROR;
     }
     return TCL_OK;
 }
@@ -330,12 +330,12 @@ FormatToString(clientData, tkwin, widgRec, offset, freeProcPtr)
     int format = *(int *)(widgRec + offset);
 
     switch (format) {
-	case PS_PREVIEW_EPSI:
-	    return "epsi";
-	case PS_PREVIEW_WMF:
-	    return "wmf";
-	case PS_PREVIEW_TIFF:
-	    return "tiff";
+    case PS_PREVIEW_EPSI:
+        return "epsi";
+    case PS_PREVIEW_WMF:
+        return "wmf";
+    case PS_PREVIEW_TIFF:
+        return "tiff";
     }
     return "?unknown preview format?";
 }
@@ -360,7 +360,7 @@ Rbc_DestroyPostScript(graphPtr)
     Graph *graphPtr;
 {
     Tk_FreeOptions(configSpecs, (char *)graphPtr->postscript,
-		   graphPtr->display, 0);
+           graphPtr->display, 0);
     ckfree((char *)graphPtr->postscript);
 }
 
@@ -389,8 +389,8 @@ CgetOp(
     PostScript *psPtr = (PostScript *)graphPtr->postscript;
 
     if (Tk_ConfigureValue(interp, graphPtr->tkwin, configSpecs, (char *)psPtr,
-	    Tcl_GetString(objv[3]), 0) != TCL_OK) {
-	return TCL_ERROR;
+        Tcl_GetString(objv[3]), 0) != TCL_OK) {
+    return TCL_ERROR;
     }
     return TCL_OK;
 }
@@ -421,15 +421,15 @@ ConfigureOp(
     PostScript *psPtr = (PostScript *)graphPtr->postscript;
 
     if (objc == 3) {
-	return Tk_ConfigureInfo(interp, graphPtr->tkwin, configSpecs,
-	    (char *)psPtr, (char *)NULL, flags);
+    return Tk_ConfigureInfo(interp, graphPtr->tkwin, configSpecs,
+        (char *)psPtr, (char *)NULL, flags);
     } else if (objc == 4) {
-	return Tk_ConfigureInfo(interp, graphPtr->tkwin, configSpecs,
-	    (char *)psPtr, Tcl_GetString(objv[3]), flags);
+    return Tk_ConfigureInfo(interp, graphPtr->tkwin, configSpecs,
+        (char *)psPtr, Tcl_GetString(objv[3]), flags);
     }
     if (Tk_ConfigureWidget(interp, graphPtr->tkwin, configSpecs, objc-3,
-	    objv+3, (char *)psPtr, flags) != TCL_OK) {
-	return TCL_ERROR;
+        objv+3, (char *)psPtr, flags) != TCL_OK) {
+    return TCL_ERROR;
     }
     return TCL_OK;
 }
@@ -474,17 +474,17 @@ ComputeBoundingBox(graphPtr, psPtr)
     vBorder = PADDING(psPtr->padY);
 
     if (psPtr->reqWidth > 0) {
-	graphPtr->width = psPtr->reqWidth;
+    graphPtr->width = psPtr->reqWidth;
     }
     if (psPtr->reqHeight > 0) {
-	graphPtr->height = psPtr->reqHeight;
+    graphPtr->height = psPtr->reqHeight;
     }
     if (psPtr->landscape) {
-	hSize = graphPtr->height;
-	vSize = graphPtr->width;
+    hSize = graphPtr->height;
+    vSize = graphPtr->width;
     } else {
-	hSize = graphPtr->width;
-	vSize = graphPtr->height;
+    hSize = graphPtr->width;
+    vSize = graphPtr->height;
     }
     /*
      * If the paper size wasn't specified, set it to the graph size plus
@@ -493,10 +493,10 @@ ComputeBoundingBox(graphPtr, psPtr)
     paperWidth = psPtr->reqPaperWidth;
     paperHeight = psPtr->reqPaperHeight;
     if (paperWidth < 1) {
-	paperWidth = hSize + hBorder;
+    paperWidth = hSize + hBorder;
     }
     if (paperHeight < 1) {
-	paperHeight = vSize + vBorder;
+    paperHeight = vSize + vBorder;
     }
     hScale = vScale = 1.0;
     /*
@@ -504,24 +504,24 @@ ComputeBoundingBox(graphPtr, psPtr)
      * it's bigger than the paper or if -maxpect was set.
      */
     if ((psPtr->maxpect) || ((hSize + hBorder) > paperWidth)) {
-	hScale = (double)(paperWidth - hBorder) / (double)hSize;
+    hScale = (double)(paperWidth - hBorder) / (double)hSize;
     }
     if ((psPtr->maxpect) || ((vSize + vBorder) > paperHeight)) {
-	vScale = (double)(paperHeight - vBorder) / (double)vSize;
+    vScale = (double)(paperHeight - vBorder) / (double)vSize;
     }
     scale = MIN(hScale, vScale);
     if (scale != 1.0) {
-	hSize = (int)((hSize * scale) + 0.5);
-	vSize = (int)((vSize * scale) + 0.5);
+    hSize = (int)((hSize * scale) + 0.5);
+    vSize = (int)((vSize * scale) + 0.5);
     }
     psPtr->pageScale = scale;
     if (psPtr->center) {
-	if (paperWidth > hSize) {
-	    x = (paperWidth - hSize) / 2;
-	}
-	if (paperHeight > vSize) {
-	    y = (paperHeight - vSize) / 2;
-	}
+    if (paperWidth > hSize) {
+        x = (paperWidth - hSize) / 2;
+    }
+    if (paperHeight > vSize) {
+        y = (paperHeight - vSize) / 2;
+    }
     }
     psPtr->left = x;
     psPtr->bottom = y;
@@ -569,43 +569,43 @@ PreviewImage(graphPtr, psToken)
     /* Create a pixmap and draw the graph into it. */
 
     drawable = Tk_GetPixmap(graphPtr->display, Tk_WindowId(graphPtr->tkwin),
-			    graphPtr->width, graphPtr->height, Tk_Depth(graphPtr->tkwin));
+                graphPtr->width, graphPtr->height, Tk_Depth(graphPtr->tkwin));
     Rbc_DrawGraph(graphPtr, drawable, noBackingStore);
 
     /* Get a color image from the pixmap */
     image = Rbc_DrawableToColorImage(graphPtr->tkwin, drawable, 0, 0, graphPtr->width, graphPtr->height, 1.0);
     Tk_FreePixmap(graphPtr->display, drawable);
     if (image == NULL) {
-	return;			/* Can't grab pixmap? */
+    return;            /* Can't grab pixmap? */
     }
 #ifdef THUMBNAIL_PREVIEW
     {
-	double scale, xScale, yScale;
-	int width, height;
-	Rbc_ColorImage destImage;
+    double scale, xScale, yScale;
+    int width, height;
+    Rbc_ColorImage destImage;
 
-	/* Scale the source image into a size appropriate for a thumbnail. */
-#define PS_MAX_PREVIEW_WIDTH	300.0
-#define PS_MAX_PREVIEW_HEIGHT	300.0
-	xScale = PS_MAX_PREVIEW_WIDTH / (double)graphPtr->width;
-	yScale = PS_MAX_PREVIEW_HEIGHT / (double)graphPtr->height;
-	scale = MIN(xScale, yScale);
+    /* Scale the source image into a size appropriate for a thumbnail. */
+#define PS_MAX_PREVIEW_WIDTH    300.0
+#define PS_MAX_PREVIEW_HEIGHT    300.0
+    xScale = PS_MAX_PREVIEW_WIDTH / (double)graphPtr->width;
+    yScale = PS_MAX_PREVIEW_HEIGHT / (double)graphPtr->height;
+    scale = MIN(xScale, yScale);
 
-	width = (int)(scale * graphPtr->width + 0.5);
-	height = (int)(scale * graphPtr->height + 0.5);
-	destImage = Rbc_ResampleColorImage(image, width, height,
-					   rbcBoxFilterPtr, rbcBoxFilterPtr);
-	Rbc_FreeColorImage(image);
-	image = destImage;
+    width = (int)(scale * graphPtr->width + 0.5);
+    height = (int)(scale * graphPtr->height + 0.5);
+    destImage = Rbc_ResampleColorImage(image, width, height,
+                       rbcBoxFilterPtr, rbcBoxFilterPtr);
+    Rbc_FreeColorImage(image);
+    image = destImage;
     }
 #endif /* THUMBNAIL_PREVIEW */
     Rbc_ColorImageToGreyscale(image);
     if (psPtr->landscape) {
-	Rbc_ColorImage oldImage;
+    Rbc_ColorImage oldImage;
 
-	oldImage = image;
-	image = Rbc_RotateColorImage(image, 90.0);
-	Rbc_FreeColorImage(oldImage);
+    oldImage = image;
+    image = Rbc_RotateColorImage(image, 90.0);
+    Rbc_FreeColorImage(oldImage);
     }
     Tcl_DStringInit(&dString);
     /* Finally, we can generate PostScript for the image */
@@ -613,7 +613,7 @@ PreviewImage(graphPtr, psToken)
 
     Rbc_AppendToPostScript(psToken, "%%BeginPreview: ", (char *)NULL);
     Rbc_FormatToPostScript(psToken, "%d %d 8 %d\n", Rbc_ColorImageWidth(image),
-			   Rbc_ColorImageHeight(image), nLines);
+               Rbc_ColorImageHeight(image), nLines);
     Rbc_AppendToPostScript(psToken, Tcl_DStringValue(&dString), (char *)NULL);
     Rbc_AppendToPostScript(psToken, "%%EndPreview\n\n", (char *)NULL);
     Tcl_DStringFree(&dString);
@@ -656,7 +656,7 @@ PostScriptPreamble(graphPtr, fileName, psToken)
 {
     PostScript *psPtr = (PostScript *)graphPtr->postscript;
     time_t ticks;
-    char date[200];		/* Hold the date string from ctime() */
+    char date[200];        /* Hold the date string from ctime() */
     const char *version;
     double dpiX, dpiY;
     double xPixelsToPica, yPixelsToPica; /* Scales to convert pixels to pica */
@@ -666,18 +666,18 @@ PostScriptPreamble(graphPtr, fileName, psToken)
 
     paperHeightPixels = ComputeBoundingBox(graphPtr, psPtr);
     if (fileName == NULL) {
-	fileName = Tk_PathName(graphPtr->tkwin);
+    fileName = Tk_PathName(graphPtr->tkwin);
     }
     Rbc_AppendToPostScript(psToken, "%!PS-Adobe-3.0 EPSF-3.0\n",
-			   (char *)NULL);
+               (char *)NULL);
 
     /*
      * Compute the scale factors to convert PostScript to X11 coordinates.
      * Round the pixels per inch (dpi) to an integral value before computing
      * the scale.
      */
-#define MM_INCH		25.4
-#define PICA_INCH	72.0
+#define MM_INCH        25.4
+#define PICA_INCH    72.0
     screenPtr = Tk_Screen(graphPtr->tkwin);
     dpiX = (WidthOfScreen(screenPtr) * MM_INCH) / WidthMMOfScreen(screenPtr);
     xPixelsToPica = PICA_INCH / dpiX;
@@ -690,63 +690,63 @@ PostScriptPreamble(graphPtr, fileName, psToken)
      * center of the box.
      */
     Rbc_FormatToPostScript(psToken, "%%%%BoundingBox: %d %d %d %d\n",
-			   (int)floor(psPtr->left * xPixelsToPica),
-			   (int)floor((paperHeightPixels - psPtr->top) * yPixelsToPica),
-			   (int)ceil(psPtr->right * xPixelsToPica),
-			   (int)ceil((paperHeightPixels - psPtr->bottom) * yPixelsToPica));
+               (int)floor(psPtr->left * xPixelsToPica),
+               (int)floor((paperHeightPixels - psPtr->top) * yPixelsToPica),
+               (int)ceil(psPtr->right * xPixelsToPica),
+               (int)ceil((paperHeightPixels - psPtr->bottom) * yPixelsToPica));
 
     Rbc_AppendToPostScript(psToken, "%%Pages: 0\n", (char *)NULL);
 
     version = Tcl_GetVar(graphPtr->interp, "rbc_version", TCL_GLOBAL_ONLY);
     if (version == NULL) {
-	version = "???";
+    version = "???";
     }
     Rbc_FormatToPostScript(psToken, "%%%%Creator: (Rbc %s %s)\n", version,
-			   Tk_Class(graphPtr->tkwin));
+               Tk_Class(graphPtr->tkwin));
 
     ticks = time((time_t *) NULL);
     strcpy(date, ctime(&ticks));
     nl = date + strlen(date) - 1;
     if (*nl == '\n') {
-	*nl = '\0';
+    *nl = '\0';
     }
     Rbc_FormatToPostScript(psToken, "%%%%CreationDate: (%s)\n", date);
     Rbc_FormatToPostScript(psToken, "%%%%Title: (%s)\n", fileName);
     Rbc_AppendToPostScript(psToken, "%%DocumentData: Clean7Bit\n",
-			   (char *)NULL);
+               (char *)NULL);
     if (psPtr->landscape) {
-	Rbc_AppendToPostScript(psToken, "%%Orientation: Landscape\n",
-			       (char *)NULL);
+    Rbc_AppendToPostScript(psToken, "%%Orientation: Landscape\n",
+                   (char *)NULL);
     } else {
-	Rbc_AppendToPostScript(psToken, "%%Orientation: Portrait\n",
-			       (char *)NULL);
+    Rbc_AppendToPostScript(psToken, "%%Orientation: Portrait\n",
+                   (char *)NULL);
     }
     Rbc_AppendToPostScript(psToken,
-			   "%%DocumentNeededResources: font Helvetica Courier\n", (char *)NULL);
+               "%%DocumentNeededResources: font Helvetica Courier\n", (char *)NULL);
     Rbc_AppendToPostScript(psToken, "%%EndComments\n\n", (char *)NULL);
     if ((psPtr->addPreview) && (psPtr->previewFormat == PS_PREVIEW_EPSI)) {
-	PreviewImage(graphPtr, psToken);
+    PreviewImage(graphPtr, psToken);
     }
     if (Rbc_FileToPostScript(psToken, "rbcGraph.pro") != TCL_OK) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     if (psPtr->footer) {
-	char *who;
+    char *who;
 
-	who = getenv("LOGNAME");
-	if (who == NULL) {
-	    who = "???";
-	}
-	Rbc_AppendToPostScript(psToken,
-			       "8 /Helvetica SetFont\n",
-			       "10 30 moveto\n",
-			       "(Date: ", date, ") show\n",
-			       "10 20 moveto\n",
-			       "(File: ", fileName, ") show\n",
-			       "10 10 moveto\n",
-			       "(Created by: ", who, "@", Tcl_GetHostName(), ") show\n",
-			       "0 0 moveto\n",
-			       (char *)NULL);
+    who = getenv("LOGNAME");
+    if (who == NULL) {
+        who = "???";
+    }
+    Rbc_AppendToPostScript(psToken,
+                   "8 /Helvetica SetFont\n",
+                   "10 30 moveto\n",
+                   "(Date: ", date, ") show\n",
+                   "10 20 moveto\n",
+                   "(File: ", fileName, ") show\n",
+                   "10 10 moveto\n",
+                   "(Created by: ", who, "@", Tcl_GetHostName(), ") show\n",
+                   "0 0 moveto\n",
+                   (char *)NULL);
     }
     /*
      * Set the conversion from PostScript to X11 coordinates.  Scale
@@ -754,31 +754,31 @@ PostScriptPreamble(graphPtr, fileName, psToken)
      * corner).
      */
     Rbc_AppendToPostScript(psToken,
-			   "% Transform coordinate system to use X11 coordinates\n\n",
-			   "% 1. Flip y-axis over by reversing the scale,\n",
-			   "% 2. Translate the origin to the other side of the page,\n",
-			   "%    making the origin the upper left corner\n", (char *)NULL);
+               "% Transform coordinate system to use X11 coordinates\n\n",
+               "% 1. Flip y-axis over by reversing the scale,\n",
+               "% 2. Translate the origin to the other side of the page,\n",
+               "%    making the origin the upper left corner\n", (char *)NULL);
     Rbc_FormatToPostScript(psToken, "%g -%g scale\n", xPixelsToPica,
-			   yPixelsToPica);
+               yPixelsToPica);
     /* Papersize is in pixels.  Translate the new origin *after*
      * changing the scale. */
     Rbc_FormatToPostScript(psToken, "0 %d translate\n\n",
-			   -paperHeightPixels);
+               -paperHeightPixels);
     Rbc_AppendToPostScript(psToken, "% User defined page layout\n\n",
-			   "% Set color level\n", (char *)NULL);
+               "% Set color level\n", (char *)NULL);
     Rbc_FormatToPostScript(psToken, "/CL %d def\n\n", psPtr->colorMode);
     Rbc_FormatToPostScript(psToken, "%% Set origin\n%d %d translate\n\n",
-			   psPtr->left, psPtr->bottom);
+               psPtr->left, psPtr->bottom);
     if (psPtr->landscape) {
-	Rbc_FormatToPostScript(psToken,
-			       "%% Landscape orientation\n0 %g translate\n-90 rotate\n",
-			       ((double)graphPtr->width * psPtr->pageScale));
+    Rbc_FormatToPostScript(psToken,
+                   "%% Landscape orientation\n0 %g translate\n-90 rotate\n",
+                   ((double)graphPtr->width * psPtr->pageScale));
     }
     if (psPtr->pageScale != 1.0) {
-	Rbc_AppendToPostScript(psToken, "\n% Setting graph scale factor\n",
-			       (char *)NULL);
-	Rbc_FormatToPostScript(psToken, " %g %g scale\n", psPtr->pageScale,
-			       psPtr->pageScale);
+    Rbc_AppendToPostScript(psToken, "\n% Setting graph scale factor\n",
+                   (char *)NULL);
+    Rbc_FormatToPostScript(psToken, " %g %g scale\n", psPtr->pageScale,
+                   psPtr->pageScale);
     }
     Rbc_AppendToPostScript(psToken, "\n%%EndSetup\n\n", (char *)NULL);
     return TCL_OK;
@@ -820,38 +820,38 @@ MarginsToPostScript(graphPtr, psToken)
 
     /* Clear the surrounding margins and clip the plotting surface */
     if (psPtr->decorations) {
-	Rbc_BackgroundToPostScript(psToken,
-				   Tk_3DBorderColor(graphPtr->border));
+    Rbc_BackgroundToPostScript(psToken,
+                   Tk_3DBorderColor(graphPtr->border));
     } else {
-	Rbc_ClearBackgroundToPostScript(psToken);
+    Rbc_ClearBackgroundToPostScript(psToken);
     }
     Rbc_RectanglesToPostScript(psToken, margin, 4);
 
     /* Interior 3D border */
     if ((psPtr->decorations) && (graphPtr->plotBorderWidth > 0)) {
-	int x, y, width, height;
+    int x, y, width, height;
 
-	x = graphPtr->left - graphPtr->plotBorderWidth;
-	y = graphPtr->top - graphPtr->plotBorderWidth;
-	width = (graphPtr->right - graphPtr->left) +
-		(2 * graphPtr->plotBorderWidth);
-	height = (graphPtr->bottom - graphPtr->top) +
-		 (2 * graphPtr->plotBorderWidth);
-	Rbc_Draw3DRectangleToPostScript(psToken, graphPtr->border,
-					(double)x, (double)y, width, height, graphPtr->plotBorderWidth,
-					graphPtr->plotRelief);
+    x = graphPtr->left - graphPtr->plotBorderWidth;
+    y = graphPtr->top - graphPtr->plotBorderWidth;
+    width = (graphPtr->right - graphPtr->left) +
+        (2 * graphPtr->plotBorderWidth);
+    height = (graphPtr->bottom - graphPtr->top) +
+         (2 * graphPtr->plotBorderWidth);
+    Rbc_Draw3DRectangleToPostScript(psToken, graphPtr->border,
+                    (double)x, (double)y, width, height, graphPtr->plotBorderWidth,
+                    graphPtr->plotRelief);
     }
     if (Rbc_LegendSite(graphPtr->legend) & LEGEND_IN_MARGIN) {
-	/*
-	 * Print the legend if we're using a site which lies in one
-	 * of the margins (left, right, top, or bottom) of the graph.
-	 */
-	Rbc_LegendToPostScript(graphPtr->legend, psToken);
+    /*
+     * Print the legend if we're using a site which lies in one
+     * of the margins (left, right, top, or bottom) of the graph.
+     */
+    Rbc_LegendToPostScript(graphPtr->legend, psToken);
     }
     if (graphPtr->title != NULL) {
-	Rbc_TextToPostScript(psToken, graphPtr->title,
-			     &graphPtr->titleTextStyle, (double)graphPtr->titleX,
-			     (double)graphPtr->titleY);
+    Rbc_TextToPostScript(psToken, graphPtr->title,
+                 &graphPtr->titleTextStyle, (double)graphPtr->titleX,
+                 (double)graphPtr->titleY);
     }
     Rbc_AxesToPostScript(graphPtr, psToken);
 }
@@ -887,14 +887,14 @@ GraphToPostScript(graphPtr, ident, psToken)
      * this with the -width and -height postscript options.
      */
     if (graphPtr->height <= 1) {
-	graphPtr->height = Tk_ReqHeight(graphPtr->tkwin);
+    graphPtr->height = Tk_ReqHeight(graphPtr->tkwin);
     }
     if (graphPtr->width <= 1) {
-	graphPtr->width = Tk_ReqWidth(graphPtr->tkwin);
+    graphPtr->width = Tk_ReqWidth(graphPtr->tkwin);
     }
     result = PostScriptPreamble(graphPtr, ident, psToken);
     if (result != TCL_OK) {
-	goto error;
+    goto error;
     }
     /*
      * Determine rectangle of the plotting area for the graph window
@@ -903,48 +903,48 @@ GraphToPostScript(graphPtr, ident, psToken)
     y = graphPtr->top - graphPtr->plotBorderWidth;
 
     width = (graphPtr->right - graphPtr->left + 1) +
-	    (2 * graphPtr->plotBorderWidth);
+        (2 * graphPtr->plotBorderWidth);
     height = (graphPtr->bottom - graphPtr->top + 1) +
-	     (2 * graphPtr->plotBorderWidth);
+         (2 * graphPtr->plotBorderWidth);
 
     Rbc_FontToPostScript(psToken, graphPtr->titleTextStyle.font);
     Rbc_RegionToPostScript(psToken, (double)x, (double)y, width, height);
     if (graphPtr->postscript->decorations) {
-	Rbc_BackgroundToPostScript(psToken, graphPtr->plotBg);
+    Rbc_BackgroundToPostScript(psToken, graphPtr->plotBg);
     } else {
-	Rbc_ClearBackgroundToPostScript(psToken);
+    Rbc_ClearBackgroundToPostScript(psToken);
     }
     Rbc_AppendToPostScript(psToken, "Fill\n", (char *)NULL);
     Rbc_AppendToPostScript(psToken, "gsave clip\n\n", (char *)NULL);
     /* Draw the grid, elements, and markers in the plotting area. */
     if (!graphPtr->gridPtr->hidden) {
-	Rbc_GridToPostScript(graphPtr, psToken);
+    Rbc_GridToPostScript(graphPtr, psToken);
     }
     Rbc_MarkersToPostScript(graphPtr, psToken, TRUE);
     if ((Rbc_LegendSite(graphPtr->legend) & LEGEND_IN_PLOT) &&
-	    (!Rbc_LegendIsRaised(graphPtr->legend))) {
-	/* Print legend underneath elements and markers */
-	Rbc_LegendToPostScript(graphPtr->legend, psToken);
+        (!Rbc_LegendIsRaised(graphPtr->legend))) {
+    /* Print legend underneath elements and markers */
+    Rbc_LegendToPostScript(graphPtr->legend, psToken);
     }
     Rbc_AxisLimitsToPostScript(graphPtr, psToken);
     Rbc_ElementsToPostScript(graphPtr, psToken);
     if ((Rbc_LegendSite(graphPtr->legend) & LEGEND_IN_PLOT) &&
-	    (Rbc_LegendIsRaised(graphPtr->legend))) {
-	/* Print legend above elements (but not markers) */
-	Rbc_LegendToPostScript(graphPtr->legend, psToken);
+        (Rbc_LegendIsRaised(graphPtr->legend))) {
+    /* Print legend above elements (but not markers) */
+    Rbc_LegendToPostScript(graphPtr->legend, psToken);
     }
     Rbc_MarkersToPostScript(graphPtr, psToken, FALSE);
     Rbc_ActiveElementsToPostScript(graphPtr, psToken);
     Rbc_AppendToPostScript(psToken, "\n",
-			   "% Unset clipping\n",
-			   "grestore\n\n", (char *)NULL);
+               "% Unset clipping\n",
+               "grestore\n\n", (char *)NULL);
     MarginsToPostScript(graphPtr, psToken);
     Rbc_AppendToPostScript(psToken,
-			   "showpage\n",
-			   "%Trailer\n",
-			   "grestore\n",
-			   "end\n",
-			   "%EOF\n", (char *)NULL);
+               "showpage\n",
+               "%Trailer\n",
+               "grestore\n",
+               "end\n",
+               "%EOF\n", (char *)NULL);
 error:
     /* Reset height and width of graph window */
     graphPtr->width = Tk_Width(graphPtr->tkwin);
@@ -972,7 +972,7 @@ error:
  *    unsigned int *p;
  *    unsigned int sum;
  *    Screen *screen;
- *#define MM_INCH		25.4
+ *#define MM_INCH        25.4
  *    double dpiX, dpiY;
  *
  *    headerPtr->key = 0x9ac6cdd7L;
@@ -1047,14 +1047,14 @@ CreateWindowsEPS(graphPtr, psToken, f)
     epsHeader.psStart = sizeof(epsHeader);
     epsHeader.psLength = strlen(psBuffer) + 1;
     epsHeader.wmfStart = epsHeader.psStart + epsHeader.psLength;
-    epsHeader.wmfLength = 0L;	/* Fill in later. */
+    epsHeader.wmfLength = 0L;    /* Fill in later. */
     epsHeader.tiffStart = 0L;
     epsHeader.tiffLength = 0L;
     epsHeader.checksum = 0xFFFF;
 
     result = TCL_ERROR;
     hRefDC = TkWinGetDrawableDC(graphPtr->display,
-				Tk_WindowId(graphPtr->tkwin), &state);
+                Tk_WindowId(graphPtr->tkwin), &state);
 
     /* Build a description string. */
     Tcl_DStringInit(&dString);
@@ -1068,9 +1068,9 @@ CreateWindowsEPS(graphPtr, psToken, f)
     Tcl_DStringFree(&dString);
 
     if (hDC == NULL) {
-	Tcl_AppendResult(graphPtr->interp, "can't create metafile: ",
-			 Rbc_LastError(), (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(graphPtr->interp, "can't create metafile: ",
+             Rbc_LastError(), (char *)NULL);
+    return TCL_ERROR;
     }
     /* Assemble a Tk drawable that points to the metafile and let the
      * graph's drawing routine draw into it. */
@@ -1088,15 +1088,15 @@ CreateWindowsEPS(graphPtr, psToken, f)
     size = GetWinMetaFileBits(hMetaFile, 0, NULL, MM_ANISOTROPIC, hRefDC);
     hMem = GlobalAlloc(GHND, size);
     if (hMem == NULL) {
-	Tcl_AppendResult(graphPtr->interp, "can't allocate global memory:",
-			 Rbc_LastError(), (char *)NULL);
-	goto error;
+    Tcl_AppendResult(graphPtr->interp, "can't allocate global memory:",
+             Rbc_LastError(), (char *)NULL);
+    goto error;
     }
     buffer = (LPVOID)GlobalLock(hMem);
     if (!GetWinMetaFileBits(hMetaFile, size, buffer, MM_ANISOTROPIC, hRefDC)) {
-	Tcl_AppendResult(graphPtr->interp, "can't get metafile data:",
-			 Rbc_LastError(), (char *)NULL);
-	goto error;
+    Tcl_AppendResult(graphPtr->interp, "can't get metafile data:",
+             Rbc_LastError(), (char *)NULL);
+    goto error;
     }
 
     /*
@@ -1108,21 +1108,21 @@ CreateWindowsEPS(graphPtr, psToken, f)
 
     /* Write out the eps header, */
     if (fwrite(&epsHeader, 1, sizeof(epsHeader), f) != sizeof(epsHeader)) {
-	Tcl_AppendResult(graphPtr->interp, "error writing eps header:",
-			 Rbc_LastError(), (char *)NULL);
-	goto error;
+    Tcl_AppendResult(graphPtr->interp, "error writing eps header:",
+             Rbc_LastError(), (char *)NULL);
+    goto error;
     }
     /* the PostScript, */
     if (fwrite(psBuffer, 1, epsHeader.psLength, f) != epsHeader.psLength) {
-	Tcl_AppendResult(graphPtr->interp, "error writing PostScript data:",
-			 Rbc_LastError(), (char *)NULL);
-	goto error;
+    Tcl_AppendResult(graphPtr->interp, "error writing PostScript data:",
+             Rbc_LastError(), (char *)NULL);
+    goto error;
     }
     /* and finally the metadata itself. */
     if (fwrite(buffer, 1, size, f) != size) {
-	Tcl_AppendResult(graphPtr->interp, "error writing metafile data:",
-			 Rbc_LastError(), (char *)NULL);
-	goto error;
+    Tcl_AppendResult(graphPtr->interp, "error writing metafile data:",
+             Rbc_LastError(), (char *)NULL);
+    goto error;
     }
     result = TCL_OK;
 
@@ -1131,8 +1131,8 @@ error:
     TkWinReleaseDrawableDC(Tk_WindowId(graphPtr->tkwin), hRefDC, &state);
     fclose(f);
     if (hMem != NULL) {
-	GlobalUnlock(hMem);
-	GlobalFree(hMem);
+    GlobalUnlock(hMem);
+    GlobalFree(hMem);
     }
     graphPtr->flags = MAP_WORLD;
     Rbc_EventuallyRedrawGraph(graphPtr);
@@ -1167,31 +1167,31 @@ OutputOp(
     PostScript *psPtr = (PostScript *)graphPtr->postscript;
     FILE *f = NULL;
     PsToken psToken;
-    char *fileName = NULL;	/* Name of file to write PostScript output
-				 * If NULL, output is returned via
-				 * the interpreter result. */
+    char *fileName = NULL;    /* Name of file to write PostScript output
+                 * If NULL, output is returned via
+                 * the interpreter result. */
     if (objc > 3) {
-	char *arg = Tcl_GetString(objv[3]);
-	if (arg[0] != '-') {
-	    fileName = arg;	/* First argument is the file name. */
-	    objv++, objc--;
-	}
-	if (Tk_ConfigureWidget(interp, graphPtr->tkwin, configSpecs, objc-3,
-		objv+3, (char *)psPtr, TK_CONFIG_ARGV_ONLY) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	if (fileName != NULL) {
+    char *arg = Tcl_GetString(objv[3]);
+    if (arg[0] != '-') {
+        fileName = arg;    /* First argument is the file name. */
+        objv++, objc--;
+    }
+    if (Tk_ConfigureWidget(interp, graphPtr->tkwin, configSpecs, objc-3,
+        objv+3, (char *)psPtr, TK_CONFIG_ARGV_ONLY) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (fileName != NULL) {
 #ifdef WIN32
-	    f = fopen(fileName, "wb");
+        f = fopen(fileName, "wb");
 #else
-	    f = fopen(fileName, "w");
+        f = fopen(fileName, "w");
 #endif
-	    if (f == NULL) {
-		Tcl_AppendResult(interp, "can't create \"", fileName, "\": ",
-		    Tcl_PosixError(interp), (char *)NULL);
-		return TCL_ERROR;
-	    }
-	}
+        if (f == NULL) {
+        Tcl_AppendResult(interp, "can't create \"", fileName, "\": ",
+            Tcl_PosixError(interp), (char *)NULL);
+        return TCL_ERROR;
+        }
+    }
     }
     psToken = Rbc_GetPsToken(graphPtr->interp, graphPtr->tkwin);
     psToken->fontVarName = psPtr->fontVarName;
@@ -1199,44 +1199,44 @@ OutputOp(
     psToken->colorMode = psPtr->colorMode;
 
     if (GraphToPostScript(graphPtr, fileName, psToken) != TCL_OK) {
-	goto error;
+    goto error;
     }
     /*
      * If a file name was given, write the results to that file
      */
     if (f != NULL) {
 #ifdef WIN32
-	if ((psPtr->addPreview) && (psPtr->previewFormat != PS_PREVIEW_EPSI)) {
-	    if (CreateWindowsEPS(graphPtr, psToken, f)) {
-		return TCL_ERROR;
-	    }
-	} else {
-	    fputs(Rbc_PostScriptFromToken(psToken), f);
-	    if (ferror(f)) {
-		Tcl_AppendResult(interp, "error writing file \"", fileName,
-		    "\": ", Tcl_PosixError(interp), (char *)NULL);
-		goto error;
-	    }
-	}
-#else
-	fputs(Rbc_PostScriptFromToken(psToken), f);
-	if (ferror(f)) {
-	    Tcl_AppendResult(interp, "error writing file \"", fileName, "\": ",
-		Tcl_PosixError(interp), (char *)NULL);
-	    goto error;
-	}
-#endif /* WIN32 */
-	fclose(f);
+    if ((psPtr->addPreview) && (psPtr->previewFormat != PS_PREVIEW_EPSI)) {
+        if (CreateWindowsEPS(graphPtr, psToken, f)) {
+        return TCL_ERROR;
+        }
     } else {
-	Tcl_SetObjResult(interp,
-	    Tcl_NewStringObj(Rbc_PostScriptFromToken(psToken), -1));
+        fputs(Rbc_PostScriptFromToken(psToken), f);
+        if (ferror(f)) {
+        Tcl_AppendResult(interp, "error writing file \"", fileName,
+            "\": ", Tcl_PosixError(interp), (char *)NULL);
+        goto error;
+        }
+    }
+#else
+    fputs(Rbc_PostScriptFromToken(psToken), f);
+    if (ferror(f)) {
+        Tcl_AppendResult(interp, "error writing file \"", fileName, "\": ",
+        Tcl_PosixError(interp), (char *)NULL);
+        goto error;
+    }
+#endif /* WIN32 */
+    fclose(f);
+    } else {
+    Tcl_SetObjResult(interp,
+        Tcl_NewStringObj(Rbc_PostScriptFromToken(psToken), -1));
     }
     Rbc_ReleasePsToken(psToken);
     return TCL_OK;
 
 error:
     if (f != NULL) {
-	fclose(f);
+    fclose(f);
     }
     Rbc_ReleasePsToken(psToken);
     return TCL_ERROR;
@@ -1271,9 +1271,9 @@ Rbc_CreatePostScript(graphPtr)
     graphPtr->postscript = psPtr;
 
     if (Rbc_ConfigureWidgetComponent(graphPtr->interp, graphPtr->tkwin,
-	    "postscript", "Postscript", configSpecs, 0, NULL,
-	    (char *)psPtr, 0) != TCL_OK) {
-	return TCL_ERROR;
+        "postscript", "Postscript", configSpecs, 0, NULL,
+        (char *)psPtr, 0) != TCL_OK) {
+    return TCL_ERROR;
     }
     return TCL_OK;
 }
@@ -1329,7 +1329,7 @@ Rbc_PostScriptOp(
 
     proc = Rbc_GetOpFromObj(interp, psOps, RBC_OP_ARG2, objc, objv);
     if (proc == NULL) {
-	return TCL_ERROR;
+    return TCL_ERROR;
     }
     result = (*proc) (graphPtr, interp, objc, objv);
     return result;

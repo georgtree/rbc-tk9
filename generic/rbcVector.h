@@ -25,33 +25,33 @@ typedef struct Rbc_Vector_s {
     int reserved; /* Reserved for future use */
 } Rbc_Vector;
 
-#define Rbc_VecData(v)		((v)->valueArr)
-#define Rbc_VecLength(v)	((v)->numValues)
-#define Rbc_VecSize(v)		((v)->arraySize)
-#define Rbc_VecDirty(v)		((v)->dirty)
+#define Rbc_VecData(v)        ((v)->valueArr)
+#define Rbc_VecLength(v)    ((v)->numValues)
+#define Rbc_VecSize(v)        ((v)->arraySize)
+#define Rbc_VecDirty(v)        ((v)->dirty)
 
 #ifdef _MSC_VER
 #define FINITE(x)       _finite(x)
 #else
 #ifdef HAVE_FINITE
-#define FINITE(x)	finite(x)
+#define FINITE(x)    finite(x)
 #else
 #ifdef HAVE_ISFINITE
-#define FINITE(x)	isfinite(x)
+#define FINITE(x)    isfinite(x)
 #else
 #ifdef HAVE_ISNAN
-#define FINITE(x)	(!isnan(x))
+#define FINITE(x)    (!isnan(x))
 #else
-#define FINITE(x)	(TRUE)
+#define FINITE(x)    (TRUE)
 #endif /* HAVE_ISNAN */
 #endif /* HAVE_ISFINITE */
 #endif /* HAVE_FINITE */
 #endif /* _MSC_VER */
 
-#define VECTOR_THREAD_KEY	"Rbc Vector Data"
-#define VECTOR_MAGIC		((unsigned int) 0x46170277)
-#define MAX_ERR_MSG	1023
-#define DEF_ARRAY_SIZE		64
+#define VECTOR_THREAD_KEY    "Rbc Vector Data"
+#define VECTOR_MAGIC        ((unsigned int) 0x46170277)
+#define MAX_ERR_MSG    1023
+#define DEF_ARRAY_SIZE        64
 #define BUFFER_SIZE 1024
 #define STATIC_STRING_SPACE 150
 
@@ -60,36 +60,36 @@ typedef struct Rbc_Vector_s {
 /* These defines allow parsing of different types of indices */
 
 /* Recognize "min", "max", and "++end" as valid indices */
-#define INDEX_SPECIAL	(1<<0)
+#define INDEX_SPECIAL    (1<<0)
 /* Also recognize a range of indices separated by a colon */
-#define INDEX_COLON	(1<<1)
+#define INDEX_COLON    (1<<1)
 /* Verify that the specified index or range of indices are within limits */
-#define INDEX_CHECK	(1<<2)
+#define INDEX_CHECK    (1<<2)
 #define INDEX_ALL_FLAGS    (INDEX_SPECIAL | INDEX_COLON | INDEX_CHECK)
-#define SPECIAL_INDEX		-2
+#define SPECIAL_INDEX        -2
 
 /* Never notify clients of updates to the vector */
-#define NOTIFY_NEVER		(1<<3)
+#define NOTIFY_NEVER        (1<<3)
 /* Notify clients after each update of the vector is made */
-#define NOTIFY_ALWAYS		(1<<4)
+#define NOTIFY_ALWAYS        (1<<4)
 /* Notify clients at the next idle point that the vector has been updated. */
-#define NOTIFY_WHENIDLE		(1<<5)
+#define NOTIFY_WHENIDLE        (1<<5)
 /* A do-when-idle notification of the vector's clients is pending. */
-#define NOTIFY_PENDING		(1<<6)
-#define NOTIFY_UPDATED		((int) RBC_VECTOR_NOTIFY_UPDATE)
-#define NOTIFY_DESTROYED	((int) RBC_VECTOR_NOTIFY_DESTROY)
+#define NOTIFY_PENDING        (1<<6)
+#define NOTIFY_UPDATED        ((int) RBC_VECTOR_NOTIFY_UPDATE)
+#define NOTIFY_DESTROYED    ((int) RBC_VECTOR_NOTIFY_DESTROY)
 /* The data of the vector has changed.  Update the min and max limits when they are needed */
-#define UPDATE_RANGE		(1<<9)
+#define UPDATE_RANGE        (1<<9)
 
 #define UCHAR(c) ((unsigned char) (c))
-#define VECTOR_CHAR(c)	((isalnum(UCHAR(c))) || \
-	(c == '_') || (c == ':') || (c == '@') || (c == '.'))
+#define VECTOR_CHAR(c)    ((isalnum(UCHAR(c))) || \
+    (c == '_') || (c == ':') || (c == '@') || (c == '.'))
 
 
-#define NS_SEARCH_NONE		(0)
-#define NS_SEARCH_CURRENT	(1<<0)
-#define NS_SEARCH_GLOBAL	(1<<1)
-#define NS_SEARCH_BOTH		(NS_SEARCH_GLOBAL | NS_SEARCH_CURRENT)
+#define NS_SEARCH_NONE        (0)
+#define NS_SEARCH_CURRENT    (1<<0)
+#define NS_SEARCH_GLOBAL    (1<<1)
+#define NS_SEARCH_BOTH        (NS_SEARCH_GLOBAL | NS_SEARCH_CURRENT)
 
 extern double rbcNaN;
 
@@ -102,20 +102,20 @@ typedef struct {
 } VectorInterpData;
 
 /*
- *	A vector is an array of double precision values.  It can be
- *	accessed through a Tcl command, a Tcl array variable, or C
- *	API. The storage for the array points initially to a
- *	statically allocated buffer, but to malloc-ed memory if more
- *	is necessary.
+ *    A vector is an array of double precision values.  It can be
+ *    accessed through a Tcl command, a Tcl array variable, or C
+ *    API. The storage for the array points initially to a
+ *    statically allocated buffer, but to malloc-ed memory if more
+ *    is necessary.
  *
- *	Vectors can be shared by several clients (for example, two
- *	different graph widgets).  The data is shared. When a client
- *	wants to use a vector, it allocates a vector identifier, which
- *	identifies the client.  Clients use this ID to specify a
- *	callback routine to be invoked whenever the vector is modified
- *	or destroyed.  Whenever the vector is updated or destroyed,
- *	each client is notified of the change by their callback
- *	routine.
+ *    Vectors can be shared by several clients (for example, two
+ *    different graph widgets).  The data is shared. When a client
+ *    wants to use a vector, it allocates a vector identifier, which
+ *    identifies the client.  Clients use this ID to specify a
+ *    callback routine to be invoked whenever the vector is modified
+ *    or destroyed.  Whenever the vector is updated or destroyed,
+ *    each client is notified of the change by their callback
+ *    routine.
  */
 typedef struct {
     /*
@@ -125,43 +125,43 @@ typedef struct {
     double *valueArr; /* Array of values (malloc-ed) */
     int length; /* Current number of values in the array. */
     int size; /* Maximum number of values that can be stored
-	       * in the value array. */
+           * in the value array. */
     double min, max; /* Minimum and maximum values in the vector */
     int dirty; /* Indicates if the vector has been updated */
     int reserved;
 
     /* The following fields are local to this module  */
     char *name; /* The namespace-qualified name of the vector command.
-		 * It points to the hash key allocated for the
-		 * entry in the vector hash table. */
+         * It points to the hash key allocated for the
+         * entry in the vector hash table. */
     VectorInterpData *dataPtr;
     Tcl_Interp *interp; /* Interpreter associated with the vector */
     Tcl_HashEntry *hashPtr; /* If non-NULL, pointer in a hash table to
-			     * track the vectors in use. */
+                 * track the vectors in use. */
     Tcl_FreeProc *freeProc; /* Address of procedure to call to
-			     * release storage for the value
-			     * array, Optionally can be one of the
-			     * following: TCL_STATIC, TCL_DYNAMIC,
-			     * or TCL_VOLATILE. */
+                 * release storage for the value
+                 * array, Optionally can be one of the
+                 * following: TCL_STATIC, TCL_DYNAMIC,
+                 * or TCL_VOLATILE. */
     char *arrayName; /* The namespace-qualified name of the
-		      * Tcl array variable
-		      * mapped to the vector
-		      * (malloc'ed). If NULL, indicates
-		      * that the vector isn't mapped to any variable */
+              * Tcl array variable
+              * mapped to the vector
+              * (malloc'ed). If NULL, indicates
+              * that the vector isn't mapped to any variable */
     int offset; /* Offset from zero of the vector's
-		 * starting index */
+         * starting index */
     Tcl_Command cmdToken; /* Token for vector's Tcl command. */
     Rbc_Chain *chainPtr; /* List of clients using this vector */
     int notifyFlags; /* Notification flags. See definitions
-		      * below */
+              * below */
     int varFlags; /* Indicate if the variable is global,
-		   * namespace, or local */
+           * namespace, or local */
     int freeOnUnset; /* For backward compatibility only: If
-		      * non-zero, free the vector when its
-		      * variable is unset. */
+              * non-zero, free the vector when its
+              * variable is unset. */
     int flush;
     int first, last; /* Selected region of vector. This is used
-		      * mostly for the math routines */
+              * mostly for the math routines */
 } VectorObject;
 
 typedef struct Rbc_VectorIdStruct *Rbc_VectorId;
@@ -169,8 +169,8 @@ typedef struct Rbc_VectorIdStruct *Rbc_VectorId;
 typedef enum {
     RBC_VECTOR_NOTIFY_UPDATE = 1, /* The vector's values has been updated */
     RBC_VECTOR_NOTIFY_DESTROY /* The vector has been destroyed and the client
-			       * should no longer use its data (calling
-			       * Rbc_FreeVectorId) */
+                   * should no longer use its data (calling
+                   * Rbc_FreeVectorId) */
 } Rbc_VectorNotify;
 
 typedef void (Rbc_VectorChangedProc) (Tcl_Interp *interp, ClientData clientData, Rbc_VectorNotify notify);
@@ -178,33 +178,33 @@ typedef void (Rbc_VectorChangedProc) (Tcl_Interp *interp, ClientData clientData,
 typedef double (Rbc_VectorIndexProc) (Rbc_Vector * vecPtr);
 
 /*
- *	A vector can be shared by several clients.  Each client
- *	allocates this structure that acts as its key for using the
- *	vector.  Clients can also designate a callback routine that is
- *	executed whenever the vector is updated or destroyed.
+ *    A vector can be shared by several clients.  Each client
+ *    allocates this structure that acts as its key for using the
+ *    vector.  Clients can also designate a callback routine that is
+ *    executed whenever the vector is updated or destroyed.
  *
  */
 typedef struct {
-    unsigned int magic;		/* Magic value designating whether this
-				 * really is a vector token or not */
-    VectorObject *serverPtr;	/* Pointer to the master record of the
-				 * vector.  If NULL, indicates that the
-				 * vector has been destroyed but as of
-				 * yet, this client hasn't recognized
-				 * it. */
+    unsigned int magic;        /* Magic value designating whether this
+                 * really is a vector token or not */
+    VectorObject *serverPtr;    /* Pointer to the master record of the
+                 * vector.  If NULL, indicates that the
+                 * vector has been destroyed but as of
+                 * yet, this client hasn't recognized
+                 * it. */
     Rbc_VectorChangedProc *proc;/* Routine to call when the contents
-				 * of the vector change or the vector
-				 * is deleted. */
-    ClientData clientData;	/* Data passed whenever the vector
-				 * change procedure is called. */
-    Rbc_ChainLink *linkPtr;	/* Used to quickly remove this entry from
-				 * its server's client chain. */
+                 * of the vector change or the vector
+                 * is deleted. */
+    ClientData clientData;    /* Data passed whenever the vector
+                 * change procedure is called. */
+    Rbc_ChainLink *linkPtr;    /* Used to quickly remove this entry from
+                 * its server's client chain. */
 } VectorClient;
 
 /*
- *	The token types are defined below.  In addition, there is a
- *	table associating a precedence with each operator.  The order
- *	of types is important.  Consult the code before changing it.
+ *    The token types are defined below.  In addition, there is a
+ *    table associating a precedence with each operator.  The order
+ *    of types is important.  Consult the code before changing it.
  */
 enum Tokens {
     VALUE,
@@ -243,15 +243,15 @@ typedef struct ParseValueStruct ParseValue;
 
 struct ParseValueStruct {
     char *buffer; /* Address of first character in
-		   * output buffer. */
+           * output buffer. */
     char *next; /* Place to store next character in
-		     * output buffer. */
+             * output buffer. */
     char *end; /* Address of the last usable character
-		    * in the buffer. */
-    void (*expandProc)(ParseValue *pvPtr, int needed);	/* Procedure to call when space runs out;
-							 * it will make more space. */
+            * in the buffer. */
+    void (*expandProc)(ParseValue *pvPtr, int needed);    /* Procedure to call when space runs out;
+                             * it will make more space. */
     ClientData clientData; /* Arbitrary information for use of
-			    * expandProc. */
+                * expandProc. */
     };
 
 typedef struct {
@@ -261,26 +261,26 @@ typedef struct {
 } Value;
 
 /*
- *	The data structure below describes the state of parsing an
- *	expression.  It's passed among the routines in this module.
+ *    The data structure below describes the state of parsing an
+ *    expression.  It's passed among the routines in this module.
  */
 typedef struct {
     char *expr; /* The entire right-hand side of the
-		 * expression, as originally passed to
-		 * Rbc_ExprVector. */
+         * expression, as originally passed to
+         * Rbc_ExprVector. */
     char *nextPtr; /* Position of the next character to
-		    * be scanned from the expression
-		    * string. */
+            * be scanned from the expression
+            * string. */
     enum Tokens token; /* Type of the last token to be parsed
-			* from nextPtr.  See below for
-			* definitions.  Corresponds to the
-			* characters just before nextPtr. */
+            * from nextPtr.  See below for
+            * definitions.  Corresponds to the
+            * characters just before nextPtr. */
 } ParseInfo;
 
 /* Vector Operators Definitions (rbcVector.c) */
 void               Rbc_VectorFlushCache     (VectorObject *vPtr);
 VectorObject *     Rbc_VectorParseElement   (Tcl_Interp *interp, VectorInterpData *dataPtr, const char *start, char **endPtr, int flags);
-int  	           Rbc_VectorChangeLength   (VectorObject *vPtr, int length);
+int                 Rbc_VectorChangeLength   (VectorObject *vPtr, int length);
 void               Rbc_VectorUpdateClients  (VectorObject *vPtr);
 int                Rbc_VectorMapVariable    (Tcl_Interp *interp, VectorObject *vPtr, const char *name);
 VectorObject *     Rbc_VectorCreate         (VectorInterpData *dataPtr, const char *vecName, const char *cmdName, const char *varName, int *newPtr);

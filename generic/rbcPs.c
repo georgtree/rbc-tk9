@@ -16,8 +16,8 @@
 #include <X11/Xatom.h>
 #include <stdarg.h>
 
-#define PS_MAXPATH	1500	/* Maximum number of components in a PostScript
-			     * (level 1) path. */
+#define PS_MAXPATH    1500    /* Maximum number of components in a PostScript
+                 * (level 1) path. */
 
 static void XColorToPostScript (struct PsTokenStruct *tokenPtr, XColor *colorPtr);
 INLINE static unsigned char ReverseBits (register unsigned char byte);
@@ -150,11 +150,11 @@ Rbc_AppendToPostScript (struct PsTokenStruct *tokenPtr, ...)
 
     va_start(argList, tokenPtr);
     for (;;) {
-	string = va_arg(argList, char *);
-	if (string == NULL) {
-	    break;
-	}
-	Tcl_DStringAppend(&(tokenPtr->dString), string, -1);
+    string = va_arg(argList, char *);
+    if (string == NULL) {
+        break;
+    }
+    Tcl_DStringAppend(&(tokenPtr->dString), string, -1);
     }
     va_end(argList);
 }
@@ -223,9 +223,9 @@ Rbc_FileToPostScript(tokenPtr, fileName)
 
     libDir = (char *)Tcl_GetVar(interp, "rbc::library", TCL_GLOBAL_ONLY);
     if (libDir == NULL) {
-	Tcl_AppendResult(interp, "couldn't find rbc script library:",
-			 "global variable \"rbc::library\" doesn't exist", (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "couldn't find rbc script library:",
+             "global variable \"rbc::library\" doesn't exist", (char *)NULL);
+    return TCL_ERROR;
     }
     Tcl_DStringInit(&dString);
     Tcl_DStringAppend(&dString, libDir, -1);
@@ -233,28 +233,28 @@ Rbc_FileToPostScript(tokenPtr, fileName)
     Tcl_DStringAppend(&dString, fileName, -1);
     fileName = Tcl_DStringValue(&dString);
     Rbc_AppendToPostScript(tokenPtr, "\n% including file \"", fileName,
-			   "\"\n\n", (char *)NULL);
+               "\"\n\n", (char *)NULL);
     channel = Tcl_OpenFileChannel(interp, fileName, "r", 0);
     if (channel == NULL) {
-	Tcl_AppendResult(interp, "couldn't open prologue file \"", fileName,
-			 "\": ", Tcl_PosixError(interp), (char *)NULL);
-	return TCL_ERROR;
+    Tcl_AppendResult(interp, "couldn't open prologue file \"", fileName,
+             "\": ", Tcl_PosixError(interp), (char *)NULL);
+    return TCL_ERROR;
     }
     for (;;) {
-	nBytes = Tcl_Read(channel, buf, PSTOKEN_BUFSIZ);
-	if (nBytes < 0) {
-	    Tcl_AppendResult(interp, "error reading prologue file \"",
-			     fileName, "\": ", Tcl_PosixError(interp),
-			     (char *)NULL);
-	    Tcl_Close(interp, channel);
-	    Tcl_DStringFree(&dString);
-	    return TCL_ERROR;
-	}
-	if (nBytes == 0) {
-	    break;
-	}
-	buf[nBytes] = '\0';
-	Rbc_AppendToPostScript(tokenPtr, buf, (char *)NULL);
+    nBytes = Tcl_Read(channel, buf, PSTOKEN_BUFSIZ);
+    if (nBytes < 0) {
+        Tcl_AppendResult(interp, "error reading prologue file \"",
+                 fileName, "\": ", Tcl_PosixError(interp),
+                 (char *)NULL);
+        Tcl_Close(interp, channel);
+        Tcl_DStringFree(&dString);
+        return TCL_ERROR;
+    }
+    if (nBytes == 0) {
+        break;
+    }
+    buf[nBytes] = '\0';
+    Rbc_AppendToPostScript(tokenPtr, buf, (char *)NULL);
     }
     Tcl_DStringFree(&dString);
     Tcl_Close(interp, channel);
@@ -293,9 +293,9 @@ XColorToPostScript(tokenPtr, colorPtr)
      * of Tk don't fill the lower byte correctly.
      */
     Rbc_FormatToPostScript(tokenPtr, "%g %g %g",
-			   ((double)(colorPtr->red >> 8) / 255.0),
-			   ((double)(colorPtr->green >> 8) / 255.0),
-			   ((double)(colorPtr->blue >> 8) / 255.0));
+               ((double)(colorPtr->red >> 8) / 255.0),
+               ((double)(colorPtr->green >> 8) / 255.0),
+               ((double)(colorPtr->blue >> 8) / 255.0));
 }
 
 /*
@@ -320,14 +320,14 @@ Rbc_BackgroundToPostScript(tokenPtr, colorPtr)
 {
     /* If the color name exists in Tcl array variable, use that translation */
     if (tokenPtr->colorVarName != NULL) {
-	const char *psColor;
+    const char *psColor;
 
-	psColor = Tcl_GetVar2(tokenPtr->interp, tokenPtr->colorVarName,
-			      Tk_NameOfColor(colorPtr), 0);
-	if (psColor != NULL) {
-	    Rbc_AppendToPostScript(tokenPtr, " ", psColor, "\n", (char *)NULL);
-	    return;
-	}
+    psColor = Tcl_GetVar2(tokenPtr->interp, tokenPtr->colorVarName,
+                  Tk_NameOfColor(colorPtr), 0);
+    if (psColor != NULL) {
+        Rbc_AppendToPostScript(tokenPtr, " ", psColor, "\n", (char *)NULL);
+        return;
+    }
     }
     XColorToPostScript(tokenPtr, colorPtr);
     Rbc_AppendToPostScript(tokenPtr, " SetBgColor\n", (char *)NULL);
@@ -355,14 +355,14 @@ Rbc_ForegroundToPostScript(tokenPtr, colorPtr)
 {
     /* If the color name exists in Tcl array variable, use that translation */
     if (tokenPtr->colorVarName != NULL) {
-	const char *psColor;
+    const char *psColor;
 
-	psColor = Tcl_GetVar2(tokenPtr->interp, tokenPtr->colorVarName,
-			      Tk_NameOfColor(colorPtr), 0);
-	if (psColor != NULL) {
-	    Rbc_AppendToPostScript(tokenPtr, " ", psColor, "\n", (char *)NULL);
-	    return;
-	}
+    psColor = Tcl_GetVar2(tokenPtr->interp, tokenPtr->colorVarName,
+                  Tk_NameOfColor(colorPtr), 0);
+    if (psColor != NULL) {
+        Rbc_AppendToPostScript(tokenPtr, " ", psColor, "\n", (char *)NULL);
+        return;
+    }
     }
     XColorToPostScript(tokenPtr, colorPtr);
     Rbc_AppendToPostScript(tokenPtr, " SetFgColor\n", (char *)NULL);
@@ -454,44 +454,44 @@ Rbc_BitmapDataToPostScript(
 
     srcBits = Rbc_GetBitmapData(display, bitmap, width, height, &bytesPerRow);
     if (srcBits == NULL) {
-	OutputDebugStringA("Can't get bitmap data");
-	return;
+    OutputDebugStringA("Can't get bitmap data");
+    return;
     }
     Rbc_AppendToPostScript(tokenPtr, "\t<", (char *)NULL);
-    byteCount = bitPos = 0;	/* Suppress compiler warning */
+    byteCount = bitPos = 0;    /* Suppress compiler warning */
     for (y = height - 1; y >= 0; y--) {
-	srcPtr = srcBits + (bytesPerRow * y);
-	byte = 0;
-	for (x = 0; x < width; x++) {
-	    bitPos = x % 8;
-	    pixel = (*srcPtr & (0x80 >> bitPos));
-	    if (pixel) {
-		byte |= (unsigned char)(1 << bitPos);
-	    }
-	    if (bitPos == 7) {
-		byte = ReverseBits(byte);
-		ByteToHex(byte, string);
-		string[2] = '\0';
-		byteCount++;
-		srcPtr++;
-		byte = 0;
-		if (byteCount >= 30) {
-		    string[2] = '\n';
-		    string[3] = '\t';
-		    string[4] = '\0';
-		    byteCount = 0;
-		}
-		Rbc_AppendToPostScript(tokenPtr, string, (char *)NULL);
-	    }
-	}			/* x */
-	if (bitPos != 7) {
-	    byte = ReverseBits(byte);
-	    ByteToHex(byte, string);
-	    string[2] = '\0';
-	    Rbc_AppendToPostScript(tokenPtr, string, (char *)NULL);
-	    byteCount++;
-	}
-    }				/* y */
+    srcPtr = srcBits + (bytesPerRow * y);
+    byte = 0;
+    for (x = 0; x < width; x++) {
+        bitPos = x % 8;
+        pixel = (*srcPtr & (0x80 >> bitPos));
+        if (pixel) {
+        byte |= (unsigned char)(1 << bitPos);
+        }
+        if (bitPos == 7) {
+        byte = ReverseBits(byte);
+        ByteToHex(byte, string);
+        string[2] = '\0';
+        byteCount++;
+        srcPtr++;
+        byte = 0;
+        if (byteCount >= 30) {
+            string[2] = '\n';
+            string[3] = '\t';
+            string[4] = '\0';
+            byteCount = 0;
+        }
+        Rbc_AppendToPostScript(tokenPtr, string, (char *)NULL);
+        }
+    }            /* x */
+    if (bitPos != 7) {
+        byte = ReverseBits(byte);
+        ByteToHex(byte, string);
+        string[2] = '\0';
+        Rbc_AppendToPostScript(tokenPtr, string, (char *)NULL);
+        byteCount++;
+    }
+    }                /* y */
     ckfree((char *)srcBits);
     Rbc_AppendToPostScript(tokenPtr, ">\n", (char *)NULL);
 }
@@ -532,36 +532,36 @@ Rbc_BitmapDataToPostScript(tokenPtr, display, bitmap, width, height)
 
     imagePtr = XGetImage(display, bitmap, 0, 0, width, height, 1, ZPixmap);
     Rbc_AppendToPostScript(tokenPtr, "\t<", (char *)NULL);
-    byteCount = bitPos = 0;	/* Suppress compiler warning */
+    byteCount = bitPos = 0;    /* Suppress compiler warning */
     for (y = 0; y < height; y++) {
-	byte = 0;
-	for (x = 0; x < width; x++) {
-	    pixel = XGetPixel(imagePtr, x, y);
-	    bitPos = x % 8;
-	    byte |= (unsigned char)(pixel << bitPos);
-	    if (bitPos == 7) {
-		byte = ReverseBits(byte);
-		ByteToHex(byte, string);
-		string[2] = '\0';
-		byteCount++;
-		byte = 0;
-		if (byteCount >= 30) {
-		    string[2] = '\n';
-		    string[3] = '\t';
-		    string[4] = '\0';
-		    byteCount = 0;
-		}
-		Rbc_AppendToPostScript(tokenPtr, string, (char *)NULL);
-	    }
-	}			/* x */
-	if (bitPos != 7) {
-	    byte = ReverseBits(byte);
-	    ByteToHex(byte, string);
-	    string[2] = '\0';
-	    Rbc_AppendToPostScript(tokenPtr, string, (char *)NULL);
-	    byteCount++;
-	}
-    }				/* y */
+    byte = 0;
+    for (x = 0; x < width; x++) {
+        pixel = XGetPixel(imagePtr, x, y);
+        bitPos = x % 8;
+        byte |= (unsigned char)(pixel << bitPos);
+        if (bitPos == 7) {
+        byte = ReverseBits(byte);
+        ByteToHex(byte, string);
+        string[2] = '\0';
+        byteCount++;
+        byte = 0;
+        if (byteCount >= 30) {
+            string[2] = '\n';
+            string[3] = '\t';
+            string[4] = '\0';
+            byteCount = 0;
+        }
+        Rbc_AppendToPostScript(tokenPtr, string, (char *)NULL);
+        }
+    }            /* x */
+    if (bitPos != 7) {
+        byte = ReverseBits(byte);
+        ByteToHex(byte, string);
+        string[2] = '\0';
+        Rbc_AppendToPostScript(tokenPtr, string, (char *)NULL);
+        byteCount++;
+    }
+    }                /* y */
     Rbc_AppendToPostScript(tokenPtr, ">\n", (char *)NULL);
     XDestroyImage(imagePtr);
 }
@@ -611,54 +611,54 @@ Rbc_ColorImageToPsData(image, nComponents, resultPtr, prefix)
     count = 0;
     offset = (height - 1) * width;
     if (nComponents == 3) {
-	for (y = (height - 1); y >= 0; y--) {
-	    pixelPtr = Rbc_ColorImageBits(image) + offset;
-	    for (x = 0; x < width; x++, pixelPtr++) {
-		if (count == 0) {
-		    Tcl_DStringAppend(resultPtr, prefix, -1);
-		    Tcl_DStringAppend(resultPtr, " ", -1);
-		}
-		count += 6;
-		ByteToHex(pixelPtr->Red, string);
-		ByteToHex(pixelPtr->Green, string + 2);
-		ByteToHex(pixelPtr->Blue, string + 4);
-		string[6] = '\0';
-		if (count >= 60) {
-		    string[6] = '\n';
-		    string[7] = '\0';
-		    count = 0;
-		    nLines++;
-		}
-		Tcl_DStringAppend(resultPtr, string, -1);
-	    }
-	    offset -= width;
-	}
+    for (y = (height - 1); y >= 0; y--) {
+        pixelPtr = Rbc_ColorImageBits(image) + offset;
+        for (x = 0; x < width; x++, pixelPtr++) {
+        if (count == 0) {
+            Tcl_DStringAppend(resultPtr, prefix, -1);
+            Tcl_DStringAppend(resultPtr, " ", -1);
+        }
+        count += 6;
+        ByteToHex(pixelPtr->Red, string);
+        ByteToHex(pixelPtr->Green, string + 2);
+        ByteToHex(pixelPtr->Blue, string + 4);
+        string[6] = '\0';
+        if (count >= 60) {
+            string[6] = '\n';
+            string[7] = '\0';
+            count = 0;
+            nLines++;
+        }
+        Tcl_DStringAppend(resultPtr, string, -1);
+        }
+        offset -= width;
+    }
     } else if (nComponents == 1) {
-	for (y = (height - 1); y >= 0; y--) {
-	    pixelPtr = Rbc_ColorImageBits(image) + offset;
-	    for (x = 0; x < width; x++, pixelPtr++) {
-		if (count == 0) {
-		    Tcl_DStringAppend(resultPtr, prefix, -1);
-		    Tcl_DStringAppend(resultPtr, " ", -1);
-		}
-		count += 2;
-		byte = ~(pixelPtr->Red);
-		ByteToHex(byte, string);
-		string[2] = '\0';
-		if (count >= 60) {
-		    string[2] = '\n';
-		    string[3] = '\0';
-		    count = 0;
-		    nLines++;
-		}
-		Tcl_DStringAppend(resultPtr, string, -1);
-	    }
-	    offset -= width;
-	}
+    for (y = (height - 1); y >= 0; y--) {
+        pixelPtr = Rbc_ColorImageBits(image) + offset;
+        for (x = 0; x < width; x++, pixelPtr++) {
+        if (count == 0) {
+            Tcl_DStringAppend(resultPtr, prefix, -1);
+            Tcl_DStringAppend(resultPtr, " ", -1);
+        }
+        count += 2;
+        byte = ~(pixelPtr->Red);
+        ByteToHex(byte, string);
+        string[2] = '\0';
+        if (count >= 60) {
+            string[2] = '\n';
+            string[3] = '\0';
+            count = 0;
+            nLines++;
+        }
+        Tcl_DStringAppend(resultPtr, string, -1);
+        }
+        offset -= width;
+    }
     }
     if (count != 0) {
-	Tcl_DStringAppend(resultPtr, "\n", -1);
-	nLines++;
+    Tcl_DStringAppend(resultPtr, "\n", -1);
+    nLines++;
     }
     return nLines;
 }
@@ -689,7 +689,7 @@ NameOfAtom(
 
     result = Tk_GetAtomName(tkwin, atom);
     if ((result[0] == '?') && (strcmp(result, "?bad atom?") == 0)) {
-	return NULL;
+    return NULL;
     }
     return result;
 }
@@ -755,44 +755,44 @@ XFontStructToPostScript(
     static char string[200];      /* What size? */
 
     if (XGetFontProperty(fontPtr, XA_FULL_NAME, &atom) == False) {
-	return NULL;
+    return NULL;
     }
     fullName = NameOfAtom(tkwin, atom);
     if (fullName == NULL) {
-	return NULL;
+    return NULL;
     }
     family = foundry = NULL;
     if (XGetFontProperty(fontPtr, Tk_InternAtom(tkwin, "FOUNDRY"), &atom)) {
-	foundry = NameOfAtom(tkwin, atom);
+    foundry = NameOfAtom(tkwin, atom);
     }
     if (XGetFontProperty(fontPtr, XA_FAMILY_NAME, &atom)) {
-	family = NameOfAtom(tkwin, atom);
+    family = NameOfAtom(tkwin, atom);
     }
     /*
      * Try to map the font only if the foundry is Adobe
      */
     if ((foundry == NULL) || (family == NULL)) {
-	return NULL;
+    return NULL;
     }
     src = NULL;
     familyLen = strlen(family);
     if (strncasecmp(fullName, family, familyLen) == 0) {
-	src = fullName + familyLen;
+    src = fullName + familyLen;
     }
     if (strcmp(foundry, "Adobe") != 0) {
-	register int i;
+    register int i;
 
-	if (strncasecmp(family, "itc ", 4) == 0) {
-	    family += 4;	/* Throw out the "itc" prefix */
-	}
-	for (i = 0; i < nFontNames; i++) {
-	    if (strcasecmp(family, psFontMap[i].alias) == 0) {
-		family = psFontMap[i].fontName;
-	    }
-	}
-	if (i == nFontNames) {
-	    family = "Helvetica";	/* Default to a known font */
-	}
+    if (strncasecmp(family, "itc ", 4) == 0) {
+        family += 4;    /* Throw out the "itc" prefix */
+    }
+    for (i = 0; i < nFontNames; i++) {
+        if (strcasecmp(family, psFontMap[i].alias) == 0) {
+        family = psFontMap[i].fontName;
+        }
+    }
+    if (i == nFontNames) {
+        family = "Helvetica";    /* Default to a known font */
+    }
     }
     /*
      * PostScript font name is in the form <family>-<type face>
@@ -807,17 +807,17 @@ XFontStructToPostScript(
      * ex. " Bold Italic" ==> "BoldItalic"
      */
     if (src != NULL) {
-	while (*src != '\0') {
-	    if ((*src != ' ') && (*src != '-')) {
-		*dest++ = *src;
-	    }
-	    src++;
-	}
+    while (*src != '\0') {
+        if ((*src != ' ') && (*src != '-')) {
+        *dest++ = *src;
+        }
+        src++;
+    }
     }
     if (dest == start) {
-	--dest;			/* Remove '-' to leave just the family name */
+    --dest;            /* Remove '-' to leave just the family name */
     }
-    *dest = '\0';		/* Make a valid string */
+    *dest = '\0';        /* Make a valid string */
     return string;
 }
 
@@ -850,8 +850,8 @@ Rbc_ClearBackgroundToPostScript(tokenPtr)
     struct PsTokenStruct *tokenPtr;
 {
     Rbc_AppendToPostScript(tokenPtr,
-			   " 1.0 1.0 1.0 SetBgColor\n",
-			   (char *)NULL);
+               " 1.0 1.0 1.0 SetBgColor\n",
+               (char *)NULL);
 }
 
 /*
@@ -879,11 +879,11 @@ Rbc_CapStyleToPostScript(tokenPtr, capStyle)
      * PS: butt = 0, round = 1, projecting = 2
      */
     if (capStyle > 0) {
-	capStyle--;
+    capStyle--;
     }
     Rbc_FormatToPostScript(tokenPtr,
-			   "%d setlinecap\n",
-			   capStyle);
+               "%d setlinecap\n",
+               capStyle);
 }
 
 /*
@@ -910,8 +910,8 @@ Rbc_JoinStyleToPostScript(tokenPtr, joinStyle)
      * miter = 0, round = 1, bevel = 2
      */
     Rbc_FormatToPostScript(tokenPtr,
-			   "%d setlinejoin\n",
-			   joinStyle);
+               "%d setlinejoin\n",
+               joinStyle);
 }
 
 /*
@@ -935,11 +935,11 @@ Rbc_LineWidthToPostScript(tokenPtr, lineWidth)
     int lineWidth;
 {
     if (lineWidth < 1) {
-	lineWidth = 1;
+    lineWidth = 1;
     }
     Rbc_FormatToPostScript(tokenPtr,
-			   "%d setlinewidth\n",
-			   lineWidth);
+               "%d setlinewidth\n",
+               lineWidth);
 }
 
 /*
@@ -965,11 +965,11 @@ Rbc_LineDashesToPostScript(tokenPtr, dashesPtr)
 
     Rbc_AppendToPostScript(tokenPtr, "[ ", (char *)NULL);
     if (dashesPtr != NULL) {
-	unsigned char *p;
+    unsigned char *p;
 
-	for (p = dashesPtr->values; *p != 0; p++) {
-	    Rbc_FormatToPostScript(tokenPtr, " %d", *p);
-	}
+    for (p = dashesPtr->values; *p != 0; p++) {
+        Rbc_FormatToPostScript(tokenPtr, " %d", *p);
+    }
     }
     Rbc_AppendToPostScript(tokenPtr, "] 0 setdash\n", (char *)NULL);
 }
@@ -991,7 +991,7 @@ Rbc_LineDashesToPostScript(tokenPtr, dashesPtr)
  */
 void
 Rbc_LineAttributesToPostScript(tokenPtr, colorPtr, lineWidth, dashesPtr,
-			       capStyle, joinStyle)
+                   capStyle, joinStyle)
     struct PsTokenStruct *tokenPtr;
     XColor *colorPtr;
     int lineWidth;
@@ -1028,8 +1028,8 @@ Rbc_RectangleToPostScript(tokenPtr, x, y, width, height)
     int width, height;
 {
     Rbc_FormatToPostScript(tokenPtr,
-			   "%g %g %d %d Box fill\n\n",
-			   x, y, width, height);
+               "%g %g %d %d Box fill\n\n",
+               x, y, width, height);
 }
 
 /*
@@ -1054,7 +1054,7 @@ Rbc_RegionToPostScript(tokenPtr, x, y, width, height)
     int width, height;
 {
     Rbc_FormatToPostScript(tokenPtr, "%g %g %d %d Box\n\n",
-			   x, y, width, height);
+               x, y, width, height);
 }
 
 /*
@@ -1082,13 +1082,13 @@ Rbc_PathToPostScript(tokenPtr, screenPts, nScreenPts)
 
     pointPtr = screenPts;
     Rbc_FormatToPostScript(tokenPtr, "newpath %g %g moveto\n",
-			   pointPtr->x, pointPtr->y);
+               pointPtr->x, pointPtr->y);
     pointPtr++;
     endPtr = screenPts + nScreenPts;
     while (pointPtr < endPtr) {
-	Rbc_FormatToPostScript(tokenPtr, "%g %g lineto\n",
-			       pointPtr->x, pointPtr->y);
-	pointPtr++;
+    Rbc_FormatToPostScript(tokenPtr, "%g %g lineto\n",
+                   pointPtr->x, pointPtr->y);
+    pointPtr++;
     }
 }
 
@@ -1142,11 +1142,11 @@ Rbc_SegmentsToPostScript(tokenPtr, segPtr, nSegments)
     register int i;
 
     for (i = 0; i < nSegments; i++, segPtr++) {
-	Rbc_FormatToPostScript(tokenPtr, "%d %d moveto\n",
-			       segPtr->x1, segPtr->y1);
-	Rbc_FormatToPostScript(tokenPtr, " %d %d lineto\n",
-			       segPtr->x2, segPtr->y2);
-	Rbc_AppendToPostScript(tokenPtr, "DashesProc stroke\n", (char *)NULL);
+    Rbc_FormatToPostScript(tokenPtr, "%d %d moveto\n",
+                   segPtr->x1, segPtr->y1);
+    Rbc_FormatToPostScript(tokenPtr, " %d %d lineto\n",
+                   segPtr->x2, segPtr->y2);
+    Rbc_AppendToPostScript(tokenPtr, "DashesProc stroke\n", (char *)NULL);
     }
 }
 
@@ -1174,9 +1174,9 @@ Rbc_RectanglesToPostScript(tokenPtr, rectArr, nRects)
     register int i;
 
     for (i = 0; i < nRects; i++) {
-	Rbc_RectangleToPostScript(tokenPtr,
-				  (double)rectArr[i].x, (double)rectArr[i].y,
-				  (int)rectArr[i].width, (int)rectArr[i].height);
+    Rbc_RectangleToPostScript(tokenPtr,
+                  (double)rectArr[i].x, (double)rectArr[i].y,
+                  (int)rectArr[i].width, (int)rectArr[i].height);
     }
 }
 
@@ -1197,15 +1197,15 @@ Rbc_RectanglesToPostScript(tokenPtr, rectArr, nRects)
  */
 void
 Rbc_Draw3DRectangleToPostScript(tokenPtr, border, x, y, width, height,
-				borderWidth, relief)
+                borderWidth, relief)
     struct PsTokenStruct *tokenPtr;
     Tk_3DBorder border; /* Token for border to draw. */
     double x, y; /* Coordinates of rectangle */
     int width, height; /* Region to be drawn. */
     int borderWidth; /* Desired width for border, in pixels. */
     int relief; /* Should be either TK_RELIEF_RAISED or
-		 * TK_RELIEF_SUNKEN;  indicates position of
-		 * interior of window relative to exterior. */
+         * TK_RELIEF_SUNKEN;  indicates position of
+         * interior of window relative to exterior. */
 {
     XColor lightColor, darkColor;
     XColor *lightColorPtr, *darkColorPtr;
@@ -1215,65 +1215,65 @@ Rbc_Draw3DRectangleToPostScript(tokenPtr, border, x, y, width, height,
     XColor bdBgColor, bdLightColor, bdDarkColor;
 
     if ((width < twiceWidth) || (height < twiceWidth)) {
-	return;
+    return;
     }
 
     Tk_Get3DBorderColors(border, &bdBgColor, &bdDarkColor, &bdLightColor);
     if (relief == TK_RELIEF_SOLID) {
-	if (  bdBgColor.pixel == bdDarkColor.pixel &&
-	      bdBgColor.pixel == bdLightColor.pixel ) {
-	    Screen *screenPtr;
+    if (  bdBgColor.pixel == bdDarkColor.pixel &&
+          bdBgColor.pixel == bdLightColor.pixel ) {
+        Screen *screenPtr;
 
-	    lightColor = bdBgColor;
-	    screenPtr = Tk_Screen(tokenPtr->tkwin);
-	    if (lightColor.pixel == WhitePixelOfScreen(screenPtr)) {
-		darkColor.red = darkColor.blue = darkColor.green = 0x00;
-	    } else {
-		darkColor.red = darkColor.blue = darkColor.green = 0xFF;
-	    }
-	} else {
-	    darkColor.red = darkColor.blue = darkColor.green = 0x00;
-	    lightColor.red = lightColor.blue = lightColor.green = 0x00;
-	    relief = TK_RELIEF_SUNKEN;
-	}
-	lightColorPtr = &lightColor;
-	darkColorPtr = &darkColor;
+        lightColor = bdBgColor;
+        screenPtr = Tk_Screen(tokenPtr->tkwin);
+        if (lightColor.pixel == WhitePixelOfScreen(screenPtr)) {
+        darkColor.red = darkColor.blue = darkColor.green = 0x00;
+        } else {
+        darkColor.red = darkColor.blue = darkColor.green = 0xFF;
+        }
     } else {
-	lightColorPtr = &bdLightColor;
-	darkColorPtr = &bdDarkColor;
+        darkColor.red = darkColor.blue = darkColor.green = 0x00;
+        lightColor.red = lightColor.blue = lightColor.green = 0x00;
+        relief = TK_RELIEF_SUNKEN;
+    }
+    lightColorPtr = &lightColor;
+    darkColorPtr = &darkColor;
+    } else {
+    lightColorPtr = &bdLightColor;
+    darkColorPtr = &bdDarkColor;
     }
 
     /*
      * Handle grooves and ridges with recursive calls.
      */
     if ((relief == TK_RELIEF_GROOVE) || (relief == TK_RELIEF_RIDGE)) {
-	int halfWidth, insideOffset;
+    int halfWidth, insideOffset;
 
-	halfWidth = borderWidth / 2;
-	insideOffset = borderWidth - halfWidth;
-	Rbc_Draw3DRectangleToPostScript(tokenPtr, border, (double)x, (double)y,
-					width, height, halfWidth,
-					(relief == TK_RELIEF_GROOVE) ? TK_RELIEF_SUNKEN : TK_RELIEF_RAISED);
-	Rbc_Draw3DRectangleToPostScript(tokenPtr, border,
-					(double)(x + insideOffset), (double)(y + insideOffset),
-					width - insideOffset * 2, height - insideOffset * 2, halfWidth,
-					(relief == TK_RELIEF_GROOVE) ? TK_RELIEF_RAISED : TK_RELIEF_SUNKEN);
-	return;
+    halfWidth = borderWidth / 2;
+    insideOffset = borderWidth - halfWidth;
+    Rbc_Draw3DRectangleToPostScript(tokenPtr, border, (double)x, (double)y,
+                    width, height, halfWidth,
+                    (relief == TK_RELIEF_GROOVE) ? TK_RELIEF_SUNKEN : TK_RELIEF_RAISED);
+    Rbc_Draw3DRectangleToPostScript(tokenPtr, border,
+                    (double)(x + insideOffset), (double)(y + insideOffset),
+                    width - insideOffset * 2, height - insideOffset * 2, halfWidth,
+                    (relief == TK_RELIEF_GROOVE) ? TK_RELIEF_RAISED : TK_RELIEF_SUNKEN);
+    return;
     }
     if (relief == TK_RELIEF_RAISED) {
-	topColor = lightColorPtr;
-	bottomColor = darkColorPtr;
+    topColor = lightColorPtr;
+    bottomColor = darkColorPtr;
     } else if (relief == TK_RELIEF_SUNKEN) {
-	topColor = darkColorPtr;
-	bottomColor = lightColorPtr;
+    topColor = darkColorPtr;
+    bottomColor = lightColorPtr;
     } else {
-	topColor = bottomColor = &bdBgColor;
+    topColor = bottomColor = &bdBgColor;
     }
     Rbc_BackgroundToPostScript(tokenPtr, bottomColor);
     Rbc_RectangleToPostScript(tokenPtr, x, y + height - borderWidth, width,
-			      borderWidth);
+                  borderWidth);
     Rbc_RectangleToPostScript(tokenPtr, x + width - borderWidth, y,
-			      borderWidth, height);
+                  borderWidth, height);
     points[0].x = points[1].x = points[6].x = x;
     points[0].y = points[6].y = y + height;
     points[1].y = points[2].y = y;
@@ -1283,7 +1283,7 @@ Rbc_Draw3DRectangleToPostScript(tokenPtr, border, x, y, width, height,
     points[4].x = points[5].x = x + borderWidth;
     points[5].y = y + height - borderWidth;
     if (relief != TK_RELIEF_FLAT) {
-	Rbc_BackgroundToPostScript(tokenPtr, topColor);
+    Rbc_BackgroundToPostScript(tokenPtr, topColor);
     }
     Rbc_PolygonToPostScript(tokenPtr, points, 7);
 }
@@ -1305,15 +1305,15 @@ Rbc_Draw3DRectangleToPostScript(tokenPtr, border, x, y, width, height,
  */
 void
 Rbc_Fill3DRectangleToPostScript(tokenPtr, border, x, y, width, height,
-				borderWidth, relief)
+                borderWidth, relief)
     struct PsTokenStruct *tokenPtr;
     Tk_3DBorder border; /* Token for border to draw. */
     double x, y; /* Coordinates of top-left of border area */
     int width, height; /* Dimension of border to be drawn. */
     int borderWidth; /* Desired width for border, in pixels. */
     int relief; /* Should be either TK_RELIEF_RAISED or
-		 * TK_RELIEF_SUNKEN;  indicates position of
-		 * interior of window relative to exterior. */
+         * TK_RELIEF_SUNKEN;  indicates position of
+         * interior of window relative to exterior. */
 {
     XColor bdBgColor;
 
@@ -1326,7 +1326,7 @@ Rbc_Fill3DRectangleToPostScript(tokenPtr, border, x, y, width, height,
     Rbc_BackgroundToPostScript(tokenPtr, &bdBgColor);
     Rbc_RectangleToPostScript(tokenPtr, x, y, width, height);
     Rbc_Draw3DRectangleToPostScript(tokenPtr, border, x, y, width, height,
-				    borderWidth, relief);
+                    borderWidth, relief);
 }
 
 /*
@@ -1354,12 +1354,12 @@ Rbc_StippleToPostScript(tokenPtr, display, bitmap)
 
     Tk_SizeOfBitmap(display, bitmap, &width, &height);
     Rbc_FormatToPostScript(tokenPtr,
-			   "gsave\n  clip\n  %d %d\n",
-			   width, height);
+               "gsave\n  clip\n  %d %d\n",
+               width, height);
     Rbc_BitmapDataToPostScript(tokenPtr, display, bitmap, width, height);
     Rbc_AppendToPostScript(tokenPtr,
-			   "  StippleFill\ngrestore\n",
-			   (char *)NULL);
+               "  StippleFill\ngrestore\n",
+               (char *)NULL);
 }
 
 /*
@@ -1392,7 +1392,7 @@ Rbc_ColorImageToPostScript(tokenPtr, image, x, y)
 
     tmpSize = width;
     if (tokenPtr->colorMode == PS_MODE_COLOR) {
-	tmpSize *= 3;
+    tmpSize *= 3;
     }
     Rbc_FormatToPostScript(tokenPtr, "\n/tmpStr %d string def\n", tmpSize);
     Rbc_AppendToPostScript(tokenPtr, "gsave\n", (char *)NULL);
@@ -1400,23 +1400,23 @@ Rbc_ColorImageToPostScript(tokenPtr, image, x, y)
     Rbc_FormatToPostScript(tokenPtr, "  %d %d scale\n", width, height);
     Rbc_FormatToPostScript(tokenPtr, "  %d %d 8\n", width, height);
     Rbc_FormatToPostScript(tokenPtr, "  [%d 0 0 %d 0 %d] ", width, -height,
-			   height);
+               height);
     Rbc_AppendToPostScript(tokenPtr,
-			   "{\n    currentfile tmpStr readhexstring pop\n  } ",
-			   (char *)NULL);
+               "{\n    currentfile tmpStr readhexstring pop\n  } ",
+               (char *)NULL);
     if (tokenPtr->colorMode != PS_MODE_COLOR) {
-	Rbc_AppendToPostScript(tokenPtr, "image\n", (char *)NULL);
-	Rbc_ColorImageToGreyscale(image);
-	Rbc_ColorImageToPsData(image, 1, &(tokenPtr->dString), " ");
+    Rbc_AppendToPostScript(tokenPtr, "image\n", (char *)NULL);
+    Rbc_ColorImageToGreyscale(image);
+    Rbc_ColorImageToPsData(image, 1, &(tokenPtr->dString), " ");
     } else {
-	Rbc_AppendToPostScript(tokenPtr,
-			       "false 3 colorimage\n",
-			       (char *)NULL);
-	Rbc_ColorImageToPsData(image, 3, &(tokenPtr->dString), " ");
+    Rbc_AppendToPostScript(tokenPtr,
+                   "false 3 colorimage\n",
+                   (char *)NULL);
+    Rbc_ColorImageToPsData(image, 3, &(tokenPtr->dString), " ");
     }
     Rbc_AppendToPostScript(tokenPtr,
-			   "\ngrestore\n\n",
-			   (char *)NULL);
+               "\ngrestore\n\n",
+               (char *)NULL);
 }
 
 /*
@@ -1448,13 +1448,13 @@ Rbc_WindowToPostScript(tokenPtr, tkwin, x, y)
     height = Tk_Height(tkwin);
     image = Rbc_DrawableToColorImage(tkwin, Tk_WindowId(tkwin), 0, 0, width, height, GAMMA);
     if (image == NULL) {
-	/* Can't grab window image so paint the window area grey */
-	Rbc_AppendToPostScript(tokenPtr, "% Can't grab window \"",
-			       Tk_PathName(tkwin), "\"\n", (char *)NULL);
-	Rbc_AppendToPostScript(tokenPtr, "0.5 0.5 0.5 SetBgColor\n",
-			       (char *)NULL);
-	Rbc_RectangleToPostScript(tokenPtr, x, y, width, height);
-	return;
+    /* Can't grab window image so paint the window area grey */
+    Rbc_AppendToPostScript(tokenPtr, "% Can't grab window \"",
+                   Tk_PathName(tkwin), "\"\n", (char *)NULL);
+    Rbc_AppendToPostScript(tokenPtr, "0.5 0.5 0.5 SetBgColor\n",
+                   (char *)NULL);
+    Rbc_RectangleToPostScript(tokenPtr, x, y, width, height);
+    return;
     }
     Rbc_ColorImageToPostScript(tokenPtr, image, x, y);
     Rbc_FreeColorImage(image);
@@ -1538,31 +1538,31 @@ Rbc_FontToPostScript(tokenPtr, font)
      * Use the font variable information if it exists.
      */
     if (tokenPtr->fontVarName != NULL) {
-	char *fontInfo;
+    char *fontInfo;
 
-	fontInfo = (char *)Tcl_GetVar2(interp, tokenPtr->fontVarName, fontName,
-				       0);
-	if (fontInfo != NULL) {
-	    Tcl_Size nProps;
-	    const char **propArr = NULL;
+    fontInfo = (char *)Tcl_GetVar2(interp, tokenPtr->fontVarName, fontName,
+                       0);
+    if (fontInfo != NULL) {
+        Tcl_Size nProps;
+        const char **propArr = NULL;
 
-	    if (Tcl_SplitList(interp, fontInfo, &nProps, &propArr) == TCL_OK) {
-		int newSize;
+        if (Tcl_SplitList(interp, fontInfo, &nProps, &propArr) == TCL_OK) {
+        int newSize;
 
-		fontName = propArr[0];
-		if ((nProps == 2) &&
-			(Tcl_GetInt(interp, propArr[1], &newSize) == TCL_OK)) {
-		    pointSize = (double)newSize;
-		}
-	    }
-	    Rbc_FormatToPostScript(tokenPtr,
-				   "%g /%s SetFont\n",
-				   pointSize, fontName);
-	    if (propArr != NULL) {
-		ckfree((char *)propArr);
-	    }
-	    return;
-	}
+        fontName = propArr[0];
+        if ((nProps == 2) &&
+            (Tcl_GetInt(interp, propArr[1], &newSize) == TCL_OK)) {
+            pointSize = (double)newSize;
+        }
+        }
+        Rbc_FormatToPostScript(tokenPtr,
+                   "%g /%s SetFont\n",
+                   pointSize, fontName);
+        if (propArr != NULL) {
+        ckfree((char *)propArr);
+        }
+        return;
+    }
     }
 
     /*
@@ -1575,19 +1575,19 @@ Rbc_FontToPostScript(tokenPtr, font)
     Tcl_ListObjIndex(NULL, fontDescObj, 0, &familyObj); /* index 0 is family */
     family = Tcl_GetString(familyObj);
     for (i = 0; i < nFontNames; i++) {
-	if (strncasecmp(psFontMap[i].alias, family, strlen(psFontMap[i].alias))
-		== 0) {
-	    Tcl_DString dString;
+    if (strncasecmp(psFontMap[i].alias, family, strlen(psFontMap[i].alias))
+        == 0) {
+        Tcl_DString dString;
 
-	    Tcl_DStringInit(&dString);
-	    pointSize = (double)Tk_PostscriptFontName(font, &dString);
-	    fontName = Tcl_DStringValue(&dString);
-	    Rbc_FormatToPostScript(tokenPtr, "%g /%s SetFont\n", pointSize,
-				   fontName);
-	    Tcl_DStringFree(&dString);
-	    Tcl_DecrRefCount(fontDescObj);
-	    return;
-	}
+        Tcl_DStringInit(&dString);
+        pointSize = (double)Tk_PostscriptFontName(font, &dString);
+        fontName = Tcl_DStringValue(&dString);
+        Rbc_FormatToPostScript(tokenPtr, "%g /%s SetFont\n", pointSize,
+                   fontName);
+        Tcl_DStringFree(&dString);
+        Tcl_DecrRefCount(fontDescObj);
+        return;
+    }
     }
     Tcl_DecrRefCount(fontDescObj);
 
@@ -1601,17 +1601,17 @@ Rbc_FontToPostScript(tokenPtr, font)
     /* Can you believe what I have to go through to get an XFontStruct? */
     fontPtr = XLoadQueryFont(Tk_Display(tokenPtr->tkwin), Tk_NameOfFont(font));
     if (fontPtr != NULL) {
-	unsigned long fontProp;
+    unsigned long fontProp;
 
-	if (XGetFontProperty(fontPtr, XA_POINT_SIZE, &fontProp) != False) {
-	    pointSize = (double)fontProp / 10.0;
-	}
-	fontName = XFontStructToPostScript(tokenPtr->tkwin, fontPtr);
-	XFreeFont(Tk_Display(tokenPtr->tkwin), fontPtr);
+    if (XGetFontProperty(fontPtr, XA_POINT_SIZE, &fontProp) != False) {
+        pointSize = (double)fontProp / 10.0;
+    }
+    fontName = XFontStructToPostScript(tokenPtr->tkwin, fontPtr);
+    XFreeFont(Tk_Display(tokenPtr->tkwin), fontPtr);
     }
 #endif /* !WIN32 */
     if ((fontName == NULL) || (fontName[0] == '\0')) {
-	fontName = "Helvetica-Bold";	/* Defaulting to a known PS font */
+    fontName = "Helvetica-Bold";    /* Defaulting to a known PS font */
     }
     Rbc_FormatToPostScript(tokenPtr, "%g /%s SetFont\n", pointSize, fontName);
 }
@@ -1647,44 +1647,44 @@ TextLayoutToPostScript(tokenPtr, x, y, textPtr)
 
     fragPtr = textPtr->fragArr;
     for (i = 0; i < textPtr->nFrags; i++, fragPtr++) {
-	if (fragPtr->count < 1 ) {
-	    continue;
-	}
-	Tcl_DStringInit(&ds);
-	Rbc_AppendToPostScript(tokenPtr, "(", (char *)NULL);
-	src = fragPtr->text;
-	end = src + fragPtr->count;
-	while (src < end) {
-	    src += Tcl_UtfToUniChar(src, &ch);
-	    if ((ch == '\\') || (ch == '(') || (ch == ')') || ch < ' ') {
-		/*
-		 * If special PostScript characters characters "\", "(",
-		 * and ")", or control characters are contained in the text
-		 * string, use octal escape sequence with them.
-		 */
-		sprintf(buf, "\\%03o", ch);
-		Tcl_DStringAppend(&ds, buf, -1);
-	    } else if ((ch < 0x7f)) {
-		/*
-		 * A normal ascii character
-		 */
-		c = (char) ch;
-		Tcl_DStringAppend(&ds, &c, 1);
-	    } else {
-		/* Add only unicode chars in the range up to 255 (iso8859-1).
-		 * The font has been reencoded to ISOLatin1Encoding.
-		 * Replace unavailable chars with a space.
-		 * TODO: use adobe glyph list to display additional chars
-		 * (see Tk_TextLayoutToPostscript).
-		 */
-		sprintf(buf, "\\%03o", ch <= 0xff ? ch : 0x20);
-		Tcl_DStringAppend(&ds, buf, -1);
-	    }
-	}
-	Rbc_AppendToPostScript(tokenPtr, Tcl_DStringValue(&ds), (char *)NULL);
-	Rbc_FormatToPostScript(tokenPtr, ") %d %d %d DrawAdjText\n",
-		fragPtr->width, x + fragPtr->x, y + fragPtr->y);
-	Tcl_DStringFree(&ds);
+    if (fragPtr->count < 1 ) {
+        continue;
+    }
+    Tcl_DStringInit(&ds);
+    Rbc_AppendToPostScript(tokenPtr, "(", (char *)NULL);
+    src = fragPtr->text;
+    end = src + fragPtr->count;
+    while (src < end) {
+        src += Tcl_UtfToUniChar(src, &ch);
+        if ((ch == '\\') || (ch == '(') || (ch == ')') || ch < ' ') {
+        /*
+         * If special PostScript characters characters "\", "(",
+         * and ")", or control characters are contained in the text
+         * string, use octal escape sequence with them.
+         */
+        sprintf(buf, "\\%03o", ch);
+        Tcl_DStringAppend(&ds, buf, -1);
+        } else if ((ch < 0x7f)) {
+        /*
+         * A normal ascii character
+         */
+        c = (char) ch;
+        Tcl_DStringAppend(&ds, &c, 1);
+        } else {
+        /* Add only unicode chars in the range up to 255 (iso8859-1).
+         * The font has been reencoded to ISOLatin1Encoding.
+         * Replace unavailable chars with a space.
+         * TODO: use adobe glyph list to display additional chars
+         * (see Tk_TextLayoutToPostscript).
+         */
+        sprintf(buf, "\\%03o", ch <= 0xff ? ch : 0x20);
+        Tcl_DStringAppend(&ds, buf, -1);
+        }
+    }
+    Rbc_AppendToPostScript(tokenPtr, Tcl_DStringValue(&ds), (char *)NULL);
+    Rbc_FormatToPostScript(tokenPtr, ") %d %d %d DrawAdjText\n",
+        fragPtr->width, x + fragPtr->x, y + fragPtr->y);
+    Tcl_DStringFree(&ds);
     }
 }
 
@@ -1720,12 +1720,12 @@ Rbc_TextToPostScript(tokenPtr, string, tsPtr, x, y)
     Point2D anchorPos;
 
     if ((string == NULL) || (*string == '\0')) { /* Empty string, do nothing */
-	return;
+    return;
     }
     theta = FMOD(tsPtr->theta, (double)360.0);
     textPtr = Rbc_GetTextLayout(string, tsPtr);
     Rbc_GetBoundingBox(textPtr->width, textPtr->height, theta, &rotWidth,
-		       &rotHeight, (Point2D *)NULL);
+               &rotHeight, (Point2D *)NULL);
     /*
      * Find the center of the bounding box
      */
@@ -1736,16 +1736,16 @@ Rbc_TextToPostScript(tokenPtr, string, tsPtr, x, y)
 
     /* Initialize text (sets translation and rotation) */
     Rbc_FormatToPostScript(tokenPtr, "%d %d %g %g %g BeginText\n",
-			   textPtr->width, textPtr->height, tsPtr->theta, anchorPos.x,
-			   anchorPos.y);
+               textPtr->width, textPtr->height, tsPtr->theta, anchorPos.x,
+               anchorPos.y);
 
     Rbc_FontToPostScript(tokenPtr, tsPtr->font);
 
     /* All coordinates are now relative to what was set by BeginText */
     if ((tsPtr->shadow.offset > 0) && (tsPtr->shadow.color != NULL)) {
-	Rbc_ForegroundToPostScript(tokenPtr, tsPtr->shadow.color);
-	TextLayoutToPostScript(tokenPtr, tsPtr->shadow.offset,
-			       tsPtr->shadow.offset, textPtr);
+    Rbc_ForegroundToPostScript(tokenPtr, tsPtr->shadow.color);
+    TextLayoutToPostScript(tokenPtr, tsPtr->shadow.offset,
+                   tsPtr->shadow.offset, textPtr);
     }
     Rbc_ForegroundToPostScript(tokenPtr, (tsPtr->state & STATE_ACTIVE) ? tsPtr->activeColor : tsPtr->color);
     TextLayoutToPostScript(tokenPtr, 0, 0, textPtr);
@@ -1778,22 +1778,22 @@ Rbc_LineToPostScript(tokenPtr, pointPtr, nPoints)
     register int i;
 
     if (nPoints <= 0) {
-	return;
+    return;
     }
     Rbc_FormatToPostScript(tokenPtr, " newpath %d %d moveto\n",
-			   pointPtr->x, pointPtr->y);
+               pointPtr->x, pointPtr->y);
     pointPtr++;
     for (i = 1; i < (nPoints - 1); i++, pointPtr++) {
-	Rbc_FormatToPostScript(tokenPtr, " %d %d lineto\n",
-			       pointPtr->x, pointPtr->y);
-	if ((i % PS_MAXPATH) == 0) {
-	    Rbc_FormatToPostScript(tokenPtr,
-				   "DashesProc stroke\n newpath  %d %d moveto\n",
-				   pointPtr->x, pointPtr->y);
-	}
+    Rbc_FormatToPostScript(tokenPtr, " %d %d lineto\n",
+                   pointPtr->x, pointPtr->y);
+    if ((i % PS_MAXPATH) == 0) {
+        Rbc_FormatToPostScript(tokenPtr,
+                   "DashesProc stroke\n newpath  %d %d moveto\n",
+                   pointPtr->x, pointPtr->y);
+    }
     }
     Rbc_FormatToPostScript(tokenPtr, " %d %d lineto\n",
-			   pointPtr->x, pointPtr->y);
+               pointPtr->x, pointPtr->y);
     Rbc_AppendToPostScript(tokenPtr, "DashesProc stroke\n", (char *)NULL);
 }
 
@@ -1827,14 +1827,14 @@ Rbc_BitmapToPostScript(tokenPtr, display, bitmap, scaleX, scaleY)
     scaledHeight = (double)height * scaleY;
     Rbc_AppendToPostScript(tokenPtr, "  gsave\n", (char *)NULL);
     Rbc_FormatToPostScript(tokenPtr, "    %g %g translate\n",
-			   scaledWidth * -0.5, scaledHeight * 0.5);
+               scaledWidth * -0.5, scaledHeight * 0.5);
     Rbc_FormatToPostScript(tokenPtr, "    %g %g scale\n",
-			   scaledWidth, -scaledHeight);
+               scaledWidth, -scaledHeight);
     Rbc_FormatToPostScript(tokenPtr, "    %d %d true [%d 0 0 %d 0 %d] {",
-			   width, height, width, -height, height);
+               width, height, width, -height, height);
     Rbc_BitmapDataToPostScript(tokenPtr, display, bitmap, width, height);
     Rbc_AppendToPostScript(tokenPtr, "    } imagemask\n  grestore\n",
-			   (char *)NULL);
+               (char *)NULL);
 }
 
 /*
@@ -1861,10 +1861,10 @@ Rbc_2DSegmentsToPostScript(psToken, segPtr, nSegments)
     register Segment2D *endPtr;
 
     for (endPtr = segPtr + nSegments; segPtr < endPtr; segPtr++) {
-	Rbc_FormatToPostScript(psToken, "%g %g moveto\n",
-			       segPtr->p.x, segPtr->p.y);
-	Rbc_FormatToPostScript(psToken, " %g %g lineto\n",
-			       segPtr->q.x, segPtr->q.y);
-	Rbc_AppendToPostScript(psToken, "DashesProc stroke\n", (char *)NULL);
+    Rbc_FormatToPostScript(psToken, "%g %g moveto\n",
+                   segPtr->p.x, segPtr->p.y);
+    Rbc_FormatToPostScript(psToken, " %g %g lineto\n",
+                   segPtr->q.x, segPtr->q.y);
+    Rbc_AppendToPostScript(psToken, "DashesProc stroke\n", (char *)NULL);
     }
 }

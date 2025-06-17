@@ -14,7 +14,7 @@
 #include "rbcImage.h"
 #include <X11/Xutil.h>
 
-#define CLAMP(c)	((((c) < 0.0) ? 0.0 : ((c) > 255.0) ? 255.0 : (c)))
+#define CLAMP(c)    ((((c) < 0.0) ? 0.0 : ((c) > 255.0) ? 255.0 : (c)))
 
 #define GetBit(x, y) \
    srcBits[(srcBytesPerRow * (srcHeight - y - 1)) + (x>>3)] & (0x80 >> (x&7))
@@ -64,11 +64,11 @@ Rbc_ColorImageToPixmap(interp, tkwin, image, colorTablePtr)
 
     srcPtr = Rbc_ColorImageBits(image);
     for (y = 0; y < height; y++) {
-	for (x = 0; x < width; x++) {
-	    rgb = PALETTERGB(srcPtr->Red, srcPtr->Green, srcPtr->Blue);
-	    SetPixelV(pixmapDC, x, y, rgb);
-	    srcPtr++;
-	}
+    for (x = 0; x < width; x++) {
+        rgb = PALETTERGB(srcPtr->Red, srcPtr->Green, srcPtr->Blue);
+        SetPixelV(pixmapDC, x, y, rgb);
+        srcPtr++;
+    }
     }
     TkWinReleaseDrawableDC(pixmap, pixmapDC, &state);
     return pixmap;
@@ -120,14 +120,14 @@ Rbc_ColorImageToPixmap2(display, depth, image, colorTablePtr)
     assert(bits);
     srcPtr = Rbc_ColorImageBits(image);
     for (y = height - 1; y >= 0; y--) {
-	destPtr = bits + (y * width);
-	for (x = 0; x < width; x++) {
-	    *destPtr++ = srcPtr->Blue;
-	    *destPtr++ = srcPtr->Green;
-	    *destPtr++ = srcPtr->Red;
-	    *destPtr++ = (unsigned char)-1;
-	    srcPtr++;
-	}
+    destPtr = bits + (y * width);
+    for (x = 0; x < width; x++) {
+        *destPtr++ = srcPtr->Blue;
+        *destPtr++ = srcPtr->Green;
+        *destPtr++ = srcPtr->Red;
+        *destPtr++ = (unsigned char)-1;
+        srcPtr++;
+    }
     }
     bm.bmType = 0;
     bm.bmWidth = width;
@@ -205,37 +205,37 @@ Rbc_DrawableToColorImage(tkwin, drawable, x, y, width, height, inputGamma)
 
     hPalette = Rbc_GetSystemPalette();
     if (hPalette != NULL) {
-	SelectPalette(hDC, hPalette, FALSE);
-	RealizePalette(hDC);
-	SelectPalette(memDC, hPalette, FALSE);
-	RealizePalette(memDC);
+    SelectPalette(hDC, hPalette, FALSE);
+    RealizePalette(hDC);
+    SelectPalette(memDC, hPalette, FALSE);
+    RealizePalette(memDC);
     }
     image = NULL;
     /* Copy the window contents to the memory surface. */
     if (!BitBlt(memDC, 0, 0, width, height, hDC, x, y, SRCCOPY)) {
 #ifdef notdef
-	PurifyPrintf("can't blit: %s\n", Rbc_LastError());
+    PurifyPrintf("can't blit: %s\n", Rbc_LastError());
 #endif
-	goto done;
+    goto done;
     }
     if (GetObject(hBitmap, sizeof(DIBSECTION), &ds) == 0) {
 #ifdef notdef
-	PurifyPrintf("can't get object: %s\n", Rbc_LastError());
+    PurifyPrintf("can't get object: %s\n", Rbc_LastError());
 #endif
-	goto done;
+    goto done;
     }
     srcArr = (unsigned char *)ds.dsBm.bmBits;
     image = Rbc_CreateColorImage(width, height);
     destPtr = Rbc_ColorImageBits(image);
 
     {
-	register int i;
-	double value;
+    register int i;
+    double value;
 
-	for (i = 0; i < 256; i++) {
-	    value = pow(i / 255.0, inputGamma) * 255.0 + 0.5;
-	    lut[i] = (unsigned char)CLAMP(value);
-	}
+    for (i = 0; i < 256; i++) {
+        value = pow(i / 255.0, inputGamma) * 255.0 + 0.5;
+        lut[i] = (unsigned char)CLAMP(value);
+    }
     }
 
     /*
@@ -246,22 +246,22 @@ Rbc_DrawableToColorImage(tkwin, drawable, x, y, width, height, inputGamma)
      */
 
     for (y = height - 1; y >= 0; y--) {
-	srcPtr = srcArr + (y * ds.dsBm.bmWidthBytes);
-	for (x = 0; x < width; x++) {
-	    destPtr->Blue = lut[*srcPtr++];
-	    destPtr->Green = lut[*srcPtr++];
-	    destPtr->Red = lut[*srcPtr++];
-	    destPtr->Alpha = (unsigned char)-1;
-	    destPtr++;
-	    srcPtr++;
-	}
+    srcPtr = srcArr + (y * ds.dsBm.bmWidthBytes);
+    for (x = 0; x < width; x++) {
+        destPtr->Blue = lut[*srcPtr++];
+        destPtr->Green = lut[*srcPtr++];
+        destPtr->Red = lut[*srcPtr++];
+        destPtr->Alpha = (unsigned char)-1;
+        destPtr++;
+        srcPtr++;
+    }
     }
 done:
     DeleteBitmap(SelectBitmap(memDC, oldBitmap));
     DeleteDC(memDC);
     TkWinReleaseDrawableDC(drawable, hDC, &state);
     if (hPalette != NULL) {
-	DeletePalette(hPalette);
+    DeletePalette(hPalette);
     }
     return image;
 }
@@ -301,45 +301,45 @@ Rbc_PhotoImageMask(
     offset = count = 0;
     /* FIXME: figure out why this is so! */
     for (y = src.height - 1; y >= 0; y--) {
-	srcPtr = src.pixelPtr + offset;
-	for (x = 0; x < src.width; x++) {
-	    if (srcPtr[src.offset[3]] == 0x00) {
-		SetBit(x, y);
-		count++;
-	    }
-	    srcPtr += src.pixelSize;
-	}
-	offset += src.pitch;
+    srcPtr = src.pixelPtr + offset;
+    for (x = 0; x < src.width; x++) {
+        if (srcPtr[src.offset[3]] == 0x00) {
+        SetBit(x, y);
+        count++;
+        }
+        srcPtr += src.pixelSize;
+    }
+    offset += src.pitch;
     }
     if (count > 0) {
-	HBITMAP hBitmap;
-	BITMAP bm;
+    HBITMAP hBitmap;
+    BITMAP bm;
 
-	bm.bmType = 0;
-	bm.bmWidth = src.width;
-	bm.bmHeight = src.height;
-	bm.bmWidthBytes = destBytesPerRow;
-	bm.bmPlanes = 1;
-	bm.bmBitsPixel = 1;
-	bm.bmBits = destBits;
-	hBitmap = CreateBitmapIndirect(&bm);
+    bm.bmType = 0;
+    bm.bmWidth = src.width;
+    bm.bmHeight = src.height;
+    bm.bmWidthBytes = destBytesPerRow;
+    bm.bmPlanes = 1;
+    bm.bmBitsPixel = 1;
+    bm.bmBits = destBits;
+    hBitmap = CreateBitmapIndirect(&bm);
 
-	twdPtr = (TkWinBitmap *)ckalloc(sizeof(TkWinBitmap));
-	assert(twdPtr);
-	twdPtr->type = TWD_BITMAP;
-	twdPtr->handle = hBitmap;
-	twdPtr->depth = 1;
-	if (Tk_WindowId(tkwin) == None) {
-	    twdPtr->colormap = DefaultColormap(Tk_Display(tkwin),
-					       DefaultScreen(Tk_Display(tkwin)));
-	} else {
-	    twdPtr->colormap = Tk_Colormap(tkwin);
-	}
+    twdPtr = (TkWinBitmap *)ckalloc(sizeof(TkWinBitmap));
+    assert(twdPtr);
+    twdPtr->type = TWD_BITMAP;
+    twdPtr->handle = hBitmap;
+    twdPtr->depth = 1;
+    if (Tk_WindowId(tkwin) == None) {
+        twdPtr->colormap = DefaultColormap(Tk_Display(tkwin),
+                           DefaultScreen(Tk_Display(tkwin)));
     } else {
-	twdPtr = NULL;
+        twdPtr->colormap = Tk_Colormap(tkwin);
+    }
+    } else {
+    twdPtr = NULL;
     }
     if (destBits != NULL) {
-	ckfree((char *)destBits);
+    ckfree((char *)destBits);
     }
     return (Pixmap)twdPtr;
 }
@@ -379,43 +379,43 @@ Rbc_ColorImageMask(
     count = 0;
     srcPtr = Rbc_ColorImageBits(image);
     for (y = 0; y < destHeight; y++) {
-	for (x = 0; x < destWidth; x++) {
-	    if (srcPtr->Alpha == 0x00) {
-		SetBit(x, y);
-		count++;
-	    }
-	    srcPtr++;
-	}
+    for (x = 0; x < destWidth; x++) {
+        if (srcPtr->Alpha == 0x00) {
+        SetBit(x, y);
+        count++;
+        }
+        srcPtr++;
+    }
     }
     if (count > 0) {
-	HBITMAP hBitmap;
-	BITMAP bm;
+    HBITMAP hBitmap;
+    BITMAP bm;
 
-	bm.bmType = 0;
-	bm.bmWidth = Rbc_ColorImageWidth(image);
-	bm.bmHeight = Rbc_ColorImageHeight(image);
-	bm.bmWidthBytes = destBytesPerRow;
-	bm.bmPlanes = 1;
-	bm.bmBitsPixel = 1;
-	bm.bmBits = destBits;
-	hBitmap = CreateBitmapIndirect(&bm);
+    bm.bmType = 0;
+    bm.bmWidth = Rbc_ColorImageWidth(image);
+    bm.bmHeight = Rbc_ColorImageHeight(image);
+    bm.bmWidthBytes = destBytesPerRow;
+    bm.bmPlanes = 1;
+    bm.bmBitsPixel = 1;
+    bm.bmBits = destBits;
+    hBitmap = CreateBitmapIndirect(&bm);
 
-	twdPtr = (TkWinBitmap *)ckalloc(sizeof(TkWinBitmap));
-	assert(twdPtr);
-	twdPtr->type = TWD_BITMAP;
-	twdPtr->handle = hBitmap;
-	twdPtr->depth = 1;
-	if (Tk_WindowId(tkwin) == None) {
-	    twdPtr->colormap = DefaultColormap(Tk_Display(tkwin),
-					       DefaultScreen(Tk_Display(tkwin)));
-	} else {
-	    twdPtr->colormap = Tk_Colormap(tkwin);
-	}
+    twdPtr = (TkWinBitmap *)ckalloc(sizeof(TkWinBitmap));
+    assert(twdPtr);
+    twdPtr->type = TWD_BITMAP;
+    twdPtr->handle = hBitmap;
+    twdPtr->depth = 1;
+    if (Tk_WindowId(tkwin) == None) {
+        twdPtr->colormap = DefaultColormap(Tk_Display(tkwin),
+                           DefaultScreen(Tk_Display(tkwin)));
     } else {
-	twdPtr = NULL;
+        twdPtr->colormap = Tk_Colormap(tkwin);
+    }
+    } else {
+    twdPtr = NULL;
     }
     if (destBits != NULL) {
-	ckfree((char *)destBits);
+    ckfree((char *)destBits);
     }
     return (Pixmap)twdPtr;
 }
@@ -452,20 +452,20 @@ Rbc_RotateBitmap(tkwin, srcBitmap, srcWidth, srcHeight, theta, destWidthPtr, des
     int *destWidthPtr;
     int *destHeightPtr;
 {
-    Display *display;		/* X display */
-    Window root;		/* Root window drawable */
+    Display *display;        /* X display */
+    Window root;        /* Root window drawable */
     Pixmap destBitmap;
     double rotWidth, rotHeight;
     HDC hDC;
     TkWinDCState state;
-    register int x, y;		/* Destination bitmap coordinates */
-    register int sx, sy;	/* Source bitmap coordinates */
+    register int x, y;        /* Destination bitmap coordinates */
+    register int sx, sy;    /* Source bitmap coordinates */
     unsigned long pixel;
     HBITMAP hBitmap;
     int result;
     struct MonoBitmap {
-	BITMAPINFOHEADER bi;
-	RGBQUAD colors[2];
+    BITMAPINFOHEADER bi;
+    RGBQUAD colors[2];
     } mb;
     int srcBytesPerRow, destBytesPerRow;
     int destWidth, destHeight;
@@ -474,138 +474,138 @@ Rbc_RotateBitmap(tkwin, srcBitmap, srcWidth, srcHeight, theta, destWidthPtr, des
     display = Tk_Display(tkwin);
     root = RootWindow(Tk_Display(tkwin), Tk_ScreenNumber(tkwin));
     Rbc_GetBoundingBox(srcWidth, srcHeight, theta, &rotWidth, &rotHeight,
-		       (Point2D *)NULL);
+               (Point2D *)NULL);
 
     destWidth = (int)ceil(rotWidth);
     destHeight = (int)ceil(rotHeight);
     destBitmap = Tk_GetPixmap(display, root, destWidth, destHeight, 1);
     if (destBitmap == None) {
-	return None;		/* Can't allocate pixmap. */
+    return None;        /* Can't allocate pixmap. */
     }
     srcBits = Rbc_GetBitmapData(display, srcBitmap, srcWidth, srcHeight,
-				&srcBytesPerRow);
+                &srcBytesPerRow);
     if (srcBits == NULL) {
-	OutputDebugStringA("Rbc_GetBitmapData failed");
-	return None;
+    OutputDebugStringA("Rbc_GetBitmapData failed");
+    return None;
     }
     destBytesPerRow = ((destWidth + 31) & ~31) / 8;
     destBits = RbcCalloc(destHeight, destBytesPerRow);
 
     theta = FMOD(theta, 360.0);
     if (FMOD(theta, (double)90.0) == 0.0) {
-	int quadrant;
+    int quadrant;
 
-	/* Handle right-angle rotations specially. */
+    /* Handle right-angle rotations specially. */
 
-	quadrant = (int)(theta / 90.0);
-	switch (quadrant) {
-	    case ROTATE_270:	/* 270 degrees */
-		for (y = 0; y < destHeight; y++) {
-		    sx = y;
-		    for (x = 0; x < destWidth; x++) {
-			sy = destWidth - x - 1;
-			pixel = GetBit(sx, sy);
-			if (pixel) {
-			    SetBit(x, y);
-			}
-		    }
-		}
-		break;
+    quadrant = (int)(theta / 90.0);
+    switch (quadrant) {
+        case ROTATE_270:    /* 270 degrees */
+        for (y = 0; y < destHeight; y++) {
+            sx = y;
+            for (x = 0; x < destWidth; x++) {
+            sy = destWidth - x - 1;
+            pixel = GetBit(sx, sy);
+            if (pixel) {
+                SetBit(x, y);
+            }
+            }
+        }
+        break;
 
-	    case ROTATE_180:		/* 180 degrees */
-		for (y = 0; y < destHeight; y++) {
-		    sy = destHeight - y - 1;
-		    for (x = 0; x < destWidth; x++) {
-			sx = destWidth - x - 1;
-			pixel = GetBit(sx, sy);
-			if (pixel) {
-			    SetBit(x, y);
-			}
-		    }
-		}
-		break;
+        case ROTATE_180:        /* 180 degrees */
+        for (y = 0; y < destHeight; y++) {
+            sy = destHeight - y - 1;
+            for (x = 0; x < destWidth; x++) {
+            sx = destWidth - x - 1;
+            pixel = GetBit(sx, sy);
+            if (pixel) {
+                SetBit(x, y);
+            }
+            }
+        }
+        break;
 
-	    case ROTATE_90:		/* 90 degrees */
-		for (y = 0; y < destHeight; y++) {
-		    sx = destHeight - y - 1;
-		    for (x = 0; x < destWidth; x++) {
-			sy = x;
-			pixel = GetBit(sx, sy);
-			if (pixel) {
-			    SetBit(x, y);
-			}
-		    }
-		}
-		break;
+        case ROTATE_90:        /* 90 degrees */
+        for (y = 0; y < destHeight; y++) {
+            sx = destHeight - y - 1;
+            for (x = 0; x < destWidth; x++) {
+            sy = x;
+            pixel = GetBit(sx, sy);
+            if (pixel) {
+                SetBit(x, y);
+            }
+            }
+        }
+        break;
 
-	    case ROTATE_0:		/* 0 degrees */
-		for (y = 0; y < destHeight; y++) {
-		    for (x = 0; x < destWidth; x++) {
-			pixel = GetBit(x, y);
-			if (pixel) {
-			    SetBit(x, y);
-			}
-		    }
-		}
-		break;
+        case ROTATE_0:        /* 0 degrees */
+        for (y = 0; y < destHeight; y++) {
+            for (x = 0; x < destWidth; x++) {
+            pixel = GetBit(x, y);
+            if (pixel) {
+                SetBit(x, y);
+            }
+            }
+        }
+        break;
 
-	    default:
-		/* The calling routine should never let this happen. */
-		break;
-	}
+        default:
+        /* The calling routine should never let this happen. */
+        break;
+    }
     } else {
-	double radians, sinTheta, cosTheta;
-	double srcCX, srcCY;	/* Center of source rectangle */
-	double destCX, destCY;	/* Center of destination rectangle */
-	double tx, ty;
-	double rx, ry;		/* Angle of rotation for x and y coordinates */
+    double radians, sinTheta, cosTheta;
+    double srcCX, srcCY;    /* Center of source rectangle */
+    double destCX, destCY;    /* Center of destination rectangle */
+    double tx, ty;
+    double rx, ry;        /* Angle of rotation for x and y coordinates */
 
-	radians = (theta / 180.0) * M_PI;
-	sinTheta = sin(radians), cosTheta = cos(radians);
+    radians = (theta / 180.0) * M_PI;
+    sinTheta = sin(radians), cosTheta = cos(radians);
 
-	/*
-	 * Coordinates of the centers of the source and destination rectangles
-	 */
-	srcCX = srcWidth * 0.5;
-	srcCY = srcHeight * 0.5;
-	destCX = destWidth * 0.5;
-	destCY = destHeight * 0.5;
+    /*
+     * Coordinates of the centers of the source and destination rectangles
+     */
+    srcCX = srcWidth * 0.5;
+    srcCY = srcHeight * 0.5;
+    destCX = destWidth * 0.5;
+    destCY = destHeight * 0.5;
 
-	/* Rotate each pixel of dest image, placing results in source image */
+    /* Rotate each pixel of dest image, placing results in source image */
 
-	for (y = 0; y < destHeight; y++) {
-	    ty = y - destCY;
-	    for (x = 0; x < destWidth; x++) {
+    for (y = 0; y < destHeight; y++) {
+        ty = y - destCY;
+        for (x = 0; x < destWidth; x++) {
 
-		/* Translate origin to center of destination image */
-		tx = x - destCX;
+        /* Translate origin to center of destination image */
+        tx = x - destCX;
 
-		/* Rotate the coordinates about the origin */
-		rx = (tx * cosTheta) - (ty * sinTheta);
-		ry = (tx * sinTheta) + (ty * cosTheta);
+        /* Rotate the coordinates about the origin */
+        rx = (tx * cosTheta) - (ty * sinTheta);
+        ry = (tx * sinTheta) + (ty * cosTheta);
 
-		/* Translate back to the center of the source image */
-		rx += srcCX;
-		ry += srcCY;
+        /* Translate back to the center of the source image */
+        rx += srcCX;
+        ry += srcCY;
 
-		sx = ROUND(rx);
-		sy = ROUND(ry);
+        sx = ROUND(rx);
+        sy = ROUND(ry);
 
-		/*
-		 * Verify the coordinates, since the destination image can be
-		 * bigger than the source
-		 */
+        /*
+         * Verify the coordinates, since the destination image can be
+         * bigger than the source
+         */
 
-		if ((sx >= srcWidth) || (sx < 0) || (sy >= srcHeight) ||
-			(sy < 0)) {
-		    continue;
-		}
-		pixel = GetBit(sx, sy);
-		if (pixel) {
-		    SetBit(x, y);
-		}
-	    }
-	}
+        if ((sx >= srcWidth) || (sx < 0) || (sy >= srcHeight) ||
+            (sy < 0)) {
+            continue;
+        }
+        pixel = GetBit(sx, sy);
+        if (pixel) {
+            SetBit(x, y);
+        }
+        }
+    }
     }
     hBitmap = ((TkWinDrawable *)destBitmap)->bitmap.handle;
     ZeroMemory(&mb, sizeof(mb));
@@ -620,19 +620,19 @@ Rbc_RotateBitmap(tkwin, srcBitmap, srcWidth, srcHeight, theta, destWidthPtr, des
     mb.colors[1].rgbBlue = mb.colors[1].rgbRed = mb.colors[1].rgbGreen = 0xFF;
     hDC = TkWinGetDrawableDC(display, destBitmap, &state);
     result = SetDIBits(hDC, hBitmap, 0, destHeight, (LPVOID)destBits,
-		       (BITMAPINFO *)&mb, DIB_RGB_COLORS);
+               (BITMAPINFO *)&mb, DIB_RGB_COLORS);
     TkWinReleaseDrawableDC(destBitmap, hDC, &state);
     if (!result) {
 #if WINDEBUG
-	PurifyPrintf("can't setDIBits: %s\n", Rbc_LastError());
+    PurifyPrintf("can't setDIBits: %s\n", Rbc_LastError());
 #endif
-	destBitmap = None;
+    destBitmap = None;
     }
     if (destBits != NULL) {
-	ckfree((char *)destBits);
+    ckfree((char *)destBits);
     }
     if (srcBits != NULL) {
-	ckfree((char *)srcBits);
+    ckfree((char *)srcBits);
     }
 
     *destWidthPtr = destWidth;
@@ -676,13 +676,13 @@ Rbc_ScaleBitmap(tkwin, srcBitmap, srcWidth, srcHeight, destWidth, destHeight)
     root = RootWindow(Tk_Display(tkwin), Tk_ScreenNumber(tkwin));
     destBitmap = Tk_GetPixmap(display, root, destWidth, destHeight, 1);
     if (destBitmap == None) {
-	return None;
+    return None;
     }
     src = TkWinGetDrawableDC(display, srcBitmap, &srcState);
     dest = TkWinGetDrawableDC(display, destBitmap, &destState);
 
     StretchBlt(dest, 0, 0, destWidth, destHeight, src, 0, 0,
-	       srcWidth, srcHeight, SRCCOPY);
+           srcWidth, srcHeight, SRCCOPY);
 
     TkWinReleaseDrawableDC(srcBitmap, src, &srcState);
     TkWinReleaseDrawableDC(destBitmap, dest, &destState);
@@ -723,31 +723,31 @@ Rbc_ScaleRotateBitmapRegion(tkwin, srcBitmap, srcWidth, srcHeight, regionX, regi
     unsigned int srcHeight; /* Size of source bitmap */
     int regionX;
     int regionY; /* Offset of region in virtual
-				  * destination bitmap. */
+                  * destination bitmap. */
     unsigned int regionWidth;
     unsigned int regionHeight; /* Desire size of bitmap region. */
     unsigned int virtWidth;
     unsigned int virtHeight; /* Virtual size of destination bitmap. */
     double theta; /* Angle to rotate bitmap. */
 {
-    Display *display;		/* X display */
+    Display *display;        /* X display */
     HBITMAP hBitmap;
     HDC hDC;
     Pixmap destBitmap;
     TkWinDCState state;
-    Window root;		/* Root window drawable */
+    Window root;        /* Root window drawable */
     double rotWidth, rotHeight;
     double xScale, yScale;
     int srcBytesPerRow, destBytesPerRow;
     int destHeight;
     int result;
-    register int sx, sy;	/* Source bitmap coordinates */
-    register int x, y;		/* Destination bitmap coordinates */
+    register int sx, sy;    /* Source bitmap coordinates */
+    register int x, y;        /* Destination bitmap coordinates */
     unsigned char *srcBits, *destBits;
     unsigned long pixel;
     struct MonoBitmap {
-	BITMAPINFOHEADER bi;
-	RGBQUAD colors[2];
+    BITMAPINFOHEADER bi;
+    RGBQUAD colors[2];
     } mb;
 
     display = Tk_Display(tkwin);
@@ -756,13 +756,13 @@ Rbc_ScaleRotateBitmapRegion(tkwin, srcBitmap, srcWidth, srcHeight, regionX, regi
     /* Create a bitmap and image big enough to contain the rotated text */
     destBitmap = Tk_GetPixmap(display, root, regionWidth, regionHeight, 1);
     if (destBitmap == None) {
-	return None;		/* Can't allocate pixmap. */
+    return None;        /* Can't allocate pixmap. */
     }
     srcBits = Rbc_GetBitmapData(display, srcBitmap, srcWidth, srcHeight,
-				&srcBytesPerRow);
+                &srcBytesPerRow);
     if (srcBits == NULL) {
-	OutputDebugStringA("Rbc_GetBitmapData failed");
-	return None;
+    OutputDebugStringA("Rbc_GetBitmapData failed");
+    return None;
     }
     destBytesPerRow = ((regionWidth + 31) & ~31) / 8;
     destBits = RbcCalloc(regionHeight, destBytesPerRow);
@@ -770,129 +770,129 @@ Rbc_ScaleRotateBitmapRegion(tkwin, srcBitmap, srcWidth, srcHeight, regionX, regi
 
     theta = FMOD(theta, 360.0);
     Rbc_GetBoundingBox(srcWidth, srcHeight, theta, &rotWidth, &rotHeight,
-		       (Point2D *)NULL);
+               (Point2D *)NULL);
     xScale = rotWidth / (double)virtWidth;
     yScale = rotHeight / (double)virtHeight;
 
     if (FMOD(theta, (double)90.0) == 0.0) {
-	int quadrant;
+    int quadrant;
 
-	/* Handle right-angle rotations specifically */
+    /* Handle right-angle rotations specifically */
 
-	quadrant = (int)(theta / 90.0);
-	switch (quadrant) {
-	    case ROTATE_270:	/* 270 degrees */
-		for (y = 0; y < (int)regionHeight; y++) {
-		    sx = (int)(yScale * (double)(y+regionY));
-		    for (x = 0; x < (int)regionWidth; x++) {
-			sy = (int)(xScale *(double)(virtWidth - (x+regionX) - 1));
-			pixel = GetBit(sx, sy);
-			if (pixel) {
-			    SetBit(x, y);
-			}
-		    }
-		}
-		break;
+    quadrant = (int)(theta / 90.0);
+    switch (quadrant) {
+        case ROTATE_270:    /* 270 degrees */
+        for (y = 0; y < (int)regionHeight; y++) {
+            sx = (int)(yScale * (double)(y+regionY));
+            for (x = 0; x < (int)regionWidth; x++) {
+            sy = (int)(xScale *(double)(virtWidth - (x+regionX) - 1));
+            pixel = GetBit(sx, sy);
+            if (pixel) {
+                SetBit(x, y);
+            }
+            }
+        }
+        break;
 
-	    case ROTATE_180:	/* 180 degrees */
-		for (y = 0; y < (int)regionHeight; y++) {
-		    sy = (int)(yScale * (double)(virtHeight - (y + regionY) - 1));
-		    for (x = 0; x < (int)regionWidth; x++) {
-			sx = (int)(xScale *(double)(virtWidth - (x+regionX) - 1));
-			pixel = GetBit(sx, sy);
-			if (pixel) {
-			    SetBit(x, y);
-			}
-		    }
-		}
-		break;
+        case ROTATE_180:    /* 180 degrees */
+        for (y = 0; y < (int)regionHeight; y++) {
+            sy = (int)(yScale * (double)(virtHeight - (y + regionY) - 1));
+            for (x = 0; x < (int)regionWidth; x++) {
+            sx = (int)(xScale *(double)(virtWidth - (x+regionX) - 1));
+            pixel = GetBit(sx, sy);
+            if (pixel) {
+                SetBit(x, y);
+            }
+            }
+        }
+        break;
 
-	    case ROTATE_90:		/* 90 degrees */
-		for (y = 0; y < (int)regionHeight; y++) {
-		    sx = (int)(yScale * (double)(virtHeight - (y + regionY) - 1));
-		    for (x = 0; x < (int)regionWidth; x++) {
-			sy = (int)(xScale * (double)(x + regionX));
-			pixel = GetBit(sx, sy);
-			if (pixel) {
-			    SetBit(x, y);
-			}
-		    }
-		}
-		break;
+        case ROTATE_90:        /* 90 degrees */
+        for (y = 0; y < (int)regionHeight; y++) {
+            sx = (int)(yScale * (double)(virtHeight - (y + regionY) - 1));
+            for (x = 0; x < (int)regionWidth; x++) {
+            sy = (int)(xScale * (double)(x + regionX));
+            pixel = GetBit(sx, sy);
+            if (pixel) {
+                SetBit(x, y);
+            }
+            }
+        }
+        break;
 
-	    case ROTATE_0:		/* 0 degrees */
-		for (y = 0; y < (int)regionHeight; y++) {
-		    sy = (int)(yScale * (double)(y + regionY));
-		    for (x = 0; x < (int)regionWidth; x++) {
-			sx = (int)(xScale * (double)(x + regionX));
-			pixel = GetBit(sx, sy);
-			if (pixel) {
-			    SetBit(x, y);
-			}
-		    }
-		}
-		break;
+        case ROTATE_0:        /* 0 degrees */
+        for (y = 0; y < (int)regionHeight; y++) {
+            sy = (int)(yScale * (double)(y + regionY));
+            for (x = 0; x < (int)regionWidth; x++) {
+            sx = (int)(xScale * (double)(x + regionX));
+            pixel = GetBit(sx, sy);
+            if (pixel) {
+                SetBit(x, y);
+            }
+            }
+        }
+        break;
 
-	    default:
-		/* The calling routine should never let this happen. */
-		break;
-	}
+        default:
+        /* The calling routine should never let this happen. */
+        break;
+    }
     } else {
-	double radians, sinTheta, cosTheta;
-	double scx, scy; 	/* Offset from the center of the
-				 * source rectangle. */
-	double rcx, rcy; 	/* Offset to the center of the
-				 * rotated rectangle. */
-	double tx, ty;		/* Translated coordinates from center */
-	double rx, ry;		/* Angle of rotation for x and y coordinates */
+    double radians, sinTheta, cosTheta;
+    double scx, scy;     /* Offset from the center of the
+                 * source rectangle. */
+    double rcx, rcy;     /* Offset to the center of the
+                 * rotated rectangle. */
+    double tx, ty;        /* Translated coordinates from center */
+    double rx, ry;        /* Angle of rotation for x and y coordinates */
 
-	radians = (theta / 180.0) * M_PI;
-	sinTheta = sin(radians), cosTheta = cos(radians);
+    radians = (theta / 180.0) * M_PI;
+    sinTheta = sin(radians), cosTheta = cos(radians);
 
-	/*
-	 * Coordinates of the centers of the source and destination rectangles
-	 */
-	scx = srcWidth * 0.5;
-	scy = srcHeight * 0.5;
-	rcx = rotWidth * 0.5;
-	rcy = rotHeight * 0.5;
+    /*
+     * Coordinates of the centers of the source and destination rectangles
+     */
+    scx = srcWidth * 0.5;
+    scy = srcHeight * 0.5;
+    rcx = rotWidth * 0.5;
+    rcy = rotHeight * 0.5;
 
-	/* For each pixel of the destination image, transform back to the
-	 * associated pixel in the source image. */
+    /* For each pixel of the destination image, transform back to the
+     * associated pixel in the source image. */
 
-	for (y = 0; y < (int)regionHeight; y++) {
-	    ty = (yScale * (double)(y + regionY)) - rcy;
-	    for (x = 0; x < (int)regionWidth; x++) {
+    for (y = 0; y < (int)regionHeight; y++) {
+        ty = (yScale * (double)(y + regionY)) - rcy;
+        for (x = 0; x < (int)regionWidth; x++) {
 
-		/* Translate origin to center of destination image. */
-		tx = (xScale * (double)(x + regionX)) - rcx;
+        /* Translate origin to center of destination image. */
+        tx = (xScale * (double)(x + regionX)) - rcx;
 
-		/* Rotate the coordinates about the origin. */
-		rx = (tx * cosTheta) - (ty * sinTheta);
-		ry = (tx * sinTheta) + (ty * cosTheta);
+        /* Rotate the coordinates about the origin. */
+        rx = (tx * cosTheta) - (ty * sinTheta);
+        ry = (tx * sinTheta) + (ty * cosTheta);
 
-		/* Translate back to the center of the source image. */
-		rx += scx;
-		ry += scy;
+        /* Translate back to the center of the source image. */
+        rx += scx;
+        ry += scy;
 
-		sx = ROUND(rx);
-		sy = ROUND(ry);
+        sx = ROUND(rx);
+        sy = ROUND(ry);
 
-		/*
-		 * Verify the coordinates, since the destination image can be
-		 * bigger than the source.
-		 */
+        /*
+         * Verify the coordinates, since the destination image can be
+         * bigger than the source.
+         */
 
-		if ((sx >= (int)srcWidth) || (sx < 0) ||
-			(sy >= (int)srcHeight) || (sy < 0)) {
-		    continue;
-		}
-		pixel = GetBit(sx, sy);
-		if (pixel) {
-		    SetBit(x, y);
-		}
-	    }
-	}
+        if ((sx >= (int)srcWidth) || (sx < 0) ||
+            (sy >= (int)srcHeight) || (sy < 0)) {
+            continue;
+        }
+        pixel = GetBit(sx, sy);
+        if (pixel) {
+            SetBit(x, y);
+        }
+        }
+    }
     }
     /* Write the rotated image into the destination bitmap. */
     hBitmap = ((TkWinDrawable *)destBitmap)->bitmap.handle;
@@ -908,19 +908,19 @@ Rbc_ScaleRotateBitmapRegion(tkwin, srcBitmap, srcWidth, srcHeight, regionX, regi
     mb.colors[1].rgbBlue = mb.colors[1].rgbRed = mb.colors[1].rgbGreen = 0xFF;
     hDC = TkWinGetDrawableDC(display, destBitmap, &state);
     result = SetDIBits(hDC, hBitmap, 0, regionHeight, (LPVOID)destBits,
-		       (BITMAPINFO *)&mb, DIB_RGB_COLORS);
+               (BITMAPINFO *)&mb, DIB_RGB_COLORS);
     TkWinReleaseDrawableDC(destBitmap, hDC, &state);
     if (!result) {
 #if WINDEBUG
-	PurifyPrintf("can't setDIBits: %s\n", Rbc_LastError());
+    PurifyPrintf("can't setDIBits: %s\n", Rbc_LastError());
 #endif
-	destBitmap = None;
+    destBitmap = None;
     }
     if (destBits != NULL) {
-	ckfree((char *)destBits);
+    ckfree((char *)destBits);
     }
     if (srcBits != NULL) {
-	ckfree((char *)srcBits);
+    ckfree((char *)srcBits);
     }
     return destBitmap;
 }
@@ -965,20 +965,20 @@ Rbc_BlendColorImage(
     register int x, y;
 
     if (regionPtr == NULL) {
-	regionPtr = Rbc_SetRegion(0, 0, ColorImageWidth(image),
-				  ColorImageHeight(image), &region);
+    regionPtr = Rbc_SetRegion(0, 0, ColorImageWidth(image),
+                  ColorImageHeight(image), &region);
     }
     if (regionPtr->left < 0) {
-	regionPtr->left = 0;
+    regionPtr->left = 0;
     }
     if (regionPtr->right >= destWidth) {
-	regionPtr->right = destWidth - 1;
+    regionPtr->right = destWidth - 1;
     }
     if (regionPtr->top < 0) {
-	regionPtr->top = 0;
+    regionPtr->top = 0;
     }
     if (regionPtr->bottom >= destHeight) {
-	regionPtr->bottom = destHeight - 1;
+    regionPtr->bottom = destHeight - 1;
     }
     width = RegionWidth(regionPtr);
     height = RegionHeight(regionPtr);
@@ -999,25 +999,25 @@ Rbc_BlendColorImage(
 
     hPalette = Rbc_GetSystemPalette();
     if (hPalette != NULL) {
-	SelectPalette(hDC, hPalette, FALSE);
-	RealizePalette(hDC);
-	SelectPalette(memDC, hPalette, FALSE);
-	RealizePalette(memDC);
+    SelectPalette(hDC, hPalette, FALSE);
+    RealizePalette(hDC);
+    SelectPalette(memDC, hPalette, FALSE);
+    RealizePalette(memDC);
     }
     image = NULL;
     /* Copy the window contents to the memory surface. */
     if (!BitBlt(memDC, 0, 0, width, height, hDC, regionPtr->left,
-		regionPtr->top, SRCCOPY)) {
+        regionPtr->top, SRCCOPY)) {
 #ifdef notdef
-	PurifyPrintf("can't blit: %s\n", Rbc_LastError());
+    PurifyPrintf("can't blit: %s\n", Rbc_LastError());
 #endif
-	goto done;
+    goto done;
     }
     if (GetObject(hBitmap, sizeof(DIBSECTION), &ds) == 0) {
 #ifdef notdef
-	PurifyPrintf("can't get object: %s\n", Rbc_LastError());
+    PurifyPrintf("can't get object: %s\n", Rbc_LastError());
 #endif
-	goto done;
+    goto done;
     }
     srcArr = (unsigned char *)ds.dsBm.bmBits;
     image = Rbc_CreateColorImage(width, height);
@@ -1030,25 +1030,25 @@ Rbc_BlendColorImage(
      * backwards?
      */
     for (y = height - 1; y >= 0; y--) {
-	srcPtr = srcArr + (y * ds.dsBm.bmWidthBytes);
-	for (x = 0; x < width; x++) {
-	    if (destPtr->Alpha > 0) {
-		/* Blend colorimage with background. */
-		destPtr->Blue = *srcPtr++;
-		destPtr->Green = *srcPtr++;
-		destPtr->Red = *srcPtr++;
-		destPtr->Alpha = (unsigned char)-1;
-		srcPtr++;
-	    }
-	    destPtr++;
-	}
+    srcPtr = srcArr + (y * ds.dsBm.bmWidthBytes);
+    for (x = 0; x < width; x++) {
+        if (destPtr->Alpha > 0) {
+        /* Blend colorimage with background. */
+        destPtr->Blue = *srcPtr++;
+        destPtr->Green = *srcPtr++;
+        destPtr->Red = *srcPtr++;
+        destPtr->Alpha = (unsigned char)-1;
+        srcPtr++;
+        }
+        destPtr++;
+    }
     }
 done:
     DeleteBitmap(SelectBitmap(memDC, oldBitmap));
     DeleteDC(memDC);
     TkWinReleaseDrawableDC(drawable, hDC, &state);
     if (hPalette != NULL) {
-	DeletePalette(hPalette);
+    DeletePalette(hPalette);
     }
     return image;
 }
@@ -1083,15 +1083,15 @@ Rbc_JPEGToColorImage(interp, fileName)
 
     ZeroMemory(&jpgProps, sizeof(JPEG_CORE_PROPERTIES));
     if (ijlInit(&jpgProps) != IJL_OK) {
-	Tcl_AppendResult(interp, "can't initialize Intel JPEG library",
-			 (char *)NULL);
-	return NULL;
+    Tcl_AppendResult(interp, "can't initialize Intel JPEG library",
+             (char *)NULL);
+    return NULL;
     }
     jpgProps.JPGFile = fileName;
     if (ijlRead(&jpgProps, IJL_JFILE_READPARAMS) != IJL_OK) {
-	Tcl_AppendResult(interp, "can't read JPEG file header from \"",
-			 fileName, "\" file.", (char *)NULL);
-	goto error;
+    Tcl_AppendResult(interp, "can't read JPEG file header from \"",
+             fileName, "\" file.", (char *)NULL);
+    goto error;
     }
 
     // !dudnik: to fix bug case 584680, [OT:287A305B]
@@ -1104,55 +1104,55 @@ Rbc_JPEGToColorImage(interp, fileName)
     // are in the YCbCr color space and 1 channel images are
     // in the Y color space.
     switch (jpgProps.JPGChannels) {
-	case 1:
-	    jpgProps.JPGColor = IJL_G;
-	    jpgProps.DIBChannels = 4;
-	    jpgProps.DIBColor = IJL_RGBA_FPX;
-	    break;
+    case 1:
+        jpgProps.JPGColor = IJL_G;
+        jpgProps.DIBChannels = 4;
+        jpgProps.DIBColor = IJL_RGBA_FPX;
+        break;
 
-	case 3:
-	    jpgProps.JPGColor = IJL_YCBCR;
-	    jpgProps.DIBChannels = 4;
-	    jpgProps.DIBColor = IJL_RGBA_FPX;
-	    break;
+    case 3:
+        jpgProps.JPGColor = IJL_YCBCR;
+        jpgProps.DIBChannels = 4;
+        jpgProps.DIBColor = IJL_RGBA_FPX;
+        break;
 
-	case 4:
-	    jpgProps.JPGColor = IJL_YCBCRA_FPX;
-	    jpgProps.DIBChannels = 4;
-	    jpgProps.DIBColor = IJL_RGBA_FPX;
-	    break;
+    case 4:
+        jpgProps.JPGColor = IJL_YCBCRA_FPX;
+        jpgProps.DIBChannels = 4;
+        jpgProps.DIBColor = IJL_RGBA_FPX;
+        break;
 
-	default:
-	    /* This catches everything else, but no color twist will be
-		   performed by the IJL. */
-	    jpgProps.DIBColor = (IJL_COLOR)IJL_OTHER;
-	    jpgProps.JPGColor = (IJL_COLOR)IJL_OTHER;
-	    jpgProps.DIBChannels = jpgProps.JPGChannels;
-	    break;
+    default:
+        /* This catches everything else, but no color twist will be
+           performed by the IJL. */
+        jpgProps.DIBColor = (IJL_COLOR)IJL_OTHER;
+        jpgProps.JPGColor = (IJL_COLOR)IJL_OTHER;
+        jpgProps.DIBChannels = jpgProps.JPGChannels;
+        break;
     }
 
     jpgProps.DIBWidth    = jpgProps.JPGWidth;
     jpgProps.DIBHeight   = jpgProps.JPGHeight;
     jpgProps.DIBPadBytes = IJL_DIB_PAD_BYTES(jpgProps.DIBWidth,
-			   jpgProps.DIBChannels);
+               jpgProps.DIBChannels);
 
     image = Rbc_CreateColorImage(jpgProps.JPGWidth, jpgProps.JPGHeight);
 
     jpgProps.DIBBytes = (BYTE *)Rbc_ColorImageBits(image);
     if (ijlRead(&jpgProps, IJL_JFILE_READWHOLEIMAGE) != IJL_OK) {
-	Tcl_AppendResult(interp, "can't read image data from \"", fileName,
-			 "\"", (char *)NULL);
-	goto error;
+    Tcl_AppendResult(interp, "can't read image data from \"", fileName,
+             "\"", (char *)NULL);
+    goto error;
     }
     if (ijlFree(&jpgProps) != IJL_OK) {
-	fprintf(stderr, "can't free Intel(R) JPEG library\n");
+    fprintf(stderr, "can't free Intel(R) JPEG library\n");
     }
     return image;
 
 error:
     ijlFree(&jpgProps);
     if (image != NULL) {
-	Rbc_FreeColorImage(image);
+    Rbc_FreeColorImage(image);
     }
     ijlFree(&jpgProps);
     return NULL;
@@ -1165,13 +1165,13 @@ error:
 #undef HAVE_STDLIB_H
 #undef EXTERN
 #ifdef WIN32
-#define XMD_H	1
+#define XMD_H    1
 #endif
 #include "jpeglib.h"
 #include <setjmp.h>
 
 typedef struct {
-    struct jpeg_error_mgr pub;	/* "public" fields */
+    struct jpeg_error_mgr pub;    /* "public" fields */
     jmp_buf jmpBuf;
     Tcl_DString dString;
 } ReaderHandler;
@@ -1267,9 +1267,9 @@ Rbc_JPEGToColorImage(interp, fileName)
 
     f = fopen(fileName, "rb");
     if (f == NULL) {
-	Tcl_AppendResult(interp, "can't open \"", fileName, "\":",
-			 Tcl_PosixError(interp), (char *)NULL);
-	return NULL;
+    Tcl_AppendResult(interp, "can't open \"", fileName, "\":",
+             Tcl_PosixError(interp), (char *)NULL);
+    return NULL;
     }
     image = NULL;
 
@@ -1287,23 +1287,23 @@ Rbc_JPEGToColorImage(interp, fileName)
     Tcl_DStringAppend(&handler.dString, "\": ", -1);
 
     if (setjmp(handler.jmpBuf)) {
-	jpeg_destroy_decompress(&jpg);
-	fclose(f);
-	Tcl_DStringResult(interp, &(handler.dString));
-	return NULL;
+    jpeg_destroy_decompress(&jpg);
+    fclose(f);
+    Tcl_DStringResult(interp, &(handler.dString));
+    return NULL;
     }
     jpeg_create_decompress(&jpg);
     jpeg_stdio_src(&jpg, f);
 
-    jpeg_read_header(&jpg, TRUE);	/* Step 3: read file parameters */
+    jpeg_read_header(&jpg, TRUE);    /* Step 3: read file parameters */
 
-    jpeg_start_decompress(&jpg);	/* Step 5: Start decompressor */
+    jpeg_start_decompress(&jpg);    /* Step 5: Start decompressor */
     imageWidth = jpg.output_width;
     imageHeight = jpg.output_height;
     if ((imageWidth < 1) || (imageHeight < 1)) {
-	Tcl_AppendResult(interp, "bad JPEG image size", (char *)NULL);
-	fclose(f);
-	return NULL;
+    Tcl_AppendResult(interp, "bad JPEG image size", (char *)NULL);
+    fclose(f);
+    return NULL;
     }
     /* JSAMPLEs per row in output buffer */
     row_stride = imageWidth * jpg.output_components;
@@ -1311,37 +1311,37 @@ Rbc_JPEGToColorImage(interp, fileName)
     /* Make a one-row-high sample array that will go away when done
      * with image */
     readBuffer = (*jpg.mem->alloc_sarray) ((j_common_ptr)&jpg, JPOOL_IMAGE,
-					   row_stride, 1);
+                       row_stride, 1);
     image = Rbc_CreateColorImage(imageWidth, imageHeight);
     destPtr = Rbc_ColorImageBits(image);
 
     if (jpg.output_components == 1) {
-	while (jpg.output_scanline < imageHeight) {
-	    jpeg_read_scanlines(&jpg, readBuffer, 1);
-	    bufPtr = readBuffer[0];
-	    for (i = 0; i < (int)imageWidth; i++) {
-		destPtr->Red = destPtr->Green = destPtr->Blue = *bufPtr++;
-		destPtr->Alpha = (unsigned char)-1;
-		destPtr++;
-	    }
-	}
-    } else {
-	while (jpg.output_scanline < imageHeight) {
-	    jpeg_read_scanlines(&jpg, readBuffer, 1);
-	    bufPtr = readBuffer[0];
-	    for (i = 0; i < (int)imageWidth; i++) {
-		destPtr->Red = *bufPtr++;
-		destPtr->Green = *bufPtr++;
-		destPtr->Blue = *bufPtr++;
-		destPtr->Alpha = (unsigned char)-1;
-		destPtr++;
-	    }
-	}
+    while (jpg.output_scanline < imageHeight) {
+        jpeg_read_scanlines(&jpg, readBuffer, 1);
+        bufPtr = readBuffer[0];
+        for (i = 0; i < (int)imageWidth; i++) {
+        destPtr->Red = destPtr->Green = destPtr->Blue = *bufPtr++;
+        destPtr->Alpha = (unsigned char)-1;
+        destPtr++;
+        }
     }
-    jpeg_finish_decompress(&jpg);	/* We can ignore the return value
-					 * since suspension is not
-					 * possible with the stdio data
-					 * source.  */
+    } else {
+    while (jpg.output_scanline < imageHeight) {
+        jpeg_read_scanlines(&jpg, readBuffer, 1);
+        bufPtr = readBuffer[0];
+        for (i = 0; i < (int)imageWidth; i++) {
+        destPtr->Red = *bufPtr++;
+        destPtr->Green = *bufPtr++;
+        destPtr->Blue = *bufPtr++;
+        destPtr->Alpha = (unsigned char)-1;
+        destPtr++;
+        }
+    }
+    }
+    jpeg_finish_decompress(&jpg);    /* We can ignore the return value
+                     * since suspension is not
+                     * possible with the stdio data
+                     * source.  */
     jpeg_destroy_decompress(&jpg);
 
 
@@ -1359,10 +1359,10 @@ Rbc_JPEGToColorImage(interp, fileName)
      * warnings occurred (test whether jerr.pub.num_warnings is nonzero).
      */
     if (handler.pub.num_warnings > 0) {
-	Tcl_SetErrorCode(interp, "IMAGE", "JPEG",
-			 Tcl_DStringValue(&(handler.dString)), (char *)NULL);
+    Tcl_SetErrorCode(interp, "IMAGE", "JPEG",
+             Tcl_DStringValue(&(handler.dString)), (char *)NULL);
     } else {
-	Tcl_SetErrorCode(interp, "NONE", (char *)NULL);
+    Tcl_SetErrorCode(interp, "NONE", (char *)NULL);
     }
     /*
      * We're ready to call the Tk_Photo routines. They'll take the RGB

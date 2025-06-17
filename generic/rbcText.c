@@ -12,9 +12,9 @@
 #include "rbcInt.h"
 #include <X11/Xutil.h>
 #include "rbcImage.h"
-#include <tkInt.h>	/* needed for TkDrawAngledChars */
+#include <tkInt.h>    /* needed for TkDrawAngledChars */
 
-#define WINDEBUG	0
+#define WINDEBUG    0
 
 static Tcl_HashTable bitmapGCTable;
 static int initialized;
@@ -57,31 +57,31 @@ DrawTextLayout(
     double rotWidth, rotHeight;
 
     if (theta != 0.0) {
-	sinA = sin(theta * M_PI/180.0);
-	cosA = cos(theta * M_PI/180.0);
-	width = textPtr->width;
-	height = textPtr->height;
+    sinA = sin(theta * M_PI/180.0);
+    cosA = cos(theta * M_PI/180.0);
+    width = textPtr->width;
+    height = textPtr->height;
 
-	Rbc_GetBoundingBox(width, height, theta,
-	    &rotWidth, &rotHeight, (Point2D *)NULL);
-	rW = ROUND(rotWidth);
-	rH = ROUND(rotHeight);
+    Rbc_GetBoundingBox(width, height, theta,
+        &rotWidth, &rotHeight, (Point2D *)NULL);
+    rW = ROUND(rotWidth);
+    rH = ROUND(rotHeight);
     }
 
     fragPtr = textPtr->fragArr;
 
     for (i = 0; i < textPtr->nFrags; i++, fragPtr++) {
-	if (theta == 0.0) {
-	    Tk_DrawChars(display, drawable, gc, font, fragPtr->text,
-		fragPtr->count, x + fragPtr->x, y + fragPtr->y);
-	} else {
-	    realX = (fragPtr->x - width/2) * cosA + (fragPtr->y - height/2) * sinA;
-	    realY = (fragPtr->y - height/2) * cosA - (fragPtr->x - width/2) * sinA;
-	    newX = ROUND(realX) + x + rW/2;
-	    newY = ROUND(realY) + y + rH/2;
-	    TkDrawAngledChars(display, drawable, gc, font, fragPtr->text,
-		fragPtr->count, newX, newY, theta);
-	}
+    if (theta == 0.0) {
+        Tk_DrawChars(display, drawable, gc, font, fragPtr->text,
+        fragPtr->count, x + fragPtr->x, y + fragPtr->y);
+    } else {
+        realX = (fragPtr->x - width/2) * cosA + (fragPtr->y - height/2) * sinA;
+        realY = (fragPtr->y - height/2) * cosA - (fragPtr->x - width/2) * sinA;
+        newX = ROUND(realX) + x + rW/2;
+        newY = ROUND(realY) + y + rH/2;
+        TkDrawAngledChars(display, drawable, gc, font, fragPtr->text,
+        fragPtr->count, newX, newY, theta);
+    }
     }
 }
 
@@ -107,9 +107,9 @@ Rbc_GetTextLayout(string, tsPtr)
     TextStyle *tsPtr;
 {
     int maxHeight, maxWidth;
-    int count;			/* Count # of characters on each line */
+    int count;            /* Count # of characters on each line */
     int nFrags;
-    int width;			/* Running dimensions of the text */
+    int width;            /* Running dimensions of the text */
     TextFragment *fragPtr;
     TextLayout *textPtr;
     int lineHeight;
@@ -120,15 +120,15 @@ Rbc_GetTextLayout(string, tsPtr)
 
     Tk_GetFontMetrics(tsPtr->font, &fontMetrics);
     lineHeight = fontMetrics.linespace +
-		 tsPtr->leader + tsPtr->shadow.offset;
+         tsPtr->leader + tsPtr->shadow.offset;
     nFrags = 0;
     for (p = string; *p != '\0'; p++) {
-	if (*p == '\n') {
-	    nFrags++;
-	}
+    if (*p == '\n') {
+        nFrags++;
+    }
     }
     if ((p != string) && (*(p - 1) != '\n')) {
-	nFrags++;
+    nFrags++;
     }
     size = sizeof(TextLayout) + (sizeof(TextFragment) * (nFrags - 1));
     textPtr = RbcCalloc(1, size);
@@ -138,56 +138,56 @@ Rbc_GetTextLayout(string, tsPtr)
     maxHeight = tsPtr->padTop;
     fragPtr = textPtr->fragArr;
     for (p = string; *p != '\0'; p++) {
-	if (*p == '\n') {
-	    if (count > 0) {
-		width = Tk_TextWidth(tsPtr->font, string, count) +
-			tsPtr->shadow.offset;
-		if (width > maxWidth) {
-		    maxWidth = width;
-		}
-	    }
-	    fragPtr->width = width;
-	    fragPtr->count = count;
-	    fragPtr->y = maxHeight + fontMetrics.ascent;
-	    fragPtr->text = string;
-	    fragPtr++;
-	    nFrags++;
-	    maxHeight += lineHeight;
-	    string = p + 1;	/* Start the string on the next line */
-	    count = 0;		/* Reset to indicate the start of a new line */
-	    continue;
-	}
-	count++;
+    if (*p == '\n') {
+        if (count > 0) {
+        width = Tk_TextWidth(tsPtr->font, string, count) +
+            tsPtr->shadow.offset;
+        if (width > maxWidth) {
+            maxWidth = width;
+        }
+        }
+        fragPtr->width = width;
+        fragPtr->count = count;
+        fragPtr->y = maxHeight + fontMetrics.ascent;
+        fragPtr->text = string;
+        fragPtr++;
+        nFrags++;
+        maxHeight += lineHeight;
+        string = p + 1;    /* Start the string on the next line */
+        count = 0;        /* Reset to indicate the start of a new line */
+        continue;
+    }
+    count++;
     }
     if (nFrags < textPtr->nFrags) {
-	width = Tk_TextWidth(tsPtr->font, string, count) + tsPtr->shadow.offset;
-	if (width > maxWidth) {
-	    maxWidth = width;
-	}
-	fragPtr->width = width;
-	fragPtr->count = count;
-	fragPtr->y = maxHeight + fontMetrics.ascent;
-	fragPtr->text = string;
-	maxHeight += lineHeight;
-	nFrags++;
+    width = Tk_TextWidth(tsPtr->font, string, count) + tsPtr->shadow.offset;
+    if (width > maxWidth) {
+        maxWidth = width;
+    }
+    fragPtr->width = width;
+    fragPtr->count = count;
+    fragPtr->y = maxHeight + fontMetrics.ascent;
+    fragPtr->text = string;
+    maxHeight += lineHeight;
+    nFrags++;
     }
     maxHeight += tsPtr->padBottom;
     maxWidth += PADDING(tsPtr->padX);
     fragPtr = textPtr->fragArr;
     for (i = 0; i < nFrags; i++, fragPtr++) {
-	switch (tsPtr->justify) {
-	    default:
-	    case TK_JUSTIFY_LEFT:
-		/* No offset for left justified text strings */
-		fragPtr->x = tsPtr->padLeft;
-		break;
-	    case TK_JUSTIFY_RIGHT:
-		fragPtr->x = (maxWidth - fragPtr->width) - tsPtr->padRight;
-		break;
-	    case TK_JUSTIFY_CENTER:
-		fragPtr->x = (maxWidth - fragPtr->width) / 2;
-		break;
-	}
+    switch (tsPtr->justify) {
+        default:
+        case TK_JUSTIFY_LEFT:
+        /* No offset for left justified text strings */
+        fragPtr->x = tsPtr->padLeft;
+        break;
+        case TK_JUSTIFY_RIGHT:
+        fragPtr->x = (maxWidth - fragPtr->width) - tsPtr->padRight;
+        break;
+        case TK_JUSTIFY_CENTER:
+        fragPtr->x = (maxWidth - fragPtr->width) / 2;
+        break;
+    }
     }
     textPtr->width = maxWidth;
     textPtr->height = maxHeight - tsPtr->leader;
@@ -216,41 +216,41 @@ Rbc_GetTextExtents(tsPtr, string, widthPtr, heightPtr)
     char *string;
     int *widthPtr, *heightPtr;
 {
-    int count;			/* Count # of characters on each line */
+    int count;            /* Count # of characters on each line */
     int width, height;
     int w, lineHeight;
     register char *p;
     Tk_FontMetrics fontMetrics;
 
     if (string == NULL) {
-	return;			/* NULL string? */
+    return;            /* NULL string? */
     }
     Tk_GetFontMetrics(tsPtr->font, &fontMetrics);
     lineHeight = fontMetrics.linespace + tsPtr->leader + tsPtr->shadow.offset;
     count = 0;
     width = height = 0;
     for (p = string; *p != '\0'; p++) {
-	if (*p == '\n') {
-	    if (count > 0) {
-		w = Tk_TextWidth(tsPtr->font, string, count) +
-		    tsPtr->shadow.offset;
-		if (w > width) {
-		    width = w;
-		}
-	    }
-	    height += lineHeight;
-	    string = p + 1;	/* Start the string on the next line */
-	    count = 0;		/* Reset to indicate the start of a new line */
-	    continue;
-	}
-	count++;
+    if (*p == '\n') {
+        if (count > 0) {
+        w = Tk_TextWidth(tsPtr->font, string, count) +
+            tsPtr->shadow.offset;
+        if (w > width) {
+            width = w;
+        }
+        }
+        height += lineHeight;
+        string = p + 1;    /* Start the string on the next line */
+        count = 0;        /* Reset to indicate the start of a new line */
+        continue;
+    }
+    count++;
     }
     if ((count > 0) && (*(p - 1) != '\n')) {
-	height += lineHeight;
-	w = Tk_TextWidth(tsPtr->font, string, count) + tsPtr->shadow.offset;
-	if (w > width) {
-	    width = w;
-	}
+    height += lineHeight;
+    w = Tk_TextWidth(tsPtr->font, string, count) + tsPtr->shadow.offset;
+    if (w > width) {
+        width = w;
+    }
     }
     *widthPtr = width + PADDING(tsPtr->padX);
     *heightPtr = height + PADDING(tsPtr->padY);
@@ -305,47 +305,47 @@ Rbc_GetBoundingBox(width, height, theta, rotWidthPtr, rotHeightPtr, bbox)
 
     theta = FMOD(theta, 360.0);
     if (FMOD(theta, (double)90.0) == 0.0) {
-	int ll, ur, ul, lr;
-	double rotWidth, rotHeight;
-	int quadrant;
+    int ll, ur, ul, lr;
+    double rotWidth, rotHeight;
+    int quadrant;
 
-	/* Handle right-angle rotations specifically */
+    /* Handle right-angle rotations specifically */
 
-	quadrant = (int)(theta / 90.0);
-	switch (quadrant) {
-	    case ROTATE_270:	/* 270 degrees */
-		ul = 3, ur = 0, lr = 1, ll = 2;
-		rotWidth = (double)height;
-		rotHeight = (double)width;
-		break;
-	    case ROTATE_90:		/* 90 degrees */
-		ul = 1, ur = 2, lr = 3, ll = 0;
-		rotWidth = (double)height;
-		rotHeight = (double)width;
-		break;
-	    case ROTATE_180:	/* 180 degrees */
-		ul = 2, ur = 3, lr = 0, ll = 1;
-		rotWidth = (double)width;
-		rotHeight = (double)height;
-		break;
-	    default:
-	    case ROTATE_0:		/* 0 degrees */
-		ul = 0, ur = 1, lr = 2, ll = 3;
-		rotWidth = (double)width;
-		rotHeight = (double)height;
-		break;
-	}
-	if (bbox != NULL) {
-	    x = rotWidth * 0.5;
-	    y = rotHeight * 0.5;
-	    bbox[ll].x = bbox[ul].x = -x;
-	    bbox[ur].y = bbox[ul].y = -y;
-	    bbox[lr].x = bbox[ur].x = x;
-	    bbox[ll].y = bbox[lr].y = y;
-	}
-	*rotWidthPtr = rotWidth;
-	*rotHeightPtr = rotHeight;
-	return;
+    quadrant = (int)(theta / 90.0);
+    switch (quadrant) {
+        case ROTATE_270:    /* 270 degrees */
+        ul = 3, ur = 0, lr = 1, ll = 2;
+        rotWidth = (double)height;
+        rotHeight = (double)width;
+        break;
+        case ROTATE_90:        /* 90 degrees */
+        ul = 1, ur = 2, lr = 3, ll = 0;
+        rotWidth = (double)height;
+        rotHeight = (double)width;
+        break;
+        case ROTATE_180:    /* 180 degrees */
+        ul = 2, ur = 3, lr = 0, ll = 1;
+        rotWidth = (double)width;
+        rotHeight = (double)height;
+        break;
+        default:
+        case ROTATE_0:        /* 0 degrees */
+        ul = 0, ur = 1, lr = 2, ll = 3;
+        rotWidth = (double)width;
+        rotHeight = (double)height;
+        break;
+    }
+    if (bbox != NULL) {
+        x = rotWidth * 0.5;
+        y = rotHeight * 0.5;
+        bbox[ll].x = bbox[ul].x = -x;
+        bbox[ur].y = bbox[ul].y = -y;
+        bbox[lr].x = bbox[ur].x = x;
+        bbox[ll].y = bbox[lr].y = y;
+    }
+    *rotWidthPtr = rotWidth;
+    *rotHeightPtr = rotHeight;
+    return;
     }
     /* Set the four corners of the rectangle whose center is the origin */
 
@@ -361,18 +361,18 @@ Rbc_GetBoundingBox(width, height, theta, rotWidthPtr, rotHeightPtr, bbox)
     /* Rotate the four corners and find the maximum X and Y coordinates */
 
     for (i = 0; i < 4; i++) {
-	x = (corner[i].x * cosTheta) - (corner[i].y * sinTheta);
-	y = (corner[i].x * sinTheta) + (corner[i].y * cosTheta);
-	if (x > xMax) {
-	    xMax = x;
-	}
-	if (y > yMax) {
-	    yMax = y;
-	}
-	if (bbox != NULL) {
-	    bbox[i].x = x;
-	    bbox[i].y = y;
-	}
+    x = (corner[i].x * cosTheta) - (corner[i].y * sinTheta);
+    y = (corner[i].x * sinTheta) + (corner[i].y * cosTheta);
+    if (x > xMax) {
+        xMax = x;
+    }
+    if (y > yMax) {
+        yMax = y;
+    }
+    if (bbox != NULL) {
+        bbox[i].x = x;
+        bbox[i].y = y;
+    }
     }
 
     /*
@@ -417,37 +417,37 @@ Rbc_TranslateAnchor(x, y, width, height, anchor, transXPtr, transYPtr)
     int *transXPtr, *transYPtr;
 {
     switch (anchor) {
-	case TK_ANCHOR_NULL:
-	case TK_ANCHOR_NW:		/* Upper left corner */
-	    break;
-	case TK_ANCHOR_W:		/* Left center */
-	    y -= (height / 2);
-	    break;
-	case TK_ANCHOR_SW:		/* Lower left corner */
-	    y -= height;
-	    break;
-	case TK_ANCHOR_N:		/* Top center */
-	    x -= (width / 2);
-	    break;
-	case TK_ANCHOR_CENTER:	/* Center */
-	    x -= (width / 2);
-	    y -= (height / 2);
-	    break;
-	case TK_ANCHOR_S:		/* Bottom center */
-	    x -= (width / 2);
-	    y -= height;
-	    break;
-	case TK_ANCHOR_NE:		/* Upper right corner */
-	    x -= width;
-	    break;
-	case TK_ANCHOR_E:		/* Right center */
-	    x -= width;
-	    y -= (height / 2);
-	    break;
-	case TK_ANCHOR_SE:		/* Lower right corner */
-	    x -= width;
-	    y -= height;
-	    break;
+    case TK_ANCHOR_NULL:
+    case TK_ANCHOR_NW:        /* Upper left corner */
+        break;
+    case TK_ANCHOR_W:        /* Left center */
+        y -= (height / 2);
+        break;
+    case TK_ANCHOR_SW:        /* Lower left corner */
+        y -= height;
+        break;
+    case TK_ANCHOR_N:        /* Top center */
+        x -= (width / 2);
+        break;
+    case TK_ANCHOR_CENTER:    /* Center */
+        x -= (width / 2);
+        y -= (height / 2);
+        break;
+    case TK_ANCHOR_S:        /* Bottom center */
+        x -= (width / 2);
+        y -= height;
+        break;
+    case TK_ANCHOR_NE:        /* Upper right corner */
+        x -= width;
+        break;
+    case TK_ANCHOR_E:        /* Right center */
+        x -= width;
+        y -= (height / 2);
+        break;
+    case TK_ANCHOR_SE:        /* Lower right corner */
+        x -= width;
+        y -= height;
+        break;
     }
     *transXPtr = x;
     *transYPtr = y;
@@ -489,37 +489,37 @@ Rbc_TranslatePoint(pointPtr, width, height, anchor)
 
     trans = *pointPtr;
     switch (anchor) {
-	case TK_ANCHOR_NULL:
-	case TK_ANCHOR_NW:		/* Upper left corner */
-	    break;
-	case TK_ANCHOR_W:		/* Left center */
-	    trans.y -= (height * 0.5);
-	    break;
-	case TK_ANCHOR_SW:		/* Lower left corner */
-	    trans.y -= height;
-	    break;
-	case TK_ANCHOR_N:		/* Top center */
-	    trans.x -= (width * 0.5);
-	    break;
-	case TK_ANCHOR_CENTER:	/* Center */
-	    trans.x -= (width * 0.5);
-	    trans.y -= (height * 0.5);
-	    break;
-	case TK_ANCHOR_S:		/* Bottom center */
-	    trans.x -= (width * 0.5);
-	    trans.y -= height;
-	    break;
-	case TK_ANCHOR_NE:		/* Upper right corner */
-	    trans.x -= width;
-	    break;
-	case TK_ANCHOR_E:		/* Right center */
-	    trans.x -= width;
-	    trans.y -= (height * 0.5);
-	    break;
-	case TK_ANCHOR_SE:		/* Lower right corner */
-	    trans.x -= width;
-	    trans.y -= height;
-	    break;
+    case TK_ANCHOR_NULL:
+    case TK_ANCHOR_NW:        /* Upper left corner */
+        break;
+    case TK_ANCHOR_W:        /* Left center */
+        trans.y -= (height * 0.5);
+        break;
+    case TK_ANCHOR_SW:        /* Lower left corner */
+        trans.y -= height;
+        break;
+    case TK_ANCHOR_N:        /* Top center */
+        trans.x -= (width * 0.5);
+        break;
+    case TK_ANCHOR_CENTER:    /* Center */
+        trans.x -= (width * 0.5);
+        trans.y -= (height * 0.5);
+        break;
+    case TK_ANCHOR_S:        /* Bottom center */
+        trans.x -= (width * 0.5);
+        trans.y -= height;
+        break;
+    case TK_ANCHOR_NE:        /* Upper right corner */
+        trans.x -= width;
+        break;
+    case TK_ANCHOR_E:        /* Right center */
+        trans.x -= width;
+        trans.y -= (height * 0.5);
+        break;
+    case TK_ANCHOR_SE:        /* Lower right corner */
+        trans.x -= width;
+        trans.y -= height;
+        break;
     }
     return trans;
 }
@@ -575,7 +575,7 @@ Rbc_InitTextStyle(tsPtr)
  */
 void
 Rbc_SetDrawTextStyle(tsPtr, font, gc, normalColor, activeColor, shadowColor,
-		     theta, anchor, justify, leader, shadowOffset)
+             theta, anchor, justify, leader, shadowOffset)
     TextStyle *tsPtr;
     Tk_Font font;
     GC gc;
@@ -615,7 +615,7 @@ Rbc_SetDrawTextStyle(tsPtr, font, gc, normalColor, activeColor, shadowColor,
  */
 void
 Rbc_SetPrintTextStyle(tsPtr, font, fgColor, activeColor, shadowColor, theta,
-		      anchor, justify, leader, shadowOffset)
+              anchor, justify, leader, shadowOffset)
     TextStyle *tsPtr;
     Tk_Font font;
     XColor *fgColor, *activeColor, *shadowColor;
@@ -664,9 +664,9 @@ Rbc_DrawTextLayout(
     Tk_Window tkwin,
     Drawable drawable,
     TextLayout *textPtr,
-    TextStyle *tsPtr,	/* Text attribute information */
+    TextStyle *tsPtr,    /* Text attribute information */
     int x,
-    int y)		/* Window coordinates to draw text */
+    int y)        /* Window coordinates to draw text */
 {
     double theta;
     Display *display;
@@ -677,55 +677,55 @@ Rbc_DrawTextLayout(
     display = Tk_Display(tkwin);
     theta = FMOD(tsPtr->theta, (double)360.0);
     if (theta < 0.0) {
-	theta += 360.0;
+    theta += 360.0;
     }
     tsPtr->theta = theta;
     active = tsPtr->state & STATE_ACTIVE;
 
     Rbc_GetBoundingBox(textPtr->width, textPtr->height, theta,
-	&rotWidth, &rotHeight, (Point2D *)NULL);
+    &rotWidth, &rotHeight, (Point2D *)NULL);
     newWidth = ROUND(rotWidth);
     newHeight = ROUND(rotHeight);
 
     Rbc_TranslateAnchor(x, y, newWidth, newHeight, tsPtr->anchor, &x, &y);
 
     if (tsPtr->state & (STATE_DISABLED | STATE_EMPHASIS)) {
-	XColor xcolor1, xcolor2 , *color1, *color2;
-	Tk_Get3DBorderColors(tsPtr->border, NULL, &xcolor2, &xcolor1);
+    XColor xcolor1, xcolor2 , *color1, *color2;
+    Tk_Get3DBorderColors(tsPtr->border, NULL, &xcolor2, &xcolor1);
 
-	color1 = &xcolor1;
-	color2 = &xcolor2;
-	if (tsPtr->state & STATE_EMPHASIS) {
-	    XColor *hold;
-	    hold = color1, color1 = color2, color2 = hold;
-	}
-	if (color1 != NULL) {
-	    XSetForeground(display, tsPtr->gc, color1->pixel);
-	}
-	DrawTextLayout(display, drawable, tsPtr->gc, tsPtr->font,
-	    x+1 , y+1, textPtr, theta);
-	if (color2 != NULL) {
-	    XSetForeground(display, tsPtr->gc, color2->pixel);
-	}
-	DrawTextLayout(display, drawable, tsPtr->gc, tsPtr->font,
-	    x , y, textPtr, theta);
-	XSetForeground(display, tsPtr->gc, tsPtr->color->pixel);
+    color1 = &xcolor1;
+    color2 = &xcolor2;
+    if (tsPtr->state & STATE_EMPHASIS) {
+        XColor *hold;
+        hold = color1, color1 = color2, color2 = hold;
+    }
+    if (color1 != NULL) {
+        XSetForeground(display, tsPtr->gc, color1->pixel);
+    }
+    DrawTextLayout(display, drawable, tsPtr->gc, tsPtr->font,
+        x+1 , y+1, textPtr, theta);
+    if (color2 != NULL) {
+        XSetForeground(display, tsPtr->gc, color2->pixel);
+    }
+    DrawTextLayout(display, drawable, tsPtr->gc, tsPtr->font,
+        x , y, textPtr, theta);
+    XSetForeground(display, tsPtr->gc, tsPtr->color->pixel);
     } else {
-	if ((tsPtr->shadow.offset > 0) && (tsPtr->shadow.color != NULL)) {
-	    XSetForeground(display, tsPtr->gc, tsPtr->shadow.color->pixel);
-	    DrawTextLayout(display, drawable, tsPtr->gc, tsPtr->font,
-		x + tsPtr->shadow.offset , y + tsPtr->shadow.offset ,
-		textPtr, theta);
-	    XSetForeground(display, tsPtr->gc, tsPtr->color->pixel);
-	}
-	if (active) {
-	    XSetForeground(display, tsPtr->gc, tsPtr->activeColor->pixel);
-	}
-	DrawTextLayout(display, drawable, tsPtr->gc, tsPtr->font,
-	    x , y, textPtr, theta);
-	if (active) {
-	    XSetForeground(display, tsPtr->gc, tsPtr->color->pixel);
-	}
+    if ((tsPtr->shadow.offset > 0) && (tsPtr->shadow.color != NULL)) {
+        XSetForeground(display, tsPtr->gc, tsPtr->shadow.color->pixel);
+        DrawTextLayout(display, drawable, tsPtr->gc, tsPtr->font,
+        x + tsPtr->shadow.offset , y + tsPtr->shadow.offset ,
+        textPtr, theta);
+        XSetForeground(display, tsPtr->gc, tsPtr->color->pixel);
+    }
+    if (active) {
+        XSetForeground(display, tsPtr->gc, tsPtr->activeColor->pixel);
+    }
+    DrawTextLayout(display, drawable, tsPtr->gc, tsPtr->font,
+        x , y, textPtr, theta);
+    if (active) {
+        XSetForeground(display, tsPtr->gc, tsPtr->color->pixel);
+    }
     }
 }
 
@@ -758,23 +758,23 @@ Rbc_DrawText2(tkwin, drawable, string, tsPtr, x, y, areaPtr)
     double theta;
 
     if ((string == NULL) || (*string == '\0')) {
-	return;			/* Empty string, do nothing */
+    return;            /* Empty string, do nothing */
     }
     textPtr = Rbc_GetTextLayout(string, tsPtr);
     Rbc_DrawTextLayout(tkwin, drawable, textPtr, tsPtr, x, y);
     theta = FMOD(tsPtr->theta, (double)360.0);
     if (theta < 0.0) {
-	theta += 360.0;
+    theta += 360.0;
     }
     width = textPtr->width;
     height = textPtr->height;
     if (theta != 0.0) {
-	double rotWidth, rotHeight;
+    double rotWidth, rotHeight;
 
-	Rbc_GetBoundingBox(width, height, theta, &rotWidth, &rotHeight,
-			   (Point2D *)NULL);
-	width = ROUND(rotWidth);
-	height = ROUND(rotHeight);
+    Rbc_GetBoundingBox(width, height, theta, &rotWidth, &rotHeight,
+               (Point2D *)NULL);
+    width = ROUND(rotWidth);
+    height = ROUND(rotHeight);
     }
     areaPtr->width = width;
     areaPtr->height = height;
@@ -807,7 +807,7 @@ Rbc_DrawText(tkwin, drawable, string, tsPtr, x, y)
     TextLayout *textPtr;
 
     if ((string == NULL) || (*string == '\0')) {
-	return;			/* Empty string, do nothing */
+    return;            /* Empty string, do nothing */
     }
     textPtr = Rbc_GetTextLayout(string, tsPtr);
     Rbc_DrawTextLayout(tkwin, drawable, textPtr, tsPtr, x, y);
@@ -839,26 +839,26 @@ Rbc_GetBitmapGC(tkwin)
     Tcl_HashEntry *hPtr;
 
     if (!initialized) {
-	Tcl_InitHashTable(&bitmapGCTable, TCL_ONE_WORD_KEYS);
-	initialized = TRUE;
+    Tcl_InitHashTable(&bitmapGCTable, TCL_ONE_WORD_KEYS);
+    initialized = TRUE;
     }
     display = Tk_Display(tkwin);
     hPtr = Tcl_CreateHashEntry(&bitmapGCTable, (char *)display, &isNew);
     if (isNew) {
-	Pixmap bitmap;
-	XGCValues gcValues;
-	unsigned long gcMask;
-	Window root;
+    Pixmap bitmap;
+    XGCValues gcValues;
+    unsigned long gcMask;
+    Window root;
 
-	root = RootWindow(display, Tk_ScreenNumber(tkwin));
-	bitmap = Tk_GetPixmap(display, root, 1, 1, 1);
-	gcValues.foreground = gcValues.background = 0;
-	gcMask = (GCForeground | GCBackground);
-	gc = Rbc_GetPrivateGCFromDrawable(display, bitmap, gcMask, &gcValues);
-	Tk_FreePixmap(display, bitmap);
-	Tcl_SetHashValue(hPtr, gc);
+    root = RootWindow(display, Tk_ScreenNumber(tkwin));
+    bitmap = Tk_GetPixmap(display, root, 1, 1, 1);
+    gcValues.foreground = gcValues.background = 0;
+    gcMask = (GCForeground | GCBackground);
+    gc = Rbc_GetPrivateGCFromDrawable(display, bitmap, gcMask, &gcValues);
+    Tk_FreePixmap(display, bitmap);
+    Tcl_SetHashValue(hPtr, gc);
     } else {
-	gc = (GC)Tcl_GetHashValue(hPtr);
+    gc = (GC)Tcl_GetHashValue(hPtr);
     }
     return gc;
 }
@@ -890,12 +890,12 @@ Rbc_ResetTextStyle(tkwin, tsPtr)
     gcMask = GCFont;
     gcValues.font = Tk_FontId(tsPtr->font);
     if (tsPtr->color != NULL) {
-	gcMask |= GCForeground;
-	gcValues.foreground = tsPtr->color->pixel;
+    gcMask |= GCForeground;
+    gcValues.foreground = tsPtr->color->pixel;
     }
     newGC = Tk_GetGC(tkwin, gcMask, &gcValues);
     if (tsPtr->gc != NULL) {
-	Tk_FreeGC(Tk_Display(tkwin), tsPtr->gc);
+    Tk_FreeGC(Tk_Display(tkwin), tsPtr->gc);
     }
     tsPtr->gc = newGC;
 }
@@ -921,6 +921,6 @@ Rbc_FreeTextStyle(display, tsPtr)
     TextStyle *tsPtr;
 {
     if (tsPtr->gc != NULL) {
-	Tk_FreeGC(display, tsPtr->gc);
+    Tk_FreeGC(display, tsPtr->gc);
     }
 }
