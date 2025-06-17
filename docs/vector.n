@@ -1,0 +1,972 @@
+.TH Vector
+.RS
+.IP \(bu 2
+Name \[la]#name\[ra]
+.IP \(bu 2
+Synopsis \[la]#synopsis\[ra]
+.IP \(bu 2
+Description \[la]#description\[ra]
+.IP \(bu 2
+Introduction \[la]#introduction\[ra]
+.IP \(bu 2
+Example \[la]#example\[ra]
+.IP \(bu 2
+Syntax \[la]#syntax\[ra]
+.IP \(bu 2
+Vector indices \[la]#vector-indices\[ra]
+.IP \(bu 2
+Vector operations \[la]#vector-operations\[ra]
+.IP \(bu 2
+Instance operations \[la]#instance-operations\[ra]
+.IP \(bu 2
+C language API \[la]#c-language-api\[ra]
+.IP \(bu 2
+Library routines \[la]#library-routines\[ra]
+.IP \(bu 2
+C API example  \[la]#c-api-example-\[ra]
+.IP \(bu 2
+Incompatibilities \[la]#incompatibilities\[ra]
+.RE
+.SH Name
+.PP
+vector − Vector data type for Tcl
+.SH Synopsis
+.PP
+\fBvector create\fP \fIvecName\fP ?\fIvecName\fP ...? ?\fIswitches\fP?
+.PP
+\fBvector destroy\fP \fIvecName\fP ?\fIvecName\fP ...?
+.PP
+\fBvector expr\fP \fIexpression\fP
+.PP
+\fBvector names\fP ?\fIpattern\fP ...?
+.SH Description
+.PP
+The \fBvector\fP command creates a vector of floating point values. The vector's components can be manipulated in three
+ways: through a Tcl array variable, a Tcl command, or the C API.
+.SH Introduction
+.PP
+A vector is simply an ordered set of numbers. The components of a vector are real numbers, indexed by counting numbers.
+.PP
+Vectors are common data structures for many applications. For example, a graph may use two vectors to represent the X\-Y
+coordinates of the data plotted. The graph will automatically be redrawn when the vectors are updated or changed. By
+using vectors, you can separate data analysis from the graph widget. This makes it easier, for example, to add data
+transformations, such as splines. It's possible to plot the same data to in multiple graphs, where each graph presents a
+different view or scale of the data.
+.PP
+You could try to use Tcl's associative arrays as vectors. Tcl arrays are easy to use. You can access individual elements
+randomly by specifying the index, or the set the entire array by providing a list of index and value pairs for each
+element. The disadvantages of associative arrays as vectors lie in the fact they are implemented as hash tables.
+.RS
+.IP \(bu 2
+There's no implied ordering to the associative arrays. If you used vectors for plotting, you would want to insure the
+second component comes after the first, an so on. This isn't possible since arrays are actually hash tables. For
+example, you can't get a range of values between two indices. Nor can you sort an array.
+.IP \(bu 2
+Arrays consume lots of memory when the number of elements becomes large (tens of thousands). This is because each
+element's index and value are stored as strings in the hash table.
+.IP \(bu 2
+The C programming interface is unwieldy. Normally with vectors, you would like to view the Tcl array as you do a C
+array, as an array of floats or doubles. But with hash tables, you must convert both the index and value to and from
+decimal strings, just to access an element in the array. This makes it cumbersome to perform operations on the array
+as a whole.
+.RE
+.PP
+The \fBvector\fP command tries to overcome these disadvantages while still retaining the ease of use of Tcl arrays. The
+\fBvector\fP command creates both a new Tcl command and associate array which are linked to the vector components. You can
+randomly access vector components though the elements of array. Not have all indices are generated for the array, so
+printing the array (using the \fBparray\fP procedure) does not print out all the component values. You can use the Tcl
+command to access the array as a whole. You can copy, append, or sort vector using its command. If you need greater
+performance, or customized behavior, you can write your own C code to manage vectors.
+.SH Example
+.PP
+You create vectors using the \fBvector\fP command and its \fBcreate\fP operation.
+.PP
+.RS
+.nf
+# Create a new vector.
+vector create y(50)
+.fi
+.RE
+.PP
+This creates a new vector named \fB\fCy\fR\&. It has fifty components, by default, initialized to \fB\fC0.0\fR\&. In addition, both a Tcl
+command and array variable, both named \fB\fCy\fR, are created. You can use either the command or variable to query or modify
+components of the vector.
+.PP
+.RS
+.nf
+# Set the first value.
+set y(0) 9.25
+puts "y has [y length] components"
+.fi
+.RE
+.PP
+The array \fB\fCy\fR can be used to read or set individual components of the vector. Vector components are indexed from
+zero. The array index must be a number less than the number of components. For example, it's an error if you try to set
+the 51st element of \fB\fCy\fR\&.
+.PP
+.RS
+.nf
+# This is an error. The vector only has 50 components.
+set y(50) 0.02
+.fi
+.RE
+.PP
+You can also specify a range of indices using a colon (:) to separate the first and last indices of the range.
+.PP
+.RS
+.nf
+# Set the first six components of y
+set y(0:5) 25.2
+.fi
+.RE
+.PP
+If you don't include an index, then it will default to the first and/or last component of the vector.
+.PP
+.RS
+.nf
+# Print out all the components of y
+puts "y = $y(:)"
+.fi
+.RE
+.PP
+There are special non\-numeric indices. The index \fB\fCend\fR, specifies the last component of the vector. It's an error to use
+this index if the vector is empty (length is zero). The index \fB\fC++end\fR can be used to extend the vector by one component
+and initialize it to a specific value. You can't read from the array using this index, though.
+.PP
+.RS
+.nf
+# Extend the vector by one component.
+set y(++end) 0.02
+.fi
+.RE
+.PP
+The other special indices are \fB\fCmin\fR and \fB\fCmax\fR\&. They return the current smallest and largest components of the vector.
+.PP
+.RS
+.nf
+# Print the bounds of the vector
+puts "min=$y(min) max=$y(max)"
+.fi
+.RE
+.PP
+To delete components from a vector, simply unset the corresponding array element. In the following example, the first
+component of \fB\fCy\fR is deleted. All the remaining components of \fB\fCy\fR will be moved down by one index as the length of the
+vector is reduced by one.
+.PP
+.RS
+.nf
+# Delete the first component
+unset y(0)
+puts "new first element is $y(0)"
+.fi
+.RE
+.PP
+The vector's Tcl command can also be used to query or set the vector.
+.PP
+.RS
+.nf
+# Create and set the components of a new vector
+vector create x
+x set { 0.02 0.04 0.06 0.08 0.10 0.12 0.14 0.16 0.18 0.20 }
+.fi
+.RE
+.PP
+Here we've created a vector \fB\fCx\fR without a initial length specification.  In this case, the length is zero. The \fBset\fP
+operation resets the vector, extending it and setting values for each new component.
+.PP
+There are several operations for vectors. The \fBrange\fP operation lists the components of a vector between two indices.
+.PP
+.RS
+.nf
+# List the components
+puts "x = [x range 0 end]"
+.fi
+.RE
+.PP
+You can search for a particular value using the \fBsearch\fP operation. It returns a list of indices of the components
+with the same value. If no component has the same value, it returns \fB\fC""\fR\&.
+.PP
+.RS
+.nf
+# Find the index of the biggest component
+set indices [x search $x(max)]
+.fi
+.RE
+.PP
+Other operations copy, append, or sort vectors. You can append vectors or new values onto an existing vector with the
+\fBappend\fP operation.
+.PP
+.RS
+.nf
+# Append assorted vectors and values to x
+x append x2 x3 { 2.3 4.5 } x4
+.fi
+.RE
+.PP
+The \fBsort\fP operation sorts the vector. If any additional vectors are specified, they are rearranged in the same order
+as the vector. For example, you could use it to sort data points represented by x and y vectors.
+.PP
+.RS
+.nf
+# Sort the data points
+x sort y
+.fi
+.RE
+.PP
+The vector \fB\fCx\fR is sorted while the components of \fB\fCy\fR are rearranged so that the original x,y coordinate pairs are
+retained.
+.PP
+The \fBexpr\fP operation lets you perform arithmetic on vectors. The result is stored in the vector.
+.PP
+.RS
+.nf
+# Add the two vectors and a scalar
+x expr { x + y }
+x expr { x * 2 }
+.fi
+.RE
+.PP
+When a vector is modified, resized, or deleted, it may trigger call\-backs to notify the clients of the vector. For
+example, when a vector used in the \fBgraph\fP widget is updated, the vector automatically notifies the widget that it has
+changed. The graph can then redrawn itself at the next idle point. By default, the notification occurs when Tk is next
+idle. This way you can modify the vector many times without incurring the penalty of the graph redrawing itself for each
+change. You can change this behavior using the \fBnotify\fP operation.
+.PP
+.RS
+.nf
+# Make vector x notify after every change
+x notify always
+# Never notify
+x notify never
+# Force notification now
+x notify now
+.fi
+.RE
+.PP
+To delete a vector, use the \fBvector delete\fP command. Both the vector and its corresponding Tcl command are destroyed.
+.PP
+.RS
+.nf
+# Remove vector x
+vector destroy x
+.fi
+.RE
+.SH Syntax
+.PP
+Vectors are created using the \fBvector create\fP operation. The \fBcreate\fP operation can be invoked in one of three
+forms:
+.PP
+\fBvector create\fP \fIvecName\fP
+.PP
+This creates a new vector \fIvecName\fP which initially has no components.
+.PP
+\fBvector create\fP \fIvecName\fP(\fIsize\fP)
+.PP
+This second form creates a new vector which will contain \fIsize\fP number of components. The components will be indexed
+starting from zero (0).  The default value for the components is \fB\fC0.0\fR\&.
+.PP
+\fBvector create\fP \fIvecName\fP(\fIfirst\fP:\fIlast\fP)
+.PP
+The last form creates a new vector of indexed \fIfirst\fP through \fIlast\fP\&.  \fIFirst\fP and \fIlast\fP can be any integer value so
+long as \fIfirst\fP is less than \fIlast\fP\&.
+.PP
+Vector names must start with a letter and consist of letters, digits, or underscores.
+.PP
+.RS
+.nf
+# Error: must start with letter
+vector create 1abc
+.fi
+.RE
+.PP
+You can automatically generate vector names using the "\fB\fC#auto\fR" vector name. The \fBcreate\fP operation will generate a
+unique vector name.
+.PP
+.RS
+.nf
+set vec [vector create #auto]
+puts "$vec has [$vec length] components"
+.fi
+.RE
+.SH Vector indices
+.PP
+Vectors are indexed by integers. You can access the individual vector components via its array variable or Tcl
+command. The string representing the index can be an integer, a numeric expression, a range, or a special keyword.
+.PP
+The index must lie within the current range of the vector, otherwise an an error message is returned. Normally the
+indices of a vector are start from 0. But you can use the \fBoffset\fP operation to change a vector's indices on\-the\-fly.
+.PP
+.RS
+.nf
+puts $vecName(0)
+vecName offset \-5
+puts $vecName(\-5)
+.fi
+.RE
+.PP
+You can also use numeric expressions as indices. The result of the expression must be an integer value.
+.PP
+.RS
+.nf
+set n 21
+set vecName($n+3) 50.2
+.fi
+.RE
+.PP
+The following special non\-numeric indices are available: \fB\fCmin\fR, \fB\fCmax\fR, \fB\fCend\fR, and \fB\fC++end\fR\&.
+.PP
+.RS
+.nf
+puts "min = $vecName($min)"
+set vecName(end) \-1.2
+.fi
+.RE
+.PP
+The indices \fB\fCmin\fR and \fB\fCmax\fR will return the minimum and maximum values of the vector. The index \fB\fCend\fR returns the value
+of the last component in the vector. The index \fB\fC++end\fR is used to append new value onto the vector. It automatically
+extends the vector by one component and sets its value.
+.PP
+.RS
+.nf
+# Append an new component to the end
+set vecName(++end) 3.2
+.fi
+.RE
+.PP
+A range of indices can be indicated by a colon (:).
+.PP
+.RS
+.nf
+# Set the first six components to 1.0
+set vecName(0:5) 1.0
+.fi
+.RE
+.PP
+If no index is supplied the first or last component is assumed.
+.PP
+.RS
+.nf
+# Print the values of all the components
+puts $vecName(:)
+.fi
+.RE
+.SH Vector operations
+.RS
+.IP \(bu 2
+\fBvector create\fP \fIvecName\fP?(\fIsize\fP)? ... ?\fIswitches\fP?
+.RE
+.IP
+The \fBcreate\fP operation creates a new vector \fIvecName\fP\&. Both a Tcl command and array variable \fIvecName\fP are also
+created. The name \fIvecName\fP must be unique, so another Tcl command or array variable can not already exist in that
+scope. You can access the components of the vector using its variable. If you change a value in the array, or unset an
+array element, the vector is updated to reflect the changes. When the variable \fIvecName\fP is unset, the vector and its
+Tcl command are also destroyed.
+.IP
+The vector has optional switches that affect how the vector is created.  They are as follows:
+.RS
+.IP \(bu 2
+\fB−variable\fP \fIvarName\fP \- Specifies the name of a Tcl variable to be mapped to the vector. If the variable already
+exists, it is first deleted, then recreated. If \fIvarName\fP is the empty string, then no variable will be mapped. You
+can always map a variable back to the vector using the vector's \fBvariable\fP operation.
+.IP \(bu 2
+\fB−command\fP \fIcmdName\fP \- Maps a Tcl command to the vector. The vector can be accessed using \fIcmdName\fP and one of the
+vector instance operations. A Tcl command by that name cannot already exist. If \fIcmdName\fP is the empty string, no
+command mapping will be made.
+.IP \(bu 2
+\fB−watchunset\fP \fIboolean\fP \- Indicates that the vector should automatically delete itself if the variable associated
+with the vector is unset. By default, the vector will not be deleted. This is different from previous releases. Set
+\fIboolean\fP to "true" to get the old behavior.
+.RS
+.IP \(bu 2
+\fBvector destroy\fP \fIvecName\fP ?\fIvecName ...\fP?
+.IP \(bu 2
+\fBvector expr\fP \fIexpression\fP
+.RE
+.RE
+.IP
+All binary operators take vectors as operands (remember that numbers are treated as one\-component vectors). The exact
+action of binary operators depends upon the length of the second operand. If the second operand has only one
+component, then each element of the first vector operand is computed by that value. For example, the expression "x *
+2" multiples all elements of the vector x by 2. If the second operand has more than one component, both operands must
+be the same length. Each pair of corresponding elements are computed. So "x + y" adds the the first components of x
+and y together, the second, and so on.
+.IP
+The valid operators are listed below, grouped in decreasing order of precedence:
+.TS
+allbox;
+cb cb
+l l
+l l
+l l
+l l
+l l
+l l
+l l
+l l
+l l
+l l
+l l
+.
+Operator	Description
+\fB− !\fP	Unary minus and logical NOT. The unary minus flips the sign of each component in the vector. The logical not operator returns a vector of whose values are 0.0 or 1.0. For each non\-zero component 1.0 is returned, 0.0 otherwise.
+\fB^\fP	Exponentiation.
+\fB* / %\fP	Multiply, divide, remainder.
+\fB+ −\fP	Add and subtract.
+\fB<< >>\fP	Left and right shift. Circularly shifts the values of the vector (not implemented yet).
+\fB< > <= >=\fP	Boolean less, greater, less than or equal, and greater than or equal. Each operator returns a vector of ones and zeros. If the condition is true, 1.0 is the component value, 0.0 otherwise.
+\fB== !=\fP	Boolean equal and not equal. Each operator returns a vector of ones and zeros. If the condition is true, 1.0 is the component value, 0.0 otherwise.
+**\	**
+\fB&&\fP	Logical AND. Produces a 1 result if both operands are non\-zero, 0 otherwise.
+**\	\
+\fIx\fP\fB?\fP\fIy\fP\fB:\fP\fIz\fP	If\-then\-else, as in C. (Not implemented yet).
+.TE
+.PP
+See the C manual for more details on the results produced by each operator. All of the binary operators group
+left\-to\-right within the same precedence level.
+.PP
+Several mathematical functions are supported for vectors. Each of the following functions invokes the math library
+function of the same name; see the manual entries for the library functions for details on what they do. The operation
+is applied to all elements of the vector returning the results:
+.RS
+.IP \(bu 2
+\fBacos\fP 
+.IP \(bu 2
+\fBcos\fP
+.IP \(bu 2
+\fBhypot\fP
+.IP \(bu 2
+\fBsinh\fP
+.IP \(bu 2
+\fBasin\fP
+.IP \(bu 2
+\fBcosh\fP
+.IP \(bu 2
+\fBlog\fP
+.IP \(bu 2
+\fBsqrt\fP
+.IP \(bu 2
+\fBatan\fP
+.IP \(bu 2
+\fBexp\fP
+.IP \(bu 2
+\fBlog10\fP
+.IP \(bu 2
+\fBtan\fP
+.IP \(bu 2
+\fBceil\fP
+.IP \(bu 2
+\fBfloor\fP
+.IP \(bu 2
+\fBsin\fP
+.IP \(bu 2
+\fBtanh\fP
+.RE
+.PP
+Additional functions are:
+| Function    | Description                                                                                                                                                                                                                              |
+|:\-\-\-\-\-\-\-\-\-\-\-\-|:\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-|
+| \fBabs\fP     | Returns the absolute value of each component.                                                                                                                                                                                            |
+| \fBrandom\fP  | Returns a vector of non\-negative values uniformly distributed between [0.0, 1.0) using \fIdrand48\fP\&. The seed comes from the internal clock of the machine or may be set manual with the srandom function.                                 |
+| \fBround\fP   | Rounds each component of the vector.                                                                                                                                                                                                     |
+| \fBsrandom\fP | Initializes the random number generator using \fIsrand48\fP\&. The high order 32\-bits are set using the integral portion of the first vector component. All other components are ignored. The low order 16\-bits are set to an arbitrary value. |
+.PP
+The following functions return a single value:
+.TS
+allbox;
+cb cb
+l l
+l l
+l l
+l l
+l l
+l l
+l l
+l l
+l l
+l l
+l l
+l l
+l l
+l l
+.
+Function	Description
+\fBadev\fP	Returns the average deviation (defined as the sum of the absolute values of the differences between component and the mean, divided by the length of the vector).
+\fBkurtosis\fP	Returns the degree of peakedness (fourth moment) of the vector.
+\fBlength\fP	Returns the number of components in the vector.
+\fBmax\fP	Returns the vector's maximum value.
+\fBmean\fP	Returns the mean value of the vector.
+\fBmedian\fP	Returns the median of the vector.
+\fBmin\fP	Returns the vector's minimum value.
+\fBq1\fP	Returns the first quartile of the vector.
+\fBq3\fP	Returns the third quartile of the vector.
+\fBprod\fP	Returns the product of the components.
+\fBsdev\fP	Returns the standard deviation (defined as the square root of the variance) of the vector.
+\fBskew\fP	Returns the skewness (or third moment) of the vector. This characterizes the degree of asymmetry of the vector about the mean.
+\fBsum\fP	Returns the sum of the components.
+\fBvar\fP	Returns the variance of the vector. The sum of the squared differences between each component and the mean is computed. The variance is the sum divided by the length of the vector minus 1.
+.TE
+.PP
+The last set returns a vector of the same length as the argument.
+.TS
+allbox;
+cb cb
+l l
+l l
+.
+Function	Description
+\fBnorm\fP	Scales the values of the vector to lie in the range [0.0..1.0]\&.
+\fBsort\fP	Returns the vector components sorted in ascending order.
+.TE
+.RS
+.IP \(bu 2
+\fBvector names\fP ?\fIpattern\fP?
+.RE
+.SH Instance operations
+.PP
+You can also use the vector's Tcl command to query or modify it. The general form is
+.RS
+.IP \(bu 2
+\fIvecName operation\fP ?\fIarg\fP? ... 
+.RE
+.IP
+Both \fIoperation\fP and its arguments determine the exact behavior of the command. The operations available for vectors are
+listed below.
+.RS
+.IP \(bu 2
+\fIvecName\fP \fBappend\fP \fIitem\fP ?\fIitem\fP? ...
+.RE
+.IP
+Appends the component values from \fIitem\fP to \fIvecName\fP\&. \fIItem\fP can be either the name of a vector or a list of numeric
+values.
+.RS
+.IP \(bu 2
+\fIvecName\fP \fBbinread\fP \fIchannel\fP ?\fIlength\fP? ?\fIswitches\fP?
+.RE
+.IP
+Reads binary values from a Tcl channel. Values are either appended to the end of the vector or placed at a given index
+(using the \fB−at\fP option), overwriting existing values. Data is read until EOF is found on the channel or a specified
+number of values \fIlength\fP are read (note that this is not necessarily the same as the number of bytes). The following
+switches are supported:
+.RS
+.IP \(bu 2
+\fB−swap\fP \- Swap bytes and words. The default endian is the host machine.
+.IP \(bu 2
+\fB−at\fP \fIindex\fP \- New values will start at vector index \fIindex\fP\&. This will overwrite any current values.
+.IP \(bu 2
+\fB−format\fP \fIformat\fP \- Specifies the format of the data. \fIFormat\fP can be one of the following: \fB\fCi1\fR, \fB\fCi2\fR,
+\fB\fCi4\fR, \fB\fCi8\fR, \fB\fCu1\fR, \fB\fCu2\fR, \fB\fCu4\fR, \fB\fCu8\fR, \fB\fCr4\fR, \fB\fCr8\fR, or \fB\fCr16\fR\&. The number indicates the number of bytes
+required for each value. The letter indicates the type: \fB\fCi\fR for signed, \fB\fCu\fR for unsigned, \fB\fCr\fR or real. The
+default format is \fB\fCr16\fR\&.
+.RS
+.IP \(bu 2
+\fIvecName\fP \fBclear\fP
+.RE
+.RE
+.IP
+Clears the element indices from the array variable associated with \fIvecName\fP\&. This doesn't affect the components of
+the vector. By default, the number of entries in the Tcl array doesn't match the number of components in the
+vector. This is because its too expensive to maintain decimal strings for both the index and value for each component.
+Instead, the index and value are saved only when you read or write an element with a new index. This command removes
+the index and value strings from the array. This is useful when the vector is large.
+.RS
+.IP \(bu 2
+\fIvecName\fP \fBdelete\fP \fIindex\fP ?\fIindex\fP? ...
+.RE
+.IP
+Deletes the \fIindex\fPth component from the vector \fIvecName\fP\&. \fIIndex\fP is the index of the element to be deleted. This is
+the same as unsetting the array variable element \fIindex\fP\&. The vector is compacted after all the indices have been
+deleted.
+.RS
+.IP \(bu 2
+\fIvecName\fP \fBdup\fP \fIdestName\fP
+.RE
+.IP
+Copies \fIvecName\fP to \fIdestName\fP\&. \fIDestName\fP is the name of a destination vector. If a vector \fIdestName\fP already exists,
+it is overwritten with the components of \fIvecName\fP\&. Otherwise a new vector is created.
+.RS
+.IP \(bu 2
+\fIvecName\fP \fBexpr\fP \fIexpression\fP
+.RE
+.IP
+Computes the expression and resets the values of the vector accordingly.  Both scalar and vector math operations are
+allowed. All values in expressions are either real numbers or names of vectors. All numbers are treated as one
+component vectors.
+.RS
+.IP \(bu 2
+\fIvecName\fP \fBlength\fP ?\fInewSize\fP?
+.RE
+.IP
+Queries or resets the number of components in \fIvecName\fP\&. \fINewSize\fP is a number specifying the new size of the
+vector. If \fInewSize\fP is smaller than the current size of \fIvecName\fP, \fIvecName\fP is truncated. If \fInewSize\fP is greater,
+the vector is extended and the new components are initialized to \fB\fC0.0\fR\&. If no \fInewSize\fP argument is present, the
+current length of the vector is returned.
+.RS
+.IP \(bu 2
+\fIvecName\fP \fBmerge\fP \fIsrcName\fP ?\fIsrcName\fP? ...
+.RE
+.IP
+Merges the named vectors into a single vector. The resulting vector is formed by merging the components of each source
+vector one index at a time.
+.RS
+.IP \(bu 2
+\fIvecName\fP \fBnotify\fP \fIkeyword\fP
+.RE
+.IP
+Controls how vector clients are notified of changes to the vector. The exact behavior is determined by \fIkeyword\fP\&.
+.RS
+.IP \(bu 2
+\fB\fCalways\fR \- Indicates that clients are to be notified immediately whenever the vector is updated.
+.IP \(bu 2
+\fB\fCnever\fR \- Indicates that no clients are to be notified.
+.IP \(bu 2
+\fB\fCwhenidle\fR \- Indicates that clients are to be notified at the next idle point whenever the vector is updated.
+.IP \(bu 2
+\fB\fCnow\fR \- If any client notifications is currently pending, they are notified immediately.
+.IP \(bu 2
+\fB\fCcancel\fR \- Cancels pending notifications of clients using the vector.
+.IP \(bu 2
+\fB\fCpending\fR \- Returns \fB\fC1\fR if a client notification is pending, and \fB\fC0\fR otherwise.
+.RS
+.IP \(bu 2
+\fIvecName\fP \fBoffset\fP ?\fIvalue\fP?
+.RE
+.RE
+.IP
+Shifts the indices of the vector by the amount specified by \fIvalue\fP\&.  \fIValue\fP is an integer number. If no \fIvalue\fP
+argument is given, the current offset is returned.
+.RS
+.IP \(bu 2
+\fIvecName\fP \fBpopulate\fP \fIdestName\fP ?\fIdensity\fP?
+.RE
+.IP
+Creates a vector \fIdestName\fP which is a superset of \fIvecName\fP\&. \fIDestName\fP will include all the components of \fIvecName\fP,
+in addition the interval between each of the original components will contain a \fIdensity\fP number of new components,
+whose values are evenly distributed between the original components values. This is useful for generating abscissas to
+be interpolated along a spline.
+.RS
+.IP \(bu 2
+\fIvecName\fP \fBrange\fP \fIfirstIndex\fP ?\fIlastIndex\fP? ...
+.RE
+.IP
+Returns a list of numeric values representing the vector components between two indices. Both \fIfirstIndex\fP and
+\fIlastIndex\fP are indices representing the range of components to be returned. If \fIlastIndex\fP is less than \fIfirstIndex\fP,
+the components are listed in reverse order.
+.RS
+.IP \(bu 2
+\fIvecName\fP \fBsearch\fP \fIvalue\fP ?\fIvalue\fP?
+.RE
+.IP
+Searches for a value or range of values among the components of \fIvecName\fP\&. If one \fIvalue\fP argument is given, a list of
+indices of the components which equal \fIvalue\fP is returned. If a second \fIvalue\fP is also provided, then the indices of
+all components which lie within the range of the two values are returned. If no components are found, then \fB\fC""\fR is
+returned.
+.RS
+.IP \(bu 2
+\fIvecName\fP \fBset\fP \fIitem\fP
+.RE
+.IP
+Resets the components of the vector to \fIitem\fP\&. \fIItem\fP can be either a list of numeric expressions or another vector.
+.RS
+.IP \(bu 2
+\fIvecName\fP \fBseq\fP \fIstart\fP ?\fIfinish\fP? ?\fIstep\fP?
+.RE
+.IP
+Generates a sequence of values starting with the value \fIstart\fP\&. \fIFinish\fP indicates the terminating value of the
+sequence. The vector is automatically resized to contain just the sequence. If three arguments are present, \fIstep\fP
+designates the interval.
+.IP
+With only two arguments (no \fIfinish\fP argument), the sequence will continue until the vector is filled. With one
+argument, the interval defaults to 1.0.
+.RS
+.IP \(bu 2
+\fIvecName\fP \fBsort\fP ?\fB\-reverse\fP? ?\fIargName\fP? ...
+.RE
+.IP
+Sorts the vector \fIvecName\fP in increasing order. If the \fB\-reverse\fP flag is present, the vector is sorted in
+decreasing order. If other arguments \fIargName\fP are present, they are the names of vectors which will be rearranged in
+the same manner as \fIvecName\fP\&. Each vector must be the same length as \fIvecName\fP\&. You could use this to sort the x
+vector of a graph, while still retaining the same x,y coordinate pairs in a y vector.
+.RS
+.IP \(bu 2
+\fIvecName\fP \fBvariable\fP \fIvarName\fP
+.RE
+.IP
+Maps a Tcl variable to the vector, creating another means for accessing the vector. The variable \fIvarName\fP can't
+already exist. This overrides any current variable mapping the vector may have.
+.SH C language API
+.PP
+You can create, modify, and destroy vectors from C code, using library routines. You need to include the header file
+\fB\fCrbc.h\fR\&. It contains the definition of the structure \fBRbc_Vector\fP, which represents the vector.  It appears below.
+.PP
+.RS
+.nf
+typedef struct Rbc_Vector_s {
+    double *valueArr; /* Array of values (possibly malloc\-ed) */
+    int numValues; /* Number of values in the array */
+    int arraySize; /* Size of the allocated space */
+    double min, max; /* Minimum and maximum values in the vector */
+    int dirty; /* Indicates if the vector has been updated */
+    int reserved; /* Reserved for future use */
+} Rbc_Vector;
+.fi
+.RE
+.PP
+The field \fIvalueArr\fP points to memory holding the vector components. The components are stored in a double precision
+array, whose size size is represented by \fIarraySize\fP\&. \fINumValues\fP is the length of vector. The size of the array is
+always equal to or larger than the length of the vector. \fIMin\fP and \fImax\fP are minimum and maximum component values.
+.SH Library routines
+.PP
+The following routines are available from C to manage vectors. Vectors are identified by the vector name.
+.RS
+.IP \(bu 2
+\fBRbc_CreateVector\fP
+.RS
+.IP \(bu 2
+Synopsis:
+\fB\fCc
+int Rbc_CreateVector(Tcl_Interp *interp, const char *name, int size, Rbc_Vector **vecPtrPtr)
+\fR
+.IP \(bu 2
+Description:
+.RE
+.PP
+Creates a new vector \fIvecName\fP with a length of \fIsize\fP\&. \fBRbc_CreateVector\fP creates both a new Tcl command and
+array variable \fIvecName\fP\&. Neither a command nor variable named \fIvecName\fP can already exist. A pointer to the vector
+is placed into \fIvecPtrPtr\fP\&.
+\- Results:
+.PP
+Returns \fB\fCTCL_OK\fR if the vector is successfully created. If \fIlength\fP is negative, a Tcl variable or command
+\fIvecName\fP already exists, or memory cannot be allocated for the vector, then \fB\fCTCL_ERROR\fR is returned and
+\fIinterp\->result\fP will contain an error message.
+.IP \(bu 2
+\fBRbc_GetVector\fP
+.RS
+.IP \(bu 2
+Synopsis:
+\fB\fCc
+int Rbc_GetVector (Tcl_Interp *interp, const char *vecName, Rbc_Vector **vecPtrPtr)
+\fR
+.IP \(bu 2
+Description:
+.RE
+.PP
+Retrieves the vector \fIvecName\fP\&. \fIVecName\fP is the name of a vector which must already exist. \fIVecPtrPtr\fP will point
+be set to the address of the vector.
+\- Results:
+.PP
+Returns \fB\fCTCL_OK\fR if the vector is successfully retrieved. If \fIvecName\fP is not the name of a vector, then \fB\fCTCL_ERROR\fR
+is returned and \fIinterp\->result\fP will contain an error message.
+.IP \(bu 2
+\fBRbc_ResetVector\fP
+.RS
+.IP \(bu 2
+Synopsis:
+\fB\fCc
+int Rbc_ResetVector (Rbc_Vector *vecPtr, double *dataArr, int nValues, int arraySize, Tcl_FreeProc *freeProc)
+\fR
+.IP \(bu 2
+Description:
+.RE
+.PP
+Resets the components of the vector pointed to by \fIvecPtr\fP\&. Calling \fBRbc_ResetVector\fP will trigger the vector
+to dispatch notifications to its clients. \fIDataArr\fP is the array of doubles which represents the vector
+data. \fINumValues\fP is the number of elements in the array.  \fIArraySize\fP is the actual size of the array (the array
+may be bigger than the number of values stored in it). \fIFreeProc\fP indicates how the storage for the vector component
+array (\fIdataArr\fP) was allocated. It is used to determine how to reallocate memory when the vector is resized or
+destroyed. It must be \fB\fCTCL_DYNAMIC\fR, \fB\fCTCL_STATIC\fR, \fB\fCTCL_VOLATILE\fR, or a pointer to a function to free the memory
+allocated for the vector array.  If \fIfreeProc\fP is \fB\fCTCL_VOLATILE\fR, it indicates that \fIdataArr\fP must be copied and
+saved. If \fIfreeProc\fP is \fB\fCTCL_DYNAMIC\fR, it indicates that \fIdataArr\fP was dynamically allocated and that Tcl should
+free \fIdataArr\fP if necessary. \fB\fCStatic\fR indicates that nothing should be done to release storage for \fIdataArr\fP\&.
+\- Results:
+.PP
+A standard Tcl result.  If the new array size is invalid, TCL\fIERROR is returned.  Otherwise TCL\fPOK is returned and
+the new vector data is recorded.
+.IP \(bu 2
+\fBRbc_ResizeVector\fP
+.RS
+.IP \(bu 2
+Synopsis:
+\fB\fCc
+int Rbc_ResizeVector (Rbc_Vector *vecPtr, int nValues)
+\fR
+.IP \(bu 2
+Description:
+.RE
+.PP
+Resets the length of the vector pointed to by \fIvecPtr\fP to \fInewSize\fP\&. If \fInewSize\fP is smaller than the current size
+of the vector, it is truncated. If \fInewSize\fP is greater, the vector is extended and the new components are
+initialized to \fB\fC0.0\fR\&. Calling \fBRbc_ResetVector\fP will trigger the vector to dispatch notifications.
+\- Results:
+.PP
+Returns \fB\fCTCL_OK\fR if the vector is successfully resized. If \fInewSize\fP is negative or memory can not be allocated for
+the vector, then \fB\fCTCL_ERROR\fR is returned and \fIinterp\->result\fP will contain an error message.
+.IP \(bu 2
+\fBRbc_VectorExists2\fP
+.RS
+.IP \(bu 2
+Synopsis:
+\fB\fCc
+int Rbc_VectorExists2 (Tcl_Interp *ip, const char *name)
+\fR
+.IP \(bu 2
+Description:
+.RE
+.PP
+Indicates if a vector named \fIvecName\fP exists in \fIinterp\fP\&.
+\- Results:
+.PP
+Returns 1 is the vector still exists, 0 otherwise.
+.IP \(bu 2
+\fBRbc_NameOfVectorId\fP
+.RS
+.IP \(bu 2
+Synopsis:
+\fB\fCc
+char *Rbc_NameOfVector (Rbc_Vector *vecPtr)
+\fR
+.IP \(bu 2
+Description:
+.RE
+.PP
+Returns the name of the vector (and array variable).
+\- Results:
+.PP
+The name of the array variable is returned.
+.IP \(bu 2
+\fBRbc_VectorData\fP
+.RS
+.IP \(bu 2
+Synopsis:
+\fB\fCc
+double *Rbc_VectorData (Rbc_Vector *v)
+\fR
+.IP \(bu 2
+Description:
+.RE
+.PP
+Returns array of vector data.
+\- Results:
+.PP
+Array of vector values.
+.IP \(bu 2
+\fBRbc_VectorLength\fP
+.RS
+.IP \(bu 2
+Synopsis:
+\fB\fCc
+int Rbc_VectorLength (Rbc_Vector *v)
+\fR
+.IP \(bu 2
+Description:
+.RE
+.PP
+Return length of the vector.
+\- Results:
+.PP
+Length of the vector
+.IP \(bu 2
+\fBRbc_VectorDirty\fP
+.RS
+.IP \(bu 2
+Synopsis:
+\fB\fCc
+int Rbc_VectorDirty (Rbc_Vector *v)
+\fR
+.IP \(bu 2
+Description:
+.RE
+.PP
+Check if the vector was updated
+\- Results:
+.PP
+One if vector was updated, and zero if not
+.IP \(bu 2
+\fBRbc_FreeVector\fP
+.RS
+.IP \(bu 2
+Synopsis:
+\fB\fCc
+void Rbc_FreeVector (Rbc_Vector *v)
+\fR
+.IP \(bu 2
+Description:
+.RE
+.PP
+Removes the memory and frees resources associated with the vector.
+\- Removes the trace and the Tcl array variable and unsets the variable.
+\- Notifies clients of the vector that the vector is being destroyed.
+\- Removes any clients that are left after notification.
+\- Frees the memory (if necessary) allocated for the array.
+\- Removes the entry from the hash table of vectors.
+\- Frees the memory allocated for the name.
+\- Results:
+.PP
+None
+.RE
+.SH C API example
+.PP
+The following example opens a file of binary data and stores it in an array of doubles. The array size is computed from
+the size of the file.  If the vector "data" exists, calling \fBRbc_VectorExists2\fP, \fBRbc_GetVector\fP is called to get
+the pointer to the vector. Otherwise the routine \fBRbc_CreateVector\fP is called to create a new vector and returns a
+pointer to it. Just like the Tcl interface, both a new Tcl command and array variable are created when a new vector is
+created. It doesn't make any difference what the initial size of the vector is since it will be reset shortly. The
+vector is updated when \fBRbc_ResetVector\fP is called. \fBRbc_ResetVector\fP makes the changes visible to the Tcl interface
+and other vector clients (such as a graph widget).
+.PP
+.RS
+.nf
+#include <tcl.h>
+#include <rbc.h>
+Rbc_Vector *vecPtr;
+double *newArr;
+FILE *f;
+struct stat statBuf;
+int numBytes, numValues;
+
+f = fopen("binary.dat", "r");
+fstat(fileno(f), &statBuf);
+numBytes = (int)statBuf.st_size;
+
+/* Allocate an array big enough to hold all the data */
+newArr = (double *)malloc(numBytes);
+numValues = numBytes / sizeof(double);
+fread((void *)newArr, numValues, sizeof(double), f);
+fclose(f);
+
+if (Rbc_VectorExists2(interp, "data"))  {
+    if (Rbc_GetVector(interp, "data", &vecPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+} else {
+   if (Rbc_CreateVector(interp, "data", 0, &vecPtr) != TCL_OK) {
+       return TCL_ERROR;
+   }
+}
+/*
+ * Reset the vector. Clients will be notified when Tk is idle.
+ * TCL_DYNAMIC tells the vector to free the memory allocated
+ * if it needs to reallocate or destroy the vector.
+ */
+if (Rbc_ResetVector(vecPtr, newArr, numValues, numValues, TCL_DYNAMIC) != TCL_OK) {
+    return TCL_ERROR;
+}
+.fi
+.RE
+.SH Incompatibilities
+.PP
+In previous versions, if the array variable isn't global (i.e. local to a Tcl procedure), the vector is automatically
+destroyed when the procedure returns.
+.PP
+.RS
+.nf
+proc doit {} {
+    # Temporary vector x
+    vector x(10)
+    set x(9) 2.0
+      ...
+}
+.fi
+.RE
+.PP
+This has changed. Variables are not automatically destroyed when their variable is unset. You can restore the old
+behavior by setting the "\-watchunset" switch.

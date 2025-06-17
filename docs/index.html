@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>index</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width:72em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<h1 id="rbc---refactored-blt-components">Rbc - Refactored BLT
+Components</h1>
+<p>This is version 0.2 of the Rbc library. It should be considered alpha
+quality software.</p>
+<p>Rbc is an extension of the Tcl/Tk toolkit and contains refactored
+components from version 2.4z of the BLT library. These components were
+refactored so that they would function with version Tcl/Tk 8.5.</p>
+<p>Later, it was updated by Emiliano Gavilán to work with Tcl/Tk
+9.0.</p>
+<p>This is my personal fork of Emiliano <a
+href="https://chiselapp.com/user/egavilan/repository/rbc-tk9">repository</a>.
+This fork has updated documentation to markdown format, additional code
+in <code>graph.tcl</code> library. Also I am going to apply any further
+improvements from Emiliano repository.</p>
+<p>Rbc is available from: https://github.com/georgtree/rbc-tk9</p>
+<p>More information on BLT is available from:
+http://www.sourceforge.net/projects/blt/files</p>
+<p>Rbc is intended to work with Tcl/Tk versions 8.7 and 9.0, although it
+may work with others. Rbc is a TEA compliant extension, although it is
+not (yet) entirely free of dependency on Tcl/Tk private structures. So,
+for compilation you need Tcl/Tk sources.</p>
+<p>Rbc is a subset of BLT, contains the essential components for
+developing data graphing applications. Some BLT components have been
+superseded by advances in Tcl and Tk, and some others have been
+extracted into separate extensions. Rbc contains the following BLT
+components:</p>
+<ul>
+<li><p>graph, barchart, stripchart</p>
+<p>These components use an X-Y coordinate system to plot data and are
+meant to be used with vector data objects. The graphs will automatically
+be redrawn should the vector data change.</p></li>
+<li><p>vector</p>
+<p>This component is used to manage floating point values. They are
+meant to be used to handle data for the plotting components.</p></li>
+<li><p>winop</p>
+<p>This component provides basic window operations.</p></li>
+</ul>
+<h2 id="installation">Installation</h2>
+<p>For binary installations, just unzip or untar the package into your
+Tcl library.</p>
+<h2 id="building-from-source">Building from Source</h2>
+<p>Rbc is a TEA compliant extension. You should be able to unpack the
+source code, and perform the usual configure/make /make install
+procedure. Making the test target will run the automated test suite.</p>
+<p>Since Rbc still depends on some Tcl/Tk private data structures, you
+may experience some difficulty in bulding it against some Tcl
+distributions which do not have the complete set of public and private
+headers.</p>
+<h2 id="documentation">Documentation</h2>
+<ul>
+<li><a href="./graph.html">Graph</a></li>
+<li><a href="./barchart.html">Barchart</a></li>
+<li><a href="./stripchart.html">Stripchart</a></li>
+<li><a href="./vector.html">Vector</a></li>
+<li><a href="./spline.html">Spline</a></li>
+<li><a href="./winop.html">Winop</a></li>
+</ul>
+<h2 id="history">History</h2>
+<p>In order to fulfill degree requirements, the four of us undertook the
+refactoring of a few commonly used BLT components. The project was
+proposed by an alumnus of the students’ institute and was accepted by
+the school’s Computer Science and Software Engineering Department. The
+project began in the Fall of 2008 and culminated on the students’
+graduation in the Spring of 2009. In addition to refactoring parts of
+BLT, we also began developing a graphical data analysis tool that is
+designed to work with Rbc (and BLT) and be easily extensible. For more
+information see the GDAT project available at:
+http://www.sourceforge.net/projects/gdat/</p>
+<p>In keeping with the spirit of BLT, we have released this project to
+the open source community in hopes that you will continue development
+and add more components from the BLT library that are compatible with
+version 8.5 and later of Tcl/Tk.</p>
+<p>sjg,njh,sjs,jms</p>
+</body>
+</html>

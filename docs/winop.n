@@ -1,0 +1,122 @@
+.TH Winop
+.RS
+.IP \(bu 2
+Name \[la]#name\[ra]
+.IP \(bu 2
+Synopsis \[la]#synopsis\[ra]
+.IP \(bu 2
+Description \[la]#description\[ra]
+.IP \(bu 2
+Introduction \[la]#introduction\[ra]
+.IP \(bu 2
+Operations \[la]#operations\[ra]
+.RE
+.SH Name
+.PP
+winop − Perform assorted window operations
+.SH Synopsis
+.PP
+\fBwinop lower\fP ?\fIwindow\fP? ...
+.PP
+\fBwinop map\fP ?\fIwindow\fP? ...
+.PP
+\fBwinop move\fP \fIwindow x y\fP
+.PP
+\fBwinop raise\fP ?\fIwindow\fP? ...
+.PP
+\fBwinop snap\fP \fIwindow photoName\fP
+.PP
+\fBwinop unmap\fP ?\fIwindow\fP? ...
+.PP
+\fBwinop warpto\fP ?\fIwindow\fP?
+.SH Description
+.PP
+The \fBwinop\fP command performs various window operations on Tk windows using low\-level Xlib function calls to work
+around window manager pecularities.
+.SH Introduction
+.PP
+Tk has several commands for manipulating its windows: \fBraise\fP, \fBlower\fP, \fBwm\fP, etc. These commands ask the window
+manager to perform operations on Tk windows. In some cases, a particular window manager won't perform the operation as
+expected.
+.PP
+For example, if you positioned a toplevel window using \fBwm geometry\fP, the window may not actually be at those
+particular coordinates. The position of the window may be offset by dimensions of the title bar added by the window
+manager.
+.PP
+In situations like these, the \fBwinop\fP command can be used to workaround these difficulties. Instead, it makes
+low\-level Xlib (such \fBXRaiseWindow\fP and \fBXMapWindow\fP) calls to perform these operations.
+.PP
+.RS
+.nf
+toplevel .top
+wm withdraw .top
+
+# Set the geometry to make the window manager
+# place the window.
+wm geometry .top +100+100
+
+# Move the window to the desired location
+# and "update" to force the window manager
+# to recognize it.
+winop move .top 100 100
+update
+
+wm deiconify .top
+winop move .top 100 100
+.fi
+.RE
+.SH Operations
+.PP
+The following operations are available for the \fBwinop\fP command:
+.RS
+.IP \(bu 2
+\fBwinop lower\fP ?\fIwindow\fP? ...
+.RE
+.IP
+Lowers \fIwindow\fP to the bottom of the X window stack. \fIWindow\fP is the path name of a Tk window.
+.RS
+.IP \(bu 2
+\fBwinop map\fP ?\fIwindow\fP? ...
+.RE
+.IP
+Maps \fIwindow\fP on the screen. \fIWindow\fP is the path name of a Tk window.  If \fIwindow\fP is already mapped, this command
+has no effect.
+.RS
+.IP \(bu 2
+\fBwinop move\fP \fIwindow x y\fP
+.RE
+.IP
+Move \fIwindow\fP to the screen location specified by \fIx\fP and \fIy\fP\&. \fIWindow\fP is the path name of a Tk window, while \fIx\fP and
+\fIy\fP are screen coordinates. This command returns the empty string.
+.RS
+.IP \(bu 2
+\fBwinop raise\fP ?\fIwindow\fP? ...
+.RE
+.IP
+Raises \fIwindow\fP to the top of the X window stack. \fIWindow\fP must be a valid path name of a Tk window. This command
+returns the empty string.
+.RS
+.IP \(bu 2
+\fBwinop snap\fP \fIwindow photoName\fP
+.RE
+.IP
+Takes a snapshot of the \fIwindow\fP and stores the contents in the photo image \fIphotoName\fP\&. \fIWindow\fP is the valid path
+name of a Tk window which must be totally visible (unobscured). \fIPhotoName\fP is the name of a Tk photo image which must
+already exist. This command can fail if the window is obscured in any fashion, such as covered by another window or
+partially offscreen. In that case, an error message is returned.
+.RS
+.IP \(bu 2
+\fBwinop unmap\fP ?\fIwindow\fP? ...
+.RE
+.IP
+Unmaps \fIwindow\fP from the screen. \fIWindow\fP is the path name of a Tk window.
+.RS
+.IP \(bu 2
+\fBwinop warpto\fP ?\fIwindow\fP?
+.RE
+.IP
+Warps the pointer to \fIwindow\fP\&. \fIWindow\fP is the path name of a Tk window which must be mapped. If \fIwindow\fP is in the
+form \fI@x,y\fP, where \fIx\fP and \fIy\fP are root screen coordinates, the pointer is warped to that location on the screen.
+.IP
+If no \fIwindow\fP argument is present the current location of the pointer is returned. The location is returned as a list
+in the form "\fIx y\fP", where \fIx\fP and \fIy\fP are the current coordinates of the pointer.
