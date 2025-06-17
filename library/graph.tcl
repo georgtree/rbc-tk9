@@ -1,8 +1,9 @@
 namespace eval ::rbc {}
 set ::rbc::library [file normalize [file dirname [info script]]]
 
+### Public procedures
 proc Rbc_ActiveLegend {graph} {
-    $graph legend bind all <Enter> [list rbc::ActivateLegend $graph ]
+    $graph legend bind all <Enter> [list rbc::ActivateLegend $graph]
     $graph legend bind all <Leave> [list rbc::DeactivateLegend $graph]
     $graph legend bind all <ButtonPress-1> [list rbc::HighlightLegend $graph]
 }
@@ -31,86 +32,8 @@ proc Rbc_PostScriptDialog {graph} {
     rbc::PostScriptDialog $graph
 }
 
-#
-# The following procedures that reside in the "rbc" namespace are
-# supposed to be private.
-#
-
-proc rbc::ActivateLegend {graph} {
-    set elem [$graph legend get current]
-    $graph legend activate $elem
-}
-proc rbc::DeactivateLegend {graph} {
-    set elem [$graph legend get current]
-    $graph legend deactivate $elem
-}
-
-proc rbc::HighlightLegend {graph} {
-    set elem [$graph legend get current]
-    set relief [$graph element cget $elem -labelrelief]
-    if {$relief eq {flat}} {
-        $graph element configure $elem -labelrelief raised
-        $graph element activate $elem
-    } else {
-        $graph element configure $elem -labelrelief flat
-        $graph element deactivate $elem
-    }
-}
-
-proc rbc::Crosshairs {graph {event Any-Motion} {state on}} {
-    $graph crosshairs $state
-    bind crosshairs-$graph <$event> {
-        %W crosshairs configure -position @%x,%y
-    }
-    bind crosshairs-$graph <Leave> {
-        %W crosshairs off
-    }
-    bind crosshairs-$graph <Enter> {
-        %W crosshairs on
-    }
-    $graph crosshairs configure -color red
-    if {$state eq {on}} {
-        rbc::AddBindTag $graph crosshairs-$graph
-    } elseif {$state eq {off}} {
-        rbc::RemoveBindTag $graph crosshairs-$graph
-    }
-}
-
-proc rbc::InitStack {graph} {
-    variable zoomInfo
-    set zoomInfo($graph,interval) 100
-    set zoomInfo($graph,afterId) 0
-    set zoomInfo($graph,A,x) {}
-    set zoomInfo($graph,A,y) {}
-    set zoomInfo($graph,B,x) {}
-    set zoomInfo($graph,B,y) {}
-    set zoomInfo($graph,stack) {}
-    set zoomInfo($graph,corner) A
-}
-
-proc rbc::ZoomStack {graph {start ButtonPress-1} {reset ButtonPress-3}} {
-    variable zoomInfo
-    variable zoomMod
-    rbc::InitStack $graph
-    if {[info exists zoomMod]} {
-        set modifier $zoomMod
-    } else {
-        set modifier {}
-    }
-    bind zoom-$graph <${modifier}${start}> {rbc::SetZoomPoint %W %x %y}
-    bind zoom-$graph <${modifier}${reset}> {
-        if {[%W inside %x %y]} {
-            rbc::ResetZoom %W
-        }
-    }
-    rbc::AddBindTag $graph zoom-$graph
-}
-
-proc rbc::PrintKey {graph {event Shift-ButtonRelease-3}} {
-    bind print-$graph <$event> {Rbc_PostScriptDialog %W}
-    rbc::AddBindTag $graph print-$graph
-}
-
+### Private procedures
+####  General procedures
 proc rbc::ClosestPoint {graph {event Control-ButtonPress-2}} {
     bind closest-point-$graph <$event> {
         rbc::FindElement %W %x %y
@@ -171,6 +94,80 @@ proc rbc::FlashPoint {graph name index count} {
     } else {
         $graph marker delete {*}[$graph marker names "rbcClosest_*"]
     }
+}
+
+####  Legend procedures
+proc rbc::ActivateLegend {graph} {
+    set elem [$graph legend get current]
+    $graph legend activate $elem
+}
+
+proc rbc::DeactivateLegend {graph} {
+    set elem [$graph legend get current]
+    $graph legend deactivate $elem
+}
+
+proc rbc::HighlightLegend {graph} {
+    set elem [$graph legend get current]
+    set relief [$graph element cget $elem -labelrelief]
+    if {$relief eq {flat}} {
+        $graph element configure $elem -labelrelief raised
+        $graph element activate $elem
+    } else {
+        $graph element configure $elem -labelrelief flat
+        $graph element deactivate $elem
+    }
+}
+
+####  Crosshair procedures
+proc rbc::Crosshairs {graph {event Any-Motion} {state on}} {
+    $graph crosshairs $state
+    bind crosshairs-$graph <$event> {
+        %W crosshairs configure -position @%x,%y
+    }
+    bind crosshairs-$graph <Leave> {
+        %W crosshairs off
+    }
+    bind crosshairs-$graph <Enter> {
+        %W crosshairs on
+    }
+    $graph crosshairs configure -color red
+    if {$state eq {on}} {
+        rbc::AddBindTag $graph crosshairs-$graph
+    } elseif {$state eq {off}} {
+        rbc::RemoveBindTag $graph crosshairs-$graph
+    }
+}
+
+####  Zoom procedures
+proc rbc::InitStack {graph} {
+    variable zoomInfo
+    set zoomInfo($graph,interval) 100
+    set zoomInfo($graph,afterId) 0
+    set zoomInfo($graph,A,x) {}
+    set zoomInfo($graph,A,y) {}
+    set zoomInfo($graph,B,x) {}
+    set zoomInfo($graph,B,y) {}
+    set zoomInfo($graph,stack) {}
+    set zoomInfo($graph,corner) A
+}
+
+proc rbc::ZoomStack {graph {start ButtonPress-1} {reset ButtonPress-3}} {
+    variable zoomInfo
+    variable zoomMod
+    rbc::InitStack $graph
+    if {[info exists zoomMod]} {
+        set modifier $zoomMod
+    } else {
+        set modifier {}
+    }
+    bind zoom-$graph <${modifier}${start}> {rbc::SetZoomPoint %W %x %y}
+    bind zoom-$graph <${modifier}${reset}> {
+        if {[%W inside %x %y]} {
+            rbc::ResetZoom %W
+        }
+    }
+    rbc::AddBindTag $graph zoom-$graph
 }
 
 proc rbc::GetCoords {graph x y index} {
@@ -400,6 +397,12 @@ proc rbc::Box {graph} {
         set id [after $interval [list rbc::MarchingAnts $graph 0]]
         set zoomInfo($graph,afterId) $id
     }
+}
+
+####  PostScript procedures
+proc rbc::PrintKey {graph {event Shift-ButtonRelease-3}} {
+    bind print-$graph <$event> {Rbc_PostScriptDialog %W}
+    rbc::AddBindTag $graph print-$graph
 }
 
 proc rbc::PostScriptDialog {graph} {
