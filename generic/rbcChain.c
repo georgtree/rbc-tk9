@@ -9,12 +9,11 @@
  * See "license.terms" for details.
  */
 
-#include "rbcInt.h"
 #include "rbcChain.h"
+#include "rbcInt.h"
 
 #ifndef ALIGN
-#define ALIGN(a) \
-    (((size_t)a + (sizeof(double) - 1)) & (~(sizeof(double) - 1)))
+#define ALIGN(a) (((size_t)a + (sizeof(double) - 1)) & (~(sizeof(double) - 1)))
 #endif /* ALIGN */
 
 /*
@@ -25,6 +24,9 @@
  *      Creates a new linked list (chain) structure and initializes
  *      its pointers;
  *
+ * Parameters:
+ *      None
+ *
  * Results:
  *      Returns a pointer to the newly created chain structure.
  *
@@ -33,14 +35,12 @@
  *
  *----------------------------------------------------------------------
  */
-Rbc_Chain *
-Rbc_ChainCreate()
-{
+Rbc_Chain *Rbc_ChainCreate() {
     Rbc_Chain *chainPtr;
 
-    chainPtr = (Rbc_Chain *) ckalloc(sizeof(Rbc_Chain));
+    chainPtr = (Rbc_Chain *)ckalloc(sizeof(Rbc_Chain));
     if (chainPtr != NULL) {
-    Rbc_ChainInit(chainPtr);
+        Rbc_ChainInit(chainPtr);
     }
     return chainPtr;
 }
@@ -52,6 +52,9 @@ Rbc_ChainCreate()
  *
  *      Initializes a linked list.
  *
+ * Parameters:
+ *      Rbc_Chain *chainPtr - The chain to initialize
+ *
  * Results:
  *      None.
  *
@@ -60,10 +63,7 @@ Rbc_ChainCreate()
  *
  *----------------------------------------------------------------------
  */
-void
-Rbc_ChainInit(chainPtr)
-    Rbc_Chain *chainPtr; /* The chain to initialize */
-{
+void Rbc_ChainInit(Rbc_Chain *chainPtr) {
     chainPtr->nLinks = 0;
     chainPtr->headPtr = chainPtr->tailPtr = NULL;
 }
@@ -75,6 +75,11 @@ Rbc_ChainInit(chainPtr)
  *
  *      Inserts an entry following a given entry.
  *
+ * Parameters:
+ *      Rbc_Chain *chainPtr
+ *      Rbc_ChainLink *linkPtr
+ *      Rbc_ChainLink *afterPtr
+ *
  * Results:
  *      None.
  *
@@ -83,30 +88,26 @@ Rbc_ChainInit(chainPtr)
  *
  *----------------------------------------------------------------------
  */
-void
-Rbc_ChainLinkAfter(chainPtr, linkPtr, afterPtr)
-    Rbc_Chain *chainPtr;
-    Rbc_ChainLink *linkPtr, *afterPtr;
-{
+void Rbc_ChainLinkAfter(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr, Rbc_ChainLink *afterPtr) {
     if (chainPtr->headPtr == NULL) {
-    chainPtr->tailPtr = chainPtr->headPtr = linkPtr;
+        chainPtr->tailPtr = chainPtr->headPtr = linkPtr;
     } else {
-    if (afterPtr == NULL) {
-        /* Prepend to the front of the chain */
-        linkPtr->nextPtr = chainPtr->headPtr;
-        linkPtr->prevPtr = NULL;
-        chainPtr->headPtr->prevPtr = linkPtr;
-        chainPtr->headPtr = linkPtr;
-    } else {
-        linkPtr->nextPtr = afterPtr->nextPtr;
-        linkPtr->prevPtr = afterPtr;
-        if (afterPtr == chainPtr->tailPtr) {
-        chainPtr->tailPtr = linkPtr;
+        if (afterPtr == NULL) {
+            /* Prepend to the front of the chain */
+            linkPtr->nextPtr = chainPtr->headPtr;
+            linkPtr->prevPtr = NULL;
+            chainPtr->headPtr->prevPtr = linkPtr;
+            chainPtr->headPtr = linkPtr;
         } else {
-        afterPtr->nextPtr->prevPtr = linkPtr;
+            linkPtr->nextPtr = afterPtr->nextPtr;
+            linkPtr->prevPtr = afterPtr;
+            if (afterPtr == chainPtr->tailPtr) {
+                chainPtr->tailPtr = linkPtr;
+            } else {
+                afterPtr->nextPtr->prevPtr = linkPtr;
+            }
+            afterPtr->nextPtr = linkPtr;
         }
-        afterPtr->nextPtr = linkPtr;
-    }
     }
     chainPtr->nLinks++;
 }
@@ -117,6 +118,11 @@ Rbc_ChainLinkAfter(chainPtr, linkPtr, afterPtr)
  *
  *      Inserts a link preceding a given link.
  *
+ * Parameters:
+ *      Rbc_Chain *chainPtr - Chain to contain new entry
+ *      Rbc_ChainLink *linkPtr - New entry to be inserted
+ *      Rbc_ChainLink *beforePtr - Entry to link before
+ *
  * Results:
  *      None.
  *
@@ -125,31 +131,26 @@ Rbc_ChainLinkAfter(chainPtr, linkPtr, afterPtr)
  *
  *----------------------------------------------------------------------
  */
-void
-Rbc_ChainLinkBefore(chainPtr, linkPtr, beforePtr)
-    Rbc_Chain *chainPtr;    /* Chain to contain new entry */
-    Rbc_ChainLink *linkPtr;    /* New entry to be inserted */
-    Rbc_ChainLink *beforePtr;    /* Entry to link before */
-{
+void Rbc_ChainLinkBefore(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr, Rbc_ChainLink *beforePtr) {
     if (chainPtr->headPtr == NULL) {
-    chainPtr->tailPtr = chainPtr->headPtr = linkPtr;
+        chainPtr->tailPtr = chainPtr->headPtr = linkPtr;
     } else {
-    if (beforePtr == NULL) {
-        /* Append to the end of the chain. */
-        linkPtr->nextPtr = NULL;
-        linkPtr->prevPtr = chainPtr->tailPtr;
-        chainPtr->tailPtr->nextPtr = linkPtr;
-        chainPtr->tailPtr = linkPtr;
-    } else {
-        linkPtr->prevPtr = beforePtr->prevPtr;
-        linkPtr->nextPtr = beforePtr;
-        if (beforePtr == chainPtr->headPtr) {
-        chainPtr->headPtr = linkPtr;
+        if (beforePtr == NULL) {
+            /* Append to the end of the chain. */
+            linkPtr->nextPtr = NULL;
+            linkPtr->prevPtr = chainPtr->tailPtr;
+            chainPtr->tailPtr->nextPtr = linkPtr;
+            chainPtr->tailPtr = linkPtr;
         } else {
-        beforePtr->prevPtr->nextPtr = linkPtr;
+            linkPtr->prevPtr = beforePtr->prevPtr;
+            linkPtr->nextPtr = beforePtr;
+            if (beforePtr == chainPtr->headPtr) {
+                chainPtr->headPtr = linkPtr;
+            } else {
+                beforePtr->prevPtr->nextPtr = linkPtr;
+            }
+            beforePtr->prevPtr = linkPtr;
         }
-        beforePtr->prevPtr = linkPtr;
-    }
     }
     chainPtr->nLinks++;
 }
@@ -161,6 +162,9 @@ Rbc_ChainLinkBefore(chainPtr, linkPtr, beforePtr)
  *
  *      Creates a new link.
  *
+ * Parameters:
+ *      None
+ *
  * Results:
  *      The return value is the pointer to the newly created link.
  *
@@ -169,9 +173,7 @@ Rbc_ChainLinkBefore(chainPtr, linkPtr, beforePtr)
  *
  *----------------------------------------------------------------------
  */
-Rbc_ChainLink *
-Rbc_ChainNewLink()
-{
+Rbc_ChainLink *Rbc_ChainNewLink() {
     Rbc_ChainLink *linkPtr;
 
     linkPtr = (Rbc_ChainLink *)ckalloc(sizeof(Rbc_ChainLink));
@@ -190,6 +192,9 @@ Rbc_ChainNewLink()
  *      each link.  Memory pointed to by the link (clientData) is not
  *      freed.  It's the caller's responsibility to deallocate it.
  *
+ * Parameters:
+ *      Rbc_Chain *chainPtr - Chain to clear
+ *
  * Results:
  *      None.
  *
@@ -198,20 +203,17 @@ Rbc_ChainNewLink()
  *
  *----------------------------------------------------------------------
  */
-void
-Rbc_ChainReset(chainPtr)
-    Rbc_Chain *chainPtr;/* Chain to clear */
-{
+void Rbc_ChainReset(Rbc_Chain *chainPtr) {
     if (chainPtr != NULL) {
-    Rbc_ChainLink *oldPtr;
-    Rbc_ChainLink *linkPtr = chainPtr->headPtr;
+        Rbc_ChainLink *oldPtr;
+        Rbc_ChainLink *linkPtr = chainPtr->headPtr;
 
-    while (linkPtr != NULL) {
-        oldPtr = linkPtr;
-        linkPtr = linkPtr->nextPtr;
-        ckfree((char *) oldPtr);
-    }
-    Rbc_ChainInit(chainPtr);
+        while (linkPtr != NULL) {
+            oldPtr = linkPtr;
+            linkPtr = linkPtr->nextPtr;
+            ckfree((char *)oldPtr);
+        }
+        Rbc_ChainInit(chainPtr);
     }
 }
 
@@ -224,6 +226,9 @@ Rbc_ChainReset(chainPtr)
  *      allocated for the chain structure itself.  It's assumed that
  *      the chain was previous allocated by Rbc_ChainCreate.
  *
+ * Parameters:
+ *      Rbc_Chain *chainPtr - The chain to destroy.
+ *
  * Results:
  *      None.
  *
@@ -232,13 +237,10 @@ Rbc_ChainReset(chainPtr)
  *
  *----------------------------------------------------------------------
  */
-void
-Rbc_ChainDestroy(chainPtr)
-    Rbc_Chain *chainPtr; /* The chain to destroy. */
-{
+void Rbc_ChainDestroy(Rbc_Chain *chainPtr) {
     if (chainPtr != NULL) {
-    Rbc_ChainReset(chainPtr);
-    ckfree((char *) chainPtr);
+        Rbc_ChainReset(chainPtr);
+        ckfree((char *)chainPtr);
     }
 }
 
@@ -250,6 +252,10 @@ Rbc_ChainDestroy(chainPtr)
  *      Unlinks a link from the chain. The link is not deallocated,
  *      but only removed from the chain.
  *
+ * Parameters:
+ *      Rbc_Chain *chainPtr
+ *      Rbc_ChainLink *linkPtr
+ *
  * Results:
  *      None.
  *
@@ -258,33 +264,29 @@ Rbc_ChainDestroy(chainPtr)
  *
  *----------------------------------------------------------------------
  */
-void
-Rbc_ChainUnlinkLink(chainPtr, linkPtr)
-    Rbc_Chain *chainPtr;
-    Rbc_ChainLink *linkPtr;
-{
+void Rbc_ChainUnlinkLink(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr) {
     /* Indicates if the link is actually removed from the chain. */
     int unlinked;
 
     unlinked = FALSE;
     if (chainPtr->headPtr == linkPtr) {
-    chainPtr->headPtr = linkPtr->nextPtr;
-    unlinked = TRUE;
+        chainPtr->headPtr = linkPtr->nextPtr;
+        unlinked = TRUE;
     }
     if (chainPtr->tailPtr == linkPtr) {
-    chainPtr->tailPtr = linkPtr->prevPtr;
-    unlinked = TRUE;
+        chainPtr->tailPtr = linkPtr->prevPtr;
+        unlinked = TRUE;
     }
     if (linkPtr->nextPtr != NULL) {
-    linkPtr->nextPtr->prevPtr = linkPtr->prevPtr;
-    unlinked = TRUE;
+        linkPtr->nextPtr->prevPtr = linkPtr->prevPtr;
+        unlinked = TRUE;
     }
     if (linkPtr->prevPtr != NULL) {
-    linkPtr->prevPtr->nextPtr = linkPtr->nextPtr;
-    unlinked = TRUE;
+        linkPtr->prevPtr->nextPtr = linkPtr->nextPtr;
+        unlinked = TRUE;
     }
     if (unlinked) {
-    chainPtr->nLinks--;
+        chainPtr->nLinks--;
     }
     linkPtr->prevPtr = linkPtr->nextPtr = NULL;
 }
@@ -296,6 +298,10 @@ Rbc_ChainUnlinkLink(chainPtr, linkPtr)
  *
  *      Unlinks and also frees the given link.
  *
+ * Parameters:
+ *      Rbc_Chain *chainPtr
+ *      Rbc_ChainLink *linkPtr
+ *
  * Results:
  *      None.
  *
@@ -304,11 +310,7 @@ Rbc_ChainUnlinkLink(chainPtr, linkPtr)
  *
  *----------------------------------------------------------------------
  */
-void
-Rbc_ChainDeleteLink(chainPtr, linkPtr)
-    Rbc_Chain *chainPtr;
-    Rbc_ChainLink *linkPtr;
-{
+void Rbc_ChainDeleteLink(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr) {
     Rbc_ChainUnlinkLink(chainPtr, linkPtr);
     ckfree((char *)linkPtr);
 }
@@ -320,6 +322,10 @@ Rbc_ChainDeleteLink(chainPtr, linkPtr)
  *
  *      TODO: Description
  *
+ * Parameters:
+ *      Rbc_Chain *chainPtr
+ *      ClientData clientData
+ *
  * Results:
  *      TODO: Results
  *
@@ -328,11 +334,7 @@ Rbc_ChainDeleteLink(chainPtr, linkPtr)
  *
  *----------------------------------------------------------------------
  */
-Rbc_ChainLink *
-Rbc_ChainAppend(chainPtr, clientData)
-    Rbc_Chain *chainPtr;
-    ClientData clientData;
-{
+Rbc_ChainLink *Rbc_ChainAppend(Rbc_Chain *chainPtr, ClientData clientData) {
     Rbc_ChainLink *linkPtr;
 
     linkPtr = Rbc_ChainNewLink();
@@ -348,6 +350,10 @@ Rbc_ChainAppend(chainPtr, clientData)
  *
  *      TODO: Description
  *
+ * Parameters:
+ *      Rbc_Chain *chainPtr
+ *      ClientData clientData
+ *
  * Results:
  *      TODO: Results
  *
@@ -356,11 +362,7 @@ Rbc_ChainAppend(chainPtr, clientData)
  *
  *----------------------------------------------------------------------
  */
-Rbc_ChainLink *
-Rbc_ChainPrepend(chainPtr, clientData)
-    Rbc_Chain *chainPtr;
-    ClientData clientData;
-{
+Rbc_ChainLink *Rbc_ChainPrepend(Rbc_Chain *chainPtr, ClientData clientData) {
     Rbc_ChainLink *linkPtr;
 
     linkPtr = Rbc_ChainNewLink();
@@ -377,6 +379,9 @@ Rbc_ChainPrepend(chainPtr, clientData)
  *      Creates a new chain link.  Unlink Rbc_ChainNewLink, this
  *      routine also allocates extra memory in the node for data.
  *
+ * Parameters:
+ *      unsigned int extraSize
+ *
  * Results:
  *      The return value is the pointer to the newly created entry.
  *
@@ -385,10 +390,7 @@ Rbc_ChainPrepend(chainPtr, clientData)
  *
  *----------------------------------------------------------------------
  */
-Rbc_ChainLink *
-Rbc_ChainAllocLink(extraSize)
-    unsigned int extraSize;
-{
+Rbc_ChainLink *Rbc_ChainAllocLink(unsigned int extraSize) {
     Rbc_ChainLink *linkPtr;
     unsigned int linkSize;
 
@@ -396,8 +398,8 @@ Rbc_ChainAllocLink(extraSize)
     linkPtr = RbcCalloc(1, linkSize + extraSize);
     assert(linkPtr);
     if (extraSize > 0) {
-    /* Point clientData at the memory beyond the normal structure. */
-    linkPtr->clientData = (ClientData)((char *)linkPtr + linkSize);
+        /* Point clientData at the memory beyond the normal structure. */
+        linkPtr->clientData = (ClientData)((char *)linkPtr + linkSize);
     }
     return linkPtr;
 }
