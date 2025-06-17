@@ -16,32 +16,27 @@
 /*
  * Binding table procedures.
  */
-#define REPICK_IN_PROGRESS (1<<0)
-#define LEFT_GRABBED_ITEM  (1<<1)
+#define REPICK_IN_PROGRESS (1 << 0)
+#define LEFT_GRABBED_ITEM (1 << 1)
 
-#define ALL_BUTTONS_MASK \
-    (Button1Mask | Button2Mask | Button3Mask | Button4Mask | Button5Mask)
+#define ALL_BUTTONS_MASK (Button1Mask | Button2Mask | Button3Mask | Button4Mask | Button5Mask)
 
 #ifndef VirtualEventMask
-#define VirtualEventMask    (1L << 30)
+#define VirtualEventMask (1L << 30)
 #endif
 
-#define ALL_VALID_EVENTS_MASK \
-    (ButtonMotionMask | Button1MotionMask | Button2MotionMask | \
-     Button3MotionMask | Button4MotionMask | Button5MotionMask | \
-     ButtonPressMask | ButtonReleaseMask | EnterWindowMask | \
-     LeaveWindowMask | KeyPressMask | KeyReleaseMask | \
-     PointerMotionMask | VirtualEventMask)
+#define ALL_VALID_EVENTS_MASK                                                                                          \
+    (ButtonMotionMask | Button1MotionMask | Button2MotionMask | Button3MotionMask | Button4MotionMask |                \
+     Button5MotionMask | ButtonPressMask | ButtonReleaseMask | EnterWindowMask | LeaveWindowMask | KeyPressMask |      \
+     KeyReleaseMask | PointerMotionMask | VirtualEventMask)
 
 /*
-* Prototypes for procedures referenced only in this file:
-*/
+ * Prototypes for procedures referenced only in this file:
+ */
 
 static Tk_EventProc BindProc;
-static void DoEvent (struct Rbc_BindTableStruct *bindPtr, XEvent *eventPtr,
-             ClientData item, ClientData context);
-static void PickCurrentItem (struct Rbc_BindTableStruct *bindPtr,
-                 XEvent *eventPtr);
+static void DoEvent(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr, ClientData item, ClientData context);
+static void PickCurrentItem(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr);
 
 /*
  * How to make drag&drop work?
@@ -63,6 +58,12 @@ static void PickCurrentItem (struct Rbc_BindTableStruct *bindPtr,
  *      for a new event that is associated with the current item
  *      for a legend.
  *
+ * Parameters:
+ *      Rbc_BindTableStruct *bindPtr - Binding information for widget in which event occurred.
+ *      XEvent *eventPtr - Real or simulated X event that is to be processed.
+ *      ClientData item - Item picked.
+ *      ClientData context - Context of item.
+ *
  * Results:
  *      None.
  *
@@ -73,30 +74,22 @@ static void PickCurrentItem (struct Rbc_BindTableStruct *bindPtr,
  *
  *--------------------------------------------------------------
  */
-static void
-DoEvent(bindPtr, eventPtr, item, context)
-    struct Rbc_BindTableStruct *bindPtr; /* Binding information for widget in
-                      * which event occurred. */
-    XEvent *eventPtr; /* Real or simulated X event that
-               * is to be processed. */
-    ClientData item; /* Item picked. */
-    ClientData context; /* Context of item.  */
-{
+static void DoEvent(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr, ClientData item, ClientData context) {
     Rbc_List bindIds;
     int nIds;
 
     if ((bindPtr->tkwin == NULL) || (bindPtr->bindingTable == NULL)) {
-    return;
+        return;
     }
     /* Rbc doesn't set either focusItem or focusContext and both are NULL.
      * This results effectively in KeyPress/KeyRelease events to be ignored
      */
     if ((eventPtr->type == KeyPress) || (eventPtr->type == KeyRelease)) {
-    item = bindPtr->focusItem;
-    context = bindPtr->focusContext;
+        item = bindPtr->focusItem;
+        context = bindPtr->focusContext;
     }
     if (item == NULL) {
-    return;
+        return;
     }
 
     /*
@@ -104,29 +97,29 @@ DoEvent(bindPtr, eventPtr, item, context)
      */
     bindIds = Rbc_ListCreate(TCL_ONE_WORD_KEYS);
     if (bindPtr->tagProc == NULL) {
-    Rbc_ListAppend(bindIds, (char *)Tk_GetUid("all"), 0);
-    Rbc_ListAppend(bindIds, (char *)item, 0);
+        Rbc_ListAppend(bindIds, (char *)Tk_GetUid("all"), 0);
+        Rbc_ListAppend(bindIds, (char *)item, 0);
     } else {
-    (*bindPtr->tagProc) (bindPtr, item, context, bindIds);
+        (*bindPtr->tagProc)(bindPtr, item, context, bindIds);
     }
     nIds = Rbc_ListGetLength(bindIds);
     if (nIds > 0) {
-    ClientData *idArray;
-    ClientData tags[32];
-    register Rbc_ListNode node;
+        ClientData *idArray;
+        ClientData tags[32];
+        register Rbc_ListNode node;
 
-    idArray = tags;
-    if (nIds >= 32) {
-        idArray = (ClientData *)ckalloc(sizeof(ClientData) * nIds);
-    }
-    nIds = 0;
-    for (node = Rbc_ListFirstNode(bindIds); node != NULL; node = Rbc_ListNextNode(node)) {
-        idArray[nIds++] = (ClientData)Rbc_ListGetKey(node);
-    }
-    Tk_BindEvent(bindPtr->bindingTable, eventPtr, bindPtr->tkwin, nIds, idArray);
-    if (nIds >= 32) {
-        ckfree((char *)idArray);
-    }
+        idArray = tags;
+        if (nIds >= 32) {
+            idArray = (ClientData *)ckalloc(sizeof(ClientData) * nIds);
+        }
+        nIds = 0;
+        for (node = Rbc_ListFirstNode(bindIds); node != NULL; node = Rbc_ListNextNode(node)) {
+            idArray[nIds++] = (ClientData)Rbc_ListGetKey(node);
+        }
+        Tk_BindEvent(bindPtr->bindingTable, eventPtr, bindPtr->tkwin, nIds, idArray);
+        if (nIds >= 32) {
+            ckfree((char *)idArray);
+        }
     }
     Rbc_ListDestroy(bindIds);
 }
@@ -142,6 +135,11 @@ DoEvent(bindPtr, eventPtr, item, context)
  *      current item and a fake enter event on the new current
  *      item.
  *
+ * Parameters:
+ *      Rbc_BindTableStruct *bindPtr - Binding table information.
+ *      XEvent *eventPtr - Event describing location of mouse cursor.  Must be EnterWindow, LeaveWindow, ButtonRelease,
+ *          or MotionNotify
+ *
  * Results:
  *      None.
  *
@@ -154,14 +152,7 @@ DoEvent(bindPtr, eventPtr, item, context)
  *
  *--------------------------------------------------------------
  */
-static void
-PickCurrentItem(bindPtr, eventPtr)
-    struct Rbc_BindTableStruct *bindPtr;    /* Binding table information. */
-    XEvent *eventPtr;       /* Event describing location of
-                 * mouse cursor.  Must be EnterWindow,
-                 * LeaveWindow, ButtonRelease, or
-                 * MotionNotify. */
-{
+static void PickCurrentItem(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr) {
     unsigned int buttonDown;
     ClientData newItem;
     ClientData newContext;
@@ -174,7 +165,7 @@ PickCurrentItem(bindPtr, eventPtr)
      */
     buttonDown = (bindPtr->state & ALL_BUTTONS_MASK);
     if (!buttonDown) {
-    bindPtr->flags &= ~LEFT_GRABBED_ITEM;
+        bindPtr->flags &= ~LEFT_GRABBED_ITEM;
     }
 
     /*
@@ -190,27 +181,27 @@ PickCurrentItem(bindPtr, eventPtr)
      */
 
     if (eventPtr != &bindPtr->pickEvent) {
-    if ((eventPtr->type == MotionNotify) || (eventPtr->type == ButtonRelease)) {
-        bindPtr->pickEvent.xcrossing.type = EnterNotify;
-        bindPtr->pickEvent.xcrossing.serial = eventPtr->xmotion.serial;
-        bindPtr->pickEvent.xcrossing.send_event = eventPtr->xmotion.send_event;
-        bindPtr->pickEvent.xcrossing.display = eventPtr->xmotion.display;
-        bindPtr->pickEvent.xcrossing.window = eventPtr->xmotion.window;
-        bindPtr->pickEvent.xcrossing.root = eventPtr->xmotion.root;
-        bindPtr->pickEvent.xcrossing.subwindow = None;
-        bindPtr->pickEvent.xcrossing.time = eventPtr->xmotion.time;
-        bindPtr->pickEvent.xcrossing.x = eventPtr->xmotion.x;
-        bindPtr->pickEvent.xcrossing.y = eventPtr->xmotion.y;
-        bindPtr->pickEvent.xcrossing.x_root = eventPtr->xmotion.x_root;
-        bindPtr->pickEvent.xcrossing.y_root = eventPtr->xmotion.y_root;
-        bindPtr->pickEvent.xcrossing.mode = NotifyNormal;
-        bindPtr->pickEvent.xcrossing.detail = NotifyNonlinear;
-        bindPtr->pickEvent.xcrossing.same_screen = eventPtr->xmotion.same_screen;
-        bindPtr->pickEvent.xcrossing.focus = False;
-        bindPtr->pickEvent.xcrossing.state = eventPtr->xmotion.state;
-    } else {
-        bindPtr->pickEvent = *eventPtr;
-    }
+        if ((eventPtr->type == MotionNotify) || (eventPtr->type == ButtonRelease)) {
+            bindPtr->pickEvent.xcrossing.type = EnterNotify;
+            bindPtr->pickEvent.xcrossing.serial = eventPtr->xmotion.serial;
+            bindPtr->pickEvent.xcrossing.send_event = eventPtr->xmotion.send_event;
+            bindPtr->pickEvent.xcrossing.display = eventPtr->xmotion.display;
+            bindPtr->pickEvent.xcrossing.window = eventPtr->xmotion.window;
+            bindPtr->pickEvent.xcrossing.root = eventPtr->xmotion.root;
+            bindPtr->pickEvent.xcrossing.subwindow = None;
+            bindPtr->pickEvent.xcrossing.time = eventPtr->xmotion.time;
+            bindPtr->pickEvent.xcrossing.x = eventPtr->xmotion.x;
+            bindPtr->pickEvent.xcrossing.y = eventPtr->xmotion.y;
+            bindPtr->pickEvent.xcrossing.x_root = eventPtr->xmotion.x_root;
+            bindPtr->pickEvent.xcrossing.y_root = eventPtr->xmotion.y_root;
+            bindPtr->pickEvent.xcrossing.mode = NotifyNormal;
+            bindPtr->pickEvent.xcrossing.detail = NotifyNonlinear;
+            bindPtr->pickEvent.xcrossing.same_screen = eventPtr->xmotion.same_screen;
+            bindPtr->pickEvent.xcrossing.focus = False;
+            bindPtr->pickEvent.xcrossing.state = eventPtr->xmotion.state;
+        } else {
+            bindPtr->pickEvent = *eventPtr;
+        }
     }
     bindPtr->activePick = TRUE;
 
@@ -221,7 +212,7 @@ PickCurrentItem(bindPtr, eventPtr)
      * the pending call will do everything that's needed.
      */
     if (bindPtr->flags & REPICK_IN_PROGRESS) {
-    return;
+        return;
     }
 
     /*
@@ -230,28 +221,26 @@ PickCurrentItem(bindPtr, eventPtr)
      */
     newContext = NULL;
     if (bindPtr->pickEvent.type != LeaveNotify) {
-    int x, y;
+        int x, y;
 
-    x = bindPtr->pickEvent.xcrossing.x;
-    y = bindPtr->pickEvent.xcrossing.y;
-    newItem = (*bindPtr->pickProc) (bindPtr->clientData, x, y, &newContext);
+        x = bindPtr->pickEvent.xcrossing.x;
+        y = bindPtr->pickEvent.xcrossing.y;
+        newItem = (*bindPtr->pickProc)(bindPtr->clientData, x, y, &newContext);
     } else {
-    newItem = NULL;
+        newItem = NULL;
     }
 
-    if (((newItem == bindPtr->currentItem)
-        && (newContext == bindPtr->currentContext))
-        && (!(bindPtr->flags & LEFT_GRABBED_ITEM))) {
-    /*
-     * Nothing to do:  the current item hasn't changed.
-     */
-    return;
+    if (((newItem == bindPtr->currentItem) && (newContext == bindPtr->currentContext)) &&
+        (!(bindPtr->flags & LEFT_GRABBED_ITEM))) {
+        /*
+         * Nothing to do:  the current item hasn't changed.
+         */
+        return;
     }
 #ifndef FULLY_SIMULATE_GRAB
-    if (((newItem != bindPtr->currentItem)
-        || (newContext != bindPtr->currentContext)) && (buttonDown)) {
-    bindPtr->flags |= LEFT_GRABBED_ITEM;
-    return;
+    if (((newItem != bindPtr->currentItem) || (newContext != bindPtr->currentContext)) && (buttonDown)) {
+        bindPtr->flags |= LEFT_GRABBED_ITEM;
+        return;
     }
 #endif
     /*
@@ -260,65 +249,66 @@ PickCurrentItem(bindPtr, eventPtr)
      * tag from the previous current item and place it on the new current
      * item.
      */
-    if ((bindPtr->currentItem != NULL) && ((newItem != bindPtr->currentItem)
-        || (newContext != bindPtr->currentContext)) && !(bindPtr->flags & LEFT_GRABBED_ITEM)) {
-    XEvent event;
+    if ((bindPtr->currentItem != NULL) &&
+        ((newItem != bindPtr->currentItem) || (newContext != bindPtr->currentContext)) &&
+        !(bindPtr->flags & LEFT_GRABBED_ITEM)) {
+        XEvent event;
 
-    event = bindPtr->pickEvent;
-    event.type = LeaveNotify;
-
-    /*
-     * If the event's detail happens to be NotifyInferior the
-     * binding mechanism will discard the event.  To be consistent,
-     * always use NotifyAncestor.
-     */
-    event.xcrossing.detail = NotifyAncestor;
-
-    bindPtr->flags |= REPICK_IN_PROGRESS;
-    DoEvent(bindPtr, &event, bindPtr->currentItem, bindPtr->currentContext);
-    bindPtr->flags &= ~REPICK_IN_PROGRESS;
-
-    /*
-     * Note:  during DoEvent above, it's possible that
-     * bindPtr->newItem got reset to NULL because the
-     * item was deleted.
-     */
-    }
-    if (((newItem != bindPtr->currentItem) || (newContext != bindPtr->currentContext)) && (buttonDown)) {
-    XEvent event;
-
-    bindPtr->flags |= LEFT_GRABBED_ITEM;
-    event = bindPtr->pickEvent;
-    if ((newItem != bindPtr->newItem) || (newContext != bindPtr->newContext)) {
-        ClientData savedItem;
-        ClientData savedContext;
+        event = bindPtr->pickEvent;
+        event.type = LeaveNotify;
 
         /*
-         * Generate <Enter> and <Leave> events for objects during
-         * button grabs.  This isn't standard. But for example, it
-         * allows one to provide balloon help on the individual
-         * entries of the Hierbox widget.
+         * If the event's detail happens to be NotifyInferior the
+         * binding mechanism will discard the event.  To be consistent,
+         * always use NotifyAncestor.
          */
-        savedItem = bindPtr->currentItem;
-        savedContext = bindPtr->currentContext;
-        if (bindPtr->newItem != NULL) {
-        event.type = LeaveNotify;
-        event.xcrossing.detail = NotifyVirtual /* Ancestor */ ;
-        bindPtr->currentItem = bindPtr->newItem;
-        DoEvent(bindPtr, &event, bindPtr->newItem, bindPtr->newContext);
-        }
-        bindPtr->newItem = newItem;
-        bindPtr->newContext = newContext;
-        if (newItem != NULL) {
-        event.type = EnterNotify;
-        event.xcrossing.detail = NotifyVirtual /* Ancestor */ ;
-        bindPtr->currentItem = newItem;
-        DoEvent(bindPtr, &event, newItem, newContext);
-        }
-        bindPtr->currentItem = savedItem;
-        bindPtr->currentContext = savedContext;
+        event.xcrossing.detail = NotifyAncestor;
+
+        bindPtr->flags |= REPICK_IN_PROGRESS;
+        DoEvent(bindPtr, &event, bindPtr->currentItem, bindPtr->currentContext);
+        bindPtr->flags &= ~REPICK_IN_PROGRESS;
+
+        /*
+         * Note:  during DoEvent above, it's possible that
+         * bindPtr->newItem got reset to NULL because the
+         * item was deleted.
+         */
     }
-    return;
+    if (((newItem != bindPtr->currentItem) || (newContext != bindPtr->currentContext)) && (buttonDown)) {
+        XEvent event;
+
+        bindPtr->flags |= LEFT_GRABBED_ITEM;
+        event = bindPtr->pickEvent;
+        if ((newItem != bindPtr->newItem) || (newContext != bindPtr->newContext)) {
+            ClientData savedItem;
+            ClientData savedContext;
+
+            /*
+             * Generate <Enter> and <Leave> events for objects during
+             * button grabs.  This isn't standard. But for example, it
+             * allows one to provide balloon help on the individual
+             * entries of the Hierbox widget.
+             */
+            savedItem = bindPtr->currentItem;
+            savedContext = bindPtr->currentContext;
+            if (bindPtr->newItem != NULL) {
+                event.type = LeaveNotify;
+                event.xcrossing.detail = NotifyVirtual /* Ancestor */;
+                bindPtr->currentItem = bindPtr->newItem;
+                DoEvent(bindPtr, &event, bindPtr->newItem, bindPtr->newContext);
+            }
+            bindPtr->newItem = newItem;
+            bindPtr->newContext = newContext;
+            if (newItem != NULL) {
+                event.type = EnterNotify;
+                event.xcrossing.detail = NotifyVirtual /* Ancestor */;
+                bindPtr->currentItem = newItem;
+                DoEvent(bindPtr, &event, newItem, newContext);
+            }
+            bindPtr->currentItem = savedItem;
+            bindPtr->currentContext = savedContext;
+        }
+        return;
     }
     /*
      * Special note:  it's possible that
@@ -330,12 +320,12 @@ PickCurrentItem(bindPtr, eventPtr)
     bindPtr->currentItem = bindPtr->newItem = newItem;
     bindPtr->currentContext = bindPtr->newContext = newContext;
     if (bindPtr->currentItem != NULL) {
-    XEvent event;
+        XEvent event;
 
-    event = bindPtr->pickEvent;
-    event.type = EnterNotify;
-    event.xcrossing.detail = NotifyAncestor;
-    DoEvent(bindPtr, &event, newItem, newContext);
+        event = bindPtr->pickEvent;
+        event.type = EnterNotify;
+        event.xcrossing.detail = NotifyAncestor;
+        DoEvent(bindPtr, &event, newItem, newContext);
     }
 }
 
@@ -347,6 +337,10 @@ PickCurrentItem(bindPtr, eventPtr)
  *      This procedure is invoked by the Tk dispatcher to handle
  *      events associated with bindings on items.
  *
+ * Parameters:
+ *      ClientData clientData - Pointer to widget structure.
+ *      XEvent *eventPtr - Pointer to X event that just happened.
+ *
  * Results:
  *      None.
  *
@@ -356,13 +350,8 @@ PickCurrentItem(bindPtr, eventPtr)
  *
  *--------------------------------------------------------------
  */
-static void
-BindProc(clientData, eventPtr)
-    ClientData clientData;  /* Pointer to widget structure. */
-    XEvent *eventPtr;       /* Pointer to X event that just
-                 * happened. */
-{
-    struct Rbc_BindTableStruct *bindPtr = clientData;
+static void BindProc(ClientData clientData, XEvent *eventPtr) {
+    Rbc_BindTableStruct *bindPtr = clientData;
     unsigned int mask;
 
     Tcl_Preserve(bindPtr->clientData);
@@ -386,26 +375,26 @@ BindProc(clientData, eventPtr)
          * current item).
          */
         if (eventPtr->type == ButtonPress) {
-        /*
-         * On a button press, first repick the current item using
-         * the button state before the event, the process the event.
-         */
-        bindPtr->state = eventPtr->xbutton.state;
-        PickCurrentItem(bindPtr, eventPtr);
-        bindPtr->state ^= mask;
-        DoEvent(bindPtr, eventPtr, bindPtr->currentItem, bindPtr->currentContext);
+            /*
+             * On a button press, first repick the current item using
+             * the button state before the event, the process the event.
+             */
+            bindPtr->state = eventPtr->xbutton.state;
+            PickCurrentItem(bindPtr, eventPtr);
+            bindPtr->state ^= mask;
+            DoEvent(bindPtr, eventPtr, bindPtr->currentItem, bindPtr->currentContext);
         } else {
-        /*
-         * Button release: first process the event, with the button
-         * still considered to be down.  Then repick the current
-         * item under the assumption that the button is no longer down.
-         */
-        bindPtr->state = eventPtr->xbutton.state;
-        DoEvent(bindPtr, eventPtr, bindPtr->currentItem, bindPtr->currentContext);
-        eventPtr->xbutton.state ^= mask;
-        bindPtr->state = eventPtr->xbutton.state;
-        PickCurrentItem(bindPtr, eventPtr);
-        eventPtr->xbutton.state ^= mask;
+            /*
+             * Button release: first process the event, with the button
+             * still considered to be down.  Then repick the current
+             * item under the assumption that the button is no longer down.
+             */
+            bindPtr->state = eventPtr->xbutton.state;
+            DoEvent(bindPtr, eventPtr, bindPtr->currentItem, bindPtr->currentContext);
+            eventPtr->xbutton.state ^= mask;
+            bindPtr->state = eventPtr->xbutton.state;
+            PickCurrentItem(bindPtr, eventPtr);
+            eventPtr->xbutton.state ^= mask;
         }
         break;
 
@@ -438,6 +427,13 @@ BindProc(clientData, eventPtr)
  *
  *      TODO: Description
  *
+ * Parameters:
+ *      Tcl_Interp *interp
+ *      Rbc_BindTableStruct *bindPtr
+ *      ClientData item
+ *      int argc
+ *      char **argv
+ *
  * Results:
  *      TODO: Results
  *
@@ -446,57 +442,49 @@ BindProc(clientData, eventPtr)
  *
  *--------------------------------------------------------------
  */
-int
-Rbc_ConfigureBindings(interp, bindPtr, item, argc, argv)
-    Tcl_Interp *interp;
-    struct Rbc_BindTableStruct *bindPtr;
-    ClientData item;
-    int argc;
-    char **argv;
-{
+int Rbc_ConfigureBindings(Tcl_Interp *interp, Rbc_BindTableStruct *bindPtr, ClientData item, int argc,
+                          char **argv) {
     const char *command;
     unsigned long mask;
     char *seq;
 
     if (argc == 0) {
-    Tk_GetAllBindings(interp, bindPtr->bindingTable, item);
-    return TCL_OK;
+        Tk_GetAllBindings(interp, bindPtr->bindingTable, item);
+        return TCL_OK;
     }
     if (argc == 1) {
-    command = Tk_GetBinding(interp, bindPtr->bindingTable, item, argv[0]);
-    if (command == NULL) {
-        return TCL_ERROR;
-    }
-    Tcl_SetResult(interp, command, TCL_VOLATILE);
-    return TCL_OK;
+        command = Tk_GetBinding(interp, bindPtr->bindingTable, item, argv[0]);
+        if (command == NULL) {
+            return TCL_ERROR;
+        }
+        Tcl_SetResult(interp, command, TCL_VOLATILE);
+        return TCL_OK;
     }
 
     seq = argv[0];
     command = argv[1];
 
     if (command[0] == '\0') {
-    return Tk_DeleteBinding(interp, bindPtr->bindingTable, item, seq);
+        return Tk_DeleteBinding(interp, bindPtr->bindingTable, item, seq);
     }
 
     if (command[0] == '+') {
-    mask = Tk_CreateBinding(interp, bindPtr->bindingTable, item, seq, command + 1, TRUE);
+        mask = Tk_CreateBinding(interp, bindPtr->bindingTable, item, seq, command + 1, TRUE);
     } else {
-    mask = Tk_CreateBinding(interp, bindPtr->bindingTable, item, seq, command, FALSE);
+        mask = Tk_CreateBinding(interp, bindPtr->bindingTable, item, seq, command, FALSE);
     }
     if (mask == 0) {
-    return TCL_ERROR;
+        return TCL_ERROR;
     }
     if (mask & (unsigned)~ALL_VALID_EVENTS_MASK) {
-    Tk_DeleteBinding(interp, bindPtr->bindingTable, item, seq);
-    Tcl_ResetResult(interp);
-    Tcl_AppendResult(interp, "requested illegal events; ",
-        "only key, button, motion, enter, leave, and virtual ",
-        "events may be used", (char *)NULL);
-    return TCL_ERROR;
+        Tk_DeleteBinding(interp, bindPtr->bindingTable, item, seq);
+        Tcl_ResetResult(interp);
+        Tcl_AppendResult(interp, "requested illegal events; ", "only key, button, motion, enter, leave, and virtual ",
+                         "events may be used", (char *)NULL);
+        return TCL_ERROR;
     }
     return TCL_OK;
 }
-
 
 #if (TCL_MAJOR_VERSION >= 8)
 
@@ -507,6 +495,13 @@ Rbc_ConfigureBindings(interp, bindPtr, item, argc, argv)
  *
  *      TODO: Description
  *
+ * Parameters:
+ *      Tcl_Interp *interp
+ *      Rbc_BindTableStruct *bindPtr
+ *      ClientData item
+ *      int argc
+ *      Tcl_Obj *const *objv
+ *
  * Results:
  *      TODO: Results
  *
@@ -515,57 +510,50 @@ Rbc_ConfigureBindings(interp, bindPtr, item, argc, argv)
  *
  *--------------------------------------------------------------
  */
-int
-Rbc_ConfigureBindingsFromObj(interp, bindPtr, item, objc, objv)
-    Tcl_Interp *interp;
-    struct Rbc_BindTableStruct *bindPtr;
-    ClientData item;
-    int objc;
-    Tcl_Obj *const *objv;
-{
+int Rbc_ConfigureBindingsFromObj(Tcl_Interp *interp, Rbc_BindTableStruct *bindPtr, ClientData item, int objc,
+                                 Tcl_Obj *const *objv) {
     const char *command;
     unsigned long mask;
     char *seq;
     char *string;
 
     if (objc == 0) {
-    Tk_GetAllBindings(interp, bindPtr->bindingTable, item);
-    return TCL_OK;
+        Tk_GetAllBindings(interp, bindPtr->bindingTable, item);
+        return TCL_OK;
     }
     string = Tcl_GetString(objv[0]);
     if (objc == 1) {
-    command = Tk_GetBinding(interp, bindPtr->bindingTable, item, string);
-    if (command == NULL) {
-        Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "invalid binding event \"", string, "\"", (char *)NULL);
-        return TCL_ERROR;
-    }
-    Tcl_SetResult(interp, command, TCL_VOLATILE);
-    return TCL_OK;
+        command = Tk_GetBinding(interp, bindPtr->bindingTable, item, string);
+        if (command == NULL) {
+            Tcl_ResetResult(interp);
+            Tcl_AppendResult(interp, "invalid binding event \"", string, "\"", (char *)NULL);
+            return TCL_ERROR;
+        }
+        Tcl_SetResult(interp, command, TCL_VOLATILE);
+        return TCL_OK;
     }
 
     seq = string;
     command = Tcl_GetString(objv[1]);
 
     if (command[0] == '\0') {
-    return Tk_DeleteBinding(interp, bindPtr->bindingTable, item, seq);
+        return Tk_DeleteBinding(interp, bindPtr->bindingTable, item, seq);
     }
 
     if (command[0] == '+') {
-    mask = Tk_CreateBinding(interp, bindPtr->bindingTable, item, seq, command + 1, TRUE);
+        mask = Tk_CreateBinding(interp, bindPtr->bindingTable, item, seq, command + 1, TRUE);
     } else {
-    mask = Tk_CreateBinding(interp, bindPtr->bindingTable, item, seq, command, FALSE);
+        mask = Tk_CreateBinding(interp, bindPtr->bindingTable, item, seq, command, FALSE);
     }
     if (mask == 0) {
-    return TCL_ERROR;
+        return TCL_ERROR;
     }
     if (mask & (unsigned)~ALL_VALID_EVENTS_MASK) {
-    Tk_DeleteBinding(interp, bindPtr->bindingTable, item, seq);
-    Tcl_ResetResult(interp);
-    Tcl_AppendResult(interp, "requested illegal events; ",
-        "only key, button, motion, enter, leave, and virtual ",
-        "events may be used", (char *)NULL);
-    return TCL_ERROR;
+        Tk_DeleteBinding(interp, bindPtr->bindingTable, item, seq);
+        Tcl_ResetResult(interp);
+        Tcl_AppendResult(interp, "requested illegal events; ", "only key, button, motion, enter, leave, and virtual ",
+                         "events may be used", (char *)NULL);
+        return TCL_ERROR;
     }
     return TCL_OK;
 }
@@ -578,6 +566,13 @@ Rbc_ConfigureBindingsFromObj(interp, bindPtr, item, objc, objv)
  *
  *      TODO: Description
  *
+ * Parameters:
+ *      Tcl_Interp *interp
+ *      Tk_Window tkwin
+ *      ClientData clientData
+ *      Rbc_BindPickProc *pickProc
+ *      Rbc_BindTagProc *tagProc
+ *
  * Results:
  *      TODO: Results
  *
@@ -586,25 +581,20 @@ Rbc_ConfigureBindingsFromObj(interp, bindPtr, item, objc, objv)
  *
  *--------------------------------------------------------------
  */
-Rbc_BindTable
-Rbc_CreateBindingTable(interp, tkwin, clientData, pickProc, tagProc)
-    Tcl_Interp *interp;
-    Tk_Window tkwin;
-    ClientData clientData;
-    Rbc_BindPickProc *pickProc;
-    Rbc_BindTagProc *tagProc;
-{
+Rbc_BindTable Rbc_CreateBindingTable(Tcl_Interp *interp, Tk_Window tkwin, ClientData clientData,
+                                     Rbc_BindPickProc *pickProc, Rbc_BindTagProc *tagProc) {
     unsigned int mask;
-    struct Rbc_BindTableStruct *bindPtr;
+    Rbc_BindTableStruct *bindPtr;
 
-    bindPtr = RbcCalloc(1, sizeof(struct Rbc_BindTableStruct));
+    bindPtr = RbcCalloc(1, sizeof(Rbc_BindTableStruct));
     assert(bindPtr);
     bindPtr->clientData = clientData;
     bindPtr->pickProc = pickProc;
     bindPtr->tagProc = tagProc;
     bindPtr->tkwin = tkwin;
     bindPtr->bindingTable = Tk_CreateBindingTable(interp);
-    mask = (KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | EnterWindowMask | LeaveWindowMask | PointerMotionMask);
+    mask = (KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | EnterWindowMask | LeaveWindowMask |
+            PointerMotionMask);
     Tk_CreateEventHandler(tkwin, mask, BindProc, bindPtr);
     return bindPtr;
 }
@@ -616,6 +606,9 @@ Rbc_CreateBindingTable(interp, tkwin, clientData, pickProc, tagProc)
  *
  *      TODO: Description
  *
+ * Parameters:
+ *      Rbc_BindTableStruct *bindPtr
+ *
  * Results:
  *      TODO: Results
  *
@@ -624,14 +617,12 @@ Rbc_CreateBindingTable(interp, tkwin, clientData, pickProc, tagProc)
  *
  *--------------------------------------------------------------
  */
-void
-Rbc_DestroyBindingTable(bindPtr)
-    struct Rbc_BindTableStruct *bindPtr;
-{
+void Rbc_DestroyBindingTable(Rbc_BindTableStruct *bindPtr) {
     unsigned int mask;
 
     Tk_DeleteBindingTable(bindPtr->bindingTable);
-    mask = (KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | EnterWindowMask | LeaveWindowMask | PointerMotionMask);
+    mask = (KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | EnterWindowMask | LeaveWindowMask |
+            PointerMotionMask);
     Tk_DeleteEventHandler(bindPtr->tkwin, mask, BindProc, bindPtr);
     ckfree((char *)bindPtr);
 }
@@ -643,6 +634,9 @@ Rbc_DestroyBindingTable(bindPtr)
  *
  *      TODO: Description
  *
+ * Parameters:
+ *      Rbc_BindTableStruct *bindPtr
+ *
  * Results:
  *      TODO: Results
  *
@@ -651,12 +645,9 @@ Rbc_DestroyBindingTable(bindPtr)
  *
  *--------------------------------------------------------------
  */
-void
-Rbc_PickCurrentItem(bindPtr)
-    struct Rbc_BindTableStruct *bindPtr;
-{
+void Rbc_PickCurrentItem(Rbc_BindTableStruct *bindPtr) {
     if (bindPtr->activePick) {
-    PickCurrentItem(bindPtr, &(bindPtr->pickEvent));
+        PickCurrentItem(bindPtr, &(bindPtr->pickEvent));
     }
 }
 
@@ -667,6 +658,10 @@ Rbc_PickCurrentItem(bindPtr)
  *
  *      TODO: Description
  *
+ * Parameters:
+ *      Rbc_BindTableStruct *bindPtr
+ *      ClientData object
+ *
  * Results:
  *      TODO: Results
  *
@@ -675,27 +670,23 @@ Rbc_PickCurrentItem(bindPtr)
  *
  *--------------------------------------------------------------
  */
-void
-Rbc_DeleteBindings(bindPtr, object)
-    struct Rbc_BindTableStruct *bindPtr;
-    ClientData object;
-{
+void Rbc_DeleteBindings(Rbc_BindTableStruct *bindPtr, ClientData object) {
     Tk_DeleteAllBindings(bindPtr->bindingTable, object);
 
     /*
      * If this is the object currently picked, we need to repick one.
      */
     if (bindPtr->currentItem == object) {
-    bindPtr->currentItem = NULL;
-    bindPtr->currentContext = NULL;
+        bindPtr->currentItem = NULL;
+        bindPtr->currentContext = NULL;
     }
     if (bindPtr->newItem == object) {
-    bindPtr->newItem = NULL;
-    bindPtr->newContext = NULL;
+        bindPtr->newItem = NULL;
+        bindPtr->newContext = NULL;
     }
     if (bindPtr->focusItem == object) {
-    bindPtr->focusItem = NULL;
-    bindPtr->focusContext = NULL;
+        bindPtr->focusItem = NULL;
+        bindPtr->focusContext = NULL;
     }
 }
 
@@ -706,6 +697,10 @@ Rbc_DeleteBindings(bindPtr, object)
  *
  *      TODO: Description
  *
+ * Parameters:
+ *      Rbc_BindTableStruct *bindPtr
+ *      Tk_Window tkwin
+ *
  * Results:
  *      TODO: Results
  *
@@ -714,16 +709,13 @@ Rbc_DeleteBindings(bindPtr, object)
  *
  *--------------------------------------------------------------
  */
-void
-Rbc_MoveBindingTable(bindPtr, tkwin)
-    struct Rbc_BindTableStruct *bindPtr;
-    Tk_Window tkwin;
-{
+void Rbc_MoveBindingTable(Rbc_BindTableStruct *bindPtr, Tk_Window tkwin) {
     unsigned int mask;
 
-    mask = (KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | EnterWindowMask | LeaveWindowMask | PointerMotionMask);
+    mask = (KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | EnterWindowMask | LeaveWindowMask |
+            PointerMotionMask);
     if (bindPtr->tkwin != NULL) {
-    Tk_DeleteEventHandler(bindPtr->tkwin, mask, BindProc, bindPtr);
+        Tk_DeleteEventHandler(bindPtr->tkwin, mask, BindProc, bindPtr);
     }
     Tk_CreateEventHandler(tkwin, mask, BindProc, bindPtr);
     bindPtr->tkwin = tkwin;
