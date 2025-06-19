@@ -28,46 +28,50 @@ extern Tk_CustomOption rbcDashesOption;
 
 struct CrosshairsStruct {
 
-    XPoint hotSpot; /* Hot spot for crosshairs */
-    int visible; /* Internal state of crosshairs. If non-zero,
-          * crosshairs are displayed. */
-    int hidden; /* If non-zero, crosshairs are not displayed.
-         * This is not necessarily consistent with the
-         * internal state variable.  This is true when
-         * the hot spot is off the graph.  */
-    Rbc_Dashes dashes; /* Dashstyle of the crosshairs. This represents
-            * an array of alternatingly drawn pixel
-            * values. If NULL, the hairs are drawn as a
-            * solid line */
-    int lineWidth; /* Width of the simulated crosshair lines */
+    XPoint hotSpot;     /* Hot spot for crosshairs */
+    int visible;        /* Internal state of crosshairs. If non-zero,
+                         * crosshairs are displayed. */
+    int hidden;         /* If non-zero, crosshairs are not displayed.
+                         * This is not necessarily consistent with the
+                         * internal state variable.  This is true when
+                         * the hot spot is off the graph.  */
+    Rbc_Dashes dashes;  /* Dashstyle of the crosshairs. This represents
+                         * an array of alternatingly drawn pixel
+                         * values. If NULL, the hairs are drawn as a
+                         * solid line */
+    int lineWidth;      /* Width of the simulated crosshair lines */
     XSegment segArr[2]; /* Positions of line segments representing the
-             * simulated crosshairs. */
-    XColor *colorPtr; /* Foreground color of crosshairs */
-    GC gc; /* Graphics context for crosshairs. Set to
-        * GXxor to not require redraws of graph */
+                         * simulated crosshairs. */
+    XColor *colorPtr;   /* Foreground color of crosshairs */
+    GC gc;              /* Graphics context for crosshairs. Set to
+                         * GXxor to not require redraws of graph */
 };
 
-#define DEF_HAIRS_DASHES    (char *)NULL
-#define DEF_HAIRS_FOREGROUND    RGB_BLACK
-#define DEF_HAIRS_FG_MONO    RGB_BLACK
-#define DEF_HAIRS_LINE_WIDTH    "0"
-#define DEF_HAIRS_HIDE        "yes"
-#define DEF_HAIRS_POSITION    (char *)NULL
+#define DEF_HAIRS_DASHES (char *)NULL
+#define DEF_HAIRS_FOREGROUND RGB_BLACK
+#define DEF_HAIRS_FG_MONO RGB_BLACK
+#define DEF_HAIRS_LINE_WIDTH "0"
+#define DEF_HAIRS_HIDE "yes"
+#define DEF_HAIRS_POSITION (char *)NULL
 
-static Tk_ConfigSpec configSpecs[] = {
-    {TK_CONFIG_COLOR, "-color", "color", "Color", DEF_HAIRS_FOREGROUND, offsetof(Crosshairs, colorPtr), TK_CONFIG_COLOR_ONLY},
-    {TK_CONFIG_COLOR, "-color", "color", "Color", DEF_HAIRS_FG_MONO, offsetof(Crosshairs, colorPtr), TK_CONFIG_MONO_ONLY},
-    {TK_CONFIG_CUSTOM, "-dashes", "dashes", "Dashes", DEF_HAIRS_DASHES, offsetof(Crosshairs, dashes), TK_CONFIG_NULL_OK, &rbcDashesOption},
-    {TK_CONFIG_BOOLEAN, "-hide", "hide", "Hide", DEF_HAIRS_HIDE, offsetof(Crosshairs, hidden), TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-linewidth", "lineWidth", "Linewidth", DEF_HAIRS_LINE_WIDTH, offsetof(Crosshairs, lineWidth), TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-position", "position", "Position", DEF_HAIRS_POSITION, offsetof(Crosshairs, hotSpot), 0, &rbcPointOption},
-    {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}
-};
+static Tk_ConfigSpec configSpecs[] = {{TK_CONFIG_COLOR, "-color", "color", "Color", DEF_HAIRS_FOREGROUND,
+                                       offsetof(Crosshairs, colorPtr), TK_CONFIG_COLOR_ONLY},
+                                      {TK_CONFIG_COLOR, "-color", "color", "Color", DEF_HAIRS_FG_MONO,
+                                       offsetof(Crosshairs, colorPtr), TK_CONFIG_MONO_ONLY},
+                                      {TK_CONFIG_CUSTOM, "-dashes", "dashes", "Dashes", DEF_HAIRS_DASHES,
+                                       offsetof(Crosshairs, dashes), TK_CONFIG_NULL_OK, &rbcDashesOption},
+                                      {TK_CONFIG_BOOLEAN, "-hide", "hide", "Hide", DEF_HAIRS_HIDE,
+                                       offsetof(Crosshairs, hidden), TK_CONFIG_DONT_SET_DEFAULT},
+                                      {TK_CONFIG_CUSTOM, "-linewidth", "lineWidth", "Linewidth", DEF_HAIRS_LINE_WIDTH,
+                                       offsetof(Crosshairs, lineWidth), TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
+                                      {TK_CONFIG_CUSTOM, "-position", "position", "Position", DEF_HAIRS_POSITION,
+                                       offsetof(Crosshairs, hotSpot), 0, &rbcPointOption},
+                                      {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}};
 
-static void TurnOffHairs (Tk_Window tkwin, Crosshairs *chPtr);
-static void TurnOnHairs (Graph *graphPtr, Crosshairs *chPtr);
+static void TurnOffHairs(Tk_Window tkwin, Crosshairs *chPtr);
+static void TurnOnHairs(Graph *graphPtr, Crosshairs *chPtr);
 
-typedef int (RbcGrHairsOp) (Graph *, Tcl_Interp *, int, Tcl_Obj *const []);
+typedef int(RbcGrHairsOp)(Graph *, Tcl_Interp *, int, Tcl_Obj *const[]);
 static RbcGrHairsOp CgetOp;
 static RbcGrHairsOp ConfigureOp;
 static RbcGrHairsOp OnOp;
@@ -83,6 +87,10 @@ static RbcGrHairsOp ToggleOp;
  *      thereby erasing them.  The internal state of the crosshairs is
  *      tracked.
  *
+ * Parameters:
+ *      Tk_Window tkwin
+ *      Crosshairs *chPtr
+ *
  * Results:
  *      None
  *
@@ -91,15 +99,10 @@ static RbcGrHairsOp ToggleOp;
  *
  *----------------------------------------------------------------------
  */
-static void
-TurnOffHairs(
-    Tk_Window tkwin,
-    Crosshairs *chPtr)
-{
+static void TurnOffHairs(Tk_Window tkwin, Crosshairs *chPtr) {
     if (Tk_IsMapped(tkwin) && (chPtr->visible)) {
-    XDrawSegments(Tk_Display(tkwin), Tk_WindowId(tkwin), chPtr->gc,
-              chPtr->segArr, 2);
-    chPtr->visible = FALSE;
+        XDrawSegments(Tk_Display(tkwin), Tk_WindowId(tkwin), chPtr->gc, chPtr->segArr, 2);
+        chPtr->visible = FALSE;
     }
 }
 
@@ -111,6 +114,10 @@ TurnOffHairs(
  *      Draws (by XORing) new line segments, creating the effect of
  *      crosshairs. The internal state of the crosshairs is tracked.
  *
+ * Parameters:
+ *      Graph *graphPtr
+ *      Crosshairs *chPtr
+ *
  * Results:
  *      None
  *
@@ -119,18 +126,13 @@ TurnOffHairs(
  *
  *----------------------------------------------------------------------
  */
-static void
-TurnOnHairs(
-    Graph *graphPtr,
-    Crosshairs *chPtr)
-{
+static void TurnOnHairs(Graph *graphPtr, Crosshairs *chPtr) {
     if (Tk_IsMapped(graphPtr->tkwin) && (!chPtr->visible)) {
-    if (!PointInGraph(graphPtr, chPtr->hotSpot.x, chPtr->hotSpot.y)) {
-        return;        /* Coordinates are off the graph */
-    }
-    XDrawSegments(graphPtr->display, Tk_WindowId(graphPtr->tkwin),
-              chPtr->gc, chPtr->segArr, 2);
-    chPtr->visible = TRUE;
+        if (!PointInGraph(graphPtr, chPtr->hotSpot.x, chPtr->hotSpot.y)) {
+            return; /* Coordinates are off the graph */
+        }
+        XDrawSegments(graphPtr->display, Tk_WindowId(graphPtr->tkwin), chPtr->gc, chPtr->segArr, 2);
+        chPtr->visible = TRUE;
     }
 }
 
@@ -143,6 +145,9 @@ TurnOnHairs(
  *      dashes, and position.  The crosshairs are first turned off
  *      before any of the attributes changes.
  *
+ * Parameters:
+ *      Graph *graphPtr
+ *
  * Results:
  *      None
  *
@@ -151,10 +156,7 @@ TurnOnHairs(
  *
  *----------------------------------------------------------------------
  */
-void
-Rbc_ConfigureCrosshairs(
-    Graph *graphPtr)
-{
+void Rbc_ConfigureCrosshairs(Graph *graphPtr) {
     XGCValues gcValues;
     unsigned long gcMask;
     GC newGC;
@@ -170,10 +172,10 @@ Rbc_ConfigureCrosshairs(
     gcValues.function = GXxor;
 
     if (graphPtr->plotBg == NULL) {
-    /* The graph's color option may not have been set yet */
-    colorValue = WhitePixelOfScreen(Tk_Screen(graphPtr->tkwin));
+        /* The graph's color option may not have been set yet */
+        colorValue = WhitePixelOfScreen(Tk_Screen(graphPtr->tkwin));
     } else {
-    colorValue = graphPtr->plotBg->pixel;
+        colorValue = graphPtr->plotBg->pixel;
     }
     gcValues.background = colorValue;
     gcValues.foreground = (colorValue ^ chPtr->colorPtr->pixel);
@@ -181,15 +183,15 @@ Rbc_ConfigureCrosshairs(
     gcValues.line_width = LineWidth(chPtr->lineWidth);
     gcMask = (GCForeground | GCBackground | GCFunction | GCLineWidth);
     if (LineIsDashed(chPtr->dashes)) {
-    gcValues.line_style = LineOnOffDash;
-    gcMask |= GCLineStyle;
+        gcValues.line_style = LineOnOffDash;
+        gcMask |= GCLineStyle;
     }
     newGC = Rbc_GetPrivateGC(graphPtr->tkwin, gcMask, &gcValues);
     if (LineIsDashed(chPtr->dashes)) {
-    Rbc_SetDashes(graphPtr->display, newGC, &(chPtr->dashes));
+        Rbc_SetDashes(graphPtr->display, newGC, &(chPtr->dashes));
     }
     if (chPtr->gc != NULL) {
-    Rbc_FreePrivateGC(graphPtr->display, chPtr->gc);
+        Rbc_FreePrivateGC(graphPtr->display, chPtr->gc);
     }
     chPtr->gc = newGC;
 
@@ -204,7 +206,7 @@ Rbc_ConfigureCrosshairs(
     chPtr->segArr[1].x2 = graphPtr->right;
 
     if (!chPtr->hidden) {
-    TurnOnHairs(graphPtr, chPtr);
+        TurnOnHairs(graphPtr, chPtr);
     }
 }
 
@@ -215,6 +217,9 @@ Rbc_ConfigureCrosshairs(
  *
  *      TODO: Description
  *
+ * Parameters:
+ *      Graph *graphPtr
+ *
  * Results:
  *      TODO: Results
  *
@@ -223,12 +228,9 @@ Rbc_ConfigureCrosshairs(
  *
  *----------------------------------------------------------------------
  */
-void
-Rbc_EnableCrosshairs(
-    Graph *graphPtr)
-{
+void Rbc_EnableCrosshairs(Graph *graphPtr) {
     if (!graphPtr->crosshairs->hidden) {
-    TurnOnHairs(graphPtr, graphPtr->crosshairs);
+        TurnOnHairs(graphPtr, graphPtr->crosshairs);
     }
 }
 
@@ -239,6 +241,9 @@ Rbc_EnableCrosshairs(
  *
  *      TODO: Description
  *
+ * Parameters:
+ *      Graph *graphPtr
+ *
  * Results:
  *      TODO: Results
  *
@@ -247,12 +252,9 @@ Rbc_EnableCrosshairs(
  *
  *----------------------------------------------------------------------
  */
-void
-Rbc_DisableCrosshairs(
-    Graph *graphPtr)
-{
+void Rbc_DisableCrosshairs(Graph *graphPtr) {
     if (!graphPtr->crosshairs->hidden) {
-    TurnOffHairs(graphPtr->tkwin, graphPtr->crosshairs);
+        TurnOffHairs(graphPtr->tkwin, graphPtr->crosshairs);
     }
 }
 
@@ -263,6 +265,9 @@ Rbc_DisableCrosshairs(
  *
  *      Update the length of the hairs (not the hot spot).
  *
+ * Parameters:
+ *      Graph *graphPtr
+ *
  * Results:
  *      None
  *
@@ -271,10 +276,7 @@ Rbc_DisableCrosshairs(
  *
  *----------------------------------------------------------------------
  */
-void
-Rbc_UpdateCrosshairs(
-    Graph *graphPtr)
-{
+void Rbc_UpdateCrosshairs(Graph *graphPtr) {
     Crosshairs *chPtr = graphPtr->crosshairs;
 
     chPtr->segArr[0].y1 = graphPtr->bottom;
@@ -290,6 +292,9 @@ Rbc_UpdateCrosshairs(
  *
  *      TODO: Description
  *
+ * Parameters:
+ *      Graph *graphPtr
+ *
  * Results:
  *      None
  *
@@ -298,15 +303,12 @@ Rbc_UpdateCrosshairs(
  *
  *----------------------------------------------------------------------
  */
-void
-Rbc_DestroyCrosshairs(
-    Graph *graphPtr)
-{
+void Rbc_DestroyCrosshairs(Graph *graphPtr) {
     Crosshairs *chPtr = graphPtr->crosshairs;
 
     Tk_FreeOptions(configSpecs, (char *)chPtr, graphPtr->display, 0);
     if (chPtr->gc != NULL) {
-    Rbc_FreePrivateGC(graphPtr->display, chPtr->gc);
+        Rbc_FreePrivateGC(graphPtr->display, chPtr->gc);
     }
     ckfree((char *)chPtr);
 }
@@ -318,6 +320,9 @@ Rbc_DestroyCrosshairs(
  *
  *      Creates and initializes a new crosshair structure.
  *
+ * Parameters:
+ *      Graph *graphPtr
+ *
  * Results:
  *      Returns TCL_ERROR if the crosshair structure can't be created,
  *      otherwise TCL_OK.
@@ -327,10 +332,7 @@ Rbc_DestroyCrosshairs(
  *
  *----------------------------------------------------------------------
  */
-int
-Rbc_CreateCrosshairs(
-    Graph *graphPtr)
-{
+int Rbc_CreateCrosshairs(Graph *graphPtr) {
     Crosshairs *chPtr;
 
     chPtr = RbcCalloc(1, sizeof(Crosshairs));
@@ -339,10 +341,9 @@ Rbc_CreateCrosshairs(
     chPtr->hotSpot.x = chPtr->hotSpot.y = -1;
     graphPtr->crosshairs = chPtr;
 
-    if (Rbc_ConfigureWidgetComponent(graphPtr->interp, graphPtr->tkwin,
-        "crosshairs", "Crosshairs", configSpecs, 0, NULL,
-        (char *)chPtr, 0) != TCL_OK) {
-    return TCL_ERROR;
+    if (Rbc_ConfigureWidgetComponent(graphPtr->interp, graphPtr->tkwin, "crosshairs", "Crosshairs", configSpecs, 0,
+                                     NULL, (char *)chPtr, 0) != TCL_OK) {
+        return TCL_ERROR;
     }
     return TCL_OK;
 }
@@ -355,6 +356,12 @@ Rbc_CreateCrosshairs(
  *      Queries configuration attributes of the crosshairs such as
  *      line width, dashes, and position.
  *
+ * Parameters:
+ *      Graph *graphPtr
+ *      Tcl_Interp *interp
+ *      int objc
+ *      Tcl_Obj *const objv[]
+ *
  * Results:
  *      A standard Tcl result.
  *
@@ -363,17 +370,10 @@ Rbc_CreateCrosshairs(
  *
  *----------------------------------------------------------------------
  */
-static int
-CgetOp(
-    Graph *graphPtr,
-    Tcl_Interp *interp,
-    int objc,
-    Tcl_Obj *const objv[])
-{
+static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     Crosshairs *chPtr = graphPtr->crosshairs;
 
-    return Tk_ConfigureValue(interp, graphPtr->tkwin, configSpecs,
-    (char *)chPtr, Tcl_GetString(objv[3]), 0);
+    return Tk_ConfigureValue(interp, graphPtr->tkwin, configSpecs, (char *)chPtr, Tcl_GetString(objv[3]), 0);
 }
 
 /*
@@ -384,6 +384,12 @@ CgetOp(
  *      Queries or resets configuration attributes of the crosshairs
  *      such as line width, dashes, and position.
  *
+ * Parameters:
+ *      Graph *graphPtr
+ *      Tcl_Interp *interp
+ *      int objc
+ *      Tcl_Obj *const objv[]
+ *
  * Results:
  *      A standard Tcl result.
  *
@@ -392,25 +398,17 @@ CgetOp(
  *
  *----------------------------------------------------------------------
  */
-static int
-ConfigureOp(
-    Graph *graphPtr,
-    Tcl_Interp *interp,
-    int objc,
-    Tcl_Obj *const objv[])
-{
+static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     Crosshairs *chPtr = graphPtr->crosshairs;
 
     if (objc == 3) {
-    return Tk_ConfigureInfo(interp, graphPtr->tkwin, configSpecs,
-        (char *)chPtr, (char *)NULL, 0);
+        return Tk_ConfigureInfo(interp, graphPtr->tkwin, configSpecs, (char *)chPtr, (char *)NULL, 0);
     } else if (objc == 4) {
-    return Tk_ConfigureInfo(interp, graphPtr->tkwin, configSpecs,
-        (char *)chPtr, Tcl_GetString(objv[3]), 0);
+        return Tk_ConfigureInfo(interp, graphPtr->tkwin, configSpecs, (char *)chPtr, Tcl_GetString(objv[3]), 0);
     }
-    if (Tk_ConfigureWidget(interp, graphPtr->tkwin, configSpecs, objc-3,
-        objv+3, (char *)chPtr, TK_CONFIG_ARGV_ONLY) != TCL_OK) {
-    return TCL_ERROR;
+    if (Tk_ConfigureWidget(interp, graphPtr->tkwin, configSpecs, objc - 3, objv + 3, (char *)chPtr,
+                           TK_CONFIG_ARGV_ONLY) != TCL_OK) {
+        return TCL_ERROR;
     }
     Rbc_ConfigureCrosshairs(graphPtr);
     return TCL_OK;
@@ -423,6 +421,12 @@ ConfigureOp(
  *
  *      Maps the crosshairs.
  *
+ * Parameters:
+ *      Graph *graphPtr
+ *      Tcl_Interp *interp
+ *      int objc
+ *      Tcl_Obj *const objv[]
+ *
  * Results:
  *      A standard Tcl result.
  *
@@ -431,18 +435,12 @@ ConfigureOp(
  *
  *----------------------------------------------------------------------
  */
-static int
-OnOp(
-    Graph *graphPtr,
-    Tcl_Interp *interp,
-    int objc,
-    Tcl_Obj *const objv[])
-{
+static int OnOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     Crosshairs *chPtr = graphPtr->crosshairs;
 
     if (chPtr->hidden) {
-    TurnOnHairs(graphPtr, chPtr);
-    chPtr->hidden = FALSE;
+        TurnOnHairs(graphPtr, chPtr);
+        chPtr->hidden = FALSE;
     }
     return TCL_OK;
 }
@@ -454,6 +452,12 @@ OnOp(
  *
  *      Unmaps the crosshairs.
  *
+ * Parameters:
+ *      Graph *graphPtr
+ *      Tcl_Interp *interp
+ *      int objc
+ *      Tcl_Obj *const objv[]
+ *
  * Results:
  *      A standard Tcl result.
  *
@@ -462,18 +466,12 @@ OnOp(
  *
  *----------------------------------------------------------------------
  */
-static int
-OffOp(
-    Graph *graphPtr,
-    Tcl_Interp *interp,
-    int objc,
-    Tcl_Obj *const objv[])
-{
+static int OffOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     Crosshairs *chPtr = graphPtr->crosshairs;
 
     if (!chPtr->hidden) {
-    TurnOffHairs(graphPtr->tkwin, chPtr);
-    chPtr->hidden = TRUE;
+        TurnOffHairs(graphPtr->tkwin, chPtr);
+        chPtr->hidden = TRUE;
     }
     return TCL_OK;
 }
@@ -485,6 +483,12 @@ OffOp(
  *
  *      Toggles the state of the crosshairs.
  *
+ * Parameters:
+ *      Graph *graphPtr
+ *      Tcl_Interp *interp
+ *      int objc
+ *      Tcl_Obj *const objv[]
+ *
  * Results:
  *      A standard Tcl result.
  *
@@ -493,32 +497,22 @@ OffOp(
  *
  *----------------------------------------------------------------------
  */
-static int
-ToggleOp(
-    Graph *graphPtr,
-    Tcl_Interp *interp,
-    int objc,
-    Tcl_Obj *const objv[])
-{
+static int ToggleOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     Crosshairs *chPtr = graphPtr->crosshairs;
 
     chPtr->hidden = (chPtr->hidden == 0);
     if (chPtr->hidden) {
-    TurnOffHairs(graphPtr->tkwin, chPtr);
+        TurnOffHairs(graphPtr->tkwin, chPtr);
     } else {
-    TurnOnHairs(graphPtr, chPtr);
+        TurnOnHairs(graphPtr, chPtr);
     }
     return TCL_OK;
 }
 
 static Rbc_OpSpec xhairOps[] = {
-    {"cget",      (Rbc_Op)CgetOp,      4, 4, "option"},
-    {"configure", (Rbc_Op)ConfigureOp, 3, 0, "?options...?"},
-    {"off",       (Rbc_Op)OffOp,       3, 3, ""},
-    {"on",        (Rbc_Op)OnOp,        3, 3, ""},
-    {"toggle",    (Rbc_Op)ToggleOp,    3, 3, ""},
-    RBC_OPSPEC_END
-};
+    {"cget", (Rbc_Op)CgetOp, 4, 4, "option"}, {"configure", (Rbc_Op)ConfigureOp, 3, 0, "?options...?"},
+    {"off", (Rbc_Op)OffOp, 3, 3, ""},         {"on", (Rbc_Op)OnOp, 3, 3, ""},
+    {"toggle", (Rbc_Op)ToggleOp, 3, 3, ""},   RBC_OPSPEC_END};
 
 /*
  *----------------------------------------------------------------------
@@ -532,6 +526,12 @@ static Rbc_OpSpec xhairOps[] = {
  *      graph.  Care must be taken to erase crosshairs before redrawing
  *      the graph and redraw them after the graph is redraw.
  *
+ * Parameters:
+ *      Graph *graphPtr
+ *      Tcl_Interp *interp
+ *      int objc
+ *      Tcl_Obj *const objv[]
+ *
  * Results:
  *      The return value is a standard Tcl result.
  *
@@ -540,18 +540,12 @@ static Rbc_OpSpec xhairOps[] = {
  *
  *----------------------------------------------------------------------
  */
-int
-Rbc_CrosshairsOp(
-    Graph *graphPtr,
-    Tcl_Interp *interp,
-    int objc,
-    Tcl_Obj *const objv[])
-{
+int Rbc_CrosshairsOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     Rbc_Op proc;
 
     proc = Rbc_GetOpFromObj(interp, xhairOps, RBC_OP_ARG2, objc, objv);
     if (proc == NULL) {
-    return TCL_ERROR;
+        return TCL_ERROR;
     }
-    return (*proc) (graphPtr, interp, objc, objv);
+    return (*proc)(graphPtr, interp, objc, objv);
 }
