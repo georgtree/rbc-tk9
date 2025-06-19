@@ -16,36 +16,41 @@ extern Tk_CustomOption rbcDashesOption;
 extern Tk_CustomOption rbcAnyXAxisOption;
 extern Tk_CustomOption rbcAnyYAxisOption;
 
-
-#define DEF_GRID_DASHES        "dot"
-#define DEF_GRID_FOREGROUND    RGB_GREY64
-#define DEF_GRID_FG_MONO    RGB_BLACK
-#define DEF_GRID_LINE_WIDTH    "0"
-#define DEF_GRID_HIDE_BARCHART    "no"
-#define DEF_GRID_HIDE_GRAPH    "yes"
-#define DEF_GRID_MINOR        "yes"
-#define DEF_GRID_MAP_X_GRAPH    "x"
-#define DEF_GRID_MAP_X_BARCHART    (char *)NULL
-#define DEF_GRID_MAP_Y        "y"
-#define DEF_GRID_POSITION    (char *)NULL
+#define DEF_GRID_DASHES "dot"
+#define DEF_GRID_FOREGROUND RGB_GREY64
+#define DEF_GRID_FG_MONO RGB_BLACK
+#define DEF_GRID_LINE_WIDTH "0"
+#define DEF_GRID_HIDE_BARCHART "no"
+#define DEF_GRID_HIDE_GRAPH "yes"
+#define DEF_GRID_MINOR "yes"
+#define DEF_GRID_MAP_X_GRAPH "x"
+#define DEF_GRID_MAP_X_BARCHART (char *)NULL
+#define DEF_GRID_MAP_Y "y"
+#define DEF_GRID_POSITION (char *)NULL
 
 static Tk_ConfigSpec configSpecs[] = {
-    {TK_CONFIG_COLOR, "-color", "color", "Color", DEF_GRID_FOREGROUND, offsetof(Grid, colorPtr), TK_CONFIG_COLOR_ONLY | ALL_GRAPHS},
-    {TK_CONFIG_COLOR, "-color", "color", "color", DEF_GRID_FG_MONO, offsetof(Grid, colorPtr), TK_CONFIG_MONO_ONLY | ALL_GRAPHS},
-    {TK_CONFIG_CUSTOM, "-dashes", "dashes", "Dashes", DEF_GRID_DASHES, offsetof(Grid, dashes), TK_CONFIG_NULL_OK | ALL_GRAPHS, &rbcDashesOption},
+    {TK_CONFIG_COLOR, "-color", "color", "Color", DEF_GRID_FOREGROUND, offsetof(Grid, colorPtr),
+     TK_CONFIG_COLOR_ONLY | ALL_GRAPHS},
+    {TK_CONFIG_COLOR, "-color", "color", "color", DEF_GRID_FG_MONO, offsetof(Grid, colorPtr),
+     TK_CONFIG_MONO_ONLY | ALL_GRAPHS},
+    {TK_CONFIG_CUSTOM, "-dashes", "dashes", "Dashes", DEF_GRID_DASHES, offsetof(Grid, dashes),
+     TK_CONFIG_NULL_OK | ALL_GRAPHS, &rbcDashesOption},
     {TK_CONFIG_BOOLEAN, "-hide", "hide", "Hide", DEF_GRID_HIDE_BARCHART, offsetof(Grid, hidden), BARCHART},
     {TK_CONFIG_BOOLEAN, "-hide", "hide", "Hide", DEF_GRID_HIDE_GRAPH, offsetof(Grid, hidden), GRAPH | STRIPCHART},
-    {TK_CONFIG_CUSTOM, "-linewidth", "lineWidth", "Linewidth", DEF_GRID_LINE_WIDTH, offsetof(Grid, lineWidth), TK_CONFIG_DONT_SET_DEFAULT | ALL_GRAPHS, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-mapx", "mapX", "MapX", DEF_GRID_MAP_X_GRAPH, offsetof(Grid, axes.x), GRAPH | STRIPCHART, &rbcAnyXAxisOption},
-    {TK_CONFIG_CUSTOM, "-mapx", "mapX", "MapX", DEF_GRID_MAP_X_BARCHART, offsetof(Grid, axes.x), BARCHART, &rbcAnyXAxisOption},
+    {TK_CONFIG_CUSTOM, "-linewidth", "lineWidth", "Linewidth", DEF_GRID_LINE_WIDTH, offsetof(Grid, lineWidth),
+     TK_CONFIG_DONT_SET_DEFAULT | ALL_GRAPHS, &rbcDistanceOption},
+    {TK_CONFIG_CUSTOM, "-mapx", "mapX", "MapX", DEF_GRID_MAP_X_GRAPH, offsetof(Grid, axes.x), GRAPH | STRIPCHART,
+     &rbcAnyXAxisOption},
+    {TK_CONFIG_CUSTOM, "-mapx", "mapX", "MapX", DEF_GRID_MAP_X_BARCHART, offsetof(Grid, axes.x), BARCHART,
+     &rbcAnyXAxisOption},
     {TK_CONFIG_CUSTOM, "-mapy", "mapY", "MapY", DEF_GRID_MAP_Y, offsetof(Grid, axes.y), ALL_GRAPHS, &rbcAnyYAxisOption},
-    {TK_CONFIG_BOOLEAN, "-minor", "minor", "Minor", DEF_GRID_MINOR, offsetof(Grid, minorGrid), TK_CONFIG_DONT_SET_DEFAULT | ALL_GRAPHS},
-    {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}
-};
+    {TK_CONFIG_BOOLEAN, "-minor", "minor", "Minor", DEF_GRID_MINOR, offsetof(Grid, minorGrid),
+     TK_CONFIG_DONT_SET_DEFAULT | ALL_GRAPHS},
+    {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}};
 
-static void ConfigureGrid (Graph *graphPtr, Grid *gridPtr);
+static void ConfigureGrid(Graph *graphPtr, Grid *gridPtr);
 
-typedef int (RbcGrGridOp) (Graph *, Tcl_Interp *, int, Tcl_Obj *const []);
+typedef int(RbcGrGridOp)(Graph *, Tcl_Interp *, int, Tcl_Obj *const[]);
 static RbcGrGridOp CgetOp;
 static RbcGrGridOp ConfigureOp;
 static RbcGrGridOp MapOp;
@@ -61,6 +66,10 @@ static RbcGrGridOp ToggleOp;
  *      dashes, and position.  The grid are first turned off
  *      before any of the attributes changes.
  *
+ * Parameters:
+ *      Graph *graphPtr
+ *      Grid *gridPtr
+ *
  * Results:
  *      None
  *
@@ -69,11 +78,7 @@ static RbcGrGridOp ToggleOp;
  *
  *----------------------------------------------------------------------
  */
-static void
-ConfigureGrid(graphPtr, gridPtr)
-    Graph *graphPtr;
-    Grid *gridPtr;
-{
+static void ConfigureGrid(Graph *graphPtr, Grid *gridPtr) {
     XGCValues gcValues;
     unsigned long gcMask;
     GC newGC;
@@ -82,15 +87,15 @@ ConfigureGrid(graphPtr, gridPtr)
     gcValues.line_width = LineWidth(gridPtr->lineWidth);
     gcMask = (GCForeground | GCBackground | GCLineWidth);
     if (LineIsDashed(gridPtr->dashes)) {
-    gcValues.line_style = LineOnOffDash;
-    gcMask |= GCLineStyle;
+        gcValues.line_style = LineOnOffDash;
+        gcMask |= GCLineStyle;
     }
     newGC = Rbc_GetPrivateGC(graphPtr->tkwin, gcMask, &gcValues);
     if (LineIsDashed(gridPtr->dashes)) {
-    Rbc_SetDashes(graphPtr->display, newGC, &(gridPtr->dashes));
+        Rbc_SetDashes(graphPtr->display, newGC, &(gridPtr->dashes));
     }
     if (gridPtr->gc != NULL) {
-    Rbc_FreePrivateGC(graphPtr->display, gridPtr->gc);
+        Rbc_FreePrivateGC(graphPtr->display, gridPtr->gc);
     }
     gridPtr->gc = newGC;
 }
@@ -103,6 +108,9 @@ ConfigureGrid(graphPtr, gridPtr)
  *      Determines the coordinates of the line segments corresponding
  *      to the grid lines for each axis.
  *
+ * Parameters:
+ *      Graph *graphPtr
+ *
  * Results:
  *      None.
  *
@@ -111,21 +119,18 @@ ConfigureGrid(graphPtr, gridPtr)
  *
  *----------------------------------------------------------------------
  */
-void
-Rbc_MapGrid(graphPtr)
-    Graph *graphPtr;
-{
+void Rbc_MapGrid(Graph *graphPtr) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
     int nSegments;
     Segment2D *segments;
 
     if (gridPtr->x.segments != NULL) {
-    ckfree((char *)gridPtr->x.segments);
-    gridPtr->x.segments = NULL;
+        ckfree((char *)gridPtr->x.segments);
+        gridPtr->x.segments = NULL;
     }
     if (gridPtr->y.segments != NULL) {
-    ckfree((char *)gridPtr->y.segments);
-    gridPtr->y.segments = NULL;
+        ckfree((char *)gridPtr->y.segments);
+        gridPtr->y.segments = NULL;
     }
     gridPtr->x.nSegments = gridPtr->y.nSegments = 0;
     /*
@@ -134,13 +139,13 @@ Rbc_MapGrid(graphPtr)
      */
     Rbc_GetAxisSegments(graphPtr, gridPtr->axes.x, &segments, &nSegments);
     if (nSegments > 0) {
-    gridPtr->x.nSegments = nSegments;
-    gridPtr->x.segments = segments;
+        gridPtr->x.nSegments = nSegments;
+        gridPtr->x.segments = segments;
     }
     Rbc_GetAxisSegments(graphPtr, gridPtr->axes.y, &segments, &nSegments);
     if (nSegments > 0) {
-    gridPtr->y.nSegments = nSegments;
-    gridPtr->y.segments = segments;
+        gridPtr->y.nSegments = nSegments;
+        gridPtr->y.segments = segments;
     }
 }
 
@@ -151,6 +156,10 @@ Rbc_MapGrid(graphPtr)
  *
  *      Draws the grid lines associated with each axis.
  *
+ * Parameters:
+ *      Graph *graphPtr
+ *      Drawable drawable - Pixmap or window to draw into
+ *
  * Results:
  *      None.
  *
@@ -159,23 +168,17 @@ Rbc_MapGrid(graphPtr)
  *
  *----------------------------------------------------------------------
  */
-void
-Rbc_DrawGrid(graphPtr, drawable)
-    Graph *graphPtr;
-    Drawable drawable; /* Pixmap or window to draw into */
-{
+void Rbc_DrawGrid(Graph *graphPtr, Drawable drawable) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
 
     if (gridPtr->hidden) {
-    return;
+        return;
     }
     if (gridPtr->x.nSegments > 0) {
-    Rbc_Draw2DSegments(graphPtr->display, drawable, gridPtr->gc,
-               gridPtr->x.segments, gridPtr->x.nSegments);
+        Rbc_Draw2DSegments(graphPtr->display, drawable, gridPtr->gc, gridPtr->x.segments, gridPtr->x.nSegments);
     }
     if (gridPtr->y.nSegments > 0) {
-    Rbc_Draw2DSegments(graphPtr->display, drawable, gridPtr->gc,
-               gridPtr->y.segments, gridPtr->y.nSegments);
+        Rbc_Draw2DSegments(graphPtr->display, drawable, gridPtr->gc, gridPtr->y.segments, gridPtr->y.nSegments);
     }
 }
 
@@ -186,6 +189,10 @@ Rbc_DrawGrid(graphPtr, drawable)
  *
  *      Prints the grid lines associated with each axis.
  *
+ * Parameters:
+ *      Graph *graphPtr
+ *      PsToken psToken
+ *
  * Results:
  *      None.
  *
@@ -194,25 +201,19 @@ Rbc_DrawGrid(graphPtr, drawable)
  *
  *----------------------------------------------------------------------
  */
-void
-Rbc_GridToPostScript(graphPtr, psToken)
-    Graph *graphPtr;
-    PsToken psToken;
-{
+void Rbc_GridToPostScript(Graph *graphPtr, PsToken psToken) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
 
     if (gridPtr->hidden) {
-    return;
+        return;
     }
-    Rbc_LineAttributesToPostScript(psToken, gridPtr->colorPtr,
-                   gridPtr->lineWidth, &(gridPtr->dashes), CapButt, JoinMiter);
+    Rbc_LineAttributesToPostScript(psToken, gridPtr->colorPtr, gridPtr->lineWidth, &(gridPtr->dashes), CapButt,
+                                   JoinMiter);
     if (gridPtr->x.nSegments > 0) {
-    Rbc_2DSegmentsToPostScript(psToken, gridPtr->x.segments,
-                   gridPtr->x.nSegments);
+        Rbc_2DSegmentsToPostScript(psToken, gridPtr->x.segments, gridPtr->x.nSegments);
     }
     if (gridPtr->y.nSegments > 0) {
-    Rbc_2DSegmentsToPostScript(psToken, gridPtr->y.segments,
-                   gridPtr->y.nSegments);
+        Rbc_2DSegmentsToPostScript(psToken, gridPtr->y.segments, gridPtr->y.nSegments);
     }
 }
 
@@ -223,6 +224,9 @@ Rbc_GridToPostScript(graphPtr, psToken)
  *
  *      TODO: Description
  *
+ * Parameters:
+ *      Graph *graphPtr
+ *
  * Results:
  *      None.
  *
@@ -231,21 +235,18 @@ Rbc_GridToPostScript(graphPtr, psToken)
  *
  *----------------------------------------------------------------------
  */
-void
-Rbc_DestroyGrid(graphPtr)
-    Graph *graphPtr;
-{
+void Rbc_DestroyGrid(Graph *graphPtr) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
 
     Tk_FreeOptions(configSpecs, (char *)gridPtr, graphPtr->display, Rbc_GraphType(graphPtr));
     if (gridPtr->gc != NULL) {
-    Rbc_FreePrivateGC(graphPtr->display, gridPtr->gc);
+        Rbc_FreePrivateGC(graphPtr->display, gridPtr->gc);
     }
     if (gridPtr->x.segments != NULL) {
-    ckfree((char *)gridPtr->x.segments);
+        ckfree((char *)gridPtr->x.segments);
     }
     if (gridPtr->y.segments != NULL) {
-    ckfree((char *)gridPtr->y.segments);
+        ckfree((char *)gridPtr->y.segments);
     }
     ckfree((char *)gridPtr);
 }
@@ -257,6 +258,9 @@ Rbc_DestroyGrid(graphPtr)
  *
  *      Creates and initializes a new grid structure.
  *
+ * Parameters:
+ *      Graph *graphPtr
+ *
  * Results:
  *      Returns TCL_ERROR if the configuration failed, otherwise TCL_OK.
  *
@@ -265,10 +269,7 @@ Rbc_DestroyGrid(graphPtr)
  *
  *----------------------------------------------------------------------
  */
-int
-Rbc_CreateGrid(graphPtr)
-    Graph *graphPtr;
-{
+int Rbc_CreateGrid(Graph *graphPtr) {
     Grid *gridPtr;
 
     gridPtr = RbcCalloc(1, sizeof(Grid));
@@ -276,10 +277,9 @@ Rbc_CreateGrid(graphPtr)
     gridPtr->minorGrid = TRUE;
     graphPtr->gridPtr = gridPtr;
 
-    if (Rbc_ConfigureWidgetComponent(graphPtr->interp, graphPtr->tkwin, "grid",
-        "Grid", configSpecs, 0, NULL, (char *)gridPtr,
-        Rbc_GraphType(graphPtr)) != TCL_OK) {
-    return TCL_ERROR;
+    if (Rbc_ConfigureWidgetComponent(graphPtr->interp, graphPtr->tkwin, "grid", "Grid", configSpecs, 0, NULL,
+                                     (char *)gridPtr, Rbc_GraphType(graphPtr)) != TCL_OK) {
+        return TCL_ERROR;
     }
     ConfigureGrid(graphPtr, gridPtr);
     return TCL_OK;
@@ -293,6 +293,12 @@ Rbc_CreateGrid(graphPtr)
  *      Queries configuration attributes of the grid such as line
  *      width, dashes, and position.
  *
+ * Parameters:
+ *      Graph *graphPtr
+ *      Tcl_Interp *interp
+ *      int objc
+ *      Tcl_Obj *const objv[]
+ *
  * Results:
  *      A standard Tcl result.
  *
@@ -301,17 +307,11 @@ Rbc_CreateGrid(graphPtr)
  *
  *----------------------------------------------------------------------
  */
-static int
-CgetOp(
-    Graph *graphPtr,
-    Tcl_Interp *interp,
-    int objc,
-    Tcl_Obj *const objv[])
-{
+static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
 
-    return Tk_ConfigureValue(interp, graphPtr->tkwin, configSpecs,
-    (char *)gridPtr, Tcl_GetString(objv[3]), Rbc_GraphType(graphPtr));
+    return Tk_ConfigureValue(interp, graphPtr->tkwin, configSpecs, (char *)gridPtr, Tcl_GetString(objv[3]),
+                             Rbc_GraphType(graphPtr));
 }
 
 /*
@@ -322,6 +322,12 @@ CgetOp(
  *      Queries or resets configuration attributes of the grid
  *      such as line width, dashes, and position.
  *
+ * Parameters:
+ *      Graph *graphPtr
+ *      Tcl_Interp *interp
+ *      int objc
+ *      Tcl_Obj *const objv[]
+ *
  * Results:
  *      A standard Tcl result.
  *
@@ -331,27 +337,19 @@ CgetOp(
  *
  *----------------------------------------------------------------------
  */
-static int
-ConfigureOp(
-    Graph *graphPtr,
-    Tcl_Interp *interp,
-    int objc,
-    Tcl_Obj *const objv[])
-{
+static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
     int flags;
 
     flags = Rbc_GraphType(graphPtr) | TK_CONFIG_ARGV_ONLY;
     if (objc == 3) {
-    return Tk_ConfigureInfo(interp, graphPtr->tkwin, configSpecs,
-        (char *)gridPtr, (char *)NULL, flags);
+        return Tk_ConfigureInfo(interp, graphPtr->tkwin, configSpecs, (char *)gridPtr, (char *)NULL, flags);
     } else if (objc == 4) {
-    return Tk_ConfigureInfo(interp, graphPtr->tkwin, configSpecs,
-        (char *)gridPtr, Tcl_GetString(objv[3]), flags);
+        return Tk_ConfigureInfo(interp, graphPtr->tkwin, configSpecs, (char *)gridPtr, Tcl_GetString(objv[3]), flags);
     }
-    if (Tk_ConfigureWidget(graphPtr->interp, graphPtr->tkwin, configSpecs,
-        objc-3, objv+3, (char *)gridPtr, flags) != TCL_OK) {
-    return TCL_ERROR;
+    if (Tk_ConfigureWidget(graphPtr->interp, graphPtr->tkwin, configSpecs, objc - 3, objv + 3, (char *)gridPtr,
+                           flags) != TCL_OK) {
+        return TCL_ERROR;
     }
     ConfigureGrid(graphPtr, gridPtr);
     graphPtr->flags |= REDRAW_BACKING_STORE;
@@ -366,6 +364,12 @@ ConfigureOp(
  *
  *      Maps the grid.
  *
+ * Parameters:
+ *      Graph *graphPtr
+ *      Tcl_Interp *interp
+ *      int objc
+ *      Tcl_Obj *const objv[]
+ *
  * Results:
  *      A standard Tcl result.
  *
@@ -374,19 +378,13 @@ ConfigureOp(
  *
  *----------------------------------------------------------------------
  */
-static int
-MapOp(
-    Graph *graphPtr,
-    Tcl_Interp *interp,
-    int objc,
-    Tcl_Obj *const objv[])
-{
+static int MapOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
 
     if (gridPtr->hidden) {
-    gridPtr->hidden = FALSE;/* Changes "-hide" configuration option */
-    graphPtr->flags |= REDRAW_BACKING_STORE;
-    Rbc_EventuallyRedrawGraph(graphPtr);
+        gridPtr->hidden = FALSE; /* Changes "-hide" configuration option */
+        graphPtr->flags |= REDRAW_BACKING_STORE;
+        Rbc_EventuallyRedrawGraph(graphPtr);
     }
     return TCL_OK;
 }
@@ -398,6 +396,12 @@ MapOp(
  *
  *      Maps or unmaps the grid (off or on).
  *
+ * Parameters:
+ *      Graph *graphPtr
+ *      Tcl_Interp *interp
+ *      int objc
+ *      Tcl_Obj *const objv[]
+ *
  * Results:
  *      A standard Tcl result.
  *
@@ -406,19 +410,13 @@ MapOp(
  *
  *----------------------------------------------------------------------
  */
-static int
-UnmapOp(
-    Graph *graphPtr,
-    Tcl_Interp *interp,
-    int objc,
-    Tcl_Obj *const objv[])
-{
+static int UnmapOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
 
     if (!gridPtr->hidden) {
-    gridPtr->hidden = TRUE;    /* Changes "-hide" configuration option */
-    graphPtr->flags |= REDRAW_BACKING_STORE;
-    Rbc_EventuallyRedrawGraph(graphPtr);
+        gridPtr->hidden = TRUE; /* Changes "-hide" configuration option */
+        graphPtr->flags |= REDRAW_BACKING_STORE;
+        Rbc_EventuallyRedrawGraph(graphPtr);
     }
     return TCL_OK;
 }
@@ -430,6 +428,12 @@ UnmapOp(
  *
  *      Toggles the state of the grid shown/hidden.
  *
+ * Parameters:
+ *      Graph *graphPtr
+ *      Tcl_Interp *interp
+ *      int objc
+ *      Tcl_Obj *const objv[]
+ *
  * Results:
  *      A standard Tcl result.
  *
@@ -439,13 +443,7 @@ UnmapOp(
  *
  *----------------------------------------------------------------------
  */
-static int
-ToggleOp(
-    Graph *graphPtr,
-    Tcl_Interp *interp,
-    int objc,
-    Tcl_Obj *const objv[])
-{
+static int ToggleOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
 
     gridPtr->hidden = (!gridPtr->hidden);
@@ -454,15 +452,10 @@ ToggleOp(
     return TCL_OK;
 }
 
-
 static Rbc_OpSpec gridOps[] = {
-    {"cget",      (Rbc_Op)CgetOp,      4, 4, "option"},
-    {"configure", (Rbc_Op)ConfigureOp, 3, 0, "?options...?"},
-    {"off",       (Rbc_Op)UnmapOp,     3, 3, ""},
-    {"on",        (Rbc_Op)MapOp,       3, 3, ""},
-    {"toggle",    (Rbc_Op)ToggleOp,    3, 3, ""},
-    RBC_OPSPEC_END
-};
+    {"cget", (Rbc_Op)CgetOp, 4, 4, "option"}, {"configure", (Rbc_Op)ConfigureOp, 3, 0, "?options...?"},
+    {"off", (Rbc_Op)UnmapOp, 3, 3, ""},       {"on", (Rbc_Op)MapOp, 3, 3, ""},
+    {"toggle", (Rbc_Op)ToggleOp, 3, 3, ""},   RBC_OPSPEC_END};
 
 /*
  *----------------------------------------------------------------------
@@ -472,6 +465,12 @@ static Rbc_OpSpec gridOps[] = {
  *      User routine to configure grid lines.  Grids are drawn
  *      at major tick intervals across the graph.
  *
+ * Parameters:
+ *      Graph *graphPtr
+ *      Tcl_Interp *interp
+ *      int objc
+ *      Tcl_Obj *const objv[]
+ *
  * Results:
  *      The return value is a standard Tcl result.
  *
@@ -480,18 +479,12 @@ static Rbc_OpSpec gridOps[] = {
  *
  *----------------------------------------------------------------------
  */
-int
-Rbc_GridOp(
-    Graph *graphPtr,
-    Tcl_Interp *interp,
-    int objc,
-    Tcl_Obj *const objv[])
-{
+int Rbc_GridOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     Rbc_Op proc;
 
     proc = Rbc_GetOpFromObj(interp, gridOps, RBC_OP_ARG2, objc, objv);
     if (proc == NULL) {
-    return TCL_ERROR;
+        return TCL_ERROR;
     }
-    return (*proc) (graphPtr, interp, objc, objv);
+    return (*proc)(graphPtr, interp, objc, objv);
 }
