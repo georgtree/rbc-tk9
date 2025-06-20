@@ -16,7 +16,7 @@ extern RbcStubs rbcStubs;
 
 #ifndef RBC_LIBRARY
 #ifdef WIN32
-#define RBC_LIBRARY  "c:/Program Files/Tcl/lib/rbc"
+#define RBC_LIBRARY "c:/Program Files/Tcl/lib/rbc"
 #else
 #define RBC_LIBRARY "unknown"
 #endif
@@ -31,6 +31,11 @@ extern RbcStubs rbcStubs;
  *      This wrapper function is used by Windows to invoke the
  *      initialization code for the DLL.
  *
+ * Parameters:
+ *      HINSTANCE hInst - Library instance handle.
+ *      DWORD reason - Reason this function is being called.
+ *      LPVOID reserved - Not used.
+ *
  * Results:
  *      Returns TRUE;
  *
@@ -39,14 +44,7 @@ extern RbcStubs rbcStubs;
  *
  *----------------------------------------------------------------------
  */
-BOOL APIENTRY
-DllMain(
-    HINSTANCE hInst,          /* Library instance handle. */
-    DWORD reason,            /* Reason this function is being called. */
-    LPVOID reserved)        /* Not used. */
-{
-    return TRUE;
-}
+BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) { return TRUE; }
 
 /*
  *----------------------------------------------------------------------
@@ -54,6 +52,11 @@ DllMain(
  * DllEntryPoint --
  *
  *      TODO: Description
+ *
+ * Parameters:
+ *      HINSTANCE hInst - Library instance handle.
+ *      DWORD reason - Reason this function is being called.
+ *      LPVOID reserved - Not used.
  *
  * Results:
  *      Returns the result from DllMain.
@@ -63,14 +66,7 @@ DllMain(
  *
  *----------------------------------------------------------------------
  */
-BOOL APIENTRY
-DllEntryPoint(hInst, reason, reserved)
-    HINSTANCE hInst;            /* Library instance handle. */
-    DWORD reason;               /* Reason this function is being called. */
-    LPVOID reserved;            /* Not used. */
-{
-    return DllMain(hInst, reason, reserved);
-}
+BOOL APIENTRY DllEntryPoint(HINSTANCE hInst, DWORD reason, LPVOID reserved) { return DllMain(hInst, reason, reserved); }
 #endif /* WIN32 */
 
 /*
@@ -79,6 +75,9 @@ DllEntryPoint(hInst, reason, reserved)
  * Rbc_Init --
  *
  *      This procedure is invoked to initialize the "rbc" commands.
+ *
+ * Parameters:
+ *      Tcl_Interp *interp - Base interpreter to return results to.
  *
  * Results:
  *      None.
@@ -89,35 +88,29 @@ DllEntryPoint(hInst, reason, reserved)
  *
  * ------------------------------------------------------------------------
  */
-int DLLEXPORT
-Rbc_Init (interp)
-    Tcl_Interp *interp; /* Base interpreter to return results to. */
-{
+int DLLEXPORT Rbc_Init(Tcl_Interp *interp) {
     Tcl_Namespace *nsPtr;
     const char **cmd;
 
-   if (Tcl_InitStubs(interp, TCL_VERSION, 0) == NULL) {
-    return TCL_ERROR;
+    if (Tcl_InitStubs(interp, TCL_VERSION, 0) == NULL) {
+        return TCL_ERROR;
     }
 
     if (Tk_InitStubs(interp, TK_VERSION, 0) == NULL) {
-    return TCL_ERROR;
+        return TCL_ERROR;
     }
 
-    static const char *ExportList[] = {
-    "barchart", "graph", "spline", "stripchart", "vector",
-    "winop", NULL
-    };
+    static const char *ExportList[] = {"barchart", "graph", "spline", "stripchart", "vector", "winop", NULL};
 
     nsPtr = Tcl_CreateNamespace(interp, "rbc", NULL, NULL);
     if (nsPtr == NULL) {
         return TCL_ERROR;
     }
 
-    for ( cmd = ExportList; *cmd != NULL ; cmd++ ) {
-    if (Tcl_Export(interp, nsPtr, *cmd, 0) != TCL_OK) {
-        return TCL_ERROR;
-    }
+    for (cmd = ExportList; *cmd != NULL; cmd++) {
+        if (Tcl_Export(interp, nsPtr, *cmd, 0) != TCL_OK) {
+            return TCL_ERROR;
+        }
     }
 
     Rbc_VectorInit(interp);
@@ -126,8 +119,7 @@ Rbc_Init (interp)
     Rbc_InitEpsCanvasItem(interp);
     Rbc_SplineInit(interp);
 
-    Tcl_PkgProvideEx(interp, PACKAGE_NAME, PACKAGE_VERSION,
-             (ClientData) &rbcStubs);
+    Tcl_PkgProvideEx(interp, PACKAGE_NAME, PACKAGE_VERSION, (ClientData)&rbcStubs);
 
     return TCL_OK;
 }
