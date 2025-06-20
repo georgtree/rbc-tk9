@@ -4169,7 +4169,7 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const 
  * ConfigureOp --
  *
  *      TODO: Description
-*
+ *
  * Parameters:
  *      Graph *graphPtr
  *      Tcl_Interp *interp
