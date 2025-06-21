@@ -90,7 +90,7 @@ namespace eval vector.arithmetic {
 	    VectorX - 3.1
 	} -cleanup {
 		vector destroy VectorX
-	} -result {-3.1 1.9 0.9 -1.1 -11.1}
+	} -result {-3.1 1.9 0.8999999999999999 -1.1 -11.1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the correct functioning of vector multiplication

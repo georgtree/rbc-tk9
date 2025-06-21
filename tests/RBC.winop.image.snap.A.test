@@ -67,7 +67,8 @@ namespace eval winop.image {
 		set img [image create photo]
 		update idletasks
 	} -body {
-	    if {[catch {winop image snap .graph1 $img 10}]} {
+	    if {[catch {winop image snap .graph1 $img 10} errorStr]} {
+            puts $errorStr
 			return 1
 	    } else {
 			return 0

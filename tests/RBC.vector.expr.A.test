@@ -43,7 +43,7 @@ namespace eval vector.expr {
 		vector expr {-Vector1}
 	} -cleanup {
 		vector destroy Vector1
-	} -result {-2.0 0.0 1.0 -2.4 4.3}
+	} -result {-2.0 -0.0 1.0 -2.4 4.3}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Tests different conditions when evaluating logical not
@@ -318,7 +318,7 @@ namespace eval vector.expr {
 		vector expr {acos(Vector1)}
 	} -cleanup {
 		vector destroy Vector1
-	} -result {0.0 1.57079632679 1.0471975512 3.14159265359}
+	} -result {0.0 1.5707963267948966 1.0471975511965979 3.141592653589793}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Tests different conditions when evaluating asin (inverse sine)
@@ -332,7 +332,7 @@ namespace eval vector.expr {
 		vector expr {asin(Vector1)}
 	} -cleanup {
 		vector destroy Vector1
-	} -result {1.57079632679 0.0 0.523598775598 -1.57079632679}
+	} -result {1.5707963267948966 0.0 0.5235987755982989 -1.5707963267948966}
 		
 	# ------------------------------------------------------------------------------------
 	# Purpose: Tests different conditions when evaluating atan (inverse tangent)
@@ -346,7 +346,7 @@ namespace eval vector.expr {
 		vector expr {atan(Vector1)}
 	} -cleanup {
 		vector destroy Vector1
-	} -result {0.785398163397 0.0 0.463647609001 -0.785398163397}
+	} -result {0.7853981633974483 0.0 0.4636476090008061 -0.7853981633974483}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Tests different conditions when evaluating ceil (ceiling)
@@ -360,7 +360,7 @@ namespace eval vector.expr {
 		vector expr {ceil(Vector1)}
 	} -cleanup {
 		vector destroy Vector1
-	} -result {4.0 5.0 9.0 1.0 0.0 0.0 -2.0}
+	} -result {4.0 5.0 9.0 1.0 -0.0 -0.0 -2.0}
 
 	test RBC.vector.expr.A.1.20+ {
 		Test ceil
@@ -385,7 +385,7 @@ namespace eval vector.expr {
 		vector expr {cos(Vector1)}
 	} -cleanup {
 		vector destroy Vector1
-	} -result {1.0 -0.999999999996 0.999999999986 -0.999999999996}
+	} -result {1.0 -0.9999999999964793 0.9999999999859169 -0.9999999999964793}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Tests different conditions when evaluating cosh
@@ -399,7 +399,7 @@ namespace eval vector.expr {
 		vector expr {cosh(Vector1)}
 	} -cleanup {
 		vector destroy Vector1
-	} -result {1.0 11.5919226299 267.745340517 11.5919226299}
+	} -result {1.0 11.591922629945447 267.74534051728284 11.591922629945447}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Tests different conditions when evaluating exp
@@ -413,7 +413,7 @@ namespace eval vector.expr {
 		vector expr {exp(Vector1)}
 	} -cleanup {
 		vector destroy Vector1
-	} -result {7.38905609893 0.135335283237 3.66929666762 1.0}
+	} -result {7.38905609893065 0.1353352832366127 3.6692966676192444 1.0}
 
 	# ------------------------------------------------------------------------------------
 	# Purpose: Tests different conditions when evaluating floor
@@ -441,7 +441,7 @@ namespace eval vector.expr {
 		vector expr {log(Vector1)}
 	} -cleanup {
 		vector destroy Vector1
-	} -result {2.48490664979 0.69314718056 1.09861228867 1.60943791243}
+	} -result {2.4849066497880004 0.6931471805599453 1.0986122886681098 1.6094379124341003}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Tests different conditions when evaluating log10
@@ -455,7 +455,7 @@ namespace eval vector.expr {
 		vector expr {log10(Vector1)} 
 	} -cleanup {
 		vector destroy Vector1
-	} -result {0.0 1.0 0.322219294734 1.27875360095}
+	} -result {0.0 1.0 0.3222192947339193 1.2787536009528289}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Tests different conditions when evaluating abs
@@ -483,7 +483,8 @@ namespace eval vector.expr {
 		vector expr {sin(Vector1)} 
 	} -cleanup {
 		vector destroy Vector1
-	} -result {2.65358979335e-06 0.999999999999 0.0 -2.65358979335e-06 -0.846220404175 0.841470984808 -0.841470984808}
+	} -result {2.65358979335273e-6 0.9999999999991198 0.0 -2.65358979335273e-6 -0.8462204041751706 0.8414709848078965\
+                       -0.8414709848078965}
 	test RBC.vector.expr.A.1.28-000 {
 		Test sin
 	} -constraints threeDigitExponent -setup {
@@ -507,7 +508,8 @@ namespace eval vector.expr {
 		vector expr {sinh(Vector1)} 
 	} -cleanup {
 		vector destroy Vector1
-	} -result {11.548708597 2.30129557314 0.0 -11.548708597 4872401723.12 1.17520119364 -1.17520119364}
+	} -result {11.548708597009512 2.3012955731441203 0.0 -11.548708597009512 4872401723.124452 1.1752011936438014\
+                       -1.1752011936438014}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Tests different conditions when evaluating sqrt
@@ -521,7 +523,7 @@ namespace eval vector.expr {
 		vector expr {sqrt(Vector1)} 
 	} -cleanup {
 		vector destroy Vector1
-	} -result {0.0 1.41421356237 2.0 12.0 1.77245310234}
+	} -result {0.0 1.4142135623730951 2.0 12.0 1.7724531023414978}
 
 	# ------------------------------------------------------------------------------------
 	# Purpose: Tests different conditions when evaluating tan
@@ -535,7 +537,8 @@ namespace eval vector.expr {
 		vector expr {tan(Vector1)} 
 	} -cleanup {
 		vector destroy Vector1
-	} -result {-2.65358979336e-06 753695.995141 0.0 2.65358979336e-06 1.58815308339 1.55740772465 -1.55740772465}
+	} -result {-2.6535897933620727e-6 753695.9951408089 0.0 2.6535897933620727e-6 1.5881530833912738 1.5574077246549023\
+                       -1.5574077246549023}
 	test RBC.vector.expr.A.1.31-000 {
 		Test tan
 	} -constraints threeDigitExponent -setup {
@@ -559,7 +562,7 @@ namespace eval vector.expr {
 		vector expr {tanh(Vector1)} 
 	} -cleanup {
 		vector destroy Vector1
-	} -result {0.996272056473 0.91715212493 0.0 -0.996272056473 1.0 0.761594155956 -0.761594155956}
+	} -result {0.9962720564728148 0.9171521249300707 0.0 -0.9962720564728148 1.0 0.7615941559557649 -0.7615941559557649}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Tests different conditions when evaluating round
@@ -601,7 +604,7 @@ namespace eval vector.expr {
 		vector expr {kurtosis(Vector1)} 
 	} -cleanup {
 		vector destroy Vector1
-	} -result {-2.13595720694}
+	} -result {-2.135957206941357}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Tests length with a vector containing elements (see 1.52 for no elements)
@@ -643,7 +646,7 @@ namespace eval vector.expr {
 		vector expr {mean(Vector1)} 
 	} -cleanup {
 		vector destroy Vector1
-	} -result {0.438}
+	} -result {0.43800000000000006}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Tests different conditions when evaluating median
@@ -657,7 +660,7 @@ namespace eval vector.expr {
 		vector expr {median(Vector1)} 
 	} -cleanup {
 		vector destroy Vector1
-	} -result {0.05}
+	} -result {0.04999999999999993}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Tests different conditions when evaluating min
@@ -727,7 +730,7 @@ namespace eval vector.expr {
 		vector expr {sdev(Vector1)} 
 	} -cleanup {
 		vector destroy Vector1
-	} -result {7.99297295546}
+	} -result {7.9929729554569775}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Tests different conditions when evaluating skew (skewedness)
@@ -741,7 +744,7 @@ namespace eval vector.expr {
 		vector expr {skew(Vector1)} 
 	} -cleanup {
 		vector destroy Vector1
-	} -result {1.16046217734}
+	} -result {1.1604621773372112}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Tests different conditions when evaluating sum
@@ -769,7 +772,7 @@ namespace eval vector.expr {
 		vector expr {var(Vector1)} 
 	} -cleanup {
 		vector destroy Vector1
-	} -result {63.8876166667}
+	} -result {63.887616666666645}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Tests different conditions when evaluating norm
@@ -783,7 +786,7 @@ namespace eval vector.expr {
 		vector expr {norm(Vector1)} 
 	} -cleanup {
 		vector destroy Vector1
-	} -result {0.0 0.513489606369 0.902697921274 1.0 0.53118089341 0.632905793897}
+	} -result {0.0 0.5134896063688633 0.9026979212737727 1.0 0.5311808934099956 0.6329057938965059}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Tests different conditions when evaluating sort (ascending by default)
