@@ -13,7 +13,7 @@
  */
 
 #ifndef USE_TCL_STUBS
-#   define USE_TCL_STUBS
+#define USE_TCL_STUBS
 #endif
 
 #include "tcl.h"
@@ -29,6 +29,11 @@ const RbcStubs *rbcStubsPtr;
  *  Checks that the correct version of RBC is loaded and that it
  *  supports stubs. It then initialises the stub table pointers.
  *
+ * Parameters:
+ *      Tcl_Interp *interp
+ *      const char *version
+ *      int exact
+ *
  * Results:
  *  The actual version of RBC that satisfies the request, or
  *  NULL to indicate that an error occurred.
@@ -39,20 +44,15 @@ const RbcStubs *rbcStubsPtr;
  *----------------------------------------------------------------------
  */
 
-const char *
-Rbc_InitStubs(
-    Tcl_Interp *interp,
-    const char *version,
-    int exact
-) {
+const char *Rbc_InitStubs(Tcl_Interp *interp, const char *version, int exact) {
     const char *result;
     void *data;
 
-    result = Tcl_PkgRequireEx(interp, "rbc", (const char *) version, exact, &data);
+    result = Tcl_PkgRequireEx(interp, "rbc", (const char *)version, exact, &data);
     if (!result || !data) {
-    return NULL;
+        return NULL;
     }
 
-    rbcStubsPtr = (const RbcStubs *) data;
+    rbcStubsPtr = (const RbcStubs *)data;
     return result;
 }
