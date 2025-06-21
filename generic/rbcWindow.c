@@ -25,6 +25,9 @@
  *      what is done here: query the X window hierarchy and grab the
  *      parent.
  *
+ * Parameters:
+ *      Tk_Window tkwin
+ *
  * Results:
  *      Returns the X Window ID of the widget.  If it's a toplevel,
  *      then the XID of the wrapper is returned.
@@ -34,20 +37,17 @@
  *
  *----------------------------------------------------------------------
  */
-static HWND
-GetWindowHandle(tkwin)
-    Tk_Window tkwin;
-{
+static HWND GetWindowHandle(Tk_Window tkwin) {
     HWND hWnd;
     Window window;
 
     window = Tk_WindowId(tkwin);
     if (window == None) {
-    Tk_MakeWindowExist(tkwin);
+        Tk_MakeWindowExist(tkwin);
     }
     hWnd = Tk_GetHWND(Tk_WindowId(tkwin));
     if (Tk_IsTopLevel(tkwin)) {
-    hWnd = GetParent(hWnd);
+        hWnd = GetParent(hWnd);
     }
     return hWnd;
 }
@@ -63,6 +63,9 @@ GetWindowHandle(tkwin)
  *      what is done here: query the X window hierarchy and grab the
  *      parent.
  *
+ * Parameters:
+ *      Tk_Window tkwin
+ *
  * Results:
  *      Returns the X Window ID of the widget.  If it's a toplevel,
  *      then the XID of the wrapper is returned.
@@ -72,12 +75,7 @@ GetWindowHandle(tkwin)
  *
  *----------------------------------------------------------------------
  */
-Window
-Rbc_GetRealWindowId(tkwin)
-    Tk_Window tkwin;
-{
-    return (Window) GetWindowHandle(tkwin);
-}
+Window Rbc_GetRealWindowId(Tk_Window tkwin) { return (Window)GetWindowHandle(tkwin); }
 
 #else /* ! WIN32 */
 
@@ -88,6 +86,10 @@ Rbc_GetRealWindowId(tkwin)
  *
  *      TODO: Description
  *
+ * Parameters:
+ *      Display *display
+ *      Window window
+ *
  * Results:
  *      TODO: Results
  *
@@ -96,18 +98,14 @@ Rbc_GetRealWindowId(tkwin)
  *
  *--------------------------------------------------------------
  */
-static Window
-rbcGetParent(display, window)
-    Display *display;
-    Window window;
-{
+static Window rbcGetParent(Display *display, Window window) {
     Window root, parent;
     Window *dummy;
     unsigned int count;
 
     if (XQueryTree(display, window, &root, &parent, &dummy, &count) > 0) {
-    XFree(dummy);
-    return parent;
+        XFree(dummy);
+        return parent;
     }
     return None;
 }
@@ -119,6 +117,9 @@ rbcGetParent(display, window)
  *
  *      TODO: Description
  *
+ * Parameters:
+ *      Tk_Window tkwin
+ *
  * Results:
  *      TODO: Results
  *
@@ -127,22 +128,19 @@ rbcGetParent(display, window)
  *
  *--------------------------------------------------------------
  */
-static Window
-GetWindowId(tkwin)
-    Tk_Window tkwin;
-{
+static Window GetWindowId(Tk_Window tkwin) {
     Window window;
 
     Tk_MakeWindowExist(tkwin);
     window = Tk_WindowId(tkwin);
     if (Tk_IsTopLevel(tkwin)) {
-    Window parent;
+        Window parent;
 
-    parent = rbcGetParent(Tk_Display(tkwin), window);
-    if (parent != None) {
+        parent = rbcGetParent(Tk_Display(tkwin), window);
+        if (parent != None) {
+            window = parent;
+        }
         window = parent;
-    }
-    window = parent;
     }
     return window;
 }
@@ -158,6 +156,9 @@ GetWindowId(tkwin)
  *      what is done here: query the X window hierarchy and grab the
  *      parent.
  *
+ * Parameters:
+ *      Tk_Window tkwin
+ *
  * Results:
  *      Returns the X Window ID of the widget.  If it's a toplevel, then
  *      the XID of the wrapper is returned.
@@ -167,12 +168,7 @@ GetWindowId(tkwin)
  *
  *----------------------------------------------------------------------
  */
-Window
-Rbc_GetRealWindowId(tkwin)
-    Tk_Window tkwin;
-{
-    return GetWindowId(tkwin);
-}
+Window Rbc_GetRealWindowId(Tk_Window tkwin) { return GetWindowId(tkwin); }
 
 #endif /* WIN32 */
 
@@ -181,8 +177,7 @@ Rbc_GetRealWindowId(tkwin)
  */
 #define INST_DATA_KEY "Rbc Window instance data"
 
-static void AssocDataCleanup (void *assocData, Tcl_Interp *interp)
-{
+static void AssocDataCleanup(void *assocData, Tcl_Interp *interp) {
     Tcl_DeleteHashTable((Tcl_HashTable *)assocData);
     ckfree(assocData);
 }
@@ -194,6 +189,10 @@ static void AssocDataCleanup (void *assocData, Tcl_Interp *interp)
  *
  *      TODO: Description
  *
+ * Parameters:
+ *      Tk_Window tkwin
+ *      ClientData instanceData
+ *
  * Results:
  *      TODO: Results
  *
@@ -202,25 +201,21 @@ static void AssocDataCleanup (void *assocData, Tcl_Interp *interp)
  *
  *--------------------------------------------------------------
  */
-void
-Rbc_SetWindowInstanceData(
-    Tk_Window tkwin,
-    ClientData instanceData)
-{
-/*
-    TkWindow *winPtr = (TkWindow *)tkwin;
+void Rbc_SetWindowInstanceData(Tk_Window tkwin, ClientData instanceData) {
+    /*
+        TkWindow *winPtr = (TkWindow *)tkwin;
 
-    winPtr->instanceData = instanceData;
-*/
+        winPtr->instanceData = instanceData;
+    */
     Tcl_Interp *interp = Tk_Interp(tkwin);
     Tcl_HashTable *assocData = Tcl_GetAssocData(interp, INST_DATA_KEY, NULL);
     Tcl_HashEntry *entryPtr;
     int isNew;
 
     if (!assocData) {
-    assocData = (Tcl_HashTable *)ckalloc(sizeof(Tcl_HashTable));
-    Tcl_InitHashTable(assocData, TCL_ONE_WORD_KEYS);
-    Tcl_SetAssocData(interp, INST_DATA_KEY, AssocDataCleanup, assocData);
+        assocData = (Tcl_HashTable *)ckalloc(sizeof(Tcl_HashTable));
+        Tcl_InitHashTable(assocData, TCL_ONE_WORD_KEYS);
+        Tcl_SetAssocData(interp, INST_DATA_KEY, AssocDataCleanup, assocData);
     }
 
     entryPtr = Tcl_CreateHashEntry(assocData, tkwin, &isNew);
@@ -234,6 +229,9 @@ Rbc_SetWindowInstanceData(
  *
  *      TODO: Description
  *
+ * Parameters:
+ *      Tk_Window tkwin
+ *
  * Results:
  *      TODO: Results
  *
@@ -242,21 +240,19 @@ Rbc_SetWindowInstanceData(
  *
  *--------------------------------------------------------------
  */
-ClientData
-Rbc_GetWindowInstanceData(
-    Tk_Window tkwin)
-{
-/*
-    TkWindow *winPtr = (TkWindow *)tkwin;
+ClientData Rbc_GetWindowInstanceData(Tk_Window tkwin) {
+    /*
+        TkWindow *winPtr = (TkWindow *)tkwin;
 
-    return winPtr->instanceData;
-*/
+        return winPtr->instanceData;
+    */
     Tcl_Interp *interp = Tk_Interp(tkwin);
     Tcl_HashTable *assocData = Tcl_GetAssocData(interp, INST_DATA_KEY, NULL);
     Tcl_HashEntry *entryPtr;
 
     entryPtr = Tcl_FindHashEntry(assocData, tkwin);
-    if (!entryPtr) return NULL;
+    if (!entryPtr)
+        return NULL;
     return Tcl_GetHashValue(entryPtr);
 }
 
@@ -267,6 +263,9 @@ Rbc_GetWindowInstanceData(
  *
  *      TODO: Description
  *
+ * Parameters:
+ *      Tk_Window tkwin
+ *
  * Results:
  *      TODO: Results
  *
@@ -275,15 +274,13 @@ Rbc_GetWindowInstanceData(
  *
  *--------------------------------------------------------------
  */
-void
-Rbc_DeleteWindowInstanceData(
-    Tk_Window tkwin)
-{
-/* body originally empty */
+void Rbc_DeleteWindowInstanceData(Tk_Window tkwin) {
+    /* body originally empty */
     Tcl_Interp *interp = Tk_Interp(tkwin);
     Tcl_HashTable *assocData = Tcl_GetAssocData(interp, INST_DATA_KEY, NULL);
     Tcl_HashEntry *entryPtr;
 
     entryPtr = Tcl_FindHashEntry(assocData, tkwin);
-    if (entryPtr) Tcl_DeleteHashEntry(entryPtr);
+    if (entryPtr)
+        Tcl_DeleteHashEntry(entryPtr);
 }

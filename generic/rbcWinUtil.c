@@ -19,6 +19,9 @@
  *
  *      TODO: Description
  *
+ * Parameters:
+ *      None
+ *
  * Results:
  *      TODO: Results
  *
@@ -27,18 +30,16 @@
  *
  *--------------------------------------------------------------
  */
-int
-Rbc_GetPlatformId()
-{
+int Rbc_GetPlatformId() {
     static int platformId = 0;
 
     if (platformId == 0) {
-    OSVERSIONINFO opsysInfo;
+        OSVERSIONINFO opsysInfo;
 
-    opsysInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-    if (GetVersionEx(&opsysInfo)) {
-        platformId = opsysInfo.dwPlatformId;
-    }
+        opsysInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+        if (GetVersionEx(&opsysInfo)) {
+            platformId = opsysInfo.dwPlatformId;
+        }
     }
     return platformId;
 }
@@ -50,6 +51,9 @@ Rbc_GetPlatformId()
  *
  *      TODO: Description
  *
+ * Parameters:
+ *      None
+ *
  * Results:
  *      TODO: Results
  *
@@ -58,24 +62,16 @@ Rbc_GetPlatformId()
  *
  *--------------------------------------------------------------
  */
-char *
-Rbc_LastError()
-{
+char *Rbc_LastError() {
     static char buffer[1024];
     int length;
 
-    FormatMessageA(
-    FORMAT_MESSAGE_FROM_SYSTEM,
-    NULL,
-    GetLastError(),
-    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),    /* Default language */
-    buffer,
-    1024,
-    NULL);
+    FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(),
+                   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), /* Default language */
+                   buffer, 1024, NULL);
     length = strlen(buffer);
     if (buffer[length - 2] == '\r') {
-    buffer[length - 2] = '\0';
+        buffer[length - 2] = '\0';
     }
     return buffer;
 }
-
