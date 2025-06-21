@@ -1053,7 +1053,8 @@ static size_t ComputeWeights(int srcWidth, int destWidth, ResampleFilter *filter
             factor = (sum == 0.0) ? 1.0 : (1.0 / sum);
             for (weight = s->weights, i = left; i <= right; i++, weight++) {
                 weight->f = (float)(weight->f * factor);
-                weight->i = float2si(weight->f);
+                float tmp = weight->f;
+                weight->i = float2si(tmp);
             }
             s = (Sample *)((char *)s + size);
         }
@@ -1089,7 +1090,8 @@ static size_t ComputeWeights(int srcWidth, int destWidth, ResampleFilter *filter
             factor = (sum == 0.0) ? 1.0 : (1.0 / sum);
             for (weight = s->weights, i = left; i <= right; i++, weight++) {
                 weight->f = (float)(weight->f * factor);
-                weight->i = float2si(weight->f);
+                float tmp = weight->f;
+                weight->i = float2si(tmp);
             }
             s = (Sample *)((char *)s + size);
         }

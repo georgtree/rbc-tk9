@@ -169,21 +169,20 @@ static Tcl_Size ParseBool(
 {
     int value;
     int *dst = (int *)dstPtr;
+    const char *optionName = (const char *)clientData;
 
-    if (objc == 0) {
-    /* Deep voodoo here. objv[0] is the option argument, but we ignore
-     * which option is. However, if we end up here, it means that objv[-1]
-     * holds the option name that trigger the call.
-     */
-    Tcl_AppendResult(interp, "\"", Tcl_GetString(objv[-1]),
-        "\" option requires an additional argument", NULL);
-    return -1;
+    if (objc != 1) {
+        Tcl_AppendResult(interp, "option \"", optionName,
+            "\" requires a boolean value", NULL);
+        return -1;  
     }
-    if (Tcl_GetBooleanFromObj(interp, objv[0], &value) == TCL_OK) {
+
+    if (Tcl_GetBooleanFromObj(interp, objv[0], &value) != TCL_OK) {
+        return -1;
+    }
+
     *dst = value;
-    return 1;
-    }
-    return -1;
+    return 1; 
 }
 
 /*

@@ -16,12 +16,11 @@
 #include <X11/Xutil.h>
 #include <X11/Xproto.h>
 
-#define CLAMP(c)    ((((c) < 0.0) ? 0.0 : ((c) > 255.0) ? 255.0 : (c)))
+#define CLAMP(c) ((((c) < 0.0) ? 0.0 : ((c) > 255.0) ? 255.0 : (c)))
 
 /* Defined rbcColor.c */
 extern int redAdjust, greenAdjust, blueAdjust;
 extern int redMaskShift, greenMaskShift, blueMaskShift;
-
 
 /*
  *----------------------------------------------------------------------
