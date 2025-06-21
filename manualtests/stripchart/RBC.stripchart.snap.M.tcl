@@ -112,46 +112,50 @@ namespace eval stripchart.snap {
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure snap takes a picture and stores it as a Tk image in wmf format.
 	# ------------------------------------------------------------------------------------
-	proc RBC.stripchart.snap.M.4.2.Setup {} {
-		image create photo Line1
-		button .button1 -bg red
-		stripchart .stripchart1
-		.stripchart1 element create Line1 -x [list 1 2 3] -y [list 2 6 18]
-		pack .stripchart1
-	}
-	
-	proc RBC.stripchart.snap.M.4.2.Body {} {
-		.stripchart1 snap Line1 -format wmf
-		destroy .stripchart1
-		.button1 configure -image Line1
-		pack .button1
-	}
-	
-	proc RBC.stripchart.snap.M.4.2.Cleanup {} {
-		image delete Line1
-		destroy .button1
-	}
+    if {[string match $::tcl_platform(platform) *windows*]} {
+        proc RBC.stripchart.snap.M.4.2.Setup {} {
+            image create photo Line1
+            button .button1 -bg red
+            stripchart .stripchart1
+            .stripchart1 element create Line1 -x [list 1 2 3] -y [list 2 6 18]
+            pack .stripchart1
+        }
+        
+        proc RBC.stripchart.snap.M.4.2.Body {} {
+            .stripchart1 snap Line1 -format wmf
+            destroy .stripchart1
+            .button1 configure -image Line1
+            pack .button1
+        }
+        
+        proc RBC.stripchart.snap.M.4.2.Cleanup {} {
+            image delete Line1
+            destroy .button1
+        }
+    }
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure snap takes a picture and stores it as a Tk image in emf format.
 	# ------------------------------------------------------------------------------------
-	proc RBC.stripchart.snap.M.4.3.Setup {} {
-		image create photo Line1
-		button .button1 -bg red
-		stripchart .stripchart1
-		.stripchart1 element create Line1 -x [list 1 2 3] -y [list 2 6 18]
-		pack .stripchart1
-	}
-	
-	proc RBC.stripchart.snap.M.4.3.Body {} {
-		.stripchart1 snap Line1 -format emf
-		destroy .stripchart1
-		.button1 configure -image Line1
-		pack .button1
-	}
-	
-	proc RBC.stripchart.snap.M.4.3.Cleanup {} {
-		image delete Line1
-		destroy .button1
-	}
+    if {[string match $::tcl_platform(platform) *windows*]} {
+        proc RBC.stripchart.snap.M.4.3.Setup {} {
+            image create photo Line1
+            button .button1 -bg red
+            stripchart .stripchart1
+            .stripchart1 element create Line1 -x [list 1 2 3] -y [list 2 6 18]
+            pack .stripchart1
+        }
+        
+        proc RBC.stripchart.snap.M.4.3.Body {} {
+            .stripchart1 snap Line1 -format emf
+            destroy .stripchart1
+            .button1 configure -image Line1
+            pack .button1
+        }
+        
+        proc RBC.stripchart.snap.M.4.3.Cleanup {} {
+            image delete Line1
+            destroy .button1
+        }
+    }
 }

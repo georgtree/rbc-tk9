@@ -31,7 +31,7 @@ proc ExecuteCommandSequenceCommand {CommandList CommandName} {
 	foreach command $CommandList {
 		set minor 1
 		set major 1
-		set delay 1500
+		set delay 200
 		while {1 == 1} {
 			if {[info commands [ProcNameGenCommand $CommandName $command $major $minor].Setup] != ""} {
 				[ProcNameGenCommand $CommandName $command $major $minor].Setup
@@ -59,7 +59,7 @@ proc ExecuteCommandSequenceCommand {CommandList CommandName} {
 proc ExecuteCommandSequenceNoCommand {CommandName} {
 	set minor 1
 	set major 1
-	set delay 1500
+	set delay 200
 	while {1 == 1} {
 		if {[info commands [ProcNameGenNoCommand $CommandName $major $minor].Setup] != ""} {
 			[ProcNameGenNoCommand $CommandName $major $minor].Setup
