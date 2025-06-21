@@ -2035,7 +2035,9 @@ void Rbc_Fill3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border,
                          int borderWidth, int relief) {
     Rbc_3DBorder *borderPtr;
 
-    XFillRectangle(Tk_Display(tkwin), drawable, borderPtr->bgGC, x, y, width, height);
+    if (borderPtr != NULL) {
+        XFillRectangle(Tk_Display(tkwin), drawable, borderPtr->bgGC, x, y, width, height);
+    }
     if ((borderWidth > 0) && (relief != TK_RELIEF_FLAT)) {
         Rbc_Draw3DRectangle(tkwin, drawable, borderPtr, x, y, width, height, borderWidth, relief);
     }
