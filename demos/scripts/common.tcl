@@ -8,12 +8,14 @@
 # The text widget is being used as a large read-only label with word wrap.
 # We need to set its -background and -font appropriately.
 option add *Text.Background [. cget -bg]
-option add *Text.Font       TkDefaultFont
+option add *Text.Font TkDefaultFont
 
 # This is true by default in X11, but not in Win32, where it is the same
 # as TkDefaultFont!
 font configure TkHeadingFont -weight bold
 
+# Styling options
+ttk::style configure TButton -highlightcolor grey -background grey80
 
 # ------------------------------------------------------------------------------
 #  Proc MakeLine
@@ -33,13 +35,11 @@ font configure TkHeadingFont -weight bold
 #            |newlines are preserved.
 #   "]
 # ------------------------------------------------------------------------------
-
 proc MakeLine {in} {
     set halfway [regsub -all -line {^\s*\|} [string trim $in] {}]
     string map [list \n\n \n\n \n { }] $halfway
     # N.B. Implicit Return.
 }
-
 
 # ------------------------------------------------------------------------------
 #  Proc CommonHeader
@@ -68,61 +68,30 @@ proc MakeLine {in} {
 #
 # Return Value: Tk window path of the header window
 # ------------------------------------------------------------------------------
-
 proc CommonHeader {w txt lines DemoDir {win {}} {psFile {}} {imgFile {}}} {
-    set visual [winfo screenvisual .]
-    if { $visual != "staticgray" && $visual != "grayscale" } {
-        set colors {-bg yellow -activebackground yellow3}
-    } else {
-        set colors {}
-    }
-
-    text $w            \
-        -wrap   word   \
-        -width  1      \
-        -height 1      \
-        -relief flat   \
-        -padx   15     \
-        -pady    5     \
-        -highlightthickness 0
-
+    text $w -wrap word -width 1 -height 1 -relief flat -padx 15 -pady 5 -highlightthickness 0
     ### Main Message
     $w insert end $txt
-
     ### Print to PostScript File
     if {($psFile ne {}) && ($win ne {})} {
-
-        button $w.print \
-                -pady 0 \
-                -text Print \
-                -command [list CommonPrint $win $psFile] \
-                {*}$colors
-
+        ttk::button $w.print -text Print -command [list CommonPrint $win $psFile]
         set msg "\n\nTo create a PostScript file \"$psFile\", press the "
         $w insert end $msg
         $w window create end -window $w.print
-        $w insert end { button.}
+        $w insert end {button.}
     }
-
     ### Snapshot to Image File
     if {($imgFile ne {}) && ($win ne {})} {
         set im [image create photo -file $DemoDir/images/qv100.t.gif]
-        button $w.snap \
-                -image $im \
-                -activebackground black \
-                -command [list MakeSnapshot $win $imgFile]
-
+        ttk::button $w.snap -image $im -command [list MakeSnapshot $win $imgFile]
         $w insert end "\nYou can click on the "
         $w window create end -window $w.snap
-        $w insert end { button to see a photo image snapshot.}
+        $w insert end {button to see a photo image snapshot.}
     }
-
     bind $w <Configure> {AdjustHeight %W 20}
-
     $w configure -state disabled
     return $w
 }
-
 
 # ------------------------------------------------------------------------------
 #  Proc AdjustHeight
@@ -138,13 +107,11 @@ proc CommonHeader {w txt lines DemoDir {win {}} {psFile {}} {imgFile {}}} {
 #
 # Return Value: none
 # ------------------------------------------------------------------------------
-
 proc AdjustHeight {w maxLines} {
     # $w has no extra spacings per line.
     set lineSpace [font metrics [$w cget -font] -linespace]
-    set yPixels   [$w count -update -ypixels 1.0 end]
-    set needLines [expr { ($yPixels + $lineSpace - 1) / $lineSpace }]
-
+    set yPixels [$w count -update -ypixels 1.0 end]
+    set needLines [expr {($yPixels+$lineSpace-1)/$lineSpace}]
     if {$needLines <= $maxLines} {
         $w configure -height $needLines
     } else {
@@ -154,13 +121,11 @@ proc AdjustHeight {w maxLines} {
     return
 }
 
-
 # ------------------------------------------------------------------------------
 #  Proc CommonFooter
 # ------------------------------------------------------------------------------
 # Command to create a footer window for an RBC demo.  The window is a text
-# widget, and has an embedded "Quit" button to close the demo, and the "BLT"
-# logo from the original BLT demos.
+# widget, and has an embedded "Quit" button to close the demo.
 #
 # This command replaces an htext command in the BLT demos. RBC does not include
 # BLT's htext.
@@ -173,49 +138,23 @@ proc AdjustHeight {w maxLines} {
 #
 # Return Value: Tk window path of the footer window
 # ------------------------------------------------------------------------------
-
 proc CommonFooter {w DemoDir {style TXT}} {
-
     set visual [winfo screenvisual .]
-    if { $visual != "staticgray" && $visual != "grayscale" } {
-        set txtColors {-bg red -activebackground red2}
-        set imgColors {-bg red}
-    } else {
-        set txtColors {}
-        set imgColors {}
-    }
-
-    text $w          \
-        -wrap   word \
-        -width   0   \
-        -height  3   \
-        -relief flat \
-        -padx   15   \
-        -pady    5   \
-        -highlightthickness 0
-
-    button $w.quit -command exit -pady 0
-    label  $w.logo -bitmap @$DemoDir/bitmaps/BLT.xbm
-
+    text $w -wrap word -width 0 -height 3 -relief flat -padx 15 -pady 5 -highlightthickness 0
+    ttk::button $w.quit -command exit
     $w insert end {Hit the }
     $w window create end -window $w.quit
-    $w insert end { button when you've seen enough. }
-    $w window create end -window $w.logo -padx 20
-
+    $w insert end { button when you've seen enough.}
     if {$style eq {TXT}} {
-        $w.quit configure -text Quit {*}$txtColors
+        $w.quit configure -text Quit
     } else {
         set im [image create photo -file $DemoDir/images/stopsign.gif]
-        $w.quit configure -image $im {*}$imgColors
+        $w.quit configure -image $im
     }
-
     bind $w <Configure> {AdjustHeight %W 20}
-
     $w configure -state disabled
-
     return $w
 }
-
 
 # ------------------------------------------------------------------------------
 #  Proc CommonPrint
@@ -230,22 +169,18 @@ proc CommonFooter {w DemoDir {style TXT}} {
 #
 # Return Value: none
 # ------------------------------------------------------------------------------
-
 proc CommonPrint {graph psFile} {
-
     # If the demo's PostScript dialog has been loaded, use it.
     if {[info commands ::rbc::ps::psDialog] ne {}} {
         ::rbc::ps::psDialog $graph $psFile
         return
     }
-
     # This is a simple dialog that lets the user directly set the
     # "configure" options of the graph's postscript component.
     if 0 {
         Rbc_PostScriptDialog $graph
         return
     }
-
     ### FIXME rbc - rbc::busy segfaults, so instead use a grab.
     ### This gives a "busy" warning and also prevents the user+GUI
     ### from changing the graph while it is printing.
@@ -255,27 +190,21 @@ proc CommonPrint {graph psFile} {
     label $lab -text "Printing ..." -bg yellow -fg red
     place $lab -relx 0.5 -rely 0.0 -anchor n
     grab  $lab
-
     ### Catch so the grab is always released.
     set catchValue [catch {
         update idletasks
         $graph postscript output $psFile
         update idletasks
     } catchRes catchDict]
-
     ###rbc::busy release .
     grab release $lab
     destroy $lab
-
     update idletasks
-
     if {$catchValue == 1} {
         return -code error -errorinfo [dict get $catchDict -errorinfo] $catchRes
     }
-
     return
 }
-
 
 # ------------------------------------------------------------------------------
 #  Proc MakeSnapshot
@@ -290,61 +219,43 @@ proc CommonPrint {graph psFile} {
 #
 # Return Value: none
 # ------------------------------------------------------------------------------
-
 proc MakeSnapshot {graph filename} {
     update idletasks
     global unique
-
     # Set to 1 to create a second thumbnail that tests the "winop snap" command.
     set TestWinop 0
-
-    set top ".snapshot[incr unique]"
+    set top .snapshot[incr unique]
     set im1 [image create photo]
     set im2 [image create photo]
     $graph snap $im1
-
     set thumb1 [image create photo -width 210 -height 150 -gamma 1.8]
     winop resample $im1 $thumb1 sinc 
     #Sharpen $thumb1
-
     if {$TestWinop} {
         rbc::winop snap $graph $im2 
         set thumb2 [image create photo -width 210 -height 150 -gamma 1.8]
         winop resample $im2 $thumb2 sinc 
     }
-
     toplevel $top
     wm title $top "Snapshot \#$unique of \"[$graph cget -title]\""
     wm protocol $top WM_DELETE_WINDOW [list DestroySnapshot $top $im1 $im2]
-    label $top.l1 -image $thumb1
-    frame $top.bb
-
+    ttk::label $top.l1 -image $thumb1
+    ttk::frame $top.bb
     if {$TestWinop} {
-        label $top.l2 -image $thumb2
+        ttk::label $top.l2 -image $thumb2
     }
-
     # Uses PNG format. Too many colors for GIF.
     # Tk has no other image formats unless img::* or Img is loaded.
-    button $top.bb.png0 \
-            -text "Save Full-Size as PNG File" \
-            -command [list $im1 write $filename -format png]
-    button $top.bb.png1 \
-            -text "Save Thumbnail as PNG File" \
-            -command [list $thumb1 write $filename -format png]
-    button $top.bb.but \
-            -text "Dismiss" \
-            -command [list DestroySnapshot $top $im1 $im2]
-
+    ttk::button $top.bb.png0 -text {Save Full-Size as PNG File} -command [list $im1 write $filename -format png]
+    ttk::button $top.bb.png1 -text {Save Thumbnail as PNG File} -command [list $thumb1 write $filename -format png]
+    ttk::button $top.bb.but -text Dismiss -command [list DestroySnapshot $top $im1 $im2]
     if {$TestWinop} {
         grid $top.l1 $top.l2
     } else {
         grid $top.l1 -columnspan 2
     }
-
     grid $top.bb -sticky ew -columnspan 2
-
     grid $top.bb.png0 $top.bb.png1 $top.bb.but -pady 4 -padx 10
-
     focus $top.bb.but
     return
 }
@@ -352,7 +263,6 @@ proc MakeSnapshot {graph filename} {
 proc DestroySnapshot {win im1 im2} {
     image delete $im1
     image delete $im2
-
     set thumb1 [$win.l1 cget -image]
     image delete $thumb1
     if {[winfo exists $win.l2]} {
@@ -363,9 +273,7 @@ proc DestroySnapshot {win im1 im2} {
     return
 }
 
-
 # Unused: commented out in MakeSnapshot (including BLT original)
-
 proc Sharpen { photo } {
     #set kernel { -1 -1 -1 -1  16 -1 -1 -1 -1 } 
     set kernel { 0 -1 0 -1  4.9 -1 0 -1 0 }

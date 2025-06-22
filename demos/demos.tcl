@@ -9,15 +9,12 @@
 exec tclsh "$0" "$@"
 package require Tk
 
-### The script can be run from any location.
-### It loads the files it needs from the demo directory.
+### The script can be run from any location. It loads the files it needs from the demo directory.
 set DemoDir [file normalize [file dirname [info script]]]
 set MyBinary [info nameofexecutable]
 
-
 ### Load common commands and create non-rbc GUI elements.
 source $DemoDir/scripts/common.tcl
-
 set HeaderText [MakeLine {
     |There are several demo scripts for rbc.  Each demo can be launched from
     |this application by clicking the thumbnail image.
@@ -25,20 +22,15 @@ set HeaderText [MakeLine {
     |Alternatively, the
     |demos can be run standalone from the command line or file manager.
 }]
-
-
 proc RunDemo {DemoDir fileTail} {
     set DemoPath [file join $DemoDir $fileTail]
     exec -ignorestderr -keepnewline -- $::MyBinary $DemoPath &
     return
 }
-
-
 proc MainWindow {win DemoDir} {
     # To test font resizing:
     # font configure TkDefaultFont -size -18
     # font configure TkHeadingFont -size -18
-
     set Caption(graph1.tcl) [MakeLine {
         |graph widget
         |
@@ -149,32 +141,21 @@ proc MainWindow {win DemoDir} {
         |
         |Uses the winop image processing command to rotate an image.
     }]
-
+    set Caption(spline1.tcl) [MakeLine {
+        |spline command
+        |
+        |demo spline1.tcl
+        |
+        |Uses built-in spline command to demonstrate approximating data points
+    }]
     frame $win
     set i 0
     set j 0
-    foreach name {
-        graph1
-        graph2
-        graph3
-        graph4
-        graph5
-
-        graph6
-        graph7
-        barchart1
-        barchart2
-        barchart3
-
-        barchart4
-        barchart5
-        stripchart1
-        winop1
-        winop2
-    } {
-        set img  $name.ppm
+    foreach name {graph1 graph2 graph3 graph4 graph5 graph6 graph7 barchart1 barchart2 barchart3 barchart4 barchart5\
+                          stripchart1 winop1 winop2 spline1} {
+        set img $name.png
         set demo $name.tcl
-        if {!($i%5)} {
+        if {!($i%4)} {
             incr j
             set col .col$j
             frame $win$col
@@ -182,42 +163,27 @@ proc MainWindow {win DemoDir} {
         incr i
         image create photo im$i -file [file normalize [file join $DemoDir thumbnails $img]]
         button $win$col.pic$i -image im$i -command [list RunDemo $DemoDir $demo] -relief flat -pady 4 -padx 12
-        text  $win$col.caption$i \
-            -wrap   word   \
-            -width  20     \
-            -height  6     \
-            -relief flat   \
-            -padx   15     \
-            -pady    5     \
-            -highlightthickness 0
+        text $win$col.caption$i -wrap word -width 20 -height 6 -relief flat -padx 15 -pady 5 -highlightthickness 0
         $win$col.caption$i insert end [string map [list \n\n \n] $Caption($demo)]
         $win$col.caption$i tag add bold 1.0 3.0
         $win$col.caption$i tag configure bold -font TkHeadingFont
-
         $win$col.caption$i configure -state disabled
-
         # This stops the text from exceeding its box if the system fonts are too large.
         bind $win$col.caption$i <Configure> {AdjustFont %W 40}
-
         grid $win$col.pic$i $win$col.caption$i -sticky nsew
     }
-
     grid {*}[winfo children $win] -sticky nsew
-
     return $win
 }
-
 
 proc AdjustFont {w maxLines} {
     # $w has no extra spacings per line.
     set lineSpace1 [font metrics TkDefaultFont -linespace]
-
-    set yPixels   [$w count -update -ypixels 1.0 end]
-    set needLines [expr { ($yPixels + $lineSpace1 - 1) / $lineSpace1 }]
+    set yPixels [$w count -update -ypixels 1.0 end]
+    set needLines [expr {($yPixels+$lineSpace1-1)/$lineSpace1}]
     #puts "-ypixels $yPixels   $w"
     #puts "-ndlines $needLines $w"
-
-    if {($needLines <= $maxLines) && ($yPixels > 150)} {
+    if {($needLines<=$maxLines) && ($yPixels>150)} {
         ReduceFont $w
     } else {
         # Ignore large demands during startup.
@@ -226,28 +192,23 @@ proc AdjustFont {w maxLines} {
     return
 }
 
-
-
 proc ReduceFont {w} {
     # $w has no extra spacings per line.
     set size1 [font configure TkDefaultFont -size]
     set size2 [font configure TkHeadingFont -size]
-
     set lineSpace1 [font metrics TkDefaultFont -linespace]
     set lineSpace2 [font metrics TkHeadingFont -linespace]
-    if {$lineSpace1 != $lineSpace2 || $size1 != $size2} {
+    if {($lineSpace1!=$lineSpace2) || ($size1!=$size2)} {
         font configure TkHeadingFont {*}[font configure TkDefaultFont]
         font configure TkHeadingFont -weight bold
     }
     set lineSpace2a [font metrics TkHeadingFont -linespace]
-
-    set yPixels   [$w count -update -ypixels 1.0 end]
-    set needLines [expr { ($yPixels + $lineSpace1 - 1) / $lineSpace1 }]
-
-    if {$yPixels > 150} {
+    set yPixels [$w count -update -ypixels 1.0 end]
+    set needLines [expr {($yPixels+$lineSpace1-1)/$lineSpace1}]
+    if {$yPixels>150} {
         # Drop by one and try again.
         set newSize $size1
-        if {$size1 > 0} {
+        if {$size1>0} {
             incr newSize -1
         } else {
             incr newSize
@@ -261,29 +222,24 @@ proc ReduceFont {w} {
     return
 }
 
-
 CommonHeader .header [string map [list \n\n \n] $HeaderText] 2 $DemoDir
 .header configure -font TkHeadingFont
 #CommonFooter .footer $DemoDir
-
 MainWindow .main $DemoDir
 
 ### Map everything, add Rbc_* commands and bindings.
-
 grid .header -sticky ew
-grid .main   -sticky nsew
+grid .main -sticky nsew
 #grid .footer -sticky ew
 
 grid columnconfigure . 0 -weight 1
-grid    rowconfigure . 1 -weight 1
+grid rowconfigure . 1 -weight 1
 
 ### For a quick exit.
-
 menu .menu -tearoff 0
-.menu add command -command {}   -label {Run} -state disabled
+.menu add command -command {} -label Run -state disabled
 .menu add command -command exit -label Quit
-
-if {[tk windowingsystem] eq "aqua"} {
+if {[tk windowingsystem] eq {aqua}} {
     bind . <ButtonPress-2> {tk_popup .menu %X %Y 0}
     bind . <Control-ButtonPress-1> {tk_popup .menu %X %Y 0}
 } else {

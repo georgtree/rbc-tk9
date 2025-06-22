@@ -7,9 +7,9 @@
 # It defines the vectors used by those demos, and sets their values.
 # ------------------------------------------------------------------------------
 
-vector create x -variable ""
-for { set i 1 } { $i <= 39 } { incr i } {
-    vector create v$i -variable ""
+vector create x -variable {}
+for {set i 1} {$i <= 39} {incr i} {
+    vector create v$i -variable {}
 }
 
 x set {
