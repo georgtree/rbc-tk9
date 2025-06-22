@@ -58,7 +58,6 @@ proc rbc::RemoveBindTag {widget tag} {
 
 proc rbc::FindElement {graph x y} {
     if {![$graph element closest $x $y info -interpolate yes]} {
-        beep
         return
     }
     # --------------------------------------------------------------
