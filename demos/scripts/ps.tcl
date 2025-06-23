@@ -125,9 +125,11 @@ namespace eval ::rbc::ps {
         radioFont TkDefaultFont
         labelFont TkHeadingFont
         dialogInit a4
-        printCmd "nlp -d2a211"
-        printFile "out.ps"
+        printCmd {nlp -d2a211}
+        printFile out.ps
         debug 1
+        paperSize i
+        plotSize default
     }
     image create photo ::rbc::ps::up -data {
         R0lGODlhCwAGAKECAAAAAICAgP///////yH5BAEKAAIALAAAAAALAAYAAAIRlB2nCLkS
@@ -180,20 +182,22 @@ proc ::rbc::ps::psDialog {graph {filename {}}} {
     canvas $canvas -confine yes -width $pageInfo(paperWidth) -height $pageInfo(paperHeight) -bg gray -bd 2 -relief sunken
     # Create and lay out the canvas "outline" items;
     CreateOutline $canvas
-    label $top.titleLabel -text {PostScript Options}
+    ttk::label $top.titleLabel -text {PostScript Options}
     grid $top.titleLabel -columnspan 4
     grid $canvas -columnspan 4
     set row 2
-    label $top.paperLabel -text Paper
-    radiobutton $top.letter -text {Letter 8 1/2 x 11 in.} -value {8.5i 11i} -variable ::rbc::ps::pageInfo(paperSize)\
+    ttk::label $top.paperLabel -text Paper
+    ttk::radiobutton $top.letter -text {Letter 8 1/2 x 11 in.} -value {8.5i 11i} -variable ::rbc::ps::pageInfo(paperSize)\
             -command {::rbc::ps::SetPaperSize i}
-    radiobutton $top.a4 -text {A4 21 x 29.7 cm.} -value {21c 29.7c} -variable ::rbc::ps::pageInfo(paperSize)\
+    ttk::radiobutton $top.a3 -text {A3 29.7 x 42 cm.} -value {28.7c 41c} -variable ::rbc::ps::pageInfo(paperSize)\
             -command {::rbc::ps::SetPaperSize c}
-    radiobutton $top.a5 -text {A5 14.85 x 21 cm.} -value {14.85c 21c} -variable ::rbc::ps::pageInfo(paperSize)\
+    ttk::radiobutton $top.a4 -text {A4 21 x 29.7 cm.} -value {21c 29.7c} -variable ::rbc::ps::pageInfo(paperSize)\
             -command {::rbc::ps::SetPaperSize c}
-    radiobutton $top.legal -text {Legal 8 1/2 x 14 in.} -value {8.5i 14i} -variable ::rbc::ps::pageInfo(paperSize)\
+    ttk::radiobutton $top.a5 -text {A5 14.85 x 21 cm.} -value {14.85c 21c} -variable ::rbc::ps::pageInfo(paperSize)\
+            -command {::rbc::ps::SetPaperSize c}
+    ttk::radiobutton $top.legal -text {Legal 8 1/2 x 14 in.} -value {8.5i 14i} -variable ::rbc::ps::pageInfo(paperSize)\
             -command {::rbc::ps::SetPaperSize i}
-    radiobutton $top.large -text {Large 11 x 17 in.} -value {11i 17i} -variable ::rbc::ps::pageInfo(paperSize)\
+    ttk::radiobutton $top.large -text {Large 11 x 17 in.} -value {11i 17i} -variable ::rbc::ps::pageInfo(paperSize)\
             -command {::rbc::ps::SetPaperSize i}
     grid $top.paperLabel -sticky e -row $row -column 0 -pady {4 0} -padx {10 0}
     grid $top.letter -sticky w -row $row -column 1 -pady {4 0}
@@ -205,24 +209,24 @@ proc ::rbc::ps::psDialog {graph {filename {}}} {
     grid $top.large -sticky w -row $row -column 1
     grid $top.a5 -sticky w -row $row -column 2
     incr row
-    label $top.orientLabel -text Orientation
-    radiobutton $top.portrait -text Portrait -value 0 -variable ::rbc::ps::pageInfo(-landscape)\
+    ttk::label $top.orientLabel -text Orientation
+    ttk::radiobutton $top.portrait -text Portrait -value 0 -variable ::rbc::ps::pageInfo(-landscape)\
             -command ::rbc::ps::ApplyPs
-    radiobutton $top.landscape -text Landscape -value 1 -variable ::rbc::ps::pageInfo(-landscape)\
+    ttk::radiobutton $top.landscape -text Landscape -value 1 -variable ::rbc::ps::pageInfo(-landscape)\
             -command ::rbc::ps::ApplyPs
     grid $top.orientLabel -sticky e -row $row -column 0 -pady {4 0} -padx {10 0}
     grid $top.portrait -sticky w -row $row -column 1 -pady {4 0}
     grid $top.landscape -sticky w -row $row -column 2 -pady {4 0}
     incr row 6
-    label $top.plotLabel -text {Plot Options}
+    ttk::label $top.plotLabel -text {Plot Options}
     grid $top.plotLabel -row $row -column 0 -columnspan 3
     incr row
-    label $top.sizeLabel -text Size
-    radiobutton $top.default -text Default -value default -variable ::rbc::ps::pageInfo(plotSize)\
+    ttk::label $top.sizeLabel -text Size
+    ttk::radiobutton $top.default -text Default -value default -variable ::rbc::ps::pageInfo(plotSize)\
             -command ::rbc::ps::SetPlotSize
-    radiobutton $top.maxpect -text {Max Aspect} -value maxpect -variable ::rbc::ps::pageInfo(plotSize)\
+    ttk::radiobutton $top.maxpect -text {Max Aspect} -value maxpect -variable ::rbc::ps::pageInfo(plotSize)\
             -command ::rbc::ps::SetPlotSize
-    radiobutton $top.resize -text Resize -value resize -variable ::rbc::ps::pageInfo(plotSize)\
+    ttk::radiobutton $top.resize -text Resize -value resize -variable ::rbc::ps::pageInfo(plotSize)\
             -command "::rbc::ps::SizeDialog $graph {Adjust Plot Size}"
     grid $top.sizeLabel -sticky e -row $row -column 0 -pady {4 0} -padx {10 0}
     grid $top.default -sticky w -row $row -column 1 -pady {4 0}
@@ -231,19 +235,19 @@ proc ::rbc::ps::psDialog {graph {filename {}}} {
     incr row
     grid $top.resize -sticky w -row $row -column 1
     incr row -2
-    label $top.posLabel -text Position
+    ttk::label $top.posLabel -text Position
     set pageInfo(position) $pageInfo(-center)
-    radiobutton $top.center -text Center -value 1 -variable ::rbc::ps::pageInfo(position)\
+    ttk::radiobutton $top.center -text Center -value 1 -variable ::rbc::ps::pageInfo(position)\
             -command {
                 set ::rbc::ps::pageInfo(-center) 1
                 ::rbc::ps::CenterPlot
             }
-    radiobutton $top.origin -text Origin -value 0 -variable ::rbc::ps::pageInfo(position)\
+    ttk::radiobutton $top.origin -text Origin -value 0 -variable ::rbc::ps::pageInfo(position)\
             -command {
                 set ::rbc::ps::pageInfo(-center) 0
                 ::rbc::ps::ApplyPs
             }
-    radiobutton $top.move -text Move -value move -variable ::rbc::ps::pageInfo(position)\
+    ttk::radiobutton $top.move -text Move -value move -variable ::rbc::ps::pageInfo(position)\
             -command {
                 set ::rbc::ps::pageInfo(-center) 0
                 # ::rbc::ps::MoveDialog
@@ -256,12 +260,12 @@ proc ::rbc::ps::psDialog {graph {filename {}}} {
     incr row
     grid $top.move -sticky w -row $row -column 3 -padx {0 10}
     incr row
-    label $top.printLabel -text {Print To}
-    radiobutton $top.toFile -text File -value printFile -variable ::rbc::ps::pageInfo(printTo)\
+    ttk::label $top.printLabel -text {Print To}
+    ttk::radiobutton $top.toFile -text File -value printFile -variable ::rbc::ps::pageInfo(printTo)\
             -command [list $top.fileEntry configure -textvariable ::rbc::ps::pageInfo(printFile)]
-    radiobutton $top.toCmd -text Command -value printCmd -variable ::rbc::ps::pageInfo(printTo)\
+    ttk::radiobutton $top.toCmd -text Command -value printCmd -variable ::rbc::ps::pageInfo(printTo)\
             -command [list $top.fileEntry configure -textvariable ::rbc::ps::pageInfo(printCmd)] -state disabled
-    entry $top.fileEntry -bg white -width 36
+    ttk::entry $top.fileEntry -width 36
     # The "Command" option does nothing.
     grid $top.printLabel -sticky e -row $row -column 0 -pady {4 0} -padx {10 0}
     grid $top.toFile -sticky w -row $row -column 1 -pady {4 0}
@@ -270,14 +274,14 @@ proc ::rbc::ps::psDialog {graph {filename {}}} {
     incr row
     grid $top.fileEntry -sticky w -row $row -column 1 -pady {4 0} -padx 10 -columnspan 3
     incr row
-    button $top.cancel -text Cancel -command [list destroy $top] -font TkHeadingFont
-    button $top.print -text Print -command [list ::rbc::ps::PrintPs $graph $top] -font TkHeadingFont
-    button $top.opts -text Options -command [list ::rbc::ps::OptionsDialog $graph] -font TkHeadingFont
+    ttk::button $top.cancel -text Cancel -command [list destroy $top]
+    ttk::button $top.print -text Print -command [list ::rbc::ps::PrintPs $graph $top]
+    ttk::button $top.opts -text Options -command [list ::rbc::ps::OptionsDialog $graph]
     grid $top.print -row $row -column 1 -pady {6 2} -padx 10 -sticky w
     grid $top.opts -row $row -column 2 -pady {6 2}
     grid $top.cancel -row $row -column 3 -pady {6 2} -padx {0 10}
     foreach label [info commands $top.*Label] {
-        $label configure -font $pageInfo(labelFont) -padx 4
+        $label configure -font $pageInfo(labelFont)
     }
     # Set radiobutton defaults if this has not already been done.
     if {(![info exists $pageInfo(paperSize)]) && ($pageInfo(dialogInit) in {letter a3 a4 a5 legal large})} {
@@ -1105,6 +1109,7 @@ proc ::rbc::ps::DragResizeBut {canvas x y} {
 
 #### (5b) Commands bound to GUI elements other than the canvas, and not posting a toplevel.
 
+
 # ------------------------------------------------------------------------------
 #  Proc ::rbc::ps::PrintPs
 # ------------------------------------------------------------------------------
@@ -1149,7 +1154,7 @@ proc ::rbc::ps::BusyAndPrint {graph psFile} {
     ###rbc::busy hold .
     set lab $graph.temporaryLabelInRbcPsTclPrint
     destroy $lab
-    label $lab -text {Printing ...} -bg yellow -fg red
+    ttk::label $lab -text {Printing ...}
     place $lab -relx 0.5 -rely 0.0 -anchor n
     grab  $lab
     ### Catch so the grab is always released.
@@ -1297,9 +1302,9 @@ proc ::rbc::ps::SizeDialog {graph title} {
     }
     set pageInfo(-maxpect) 0
     toplevel $top
-    label $top.title -text $title
-    button $top.cancel -text Cancel -command [list destroy $top]
-    button $top.ok -text OK -command [list ::rbc::ps::DialogFinish $top TmpWidth -width TmpHeight -height]
+    ttk::label $top.title -text $title
+    ttk::button $top.cancel -text Cancel -command [list destroy $top]
+    ttk::button $top.ok -text OK -command [list ::rbc::ps::DialogFinish $top TmpWidth -width TmpHeight -height]
     MakeSizeAdjuster $top.plotWidth Width TmpWidth -width
     MakeSizeAdjuster $top.plotHeight Height TmpHeight -height
     grid $top.title -columnspan 2
@@ -1323,11 +1328,11 @@ proc ::rbc::ps::PaperSizeDialog {title} {
         return
     }
     toplevel $top
-    label $top.title -text $title
+    ttk::label $top.title -text $title
     MakeSizeAdjuster $top.width  Width  TmpPaperWidth  -paperwidth
     MakeSizeAdjuster $top.height Height TmpPaperHeight -paperheight
-    button $top.cancel -text Cancel -command [list destroy $top]
-    button $top.ok -text OK -command [list ::rbc::ps::DialogFinish $top TmpPaperWidth -paperwidth TmpPaperHeight\
+    ttk::button $top.cancel -text Cancel -command [list destroy $top]
+    ttk::button $top.ok -text OK -command [list ::rbc::ps::DialogFinish $top TmpPaperWidth -paperwidth TmpPaperHeight\
                                                 -paperheight]
     grid $top.title -columnspan 2
     grid $top.width $top.height
@@ -1353,9 +1358,9 @@ proc ::rbc::ps::OptionsDialog {graph} {
     set pageInfo(TmpColorMode) $pageInfo(-colormode)
     set pageInfo(TmpPreview) $pageInfo(-preview)
     set row 0
-    label $top.modeLabel -text Printer
-    radiobutton $top.color -text Color -value color -variable ::rbc::ps::pageInfo(TmpColorMode)
-    radiobutton $top.greyscale -text Greyscale -value greyscale -variable ::rbc::ps::pageInfo(TmpColorMode)
+    ttk::label $top.modeLabel -text Printer
+    ttk::radiobutton $top.color -text Color -value color -variable ::rbc::ps::pageInfo(TmpColorMode)
+    ttk::radiobutton $top.greyscale -text Greyscale -value greyscale -variable ::rbc::ps::pageInfo(TmpColorMode)
     grid $top.modeLabel -sticky e -row $row -column 0 -pady {4 0}
     grid $top.color -sticky w -row $row -column 1
     incr row
@@ -1364,16 +1369,16 @@ proc ::rbc::ps::OptionsDialog {graph} {
     # RBC has no EPS preview, so this is disabled.
     # Even if enabled, ApplyPs reverses any changes so that
     # "$graph postscript configure" does not raise an error.
-    label $top.previewLabel -text Preview -state disabled
-    radiobutton $top.previewYes -text Yes -value 1 -variable ::rbc::ps::pageInfo(TmpPreview) -state disabled
-    radiobutton $top.previewNo -text No -value 0 -variable ::rbc::ps::pageInfo(TmpPreview) -state disabled
+    ttk::label $top.previewLabel -text Preview -state disabled
+    ttk::radiobutton $top.previewYes -text Yes -value 1 -variable ::rbc::ps::pageInfo(TmpPreview) -state disabled
+    ttk::radiobutton $top.previewNo -text No -value 0 -variable ::rbc::ps::pageInfo(TmpPreview) -state disabled
     grid $top.previewLabel -sticky e -row $row -column 2
     grid $top.previewYes -sticky w -row $row -column 3
     incr row
     grid $top.previewNo -sticky w -row $row -column 3
     incr row
-    button $top.cancel -text Cancel -command [list destroy $top]
-    button $top.ok -text OK -command [list ::rbc::ps::DialogFinish $top TmpColorMode -colormode TmpPreview -preview]
+    ttk::button $top.cancel -text Cancel -command [list destroy $top]
+    ttk::button $top.ok -text OK -command [list ::rbc::ps::DialogFinish $top TmpColorMode -colormode TmpPreview -preview]
     grid $top.cancel -pady 4 -padx 4 -row $row -column 0
     grid $top.ok -pady 4 -padx 4 -row $row -column 1
     return
@@ -1414,11 +1419,11 @@ proc ::rbc::ps::MakeSizeAdjuster {w label var initVar} {
         set units {}
         set txt pix
     }
-    frame $w
-    label $w.label -text $label
-    spinbox $w.entry -width 6 -font TkFixedFont -textvariable ::rbc::ps::pageInfo($var) -state readonly\
+    ttk::frame $w
+    ttk::label $w.label -text $label
+    spinbox $w.entry -width 6 -textvariable ::rbc::ps::pageInfo($var) -state readonly\
             -command [list ::rbc::ps::ChangeSize %W %d $var 0.1]
-    label $w.units -text $txt
+    ttk::label $w.units -text $txt
     grid $w.label -rowspan 2
     grid $w.entry $w.units
     return $w
