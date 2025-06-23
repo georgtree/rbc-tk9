@@ -1,13 +1,10 @@
-#!/bin/sh
-
 # ------------------------------------------------------------------------------
 #  RBC Demo graph3.tcl
 #
 #  Sine and cosine functions as curves with data points, and a background image.
 # ------------------------------------------------------------------------------
-# restart using wish \
-exec wish "$0" "$@"
 
+package require Tk
 package require rbc
 namespace import rbc::*
 

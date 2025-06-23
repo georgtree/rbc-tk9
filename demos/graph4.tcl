@@ -1,13 +1,10 @@
-#!/bin/sh
-
 # ------------------------------------------------------------------------------
 #  RBC Demo graph4.tcl
 #
 #  This demo graph plots 39 different signals as colored curves with points.
 # ------------------------------------------------------------------------------
-# restart using wish \
-exec wish "$0" "$@"
 
+package require Tk
 package require rbc
 namespace import rbc::*
 

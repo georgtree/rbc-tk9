@@ -1,13 +1,10 @@
-#!/bin/sh
-
 # ------------------------------------------------------------------------------
 #  RBC Demo graph6.tcl
 #
 #  This demo graph plots 39 different signals as monochrome curves.
 # ------------------------------------------------------------------------------
-# restart using wish \
-exec wish "$0" "$@"
 
+package require Tk
 package require rbc
 namespace import rbc::*
 

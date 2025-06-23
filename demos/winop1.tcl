@@ -1,13 +1,10 @@
-#!/bin/sh
-
 # ------------------------------------------------------------------------------
 #  RBC Demo winop1.tcl
 #
 #  This script demonstrates the scaling facilities of the winop command.
 # ------------------------------------------------------------------------------
-# restart using wish \
-exec wish "$0" "$@"
 
+package require Tk
 package require rbc
 namespace import rbc::*
 

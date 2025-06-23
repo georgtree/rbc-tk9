@@ -1,13 +1,10 @@
-#!/bin/sh
-
 # ------------------------------------------------------------------------------
 #  RBC Demo barchart3.tcl
 #
 #  A conventional barchart with colors and stipple patterns; plotted against y.
 # ------------------------------------------------------------------------------
-# restart using wish \
-exec wish "$0" "$@"
 
+package require Tk
 package require rbc
 namespace import rbc::*
 

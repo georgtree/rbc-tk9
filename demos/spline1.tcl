@@ -17,9 +17,8 @@
 #    table . .g -resize both
 #
 # --------------------------------------------------------------------------
-# restart using wish \
-exec wish "$0" "$@"
 
+package require Tk
 package require rbc
 
 ### The script can be run from any location. It loads the files it needs from the demo directory.

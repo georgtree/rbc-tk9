@@ -1,13 +1,10 @@
-#!/bin/sh
-
 # ------------------------------------------------------------------------------
 #  RBC Demo barchart2.tcl
 #
 #  A barchart showing different ways to plot multiple data sets.
 # ------------------------------------------------------------------------------
-# restart using wish \
-exec wish "$0" "$@"
 
+package require Tk
 package require rbc
 namespace import rbc::*
 
@@ -17,7 +14,7 @@ set DemoDir [file normalize [file dirname [info script]]]
 ### Load common commands and create non-rbc GUI elements.
 source $DemoDir/scripts/common.tcl
 proc CustomHeader {w graph} {
-    frame $w
+    ttk::frame $w
     text $w.title -wrap word -width 0 -height 4 -relief flat -highlightthickness 0 -padx 15 -pady 5
     $w.title insert end [MakeLine {
         |Data points with like x-coordinates, can have their bar segments
@@ -25,27 +22,27 @@ proc CustomHeader {w graph} {
     }]
     $w.title configure -state disabled
     bind $w.title <Configure> {AdjustHeight %W 20}
-    radiobutton $w.stacked -text stacked -variable barMode -anchor w -value stacked -command {
+    ttk::radiobutton $w.stacked -text stacked -variable barMode -value stacked -command {
         $graph configure -barmode $barMode
     } 
-    label $w.stackedlabel -justify left -text [MakeLine {
+    ttk::label $w.stackedlabel -justify left -text [MakeLine {
         |Bars are stacked on top of each other.
         |The overall height is the sum of the y-coordinates.
     }]
-    radiobutton $w.aligned -text aligned -variable barMode -anchor w -value aligned -command {
+    ttk::radiobutton $w.aligned -text aligned -variable barMode -value aligned -command {
         $graph configure -barmode $barMode
     }
-    label $w.alignedlabel -justify left -text [MakeLine {
+    ttk::label $w.alignedlabel -justify left -text [MakeLine {
         |Bars are drawn side-by-side at a fraction of their normal width.
     }]
-    radiobutton $w.overlap -text overlap -variable barMode -anchor w -value overlap -command {
+    ttk::radiobutton $w.overlap -text overlap -variable barMode -value overlap -command {
         $graph configure -barmode $barMode
     } 
-    label $w.overlaplabel -justify left -text {Bars overlap slightly.}
-    radiobutton $w.normal -text normal -variable barMode -anchor w -value normal -command {
+    ttk::label $w.overlaplabel -justify left -text {Bars overlap slightly.}
+    ttk::radiobutton $w.normal -text normal -variable barMode -value normal -command {
         $graph configure -barmode $barMode
     } 
-    label $w.normallabel -justify left -text {Bars are overlayed one on top of the next.}
+    ttk::label $w.normallabel -justify left -text {Bars are overlayed one on top of the next.}
     grid $w.title -columnspan 2 -sticky ew
     grid $w.stacked $w.stackedlabel -sticky w
     grid $w.aligned $w.alignedlabel -sticky w

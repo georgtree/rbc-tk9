@@ -1,5 +1,3 @@
-#!/bin/sh
-
 # ------------------------------------------------------------------------------
 #  RBC Demo stripchart1.tcl revised from Michael J. McLennan's BLT demo
 # ------------------------------------------------------------------------------
@@ -11,9 +9,8 @@
 # ==============================================================================
 #               Copyright (c) 1996  Lucent Technologies
 # ==============================================================================
-# restart using wish \
-exec wish "$0" "$@"
 
+package require Tk
 package require rbc
 namespace import rbc::*
 

@@ -187,8 +187,6 @@ proc ::rbc::ps::psDialog {graph {filename {}}} {
     label $top.paperLabel -text Paper
     radiobutton $top.letter -text {Letter 8 1/2 x 11 in.} -value {8.5i 11i} -variable ::rbc::ps::pageInfo(paperSize)\
             -command {::rbc::ps::SetPaperSize i}
-    radiobutton $top.a3 -text {A3 29.7 x 42 cm.} -value {28.7c 41c} -variable ::rbc::ps::pageInfo(paperSize)\
-            -command {::rbc::ps::SetPaperSize c}
     radiobutton $top.a4 -text {A4 21 x 29.7 cm.} -value {21c 29.7c} -variable ::rbc::ps::pageInfo(paperSize)\
             -command {::rbc::ps::SetPaperSize c}
     radiobutton $top.a5 -text {A5 14.85 x 21 cm.} -value {14.85c 21c} -variable ::rbc::ps::pageInfo(paperSize)\
@@ -1106,7 +1104,6 @@ proc ::rbc::ps::DragResizeBut {canvas x y} {
 }
 
 #### (5b) Commands bound to GUI elements other than the canvas, and not posting a toplevel.
-
 
 # ------------------------------------------------------------------------------
 #  Proc ::rbc::ps::PrintPs

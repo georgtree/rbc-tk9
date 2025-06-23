@@ -1,12 +1,10 @@
-#!/bin/sh
-
 # ------------------------------------------------------------------------------
 #  RBC Demo barchart1.tcl
 #
 #  A conventional barchart with stipple patterns and error bars.
 # ------------------------------------------------------------------------------
-# restart using wish \
-exec wish "$0" "$@"
+
+package require Tk
 package require rbc
 namespace import rbc::*
 
