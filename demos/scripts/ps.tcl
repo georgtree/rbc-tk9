@@ -101,10 +101,7 @@
 # yMin           - image corner, canvas units, floating point pixels
 # ------------------------------------------------------------------------------
 
-
-
 ### (1) Initialization.
-
 namespace eval ::rbc::ps {
     variable ApplyPsCounter 0
     variable cursors
@@ -142,9 +139,7 @@ namespace eval ::rbc::ps {
     namespace export psDialog
 }
 
-
 ### (2) Commands to build the GUI dialog.
-
 # ------------------------------------------------------------------------------
 #  Proc ::rbc::ps::psDialog (EXPORTED)
 # ------------------------------------------------------------------------------
@@ -158,7 +153,6 @@ namespace eval ::rbc::ps {
 #
 # Return Value: none
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::psDialog {graph {filename {}}} {
     variable pageInfo
     option add *graph.top*Radiobutton.font $pageInfo(radioFont)
@@ -299,7 +293,6 @@ proc ::rbc::ps::psDialog {graph {filename {}}} {
     return
 }
 
-
 # ------------------------------------------------------------------------------
 #  Proc ::rbc::ps::CreateOutline
 # ------------------------------------------------------------------------------
@@ -318,7 +311,6 @@ proc ::rbc::ps::psDialog {graph {filename {}}} {
 # The canvas items are one image (also tagged "image"), and 8 rectangles (also
 # tagged "grip" and with a unique id).
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::CreateOutline {canvas} {
     variable pageInfo
     foreach var {graph gripSize xMin yMin xMax yMax} {
@@ -361,16 +353,13 @@ proc ::rbc::ps::CreateOutline {canvas} {
 }
 
 
-
 ### (3) Conversion between units.
-
 # ------------------------------------------------------------------------------
 #  Proc ::rbc::ps::SetUnits
 # ------------------------------------------------------------------------------
 # Choose units inches or centimetres.
 # This sets pageInfo(uscale) and pageInfo(units) for subsequent use.
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::SetUnits {units}  {
     variable pageInfo
     switch -glob $units {
@@ -382,24 +371,19 @@ proc ::rbc::ps::SetUnits {units}  {
     return
 }
 
-
 # ------------------------------------------------------------------------------
 #  Proc ::rbc::ps::ConvertUnits
 # ------------------------------------------------------------------------------
 # This command converts a valid Tk screen distance in pixels to one in inches or
 # cm, to the nearest 0.1 unit.
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::ConvertUnits {value} {
     variable pageInfo
     set value [expr {double($value)/$pageInfo(uscale)}]
     return [format "%.1f%s" $value $pageInfo(units)]
 }
 
-
-
 ### (4) Commands to synchronize information.
-
 # ----------------------------------------------------------------------------
 # Information in four places must be synchronized when appropriate.
 # 0. $graph postscript configure
@@ -472,7 +456,6 @@ proc ::rbc::ps::ConvertUnits {value} {
 # ------------------------------------------------------------------------------
 # Copy postscript options from $graph to pageInfo.
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::GetPsOptions {graph} {
     variable pageInfo
     foreach opt [$graph postscript configure] {
@@ -495,7 +478,6 @@ proc ::rbc::ps::GetPsOptions {graph} {
 #     corners of the canvas image item, the last two the dimensions of the
 #     canvas itself.
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::ComputeCanvasGeometryFromPs {graph} {
     variable pageInfo
     GetPsOptions $graph
@@ -580,14 +562,12 @@ proc ::rbc::ps::ComputeCanvasGeometryFromPs {graph} {
     return
 }
 
-
 # ------------------------------------------------------------------------------
 #  Proc ::rbc::ps::AdjustCanvas
 # ------------------------------------------------------------------------------
 # Update the size and position of canvas items tagged "outline" - the image
 # and the grips - using data already in pageInfo
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::AdjustCanvas {canvas} {
     variable pageInfo
     foreach var {paperWidth paperHeight graph gripSize xMin yMin xMax yMax} {
@@ -614,7 +594,6 @@ proc ::rbc::ps::AdjustCanvas {canvas} {
     return
 }
 
-
 # ------------------------------------------------------------------------------
 #  Proc ::rbc::ps::CanvasToPs
 # ------------------------------------------------------------------------------
@@ -624,7 +603,6 @@ proc ::rbc::ps::AdjustCanvas {canvas} {
 #   and the common canvas/postscript option -landscape.
 # - Write postscript options -width -height -padx -pady -maxpect
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::CanvasToPs {} {
     variable pageInfo
     set width [expr {($pageInfo(xMax)-$pageInfo(xMin))/$pageInfo(scale)}]
@@ -647,7 +625,6 @@ proc ::rbc::ps::CanvasToPs {} {
     return
 }
 
-
 # ------------------------------------------------------------------------------
 #  Proc ::rbc::ps::ApplyPs
 # ------------------------------------------------------------------------------
@@ -659,7 +636,6 @@ proc ::rbc::ps::CanvasToPs {} {
 # 3. Convert some postscript options from pixels to in/cm
 # 4. Configure the canvas to reflect these values.
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::ApplyPs {} {
     variable pageInfo
     set graph $pageInfo(graph)
@@ -717,14 +693,12 @@ proc ::rbc::ps::ApplyPs {} {
 
 ### (5)  Commands bound to elements of the GUI (and their dependencies)
 ####  (5a) Commands bound to canvas items
-
 # ------------------------------------------------------------------------------
 #  Proc ::rbc::ps::EnterImage
 # ------------------------------------------------------------------------------
 # Command to add cursor-key bindings to the image.
 # Bound to <Enter> on canvas item "image"
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::EnterImage  {canvas} {
     variable cursors
     variable pageInfo
@@ -754,7 +728,6 @@ proc ::rbc::ps::EnterImage  {canvas} {
 # Command to remove cursor-key bindings from the image.
 # Bound to <Leave> on canvas item "image"
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::LeaveImage {canvas} {    
     bind $canvas <KeyPress-Left> {}
     bind $canvas <KeyPress-Right> {}
@@ -773,7 +746,6 @@ proc ::rbc::ps::LeaveImage {canvas} {
 # This is almost useless because pressing the key usually makes the pointer
 # leave the grip.
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::EnterGrip {canvas grip x y} {
     variable cursors
     variable pageInfo
@@ -805,7 +777,6 @@ proc ::rbc::ps::EnterGrip {canvas grip x y} {
 # Command to remove cursor-key bindings from the grip.
 # Bound to <Leave> on a grip item.
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::LeaveGrip {canvas grip} {    
     $canvas itemconfigure $grip -fill red -outline black
     bind $canvas <KeyPress-Left> {}
@@ -824,7 +795,6 @@ proc ::rbc::ps::LeaveGrip {canvas grip} {
 # Those items are the image and its grips.
 # Bound to <ButtonPress-1> on the image.
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::StartMove {canvas x y} {
     variable pageInfo
     set pageInfo(lastX) $x
@@ -843,7 +813,6 @@ proc ::rbc::ps::StartMove {canvas x y} {
 # Those items are the image and its grips.
 # Bound to <B1-Motion> on the image.
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::DragMove {canvas x y} {
     variable pageInfo
     $canvas move outline [expr {$x-$pageInfo(lastX)}] [expr {$y-$pageInfo(lastY)}]
@@ -861,7 +830,6 @@ proc ::rbc::ps::DragMove {canvas x y} {
 # Those items are the image and its grips.
 # Bound to <Shift-B1-Motion> on the image.
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::DragMoveBut {canvas x y} {
     variable pageInfo
     set dx [expr {$x-$pageInfo(lastX)}]
@@ -891,7 +859,6 @@ proc ::rbc::ps::DragMoveBut {canvas x y} {
 # Those items are the image and its grips.
 # Bound to <ButtonRelease-1> on the image.
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::EndMove {canvas} {
     variable pageInfo
     $canvas configure -cursor {}
@@ -916,7 +883,6 @@ proc ::rbc::ps::EndMove {canvas} {
 # Those items are the image and its grips.
 # Bound to <ButtonPress-1> on a grip.
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::StartResize {canvas grip x y} {
     variable cursors
     variable pageInfo
@@ -940,14 +906,12 @@ proc ::rbc::ps::StartResize {canvas grip x y} {
 # Those items are the image and its grips.
 # Bound to <ButtonRelease-1> on a grip.
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::EndResize {canvas grip x y} {
     $canvas itemconfigure $grip -fill {} -outline {}
     $canvas configure -cursor {}
     CanvasToPs
     return
 }
-
 
 # ------------------------------------------------------------------------------
 #  Proc ::rbc::ps::DragResize
@@ -957,7 +921,6 @@ proc ::rbc::ps::EndResize {canvas grip x y} {
 # Those items are the image and its grips.
 # Bound to <B1-Motion> on a grip.
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::DragResize {canvas x y} {
     variable pageInfo
     foreach var {gripSize xMin yMin xMax yMax} {
@@ -1030,7 +993,6 @@ proc ::rbc::ps::DragResize {canvas x y} {
     return
 }
 
-
 # ------------------------------------------------------------------------------
 #  Proc ::rbc::ps::DragResizeBut
 # ------------------------------------------------------------------------------
@@ -1040,7 +1002,6 @@ proc ::rbc::ps::DragResize {canvas x y} {
 # Those items are the image and its grips.
 # Bound to <Shift-B1-Motion> on a grip.
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::DragResizeBut {canvas x y} {
     variable pageInfo
     foreach var {graph gripSize xMin yMin xMax yMax} {
@@ -1108,8 +1069,6 @@ proc ::rbc::ps::DragResizeBut {canvas x y} {
 }
 
 #### (5b) Commands bound to GUI elements other than the canvas, and not posting a toplevel.
-
-
 # ------------------------------------------------------------------------------
 #  Proc ::rbc::ps::PrintPs
 # ------------------------------------------------------------------------------
@@ -1121,7 +1080,6 @@ proc ::rbc::ps::DragResizeBut {canvas x y} {
 # - Not called from anywhere else.
 # - pageInfo(printFile) is the -textvariable for the entry widget.
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::PrintPs {graph top} {
     variable pageInfo
     BusyAndPrint $graph $pageInfo(printFile)
@@ -1146,7 +1104,6 @@ proc ::rbc::ps::PrintPs {graph top} {
 #
 # FIXME deal with recursive grabs.
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::BusyAndPrint {graph psFile} {
     ### FIXME rbc - rbc::busy segfaults, so instead use a grab.
     ### This gives a "busy" warning and also prevents the user+GUI
@@ -1173,7 +1130,6 @@ proc ::rbc::ps::BusyAndPrint {graph psFile} {
     return
 }
 
-
 # ------------------------------------------------------------------------------
 #  Proc ::rbc::ps::SetPaperSize
 # ------------------------------------------------------------------------------
@@ -1181,7 +1137,6 @@ proc ::rbc::ps::BusyAndPrint {graph psFile} {
 # list of two values {width height} expressed in the unit (i or c) that is
 # passed as the argument to this command.
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::SetPaperSize {unit} {
     variable pageInfo
     SetUnits $unit
@@ -1191,13 +1146,11 @@ proc ::rbc::ps::SetPaperSize {unit} {
     return
 }
 
-
 # ------------------------------------------------------------------------------
 #  Proc ::rbc::ps::SetPlotSize
 # ------------------------------------------------------------------------------
 # Bound to the "Default" and "Max Aspect" radiobuttons in the main dialog.
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::SetPlotSize {} {
     variable pageInfo
     set graph $pageInfo(graph)
@@ -1223,13 +1176,11 @@ proc ::rbc::ps::SetPlotSize {} {
     return
 }
 
-
 # ------------------------------------------------------------------------------
 #  Proc ::rbc::ps::CenterPlot
 # ------------------------------------------------------------------------------
 # Bound to the "Center" radiobutton in the main dialog
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::CenterPlot {} {
     variable pageInfo
     set pageInfo(-padx) $pageInfo(oldPadX)
@@ -1239,8 +1190,6 @@ proc ::rbc::ps::CenterPlot {} {
 }
 
 #### (5c) Commands bound to GUI elements other than the canvas, that post a secondary dialog in its own toplevel.
-
-
 # Secondary Toplevel Dialogs - these are children of the main dialog.
 # Dialog values are thrown away if the user clicks the "Cancel" button.
 # Temporary variables are used for radiobuttons etc, with values copied from
@@ -1259,7 +1208,6 @@ proc ::rbc::ps::CenterPlot {} {
 # 3. Destroy the dialog toplevel
 # Usage: DialogFinish top ?from to ...?
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::DialogFinish {top args} {
     variable pageInfo
     if {([llength $args]%2)} {
@@ -1275,7 +1223,6 @@ proc ::rbc::ps::DialogFinish {top args} {
     return
 }
 
-
 # ------------------------------------------------------------------------------
 #  Proc ::rbc::ps::SizeDialog
 # ------------------------------------------------------------------------------
@@ -1283,7 +1230,6 @@ proc ::rbc::ps::DialogFinish {top args} {
 # up/down adjusters.
 # Bound to the "Resize" radiobutton in the main dialog.
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::SizeDialog {graph title} {
     variable pageInfo
     set top $graph.top.plotsize
@@ -1313,14 +1259,12 @@ proc ::rbc::ps::SizeDialog {graph title} {
     return
 }
 
-
 # ------------------------------------------------------------------------------
 #  Proc ::rbc::ps::PaperSizeDialog
 # ------------------------------------------------------------------------------
 # Unused toplevel dialog - to set a custom paper size.
 # If used, needs a fix to convert initial values from pixels.
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::PaperSizeDialog {title} {
     variable pageInfo
     set top $pageInfo(graph).top.papersize
@@ -1340,14 +1284,12 @@ proc ::rbc::ps::PaperSizeDialog {title} {
     return
 }
 
-
 # ------------------------------------------------------------------------------
 #  Proc ::rbc::ps::OptionsDialog
 # ------------------------------------------------------------------------------
 # A toplevel dialog to set printer color|greyscale, preview yes|no
 # Bound to the "Options" button in the main dialog.
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::OptionsDialog {graph} {
     variable pageInfo
     set top $graph.top.options
@@ -1385,10 +1327,8 @@ proc ::rbc::ps::OptionsDialog {graph} {
 }
 
 
-
 ##### (6) The "Size Adjuster" megawidget used in the secondary dialog toplevels
 #####     PaperSizeDialog and SizeDialog.
-
 # ------------------------------------------------------------------------------
 #  Proc ::rbc::ps::MakeSizeAdjuster
 # ------------------------------------------------------------------------------
@@ -1402,7 +1342,6 @@ proc ::rbc::ps::OptionsDialog {graph} {
 #               initialize pageInfo($var).
 # Return Value: the Tk window path of the megawidget
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::MakeSizeAdjuster {w label var initVar} {
     variable pageInfo
     set pageInfo($var) $pageInfo($initVar)
@@ -1431,13 +1370,11 @@ proc ::rbc::ps::MakeSizeAdjuster {w label var initVar} {
 
 
 ####  (7) Dependencies of the "Size Adjuster" widget created by MakeSizeAdjuster.
-
 # ------------------------------------------------------------------------------
 #  Proc ::rbc::ps::ChangeSize
 # ------------------------------------------------------------------------------
 # Command to increment/decrement the value managed by a "Size Adjuster".
 # ------------------------------------------------------------------------------
-
 proc ::rbc::ps::ChangeSize {w dir var delta} {
     variable pageInfo
     set f [winfo parent $w]
