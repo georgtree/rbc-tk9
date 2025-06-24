@@ -21,14 +21,12 @@ set HeaderText [MakeLine {
 }]
 CommonHeader .header $HeaderText 6 $DemoDir .graph {} graph4.ppm
 CommonFooter .footer $DemoDir IMG
-image create photo bgTexture -file $DemoDir/images/metal.png
 
 ### These options apply to the graph.
 option add *Graph.Legend.activeBackground white
 option add *Graph.height 5i
 option add *Graph.plotBackground black
 option add *Graph.width 7i
-option add *Graph.tile bgTexture
 option add *Graph.halo 0
 option add *Graph.title s27.out
 option add *Graph.font -*-helvetica-bold-r-*-*-18-*
@@ -135,7 +133,6 @@ Rbc_PrintKey .graph
 
 ### The code below is not executed and is not part of the demo. It remains available for experimentation.
 ####  (1) Unused Options
-
 if 0 {
     option add *default normal
     option add *Button.tile bgTexture

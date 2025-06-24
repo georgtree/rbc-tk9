@@ -34,18 +34,37 @@ Rbc contains the following BLT components:
 
 - graph, barchart, stripchart
 
-  These components use an X-Y coordinate system to plot data and are meant to be used with vector data objects.  The
+  These components use an X-Y coordinate system to plot data and are meant to be used with vector data objects. The
   graphs will automatically be redrawn should the vector data change.
+  
+  Example of graph (`graph4.tcl` from demos):
+  
+  <img src="docs/images/graph4.png" width=80% height=80%>
+  
+  Example of barchart (`barchart1.tcl` from demos):
+  
+  <img src="docs/images/barchart1.png" width=80% height=80%>
+  
+  Example of stripchart (`stripchart1.tcl` from demos):
+  
+  <img src="docs/images/stripchart1.png" width=80% height=80%>
 
 - vector
 
-  This component is used to manage floating point values.  They are meant to be used to handle data for the plotting
+  This component is used to manage floating point values. They are meant to be used to handle data for the plotting
   components.
+  
+- spline
+
+  This component is used to manage spline approximation of the data.
+  
+  Example of spline approximation (`spline1.tcl` from demos):
+  
+  <img src="docs/images/spline1.png" width=80% height=80%>
 
 - winop
 
   This component provides basic window operations.
-
 
 ## Installation
 
@@ -63,7 +82,19 @@ Versions of Tcl/Tk lower than 9.0 are not tested.
 
 ## Documentation
 
-Documentation could be found [here](https://georgtree.github.io/rbc-tk9/). 
+Documentation could be found [here](https://georgtree.github.io/rbc-tk9/).
+
+## Examples (demos)
+
+To see the examples of usage, you can run file `demos.tcl` in demos folder after package installation:
+
+```bash
+wish ./demos/demos.tcl 
+```
+
+There you can select from the range of different usages through selection window:
+
+  <img src="docs/images/demos.png" width=80% height=80%>
 
 ## History (message from original RBC authors)
 
