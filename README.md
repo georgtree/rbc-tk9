@@ -94,7 +94,7 @@ wish ./demos/demos.tcl
 
 There you can select from the range of different usages through selection window:
 
-  <img src="docs/images/demos.png" width=80% height=80%>
+  <img src="docs/images/demos.png" width=60% height=60%>
 
 ## History (message from original RBC authors)
 
