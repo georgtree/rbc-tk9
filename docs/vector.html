@@ -364,7 +364,7 @@ vector.</p>
 <div class="sourceCode" id="cb9"><pre
 class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create and set the components of a new vector</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>vector <span class="ot">create</span> <span class="ot">x</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ot">x</span> <span class="kw">set</span> <span class="kw">{</span> <span class="fl">0.02</span> <span class="fl">0.04</span> <span class="fl">0.06</span> <span class="fl">0.08</span> <span class="fl">0.10</span> <span class="fl">0.12</span> <span class="fl">0.14</span> <span class="fl">0.16</span> <span class="fl">0.18</span> <span class="fl">0.20</span> <span class="kw">}</span></span></code></pre></div>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ot">x</span> <span class="kw">set</span> <span class="kw">{</span><span class="fl">0.02</span> <span class="fl">0.04</span> <span class="fl">0.06</span> <span class="fl">0.08</span> <span class="fl">0.10</span> <span class="fl">0.12</span> <span class="fl">0.14</span> <span class="fl">0.16</span> <span class="fl">0.18</span> <span class="fl">0.20</span><span class="kw">}</span></span></code></pre></div>
 <p>Here we’ve created a vector <code>x</code> without a initial length
 specification. In this case, the length is zero. The
 <strong>set</strong> operation resets the vector, extending it and
@@ -386,7 +386,7 @@ vectors or new values onto an existing vector with the
 <strong>append</strong> operation.</p>
 <div class="sourceCode" id="cb12"><pre
 class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Append assorted vectors and values to x</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="ot">x</span> <span class="kw">append</span> x2 x3 <span class="kw">{</span> <span class="fl">2.3</span> <span class="fl">4.5</span> <span class="kw">}</span> x4</span></code></pre></div>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="ot">x</span> <span class="kw">append</span> x2 x3 <span class="kw">{</span><span class="fl">2.3</span> <span class="fl">4.5</span><span class="kw">}</span> x4</span></code></pre></div>
 <p>The <strong>sort</strong> operation sorts the vector. If any
 additional vectors are specified, they are rearranged in the same order
 as the vector. For example, you could use it to sort data points
@@ -401,8 +401,8 @@ are retained.</p>
 vectors. The result is stored in the vector.</p>
 <div class="sourceCode" id="cb14"><pre
 class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Add the two vectors and a scalar</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="ot">x</span> <span class="kw">expr</span> <span class="kw">{</span> <span class="ot">x</span> + <span class="ot">y</span> <span class="kw">}</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="ot">x</span> <span class="kw">expr</span> <span class="kw">{</span> <span class="ot">x</span> * <span class="dv">2</span> <span class="kw">}</span></span></code></pre></div>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="ot">x</span> <span class="kw">expr</span> <span class="kw">{</span><span class="ot">x</span>+<span class="ot">y</span><span class="kw">}</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="ot">x</span> <span class="kw">expr</span> <span class="kw">{</span><span class="ot">x</span>*<span class="dv">2</span><span class="kw">}</span></span></code></pre></div>
 <p>When a vector is modified, resized, or deleted, it may trigger
 call-backs to notify the clients of the vector. For example, when a
 vector used in the <strong>graph</strong> widget is updated, the vector
@@ -428,19 +428,22 @@ class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb16-1"><a href="#
 <p>Vectors are created using the <strong>vector create</strong>
 operation. The <strong>create</strong> operation can be invoked in one
 of three forms:</p>
-<p><strong>vector create</strong> <em>vecName</em></p>
+<ul>
+<li><p><strong>vector create</strong> <em>vecName</em></p>
 <p>This creates a new vector <em>vecName</em> which initially has no
-components.</p>
-<p><strong>vector create</strong> <em>vecName</em>(<em>size</em>)</p>
+components.</p></li>
+<li><p><strong>vector create</strong>
+<em>vecName</em>(<em>size</em>)</p>
 <p>This second form creates a new vector which will contain
 <em>size</em> number of components. The components will be indexed
 starting from zero (0). The default value for the components is
-<code>0.0</code>.</p>
-<p><strong>vector create</strong>
+<code>0.0</code>.</p></li>
+<li><p><strong>vector create</strong>
 <em>vecName</em>(<em>first</em>:<em>last</em>)</p>
 <p>The last form creates a new vector of indexed <em>first</em> through
 <em>last</em>. <em>First</em> and <em>last</em> can be any integer value
-so long as <em>first</em> is less than <em>last</em>.</p>
+so long as <em>first</em> is less than <em>last</em>.</p></li>
+</ul>
 <p>Vector names must start with a letter and consist of letters, digits,
 or underscores.</p>
 <div class="sourceCode" id="cb17"><pre
@@ -638,18 +641,44 @@ returning the results:</p>
 <li><strong>sin</strong></li>
 <li><strong>tanh</strong></li>
 </ul>
-<p>Additional functions are: | Function | Description |
-|:————|:—————————————————————————————————————————————————————————————————————————————–|
-| <strong>abs</strong> | Returns the absolute value of each component. |
-| <strong>random</strong> | Returns a vector of non-negative values
+<p>Additional functions are:</p>
+<table>
+<colgroup>
+<col style="width: 5%" />
+<col style="width: 94%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Function</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>abs</strong></td>
+<td style="text-align: left;">Returns the absolute value of each
+component.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>random</strong></td>
+<td style="text-align: left;">Returns a vector of non-negative values
 uniformly distributed between [0.0, 1.0) using <em>drand48</em>. The
 seed comes from the internal clock of the machine or may be set manual
-with the srandom function. | | <strong>round</strong> | Rounds each
-component of the vector. | | <strong>srandom</strong> | Initializes the
-random number generator using <em>srand48</em>. The high order 32-bits
-are set using the integral portion of the first vector component. All
-other components are ignored. The low order 16-bits are set to an
-arbitrary value. |</p>
+with the srandom function.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>round</strong></td>
+<td style="text-align: left;">Rounds each component of the vector.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>srandom</strong></td>
+<td style="text-align: left;">Initializes the random number generator
+using <em>srand48</em>. The high order 32-bits are set using the
+integral portion of the first vector component. All other components are
+ignored. The low order 16-bits are set to an arbitrary value.</td>
+</tr>
+</tbody>
+</table>
 <p>The following functions return a single value:</p>
 <table>
 <colgroup>

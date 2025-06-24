@@ -28,6 +28,7 @@
   - [Limitations](#limitations)
   - [Future incompatibility](#future-incompatibility)
 
+
 ## Name
 
 stripchart - 2D strip chart for plotting x and y coordinate data.
@@ -701,9 +702,9 @@ The following operations are available for cross hairs:
   Cross hairs configuration options may be also be set by the **option** command. The resource name and class are
   `crosshairs` and `Crosshairs` respectively.
 
-  ``` {style="margin-left:32%; margin-top: 1em"}
+  ```tcl
   option add *Stripchart.Crosshairs.LineWidth 2
-  option add *Stripchart.Crosshairs.Color     red
+  option add *Stripchart.Crosshairs.Color red
   ```
 
 - *pathName* **crosshairs off**

@@ -27,6 +27,7 @@
   - [Speed tips](#speed-tips)
   - [Limitations](#limitations)
 
+
 ## Name
 
 barchart - Bar chart for plotting X-Y coordinate data.
@@ -89,29 +90,29 @@ pens, postscript, and annotation markers. Each component can be queried or modif
 
 ## Syntax
 
-**barchart** *pathName* ?*option value*? ... 
+- **barchart** *pathName* ?*option value*? ... 
 
-The **barchart** command creates a new window *pathName* and makes it into a **barchart** widget.  At the time this
-command is invoked, there must not exist a window named *pathName*, but *pathName*'s parent must exist. Additional
-options may be specified on the command line or in the option database to configure aspects of the graph such as its
-colors and font. See the **configure** operation below for the exact details about what *option* and *value* pairs are
-valid.
+  The **barchart** command creates a new window *pathName* and makes it into a **barchart** widget.  At the time this
+  command is invoked, there must not exist a window named *pathName*, but *pathName*'s parent must exist. Additional
+  options may be specified on the command line or in the option database to configure aspects of the graph such as its
+  colors and font. See the **configure** operation below for the exact details about what *option* and *value* pairs are
+  valid.
 
-If successful, **barchart** returns the path name of the widget. It also creates a new Tcl command by the same name. You
-can use this command to invoke various operations that query or modify the graph. The general form is:
+  If successful, **barchart** returns the path name of the widget. It also creates a new Tcl command by the same
+  name. You can use this command to invoke various operations that query or modify the graph. The general form is:
 
-*pathName operation* ?*arg*? ... 
+- *pathName operation* ?*arg*? ... 
 
-Both *operation* and its arguments determine the exact behavior of the command. The operations available for the graph
-are described in the **[Barchart operations](#barchart-operations)** section.
+  Both *operation* and its arguments determine the exact behavior of the command. The operations available for the graph
+  are described in the **[Barchart operations](#barchart-operations)** section.
 
-The command can also be used to access components of the graph.
+  The command can also be used to access components of the graph.
 
-*pathName component operation* ?*arg*? ... 
+- *pathName component operation* ?*arg*? ... 
 
-The operation, now located after the name of the component, is the function to be performed on that component. Each
-component has its own set of operations that manipulate that component. They will be described below in their own
-sections.
+  The operation, now located after the name of the component, is the function to be performed on that component. Each
+  component has its own set of operations that manipulate that component. They will be described below in their own
+  sections.
 
 ## Example
 

@@ -14,6 +14,7 @@
   - [C API example ](#c-api-example-)
   - [Incompatibilities](#incompatibilities)
 
+
 ## Name
 
 vector - Vector data type for Tcl
@@ -139,7 +140,7 @@ The vector's Tcl command can also be used to query or set the vector.
 ```tcl
 # Create and set the components of a new vector
 vector create x
-x set { 0.02 0.04 0.06 0.08 0.10 0.12 0.14 0.16 0.18 0.20 }
+x set {0.02 0.04 0.06 0.08 0.10 0.12 0.14 0.16 0.18 0.20}
 ```
 
 Here we've created a vector `x` without a initial length specification.  In this case, the length is zero. The **set**
@@ -165,7 +166,7 @@ Other operations copy, append, or sort vectors. You can append vectors or new va
 
 ```tcl
 # Append assorted vectors and values to x
-x append x2 x3 { 2.3 4.5 } x4
+x append x2 x3 {2.3 4.5} x4
 ```
 
 The **sort** operation sorts the vector. If any additional vectors are specified, they are rearranged in the same order
@@ -183,8 +184,8 @@ The **expr** operation lets you perform arithmetic on vectors. The result is sto
 
 ```tcl
 # Add the two vectors and a scalar
-x expr { x + y }
-x expr { x * 2 }
+x expr {x+y}
+x expr {x*2}
 ```
 
 When a vector is modified, resized, or deleted, it may trigger call-backs to notify the clients of the vector. For
@@ -214,19 +215,19 @@ vector destroy x
 Vectors are created using the **vector create** operation. The **create** operation can be invoked in one of three
 forms:
 
-**vector create** *vecName*
+- **vector create** *vecName*
 
-This creates a new vector *vecName* which initially has no components.
+  This creates a new vector *vecName* which initially has no components.
 
-**vector create** *vecName*(*size*)
+- **vector create** *vecName*(*size*)
 
-This second form creates a new vector which will contain *size* number of components. The components will be indexed
-starting from zero (0).  The default value for the components is `0.0`.
+  This second form creates a new vector which will contain *size* number of components. The components will be indexed
+  starting from zero (0).  The default value for the components is `0.0`.
 
-**vector create** *vecName*(*first*:*last*)
+- **vector create** *vecName*(*first*:*last*)
 
-The last form creates a new vector of indexed *first* through *last*.  *First* and *last* can be any integer value so
-long as *first* is less than *last*.
+  The last form creates a new vector of indexed *first* through *last*.  *First* and *last* can be any integer value so
+  long as *first* is less than *last*.
 
 Vector names must start with a letter and consist of letters, digits, or underscores.
 
@@ -372,6 +373,7 @@ is applied to all elements of the vector returning the results:
 
 
 Additional functions are:
+
 | Function    | Description                                                                                                                                                                                                                              |
 |:------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **abs**     | Returns the absolute value of each component.                                                                                                                                                                                            |

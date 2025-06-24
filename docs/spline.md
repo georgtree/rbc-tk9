@@ -50,8 +50,8 @@ coordinates) of the data that we're going to fit. Obviously, both vectors must b
 vector x(10) y(10)
 
 for {set i 10} {$i > 0} {incr i -1} {
-    set x($i-1) [expr $i*$i]
-    set y($i-1) [expr sin($i*$i*$i)]
+    set x($i-1) [expr {$i*$i}]
+    set y($i-1) [expr {sin($i*$i*$i)}]
 }
 ```
 
@@ -136,8 +136,8 @@ spline quadratic x y sx sy
 
 Numerical Analysis by R. Burden, J. Faires and A. Reynolds. Prindle, Weber & Schmidt, 1981, pp. 112
 
-Shape Preserving Quadratic Splines\
-by D.F.Mcallister & J.A.Roulier\
+Shape Preserving Quadratic Splines
+by D.F.Mcallister & J.A.Roulier
 Coded by S.L.Dodd & M.Roulier N.C.State University.
 
 The original code for the quadratric spline can be found in TOMS #574.

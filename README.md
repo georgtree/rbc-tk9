@@ -7,9 +7,16 @@ These components were refactored so that they would function with version Tcl/Tk
 
 Later, it was updated by Emiliano Gavilán to work with Tcl/Tk 9.0.
 
-This is my personal fork of Emiliano [repository](https://chiselapp.com/user/egavilan/repository/rbc-tk9). This fork
-has updated documentation to markdown format, additional code in `graph.tcl` library. Also I am going to apply any
-further improvements from Emiliano repository.
+This is my personal fork of Emiliano [repository](https://chiselapp.com/user/egavilan/repository/rbc-tk9). 
+
+This fork differences are:
+
+- Change documentation format to Markdown.
+- Formatting of C-code (cosmetic changes) and removal of K&R deprecated function definitions.
+- Updated demos
+- Additional functionality in `graph.tcl` library.
+
+Also I am going to apply any further improvements from Emiliano repository.
 
 Rbc is available from:
 	https://github.com/georgtree/rbc-tk9
@@ -17,7 +24,7 @@ Rbc is available from:
 More information on BLT is available from:
 	http://www.sourceforge.net/projects/blt/files
 	
-Rbc is intended to work with Tcl/Tk versions 8.7 and 9.0, although it may work with others.  Rbc is a TEA compliant
+Rbc is intended to work with Tcl/Tk versions 8.7 and 9.0, although it may work with others. Rbc is a TEA compliant
 extension, although it is not (yet) entirely free of dependency on Tcl/Tk private structures. So, for compilation
 you need Tcl/Tk sources.
 
@@ -42,8 +49,7 @@ Rbc contains the following BLT components:
 
 ## Installation
 
-For binary installations, just unzip or untar the package into your
-Tcl library.
+For binary installations, just unzip or untar the package into your Tcl library.
 
 ## Building from Source
 
@@ -53,11 +59,13 @@ Rbc is a TEA compliant extension.  You should be able to unpack the source code,
 Since Rbc still depends on some Tcl/Tk private data structures, you may experience some difficulty in bulding it against
 some Tcl distributions which do not have the complete set of public and private headers.
 
+Versions of Tcl/Tk lower than 9.0 are not tested.
+
 ## Documentation
 
 Documentation could be found [here](https://georgtree.github.io/rbc-tk9/). 
 
-## History
+## History (message from original RBC authors)
 
 In order to fulfill degree requirements, the four of us undertook the refactoring of a few commonly used BLT components.
 The project was proposed by an alumnus of the students' institute and was accepted by the school's Computer Science and

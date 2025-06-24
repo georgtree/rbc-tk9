@@ -17,6 +17,8 @@
     - [Postscript component](#postscript-component)
     - [Marker components](#marker-components)
     - [Bitmap markers](#bitmap-markers)
+    - [Image markers](#image-markers)
+    - [Line markers](#line-markers)
     - [Polygon markers](#polygon-markers)
     - [Text markers](#text-markers)
     - [Window markers](#window-markers)
@@ -24,7 +26,7 @@
   - [C language API](#c-language-api)
   - [Speed tips](#speed-tips)
   - [Limitations](#limitations)
-  - [Keywords](#keywords)
+
 
 ## Name
 
@@ -126,7 +128,7 @@ elements, you use the new command and the **element** component.
 ```tcl
 # Create a new element named "line1"
 .g element create line1 -xdata { 0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0 }\
-  -ydata {26.18 50.46 72.85 93.31 111.86 128.47 143.14 155.85 166.60 175.38}
+        -ydata {26.18 50.46 72.85 93.31 111.86 128.47 143.14 155.85 166.60 175.38}
 ```
 
 The element's X-Y coordinates are specified using lists of numbers.  Alternately, BLT vectors could be used to hold the
@@ -174,7 +176,7 @@ can change the label, or specify no legend entry, again using the element's **co
 
 ```tcl
 # Don’t display "line1" in the legend.
-.g element configure line1 -label ""
+.g element configure line1 -label {}
 ```
 
 You can configure more than just the element's label. An element has many attributes such as symbol type and size,

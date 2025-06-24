@@ -851,7 +851,7 @@ Cross hairs configuration options may be also be set by the \fBoption\fP command
 .RS
 .nf
   option add *Stripchart.Crosshairs.LineWidth 2
-  option add *Stripchart.Crosshairs.Color     red
+  option add *Stripchart.Crosshairs.Color red
 .fi
 .RE
 .RS

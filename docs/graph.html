@@ -249,6 +249,8 @@
 <li><a href="#postscript-component">Postscript component</a></li>
 <li><a href="#marker-components">Marker components</a></li>
 <li><a href="#bitmap-markers">Bitmap markers</a></li>
+<li><a href="#image-markers">Image markers</a></li>
+<li><a href="#line-markers">Line markers</a></li>
 <li><a href="#polygon-markers">Polygon markers</a></li>
 <li><a href="#text-markers">Text markers</a></li>
 <li><a href="#window-markers">Window markers</a></li>
@@ -258,7 +260,6 @@ bindings</a></li>
 <li><a href="#c-language-api">C language API</a></li>
 <li><a href="#speed-tips">Speed tips</a></li>
 <li><a href="#limitations">Limitations</a></li>
-<li><a href="#keywords">Keywords</a></li>
 </ul>
 <h2 id="name">Name</h2>
 <p>graph - 2D graph for plotting X-Y coordinate data.</p>
@@ -362,7 +363,7 @@ new command and the <strong>element</strong> component.</p>
 <div class="sourceCode" id="cb3"><pre
 class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a new element named &quot;line1&quot;</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>.g element <span class="ot">create</span> line1<span class="ot"> -xdata</span> <span class="kw">{</span> <span class="fl">0.2</span> <span class="fl">0.4</span> <span class="fl">0.6</span> <span class="fl">0.8</span> <span class="fl">1.0</span> <span class="fl">1.2</span> <span class="fl">1.4</span> <span class="fl">1.6</span> <span class="fl">1.8</span> <span class="fl">2.0</span> <span class="kw">}</span>\</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  -ydata <span class="kw">{</span><span class="fl">26.18</span> <span class="fl">50.46</span> <span class="fl">72.85</span> <span class="fl">93.31</span> <span class="fl">111.86</span> <span class="fl">128.47</span> <span class="fl">143.14</span> <span class="fl">155.85</span> <span class="fl">166.60</span> <span class="fl">175.38</span><span class="kw">}</span></span></code></pre></div>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>        -ydata <span class="kw">{</span><span class="fl">26.18</span> <span class="fl">50.46</span> <span class="fl">72.85</span> <span class="fl">93.31</span> <span class="fl">111.86</span> <span class="fl">128.47</span> <span class="fl">143.14</span> <span class="fl">155.85</span> <span class="fl">166.60</span> <span class="fl">175.38</span><span class="kw">}</span></span></code></pre></div>
 <p>The element’s X-Y coordinates are specified using lists of numbers.
 Alternately, BLT vectors could be used to hold the X-Y coordinates.</p>
 <div class="sourceCode" id="cb4"><pre
@@ -403,7 +404,7 @@ entry, again using the element’s <strong>configure</strong>
 operation.</p>
 <div class="sourceCode" id="cb8"><pre
 class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Don’t display &quot;line1&quot; in the legend.</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>.g element <span class="ot">configure</span> line1<span class="ot"> -label</span> <span class="st">&quot;&quot;</span></span></code></pre></div>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>.g element <span class="ot">configure</span> line1<span class="ot"> -label</span> <span class="kw">{}</span></span></code></pre></div>
 <p>You can configure more than just the element’s label. An element has
 many attributes such as symbol type and size, dashed or solid lines,
 colors, line width, etc.</p>

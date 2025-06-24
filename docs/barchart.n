@@ -116,27 +116,33 @@ weight vector (see the element's \fB\-weight\fP and \fB\-style\fP options).
 configure how the PostScript is generated.
 .RE
 .SH Syntax
-.PP
+.RS
+.IP \(bu 2
 \fBbarchart\fP \fIpathName\fP ?\fIoption value\fP? ... 
-.PP
+.RE
+.IP
 The \fBbarchart\fP command creates a new window \fIpathName\fP and makes it into a \fBbarchart\fP widget.  At the time this
 command is invoked, there must not exist a window named \fIpathName\fP, but \fIpathName\fP\&'s parent must exist. Additional
 options may be specified on the command line or in the option database to configure aspects of the graph such as its
 colors and font. See the \fBconfigure\fP operation below for the exact details about what \fIoption\fP and \fIvalue\fP pairs are
 valid.
-.PP
-If successful, \fBbarchart\fP returns the path name of the widget. It also creates a new Tcl command by the same name. You
-can use this command to invoke various operations that query or modify the graph. The general form is:
-.PP
+.IP
+If successful, \fBbarchart\fP returns the path name of the widget. It also creates a new Tcl command by the same
+name. You can use this command to invoke various operations that query or modify the graph. The general form is:
+.RS
+.IP \(bu 2
 \fIpathName operation\fP ?\fIarg\fP? ... 
-.PP
+.RE
+.IP
 Both \fIoperation\fP and its arguments determine the exact behavior of the command. The operations available for the graph
 are described in the \fBBarchart operations \[la]#barchart-operations\[ra]\fP section.
-.PP
+.IP
 The command can also be used to access components of the graph.
-.PP
+.RS
+.IP \(bu 2
 \fIpathName component operation\fP ?\fIarg\fP? ... 
-.PP
+.RE
+.IP
 The operation, now located after the name of the component, is the function to be performed on that component. Each
 component has its own set of operations that manipulate that component. They will be described below in their own
 sections.

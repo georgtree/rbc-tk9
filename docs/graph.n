@@ -36,6 +36,10 @@ Marker components \[la]#marker-components\[ra]
 .IP \(bu 2
 Bitmap markers \[la]#bitmap-markers\[ra]
 .IP \(bu 2
+Image markers \[la]#image-markers\[ra]
+.IP \(bu 2
+Line markers \[la]#line-markers\[ra]
+.IP \(bu 2
 Polygon markers \[la]#polygon-markers\[ra]
 .IP \(bu 2
 Text markers \[la]#text-markers\[ra]
@@ -50,8 +54,6 @@ C language API \[la]#c-language-api\[ra]
 Speed tips \[la]#speed-tips\[ra]
 .IP \(bu 2
 Limitations \[la]#limitations\[ra]
-.IP \(bu 2
-Keywords \[la]#keywords\[ra]
 .RE
 .SH Name
 .PP
@@ -161,7 +163,7 @@ elements, you use the new command and the \fBelement\fP component.
 .nf
 # Create a new element named "line1"
 \&.g element create line1 \-xdata { 0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0 }\\
-  \-ydata {26.18 50.46 72.85 93.31 111.86 128.47 143.14 155.85 166.60 175.38}
+        \-ydata {26.18 50.46 72.85 93.31 111.86 128.47 143.14 155.85 166.60 175.38}
 .fi
 .RE
 .PP
@@ -219,7 +221,7 @@ can change the label, or specify no legend entry, again using the element's \fBc
 .RS
 .nf
 # Don’t display "line1" in the legend.
-\&.g element configure line1 \-label ""
+\&.g element configure line1 \-label {}
 .fi
 .RE
 .PP

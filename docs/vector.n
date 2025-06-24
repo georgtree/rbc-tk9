@@ -167,7 +167,7 @@ The vector's Tcl command can also be used to query or set the vector.
 .nf
 # Create and set the components of a new vector
 vector create x
-x set { 0.02 0.04 0.06 0.08 0.10 0.12 0.14 0.16 0.18 0.20 }
+x set {0.02 0.04 0.06 0.08 0.10 0.12 0.14 0.16 0.18 0.20}
 .fi
 .RE
 .PP
@@ -199,7 +199,7 @@ Other operations copy, append, or sort vectors. You can append vectors or new va
 .RS
 .nf
 # Append assorted vectors and values to x
-x append x2 x3 { 2.3 4.5 } x4
+x append x2 x3 {2.3 4.5} x4
 .fi
 .RE
 .PP
@@ -221,8 +221,8 @@ The \fBexpr\fP operation lets you perform arithmetic on vectors. The result is s
 .RS
 .nf
 # Add the two vectors and a scalar
-x expr { x + y }
-x expr { x * 2 }
+x expr {x+y}
+x expr {x*2}
 .fi
 .RE
 .PP
@@ -255,18 +255,24 @@ vector destroy x
 .PP
 Vectors are created using the \fBvector create\fP operation. The \fBcreate\fP operation can be invoked in one of three
 forms:
-.PP
+.RS
+.IP \(bu 2
 \fBvector create\fP \fIvecName\fP
-.PP
+.RE
+.IP
 This creates a new vector \fIvecName\fP which initially has no components.
-.PP
+.RS
+.IP \(bu 2
 \fBvector create\fP \fIvecName\fP(\fIsize\fP)
-.PP
+.RE
+.IP
 This second form creates a new vector which will contain \fIsize\fP number of components. The components will be indexed
 starting from zero (0).  The default value for the components is \fB\fC0.0\fR\&.
-.PP
+.RS
+.IP \(bu 2
 \fBvector create\fP \fIvecName\fP(\fIfirst\fP:\fIlast\fP)
-.PP
+.RE
+.IP
 The last form creates a new vector of indexed \fIfirst\fP through \fIlast\fP\&.  \fIFirst\fP and \fIlast\fP can be any integer value so
 long as \fIfirst\fP is less than \fIlast\fP\&.
 .PP
@@ -463,12 +469,20 @@ is applied to all elements of the vector returning the results:
 .RE
 .PP
 Additional functions are:
-| Function    | Description                                                                                                                                                                                                                              |
-|:\-\-\-\-\-\-\-\-\-\-\-\-|:\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-|
-| \fBabs\fP     | Returns the absolute value of each component.                                                                                                                                                                                            |
-| \fBrandom\fP  | Returns a vector of non\-negative values uniformly distributed between [0.0, 1.0) using \fIdrand48\fP\&. The seed comes from the internal clock of the machine or may be set manual with the srandom function.                                 |
-| \fBround\fP   | Rounds each component of the vector.                                                                                                                                                                                                     |
-| \fBsrandom\fP | Initializes the random number generator using \fIsrand48\fP\&. The high order 32\-bits are set using the integral portion of the first vector component. All other components are ignored. The low order 16\-bits are set to an arbitrary value. |
+.TS
+allbox;
+cb cb
+l l
+l l
+l l
+l l
+.
+Function	Description
+\fBabs\fP	Returns the absolute value of each component.
+\fBrandom\fP	Returns a vector of non\-negative values uniformly distributed between [0.0, 1.0) using \fIdrand48\fP\&. The seed comes from the internal clock of the machine or may be set manual with the srandom function.
+\fBround\fP	Rounds each component of the vector.
+\fBsrandom\fP	Initializes the random number generator using \fIsrand48\fP\&. The high order 32\-bits are set using the integral portion of the first vector component. All other components are ignored. The low order 16\-bits are set to an arbitrary value.
+.TE
 .PP
 The following functions return a single value:
 .TS

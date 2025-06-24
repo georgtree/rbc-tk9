@@ -279,8 +279,8 @@ class="sourceCode tcl"><code class="sourceCode tcl"><span id="cb1-1"><a href="#c
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>vector <span class="ot">x</span>(<span class="dv">10</span>) <span class="ot">y</span>(<span class="dv">10</span>)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">for</span> <span class="kw">{set</span> i <span class="dv">10</span><span class="kw">}</span> <span class="kw">{</span><span class="dt">$i</span> &gt; <span class="dv">0</span><span class="kw">}</span> <span class="kw">{incr</span> i<span class="ot"> -1</span><span class="kw">}</span> <span class="kw">{</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">set</span> <span class="ot">x</span>(<span class="dt">$i</span><span class="dv">-1</span>) <span class="kw">[expr</span> <span class="dt">$i</span>*<span class="dt">$i</span><span class="kw">]</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">set</span> <span class="ot">y</span>(<span class="dt">$i</span><span class="dv">-1</span>) <span class="kw">[expr</span> sin(<span class="dt">$i</span>*<span class="dt">$i</span>*<span class="dt">$i</span>)<span class="kw">]</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">set</span> <span class="ot">x</span>(<span class="dt">$i</span><span class="dv">-1</span>) <span class="kw">[expr</span> <span class="kw">{</span><span class="dt">$i</span>*<span class="dt">$i</span><span class="kw">}]</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">set</span> <span class="ot">y</span>(<span class="dt">$i</span><span class="dv">-1</span>) <span class="kw">[expr</span> <span class="kw">{</span>sin(<span class="dt">$i</span>*<span class="dt">$i</span>*<span class="dt">$i</span>)<span class="kw">}]</span></span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">}</span></span></code></pre></div>
 <p>We now have two vectors <code>x</code> and <code>y</code>
 representing the ten data points we’re trying to fit. The order of the
@@ -369,9 +369,8 @@ exist, a new vector will be created.</p></li>
 <h2 id="references">References</h2>
 <p>Numerical Analysis by R. Burden, J. Faires and A. Reynolds. Prindle,
 Weber &amp; Schmidt, 1981, pp. 112</p>
-<p>Shape Preserving Quadratic Splines<br />
-by D.F.Mcallister &amp; J.A.Roulier<br />
-Coded by S.L.Dodd &amp; M.Roulier N.C.State University.</p>
+<p>Shape Preserving Quadratic Splines by D.F.Mcallister &amp;
+J.A.Roulier Coded by S.L.Dodd &amp; M.Roulier N.C.State University.</p>
 <p>The original code for the quadratric spline can be found in TOMS
 #574.</p>
 </body>
