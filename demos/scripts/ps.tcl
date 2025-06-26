@@ -124,7 +124,7 @@ namespace eval ::rbc::ps {
         dialogInit a4
         printCmd {nlp -d2a211}
         printFile out.ps
-        debug 1
+        debug 0
         paperSize i
         plotSize default
     }

@@ -21,9 +21,8 @@ source $DemoDir/scripts/common.tcl
 # Rbc_PostScriptDialog which is not used in these demos.
 source $DemoDir/scripts/ps.tcl
 set HeaderText {This is an example of the graph widget. It displays two-variable data with assorted line attributes and\
-                        symbols.}
+                        symbols. You can press middle mouse button to mark points on the graph.}
 CommonHeader .header $HeaderText 6 $DemoDir .g graph1.ps
-CommonFooter .footer $DemoDir
 proc MultiplexView {args} { 
     eval .g axis view y $args
     eval .g axis view y2 $args
@@ -110,15 +109,12 @@ $graph element create line3 -x $X -y $Y1
 ####  Configure the "Fill" images for elements "line2" and "line3" - the bees and sharks.
 set image2 [image create photo -file $DemoDir/images/flowers.png]
 .g element configure line2 -areapattern @$DemoDir/bitmaps/sharky.xbm
-#	-areaforeground blue -areabackground ""
 .g element configure line3 -areatile $image2
-
 
 ### Map everything, add Rbc_* commands and bindings.
 grid .header -columnspan 2 -sticky ew
 grid .g .ybar -sticky news
 grid .xbar -sticky ew
-grid .footer -columnspan 2 -sticky ew
 grid .ybar -sticky ns
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1
@@ -126,7 +122,11 @@ grid rowconfigure . 1 -weight 1
 Rbc_ZoomStack $graph
 Rbc_Crosshairs $graph
 Rbc_ActiveLegend $graph
-Rbc_ClosestPoint $graph
+Rbc_MarkClosestPoint $graph
+Rbc_AxisScaleActive $graph y
+Rbc_AxisScaleActive $graph y2
+set toolbar [Rbc_ToolbarCrosshair {} $graph]
+grid $toolbar -sticky we
 
 .g element bind all <Enter> {
     %W legend activate [%W element get current]

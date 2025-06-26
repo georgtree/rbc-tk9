@@ -94,6 +94,8 @@ if 0 {
 ### Now add a bitmap marker (background image) and configure the postscript component.
 $graph marker create bitmap -name bg -coords {-360 -1 360 1} -bitmap @$DemoDir/bitmaps/greenback.xbm -bg darkseagreen1\
         -fg darkseagreen3 -under yes -rotate 45
+set textMarker [$graph marker create text -text {} -anchor sw -justify left]
+$graph marker configure $textMarker -coords {-Inf -Inf}
 $graph postscript configure -maxpect yes -landscape yes
 
 ### Map everything, add Rbc_* commands.
@@ -106,6 +108,7 @@ Rbc_ZoomStack $graph
 Rbc_Crosshairs $graph
 Rbc_ActiveLegend $graph
 Rbc_ClosestPoint $graph
+Rbc_CrosshairsMarker $graph $textMarker
 
 # FIXME rbc - On X11 the legend is not correctly sized for its
 # text, possibly because it has an unexpected font.
