@@ -28,7 +28,6 @@ set text [MakeLine {
     |the right mouse button.
 }]
 CommonHeader .header $text 5 $DemoDir .graph graph6.ps
-CommonFooter .footer $DemoDir
 
 ### Initialize
 set logicPlots {}
@@ -89,13 +88,13 @@ for {set i 1} {$i<=39} {incr i} {
 wm min . 0 0 
 grid .header -sticky ew
 grid .graph .legend -sticky nsew
-grid .footer -sticky ew
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1
 Rbc_ZoomStack .graph
-Rbc_Crosshairs .graph
 Rbc_ClosestPoint .graph
 Rbc_PrintKey .graph
+set toolbar [Rbc_ToolbarCrosshair {} .graph]
+grid $toolbar -sticky we
 .graph legend bind all <ButtonRelease-1> {HighlightTrace %W}
 .graph legend bind all <ButtonRelease-3> {
     %W legend deactivate *

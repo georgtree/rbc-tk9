@@ -66,6 +66,12 @@ proc Rbc_ToolbarCrosshair {w graph {state on}} {
     #   state - state of crosshairs, must be on or off, default is on
     return [rbc::ToolbarCrosshair $w $graph Any-Motion $state]
 }
+proc Rbc_Toolbar {w graph} {
+    # Enables toolbar and return toolbar path for adding it to the graph
+    #   w - parent window that holds toolbar
+    #   graph - name of the graph/stripchart/barchart widget
+    return [rbc::Toolbar $w $graph]
+}
 proc Rbc_MarkClosestPoint {graph {event ButtonPress-2} {interpolate yes}} {
     # Enables marking of closest point on the closest line element with specified event for provided
     # graph/stripchart/barchart
@@ -507,6 +513,7 @@ proc rbc::ResetAllZoom {graph} {
 
 ####  Toolbars procedures
 proc rbc::ToolbarCrosshair {w graph {event Any-Motion} {state on}} {
+    variable crosshairData
     set topFrame [ttk::frame $w.fra]
     set leftFrame [ttk::frame $topFrame.left]
     set rightFrame [ttk::frame $topFrame.right]
@@ -533,9 +540,9 @@ proc rbc::ToolbarCrosshair {w graph {event Any-Motion} {state on}} {
     $graph crosshairs $state
     bind crosshairs-$graph <$event> "
         %W crosshairs configure -position @%x,%y
-        lassign \[%W invtransform %x %y\] x y
-        $rightFrame.entryx configure -text \[format \"%%.4g\" \$x\]
-        $rightFrame.entryy configure -text \[format \"%%.4g\" \$y\]
+        lassign \[%W invtransform %x %y\] crosshairData(x) crosshairData(y)
+        $rightFrame.entryx configure -text \[format \"%%.4g\" \$crosshairData(x)\]
+        $rightFrame.entryy configure -text \[format \"%%.4g\" \$crosshairData(y)\]
     "
     bind crosshairs-$graph <Leave> {
         %W crosshairs off
@@ -549,6 +556,22 @@ proc rbc::ToolbarCrosshair {w graph {event Any-Motion} {state on}} {
     } elseif {$state eq {off}} {
         rbc::RemoveBindTag $graph crosshairs-$graph
     }
+    return $topFrame
+}
+proc rbc::Toolbar {w graph} {
+    set topFrame [ttk::frame $w.fra]
+    set ::rbc::scaleStateX($graph) [lindex [$graph axis configure x -logscale] end]
+    set ::rbc::scaleStateY($graph) [lindex [$graph axis configure y -logscale] end]
+    ttk::checkbutton $topFrame.b1 -text {Log Y} -variable ::rbc::scaleStateY($graph)\
+            -command [list rbc::ToggleAxisScale $graph y]
+    ttk::checkbutton $topFrame.b2 -text {Log X} -variable ::rbc::scaleStateX($graph)\
+            -command [list rbc::ToggleAxisScale $graph x]
+    ttk::button $topFrame.b3 -command [list rbc::ResetZoom $graph] -width 14 -image revertZoom
+    ttk::button $topFrame.b4 -command [list rbc::ResetAllZoom $graph] -width 14 -image resetZoom
+    ttk::button $topFrame.b5 -command [list rbc::RemoveAllMarkers $graph] -width 14 -image removeAllMarkers
+    ttk::button $topFrame.b6 -command [list rbc::MakeSnapshot $graph] -width 14 -image saveSnapshot
+    ttk::button $topFrame.b7 -command [list rbc::PostScriptDialog $graph] -width 14 -image postscriptPrint
+    pack $topFrame.b1 $topFrame.b2 $topFrame.b3 $topFrame.b4 $topFrame.b5 $topFrame.b6 $topFrame.b7 -side left -fill y  
     return $topFrame
 }
 

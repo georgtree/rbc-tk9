@@ -28,7 +28,6 @@ set HeaderText [MakeLine {
 }]
 set graph .graph
 CommonHeader .header $HeaderText 6 $DemoDir $graph barchart4.ps
-CommonFooter .footer $DemoDir IMG
 
 ### Set option defaults for the barchart.
 option add *Barchart.title {A Simple Barchart}
@@ -86,11 +85,11 @@ $graph element create data -label {} -x x -y y -weight w -styles $styles
 ### Map everything, add Rbc_* commands.
 grid .header -sticky ew
 grid .graph  -sticky nsew
-grid .footer -sticky ew
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1
 wm min . 0 0
 Rbc_ZoomStack $graph
-Rbc_Crosshairs $graph
 Rbc_ActiveLegend $graph
 Rbc_ClosestPoint $graph
+set toolbar [Rbc_ToolbarCrosshair {} .graph]
+grid $toolbar -sticky we

@@ -30,11 +30,8 @@ set HeaderText [MakeLine {
     |the postscript component lets you generate PostScript output.
 }]
 CommonHeader .header $HeaderText 9 $DemoDir .bc barchart1.ps
-CommonFooter .footer $DemoDir
 
 ### Set option defaults for the barchart.
-image create photo bgTexture -file $DemoDir/images/metal.png
-option add *tile bgTexture
 option add *Barchart.title {A Simple Barchart}
 option add *Barchart.font {Helvetica 12 bold}
 option add *Axis.tickFont {Courier 10}
@@ -97,7 +94,6 @@ foreach stipple $bitmaps {
 ### Map everything, add Rbc_* commands and bindings.
 grid .header -sticky ew
 grid .bc -sticky nsew
-grid .footer -sticky ew
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1
 Rbc_ZoomStack .bc

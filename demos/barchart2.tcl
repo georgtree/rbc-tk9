@@ -54,7 +54,6 @@ proc CustomHeader {w graph} {
 set barMode stacked
 set graph .graph
 CustomHeader .header $graph
-CommonFooter .footer $DemoDir IMG
 
 ### Set options for barchart.
 # Both kinds of font description work on win32 and both fail on x11.
@@ -70,9 +69,6 @@ if 1 {
     option add *Axis.titleFont {Helvetica -12 bold}
     option add *Legend.Font {Helvetica -12 bold}
 }
-# image create photo bgTexture -file $DemoDir/images/chalk.gif
-image create photo bgTexture -file $DemoDir/images/metal.png
-option add *tile bgTexture
 option add *Barchart.title {Comparison of Simulators}
 option add *x.Command FormatXTicks
 option add *x.Title Simulator
@@ -102,7 +98,7 @@ proc FormatXTicks {w value} {
 }
 
 ### Create the barchart.
-barchart $graph -tile bgTexture -width 600 -height 400
+barchart $graph -width 600 -height 400
 
 ### Define vectors and their contents.
 vector create X Y0 Y1 Y2 Y3 Y4
@@ -151,7 +147,6 @@ $graph configure -barmode $barMode
 ### Map everything, add Rbc_* commands and bindings.
 grid .header -sticky ew
 grid $graph -sticky nsew
-grid .footer -sticky ew
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1
 Rbc_ZoomStack $graph

@@ -28,7 +28,6 @@ set HeaderText [MakeLine {
     |elements, etc.
 }]
 CommonHeader .header $HeaderText 6 $DemoDir $graph barchart5.ps
-CommonFooter .footer $DemoDir
 
 ### Set option defaults for the graph.
 option add *graph.title {A Simple Barchart}
@@ -62,15 +61,14 @@ $graph element create sin -relief raised -bd 1 -x x -y y  -barwidth $barWidth
 ### Map everything, add Rbc_* commands.
 grid .header -sticky ew
 grid $graph -sticky nsew -padx 4
-grid .footer -sticky ew
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1
 wm min . 0 0
 Rbc_ZoomStack $graph
-Rbc_Crosshairs $graph
 Rbc_ActiveLegend $graph
 Rbc_ClosestPoint $graph
-
+set toolbar [Rbc_ToolbarCrosshair {} $graph]
+grid $toolbar -sticky we
 # FIXME rbc - On X11 the legend is not correctly sized for its
 # text, possibly because it has an unexpected font.
 # On X11 this code doesn't change the font, but it does

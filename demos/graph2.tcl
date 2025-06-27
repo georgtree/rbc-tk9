@@ -102,11 +102,11 @@ grid .g -sticky nsew
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 0 -weight 1
 Rbc_ZoomStack $graph
-Rbc_Crosshairs $graph
 Rbc_ActiveLegend $graph
 Rbc_ClosestPoint $graph
 Rbc_PrintKey $graph
-
+set toolbar [Rbc_ToolbarCrosshair {} $graph]
+grid $toolbar -sticky we
 # FIXME rbc - On X11 the legend is not correctly sized for its
 # text, possibly because it has an unexpected font.
 # On X11 this code doesn't change the font, but it does

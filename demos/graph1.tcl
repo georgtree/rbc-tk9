@@ -30,15 +30,6 @@ proc MultiplexView {args} {
 ttk::scrollbar .xbar -command {.g axis view x} -orient horizontal 
 ttk::scrollbar .ybar -command MultiplexView -orient vertical 
 
-### Set option defaults for $graph, related to the tile image.
-if {[winfo screenvisual .] ne {staticgray}} {
-    set image [image create photo -file $DemoDir/images/metal.png]
-    option add *Graph.Tile $image
-    option add *Label.Tile $image
-    option add *Frame.Tile $image
-    option add *TileOffset 0
-}
-
 ### Create the graph and configure its options
 set graph [graph .g -width 600 -height 400]
 
@@ -120,7 +111,6 @@ grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1
 
 Rbc_ZoomStack $graph
-Rbc_Crosshairs $graph
 Rbc_ActiveLegend $graph
 Rbc_MarkClosestPoint $graph
 Rbc_AxisScaleActive $graph y

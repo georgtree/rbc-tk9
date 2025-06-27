@@ -20,7 +20,6 @@ set HeaderText [MakeLine {
     |mouse to the other corner and click again.
 }]
 CommonHeader .header $HeaderText 6 $DemoDir .graph {} graph4.ppm
-CommonFooter .footer $DemoDir IMG
 
 ### These options apply to the graph.
 option add *Graph.Legend.activeBackground white
@@ -116,14 +115,14 @@ foreach {label yData outline color} $attributes {
 ### Map everything, add Rbc_* commands and bindings.
 grid .header -sticky ew
 grid .graph -sticky nsew
-grid .footer -sticky ew
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1
 Rbc_ZoomStack .graph
-Rbc_Crosshairs .graph
 Rbc_ActiveLegend .graph
 Rbc_ClosestPoint .graph
 Rbc_PrintKey .graph
+set toolbar [Rbc_ToolbarCrosshair {} .graph]
+grid $toolbar -sticky we
 .graph element bind all <Enter> {
     %W legend activate [%W element get current]
 }

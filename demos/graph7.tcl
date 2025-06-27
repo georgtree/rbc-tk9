@@ -23,11 +23,8 @@ set HeaderText [MakeLine {
     |the right mouse button.
 }]
 CommonHeader .header $HeaderText 7 $DemoDir .graph
-CommonFooter .footer $DemoDir
 
 ### Colors and other options for the graph:
-image create photo bgTexture -file $DemoDir/images/metal.png
-option add *Graph.Tile bgTexture
 option add *HighlightThickness 0
 option add *Element.ScaleSymbols no
 option add *activeLine.Color yellow4
@@ -46,7 +43,6 @@ $graph element create line3 -symbol square -color green4 -fill green2 -linewidth
 ### Map everything
 grid .header -sticky ew
 grid .graph -sticky nsew
-grid .footer -sticky ew
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1
 wm min . 0 0
@@ -90,6 +86,7 @@ destroy .lab7
 
 ### Add Rbc_* commands
 Rbc_ZoomStack $graph
-Rbc_Crosshairs $graph
 Rbc_ActiveLegend $graph
 Rbc_ClosestPoint $graph
+set toolbar [Rbc_ToolbarCrosshair {} .graph]
+grid $toolbar -sticky we

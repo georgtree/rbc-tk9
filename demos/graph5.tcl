@@ -13,7 +13,6 @@ set DemoDir [file normalize [file dirname [info script]]]
 
 ### Load common commands and create non-rbc GUI elements.
 source $DemoDir/scripts/common.tcl
-CommonFooter .footer $DemoDir IMG
 
 ### Set option defaults for $graph
 option add *Element.ScaleSymbols true
@@ -69,11 +68,11 @@ $graph element configure line0 -dashes {2 4 2} -linewidth 2
 
 ### Map everything, add Rbc_* commands.
 grid $graph -sticky nsew
-grid .footer -sticky ew -padx 40
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 0 -weight 1
 Rbc_ZoomStack $graph
-Rbc_Crosshairs $graph
 Rbc_ActiveLegend $graph
 Rbc_ClosestPoint $graph
 Rbc_PrintKey $graph
+set toolbar [Rbc_ToolbarCrosshair {} $graph]
+grid $toolbar -sticky we

@@ -55,8 +55,9 @@ rbc::graph .graph -width 600 -height 400
 .graph element create Quadratic -x x2 -y y2 -color blue4 -fill orange2 -pixels 3 -symbol arrow
 pack .graph -fill both -expand 1
 Rbc_ZoomStack .graph
-Rbc_Crosshairs .graph
 Rbc_ActiveLegend .graph
 Rbc_ClosestPoint .graph
 Rbc_PrintKey .graph
+set toolbar [Rbc_ToolbarCrosshair {} .graph]
+pack $toolbar -side left
 .graph grid on

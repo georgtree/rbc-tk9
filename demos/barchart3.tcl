@@ -22,7 +22,6 @@ source $DemoDir/scripts/common.tcl
 source $DemoDir/scripts/ps.tcl
 set HeaderText {This is an example of the barchart widget.}
 CommonHeader .header $HeaderText 5 $DemoDir .b barchart3.ps
-CommonFooter .footer $DemoDir
 
 ### Create and configure barchart.
 # Note that the plot is inverted (One to Eleven), and the bars are drawn from a baseline at 1.2, not zero.
@@ -71,7 +70,6 @@ $graph element create Eleven -data {11 3.3} -fg blue
 ### Map everything, add Rbc_* commands.
 grid .header -sticky ew -padx 15
 grid $graph -sticky news
-grid .footer -sticky ew -padx 15
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1
 wm min . 0 0

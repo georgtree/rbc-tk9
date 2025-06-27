@@ -21,7 +21,6 @@ set HeaderText [MakeLine {
     |To restore the last view, click on the right button.
 }]
 CommonHeader .header $HeaderText 4 $DemoDir .g
-CommonFooter .footer $DemoDir IMG
 
 ### Set option defaults for $graph.
 set visual [winfo screenvisual .]
@@ -29,8 +28,6 @@ if {($visual ne {staticgray}) && ($visual ne {grayscale})} {
     option add *activeLine.Color red4
     option add *activeLine.Fill red2
 }
-image create photo bgTexture -file $DemoDir/images/metal.png
-option add *Tile bgTexture
 option add *HighlightThickness 0
 
 ### Define graph:
@@ -101,15 +98,14 @@ $graph postscript configure -maxpect yes -landscape yes
 ### Map everything, add Rbc_* commands.
 grid .header -sticky ew -padx 4 -pady 4
 grid $graph -sticky nsew
-grid .footer -sticky ew -padx 4 -pady 4
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1
 Rbc_ZoomStack $graph
-Rbc_Crosshairs $graph
 Rbc_ActiveLegend $graph
 Rbc_ClosestPoint $graph
 Rbc_CrosshairsMarker $graph $textMarker
-
+set toolbar [Rbc_Toolbar {} $graph]
+grid $toolbar -sticky we
 # FIXME rbc - On X11 the legend is not correctly sized for its
 # text, possibly because it has an unexpected font.
 # On X11 this code doesn't change the font, but it does
@@ -147,5 +143,4 @@ if 0 {
     option add *Button.Tile {}
     option add *Text.font -*-times*-bold-r-*-*-18-*-*
     option add *header.font -*-times*-medium-r-*-*-18-*-*
-    option add *footer.font -*-times*-medium-r-*-*-18-*-*
 }
