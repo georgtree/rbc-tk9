@@ -170,7 +170,7 @@ proc MainWindow {win DemoDir} {
         |Uses built-in spline command to demonstrate approximating data points
     }]
     # create canvas with scrollbars
-    ttk::labelframe $win -text Demos
+    ttk::frame $win
     canvas $win.c -width 500 -height 800 -xscrollcommand [list $win.xscroll set] -yscrollcommand [list $win.yscroll set]
     ttk::scrollbar $win.xscroll -orient horizontal -command [list $win.c xview]
     ttk::scrollbar $win.yscroll -command [list $win.c yview]
