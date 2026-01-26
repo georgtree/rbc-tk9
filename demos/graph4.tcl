@@ -121,7 +121,8 @@ Rbc_ZoomStack .graph
 Rbc_ActiveLegend .graph
 Rbc_ClosestPoint .graph
 Rbc_PrintKey .graph
-set toolbar [Rbc_ToolbarCrosshair {} .graph]
+set toolbar [Rbc_Toolbar {} .graph]
+Rbc_CrosshairsClosest .graph
 grid $toolbar -sticky we
 .graph element bind all <Enter> {
     %W legend activate [%W element get current]

@@ -21,6 +21,18 @@ proc Rbc_CrosshairsMarker {graph marker} {
     #   marker - id of the text marker that displays coordinates
     rbc::CrosshairsMarker $graph $marker
 }
+proc Rbc_CrosshairsClosest {graph {event Any-Motion} {state on} {halo 10} {interpolate yes} {single yes}} {
+    # Initialize and enable crosshairs for provided graph/stripchart/barchart with marker point that is shown when mouse
+    # is close to graph(s)
+    #   graph - name of the graph/stripchart/barchart widget
+    #   event - bind event type that activate highlightning, default is Any-Motion
+    #   state - state of crosshairs, must be on or off
+    #   halo - number of the pixels that crosshair point must be close by to activate marker showing, default is 10
+    #   interpolate - if yes, point that is used to determine distance is the perpendicular to graph, not the actual
+    #    point of dataset used for that graph, default is yes
+    #   single - show only the point on closest graph, not for each graph within halo, default is yes
+    rbc::CrosshairsClosest $graph $event $state $halo $interpolate $single
+}
 proc Rbc_ResetCrosshairs {graph state} {
     # Set crosshairs state (on/off) for provided graph/stripchart/barchart
     #   graph - name of the graph/stripchart/barchart widget
@@ -37,7 +49,7 @@ proc Rbc_ZoomStack {graph {start ButtonPress-1} {reset ButtonPress-3}} {
 proc Rbc_PrintKey {graph {event Shift-ButtonRelease-3}} {
     # Specifies event that opens PostScript dialog for provided graph/stripchart/barchart
     #   graph - name of the graph/stripchart/barchart widget
-    #   start - bind event type that open PostScript dialog, default is Shift-ButtonRelease-3
+    #   event - bind event type that open PostScript dialog, default is Shift-ButtonRelease-3
     rbc::PrintKey $graph $event
 }
 proc Rbc_ClosestPoint {graph {event Control-ButtonPress-2}} {
@@ -180,6 +192,10 @@ proc rbc::AddLabelPoint {graph text coords {anchor w}} {
     $graph marker create bitmap -coords $coords\
             -bitmap "@[file dirname [dict get [info frame 0] file]]/circle.xbm" -under no
 }
+proc rbc::AddBitmapPoint {graph name coords {anchor w}} {
+    $graph marker create bitmap -name $name -coords $coords\
+            -bitmap "@[file dirname [dict get [info frame 0] file]]/circle.xbm" -under no
+}
 proc rbc::RemoveAllMarkers {graph} {
     set markersNames [$graph marker names]
     $graph marker delete {*}$markersNames
@@ -256,6 +272,49 @@ proc rbc::CrosshairsMarker {graph marker {event Any-Motion} {state on}} {
         rbc::RemoveBindTag $graph crosshairs-$graph
     }
 }
+proc rbc::CrosshairsClosest {graph {event Any-Motion} {state on} {halo 10} {interpolate yes} {single yes}} {
+    $graph crosshairs $state
+    bind crosshairs-$graph <Leave> {
+        %W crosshairs off
+    }
+    bind crosshairs-$graph <Enter> {
+        %W crosshairs on
+    }
+    $graph crosshairs configure -color red
+    if {$state eq {on}} {
+        rbc::AddBindTag $graph crosshairs-$graph
+    } elseif {$state eq {off}} {
+        rbc::RemoveBindTag $graph crosshairs-$graph
+    }
+    bind crosshairs-$graph <$event> [string map [list @interpolate@ $interpolate @halo@ $halo @single@ $single] {
+        set markersNames [%W marker names cursor*]
+        %W marker delete {*}$markersNames
+        %W crosshairs configure -position @%x,%y
+        if {@single@} {
+            set result [%W element closest %x %y pointVar -along both -interpolate @interpolate@ -halo @halo@]
+            if {$result} {
+                %W marker create text -name cursorText$i -anchor n\
+                        -text "$pointVar(name): x=[format %%.4g $pointVar(x)] \ny=[format %%.4g $pointVar(y)]"\
+                        -coords "$pointVar(x) $pointVar(y)"
+                rbc::AddBitmapPoint %W cursorBitmap "$pointVar(x) $pointVar(y)"
+            }
+        } else {
+            set i 0
+            foreach elem [%W element names] {
+                set result [%W element closest %x %y pointVar -along both -interpolate @interpolate@ -halo @halo@ $elem]
+                if {!$result} {
+                    continue
+                }
+                %W marker create text -name cursorText$i -anchor n\
+                        -text "$pointVar(name): x=[format %%.4g $pointVar(x)] \ny=[format %%.4g $pointVar(y)]"\
+                        -coords "$pointVar(x) $pointVar(y)"
+                rbc::AddBitmapPoint %W cursorBitmap$i "$pointVar(x) $pointVar(y)"
+                incr i
+            }
+        }
+    }]
+}
+
 
 ####  Zoom procedures
 option add *zoomTitle.font {Helvetica 18}
