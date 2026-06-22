@@ -9,7 +9,7 @@ package require Tk
 proc EnableMouseWheelScrolling {canvas widget} {
     set bindScroll {
         if {[tk windowingsystem] eq "win32"} {
-            bind %W <MouseWheel> [list %C yview scroll [expr {- (%D / 120)}] units]
+            bind %W <MouseWheel> "%C yview scroll \[expr {- (%D / 120)}\] units"
         } elseif {[tk windowingsystem] eq "x11"} {
             bind %W <MouseWheel> "%C yview scroll \[expr {- (%D / 120)}\] units"
         } elseif {[tk windowingsystem] eq "aqua"} {
@@ -204,7 +204,7 @@ proc MainWindow {win DemoDir} {
         set w $win.c.targetFrame
         $win.c configure -scrollregion \"0 0 \[winfo reqwidth \$w\] \[winfo reqheight \$w\]\"
     "
-    #EnableMouseWheelScrolling $win.c $win.c.targetFrame
+    EnableMouseWheelScrolling $win.c $win.c.targetFrame
     return $win
 }
 
