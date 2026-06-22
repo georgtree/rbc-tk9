@@ -51,6 +51,7 @@ static Tk_ConfigSpec configSpecs[] = {
 static void ConfigureGrid(Graph *graphPtr, Grid *gridPtr);
 
 typedef int(RbcGrGridOp)(Graph *, Tcl_Interp *, int, Tcl_Obj *const[]);
+typedef RbcGrGridOp *RbcGrGridOpPtr;
 static RbcGrGridOp CgetOp;
 static RbcGrGridOp ConfigureOp;
 static RbcGrGridOp MapOp;
@@ -480,9 +481,9 @@ static Rbc_OpSpec gridOps[] = {
  *----------------------------------------------------------------------
  */
 int Rbc_GridOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    Rbc_Op proc;
+    RbcGrGridOpPtr proc;
 
-    proc = Rbc_GetOpFromObj(interp, gridOps, RBC_OP_ARG2, objc, objv);
+    proc = (RbcGrGridOpPtr)Rbc_GetOpFromObj(interp, gridOps, RBC_OP_ARG2, objc, objv);
     if (proc == NULL) {
         return TCL_ERROR;
     }

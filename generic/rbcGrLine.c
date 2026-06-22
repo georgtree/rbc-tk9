@@ -5256,7 +5256,7 @@ static ElementProcs lineProcs = {
  *
  *----------------------------------------------------------------------
  */
-Element *Rbc_LineElement(Graph *graphPtr, char *name, Rbc_Uid classUid) {
+Element *Rbc_LineElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     register Line *linePtr;
 
     linePtr = RbcCalloc(1, sizeof(Line));

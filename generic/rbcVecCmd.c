@@ -46,6 +46,7 @@ static int CompareVectors(void *a, void *b);
 
 /* Instance Functions Definitions (rbcVecObjCmd.c) */
 typedef int(RbcVectorCmdOp)(VectorObject *, Tcl_Interp *, int, Tcl_Obj *const[]);
+typedef RbcVectorCmdOp *RbcVectorCmdOpPtr;
 static RbcVectorCmdOp AppendOp;
 static RbcVectorCmdOp ArithOp;
 static RbcVectorCmdOp BinreadOp;
@@ -72,30 +73,30 @@ double drand48(void) { return (double)rand() / (double)RAND_MAX; }
 
 void srand48(long int seed) { srand(seed); }
 
-static Rbc_OpSpec vectorInstOpCmd[] = {{"*", ArithOp, 3, 3, "list"},
-                                       {"+", ArithOp, 3, 3, "list"},
-                                       {"-", ArithOp, 3, 3, "list"},
-                                       {"/", ArithOp, 3, 3, "list"},
-                                       {"append", AppendOp, 3, 0, "item ?item...?"},
-                                       {"binread", BinreadOp, 3, 0, "channel ?numValues? ?flags?"},
-                                       {"clear", ClearOp, 2, 2, ""},
-                                       {"delete", DeleteOp, 3, 0, "index ?index...?"},
-                                       {"dup", DupOp, 3, 3, "vecname"},
-                                       {"expr", ExprOp, 3, 3, "expression"},
-                                       {"index", IndexOp, 3, 4, "index ?value?"},
-                                       {"length", LengthOp, 2, 3, "?newSize?"},
-                                       {"merge", MergeOp, 3, 0, "vecName ?vecName...?"},
-                                       {"normalize", NormalizeOp, 2, 3, "?vecName?"},
-                                       {"offset", OffsetOp, 2, 3, "?offset?"},
-                                       {"populate", PopulateOp, 4, 4, "vecName density"},
-                                       {"random", RandomOp, 2, 2, ""},
-                                       {"range", RangeOp, 4, 4, "first last"},
-                                       {"search", SearchOp, 3, 5, "?-value? value ?value?"},
-                                       {"seq", SeqOp, 4, 5, "start end ?step?"},
-                                       {"set", SetOp, 3, 3, "list"},
-                                       {"sort", SortOp, 2, 0, "?-reverse? ?vecName...?"},
-                                       {"split", SplitOp, 2, 0, "?vecName...?"},
-                                       {"variable", VariableOp, 2, 3, "?varName?"},
+static Rbc_OpSpec vectorInstOpCmd[] = {{"*", (Rbc_Op)ArithOp, 3, 3, "list"},
+                                       {"+", (Rbc_Op)ArithOp, 3, 3, "list"},
+                                       {"-", (Rbc_Op)ArithOp, 3, 3, "list"},
+                                       {"/", (Rbc_Op)ArithOp, 3, 3, "list"},
+                                       {"append", (Rbc_Op)AppendOp, 3, 0, "item ?item...?"},
+                                       {"binread", (Rbc_Op)BinreadOp, 3, 0, "channel ?numValues? ?flags?"},
+                                       {"clear", (Rbc_Op)ClearOp, 2, 2, ""},
+                                       {"delete", (Rbc_Op)DeleteOp, 3, 0, "index ?index...?"},
+                                       {"dup", (Rbc_Op)DupOp, 3, 3, "vecname"},
+                                       {"expr", (Rbc_Op)ExprOp, 3, 3, "expression"},
+                                       {"index", (Rbc_Op)IndexOp, 3, 4, "index ?value?"},
+                                       {"length", (Rbc_Op)LengthOp, 2, 3, "?newSize?"},
+                                       {"merge", (Rbc_Op)MergeOp, 3, 0, "vecName ?vecName...?"},
+                                       {"normalize", (Rbc_Op)NormalizeOp, 2, 3, "?vecName?"},
+                                       {"offset", (Rbc_Op)OffsetOp, 2, 3, "?offset?"},
+                                       {"populate", (Rbc_Op)PopulateOp, 4, 4, "vecName density"},
+                                       {"random", (Rbc_Op)RandomOp, 2, 2, ""},
+                                       {"range", (Rbc_Op)RangeOp, 4, 4, "first last"},
+                                       {"search", (Rbc_Op)SearchOp, 3, 5, "?-value? value ?value?"},
+                                       {"seq", (Rbc_Op)SeqOp, 4, 5, "start end ?step?"},
+                                       {"set", (Rbc_Op)SetOp, 3, 3, "list"},
+                                       {"sort", (Rbc_Op)SortOp, 2, 0, "?-reverse? ?vecName...?"},
+                                       {"split", (Rbc_Op)SplitOp, 2, 0, "?vecName...?"},
+                                       {"variable", (Rbc_Op)VariableOp, 2, 3, "?varName?"},
                                        RBC_OPSPEC_END};
 
 /*
@@ -125,9 +126,9 @@ static Rbc_OpSpec vectorInstOpCmd[] = {{"*", ArithOp, 3, 3, "list"},
  */
 int Rbc_VectorInstanceObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     VectorObject *vPtr = clientData;
-    Rbc_Op proc;
+    RbcVectorCmdOpPtr proc;
 
-    proc = Rbc_GetOpFromObj(interp, vectorInstOpCmd, RBC_OP_ARG1, objc, objv);
+    proc = (RbcVectorCmdOpPtr)Rbc_GetOpFromObj(interp, vectorInstOpCmd, RBC_OP_ARG1, objc, objv);
 
     if (NULL == proc) {
         return TCL_ERROR;

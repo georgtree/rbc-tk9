@@ -42,6 +42,7 @@ static void DestroyElement(Graph *graphPtr, Element *elemPtr);
 static int RebuildDisplayList(Graph *graphPtr, Tcl_Obj *newList);
 
 typedef int(RbcGrElementOp)(Graph *, Tcl_Interp *, Rbc_Uid, int, Tcl_Obj *const[]);
+typedef RbcGrElementOp *RbcGrElementOpPtr;
 static RbcGrElementOp ActivateOp;
 static RbcGrElementOp BindOp;
 static RbcGrElementOp CreateOp;
@@ -2401,10 +2402,10 @@ static Rbc_OpSpec elemOps[] = {{"activate", (Rbc_Op)ActivateOp, 3, 0, "?elemName
  * ----------------------------------------------------------------
  */
 int Rbc_ElementOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], Rbc_Uid type) {
-    Rbc_Op proc;
+    RbcGrElementOpPtr proc;
     int result;
 
-    proc = Rbc_GetOpFromObj(interp, elemOps, RBC_OP_ARG2, objc, objv);
+    proc = (RbcGrElementOpPtr)Rbc_GetOpFromObj(interp, elemOps, RBC_OP_ARG2, objc, objv);
     if (proc == NULL) {
         return TCL_ERROR;
     }

@@ -1819,11 +1819,11 @@ static Rbc_OpSpec graphOps[] = {{"axis", (Rbc_Op)Rbc_VirtualAxisOp, 2, 0, "oper 
  *----------------------------------------------------------------------
  */
 int Rbc_GraphInstCmdProc(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    Rbc_Op proc;
+    Rbc_GraphOp proc;
     int result;
     Graph *graphPtr = clientData;
 
-    proc = Rbc_GetOpFromObj(interp, graphOps, RBC_OP_ARG1, objc, objv);
+    proc = (Rbc_GraphOp)Rbc_GetOpFromObj(interp, graphOps, RBC_OP_ARG1, objc, objv);
     if (proc == NULL) {
         return TCL_ERROR;
     }

@@ -25,6 +25,7 @@ static const char *NameOfColor(XColor *colorPtr);
 static Pen *NameToPen(Graph *graphPtr, Tcl_Obj *nameObj);
 
 typedef int(RbcGrPenOp)(Graph *, Tcl_Interp *, int, Tcl_Obj *const[]);
+typedef RbcGrPenOp *RbcGrPenOpPtr;
 static RbcGrPenOp CgetOp;
 static RbcGrPenOp ConfigureOp;
 static RbcGrPenOp CreateOp;
@@ -778,9 +779,9 @@ static Rbc_OpSpec penOps[] = {{"cget", (Rbc_Op)CgetOp, 5, 5, "penName option"},
  *----------------------------------------------------------------------
  */
 int Rbc_PenOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    Rbc_Op proc;
+    RbcGrPenOpPtr proc;
 
-    proc = Rbc_GetOpFromObj(interp, penOps, RBC_OP_ARG2, objc, objv);
+    proc = (RbcGrPenOpPtr)Rbc_GetOpFromObj(interp, penOps, RBC_OP_ARG2, objc, objv);
     if (proc == NULL) {
         return TCL_ERROR;
     }

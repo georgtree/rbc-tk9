@@ -536,6 +536,13 @@ struct GraphStruct {
  * ---------------------- Forward declarations ------------------------
  */
 
+typedef int (*Rbc_GraphOp)(
+    Graph *,
+    Tcl_Interp *,
+    int,
+    Tcl_Obj *const []
+);
+
 Tcl_ObjCmdProc Rbc_GraphInstCmdProc;
 int Rbc_CreatePostScript(Graph *graphPtr);
 int Rbc_CreateCrosshairs(Graph *graphPtr);

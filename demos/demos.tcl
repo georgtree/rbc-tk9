@@ -204,7 +204,7 @@ proc MainWindow {win DemoDir} {
         set w $win.c.targetFrame
         $win.c configure -scrollregion \"0 0 \[winfo reqwidth \$w\] \[winfo reqheight \$w\]\"
     "
-    EnableMouseWheelScrolling $win.c $win.c.targetFrame
+    #EnableMouseWheelScrolling $win.c $win.c.targetFrame
     return $win
 }
 

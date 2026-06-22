@@ -276,6 +276,7 @@ static int GetAxis(Graph *graphPtr, const char *name, Rbc_Uid classUid, Axis **a
 static void FreeAxis(Graph *graphPtr, Axis *axisPtr);
 
 typedef int(RbcGrAxisOp)(Graph *, Axis *, int, int, Tcl_Obj *const[]);
+typedef RbcGrAxisOp *RbcGrAxisOpPtr;
 static RbcGrAxisOp BindOp;
 static RbcGrAxisOp CgetOp;
 static RbcGrAxisOp ConfigureOp;
@@ -285,6 +286,7 @@ static RbcGrAxisOp TransformOp;
 static RbcGrAxisOp UseOp;
 
 typedef int(RbcGrAxisVirtualOp)(Graph *, int, Tcl_Obj *const[]);
+typedef RbcGrAxisVirtualOp *RbcGrAxisVirtualOpPtr;
 static RbcGrAxisVirtualOp BindVirtualOp;
 static RbcGrAxisVirtualOp CgetVirtualOp;
 static RbcGrAxisVirtualOp ConfigureVirtualOp;
@@ -846,13 +848,13 @@ static int StringToLoose(ClientData clientData, Tcl_Interp *interp, Tk_Window tk
         if ((argv[i][0] == 'a') && (strcmp(argv[i], "always") == 0)) {
             values[i] = TICK_RANGE_ALWAYS_LOOSE;
         } else {
-            int bool;
+            int boolValue;
 
-            if (Tcl_GetBoolean(interp, argv[i], &bool) != TCL_OK) {
+            if (Tcl_GetBoolean(interp, argv[i], &boolValue) != TCL_OK) {
                 ckfree((char *)argv);
                 return TCL_ERROR;
             }
-            values[i] = bool;
+            values[i] = boolValue;
         }
     }
     axisPtr->looseMin = axisPtr->looseMax = values[0];
@@ -4463,7 +4465,7 @@ static int ViewOp(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) {
  *----------------------------------------------------------------------
  */
 int Rbc_VirtualAxisOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    Rbc_Op proc;
+    RbcGrAxisVirtualOpPtr proc;
     int result;
     static Rbc_OpSpec axisOps[] = {
         {"bind", (Rbc_Op)BindVirtualOp, 3, 6, "axisName sequence command"},
@@ -4479,7 +4481,7 @@ int Rbc_VirtualAxisOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *co
         {"view", (Rbc_Op)ViewOp, 4, 7, "axisName ?moveto fract? ?scroll number what?"},
         RBC_OPSPEC_END};
 
-    proc = Rbc_GetOpFromObj(interp, axisOps, RBC_OP_ARG2, objc, objv);
+    proc = (RbcGrAxisVirtualOpPtr)Rbc_GetOpFromObj(interp, axisOps, RBC_OP_ARG2, objc, objv);
     if (proc == NULL) {
         return TCL_ERROR;
     }
@@ -4510,7 +4512,7 @@ int Rbc_VirtualAxisOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *co
  */
 int Rbc_AxisOp(Graph *graphPtr, int margin, int objc, Tcl_Obj *const objv[]) {
     int result;
-    Rbc_Op proc;
+    RbcGrAxisOpPtr proc;
     Axis *axisPtr;
     static Rbc_OpSpec axisOps[] = {{"bind", (Rbc_Op)BindOp, 2, 5, "sequence command"},
                                    {"cget", (Rbc_Op)CgetOp, 4, 4, "option"},
@@ -4521,7 +4523,7 @@ int Rbc_AxisOp(Graph *graphPtr, int margin, int objc, Tcl_Obj *const objv[]) {
                                    {"use", (Rbc_Op)UseOp, 3, 4, "?axisName?"},
                                    RBC_OPSPEC_END};
 
-    proc = Rbc_GetOpFromObj(graphPtr->interp, axisOps, RBC_OP_ARG2, objc, objv);
+    proc = (RbcGrAxisOpPtr)Rbc_GetOpFromObj(graphPtr->interp, axisOps, RBC_OP_ARG2, objc, objv);
     if (proc == NULL) {
         return TCL_ERROR;
     }

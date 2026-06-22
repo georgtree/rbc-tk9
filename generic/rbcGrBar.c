@@ -2156,7 +2156,7 @@ static ElementProcs barProcs = {
  *
  * ----------------------------------------------------------------------
  */
-Element *Rbc_BarElement(Graph *graphPtr, char *name, Rbc_Uid type) {
+Element *Rbc_BarElement(Graph *graphPtr, const char *name, Rbc_Uid type) {
     register Bar *barPtr;
 
     barPtr = RbcCalloc(1, sizeof(Bar));

@@ -25,6 +25,7 @@ static int GetRealizedWindow(Tcl_Interp *interp, const char *string, Tk_Window *
 static Window StringToWindow(Tcl_Interp *interp, const char *string);
 
 typedef int(RbcWinOp)(ClientData, Tcl_Interp *, int, Tcl_Obj *const[]);
+typedef RbcWinOp *RbcWinOpPtr;
 static RbcWinOp LowerOp;
 static RbcWinOp RaiseOp;
 static RbcWinOp MapOp;
@@ -1379,10 +1380,10 @@ static Rbc_OpSpec imageOps[] = {
  *--------------------------------------------------------------
  */
 static int ImageOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    Rbc_Op proc;
+    RbcWinOpPtr proc;
     int result;
 
-    proc = Rbc_GetOpFromObj(interp, imageOps, RBC_OP_ARG2, objc, objv);
+    proc = (RbcWinOpPtr)Rbc_GetOpFromObj(interp, imageOps, RBC_OP_ARG2, objc, objv);
     if (proc == NULL) {
         return TCL_ERROR;
     }
@@ -1437,10 +1438,10 @@ static Rbc_OpSpec winOps[] = {
  *--------------------------------------------------------------
  */
 static int WinopCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    Rbc_Op proc;
+    RbcWinOpPtr proc;
     int result;
 
-    proc = Rbc_GetOpFromObj(interp, winOps, RBC_OP_ARG1, objc, objv);
+    proc = (RbcWinOpPtr)Rbc_GetOpFromObj(interp, winOps, RBC_OP_ARG1, objc, objv);
     if (proc == NULL) {
         return TCL_ERROR;
     }

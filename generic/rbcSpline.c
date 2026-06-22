@@ -11,6 +11,12 @@
 
 #include "rbcInt.h"
 
+typedef int (*Rbc_SplineOp)(
+    Point2D *,
+    int,
+    Point2D *, 
+    int 
+);
 typedef double TriDiagonalMatrix[3];
 typedef struct {
     double b, c, d;
@@ -1010,7 +1016,7 @@ static Rbc_OpSpec splineOps[] = {{"natural", (Rbc_Op)Rbc_NaturalSpline, 6, 6, "x
  *--------------------------------------------------------------
  */
 static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    Rbc_Op proc;
+    Rbc_SplineOp proc;
     Rbc_Vector *x, *y, *splX, *splY;
     const char *xName, *yName, *splXName, *splYName;
     double *xArr, *yArr;
@@ -1018,7 +1024,7 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
     Point2D *origPts, *intpPts;
     int nOrigPts, nIntpPts;
 
-    proc = Rbc_GetOpFromObj(interp, splineOps, RBC_OP_ARG1, objc, objv);
+    proc = (Rbc_SplineOp)Rbc_GetOpFromObj(interp, splineOps, RBC_OP_ARG1, objc, objv);
     if (proc == NULL) {
         return TCL_ERROR;
     }

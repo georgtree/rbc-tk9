@@ -12,6 +12,13 @@
 #include "tcl.h"
 #include "rbcVector.h"
 
+typedef int (*RbcVectorOp)(
+    ClientData,
+    Tcl_Interp *,
+    int,
+    Tcl_Obj *const []
+);
+
 static Tcl_ObjCmdProc VectorObjCmd;
 
 static Tcl_ObjCmdProc VectorCreateObjCmd;
@@ -109,10 +116,10 @@ int Rbc_VectorInit(Tcl_Interp *interp) {
     return TCL_OK;
 }
 
-static Rbc_OpSpec vectorOpCmd[] = {{"create", VectorCreateObjCmd, 2, 0, "?vecName? ?switches...?"},
-                                   {"destroy", VectorDestroyObjCmd, 2, 0, "?vecName...?"},
-                                   {"expr", VectorExprObjCmd, 3, 3, "expression"},
-                                   {"names", VectorNamesObjCmd, 2, 3, "?pattern...?"},
+static Rbc_OpSpec vectorOpCmd[] = {{"create", (Rbc_Op)VectorCreateObjCmd, 2, 0, "?vecName? ?switches...?"},
+                                   {"destroy", (Rbc_Op)VectorDestroyObjCmd, 2, 0, "?vecName...?"},
+                                   {"expr", (Rbc_Op)VectorExprObjCmd, 3, 3, "expression"},
+                                   {"names", (Rbc_Op)VectorNamesObjCmd, 2, 3, "?pattern...?"},
                                    RBC_OPSPEC_END};
 
 /*
@@ -138,8 +145,8 @@ static Rbc_OpSpec vectorOpCmd[] = {{"create", VectorCreateObjCmd, 2, 0, "?vecNam
  * ------------------------------------------------------------------------
  */
 static int VectorObjCmd(ClientData dataPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    Rbc_Op proc;
-    proc = Rbc_GetOpFromObj(interp, vectorOpCmd, RBC_OP_ARG1, objc, objv);
+    RbcVectorOp proc;
+    proc = (RbcVectorOp)Rbc_GetOpFromObj(interp, vectorOpCmd, RBC_OP_ARG1, objc, objv);
     if (NULL == proc) {
         return TCL_ERROR;
     }

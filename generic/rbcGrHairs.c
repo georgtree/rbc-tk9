@@ -72,6 +72,7 @@ static void TurnOffHairs(Tk_Window tkwin, Crosshairs *chPtr);
 static void TurnOnHairs(Graph *graphPtr, Crosshairs *chPtr);
 
 typedef int(RbcGrHairsOp)(Graph *, Tcl_Interp *, int, Tcl_Obj *const[]);
+typedef RbcGrHairsOp *RbcGrHairsOpPtr;
 static RbcGrHairsOp CgetOp;
 static RbcGrHairsOp ConfigureOp;
 static RbcGrHairsOp OnOp;
@@ -541,9 +542,9 @@ static Rbc_OpSpec xhairOps[] = {
  *----------------------------------------------------------------------
  */
 int Rbc_CrosshairsOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    Rbc_Op proc;
+    RbcGrHairsOpPtr proc;
 
-    proc = Rbc_GetOpFromObj(interp, xhairOps, RBC_OP_ARG2, objc, objv);
+    proc = (RbcGrHairsOpPtr)Rbc_GetOpFromObj(interp, xhairOps, RBC_OP_ARG2, objc, objv);
     if (proc == NULL) {
         return TCL_ERROR;
     }

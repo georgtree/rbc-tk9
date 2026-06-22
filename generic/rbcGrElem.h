@@ -259,8 +259,8 @@ struct ElementStruct {
     int state;
 };
 
-Element *Rbc_BarElement();
-Element *Rbc_LineElement();
+Element *Rbc_BarElement(Graph *, const char *, Rbc_Uid);
+Element *Rbc_LineElement(Graph *, const char *, Rbc_Uid);
 
 extern Tk_OptionParseProc Rbc_StringToStyles;
 extern Tk_OptionPrintProc Rbc_StylesToString;

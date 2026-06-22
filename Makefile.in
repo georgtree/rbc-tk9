@@ -259,16 +259,18 @@ install-demos: demos
 # directory.
 #========================================================================
 
-install-doc: doc
+install-doc: 
 	@mkdir -p $(DESTDIR)$(mandir)/mann
 	@echo "Installing documentation in $(DESTDIR)$(mandir)"
-	@list='$(srcdir)/doc/*.n'; for i in $$list; do \
+	@list='$(srcdir)/docs/*.n'; for i in $$list; do \
 	    echo "Installing $$i"; \
 	    $(INSTALL_DATA) $$i $(DESTDIR)$(mandir)/mann ; \
 	done
 
 test: binaries libraries
-	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/all.tcl` @PKG_LIB_FILE@ $(TESTFLAGS)
+	$(TCLSH) `cygpath -m $(srcdir)/tests/all.tcl` $(TESTFLAGS) \
+	    -load "package ifneeded $(PACKAGE_NAME) $(PACKAGE_VERSION) \
+		[list load `cygpath -m $(PKG_LIB_FILE)` [string totitle $(PACKAGE_NAME)]]"
 
 shell: binaries libraries
 	@$(TCLSH) $(SCRIPT)

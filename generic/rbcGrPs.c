@@ -98,6 +98,7 @@ extern void Rbc_AxisLimitsToPostScript(Graph *graphPtr, PsToken psToken);
 static char *NameOfColorMode(PsColorMode colorMode);
 
 typedef int(RbcGrPsOp)(Graph *, Tcl_Interp *, int, Tcl_Obj *const[]);
+typedef RbcGrPsOp *RbcGrPsOpPtr;
 static RbcGrPsOp CgetOp;
 static RbcGrPsOp ConfigureOp;
 static RbcGrPsOp OutputOp;
@@ -1258,10 +1259,10 @@ static Rbc_OpSpec psOps[] = {{"cget", (Rbc_Op)CgetOp, 4, 4, "option"},
  *--------------------------------------------------------------
  */
 int Rbc_PostScriptOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    Rbc_Op proc;
+    RbcGrPsOpPtr proc;
     int result;
 
-    proc = Rbc_GetOpFromObj(interp, psOps, RBC_OP_ARG2, objc, objv);
+    proc = (RbcGrPsOpPtr)Rbc_GetOpFromObj(interp, psOps, RBC_OP_ARG2, objc, objv);
     if (proc == NULL) {
         return TCL_ERROR;
     }

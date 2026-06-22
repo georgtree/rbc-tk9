@@ -207,12 +207,12 @@ int Rbc_StringToFlag(void *clientData, Tcl_Interp *interp, Tk_Window tkwin, cons
                      Tcl_Size offset) {
     unsigned long mask = PTR2UINT(clientData); /* Bit to be tested */
     int *flagPtr = (int *)(widgRec + offset);
-    int bool;
+    int boolValue;
 
-    if (Tcl_GetBoolean(interp, string, &bool) != TCL_OK) {
+    if (Tcl_GetBoolean(interp, string, &boolValue) != TCL_OK) {
         return TCL_ERROR;
     }
-    if (bool) {
+    if (boolValue) {
         *flagPtr |= mask;
     } else {
         *flagPtr &= ~mask;
@@ -246,9 +246,9 @@ const char *Rbc_FlagToString(void *clientData, Tk_Window tkwin, char *widgRec, T
                              Tcl_FreeProc **freeProcPtr) {
     /* Bit to be tested */
     unsigned int mask = PTR2UINT(clientData);
-    unsigned int bool = *(unsigned int *)(widgRec + offset);
+    unsigned int boolValue = *(unsigned int *)(widgRec + offset);
 
-    return (bool &mask) ? "1" : "0";
+    return (boolValue &mask) ? "1" : "0";
 }
 
 static int DoCheck(Tcl_Interp *interp, int length, int check) {

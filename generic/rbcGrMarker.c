@@ -744,6 +744,7 @@ static int NameToMarker(Graph *graphPtr, char *name, Marker **markerPtrPtr);
 static int RenameMarker(Graph *graphPtr, Marker *markerPtr, char *oldName, char *newName);
 
 typedef int(RbcGrMarkerOp)(Graph *, Tcl_Interp *, int, Tcl_Obj *const[]);
+typedef RbcGrMarkerOp *RbcGrMarkerOpPtr;
 static RbcGrMarkerOp BindOp;
 static RbcGrMarkerOp CgetOp;
 static RbcGrMarkerOp ConfigureOp;
@@ -4705,10 +4706,10 @@ static Rbc_OpSpec markerOps[] = {{"after", (Rbc_Op)RelinkOp, 4, 5, "marker ?afte
  * ----------------------------------------------------------------------
  */
 int Rbc_MarkerOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    Rbc_Op proc;
+    RbcGrMarkerOpPtr proc;
     int result;
 
-    proc = Rbc_GetOpFromObj(interp, markerOps, RBC_OP_ARG2, objc, objv);
+    proc = (RbcGrMarkerOpPtr)Rbc_GetOpFromObj(interp, markerOps, RBC_OP_ARG2, objc, objv);
     if (proc == NULL) {
         return TCL_ERROR;
     }

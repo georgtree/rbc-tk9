@@ -163,6 +163,7 @@ static void SetLegendOrigin(Legend *legendPtr);
 static void ConfigureLegend(Graph *graphPtr, Legend *legendPtr);
 
 typedef int(RbcGrLegdOp)(Graph *, Tcl_Interp *, int, Tcl_Obj *const[]);
+typedef RbcGrLegdOp *RbcGrLegdOpPtr;
 static RbcGrLegdOp GetOp;
 static RbcGrLegdOp ActivateOp;
 static RbcGrLegdOp BindOp;
@@ -1448,10 +1449,10 @@ static Rbc_OpSpec legendOps[] = {{"activate", (Rbc_Op)ActivateOp, 3, 0, "?patter
  *----------------------------------------------------------------------
  */
 int Rbc_LegendOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    Rbc_Op proc;
+    RbcGrLegdOpPtr proc;
     int result;
 
-    proc = Rbc_GetOpFromObj(interp, legendOps, RBC_OP_ARG2, objc, objv);
+    proc = (RbcGrLegdOpPtr)Rbc_GetOpFromObj(interp, legendOps, RBC_OP_ARG2, objc, objv);
     if (proc == NULL) {
         return TCL_ERROR;
     }

@@ -14,7 +14,11 @@
 #include <errno.h>
 #include <math.h>
 
-typedef int(GenericMathProc) ANYARGS;
+typedef int(GenericMathProc)(
+    ClientData clientData,
+    Tcl_Interp *interp,
+    VectorObject *vPtr
+);
 
 /*
  *    Contains information about math functions that can be called

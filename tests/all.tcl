@@ -5,15 +5,14 @@
 #
 
 # restart using tclsh \
-exec tclsh "$0" "$@"
+#exec tclsh "$0" "$@"
 
 package require tcltest 2
 
 package require Tk ;# This is for a Tk Widget; fail early if no Tk!
 
 # Get RBC
-load [lindex $argv 0]
-source [file normalize [file dirname [file dirname [info script]]]]/library/graph.tcl
+package require rbc
 
 eval tcltest::configure [lrange $argv 1 end]
 tcltest::configure -testdir [file normalize [file dirname [info script]]]
