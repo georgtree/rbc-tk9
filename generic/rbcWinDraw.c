@@ -1413,12 +1413,12 @@ void Rbc_EmulateXDrawSegments(Display *display, Drawable drawable, GC gc, XSegme
     }
     dc = TkWinGetDrawableDC(display, drawable, &state);
     SetROP2(dc, tkpWinRopModes[gc->function]);
-    if (gc->line_style != LineSolid) {
+    if ((gc->line_style != LineSolid) && (gc->line_width <= 1)) {
         /* Handle dotted lines specially */
         DashInfo info;
 
         if (!GetDashInfo(dc, gc, &info)) {
-            goto solidLine;
+            goto usePen;
         }
         endPtr = segArr + nSegments;
         for (segPtr = segArr; segPtr < endPtr; segPtr++) {
@@ -1428,7 +1428,7 @@ void Rbc_EmulateXDrawSegments(Display *display, Drawable drawable, GC gc, XSegme
     } else {
         HPEN pen, oldPen;
 
-    solidLine:
+    usePen:
         pen = Rbc_GCToPen(dc, gc);
         oldPen = SelectPen(dc, pen);
         endPtr = segArr + nSegments;
