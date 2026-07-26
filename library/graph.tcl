@@ -194,7 +194,7 @@ proc rbc::AddLabelPoint {graph text coords {anchor w}} {
 }
 proc rbc::AddBitmapPoint {graph name coords {anchor w}} {
     $graph marker create bitmap -name $name -coords $coords\
-            -bitmap "@[file dirname [dict get [info frame 0] file]]/circle.xbm" -under no
+            -bitmap "@[file dirname [dict get [info frame 0] file]]/circle.xbm" -mask "@[file dirname [dict get [info frame 0] file]]/circle_mask.xbm" -under no
 }
 proc rbc::RemoveAllMarkers {graph} {
     set markersNames [$graph marker names]

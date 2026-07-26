@@ -1022,6 +1022,30 @@ ImageChangedProc(clientData, x, y, width, height, imageWidth, imageHeight)
     }
 }
 
+static int EpsOptionSpecified(Tcl_Size objc, Tcl_Obj *const objv[], const char *optionName) {
+    Tcl_Size i;
+    size_t optionNameLength;
+
+    optionNameLength = strlen(optionName);
+
+    /*
+     * Configuration arguments consist of option-value pairs.
+     * Prefix matching preserves Tk's abbreviated-option behaviour.
+     */
+    for (i = 0; i + 1 < objc; i += 2) {
+        const char *option;
+        size_t optionLength;
+
+        option = Tcl_GetString(objv[i]);
+        optionLength = strlen(option);
+
+        if ((optionLength <= optionNameLength) && (strncmp(optionName, option, optionLength) == 0)) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -1039,14 +1063,12 @@ ImageChangedProc(clientData, x, y, width, height, imageWidth, imageHeight)
  *
  *----------------------------------------------------------------------
  */
-static int
-ConfigureEps(
-    Tcl_Interp *interp,        /* Used for error reporting. */
-    Tk_Canvas canvas,        /* Canvas containing itemPtr. */
-    Tk_Item *itemPtr,        /* EPS item to reconfigure. */
-    Tcl_Size objc,        /* Number of elements in argv.  */
-    Tcl_Obj *const objv[],    /* Arguments describing things to configure. */
-    int flags)            /* Flags to pass to Tk_ConfigureWidget. */
+static int ConfigureEps(Tcl_Interp *interp,    /* Used for error reporting. */
+                        Tk_Canvas canvas,      /* Canvas containing itemPtr. */
+                        Tk_Item *itemPtr,      /* EPS item to reconfigure. */
+                        Tcl_Size objc,         /* Number of elements in argv.  */
+                        Tcl_Obj *const objv[], /* Arguments describing things to configure. */
+                        int flags)             /* Flags to pass to Tk_ConfigureWidget. */
 {
     EpsItem *epsPtr = (EpsItem *)itemPtr;
     Tk_Window tkwin;
@@ -1054,121 +1076,135 @@ ConfigureEps(
     unsigned long gcMask;
     GC newGC;
     int width, height;
+    int imageModified;
+    int fileModified;
+    int quickModified;
 
     tkwin = Tk_CanvasTkwin(canvas);
-    if (Tk_ConfigureWidget(interp, tkwin, configSpecs, objc,
-           objv, (char *)epsPtr, flags) != TCL_OK) {
-    return TCL_ERROR;
+    if (Tk_ConfigureWidget(interp, tkwin, configSpecs, objc, objv, (char *)epsPtr, flags) != TCL_OK) {
+        return TCL_ERROR;
     }
+    imageModified = EpsOptionSpecified(objc, objv, "-image");
+
+    fileModified = EpsOptionSpecified(objc, objv, "-file");
+
+    quickModified = EpsOptionSpecified(objc, objv, "-quick");
     /* Determine the size of the EPS item */
     width = height = 0;
     /*
      * Check for a "-image" option specifying an image to be displayed
      * representing the EPS canvas item.
      */
-    if (Rbc_ConfigModified(interp, configSpecs, "-image", (char *)NULL)) {
-    if (epsPtr->preview != NULL) {
-        Tk_FreeImage(epsPtr->preview);    /* Release old Tk image */
-        Rbc_FreeColorImage(epsPtr->colorImage);
-        epsPtr->preview = NULL;
-        epsPtr->colorImage = NULL;
-    }
-    if (epsPtr->previewName != NULL) {
-        Tk_PhotoHandle photo;    /* Photo handle to Tk image. */
-        /*
-         * Allocate a new image, if one was named.
-         */
-        photo = Tk_FindPhoto(interp, epsPtr->previewName);
-        if (photo == NULL) {
-        Tcl_AppendResult(interp, "image \"", epsPtr->previewName,
-                 "\" doesn't  exist or is not a photo image",
-                 (char *)NULL);
-        return TCL_ERROR;
+    if (imageModified) {
+        if (epsPtr->preview != NULL) {
+            Tk_FreeImage(epsPtr->preview);
+            epsPtr->preview = NULL;
         }
-        epsPtr->preview = Tk_GetImage(interp, tkwin, epsPtr->previewName,
-                      ImageChangedProc, epsPtr);
-        if (epsPtr->preview == NULL) {
-        Tcl_AppendResult(interp, "can't find an image \"",
-                 epsPtr->previewName, "\"", (char *)NULL);
-        ckfree((char *)epsPtr->previewName);
-        epsPtr->previewName = NULL;
-        return TCL_ERROR;
+
+        if (epsPtr->colorImage != NULL) {
+            Rbc_FreeColorImage(epsPtr->colorImage);
+            epsPtr->colorImage = NULL;
         }
-        epsPtr->colorImage = Rbc_PhotoToColorImage(photo);
-        width = Rbc_ColorImageWidth(epsPtr->colorImage);
-        height = Rbc_ColorImageHeight(epsPtr->colorImage);
+        if (epsPtr->previewName != NULL) {
+            Tk_PhotoHandle photo; /* Photo handle to Tk image. */
+            /*
+             * Allocate a new image, if one was named.
+             */
+            photo = Tk_FindPhoto(interp, epsPtr->previewName);
+            if (photo == NULL) {
+                Tcl_AppendResult(interp, "image \"", epsPtr->previewName, "\" doesn't  exist or is not a photo image",
+                                 (char *)NULL);
+                return TCL_ERROR;
+            }
+            epsPtr->preview = Tk_GetImage(interp, tkwin, epsPtr->previewName, ImageChangedProc, epsPtr);
+            if (epsPtr->preview == NULL) {
+                Tcl_AppendResult(interp, "can't find an image \"", epsPtr->previewName, "\"", (char *)NULL);
+                ckfree((char *)epsPtr->previewName);
+                epsPtr->previewName = NULL;
+                return TCL_ERROR;
+            }
+            epsPtr->colorImage = Rbc_PhotoToColorImage(photo);
+            width = Rbc_ColorImageWidth(epsPtr->colorImage);
+            height = Rbc_ColorImageHeight(epsPtr->colorImage);
+        }
     }
-    }
-    if (Rbc_ConfigModified(interp, configSpecs, "-file", (char *)NULL)) {
-    CloseEpsFile(epsPtr);
-    if (epsPtr->pixmap != None) {
+    if (fileModified) {
+        CloseEpsFile(epsPtr);
+        if (epsPtr->pixmap != None) {
 #ifdef notyet
-        Rbc_FreeColorTable(epsPtr->colorTable);
+            Rbc_FreeColorTable(epsPtr->colorTable);
 #endif
-        Tk_FreePixmap(Tk_Display(tkwin), epsPtr->pixmap);
-        epsPtr->pixmap = None;
-    }
-    if (epsPtr->colorImage != NULL) {
-        Rbc_FreeColorImage(epsPtr->colorImage);
-        epsPtr->colorImage = NULL;
-    }
-    epsPtr->firstLine = epsPtr->lastLine = -1;
-    if (epsPtr->fileName != NULL) {
-        if (OpenEpsFile(interp, epsPtr) != TCL_OK) {
-        return TCL_ERROR;
+            Tk_FreePixmap(Tk_Display(tkwin), epsPtr->pixmap);
+            epsPtr->pixmap = None;
         }
-    }
+        if (epsPtr->colorImage != NULL) {
+            Rbc_FreeColorImage(epsPtr->colorImage);
+            epsPtr->colorImage = NULL;
+        }
+        epsPtr->firstLine = epsPtr->lastLine = -1;
+        if (epsPtr->fileName != NULL) {
+            if (OpenEpsFile(interp, epsPtr) != TCL_OK) {
+                return TCL_ERROR;
+            }
+        }
     }
     if ((epsPtr->colorImage != NULL) && (epsPtr->tmpImage == NULL)) {
-    epsPtr->tmpImage = Rbc_CreateTemporaryImage(interp, tkwin, epsPtr);
-    if (epsPtr->tmpImage == NULL) {
-        return TCL_ERROR;
-    }
+        epsPtr->tmpImage = Rbc_CreateTemporaryImage(interp, tkwin, epsPtr);
+        if (epsPtr->tmpImage == NULL) {
+            return TCL_ERROR;
+        }
     } else if ((epsPtr->colorImage == NULL) && (epsPtr->tmpImage != NULL)) {
-    Rbc_DestroyTemporaryImage(epsPtr->interp, epsPtr->tmpImage);
+        Tk_Image tmpImage;
+
+        tmpImage = epsPtr->tmpImage;
+        epsPtr->tmpImage = NULL;
+
+        if (Rbc_DestroyTemporaryImage(epsPtr->interp, tmpImage) != TCL_OK) {
+            return TCL_ERROR;
+        }
     }
     if (epsPtr->preview != NULL) {
-    Tk_SizeOfImage(epsPtr->preview, &width, &height);
+        Tk_SizeOfImage(epsPtr->preview, &width, &height);
     }
     if (epsPtr->width == 0) {
-    if (epsPtr->fileName != NULL) {
-        width = (epsPtr->urx - epsPtr->llx);
-    }
-    epsPtr->width = width;
+        if (epsPtr->fileName != NULL) {
+            width = (epsPtr->urx - epsPtr->llx);
+        }
+        epsPtr->width = width;
     }
     if (epsPtr->height == 0) {
-    if (epsPtr->fileName != NULL) {
-        height = (epsPtr->ury - epsPtr->lly);
-    }
-    epsPtr->height = height;
+        if (epsPtr->fileName != NULL) {
+            height = (epsPtr->ury - epsPtr->lly);
+        }
+        epsPtr->height = height;
     }
     Rbc_ResetTextStyle(tkwin, &(epsPtr->titleStyle));
 
-    if (Rbc_ConfigModified(interp, configSpecs, "-quick", (char *)NULL)) {
-    epsPtr->lastWidth = epsPtr->lastHeight = 0;
+    if (quickModified) {
+        epsPtr->lastWidth = epsPtr->lastHeight = 0;
     }
     /* Fill color GC */
 
     newGC = NULL;
     if (epsPtr->fillColor != NULL) {
-    gcMask = GCForeground;
-    gcValues.foreground = epsPtr->fillColor->pixel;
-    if (epsPtr->stipple != None) {
-        gcMask |= (GCStipple | GCFillStyle);
-        gcValues.stipple = epsPtr->stipple;
-        if (epsPtr->border != NULL) {
-        gcValues.foreground = Tk_3DBorderColor(epsPtr->border)->pixel;
-        gcValues.background = epsPtr->fillColor->pixel;
-        gcMask |= GCBackground;
-        gcValues.fill_style = FillOpaqueStippled;
-        } else {
-        gcValues.fill_style = FillStippled;
+        gcMask = GCForeground;
+        gcValues.foreground = epsPtr->fillColor->pixel;
+        if (epsPtr->stipple != None) {
+            gcMask |= (GCStipple | GCFillStyle);
+            gcValues.stipple = epsPtr->stipple;
+            if (epsPtr->border != NULL) {
+                gcValues.foreground = Tk_3DBorderColor(epsPtr->border)->pixel;
+                gcValues.background = epsPtr->fillColor->pixel;
+                gcMask |= GCBackground;
+                gcValues.fill_style = FillOpaqueStippled;
+            } else {
+                gcValues.fill_style = FillStippled;
+            }
         }
-    }
-    newGC = Tk_GetGC(tkwin, gcMask, &gcValues);
+        newGC = Tk_GetGC(tkwin, gcMask, &gcValues);
     }
     if (epsPtr->fillGC != NULL) {
-    Tk_FreeGC(Tk_Display(tkwin), epsPtr->fillGC);
+        Tk_FreeGC(Tk_Display(tkwin), epsPtr->fillGC);
     }
     epsPtr->fillGC = newGC;
     CloseEpsFile(epsPtr);
@@ -1295,15 +1331,13 @@ ComputeEpsBbox(canvas, epsPtr)
  *
  *----------------------------------------------------------------------
  */
-static void
-DisplayEps(
-    Tk_Canvas canvas,    /* Canvas that contains item. */
-    Tk_Item *itemPtr,    /* Item to be displayed. */
-    Display *display,    /* Display on which to draw item. */
-    Drawable drawable,    /* Pixmap or window in which to draw
-             * item. */
-    int x, int y,       /* Describes region of canvas that */
-    int width, int height) /* must be redisplayed (not used). */
+static void DisplayEps(Tk_Canvas canvas,      /* Canvas that contains item. */
+                       Tk_Item *itemPtr,      /* Item to be displayed. */
+                       Display *display,      /* Display on which to draw item. */
+                       Drawable drawable,     /* Pixmap or window in which to draw
+                                               * item. */
+                       int x, int y,          /* Describes region of canvas that */
+                       int width, int height) /* must be redisplayed (not used). */
 {
     Tk_Window tkwin;
     EpsItem *epsPtr = (EpsItem *)itemPtr;
@@ -1313,48 +1347,41 @@ DisplayEps(
     int noImage;
 
     if ((epsPtr->width < 1) || (epsPtr->height < 1)) {
-    return;
+        return;
     }
     tkwin = Tk_CanvasTkwin(canvas);
-    epsPtr->showImage = TRUE;
     if ((epsPtr->showImage) && (epsPtr->colorImage != NULL) &&
-        ((epsPtr->lastWidth != epsPtr->width) ||
-         (epsPtr->lastHeight != epsPtr->height))) {
-    Rbc_ColorImage image;
+        ((epsPtr->lastWidth != epsPtr->width) || (epsPtr->lastHeight != epsPtr->height))) {
+        Rbc_ColorImage image;
 
-    if (epsPtr->quick) {
-        image = Rbc_ResizeColorImage(epsPtr->colorImage, 0, 0,
-            Rbc_ColorImageWidth(epsPtr->colorImage),
-            Rbc_ColorImageHeight(epsPtr->colorImage),
-            epsPtr->width, epsPtr->height);
-    } else {
-        image = Rbc_ResampleColorImage(epsPtr->colorImage, epsPtr->width,
-            epsPtr->height, rbcBoxFilterPtr, rbcBoxFilterPtr);
-    }
-    if (epsPtr->tmpImage != NULL) {
-        Tk_PhotoHandle photo;
-        /*
-         * Resize the Tk photo image used to represent the EPS item.
-         * We will over-write the temporary image with a resampled one.
-         */
-        photo = Tk_FindPhoto(epsPtr->interp,
-                  Rbc_NameOfImage(epsPtr->tmpImage));
-        Rbc_ColorImageToPhoto(epsPtr->interp, image, photo);
-    } else {
+        if (epsPtr->quick) {
+            image = Rbc_ResizeColorImage(epsPtr->colorImage, 0, 0, Rbc_ColorImageWidth(epsPtr->colorImage),
+                                         Rbc_ColorImageHeight(epsPtr->colorImage), epsPtr->width, epsPtr->height);
+        } else {
+            image = Rbc_ResampleColorImage(epsPtr->colorImage, epsPtr->width, epsPtr->height, rbcBoxFilterPtr,
+                                           rbcBoxFilterPtr);
+        }
+        if (epsPtr->tmpImage != NULL) {
+            Tk_PhotoHandle photo;
+            /*
+             * Resize the Tk photo image used to represent the EPS item.
+             * We will over-write the temporary image with a resampled one.
+             */
+            photo = Tk_FindPhoto(epsPtr->interp, Rbc_NameOfImage(epsPtr->tmpImage));
+            Rbc_ColorImageToPhoto(epsPtr->interp, image, photo);
+        } else {
 #ifdef notyet
-        epsPtr->pixmap = Rbc_ColorImageToPixmap(epsPtr->interp, tkwin,
-                image, &(epsPtr->colorTable));
+            epsPtr->pixmap = Rbc_ColorImageToPixmap(epsPtr->interp, tkwin, image, &(epsPtr->colorTable));
 #endif
-    }
-    epsPtr->lastHeight = epsPtr->height;
-    epsPtr->lastWidth = epsPtr->width;
-    Rbc_FreeColorImage(image);
+        }
+        epsPtr->lastHeight = epsPtr->height;
+        epsPtr->lastWidth = epsPtr->width;
+        Rbc_FreeColorImage(image);
     }
     /*
      * Translate the coordinates to those of the EPS item, then redisplay it.
      */
-    Tk_CanvasDrawableCoords(canvas, (double)epsPtr->canvasX,
-        (double)epsPtr->canvasY, &drawableX, &drawableY);
+    Tk_CanvasDrawableCoords(canvas, (double)epsPtr->canvasX, (double)epsPtr->canvasY, &drawableX, &drawableY);
     x = (int)drawableX;
     y = (int)drawableY;
 
@@ -1362,62 +1389,56 @@ DisplayEps(
     title = epsPtr->title;
 
     if (epsPtr->reqTitle != NULL) {
-    title = epsPtr->reqTitle;
+        title = epsPtr->reqTitle;
     }
     width = epsPtr->width;
     height = epsPtr->height;
-    noImage = ((!epsPtr->showImage) || ((epsPtr->tmpImage == NULL) &&
-                    (epsPtr->pixmap == None)));
+    noImage = ((!epsPtr->showImage) || ((epsPtr->tmpImage == NULL) && (epsPtr->pixmap == None)));
     if (noImage) {
-    if ((twiceBW >= width) || (twiceBW >= height)) {
-        return;
-    }
-    width -= twiceBW;
-    height -= twiceBW;
-    if (epsPtr->fillGC != NULL) {
-        XSetTSOrigin(display, epsPtr->fillGC, x, y);
-        XFillRectangle(display, drawable, epsPtr->fillGC, x, y,
-               epsPtr->width, epsPtr->height);
-        XSetTSOrigin(display, epsPtr->fillGC, 0, 0);
-    }
+        if ((twiceBW >= width) || (twiceBW >= height)) {
+            return;
+        }
+        width -= twiceBW;
+        height -= twiceBW;
+        if (epsPtr->fillGC != NULL) {
+            XSetTSOrigin(display, epsPtr->fillGC, x, y);
+            XFillRectangle(display, drawable, epsPtr->fillGC, x, y, epsPtr->width, epsPtr->height);
+            XSetTSOrigin(display, epsPtr->fillGC, 0, 0);
+        }
     } else {
-    if (epsPtr->pixmap != None) {
-        XCopyArea(Tk_Display(tkwin), epsPtr->pixmap, drawable,
-              epsPtr->fillGC, 0, 0, width, height, x, y);
-    } else {
-        Tk_RedrawImage(epsPtr->tmpImage, 0, 0, width, height, drawable,
-               x, y);
-    }
+        if (epsPtr->pixmap != None) {
+            XCopyArea(Tk_Display(tkwin), epsPtr->pixmap, drawable, epsPtr->fillGC, 0, 0, width, height, x, y);
+        } else {
+            Tk_RedrawImage(epsPtr->tmpImage, 0, 0, width, height, drawable, x, y);
+        }
     }
 
     if (title != NULL) {
-    TextLayout *textPtr;
-    double rotWidth, rotHeight;
-    int destWidth, destHeight;
+        TextLayout *textPtr;
+        double rotWidth, rotHeight;
+        int destWidth, destHeight;
 
-    /* Translate the title to an anchor position within the EPS item */
-    textPtr = Rbc_GetTextLayout(title, &(epsPtr->titleStyle));
-    Rbc_GetBoundingBox(textPtr->width, textPtr->height,
-               epsPtr->titleStyle.theta, &rotWidth, &rotHeight, (Point2D *)NULL);
-    destWidth = (int)ceil(rotWidth);
-    destHeight = (int)ceil(rotHeight);
-    if ((destWidth <= width) && (destHeight <= height)) {
-        int titleX, titleY;
+        /* Translate the title to an anchor position within the EPS item */
+        textPtr = Rbc_GetTextLayout(title, &(epsPtr->titleStyle));
+        Rbc_GetBoundingBox(textPtr->width, textPtr->height, epsPtr->titleStyle.theta, &rotWidth, &rotHeight,
+                           (Point2D *)NULL);
+        destWidth = (int)ceil(rotWidth);
+        destHeight = (int)ceil(rotHeight);
+        if ((destWidth <= width) && (destHeight <= height)) {
+            int titleX, titleY;
 
-        Rbc_TranslateAnchor(x, y, width, height, epsPtr->titleStyle.anchor,
-                &titleX, &titleY);
-        if (noImage) {
-        titleX += epsPtr->borderWidth;
-        titleY += epsPtr->borderWidth;
+            Rbc_TranslateAnchor(x, y, width, height, epsPtr->titleStyle.anchor, &titleX, &titleY);
+            if (noImage) {
+                titleX += epsPtr->borderWidth;
+                titleY += epsPtr->borderWidth;
+            }
+            Rbc_DrawTextLayout(tkwin, drawable, textPtr, &(epsPtr->titleStyle), titleX, titleY);
         }
-        Rbc_DrawTextLayout(tkwin, drawable, textPtr, &(epsPtr->titleStyle),
-                   titleX, titleY);
-    }
-    ckfree((char *)textPtr);
+        ckfree((char *)textPtr);
     }
     if ((noImage) && (epsPtr->border != NULL)) {
-    Rbc_Draw3DRectangle(tkwin, drawable, epsPtr->border, x, y,
-                epsPtr->width, epsPtr->height, epsPtr->borderWidth, epsPtr->relief);
+        Rbc_Draw3DRectangle(tkwin, drawable, epsPtr->border, x, y, epsPtr->width, epsPtr->height, epsPtr->borderWidth,
+                            epsPtr->relief);
     }
 }
 

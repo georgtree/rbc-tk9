@@ -136,4 +136,48 @@ namespace eval graph.marker {
 	proc RBC.graph.marker.configure.bitmap.M.7.1.Cleanup {} {
 		destroy .graph1
 	}
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure configuring a bitmap mask makes pixels outside the mask transparent.
+    # ------------------------------------------------------------------------------------
+    proc RBC.graph.marker.configure.bitmap.M.8.1.Setup {} {
+        graph .graph1 -width 300 -height 300 -plotbackground red
+
+        .graph1 axis configure x -min 0 -max 1
+        .graph1 axis configure y -min 0 -max 1
+
+        pack .graph1
+
+        .graph1 marker create bitmap -name marker1 -bitmap @circle.xbm -foreground black -fill white -coords {0.5 0.5}
+    }
+
+    proc RBC.graph.marker.configure.bitmap.M.8.1.Body {} {
+        .graph1 marker configure marker1 -mask @circle_mask.xbm
+    }
+
+    proc RBC.graph.marker.configure.bitmap.M.8.1.Cleanup {} {
+        destroy .graph1
+    }
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure the mask remains aligned when the bitmap is scaled and rotated.
+    # ------------------------------------------------------------------------------------
+    proc RBC.graph.marker.configure.bitmap.M.8.2.Setup {} {
+        graph .graph1 -width 300 -height 300 -plotbackground red
+
+        .graph1 axis configure x -min 0 -max 1
+        .graph1 axis configure y -min 0 -max 1
+
+        pack .graph1
+
+        .graph1 marker create bitmap -name marker1 -bitmap @circle.xbm -mask @circle_mask.xbm -foreground black -fill\
+                white -coords {0.5 0.5}
+    }
+
+    proc RBC.graph.marker.configure.bitmap.M.8.2.Body {} {
+        .graph1 marker configure marker1 -coords {0.25 0.25 0.75 0.75} -rotate 30
+    }
+
+    proc RBC.graph.marker.configure.bitmap.M.8.2.Cleanup {} {
+        destroy .graph1
+    }
 }

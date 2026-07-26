@@ -1,0 +1,13 @@
+#define ps_source_width 8
+#define ps_source_height 8
+
+static unsigned char ps_source_bits[] = {
+    0x81,
+    0x42,
+    0x24,
+    0x18,
+    0x18,
+    0x24,
+    0x42,
+    0x81
+};

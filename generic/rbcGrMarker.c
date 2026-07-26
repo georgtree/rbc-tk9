@@ -22,6 +22,7 @@
 #define DEF_MARKER_BACKGROUND RGB_WHITE
 #define DEF_MARKER_BG_MONO RGB_WHITE
 #define DEF_MARKER_BITMAP (char *)NULL
+#define DEF_MARKER_MASK (char *)NULL
 #define DEF_MARKER_CAP_STYLE "butt"
 #define DEF_MARKER_COORDS (char *)NULL
 #define DEF_MARKER_DASHES (char *)NULL
@@ -356,6 +357,7 @@ typedef struct {
     /* Bitmap specific attributes */
     Pixmap srcBitmap;                    /* Original bitmap. May be further
                                           * scaled or rotated. */
+    Pixmap srcMask;                      /* User-specified transparency mask */
     double rotate;                       /* Requested rotation of the bitmap */
     double theta;                        /* Normalized rotation (0..360
                                           * degrees) */
@@ -370,6 +372,9 @@ typedef struct {
     GC gc;                               /* Private graphic context */
     GC fillGC;                           /* Shared graphic context */
     Pixmap destBitmap;                   /* Bitmap to be drawn. */
+    Pixmap destMask;                     /* Final scaled/rotated clip mask */
+    int destBitmapOwned;
+    int destMaskOwned;    
     int destWidth, destHeight;           /* Dimensions of the final bitmap */
     Point2D outline[MAX_OUTLINE_POINTS]; /* Polygon representing the background
                                           * of the bitmap. */
@@ -387,6 +392,7 @@ static Tk_ConfigSpec bitmapConfigSpecs[] = {
      TK_CONFIG_NULL_OK, &rbcListOption},
     {TK_CONFIG_BITMAP, "-bitmap", "bitmap", "Bitmap", DEF_MARKER_BITMAP, offsetof(BitmapMarker, srcBitmap),
      TK_CONFIG_NULL_OK},
+    {TK_CONFIG_BITMAP, "-mask", "mask", "Mask", DEF_MARKER_MASK, offsetof(BitmapMarker, srcMask), TK_CONFIG_NULL_OK},
     {TK_CONFIG_CUSTOM, "-coords", "coords", "Coords", DEF_MARKER_COORDS, offsetof(Marker, worldPts), TK_CONFIG_NULL_OK,
      &coordsOption},
     {TK_CONFIG_STRING, "-element", "element", "Element", DEF_MARKER_ELEMENT, offsetof(Marker, elemName),
@@ -1338,6 +1344,109 @@ static void DestroyMarker(Marker *markerPtr) {
 }
 
 /*
+ *----------------------------------------------------------------------
+ *
+ * FreeMappedBitmapResources --
+ *
+ *      Releases bitmap resources generated while mapping a bitmap
+ *      marker. Configured Tk bitmaps such as srcBitmap and srcMask
+ *      are not owned by this function.
+ *
+ *----------------------------------------------------------------------
+ */
+static void
+FreeMappedBitmapResources(
+    Graph *graphPtr,
+    BitmapMarker *bmPtr)
+{
+    /*
+     * destMask may alias destBitmap, but in that case only
+     * destBitmapOwned may be true.
+     */
+    assert(!((bmPtr->destMaskOwned) &&
+             (bmPtr->destBitmapOwned) &&
+             (bmPtr->destMask == bmPtr->destBitmap)));
+
+    if ((bmPtr->destMaskOwned) &&
+        (bmPtr->destMask != None)) {
+        Tk_FreePixmap(
+            graphPtr->display,
+            bmPtr->destMask);
+    }
+
+    if ((bmPtr->destBitmapOwned) &&
+        (bmPtr->destBitmap != None)) {
+        Tk_FreePixmap(
+            graphPtr->display,
+            bmPtr->destBitmap);
+    }
+
+    bmPtr->destMask = None;
+    bmPtr->destBitmap = None;
+    bmPtr->destMaskOwned = FALSE;
+    bmPtr->destBitmapOwned = FALSE;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * AndBitmapMasks --
+ *
+ *      Creates a one-bit pixmap containing mask1 AND mask2.
+ *
+ * Results:
+ *      Returns a newly allocated pixmap. The caller owns it and
+ *      must release it with Tk_FreePixmap().
+ *
+ *----------------------------------------------------------------------
+ */
+static Pixmap AndBitmapMasks(Tk_Window tkwin, Pixmap mask1, Pixmap mask2, int width, int height) {
+    Display *display;
+    Drawable root;
+    Pixmap result;
+    XGCValues gcValues;
+    GC gc;
+
+    display = Tk_Display(tkwin);
+    root = RootWindowOfScreen(Tk_Screen(tkwin));
+
+    result = Tk_GetPixmap(display, root, width, height, 1);
+
+    if (result == None) {
+        return None;
+    }
+
+    /*
+     * All three pixmaps are depth-one pixmaps, so XCopyArea can
+     * copy their actual bits without foreground/background
+     * expansion.
+     */
+    gcValues.function = GXcopy;
+
+    gc = XCreateGC(display, result, GCFunction, &gcValues);
+
+    if (gc == NULL) {
+        Tk_FreePixmap(display, result);
+        return None;
+    }
+
+    /*
+     * result = mask1
+     */
+    XCopyArea(display, mask1, result, gc, 0, 0, (unsigned int)width, (unsigned int)height, 0, 0);
+
+    /*
+     * result = result AND mask2
+     */
+    XSetFunction(display, gc, GXand);
+
+    XCopyArea(display, mask2, result, gc, 0, 0, (unsigned int)width, (unsigned int)height, 0, 0);
+
+    XFreeGC(display, gc);
+
+    return result;
+}
+/*
  * ----------------------------------------------------------------------
  *
  * ConfigureBitmapMarker --
@@ -1367,13 +1476,49 @@ static int ConfigureBitmapMarker(Marker *markerPtr) {
     XGCValues gcValues;
     unsigned long gcMask;
 
+    /*
+     * Any previously scaled or rotated resources are invalid after
+     * configuration changes.
+     */
+    FreeMappedBitmapResources(graphPtr, bmPtr);
+
     if (bmPtr->srcBitmap == None) {
+        bmPtr->flags |= MAP_ITEM;
+
+        if (bmPtr->drawUnder) {
+            graphPtr->flags |= REDRAW_BACKING_STORE;
+        }
+        Rbc_EventuallyRedrawGraph(graphPtr);
+
         return TCL_OK;
     }
-    if (bmPtr->destBitmap == None) {
-        bmPtr->destBitmap = bmPtr->srcBitmap;
+
+    bmPtr->destBitmap = bmPtr->srcBitmap;
+    bmPtr->destBitmapOwned = FALSE;
+
+    /*
+     * The original mask must match the original bitmap. Scaling and
+     * rotation are subsequently applied to both using identical
+     * parameters.
+     */
+    if (bmPtr->srcMask != None) {
+        int bitmapWidth, bitmapHeight;
+        int maskWidth, maskHeight;
+
+        Tk_SizeOfBitmap(graphPtr->display, bmPtr->srcBitmap, &bitmapWidth, &bitmapHeight);
+
+        Tk_SizeOfBitmap(graphPtr->display, bmPtr->srcMask, &maskWidth, &maskHeight);
+
+        if ((bitmapWidth != maskWidth) || (bitmapHeight != maskHeight)) {
+            Tcl_SetObjResult(graphPtr->interp, Tcl_ObjPrintf("bitmap mask has size %dx%d, "
+                                                             "expected %dx%d",
+                                                             maskWidth, maskHeight, bitmapWidth, bitmapHeight));
+            return TCL_ERROR;
+        }
     }
+
     bmPtr->theta = FMOD(bmPtr->rotate, 360.0);
+
     if (bmPtr->theta < 0.0) {
         bmPtr->theta += 360.0;
     }
@@ -1385,9 +1530,6 @@ static int ConfigureBitmapMarker(Marker *markerPtr) {
     if (bmPtr->fillColor != NULL) {
         gcValues.background = bmPtr->fillColor->pixel;
         gcMask |= GCBackground;
-    } else {
-        gcValues.clip_mask = bmPtr->srcBitmap;
-        gcMask |= GCClipMask;
     }
 
     /* Note that while this is a "shared" GC, we're going to change
@@ -1448,19 +1590,22 @@ static void MapBitmapMarker(Marker *markerPtr) {
     BitmapMarker *bmPtr = (BitmapMarker *)markerPtr;
     Extents2D exts;
     Graph *graphPtr = markerPtr->graphPtr;
+    Pixmap effectiveMask;
+    int effectiveMaskOwned;
     Point2D anchorPos;
     Point2D corner1, corner2;
     int destWidth, destHeight;
     int srcWidth, srcHeight;
     register int i;
 
+    FreeMappedBitmapResources(graphPtr, bmPtr);
+
     if (bmPtr->srcBitmap == None) {
         return;
     }
-    if (bmPtr->destBitmap != bmPtr->srcBitmap) {
-        Tk_FreePixmap(graphPtr->display, bmPtr->destBitmap);
-        bmPtr->destBitmap = bmPtr->srcBitmap;
-    }
+
+    effectiveMask = None;
+    effectiveMaskOwned = FALSE;
     /*
      * Collect the coordinates.  The number of coordinates will determine
      * the calculations to be made.
@@ -1515,6 +1660,27 @@ static void MapBitmapMarker(Marker *markerPtr) {
     }
 
     /*
+     * Select the source mask to be transformed.
+     *
+     * With no background, zero source-bitmap bits must remain
+     * transparent, so an explicit mask is combined with the bitmap.
+     */
+    if (bmPtr->srcMask != None) {
+        if (bmPtr->fillColor == NULL) {
+            effectiveMask = AndBitmapMasks(graphPtr->tkwin, bmPtr->srcBitmap, bmPtr->srcMask, srcWidth, srcHeight);
+
+            effectiveMaskOwned = TRUE;
+        } else {
+            effectiveMask = bmPtr->srcMask;
+        }
+    } else if (bmPtr->fillColor == NULL) {
+        /*
+         * Preserve existing transparent-background behaviour.
+         */
+        effectiveMask = bmPtr->srcBitmap;
+    }
+
+    /*
      * Scale the bitmap if necessary. It's a little tricky because we
      * only want to scale what's visible on the screen, not the entire
      * bitmap.
@@ -1550,12 +1716,53 @@ static void MapBitmapMarker(Marker *markerPtr) {
         bmPtr->destBitmap =
             Rbc_ScaleRotateBitmapRegion(graphPtr->tkwin, bmPtr->srcBitmap, srcWidth, srcHeight, region.left, region.top,
                                         regionWidth, regionHeight, destWidth, destHeight, bmPtr->theta);
+
+        bmPtr->destBitmapOwned = TRUE;
+
+        if (effectiveMask == bmPtr->srcBitmap) {
+            /*
+             * The transformed bitmap itself is also the transparency
+             * mask. Do not give destMask separate ownership.
+             */
+            bmPtr->destMask = bmPtr->destBitmap;
+            bmPtr->destMaskOwned = FALSE;
+        } else if (effectiveMask != None) {
+            bmPtr->destMask =
+                Rbc_ScaleRotateBitmapRegion(graphPtr->tkwin, effectiveMask, srcWidth, srcHeight, region.left,
+                                            region.top, regionWidth, regionHeight, destWidth, destHeight, bmPtr->theta);
+
+            bmPtr->destMaskOwned = TRUE;
+        }
+
+        /*
+         * A combined source mask is temporary in this branch because
+         * destMask now contains a transformed copy.
+         */
+        if (effectiveMaskOwned) {
+            Tk_FreePixmap(graphPtr->display, effectiveMask);
+
+            effectiveMask = None;
+            effectiveMaskOwned = FALSE;
+        }
+
         bmPtr->destWidth = regionWidth;
         bmPtr->destHeight = regionHeight;
     } else {
         bmPtr->destWidth = srcWidth;
         bmPtr->destHeight = srcHeight;
+
         bmPtr->destBitmap = bmPtr->srcBitmap;
+        bmPtr->destBitmapOwned = FALSE;
+
+        /*
+         * Transfer ownership of a generated combined mask to
+         * destMask. Do not free effectiveMask afterward.
+         */
+        bmPtr->destMask = effectiveMask;
+        bmPtr->destMaskOwned = effectiveMaskOwned;
+
+        effectiveMask = None;
+        effectiveMaskOwned = FALSE;
     }
     bmPtr->anchorPos = anchorPos;
     {
@@ -1715,39 +1922,93 @@ static int RegionInBitmapMarker(Marker *markerPtr, Extents2D *extsPtr, int enclo
 static void DrawBitmapMarker(Marker *markerPtr, Drawable drawable) {
     Graph *graphPtr = markerPtr->graphPtr;
     BitmapMarker *bmPtr = (BitmapMarker *)markerPtr;
+    Pixmap clipMask;
     double theta;
 
     if ((bmPtr->destBitmap == None) || (bmPtr->destWidth < 1) || (bmPtr->destHeight < 1)) {
         return;
     }
-    theta = FMOD(bmPtr->theta, (double)90.0);
-    if ((bmPtr->fillColor == NULL) || (theta != 0.0)) {
 
-        /*
-         * If the bitmap is rotated and a filled background is
-         * required, then a filled polygon is drawn before the
-         * bitmap.
-         */
+    theta = FMOD(bmPtr->theta, 90.0);
+    clipMask = bmPtr->destMask;
 
-        if (bmPtr->fillColor != NULL) {
-            int i;
-            XPoint polygon[MAX_OUTLINE_POINTS];
+    /*
+     * Preserve the existing arbitrary-rotation workaround when
+     * there is a background colour but no explicit mask.
+     *
+     * The polygon supplies the background, and the rotated bitmap
+     * supplies the foreground through its own bitmap mask.
+     */
+    if ((bmPtr->srcMask == None) && (bmPtr->fillColor != NULL) && (theta != 0.0)) {
+        XPoint polygon[MAX_OUTLINE_POINTS];
+        int i;
 
-            for (i = 0; i < bmPtr->nOutlinePts; i++) {
-                polygon[i].x = (short int)bmPtr->outline[i].x;
-                polygon[i].y = (short int)bmPtr->outline[i].y;
-            }
-            XFillPolygon(graphPtr->display, drawable, bmPtr->fillGC, polygon, bmPtr->nOutlinePts, Convex,
-                         CoordModeOrigin);
+        for (i = 0; i < bmPtr->nOutlinePts; i++) {
+            polygon[i].x = (short int)bmPtr->outline[i].x;
+            polygon[i].y = (short int)bmPtr->outline[i].y;
         }
-        XSetClipMask(graphPtr->display, bmPtr->gc, bmPtr->destBitmap);
+
+        XFillPolygon(graphPtr->display, drawable, bmPtr->fillGC, polygon, bmPtr->nOutlinePts, Convex, CoordModeOrigin);
+
+        clipMask = bmPtr->destBitmap;
+    }
+
+    if (clipMask != None) {
+        XSetClipMask(graphPtr->display, bmPtr->gc, clipMask);
+
         XSetClipOrigin(graphPtr->display, bmPtr->gc, (int)bmPtr->anchorPos.x, (int)bmPtr->anchorPos.y);
     } else {
         XSetClipMask(graphPtr->display, bmPtr->gc, None);
+
         XSetClipOrigin(graphPtr->display, bmPtr->gc, 0, 0);
     }
+
     XCopyPlane(graphPtr->display, bmPtr->destBitmap, drawable, bmPtr->gc, 0, 0, bmPtr->destWidth, bmPtr->destHeight,
                (int)bmPtr->anchorPos.x, (int)bmPtr->anchorPos.y, 1);
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * BitmapMaskToPostScript --
+ *
+ *      Emits a one-bit pixmap as a PostScript imagemask at the
+ *      specified marker position and size. Bits set to one are
+ *      painted using the current PostScript colour; zero bits leave
+ *      the destination unchanged.
+ *
+ * Parameters:
+ *      PsToken psToken - PostScript output token.
+ *      Display *display - Display owning the pixmap.
+ *      Pixmap bitmap - One-bit pixmap to emit.
+ *      double x, y - Top-left destination position.
+ *      int width, height - Destination dimensions.
+ *
+ * Results:
+ *      None.
+ *
+ * Side Effects:
+ *      Appends PostScript commands and bitmap data to psToken.
+ *
+ *----------------------------------------------------------------------
+ */
+static void BitmapMaskToPostScript(PsToken psToken, Display *display, Pixmap bitmap, double x, double y, int width,
+                                   int height) {
+    if ((bitmap == None) || (width < 1) || (height < 1)) {
+        return;
+    }
+
+    Rbc_FormatToPostScript(psToken,
+                           " gsave\n"
+                           " %g %g translate\n"
+                           " %d %d scale\n",
+                           x, y + height, width, -height);
+
+    Rbc_FormatToPostScript(psToken, " %d %d true [%d 0 0 %d 0 %d] {", width, height, width, -height, height);
+
+    Rbc_BitmapDataToPostScript(psToken, display, bitmap, width, height);
+
+    Rbc_AppendToPostScript(psToken, " } imagemask\n", " grestore\n", (char *)NULL);
 }
 
 /*
@@ -1770,24 +2031,84 @@ static void DrawBitmapMarker(Marker *markerPtr, Drawable drawable) {
  * ----------------------------------------------------------------------
  */
 static void BitmapMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
-    Graph *graphPtr = markerPtr->graphPtr;
-    BitmapMarker *bmPtr = (BitmapMarker *)markerPtr;
+    Graph *graphPtr;
+    BitmapMarker *bmPtr;
+    Pixmap foregroundMask;
+    int foregroundMaskOwned;
 
-    if (bmPtr->destBitmap == None) {
+    graphPtr = markerPtr->graphPtr;
+    bmPtr = (BitmapMarker *)markerPtr;
+
+    if ((bmPtr->destBitmap == None) || (bmPtr->destWidth < 1) || (bmPtr->destHeight < 1)) {
         return;
     }
-    if (bmPtr->fillColor != NULL) {
-        Rbc_BackgroundToPostScript(psToken, bmPtr->fillColor);
-        Rbc_PolygonToPostScript(psToken, bmPtr->outline, 4);
-    }
-    Rbc_ForegroundToPostScript(psToken, bmPtr->outlineColor);
 
-    Rbc_FormatToPostScript(psToken, "  gsave\n    %g %g translate\n    %d %d scale\n", bmPtr->anchorPos.x,
-                           bmPtr->anchorPos.y + bmPtr->destHeight, bmPtr->destWidth, -bmPtr->destHeight);
-    Rbc_FormatToPostScript(psToken, "    %d %d true [%d 0 0 %d 0 %d] {", bmPtr->destWidth, bmPtr->destHeight,
-                           bmPtr->destWidth, -bmPtr->destHeight, bmPtr->destHeight);
-    Rbc_BitmapDataToPostScript(psToken, graphPtr->display, bmPtr->destBitmap, bmPtr->destWidth, bmPtr->destHeight);
-    Rbc_AppendToPostScript(psToken, "    } imagemask\n", "grestore\n", (char *)NULL);
+    foregroundMask = bmPtr->destBitmap;
+    foregroundMaskOwned = FALSE;
+
+    if (bmPtr->destMask != None) {
+        /*
+         * A destination mask exists in either of these cases:
+         *
+         *   1. The user specified -mask.
+         *   2. The background is transparent, in which case
+         *      destMask is already the effective foreground mask.
+         */
+        if (bmPtr->fillColor != NULL) {
+            /*
+             * Paint the background only through the explicit mask.
+             *
+             * This replaces the old polygon background because the
+             * user-provided mask, rather than the rotated bitmap
+             * bounding polygon, defines the visible region.
+             */
+            Rbc_BackgroundToPostScript(psToken, bmPtr->fillColor);
+
+            BitmapMaskToPostScript(psToken, graphPtr->display, bmPtr->destMask, bmPtr->anchorPos.x, bmPtr->anchorPos.y,
+                                   bmPtr->destWidth, bmPtr->destHeight);
+
+            /*
+             * The foreground is visible only where both the source
+             * bitmap and the explicit mask contain set bits.
+             */
+            if (bmPtr->destMask != bmPtr->destBitmap) {
+                foregroundMask = AndBitmapMasks(graphPtr->tkwin, bmPtr->destBitmap, bmPtr->destMask, bmPtr->destWidth,
+                                                bmPtr->destHeight);
+
+                foregroundMaskOwned = TRUE;
+            }
+        } else {
+            /*
+             * With a transparent background, MapBitmapMarker()
+             * has already made destMask equal to:
+             *
+             *      destBitmap AND configured mask
+             *
+             * or has made it alias destBitmap when no explicit
+             * mask was specified.
+             */
+            foregroundMask = bmPtr->destMask;
+        }
+    } else if (bmPtr->fillColor != NULL) {
+        /*
+         * Preserve the original behaviour when there is no explicit
+         * mask: paint the entire rotated bitmap background polygon.
+         */
+        Rbc_BackgroundToPostScript(psToken, bmPtr->fillColor);
+
+        Rbc_PolygonToPostScript(psToken, bmPtr->outline, bmPtr->nOutlinePts);
+    }
+
+    if ((bmPtr->outlineColor != NULL) && (foregroundMask != None)) {
+        Rbc_ForegroundToPostScript(psToken, bmPtr->outlineColor);
+
+        BitmapMaskToPostScript(psToken, graphPtr->display, foregroundMask, bmPtr->anchorPos.x, bmPtr->anchorPos.y,
+                               bmPtr->destWidth, bmPtr->destHeight);
+    }
+
+    if (foregroundMaskOwned) {
+        Tk_FreePixmap(graphPtr->display, foregroundMask);
+    }
 }
 
 /*
@@ -1814,14 +2135,12 @@ static void BitmapMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
 static void FreeBitmapMarker(Graph *graphPtr, Marker *markerPtr) {
     BitmapMarker *bmPtr = (BitmapMarker *)markerPtr;
 
+    FreeMappedBitmapResources(graphPtr, bmPtr);    
     if (bmPtr->gc != NULL) {
         Tk_FreeGC(graphPtr->display, bmPtr->gc);
     }
     if (bmPtr->fillGC != NULL) {
         Tk_FreeGC(graphPtr->display, bmPtr->fillGC);
-    }
-    if (bmPtr->destBitmap != bmPtr->srcBitmap) {
-        Tk_FreePixmap(graphPtr->display, bmPtr->destBitmap);
     }
 }
 

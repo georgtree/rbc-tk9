@@ -136,4 +136,49 @@ namespace eval barchart.marker {
 	proc RBC.barchart.marker.configure.bitmap.M.7.1.Cleanup {} {
 		destroy .barchart1
 	}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure configuring a bitmap mask makes pixels outside the mask transparent.
+    # ------------------------------------------------------------------------------------
+    proc RBC.barchart.marker.configure.bitmap.M.8.1.Setup {} {
+        barchart .barchart1 -width 300 -height 300 -plotbackground red
+
+        .barchart1 axis configure x -min 0 -max 1
+        .barchart1 axis configure y -min 0 -max 1
+
+        pack .barchart1
+
+        .barchart1 marker create bitmap -name marker1 -bitmap @circle.xbm -foreground black -fill white -coords {0.5 0.5}
+    }
+
+    proc RBC.barchart.marker.configure.bitmap.M.8.1.Body {} {
+        .barchart1 marker configure marker1 -mask @circle_mask.xbm
+    }
+
+    proc RBC.barchart.marker.configure.bitmap.M.8.1.Cleanup {} {
+        destroy .barchart1
+    }
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure the mask remains aligned when the bitmap is scaled and rotated.
+    # ------------------------------------------------------------------------------------
+    proc RBC.barchart.marker.configure.bitmap.M.8.2.Setup {} {
+        barchart .barchart1 -width 300 -height 300 -plotbackground red
+
+        .barchart1 axis configure x -min 0 -max 1
+        .barchart1 axis configure y -min 0 -max 1
+
+        pack .barchart1
+
+        .barchart1 marker create bitmap -name marker1 -bitmap @circle.xbm -mask @circle_mask.xbm -foreground black -fill\
+                white -coords {0.5 0.5}
+    }
+
+    proc RBC.barchart.marker.configure.bitmap.M.8.2.Body {} {
+        .barchart1 marker configure marker1 -coords {0.25 0.25 0.75 0.75} -rotate 30
+    }
+
+    proc RBC.barchart.marker.configure.bitmap.M.8.2.Cleanup {} {
+        destroy .barchart1
+    }
 }

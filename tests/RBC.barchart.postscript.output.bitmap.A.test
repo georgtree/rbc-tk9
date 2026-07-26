@@ -1,0 +1,231 @@
+# RBC.graph.postscript.output.bitmap.A.test --
+#
+# This file contains automatic tests for bitmap-marker PostScript
+# output in the graph component.
+
+package provide barchart.postscript.bitmap
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval barchart.postscript.bitmap {
+    variable testDir [file dirname [file normalize [info script]]]
+
+    proc BitmapPath {fileName} {
+        variable testDir
+        return "@[file join $testDir $fileName]"
+    }
+
+    proc MarkerBlock {postscript markerName nextMarkerName} {
+        set startTag "% Marker \"$markerName\" is a "
+        set endTag   "% Marker \"$nextMarkerName\" is a "
+
+        set first [string first $startTag $postscript]
+        if {$first < 0} {
+            return -code error "PostScript block for marker \"$markerName\" was not found"
+        }
+
+        set last [string first $endTag $postscript [expr {$first + [string length $startTag]}]]
+
+        if {$last < 0} {
+            set last [string length $postscript]
+        }
+
+        return [string range $postscript $first [expr {$last - 1}]]
+    }
+
+    proc ImagemaskData {block} {
+        set result {}
+        set position 0
+
+        while {1} {
+            set operatorIndex [
+                string first "imagemask" $block $position
+            ]
+
+            if {$operatorIndex < 0} {
+                break
+            }
+
+            set openIndex [string last "<" $block $operatorIndex]
+            set closeIndex [string last ">" $block $operatorIndex]
+
+            if {($openIndex < 0) || ($closeIndex < $openIndex)} {
+                return -code error "could not find bitmap data before imagemask"
+            }
+
+            set data [string range $block [expr {$openIndex + 1}] [expr {$closeIndex - 1}]]
+
+            regsub -all {[[:space:]]+} $data {} data
+            lappend result $data
+
+            set position [expr {$operatorIndex + [string length "imagemask"]}]
+        }
+
+        return $result
+    }
+
+    proc BitmapMarkerBlock {widget} {
+        set postscript [$widget postscript output]
+
+        return [MarkerBlock $postscript BitmapMarker EndMarker]
+    }
+
+    proc CreateGraph {sourceBitmap maskBitmap background coords rotate} {
+        barchart .barchart1 -width 200 -height 200
+
+        .barchart1 axis configure x -min 0 -max 1
+
+        .barchart1 axis configure y -min 0 -max 1\
+
+        .barchart1 marker create bitmap -name BitmapMarker -bitmap $sourceBitmap -mask $maskBitmap -background $background\
+                -foreground black -coords $coords -rotate $rotate
+
+        #
+        # The following marker delimits the bitmap marker's
+        # PostScript block.
+        # 
+        .barchart1 marker create text -name EndMarker -coords {0.95 0.95} -text end
+
+        pack .barchart1
+        update idletasks
+    }
+
+    # -------------------------------------------------------------------------
+    # Purpose:
+    # Ensure that a transparent bitmap marker with an explicit mask emits
+    # bitmap AND mask as its foreground imagemask.
+    # -------------------------------------------------------------------------
+    test RBC.barchart.postscript.output.bitmap.A.1.1 {
+        graph PostScript: transparent masked bitmap
+    } -setup {
+        set sourceBitmap [BitmapPath ps-source.xbm]
+        set maskBitmap   [BitmapPath ps-mask.xbm]
+        set andBitmap    [BitmapPath ps-and.xbm]
+
+        CreateGraph $sourceBitmap $maskBitmap {} {0.5 0.5} 0
+    } -body {
+        set maskedBlock [BitmapMarkerBlock .barchart1]
+        set maskedData [ImagemaskData $maskedBlock]
+
+        #
+        # Generate reference data from a bitmap containing the
+        # already-combined source AND mask.
+        #
+        .barchart1 marker configure BitmapMarker -bitmap $andBitmap -mask {} -background {}
+
+        update idletasks
+
+        set expectedBlock [BitmapMarkerBlock .barchart1]
+        set expectedData [ImagemaskData $expectedBlock]
+
+        list [llength $maskedData] [expr { [lindex $maskedData 0] eq [lindex $expectedData 0] }] [regexp {SetBgColor}\
+                                                                                                          $maskedBlock]
+    } -cleanup {
+        destroy .barchart1
+
+        unset -nocomplain sourceBitmap maskBitmap andBitmap maskedBlock maskedData expectedBlock expectedData
+    } -result {1 1 0}
+
+    # -------------------------------------------------------------------------
+    # Purpose:
+    # Ensure that an opaque bitmap marker with an explicit mask emits:
+    #
+    #   1. the configured mask for the background;
+    #   2. bitmap AND mask for the foreground.
+    # -------------------------------------------------------------------------
+    test RBC.barchart.postscript.output.bitmap.A.1.2 {
+        graph PostScript: opaque masked bitmap
+    } -setup {
+        set sourceBitmap [BitmapPath ps-source.xbm]
+        set maskBitmap   [BitmapPath ps-mask.xbm]
+        set andBitmap    [BitmapPath ps-and.xbm]
+
+        CreateGraph $sourceBitmap $maskBitmap white {0.5 0.5} 0
+    } -body {
+        set actualBlock [BitmapMarkerBlock .barchart1]
+        set actualData [ImagemaskData $actualBlock]
+
+        #
+        # Reference data for the configured mask.
+        #
+        .barchart1 marker configure BitmapMarker -bitmap $maskBitmap -mask {} -background {}
+
+        update idletasks
+
+        set maskBlock [BitmapMarkerBlock .barchart1]
+        set maskData [
+            lindex [ImagemaskData $maskBlock] 0
+        ]
+
+        #
+        # Reference data for source AND mask.
+        #
+        .barchart1 marker configure BitmapMarker -bitmap $andBitmap -mask {} -background {}
+
+        update idletasks
+
+        set andBlock [BitmapMarkerBlock .barchart1]
+        set andData [lindex [ImagemaskData $andBlock] 0]
+
+        list [llength $actualData] [expr {[lindex $actualData 0] eq $maskData}]\
+                [expr {[lindex $actualData 1] eq $andData}] [regexp {SetBgColor} $actualBlock]\
+                [regexp {SetFgColor} $actualBlock]
+    } -cleanup {
+        destroy .barchart1
+
+        unset -nocomplain sourceBitmap maskBitmap andBitmap actualBlock actualData maskBlock maskData andBlock andData
+    } -result {2 1 1 1 1}
+
+    # -------------------------------------------------------------------------
+    # Purpose:
+    # Ensure that the transformed-mask path generates both background and
+    # foreground imagemasks for a scaled and rotated marker.
+    # -------------------------------------------------------------------------
+    test RBC.barchart.postscript.output.bitmap.A.1.3 {
+        graph PostScript: transformed masked bitmap
+    } -setup {
+        set sourceBitmap [BitmapPath ps-source.xbm]
+        set maskBitmap   [BitmapPath ps-mask.xbm]
+
+        CreateGraph $sourceBitmap $maskBitmap white {0.30 0.30 0.70 0.70} 30
+    } -body {
+        set block [BitmapMarkerBlock .barchart1]
+        set data [ImagemaskData $block]
+
+        list [llength $data] [expr { ([string length [lindex $data 0]] > 0) &&\
+                                             ([string length [lindex $data 1]] > 0)}] [regexp {SetBgColor} $block]\
+                [regexp {SetFgColor} $block]
+    } -cleanup {
+        destroy .barchart1
+
+        unset -nocomplain sourceBitmap maskBitmap block data
+    } -result {2 1 1 1}
+
+    # -------------------------------------------------------------------------
+    # Purpose:
+    # Ensure that the original no-mask behaviour remains a single foreground
+    # imagemask with a separately painted background.
+    # -------------------------------------------------------------------------
+    test RBC.barchart.postscript.output.bitmap.A.1.4 {
+        graph PostScript: opaque bitmap without explicit mask
+    } -setup {
+        set sourceBitmap [BitmapPath ps-source.xbm]
+
+        CreateGraph $sourceBitmap {} white {0.5 0.5} 0
+    } -body {
+        set block [BitmapMarkerBlock .barchart1]
+        set data [ImagemaskData $block]
+
+        list [llength $data] [regexp {SetBgColor} $block] [regexp {SetFgColor} $block]
+    } -cleanup {
+        destroy .barchart1
+
+        unset -nocomplain sourceBitmap block data
+    } -result {1 1 1}
+
+    cleanupTests
+}

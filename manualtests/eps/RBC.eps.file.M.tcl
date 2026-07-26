@@ -28,7 +28,7 @@ namespace eval eps.file {
 	}
 	
 	proc RBC.eps.file.M.1.1.Body {} {
-		.canvas1 itemconfigure 1 -file out.ps
+		#.canvas1 itemconfigure 1 -file out.ps
 	}
 	
 	proc RBC.eps.file.M.1.1.Cleanup {} {

@@ -465,6 +465,101 @@ namespace eval barchart.marker {
 		.barchart1 marker delete Marker1
 		destroy .barchart1
 	} -result {0}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure configuring mask changes the corresponding option value.
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.marker.configure.bitmap.A.8.1 {
+        barchart marker configure bitmap: mask - valid bitmap
+    } -setup {
+        barchart .barchart1
+        .barchart1 marker create bitmap -name Marker1 -bitmap @[file join [file dirname [info script]] circle.xbm]
+    } -body {
+        .barchart1 marker configure Marker1 -mask @[file join [file dirname [info script]] circle_mask.xbm]
+        .barchart1 marker cget Marker1 -mask
+    } -cleanup {
+        .barchart1 marker delete Marker1
+        destroy .barchart1
+    } -match glob -result {@*circle_mask.xbm}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure the mask can be removed by setting it to an empty value.
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.marker.configure.bitmap.A.8.2 {
+        barchart marker configure bitmap: clear mask
+    } -setup {
+        barchart .barchart1
+        .barchart1 marker create bitmap -name Marker1 -bitmap @[file join [file dirname [info script]] circle.xbm]\
+                -mask @[file join [file dirname [info script]] circle_mask.xbm]
+    } -body {
+        .barchart1 marker configure Marker1 -mask {}
+        .barchart1 marker cget Marker1 -mask
+    } -cleanup {
+        .barchart1 marker delete Marker1
+        destroy .barchart1
+    } -result {}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure the mask dimensions must match the bitmap dimensions.
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.marker.configure.bitmap.A.8.3 {
+        barchart marker configure bitmap: mismatched mask dimensions
+    } -setup {
+        barchart .barchart1
+        .barchart1 marker create bitmap -name Marker1 -bitmap @[file join [file dirname [info script]] circle.xbm]
+    } -body {
+        catch {
+            .barchart1 marker configure Marker1 -mask @[file join [file dirname [info script]] circle_mask_bad.xbm]
+        } message
+        set message
+    } -cleanup {
+        .barchart1 marker delete Marker1
+        destroy .barchart1
+    } -result {bitmap mask has size 9x8, expected 9x9}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure repeatedly mapping, transforming, clearing, and restoring a mask
+    # does not use or free invalid pixmaps.
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.marker.configure.bitmap.A.8.4 {
+        barchart marker configure bitmap: mask resource lifetime
+    } -setup {
+        set testDir [file dirname [info script]]
+        set bitmapFile @[file join $testDir circle.xbm]
+        set maskFile @[file join $testDir circle_mask.xbm]
+
+        barchart .barchart1 -width 200 -height 200 -plotbackground red
+        .barchart1 axis configure x -min 0 -max 1
+        .barchart1 axis configure y -min 0 -max 1
+        pack .barchart1
+        .barchart1 marker create bitmap -name Marker1 -bitmap $bitmapFile -coords {0.5 0.5}
+
+        update idletasks
+    } -body {
+        for {set i 0} {$i < 50} {incr i} {
+            # Exercises the untransformed generated-mask ownership path.
+            .barchart1 marker configure Marker1 -mask $maskFile -rotate 0 -coords {0.5 0.5}
+
+            update idletasks
+
+            # Exercises creation of a transformed destination mask.
+            .barchart1 marker configure Marker1 -rotate 30 -coords {0.25 0.25 0.75 0.75}
+
+            update idletasks
+
+            # Exercises disposal of the generated mask.
+            .barchart1 marker configure Marker1 -mask {} -rotate 0 -coords {0.5 0.5}
+
+            update idletasks
+        }
+
+        return ok
+    } -cleanup {
+        catch {.barchart1 marker delete Marker1}
+        catch {destroy .barchart1}
+
+        unset -nocomplain testDir bitmapFile maskFile
+    } -result ok
 	
 	cleanupTests
 }
