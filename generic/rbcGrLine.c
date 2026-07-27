@@ -112,49 +112,33 @@ typedef struct {
 } LineTrace;
 
 typedef struct {
-    char *name;         /* Name of pen style. If the pen was
-                         * statically allocated the name will
-                         * be NULL. */
-    Rbc_Uid classUid;   /* Type of pen */
-    char *typeId;       /* String token identifying the type
-                         * of pen */
-    unsigned int flags; /* Indicates if the pen element is
-                         * active or normal */
-    int refCount;       /* Reference count for elements using
-                         * this pen. */
-    Tcl_HashEntry *hashPtr;
-    Tk_ConfigSpec *configSpecs; /* Configuration specifications */
-    PenConfigureProc *configProc;
-    PenDestroyProc *destroyProc;
+    /*
+     * Common pen state. This must remain the first member.
+     */
+    Pen core;
 
-    /* Symbol attributes. */
-    Symbol symbol; /* Element symbol type */
+    Symbol symbol;
 
-    /* LineTrace attributes. */
-    int traceWidth;         /* Width of the line segments. If
-                             * lineWidth is 0, no line will be
-                             * drawn, only symbols. */
-    Rbc_Dashes traceDashes; /* Dash on-off list value */
-    XColor *traceColor;     /* Line segment color */
-    XColor *traceOffColor;  /* Line segment dash gap color */
-    GC traceGC;             /* Line segment graphics context */
+    int traceWidth;
+    Rbc_Dashes traceDashes;
+    XColor *traceColor;
+    XColor *traceOffColor;
+    GC traceGC;
 
-    /* Error bar attributes. */
-    int errorBarShow;      /* Describes which error bars to
-                            * display: none, x, y, or * both. */
-    int errorBarLineWidth; /* Width of the error bar segments. */
-    int errorBarCapWidth;  /* Width of the cap on error bars. */
-    XColor *errorBarColor; /* Color of the error bar. */
-    GC errorBarGC;         /* Error bar graphics context. */
+    int errorBarShow;
+    int errorBarLineWidth;
+    int errorBarCapWidth;
+    XColor *errorBarColor;
+    GC errorBarGC;
 
-    /* Show value attributes. */
-    int valueShow;        /* Indicates whether to display data
-                           * value.  Values are x, y, both, or
-                           * none. */
-    char *valueFormat;    /* A printf format string. */
-    TextStyle valueStyle; /* Text attributes (color, font,
-                           * rotation, etc.) of the value. */
+    int valueShow;
+    char *valueFormat;
+    TextStyle valueStyle;
 } LinePen;
+
+#define LINE_PEN_FROM_CORE(penPtr) ((LinePen *)((char *)(penPtr) - offsetof(LinePen, core)))
+
+#define LINE_PEN_CORE_OFFSET(member) (offsetof(LinePen, core) + offsetof(Pen, member))
 
 typedef struct {
     Weight weight; /* Weight range where this pen is valid. */
@@ -662,7 +646,7 @@ static Tk_ConfigSpec linePenConfigSpecs[] = {
      ALL_PENS | TK_CONFIG_DONT_SET_DEFAULT, &rbcFillOption},
     {TK_CONFIG_CUSTOM, "-symbol", "symbol", "Symbol", DEF_PEN_SYMBOL, offsetof(LinePen, symbol),
      TK_CONFIG_DONT_SET_DEFAULT | ALL_PENS, &symbolOption},
-    {TK_CONFIG_STRING, "-type", (char *)NULL, (char *)NULL, DEF_PEN_TYPE, offsetof(Pen, typeId),
+    {TK_CONFIG_STRING, "-type", (char *)NULL, (char *)NULL, DEF_PEN_TYPE, LINE_PEN_CORE_OFFSET(typeId),
      ALL_PENS | TK_CONFIG_NULL_OK},
     {TK_CONFIG_ANCHOR, "-valueanchor", "valueAnchor", "ValueAnchor", DEF_PEN_VALUE_ANCHOR,
      offsetof(LinePen, valueStyle.anchor), ALL_PENS},
@@ -1341,7 +1325,9 @@ static void ClearPalette(Rbc_Chain *palette) {
  *----------------------------------------------------------------------
  */
 static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
-    LinePen *lpPtr = (LinePen *)penPtr;
+    LinePen *lpPtr;
+
+    lpPtr = LINE_PEN_FROM_CORE(penPtr);
     unsigned long gcMask;
     GC newGC;
     XGCValues gcValues;
@@ -1476,7 +1462,9 @@ static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
  *----------------------------------------------------------------------
  */
 static void DestroyPen(Graph *graphPtr, Pen *penPtr) {
-    LinePen *lpPtr = (LinePen *)penPtr;
+    LinePen *lpPtr;
+
+    lpPtr = LINE_PEN_FROM_CORE(penPtr);
 
     Rbc_FreeTextStyle(graphPtr->display, &(lpPtr->valueStyle));
     if (lpPtr->symbol.outlineGC != NULL) {
@@ -1520,17 +1508,30 @@ static void DestroyPen(Graph *graphPtr, Pen *penPtr) {
  *----------------------------------------------------------------------
  */
 static void InitPen(LinePen *penPtr) {
+    Pen *corePtr;
+
+    corePtr = &penPtr->core;
+
     Rbc_InitTextStyle(&penPtr->valueStyle);
-    penPtr->configProc = ConfigurePen;
-    penPtr->configSpecs = linePenConfigSpecs;
-    penPtr->destroyProc = DestroyPen;
+
+    corePtr->configProc = ConfigurePen;
+    corePtr->configSpecs = linePenConfigSpecs;
+    corePtr->destroyProc = DestroyPen;
+    corePtr->flags = NORMAL_PEN;
+    corePtr->name = "";
+
     penPtr->errorBarLineWidth = 1;
     penPtr->errorBarShow = SHOW_BOTH;
-    penPtr->flags = NORMAL_PEN;
-    penPtr->name = "";
-    penPtr->symbol.bitmap = penPtr->symbol.mask = None;
-    penPtr->symbol.outlineColor = penPtr->symbol.fillColor = COLOR_DEFAULT;
-    penPtr->symbol.outlineWidth = penPtr->traceWidth = 1;
+
+    penPtr->symbol.bitmap = None;
+    penPtr->symbol.mask = None;
+
+    penPtr->symbol.outlineColor = COLOR_DEFAULT;
+
+    penPtr->symbol.fillColor = COLOR_DEFAULT;
+
+    penPtr->symbol.outlineWidth = 1;
+    penPtr->traceWidth = 1;
     penPtr->symbol.type = SYMBOL_CIRCLE;
     penPtr->valueShow = SHOW_NONE;
 }
@@ -1557,13 +1558,13 @@ Pen *Rbc_LinePen(char *penName) {
     LinePen *penPtr;
 
     penPtr = RbcCalloc(1, sizeof(LinePen));
-    assert(penPtr);
+    assert(penPtr != NULL);
     InitPen(penPtr);
-    penPtr->name = RbcStrdup(penName);
+    penPtr->core.name = RbcStrdup(penName);
     if (strcmp(penName, "activeLine") == 0) {
-        penPtr->flags = ACTIVE_PEN;
+        penPtr->core.flags = ACTIVE_PEN;
     }
-    return (Pen *)penPtr;
+    return &penPtr->core;
 }
 
 /*
@@ -3439,7 +3440,7 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     GC newGC;
     Rbc_ChainLink *linkPtr;
 
-    if (ConfigurePen(graphPtr, (Pen *)&(linePtr->builtinPen)) != TCL_OK) {
+    if (ConfigurePen(graphPtr, &linePtr->builtinPen.core) != TCL_OK) {
         return TCL_ERROR;
     }
     /*
@@ -5179,12 +5180,12 @@ static void NormalLineToPostScript(Graph *graphPtr, PsToken psToken, Element *el
 static void DestroyLine(Graph *graphPtr, Element *elemPtr) {
     Line *linePtr = (Line *)elemPtr;
 
-    if (linePtr->normalPenPtr != &(linePtr->builtinPen)) {
-        Rbc_FreePen(graphPtr, (Pen *)linePtr->normalPenPtr);
+    if (linePtr->normalPenPtr != &linePtr->builtinPen) {
+        Rbc_FreePen(graphPtr, &linePtr->normalPenPtr->core);
     }
-    DestroyPen(graphPtr, (Pen *)&(linePtr->builtinPen));
+    DestroyPen(graphPtr, &linePtr->builtinPen.core);
     if (linePtr->activePenPtr != NULL) {
-        Rbc_FreePen(graphPtr, (Pen *)linePtr->activePenPtr);
+        Rbc_FreePen(graphPtr, &linePtr->activePenPtr->core);
     }
 
     FreeVector(linePtr->w);

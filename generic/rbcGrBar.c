@@ -15,47 +15,32 @@
 #include "rbcGrElem.h"
 
 typedef struct {
-    char *name;         /* Pen style identifier.  If NULL pen
-                         * was statically allocated. */
-    Rbc_Uid classUid;   /* Type of pen */
-    char *typeId;       /* String token identifying the type of pen */
-    unsigned int flags; /* Indicates if the pen element is active or
-                         * normal */
-    int refCount;       /* Reference count for elements using
-                         * this pen. */
-    Tcl_HashEntry *hashPtr;
-    Tk_ConfigSpec *specsPtr; /* Configuration specifications */
+    /*
+     * Common pen state. This must remain the first member.
+     */
+    Pen core;
 
-    PenConfigureProc *configProc;
-    PenDestroyProc *destroyProc;
+    XColor *fgColor;
+    Tk_3DBorder border;
+    int borderWidth;
+    int relief;
+    Pixmap stipple;
+    GC gc;
 
-    XColor *fgColor;    /* Foreground color of bar */
-    Tk_3DBorder border; /* 3D border and background color */
-    int borderWidth;    /* 3D border width of bar */
-    int relief;         /* Relief of the bar */
-    Pixmap stipple;     /* Stipple */
-    GC gc;              /* Graphics context */
-
-    /* Error bar attributes. */
-    int errorBarShow; /* Describes which error bars to
-                       * display: none, x, y, or * both. */
-
-    int errorBarLineWidth; /* Width of the error bar segments. */
-
+    int errorBarShow;
+    int errorBarLineWidth;
     int errorBarCapWidth;
-    XColor *errorBarColor; /* Color of the error bar. */
+    XColor *errorBarColor;
+    GC errorBarGC;
 
-    GC errorBarGC; /* Error bar graphics context. */
-
-    /* Show value attributes. */
-    int valueShow; /* Indicates whether to display data value.
-                    * Values are x, y, or none. */
-
-    char *valueFormat;    /* A printf format string. */
-    TextStyle valueStyle; /* Text attributes (color, font,
-                           * rotation, etc.) of the value. */
-
+    int valueShow;
+    char *valueFormat;
+    TextStyle valueStyle;
 } BarPen;
+
+#define BAR_PEN_FROM_CORE(penPtr) ((BarPen *)((char *)(penPtr) - offsetof(BarPen, core)))
+
+#define BAR_PEN_CORE_OFFSET(member) (offsetof(BarPen, core) + offsetof(Pen, member))
 
 typedef struct {
     Weight weight; /* Weight range where this pen is valid. */
@@ -278,7 +263,7 @@ static Tk_ConfigSpec barPenConfigSpecs[] = {
      ALL_PENS | TK_CONFIG_DONT_SET_DEFAULT, &rbcFillOption},
     {TK_CONFIG_BITMAP, "-stipple", "stipple", "Stipple", DEF_PEN_STIPPLE, offsetof(BarPen, stipple),
      ALL_PENS | TK_CONFIG_NULL_OK},
-    {TK_CONFIG_STRING, "-type", (char *)NULL, (char *)NULL, DEF_PEN_TYPE, offsetof(BarPen, typeId),
+    {TK_CONFIG_STRING, "-type", (char *)NULL, (char *)NULL, DEF_PEN_TYPE, BAR_PEN_CORE_OFFSET(typeId),
      ALL_PENS | TK_CONFIG_NULL_OK},
     {TK_CONFIG_ANCHOR, "-valueanchor", "valueAnchor", "ValueAnchor", DEF_PEN_VALUE_ANCHOR,
      offsetof(BarPen, valueStyle.anchor), ALL_PENS},
@@ -612,7 +597,9 @@ static void ClearPalette(Rbc_Chain *palette) {
  *----------------------------------------------------------------------
  */
 static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
-    BarPen *bpPtr = (BarPen *)penPtr;
+    BarPen *bpPtr;
+
+    bpPtr = BAR_PEN_FROM_CORE(penPtr);
     XGCValues gcValues;
     unsigned long gcMask;
     int fillStyle;
@@ -684,9 +671,10 @@ static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
  *----------------------------------------------------------------------
  */
 static void DestroyPen(Graph *graphPtr, Pen *penPtr) {
-    BarPen *bpPtr = (BarPen *)penPtr;
+    BarPen *bpPtr;
 
-    Rbc_FreeTextStyle(graphPtr->display, &(bpPtr->valueStyle));
+    bpPtr = BAR_PEN_FROM_CORE(penPtr);
+    Rbc_FreeTextStyle(graphPtr->display, &bpPtr->valueStyle);
     if (bpPtr->gc != NULL) {
         Tk_FreeGC(graphPtr->display, bpPtr->gc);
     }
@@ -714,12 +702,15 @@ static void DestroyPen(Graph *graphPtr, Pen *penPtr) {
  *----------------------------------------------------------------------
  */
 static void InitPen(BarPen *penPtr) {
-    Rbc_InitTextStyle(&(penPtr->valueStyle));
-    penPtr->specsPtr = barPenConfigSpecs;
-    penPtr->configProc = ConfigurePen;
-    penPtr->destroyProc = DestroyPen;
+    Pen *corePtr;
+
+    corePtr = &penPtr->core;
+    Rbc_InitTextStyle(&penPtr->valueStyle);
+    corePtr->configSpecs = barPenConfigSpecs;
+    corePtr->configProc = ConfigurePen;
+    corePtr->destroyProc = DestroyPen;
+    corePtr->flags = NORMAL_PEN;
     penPtr->relief = TK_RELIEF_RAISED;
-    penPtr->flags = NORMAL_PEN;
     penPtr->errorBarShow = SHOW_BOTH;
     penPtr->valueShow = SHOW_NONE;
     penPtr->borderWidth = 2;
@@ -747,13 +738,13 @@ Pen *Rbc_BarPen(char *penName) {
     BarPen *penPtr;
 
     penPtr = RbcCalloc(1, sizeof(BarPen));
-    assert(penPtr);
+    assert(penPtr != NULL);
     InitPen(penPtr);
-    penPtr->name = RbcStrdup(penName);
+    penPtr->core.name = RbcStrdup(penName);
     if (strcmp(penName, "activeBar") == 0) {
-        penPtr->flags = ACTIVE_PEN;
+        penPtr->core.flags = ACTIVE_PEN;
     }
-    return (Pen *)penPtr;
+    return &penPtr->core;
 }
 
 /*
@@ -836,7 +827,7 @@ static int ConfigureBar(Graph *graphPtr, register Element *elemPtr) {
     Bar *barPtr = (Bar *)elemPtr;
     Rbc_ChainLink *linkPtr;
 
-    if (ConfigurePen(graphPtr, (Pen *)&(barPtr->builtinPen)) != TCL_OK) {
+    if (ConfigurePen(graphPtr, &barPtr->builtinPen.core) != TCL_OK) {
         return TCL_ERROR;
     }
     /*
@@ -2092,12 +2083,12 @@ static void NormalBarToPostScript(Graph *graphPtr, PsToken psToken, Element *ele
 static void DestroyBar(Graph *graphPtr, Element *elemPtr) {
     Bar *barPtr = (Bar *)elemPtr;
 
-    if (barPtr->normalPenPtr != &(barPtr->builtinPen)) {
-        Rbc_FreePen(graphPtr, (Pen *)barPtr->normalPenPtr);
+    if (barPtr->normalPenPtr != &barPtr->builtinPen) {
+        Rbc_FreePen(graphPtr, &barPtr->normalPenPtr->core);
     }
-    DestroyPen(graphPtr, (Pen *)&(barPtr->builtinPen));
+    DestroyPen(graphPtr, &barPtr->builtinPen.core);
     if (barPtr->activePenPtr != NULL) {
-        Rbc_FreePen(graphPtr, (Pen *)barPtr->activePenPtr);
+        Rbc_FreePen(graphPtr, &barPtr->activePenPtr->core);
     }
     FreeElemVector(barPtr->x);
     FreeElemVector(barPtr->y);

@@ -312,11 +312,10 @@ static void GraphEventProc(ClientData clientData, register XEvent *eventPtr) {
             if (graphPtr->postscript != NULL) {
                 Rbc_DestroyPostScript(graphPtr);
             }
-
             if (graphPtr->legend != NULL) {
                 Rbc_ReleaseLegendTkResources(graphPtr);
             }
-
+            
             Rbc_DeleteWindowInstanceData(graphPtr->tkwin);
 
             graphPtr->tkwin = NULL;

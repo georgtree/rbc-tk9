@@ -92,11 +92,11 @@ namespace eval graph.pen {
 	    graph .graph1
 	    pack .graph1
 	} -body {
-	    .graph1 pen create Pen1 -color blue -type foo
-	    list [.graph1 pen cget Pen1 -color] [.graph1 pen cget Pen1 -type]
+	    catch {.graph1 pen create Pen1 -color blue -type foo} errorStr
+        return $errorStr
 	} -cleanup {
 	    destroy .graph1
-	} -result {blue foo}
+	} -result {unknown pen type "foo" specified}
 	
 	cleanupTests
 }

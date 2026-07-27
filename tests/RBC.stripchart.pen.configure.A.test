@@ -742,11 +742,11 @@ namespace eval stripchart.pen {
 	    stripchart .stripchart1
 	    pack .stripchart1    
 	} -body {
-	    .stripchart1 pen create Pen1 -type foobar
-	    .stripchart1 pen cget Pen1 -type
+	    catch {.stripchart1 pen create Pen1 -type foobar} errorStr
+	    return $errorStr
 	} -cleanup {
 	    destroy .stripchart1
-	} -result {foobar}
+	} -result {unknown pen type "foobar" specified}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure that the errorbarcolor configuration works for valid errorbarcolor colors

@@ -357,12 +357,12 @@ Pen *Rbc_CreatePen(Graph *graphPtr, char *penName, Rbc_Uid classUid, int nOpts, 
             char *arg = Tcl_GetString(options[i + 1]);
             if (strcmp(arg, "bar") == 0) {
                 classUid = rbcBarElementUid;
-            } else if (strcmp(arg, "line") != 0) {
+            } else if (strcmp(arg, "line") == 0) {
                 classUid = rbcLineElementUid;
-            } else if (strcmp(arg, "strip") != 0) {
+            } else if (strcmp(arg, "strip") == 0) {
                 classUid = rbcLineElementUid;
             } else {
-                Tcl_AppendResult(graphPtr->interp, "unknown pen type \"", arg, "\" specified", (char *)NULL);
+                Tcl_SetObjResult(graphPtr->interp, Tcl_ObjPrintf("unknown pen type \"%s\" specified", arg));
                 return NULL;
             }
         }

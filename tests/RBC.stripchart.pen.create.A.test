@@ -92,11 +92,11 @@ namespace eval stripchart.pen {
 	    stripchart .stripchart1
 	    pack .stripchart1
 	} -body {
-	    .stripchart1 pen create Pen1 -color blue -type foo
-	    list [.stripchart1 pen cget Pen1 -color] [.stripchart1 pen cget Pen1 -type]
+	    catch {.stripchart1 pen create Pen1 -color blue -type foo} errorStr
+        return $errorStr
 	} -cleanup {
 	    destroy .stripchart1
-	} -result {blue foo}
+	} -result {unknown pen type "foo" specified}
 	
 	cleanupTests
 }
