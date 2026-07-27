@@ -98,6 +98,12 @@ typedef struct {
 } Symbol;
 
 typedef struct {
+    SymbolType type;
+    Pixmap bitmap;
+    Pixmap mask;
+} ParsedSymbol;
+
+typedef struct {
     int start;          /* Index into the X-Y coordinate
                          * arrays indicating where trace
                          * starts. */
@@ -117,6 +123,25 @@ typedef struct {
      */
     Pen core;
 
+    /*
+     * Original Tcl representations for manually derived values.
+     */
+    Tcl_Obj *dashesObjPtr;
+    Tcl_Obj *errorBarColorObjPtr;
+    Tcl_Obj *errorBarWidthObjPtr;
+    Tcl_Obj *errorBarCapObjPtr;
+    Tcl_Obj *fillObjPtr;
+    Tcl_Obj *lineWidthObjPtr;
+    Tcl_Obj *offDashObjPtr;
+    Tcl_Obj *outlineObjPtr;
+    Tcl_Obj *outlineWidthObjPtr;
+    Tcl_Obj *pixelsObjPtr;
+    Tcl_Obj *showErrorBarsObjPtr;
+    Tcl_Obj *showValuesObjPtr;
+    Tcl_Obj *symbolObjPtr;
+    Tcl_Obj *valueRotateObjPtr;
+    Tcl_Obj *valueShadowObjPtr;
+    
     Symbol symbol;
 
     int traceWidth;
@@ -662,6 +687,227 @@ static Tk_ConfigSpec linePenConfigSpecs[] = {
      offsetof(LinePen, valueStyle.shadow), ALL_PENS, &rbcShadowOption},
     {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}};
 
+#define LINE_PEN_OPTION_ENTRIES(DEFAULT_COLOR)                         \
+    {                                                                 \
+        TK_OPTION_COLOR,                                              \
+        "-color", "color", "Color",                                   \
+        DEFAULT_COLOR,                                                \
+        -1,                                                           \
+        offsetof(LinePen, traceColor),                                \
+        0,                                                            \
+        NULL,                                                         \
+        0                                                             \
+    },                                                                \
+    {                                                                 \
+        TK_OPTION_STRING,                                             \
+        "-dashes", "dashes", "Dashes",                                \
+        DEF_PEN_DASHES,                                               \
+        offsetof(LinePen, dashesObjPtr),                              \
+        -1,                                                           \
+        TK_OPTION_NULL_OK,                                            \
+        NULL,                                                         \
+        0                                                             \
+    },                                                                \
+    {                                                                 \
+        TK_OPTION_STRING,                                             \
+        "-errorbarcolor", "errorBarColor", "ErrorBarColor",           \
+        DEF_LINE_ERRORBAR_COLOR,                                      \
+        offsetof(LinePen, errorBarColorObjPtr),                       \
+        -1,                                                           \
+        0,                                                            \
+        NULL,                                                         \
+        0                                                             \
+    },                                                                \
+    {                                                                 \
+        TK_OPTION_STRING,                                             \
+        "-errorbarwidth", "errorBarWidth", "ErrorBarWidth",           \
+        DEF_LINE_ERRORBAR_LINE_WIDTH,                                 \
+        offsetof(LinePen, errorBarWidthObjPtr),                       \
+        -1,                                                           \
+        0,                                                            \
+        NULL,                                                         \
+        0                                                             \
+    },                                                                \
+    {                                                                 \
+        TK_OPTION_STRING,                                             \
+        "-errorbarcap", "errorBarCap", "ErrorBarCap",                 \
+        DEF_LINE_ERRORBAR_CAP_WIDTH,                                  \
+        offsetof(LinePen, errorBarCapObjPtr),                         \
+        -1,                                                           \
+        0,                                                            \
+        NULL,                                                         \
+        0                                                             \
+    },                                                                \
+    {                                                                 \
+        TK_OPTION_STRING,                                             \
+        "-fill", "fill", "Fill",                                      \
+        DEF_PEN_FILL_COLOR,                                           \
+        offsetof(LinePen, fillObjPtr),                                \
+        -1,                                                           \
+        TK_OPTION_NULL_OK,                                            \
+        NULL,                                                         \
+        0                                                             \
+    },                                                                \
+    {                                                                 \
+        TK_OPTION_STRING,                                             \
+        "-linewidth", "lineWidth", "LineWidth",                       \
+        DEF_PEN_LINE_WIDTH,                                           \
+        offsetof(LinePen, lineWidthObjPtr),                           \
+        -1,                                                           \
+        0,                                                            \
+        NULL,                                                         \
+        0                                                             \
+    },                                                                \
+    {                                                                 \
+        TK_OPTION_STRING,                                             \
+        "-offdash", "offDash", "OffDash",                             \
+        DEF_PEN_OFFDASH_COLOR,                                        \
+        offsetof(LinePen, offDashObjPtr),                             \
+        -1,                                                           \
+        TK_OPTION_NULL_OK,                                            \
+        NULL,                                                         \
+        0                                                             \
+    },                                                                \
+    {                                                                 \
+        TK_OPTION_STRING,                                             \
+        "-outline", "outline", "Outline",                             \
+        DEF_PEN_OUTLINE_COLOR,                                        \
+        offsetof(LinePen, outlineObjPtr),                             \
+        -1,                                                           \
+        0,                                                            \
+        NULL,                                                         \
+        0                                                             \
+    },                                                                \
+    {                                                                 \
+        TK_OPTION_STRING,                                             \
+        "-outlinewidth", "outlineWidth", "OutlineWidth",              \
+        DEF_PEN_OUTLINE_WIDTH,                                        \
+        offsetof(LinePen, outlineWidthObjPtr),                        \
+        -1,                                                           \
+        0,                                                            \
+        NULL,                                                         \
+        0                                                             \
+    },                                                                \
+    {                                                                 \
+        TK_OPTION_STRING,                                             \
+        "-pixels", "pixels", "Pixels",                                \
+        DEF_PEN_PIXELS,                                               \
+        offsetof(LinePen, pixelsObjPtr),                              \
+        -1,                                                           \
+        0,                                                            \
+        NULL,                                                         \
+        0                                                             \
+    },                                                                \
+    {                                                                 \
+        TK_OPTION_STRING,                                             \
+        "-showerrorbars", "showErrorBars", "ShowErrorBars",           \
+        DEF_LINE_SHOW_ERRORBARS,                                      \
+        offsetof(LinePen, showErrorBarsObjPtr),                       \
+        -1,                                                           \
+        0,                                                            \
+        NULL,                                                         \
+        0                                                             \
+    },                                                                \
+    {                                                                 \
+        TK_OPTION_STRING,                                             \
+        "-showvalues", "showValues", "ShowValues",                    \
+        DEF_PEN_SHOW_VALUES,                                          \
+        offsetof(LinePen, showValuesObjPtr),                          \
+        -1,                                                           \
+        0,                                                            \
+        NULL,                                                         \
+        0                                                             \
+    },                                                                \
+    {                                                                 \
+        TK_OPTION_STRING,                                             \
+        "-symbol", "symbol", "Symbol",                                \
+        DEF_PEN_SYMBOL,                                               \
+        offsetof(LinePen, symbolObjPtr),                              \
+        -1,                                                           \
+        0,                                                            \
+        NULL,                                                         \
+        0                                                             \
+    },                                                                \
+    {                                                                 \
+        TK_OPTION_STRING,                                             \
+        "-type", NULL, NULL,                                          \
+        DEF_PEN_TYPE,                                                 \
+        -1,                                                           \
+        LINE_PEN_CORE_OFFSET(typeId),                                 \
+        TK_OPTION_NULL_OK,                                            \
+        NULL,                                                         \
+        0                                                             \
+    },                                                                \
+    {                                                                 \
+        TK_OPTION_ANCHOR,                                             \
+        "-valueanchor", "valueAnchor", "ValueAnchor",                 \
+        DEF_PEN_VALUE_ANCHOR,                                         \
+        -1,                                                           \
+        offsetof(LinePen, valueStyle.anchor),                         \
+        0,                                                            \
+        NULL,                                                         \
+        0                                                             \
+    },                                                                \
+    {                                                                 \
+        TK_OPTION_COLOR,                                              \
+        "-valuecolor", "valueColor", "ValueColor",                    \
+        DEF_PEN_VALUE_COLOR,                                          \
+        -1,                                                           \
+        offsetof(LinePen, valueStyle.color),                          \
+        0,                                                            \
+        NULL,                                                         \
+        0                                                             \
+    },                                                                \
+    {                                                                 \
+        TK_OPTION_FONT,                                               \
+        "-valuefont", "valueFont", "ValueFont",                       \
+        DEF_PEN_VALUE_FONT,                                           \
+        -1,                                                           \
+        offsetof(LinePen, valueStyle.font),                           \
+        0,                                                            \
+        NULL,                                                         \
+        0                                                             \
+    },                                                                \
+    {                                                                 \
+        TK_OPTION_STRING,                                             \
+        "-valueformat", "valueFormat", "ValueFormat",                 \
+        DEF_PEN_VALUE_FORMAT,                                         \
+        -1,                                                           \
+        offsetof(LinePen, valueFormat),                               \
+        TK_OPTION_NULL_OK,                                            \
+        NULL,                                                         \
+        0                                                             \
+    },                                                                \
+    {                                                                 \
+        TK_OPTION_DOUBLE,                                             \
+        "-valuerotate", "valueRotate", "ValueRotate",                 \
+        "0.0",                                                        \
+        offsetof(LinePen, valueRotateObjPtr),                         \
+        offsetof(LinePen, valueStyle.theta),                          \
+        0,                                                            \
+        NULL,                                                         \
+        0                                                             \
+    },                                                                \
+    {                                                                 \
+        TK_OPTION_STRING,                                             \
+        "-valueshadow", "valueShadow", "ValueShadow",                 \
+        DEF_PEN_VALUE_SHADOW,                                         \
+        offsetof(LinePen, valueShadowObjPtr),                         \
+        -1,                                                           \
+        TK_OPTION_NULL_OK,                                            \
+        NULL,                                                         \
+        0                                                             \
+    },                                                                \
+    {                                                                 \
+        TK_OPTION_END,                                                \
+        NULL, NULL, NULL, NULL,                                       \
+        0, 0, 0, NULL, 0                                             \
+    }
+
+static const Tk_OptionSpec normalLinePenOptionSpecs[] = {LINE_PEN_OPTION_ENTRIES(DEF_PEN_NORMAL_COLOR)};
+
+static const Tk_OptionSpec activeLinePenOptionSpecs[] = {LINE_PEN_OPTION_ENTRIES(DEF_PEN_ACTIVE_COLOR)};
+
 typedef double(DistanceProc)(int x, int y, Point2D *p, Point2D *q, Point2D *t);
 
 /* Forward declarations */
@@ -731,6 +977,54 @@ static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, 
 #ifdef WIN32
 MODULE_SCOPE const int tkpWinRopModes[];
 #endif
+
+static int IsLinePenPrefix(const char *string, Tcl_Size length, const char *fullName) {
+    Tcl_Size fullLength;
+
+    fullLength = (Tcl_Size)strlen(fullName);
+
+    return ((length > 0) && (length <= fullLength) && (strncmp(string, fullName, (size_t)length) == 0));
+}
+
+static int GetLinePenColorFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, int allowNull,
+                                  XColor **colorPtrPtr) {
+    const char *string;
+    Tcl_Size length;
+    XColor *colorPtr;
+
+    if ((objPtr == NULL) || (Tcl_GetCharLength(objPtr) == 0)) {
+        if (allowNull) {
+            *colorPtrPtr = NULL;
+            return TCL_OK;
+        }
+
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("color value may not be empty", -1));
+
+        return TCL_ERROR;
+    }
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+
+    if (IsLinePenPrefix(string, length, "defcolor")) {
+        *colorPtrPtr = COLOR_DEFAULT;
+        return TCL_OK;
+    }
+
+    colorPtr = Tk_GetColor(interp, tkwin, Tk_GetUid(string));
+
+    if (colorPtr == NULL) {
+        return TCL_ERROR;
+    }
+
+    *colorPtrPtr = colorPtr;
+    return TCL_OK;
+}
+
+static void FreeLinePenColor(XColor *colorPtr) {
+    if ((colorPtr != NULL) && (colorPtr != COLOR_DEFAULT)) {
+        Tk_FreeColor(colorPtr);
+    }
+}
 
 /*
  *----------------------------------------------------------------------
@@ -902,6 +1196,142 @@ static int StringToPattern(ClientData clientData, Tcl_Interp *interp, Tk_Window 
         Tk_FreeBitmap(Tk_Display(tkwin), *stipplePtr);
     }
     *stipplePtr = stipple;
+    return TCL_OK;
+}
+
+static void FreeParsedSymbol(Display *display, ParsedSymbol *symbolPtr) {
+    if (symbolPtr->bitmap != None) {
+        Tk_FreeBitmap(display, symbolPtr->bitmap);
+
+        symbolPtr->bitmap = None;
+    }
+
+    if (symbolPtr->mask != None) {
+        Tk_FreeBitmap(display, symbolPtr->mask);
+
+        symbolPtr->mask = None;
+    }
+}
+
+static int GetSymbolFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, ParsedSymbol *symbolPtr) {
+    const char *string;
+    Tcl_Size length;
+
+    symbolPtr->type = SYMBOL_NONE;
+    symbolPtr->bitmap = None;
+    symbolPtr->mask = None;
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+
+    if (length == 0) {
+        return TCL_OK;
+    }
+
+    if (IsLinePenPrefix(string, length, "none")) {
+        symbolPtr->type = SYMBOL_NONE;
+        return TCL_OK;
+    }
+
+    if ((length > 1) && IsLinePenPrefix(string, length, "circle")) {
+        symbolPtr->type = SYMBOL_CIRCLE;
+        return TCL_OK;
+    }
+
+    if ((length > 1) && IsLinePenPrefix(string, length, "square")) {
+        symbolPtr->type = SYMBOL_SQUARE;
+        return TCL_OK;
+    }
+
+    if (IsLinePenPrefix(string, length, "diamond")) {
+        symbolPtr->type = SYMBOL_DIAMOND;
+        return TCL_OK;
+    }
+
+    if (IsLinePenPrefix(string, length, "plus")) {
+        symbolPtr->type = SYMBOL_PLUS;
+        return TCL_OK;
+    }
+
+    if ((length > 1) && IsLinePenPrefix(string, length, "cross")) {
+        symbolPtr->type = SYMBOL_CROSS;
+        return TCL_OK;
+    }
+
+    if ((length > 1) && IsLinePenPrefix(string, length, "splus")) {
+        symbolPtr->type = SYMBOL_SPLUS;
+        return TCL_OK;
+    }
+
+    if ((length > 1) && IsLinePenPrefix(string, length, "scross")) {
+        symbolPtr->type = SYMBOL_SCROSS;
+        return TCL_OK;
+    }
+
+    if (IsLinePenPrefix(string, length, "triangle")) {
+        symbolPtr->type = SYMBOL_TRIANGLE;
+        return TCL_OK;
+    }
+
+    if (IsLinePenPrefix(string, length, "arrow")) {
+        symbolPtr->type = SYMBOL_ARROW;
+        return TCL_OK;
+    }
+
+    /*
+     * Otherwise, interpret the value as:
+     *
+     *     bitmap ?mask?
+     */
+    {
+        Tcl_Obj **objv;
+        Tcl_Size objc;
+        Pixmap bitmap;
+        Pixmap mask;
+
+        if (Tcl_ListObjGetElements(interp, objPtr, &objc, &objv) != TCL_OK) {
+            return TCL_ERROR;
+        }
+
+        if ((objc < 1) || (objc > 2)) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad symbol \"%s\": should be a symbol name "
+                                                   "or \"bitmap ?mask?\"",
+                                                   string));
+
+            return TCL_ERROR;
+        }
+
+        bitmap = Tk_GetBitmap(interp, tkwin, Tk_GetUid(Tcl_GetString(objv[0])));
+
+        if (bitmap == None) {
+            Tcl_ResetResult(interp);
+
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad symbol \"%s\": should be "
+                                                   "\"none\", \"circle\", \"square\", "
+                                                   "\"diamond\", \"plus\", \"cross\", "
+                                                   "\"splus\", \"scross\", \"triangle\", "
+                                                   "\"arrow\", or the name of a bitmap",
+                                                   string));
+
+            return TCL_ERROR;
+        }
+
+        mask = None;
+
+        if ((objc == 2) && (Tcl_GetCharLength(objv[1]) > 0)) {
+            mask = Tk_GetBitmap(interp, tkwin, Tk_GetUid(Tcl_GetString(objv[1])));
+
+            if (mask == None) {
+                Tk_FreeBitmap(Tk_Display(tkwin), bitmap);
+
+                return TCL_ERROR;
+            }
+        }
+
+        symbolPtr->type = SYMBOL_BITMAP;
+        symbolPtr->bitmap = bitmap;
+        symbolPtr->mask = mask;
+    }
+
     return TCL_OK;
 }
 
@@ -1324,10 +1754,7 @@ static void ClearPalette(Rbc_Chain *palette) {
  *
  *----------------------------------------------------------------------
  */
-static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
-    LinePen *lpPtr;
-
-    lpPtr = LINE_PEN_FROM_CORE(penPtr);
+static int ConfigureLegacyPen(Graph *graphPtr, LinePen *lpPtr) {
     unsigned long gcMask;
     GC newGC;
     XGCValues gcValues;
@@ -1442,6 +1869,377 @@ static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     return TCL_OK;
 }
 
+static int ConfigureModernPen(Graph *graphPtr, LinePen *lpPtr) {
+    Rbc_Dashes newDashes;
+    ParsedSymbol newSymbol;
+    Shadow newShadow;
+
+    XColor *newErrorBarColor;
+    XColor *newFillColor;
+    XColor *newOffDashColor;
+    XColor *newOutlineColor;
+    XColor *colorPtr;
+
+    int newErrorBarLineWidth;
+    int newErrorBarCapWidth;
+    int newTraceWidth;
+    int newOutlineWidth;
+    int newSymbolSize;
+    int newErrorBarShow;
+    int newValueShow;
+
+    GC newOutlineGC;
+    GC newFillGC;
+    GC newTraceGC;
+    GC newErrorBarGC;
+    GC newValueGC;
+
+    XGCValues gcValues;
+    unsigned long gcMask;
+
+    newErrorBarColor = NULL;
+    newFillColor = NULL;
+    newOffDashColor = NULL;
+    newOutlineColor = NULL;
+
+    newShadow.color = NULL;
+    newShadow.offset = 0;
+
+    newSymbol.type = SYMBOL_NONE;
+    newSymbol.bitmap = None;
+    newSymbol.mask = None;
+
+    newOutlineGC = NULL;
+    newFillGC = NULL;
+    newTraceGC = NULL;
+    newErrorBarGC = NULL;
+    newValueGC = NULL;
+
+    /*
+     * Parse all derived fields first.
+     */
+    if (Rbc_GetDashesFromObj(graphPtr->interp, lpPtr->dashesObjPtr, &newDashes) != TCL_OK) {
+        goto error;
+    }
+
+    if (GetLinePenColorFromObj(graphPtr->interp, graphPtr->tkwin, lpPtr->errorBarColorObjPtr, FALSE,
+                               &newErrorBarColor) != TCL_OK) {
+        goto error;
+    }
+
+    if (GetLinePenColorFromObj(graphPtr->interp, graphPtr->tkwin, lpPtr->fillObjPtr, TRUE, &newFillColor) != TCL_OK) {
+        goto error;
+    }
+
+    if (GetLinePenColorFromObj(graphPtr->interp, graphPtr->tkwin, lpPtr->offDashObjPtr, TRUE, &newOffDashColor) !=
+        TCL_OK) {
+        goto error;
+    }
+
+    if (GetLinePenColorFromObj(graphPtr->interp, graphPtr->tkwin, lpPtr->outlineObjPtr, FALSE, &newOutlineColor) !=
+        TCL_OK) {
+        goto error;
+    }
+
+    if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, lpPtr->errorBarWidthObjPtr, PIXELS_NONNEGATIVE,
+                             &newErrorBarLineWidth) != TCL_OK) {
+        goto error;
+    }
+
+    if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, lpPtr->errorBarCapObjPtr, PIXELS_NONNEGATIVE,
+                             &newErrorBarCapWidth) != TCL_OK) {
+        goto error;
+    }
+
+    if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, lpPtr->lineWidthObjPtr, PIXELS_NONNEGATIVE,
+                             &newTraceWidth) != TCL_OK) {
+        goto error;
+    }
+
+    if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, lpPtr->outlineWidthObjPtr, PIXELS_NONNEGATIVE,
+                             &newOutlineWidth) != TCL_OK) {
+        goto error;
+    }
+
+    if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, lpPtr->pixelsObjPtr, PIXELS_NONNEGATIVE,
+                             &newSymbolSize) != TCL_OK) {
+        goto error;
+    }
+
+    if (Rbc_GetFillFromObj(graphPtr->interp, lpPtr->showErrorBarsObjPtr, &newErrorBarShow) != TCL_OK) {
+        goto error;
+    }
+
+    if (Rbc_GetFillFromObj(graphPtr->interp, lpPtr->showValuesObjPtr, &newValueShow) != TCL_OK) {
+        goto error;
+    }
+
+    if (Rbc_GetShadowFromObj(graphPtr->interp, graphPtr->tkwin, lpPtr->valueShadowObjPtr, &newShadow) != TCL_OK) {
+        goto error;
+    }
+
+    if (GetSymbolFromObj(graphPtr->interp, graphPtr->tkwin, lpPtr->symbolObjPtr, &newSymbol) != TCL_OK) {
+        goto error;
+    }
+
+    /*
+     * Text GC.
+     */
+    gcMask = GCFont;
+    gcValues.font = Tk_FontId(lpPtr->valueStyle.font);
+
+    if (lpPtr->valueStyle.color != NULL) {
+        gcMask |= GCForeground;
+        gcValues.foreground = lpPtr->valueStyle.color->pixel;
+    }
+
+    newValueGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
+
+    /*
+     * Symbol outline GC.
+     */
+    gcMask = GCLineWidth | GCForeground;
+
+    colorPtr = newOutlineColor;
+
+    if (colorPtr == COLOR_DEFAULT) {
+        colorPtr = lpPtr->traceColor;
+    }
+
+    gcValues.foreground = colorPtr->pixel;
+    gcValues.line_width = LineWidth(newOutlineWidth);
+
+    if (newSymbol.type == SYMBOL_BITMAP) {
+        colorPtr = newFillColor;
+
+        if (colorPtr == COLOR_DEFAULT) {
+            colorPtr = lpPtr->traceColor;
+        }
+
+        if (colorPtr != NULL) {
+            gcValues.background = colorPtr->pixel;
+
+            gcMask |= GCBackground;
+
+            if (newSymbol.mask != None) {
+                gcValues.clip_mask = newSymbol.mask;
+
+                gcMask |= GCClipMask;
+            }
+        } else {
+            gcValues.clip_mask = newSymbol.bitmap;
+
+            gcMask |= GCClipMask;
+        }
+    }
+
+    newOutlineGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
+
+    /*
+     * Symbol fill GC.
+     */
+    colorPtr = newFillColor;
+
+    if (colorPtr == COLOR_DEFAULT) {
+        colorPtr = lpPtr->traceColor;
+    }
+
+    if (colorPtr != NULL) {
+        gcMask = GCLineWidth | GCForeground;
+        gcValues.line_width = LineWidth(newOutlineWidth);
+
+        gcValues.foreground = colorPtr->pixel;
+
+        newFillGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
+    }
+
+    /*
+     * Trace GC.
+     */
+    gcMask = GCLineWidth | GCForeground | GCLineStyle | GCCapStyle | GCJoinStyle;
+
+    gcValues.cap_style = CapButt;
+    gcValues.join_style = JoinRound;
+    gcValues.line_style = LineSolid;
+    gcValues.line_width = LineWidth(newTraceWidth);
+
+    colorPtr = newOffDashColor;
+
+    if (colorPtr == COLOR_DEFAULT) {
+        colorPtr = lpPtr->traceColor;
+    }
+
+    if (colorPtr != NULL) {
+        gcMask |= GCBackground;
+        gcValues.background = colorPtr->pixel;
+    }
+
+    gcValues.foreground = lpPtr->traceColor->pixel;
+
+    if (LineIsDashed(newDashes)) {
+        gcValues.line_width = newTraceWidth;
+
+        gcValues.line_style = (colorPtr == NULL) ? LineOnOffDash : LineDoubleDash;
+    }
+
+    newTraceGC = Rbc_GetPrivateGC(graphPtr->tkwin, gcMask, &gcValues);
+
+    if (LineIsDashed(newDashes)) {
+        newDashes.offset = newDashes.values[0] / 2;
+
+        Rbc_SetDashes(graphPtr->display, newTraceGC, &newDashes);
+    }
+
+    /*
+     * Error-bar GC.
+     */
+    colorPtr = newErrorBarColor;
+
+    if (colorPtr == COLOR_DEFAULT) {
+        colorPtr = lpPtr->traceColor;
+    }
+
+    gcMask = GCLineWidth | GCForeground;
+
+    gcValues.line_width = LineWidth(newErrorBarLineWidth);
+
+    gcValues.foreground = colorPtr->pixel;
+
+    newErrorBarGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
+
+    /*
+     * Commit derived colours.
+     */
+    FreeLinePenColor(lpPtr->errorBarColor);
+    FreeLinePenColor(lpPtr->symbol.fillColor);
+    FreeLinePenColor(lpPtr->traceOffColor);
+    FreeLinePenColor(lpPtr->symbol.outlineColor);
+
+    lpPtr->errorBarColor = newErrorBarColor;
+
+    lpPtr->symbol.fillColor = newFillColor;
+
+    lpPtr->traceOffColor = newOffDashColor;
+
+    lpPtr->symbol.outlineColor = newOutlineColor;
+
+    newErrorBarColor = NULL;
+    newFillColor = NULL;
+    newOffDashColor = NULL;
+    newOutlineColor = NULL;
+
+    /*
+     * Commit shadow.
+     */
+    if (lpPtr->valueStyle.shadow.color != NULL) {
+        Tk_FreeColor(lpPtr->valueStyle.shadow.color);
+    }
+
+    lpPtr->valueStyle.shadow = newShadow;
+
+    newShadow.color = NULL;
+
+    /*
+     * Commit symbol bitmap resources.
+     */
+    if (lpPtr->symbol.bitmap != None) {
+        Tk_FreeBitmap(graphPtr->display, lpPtr->symbol.bitmap);
+    }
+
+    if (lpPtr->symbol.mask != None) {
+        Tk_FreeBitmap(graphPtr->display, lpPtr->symbol.mask);
+    }
+
+    lpPtr->symbol.type = newSymbol.type;
+
+    lpPtr->symbol.bitmap = newSymbol.bitmap;
+
+    lpPtr->symbol.mask = newSymbol.mask;
+
+    newSymbol.bitmap = None;
+    newSymbol.mask = None;
+
+    /*
+     * Commit scalar derived fields.
+     */
+    lpPtr->traceDashes = newDashes;
+
+    lpPtr->traceWidth = newTraceWidth;
+
+    lpPtr->errorBarLineWidth = newErrorBarLineWidth;
+
+    lpPtr->errorBarCapWidth = newErrorBarCapWidth;
+
+    lpPtr->symbol.outlineWidth = newOutlineWidth;
+
+    lpPtr->symbol.size = newSymbolSize;
+
+    lpPtr->errorBarShow = newErrorBarShow;
+
+    lpPtr->valueShow = newValueShow;
+
+    /*
+     * Commit GCs.
+     */
+    if (lpPtr->valueStyle.gc != NULL) {
+        Tk_FreeGC(graphPtr->display, lpPtr->valueStyle.gc);
+    }
+
+    if (lpPtr->symbol.outlineGC != NULL) {
+        Tk_FreeGC(graphPtr->display, lpPtr->symbol.outlineGC);
+    }
+
+    if (lpPtr->symbol.fillGC != NULL) {
+        Tk_FreeGC(graphPtr->display, lpPtr->symbol.fillGC);
+    }
+
+    if (lpPtr->traceGC != NULL) {
+        Rbc_FreePrivateGC(graphPtr->display, lpPtr->traceGC);
+    }
+
+    if (lpPtr->errorBarGC != NULL) {
+        Tk_FreeGC(graphPtr->display, lpPtr->errorBarGC);
+    }
+
+    lpPtr->valueStyle.gc = newValueGC;
+
+    lpPtr->symbol.outlineGC = newOutlineGC;
+
+    lpPtr->symbol.fillGC = newFillGC;
+
+    lpPtr->traceGC = newTraceGC;
+
+    lpPtr->errorBarGC = newErrorBarGC;
+
+    return TCL_OK;
+
+error:
+    FreeLinePenColor(newErrorBarColor);
+    FreeLinePenColor(newFillColor);
+    FreeLinePenColor(newOffDashColor);
+    FreeLinePenColor(newOutlineColor);
+
+    if (newShadow.color != NULL) {
+        Tk_FreeColor(newShadow.color);
+    }
+
+    FreeParsedSymbol(graphPtr->display, &newSymbol);
+
+    return TCL_ERROR;
+}
+
+static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
+    LinePen *lpPtr;
+
+    lpPtr = LINE_PEN_FROM_CORE(penPtr);
+
+    if (lpPtr->core.optionSpecs != NULL) {
+        return ConfigureModernPen(graphPtr, lpPtr);
+    }
+
+    return ConfigureLegacyPen(graphPtr, lpPtr);
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -1466,26 +2264,69 @@ static void DestroyPen(Graph *graphPtr, Pen *penPtr) {
 
     lpPtr = LINE_PEN_FROM_CORE(penPtr);
 
-    Rbc_FreeTextStyle(graphPtr->display, &(lpPtr->valueStyle));
+    Rbc_FreeTextStyle(graphPtr->display, &lpPtr->valueStyle);
+
+    lpPtr->valueStyle.gc = NULL;
+
     if (lpPtr->symbol.outlineGC != NULL) {
         Tk_FreeGC(graphPtr->display, lpPtr->symbol.outlineGC);
+
+        lpPtr->symbol.outlineGC = NULL;
     }
+
     if (lpPtr->symbol.fillGC != NULL) {
         Tk_FreeGC(graphPtr->display, lpPtr->symbol.fillGC);
+
+        lpPtr->symbol.fillGC = NULL;
     }
+
     if (lpPtr->errorBarGC != NULL) {
         Tk_FreeGC(graphPtr->display, lpPtr->errorBarGC);
+
+        lpPtr->errorBarGC = NULL;
     }
+
     if (lpPtr->traceGC != NULL) {
         Rbc_FreePrivateGC(graphPtr->display, lpPtr->traceGC);
+
+        lpPtr->traceGC = NULL;
     }
+
     if (lpPtr->symbol.bitmap != None) {
         Tk_FreeBitmap(graphPtr->display, lpPtr->symbol.bitmap);
+
         lpPtr->symbol.bitmap = None;
     }
+
     if (lpPtr->symbol.mask != None) {
         Tk_FreeBitmap(graphPtr->display, lpPtr->symbol.mask);
+
         lpPtr->symbol.mask = None;
+    }
+
+    /*
+     * These resources are manually derived only for modern named
+     * line pens.
+     */
+    if (lpPtr->core.optionSpecs != NULL) {
+        FreeLinePenColor(lpPtr->errorBarColor);
+
+        FreeLinePenColor(lpPtr->symbol.fillColor);
+
+        FreeLinePenColor(lpPtr->traceOffColor);
+
+        FreeLinePenColor(lpPtr->symbol.outlineColor);
+
+        lpPtr->errorBarColor = NULL;
+        lpPtr->symbol.fillColor = NULL;
+        lpPtr->traceOffColor = NULL;
+        lpPtr->symbol.outlineColor = NULL;
+
+        if (lpPtr->valueStyle.shadow.color != NULL) {
+            Tk_FreeColor(lpPtr->valueStyle.shadow.color);
+
+            lpPtr->valueStyle.shadow.color = NULL;
+        }
     }
 }
 
@@ -1560,15 +2401,31 @@ static void InitPen(LinePen *penPtr) {
  */
 Pen *Rbc_LinePen(char *penName) {
     LinePen *penPtr;
+    Pen *corePtr;
 
     penPtr = RbcCalloc(1, sizeof(LinePen));
+
     assert(penPtr != NULL);
+
     InitPen(penPtr);
-    penPtr->core.name = RbcStrdup(penName);
+
+    corePtr = &penPtr->core;
+
+    corePtr->name = RbcStrdup(penName);
+
+    corePtr->configSpecs = NULL;
+
     if (strcmp(penName, "activeLine") == 0) {
-        penPtr->core.flags = ACTIVE_PEN;
+        corePtr->flags = ACTIVE_PEN;
+
+        corePtr->optionSpecs = activeLinePenOptionSpecs;
+    } else {
+        corePtr->flags = NORMAL_PEN;
+
+        corePtr->optionSpecs = normalLinePenOptionSpecs;
     }
-    return &penPtr->core;
+
+    return corePtr;
 }
 
 /*

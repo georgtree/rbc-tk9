@@ -232,7 +232,7 @@ namespace eval graph.pen {
 		.graph1 pen cget "activeLine" -linewidth
 	} -cleanup {
 		destroy .graph1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the pen configure -linewidth command works correctly when given an
@@ -413,7 +413,7 @@ namespace eval graph.pen {
 		.graph1 pen cget "activeLine" -outlinewidth
 	} -cleanup {
 		destroy .graph1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the pen configure -outlinewidth command works correctly when given
@@ -497,7 +497,7 @@ namespace eval graph.pen {
 		.graph1 pen cget "activeLine" -pixels
 	} -cleanup {
 		destroy .graph1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the pen configure -pixels command works correctly when given an
@@ -698,7 +698,7 @@ namespace eval graph.pen {
 	    .graph1 pen cget "activeLine" -symbol
 	} -cleanup {
 	    destroy .graph1
-	} -result {warning {}}
+	} -result {warning}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure that the symbol configuration works for invalid input
@@ -827,7 +827,7 @@ namespace eval graph.pen {
 		.graph1 pen cget "activeLine" -errorbarwidth
 	} -cleanup {
 		destroy .graph1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the pen configure -errorbarwidth command works correctly when given
@@ -954,7 +954,7 @@ namespace eval graph.pen {
 		.graph1 pen cget "activeLine" -showvalues
 	} -cleanup {
 		destroy .graph1
-	} -result {none}
+	} -result {no}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the pen configure -valueanchor command works correctly when 
@@ -1201,7 +1201,7 @@ namespace eval graph.pen {
 	} -cleanup {
 		.graph1 pen delete pen1
 		destroy .graph1
-	} -result {90.0}
+	} -result {90}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the pen configure -valuerotate command works correctly when 
@@ -1235,7 +1235,7 @@ namespace eval graph.pen {
 	} -cleanup {
 		.graph1 pen delete pen1
 		destroy .graph1
-	} -result {-90.0}
+	} -result {-90}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the pen configure -valuerotate command works correctly when
@@ -1289,7 +1289,7 @@ namespace eval graph.pen {
 	} -cleanup {
 		.graph1 pen delete pen1
 		destroy .graph1
-	} -result {black 1}
+	} -result {black}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the pen configure -valueshadow command works correctly when 
@@ -1492,6 +1492,61 @@ namespace eval graph.pen {
 		.graph1 pen delete pen1
 		destroy .graph1
 	} -result {0}
+
+    test RBC.graph.pen.configure.A.rollback.1 {
+        named line pen configuration is atomic
+    } -setup {
+        graph .graph1
+        .graph1 pen create pen1 -color blue -linewidth 2 -symbol circle -valueshadow {gray 2}
+        set oldColor [.graph1 pen cget pen1 -color]
+        set oldWidth [.graph1 pen cget pen1 -linewidth]
+        set oldSymbol [.graph1 pen cget pen1 -symbol]
+        set oldShadow [.graph1 pen cget pen1 -valueshadow]
+    } -body {
+        set code [catch {.graph1 pen configure pen1 -color red -linewidth 3.5 -symbol invalid -valueshadow {black 4}}\
+                          message]
+        list $code [expr {[.graph1 pen cget pen1 -color] eq $oldColor}]\
+                [expr {[.graph1 pen cget pen1 -linewidth] eq $oldWidth }]\
+                [expr {[.graph1 pen cget pen1 -symbol] eq $oldSymbol}]\
+                [expr {[.graph1 pen cget pen1 -valueshadow] eq $oldShadow}]
+    } -cleanup {
+        destroy .graph1
+        unset -nocomplain oldColor oldWidth oldSymbol oldShadow code message
+    } -result {1 1 1 1 1}
+
+    test RBC.graph.pen.configure.A.builtin.1 {
+        embedded line pen remains legacy
+    } -setup {
+        graph .graph1
+        .graph1 element create e1
+    } -body {
+        .graph1 element configure e1 -linewidth 3.5
+        .graph1 element cget e1 -linewidth
+    } -cleanup {
+        destroy .graph1
+    } -result 4
+
+    test RBC.graph.pen.configure.A.lifetime.1 {
+        modern named line pen resource lifetime
+    } -body {
+        for {set i 0} {$i < 200} {incr i} {
+            graph .graph1
+            .graph1 pen create pen1 -color blue -dashes dashdot -errorbarcolor defcolor -errorbarwidth 2.5 -errorbarcap\
+                    3.5 -fill defcolor -linewidth 3.5 -offdash white -outline defcolor -outlinewidth 2.5 -pixels 6.5\
+                    -showerrorbars both -showvalues no -symbol warning -valuecolor black -valuefont TkDefaultFont\
+                    -valuerotate 45 -valueshadow {gray 2}
+            .graph1 element create e1 -xdata {1 2 3} -ydata {2 4 1} -pen pen1
+            .graph1 pen configure pen1 -symbol circle -fill red -outline black -valueshadow {blue 3}
+            .graph1 pen configure pen1 -symbol warning -fill "" -offdash ""
+            .graph1 pen delete pen1
+            .graph1 element delete e1
+            destroy .graph1
+        }
+        update
+        return ok
+    } -cleanup {
+        catch {destroy .graph1}
+    } -result ok
 	
 	cleanupTests
 }
