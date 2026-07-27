@@ -289,7 +289,7 @@ namespace eval stripchart.crosshairs {
 		.stripchart1 crosshairs cget -linewidth
 	} -cleanup {
 		destroy .stripchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the crosshairs configure -linewidth command works correctly when 
@@ -392,6 +392,76 @@ namespace eval stripchart.crosshairs {
 	} -cleanup {
 		destroy .stripchart1
 	} -result {0}
+
+    test RBC.stripchart.crosshairs.configure.A.6.1 {
+        stripchart crosshairs: preserve named dash pattern
+    } -setup {
+        stripchart .stripchart1
+    } -body {
+        .stripchart1 crosshairs configure -dashes dashdot
+        .stripchart1 crosshairs cget -dashes
+    } -cleanup {
+        destroy .stripchart1
+    } -result dashdot
+
+    test RBC.stripchart.crosshairs.configure.A.6.2 {
+        stripchart crosshairs: preserve dash expressions
+    } -setup {
+        stripchart .stripchart1
+    } -body {
+        .stripchart1 crosshairs configure -dashes {1+1 2*2 3}
+        .stripchart1 crosshairs cget -dashes
+    } -cleanup {
+        destroy .stripchart1
+    } -result {1+1 2*2 3}
+
+    test RBC.stripchart.crosshairs.configure.A.6.3 {
+        stripchart crosshairs: preserve position representation
+    } -setup {
+        stripchart .stripchart1
+    } -body {
+        .stripchart1 crosshairs configure -position @3.5,4.5
+
+        .stripchart1 crosshairs cget -position
+    } -cleanup {
+        destroy .stripchart1
+    } -result {@3.5,4.5}
+
+    test RBC.stripchart.crosshairs.configure.A.6.4 {
+        stripchart crosshairs: configuration rollback
+    } -setup {
+        stripchart .stripchart1
+
+        set oldColor [.stripchart1 crosshairs cget -color]
+
+        set oldPosition [.stripchart1 crosshairs cget -position]
+    } -body {
+        set code [catch {.stripchart1 crosshairs configure -color red -position invalid} message]
+
+        list $code [expr {[.stripchart1 crosshairs cget -color] eq $oldColor}]\
+                [expr {[.stripchart1 crosshairs cget -position] eq $oldPosition}]\
+                [string match {*should be "@x,y"*} $message]
+    } -cleanup {
+        destroy .stripchart1
+        unset -nocomplain oldColor oldPosition code message
+    } -result {1 1 1 1}
+
+    test RBC.stripchart.crosshairs.configure.A.6.5 {
+        stripchart crosshairs: modern option resource lifetime
+    } -body {
+        for {set i 0} {$i < 100} {incr i} {
+            stripchart .stripchart1
+            .stripchart1 crosshairs configure -color red -dashes dashdot -linewidth 3.5 -position @50,60 -hide no
+            update idletasks
+            .stripchart1 crosshairs off
+            .stripchart1 crosshairs on
+            .stripchart1 crosshairs toggle
+            destroy .stripchart1
+        }
+        return ok
+    } -cleanup {
+        catch {destroy .stripchart1}
+    } -result ok
 
 	cleanupTests
 }

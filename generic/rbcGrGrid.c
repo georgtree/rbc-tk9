@@ -71,86 +71,6 @@ static RbcGrGridOp MapOp;
 static RbcGrGridOp UnmapOp;
 static RbcGrGridOp ToggleOp;
 
-static int GetGridDashesFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, Rbc_Dashes *dashesPtr) {
-    Rbc_Dashes newDashes;
-    const char *string;
-    Tcl_Obj **valueObjv;
-    Tcl_Size nValues;
-    Tcl_Size i;
-
-    memset(&newDashes, 0, sizeof(newDashes));
-    if ((objPtr == NULL) || (Tcl_GetCharLength(objPtr) == 0)) {
-        *dashesPtr = newDashes;
-        return TCL_OK;
-    }
-    string = Tcl_GetString(objPtr);
-    if (strcmp(string, "dash") == 0) {
-        newDashes.values[0] = 5;
-        newDashes.values[1] = 2;
-    } else if (strcmp(string, "dot") == 0) {
-        newDashes.values[0] = 1;
-    } else if (strcmp(string, "dashdot") == 0) {
-        newDashes.values[0] = 2;
-        newDashes.values[1] = 4;
-        newDashes.values[2] = 2;
-    } else if (strcmp(string, "dashdotdot") == 0) {
-        newDashes.values[0] = 2;
-        newDashes.values[1] = 4;
-        newDashes.values[2] = 2;
-        newDashes.values[3] = 2;
-    } else {
-        if (Tcl_ListObjGetElements(interp, objPtr, &nValues, &valueObjv) != TCL_OK) {
-            return TCL_ERROR;
-        }
-        if (nValues > 11) {
-            Tcl_SetObjResult(interp, Tcl_ObjPrintf("too many values in dash list \"%s\"", string));
-            return TCL_ERROR;
-        }
-        for (i = 0; i < nValues; i++) {
-            long value;
-            if (Tcl_ExprLongObj(interp, valueObjv[i], &value) != TCL_OK) {
-                return TCL_ERROR;
-            }
-            /*
-             * Backward compatibility: a single zero disables dashes.
-             */
-            if ((value == 0) && (nValues == 1)) {
-                break;
-            }
-            if ((value < 1) || (value > 255)) {
-                Tcl_SetObjResult(interp,
-                                 Tcl_ObjPrintf("dash value \"%s\" is out of range", Tcl_GetString(valueObjv[i])));
-                return TCL_ERROR;
-            }
-            newDashes.values[i] = (unsigned char)value;
-        }
-    }
-    *dashesPtr = newDashes;
-    return TCL_OK;
-}
-
-static int InitGridOptions(Graph *graphPtr, Grid *gridPtr) {
-    Tk_Window tkwin;
-    int isTemporary;
-    int result;
-
-    tkwin = Rbc_FindChild(graphPtr->tkwin, "grid");
-    isTemporary = FALSE;
-    if (tkwin == NULL) {
-        tkwin = Tk_CreateWindow(graphPtr->interp, graphPtr->tkwin, "grid", (char *)NULL);
-        if (tkwin == NULL) {
-            return TCL_ERROR;
-        }
-        Tk_SetClass(tkwin, "Grid");
-        isTemporary = TRUE;
-    }
-    result = Tk_InitOptions(graphPtr->interp, (char *)gridPtr, gridPtr->optionTable, tkwin);
-    if (isTemporary) {
-        Tk_DestroyWindow(tkwin);
-    }
-    return result;
-}
-
 /*
  *----------------------------------------------------------------------
  *
@@ -193,7 +113,7 @@ static int ConfigureGrid(Graph *graphPtr, Grid *gridPtr, int mask) {
      * active rendering state is modified until all validation succeeds.
      */
     if (mask & GRID_GC_CHANGED) {
-        if (GetGridDashesFromObj(graphPtr->interp, gridPtr->dashesObjPtr, &newDashes) != TCL_OK) {
+        if (Rbc_GetDashesFromObj(graphPtr->interp, gridPtr->dashesObjPtr, &newDashes) != TCL_OK) {
             return TCL_ERROR;
         }
         if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, gridPtr->lineWidthObjPtr, PIXELS_NONNEGATIVE,
@@ -458,7 +378,8 @@ int Rbc_CreateGrid(Graph *graphPtr) {
      * static template.
      */
     gridPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, specsPtr);
-    if (InitGridOptions(graphPtr, gridPtr) != TCL_OK) {
+    if (Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, "grid", "Grid", (char *)gridPtr,
+                                 gridPtr->optionTable) != TCL_OK) {
         goto error;
     }
     if (ConfigureGrid(graphPtr, gridPtr, GRID_INITIALIZE_MASK) != TCL_OK) {

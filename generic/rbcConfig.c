@@ -834,6 +834,61 @@ static int GetDashes(Tcl_Interp *interp, const char *string, Rbc_Dashes *dashesP
     return TCL_OK;
 }
 
+int Rbc_GetDashesFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, Rbc_Dashes *dashesPtr) {
+    Rbc_Dashes newDashes;
+    const char *string;
+    Tcl_Obj **valueObjv;
+    Tcl_Size nValues;
+    Tcl_Size i;
+
+    memset(&newDashes, 0, sizeof(newDashes));
+    if ((objPtr == NULL) || (Tcl_GetCharLength(objPtr) == 0)) {
+        *dashesPtr = newDashes;
+        return TCL_OK;
+    }
+    string = Tcl_GetString(objPtr);
+    if (strcmp(string, "dash") == 0) {
+        newDashes.values[0] = 5;
+        newDashes.values[1] = 2;
+    } else if (strcmp(string, "dot") == 0) {
+        newDashes.values[0] = 1;
+    } else if (strcmp(string, "dashdot") == 0) {
+        newDashes.values[0] = 2;
+        newDashes.values[1] = 4;
+        newDashes.values[2] = 2;
+    } else if (strcmp(string, "dashdotdot") == 0) {
+        newDashes.values[0] = 2;
+        newDashes.values[1] = 4;
+        newDashes.values[2] = 2;
+        newDashes.values[3] = 2;
+    } else {
+        if (Tcl_ListObjGetElements(interp, objPtr, &nValues, &valueObjv) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if (nValues > 11) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("too many values in dash list \"%s\"", string));
+            return TCL_ERROR;
+        }
+        for (i = 0; i < nValues; i++) {
+            long value;
+            if (Tcl_ExprLongObj(interp, valueObjv[i], &value) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            if ((value == 0) && (nValues == 1)) {
+                break;
+            }
+            if ((value < 1) || (value > 255)) {
+                Tcl_SetObjResult(interp,
+                                 Tcl_ObjPrintf("dash value \"%s\" is out of range", Tcl_GetString(valueObjv[i])));
+                return TCL_ERROR;
+            }
+            newDashes.values[i] = (unsigned char)value;
+        }
+    }
+    *dashesPtr = newDashes;
+    return TCL_OK;
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -1313,6 +1368,29 @@ Tk_Window Rbc_FindChild(Tk_Window parent, const char *name) {
     pathNamePtr = Tcl_ObjPrintf("%s.%s", Tk_PathName(parent), name);
     result = Tk_NameToWindow(NULL, Tcl_GetString(pathNamePtr), parent);
     Tcl_BounceRefCount(pathNamePtr);
+    return result;
+}
+
+int Rbc_InitComponentOptions(Tcl_Interp *interp, Tk_Window parent, const char *name, const char *className,
+                             char *recordPtr, Tk_OptionTable optionTable) {
+    Tk_Window tkwin;
+    int isTemporary;
+    int result;
+
+    tkwin = Rbc_FindChild(parent, name);
+    isTemporary = FALSE;
+    if (tkwin == NULL) {
+        tkwin = Tk_CreateWindow(interp, parent, name, (char *)NULL);
+        if (tkwin == NULL) {
+            return TCL_ERROR;
+        }
+        Tk_SetClass(tkwin, className);
+        isTemporary = TRUE;
+    }
+    result = Tk_InitOptions(interp, recordPtr, optionTable, tkwin);
+    if (isTemporary) {
+        Tk_DestroyWindow(tkwin);
+    }
     return result;
 }
 

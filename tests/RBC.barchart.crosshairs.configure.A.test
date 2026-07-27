@@ -289,7 +289,7 @@ namespace eval barchart.crosshairs {
 		.barchart1 crosshairs cget -linewidth
 	} -cleanup {
 		destroy .barchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the crosshairs configure -linewidth command works correctly when 
@@ -392,6 +392,76 @@ namespace eval barchart.crosshairs {
 	} -cleanup {
 		destroy .barchart1
 	} -result {0}
+
+    test RBC.barchart.crosshairs.configure.A.6.1 {
+        barchart crosshairs: preserve named dash pattern
+    } -setup {
+        barchart .barchart1
+    } -body {
+        .barchart1 crosshairs configure -dashes dashdot
+        .barchart1 crosshairs cget -dashes
+    } -cleanup {
+        destroy .barchart1
+    } -result dashdot
+
+    test RBC.barchart.crosshairs.configure.A.6.2 {
+        barchart crosshairs: preserve dash expressions
+    } -setup {
+        barchart .barchart1
+    } -body {
+        .barchart1 crosshairs configure -dashes {1+1 2*2 3}
+        .barchart1 crosshairs cget -dashes
+    } -cleanup {
+        destroy .barchart1
+    } -result {1+1 2*2 3}
+
+    test RBC.barchart.crosshairs.configure.A.6.3 {
+        barchart crosshairs: preserve position representation
+    } -setup {
+        barchart .barchart1
+    } -body {
+        .barchart1 crosshairs configure -position @3.5,4.5
+
+        .barchart1 crosshairs cget -position
+    } -cleanup {
+        destroy .barchart1
+    } -result {@3.5,4.5}
+
+    test RBC.barchart.crosshairs.configure.A.6.4 {
+        barchart crosshairs: configuration rollback
+    } -setup {
+        barchart .barchart1
+
+        set oldColor [.barchart1 crosshairs cget -color]
+
+        set oldPosition [.barchart1 crosshairs cget -position]
+    } -body {
+        set code [catch {.barchart1 crosshairs configure -color red -position invalid} message]
+
+        list $code [expr {[.barchart1 crosshairs cget -color] eq $oldColor}]\
+                [expr {[.barchart1 crosshairs cget -position] eq $oldPosition}]\
+                [string match {*should be "@x,y"*} $message]
+    } -cleanup {
+        destroy .barchart1
+        unset -nocomplain oldColor oldPosition code message
+    } -result {1 1 1 1}
+
+    test RBC.barchart.crosshairs.configure.A.6.5 {
+        barchart crosshairs: modern option resource lifetime
+    } -body {
+        for {set i 0} {$i < 100} {incr i} {
+            barchart .barchart1
+            .barchart1 crosshairs configure -color red -dashes dashdot -linewidth 3.5 -position @50,60 -hide no
+            update idletasks
+            .barchart1 crosshairs off
+            .barchart1 crosshairs on
+            .barchart1 crosshairs toggle
+            destroy .barchart1
+        }
+        return ok
+    } -cleanup {
+        catch {destroy .barchart1}
+    } -result ok
 
 	cleanupTests
 }

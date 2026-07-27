@@ -289,7 +289,7 @@ namespace eval graph.crosshairs {
 		.graph1 crosshairs cget -linewidth
 	} -cleanup {
 		destroy .graph1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the crosshairs configure -linewidth command works correctly when 
@@ -392,6 +392,76 @@ namespace eval graph.crosshairs {
 	} -cleanup {
 		destroy .graph1
 	} -result {0}
+
+    test RBC.graph.crosshairs.configure.A.6.1 {
+        graph crosshairs: preserve named dash pattern
+    } -setup {
+        graph .graph1
+    } -body {
+        .graph1 crosshairs configure -dashes dashdot
+        .graph1 crosshairs cget -dashes
+    } -cleanup {
+        destroy .graph1
+    } -result dashdot
+
+    test RBC.graph.crosshairs.configure.A.6.2 {
+        graph crosshairs: preserve dash expressions
+    } -setup {
+        graph .graph1
+    } -body {
+        .graph1 crosshairs configure -dashes {1+1 2*2 3}
+        .graph1 crosshairs cget -dashes
+    } -cleanup {
+        destroy .graph1
+    } -result {1+1 2*2 3}
+
+    test RBC.graph.crosshairs.configure.A.6.3 {
+        graph crosshairs: preserve position representation
+    } -setup {
+        graph .graph1
+    } -body {
+        .graph1 crosshairs configure -position @3.5,4.5
+
+        .graph1 crosshairs cget -position
+    } -cleanup {
+        destroy .graph1
+    } -result {@3.5,4.5}
+
+    test RBC.graph.crosshairs.configure.A.6.4 {
+        graph crosshairs: configuration rollback
+    } -setup {
+        graph .graph1
+
+        set oldColor [.graph1 crosshairs cget -color]
+
+        set oldPosition [.graph1 crosshairs cget -position]
+    } -body {
+        set code [catch {.graph1 crosshairs configure -color red -position invalid} message]
+
+        list $code [expr {[.graph1 crosshairs cget -color] eq $oldColor}]\
+                [expr {[.graph1 crosshairs cget -position] eq $oldPosition}]\
+                [string match {*should be "@x,y"*} $message]
+    } -cleanup {
+        destroy .graph1
+        unset -nocomplain oldColor oldPosition code message
+    } -result {1 1 1 1}
+
+    test RBC.graph.crosshairs.configure.A.6.5 {
+        graph crosshairs: modern option resource lifetime
+    } -body {
+        for {set i 0} {$i < 100} {incr i} {
+            graph .graph1
+            .graph1 crosshairs configure -color red -dashes dashdot -linewidth 3.5 -position @50,60 -hide no
+            update idletasks
+            .graph1 crosshairs off
+            .graph1 crosshairs on
+            .graph1 crosshairs toggle
+            destroy .graph1
+        }
+        return ok
+    } -cleanup {
+        catch {destroy .graph1}
+    } -result ok
 
 	cleanupTests
 }

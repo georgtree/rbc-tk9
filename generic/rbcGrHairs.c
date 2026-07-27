@@ -11,10 +11,6 @@
 
 #include "rbcGraph.h"
 
-extern Tk_CustomOption rbcPointOption;
-extern Tk_CustomOption rbcDistanceOption;
-extern Tk_CustomOption rbcDashesOption;
-
 /*
  * -------------------------------------------------------------------
  *
@@ -27,7 +23,21 @@ extern Tk_CustomOption rbcDashesOption;
  */
 
 struct CrosshairsStruct {
-
+    /*
+     * Modern Tk option state.
+     */
+    Tk_OptionTable optionTable;
+    
+    /*
+     * Original Tcl representations.
+     */
+    Tcl_Obj *dashesObjPtr;
+    Tcl_Obj *lineWidthObjPtr;
+    Tcl_Obj *positionObjPtr;
+    
+    /*
+     * Derived and runtime state.
+     */    
     XPoint hotSpot;     /* Hot spot for crosshairs */
     int visible;        /* Internal state of crosshairs. If non-zero,
                          * crosshairs are displayed. */
@@ -53,20 +63,23 @@ struct CrosshairsStruct {
 #define DEF_HAIRS_LINE_WIDTH "0"
 #define DEF_HAIRS_HIDE "yes"
 #define DEF_HAIRS_POSITION (char *)NULL
+#define HAIRS_GC_CHANGED       (1U << 0)
+#define HAIRS_POSITION_CHANGED (1U << 1)
+#define HAIRS_STATE_CHANGED    (1U << 2)
+#define HAIRS_INITIALIZE_MASK (HAIRS_GC_CHANGED | HAIRS_POSITION_CHANGED)
 
-static Tk_ConfigSpec configSpecs[] = {{TK_CONFIG_COLOR, "-color", "color", "Color", DEF_HAIRS_FOREGROUND,
-                                       offsetof(Crosshairs, colorPtr), TK_CONFIG_COLOR_ONLY},
-                                      {TK_CONFIG_COLOR, "-color", "color", "Color", DEF_HAIRS_FG_MONO,
-                                       offsetof(Crosshairs, colorPtr), TK_CONFIG_MONO_ONLY},
-                                      {TK_CONFIG_CUSTOM, "-dashes", "dashes", "Dashes", DEF_HAIRS_DASHES,
-                                       offsetof(Crosshairs, dashes), TK_CONFIG_NULL_OK, &rbcDashesOption},
-                                      {TK_CONFIG_BOOLEAN, "-hide", "hide", "Hide", DEF_HAIRS_HIDE,
-                                       offsetof(Crosshairs, hidden), TK_CONFIG_DONT_SET_DEFAULT},
-                                      {TK_CONFIG_CUSTOM, "-linewidth", "lineWidth", "Linewidth", DEF_HAIRS_LINE_WIDTH,
-                                       offsetof(Crosshairs, lineWidth), TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-                                      {TK_CONFIG_CUSTOM, "-position", "position", "Position", DEF_HAIRS_POSITION,
-                                       offsetof(Crosshairs, hotSpot), 0, &rbcPointOption},
-                                      {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}};
+static const Tk_OptionSpec crosshairsOptionSpecs[] = {
+    {TK_OPTION_COLOR, "-color", "color", "Color", DEF_HAIRS_FOREGROUND, -1, offsetof(Crosshairs, colorPtr), 0,
+     DEF_HAIRS_FG_MONO, HAIRS_GC_CHANGED},
+    {TK_OPTION_STRING, "-dashes", "dashes", "Dashes", DEF_HAIRS_DASHES, offsetof(Crosshairs, dashesObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, HAIRS_GC_CHANGED},
+    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_HAIRS_HIDE, -1, offsetof(Crosshairs, hidden), 0, NULL,
+     HAIRS_STATE_CHANGED},
+    {TK_OPTION_PIXELS, "-linewidth", "lineWidth", "Linewidth", DEF_HAIRS_LINE_WIDTH,
+     offsetof(Crosshairs, lineWidthObjPtr), -1, 0, NULL, HAIRS_GC_CHANGED},
+    {TK_OPTION_STRING, "-position", "position", "Position", DEF_HAIRS_POSITION, offsetof(Crosshairs, positionObjPtr),
+     -1, TK_OPTION_NULL_OK, NULL, HAIRS_POSITION_CHANGED},
+    {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 static void TurnOffHairs(Tk_Window tkwin, Crosshairs *chPtr);
 static void TurnOnHairs(Graph *graphPtr, Crosshairs *chPtr);
@@ -137,6 +150,57 @@ static void TurnOnHairs(Graph *graphPtr, Crosshairs *chPtr) {
     }
 }
 
+static int GetCrosshairPositionFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, XPoint *pointPtr) {
+    const char *string;
+    const char *comma;
+    Tcl_Size length;
+    Tcl_Size xLength;
+    Tcl_Size yLength;
+    Tcl_Obj *xObjPtr;
+    Tcl_Obj *yObjPtr;
+    int x, y;
+    int result;
+
+    if ((objPtr == NULL) || (Tcl_GetCharLength(objPtr) == 0)) {
+        pointPtr->x = -SHRT_MAX;
+        pointPtr->y = -SHRT_MAX;
+        return TCL_OK;
+    }
+    string = Tcl_GetStringFromObj(objPtr, &length);
+    if ((length < 4) || (string[0] != '@')) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad position \"%s\": should be \"@x,y\"", string));
+        return TCL_ERROR;
+    }
+    comma = memchr(string + 1, ',', (size_t)(length - 1));
+    if ((comma == NULL) || (comma == string + 1) || (comma == string + length - 1)) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad position \"%s\": should be \"@x,y\"", string));
+        return TCL_ERROR;
+    }
+    xLength = (Tcl_Size)(comma - (string + 1));
+    yLength = length - (Tcl_Size)(comma - string) - 1;
+    xObjPtr = Tcl_NewStringObj(string + 1, xLength);
+    yObjPtr = Tcl_NewStringObj(comma + 1, yLength);
+    Tcl_IncrRefCount(xObjPtr);
+    Tcl_IncrRefCount(yObjPtr);
+    result = Tk_GetPixelsFromObj(interp, tkwin, xObjPtr, &x);
+    if (result == TCL_OK) {
+        result = Tk_GetPixelsFromObj(interp, tkwin, yObjPtr, &y);
+    }
+    Tcl_DecrRefCount(xObjPtr);
+    Tcl_DecrRefCount(yObjPtr);
+    if (result != TCL_OK) {
+        Tcl_AppendResult(interp, ": can't parse position \"", string, "\"", (char *)NULL);
+        return TCL_ERROR;
+    }
+    if ((x < SHRT_MIN) || (x > SHRT_MAX) || (y < SHRT_MIN) || (y > SHRT_MAX)) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("position \"%s\" is outside the supported range", string));
+        return TCL_ERROR;
+    }
+    pointPtr->x = (short)x;
+    pointPtr->y = (short)y;
+    return TCL_OK;
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -157,58 +221,108 @@ static void TurnOnHairs(Graph *graphPtr, Crosshairs *chPtr) {
  *
  *----------------------------------------------------------------------
  */
-void Rbc_ConfigureCrosshairs(Graph *graphPtr) {
+
+static int ConfigureCrosshairs(Graph *graphPtr, Crosshairs *chPtr, int mask) {
+    Rbc_Dashes newDashes;
+    XPoint newHotSpot;
+    int newLineWidth;
     XGCValues gcValues;
     unsigned long gcMask;
     GC newGC;
     long colorValue;
-    Crosshairs *chPtr = graphPtr->crosshairs;
 
+    newDashes = chPtr->dashes;
+    newHotSpot = chPtr->hotSpot;
+    newLineWidth = chPtr->lineWidth;
+    newGC = NULL;
     /*
-     * Turn off the crosshairs temporarily. This is in case the new
-     * configuration changes the size, style, or position of the lines.
+     * Parse and validate all fallible values before modifying the
+     * currently displayed XOR crosshairs.
+     */
+    if (mask & HAIRS_GC_CHANGED) {
+        if (Rbc_GetDashesFromObj(graphPtr->interp, chPtr->dashesObjPtr, &newDashes) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, chPtr->lineWidthObjPtr, PIXELS_NONNEGATIVE,
+                                 &newLineWidth) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+    if (mask & HAIRS_POSITION_CHANGED) {
+        if (GetCrosshairPositionFromObj(graphPtr->interp, graphPtr->tkwin, chPtr->positionObjPtr, &newHotSpot) !=
+            TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+    /*
+     * Build the replacement GC before erasing the old crosshairs.
+     */
+    if (mask & HAIRS_GC_CHANGED) {
+        gcValues.function = GXxor;
+        if (graphPtr->plotBg == NULL) {
+            colorValue = WhitePixelOfScreen(Tk_Screen(graphPtr->tkwin));
+        } else {
+            colorValue = graphPtr->plotBg->pixel;
+        }
+        gcValues.background = colorValue;
+        gcValues.foreground = colorValue ^ chPtr->colorPtr->pixel;
+        gcValues.line_width = LineWidth(newLineWidth);
+        gcMask = GCForeground | GCBackground | GCFunction | GCLineWidth;
+        if (LineIsDashed(newDashes)) {
+            gcValues.line_style = LineOnOffDash;
+            gcMask |= GCLineStyle;
+        }
+        newGC = Rbc_GetPrivateGC(graphPtr->tkwin, gcMask, &gcValues);
+        if (LineIsDashed(newDashes)) {
+            Rbc_SetDashes(graphPtr->display, newGC, &newDashes);
+        }
+    }
+    /*
+     * Erase the old XOR image while its old GC and coordinates are
+     * still active.
      */
     TurnOffHairs(graphPtr->tkwin, chPtr);
-
-    gcValues.function = GXxor;
-
-    if (graphPtr->plotBg == NULL) {
-        /* The graph's color option may not have been set yet */
-        colorValue = WhitePixelOfScreen(Tk_Screen(graphPtr->tkwin));
-    } else {
-        colorValue = graphPtr->plotBg->pixel;
+    if (mask & HAIRS_GC_CHANGED) {
+        GC oldGC;
+        oldGC = chPtr->gc;
+        chPtr->dashes = newDashes;
+        chPtr->lineWidth = newLineWidth;
+        chPtr->gc = newGC;
+        if (oldGC != NULL) {
+            Rbc_FreePrivateGC(graphPtr->display, oldGC);
+        }
     }
-    gcValues.background = colorValue;
-    gcValues.foreground = (colorValue ^ chPtr->colorPtr->pixel);
-
-    gcValues.line_width = LineWidth(chPtr->lineWidth);
-    gcMask = (GCForeground | GCBackground | GCFunction | GCLineWidth);
-    if (LineIsDashed(chPtr->dashes)) {
-        gcValues.line_style = LineOnOffDash;
-        gcMask |= GCLineStyle;
+    if (mask & HAIRS_POSITION_CHANGED) {
+        chPtr->hotSpot = newHotSpot;
     }
-    newGC = Rbc_GetPrivateGC(graphPtr->tkwin, gcMask, &gcValues);
-    if (LineIsDashed(chPtr->dashes)) {
-        Rbc_SetDashes(graphPtr->display, newGC, &(chPtr->dashes));
-    }
-    if (chPtr->gc != NULL) {
-        Rbc_FreePrivateGC(graphPtr->display, chPtr->gc);
-    }
-    chPtr->gc = newGC;
-
     /*
-     * Are the new coordinates on the graph?
+     * Rebuild all segment coordinates. This also handles calls made
+     * when the graph background or plot geometry has changed.
      */
-    chPtr->segArr[0].x2 = chPtr->segArr[0].x1 = chPtr->hotSpot.x;
+    chPtr->segArr[0].x1 = chPtr->segArr[0].x2 = chPtr->hotSpot.x;
     chPtr->segArr[0].y1 = graphPtr->bottom;
     chPtr->segArr[0].y2 = graphPtr->top;
-    chPtr->segArr[1].y2 = chPtr->segArr[1].y1 = chPtr->hotSpot.y;
+    chPtr->segArr[1].y1 = chPtr->segArr[1].y2 = chPtr->hotSpot.y;
     chPtr->segArr[1].x1 = graphPtr->left;
     chPtr->segArr[1].x2 = graphPtr->right;
-
     if (!chPtr->hidden) {
         TurnOnHairs(graphPtr, chPtr);
     }
+    return TCL_OK;
+}
+
+void Rbc_ConfigureCrosshairs(Graph *graphPtr) {
+    Crosshairs *chPtr;
+
+    chPtr = graphPtr->crosshairs;
+    if (chPtr == NULL) {
+        return;
+    }
+    /*
+     * A graph-level background change only requires rebuilding the GC.
+     * Existing option values have already been validated.
+     */
+    (void)ConfigureCrosshairs(graphPtr, chPtr, HAIRS_GC_CHANGED);
 }
 
 /*
@@ -305,9 +419,14 @@ void Rbc_UpdateCrosshairs(Graph *graphPtr) {
  *----------------------------------------------------------------------
  */
 void Rbc_DestroyCrosshairs(Graph *graphPtr) {
-    Crosshairs *chPtr = graphPtr->crosshairs;
+    Crosshairs *chPtr;
 
-    Tk_FreeOptions(configSpecs, (char *)chPtr, graphPtr->display, 0);
+    chPtr = graphPtr->crosshairs;
+    if (chPtr == NULL) {
+        return;
+    }
+    graphPtr->crosshairs = NULL;
+    Tk_FreeConfigOptions((char *)chPtr, chPtr->optionTable, graphPtr->tkwin);
     if (chPtr->gc != NULL) {
         Rbc_FreePrivateGC(graphPtr->display, chPtr->gc);
     }
@@ -337,16 +456,21 @@ int Rbc_CreateCrosshairs(Graph *graphPtr) {
     Crosshairs *chPtr;
 
     chPtr = RbcCalloc(1, sizeof(Crosshairs));
-    assert(chPtr);
-    chPtr->hidden = TRUE;
-    chPtr->hotSpot.x = chPtr->hotSpot.y = -1;
+    assert(chPtr != NULL);
     graphPtr->crosshairs = chPtr;
-
-    if (Rbc_ConfigureWidgetComponent(graphPtr->interp, graphPtr->tkwin, "crosshairs", "Crosshairs", configSpecs, 0,
-                                     NULL, (char *)chPtr, 0) != TCL_OK) {
-        return TCL_ERROR;
+    chPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, crosshairsOptionSpecs);
+    if (Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, "crosshairs", "Crosshairs", (char *)chPtr,
+                                 chPtr->optionTable) != TCL_OK) {
+        goto error;
+    }
+    if (ConfigureCrosshairs(graphPtr, chPtr, HAIRS_INITIALIZE_MASK) != TCL_OK) {
+        goto error;
     }
     return TCL_OK;
+
+error:
+    Rbc_DestroyCrosshairs(graphPtr);
+    return TCL_ERROR;
 }
 
 /*
@@ -372,9 +496,16 @@ int Rbc_CreateCrosshairs(Graph *graphPtr) {
  *----------------------------------------------------------------------
  */
 static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    Crosshairs *chPtr = graphPtr->crosshairs;
+    Crosshairs *chPtr;
+    Tcl_Obj *resultObjPtr;
 
-    return Tk_ConfigureValue(interp, graphPtr->tkwin, configSpecs, (char *)chPtr, Tcl_GetString(objv[3]), 0);
+    chPtr = graphPtr->crosshairs;
+    resultObjPtr = Tk_GetOptionValue(interp, (char *)chPtr, chPtr->optionTable, objv[3], graphPtr->tkwin);
+    if (resultObjPtr == NULL) {
+        return TCL_ERROR;
+    }
+    Tcl_SetObjResult(interp, resultObjPtr);
+    return TCL_OK;
 }
 
 /*
@@ -400,18 +531,42 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const 
  *----------------------------------------------------------------------
  */
 static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    Crosshairs *chPtr = graphPtr->crosshairs;
+    Crosshairs *chPtr;
+    Tcl_Obj *resultObjPtr;
+    Tk_SavedOptions savedOptions;
+    int mask;
 
+    chPtr = graphPtr->crosshairs;
     if (objc == 3) {
-        return Tk_ConfigureInfo(interp, graphPtr->tkwin, configSpecs, (char *)chPtr, (char *)NULL, 0);
-    } else if (objc == 4) {
-        return Tk_ConfigureInfo(interp, graphPtr->tkwin, configSpecs, (char *)chPtr, Tcl_GetString(objv[3]), 0);
+        resultObjPtr = Tk_GetOptionInfo(interp, (char *)chPtr, chPtr->optionTable, NULL, graphPtr->tkwin);
+        if (resultObjPtr == NULL) {
+            return TCL_ERROR;
+        }
+        Tcl_SetObjResult(interp, resultObjPtr);
+        return TCL_OK;
     }
-    if (Tk_ConfigureWidget(interp, graphPtr->tkwin, configSpecs, objc - 3, objv + 3, (char *)chPtr,
-                           TK_CONFIG_ARGV_ONLY) != TCL_OK) {
+    if (objc == 4) {
+        resultObjPtr = Tk_GetOptionInfo(interp, (char *)chPtr, chPtr->optionTable, objv[3], graphPtr->tkwin);
+        if (resultObjPtr == NULL) {
+            return TCL_ERROR;
+        }
+        Tcl_SetObjResult(interp, resultObjPtr);
+        return TCL_OK;
+    }
+    if (Tk_SetOptions(interp, (char *)chPtr, chPtr->optionTable, objc - 3, objv + 3, graphPtr->tkwin, &savedOptions,
+                      &mask) != TCL_OK) {
         return TCL_ERROR;
     }
-    Rbc_ConfigureCrosshairs(graphPtr);
+    if (ConfigureCrosshairs(graphPtr, chPtr, mask) != TCL_OK) {
+        Tcl_Obj *errorObjPtr;
+        errorObjPtr = Tcl_GetObjResult(interp);
+        Tcl_IncrRefCount(errorObjPtr);
+        Tk_RestoreSavedOptions(&savedOptions);
+        Tcl_SetObjResult(interp, errorObjPtr);
+        Tcl_DecrRefCount(errorObjPtr);
+        return TCL_ERROR;
+    }
+    Tk_FreeSavedOptions(&savedOptions);
     return TCL_OK;
 }
 

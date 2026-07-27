@@ -341,6 +341,7 @@ typedef struct {
 
 #define LineIsDashed(d) ((d).values[0] != 0)
 
+int Rbc_GetDashesFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, Rbc_Dashes *dashesPtr);
 void Rbc_SetDashes(Display *display, GC gc, Rbc_Dashes *dashesPtr);
 Rbc_Dashes *Rbc_GetDashes(GC gc);
 
@@ -533,6 +534,8 @@ int Rbc_ConfigureWidgetComponent (Tcl_Interp *interp,
 int Rbc_ConfigureWidgetComponent(Tcl_Interp *interp, Tk_Window tkwin, char *name, char *class, Tk_ConfigSpec *specs,
                                  int objc, Tcl_Obj *const objv[], char *widgRec, int flags);
 Tk_Window Rbc_FindChild(Tk_Window parent, const char *name);
+int Rbc_InitComponentOptions(Tcl_Interp *interp, Tk_Window parent, const char *name, const char *className,
+                             char *recordPtr, Tk_OptionTable optionTable);
 
 int Rbc_MaxRequestSize(Display *display, unsigned int elemSize);
 
