@@ -241,57 +241,6 @@ Tk_CustomOption rbcBarModeOption = {StringToBarMode, BarModeToString, (ClientDat
         ckfree((char *)(v).valueArr);                                                                                  \
     }
 
-static Tk_ConfigSpec barPenConfigSpecs[] = {
-    {TK_CONFIG_BORDER, "-background", "background", "Background", DEF_PEN_ACTIVE_BACKGROUND, offsetof(BarPen, border),
-     TK_CONFIG_NULL_OK | TK_CONFIG_COLOR_ONLY | ACTIVE_PEN},
-    {TK_CONFIG_BORDER, "-background", "background", "Background", DEF_PEN_ACTIVE_BACKGROUND, offsetof(BarPen, border),
-     TK_CONFIG_NULL_OK | TK_CONFIG_MONO_ONLY | ACTIVE_PEN},
-    {TK_CONFIG_BORDER, "-background", "background", "Background", DEF_PEN_NORMAL_BACKGROUND, offsetof(BarPen, border),
-     TK_CONFIG_NULL_OK | TK_CONFIG_COLOR_ONLY | NORMAL_PEN},
-    {TK_CONFIG_BORDER, "-background", "background", "Background", DEF_PEN_NORMAL_BACKGROUND, offsetof(BarPen, border),
-     TK_CONFIG_NULL_OK | TK_CONFIG_MONO_ONLY | NORMAL_PEN},
-    {TK_CONFIG_SYNONYM, "-bd", "borderWidth", (char *)NULL, (char *)NULL, 0, ALL_PENS},
-    {TK_CONFIG_SYNONYM, "-bg", "background", (char *)NULL, (char *)NULL, 0, ALL_PENS},
-    {TK_CONFIG_CUSTOM, "-borderwidth", "borderWidth", "BorderWidth", DEF_PEN_BORDERWIDTH, offsetof(BarPen, borderWidth),
-     ALL_PENS, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-errorbarcolor", "errorBarColor", "ErrorBarColor", DEF_BAR_ERRORBAR_COLOR,
-     offsetof(BarPen, errorBarColor), ALL_PENS, &rbcColorOption},
-    {TK_CONFIG_CUSTOM, "-errorbarwidth", "errorBarWidth", "ErrorBarWidth", DEF_BAR_ERRORBAR_LINE_WIDTH,
-     offsetof(BarPen, errorBarLineWidth), ALL_PENS | TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-errorbarcap", "errorBarCap", "ErrorBarCap", DEF_BAR_ERRORBAR_CAP_WIDTH,
-     offsetof(BarPen, errorBarCapWidth), ALL_PENS | TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_SYNONYM, "-fg", "foreground", (char *)NULL, (char *)NULL, 0, ALL_PENS},
-    {TK_CONFIG_COLOR, "-foreground", "foreground", "Foreground", DEF_PEN_ACTIVE_FOREGROUND, offsetof(BarPen, fgColor),
-     ACTIVE_PEN | TK_CONFIG_NULL_OK | TK_CONFIG_COLOR_ONLY},
-    {TK_CONFIG_COLOR, "-foreground", "foreground", "Foreground", DEF_PEN_ACTIVE_FOREGROUND, offsetof(BarPen, fgColor),
-     ACTIVE_PEN | TK_CONFIG_NULL_OK | TK_CONFIG_MONO_ONLY},
-    {TK_CONFIG_COLOR, "-foreground", "foreground", "Foreground", DEF_PEN_NORMAL_FOREGROUND, offsetof(BarPen, fgColor),
-     NORMAL_PEN | TK_CONFIG_NULL_OK | TK_CONFIG_COLOR_ONLY},
-    {TK_CONFIG_COLOR, "-foreground", "foreground", "Foreground", DEF_PEN_NORMAL_FOREGROUND, offsetof(BarPen, fgColor),
-     NORMAL_PEN | TK_CONFIG_NULL_OK | TK_CONFIG_MONO_ONLY},
-    {TK_CONFIG_RELIEF, "-relief", "relief", "Relief", DEF_PEN_RELIEF, offsetof(BarPen, relief), ALL_PENS},
-    {TK_CONFIG_CUSTOM, "-showerrorbars", "showErrorBars", "ShowErrorBars", DEF_BAR_SHOW_ERRORBARS,
-     offsetof(BarPen, errorBarShow), TK_CONFIG_DONT_SET_DEFAULT, &rbcFillOption},
-    {TK_CONFIG_CUSTOM, "-showvalues", "showValues", "ShowValues", DEF_PEN_SHOW_VALUES, offsetof(BarPen, valueShow),
-     ALL_PENS | TK_CONFIG_DONT_SET_DEFAULT, &rbcFillOption},
-    {TK_CONFIG_BITMAP, "-stipple", "stipple", "Stipple", DEF_PEN_STIPPLE, offsetof(BarPen, stipple),
-     ALL_PENS | TK_CONFIG_NULL_OK},
-    {TK_CONFIG_STRING, "-type", (char *)NULL, (char *)NULL, DEF_PEN_TYPE, BAR_PEN_CORE_OFFSET(typeId),
-     ALL_PENS | TK_CONFIG_NULL_OK},
-    {TK_CONFIG_ANCHOR, "-valueanchor", "valueAnchor", "ValueAnchor", DEF_PEN_VALUE_ANCHOR,
-     offsetof(BarPen, valueStyle.anchor), ALL_PENS},
-    {TK_CONFIG_COLOR, "-valuecolor", "valueColor", "ValueColor", DEF_PEN_VALUE_COLOR,
-     offsetof(BarPen, valueStyle.color), ALL_PENS},
-    {TK_CONFIG_FONT, "-valuefont", "valueFont", "ValueFont", DEF_PEN_VALUE_FONT, offsetof(BarPen, valueStyle.font),
-     ALL_PENS},
-    {TK_CONFIG_STRING, "-valueformat", "valueFormat", "ValueFormat", DEF_PEN_VALUE_FORMAT,
-     offsetof(BarPen, valueFormat), ALL_PENS | TK_CONFIG_NULL_OK},
-    {TK_CONFIG_DOUBLE, "-valuerotate", "valueRotate", "ValueRotate", DEF_PEN_VALUE_ROTATE,
-     offsetof(BarPen, valueStyle.theta), ALL_PENS},
-    {TK_CONFIG_CUSTOM, "-valueshadow", "valueShadow", "ValueShadow", DEF_PEN_VALUE_SHADOW,
-     offsetof(BarPen, valueStyle.shadow), ALL_PENS, &rbcShadowOption},
-    {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}};
-
 static Tk_ConfigSpec barElemConfigSpecs[] = {
     {TK_CONFIG_CUSTOM, "-activepen", "activePen", "ActivePen", DEF_BAR_ACTIVE_PEN, offsetof(Bar, activePenPtr),
      TK_CONFIG_NULL_OK, &rbcBarPenOption},
@@ -1175,7 +1124,7 @@ static void InitPen(BarPen *penPtr) {
 
     Rbc_InitTextStyle(&penPtr->valueStyle);
 
-    corePtr->configSpecs = barPenConfigSpecs;
+    corePtr->configSpecs = NULL;
     corePtr->optionSpecs = NULL;
     corePtr->optionTable = NULL;
 

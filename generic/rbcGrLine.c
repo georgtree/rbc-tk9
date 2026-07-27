@@ -630,63 +630,6 @@ static Tk_ConfigSpec stripElemConfigSpecs[] = {
     {TK_CONFIG_CUSTOM, "-ylow", "yLow", "YLow", (char *)NULL, offsetof(Line, yLow), 0, &rbcDataOption},
     {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}};
 
-static Tk_ConfigSpec linePenConfigSpecs[] = {
-    {TK_CONFIG_COLOR, "-color", "color", "Color", DEF_PEN_ACTIVE_COLOR, offsetof(LinePen, traceColor),
-     TK_CONFIG_COLOR_ONLY | ACTIVE_PEN},
-    {TK_CONFIG_COLOR, "-color", "color", "Color", DEF_PEN_ACTIVE_MONO, offsetof(LinePen, traceColor),
-     TK_CONFIG_MONO_ONLY | ACTIVE_PEN},
-    {TK_CONFIG_COLOR, "-color", "color", "Color", DEF_PEN_NORMAL_COLOR, offsetof(LinePen, traceColor),
-     TK_CONFIG_COLOR_ONLY | NORMAL_PEN},
-    {TK_CONFIG_COLOR, "-color", "color", "Color", DEF_PEN_NORMAL_MONO, offsetof(LinePen, traceColor),
-     TK_CONFIG_MONO_ONLY | NORMAL_PEN},
-    {TK_CONFIG_CUSTOM, "-dashes", "dashes", "Dashes", DEF_PEN_DASHES, offsetof(LinePen, traceDashes),
-     TK_CONFIG_NULL_OK | ALL_PENS, &rbcDashesOption},
-    {TK_CONFIG_CUSTOM, "-errorbarcolor", "errorBarColor", "ErrorBarColor", DEF_LINE_ERRORBAR_COLOR,
-     offsetof(LinePen, errorBarColor), ALL_PENS, &rbcColorOption},
-    {TK_CONFIG_CUSTOM, "-errorbarwidth", "errorBarWidth", "ErrorBarWidth", DEF_LINE_ERRORBAR_LINE_WIDTH,
-     offsetof(LinePen, errorBarLineWidth), ALL_PENS | TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-errorbarcap", "errorBarCap", "ErrorBarCap", DEF_LINE_ERRORBAR_CAP_WIDTH,
-     offsetof(LinePen, errorBarCapWidth), TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-fill", "fill", "Fill", DEF_PEN_FILL_COLOR, offsetof(LinePen, symbol.fillColor),
-     TK_CONFIG_NULL_OK | TK_CONFIG_COLOR_ONLY | ALL_PENS, &rbcColorOption},
-    {TK_CONFIG_CUSTOM, "-fill", "fill", "Fill", DEF_PEN_FILL_MONO, offsetof(LinePen, symbol.fillColor),
-     TK_CONFIG_NULL_OK | TK_CONFIG_MONO_ONLY | ALL_PENS, &rbcColorOption},
-    {TK_CONFIG_CUSTOM, "-linewidth", "lineWidth", "LineWidth", (char *)NULL, offsetof(LinePen, traceWidth),
-     ALL_PENS | TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-offdash", "offDash", "OffDash", DEF_PEN_OFFDASH_COLOR, offsetof(LinePen, traceOffColor),
-     TK_CONFIG_NULL_OK | TK_CONFIG_COLOR_ONLY | ALL_PENS, &rbcColorOption},
-    {TK_CONFIG_CUSTOM, "-offdash", "offDash", "OffDash", DEF_PEN_OFFDASH_MONO, offsetof(LinePen, traceOffColor),
-     TK_CONFIG_NULL_OK | TK_CONFIG_MONO_ONLY | ALL_PENS, &rbcColorOption},
-    {TK_CONFIG_CUSTOM, "-outline", "outline", "Outline", DEF_PEN_OUTLINE_COLOR, offsetof(LinePen, symbol.outlineColor),
-     TK_CONFIG_COLOR_ONLY | ALL_PENS, &rbcColorOption},
-    {TK_CONFIG_CUSTOM, "-outline", "outline", "Outline", DEF_PEN_OUTLINE_MONO, offsetof(LinePen, symbol.outlineColor),
-     TK_CONFIG_MONO_ONLY | ALL_PENS, &rbcColorOption},
-    {TK_CONFIG_CUSTOM, "-outlinewidth", "outlineWidth", "OutlineWidth", DEF_PEN_OUTLINE_WIDTH,
-     offsetof(LinePen, symbol.outlineWidth), TK_CONFIG_DONT_SET_DEFAULT | ALL_PENS, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-pixels", "pixels", "Pixels", DEF_PEN_PIXELS, offsetof(LinePen, symbol.size), ALL_PENS,
-     &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-showerrorbars", "showErrorBars", "ShowErrorBars", DEF_LINE_SHOW_ERRORBARS,
-     offsetof(LinePen, errorBarShow), TK_CONFIG_DONT_SET_DEFAULT, &rbcFillOption},
-    {TK_CONFIG_CUSTOM, "-showvalues", "showValues", "ShowValues", DEF_PEN_SHOW_VALUES, offsetof(LinePen, valueShow),
-     ALL_PENS | TK_CONFIG_DONT_SET_DEFAULT, &rbcFillOption},
-    {TK_CONFIG_CUSTOM, "-symbol", "symbol", "Symbol", DEF_PEN_SYMBOL, offsetof(LinePen, symbol),
-     TK_CONFIG_DONT_SET_DEFAULT | ALL_PENS, &symbolOption},
-    {TK_CONFIG_STRING, "-type", (char *)NULL, (char *)NULL, DEF_PEN_TYPE, LINE_PEN_CORE_OFFSET(typeId),
-     ALL_PENS | TK_CONFIG_NULL_OK},
-    {TK_CONFIG_ANCHOR, "-valueanchor", "valueAnchor", "ValueAnchor", DEF_PEN_VALUE_ANCHOR,
-     offsetof(LinePen, valueStyle.anchor), ALL_PENS},
-    {TK_CONFIG_COLOR, "-valuecolor", "valueColor", "ValueColor", DEF_PEN_VALUE_COLOR,
-     offsetof(LinePen, valueStyle.color), ALL_PENS},
-    {TK_CONFIG_FONT, "-valuefont", "valueFont", "ValueFont", DEF_PEN_VALUE_FONT, offsetof(LinePen, valueStyle.font),
-     ALL_PENS},
-    {TK_CONFIG_STRING, "-valueformat", "valueFormat", "ValueFormat", DEF_PEN_VALUE_FORMAT,
-     offsetof(LinePen, valueFormat), ALL_PENS | TK_CONFIG_NULL_OK},
-    {TK_CONFIG_DOUBLE, "-valuerotate", "valueRotate", "ValueRotate", DEF_PEN_VALUE_ROTATE,
-     offsetof(LinePen, valueStyle.theta), ALL_PENS},
-    {TK_CONFIG_CUSTOM, "-valueshadow", "valueShadow", "ValueShadow", DEF_PEN_VALUE_SHADOW,
-     offsetof(LinePen, valueStyle.shadow), ALL_PENS, &rbcShadowOption},
-    {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}};
-
 #define LINE_PEN_OPTION_ENTRIES(DEFAULT_COLOR)                         \
     {                                                                 \
         TK_OPTION_COLOR,                                              \
@@ -2355,7 +2298,7 @@ static void InitPen(LinePen *penPtr) {
 
     Rbc_InitTextStyle(&penPtr->valueStyle);
 
-    corePtr->configSpecs = linePenConfigSpecs;
+    corePtr->configSpecs = NULL;
     corePtr->optionSpecs = NULL;
     corePtr->optionTable = NULL;
 
