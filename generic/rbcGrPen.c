@@ -42,11 +42,8 @@ static int InitModernPenOptions(Graph *graphPtr, Pen *penPtr) {
     if (penPtr->optionsInitialized) {
         return TCL_OK;
     }
-
     assert(penPtr->optionSpecs != NULL);
-
     penPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, penPtr->optionSpecs);
-
     /*
      * Rbc_ConfigureWidgetComponent() lowercases the first character
      * of the temporary component-window name. Preserve that behaviour
@@ -54,21 +51,16 @@ static int InitModernPenOptions(Graph *graphPtr, Pen *penPtr) {
      * letter.
      */
     componentName = RbcStrdup(penPtr->name);
-
     if (componentName[0] != '\0') {
         componentName[0] = (char)tolower((unsigned char)componentName[0]);
     }
-
     result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, componentName, "Pen", (char *)penPtr,
                                       penPtr->optionTable);
-
     ckfree(componentName);
-
     if (result != TCL_OK) {
         penPtr->optionTable = NULL;
         return TCL_ERROR;
     }
-
     penPtr->optionsInitialized = TRUE;
     return TCL_OK;
 }
@@ -80,12 +72,10 @@ static int ConfigureModernPen(Graph *graphPtr, Pen *penPtr, int objc, Tcl_Obj *c
 
     assert(PenUsesModernOptions(penPtr));
     assert(penPtr->optionsInitialized);
-
     if (Tk_SetOptions(graphPtr->interp, (char *)penPtr, penPtr->optionTable, objc, objv, graphPtr->tkwin, &savedOptions,
                       &mask) != TCL_OK) {
         return TCL_ERROR;
     }
-
     /*
      * Concrete modern configuration functions must parse additional
      * object-backed fields transactionally: they must not modify the
@@ -93,20 +83,13 @@ static int ConfigureModernPen(Graph *graphPtr, Pen *penPtr, int objc, Tcl_Obj *c
      */
     if ((*penPtr->configProc)(graphPtr, penPtr) != TCL_OK) {
         errorObjPtr = Tcl_GetObjResult(graphPtr->interp);
-
         Tcl_IncrRefCount(errorObjPtr);
-
         Tk_RestoreSavedOptions(&savedOptions);
-
         Tcl_SetObjResult(graphPtr->interp, errorObjPtr);
-
         Tcl_DecrRefCount(errorObjPtr);
-
         return TCL_ERROR;
     }
-
     Tk_FreeSavedOptions(&savedOptions);
-
     return TCL_OK;
 }
 
@@ -114,16 +97,13 @@ static void ReleaseModernPenResources(Graph *graphPtr, Pen *penPtr) {
     if ((!PenUsesModernOptions(penPtr)) || (!penPtr->optionsInitialized) || (penPtr->tkResourcesReleased)) {
         return;
     }
-
     /*
      * Release concrete GCs and manually owned resources before
      * Tk_FreeConfigOptions() releases fonts, colours, borders, and
      * other option-table resources they may refer to.
      */
     (*penPtr->destroyProc)(graphPtr, penPtr);
-
     Tk_FreeConfigOptions((char *)penPtr, penPtr->optionTable, graphPtr->tkwin);
-
     penPtr->tkResourcesReleased = TRUE;
 }
 
@@ -133,9 +113,7 @@ void Rbc_ReleasePenTkResources(Graph *graphPtr) {
 
     for (hPtr = Tcl_FirstHashEntry(&graphPtr->penTable, &cursor); hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
         Pen *penPtr;
-
         penPtr = Tcl_GetHashValue(hPtr);
-
         ReleaseModernPenResources(graphPtr, penPtr);
     }
 }
@@ -744,55 +722,41 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *c
     redraw = 0;
     for (i = 0; i < nNames; i++) {
         penPtr = NameToPen(graphPtr, objv[i]);
-
         if (PenUsesModernOptions(penPtr)) {
             Tcl_Obj *resultObjPtr;
-
             if (nOpts == 0) {
                 resultObjPtr = Tk_GetOptionInfo(interp, (char *)penPtr, penPtr->optionTable, NULL, graphPtr->tkwin);
-
                 if (resultObjPtr == NULL) {
                     return TCL_ERROR;
                 }
-
                 Tcl_SetObjResult(interp, resultObjPtr);
-
                 return TCL_OK;
             }
-
             if (nOpts == 1) {
                 resultObjPtr =
                     Tk_GetOptionInfo(interp, (char *)penPtr, penPtr->optionTable, options[0], graphPtr->tkwin);
-
                 if (resultObjPtr == NULL) {
                     return TCL_ERROR;
                 }
-
                 Tcl_SetObjResult(interp, resultObjPtr);
-
                 return TCL_OK;
             }
-
             if (ConfigureModernPen(graphPtr, penPtr, nOpts, options) != TCL_OK) {
                 break;
             }
         } else {
             flags = TK_CONFIG_ARGV_ONLY | (penPtr->flags & (ACTIVE_PEN | NORMAL_PEN));
-
             if (nOpts == 0) {
                 return Tk_ConfigureInfo(interp, graphPtr->tkwin, penPtr->configSpecs, (char *)penPtr, NULL, flags);
             }
-
             if (nOpts == 1) {
                 return Tk_ConfigureInfo(interp, graphPtr->tkwin, penPtr->configSpecs, (char *)penPtr,
                                         Tcl_GetString(options[0]), flags);
             }
-
             if (Tk_ConfigureWidget(interp, graphPtr->tkwin, penPtr->configSpecs, nOpts, options, (char *)penPtr,
                                    flags) != TCL_OK) {
                 break;
             }
-
             /*
              * Preserve existing legacy behaviour.
              */

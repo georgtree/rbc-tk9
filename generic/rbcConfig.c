@@ -180,6 +180,40 @@ static const char *FillToString(void *clientData, Tk_Window tkwin, char *widgRec
     return Rbc_NameOfFill(fill);
 }
 
+static int IsFillPrefix(const char *string, Tcl_Size length, const char *fullName) {
+    Tcl_Size fullLength;
+
+    fullLength = (Tcl_Size)strlen(fullName);
+    return ((length > 0) && (length <= fullLength) && (strncmp(string, fullName, (size_t)length) == 0));
+}
+
+int Rbc_GetFillFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *fillPtr) {
+    const char *string;
+    Tcl_Size length;
+    int fill;
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+    /*
+     * "no" is retained as a compatibility alias for "none".
+     */
+    if (IsFillPrefix(string, length, "none") || IsFillPrefix(string, length, "no")) {
+        fill = FILL_NONE;
+    } else if (IsFillPrefix(string, length, "x")) {
+        fill = FILL_X;
+    } else if (IsFillPrefix(string, length, "y")) {
+        fill = FILL_Y;
+    } else if (IsFillPrefix(string, length, "both")) {
+        fill = FILL_BOTH;
+    } else {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad argument \"%s\": should be "
+                                               "\"none\", \"x\", \"y\", or \"both\"",
+                                               string));
+        return TCL_ERROR;
+    }
+    *fillPtr = fill;
+    return TCL_OK;
+}
+
 /*
  *----------------------------------------------------------------------
  *

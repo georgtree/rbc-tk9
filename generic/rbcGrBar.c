@@ -20,6 +20,19 @@ typedef struct {
      */
     Pen core;
 
+    /*
+     * Original Tcl representations for values requiring additional
+     * validation or conversion.
+     */
+    Tcl_Obj *borderWidthObjPtr;
+    Tcl_Obj *errorBarCapObjPtr;
+    Tcl_Obj *errorBarColorObjPtr;
+    Tcl_Obj *errorBarWidthObjPtr;
+    Tcl_Obj *showErrorBarsObjPtr;
+    Tcl_Obj *showValuesObjPtr;
+    Tcl_Obj *valueRotateObjPtr;
+    Tcl_Obj *valueShadowObjPtr;
+
     XColor *fgColor;
     Tk_3DBorder border;
     int borderWidth;
@@ -350,6 +363,210 @@ static Tk_ConfigSpec barElemConfigSpecs[] = {
     {TK_CONFIG_CUSTOM, "-ylow", "yLow", "YLow", DEF_BAR_DATA, offsetof(Bar, yLow), 0, &rbcDataOption},
     {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}};
 
+#define BAR_PEN_OPTION_ENTRIES(DEFAULT_BG, DEFAULT_FG)                  \
+    {                                                                  \
+        TK_OPTION_BORDER,                                              \
+        "-background", "background", "Background",                     \
+        DEFAULT_BG,                                                    \
+        -1,                                                            \
+        offsetof(BarPen, border),                                      \
+        TK_OPTION_NULL_OK,                                             \
+        NULL,                                                          \
+        0                                                              \
+    },                                                                 \
+    {                                                                  \
+        TK_OPTION_SYNONYM,                                             \
+        "-bg", NULL, NULL, NULL,                                       \
+        -1, -1, 0,                                                     \
+        "-background",                                                 \
+        0                                                              \
+    },                                                                 \
+    {                                                                  \
+        TK_OPTION_PIXELS,                                              \
+        "-borderwidth", "borderWidth", "BorderWidth",                  \
+        DEF_PEN_BORDERWIDTH,                                           \
+        offsetof(BarPen, borderWidthObjPtr),                           \
+        -1,                                                            \
+        0,                                                             \
+        NULL,                                                          \
+        0                                                              \
+    },                                                                 \
+    {                                                                  \
+        TK_OPTION_SYNONYM,                                             \
+        "-bd", NULL, NULL, NULL,                                       \
+        -1, -1, 0,                                                     \
+        "-borderwidth",                                                \
+        0                                                              \
+    },                                                                 \
+    {                                                                  \
+        TK_OPTION_STRING,                                              \
+        "-errorbarcolor", "errorBarColor", "ErrorBarColor",            \
+        DEF_BAR_ERRORBAR_COLOR,                                        \
+        offsetof(BarPen, errorBarColorObjPtr),                         \
+        -1,                                                            \
+        0,                                                             \
+        NULL,                                                          \
+        0                                                              \
+    },                                                                 \
+    {                                                                  \
+        TK_OPTION_PIXELS,                                              \
+        "-errorbarwidth", "errorBarWidth", "ErrorBarWidth",            \
+        DEF_BAR_ERRORBAR_LINE_WIDTH,                                   \
+        offsetof(BarPen, errorBarWidthObjPtr),                         \
+        -1,                                                            \
+        0,                                                             \
+        NULL,                                                          \
+        0                                                              \
+    },                                                                 \
+    {                                                                  \
+        TK_OPTION_PIXELS,                                              \
+        "-errorbarcap", "errorBarCap", "ErrorBarCap",                  \
+        DEF_BAR_ERRORBAR_CAP_WIDTH,                                    \
+        offsetof(BarPen, errorBarCapObjPtr),                           \
+        -1,                                                            \
+        0,                                                             \
+        NULL,                                                          \
+        0                                                              \
+    },                                                                 \
+    {                                                                  \
+        TK_OPTION_COLOR,                                               \
+        "-foreground", "foreground", "Foreground",                     \
+        DEFAULT_FG,                                                    \
+        -1,                                                            \
+        offsetof(BarPen, fgColor),                                     \
+        TK_OPTION_NULL_OK,                                             \
+        NULL,                                                          \
+        0                                                              \
+    },                                                                 \
+    {                                                                  \
+        TK_OPTION_SYNONYM,                                             \
+        "-fg", NULL, NULL, NULL,                                       \
+        -1, -1, 0,                                                     \
+        "-foreground",                                                 \
+        0                                                              \
+    },                                                                 \
+    {                                                                  \
+        TK_OPTION_RELIEF,                                              \
+        "-relief", "relief", "Relief",                                 \
+        DEF_PEN_RELIEF,                                                \
+        -1,                                                            \
+        offsetof(BarPen, relief),                                      \
+        0,                                                             \
+        NULL,                                                          \
+        0                                                              \
+    },                                                                 \
+    {                                                                  \
+        TK_OPTION_STRING,                                              \
+        "-showerrorbars", "showErrorBars", "ShowErrorBars",            \
+        DEF_BAR_SHOW_ERRORBARS,                                        \
+        offsetof(BarPen, showErrorBarsObjPtr),                         \
+        -1,                                                            \
+        0,                                                             \
+        NULL,                                                          \
+        0                                                              \
+    },                                                                 \
+    {                                                                  \
+        TK_OPTION_STRING,                                              \
+        "-showvalues", "showValues", "ShowValues",                     \
+        DEF_PEN_SHOW_VALUES,                                           \
+        offsetof(BarPen, showValuesObjPtr),                            \
+        -1,                                                            \
+        0,                                                             \
+        NULL,                                                          \
+        0                                                              \
+    },                                                                 \
+    {                                                                  \
+        TK_OPTION_BITMAP,                                              \
+        "-stipple", "stipple", "Stipple",                              \
+        DEF_PEN_STIPPLE,                                               \
+        -1,                                                            \
+        offsetof(BarPen, stipple),                                     \
+        TK_OPTION_NULL_OK,                                             \
+        NULL,                                                          \
+        0                                                              \
+    },                                                                 \
+    {                                                                  \
+        TK_OPTION_STRING,                                              \
+        "-type", NULL, NULL,                                           \
+        DEF_PEN_TYPE,                                                  \
+        -1,                                                            \
+        BAR_PEN_CORE_OFFSET(typeId),                                   \
+        TK_OPTION_NULL_OK,                                             \
+        NULL,                                                          \
+        0                                                              \
+    },                                                                 \
+    {                                                                  \
+        TK_OPTION_ANCHOR,                                              \
+        "-valueanchor", "valueAnchor", "ValueAnchor",                  \
+        DEF_PEN_VALUE_ANCHOR,                                          \
+        -1,                                                            \
+        offsetof(BarPen, valueStyle.anchor),                           \
+        0,                                                             \
+        NULL,                                                          \
+        0                                                              \
+    },                                                                 \
+    {                                                                  \
+        TK_OPTION_COLOR,                                               \
+        "-valuecolor", "valueColor", "ValueColor",                     \
+        DEF_PEN_VALUE_COLOR,                                           \
+        -1,                                                            \
+        offsetof(BarPen, valueStyle.color),                            \
+        0,                                                             \
+        NULL,                                                          \
+        0                                                              \
+    },                                                                 \
+    {                                                                  \
+        TK_OPTION_FONT,                                                \
+        "-valuefont", "valueFont", "ValueFont",                        \
+        DEF_PEN_VALUE_FONT,                                            \
+        -1,                                                            \
+        offsetof(BarPen, valueStyle.font),                             \
+        0,                                                             \
+        NULL,                                                          \
+        0                                                              \
+    },                                                                 \
+    {                                                                  \
+        TK_OPTION_STRING,                                              \
+        "-valueformat", "valueFormat", "ValueFormat",                  \
+        DEF_PEN_VALUE_FORMAT,                                          \
+        -1,                                                            \
+        offsetof(BarPen, valueFormat),                                 \
+        TK_OPTION_NULL_OK,                                             \
+        NULL,                                                          \
+        0                                                              \
+    },                                                                 \
+    {                                                                  \
+        TK_OPTION_DOUBLE,                                              \
+        "-valuerotate", "valueRotate", "ValueRotate",                  \
+        "0.0",                                                         \
+        offsetof(BarPen, valueRotateObjPtr),                           \
+        offsetof(BarPen, valueStyle.theta),                            \
+        0,                                                             \
+        NULL,                                                          \
+        0                                                              \
+    },                                                                 \
+    {                                                                  \
+        TK_OPTION_STRING,                                              \
+        "-valueshadow", "valueShadow", "ValueShadow",                  \
+        DEF_PEN_VALUE_SHADOW,                                          \
+        offsetof(BarPen, valueShadowObjPtr),                           \
+        -1,                                                            \
+        TK_OPTION_NULL_OK,                                             \
+        NULL,                                                          \
+        0                                                              \
+    },                                                                 \
+    {                                                                  \
+        TK_OPTION_END,                                                 \
+        NULL, NULL, NULL, NULL,                                        \
+        0, 0, 0, NULL, 0                                              \
+    }
+
+static const Tk_OptionSpec normalBarPenOptionSpecs[] = {
+    BAR_PEN_OPTION_ENTRIES(DEF_PEN_NORMAL_BACKGROUND, DEF_PEN_NORMAL_FOREGROUND)};
+
+static const Tk_OptionSpec activeBarPenOptionSpecs[] = {
+    BAR_PEN_OPTION_ENTRIES(DEF_PEN_ACTIVE_BACKGROUND, DEF_PEN_ACTIVE_FOREGROUND)};
+
 /* Forward declarations */
 static PenConfigureProc ConfigurePen;
 static PenDestroyProc DestroyPen;
@@ -380,6 +597,47 @@ static void SegmentsToPostScript(Graph *graphPtr, PsToken psToken, BarPen *penPt
                                  int nRects);
 static void BarValuesToPostScript(Graph *graphPtr, PsToken psToken, Bar *barPtr, BarPen *penPtr, XRectangle *rectangles,
                                   int nRects, int *rectToData);
+
+static int IsBarPenPrefix(const char *string, Tcl_Size length, const char *fullName) {
+    Tcl_Size fullLength;
+
+    fullLength = (Tcl_Size)strlen(fullName);
+
+    return ((length > 0) && (length <= fullLength) && (strncmp(string, fullName, (size_t)length) == 0));
+}
+
+static int GetBarPenColorFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, XColor **colorPtrPtr) {
+    const char *string;
+    Tcl_Size length;
+    XColor *colorPtr;
+
+    if ((objPtr == NULL) || (Tcl_GetCharLength(objPtr) == 0)) {
+        *colorPtrPtr = NULL;
+        return TCL_OK;
+    }
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+
+    if (IsBarPenPrefix(string, length, "defcolor")) {
+        *colorPtrPtr = COLOR_DEFAULT;
+        return TCL_OK;
+    }
+
+    colorPtr = Tk_GetColor(interp, tkwin, Tk_GetUid(string));
+
+    if (colorPtr == NULL) {
+        return TCL_ERROR;
+    }
+
+    *colorPtrPtr = colorPtr;
+    return TCL_OK;
+}
+
+static void FreeBarPenColor(XColor *colorPtr) {
+    if ((colorPtr != NULL) && (colorPtr != COLOR_DEFAULT)) {
+        Tk_FreeColor(colorPtr);
+    }
+}
 
 /*
  *----------------------------------------------------------------------
@@ -596,15 +854,13 @@ static void ClearPalette(Rbc_Chain *palette) {
  *
  *----------------------------------------------------------------------
  */
-static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
-    BarPen *bpPtr;
-
-    bpPtr = BAR_PEN_FROM_CORE(penPtr);
+static int ConfigureLegacyPen(Graph *graphPtr, BarPen *bpPtr) {
     XGCValues gcValues;
     unsigned long gcMask;
     int fillStyle;
     GC newGC;
     long defColor;
+
 
     Rbc_ResetTextStyle(graphPtr->tkwin, &(bpPtr->valueStyle));
     gcMask = GCForeground;
@@ -651,6 +907,191 @@ static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     return TCL_OK;
 }
 
+static int ConfigureModernPen(Graph *graphPtr, BarPen *bpPtr) {
+    XColor *newErrorBarColor;
+    Shadow newShadow;
+
+    int newBorderWidth;
+    int newErrorBarCapWidth;
+    int newErrorBarLineWidth;
+    int newErrorBarShow;
+    int newValueShow;
+
+    XGCValues gcValues;
+    unsigned long gcMask;
+    int fillStyle;
+    long defColor;
+
+    GC newGC;
+    GC newErrorBarGC;
+    GC newValueGC;
+
+    newErrorBarColor = NULL;
+
+    newShadow.color = NULL;
+    newShadow.offset = 0;
+
+    /*
+     * Parse and validate every fallible derived value first.
+     */
+    if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, bpPtr->borderWidthObjPtr, PIXELS_NONNEGATIVE,
+                             &newBorderWidth) != TCL_OK) {
+        goto error;
+    }
+
+    if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, bpPtr->errorBarWidthObjPtr, PIXELS_NONNEGATIVE,
+                             &newErrorBarLineWidth) != TCL_OK) {
+        goto error;
+    }
+
+    if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, bpPtr->errorBarCapObjPtr, PIXELS_NONNEGATIVE,
+                             &newErrorBarCapWidth) != TCL_OK) {
+        goto error;
+    }
+
+    if (GetBarPenColorFromObj(graphPtr->interp, graphPtr->tkwin, bpPtr->errorBarColorObjPtr, &newErrorBarColor) !=
+        TCL_OK) {
+        goto error;
+    }
+
+    if (Rbc_GetFillFromObj(graphPtr->interp, bpPtr->showErrorBarsObjPtr, &newErrorBarShow) != TCL_OK) {
+        goto error;
+    }
+
+    if (Rbc_GetFillFromObj(graphPtr->interp, bpPtr->showValuesObjPtr, &newValueShow) != TCL_OK) {
+        goto error;
+    }
+
+    if (Rbc_GetShadowFromObj(graphPtr->interp, graphPtr->tkwin, bpPtr->valueShadowObjPtr, &newShadow) != TCL_OK) {
+        goto error;
+    }
+
+    /*
+     * No fallible operation remains. Build all replacement GCs before
+     * freeing anything currently in use.
+     */
+    gcMask = GCFont;
+    gcValues.font = Tk_FontId(bpPtr->valueStyle.font);
+
+    if (bpPtr->valueStyle.color != NULL) {
+        gcMask |= GCForeground;
+        gcValues.foreground = bpPtr->valueStyle.color->pixel;
+    }
+
+    newValueGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
+
+    gcMask = GCForeground;
+
+    if (bpPtr->fgColor != NULL) {
+        defColor = bpPtr->fgColor->pixel;
+    } else if (bpPtr->border != NULL) {
+        defColor = Tk_3DBorderColor(bpPtr->border)->pixel;
+    } else {
+        defColor = BlackPixel(graphPtr->display, Tk_ScreenNumber(graphPtr->tkwin));
+    }
+
+    gcValues.foreground = defColor;
+
+    if ((bpPtr->fgColor != NULL) && (bpPtr->border != NULL)) {
+        gcMask |= GCBackground;
+        gcValues.background = Tk_3DBorderColor(bpPtr->border)->pixel;
+
+        fillStyle = FillOpaqueStippled;
+    } else {
+        fillStyle = FillStippled;
+    }
+
+    if (bpPtr->stipple != None) {
+        gcValues.stipple = bpPtr->stipple;
+        gcValues.fill_style = fillStyle;
+        gcMask |= GCStipple | GCFillStyle;
+    }
+
+    newGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
+
+    gcMask = GCForeground | GCLineWidth;
+
+    if ((newErrorBarColor == NULL) || (newErrorBarColor == COLOR_DEFAULT)) {
+        gcValues.foreground = defColor;
+    } else {
+        gcValues.foreground = newErrorBarColor->pixel;
+    }
+
+    gcValues.line_width = LineWidth(newErrorBarLineWidth);
+
+    newErrorBarGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
+
+    /*
+     * Commit derived values.
+     */
+    FreeBarPenColor(bpPtr->errorBarColor);
+
+    if (bpPtr->valueStyle.shadow.color != NULL) {
+        Tk_FreeColor(bpPtr->valueStyle.shadow.color);
+    }
+
+    bpPtr->borderWidth = newBorderWidth;
+
+    bpPtr->errorBarCapWidth = newErrorBarCapWidth;
+
+    bpPtr->errorBarLineWidth = newErrorBarLineWidth;
+
+    bpPtr->errorBarShow = newErrorBarShow;
+
+    bpPtr->valueShow = newValueShow;
+
+    bpPtr->errorBarColor = newErrorBarColor;
+
+    bpPtr->valueStyle.shadow = newShadow;
+
+    newErrorBarColor = NULL;
+    newShadow.color = NULL;
+
+    /*
+     * Commit replacement GCs.
+     */
+    if (bpPtr->valueStyle.gc != NULL) {
+        Tk_FreeGC(graphPtr->display, bpPtr->valueStyle.gc);
+    }
+
+    if (bpPtr->gc != NULL) {
+        Tk_FreeGC(graphPtr->display, bpPtr->gc);
+    }
+
+    if (bpPtr->errorBarGC != NULL) {
+        Tk_FreeGC(graphPtr->display, bpPtr->errorBarGC);
+    }
+
+    bpPtr->valueStyle.gc = newValueGC;
+
+    bpPtr->gc = newGC;
+
+    bpPtr->errorBarGC = newErrorBarGC;
+
+    return TCL_OK;
+
+error:
+    FreeBarPenColor(newErrorBarColor);
+
+    if (newShadow.color != NULL) {
+        Tk_FreeColor(newShadow.color);
+    }
+
+    return TCL_ERROR;
+}
+
+static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
+    BarPen *bpPtr;
+
+    bpPtr = BAR_PEN_FROM_CORE(penPtr);
+
+    if (bpPtr->core.optionSpecs != NULL) {
+        return ConfigureModernPen(graphPtr, bpPtr);
+    }
+
+    return ConfigureLegacyPen(graphPtr, bpPtr);
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -674,12 +1115,38 @@ static void DestroyPen(Graph *graphPtr, Pen *penPtr) {
     BarPen *bpPtr;
 
     bpPtr = BAR_PEN_FROM_CORE(penPtr);
+
     Rbc_FreeTextStyle(graphPtr->display, &bpPtr->valueStyle);
+
+    bpPtr->valueStyle.gc = NULL;
+
     if (bpPtr->gc != NULL) {
         Tk_FreeGC(graphPtr->display, bpPtr->gc);
+
+        bpPtr->gc = NULL;
     }
+
     if (bpPtr->errorBarGC != NULL) {
         Tk_FreeGC(graphPtr->display, bpPtr->errorBarGC);
+
+        bpPtr->errorBarGC = NULL;
+    }
+
+    /*
+     * These two colours are manually derived only for modern named
+     * bar pens. The legacy custom-option path retains its existing
+     * ownership behaviour.
+     */
+    if (bpPtr->core.optionSpecs != NULL) {
+        FreeBarPenColor(bpPtr->errorBarColor);
+
+        bpPtr->errorBarColor = NULL;
+
+        if (bpPtr->valueStyle.shadow.color != NULL) {
+            Tk_FreeColor(bpPtr->valueStyle.shadow.color);
+
+            bpPtr->valueStyle.shadow.color = NULL;
+        }
     }
 }
 
@@ -745,15 +1212,35 @@ static void InitPen(BarPen *penPtr) {
  */
 Pen *Rbc_BarPen(char *penName) {
     BarPen *penPtr;
+    Pen *corePtr;
 
     penPtr = RbcCalloc(1, sizeof(BarPen));
+
     assert(penPtr != NULL);
+
     InitPen(penPtr);
-    penPtr->core.name = RbcStrdup(penName);
+
+    corePtr = &penPtr->core;
+
+    corePtr->name = RbcStrdup(penName);
+
+    /*
+     * Named bar pens use the modern API. Embedded element pens never
+     * pass through this constructor and remain legacy.
+     */
+    corePtr->configSpecs = NULL;
+
     if (strcmp(penName, "activeBar") == 0) {
-        penPtr->core.flags = ACTIVE_PEN;
+        corePtr->flags = ACTIVE_PEN;
+
+        corePtr->optionSpecs = activeBarPenOptionSpecs;
+    } else {
+        corePtr->flags = NORMAL_PEN;
+
+        corePtr->optionSpecs = normalBarPenOptionSpecs;
     }
-    return &penPtr->core;
+
+    return corePtr;
 }
 
 /*

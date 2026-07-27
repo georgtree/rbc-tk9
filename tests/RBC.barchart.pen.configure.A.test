@@ -132,7 +132,7 @@ namespace eval barchart.pen {
 	} -cleanup {
 		.barchart1 pen delete Pen1
 		destroy .barchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the pen configure -borderwidth command works correctly when given an
@@ -492,7 +492,7 @@ namespace eval barchart.pen {
 	} -cleanup {
 		.barchart1 pen delete Pen1
 		destroy .barchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the pen configure -errorbarcap command works correctly when given
@@ -641,7 +641,7 @@ namespace eval barchart.pen {
 	} -cleanup {
 		.barchart1 pen delete Pen1
 		destroy .barchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the pen configure -errorbarwidth command works correctly when given
@@ -784,7 +784,7 @@ namespace eval barchart.pen {
 	} -cleanup {
 		.barchart1 pen delete Pen1
 		destroy .barchart1
-	} -result {none}
+	} -result {no}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the pen configure -valueanchor command works correctly when 
@@ -1032,7 +1032,7 @@ namespace eval barchart.pen {
 	} -cleanup {
 		.barchart1 pen delete pen1
 		destroy .barchart1
-	} -result {90.0}
+	} -result {90}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the pen configure -valuerotate command works correctly when 
@@ -1066,7 +1066,7 @@ namespace eval barchart.pen {
 	} -cleanup {
 		.barchart1 pen delete pen1
 		destroy .barchart1
-	} -result {-90.0}
+	} -result {-90}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the pen configure -valuerotate command works correctly when
@@ -1120,7 +1120,7 @@ namespace eval barchart.pen {
 	} -cleanup {
 		.barchart1 pen delete pen1
 		destroy .barchart1
-	} -result {black 1}
+	} -result {black}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the pen configure -valueshadow command works correctly when 
@@ -1323,6 +1323,58 @@ namespace eval barchart.pen {
 		.barchart1 pen delete pen1
 		destroy .barchart1
 	} -result {0}
+
+    test RBC.barchart.pen.configure.A.rollback.1 {
+        barchart named bar pen: atomic rollback
+    } -setup {
+        barchart .barchart1
+        pack .barchart1
+        .barchart1 pen create Pen1 -background blue -borderwidth 2 -valueshadow {gray 2}
+        set oldBackground [.barchart1 pen cget Pen1 -background]
+        set oldBorderWidth [.barchart1 pen cget Pen1 -borderwidth]
+        set oldShadow [.barchart1 pen cget Pen1 -valueshadow]
+    } -body {
+        set code [catch {.barchart1 pen configure Pen1 -background red -borderwidth 3.5 -valueshadow {black -1}}\
+                          message]
+        list $code [expr {[.barchart1 pen cget Pen1 -background] eq $oldBackground}]\
+                [expr {[.barchart1 pen cget Pen1 -borderwidth] eq $oldBorderWidth}]\
+                [expr {[.barchart1 pen cget Pen1 -valueshadow] eq $oldShadow}]
+    } -cleanup {
+        destroy .barchart1
+        unset -nocomplain oldBackground oldBorderWidth oldShadow code message
+    } -result {1 1 1 1}
+
+    test RBC.barchart.pen.configure.A.builtin.1 {
+        embedded bar pen remains on legacy configuration
+    } -setup {
+        barchart .barchart1
+        .barchart1 bar create bar1
+    } -body {
+        .barchart1 bar configure bar1 -borderwidth 3.5
+        .barchart1 bar cget bar1 -borderwidth
+    } -cleanup {
+        destroy .barchart1
+    } -result 4
+
+    test RBC.barchart.pen.configure.A.lifetime.1 {
+        modern named bar pen resource lifetime
+    } -body {
+        for {set i 0} {$i < 200} {incr i} {
+            barchart .barchart1
+            .barchart1 pen create Pen1 -type bar -background blue -foreground white -borderwidth 3.5 -errorbarcolor\
+            defcolor -errorbarwidth 2.5 -errorbarcap 4.5 -showerrorbars both -showvalues no -valuecolor black\
+                    -valuefont TkDefaultFont -valuerotate 45 -valueshadow {gray 2}
+            .barchart1 bar create bar1 -xdata {1 2 3} -ydata {3 2 1} -pen Pen1
+            .barchart1 pen configure Pen1 -background red -errorbarcolor black -showvalues y -valueshadow {blue 3}
+            .barchart1 pen delete Pen1
+            .barchart1 bar delete bar1
+            destroy .barchart1
+        }
+        update
+        return ok
+    } -cleanup {
+        catch {destroy .barchart1}
+    } -result ok
 	
 	cleanupTests
 }
