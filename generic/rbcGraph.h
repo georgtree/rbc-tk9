@@ -587,6 +587,7 @@ Point2D Rbc_Map2D(Graph *graphPtr, double x, double y, Axis2D *pairPtr);
 Graph *Rbc_GetGraphFromWindowData(Tk_Window tkwin);
 int Rbc_LineRectClip(Extents2D *extsPtr, Point2D *p, Point2D *q);
 int Rbc_PolyRectClip(Extents2D *extsPtr, Point2D *inputPts, int nInputPts, Point2D *outputPts);
+void Rbc_ReleaseLegendTkResources(Graph *graphPtr);
 
 void Rbc_ComputeStacks(Graph *graphPtr);
 void Rbc_ConfigureCrosshairs(Graph *graphPtr);

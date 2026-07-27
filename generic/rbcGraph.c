@@ -256,6 +256,7 @@ void Rbc_EventuallyRedrawGraph(Graph *graphPtr) {
     }
 }
 
+
 /*
  *--------------------------------------------------------------
  *
@@ -312,6 +313,10 @@ static void GraphEventProc(ClientData clientData, register XEvent *eventPtr) {
                 Rbc_DestroyPostScript(graphPtr);
             }
 
+            if (graphPtr->legend != NULL) {
+                Rbc_ReleaseLegendTkResources(graphPtr);
+            }
+
             Rbc_DeleteWindowInstanceData(graphPtr->tkwin);
 
             graphPtr->tkwin = NULL;
@@ -365,6 +370,9 @@ static void GraphInstCmdDeleteProc(ClientData clientData) {
         }
         if (graphPtr->postscript != NULL) {
             Rbc_DestroyPostScript(graphPtr);
+        }
+        if (graphPtr->legend != NULL) {
+            Rbc_ReleaseLegendTkResources(graphPtr);
         }
 
         graphPtr->tkwin = NULL;
@@ -809,9 +817,6 @@ static void DestroyGraph(DestroyData dataPtr) {
     Rbc_DestroyAxes(graphPtr);
     Rbc_DestroyPens(graphPtr);
 
-    if (graphPtr->legend != NULL) {
-        Rbc_DestroyLegend(graphPtr);
-    }
     if (graphPtr->postscript != NULL) {
         Rbc_DestroyPostScript(graphPtr);
     }
@@ -820,6 +825,9 @@ static void DestroyGraph(DestroyData dataPtr) {
     }
     if (graphPtr->bindTable != NULL) {
         Rbc_DestroyBindingTable(graphPtr->bindTable);
+    }
+    if (graphPtr->legend != NULL) {
+        Rbc_DestroyLegend(graphPtr);
     }
     /* Release allocated X resources and memory. */
     if (graphPtr->drawGC != NULL) {

@@ -679,6 +679,41 @@ static const char *PadToString(ClientData clientData, Tk_Window tkwin, char *wid
     return result;
 }
 
+int Rbc_GetShadowFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, Shadow *shadowPtr) {
+    Tcl_Obj **objv;
+    Tcl_Size objc;
+    Shadow newShadow;
+
+    newShadow.color = NULL;
+    newShadow.offset = 0;
+    if ((objPtr == NULL) || (Tcl_GetCharLength(objPtr) == 0)) {
+        *shadowPtr = newShadow;
+        return TCL_OK;
+    }
+    if (Tcl_ListObjGetElements(interp, objPtr, &objc, &objv) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if ((objc < 1) || (objc > 2)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("wrong # elements in drop shadow value: "
+                                                  "should be \"color ?offset?\"",
+                                                  -1));
+        return TCL_ERROR;
+    }
+    newShadow.color = Tk_GetColor(interp, tkwin, Tk_GetUid(Tcl_GetString(objv[0])));
+    if (newShadow.color == NULL) {
+        return TCL_ERROR;
+    }
+    newShadow.offset = 1;
+    if (objc == 2) {
+        if (Rbc_GetPixelsFromObj(interp, tkwin, objv[1], PIXELS_NONNEGATIVE, &newShadow.offset) != TCL_OK) {
+            Tk_FreeColor(newShadow.color);
+            return TCL_ERROR;
+        }
+    }
+    *shadowPtr = newShadow;
+    return TCL_OK;
+}
+
 /*
  *----------------------------------------------------------------------
  *

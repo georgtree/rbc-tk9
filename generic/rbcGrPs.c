@@ -84,8 +84,6 @@ extern void Rbc_GridToPostScript(Graph *graphPtr, PsToken psToken);
 extern void Rbc_AxesToPostScript(Graph *graphPtr, PsToken psToken);
 extern void Rbc_AxisLimitsToPostScript(Graph *graphPtr, PsToken psToken);
 
-static char *NameOfColorMode(PsColorMode colorMode);
-
 typedef int(RbcGrPsOp)(Graph *, Tcl_Interp *, int, Tcl_Obj *const[]);
 typedef RbcGrPsOp *RbcGrPsOpPtr;
 static RbcGrPsOp CgetOp;

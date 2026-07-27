@@ -491,6 +491,8 @@ int Rbc_NaturalParametricSpline(Point2D *origPts, int nOrigPts, Extents2D *extsP
 
 int Rbc_CatromParametricSpline(Point2D *origPts, int nOrigPts, Point2D *intpPts, int nIntpPts);
 
+int Rbc_GetShadowFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, Shadow *shadowPtr);
+
 Tk_OptionParseProc Rbc_StringToFlag;
 Tk_OptionPrintProc Rbc_FlagToString;
 

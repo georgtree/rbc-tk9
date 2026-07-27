@@ -23,6 +23,26 @@
  * -------------------------------------------------------------------
  */
 struct LegendStruct {
+    Tk_OptionTable optionTable;
+
+    /*
+     * Original Tcl representations for values requiring additional
+     * conversion or validation.
+     */
+    Tcl_Obj *activeBorderWidthObjPtr;
+    Tcl_Obj *borderWidthObjPtr;
+    Tcl_Obj *columnsObjPtr;
+    Tcl_Obj *ipadXObjPtr;
+    Tcl_Obj *ipadYObjPtr;
+    Tcl_Obj *padXObjPtr;
+    Tcl_Obj *padYObjPtr;
+    Tcl_Obj *positionObjPtr;
+    Tcl_Obj *rowsObjPtr;
+    Tcl_Obj *shadowObjPtr;
+
+    int optionsInitialized;
+    int tkResourcesReleased;
+
     unsigned int flags;
     Rbc_Uid classUid;          /* Type: Element or Marker. */
     int hidden;                /* If non-zero, don't display the legend. */
@@ -59,6 +79,12 @@ struct LegendStruct {
     Rbc_BindTable bindTable;
 };
 
+typedef struct {
+    int site;
+    Point2D anchorPos;
+    const char *windowName;
+} LegendPosition;
+
 #define padLeft padX.side1
 #define padRight padX.side2
 #define padTop padY.side1
@@ -91,76 +117,73 @@ struct LegendStruct {
 #define DEF_LEGEND_ROWS "0"
 #define DEF_LEGEND_COLUMNS "0"
 
-static Tk_OptionParseProc StringToPosition;
-static Tk_OptionPrintProc PositionToString;
-static Tk_CustomOption legendPositionOption = {StringToPosition, PositionToString, (ClientData)0};
-extern Tk_CustomOption rbcDistanceOption;
-extern Tk_CustomOption rbcPadOption;
-extern Tk_CustomOption rbcShadowOption;
-extern Tk_CustomOption rbcCountOption;
+#define LEGEND_REDRAW_CHANGED    (1U << 0)
+#define LEGEND_LAYOUT_CHANGED    (1U << 1)
+#define LEGEND_STYLE_CHANGED     (1U << 2)
+#define LEGEND_PADDING_CHANGED   (1U << 3)
+#define LEGEND_SHADOW_CHANGED    (1U << 4)
+#define LEGEND_POSITION_CHANGED  (1U << 5)
+#define LEGEND_VALIDATE_CHANGED  (1U << 6)
 
-static Tk_ConfigSpec configSpecs[] = {
-    {TK_CONFIG_BORDER, "-activebackground", "activeBackground", "ActiveBackground", DEF_LEGEND_ACTIVE_BACKGROUND,
-     offsetof(Legend, activeBorder), TK_CONFIG_COLOR_ONLY},
-    {TK_CONFIG_BORDER, "-activebackground", "activeBackground", "ActiveBackground", DEF_LEGEND_ACTIVE_BG_MONO,
-     offsetof(Legend, activeBorder), TK_CONFIG_MONO_ONLY},
-    {TK_CONFIG_CUSTOM, "-activeborderwidth", "activeBorderWidth", "BorderWidth", DEF_LEGEND_BORDERWIDTH,
-     offsetof(Legend, entryBorderWidth), TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_COLOR, "-activeforeground", "activeForeground", "ActiveForeground", DEF_LEGEND_ACTIVE_FOREGROUND,
-     offsetof(Legend, style.activeColor), TK_CONFIG_COLOR_ONLY},
-    {TK_CONFIG_COLOR, "-activeforeground", "activeForeground", "ActiveForeground", DEF_LEGEND_ACTIVE_FG_MONO,
-     offsetof(Legend, style.activeColor), TK_CONFIG_MONO_ONLY},
-    {TK_CONFIG_RELIEF, "-activerelief", "activeRelief", "Relief", DEF_LEGEND_ACTIVE_RELIEF,
-     offsetof(Legend, activeRelief), TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_ANCHOR, "-anchor", "anchor", "Anchor", DEF_LEGEND_ANCHOR, offsetof(Legend, anchor),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_SYNONYM, "-bg", "background", (char *)NULL, (char *)NULL, 0, 0},
-    {TK_CONFIG_BORDER, "-background", "background", "Background", DEF_LEGEND_BG_MONO, offsetof(Legend, border),
-     TK_CONFIG_NULL_OK | TK_CONFIG_MONO_ONLY},
-    {TK_CONFIG_BORDER, "-background", "background", "Background", DEF_LEGEND_BACKGROUND, offsetof(Legend, border),
-     TK_CONFIG_NULL_OK | TK_CONFIG_COLOR_ONLY},
-    {TK_CONFIG_CUSTOM, "-borderwidth", "borderWidth", "BorderWidth", DEF_LEGEND_BORDERWIDTH,
-     offsetof(Legend, borderWidth), TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_SYNONYM, "-bd", "borderWidth", (char *)NULL, (char *)NULL, 0, 0},
-    {TK_CONFIG_CUSTOM, "-columns", "columns", "columns", DEF_LEGEND_COLUMNS, offsetof(Legend, reqColumns),
-     TK_CONFIG_DONT_SET_DEFAULT, &rbcCountOption},
-    {TK_CONFIG_FONT, "-font", "font", "Font", DEF_LEGEND_FONT, offsetof(Legend, style.font), 0},
-    {TK_CONFIG_SYNONYM, "-fg", "foreground", (char *)NULL, (char *)NULL, 0, 0},
-    {TK_CONFIG_COLOR, "-foreground", "foreground", "Foreground", DEF_LEGEND_FOREGROUND, offsetof(Legend, style.color),
-     TK_CONFIG_COLOR_ONLY},
-    {TK_CONFIG_COLOR, "-foreground", "foreground", "Foreground", DEF_LEGEND_FG_MONO, offsetof(Legend, style.color),
-     TK_CONFIG_MONO_ONLY},
-    {TK_CONFIG_BOOLEAN, "-hide", "hide", "Hide", DEF_LEGEND_HIDE, offsetof(Legend, hidden), TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-ipadx", "iPadX", "Pad", DEF_LEGEND_IPAD_X, offsetof(Legend, ipadX), TK_CONFIG_DONT_SET_DEFAULT,
-     &rbcPadOption},
-    {TK_CONFIG_CUSTOM, "-ipady", "iPadY", "Pad", DEF_LEGEND_IPAD_Y, offsetof(Legend, ipadY), TK_CONFIG_DONT_SET_DEFAULT,
-     &rbcPadOption},
-    {TK_CONFIG_CUSTOM, "-padx", "padX", "Pad", DEF_LEGEND_PAD_X, offsetof(Legend, padX), TK_CONFIG_DONT_SET_DEFAULT,
-     &rbcPadOption},
-    {TK_CONFIG_CUSTOM, "-pady", "padY", "Pad", DEF_LEGEND_PAD_Y, offsetof(Legend, padY), TK_CONFIG_DONT_SET_DEFAULT,
-     &rbcPadOption},
-    {TK_CONFIG_CUSTOM, "-position", "position", "Position", DEF_LEGEND_POSITION, 0, TK_CONFIG_DONT_SET_DEFAULT,
-     &legendPositionOption},
-    {TK_CONFIG_BOOLEAN, "-raised", "raised", "Raised", DEF_LEGEND_RAISED, offsetof(Legend, raised),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_RELIEF, "-relief", "relief", "Relief", DEF_LEGEND_RELIEF, offsetof(Legend, relief),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-rows", "rows", "rows", DEF_LEGEND_ROWS, offsetof(Legend, reqRows), TK_CONFIG_DONT_SET_DEFAULT,
-     &rbcCountOption},
-    {TK_CONFIG_CUSTOM, "-shadow", "shadow", "Shadow", DEF_LEGEND_SHADOW_COLOR, offsetof(Legend, style.shadow),
-     TK_CONFIG_COLOR_ONLY, &rbcShadowOption},
-    {TK_CONFIG_CUSTOM, "-shadow", "shadow", "Shadow", DEF_LEGEND_SHADOW_MONO, offsetof(Legend, style.shadow),
-     TK_CONFIG_MONO_ONLY, &rbcShadowOption},
-    {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}};
+#define LEGEND_INITIALIZE_MASK                                                                                         \
+    (LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_STYLE_CHANGED | LEGEND_PADDING_CHANGED |                   \
+     LEGEND_SHADOW_CHANGED | LEGEND_POSITION_CHANGED | LEGEND_VALIDATE_CHANGED)
+
+static const Tk_OptionSpec legendOptionSpecs[] = {
+    {TK_OPTION_BORDER, "-activebackground", "activeBackground", "ActiveBackground", DEF_LEGEND_ACTIVE_BACKGROUND, -1,
+     offsetof(Legend, activeBorder), 0, DEF_LEGEND_ACTIVE_BG_MONO, LEGEND_REDRAW_CHANGED},
+    {TK_OPTION_PIXELS, "-activeborderwidth", "activeBorderWidth", "BorderWidth", DEF_LEGEND_ACTIVE_BORDERWIDTH,
+     offsetof(Legend, activeBorderWidthObjPtr), offsetof(Legend, entryBorderWidth), 0, NULL,
+     LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_VALIDATE_CHANGED},
+    {TK_OPTION_COLOR, "-activeforeground", "activeForeground", "ActiveForeground", DEF_LEGEND_ACTIVE_FOREGROUND, -1,
+     offsetof(Legend, style.activeColor), 0, DEF_LEGEND_ACTIVE_FG_MONO, LEGEND_REDRAW_CHANGED},
+    {TK_OPTION_RELIEF, "-activerelief", "activeRelief", "Relief", DEF_LEGEND_ACTIVE_RELIEF, -1,
+     offsetof(Legend, activeRelief), 0, NULL, LEGEND_REDRAW_CHANGED},
+    {TK_OPTION_ANCHOR, "-anchor", "anchor", "Anchor", DEF_LEGEND_ANCHOR, -1, offsetof(Legend, anchor), 0, NULL,
+     LEGEND_REDRAW_CHANGED},
+    {TK_OPTION_SYNONYM, "-bg", NULL, NULL, NULL, -1, -1, 0, "-background", 0},
+    {TK_OPTION_BORDER, "-background", "background", "Background", DEF_LEGEND_BACKGROUND, -1, offsetof(Legend, border),
+     TK_OPTION_NULL_OK, DEF_LEGEND_BG_MONO, LEGEND_REDRAW_CHANGED},
+    {TK_OPTION_PIXELS, "-borderwidth", "borderWidth", "BorderWidth", DEF_LEGEND_BORDERWIDTH,
+     offsetof(Legend, borderWidthObjPtr), offsetof(Legend, borderWidth), 0, NULL,
+     LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_VALIDATE_CHANGED},
+    {TK_OPTION_SYNONYM, "-bd", NULL, NULL, NULL, -1, -1, 0, "-borderwidth", 0},
+    {TK_OPTION_INT, "-columns", "columns", "Columns", DEF_LEGEND_COLUMNS, offsetof(Legend, columnsObjPtr),
+     offsetof(Legend, reqColumns), 0, NULL, LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_VALIDATE_CHANGED},
+    {TK_OPTION_FONT, "-font", "font", "Font", DEF_LEGEND_FONT, -1, offsetof(Legend, style.font), 0, NULL,
+     LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_STYLE_CHANGED},
+    {TK_OPTION_SYNONYM, "-fg", NULL, NULL, NULL, -1, -1, 0, "-foreground", 0},
+    {TK_OPTION_COLOR, "-foreground", "foreground", "Foreground", DEF_LEGEND_FOREGROUND, -1,
+     offsetof(Legend, style.color), 0, DEF_LEGEND_FG_MONO, LEGEND_REDRAW_CHANGED | LEGEND_STYLE_CHANGED},
+    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_LEGEND_HIDE, -1, offsetof(Legend, hidden), 0, NULL,
+     LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED},
+    {TK_OPTION_STRING, "-ipadx", "iPadX", "Pad", DEF_LEGEND_IPAD_X, offsetof(Legend, ipadXObjPtr), -1, 0, NULL,
+     LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_PADDING_CHANGED},
+    {TK_OPTION_STRING, "-ipady", "iPadY", "Pad", DEF_LEGEND_IPAD_Y, offsetof(Legend, ipadYObjPtr), -1, 0, NULL,
+     LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_PADDING_CHANGED},
+    {TK_OPTION_STRING, "-padx", "padX", "Pad", DEF_LEGEND_PAD_X, offsetof(Legend, padXObjPtr), -1, 0, NULL,
+     LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_PADDING_CHANGED},
+    {TK_OPTION_STRING, "-pady", "padY", "Pad", DEF_LEGEND_PAD_Y, offsetof(Legend, padYObjPtr), -1, 0, NULL,
+     LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_PADDING_CHANGED},
+    {TK_OPTION_STRING, "-position", "position", "Position", DEF_LEGEND_POSITION, offsetof(Legend, positionObjPtr), -1,
+     0, NULL, LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_POSITION_CHANGED},
+    {TK_OPTION_BOOLEAN, "-raised", "raised", "Raised", DEF_LEGEND_RAISED, -1, offsetof(Legend, raised), 0, NULL,
+     LEGEND_REDRAW_CHANGED},
+    {TK_OPTION_RELIEF, "-relief", "relief", "Relief", DEF_LEGEND_RELIEF, -1, offsetof(Legend, relief), 0, NULL,
+     LEGEND_REDRAW_CHANGED},
+    {TK_OPTION_INT, "-rows", "rows", "Rows", DEF_LEGEND_ROWS, offsetof(Legend, rowsObjPtr), offsetof(Legend, reqRows),
+     0, NULL, LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_VALIDATE_CHANGED},
+    {TK_OPTION_STRING, "-shadow", "shadow", "Shadow", DEF_LEGEND_SHADOW_COLOR, offsetof(Legend, shadowObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_SHADOW_CHANGED},
+    {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 static Tcl_IdleProc DisplayLegend;
 static Rbc_BindPickProc PickLegendEntry;
 static Tk_EventProc LegendEventProc;
 
 static void EventuallyRedrawLegend(Legend *legendPtr);
-static int CreateLegendWindow(Tcl_Interp *interp, Legend *legendPtr, const char *pathName);
 static void SetLegendOrigin(Legend *legendPtr);
-static void ConfigureLegend(Graph *graphPtr, Legend *legendPtr);
+static int ConfigureLegend(Graph *graphPtr, Legend *legendPtr, int mask);
 
 typedef int(RbcGrLegdOp)(Graph *, Tcl_Interp *, int, Tcl_Obj *const[]);
 typedef RbcGrLegdOp *RbcGrLegdOpPtr;
@@ -169,6 +192,93 @@ static RbcGrLegdOp ActivateOp;
 static RbcGrLegdOp BindOp;
 static RbcGrLegdOp CgetOp;
 static RbcGrLegdOp ConfigureOp;
+
+static int IsLegendPositionPrefix(const char *string, Tcl_Size length, const char *fullName) {
+    Tcl_Size fullLength;
+
+    fullLength = (Tcl_Size)strlen(fullName);
+    return ((length > 0) && (length <= fullLength) && (strncmp(string, fullName, (size_t)length) == 0));
+}
+
+static int GetLegendPositionFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, LegendPosition *positionPtr) {
+    const char *string;
+    Tcl_Size length;
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+    positionPtr->site = LEGEND_RIGHT;
+    positionPtr->anchorPos.x = -SHRT_MAX;
+    positionPtr->anchorPos.y = -SHRT_MAX;
+    positionPtr->windowName = NULL;
+    if (length == 0) {
+        return TCL_OK;
+    }
+    if (IsLegendPositionPrefix(string, length, "leftmargin")) {
+        positionPtr->site = LEGEND_LEFT;
+        return TCL_OK;
+    }
+    if (IsLegendPositionPrefix(string, length, "rightmargin")) {
+        positionPtr->site = LEGEND_RIGHT;
+        return TCL_OK;
+    }
+    if (IsLegendPositionPrefix(string, length, "topmargin")) {
+        positionPtr->site = LEGEND_TOP;
+        return TCL_OK;
+    }
+    if (IsLegendPositionPrefix(string, length, "bottommargin")) {
+        positionPtr->site = LEGEND_BOTTOM;
+        return TCL_OK;
+    }
+    if (IsLegendPositionPrefix(string, length, "plotarea")) {
+        positionPtr->site = LEGEND_PLOT;
+        return TCL_OK;
+    }
+    if (string[0] == '.') {
+        positionPtr->site = LEGEND_WINDOW;
+        positionPtr->windowName = string;
+        return TCL_OK;
+    }
+    if (string[0] == '@') {
+        const char *comma;
+        Tcl_Obj *xObjPtr;
+        Tcl_Obj *yObjPtr;
+        Tcl_Size xLength;
+        Tcl_Size yLength;
+        long x, y;
+        int result;
+        comma = memchr(string + 1, ',', (size_t)(length - 1));
+        if ((comma == NULL) || (comma == string + 1) || (comma == string + length - 1)) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad screen position \"%s\": "
+                                                   "should be @x,y",
+                                                   string));
+            return TCL_ERROR;
+        }
+        xLength = (Tcl_Size)(comma - (string + 1));
+        yLength = length - (Tcl_Size)(comma - string) - 1;
+        xObjPtr = Tcl_NewStringObj(string + 1, xLength);
+        yObjPtr = Tcl_NewStringObj(comma + 1, yLength);
+        Tcl_IncrRefCount(xObjPtr);
+        Tcl_IncrRefCount(yObjPtr);
+        result = Tcl_ExprLongObj(interp, xObjPtr, &x);
+        if (result == TCL_OK) {
+            result = Tcl_ExprLongObj(interp, yObjPtr, &y);
+        }
+        Tcl_DecrRefCount(xObjPtr);
+        Tcl_DecrRefCount(yObjPtr);
+        if (result != TCL_OK) {
+            return TCL_ERROR;
+        }
+        positionPtr->site = LEGEND_XY;
+        positionPtr->anchorPos.x = (double)x;
+        positionPtr->anchorPos.y = (double)y;
+        return TCL_OK;
+    }
+    Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad position \"%s\": should be "
+                                           "\"leftmargin\", \"rightmargin\", "
+                                           "\"topmargin\", \"bottommargin\", "
+                                           "\"plotarea\", .window, or @x,y",
+                                           string));
+    return TCL_ERROR;
+}
 
 /*
  *--------------------------------------------------------------
@@ -197,6 +307,121 @@ static void EventuallyRedrawLegend(Legend *legendPtr) {
     }
 }
 
+static int PrepareLegendWindow(Tcl_Interp *interp, Legend *legendPtr, const char *pathName, Tk_Window *tkwinPtr,
+                               Tcl_Command *cmdTokenPtr) {
+    Tk_Window mainWindow;
+    Tk_Window tkwin;
+    Tcl_Command cmdToken;
+    
+    mainWindow = Tk_MainWindow(interp);
+    tkwin = Tk_CreateWindowFromPath(interp, mainWindow, pathName, NULL);
+    if (tkwin == NULL) {
+        return TCL_ERROR;
+    }
+    Rbc_SetWindowInstanceData(tkwin, legendPtr);
+    Tk_CreateEventHandler(tkwin, ExposureMask | StructureNotifyMask, LegendEventProc, legendPtr);
+    cmdToken = Tcl_CreateObjCommand(interp, pathName, Rbc_GraphInstCmdProc, legendPtr->graphPtr, NULL);
+    if (cmdToken == NULL) {
+        Tk_DeleteEventHandler(tkwin, ExposureMask | StructureNotifyMask, LegendEventProc, legendPtr);
+        Rbc_DeleteWindowInstanceData(tkwin);
+        Tk_DestroyWindow(tkwin);
+        return TCL_ERROR;
+    }
+    *tkwinPtr = tkwin;
+    *cmdTokenPtr = cmdToken;
+    return TCL_OK;
+}
+
+static void CloseExternalLegendWindow(Legend *legendPtr) {
+    Graph *graphPtr;
+    Tk_Window oldWindow;
+    Tcl_Command oldCommand;
+
+    graphPtr = legendPtr->graphPtr;
+    if ((legendPtr->tkwin == NULL) || (legendPtr->tkwin == graphPtr->tkwin)) {
+        return;
+    }
+    if (legendPtr->flags & REDRAW_PENDING) {
+        Tcl_CancelIdleCall(DisplayLegend, legendPtr);
+        legendPtr->flags &= ~REDRAW_PENDING;
+    }
+    oldWindow = legendPtr->tkwin;
+    oldCommand = legendPtr->cmdToken;
+    /*
+     * Change the record before destroying the old window so that
+     * no callback can mistake it for the active legend window.
+     */
+    legendPtr->tkwin = graphPtr->tkwin;
+    legendPtr->cmdToken = NULL;
+    Tk_DeleteEventHandler(oldWindow, ExposureMask | StructureNotifyMask, LegendEventProc, legendPtr);
+    Rbc_DeleteWindowInstanceData(oldWindow);
+    if (oldCommand != NULL) {
+        Tcl_DeleteCommandFromToken(graphPtr->interp, oldCommand);
+    }
+    Tk_DestroyWindow(oldWindow);
+    Rbc_MoveBindingTable(legendPtr->bindTable, graphPtr->tkwin);
+}
+
+static void SetLegendPositionObject(Legend *legendPtr, const char *value) {
+    Tcl_Obj *newObjPtr;
+    Tcl_Obj *oldObjPtr;
+
+    newObjPtr = Tcl_NewStringObj(value, -1);
+    Tcl_IncrRefCount(newObjPtr);
+    oldObjPtr = legendPtr->positionObjPtr;
+    legendPtr->positionObjPtr = newObjPtr;
+    if (oldObjPtr != NULL) {
+        Tcl_DecrRefCount(oldObjPtr);
+    }
+}
+
+static void ReleaseLegendTkResources(Graph *graphPtr, Legend *legendPtr) {
+    if ((legendPtr == NULL) || (!legendPtr->optionsInitialized) || (legendPtr->tkResourcesReleased)) {
+        return;
+    }
+
+    if (legendPtr->flags & REDRAW_PENDING) {
+        Tcl_CancelIdleCall(DisplayLegend, legendPtr);
+
+        legendPtr->flags &= ~REDRAW_PENDING;
+    }
+
+    /*
+     * Release the GC before Tk frees the font, colours, and borders
+     * referenced by the text style.
+     */
+    Rbc_FreeTextStyle(graphPtr->display, &legendPtr->style);
+
+    legendPtr->style.gc = NULL;
+
+    /*
+     * The shadow colour was allocated by Rbc_GetShadowFromObj(),
+     * not by Tk's option table.
+     */
+    if (legendPtr->style.shadow.color != NULL) {
+        Tk_FreeColor(legendPtr->style.shadow.color);
+
+        legendPtr->style.shadow.color = NULL;
+    }
+
+    Tk_FreeConfigOptions((char *)legendPtr, legendPtr->optionTable, graphPtr->tkwin);
+
+    legendPtr->tkResourcesReleased = TRUE;
+
+    /*
+     * Do not retain the graph's Tk_Window after it is destroyed.
+     * An external legend window remains valid.
+     */
+    if ((legendPtr->site != LEGEND_WINDOW) && (legendPtr->tkwin == graphPtr->tkwin)) {
+        legendPtr->tkwin = NULL;
+    }
+}
+
+void Rbc_ReleaseLegendTkResources(Graph *graphPtr) {
+    if (graphPtr->legend != NULL) {
+        ReleaseLegendTkResources(graphPtr, graphPtr->legend);
+    }
+}
 /*
  *--------------------------------------------------------------
  *
@@ -227,8 +452,9 @@ static void LegendEventProc(ClientData clientData, register XEvent *eventPtr) {
             EventuallyRedrawLegend(legendPtr);
         }
     } else if (eventPtr->type == DestroyNotify) {
-        Graph *graphPtr = legendPtr->graphPtr;
+        Graph *graphPtr;
 
+        graphPtr = legendPtr->graphPtr;
         if (legendPtr->tkwin != graphPtr->tkwin) {
             Rbc_DeleteWindowInstanceData(legendPtr->tkwin);
             if (legendPtr->cmdToken != NULL) {
@@ -242,7 +468,8 @@ static void LegendEventProc(ClientData clientData, register XEvent *eventPtr) {
             legendPtr->flags &= ~REDRAW_PENDING;
         }
         legendPtr->site = LEGEND_RIGHT;
-        graphPtr->flags |= (MAP_WORLD | REDRAW_WORLD);
+        SetLegendPositionObject(legendPtr, "rightmargin");
+        graphPtr->flags |= MAP_WORLD | REDRAW_WORLD | REDRAW_BACKING_STORE;
         Rbc_MoveBindingTable(legendPtr->bindTable, graphPtr->tkwin);
         Rbc_EventuallyRedrawGraph(graphPtr);
     } else if (eventPtr->type == ConfigureNotify) {
@@ -250,185 +477,7 @@ static void LegendEventProc(ClientData clientData, register XEvent *eventPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * CreateLegendWindow --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      Legend *legendPtr
- *      const char *pathName
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static int CreateLegendWindow(Tcl_Interp *interp, Legend *legendPtr, const char *pathName) {
-    Tk_Window tkwin;
 
-    tkwin = Tk_MainWindow(interp);
-    tkwin = Tk_CreateWindowFromPath(interp, tkwin, pathName, NULL);
-    if (tkwin == NULL) {
-        return TCL_ERROR;
-    }
-    Rbc_SetWindowInstanceData(tkwin, legendPtr);
-    Tk_CreateEventHandler(tkwin, ExposureMask | StructureNotifyMask, LegendEventProc, legendPtr);
-    /* Move the legend's binding table to the new window. */
-    Rbc_MoveBindingTable(legendPtr->bindTable, tkwin);
-    if (legendPtr->tkwin != legendPtr->graphPtr->tkwin) {
-        Tk_DestroyWindow(legendPtr->tkwin);
-    }
-    legendPtr->cmdToken = Tcl_CreateObjCommand(interp, pathName, Rbc_GraphInstCmdProc, legendPtr->graphPtr, NULL);
-    legendPtr->tkwin = tkwin;
-    legendPtr->site = LEGEND_WINDOW;
-    return TCL_OK;
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * StringToPosition --
- *
- *      Convert the string representation of a legend XY position into
- *      window coordinates.  The form of the string must be "@x,y" or
- *      none.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tcl_Interp *interp - Interpreter to send results back to
- *      Tk_Window tkwin - Not used.
- *      const char *string - New legend position string
- *      char *widgRec - Widget record
- *      Tcl_Size offset - offset to XPoint structure
- *
- * Results:
- *      The return value is a standard Tcl result.  The symbol type is
- *      written into the widget record.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static int StringToPosition(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string,
-                            char *widgRec, Tcl_Size offset) {
-    Legend *legendPtr = (Legend *)widgRec;
-    char c;
-    unsigned int length;
-
-    c = string[0];
-    length = strlen(string);
-
-    if ((string == NULL) || (*string == '\0')) {
-        legendPtr->site = LEGEND_RIGHT;
-    } else if ((c == 'l') && (strncmp(string, "leftmargin", length) == 0)) {
-        legendPtr->site = LEGEND_LEFT;
-    } else if ((c == 'r') && (strncmp(string, "rightmargin", length) == 0)) {
-        legendPtr->site = LEGEND_RIGHT;
-    } else if ((c == 't') && (strncmp(string, "topmargin", length) == 0)) {
-        legendPtr->site = LEGEND_TOP;
-    } else if ((c == 'b') && (strncmp(string, "bottommargin", length) == 0)) {
-        legendPtr->site = LEGEND_BOTTOM;
-    } else if ((c == 'p') && (strncmp(string, "plotarea", length) == 0)) {
-        legendPtr->site = LEGEND_PLOT;
-    } else if (c == '@') {
-        char *comma;
-        long x, y;
-        int result;
-
-        comma = strchr(string + 1, ',');
-        if (comma == NULL) {
-            Tcl_AppendResult(interp, "bad screen position \"", string, "\": should be @x,y", (char *)NULL);
-            return TCL_ERROR;
-        }
-        x = y = 0;
-        *comma = '\0';
-        result = ((Tcl_ExprLong(interp, string + 1, &x) == TCL_OK) && (Tcl_ExprLong(interp, comma + 1, &y) == TCL_OK));
-        *comma = ',';
-        if (!result) {
-            return TCL_ERROR;
-        }
-        legendPtr->anchorPos.x = (int)x;
-        legendPtr->anchorPos.y = (int)y;
-        legendPtr->site = LEGEND_XY;
-    } else if (c == '.') {
-        if (legendPtr->tkwin != legendPtr->graphPtr->tkwin) {
-            Tk_DestroyWindow(legendPtr->tkwin);
-            legendPtr->tkwin = legendPtr->graphPtr->tkwin;
-        }
-        if (CreateLegendWindow(interp, legendPtr, string) != TCL_OK) {
-            return TCL_ERROR;
-        }
-        legendPtr->site = LEGEND_WINDOW;
-    } else {
-        Tcl_AppendResult(interp, "bad position \"", string, "\": should be  \
-\"leftmargin\", \"rightmargin\", \"topmargin\", \"bottommargin\", \
-\"plotarea\", .window or @x,y",
-                         (char *)NULL);
-        return TCL_ERROR;
-    }
-    return TCL_OK;
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * PositionToString --
- *
- *      Convert the window coordinates into a string.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tk_Window tkwin - Not used.
- *      char *widgRec - Widget record
- *      Tcl_Size offset - offset of XPoint in record
- *      Tcl_FreeProc **freeProcPtr - Memory deallocation scheme to use
- *
- * Results:
- *      The string representing the coordinate position is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static const char *PositionToString(ClientData clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset,
-                                    Tcl_FreeProc **freeProcPtr) {
-    Legend *legendPtr = (Legend *)widgRec;
-
-    switch (legendPtr->site) {
-    case LEGEND_LEFT:
-        return "leftmargin";
-    case LEGEND_RIGHT:
-        return "rightmargin";
-    case LEGEND_TOP:
-        return "topmargin";
-    case LEGEND_BOTTOM:
-        return "bottommargin";
-    case LEGEND_PLOT:
-        return "plotarea";
-    case LEGEND_WINDOW:
-        return Tk_PathName(legendPtr->tkwin);
-    case LEGEND_XY: {
-        char string[200];
-        char *result;
-
-        sprintf(string, "@%d,%d", (int)legendPtr->anchorPos.x, (int)legendPtr->anchorPos.y);
-        result = RbcStrdup(string);
-        *freeProcPtr = (Tcl_FreeProc *)Tcl_Free;
-        return result;
-    }
-    default:
-        return "unknown legend position";
-    }
-}
 
 /*
  *----------------------------------------------------------------------
@@ -1060,35 +1109,164 @@ static void DisplayLegend(ClientData clientData) {
  *
  *----------------------------------------------------------------------
  */
-static void ConfigureLegend(Graph *graphPtr, Legend *legendPtr) {
-    Rbc_ResetTextStyle(graphPtr->tkwin, &(legendPtr->style));
+static int ConfigureLegend(Graph *graphPtr, Legend *legendPtr, int mask) {
+    Rbc_Pad newIpadX;
+    Rbc_Pad newIpadY;
+    Rbc_Pad newPadX;
+    Rbc_Pad newPadY;
 
+    Shadow newShadow;
+    LegendPosition newPosition;
+
+    Tk_Window preparedWindow;
+    Tcl_Command preparedCommand;
+
+    int shadowChanged;
+    int positionChanged;
+
+    newIpadX = legendPtr->ipadX;
+    newIpadY = legendPtr->ipadY;
+    newPadX = legendPtr->padX;
+    newPadY = legendPtr->padY;
+    newShadow.color = NULL;
+    newShadow.offset = 0;
+    preparedWindow = NULL;
+    preparedCommand = NULL;
+    shadowChanged = ((mask & LEGEND_SHADOW_CHANGED) != 0);
+    positionChanged = ((mask & LEGEND_POSITION_CHANGED) != 0);
+
+    /*
+     * Validate Tk-parsed integer and pixel values.
+     */
+    if (mask & LEGEND_VALIDATE_CHANGED) {
+        if (legendPtr->entryBorderWidth < 0) {
+            Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("active border width can't be negative", -1));
+            return TCL_ERROR;
+        }
+        if (legendPtr->borderWidth < 0) {
+            Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("border width can't be negative", -1));
+            return TCL_ERROR;
+        }
+        if (legendPtr->reqColumns < 0) {
+            Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("number of columns can't be negative", -1));
+
+            return TCL_ERROR;
+        }
+        if (legendPtr->reqRows < 0) {
+            Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("number of rows can't be negative", -1));
+            return TCL_ERROR;
+        }
+    }
+
+    /*
+     * Parse all derived values into temporary storage.
+     */
+    if (mask & LEGEND_PADDING_CHANGED) {
+        if (Rbc_GetPadFromObj(graphPtr->interp, graphPtr->tkwin, legendPtr->ipadXObjPtr, &newIpadX) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if (Rbc_GetPadFromObj(graphPtr->interp, graphPtr->tkwin, legendPtr->ipadYObjPtr, &newIpadY) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if (Rbc_GetPadFromObj(graphPtr->interp, graphPtr->tkwin, legendPtr->padXObjPtr, &newPadX) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if (Rbc_GetPadFromObj(graphPtr->interp, graphPtr->tkwin, legendPtr->padYObjPtr, &newPadY) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+    if (shadowChanged) {
+        if (Rbc_GetShadowFromObj(graphPtr->interp, graphPtr->tkwin, legendPtr->shadowObjPtr, &newShadow) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+    if (positionChanged) {
+        if (GetLegendPositionFromObj(graphPtr->interp, legendPtr->positionObjPtr, &newPosition) != TCL_OK) {
+            goto error;
+        }
+        if (newPosition.site == LEGEND_WINDOW) {
+            int sameWindow;
+            sameWindow = ((legendPtr->tkwin != graphPtr->tkwin) &&
+                          (strcmp(Tk_PathName(legendPtr->tkwin), newPosition.windowName) == 0));
+            if (!sameWindow) {
+                if (PrepareLegendWindow(graphPtr->interp, legendPtr, newPosition.windowName, &preparedWindow,
+                                        &preparedCommand) != TCL_OK) {
+                    goto error;
+                }
+            }
+        }
+    }
+
+    /*
+     * All fallible operations have succeeded. Commit derived values.
+     */
+    if (mask & LEGEND_PADDING_CHANGED) {
+        legendPtr->ipadX = newIpadX;
+        legendPtr->ipadY = newIpadY;
+        legendPtr->padX = newPadX;
+        legendPtr->padY = newPadY;
+    }
+    if (shadowChanged) {
+        Shadow oldShadow;
+        oldShadow = legendPtr->style.shadow;
+        legendPtr->style.shadow = newShadow;
+        newShadow.color = NULL;
+        if (oldShadow.color != NULL) {
+            Tk_FreeColor(oldShadow.color);
+        }
+    }
+    if (positionChanged) {
+        if (newPosition.site == LEGEND_WINDOW) {
+            if (preparedWindow != NULL) {
+                CloseExternalLegendWindow(legendPtr);
+                legendPtr->tkwin = preparedWindow;
+                legendPtr->cmdToken = preparedCommand;
+                preparedWindow = NULL;
+                preparedCommand = NULL;
+                Rbc_MoveBindingTable(legendPtr->bindTable, legendPtr->tkwin);
+            }
+            legendPtr->site = LEGEND_WINDOW;
+        } else {
+            CloseExternalLegendWindow(legendPtr);
+            legendPtr->site = newPosition.site;
+            legendPtr->anchorPos = newPosition.anchorPos;
+        }
+    }
+    if (mask & LEGEND_STYLE_CHANGED) {
+        Rbc_ResetTextStyle(legendPtr->tkwin, &legendPtr->style);
+    }
+    /*
+     * Position and size changes affect the graph layout even when
+     * the new legend position is an external window.
+     */
+    if (mask & LEGEND_LAYOUT_CHANGED) {
+        graphPtr->flags |= MAP_WORLD;
+    }
     if (legendPtr->site == LEGEND_WINDOW) {
         EventuallyRedrawLegend(legendPtr);
-    } else {
-        /*
-         *  Update the layout of the graph (and redraw the elements) if
-         *  any of the following legend options (all of which affect the
-         *    size of the legend) have changed.
-         *
-         *        -activeborderwidth, -borderwidth
-         *        -border
-         *        -font
-         *        -hide
-         *        -ipadx, -ipady, -padx, -pady
-         *        -rows
-         *
-         *  If the position of the legend changed to/from the default
-         *  position, also indicate that a new layout is needed.
-         *
-         */
-        if (Rbc_ConfigModified(graphPtr->interp, configSpecs, "-*border*", "-*pad?", "-position", "-hide", "-font",
-                               "-rows", (char *)NULL)) {
-            graphPtr->flags |= MAP_WORLD;
+        if (mask & LEGEND_POSITION_CHANGED) {
+            graphPtr->flags |= REDRAW_WORLD | REDRAW_BACKING_STORE;
+            Rbc_EventuallyRedrawGraph(graphPtr);
         }
-        graphPtr->flags |= (REDRAW_WORLD | REDRAW_BACKING_STORE);
+    } else {
+        graphPtr->flags |= REDRAW_WORLD | REDRAW_BACKING_STORE;
         Rbc_EventuallyRedrawGraph(graphPtr);
     }
+    return TCL_OK;
+
+error:
+    if (newShadow.color != NULL) {
+        Tk_FreeColor(newShadow.color);
+    }
+    if (preparedWindow != NULL) {
+        Tk_DeleteEventHandler(preparedWindow, ExposureMask | StructureNotifyMask, LegendEventProc, legendPtr);
+        Rbc_DeleteWindowInstanceData(preparedWindow);
+        if (preparedCommand != NULL) {
+            Tcl_DeleteCommandFromToken(graphPtr->interp, preparedCommand);
+        }
+        Tk_DestroyWindow(preparedWindow);
+    }
+    return TCL_ERROR;
 }
 
 /*
@@ -1110,29 +1288,44 @@ static void ConfigureLegend(Graph *graphPtr, Legend *legendPtr) {
  *----------------------------------------------------------------------
  */
 void Rbc_DestroyLegend(Graph *graphPtr) {
-    Legend *legendPtr = graphPtr->legend;
+    Legend *legendPtr;
 
-    Tk_FreeOptions(configSpecs, (char *)legendPtr, graphPtr->display, 0);
-    Rbc_FreeTextStyle(graphPtr->display, &(legendPtr->style));
-    Rbc_DestroyBindingTable(legendPtr->bindTable);
-    if (legendPtr->tkwin != graphPtr->tkwin) {
-        Tk_Window tkwin;
+    legendPtr = graphPtr->legend;
+    if (legendPtr == NULL) {
+        return;
+    }
+    graphPtr->legend = NULL;
+    if (legendPtr->flags & REDRAW_PENDING) {
+        Tcl_CancelIdleCall(DisplayLegend, legendPtr);
 
-        /* The graph may be in the process of being torn down */
-        if (legendPtr->cmdToken != NULL) {
-            Tcl_DeleteCommandFromToken(graphPtr->interp, legendPtr->cmdToken);
-        }
-        if (legendPtr->flags & REDRAW_PENDING) {
-            Tcl_CancelIdleCall(DisplayLegend, legendPtr);
-            legendPtr->flags &= ~REDRAW_PENDING;
-        }
-        tkwin = legendPtr->tkwin;
+        legendPtr->flags &= ~REDRAW_PENDING;
+    }
+
+    /*
+     * This normally did nothing during final destruction because
+     * ReleaseLegendTkResources() already ran while tkwin was valid.
+     * It still handles graph-creation failure, where tkwin remains
+     * valid.
+     */
+    if ((!legendPtr->tkResourcesReleased) && (graphPtr->tkwin != NULL)) {
+        ReleaseLegendTkResources(graphPtr, legendPtr);
+    }
+    if ((legendPtr->site == LEGEND_WINDOW) && (legendPtr->tkwin != NULL)) {
+        Tk_Window externalWindow;
+        Tcl_Command externalCommand;
+        externalWindow = legendPtr->tkwin;
+        externalCommand = legendPtr->cmdToken;
         legendPtr->tkwin = NULL;
-        if (tkwin != NULL) {
-            Tk_DeleteEventHandler(tkwin, ExposureMask | StructureNotifyMask, LegendEventProc, legendPtr);
-            Rbc_DeleteWindowInstanceData(tkwin);
-            Tk_DestroyWindow(tkwin);
+        legendPtr->cmdToken = NULL;
+        Tk_DeleteEventHandler(externalWindow, ExposureMask | StructureNotifyMask, LegendEventProc, legendPtr);
+        Rbc_DeleteWindowInstanceData(externalWindow);
+        if (externalCommand != NULL) {
+            Tcl_DeleteCommandFromToken(graphPtr->interp, externalCommand);
         }
+        Tk_DestroyWindow(externalWindow);
+    }
+    if (legendPtr->bindTable != NULL) {
+        Rbc_DestroyBindingTable(legendPtr->bindTable);
     }
     ckfree((char *)legendPtr);
 }
@@ -1159,33 +1352,29 @@ int Rbc_CreateLegend(Graph *graphPtr) {
     Legend *legendPtr;
 
     legendPtr = RbcCalloc(1, sizeof(Legend));
-    assert(legendPtr);
+    assert(legendPtr != NULL);
     graphPtr->legend = legendPtr;
     legendPtr->graphPtr = graphPtr;
     legendPtr->tkwin = graphPtr->tkwin;
-    legendPtr->hidden = FALSE;
-    legendPtr->anchorPos.x = legendPtr->anchorPos.y = -SHRT_MAX;
-    legendPtr->relief = TK_RELIEF_SUNKEN;
-    legendPtr->activeRelief = TK_RELIEF_FLAT;
-    legendPtr->entryBorderWidth = legendPtr->borderWidth = 2;
-    legendPtr->ipadX.side1 = legendPtr->ipadX.side2 = 1;
-    legendPtr->ipadY.side1 = legendPtr->ipadY.side2 = 1;
-    legendPtr->padX.side1 = legendPtr->padX.side2 = 1;
-    legendPtr->padY.side1 = legendPtr->padY.side2 = 1;
-    legendPtr->anchor = TK_ANCHOR_N;
-    legendPtr->site = LEGEND_RIGHT;
-    Rbc_InitTextStyle(&(legendPtr->style));
+    Rbc_InitTextStyle(&legendPtr->style);
     legendPtr->style.justify = TK_JUSTIFY_LEFT;
     legendPtr->style.anchor = TK_ANCHOR_NW;
     legendPtr->bindTable =
         Rbc_CreateBindingTable(graphPtr->interp, graphPtr->tkwin, graphPtr, PickLegendEntry, Rbc_GraphTags);
-
-    if (Rbc_ConfigureWidgetComponent(graphPtr->interp, graphPtr->tkwin, "legend", "Legend", configSpecs, 0, NULL,
-                                     (char *)legendPtr, 0) != TCL_OK) {
-        return TCL_ERROR;
+    legendPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, legendOptionSpecs);
+    if (Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, "legend", "Legend", (char *)legendPtr,
+                                 legendPtr->optionTable) != TCL_OK) {
+        goto error;
     }
-    ConfigureLegend(graphPtr, legendPtr);
+    legendPtr->optionsInitialized = TRUE;
+    if (ConfigureLegend(graphPtr, legendPtr, LEGEND_INITIALIZE_MASK) != TCL_OK) {
+        goto error;
+    }
     return TCL_OK;
+
+error:
+    Rbc_DestroyLegend(graphPtr);
+    return TCL_ERROR;
 }
 
 /*
@@ -1377,7 +1566,16 @@ static int BindOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const 
  *----------------------------------------------------------------------
  */
 static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    return Tk_ConfigureValue(interp, graphPtr->tkwin, configSpecs, (char *)graphPtr->legend, Tcl_GetString(objv[3]), 0);
+    Legend *legendPtr;
+    Tcl_Obj *resultObjPtr;
+
+    legendPtr = graphPtr->legend;
+    resultObjPtr = Tk_GetOptionValue(interp, (char *)legendPtr, legendPtr->optionTable, objv[3], graphPtr->tkwin);
+    if (resultObjPtr == NULL) {
+        return TCL_ERROR;
+    }
+    Tcl_SetObjResult(interp, resultObjPtr);
+    return TCL_OK;
 }
 
 /*
@@ -1402,20 +1600,42 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const 
  *----------------------------------------------------------------------
  */
 static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    int flags = TK_CONFIG_ARGV_ONLY;
     Legend *legendPtr;
+    Tcl_Obj *resultObjPtr;
+    Tk_SavedOptions savedOptions;
+    int mask;
 
     legendPtr = graphPtr->legend;
     if (objc == 3) {
-        return Tk_ConfigureInfo(interp, graphPtr->tkwin, configSpecs, (char *)legendPtr, (char *)NULL, flags);
-    } else if (objc == 4) {
-        return Tk_ConfigureInfo(interp, graphPtr->tkwin, configSpecs, (char *)legendPtr, Tcl_GetString(objv[3]), flags);
+        resultObjPtr = Tk_GetOptionInfo(interp, (char *)legendPtr, legendPtr->optionTable, NULL, graphPtr->tkwin);
+        if (resultObjPtr == NULL) {
+            return TCL_ERROR;
+        }
+        Tcl_SetObjResult(interp, resultObjPtr);
+        return TCL_OK;
     }
-    if (Tk_ConfigureWidget(interp, graphPtr->tkwin, configSpecs, objc - 3, objv + 3, (char *)legendPtr, flags) !=
-        TCL_OK) {
+    if (objc == 4) {
+        resultObjPtr = Tk_GetOptionInfo(interp, (char *)legendPtr, legendPtr->optionTable, objv[3], graphPtr->tkwin);
+        if (resultObjPtr == NULL) {
+            return TCL_ERROR;
+        }
+        Tcl_SetObjResult(interp, resultObjPtr);
+        return TCL_OK;
+    }
+    if (Tk_SetOptions(interp, (char *)legendPtr, legendPtr->optionTable, objc - 3, objv + 3, graphPtr->tkwin,
+                      &savedOptions, &mask) != TCL_OK) {
         return TCL_ERROR;
     }
-    ConfigureLegend(graphPtr, legendPtr);
+    if (ConfigureLegend(graphPtr, legendPtr, mask) != TCL_OK) {
+        Tcl_Obj *errorObjPtr;
+        errorObjPtr = Tcl_GetObjResult(interp);
+        Tcl_IncrRefCount(errorObjPtr);
+        Tk_RestoreSavedOptions(&savedOptions);
+        Tcl_SetObjResult(interp, errorObjPtr);
+        Tcl_DecrRefCount(errorObjPtr);
+        return TCL_ERROR;
+    }
+    Tk_FreeSavedOptions(&savedOptions);
     return TCL_OK;
 }
 
