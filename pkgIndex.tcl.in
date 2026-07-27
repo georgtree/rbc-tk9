@@ -3,4 +3,5 @@ package ifneeded @PACKAGE_NAME@ @PACKAGE_VERSION@ [list apply {{dir} {
     package require Tk
     load [file join $dir @PKG_LIB_FILE@]
     source [file join $dir graph.tcl]
+    source [file join $dir graphtoolbar.tcl]
 }} $dir]

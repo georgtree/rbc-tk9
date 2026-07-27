@@ -1,0 +1,717 @@
+package require rbc
+namespace import rbc::*
+package require tcltest
+namespace import tcltest::*
+
+set atol 0.01
+set rtol 1e-2
+
+proc containsNumber {value} {
+    if {[string is double -strict $value]} {
+        return true
+    }
+    if {[catch {llength $value} len]} {
+        return false
+    }
+    # Single-element and empty values are treated as atoms here.
+    if {$len<=1} {
+        return false
+    }
+    for {set i 0} {$i<$len} {incr i} {
+        if {[containsNumber [lindex $value $i]]} {
+            return true
+        }
+    }
+    return false
+}
+
+proc approxNestedEqual {a b} {
+    variable atol
+    variable rtol
+    set aIsNum [string is double -strict $a]
+    set bIsNum [string is double -strict $b]
+    # Numeric atoms: approximate comparison
+    if {$aIsNum && $bIsNum} {
+        return [expr {abs($a-$b)<=($atol+$rtol*abs($b))}]
+    }
+    # One numeric, one non-numeric
+    if {$aIsNum!=$bIsNum} {
+        return false
+    }
+    set aHasNum [containsNumber $a]
+    set bHasNum [containsNumber $b]
+    # If neither side contains numbers, compare as exact strings.
+    # This preserves spaces, tabs, etc.
+    if {!$aHasNum && !$bHasNum} {
+        return [string equal $a $b]
+    }
+    # If only one side contains numeric structure, they differ.
+    if {$aHasNum != $bHasNum} {
+        return false
+    }
+    # Both contain numbers somewhere, so compare structurally as lists.
+    if {[catch {llength $a} lenA]} {
+        return false
+    }
+    if {[catch {llength $b} lenB]} {
+        return false
+    }
+    if {$lenA != $lenB} {
+        return false
+    }
+    for {set i 0} {$i<$lenA} {incr i} {
+        set elemA [lindex $a $i]
+        set elemB [lindex $b $i]
+        if {![approxNestedEqual $elemA $elemB]} {
+            return false
+        }
+    }
+    return true
+}
+
+proc uniqkey {} {
+	set key [expr {pow(2,31)+[clock clicks]}]
+    set key [string range $key end-8 end-3]
+    set key [clock seconds]$key
+    return $key
+}
+
+proc sleep {ms} {
+    set uniq [uniqkey]
+    set ::__sleep__tmp__$uniq 0
+    after $ms set ::__sleep__tmp__$uniq 1
+    vwait ::__sleep__tmp__$uniq
+    unset ::__sleep__tmp__$uniq
+}
+
+proc FindAxisPoint {graph axis side} {
+    # Finds coordinates of provided axis for selected graph widget on certain side
+    update idletasks
+    set left [$graph extents leftmargin]
+    set top [$graph extents topmargin]
+    set width [$graph extents plotwidth]
+    set height [$graph extents plotheight]
+    switch -- $side {
+        bottom {
+            set x [expr {$left + $width / 2}]
+            set y [expr {$top + $height}]
+            set dx 0
+            set dy 1
+            set count [expr {[winfo height $graph] - $y}]
+        }
+        top {
+            set x [expr {$left + $width / 2}]
+            set y $top
+            set dx 0
+            set dy -1
+            set count [expr {$top + 1}]
+        }
+        left {
+            set x $left
+            set y [expr {$top + $height / 2}]
+            set dx -1
+            set dy 0
+            set count [expr {$left + 1}]
+        }
+        right {
+            set x [expr {$left+$width}]
+            set y [expr {$top+$height/2}]
+            set dx 1
+            set dy 0
+            set count [expr {[winfo width $graph]-$x}]
+        }
+        default {
+            return -code error "Unknown axis side '$side'"
+        }
+    }
+    for {set i 0} {$i < $count} {incr i} {
+        event generate $graph <Motion> -x $x -y $y
+        update idletasks
+        if {([$graph axis get current] eq $axis) && ([$graph axis get detail] eq {line})} {
+            return [list $x $y]
+        }
+        incr x $dx
+        incr y $dy
+    }
+    return -code error "Could not find line of axis '$axis'"
+}
+
+proc GenerateGraphEvent {graph sequence x y time args} {
+    sleep $time
+    event generate $graph $sequence -x $x -y $y {*}$args
+    update
+}
+
+proc WaitForWindow {window} {
+    if {![winfo exists $window]} {
+        return -code error "Window '$window' does not exist"
+    }
+    if {![winfo viewable $window]} {
+        tkwait visibility $window
+    }
+    update idletasks
+    return [expr {[winfo viewable $window] && ([winfo width $window] > 1) && ([winfo height $window] > 1)}]
+}
+
+customMatch approxEqual approxNestedEqual
+
+testConstraint isInteractive true
+testConstraint isZoom true
+testConstraint isCrosshairs true
+
+
+### general configuration tests
+rbc::vector create xVec1 yVec1 xVec2 yVec2
+xVec1 set {0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0}
+yVec1 set {26.18 50.46 72.85 93.31 111.86 128.47 143.14 155.85 166.60 175.38}
+xVec2 set {0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0}
+yVec2 set {16.18 60.46 82.85 103.31 121.86 138.47 153.14 165.85 176.60 185.38}
+
+
+test generalConfiguration-1 {names subcommand} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+} -body {
+    $widget names
+} -result {makeSnapshotBut postScriptDialogBut graph toolbarFrame removeAllMarkersBut} -cleanup {
+    destroy $widget
+}
+
+test generalConfiguration-2 {names subcommand} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400 -zoom]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+} -body {
+    $widget names
+} -result {revertZoomBut makeSnapshotBut postScriptDialogBut graph toolbarFrame resetZoomBut removeAllMarkersBut}\
+        -cleanup {
+    destroy $widget
+}
+
+test generalConfiguration-3 {names subcommand} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400 -zoom -crosshairs]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+} -body {
+    $widget names
+} -result {revertZoomBut crosshairsComBox makeSnapshotBut postScriptDialogBut graph toolbarFrame resetZoomBut\
+                   removeAllMarkersBut} -cleanup {
+    destroy $widget
+}
+
+test generalConfiguration-4 {subwidget subcommand} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+} -body {
+    $widget subwidget graph
+} -result {.gtb.graph} -cleanup {
+    destroy $widget
+}
+
+test generalConfiguration-5 {subwidget subcommand} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+} -body {
+    catch {$widget subwidget graph1} errorStr
+    return $errorStr
+} -result {Widget with name 'graph1' does not exist in a list of availible subwidgets} -cleanup {
+    destroy $widget
+}
+
+test generalConfiguration-7 {graph subcommand} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+} -body {
+    $widget graph element create line1 -xdata xVec1 -ydata yVec1
+    $widget graph element cget line1 -xdata
+} -result {::xVec1} -cleanup {
+    destroy $widget
+}
+
+test generalConfiguration-8 {widgetcommand subcommand} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+} -body {
+    $widget widgetcommand graph element create line1 -xdata xVec1 -ydata yVec1
+    $widget widgetcommand graph element cget line1 -xdata
+} -result {::xVec1} -cleanup {
+    destroy $widget
+}
+
+test generalConfiguration-9 {options configuration} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400 -zoom -zoomboxopts {-linewidth 2}]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+} -body {
+    $widget configure -zoomboxopts
+} -result {-linewidth 2 -dashes 4 -xor yes} -cleanup {
+    destroy $widget
+}
+
+test generalConfiguration-10 {options configuration} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400 -zoom -zoommark\
+                        -zoommarkopts {-font {Helvetica 10}}]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+} -body {
+    $widget configure -zoommarkopts
+} -result {-font {Helvetica 10} -anchor ne -bg {} -justify left} -cleanup {
+    destroy $widget
+}
+
+test generalConfiguration-11 {options configuration} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400 -zoom -zoommark\
+                        -zoomtitleopts {-font {Helvetica 15}}]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+} -body {
+    $widget configure -zoomtitleopts
+} -result {-font {Helvetica 15} -foreground black -shadow yellow4 -anchor nw -coords {-Inf Inf}} -cleanup {
+    destroy $widget
+}
+
+test generalConfiguration-12 {options configuration} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400  -crosshairs -crosshairsopts {-color red}]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+} -body {
+    $widget configure -crosshairsopts
+} -result {-color red -linewidth 1 -dashes {}} -cleanup {
+    destroy $widget
+}
+
+test generalConfiguration-13 {options configuration} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400 -crosshairs\
+                        -crosshairsmarkopts {-font {Helvetica 15}}]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+} -body {
+    $widget configure -crosshairsmarkopts
+} -result {-font {Helvetica 15} -anchor nw -bg {} -justify left} -cleanup {
+    destroy $widget
+}
+
+### interactive features tests
+set winSize {-width 400 -height 400}
+set titleFont {-font {Helvetica 10}}
+
+#### zoom
+test zoomInteractive-1 {interactive single-stage zoom} -match approxEqual -constraints {isInteractive isZoom} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
+                        -zoomboxopts {-linewidth 1}]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+    $widget graph configure -title {Interactive single-stage zoom} {*}$titleFont
+    $widget graph element create line1 -xdata xVec1 -ydata yVec1
+    $widget graph element create line2 -xdata xVec2 -ydata yVec2
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lappend limits {*}[$widget graph axis limits x] {*}[$widget graph axis limits y]
+    set leftMargin [$widget graph extents leftmargin]
+    set topMargin [$widget graph extents topmargin]
+    set plotWidth [$widget graph extents plotwidth]
+    set plotHeight [$widget graph extents plotheight]
+    set aXPointBox [expr {$leftMargin+$plotWidth/3}]
+    set aYPointBox [expr {$topMargin+$plotHeight/3}]
+    set bXPointBox [expr {$leftMargin+$plotWidth*2/3}]
+    set bYPointBox [expr {$topMargin+$plotHeight*2/3}]
+    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox 500
+    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox 500
+    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox 500
+    GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox 500
+    lappend limits {*}[$widget widgetcommand graph axis limits x] {*}[$widget widgetcommand graph axis limits y]
+    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox 500
+    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox 500
+    lappend limits {*}[$widget graph axis limits x] {*}[$widget widgetcommand graph axis limits y]
+    return $limits
+}  -result {0.2 2.0 16.18 185.38 0.7658536585365854 1.395121951219512 72.92390243902437 132.2470731707317 0.2 2.0 16.18\
+                    185.38} -cleanup {
+    destroy $widget
+}
+
+test zoomInteractive-2 {interactive multi-stage zoom} -match approxEqual -constraints {isInteractive isZoom} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
+                        -zoomboxopts {-linewidth 1}]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+    $widget graph configure -title {Interactive multi-stage zoom} {*}$titleFont
+    $widget graph element create line1 -xdata xVec1 -ydata yVec1
+    $widget graph element create line2 -xdata xVec2 -ydata yVec2
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lappend limits {*}[$widget graph axis limits x] {*}[$widget graph axis limits y]
+    set leftMargin [$widget graph extents leftmargin]
+    set topMargin [$widget graph extents topmargin]
+    set plotWidth [$widget graph extents plotwidth]
+    set plotHeight [$widget graph extents plotheight]
+    set aXPointBox [expr {$leftMargin+$plotWidth/3}]
+    set aYPointBox [expr {$topMargin+$plotHeight/3}]
+    set bXPointBox [expr {$leftMargin+$plotWidth*2/3}]
+    set bYPointBox [expr {$topMargin+$plotHeight*2/3}]
+    for {set i 0} {$i<3} {incr i} {
+        GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox 500
+        GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox 500
+        GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox 500
+        GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox 500
+        lappend limits {*}[$widget graph axis limits x] {*}[$widget widgetcommand graph axis limits y]
+    }
+    for {set i 0} {$i<3} {incr i} {
+        GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox 500
+        GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox 500
+        lappend limits {*}[$widget graph axis limits x] {*}[$widget widgetcommand graph axis limits y]
+    }
+    return $limits
+} -result {0.2 2.0 16.18 185.38 0.7658536585365854 1.395121951219512 72.92390243902437 132.2470731707317 0.2 2.0 16.18\
+185.38 0.2 2.0 16.18 185.38 0.7658536585365854 1.395121951219512 72.92390243902437 132.2470731707317 0.9636724172119769\
+1.1836605195320244 92.81886823319451 113.6181506543724 1.0328285686188212 1.109734978372984 99.79423733785782\
+107.08666867455129 0.9636724172119769 1.1836605195320244 92.81886823319451 113.6181506543724 0.7658536585365854\
+1.395121951219512 72.92390243902437 132.2470731707317 0.2 2.0 16.18 185.38} -cleanup {
+    destroy $widget
+}
+
+test zoomInteractive-3 {interactive single-stage zoom with no title} -constraints {isInteractive isZoom} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoommark\
+                        -zoomboxopts {-linewidth 1}]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+    $widget graph configure -title {Interactive single-stage zoom with no title} {*}$titleFont
+    $widget graph element create line1 -xdata xVec1 -ydata yVec1
+    $widget graph element create line2 -xdata xVec2 -ydata yVec2
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    set leftMargin [$widget graph extents leftmargin]
+    set topMargin [$widget graph extents topmargin]
+    set plotWidth [$widget graph extents plotwidth]
+    set plotHeight [$widget graph extents plotheight]
+    set aXPointBox [expr {$leftMargin+$plotWidth/3}]
+    set aYPointBox [expr {$topMargin+$plotHeight/3}]
+    set bXPointBox [expr {$leftMargin+$plotWidth*2/3}]
+    set bYPointBox [expr {$topMargin+$plotHeight*2/3}]
+    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox 500
+    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox 500
+    set titleExistence [$widget graph marker exists gtbZoomTitle]
+    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox 500
+    GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox 500
+    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox 500
+    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox 500
+    return $titleExistence
+}  -result 0 -cleanup {
+    destroy $widget
+}
+
+test zoomInteractive-4 {interactive single-stage zoom with no zoom marker} -constraints {isInteractive isZoom} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomboxopts\
+                        {-linewidth 1}]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+    $widget graph configure -title {Interactive single-stage zoom with no zoom marker} {*}$titleFont
+    $widget graph element create line1 -xdata xVec1 -ydata yVec1
+    $widget graph element create line2 -xdata xVec2 -ydata yVec2
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    set leftMargin [$widget graph extents leftmargin]
+    set topMargin [$widget graph extents topmargin]
+    set plotWidth [$widget graph extents plotwidth]
+    set plotHeight [$widget graph extents plotheight]
+    set aXPointBox [expr {$leftMargin+$plotWidth/3}]
+    set aYPointBox [expr {$topMargin+$plotHeight/3}]
+    set bXPointBox [expr {$leftMargin+$plotWidth*2/3}]
+    set bYPointBox [expr {$topMargin+$plotHeight*2/3}]
+    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox 500
+    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox 500
+    set markerExistence [$widget graph marker exists gtbZoomText_A]
+    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox 500
+    GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox 500
+    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox 500
+    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox 500
+    return $markerExistence
+}  -result 0 -cleanup {
+    destroy $widget
+}
+
+#### crosshairs
+test crosshairsInteractive-1 {interactive crosshairs with current coordinate marker}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+            $widget graph configure -title {Interactive crosshairs with current coordinate marker} {*}$titleFont
+    $widget graph element create line1 -xdata xVec1 -ydata yVec1
+    $widget graph element create line2 -xdata xVec2 -ydata yVec2
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    set leftMargin [$widget graph extents leftmargin]
+    set topMargin [$widget graph extents topmargin]
+    set plotWidth [$widget graph extents plotwidth]
+    set plotHeight [$widget graph extents plotheight]
+    set aXPointBox [expr {$leftMargin+$plotWidth/3}]
+    set aYPointBox [expr {$topMargin+$plotHeight/3}]
+    set bXPointBox [expr {$leftMargin+$plotWidth*2/3}]
+    set bYPointBox [expr {$topMargin+$plotHeight*2/3}]
+    set steps 100
+    set xlist [lseq $aXPointBox to $bXPointBox by [expr {($bXPointBox-$aXPointBox)/double($steps)}]]
+    set ylist [lseq $aYPointBox to $bYPointBox by [expr {($bYPointBox-$aYPointBox)/double($steps)}]]
+    set markerExistence 1
+    foreach x $xlist y $ylist {
+        GenerateGraphEvent $graph <Motion> $x $y 5
+        set markerExistence [expr {[$widget graph marker exists cursorText] && $markerExistence}]
+    }
+    return $markerExistence
+}  -result 1 -cleanup {
+    destroy $widget
+}
+
+test crosshairsInteractive-2 {interactive crosshairs with closes element coordinate marker}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+    $widget graph configure -title {Interactive crosshairs with closes element coordinate marker} {*}$titleFont
+    $widget graph element create line1 -xdata xVec1 -ydata yVec1
+    $widget graph element create line2 -xdata xVec2 -ydata yVec2
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    set leftMargin [$widget graph extents leftmargin]
+    set topMargin [$widget graph extents topmargin]
+    set plotWidth [$widget graph extents plotwidth]
+    set plotHeight [$widget graph extents plotheight]
+    set aXPointBox [expr {$leftMargin+$plotWidth/3}]
+    set aYPointBox [expr {$topMargin+$plotHeight/3}]
+    set bXPointBox [expr {$leftMargin+$plotWidth*2/3}]
+    set bYPointBox [expr {$topMargin+$plotHeight*2/3}]
+    set steps 100
+    set xlist [lseq $aXPointBox to $bXPointBox by [expr {($bXPointBox-$aXPointBox)/double($steps)}]]
+    set ylist [lseq $aYPointBox to $bYPointBox by [expr {($bYPointBox-$aYPointBox)/double($steps)}]]
+    set markerCount 0
+    foreach x $xlist y $ylist {
+        GenerateGraphEvent $graph <Motion> $x $y 5
+        if {[$widget graph marker exists cursorText]} {
+            incr markerCount
+        }
+    }
+    return $markerCount
+}  -result 21 -cleanup {
+    destroy $widget
+}
+
+test crosshairsInteractive-3 {interactive crosshairs with no marker}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode none]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+    $widget graph configure -title {Interactive crosshairs with no marker} {*}$titleFont
+    $widget graph element create line1 -xdata xVec1 -ydata yVec1
+    $widget graph element create line2 -xdata xVec2 -ydata yVec2
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    set leftMargin [$widget graph extents leftmargin]
+    set topMargin [$widget graph extents topmargin]
+    set plotWidth [$widget graph extents plotwidth]
+    set plotHeight [$widget graph extents plotheight]
+    set aXPointBox [expr {$leftMargin+$plotWidth/3}]
+    set aYPointBox [expr {$topMargin+$plotHeight/3}]
+    set bXPointBox [expr {$leftMargin+$plotWidth*2/3}]
+    set bYPointBox [expr {$topMargin+$plotHeight*2/3}]
+    set steps 100
+    set xlist [lseq $aXPointBox to $bXPointBox by [expr {($bXPointBox-$aXPointBox)/double($steps)}]]
+    set ylist [lseq $aYPointBox to $bYPointBox by [expr {($bYPointBox-$aYPointBox)/double($steps)}]]
+    set markerExistence 1
+    foreach x $xlist y $ylist {
+        GenerateGraphEvent $graph <Motion> $x $y 5
+        set markerExistence [expr {[$widget graph marker exists cursorText] && $markerExistence}]
+    }
+    return $markerExistence
+}  -result 0 -cleanup {
+    destroy $widget
+}
+
+test crosshairsInteractive-4 {interactive crosshairs with closest element coordinate marker, larger halo}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-halo 30}]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+    $widget graph configure -title {Interactive crosshairs with closest element coordinate marker, larger halo}\
+            {*}$titleFont
+    $widget graph element create line1 -xdata xVec1 -ydata yVec1
+    $widget graph element create line2 -xdata xVec2 -ydata yVec2
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    set leftMargin [$widget graph extents leftmargin]
+    set topMargin [$widget graph extents topmargin]
+    set plotWidth [$widget graph extents plotwidth]
+    set plotHeight [$widget graph extents plotheight]
+    set aXPointBox [expr {$leftMargin+$plotWidth/3}]
+    set aYPointBox [expr {$topMargin+$plotHeight/3}]
+    set bXPointBox [expr {$leftMargin+$plotWidth*2/3}]
+    set bYPointBox [expr {$topMargin+$plotHeight*2/3}]
+    set steps 100
+    set xlist [lseq $aXPointBox to $bXPointBox by [expr {($bXPointBox-$aXPointBox)/double($steps)}]]
+    set ylist [lseq $aYPointBox to $bYPointBox by [expr {($bYPointBox-$aYPointBox)/double($steps)}]]
+    set markerCount 0
+    foreach x $xlist y $ylist {
+        GenerateGraphEvent $graph <Motion> $x $y 5
+        if {[$widget graph marker exists cursorText]} {
+            incr markerCount
+        }
+    }
+    return $markerCount
+}  -result 46 -cleanup {
+    destroy $widget
+}
+
+test crosshairsInteractive-5 {interactive crosshairs with closes element coordinate marker, multiple elements}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-single no}]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+    $widget graph configure -title {Interactive crosshairs with closest element coordinate marker, multiple elements}\
+            {*}$titleFont
+    $widget graph element create line1 -xdata xVec1 -ydata yVec1
+    $widget graph element create line2 -xdata xVec2 -ydata yVec2
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    set leftMargin [$widget graph extents leftmargin]
+    set topMargin [$widget graph extents topmargin]
+    set plotWidth [$widget graph extents plotwidth]
+    set plotHeight [$widget graph extents plotheight]
+    set aXPointBox [expr {$leftMargin+$plotWidth/3}]
+    set aYPointBox [expr {$topMargin+$plotHeight/3}]
+    set bXPointBox [expr {$leftMargin+$plotWidth*2/3}]
+    set bYPointBox [expr {$topMargin+$plotHeight*2/3}]
+    set steps 100
+    set xlist [lseq $aXPointBox to $bXPointBox by [expr {($bXPointBox-$aXPointBox)/double($steps)}]]
+    set ylist [lseq $aYPointBox to $bYPointBox by [expr {($bYPointBox-$aYPointBox)/double($steps)}]]
+    set markerCount0 0
+    set markerCount1 0
+    foreach x $xlist y $ylist {
+        GenerateGraphEvent $graph <Motion> $x $y 5
+        if {[$widget graph marker exists cursorText0]} {
+            incr markerCount0
+        }
+        if {[$widget graph marker exists cursorText1]} {
+            incr markerCount1
+        }
+    }
+    return [list $markerCount0 $markerCount1]
+}  -result {21 4} -cleanup {
+    destroy $widget
+}
+
+test crosshairsInteractive-6 {interactive crosshairs with closes element coordinate marker, no interpolaton}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-interpolate no -halo 30}]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+    $widget graph configure -title {Interactive crosshairs with closes element coordinate marker} {*}$titleFont
+    $widget graph element create line1 -xdata xVec1 -ydata yVec1
+    $widget graph element create line2 -xdata xVec2 -ydata yVec2
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    set leftMargin [$widget graph extents leftmargin]
+    set topMargin [$widget graph extents topmargin]
+    set plotWidth [$widget graph extents plotwidth]
+    set plotHeight [$widget graph extents plotheight]
+    set aXPointBox [expr {$leftMargin+$plotWidth/3}]
+    set aYPointBox [expr {$topMargin+$plotHeight/3}]
+    set bXPointBox [expr {$leftMargin+$plotWidth*2/3}]
+    set bYPointBox [expr {$topMargin+$plotHeight*2/3}]
+    set steps 100
+    set xlist [lseq $aXPointBox to $bXPointBox by [expr {($bXPointBox-$aXPointBox)/double($steps)}]]
+    set ylist [lseq $aYPointBox to $bYPointBox by [expr {($bYPointBox-$aYPointBox)/double($steps)}]]
+    set markerCount 0
+    set prevCoords [list]
+    foreach x $xlist y $ylist {
+        GenerateGraphEvent $graph <Motion> $x $y 5
+        if {[$widget graph marker exists cursorText]} {
+            set coords [$widget graph marker configure cursorText -coords]
+            if {$coords ne $prevCoords} {
+                incr markerCount
+            }
+            set prevCoords $coords
+        }
+    }
+    return $markerCount
+}  -result 2 -cleanup {
+    destroy $widget
+}
+
+cleanupTests
+
+# test RBC.element.show.A.1.1 {
+#     element show: single element name
+# } -setup {
+#     set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400 -zoom -zoommod {Control-} -zoomtitle -zoommark\
+#                         -zoomboxopts {-outline red -linewidth 1} -crosshairs -crosshairsmode current -crosshairsopts {-color blue}\
+#                         -crosshairsmarkopts {-font {Helvetica 10}} -crosshairsclosestopts {-interpolate yes -single no}\
+#                         -scaletoggle all]
+#     grid .gtb -row 0 -column 0 -sticky nsew
+#     grid columnconfigure . 0 -weight 1
+#     grid rowconfigure . 0 -weight 1
+#     $widget widgetcommand graph element create line1 -xdata { 0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0 }\
+#             -ydata {26.18 50.46 72.85 93.31 111.86 128.47 143.14 155.85 166.60 175.38}
+#     $widget widgetcommand graph element create line2 -xdata { 0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0 }\
+#             -ydata {16.18 60.46 82.85 103.31 121.86 138.47 153.14 165.85 176.60 185.38}
+#     set graph [$widget subwidget graph]
+#     set axis x
+#     set side bottom
+# } -body {
+#     WaitForWindow $graph
+#     lassign [FindAxisPoint $graph $axis $side] axisX axisY
+#     set plotX [expr {[$graph extents leftmargin] + [$graph extents plotwidth] / 2}]
+#     set plotY [expr {[$graph extents topmargin] + [$graph extents plotheight] / 2}]
+#     puts "Initial logscale: \ [lindex [$graph axis configure $axis -logscale] end]"
+#     sleep 500 
+#     GenerateGraphEvent $graph <Motion> $axisX $axisY
+#     sleep 1500 
+#     GenerateGraphEvent $graph <ButtonPress-1> $axisX $axisY -button 1
+#     sleep 1520 
+#     GenerateGraphEvent $graph <ButtonRelease-1> $axisX $axisY -button 1
+#     sleep 2000 
+#     puts "Current logscale: \ [lindex [$graph axis configure $axis -logscale] end]"
+#     sleep 3000 
+#     GenerateGraphEvent $graph <Motion> $plotX $plotY
+# } -cleanup {
+#     destroy $widget
+# } -result {Element1}
+
+
