@@ -298,13 +298,25 @@ static void GraphEventProc(ClientData clientData, register XEvent *eventPtr) {
         }
     } else if (eventPtr->type == DestroyNotify) {
         if (graphPtr->tkwin != NULL) {
+            /*
+             * Modern Tk option resources must be released while the
+             * component's Tk window is still valid.
+             */
+            if (graphPtr->gridPtr != NULL) {
+                Rbc_DestroyGrid(graphPtr);
+            }
+
             Rbc_DeleteWindowInstanceData(graphPtr->tkwin);
+
             graphPtr->tkwin = NULL;
+
             Tcl_DeleteCommandFromToken(graphPtr->interp, graphPtr->cmdToken);
         }
+
         if (graphPtr->flags & REDRAW_PENDING) {
             Tcl_CancelIdleCall(DisplayGraph, graphPtr);
         }
+
         Tcl_EventuallyFree(graphPtr, DestroyGraph);
     } else if (eventPtr->type == ConfigureNotify) {
         graphPtr->flags |= (MAP_WORLD | REDRAW_WORLD);
@@ -334,15 +346,21 @@ static void GraphEventProc(ClientData clientData, register XEvent *eventPtr) {
 static void GraphInstCmdDeleteProc(ClientData clientData) {
     Graph *graphPtr = clientData;
 
-    if (graphPtr->tkwin != NULL) { /* NULL indicates window has
-                                    * already been destroyed. */
+    if (graphPtr->tkwin != NULL) {
         Tk_Window tkwin;
 
         tkwin = graphPtr->tkwin;
+
+        if (graphPtr->gridPtr != NULL) {
+            Rbc_DestroyGrid(graphPtr);
+        }
+
         graphPtr->tkwin = NULL;
+
 #ifdef ITCL_NAMESPACES
         Itk_SetWidgetCommand(tkwin, (Tcl_Command)NULL);
-#endif /* ITCL_NAMESPACES */
+#endif
+
         Rbc_DeleteWindowInstanceData(tkwin);
         Tk_DestroyWindow(tkwin);
     }
@@ -773,7 +791,9 @@ static void DestroyGraph(DestroyData dataPtr) {
      */
     Rbc_DestroyMarkers(graphPtr);
     Rbc_DestroyElements(graphPtr);
-
+    if (graphPtr->gridPtr != NULL) {
+        Rbc_DestroyGrid(graphPtr);
+    }
     Rbc_DestroyAxes(graphPtr);
     Rbc_DestroyPens(graphPtr);
 
@@ -786,13 +806,9 @@ static void DestroyGraph(DestroyData dataPtr) {
     if (graphPtr->crosshairs != NULL) {
         Rbc_DestroyCrosshairs(graphPtr);
     }
-    if (graphPtr->gridPtr != NULL) {
-        Rbc_DestroyGrid(graphPtr);
-    }
     if (graphPtr->bindTable != NULL) {
         Rbc_DestroyBindingTable(graphPtr->bindTable);
     }
-
     /* Release allocated X resources and memory. */
     if (graphPtr->drawGC != NULL) {
         Tk_FreeGC(graphPtr->display, graphPtr->drawGC);

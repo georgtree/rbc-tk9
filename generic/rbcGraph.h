@@ -235,23 +235,37 @@ typedef struct {
  * -------------------------------------------------------------------
  */
 typedef struct {
+    /*
+     * Modern Tk option state.
+     */
+    Tk_OptionTable optionTable;
+
+    /*
+     * Original Tcl option values. These are owned and reference-counted
+     * by Tk_InitOptions(), Tk_SetOptions(), and Tk_FreeConfigOptions().
+     */
+    Tcl_Obj *dashesObjPtr;
+    Tcl_Obj *lineWidthObjPtr;
+    Tcl_Obj *mapXObjPtr;
+    Tcl_Obj *mapYObjPtr;
+
+    /*
+     * Derived/internal state.
+     */
     GC gc; /* Graphics context for the grid. */
     Axis2D axes;
-    int hidden;        /* If non-zero, grid isn't displayed. */
-    int minorGrid;     /* If non-zero, draw grid line for minor
-                        * axis ticks too */
-    Rbc_Dashes dashes; /* Dashstyle of the grid. This represents
-                        * an array of alternatingly drawn pixel
-                        * values. */
-    int lineWidth;     /* Width of the grid lines */
-    XColor *colorPtr;  /* Color of the grid lines */
+
+    int hidden;    /* If non-zero, grid isn't displayed. */
+    int minorGrid; /* If non-zero, draw minor grid lines. */
+
+    Rbc_Dashes dashes; /* Parsed dash pattern. */
+    int lineWidth;     /* Line width in pixels. */
+    XColor *colorPtr;  /* Grid colour. */
 
     struct GridSegments {
-        Segment2D *segments; /* Array of line segments representing the
-                              * x or y grid lines */
-        int nSegments;       /* # of axis segments. */
+        Segment2D *segments;
+        int nSegments;
     } x, y;
-
 } Grid;
 
 /*

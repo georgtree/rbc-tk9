@@ -532,6 +532,7 @@ int Rbc_ConfigureWidgetComponent (Tcl_Interp *interp,
 */
 int Rbc_ConfigureWidgetComponent(Tcl_Interp *interp, Tk_Window tkwin, char *name, char *class, Tk_ConfigSpec *specs,
                                  int objc, Tcl_Obj *const objv[], char *widgRec, int flags);
+Tk_Window Rbc_FindChild(Tk_Window parent, const char *name);
 
 int Rbc_MaxRequestSize(Display *display, unsigned int elemSize);
 

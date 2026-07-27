@@ -285,7 +285,7 @@ namespace eval graph.grid {
 		.graph1 grid cget -linewidth
 	} -cleanup {
 		destroy .graph1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the grid configure -linewidth command works correctly when given an
@@ -569,6 +569,67 @@ namespace eval graph.grid {
 	} -cleanup {
 		destroy .graph1
 	} -result {0}
+
+    test RBC.graph.grid.configure.A.rollback.1 {
+        grid configuration is atomic
+    } -setup {
+        graph .graph1
+        set oldColor [.graph1 grid cget -color]
+        set oldMapX  [.graph1 grid cget -mapx]
+    } -body {
+        set code [catch {.graph1 grid configure -color red -mapx noSuchAxis} message]
+
+        expr {$code == 1 && [.graph1 grid cget -color] eq $oldColor && [.graph1 grid cget -mapx] eq $oldMapX &&\
+                      [string match {*can't find axis*} $message]}
+    } -cleanup {
+        destroy .graph1
+    } -result 1
+
+    test RBC.graph.grid.configure.A.destroy.1 {
+        grid modern option resource lifetime
+    } -body {
+        for {set i 0} {$i < 100} {incr i} {
+            graph .graph1
+            .graph1 grid configure -color red -dashes dashdot -linewidth 2m -mapx x2 -mapy y2
+            destroy .graph1
+        }
+        return ok
+    } -cleanup {
+        catch {destroy .graph1}
+    } -result ok
+
+    test RBC.graph.grid.configure.A.linewidth.1 {
+        grid cget preserves pixel representation
+    } -setup {
+        graph .graph1
+    } -body {
+        .graph1 grid configure -linewidth 2m
+        .graph1 grid cget -linewidth
+    } -cleanup {
+        destroy .graph1
+    } -result 2m
+
+    test RBC.graph.grid.configure.A.dashes.1 {
+        grid cget preserves named dash pattern
+    } -setup {
+        graph .graph1
+    } -body {
+        .graph1 grid configure -dashes dashdot
+        .graph1 grid cget -dashes
+    } -cleanup {
+        destroy .graph1
+    } -result dashdot
+
+    test RBC.graph.grid.configure.A.dashes.2 {
+        grid accepts dash expressions as list elements
+    } -setup {
+        graph .graph1
+    } -body {
+        .graph1 grid configure -dashes {1+1 2*2 3}
+        .graph1 grid cget -dashes
+    } -cleanup {
+        destroy .graph1
+    } -result {1+1 2*2 3}
 
 	cleanupTests
 }

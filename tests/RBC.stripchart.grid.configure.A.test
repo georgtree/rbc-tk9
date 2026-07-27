@@ -285,7 +285,7 @@ namespace eval stripchart.grid {
 		.stripchart1 grid cget -linewidth
 	} -cleanup {
 		destroy .stripchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the grid configure -linewidth command works correctly when given an
@@ -569,6 +569,66 @@ namespace eval stripchart.grid {
 	} -cleanup {
 		destroy .stripchart1
 	} -result {0}
+
+    test RBC.stripchart.grid.configure.A.rollback.1 {
+        grid configuration is atomic
+    } -setup {
+        stripchart .stripchart1
+        set oldColor [.stripchart1 grid cget -color]
+        set oldMapX  [.stripchart1 grid cget -mapx]
+    } -body {
+        set code [catch {.stripchart1 grid configure -color red -mapx noSuchAxis} message]
+        expr {$code == 1 && [.stripchart1 grid cget -color] eq $oldColor && [.stripchart1 grid cget -mapx] eq $oldMapX &&\
+                      [string match {*can't find axis*} $message]}
+    } -cleanup {
+        destroy .stripchart1
+    } -result 1
+
+    test RBC.stripchart.grid.configure.A.destroy.1 {
+        grid modern option resource lifetime
+    } -body {
+        for {set i 0} {$i < 100} {incr i} {
+            stripchart .stripchart1
+            .stripchart1 grid configure -color red -dashes dashdot -linewidth 2m -mapx x2 -mapy y2
+            destroy .stripchart1
+        }
+        return ok
+    } -cleanup {
+        catch {destroy .stripchart1}
+    } -result ok
+
+    test RBC.stripchart.grid.configure.A.linewidth.1 {
+        grid cget preserves pixel representation
+    } -setup {
+        stripchart .stripchart1
+    } -body {
+        .stripchart1 grid configure -linewidth 2m
+        .stripchart1 grid cget -linewidth
+    } -cleanup {
+        destroy .stripchart1
+    } -result 2m
+
+    test RBC.stripchart.grid.configure.A.dashes.1 {
+        grid cget preserves named dash pattern
+    } -setup {
+        stripchart .stripchart1
+    } -body {
+        .stripchart1 grid configure -dashes dashdot
+        .stripchart1 grid cget -dashes
+    } -cleanup {
+        destroy .stripchart1
+    } -result dashdot
+
+    test RBC.stripchart.grid.configure.A.dashes.2 {
+        grid accepts dash expressions as list elements
+    } -setup {
+        stripchart .stripchart1
+    } -body {
+        .stripchart1 grid configure -dashes {1+1 2*2 3}
+        .stripchart1 grid cget -dashes
+    } -cleanup {
+        destroy .stripchart1
+    } -result {1+1 2*2 3}
 
 	cleanupTests
 }

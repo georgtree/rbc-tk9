@@ -3507,6 +3507,25 @@ static void FreeAxis(Graph *graphPtr, Axis *axisPtr) {
     }
 }
 
+int Rbc_GetAxisFromObj(Graph *graphPtr, Tcl_Obj *objPtr, Rbc_Uid classUid, int allowEmpty, Axis **axisPtrPtr) {
+    if ((objPtr == NULL) || (Tcl_GetCharLength(objPtr) == 0)) {
+        if (!allowEmpty) {
+            Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("axis name may not be empty", -1));
+            *axisPtrPtr = NULL;
+            return TCL_ERROR;
+        }
+        *axisPtrPtr = NULL;
+        return TCL_OK;
+    }
+    return GetAxis(graphPtr, Tcl_GetString(objPtr), classUid, axisPtrPtr);
+}
+
+void Rbc_FreeAxisReference(Graph *graphPtr, Axis *axisPtr) {
+    if (axisPtr != NULL) {
+        FreeAxis(graphPtr, axisPtr);
+    }
+}
+
 /*
  *----------------------------------------------------------------------
  *

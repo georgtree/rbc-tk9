@@ -1302,7 +1302,7 @@ int Rbc_ConfigModified(Tcl_Interp *interp, Tk_ConfigSpec *specs, ...) {
  *
  *----------------------------------------------------------------------
  */
-Tk_Window FindChild(Tk_Window parent, const char *name) {
+Tk_Window Rbc_FindChild(Tk_Window parent, const char *name) {
     Tcl_Obj *pathNamePtr;
     Tk_Window result;
 
@@ -1372,7 +1372,7 @@ int Rbc_ConfigureWidgetComponent(Tcl_Interp *interp, Tk_Window parent, char resN
      * Create component if a child window by the component's name
      * doesn't already exist.
      */
-    tkwin = FindChild(parent, tempName);
+    tkwin = Rbc_FindChild(parent, tempName);
     if (tkwin == NULL) {
         tkwin = Tk_CreateWindow(interp, parent, tempName, (char *)NULL);
         isTemporary = TRUE;

@@ -285,7 +285,7 @@ namespace eval barchart.grid {
 		.barchart1 grid cget -linewidth
 	} -cleanup {
 		destroy .barchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the grid configure -linewidth command works correctly when given an
@@ -569,6 +569,67 @@ namespace eval barchart.grid {
 	} -cleanup {
 		destroy .barchart1
 	} -result {0}
+
+    test RBC.barchart.grid.configure.A.rollback.1 {
+        grid configuration is atomic
+    } -setup {
+        barchart .barchart1
+        set oldColor [.barchart1 grid cget -color]
+        set oldMapX  [.barchart1 grid cget -mapx]
+    } -body {
+        set code [catch {.barchart1 grid configure -color red -mapx noSuchAxis} message]
+
+        expr {$code == 1 && [.barchart1 grid cget -color] eq $oldColor && [.barchart1 grid cget -mapx] eq $oldMapX &&\
+                      [string match {*can't find axis*} $message]}
+    } -cleanup {
+        destroy .barchart1
+    } -result 1
+
+    test RBC.barchart.grid.configure.A.destroy.1 {
+        grid modern option resource lifetime
+    } -body {
+        for {set i 0} {$i < 100} {incr i} {
+            barchart .barchart1
+            .barchart1 grid configure -color red -dashes dashdot -linewidth 2m -mapx x2 -mapy y2
+            destroy .barchart1
+        }
+        return ok
+    } -cleanup {
+        catch {destroy .barchart1}
+    } -result ok
+
+    test RBC.barchart.grid.configure.A.linewidth.1 {
+        grid cget preserves pixel representation
+    } -setup {
+        barchart .barchart1
+    } -body {
+        .barchart1 grid configure -linewidth 2m
+        .barchart1 grid cget -linewidth
+    } -cleanup {
+        destroy .barchart1
+    } -result 2m
+
+    test RBC.barchart.grid.configure.A.dashes.1 {
+        grid cget preserves named dash pattern
+    } -setup {
+        barchart .barchart1
+    } -body {
+        .barchart1 grid configure -dashes dashdot
+        .barchart1 grid cget -dashes
+    } -cleanup {
+        destroy .barchart1
+    } -result dashdot
+
+    test RBC.barchart.grid.configure.A.dashes.2 {
+        grid accepts dash expressions as list elements
+    } -setup {
+        barchart .barchart1
+    } -body {
+        .barchart1 grid configure -dashes {1+1 2*2 3}
+        .barchart1 grid cget -dashes
+    } -cleanup {
+        destroy .barchart1
+    } -result {1+1 2*2 3}
 
 	cleanupTests
 }

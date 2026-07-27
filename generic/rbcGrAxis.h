@@ -289,5 +289,8 @@ typedef struct {
     Axis *x, *y;
 } Axis2D;
 
+int Rbc_GetAxisFromObj(Graph *graphPtr, Tcl_Obj *objPtr, Rbc_Uid classUid, int allowEmpty, Axis **axisPtrPtr);
+void Rbc_FreeAxisReference(Graph *graphPtr, Axis *axisPtr);
+
 
 #endif /* _RBCGRAXIS */
