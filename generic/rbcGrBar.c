@@ -1124,7 +1124,6 @@ static void InitPen(BarPen *penPtr) {
 
     Rbc_InitTextStyle(&penPtr->valueStyle);
 
-    corePtr->configSpecs = NULL;
     corePtr->optionSpecs = NULL;
     corePtr->optionTable = NULL;
 
@@ -1177,8 +1176,6 @@ Pen *Rbc_BarPen(char *penName) {
      * Named bar pens use the modern API. Embedded element pens never
      * pass through this constructor and remain legacy.
      */
-    corePtr->configSpecs = NULL;
-
     if (strcmp(penName, "activeBar") == 0) {
         corePtr->flags = ACTIVE_PEN;
 

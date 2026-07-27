@@ -17,7 +17,6 @@ static Tk_OptionPrintProc ColorToString;
 static Tk_OptionParseProc StringToPen;
 static Tk_OptionPrintProc PenToString;
 Tk_CustomOption rbcColorOption = {StringToColor, ColorToString, (ClientData)0};
-Tk_CustomOption rbcPenOption = {StringToPen, PenToString, (ClientData)0};
 Tk_CustomOption rbcBarPenOption = {StringToPen, PenToString, (ClientData)&rbcBarElementUid};
 Tk_CustomOption rbcLinePenOption = {StringToPen, PenToString, (ClientData)&rbcLineElementUid};
 
@@ -33,9 +32,7 @@ static RbcGrPenOp DeleteOp;
 static RbcGrPenOp NamesOp;
 static RbcGrPenOp TypeOp;
 
-static int PenUsesModernOptions(const Pen *penPtr) { return (penPtr->optionSpecs != NULL); }
-
-static int InitModernPenOptions(Graph *graphPtr, Pen *penPtr) {
+static int InitPenOptions(Graph *graphPtr, Pen *penPtr) {
     char *componentName;
     int result;
 
@@ -65,12 +62,11 @@ static int InitModernPenOptions(Graph *graphPtr, Pen *penPtr) {
     return TCL_OK;
 }
 
-static int ConfigureModernPen(Graph *graphPtr, Pen *penPtr, int objc, Tcl_Obj *const objv[]) {
+static int ConfigurePenOptions(Graph *graphPtr, Pen *penPtr, int objc, Tcl_Obj *const objv[]) {
     Tk_SavedOptions savedOptions;
     Tcl_Obj *errorObjPtr;
     int mask;
 
-    assert(PenUsesModernOptions(penPtr));
     assert(penPtr->optionsInitialized);
     if (Tk_SetOptions(graphPtr->interp, (char *)penPtr, penPtr->optionTable, objc, objv, graphPtr->tkwin, &savedOptions,
                       &mask) != TCL_OK) {
@@ -93,14 +89,16 @@ static int ConfigureModernPen(Graph *graphPtr, Pen *penPtr, int objc, Tcl_Obj *c
     return TCL_OK;
 }
 
-static void ReleaseModernPenResources(Graph *graphPtr, Pen *penPtr) {
-    if ((!PenUsesModernOptions(penPtr)) || (!penPtr->optionsInitialized) || (penPtr->tkResourcesReleased)) {
+static void ReleasePenResources(Graph *graphPtr, Pen *penPtr) {
+    if ((!penPtr->optionsInitialized) || (penPtr->tkResourcesReleased)) {
         return;
     }
+    assert(penPtr->optionSpecs != NULL);
+    assert(graphPtr->tkwin != NULL);
+
     /*
-     * Release concrete GCs and manually owned resources before
-     * Tk_FreeConfigOptions() releases fonts, colours, borders, and
-     * other option-table resources they may refer to.
+     * Release GCs and manually managed derived resources before the
+     * Tk option table releases fonts, colours, borders, and bitmaps.
      */
     (*penPtr->destroyProc)(graphPtr, penPtr);
     Tk_FreeConfigOptions((char *)penPtr, penPtr->optionTable, graphPtr->tkwin);
@@ -114,7 +112,7 @@ void Rbc_ReleasePenTkResources(Graph *graphPtr) {
     for (hPtr = Tcl_FirstHashEntry(&graphPtr->penTable, &cursor); hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
         Pen *penPtr;
         penPtr = Tcl_GetHashValue(hPtr);
-        ReleaseModernPenResources(graphPtr, penPtr);
+        ReleasePenResources(graphPtr, penPtr);
     }
 }
 
@@ -363,21 +361,9 @@ notFound:
  *----------------------------------------------------------------------
  */
 static void DestroyPen(Graph *graphPtr, Pen *penPtr) {
-    if (PenUsesModernOptions(penPtr)) {
-        /*
-         * Normal deletion while the graph window is alive, or cleanup
-         * following a partially completed graph construction.
-         */
-        if ((!penPtr->tkResourcesReleased) && (graphPtr->tkwin != NULL)) {
-            ReleaseModernPenResources(graphPtr, penPtr);
-        }
-    } else {
-        /*
-         * Legacy pens continue using their original resource path.
-         */
-        Tk_FreeOptions(penPtr->configSpecs, (char *)penPtr, graphPtr->display, 0);
 
-        (*penPtr->destroyProc)(graphPtr, penPtr);
+    if ((!penPtr->tkResourcesReleased) && (graphPtr->tkwin != NULL)) {
+        ReleasePenResources(graphPtr, penPtr);
     }
 
     if ((penPtr->name != NULL) && (penPtr->name[0] != '\0')) {
@@ -440,23 +426,32 @@ void Rbc_FreePen(Graph *graphPtr, Pen *penPtr) {
  *----------------------------------------------------------------------
  */
 Pen *Rbc_CreatePen(Graph *graphPtr, char *penName, Rbc_Uid classUid, int nOpts, Tcl_Obj *const *options) {
-    Pen *penPtr;
+    Pen *penPtr = NULL;
     Tcl_HashEntry *hPtr;
-    unsigned int configFlags;
     int isNew;
-    register int i;
-    char *option;
-    Tcl_Size length;
+    int i;
 
     /*
-     * Scan the option list for a "-type" entry.  This will indicate
-     * what type of pen we are creating. Otherwise we'll default to the
-     * suggested type.  Last -type option wins.
+     * Scan the option list for "-type". This determines which concrete
+     * pen class should be created. Otherwise, use the class suggested
+     * by the graph type.
+     *
+     * The last "-type" option wins.
      */
-    for (i = 0; i < nOpts; i += 2) {
+    for (i = 0; (i + 1) < nOpts; i += 2) {
+        const char *option;
+        Tcl_Size length;
+
         option = Tcl_GetStringFromObj(options[i], &length);
-        if ((length > 2) && (strncmp(option, "-type", length) == 0)) {
-            char *arg = Tcl_GetString(options[i + 1]);
+
+        /*
+         * Accept unambiguous abbreviations beginning with "-ty".
+         */
+        if ((length >= 3) && (length <= 5) && (strncmp(option, "-type", (size_t)length) == 0)) {
+            const char *arg;
+
+            arg = Tcl_GetString(options[i + 1]);
+
             if (strcmp(arg, "bar") == 0) {
                 classUid = rbcBarElementUid;
             } else if (strcmp(arg, "line") == 0) {
@@ -465,85 +460,112 @@ Pen *Rbc_CreatePen(Graph *graphPtr, char *penName, Rbc_Uid classUid, int nOpts, 
                 classUid = rbcLineElementUid;
             } else {
                 Tcl_SetObjResult(graphPtr->interp, Tcl_ObjPrintf("unknown pen type \"%s\" specified", arg));
+
                 return NULL;
             }
         }
     }
+
+    /*
+     * Stripchart pens use the same concrete implementation as line
+     * pens.
+     */
     if (classUid == rbcStripElementUid) {
         classUid = rbcLineElementUid;
     }
-    hPtr = Tcl_CreateHashEntry(&(graphPtr->penTable), penName, &isNew);
+
+    /*
+     * Create the hash-table entry or retrieve an existing delete-pending
+     * pen with the same name.
+     */
+    hPtr = Tcl_CreateHashEntry(&graphPtr->penTable, penName, &isNew);
+
     if (!isNew) {
-        penPtr = (Pen *)Tcl_GetHashValue(hPtr);
+        penPtr = Tcl_GetHashValue(hPtr);
+
         if (!(penPtr->flags & PEN_DELETE_PENDING)) {
-            Tcl_AppendResult(graphPtr->interp, "pen \"", penName, "\" already exists in \"",
-                             Tk_PathName(graphPtr->tkwin), "\"", (char *)NULL);
+            Tcl_SetObjResult(graphPtr->interp, Tcl_ObjPrintf("pen \"%s\" already exists in \"%s\"", penName,
+                                                             Tk_PathName(graphPtr->tkwin)));
+
             return NULL;
         }
+
         if (penPtr->classUid != classUid) {
-            Tcl_AppendResult(graphPtr->interp, "pen \"", penName, "\" in-use: can't change pen type from \"",
-                             penPtr->classUid, "\" to \"", classUid, "\"", (char *)NULL);
+            Tcl_SetObjResult(graphPtr->interp, Tcl_ObjPrintf("pen \"%s\" in-use: can't change pen type "
+                                                             "from \"%s\" to \"%s\"",
+                                                             penName, penPtr->classUid, classUid));
+
             return NULL;
         }
+
+        /*
+         * Revive the delete-pending pen.
+         */
         penPtr->flags &= ~PEN_DELETE_PENDING;
     } else {
+        /*
+         * Construct a new concrete named pen.
+         */
         if (classUid == rbcBarElementUid) {
             penPtr = Rbc_BarPen(penName);
         } else {
             penPtr = Rbc_LinePen(penName);
         }
+
+        if (penPtr == NULL) {
+            Tcl_DeleteHashEntry(hPtr);
+            return NULL;
+        }
+
         penPtr->classUid = classUid;
         penPtr->hashPtr = hPtr;
+
         Tcl_SetHashValue(hPtr, penPtr);
     }
 
-    if (PenUsesModernOptions(penPtr)) {
-        if (isNew) {
-            if (InitModernPenOptions(graphPtr, penPtr) != TCL_OK) {
-                DestroyPen(graphPtr, penPtr);
+    assert(penPtr != NULL);
+    assert(penPtr->optionSpecs != NULL);
 
-                return NULL;
-            }
+    /*
+     * A newly allocated pen needs its Tk option record initialised.
+     * A revived delete-pending pen already has an initialised option
+     * record.
+     */
+    if (isNew) {
+        if (InitPenOptions(graphPtr, penPtr) != TCL_OK) {
+            DestroyPen(graphPtr, penPtr);
+
+            return NULL;
         }
+    }
 
-        if (nOpts > 0) {
-            if (ConfigureModernPen(graphPtr, penPtr, nOpts, options) != TCL_OK) {
-                if (isNew) {
-                    DestroyPen(graphPtr, penPtr);
-                }
-
-                return NULL;
-            }
-        } else {
-            /*
-             * Tk_InitOptions() installed defaults, but the concrete
-             * drawing resources still need to be constructed.
-             */
-            if ((*penPtr->configProc)(graphPtr, penPtr) != TCL_OK) {
-                if (isNew) {
-                    DestroyPen(graphPtr, penPtr);
-                }
-
-                return NULL;
-            }
-        }
-    } else {
-        configFlags = penPtr->flags & (ACTIVE_PEN | NORMAL_PEN);
-
-        if (Rbc_ConfigureWidgetComponent(graphPtr->interp, graphPtr->tkwin, penPtr->name, "Pen", penPtr->configSpecs,
-                                         nOpts, options, (char *)penPtr, configFlags) != TCL_OK) {
+    if (nOpts > 0) {
+        /*
+         * Apply explicitly supplied options transactionally.
+         */
+        if (ConfigurePenOptions(graphPtr, penPtr, nOpts, options) != TCL_OK) {
             if (isNew) {
                 DestroyPen(graphPtr, penPtr);
             }
 
             return NULL;
         }
-
+    } else {
         /*
-         * Preserve the current legacy behaviour. The existing code does
-         * not propagate a ConfigurePen() failure here.
+         * Tk_InitOptions() installed the default option values, but
+         * the concrete pen still needs its derived GCs and other
+         * drawing resources constructed.
+         *
+         * This also refreshes the derived resources of a revived
+         * delete-pending pen.
          */
-        (void)(*penPtr->configProc)(graphPtr, penPtr);
+        if ((*penPtr->configProc)(graphPtr, penPtr) != TCL_OK) {
+            if (isNew) {
+                DestroyPen(graphPtr, penPtr);
+            }
+
+            return NULL;
+        }
     }
 
     return penPtr;
@@ -648,29 +670,18 @@ void Rbc_DestroyPens(Graph *graphPtr) {
  */
 static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     Pen *penPtr;
+    Tcl_Obj *resultObjPtr;
 
     penPtr = NameToPen(graphPtr, objv[3]);
-
     if (penPtr == NULL) {
         return TCL_ERROR;
     }
-
-    if (PenUsesModernOptions(penPtr)) {
-        Tcl_Obj *resultObjPtr;
-
-        resultObjPtr = Tk_GetOptionValue(interp, (char *)penPtr, penPtr->optionTable, objv[4], graphPtr->tkwin);
-
-        if (resultObjPtr == NULL) {
-            return TCL_ERROR;
-        }
-
-        Tcl_SetObjResult(interp, resultObjPtr);
-
-        return TCL_OK;
+    resultObjPtr = Tk_GetOptionValue(interp, (char *)penPtr, penPtr->optionTable, objv[4], graphPtr->tkwin);
+    if (resultObjPtr == NULL) {
+        return TCL_ERROR;
     }
-
-    return Tk_ConfigureValue(interp, graphPtr->tkwin, penPtr->configSpecs, (char *)penPtr, Tcl_GetString(objv[4]),
-                             penPtr->flags & (ACTIVE_PEN | NORMAL_PEN));
+    Tcl_SetObjResult(interp, resultObjPtr);
+    return TCL_OK;
 }
 
 /*
@@ -696,7 +707,6 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const 
  * ----------------------------------------------------------------------
  */
 static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    int flags;
     Pen *penPtr;
     int nNames, nOpts;
     int redraw;
@@ -721,46 +731,36 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *c
 
     redraw = 0;
     for (i = 0; i < nNames; i++) {
+        Tcl_Obj *resultObjPtr;
+
         penPtr = NameToPen(graphPtr, objv[i]);
-        if (PenUsesModernOptions(penPtr)) {
-            Tcl_Obj *resultObjPtr;
-            if (nOpts == 0) {
-                resultObjPtr = Tk_GetOptionInfo(interp, (char *)penPtr, penPtr->optionTable, NULL, graphPtr->tkwin);
-                if (resultObjPtr == NULL) {
-                    return TCL_ERROR;
-                }
-                Tcl_SetObjResult(interp, resultObjPtr);
-                return TCL_OK;
+
+        if (nOpts == 0) {
+            resultObjPtr = Tk_GetOptionInfo(interp, (char *)penPtr, penPtr->optionTable, NULL, graphPtr->tkwin);
+
+            if (resultObjPtr == NULL) {
+                return TCL_ERROR;
             }
-            if (nOpts == 1) {
-                resultObjPtr =
-                    Tk_GetOptionInfo(interp, (char *)penPtr, penPtr->optionTable, options[0], graphPtr->tkwin);
-                if (resultObjPtr == NULL) {
-                    return TCL_ERROR;
-                }
-                Tcl_SetObjResult(interp, resultObjPtr);
-                return TCL_OK;
+
+            Tcl_SetObjResult(interp, resultObjPtr);
+
+            return TCL_OK;
+        }
+
+        if (nOpts == 1) {
+            resultObjPtr = Tk_GetOptionInfo(interp, (char *)penPtr, penPtr->optionTable, options[0], graphPtr->tkwin);
+
+            if (resultObjPtr == NULL) {
+                return TCL_ERROR;
             }
-            if (ConfigureModernPen(graphPtr, penPtr, nOpts, options) != TCL_OK) {
-                break;
-            }
-        } else {
-            flags = TK_CONFIG_ARGV_ONLY | (penPtr->flags & (ACTIVE_PEN | NORMAL_PEN));
-            if (nOpts == 0) {
-                return Tk_ConfigureInfo(interp, graphPtr->tkwin, penPtr->configSpecs, (char *)penPtr, NULL, flags);
-            }
-            if (nOpts == 1) {
-                return Tk_ConfigureInfo(interp, graphPtr->tkwin, penPtr->configSpecs, (char *)penPtr,
-                                        Tcl_GetString(options[0]), flags);
-            }
-            if (Tk_ConfigureWidget(interp, graphPtr->tkwin, penPtr->configSpecs, nOpts, options, (char *)penPtr,
-                                   flags) != TCL_OK) {
-                break;
-            }
-            /*
-             * Preserve existing legacy behaviour.
-             */
-            (void)(*penPtr->configProc)(graphPtr, penPtr);
+
+            Tcl_SetObjResult(interp, resultObjPtr);
+
+            return TCL_OK;
+        }
+
+        if (ConfigurePenOptions(graphPtr, penPtr, nOpts, options) != TCL_OK) {
+            break;
         }
 
         if (penPtr->refCount > 0) {

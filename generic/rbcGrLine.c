@@ -2298,7 +2298,6 @@ static void InitPen(LinePen *penPtr) {
 
     Rbc_InitTextStyle(&penPtr->valueStyle);
 
-    corePtr->configSpecs = NULL;
     corePtr->optionSpecs = NULL;
     corePtr->optionTable = NULL;
 
@@ -2355,8 +2354,6 @@ Pen *Rbc_LinePen(char *penName) {
     corePtr = &penPtr->core;
 
     corePtr->name = RbcStrdup(penName);
-
-    corePtr->configSpecs = NULL;
 
     if (strcmp(penName, "activeLine") == 0) {
         corePtr->flags = ACTIVE_PEN;

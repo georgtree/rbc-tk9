@@ -158,27 +158,9 @@ struct PenStruct {
     int refCount;
     Tcl_HashEntry *hashPtr;
 
-    /*
-     * Legacy option configuration.
-     *
-     * This remains non-NULL while the concrete pen class uses the
-     * Tk_ConfigSpec API.
-     */
-    Tk_ConfigSpec *configSpecs;
-
-    /*
-     * Modern option configuration.
-     *
-     * optionSpecs is non-NULL only for a pen class migrated to the
-     * Tk_OptionSpec API. optionTable is created from optionSpecs for
-     * each interpreter.
-     */
     const Tk_OptionSpec *optionSpecs;
     Tk_OptionTable optionTable;
 
-    /*
-     * Lifecycle state for modern Tk-managed option resources.
-     */
     int optionsInitialized;
     int tkResourcesReleased;
 
