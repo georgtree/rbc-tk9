@@ -308,6 +308,9 @@ static void GraphEventProc(ClientData clientData, register XEvent *eventPtr) {
             if (graphPtr->crosshairs != NULL) {
                 Rbc_DestroyCrosshairs(graphPtr);
             }
+            if (graphPtr->postscript != NULL) {
+                Rbc_DestroyPostScript(graphPtr);
+            }
 
             Rbc_DeleteWindowInstanceData(graphPtr->tkwin);
 
@@ -356,6 +359,12 @@ static void GraphInstCmdDeleteProc(ClientData clientData) {
 
         if (graphPtr->gridPtr != NULL) {
             Rbc_DestroyGrid(graphPtr);
+        }
+        if (graphPtr->crosshairs != NULL) {
+            Rbc_DestroyCrosshairs(graphPtr);
+        }
+        if (graphPtr->postscript != NULL) {
+            Rbc_DestroyPostScript(graphPtr);
         }
 
         graphPtr->tkwin = NULL;

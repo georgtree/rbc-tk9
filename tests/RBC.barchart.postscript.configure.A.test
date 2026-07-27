@@ -168,7 +168,7 @@ namespace eval barchart.postscript {
 	    .barchart1 postscript cget -colormode
 	} -cleanup {
 	    destroy .barchart1
-	} -result {greyscale}
+	} -result {gray}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure that the colormode configuration works for greyscale mode
@@ -198,7 +198,7 @@ namespace eval barchart.postscript {
 	    .barchart1 postscript cget -colormode
 	} -cleanup {
 	    destroy .barchart1
-	} -result {monochrome}
+	} -result {mono}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure that the colormode configuration works for monochrome mode
@@ -645,7 +645,7 @@ namespace eval barchart.postscript {
 		.barchart1 postscript cget -padx
 	} -cleanup {
 		destroy .barchart1
-	} -result {2 2}
+	} -result {2}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the postscript configure -padx command works correctly when given an
@@ -680,7 +680,7 @@ namespace eval barchart.postscript {
 		.barchart1 postscript cget -padx
 	} -cleanup {
 		destroy .barchart1
-	} -result {4 4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the postscript configure -padx command works correctly when given an
@@ -788,7 +788,7 @@ namespace eval barchart.postscript {
 		.barchart1 postscript cget -padx
 	} -cleanup {
 		destroy .barchart1
-	} -result {0 0}
+	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the postscript configure -pady command works correctly when given an
@@ -804,7 +804,7 @@ namespace eval barchart.postscript {
 		.barchart1 postscript cget -pady
 	} -cleanup {
 		destroy .barchart1
-	} -result {2 2}
+	} -result {2}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the postscript configure -pady command works correctly when given an
@@ -839,7 +839,7 @@ namespace eval barchart.postscript {
 		.barchart1 postscript cget -pady
 	} -cleanup {
 		destroy .barchart1
-	} -result {4 4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the postscript configure -pady command works correctly when given an
@@ -947,7 +947,7 @@ namespace eval barchart.postscript {
 		.barchart1 postscript cget -pady
 	} -cleanup {
 		destroy .barchart1
-	} -result {0 0}
+	} -result {0}
 	
 		
 	# ------------------------------------------------------------------------------------
@@ -999,7 +999,7 @@ namespace eval barchart.postscript {
 		.barchart1 postscript cget -paperheight
 	} -cleanup {
 		destroy .barchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the postscript configure -paperheight command works correctly when 
@@ -1107,7 +1107,7 @@ namespace eval barchart.postscript {
 		.barchart1 postscript cget -paperwidth
 	} -cleanup {
 		destroy .barchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the postscript configure -paperwidth command works correctly when 
@@ -1215,7 +1215,7 @@ namespace eval barchart.postscript {
 		.barchart1 postscript cget -width
 	} -cleanup {
 		destroy .barchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the postscript configure -width command works correctly when 
@@ -1505,6 +1505,55 @@ namespace eval barchart.postscript {
 	# Purpose: Ensure that the preview format configuration works for valid formats
 	# FIXME: I have no idea how to do this.
 	# ------------------------------------------------------------------------------------
+
+    test RBC.barchart.postscript.configure.A.rollback.1 {
+        barchart postscript: atomic configuration rollback
+    } -setup {
+        barchart .barchart1
+        pack .barchart1
+        set oldCenter [.barchart1 postscript cget -center]
+        set oldPadX [.barchart1 postscript cget -padx]
+    } -body {
+        set code [catch {.barchart1 postscript configure -center no -padx {-1 2}} message]
+
+        list $code [expr {[.barchart1 postscript cget -center] eq $oldCenter}]\
+                [expr {[.barchart1 postscript cget -padx] eq $oldPadX}] [string match {*can't be negative*} $message]
+    } -cleanup {
+        destroy .barchart1
+        unset -nocomplain oldCenter oldPadX code message
+    } -result {1 1 1 1}
+
+    test RBC.barchart.postscript.configure.A.rollback.2 {
+        barchart postscript: positive paper dimensions
+    } -setup {
+        barchart .barchart1
+        pack .barchart1
+        set oldWidth [.barchart1 postscript cget -width]
+        set oldPaperWidth [.barchart1 postscript cget -paperwidth]
+    } -body {
+        set code [catch {.barchart1 postscript configure -width 2i -paperwidth 0} message]
+
+        list $code [expr {[.barchart1 postscript cget -width] eq $oldWidth}]\
+                [expr {[.barchart1 postscript cget -paperwidth] eq $oldPaperWidth}]
+    } -cleanup {
+        destroy .barchart1
+        unset -nocomplain oldWidth oldPaperWidth code message
+    } -result {1 1 1}
+
+    test RBC.barchart.postscript.configure.A.lifetime.1 {
+        barchart postscript: modern option resource lifetime
+    } -body {
+        for {set i 0} {$i < 100} {incr i} {
+            barchart .barchart1
+            pack .barchart1
+            .barchart1 postscript configure -colormode gray -width 3.5i -height 2i -paperwidth 8.5i -paperheight 11i -padx\
+                    {0.5i 1i} -pady 0.75i -previewformat epsi
+            destroy .barchart1
+        }
+        return ok
+    } -cleanup {
+        catch {destroy .barchart1}
+    } -result ok
 	
 	cleanupTests
 }

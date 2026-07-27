@@ -177,6 +177,23 @@ typedef enum { PS_MONO_BACKGROUND, PS_MONO_FOREGROUND } MonoAttribute;
  *
  */
 typedef struct {
+    /*
+     * Modern Tk option state.
+     */
+    Tk_OptionTable optionTable;
+
+    /*
+     * Original Tcl representations.
+     */
+    Tcl_Obj *colorModeObjPtr;
+    Tcl_Obj *heightObjPtr;
+    Tcl_Obj *padXObjPtr;
+    Tcl_Obj *padYObjPtr;
+    Tcl_Obj *paperHeightObjPtr;
+    Tcl_Obj *paperWidthObjPtr;
+    Tcl_Obj *previewFormatObjPtr;
+    Tcl_Obj *widthObjPtr;
+    
     /* User configurable fields */
 
     int decorations; /* If non-zero, print graph with

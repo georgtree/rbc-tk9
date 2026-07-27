@@ -168,7 +168,7 @@ namespace eval graph.postscript {
 	    .graph1 postscript cget -colormode
 	} -cleanup {
 	    destroy .graph1
-	} -result {greyscale}
+	} -result {gray}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure that the colormode configuration works for greyscale mode
@@ -198,7 +198,7 @@ namespace eval graph.postscript {
 	    .graph1 postscript cget -colormode
 	} -cleanup {
 	    destroy .graph1
-	} -result {monochrome}
+	} -result {mono}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure that the colormode configuration works for monochrome mode
@@ -645,7 +645,7 @@ namespace eval graph.postscript {
 		.graph1 postscript cget -padx
 	} -cleanup {
 		destroy .graph1
-	} -result {2 2}
+	} -result {2}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the postscript configure -padx command works correctly when given an
@@ -680,7 +680,7 @@ namespace eval graph.postscript {
 		.graph1 postscript cget -padx
 	} -cleanup {
 		destroy .graph1
-	} -result {4 4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the postscript configure -padx command works correctly when given an
@@ -788,7 +788,7 @@ namespace eval graph.postscript {
 		.graph1 postscript cget -padx
 	} -cleanup {
 		destroy .graph1
-	} -result {0 0}
+	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the postscript configure -pady command works correctly when given an
@@ -804,7 +804,7 @@ namespace eval graph.postscript {
 		.graph1 postscript cget -pady
 	} -cleanup {
 		destroy .graph1
-	} -result {2 2}
+	} -result {2}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the postscript configure -pady command works correctly when given an
@@ -839,7 +839,7 @@ namespace eval graph.postscript {
 		.graph1 postscript cget -pady
 	} -cleanup {
 		destroy .graph1
-	} -result {4 4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the postscript configure -pady command works correctly when given an
@@ -947,7 +947,7 @@ namespace eval graph.postscript {
 		.graph1 postscript cget -pady
 	} -cleanup {
 		destroy .graph1
-	} -result {0 0}
+	} -result {0}
 	
 		
 	# ------------------------------------------------------------------------------------
@@ -999,7 +999,7 @@ namespace eval graph.postscript {
 		.graph1 postscript cget -paperheight
 	} -cleanup {
 		destroy .graph1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the postscript configure -paperheight command works correctly when 
@@ -1107,7 +1107,7 @@ namespace eval graph.postscript {
 		.graph1 postscript cget -paperwidth
 	} -cleanup {
 		destroy .graph1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the postscript configure -paperwidth command works correctly when 
@@ -1215,7 +1215,7 @@ namespace eval graph.postscript {
 		.graph1 postscript cget -width
 	} -cleanup {
 		destroy .graph1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the postscript configure -width command works correctly when 
@@ -1505,6 +1505,55 @@ namespace eval graph.postscript {
 	# Purpose: Ensure that the preview format configuration works for valid formats
 	# FIXME: I have no idea how to do this.
 	# ------------------------------------------------------------------------------------
+
+    test RBC.graph.postscript.configure.A.rollback.1 {
+        graph postscript: atomic configuration rollback
+    } -setup {
+        graph .graph1
+        pack .graph1
+        set oldCenter [.graph1 postscript cget -center]
+        set oldPadX [.graph1 postscript cget -padx]
+    } -body {
+        set code [catch {.graph1 postscript configure -center no -padx {-1 2}} message]
+
+        list $code [expr {[.graph1 postscript cget -center] eq $oldCenter}]\
+                [expr {[.graph1 postscript cget -padx] eq $oldPadX}] [string match {*can't be negative*} $message]
+    } -cleanup {
+        destroy .graph1
+        unset -nocomplain oldCenter oldPadX code message
+    } -result {1 1 1 1}
+
+    test RBC.graph.postscript.configure.A.rollback.2 {
+        graph postscript: positive paper dimensions
+    } -setup {
+        graph .graph1
+        pack .graph1
+        set oldWidth [.graph1 postscript cget -width]
+        set oldPaperWidth [.graph1 postscript cget -paperwidth]
+    } -body {
+        set code [catch {.graph1 postscript configure -width 2i -paperwidth 0} message]
+
+        list $code [expr {[.graph1 postscript cget -width] eq $oldWidth}]\
+                [expr {[.graph1 postscript cget -paperwidth] eq $oldPaperWidth}]
+    } -cleanup {
+        destroy .graph1
+        unset -nocomplain oldWidth oldPaperWidth code message
+    } -result {1 1 1}
+
+    test RBC.graph.postscript.configure.A.lifetime.1 {
+        graph postscript: modern option resource lifetime
+    } -body {
+        for {set i 0} {$i < 100} {incr i} {
+            graph .graph1
+            pack .graph1
+            .graph1 postscript configure -colormode gray -width 3.5i -height 2i -paperwidth 8.5i -paperheight 11i -padx\
+                    {0.5i 1i} -pady 0.75i -previewformat epsi
+            destroy .graph1
+        }
+        return ok
+    } -cleanup {
+        catch {destroy .graph1}
+    } -result ok
 	
 	cleanupTests
 }

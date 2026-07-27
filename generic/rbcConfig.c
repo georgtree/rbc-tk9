@@ -354,6 +354,56 @@ int Rbc_GetPixelsFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *pixelsObj
 /*
  *----------------------------------------------------------------------
  *
+ * Rbc_GetPadFromObj --
+ *
+ *      Converts a Tcl list containing one or two screen distances
+ *      into an Rbc_Pad structure.
+ *
+ *      A single value applies to both sides. Two values specify the
+ *      two sides independently.
+ *
+ * Results:
+ *      Returns TCL_OK on success and TCL_ERROR on failure.
+ *
+ * Side Effects:
+ *      Updates *padPtr only after the complete value has been
+ *      successfully parsed.
+ *
+ *----------------------------------------------------------------------
+ */
+int Rbc_GetPadFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, Rbc_Pad *padPtr) {
+    Tcl_Obj **objv;
+    Tcl_Size objc;
+    Rbc_Pad newPad;
+    int value;
+
+    if (Tcl_ListObjGetElements(interp, objPtr, &objc, &objv) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if ((objc < 1) || (objc > 2)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("wrong # elements in padding list: "
+                                                  "should be one or two screen distances",
+                                                  -1));
+        return TCL_ERROR;
+    }
+    if (Rbc_GetPixelsFromObj(interp, tkwin, objv[0], PIXELS_NONNEGATIVE, &value) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    newPad.side1 = value;
+    newPad.side2 = value;
+    if (objc == 2) {
+        if (Rbc_GetPixelsFromObj(interp, tkwin, objv[1], PIXELS_NONNEGATIVE, &value) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        newPad.side2 = value;
+    }
+    *padPtr = newPad;
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
  * StringToDistance --
  *
  *      Like TK_CONFIG_PIXELS, but adds an extra check for negative

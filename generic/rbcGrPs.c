@@ -18,24 +18,6 @@
 #define PS_PREVIEW_WMF 1
 #define PS_PREVIEW_TIFF 2
 
-static Tk_OptionParseProc StringToColorMode;
-static Tk_OptionPrintProc ColorModeToString;
-static Tk_CustomOption colorModeOption = {
-    StringToColorMode,
-    ColorModeToString,
-    (ClientData)0,
-};
-static Tk_OptionParseProc StringToFormat;
-static Tk_OptionPrintProc FormatToString;
-static Tk_CustomOption formatOption = {
-    StringToFormat,
-    FormatToString,
-    (ClientData)0,
-};
-extern Tk_CustomOption rbcDistanceOption;
-extern Tk_CustomOption rbcPositiveDistanceOption;
-extern Tk_CustomOption rbcPadOption;
-
 #define DEF_PS_CENTER "yes"
 #define DEF_PS_COLOR_MAP (char *)NULL
 #define DEF_PS_COLOR_MODE "color"
@@ -53,38 +35,45 @@ extern Tk_CustomOption rbcPadOption;
 #define DEF_PS_PREVIEW_FORMAT "epsi"
 #define DEF_PS_WIDTH "0"
 
-static Tk_ConfigSpec configSpecs[] = {
-    {TK_CONFIG_BOOLEAN, "-center", "center", "Center", DEF_PS_CENTER, offsetof(PostScript, center),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_STRING, "-colormap", "colorMap", "ColorMap", DEF_PS_COLOR_MAP, offsetof(PostScript, colorVarName),
-     TK_CONFIG_NULL_OK},
-    {TK_CONFIG_CUSTOM, "-colormode", "colorMode", "ColorMode", DEF_PS_COLOR_MODE, offsetof(PostScript, colorMode),
-     TK_CONFIG_DONT_SET_DEFAULT, &colorModeOption},
-    {TK_CONFIG_BOOLEAN, "-decorations", "decorations", "Decorations", DEF_PS_DECORATIONS,
-     offsetof(PostScript, decorations), TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_STRING, "-fontmap", "fontMap", "FontMap", DEF_PS_FONT_MAP, offsetof(PostScript, fontVarName),
-     TK_CONFIG_NULL_OK},
-    {TK_CONFIG_BOOLEAN, "-footer", "footer", "Footer", DEF_PS_FOOTER, offsetof(PostScript, footer),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-height", "height", "Height", DEF_PS_HEIGHT, offsetof(PostScript, reqHeight),
-     TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_BOOLEAN, "-landscape", "landscape", "Landscape", DEF_PS_LANDSCAPE, offsetof(PostScript, landscape),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_BOOLEAN, "-maxpect", "maxpect", "Maxpect", DEF_PS_MAXPECT, offsetof(PostScript, maxpect),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-padx", "padX", "PadX", DEF_PS_PADX, offsetof(PostScript, padX), 0, &rbcPadOption},
-    {TK_CONFIG_CUSTOM, "-pady", "padY", "PadY", DEF_PS_PADY, offsetof(PostScript, padY), 0, &rbcPadOption},
-    {TK_CONFIG_CUSTOM, "-paperheight", "paperHeight", "PaperHeight", DEF_PS_PAPERHEIGHT,
-     offsetof(PostScript, reqPaperHeight), 0, &rbcPositiveDistanceOption},
-    {TK_CONFIG_CUSTOM, "-paperwidth", "paperWidth", "PaperWidth", DEF_PS_PAPERWIDTH,
-     offsetof(PostScript, reqPaperWidth), 0, &rbcPositiveDistanceOption},
-    {TK_CONFIG_BOOLEAN, "-preview", "preview", "Preview", DEF_PS_PREVIEW, offsetof(PostScript, addPreview),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-previewformat", "previewFormat", "PreviewFormat", DEF_PS_PREVIEW_FORMAT,
-     offsetof(PostScript, previewFormat), TK_CONFIG_DONT_SET_DEFAULT, &formatOption},
-    {TK_CONFIG_CUSTOM, "-width", "width", "Width", DEF_PS_WIDTH, offsetof(PostScript, reqWidth),
-     TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}};
+#define PS_DIMENSIONS_CHANGED     (1U << 0)
+#define PS_PADDING_CHANGED        (1U << 1)
+#define PS_COLOR_MODE_CHANGED     (1U << 2)
+#define PS_PREVIEW_FORMAT_CHANGED (1U << 3)
+#define PS_INITIALIZE_MASK                                                                                             \
+    (PS_DIMENSIONS_CHANGED | PS_PADDING_CHANGED | PS_COLOR_MODE_CHANGED | PS_PREVIEW_FORMAT_CHANGED)
+
+static const Tk_OptionSpec postScriptOptionSpecs[] = {
+    {TK_OPTION_BOOLEAN, "-center", "center", "Center", DEF_PS_CENTER, -1, offsetof(PostScript, center), 0, NULL, 0},
+    {TK_OPTION_STRING, "-colormap", "colorMap", "ColorMap", DEF_PS_COLOR_MAP, -1, offsetof(PostScript, colorVarName),
+     TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING, "-colormode", "colorMode", "ColorMode", DEF_PS_COLOR_MODE, offsetof(PostScript, colorModeObjPtr),
+     -1, 0, NULL, PS_COLOR_MODE_CHANGED},
+    {TK_OPTION_BOOLEAN, "-decorations", "decorations", "Decorations", DEF_PS_DECORATIONS, -1,
+     offsetof(PostScript, decorations), 0, NULL, 0},
+    {TK_OPTION_STRING, "-fontmap", "fontMap", "FontMap", DEF_PS_FONT_MAP, -1, offsetof(PostScript, fontVarName),
+     TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_BOOLEAN, "-footer", "footer", "Footer", DEF_PS_FOOTER, -1, offsetof(PostScript, footer), 0, NULL, 0},
+    {TK_OPTION_PIXELS, "-height", "height", "Height", DEF_PS_HEIGHT, offsetof(PostScript, heightObjPtr),
+     offsetof(PostScript, reqHeight), 0, NULL, PS_DIMENSIONS_CHANGED},
+    {TK_OPTION_BOOLEAN, "-landscape", "landscape", "Landscape", DEF_PS_LANDSCAPE, -1, offsetof(PostScript, landscape),
+     0, NULL, 0},
+    {TK_OPTION_BOOLEAN, "-maxpect", "maxpect", "Maxpect", DEF_PS_MAXPECT, -1, offsetof(PostScript, maxpect), 0, NULL,
+     0},
+    {TK_OPTION_STRING, "-padx", "padX", "PadX", DEF_PS_PADX, offsetof(PostScript, padXObjPtr), -1, 0, NULL,
+     PS_PADDING_CHANGED},
+    {TK_OPTION_STRING, "-pady", "padY", "PadY", DEF_PS_PADY, offsetof(PostScript, padYObjPtr), -1, 0, NULL,
+     PS_PADDING_CHANGED},
+    {TK_OPTION_PIXELS, "-paperheight", "paperHeight", "PaperHeight", DEF_PS_PAPERHEIGHT,
+     offsetof(PostScript, paperHeightObjPtr), offsetof(PostScript, reqPaperHeight), 0, NULL, PS_DIMENSIONS_CHANGED},
+    {TK_OPTION_PIXELS, "-paperwidth", "paperWidth", "PaperWidth", DEF_PS_PAPERWIDTH,
+     offsetof(PostScript, paperWidthObjPtr), offsetof(PostScript, reqPaperWidth), 0, NULL, PS_DIMENSIONS_CHANGED},
+    {TK_OPTION_BOOLEAN, "-preview", "preview", "Preview", DEF_PS_PREVIEW, -1, offsetof(PostScript, addPreview), 0, NULL,
+     0},
+    {TK_OPTION_STRING, "-previewformat", "previewFormat", "PreviewFormat", DEF_PS_PREVIEW_FORMAT,
+     offsetof(PostScript, previewFormatObjPtr), -1, 0, NULL, PS_PREVIEW_FORMAT_CHANGED},
+    {TK_OPTION_PIXELS, "-width", "width", "Width", DEF_PS_WIDTH, offsetof(PostScript, widthObjPtr),
+     offsetof(PostScript, reqWidth), 0, NULL, PS_DIMENSIONS_CHANGED},
+    {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 /* TODO: These do not belong here */
 extern void Rbc_MarkersToPostScript(Graph *graphPtr, PsToken psToken, int under);
@@ -113,224 +102,157 @@ static int GraphToPostScript(Graph *graphPtr, char *ident, PsToken psToken);
 static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, FILE *f);
 #endif
 
-/*
- *----------------------------------------------------------------------
- *
- * StringToColorMode --
- *
- *      Convert the string representation of a PostScript color mode
- *      into the enumerated type representing the color level:
- *
- *          PS_MODE_COLOR     - Full color
- *          PS_MODE_GREYSCALE      - Color converted to greyscale
- *          PS_MODE_MONOCHROME     - Only black and white
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tcl_Interp *interp - Interpreter to send results back to
- *      Tk_Window tkwin - Not used.
- *      const char *string - New value.
- *      char *widgRec - Widget record
- *      Tcl_Size offset - Offset of field in record
- *
- * Results:
- *      A standard Tcl result.  The color level is written into the
- *      page layout information structure.
- *
- * Side Effects:
- *      Future invocations of the "postscript" option will use this
- *      variable to determine how color information will be displayed
- *      in the PostScript output it produces.
- *
- *----------------------------------------------------------------------
- */
-static int StringToColorMode(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string,
-                             char *widgRec, Tcl_Size offset) {
-    PsColorMode *modePtr = (PsColorMode *)(widgRec + offset);
-    unsigned int length;
-    char c;
+static int IsOptionPrefix(const char *string, Tcl_Size length, const char *fullName) {
+    Tcl_Size fullLength;
 
-    c = string[0];
-    length = strlen(string);
-    if ((c == 'c') && (strncmp(string, "color", length) == 0)) {
+    fullLength = (Tcl_Size)strlen(fullName);
+    return ((length > 0) && (length <= fullLength) && (strncmp(string, fullName, (size_t)length) == 0));
+}
+
+static int GetColorModeFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, PsColorMode *modePtr) {
+    const char *string;
+    Tcl_Size length;
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+    if (IsOptionPrefix(string, length, "color")) {
         *modePtr = PS_MODE_COLOR;
-    } else if ((c == 'g') && (strncmp(string, "grayscale", length) == 0)) {
+    } else if (IsOptionPrefix(string, length, "grayscale") || IsOptionPrefix(string, length, "greyscale")) {
         *modePtr = PS_MODE_GREYSCALE;
-    } else if ((c == 'g') && (strncmp(string, "greyscale", length) == 0)) {
-        *modePtr = PS_MODE_GREYSCALE;
-    } else if ((c == 'm') && (strncmp(string, "monochrome", length) == 0)) {
+    } else if (IsOptionPrefix(string, length, "monochrome")) {
         *modePtr = PS_MODE_MONOCHROME;
     } else {
-        Tcl_AppendResult(interp, "bad color mode \"", string, "\": should be \
-\"color\", \"greyscale\", or \"monochrome\"",
-                         (char *)NULL);
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad color mode \"%s\": should be "
+                                               "\"color\", \"grayscale\", \"greyscale\", "
+                                               "or \"monochrome\"",
+                                               string));
         return TCL_ERROR;
     }
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * NameOfColorMode --
- *
- *      Convert the PostScript mode value into the string representing
- *      a valid color mode.
- *
- * Parameters:
- *      PsColorMode colorMode
- *
- * Results:
- *      The static string representing the color mode is returned.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static char *NameOfColorMode(PsColorMode colorMode) {
-    switch (colorMode) {
-    case PS_MODE_COLOR:
-        return "color";
-    case PS_MODE_GREYSCALE:
-        return "greyscale";
-    case PS_MODE_MONOCHROME:
-        return "monochrome";
-    default:
-        return "unknown color mode";
-    }
-}
+static int GetPreviewFormatFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *formatPtr) {
+    const char *string;
+    Tcl_Size length;
 
-/*
- *----------------------------------------------------------------------
- *
- * ColorModeToString --
- *
- *      Convert the current color mode into the string representing a
- *      valid color mode.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tk_Window tkwin - Not used.
- *      char *widgRec - Widget record
- *      Tcl_Size offset - field of colorMode in record
- *      Tcl_FreeProc **freeProcPtr - Not used.
- *
- * Results:
- *      The string representing the color mode is returned.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static const char *ColorModeToString(ClientData clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset,
-                                     Tcl_FreeProc **freeProcPtr) {
-    PsColorMode mode = *(PsColorMode *)(widgRec + offset);
-
-    return NameOfColorMode(mode);
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * StringToFormat --
- *
- *      Convert the string of the PostScript preview format into
- *      an enumerated type representing the desired format.  The
- *      available formats are:
- *
- *        PS_PREVIEW_WMF     - Windows Metafile.
- *        PS_PREVIEW_TIFF      - TIFF bitmap image.
- *        PS_PREVIEW_EPSI     - Device independent ASCII preview
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tcl_Interp *interp - Interpreter to send results back to
- *      Tk_Window tkwin - Not used.
- *      const char *string - New value.
- *      char *widgRec - Widget record
- *      Tcl_Size offset - Offset of field in record
- *
- * Results:
- *      A standard Tcl result.  The format is written into the
- *      page layout information structure.
- *
- * Side Effects:
- *      Future invocations of the "postscript" option will use this
- *      variable to determine how to format a preview image (if one
- *      is selected) when the PostScript output is produced.
- *
- *----------------------------------------------------------------------
- */
-static int StringToFormat(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string, char *widgRec,
-                          Tcl_Size offset) {
-    int *formatPtr = (int *)(widgRec + offset);
-    unsigned int length;
-    char c;
-
-    c = string[0];
-    length = strlen(string);
-    if ((c == 'c') && (strncmp(string, "epsi", length) == 0)) {
+    string = Tcl_GetStringFromObj(objPtr, &length);
+    if (IsOptionPrefix(string, length, "epsi")) {
         *formatPtr = PS_PREVIEW_EPSI;
 #ifdef WIN32
 #ifdef HAVE_TIFF_H
-    } else if ((c == 't') && (strncmp(string, "tiff", length) == 0)) {
+    } else if (IsOptionPrefix(string, length, "tiff")) {
         *formatPtr = PS_PREVIEW_TIFF;
-#endif /* HAVE_TIFF_H */
-    } else if ((c == 'w') && (strncmp(string, "wmf", length) == 0)) {
+#endif
+    } else if (IsOptionPrefix(string, length, "wmf")) {
         *formatPtr = PS_PREVIEW_WMF;
-#endif /* WIN32 */
+#endif
     } else {
-        Tcl_AppendResult(interp, "bad format \"", string, "\": should be ",
 #ifdef WIN32
 #ifdef HAVE_TIFF_H
-                         "\"tiff\" or ",
-#endif /* HAVE_TIFF_H */
-                         "\"wmf\" or ",
-#endif /* WIN32 */
-                         "\"epsi\"", (char *)NULL);
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad preview format \"%s\": should be "
+                                               "\"epsi\", \"wmf\", or \"tiff\"",
+                                               string));
+#else
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad preview format \"%s\": should be "
+                                               "\"epsi\" or \"wmf\"",
+                                               string));
+#endif
+#else
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad preview format \"%s\": should be "
+                                               "\"epsi\"",
+                                               string));
+#endif
         return TCL_ERROR;
     }
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * FormatToString --
- *
- *      Convert the preview format into the string representing its
- *      type.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tk_Window tkwin - Not used.
- *      char *widgRec - PostScript structure record
- *      Tcl_Size offset - field of colorMode in record
- *      Tcl_FreeProc **freeProcPtr - Not used.
- *
- * Results:
- *      The string representing the preview format is returned.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static const char *FormatToString(ClientData clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset,
-                                  Tcl_FreeProc **freeProcPtr) {
-    int format = *(int *)(widgRec + offset);
+static int ConfigurePostScript(Graph *graphPtr, PostScript *psPtr, int mask) {
+    Rbc_Pad newPadX;
+    Rbc_Pad newPadY;
+    PsColorMode newColorMode;
+    int newPreviewFormat;
+    int newReqWidth;
+    int newReqHeight;
+    int newReqPaperWidth;
+    int newReqPaperHeight;
 
-    switch (format) {
-    case PS_PREVIEW_EPSI:
-        return "epsi";
-    case PS_PREVIEW_WMF:
-        return "wmf";
-    case PS_PREVIEW_TIFF:
-        return "tiff";
+    newPadX = psPtr->padX;
+    newPadY = psPtr->padY;
+    newColorMode = psPtr->colorMode;
+    newPreviewFormat = psPtr->previewFormat;
+    newReqWidth = psPtr->reqWidth;
+    newReqHeight = psPtr->reqHeight;
+    newReqPaperWidth = psPtr->reqPaperWidth;
+    newReqPaperHeight = psPtr->reqPaperHeight;
+    /*
+     * Convert and validate into temporary values first.
+     */
+    if (mask & PS_DIMENSIONS_CHANGED) {
+        if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, psPtr->widthObjPtr, PIXELS_NONNEGATIVE,
+                                 &newReqWidth) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, psPtr->heightObjPtr, PIXELS_NONNEGATIVE,
+                                 &newReqHeight) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, psPtr->paperWidthObjPtr, PIXELS_POSITIVE,
+                                 &newReqPaperWidth) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, psPtr->paperHeightObjPtr, PIXELS_POSITIVE,
+                                 &newReqPaperHeight) != TCL_OK) {
+            return TCL_ERROR;
+        }
     }
-    return "?unknown preview format?";
+    if (mask & PS_PADDING_CHANGED) {
+        if (Rbc_GetPadFromObj(graphPtr->interp, graphPtr->tkwin, psPtr->padXObjPtr, &newPadX) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if (Rbc_GetPadFromObj(graphPtr->interp, graphPtr->tkwin, psPtr->padYObjPtr, &newPadY) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+    if (mask & PS_COLOR_MODE_CHANGED) {
+        if (GetColorModeFromObj(graphPtr->interp, psPtr->colorModeObjPtr, &newColorMode) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+    if (mask & PS_PREVIEW_FORMAT_CHANGED) {
+        if (GetPreviewFormatFromObj(graphPtr->interp, psPtr->previewFormatObjPtr, &newPreviewFormat) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+    /*
+     * Commit only after every conversion succeeds.
+     */
+    psPtr->reqWidth = newReqWidth;
+    psPtr->reqHeight = newReqHeight;
+    psPtr->reqPaperWidth = newReqPaperWidth;
+    psPtr->reqPaperHeight = newReqPaperHeight;
+    psPtr->padX = newPadX;
+    psPtr->padY = newPadY;
+    psPtr->colorMode = newColorMode;
+    psPtr->previewFormat = newPreviewFormat;
+    return TCL_OK;
+}
+
+static int SetPostScriptOptions(Graph *graphPtr, PostScript *psPtr, int objc, Tcl_Obj *const objv[],
+                                Tk_SavedOptions *savedOptionsPtr, int *maskPtr) {
+    if (Tk_SetOptions(graphPtr->interp, (char *)psPtr, psPtr->optionTable, objc, objv, graphPtr->tkwin, savedOptionsPtr,
+                      maskPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (ConfigurePostScript(graphPtr, psPtr, *maskPtr) != TCL_OK) {
+        Tcl_Obj *errorObjPtr;
+        errorObjPtr = Tcl_GetObjResult(graphPtr->interp);
+        Tcl_IncrRefCount(errorObjPtr);
+        Tk_RestoreSavedOptions(savedOptionsPtr);
+        Tcl_SetObjResult(graphPtr->interp, errorObjPtr);
+        Tcl_DecrRefCount(errorObjPtr);
+        return TCL_ERROR;
+    }
+    return TCL_OK;
 }
 
 /*
@@ -352,8 +274,15 @@ static const char *FormatToString(ClientData clientData, Tk_Window tkwin, char *
  *--------------------------------------------------------------
  */
 void Rbc_DestroyPostScript(Graph *graphPtr) {
-    Tk_FreeOptions(configSpecs, (char *)graphPtr->postscript, graphPtr->display, 0);
-    ckfree((char *)graphPtr->postscript);
+    PostScript *psPtr;
+
+    psPtr = graphPtr->postscript;
+    if (psPtr == NULL) {
+        return;
+    }
+    graphPtr->postscript = NULL;
+    Tk_FreeConfigOptions((char *)psPtr, psPtr->optionTable, graphPtr->tkwin);
+    ckfree((char *)psPtr);
 }
 
 /*
@@ -378,11 +307,15 @@ void Rbc_DestroyPostScript(Graph *graphPtr) {
  *--------------------------------------------------------------
  */
 static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    PostScript *psPtr = (PostScript *)graphPtr->postscript;
+    PostScript *psPtr;
+    Tcl_Obj *resultObjPtr;
 
-    if (Tk_ConfigureValue(interp, graphPtr->tkwin, configSpecs, (char *)psPtr, Tcl_GetString(objv[3]), 0) != TCL_OK) {
+    psPtr = graphPtr->postscript;
+    resultObjPtr = Tk_GetOptionValue(interp, (char *)psPtr, psPtr->optionTable, objv[3], graphPtr->tkwin);
+    if (resultObjPtr == NULL) {
         return TCL_ERROR;
     }
+    Tcl_SetObjResult(interp, resultObjPtr);
     return TCL_OK;
 }
 
@@ -408,17 +341,32 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const 
  * ----------------------------------------------------------------------
  */
 static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    int flags = TK_CONFIG_ARGV_ONLY;
-    PostScript *psPtr = (PostScript *)graphPtr->postscript;
+    PostScript *psPtr;
+    Tcl_Obj *resultObjPtr;
+    Tk_SavedOptions savedOptions;
+    int mask;
 
+    psPtr = graphPtr->postscript;
     if (objc == 3) {
-        return Tk_ConfigureInfo(interp, graphPtr->tkwin, configSpecs, (char *)psPtr, (char *)NULL, flags);
-    } else if (objc == 4) {
-        return Tk_ConfigureInfo(interp, graphPtr->tkwin, configSpecs, (char *)psPtr, Tcl_GetString(objv[3]), flags);
+        resultObjPtr = Tk_GetOptionInfo(interp, (char *)psPtr, psPtr->optionTable, NULL, graphPtr->tkwin);
+        if (resultObjPtr == NULL) {
+            return TCL_ERROR;
+        }
+        Tcl_SetObjResult(interp, resultObjPtr);
+        return TCL_OK;
     }
-    if (Tk_ConfigureWidget(interp, graphPtr->tkwin, configSpecs, objc - 3, objv + 3, (char *)psPtr, flags) != TCL_OK) {
+    if (objc == 4) {
+        resultObjPtr = Tk_GetOptionInfo(interp, (char *)psPtr, psPtr->optionTable, objv[3], graphPtr->tkwin);
+        if (resultObjPtr == NULL) {
+            return TCL_ERROR;
+        }
+        Tcl_SetObjResult(interp, resultObjPtr);
+        return TCL_OK;
+    }
+    if (SetPostScriptOptions(graphPtr, psPtr, objc - 3, objv + 3, &savedOptions, &mask) != TCL_OK) {
         return TCL_ERROR;
     }
+    Tk_FreeSavedOptions(&savedOptions);
     return TCL_OK;
 }
 
@@ -1070,7 +1018,6 @@ static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, FILE *f) {
 error:
     DeleteEnhMetaFile(hMetaFile);
     TkWinReleaseDrawableDC(Tk_WindowId(graphPtr->tkwin), hRefDC, &state);
-    fclose(f);
     if (hMem != NULL) {
         GlobalUnlock(hMem);
         GlobalFree(hMem);
@@ -1111,26 +1058,43 @@ static int OutputOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
     char *fileName = NULL; /* Name of file to write PostScript output
                             * If NULL, output is returned via
                             * the interpreter result. */
+    int optionIndex;
+    
+    psPtr = graphPtr->postscript;
+    f = NULL;
+    psToken = NULL;
+    fileName = NULL;
+    optionIndex = 3;
     if (objc > 3) {
-        char *arg = Tcl_GetString(objv[3]);
+        const char *arg;
+        arg = Tcl_GetString(objv[3]);
         if (arg[0] != '-') {
-            fileName = arg; /* First argument is the file name. */
-            objv++, objc--;
+            fileName = (char *)arg;
+            optionIndex = 4;
         }
-        if (Tk_ConfigureWidget(interp, graphPtr->tkwin, configSpecs, objc - 3, objv + 3, (char *)psPtr,
-                               TK_CONFIG_ARGV_ONLY) != TCL_OK) {
+    }
+    if (objc > optionIndex) {
+        Tk_SavedOptions savedOptions;
+        int mask;
+        if (SetPostScriptOptions(graphPtr, psPtr, objc - optionIndex, objv + optionIndex, &savedOptions, &mask) !=
+            TCL_OK) {
             return TCL_ERROR;
         }
-        if (fileName != NULL) {
+        /*
+         * Successful output options remain installed, matching the
+         * existing command semantics.
+         */
+        Tk_FreeSavedOptions(&savedOptions);
+    }
+    if (fileName != NULL) {
 #ifdef WIN32
-            f = fopen(fileName, "wb");
+        f = fopen(fileName, "wb");
 #else
-            f = fopen(fileName, "w");
+        f = fopen(fileName, "w");
 #endif
-            if (f == NULL) {
-                Tcl_AppendResult(interp, "can't create \"", fileName, "\": ", Tcl_PosixError(interp), (char *)NULL);
-                return TCL_ERROR;
-            }
+        if (f == NULL) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't create \"%s\": %s", fileName, Tcl_PosixError(interp)));
+            return TCL_ERROR;
         }
     }
     psToken = Rbc_GetPsToken(graphPtr->interp, graphPtr->tkwin);
@@ -1202,17 +1166,21 @@ int Rbc_CreatePostScript(Graph *graphPtr) {
     PostScript *psPtr;
 
     psPtr = RbcCalloc(1, sizeof(PostScript));
-    assert(psPtr);
-    psPtr->colorMode = PS_MODE_COLOR;
-    psPtr->center = TRUE;
-    psPtr->decorations = TRUE;
+    assert(psPtr != NULL);
     graphPtr->postscript = psPtr;
-
-    if (Rbc_ConfigureWidgetComponent(graphPtr->interp, graphPtr->tkwin, "postscript", "Postscript", configSpecs, 0,
-                                     NULL, (char *)psPtr, 0) != TCL_OK) {
-        return TCL_ERROR;
+    psPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, postScriptOptionSpecs);
+    if (Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, "postscript", "Postscript", (char *)psPtr,
+                                 psPtr->optionTable) != TCL_OK) {
+        goto error;
+    }
+    if (ConfigurePostScript(graphPtr, psPtr, PS_INITIALIZE_MASK) != TCL_OK) {
+        goto error;
     }
     return TCL_OK;
+
+error:
+    Rbc_DestroyPostScript(graphPtr);
+    return TCL_ERROR;
 }
 
 /*
