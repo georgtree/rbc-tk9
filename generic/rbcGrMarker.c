@@ -149,30 +149,7 @@ struct MarkerStruct {
  * -------------------------------------------------------------------
  */
 typedef struct {
-    char *name;       /* Identifier for marker */
-    Rbc_Uid classUid; /* Type of marker */
-    Graph *graphPtr;  /* The graph this marker belongs to */
-    unsigned int flags;
-    char **tags;
-    int hidden; /* If non-zero, don't display the
-                 * marker. */
-    Tcl_HashEntry *hashPtr;
-    Rbc_ChainLink *linkPtr;
-    Point2D *worldPts; /* Position of marker (1 X-Y coordinate) in
-                        * world (graph) coordinates. */
-    int nWorldPts;     /* Number of points */
-    char *elemName;    /* Element associated with marker */
-    Axis2D axes;
-    int drawUnder;        /* If non-zero, draw the marker
-                           * underneath any elements. There can
-                           * be a performance because the graph
-                           * must be redraw entirely each time
-                           * this marker is redrawn. */
-    int clipped;          /* Indicates if the marker is totally
-                           * clipped by the plotting area. */
-    int xOffset, yOffset; /* pixel offset from anchor */
-    MarkerClass *classPtr;
-    int state;
+    Marker core;
 
     /*
      * Text specific fields and attributes
@@ -250,30 +227,7 @@ static Tk_ConfigSpec textConfigSpecs[] = {
  * -------------------------------------------------------------------
  */
 typedef struct {
-    char *name;       /* Identifier for marker */
-    Rbc_Uid classUid; /* Type of marker */
-    Graph *graphPtr;  /* Graph marker belongs to */
-    unsigned int flags;
-    char **tags;
-    int hidden; /* Indicates if the marker is
-                 * currently hidden or not. */
-    Tcl_HashEntry *hashPtr;
-    Rbc_ChainLink *linkPtr;
-    Point2D *worldPts; /* Position of marker (1 X-Y coordinate) in
-                        * world (graph) coordinates. */
-    int nWorldPts;     /* Number of points */
-    char *elemName;    /* Element associated with marker */
-    Axis2D axes;
-    int drawUnder;        /* If non-zero, draw the marker
-                           * underneath any elements. There can
-                           * be a performance because the graph
-                           * must be redraw entirely each time
-                           * this marker is redrawn. */
-    int clipped;          /* Indicates if the marker is totally
-                           * clipped by the plotting area. */
-    int xOffset, yOffset; /* Pixel offset from anchor. */
-    MarkerClass *classPtr;
-    int state;
+    Marker core;
 
     /*
      * Window specific attributes
@@ -292,7 +246,7 @@ static Tk_ConfigSpec windowConfigSpecs[] = {
     {TK_CONFIG_ANCHOR, "-anchor", "anchor", "Anchor", DEF_MARKER_ANCHOR, offsetof(WindowMarker, anchor), 0},
     {TK_CONFIG_CUSTOM, "-bindtags", "bindTags", "BindTags", DEF_MARKER_WINDOW_TAGS, offsetof(Marker, tags),
      TK_CONFIG_NULL_OK, &rbcListOption},
-    {TK_CONFIG_CUSTOM, "-coords", "coords", "Coords", DEF_MARKER_COORDS, offsetof(WindowMarker, worldPts),
+    {TK_CONFIG_CUSTOM, "-coords", "coords", "Coords", DEF_MARKER_COORDS, offsetof(Marker, worldPts),
      TK_CONFIG_NULL_OK, &coordsOption},
     {TK_CONFIG_STRING, "-element", "element", "Element", DEF_MARKER_ELEMENT, offsetof(Marker, elemName),
      TK_CONFIG_NULL_OK},
@@ -324,35 +278,7 @@ static Tk_ConfigSpec windowConfigSpecs[] = {
  * -------------------------------------------------------------------
  */
 typedef struct {
-    char *name;       /* Identifier for marker */
-    Rbc_Uid classUid; /* Type of marker */
-    Graph *graphPtr;  /* Graph marker belongs to */
-    unsigned int flags;
-    char **tags;
-    int hidden; /* Indicates if the marker is currently
-                 * hidden or not. */
-    Tcl_HashEntry *hashPtr;
-    Rbc_ChainLink *linkPtr;
-    Point2D *worldPts; /* Position of marker in world (graph)
-                        * coordinates. If 2 pairs of X-Y
-                        * coordinates are specified, then the
-                        * bitmap is resized to fit this area.
-                        * Otherwise if 1 pair, then the bitmap
-                        * is positioned at the coordinate at its
-                        * normal size. */
-    int nWorldPts;     /* Number of points */
-    char *elemName;    /* Element associated with marker */
-    Axis2D axes;
-    int drawUnder;        /* If non-zero, draw the marker
-                           * underneath any elements. There can
-                           * be a performance because the graph
-                           * must be redraw entirely each time
-                           * this marker is redrawn. */
-    int clipped;          /* Indicates if the marker is totally
-                           * clipped by the plotting area. */
-    int xOffset, yOffset; /* Pixel offset from origin of bitmap */
-    MarkerClass *classPtr;
-    int state;
+    Marker core;
 
     /* Bitmap specific attributes */
     Pixmap srcBitmap;                    /* Original bitmap. May be further
@@ -428,39 +354,7 @@ static Tk_ConfigSpec bitmapConfigSpecs[] = {
  * -------------------------------------------------------------------
  */
 typedef struct {
-    char *name;       /* Identifier for marker */
-    Rbc_Uid classUid; /* Type of marker */
-    Graph *graphPtr;  /* Graph marker belongs to */
-    unsigned int flags;
-    char **tags;
-    int hidden; /* Indicates if the marker is
-                 * currently hidden or not. */
-
-    Tcl_HashEntry *hashPtr;
-    Rbc_ChainLink *linkPtr;
-    Point2D *worldPts; /* Position of marker in world (graph)
-                        * coordinates. If 2 pairs of X-Y
-                        * coordinates are specified, then the
-                        * image is resized to fit this area.
-                        * Otherwise if 1 pair, then the image
-                        * is positioned at the coordinate at
-                        * its normal size. */
-    int nWorldPts;     /* Number of points */
-
-    char *elemName; /* Element associated with marker */
-    Axis2D axes;
-    int drawUnder;        /* If non-zero, draw the marker
-                           * underneath any elements. There can
-                           * be a performance because the graph
-                           * must be redraw entirely each time
-                           * this marker is redrawn. */
-    int clipped;          /* Indicates if the marker is totally
-                           * clipped by the plotting area. */
-    int xOffset, yOffset; /* Pixel offset from anchor */
-
-    MarkerClass *classPtr;
-
-    int state;
+    Marker core;
 
     /* Image specific attributes */
     char *imageName;   /* Name of image to be displayed. */
@@ -508,35 +402,7 @@ static Tk_ConfigSpec imageConfigSpecs[] = {
  * -------------------------------------------------------------------
  */
 typedef struct {
-    char *name;       /* Identifier for marker */
-    Rbc_Uid classUid; /* Type is "linemarker" */
-    Graph *graphPtr;  /* Graph marker belongs to */
-    unsigned int flags;
-    char **tags;
-    int hidden; /* Indicates if the marker is currently
-                 * hidden or not. */
-
-    Tcl_HashEntry *hashPtr;
-    Rbc_ChainLink *linkPtr;
-
-    Point2D *worldPts; /* Position of marker (X-Y coordinates) in
-                        * world (graph) coordinates. */
-    int nWorldPts;     /* Number of points */
-
-    char *elemName; /* Element associated with marker */
-    Axis2D axes;
-    int drawUnder;        /* If non-zero, draw the marker
-                           * underneath any elements. There can
-                           * be a performance because the graph
-                           * must be redraw entirely each time
-                           * this marker is redrawn. */
-    int clipped;          /* Indicates if the marker is totally
-                           * clipped by the plotting area. */
-    int xOffset, yOffset; /* Pixel offset */
-
-    MarkerClass *classPtr;
-
-    int state;
+    Marker core;
 
     /* Line specific attributes */
     XColor *fillColor;
@@ -607,35 +473,7 @@ static Tk_ConfigSpec lineConfigSpecs[] = {
  * -------------------------------------------------------------------
  */
 typedef struct {
-    char *name;       /* Identifier for marker */
-    Rbc_Uid classUid; /* Type of marker */
-    Graph *graphPtr;  /* Graph marker belongs to */
-    unsigned int flags;
-    char **tags;
-    int hidden; /* Indicates if the marker is currently
-                 * hidden or not. */
-
-    Tcl_HashEntry *hashPtr;
-    Rbc_ChainLink *linkPtr;
-
-    Point2D *worldPts; /* Position of marker (X-Y coordinates) in
-                        * world (graph) coordinates. */
-    int nWorldPts;     /* Number of points */
-
-    char *elemName; /* Element associated with marker */
-    Axis2D axes;
-    int drawUnder;        /* If non-zero, draw the marker
-                           * underneath any elements. There can
-                           * be a performance because the graph
-                           * must be redraw entirely each time
-                           * this marker is redrawn. */
-    int clipped;          /* Indicates if the marker is totally
-                           * clipped by the plotting area. */
-    int xOffset, yOffset; /* Pixel offset */
-
-    MarkerClass *classPtr;
-
-    int state;
+    Marker core;
 
     /* Polygon specific attributes and fields */
 
@@ -719,6 +557,30 @@ static Tk_ConfigSpec polygonConfigSpecs[] = {
     {TK_CONFIG_PIXELS, "-yoffset", "yOffset", "YOffset", DEF_MARKER_Y_OFFSET, offsetof(Marker, yOffset),
      TK_CONFIG_DONT_SET_DEFAULT},
     {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}};
+
+_Static_assert(offsetof(TextMarker, core) == 0, "Marker core must be first in TextMarker");
+
+_Static_assert(offsetof(WindowMarker, core) == 0, "Marker core must be first in WindowMarker");
+
+_Static_assert(offsetof(BitmapMarker, core) == 0, "Marker core must be first in BitmapMarker");
+
+_Static_assert(offsetof(ImageMarker, core) == 0, "Marker core must be first in ImageMarker");
+
+_Static_assert(offsetof(LineMarker, core) == 0, "Marker core must be first in LineMarker");
+
+_Static_assert(offsetof(PolygonMarker, core) == 0, "Marker core must be first in PolygonMarker");
+
+#define TEXT_MARKER_FROM_CORE(ptr) ((TextMarker *)((char *)(ptr) - offsetof(TextMarker, core)))
+
+#define WINDOW_MARKER_FROM_CORE(ptr) ((WindowMarker *)((char *)(ptr) - offsetof(WindowMarker, core)))
+
+#define BITMAP_MARKER_FROM_CORE(ptr) ((BitmapMarker *)((char *)(ptr) - offsetof(BitmapMarker, core)))
+
+#define IMAGE_MARKER_FROM_CORE(ptr) ((ImageMarker *)((char *)(ptr) - offsetof(ImageMarker, core)))
+
+#define LINE_MARKER_FROM_CORE(ptr) ((LineMarker *)((char *)(ptr) - offsetof(LineMarker, core)))
+
+#define POLYGON_MARKER_FROM_CORE(ptr) ((PolygonMarker *)((char *)(ptr) - offsetof(PolygonMarker, core)))
 
 static MarkerCreateProc CreateBitmapMarker, CreateLineMarker, CreateImageMarker, CreatePolygonMarker, CreateTextMarker,
     CreateWindowMarker;
@@ -1471,7 +1333,7 @@ static Pixmap AndBitmapMasks(Tk_Window tkwin, Pixmap mask1, Pixmap mask2, int wi
  */
 static int ConfigureBitmapMarker(Marker *markerPtr) {
     Graph *graphPtr = markerPtr->graphPtr;
-    BitmapMarker *bmPtr = (BitmapMarker *)markerPtr;
+    BitmapMarker *bmPtr = BITMAP_MARKER_FROM_CORE(markerPtr);
     GC newGC;
     XGCValues gcValues;
     unsigned long gcMask;
@@ -1483,9 +1345,9 @@ static int ConfigureBitmapMarker(Marker *markerPtr) {
     FreeMappedBitmapResources(graphPtr, bmPtr);
 
     if (bmPtr->srcBitmap == None) {
-        bmPtr->flags |= MAP_ITEM;
+        bmPtr->core.flags |= MAP_ITEM;
 
-        if (bmPtr->drawUnder) {
+        if (bmPtr->core.drawUnder) {
             graphPtr->flags |= REDRAW_BACKING_STORE;
         }
         Rbc_EventuallyRedrawGraph(graphPtr);
@@ -1552,8 +1414,8 @@ static int ConfigureBitmapMarker(Marker *markerPtr) {
         }
         bmPtr->fillGC = newGC;
     }
-    bmPtr->flags |= MAP_ITEM;
-    if (bmPtr->drawUnder) {
+    bmPtr->core.flags |= MAP_ITEM;
+    if (bmPtr->core.drawUnder) {
         graphPtr->flags |= REDRAW_BACKING_STORE;
     }
     Rbc_EventuallyRedrawGraph(graphPtr);
@@ -1587,7 +1449,7 @@ static int ConfigureBitmapMarker(Marker *markerPtr) {
  * ----------------------------------------------------------------------
  */
 static void MapBitmapMarker(Marker *markerPtr) {
-    BitmapMarker *bmPtr = (BitmapMarker *)markerPtr;
+    BitmapMarker *bmPtr = BITMAP_MARKER_FROM_CORE(markerPtr);
     Extents2D exts;
     Graph *graphPtr = markerPtr->graphPtr;
     Pixmap effectiveMask;
@@ -1620,11 +1482,11 @@ static void MapBitmapMarker(Marker *markerPtr) {
      *
      */
     Tk_SizeOfBitmap(graphPtr->display, bmPtr->srcBitmap, &srcWidth, &srcHeight);
-    corner1 = MapPoint(graphPtr, bmPtr->worldPts, &bmPtr->axes);
-    if (bmPtr->nWorldPts > 1) {
+    corner1 = MapPoint(graphPtr, bmPtr->core.worldPts, &bmPtr->core.axes);
+    if (bmPtr->core.nWorldPts > 1) {
         double hold;
 
-        corner2 = MapPoint(graphPtr, bmPtr->worldPts + 1, &bmPtr->axes);
+        corner2 = MapPoint(graphPtr, bmPtr->core.worldPts + 1, &bmPtr->core.axes);
         /* Flip the corners if necessary */
         if (corner1.x > corner2.x) {
             hold = corner1.x, corner1.x = corner2.x, corner2.x = hold;
@@ -1639,13 +1501,13 @@ static void MapBitmapMarker(Marker *markerPtr) {
     destWidth = (int)(corner2.x - corner1.x) + 1;
     destHeight = (int)(corner2.y - corner1.y) + 1;
 
-    if (bmPtr->nWorldPts == 1) {
+    if (bmPtr->core.nWorldPts == 1) {
         anchorPos = Rbc_TranslatePoint(&corner1, destWidth, destHeight, bmPtr->anchor);
     } else {
         anchorPos = corner1;
     }
-    anchorPos.x += bmPtr->xOffset;
-    anchorPos.y += bmPtr->yOffset;
+    anchorPos.x += bmPtr->core.xOffset;
+    anchorPos.y += bmPtr->core.yOffset;
 
     /* Check if the bitmap sits at least partially in the plot area. */
     exts.left = anchorPos.x;
@@ -1653,8 +1515,8 @@ static void MapBitmapMarker(Marker *markerPtr) {
     exts.right = anchorPos.x + destWidth - 1;
     exts.bottom = anchorPos.y + destHeight - 1;
 
-    bmPtr->clipped = BoxesDontOverlap(graphPtr, &exts);
-    if (bmPtr->clipped) {
+    bmPtr->core.clipped = BoxesDontOverlap(graphPtr, &exts);
+    if (bmPtr->core.clipped) {
         return; /* Bitmap is offscreen. Don't generate
                  * rotated or scaled bitmaps. */
     }
@@ -1824,7 +1686,7 @@ static void MapBitmapMarker(Marker *markerPtr) {
  * ----------------------------------------------------------------------
  */
 static int PointInBitmapMarker(Marker *markerPtr, Point2D *samplePtr) {
-    BitmapMarker *bmPtr = (BitmapMarker *)markerPtr;
+    BitmapMarker *bmPtr = BITMAP_MARKER_FROM_CORE(markerPtr);
 
     if (bmPtr->srcBitmap == None) {
         return 0;
@@ -1868,9 +1730,9 @@ static int PointInBitmapMarker(Marker *markerPtr, Point2D *samplePtr) {
  *----------------------------------------------------------------------
  */
 static int RegionInBitmapMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed) {
-    BitmapMarker *bmPtr = (BitmapMarker *)markerPtr;
+    BitmapMarker *bmPtr = BITMAP_MARKER_FROM_CORE(markerPtr);
 
-    if (bmPtr->nWorldPts < 1) {
+    if (bmPtr->core.nWorldPts < 1) {
         return FALSE;
     }
     if (bmPtr->theta != 0.0) {
@@ -1921,7 +1783,7 @@ static int RegionInBitmapMarker(Marker *markerPtr, Extents2D *extsPtr, int enclo
  */
 static void DrawBitmapMarker(Marker *markerPtr, Drawable drawable) {
     Graph *graphPtr = markerPtr->graphPtr;
-    BitmapMarker *bmPtr = (BitmapMarker *)markerPtr;
+    BitmapMarker *bmPtr = BITMAP_MARKER_FROM_CORE(markerPtr);
     Pixmap clipMask;
     double theta;
 
@@ -2032,12 +1894,11 @@ static void BitmapMaskToPostScript(PsToken psToken, Display *display, Pixmap bit
  */
 static void BitmapMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
     Graph *graphPtr;
-    BitmapMarker *bmPtr;
+    BitmapMarker *bmPtr = BITMAP_MARKER_FROM_CORE(markerPtr);
     Pixmap foregroundMask;
     int foregroundMaskOwned;
 
     graphPtr = markerPtr->graphPtr;
-    bmPtr = (BitmapMarker *)markerPtr;
 
     if ((bmPtr->destBitmap == None) || (bmPtr->destWidth < 1) || (bmPtr->destHeight < 1)) {
         return;
@@ -2133,7 +1994,7 @@ static void BitmapMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
  * ----------------------------------------------------------------------
  */
 static void FreeBitmapMarker(Graph *graphPtr, Marker *markerPtr) {
-    BitmapMarker *bmPtr = (BitmapMarker *)markerPtr;
+    BitmapMarker *bmPtr = BITMAP_MARKER_FROM_CORE(markerPtr);
 
     FreeMappedBitmapResources(graphPtr, bmPtr);    
     if (bmPtr->gc != NULL) {
@@ -2164,9 +2025,9 @@ static Marker *CreateBitmapMarker() {
 
     bmPtr = RbcCalloc(1, sizeof(BitmapMarker));
     if (bmPtr != NULL) {
-        bmPtr->classPtr = &bitmapMarkerClass;
+        bmPtr->core.classPtr = &bitmapMarkerClass;
     }
-    return (Marker *)bmPtr;
+    return &bmPtr->core;
 }
 
 /*
@@ -2198,7 +2059,7 @@ static void ImageChangedProc(ClientData clientData, int x, int y, int width, int
     ImageMarker *imPtr = clientData;
     Tk_PhotoHandle photo;
 
-    photo = Tk_FindPhoto(imPtr->graphPtr->interp, imPtr->imageName);
+    photo = Tk_FindPhoto(imPtr->core.graphPtr->interp, imPtr->imageName);
     if (photo != NULL) {
         if (imPtr->srcImage != NULL) {
             Rbc_FreeColorImage(imPtr->srcImage);
@@ -2207,9 +2068,9 @@ static void ImageChangedProc(ClientData clientData, int x, int y, int width, int
          * color image that we can scale. */
         imPtr->srcImage = Rbc_PhotoToColorImage(photo);
     }
-    imPtr->graphPtr->flags |= REDRAW_BACKING_STORE;
-    imPtr->flags |= MAP_ITEM;
-    Rbc_EventuallyRedrawGraph(imPtr->graphPtr);
+    imPtr->core.graphPtr->flags |= REDRAW_BACKING_STORE;
+    imPtr->core.flags |= MAP_ITEM;
+    Rbc_EventuallyRedrawGraph(imPtr->core.graphPtr);
 }
 
 /*
@@ -2236,7 +2097,7 @@ static void ImageChangedProc(ClientData clientData, int x, int y, int width, int
  * ----------------------------------------------------------------------
  */
 static int ConfigureImageMarker(Marker *markerPtr) {
-    ImageMarker *imPtr = (ImageMarker *)markerPtr;
+    ImageMarker *imPtr = IMAGE_MARKER_FROM_CORE(markerPtr);
     Graph *graphPtr = markerPtr->graphPtr;
 
     if (Rbc_ConfigModified(graphPtr->interp, markerPtr->classPtr->configSpecs, "-image", (char *)NULL)) {
@@ -2272,8 +2133,8 @@ static int ConfigureImageMarker(Marker *markerPtr) {
             imPtr->gc = newGC;
         }
     }
-    imPtr->flags |= MAP_ITEM;
-    if (imPtr->drawUnder) {
+    imPtr->core.flags |= MAP_ITEM;
+    if (imPtr->core.drawUnder) {
         graphPtr->flags |= REDRAW_BACKING_STORE;
     }
     Rbc_EventuallyRedrawGraph(graphPtr);
@@ -2309,18 +2170,17 @@ static int ConfigureImageMarker(Marker *markerPtr) {
 static void MapImageMarker(Marker *markerPtr) {
     Extents2D exts;
     Graph *graphPtr;
-    ImageMarker *imPtr;
+    ImageMarker *imPtr = IMAGE_MARKER_FROM_CORE(markerPtr);
     Point2D anchorPos;
     Point2D corner1, corner2;
     int scaledWidth, scaledHeight;
     int srcWidth, srcHeight;
 
-    imPtr = (ImageMarker *)markerPtr;
     if (imPtr->tkImage == NULL) {
         return;
     }
-    graphPtr = imPtr->graphPtr;
-    corner1 = MapPoint(graphPtr, imPtr->worldPts, &imPtr->axes);
+    graphPtr = imPtr->core.graphPtr;
+    corner1 = MapPoint(graphPtr, imPtr->core.worldPts, &imPtr->core.axes);
     if (imPtr->srcImage == NULL) {
         /*
          * Don't scale or rotate non-photo images.
@@ -2328,26 +2188,26 @@ static void MapImageMarker(Marker *markerPtr) {
         Tk_SizeOfImage(imPtr->tkImage, &srcWidth, &srcHeight);
         imPtr->width = srcWidth;
         imPtr->height = srcHeight;
-        imPtr->anchorPos.x = corner1.x + imPtr->xOffset;
-        imPtr->anchorPos.y = corner1.y + imPtr->yOffset;
+        imPtr->anchorPos.x = corner1.x + imPtr->core.xOffset;
+        imPtr->anchorPos.y = corner1.y + imPtr->core.yOffset;
         exts.left = imPtr->anchorPos.x;
         exts.top = imPtr->anchorPos.y;
         exts.right = exts.left + srcWidth - 1;
         exts.bottom = exts.top + srcHeight - 1;
-        imPtr->clipped = BoxesDontOverlap(graphPtr, &exts);
+        imPtr->core.clipped = BoxesDontOverlap(graphPtr, &exts);
         return;
     }
 
     imPtr->width = srcWidth = Rbc_ColorImageWidth(imPtr->srcImage);
     imPtr->height = srcHeight = Rbc_ColorImageHeight(imPtr->srcImage);
     if ((srcWidth == 0) && (srcHeight == 0)) {
-        imPtr->clipped = TRUE;
+        imPtr->core.clipped = TRUE;
         return; /* Empty image. */
     }
-    if (imPtr->nWorldPts > 1) {
+    if (imPtr->core.nWorldPts > 1) {
         double hold;
 
-        corner2 = MapPoint(graphPtr, imPtr->worldPts + 1, &imPtr->axes);
+        corner2 = MapPoint(graphPtr, imPtr->core.worldPts + 1, &imPtr->core.axes);
         /* Flip the corners if necessary */
         if (corner1.x > corner2.x) {
             hold = corner1.x, corner1.x = corner2.x, corner2.x = hold;
@@ -2362,13 +2222,13 @@ static void MapImageMarker(Marker *markerPtr) {
     scaledWidth = (int)(corner2.x - corner1.x) + 1;
     scaledHeight = (int)(corner2.y - corner1.y) + 1;
 
-    if (imPtr->nWorldPts == 1) {
+    if (imPtr->core.nWorldPts == 1) {
         anchorPos = Rbc_TranslatePoint(&corner1, scaledWidth, scaledHeight, imPtr->anchor);
     } else {
         anchorPos = corner1;
     }
-    anchorPos.x += imPtr->xOffset;
-    anchorPos.y += imPtr->yOffset;
+    anchorPos.x += imPtr->core.xOffset;
+    anchorPos.y += imPtr->core.yOffset;
 
     /* Check if the image sits at least partially in the plot area. */
     exts.left = anchorPos.x;
@@ -2376,8 +2236,8 @@ static void MapImageMarker(Marker *markerPtr) {
     exts.right = anchorPos.x + scaledWidth - 1;
     exts.bottom = anchorPos.y + scaledHeight - 1;
 
-    imPtr->clipped = BoxesDontOverlap(graphPtr, &exts);
-    if (imPtr->clipped) {
+    imPtr->core.clipped = BoxesDontOverlap(graphPtr, &exts);
+    if (imPtr->core.clipped) {
         return; /* Image is offscreen. Don't generate
                  * rotated or scaled images. */
     }
@@ -2457,7 +2317,7 @@ static void MapImageMarker(Marker *markerPtr) {
  * ----------------------------------------------------------------------
  */
 static int PointInImageMarker(Marker *markerPtr, Point2D *samplePtr) {
-    ImageMarker *imPtr = (ImageMarker *)markerPtr;
+    ImageMarker *imPtr = IMAGE_MARKER_FROM_CORE(markerPtr);
 
     return ((samplePtr->x >= imPtr->anchorPos.x) && (samplePtr->x < (imPtr->anchorPos.x + imPtr->width)) &&
             (samplePtr->y >= imPtr->anchorPos.y) && (samplePtr->y < (imPtr->anchorPos.y + imPtr->height)));
@@ -2484,9 +2344,9 @@ static int PointInImageMarker(Marker *markerPtr, Point2D *samplePtr) {
  *----------------------------------------------------------------------
  */
 static int RegionInImageMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed) {
-    ImageMarker *imPtr = (ImageMarker *)markerPtr;
+    ImageMarker *imPtr = IMAGE_MARKER_FROM_CORE(markerPtr);
 
-    if (imPtr->nWorldPts < 1) {
+    if (imPtr->core.nWorldPts < 1) {
         return FALSE;
     }
     if (enclosed) {
@@ -2520,7 +2380,7 @@ static int RegionInImageMarker(Marker *markerPtr, Extents2D *extsPtr, int enclos
  * ----------------------------------------------------------------------
  */
 static void DrawImageMarker(Marker *markerPtr, Drawable drawable) {
-    ImageMarker *imPtr = (ImageMarker *)markerPtr;
+    ImageMarker *imPtr = IMAGE_MARKER_FROM_CORE(markerPtr);
     int width, height;
 
     if ((imPtr->tkImage == NULL) || (Tk_ImageIsDeleted(imPtr->tkImage))) {
@@ -2537,11 +2397,11 @@ static void DrawImageMarker(Marker *markerPtr, Drawable drawable) {
         if (pixmap == None) { /* May not be a "photo" image. */
             Tk_RedrawImage(tkImage, 0, 0, width, height, drawable, (int)imPtr->anchorPos.x, (int)imPtr->anchorPos.y);
         } else {
-            XCopyArea(imPtr->graphPtr->display, pixmap, drawable, imPtr->gc, 0, 0, width, height,
+            XCopyArea(imPtr->core.graphPtr->display, pixmap, drawable, imPtr->gc, 0, 0, width, height,
                       (int)imPtr->anchorPos.x, (int)imPtr->anchorPos.y);
         }
     } else {
-        XCopyArea(imPtr->graphPtr->display, imPtr->pixmap, drawable, imPtr->gc, 0, 0, imPtr->width, imPtr->height,
+        XCopyArea(imPtr->core.graphPtr->display, imPtr->pixmap, drawable, imPtr->gc, 0, 0, imPtr->width, imPtr->height,
                   (int)imPtr->anchorPos.x, (int)imPtr->anchorPos.y);
     }
 }
@@ -2566,7 +2426,7 @@ static void DrawImageMarker(Marker *markerPtr, Drawable drawable) {
  * ----------------------------------------------------------------------
  */
 static void ImageMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
-    ImageMarker *imPtr = (ImageMarker *)markerPtr;
+    ImageMarker *imPtr = IMAGE_MARKER_FROM_CORE(markerPtr);
     const char *imageName;
     Tk_PhotoHandle photo;
 
@@ -2604,7 +2464,7 @@ static void ImageMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
  * ----------------------------------------------------------------------
  */
 static void FreeImageMarker(Graph *graphPtr, Marker *markerPtr) {
-    ImageMarker *imPtr = (ImageMarker *)markerPtr;
+    ImageMarker *imPtr = IMAGE_MARKER_FROM_CORE(markerPtr);
 
     if (imPtr->pixmap != None) {
         Tk_FreePixmap(graphPtr->display, imPtr->pixmap);
@@ -2640,9 +2500,9 @@ static Marker *CreateImageMarker() {
 
     imPtr = RbcCalloc(1, sizeof(ImageMarker));
     if (imPtr != NULL) {
-        imPtr->classPtr = &imageMarkerClass;
+        imPtr->core.classPtr = &imageMarkerClass;
     }
-    return (Marker *)imPtr;
+    return &imPtr->core;
 }
 
 /*
@@ -2670,7 +2530,7 @@ static Marker *CreateImageMarker() {
  */
 static int ConfigureTextMarker(Marker *markerPtr) {
     Graph *graphPtr = markerPtr->graphPtr;
-    TextMarker *tmPtr = (TextMarker *)markerPtr;
+    TextMarker *tmPtr = TEXT_MARKER_FROM_CORE(markerPtr);
     GC newGC;
     XGCValues gcValues;
     unsigned long gcMask;
@@ -2691,7 +2551,7 @@ static int ConfigureTextMarker(Marker *markerPtr) {
     tmPtr->fillGC = newGC;
     Rbc_ResetTextStyle(graphPtr->tkwin, &tmPtr->style);
 
-    if (Rbc_ConfigModified(graphPtr->interp, tmPtr->classPtr->configSpecs, "-text", (char *)NULL)) {
+    if (Rbc_ConfigModified(graphPtr->interp, tmPtr->core.classPtr->configSpecs, "-text", (char *)NULL)) {
         if (tmPtr->textPtr != NULL) {
             ckfree((char *)tmPtr->textPtr);
             tmPtr->textPtr = NULL;
@@ -2714,8 +2574,8 @@ static int ConfigureTextMarker(Marker *markerPtr) {
             tmPtr->outline[4].y = tmPtr->outline[0].y;
         }
     }
-    tmPtr->flags |= MAP_ITEM;
-    if (tmPtr->drawUnder) {
+    tmPtr->core.flags |= MAP_ITEM;
+    if (tmPtr->core.drawUnder) {
         graphPtr->flags |= REDRAW_BACKING_STORE;
     }
     Rbc_EventuallyRedrawGraph(graphPtr);
@@ -2747,17 +2607,17 @@ static int ConfigureTextMarker(Marker *markerPtr) {
  */
 static void MapTextMarker(Marker *markerPtr) {
     Graph *graphPtr = markerPtr->graphPtr;
-    TextMarker *tmPtr = (TextMarker *)markerPtr;
+    TextMarker *tmPtr = TEXT_MARKER_FROM_CORE(markerPtr);
     Extents2D exts;
     Point2D anchorPos;
 
     if (tmPtr->string == NULL) {
         return;
     }
-    anchorPos = MapPoint(graphPtr, tmPtr->worldPts, &tmPtr->axes);
+    anchorPos = MapPoint(graphPtr, tmPtr->core.worldPts, &tmPtr->core.axes);
     anchorPos = Rbc_TranslatePoint(&anchorPos, tmPtr->width, tmPtr->height, tmPtr->anchor);
-    anchorPos.x += tmPtr->xOffset;
-    anchorPos.y += tmPtr->yOffset;
+    anchorPos.x += tmPtr->core.xOffset;
+    anchorPos.y += tmPtr->core.yOffset;
     /*
      * Determine the bounding box of the text and test to see if it
      * is at least partially contained within the plotting area.
@@ -2766,7 +2626,7 @@ static void MapTextMarker(Marker *markerPtr) {
     exts.top = anchorPos.y;
     exts.right = anchorPos.x + tmPtr->width - 1;
     exts.bottom = anchorPos.y + tmPtr->height - 1;
-    tmPtr->clipped = BoxesDontOverlap(graphPtr, &exts);
+    tmPtr->core.clipped = BoxesDontOverlap(graphPtr, &exts);
     tmPtr->anchorPos = anchorPos;
 }
 
@@ -2790,7 +2650,7 @@ static void MapTextMarker(Marker *markerPtr) {
  *----------------------------------------------------------------------
  */
 static int PointInTextMarker(Marker *markerPtr, Point2D *samplePtr) {
-    TextMarker *tmPtr = (TextMarker *)markerPtr;
+    TextMarker *tmPtr = TEXT_MARKER_FROM_CORE(markerPtr);
 
     if (tmPtr->string == NULL) {
         return 0;
@@ -2835,9 +2695,9 @@ static int PointInTextMarker(Marker *markerPtr, Point2D *samplePtr) {
  *----------------------------------------------------------------------
  */
 static int RegionInTextMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed) {
-    TextMarker *tmPtr = (TextMarker *)markerPtr;
+    TextMarker *tmPtr = TEXT_MARKER_FROM_CORE(markerPtr);
 
-    if (tmPtr->nWorldPts < 1) {
+    if (tmPtr->core.nWorldPts < 1) {
         return FALSE;
     }
     if (tmPtr->style.theta != 0.0) {
@@ -2885,7 +2745,7 @@ static int RegionInTextMarker(Marker *markerPtr, Extents2D *extsPtr, int enclose
  * ----------------------------------------------------------------------
  */
 static void DrawTextMarker(Marker *markerPtr, Drawable drawable) {
-    TextMarker *tmPtr = (TextMarker *)markerPtr;
+    TextMarker *tmPtr = TEXT_MARKER_FROM_CORE(markerPtr);
     Graph *graphPtr = markerPtr->graphPtr;
 
     if (tmPtr->string == NULL) {
@@ -2932,7 +2792,7 @@ static void DrawTextMarker(Marker *markerPtr, Drawable drawable) {
  * ----------------------------------------------------------------------
  */
 static void TextMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
-    TextMarker *tmPtr = (TextMarker *)markerPtr;
+    TextMarker *tmPtr = TEXT_MARKER_FROM_CORE(markerPtr);
 
     if (tmPtr->string == NULL) {
         return;
@@ -2978,7 +2838,7 @@ static void TextMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
  * ----------------------------------------------------------------------
  */
 static void FreeTextMarker(Graph *graphPtr, Marker *markerPtr) {
-    TextMarker *tmPtr = (TextMarker *)markerPtr;
+    TextMarker *tmPtr = TEXT_MARKER_FROM_CORE(markerPtr);
 
     Rbc_FreeTextStyle(graphPtr->display, &tmPtr->style);
     if (tmPtr->textPtr != NULL) {
@@ -3005,15 +2865,15 @@ static Marker *CreateTextMarker() {
     TextMarker *tmPtr;
 
     tmPtr = RbcCalloc(1, sizeof(TextMarker));
-    assert(tmPtr);
+    assert(tmPtr != NULL);
 
-    tmPtr->classPtr = &textMarkerClass;
+    tmPtr->core.classPtr = &textMarkerClass;
     Rbc_InitTextStyle(&tmPtr->style);
     tmPtr->style.anchor = TK_ANCHOR_NW;
     tmPtr->style.padLeft = tmPtr->style.padRight = 4;
     tmPtr->style.padTop = tmPtr->style.padBottom = 4;
 
-    return (Marker *)tmPtr;
+    return &tmPtr->core;
 }
 
 static Tk_GeomMgr winMarkerMgrInfo = {
@@ -3047,7 +2907,7 @@ static Tk_GeomMgr winMarkerMgrInfo = {
  */
 static int ConfigureWindowMarker(Marker *markerPtr) {
     Graph *graphPtr = markerPtr->graphPtr;
-    WindowMarker *wmPtr = (WindowMarker *)markerPtr;
+    WindowMarker *wmPtr = WINDOW_MARKER_FROM_CORE(markerPtr);
     Tk_Window tkwin;
 
     if (wmPtr->pathName == NULL) {
@@ -3073,8 +2933,8 @@ static int ConfigureWindowMarker(Marker *markerPtr) {
     }
     wmPtr->tkwin = tkwin;
 
-    wmPtr->flags |= MAP_ITEM;
-    if (wmPtr->drawUnder) {
+    wmPtr->core.flags |= MAP_ITEM;
+    if (wmPtr->core.drawUnder) {
         graphPtr->flags |= REDRAW_BACKING_STORE;
     }
     Rbc_EventuallyRedrawGraph(graphPtr);
@@ -3101,7 +2961,7 @@ static int ConfigureWindowMarker(Marker *markerPtr) {
  * ----------------------------------------------------------------------
  */
 static void MapWindowMarker(Marker *markerPtr) {
-    WindowMarker *wmPtr = (WindowMarker *)markerPtr;
+    WindowMarker *wmPtr = WINDOW_MARKER_FROM_CORE(markerPtr);
     Graph *graphPtr = markerPtr->graphPtr;
     Extents2D exts;
     int width, height;
@@ -3109,7 +2969,7 @@ static void MapWindowMarker(Marker *markerPtr) {
     if (wmPtr->tkwin == (Tk_Window)NULL) {
         return;
     }
-    wmPtr->anchorPos = MapPoint(graphPtr, wmPtr->worldPts, &wmPtr->axes);
+    wmPtr->anchorPos = MapPoint(graphPtr, wmPtr->core.worldPts, &wmPtr->core.axes);
 
     width = Tk_ReqWidth(wmPtr->tkwin);
     height = Tk_ReqHeight(wmPtr->tkwin);
@@ -3120,8 +2980,8 @@ static void MapWindowMarker(Marker *markerPtr) {
         height = wmPtr->reqHeight;
     }
     wmPtr->anchorPos = Rbc_TranslatePoint(&wmPtr->anchorPos, width, height, wmPtr->anchor);
-    wmPtr->anchorPos.x += wmPtr->xOffset;
-    wmPtr->anchorPos.y += wmPtr->yOffset;
+    wmPtr->anchorPos.x += wmPtr->core.xOffset;
+    wmPtr->anchorPos.y += wmPtr->core.yOffset;
     wmPtr->width = width;
     wmPtr->height = height;
 
@@ -3133,7 +2993,7 @@ static void MapWindowMarker(Marker *markerPtr) {
     exts.top = wmPtr->anchorPos.y;
     exts.right = wmPtr->anchorPos.x + wmPtr->width - 1;
     exts.bottom = wmPtr->anchorPos.y + wmPtr->height - 1;
-    wmPtr->clipped = BoxesDontOverlap(graphPtr, &exts);
+    wmPtr->core.clipped = BoxesDontOverlap(graphPtr, &exts);
 }
 
 /*
@@ -3156,7 +3016,7 @@ static void MapWindowMarker(Marker *markerPtr) {
  *----------------------------------------------------------------------
  */
 static int PointInWindowMarker(Marker *markerPtr, Point2D *samplePtr) {
-    WindowMarker *wmPtr = (WindowMarker *)markerPtr;
+    WindowMarker *wmPtr = WINDOW_MARKER_FROM_CORE(markerPtr);
 
     return ((samplePtr->x >= wmPtr->anchorPos.x) && (samplePtr->x < (wmPtr->anchorPos.x + wmPtr->width)) &&
             (samplePtr->y >= wmPtr->anchorPos.y) && (samplePtr->y < (wmPtr->anchorPos.y + wmPtr->height)));
@@ -3183,9 +3043,9 @@ static int PointInWindowMarker(Marker *markerPtr, Point2D *samplePtr) {
  *----------------------------------------------------------------------
  */
 static int RegionInWindowMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed) {
-    WindowMarker *wmPtr = (WindowMarker *)markerPtr;
+    WindowMarker *wmPtr = WINDOW_MARKER_FROM_CORE(markerPtr);
 
-    if (wmPtr->nWorldPts < 1) {
+    if (wmPtr->core.nWorldPts < 1) {
         return FALSE;
     }
     if (enclosed) {
@@ -3218,7 +3078,7 @@ static int RegionInWindowMarker(Marker *markerPtr, Extents2D *extsPtr, int enclo
  *----------------------------------------------------------------------
  */
 static void DrawWindowMarker(Marker *markerPtr, Drawable drawable) {
-    WindowMarker *wmPtr = (WindowMarker *)markerPtr;
+    WindowMarker *wmPtr = WINDOW_MARKER_FROM_CORE(markerPtr);
 
     if (wmPtr->tkwin == NULL) {
         return;
@@ -3253,7 +3113,7 @@ static void DrawWindowMarker(Marker *markerPtr, Drawable drawable) {
  *----------------------------------------------------------------------
  */
 static void WindowMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
-    WindowMarker *wmPtr = (WindowMarker *)markerPtr;
+    WindowMarker *wmPtr = WINDOW_MARKER_FROM_CORE(markerPtr);
 
     if (wmPtr->tkwin == NULL) {
         return;
@@ -3284,7 +3144,7 @@ static void WindowMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
  * ----------------------------------------------------------------------
  */
 static void FreeWindowMarker(Graph *graphPtr, Marker *markerPtr) {
-    WindowMarker *wmPtr = (WindowMarker *)markerPtr;
+    WindowMarker *wmPtr = WINDOW_MARKER_FROM_CORE(markerPtr);
 
     if (wmPtr->tkwin != NULL) {
         Tk_DeleteEventHandler(wmPtr->tkwin, StructureNotifyMask, ChildEventProc, wmPtr);
@@ -3313,9 +3173,9 @@ static Marker *CreateWindowMarker() {
 
     wmPtr = RbcCalloc(1, sizeof(WindowMarker));
     if (wmPtr != NULL) {
-        wmPtr->classPtr = &windowMarkerClass;
+        wmPtr->core.classPtr = &windowMarkerClass;
     }
-    return (Marker *)wmPtr;
+    return &wmPtr->core;
 }
 
 /*
@@ -3438,7 +3298,7 @@ static void ChildCustodyProc(ClientData clientData, Tk_Window tkwin) {
  */
 static void MapLineMarker(Marker *markerPtr) {
     Graph *graphPtr = markerPtr->graphPtr;
-    LineMarker *lmPtr = (LineMarker *)markerPtr;
+    LineMarker *lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
     Point2D *srcPtr, *endPtr;
     Segment2D *segments, *segPtr;
     Point2D p, q, next;
@@ -3448,7 +3308,7 @@ static void MapLineMarker(Marker *markerPtr) {
     if (lmPtr->segments != NULL) {
         ckfree((char *)lmPtr->segments);
     }
-    if (lmPtr->nWorldPts < 2) {
+    if (lmPtr->core.nWorldPts < 2) {
         return; /* Too few points */
     }
     Rbc_GraphExtents(graphPtr, &exts);
@@ -3459,17 +3319,17 @@ static void MapLineMarker(Marker *markerPtr) {
      * polyline.  This is because clipping against the plot area may
      * chop the line into several disconnected segments.
      */
-    segments = (Segment2D *)ckalloc(lmPtr->nWorldPts * sizeof(Segment2D));
-    srcPtr = lmPtr->worldPts;
-    p = MapPoint(graphPtr, srcPtr, &lmPtr->axes);
-    p.x += lmPtr->xOffset;
-    p.y += lmPtr->yOffset;
+    segments = (Segment2D *)ckalloc(lmPtr->core.nWorldPts * sizeof(Segment2D));
+    srcPtr = lmPtr->core.worldPts;
+    p = MapPoint(graphPtr, srcPtr, &lmPtr->core.axes);
+    p.x += lmPtr->core.xOffset;
+    p.y += lmPtr->core.yOffset;
 
     segPtr = segments;
-    for (srcPtr++, endPtr = lmPtr->worldPts + lmPtr->nWorldPts; srcPtr < endPtr; srcPtr++) {
-        next = MapPoint(graphPtr, srcPtr, &lmPtr->axes);
-        next.x += lmPtr->xOffset;
-        next.y += lmPtr->yOffset;
+    for (srcPtr++, endPtr = lmPtr->core.worldPts + lmPtr->core.nWorldPts; srcPtr < endPtr; srcPtr++) {
+        next = MapPoint(graphPtr, srcPtr, &lmPtr->core.axes);
+        next.x += lmPtr->core.xOffset;
+        next.y += lmPtr->core.yOffset;
         q = next;
         if (Rbc_LineRectClip(&exts, &p, &q)) {
             segPtr->p = p;
@@ -3480,7 +3340,7 @@ static void MapLineMarker(Marker *markerPtr) {
     }
     lmPtr->nSegments = segPtr - segments;
     lmPtr->segments = segments;
-    lmPtr->clipped = (lmPtr->nSegments == 0);
+    lmPtr->core.clipped = (lmPtr->nSegments == 0);
 }
 
 /*
@@ -3503,9 +3363,9 @@ static void MapLineMarker(Marker *markerPtr) {
  *----------------------------------------------------------------------
  */
 static int PointInLineMarker(Marker *markerPtr, Point2D *samplePtr) {
-    LineMarker *lmPtr = (LineMarker *)markerPtr;
+    LineMarker *lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
 
-    return Rbc_PointInSegments(samplePtr, lmPtr->segments, lmPtr->nSegments, (double)lmPtr->graphPtr->halo);
+    return Rbc_PointInSegments(samplePtr, lmPtr->segments, lmPtr->nSegments, (double)lmPtr->core.graphPtr->halo);
 }
 
 /*
@@ -3529,17 +3389,17 @@ static int PointInLineMarker(Marker *markerPtr, Point2D *samplePtr) {
  *----------------------------------------------------------------------
  */
 static int RegionInLineMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed) {
-    LineMarker *lmPtr = (LineMarker *)markerPtr;
+    LineMarker *lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
 
-    if (lmPtr->nWorldPts < 2) {
+    if (lmPtr->core.nWorldPts < 2) {
         return FALSE;
     }
     if (enclosed) {
         Point2D p;
         Point2D *pointPtr, *endPtr;
 
-        for (pointPtr = lmPtr->worldPts, endPtr = lmPtr->worldPts + lmPtr->nWorldPts; pointPtr < endPtr; pointPtr++) {
-            p = MapPoint(lmPtr->graphPtr, pointPtr, &lmPtr->axes);
+        for (pointPtr = lmPtr->core.worldPts, endPtr = lmPtr->core.worldPts + lmPtr->core.nWorldPts; pointPtr < endPtr; pointPtr++) {
+            p = MapPoint(lmPtr->core.graphPtr, pointPtr, &lmPtr->core.axes);
             if ((p.x < extsPtr->left) && (p.x > extsPtr->right) && (p.y < extsPtr->top) && (p.y > extsPtr->bottom)) {
                 return FALSE;
             }
@@ -3551,10 +3411,10 @@ static int RegionInLineMarker(Marker *markerPtr, Extents2D *extsPtr, int enclose
         Point2D *pointPtr, *endPtr;
 
         count = 0;
-        for (pointPtr = lmPtr->worldPts, endPtr = lmPtr->worldPts + (lmPtr->nWorldPts - 1); pointPtr < endPtr;
+        for (pointPtr = lmPtr->core.worldPts, endPtr = lmPtr->core.worldPts + (lmPtr->core.nWorldPts - 1); pointPtr < endPtr;
              pointPtr++) {
-            p = MapPoint(lmPtr->graphPtr, pointPtr, &lmPtr->axes);
-            q = MapPoint(lmPtr->graphPtr, pointPtr + 1, &lmPtr->axes);
+            p = MapPoint(lmPtr->core.graphPtr, pointPtr, &lmPtr->core.axes);
+            q = MapPoint(lmPtr->core.graphPtr, pointPtr + 1, &lmPtr->core.axes);
             if (Rbc_LineRectClip(extsPtr, &p, &q)) {
                 count++;
             }
@@ -3583,7 +3443,7 @@ static int RegionInLineMarker(Marker *markerPtr, Extents2D *extsPtr, int enclose
  *----------------------------------------------------------------------
  */
 static void DrawLineMarker(Marker *markerPtr, Drawable drawable) {
-    LineMarker *lmPtr = (LineMarker *)markerPtr;
+    LineMarker *lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
 
     if (lmPtr->nSegments > 0) {
         Graph *graphPtr = markerPtr->graphPtr;
@@ -3620,7 +3480,7 @@ static void DrawLineMarker(Marker *markerPtr, Drawable drawable) {
  */
 static int ConfigureLineMarker(Marker *markerPtr) {
     Graph *graphPtr = markerPtr->graphPtr;
-    LineMarker *lmPtr = (LineMarker *)markerPtr;
+    LineMarker *lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
     GC newGC;
     XGCValues gcValues;
     unsigned long gcMask;
@@ -3676,8 +3536,8 @@ static int ConfigureLineMarker(Marker *markerPtr) {
         }
         return TCL_OK;
     }
-    lmPtr->flags |= MAP_ITEM;
-    if (lmPtr->drawUnder) {
+    lmPtr->core.flags |= MAP_ITEM;
+    if (lmPtr->core.drawUnder) {
         graphPtr->flags |= REDRAW_BACKING_STORE;
     }
     Rbc_EventuallyRedrawGraph(graphPtr);
@@ -3707,7 +3567,7 @@ static int ConfigureLineMarker(Marker *markerPtr) {
  * ----------------------------------------------------------------------
  */
 static void LineMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
-    LineMarker *lmPtr = (LineMarker *)markerPtr;
+    LineMarker *lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
 
     if (lmPtr->nSegments > 0) {
         Rbc_LineAttributesToPostScript(psToken, lmPtr->outlineColor, lmPtr->lineWidth, &lmPtr->dashes, lmPtr->capStyle,
@@ -3746,7 +3606,7 @@ static void LineMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
  * ----------------------------------------------------------------------
  */
 static void FreeLineMarker(Graph *graphPtr, Marker *markerPtr) {
-    LineMarker *lmPtr = (LineMarker *)markerPtr;
+    LineMarker *lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
 
     if (lmPtr->gc != NULL) {
         Rbc_FreePrivateGC(graphPtr->display, lmPtr->gc);
@@ -3776,12 +3636,12 @@ static Marker *CreateLineMarker() {
 
     lmPtr = RbcCalloc(1, sizeof(LineMarker));
     if (lmPtr != NULL) {
-        lmPtr->classPtr = &lineMarkerClass;
+        lmPtr->core.classPtr = &lineMarkerClass;
         lmPtr->xor = FALSE;
         lmPtr->capStyle = CapButt;
         lmPtr->joinStyle = JoinMiter;
     }
-    return (Marker *)lmPtr;
+    return &lmPtr->core;
 }
 
 /*
@@ -3806,7 +3666,7 @@ static Marker *CreateLineMarker() {
  */
 static void MapPolygonMarker(Marker *markerPtr) {
     Graph *graphPtr = markerPtr->graphPtr;
-    PolygonMarker *pmPtr = (PolygonMarker *)markerPtr;
+    PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
     Point2D *srcPtr, *destPtr, *endPtr;
     Point2D *screenPts;
     Extents2D exts;
@@ -3826,7 +3686,7 @@ static void MapPolygonMarker(Marker *markerPtr) {
         ckfree((char *)pmPtr->screenPts);
         pmPtr->screenPts = NULL;
     }
-    if (pmPtr->nWorldPts < 3) {
+    if (pmPtr->core.nWorldPts < 3) {
         return; /* Too few points */
     }
 
@@ -3834,33 +3694,33 @@ static void MapPolygonMarker(Marker *markerPtr) {
      * Allocate and fill a temporary array to hold the screen
      * coordinates of the polygon.
      */
-    nScreenPts = pmPtr->nWorldPts + 1;
+    nScreenPts = pmPtr->core.nWorldPts + 1;
     screenPts = (Point2D *)ckalloc((nScreenPts + 1) * sizeof(Point2D));
-    endPtr = pmPtr->worldPts + pmPtr->nWorldPts;
+    endPtr = pmPtr->core.worldPts + pmPtr->core.nWorldPts;
     destPtr = screenPts;
-    for (srcPtr = pmPtr->worldPts; srcPtr < endPtr; srcPtr++) {
-        *destPtr = MapPoint(graphPtr, srcPtr, &pmPtr->axes);
-        destPtr->x += pmPtr->xOffset;
-        destPtr->y += pmPtr->yOffset;
+    for (srcPtr = pmPtr->core.worldPts; srcPtr < endPtr; srcPtr++) {
+        *destPtr = MapPoint(graphPtr, srcPtr, &pmPtr->core.axes);
+        destPtr->x += pmPtr->core.xOffset;
+        destPtr->y += pmPtr->core.yOffset;
         destPtr++;
     }
     *destPtr = screenPts[0];
 
     Rbc_GraphExtents(graphPtr, &exts);
-    pmPtr->clipped = TRUE;
+    pmPtr->core.clipped = TRUE;
     if (pmPtr->fill.fgColor != NULL) { /* Polygon fill required. */
         Point2D *fillPts;
         int n;
 
         fillPts = (Point2D *)ckalloc(sizeof(Point2D) * nScreenPts * 3);
         assert(fillPts);
-        n = Rbc_PolyRectClip(&exts, screenPts, pmPtr->nWorldPts, fillPts);
+        n = Rbc_PolyRectClip(&exts, screenPts, pmPtr->core.nWorldPts, fillPts);
         if (n < 3) {
             ckfree((char *)fillPts);
         } else {
             pmPtr->nFillPts = n;
             pmPtr->fillPts = fillPts;
-            pmPtr->clipped = FALSE;
+            pmPtr->core.clipped = FALSE;
         }
     }
     if ((pmPtr->outline.fgColor != NULL) && (pmPtr->lineWidth > 0)) {
@@ -3890,7 +3750,7 @@ static void MapPolygonMarker(Marker *markerPtr) {
         pmPtr->nOutlinePts = segPtr - outlinePts;
         pmPtr->outlinePts = outlinePts;
         if (pmPtr->nOutlinePts > 0) {
-            pmPtr->clipped = FALSE;
+            pmPtr->core.clipped = FALSE;
         }
     }
     pmPtr->screenPts = screenPts;
@@ -3916,12 +3776,12 @@ static void MapPolygonMarker(Marker *markerPtr) {
  *----------------------------------------------------------------------
  */
 static int PointInPolygonMarker(Marker *markerPtr, Point2D *samplePtr) {
-    PolygonMarker *pmPtr = (PolygonMarker *)markerPtr;
+    PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
 
-    if (pmPtr->nWorldPts < 2) {
+    if (pmPtr->core.nWorldPts < 2) {
         return FALSE;
     }
-    return Rbc_PointInPolygon(samplePtr, pmPtr->screenPts, pmPtr->nWorldPts + 1);
+    return Rbc_PointInPolygon(samplePtr, pmPtr->screenPts, pmPtr->core.nWorldPts + 1);
 }
 
 /*
@@ -3945,10 +3805,10 @@ static int PointInPolygonMarker(Marker *markerPtr, Point2D *samplePtr) {
  *----------------------------------------------------------------------
  */
 static int RegionInPolygonMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed) {
-    PolygonMarker *pmPtr = (PolygonMarker *)markerPtr;
+    PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
 
-    if (pmPtr->nWorldPts >= 3) {
-        return Rbc_RegionInPolygon(extsPtr, pmPtr->screenPts, pmPtr->nWorldPts, enclosed);
+    if (pmPtr->core.nWorldPts >= 3) {
+        return Rbc_RegionInPolygon(extsPtr, pmPtr->screenPts, pmPtr->core.nWorldPts, enclosed);
     }
     return FALSE;
 }
@@ -3974,7 +3834,7 @@ static int RegionInPolygonMarker(Marker *markerPtr, Extents2D *extsPtr, int encl
  */
 static void DrawPolygonMarker(Marker *markerPtr, Drawable drawable) {
     Graph *graphPtr = markerPtr->graphPtr;
-    PolygonMarker *pmPtr = (PolygonMarker *)markerPtr;
+    PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
 
     /* Draw polygon fill region */
     if ((pmPtr->nFillPts > 0) && (pmPtr->fill.fgColor != NULL)) {
@@ -4021,7 +3881,7 @@ static void DrawPolygonMarker(Marker *markerPtr, Drawable drawable) {
  */
 static void PolygonMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
     Graph *graphPtr = markerPtr->graphPtr;
-    PolygonMarker *pmPtr = (PolygonMarker *)markerPtr;
+    PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
 
     if (pmPtr->fill.fgColor != NULL) {
 
@@ -4103,7 +3963,7 @@ static void PolygonMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
  */
 static int ConfigurePolygonMarker(Marker *markerPtr) {
     Graph *graphPtr = markerPtr->graphPtr;
-    PolygonMarker *pmPtr = (PolygonMarker *)markerPtr;
+    PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
     GC newGC;
     XGCValues gcValues;
     unsigned long gcMask;
@@ -4183,8 +4043,8 @@ static int ConfigurePolygonMarker(Marker *markerPtr) {
         }
         return TCL_OK;
     }
-    pmPtr->flags |= MAP_ITEM;
-    if (pmPtr->drawUnder) {
+    pmPtr->core.flags |= MAP_ITEM;
+    if (pmPtr->core.drawUnder) {
         graphPtr->flags |= REDRAW_BACKING_STORE;
     }
     Rbc_EventuallyRedrawGraph(graphPtr);
@@ -4211,7 +4071,7 @@ static int ConfigurePolygonMarker(Marker *markerPtr) {
  * ----------------------------------------------------------------------
  */
 static void FreePolygonMarker(Graph *graphPtr, Marker *markerPtr) {
-    PolygonMarker *pmPtr = (PolygonMarker *)markerPtr;
+    PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
 
     if (pmPtr->fillGC != NULL) {
         Tk_FreeGC(graphPtr->display, pmPtr->fillGC);
@@ -4251,11 +4111,11 @@ static Marker *CreatePolygonMarker() {
 
     pmPtr = RbcCalloc(1, sizeof(PolygonMarker));
     if (pmPtr != NULL) {
-        pmPtr->classPtr = &polygonMarkerClass;
+        pmPtr->core.classPtr = &polygonMarkerClass;
         pmPtr->capStyle = CapButt;
         pmPtr->joinStyle = JoinMiter;
     }
-    return (Marker *)pmPtr;
+    return &pmPtr->core;
 }
 
 /*

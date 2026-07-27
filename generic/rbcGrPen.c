@@ -441,17 +441,13 @@ Pen *Rbc_CreatePen(Graph *graphPtr, char *penName, Rbc_Uid classUid, int nOpts, 
     for (i = 0; (i + 1) < nOpts; i += 2) {
         const char *option;
         Tcl_Size length;
-
         option = Tcl_GetStringFromObj(options[i], &length);
-
         /*
          * Accept unambiguous abbreviations beginning with "-ty".
          */
         if ((length >= 3) && (length <= 5) && (strncmp(option, "-type", (size_t)length) == 0)) {
             const char *arg;
-
             arg = Tcl_GetString(options[i + 1]);
-
             if (strcmp(arg, "bar") == 0) {
                 classUid = rbcBarElementUid;
             } else if (strcmp(arg, "line") == 0) {
@@ -460,7 +456,6 @@ Pen *Rbc_CreatePen(Graph *graphPtr, char *penName, Rbc_Uid classUid, int nOpts, 
                 classUid = rbcLineElementUid;
             } else {
                 Tcl_SetObjResult(graphPtr->interp, Tcl_ObjPrintf("unknown pen type \"%s\" specified", arg));
-
                 return NULL;
             }
         }
@@ -479,28 +474,19 @@ Pen *Rbc_CreatePen(Graph *graphPtr, char *penName, Rbc_Uid classUid, int nOpts, 
      * pen with the same name.
      */
     hPtr = Tcl_CreateHashEntry(&graphPtr->penTable, penName, &isNew);
-
     if (!isNew) {
         penPtr = Tcl_GetHashValue(hPtr);
-
         if (!(penPtr->flags & PEN_DELETE_PENDING)) {
             Tcl_SetObjResult(graphPtr->interp, Tcl_ObjPrintf("pen \"%s\" already exists in \"%s\"", penName,
                                                              Tk_PathName(graphPtr->tkwin)));
-
             return NULL;
         }
-
         if (penPtr->classUid != classUid) {
             Tcl_SetObjResult(graphPtr->interp, Tcl_ObjPrintf("pen \"%s\" in-use: can't change pen type "
                                                              "from \"%s\" to \"%s\"",
                                                              penName, penPtr->classUid, classUid));
-
             return NULL;
         }
-
-        /*
-         * Revive the delete-pending pen.
-         */
         penPtr->flags &= ~PEN_DELETE_PENDING;
     } else {
         /*
@@ -511,21 +497,16 @@ Pen *Rbc_CreatePen(Graph *graphPtr, char *penName, Rbc_Uid classUid, int nOpts, 
         } else {
             penPtr = Rbc_LinePen(penName);
         }
-
         if (penPtr == NULL) {
             Tcl_DeleteHashEntry(hPtr);
             return NULL;
         }
-
         penPtr->classUid = classUid;
         penPtr->hashPtr = hPtr;
-
         Tcl_SetHashValue(hPtr, penPtr);
     }
-
     assert(penPtr != NULL);
     assert(penPtr->optionSpecs != NULL);
-
     /*
      * A newly allocated pen needs its Tk option record initialised.
      * A revived delete-pending pen already has an initialised option
@@ -534,11 +515,9 @@ Pen *Rbc_CreatePen(Graph *graphPtr, char *penName, Rbc_Uid classUid, int nOpts, 
     if (isNew) {
         if (InitPenOptions(graphPtr, penPtr) != TCL_OK) {
             DestroyPen(graphPtr, penPtr);
-
             return NULL;
         }
     }
-
     if (nOpts > 0) {
         /*
          * Apply explicitly supplied options transactionally.
@@ -547,7 +526,6 @@ Pen *Rbc_CreatePen(Graph *graphPtr, char *penName, Rbc_Uid classUid, int nOpts, 
             if (isNew) {
                 DestroyPen(graphPtr, penPtr);
             }
-
             return NULL;
         }
     } else {
@@ -563,11 +541,9 @@ Pen *Rbc_CreatePen(Graph *graphPtr, char *penName, Rbc_Uid classUid, int nOpts, 
             if (isNew) {
                 DestroyPen(graphPtr, penPtr);
             }
-
             return NULL;
         }
     }
-
     return penPtr;
 }
 
