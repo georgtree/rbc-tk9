@@ -151,17 +151,36 @@ typedef int(PenConfigureProc)(Graph *graphPtr, Pen *penPtr);
 typedef void(PenDestroyProc)(Graph *graphPtr, Pen *penPtr);
 
 struct PenStruct {
-    char *name;         /* Pen style identifier.  If NULL pen
-                         * was statically allocated. */
-    Rbc_Uid classUid;   /* Type of pen */
-    char *typeId;       /* String token identifying the type of pen */
-    unsigned int flags; /* Indicates if the pen element is active or
-                         * normal */
-    int refCount;       /* Reference count for elements using
-                         * this pen. */
+    char *name;
+    Rbc_Uid classUid;
+    char *typeId;
+    unsigned int flags;
+    int refCount;
     Tcl_HashEntry *hashPtr;
 
-    Tk_ConfigSpec *configSpecs; /* Configuration specifications */
+    /*
+     * Legacy option configuration.
+     *
+     * This remains non-NULL while the concrete pen class uses the
+     * Tk_ConfigSpec API.
+     */
+    Tk_ConfigSpec *configSpecs;
+
+    /*
+     * Modern option configuration.
+     *
+     * optionSpecs is non-NULL only for a pen class migrated to the
+     * Tk_OptionSpec API. optionTable is created from optionSpecs for
+     * each interpreter.
+     */
+    const Tk_OptionSpec *optionSpecs;
+    Tk_OptionTable optionTable;
+
+    /*
+     * Lifecycle state for modern Tk-managed option resources.
+     */
+    int optionsInitialized;
+    int tkResourcesReleased;
 
     PenConfigureProc *configProc;
     PenDestroyProc *destroyProc;
@@ -620,6 +639,7 @@ void Rbc_MapMarkers(Graph *graphPtr);
 void Rbc_MapGrid(Graph *graphPtr);
 void Rbc_UpdateCrosshairs(Graph *graphPtr);
 void Rbc_DestroyPens(Graph *graphPtr);
+void Rbc_ReleasePenTkResources(Graph *graphPtr);
 int Rbc_GetPen(Graph *graphPtr, const char *name, Rbc_Uid classUid, Pen **penPtrPtr);
 Pen *Rbc_BarPen(char *penName);
 Pen *Rbc_LinePen(char *penName);

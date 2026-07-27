@@ -1514,8 +1514,14 @@ static void InitPen(LinePen *penPtr) {
 
     Rbc_InitTextStyle(&penPtr->valueStyle);
 
-    corePtr->configProc = ConfigurePen;
     corePtr->configSpecs = linePenConfigSpecs;
+    corePtr->optionSpecs = NULL;
+    corePtr->optionTable = NULL;
+
+    corePtr->optionsInitialized = FALSE;
+    corePtr->tkResourcesReleased = FALSE;
+
+    corePtr->configProc = ConfigurePen;
     corePtr->destroyProc = DestroyPen;
     corePtr->flags = NORMAL_PEN;
     corePtr->name = "";
@@ -1525,12 +1531,10 @@ static void InitPen(LinePen *penPtr) {
 
     penPtr->symbol.bitmap = None;
     penPtr->symbol.mask = None;
-
     penPtr->symbol.outlineColor = COLOR_DEFAULT;
-
     penPtr->symbol.fillColor = COLOR_DEFAULT;
-
     penPtr->symbol.outlineWidth = 1;
+
     penPtr->traceWidth = 1;
     penPtr->symbol.type = SYMBOL_CIRCLE;
     penPtr->valueShow = SHOW_NONE;

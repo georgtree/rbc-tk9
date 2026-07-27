@@ -33,6 +33,113 @@ static RbcGrPenOp DeleteOp;
 static RbcGrPenOp NamesOp;
 static RbcGrPenOp TypeOp;
 
+static int PenUsesModernOptions(const Pen *penPtr) { return (penPtr->optionSpecs != NULL); }
+
+static int InitModernPenOptions(Graph *graphPtr, Pen *penPtr) {
+    char *componentName;
+    int result;
+
+    if (penPtr->optionsInitialized) {
+        return TCL_OK;
+    }
+
+    assert(penPtr->optionSpecs != NULL);
+
+    penPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, penPtr->optionSpecs);
+
+    /*
+     * Rbc_ConfigureWidgetComponent() lowercases the first character
+     * of the temporary component-window name. Preserve that behaviour
+     * for compatibility with pen names beginning with an uppercase
+     * letter.
+     */
+    componentName = RbcStrdup(penPtr->name);
+
+    if (componentName[0] != '\0') {
+        componentName[0] = (char)tolower((unsigned char)componentName[0]);
+    }
+
+    result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, componentName, "Pen", (char *)penPtr,
+                                      penPtr->optionTable);
+
+    ckfree(componentName);
+
+    if (result != TCL_OK) {
+        penPtr->optionTable = NULL;
+        return TCL_ERROR;
+    }
+
+    penPtr->optionsInitialized = TRUE;
+    return TCL_OK;
+}
+
+static int ConfigureModernPen(Graph *graphPtr, Pen *penPtr, int objc, Tcl_Obj *const objv[]) {
+    Tk_SavedOptions savedOptions;
+    Tcl_Obj *errorObjPtr;
+    int mask;
+
+    assert(PenUsesModernOptions(penPtr));
+    assert(penPtr->optionsInitialized);
+
+    if (Tk_SetOptions(graphPtr->interp, (char *)penPtr, penPtr->optionTable, objc, objv, graphPtr->tkwin, &savedOptions,
+                      &mask) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    /*
+     * Concrete modern configuration functions must parse additional
+     * object-backed fields transactionally: they must not modify the
+     * active derived state until every fallible conversion succeeds.
+     */
+    if ((*penPtr->configProc)(graphPtr, penPtr) != TCL_OK) {
+        errorObjPtr = Tcl_GetObjResult(graphPtr->interp);
+
+        Tcl_IncrRefCount(errorObjPtr);
+
+        Tk_RestoreSavedOptions(&savedOptions);
+
+        Tcl_SetObjResult(graphPtr->interp, errorObjPtr);
+
+        Tcl_DecrRefCount(errorObjPtr);
+
+        return TCL_ERROR;
+    }
+
+    Tk_FreeSavedOptions(&savedOptions);
+
+    return TCL_OK;
+}
+
+static void ReleaseModernPenResources(Graph *graphPtr, Pen *penPtr) {
+    if ((!PenUsesModernOptions(penPtr)) || (!penPtr->optionsInitialized) || (penPtr->tkResourcesReleased)) {
+        return;
+    }
+
+    /*
+     * Release concrete GCs and manually owned resources before
+     * Tk_FreeConfigOptions() releases fonts, colours, borders, and
+     * other option-table resources they may refer to.
+     */
+    (*penPtr->destroyProc)(graphPtr, penPtr);
+
+    Tk_FreeConfigOptions((char *)penPtr, penPtr->optionTable, graphPtr->tkwin);
+
+    penPtr->tkResourcesReleased = TRUE;
+}
+
+void Rbc_ReleasePenTkResources(Graph *graphPtr) {
+    Tcl_HashEntry *hPtr;
+    Tcl_HashSearch cursor;
+
+    for (hPtr = Tcl_FirstHashEntry(&graphPtr->penTable, &cursor); hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
+        Pen *penPtr;
+
+        penPtr = Tcl_GetHashValue(hPtr);
+
+        ReleaseModernPenResources(graphPtr, penPtr);
+    }
+}
+
 /*
  *----------------------------------------------------------------------
 
@@ -278,15 +385,32 @@ notFound:
  *----------------------------------------------------------------------
  */
 static void DestroyPen(Graph *graphPtr, Pen *penPtr) {
-    Tk_FreeOptions(penPtr->configSpecs, (char *)penPtr, graphPtr->display, 0);
-    (*penPtr->destroyProc)(graphPtr, penPtr);
-    if ((penPtr->name != NULL) && (penPtr->name[0] != '\0')) {
-        ckfree((char *)penPtr->name);
+    if (PenUsesModernOptions(penPtr)) {
+        /*
+         * Normal deletion while the graph window is alive, or cleanup
+         * following a partially completed graph construction.
+         */
+        if ((!penPtr->tkResourcesReleased) && (graphPtr->tkwin != NULL)) {
+            ReleaseModernPenResources(graphPtr, penPtr);
+        }
+    } else {
+        /*
+         * Legacy pens continue using their original resource path.
+         */
+        Tk_FreeOptions(penPtr->configSpecs, (char *)penPtr, graphPtr->display, 0);
+
+        (*penPtr->destroyProc)(graphPtr, penPtr);
     }
+
+    if ((penPtr->name != NULL) && (penPtr->name[0] != '\0')) {
+        ckfree(penPtr->name);
+    }
+
     if (penPtr->hashPtr != NULL) {
         Tcl_DeleteHashEntry(penPtr->hashPtr);
     }
-    ckfree((char *)penPtr);
+
+    ckfree(penPtr);
 }
 
 /*
@@ -395,15 +519,55 @@ Pen *Rbc_CreatePen(Graph *graphPtr, char *penName, Rbc_Uid classUid, int nOpts, 
         Tcl_SetHashValue(hPtr, penPtr);
     }
 
-    configFlags = (penPtr->flags & (ACTIVE_PEN | NORMAL_PEN));
-    if (Rbc_ConfigureWidgetComponent(graphPtr->interp, graphPtr->tkwin, penPtr->name, "Pen", penPtr->configSpecs, nOpts,
-                                     options, (char *)penPtr, configFlags) != TCL_OK) {
+    if (PenUsesModernOptions(penPtr)) {
         if (isNew) {
-            DestroyPen(graphPtr, penPtr);
+            if (InitModernPenOptions(graphPtr, penPtr) != TCL_OK) {
+                DestroyPen(graphPtr, penPtr);
+
+                return NULL;
+            }
         }
-        return NULL;
+
+        if (nOpts > 0) {
+            if (ConfigureModernPen(graphPtr, penPtr, nOpts, options) != TCL_OK) {
+                if (isNew) {
+                    DestroyPen(graphPtr, penPtr);
+                }
+
+                return NULL;
+            }
+        } else {
+            /*
+             * Tk_InitOptions() installed defaults, but the concrete
+             * drawing resources still need to be constructed.
+             */
+            if ((*penPtr->configProc)(graphPtr, penPtr) != TCL_OK) {
+                if (isNew) {
+                    DestroyPen(graphPtr, penPtr);
+                }
+
+                return NULL;
+            }
+        }
+    } else {
+        configFlags = penPtr->flags & (ACTIVE_PEN | NORMAL_PEN);
+
+        if (Rbc_ConfigureWidgetComponent(graphPtr->interp, graphPtr->tkwin, penPtr->name, "Pen", penPtr->configSpecs,
+                                         nOpts, options, (char *)penPtr, configFlags) != TCL_OK) {
+            if (isNew) {
+                DestroyPen(graphPtr, penPtr);
+            }
+
+            return NULL;
+        }
+
+        /*
+         * Preserve the current legacy behaviour. The existing code does
+         * not propagate a ConfigurePen() failure here.
+         */
+        (void)(*penPtr->configProc)(graphPtr, penPtr);
     }
-    (*penPtr->configProc)(graphPtr, penPtr);
+
     return penPtr;
 }
 
@@ -506,15 +670,29 @@ void Rbc_DestroyPens(Graph *graphPtr) {
  */
 static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     Pen *penPtr;
-    unsigned int configFlags;
 
     penPtr = NameToPen(graphPtr, objv[3]);
+
     if (penPtr == NULL) {
         return TCL_ERROR;
     }
-    configFlags = (penPtr->flags & (ACTIVE_PEN | NORMAL_PEN));
+
+    if (PenUsesModernOptions(penPtr)) {
+        Tcl_Obj *resultObjPtr;
+
+        resultObjPtr = Tk_GetOptionValue(interp, (char *)penPtr, penPtr->optionTable, objv[4], graphPtr->tkwin);
+
+        if (resultObjPtr == NULL) {
+            return TCL_ERROR;
+        }
+
+        Tcl_SetObjResult(interp, resultObjPtr);
+
+        return TCL_OK;
+    }
+
     return Tk_ConfigureValue(interp, graphPtr->tkwin, penPtr->configSpecs, (char *)penPtr, Tcl_GetString(objv[4]),
-                             configFlags);
+                             penPtr->flags & (ACTIVE_PEN | NORMAL_PEN));
 }
 
 /*
@@ -566,18 +744,61 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *c
     redraw = 0;
     for (i = 0; i < nNames; i++) {
         penPtr = NameToPen(graphPtr, objv[i]);
-        flags = TK_CONFIG_ARGV_ONLY | (penPtr->flags & (ACTIVE_PEN | NORMAL_PEN));
-        if (nOpts == 0) {
-            return Tk_ConfigureInfo(interp, graphPtr->tkwin, penPtr->configSpecs, (char *)penPtr, (char *)NULL, flags);
-        } else if (nOpts == 1) {
-            return Tk_ConfigureInfo(interp, graphPtr->tkwin, penPtr->configSpecs, (char *)penPtr,
-                                    Tcl_GetString(options[0]), flags);
+
+        if (PenUsesModernOptions(penPtr)) {
+            Tcl_Obj *resultObjPtr;
+
+            if (nOpts == 0) {
+                resultObjPtr = Tk_GetOptionInfo(interp, (char *)penPtr, penPtr->optionTable, NULL, graphPtr->tkwin);
+
+                if (resultObjPtr == NULL) {
+                    return TCL_ERROR;
+                }
+
+                Tcl_SetObjResult(interp, resultObjPtr);
+
+                return TCL_OK;
+            }
+
+            if (nOpts == 1) {
+                resultObjPtr =
+                    Tk_GetOptionInfo(interp, (char *)penPtr, penPtr->optionTable, options[0], graphPtr->tkwin);
+
+                if (resultObjPtr == NULL) {
+                    return TCL_ERROR;
+                }
+
+                Tcl_SetObjResult(interp, resultObjPtr);
+
+                return TCL_OK;
+            }
+
+            if (ConfigureModernPen(graphPtr, penPtr, nOpts, options) != TCL_OK) {
+                break;
+            }
+        } else {
+            flags = TK_CONFIG_ARGV_ONLY | (penPtr->flags & (ACTIVE_PEN | NORMAL_PEN));
+
+            if (nOpts == 0) {
+                return Tk_ConfigureInfo(interp, graphPtr->tkwin, penPtr->configSpecs, (char *)penPtr, NULL, flags);
+            }
+
+            if (nOpts == 1) {
+                return Tk_ConfigureInfo(interp, graphPtr->tkwin, penPtr->configSpecs, (char *)penPtr,
+                                        Tcl_GetString(options[0]), flags);
+            }
+
+            if (Tk_ConfigureWidget(interp, graphPtr->tkwin, penPtr->configSpecs, nOpts, options, (char *)penPtr,
+                                   flags) != TCL_OK) {
+                break;
+            }
+
+            /*
+             * Preserve existing legacy behaviour.
+             */
+            (void)(*penPtr->configProc)(graphPtr, penPtr);
         }
-        if (Tk_ConfigureWidget(interp, graphPtr->tkwin, penPtr->configSpecs, nOpts, options, (char *)penPtr, flags) !=
-            TCL_OK) {
-            break;
-        }
-        (*penPtr->configProc)(graphPtr, penPtr);
+
         if (penPtr->refCount > 0) {
             redraw++;
         }

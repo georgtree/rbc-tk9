@@ -705,11 +705,20 @@ static void InitPen(BarPen *penPtr) {
     Pen *corePtr;
 
     corePtr = &penPtr->core;
+
     Rbc_InitTextStyle(&penPtr->valueStyle);
+
     corePtr->configSpecs = barPenConfigSpecs;
+    corePtr->optionSpecs = NULL;
+    corePtr->optionTable = NULL;
+
+    corePtr->optionsInitialized = FALSE;
+    corePtr->tkResourcesReleased = FALSE;
+
     corePtr->configProc = ConfigurePen;
     corePtr->destroyProc = DestroyPen;
     corePtr->flags = NORMAL_PEN;
+
     penPtr->relief = TK_RELIEF_RAISED;
     penPtr->errorBarShow = SHOW_BOTH;
     penPtr->valueShow = SHOW_NONE;
