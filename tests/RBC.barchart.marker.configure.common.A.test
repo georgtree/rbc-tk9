@@ -34,7 +34,7 @@ namespace eval barchart.marker {
 	} -cleanup {
 	    .barchart1 marker delete marker1
 		destroy .barchart1
-	} -result {0.8 2.0}
+	} -result {0.8 2}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure configuring element changes the coresponding option value pair

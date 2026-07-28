@@ -193,6 +193,14 @@ typedef struct {
                         * NULL. If non-NULL, graph displays
                         * the contents of this variable. */
 #endif
+
+    /*
+     * Original Tcl representations of manually converted options.
+     */
+    Tcl_Obj *padXObjPtr;
+    Tcl_Obj *padYObjPtr;
+    Tcl_Obj *shadowObjPtr;
+    
     char *string;        /* Text string to be display.  The string
                           * make contain newlines. */
     Tk_Anchor anchor;    /* Indicates how to translate the given
@@ -207,51 +215,44 @@ typedef struct {
     GC fillGC;
 } TextMarker;
 
-static Tk_ConfigSpec textConfigSpecs[] = {
-    {TK_CONFIG_ANCHOR, "-anchor", "anchor", "Anchor", DEF_MARKER_ANCHOR, offsetof(TextMarker, anchor), 0},
-    {TK_CONFIG_COLOR, "-background", "background", "MarkerBackground", (char *)NULL, offsetof(TextMarker, fillColor),
-     TK_CONFIG_NULL_OK},
-    {TK_CONFIG_SYNONYM, "-bg", "background", "Background", (char *)NULL, 0, 0},
-    {TK_CONFIG_CUSTOM, "-bindtags", "bindTags", "BindTags", DEF_MARKER_TEXT_TAGS, offsetof(Marker, tags),
-     TK_CONFIG_NULL_OK, &rbcListOption},
-    {TK_CONFIG_CUSTOM, "-coords", "coords", "Coords", DEF_MARKER_COORDS, offsetof(Marker, worldPts), TK_CONFIG_NULL_OK,
-     &coordsOption},
-    {TK_CONFIG_STRING, "-element", "element", "Element", DEF_MARKER_ELEMENT, offsetof(Marker, elemName),
-     TK_CONFIG_NULL_OK},
-    {TK_CONFIG_SYNONYM, "-fg", "foreground", "Foreground", (char *)NULL, 0, 0},
-    {TK_CONFIG_SYNONYM, "-fill", "background", (char *)NULL, (char *)NULL, 0, 0},
-    {TK_CONFIG_FONT, "-font", "font", "Font", DEF_MARKER_FONT, offsetof(TextMarker, style.font), 0},
-    {TK_CONFIG_COLOR, "-foreground", "foreground", "Foreground", DEF_MARKER_FOREGROUND,
-     offsetof(TextMarker, style.color), TK_CONFIG_COLOR_ONLY},
-    {TK_CONFIG_COLOR, "-foreground", "foreground", "Foreground", DEF_MARKER_FG_MONO, offsetof(TextMarker, style.color),
-     TK_CONFIG_MONO_ONLY},
-    {TK_CONFIG_JUSTIFY, "-justify", "justify", "Justify", DEF_MARKER_JUSTIFY, offsetof(TextMarker, style.justify),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_BOOLEAN, "-hide", "hide", "Hide", DEF_MARKER_HIDE, offsetof(Marker, hidden), TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-mapx", "mapX", "MapX", DEF_MARKER_MAP_X, offsetof(Marker, axes.x), 0, &rbcXAxisOption},
-    {TK_CONFIG_CUSTOM, "-mapy", "mapY", "MapY", DEF_MARKER_MAP_Y, offsetof(Marker, axes.y), 0, &rbcYAxisOption},
-    {TK_CONFIG_STRING, "-name", (char *)NULL, (char *)NULL, DEF_MARKER_NAME, offsetof(Marker, name), TK_CONFIG_NULL_OK},
-    {TK_CONFIG_SYNONYM, "-outline", "foreground", (char *)NULL, (char *)NULL, 0, 0},
-    {TK_CONFIG_CUSTOM, "-padx", "padX", "PadX", DEF_MARKER_PAD, offsetof(TextMarker, style.padX),
-     TK_CONFIG_DONT_SET_DEFAULT, &rbcPadOption},
-    {TK_CONFIG_CUSTOM, "-pady", "padY", "PadY", DEF_MARKER_PAD, offsetof(TextMarker, style.padY),
-     TK_CONFIG_DONT_SET_DEFAULT, &rbcPadOption},
-    {TK_CONFIG_DOUBLE, "-rotate", "rotate", "Rotate", DEF_MARKER_ROTATE, offsetof(TextMarker, style.theta),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-shadow", "shadow", "Shadow", DEF_MARKER_SHADOW_COLOR, offsetof(TextMarker, style.shadow),
-     TK_CONFIG_COLOR_ONLY, &rbcShadowOption},
-    {TK_CONFIG_CUSTOM, "-shadow", "shadow", "Shadow", DEF_MARKER_SHADOW_MONO, offsetof(TextMarker, style.shadow),
-     TK_CONFIG_MONO_ONLY, &rbcShadowOption},
-    {TK_CONFIG_CUSTOM, "-state", "state", "State", DEF_MARKER_STATE, offsetof(Marker, state),
-     TK_CONFIG_DONT_SET_DEFAULT, &rbcStateOption},
-    {TK_CONFIG_STRING, "-text", "text", "Text", DEF_MARKER_TEXT, offsetof(TextMarker, string), TK_CONFIG_NULL_OK},
-    {TK_CONFIG_BOOLEAN, "-under", "under", "Under", DEF_MARKER_UNDER, offsetof(Marker, drawUnder),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_PIXELS, "-xoffset", "xOffset", "XOffset", DEF_MARKER_X_OFFSET, offsetof(Marker, xOffset),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_PIXELS, "-yoffset", "yOffset", "YOffset", DEF_MARKER_Y_OFFSET, offsetof(Marker, yOffset),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}};
+static const Tk_OptionSpec textMarkerOptionSpecs[] = {
+    {TK_OPTION_ANCHOR, "-anchor", "anchor", "Anchor", DEF_MARKER_ANCHOR, -1, offsetof(TextMarker, anchor), 0, NULL, 0},
+    {TK_OPTION_COLOR, "-background", "background", "MarkerBackground", NULL, -1, offsetof(TextMarker, fillColor),
+     TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_SYNONYM, "-bg", "background", NULL, NULL, 0, -1, 0, (ClientData) "-background", 0},
+    {TK_OPTION_STRING, "-bindtags", "bindTags", "BindTags", DEF_MARKER_TEXT_TAGS, offsetof(Marker, bindTagsObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING, "-coords", "coords", "Coords", DEF_MARKER_COORDS, offsetof(Marker, coordsObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING, "-element", "element", "Element", DEF_MARKER_ELEMENT, -1, offsetof(Marker, elemName),
+     TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_SYNONYM, "-fg", "foreground", NULL, NULL, 0, -1, 0, (ClientData) "-foreground", 0},
+    {TK_OPTION_SYNONYM, "-fill", "background", NULL, NULL, 0, -1, 0, (ClientData) "-background", 0},
+    {TK_OPTION_FONT, "-font", "font", "Font", DEF_MARKER_FONT, -1, offsetof(TextMarker, style.font), 0, NULL, 0},
+    {TK_OPTION_COLOR, "-foreground", "foreground", "Foreground", DEF_MARKER_FOREGROUND, -1,
+     offsetof(TextMarker, style.color), 0, (ClientData)DEF_MARKER_FG_MONO, 0},
+    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_MARKER_HIDE, -1, offsetof(Marker, hidden), 0, NULL, 0},
+    {TK_OPTION_JUSTIFY, "-justify", "justify", "Justify", DEF_MARKER_JUSTIFY, -1, offsetof(TextMarker, style.justify),
+     0, NULL, 0},
+    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_MARKER_MAP_X, offsetof(Marker, mapXObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_MARKER_MAP_Y, offsetof(Marker, mapYObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-name", NULL, NULL, DEF_MARKER_NAME, -1, offsetof(Marker, name), TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_SYNONYM, "-outline", "foreground", NULL, NULL, 0, -1, 0, (ClientData) "-foreground", 0},
+    {TK_OPTION_STRING, "-padx", "padX", "PadX", DEF_MARKER_PAD, offsetof(TextMarker, padXObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-pady", "padY", "PadY", DEF_MARKER_PAD, offsetof(TextMarker, padYObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_DOUBLE, "-rotate", "rotate", "Rotate", DEF_MARKER_ROTATE, -1, offsetof(TextMarker, style.theta), 0, NULL,
+     0},
+    {TK_OPTION_STRING, "-shadow", "shadow", "Shadow", DEF_MARKER_SHADOW_COLOR, offsetof(TextMarker, shadowObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING, "-state", "state", "State", DEF_MARKER_STATE, offsetof(Marker, stateObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-text", "text", "Text", DEF_MARKER_TEXT, -1, offsetof(TextMarker, string), TK_OPTION_NULL_OK,
+     NULL, 0},
+    {TK_OPTION_BOOLEAN, "-under", "under", "Under", DEF_MARKER_UNDER, -1, offsetof(Marker, drawUnder), 0, NULL, 0},
+    {TK_OPTION_PIXELS, "-xoffset", "xOffset", "XOffset", DEF_MARKER_X_OFFSET, offsetof(Marker, xOffsetObjPtr),
+     offsetof(Marker, xOffset), 0, NULL, 0},
+    {TK_OPTION_PIXELS, "-yoffset", "yOffset", "YOffset", DEF_MARKER_Y_OFFSET, offsetof(Marker, yOffsetObjPtr),
+     offsetof(Marker, yOffset), 0, NULL, 0},
+    {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 /*
  * -------------------------------------------------------------------
@@ -746,8 +747,9 @@ static MarkerClass polygonMarkerClass = {
 };
 
 static MarkerClass textMarkerClass = {
-    .configSpecs = textConfigSpecs,
-    .optionSpecs = NULL,
+    .configSpecs = NULL,
+    .optionSpecs = textMarkerOptionSpecs,
+    .monoOptionSpecs = NULL,
     .configProc = ConfigureTextMarker,
     .drawProc = DrawTextMarker,
     .freeProc = FreeTextMarker,
@@ -756,7 +758,6 @@ static MarkerClass textMarkerClass = {
     .regionProc = RegionInTextMarker,
     .postscriptProc = TextMarkerToPostScript,
 };
-
 
 static MarkerClass windowMarkerClass = {
     .configSpecs = windowConfigSpecs,
@@ -3310,57 +3311,176 @@ static Marker *CreateImageMarker(void) {
  * ----------------------------------------------------------------------
  */
 static int ConfigureTextMarker(Marker *markerPtr) {
-    Graph *graphPtr = markerPtr->graphPtr;
-    TextMarker *tmPtr = TEXT_MARKER_FROM_CORE(markerPtr);
-    GC newGC;
+    Graph *graphPtr;
+    TextMarker *tmPtr;
+    ParsedMarkerOptions markerOptions;
+    Rbc_Pad newPadX;
+    Rbc_Pad newPadY;
+    Shadow newShadow;
+    TextStyle layoutStyle;
+    TextLayout *newTextPtr;
+    Point2D newOutline[5];
+    int newWidth;
+    int newHeight;
+    double newTheta;
     XGCValues gcValues;
     unsigned long gcMask;
+    GC newTextGC;
+    GC newFillGC;
 
-    tmPtr->style.theta = FMOD(tmPtr->style.theta, 360.0);
-    if (tmPtr->style.theta < 0.0) {
-        tmPtr->style.theta += 360.0;
+    graphPtr = markerPtr->graphPtr;
+    tmPtr = TEXT_MARKER_FROM_CORE(markerPtr);
+    memset(&newShadow, 0, sizeof(newShadow));
+    memset(newOutline, 0, sizeof(newOutline));
+    newTextPtr = NULL;
+    newTextGC = NULL;
+    newFillGC = NULL;
+    newWidth = 0;
+    newHeight = 0;
+
+    /*
+     * Parse common marker options without modifying the currently
+     * committed tags, coordinates, axes, or state.
+     */
+    if (ParseMarkerOptions(markerPtr, &markerOptions) != TCL_OK) {
+        return TCL_ERROR;
     }
-    newGC = NULL;
+
+    /*
+     * Parse text-specific manually converted options.
+     */
+    if (Rbc_GetPadFromObj(graphPtr->interp, graphPtr->tkwin, tmPtr->padXObjPtr, &newPadX) != TCL_OK) {
+        goto error;
+    }
+    if (Rbc_GetPadFromObj(graphPtr->interp, graphPtr->tkwin, tmPtr->padYObjPtr, &newPadY) != TCL_OK) {
+        goto error;
+    }
+    if (Rbc_GetShadowFromObj(graphPtr->interp, graphPtr->tkwin, tmPtr->shadowObjPtr, &newShadow) != TCL_OK) {
+        goto error;
+    }
+
+    /*
+     * Preserve the existing normalised -rotate behaviour.
+     */
+    newTheta = FMOD(tmPtr->style.theta, 360.0);
+    if (newTheta < 0.0) {
+        newTheta += 360.0;
+    }
+
+    /*
+     * Build a temporary style for layout calculation. Tk_SetOptions()
+     * has already installed the proposed font, foreground,
+     * justification, and rotation in tmPtr->style.
+     */
+    layoutStyle = tmPtr->style;
+    layoutStyle.padX = newPadX;
+    layoutStyle.padY = newPadY;
+    layoutStyle.shadow = newShadow;
+    layoutStyle.theta = newTheta;
+
+    /*
+     * Rebuild the layout for every successful configuration because
+     * text, font, justification, padding, shadow, and rotation can all
+     * affect its dimensions or bounding polygon.
+     */
+    if (tmPtr->string != NULL) {
+        double rotWidth;
+        double rotHeight;
+        int i;
+        newTextPtr = Rbc_GetTextLayout(tmPtr->string, &layoutStyle);
+        Rbc_GetBoundingBox(newTextPtr->width, newTextPtr->height, newTheta, &rotWidth, &rotHeight, newOutline);
+        newWidth = ROUND(rotWidth);
+        newHeight = ROUND(rotHeight);
+        for (i = 0; i < 4; i++) {
+            newOutline[i].x += ROUND(rotWidth * 0.5);
+            newOutline[i].y += ROUND(rotHeight * 0.5);
+        }
+        newOutline[4] = newOutline[0];
+    }
+
+    /*
+     * Construct the replacement text GC without releasing the old GC.
+     */
+    memset(&gcValues, 0, sizeof(gcValues));
+    gcMask = GCFont;
+    gcValues.font = Tk_FontId(tmPtr->style.font);
+    if (tmPtr->style.color != NULL) {
+        gcValues.foreground = tmPtr->style.color->pixel;
+        gcMask |= GCForeground;
+    }
+    newTextGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
+
+    /*
+     * Construct the optional background GC.
+     */
     if (tmPtr->fillColor != NULL) {
-        gcMask = GCForeground;
+        memset(&gcValues, 0, sizeof(gcValues));
         gcValues.foreground = tmPtr->fillColor->pixel;
-        newGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
+        newFillGC = Tk_GetGC(graphPtr->tkwin, GCForeground, &gcValues);
     }
+
+    /*
+     * All fallible parsing has succeeded. Commit common marker state.
+     */
+    CommitMarkerOptions(markerPtr, &markerOptions);
+
+    /*
+     * Replace derived text resources while the old Tk-managed string,
+     * font, and colours are still retained by Tk_SavedOptions.
+     */
+    if (tmPtr->textPtr != NULL) {
+        ckfree((char *)tmPtr->textPtr);
+    }
+    tmPtr->textPtr = newTextPtr;
+    newTextPtr = NULL;
+    if (tmPtr->style.gc != NULL) {
+        Tk_FreeGC(graphPtr->display, tmPtr->style.gc);
+    }
+    tmPtr->style.gc = newTextGC;
+    newTextGC = NULL;
     if (tmPtr->fillGC != NULL) {
         Tk_FreeGC(graphPtr->display, tmPtr->fillGC);
     }
-    tmPtr->fillGC = newGC;
-    Rbc_ResetTextStyle(graphPtr->tkwin, &tmPtr->style);
+    tmPtr->fillGC = newFillGC;
+    newFillGC = NULL;
 
-    if (Rbc_ConfigModified(graphPtr->interp, tmPtr->core.classPtr->configSpecs, "-text", (char *)NULL)) {
-        if (tmPtr->textPtr != NULL) {
-            ckfree((char *)tmPtr->textPtr);
-            tmPtr->textPtr = NULL;
-        }
-        tmPtr->width = tmPtr->height = 0;
-        if (tmPtr->string != NULL) {
-            register int i;
-            double rotWidth, rotHeight;
-
-            tmPtr->textPtr = Rbc_GetTextLayout(tmPtr->string, &tmPtr->style);
-            Rbc_GetBoundingBox(tmPtr->textPtr->width, tmPtr->textPtr->height, tmPtr->style.theta, &rotWidth, &rotHeight,
-                               tmPtr->outline);
-            tmPtr->width = ROUND(rotWidth);
-            tmPtr->height = ROUND(rotHeight);
-            for (i = 0; i < 4; i++) {
-                tmPtr->outline[i].x += ROUND(rotWidth * 0.5);
-                tmPtr->outline[i].y += ROUND(rotHeight * 0.5);
-            }
-            tmPtr->outline[4].x = tmPtr->outline[0].x;
-            tmPtr->outline[4].y = tmPtr->outline[0].y;
-        }
+    /*
+     * Shadow colours are manually owned, unlike font, foreground,
+     * background, text, and other Tk-managed option resources.
+     */
+    if (tmPtr->style.shadow.color != NULL) {
+        Tk_FreeColor(tmPtr->style.shadow.color);
     }
-    tmPtr->core.flags |= MAP_ITEM;
-    if (tmPtr->core.drawUnder) {
+    tmPtr->style.shadow = newShadow;
+    newShadow.color = NULL;
+    tmPtr->style.padX = newPadX;
+    tmPtr->style.padY = newPadY;
+    tmPtr->style.theta = newTheta;
+    tmPtr->width = newWidth;
+    tmPtr->height = newHeight;
+    memcpy(tmPtr->outline, newOutline, sizeof(newOutline));
+    markerPtr->flags |= MAP_ITEM;
+    if (markerPtr->drawUnder) {
         graphPtr->flags |= REDRAW_BACKING_STORE;
     }
     Rbc_EventuallyRedrawGraph(graphPtr);
     return TCL_OK;
+
+error:
+    if (newTextPtr != NULL) {
+        ckfree((char *)newTextPtr);
+    }
+    if (newTextGC != NULL) {
+        Tk_FreeGC(graphPtr->display, newTextGC);
+    }
+    if (newFillGC != NULL) {
+        Tk_FreeGC(graphPtr->display, newFillGC);
+    }
+    if (newShadow.color != NULL) {
+        Tk_FreeColor(newShadow.color);
+    }
+    FreeParsedMarkerOptions(graphPtr, &markerOptions);
+    return TCL_ERROR;
 }
 
 /*
@@ -3619,12 +3739,29 @@ static void TextMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
  * ----------------------------------------------------------------------
  */
 static void FreeTextMarker(Graph *graphPtr, Marker *markerPtr) {
-    TextMarker *tmPtr = TEXT_MARKER_FROM_CORE(markerPtr);
+    TextMarker *tmPtr;
 
-    Rbc_FreeTextStyle(graphPtr->display, &tmPtr->style);
+    tmPtr = TEXT_MARKER_FROM_CORE(markerPtr);
+    if (tmPtr->style.gc != NULL) {
+        Tk_FreeGC(graphPtr->display, tmPtr->style.gc);
+        tmPtr->style.gc = NULL;
+    }
+    if (tmPtr->fillGC != NULL) {
+        Tk_FreeGC(graphPtr->display, tmPtr->fillGC);
+        tmPtr->fillGC = NULL;
+    }
+    if (tmPtr->style.shadow.color != NULL) {
+        Tk_FreeColor(tmPtr->style.shadow.color);
+        tmPtr->style.shadow.color = NULL;
+        tmPtr->style.shadow.offset = 0;
+    }
     if (tmPtr->textPtr != NULL) {
         ckfree((char *)tmPtr->textPtr);
+        tmPtr->textPtr = NULL;
     }
+    tmPtr->width = 0;
+    tmPtr->height = 0;
+    memset(tmPtr->outline, 0, sizeof(tmPtr->outline));
 }
 
 /*
@@ -3642,19 +3779,25 @@ static void FreeTextMarker(Graph *graphPtr, Marker *markerPtr) {
  *
  * ----------------------------------------------------------------------
  */
-static Marker *CreateTextMarker() {
+static Marker *CreateTextMarker(void) {
     TextMarker *tmPtr;
 
     tmPtr = RbcCalloc(1, sizeof(TextMarker));
-    assert(tmPtr != NULL);
+    if (tmPtr != NULL) {
+        tmPtr->core.classPtr = &textMarkerClass;
+        Rbc_InitTextStyle(&tmPtr->style);
 
-    tmPtr->core.classPtr = &textMarkerClass;
-    Rbc_InitTextStyle(&tmPtr->style);
-    tmPtr->style.anchor = TK_ANCHOR_NW;
-    tmPtr->style.padLeft = tmPtr->style.padRight = 4;
-    tmPtr->style.padTop = tmPtr->style.padBottom = 4;
-
-    return &tmPtr->core;
+        /*
+         * Internal text-layout anchor. The marker's externally
+         * configured -anchor is stored separately in tmPtr->anchor.
+         */
+        tmPtr->style.anchor = TK_ANCHOR_NW;
+        tmPtr->style.padLeft = 4;
+        tmPtr->style.padRight = 4;
+        tmPtr->style.padTop = 4;
+        tmPtr->style.padBottom = 4;
+    }
+    return (tmPtr != NULL) ? &tmPtr->core : NULL;
 }
 
 static Tk_GeomMgr winMarkerMgrInfo = {

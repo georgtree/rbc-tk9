@@ -565,7 +565,7 @@ namespace eval barchart.marker {
 	} -cleanup {
 		.barchart1 marker delete Marker1
 		destroy .barchart1
-	} -result {6 6}
+	} -result {6}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -padx command works correctly for text 
@@ -679,7 +679,7 @@ namespace eval barchart.marker {
 	} -cleanup {
 		.barchart1 marker delete Marker1
 		destroy .barchart1
-	} -result {0 0}
+	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -pady command works correctly for text 
@@ -696,7 +696,7 @@ namespace eval barchart.marker {
 	} -cleanup {
 		.barchart1 marker delete Marker1
 		destroy .barchart1
-	} -result {6 6}
+	} -result {6}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -pady command works correctly for text 
@@ -810,7 +810,7 @@ namespace eval barchart.marker {
 	} -cleanup {
 		.barchart1 marker delete Marker1
 		destroy .barchart1
-	} -result {0 0}
+	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -rotate command works correctly when given
@@ -930,7 +930,7 @@ namespace eval barchart.marker {
 		.barchart1 marker cget Marker1 -shadow
 	} -cleanup {
 		destroy .barchart1
-	} -result {black 1}
+	} -result {black}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -shadow command works correctly when given an 
@@ -1004,6 +1004,29 @@ namespace eval barchart.marker {
 	} -cleanup {
 		destroy .barchart1
 	} -result {0}
+
+    test RBC.barchart.marker.configure.text.A.rollback.1 {
+        text marker configuration is atomic
+    } -setup {
+        barchart .barchart1
+        .barchart1 marker create text -name Marker1 -coords {0 0} -text original -font {Times 10} -background white\
+                -foreground black -padx 4 -shadow {blue 1}
+        foreach option {-coords -text -font -background -foreground -padx -shadow} {
+            set old($option) [.barchart1 marker cget Marker1 $option]
+        }
+    } -body {
+        set code [catch {.barchart1 marker configure Marker1 -coords {2 2} -text changed -font {Helvetica 16}\
+                                 -background red -foreground white -padx 10 -shadow {invalid 3}} message]
+
+        set result [list $code]
+        foreach option {-coords -text -font -background -foreground -padx -shadow} {
+            lappend result [expr {[.barchart1 marker cget Marker1 $option] eq $old($option)}]
+        }
+        return $result
+    } -cleanup {
+        destroy .barchart1
+        unset -nocomplain old code message result
+    } -result {1 1 1 1 1 1 1 1}
 	
 	cleanupTests
 }
