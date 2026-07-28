@@ -177,6 +177,22 @@ typedef struct {
 
 } ElemVector;
 
+typedef struct {
+    unsigned int stagedMask;
+
+    ElemVector x;
+    ElemVector y;
+    ElemVector w;
+
+    ElemVector xError;
+    ElemVector xHigh;
+    ElemVector xLow;
+
+    ElemVector yError;
+    ElemVector yHigh;
+    ElemVector yLow;
+} ElemDataTransaction;
+
 struct ElementStruct {
     char *name; /* Identifier to refer the element.
                  * Used in the "insert", "delete", or
@@ -326,6 +342,10 @@ int Rbc_ParseElemVectorPairsObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *o
                                 ElemVector *yCandidatePtr);
 void Rbc_CommitElemVector(Element *elemPtr, ElemVector *destPtr, ElemVector *candidatePtr);
 double Rbc_FindElemVectorMinimum(ElemVector *vecPtr, double minLimit);
+int Rbc_PrepareElemDataTransaction(Graph *graphPtr, Element *elemPtr, ElemDataTransaction *transactionPtr);
+void Rbc_CommitElemDataTransaction(Element *elemPtr, ElemDataTransaction *transactionPtr);
+void Rbc_FreeElemDataTransaction(ElemDataTransaction *transactionPtr);
+void Rbc_SyncElemDataOptionObjects(Element *elemPtr);
 void Rbc_FreePalette(Graph *graphPtr, Rbc_Chain *palette);
 void Rbc_DestroyPalette(Graph *graphPtr, Rbc_Chain *palette);
 int Rbc_ParseStylesObj(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, size_t styleSize, Rbc_Chain **palettePtrPtr);

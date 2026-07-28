@@ -59,6 +59,22 @@ static RbcGrElementOp NamesOp;
 static RbcGrElementOp ShowOp;
 static RbcGrElementOp TypeOp;
 
+typedef enum {
+    ELEM_DATA_OPTION_NONE,
+    ELEM_DATA_OPTION_PAIRS,
+    ELEM_DATA_OPTION_WEIGHTS,
+    ELEM_DATA_OPTION_X,
+    ELEM_DATA_OPTION_Y,
+    ELEM_DATA_OPTION_X_ERROR,
+    ELEM_DATA_OPTION_X_HIGH,
+    ELEM_DATA_OPTION_X_LOW,
+    ELEM_DATA_OPTION_Y_ERROR,
+    ELEM_DATA_OPTION_Y_HIGH,
+    ELEM_DATA_OPTION_Y_LOW
+} ElemDataOption;
+
+#define ELEM_DATA_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
+
 /*
  * ----------------------------------------------------------------------
  * Custom option parse and print procedures
@@ -588,6 +604,773 @@ void Rbc_CommitElemVector(Element *elemPtr, ElemVector *destPtr, ElemVector *can
          * never to the temporary candidate.
          */
         Rbc_SetVectorChangedProc(destPtr->clientId, VectorChangedProc, destPtr);
+    }
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * GetElemDataOption --
+ *
+ *      Determines which bar data option is represented by an option
+ *      name accepted by Tk_SetOptions.
+ *
+ *      Exact names take precedence over prefix matching. This matters
+ *      for "-x" and "-y", which are exact option names as well as
+ *      prefixes of several longer options.
+ *
+ * Parameters:
+ *      Tcl_Obj *objPtr - Option-name object.
+ *
+ * Results:
+ *      The corresponding ElemDataOption value. ELEM_DATA_OPTION_NONE is
+ *      returned when the option is unrelated to bar data.
+ *
+ * Side Effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+static ElemDataOption GetElemDataOption(Tcl_Obj *objPtr) {
+    static const struct {
+        const char *name;
+        ElemDataOption option;
+    } optionMap[] = {{"-data", ELEM_DATA_OPTION_PAIRS},
+                     {"-weights", ELEM_DATA_OPTION_WEIGHTS},
+
+                     {"-x", ELEM_DATA_OPTION_X},
+                     {"-xdata", ELEM_DATA_OPTION_X},
+                     {"-y", ELEM_DATA_OPTION_Y},
+                     {"-ydata", ELEM_DATA_OPTION_Y},
+
+                     {"-xerror", ELEM_DATA_OPTION_X_ERROR},
+                     {"-xhigh", ELEM_DATA_OPTION_X_HIGH},
+                     {"-xlow", ELEM_DATA_OPTION_X_LOW},
+
+                     {"-yerror", ELEM_DATA_OPTION_Y_ERROR},
+                     {"-yhigh", ELEM_DATA_OPTION_Y_HIGH},
+                     {"-ylow", ELEM_DATA_OPTION_Y_LOW}};
+
+    const char *string;
+    Tcl_Size length;
+    ElemDataOption match;
+    size_t i;
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+
+    /*
+     * Prefer an exact match. For example, "-x" must mean "-x", not an
+     * ambiguous prefix of "-xdata", "-xerror", "-xhigh", and "-xlow".
+     */
+    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
+        Tcl_Size fullLength;
+
+        fullLength = (Tcl_Size)strlen(optionMap[i].name);
+
+        if ((length == fullLength) && (memcmp(string, optionMap[i].name, (size_t)length) == 0)) {
+            return optionMap[i].option;
+        }
+    }
+
+    /*
+     * Tk_SetOptions has already checked that an abbreviation is valid
+     * and unambiguous. Repeat enough of that matching here to recover
+     * the canonical data-option identity.
+     */
+    match = ELEM_DATA_OPTION_NONE;
+
+    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
+        Tcl_Size fullLength;
+
+        fullLength = (Tcl_Size)strlen(optionMap[i].name);
+
+        if ((length > 0) && (length < fullLength) && (strncmp(string, optionMap[i].name, (size_t)length) == 0)) {
+            if (match == ELEM_DATA_OPTION_NONE) {
+                match = optionMap[i].option;
+            } else if (match != optionMap[i].option) {
+                /*
+                 * This should already have been rejected by
+                 * Tk_SetOptions.
+                 */
+                return ELEM_DATA_OPTION_NONE;
+            }
+        }
+    }
+
+    return match;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_FreeElemDataTransaction --
+ *
+ *      Releases all staged vectors owned by a element-data transaction.
+ *
+ * Parameters:
+ *      ElemDataTransaction *transactionPtr - Transaction to clear.
+ *
+ * Results:
+ *      None.
+ *
+ * Side Effects:
+ *      Releases staged arrays and RBC vector client IDs. The transaction
+ *      is reset to zero.
+ *
+ *----------------------------------------------------------------------
+ */
+void Rbc_FreeElemDataTransaction(ElemDataTransaction *transactionPtr) {
+    Rbc_FreeElemVector(&transactionPtr->x);
+    Rbc_FreeElemVector(&transactionPtr->y);
+    Rbc_FreeElemVector(&transactionPtr->w);
+
+    Rbc_FreeElemVector(&transactionPtr->xError);
+    Rbc_FreeElemVector(&transactionPtr->xHigh);
+    Rbc_FreeElemVector(&transactionPtr->xLow);
+
+    Rbc_FreeElemVector(&transactionPtr->yError);
+    Rbc_FreeElemVector(&transactionPtr->yHigh);
+    Rbc_FreeElemVector(&transactionPtr->yLow);
+
+    transactionPtr->stagedMask = 0;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * StageElemDataVector --
+ *
+ *      Parses one element data-vector option into temporary transaction
+ *      storage.
+ *
+ *      If the same destination was staged previously, the previous
+ *      candidate is released only after the replacement has parsed
+ *      successfully.
+ *
+ * Parameters:
+ *      Tcl_Interp *interp                    - Interpreter.
+ *      Element *elemPtr                      - Owning element.
+ *      Tcl_Obj *objPtr                       - Original option value.
+ *      ElemDataTransaction *transactionPtr    - Current transaction.
+ *      ElemVector *candidatePtr              - Destination candidate.
+ *      ElemDataOption option                  - Candidate identity.
+ *
+ * Results:
+ *      TCL_OK on success; TCL_ERROR on parsing failure.
+ *
+ * Side Effects:
+ *      May allocate temporary vector storage or a vector client ID.
+ *      The live element vector is not modified.
+ *
+ *----------------------------------------------------------------------
+ */
+static int StageElemDataVector(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, ElemDataTransaction *transactionPtr,
+                              ElemVector *candidatePtr, ElemDataOption option) {
+    ElemVector newCandidate;
+    unsigned int mask;
+
+    memset(&newCandidate, 0, sizeof(newCandidate));
+    if (Rbc_ParseElemVectorObj(interp, elemPtr, objPtr, &newCandidate) != TCL_OK) {
+        Rbc_FreeElemVector(&newCandidate);
+        return TCL_ERROR;
+    }
+    mask = ELEM_DATA_OPTION_MASK(option);
+    if (transactionPtr->stagedMask & mask) {
+        Rbc_FreeElemVector(candidatePtr);
+    }
+    *candidatePtr = newCandidate;
+    transactionPtr->stagedMask |= mask;
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * StageElemDataPairs --
+ *
+ *      Parses the "-data" value into temporary X and Y candidates.
+ *
+ * Parameters:
+ *      Tcl_Interp *interp                    - Interpreter.
+ *      Element *elemPtr                      - Owning element.
+ *      Tcl_Obj *objPtr                       - Original "-data" value.
+ *      ElemDataTransaction *transactionPtr    - Current transaction.
+ *
+ * Results:
+ *      TCL_OK on success; TCL_ERROR on parsing failure.
+ *
+ * Side Effects:
+ *      Replaces the transaction's staged X and Y candidates only after
+ *      both new candidates have parsed successfully.
+ *
+ *----------------------------------------------------------------------
+ */
+static int StageElemDataPairs(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr,
+                             ElemDataTransaction *transactionPtr) {
+    ElemVector newX;
+    ElemVector newY;
+    unsigned int xMask;
+    unsigned int yMask;
+
+    memset(&newX, 0, sizeof(newX));
+    memset(&newY, 0, sizeof(newY));
+
+    if (Rbc_ParseElemVectorPairsObj(interp, elemPtr, objPtr, &newX, &newY) != TCL_OK) {
+        Rbc_FreeElemVector(&newX);
+        Rbc_FreeElemVector(&newY);
+        return TCL_ERROR;
+    }
+
+    xMask = ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X);
+    yMask = ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y);
+
+    if (transactionPtr->stagedMask & xMask) {
+        Rbc_FreeElemVector(&transactionPtr->x);
+    }
+    if (transactionPtr->stagedMask & yMask) {
+        Rbc_FreeElemVector(&transactionPtr->y);
+    }
+
+    transactionPtr->x = newX;
+    transactionPtr->y = newY;
+    transactionPtr->stagedMask |= xMask | yMask;
+
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_PrepareElemDataTransaction --
+ *
+ *      Builds a complete staged transaction for all bar data options
+ *      involved in the current modern configuration.
+ *
+ *      Explicit option/value pairs are processed in caller order, so
+ *      interactions between "-data", "-x", and "-y" retain their legacy
+ *      last-option-wins behaviour.
+ *
+ * Parameters:
+ *      Graph *graphPtr                      - Owning graph.
+ *      Element *elemPtr                     - Bar element.
+ *      ElemDataTransaction *transactionPtr   - Receives staged data.
+ *
+ * Results:
+ *      TCL_OK when all relevant values parse successfully.
+ *      TCL_ERROR otherwise.
+ *
+ * Side Effects:
+ *      Allocates temporary data arrays or vector client IDs. The live
+ *      element vectors remain unchanged.
+ *
+ *----------------------------------------------------------------------
+ */
+int Rbc_PrepareElemDataTransaction(Graph *graphPtr, Element *elemPtr, ElemDataTransaction *transactionPtr) {
+    Tcl_Interp *interp;
+    unsigned int explicitMask;
+    int i;
+
+    interp = graphPtr->interp;
+    explicitMask = 0;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+
+    assert((elemPtr->optionObjc & 1) == 0);
+
+    /*
+     * First identify all explicitly supplied data options. This lets
+     * the first configuration retain option-database values for options
+     * that the caller did not override.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        ElemDataOption option;
+
+        option = GetElemDataOption(elemPtr->optionObjv[i]);
+        if (option != ELEM_DATA_OPTION_NONE) {
+            explicitMask |= ELEM_DATA_OPTION_MASK(option);
+        }
+    }
+
+    /*
+     * Tk_InitOptions may have installed values from the option database
+     * before the first Tk_SetOptions call. Process those effective values
+     * only when that option was not explicitly supplied.
+     *
+     * The order follows the legacy bar-element table: "-data" first,
+     * followed by weights and individual vectors.
+     */
+    if (!elemPtr->optionsConfigured) {
+        if (!(explicitMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_PAIRS)) && (elemPtr->dataObjPtr != NULL)) {
+            if (StageElemDataPairs(interp, elemPtr, elemPtr->dataObjPtr, transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_WEIGHTS)) && (elemPtr->weightsObjPtr != NULL)) {
+            if (StageElemDataVector(interp, elemPtr, elemPtr->weightsObjPtr, transactionPtr, &transactionPtr->w,
+                                   ELEM_DATA_OPTION_WEIGHTS) != TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X)) && (elemPtr->xObjPtr != NULL)) {
+            if (StageElemDataVector(interp, elemPtr, elemPtr->xObjPtr, transactionPtr, &transactionPtr->x,
+                                   ELEM_DATA_OPTION_X) != TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y)) && (elemPtr->yObjPtr != NULL)) {
+            if (StageElemDataVector(interp, elemPtr, elemPtr->yObjPtr, transactionPtr, &transactionPtr->y,
+                                   ELEM_DATA_OPTION_Y) != TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X_ERROR)) && (elemPtr->xErrorObjPtr != NULL)) {
+            if (StageElemDataVector(interp, elemPtr, elemPtr->xErrorObjPtr, transactionPtr, &transactionPtr->xError,
+                                   ELEM_DATA_OPTION_X_ERROR) != TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X_HIGH)) && (elemPtr->xHighObjPtr != NULL)) {
+            if (StageElemDataVector(interp, elemPtr, elemPtr->xHighObjPtr, transactionPtr, &transactionPtr->xHigh,
+                                   ELEM_DATA_OPTION_X_HIGH) != TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X_LOW)) && (elemPtr->xLowObjPtr != NULL)) {
+            if (StageElemDataVector(interp, elemPtr, elemPtr->xLowObjPtr, transactionPtr, &transactionPtr->xLow,
+                                   ELEM_DATA_OPTION_X_LOW) != TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y_ERROR)) && (elemPtr->yErrorObjPtr != NULL)) {
+            if (StageElemDataVector(interp, elemPtr, elemPtr->yErrorObjPtr, transactionPtr, &transactionPtr->yError,
+                                   ELEM_DATA_OPTION_Y_ERROR) != TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y_HIGH)) && (elemPtr->yHighObjPtr != NULL)) {
+            if (StageElemDataVector(interp, elemPtr, elemPtr->yHighObjPtr, transactionPtr, &transactionPtr->yHigh,
+                                   ELEM_DATA_OPTION_Y_HIGH) != TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y_LOW)) && (elemPtr->yLowObjPtr != NULL)) {
+            if (StageElemDataVector(interp, elemPtr, elemPtr->yLowObjPtr, transactionPtr, &transactionPtr->yLow,
+                                   ELEM_DATA_OPTION_Y_LOW) != TCL_OK) {
+                goto error;
+            }
+        }
+    }
+
+    /*
+     * Process the original option/value vector rather than the retained
+     * object fields. The retained fields contain only each option's final
+     * value and would incorrectly hide an invalid earlier occurrence.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        ElemDataOption option;
+        Tcl_Obj *valueObjPtr;
+
+        option = GetElemDataOption(elemPtr->optionObjv[i]);
+        valueObjPtr = elemPtr->optionObjv[i + 1];
+
+        switch (option) {
+        case ELEM_DATA_OPTION_PAIRS:
+            if (StageElemDataPairs(interp, elemPtr, valueObjPtr, transactionPtr) != TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case ELEM_DATA_OPTION_WEIGHTS:
+            if (StageElemDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->w, option) !=
+                TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case ELEM_DATA_OPTION_X:
+            if (StageElemDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->x, option) !=
+                TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case ELEM_DATA_OPTION_Y:
+            if (StageElemDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->y, option) !=
+                TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case ELEM_DATA_OPTION_X_ERROR:
+            if (StageElemDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->xError, option) !=
+                TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case ELEM_DATA_OPTION_X_HIGH:
+            if (StageElemDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->xHigh, option) !=
+                TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case ELEM_DATA_OPTION_X_LOW:
+            if (StageElemDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->xLow, option) !=
+                TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case ELEM_DATA_OPTION_Y_ERROR:
+            if (StageElemDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->yError, option) !=
+                TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case ELEM_DATA_OPTION_Y_HIGH:
+            if (StageElemDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->yHigh, option) !=
+                TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case ELEM_DATA_OPTION_Y_LOW:
+            if (StageElemDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->yLow, option) !=
+                TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case ELEM_DATA_OPTION_NONE:
+            break;
+        }
+    }
+
+    return TCL_OK;
+
+error:
+    Rbc_FreeElemDataTransaction(transactionPtr);
+    return TCL_ERROR;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_CommitElemDataTransaction --
+ *
+ *      Commits all successfully staged bar vectors to the live element.
+ *
+ * Parameters:
+ *      Element *elemPtr                     - Destination element.
+ *      ElemDataTransaction *transactionPtr   - Completed transaction.
+ *
+ * Results:
+ *      None.
+ *
+ * Side Effects:
+ *      Releases replaced live vectors, transfers staged ownership, and
+ *      installs named-vector change callbacks.
+ *
+ *----------------------------------------------------------------------
+ */
+void Rbc_CommitElemDataTransaction(Element *elemPtr, ElemDataTransaction *transactionPtr) {
+    if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X)) {
+        Rbc_CommitElemVector(elemPtr, &elemPtr->x, &transactionPtr->x);
+    }
+
+    if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y)) {
+        Rbc_CommitElemVector(elemPtr, &elemPtr->y, &transactionPtr->y);
+    }
+
+    if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_WEIGHTS)) {
+        Rbc_CommitElemVector(elemPtr, &elemPtr->w, &transactionPtr->w);
+    }
+
+    if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X_ERROR)) {
+        Rbc_CommitElemVector(elemPtr, &elemPtr->xError, &transactionPtr->xError);
+    }
+
+    if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X_HIGH)) {
+        Rbc_CommitElemVector(elemPtr, &elemPtr->xHigh, &transactionPtr->xHigh);
+    }
+
+    if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X_LOW)) {
+        Rbc_CommitElemVector(elemPtr, &elemPtr->xLow, &transactionPtr->xLow);
+    }
+
+    if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y_ERROR)) {
+        Rbc_CommitElemVector(elemPtr, &elemPtr->yError, &transactionPtr->yError);
+    }
+
+    if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y_HIGH)) {
+        Rbc_CommitElemVector(elemPtr, &elemPtr->yHigh, &transactionPtr->yHigh);
+    }
+
+    if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y_LOW)) {
+        Rbc_CommitElemVector(elemPtr, &elemPtr->yLow, &transactionPtr->yLow);
+    }
+
+    transactionPtr->stagedMask = 0;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * ReplaceElemOptionObject --
+ *
+ *      Replaces one Tcl object retained by the bar element option
+ *      table.
+ *
+ * Parameters:
+ *      Tcl_Obj **objPtrPtr - Address of the retained option object.
+ *      Tcl_Obj *newObjPtr  - Replacement object, or NULL.
+ *
+ * Results:
+ *      None.
+ *
+ * Side Effects:
+ *      Updates Tcl object reference counts and replaces the retained
+ *      object.
+ *
+ *----------------------------------------------------------------------
+ */
+static void ReplaceElemOptionObject(Tcl_Obj **objPtrPtr, Tcl_Obj *newObjPtr) {
+    Tcl_Obj *oldObjPtr;
+
+    oldObjPtr = *objPtrPtr;
+
+    if (oldObjPtr == newObjPtr) {
+        return;
+    }
+
+    if (newObjPtr != NULL) {
+        Tcl_IncrRefCount(newObjPtr);
+    }
+
+    *objPtrPtr = newObjPtr;
+
+    if (oldObjPtr != NULL) {
+        Tcl_DecrRefCount(oldObjPtr);
+    }
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * SetElemDataPairOptionObjects --
+ *
+ *      Stores a coherent -data representation and derives the retained
+ *      -x and -y representations from its alternating coordinate
+ *      elements.
+ *
+ *      The original Tcl representations of the coordinate expressions
+ *      are preserved. They are not reconstructed from the internal
+ *      double arrays.
+ *
+ * Parameters:
+ *      Element *elemPtr    - Bar element.
+ *      Tcl_Obj *dataObjPtr - Valid, even-length -data list.
+ *
+ * Results:
+ *      None.
+ *
+ * Side Effects:
+ *      Replaces dataObjPtr, xObjPtr, and yObjPtr in the element.
+ *
+ *----------------------------------------------------------------------
+ */
+static void SetElemDataPairOptionObjects(Element *elemPtr, Tcl_Obj *dataObjPtr) {
+    Tcl_Obj **objv;
+    Tcl_Obj *xObjPtr;
+    Tcl_Obj *yObjPtr;
+    Tcl_Size objc;
+    Tcl_Size i;
+
+    if (Tcl_ListObjGetElements(elemPtr->graphPtr->interp, dataObjPtr, &objc, &objv) != TCL_OK) {
+        Tcl_Panic("validated bar -data value is no longer a Tcl list");
+    }
+
+    if ((objc & 1) != 0) {
+        Tcl_Panic("validated bar -data value has an odd length");
+    }
+
+    xObjPtr = Tcl_NewListObj(0, NULL);
+    yObjPtr = Tcl_NewListObj(0, NULL);
+
+    for (i = 0; i < objc; i += 2) {
+        if (Tcl_ListObjAppendElement(NULL, xObjPtr, objv[i]) != TCL_OK) {
+            Tcl_Panic("can't construct bar -x option value");
+        }
+
+        if (Tcl_ListObjAppendElement(NULL, yObjPtr, objv[i + 1]) != TCL_OK) {
+            Tcl_Panic("can't construct bar -y option value");
+        }
+    }
+
+    ReplaceElemOptionObject(&elemPtr->dataObjPtr, dataObjPtr);
+    ReplaceElemOptionObject(&elemPtr->xObjPtr, xObjPtr);
+    ReplaceElemOptionObject(&elemPtr->yObjPtr, yObjPtr);
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_SyncElemDataOptionObjects --
+ *
+ *      Synchronizes the retained -data, -x, and -y option objects after
+ *      a successfully committed element-data transaction.
+ *
+ *      A retained -data value is valid only while both live coordinate
+ *      vectors still originate from that -data value. Configuring -x or
+ *      -y independently invalidates -data. A later -data occurrence
+ *      restores a coherent representation.
+ *
+ *      Initial option-database values are processed before explicit
+ *      option/value pairs. Explicit pairs are then processed in their
+ *      original left-to-right order.
+ *
+ * Parameters:
+ *      Element *elemPtr - Configured bar element.
+ *
+ * Results:
+ *      None.
+ *
+ * Side Effects:
+ *      Replaces retained Tcl option objects and updates their reference
+ *      counts.
+ *
+ *----------------------------------------------------------------------
+ */
+void Rbc_SyncElemDataOptionObjects(Element *elemPtr) {
+    Tcl_Obj *initialDataObjPtr;
+    Tcl_Obj *initialXObjPtr;
+    Tcl_Obj *initialYObjPtr;
+    unsigned int explicitMask;
+    int i;
+
+    assert((elemPtr->optionObjc & 1) == 0);
+
+    explicitMask = 0;
+
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        ElemDataOption option;
+
+        option = GetElemDataOption(elemPtr->optionObjv[i]);
+
+        if (option != ELEM_DATA_OPTION_NONE) {
+            explicitMask |= ELEM_DATA_OPTION_MASK(option);
+        }
+    }
+
+    initialDataObjPtr = NULL;
+    initialXObjPtr = NULL;
+    initialYObjPtr = NULL;
+
+    /*
+     * Preserve references to initial option-database values while the
+     * retained fields are being replaced below.
+     */
+    if (!elemPtr->optionsConfigured) {
+        if (!(explicitMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_PAIRS))) {
+            initialDataObjPtr = elemPtr->dataObjPtr;
+
+            if (initialDataObjPtr != NULL) {
+                Tcl_IncrRefCount(initialDataObjPtr);
+            }
+        }
+
+        if (!(explicitMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X))) {
+            initialXObjPtr = elemPtr->xObjPtr;
+
+            if (initialXObjPtr != NULL) {
+                Tcl_IncrRefCount(initialXObjPtr);
+            }
+        }
+
+        if (!(explicitMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y))) {
+            initialYObjPtr = elemPtr->yObjPtr;
+
+            if (initialYObjPtr != NULL) {
+                Tcl_IncrRefCount(initialYObjPtr);
+            }
+        }
+
+        /*
+         * Apply initial values in the same order used by the data
+         * transaction: -data first, followed by -x and -y.
+         */
+        if (initialDataObjPtr != NULL) {
+            SetElemDataPairOptionObjects(elemPtr, initialDataObjPtr);
+        }
+
+        if (initialXObjPtr != NULL) {
+            ReplaceElemOptionObject(&elemPtr->dataObjPtr, NULL);
+            ReplaceElemOptionObject(&elemPtr->xObjPtr, initialXObjPtr);
+        }
+
+        if (initialYObjPtr != NULL) {
+            ReplaceElemOptionObject(&elemPtr->dataObjPtr, NULL);
+            ReplaceElemOptionObject(&elemPtr->yObjPtr, initialYObjPtr);
+        }
+
+        if (initialDataObjPtr != NULL) {
+            Tcl_DecrRefCount(initialDataObjPtr);
+        }
+        if (initialXObjPtr != NULL) {
+            Tcl_DecrRefCount(initialXObjPtr);
+        }
+        if (initialYObjPtr != NULL) {
+            Tcl_DecrRefCount(initialYObjPtr);
+        }
+    }
+
+    /*
+     * Apply explicit options in their original order. This preserves
+     * the same last-option-wins rule used when staging the vectors.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        ElemDataOption option;
+        Tcl_Obj *valueObjPtr;
+
+        option = GetElemDataOption(elemPtr->optionObjv[i]);
+        valueObjPtr = elemPtr->optionObjv[i + 1];
+
+        switch (option) {
+        case ELEM_DATA_OPTION_PAIRS:
+            SetElemDataPairOptionObjects(elemPtr, valueObjPtr);
+            break;
+
+        case ELEM_DATA_OPTION_X:
+            ReplaceElemOptionObject(&elemPtr->dataObjPtr, NULL);
+            ReplaceElemOptionObject(&elemPtr->xObjPtr, valueObjPtr);
+            break;
+
+        case ELEM_DATA_OPTION_Y:
+            ReplaceElemOptionObject(&elemPtr->dataObjPtr, NULL);
+            ReplaceElemOptionObject(&elemPtr->yObjPtr, valueObjPtr);
+            break;
+
+        case ELEM_DATA_OPTION_NONE:
+        case ELEM_DATA_OPTION_WEIGHTS:
+        case ELEM_DATA_OPTION_X_ERROR:
+        case ELEM_DATA_OPTION_X_HIGH:
+        case ELEM_DATA_OPTION_X_LOW:
+        case ELEM_DATA_OPTION_Y_ERROR:
+        case ELEM_DATA_OPTION_Y_HIGH:
+        case ELEM_DATA_OPTION_Y_LOW:
+            break;
+        }
     }
 }
 
