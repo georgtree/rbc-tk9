@@ -6013,6 +6013,10 @@ Element *Rbc_LineElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
         return NULL;
     }
     elemPtr = &linePtr->core;
+    elemPtr->optionSpecs = NULL;
+    elemPtr->optionTable = NULL;
+    elemPtr->optionsInitialized = FALSE;
+    elemPtr->tkResourcesReleased = FALSE;
     elemPtr->procsPtr = &lineProcs;
     if (classUid == rbcLineElementUid) {
         elemPtr->specsPtr = lineElemConfigSpecs;

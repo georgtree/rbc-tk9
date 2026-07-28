@@ -227,7 +227,19 @@ struct ElementStruct {
 
     ElementProcs *procsPtr;
 
-    Tk_ConfigSpec *specsPtr; /* Configuration specifications. */
+    /*
+     * Legacy configuration table. Remove this after all element classes
+     * have been converted to Tk_OptionSpec.
+     */
+    Tk_ConfigSpec *specsPtr;
+
+    /*
+     * Modern option-table configuration.
+     */
+    const Tk_OptionSpec *optionSpecs;
+    Tk_OptionTable optionTable;
+    int optionsInitialized;
+    int tkResourcesReleased;
 
     Segment2D *xErrorBars; /* Point to start of this pen's X-error bar
                             * segments in the element's array. */

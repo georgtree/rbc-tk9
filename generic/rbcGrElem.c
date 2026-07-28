@@ -9,6 +9,7 @@
  * See "license.terms" for details.
  */
 
+#include <ctype.h>
 #include "rbcGraph.h"
 #include "rbcChain.h"
 #include <X11/Xutil.h>
@@ -40,6 +41,11 @@ static int NameToElement(Graph *graphPtr, Tcl_Obj *nameObj, Element **elemPtrPtr
 static int CreateElement(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], Rbc_Uid classUid);
 static void DestroyElement(Graph *graphPtr, Element *elemPtr);
 static int RebuildDisplayList(Graph *graphPtr, Tcl_Obj *newList);
+static int InitElementOptions(Graph *graphPtr, Element *elemPtr);
+static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr,
+                                   int objc, Tcl_Obj *const objv[],
+                                   int *maskPtr);
+static void ReleaseElementResources(Graph *graphPtr, Element *elemPtr);
 
 typedef int(RbcGrElementOp)(Graph *, Tcl_Interp *, Rbc_Uid, int, Tcl_Obj *const[]);
 typedef RbcGrElementOp *RbcGrElementOpPtr;
@@ -1160,6 +1166,84 @@ static int NameToElement(Graph *graphPtr, Tcl_Obj *nameObj, Element **elemPtrPtr
     return TCL_OK;
 }
 
+static int InitElementOptions(Graph *graphPtr, Element *elemPtr) {
+    char *componentName;
+    int result;
+
+    if (elemPtr->optionsInitialized) {
+        return TCL_OK;
+    }
+    assert(elemPtr->optionSpecs != NULL);
+    elemPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, elemPtr->optionSpecs);
+    componentName = RbcStrdup(elemPtr->name);
+    if (componentName[0] != '\0') {
+        componentName[0] = (char)tolower((unsigned char)componentName[0]);
+    }
+    result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, componentName, "Element", (char *)elemPtr,
+                                      elemPtr->optionTable);
+    ckfree(componentName);
+    if (result != TCL_OK) {
+        elemPtr->optionTable = NULL;
+        return TCL_ERROR;
+    }
+    elemPtr->optionsInitialized = TRUE;
+    return TCL_OK;
+}
+
+static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr, int objc, Tcl_Obj *const objv[], int *maskPtr) {
+    Tk_SavedOptions savedOptions;
+    Tcl_Obj *errorObjPtr;
+    int mask;
+
+    assert(elemPtr->optionsInitialized);
+    assert(elemPtr->optionTable != NULL);
+    if (Tk_SetOptions(graphPtr->interp, (char *)elemPtr, elemPtr->optionTable, objc, objv, graphPtr->tkwin,
+                      &savedOptions, &mask) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    /*
+     * Concrete configuration procedures must be transactional:
+     * they must not replace active derived resources until every
+     * fallible conversion has succeeded.
+     */
+    if ((*elemPtr->procsPtr->configProc)(graphPtr, elemPtr) != TCL_OK) {
+        errorObjPtr = Tcl_GetObjResult(graphPtr->interp);
+        Tcl_IncrRefCount(errorObjPtr);
+        Tk_RestoreSavedOptions(&savedOptions);
+        Tcl_SetObjResult(graphPtr->interp, errorObjPtr);
+        Tcl_DecrRefCount(errorObjPtr);
+        return TCL_ERROR;
+    }
+    Tk_FreeSavedOptions(&savedOptions);
+    if (maskPtr != NULL) {
+        *maskPtr = mask;
+    }
+    return TCL_OK;
+}
+
+static void ReleaseElementResources(Graph *graphPtr, Element *elemPtr) {
+    if (elemPtr->tkResourcesReleased) {
+        return;
+    }
+
+    /*
+     * Release derived GCs and manually managed resources before Tk
+     * releases the colours, fonts, borders, and bitmaps referenced by
+     * those resources.
+     *
+     * Call the concrete destructor even if option initialization failed:
+     * the element constructor may already have allocated chains, arrays,
+     * or an embedded pen.
+     */
+    (*elemPtr->procsPtr->destroyProc)(graphPtr, elemPtr);
+    if (elemPtr->optionsInitialized) {
+        Tk_FreeConfigOptions((char *)elemPtr, elemPtr->optionTable, graphPtr->tkwin);
+        elemPtr->optionsInitialized = FALSE;
+    }
+    elemPtr->tkResourcesReleased = TRUE;
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -1185,12 +1269,17 @@ static void DestroyElement(Graph *graphPtr, Element *elemPtr) {
     Rbc_DeleteBindings(graphPtr->bindTable, elemPtr);
     Rbc_LegendRemoveElement(graphPtr->legend, elemPtr);
 
-    Tk_FreeOptions(elemPtr->specsPtr, (char *)elemPtr, graphPtr->display, 0);
-    /*
-     * Call the element's own destructor to release the memory and
-     * resources allocated for it.
-     */
-    (*elemPtr->procsPtr->destroyProc)(graphPtr, elemPtr);
+    if (elemPtr->optionSpecs != NULL) {
+        ReleaseElementResources(graphPtr, elemPtr);
+    } else {
+        Tk_FreeOptions(elemPtr->specsPtr, (char *)elemPtr, graphPtr->display, 0);
+
+        /*
+         * Legacy option tables release their Tk resources before the
+         * concrete element destructor is called.
+         */
+        (*elemPtr->procsPtr->destroyProc)(graphPtr, elemPtr);
+    }
 
     /* Remove it also from the element display list */
     for (linkPtr = Rbc_ChainFirstLink(graphPtr->elements.displayList); linkPtr != NULL;
@@ -1261,12 +1350,39 @@ static int CreateElement(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj 
     elemPtr->hashPtr = hPtr;
     Tcl_SetHashValue(hPtr, elemPtr);
 
-    if (Rbc_ConfigureWidgetComponent(interp, graphPtr->tkwin, elemPtr->name, "Element", elemPtr->specsPtr, objc - 4,
-                                     objv + 4, (char *)elemPtr, 0) != TCL_OK) {
-        DestroyElement(graphPtr, elemPtr);
-        return TCL_ERROR;
+    if (elemPtr->optionSpecs != NULL) {
+        if (InitElementOptions(graphPtr, elemPtr) != TCL_OK) {
+            DestroyElement(graphPtr, elemPtr);
+            return TCL_ERROR;
+        }
+
+        if (objc > 4) {
+            if (ConfigureElementOptions(graphPtr, elemPtr, objc - 4, objv + 4, NULL) != TCL_OK) {
+                DestroyElement(graphPtr, elemPtr);
+                return TCL_ERROR;
+            }
+        } else {
+            /*
+             * Tk_InitOptions installed defaults, but the element still
+             * needs its derived drawing resources.
+             */
+            if ((*elemPtr->procsPtr->configProc)(graphPtr, elemPtr) != TCL_OK) {
+                DestroyElement(graphPtr, elemPtr);
+                return TCL_ERROR;
+            }
+        }
+    } else {
+        if (Rbc_ConfigureWidgetComponent(interp, graphPtr->tkwin, elemPtr->name, "Element", elemPtr->specsPtr, objc - 4,
+                                         objv + 4, (char *)elemPtr, 0) != TCL_OK) {
+            DestroyElement(graphPtr, elemPtr);
+            return TCL_ERROR;
+        }
+
+        if ((*elemPtr->procsPtr->configProc)(graphPtr, elemPtr) != TCL_OK) {
+            DestroyElement(graphPtr, elemPtr);
+            return TCL_ERROR;
+        }
     }
-    (*elemPtr->procsPtr->configProc)(graphPtr, elemPtr);
     Rbc_ChainPrepend(graphPtr->elements.displayList, elemPtr);
 
     if (!elemPtr->hidden) {
@@ -1784,11 +1900,19 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc, T
     if (NameToElement(graphPtr, objv[3], &elemPtr) != TCL_OK) {
         return TCL_ERROR; /* Can't find named element */
     }
-    if (Tk_ConfigureValue(interp, graphPtr->tkwin, elemPtr->specsPtr, (char *)elemPtr, Tcl_GetString(objv[4]), 0) !=
-        TCL_OK) {
-        return TCL_ERROR;
+    if (elemPtr->optionSpecs != NULL) {
+        Tcl_Obj *resultObjPtr;
+
+        resultObjPtr = Tk_GetOptionValue(interp, (char *)elemPtr, elemPtr->optionTable, objv[4], graphPtr->tkwin);
+
+        if (resultObjPtr == NULL) {
+            return TCL_ERROR;
+        }
+        Tcl_SetObjResult(interp, resultObjPtr);
+        return TCL_OK;
     }
-    return TCL_OK;
+
+    return Tk_ConfigureValue(interp, graphPtr->tkwin, elemPtr->specsPtr, (char *)elemPtr, Tcl_GetString(objv[4]), 0);
 }
 
 static Tk_ConfigSpec closestSpecs[] = {
@@ -2020,20 +2144,55 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int ob
         //    const char *str = Tcl_GetString(objv[i]);
         NameToElement(graphPtr, objv[i], &elemPtr);
         flags = TK_CONFIG_ARGV_ONLY;
+
         if (numOpts == 0) {
+            if (elemPtr->optionSpecs != NULL) {
+                Tcl_Obj *resultObjPtr;
+
+                resultObjPtr = Tk_GetOptionInfo(interp, (char *)elemPtr, elemPtr->optionTable, NULL, graphPtr->tkwin);
+
+                if (resultObjPtr == NULL) {
+                    return TCL_ERROR;
+                }
+                Tcl_SetObjResult(interp, resultObjPtr);
+                return TCL_OK;
+            }
+
             return Tk_ConfigureInfo(interp, graphPtr->tkwin, elemPtr->specsPtr, (char *)elemPtr, (char *)NULL, flags);
-        } else if (numOpts == 1) {
+        }
+
+        if (numOpts == 1) {
+            if (elemPtr->optionSpecs != NULL) {
+                Tcl_Obj *resultObjPtr;
+
+                resultObjPtr =
+                    Tk_GetOptionInfo(interp, (char *)elemPtr, elemPtr->optionTable, options[0], graphPtr->tkwin);
+
+                if (resultObjPtr == NULL) {
+                    return TCL_ERROR;
+                }
+                Tcl_SetObjResult(interp, resultObjPtr);
+                return TCL_OK;
+            }
+
             return Tk_ConfigureInfo(interp, graphPtr->tkwin, elemPtr->specsPtr, (char *)elemPtr,
                                     Tcl_GetString(options[0]), flags);
         }
-        if (Tk_ConfigureWidget(interp, graphPtr->tkwin, elemPtr->specsPtr, numOpts, options, elemPtr, flags) !=
-            TCL_OK) {
-            return TCL_ERROR;
+        if (elemPtr->optionSpecs != NULL) {
+            if (ConfigureElementOptions(graphPtr, elemPtr, numOpts, options, NULL) != TCL_OK) {
+                return TCL_ERROR;
+            }
+        } else {
+            if (Tk_ConfigureWidget(interp, graphPtr->tkwin, elemPtr->specsPtr, numOpts, options, elemPtr, flags) !=
+                TCL_OK) {
+                return TCL_ERROR;
+            }
+
+            if ((*elemPtr->procsPtr->configProc)(graphPtr, elemPtr) != TCL_OK) {
+                return TCL_ERROR;
+            }
         }
-        if ((*elemPtr->procsPtr->configProc)(graphPtr, elemPtr) != TCL_OK) {
-            return TCL_ERROR; /* Failed to configure element */
-        }
-        if (Rbc_ConfigModified(interp, elemPtr->specsPtr, "-hide", (char *)NULL)) {
+        if ((elemPtr->optionSpecs != NULL) || Rbc_ConfigModified(interp, elemPtr->specsPtr, "-hide", (char *)NULL)) {
             Rbc_ChainLink *linkPtr;
 
             for (linkPtr = Rbc_ChainFirstLink(graphPtr->elements.displayList); linkPtr != NULL;
@@ -2064,12 +2223,13 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int ob
          * affect autoscaling) and recalculate the screen points of
          * the element. */
 
-        if (Rbc_ConfigModified(interp, elemPtr->specsPtr, "-*data", "-map*", "-x", "-y", (char *)NULL)) {
+        if ((elemPtr->optionSpecs != NULL) ||
+            Rbc_ConfigModified(interp, elemPtr->specsPtr, "-*data", "-map*", "-x", "-y", (char *)NULL)) {
             graphPtr->flags |= RESET_WORLD;
             elemPtr->flags |= MAP_ITEM;
         }
         /* The new label may change the size of the legend */
-        if (Rbc_ConfigModified(interp, elemPtr->specsPtr, "-label", (char *)NULL)) {
+        if ((elemPtr->optionSpecs != NULL) || Rbc_ConfigModified(interp, elemPtr->specsPtr, "-label", (char *)NULL)) {
             graphPtr->flags |= (MAP_WORLD | REDRAW_WORLD);
         }
     }

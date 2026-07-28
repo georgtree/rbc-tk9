@@ -2556,6 +2556,10 @@ Element *Rbc_BarElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
         return NULL;
     }
     elemPtr = &barPtr->core;
+    elemPtr->optionSpecs = NULL;
+    elemPtr->optionTable = NULL;
+    elemPtr->optionsInitialized = FALSE;
+    elemPtr->tkResourcesReleased = FALSE;
     elemPtr->normalPenPtr = &barPtr->builtinPen.core;
     elemPtr->procsPtr = &barProcs;
     elemPtr->specsPtr = barElemConfigSpecs;
