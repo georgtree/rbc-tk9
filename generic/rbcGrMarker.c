@@ -34,8 +34,6 @@
 #define DEF_MARKER_FILL_COLOR RGB_RED
 #define DEF_MARKER_FILL_MONO RGB_WHITE
 #define DEF_MARKER_FONT STD_FONT
-#define DEF_MARKER_GAP_COLOR RGB_PINK
-#define DEF_MARKER_GAP_MONO RGB_BLACK
 #define DEF_MARKER_HEIGHT "0"
 #define DEF_MARKER_HIDE "no"
 #define DEF_MARKER_JOIN_STYLE "miter"
@@ -48,9 +46,7 @@
 #define DEF_MARKER_OUTLINE_MONO RGB_BLACK
 #define DEF_MARKER_PAD "4"
 #define DEF_MARKER_ROTATE "0.0"
-#define DEF_MARKER_SCALE "1.0"
 #define DEF_MARKER_SHADOW_COLOR (char *)NULL
-#define DEF_MARKER_SHADOW_MONO (char *)NULL
 #define DEF_MARKER_STATE "normal"
 #define DEF_MARKER_STIPPLE (char *)NULL
 #define DEF_MARKER_TEXT (char *)NULL
@@ -71,20 +67,6 @@
 #define WINDOW_HEIGHT_CHANGED (1 << 0)
 #define WINDOW_WIDTH_CHANGED (1 << 1)
 
-static Tk_OptionParseProc StringToCoordinates;
-static Tk_OptionPrintProc CoordinatesToString;
-static Tk_CustomOption coordsOption = {StringToCoordinates, CoordinatesToString, (ClientData)0};
-extern Tk_CustomOption rbcColorPairOption;
-extern Tk_CustomOption rbcDashesOption;
-extern Tk_CustomOption rbcDistanceOption;
-extern Tk_CustomOption rbcListOption;
-extern Tk_CustomOption rbcPadOption;
-extern Tk_CustomOption rbcPositiveDistanceOption;
-extern Tk_CustomOption rbcShadowOption;
-extern Tk_CustomOption rbcStateOption;
-extern Tk_CustomOption rbcXAxisOption;
-extern Tk_CustomOption rbcYAxisOption;
-
 typedef Marker *(MarkerCreateProc)(void);
 typedef void(MarkerDrawProc)(Marker *markerPtr, Drawable drawable);
 typedef void(MarkerFreeProc)(Graph *graphPtr, Marker *markerPtr);
@@ -95,22 +77,9 @@ typedef int(MarkerPointProc)(Marker *markerPtr, Point2D *samplePtr);
 typedef int(MarkerRegionProc)(Marker *markerPtr, Extents2D *extsPtr, int enclosed);
 
 typedef struct {
-    /*
-     * Legacy option table. Non-NULL until this marker class is
-     * migrated to Tk_OptionSpec.
-     */
-    Tk_ConfigSpec *configSpecs;
-
-    /*
-     * Modern option specifications. NULL for legacy marker classes.
-     */
     const Tk_OptionSpec *optionSpecs;
-
-    /*
-     * Optional modern monochrome-display table.
-     */
     const Tk_OptionSpec *monoOptionSpecs;
-    
+
     MarkerConfigProc *configProc;
     MarkerDrawProc *drawProc;
     MarkerFreeProc *freeProc;
@@ -127,10 +96,6 @@ typedef struct {
  *
  *      Structure defining the generic marker.  In C++ parlance this
  *      would be the base type from which all markers are derived.
- *
- *      This structure corresponds with the specific types of markers.
- *      Don't change this structure without changing the individual
- *      marker structures of each type below.
  *
  * -------------------------------------------------------------------
  */
@@ -176,8 +141,7 @@ struct MarkerStruct {
     int optionMask;
 
     /*
-     * Modern option state. These fields remain unused while
-     * classPtr->optionSpecs is NULL.
+     * Tk option state and two-stage resource-release state.
      */
     Tk_OptionTable optionTable;
     int optionsInitialized;
@@ -682,15 +646,12 @@ static Tk_ImageChangedProc ImageChangedProc;
 
 static int BoxesDontOverlap(Graph *graphPtr, Extents2D *extsPtr);
 static int GetCoordinate(Tcl_Interp *interp, const char *expr, double *valuePtr);
-static char *PrintCoordinate(Tcl_Interp *interp, double x);
-static int ParseCoordinates(Tcl_Interp *interp, Marker *markerPtr, Tcl_Size nExprs, const char **exprArr);
 static double HMap(Graph *graphPtr, Axis *axisPtr, double x);
 static double VMap(Graph *graphPtr, Axis *axisPtr, double y);
 static Point2D MapPoint(Graph *graphPtr, Point2D *pointPtr, Axis2D *axesPtr);
 static Marker *CreateMarker(Graph *graphPtr, char *name, Rbc_Uid classUid);
 static void DestroyMarker(Marker *markerPtr);
 static int NameToMarker(Graph *graphPtr, char *name, Marker **markerPtrPtr);
-static int RenameMarker(Graph *graphPtr, Marker *markerPtr, char *oldName, char *newName);
 
 typedef int(RbcGrMarkerOp)(Graph *, Tcl_Interp *, int, Tcl_Obj *const[]);
 typedef RbcGrMarkerOp *RbcGrMarkerOpPtr;
@@ -711,8 +672,8 @@ static void ChildGeometryProc(ClientData clientData, Tk_Window tkwin);
 static void ChildCustodyProc(ClientData clientData, Tk_Window tkwin);
 
 static MarkerClass bitmapMarkerClass = {
-    .configSpecs = NULL,
     .optionSpecs = bitmapMarkerOptionSpecs,
+    .monoOptionSpecs = NULL,    
     .configProc = ConfigureBitmapMarker,
     .drawProc = DrawBitmapMarker,
     .freeProc = FreeBitmapMarker,
@@ -723,8 +684,8 @@ static MarkerClass bitmapMarkerClass = {
 };
 
 static MarkerClass imageMarkerClass = {
-    .configSpecs = NULL,
     .optionSpecs = imageMarkerOptionSpecs,
+    .monoOptionSpecs = NULL,
     .configProc = ConfigureImageMarker,
     .drawProc = DrawImageMarker,
     .freeProc = FreeImageMarker,
@@ -736,8 +697,8 @@ static MarkerClass imageMarkerClass = {
 
 
 static MarkerClass lineMarkerClass = {
-    .configSpecs = NULL,
     .optionSpecs = lineMarkerOptionSpecs,
+    .monoOptionSpecs = NULL,
     .configProc = ConfigureLineMarker,
     .drawProc = DrawLineMarker,
     .freeProc = FreeLineMarker,
@@ -749,7 +710,6 @@ static MarkerClass lineMarkerClass = {
 
 
 static MarkerClass polygonMarkerClass = {
-    .configSpecs = NULL,
     .optionSpecs = polygonMarkerOptionSpecs,
     .monoOptionSpecs = polygonMarkerMonoOptionSpecs,
     .configProc = ConfigurePolygonMarker,
@@ -762,7 +722,6 @@ static MarkerClass polygonMarkerClass = {
 };
 
 static MarkerClass textMarkerClass = {
-    .configSpecs = NULL,
     .optionSpecs = textMarkerOptionSpecs,
     .monoOptionSpecs = NULL,
     .configProc = ConfigureTextMarker,
@@ -775,7 +734,6 @@ static MarkerClass textMarkerClass = {
 };
 
 static MarkerClass windowMarkerClass = {
-    .configSpecs = NULL,
     .optionSpecs = windowMarkerOptionSpecs,
     .monoOptionSpecs = NULL,
     .configProc = ConfigureWindowMarker,
@@ -786,21 +744,6 @@ static MarkerClass windowMarkerClass = {
     .regionProc = RegionInWindowMarker,
     .postscriptProc = WindowMarkerToPostScript,
 };
-
-#ifdef notdef
-static MarkerClass rectangleMarkerClass = {
-    rectangleConfigSpecs, ConfigureRectangleMarker, DrawRectangleMarker,     FreeRectangleMarker,
-    MapRectangleMarker,   PointInRectangleMarker,   RegionInRectangleMarker, RectangleMarkerToPostScript,
-};
-
-static MarkerClass ovalMarkerClass = {
-    ovalConfigSpecs, ConfigureOvalMarker, DrawOvalMarker,     FreeOvalMarker,
-    MapOvalMarker,   PointInOvalMarker,   RegionInOvalMarker, OvalMarkerToPostScript,
-};
-#endif
-
-
-static int MarkerUsesModernOptions(const Marker *markerPtr) { return (markerPtr->classPtr->optionSpecs != NULL); }
 
 static int InitMarkerOptions(Marker *markerPtr) {
     Graph *graphPtr;
@@ -883,29 +826,21 @@ static int ConfigureMarkerOptions(Marker *markerPtr, int objc, Tcl_Obj *const ob
 
     graphPtr = markerPtr->graphPtr;
     oldName = markerPtr->name;
-
-    assert(MarkerUsesModernOptions(markerPtr));
+    assert(markerPtr->classPtr->optionSpecs != NULL);
     assert(markerPtr->optionsInitialized);
-
     if (Tk_SetOptions(graphPtr->interp, (char *)markerPtr, markerPtr->optionTable, objc, objv, graphPtr->tkwin,
                       &savedOptions, &mask) != TCL_OK) {
         return TCL_ERROR;
     }
-
     newName = markerPtr->name;
-
     if ((newName == NULL) || (newName[0] == '\0')) {
         Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("marker name may not be empty", -1));
-
         return RestoreMarkerOptions(graphPtr->interp, &savedOptions);
     }
-
     if (newName[0] == '-') {
         Tcl_SetObjResult(graphPtr->interp, Tcl_ObjPrintf("name of marker \"%s\" can't start with a '-'", newName));
-
         return RestoreMarkerOptions(graphPtr->interp, &savedOptions);
     }
-
     nameChanged = (strcmp(oldName, newName) != 0);
 
     /*
@@ -917,22 +852,16 @@ static int ConfigureMarkerOptions(Marker *markerPtr, int objc, Tcl_Obj *const ob
      */
     if ((!creating) && nameChanged) {
         hPtr = Tcl_FindHashEntry(&graphPtr->markers.table, newName);
-
         if ((hPtr != NULL) && (Tcl_GetHashValue(hPtr) != markerPtr)) {
             Tcl_SetObjResult(graphPtr->interp, Tcl_ObjPrintf("can't rename marker: \"%s\" already exists", newName));
-
             return RestoreMarkerOptions(graphPtr->interp, &savedOptions);
         }
     }
-
     markerPtr->optionMask = mask;
-
     if ((*markerPtr->classPtr->configProc)(markerPtr) != TCL_OK) {
         markerPtr->optionMask = 0;
-
         return RestoreMarkerOptions(graphPtr->interp, &savedOptions);
     }
-
     markerPtr->optionMask = 0;
 
     /*
@@ -941,34 +870,25 @@ static int ConfigureMarkerOptions(Marker *markerPtr, int objc, Tcl_Obj *const ob
      */
     if ((!creating) && nameChanged) {
         int isNew;
-
         hPtr = Tcl_CreateHashEntry(&graphPtr->markers.table, newName, &isNew);
-
         assert(isNew);
-
         Tcl_SetHashValue(hPtr, markerPtr);
-
         if (markerPtr->hashPtr != NULL) {
             Tcl_DeleteHashEntry(markerPtr->hashPtr);
         }
-
         markerPtr->hashPtr = hPtr;
     }
-
     Tk_FreeSavedOptions(&savedOptions);
-
     return TCL_OK;
 }
 
 static void ReleaseMarkerTkResources(Marker *markerPtr) {
     Graph *graphPtr;
 
-    if ((!MarkerUsesModernOptions(markerPtr)) || (!markerPtr->optionsInitialized) || (markerPtr->tkResourcesReleased)) {
+    if ((!markerPtr->optionsInitialized) || (markerPtr->tkResourcesReleased)) {
         return;
     }
-
     graphPtr = markerPtr->graphPtr;
-
     assert(graphPtr->tkwin != NULL);
 
     /*
@@ -976,32 +896,24 @@ static void ReleaseMarkerTkResources(Marker *markerPtr) {
      * derived resources before Tk releases option-managed resources.
      */
     (*markerPtr->classPtr->freeProc)(graphPtr, markerPtr);
-
     if (markerPtr->worldPts != NULL) {
         ckfree(markerPtr->worldPts);
         markerPtr->worldPts = NULL;
         markerPtr->nWorldPts = 0;
     }
-
     if (markerPtr->tags != NULL) {
         ckfree(markerPtr->tags);
         markerPtr->tags = NULL;
     }
-
     if (markerPtr->axes.x != NULL) {
         Rbc_FreeAxisReference(graphPtr, markerPtr->axes.x);
-
         markerPtr->axes.x = NULL;
     }
-
     if (markerPtr->axes.y != NULL) {
         Rbc_FreeAxisReference(graphPtr, markerPtr->axes.y);
-
         markerPtr->axes.y = NULL;
     }
-
     Tk_FreeConfigOptions((char *)markerPtr, markerPtr->optionTable, graphPtr->tkwin);
-
     markerPtr->tkResourcesReleased = TRUE;
 }
 
@@ -1366,241 +1278,6 @@ static int GetCoordinate(Tcl_Interp *interp, const char *expr, double *valuePtr)
 /*
  * ----------------------------------------------------------------------
  *
- * PrintCoordinate --
- *
- *      Convert the floating point value into its string
- *      representation.  The only reason this routine is used in
- *      instead of sprintf, is to handle the "elastic" bounds.  That
- *      is, convert the values DBL_MAX and -(DBL_MAX) into "+Inf" and
- *      "-Inf" respectively.
- *
- * Parameters:
- *      Tcl_Interp *interp - Interpreter to send results back to
- *      double x - Numeric value
- *
- * Results:
- *      The return value is a standard Tcl result.  The string of the
- *      expression is passed back via string.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ---------------------------------------------------------------------- */
-static char *PrintCoordinate(Tcl_Interp *interp, double x) {
-    if (x == DBL_MAX) {
-        return "+Inf";
-    } else if (x == -DBL_MAX) {
-        return "-Inf";
-    } else {
-        static char string[TCL_DOUBLE_SPACE + 1];
-
-        Tcl_PrintDouble(interp, (double)x, string);
-        return string;
-    }
-}
-
-/*
- * ----------------------------------------------------------------------
- *
- * ParseCoordinates --
- *
- *      The Tcl coordinate list is converted to their floating point
- *      values. It will then replace the current marker coordinates.
- *
- *      Since different marker types require different number of
- *      coordinates this must be checked here.
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      Marker *markerPtr
- *      Tcl_Size nExprs
- *      const char **exprArr
- *
- * Results:
- *      The return value is a standard Tcl result.
- *
- * Side effects:
- *      If the marker coordinates are reset, the graph is eventually
- *      redrawn with at the new marker coordinates.
- *
- * ----------------------------------------------------------------------
- */
-static int ParseCoordinates(Tcl_Interp *interp, Marker *markerPtr, Tcl_Size nExprs, const char **exprArr) {
-    int nWorldPts;
-    int minArgs, maxArgs;
-    Point2D *worldPts;
-    register int i;
-    register Point2D *pointPtr;
-    double x, y;
-
-    if (nExprs == 0) {
-        return TCL_OK;
-    }
-    if (nExprs & 1) {
-        Tcl_AppendResult(interp, "odd number of marker coordinates specified", (char *)NULL);
-        return TCL_ERROR;
-    }
-    if (markerPtr->classUid == rbcLineMarkerUid) {
-        minArgs = 4, maxArgs = 0;
-    } else if (markerPtr->classUid == rbcPolygonMarkerUid) {
-        minArgs = 6, maxArgs = 0;
-    } else if ((markerPtr->classUid == rbcWindowMarkerUid) || (markerPtr->classUid == rbcTextMarkerUid)) {
-        minArgs = 2, maxArgs = 2;
-    } else if ((markerPtr->classUid == rbcImageMarkerUid) || (markerPtr->classUid == rbcBitmapMarkerUid)) {
-        minArgs = 2, maxArgs = 4;
-    } else {
-        Tcl_AppendResult(interp, "unknown marker type", (char *)NULL);
-        return TCL_ERROR;
-    }
-
-    if (nExprs < minArgs) {
-        Tcl_AppendResult(interp, "too few marker coordinates specified", (char *)NULL);
-        return TCL_ERROR;
-    }
-    if ((maxArgs > 0) && (nExprs > maxArgs)) {
-        Tcl_AppendResult(interp, "too many marker coordinates specified", (char *)NULL);
-        return TCL_ERROR;
-    }
-    nWorldPts = nExprs / 2;
-    worldPts = (Point2D *)ckalloc(nWorldPts * sizeof(Point2D));
-    if (worldPts == NULL) {
-        Tcl_AppendResult(interp, "can't allocate new coordinate array", (char *)NULL);
-        return TCL_ERROR;
-    }
-
-    /* Don't free the old coordinate array until we've parsed the new
-     * coordinates without errors.  */
-    pointPtr = worldPts;
-    for (i = 0; i < nExprs; i += 2) {
-        if ((GetCoordinate(interp, exprArr[i], &x) != TCL_OK) ||
-            (GetCoordinate(interp, exprArr[i + 1], &y) != TCL_OK)) {
-            ckfree((char *)worldPts);
-            return TCL_ERROR;
-        }
-        pointPtr->x = x, pointPtr->y = y;
-        pointPtr++;
-    }
-    if (markerPtr->worldPts != NULL) {
-        ckfree((char *)markerPtr->worldPts);
-    }
-    markerPtr->worldPts = worldPts;
-    markerPtr->nWorldPts = nWorldPts;
-    markerPtr->flags |= MAP_ITEM;
-    return TCL_OK;
-}
-
-/*
- * ----------------------------------------------------------------------
- *
- * StringToCoordinates --
- *
- *      Given a Tcl list of numeric expression representing the
- *      element values, convert into an array of floating point
- *      values. In addition, the minimum and maximum values are saved.
- *      Since elastic values are allow (values which translate to the
- *      min/max of the graph), we must try to get the non-elastic
- *      minimum and maximum.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tcl_Interp *interp - Interpreter to send results back to
- *      Tk_Window tkwin - Not used.
- *      const char *string - Tcl list of numeric expressions
- *      char *widgRec - Marker record
- *      Tcl_Size offset - Not used.
- *
- * Results:
- *      The return value is a standard Tcl result.  The vector is
- *      passed back via the vecPtr.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
- */
-static int StringToCoordinates(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string,
-                               char *widgRec, Tcl_Size offset) {
-    Marker *markerPtr = (Marker *)widgRec;
-    Tcl_Size nExprs;
-    const char **exprArr;
-    int result;
-
-    nExprs = 0;
-    if ((string != NULL) && (Tcl_SplitList(interp, string, &nExprs, &exprArr) != TCL_OK)) {
-        return TCL_ERROR;
-    }
-    if (nExprs == 0) {
-        if (markerPtr->worldPts != NULL) {
-            ckfree((char *)markerPtr->worldPts);
-            markerPtr->worldPts = NULL;
-        }
-        markerPtr->nWorldPts = 0;
-        return TCL_OK;
-    }
-    result = ParseCoordinates(interp, markerPtr, nExprs, exprArr);
-    ckfree((char *)exprArr);
-    return result;
-}
-
-/*
- * ----------------------------------------------------------------------
- *
- * CoordinatesToString --
- *
- *      Convert the vector of floating point values into a Tcl list.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tk_Window tkwin - Not used.
- *      char *widgRec - Marker record
- *      Tcl_Size offset - Not used.
- *      Tcl_FreeProc **freeProcPtr - Memory deallocation scheme to use
- *
- * Results:
- *      The string representation of the vector is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
- */
-static const char *CoordinatesToString(ClientData clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset,
-                                       Tcl_FreeProc **freeProcPtr) {
-    Marker *markerPtr = (Marker *)widgRec;
-    Tcl_Interp *interp;
-    Tcl_DString dString;
-    char *result;
-    register int i;
-    register Point2D *p;
-
-    if (markerPtr->nWorldPts < 1) {
-        return "";
-    }
-    interp = markerPtr->graphPtr->interp;
-
-    Tcl_DStringInit(&dString);
-    p = markerPtr->worldPts;
-    for (i = 0; i < markerPtr->nWorldPts; i++) {
-        Tcl_DStringAppendElement(&dString, PrintCoordinate(interp, p->x));
-        Tcl_DStringAppendElement(&dString, PrintCoordinate(interp, p->y));
-        p++;
-    }
-    result = Tcl_DStringValue(&dString);
-
-    /*
-     * If memory wasn't allocated for the dynamic string, do it here (it's
-     * currently on the stack), so that Tcl can free it normally.
-     */
-    if (result == dString.staticSpace) {
-        result = RbcStrdup(result);
-    }
-    *freeProcPtr = (Tcl_FreeProc *)Tcl_Free;
-    return result;
-}
-
-/*
- * ----------------------------------------------------------------------
- *
  * HMap --
  *
  *      Map the given graph coordinate value to its axis, returning a
@@ -1798,81 +1475,51 @@ static void DestroyMarker(Marker *markerPtr) {
     Graph *graphPtr;
 
     graphPtr = markerPtr->graphPtr;
-
     if (markerPtr->drawUnder) {
         graphPtr->flags |= REDRAW_BACKING_STORE;
     }
-
     Rbc_DeleteBindings(graphPtr->bindTable, markerPtr);
-
-    if (MarkerUsesModernOptions(markerPtr)) {
-        if (markerPtr->optionsInitialized) {
-            if ((!markerPtr->tkResourcesReleased) && (graphPtr->tkwin != NULL)) {
-                ReleaseMarkerTkResources(markerPtr);
-            }
-        } else {
-            /*
-             * Cleanup after failure before Tk_InitOptions completed.
-             */
-            (*markerPtr->classPtr->freeProc)(graphPtr, markerPtr);
-
-            if (markerPtr->worldPts != NULL) {
-                ckfree(markerPtr->worldPts);
-            }
-
-            if (markerPtr->tags != NULL) {
-                ckfree(markerPtr->tags);
-            }
-
-            if (markerPtr->name != NULL) {
-                ckfree(markerPtr->name);
-            }
-
-            if (markerPtr->elemName != NULL) {
-                ckfree(markerPtr->elemName);
-            }
-
-            if (markerPtr->axes.x != NULL) {
-                Rbc_FreeAxisReference(graphPtr, markerPtr->axes.x);
-            }
-
-            if (markerPtr->axes.y != NULL) {
-                Rbc_FreeAxisReference(graphPtr, markerPtr->axes.y);
-            }
+    if (markerPtr->optionsInitialized) {
+        /*
+         * During normal deletion the graph window is alive. During
+         * graph teardown, the resources have already been released by
+         * Rbc_ReleaseMarkerTkResources().
+         */
+        if ((!markerPtr->tkResourcesReleased) && (graphPtr->tkwin != NULL)) {
+            ReleaseMarkerTkResources(markerPtr);
         }
     } else {
         /*
-         * Existing legacy lifecycle.
+         * Cleanup after failure before Tk option initialisation
+         * completed. These fields are not yet owned by a successfully
+         * initialised Tk option record.
          */
         (*markerPtr->classPtr->freeProc)(graphPtr, markerPtr);
-
         if (markerPtr->worldPts != NULL) {
-            ckfree(markerPtr->worldPts);
+            ckfree((char *)markerPtr->worldPts);
         }
-
-        Tk_FreeOptions(markerPtr->classPtr->configSpecs, (char *)markerPtr, graphPtr->display, 0);
-
+        if (markerPtr->tags != NULL) {
+            ckfree((char *)markerPtr->tags);
+        }
         if (markerPtr->name != NULL) {
             ckfree(markerPtr->name);
         }
-
         if (markerPtr->elemName != NULL) {
             ckfree(markerPtr->elemName);
         }
-
-        if (markerPtr->tags != NULL) {
-            ckfree(markerPtr->tags);
+        if (markerPtr->axes.x != NULL) {
+            Rbc_FreeAxisReference(graphPtr, markerPtr->axes.x);
+        }
+        if (markerPtr->axes.y != NULL) {
+            Rbc_FreeAxisReference(graphPtr, markerPtr->axes.y);
         }
     }
-
     if (markerPtr->hashPtr != NULL) {
         Tcl_DeleteHashEntry(markerPtr->hashPtr);
     }
-
     if (markerPtr->linkPtr != NULL) {
         Rbc_ChainDeleteLink(graphPtr->markers.displayList, markerPtr->linkPtr);
     }
-
     ckfree(markerPtr);
 }
 
@@ -5468,50 +5115,6 @@ static int NameToMarker(Graph *graphPtr, char *name, Marker **markerPtrPtr) {
 }
 
 /*
- *----------------------------------------------------------------------
- *
- * RenameMarker --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Marker *markerPtr
- *      char *oldName
- *      char *newName
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static int RenameMarker(Graph *graphPtr, Marker *markerPtr, char *oldName, char *newName) {
-    int isNew;
-    Tcl_HashEntry *hPtr;
-
-    /* Rename the marker only if no marker already exists by that name */
-    hPtr = Tcl_CreateHashEntry(&graphPtr->markers.table, newName, &isNew);
-    if (!isNew) {
-        Tcl_AppendResult(graphPtr->interp, "can't rename marker: \"", newName, "\" already exists", (char *)NULL);
-        return TCL_ERROR;
-    }
-    markerPtr->name = RbcStrdup(newName);
-    markerPtr->hashPtr = hPtr;
-    Tcl_SetHashValue(hPtr, (char *)markerPtr);
-
-    /* Delete the old hash entry */
-    hPtr = Tcl_FindHashEntry(&graphPtr->markers.table, oldName);
-    Tcl_DeleteHashEntry(hPtr);
-    if (oldName != NULL) {
-        ckfree((char *)oldName);
-    }
-    return TCL_OK;
-}
-
-/*
  * ----------------------------------------------------------------------
  *
  * NamesOp --
@@ -5648,27 +5251,17 @@ static int BindOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const 
  */
 static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     Marker *markerPtr;
+    Tcl_Obj *resultObjPtr;
 
     if (NameToMarker(graphPtr, Tcl_GetString(objv[3]), &markerPtr) != TCL_OK) {
         return TCL_ERROR;
     }
-
-    if (MarkerUsesModernOptions(markerPtr)) {
-        Tcl_Obj *resultObjPtr;
-
-        resultObjPtr = Tk_GetOptionValue(interp, (char *)markerPtr, markerPtr->optionTable, objv[4], graphPtr->tkwin);
-
-        if (resultObjPtr == NULL) {
-            return TCL_ERROR;
-        }
-
-        Tcl_SetObjResult(interp, resultObjPtr);
-
-        return TCL_OK;
+    resultObjPtr = Tk_GetOptionValue(interp, (char *)markerPtr, markerPtr->optionTable, objv[4], graphPtr->tkwin);
+    if (resultObjPtr == NULL) {
+        return TCL_ERROR;
     }
-
-    return Tk_ConfigureValue(interp, graphPtr->tkwin, markerPtr->classPtr->configSpecs, (char *)markerPtr,
-                             Tcl_GetString(objv[4]), 0);
+    Tcl_SetObjResult(interp, resultObjPtr);
+    return TCL_OK;
 }
 
 /*
@@ -5694,101 +5287,56 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const 
  */
 static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     Marker *markerPtr;
-    int flags = TK_CONFIG_ARGV_ONLY;
-    char *oldName;
-    int nNames, nOpts;
+    int nNames;
+    int nOpts;
     Tcl_Obj *const *options;
-    register int i;
-    char *str;
+    int i;
+    const char *string;
 
-    /* Figure out where the option value pairs begin */
+    /*
+     * Find where the option/value pairs begin.
+     */
     objc -= 3;
     objv += 3;
     for (i = 0; i < objc; i++) {
-        str = Tcl_GetString(objv[i]);
-        if (str[0] == '-') {
+        string = Tcl_GetString(objv[i]);
+        if (string[0] == '-') {
             break;
         }
-        if (NameToMarker(graphPtr, str, &markerPtr) != TCL_OK) {
+        if (NameToMarker(graphPtr, string, &markerPtr) != TCL_OK) {
             return TCL_ERROR;
         }
     }
-    nNames = i;              /* Number of element names specified */
-    nOpts = objc - i;        /* Number of options specified */
-    options = objv + nNames; /* Start of options in argv  */
-
+    nNames = i;
+    nOpts = objc - i;
+    options = objv + nNames;
     for (i = 0; i < nNames; i++) {
-        str = Tcl_GetString(objv[i]);
-
-        if (NameToMarker(graphPtr, str, &markerPtr) != TCL_OK) {
+        Tcl_Obj *resultObjPtr;
+        string = Tcl_GetString(objv[i]);
+        if (NameToMarker(graphPtr, string, &markerPtr) != TCL_OK) {
             return TCL_ERROR;
         }
-
-        if (MarkerUsesModernOptions(markerPtr)) {
-            Tcl_Obj *resultObjPtr;
-
-            if (nOpts == 0) {
-                resultObjPtr =
-                    Tk_GetOptionInfo(interp, (char *)markerPtr, markerPtr->optionTable, NULL, graphPtr->tkwin);
-
-                if (resultObjPtr == NULL) {
-                    return TCL_ERROR;
-                }
-
-                Tcl_SetObjResult(interp, resultObjPtr);
-
-                return TCL_OK;
-            }
-
-            if (nOpts == 1) {
-                resultObjPtr =
-                    Tk_GetOptionInfo(interp, (char *)markerPtr, markerPtr->optionTable, options[0], graphPtr->tkwin);
-
-                if (resultObjPtr == NULL) {
-                    return TCL_ERROR;
-                }
-
-                Tcl_SetObjResult(interp, resultObjPtr);
-
-                return TCL_OK;
-            }
-
-            if (ConfigureMarkerOptions(markerPtr, nOpts, options, FALSE) != TCL_OK) {
+        if (nOpts == 0) {
+            resultObjPtr = Tk_GetOptionInfo(interp, (char *)markerPtr, markerPtr->optionTable, NULL, graphPtr->tkwin);
+            if (resultObjPtr == NULL) {
                 return TCL_ERROR;
             }
-        } else {
-            char *oldName;
-
-            if (nOpts == 0) {
-                return Tk_ConfigureInfo(interp, graphPtr->tkwin, markerPtr->classPtr->configSpecs, (char *)markerPtr,
-                                        NULL, TK_CONFIG_ARGV_ONLY);
-            }
-
-            if (nOpts == 1) {
-                return Tk_ConfigureInfo(interp, graphPtr->tkwin, markerPtr->classPtr->configSpecs, (char *)markerPtr,
-                                        Tcl_GetString(options[0]), TK_CONFIG_ARGV_ONLY);
-            }
-
-            oldName = markerPtr->name;
-
-            if (Tk_ConfigureWidget(interp, graphPtr->tkwin, markerPtr->classPtr->configSpecs, nOpts, options,
-                                   (char *)markerPtr, TK_CONFIG_ARGV_ONLY) != TCL_OK) {
+            Tcl_SetObjResult(interp, resultObjPtr);
+            return TCL_OK;
+        }
+        if (nOpts == 1) {
+            resultObjPtr =
+                Tk_GetOptionInfo(interp, (char *)markerPtr, markerPtr->optionTable, options[0], graphPtr->tkwin);
+            if (resultObjPtr == NULL) {
                 return TCL_ERROR;
             }
-
-            if (oldName != markerPtr->name) {
-                if (RenameMarker(graphPtr, markerPtr, oldName, markerPtr->name) != TCL_OK) {
-                    markerPtr->name = oldName;
-                    return TCL_ERROR;
-                }
-            }
-
-            if ((*markerPtr->classPtr->configProc)(markerPtr) != TCL_OK) {
-                return TCL_ERROR;
-            }
+            Tcl_SetObjResult(interp, resultObjPtr);
+            return TCL_OK;
+        }
+        if (ConfigureMarkerOptions(markerPtr, nOpts, options, FALSE) != TCL_OK) {
+            return TCL_ERROR;
         }
     }
-
     return TCL_OK;
 }
 
@@ -5889,32 +5437,16 @@ static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
     }
 
     /*
-     * Initialise and configure according to the marker class's option
-     * API. All currently unmigrated classes continue through the
-     * legacy branch.
+     * Initialise the Tk option record and transactionally apply the
+     * supplied marker options.
      */
-    if (MarkerUsesModernOptions(markerPtr)) {
-        if (InitMarkerOptions(markerPtr) != TCL_OK) {
-            DestroyMarker(markerPtr);
-            return TCL_ERROR;
-        }
-        if (ConfigureMarkerOptions(markerPtr, objc - 4, objv + 4, TRUE) != TCL_OK) {
-            DestroyMarker(markerPtr);
-            return TCL_ERROR;
-        }
-    } else {
-        assert(markerPtr->classPtr->configSpecs != NULL);
-        assert(markerPtr->classPtr->optionSpecs == NULL);
-        if (Rbc_ConfigureWidgetComponent(interp, graphPtr->tkwin, name, markerPtr->classUid,
-                                         markerPtr->classPtr->configSpecs, objc - 4, objv + 4, (char *)markerPtr,
-                                         0) != TCL_OK) {
-            DestroyMarker(markerPtr);
-            return TCL_ERROR;
-        }
-        if ((*markerPtr->classPtr->configProc)(markerPtr) != TCL_OK) {
-            DestroyMarker(markerPtr);
-            return TCL_ERROR;
-        }
+    if (InitMarkerOptions(markerPtr) != TCL_OK) {
+        DestroyMarker(markerPtr);
+        return TCL_ERROR;
+    }
+    if (ConfigureMarkerOptions(markerPtr, objc - 4, objv + 4, TRUE) != TCL_OK) {
+        DestroyMarker(markerPtr);
+        return TCL_ERROR;
     }
 
     /*
