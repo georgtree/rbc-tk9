@@ -226,6 +226,20 @@ typedef struct {
     ElemVector yLow;
 } BarDataTransaction;
 
+/*
+ * Bar-element pen options handled transactionally.
+ */
+typedef enum { BAR_PEN_OPTION_NONE, BAR_PEN_OPTION_ACTIVE, BAR_PEN_OPTION_NORMAL } BarElementPenOption;
+
+#define BAR_PEN_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
+
+typedef struct {
+    unsigned int stagedMask;
+
+    Pen *activePenPtr;
+    Pen *normalPenPtr;
+} BarElementPenTransaction;
+
 static Tk_ConfigSpec barElemConfigSpecs[] = {
     {TK_CONFIG_CUSTOM, "-activepen", "activePen", "ActivePen", DEF_BAR_ACTIVE_PEN, BAR_CORE_OFFSET(activePenPtr),
      TK_CONFIG_NULL_OK, &rbcBarPenOption},
@@ -613,6 +627,12 @@ static int StageBarDataVector(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *obj
 static int StageBarDataPairs(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, BarDataTransaction *transactionPtr);
 static int PrepareBarDataTransaction(Graph *graphPtr, Element *elemPtr, BarDataTransaction *transactionPtr);
 static void CommitBarDataTransaction(Element *elemPtr, BarDataTransaction *transactionPtr);
+static BarElementPenOption GetBarElementPenOption(Tcl_Obj *objPtr);
+static void FreeBarElementPenTransaction(Graph *graphPtr, BarElementPenTransaction *transactionPtr);
+static int StageBarElementPen(Graph *graphPtr, Tcl_Obj *objPtr, BarElementPenTransaction *transactionPtr,
+                              Pen **candidatePtrPtr, BarElementPenOption option);
+static int PrepareBarElementPenTransaction(Graph *graphPtr, Element *elemPtr, BarElementPenTransaction *transactionPtr);
+static void CommitBarElementPenTransaction(Graph *graphPtr, Element *elemPtr, BarElementPenTransaction *transactionPtr);
 static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, XRectangle *rectangles, int nRects);
 static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPen *penPtr, XRectangle *rectangles,
                           int nRects, int *rectToData);
@@ -1412,6 +1432,115 @@ static BarDataOption GetBarDataOption(Tcl_Obj *objPtr) {
 /*
  *----------------------------------------------------------------------
  *
+ * GetBarElementPenOption --
+ *
+ *      Determines whether an option name represents "-activepen" or
+ *      "-pen".
+ *
+ *      Tk_SetOptions has already validated abbreviations. This helper
+ *      repeats enough of the matching to recover the canonical option
+ *      identity while preserving the original option/value order.
+ *
+ * Parameters:
+ *      Tcl_Obj *objPtr - Option-name object.
+ *
+ * Results:
+ *      The corresponding BarElementPenOption value.
+ *      BAR_PEN_OPTION_NONE is returned for unrelated options.
+ *
+ * Side Effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+static BarElementPenOption GetBarElementPenOption(Tcl_Obj *objPtr) {
+    static const struct {
+        const char *name;
+        BarElementPenOption option;
+    } optionMap[] = {{"-activepen", BAR_PEN_OPTION_ACTIVE}, {"-pen", BAR_PEN_OPTION_NORMAL}};
+
+    const char *string;
+    Tcl_Size length;
+    BarElementPenOption match;
+    size_t i;
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+
+    /*
+     * Prefer exact matches.
+     */
+    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
+        Tcl_Size fullLength;
+
+        fullLength = (Tcl_Size)strlen(optionMap[i].name);
+
+        if ((length == fullLength) && (memcmp(string, optionMap[i].name, (size_t)length) == 0)) {
+            return optionMap[i].option;
+        }
+    }
+
+    /*
+     * Recover a canonical option from a valid abbreviation.
+     */
+    match = BAR_PEN_OPTION_NONE;
+
+    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
+        Tcl_Size fullLength;
+
+        fullLength = (Tcl_Size)strlen(optionMap[i].name);
+
+        if ((length > 0) && (length < fullLength) && (strncmp(string, optionMap[i].name, (size_t)length) == 0)) {
+            if (match == BAR_PEN_OPTION_NONE) {
+                match = optionMap[i].option;
+            } else if (match != optionMap[i].option) {
+                /*
+                 * Tk_SetOptions should already have rejected an
+                 * ambiguous abbreviation.
+                 */
+                return BAR_PEN_OPTION_NONE;
+            }
+        }
+    }
+
+    return match;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * FreeBarElementPenTransaction --
+ *
+ *      Releases all pen references owned by a staged bar-element pen
+ *      transaction.
+ *
+ * Parameters:
+ *      Graph *graphPtr
+ *      BarElementPenTransaction *transactionPtr
+ *
+ * Results:
+ *      None.
+ *
+ * Side Effects:
+ *      Decrements the reference count of every staged named pen and
+ *      clears the transaction.
+ *
+ *----------------------------------------------------------------------
+ */
+static void FreeBarElementPenTransaction(Graph *graphPtr, BarElementPenTransaction *transactionPtr) {
+    if (transactionPtr->activePenPtr != NULL) {
+        Rbc_FreePen(graphPtr, transactionPtr->activePenPtr);
+    }
+
+    if (transactionPtr->normalPenPtr != NULL) {
+        Rbc_FreePen(graphPtr, transactionPtr->normalPenPtr);
+    }
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
  * FreeBarDataTransaction --
  *
  *      Releases all staged vectors owned by a bar-data transaction.
@@ -1834,6 +1963,248 @@ static void CommitBarDataTransaction(Element *elemPtr, BarDataTransaction *trans
 }
 
 /*
+ *----------------------------------------------------------------------
+ *
+ * StageBarElementPen --
+ *
+ *      Resolves one bar-element pen option into temporary transaction
+ *      storage without modifying the live element.
+ *
+ *      An empty value represents no named pen. For "-pen", that will
+ *      later select the embedded built-in pen. For "-activepen", it
+ *      disables the active pen.
+ *
+ * Parameters:
+ *      Graph *graphPtr
+ *      Tcl_Obj *objPtr
+ *      BarElementPenTransaction *transactionPtr
+ *      Pen **candidatePtrPtr
+ *      BarElementPenOption option
+ *
+ * Results:
+ *      TCL_OK if the value was resolved successfully.
+ *      TCL_ERROR if the named pen does not exist or has the wrong type.
+ *
+ * Side Effects:
+ *      May acquire a reference to a named bar pen. If the same option
+ *      was staged previously, the previous candidate is released only
+ *      after the replacement has been resolved successfully.
+ *
+ *----------------------------------------------------------------------
+ */
+static int StageBarElementPen(Graph *graphPtr, Tcl_Obj *objPtr, BarElementPenTransaction *transactionPtr,
+                              Pen **candidatePtrPtr, BarElementPenOption option) {
+    const char *name;
+    Pen *newPenPtr;
+    unsigned int mask;
+
+    newPenPtr = NULL;
+
+    if (objPtr != NULL) {
+        name = Tcl_GetString(objPtr);
+
+        if (name[0] != '\0') {
+            if (Rbc_GetPen(graphPtr, name, rbcBarElementUid, &newPenPtr) != TCL_OK) {
+                return TCL_ERROR;
+            }
+        }
+    }
+
+    mask = BAR_PEN_OPTION_MASK(option);
+
+    /*
+     * Do not discard the previous candidate until the replacement has
+     * been resolved successfully.
+     */
+    if ((transactionPtr->stagedMask & mask) && (*candidatePtrPtr != NULL)) {
+        Rbc_FreePen(graphPtr, *candidatePtrPtr);
+    }
+
+    *candidatePtrPtr = newPenPtr;
+    transactionPtr->stagedMask |= mask;
+
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * PrepareBarElementPenTransaction --
+ *
+ *      Resolves all bar-element pen options involved in the current
+ *      modern configuration without changing the live element.
+ *
+ *      Explicit options are processed in caller order. Therefore, an
+ *      invalid earlier repeated option still causes the entire
+ *      configuration to fail, matching the legacy behaviour.
+ *
+ * Parameters:
+ *      Graph *graphPtr
+ *      Element *elemPtr
+ *      BarElementPenTransaction *transactionPtr
+ *
+ * Results:
+ *      TCL_OK if every relevant pen value was resolved.
+ *      TCL_ERROR otherwise.
+ *
+ * Side Effects:
+ *      Acquires temporary references to named pens.
+ *
+ *----------------------------------------------------------------------
+ */
+static int PrepareBarElementPenTransaction(Graph *graphPtr, Element *elemPtr,
+                                           BarElementPenTransaction *transactionPtr) {
+    unsigned int explicitMask;
+    int i;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+    explicitMask = 0;
+
+    assert((elemPtr->optionObjc & 1) == 0);
+
+    /*
+     * Determine which pen options were supplied explicitly.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        BarElementPenOption option;
+
+        option = GetBarElementPenOption(elemPtr->optionObjv[i]);
+
+        if (option != BAR_PEN_OPTION_NONE) {
+            explicitMask |= BAR_PEN_OPTION_MASK(option);
+        }
+    }
+
+    /*
+     * During the first modern configuration, process effective
+     * option-database/default values that were not overridden by the
+     * caller.
+     */
+    if (!elemPtr->optionsConfigured) {
+        if (!(explicitMask & BAR_PEN_OPTION_MASK(BAR_PEN_OPTION_ACTIVE)) && (elemPtr->activePenObjPtr != NULL)) {
+            if (StageBarElementPen(graphPtr, elemPtr->activePenObjPtr, transactionPtr, &transactionPtr->activePenPtr,
+                                   BAR_PEN_OPTION_ACTIVE) != TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & BAR_PEN_OPTION_MASK(BAR_PEN_OPTION_NORMAL)) && (elemPtr->normalPenObjPtr != NULL)) {
+            if (StageBarElementPen(graphPtr, elemPtr->normalPenObjPtr, transactionPtr, &transactionPtr->normalPenPtr,
+                                   BAR_PEN_OPTION_NORMAL) != TCL_OK) {
+                goto error;
+            }
+        }
+    }
+
+    /*
+     * Process explicitly supplied values in their original order.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        BarElementPenOption option;
+        Tcl_Obj *valueObjPtr;
+
+        option = GetBarElementPenOption(elemPtr->optionObjv[i]);
+        valueObjPtr = elemPtr->optionObjv[i + 1];
+
+        switch (option) {
+        case BAR_PEN_OPTION_ACTIVE:
+            if (StageBarElementPen(graphPtr, valueObjPtr, transactionPtr, &transactionPtr->activePenPtr, option) !=
+                TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case BAR_PEN_OPTION_NORMAL:
+            if (StageBarElementPen(graphPtr, valueObjPtr, transactionPtr, &transactionPtr->normalPenPtr, option) !=
+                TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case BAR_PEN_OPTION_NONE:
+            break;
+        }
+    }
+
+    return TCL_OK;
+
+error:
+    FreeBarElementPenTransaction(graphPtr, transactionPtr);
+    return TCL_ERROR;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * CommitBarElementPenTransaction --
+ *
+ *      Replaces the live active and normal pens with successfully
+ *      staged candidates.
+ *
+ * Parameters:
+ *      Graph *graphPtr
+ *      Element *elemPtr
+ *      BarElementPenTransaction *transactionPtr
+ *
+ * Results:
+ *      None.
+ *
+ * Side Effects:
+ *      Releases replaced live named pens and transfers ownership of
+ *      staged references to the element. An empty normal-pen value
+ *      selects the embedded built-in bar pen.
+ *
+ *----------------------------------------------------------------------
+ */
+static void CommitBarElementPenTransaction(Graph *graphPtr, Element *elemPtr,
+                                           BarElementPenTransaction *transactionPtr) {
+    Bar *barPtr;
+
+    barPtr = BAR_FROM_CORE(elemPtr);
+
+    if (transactionPtr->stagedMask & BAR_PEN_OPTION_MASK(BAR_PEN_OPTION_ACTIVE)) {
+        Pen *oldPenPtr;
+
+        oldPenPtr = elemPtr->activePenPtr;
+
+        elemPtr->activePenPtr = transactionPtr->activePenPtr;
+        transactionPtr->activePenPtr = NULL;
+
+        if (oldPenPtr != NULL) {
+            Rbc_FreePen(graphPtr, oldPenPtr);
+        }
+    }
+
+    if (transactionPtr->stagedMask & BAR_PEN_OPTION_MASK(BAR_PEN_OPTION_NORMAL)) {
+        Pen *oldPenPtr;
+        Pen *newPenPtr;
+
+        oldPenPtr = elemPtr->normalPenPtr;
+        newPenPtr = transactionPtr->normalPenPtr;
+
+        /*
+         * An empty "-pen" value means use the embedded normal pen.
+         */
+        if (newPenPtr == NULL) {
+            newPenPtr = &barPtr->builtinPen.core;
+        }
+
+        elemPtr->normalPenPtr = newPenPtr;
+        transactionPtr->normalPenPtr = NULL;
+
+        /*
+         * The embedded pen is owned directly by the Bar and has no
+         * named-pen reference to release.
+         */
+        if ((oldPenPtr != NULL) && (oldPenPtr != &barPtr->builtinPen.core)) {
+            Rbc_FreePen(graphPtr, oldPenPtr);
+        }
+    }
+
+    transactionPtr->stagedMask = 0;
+}
+
+/*
  * ----------------------------------------------------------------------
  *
  * ConfigureBar --
@@ -1859,13 +2230,18 @@ static void CommitBarDataTransaction(Element *elemPtr, BarDataTransaction *trans
 static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
     Bar *barPtr;
     BarDataTransaction dataTransaction;
+    BarElementPenTransaction penTransaction;
     Rbc_ChainLink *linkPtr;
     int dataTransactionPrepared;
+    int penTransactionPrepared;
 
     barPtr = BAR_FROM_CORE(elemPtr);
 
     memset(&dataTransaction, 0, sizeof(dataTransaction));
+    memset(&penTransaction, 0, sizeof(penTransaction));
+
     dataTransactionPrepared = FALSE;
+    penTransactionPrepared = FALSE;
 
     /*
      * Parse all fallible element-data conversions before modifying any
@@ -1874,31 +2250,51 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
     if ((elemPtr->optionSpecs != NULL) &&
         ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & BAR_ELEM_DATA_MASK))) {
         if (PrepareBarDataTransaction(graphPtr, elemPtr, &dataTransaction) != TCL_OK) {
-            return TCL_ERROR;
+            goto error;
         }
+
         dataTransactionPrepared = TRUE;
     }
 
     /*
-     * Configure the embedded bar pen only after all data values have
-     * parsed successfully. ConfigurePen may still fail, in which case
-     * the staged vectors must be discarded.
+     * Resolve named pens into temporary references before changing the
+     * live active or normal pen.
      */
-    if (ConfigurePen(graphPtr, &barPtr->builtinPen.core) != TCL_OK) {
-        if (dataTransactionPrepared) {
-            FreeBarDataTransaction(&dataTransaction);
+    if ((elemPtr->optionSpecs != NULL) &&
+        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & BAR_ELEM_PEN_MASK))) {
+        if (PrepareBarElementPenTransaction(graphPtr, elemPtr, &penTransaction) != TCL_OK) {
+            goto error;
         }
-        return TCL_ERROR;
+
+        penTransactionPrepared = TRUE;
     }
 
     /*
-     * Use the embedded pen when no named normal pen was selected.
+     * Configure the embedded bar pen only after every staged data and
+     * named-pen value has been validated.
+     */
+    if (ConfigurePen(graphPtr, &barPtr->builtinPen.core) != TCL_OK) {
+        goto error;
+    }
+
+    /*
+     * No fallible operation remains. Commit the named pens before
+     * updating the palette's default style.
+     */
+    if (penTransactionPrepared) {
+        CommitBarElementPenTransaction(graphPtr, elemPtr, &penTransaction);
+    }
+
+    /*
+     * Preserve the legacy fallback in case a legacy custom option set
+     * normalPenPtr to NULL.
      */
     if (elemPtr->normalPenPtr == NULL) {
         elemPtr->normalPenPtr = &barPtr->builtinPen.core;
     }
 
     linkPtr = Rbc_ChainFirstLink(elemPtr->palette);
+
     if (linkPtr != NULL) {
         BarPenStyle *stylePtr;
 
@@ -1911,8 +2307,7 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
     }
 
     /*
-     * Nothing below this point can fail, so staged vectors may now
-     * replace the live vectors.
+     * Staged vectors can now safely replace the live vectors.
      */
     if (dataTransactionPrepared) {
         CommitBarDataTransaction(elemPtr, &dataTransaction);
@@ -1928,6 +2323,17 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
     }
 
     return TCL_OK;
+
+error:
+    if (penTransactionPrepared) {
+        FreeBarElementPenTransaction(graphPtr, &penTransaction);
+    }
+
+    if (dataTransactionPrepared) {
+        FreeBarDataTransaction(&dataTransaction);
+    }
+
+    return TCL_ERROR;
 }
 
 /*
