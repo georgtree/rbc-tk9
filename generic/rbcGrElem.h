@@ -246,6 +246,29 @@ struct ElementStruct {
      */
     int optionMask;
 
+    /*
+     * Tcl representations for common element options that require
+     * additional validation or conversion after Tk_SetOptions.
+     */
+    Tcl_Obj *activePenObjPtr;
+    Tcl_Obj *bindTagsObjPtr;
+    Tcl_Obj *dataObjPtr;
+    Tcl_Obj *mapXObjPtr;
+    Tcl_Obj *mapYObjPtr;
+    Tcl_Obj *normalPenObjPtr;
+    Tcl_Obj *stateObjPtr;
+    Tcl_Obj *stylesObjPtr;
+
+    Tcl_Obj *weightsObjPtr;
+    Tcl_Obj *xObjPtr;
+    Tcl_Obj *yObjPtr;
+    Tcl_Obj *xErrorObjPtr;
+    Tcl_Obj *xHighObjPtr;
+    Tcl_Obj *xLowObjPtr;
+    Tcl_Obj *yErrorObjPtr;
+    Tcl_Obj *yHighObjPtr;
+    Tcl_Obj *yLowObjPtr;
+
     int optionsInitialized;
     int tkResourcesReleased;
 

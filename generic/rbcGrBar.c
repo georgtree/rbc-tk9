@@ -111,6 +111,7 @@ _Static_assert(offsetof(Bar, core) == 0, "Element core must be the first Bar mem
 #define BAR_FROM_CORE(elemPtr) ((Bar *)((char *)(elemPtr) - offsetof(Bar, core)))
 
 #define BAR_CORE_OFFSET(member) (offsetof(Bar, core) + offsetof(Element, member))
+#define BAR_BUILTIN_PEN_OFFSET(member) (offsetof(Bar, builtinPen) + offsetof(BarPen, member))
 
 extern Tk_CustomOption rbcBarPenOption;
 extern Tk_CustomOption rbcDataOption;
@@ -174,6 +175,21 @@ Tk_CustomOption rbcBarModeOption = {StringToBarMode, BarModeToString, (ClientDat
 #define DEF_PEN_VALUE_ROTATE (char *)NULL
 #define DEF_PEN_VALUE_SHADOW (char *)NULL
 #define DEF_PEN_SHOW_VALUES "no"
+
+/*
+ * Bar-element option conversion masks.
+ *
+ * These bits describe post-Tk_SetOptions processing required by
+ * ConfigureBar. Several bits may be set by one option.
+ */
+#define BAR_ELEM_PEN_MASK (1 << 0)
+#define BAR_ELEM_TAGS_MASK (1 << 1)
+#define BAR_ELEM_DATA_MASK (1 << 2)
+#define BAR_ELEM_AXES_MASK (1 << 3)
+#define BAR_ELEM_STATE_MASK (1 << 4)
+#define BAR_ELEM_STYLES_MASK (1 << 5)
+#define BAR_ELEM_BUILTIN_PEN_MASK (1 << 6)
+#define BAR_ELEM_MAP_ITEM_MASK (1 << 7)
 
 #define FreeElemVector(v)                                                                                              \
     if ((v).clientId != NULL) {                                                                                        \
@@ -252,6 +268,88 @@ static Tk_ConfigSpec barElemConfigSpecs[] = {
     {TK_CONFIG_CUSTOM, "-yhigh", "yHigh", "YHigh", DEF_BAR_DATA, BAR_CORE_OFFSET(yHigh), 0, &rbcDataOption},
     {TK_CONFIG_CUSTOM, "-ylow", "yLow", "YLow", DEF_BAR_DATA, BAR_CORE_OFFSET(yLow), 0, &rbcDataOption},
     {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}};
+
+static const Tk_OptionSpec barElemOptionSpecs[] = {
+    {TK_OPTION_STRING, "-activepen", "activePen", "ActivePen", DEF_BAR_ACTIVE_PEN, BAR_CORE_OFFSET(activePenObjPtr), -1,
+     0, NULL, BAR_ELEM_PEN_MASK},
+    {TK_OPTION_BORDER, "-background", "background", "Background", DEF_BAR_BACKGROUND, -1,
+     BAR_BUILTIN_PEN_OFFSET(border), TK_OPTION_NULL_OK, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_DOUBLE, "-barwidth", "barWidth", "BarWidth", DEF_BAR_WIDTH, -1, offsetof(Bar, barWidth),
+     TK_OPTION_DONT_SET_DEFAULT, NULL, BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_SYNONYM, "-bd", NULL, NULL, NULL, -1, -1, 0, "-borderwidth", 0},
+    {TK_OPTION_SYNONYM, "-bg", NULL, NULL, NULL, -1, -1, 0, "-background", 0},
+    {TK_OPTION_STRING, "-bindtags", "bindTags", "BindTags", DEF_BAR_TAGS, BAR_CORE_OFFSET(bindTagsObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, BAR_ELEM_TAGS_MASK},
+    {TK_OPTION_PIXELS, "-borderwidth", "borderWidth", "BorderWidth", DEF_BAR_BORDERWIDTH,
+     BAR_BUILTIN_PEN_OFFSET(borderWidthObjPtr), -1, 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_STRING, "-errorbarcolor", "errorBarColor", "ErrorBarColor", DEF_BAR_ERRORBAR_COLOR,
+     BAR_BUILTIN_PEN_OFFSET(errorBarColorObjPtr), -1, 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_PIXELS, "-errorbarwidth", "errorBarWidth", "ErrorBarWidth", DEF_BAR_ERRORBAR_LINE_WIDTH,
+     BAR_BUILTIN_PEN_OFFSET(errorBarWidthObjPtr), -1, 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_PIXELS, "-errorbarcap", "errorBarCap", "ErrorBarCap", DEF_BAR_ERRORBAR_CAP_WIDTH,
+     BAR_BUILTIN_PEN_OFFSET(errorBarCapObjPtr), -1, 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_STRING, "-data", "data", "Data", NULL, BAR_CORE_OFFSET(dataObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_SYNONYM, "-fg", NULL, NULL, NULL, -1, -1, 0, "-foreground", 0},
+    {TK_OPTION_COLOR, "-foreground", "foreground", "Foreground", DEF_BAR_FOREGROUND, -1,
+     BAR_BUILTIN_PEN_OFFSET(fgColor), TK_OPTION_NULL_OK, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_BAR_HIDE, -1, BAR_CORE_OFFSET(hidden), TK_OPTION_DONT_SET_DEFAULT,
+     NULL, BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_STRING, "-label", "label", "Label", DEF_BAR_LABEL, -1, BAR_CORE_OFFSET(label), TK_OPTION_NULL_OK, NULL,
+     BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_RELIEF, "-labelrelief", "labelRelief", "LabelRelief", DEF_BAR_LABEL_RELIEF, -1,
+     BAR_CORE_OFFSET(labelRelief), TK_OPTION_DONT_SET_DEFAULT, NULL, BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_BAR_AXIS_X, BAR_CORE_OFFSET(mapXObjPtr), -1, 0, NULL,
+     BAR_ELEM_AXES_MASK | BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_BAR_AXIS_Y, BAR_CORE_OFFSET(mapYObjPtr), -1, 0, NULL,
+     BAR_ELEM_AXES_MASK | BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_STRING, "-pen", "pen", "Pen", NULL, BAR_CORE_OFFSET(normalPenObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     BAR_ELEM_PEN_MASK},
+    {TK_OPTION_RELIEF, "-relief", "relief", "Relief", DEF_BAR_RELIEF, -1, BAR_BUILTIN_PEN_OFFSET(relief), 0, NULL,
+     BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_STRING, "-showerrorbars", "showErrorBars", "ShowErrorBars", DEF_BAR_SHOW_ERRORBARS,
+     BAR_BUILTIN_PEN_OFFSET(showErrorBarsObjPtr), -1, 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_STRING, "-showvalues", "showValues", "ShowValues", DEF_PEN_SHOW_VALUES,
+     BAR_BUILTIN_PEN_OFFSET(showValuesObjPtr), -1, 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_STRING, "-state", "state", "State", DEF_BAR_STATE, BAR_CORE_OFFSET(stateObjPtr), -1, 0, NULL,
+     BAR_ELEM_STATE_MASK},
+    {TK_OPTION_BITMAP, "-stipple", "stipple", "Stipple", DEF_BAR_NORMAL_STIPPLE, -1, BAR_BUILTIN_PEN_OFFSET(stipple),
+     TK_OPTION_NULL_OK, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_STRING, "-styles", "styles", "Styles", DEF_BAR_STYLES, BAR_CORE_OFFSET(stylesObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, BAR_ELEM_STYLES_MASK},
+    {TK_OPTION_ANCHOR, "-valueanchor", "valueAnchor", "ValueAnchor", DEF_PEN_VALUE_ANCHOR, -1,
+     BAR_BUILTIN_PEN_OFFSET(valueStyle.anchor), 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_COLOR, "-valuecolor", "valueColor", "ValueColor", DEF_PEN_VALUE_COLOR, -1,
+     BAR_BUILTIN_PEN_OFFSET(valueStyle.color), 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_FONT, "-valuefont", "valueFont", "ValueFont", DEF_PEN_VALUE_FONT, -1,
+     BAR_BUILTIN_PEN_OFFSET(valueStyle.font), 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_STRING, "-valueformat", "valueFormat", "ValueFormat", DEF_PEN_VALUE_FORMAT, -1,
+     BAR_BUILTIN_PEN_OFFSET(valueFormat), TK_OPTION_NULL_OK, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_DOUBLE, "-valuerotate", "valueRotate", "ValueRotate", "0.0", BAR_BUILTIN_PEN_OFFSET(valueRotateObjPtr),
+     BAR_BUILTIN_PEN_OFFSET(valueStyle.theta), 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_STRING, "-valueshadow", "valueShadow", "ValueShadow", DEF_PEN_VALUE_SHADOW,
+     BAR_BUILTIN_PEN_OFFSET(valueShadowObjPtr), -1, TK_OPTION_NULL_OK, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_STRING, "-weights", "weights", "Weights", NULL, BAR_CORE_OFFSET(weightsObjPtr), -1, TK_OPTION_NULL_OK,
+     NULL, BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_STRING, "-x", "xdata", "Xdata", DEF_BAR_DATA, BAR_CORE_OFFSET(xObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_SYNONYM, "-xdata", NULL, NULL, NULL, -1, -1, 0, "-x", 0},
+    {TK_OPTION_STRING, "-y", "ydata", "Ydata", DEF_BAR_DATA, BAR_CORE_OFFSET(yObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_SYNONYM, "-ydata", NULL, NULL, NULL, -1, -1, 0, "-y", 0},
+    {TK_OPTION_STRING, "-xerror", "xError", "XError", DEF_BAR_DATA, BAR_CORE_OFFSET(xErrorObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_STRING, "-xhigh", "xHigh", "XHigh", DEF_BAR_DATA, BAR_CORE_OFFSET(xHighObjPtr), -1, TK_OPTION_NULL_OK,
+     NULL, BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_STRING, "-xlow", "xLow", "XLow", DEF_BAR_DATA, BAR_CORE_OFFSET(xLowObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_STRING, "-yerror", "yError", "YError", DEF_BAR_DATA, BAR_CORE_OFFSET(yErrorObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_STRING, "-yhigh", "yHigh", "YHigh", DEF_BAR_DATA, BAR_CORE_OFFSET(yHighObjPtr), -1, TK_OPTION_NULL_OK,
+     NULL, BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_STRING, "-ylow", "yLow", "YLow", DEF_BAR_DATA, BAR_CORE_OFFSET(yLowObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 #define BAR_PEN_OPTION_ENTRIES(DEFAULT_BG, DEFAULT_FG)                  \
     {                                                                  \
