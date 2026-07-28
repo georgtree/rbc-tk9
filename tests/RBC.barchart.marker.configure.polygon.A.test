@@ -129,7 +129,7 @@ namespace eval barchart.marker {
 	} -cleanup {
 		.barchart1 marker delete Marker1
 		destroy .barchart1
-	} -result {black {}}
+	} -result {black}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -fill command works correctly for polygon 
@@ -203,7 +203,7 @@ namespace eval barchart.marker {
 	} -cleanup {
 		.barchart1 marker delete Marker1
 		destroy .barchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -linewidth command works correctly when given
@@ -277,7 +277,7 @@ namespace eval barchart.marker {
 	} -cleanup {
 		.barchart1 marker delete Marker1
 		destroy .barchart1
-	} -result {black {}}
+	} -result {black}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -outline command works correctly for polygon 
@@ -532,6 +532,28 @@ namespace eval barchart.marker {
 		.barchart1 marker delete Marker1
 		destroy .barchart1
 	} -result {0}
+
+    test RBC.barchart.marker.configure.polygon.A.rollback.1 {
+        polygon marker configuration is atomic
+    } -setup {
+        barchart .barchart1
+        .barchart1 marker create polygon -name Marker1 -coords {0 0 1 0 1 1} -fill {red white} -outline {black yellow}\
+                -linewidth 2
+        set oldCoords [.barchart1 marker cget Marker1 -coords]
+        set oldFill [.barchart1 marker cget Marker1 -fill]
+        set oldOutline [.barchart1 marker cget Marker1 -outline]
+        set oldWidth [.barchart1 marker cget Marker1 -linewidth]
+    } -body {
+        set code [catch {.barchart1 marker configure Marker1 -coords {2 2 3 2 3 3} -fill {red blue green} -outline\
+                                  white -linewidth 3.5} message]
+        list $code [expr {[.barchart1 marker cget Marker1 -coords] eq $oldCoords}]\
+                [expr {[.barchart1 marker cget Marker1 -fill] eq $oldFill}]\
+                [expr {[.barchart1 marker cget Marker1 -outline] eq $oldOutline}]\
+                [expr {[.barchart1 marker cget Marker1 -linewidth] eq $oldWidth}]
+    } -cleanup {
+        destroy .barchart1
+        unset -nocomplain oldCoords oldFill oldOutline oldWidth code message
+    } -result {1 1 1 1 1}
 	
 	cleanupTests
 }

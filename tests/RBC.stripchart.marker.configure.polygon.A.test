@@ -24,7 +24,7 @@ namespace eval stripchart.marker {
 	# Purpose: Ensure the marker configure -dashes command works correctly when given a
 	# valid dash list.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.1.1 {
+	test RBC.stripchart.marker.configure.polygon.A.1.1 { 
 		stripchart marker configure: dashes - valid dash list
 	} -setup {
 		stripchart .stripchart1
@@ -129,7 +129,7 @@ namespace eval stripchart.marker {
 	} -cleanup {
 		.stripchart1 marker delete Marker1
 		destroy .stripchart1
-	} -result {black {}}
+	} -result {black}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -fill command works correctly for polygon 
@@ -203,7 +203,7 @@ namespace eval stripchart.marker {
 	} -cleanup {
 		.stripchart1 marker delete Marker1
 		destroy .stripchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -linewidth command works correctly when given
@@ -277,7 +277,7 @@ namespace eval stripchart.marker {
 	} -cleanup {
 		.stripchart1 marker delete Marker1
 		destroy .stripchart1
-	} -result {black {}}
+	} -result {black}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -outline command works correctly for polygon 
@@ -532,6 +532,28 @@ namespace eval stripchart.marker {
 		.stripchart1 marker delete Marker1
 		destroy .stripchart1
 	} -result {0}
+
+    test RBC.stripchart.marker.configure.polygon.A.rollback.1 {
+        polygon marker configuration is atomic
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 marker create polygon -name Marker1 -coords {0 0 1 0 1 1} -fill {red white} -outline {black yellow}\
+                -linewidth 2
+        set oldCoords [.stripchart1 marker cget Marker1 -coords]
+        set oldFill [.stripchart1 marker cget Marker1 -fill]
+        set oldOutline [.stripchart1 marker cget Marker1 -outline]
+        set oldWidth [.stripchart1 marker cget Marker1 -linewidth]
+    } -body {
+        set code [catch {.stripchart1 marker configure Marker1 -coords {2 2 3 2 3 3} -fill {red blue green} -outline\
+                                  white -linewidth 3.5} message]
+        list $code [expr {[.stripchart1 marker cget Marker1 -coords] eq $oldCoords}]\
+                [expr {[.stripchart1 marker cget Marker1 -fill] eq $oldFill}]\
+                [expr {[.stripchart1 marker cget Marker1 -outline] eq $oldOutline}]\
+                [expr {[.stripchart1 marker cget Marker1 -linewidth] eq $oldWidth}]
+    } -cleanup {
+        destroy .stripchart1
+        unset -nocomplain oldCoords oldFill oldOutline oldWidth code message
+    } -result {1 1 1 1 1}
 	
 	cleanupTests
 }

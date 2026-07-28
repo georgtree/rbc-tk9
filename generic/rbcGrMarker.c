@@ -103,6 +103,11 @@ typedef struct {
      */
     const Tk_OptionSpec *optionSpecs;
 
+    /*
+     * Optional modern monochrome-display table.
+     */
+    const Tk_OptionSpec *monoOptionSpecs;
+    
     MarkerConfigProc *configProc;
     MarkerDrawProc *drawProc;
     MarkerFreeProc *freeProc;
@@ -516,6 +521,16 @@ static const Tk_OptionSpec lineMarkerOptionSpecs[] = {
 typedef struct {
     Marker core;
 
+    /*
+     * Original Tcl representations of manually converted options.
+     */
+    Tcl_Obj *capObjPtr;
+    Tcl_Obj *dashesObjPtr;
+    Tcl_Obj *fillObjPtr;
+    Tcl_Obj *joinObjPtr;
+    Tcl_Obj *lineWidthObjPtr;
+    Tcl_Obj *outlineObjPtr;
+    
     /* Polygon specific attributes and fields */
 
     Point2D *screenPts;
@@ -559,45 +574,54 @@ typedef struct {
                    * to drawn it again to erase it. */
 } PolygonMarker;
 
-static Tk_ConfigSpec polygonConfigSpecs[] = {
-    {TK_CONFIG_CUSTOM, "-bindtags", "bindTags", "BindTags", DEF_MARKER_POLYGON_TAGS, offsetof(Marker, tags),
-     TK_CONFIG_NULL_OK, &rbcListOption},
-    {TK_CONFIG_CAP_STYLE, "-cap", "cap", "Cap", DEF_MARKER_CAP_STYLE, offsetof(PolygonMarker, capStyle),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-coords", "coords", "Coords", DEF_MARKER_COORDS, offsetof(Marker, worldPts), TK_CONFIG_NULL_OK,
-     &coordsOption},
-    {TK_CONFIG_CUSTOM, "-dashes", "dashes", "Dashes", DEF_MARKER_DASHES, offsetof(PolygonMarker, dashes),
-     TK_CONFIG_NULL_OK, &rbcDashesOption},
-    {TK_CONFIG_STRING, "-element", "element", "Element", DEF_MARKER_ELEMENT, offsetof(Marker, elemName),
-     TK_CONFIG_NULL_OK},
-    {TK_CONFIG_CUSTOM, "-fill", "fill", "Fill", DEF_MARKER_FILL_COLOR, offsetof(PolygonMarker, fill),
-     TK_CONFIG_COLOR_ONLY | TK_CONFIG_NULL_OK, &rbcColorPairOption},
-    {TK_CONFIG_CUSTOM, "-fill", "fill", "Fill", DEF_MARKER_FILL_MONO, offsetof(PolygonMarker, fill),
-     TK_CONFIG_MONO_ONLY | TK_CONFIG_NULL_OK, &rbcColorPairOption},
-    {TK_CONFIG_JOIN_STYLE, "-join", "join", "Join", DEF_MARKER_JOIN_STYLE, offsetof(PolygonMarker, joinStyle),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-linewidth", "lineWidth", "LineWidth", DEF_MARKER_LINE_WIDTH,
-     offsetof(PolygonMarker, lineWidth), TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_BOOLEAN, "-hide", "hide", "Hide", DEF_MARKER_HIDE, offsetof(Marker, hidden), TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-mapx", "mapX", "MapX", DEF_MARKER_MAP_X, offsetof(Marker, axes.x), 0, &rbcXAxisOption},
-    {TK_CONFIG_CUSTOM, "-mapy", "mapY", "MapY", DEF_MARKER_MAP_Y, offsetof(Marker, axes.y), 0, &rbcYAxisOption},
-    {TK_CONFIG_STRING, "-name", (char *)NULL, (char *)NULL, DEF_MARKER_NAME, offsetof(Marker, name), TK_CONFIG_NULL_OK},
-    {TK_CONFIG_CUSTOM, "-outline", "outline", "Outline", DEF_MARKER_OUTLINE_COLOR, offsetof(PolygonMarker, outline),
-     TK_CONFIG_COLOR_ONLY | TK_CONFIG_NULL_OK, &rbcColorPairOption},
-    {TK_CONFIG_CUSTOM, "-outline", "outline", "Outline", DEF_MARKER_OUTLINE_MONO, offsetof(PolygonMarker, outline),
-     TK_CONFIG_MONO_ONLY | TK_CONFIG_NULL_OK, &rbcColorPairOption},
-    {TK_CONFIG_CUSTOM, "-state", "state", "State", DEF_MARKER_STATE, offsetof(Marker, state),
-     TK_CONFIG_DONT_SET_DEFAULT, &rbcStateOption},
-    {TK_CONFIG_BITMAP, "-stipple", "stipple", "Stipple", DEF_MARKER_STIPPLE, offsetof(PolygonMarker, stipple),
-     TK_CONFIG_NULL_OK},
-    {TK_CONFIG_BOOLEAN, "-under", "under", "Under", DEF_MARKER_UNDER, offsetof(Marker, drawUnder),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_PIXELS, "-xoffset", "xOffset", "XOffset", DEF_MARKER_X_OFFSET, offsetof(Marker, xOffset),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_BOOLEAN, "-xor", "xor", "Xor", DEF_MARKER_XOR, offsetof(PolygonMarker, xor), TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_PIXELS, "-yoffset", "yOffset", "YOffset", DEF_MARKER_Y_OFFSET, offsetof(Marker, yOffset),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}};
+#define POLYGON_MARKER_OPTION_ENTRIES(FILL_DEFAULT, OUTLINE_DEFAULT)                                      \
+    {TK_OPTION_STRING, "-bindtags", "bindTags", "BindTags", DEF_MARKER_POLYGON_TAGS,                      \
+     offsetof(Marker, bindTagsObjPtr), -1, TK_OPTION_NULL_OK, NULL, 0},                                   \
+    {TK_OPTION_STRING, "-cap", "cap", "Cap", DEF_MARKER_CAP_STYLE,                                        \
+     offsetof(PolygonMarker, capObjPtr), -1, 0, NULL, 0},                                                 \
+    {TK_OPTION_STRING, "-coords", "coords", "Coords", DEF_MARKER_COORDS,                                  \
+     offsetof(Marker, coordsObjPtr), -1, TK_OPTION_NULL_OK, NULL, 0},                                     \
+    {TK_OPTION_STRING, "-dashes", "dashes", "Dashes", DEF_MARKER_DASHES,                                  \
+     offsetof(PolygonMarker, dashesObjPtr), -1, TK_OPTION_NULL_OK, NULL, 0},                              \
+    {TK_OPTION_STRING, "-element", "element", "Element", DEF_MARKER_ELEMENT,                              \
+     -1, offsetof(Marker, elemName), TK_OPTION_NULL_OK, NULL, 0},                                         \
+    {TK_OPTION_STRING, "-fill", "fill", "Fill", FILL_DEFAULT,                                             \
+     offsetof(PolygonMarker, fillObjPtr), -1, TK_OPTION_NULL_OK, NULL, 0},                                \
+    {TK_OPTION_STRING, "-join", "join", "Join", DEF_MARKER_JOIN_STYLE,                                    \
+     offsetof(PolygonMarker, joinObjPtr), -1, 0, NULL, 0},                                                \
+    {TK_OPTION_STRING, "-linewidth", "lineWidth", "LineWidth", DEF_MARKER_LINE_WIDTH,                     \
+     offsetof(PolygonMarker, lineWidthObjPtr), -1, 0, NULL, 0},                                           \
+    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_MARKER_HIDE,                                         \
+     -1, offsetof(Marker, hidden), 0, NULL, 0},                                                           \
+    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_MARKER_MAP_X,                                         \
+     offsetof(Marker, mapXObjPtr), -1, 0, NULL, 0},                                                       \
+    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_MARKER_MAP_Y,                                         \
+     offsetof(Marker, mapYObjPtr), -1, 0, NULL, 0},                                                       \
+    {TK_OPTION_STRING, "-name", NULL, NULL, DEF_MARKER_NAME,                                              \
+     -1, offsetof(Marker, name), TK_OPTION_NULL_OK, NULL, 0},                                             \
+    {TK_OPTION_STRING, "-outline", "outline", "Outline", OUTLINE_DEFAULT,                                 \
+     offsetof(PolygonMarker, outlineObjPtr), -1, TK_OPTION_NULL_OK, NULL, 0},                             \
+    {TK_OPTION_STRING, "-state", "state", "State", DEF_MARKER_STATE,                                      \
+     offsetof(Marker, stateObjPtr), -1, 0, NULL, 0},                                                      \
+    {TK_OPTION_BITMAP, "-stipple", "stipple", "Stipple", DEF_MARKER_STIPPLE,                              \
+     -1, offsetof(PolygonMarker, stipple), TK_OPTION_NULL_OK, NULL, 0},                                   \
+    {TK_OPTION_BOOLEAN, "-under", "under", "Under", DEF_MARKER_UNDER,                                     \
+     -1, offsetof(Marker, drawUnder), 0, NULL, 0},                                                        \
+    {TK_OPTION_PIXELS, "-xoffset", "xOffset", "XOffset", DEF_MARKER_X_OFFSET,                             \
+     offsetof(Marker, xOffsetObjPtr), offsetof(Marker, xOffset), 0, NULL, 0},                             \
+    {TK_OPTION_BOOLEAN, "-xor", "xor", "Xor", DEF_MARKER_XOR,                                             \
+     -1, offsetof(PolygonMarker, xor), 0, NULL, 0},                                                       \
+    {TK_OPTION_PIXELS, "-yoffset", "yOffset", "YOffset", DEF_MARKER_Y_OFFSET,                             \
+     offsetof(Marker, yOffsetObjPtr), offsetof(Marker, yOffset), 0, NULL, 0},                             \
+    {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}
+
+static const Tk_OptionSpec polygonMarkerOptionSpecs[] = {
+    POLYGON_MARKER_OPTION_ENTRIES(DEF_MARKER_FILL_COLOR, DEF_MARKER_OUTLINE_COLOR)};
+
+static const Tk_OptionSpec polygonMarkerMonoOptionSpecs[] = {
+    POLYGON_MARKER_OPTION_ENTRIES(DEF_MARKER_FILL_MONO, DEF_MARKER_OUTLINE_MONO)};
+
+#undef POLYGON_MARKER_OPTION_ENTRIES
 
 _Static_assert(offsetof(TextMarker, core) == 0, "Marker core must be first in TextMarker");
 
@@ -709,8 +733,9 @@ static MarkerClass lineMarkerClass = {
 
 
 static MarkerClass polygonMarkerClass = {
-    .configSpecs = polygonConfigSpecs,
-    .optionSpecs = NULL,
+    .configSpecs = NULL,
+    .optionSpecs = polygonMarkerOptionSpecs,
+    .monoOptionSpecs = polygonMarkerMonoOptionSpecs,
     .configProc = ConfigurePolygonMarker,
     .drawProc = DrawPolygonMarker,
     .freeProc = FreePolygonMarker,
@@ -719,7 +744,6 @@ static MarkerClass polygonMarkerClass = {
     .regionProc = RegionInPolygonMarker,
     .postscriptProc = PolygonMarkerToPostScript,
 };
-
 
 static MarkerClass textMarkerClass = {
     .configSpecs = textConfigSpecs,
@@ -763,6 +787,7 @@ static int MarkerUsesModernOptions(const Marker *markerPtr) { return (markerPtr-
 
 static int InitMarkerOptions(Marker *markerPtr) {
     Graph *graphPtr;
+    const Tk_OptionSpec *optionSpecs;
     char *initialName;
     char *componentName;
     int result;
@@ -772,20 +797,17 @@ static int InitMarkerOptions(Marker *markerPtr) {
     assert(markerPtr->classPtr->optionSpecs != NULL);
     assert(!markerPtr->optionsInitialized);
 
-    markerPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, markerPtr->classPtr->optionSpecs);
+    optionSpecs = markerPtr->classPtr->optionSpecs;
 
-    /*
-     * CreateMarker() has already allocated the marker name. The
-     * modern -name option has a null default, so temporarily remove
-     * the initial name while Tk_InitOptions() installs defaults.
-     */
+    if ((Tk_Depth(graphPtr->tkwin) == 1) && (markerPtr->classPtr->monoOptionSpecs != NULL)) {
+        optionSpecs = markerPtr->classPtr->monoOptionSpecs;
+    }
+
+    markerPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, optionSpecs);
+
     initialName = markerPtr->name;
     markerPtr->name = NULL;
 
-    /*
-     * Preserve the component-name behaviour of
-     * Rbc_ConfigureWidgetComponent().
-     */
     componentName = RbcStrdup(initialName);
 
     if (componentName[0] != '\0') {
@@ -808,10 +830,6 @@ static int InitMarkerOptions(Marker *markerPtr) {
         return TCL_ERROR;
     }
 
-    /*
-     * A future option table should declare -name with a null default.
-     * Still clean up defensively if that invariant changes.
-     */
     if (markerPtr->name != NULL) {
         ckfree(markerPtr->name);
     }
@@ -1233,6 +1251,60 @@ static void CommitMarkerOptions(Marker *markerPtr, ParsedMarkerOptions *optionsP
     optionsPtr->xAxis = NULL;
     optionsPtr->yAxis = NULL;
     markerPtr->state = optionsPtr->state;
+}
+
+static int GetMarkerColorFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, int allowDefault,
+                                 XColor **colorPtrPtr) {
+    const char *string;
+    Tcl_Size length;
+
+    *colorPtrPtr = NULL;
+    if (objPtr == NULL) {
+        return TCL_OK;
+    }
+    string = Tcl_GetStringFromObj(objPtr, &length);
+    if (length == 0) {
+        return TCL_OK;
+    }
+    if (allowDefault && (string[0] == 'd') && (length <= 8) && (strncmp(string, "defcolor", (size_t)length) == 0)) {
+        *colorPtrPtr = COLOR_DEFAULT;
+        return TCL_OK;
+    }
+    *colorPtrPtr = Tk_GetColor(interp, tkwin, Tk_GetUid(string));
+    return (*colorPtrPtr != NULL) ? TCL_OK : TCL_ERROR;
+}
+
+static int GetColorPairFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, int allowDefault,
+                               ColorPair *pairPtr) {
+    ColorPair newPair;
+    Tcl_Obj **objv;
+    Tcl_Size objc;
+
+    memset(&newPair, 0, sizeof(newPair));
+    if ((objPtr == NULL) || (Tcl_GetCharLength(objPtr) == 0)) {
+        *pairPtr = newPair;
+        return TCL_OK;
+    }
+    if (Tcl_ListObjGetElements(interp, objPtr, &objc, &objv) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (objc > 2) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("too many names in colors list", -1));
+        return TCL_ERROR;
+    }
+    if (objc > 0) {
+        if (GetMarkerColorFromObj(interp, tkwin, objv[0], allowDefault, &newPair.fgColor) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+    if (objc > 1) {
+        if (GetMarkerColorFromObj(interp, tkwin, objv[1], allowDefault, &newPair.bgColor) != TCL_OK) {
+            Rbc_FreeColorPair(&newPair);
+            return TCL_ERROR;
+        }
+    }
+    *pairPtr = newPair;
+    return TCL_OK;
 }
 
 /*
@@ -4787,93 +4859,205 @@ static void PolygonMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
  * ----------------------------------------------------------------------
  */
 static int ConfigurePolygonMarker(Marker *markerPtr) {
-    Graph *graphPtr = markerPtr->graphPtr;
-    PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
-    GC newGC;
+    Graph *graphPtr;
+    PolygonMarker *pmPtr;
+    ParsedMarkerOptions markerOptions;
+    ColorPair newOutline;
+    ColorPair newFill;
+    Rbc_Dashes newDashes;
+    int newCapStyle;
+    int newJoinStyle;
+    int newLineWidth;
     XGCValues gcValues;
-    unsigned long gcMask;
+    unsigned long outlineMask;
+    unsigned long fillMask;
+    GC newOutlineGC;
+    GC newFillGC;
     Drawable drawable;
+    int outlineOnly;
 
-    drawable = Tk_WindowId(graphPtr->tkwin);
-    gcMask = (GCLineWidth | GCLineStyle);
-    if (pmPtr->outline.fgColor != NULL) {
-        gcMask |= GCForeground;
-        gcValues.foreground = pmPtr->outline.fgColor->pixel;
+    graphPtr = markerPtr->graphPtr;
+    pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
+    memset(&newOutline, 0, sizeof(newOutline));
+    memset(&newFill, 0, sizeof(newFill));
+    newOutlineGC = NULL;
+    newFillGC = NULL;
+
+    /*
+     * Parse all common marker options without modifying the active
+     * marker.
+     */
+    if (ParseMarkerOptions(markerPtr, &markerOptions) != TCL_OK) {
+        return TCL_ERROR;
     }
-    if (pmPtr->outline.bgColor != NULL) {
-        gcMask |= GCBackground;
-        gcValues.background = pmPtr->outline.bgColor->pixel;
+
+    /*
+     * Parse all polygon-specific manually converted values.
+     */
+    if (Tk_GetCapStyle(graphPtr->interp, Tcl_GetString(pmPtr->capObjPtr), &newCapStyle) != TCL_OK) {
+        goto error;
     }
-    gcMask |= (GCCapStyle | GCJoinStyle);
-    gcValues.cap_style = pmPtr->capStyle;
-    gcValues.join_style = pmPtr->joinStyle;
+    if (Tk_GetJoinStyle(graphPtr->interp, Tcl_GetString(pmPtr->joinObjPtr), &newJoinStyle) != TCL_OK) {
+        goto error;
+    }
+    if (Rbc_GetDashesFromObj(graphPtr->interp, pmPtr->dashesObjPtr, &newDashes) != TCL_OK) {
+        goto error;
+    }
+    if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, pmPtr->lineWidthObjPtr, PIXELS_NONNEGATIVE,
+                             &newLineWidth) != TCL_OK) {
+        goto error;
+    }
+    if (GetColorPairFromObj(graphPtr->interp, graphPtr->tkwin, pmPtr->outlineObjPtr, FALSE, &newOutline) != TCL_OK) {
+        goto error;
+    }
+    if (GetColorPairFromObj(graphPtr->interp, graphPtr->tkwin, pmPtr->fillObjPtr, FALSE, &newFill) != TCL_OK) {
+        goto error;
+    }
+
+    /*
+     * Construct the replacement outline GC.
+     */
+    memset(&gcValues, 0, sizeof(gcValues));
+    outlineMask = GCLineWidth | GCLineStyle | GCCapStyle | GCJoinStyle;
+    gcValues.line_width = LineWidth(newLineWidth);
     gcValues.line_style = LineSolid;
-    gcValues.dash_offset = 0;
-    gcValues.line_width = LineWidth(pmPtr->lineWidth);
-    if (LineIsDashed(pmPtr->dashes)) {
-        gcValues.line_style = (pmPtr->outline.bgColor == NULL) ? LineOnOffDash : LineDoubleDash;
+    gcValues.cap_style = newCapStyle;
+    gcValues.join_style = newJoinStyle;
+    if (newOutline.fgColor != NULL) {
+        gcValues.foreground = newOutline.fgColor->pixel;
+        outlineMask |= GCForeground;
+    }
+    if (newOutline.bgColor != NULL) {
+        gcValues.background = newOutline.bgColor->pixel;
+        outlineMask |= GCBackground;
+    }
+    if (LineIsDashed(newDashes)) {
+        gcValues.line_style = (outlineMask & GCBackground) ? LineDoubleDash : LineOnOffDash;
     }
     if (pmPtr->xor) {
         unsigned long pixel;
         gcValues.function = GXxor;
-
-        gcMask |= GCFunction;
+        outlineMask |= GCFunction;
         if (graphPtr->plotBg == NULL) {
-            /* The graph's color option may not have been set yet */
             pixel = WhitePixelOfScreen(Tk_Screen(graphPtr->tkwin));
         } else {
             pixel = graphPtr->plotBg->pixel;
         }
-        if (gcMask & GCBackground) {
+        if (outlineMask & GCForeground) {
+            gcValues.foreground ^= pixel;
+        }
+        if (outlineMask & GCBackground) {
             gcValues.background ^= pixel;
         }
-        gcValues.foreground ^= pixel;
-        if (drawable != None) {
-            DrawPolygonMarker(markerPtr, drawable);
-        }
     }
-    newGC = Rbc_GetPrivateGC(graphPtr->tkwin, gcMask, &gcValues);
-    if (LineIsDashed(pmPtr->dashes)) {
-        Rbc_SetDashes(graphPtr->display, newGC, &pmPtr->dashes);
+    newOutlineGC = Rbc_GetPrivateGC(graphPtr->tkwin, outlineMask, &gcValues);
+    if (LineIsDashed(newDashes)) {
+        Rbc_SetDashes(graphPtr->display, newOutlineGC, &newDashes);
     }
-    if (pmPtr->outlineGC != NULL) {
-        Rbc_FreePrivateGC(graphPtr->display, pmPtr->outlineGC);
+    /*
+     * Construct the replacement fill GC.
+     */
+    memset(&gcValues, 0, sizeof(gcValues));
+    fillMask = 0;
+    if (newFill.fgColor != NULL) {
+        gcValues.foreground = newFill.fgColor->pixel;
+        fillMask |= GCForeground;
     }
-    pmPtr->outlineGC = newGC;
-
-    gcMask = 0;
-    if (pmPtr->fill.fgColor != NULL) {
-        gcMask |= GCForeground;
-        gcValues.foreground = pmPtr->fill.fgColor->pixel;
-    }
-    if (pmPtr->fill.bgColor != NULL) {
-        gcMask |= GCBackground;
-        gcValues.background = pmPtr->fill.bgColor->pixel;
+    if (newFill.bgColor != NULL) {
+        gcValues.background = newFill.bgColor->pixel;
+        fillMask |= GCBackground;
     }
     if (pmPtr->stipple != None) {
         gcValues.stipple = pmPtr->stipple;
-        gcValues.fill_style = (pmPtr->fill.bgColor != NULL) ? FillOpaqueStippled : FillStippled;
-        gcMask |= (GCStipple | GCFillStyle);
+        gcValues.fill_style = FillStippled;
+        if (newFill.bgColor != NULL) {
+            gcValues.fill_style = FillOpaqueStippled;
+        }
+        fillMask |= GCStipple | GCFillStyle;
     }
-    newGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
+    newFillGC = Tk_GetGC(graphPtr->tkwin, fillMask, &gcValues);
+    outlineOnly = (fillMask == 0);
+    drawable = Tk_WindowId(graphPtr->tkwin);
+
+    /*
+     * Erase an old immediately drawn XOR polygon before replacing its
+     * GC or mapped outline.
+     */
+    if (pmPtr->xorState && (drawable != None) && (pmPtr->outlineGC != NULL) && (pmPtr->outlinePts != NULL) &&
+        (pmPtr->nOutlinePts > 0)) {
+        Rbc_Draw2DSegments(graphPtr->display, drawable, pmPtr->outlineGC, pmPtr->outlinePts, pmPtr->nOutlinePts);
+        pmPtr->xorState = FALSE;
+    }
+
+    /*
+     * No fallible operation remains. Commit the common marker
+     * resources.
+     */
+    CommitMarkerOptions(markerPtr, &markerOptions);
+
+    /*
+     * Replace manually managed colour pairs.
+     */
+    Rbc_FreeColorPair(&pmPtr->outline);
+    pmPtr->outline = newOutline;
+    memset(&newOutline, 0, sizeof(newOutline));
+    Rbc_FreeColorPair(&pmPtr->fill);
+    pmPtr->fill = newFill;
+    memset(&newFill, 0, sizeof(newFill));
+
+    /*
+     * Commit scalar derived values.
+     */
+    pmPtr->capStyle = newCapStyle;
+    pmPtr->joinStyle = newJoinStyle;
+    pmPtr->lineWidth = newLineWidth;
+    pmPtr->dashes = newDashes;
+
+    /*
+     * Replace GCs.
+     */
+    if (pmPtr->outlineGC != NULL) {
+        Rbc_FreePrivateGC(graphPtr->display, pmPtr->outlineGC);
+    }
+    pmPtr->outlineGC = newOutlineGC;
+    newOutlineGC = NULL;
     if (pmPtr->fillGC != NULL) {
         Tk_FreeGC(graphPtr->display, pmPtr->fillGC);
     }
-    pmPtr->fillGC = newGC;
+    pmPtr->fillGC = newFillGC;
+    newFillGC = NULL;
+    markerPtr->flags |= MAP_ITEM;
 
-    if ((gcMask == 0) && !(graphPtr->flags & RESET_AXES) && (pmPtr->xor)) {
-        if (drawable != None) {
-            MapPolygonMarker(markerPtr);
-            DrawPolygonMarker(markerPtr, drawable);
+    /*
+     * Preserve the old immediate-XOR behaviour: it applies only when
+     * no fill GC attributes were requested.
+     */
+    if (pmPtr->xor &&outlineOnly && !(graphPtr->flags & RESET_AXES) && (drawable != None)) {
+        MapPolygonMarker(markerPtr);
+        if ((pmPtr->outlineGC != NULL) && (pmPtr->outlinePts != NULL) && (pmPtr->nOutlinePts > 0)) {
+            Rbc_Draw2DSegments(graphPtr->display, drawable, pmPtr->outlineGC, pmPtr->outlinePts, pmPtr->nOutlinePts);
+            pmPtr->xorState = TRUE;
         }
         return TCL_OK;
     }
-    pmPtr->core.flags |= MAP_ITEM;
-    if (pmPtr->core.drawUnder) {
+    pmPtr->xorState = FALSE;
+    if (markerPtr->drawUnder) {
         graphPtr->flags |= REDRAW_BACKING_STORE;
     }
     Rbc_EventuallyRedrawGraph(graphPtr);
     return TCL_OK;
+
+error:
+    if (newOutlineGC != NULL) {
+        Rbc_FreePrivateGC(graphPtr->display, newOutlineGC);
+    }
+    if (newFillGC != NULL) {
+        Tk_FreeGC(graphPtr->display, newFillGC);
+    }
+    Rbc_FreeColorPair(&newOutline);
+    Rbc_FreeColorPair(&newFill);
+    FreeParsedMarkerOptions(graphPtr, &markerOptions);
+    return TCL_ERROR;
 }
 
 /*
@@ -4896,19 +5080,43 @@ static int ConfigurePolygonMarker(Marker *markerPtr) {
  * ----------------------------------------------------------------------
  */
 static void FreePolygonMarker(Graph *graphPtr, Marker *markerPtr) {
-    PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
+    PolygonMarker *pmPtr;
+    Drawable drawable;
 
-    if (pmPtr->fillGC != NULL) {
-        Tk_FreeGC(graphPtr->display, pmPtr->fillGC);
+    pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
+
+    /*
+     * Remove an immediately drawn XOR outline.
+     */
+    if (pmPtr->xorState && (graphPtr->tkwin != NULL) && (pmPtr->outlineGC != NULL) && (pmPtr->outlinePts != NULL) &&
+        (pmPtr->nOutlinePts > 0)) {
+        drawable = Tk_WindowId(graphPtr->tkwin);
+        if (drawable != None) {
+            Rbc_Draw2DSegments(graphPtr->display, drawable, pmPtr->outlineGC, pmPtr->outlinePts, pmPtr->nOutlinePts);
+        }
+        pmPtr->xorState = FALSE;
     }
     if (pmPtr->outlineGC != NULL) {
         Rbc_FreePrivateGC(graphPtr->display, pmPtr->outlineGC);
+        pmPtr->outlineGC = NULL;
+    }
+    if (pmPtr->fillGC != NULL) {
+        Tk_FreeGC(graphPtr->display, pmPtr->fillGC);
+        pmPtr->fillGC = NULL;
+    }
+    if (pmPtr->screenPts != NULL) {
+        ckfree((char *)pmPtr->screenPts);
+        pmPtr->screenPts = NULL;
     }
     if (pmPtr->fillPts != NULL) {
         ckfree((char *)pmPtr->fillPts);
+        pmPtr->fillPts = NULL;
+        pmPtr->nFillPts = 0;
     }
     if (pmPtr->outlinePts != NULL) {
         ckfree((char *)pmPtr->outlinePts);
+        pmPtr->outlinePts = NULL;
+        pmPtr->nOutlinePts = 0;
     }
     Rbc_FreeColorPair(&pmPtr->outline);
     Rbc_FreeColorPair(&pmPtr->fill);
@@ -4931,7 +5139,7 @@ static void FreePolygonMarker(Graph *graphPtr, Marker *markerPtr) {
  *
  * ----------------------------------------------------------------------
  */
-static Marker *CreatePolygonMarker() {
+static Marker *CreatePolygonMarker(void) {
     PolygonMarker *pmPtr;
 
     pmPtr = RbcCalloc(1, sizeof(PolygonMarker));
@@ -4940,7 +5148,7 @@ static Marker *CreatePolygonMarker() {
         pmPtr->capStyle = CapButt;
         pmPtr->joinStyle = JoinMiter;
     }
-    return &pmPtr->core;
+    return (pmPtr != NULL) ? &pmPtr->core : NULL;
 }
 
 /*
