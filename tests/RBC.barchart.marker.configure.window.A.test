@@ -28,7 +28,7 @@ namespace eval barchart.marker {
 		barchart marker configure window: anchor - n
 	} -setup {
 		barchart .barchart1
-		.barchart1 marker create text -name Marker1
+		.barchart1 marker create window -name Marker1
 	} -body {
 		.barchart1 marker configure Marker1 -anchor n
 		.barchart1 marker cget Marker1 -anchor
@@ -45,7 +45,7 @@ namespace eval barchart.marker {
 		barchart marker configure window: anchor - ne
 	} -setup {
 		barchart .barchart1
-		.barchart1 marker create text -name Marker1
+		.barchart1 marker create window -name Marker1
 	} -body {
 		.barchart1 marker configure Marker1 -anchor ne
 		.barchart1 marker cget Marker1 -anchor
@@ -62,7 +62,7 @@ namespace eval barchart.marker {
 		barchart marker configure window: anchor - e
 	} -setup {
 		barchart .barchart1
-		.barchart1 marker create text -name Marker1
+		.barchart1 marker create window -name Marker1
 	} -body {
 		.barchart1 marker configure Marker1 -anchor e
 		.barchart1 marker cget Marker1 -anchor
@@ -79,7 +79,7 @@ namespace eval barchart.marker {
 		barchart marker configure window: anchor - se
 	} -setup {
 		barchart .barchart1
-		.barchart1 marker create text -name Marker1
+		.barchart1 marker create window -name Marker1
 	} -body {
 		.barchart1 marker configure Marker1 -anchor se
 		.barchart1 marker cget Marker1 -anchor
@@ -96,7 +96,7 @@ namespace eval barchart.marker {
 		barchart marker configure window: anchor - s
 	} -setup {
 		barchart .barchart1
-		.barchart1 marker create text -name Marker1
+		.barchart1 marker create window -name Marker1
 	} -body {
 		.barchart1 marker configure Marker1 -anchor s
 		.barchart1 marker cget Marker1 -anchor
@@ -113,7 +113,7 @@ namespace eval barchart.marker {
 		barchart marker configure window: anchor - sw
 	} -setup {
 		barchart .barchart1
-		.barchart1 marker create text -name Marker1
+		.barchart1 marker create window -name Marker1
 	} -body {
 		.barchart1 marker configure Marker1 -anchor sw
 		.barchart1 marker cget Marker1 -anchor
@@ -130,7 +130,7 @@ namespace eval barchart.marker {
 		barchart marker configure window: anchor - w
 	} -setup {
 		barchart .barchart1
-		.barchart1 marker create text -name Marker1
+		.barchart1 marker create window -name Marker1
 	} -body {
 		.barchart1 marker configure Marker1 -anchor w
 		.barchart1 marker cget Marker1 -anchor
@@ -147,7 +147,7 @@ namespace eval barchart.marker {
 		barchart marker configure window: anchor - nw
 	} -setup {
 		barchart .barchart1
-		.barchart1 marker create text -name Marker1
+		.barchart1 marker create window -name Marker1
 	} -body {
 		.barchart1 marker configure Marker1 -anchor nw
 		.barchart1 marker cget Marker1 -anchor
@@ -164,7 +164,7 @@ namespace eval barchart.marker {
 		barchart marker configure window: anchor - center
 	} -setup {
 		barchart .barchart1
-		.barchart1 marker create text -name Marker1
+		.barchart1 marker create window -name Marker1
 	} -body {
 		.barchart1 marker configure Marker1 -anchor center
 		.barchart1 marker cget Marker1 -anchor
@@ -181,7 +181,7 @@ namespace eval barchart.marker {
 		barchart marker configure window: anchor - invalid numerical input
 	} -setup {
 		barchart .barchart1
-		.barchart1 marker create text -name Marker1
+		.barchart1 marker create window -name Marker1
 	} -body {
 		if {[catch {.barchart1 marker configure Marker1 -anchor 3.5}]} {
 			return 0
@@ -201,7 +201,7 @@ namespace eval barchart.marker {
 		barchart marker configure window: anchor - invalid character input
 	} -setup {
 		barchart .barchart1
-		.barchart1 marker create text -name Marker1
+		.barchart1 marker create window -name Marker1
 	} -body {
 		if {[catch {.barchart1 marker configure Marker1 -anchor invalid}]} {
 			return 0
@@ -265,7 +265,7 @@ namespace eval barchart.marker {
 	} -cleanup {
 		.barchart1 marker delete Marker1
 		destroy .barchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -height command works correctly when given
@@ -379,7 +379,7 @@ namespace eval barchart.marker {
 	} -cleanup {
 		.barchart1 marker delete Marker1
 		destroy .barchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -width command works correctly when given
@@ -479,5 +479,27 @@ namespace eval barchart.marker {
 		destroy .barchart1
 	} -result {0}
 	
+    test RBC.barchart.marker.configure.window.A.rollback.1 {
+        window marker configuration is atomic
+    } -setup {
+        barchart .barchart1
+        button .barchart1.child1 -text one
+        .barchart1 marker create window -name Marker1 -coords {0 0} -window .barchart1.child1 -width 20 -height 10
+        set oldCoords [.barchart1 marker cget Marker1 -coords]
+        set oldWindow [ .barchart1 marker cget Marker1 -window]
+        set oldWidth [.barchart1 marker cget Marker1 -width]
+        set oldHeight [.barchart1 marker cget Marker1 -height]
+    } -body {
+        set code [catch {.barchart1 marker configure Marker1 -coords {1 1} -window .barchart1.doesNotExist -width 30\
+                                 -height 15} message]
+        list $code [expr {[.barchart1 marker cget Marker1 -coords] eq $oldCoords}]\
+                [expr {[.barchart1 marker cget Marker1 -window] eq $oldWindow}]\
+                [expr {[.barchart1 marker cget Marker1 -width] eq $oldWidth}]\
+                [expr {[.barchart1 marker cget Marker1 -height] eq $oldHeight}] [winfo manager .barchart1.child1]
+    } -cleanup {
+        catch { .barchart1 marker delete Marker1 }
+        catch { destroy .barchart1 }
+    } -result {1 1 1 1 1 graph}
+
 	cleanupTests
 }

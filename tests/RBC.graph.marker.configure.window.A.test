@@ -28,7 +28,7 @@ namespace eval graph.marker {
 		graph marker configure window: anchor - n
 	} -setup {
 		graph .graph1
-		.graph1 marker create text -name Marker1
+		.graph1 marker create window -name Marker1
 	} -body {
 		.graph1 marker configure Marker1 -anchor n
 		.graph1 marker cget Marker1 -anchor
@@ -45,7 +45,7 @@ namespace eval graph.marker {
 		graph marker configure window: anchor - ne
 	} -setup {
 		graph .graph1
-		.graph1 marker create text -name Marker1
+		.graph1 marker create window -name Marker1
 	} -body {
 		.graph1 marker configure Marker1 -anchor ne
 		.graph1 marker cget Marker1 -anchor
@@ -62,7 +62,7 @@ namespace eval graph.marker {
 		graph marker configure window: anchor - e
 	} -setup {
 		graph .graph1
-		.graph1 marker create text -name Marker1
+		.graph1 marker create window -name Marker1
 	} -body {
 		.graph1 marker configure Marker1 -anchor e
 		.graph1 marker cget Marker1 -anchor
@@ -79,7 +79,7 @@ namespace eval graph.marker {
 		graph marker configure window: anchor - se
 	} -setup {
 		graph .graph1
-		.graph1 marker create text -name Marker1
+		.graph1 marker create window -name Marker1
 	} -body {
 		.graph1 marker configure Marker1 -anchor se
 		.graph1 marker cget Marker1 -anchor
@@ -96,7 +96,7 @@ namespace eval graph.marker {
 		graph marker configure window: anchor - s
 	} -setup {
 		graph .graph1
-		.graph1 marker create text -name Marker1
+		.graph1 marker create window -name Marker1
 	} -body {
 		.graph1 marker configure Marker1 -anchor s
 		.graph1 marker cget Marker1 -anchor
@@ -113,7 +113,7 @@ namespace eval graph.marker {
 		graph marker configure window: anchor - sw
 	} -setup {
 		graph .graph1
-		.graph1 marker create text -name Marker1
+		.graph1 marker create window -name Marker1
 	} -body {
 		.graph1 marker configure Marker1 -anchor sw
 		.graph1 marker cget Marker1 -anchor
@@ -130,7 +130,7 @@ namespace eval graph.marker {
 		graph marker configure window: anchor - w
 	} -setup {
 		graph .graph1
-		.graph1 marker create text -name Marker1
+		.graph1 marker create window -name Marker1
 	} -body {
 		.graph1 marker configure Marker1 -anchor w
 		.graph1 marker cget Marker1 -anchor
@@ -147,7 +147,7 @@ namespace eval graph.marker {
 		graph marker configure window: anchor - nw
 	} -setup {
 		graph .graph1
-		.graph1 marker create text -name Marker1
+		.graph1 marker create window -name Marker1
 	} -body {
 		.graph1 marker configure Marker1 -anchor nw
 		.graph1 marker cget Marker1 -anchor
@@ -164,7 +164,7 @@ namespace eval graph.marker {
 		graph marker configure window: anchor - center
 	} -setup {
 		graph .graph1
-		.graph1 marker create text -name Marker1
+		.graph1 marker create window -name Marker1
 	} -body {
 		.graph1 marker configure Marker1 -anchor center
 		.graph1 marker cget Marker1 -anchor
@@ -181,7 +181,7 @@ namespace eval graph.marker {
 		graph marker configure window: anchor - invalid numerical input
 	} -setup {
 		graph .graph1
-		.graph1 marker create text -name Marker1
+		.graph1 marker create window -name Marker1
 	} -body {
 		if {[catch {.graph1 marker configure Marker1 -anchor 3.5}]} {
 			return 0
@@ -201,7 +201,7 @@ namespace eval graph.marker {
 		graph marker configure window: anchor - invalid character input
 	} -setup {
 		graph .graph1
-		.graph1 marker create text -name Marker1
+		.graph1 marker create window -name Marker1
 	} -body {
 		if {[catch {.graph1 marker configure Marker1 -anchor invalid}]} {
 			return 0
@@ -265,7 +265,7 @@ namespace eval graph.marker {
 	} -cleanup {
 		.graph1 marker delete Marker1
 		destroy .graph1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -height command works correctly when given
@@ -379,7 +379,7 @@ namespace eval graph.marker {
 	} -cleanup {
 		.graph1 marker delete Marker1
 		destroy .graph1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -width command works correctly when given
@@ -479,5 +479,27 @@ namespace eval graph.marker {
 		destroy .graph1
 	} -result {0}
 	
+    test RBC.graph.marker.configure.window.A.rollback.1 {
+        window marker configuration is atomic
+    } -setup {
+        graph .graph1
+        button .graph1.child1 -text one
+        .graph1 marker create window -name Marker1 -coords {0 0} -window .graph1.child1 -width 20 -height 10
+        set oldCoords [.graph1 marker cget Marker1 -coords]
+        set oldWindow [ .graph1 marker cget Marker1 -window]
+        set oldWidth [.graph1 marker cget Marker1 -width]
+        set oldHeight [.graph1 marker cget Marker1 -height]
+    } -body {
+        set code [catch {.graph1 marker configure Marker1 -coords {1 1} -window .graph1.doesNotExist -width 30\
+                                 -height 15} message]
+        list $code [expr {[.graph1 marker cget Marker1 -coords] eq $oldCoords}]\
+                [expr {[.graph1 marker cget Marker1 -window] eq $oldWindow}]\
+                [expr {[.graph1 marker cget Marker1 -width] eq $oldWidth}]\
+                [expr {[.graph1 marker cget Marker1 -height] eq $oldHeight}] [winfo manager .graph1.child1]
+    } -cleanup {
+        catch {.graph1 marker delete Marker1}
+        catch {destroy .graph1}
+    } -result {1 1 1 1 1 graph}
+
 	cleanupTests
 }

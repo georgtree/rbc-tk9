@@ -28,7 +28,7 @@ namespace eval stripchart.marker {
 		stripchart marker configure window: anchor - n
 	} -setup {
 		stripchart .stripchart1
-		.stripchart1 marker create text -name Marker1
+		.stripchart1 marker create window -name Marker1
 	} -body {
 		.stripchart1 marker configure Marker1 -anchor n
 		.stripchart1 marker cget Marker1 -anchor
@@ -45,7 +45,7 @@ namespace eval stripchart.marker {
 		stripchart marker configure window: anchor - ne
 	} -setup {
 		stripchart .stripchart1
-		.stripchart1 marker create text -name Marker1
+		.stripchart1 marker create window -name Marker1
 	} -body {
 		.stripchart1 marker configure Marker1 -anchor ne
 		.stripchart1 marker cget Marker1 -anchor
@@ -62,7 +62,7 @@ namespace eval stripchart.marker {
 		stripchart marker configure window: anchor - e
 	} -setup {
 		stripchart .stripchart1
-		.stripchart1 marker create text -name Marker1
+		.stripchart1 marker create window -name Marker1
 	} -body {
 		.stripchart1 marker configure Marker1 -anchor e
 		.stripchart1 marker cget Marker1 -anchor
@@ -79,7 +79,7 @@ namespace eval stripchart.marker {
 		stripchart marker configure window: anchor - se
 	} -setup {
 		stripchart .stripchart1
-		.stripchart1 marker create text -name Marker1
+		.stripchart1 marker create window -name Marker1
 	} -body {
 		.stripchart1 marker configure Marker1 -anchor se
 		.stripchart1 marker cget Marker1 -anchor
@@ -96,7 +96,7 @@ namespace eval stripchart.marker {
 		stripchart marker configure window: anchor - s
 	} -setup {
 		stripchart .stripchart1
-		.stripchart1 marker create text -name Marker1
+		.stripchart1 marker create window -name Marker1
 	} -body {
 		.stripchart1 marker configure Marker1 -anchor s
 		.stripchart1 marker cget Marker1 -anchor
@@ -113,7 +113,7 @@ namespace eval stripchart.marker {
 		stripchart marker configure window: anchor - sw
 	} -setup {
 		stripchart .stripchart1
-		.stripchart1 marker create text -name Marker1
+		.stripchart1 marker create window -name Marker1
 	} -body {
 		.stripchart1 marker configure Marker1 -anchor sw
 		.stripchart1 marker cget Marker1 -anchor
@@ -130,7 +130,7 @@ namespace eval stripchart.marker {
 		stripchart marker configure window: anchor - w
 	} -setup {
 		stripchart .stripchart1
-		.stripchart1 marker create text -name Marker1
+		.stripchart1 marker create window -name Marker1
 	} -body {
 		.stripchart1 marker configure Marker1 -anchor w
 		.stripchart1 marker cget Marker1 -anchor
@@ -147,7 +147,7 @@ namespace eval stripchart.marker {
 		stripchart marker configure window: anchor - nw
 	} -setup {
 		stripchart .stripchart1
-		.stripchart1 marker create text -name Marker1
+		.stripchart1 marker create window -name Marker1
 	} -body {
 		.stripchart1 marker configure Marker1 -anchor nw
 		.stripchart1 marker cget Marker1 -anchor
@@ -164,7 +164,7 @@ namespace eval stripchart.marker {
 		stripchart marker configure window: anchor - center
 	} -setup {
 		stripchart .stripchart1
-		.stripchart1 marker create text -name Marker1
+		.stripchart1 marker create window -name Marker1
 	} -body {
 		.stripchart1 marker configure Marker1 -anchor center
 		.stripchart1 marker cget Marker1 -anchor
@@ -181,7 +181,7 @@ namespace eval stripchart.marker {
 		stripchart marker configure window: anchor - invalid numerical input
 	} -setup {
 		stripchart .stripchart1
-		.stripchart1 marker create text -name Marker1
+		.stripchart1 marker create window -name Marker1
 	} -body {
 		if {[catch {.stripchart1 marker configure Marker1 -anchor 3.5}]} {
 			return 0
@@ -201,7 +201,7 @@ namespace eval stripchart.marker {
 		stripchart marker configure window: anchor - invalid character input
 	} -setup {
 		stripchart .stripchart1
-		.stripchart1 marker create text -name Marker1
+		.stripchart1 marker create window -name Marker1
 	} -body {
 		if {[catch {.stripchart1 marker configure Marker1 -anchor invalid}]} {
 			return 0
@@ -265,7 +265,7 @@ namespace eval stripchart.marker {
 	} -cleanup {
 		.stripchart1 marker delete Marker1
 		destroy .stripchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -height command works correctly when given
@@ -379,7 +379,7 @@ namespace eval stripchart.marker {
 	} -cleanup {
 		.stripchart1 marker delete Marker1
 		destroy .stripchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -width command works correctly when given
@@ -479,5 +479,27 @@ namespace eval stripchart.marker {
 		destroy .stripchart1
 	} -result {0}
 	
+    test RBC.stripchart.marker.configure.window.A.rollback.1 {
+        window marker configuration is atomic
+    } -setup {
+        stripchart .stripchart1
+        button .stripchart1.child1 -text one
+        .stripchart1 marker create window -name Marker1 -coords {0 0} -window .stripchart1.child1 -width 20 -height 10
+        set oldCoords [.stripchart1 marker cget Marker1 -coords]
+        set oldWindow [.stripchart1 marker cget Marker1 -window]
+        set oldWidth [.stripchart1 marker cget Marker1 -width]
+        set oldHeight [.stripchart1 marker cget Marker1 -height]
+    } -body {
+        set code [catch {.stripchart1 marker configure Marker1 -coords {1 1} -window .stripchart1.doesNotExist -width 30\
+                                 -height 15} message]
+        list $code [expr {[.stripchart1 marker cget Marker1 -coords] eq $oldCoords}]\
+                [expr {[.stripchart1 marker cget Marker1 -window] eq $oldWindow}]\
+                [expr {[.stripchart1 marker cget Marker1 -width] eq $oldWidth}]\
+                [expr {[.stripchart1 marker cget Marker1 -height] eq $oldHeight}] [winfo manager .stripchart1.child1]
+    } -cleanup {
+        catch {.stripchart1 marker delete Marker1}
+        catch {destroy .stripchart1}
+    } -result {1 1 1 1 1 graph}
+
 	cleanupTests
 }

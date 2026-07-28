@@ -68,6 +68,9 @@
 #define DEF_MARKER_POLYGON_TAGS "Polygon all"
 #define DEF_MARKER_LINE_TAGS "Line all"
 
+#define WINDOW_HEIGHT_CHANGED (1 << 0)
+#define WINDOW_WIDTH_CHANGED (1 << 1)
+
 static Tk_OptionParseProc StringToCoordinates;
 static Tk_OptionPrintProc CoordinatesToString;
 static Tk_CustomOption coordsOption = {StringToCoordinates, CoordinatesToString, (ClientData)0};
@@ -165,7 +168,13 @@ struct MarkerStruct {
     Tcl_Obj *stateObjPtr;
     Tcl_Obj *xOffsetObjPtr;
     Tcl_Obj *yOffsetObjPtr;
-    
+
+    /*
+     * Option typeMask values modified by the current Tk_SetOptions()
+     * transaction. Valid only while configProc is running.
+     */
+    int optionMask;
+
     /*
      * Modern option state. These fields remain unused while
      * classPtr->optionSpecs is NULL.
@@ -264,6 +273,13 @@ static const Tk_OptionSpec textMarkerOptionSpecs[] = {
 typedef struct {
     Marker core;
 
+
+    /*
+     * Original Tcl representations of the requested dimensions.
+     */
+    Tcl_Obj *reqHeightObjPtr;
+    Tcl_Obj *reqWidthObjPtr;
+    
     /*
      * Window specific attributes
      */
@@ -277,33 +293,32 @@ typedef struct {
     int width, height;       /* Current size of the child window. */
 } WindowMarker;
 
-static Tk_ConfigSpec windowConfigSpecs[] = {
-    {TK_CONFIG_ANCHOR, "-anchor", "anchor", "Anchor", DEF_MARKER_ANCHOR, offsetof(WindowMarker, anchor), 0},
-    {TK_CONFIG_CUSTOM, "-bindtags", "bindTags", "BindTags", DEF_MARKER_WINDOW_TAGS, offsetof(Marker, tags),
-     TK_CONFIG_NULL_OK, &rbcListOption},
-    {TK_CONFIG_CUSTOM, "-coords", "coords", "Coords", DEF_MARKER_COORDS, offsetof(Marker, worldPts),
-     TK_CONFIG_NULL_OK, &coordsOption},
-    {TK_CONFIG_STRING, "-element", "element", "Element", DEF_MARKER_ELEMENT, offsetof(Marker, elemName),
-     TK_CONFIG_NULL_OK},
-    {TK_CONFIG_CUSTOM, "-height", "height", "Height", DEF_MARKER_HEIGHT, offsetof(WindowMarker, reqHeight),
-     TK_CONFIG_DONT_SET_DEFAULT, &rbcPositiveDistanceOption},
-    {TK_CONFIG_BOOLEAN, "-hide", "hide", "Hide", DEF_MARKER_HIDE, offsetof(Marker, hidden), TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-mapx", "mapX", "MapX", DEF_MARKER_MAP_X, offsetof(Marker, axes.x), 0, &rbcXAxisOption},
-    {TK_CONFIG_CUSTOM, "-mapy", "mapY", "MapY", DEF_MARKER_MAP_Y, offsetof(Marker, axes.y), 0, &rbcYAxisOption},
-    {TK_CONFIG_STRING, "-name", (char *)NULL, (char *)NULL, DEF_MARKER_NAME, offsetof(Marker, name), TK_CONFIG_NULL_OK},
-    {TK_CONFIG_CUSTOM, "-state", "state", "State", DEF_MARKER_STATE, offsetof(Marker, state),
-     TK_CONFIG_DONT_SET_DEFAULT, &rbcStateOption},
-    {TK_CONFIG_BOOLEAN, "-under", "under", "Under", DEF_MARKER_UNDER, offsetof(Marker, drawUnder),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-width", "width", "Width", DEF_MARKER_WIDTH, offsetof(WindowMarker, reqWidth),
-     TK_CONFIG_DONT_SET_DEFAULT, &rbcPositiveDistanceOption},
-    {TK_CONFIG_STRING, "-window", "window", "Window", DEF_MARKER_WINDOW, offsetof(WindowMarker, pathName),
-     TK_CONFIG_NULL_OK},
-    {TK_CONFIG_PIXELS, "-xoffset", "xOffset", "XOffset", DEF_MARKER_X_OFFSET, offsetof(Marker, xOffset),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_PIXELS, "-yoffset", "yOffset", "YOffset", DEF_MARKER_Y_OFFSET, offsetof(Marker, yOffset),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}};
+static const Tk_OptionSpec windowMarkerOptionSpecs[] = {
+    {TK_OPTION_ANCHOR, "-anchor", "anchor", "Anchor", DEF_MARKER_ANCHOR, -1, offsetof(WindowMarker, anchor), 0, NULL,
+     0},
+    {TK_OPTION_STRING, "-bindtags", "bindTags", "BindTags", DEF_MARKER_WINDOW_TAGS, offsetof(Marker, bindTagsObjPtr),
+     -1, TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING, "-coords", "coords", "Coords", DEF_MARKER_COORDS, offsetof(Marker, coordsObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING, "-element", "element", "Element", DEF_MARKER_ELEMENT, -1, offsetof(Marker, elemName),
+     TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING, "-height", "height", "Height", DEF_MARKER_HEIGHT, offsetof(WindowMarker, reqHeightObjPtr), -1, 0,
+     NULL, WINDOW_HEIGHT_CHANGED},
+    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_MARKER_HIDE, -1, offsetof(Marker, hidden), 0, NULL, 0},
+    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_MARKER_MAP_X, offsetof(Marker, mapXObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_MARKER_MAP_Y, offsetof(Marker, mapYObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-name", NULL, NULL, DEF_MARKER_NAME, -1, offsetof(Marker, name), TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING, "-state", "state", "State", DEF_MARKER_STATE, offsetof(Marker, stateObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_BOOLEAN, "-under", "under", "Under", DEF_MARKER_UNDER, -1, offsetof(Marker, drawUnder), 0, NULL, 0},
+    {TK_OPTION_STRING, "-width", "width", "Width", DEF_MARKER_WIDTH, offsetof(WindowMarker, reqWidthObjPtr), -1, 0,
+     NULL, WINDOW_WIDTH_CHANGED},
+    {TK_OPTION_STRING, "-window", "window", "Window", DEF_MARKER_WINDOW, -1, offsetof(WindowMarker, pathName),
+     TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_PIXELS, "-xoffset", "xOffset", "XOffset", DEF_MARKER_X_OFFSET, offsetof(Marker, xOffsetObjPtr),
+     offsetof(Marker, xOffset), 0, NULL, 0},
+    {TK_OPTION_PIXELS, "-yoffset", "yOffset", "YOffset", DEF_MARKER_Y_OFFSET, offsetof(Marker, yOffsetObjPtr),
+     offsetof(Marker, yOffset), 0, NULL, 0},
+    {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 /*
  * -------------------------------------------------------------------
@@ -760,8 +775,9 @@ static MarkerClass textMarkerClass = {
 };
 
 static MarkerClass windowMarkerClass = {
-    .configSpecs = windowConfigSpecs,
-    .optionSpecs = NULL,
+    .configSpecs = NULL,
+    .optionSpecs = windowMarkerOptionSpecs,
+    .monoOptionSpecs = NULL,
     .configProc = ConfigureWindowMarker,
     .drawProc = DrawWindowMarker,
     .freeProc = FreeWindowMarker,
@@ -876,8 +892,6 @@ static int ConfigureMarkerOptions(Marker *markerPtr, int objc, Tcl_Obj *const ob
         return TCL_ERROR;
     }
 
-    (void)mask;
-
     newName = markerPtr->name;
 
     if ((newName == NULL) || (newName[0] == '\0')) {
@@ -911,14 +925,15 @@ static int ConfigureMarkerOptions(Marker *markerPtr, int objc, Tcl_Obj *const ob
         }
     }
 
-    /*
-     * Concrete modern configuration procedures must be transactional:
-     * no derived state may be committed until all fallible parsing has
-     * succeeded.
-     */
+    markerPtr->optionMask = mask;
+
     if ((*markerPtr->classPtr->configProc)(markerPtr) != TCL_OK) {
+        markerPtr->optionMask = 0;
+
         return RestoreMarkerOptions(graphPtr->interp, &savedOptions);
     }
+
+    markerPtr->optionMask = 0;
 
     /*
      * Commit the hash-table rename only after concrete configuration
@@ -1751,6 +1766,7 @@ static Marker *CreateMarker(Graph *graphPtr, char *name, Rbc_Uid classUid) {
     assert(markerPtr);
     markerPtr->graphPtr = graphPtr;
     markerPtr->hidden = markerPtr->drawUnder = FALSE;
+    markerPtr->optionMask = 0;
     markerPtr->flags |= MAP_ITEM;
     markerPtr->name = RbcStrdup(name);
     markerPtr->classUid = classUid;
@@ -3067,6 +3083,60 @@ static void MapImageMarker(Marker *markerPtr) {
     imPtr->anchorPos = anchorPos;
 }
 
+static int GetWindowMarkerDimension(Marker *markerPtr, Tcl_Obj *objPtr, int explicitlyChanged, int *valuePtr) {
+    Graph *graphPtr;
+    int value;
+
+    graphPtr = markerPtr->graphPtr;
+
+    /*
+     * Zero is the internal default: use the child window's requested
+     * dimension. It is not valid when explicitly configured.
+     */
+    if (objPtr == NULL) {
+        *valuePtr = 0;
+        return TCL_OK;
+    }
+    if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, objPtr, PIXELS_ANY, &value) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if ((value < 0) || ((value == 0) && explicitlyChanged)) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_ObjPrintf("bad distance \"%d\": must be positive", value));
+        return TCL_ERROR;
+    }
+    *valuePtr = value;
+    return TCL_OK;
+}
+
+static void ReleaseWindowMarkerChild(WindowMarker *wmPtr, int destroyWindow) {
+    Tk_Window tkwin;
+
+    tkwin = wmPtr->tkwin;
+    if (tkwin == NULL) {
+        return;
+    }
+
+    /*
+     * Clear this before invoking Tk operations so a DestroyNotify
+     * callback cannot leave a stale token.
+     */
+    wmPtr->tkwin = NULL;
+    Tk_DeleteEventHandler(tkwin, StructureNotifyMask, ChildEventProc, wmPtr);
+
+    /*
+     * Cancelling geometry management with a NULL manager does not
+     * invoke our lost-slave callback.
+     */
+    Tk_ManageGeometry(tkwin, NULL, NULL);
+    if (destroyWindow) {
+        Tk_DestroyWindow(tkwin);
+    } else {
+        Tk_UnmapWindow(tkwin);
+    }
+    wmPtr->width = 0;
+    wmPtr->height = 0;
+}
+
 /*
  * ----------------------------------------------------------------------
  *
@@ -3830,39 +3900,88 @@ static Tk_GeomMgr winMarkerMgrInfo = {
  * ----------------------------------------------------------------------
  */
 static int ConfigureWindowMarker(Marker *markerPtr) {
-    Graph *graphPtr = markerPtr->graphPtr;
-    WindowMarker *wmPtr = WINDOW_MARKER_FROM_CORE(markerPtr);
-    Tk_Window tkwin;
+    Graph *graphPtr;
+    WindowMarker *wmPtr;
+    ParsedMarkerOptions markerOptions;
+    Tk_Window newTkwin;
+    int newReqWidth;
+    int newReqHeight;
 
-    if (wmPtr->pathName == NULL) {
-        return TCL_OK;
-    }
-    tkwin = Tk_NameToWindow(graphPtr->interp, wmPtr->pathName, graphPtr->tkwin);
-    if (tkwin == NULL) {
+    graphPtr = markerPtr->graphPtr;
+    wmPtr = WINDOW_MARKER_FROM_CORE(markerPtr);
+    newTkwin = NULL;
+    newReqWidth = 0;
+    newReqHeight = 0;
+
+    /*
+     * Parse common marker options transactionally.
+     */
+    if (ParseMarkerOptions(markerPtr, &markerOptions) != TCL_OK) {
         return TCL_ERROR;
     }
-    if (Tk_Parent(tkwin) != graphPtr->tkwin) {
-        Tcl_AppendResult(graphPtr->interp, "\"", wmPtr->pathName, "\" is not a child of \"",
-                         Tk_PathName(graphPtr->tkwin), "\"", (char *)NULL);
-        return TCL_ERROR;
+
+    /*
+     * The zero defaults mean "use requested size", but an explicitly
+     * configured zero remains invalid for compatibility.
+     */
+    if (GetWindowMarkerDimension(markerPtr, wmPtr->reqWidthObjPtr, markerPtr->optionMask & WINDOW_WIDTH_CHANGED,
+                                 &newReqWidth) != TCL_OK) {
+        goto error;
     }
-    if (tkwin != wmPtr->tkwin) {
-        if (wmPtr->tkwin != NULL) {
-            Tk_DeleteEventHandler(wmPtr->tkwin, StructureNotifyMask, ChildEventProc, wmPtr);
-            Tk_ManageGeometry(wmPtr->tkwin, (Tk_GeomMgr *)0, (ClientData)0);
-            Tk_UnmapWindow(wmPtr->tkwin);
+    if (GetWindowMarkerDimension(markerPtr, wmPtr->reqHeightObjPtr, markerPtr->optionMask & WINDOW_HEIGHT_CHANGED,
+                                 &newReqHeight) != TCL_OK) {
+        goto error;
+    }
+
+    /*
+     * Resolve and validate the proposed child before detaching the
+     * currently managed child.
+     */
+    if ((wmPtr->pathName != NULL) && (wmPtr->pathName[0] != '\0')) {
+        newTkwin = Tk_NameToWindow(graphPtr->interp, wmPtr->pathName, graphPtr->tkwin);
+        if (newTkwin == NULL) {
+            goto error;
         }
-        Tk_CreateEventHandler(tkwin, StructureNotifyMask, ChildEventProc, wmPtr);
-        Tk_ManageGeometry(tkwin, &winMarkerMgrInfo, wmPtr);
+        if (Tk_Parent(newTkwin) != graphPtr->tkwin) {
+            Tcl_SetObjResult(graphPtr->interp, Tcl_ObjPrintf("\"%s\" is not a child of \"%s\"", wmPtr->pathName,
+                                                             Tk_PathName(graphPtr->tkwin)));
+            goto error;
+        }
     }
-    wmPtr->tkwin = tkwin;
 
-    wmPtr->core.flags |= MAP_ITEM;
-    if (wmPtr->core.drawUnder) {
+    /*
+     * No fallible processing remains.
+     */
+    CommitMarkerOptions(markerPtr, &markerOptions);
+    wmPtr->reqWidth = newReqWidth;
+    wmPtr->reqHeight = newReqHeight;
+
+    /*
+     * Transfer geometry ownership only after all validation succeeds.
+     */
+    if (newTkwin != wmPtr->tkwin) {
+        ReleaseWindowMarkerChild(wmPtr, FALSE);
+        if (newTkwin != NULL) {
+            /*
+             * Install the token before registering callbacks. If the
+             * child is destroyed during geometry-manager transfer,
+             * ChildEventProc will correctly clear it.
+             */
+            wmPtr->tkwin = newTkwin;
+            Tk_CreateEventHandler(newTkwin, StructureNotifyMask, ChildEventProc, wmPtr);
+            Tk_ManageGeometry(newTkwin, &winMarkerMgrInfo, wmPtr);
+        }
+    }
+    markerPtr->flags |= MAP_ITEM;
+    if (markerPtr->drawUnder) {
         graphPtr->flags |= REDRAW_BACKING_STORE;
     }
     Rbc_EventuallyRedrawGraph(graphPtr);
     return TCL_OK;
+
+error:
+    FreeParsedMarkerOptions(graphPtr, &markerOptions);
+    return TCL_ERROR;
 }
 
 /*
@@ -4068,13 +4187,18 @@ static void WindowMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
  * ----------------------------------------------------------------------
  */
 static void FreeWindowMarker(Graph *graphPtr, Marker *markerPtr) {
-    WindowMarker *wmPtr = WINDOW_MARKER_FROM_CORE(markerPtr);
+    WindowMarker *wmPtr;
 
-    if (wmPtr->tkwin != NULL) {
-        Tk_DeleteEventHandler(wmPtr->tkwin, StructureNotifyMask, ChildEventProc, wmPtr);
-        Tk_ManageGeometry(wmPtr->tkwin, (Tk_GeomMgr *)0, (ClientData)0);
-        Tk_DestroyWindow(wmPtr->tkwin);
-    }
+    (void)graphPtr;
+    wmPtr = WINDOW_MARKER_FROM_CORE(markerPtr);
+
+    /*
+     * Preserve the existing marker-deletion behaviour: deleting the
+     * marker destroys the currently embedded child window.
+     */
+    ReleaseWindowMarkerChild(wmPtr, TRUE);
+    wmPtr->anchorPos.x = 0.0;
+    wmPtr->anchorPos.y = 0.0;
 }
 
 /*
@@ -4092,14 +4216,14 @@ static void FreeWindowMarker(Graph *graphPtr, Marker *markerPtr) {
  *
  * ----------------------------------------------------------------------
  */
-static Marker *CreateWindowMarker() {
+static Marker *CreateWindowMarker(void) {
     WindowMarker *wmPtr;
 
     wmPtr = RbcCalloc(1, sizeof(WindowMarker));
     if (wmPtr != NULL) {
         wmPtr->core.classPtr = &windowMarkerClass;
     }
-    return &wmPtr->core;
+    return (wmPtr != NULL) ? &wmPtr->core : NULL;
 }
 
 /*
@@ -4126,10 +4250,17 @@ static Marker *CreateWindowMarker() {
  * ----------------------------------------------------------------------
  */
 static void ChildEventProc(ClientData clientData, XEvent *eventPtr) {
-    WindowMarker *wmPtr = clientData;
+    WindowMarker *wmPtr;
 
+    wmPtr = clientData;
     if (eventPtr->type == DestroyNotify) {
         wmPtr->tkwin = NULL;
+        wmPtr->width = 0;
+        wmPtr->height = 0;
+        wmPtr->core.flags |= MAP_ITEM;
+        if (wmPtr->core.graphPtr->tkwin != NULL) {
+            Rbc_EventuallyRedrawGraph(wmPtr->core.graphPtr);
+        }
     }
 }
 
@@ -4188,15 +4319,24 @@ static void ChildGeometryProc(ClientData clientData, Tk_Window tkwin) {
  * ----------------------------------------------------------------------
  */
 static void ChildCustodyProc(ClientData clientData, Tk_Window tkwin) {
-    Marker *markerPtr = clientData;
+    WindowMarker *wmPtr;
+    Marker *markerPtr;
     Graph *graphPtr;
 
+    wmPtr = clientData;
+    markerPtr = &wmPtr->core;
     graphPtr = markerPtr->graphPtr;
-    DestroyMarker(markerPtr);
+
     /*
-     * Not really needed. We should get an Expose event when the
-     * child window is unmapped.
+     * Another geometry manager has taken ownership. Remove our event
+     * handler before freeing the marker, but leave the child itself
+     * alive for its new manager.
      */
+    Tk_DeleteEventHandler(tkwin, StructureNotifyMask, ChildEventProc, wmPtr);
+    if (wmPtr->tkwin == tkwin) {
+        wmPtr->tkwin = NULL;
+    }
+    DestroyMarker(markerPtr);
     Rbc_EventuallyRedrawGraph(graphPtr);
 }
 
