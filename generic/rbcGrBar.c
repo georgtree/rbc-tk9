@@ -367,7 +367,7 @@ static const Tk_OptionSpec barElemOptionSpecs[] = {
     {TK_OPTION_PIXELS, "-errorbarwidth", "errorBarWidth", "ErrorBarWidth", DEF_BAR_ERRORBAR_LINE_WIDTH,
      BAR_BUILTIN_PEN_OFFSET(errorBarWidthObjPtr), -1, 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
     {TK_OPTION_PIXELS, "-errorbarcap", "errorBarCap", "ErrorBarCap", DEF_BAR_ERRORBAR_CAP_WIDTH,
-     BAR_BUILTIN_PEN_OFFSET(errorBarCapObjPtr), -1, 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+     BAR_BUILTIN_PEN_OFFSET(errorBarCapObjPtr), -1, 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK | BAR_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_STRING, "-data", "data", "Data", NULL, BAR_CORE_OFFSET(dataObjPtr), -1, TK_OPTION_NULL_OK, NULL,
      BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_SYNONYM, "-fg", NULL, NULL, NULL, -1, -1, 0, "-foreground", 0},
@@ -384,7 +384,7 @@ static const Tk_OptionSpec barElemOptionSpecs[] = {
     {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_BAR_AXIS_Y, BAR_CORE_OFFSET(mapYObjPtr), -1, 0, NULL,
      BAR_ELEM_AXES_MASK | BAR_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_STRING, "-pen", "pen", "Pen", NULL, BAR_CORE_OFFSET(normalPenObjPtr), -1, TK_OPTION_NULL_OK, NULL,
-     BAR_ELEM_PEN_MASK},
+     BAR_ELEM_PEN_MASK | BAR_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_RELIEF, "-relief", "relief", "Relief", DEF_BAR_RELIEF, -1, BAR_BUILTIN_PEN_OFFSET(relief), 0, NULL,
      BAR_ELEM_BUILTIN_PEN_MASK},
     {TK_OPTION_STRING, "-showerrorbars", "showErrorBars", "ShowErrorBars", DEF_BAR_SHOW_ERRORBARS,
@@ -660,6 +660,9 @@ static void MapActiveBars(Bar *barPtr);
 static void ResetBar(Bar *barPtr);
 static BarDataOption GetBarDataOption(Tcl_Obj *objPtr);
 static void FreeBarDataTransaction(BarDataTransaction *transactionPtr);
+static void ReplaceBarOptionObject(Tcl_Obj **objPtrPtr, Tcl_Obj *newObjPtr);
+static void SetBarDataPairOptionObjects(Element *elemPtr, Tcl_Obj *dataObjPtr);
+static void SyncBarDataOptionObjects(Element *elemPtr);
 static int StageBarDataVector(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, BarDataTransaction *transactionPtr,
                               ElemVector *candidatePtr, BarDataOption option);
 static int StageBarDataPairs(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, BarDataTransaction *transactionPtr);
@@ -1240,9 +1243,9 @@ static void DestroyPen(Graph *graphPtr, Pen *penPtr) {
     }
 
     /*
-     * These two colours are manually derived only for modern named
-     * bar pens. The legacy custom-option path retains its existing
-     * ownership behaviour.
+     * These two colours are manually derived for modern bar pens,
+     * including the pen embedded in a modern bar element. The legacy
+     * custom-option path retains its existing ownership behaviour.
      */
     if (bpPtr->core.optionSpecs != NULL) {
         FreeBarPenColor(bpPtr->errorBarColor);
@@ -1331,8 +1334,9 @@ Pen *Rbc_BarPen(char *penName) {
     corePtr->name = RbcStrdup(penName);
 
     /*
-     * Named bar pens use the modern API. Embedded element pens never
-     * pass through this constructor and remain legacy.
+     * Named bar pens are initialized through their own option tables.
+     * Embedded bar-element pens are initialized through
+     * barElemOptionSpecs instead.
      */
     if (strcmp(penName, "activeBar") == 0) {
         corePtr->flags = ACTIVE_PEN;
@@ -1934,6 +1938,256 @@ static int StageBarDataPairs(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objP
     transactionPtr->stagedMask |= xMask | yMask;
 
     return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * ReplaceBarOptionObject --
+ *
+ *      Replaces one Tcl object retained by the bar element option
+ *      table.
+ *
+ * Parameters:
+ *      Tcl_Obj **objPtrPtr - Address of the retained option object.
+ *      Tcl_Obj *newObjPtr  - Replacement object, or NULL.
+ *
+ * Results:
+ *      None.
+ *
+ * Side Effects:
+ *      Updates Tcl object reference counts and replaces the retained
+ *      object.
+ *
+ *----------------------------------------------------------------------
+ */
+static void ReplaceBarOptionObject(Tcl_Obj **objPtrPtr, Tcl_Obj *newObjPtr) {
+    Tcl_Obj *oldObjPtr;
+
+    oldObjPtr = *objPtrPtr;
+
+    if (oldObjPtr == newObjPtr) {
+        return;
+    }
+
+    if (newObjPtr != NULL) {
+        Tcl_IncrRefCount(newObjPtr);
+    }
+
+    *objPtrPtr = newObjPtr;
+
+    if (oldObjPtr != NULL) {
+        Tcl_DecrRefCount(oldObjPtr);
+    }
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * SetBarDataPairOptionObjects --
+ *
+ *      Stores a coherent -data representation and derives the retained
+ *      -x and -y representations from its alternating coordinate
+ *      elements.
+ *
+ *      The original Tcl representations of the coordinate expressions
+ *      are preserved. They are not reconstructed from the internal
+ *      double arrays.
+ *
+ * Parameters:
+ *      Element *elemPtr    - Bar element.
+ *      Tcl_Obj *dataObjPtr - Valid, even-length -data list.
+ *
+ * Results:
+ *      None.
+ *
+ * Side Effects:
+ *      Replaces dataObjPtr, xObjPtr, and yObjPtr in the element.
+ *
+ *----------------------------------------------------------------------
+ */
+static void SetBarDataPairOptionObjects(Element *elemPtr, Tcl_Obj *dataObjPtr) {
+    Tcl_Obj **objv;
+    Tcl_Obj *xObjPtr;
+    Tcl_Obj *yObjPtr;
+    Tcl_Size objc;
+    Tcl_Size i;
+
+    if (Tcl_ListObjGetElements(elemPtr->graphPtr->interp, dataObjPtr, &objc, &objv) != TCL_OK) {
+        Tcl_Panic("validated bar -data value is no longer a Tcl list");
+    }
+
+    if ((objc & 1) != 0) {
+        Tcl_Panic("validated bar -data value has an odd length");
+    }
+
+    xObjPtr = Tcl_NewListObj(0, NULL);
+    yObjPtr = Tcl_NewListObj(0, NULL);
+
+    for (i = 0; i < objc; i += 2) {
+        if (Tcl_ListObjAppendElement(NULL, xObjPtr, objv[i]) != TCL_OK) {
+            Tcl_Panic("can't construct bar -x option value");
+        }
+
+        if (Tcl_ListObjAppendElement(NULL, yObjPtr, objv[i + 1]) != TCL_OK) {
+            Tcl_Panic("can't construct bar -y option value");
+        }
+    }
+
+    ReplaceBarOptionObject(&elemPtr->dataObjPtr, dataObjPtr);
+    ReplaceBarOptionObject(&elemPtr->xObjPtr, xObjPtr);
+    ReplaceBarOptionObject(&elemPtr->yObjPtr, yObjPtr);
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * SyncBarDataOptionObjects --
+ *
+ *      Synchronizes the retained -data, -x, and -y option objects after
+ *      a successfully committed bar-data transaction.
+ *
+ *      A retained -data value is valid only while both live coordinate
+ *      vectors still originate from that -data value. Configuring -x or
+ *      -y independently invalidates -data. A later -data occurrence
+ *      restores a coherent representation.
+ *
+ *      Initial option-database values are processed before explicit
+ *      option/value pairs. Explicit pairs are then processed in their
+ *      original left-to-right order.
+ *
+ * Parameters:
+ *      Element *elemPtr - Configured bar element.
+ *
+ * Results:
+ *      None.
+ *
+ * Side Effects:
+ *      Replaces retained Tcl option objects and updates their reference
+ *      counts.
+ *
+ *----------------------------------------------------------------------
+ */
+static void SyncBarDataOptionObjects(Element *elemPtr) {
+    Tcl_Obj *initialDataObjPtr;
+    Tcl_Obj *initialXObjPtr;
+    Tcl_Obj *initialYObjPtr;
+    unsigned int explicitMask;
+    int i;
+
+    assert((elemPtr->optionObjc & 1) == 0);
+
+    explicitMask = 0;
+
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        BarDataOption option;
+
+        option = GetBarDataOption(elemPtr->optionObjv[i]);
+
+        if (option != BAR_DATA_OPTION_NONE) {
+            explicitMask |= BAR_DATA_OPTION_MASK(option);
+        }
+    }
+
+    initialDataObjPtr = NULL;
+    initialXObjPtr = NULL;
+    initialYObjPtr = NULL;
+
+    /*
+     * Preserve references to initial option-database values while the
+     * retained fields are being replaced below.
+     */
+    if (!elemPtr->optionsConfigured) {
+        if (!(explicitMask & BAR_DATA_OPTION_MASK(BAR_DATA_OPTION_PAIRS))) {
+            initialDataObjPtr = elemPtr->dataObjPtr;
+
+            if (initialDataObjPtr != NULL) {
+                Tcl_IncrRefCount(initialDataObjPtr);
+            }
+        }
+
+        if (!(explicitMask & BAR_DATA_OPTION_MASK(BAR_DATA_OPTION_X))) {
+            initialXObjPtr = elemPtr->xObjPtr;
+
+            if (initialXObjPtr != NULL) {
+                Tcl_IncrRefCount(initialXObjPtr);
+            }
+        }
+
+        if (!(explicitMask & BAR_DATA_OPTION_MASK(BAR_DATA_OPTION_Y))) {
+            initialYObjPtr = elemPtr->yObjPtr;
+
+            if (initialYObjPtr != NULL) {
+                Tcl_IncrRefCount(initialYObjPtr);
+            }
+        }
+
+        /*
+         * Apply initial values in the same order used by the data
+         * transaction: -data first, followed by -x and -y.
+         */
+        if (initialDataObjPtr != NULL) {
+            SetBarDataPairOptionObjects(elemPtr, initialDataObjPtr);
+        }
+
+        if (initialXObjPtr != NULL) {
+            ReplaceBarOptionObject(&elemPtr->dataObjPtr, NULL);
+            ReplaceBarOptionObject(&elemPtr->xObjPtr, initialXObjPtr);
+        }
+
+        if (initialYObjPtr != NULL) {
+            ReplaceBarOptionObject(&elemPtr->dataObjPtr, NULL);
+            ReplaceBarOptionObject(&elemPtr->yObjPtr, initialYObjPtr);
+        }
+
+        if (initialDataObjPtr != NULL) {
+            Tcl_DecrRefCount(initialDataObjPtr);
+        }
+        if (initialXObjPtr != NULL) {
+            Tcl_DecrRefCount(initialXObjPtr);
+        }
+        if (initialYObjPtr != NULL) {
+            Tcl_DecrRefCount(initialYObjPtr);
+        }
+    }
+
+    /*
+     * Apply explicit options in their original order. This preserves
+     * the same last-option-wins rule used when staging the vectors.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        BarDataOption option;
+        Tcl_Obj *valueObjPtr;
+
+        option = GetBarDataOption(elemPtr->optionObjv[i]);
+        valueObjPtr = elemPtr->optionObjv[i + 1];
+
+        switch (option) {
+        case BAR_DATA_OPTION_PAIRS:
+            SetBarDataPairOptionObjects(elemPtr, valueObjPtr);
+            break;
+
+        case BAR_DATA_OPTION_X:
+            ReplaceBarOptionObject(&elemPtr->dataObjPtr, NULL);
+            ReplaceBarOptionObject(&elemPtr->xObjPtr, valueObjPtr);
+            break;
+
+        case BAR_DATA_OPTION_Y:
+            ReplaceBarOptionObject(&elemPtr->dataObjPtr, NULL);
+            ReplaceBarOptionObject(&elemPtr->yObjPtr, valueObjPtr);
+            break;
+
+        case BAR_DATA_OPTION_NONE:
+        case BAR_DATA_OPTION_WEIGHTS:
+        case BAR_DATA_OPTION_X_ERROR:
+        case BAR_DATA_OPTION_X_HIGH:
+        case BAR_DATA_OPTION_X_LOW:
+        case BAR_DATA_OPTION_Y_ERROR:
+        case BAR_DATA_OPTION_Y_HIGH:
+        case BAR_DATA_OPTION_Y_LOW:
+            break;
+        }
+    }
 }
 
 /*
@@ -3247,11 +3501,17 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
     }
 
     /*
-     * Configure the embedded bar pen only after every staged data and
-     * named-pen value has been validated.
+     * Configure the embedded bar pen after every other fallible value has
+     * been validated.
+     *
+     * Legacy elements always configure the pen. Modern elements configure
+     * it initially and whenever one of its element-level options changed.
      */
-    if (ConfigurePen(graphPtr, &barPtr->builtinPen.core) != TCL_OK) {
-        goto error;
+    if ((elemPtr->optionSpecs == NULL) || (!elemPtr->optionsConfigured) ||
+        (elemPtr->optionMask & BAR_ELEM_BUILTIN_PEN_MASK)) {
+        if (ConfigurePen(graphPtr, &barPtr->builtinPen.core) != TCL_OK) {
+            goto error;
+        }
     }
 
     /*
@@ -3304,6 +3564,12 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
      */
     if (dataTransactionPrepared) {
         CommitBarDataTransaction(elemPtr, &dataTransaction);
+
+        /*
+         * The live vectors and the retained Tcl representations must
+         * describe the same configuration.
+         */
+        SyncBarDataOptionObjects(elemPtr);
     }
 
     if (elemPtr->optionSpecs != NULL) {
@@ -4660,7 +4926,7 @@ Element *Rbc_BarElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
         return NULL;
     }
     elemPtr = &barPtr->core;
-    elemPtr->optionSpecs = NULL;
+    elemPtr->optionSpecs = barElemOptionSpecs;
     elemPtr->optionTable = NULL;
 
     elemPtr->optionMask = 0;
@@ -4672,7 +4938,7 @@ Element *Rbc_BarElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     elemPtr->tkResourcesReleased = FALSE;
     elemPtr->normalPenPtr = &barPtr->builtinPen.core;
     elemPtr->procsPtr = &barProcs;
-    elemPtr->specsPtr = barElemConfigSpecs;
+    elemPtr->specsPtr = NULL;
     elemPtr->labelRelief = TK_RELIEF_FLAT;
     elemPtr->classUid = classUid;
 
@@ -4684,6 +4950,14 @@ Element *Rbc_BarElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     elemPtr->graphPtr = graphPtr;
     elemPtr->hidden = FALSE;
     InitPen(&barPtr->builtinPen);
+
+    /*
+     * The embedded pen's options are initialized as part of the element's
+     * option table, not through the named-pen option machinery. Setting
+     * optionSpecs selects ConfigureModernPen and the corresponding modern
+     * resource-release path.
+     */
+    barPtr->builtinPen.core.optionSpecs = normalBarPenOptionSpecs;
     elemPtr->palette = Rbc_ChainCreate();
     return elemPtr;
 }

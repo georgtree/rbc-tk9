@@ -1354,7 +1354,7 @@ namespace eval barchart.pen {
         .barchart1 bar cget bar1 -borderwidth
     } -cleanup {
         destroy .barchart1
-    } -result 4
+    } -result 3.5
 
     test RBC.barchart.pen.configure.A.lifetime.1 {
         modern named bar pen resource lifetime

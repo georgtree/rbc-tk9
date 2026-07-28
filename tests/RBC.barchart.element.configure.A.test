@@ -113,7 +113,7 @@ namespace eval barchart.element {
 	} -cleanup {
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {1.0 3.0 4.0 5.0}
+	} -result {1 3 4 5}
 		
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -data command works correctly when given an
@@ -511,7 +511,7 @@ namespace eval barchart.element {
 		destroy Pen1
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {{Pen1 0.0 1.0}}
+	} -result {Pen1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -styles command works correctly when given an
@@ -569,7 +569,7 @@ namespace eval barchart.element {
 		vector destroy Vector1
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {::barchart.element::Vector1}
+	} -result {Vector1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -weights command works correctly when given an
@@ -606,7 +606,7 @@ namespace eval barchart.element {
 	} -cleanup {
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {1.0 2.0 3.0 4.0}
+	} -result {1 2 3 4}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -weights command works correctly when given an
@@ -645,7 +645,7 @@ namespace eval barchart.element {
 		vector destroy Vector1
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {::barchart.element::Vector1}
+	} -result {Vector1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -xdata command works correctly when given an
@@ -682,7 +682,7 @@ namespace eval barchart.element {
 	} -cleanup {
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {1.0 2.0 3.0 4.0}
+	} -result {1 2 3 4}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -xdata command works correctly when given an
@@ -721,7 +721,7 @@ namespace eval barchart.element {
 		vector destroy Vector1
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {::barchart.element::Vector1}
+	} -result {Vector1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -ydata command works correctly when given an
@@ -758,7 +758,7 @@ namespace eval barchart.element {
 	} -cleanup {
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {1.0 2.0 3.0 4.0}
+	} -result {1 2 3 4}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -ydata command works correctly when given an
@@ -797,7 +797,7 @@ namespace eval barchart.element {
 		vector destroy Vector1
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {::barchart.element::Vector1}
+	} -result {Vector1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -x command works correctly when given an
@@ -834,7 +834,7 @@ namespace eval barchart.element {
 	} -cleanup {
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {1.0 2.0 3.0 4.0}
+	} -result {1 2 3 4}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -x command works correctly when given an
@@ -873,7 +873,7 @@ namespace eval barchart.element {
 		vector destroy Vector1
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {::barchart.element::Vector1}
+	} -result {Vector1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -xerror command works correctly when given an
@@ -910,7 +910,7 @@ namespace eval barchart.element {
 	} -cleanup {
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {1.0 2.0 3.0 4.0}
+	} -result {1 2 3 4}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -xerror command works correctly when given an
@@ -949,7 +949,7 @@ namespace eval barchart.element {
 		vector destroy Vector1
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {::barchart.element::Vector1}
+	} -result {Vector1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -xhigh command works correctly when given an
@@ -986,7 +986,7 @@ namespace eval barchart.element {
 	} -cleanup {
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {1.0 2.0 3.0 4.0}
+	} -result {1 2 3 4}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -xhigh command works correctly when given an
@@ -1025,7 +1025,7 @@ namespace eval barchart.element {
 		vector destroy Vector1
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {::barchart.element::Vector1}
+	} -result {Vector1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -xlow command works correctly when given an
@@ -1062,7 +1062,7 @@ namespace eval barchart.element {
 	} -cleanup {
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {1.0 2.0 3.0 4.0}
+	} -result {1 2 3 4}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -xlow command works correctly when given an
@@ -1101,7 +1101,7 @@ namespace eval barchart.element {
 		vector destroy Vector1
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {::barchart.element::Vector1}
+	} -result {Vector1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -y command works correctly when given an
@@ -1138,7 +1138,7 @@ namespace eval barchart.element {
 	} -cleanup {
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {1.0 2.0 3.0 4.0}
+	} -result {1 2 3 4}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -y command works correctly when given an
@@ -1177,7 +1177,7 @@ namespace eval barchart.element {
 		vector destroy Vector1
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {::barchart.element::Vector1}
+	} -result {Vector1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -yerror command works correctly when given an
@@ -1214,7 +1214,7 @@ namespace eval barchart.element {
 	} -cleanup {
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {1.0 2.0 3.0 4.0}
+	} -result {1 2 3 4}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -yerror command works correctly when given an
@@ -1253,7 +1253,7 @@ namespace eval barchart.element {
 		vector destroy Vector1
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {::barchart.element::Vector1}
+	} -result {Vector1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -yhigh command works correctly when given an
@@ -1290,7 +1290,7 @@ namespace eval barchart.element {
 	} -cleanup {
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {1.0 2.0 3.0 4.0}
+	} -result {1 2 3 4}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -yhigh command works correctly when given an
@@ -1329,7 +1329,7 @@ namespace eval barchart.element {
 		vector destroy Vector1
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {::barchart.element::Vector1}
+	} -result {Vector1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -ylow command works correctly when given an
@@ -1366,7 +1366,7 @@ namespace eval barchart.element {
 	} -cleanup {
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {1.0 2.0 3.0 4.0}
+	} -result {1 2 3 4}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -ylow command works correctly when given an
@@ -1457,7 +1457,7 @@ namespace eval barchart.element {
 	} -cleanup {
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -errorbarwidth command works correctly when 
@@ -1531,7 +1531,7 @@ namespace eval barchart.element {
 	} -cleanup {
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -errorbarcap command works correctly when 
@@ -1818,7 +1818,7 @@ namespace eval barchart.element {
 	} -cleanup {
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {90.0}
+	} -result {90}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -valuerotate command works correctly when 
@@ -1852,7 +1852,7 @@ namespace eval barchart.element {
 	} -cleanup {
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {-90.0}
+	} -result {-90}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -valuerotate command works correctly when
@@ -1906,7 +1906,7 @@ namespace eval barchart.element {
 	} -cleanup {
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {black 1}
+	} -result {black}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -valueshadow command works correctly when 
@@ -2771,7 +2771,7 @@ namespace eval barchart.element {
 	} -cleanup {
 		.barchart1 element delete Element1
 		destroy .barchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -borderwidth command works correctly when 
@@ -3025,6 +3025,111 @@ namespace eval barchart.element {
 	    .barchart1 element delete Element1
 		destroy .barchart1
 	} -match glob -result {@*greenback.xbm}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure configuring -data updates the retained -x and -y representations.
+	# ------------------------------------------------------------------------------------
+	test RBC.barchart.element.configure.A.40.1 {
+		barchart element configure: data synchronizes x and y
+	} -setup {
+		barchart .barchart1
+		.barchart1 element create Element1
+	} -body {
+		.barchart1 element configure Element1 -data {1 10 2 20}
+		list [.barchart1 element cget Element1 -data] [.barchart1 element cget Element1 -x] [.barchart1 element cget\
+                                                                                                     Element1 -y]
+	} -cleanup {
+		.barchart1 element delete Element1
+		destroy .barchart1
+	} -result {{1 10 2 20} {1 2} {10 20}}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure configuring -x independently invalidates a retained -data value.
+	# ------------------------------------------------------------------------------------
+	test RBC.barchart.element.configure.A.40.2 {
+		barchart element configure: x invalidates data
+	} -setup {
+		barchart .barchart1
+		.barchart1 element create Element1
+	} -body {
+		.barchart1 element configure Element1 -data {1 10 2 20}
+		.barchart1 element configure Element1 -x {3 4}
+		list [.barchart1 element cget Element1 -data] [.barchart1 element cget Element1 -x] [.barchart1 element cget\
+                                                                                                     Element1 -y]
+	} -cleanup {
+		.barchart1 element delete Element1
+		destroy .barchart1
+	} -result {{} {3 4} {10 20}}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure configuring -y independently invalidates a retained -data value.
+	# ------------------------------------------------------------------------------------
+	test RBC.barchart.element.configure.A.40.3 {
+		barchart element configure: y invalidates data
+	} -setup {
+		barchart .barchart1
+		.barchart1 element create Element1
+	} -body {
+		.barchart1 element configure Element1 -data {1 10 2 20}
+		.barchart1 element configure Element1 -y {30 40}
+		list [.barchart1 element cget Element1 -data] [.barchart1 element cget Element1 -x] [.barchart1 element cget\
+                                                                                                     Element1 -y]
+	} -cleanup {
+		.barchart1 element delete Element1
+		destroy .barchart1
+	} -result {{} {1 2} {30 40}}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure option order is preserved when -x follows -data in one configure call.
+	# ------------------------------------------------------------------------------------
+	test RBC.barchart.element.configure.A.40.4 {
+		barchart element configure: data then x
+	} -setup {
+		barchart .barchart1
+		.barchart1 element create Element1
+	} -body {
+		.barchart1 element configure Element1 -data {1 10 2 20} -x {3 4}
+		list [.barchart1 element cget Element1 -data] [.barchart1 element cget Element1 -x] [.barchart1 element cget\
+                                                                                                     Element1 -y]
+	} -cleanup {
+		.barchart1 element delete Element1
+		destroy .barchart1
+	} -result {{} {3 4} {10 20}}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure option order is preserved when -data follows -x in one configure call.
+	# ------------------------------------------------------------------------------------
+	test RBC.barchart.element.configure.A.40.5 {
+		barchart element configure: x then data
+	} -setup {
+		barchart .barchart1
+		.barchart1 element create Element1
+	} -body {
+		.barchart1 element configure Element1 -x {3 4} -data {1 10 2 20}
+		list [.barchart1 element cget Element1 -data] [.barchart1 element cget Element1 -x] [.barchart1 element cget\
+                                                                                                     Element1 -y]
+	} -cleanup {
+		.barchart1 element delete Element1
+		destroy .barchart1
+	} -result {{1 10 2 20} {1 2} {10 20}}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure -xdata and -ydata invalidate an existing -data representation.
+	# ------------------------------------------------------------------------------------
+	test RBC.barchart.element.configure.A.40.6 {
+		barchart element configure: xdata and ydata invalidate data
+	} -setup {
+		barchart .barchart1
+		.barchart1 element create Element1
+	} -body {
+		.barchart1 element configure Element1 -data {1 10 2 20}
+		.barchart1 element configure Element1 -xdata {3 4} -ydata {30 40}
+		list [.barchart1 element cget Element1 -data] [.barchart1 element cget Element1 -x] [.barchart1 element cget\
+                                                                                                     Element1 -y]
+	} -cleanup {
+		.barchart1 element delete Element1
+		destroy .barchart1
+	} -result {{} {3 4} {30 40}}
 	
 	cleanupTests
 }
