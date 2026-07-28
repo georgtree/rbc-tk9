@@ -206,6 +206,17 @@ typedef struct {
      */
     LinePen builtinPen;
 
+
+    /*
+     * Original Tcl representations for line-element options that
+     * require validation or conversion after Tk_SetOptions.
+     */
+    Tcl_Obj *areaPatternObjPtr;
+    Tcl_Obj *areaTileObjPtr;
+    Tcl_Obj *maxSymbolsObjPtr;
+    Tcl_Obj *smoothObjPtr;
+    Tcl_Obj *traceObjPtr;
+    
     /* Line smoothing */
     Smoothing reqSmooth; /* Requested smoothing function to use
                           * for connecting the data points */
@@ -288,6 +299,7 @@ _Static_assert(offsetof(Line, core) == 0, "Element core must be the first Line m
 #define LINE_FROM_CORE(elemPtr) ((Line *)((char *)(elemPtr) - offsetof(Line, core)))
 
 #define LINE_CORE_OFFSET(member) (offsetof(Line, core) + offsetof(Element, member))
+#define LINE_BUILTIN_PEN_OFFSET(member) (offsetof(Line, builtinPen) + offsetof(LinePen, member))
 
 static Tk_OptionParseProc StringToPattern;
 static Tk_OptionPrintProc PatternToString;
@@ -381,6 +393,25 @@ extern Tk_CustomOption rbcStateOption;
 #define DEF_PEN_VALUE_ROTATE (char *)NULL
 #define DEF_PEN_VALUE_SHADOW (char *)NULL
 #define DEF_PEN_SHOW_VALUES "no"
+
+/*
+ * Line and strip-element option conversion masks.
+ *
+ * These typeMask bits describe work that ConfigureLine must perform
+ * after Tk_SetOptions has stored the new option values.
+ */
+#define LINE_ELEM_PEN_MASK (1 << 0)
+#define LINE_ELEM_TAGS_MASK (1 << 1)
+#define LINE_ELEM_DATA_MASK (1 << 2)
+#define LINE_ELEM_AXES_MASK (1 << 3)
+#define LINE_ELEM_STATE_MASK (1 << 4)
+#define LINE_ELEM_STYLES_MASK (1 << 5)
+#define LINE_ELEM_BUILTIN_PEN_MASK (1 << 6)
+#define LINE_ELEM_AREA_MASK (1 << 7)
+#define LINE_ELEM_SMOOTH_MASK (1 << 8)
+#define LINE_ELEM_TRACE_MASK (1 << 9)
+#define LINE_ELEM_MAP_ITEM_MASK (1 << 10)
+#define LINE_ELEM_SCALE_SYMBOL_MASK (1 << 11)
 
 static Tk_ConfigSpec lineElemConfigSpecs[] = {
     {TK_CONFIG_CUSTOM, "-activepen", "activePen", "ActivePen", DEF_LINE_ACTIVE_PEN, LINE_CORE_OFFSET(activePenPtr),
