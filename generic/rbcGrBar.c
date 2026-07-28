@@ -191,6 +191,41 @@ Tk_CustomOption rbcBarModeOption = {StringToBarMode, BarModeToString, (ClientDat
 #define BAR_ELEM_BUILTIN_PEN_MASK (1 << 6)
 #define BAR_ELEM_MAP_ITEM_MASK (1 << 7)
 
+/*
+ * Bar-element data options handled transactionally.
+ */
+typedef enum {
+    BAR_DATA_OPTION_NONE,
+    BAR_DATA_OPTION_PAIRS,
+    BAR_DATA_OPTION_WEIGHTS,
+    BAR_DATA_OPTION_X,
+    BAR_DATA_OPTION_Y,
+    BAR_DATA_OPTION_X_ERROR,
+    BAR_DATA_OPTION_X_HIGH,
+    BAR_DATA_OPTION_X_LOW,
+    BAR_DATA_OPTION_Y_ERROR,
+    BAR_DATA_OPTION_Y_HIGH,
+    BAR_DATA_OPTION_Y_LOW
+} BarDataOption;
+
+#define BAR_DATA_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
+
+typedef struct {
+    unsigned int stagedMask;
+
+    ElemVector x;
+    ElemVector y;
+    ElemVector w;
+
+    ElemVector xError;
+    ElemVector xHigh;
+    ElemVector xLow;
+
+    ElemVector yError;
+    ElemVector yHigh;
+    ElemVector yLow;
+} BarDataTransaction;
+
 static Tk_ConfigSpec barElemConfigSpecs[] = {
     {TK_CONFIG_CUSTOM, "-activepen", "activePen", "ActivePen", DEF_BAR_ACTIVE_PEN, BAR_CORE_OFFSET(activePenPtr),
      TK_CONFIG_NULL_OK, &rbcBarPenOption},
@@ -571,6 +606,13 @@ static void CheckStacks(Graph *graphPtr, Axis2D *pairPtr, double *minPtr, double
 static void MergePens(Bar *barPtr, PenStyle **dataToStyle);
 static void MapActiveBars(Bar *barPtr);
 static void ResetBar(Bar *barPtr);
+static BarDataOption GetBarDataOption(Tcl_Obj *objPtr);
+static void FreeBarDataTransaction(BarDataTransaction *transactionPtr);
+static int StageBarDataVector(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, BarDataTransaction *transactionPtr,
+                              ElemVector *candidatePtr, BarDataOption option);
+static int StageBarDataPairs(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, BarDataTransaction *transactionPtr);
+static int PrepareBarDataTransaction(Graph *graphPtr, Element *elemPtr, BarDataTransaction *transactionPtr);
+static void CommitBarDataTransaction(Element *elemPtr, BarDataTransaction *transactionPtr);
 static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, XRectangle *rectangles, int nRects);
 static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPen *penPtr, XRectangle *rectangles,
                           int nRects, int *rectToData);
@@ -1275,6 +1317,523 @@ static void CheckStacks(Graph *graphPtr, Axis2D *pairPtr, double *minPtr, double
 }
 
 /*
+ *----------------------------------------------------------------------
+ *
+ * GetBarDataOption --
+ *
+ *      Determines which bar data option is represented by an option
+ *      name accepted by Tk_SetOptions.
+ *
+ *      Exact names take precedence over prefix matching. This matters
+ *      for "-x" and "-y", which are exact option names as well as
+ *      prefixes of several longer options.
+ *
+ * Parameters:
+ *      Tcl_Obj *objPtr - Option-name object.
+ *
+ * Results:
+ *      The corresponding BarDataOption value. BAR_DATA_OPTION_NONE is
+ *      returned when the option is unrelated to bar data.
+ *
+ * Side Effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+static BarDataOption GetBarDataOption(Tcl_Obj *objPtr) {
+    static const struct {
+        const char *name;
+        BarDataOption option;
+    } optionMap[] = {{"-data", BAR_DATA_OPTION_PAIRS},
+                     {"-weights", BAR_DATA_OPTION_WEIGHTS},
+
+                     {"-x", BAR_DATA_OPTION_X},
+                     {"-xdata", BAR_DATA_OPTION_X},
+                     {"-y", BAR_DATA_OPTION_Y},
+                     {"-ydata", BAR_DATA_OPTION_Y},
+
+                     {"-xerror", BAR_DATA_OPTION_X_ERROR},
+                     {"-xhigh", BAR_DATA_OPTION_X_HIGH},
+                     {"-xlow", BAR_DATA_OPTION_X_LOW},
+
+                     {"-yerror", BAR_DATA_OPTION_Y_ERROR},
+                     {"-yhigh", BAR_DATA_OPTION_Y_HIGH},
+                     {"-ylow", BAR_DATA_OPTION_Y_LOW}};
+
+    const char *string;
+    Tcl_Size length;
+    BarDataOption match;
+    size_t i;
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+
+    /*
+     * Prefer an exact match. For example, "-x" must mean "-x", not an
+     * ambiguous prefix of "-xdata", "-xerror", "-xhigh", and "-xlow".
+     */
+    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
+        Tcl_Size fullLength;
+
+        fullLength = (Tcl_Size)strlen(optionMap[i].name);
+
+        if ((length == fullLength) && (memcmp(string, optionMap[i].name, (size_t)length) == 0)) {
+            return optionMap[i].option;
+        }
+    }
+
+    /*
+     * Tk_SetOptions has already checked that an abbreviation is valid
+     * and unambiguous. Repeat enough of that matching here to recover
+     * the canonical data-option identity.
+     */
+    match = BAR_DATA_OPTION_NONE;
+
+    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
+        Tcl_Size fullLength;
+
+        fullLength = (Tcl_Size)strlen(optionMap[i].name);
+
+        if ((length > 0) && (length < fullLength) && (strncmp(string, optionMap[i].name, (size_t)length) == 0)) {
+            if (match == BAR_DATA_OPTION_NONE) {
+                match = optionMap[i].option;
+            } else if (match != optionMap[i].option) {
+                /*
+                 * This should already have been rejected by
+                 * Tk_SetOptions.
+                 */
+                return BAR_DATA_OPTION_NONE;
+            }
+        }
+    }
+
+    return match;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * FreeBarDataTransaction --
+ *
+ *      Releases all staged vectors owned by a bar-data transaction.
+ *
+ * Parameters:
+ *      BarDataTransaction *transactionPtr - Transaction to clear.
+ *
+ * Results:
+ *      None.
+ *
+ * Side Effects:
+ *      Releases staged arrays and RBC vector client IDs. The transaction
+ *      is reset to zero.
+ *
+ *----------------------------------------------------------------------
+ */
+static void FreeBarDataTransaction(BarDataTransaction *transactionPtr) {
+    Rbc_FreeElemVector(&transactionPtr->x);
+    Rbc_FreeElemVector(&transactionPtr->y);
+    Rbc_FreeElemVector(&transactionPtr->w);
+
+    Rbc_FreeElemVector(&transactionPtr->xError);
+    Rbc_FreeElemVector(&transactionPtr->xHigh);
+    Rbc_FreeElemVector(&transactionPtr->xLow);
+
+    Rbc_FreeElemVector(&transactionPtr->yError);
+    Rbc_FreeElemVector(&transactionPtr->yHigh);
+    Rbc_FreeElemVector(&transactionPtr->yLow);
+
+    transactionPtr->stagedMask = 0;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * StageBarDataVector --
+ *
+ *      Parses one bar data-vector option into temporary transaction
+ *      storage.
+ *
+ *      If the same destination was staged previously, the previous
+ *      candidate is released only after the replacement has parsed
+ *      successfully.
+ *
+ * Parameters:
+ *      Tcl_Interp *interp                    - Interpreter.
+ *      Element *elemPtr                      - Owning element.
+ *      Tcl_Obj *objPtr                       - Original option value.
+ *      BarDataTransaction *transactionPtr    - Current transaction.
+ *      ElemVector *candidatePtr              - Destination candidate.
+ *      BarDataOption option                  - Candidate identity.
+ *
+ * Results:
+ *      TCL_OK on success; TCL_ERROR on parsing failure.
+ *
+ * Side Effects:
+ *      May allocate temporary vector storage or a vector client ID.
+ *      The live element vector is not modified.
+ *
+ *----------------------------------------------------------------------
+ */
+static int StageBarDataVector(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, BarDataTransaction *transactionPtr,
+                              ElemVector *candidatePtr, BarDataOption option) {
+    ElemVector newCandidate;
+    unsigned int mask;
+
+    memset(&newCandidate, 0, sizeof(newCandidate));
+    if (Rbc_ParseElemVectorObj(interp, elemPtr, objPtr, &newCandidate) != TCL_OK) {
+        Rbc_FreeElemVector(&newCandidate);
+        return TCL_ERROR;
+    }
+    mask = BAR_DATA_OPTION_MASK(option);
+    if (transactionPtr->stagedMask & mask) {
+        Rbc_FreeElemVector(candidatePtr);
+    }
+    *candidatePtr = newCandidate;
+    transactionPtr->stagedMask |= mask;
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * StageBarDataPairs --
+ *
+ *      Parses the "-data" value into temporary X and Y candidates.
+ *
+ * Parameters:
+ *      Tcl_Interp *interp                    - Interpreter.
+ *      Element *elemPtr                      - Owning element.
+ *      Tcl_Obj *objPtr                       - Original "-data" value.
+ *      BarDataTransaction *transactionPtr    - Current transaction.
+ *
+ * Results:
+ *      TCL_OK on success; TCL_ERROR on parsing failure.
+ *
+ * Side Effects:
+ *      Replaces the transaction's staged X and Y candidates only after
+ *      both new candidates have parsed successfully.
+ *
+ *----------------------------------------------------------------------
+ */
+static int StageBarDataPairs(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr,
+                             BarDataTransaction *transactionPtr) {
+    ElemVector newX;
+    ElemVector newY;
+    unsigned int xMask;
+    unsigned int yMask;
+
+    memset(&newX, 0, sizeof(newX));
+    memset(&newY, 0, sizeof(newY));
+
+    if (Rbc_ParseElemVectorPairsObj(interp, elemPtr, objPtr, &newX, &newY) != TCL_OK) {
+        Rbc_FreeElemVector(&newX);
+        Rbc_FreeElemVector(&newY);
+        return TCL_ERROR;
+    }
+
+    xMask = BAR_DATA_OPTION_MASK(BAR_DATA_OPTION_X);
+    yMask = BAR_DATA_OPTION_MASK(BAR_DATA_OPTION_Y);
+
+    if (transactionPtr->stagedMask & xMask) {
+        Rbc_FreeElemVector(&transactionPtr->x);
+    }
+    if (transactionPtr->stagedMask & yMask) {
+        Rbc_FreeElemVector(&transactionPtr->y);
+    }
+
+    transactionPtr->x = newX;
+    transactionPtr->y = newY;
+    transactionPtr->stagedMask |= xMask | yMask;
+
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * PrepareBarDataTransaction --
+ *
+ *      Builds a complete staged transaction for all bar data options
+ *      involved in the current modern configuration.
+ *
+ *      Explicit option/value pairs are processed in caller order, so
+ *      interactions between "-data", "-x", and "-y" retain their legacy
+ *      last-option-wins behaviour.
+ *
+ * Parameters:
+ *      Graph *graphPtr                      - Owning graph.
+ *      Element *elemPtr                     - Bar element.
+ *      BarDataTransaction *transactionPtr   - Receives staged data.
+ *
+ * Results:
+ *      TCL_OK when all relevant values parse successfully.
+ *      TCL_ERROR otherwise.
+ *
+ * Side Effects:
+ *      Allocates temporary data arrays or vector client IDs. The live
+ *      element vectors remain unchanged.
+ *
+ *----------------------------------------------------------------------
+ */
+static int PrepareBarDataTransaction(Graph *graphPtr, Element *elemPtr, BarDataTransaction *transactionPtr) {
+    Tcl_Interp *interp;
+    unsigned int explicitMask;
+    int i;
+
+    interp = graphPtr->interp;
+    explicitMask = 0;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+
+    assert((elemPtr->optionObjc & 1) == 0);
+
+    /*
+     * First identify all explicitly supplied data options. This lets
+     * the first configuration retain option-database values for options
+     * that the caller did not override.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        BarDataOption option;
+
+        option = GetBarDataOption(elemPtr->optionObjv[i]);
+        if (option != BAR_DATA_OPTION_NONE) {
+            explicitMask |= BAR_DATA_OPTION_MASK(option);
+        }
+    }
+
+    /*
+     * Tk_InitOptions may have installed values from the option database
+     * before the first Tk_SetOptions call. Process those effective values
+     * only when that option was not explicitly supplied.
+     *
+     * The order follows the legacy bar-element table: "-data" first,
+     * followed by weights and individual vectors.
+     */
+    if (!elemPtr->optionsConfigured) {
+        if (!(explicitMask & BAR_DATA_OPTION_MASK(BAR_DATA_OPTION_PAIRS)) && (elemPtr->dataObjPtr != NULL)) {
+            if (StageBarDataPairs(interp, elemPtr, elemPtr->dataObjPtr, transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & BAR_DATA_OPTION_MASK(BAR_DATA_OPTION_WEIGHTS)) && (elemPtr->weightsObjPtr != NULL)) {
+            if (StageBarDataVector(interp, elemPtr, elemPtr->weightsObjPtr, transactionPtr, &transactionPtr->w,
+                                   BAR_DATA_OPTION_WEIGHTS) != TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & BAR_DATA_OPTION_MASK(BAR_DATA_OPTION_X)) && (elemPtr->xObjPtr != NULL)) {
+            if (StageBarDataVector(interp, elemPtr, elemPtr->xObjPtr, transactionPtr, &transactionPtr->x,
+                                   BAR_DATA_OPTION_X) != TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & BAR_DATA_OPTION_MASK(BAR_DATA_OPTION_Y)) && (elemPtr->yObjPtr != NULL)) {
+            if (StageBarDataVector(interp, elemPtr, elemPtr->yObjPtr, transactionPtr, &transactionPtr->y,
+                                   BAR_DATA_OPTION_Y) != TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & BAR_DATA_OPTION_MASK(BAR_DATA_OPTION_X_ERROR)) && (elemPtr->xErrorObjPtr != NULL)) {
+            if (StageBarDataVector(interp, elemPtr, elemPtr->xErrorObjPtr, transactionPtr, &transactionPtr->xError,
+                                   BAR_DATA_OPTION_X_ERROR) != TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & BAR_DATA_OPTION_MASK(BAR_DATA_OPTION_X_HIGH)) && (elemPtr->xHighObjPtr != NULL)) {
+            if (StageBarDataVector(interp, elemPtr, elemPtr->xHighObjPtr, transactionPtr, &transactionPtr->xHigh,
+                                   BAR_DATA_OPTION_X_HIGH) != TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & BAR_DATA_OPTION_MASK(BAR_DATA_OPTION_X_LOW)) && (elemPtr->xLowObjPtr != NULL)) {
+            if (StageBarDataVector(interp, elemPtr, elemPtr->xLowObjPtr, transactionPtr, &transactionPtr->xLow,
+                                   BAR_DATA_OPTION_X_LOW) != TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & BAR_DATA_OPTION_MASK(BAR_DATA_OPTION_Y_ERROR)) && (elemPtr->yErrorObjPtr != NULL)) {
+            if (StageBarDataVector(interp, elemPtr, elemPtr->yErrorObjPtr, transactionPtr, &transactionPtr->yError,
+                                   BAR_DATA_OPTION_Y_ERROR) != TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & BAR_DATA_OPTION_MASK(BAR_DATA_OPTION_Y_HIGH)) && (elemPtr->yHighObjPtr != NULL)) {
+            if (StageBarDataVector(interp, elemPtr, elemPtr->yHighObjPtr, transactionPtr, &transactionPtr->yHigh,
+                                   BAR_DATA_OPTION_Y_HIGH) != TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & BAR_DATA_OPTION_MASK(BAR_DATA_OPTION_Y_LOW)) && (elemPtr->yLowObjPtr != NULL)) {
+            if (StageBarDataVector(interp, elemPtr, elemPtr->yLowObjPtr, transactionPtr, &transactionPtr->yLow,
+                                   BAR_DATA_OPTION_Y_LOW) != TCL_OK) {
+                goto error;
+            }
+        }
+    }
+
+    /*
+     * Process the original option/value vector rather than the retained
+     * object fields. The retained fields contain only each option's final
+     * value and would incorrectly hide an invalid earlier occurrence.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        BarDataOption option;
+        Tcl_Obj *valueObjPtr;
+
+        option = GetBarDataOption(elemPtr->optionObjv[i]);
+        valueObjPtr = elemPtr->optionObjv[i + 1];
+
+        switch (option) {
+        case BAR_DATA_OPTION_PAIRS:
+            if (StageBarDataPairs(interp, elemPtr, valueObjPtr, transactionPtr) != TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case BAR_DATA_OPTION_WEIGHTS:
+            if (StageBarDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->w, option) !=
+                TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case BAR_DATA_OPTION_X:
+            if (StageBarDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->x, option) !=
+                TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case BAR_DATA_OPTION_Y:
+            if (StageBarDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->y, option) !=
+                TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case BAR_DATA_OPTION_X_ERROR:
+            if (StageBarDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->xError, option) !=
+                TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case BAR_DATA_OPTION_X_HIGH:
+            if (StageBarDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->xHigh, option) !=
+                TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case BAR_DATA_OPTION_X_LOW:
+            if (StageBarDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->xLow, option) !=
+                TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case BAR_DATA_OPTION_Y_ERROR:
+            if (StageBarDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->yError, option) !=
+                TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case BAR_DATA_OPTION_Y_HIGH:
+            if (StageBarDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->yHigh, option) !=
+                TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case BAR_DATA_OPTION_Y_LOW:
+            if (StageBarDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->yLow, option) !=
+                TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case BAR_DATA_OPTION_NONE:
+            break;
+        }
+    }
+
+    return TCL_OK;
+
+error:
+    FreeBarDataTransaction(transactionPtr);
+    return TCL_ERROR;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * CommitBarDataTransaction --
+ *
+ *      Commits all successfully staged bar vectors to the live element.
+ *
+ * Parameters:
+ *      Element *elemPtr                     - Destination element.
+ *      BarDataTransaction *transactionPtr   - Completed transaction.
+ *
+ * Results:
+ *      None.
+ *
+ * Side Effects:
+ *      Releases replaced live vectors, transfers staged ownership, and
+ *      installs named-vector change callbacks.
+ *
+ *----------------------------------------------------------------------
+ */
+static void CommitBarDataTransaction(Element *elemPtr, BarDataTransaction *transactionPtr) {
+    if (transactionPtr->stagedMask & BAR_DATA_OPTION_MASK(BAR_DATA_OPTION_X)) {
+        Rbc_CommitElemVector(elemPtr, &elemPtr->x, &transactionPtr->x);
+    }
+
+    if (transactionPtr->stagedMask & BAR_DATA_OPTION_MASK(BAR_DATA_OPTION_Y)) {
+        Rbc_CommitElemVector(elemPtr, &elemPtr->y, &transactionPtr->y);
+    }
+
+    if (transactionPtr->stagedMask & BAR_DATA_OPTION_MASK(BAR_DATA_OPTION_WEIGHTS)) {
+        Rbc_CommitElemVector(elemPtr, &elemPtr->w, &transactionPtr->w);
+    }
+
+    if (transactionPtr->stagedMask & BAR_DATA_OPTION_MASK(BAR_DATA_OPTION_X_ERROR)) {
+        Rbc_CommitElemVector(elemPtr, &elemPtr->xError, &transactionPtr->xError);
+    }
+
+    if (transactionPtr->stagedMask & BAR_DATA_OPTION_MASK(BAR_DATA_OPTION_X_HIGH)) {
+        Rbc_CommitElemVector(elemPtr, &elemPtr->xHigh, &transactionPtr->xHigh);
+    }
+
+    if (transactionPtr->stagedMask & BAR_DATA_OPTION_MASK(BAR_DATA_OPTION_X_LOW)) {
+        Rbc_CommitElemVector(elemPtr, &elemPtr->xLow, &transactionPtr->xLow);
+    }
+
+    if (transactionPtr->stagedMask & BAR_DATA_OPTION_MASK(BAR_DATA_OPTION_Y_ERROR)) {
+        Rbc_CommitElemVector(elemPtr, &elemPtr->yError, &transactionPtr->yError);
+    }
+
+    if (transactionPtr->stagedMask & BAR_DATA_OPTION_MASK(BAR_DATA_OPTION_Y_HIGH)) {
+        Rbc_CommitElemVector(elemPtr, &elemPtr->yHigh, &transactionPtr->yHigh);
+    }
+
+    if (transactionPtr->stagedMask & BAR_DATA_OPTION_MASK(BAR_DATA_OPTION_Y_LOW)) {
+        Rbc_CommitElemVector(elemPtr, &elemPtr->yLow, &transactionPtr->yLow);
+    }
+
+    transactionPtr->stagedMask = 0;
+}
+
+/*
  * ----------------------------------------------------------------------
  *
  * ConfigureBar --
@@ -1299,14 +1858,36 @@ static void CheckStacks(Graph *graphPtr, Axis2D *pairPtr, double *minPtr, double
  */
 static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
     Bar *barPtr;
+    BarDataTransaction dataTransaction;
     Rbc_ChainLink *linkPtr;
+    int dataTransactionPrepared;
 
     barPtr = BAR_FROM_CORE(elemPtr);
 
+    memset(&dataTransaction, 0, sizeof(dataTransaction));
+    dataTransactionPrepared = FALSE;
+
     /*
-     * Configure the embedded bar pen.
+     * Parse all fallible element-data conversions before modifying any
+     * live vectors or derived drawing resources.
+     */
+    if ((elemPtr->optionSpecs != NULL) &&
+        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & BAR_ELEM_DATA_MASK))) {
+        if (PrepareBarDataTransaction(graphPtr, elemPtr, &dataTransaction) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        dataTransactionPrepared = TRUE;
+    }
+
+    /*
+     * Configure the embedded bar pen only after all data values have
+     * parsed successfully. ConfigurePen may still fail, in which case
+     * the staged vectors must be discarded.
      */
     if (ConfigurePen(graphPtr, &barPtr->builtinPen.core) != TCL_OK) {
+        if (dataTransactionPrepared) {
+            FreeBarDataTransaction(&dataTransaction);
+        }
         return TCL_ERROR;
     }
 
@@ -1316,9 +1897,11 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
     if (elemPtr->normalPenPtr == NULL) {
         elemPtr->normalPenPtr = &barPtr->builtinPen.core;
     }
+
     linkPtr = Rbc_ChainFirstLink(elemPtr->palette);
     if (linkPtr != NULL) {
         BarPenStyle *stylePtr;
+
         stylePtr = Rbc_ChainGetValue(linkPtr);
 
         /*
@@ -1326,10 +1909,24 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
          */
         stylePtr->penPtr = BAR_PEN_FROM_CORE(elemPtr->normalPenPtr);
     }
-    if (Rbc_ConfigModified(graphPtr->interp, elemPtr->specsPtr, "-barwidth", "-*data", "-map*", "-label", "-hide", "-x",
-                           "-y", (char *)NULL)) {
+
+    /*
+     * Nothing below this point can fail, so staged vectors may now
+     * replace the live vectors.
+     */
+    if (dataTransactionPrepared) {
+        CommitBarDataTransaction(elemPtr, &dataTransaction);
+    }
+
+    if (elemPtr->optionSpecs != NULL) {
+        if ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & BAR_ELEM_MAP_ITEM_MASK)) {
+            elemPtr->flags |= MAP_ITEM;
+        }
+    } else if (Rbc_ConfigModified(graphPtr->interp, elemPtr->specsPtr, "-barwidth", "-*data", "-map*", "-label",
+                                  "-hide", "-x", "-y", (char *)NULL)) {
         elemPtr->flags |= MAP_ITEM;
     }
+
     return TCL_OK;
 }
 
