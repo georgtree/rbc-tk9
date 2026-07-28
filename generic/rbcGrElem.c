@@ -1197,10 +1197,17 @@ static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr, int objc, 
 
     assert(elemPtr->optionsInitialized);
     assert(elemPtr->optionTable != NULL);
+
+    /*
+     * optionMask is valid only while the concrete configuration
+     * procedure is running.
+     */
+    elemPtr->optionMask = 0;
     if (Tk_SetOptions(graphPtr->interp, (char *)elemPtr, elemPtr->optionTable, objc, objv, graphPtr->tkwin,
                       &savedOptions, &mask) != TCL_OK) {
         return TCL_ERROR;
     }
+    elemPtr->optionMask = mask;
 
     /*
      * Concrete configuration procedures must be transactional:
@@ -1210,11 +1217,13 @@ static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr, int objc, 
     if ((*elemPtr->procsPtr->configProc)(graphPtr, elemPtr) != TCL_OK) {
         errorObjPtr = Tcl_GetObjResult(graphPtr->interp);
         Tcl_IncrRefCount(errorObjPtr);
+        elemPtr->optionMask = 0;
         Tk_RestoreSavedOptions(&savedOptions);
         Tcl_SetObjResult(graphPtr->interp, errorObjPtr);
         Tcl_DecrRefCount(errorObjPtr);
         return TCL_ERROR;
     }
+    elemPtr->optionMask = 0;
     Tk_FreeSavedOptions(&savedOptions);
     if (maskPtr != NULL) {
         *maskPtr = mask;
@@ -1356,20 +1365,15 @@ static int CreateElement(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj 
             return TCL_ERROR;
         }
 
-        if (objc > 4) {
-            if (ConfigureElementOptions(graphPtr, elemPtr, objc - 4, objv + 4, NULL) != TCL_OK) {
-                DestroyElement(graphPtr, elemPtr);
-                return TCL_ERROR;
-            }
-        } else {
-            /*
-             * Tk_InitOptions installed defaults, but the element still
-             * needs its derived drawing resources.
-             */
-            if ((*elemPtr->procsPtr->configProc)(graphPtr, elemPtr) != TCL_OK) {
-                DestroyElement(graphPtr, elemPtr);
-                return TCL_ERROR;
-            }
+        /*
+         * Always use the transactional path, including when there are no
+         * explicit option/value pairs. Tk_InitOptions has already installed
+         * the defaults, and configProc must build the derived state from
+         * those defaults.
+         */
+        if (ConfigureElementOptions(graphPtr, elemPtr, objc - 4, objv + 4, NULL) != TCL_OK) {
+            DestroyElement(graphPtr, elemPtr);
+            return TCL_ERROR;
         }
     } else {
         if (Rbc_ConfigureWidgetComponent(interp, graphPtr->tkwin, elemPtr->name, "Element", elemPtr->specsPtr, objc - 4,

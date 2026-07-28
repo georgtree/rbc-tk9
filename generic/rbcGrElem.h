@@ -238,6 +238,14 @@ struct ElementStruct {
      */
     const Tk_OptionSpec *optionSpecs;
     Tk_OptionTable optionTable;
+
+    /*
+     * OR-ed typeMask values for options changed by the current
+     * Tk_SetOptions transaction. This is valid only while configProc
+     * is executing.
+     */
+    int optionMask;
+
     int optionsInitialized;
     int tkResourcesReleased;
 
