@@ -200,81 +200,7 @@ typedef struct {
 } LinePenStyle;
 
 typedef struct {
-    char *name; /* Identifier used to refer the
-                 * element. Used in the "insert",
-                 * "delete", or "show", operations. */
-
-    Rbc_Uid classUid; /* Type of element */
-
-    Graph *graphPtr; /* Graph widget of element*/
-
-    unsigned int flags; /* Indicates if the entire element is
-                         * active, or if coordinates need to
-                         * be calculated */
-
-    char **tags;
-
-    int hidden; /* If non-zero, don't display the
-                 * element. */
-
-    Tcl_HashEntry *hashPtr;
-
-    char *label; /* Label displayed in legend */
-
-    int labelRelief; /* Relief of label in legend. */
-
-    Axis2D axes;
-
-    ElemVector x, y, w; /* Contains array of numeric values */
-
-    ElemVector xError;      /* Relative/symmetric X error values. */
-    ElemVector yError;      /* Relative/symmetric Y error values. */
-    ElemVector xHigh, xLow; /* Absolute/asymmetric X-coordinate high/low
-                error values. */
-    ElemVector yHigh, yLow; /* Absolute/asymmetric Y-coordinate high/low
-                error values. */
-
-    int *activeIndices; /* Array of indices (malloc-ed) that
-                         * indicate the data points are active
-                         * (drawn with "active" colors). */
-
-    int nActiveIndices; /* Number of active data points.
-                         * Special case: if < 0 then all data
-                         * points are drawn active. */
-
-    ElementProcs *procsPtr;
-    Tk_ConfigSpec *configSpecs; /* Configuration specifications */
-
-    Segment2D *xErrorBars; /* Point to start of this pen's X-error bar
-                            * segments in the element's array. */
-    Segment2D *yErrorBars; /* Point to start of this pen's Y-error bar
-                            * segments in the element's array. */
-    int xErrorBarCnt;      /* # of error bars for this pen. */
-    int yErrorBarCnt;      /* # of error bars for this pen. */
-
-    int *xErrorToData; /* Maps individual error bar segments back
-                        * to the data point associated with it. */
-    int *yErrorToData; /* Maps individual error bar segments back
-                        * to the data point associated with it. */
-
-    int errorBarCapWidth; /* Length of cap on error bars */
-
-    LinePen *activePenPtr; /* Pen to draw "active" elements. */
-    LinePen *normalPenPtr; /* Pen to draw elements normally. */
-
-    Rbc_Chain *palette; /* Array of pen styles: pens are associated
-                         * with specific ranges of data.*/
-
-    /* Symbol scaling */
-    int scaleSymbols; /* If non-zero, the symbols will scale
-                       * in size as the graph is zoomed
-                       * in/out.  */
-
-    double xRange, yRange; /* Initial X-axis and Y-axis ranges:
-                            * used to scale the size of element's
-                            * symbol. */
-
-    int state;
+    Element core;
     /*
      * Line specific configurable attributes
      */
@@ -356,6 +282,12 @@ typedef struct {
     int *stripToData;  /* Pen to visible line segment mapping. */
 
 } Line;
+
+_Static_assert(offsetof(Line, core) == 0, "Element core must be the first Line member");
+
+#define LINE_FROM_CORE(elemPtr) ((Line *)((char *)(elemPtr) - offsetof(Line, core)))
+
+#define LINE_CORE_OFFSET(member) (offsetof(Line, core) + offsetof(Element, member))
 
 static Tk_OptionParseProc StringToPattern;
 static Tk_OptionPrintProc PatternToString;
@@ -451,7 +383,7 @@ extern Tk_CustomOption rbcStateOption;
 #define DEF_PEN_SHOW_VALUES "no"
 
 static Tk_ConfigSpec lineElemConfigSpecs[] = {
-    {TK_CONFIG_CUSTOM, "-activepen", "activePen", "ActivePen", DEF_LINE_ACTIVE_PEN, offsetof(Line, activePenPtr),
+    {TK_CONFIG_CUSTOM, "-activepen", "activePen", "ActivePen", DEF_LINE_ACTIVE_PEN, LINE_CORE_OFFSET(activePenPtr),
      TK_CONFIG_NULL_OK, &rbcLinePenOption},
     {TK_CONFIG_CUSTOM, "-areapattern", "areaPattern", "AreaPattern", DEF_LINE_PATTERN, offsetof(Line, fillStipple),
      TK_CONFIG_NULL_OK, &patternOption},
@@ -461,7 +393,7 @@ static Tk_ConfigSpec lineElemConfigSpecs[] = {
      offsetof(Line, fillBgColor), TK_CONFIG_NULL_OK},
     {TK_CONFIG_CUSTOM, "-areatile", "areaTile", "AreaTile", DEF_LINE_PATTERN_TILE, offsetof(Line, fillTile),
      TK_CONFIG_NULL_OK, &rbcTileOption},
-    {TK_CONFIG_CUSTOM, "-bindtags", "bindTags", "BindTags", DEF_LINE_TAGS, offsetof(Line, tags), TK_CONFIG_NULL_OK,
+    {TK_CONFIG_CUSTOM, "-bindtags", "bindTags", "BindTags", DEF_LINE_TAGS, LINE_CORE_OFFSET(tags), TK_CONFIG_NULL_OK,
      &rbcListOption},
     {TK_CONFIG_COLOR, "-color", "color", "Color", DEF_LINE_PEN_COLOR, offsetof(Line, builtinPen.traceColor),
      TK_CONFIG_COLOR_ONLY},
@@ -480,14 +412,14 @@ static Tk_ConfigSpec lineElemConfigSpecs[] = {
      TK_CONFIG_NULL_OK | TK_CONFIG_COLOR_ONLY, &rbcColorOption},
     {TK_CONFIG_CUSTOM, "-fill", "fill", "Fill", DEF_LINE_FILL_MONO, offsetof(Line, builtinPen.symbol.fillColor),
      TK_CONFIG_NULL_OK | TK_CONFIG_MONO_ONLY, &rbcColorOption},
-    {TK_CONFIG_BOOLEAN, "-hide", "hide", "Hide", DEF_LINE_HIDE, offsetof(Line, hidden), TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_STRING, "-label", "label", "Label", (char *)NULL, offsetof(Line, label), TK_CONFIG_NULL_OK},
-    {TK_CONFIG_RELIEF, "-labelrelief", "labelRelief", "LabelRelief", DEF_LINE_LABEL_RELIEF, offsetof(Line, labelRelief),
+    {TK_CONFIG_BOOLEAN, "-hide", "hide", "Hide", DEF_LINE_HIDE, LINE_CORE_OFFSET(hidden), TK_CONFIG_DONT_SET_DEFAULT},
+    {TK_CONFIG_STRING, "-label", "label", "Label", (char *)NULL, LINE_CORE_OFFSET(label), TK_CONFIG_NULL_OK},
+    {TK_CONFIG_RELIEF, "-labelrelief", "labelRelief", "LabelRelief", DEF_LINE_LABEL_RELIEF, LINE_CORE_OFFSET(labelRelief),
      TK_CONFIG_DONT_SET_DEFAULT},
     {TK_CONFIG_CUSTOM, "-linewidth", "lineWidth", "LineWidth", DEF_LINE_PEN_WIDTH,
      offsetof(Line, builtinPen.traceWidth), TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-mapx", "mapX", "MapX", DEF_LINE_AXIS_X, offsetof(Line, axes.x), 0, &rbcXAxisOption},
-    {TK_CONFIG_CUSTOM, "-mapy", "mapY", "MapY", DEF_LINE_AXIS_Y, offsetof(Line, axes.y), 0, &rbcYAxisOption},
+    {TK_CONFIG_CUSTOM, "-mapx", "mapX", "MapX", DEF_LINE_AXIS_X, LINE_CORE_OFFSET(axes.x), 0, &rbcXAxisOption},
+    {TK_CONFIG_CUSTOM, "-mapy", "mapY", "MapY", DEF_LINE_AXIS_Y, LINE_CORE_OFFSET(axes.y), 0, &rbcYAxisOption},
     {TK_CONFIG_CUSTOM, "-maxsymbols", "maxSymbols", "MaxSymbols", DEF_LINE_MAX_SYMBOLS, offsetof(Line, reqMaxSymbols),
      TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
     {TK_CONFIG_CUSTOM, "-offdash", "offDash", "OffDash", DEF_LINE_OFFDASH_COLOR,
@@ -500,23 +432,23 @@ static Tk_ConfigSpec lineElemConfigSpecs[] = {
      offsetof(Line, builtinPen.symbol.outlineColor), TK_CONFIG_MONO_ONLY, &rbcColorOption},
     {TK_CONFIG_CUSTOM, "-outlinewidth", "outlineWidth", "OutlineWidth", DEF_LINE_OUTLINE_WIDTH,
      offsetof(Line, builtinPen.symbol.outlineWidth), TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-pen", "pen", "Pen", (char *)NULL, offsetof(Line, normalPenPtr), TK_CONFIG_NULL_OK,
+    {TK_CONFIG_CUSTOM, "-pen", "pen", "Pen", (char *)NULL, LINE_CORE_OFFSET(normalPenPtr), TK_CONFIG_NULL_OK,
      &rbcLinePenOption},
     {TK_CONFIG_CUSTOM, "-pixels", "pixels", "Pixels", DEF_LINE_PIXELS, offsetof(Line, builtinPen.symbol.size),
      GRAPH | STRIPCHART, &rbcDistanceOption},
     {TK_CONFIG_DOUBLE, "-reduce", "reduce", "Reduce", DEF_LINE_REDUCE, offsetof(Line, rTolerance),
      GRAPH | STRIPCHART | TK_CONFIG_DONT_SET_DEFAULT},
     {TK_CONFIG_BOOLEAN, "-scalesymbols", "scaleSymbols", "ScaleSymbols", DEF_LINE_SCALE_SYMBOLS,
-     offsetof(Line, scaleSymbols), TK_CONFIG_DONT_SET_DEFAULT},
+     LINE_CORE_OFFSET(scaleSymbols), TK_CONFIG_DONT_SET_DEFAULT},
     {TK_CONFIG_CUSTOM, "-showerrorbars", "showErrorBars", "ShowErrorBars", DEF_LINE_SHOW_ERRORBARS,
      offsetof(Line, builtinPen.errorBarShow), TK_CONFIG_DONT_SET_DEFAULT, &rbcFillOption},
     {TK_CONFIG_CUSTOM, "-showvalues", "showValues", "ShowValues", DEF_PEN_SHOW_VALUES,
      offsetof(Line, builtinPen.valueShow), TK_CONFIG_DONT_SET_DEFAULT, &rbcFillOption},
     {TK_CONFIG_CUSTOM, "-smooth", "smooth", "Smooth", DEF_LINE_SMOOTH, offsetof(Line, reqSmooth),
      TK_CONFIG_DONT_SET_DEFAULT, &smoothOption},
-    {TK_CONFIG_CUSTOM, "-state", "state", "State", DEF_LINE_STATE, offsetof(Line, state), TK_CONFIG_DONT_SET_DEFAULT,
+    {TK_CONFIG_CUSTOM, "-state", "state", "State", DEF_LINE_STATE, LINE_CORE_OFFSET(state), TK_CONFIG_DONT_SET_DEFAULT,
      &rbcStateOption},
-    {TK_CONFIG_CUSTOM, "-styles", "styles", "Styles", DEF_LINE_STYLES, offsetof(Line, palette), TK_CONFIG_NULL_OK,
+    {TK_CONFIG_CUSTOM, "-styles", "styles", "Styles", DEF_LINE_STYLES, LINE_CORE_OFFSET(palette), TK_CONFIG_NULL_OK,
      &stylesOption},
     {TK_CONFIG_CUSTOM, "-symbol", "symbol", "Symbol", DEF_LINE_SYMBOL, offsetof(Line, builtinPen.symbol),
      TK_CONFIG_DONT_SET_DEFAULT, &symbolOption},
@@ -534,23 +466,23 @@ static Tk_ConfigSpec lineElemConfigSpecs[] = {
      offsetof(Line, builtinPen.valueStyle.theta), 0},
     {TK_CONFIG_CUSTOM, "-valueshadow", "valueShadow", "ValueShadow", DEF_PEN_VALUE_SHADOW,
      offsetof(Line, builtinPen.valueStyle.shadow), 0, &rbcShadowOption},
-    {TK_CONFIG_CUSTOM, "-weights", "weights", "Weights", (char *)NULL, offsetof(Line, w), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-x", "xData", "XData", (char *)NULL, offsetof(Line, x), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-xdata", "xData", "XData", (char *)NULL, offsetof(Line, x), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-xerror", "xError", "XError", (char *)NULL, offsetof(Line, xError), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-xhigh", "xHigh", "XHigh", (char *)NULL, offsetof(Line, xHigh), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-xlow", "xLow", "XLow", (char *)NULL, offsetof(Line, xLow), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-y", "yData", "YData", (char *)NULL, offsetof(Line, y), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-ydata", "yData", "YData", (char *)NULL, offsetof(Line, y), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-yerror", "yError", "YError", (char *)NULL, offsetof(Line, yError), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-yhigh", "yHigh", "YHigh", (char *)NULL, offsetof(Line, yHigh), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-ylow", "yLow", "YLow", (char *)NULL, offsetof(Line, yLow), 0, &rbcDataOption},
+    {TK_CONFIG_CUSTOM, "-weights", "weights", "Weights", (char *)NULL, LINE_CORE_OFFSET(w), 0, &rbcDataOption},
+    {TK_CONFIG_CUSTOM, "-x", "xData", "XData", (char *)NULL, LINE_CORE_OFFSET(x), 0, &rbcDataOption},
+    {TK_CONFIG_CUSTOM, "-xdata", "xData", "XData", (char *)NULL, LINE_CORE_OFFSET(x), 0, &rbcDataOption},
+    {TK_CONFIG_CUSTOM, "-xerror", "xError", "XError", (char *)NULL, LINE_CORE_OFFSET(xError), 0, &rbcDataOption},
+    {TK_CONFIG_CUSTOM, "-xhigh", "xHigh", "XHigh", (char *)NULL, LINE_CORE_OFFSET(xHigh), 0, &rbcDataOption},
+    {TK_CONFIG_CUSTOM, "-xlow", "xLow", "XLow", (char *)NULL, LINE_CORE_OFFSET(xLow), 0, &rbcDataOption},
+    {TK_CONFIG_CUSTOM, "-y", "yData", "YData", (char *)NULL, LINE_CORE_OFFSET(y), 0, &rbcDataOption},
+    {TK_CONFIG_CUSTOM, "-ydata", "yData", "YData", (char *)NULL, LINE_CORE_OFFSET(y), 0, &rbcDataOption},
+    {TK_CONFIG_CUSTOM, "-yerror", "yError", "YError", (char *)NULL, LINE_CORE_OFFSET(yError), 0, &rbcDataOption},
+    {TK_CONFIG_CUSTOM, "-yhigh", "yHigh", "YHigh", (char *)NULL, LINE_CORE_OFFSET(yHigh), 0, &rbcDataOption},
+    {TK_CONFIG_CUSTOM, "-ylow", "yLow", "YLow", (char *)NULL, LINE_CORE_OFFSET(yLow), 0, &rbcDataOption},
     {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}};
 
 static Tk_ConfigSpec stripElemConfigSpecs[] = {
-    {TK_CONFIG_CUSTOM, "-activepen", "activePen", "ActivePen", DEF_LINE_ACTIVE_PEN, offsetof(Line, activePenPtr),
+    {TK_CONFIG_CUSTOM, "-activepen", "activePen", "ActivePen", DEF_LINE_ACTIVE_PEN, LINE_CORE_OFFSET(activePenPtr),
      TK_CONFIG_NULL_OK, &rbcLinePenOption},
-    {TK_CONFIG_CUSTOM, "-bindtags", "bindTags", "BindTags", DEF_LINE_TAGS, offsetof(Line, tags), TK_CONFIG_NULL_OK,
+    {TK_CONFIG_CUSTOM, "-bindtags", "bindTags", "BindTags", DEF_LINE_TAGS, LINE_CORE_OFFSET(tags), TK_CONFIG_NULL_OK,
      &rbcListOption},
     {TK_CONFIG_COLOR, "-color", "color", "Color", DEF_LINE_PEN_COLOR, offsetof(Line, builtinPen.traceColor),
      TK_CONFIG_COLOR_ONLY},
@@ -569,14 +501,14 @@ static Tk_ConfigSpec stripElemConfigSpecs[] = {
      TK_CONFIG_NULL_OK | TK_CONFIG_COLOR_ONLY, &rbcColorOption},
     {TK_CONFIG_CUSTOM, "-fill", "fill", "Fill", DEF_LINE_FILL_MONO, offsetof(Line, builtinPen.symbol.fillColor),
      TK_CONFIG_NULL_OK | TK_CONFIG_MONO_ONLY, &rbcColorOption},
-    {TK_CONFIG_BOOLEAN, "-hide", "hide", "Hide", DEF_LINE_HIDE, offsetof(Line, hidden), TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_STRING, "-label", "label", "Label", (char *)NULL, offsetof(Line, label), TK_CONFIG_NULL_OK},
-    {TK_CONFIG_RELIEF, "-labelrelief", "labelRelief", "LabelRelief", DEF_LINE_LABEL_RELIEF, offsetof(Line, labelRelief),
+    {TK_CONFIG_BOOLEAN, "-hide", "hide", "Hide", DEF_LINE_HIDE, LINE_CORE_OFFSET(hidden), TK_CONFIG_DONT_SET_DEFAULT},
+    {TK_CONFIG_STRING, "-label", "label", "Label", (char *)NULL, LINE_CORE_OFFSET(label), TK_CONFIG_NULL_OK},
+    {TK_CONFIG_RELIEF, "-labelrelief", "labelRelief", "LabelRelief", DEF_LINE_LABEL_RELIEF, LINE_CORE_OFFSET(labelRelief),
      TK_CONFIG_DONT_SET_DEFAULT},
     {TK_CONFIG_CUSTOM, "-linewidth", "lineWidth", "LineWidth", DEF_LINE_PEN_WIDTH,
      offsetof(Line, builtinPen.traceWidth), TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-mapx", "mapX", "MapX", DEF_LINE_AXIS_X, offsetof(Line, axes.x), 0, &rbcXAxisOption},
-    {TK_CONFIG_CUSTOM, "-mapy", "mapY", "MapY", DEF_LINE_AXIS_Y, offsetof(Line, axes.y), 0, &rbcYAxisOption},
+    {TK_CONFIG_CUSTOM, "-mapx", "mapX", "MapX", DEF_LINE_AXIS_X, LINE_CORE_OFFSET(axes.x), 0, &rbcXAxisOption},
+    {TK_CONFIG_CUSTOM, "-mapy", "mapY", "MapY", DEF_LINE_AXIS_Y, LINE_CORE_OFFSET(axes.y), 0, &rbcYAxisOption},
     {TK_CONFIG_CUSTOM, "-maxsymbols", "maxSymbols", "MaxSymbols", DEF_LINE_MAX_SYMBOLS, offsetof(Line, reqMaxSymbols),
      TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
     {TK_CONFIG_CUSTOM, "-offdash", "offDash", "OffDash", DEF_LINE_OFFDASH_COLOR,
@@ -589,19 +521,19 @@ static Tk_ConfigSpec stripElemConfigSpecs[] = {
      offsetof(Line, builtinPen.symbol.outlineColor), TK_CONFIG_MONO_ONLY, &rbcColorOption},
     {TK_CONFIG_CUSTOM, "-outlinewidth", "outlineWidth", "OutlineWidth", DEF_LINE_OUTLINE_WIDTH,
      offsetof(Line, builtinPen.symbol.outlineWidth), TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-pen", "pen", "Pen", (char *)NULL, offsetof(Line, normalPenPtr), TK_CONFIG_NULL_OK,
+    {TK_CONFIG_CUSTOM, "-pen", "pen", "Pen", (char *)NULL, LINE_CORE_OFFSET(normalPenPtr), TK_CONFIG_NULL_OK,
      &rbcLinePenOption},
     {TK_CONFIG_CUSTOM, "-pixels", "pixels", "Pixels", DEF_LINE_PIXELS, offsetof(Line, builtinPen.symbol.size), 0,
      &rbcDistanceOption},
     {TK_CONFIG_BOOLEAN, "-scalesymbols", "scaleSymbols", "ScaleSymbols", DEF_LINE_SCALE_SYMBOLS,
-     offsetof(Line, scaleSymbols), TK_CONFIG_DONT_SET_DEFAULT},
+     LINE_CORE_OFFSET(scaleSymbols), TK_CONFIG_DONT_SET_DEFAULT},
     {TK_CONFIG_CUSTOM, "-showerrorbars", "showErrorBars", "ShowErrorBars", DEF_LINE_SHOW_ERRORBARS,
      offsetof(Line, builtinPen.errorBarShow), TK_CONFIG_DONT_SET_DEFAULT, &rbcFillOption},
     {TK_CONFIG_CUSTOM, "-showvalues", "showValues", "ShowValues", DEF_PEN_SHOW_VALUES,
      offsetof(Line, builtinPen.valueShow), TK_CONFIG_DONT_SET_DEFAULT, &rbcFillOption},
     {TK_CONFIG_CUSTOM, "-smooth", "smooth", "Smooth", DEF_LINE_SMOOTH, offsetof(Line, reqSmooth),
      TK_CONFIG_DONT_SET_DEFAULT, &smoothOption},
-    {TK_CONFIG_CUSTOM, "-styles", "styles", "Styles", DEF_LINE_STYLES, offsetof(Line, palette), TK_CONFIG_NULL_OK,
+    {TK_CONFIG_CUSTOM, "-styles", "styles", "Styles", DEF_LINE_STYLES, LINE_CORE_OFFSET(palette), TK_CONFIG_NULL_OK,
      &stylesOption},
     {TK_CONFIG_CUSTOM, "-symbol", "symbol", "Symbol", DEF_LINE_SYMBOL, offsetof(Line, builtinPen.symbol),
      TK_CONFIG_DONT_SET_DEFAULT, &symbolOption},
@@ -617,17 +549,17 @@ static Tk_ConfigSpec stripElemConfigSpecs[] = {
      offsetof(Line, builtinPen.valueStyle.theta), 0},
     {TK_CONFIG_CUSTOM, "-valueshadow", "valueShadow", "ValueShadow", DEF_PEN_VALUE_SHADOW,
      offsetof(Line, builtinPen.valueStyle.shadow), 0, &rbcShadowOption},
-    {TK_CONFIG_CUSTOM, "-weights", "weights", "Weights", (char *)NULL, offsetof(Line, w), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-x", "xData", "XData", (char *)NULL, offsetof(Line, x), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-xdata", "xData", "XData", (char *)NULL, offsetof(Line, x), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-y", "yData", "YData", (char *)NULL, offsetof(Line, y), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-xerror", "xError", "XError", (char *)NULL, offsetof(Line, xError), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-ydata", "yData", "YData", (char *)NULL, offsetof(Line, y), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-yerror", "yError", "YError", (char *)NULL, offsetof(Line, yError), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-xhigh", "xHigh", "XHigh", (char *)NULL, offsetof(Line, xHigh), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-xlow", "xLow", "XLow", (char *)NULL, offsetof(Line, xLow), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-yhigh", "yHigh", "YHigh", (char *)NULL, offsetof(Line, xHigh), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-ylow", "yLow", "YLow", (char *)NULL, offsetof(Line, yLow), 0, &rbcDataOption},
+    {TK_CONFIG_CUSTOM, "-weights", "weights", "Weights", (char *)NULL, LINE_CORE_OFFSET(w), 0, &rbcDataOption},
+    {TK_CONFIG_CUSTOM, "-x", "xData", "XData", (char *)NULL, LINE_CORE_OFFSET(x), 0, &rbcDataOption},
+    {TK_CONFIG_CUSTOM, "-xdata", "xData", "XData", (char *)NULL, LINE_CORE_OFFSET(x), 0, &rbcDataOption},
+    {TK_CONFIG_CUSTOM, "-y", "yData", "YData", (char *)NULL, LINE_CORE_OFFSET(y), 0, &rbcDataOption},
+    {TK_CONFIG_CUSTOM, "-xerror", "xError", "XError", (char *)NULL, LINE_CORE_OFFSET(xError), 0, &rbcDataOption},
+    {TK_CONFIG_CUSTOM, "-ydata", "yData", "YData", (char *)NULL, LINE_CORE_OFFSET(y), 0, &rbcDataOption},
+    {TK_CONFIG_CUSTOM, "-yerror", "yError", "YError", (char *)NULL, LINE_CORE_OFFSET(yError), 0, &rbcDataOption},
+    {TK_CONFIG_CUSTOM, "-xhigh", "xHigh", "XHigh", (char *)NULL, LINE_CORE_OFFSET(xHigh), 0, &rbcDataOption},
+    {TK_CONFIG_CUSTOM, "-xlow", "xLow", "XLow", (char *)NULL, LINE_CORE_OFFSET(xLow), 0, &rbcDataOption},
+    {TK_CONFIG_CUSTOM, "-yhigh", "yHigh", "YHigh", (char *)NULL, LINE_CORE_OFFSET(yHigh), 0, &rbcDataOption},
+    {TK_CONFIG_CUSTOM, "-ylow", "yLow", "YLow", (char *)NULL, LINE_CORE_OFFSET(yLow), 0, &rbcDataOption},
     {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}};
 
 #define LINE_PEN_OPTION_ENTRIES(DEFAULT_COLOR)                         \
@@ -2471,9 +2403,9 @@ static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     register Point2D *screenPts;
     register int *indices;
 
-    n = NumberOfPoints(linePtr);
-    x = linePtr->x.valueArr;
-    y = linePtr->y.valueArr;
+    n = NumberOfPoints(&linePtr->core);
+    x = linePtr->core.x.valueArr;
+    y = linePtr->core.y.valueArr;
     screenPts = (Point2D *)ckalloc(sizeof(Point2D) * n);
     assert(screenPts);
     indices = (int *)ckalloc(sizeof(int) * n);
@@ -2483,8 +2415,8 @@ static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     if (graphPtr->inverted) {
         for (i = 0; i < n; i++) {
             if ((FINITE(x[i])) && (FINITE(y[i]))) {
-                screenPts[count].x = Rbc_HMap(graphPtr, linePtr->axes.y, y[i]);
-                screenPts[count].y = Rbc_VMap(graphPtr, linePtr->axes.x, x[i]);
+                screenPts[count].x = Rbc_HMap(graphPtr, linePtr->core.axes.y, y[i]);
+                screenPts[count].y = Rbc_VMap(graphPtr, linePtr->core.axes.x, x[i]);
                 indices[count] = i;
                 count++;
             }
@@ -2492,8 +2424,8 @@ static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     } else {
         for (i = 0; i < n; i++) {
             if ((FINITE(x[i])) && (FINITE(y[i]))) {
-                screenPts[count].x = Rbc_HMap(graphPtr, linePtr->axes.x, x[i]);
-                screenPts[count].y = Rbc_VMap(graphPtr, linePtr->axes.y, y[i]);
+                screenPts[count].x = Rbc_HMap(graphPtr, linePtr->core.axes.x, x[i]);
+                screenPts[count].y = Rbc_VMap(graphPtr, linePtr->core.axes.y, y[i]);
                 indices[count] = i;
                 count++;
             }
@@ -2953,19 +2885,19 @@ static void MapActiveSymbols(Graph *graphPtr, Line *linePtr) {
         linePtr->activeToData = NULL;
     }
     Rbc_GraphExtents(graphPtr, &exts);
-    activePts = (Point2D *)ckalloc(sizeof(Point2D) * linePtr->nActiveIndices);
+    activePts = (Point2D *)ckalloc(sizeof(Point2D) * linePtr->core.nActiveIndices);
     assert(activePts);
-    activeToData = (int *)ckalloc(sizeof(int) * linePtr->nActiveIndices);
-    nPoints = NumberOfPoints(linePtr);
+    activeToData = (int *)ckalloc(sizeof(int) * linePtr->core.nActiveIndices);
+    nPoints = NumberOfPoints(&linePtr->core);
     count = 0; /* Count the visible active points */
-    for (i = 0; i < linePtr->nActiveIndices; i++) {
-        pointIndex = linePtr->activeIndices[i];
+    for (i = 0; i < linePtr->core.nActiveIndices; i++) {
+        pointIndex = linePtr->core.activeIndices[i];
         if (pointIndex >= nPoints) {
             continue; /* Index not available */
         }
-        x = linePtr->x.valueArr[pointIndex];
-        y = linePtr->y.valueArr[pointIndex];
-        activePts[count] = Rbc_Map2D(graphPtr, x, y, &(linePtr->axes));
+        x = linePtr->core.x.valueArr[pointIndex];
+        y = linePtr->core.y.valueArr[pointIndex];
+        activePts[count] = Rbc_Map2D(graphPtr, x, y, &(linePtr->core.axes));
         activeToData[count] = pointIndex;
         if (PointInRegion(&exts, activePts[count].x, activePts[count].y)) {
             count++;
@@ -2980,7 +2912,7 @@ static void MapActiveSymbols(Graph *graphPtr, Line *linePtr) {
         ckfree((char *)activeToData);
     }
     linePtr->nActivePts = count;
-    linePtr->flags &= ~ACTIVE_PENDING;
+    linePtr->core.flags &= ~ACTIVE_PENDING;
 }
 
 /*
@@ -3064,18 +2996,18 @@ static void MergePens(Line *linePtr, PenStyle **dataToStyle) {
     register int i;
     Rbc_ChainLink *linkPtr;
 
-    if (Rbc_ChainGetLength(linePtr->palette) < 2) {
-        linkPtr = Rbc_ChainFirstLink(linePtr->palette);
+    if (Rbc_ChainGetLength(linePtr->core.palette) < 2) {
+        linkPtr = Rbc_ChainFirstLink(linePtr->core.palette);
         stylePtr = Rbc_ChainGetValue(linkPtr);
         stylePtr->nStrips = linePtr->nStrips;
         stylePtr->strips = linePtr->strips;
         stylePtr->nSymbolPts = linePtr->nSymbolPts;
         stylePtr->symbolPts = linePtr->symbolPts;
-        stylePtr->xErrorBarCnt = linePtr->xErrorBarCnt;
-        stylePtr->yErrorBarCnt = linePtr->yErrorBarCnt;
-        stylePtr->xErrorBars = linePtr->xErrorBars;
-        stylePtr->yErrorBars = linePtr->yErrorBars;
-        stylePtr->errorBarCapWidth = linePtr->errorBarCapWidth;
+        stylePtr->xErrorBarCnt = linePtr->core.xErrorBarCnt;
+        stylePtr->yErrorBarCnt = linePtr->core.yErrorBarCnt;
+        stylePtr->xErrorBars = linePtr->core.xErrorBars;
+        stylePtr->yErrorBars = linePtr->core.yErrorBars;
+        stylePtr->errorBarCapWidth = linePtr->core.errorBarCapWidth;
         return;
     }
 
@@ -3093,7 +3025,7 @@ static void MergePens(Line *linePtr, PenStyle **dataToStyle) {
         stripToData = (int *)ckalloc(linePtr->nStrips * sizeof(int));
         assert(strips && stripToData);
         segPtr = strips, indexPtr = stripToData;
-        for (linkPtr = Rbc_ChainFirstLink(linePtr->palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
             stylePtr = Rbc_ChainGetValue(linkPtr);
             stylePtr->strips = segPtr;
             for (i = 0; i < linePtr->nStrips; i++) {
@@ -3120,7 +3052,7 @@ static void MergePens(Line *linePtr, PenStyle **dataToStyle) {
         symbolToData = (int *)ckalloc(linePtr->nSymbolPts * sizeof(int));
         assert(symbolPts && symbolToData);
         pointPtr = symbolPts, indexPtr = symbolToData;
-        for (linkPtr = Rbc_ChainFirstLink(linePtr->palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
             stylePtr = Rbc_ChainGetValue(linkPtr);
             stylePtr->symbolPts = pointPtr;
             for (i = 0; i < linePtr->nSymbolPts; i++) {
@@ -3137,57 +3069,57 @@ static void MergePens(Line *linePtr, PenStyle **dataToStyle) {
         ckfree((char *)linePtr->symbolToData);
         linePtr->symbolToData = symbolToData;
     }
-    if (linePtr->xErrorBarCnt > 0) {
+    if (linePtr->core.xErrorBarCnt > 0) {
         Segment2D *xErrorBars, *segPtr;
         int *xErrorToData, *indexPtr;
         int dataIndex;
 
-        xErrorBars = (Segment2D *)ckalloc(linePtr->xErrorBarCnt * sizeof(Segment2D));
-        xErrorToData = (int *)ckalloc(linePtr->xErrorBarCnt * sizeof(int));
+        xErrorBars = (Segment2D *)ckalloc(linePtr->core.xErrorBarCnt * sizeof(Segment2D));
+        xErrorToData = (int *)ckalloc(linePtr->core.xErrorBarCnt * sizeof(int));
         assert(xErrorBars);
         segPtr = xErrorBars, indexPtr = xErrorToData;
-        for (linkPtr = Rbc_ChainFirstLink(linePtr->palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
             stylePtr = Rbc_ChainGetValue(linkPtr);
             stylePtr->xErrorBars = segPtr;
-            for (i = 0; i < linePtr->xErrorBarCnt; i++) {
-                dataIndex = linePtr->xErrorToData[i];
+            for (i = 0; i < linePtr->core.xErrorBarCnt; i++) {
+                dataIndex = linePtr->core.xErrorToData[i];
                 if (dataToStyle[dataIndex] == (PenStyle *)stylePtr) {
-                    *segPtr++ = linePtr->xErrorBars[i];
+                    *segPtr++ = linePtr->core.xErrorBars[i];
                     *indexPtr++ = dataIndex;
                 }
             }
             stylePtr->xErrorBarCnt = segPtr - stylePtr->xErrorBars;
         }
-        ckfree((char *)linePtr->xErrorBars);
-        linePtr->xErrorBars = xErrorBars;
-        ckfree((char *)linePtr->xErrorToData);
-        linePtr->xErrorToData = xErrorToData;
+        ckfree((char *)linePtr->core.xErrorBars);
+        linePtr->core.xErrorBars = xErrorBars;
+        ckfree((char *)linePtr->core.xErrorToData);
+        linePtr->core.xErrorToData = xErrorToData;
     }
-    if (linePtr->yErrorBarCnt > 0) {
+    if (linePtr->core.yErrorBarCnt > 0) {
         Segment2D *errorBars, *segPtr;
         int *errorToData, *indexPtr;
         int dataIndex;
 
-        errorBars = (Segment2D *)ckalloc(linePtr->yErrorBarCnt * sizeof(Segment2D));
-        errorToData = (int *)ckalloc(linePtr->yErrorBarCnt * sizeof(int));
+        errorBars = (Segment2D *)ckalloc(linePtr->core.yErrorBarCnt * sizeof(Segment2D));
+        errorToData = (int *)ckalloc(linePtr->core.yErrorBarCnt * sizeof(int));
         assert(errorBars);
         segPtr = errorBars, indexPtr = errorToData;
-        for (linkPtr = Rbc_ChainFirstLink(linePtr->palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
             stylePtr = Rbc_ChainGetValue(linkPtr);
             stylePtr->yErrorBars = segPtr;
-            for (i = 0; i < linePtr->yErrorBarCnt; i++) {
-                dataIndex = linePtr->yErrorToData[i];
+            for (i = 0; i < linePtr->core.yErrorBarCnt; i++) {
+                dataIndex = linePtr->core.yErrorToData[i];
                 if (dataToStyle[dataIndex] == (PenStyle *)stylePtr) {
-                    *segPtr++ = linePtr->yErrorBars[i];
+                    *segPtr++ = linePtr->core.yErrorBars[i];
                     *indexPtr++ = dataIndex;
                 }
             }
             stylePtr->yErrorBarCnt = segPtr - stylePtr->yErrorBars;
         }
-        ckfree((char *)linePtr->yErrorBars);
-        linePtr->yErrorBars = errorBars;
-        ckfree((char *)linePtr->yErrorToData);
-        linePtr->yErrorToData = errorToData;
+        ckfree((char *)linePtr->core.yErrorBars);
+        linePtr->core.yErrorBars = errorBars;
+        ckfree((char *)linePtr->core.yErrorToData);
+        linePtr->core.yErrorToData = errorToData;
     }
 }
 
@@ -3557,7 +3489,7 @@ static void MapFillArea(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
  */
 static void ResetLine(Line *linePtr) {
     FreeTraces(linePtr);
-    ClearPalette(linePtr->palette);
+    ClearPalette(linePtr->core.palette);
     if (linePtr->symbolPts != NULL) {
         ckfree((char *)linePtr->symbolPts);
     }
@@ -3576,23 +3508,23 @@ static void ResetLine(Line *linePtr) {
     if (linePtr->activeToData != NULL) {
         ckfree((char *)linePtr->activeToData);
     }
-    if (linePtr->xErrorBars != NULL) {
-        ckfree((char *)linePtr->xErrorBars);
+    if (linePtr->core.xErrorBars != NULL) {
+        ckfree((char *)linePtr->core.xErrorBars);
     }
-    if (linePtr->xErrorToData != NULL) {
-        ckfree((char *)linePtr->xErrorToData);
+    if (linePtr->core.xErrorToData != NULL) {
+        ckfree((char *)linePtr->core.xErrorToData);
     }
-    if (linePtr->yErrorBars != NULL) {
-        ckfree((char *)linePtr->yErrorBars);
+    if (linePtr->core.yErrorBars != NULL) {
+        ckfree((char *)linePtr->core.yErrorBars);
     }
-    if (linePtr->yErrorToData != NULL) {
-        ckfree((char *)linePtr->yErrorToData);
+    if (linePtr->core.yErrorToData != NULL) {
+        ckfree((char *)linePtr->core.yErrorToData);
     }
-    linePtr->xErrorBars = linePtr->yErrorBars = linePtr->strips = NULL;
+    linePtr->core.xErrorBars = linePtr->core.yErrorBars = linePtr->strips = NULL;
     linePtr->symbolPts = linePtr->activePts = NULL;
-    linePtr->stripToData = linePtr->symbolToData = linePtr->xErrorToData = linePtr->yErrorToData =
+    linePtr->stripToData = linePtr->symbolToData = linePtr->core.xErrorToData = linePtr->core.yErrorToData =
         linePtr->activeToData = NULL;
-    linePtr->nActivePts = linePtr->nSymbolPts = linePtr->nStrips = linePtr->xErrorBarCnt = linePtr->yErrorBarCnt = 0;
+    linePtr->nActivePts = linePtr->nSymbolPts = linePtr->nStrips = linePtr->core.xErrorBarCnt = linePtr->core.yErrorBarCnt = 0;
 }
 
 /*
@@ -3616,7 +3548,7 @@ static void ResetLine(Line *linePtr) {
  *----------------------------------------------------------------------
  */
 static void MapLine(Graph *graphPtr, Element *elemPtr) {
-    Line *linePtr = (Line *)elemPtr;
+    Line *linePtr = LINE_FROM_CORE(elemPtr);
     MapInfo mapInfo;
     int size, nPoints;
     PenStyle **dataToStyle;
@@ -3624,14 +3556,14 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
     LinePenStyle *stylePtr;
 
     ResetLine(linePtr);
-    nPoints = NumberOfPoints(linePtr);
+    nPoints = NumberOfPoints(&linePtr->core);
     if (nPoints < 1) {
         return; /* No data points */
     }
     GetScreenPoints(graphPtr, linePtr, &mapInfo);
     MapSymbols(graphPtr, linePtr, &mapInfo);
 
-    if ((linePtr->flags & ACTIVE_PENDING) && (linePtr->nActiveIndices > 0)) {
+    if ((linePtr->core.flags & ACTIVE_PENDING) && (linePtr->core.nActiveIndices > 0)) {
         MapActiveSymbols(graphPtr, linePtr);
     }
     /*
@@ -3688,7 +3620,7 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
     ckfree((char *)mapInfo.indices);
 
     /* Set the symbol size of all the pen styles. */
-    for (linkPtr = Rbc_ChainFirstLink(linePtr->palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+    for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
         stylePtr = Rbc_ChainGetValue(linkPtr);
         size = ScaleSymbol(elemPtr, stylePtr->penPtr->symbol.size);
         stylePtr->symbolSize = size;
@@ -3696,11 +3628,11 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
             (stylePtr->penPtr->errorBarCapWidth > 0) ? stylePtr->penPtr->errorBarCapWidth : (int)(size * 0.6666666);
         stylePtr->errorBarCapWidth /= 2;
     }
-    dataToStyle = Rbc_StyleMap((Element *)linePtr);
-    if (((linePtr->yHigh.nValues > 0) && (linePtr->yLow.nValues > 0)) ||
-        ((linePtr->xHigh.nValues > 0) && (linePtr->xLow.nValues > 0)) || (linePtr->xError.nValues > 0) ||
-        (linePtr->yError.nValues > 0)) {
-        Rbc_MapErrorBars(graphPtr, (Element *)linePtr, dataToStyle);
+    dataToStyle = Rbc_StyleMap(&linePtr->core);
+    if (((linePtr->core.yHigh.nValues > 0) && (linePtr->core.yLow.nValues > 0)) ||
+        ((linePtr->core.xHigh.nValues > 0) && (linePtr->core.xLow.nValues > 0)) || (linePtr->core.xError.nValues > 0) ||
+        (linePtr->core.yError.nValues > 0)) {
+        Rbc_MapErrorBars(graphPtr, &linePtr->core, dataToStyle);
     }
     MergePens(linePtr, dataToStyle);
     ckfree((char *)dataToStyle);
@@ -3930,9 +3862,9 @@ static int ClosestTrace(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr
     }
     if (minDist < searchPtr->dist) {
         searchPtr->dist = minDist;
-        searchPtr->elemPtr = (Element *)linePtr;
+        searchPtr->elemPtr = &linePtr->core;
         searchPtr->index = i;
-        searchPtr->point = Rbc_InvMap2D(graphPtr, closest.x, closest.y, &(linePtr->axes));
+        searchPtr->point = Rbc_InvMap2D(graphPtr, closest.x, closest.y, &(linePtr->core.axes));
         return TRUE;
     }
     return FALSE;
@@ -3982,9 +3914,9 @@ static int ClosestStrip(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr
     }
     if (minDist < searchPtr->dist) {
         searchPtr->dist = minDist;
-        searchPtr->elemPtr = (Element *)linePtr;
+        searchPtr->elemPtr = &linePtr->core;
         searchPtr->index = i;
-        searchPtr->point = Rbc_InvMap2D(graphPtr, closest.x, closest.y, &(linePtr->axes));
+        searchPtr->point = Rbc_InvMap2D(graphPtr, closest.x, closest.y, &(linePtr->core.axes));
         return TRUE;
     }
     return FALSE;
@@ -4046,11 +3978,11 @@ static void ClosestPoint(Line *linePtr, ClosestSearch *searchPtr) {
         }
     }
     if (minDist < searchPtr->dist) {
-        searchPtr->elemPtr = (Element *)linePtr;
+        searchPtr->elemPtr = &linePtr->core;
         searchPtr->dist = minDist;
         searchPtr->index = i;
-        searchPtr->point.x = linePtr->x.valueArr[i];
-        searchPtr->point.y = linePtr->y.valueArr[i];
+        searchPtr->point.x = linePtr->core.x.valueArr[i];
+        searchPtr->point.y = linePtr->core.y.valueArr[i];
     }
 }
 
@@ -4204,7 +4136,7 @@ static void TileChangedProc(ClientData clientData, Rbc_Tile tile) {
     Line *linePtr = clientData;
     Graph *graphPtr;
 
-    graphPtr = linePtr->graphPtr;
+    graphPtr = linePtr->core.graphPtr;
     if (graphPtr->tkwin != NULL) {
         graphPtr->flags |= REDRAW_WORLD;
         Rbc_EventuallyRedrawGraph(graphPtr);
@@ -4235,36 +4167,35 @@ static void TileChangedProc(ClientData clientData, Rbc_Tile tile) {
  *----------------------------------------------------------------------
  */
 static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
-    Line *linePtr = (Line *)elemPtr;
+    Line *linePtr;
     unsigned long gcMask;
     XGCValues gcValues;
     GC newGC;
     Rbc_ChainLink *linkPtr;
 
+    linePtr = LINE_FROM_CORE(elemPtr);
     if (ConfigurePen(graphPtr, &linePtr->builtinPen.core) != TCL_OK) {
         return TCL_ERROR;
     }
+
     /*
-     * Point to the static normal/active pens if no external pens have
-     * been selected.
+     * Use the embedded line pen when no named normal pen was selected.
      */
-    if (linePtr->normalPenPtr == NULL) {
-        linePtr->normalPenPtr = &(linePtr->builtinPen);
+    if (elemPtr->normalPenPtr == NULL) {
+        elemPtr->normalPenPtr = &linePtr->builtinPen.core;
     }
-    linkPtr = Rbc_ChainFirstLink(linePtr->palette);
+    linkPtr = Rbc_ChainFirstLink(elemPtr->palette);
     if (linkPtr != NULL) {
         LinePenStyle *stylePtr;
 
         stylePtr = Rbc_ChainGetValue(linkPtr);
-        stylePtr->penPtr = linePtr->normalPenPtr;
+        stylePtr->penPtr =
+            LINE_PEN_FROM_CORE(elemPtr->normalPenPtr);
     }
     if (linePtr->fillTile != NULL) {
-        Rbc_SetTileChangedProc(linePtr->fillTile, TileChangedProc, linePtr);
+        Rbc_SetTileChangedProc(linePtr->fillTile,
+                               TileChangedProc, linePtr);
     }
-    /*
-     * Set the outline GC for this pen: GCForeground is outline color.
-     * GCBackground is the fill color (only used for bitmap symbols).
-     */
     gcMask = 0;
     if (linePtr->fillFgColor != NULL) {
         gcMask |= GCForeground;
@@ -4274,23 +4205,29 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
         gcMask |= GCBackground;
         gcValues.background = linePtr->fillBgColor->pixel;
     }
-    if ((linePtr->fillStipple != None) && (linePtr->fillStipple != PATTERN_SOLID)) {
-        gcMask |= (GCStipple | GCFillStyle);
+    if ((linePtr->fillStipple != None) &&
+        (linePtr->fillStipple != PATTERN_SOLID)) {
+        gcMask |= GCStipple | GCFillStyle;
         gcValues.stipple = linePtr->fillStipple;
-        gcValues.fill_style = (linePtr->fillBgColor == NULL) ? FillStippled : FillOpaqueStippled;
+        gcValues.fill_style =
+            (linePtr->fillBgColor == NULL)
+                ? FillStippled
+                : FillOpaqueStippled;
     }
     newGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
     if (linePtr->fillGC != NULL) {
         Tk_FreeGC(graphPtr->display, linePtr->fillGC);
     }
     linePtr->fillGC = newGC;
-
-    if (Rbc_ConfigModified(graphPtr->interp, linePtr->configSpecs, "-scalesymbols", (char *)NULL)) {
-        linePtr->flags |= (MAP_ITEM | SCALE_SYMBOL);
+    if (Rbc_ConfigModified(graphPtr->interp, elemPtr->specsPtr,
+                           "-scalesymbols", (char *)NULL)) {
+        elemPtr->flags |= MAP_ITEM | SCALE_SYMBOL;
     }
-    if (Rbc_ConfigModified(graphPtr->interp, linePtr->configSpecs, "-pixels", "-trace", "-*data", "-smooth", "-map*",
-                           "-label", "-hide", "-x", "-y", "-areapattern", (char *)NULL)) {
-        linePtr->flags |= MAP_ITEM;
+    if (Rbc_ConfigModified(graphPtr->interp, elemPtr->specsPtr,
+                           "-pixels", "-trace", "-*data", "-smooth",
+                           "-map*", "-label", "-hide", "-x", "-y",
+                           "-areapattern", (char *)NULL)) {
+        elemPtr->flags |= MAP_ITEM;
     }
     return TCL_OK;
 }
@@ -4318,15 +4255,15 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
  *----------------------------------------------------------------------
  */
 static void ClosestLine(Graph *graphPtr, Element *elemPtr, ClosestSearch *searchPtr) {
-    Line *linePtr = (Line *)elemPtr;
+    Line *linePtr = LINE_FROM_CORE(elemPtr);
     int mode;
 
     mode = searchPtr->mode;
     if (mode == SEARCH_AUTO) {
-        LinePen *penPtr = linePtr->normalPenPtr;
+        LinePen *penPtr = LINE_PEN_FROM_CORE(elemPtr->normalPenPtr);
 
         mode = SEARCH_POINTS;
-        if ((NumberOfPoints(linePtr) > 1) && (penPtr->traceWidth > 0)) {
+        if ((NumberOfPoints(elemPtr) > 1) && (penPtr->traceWidth > 0)) {
             mode = SEARCH_TRACES;
         }
     }
@@ -5006,24 +4943,18 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
  * -----------------------------------------------------------------
  */
 static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int x, int y, int size) {
-    Line *linePtr = (Line *)elemPtr;
-    LinePen *penPtr = linePtr->normalPenPtr;
+    Line *linePtr = LINE_FROM_CORE(elemPtr);
+    LinePen *penPtr = LINE_PEN_FROM_CORE(elemPtr->normalPenPtr);
 
     if (penPtr->traceWidth > 0) {
-        /*
-         * Draw an extra line offset by one pixel from the previous to
-         * give a thicker appearance.  This is only for the legend
-         * entry.  This routine is never called for drawing the actual
-         * line segments.
-         */
         XDrawLine(graphPtr->display, drawable, penPtr->traceGC, x - size, y, x + size, y);
         XDrawLine(graphPtr->display, drawable, penPtr->traceGC, x - size, y + 1, x + size, y + 1);
     }
     if (penPtr->symbol.type != SYMBOL_NONE) {
         Point2D point;
-
-        point.x = x, point.y = y;
-        DrawSymbols(graphPtr, drawable, linePtr, linePtr->normalPenPtr, size, 1, &point);
+        point.x = x;
+        point.y = y;
+        DrawSymbols(graphPtr, drawable, linePtr, penPtr, size, 1, &point);
     }
 }
 #ifdef WIN32
@@ -5262,8 +5193,8 @@ static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
     }
     count = 0;
     for (pointPtr = symbolPts, endPtr = symbolPts + nSymbolPts; pointPtr < endPtr; pointPtr++) {
-        x = linePtr->x.valueArr[pointToData[count]];
-        y = linePtr->y.valueArr[pointToData[count]];
+        x = linePtr->core.x.valueArr[pointToData[count]];
+        y = linePtr->core.y.valueArr[pointToData[count]];
         count++;
         if (penPtr->valueShow == SHOW_X) {
             sprintf(string, fmt, x);
@@ -5303,14 +5234,16 @@ static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
  *----------------------------------------------------------------------
  */
 static void DrawActiveLine(Graph *graphPtr, Drawable drawable, Element *elemPtr) {
-    Line *linePtr = (Line *)elemPtr;
-    LinePen *penPtr = linePtr->activePenPtr;
+    Line *linePtr = LINE_FROM_CORE(elemPtr);
+    LinePen *penPtr;
+
+    penPtr = (elemPtr->activePenPtr != NULL) ? LINE_PEN_FROM_CORE(elemPtr->activePenPtr) : NULL;
     int symbolSize;
 
     if (penPtr == NULL) {
         return;
     }
-    symbolSize = ScaleSymbol(elemPtr, linePtr->activePenPtr->symbol.size);
+    symbolSize = ScaleSymbol(elemPtr, penPtr->symbol.size);
 
     /*
      * nActiveIndices
@@ -5318,8 +5251,8 @@ static void DrawActiveLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
      *      < 0        All points are active.
      *    == 0        No points are active.
      */
-    if (linePtr->nActiveIndices > 0) {
-        if (linePtr->flags & ACTIVE_PENDING) {
+    if (elemPtr->nActiveIndices > 0) {
+        if (linePtr->core.flags & ACTIVE_PENDING) {
             MapActiveSymbols(graphPtr, linePtr);
         }
         if (penPtr->symbol.type != SYMBOL_NONE) {
@@ -5329,7 +5262,7 @@ static void DrawActiveLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
             DrawValues(graphPtr, drawable, linePtr, penPtr, linePtr->nActivePts, linePtr->activePts,
                        linePtr->activeToData);
         }
-    } else if (linePtr->nActiveIndices < 0) {
+    } else if (elemPtr->nActiveIndices < 0) {
         if (penPtr->traceWidth > 0) {
             if (linePtr->nStrips > 0) {
                 Rbc_Draw2DSegments(graphPtr->display, drawable, penPtr->traceGC, linePtr->strips, linePtr->nStrips);
@@ -5372,7 +5305,9 @@ static void DrawActiveLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
  *----------------------------------------------------------------------
  */
 static void DrawNormalLine(Graph *graphPtr, Drawable drawable, Element *elemPtr) {
-    Line *linePtr = (Line *)elemPtr;
+    LinePen *normalPenPtr;
+    Line *linePtr = LINE_FROM_CORE(elemPtr);
+    normalPenPtr = LINE_PEN_FROM_CORE(elemPtr->normalPenPtr);
     LinePen *penPtr;
     Rbc_ChainLink *linkPtr;
     register LinePenStyle *stylePtr;
@@ -5404,22 +5339,22 @@ static void DrawNormalLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
     /* Lines: stripchart segments or graph traces. */
 
     if (linePtr->nStrips > 0) {
-        for (linkPtr = Rbc_ChainFirstLink(linePtr->palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
             stylePtr = Rbc_ChainGetValue(linkPtr);
             penPtr = stylePtr->penPtr;
             if ((stylePtr->nStrips > 0) && (penPtr->errorBarLineWidth > 0)) {
                 Rbc_Draw2DSegments(graphPtr->display, drawable, penPtr->traceGC, stylePtr->strips, stylePtr->nStrips);
             }
         }
-    } else if ((Rbc_ChainGetLength(linePtr->traces) > 0) && (linePtr->normalPenPtr->traceWidth > 0)) {
-        DrawTraces(graphPtr, drawable, linePtr, linePtr->normalPenPtr);
+    } else if ((Rbc_ChainGetLength(linePtr->traces) > 0) && (normalPenPtr->traceWidth > 0)) {
+        DrawTraces(graphPtr, drawable, linePtr, normalPenPtr);
     }
 
     if (linePtr->reqMaxSymbols > 0) {
         int total;
 
         total = 0;
-        for (linkPtr = Rbc_ChainFirstLink(linePtr->palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
             stylePtr = Rbc_ChainGetValue(linkPtr);
             total += stylePtr->nSymbolPts;
         }
@@ -5430,7 +5365,7 @@ static void DrawNormalLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
     /* Symbols, error bars, values. */
 
     count = 0;
-    for (linkPtr = Rbc_ChainFirstLink(linePtr->palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+    for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
         stylePtr = Rbc_ChainGetValue(linkPtr);
         penPtr = stylePtr->penPtr;
         if ((stylePtr->xErrorBarCnt > 0) && (penPtr->errorBarShow & SHOW_X)) {
@@ -5634,8 +5569,7 @@ static void SymbolsToPostScript(Graph *graphPtr, PsToken psToken, LinePen *penPt
  * -----------------------------------------------------------------
  */
 static void SymbolToPostScript(Graph *graphPtr, PsToken psToken, Element *elemPtr, double x, double y, int size) {
-    Line *linePtr = (Line *)elemPtr;
-    LinePen *penPtr = linePtr->normalPenPtr;
+    LinePen *penPtr = LINE_PEN_FROM_CORE(elemPtr->normalPenPtr);
 
     if (penPtr->traceWidth > 0) {
         /*
@@ -5650,7 +5584,6 @@ static void SymbolToPostScript(Graph *graphPtr, PsToken psToken, Element *elemPt
     }
     if (penPtr->symbol.type != SYMBOL_NONE) {
         Point2D point;
-
         point.x = x, point.y = y;
         SymbolsToPostScript(graphPtr, psToken, penPtr, size, 1, &point);
     }
@@ -5779,8 +5712,8 @@ static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, 
     }
     count = 0;
     for (pointPtr = symbolPts, endPtr = symbolPts + nSymbolPts; pointPtr < endPtr; pointPtr++) {
-        x = linePtr->x.valueArr[pointToData[count]];
-        y = linePtr->y.valueArr[pointToData[count]];
+        x = linePtr->core.x.valueArr[pointToData[count]];
+        y = linePtr->core.y.valueArr[pointToData[count]];
         count++;
         if (penPtr->valueShow == SHOW_X) {
             sprintf(string, fmt, x);
@@ -5818,16 +5751,21 @@ static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, 
  *----------------------------------------------------------------------
  */
 static void ActiveLineToPostScript(Graph *graphPtr, PsToken psToken, Element *elemPtr) {
-    Line *linePtr = (Line *)elemPtr;
-    LinePen *penPtr = linePtr->activePenPtr;
+    Line *linePtr;
+    LinePen *penPtr;
     int symbolSize;
+
+    linePtr = LINE_FROM_CORE(elemPtr);
+    penPtr = (elemPtr->activePenPtr != NULL) ? LINE_PEN_FROM_CORE(elemPtr->activePenPtr) : NULL;
 
     if (penPtr == NULL) {
         return;
     }
+
     symbolSize = ScaleSymbol(elemPtr, penPtr->symbol.size);
-    if (linePtr->nActiveIndices > 0) {
-        if (linePtr->flags & ACTIVE_PENDING) {
+
+    if (elemPtr->nActiveIndices > 0) {
+        if (elemPtr->flags & ACTIVE_PENDING) {
             MapActiveSymbols(graphPtr, linePtr);
         }
         if (penPtr->symbol.type != SYMBOL_NONE) {
@@ -5837,14 +5775,14 @@ static void ActiveLineToPostScript(Graph *graphPtr, PsToken psToken, Element *el
             ValuesToPostScript(psToken, linePtr, penPtr, linePtr->nActivePts, linePtr->activePts,
                                linePtr->activeToData);
         }
-    } else if (linePtr->nActiveIndices < 0) {
+    } else if (elemPtr->nActiveIndices < 0) {
         if (penPtr->traceWidth > 0) {
             if (linePtr->nStrips > 0) {
                 SetLineAttributes(psToken, penPtr);
                 Rbc_2DSegmentsToPostScript(psToken, linePtr->strips, linePtr->nStrips);
             }
             if (Rbc_ChainGetLength(linePtr->traces) > 0) {
-                TracesToPostScript(psToken, linePtr, (LinePen *)penPtr);
+                TracesToPostScript(psToken, linePtr, penPtr);
             }
         }
         if (penPtr->symbol.type != SYMBOL_NONE) {
@@ -5879,7 +5817,8 @@ static void ActiveLineToPostScript(Graph *graphPtr, PsToken psToken, Element *el
  *----------------------------------------------------------------------
  */
 static void NormalLineToPostScript(Graph *graphPtr, PsToken psToken, Element *elemPtr) {
-    Line *linePtr = (Line *)elemPtr;
+    Line *linePtr = LINE_FROM_CORE(elemPtr);
+    LinePen *normalPenPtr = LINE_PEN_FROM_CORE(elemPtr->normalPenPtr);
     register LinePenStyle *stylePtr;
     Rbc_ChainLink *linkPtr;
     LinePen *penPtr;
@@ -5910,7 +5849,7 @@ static void NormalLineToPostScript(Graph *graphPtr, PsToken psToken, Element *el
     }
     /* Draw lines */
     if (linePtr->nStrips > 0) {
-        for (linkPtr = Rbc_ChainFirstLink(linePtr->palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
             stylePtr = Rbc_ChainGetValue(linkPtr);
             penPtr = stylePtr->penPtr;
             if ((stylePtr->nStrips > 0) && (penPtr->traceWidth > 0)) {
@@ -5918,14 +5857,14 @@ static void NormalLineToPostScript(Graph *graphPtr, PsToken psToken, Element *el
                 Rbc_2DSegmentsToPostScript(psToken, stylePtr->strips, stylePtr->nStrips);
             }
         }
-    } else if ((Rbc_ChainGetLength(linePtr->traces) > 0) && (linePtr->normalPenPtr->traceWidth > 0)) {
-        TracesToPostScript(psToken, linePtr, linePtr->normalPenPtr);
+    } else if ((Rbc_ChainGetLength(linePtr->traces) > 0) && (normalPenPtr->traceWidth > 0)) {
+        TracesToPostScript(psToken, linePtr, normalPenPtr);
     }
 
     /* Draw symbols, error bars, values. */
 
     count = 0;
-    for (linkPtr = Rbc_ChainFirstLink(linePtr->palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+    for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
         stylePtr = Rbc_ChainGetValue(linkPtr);
         penPtr = stylePtr->penPtr;
         colorPtr = penPtr->errorBarColor;
@@ -5979,48 +5918,55 @@ static void NormalLineToPostScript(Graph *graphPtr, PsToken psToken, Element *el
  *----------------------------------------------------------------------
  */
 static void DestroyLine(Graph *graphPtr, Element *elemPtr) {
-    Line *linePtr = (Line *)elemPtr;
+    Line *linePtr;
 
-    if (linePtr->normalPenPtr != &linePtr->builtinPen) {
-        Rbc_FreePen(graphPtr, &linePtr->normalPenPtr->core);
+    linePtr = LINE_FROM_CORE(elemPtr);
+    if (elemPtr->normalPenPtr != &linePtr->builtinPen.core) {
+        Rbc_FreePen(graphPtr, elemPtr->normalPenPtr);
     }
     DestroyPen(graphPtr, &linePtr->builtinPen.core);
-    if (linePtr->activePenPtr != NULL) {
-        Rbc_FreePen(graphPtr, &linePtr->activePenPtr->core);
+    if (elemPtr->activePenPtr != NULL) {
+        Rbc_FreePen(graphPtr, elemPtr->activePenPtr);
     }
-
-    FreeVector(linePtr->w);
-    FreeVector(linePtr->x);
-    FreeVector(linePtr->xHigh);
-    FreeVector(linePtr->xLow);
-    FreeVector(linePtr->xError);
-    FreeVector(linePtr->y);
-    FreeVector(linePtr->yHigh);
-    FreeVector(linePtr->yLow);
-    FreeVector(linePtr->yError);
-
+    FreeVector(elemPtr->w);
+    FreeVector(elemPtr->x);
+    FreeVector(elemPtr->xHigh);
+    FreeVector(elemPtr->xLow);
+    FreeVector(elemPtr->xError);
+    FreeVector(elemPtr->y);
+    FreeVector(elemPtr->yHigh);
+    FreeVector(elemPtr->yLow);
+    FreeVector(elemPtr->yError);
     ResetLine(linePtr);
-    if (linePtr->palette != NULL) {
-        Rbc_FreePalette(graphPtr, linePtr->palette);
-        Rbc_ChainDestroy(linePtr->palette);
+    if (elemPtr->palette != NULL) {
+        Rbc_FreePalette(graphPtr, elemPtr->palette);
+        Rbc_ChainDestroy(elemPtr->palette);
+        elemPtr->palette = NULL;
     }
-    if (linePtr->tags != NULL) {
-        ckfree((char *)linePtr->tags);
+    if (elemPtr->tags != NULL) {
+        ckfree((char *)elemPtr->tags);
+        elemPtr->tags = NULL;
     }
-    if (linePtr->activeIndices != NULL) {
-        ckfree((char *)linePtr->activeIndices);
+    if (elemPtr->activeIndices != NULL) {
+        ckfree((char *)elemPtr->activeIndices);
+        elemPtr->activeIndices = NULL;
+        elemPtr->nActiveIndices = 0;
     }
     if (linePtr->fillPts != NULL) {
         ckfree((char *)linePtr->fillPts);
+        linePtr->fillPts = NULL;
     }
     if (linePtr->fillTile != NULL) {
         Rbc_FreeTile(linePtr->fillTile);
+        linePtr->fillTile = NULL;
     }
     if ((linePtr->fillStipple != None) && (linePtr->fillStipple != PATTERN_SOLID)) {
         Tk_FreeBitmap(graphPtr->display, linePtr->fillStipple);
+        linePtr->fillStipple = None;
     }
     if (linePtr->fillGC != NULL) {
         Tk_FreeGC(graphPtr->display, linePtr->fillGC);
+        linePtr->fillGC = NULL;
     }
 }
 
@@ -6059,29 +6005,34 @@ static ElementProcs lineProcs = {
  *----------------------------------------------------------------------
  */
 Element *Rbc_LineElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
-    register Line *linePtr;
+    Line *linePtr;
+    Element *elemPtr;
 
     linePtr = RbcCalloc(1, sizeof(Line));
-    assert(linePtr);
-    linePtr->procsPtr = &lineProcs;
+    if (linePtr == NULL) {
+        return NULL;
+    }
+    elemPtr = &linePtr->core;
+    elemPtr->procsPtr = &lineProcs;
     if (classUid == rbcLineElementUid) {
-        linePtr->configSpecs = lineElemConfigSpecs;
+        elemPtr->specsPtr = lineElemConfigSpecs;
     } else {
-        linePtr->configSpecs = stripElemConfigSpecs;
+        elemPtr->specsPtr = stripElemConfigSpecs;
     }
 
-    /* By default an element's name and label are the same. */
-    linePtr->label = RbcStrdup(name);
-    linePtr->name = RbcStrdup(name);
-
-    linePtr->classUid = classUid;
-    linePtr->flags = SCALE_SYMBOL;
-    linePtr->graphPtr = graphPtr;
-    linePtr->labelRelief = TK_RELIEF_FLAT;
-    linePtr->normalPenPtr = &linePtr->builtinPen;
-    linePtr->palette = Rbc_ChainCreate();
+    /*
+     * By default an element's name and label are the same.
+     */
+    elemPtr->label = RbcStrdup(name);
+    elemPtr->name = RbcStrdup(name);
+    elemPtr->classUid = classUid;
+    elemPtr->flags = SCALE_SYMBOL;
+    elemPtr->graphPtr = graphPtr;
+    elemPtr->labelRelief = TK_RELIEF_FLAT;
+    elemPtr->normalPenPtr = &linePtr->builtinPen.core;
+    elemPtr->palette = Rbc_ChainCreate();
     linePtr->penDir = PEN_BOTH_DIRECTIONS;
     linePtr->reqSmooth = PEN_SMOOTH_NONE;
-    InitPen(linePtr->normalPenPtr);
-    return (Element *)linePtr;
+    InitPen(&linePtr->builtinPen);
+    return elemPtr;
 }
