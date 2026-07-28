@@ -240,6 +240,20 @@ typedef struct {
     Pen *normalPenPtr;
 } BarElementPenTransaction;
 
+/*
+ * Bar-element axis options handled transactionally.
+ */
+typedef enum { BAR_AXIS_OPTION_NONE, BAR_AXIS_OPTION_X, BAR_AXIS_OPTION_Y } BarElementAxisOption;
+
+#define BAR_AXIS_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
+
+typedef struct {
+    unsigned int stagedMask;
+
+    Axis *xAxisPtr;
+    Axis *yAxisPtr;
+} BarElementAxisTransaction;
+
 static Tk_ConfigSpec barElemConfigSpecs[] = {
     {TK_CONFIG_CUSTOM, "-activepen", "activePen", "ActivePen", DEF_BAR_ACTIVE_PEN, BAR_CORE_OFFSET(activePenPtr),
      TK_CONFIG_NULL_OK, &rbcBarPenOption},
@@ -633,6 +647,14 @@ static int StageBarElementPen(Graph *graphPtr, Tcl_Obj *objPtr, BarElementPenTra
                               Pen **candidatePtrPtr, BarElementPenOption option);
 static int PrepareBarElementPenTransaction(Graph *graphPtr, Element *elemPtr, BarElementPenTransaction *transactionPtr);
 static void CommitBarElementPenTransaction(Graph *graphPtr, Element *elemPtr, BarElementPenTransaction *transactionPtr);
+static BarElementAxisOption GetBarElementAxisOption(Tcl_Obj *objPtr);
+static void FreeBarElementAxisTransaction(Graph *graphPtr, BarElementAxisTransaction *transactionPtr);
+static int StageBarElementAxis(Graph *graphPtr, Tcl_Obj *objPtr, BarElementAxisTransaction *transactionPtr,
+                               Axis **candidatePtrPtr, BarElementAxisOption option);
+static int PrepareBarElementAxisTransaction(Graph *graphPtr, Element *elemPtr,
+                                            BarElementAxisTransaction *transactionPtr);
+static void CommitBarElementAxisTransaction(Graph *graphPtr, Element *elemPtr,
+                                            BarElementAxisTransaction *transactionPtr);
 static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, XRectangle *rectangles, int nRects);
 static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPen *penPtr, XRectangle *rectangles,
                           int nRects, int *rectToData);
@@ -1508,6 +1530,80 @@ static BarElementPenOption GetBarElementPenOption(Tcl_Obj *objPtr) {
 /*
  *----------------------------------------------------------------------
  *
+ * GetBarElementAxisOption --
+ *
+ *      Determines whether an option name represents "-mapx" or
+ *      "-mapy".
+ *
+ *      Tk_SetOptions has already validated abbreviations. This helper
+ *      repeats enough of the matching to recover the canonical option
+ *      identity from the original option/value vector.
+ *
+ * Parameters:
+ *      Tcl_Obj *objPtr - Option-name object.
+ *
+ * Results:
+ *      The corresponding BarElementAxisOption value.
+ *      BAR_AXIS_OPTION_NONE is returned for unrelated options.
+ *
+ * Side Effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+static BarElementAxisOption GetBarElementAxisOption(Tcl_Obj *objPtr) {
+    static const struct {
+        const char *name;
+        BarElementAxisOption option;
+    } optionMap[] = {{"-mapx", BAR_AXIS_OPTION_X}, {"-mapy", BAR_AXIS_OPTION_Y}};
+
+    const char *string;
+    Tcl_Size length;
+    BarElementAxisOption match;
+    size_t i;
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+
+    /*
+     * Prefer exact matches.
+     */
+    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
+        Tcl_Size fullLength;
+
+        fullLength = (Tcl_Size)strlen(optionMap[i].name);
+
+        if ((length == fullLength) && (memcmp(string, optionMap[i].name, (size_t)length) == 0)) {
+            return optionMap[i].option;
+        }
+    }
+
+    /*
+     * Recover a canonical option from a valid abbreviation.
+     * "-map" remains ambiguous and will already have been rejected by
+     * Tk_SetOptions.
+     */
+    match = BAR_AXIS_OPTION_NONE;
+
+    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
+        Tcl_Size fullLength;
+
+        fullLength = (Tcl_Size)strlen(optionMap[i].name);
+
+        if ((length > 0) && (length < fullLength) && (strncmp(string, optionMap[i].name, (size_t)length) == 0)) {
+            if (match == BAR_AXIS_OPTION_NONE) {
+                match = optionMap[i].option;
+            } else if (match != optionMap[i].option) {
+                return BAR_AXIS_OPTION_NONE;
+            }
+        }
+    }
+
+    return match;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
  * FreeBarElementPenTransaction --
  *
  *      Releases all pen references owned by a staged bar-element pen
@@ -1534,6 +1630,34 @@ static void FreeBarElementPenTransaction(Graph *graphPtr, BarElementPenTransacti
     if (transactionPtr->normalPenPtr != NULL) {
         Rbc_FreePen(graphPtr, transactionPtr->normalPenPtr);
     }
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * FreeBarElementAxisTransaction --
+ *
+ *      Releases every axis reference owned by a staged bar-element
+ *      axis transaction.
+ *
+ * Parameters:
+ *      Graph *graphPtr
+ *      BarElementAxisTransaction *transactionPtr
+ *
+ * Results:
+ *      None.
+ *
+ * Side Effects:
+ *      Decrements the reference count of staged axes and clears the
+ *      transaction.
+ *
+ *----------------------------------------------------------------------
+ */
+static void FreeBarElementAxisTransaction(Graph *graphPtr, BarElementAxisTransaction *transactionPtr) {
+    Rbc_FreeAxisReference(graphPtr, transactionPtr->xAxisPtr);
+    Rbc_FreeAxisReference(graphPtr, transactionPtr->yAxisPtr);
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
@@ -2029,6 +2153,77 @@ static int StageBarElementPen(Graph *graphPtr, Tcl_Obj *objPtr, BarElementPenTra
 /*
  *----------------------------------------------------------------------
  *
+ * StageBarElementAxis --
+ *
+ *      Resolves one bar-element axis option into temporary transaction
+ *      storage without modifying the live element.
+ *
+ * Parameters:
+ *      Graph *graphPtr
+ *      Tcl_Obj *objPtr
+ *      BarElementAxisTransaction *transactionPtr
+ *      Axis **candidatePtrPtr
+ *      BarElementAxisOption option
+ *
+ * Results:
+ *      TCL_OK if the named axis exists and has the correct orientation.
+ *      TCL_ERROR otherwise.
+ *
+ * Side Effects:
+ *      Acquires an axis reference. If the same option was staged
+ *      previously, its previous candidate is released only after the
+ *      replacement has resolved successfully.
+ *
+ *----------------------------------------------------------------------
+ */
+static int StageBarElementAxis(Graph *graphPtr, Tcl_Obj *objPtr, BarElementAxisTransaction *transactionPtr,
+                               Axis **candidatePtrPtr, BarElementAxisOption option) {
+    Axis *newAxisPtr;
+    Rbc_Uid classUid;
+    unsigned int mask;
+
+    newAxisPtr = NULL;
+
+    switch (option) {
+    case BAR_AXIS_OPTION_X:
+        classUid = rbcXAxisUid;
+        break;
+
+    case BAR_AXIS_OPTION_Y:
+        classUid = rbcYAxisUid;
+        break;
+
+    case BAR_AXIS_OPTION_NONE:
+    default:
+        Tcl_Panic("StageBarElementAxis called with invalid option");
+        return TCL_ERROR;
+    }
+
+    /*
+     * Legacy -mapx and -mapy do not permit an empty axis name.
+     */
+    if (Rbc_GetAxisFromObj(graphPtr, objPtr, classUid, FALSE, &newAxisPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    mask = BAR_AXIS_OPTION_MASK(option);
+
+    /*
+     * Resolve the replacement before releasing an earlier candidate.
+     */
+    if (transactionPtr->stagedMask & mask) {
+        Rbc_FreeAxisReference(graphPtr, *candidatePtrPtr);
+    }
+
+    *candidatePtrPtr = newAxisPtr;
+    transactionPtr->stagedMask |= mask;
+
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
  * PrepareBarElementPenTransaction --
  *
  *      Resolves all bar-element pen options involved in the current
@@ -2136,6 +2331,112 @@ error:
 /*
  *----------------------------------------------------------------------
  *
+ * PrepareBarElementAxisTransaction --
+ *
+ *      Resolves all bar-element axis options involved in the current
+ *      modern configuration without modifying the live element.
+ *
+ *      Explicit options are processed in their original order, so an
+ *      invalid earlier repeated value still makes the complete
+ *      configuration fail.
+ *
+ * Parameters:
+ *      Graph *graphPtr
+ *      Element *elemPtr
+ *      BarElementAxisTransaction *transactionPtr
+ *
+ * Results:
+ *      TCL_OK if every relevant axis value was resolved.
+ *      TCL_ERROR otherwise.
+ *
+ * Side Effects:
+ *      Acquires temporary axis references.
+ *
+ *----------------------------------------------------------------------
+ */
+static int PrepareBarElementAxisTransaction(Graph *graphPtr, Element *elemPtr,
+                                            BarElementAxisTransaction *transactionPtr) {
+    unsigned int explicitMask;
+    int i;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+    explicitMask = 0;
+
+    assert((elemPtr->optionObjc & 1) == 0);
+
+    /*
+     * Determine which axis options were supplied explicitly.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        BarElementAxisOption option;
+
+        option = GetBarElementAxisOption(elemPtr->optionObjv[i]);
+
+        if (option != BAR_AXIS_OPTION_NONE) {
+            explicitMask |= BAR_AXIS_OPTION_MASK(option);
+        }
+    }
+
+    /*
+     * Process option-database or default values on the first modern
+     * configuration, except where explicitly overridden.
+     */
+    if (!elemPtr->optionsConfigured) {
+        if (!(explicitMask & BAR_AXIS_OPTION_MASK(BAR_AXIS_OPTION_X)) && (elemPtr->mapXObjPtr != NULL)) {
+            if (StageBarElementAxis(graphPtr, elemPtr->mapXObjPtr, transactionPtr, &transactionPtr->xAxisPtr,
+                                    BAR_AXIS_OPTION_X) != TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & BAR_AXIS_OPTION_MASK(BAR_AXIS_OPTION_Y)) && (elemPtr->mapYObjPtr != NULL)) {
+            if (StageBarElementAxis(graphPtr, elemPtr->mapYObjPtr, transactionPtr, &transactionPtr->yAxisPtr,
+                                    BAR_AXIS_OPTION_Y) != TCL_OK) {
+                goto error;
+            }
+        }
+    }
+
+    /*
+     * Process explicit values in their original left-to-right order.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        BarElementAxisOption option;
+        Tcl_Obj *valueObjPtr;
+
+        option = GetBarElementAxisOption(elemPtr->optionObjv[i]);
+        valueObjPtr = elemPtr->optionObjv[i + 1];
+
+        switch (option) {
+        case BAR_AXIS_OPTION_X:
+            if (StageBarElementAxis(graphPtr, valueObjPtr, transactionPtr, &transactionPtr->xAxisPtr, option) !=
+                TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case BAR_AXIS_OPTION_Y:
+            if (StageBarElementAxis(graphPtr, valueObjPtr, transactionPtr, &transactionPtr->yAxisPtr, option) !=
+                TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case BAR_AXIS_OPTION_NONE:
+            break;
+        }
+    }
+
+    return TCL_OK;
+
+error:
+    FreeBarElementAxisTransaction(graphPtr, transactionPtr);
+    return TCL_ERROR;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
  * CommitBarElementPenTransaction --
  *
  *      Replaces the live active and normal pens with successfully
@@ -2205,6 +2506,55 @@ static void CommitBarElementPenTransaction(Graph *graphPtr, Element *elemPtr,
 }
 
 /*
+ *----------------------------------------------------------------------
+ *
+ * CommitBarElementAxisTransaction --
+ *
+ *      Replaces the live element axes with successfully staged axis
+ *      references.
+ *
+ * Parameters:
+ *      Graph *graphPtr
+ *      Element *elemPtr
+ *      BarElementAxisTransaction *transactionPtr
+ *
+ * Results:
+ *      None.
+ *
+ * Side Effects:
+ *      Releases replaced live axis references and transfers ownership
+ *      of staged references to the element.
+ *
+ *----------------------------------------------------------------------
+ */
+static void CommitBarElementAxisTransaction(Graph *graphPtr, Element *elemPtr,
+                                            BarElementAxisTransaction *transactionPtr) {
+    if (transactionPtr->stagedMask & BAR_AXIS_OPTION_MASK(BAR_AXIS_OPTION_X)) {
+        Axis *oldAxisPtr;
+
+        oldAxisPtr = elemPtr->axes.x;
+
+        elemPtr->axes.x = transactionPtr->xAxisPtr;
+        transactionPtr->xAxisPtr = NULL;
+
+        Rbc_FreeAxisReference(graphPtr, oldAxisPtr);
+    }
+
+    if (transactionPtr->stagedMask & BAR_AXIS_OPTION_MASK(BAR_AXIS_OPTION_Y)) {
+        Axis *oldAxisPtr;
+
+        oldAxisPtr = elemPtr->axes.y;
+
+        elemPtr->axes.y = transactionPtr->yAxisPtr;
+        transactionPtr->yAxisPtr = NULL;
+
+        Rbc_FreeAxisReference(graphPtr, oldAxisPtr);
+    }
+
+    transactionPtr->stagedMask = 0;
+}
+
+/*
  * ----------------------------------------------------------------------
  *
  * ConfigureBar --
@@ -2231,17 +2581,21 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
     Bar *barPtr;
     BarDataTransaction dataTransaction;
     BarElementPenTransaction penTransaction;
+    BarElementAxisTransaction axisTransaction;    
     Rbc_ChainLink *linkPtr;
     int dataTransactionPrepared;
     int penTransactionPrepared;
+    int axisTransactionPrepared;    
 
     barPtr = BAR_FROM_CORE(elemPtr);
 
     memset(&dataTransaction, 0, sizeof(dataTransaction));
     memset(&penTransaction, 0, sizeof(penTransaction));
+    memset(&axisTransaction, 0, sizeof(axisTransaction));
 
     dataTransactionPrepared = FALSE;
     penTransactionPrepared = FALSE;
+    axisTransactionPrepared = FALSE;    
 
     /*
      * Parse all fallible element-data conversions before modifying any
@@ -2270,6 +2624,18 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
     }
 
     /*
+     * Resolve X and Y axis mappings before modifying the live element.
+     */
+    if ((elemPtr->optionSpecs != NULL) &&
+        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & BAR_ELEM_AXES_MASK))) {
+        if (PrepareBarElementAxisTransaction(graphPtr, elemPtr, &axisTransaction) != TCL_OK) {
+            goto error;
+        }
+
+        axisTransactionPrepared = TRUE;
+    }
+
+    /*
      * Configure the embedded bar pen only after every staged data and
      * named-pen value has been validated.
      */
@@ -2281,6 +2647,9 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
      * No fallible operation remains. Commit the named pens before
      * updating the palette's default style.
      */
+    if (axisTransactionPrepared) {
+        CommitBarElementAxisTransaction(graphPtr, elemPtr, &axisTransaction);
+    }
     if (penTransactionPrepared) {
         CommitBarElementPenTransaction(graphPtr, elemPtr, &penTransaction);
     }
@@ -2325,6 +2694,10 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
     return TCL_OK;
 
 error:
+    if (axisTransactionPrepared) {
+        FreeBarElementAxisTransaction(graphPtr, &axisTransaction);
+    }
+
     if (penTransactionPrepared) {
         FreeBarElementPenTransaction(graphPtr, &penTransaction);
     }
@@ -3574,6 +3947,10 @@ static void DestroyBar(Graph *graphPtr, Element *elemPtr) {
     Bar *barPtr;
 
     barPtr = BAR_FROM_CORE(elemPtr);
+    Rbc_FreeAxisReference(graphPtr, elemPtr->axes.x);
+    elemPtr->axes.x = NULL;
+    Rbc_FreeAxisReference(graphPtr, elemPtr->axes.y);
+    elemPtr->axes.y = NULL;
     if (elemPtr->normalPenPtr != &barPtr->builtinPen.core) {
         Rbc_FreePen(graphPtr, elemPtr->normalPenPtr);
     }
