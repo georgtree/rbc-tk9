@@ -17,7 +17,6 @@ static Tk_OptionPrintProc ColorToString;
 static Tk_OptionParseProc StringToPen;
 static Tk_OptionPrintProc PenToString;
 Tk_CustomOption rbcColorOption = {StringToColor, ColorToString, (ClientData)0};
-Tk_CustomOption rbcBarPenOption = {StringToPen, PenToString, (ClientData)&rbcBarElementUid};
 Tk_CustomOption rbcLinePenOption = {StringToPen, PenToString, (ClientData)&rbcLineElementUid};
 
 static const char *NameOfColor(XColor *colorPtr);

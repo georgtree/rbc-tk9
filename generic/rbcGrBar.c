@@ -113,22 +113,8 @@ _Static_assert(offsetof(Bar, core) == 0, "Element core must be the first Bar mem
 #define BAR_CORE_OFFSET(member) (offsetof(Bar, core) + offsetof(Element, member))
 #define BAR_BUILTIN_PEN_OFFSET(member) (offsetof(Bar, builtinPen) + offsetof(BarPen, member))
 
-extern Tk_CustomOption rbcBarPenOption;
-extern Tk_CustomOption rbcDataOption;
-extern Tk_CustomOption rbcDataPairsOption;
-extern Tk_CustomOption rbcDistanceOption;
-extern Tk_CustomOption rbcListOption;
-extern Tk_CustomOption rbcXAxisOption;
-extern Tk_CustomOption rbcYAxisOption;
-extern Tk_CustomOption rbcShadowOption;
-extern Tk_CustomOption rbcFillOption;
-extern Tk_CustomOption rbcColorOption;
-extern Tk_CustomOption rbcStateOption;
-
 static Tk_OptionParseProc StringToBarMode;
 static Tk_OptionPrintProc BarModeToString;
-
-static Tk_CustomOption stylesOption = {Rbc_StringToStyles, Rbc_StylesToString, (ClientData)sizeof(BarPenStyle)};
 
 Tk_CustomOption rbcBarModeOption = {StringToBarMode, BarModeToString, (ClientData)0};
 
@@ -136,14 +122,12 @@ Tk_CustomOption rbcBarModeOption = {StringToBarMode, BarModeToString, (ClientDat
 #define DEF_BAR_AXIS_X "x"
 #define DEF_BAR_AXIS_Y "y"
 #define DEF_BAR_BACKGROUND "navyblue"
-#define DEF_BAR_BG_MONO BLACK
 #define DEF_BAR_BORDERWIDTH "2"
 #define DEF_BAR_DATA (char *)NULL
 #define DEF_BAR_ERRORBAR_COLOR "defcolor"
 #define DEF_BAR_ERRORBAR_LINE_WIDTH "1"
 #define DEF_BAR_ERRORBAR_CAP_WIDTH "1"
 #define DEF_BAR_FOREGROUND "blue"
-#define DEF_BAR_FG_MONO WHITE
 #define DEF_BAR_HIDE "no"
 #define DEF_BAR_LABEL (char *)NULL
 #define DEF_BAR_LABEL_RELIEF "flat"
@@ -154,17 +138,12 @@ Tk_CustomOption rbcBarModeOption = {StringToBarMode, BarModeToString, (ClientDat
 #define DEF_BAR_STYLES ""
 #define DEF_BAR_TAGS "all"
 #define DEF_BAR_WIDTH "0.0"
-#define DEF_BAR_DATA (char *)NULL
 
 #define DEF_PEN_ACTIVE_BACKGROUND "red"
-#define DEF_PEN_ACTIVE_BG_MONO WHITE
 #define DEF_PEN_ACTIVE_FOREGROUND "pink"
-#define DEF_PEN_ACTIVE_FG_MONO BLACK
 #define DEF_PEN_BORDERWIDTH "2"
 #define DEF_PEN_NORMAL_BACKGROUND "navyblue"
-#define DEF_PEN_NORMAL_BG_MONO BLACK
 #define DEF_PEN_NORMAL_FOREGROUND "blue"
-#define DEF_PEN_NORMAL_FG_MONO WHITE
 #define DEF_PEN_RELIEF "raised"
 #define DEF_PEN_STIPPLE ""
 #define DEF_PEN_TYPE "bar"
@@ -172,7 +151,6 @@ Tk_CustomOption rbcBarModeOption = {StringToBarMode, BarModeToString, (ClientDat
 #define DEF_PEN_VALUE_COLOR RGB_BLACK
 #define DEF_PEN_VALUE_FONT STD_FONT_SMALL
 #define DEF_PEN_VALUE_FORMAT "%g"
-#define DEF_PEN_VALUE_ROTATE (char *)NULL
 #define DEF_PEN_VALUE_SHADOW (char *)NULL
 #define DEF_PEN_SHOW_VALUES "no"
 
@@ -277,77 +255,6 @@ typedef struct {
     int staged;
     Rbc_Chain *palette;
 } BarElementStylesTransaction;
-
-static Tk_ConfigSpec barElemConfigSpecs[] = {
-    {TK_CONFIG_CUSTOM, "-activepen", "activePen", "ActivePen", DEF_BAR_ACTIVE_PEN, BAR_CORE_OFFSET(activePenPtr),
-     TK_CONFIG_NULL_OK, &rbcBarPenOption},
-    {TK_CONFIG_BORDER, "-background", "background", "Background", DEF_BAR_BACKGROUND, offsetof(Bar, builtinPen.border),
-     TK_CONFIG_NULL_OK | TK_CONFIG_COLOR_ONLY},
-    {TK_CONFIG_BORDER, "-background", "background", "Background", DEF_BAR_BACKGROUND, offsetof(Bar, builtinPen.border),
-     TK_CONFIG_NULL_OK | TK_CONFIG_MONO_ONLY},
-    {TK_CONFIG_DOUBLE, "-barwidth", "barWidth", "BarWidth", DEF_BAR_WIDTH, offsetof(Bar, barWidth),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_SYNONYM, "-bd", "borderWidth", (char *)NULL, (char *)NULL, 0, 0},
-    {TK_CONFIG_SYNONYM, "-bg", "background", (char *)NULL, (char *)NULL, 0, 0},
-    {TK_CONFIG_CUSTOM, "-bindtags", "bindTags", "BindTags", DEF_BAR_TAGS, BAR_CORE_OFFSET(tags), TK_CONFIG_NULL_OK,
-     &rbcListOption},
-    {TK_CONFIG_CUSTOM, "-borderwidth", "borderWidth", "BorderWidth", DEF_BAR_BORDERWIDTH,
-     offsetof(Bar, builtinPen.borderWidth), 0, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-errorbarcolor", "errorBarColor", "ErrorBarColor", DEF_BAR_ERRORBAR_COLOR,
-     offsetof(Bar, builtinPen.errorBarColor), 0, &rbcColorOption},
-    {TK_CONFIG_CUSTOM, "-errorbarwidth", "errorBarWidth", "ErrorBarWidth", DEF_BAR_ERRORBAR_LINE_WIDTH,
-     offsetof(Bar, builtinPen.errorBarLineWidth), TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-errorbarcap", "errorBarCap", "ErrorBarCap", DEF_BAR_ERRORBAR_CAP_WIDTH,
-     offsetof(Bar, builtinPen.errorBarCapWidth), ALL_PENS | TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_SYNONYM, "-fg", "foreground", (char *)NULL, (char *)NULL, 0, 0},
-    {TK_CONFIG_CUSTOM, "-data", "data", "Data", (char *)NULL, 0, 0, &rbcDataPairsOption},
-    {TK_CONFIG_COLOR, "-foreground", "foreground", "Foreground", DEF_BAR_FOREGROUND, offsetof(Bar, builtinPen.fgColor),
-     TK_CONFIG_NULL_OK | TK_CONFIG_COLOR_ONLY},
-    {TK_CONFIG_COLOR, "-foreground", "foreground", "Foreground", DEF_BAR_FOREGROUND, offsetof(Bar, builtinPen.fgColor),
-     TK_CONFIG_NULL_OK | TK_CONFIG_MONO_ONLY},
-    {TK_CONFIG_STRING, "-label", "label", "Label", DEF_BAR_LABEL, BAR_CORE_OFFSET(label), TK_CONFIG_NULL_OK},
-    {TK_CONFIG_RELIEF, "-labelrelief", "labelRelief", "LabelRelief", DEF_BAR_LABEL_RELIEF, BAR_CORE_OFFSET(labelRelief),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_BOOLEAN, "-hide", "hide", "Hide", DEF_BAR_HIDE, BAR_CORE_OFFSET(hidden), TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-mapx", "mapX", "MapX", DEF_BAR_AXIS_X, BAR_CORE_OFFSET(axes.x), 0, &rbcXAxisOption},
-    {TK_CONFIG_CUSTOM, "-mapy", "mapY", "MapY", DEF_BAR_AXIS_Y, BAR_CORE_OFFSET(axes.y), 0, &rbcYAxisOption},
-    {TK_CONFIG_CUSTOM, "-pen", "pen", "Pen", (char *)NULL, BAR_CORE_OFFSET(normalPenPtr), TK_CONFIG_NULL_OK,
-     &rbcBarPenOption},
-    {TK_CONFIG_RELIEF, "-relief", "relief", "Relief", DEF_BAR_RELIEF, offsetof(Bar, builtinPen.relief), 0},
-    {TK_CONFIG_CUSTOM, "-showerrorbars", "showErrorBars", "ShowErrorBars", DEF_BAR_SHOW_ERRORBARS,
-     offsetof(Bar, builtinPen.errorBarShow), TK_CONFIG_DONT_SET_DEFAULT, &rbcFillOption},
-    {TK_CONFIG_CUSTOM, "-showvalues", "showValues", "ShowValues", DEF_PEN_SHOW_VALUES,
-     offsetof(Bar, builtinPen.valueShow), TK_CONFIG_DONT_SET_DEFAULT, &rbcFillOption},
-    {TK_CONFIG_CUSTOM, "-state", "state", "State", DEF_BAR_STATE, BAR_CORE_OFFSET(state), TK_CONFIG_DONT_SET_DEFAULT,
-     &rbcStateOption},
-    {TK_CONFIG_BITMAP, "-stipple", "stipple", "Stipple", DEF_BAR_NORMAL_STIPPLE, offsetof(Bar, builtinPen.stipple),
-     TK_CONFIG_NULL_OK},
-    {TK_CONFIG_CUSTOM, "-styles", "styles", "Styles", DEF_BAR_STYLES, BAR_CORE_OFFSET(palette), TK_CONFIG_NULL_OK,
-     &stylesOption},
-    {TK_CONFIG_ANCHOR, "-valueanchor", "valueAnchor", "ValueAnchor", DEF_PEN_VALUE_ANCHOR,
-     offsetof(Bar, builtinPen.valueStyle.anchor), 0},
-    {TK_CONFIG_COLOR, "-valuecolor", "valueColor", "ValueColor", DEF_PEN_VALUE_COLOR,
-     offsetof(Bar, builtinPen.valueStyle.color), 0},
-    {TK_CONFIG_FONT, "-valuefont", "valueFont", "ValueFont", DEF_PEN_VALUE_FONT,
-     offsetof(Bar, builtinPen.valueStyle.font), 0},
-    {TK_CONFIG_STRING, "-valueformat", "valueFormat", "ValueFormat", DEF_PEN_VALUE_FORMAT,
-     offsetof(Bar, builtinPen.valueFormat), TK_CONFIG_NULL_OK},
-    {TK_CONFIG_DOUBLE, "-valuerotate", "valueRotate", "ValueRotate", DEF_PEN_VALUE_ROTATE,
-     offsetof(Bar, builtinPen.valueStyle.theta), 0},
-    {TK_CONFIG_CUSTOM, "-valueshadow", "valueShadow", "ValueShadow", DEF_PEN_VALUE_SHADOW,
-     offsetof(Bar, builtinPen.valueStyle.shadow), 0, &rbcShadowOption},
-    {TK_CONFIG_CUSTOM, "-weights", "weights", "Weights", (char *)NULL, BAR_CORE_OFFSET(w), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-x", "xdata", "Xdata", DEF_BAR_DATA, BAR_CORE_OFFSET(x), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-y", "ydata", "Ydata", DEF_BAR_DATA, BAR_CORE_OFFSET(y), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-xdata", "xdata", "Xdata", DEF_BAR_DATA, BAR_CORE_OFFSET(x), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-ydata", "ydata", "Ydata", DEF_BAR_DATA, BAR_CORE_OFFSET(y), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-xerror", "xError", "XError", DEF_BAR_DATA, BAR_CORE_OFFSET(xError), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-xhigh", "xHigh", "XHigh", DEF_BAR_DATA, BAR_CORE_OFFSET(xHigh), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-xlow", "xLow", "XLow", DEF_BAR_DATA, BAR_CORE_OFFSET(xLow), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-yerror", "yError", "YError", DEF_BAR_DATA, BAR_CORE_OFFSET(yError), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-yhigh", "yHigh", "YHigh", DEF_BAR_DATA, BAR_CORE_OFFSET(yHigh), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-ylow", "yLow", "YLow", DEF_BAR_DATA, BAR_CORE_OFFSET(yLow), 0, &rbcDataOption},
-    {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}};
 
 static const Tk_OptionSpec barElemOptionSpecs[] = {
     {TK_OPTION_STRING, "-activepen", "activePen", "ActivePen", DEF_BAR_ACTIVE_PEN, BAR_CORE_OFFSET(activePenObjPtr), -1,
@@ -653,7 +560,7 @@ static ElementMapProc MapBar;
 static int Round(register double x);
 static char *NameOfBarMode(BarMode mode);
 static void ClearPalette(Rbc_Chain *palette);
-static void InitPen(BarPen *penPtr);
+static void InitPen(BarPen *penPtr, const Tk_OptionSpec *optionSpecs, unsigned int flags);
 static void CheckStacks(Graph *graphPtr, Axis2D *pairPtr, double *minPtr, double *maxPtr);
 static void MergePens(Bar *barPtr, PenStyle **dataToStyle);
 static void MapActiveBars(Bar *barPtr);
@@ -964,61 +871,13 @@ static void ClearPalette(Rbc_Chain *palette) {
  *
  *----------------------------------------------------------------------
  */
-static int ConfigureLegacyPen(Graph *graphPtr, BarPen *bpPtr) {
-    XGCValues gcValues;
-    unsigned long gcMask;
-    int fillStyle;
-    GC newGC;
-    long defColor;
-
-
-    Rbc_ResetTextStyle(graphPtr->tkwin, &(bpPtr->valueStyle));
-    gcMask = GCForeground;
-    if (bpPtr->fgColor != NULL) {
-        defColor = bpPtr->fgColor->pixel;
-        gcValues.foreground = bpPtr->fgColor->pixel;
-    } else if (bpPtr->border != NULL) {
-        defColor = Tk_3DBorderColor(bpPtr->border)->pixel;
-        gcValues.foreground = Tk_3DBorderColor(bpPtr->border)->pixel;
-    } else {
-        defColor = BlackPixel(graphPtr->display, Tk_ScreenNumber(graphPtr->tkwin));
-    }
-    if ((bpPtr->fgColor != NULL) && (bpPtr->border != NULL)) {
-        gcMask |= GCBackground;
-        gcValues.background = Tk_3DBorderColor(bpPtr->border)->pixel;
-        fillStyle = FillOpaqueStippled;
-    } else {
-        fillStyle = FillStippled;
-    }
-    if (bpPtr->stipple != None) {
-        gcValues.stipple = bpPtr->stipple;
-        gcValues.fill_style = fillStyle;
-        gcMask |= (GCStipple | GCFillStyle);
-    }
-    newGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
-    if (bpPtr->gc != NULL) {
-        Tk_FreeGC(graphPtr->display, bpPtr->gc);
-    }
-    bpPtr->gc = newGC;
-
-    gcMask = GCForeground | GCLineWidth;
-    if (bpPtr->errorBarColor == COLOR_DEFAULT) {
-        gcValues.foreground = defColor;
-    } else {
-        gcValues.foreground = bpPtr->errorBarColor->pixel;
-    }
-    gcValues.line_width = LineWidth(bpPtr->errorBarLineWidth);
-    newGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
-    if (bpPtr->errorBarGC != NULL) {
-        Tk_FreeGC(graphPtr->display, bpPtr->errorBarGC);
-    }
-    bpPtr->errorBarGC = newGC;
-
-    return TCL_OK;
-}
-
-static int ConfigureModernPen(Graph *graphPtr, BarPen *bpPtr) {
+static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
+    BarPen *bpPtr;
     XColor *newErrorBarColor;
+
+    assert(penPtr->optionSpecs != NULL);
+
+    bpPtr = BAR_PEN_FROM_CORE(penPtr);
     Shadow newShadow;
 
     int newBorderWidth;
@@ -1190,18 +1049,6 @@ error:
     return TCL_ERROR;
 }
 
-static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
-    BarPen *bpPtr;
-
-    bpPtr = BAR_PEN_FROM_CORE(penPtr);
-
-    if (bpPtr->core.optionSpecs != NULL) {
-        return ConfigureModernPen(graphPtr, bpPtr);
-    }
-
-    return ConfigureLegacyPen(graphPtr, bpPtr);
-}
-
 /*
  *----------------------------------------------------------------------
  *
@@ -1243,20 +1090,15 @@ static void DestroyPen(Graph *graphPtr, Pen *penPtr) {
     }
 
     /*
-     * These two colours are manually derived for modern bar pens,
-     * including the pen embedded in a modern bar element. The legacy
-     * custom-option path retains its existing ownership behaviour.
+     * These resources are derived manually from the retained option
+     * objects and therefore are not released by Tk_FreeConfigOptions.
      */
-    if (bpPtr->core.optionSpecs != NULL) {
-        FreeBarPenColor(bpPtr->errorBarColor);
+    FreeBarPenColor(bpPtr->errorBarColor);
+    bpPtr->errorBarColor = NULL;
 
-        bpPtr->errorBarColor = NULL;
-
-        if (bpPtr->valueStyle.shadow.color != NULL) {
-            Tk_FreeColor(bpPtr->valueStyle.shadow.color);
-
-            bpPtr->valueStyle.shadow.color = NULL;
-        }
+    if (bpPtr->valueStyle.shadow.color != NULL) {
+        Tk_FreeColor(bpPtr->valueStyle.shadow.color);
+        bpPtr->valueStyle.shadow.color = NULL;
     }
 }
 
@@ -1278,22 +1120,23 @@ static void DestroyPen(Graph *graphPtr, Pen *penPtr) {
  *
  *----------------------------------------------------------------------
  */
-static void InitPen(BarPen *penPtr) {
+static void InitPen(BarPen *penPtr, const Tk_OptionSpec *optionSpecs, unsigned int flags) {
     Pen *corePtr;
+
+    assert(optionSpecs != NULL);
 
     corePtr = &penPtr->core;
 
     Rbc_InitTextStyle(&penPtr->valueStyle);
 
-    corePtr->optionSpecs = NULL;
+    corePtr->optionSpecs = optionSpecs;
     corePtr->optionTable = NULL;
-
     corePtr->optionsInitialized = FALSE;
     corePtr->tkResourcesReleased = FALSE;
 
     corePtr->configProc = ConfigurePen;
     corePtr->destroyProc = DestroyPen;
-    corePtr->flags = NORMAL_PEN;
+    corePtr->flags = flags;
 
     penPtr->relief = TK_RELIEF_RAISED;
     penPtr->errorBarShow = SHOW_BOTH;
@@ -1320,33 +1163,26 @@ static void InitPen(BarPen *penPtr) {
  *----------------------------------------------------------------------
  */
 Pen *Rbc_BarPen(char *penName) {
+    const Tk_OptionSpec *optionSpecs;
+    unsigned int flags;
     BarPen *penPtr;
     Pen *corePtr;
 
-    penPtr = RbcCalloc(1, sizeof(BarPen));
+    if (strcmp(penName, "activeBar") == 0) {
+        optionSpecs = activeBarPenOptionSpecs;
+        flags = ACTIVE_PEN;
+    } else {
+        optionSpecs = normalBarPenOptionSpecs;
+        flags = NORMAL_PEN;
+    }
 
+    penPtr = RbcCalloc(1, sizeof(BarPen));
     assert(penPtr != NULL);
 
-    InitPen(penPtr);
+    InitPen(penPtr, optionSpecs, flags);
 
     corePtr = &penPtr->core;
-
     corePtr->name = RbcStrdup(penName);
-
-    /*
-     * Named bar pens are initialized through their own option tables.
-     * Embedded bar-element pens are initialized through
-     * barElemOptionSpecs instead.
-     */
-    if (strcmp(penName, "activeBar") == 0) {
-        corePtr->flags = ACTIVE_PEN;
-
-        corePtr->optionSpecs = activeBarPenOptionSpecs;
-    } else {
-        corePtr->flags = NORMAL_PEN;
-
-        corePtr->optionSpecs = normalBarPenOptionSpecs;
-    }
 
     return corePtr;
 }
@@ -3427,8 +3263,7 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
      * Parse all fallible element-data conversions before modifying any
      * live vectors or derived drawing resources.
      */
-    if ((elemPtr->optionSpecs != NULL) &&
-        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & BAR_ELEM_DATA_MASK))) {
+    if ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & BAR_ELEM_DATA_MASK)) {
         if (PrepareBarDataTransaction(graphPtr, elemPtr, &dataTransaction) != TCL_OK) {
             goto error;
         }
@@ -3440,8 +3275,7 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
      * Resolve named pens into temporary references before changing the
      * live active or normal pen.
      */
-    if ((elemPtr->optionSpecs != NULL) &&
-        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & BAR_ELEM_PEN_MASK))) {
+    if ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & BAR_ELEM_PEN_MASK)) {
         if (PrepareBarElementPenTransaction(graphPtr, elemPtr, &penTransaction) != TCL_OK) {
             goto error;
         }
@@ -3452,8 +3286,7 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
     /*
      * Resolve X and Y axis mappings before modifying the live element.
      */
-    if ((elemPtr->optionSpecs != NULL) &&
-        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & BAR_ELEM_AXES_MASK))) {
+    if ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & BAR_ELEM_AXES_MASK)) {
         if (PrepareBarElementAxisTransaction(graphPtr, elemPtr, &axisTransaction) != TCL_OK) {
             goto error;
         }
@@ -3465,8 +3298,7 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
      * Validate the element state before modifying any live state or
      * derived drawing resources.
      */
-    if ((elemPtr->optionSpecs != NULL) &&
-        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & BAR_ELEM_STATE_MASK))) {
+    if ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & BAR_ELEM_STATE_MASK)) {
         if (PrepareBarElementStateTransaction(graphPtr, elemPtr, &stateTransaction) != TCL_OK) {
             goto error;
         }
@@ -3478,8 +3310,7 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
      * Parse bind tags before modifying the live element or any derived
      * resources.
      */
-    if ((elemPtr->optionSpecs != NULL) &&
-        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & BAR_ELEM_TAGS_MASK))) {
+    if ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & BAR_ELEM_TAGS_MASK)) {
         if (PrepareBarElementTagsTransaction(graphPtr, elemPtr, &tagsTransaction) != TCL_OK) {
             goto error;
         }
@@ -3491,8 +3322,7 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
      * Parse the complete style palette before changing the live palette
      * or any derived drawing resources.
      */
-    if ((elemPtr->optionSpecs != NULL) &&
-        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & BAR_ELEM_STYLES_MASK))) {
+    if ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & BAR_ELEM_STYLES_MASK)) {
         if (PrepareBarElementStylesTransaction(graphPtr, elemPtr, &stylesTransaction) != TCL_OK) {
             goto error;
         }
@@ -3501,14 +3331,10 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
     }
 
     /*
-     * Configure the embedded bar pen after every other fallible value has
-     * been validated.
-     *
-     * Legacy elements always configure the pen. Modern elements configure
-     * it initially and whenever one of its element-level options changed.
+     * Configure the embedded bar pen initially and whenever one of its
+     * element-level options changes.
      */
-    if ((elemPtr->optionSpecs == NULL) || (!elemPtr->optionsConfigured) ||
-        (elemPtr->optionMask & BAR_ELEM_BUILTIN_PEN_MASK)) {
+    if ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & BAR_ELEM_BUILTIN_PEN_MASK)) {
         if (ConfigurePen(graphPtr, &barPtr->builtinPen.core) != TCL_OK) {
             goto error;
         }
@@ -3538,14 +3364,7 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
         CommitBarElementStylesTransaction(graphPtr, elemPtr, &stylesTransaction);
     }
 
-    /*
-     * Preserve the legacy fallback in case a legacy custom option set
-     * normalPenPtr to NULL.
-     */
-    if (elemPtr->normalPenPtr == NULL) {
-        elemPtr->normalPenPtr = &barPtr->builtinPen.core;
-    }
-
+    assert(elemPtr->normalPenPtr != NULL);
     linkPtr = Rbc_ChainFirstLink(elemPtr->palette);
 
     if (linkPtr != NULL) {
@@ -3572,12 +3391,7 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
         SyncBarDataOptionObjects(elemPtr);
     }
 
-    if (elemPtr->optionSpecs != NULL) {
-        if ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & BAR_ELEM_MAP_ITEM_MASK)) {
-            elemPtr->flags |= MAP_ITEM;
-        }
-    } else if (Rbc_ConfigModified(graphPtr->interp, elemPtr->specsPtr, "-barwidth", "-*data", "-map*", "-label",
-                                  "-hide", "-x", "-y", (char *)NULL)) {
+    if ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & BAR_ELEM_MAP_ITEM_MASK)) {
         elemPtr->flags |= MAP_ITEM;
     }
 
@@ -4949,15 +4763,12 @@ Element *Rbc_BarElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     elemPtr->name = RbcStrdup(name);
     elemPtr->graphPtr = graphPtr;
     elemPtr->hidden = FALSE;
-    InitPen(&barPtr->builtinPen);
-
     /*
-     * The embedded pen's options are initialized as part of the element's
-     * option table, not through the named-pen option machinery. Setting
-     * optionSpecs selects ConfigureModernPen and the corresponding modern
-     * resource-release path.
+     * The embedded pen's direct option fields are initialized through
+     * barElemOptionSpecs, while its derived resources use the normal
+     * modern bar-pen configuration.
      */
-    barPtr->builtinPen.core.optionSpecs = normalBarPenOptionSpecs;
+    InitPen(&barPtr->builtinPen, normalBarPenOptionSpecs, NORMAL_PEN);
     elemPtr->palette = Rbc_ChainCreate();
     return elemPtr;
 }
