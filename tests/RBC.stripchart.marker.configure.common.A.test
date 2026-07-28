@@ -333,7 +333,7 @@ namespace eval stripchart.marker {
 	} -cleanup {
 		.stripchart1 marker delete Marker1
 		destroy .stripchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -xoffset command works correctly when given
@@ -350,7 +350,7 @@ namespace eval stripchart.marker {
 	} -cleanup {
 		.stripchart1 marker delete Marker1
 		destroy .stripchart1
-	} -result {-4}
+	} -result {-3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -xoffset command works correctly when given
@@ -438,7 +438,7 @@ namespace eval stripchart.marker {
 	} -cleanup {
 		.stripchart1 marker delete Marker1
 		destroy .stripchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -yoffset command works correctly when given
@@ -455,7 +455,7 @@ namespace eval stripchart.marker {
 	} -cleanup {
 		.stripchart1 marker delete Marker1
 		destroy .stripchart1
-	} -result {-4}
+	} -result {-3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -yoffset command works correctly when given

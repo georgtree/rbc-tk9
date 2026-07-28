@@ -203,7 +203,7 @@ namespace eval graph.marker {
 	} -cleanup {
 		.graph1 marker delete Marker1
 		destroy .graph1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -linewidth command works correctly when given
@@ -517,7 +517,7 @@ namespace eval graph.marker {
 	} -cleanup {
 		.graph1 marker delete Marker1
 		destroy .graph1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -dashoffset command works correctly when given

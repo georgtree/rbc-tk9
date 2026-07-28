@@ -149,6 +149,17 @@ struct MarkerStruct {
     int xOffset, yOffset; /* Pixel offset from graph position */
     MarkerClass *classPtr;
     int state;
+
+    /*
+     * Original Tcl representations for common manually converted options.
+     */
+    Tcl_Obj *bindTagsObjPtr;
+    Tcl_Obj *coordsObjPtr;
+    Tcl_Obj *mapXObjPtr;
+    Tcl_Obj *mapYObjPtr;
+    Tcl_Obj *stateObjPtr;
+    Tcl_Obj *xOffsetObjPtr;
+    Tcl_Obj *yOffsetObjPtr;
     
     /*
      * Modern option state. These fields remain unused while
@@ -422,6 +433,16 @@ static Tk_ConfigSpec imageConfigSpecs[] = {
 typedef struct {
     Marker core;
 
+    /*
+     * Original Tcl representations for manually converted line
+     * marker options.
+     */
+    Tcl_Obj *capObjPtr;
+    Tcl_Obj *dashesObjPtr;
+    Tcl_Obj *dashOffsetObjPtr;
+    Tcl_Obj *joinObjPtr;
+    Tcl_Obj *lineWidthObjPtr;
+    
     /* Line specific attributes */
     XColor *fillColor;
     XColor *outlineColor; /* Foreground and background colors */
@@ -446,42 +467,37 @@ typedef struct {
                    * if the marker is currently drawn. */
 } LineMarker;
 
-static Tk_ConfigSpec lineConfigSpecs[] = {
-    {TK_CONFIG_CUSTOM, "-bindtags", "bindTags", "BindTags", DEF_MARKER_LINE_TAGS, offsetof(Marker, tags),
-     TK_CONFIG_NULL_OK, &rbcListOption},
-    {TK_CONFIG_CAP_STYLE, "-cap", "cap", "Cap", DEF_MARKER_CAP_STYLE, offsetof(LineMarker, capStyle),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-coords", "coords", "Coords", DEF_MARKER_COORDS, offsetof(Marker, worldPts), TK_CONFIG_NULL_OK,
-     &coordsOption},
-    {TK_CONFIG_CUSTOM, "-dashes", "dashes", "Dashes", DEF_MARKER_DASHES, offsetof(LineMarker, dashes),
-     TK_CONFIG_NULL_OK, &rbcDashesOption},
-    {TK_CONFIG_CUSTOM, "-dashoffset", "dashOffset", "DashOffset", DEF_MARKER_DASH_OFFSET,
-     offsetof(LineMarker, dashes.offset), TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_STRING, "-element", "element", "Element", DEF_MARKER_ELEMENT, offsetof(Marker, elemName),
-     TK_CONFIG_NULL_OK},
-    {TK_CONFIG_COLOR, "-fill", "fill", "Fill", (char *)NULL, offsetof(LineMarker, fillColor), TK_CONFIG_NULL_OK},
-    {TK_CONFIG_JOIN_STYLE, "-join", "join", "Join", DEF_MARKER_JOIN_STYLE, offsetof(LineMarker, joinStyle),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-linewidth", "lineWidth", "LineWidth", DEF_MARKER_LINE_WIDTH, offsetof(LineMarker, lineWidth),
-     TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_BOOLEAN, "-hide", "hide", "Hide", DEF_MARKER_HIDE, offsetof(Marker, hidden), TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-mapx", "mapX", "MapX", DEF_MARKER_MAP_X, offsetof(Marker, axes.x), 0, &rbcXAxisOption},
-    {TK_CONFIG_CUSTOM, "-mapy", "mapY", "MapY", DEF_MARKER_MAP_Y, offsetof(Marker, axes.y), 0, &rbcYAxisOption},
-    {TK_CONFIG_STRING, "-name", (char *)NULL, (char *)NULL, DEF_MARKER_NAME, offsetof(Marker, name), TK_CONFIG_NULL_OK},
-    {TK_CONFIG_COLOR, "-outline", "outline", "Outline", DEF_MARKER_OUTLINE_COLOR, offsetof(LineMarker, outlineColor),
-     TK_CONFIG_COLOR_ONLY | TK_CONFIG_NULL_OK},
-    {TK_CONFIG_COLOR, "-outline", "outline", "Outline", DEF_MARKER_OUTLINE_MONO, offsetof(LineMarker, outlineColor),
-     TK_CONFIG_MONO_ONLY | TK_CONFIG_NULL_OK},
-    {TK_CONFIG_CUSTOM, "-state", "state", "State", DEF_MARKER_STATE, offsetof(Marker, state),
-     TK_CONFIG_DONT_SET_DEFAULT, &rbcStateOption},
-    {TK_CONFIG_BOOLEAN, "-under", "under", "Under", DEF_MARKER_UNDER, offsetof(Marker, drawUnder),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_PIXELS, "-xoffset", "xOffset", "XOffset", DEF_MARKER_X_OFFSET, offsetof(Marker, xOffset),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_BOOLEAN, "-xor", "xor", "Xor", DEF_MARKER_XOR, offsetof(LineMarker, xor), TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_PIXELS, "-yoffset", "yOffset", "YOffset", DEF_MARKER_Y_OFFSET, offsetof(Marker, yOffset),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}};
+static const Tk_OptionSpec lineMarkerOptionSpecs[] = {
+    {TK_OPTION_STRING, "-bindtags", "bindTags", "BindTags", DEF_MARKER_LINE_TAGS, offsetof(Marker, bindTagsObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING, "-cap", "cap", "Cap", DEF_MARKER_CAP_STYLE, offsetof(LineMarker, capObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-coords", "coords", "Coords", DEF_MARKER_COORDS, offsetof(Marker, coordsObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING, "-dashes", "dashes", "Dashes", DEF_MARKER_DASHES, offsetof(LineMarker, dashesObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING, "-dashoffset", "dashOffset", "DashOffset", DEF_MARKER_DASH_OFFSET,
+     offsetof(LineMarker, dashOffsetObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-element", "element", "Element", DEF_MARKER_ELEMENT, -1, offsetof(Marker, elemName),
+     TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_COLOR, "-fill", "fill", "Fill", NULL, -1, offsetof(LineMarker, fillColor), TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING, "-join", "join", "Join", DEF_MARKER_JOIN_STYLE, offsetof(LineMarker, joinObjPtr), -1, 0, NULL,
+     0},
+    {TK_OPTION_STRING, "-linewidth", "lineWidth", "LineWidth", DEF_MARKER_LINE_WIDTH,
+     offsetof(LineMarker, lineWidthObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_MARKER_HIDE, -1, offsetof(Marker, hidden), 0, NULL, 0},
+    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_MARKER_MAP_X, offsetof(Marker, mapXObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_MARKER_MAP_Y, offsetof(Marker, mapYObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-name", NULL, NULL, DEF_MARKER_NAME, -1, offsetof(Marker, name), TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_COLOR, "-outline", "outline", "Outline", DEF_MARKER_OUTLINE_COLOR, -1,
+     offsetof(LineMarker, outlineColor), TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING, "-state", "state", "State", DEF_MARKER_STATE, offsetof(Marker, stateObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_BOOLEAN, "-under", "under", "Under", DEF_MARKER_UNDER, -1, offsetof(Marker, drawUnder), 0, NULL, 0},
+    {TK_OPTION_PIXELS, "-xoffset", "xOffset", "XOffset", DEF_MARKER_X_OFFSET, offsetof(Marker, xOffsetObjPtr),
+     offsetof(Marker, xOffset), 0, NULL, 0},
+    {TK_OPTION_BOOLEAN, "-xor", "xor", "Xor", DEF_MARKER_XOR, -1, offsetof(LineMarker, xor), 0, NULL, 0},
+    {TK_OPTION_PIXELS, "-yoffset", "yOffset", "YOffset", DEF_MARKER_Y_OFFSET, offsetof(Marker, yOffsetObjPtr),
+     offsetof(Marker, yOffset), 0, NULL, 0},
+    {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 /*
  * -------------------------------------------------------------------
@@ -673,8 +689,8 @@ static MarkerClass imageMarkerClass = {
 
 
 static MarkerClass lineMarkerClass = {
-    .configSpecs = lineConfigSpecs,
-    .optionSpecs = NULL,
+    .configSpecs = NULL,
+    .optionSpecs = lineMarkerOptionSpecs,
     .configProc = ConfigureLineMarker,
     .drawProc = DrawLineMarker,
     .freeProc = FreeLineMarker,
@@ -995,6 +1011,143 @@ static int BoxesDontOverlap(Graph *graphPtr, Extents2D *extsPtr) {
 
     return (((double)graphPtr->right < extsPtr->left) || ((double)graphPtr->bottom < extsPtr->top) ||
             (extsPtr->right < (double)graphPtr->left) || (extsPtr->bottom < (double)graphPtr->top));
+}
+
+static int GetMarkerTagsFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, char ***tagsPtrPtr) {
+    const char **tags;
+    Tcl_Size nTags;
+
+    *tagsPtrPtr = NULL;
+
+    if ((objPtr == NULL) || (Tcl_GetCharLength(objPtr) == 0)) {
+        return TCL_OK;
+    }
+
+    tags = NULL;
+    nTags = 0;
+
+    if (Tcl_SplitList(interp, Tcl_GetString(objPtr), &nTags, &tags) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    if (nTags == 0) {
+        if (tags != NULL) {
+            ckfree((char *)tags);
+        }
+
+        return TCL_OK;
+    }
+
+    *tagsPtrPtr = (char **)tags;
+    return TCL_OK;
+}
+
+static int GetMarkerStateFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *statePtr) {
+    const char *string;
+
+    string = Tcl_GetString(objPtr);
+
+    if (strcmp(string, "normal") == 0) {
+        *statePtr = STATE_NORMAL;
+    } else if (strcmp(string, "active") == 0) {
+        *statePtr = STATE_ACTIVE;
+    } else if (strcmp(string, "disabled") == 0) {
+        *statePtr = STATE_DISABLED;
+    } else {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad state \"%s\": should be normal, "
+                                               "active, or disabled",
+                                               string));
+
+        return TCL_ERROR;
+    }
+
+    return TCL_OK;
+}
+
+static int GetMarkerCoordinatesFromObj(Marker *markerPtr, Tcl_Obj *objPtr, Point2D **worldPtsPtr, int *nWorldPtsPtr) {
+    Tcl_Interp *interp;
+    Tcl_Obj **objv;
+    Tcl_Size objc;
+    Tcl_Size i;
+    int minArgs;
+    int maxArgs;
+    int nWorldPts;
+    Point2D *worldPts;
+    Point2D *pointPtr;
+
+    interp = markerPtr->graphPtr->interp;
+
+    *worldPtsPtr = NULL;
+    *nWorldPtsPtr = 0;
+
+    if ((objPtr == NULL) || (Tcl_GetCharLength(objPtr) == 0)) {
+        return TCL_OK;
+    }
+
+    if (Tcl_ListObjGetElements(interp, objPtr, &objc, &objv) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    if (objc == 0) {
+        return TCL_OK;
+    }
+
+    if (objc & 1) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("odd number of marker coordinates specified", -1));
+
+        return TCL_ERROR;
+    }
+
+    if (markerPtr->classUid == rbcLineMarkerUid) {
+        minArgs = 4;
+        maxArgs = 0;
+    } else if (markerPtr->classUid == rbcPolygonMarkerUid) {
+        minArgs = 6;
+        maxArgs = 0;
+    } else if ((markerPtr->classUid == rbcWindowMarkerUid) || (markerPtr->classUid == rbcTextMarkerUid)) {
+        minArgs = 2;
+        maxArgs = 2;
+    } else if ((markerPtr->classUid == rbcImageMarkerUid) || (markerPtr->classUid == rbcBitmapMarkerUid)) {
+        minArgs = 2;
+        maxArgs = 4;
+    } else {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("unknown marker type", -1));
+
+        return TCL_ERROR;
+    }
+
+    if (objc < minArgs) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("too few marker coordinates specified", -1));
+
+        return TCL_ERROR;
+    }
+
+    if ((maxArgs > 0) && (objc > maxArgs)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("too many marker coordinates specified", -1));
+
+        return TCL_ERROR;
+    }
+
+    nWorldPts = (int)(objc / 2);
+
+    worldPts = ckalloc((size_t)nWorldPts * sizeof(Point2D));
+
+    pointPtr = worldPts;
+
+    for (i = 0; i < objc; i += 2) {
+        if ((GetCoordinate(interp, Tcl_GetString(objv[i]), &pointPtr->x) != TCL_OK) ||
+            (GetCoordinate(interp, Tcl_GetString(objv[i + 1]), &pointPtr->y) != TCL_OK)) {
+            ckfree((char *)worldPts);
+            return TCL_ERROR;
+        }
+
+        pointPtr++;
+    }
+
+    *worldPtsPtr = worldPts;
+    *nWorldPtsPtr = nWorldPts;
+
+    return TCL_OK;
 }
 
 /*
@@ -3823,69 +3976,253 @@ static void DrawLineMarker(Marker *markerPtr, Drawable drawable) {
  * ----------------------------------------------------------------------
  */
 static int ConfigureLineMarker(Marker *markerPtr) {
-    Graph *graphPtr = markerPtr->graphPtr;
-    LineMarker *lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
-    GC newGC;
+    Graph *graphPtr;
+    LineMarker *lmPtr;
+
+    char **newTags;
+    Point2D *newWorldPts;
+    int newNWorldPts;
+
+    Axis *newXAxis;
+    Axis *newYAxis;
+
+    Rbc_Dashes newDashes;
+
+    int newCapStyle;
+    int newJoinStyle;
+    int newLineWidth;
+    int newDashOffset;
+    int newState;
+
     XGCValues gcValues;
     unsigned long gcMask;
+    GC newGC;
     Drawable drawable;
 
-    drawable = Tk_WindowId(graphPtr->tkwin);
-    gcMask = (GCLineWidth | GCLineStyle | GCCapStyle | GCJoinStyle);
+    graphPtr = markerPtr->graphPtr;
+    lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
+
+    newTags = NULL;
+    newWorldPts = NULL;
+    newNWorldPts = 0;
+
+    newXAxis = NULL;
+    newYAxis = NULL;
+
+    newGC = NULL;
+
+    /*
+     * Parse every manually derived field without changing the
+     * currently active marker.
+     */
+    if (GetMarkerTagsFromObj(graphPtr->interp, markerPtr->bindTagsObjPtr, &newTags) != TCL_OK) {
+        goto error;
+    }
+
+    if (GetMarkerCoordinatesFromObj(markerPtr, markerPtr->coordsObjPtr, &newWorldPts, &newNWorldPts) != TCL_OK) {
+        goto error;
+    }
+
+    if (Tk_GetCapStyle(graphPtr->interp, Tcl_GetString(lmPtr->capObjPtr), &newCapStyle) != TCL_OK) {
+        goto error;
+    }
+
+    if (Tk_GetJoinStyle(graphPtr->interp, Tcl_GetString(lmPtr->joinObjPtr), &newJoinStyle) != TCL_OK) {
+        goto error;
+    }
+
+    if (Rbc_GetDashesFromObj(graphPtr->interp, lmPtr->dashesObjPtr, &newDashes) != TCL_OK) {
+        goto error;
+    }
+
+    if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, lmPtr->dashOffsetObjPtr, PIXELS_NONNEGATIVE,
+                             &newDashOffset) != TCL_OK) {
+        goto error;
+    }
+
+    if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, lmPtr->lineWidthObjPtr, PIXELS_NONNEGATIVE,
+                             &newLineWidth) != TCL_OK) {
+        goto error;
+    }
+
+    if (GetMarkerStateFromObj(graphPtr->interp, markerPtr->stateObjPtr, &newState) != TCL_OK) {
+        goto error;
+    }
+
+    if (Rbc_GetAxisFromObj(graphPtr, markerPtr->mapXObjPtr, rbcXAxisUid, 0, &newXAxis) != TCL_OK) {
+        goto error;
+    }
+
+    if (Rbc_GetAxisFromObj(graphPtr, markerPtr->mapYObjPtr, rbcYAxisUid, 0, &newYAxis) != TCL_OK) {
+        goto error;
+    }
+
+    newDashes.offset = newDashOffset;
+
+    /*
+     * Build the replacement GC. No fallible parsing remains after
+     * this point.
+     */
+    memset(&gcValues, 0, sizeof(gcValues));
+
+    gcMask = GCLineWidth | GCLineStyle | GCCapStyle | GCJoinStyle;
+
     if (lmPtr->outlineColor != NULL) {
         gcMask |= GCForeground;
+
         gcValues.foreground = lmPtr->outlineColor->pixel;
     }
+
     if (lmPtr->fillColor != NULL) {
         gcMask |= GCBackground;
+
         gcValues.background = lmPtr->fillColor->pixel;
     }
-    gcValues.cap_style = lmPtr->capStyle;
-    gcValues.join_style = lmPtr->joinStyle;
-    gcValues.line_width = LineWidth(lmPtr->lineWidth);
+
+    gcValues.cap_style = newCapStyle;
+    gcValues.join_style = newJoinStyle;
+    gcValues.line_width = LineWidth(newLineWidth);
     gcValues.line_style = LineSolid;
-    if (LineIsDashed(lmPtr->dashes)) {
+
+    if (LineIsDashed(newDashes)) {
         gcValues.line_style = (gcMask & GCBackground) ? LineDoubleDash : LineOnOffDash;
     }
+
     if (lmPtr->xor) {
         unsigned long pixel;
-        gcValues.function = GXxor;
 
+        gcValues.function = GXxor;
         gcMask |= GCFunction;
+
         if (graphPtr->plotBg == NULL) {
             pixel = WhitePixelOfScreen(Tk_Screen(graphPtr->tkwin));
         } else {
             pixel = graphPtr->plotBg->pixel;
         }
+
         if (gcMask & GCBackground) {
             gcValues.background ^= pixel;
         }
-        gcValues.foreground ^= pixel;
-        if (drawable != None) {
-            DrawLineMarker(markerPtr, drawable);
+
+        if (gcMask & GCForeground) {
+            gcValues.foreground ^= pixel;
         }
     }
+
     newGC = Rbc_GetPrivateGC(graphPtr->tkwin, gcMask, &gcValues);
+
+    if (LineIsDashed(newDashes)) {
+        Rbc_SetDashes(graphPtr->display, newGC, &newDashes);
+    }
+
+    drawable = Tk_WindowId(graphPtr->tkwin);
+
+    /*
+     * Erase the currently displayed XOR image with the old GC. Do not
+     * use DrawLineMarker() here: Tk_SetOptions() has already installed
+     * the new -xor value, while xorState describes what is physically
+     * present in the window.
+     */
+    if (lmPtr->xorState && (drawable != None) && (lmPtr->gc != NULL) && (lmPtr->nSegments > 0)) {
+        Rbc_Draw2DSegments(graphPtr->display, drawable, lmPtr->gc, lmPtr->segments, lmPtr->nSegments);
+
+        lmPtr->xorState = FALSE;
+    }
+
+    /*
+     * Commit common derived resources.
+     */
+    if (markerPtr->tags != NULL) {
+        ckfree((char *)markerPtr->tags);
+    }
+
+    markerPtr->tags = newTags;
+    newTags = NULL;
+
+    if (markerPtr->worldPts != NULL) {
+        ckfree((char *)markerPtr->worldPts);
+    }
+
+    markerPtr->worldPts = newWorldPts;
+    markerPtr->nWorldPts = newNWorldPts;
+
+    newWorldPts = NULL;
+    newNWorldPts = 0;
+
+    if (markerPtr->axes.x != NULL) {
+        Rbc_FreeAxisReference(graphPtr, markerPtr->axes.x);
+    }
+
+    if (markerPtr->axes.y != NULL) {
+        Rbc_FreeAxisReference(graphPtr, markerPtr->axes.y);
+    }
+
+    markerPtr->axes.x = newXAxis;
+    markerPtr->axes.y = newYAxis;
+
+    newXAxis = NULL;
+    newYAxis = NULL;
+
+    markerPtr->state = newState;
+
+    /*
+     * Commit line-specific derived values.
+     */
+    lmPtr->capStyle = newCapStyle;
+    lmPtr->joinStyle = newJoinStyle;
+    lmPtr->lineWidth = newLineWidth;
+    lmPtr->dashes = newDashes;
+
     if (lmPtr->gc != NULL) {
         Rbc_FreePrivateGC(graphPtr->display, lmPtr->gc);
     }
-    if (LineIsDashed(lmPtr->dashes)) {
-        Rbc_SetDashes(graphPtr->display, newGC, &lmPtr->dashes);
-    }
+
     lmPtr->gc = newGC;
-    if (lmPtr->xor) {
-        if (drawable != None) {
-            MapLineMarker(markerPtr);
-            DrawLineMarker(markerPtr, drawable);
-        }
+    newGC = NULL;
+
+    markerPtr->flags |= MAP_ITEM;
+
+    /*
+     * XOR markers are drawn immediately. Ordinary markers are handled
+     * by the normal graph redraw path.
+     */
+    if (lmPtr->xor &&(drawable != None)) {
+        MapLineMarker(markerPtr);
+        DrawLineMarker(markerPtr, drawable);
+
         return TCL_OK;
     }
-    lmPtr->core.flags |= MAP_ITEM;
-    if (lmPtr->core.drawUnder) {
+
+    if (markerPtr->drawUnder) {
         graphPtr->flags |= REDRAW_BACKING_STORE;
     }
+
     Rbc_EventuallyRedrawGraph(graphPtr);
+
     return TCL_OK;
+
+error:
+    if (newGC != NULL) {
+        Rbc_FreePrivateGC(graphPtr->display, newGC);
+    }
+
+    if (newTags != NULL) {
+        ckfree((char *)newTags);
+    }
+
+    if (newWorldPts != NULL) {
+        ckfree((char *)newWorldPts);
+    }
+
+    if (newXAxis != NULL) {
+        Rbc_FreeAxisReference(graphPtr, newXAxis);
+    }
+
+    if (newYAxis != NULL) {
+        Rbc_FreeAxisReference(graphPtr, newYAxis);
+    }
+
+    return TCL_ERROR;
 }
 
 /*
@@ -3950,13 +4287,35 @@ static void LineMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
  * ----------------------------------------------------------------------
  */
 static void FreeLineMarker(Graph *graphPtr, Marker *markerPtr) {
-    LineMarker *lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
+    LineMarker *lmPtr;
+    Drawable drawable;
+
+    lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
+
+    /*
+     * Remove an immediately drawn XOR marker before releasing its GC.
+     */
+    if (lmPtr->xorState && (graphPtr->tkwin != NULL) && (lmPtr->gc != NULL) && (lmPtr->nSegments > 0)) {
+        drawable = Tk_WindowId(graphPtr->tkwin);
+
+        if (drawable != None) {
+            Rbc_Draw2DSegments(graphPtr->display, drawable, lmPtr->gc, lmPtr->segments, lmPtr->nSegments);
+        }
+
+        lmPtr->xorState = FALSE;
+    }
 
     if (lmPtr->gc != NULL) {
         Rbc_FreePrivateGC(graphPtr->display, lmPtr->gc);
+
+        lmPtr->gc = NULL;
     }
+
     if (lmPtr->segments != NULL) {
         ckfree((char *)lmPtr->segments);
+
+        lmPtr->segments = NULL;
+        lmPtr->nSegments = 0;
     }
 }
 
@@ -4872,7 +5231,6 @@ static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
         TCL_OK) {
         return TCL_ERROR;
     }
-
     classUid = *typeMap[index].uid;
 
     /*
@@ -4886,13 +5244,10 @@ static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
      * the missing value.
      */
     name = NULL;
-
     for (i = 4; (i + 1) < objc; i += 2) {
         const char *option;
         Tcl_Size length;
-
         option = Tcl_GetStringFromObj(objv[i], &length);
-
         if ((length >= 2) && (length <= 5) && (strncmp(option, "-name", (size_t)length) == 0)) {
             name = Tcl_GetString(objv[i + 1]);
         }
@@ -4903,11 +5258,9 @@ static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
      */
     if (name == NULL) {
         snprintf(generatedName, sizeof(generatedName), "marker%d", graphPtr->nextMarkerId++);
-
         name = generatedName;
     } else if (name[0] == '-') {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("name of marker \"%s\" can't start with a '-'", name));
-
         return TCL_ERROR;
     }
 
@@ -4917,10 +5270,8 @@ static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
      * object or into generatedName.
      */
     markerPtr = CreateMarker(graphPtr, name, classUid);
-
     if (markerPtr == NULL) {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't create marker of type \"%s\"", Tcl_GetString(objv[3])));
-
         return TCL_ERROR;
     }
 
@@ -4934,7 +5285,6 @@ static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
             DestroyMarker(markerPtr);
             return TCL_ERROR;
         }
-
         if (ConfigureMarkerOptions(markerPtr, objc - 4, objv + 4, TRUE) != TCL_OK) {
             DestroyMarker(markerPtr);
             return TCL_ERROR;
@@ -4942,14 +5292,12 @@ static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
     } else {
         assert(markerPtr->classPtr->configSpecs != NULL);
         assert(markerPtr->classPtr->optionSpecs == NULL);
-
         if (Rbc_ConfigureWidgetComponent(interp, graphPtr->tkwin, name, markerPtr->classUid,
                                          markerPtr->classPtr->configSpecs, objc - 4, objv + 4, (char *)markerPtr,
                                          0) != TCL_OK) {
             DestroyMarker(markerPtr);
             return TCL_ERROR;
         }
-
         if ((*markerPtr->classPtr->configProc)(markerPtr) != TCL_OK) {
             DestroyMarker(markerPtr);
             return TCL_ERROR;
@@ -4967,10 +5315,8 @@ static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
         DestroyMarker(markerPtr);
         return TCL_ERROR;
     }
-
     if (markerPtr->name[0] == '-') {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("name of marker \"%s\" can't start with a '-'", markerPtr->name));
-
         DestroyMarker(markerPtr);
         return TCL_ERROR;
     }
@@ -4980,10 +5326,8 @@ static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
      * creating a marker with an existing name replaces the old marker.
      */
     hPtr = Tcl_CreateHashEntry(&graphPtr->markers.table, markerPtr->name, &isNew);
-
     if (!isNew) {
         Marker *oldMarkerPtr;
-
         oldMarkerPtr = Tcl_GetHashValue(hPtr);
 
         /*
@@ -4991,27 +5335,20 @@ static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
          * would delete the hash entry along with the old marker.
          */
         oldMarkerPtr->hashPtr = NULL;
-
         DestroyMarker(oldMarkerPtr);
     }
-
     Tcl_SetHashValue(hPtr, markerPtr);
-
     markerPtr->hashPtr = hPtr;
 
     /*
      * Add the new marker to the end of the display list.
      */
     markerPtr->linkPtr = Rbc_ChainAppend(graphPtr->markers.displayList, markerPtr);
-
     if (markerPtr->drawUnder) {
         graphPtr->flags |= REDRAW_BACKING_STORE;
     }
-
     Rbc_EventuallyRedrawGraph(graphPtr);
-
     Tcl_SetObjResult(interp, Tcl_NewStringObj(markerPtr->name, -1));
-
     return TCL_OK;
 }
 
