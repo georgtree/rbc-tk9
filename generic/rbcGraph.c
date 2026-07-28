@@ -315,6 +315,7 @@ static void GraphEventProc(ClientData clientData, register XEvent *eventPtr) {
             if (graphPtr->legend != NULL) {
                 Rbc_ReleaseLegendTkResources(graphPtr);
             }
+            Rbc_ReleaseMarkerTkResources(graphPtr);
             Rbc_ReleasePenTkResources(graphPtr);
             Rbc_DeleteWindowInstanceData(graphPtr->tkwin);
 
@@ -373,6 +374,7 @@ static void GraphInstCmdDeleteProc(ClientData clientData) {
         if (graphPtr->legend != NULL) {
             Rbc_ReleaseLegendTkResources(graphPtr);
         }
+        Rbc_ReleaseMarkerTkResources(graphPtr);
         Rbc_ReleasePenTkResources(graphPtr);
         graphPtr->tkwin = NULL;
 

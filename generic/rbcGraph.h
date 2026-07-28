@@ -597,6 +597,7 @@ void Rbc_DestroyCrosshairs(Graph *graphPtr);
 void Rbc_DestroyGrid(Graph *graphPtr);
 void Rbc_DestroyElements(Graph *graphPtr);
 void Rbc_DestroyMarkers(Graph *graphPtr);
+void Rbc_ReleaseMarkerTkResources(Graph *graphPtr);
 void Rbc_DestroyPostScript(Graph *graphPtr);
 void Rbc_DrawAxes(Graph *graphPtr, Drawable drawable);
 void Rbc_DrawAxisLimits(Graph *graphPtr, Drawable drawable);
