@@ -626,6 +626,47 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {round}
+
+    test RBC.graph.marker.configure.line.A.rollback.1 {
+        line marker configuration is atomic
+    } -setup {
+        graph .graph1
+        .graph1 marker create line -name Marker1 -coords {0 0 1 1} -outline blue -linewidth 2 -mapx x
+        set oldCoords [.graph1 marker cget Marker1 -coords]
+        set oldOutline [.graph1 marker cget Marker1 -outline]
+        set oldWidth [.graph1 marker cget Marker1 -linewidth]
+        set oldMapX [.graph1 marker cget Marker1 -mapx]
+    } -body {
+        set code [catch {.graph1 marker configure Marker1 -coords {0 0 1} -outline red -linewidth 3.5 -mapx x2}\
+                          message]
+        list $code [expr {[.graph1 marker cget Marker1 -coords] eq $oldCoords}]\
+                [expr {[.graph1 marker cget Marker1 -outline] eq $oldOutline}]\
+                [expr {[.graph1 marker cget Marker1 -linewidth] eq $oldWidth}]\
+                [expr {[.graph1 marker cget Marker1 -mapx] eq $oldMapX}]
+    } -cleanup {
+        destroy .graph1
+        unset -nocomplain oldCoords oldOutline oldWidth oldMapX code message
+    } -result {1 1 1 1 1}
+
+    test RBC.graph.marker.configure.line.A.lifetime.1 {
+        modern line marker resource lifetime
+    } -body {
+        for {set i 0} {$i < 200} {incr i} {
+            graph .graph1
+            pack .graph1
+            .graph1 marker create line -name Marker1 -coords {0 0 1 1 2 0} -bindtags {Line custom all} -cap round\
+                    -dashes dashdot -dashoffset 3.5 -fill white -join bevel -linewidth 3.5 -outline blue -xor yes
+            update idletasks
+            .graph1 marker configure Marker1 -coords {0 1 1 0 2 1} -outline red -xor yes
+            .graph1 marker configure Marker1 -xor no -dashes {2 4} -linewidth 2
+            .graph1 marker delete Marker1
+            destroy .graph1
+        }
+        update
+        return ok
+    } -cleanup {
+        catch {destroy .graph1}
+    } -result ok
 	
 	cleanupTests
 }
