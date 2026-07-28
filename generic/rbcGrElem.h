@@ -327,6 +327,8 @@ int Rbc_ParseElemVectorPairsObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *o
 void Rbc_CommitElemVector(Element *elemPtr, ElemVector *destPtr, ElemVector *candidatePtr);
 double Rbc_FindElemVectorMinimum(ElemVector *vecPtr, double minLimit);
 void Rbc_FreePalette(Graph *graphPtr, Rbc_Chain *palette);
+void Rbc_DestroyPalette(Graph *graphPtr, Rbc_Chain *palette);
+int Rbc_ParseStylesObj(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, size_t styleSize, Rbc_Chain **palettePtrPtr);
 PenStyle **Rbc_StyleMap(Element *elemPtr);
 void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle);
 

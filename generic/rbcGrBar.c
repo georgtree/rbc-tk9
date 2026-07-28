@@ -270,6 +270,14 @@ typedef struct {
     char **tags;
 } BarElementTagsTransaction;
 
+/*
+ * Bar-element styles handled transactionally.
+ */
+typedef struct {
+    int staged;
+    Rbc_Chain *palette;
+} BarElementStylesTransaction;
+
 static Tk_ConfigSpec barElemConfigSpecs[] = {
     {TK_CONFIG_CUSTOM, "-activepen", "activePen", "ActivePen", DEF_BAR_ACTIVE_PEN, BAR_CORE_OFFSET(activePenPtr),
      TK_CONFIG_NULL_OK, &rbcBarPenOption},
@@ -388,7 +396,7 @@ static const Tk_OptionSpec barElemOptionSpecs[] = {
     {TK_OPTION_BITMAP, "-stipple", "stipple", "Stipple", DEF_BAR_NORMAL_STIPPLE, -1, BAR_BUILTIN_PEN_OFFSET(stipple),
      TK_OPTION_NULL_OK, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
     {TK_OPTION_STRING, "-styles", "styles", "Styles", DEF_BAR_STYLES, BAR_CORE_OFFSET(stylesObjPtr), -1,
-     TK_OPTION_NULL_OK, NULL, BAR_ELEM_STYLES_MASK},
+     TK_OPTION_NULL_OK, NULL, BAR_ELEM_STYLES_MASK | BAR_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_ANCHOR, "-valueanchor", "valueAnchor", "ValueAnchor", DEF_PEN_VALUE_ANCHOR, -1,
      BAR_BUILTIN_PEN_OFFSET(valueStyle.anchor), 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
     {TK_OPTION_COLOR, "-valuecolor", "valueColor", "ValueColor", DEF_PEN_VALUE_COLOR, -1,
@@ -681,6 +689,14 @@ static int PrepareBarElementTagsTransaction(Graph *graphPtr, Element *elemPtr,
                                             BarElementTagsTransaction *transactionPtr);
 static void CommitBarElementTagsTransaction(Element *elemPtr, BarElementTagsTransaction *transactionPtr);
 static void FreeBarElementTagsTransaction(BarElementTagsTransaction *transactionPtr);
+static int IsBarElementStylesOption(Tcl_Obj *objPtr);
+static int StageBarElementStyles(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr,
+                                 BarElementStylesTransaction *transactionPtr);
+static int PrepareBarElementStylesTransaction(Graph *graphPtr, Element *elemPtr,
+                                              BarElementStylesTransaction *transactionPtr);
+static void CommitBarElementStylesTransaction(Graph *graphPtr, Element *elemPtr,
+                                              BarElementStylesTransaction *transactionPtr);
+static void FreeBarElementStylesTransaction(Graph *graphPtr, BarElementStylesTransaction *transactionPtr);
 static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, XRectangle *rectangles, int nRects);
 static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPen *penPtr, XRectangle *rectangles,
                           int nRects, int *rectToData);
@@ -1686,6 +1702,31 @@ static int IsBarElementStateOption(Tcl_Obj *objPtr) {
  */
 static int IsBarElementBindTagsOption(Tcl_Obj *objPtr) {
     static const char optionName[] = "-bindtags";
+    const char *string;
+    Tcl_Size length;
+    Tcl_Size fullLength;
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+    fullLength = (Tcl_Size)(sizeof(optionName) - 1);
+
+    return ((length > 0) && (length <= fullLength) && (strncmp(string, optionName, (size_t)length) == 0));
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * IsBarElementStylesOption --
+ *
+ *      Determines whether an option name represents "-styles".
+ *
+ *      Tk_SetOptions has already validated abbreviations. This helper
+ *      recovers the canonical option identity from the original
+ *      option/value vector.
+ *
+ *----------------------------------------------------------------------
+ */
+static int IsBarElementStylesOption(Tcl_Obj *objPtr) {
+    static const char optionName[] = "-styles";
     const char *string;
     Tcl_Size length;
     Tcl_Size fullLength;
@@ -2940,6 +2981,140 @@ static void CommitBarElementTagsTransaction(Element *elemPtr, BarElementTagsTran
 }
 
 /*
+ *----------------------------------------------------------------------
+ *
+ * StageBarElementStyles --
+ *
+ *      Parses one -styles value into temporary palette storage.
+ *
+ *      A previously staged candidate is retained until its replacement
+ *      has parsed successfully.
+ *
+ *----------------------------------------------------------------------
+ */
+static int StageBarElementStyles(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr,
+                                 BarElementStylesTransaction *transactionPtr) {
+    Rbc_Chain *newPalette;
+
+    newPalette = NULL;
+
+    if (Rbc_ParseStylesObj(graphPtr, elemPtr, objPtr, sizeof(BarPenStyle), &newPalette) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    if (transactionPtr->palette != NULL) {
+        Rbc_DestroyPalette(graphPtr, transactionPtr->palette);
+    }
+
+    transactionPtr->palette = newPalette;
+    transactionPtr->staged = TRUE;
+
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * FreeBarElementStylesTransaction --
+ *
+ *      Releases a staged candidate palette.
+ *
+ *----------------------------------------------------------------------
+ */
+static void FreeBarElementStylesTransaction(Graph *graphPtr, BarElementStylesTransaction *transactionPtr) {
+    Rbc_DestroyPalette(graphPtr, transactionPtr->palette);
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * PrepareBarElementStylesTransaction --
+ *
+ *      Parses all -styles values involved in the current modern
+ *      configuration without modifying the live palette.
+ *
+ *      Explicit occurrences are processed in caller order. Therefore,
+ *      an invalid earlier repeated value still causes the complete
+ *      configuration to fail.
+ *
+ *----------------------------------------------------------------------
+ */
+static int PrepareBarElementStylesTransaction(Graph *graphPtr, Element *elemPtr,
+                                              BarElementStylesTransaction *transactionPtr) {
+    int explicitlySpecified;
+    int i;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+
+    explicitlySpecified = FALSE;
+
+    assert((elemPtr->optionObjc & 1) == 0);
+
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        if (IsBarElementStylesOption(elemPtr->optionObjv[i])) {
+            explicitlySpecified = TRUE;
+        }
+    }
+
+    /*
+     * Always construct the initial palette, even when stylesObjPtr is
+     * NULL. NULL represents an empty style list, but the palette still
+     * requires its reserved normal-pen entry.
+     */
+    if (!elemPtr->optionsConfigured && !explicitlySpecified) {
+        if (StageBarElementStyles(graphPtr, elemPtr, elemPtr->stylesObjPtr, transactionPtr) != TCL_OK) {
+            goto error;
+        }
+    }
+
+    /*
+     * Process every explicit occurrence in original caller order.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        if (IsBarElementStylesOption(elemPtr->optionObjv[i])) {
+            if (StageBarElementStyles(graphPtr, elemPtr, elemPtr->optionObjv[i + 1], transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        }
+    }
+
+    return TCL_OK;
+
+error:
+    FreeBarElementStylesTransaction(graphPtr, transactionPtr);
+    return TCL_ERROR;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * CommitBarElementStylesTransaction --
+ *
+ *      Replaces the live palette with a successfully staged candidate.
+ *
+ *----------------------------------------------------------------------
+ */
+static void CommitBarElementStylesTransaction(Graph *graphPtr, Element *elemPtr,
+                                              BarElementStylesTransaction *transactionPtr) {
+    Rbc_Chain *oldPalette;
+
+    if (!transactionPtr->staged) {
+        return;
+    }
+
+    oldPalette = elemPtr->palette;
+
+    elemPtr->palette = transactionPtr->palette;
+
+    transactionPtr->palette = NULL;
+    transactionPtr->staged = FALSE;
+
+    Rbc_DestroyPalette(graphPtr, oldPalette);
+}
+
+/*
  * ----------------------------------------------------------------------
  *
  * ConfigureBar --
@@ -2968,13 +3143,15 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
     BarElementPenTransaction penTransaction;
     BarElementAxisTransaction axisTransaction;
     BarElementStateTransaction stateTransaction;
-    BarElementTagsTransaction tagsTransaction;    
+    BarElementTagsTransaction tagsTransaction;
+    BarElementStylesTransaction stylesTransaction;
     Rbc_ChainLink *linkPtr;
     int dataTransactionPrepared;
     int penTransactionPrepared;
     int axisTransactionPrepared;
     int stateTransactionPrepared;
-    int tagsTransactionPrepared;    
+    int tagsTransactionPrepared;
+    int stylesTransactionPrepared;
 
     barPtr = BAR_FROM_CORE(elemPtr);
 
@@ -2982,13 +3159,15 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
     memset(&penTransaction, 0, sizeof(penTransaction));
     memset(&axisTransaction, 0, sizeof(axisTransaction));
     memset(&stateTransaction, 0, sizeof(stateTransaction));
-    memset(&tagsTransaction, 0, sizeof(tagsTransaction));    
+    memset(&tagsTransaction, 0, sizeof(tagsTransaction));
+    memset(&stylesTransaction, 0, sizeof(stylesTransaction));
 
     dataTransactionPrepared = FALSE;
     penTransactionPrepared = FALSE;
     axisTransactionPrepared = FALSE;
     stateTransactionPrepared = FALSE;
-    tagsTransactionPrepared = FALSE;    
+    tagsTransactionPrepared = FALSE;
+    stylesTransactionPrepared = FALSE;
 
     /*
      * Parse all fallible element-data conversions before modifying any
@@ -3055,6 +3234,19 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
     }
 
     /*
+     * Parse the complete style palette before changing the live palette
+     * or any derived drawing resources.
+     */
+    if ((elemPtr->optionSpecs != NULL) &&
+        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & BAR_ELEM_STYLES_MASK))) {
+        if (PrepareBarElementStylesTransaction(graphPtr, elemPtr, &stylesTransaction) != TCL_OK) {
+            goto error;
+        }
+
+        stylesTransactionPrepared = TRUE;
+    }
+
+    /*
      * Configure the embedded bar pen only after every staged data and
      * named-pen value has been validated.
      */
@@ -3080,6 +3272,10 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
 
     if (penTransactionPrepared) {
         CommitBarElementPenTransaction(graphPtr, elemPtr, &penTransaction);
+    }
+    
+    if (stylesTransactionPrepared) {
+        CommitBarElementStylesTransaction(graphPtr, elemPtr, &stylesTransaction);
     }
 
     /*
@@ -3122,6 +3318,11 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
     return TCL_OK;
 
 error:
+
+    if (stylesTransactionPrepared) {
+        FreeBarElementStylesTransaction(graphPtr, &stylesTransaction);
+    }
+
     if (tagsTransactionPrepared) {
         FreeBarElementTagsTransaction(&tagsTransaction);
     }

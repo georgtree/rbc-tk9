@@ -30,7 +30,7 @@ extern Tk_CustomOption rbcDistanceOption;
 
 static Rbc_VectorChangedProc VectorChangedProc;
 
-static int GetPenStyle(Graph *graphPtr, const char *string, Rbc_Uid type, PenStyle *stylePtr);
+static int GetPenStyleFromObj(Graph *graphPtr, Tcl_Obj *objPtr, Rbc_Uid type, PenStyle *stylePtr);
 static void SyncElemVector(ElemVector *vPtr);
 static void FindRange(ElemVector *vPtr);
 static int EvalExprListObj(Tcl_Interp *interp, Tcl_Obj *listObjPtr, int *nElemPtr, double **arrayPtr);
@@ -67,58 +67,79 @@ static RbcGrElementOp TypeOp;
 /*
  *----------------------------------------------------------------------
  *
- * GetPenStyle --
+ * GetPenStyleFromObj --
  *
- *      TODO: Description
+ *      Parses one palette-style specification.
+ *
+ *      A style is either:
+ *
+ *          penName
+ *
+ *      or:
+ *
+ *          penName min max
  *
  * Parameters:
- *      Graph *graphPtr
- *      const char *string
- *      Rbc_Uid type
- *      PenStyle *stylePtr
+ *      Graph *graphPtr     - Owning graph.
+ *      Tcl_Obj *objPtr     - Style specification.
+ *      Rbc_Uid type        - Required pen type.
+ *      PenStyle *stylePtr  - Receives the parsed style.
  *
  * Results:
- *      TODO: Results
+ *      TCL_OK if the style is valid.
+ *      TCL_ERROR otherwise.
  *
  * Side Effects:
- *      TODO: Side Effects
+ *      Acquires a reference to the selected pen on success. The
+ *      destination is not modified until every fallible numeric
+ *      conversion has succeeded.
  *
  *----------------------------------------------------------------------
  */
-static int GetPenStyle(Graph *graphPtr, const char *string, Rbc_Uid type, PenStyle *stylePtr) {
+static int GetPenStyleFromObj(Graph *graphPtr, Tcl_Obj *objPtr, Rbc_Uid type, PenStyle *stylePtr) {
+    Tcl_Interp *interp;
+    Tcl_Obj **objv;
+    Tcl_Size objc;
     Pen *penPtr;
-    Tcl_Interp *interp = graphPtr->interp;
-    const char **elemArr;
-    Tcl_Size nElem;
+    double min;
+    double max;
 
-    elemArr = NULL;
-    if (Tcl_SplitList(interp, string, &nElem, &elemArr) != TCL_OK) {
-        return TCL_ERROR;
-    }
-    if ((nElem != 1) && (nElem != 3)) {
-        Tcl_AppendResult(interp, "bad style \"", string, "\": should be ", "\"penName\" or \"penName min max\"",
-                         (char *)NULL);
-        if (elemArr != NULL) {
-            ckfree((char *)elemArr);
-        }
-        return TCL_ERROR;
-    }
-    if (Rbc_GetPen(graphPtr, elemArr[0], type, &penPtr) != TCL_OK) {
-        ckfree((char *)elemArr);
-        return TCL_ERROR;
-    }
-    if (nElem == 3) {
-        double min, max;
+    interp = graphPtr->interp;
 
-        if ((Tcl_GetDouble(interp, elemArr[1], &min) != TCL_OK) ||
-            (Tcl_GetDouble(interp, elemArr[2], &max) != TCL_OK)) {
-            ckfree((char *)elemArr);
+    if (Tcl_ListObjGetElements(interp, objPtr, &objc, &objv) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    if ((objc != 1) && (objc != 3)) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad style \"%s\": should be "
+                                               "\"penName\" or \"penName min max\"",
+                                               Tcl_GetString(objPtr)));
+        return TCL_ERROR;
+    }
+
+    /*
+     * Validate the numeric range before acquiring a pen reference.
+     */
+    if (objc == 3) {
+        if (Tcl_GetDoubleFromObj(interp, objv[1], &min) != TCL_OK) {
             return TCL_ERROR;
         }
+        if (Tcl_GetDoubleFromObj(interp, objv[2], &max) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+
+    penPtr = NULL;
+
+    if (Rbc_GetPen(graphPtr, Tcl_GetString(objv[0]), type, &penPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    if (objc == 3) {
         SetWeight(stylePtr->weight, min, max);
     }
+
     stylePtr->penPtr = penPtr;
-    ckfree((char *)elemArr);
     return TCL_OK;
 }
 
@@ -928,6 +949,130 @@ void Rbc_FreePalette(Graph *graphPtr, Rbc_Chain *palette) {
 /*
  *----------------------------------------------------------------------
  *
+ * Rbc_DestroyPalette --
+ *
+ *      Releases all pen references owned by a palette and destroys
+ *      the palette chain itself.
+ *
+ * Parameters:
+ *      Graph *graphPtr    - Owning graph.
+ *      Rbc_Chain *palette - Palette to destroy.
+ *
+ * Results:
+ *      None.
+ *
+ * Side Effects:
+ *      Releases all named style pens except the non-owning first
+ *      normal-pen entry, then destroys the chain.
+ *
+ *----------------------------------------------------------------------
+ */
+void Rbc_DestroyPalette(Graph *graphPtr, Rbc_Chain *palette) {
+    if (palette == NULL) {
+        return;
+    }
+
+    Rbc_FreePalette(graphPtr, palette);
+    Rbc_ChainDestroy(palette);
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_ParseStylesObj --
+ *
+ *      Parses an element palette into a newly allocated candidate
+ *      chain without modifying the live element palette.
+ *
+ * Parameters:
+ *      Graph *graphPtr          - Owning graph.
+ *      Element *elemPtr         - Element receiving the palette.
+ *      Tcl_Obj *objPtr          - Tcl list of style specifications.
+ *                                 NULL represents an empty style list.
+ *      size_t styleSize         - Size of the concrete style record.
+ *      Rbc_Chain **palettePtrPtr
+ *                               - Receives the candidate palette.
+ *
+ * Results:
+ *      TCL_OK if every style was parsed successfully.
+ *      TCL_ERROR otherwise.
+ *
+ * Side Effects:
+ *      Allocates a new chain and acquires pen references on success.
+ *      On failure, all partially acquired references and storage are
+ *      released. The live element is never modified.
+ *
+ *----------------------------------------------------------------------
+ */
+int Rbc_ParseStylesObj(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, size_t styleSize,
+                       Rbc_Chain **palettePtrPtr) {
+    Tcl_Obj **objv;
+    Tcl_Size objc;
+    Tcl_Size i;
+    Rbc_Chain *palette;
+    Rbc_ChainLink *linkPtr;
+    PenStyle *stylePtr;
+
+    *palettePtrPtr = NULL;
+
+    objv = NULL;
+    objc = 0;
+
+    if (objPtr != NULL) {
+        if (Tcl_ListObjGetElements(graphPtr->interp, objPtr, &objc, &objv) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+
+    palette = Rbc_ChainCreate();
+    if (palette == NULL) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("can't allocate element palette", -1));
+        return TCL_ERROR;
+    }
+
+    /*
+     * The first entry is always reserved for the element's normal pen.
+     * This entry does not own a pen reference.
+     */
+    linkPtr = Rbc_ChainAllocLink((unsigned int)styleSize);
+    Rbc_ChainLinkBefore(palette, linkPtr, NULL);
+
+    stylePtr = Rbc_ChainGetValue(linkPtr);
+    stylePtr->penPtr = elemPtr->normalPenPtr;
+
+    for (i = 0; i < objc; i++) {
+        linkPtr = Rbc_ChainAllocLink((unsigned int)styleSize);
+
+        stylePtr = Rbc_ChainGetValue(linkPtr);
+
+        /*
+         * Preserve the legacy default ranges. A three-item style
+         * specification may replace these values.
+         */
+        stylePtr->weight.min = (double)i;
+        stylePtr->weight.max = (double)i + 1.0;
+        stylePtr->weight.range = 1.0;
+
+        if (GetPenStyleFromObj(graphPtr, objv[i], elemPtr->classUid, stylePtr) != TCL_OK) {
+            /*
+             * This link has not yet been attached to the chain.
+             */
+            ckfree((char *)linkPtr);
+
+            Rbc_DestroyPalette(graphPtr, palette);
+            return TCL_ERROR;
+        }
+
+        Rbc_ChainLinkBefore(palette, linkPtr, NULL);
+    }
+
+    *palettePtrPtr = palette;
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
  * Rbc_StringToStyles --
  *
  *      Parse the list of style names.
@@ -950,48 +1095,38 @@ void Rbc_FreePalette(Graph *graphPtr, Rbc_Chain *palette) {
  */
 int Rbc_StringToStyles(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string, char *widgRec,
                        Tcl_Size offset) {
-    Rbc_Chain *palette = *(Rbc_Chain **)(widgRec + offset);
-    Rbc_ChainLink *linkPtr;
-    Element *elemPtr = (Element *)(widgRec);
-    PenStyle *stylePtr;
-    const char **elemArr;
-    Tcl_Size nStyles;
-    register int i;
-    size_t size = (size_t)clientData;
+    Element *elemPtr;
+    Rbc_Chain **palettePtrPtr;
+    Rbc_Chain *newPalette;
+    Rbc_Chain *oldPalette;
+    Tcl_Obj *objPtr;
+    int result;
 
-    elemArr = NULL;
-    Rbc_FreePalette(elemPtr->graphPtr, palette);
-    if ((string == NULL) || (*string == '\0')) {
-        nStyles = 0;
-    } else if (Tcl_SplitList(interp, string, &nStyles, &elemArr) != TCL_OK) {
+    elemPtr = (Element *)widgRec;
+    palettePtrPtr = (Rbc_Chain **)(widgRec + offset);
+
+    objPtr = Tcl_NewStringObj((string == NULL) ? "" : string, -1);
+    Tcl_IncrRefCount(objPtr);
+
+    newPalette = NULL;
+
+    result = Rbc_ParseStylesObj(elemPtr->graphPtr, elemPtr, objPtr, (size_t)clientData, &newPalette);
+
+    Tcl_DecrRefCount(objPtr);
+
+    if (result != TCL_OK) {
         return TCL_ERROR;
     }
-    /* Reserve the first entry for the "normal" pen. We'll set the
-     * style later */
-    linkPtr = Rbc_ChainFirstLink(palette);
-    if (linkPtr == NULL) {
-        linkPtr = Rbc_ChainAllocLink(size);
-        Rbc_ChainLinkBefore(palette, linkPtr, NULL);
-    }
-    stylePtr = Rbc_ChainGetValue(linkPtr);
-    stylePtr->penPtr = elemPtr->normalPenPtr;
 
-    for (i = 0; i < nStyles; i++) {
-        linkPtr = Rbc_ChainAllocLink(size);
-        stylePtr = Rbc_ChainGetValue(linkPtr);
-        stylePtr->weight.min = (double)i;
-        stylePtr->weight.max = (double)i + 1.0;
-        stylePtr->weight.range = 1.0;
-        if (GetPenStyle(elemPtr->graphPtr, elemArr[i], elemPtr->classUid, (PenStyle *)stylePtr) != TCL_OK) {
-            ckfree((char *)elemArr);
-            Rbc_FreePalette(elemPtr->graphPtr, palette);
-            return TCL_ERROR;
-        }
-        Rbc_ChainLinkBefore(palette, linkPtr, NULL);
-    }
-    if (elemArr != NULL) {
-        ckfree((char *)elemArr);
-    }
+    /*
+     * Parsing has completed successfully, so the live palette can now
+     * be replaced atomically.
+     */
+    oldPalette = *palettePtrPtr;
+    *palettePtrPtr = newPalette;
+
+    Rbc_DestroyPalette(elemPtr->graphPtr, oldPalette);
+
     return TCL_OK;
 }
 
