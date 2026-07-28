@@ -250,6 +250,54 @@ namespace eval barchart.marker {
 	    .barchart1 marker delete marker1
 		destroy .barchart1
 	} -result {image.a.2.1}
+
+    test RBC.barchart.marker.configure.image.A.rollback.1 {
+        image marker configuration is atomic
+    } -setup {
+        barchart .barchart1
+        image create photo image1 -width 8 -height 8
+        .barchart1 marker create image -name Marker1 -coords {0 0} -anchor center -image image1
+        set oldCoords [.barchart1 marker cget Marker1 -coords]
+        set oldAnchor [ .barchart1 marker cget Marker1 -anchor]
+        set oldImage [.barchart1 marker cget Marker1 -image]
+    } -body {
+        set code [catch {.barchart1 marker configure Marker1 -coords {2 2 4 4} -anchor nw -image imageDoesNotExist}\
+                          message]
+        list $code [expr {[.barchart1 marker cget Marker1 -coords] eq $oldCoords}]\
+                [expr {[.barchart1 marker cget Marker1 -anchor] eq $oldAnchor}]\
+                [expr {[.barchart1 marker cget Marker1 -image] eq $oldImage}]
+    } -cleanup {
+        destroy .barchart1
+        image delete image1
+        unset -nocomplain oldCoords oldAnchor oldImage code message
+    } -result {1 1 1 1}
+
+    test RBC.barchart.marker.configure.image.A.lifetime.1 {
+        modern image marker resource lifetime
+    } -body {
+        for {set i 0} {$i < 200} {incr i} {
+            barchart .barchart1
+            pack .barchart1
+            image create photo image1 -width 8 -height 8
+            image create photo image2 -width 16 -height 16
+            .barchart1 marker create image -name Marker1 -coords {0 0} -image image1
+            update idletasks
+            .barchart1 marker configure Marker1 -coords {1 1 3 3} -image image2
+            .barchart1 marker configure Marker1 -image {}
+            .barchart1 marker configure Marker1 -image image1
+            image delete image1
+            update idletasks
+            .barchart1 marker delete Marker1
+            destroy .barchart1
+            image delete image2
+        }
+        update
+        return ok
+    } -cleanup {
+        catch {destroy .barchart1}
+        catch {image delete image1}
+        catch {image delete image2}
+    } -result ok
 	
 	cleanupTests
 }
