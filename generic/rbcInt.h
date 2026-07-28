@@ -494,6 +494,7 @@ int Rbc_CatromParametricSpline(Point2D *origPts, int nOrigPts, Point2D *intpPts,
 int Rbc_GetShadowFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, Shadow *shadowPtr);
 
 int Rbc_GetFillFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *fillPtr);
+int Rbc_GetStateFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *statePtr);
 
 Tk_OptionParseProc Rbc_StringToFlag;
 Tk_OptionPrintProc Rbc_FlagToString;

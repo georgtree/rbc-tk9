@@ -254,6 +254,14 @@ typedef struct {
     Axis *yAxisPtr;
 } BarElementAxisTransaction;
 
+/*
+ * Bar-element state handled transactionally.
+ */
+typedef struct {
+    int staged;
+    int state;
+} BarElementStateTransaction;
+
 static Tk_ConfigSpec barElemConfigSpecs[] = {
     {TK_CONFIG_CUSTOM, "-activepen", "activePen", "ActivePen", DEF_BAR_ACTIVE_PEN, BAR_CORE_OFFSET(activePenPtr),
      TK_CONFIG_NULL_OK, &rbcBarPenOption},
@@ -655,6 +663,10 @@ static int PrepareBarElementAxisTransaction(Graph *graphPtr, Element *elemPtr,
                                             BarElementAxisTransaction *transactionPtr);
 static void CommitBarElementAxisTransaction(Graph *graphPtr, Element *elemPtr,
                                             BarElementAxisTransaction *transactionPtr);
+static int IsBarElementStateOption(Tcl_Obj *objPtr);
+static int PrepareBarElementStateTransaction(Graph *graphPtr, Element *elemPtr,
+                                             BarElementStateTransaction *transactionPtr);
+static void CommitBarElementStateTransaction(Element *elemPtr, BarElementStateTransaction *transactionPtr);
 static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, XRectangle *rectangles, int nRects);
 static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPen *penPtr, XRectangle *rectangles,
                           int nRects, int *rectToData);
@@ -1604,6 +1616,40 @@ static BarElementAxisOption GetBarElementAxisOption(Tcl_Obj *objPtr) {
 /*
  *----------------------------------------------------------------------
  *
+ * IsBarElementStateOption --
+ *
+ *      Determines whether an option name represents "-state".
+ *
+ *      Tk_SetOptions has already checked that an abbreviation is valid
+ *      and unambiguous. This helper only recovers the option identity
+ *      from the original option/value vector.
+ *
+ * Parameters:
+ *      Tcl_Obj *objPtr - Option-name object.
+ *
+ * Results:
+ *      Non-zero when the option represents "-state"; zero otherwise.
+ *
+ * Side Effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+static int IsBarElementStateOption(Tcl_Obj *objPtr) {
+    static const char optionName[] = "-state";
+    const char *string;
+    Tcl_Size length;
+    Tcl_Size fullLength;
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+    fullLength = (Tcl_Size)(sizeof(optionName) - 1);
+
+    return ((length > 0) && (length <= fullLength) && (strncmp(string, optionName, (size_t)length) == 0));
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
  * FreeBarElementPenTransaction --
  *
  *      Releases all pen references owned by a staged bar-element pen
@@ -2437,6 +2483,83 @@ error:
 /*
  *----------------------------------------------------------------------
  *
+ * PrepareBarElementStateTransaction --
+ *
+ *      Parses all state values involved in the current modern
+ *      configuration without modifying the live element.
+ *
+ *      Explicit occurrences are processed in their original order.
+ *      Therefore, an invalid earlier repeated value still causes the
+ *      entire configuration to fail.
+ *
+ * Parameters:
+ *      Graph *graphPtr
+ *      Element *elemPtr
+ *      BarElementStateTransaction *transactionPtr
+ *
+ * Results:
+ *      TCL_OK if every relevant state value is valid.
+ *      TCL_ERROR otherwise.
+ *
+ * Side Effects:
+ *      Sets the interpreter result on error. The live element state is
+ *      not modified.
+ *
+ *----------------------------------------------------------------------
+ */
+static int PrepareBarElementStateTransaction(Graph *graphPtr, Element *elemPtr,
+                                             BarElementStateTransaction *transactionPtr) {
+    int explicitlySpecified;
+    int i;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+    explicitlySpecified = FALSE;
+
+    assert((elemPtr->optionObjc & 1) == 0);
+
+    /*
+     * Determine whether the caller explicitly supplied -state.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        if (IsBarElementStateOption(elemPtr->optionObjv[i])) {
+            explicitlySpecified = TRUE;
+        }
+    }
+
+    /*
+     * On the first modern configuration, process the effective
+     * option-database/default value unless the caller overrides it.
+     */
+    if (!elemPtr->optionsConfigured && !explicitlySpecified && (elemPtr->stateObjPtr != NULL)) {
+        if (Rbc_GetStateFromObj(graphPtr->interp, elemPtr->stateObjPtr, &transactionPtr->state) != TCL_OK) {
+            return TCL_ERROR;
+        }
+
+        transactionPtr->staged = TRUE;
+    }
+
+    /*
+     * Process every explicit occurrence in its original order.
+     *
+     * Do not read only stateObjPtr here. That field contains the final
+     * value and would hide an invalid earlier repeated occurrence.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        if (IsBarElementStateOption(elemPtr->optionObjv[i])) {
+            if (Rbc_GetStateFromObj(graphPtr->interp, elemPtr->optionObjv[i + 1], &transactionPtr->state) != TCL_OK) {
+                return TCL_ERROR;
+            }
+
+            transactionPtr->staged = TRUE;
+        }
+    }
+
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
  * CommitBarElementPenTransaction --
  *
  *      Replaces the live active and normal pens with successfully
@@ -2555,6 +2678,32 @@ static void CommitBarElementAxisTransaction(Graph *graphPtr, Element *elemPtr,
 }
 
 /*
+ *----------------------------------------------------------------------
+ *
+ * CommitBarElementStateTransaction --
+ *
+ *      Commits a successfully parsed state to the live element.
+ *
+ * Parameters:
+ *      Element *elemPtr
+ *      BarElementStateTransaction *transactionPtr
+ *
+ * Results:
+ *      None.
+ *
+ * Side Effects:
+ *      Replaces the live element state when a value was staged.
+ *
+ *----------------------------------------------------------------------
+ */
+static void CommitBarElementStateTransaction(Element *elemPtr, BarElementStateTransaction *transactionPtr) {
+    if (transactionPtr->staged) {
+        elemPtr->state = transactionPtr->state;
+        transactionPtr->staged = FALSE;
+    }
+}
+
+/*
  * ----------------------------------------------------------------------
  *
  * ConfigureBar --
@@ -2581,21 +2730,25 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
     Bar *barPtr;
     BarDataTransaction dataTransaction;
     BarElementPenTransaction penTransaction;
-    BarElementAxisTransaction axisTransaction;    
+    BarElementAxisTransaction axisTransaction;
+    BarElementStateTransaction stateTransaction;    
     Rbc_ChainLink *linkPtr;
     int dataTransactionPrepared;
     int penTransactionPrepared;
-    int axisTransactionPrepared;    
+    int axisTransactionPrepared;
+    int stateTransactionPrepared;
 
     barPtr = BAR_FROM_CORE(elemPtr);
 
     memset(&dataTransaction, 0, sizeof(dataTransaction));
     memset(&penTransaction, 0, sizeof(penTransaction));
     memset(&axisTransaction, 0, sizeof(axisTransaction));
+    memset(&stateTransaction, 0, sizeof(stateTransaction));
 
     dataTransactionPrepared = FALSE;
     penTransactionPrepared = FALSE;
-    axisTransactionPrepared = FALSE;    
+    axisTransactionPrepared = FALSE;
+    stateTransactionPrepared = FALSE;    
 
     /*
      * Parse all fallible element-data conversions before modifying any
@@ -2636,6 +2789,19 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
     }
 
     /*
+     * Validate the element state before modifying any live state or
+     * derived drawing resources.
+     */
+    if ((elemPtr->optionSpecs != NULL) &&
+        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & BAR_ELEM_STATE_MASK))) {
+        if (PrepareBarElementStateTransaction(graphPtr, elemPtr, &stateTransaction) != TCL_OK) {
+            goto error;
+        }
+
+        stateTransactionPrepared = TRUE;
+    }
+
+    /*
      * Configure the embedded bar pen only after every staged data and
      * named-pen value has been validated.
      */
@@ -2644,12 +2810,17 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
     }
 
     /*
-     * No fallible operation remains. Commit the named pens before
-     * updating the palette's default style.
+     * No fallible operation remains. Commit all staged values and
+     * references to the live element.
      */
+    if (stateTransactionPrepared) {
+        CommitBarElementStateTransaction(elemPtr, &stateTransaction);
+    }
+
     if (axisTransactionPrepared) {
         CommitBarElementAxisTransaction(graphPtr, elemPtr, &axisTransaction);
     }
+
     if (penTransactionPrepared) {
         CommitBarElementPenTransaction(graphPtr, elemPtr, &penTransaction);
     }

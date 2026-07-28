@@ -1154,42 +1154,89 @@ static const char *UidToString(ClientData clientData, Tk_Window tkwin, char *wid
 /*
  *----------------------------------------------------------------------
  *
- * StringToState --
+ * GetState --
  *
- *      Converts the string to a state value. Valid states are
- *      disabled, normal.
+ *      Converts a state string to its integer representation.
+ *
+ *      State names are matched exactly to preserve the behaviour of
+ *      the legacy custom option.
  *
  * Parameters:
- *      ClientData clientData - Not used.
- *      Tcl_Interp *interp - Interpreter to send results back to
- *      Tk_Window tkwin - Not used.
- *      const char *string - String representation of option value
- *      char *widgRec - Widget structure record
- *      Tcl_Size offset - Offset of field in record
+ *      Tcl_Interp *interp - Interpreter for error reporting.
+ *      const char *string - State name.
+ *      int *statePtr      - Receives the parsed state.
  *
  * Results:
- *      TODO: Results
+ *      TCL_OK if the state is valid.
+ *      TCL_ERROR otherwise.
  *
  * Side Effects:
- *      TODO: Side Effects
+ *      Sets the interpreter result on error. The destination is
+ *      modified only after the value has been validated.
+ *
+ *----------------------------------------------------------------------
+ */
+static int GetState(Tcl_Interp *interp, const char *string, int *statePtr) {
+    int state;
+
+    if (strcmp(string, "normal") == 0) {
+        state = STATE_NORMAL;
+    } else if (strcmp(string, "disabled") == 0) {
+        state = STATE_DISABLED;
+    } else if (strcmp(string, "active") == 0) {
+        state = STATE_ACTIVE;
+    } else {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad state \"%s\": should be normal, active, or disabled", string));
+        return TCL_ERROR;
+    }
+
+    *statePtr = state;
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_GetStateFromObj --
+ *
+ *      Converts a Tcl object containing an element state into its
+ *      integer representation.
+ *
+ * Parameters:
+ *      Tcl_Interp *interp - Interpreter for error reporting.
+ *      Tcl_Obj *objPtr    - Object containing the state name.
+ *      int *statePtr      - Receives the parsed state.
+ *
+ * Results:
+ *      TCL_OK if the state is valid.
+ *      TCL_ERROR otherwise.
+ *
+ * Side Effects:
+ *      Sets the interpreter result on error. The destination is
+ *      modified only on success.
+ *
+ *----------------------------------------------------------------------
+ */
+int Rbc_GetStateFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *statePtr) {
+    return GetState(interp, Tcl_GetString(objPtr), statePtr);
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * StringToState --
+ *
+ *      Legacy Tk_ConfigSpec adapter for state values.
  *
  *----------------------------------------------------------------------
  */
 static int StringToState(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string, char *widgRec,
                          Tcl_Size offset) {
-    int *statePtr = (int *)(widgRec + offset);
+    int *statePtr;
 
-    if (strcmp(string, "normal") == 0) {
-        *statePtr = STATE_NORMAL;
-    } else if (strcmp(string, "disabled") == 0) {
-        *statePtr = STATE_DISABLED;
-    } else if (strcmp(string, "active") == 0) {
-        *statePtr = STATE_ACTIVE;
-    } else {
-        Tcl_AppendResult(interp, "bad state \"", string, "\": should be normal, active, or disabled", (char *)NULL);
-        return TCL_ERROR;
-    }
-    return TCL_OK;
+    statePtr = (int *)(widgRec + offset);
+
+    return GetState(interp, string, statePtr);
 }
 
 /*
