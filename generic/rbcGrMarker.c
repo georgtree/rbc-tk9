@@ -91,7 +91,17 @@ typedef int(MarkerPointProc)(Marker *markerPtr, Point2D *samplePtr);
 typedef int(MarkerRegionProc)(Marker *markerPtr, Extents2D *extsPtr, int enclosed);
 
 typedef struct {
-    Tk_ConfigSpec *configSpecs; /* Marker configuration specifications */
+    /*
+     * Legacy option table. Non-NULL until this marker class is
+     * migrated to Tk_OptionSpec.
+     */
+    Tk_ConfigSpec *configSpecs;
+
+    /*
+     * Modern option specifications. NULL for legacy marker classes.
+     */
+    const Tk_OptionSpec *optionSpecs;
+
     MarkerConfigProc *configProc;
     MarkerDrawProc *drawProc;
     MarkerFreeProc *freeProc;
@@ -99,7 +109,6 @@ typedef struct {
     MarkerPointProc *pointProc;
     MarkerRegionProc *regionProc;
     MarkerPostScriptProc *postscriptProc;
-
 } MarkerClass;
 
 /*
@@ -139,6 +148,14 @@ struct MarkerStruct {
     int xOffset, yOffset; /* Pixel offset from graph position */
     MarkerClass *classPtr;
     int state;
+    
+    /*
+     * Modern option state. These fields remain unused while
+     * classPtr->optionSpecs is NULL.
+     */
+    Tk_OptionTable optionTable;
+    int optionsInitialized;
+    int tkResourcesReleased;    
 };
 
 /*
@@ -630,33 +647,79 @@ static void ChildGeometryProc(ClientData clientData, Tk_Window tkwin);
 static void ChildCustodyProc(ClientData clientData, Tk_Window tkwin);
 
 static MarkerClass bitmapMarkerClass = {
-    bitmapConfigSpecs, ConfigureBitmapMarker, DrawBitmapMarker,     FreeBitmapMarker,
-    MapBitmapMarker,   PointInBitmapMarker,   RegionInBitmapMarker, BitmapMarkerToPostScript,
+    .configSpecs = bitmapConfigSpecs,
+    .optionSpecs = NULL,
+    .configProc = ConfigureBitmapMarker,
+    .drawProc = DrawBitmapMarker,
+    .freeProc = FreeBitmapMarker,
+    .mapProc = MapBitmapMarker,
+    .pointProc = PointInBitmapMarker,
+    .regionProc = RegionInBitmapMarker,
+    .postscriptProc = BitmapMarkerToPostScript,
 };
 
 static MarkerClass imageMarkerClass = {
-    imageConfigSpecs, ConfigureImageMarker, DrawImageMarker,     FreeImageMarker,
-    MapImageMarker,   PointInImageMarker,   RegionInImageMarker, ImageMarkerToPostScript,
+    .configSpecs = imageConfigSpecs,
+    .optionSpecs = NULL,
+    .configProc = ConfigureImageMarker,
+    .drawProc = DrawImageMarker,
+    .freeProc = FreeImageMarker,
+    .mapProc = MapImageMarker,
+    .pointProc = PointInImageMarker,
+    .regionProc = RegionInImageMarker,
+    .postscriptProc = ImageMarkerToPostScript,
 };
+
 
 static MarkerClass lineMarkerClass = {
-    lineConfigSpecs, ConfigureLineMarker, DrawLineMarker,     FreeLineMarker,
-    MapLineMarker,   PointInLineMarker,   RegionInLineMarker, LineMarkerToPostScript,
+    .configSpecs = lineConfigSpecs,
+    .optionSpecs = NULL,
+    .configProc = ConfigureLineMarker,
+    .drawProc = DrawLineMarker,
+    .freeProc = FreeLineMarker,
+    .mapProc = MapLineMarker,
+    .pointProc = PointInLineMarker,
+    .regionProc = RegionInLineMarker,
+    .postscriptProc = LineMarkerToPostScript,
 };
+
 
 static MarkerClass polygonMarkerClass = {
-    polygonConfigSpecs, ConfigurePolygonMarker, DrawPolygonMarker,     FreePolygonMarker,
-    MapPolygonMarker,   PointInPolygonMarker,   RegionInPolygonMarker, PolygonMarkerToPostScript,
+    .configSpecs = polygonConfigSpecs,
+    .optionSpecs = NULL,
+    .configProc = ConfigurePolygonMarker,
+    .drawProc = DrawPolygonMarker,
+    .freeProc = FreePolygonMarker,
+    .mapProc = MapPolygonMarker,
+    .pointProc = PointInPolygonMarker,
+    .regionProc = RegionInPolygonMarker,
+    .postscriptProc = PolygonMarkerToPostScript,
 };
+
 
 static MarkerClass textMarkerClass = {
-    textConfigSpecs, ConfigureTextMarker, DrawTextMarker,     FreeTextMarker,
-    MapTextMarker,   PointInTextMarker,   RegionInTextMarker, TextMarkerToPostScript,
+    .configSpecs = textConfigSpecs,
+    .optionSpecs = NULL,
+    .configProc = ConfigureTextMarker,
+    .drawProc = DrawTextMarker,
+    .freeProc = FreeTextMarker,
+    .mapProc = MapTextMarker,
+    .pointProc = PointInTextMarker,
+    .regionProc = RegionInTextMarker,
+    .postscriptProc = TextMarkerToPostScript,
 };
 
+
 static MarkerClass windowMarkerClass = {
-    windowConfigSpecs, ConfigureWindowMarker, DrawWindowMarker,     FreeWindowMarker,
-    MapWindowMarker,   PointInWindowMarker,   RegionInWindowMarker, WindowMarkerToPostScript,
+    .configSpecs = windowConfigSpecs,
+    .optionSpecs = NULL,
+    .configProc = ConfigureWindowMarker,
+    .drawProc = DrawWindowMarker,
+    .freeProc = FreeWindowMarker,
+    .mapProc = MapWindowMarker,
+    .pointProc = PointInWindowMarker,
+    .regionProc = RegionInWindowMarker,
+    .postscriptProc = WindowMarkerToPostScript,
 };
 
 #ifdef notdef
@@ -1153,6 +1216,9 @@ static Marker *CreateMarker(Graph *graphPtr, char *name, Rbc_Uid classUid) {
     markerPtr->flags |= MAP_ITEM;
     markerPtr->name = RbcStrdup(name);
     markerPtr->classUid = classUid;
+    markerPtr->optionTable = NULL;
+    markerPtr->optionsInitialized = FALSE;
+    markerPtr->tkResourcesReleased = FALSE;
     return markerPtr;
 }
 
@@ -1186,6 +1252,8 @@ static void DestroyMarker(Marker *markerPtr) {
         ckfree((char *)markerPtr->worldPts);
     }
     Rbc_DeleteBindings(graphPtr->bindTable, markerPtr);
+    assert(markerPtr->classPtr->configSpecs != NULL);
+    assert(markerPtr->classPtr->optionSpecs == NULL);
     Tk_FreeOptions(markerPtr->classPtr->configSpecs, (char *)markerPtr, graphPtr->display, 0);
     if (markerPtr->hashPtr != NULL) {
         Tcl_DeleteHashEntry(markerPtr->hashPtr);
@@ -4336,6 +4404,8 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const 
     if (NameToMarker(graphPtr, Tcl_GetString(objv[3]), &markerPtr) != TCL_OK) {
         return TCL_ERROR;
     }
+    assert(markerPtr->classPtr->configSpecs != NULL);
+    assert(markerPtr->classPtr->optionSpecs == NULL);
     if (Tk_ConfigureValue(interp, graphPtr->tkwin, markerPtr->classPtr->configSpecs, (char *)markerPtr,
                           Tcl_GetString(objv[4]), 0) != TCL_OK) {
         return TCL_ERROR;
@@ -4392,6 +4462,8 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *c
     for (i = 0; i < nNames; i++) {
         str = Tcl_GetString(objv[i]);
         NameToMarker(graphPtr, str, &markerPtr);
+        assert(markerPtr->classPtr->configSpecs != NULL);
+        assert(markerPtr->classPtr->optionSpecs == NULL);
         if (nOpts == 0) {
             return Tk_ConfigureInfo(interp, graphPtr->tkwin, markerPtr->classPtr->configSpecs, (char *)markerPtr,
                                     (char *)NULL, flags);
@@ -4508,6 +4580,8 @@ static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
         return TCL_ERROR;
     }
     markerPtr = CreateMarker(graphPtr, name, classUid);
+    assert(markerPtr->classPtr->configSpecs != NULL);
+    assert(markerPtr->classPtr->optionSpecs == NULL);
     if (Rbc_ConfigureWidgetComponent(interp, graphPtr->tkwin, name, markerPtr->classUid,
                                      markerPtr->classPtr->configSpecs, objc - 4, objv + 4, (char *)markerPtr,
                                      0) != TCL_OK) {
