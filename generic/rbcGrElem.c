@@ -1375,15 +1375,24 @@ static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr, int objc, 
     assert(elemPtr->optionTable != NULL);
 
     /*
-     * optionMask is valid only while the concrete configuration
-     * procedure is running.
+     * Clear any stale transaction context before invoking Tk.
      */
     elemPtr->optionMask = 0;
+    elemPtr->optionObjc = 0;
+    elemPtr->optionObjv = NULL;
+
     if (Tk_SetOptions(graphPtr->interp, (char *)elemPtr, elemPtr->optionTable, objc, objv, graphPtr->tkwin,
                       &savedOptions, &mask) != TCL_OK) {
         return TCL_ERROR;
     }
+
+    /*
+     * Make the changed-option mask and the original argument order
+     * available to the concrete configuration procedure.
+     */
     elemPtr->optionMask = mask;
+    elemPtr->optionObjc = objc;
+    elemPtr->optionObjv = objv;
 
     /*
      * Concrete configuration procedures must be transactional:
@@ -1393,14 +1402,29 @@ static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr, int objc, 
     if ((*elemPtr->procsPtr->configProc)(graphPtr, elemPtr) != TCL_OK) {
         errorObjPtr = Tcl_GetObjResult(graphPtr->interp);
         Tcl_IncrRefCount(errorObjPtr);
+
+        /*
+         * The argument vector belongs to the caller and must not
+         * remain stored while restoring or destroying the element.
+         */
         elemPtr->optionMask = 0;
+        elemPtr->optionObjc = 0;
+        elemPtr->optionObjv = NULL;
+
         Tk_RestoreSavedOptions(&savedOptions);
+
         Tcl_SetObjResult(graphPtr->interp, errorObjPtr);
         Tcl_DecrRefCount(errorObjPtr);
         return TCL_ERROR;
     }
+
     elemPtr->optionMask = 0;
+    elemPtr->optionObjc = 0;
+    elemPtr->optionObjv = NULL;
+    elemPtr->optionsConfigured = TRUE;
+
     Tk_FreeSavedOptions(&savedOptions);
+
     if (maskPtr != NULL) {
         *maskPtr = mask;
     }
@@ -1411,6 +1435,13 @@ static void ReleaseElementResources(Graph *graphPtr, Element *elemPtr) {
     if (elemPtr->tkResourcesReleased) {
         return;
     }
+    /*
+     * Never retain references to a caller-owned configuration argument
+     * vector during destruction.
+     */
+    elemPtr->optionMask = 0;
+    elemPtr->optionObjc = 0;
+    elemPtr->optionObjv = NULL;
 
     /*
      * Release derived GCs and manually managed resources before Tk

@@ -240,11 +240,23 @@ struct ElementStruct {
     Tk_OptionTable optionTable;
 
     /*
-     * OR-ed typeMask values for options changed by the current
-     * Tk_SetOptions transaction. This is valid only while configProc
-     * is executing.
+     * Information about the current Tk_SetOptions transaction.
+     *
+     * These fields are valid only while the concrete configProc is
+     * executing. optionObjv points into the caller's argument vector
+     * and must never be retained after configProc returns.
      */
     int optionMask;
+    int optionObjc;
+    Tcl_Obj *const *optionObjv;
+
+    /*
+     * Indicates that the element has completed its first successful
+     * modern configuration. Concrete configuration procedures can use
+     * this to distinguish Tk_InitOptions defaults from later configure
+     * operations.
+     */
+    int optionsConfigured;
 
     /*
      * Tcl representations for common element options that require
