@@ -1280,45 +1280,119 @@ static const char *StateToString(ClientData clientData, Tk_Window tkwin, char *w
 /*
  *----------------------------------------------------------------------
  *
- * StringToList --
+ * GetStringList --
  *
- *      Converts the string to a list.
+ *      Converts a Tcl list string into a newly allocated,
+ *      NULL-terminated array of strings.
  *
  * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      Tk_Window tkwin
- *      const char *string 
- *      char *widgRec
- *      Tcl_Size offset
+ *      Tcl_Interp *interp  - Interpreter for list parsing and errors.
+ *      const char *string  - Tcl list representation.
+ *      char ***listPtrPtr  - Receives the allocated string array.
  *
  * Results:
- *      TODO: Results
+ *      TCL_OK if the list was parsed successfully.
+ *      TCL_ERROR otherwise.
  *
  * Side Effects:
- *      TODO: Side Effects
+ *      Allocates one string-list block on success. The caller owns the
+ *      result and must release it with ckfree(). An empty string is
+ *      represented by NULL.
+ *
+ *----------------------------------------------------------------------
+ */
+static int GetStringList(Tcl_Interp *interp, const char *string, char ***listPtrPtr) {
+    const char **elemArr;
+    Tcl_Size nElem;
+
+    *listPtrPtr = NULL;
+
+    if ((string == NULL) || (string[0] == '\0')) {
+        return TCL_OK;
+    }
+
+    elemArr = NULL;
+
+    if (Tcl_SplitList(interp, string, &nElem, &elemArr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    if (nElem == 0) {
+        if (elemArr != NULL) {
+            ckfree((char *)elemArr);
+        }
+        return TCL_OK;
+    }
+
+    /*
+     * Tcl_SplitList returns one allocation containing both the pointer
+     * array and the strings. Existing RBC users release it with one
+     * ckfree().
+     */
+    *listPtrPtr = (char **)elemArr;
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_GetStringListFromObj --
+ *
+ *      Converts a Tcl object containing a list into a newly allocated,
+ *      NULL-terminated string array.
+ *
+ * Parameters:
+ *      Tcl_Interp *interp  - Interpreter for list parsing and errors.
+ *      Tcl_Obj *objPtr     - Object containing the Tcl list.
+ *      char ***listPtrPtr  - Receives the allocated string array.
+ *
+ * Results:
+ *      TCL_OK if the list was parsed successfully.
+ *      TCL_ERROR otherwise.
+ *
+ * Side Effects:
+ *      Allocates a string-list block on success. The destination is
+ *      modified only after the value has been validated.
+ *
+ *----------------------------------------------------------------------
+ */
+int Rbc_GetStringListFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, char ***listPtrPtr) {
+    const char *string;
+
+    string = (objPtr == NULL) ? "" : Tcl_GetString(objPtr);
+
+    return GetStringList(interp, string, listPtrPtr);
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * StringToList --
+ *
+ *      Legacy Tk_ConfigSpec adapter for Tcl string lists.
+ *
+ *      The replacement list is parsed completely before the existing
+ *      list is released.
  *
  *----------------------------------------------------------------------
  */
 static int StringToList(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string, char *widgRec,
                         Tcl_Size offset) {
-    const char ***listPtr = (const char ***)(widgRec + offset);
-    const char **elemArr;
-    Tcl_Size nElem;
+    char ***listPtr;
+    char **newList;
+
+    listPtr = (char ***)(widgRec + offset);
+    newList = NULL;
+
+    if (GetStringList(interp, string, &newList) != TCL_OK) {
+        return TCL_ERROR;
+    }
 
     if (*listPtr != NULL) {
         ckfree((char *)*listPtr);
-        *listPtr = NULL;
     }
-    if ((string == NULL) || (*string == '\0')) {
-        return TCL_OK;
-    }
-    if (Tcl_SplitList(interp, string, &nElem, &elemArr) != TCL_OK) {
-        return TCL_ERROR;
-    }
-    if (nElem > 0) {
-        *listPtr = elemArr;
-    }
+
+    *listPtr = newList;
     return TCL_OK;
 }
 

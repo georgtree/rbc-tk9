@@ -262,6 +262,14 @@ typedef struct {
     int state;
 } BarElementStateTransaction;
 
+/*
+ * Bar-element bind tags handled transactionally.
+ */
+typedef struct {
+    int staged;
+    char **tags;
+} BarElementTagsTransaction;
+
 static Tk_ConfigSpec barElemConfigSpecs[] = {
     {TK_CONFIG_CUSTOM, "-activepen", "activePen", "ActivePen", DEF_BAR_ACTIVE_PEN, BAR_CORE_OFFSET(activePenPtr),
      TK_CONFIG_NULL_OK, &rbcBarPenOption},
@@ -667,6 +675,12 @@ static int IsBarElementStateOption(Tcl_Obj *objPtr);
 static int PrepareBarElementStateTransaction(Graph *graphPtr, Element *elemPtr,
                                              BarElementStateTransaction *transactionPtr);
 static void CommitBarElementStateTransaction(Element *elemPtr, BarElementStateTransaction *transactionPtr);
+static int IsBarElementBindTagsOption(Tcl_Obj *objPtr);
+static int StageBarElementTags(Tcl_Interp *interp, Tcl_Obj *objPtr, BarElementTagsTransaction *transactionPtr);
+static int PrepareBarElementTagsTransaction(Graph *graphPtr, Element *elemPtr,
+                                            BarElementTagsTransaction *transactionPtr);
+static void CommitBarElementTagsTransaction(Element *elemPtr, BarElementTagsTransaction *transactionPtr);
+static void FreeBarElementTagsTransaction(BarElementTagsTransaction *transactionPtr);
 static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, XRectangle *rectangles, int nRects);
 static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPen *penPtr, XRectangle *rectangles,
                           int nRects, int *rectToData);
@@ -1637,6 +1651,41 @@ static BarElementAxisOption GetBarElementAxisOption(Tcl_Obj *objPtr) {
  */
 static int IsBarElementStateOption(Tcl_Obj *objPtr) {
     static const char optionName[] = "-state";
+    const char *string;
+    Tcl_Size length;
+    Tcl_Size fullLength;
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+    fullLength = (Tcl_Size)(sizeof(optionName) - 1);
+
+    return ((length > 0) && (length <= fullLength) && (strncmp(string, optionName, (size_t)length) == 0));
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * IsBarElementBindTagsOption --
+ *
+ *      Determines whether an option name represents "-bindtags".
+ *
+ *      Tk_SetOptions has already validated abbreviations. This helper
+ *      recovers the canonical identity from the original option/value
+ *      vector.
+ *
+ * Parameters:
+ *      Tcl_Obj *objPtr - Option-name object.
+ *
+ * Results:
+ *      Non-zero when the option represents "-bindtags".
+ *      Zero otherwise.
+ *
+ * Side Effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+static int IsBarElementBindTagsOption(Tcl_Obj *objPtr) {
+    static const char optionName[] = "-bindtags";
     const char *string;
     Tcl_Size length;
     Tcl_Size fullLength;
@@ -2704,6 +2753,193 @@ static void CommitBarElementStateTransaction(Element *elemPtr, BarElementStateTr
 }
 
 /*
+ *----------------------------------------------------------------------
+ *
+ * StageBarElementTags --
+ *
+ *      Parses a bind-tags value into temporary transaction storage
+ *      without modifying the live element.
+ *
+ * Parameters:
+ *      Tcl_Interp *interp
+ *      Tcl_Obj *objPtr
+ *      BarElementTagsTransaction *transactionPtr
+ *
+ * Results:
+ *      TCL_OK if the list was parsed successfully.
+ *      TCL_ERROR otherwise.
+ *
+ * Side Effects:
+ *      Allocates a staged string-list block. A previously staged value
+ *      is released only after its replacement has parsed successfully.
+ *
+ *----------------------------------------------------------------------
+ */
+static int StageBarElementTags(Tcl_Interp *interp, Tcl_Obj *objPtr, BarElementTagsTransaction *transactionPtr) {
+    char **newTags;
+
+    newTags = NULL;
+
+    if (Rbc_GetStringListFromObj(interp, objPtr, &newTags) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    /*
+     * Do not discard the previous candidate until the replacement has
+     * parsed successfully.
+     */
+    if (transactionPtr->tags != NULL) {
+        ckfree((char *)transactionPtr->tags);
+    }
+
+    transactionPtr->tags = newTags;
+    transactionPtr->staged = TRUE;
+
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * FreeBarElementTagsTransaction --
+ *
+ *      Releases a staged bind-tags list.
+ *
+ * Parameters:
+ *      BarElementTagsTransaction *transactionPtr
+ *
+ * Results:
+ *      None.
+ *
+ * Side Effects:
+ *      Releases staged storage and clears the transaction.
+ *
+ *----------------------------------------------------------------------
+ */
+static void FreeBarElementTagsTransaction(BarElementTagsTransaction *transactionPtr) {
+    if (transactionPtr->tags != NULL) {
+        ckfree((char *)transactionPtr->tags);
+    }
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * PrepareBarElementTagsTransaction --
+ *
+ *      Parses all bind-tags values involved in the current modern
+ *      configuration without modifying the live element.
+ *
+ *      Explicit occurrences are processed in their original order.
+ *      An invalid earlier repeated occurrence therefore causes the
+ *      complete configuration to fail.
+ *
+ * Parameters:
+ *      Graph *graphPtr
+ *      Element *elemPtr
+ *      BarElementTagsTransaction *transactionPtr
+ *
+ * Results:
+ *      TCL_OK if every relevant list value is valid.
+ *      TCL_ERROR otherwise.
+ *
+ * Side Effects:
+ *      Allocates temporary string-list storage.
+ *
+ *----------------------------------------------------------------------
+ */
+static int PrepareBarElementTagsTransaction(Graph *graphPtr, Element *elemPtr,
+                                            BarElementTagsTransaction *transactionPtr) {
+    int explicitlySpecified;
+    int i;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+    explicitlySpecified = FALSE;
+
+    assert((elemPtr->optionObjc & 1) == 0);
+
+    /*
+     * Determine whether -bindtags was supplied explicitly.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        if (IsBarElementBindTagsOption(elemPtr->optionObjv[i])) {
+            explicitlySpecified = TRUE;
+        }
+    }
+
+    /*
+     * On the first modern configuration, process the effective default
+     * or option-database value unless it was explicitly overridden.
+     */
+    if (!elemPtr->optionsConfigured && !explicitlySpecified && (elemPtr->bindTagsObjPtr != NULL)) {
+        if (StageBarElementTags(graphPtr->interp, elemPtr->bindTagsObjPtr, transactionPtr) != TCL_OK) {
+            goto error;
+        }
+    }
+
+    /*
+     * Process every explicit occurrence in caller order.
+     *
+     * Do not read only bindTagsObjPtr here. That field contains the
+     * final value and would conceal an invalid earlier occurrence.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        if (IsBarElementBindTagsOption(elemPtr->optionObjv[i])) {
+            if (StageBarElementTags(graphPtr->interp, elemPtr->optionObjv[i + 1], transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        }
+    }
+
+    return TCL_OK;
+
+error:
+    FreeBarElementTagsTransaction(transactionPtr);
+    return TCL_ERROR;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * CommitBarElementTagsTransaction --
+ *
+ *      Replaces the live bind-tags list with a successfully staged
+ *      candidate.
+ *
+ * Parameters:
+ *      Element *elemPtr
+ *      BarElementTagsTransaction *transactionPtr
+ *
+ * Results:
+ *      None.
+ *
+ * Side Effects:
+ *      Releases the previous live tags and transfers ownership of the
+ *      staged list to the element.
+ *
+ *----------------------------------------------------------------------
+ */
+static void CommitBarElementTagsTransaction(Element *elemPtr, BarElementTagsTransaction *transactionPtr) {
+    char **oldTags;
+
+    if (!transactionPtr->staged) {
+        return;
+    }
+
+    oldTags = elemPtr->tags;
+
+    elemPtr->tags = transactionPtr->tags;
+    transactionPtr->tags = NULL;
+    transactionPtr->staged = FALSE;
+
+    if (oldTags != NULL) {
+        ckfree((char *)oldTags);
+    }
+}
+
+/*
  * ----------------------------------------------------------------------
  *
  * ConfigureBar --
@@ -2731,12 +2967,14 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
     BarDataTransaction dataTransaction;
     BarElementPenTransaction penTransaction;
     BarElementAxisTransaction axisTransaction;
-    BarElementStateTransaction stateTransaction;    
+    BarElementStateTransaction stateTransaction;
+    BarElementTagsTransaction tagsTransaction;    
     Rbc_ChainLink *linkPtr;
     int dataTransactionPrepared;
     int penTransactionPrepared;
     int axisTransactionPrepared;
     int stateTransactionPrepared;
+    int tagsTransactionPrepared;    
 
     barPtr = BAR_FROM_CORE(elemPtr);
 
@@ -2744,11 +2982,13 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
     memset(&penTransaction, 0, sizeof(penTransaction));
     memset(&axisTransaction, 0, sizeof(axisTransaction));
     memset(&stateTransaction, 0, sizeof(stateTransaction));
+    memset(&tagsTransaction, 0, sizeof(tagsTransaction));    
 
     dataTransactionPrepared = FALSE;
     penTransactionPrepared = FALSE;
     axisTransactionPrepared = FALSE;
-    stateTransactionPrepared = FALSE;    
+    stateTransactionPrepared = FALSE;
+    tagsTransactionPrepared = FALSE;    
 
     /*
      * Parse all fallible element-data conversions before modifying any
@@ -2802,6 +3042,19 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
     }
 
     /*
+     * Parse bind tags before modifying the live element or any derived
+     * resources.
+     */
+    if ((elemPtr->optionSpecs != NULL) &&
+        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & BAR_ELEM_TAGS_MASK))) {
+        if (PrepareBarElementTagsTransaction(graphPtr, elemPtr, &tagsTransaction) != TCL_OK) {
+            goto error;
+        }
+
+        tagsTransactionPrepared = TRUE;
+    }
+
+    /*
      * Configure the embedded bar pen only after every staged data and
      * named-pen value has been validated.
      */
@@ -2815,6 +3068,10 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
      */
     if (stateTransactionPrepared) {
         CommitBarElementStateTransaction(elemPtr, &stateTransaction);
+    }
+
+    if (tagsTransactionPrepared) {
+        CommitBarElementTagsTransaction(elemPtr, &tagsTransaction);
     }
 
     if (axisTransactionPrepared) {
@@ -2865,6 +3122,10 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
     return TCL_OK;
 
 error:
+    if (tagsTransactionPrepared) {
+        FreeBarElementTagsTransaction(&tagsTransaction);
+    }
+    
     if (axisTransactionPrepared) {
         FreeBarElementAxisTransaction(graphPtr, &axisTransaction);
     }
