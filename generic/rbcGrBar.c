@@ -191,13 +191,6 @@ Tk_CustomOption rbcBarModeOption = {StringToBarMode, BarModeToString, (ClientDat
 #define BAR_ELEM_BUILTIN_PEN_MASK (1 << 6)
 #define BAR_ELEM_MAP_ITEM_MASK (1 << 7)
 
-#define FreeElemVector(v)                                                                                              \
-    if ((v).clientId != NULL) {                                                                                        \
-        Rbc_FreeVectorId((v).clientId);                                                                                \
-    } else if ((v).valueArr != NULL) {                                                                                 \
-        ckfree((char *)(v).valueArr);                                                                                  \
-    }
-
 static Tk_ConfigSpec barElemConfigSpecs[] = {
     {TK_CONFIG_CUSTOM, "-activepen", "activePen", "ActivePen", DEF_BAR_ACTIVE_PEN, BAR_CORE_OFFSET(activePenPtr),
      TK_CONFIG_NULL_OK, &rbcBarPenOption},
@@ -2585,15 +2578,15 @@ static void DestroyBar(Graph *graphPtr, Element *elemPtr) {
     if (elemPtr->activePenPtr != NULL) {
         Rbc_FreePen(graphPtr, elemPtr->activePenPtr);
     }
-    FreeElemVector(elemPtr->x);
-    FreeElemVector(elemPtr->y);
-    FreeElemVector(elemPtr->w);
-    FreeElemVector(elemPtr->xHigh);
-    FreeElemVector(elemPtr->xLow);
-    FreeElemVector(elemPtr->xError);
-    FreeElemVector(elemPtr->yHigh);
-    FreeElemVector(elemPtr->yLow);
-    FreeElemVector(elemPtr->yError);
+    Rbc_FreeElemVector(&elemPtr->x);
+    Rbc_FreeElemVector(&elemPtr->y);
+    Rbc_FreeElemVector(&elemPtr->w);
+    Rbc_FreeElemVector(&elemPtr->xHigh);
+    Rbc_FreeElemVector(&elemPtr->xLow);
+    Rbc_FreeElemVector(&elemPtr->xError);
+    Rbc_FreeElemVector(&elemPtr->yHigh);
+    Rbc_FreeElemVector(&elemPtr->yLow);
+    Rbc_FreeElemVector(&elemPtr->yError);
     ResetBar(barPtr);
     if (elemPtr->activeIndices != NULL) {
         ckfree((char *)elemPtr->activeIndices);

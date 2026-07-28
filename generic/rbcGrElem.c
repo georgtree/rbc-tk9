@@ -10,6 +10,7 @@
  */
 
 #include <ctype.h>
+#include <limits.h>
 #include "rbcGraph.h"
 #include "rbcChain.h"
 #include <X11/Xutil.h>
@@ -25,8 +26,6 @@ Tk_CustomOption rbcDataOption = {StringToData, DataToString, (ClientData)0};
 Tk_CustomOption rbcDataPairsOption = {StringToDataPairs, DataPairsToString, (ClientData)0};
 extern Tk_CustomOption rbcDistanceOption;
 
-static int counter;
-
 #include "rbcGrElem.h"
 
 static Rbc_VectorChangedProc VectorChangedProc;
@@ -34,8 +33,7 @@ static Rbc_VectorChangedProc VectorChangedProc;
 static int GetPenStyle(Graph *graphPtr, const char *string, Rbc_Uid type, PenStyle *stylePtr);
 static void SyncElemVector(ElemVector *vPtr);
 static void FindRange(ElemVector *vPtr);
-static void FreeDataVector(ElemVector *vPtr);
-static int EvalExprList(Tcl_Interp *interp, const char *list, int *nElemPtr, double **arrayPtr);
+static int EvalExprListObj(Tcl_Interp *interp, Tcl_Obj *listObjPtr, int *nElemPtr, double **arrayPtr);
 static int GetIndex(Tcl_Interp *interp, Element *elemPtr, char *string, int *indexPtr);
 static int NameToElement(Graph *graphPtr, Tcl_Obj *nameObj, Element **elemPtrPtr);
 static int CreateElement(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], Rbc_Uid classUid);
@@ -144,6 +142,7 @@ static int GetPenStyle(Graph *graphPtr, const char *string, Rbc_Uid type, PenSty
  */
 static void SyncElemVector(ElemVector *vPtr) {
     vPtr->nValues = Rbc_VecLength(vPtr->vecPtr);
+    vPtr->arraySize = Rbc_VecSize(vPtr->vecPtr);
     vPtr->valueArr = Rbc_VecData(vPtr->vecPtr);
     vPtr->min = Rbc_VecMin(vPtr->vecPtr);
     vPtr->max = Rbc_VecMax(vPtr->vecPtr);
@@ -247,30 +246,31 @@ double Rbc_FindElemVectorMinimum(ElemVector *vPtr, double minLimit) {
 /*
  *----------------------------------------------------------------------
  *
- * FreeDataVector --
+ * Rbc_FreeElemVector --
  *
- *      TODO: Description
+ *      Releases the storage or vector-client token owned by an
+ *      element data vector.
  *
  * Parameters:
- *      ElemVector *vPtr
+ *      ElemVector *vPtr - Vector to release and clear.
  *
  * Results:
- *      TODO: Results
+ *      None.
  *
  * Side Effects:
- *      TODO: Side Effects
+ *      Releases an external vector client token or an internally
+ *      allocated value array. The complete ElemVector structure is
+ *      reset to zero.
  *
  *----------------------------------------------------------------------
  */
-static void FreeDataVector(ElemVector *vPtr) {
+void Rbc_FreeElemVector(ElemVector *vPtr) {
     if (vPtr->clientId != NULL) {
-        Rbc_FreeVectorId(vPtr->clientId); /* Free the old vector */
-        vPtr->clientId = NULL;
+        Rbc_FreeVectorId(vPtr->clientId);
     } else if (vPtr->valueArr != NULL) {
         ckfree((char *)vPtr->valueArr);
     }
-    vPtr->valueArr = NULL;
-    vPtr->nValues = 0;
+    memset(vPtr, 0, sizeof(*vPtr));
 }
 
 /*
@@ -322,64 +322,252 @@ static void VectorChangedProc(Tcl_Interp *interp, ClientData clientData, Rbc_Vec
 /*
  *----------------------------------------------------------------------
  *
- * EvalExprList --
+ * EvalExprListObj --
  *
- *      TODO: Description
+ *      Converts a Tcl list of numeric expressions into a newly
+ *      allocated array of doubles.
  *
  * Parameters:
- *      Tcl_Interp *interp
- *      const char *list
- *      int *nElemPtr
- *      double **arrayPtr
+ *      Tcl_Interp *interp    - Interpreter for list and expression
+ *                              parsing.
+ *      Tcl_Obj *listObjPtr   - Tcl list containing numeric expressions.
+ *      int *nElemPtr         - Receives the number of parsed values.
+ *      double **arrayPtr     - Receives the allocated value array.
  *
  * Results:
- *      TODO: Results
+ *      TCL_OK if all list elements were evaluated successfully.
+ *      TCL_ERROR otherwise.
  *
  * Side Effects:
- *      TODO: Side Effects
+ *      Allocates an array owned by the caller on success. On failure,
+ *      any partially allocated array is released and the interpreter
+ *      result describes the error.
  *
  *----------------------------------------------------------------------
  */
-static int EvalExprList(Tcl_Interp *interp, const char *list, int *nElemPtr, double **arrayPtr) {
-    Tcl_Size nElem;
-    const char **elemArr;
+static int EvalExprListObj(Tcl_Interp *interp, Tcl_Obj *listObjPtr, int *nElemPtr, double **arrayPtr) {
+    Tcl_Obj **objv;
+    Tcl_Size objc;
+    Tcl_Size i;
     double *array;
-    int result;
 
-    result = TCL_ERROR;
-    elemArr = NULL;
-    if (Tcl_SplitList(interp, list, &nElem, &elemArr) != TCL_OK) {
+    *nElemPtr = 0;
+    *arrayPtr = NULL;
+
+    if (Tcl_ListObjGetElements(interp, listObjPtr, &objc, &objv) != TCL_OK) {
         return TCL_ERROR;
     }
+
+    if (objc > INT_MAX) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("too many data points", -1));
+        return TCL_ERROR;
+    }
+
     array = NULL;
-    if (nElem > 0) {
-        register double *valuePtr;
-        Tcl_Size i;
+    if (objc > 0) {
+        array = (double *)ckalloc(sizeof(double) * (size_t)objc);
 
-        counter++;
-        array = (double *)ckalloc(sizeof(double) * nElem);
-        if (array == NULL) {
-            Tcl_AppendResult(interp, "can't allocate new vector", (char *)NULL);
-            goto badList;
-        }
-        valuePtr = array;
-        for (i = 0; i < nElem; i++) {
-            if (Tcl_ExprDouble(interp, elemArr[i], valuePtr) != TCL_OK) {
-                goto badList;
+        for (i = 0; i < objc; i++) {
+            /*
+             * Preserve the legacy behaviour: every list member may
+             * be a Tcl numeric expression, not only a plain double.
+             */
+            if (Tcl_ExprDouble(interp, Tcl_GetString(objv[i]), array + i) != TCL_OK) {
+                ckfree((char *)array);
+                return TCL_ERROR;
             }
-            valuePtr++;
         }
     }
-    result = TCL_OK;
 
-badList:
-    ckfree((char *)elemArr);
+    *nElemPtr = (int)objc;
     *arrayPtr = array;
-    *nElemPtr = nElem;
-    if (result != TCL_OK) {
-        ckfree((char *)array);
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_ParseElemVectorObj --
+ *
+ *      Parses an element-vector option into temporary storage without
+ *      modifying the live element vector.
+ *
+ *      The value may be either the name of an existing RBC vector or
+ *      a Tcl list of numeric expressions.
+ *
+ * Parameters:
+ *      Tcl_Interp *interp         - Interpreter for error reporting.
+ *      Element *elemPtr           - Element that will own the vector.
+ *      Tcl_Obj *objPtr            - New option value.
+ *      ElemVector *candidatePtr   - Receives the staged vector.
+ *
+ * Results:
+ *      TCL_OK if the value was parsed successfully.
+ *      TCL_ERROR otherwise.
+ *
+ * Side Effects:
+ *      May allocate a literal value array or an RBC vector client ID.
+ *      No callback is installed and the live element is not modified.
+ *
+ *----------------------------------------------------------------------
+ */
+int Rbc_ParseElemVectorObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, ElemVector *candidatePtr) {
+    const char *string;
+
+    memset(candidatePtr, 0, sizeof(*candidatePtr));
+    candidatePtr->elemPtr = elemPtr;
+
+    string = Tcl_GetString(objPtr);
+
+    if (Rbc_VectorExists2(interp, string)) {
+        Rbc_VectorId clientId;
+
+        clientId = Rbc_AllocVectorId(interp, string);
+        if (clientId == NULL) {
+            return TCL_ERROR;
+        }
+
+        if (Rbc_GetVectorById(interp, clientId, &candidatePtr->vecPtr) != TCL_OK) {
+            Rbc_FreeVectorId(clientId);
+            memset(candidatePtr, 0, sizeof(*candidatePtr));
+            return TCL_ERROR;
+        }
+
+        candidatePtr->clientId = clientId;
+        SyncElemVector(candidatePtr);
+
+        /*
+         * Do not install VectorChangedProc yet. Its clientData must
+         * point to the final, stable ElemVector member, not this
+         * temporary candidate.
+         */
+        return TCL_OK;
     }
-    return result;
+
+    if (EvalExprListObj(interp, objPtr, &candidatePtr->nValues, &candidatePtr->valueArr) != TCL_OK) {
+        memset(candidatePtr, 0, sizeof(*candidatePtr));
+        return TCL_ERROR;
+    }
+
+    candidatePtr->arraySize = candidatePtr->nValues;
+    FindRange(candidatePtr);
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_ParseElemVectorPairsObj --
+ *
+ *      Parses a flat Tcl list of X/Y coordinate pairs into two
+ *      temporary element vectors without modifying the live element.
+ *
+ * Parameters:
+ *      Tcl_Interp *interp           - Interpreter for error reporting.
+ *      Element *elemPtr             - Element that will own the data.
+ *      Tcl_Obj *objPtr              - Flat list of X/Y values.
+ *      ElemVector *xCandidatePtr    - Receives staged X values.
+ *      ElemVector *yCandidatePtr    - Receives staged Y values.
+ *
+ * Results:
+ *      TCL_OK if all coordinate pairs were parsed successfully.
+ *      TCL_ERROR otherwise.
+ *
+ * Side Effects:
+ *      Allocates value arrays on success. The caller must either
+ *      commit or free both candidates.
+ *
+ *----------------------------------------------------------------------
+ */
+int Rbc_ParseElemVectorPairsObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, ElemVector *xCandidatePtr,
+                                ElemVector *yCandidatePtr) {
+    double *pairArr;
+    int nElem;
+    int nValues;
+    int i;
+
+    memset(xCandidatePtr, 0, sizeof(*xCandidatePtr));
+    memset(yCandidatePtr, 0, sizeof(*yCandidatePtr));
+
+    xCandidatePtr->elemPtr = elemPtr;
+    yCandidatePtr->elemPtr = elemPtr;
+
+    if (EvalExprListObj(interp, objPtr, &nElem, &pairArr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    if ((nElem & 1) != 0) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("odd number of data points", -1));
+
+        if (pairArr != NULL) {
+            ckfree((char *)pairArr);
+        }
+        return TCL_ERROR;
+    }
+
+    nValues = nElem / 2;
+
+    if (nValues > 0) {
+        xCandidatePtr->valueArr = (double *)ckalloc(sizeof(double) * (size_t)nValues);
+        yCandidatePtr->valueArr = (double *)ckalloc(sizeof(double) * (size_t)nValues);
+
+        for (i = 0; i < nValues; i++) {
+            xCandidatePtr->valueArr[i] = pairArr[i * 2];
+            yCandidatePtr->valueArr[i] = pairArr[i * 2 + 1];
+        }
+
+        ckfree((char *)pairArr);
+    }
+
+    xCandidatePtr->nValues = nValues;
+    xCandidatePtr->arraySize = nValues;
+    yCandidatePtr->nValues = nValues;
+    yCandidatePtr->arraySize = nValues;
+
+    FindRange(xCandidatePtr);
+    FindRange(yCandidatePtr);
+
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_CommitElemVector --
+ *
+ *      Replaces a live element vector with a previously parsed
+ *      candidate.
+ *
+ * Parameters:
+ *      Element *elemPtr         - Element owning the destination.
+ *      ElemVector *destPtr      - Live vector to replace.
+ *      ElemVector *candidatePtr - Successfully parsed candidate.
+ *
+ * Results:
+ *      None.
+ *
+ * Side Effects:
+ *      Releases the previous live vector, transfers ownership from the
+ *      candidate, and installs an external-vector change callback when
+ *      required.
+ *
+ *----------------------------------------------------------------------
+ */
+void Rbc_CommitElemVector(Element *elemPtr, ElemVector *destPtr, ElemVector *candidatePtr) {
+    Rbc_FreeElemVector(destPtr);
+
+    *destPtr = *candidatePtr;
+    memset(candidatePtr, 0, sizeof(*candidatePtr));
+
+    destPtr->elemPtr = elemPtr;
+
+    if (destPtr->clientId != NULL) {
+        /*
+         * The callback must refer to the stable destination member,
+         * never to the temporary candidate.
+         */
+        Rbc_SetVectorChangedProc(destPtr->clientId, VectorChangedProc, destPtr);
+    }
 }
 
 /*
@@ -413,35 +601,30 @@ badList:
  */
 static int StringToData(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string, char *widgRec,
                         Tcl_Size offset) {
-    Element *elemPtr = (Element *)(widgRec);
-    ElemVector *vPtr = (ElemVector *)(widgRec + offset);
+    Element *elemPtr;
+    ElemVector *destPtr;
+    ElemVector candidate;
+    Tcl_Obj *objPtr;
+    int result;
 
-    FreeDataVector(vPtr);
-    if (Rbc_VectorExists2(interp, string)) {
-        Rbc_VectorId clientId;
+    elemPtr = (Element *)widgRec;
+    destPtr = (ElemVector *)(widgRec + offset);
 
-        clientId = Rbc_AllocVectorId(interp, string);
-        if (Rbc_GetVectorById(interp, clientId, &vPtr->vecPtr) != TCL_OK) {
-            return TCL_ERROR;
-        }
-        Rbc_SetVectorChangedProc(clientId, VectorChangedProc, vPtr);
-        vPtr->elemPtr = elemPtr;
-        vPtr->clientId = clientId;
-        SyncElemVector(vPtr);
-        elemPtr->flags |= MAP_ITEM;
-    } else {
-        double *newArr;
-        int nValues;
+    objPtr = Tcl_NewStringObj(string, -1);
+    Tcl_IncrRefCount(objPtr);
 
-        if (EvalExprList(interp, string, &nValues, &newArr) != TCL_OK) {
-            return TCL_ERROR;
-        }
-        if (nValues > 0) {
-            vPtr->valueArr = newArr;
-        }
-        vPtr->nValues = nValues;
-        FindRange(vPtr);
+    result = Rbc_ParseElemVectorObj(interp, elemPtr, objPtr, &candidate);
+
+    Tcl_DecrRefCount(objPtr);
+
+    if (result != TCL_OK) {
+        Rbc_FreeElemVector(&candidate);
+        return TCL_ERROR;
     }
+
+    Rbc_CommitElemVector(elemPtr, destPtr, &candidate);
+    elemPtr->flags |= MAP_ITEM;
+
     return TCL_OK;
 }
 
@@ -530,42 +713,35 @@ static const char *DataToString(ClientData clientData, Tk_Window tkwin, char *wi
  */
 static int StringToDataPairs(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string,
                              char *widgRec, Tcl_Size offset) {
-    Element *elemPtr = (Element *)widgRec;
-    int nElem;
-    unsigned int newSize;
-    double *newArr;
+    Element *elemPtr;
+    ElemVector xCandidate;
+    ElemVector yCandidate;
+    Tcl_Obj *objPtr;
+    int result;
 
-    if (EvalExprList(interp, string, &nElem, &newArr) != TCL_OK) {
+    elemPtr = (Element *)widgRec;
+
+    objPtr = Tcl_NewStringObj(string, -1);
+    Tcl_IncrRefCount(objPtr);
+
+    result = Rbc_ParseElemVectorPairsObj(interp, elemPtr, objPtr, &xCandidate, &yCandidate);
+
+    Tcl_DecrRefCount(objPtr);
+
+    if (result != TCL_OK) {
+        Rbc_FreeElemVector(&xCandidate);
+        Rbc_FreeElemVector(&yCandidate);
         return TCL_ERROR;
     }
-    if (nElem & 1) {
-        Tcl_AppendResult(interp, "odd number of data points", (char *)NULL);
-        ckfree((char *)newArr);
-        return TCL_ERROR;
-    }
-    nElem /= 2;
-    newSize = nElem * sizeof(double);
 
-    FreeDataVector(&elemPtr->x);
-    FreeDataVector(&elemPtr->y);
+    /*
+     * Both candidates have already parsed successfully, so the live
+     * X and Y vectors can now be replaced together.
+     */
+    Rbc_CommitElemVector(elemPtr, &elemPtr->x, &xCandidate);
+    Rbc_CommitElemVector(elemPtr, &elemPtr->y, &yCandidate);
 
-    elemPtr->x.valueArr = (double *)ckalloc(newSize);
-    elemPtr->y.valueArr = (double *)ckalloc(newSize);
-    assert(elemPtr->x.valueArr && elemPtr->y.valueArr);
-    elemPtr->x.nValues = elemPtr->y.nValues = nElem;
-
-    if (newSize > 0) {
-        register double *dataPtr;
-        register int i;
-
-        for (dataPtr = newArr, i = 0; i < nElem; i++) {
-            elemPtr->x.valueArr[i] = *dataPtr++;
-            elemPtr->y.valueArr[i] = *dataPtr++;
-        }
-        ckfree((char *)newArr);
-        FindRange(&elemPtr->x);
-        FindRange(&elemPtr->y);
-    }
+    elemPtr->flags |= MAP_ITEM;
     return TCL_OK;
 }
 

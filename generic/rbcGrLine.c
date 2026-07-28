@@ -5891,13 +5891,6 @@ static void NormalLineToPostScript(Graph *graphPtr, PsToken psToken, Element *el
     }
 }
 
-#define FreeVector(v)                                                                                                  \
-    if ((v).clientId != NULL) {                                                                                        \
-        Rbc_FreeVectorId((v).clientId);                                                                                \
-    } else if ((v).valueArr != NULL) {                                                                                 \
-        ckfree((char *)(v).valueArr);                                                                                  \
-    }
-
 /*
  *----------------------------------------------------------------------
  *
@@ -5928,15 +5921,15 @@ static void DestroyLine(Graph *graphPtr, Element *elemPtr) {
     if (elemPtr->activePenPtr != NULL) {
         Rbc_FreePen(graphPtr, elemPtr->activePenPtr);
     }
-    FreeVector(elemPtr->w);
-    FreeVector(elemPtr->x);
-    FreeVector(elemPtr->xHigh);
-    FreeVector(elemPtr->xLow);
-    FreeVector(elemPtr->xError);
-    FreeVector(elemPtr->y);
-    FreeVector(elemPtr->yHigh);
-    FreeVector(elemPtr->yLow);
-    FreeVector(elemPtr->yError);
+    Rbc_FreeElemVector(&elemPtr->w);
+    Rbc_FreeElemVector(&elemPtr->x);
+    Rbc_FreeElemVector(&elemPtr->xHigh);
+    Rbc_FreeElemVector(&elemPtr->xLow);
+    Rbc_FreeElemVector(&elemPtr->xError);
+    Rbc_FreeElemVector(&elemPtr->y);
+    Rbc_FreeElemVector(&elemPtr->yHigh);
+    Rbc_FreeElemVector(&elemPtr->yLow);
+    Rbc_FreeElemVector(&elemPtr->yError);
     ResetLine(linePtr);
     if (elemPtr->palette != NULL) {
         Rbc_FreePalette(graphPtr, elemPtr->palette);

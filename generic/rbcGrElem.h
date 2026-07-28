@@ -308,6 +308,11 @@ Element *Rbc_LineElement(Graph *, const char *, Rbc_Uid);
 extern Tk_OptionParseProc Rbc_StringToStyles;
 extern Tk_OptionPrintProc Rbc_StylesToString;
 
+void Rbc_FreeElemVector(ElemVector *vPtr);
+int Rbc_ParseElemVectorObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, ElemVector *candidatePtr);
+int Rbc_ParseElemVectorPairsObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, ElemVector *xCandidatePtr,
+                                ElemVector *yCandidatePtr);
+void Rbc_CommitElemVector(Element *elemPtr, ElemVector *destPtr, ElemVector *candidatePtr);
 double Rbc_FindElemVectorMinimum(ElemVector *vecPtr, double minLimit);
 void Rbc_FreePalette(Graph *graphPtr, Rbc_Chain *palette);
 PenStyle **Rbc_StyleMap(Element *elemPtr);
