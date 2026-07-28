@@ -4758,68 +4758,242 @@ static void TileChangedProc(ClientData clientData, Rbc_Tile tile) {
  */
 static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     Line *linePtr;
+    ElemDataTransaction dataTransaction;
+    ElemPenTransaction penTransaction;
+    ElemAxisTransaction axisTransaction;
+    ElemStateTransaction stateTransaction;
+    ElemTagsTransaction tagsTransaction;
     unsigned long gcMask;
     XGCValues gcValues;
     GC newGC;
     Rbc_ChainLink *linkPtr;
+    int dataTransactionPrepared;
+    int penTransactionPrepared;
+    int axisTransactionPrepared;
+    int stateTransactionPrepared;
+    int tagsTransactionPrepared;
 
     linePtr = LINE_FROM_CORE(elemPtr);
+
+    memset(&dataTransaction, 0, sizeof(dataTransaction));
+    memset(&penTransaction, 0, sizeof(penTransaction));
+    memset(&axisTransaction, 0, sizeof(axisTransaction));
+    memset(&stateTransaction, 0, sizeof(stateTransaction));
+    memset(&tagsTransaction, 0, sizeof(tagsTransaction));
+
+    dataTransactionPrepared = FALSE;
+    penTransactionPrepared = FALSE;
+    axisTransactionPrepared = FALSE;
+    stateTransactionPrepared = FALSE;
+    tagsTransactionPrepared = FALSE;
+
+    /*
+     * Parse all data-vector replacements before modifying the live
+     * element. This branch remains inactive while line and strip
+     * elements use their legacy Tk_ConfigSpec tables.
+     */
+    if ((elemPtr->optionSpecs != NULL) &&
+        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_DATA_MASK))) {
+        if (Rbc_PrepareElemDataTransaction(graphPtr, elemPtr, &dataTransaction) != TCL_OK) {
+            goto error;
+        }
+
+        dataTransactionPrepared = TRUE;
+    }
+
+    /*
+     * Resolve named active and normal pens before modifying the live
+     * element. Line and strip elements both require line-type pens.
+     *
+     * This branch remains inactive while the element constructors still
+     * select their legacy Tk_ConfigSpec tables.
+     */
+    if ((elemPtr->optionSpecs != NULL) &&
+        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_PEN_MASK))) {
+        if (Rbc_PrepareElemPenTransaction(graphPtr, elemPtr, rbcLineElementUid, &penTransaction) != TCL_OK) {
+            goto error;
+        }
+
+        penTransactionPrepared = TRUE;
+    }
+
+    /*
+     * Resolve the X and Y axis mappings before modifying the live
+     * element.
+     *
+     * This branch remains inactive while the line and strip constructors
+     * continue to select their legacy Tk_ConfigSpec tables.
+     */
+    if ((elemPtr->optionSpecs != NULL) &&
+        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_AXES_MASK))) {
+        if (Rbc_PrepareElemAxisTransaction(graphPtr, elemPtr, &axisTransaction) != TCL_OK) {
+            goto error;
+        }
+
+        axisTransactionPrepared = TRUE;
+    }
+
+    /*
+     * Parse the element state before modifying the live element.
+     *
+     * Strip elements have no -state entry in their modern option table,
+     * so stateObjPtr remains NULL and this transaction stages nothing for
+     * them during initial configuration.
+     */
+    if ((elemPtr->optionSpecs != NULL) &&
+        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_STATE_MASK))) {
+        if (Rbc_PrepareElemStateTransaction(graphPtr, elemPtr, &stateTransaction) != TCL_OK) {
+            goto error;
+        }
+
+        stateTransactionPrepared = TRUE;
+    }
+
+    /*
+     * Parse the element bind tags before modifying the live element.
+     *
+     * Both line and strip elements expose -bindtags in their modern
+     * option tables.
+     */
+    if ((elemPtr->optionSpecs != NULL) &&
+        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_TAGS_MASK))) {
+        if (Rbc_PrepareElemTagsTransaction(graphPtr, elemPtr, &tagsTransaction) != TCL_OK) {
+            goto error;
+        }
+
+        tagsTransactionPrepared = TRUE;
+    }
+
+    /*
+     * Configure the embedded line pen only after every requested data
+     * vector, named pen, axis mapping, state value, and bind-tags list
+     * has been validated.
+     */
     if (ConfigurePen(graphPtr, &linePtr->builtinPen.core) != TCL_OK) {
-        return TCL_ERROR;
+        goto error;
+    }
+
+    /*
+     * No remaining operation before palette synchronisation can report a
+     * Tcl configuration error. Transfer all staged values and references
+     * to the live element.
+     */
+    if (axisTransactionPrepared) {
+        Rbc_CommitElemAxisTransaction(graphPtr, elemPtr, &axisTransaction);
+    }
+
+    if (penTransactionPrepared) {
+        Rbc_CommitElemPenTransaction(graphPtr, elemPtr, &linePtr->builtinPen.core, &penTransaction);
+    }
+
+    if (stateTransactionPrepared) {
+        Rbc_CommitElemStateTransaction(elemPtr, &stateTransaction);
+    }
+
+    if (tagsTransactionPrepared) {
+        Rbc_CommitElemTagsTransaction(elemPtr, &tagsTransaction);
     }
 
     /*
      * Use the embedded line pen when no named normal pen was selected.
+     * This fallback is still required by the legacy element path.
      */
     if (elemPtr->normalPenPtr == NULL) {
         elemPtr->normalPenPtr = &linePtr->builtinPen.core;
     }
+
     linkPtr = Rbc_ChainFirstLink(elemPtr->palette);
+
     if (linkPtr != NULL) {
         LinePenStyle *stylePtr;
 
         stylePtr = Rbc_ChainGetValue(linkPtr);
-        stylePtr->penPtr =
-            LINE_PEN_FROM_CORE(elemPtr->normalPenPtr);
+        stylePtr->penPtr = LINE_PEN_FROM_CORE(elemPtr->normalPenPtr);
     }
+
     if (linePtr->fillTile != NULL) {
-        Rbc_SetTileChangedProc(linePtr->fillTile,
-                               TileChangedProc, linePtr);
+        Rbc_SetTileChangedProc(linePtr->fillTile, TileChangedProc, linePtr);
     }
+
     gcMask = 0;
+
     if (linePtr->fillFgColor != NULL) {
         gcMask |= GCForeground;
         gcValues.foreground = linePtr->fillFgColor->pixel;
     }
+
     if (linePtr->fillBgColor != NULL) {
         gcMask |= GCBackground;
         gcValues.background = linePtr->fillBgColor->pixel;
     }
-    if ((linePtr->fillStipple != None) &&
-        (linePtr->fillStipple != PATTERN_SOLID)) {
+
+    if ((linePtr->fillStipple != None) && (linePtr->fillStipple != PATTERN_SOLID)) {
         gcMask |= GCStipple | GCFillStyle;
         gcValues.stipple = linePtr->fillStipple;
-        gcValues.fill_style =
-            (linePtr->fillBgColor == NULL)
-                ? FillStippled
-                : FillOpaqueStippled;
+        gcValues.fill_style = (linePtr->fillBgColor == NULL) ? FillStippled : FillOpaqueStippled;
     }
+
     newGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
+
     if (linePtr->fillGC != NULL) {
         Tk_FreeGC(graphPtr->display, linePtr->fillGC);
     }
+
     linePtr->fillGC = newGC;
-    if (Rbc_ConfigModified(graphPtr->interp, elemPtr->specsPtr,
-                           "-scalesymbols", (char *)NULL)) {
-        elemPtr->flags |= MAP_ITEM | SCALE_SYMBOL;
+
+    /*
+     * Nothing below this point can fail. Commit the staged vectors and
+     * synchronize their retained Tcl representations.
+     */
+    if (dataTransactionPrepared) {
+        Rbc_CommitElemDataTransaction(elemPtr, &dataTransaction);
+
+        Rbc_SyncElemDataOptionObjects(elemPtr);
     }
-    if (Rbc_ConfigModified(graphPtr->interp, elemPtr->specsPtr,
-                           "-pixels", "-trace", "-*data", "-smooth",
-                           "-map*", "-label", "-hide", "-x", "-y",
-                           "-areapattern", (char *)NULL)) {
-        elemPtr->flags |= MAP_ITEM;
+
+    /*
+     * Modern line and strip elements use option-table masks.
+     * The legacy path continues to use Rbc_ConfigModified.
+     */
+    if (elemPtr->optionSpecs != NULL) {
+        if ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_SCALE_SYMBOL_MASK)) {
+            elemPtr->flags |= MAP_ITEM | SCALE_SYMBOL;
+        }
+
+        if ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_MAP_ITEM_MASK)) {
+            elemPtr->flags |= MAP_ITEM;
+        }
+    } else {
+        if (Rbc_ConfigModified(graphPtr->interp, elemPtr->specsPtr, "-scalesymbols", (char *)NULL)) {
+            elemPtr->flags |= MAP_ITEM | SCALE_SYMBOL;
+        }
+
+        if (Rbc_ConfigModified(graphPtr->interp, elemPtr->specsPtr, "-pixels", "-trace", "-*data", "-smooth", "-map*",
+                               "-label", "-hide", "-x", "-y", "-areapattern", (char *)NULL)) {
+            elemPtr->flags |= MAP_ITEM;
+        }
     }
+
     return TCL_OK;
+
+error:
+    if (tagsTransactionPrepared) {
+        Rbc_FreeElemTagsTransaction(&tagsTransaction);
+    }
+
+    if (axisTransactionPrepared) {
+        Rbc_FreeElemAxisTransaction(graphPtr, &axisTransaction);
+    }
+
+    if (penTransactionPrepared) {
+        Rbc_FreeElemPenTransaction(graphPtr, &penTransaction);
+    }
+
+    if (dataTransactionPrepared) {
+        Rbc_FreeElemDataTransaction(&dataTransaction);
+    }
+
+    return TCL_ERROR;
 }
 
 /*

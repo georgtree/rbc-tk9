@@ -75,6 +75,14 @@ typedef enum {
 
 #define ELEM_DATA_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
 
+typedef enum { ELEM_PEN_OPTION_NONE, ELEM_PEN_OPTION_ACTIVE, ELEM_PEN_OPTION_NORMAL } ElemPenOption;
+
+#define ELEM_PEN_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
+
+typedef enum { ELEM_AXIS_OPTION_NONE, ELEM_AXIS_OPTION_X, ELEM_AXIS_OPTION_Y } ElemAxisOption;
+
+#define ELEM_AXIS_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
+
 /*
  * ----------------------------------------------------------------------
  * Custom option parse and print procedures
@@ -698,6 +706,910 @@ static ElemDataOption GetElemDataOption(Tcl_Obj *objPtr) {
     }
 
     return match;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * GetElemPenOption --
+ *
+ *      Determines whether an option represents "-activepen" or
+ *      "-pen".
+ *
+ *      Tk_SetOptions has already validated abbreviations. This helper
+ *      recovers the canonical option identity from the original
+ *      option/value vector.
+ *
+ *----------------------------------------------------------------------
+ */
+static ElemPenOption GetElemPenOption(Tcl_Obj *objPtr) {
+    static const struct {
+        const char *name;
+        ElemPenOption option;
+    } optionMap[] = {{"-activepen", ELEM_PEN_OPTION_ACTIVE}, {"-pen", ELEM_PEN_OPTION_NORMAL}};
+
+    const char *string;
+    Tcl_Size length;
+    ElemPenOption match;
+    size_t i;
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+
+    /*
+     * Prefer exact matches.
+     */
+    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
+        Tcl_Size fullLength;
+
+        fullLength = (Tcl_Size)strlen(optionMap[i].name);
+
+        if ((length == fullLength) && (memcmp(string, optionMap[i].name, (size_t)length) == 0)) {
+            return optionMap[i].option;
+        }
+    }
+
+    /*
+     * Recover a canonical option from an accepted abbreviation.
+     */
+    match = ELEM_PEN_OPTION_NONE;
+
+    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
+        Tcl_Size fullLength;
+
+        fullLength = (Tcl_Size)strlen(optionMap[i].name);
+
+        if ((length > 0) && (length < fullLength) && (strncmp(string, optionMap[i].name, (size_t)length) == 0)) {
+            if (match == ELEM_PEN_OPTION_NONE) {
+                match = optionMap[i].option;
+            } else if (match != optionMap[i].option) {
+                return ELEM_PEN_OPTION_NONE;
+            }
+        }
+    }
+
+    return match;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * GetElemAxisOption --
+ *
+ *      Determines whether an option represents "-mapx" or "-mapy".
+ *
+ *      Tk_SetOptions has already validated option abbreviations. This
+ *      helper recovers the canonical option identity from the original
+ *      option/value vector.
+ *
+ * Parameters:
+ *      Tcl_Obj *objPtr - Option-name object.
+ *
+ * Results:
+ *      The corresponding ElemAxisOption value.
+ *      ELEM_AXIS_OPTION_NONE is returned for unrelated options.
+ *
+ * Side Effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+static ElemAxisOption GetElemAxisOption(Tcl_Obj *objPtr) {
+    static const struct {
+        const char *name;
+        ElemAxisOption option;
+    } optionMap[] = {{"-mapx", ELEM_AXIS_OPTION_X}, {"-mapy", ELEM_AXIS_OPTION_Y}};
+
+    const char *string;
+    Tcl_Size length;
+    ElemAxisOption match;
+    size_t i;
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+
+    /*
+     * Prefer exact matches.
+     */
+    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
+        Tcl_Size fullLength;
+
+        fullLength = (Tcl_Size)strlen(optionMap[i].name);
+
+        if ((length == fullLength) && (memcmp(string, optionMap[i].name, (size_t)length) == 0)) {
+            return optionMap[i].option;
+        }
+    }
+
+    /*
+     * Recover a canonical option from an accepted abbreviation.
+     */
+    match = ELEM_AXIS_OPTION_NONE;
+
+    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
+        Tcl_Size fullLength;
+
+        fullLength = (Tcl_Size)strlen(optionMap[i].name);
+
+        if ((length > 0) && (length < fullLength) && (strncmp(string, optionMap[i].name, (size_t)length) == 0)) {
+            if (match == ELEM_AXIS_OPTION_NONE) {
+                match = optionMap[i].option;
+            } else if (match != optionMap[i].option) {
+                return ELEM_AXIS_OPTION_NONE;
+            }
+        }
+    }
+
+    return match;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * IsElemStateOption --
+ *
+ *      Determines whether an option name represents "-state".
+ *
+ *      Tk_SetOptions has already validated abbreviations. This helper
+ *      recovers the option identity from the original option/value
+ *      vector.
+ *
+ * Parameters:
+ *      Tcl_Obj *objPtr - Option-name object.
+ *
+ * Results:
+ *      Non-zero if the option represents "-state"; zero otherwise.
+ *
+ * Side Effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+static int IsElemStateOption(Tcl_Obj *objPtr) {
+    static const char optionName[] = "-state";
+    const char *string;
+    Tcl_Size length;
+    Tcl_Size fullLength;
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+    fullLength = (Tcl_Size)(sizeof(optionName) - 1);
+
+    return ((length > 0) && (length <= fullLength) && (strncmp(string, optionName, (size_t)length) == 0));
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * IsElemBindTagsOption --
+ *
+ *      Determines whether an option name represents "-bindtags".
+ *
+ *      Tk_SetOptions has already validated abbreviations. This helper
+ *      recovers the canonical option identity from the original
+ *      option/value vector.
+ *
+ *----------------------------------------------------------------------
+ */
+static int IsElemBindTagsOption(Tcl_Obj *objPtr) {
+    static const char optionName[] = "-bindtags";
+    const char *string;
+    Tcl_Size length;
+    Tcl_Size fullLength;
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+    fullLength = (Tcl_Size)(sizeof(optionName) - 1);
+    return ((length > 0) && (length <= fullLength) && (strncmp(string, optionName, (size_t)length) == 0));
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * StageElemTags --
+ *
+ *      Parses a bind-tags value into temporary transaction storage
+ *      without modifying the live element.
+ *
+ *      A previously staged candidate is released only after its
+ *      replacement has parsed successfully.
+ *
+ *----------------------------------------------------------------------
+ */
+static int StageElemTags(Tcl_Interp *interp, Tcl_Obj *objPtr, ElemTagsTransaction *transactionPtr) {
+    char **newTags;
+
+    newTags = NULL;
+    if (Rbc_GetStringListFromObj(interp, objPtr, &newTags) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    /*
+     * Do not discard the previous candidate until the replacement has
+     * parsed successfully.
+     */
+    if (transactionPtr->tags != NULL) {
+        ckfree((char *)transactionPtr->tags);
+    }
+    transactionPtr->tags = newTags;
+    transactionPtr->staged = TRUE;
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_FreeElemTagsTransaction --
+ *
+ *      Releases a staged bind-tags list and clears the transaction.
+ *
+ *----------------------------------------------------------------------
+ */
+void Rbc_FreeElemTagsTransaction(ElemTagsTransaction *transactionPtr) {
+    if (transactionPtr->tags != NULL) {
+        ckfree((char *)transactionPtr->tags);
+    }
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_PrepareElemTagsTransaction --
+ *
+ *      Parses all bind-tags values involved in the current modern
+ *      configuration without modifying the live element.
+ *
+ *      Explicit occurrences are processed in their original order.
+ *      An invalid earlier repeated occurrence therefore causes the
+ *      complete configuration to fail.
+ *
+ *----------------------------------------------------------------------
+ */
+int Rbc_PrepareElemTagsTransaction(Graph *graphPtr, Element *elemPtr, ElemTagsTransaction *transactionPtr) {
+    int explicitlySpecified;
+    int i;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+
+    explicitlySpecified = FALSE;
+
+    assert((elemPtr->optionObjc & 1) == 0);
+
+    /*
+     * Determine whether -bindtags was supplied explicitly.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        if (IsElemBindTagsOption(elemPtr->optionObjv[i])) {
+            explicitlySpecified = TRUE;
+        }
+    }
+
+    /*
+     * On the first modern configuration, process the effective default
+     * or option-database value unless it was explicitly overridden.
+     */
+    if (!elemPtr->optionsConfigured && !explicitlySpecified && (elemPtr->bindTagsObjPtr != NULL)) {
+        if (StageElemTags(graphPtr->interp, elemPtr->bindTagsObjPtr, transactionPtr) != TCL_OK) {
+            goto error;
+        }
+    }
+
+    /*
+     * Process every explicit occurrence in caller order.
+     *
+     * Do not read only bindTagsObjPtr here. That field contains the
+     * final value and would conceal an invalid earlier occurrence.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        if (IsElemBindTagsOption(elemPtr->optionObjv[i])) {
+            if (StageElemTags(graphPtr->interp, elemPtr->optionObjv[i + 1], transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        }
+    }
+
+    return TCL_OK;
+
+error:
+    Rbc_FreeElemTagsTransaction(transactionPtr);
+
+    return TCL_ERROR;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_CommitElemTagsTransaction --
+ *
+ *      Replaces the live bind-tags list with a successfully staged
+ *      candidate.
+ *
+ *----------------------------------------------------------------------
+ */
+void Rbc_CommitElemTagsTransaction(Element *elemPtr, ElemTagsTransaction *transactionPtr) {
+    char **oldTags;
+
+    if (!transactionPtr->staged) {
+        return;
+    }
+
+    oldTags = elemPtr->tags;
+
+    elemPtr->tags = transactionPtr->tags;
+    transactionPtr->tags = NULL;
+    transactionPtr->staged = FALSE;
+
+    if (oldTags != NULL) {
+        ckfree((char *)oldTags);
+    }
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_PrepareElemStateTransaction --
+ *
+ *      Parses all element state values involved in the current modern
+ *      configuration without modifying the live element.
+ *
+ *      Explicit occurrences are processed in their original order.
+ *      An invalid earlier repeated value therefore causes the complete
+ *      configuration to fail, even if a later occurrence is valid.
+ *
+ * Parameters:
+ *      Graph *graphPtr
+ *          Graph containing the element.
+ *
+ *      Element *elemPtr
+ *          Element being configured.
+ *
+ *      ElemStateTransaction *transactionPtr
+ *          Receives the staged state.
+ *
+ * Results:
+ *      TCL_OK if every relevant state value is valid.
+ *      TCL_ERROR otherwise.
+ *
+ * Side Effects:
+ *      Sets the interpreter result on invalid input. The live element
+ *      state is not modified.
+ *
+ *----------------------------------------------------------------------
+ */
+int Rbc_PrepareElemStateTransaction(Graph *graphPtr, Element *elemPtr, ElemStateTransaction *transactionPtr) {
+    int explicitlySpecified;
+    int i;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+
+    explicitlySpecified = FALSE;
+
+    assert((elemPtr->optionObjc & 1) == 0);
+
+    /*
+     * Determine whether -state was supplied explicitly.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        if (IsElemStateOption(elemPtr->optionObjv[i])) {
+            explicitlySpecified = TRUE;
+        }
+    }
+
+    /*
+     * During the first modern configuration, process the effective
+     * default or option-database value unless the caller explicitly
+     * overrides it.
+     *
+     * Elements whose option tables do not contain -state leave
+     * stateObjPtr as NULL, so nothing is staged for them.
+     */
+    if (!elemPtr->optionsConfigured && !explicitlySpecified && (elemPtr->stateObjPtr != NULL)) {
+        if (Rbc_GetStateFromObj(graphPtr->interp, elemPtr->stateObjPtr, &transactionPtr->state) != TCL_OK) {
+            return TCL_ERROR;
+        }
+
+        transactionPtr->staged = TRUE;
+    }
+
+    /*
+     * Process every explicit occurrence in caller order.
+     *
+     * Reading only stateObjPtr would incorrectly hide an invalid
+     * earlier repeated occurrence because stateObjPtr contains only
+     * the final retained value.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        if (IsElemStateOption(elemPtr->optionObjv[i])) {
+            if (Rbc_GetStateFromObj(graphPtr->interp, elemPtr->optionObjv[i + 1], &transactionPtr->state) != TCL_OK) {
+                return TCL_ERROR;
+            }
+
+            transactionPtr->staged = TRUE;
+        }
+    }
+
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_CommitElemStateTransaction --
+ *
+ *      Commits a successfully parsed state to the live element.
+ *
+ * Parameters:
+ *      Element *elemPtr
+ *          Destination element.
+ *
+ *      ElemStateTransaction *transactionPtr
+ *          Prepared state transaction.
+ *
+ * Results:
+ *      None.
+ *
+ * Side Effects:
+ *      Replaces elemPtr->state if a value was staged.
+ *
+ *----------------------------------------------------------------------
+ */
+void Rbc_CommitElemStateTransaction(Element *elemPtr, ElemStateTransaction *transactionPtr) {
+    if (transactionPtr->staged) {
+        elemPtr->state = transactionPtr->state;
+        transactionPtr->staged = FALSE;
+    }
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * StageElemAxis --
+ *
+ *      Resolves one element axis option into temporary transaction
+ *      storage without modifying the live element.
+ *
+ * Parameters:
+ *      Graph *graphPtr
+ *      Tcl_Obj *objPtr
+ *      ElemAxisTransaction *transactionPtr
+ *      Axis **candidatePtrPtr
+ *      ElemAxisOption option
+ *
+ * Results:
+ *      TCL_OK if the axis exists and has the required orientation.
+ *      TCL_ERROR otherwise.
+ *
+ * Side Effects:
+ *      Acquires an axis reference. A previously staged reference for
+ *      the same option is released only after the replacement has been
+ *      resolved successfully.
+ *
+ *----------------------------------------------------------------------
+ */
+static int StageElemAxis(Graph *graphPtr, Tcl_Obj *objPtr, ElemAxisTransaction *transactionPtr, Axis **candidatePtrPtr,
+                         ElemAxisOption option) {
+    Axis *newAxisPtr;
+    Rbc_Uid classUid;
+    unsigned int mask;
+
+    newAxisPtr = NULL;
+
+    switch (option) {
+    case ELEM_AXIS_OPTION_X:
+        classUid = rbcXAxisUid;
+        break;
+
+    case ELEM_AXIS_OPTION_Y:
+        classUid = rbcYAxisUid;
+        break;
+
+    case ELEM_AXIS_OPTION_NONE:
+    default:
+        Tcl_Panic("StageElemAxis called with invalid option");
+        return TCL_ERROR;
+    }
+
+    /*
+     * Element -mapx and -mapy values must identify an existing axis;
+     * an empty axis name is not accepted.
+     */
+    if (Rbc_GetAxisFromObj(graphPtr, objPtr, classUid, FALSE, &newAxisPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    mask = ELEM_AXIS_OPTION_MASK(option);
+
+    /*
+     * Resolve the replacement before releasing a previous candidate.
+     */
+    if (transactionPtr->stagedMask & mask) {
+        Rbc_FreeAxisReference(graphPtr, *candidatePtrPtr);
+    }
+
+    *candidatePtrPtr = newAxisPtr;
+    transactionPtr->stagedMask |= mask;
+
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_FreeElemAxisTransaction --
+ *
+ *      Releases all axis references owned by a staged element-axis
+ *      transaction.
+ *
+ *----------------------------------------------------------------------
+ */
+void Rbc_FreeElemAxisTransaction(Graph *graphPtr, ElemAxisTransaction *transactionPtr) {
+    if (transactionPtr->xAxisPtr != NULL) {
+        Rbc_FreeAxisReference(graphPtr, transactionPtr->xAxisPtr);
+    }
+
+    if (transactionPtr->yAxisPtr != NULL) {
+        Rbc_FreeAxisReference(graphPtr, transactionPtr->yAxisPtr);
+    }
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_PrepareElemAxisTransaction --
+ *
+ *      Resolves all X- and Y-axis mappings involved in the current
+ *      modern element configuration without modifying the live
+ *      element.
+ *
+ *      Explicit option occurrences are processed in caller order, so
+ *      an invalid earlier repeated value still causes the complete
+ *      configuration to fail.
+ *
+ *----------------------------------------------------------------------
+ */
+int Rbc_PrepareElemAxisTransaction(Graph *graphPtr, Element *elemPtr, ElemAxisTransaction *transactionPtr) {
+    unsigned int explicitMask;
+    int i;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+
+    explicitMask = 0;
+
+    assert((elemPtr->optionObjc & 1) == 0);
+
+    /*
+     * Determine which axis options were supplied explicitly.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        ElemAxisOption option;
+
+        option = GetElemAxisOption(elemPtr->optionObjv[i]);
+
+        if (option != ELEM_AXIS_OPTION_NONE) {
+            explicitMask |= ELEM_AXIS_OPTION_MASK(option);
+        }
+    }
+
+    /*
+     * During the first modern configuration, process effective
+     * default or option-database values that were not overridden by
+     * the caller.
+     */
+    if (!elemPtr->optionsConfigured) {
+        if (!(explicitMask & ELEM_AXIS_OPTION_MASK(ELEM_AXIS_OPTION_X)) && (elemPtr->mapXObjPtr != NULL)) {
+            if (StageElemAxis(graphPtr, elemPtr->mapXObjPtr, transactionPtr, &transactionPtr->xAxisPtr,
+                              ELEM_AXIS_OPTION_X) != TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & ELEM_AXIS_OPTION_MASK(ELEM_AXIS_OPTION_Y)) && (elemPtr->mapYObjPtr != NULL)) {
+            if (StageElemAxis(graphPtr, elemPtr->mapYObjPtr, transactionPtr, &transactionPtr->yAxisPtr,
+                              ELEM_AXIS_OPTION_Y) != TCL_OK) {
+                goto error;
+            }
+        }
+    }
+
+    /*
+     * Process explicit options in their original order.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        ElemAxisOption option;
+        Tcl_Obj *valueObjPtr;
+
+        option = GetElemAxisOption(elemPtr->optionObjv[i]);
+
+        valueObjPtr = elemPtr->optionObjv[i + 1];
+
+        switch (option) {
+        case ELEM_AXIS_OPTION_X:
+            if (StageElemAxis(graphPtr, valueObjPtr, transactionPtr, &transactionPtr->xAxisPtr, option) != TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case ELEM_AXIS_OPTION_Y:
+            if (StageElemAxis(graphPtr, valueObjPtr, transactionPtr, &transactionPtr->yAxisPtr, option) != TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case ELEM_AXIS_OPTION_NONE:
+            break;
+        }
+    }
+
+    return TCL_OK;
+
+error:
+    Rbc_FreeElemAxisTransaction(graphPtr, transactionPtr);
+
+    return TCL_ERROR;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_CommitElemAxisTransaction --
+ *
+ *      Replaces the live element axes with successfully staged axis
+ *      references.
+ *
+ *----------------------------------------------------------------------
+ */
+void Rbc_CommitElemAxisTransaction(Graph *graphPtr, Element *elemPtr, ElemAxisTransaction *transactionPtr) {
+    if (transactionPtr->stagedMask & ELEM_AXIS_OPTION_MASK(ELEM_AXIS_OPTION_X)) {
+        Axis *oldAxisPtr;
+
+        oldAxisPtr = elemPtr->axes.x;
+
+        elemPtr->axes.x = transactionPtr->xAxisPtr;
+
+        transactionPtr->xAxisPtr = NULL;
+
+        if (oldAxisPtr != NULL) {
+            Rbc_FreeAxisReference(graphPtr, oldAxisPtr);
+        }
+    }
+
+    if (transactionPtr->stagedMask & ELEM_AXIS_OPTION_MASK(ELEM_AXIS_OPTION_Y)) {
+        Axis *oldAxisPtr;
+
+        oldAxisPtr = elemPtr->axes.y;
+
+        elemPtr->axes.y = transactionPtr->yAxisPtr;
+
+        transactionPtr->yAxisPtr = NULL;
+
+        if (oldAxisPtr != NULL) {
+            Rbc_FreeAxisReference(graphPtr, oldAxisPtr);
+        }
+    }
+
+    transactionPtr->stagedMask = 0;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * StageElemPen --
+ *
+ *      Resolves an element pen option into temporary transaction
+ *      storage without modifying the live element.
+ *
+ *      An empty string represents no named pen. For the normal pen,
+ *      the commit function later substitutes the embedded built-in
+ *      pen. For the active pen, it disables the active pen.
+ *
+ *----------------------------------------------------------------------
+ */
+static int StageElemPen(Graph *graphPtr, Tcl_Obj *objPtr, Rbc_Uid penType, ElemPenTransaction *transactionPtr,
+                        Pen **candidatePtrPtr, ElemPenOption option) {
+    const char *name;
+    Pen *newPenPtr;
+    unsigned int mask;
+
+    newPenPtr = NULL;
+
+    if (objPtr != NULL) {
+        name = Tcl_GetString(objPtr);
+
+        if (name[0] != '\0') {
+            if (Rbc_GetPen(graphPtr, name, penType, &newPenPtr) != TCL_OK) {
+                return TCL_ERROR;
+            }
+        }
+    }
+
+    mask = ELEM_PEN_OPTION_MASK(option);
+
+    /*
+     * Resolve the replacement before releasing an earlier staged
+     * candidate.
+     */
+    if ((transactionPtr->stagedMask & mask) && (*candidatePtrPtr != NULL)) {
+        Rbc_FreePen(graphPtr, *candidatePtrPtr);
+    }
+
+    *candidatePtrPtr = newPenPtr;
+    transactionPtr->stagedMask |= mask;
+
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_FreeElemPenTransaction --
+ *
+ *      Releases all named-pen references owned by a staged element
+ *      pen transaction.
+ *
+ *----------------------------------------------------------------------
+ */
+void Rbc_FreeElemPenTransaction(Graph *graphPtr, ElemPenTransaction *transactionPtr) {
+    if (transactionPtr->activePenPtr != NULL) {
+        Rbc_FreePen(graphPtr, transactionPtr->activePenPtr);
+    }
+
+    if (transactionPtr->normalPenPtr != NULL) {
+        Rbc_FreePen(graphPtr, transactionPtr->normalPenPtr);
+    }
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_PrepareElemPenTransaction --
+ *
+ *      Resolves all active and normal pen options involved in the
+ *      current modern configuration without modifying the live
+ *      element.
+ *
+ *      Explicit occurrences are processed in caller order, so an
+ *      invalid earlier repeated value still causes the complete
+ *      configuration to fail.
+ *
+ *----------------------------------------------------------------------
+ */
+int Rbc_PrepareElemPenTransaction(Graph *graphPtr, Element *elemPtr, Rbc_Uid penType,
+                                  ElemPenTransaction *transactionPtr) {
+    unsigned int explicitMask;
+    int i;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+
+    explicitMask = 0;
+
+    assert((elemPtr->optionObjc & 1) == 0);
+
+    /*
+     * Determine which pen options were supplied explicitly.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        ElemPenOption option;
+
+        option = GetElemPenOption(elemPtr->optionObjv[i]);
+
+        if (option != ELEM_PEN_OPTION_NONE) {
+            explicitMask |= ELEM_PEN_OPTION_MASK(option);
+        }
+    }
+
+    /*
+     * On the first modern configuration, process effective option
+     * database/default values not explicitly overridden.
+     */
+    if (!elemPtr->optionsConfigured) {
+        if (!(explicitMask & ELEM_PEN_OPTION_MASK(ELEM_PEN_OPTION_ACTIVE)) && (elemPtr->activePenObjPtr != NULL)) {
+            if (StageElemPen(graphPtr, elemPtr->activePenObjPtr, penType, transactionPtr, &transactionPtr->activePenPtr,
+                             ELEM_PEN_OPTION_ACTIVE) != TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & ELEM_PEN_OPTION_MASK(ELEM_PEN_OPTION_NORMAL)) && (elemPtr->normalPenObjPtr != NULL)) {
+            if (StageElemPen(graphPtr, elemPtr->normalPenObjPtr, penType, transactionPtr, &transactionPtr->normalPenPtr,
+                             ELEM_PEN_OPTION_NORMAL) != TCL_OK) {
+                goto error;
+            }
+        }
+    }
+
+    /*
+     * Process explicit options in their original order.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        ElemPenOption option;
+        Tcl_Obj *valueObjPtr;
+
+        option = GetElemPenOption(elemPtr->optionObjv[i]);
+
+        valueObjPtr = elemPtr->optionObjv[i + 1];
+
+        switch (option) {
+        case ELEM_PEN_OPTION_ACTIVE:
+            if (StageElemPen(graphPtr, valueObjPtr, penType, transactionPtr, &transactionPtr->activePenPtr, option) !=
+                TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case ELEM_PEN_OPTION_NORMAL:
+            if (StageElemPen(graphPtr, valueObjPtr, penType, transactionPtr, &transactionPtr->normalPenPtr, option) !=
+                TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case ELEM_PEN_OPTION_NONE:
+            break;
+        }
+    }
+
+    return TCL_OK;
+
+error:
+    Rbc_FreeElemPenTransaction(graphPtr, transactionPtr);
+
+    return TCL_ERROR;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_CommitElemPenTransaction --
+ *
+ *      Replaces the live element pens with successfully staged
+ *      candidates.
+ *
+ *      An empty normal-pen value selects the element's embedded
+ *      built-in pen.
+ *
+ *----------------------------------------------------------------------
+ */
+void Rbc_CommitElemPenTransaction(Graph *graphPtr, Element *elemPtr, Pen *builtinPenPtr,
+                                  ElemPenTransaction *transactionPtr) {
+    if (transactionPtr->stagedMask & ELEM_PEN_OPTION_MASK(ELEM_PEN_OPTION_ACTIVE)) {
+        Pen *oldPenPtr;
+
+        oldPenPtr = elemPtr->activePenPtr;
+
+        elemPtr->activePenPtr = transactionPtr->activePenPtr;
+
+        transactionPtr->activePenPtr = NULL;
+
+        if (oldPenPtr != NULL) {
+            Rbc_FreePen(graphPtr, oldPenPtr);
+        }
+    }
+
+    if (transactionPtr->stagedMask & ELEM_PEN_OPTION_MASK(ELEM_PEN_OPTION_NORMAL)) {
+        Pen *oldPenPtr;
+        Pen *newPenPtr;
+
+        oldPenPtr = elemPtr->normalPenPtr;
+        newPenPtr = transactionPtr->normalPenPtr;
+
+        if (newPenPtr == NULL) {
+            newPenPtr = builtinPenPtr;
+        }
+
+        elemPtr->normalPenPtr = newPenPtr;
+        transactionPtr->normalPenPtr = NULL;
+
+        /*
+         * The embedded pen is owned by the concrete element and has no
+         * named-pen reference to release.
+         */
+        if ((oldPenPtr != NULL) && (oldPenPtr != builtinPenPtr)) {
+            Rbc_FreePen(graphPtr, oldPenPtr);
+        }
+    }
+
+    transactionPtr->stagedMask = 0;
 }
 
 /*
@@ -1372,6 +2284,165 @@ void Rbc_SyncElemDataOptionObjects(Element *elemPtr) {
             break;
         }
     }
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * IsElemStylesOption --
+ *
+ *      Determines whether an option name represents "-styles".
+ *
+ *      Tk_SetOptions has already validated abbreviations. This helper
+ *      recovers the canonical option identity from the original
+ *      option/value vector.
+ *
+ *----------------------------------------------------------------------
+ */
+static int IsElemStylesOption(Tcl_Obj *objPtr) {
+    static const char optionName[] = "-styles";
+    const char *string;
+    Tcl_Size length;
+    Tcl_Size fullLength;
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+    fullLength = (Tcl_Size)(sizeof(optionName) - 1);
+
+    return ((length > 0) && (length <= fullLength) && (strncmp(string, optionName, (size_t)length) == 0));
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * StageElemStyles --
+ *
+ *      Parses one -styles value into temporary palette storage.
+ *
+ *      A previously staged candidate is retained until its replacement
+ *      has parsed successfully.
+ *
+ *----------------------------------------------------------------------
+ */
+static int StageElemStyles(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, Rbc_Uid penType, size_t styleSize,
+                           ElemStylesTransaction *transactionPtr) {
+    Rbc_Chain *newPalette;
+
+    newPalette = NULL;
+
+    if (Rbc_ParseStylesObj(graphPtr, elemPtr, objPtr, styleSize, &newPalette) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    if (transactionPtr->palette != NULL) {
+        Rbc_DestroyPalette(graphPtr, transactionPtr->palette);
+    }
+
+    transactionPtr->palette = newPalette;
+    transactionPtr->staged = TRUE;
+
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_FreeElemStylesTransaction --
+ *
+ *      Releases a staged candidate palette.
+ *
+ *----------------------------------------------------------------------
+ */
+void Rbc_FreeElemStylesTransaction(Graph *graphPtr, ElemStylesTransaction *transactionPtr) {
+    Rbc_DestroyPalette(graphPtr, transactionPtr->palette);
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_PrepareElemStylesTransaction --
+ *
+ *      Parses all -styles values involved in the current modern
+ *      configuration without modifying the live palette.
+ *
+ *      Explicit occurrences are processed in caller order. Therefore,
+ *      an invalid earlier repeated value still causes the complete
+ *      configuration to fail.
+ *
+ *----------------------------------------------------------------------
+ */
+int Rbc_PrepareElemStylesTransaction(Graph *graphPtr, Element *elemPtr, Rbc_Uid penType, size_t styleSize,
+                                     ElemStylesTransaction *transactionPtr) {
+    int explicitlySpecified;
+    int i;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+
+    explicitlySpecified = FALSE;
+
+    assert((elemPtr->optionObjc & 1) == 0);
+
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        if (IsElemStylesOption(elemPtr->optionObjv[i])) {
+            explicitlySpecified = TRUE;
+        }
+    }
+
+    /*
+     * Always construct the initial palette, even when stylesObjPtr is
+     * NULL. NULL represents an empty style list, but the palette still
+     * requires its reserved normal-pen entry.
+     */
+    if (!elemPtr->optionsConfigured && !explicitlySpecified) {
+        if (StageElemStyles(graphPtr, elemPtr, elemPtr->stylesObjPtr, penType, styleSize, transactionPtr) != TCL_OK) {
+            goto error;
+        }
+    }
+
+    /*
+     * Process every explicit occurrence in original caller order.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        if (IsElemStylesOption(elemPtr->optionObjv[i])) {
+            if (StageElemStyles(graphPtr, elemPtr, elemPtr->optionObjv[i + 1], penType, styleSize, transactionPtr) !=
+                TCL_OK) {
+                goto error;
+            }
+        }
+    }
+
+    return TCL_OK;
+
+error:
+    Rbc_FreeElemStylesTransaction(graphPtr, transactionPtr);
+    return TCL_ERROR;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_CommitElemStylesTransaction --
+ *
+ *      Replaces the live palette with a successfully staged candidate.
+ *
+ *----------------------------------------------------------------------
+ */
+void Rbc_CommitElemStylesTransaction(Graph *graphPtr, Element *elemPtr, ElemStylesTransaction *transactionPtr) {
+    Rbc_Chain *oldPalette;
+
+    if (!transactionPtr->staged) {
+        return;
+    }
+
+    oldPalette = elemPtr->palette;
+
+    elemPtr->palette = transactionPtr->palette;
+
+    transactionPtr->palette = NULL;
+    transactionPtr->staged = FALSE;
+
+    Rbc_DestroyPalette(graphPtr, oldPalette);
 }
 
 /*

@@ -193,6 +193,35 @@ typedef struct {
     ElemVector yLow;
 } ElemDataTransaction;
 
+typedef struct {
+    unsigned int stagedMask;
+
+    Pen *activePenPtr;
+    Pen *normalPenPtr;
+} ElemPenTransaction;
+
+typedef struct {
+    unsigned int stagedMask;
+
+    Axis *xAxisPtr;
+    Axis *yAxisPtr;
+} ElemAxisTransaction;
+
+typedef struct {
+    int staged;
+    int state;
+} ElemStateTransaction;
+
+typedef struct {
+    int staged;
+    char **tags;
+} ElemTagsTransaction;
+
+typedef struct {
+    int staged;
+    Rbc_Chain *palette;
+} ElemStylesTransaction;
+
 struct ElementStruct {
     char *name; /* Identifier to refer the element.
                  * Used in the "insert", "delete", or
@@ -346,6 +375,23 @@ int Rbc_PrepareElemDataTransaction(Graph *graphPtr, Element *elemPtr, ElemDataTr
 void Rbc_CommitElemDataTransaction(Element *elemPtr, ElemDataTransaction *transactionPtr);
 void Rbc_FreeElemDataTransaction(ElemDataTransaction *transactionPtr);
 void Rbc_SyncElemDataOptionObjects(Element *elemPtr);
+int Rbc_PrepareElemPenTransaction(Graph *graphPtr, Element *elemPtr, Rbc_Uid penType,
+                                  ElemPenTransaction *transactionPtr);
+void Rbc_CommitElemPenTransaction(Graph *graphPtr, Element *elemPtr, Pen *builtinPenPtr,
+                                  ElemPenTransaction *transactionPtr);
+void Rbc_FreeElemPenTransaction(Graph *graphPtr, ElemPenTransaction *transactionPtr);
+int Rbc_PrepareElemAxisTransaction(Graph *graphPtr, Element *elemPtr, ElemAxisTransaction *transactionPtr);
+void Rbc_CommitElemAxisTransaction(Graph *graphPtr, Element *elemPtr, ElemAxisTransaction *transactionPtr);
+void Rbc_FreeElemAxisTransaction(Graph *graphPtr, ElemAxisTransaction *transactionPtr);
+int Rbc_PrepareElemStateTransaction(Graph *graphPtr, Element *elemPtr, ElemStateTransaction *transactionPtr);
+void Rbc_CommitElemStateTransaction(Element *elemPtr, ElemStateTransaction *transactionPtr);
+int Rbc_PrepareElemTagsTransaction(Graph *graphPtr, Element *elemPtr, ElemTagsTransaction *transactionPtr);
+void Rbc_CommitElemTagsTransaction(Element *elemPtr, ElemTagsTransaction *transactionPtr);
+void Rbc_FreeElemTagsTransaction(ElemTagsTransaction *transactionPtr);
+int Rbc_PrepareElemStylesTransaction(Graph *graphPtr, Element *elemPtr, Rbc_Uid penType, size_t styleSize,
+                                     ElemStylesTransaction *transactionPtr);
+void Rbc_CommitElemStylesTransaction(Graph *graphPtr, Element *elemPtr, ElemStylesTransaction *transactionPtr);
+void Rbc_FreeElemStylesTransaction(Graph *graphPtr, ElemStylesTransaction *transactionPtr);
 void Rbc_FreePalette(Graph *graphPtr, Rbc_Chain *palette);
 void Rbc_DestroyPalette(Graph *graphPtr, Rbc_Chain *palette);
 int Rbc_ParseStylesObj(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, size_t styleSize, Rbc_Chain **palettePtrPtr);
