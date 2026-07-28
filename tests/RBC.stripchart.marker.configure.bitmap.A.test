@@ -466,5 +466,35 @@ namespace eval stripchart.marker {
 		destroy .stripchart1
 	} -result {0}
 	
+    test RBC.stripchart.marker.configure.bitmap.A.rollback.1 {
+        bitmap marker configuration is atomic
+    } -setup {
+        set testDir [file dirname [info script]]
+        set bitmapFile @[file join $testDir circle.xbm]
+        set maskFile @[file join $testDir circle_mask.xbm]
+        set badMaskFile @[file join $testDir circle_mask_bad.xbm]
+        stripchart .stripchart1
+        .stripchart1 marker create bitmap -name Marker1 -bitmap $bitmapFile -mask $maskFile -coords {0.25 0.25}\
+                -background white -foreground black -rotate 0
+        set oldBitmap [.stripchart1 marker cget Marker1 -bitmap]
+        set oldMask [.stripchart1 marker cget Marker1 -mask]
+        set oldCoords [.stripchart1 marker cget Marker1 -coords]
+        set oldBackground [.stripchart1 marker cget Marker1 -background]
+        set oldRotate [.stripchart1 marker cget Marker1 -rotate]
+    } -body {
+        set code [catch {.stripchart1 marker configure Marker1 -mask $badMaskFile -coords {0.1 0.1 0.9 0.9} -background\
+                                  red -rotate 45} message]
+        list $code $message [expr {[.stripchart1 marker cget Marker1 -bitmap] eq $oldBitmap}]\
+                [expr {[.stripchart1 marker cget Marker1 -mask] eq $oldMask}]\
+                [expr {[.stripchart1 marker cget Marker1 -coords] eq $oldCoords}]\
+                [expr {[.stripchart1 marker cget Marker1 -background] eq $oldBackground}]\
+                [expr {[.stripchart1 marker cget Marker1 -rotate] eq $oldRotate}]
+    } -cleanup {
+        catch {.stripchart1 marker delete Marker1}
+        catch {destroy .stripchart1}
+        unset -nocomplain testDir bitmapFile maskFile badMaskFile oldBitmap oldMask oldCoords oldBackground oldRotate\
+                code message
+    } -result [list 1 {bitmap mask has size 9x8, expected 9x9} 1 1 1 1 1]
+
 	cleanupTests
 }

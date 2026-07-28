@@ -336,44 +336,40 @@ typedef struct {
     int nOutlinePts;
 } BitmapMarker;
 
-static Tk_ConfigSpec bitmapConfigSpecs[] = {
-    {TK_CONFIG_ANCHOR, "-anchor", "anchor", "Anchor", DEF_MARKER_ANCHOR, offsetof(BitmapMarker, anchor), 0},
-    {TK_CONFIG_COLOR, "-background", "background", "Background", DEF_MARKER_BACKGROUND,
-     offsetof(BitmapMarker, fillColor), TK_CONFIG_COLOR_ONLY | TK_CONFIG_NULL_OK},
-    {TK_CONFIG_COLOR, "-background", "background", "Background", DEF_MARKER_BG_MONO, offsetof(BitmapMarker, fillColor),
-     TK_CONFIG_MONO_ONLY | TK_CONFIG_NULL_OK},
-    {TK_CONFIG_SYNONYM, "-bg", "background", (char *)NULL, (char *)NULL, 0, 0},
-    {TK_CONFIG_CUSTOM, "-bindtags", "bindTags", "BindTags", DEF_MARKER_BITMAP_TAGS, offsetof(Marker, tags),
-     TK_CONFIG_NULL_OK, &rbcListOption},
-    {TK_CONFIG_BITMAP, "-bitmap", "bitmap", "Bitmap", DEF_MARKER_BITMAP, offsetof(BitmapMarker, srcBitmap),
-     TK_CONFIG_NULL_OK},
-    {TK_CONFIG_BITMAP, "-mask", "mask", "Mask", DEF_MARKER_MASK, offsetof(BitmapMarker, srcMask), TK_CONFIG_NULL_OK},
-    {TK_CONFIG_CUSTOM, "-coords", "coords", "Coords", DEF_MARKER_COORDS, offsetof(Marker, worldPts), TK_CONFIG_NULL_OK,
-     &coordsOption},
-    {TK_CONFIG_STRING, "-element", "element", "Element", DEF_MARKER_ELEMENT, offsetof(Marker, elemName),
-     TK_CONFIG_NULL_OK},
-    {TK_CONFIG_SYNONYM, "-fg", "foreground", (char *)NULL, (char *)NULL, 0, 0},
-    {TK_CONFIG_SYNONYM, "-fill", "background", (char *)NULL, (char *)NULL, 0, 0},
-    {TK_CONFIG_COLOR, "-foreground", "foreground", "Foreground", DEF_MARKER_FOREGROUND,
-     offsetof(BitmapMarker, outlineColor), TK_CONFIG_COLOR_ONLY | TK_CONFIG_NULL_OK},
-    {TK_CONFIG_COLOR, "-foreground", "foreground", "Foreground", DEF_MARKER_FG_MONO,
-     offsetof(BitmapMarker, outlineColor), TK_CONFIG_MONO_ONLY | TK_CONFIG_NULL_OK},
-    {TK_CONFIG_BOOLEAN, "-hide", "hide", "Hide", DEF_MARKER_HIDE, offsetof(Marker, hidden), TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-mapx", "mapX", "MapX", DEF_MARKER_MAP_X, offsetof(Marker, axes.x), 0, &rbcXAxisOption},
-    {TK_CONFIG_CUSTOM, "-mapy", "mapY", "MapY", DEF_MARKER_MAP_Y, offsetof(Marker, axes.y), 0, &rbcYAxisOption},
-    {TK_CONFIG_STRING, "-name", (char *)NULL, (char *)NULL, DEF_MARKER_NAME, offsetof(Marker, name), TK_CONFIG_NULL_OK},
-    {TK_CONFIG_SYNONYM, "-outline", "foreground", (char *)NULL, (char *)NULL, 0, 0},
-    {TK_CONFIG_DOUBLE, "-rotate", "rotate", "Rotate", DEF_MARKER_ROTATE, offsetof(BitmapMarker, rotate),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-state", "state", "State", DEF_MARKER_STATE, offsetof(Marker, state),
-     TK_CONFIG_DONT_SET_DEFAULT, &rbcStateOption},
-    {TK_CONFIG_BOOLEAN, "-under", "under", "Under", DEF_MARKER_UNDER, offsetof(Marker, drawUnder),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_PIXELS, "-xoffset", "xOffset", "XOffset", DEF_MARKER_X_OFFSET, offsetof(Marker, xOffset),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_PIXELS, "-yoffset", "yOffset", "YOffset", DEF_MARKER_Y_OFFSET, offsetof(Marker, yOffset),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}};
+static const Tk_OptionSpec bitmapMarkerOptionSpecs[] = {
+    {TK_OPTION_ANCHOR, "-anchor", "anchor", "Anchor", DEF_MARKER_ANCHOR, -1, offsetof(BitmapMarker, anchor), 0, NULL,
+     0},
+    {TK_OPTION_COLOR, "-background", "background", "Background", DEF_MARKER_BACKGROUND, -1,
+     offsetof(BitmapMarker, fillColor), TK_OPTION_NULL_OK, (ClientData)DEF_MARKER_BG_MONO, 0},
+    {TK_OPTION_SYNONYM, "-bg", "background", NULL, NULL, 0, -1, 0, (ClientData) "-background", 0},
+    {TK_OPTION_STRING, "-bindtags", "bindTags", "BindTags", DEF_MARKER_BITMAP_TAGS, offsetof(Marker, bindTagsObjPtr),
+     -1, TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_BITMAP, "-bitmap", "bitmap", "Bitmap", DEF_MARKER_BITMAP, -1, offsetof(BitmapMarker, srcBitmap),
+     TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING, "-coords", "coords", "Coords", DEF_MARKER_COORDS, offsetof(Marker, coordsObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING, "-element", "element", "Element", DEF_MARKER_ELEMENT, -1, offsetof(Marker, elemName),
+     TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_SYNONYM, "-fg", "foreground", NULL, NULL, 0, -1, 0, (ClientData) "-foreground", 0},
+    {TK_OPTION_SYNONYM, "-fill", "background", NULL, NULL, 0, -1, 0, (ClientData) "-background", 0},
+    {TK_OPTION_COLOR, "-foreground", "foreground", "Foreground", DEF_MARKER_FOREGROUND, -1,
+     offsetof(BitmapMarker, outlineColor), TK_OPTION_NULL_OK, (ClientData)DEF_MARKER_FG_MONO, 0},
+    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_MARKER_HIDE, -1, offsetof(Marker, hidden), 0, NULL, 0},
+    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_MARKER_MAP_X, offsetof(Marker, mapXObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_MARKER_MAP_Y, offsetof(Marker, mapYObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_BITMAP, "-mask", "mask", "Mask", DEF_MARKER_MASK, -1, offsetof(BitmapMarker, srcMask), TK_OPTION_NULL_OK,
+     NULL, 0},
+    {TK_OPTION_STRING, "-name", NULL, NULL, DEF_MARKER_NAME, -1, offsetof(Marker, name), TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_SYNONYM, "-outline", "foreground", NULL, NULL, 0, -1, 0, (ClientData) "-foreground", 0},
+    {TK_OPTION_DOUBLE, "-rotate", "rotate", "Rotate", DEF_MARKER_ROTATE, -1, offsetof(BitmapMarker, rotate), 0, NULL,
+     0},
+    {TK_OPTION_STRING, "-state", "state", "State", DEF_MARKER_STATE, offsetof(Marker, stateObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_BOOLEAN, "-under", "under", "Under", DEF_MARKER_UNDER, -1, offsetof(Marker, drawUnder), 0, NULL, 0},
+    {TK_OPTION_PIXELS, "-xoffset", "xOffset", "XOffset", DEF_MARKER_X_OFFSET, offsetof(Marker, xOffsetObjPtr),
+     offsetof(Marker, xOffset), 0, NULL, 0},
+    {TK_OPTION_PIXELS, "-yoffset", "yOffset", "YOffset", DEF_MARKER_Y_OFFSET, offsetof(Marker, yOffsetObjPtr),
+     offsetof(Marker, yOffset), 0, NULL, 0},
+    {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 /*
  * -------------------------------------------------------------------
@@ -675,8 +671,8 @@ static void ChildGeometryProc(ClientData clientData, Tk_Window tkwin);
 static void ChildCustodyProc(ClientData clientData, Tk_Window tkwin);
 
 static MarkerClass bitmapMarkerClass = {
-    .configSpecs = bitmapConfigSpecs,
-    .optionSpecs = NULL,
+    .configSpecs = NULL,
+    .optionSpecs = bitmapMarkerOptionSpecs,
     .configProc = ConfigureBitmapMarker,
     .drawProc = DrawBitmapMarker,
     .freeProc = FreeBitmapMarker,
@@ -1918,94 +1914,123 @@ static Pixmap AndBitmapMasks(Tk_Window tkwin, Pixmap mask1, Pixmap mask2, int wi
  * ----------------------------------------------------------------------
  */
 static int ConfigureBitmapMarker(Marker *markerPtr) {
-    Graph *graphPtr = markerPtr->graphPtr;
-    BitmapMarker *bmPtr = BITMAP_MARKER_FROM_CORE(markerPtr);
-    GC newGC;
+    Graph *graphPtr;
+    BitmapMarker *bmPtr;
+    ParsedMarkerOptions markerOptions;
     XGCValues gcValues;
     unsigned long gcMask;
+    GC newGC;
+    GC newFillGC;
+    double newTheta;
 
+    graphPtr = markerPtr->graphPtr;
+    bmPtr = BITMAP_MARKER_FROM_CORE(markerPtr);
+    newGC = NULL;
+    newFillGC = NULL;
     /*
-     * Any previously scaled or rotated resources are invalid after
-     * configuration changes.
+     * Parse and acquire the common marker options without changing
+     * the active marker.
+     */
+    if (ParseMarkerOptions(markerPtr, &markerOptions) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    /*
+     * A configured mask must have the same dimensions as the source
+     * bitmap. Do not invalidate the old mapped resources until this
+     * validation succeeds.
+     */
+    if ((bmPtr->srcBitmap != None) && (bmPtr->srcMask != None)) {
+        int bitmapWidth;
+        int bitmapHeight;
+        int maskWidth;
+        int maskHeight;
+        Tk_SizeOfBitmap(graphPtr->display, bmPtr->srcBitmap, &bitmapWidth, &bitmapHeight);
+        Tk_SizeOfBitmap(graphPtr->display, bmPtr->srcMask, &maskWidth, &maskHeight);
+        if ((bitmapWidth != maskWidth) || (bitmapHeight != maskHeight)) {
+            Tcl_SetObjResult(graphPtr->interp, Tcl_ObjPrintf("bitmap mask has size %dx%d, expected %dx%d", maskWidth,
+                                                             maskHeight, bitmapWidth, bitmapHeight));
+            goto error;
+        }
+    }
+    /*
+     * Store a normalised angle separately from the configured value.
+     * The configured -rotate value remains unchanged for cget.
+     */
+    newTheta = FMOD(bmPtr->rotate, 360.0);
+    if (newTheta < 0.0) {
+        newTheta += 360.0;
+    }
+    /*
+     * GCs are needed only when a source bitmap exists.
+     */
+    if (bmPtr->srcBitmap != None) {
+        memset(&gcValues, 0, sizeof(gcValues));
+        gcMask = 0;
+        if (bmPtr->outlineColor != NULL) {
+            gcValues.foreground = bmPtr->outlineColor->pixel;
+            gcMask |= GCForeground;
+        }
+        if (bmPtr->fillColor != NULL) {
+            gcValues.background = bmPtr->fillColor->pixel;
+            gcMask |= GCBackground;
+        }
+        /*
+         * DrawBitmapMarker() changes the clip mask and clip origin
+         * before drawing, matching the existing bitmap-marker logic.
+         */
+        newGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
+        /*
+         * fillGC is used only to paint the background polygon of an
+         * arbitrarily rotated bitmap.
+         */
+        if (bmPtr->fillColor != NULL) {
+            memset(&gcValues, 0, sizeof(gcValues));
+            gcValues.foreground = bmPtr->fillColor->pixel;
+            newFillGC = Tk_GetGC(graphPtr->tkwin, GCForeground, &gcValues);
+        }
+    }
+    /*
+     * All validation has succeeded. Commit common marker resources.
+     */
+    CommitMarkerOptions(markerPtr, &markerOptions);
+    /*
+     * Previously mapped, scaled, rotated, or combined-mask resources
+     * are no longer valid.
      */
     FreeMappedBitmapResources(graphPtr, bmPtr);
-
-    if (bmPtr->srcBitmap == None) {
-        bmPtr->core.flags |= MAP_ITEM;
-
-        if (bmPtr->core.drawUnder) {
-            graphPtr->flags |= REDRAW_BACKING_STORE;
-        }
-        Rbc_EventuallyRedrawGraph(graphPtr);
-
-        return TCL_OK;
-    }
-
-    bmPtr->destBitmap = bmPtr->srcBitmap;
-    bmPtr->destBitmapOwned = FALSE;
-
+    bmPtr->destWidth = 0;
+    bmPtr->destHeight = 0;
+    bmPtr->nOutlinePts = 0;
     /*
-     * The original mask must match the original bitmap. Scaling and
-     * rotation are subsequently applied to both using identical
-     * parameters.
+     * Replace the old drawing GCs.
      */
-    if (bmPtr->srcMask != None) {
-        int bitmapWidth, bitmapHeight;
-        int maskWidth, maskHeight;
-
-        Tk_SizeOfBitmap(graphPtr->display, bmPtr->srcBitmap, &bitmapWidth, &bitmapHeight);
-
-        Tk_SizeOfBitmap(graphPtr->display, bmPtr->srcMask, &maskWidth, &maskHeight);
-
-        if ((bitmapWidth != maskWidth) || (bitmapHeight != maskHeight)) {
-            Tcl_SetObjResult(graphPtr->interp, Tcl_ObjPrintf("bitmap mask has size %dx%d, "
-                                                             "expected %dx%d",
-                                                             maskWidth, maskHeight, bitmapWidth, bitmapHeight));
-            return TCL_ERROR;
-        }
-    }
-
-    bmPtr->theta = FMOD(bmPtr->rotate, 360.0);
-
-    if (bmPtr->theta < 0.0) {
-        bmPtr->theta += 360.0;
-    }
-    gcMask = 0;
-    if (bmPtr->outlineColor != NULL) {
-        gcMask |= GCForeground;
-        gcValues.foreground = bmPtr->outlineColor->pixel;
-    }
-    if (bmPtr->fillColor != NULL) {
-        gcValues.background = bmPtr->fillColor->pixel;
-        gcMask |= GCBackground;
-    }
-
-    /* Note that while this is a "shared" GC, we're going to change
-     * the clip origin right before the bitmap is drawn anyways.  This
-     * assumes that any drawing code using this GC (with GCClipMask
-     * set) is going to want to set the clip origin anyways.  */
-    newGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
     if (bmPtr->gc != NULL) {
         Tk_FreeGC(graphPtr->display, bmPtr->gc);
     }
-    bmPtr->gc = newGC;
-
-    /* Create background GC color */
-
-    if (bmPtr->fillColor != NULL) {
-        gcValues.foreground = bmPtr->fillColor->pixel;
-        newGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
-        if (bmPtr->fillGC != NULL) {
-            Tk_FreeGC(graphPtr->display, bmPtr->fillGC);
-        }
-        bmPtr->fillGC = newGC;
+    if (bmPtr->fillGC != NULL) {
+        Tk_FreeGC(graphPtr->display, bmPtr->fillGC);
     }
-    bmPtr->core.flags |= MAP_ITEM;
-    if (bmPtr->core.drawUnder) {
+    bmPtr->gc = newGC;
+    bmPtr->fillGC = newFillGC;
+    newGC = NULL;
+    newFillGC = NULL;
+    bmPtr->theta = newTheta;
+    markerPtr->flags |= MAP_ITEM;
+    if (markerPtr->drawUnder) {
         graphPtr->flags |= REDRAW_BACKING_STORE;
     }
     Rbc_EventuallyRedrawGraph(graphPtr);
     return TCL_OK;
+
+error:
+    if (newGC != NULL) {
+        Tk_FreeGC(graphPtr->display, newGC);
+    }
+    if (newFillGC != NULL) {
+        Tk_FreeGC(graphPtr->display, newFillGC);
+    }
+    FreeParsedMarkerOptions(graphPtr, &markerOptions);
+    return TCL_ERROR;
 }
 
 /*
@@ -2580,15 +2605,21 @@ static void BitmapMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
  * ----------------------------------------------------------------------
  */
 static void FreeBitmapMarker(Graph *graphPtr, Marker *markerPtr) {
-    BitmapMarker *bmPtr = BITMAP_MARKER_FROM_CORE(markerPtr);
+    BitmapMarker *bmPtr;
 
-    FreeMappedBitmapResources(graphPtr, bmPtr);    
+    bmPtr = BITMAP_MARKER_FROM_CORE(markerPtr);
+    FreeMappedBitmapResources(graphPtr, bmPtr);
     if (bmPtr->gc != NULL) {
         Tk_FreeGC(graphPtr->display, bmPtr->gc);
+        bmPtr->gc = NULL;
     }
     if (bmPtr->fillGC != NULL) {
         Tk_FreeGC(graphPtr->display, bmPtr->fillGC);
+        bmPtr->fillGC = NULL;
     }
+    bmPtr->destWidth = 0;
+    bmPtr->destHeight = 0;
+    bmPtr->nOutlinePts = 0;
 }
 
 /*
@@ -2606,14 +2637,14 @@ static void FreeBitmapMarker(Graph *graphPtr, Marker *markerPtr) {
  *
  * ----------------------------------------------------------------------
  */
-static Marker *CreateBitmapMarker() {
+static Marker *CreateBitmapMarker(void) {
     BitmapMarker *bmPtr;
 
     bmPtr = RbcCalloc(1, sizeof(BitmapMarker));
     if (bmPtr != NULL) {
         bmPtr->core.classPtr = &bitmapMarkerClass;
     }
-    return &bmPtr->core;
+    return (bmPtr != NULL) ? &bmPtr->core : NULL;
 }
 
 /*
