@@ -40,14 +40,6 @@ Rbc_Uid rbcTextMarkerUid;
 Rbc_Uid rbcPolygonMarkerUid;
 Rbc_Uid rbcWindowMarkerUid;
 
-extern Tk_CustomOption rbcLinePenOption;
-extern Tk_CustomOption rbcBarPenOption;
-extern Tk_CustomOption rbcDistanceOption;
-extern Tk_CustomOption rbcBarModeOption;
-extern Tk_CustomOption rbcPadOption;
-extern Tk_CustomOption rbcTileOption;
-extern Tk_CustomOption rbcShadowOption;
-
 #define DEF_GRAPH_ASPECT_RATIO "0.0"
 #define DEF_GRAPH_BAR_BASELINE "0.0"
 #define DEF_GRAPH_BAR_MODE "normal"
@@ -60,7 +52,6 @@ extern Tk_CustomOption rbcShadowOption;
 #define DEF_GRAPH_CURSOR "crosshair"
 #define DEF_GRAPH_FONT STD_FONT_LARGE
 #define DEF_GRAPH_HALO "2m"
-#define DEF_GRAPH_HALO_BAR "0.1i"
 #define DEF_GRAPH_HEIGHT "4i"
 #define DEF_GRAPH_HIGHLIGHT_BACKGROUND STD_NORMAL_BACKGROUND
 #define DEF_GRAPH_HIGHLIGHT_BG_MONO STD_NORMAL_BG_MONO
@@ -73,14 +64,11 @@ extern Tk_CustomOption rbcShadowOption;
 #define DEF_GRAPH_PLOT_BACKGROUND RGB_WHITE
 #define DEF_GRAPH_PLOT_BG_MONO RGB_WHITE
 #define DEF_GRAPH_PLOT_BW_COLOR STD_BORDERWIDTH
-#define DEF_GRAPH_PLOT_BW_MONO "0"
 #define DEF_GRAPH_PLOT_PADX "8"
 #define DEF_GRAPH_PLOT_PADY "8"
 #define DEF_GRAPH_PLOT_RELIEF "sunken"
 #define DEF_GRAPH_RELIEF "flat"
 #define DEF_GRAPH_SHADOW_COLOR (char *)NULL
-#define DEF_GRAPH_SHADOW_MONO (char *)NULL
-#define DEF_GRAPH_SHOW_VALUES "no"
 #define DEF_GRAPH_TAKE_FOCUS ""
 #define DEF_GRAPH_TITLE (char *)NULL
 #define DEF_GRAPH_TITLE_COLOR STD_NORMAL_FOREGROUND
@@ -119,101 +107,6 @@ extern Tk_CustomOption rbcShadowOption;
      GRAPH_LAYOUT_MASK | GRAPH_BACKING_STORE_MASK | GRAPH_REDRAW_MASK | GRAPH_PLOT_BACKGROUND_MASK)
 
 #define GRAPH_PLOT_BACKGROUND_MASK (1u << 13)
-
-static Tk_ConfigSpec configSpecs[] = {
-    {TK_CONFIG_DOUBLE, "-aspect", "aspect", "Aspect", DEF_GRAPH_ASPECT_RATIO, offsetof(Graph, aspect),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_BORDER, "-background", "background", "Background", DEF_GRAPH_BACKGROUND, offsetof(Graph, border),
-     TK_CONFIG_COLOR_ONLY},
-    {TK_CONFIG_BORDER, "-background", "background", "Background", DEF_GRAPH_BG_MONO, offsetof(Graph, border),
-     TK_CONFIG_MONO_ONLY},
-    {TK_CONFIG_CUSTOM, "-barmode", "barMode", "BarMode", DEF_GRAPH_BAR_MODE, offsetof(Graph, mode),
-     TK_CONFIG_DONT_SET_DEFAULT, &rbcBarModeOption},
-    {TK_CONFIG_DOUBLE, "-barwidth", "barWidth", "BarWidth", DEF_GRAPH_BAR_WIDTH, offsetof(Graph, barWidth), 0},
-    {TK_CONFIG_DOUBLE, "-baseline", "baseline", "Baseline", DEF_GRAPH_BAR_BASELINE, offsetof(Graph, baseline), 0},
-    {TK_CONFIG_SYNONYM, "-bd", "borderWidth", (char *)NULL, (char *)NULL, 0, 0},
-    {TK_CONFIG_SYNONYM, "-bg", "background", (char *)NULL, (char *)NULL, 0, 0},
-    {TK_CONFIG_SYNONYM, "-bm", "bottomMargin", (char *)NULL, (char *)NULL, 0, 0},
-    {TK_CONFIG_CUSTOM, "-borderwidth", "borderWidth", "BorderWidth", DEF_GRAPH_BORDERWIDTH,
-     offsetof(Graph, borderWidth), TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-bottommargin", "bottomMargin", "Margin", DEF_GRAPH_MARGIN,
-     offsetof(Graph, bottomMargin.reqSize), 0, &rbcDistanceOption},
-    {TK_CONFIG_STRING, "-bottomvariable", "bottomVariable", "BottomVariable", DEF_GRAPH_MARGIN_VAR,
-     offsetof(Graph, bottomMargin.varName), TK_CONFIG_NULL_OK},
-    {TK_CONFIG_BOOLEAN, "-bufferelements", "bufferElements", "BufferElements", DEF_GRAPH_BUFFER_ELEMENTS,
-     offsetof(Graph, backingStore), TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_BOOLEAN, "-buffergraph", "bufferGraph", "BufferGraph", DEF_GRAPH_BUFFER_GRAPH,
-     offsetof(Graph, doubleBuffer), TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_ACTIVE_CURSOR, "-cursor", "cursor", "Cursor", DEF_GRAPH_CURSOR, offsetof(Graph, cursor),
-     TK_CONFIG_NULL_OK},
-    {TK_CONFIG_STRING, "-data", "data", "Data", (char *)NULL, offsetof(Graph, data), TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_STRING, "-datacommand", "dataCommand", "DataCommand", (char *)NULL, offsetof(Graph, dataCmd),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_SYNONYM, "-fg", "foreground", (char *)NULL, (char *)NULL, 0, 0},
-    {TK_CONFIG_FONT, "-font", "font", "Font", DEF_GRAPH_FONT, offsetof(Graph, titleTextStyle.font), 0},
-    {TK_CONFIG_COLOR, "-foreground", "foreground", "Foreground", DEF_GRAPH_TITLE_COLOR,
-     offsetof(Graph, titleTextStyle.color), TK_CONFIG_COLOR_ONLY},
-    {TK_CONFIG_COLOR, "-foreground", "foreground", "Foreground", DEF_GRAPH_TITLE_MONO,
-     offsetof(Graph, titleTextStyle.color), TK_CONFIG_MONO_ONLY},
-    {TK_CONFIG_CUSTOM, "-halo", "halo", "Halo", DEF_GRAPH_HALO, offsetof(Graph, halo), 0, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-height", "height", "Height", DEF_GRAPH_HEIGHT, offsetof(Graph, reqHeight), 0,
-     &rbcDistanceOption},
-    {TK_CONFIG_COLOR, "-highlightbackground", "highlightBackground", "HighlightBackground",
-     DEF_GRAPH_HIGHLIGHT_BACKGROUND, offsetof(Graph, highlightBgColor), TK_CONFIG_COLOR_ONLY},
-    {TK_CONFIG_COLOR, "-highlightbackground", "highlightBackground", "HighlightBackground", DEF_GRAPH_HIGHLIGHT_BG_MONO,
-     offsetof(Graph, highlightBgColor), TK_CONFIG_MONO_ONLY},
-    {TK_CONFIG_COLOR, "-highlightcolor", "highlightColor", "HighlightColor", DEF_GRAPH_HIGHLIGHT_COLOR,
-     offsetof(Graph, highlightColor), 0},
-    {TK_CONFIG_PIXELS, "-highlightthickness", "highlightThickness", "HighlightThickness", DEF_GRAPH_HIGHLIGHT_WIDTH,
-     offsetof(Graph, highlightWidth), TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_BOOLEAN, "-invertxy", "invertXY", "InvertXY", DEF_GRAPH_INVERT_XY, offsetof(Graph, inverted),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_JUSTIFY, "-justify", "justify", "Justify", DEF_GRAPH_JUSTIFY, offsetof(Graph, titleTextStyle.justify),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-leftmargin", "leftMargin", "Margin", DEF_GRAPH_MARGIN, offsetof(Graph, leftMargin.reqSize),
-     TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_STRING, "-leftvariable", "leftVariable", "LeftVariable", DEF_GRAPH_MARGIN_VAR,
-     offsetof(Graph, leftMargin.varName), TK_CONFIG_NULL_OK},
-    {TK_CONFIG_SYNONYM, "-lm", "leftMargin", (char *)NULL, (char *)NULL, 0, 0},
-    {TK_CONFIG_COLOR, "-plotbackground", "plotBackground", "Background", DEF_GRAPH_PLOT_BG_MONO,
-     offsetof(Graph, plotBg), TK_CONFIG_MONO_ONLY},
-    {TK_CONFIG_COLOR, "-plotbackground", "plotBackground", "Background", DEF_GRAPH_PLOT_BACKGROUND,
-     offsetof(Graph, plotBg), TK_CONFIG_COLOR_ONLY},
-    {TK_CONFIG_CUSTOM, "-plotborderwidth", "plotBorderWidth", "BorderWidth", DEF_GRAPH_PLOT_BW_COLOR,
-     offsetof(Graph, plotBorderWidth), TK_CONFIG_COLOR_ONLY, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-plotborderwidth", "plotBorderWidth", "BorderWidth", DEF_GRAPH_PLOT_BW_MONO,
-     offsetof(Graph, plotBorderWidth), TK_CONFIG_MONO_ONLY, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-plotpadx", "plotPadX", "PlotPad", DEF_GRAPH_PLOT_PADX, offsetof(Graph, padX),
-     TK_CONFIG_DONT_SET_DEFAULT, &rbcPadOption},
-    {TK_CONFIG_CUSTOM, "-plotpady", "plotPadY", "PlotPad", DEF_GRAPH_PLOT_PADY, offsetof(Graph, padY),
-     TK_CONFIG_DONT_SET_DEFAULT, &rbcPadOption},
-    {TK_CONFIG_RELIEF, "-plotrelief", "plotRelief", "Relief", DEF_GRAPH_PLOT_RELIEF, offsetof(Graph, plotRelief),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_RELIEF, "-relief", "relief", "Relief", DEF_GRAPH_RELIEF, offsetof(Graph, relief),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-rightmargin", "rightMargin", "Margin", DEF_GRAPH_MARGIN, offsetof(Graph, rightMargin.reqSize),
-     TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_STRING, "-rightvariable", "rightVariable", "RightVariable", DEF_GRAPH_MARGIN_VAR,
-     offsetof(Graph, rightMargin.varName), TK_CONFIG_NULL_OK},
-    {TK_CONFIG_SYNONYM, "-rm", "rightMargin", (char *)NULL, (char *)NULL, 0, 0},
-    {TK_CONFIG_CUSTOM, "-shadow", "shadow", "Shadow", DEF_GRAPH_SHADOW_COLOR, offsetof(Graph, titleTextStyle.shadow),
-     TK_CONFIG_COLOR_ONLY, &rbcShadowOption},
-    {TK_CONFIG_CUSTOM, "-shadow", "shadow", "Shadow", DEF_GRAPH_SHADOW_MONO, offsetof(Graph, titleTextStyle.shadow),
-     TK_CONFIG_MONO_ONLY, &rbcShadowOption},
-    {TK_CONFIG_COLOR, "-foreground", "foreground", "Foreground", DEF_GRAPH_TITLE_MONO,
-     offsetof(Graph, titleTextStyle.color), TK_CONFIG_MONO_ONLY},
-    {TK_CONFIG_STRING, "-takefocus", "takeFocus", "TakeFocus", DEF_GRAPH_TAKE_FOCUS, offsetof(Graph, takeFocus),
-     TK_CONFIG_NULL_OK},
-    {TK_CONFIG_CUSTOM, "-tile", "tile", "Tile", (char *)NULL, offsetof(Graph, tile), TK_CONFIG_NULL_OK, &rbcTileOption},
-    {TK_CONFIG_STRING, "-title", "title", "Title", DEF_GRAPH_TITLE, offsetof(Graph, title), TK_CONFIG_NULL_OK},
-    {TK_CONFIG_SYNONYM, "-tm", "topMargin", (char *)NULL, (char *)NULL, 0, 0},
-    {TK_CONFIG_CUSTOM, "-topmargin", "topMargin", "Margin", DEF_GRAPH_MARGIN, offsetof(Graph, topMargin.reqSize),
-     TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_STRING, "-topvariable", "topVariable", "TopVariable", DEF_GRAPH_MARGIN_VAR,
-     offsetof(Graph, topMargin.varName), TK_CONFIG_NULL_OK},
-    {TK_CONFIG_CUSTOM, "-width", "width", "Width", DEF_GRAPH_WIDTH, offsetof(Graph, reqWidth), 0, &rbcDistanceOption},
-    {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}};
-
 
 typedef enum {
     GRAPH_PIXEL_OPTION_NONE,
@@ -278,10 +171,6 @@ typedef struct {
 
 /*
  * Modern graph option table.
- *
- * This table remains inactive until the graph creation, configuration,
- * introspection, and destruction paths are explicitly switched from the
- * legacy Tk_ConfigSpec interface.
  */
 static const Tk_OptionSpec graphOptionSpecs[] = {
     {TK_OPTION_DOUBLE, "-aspect", "aspect", "Aspect", DEF_GRAPH_ASPECT_RATIO, -1, offsetof(Graph, aspect),
@@ -1782,7 +1671,7 @@ static int ConfigureNewGraph(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) {
  *
  * Side Effects:
  *      Releases Tk-managed graph option resources. Repeated calls and
- *      calls for a graph using the legacy option lifecycle are harmless.
+ *      calls before graph option initialization are harmless.
  *
  *----------------------------------------------------------------------
  */
@@ -1847,6 +1736,9 @@ static int ConfigureGraph(Graph *graphPtr) {
     XGCValues gcValues;
     unsigned long gcMask;
 
+    assert(graphPtr->optionsInitialized);
+    assert(graphPtr->optionTable != NULL);    
+
     memset(&barModeTransaction, 0, sizeof(barModeTransaction));
     memset(&paddingTransaction, 0, sizeof(paddingTransaction));
     memset(&pixelTransaction, 0, sizeof(pixelTransaction));
@@ -1859,96 +1751,74 @@ static int ConfigureGraph(Graph *graphPtr) {
     shadowTransactionPrepared = FALSE;
     tileTransactionPrepared = FALSE;
 
-    /*
-     * The modern table is deliberately inactive at this stage. These
-     * transactions become effective automatically when creation and
-     * runtime configuration are switched to Tk_SetOptions.
-     */
-    if (graphPtr->optionsInitialized) {
-        if ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_PIXELS_MASK)) {
-            if (PrepareGraphPixelTransaction(graphPtr, &pixelTransaction) != TCL_OK) {
-                goto error;
-            }
-
-            pixelTransactionPrepared = TRUE;
+    if ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_PIXELS_MASK)) {
+        if (PrepareGraphPixelTransaction(graphPtr, &pixelTransaction) != TCL_OK) {
+            goto error;
         }
 
-        if ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_PADDING_MASK)) {
-            if (PrepareGraphPaddingTransaction(graphPtr, &paddingTransaction) != TCL_OK) {
-                goto error;
-            }
+        pixelTransactionPrepared = TRUE;
+    }
 
-            paddingTransactionPrepared = TRUE;
+    if ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_PADDING_MASK)) {
+        if (PrepareGraphPaddingTransaction(graphPtr, &paddingTransaction) != TCL_OK) {
+            goto error;
         }
 
-        if ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_BAR_MODE_MASK)) {
-            if (PrepareGraphBarModeTransaction(graphPtr, &barModeTransaction) != TCL_OK) {
-                goto error;
-            }
+        paddingTransactionPrepared = TRUE;
+    }
 
-            barModeTransactionPrepared = TRUE;
+    if ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_BAR_MODE_MASK)) {
+        if (PrepareGraphBarModeTransaction(graphPtr, &barModeTransaction) != TCL_OK) {
+            goto error;
         }
 
-        if ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_SHADOW_MASK)) {
-            if (PrepareGraphShadowTransaction(graphPtr, &shadowTransaction) != TCL_OK) {
-                goto error;
-            }
+        barModeTransactionPrepared = TRUE;
+    }
 
-            shadowTransactionPrepared = TRUE;
+    if ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_SHADOW_MASK)) {
+        if (PrepareGraphShadowTransaction(graphPtr, &shadowTransaction) != TCL_OK) {
+            goto error;
         }
 
-        if ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_TILE_MASK)) {
-            if (PrepareGraphTileTransaction(graphPtr, &tileTransaction) != TCL_OK) {
-                goto error;
-            }
+        shadowTransactionPrepared = TRUE;
+    }
 
-            tileTransactionPrepared = TRUE;
+    if ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_TILE_MASK)) {
+        if (PrepareGraphTileTransaction(graphPtr, &tileTransaction) != TCL_OK) {
+            goto error;
         }
 
-        /*
-         * No operation below this point can report a configuration error.
-         */
-        if (pixelTransactionPrepared) {
-            CommitGraphPixelTransaction(graphPtr, &pixelTransaction);
-        }
-
-        if (paddingTransactionPrepared) {
-            CommitGraphPaddingTransaction(graphPtr, &paddingTransaction);
-        }
-
-        if (barModeTransactionPrepared) {
-            CommitGraphBarModeTransaction(graphPtr, &barModeTransaction);
-        }
-
-        if (shadowTransactionPrepared) {
-            CommitGraphShadowTransaction(graphPtr, &shadowTransaction);
-        }
-
-        if (tileTransactionPrepared) {
-            CommitGraphTileTransaction(graphPtr, &tileTransaction);
-        }
+        tileTransactionPrepared = TRUE;
     }
 
     /*
-     * Use the modern Tk type mask when the modern graph option table is
-     * active. Until activation, preserve the legacy Tk_ConfigSpec change
-     * tracking exactly.
+     * No operation below this point can report a configuration error.
      */
-    if (graphPtr->optionsInitialized) {
-        invertXYModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_INVERT_XY_MASK));
-
-        layoutModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_LAYOUT_MASK));
-
-        plotBackgroundModified =
-            ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_PLOT_BACKGROUND_MASK));
-    } else {
-        invertXYModified = Rbc_ConfigModified(graphPtr->interp, configSpecs, "-invertxy", (char *)NULL);
-
-        layoutModified = Rbc_ConfigModified(graphPtr->interp, configSpecs, "-invertxy", "-title", "-font", "-*margin",
-                                            "-*width", "-height", "-barmode", "-*pad*", "-aspect", (char *)NULL);
-
-        plotBackgroundModified = Rbc_ConfigModified(graphPtr->interp, configSpecs, "-plotbackground", (char *)NULL);
+    if (pixelTransactionPrepared) {
+        CommitGraphPixelTransaction(graphPtr, &pixelTransaction);
     }
+
+    if (paddingTransactionPrepared) {
+        CommitGraphPaddingTransaction(graphPtr, &paddingTransaction);
+    }
+
+    if (barModeTransactionPrepared) {
+        CommitGraphBarModeTransaction(graphPtr, &barModeTransaction);
+    }
+
+    if (shadowTransactionPrepared) {
+        CommitGraphShadowTransaction(graphPtr, &shadowTransaction);
+    }
+
+    if (tileTransactionPrepared) {
+        CommitGraphTileTransaction(graphPtr, &tileTransaction);
+    }
+
+    invertXYModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_INVERT_XY_MASK));
+
+    layoutModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_LAYOUT_MASK));
+
+    plotBackgroundModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_PLOT_BACKGROUND_MASK));
 
     /*
      * Preserve the legacy normalisation behaviour for -barwidth.
@@ -2099,21 +1969,11 @@ static void DestroyGraph(DestroyData dataPtr) {
 
     /*
      * A creation failure may reach the concrete destructor before the
-     * window destruction callbacks have released the modern graph
-     * options.
+     * window destruction callbacks have released the graph options.
      */
     if (graphPtr->optionsInitialized) {
         assert(graphPtr->tkwin != NULL);
         ReleaseGraphOptionResources(graphPtr);
-    }
-
-    /*
-     * Legacy options are released here because Tk_FreeOptions does not
-     * require the widget window. Modern options have either just been
-     * released above or were released before graphPtr->tkwin was cleared.
-     */
-    if (!graphPtr->tkResourcesReleased) {
-        Tk_FreeOptions(configSpecs, (char *)graphPtr, graphPtr->display, 0);
     }
     /*
      * Destroy the individual components of the graph: elements, markers,
@@ -2207,8 +2067,7 @@ static Graph *CreateGraph(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], R
     graphPtr->interp = interp;
     graphPtr->classUid = classUid;
     /*
-     * Modern graph option state. The modern table remains inactive until
-     * the creation path is explicitly switched from Tk_ConfigureWidget.
+     * Graph option lifecycle state.
      */
     graphPtr->optionTable = NULL;
 
