@@ -500,7 +500,7 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr);
 static int NameToAxis(Graph *graphPtr, const char *name, Axis **axisPtrPtr);
 static int GetAxis(Graph *graphPtr, const char *name, Rbc_Uid classUid, Axis **axisPtrPtr);
 static void FreeAxis(Graph *graphPtr, Axis *axisPtr);
-
+static int ConfigureNewAxis(Graph *graphPtr, Axis *axisPtr, int objc, Tcl_Obj *const objv[]);
 static int InitAxisOptions(Graph *graphPtr, Axis *axisPtr);
 static int ConfigureAxisOptions(Graph *graphPtr, Axis *axisPtr, int objc, Tcl_Obj *const objv[], int *maskPtr);
 static void ReleaseAxisOptionResources(Graph *graphPtr, Axis *axisPtr);
@@ -1679,6 +1679,21 @@ static int ConfigureAxisOptions(Graph *graphPtr, Axis *axisPtr, int objc, Tcl_Ob
     }
 
     return TCL_OK;
+}
+
+static int ConfigureNewAxis(Graph *graphPtr, Axis *axisPtr, int objc, Tcl_Obj *const objv[]) {
+    assert(axisPtr->optionSpecs != NULL);
+
+    if (InitAxisOptions(graphPtr, axisPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    /*
+     * Configure even when objc is zero. Tk_InitOptions has installed
+     * defaults and option-database values that must be converted into
+     * the live axis fields.
+     */
+    return ConfigureAxisOptions(graphPtr, axisPtr, objc, objv, NULL);
 }
 
 /*
@@ -4004,27 +4019,47 @@ static void ResetTextStyles(Graph *graphPtr, Axis *axisPtr) {
 static void DestroyAxis(Graph *graphPtr, Axis *axisPtr) {
     int flags;
 
-    flags = Rbc_GraphType(graphPtr);
-    Tk_FreeOptions(configSpecs, (char *)axisPtr, graphPtr->display, flags);
+    /*
+     * Release resources owned directly by the active option system.
+     */
+    if (axisPtr->optionSpecs != NULL) {
+        ReleaseAxisOptionResources(graphPtr, axisPtr);
+    } else {
+        flags = Rbc_GraphType(graphPtr);
+
+        Tk_FreeOptions(configSpecs, (char *)axisPtr, graphPtr->display, flags);
+    }
+
     if (graphPtr->bindTable != NULL) {
         Rbc_DeleteBindings(graphPtr->bindTable, axisPtr);
     }
+
     if (axisPtr->linkPtr != NULL) {
         Rbc_ChainDeleteLink(axisPtr->chainPtr, axisPtr->linkPtr);
     }
+
     if (axisPtr->name != NULL) {
         ckfree((char *)axisPtr->name);
     }
+
     if (axisPtr->hashPtr != NULL) {
         Tcl_DeleteHashEntry(axisPtr->hashPtr);
     }
+
+    /*
+     * These release the graphics contexts maintained by each text
+     * style. The option system owns the fonts and foreground colours.
+     */
     Rbc_FreeTextStyle(graphPtr->display, &axisPtr->titleTextStyle);
+
     Rbc_FreeTextStyle(graphPtr->display, &axisPtr->limitsTextStyle);
+
     Rbc_FreeTextStyle(graphPtr->display, &axisPtr->tickTextStyle);
-/*
- * Rbc_FreeTextStyle releases only the style GC. Shadow colours are
- * acquired separately by the shadow option parser.
- */
+
+    /*
+     * Shadow colours are allocated independently by the shadow parser
+     * and are not released by Rbc_FreeTextStyle or the Tk option table.
+     */
     FreeAxisShadow(&axisPtr->titleTextStyle.shadow);
 
     FreeAxisShadow(&axisPtr->limitsTextStyle.shadow);
@@ -4034,21 +4069,30 @@ static void DestroyAxis(Graph *graphPtr, Axis *axisPtr) {
     if (axisPtr->tickGC != NULL) {
         Tk_FreeGC(graphPtr->display, axisPtr->tickGC);
     }
+
     if (axisPtr->t1Ptr != NULL) {
         ckfree((char *)axisPtr->t1Ptr);
     }
+
     if (axisPtr->t2Ptr != NULL) {
         ckfree((char *)axisPtr->t2Ptr);
     }
-    FreeAxisFormats(axisPtr->limitsFormats);
+
+    if (axisPtr->limitsFormats != NULL) {
+        ckfree((char *)axisPtr->limitsFormats);
+    }
+
     FreeLabels(axisPtr->tickLabels);
     Rbc_ChainDestroy(axisPtr->tickLabels);
+
     if (axisPtr->segments != NULL) {
         ckfree((char *)axisPtr->segments);
     }
+
     if (axisPtr->tags != NULL) {
         ckfree((char *)axisPtr->tags);
     }
+
     ckfree((char *)axisPtr);
 }
 
@@ -5917,6 +5961,24 @@ static int BindOp(Graph *graphPtr, Axis *axisPtr, int margin, int objc, Tcl_Obj 
  * ----------------------------------------------------------------------
  */
 static int CgetOp(Graph *graphPtr, Axis *axisPtr, int margin, int objc, Tcl_Obj *const objv[]) {
+    if (axisPtr->optionSpecs != NULL) {
+        Tcl_Obj *valueObjPtr;
+
+        assert(axisPtr->optionTable != NULL);
+        assert(axisPtr->optionsInitialized);
+
+        valueObjPtr =
+            Tk_GetOptionValue(graphPtr->interp, (char *)axisPtr, axisPtr->optionTable, objv[0], graphPtr->tkwin);
+
+        if (valueObjPtr == NULL) {
+            return TCL_ERROR;
+        }
+
+        Tcl_SetObjResult(graphPtr->interp, valueObjPtr);
+
+        return TCL_OK;
+    }
+
     return Tk_ConfigureValue(graphPtr->interp, graphPtr->tkwin, configSpecs, (char *)axisPtr, Tcl_GetString(objv[0]),
                              Rbc_GraphType(graphPtr));
 }
@@ -5949,25 +6011,85 @@ static int ConfigureOp(Graph *graphPtr, Axis *axisPtr, int margin, int objc, Tcl
     int flags;
 
     flags = TK_CONFIG_ARGV_ONLY | Rbc_GraphType(graphPtr);
+
     if (objc == 0) {
-        return Tk_ConfigureInfo(graphPtr->interp, graphPtr->tkwin, configSpecs, (char *)axisPtr, (char *)NULL, flags);
-    } else if (objc == 1) {
+        if (axisPtr->optionSpecs != NULL) {
+            Tcl_Obj *infoObjPtr;
+
+            assert(axisPtr->optionTable != NULL);
+            assert(axisPtr->optionsInitialized);
+
+            infoObjPtr =
+                Tk_GetOptionInfo(graphPtr->interp, (char *)axisPtr, axisPtr->optionTable, NULL, graphPtr->tkwin);
+
+            if (infoObjPtr == NULL) {
+                return TCL_ERROR;
+            }
+
+            Tcl_SetObjResult(graphPtr->interp, infoObjPtr);
+
+            return TCL_OK;
+        }
+
+        return Tk_ConfigureInfo(graphPtr->interp, graphPtr->tkwin, configSpecs, (char *)axisPtr, NULL, flags);
+    }
+
+    if (objc == 1) {
+        if (axisPtr->optionSpecs != NULL) {
+            Tcl_Obj *infoObjPtr;
+
+            assert(axisPtr->optionTable != NULL);
+            assert(axisPtr->optionsInitialized);
+
+            infoObjPtr =
+                Tk_GetOptionInfo(graphPtr->interp, (char *)axisPtr, axisPtr->optionTable, objv[0], graphPtr->tkwin);
+
+            if (infoObjPtr == NULL) {
+                return TCL_ERROR;
+            }
+
+            Tcl_SetObjResult(graphPtr->interp, infoObjPtr);
+
+            return TCL_OK;
+        }
+
         return Tk_ConfigureInfo(graphPtr->interp, graphPtr->tkwin, configSpecs, (char *)axisPtr, Tcl_GetString(objv[0]),
                                 flags);
     }
-    if (Tk_ConfigureWidget(graphPtr->interp, graphPtr->tkwin, configSpecs, objc, objv, axisPtr, flags) != TCL_OK) {
-        return TCL_ERROR;
+
+    if (axisPtr->optionSpecs != NULL) {
+        int optionMask;
+
+        if (ConfigureAxisOptions(graphPtr, axisPtr, objc, objv, &optionMask) != TCL_OK) {
+            return TCL_ERROR;
+        }
+
+        /*
+         * The next step will replace the legacy
+         * Rbc_ConfigModified() test below with mask-based
+         * invalidation.
+         */
+        (void)optionMask;
+    } else {
+        if (Tk_ConfigureWidget(graphPtr->interp, graphPtr->tkwin, configSpecs, objc, objv, axisPtr, flags) != TCL_OK) {
+            return TCL_ERROR;
+        }
+
+        if (ConfigureAxis(graphPtr, axisPtr) != TCL_OK) {
+            return TCL_ERROR;
+        }
     }
-    if (ConfigureAxis(graphPtr, axisPtr) != TCL_OK) {
-        return TCL_ERROR;
-    }
+
     if (axisPtr->flags & AXIS_ONSCREEN) {
         if (!Rbc_ConfigModified(graphPtr->interp, configSpecs, "-*color", "-background", "-bg", (char *)NULL)) {
             graphPtr->flags |= REDRAW_BACKING_STORE;
         }
+
         graphPtr->flags |= DRAW_MARGINS;
+
         Rbc_EventuallyRedrawGraph(graphPtr);
     }
+
     return TCL_OK;
 }
 
