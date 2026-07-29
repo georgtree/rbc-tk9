@@ -57,59 +57,22 @@ typedef struct {
     int label; /* Distance from axis to tick label.  */
 } AxisInfo;
 
-extern Tk_CustomOption rbcDistanceOption;
-extern Tk_CustomOption rbcPositiveDistanceOption;
-extern Tk_CustomOption rbcShadowOption;
-extern Tk_CustomOption rbcListOption;
-
-static Tk_OptionParseProc StringToLimit;
-static Tk_OptionPrintProc LimitToString;
-static Tk_OptionParseProc StringToTicks;
-static Tk_OptionPrintProc TicksToString;
 static Tk_OptionParseProc StringToAxis;
 static Tk_OptionPrintProc AxisToString;
 static Tk_OptionParseProc StringToAnyAxis;
-static Tk_OptionParseProc StringToFormat;
-static Tk_OptionPrintProc FormatToString;
-static Tk_OptionParseProc StringToLoose;
-static Tk_OptionPrintProc LooseToString;
 
-static Tk_CustomOption limitOption = {StringToLimit, LimitToString, (ClientData)0};
-
-static Tk_CustomOption majorTicksOption = {
-    StringToTicks,
-    TicksToString,
-    (ClientData)AXIS_CONFIG_MAJOR,
-};
-static Tk_CustomOption minorTicksOption = {
-    StringToTicks,
-    TicksToString,
-    (ClientData)AXIS_CONFIG_MINOR,
-};
 Tk_CustomOption rbcXAxisOption = {StringToAxis, AxisToString, (ClientData)&rbcXAxisUid};
 Tk_CustomOption rbcYAxisOption = {StringToAxis, AxisToString, (ClientData)&rbcYAxisUid};
 Tk_CustomOption rbcAnyXAxisOption = {StringToAnyAxis, AxisToString, (ClientData)&rbcXAxisUid};
 Tk_CustomOption rbcAnyYAxisOption = {StringToAnyAxis, AxisToString, (ClientData)&rbcYAxisUid};
-static Tk_CustomOption formatOption = {
-    StringToFormat,
-    FormatToString,
-    (ClientData)0,
-};
-static Tk_CustomOption looseOption = {
-    StringToLoose,
-    LooseToString,
-    (ClientData)0,
-};
 
 /* Axis flags: */
 
 #define DEF_AXIS_COMMAND (char *)NULL
 #define DEF_AXIS_DESCENDING "no"
 #define DEF_AXIS_FOREGROUND RGB_BLACK
-#define DEF_AXIS_FG_MONO RGB_BLACK
 #define DEF_AXIS_HIDE "no"
 #define DEF_AXIS_JUSTIFY "center"
-#define DEF_AXIS_LIMITS_FORMAT (char *)NULL
 #define DEF_AXIS_LINE_WIDTH "1"
 #define DEF_AXIS_LOGSCALE "no"
 #define DEF_AXIS_LOOSE "no"
@@ -119,10 +82,8 @@ static Tk_CustomOption looseOption = {
 #define DEF_AXIS_SHIFTBY "0.0"
 #define DEF_AXIS_SHOWTICKS "yes"
 #define DEF_AXIS_STEP "0.0"
-#define DEF_AXIS_STEP "0.0"
 #define DEF_AXIS_SUBDIVISIONS "2"
 #define DEF_AXIS_TAGS "all"
-#define DEF_AXIS_TICKS "0"
 
 #ifdef WIN32
 #define DEF_AXIS_TICK_FONT "{Arial Narrow} 8"
@@ -132,10 +93,7 @@ static Tk_CustomOption looseOption = {
 
 #define DEF_AXIS_TICK_LENGTH "8"
 #define DEF_AXIS_TITLE_ALTERNATE "0"
-#define DEF_AXIS_TITLE_FG RGB_BLACK
 #define DEF_AXIS_TITLE_FONT STD_FONT
-#define DEF_AXIS_X_STEP_BARCHART "1.0"
-#define DEF_AXIS_X_SUBDIVISIONS_BARCHART "0"
 #define DEF_AXIS_BACKGROUND (char *)NULL
 #define DEF_AXIS_BORDERWIDTH "0"
 #define DEF_AXIS_RELIEF "flat"
@@ -183,13 +141,6 @@ static Tk_CustomOption looseOption = {
  * Options that require remapping graph contents against this axis.
  */
 #define AXIS_RESET_MASK (AXIS_GEOMETRY_MASK | AXIS_MAP_MASK)
-
-/*
- * Manually parsed options retained as Tcl objects.
- */
-#define AXIS_TRANSACTION_MASK                                                                                          \
-    (AXIS_TAGS_MASK | AXIS_LIMITS_FORMAT_MASK | AXIS_LIMITS_SHADOW_MASK | AXIS_LOOSE_MASK | AXIS_TICKS_MASK |          \
-     AXIS_LIMITS_MASK | AXIS_SCROLL_LIMITS_MASK | AXIS_TICK_SHADOW_MASK | AXIS_TITLE_SHADOW_MASK | AXIS_PIXELS_MASK)
 
 #define AXIS_SHADOW_MASK (AXIS_LIMITS_SHADOW_MASK | AXIS_TICK_SHADOW_MASK | AXIS_TITLE_SHADOW_MASK)
 
@@ -275,103 +226,6 @@ typedef struct {
     char **formats;
     int nFormats;
 } AxisFormatTransaction;
-
-static Tk_ConfigSpec configSpecs[] = {
-    {TK_CONFIG_DOUBLE, "-autorange", "autoRange", "AutoRange", DEF_AXIS_RANGE, offsetof(Axis, windowSize),
-     ALL_GRAPHS | TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_BORDER, "-background", "background", "Background", DEF_AXIS_BACKGROUND, offsetof(Axis, border),
-     ALL_GRAPHS | TK_CONFIG_NULL_OK},
-    {TK_CONFIG_SYNONYM, "-bg", "background", (char *)NULL, (char *)NULL, 0, 0},
-    {TK_CONFIG_CUSTOM, "-bindtags", "bindTags", "BindTags", DEF_AXIS_TAGS, offsetof(Axis, tags),
-     ALL_GRAPHS | TK_CONFIG_NULL_OK, &rbcListOption},
-    {TK_CONFIG_SYNONYM, "-bd", "borderWidth", (char *)NULL, (char *)NULL, 0, ALL_GRAPHS},
-    {TK_CONFIG_CUSTOM, "-borderwidth", "borderWidth", "BorderWidth", DEF_AXIS_BORDERWIDTH, offsetof(Axis, borderWidth),
-     ALL_GRAPHS | TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_COLOR, "-color", "color", "Color", DEF_AXIS_FOREGROUND, offsetof(Axis, tickTextStyle.color),
-     TK_CONFIG_COLOR_ONLY | ALL_GRAPHS},
-    {TK_CONFIG_COLOR, "-color", "color", "Color", DEF_AXIS_FG_MONO, offsetof(Axis, tickTextStyle.color),
-     TK_CONFIG_MONO_ONLY | ALL_GRAPHS},
-    {TK_CONFIG_STRING, "-command", "command", "Command", DEF_AXIS_COMMAND, offsetof(Axis, formatCmd),
-     TK_CONFIG_NULL_OK | ALL_GRAPHS},
-    {TK_CONFIG_BOOLEAN, "-descending", "descending", "Descending", DEF_AXIS_DESCENDING, offsetof(Axis, descending),
-     ALL_GRAPHS | TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_BOOLEAN, "-hide", "hide", "Hide", DEF_AXIS_HIDE, offsetof(Axis, hidden),
-     ALL_GRAPHS | TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_JUSTIFY, "-justify", "justify", "Justify", DEF_AXIS_JUSTIFY, offsetof(Axis, titleTextStyle.justify),
-     ALL_GRAPHS | TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_BOOLEAN, "-labeloffset", "labelOffset", "LabelOffset", (char *)NULL, offsetof(Axis, labelOffset),
-     ALL_GRAPHS},
-    {TK_CONFIG_COLOR, "-limitscolor", "limitsColor", "Color", DEF_AXIS_FOREGROUND,
-     offsetof(Axis, limitsTextStyle.color), TK_CONFIG_COLOR_ONLY | ALL_GRAPHS},
-    {TK_CONFIG_COLOR, "-limitscolor", "limitsColor", "Color", DEF_AXIS_FG_MONO, offsetof(Axis, limitsTextStyle.color),
-     TK_CONFIG_MONO_ONLY | ALL_GRAPHS},
-    {TK_CONFIG_FONT, "-limitsfont", "limitsFont", "Font", DEF_AXIS_TICK_FONT, offsetof(Axis, limitsTextStyle.font),
-     ALL_GRAPHS},
-    {TK_CONFIG_CUSTOM, "-limitsformat", "limitsFormat", "LimitsFormat", (char *)NULL, offsetof(Axis, limitsFormats),
-     TK_CONFIG_NULL_OK | ALL_GRAPHS, &formatOption},
-    {TK_CONFIG_CUSTOM, "-limitsshadow", "limitsShadow", "Shadow", (char *)NULL, offsetof(Axis, limitsTextStyle.shadow),
-     TK_CONFIG_COLOR_ONLY | ALL_GRAPHS, &rbcShadowOption},
-    {TK_CONFIG_CUSTOM, "-limitsshadow", "limitsShadow", "Shadow", (char *)NULL, offsetof(Axis, limitsTextStyle.shadow),
-     TK_CONFIG_MONO_ONLY | ALL_GRAPHS, &rbcShadowOption},
-    {TK_CONFIG_CUSTOM, "-linewidth", "lineWidth", "LineWidth", DEF_AXIS_LINE_WIDTH, offsetof(Axis, lineWidth),
-     ALL_GRAPHS | TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_BOOLEAN, "-logscale", "logScale", "LogScale", DEF_AXIS_LOGSCALE, offsetof(Axis, logScale),
-     ALL_GRAPHS | TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-loose", "loose", "Loose", DEF_AXIS_LOOSE, 0, ALL_GRAPHS | TK_CONFIG_DONT_SET_DEFAULT,
-     &looseOption},
-    {TK_CONFIG_CUSTOM, "-majorticks", "majorTicks", "MajorTicks", (char *)NULL, offsetof(Axis, t1Ptr),
-     TK_CONFIG_NULL_OK | ALL_GRAPHS, &majorTicksOption},
-    {TK_CONFIG_CUSTOM, "-max", "max", "Max", (char *)NULL, offsetof(Axis, reqMax), TK_CONFIG_NULL_OK | ALL_GRAPHS,
-     &limitOption},
-    {TK_CONFIG_CUSTOM, "-min", "min", "Min", (char *)NULL, offsetof(Axis, reqMin), TK_CONFIG_NULL_OK | ALL_GRAPHS,
-     &limitOption},
-    {TK_CONFIG_CUSTOM, "-minorticks", "minorTicks", "MinorTicks", (char *)NULL, offsetof(Axis, t2Ptr),
-     TK_CONFIG_NULL_OK | ALL_GRAPHS, &minorTicksOption},
-    {TK_CONFIG_RELIEF, "-relief", "relief", "Relief", DEF_AXIS_RELIEF, offsetof(Axis, relief),
-     ALL_GRAPHS | TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_DOUBLE, "-rotate", "rotate", "Rotate", DEF_AXIS_ROTATE, offsetof(Axis, tickTextStyle.theta),
-     ALL_GRAPHS | TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_STRING, "-scrollcommand", "scrollCommand", "ScrollCommand", (char *)NULL,
-     offsetof(Axis, scrollCmdPrefix), ALL_GRAPHS | TK_CONFIG_NULL_OK},
-    {TK_CONFIG_CUSTOM, "-scrollincrement", "scrollIncrement", "ScrollIncrement", DEF_AXIS_SCROLL_INCREMENT,
-     offsetof(Axis, scrollUnits), ALL_GRAPHS | TK_CONFIG_DONT_SET_DEFAULT, &rbcPositiveDistanceOption},
-    {TK_CONFIG_CUSTOM, "-scrollmax", "scrollMax", "ScrollMax", (char *)NULL, offsetof(Axis, scrollMax),
-     TK_CONFIG_NULL_OK | ALL_GRAPHS, &limitOption},
-    {TK_CONFIG_CUSTOM, "-scrollmin", "scrollMin", "ScrollMin", (char *)NULL, offsetof(Axis, scrollMin),
-     TK_CONFIG_NULL_OK | ALL_GRAPHS, &limitOption},
-    {TK_CONFIG_DOUBLE, "-shiftby", "shiftBy", "ShiftBy", DEF_AXIS_SHIFTBY, offsetof(Axis, shiftBy),
-     ALL_GRAPHS | TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_BOOLEAN, "-showticks", "showTicks", "ShowTicks", DEF_AXIS_SHOWTICKS, offsetof(Axis, showTicks),
-     ALL_GRAPHS | TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_DOUBLE, "-stepsize", "stepSize", "StepSize", DEF_AXIS_STEP, offsetof(Axis, reqStep),
-     ALL_GRAPHS | TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_DOUBLE, "-tickdivider", "tickDivider", "TickDivider", DEF_AXIS_STEP, offsetof(Axis, tickZoom),
-     ALL_GRAPHS | TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_INT, "-subdivisions", "subdivisions", "Subdivisions", DEF_AXIS_SUBDIVISIONS,
-     offsetof(Axis, reqNumMinorTicks), ALL_GRAPHS},
-    {TK_CONFIG_FONT, "-tickfont", "tickFont", "Font", DEF_AXIS_TICK_FONT, offsetof(Axis, tickTextStyle.font),
-     ALL_GRAPHS},
-    {TK_CONFIG_PIXELS, "-ticklength", "tickLength", "TickLength", DEF_AXIS_TICK_LENGTH, offsetof(Axis, tickLength),
-     ALL_GRAPHS},
-    {TK_CONFIG_CUSTOM, "-tickshadow", "tickShadow", "Shadow", (char *)NULL, offsetof(Axis, tickTextStyle.shadow),
-     TK_CONFIG_COLOR_ONLY | ALL_GRAPHS, &rbcShadowOption},
-    {TK_CONFIG_CUSTOM, "-tickshadow", "tickShadow", "Shadow", (char *)NULL, offsetof(Axis, tickTextStyle.shadow),
-     TK_CONFIG_MONO_ONLY | ALL_GRAPHS, &rbcShadowOption},
-    {TK_CONFIG_STRING, "-title", "title", "Title", (char *)NULL, offsetof(Axis, title),
-     TK_CONFIG_DONT_SET_DEFAULT | TK_CONFIG_NULL_OK | ALL_GRAPHS},
-    {TK_CONFIG_BOOLEAN, "-titlealternate", "titleAlternate", "TitleAlternate", DEF_AXIS_TITLE_ALTERNATE,
-     offsetof(Axis, titleAlternate), TK_CONFIG_DONT_SET_DEFAULT | ALL_GRAPHS},
-    {TK_CONFIG_COLOR, "-titlecolor", "titleColor", "Color", DEF_AXIS_FOREGROUND, offsetof(Axis, titleTextStyle.color),
-     TK_CONFIG_COLOR_ONLY | ALL_GRAPHS},
-    {TK_CONFIG_COLOR, "-titlecolor", "titleColor", "TitleColor", DEF_AXIS_FG_MONO, offsetof(Axis, titleTextStyle.color),
-     TK_CONFIG_MONO_ONLY | ALL_GRAPHS},
-    {TK_CONFIG_FONT, "-titlefont", "titleFont", "Font", DEF_AXIS_TITLE_FONT, offsetof(Axis, titleTextStyle.font),
-     ALL_GRAPHS},
-    {TK_CONFIG_CUSTOM, "-titleshadow", "titleShadow", "Shadow", (char *)NULL, offsetof(Axis, titleTextStyle.shadow),
-     TK_CONFIG_COLOR_ONLY | ALL_GRAPHS, &rbcShadowOption},
-    {TK_CONFIG_CUSTOM, "-titleshadow", "titleShadow", "Shadow", (char *)NULL, offsetof(Axis, titleTextStyle.shadow),
-     TK_CONFIG_MONO_ONLY | ALL_GRAPHS, &rbcShadowOption},
-    {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}};
 
 static const Tk_OptionSpec axisOptionSpecs[] = {
     {TK_OPTION_DOUBLE, "-autorange", "autoRange", "AutoRange", DEF_AXIS_RANGE, -1, offsetof(Axis, windowSize),
@@ -748,406 +602,6 @@ static const char *AxisToString(ClientData clientData, Tk_Window tkwin, char *wi
 /*
  *----------------------------------------------------------------------
  *
- * StringToFormat --
- *
- *      Convert the name of virtual axis to an pointer.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tcl_Interp *interp - Interpreter to send results back to.
- *      Tk_Window tkwin - Used to look up pointer to graph.
- *      const char *string - String representing new value.
- *      char *widgRec - Pointer to structure record.
- *      Tcl_Size offset - Offset of field in structure.
- *
- * Results:
- *      The return value is a standard Tcl result.  The axis flags are
- *      written into the widget record.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static int StringToFormat(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string, char *widgRec,
-                          Tcl_Size offset) {
-    Axis *axisPtr = (Axis *)(widgRec);
-    char **argv;
-    Tcl_Size argc;
-
-    if (axisPtr->limitsFormats != NULL) {
-        ckfree((char *)axisPtr->limitsFormats);
-    }
-    axisPtr->limitsFormats = NULL;
-    axisPtr->nFormats = 0;
-
-    if ((string == NULL) || (*string == '\0')) {
-        return TCL_OK;
-    }
-    if (Tcl_SplitList(interp, string, &argc, (const char ***)&argv) != TCL_OK) {
-        return TCL_ERROR;
-    }
-    if (argc > 2) {
-        Tcl_AppendResult(interp, "too many elements in limits format list \"", string, "\"", (char *)NULL);
-        ckfree((char *)argv);
-        return TCL_ERROR;
-    }
-    axisPtr->limitsFormats = argv;
-    axisPtr->nFormats = argc;
-    return TCL_OK;
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * FormatToString --
- *
- *      Convert the window coordinates into a string.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tk_Window tkwin - Not used.
- *      char *widgRec - Widget record
- *      Tcl_Size offset - offset of limits field
- *      Tcl_FreeProc **freeProcPtr - Not used.
- *
- * Results:
- *      The string representing the coordinate position is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static const char *FormatToString(ClientData clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset,
-                                  Tcl_FreeProc **freeProcPtr) {
-    Axis *axisPtr = (Axis *)(widgRec);
-
-    if (axisPtr->nFormats == 0) {
-        return "";
-    }
-    *freeProcPtr = (Tcl_FreeProc *)Tcl_Free;
-    return Tcl_Merge(axisPtr->nFormats, (const char *const *)axisPtr->limitsFormats);
-}
-
-/*
- * ----------------------------------------------------------------------
- *
- * StringToLimit --
- *
- *      Convert the string representation of an axis limit into its numeric
- *      form.
- *
- * Parameters:
- *      ClientData clientData - Either AXIS_CONFIG_MIN or AXIS_CONFIG_MAX. Indicates which axis limit to set.
- *      Tcl_Interp *interp - Interpreter to send results back to.
- *      Tk_Window tkwin - Not used.
- *      const char *string - String representing new value.
- *      char *widgRec - Pointer to structure record.
- *      Tcl_Size offset - Offset of field in structure.
- *
- * Results:
- *      The return value is a standard Tcl result.  The symbol type is
- *      written into the widget record.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
- */
-static int StringToLimit(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string, char *widgRec,
-                         Tcl_Size offset) {
-    double *limitPtr = (double *)(widgRec + offset);
-
-    if ((string == NULL) || (*string == '\0')) {
-        *limitPtr = VALUE_UNDEFINED;
-    } else if (Tcl_ExprDouble(interp, string, limitPtr) != TCL_OK) {
-        return TCL_ERROR;
-    }
-    return TCL_OK;
-}
-
-/*
- * ----------------------------------------------------------------------
- *
- * LimitToString --
- *
- *      Convert the floating point axis limits into a string.
- *
- * Parameters:
- *      ClientData clientData - Either LMIN or LMAX
- *      Tk_Window tkwin - Not used.
- *      char *widgRec
- *      Tcl_Size offset
- *      Tcl_FreeProc **freeProcPtr
- *
- * Results:
- *      The string representation of the limits is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
- */
-static const char *LimitToString(ClientData clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset,
-                                 Tcl_FreeProc **freeProcPtr) {
-    double limit = *(double *)(widgRec + offset);
-    char *result;
-
-    result = "";
-    if (DEFINED(limit)) {
-        char string[TCL_DOUBLE_SPACE + 1];
-        Graph *graphPtr;
-
-        graphPtr = Rbc_GetGraphFromWindowData(tkwin);
-        Tcl_PrintDouble(graphPtr->interp, limit, string);
-        result = RbcStrdup(string);
-        if (result == NULL) {
-            return "";
-        }
-        *freeProcPtr = (Tcl_FreeProc *)Tcl_Free;
-    }
-    return result;
-}
-
-/*
- * ----------------------------------------------------------------------
- *
- * StringToTicks --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tcl_Interp *interp - Interpreter to send results back to.
- *      Tk_Window tkwin - Not used.
- *      const char *string - String representing new value.
- *      char *widgRec - Pointer to structure record.
- *      Tcl_Size offset - Offset of field in structure.
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
- */
-static int StringToTicks(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string, char *widgRec,
-                         Tcl_Size offset) {
-    unsigned int mask = PTR2UINT(clientData);
-    Axis *axisPtr = (Axis *)widgRec;
-    Ticks **ticksPtrPtr = (Ticks **)(widgRec + offset);
-    int nTicks;
-    Ticks *ticksPtr;
-
-    nTicks = 0;
-    ticksPtr = NULL;
-    if ((string != NULL) && (*string != '\0')) {
-        Tcl_Size nExprs;
-        const char **exprArr;
-
-        if (Tcl_SplitList(interp, string, &nExprs, &exprArr) != TCL_OK) {
-            return TCL_ERROR;
-        }
-        if (nExprs > 0) {
-            register int i;
-            int result = TCL_ERROR;
-            double value;
-
-            ticksPtr = (Ticks *)ckalloc(sizeof(Ticks) + (nExprs * sizeof(double)));
-            assert(ticksPtr);
-            for (i = 0; i < nExprs; i++) {
-                result = Tcl_ExprDouble(interp, exprArr[i], &value);
-                if (result != TCL_OK) {
-                    break;
-                }
-                ticksPtr->values[i] = value;
-            }
-            ckfree((char *)exprArr);
-            if (result != TCL_OK) {
-                ckfree((char *)ticksPtr);
-                return TCL_ERROR;
-            }
-            nTicks = nExprs;
-        }
-    }
-    axisPtr->flags &= ~mask;
-    if (ticksPtr != NULL) {
-        axisPtr->flags |= mask;
-        ticksPtr->nTicks = nTicks;
-    }
-    if (*ticksPtrPtr != NULL) {
-        ckfree((char *)*ticksPtrPtr);
-    }
-    *ticksPtrPtr = ticksPtr;
-    return TCL_OK;
-}
-
-/*
- * ----------------------------------------------------------------------
- *
- * TicksToString --
- *
- *      Convert array of tick coordinates to a list.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tk_Window tkwin - Not used.
- *      char *widgRec
- *      Tcl_Size offset
- *      Tcl_FreeProc **freeProcPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
- */
-static const char *TicksToString(ClientData clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset,
-                                 Tcl_FreeProc **freeProcPtr) {
-    Ticks *ticksPtr = *(Ticks **)(widgRec + offset);
-    char string[TCL_DOUBLE_SPACE + 1];
-    register int i;
-    char *result;
-    Tcl_DString dString;
-    Graph *graphPtr;
-
-    if (ticksPtr == NULL) {
-        return "";
-    }
-    Tcl_DStringInit(&dString);
-    graphPtr = Rbc_GetGraphFromWindowData(tkwin);
-    for (i = 0; i < ticksPtr->nTicks; i++) {
-        Tcl_PrintDouble(graphPtr->interp, ticksPtr->values[i], string);
-        Tcl_DStringAppendElement(&dString, string);
-    }
-    *freeProcPtr = (Tcl_FreeProc *)Tcl_Free;
-    result = RbcStrdup(Tcl_DStringValue(&dString));
-    Tcl_DStringFree(&dString);
-    return result;
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * StringToLoose --
- *
- *      Convert a string to one of three values.
- *          0 - false, no, off
- *          1 - true, yes, on
- *          2 - always
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tcl_Interp *interp - Interpreter to send results back to.
- *      Tk_Window tkwin - Not used.
- *      const char *string - String representing new value.
- *      char *widgRec - Pointer to structure record.
- *      Tcl_Size offset - Offset of field in structure.
- *
- * Results:
- *      If the string is successfully converted, TCL_OK is returned.
- *      Otherwise, TCL_ERROR is returned and an error message is left in
- *      interpreter's result field.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static int StringToLoose(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string, char *widgRec,
-                         Tcl_Size offset) {
-    Axis *axisPtr = (Axis *)(widgRec);
-    register int i;
-    Tcl_Size argc;
-    const char **argv;
-    int values[2];
-
-    if (Tcl_SplitList(interp, string, &argc, &argv) != TCL_OK) {
-        return TCL_ERROR;
-    }
-    if ((argc < 1) || (argc > 2)) {
-        Tcl_AppendResult(interp, "wrong # elements in loose value \"", string, "\"", (char *)NULL);
-        return TCL_ERROR;
-    }
-    for (i = 0; i < argc; i++) {
-        if ((argv[i][0] == 'a') && (strcmp(argv[i], "always") == 0)) {
-            values[i] = TICK_RANGE_ALWAYS_LOOSE;
-        } else {
-            int boolValue;
-
-            if (Tcl_GetBoolean(interp, argv[i], &boolValue) != TCL_OK) {
-                ckfree((char *)argv);
-                return TCL_ERROR;
-            }
-            values[i] = boolValue;
-        }
-    }
-    axisPtr->looseMin = axisPtr->looseMax = values[0];
-    if (argc > 1) {
-        axisPtr->looseMax = values[1];
-    }
-    ckfree((char *)argv);
-    return TCL_OK;
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * LooseToString --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tk_Window tkwin - Not used.
- *      char *widgRec - Widget record
- *      Tcl_Size offset - offset of flags field in record
- *      Tcl_FreeProc **freeProcPtr - Memory deallocation scheme to use
- *
- * Results:
- *      The string representation of the auto boolean is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static const char *LooseToString(ClientData clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset,
-                                 Tcl_FreeProc **freeProcPtr) {
-    Axis *axisPtr = (Axis *)widgRec;
-    Tcl_DString dString;
-    char *result;
-
-    Tcl_DStringInit(&dString);
-    if (axisPtr->looseMin == TICK_RANGE_TIGHT) {
-        Tcl_DStringAppendElement(&dString, "0");
-    } else if (axisPtr->looseMin == TICK_RANGE_LOOSE) {
-        Tcl_DStringAppendElement(&dString, "1");
-    } else if (axisPtr->looseMin == TICK_RANGE_ALWAYS_LOOSE) {
-        Tcl_DStringAppendElement(&dString, "always");
-    }
-    if (axisPtr->looseMin != axisPtr->looseMax) {
-        if (axisPtr->looseMax == TICK_RANGE_TIGHT) {
-            Tcl_DStringAppendElement(&dString, "0");
-        } else if (axisPtr->looseMax == TICK_RANGE_LOOSE) {
-            Tcl_DStringAppendElement(&dString, "1");
-        } else if (axisPtr->looseMax == TICK_RANGE_ALWAYS_LOOSE) {
-            Tcl_DStringAppendElement(&dString, "always");
-        }
-    }
-    result = RbcStrdup(Tcl_DStringValue(&dString));
-    Tcl_DStringFree(&dString);
-    *freeProcPtr = (Tcl_FreeProc *)Tcl_Free;
-    return result;
-}
-
-/*
- *----------------------------------------------------------------------
- *
  * IsAxisBindTagsOption --
  *
  *      Determines whether an option name represents "-bindtags".
@@ -1244,7 +698,7 @@ static int PrepareAxisTagsTransaction(Graph *graphPtr, Axis *axisPtr, AxisTagsTr
     }
 
     /*
-     * During initial modern configuration, parse the effective
+     * During initial configuration, parse the effective
      * default or option-database value unless explicitly overridden.
      */
     if (!axisPtr->optionsConfigured && !explicitlySpecified && (axisPtr->bindTagsObjPtr != NULL)) {
@@ -1460,7 +914,7 @@ static int PrepareAxisFormatTransaction(Graph *graphPtr, Axis *axisPtr, AxisForm
     }
 
     /*
-     * During initial modern configuration, parse the effective option
+     * During initial configuration, parse the effective option
      * database/default value unless explicitly overridden.
      */
     if (!axisPtr->optionsConfigured && !explicitlySpecified && (axisPtr->limitsFormatObjPtr != NULL)) {
@@ -1547,9 +1001,7 @@ static int InitAxisOptions(Graph *graphPtr, Axis *axisPtr) {
         return TCL_OK;
     }
 
-    assert(axisPtr->optionSpecs != NULL);
-
-    axisPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, axisPtr->optionSpecs);
+    axisPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, axisOptionSpecs);
 
     if (axisPtr->optionTable == NULL) {
         return TCL_ERROR;
@@ -1598,7 +1050,7 @@ static void ResetAxisOptionContext(Axis *axisPtr) {
  *
  * ConfigureAxisOptions --
  *
- *      Applies modern axis option/value pairs transactionally and
+ *      Applies axis option/value pairs transactionally and
  *      invokes ConfigureAxis to validate and construct derived state.
  *
  *      The original option vector and Tk type mask are temporarily
@@ -1620,7 +1072,6 @@ static int ConfigureAxisOptions(Graph *graphPtr, Axis *axisPtr, int objc, Tcl_Ob
     Tcl_Obj *errorObjPtr;
     int mask;
 
-    assert(axisPtr->optionSpecs != NULL);
     assert(axisPtr->optionsInitialized);
     assert(axisPtr->optionTable != NULL);
     assert((objc & 1) == 0);
@@ -1681,8 +1132,6 @@ static int ConfigureAxisOptions(Graph *graphPtr, Axis *axisPtr, int objc, Tcl_Ob
 }
 
 static int ConfigureNewAxis(Graph *graphPtr, Axis *axisPtr, int objc, Tcl_Obj *const objv[]) {
-    assert(axisPtr->optionSpecs != NULL);
-
     if (InitAxisOptions(graphPtr, axisPtr) != TCL_OK) {
         return TCL_ERROR;
     }
@@ -1995,7 +1444,7 @@ static int PrepareAxisPixelTransaction(Graph *graphPtr, Axis *axisPtr, AxisPixel
     }
 
     /*
-     * During initial modern configuration, parse effective defaults
+     * During initial configuration, parse effective defaults
      * and option-database values that were not explicitly overridden.
      */
     if (!axisPtr->optionsConfigured) {
@@ -2167,7 +1616,7 @@ static int PrepareAxisLimitTransaction(Graph *graphPtr, Axis *axisPtr, AxisLimit
     }
 
     /*
-     * During initial modern configuration, parse option-database
+     * During initial configuration, parse option-database
      * values that were not explicitly overridden.
      */
     if (!axisPtr->optionsConfigured) {
@@ -2576,7 +2025,7 @@ static int PrepareAxisLooseTransaction(Graph *graphPtr, Axis *axisPtr, AxisLoose
     }
 
     /*
-     * During initial modern configuration, parse the effective default
+     * During initial configuration, parse the effective default
      * or option-database value unless the caller explicitly overrides
      * it.
      */
@@ -2622,58 +2071,49 @@ static void CommitAxisLooseTransaction(Axis *axisPtr, AxisLooseTransaction *tran
     transactionPtr->staged = FALSE;
 }
 
-static int GetAxisTicksFromObj(Graph *graphPtr, Axis *axisPtr, Tcl_Obj *objPtr, AxisTickOption option,
-                               Ticks **ticksPtrPtr) {
-    Axis scratch;
-    Tk_CustomOption *customOptionPtr;
-    Tcl_Size offset;
-    const char *string;
-    Ticks *newTicksPtr;
-    int result;
+static int GetAxisTicksFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, Ticks **ticksPtrPtr) {
+    Tcl_Obj **exprObjv;
+    Tcl_Size nExprs;
+    Ticks *ticksPtr;
+    Tcl_Size i;
 
-    scratch = *axisPtr;
+    *ticksPtrPtr = NULL;
 
-    switch (option) {
-    case AXIS_TICK_OPTION_MAJOR:
-        scratch.t1Ptr = NULL;
-        customOptionPtr = &majorTicksOption;
-        offset = offsetof(Axis, t1Ptr);
-        break;
+    if (objPtr == NULL) {
+        return TCL_OK;
+    }
 
-    case AXIS_TICK_OPTION_MINOR:
-        scratch.t2Ptr = NULL;
-        customOptionPtr = &minorTicksOption;
-        offset = offsetof(Axis, t2Ptr);
-        break;
-
-    case AXIS_TICK_OPTION_NONE:
-    default:
-        Tcl_Panic("GetAxisTicksFromObj called with invalid option");
-
+    if (Tcl_ListObjGetElements(interp, objPtr, &nExprs, &exprObjv) != TCL_OK) {
         return TCL_ERROR;
     }
 
-    string = (objPtr == NULL) ? "" : Tcl_GetString(objPtr);
-
-    result = (*customOptionPtr->parseProc)(customOptionPtr->clientData, graphPtr->interp, graphPtr->tkwin, string,
-                                           (char *)&scratch, offset);
-
-    if (result != TCL_OK) {
-        return TCL_ERROR;
+    if (nExprs == 0) {
+        return TCL_OK;
     }
 
-    if (option == AXIS_TICK_OPTION_MAJOR) {
-        newTicksPtr = scratch.t1Ptr;
-    } else {
-        newTicksPtr = scratch.t2Ptr;
+    /*
+     * Preserve the allocation layout used by the former
+     * StringToTicks parser and by generated tick arrays.
+     */
+    ticksPtr = (Ticks *)ckalloc(sizeof(Ticks) + ((size_t)nExprs * sizeof(double)));
+
+    assert(ticksPtr != NULL);
+
+    for (i = 0; i < nExprs; i++) {
+        if (Tcl_ExprDoubleObj(interp, exprObjv[i], &ticksPtr->values[i]) != TCL_OK) {
+            ckfree((char *)ticksPtr);
+
+            return TCL_ERROR;
+        }
     }
 
-    *ticksPtrPtr = newTicksPtr;
+    ticksPtr->nTicks = (int)nExprs;
+    *ticksPtrPtr = ticksPtr;
 
     return TCL_OK;
 }
 
-static int StageAxisTicks(Graph *graphPtr, Axis *axisPtr, Tcl_Obj *objPtr, AxisTickOption option,
+static int StageAxisTicks(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisTickOption option,
                           AxisTickTransaction *transactionPtr) {
     Ticks *newTicksPtr;
     Ticks **candidatePtrPtr;
@@ -2681,7 +2121,7 @@ static int StageAxisTicks(Graph *graphPtr, Axis *axisPtr, Tcl_Obj *objPtr, AxisT
 
     newTicksPtr = NULL;
 
-    if (GetAxisTicksFromObj(graphPtr, axisPtr, objPtr, option, &newTicksPtr) != TCL_OK) {
+    if (GetAxisTicksFromObj(interp, objPtr, &newTicksPtr) != TCL_OK) {
         return TCL_ERROR;
     }
 
@@ -2696,6 +2136,8 @@ static int StageAxisTicks(Graph *graphPtr, Axis *axisPtr, Tcl_Obj *objPtr, AxisT
 
     case AXIS_TICK_OPTION_NONE:
     default:
+        FreeAxisTicks(newTicksPtr);
+
         Tcl_Panic("StageAxisTicks called with invalid option");
 
         return TCL_ERROR;
@@ -2704,8 +2146,8 @@ static int StageAxisTicks(Graph *graphPtr, Axis *axisPtr, Tcl_Obj *objPtr, AxisT
     mask = AXIS_TICK_OPTION_MASK(option);
 
     /*
-     * Parse the replacement before releasing an earlier staged
-     * candidate.
+     * Do not discard an earlier candidate until the replacement has
+     * parsed successfully.
      */
     if (transactionPtr->stagedMask & mask) {
         FreeAxisTicks(*candidatePtrPtr);
@@ -2749,19 +2191,19 @@ static int PrepareAxisTickTransaction(Graph *graphPtr, Axis *axisPtr, AxisTickTr
     }
 
     /*
-     * On initial modern configuration, parse option-database values
-     * that were not explicitly overridden.
+     * On initial configuration, parse effective option-database
+     * values that were not explicitly overridden.
      */
     if (!axisPtr->optionsConfigured) {
         if (!(explicitMask & AXIS_TICK_OPTION_MASK(AXIS_TICK_OPTION_MAJOR)) && (axisPtr->majorTicksObjPtr != NULL)) {
-            if (StageAxisTicks(graphPtr, axisPtr, axisPtr->majorTicksObjPtr, AXIS_TICK_OPTION_MAJOR, transactionPtr) !=
+            if (StageAxisTicks(graphPtr->interp, axisPtr->majorTicksObjPtr, AXIS_TICK_OPTION_MAJOR, transactionPtr) !=
                 TCL_OK) {
                 goto error;
             }
         }
 
         if (!(explicitMask & AXIS_TICK_OPTION_MASK(AXIS_TICK_OPTION_MINOR)) && (axisPtr->minorTicksObjPtr != NULL)) {
-            if (StageAxisTicks(graphPtr, axisPtr, axisPtr->minorTicksObjPtr, AXIS_TICK_OPTION_MINOR, transactionPtr) !=
+            if (StageAxisTicks(graphPtr->interp, axisPtr->minorTicksObjPtr, AXIS_TICK_OPTION_MINOR, transactionPtr) !=
                 TCL_OK) {
                 goto error;
             }
@@ -2780,7 +2222,7 @@ static int PrepareAxisTickTransaction(Graph *graphPtr, Axis *axisPtr, AxisTickTr
             continue;
         }
 
-        if (StageAxisTicks(graphPtr, axisPtr, axisPtr->optionObjv[i + 1], option, transactionPtr) != TCL_OK) {
+        if (StageAxisTicks(graphPtr->interp, axisPtr->optionObjv[i + 1], option, transactionPtr) != TCL_OK) {
             goto error;
         }
     }
@@ -2981,7 +2423,7 @@ static int PrepareAxisShadowTransaction(Graph *graphPtr, Axis *axisPtr, AxisShad
     }
 
     /*
-     * During initial modern configuration, parse effective option
+     * During initial configuration, parse effective option
      * database values that were not explicitly overridden.
      */
     if (!axisPtr->optionsConfigured) {
@@ -4016,18 +3458,7 @@ static void ResetTextStyles(Graph *graphPtr, Axis *axisPtr) {
  * ----------------------------------------------------------------------
  */
 static void DestroyAxis(Graph *graphPtr, Axis *axisPtr) {
-    int flags;
-
-    /*
-     * Release resources owned directly by the active option system.
-     */
-    if (axisPtr->optionSpecs != NULL) {
-        ReleaseAxisOptionResources(graphPtr, axisPtr);
-    } else {
-        flags = Rbc_GraphType(graphPtr);
-
-        Tk_FreeOptions(configSpecs, (char *)axisPtr, graphPtr->display, flags);
-    }
+    ReleaseAxisOptionResources(graphPtr, axisPtr);
 
     if (graphPtr->bindTable != NULL) {
         Rbc_DeleteBindings(graphPtr->bindTable, axisPtr);
@@ -5421,8 +4852,7 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
      * Parse and validate retained axis-limit objects before modifying the
      * live requested range.
      */
-    if ((axisPtr->optionSpecs != NULL) &&
-        ((!axisPtr->optionsConfigured) ||
+    if (((!axisPtr->optionsConfigured) ||
          (axisPtr->optionMask & (AXIS_LIMITS_MASK | AXIS_SCROLL_LIMITS_MASK | AXIS_LOG_SCALE_MASK)))) {
         if (PrepareAxisLimitTransaction(graphPtr, axisPtr, &limitTransaction) != TCL_OK) {
             goto error;
@@ -5435,7 +4865,7 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
      * Parse explicit major and minor tick lists before replacing the live
      * tick allocations.
      */
-    if ((axisPtr->optionSpecs != NULL) && ((!axisPtr->optionsConfigured) || (axisPtr->optionMask & AXIS_TICKS_MASK))) {
+    if (((!axisPtr->optionsConfigured) || (axisPtr->optionMask & AXIS_TICKS_MASK))) {
         if (PrepareAxisTickTransaction(graphPtr, axisPtr, &tickTransaction) != TCL_OK) {
             goto error;
         }
@@ -5447,7 +4877,7 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
      * Parse the independently configurable loose minimum and maximum
      * policies before modifying the live axis.
      */
-    if ((axisPtr->optionSpecs != NULL) && ((!axisPtr->optionsConfigured) || (axisPtr->optionMask & AXIS_LOOSE_MASK))) {
+    if (((!axisPtr->optionsConfigured) || (axisPtr->optionMask & AXIS_LOOSE_MASK))) {
         if (PrepareAxisLooseTransaction(graphPtr, axisPtr, &looseTransaction) != TCL_OK) {
             goto error;
         }
@@ -5459,7 +4889,7 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
      * Parse non-negative axis widths and the positive scroll increment
      * before modifying the live Axis record.
      */
-    if ((axisPtr->optionSpecs != NULL) && ((!axisPtr->optionsConfigured) || (axisPtr->optionMask & AXIS_PIXELS_MASK))) {
+    if (((!axisPtr->optionsConfigured) || (axisPtr->optionMask & AXIS_PIXELS_MASK))) {
         if (PrepareAxisPixelTransaction(graphPtr, axisPtr, &pixelTransaction) != TCL_OK) {
             goto error;
         }
@@ -5471,7 +4901,7 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
      * Parse all text shadow resources before replacing any live shadow
      * colour references.
      */
-    if ((axisPtr->optionSpecs != NULL) && ((!axisPtr->optionsConfigured) || (axisPtr->optionMask & AXIS_SHADOW_MASK))) {
+    if (((!axisPtr->optionsConfigured) || (axisPtr->optionMask & AXIS_SHADOW_MASK))) {
         if (PrepareAxisShadowTransaction(graphPtr, axisPtr, &shadowTransaction) != TCL_OK) {
             goto error;
         }
@@ -5482,7 +4912,7 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
     /*
      * Parse the axis bind-tags list before replacing the live allocation.
      */
-    if ((axisPtr->optionSpecs != NULL) && ((!axisPtr->optionsConfigured) || (axisPtr->optionMask & AXIS_TAGS_MASK))) {
+    if (((!axisPtr->optionsConfigured) || (axisPtr->optionMask & AXIS_TAGS_MASK))) {
         if (PrepareAxisTagsTransaction(graphPtr, axisPtr, &tagsTransaction) != TCL_OK) {
             goto error;
         }
@@ -5494,35 +4924,12 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
      * Parse the optional one- or two-element limit-format list before
      * replacing the live allocation.
      */
-    if ((axisPtr->optionSpecs != NULL) &&
-        ((!axisPtr->optionsConfigured) || (axisPtr->optionMask & AXIS_LIMITS_FORMAT_MASK))) {
+    if (((!axisPtr->optionsConfigured) || (axisPtr->optionMask & AXIS_LIMITS_FORMAT_MASK))) {
         if (PrepareAxisFormatTransaction(graphPtr, axisPtr, &formatTransaction) != TCL_OK) {
             goto error;
         }
 
         formatTransactionPrepared = TRUE;
-    }
-
-    if (axisPtr->optionSpecs == NULL) {
-        char errMsg[200];
-        /* Check the requested axis limits. Can't allow -min to be greater
-         * than -max, or have undefined log scale limits.  */
-        if (((DEFINED(axisPtr->reqMin)) && (DEFINED(axisPtr->reqMax))) && (axisPtr->reqMin >= axisPtr->reqMax)) {
-            sprintf(errMsg, "impossible limits (min %g >= max %g) for axis \"%s\"", axisPtr->reqMin, axisPtr->reqMax,
-                    axisPtr->name);
-            Tcl_AppendResult(graphPtr->interp, errMsg, (char *)NULL);
-            /* Bad values, turn on axis auto-scaling */
-            axisPtr->reqMin = axisPtr->reqMax = VALUE_UNDEFINED;
-            return TCL_ERROR;
-        }
-        if ((axisPtr->logScale) && (DEFINED(axisPtr->reqMin)) && (axisPtr->reqMin <= 0.0)) {
-            sprintf(errMsg, "bad logscale limits (min=%g,max=%g) for axis \"%s\"", axisPtr->reqMin, axisPtr->reqMax,
-                    axisPtr->name);
-            Tcl_AppendResult(graphPtr->interp, errMsg, (char *)NULL);
-            /* Bad minimum value, turn on auto-scaling */
-            axisPtr->reqMin = VALUE_UNDEFINED;
-            return TCL_ERROR;
-        }
     }
 
     /*
@@ -5647,7 +5054,6 @@ static Axis *CreateAxis(Graph *graphPtr, char *name, int margin) {
         axisPtr = RbcCalloc(1, sizeof(Axis));
         assert(axisPtr);
 
-        axisPtr->optionSpecs = axisOptionSpecs;
         axisPtr->optionTable = NULL;
 
         axisPtr->optionMask = 0;
@@ -5966,26 +5372,20 @@ static int BindOp(Graph *graphPtr, Axis *axisPtr, int margin, int objc, Tcl_Obj 
  * ----------------------------------------------------------------------
  */
 static int CgetOp(Graph *graphPtr, Axis *axisPtr, int margin, int objc, Tcl_Obj *const objv[]) {
-    if (axisPtr->optionSpecs != NULL) {
-        Tcl_Obj *valueObjPtr;
+    Tcl_Obj *valueObjPtr;
 
-        assert(axisPtr->optionTable != NULL);
-        assert(axisPtr->optionsInitialized);
+    assert(axisPtr->optionTable != NULL);
+    assert(axisPtr->optionsInitialized);
 
-        valueObjPtr =
-            Tk_GetOptionValue(graphPtr->interp, (char *)axisPtr, axisPtr->optionTable, objv[0], graphPtr->tkwin);
+    valueObjPtr = Tk_GetOptionValue(graphPtr->interp, (char *)axisPtr, axisPtr->optionTable, objv[0], graphPtr->tkwin);
 
-        if (valueObjPtr == NULL) {
-            return TCL_ERROR;
-        }
-
-        Tcl_SetObjResult(graphPtr->interp, valueObjPtr);
-
-        return TCL_OK;
+    if (valueObjPtr == NULL) {
+        return TCL_ERROR;
     }
 
-    return Tk_ConfigureValue(graphPtr->interp, graphPtr->tkwin, configSpecs, (char *)axisPtr, Tcl_GetString(objv[0]),
-                             Rbc_GraphType(graphPtr));
+    Tcl_SetObjResult(graphPtr->interp, valueObjPtr);
+
+    return TCL_OK;
 }
 
 /*
@@ -6013,96 +5413,46 @@ static int CgetOp(Graph *graphPtr, Axis *axisPtr, int margin, int objc, Tcl_Obj 
  * ----------------------------------------------------------------------
  */
 static int ConfigureOp(Graph *graphPtr, Axis *axisPtr, int margin, int objc, Tcl_Obj *const objv[]) {
-    int flags;
+    Tcl_Obj *infoObjPtr;
 
-    flags = TK_CONFIG_ARGV_ONLY | Rbc_GraphType(graphPtr);
+    assert(axisPtr->optionTable != NULL);
+    assert(axisPtr->optionsInitialized);
 
-    /*
-     * Return configuration information for all options.
-     */
     if (objc == 0) {
-        if (axisPtr->optionSpecs != NULL) {
-            Tcl_Obj *infoObjPtr;
+        infoObjPtr = Tk_GetOptionInfo(graphPtr->interp, (char *)axisPtr, axisPtr->optionTable, NULL, graphPtr->tkwin);
 
-            assert(axisPtr->optionTable != NULL);
-            assert(axisPtr->optionsInitialized);
-
-            infoObjPtr =
-                Tk_GetOptionInfo(graphPtr->interp, (char *)axisPtr, axisPtr->optionTable, NULL, graphPtr->tkwin);
-
-            if (infoObjPtr == NULL) {
-                return TCL_ERROR;
-            }
-
-            Tcl_SetObjResult(graphPtr->interp, infoObjPtr);
-
-            return TCL_OK;
+        if (infoObjPtr == NULL) {
+            return TCL_ERROR;
         }
 
-        return Tk_ConfigureInfo(graphPtr->interp, graphPtr->tkwin, configSpecs, (char *)axisPtr, NULL, flags);
+        Tcl_SetObjResult(graphPtr->interp, infoObjPtr);
+
+        return TCL_OK;
     }
 
-    /*
-     * Return configuration information for one option.
-     */
     if (objc == 1) {
-        if (axisPtr->optionSpecs != NULL) {
-            Tcl_Obj *infoObjPtr;
+        infoObjPtr =
+            Tk_GetOptionInfo(graphPtr->interp, (char *)axisPtr, axisPtr->optionTable, objv[0], graphPtr->tkwin);
 
-            assert(axisPtr->optionTable != NULL);
-            assert(axisPtr->optionsInitialized);
-
-            infoObjPtr =
-                Tk_GetOptionInfo(graphPtr->interp, (char *)axisPtr, axisPtr->optionTable, objv[0], graphPtr->tkwin);
-
-            if (infoObjPtr == NULL) {
-                return TCL_ERROR;
-            }
-
-            Tcl_SetObjResult(graphPtr->interp, infoObjPtr);
-
-            return TCL_OK;
+        if (infoObjPtr == NULL) {
+            return TCL_ERROR;
         }
 
-        return Tk_ConfigureInfo(graphPtr->interp, graphPtr->tkwin, configSpecs, (char *)axisPtr, Tcl_GetString(objv[0]),
-                                flags);
+        Tcl_SetObjResult(graphPtr->interp, infoObjPtr);
+
+        return TCL_OK;
     }
 
-    /*
-     * Apply option/value pairs.
-     */
-    if (axisPtr->optionSpecs != NULL) {
-        if (ConfigureAxisOptions(graphPtr, axisPtr, objc, objv, NULL) != TCL_OK) {
-            return TCL_ERROR;
-        }
-    } else {
-        /*
-         * Temporary legacy fallback. No newly created axis should use
-         * this path after axisOptionSpecs is activated.
-         */
-        if (Tk_ConfigureWidget(graphPtr->interp, graphPtr->tkwin, configSpecs, objc, objv, axisPtr, flags) != TCL_OK) {
-            return TCL_ERROR;
-        }
-
-        if (ConfigureAxis(graphPtr, axisPtr) != TCL_OK) {
-            return TCL_ERROR;
-        }
+    if (ConfigureAxisOptions(graphPtr, axisPtr, objc, objv, NULL) != TCL_OK) {
+        return TCL_ERROR;
     }
 
     if (axisPtr->flags & AXIS_ONSCREEN) {
-        if (axisPtr->optionSpecs != NULL) {
-            /*
-             * Do not use Rbc_ConfigModified here: it tracks the legacy
-             * Tk_ConfigSpec configuration path, not Tk_SetOptions.
-             *
-             * Be conservative during initial activation. ConfigureAxis
-             * already performs full axis invalidation, so rebuilding the
-             * backing store is safe.
-             */
-            graphPtr->flags |= REDRAW_BACKING_STORE;
-        } else if (!Rbc_ConfigModified(graphPtr->interp, configSpecs, "-*color", "-background", "-bg", (char *)NULL)) {
-            graphPtr->flags |= REDRAW_BACKING_STORE;
-        }
+        /*
+         * Preserve the conservative redraw behaviour used during
+         * activation.
+         */
+        graphPtr->flags |= REDRAW_BACKING_STORE;
 
         graphPtr->flags |= DRAW_MARGINS;
 

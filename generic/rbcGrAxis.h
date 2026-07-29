@@ -93,7 +93,6 @@ typedef struct {
 
     Graph *graphPtr; /* Graph widget of element*/
 
-    const Tk_OptionSpec *optionSpecs;
     Tk_OptionTable optionTable;
 
     int optionMask;
