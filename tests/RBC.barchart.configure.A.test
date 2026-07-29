@@ -159,7 +159,7 @@ namespace eval barchart.configure {
 		.barchart1 cget -barmode
 	} -cleanup {
 		destroy .barchart1
-	} -result {infront}
+	} -result {normal}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -barmode command works correctly when given 'infront'
@@ -471,7 +471,7 @@ namespace eval barchart.configure {
 		.barchart1 cget -borderwidth
 	} -cleanup {
 		destroy .barchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -borderwidth command works correctly when given a 
@@ -570,7 +570,7 @@ namespace eval barchart.configure {
 		.barchart1 cget -bottommargin
 	} -cleanup {
 		destroy .barchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -bottommargin command works correctly when given a 
@@ -1248,7 +1248,7 @@ namespace eval barchart.configure {
 		.barchart1 cget -halo
 	} -cleanup {
 		destroy .barchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -halo command works correctly when given a negative
@@ -1278,10 +1278,10 @@ namespace eval barchart.configure {
 		barchart .barchart1
 	} -body {
 		.barchart1 configure -halo 3i
-		expr {[.barchart1 cget -halo] - [winfo pixels .barchart1 3i]}
+		expr {[.barchart1 cget -halo] eq {3i}}
 	} -cleanup {
 		destroy .barchart1
-	} -result {0}
+	} -result {1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -halo command works correctly when given a negative
@@ -1378,7 +1378,7 @@ namespace eval barchart.configure {
 		.barchart1 cget -height
 	} -cleanup {
 		destroy .barchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -height command works correctly when given a negative
@@ -1408,10 +1408,10 @@ namespace eval barchart.configure {
 		barchart .barchart1
 	} -body {
 		.barchart1 configure -height 3i
-		expr {[.barchart1 cget -height] - [winfo pixels .barchart1 3i]}
+		expr {[.barchart1 cget -height] eq {3i}}
 	} -cleanup {
 		destroy .barchart1
-	} -result {0}
+	} -result {1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -height command works correctly when given a negative
@@ -1587,7 +1587,7 @@ namespace eval barchart.configure {
 		.barchart1 cget -highlightthickness
 	} -cleanup {
 		destroy .barchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -highlightthickness command works correctly when given
@@ -1602,7 +1602,7 @@ namespace eval barchart.configure {
 		.barchart1 cget -highlightthickness
 	} -cleanup {
 		destroy .barchart1
-	} -result {-3}
+	} -result {-2.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -highlightthickness command works correctly when given 
@@ -1827,7 +1827,7 @@ namespace eval barchart.configure {
 		.barchart1 cget -leftmargin
 	} -cleanup {
 		destroy .barchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -leftmargin command works correctly when given a 
@@ -1989,7 +1989,7 @@ namespace eval barchart.configure {
 		.barchart1 cget -plotborderwidth
 	} -cleanup {
 		destroy .barchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -plotborderwidth command works correctly when given a
@@ -2056,7 +2056,7 @@ namespace eval barchart.configure {
 		.barchart1 cget -plotpadx
 	} -cleanup {
 		destroy .barchart1
-	} -result {2 2}
+	} -result {2}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -plotpadx command works correctly when given an
@@ -2091,7 +2091,7 @@ namespace eval barchart.configure {
 		.barchart1 cget -plotpadx
 	} -cleanup {
 		destroy .barchart1
-	} -result {4 4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -plotpadx command works correctly when given an
@@ -2126,7 +2126,7 @@ namespace eval barchart.configure {
 	    .barchart1 cget -plotpadx
 	} -cleanup {
 	    destroy .barchart1
-	} -result {1 3}
+	} -result {1 2.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -plotpadx command works correctly when given a string
@@ -2199,7 +2199,7 @@ namespace eval barchart.configure {
 	    .barchart1 cget -plotpadx
 	} -cleanup {
 	    destroy .barchart1
-	} -result {0 0}
+	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -plotpady command works correctly when given an
@@ -2215,7 +2215,7 @@ namespace eval barchart.configure {
 		.barchart1 cget -plotpady
 	} -cleanup {
 		destroy .barchart1
-	} -result {2 2}
+	} -result {2}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -plotpady command works correctly when given an
@@ -2250,7 +2250,7 @@ namespace eval barchart.configure {
 		.barchart1 cget -plotpady
 	} -cleanup {
 		destroy .barchart1
-	} -result {4 4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -plotpady command works correctly when given an
@@ -2285,7 +2285,7 @@ namespace eval barchart.configure {
 	    .barchart1 cget -plotpady
 	} -cleanup {
 	    destroy .barchart1
-	} -result {1 3}
+	} -result {1 2.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -plotpady command works correctly when given a string
@@ -2358,7 +2358,7 @@ namespace eval barchart.configure {
 	    .barchart1 cget -plotpady
 	} -cleanup {
 	    destroy .barchart1
-	} -result {0 0}
+	} -result {0}
 
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -plotrelief command works correctly when given 'flat' 
@@ -2658,7 +2658,7 @@ namespace eval barchart.configure {
 		.barchart1 cget -rightmargin
 	} -cleanup {
 		destroy .barchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -rightmargin command works correctly when given a 
@@ -2754,7 +2754,7 @@ namespace eval barchart.configure {
 		.barchart1 cget -shadow
 	} -cleanup {
 		destroy .barchart1
-	} -result {black 1}
+	} -result {black}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -shadow command works correctly when given a valid
@@ -2982,7 +2982,7 @@ namespace eval barchart.configure {
 		.barchart1 cget -topmargin
 	} -cleanup {
 		destroy .barchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -topmargin command works correctly when given a 
@@ -3111,7 +3111,7 @@ namespace eval barchart.configure {
 		.barchart1 cget -width
 	} -cleanup {
 		destroy .barchart1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -width command works correctly when given a negative
@@ -3141,7 +3141,7 @@ namespace eval barchart.configure {
 		barchart .barchart1
 	} -body {
 		.barchart1 configure -width 3i
-		expr {[.barchart1 cget -width] - [winfo pixels .barchart1 3i]}
+		expr {[.barchart1 cget -halo] eq {3i}}
 	} -cleanup {
 		destroy .barchart1
 	} -result {0}

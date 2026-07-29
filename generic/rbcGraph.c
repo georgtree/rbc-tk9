@@ -221,6 +221,7 @@ typedef enum {
     GRAPH_PIXEL_OPTION_BOTTOM_MARGIN,
     GRAPH_PIXEL_OPTION_HALO,
     GRAPH_PIXEL_OPTION_HEIGHT,
+    GRAPH_PIXEL_OPTION_HIGHLIGHT_WIDTH,
     GRAPH_PIXEL_OPTION_LEFT_MARGIN,
     GRAPH_PIXEL_OPTION_PLOT_BORDER_WIDTH,
     GRAPH_PIXEL_OPTION_RIGHT_MARGIN,
@@ -237,6 +238,7 @@ typedef struct {
     int bottomMarginSize;
     int halo;
     int reqHeight;
+    int highlightWidth;
     int leftMarginSize;
     int plotBorderWidth;
     int rightMarginSize;
@@ -331,8 +333,8 @@ static const Tk_OptionSpec graphOptionSpecs[] = {
      GRAPH_REDRAW_MASK},
     {TK_OPTION_COLOR, "-highlightcolor", "highlightColor", "HighlightColor", DEF_GRAPH_HIGHLIGHT_COLOR, -1,
      offsetof(Graph, highlightColor), 0, NULL, GRAPH_REDRAW_MASK},
-    {TK_OPTION_PIXELS, "-highlightthickness", "highlightThickness", "HighlightThickness", DEF_GRAPH_HIGHLIGHT_WIDTH, -1,
-     offsetof(Graph, highlightWidth), TK_OPTION_DONT_SET_DEFAULT, NULL, GRAPH_GEOMETRY_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_PIXELS, "-highlightthickness", "highlightThickness", "HighlightThickness", DEF_GRAPH_HIGHLIGHT_WIDTH,
+     offsetof(Graph, highlightWidthObjPtr), -1, 0, NULL, GRAPH_PIXELS_MASK | GRAPH_GEOMETRY_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_BOOLEAN, "-invertxy", "invertXY", "InvertXY", DEF_GRAPH_INVERT_XY, -1, offsetof(Graph, inverted),
      TK_OPTION_DONT_SET_DEFAULT, NULL, GRAPH_INVERT_XY_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_JUSTIFY, "-justify", "justify", "Justify", DEF_GRAPH_JUSTIFY, -1,
@@ -409,6 +411,7 @@ static int InitPens(Graph *graphPtr);
 static int InitGraphOptions(Graph *graphPtr);
 static void ResetGraphOptionContext(Graph *graphPtr);
 static int ConfigureGraphOptions(Graph *graphPtr, int objc, Tcl_Obj *const objv[], int *maskPtr);
+static int ConfigureNewGraph(Graph *graphPtr, int objc, Tcl_Obj *const objv[]);
 static void ReleaseGraphOptionResources(Graph *graphPtr);
 static Graph *CreateGraph(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], Rbc_Uid classUid);
 static int ConfigureGraph(Graph *graphPtr);
@@ -505,7 +508,7 @@ static GraphPixelOption GetGraphPixelOption(Tcl_Obj *objPtr) {
                                                 {"-lm", GRAPH_PIXEL_OPTION_LEFT_MARGIN},
                                                 {"-rm", GRAPH_PIXEL_OPTION_RIGHT_MARGIN},
                                                 {"-tm", GRAPH_PIXEL_OPTION_TOP_MARGIN},
-
+                                                {"-highlightthickness", GRAPH_PIXEL_OPTION_HIGHLIGHT_WIDTH},
                                                 {"-borderwidth", GRAPH_PIXEL_OPTION_BORDER_WIDTH},
                                                 {"-bottommargin", GRAPH_PIXEL_OPTION_BOTTOM_MARGIN},
                                                 {"-halo", GRAPH_PIXEL_OPTION_HALO},
@@ -532,6 +535,9 @@ static Tcl_Obj *GetGraphPixelObject(Graph *graphPtr, GraphPixelOption option) {
 
     case GRAPH_PIXEL_OPTION_HEIGHT:
         return graphPtr->heightObjPtr;
+
+    case GRAPH_PIXEL_OPTION_HIGHLIGHT_WIDTH:
+        return graphPtr->highlightWidthObjPtr;
 
     case GRAPH_PIXEL_OPTION_LEFT_MARGIN:
         return graphPtr->leftMarginObjPtr;
@@ -563,8 +569,18 @@ static int StageGraphPixelOption(Graph *graphPtr, Tcl_Obj *objPtr, GraphPixelOpt
      * The legacy graph table uses rbcDistanceOption for all of these
      * options, which requires a non-negative distance.
      */
-    if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, objPtr, PIXELS_NONNEGATIVE, &value) != TCL_OK) {
-        return TCL_ERROR;
+    if (option == GRAPH_PIXEL_OPTION_HIGHLIGHT_WIDTH) {
+        /*
+         * Unlike the other graph distance options,
+         * -highlightthickness historically accepts negative values.
+         */
+        if (Tk_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, objPtr, &value) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    } else {
+        if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, objPtr, PIXELS_NONNEGATIVE, &value) != TCL_OK) {
+            return TCL_ERROR;
+        }
     }
 
     switch (option) {
@@ -582,6 +598,10 @@ static int StageGraphPixelOption(Graph *graphPtr, Tcl_Obj *objPtr, GraphPixelOpt
 
     case GRAPH_PIXEL_OPTION_HEIGHT:
         transactionPtr->reqHeight = value;
+        break;
+
+    case GRAPH_PIXEL_OPTION_HIGHLIGHT_WIDTH:
+        transactionPtr->highlightWidth = value;
         break;
 
     case GRAPH_PIXEL_OPTION_LEFT_MARGIN:
@@ -687,6 +707,10 @@ static void CommitGraphPixelTransaction(Graph *graphPtr, GraphPixelTransaction *
 
     if (transactionPtr->stagedMask & GRAPH_PIXEL_OPTION_MASK(GRAPH_PIXEL_OPTION_HALO)) {
         graphPtr->halo = transactionPtr->halo;
+    }
+
+    if (transactionPtr->stagedMask & GRAPH_PIXEL_OPTION_MASK(GRAPH_PIXEL_OPTION_HIGHLIGHT_WIDTH)) {
+        graphPtr->highlightWidth = transactionPtr->highlightWidth;
     }
 
     if (transactionPtr->stagedMask & GRAPH_PIXEL_OPTION_MASK(GRAPH_PIXEL_OPTION_HEIGHT)) {
@@ -1179,8 +1203,9 @@ static void GraphEventProc(ClientData clientData, register XEvent *eventPtr) {
             }
             Rbc_ReleaseMarkerTkResources(graphPtr);
             Rbc_ReleasePenTkResources(graphPtr);
-            Rbc_DeleteWindowInstanceData(graphPtr->tkwin);
+            ReleaseGraphOptionResources(graphPtr);
 
+            Rbc_DeleteWindowInstanceData(graphPtr->tkwin);
             graphPtr->tkwin = NULL;
 
             Tcl_DeleteCommandFromToken(graphPtr->interp, graphPtr->cmdToken);
@@ -1238,6 +1263,8 @@ static void GraphInstCmdDeleteProc(ClientData clientData) {
         }
         Rbc_ReleaseMarkerTkResources(graphPtr);
         Rbc_ReleasePenTkResources(graphPtr);
+        ReleaseGraphOptionResources(graphPtr);
+
         graphPtr->tkwin = NULL;
 
 #ifdef ITCL_NAMESPACES
@@ -1699,6 +1726,42 @@ static int ConfigureGraphOptions(Graph *graphPtr, int objc, Tcl_Obj *const objv[
 /*
  *----------------------------------------------------------------------
  *
+ * ConfigureNewGraph --
+ *
+ *      Initializes the modern graph option table and applies the
+ *      creation-time option/value pairs.
+ *
+ *      ConfigureGraphOptions is called even when objc is zero because
+ *      Tk_InitOptions may have installed defaults or option-database
+ *      values that must be converted into the live graph fields.
+ *
+ * Parameters:
+ *      Graph *graphPtr       - Graph widget record.
+ *      int objc              - Number of option/value objects.
+ *      Tcl_Obj *const objv[] - Creation-time option/value objects.
+ *
+ * Results:
+ *      TCL_OK if the option table and derived graph resources were
+ *      initialized successfully.
+ *      TCL_ERROR otherwise.
+ *
+ * Side Effects:
+ *      Initializes the modern graph option lifecycle and configures the
+ *      graph.
+ *
+ *----------------------------------------------------------------------
+ */
+static int ConfigureNewGraph(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) {
+    if (InitGraphOptions(graphPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    return ConfigureGraphOptions(graphPtr, objc, objv, NULL);
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
  * ReleaseGraphOptionResources --
  *
  *      Releases resources owned directly by the modern Tk graph option
@@ -1718,15 +1781,18 @@ static int ConfigureGraphOptions(Graph *graphPtr, int objc, Tcl_Obj *const objv[
  *      None.
  *
  * Side Effects:
- *      Releases Tk-managed graph option resources. Repeated calls are
- *      harmless.
+ *      Releases Tk-managed graph option resources. Repeated calls and
+ *      calls for a graph using the legacy option lifecycle are harmless.
  *
  *----------------------------------------------------------------------
  */
 static void ReleaseGraphOptionResources(Graph *graphPtr) {
-    if (graphPtr->tkResourcesReleased) {
+    if ((!graphPtr->optionsInitialized) || graphPtr->tkResourcesReleased) {
         return;
     }
+
+    assert(graphPtr->optionTable != NULL);
+    assert(graphPtr->tkwin != NULL);
 
     /*
      * Do not retain pointers to configuration arguments during
@@ -1734,12 +1800,9 @@ static void ReleaseGraphOptionResources(Graph *graphPtr) {
      */
     ResetGraphOptionContext(graphPtr);
 
-    if (graphPtr->optionsInitialized) {
-        Tk_FreeConfigOptions((char *)graphPtr, graphPtr->optionTable, graphPtr->tkwin);
+    Tk_FreeConfigOptions((char *)graphPtr, graphPtr->optionTable, graphPtr->tkwin);
 
-        graphPtr->optionsInitialized = FALSE;
-    }
-
+    graphPtr->optionsInitialized = FALSE;
     graphPtr->tkResourcesReleased = TRUE;
 }
 
@@ -1754,7 +1817,9 @@ static void ReleaseGraphOptionResources(Graph *graphPtr) {
  *      Graph *graphPtr - Graph widget record
  *
  * Results:
- *      None.
+ *      TCL_OK if the graph was configured successfully.
+ *      TCL_ERROR if a retained option value or replacement resource
+ *      could not be prepared.
  *
  * Side effects:
  *      Configuration information, such as text string, colors, font,
@@ -2032,7 +2097,24 @@ error:
 static void DestroyGraph(DestroyData dataPtr) {
     Graph *graphPtr = (Graph *)dataPtr;
 
-    Tk_FreeOptions(configSpecs, (char *)graphPtr, graphPtr->display, 0);
+    /*
+     * A creation failure may reach the concrete destructor before the
+     * window destruction callbacks have released the modern graph
+     * options.
+     */
+    if (graphPtr->optionsInitialized) {
+        assert(graphPtr->tkwin != NULL);
+        ReleaseGraphOptionResources(graphPtr);
+    }
+
+    /*
+     * Legacy options are released here because Tk_FreeOptions does not
+     * require the widget window. Modern options have either just been
+     * released above or were released before graphPtr->tkwin was cleared.
+     */
+    if (!graphPtr->tkResourcesReleased) {
+        Tk_FreeOptions(configSpecs, (char *)graphPtr, graphPtr->display, 0);
+    }
     /*
      * Destroy the individual components of the graph: elements, markers,
      * X and Y axes, legend, display lists etc.
@@ -2172,9 +2254,6 @@ static Graph *CreateGraph(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], R
     if (InitPens(graphPtr) != TCL_OK) {
         goto error;
     }
-    if (Tk_ConfigureWidget(interp, tkwin, configSpecs, objc - 2, objv + 2, graphPtr, 0) != TCL_OK) {
-        goto error;
-    }
     if (Rbc_DefaultAxes(graphPtr) != TCL_OK) {
         goto error;
     }
@@ -2192,6 +2271,18 @@ static Graph *CreateGraph(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], R
     if (Rbc_CreateGrid(graphPtr) != TCL_OK) {
         goto error;
     }
+    /*
+     * Initialise the modern graph option table, apply defaults,
+     * option-database values and creation-time arguments, and construct
+     * all derived graph resources.
+     *
+     * ConfigureGraph requires the graph components, particularly the
+     * crosshairs, to exist. Perform this before installing the widget
+     * command because modern configuration can report an error.
+     */
+    if (ConfigureNewGraph(graphPtr, objc - 2, objv + 2) != TCL_OK) {
+        goto error;
+    }
     Tk_CreateEventHandler(graphPtr->tkwin, ExposureMask | StructureNotifyMask | FocusChangeMask, GraphEventProc,
                           graphPtr);
 
@@ -2199,9 +2290,6 @@ static Graph *CreateGraph(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], R
 #ifdef ITCL_NAMESPACES
     Itk_SetWidgetCommand(graphPtr->tkwin, graphPtr->cmdToken);
 #endif
-    if (ConfigureGraph(graphPtr) != TCL_OK) {
-        goto error;
-    }
     graphPtr->bindTable = Rbc_CreateBindingTable(interp, tkwin, graphPtr, PickEntry, Rbc_GraphTags);
     return graphPtr;
 
@@ -2420,19 +2508,36 @@ static int ElementOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *con
  *----------------------------------------------------------------------
  */
 static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    int flags;
+    Tcl_Obj *infoObjPtr;
 
-    flags = TK_CONFIG_ARGV_ONLY;
+    assert(graphPtr->optionTable != NULL);
+    assert(graphPtr->optionsInitialized);
+
     if (objc == 2) {
-        return Tk_ConfigureInfo(interp, graphPtr->tkwin, configSpecs, (char *)graphPtr, (char *)NULL, flags);
-    } else if (objc == 3) {
-        return Tk_ConfigureInfo(interp, graphPtr->tkwin, configSpecs, (char *)graphPtr, Tcl_GetString(objv[2]), flags);
-    } else {
-        if (Tk_ConfigureWidget(interp, graphPtr->tkwin, configSpecs, objc - 2, objv + 2, graphPtr, flags) != TCL_OK) {
+        infoObjPtr = Tk_GetOptionInfo(interp, (char *)graphPtr, graphPtr->optionTable, NULL, graphPtr->tkwin);
+
+        if (infoObjPtr == NULL) {
             return TCL_ERROR;
         }
-        return ConfigureGraph(graphPtr);
+
+        Tcl_SetObjResult(interp, infoObjPtr);
+
+        return TCL_OK;
     }
+
+    if (objc == 3) {
+        infoObjPtr = Tk_GetOptionInfo(interp, (char *)graphPtr, graphPtr->optionTable, objv[2], graphPtr->tkwin);
+
+        if (infoObjPtr == NULL) {
+            return TCL_ERROR;
+        }
+
+        Tcl_SetObjResult(interp, infoObjPtr);
+
+        return TCL_OK;
+    }
+
+    return ConfigureGraphOptions(graphPtr, objc - 2, objv + 2, NULL);
 }
 
 /*
@@ -2457,7 +2562,20 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *c
  *----------------------------------------------------------------------
  */
 static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    return Tk_ConfigureValue(interp, graphPtr->tkwin, configSpecs, (char *)graphPtr, Tcl_GetString(objv[2]), 0);
+    Tcl_Obj *valueObjPtr;
+
+    assert(graphPtr->optionTable != NULL);
+    assert(graphPtr->optionsInitialized);
+
+    valueObjPtr = Tk_GetOptionValue(interp, (char *)graphPtr, graphPtr->optionTable, objv[2], graphPtr->tkwin);
+
+    if (valueObjPtr == NULL) {
+        return TCL_ERROR;
+    }
+
+    Tcl_SetObjResult(interp, valueObjPtr);
+
+    return TCL_OK;
 }
 
 /*

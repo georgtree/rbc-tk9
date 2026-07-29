@@ -365,6 +365,7 @@ struct GraphStruct {
     Tcl_Obj *bottomMarginObjPtr;
     Tcl_Obj *haloObjPtr;
     Tcl_Obj *heightObjPtr;
+    Tcl_Obj *highlightWidthObjPtr;    
     Tcl_Obj *leftMarginObjPtr;
     Tcl_Obj *plotBorderWidthObjPtr;
     Tcl_Obj *plotPadXObjPtr;
