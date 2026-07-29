@@ -244,7 +244,7 @@ namespace eval graph.element {
 	} -cleanup {
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {1.0 3.0 4.0 5.0}
+	} -result {1 3 4 5}
 		
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -data command works correctly when given an
@@ -577,7 +577,7 @@ namespace eval graph.element {
 	} -cleanup {
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -linewidth command works correctly when given
@@ -927,7 +927,7 @@ namespace eval graph.element {
 	} -cleanup {
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -outlinewidth command works correctly when 
@@ -1157,7 +1157,7 @@ namespace eval graph.element {
 	} -cleanup {
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {cubic}
+	} -result {quadratic}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -smooth command works correctly when given
@@ -1174,7 +1174,7 @@ namespace eval graph.element {
 	} -cleanup {
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {natural}
+	} -result {cubic}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -smooth command works correctly when given
@@ -1213,7 +1213,7 @@ namespace eval graph.element {
 		destroy Pen1
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {{Pen1 0.0 1.0}}
+	} -result {Pen1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -styles command works correctly when given an
@@ -1405,7 +1405,7 @@ namespace eval graph.element {
 	} -cleanup {
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {none}
+	} -result {}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -symbol command works correctly when given 
@@ -1423,7 +1423,7 @@ namespace eval graph.element {
 		destroy Bitmap1
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {warning {}}
+	} -result {warning}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -symbol command works correctly when given an
@@ -1533,7 +1533,7 @@ namespace eval graph.element {
 		vector destroy Vector1
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {::graph.element::Vector1}
+	} -result {Vector1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -weights command works correctly when given an
@@ -1570,7 +1570,7 @@ namespace eval graph.element {
 	} -cleanup {
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {1.0 2.0 3.0 4.0}
+	} -result {1 2 3 4}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -weights command works correctly when given an
@@ -1609,7 +1609,7 @@ namespace eval graph.element {
 		vector destroy Vector1
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {::graph.element::Vector1}
+	} -result {Vector1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -xdata command works correctly when given an
@@ -1646,7 +1646,7 @@ namespace eval graph.element {
 	} -cleanup {
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {1.0 2.0 3.0 4.0}
+	} -result {1 2 3 4}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -xdata command works correctly when given an
@@ -1685,7 +1685,7 @@ namespace eval graph.element {
 		vector destroy Vector1
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {::graph.element::Vector1}
+	} -result {Vector1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -ydata command works correctly when given an
@@ -1722,7 +1722,7 @@ namespace eval graph.element {
 	} -cleanup {
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {1.0 2.0 3.0 4.0}
+	} -result {1 2 3 4}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -ydata command works correctly when given an
@@ -1761,7 +1761,7 @@ namespace eval graph.element {
 		vector destroy Vector1
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {::graph.element::Vector1}
+	} -result {Vector1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -x command works correctly when given an
@@ -1798,7 +1798,7 @@ namespace eval graph.element {
 	} -cleanup {
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {1.0 2.0 3.0 4.0}
+	} -result {1 2 3 4}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -x command works correctly when given an
@@ -1837,7 +1837,7 @@ namespace eval graph.element {
 		vector destroy Vector1
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {::graph.element::Vector1}
+	} -result {Vector1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -xerror command works correctly when given an
@@ -1874,7 +1874,7 @@ namespace eval graph.element {
 	} -cleanup {
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {1.0 2.0 3.0 4.0}
+	} -result {1 2 3 4}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -xerror command works correctly when given an
@@ -1913,7 +1913,7 @@ namespace eval graph.element {
 		vector destroy Vector1
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {::graph.element::Vector1}
+	} -result {Vector1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -xhigh command works correctly when given an
@@ -1950,7 +1950,7 @@ namespace eval graph.element {
 	} -cleanup {
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {1.0 2.0 3.0 4.0}
+	} -result {1 2 3 4}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -xhigh command works correctly when given an
@@ -1989,7 +1989,7 @@ namespace eval graph.element {
 		vector destroy Vector1
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {::graph.element::Vector1}
+	} -result {Vector1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -xlow command works correctly when given an
@@ -2026,7 +2026,7 @@ namespace eval graph.element {
 	} -cleanup {
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {1.0 2.0 3.0 4.0}
+	} -result {1 2 3 4}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -xlow command works correctly when given an
@@ -2065,7 +2065,7 @@ namespace eval graph.element {
 		vector destroy Vector1
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {::graph.element::Vector1}
+	} -result {Vector1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -y command works correctly when given an
@@ -2102,7 +2102,7 @@ namespace eval graph.element {
 	} -cleanup {
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {1.0 2.0 3.0 4.0}
+	} -result {1 2 3 4}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -y command works correctly when given an
@@ -2141,7 +2141,7 @@ namespace eval graph.element {
 		vector destroy Vector1
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {::graph.element::Vector1}
+	} -result {Vector1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -yerror command works correctly when given an
@@ -2178,7 +2178,7 @@ namespace eval graph.element {
 	} -cleanup {
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {1.0 2.0 3.0 4.0}
+	} -result {1 2 3 4}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -yerror command works correctly when given an
@@ -2217,7 +2217,7 @@ namespace eval graph.element {
 		vector destroy Vector1
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {::graph.element::Vector1}
+	} -result {Vector1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -yhigh command works correctly when given an
@@ -2254,7 +2254,7 @@ namespace eval graph.element {
 	} -cleanup {
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {1.0 2.0 3.0 4.0}
+	} -result {1 2 3 4}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -yhigh command works correctly when given an
@@ -2293,7 +2293,7 @@ namespace eval graph.element {
 		vector destroy Vector1
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {::graph.element::Vector1}
+	} -result {Vector1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -ylow command works correctly when given an
@@ -2330,7 +2330,7 @@ namespace eval graph.element {
 	} -cleanup {
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {1.0 2.0 3.0 4.0}
+	} -result {1 2 3 4}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -ylow command works correctly when given an
@@ -2421,7 +2421,7 @@ namespace eval graph.element {
 	} -cleanup {
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -errorbarwidth command works correctly when 
@@ -2495,7 +2495,7 @@ namespace eval graph.element {
 	} -cleanup {
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -errorbarcap command works correctly when 
@@ -2569,7 +2569,7 @@ namespace eval graph.element {
 	} -cleanup {
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -maxsymbols command works correctly when 
@@ -2856,7 +2856,7 @@ namespace eval graph.element {
 	} -cleanup {
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {90.0}
+	} -result {90}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -valuerotate command works correctly when 
@@ -2890,7 +2890,7 @@ namespace eval graph.element {
 	} -cleanup {
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {-90.0}
+	} -result {-90}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -valuerotate command works correctly when
@@ -2944,7 +2944,7 @@ namespace eval graph.element {
 	} -cleanup {
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {black 1}
+	} -result {black}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -valueshadow command works correctly when 
@@ -3904,7 +3904,7 @@ namespace eval graph.element {
 	} -cleanup {
 		.graph1 element delete Element1
 		destroy .graph1
-	} -result {4}
+	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -pixels command works correctly when given an

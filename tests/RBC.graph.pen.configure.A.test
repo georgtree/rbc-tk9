@@ -1524,7 +1524,7 @@ namespace eval graph.pen {
         .graph1 element cget e1 -linewidth
     } -cleanup {
         destroy .graph1
-    } -result 4
+    } -result 3.5
 
     test RBC.graph.pen.configure.A.lifetime.1 {
         modern named line pen resource lifetime

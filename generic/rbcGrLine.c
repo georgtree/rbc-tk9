@@ -412,6 +412,42 @@ extern Tk_CustomOption rbcStateOption;
 #define LINE_ELEM_TRACE_MASK (1 << 9)
 #define LINE_ELEM_MAP_ITEM_MASK (1 << 10)
 #define LINE_ELEM_SCALE_SYMBOL_MASK (1 << 11)
+#define LINE_ELEM_MAX_SYMBOLS_MASK (1 << 12)
+
+#define LINE_ELEM_SCALAR_MASK (LINE_ELEM_MAX_SYMBOLS_MASK | LINE_ELEM_SMOOTH_MASK | LINE_ELEM_TRACE_MASK)
+
+typedef enum {
+    LINE_SCALAR_OPTION_NONE,
+    LINE_SCALAR_OPTION_MAX_SYMBOLS,
+    LINE_SCALAR_OPTION_SMOOTH,
+    LINE_SCALAR_OPTION_TRACE
+} LineScalarOption;
+
+#define LINE_SCALAR_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
+
+typedef struct {
+    unsigned int stagedMask;
+
+    int maxSymbols;
+    Smoothing smooth;
+    int penDir;
+} LineScalarTransaction;
+
+typedef enum {
+    LINE_AREA_OPTION_NONE,
+    LINE_AREA_OPTION_PATTERN,
+    LINE_AREA_OPTION_TILE
+} LineAreaOption;
+
+#define LINE_AREA_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
+
+typedef struct {
+    unsigned int stagedMask;
+
+    Pixmap stipple;
+    Rbc_Tile tile;
+    GC gc;
+} LineAreaTransaction;
 
 /*
  * Options present only for graph line elements.
@@ -657,7 +693,7 @@ extern Tk_CustomOption rbcStateOption;
         -1,                                                                   \
         0,                                                                    \
         NULL,                                                                 \
-        LINE_ELEM_MAP_ITEM_MASK                                               \
+        LINE_ELEM_MAX_SYMBOLS_MASK | LINE_ELEM_MAP_ITEM_MASK                  \
     },                                                                        \
     {                                                                         \
         TK_OPTION_STRING,                                                     \
@@ -1397,10 +1433,10 @@ static Rbc_TileChangedProc TileChangedProc;
 INLINE static int Round(register double x);
 static int StringToBitmap(Tcl_Interp *interp, Tk_Window tkwin, Symbol *symbolPtr, const char *string);
 static char *NameOfSymbol(Symbol *symbolPtr);
-static char *NameOfSmooth(Smoothing value);
+static const char *NameOfSmooth(Smoothing value);
 static char *NameOfPenDir(int penDir);
 static void ClearPalette(Rbc_Chain *palette);
-static void InitPen(LinePen *penPtr);
+static void InitPen(LinePen *penPtr, const Tk_OptionSpec *optionSpecs, unsigned int flags);
 static int ScaleSymbol(Element *elemPtr, int normalSize);
 static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
 static void ReducePoints(MapInfo *mapPtr, double tolerance);
@@ -1489,6 +1525,132 @@ static void FreeLinePenColor(XColor *colorPtr) {
     if ((colorPtr != NULL) && (colorPtr != COLOR_DEFAULT)) {
         Tk_FreeColor(colorPtr);
     }
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * GetLineScalarOption --
+ *
+ *      Determines whether an option represents one of the
+ *      line-specific scalar options handled transactionally.
+ *
+ *      Tk_SetOptions has already rejected ambiguous or unknown option
+ *      abbreviations. This function recovers the canonical identity
+ *      from the original option/value vector.
+ *
+ *----------------------------------------------------------------------
+ */
+static LineScalarOption GetLineScalarOption(Tcl_Obj *objPtr) {
+    static const struct {
+        const char *name;
+        LineScalarOption option;
+    } optionMap[] = {{"-maxsymbols", LINE_SCALAR_OPTION_MAX_SYMBOLS},
+                     {"-smooth", LINE_SCALAR_OPTION_SMOOTH},
+                     {"-trace", LINE_SCALAR_OPTION_TRACE}};
+
+    const char *string;
+    Tcl_Size length;
+    LineScalarOption match;
+    size_t i;
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+
+    /*
+     * Prefer exact matches.
+     */
+    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
+        Tcl_Size fullLength;
+
+        fullLength = (Tcl_Size)strlen(optionMap[i].name);
+
+        if ((length == fullLength) && (memcmp(string, optionMap[i].name, (size_t)length) == 0)) {
+            return optionMap[i].option;
+        }
+    }
+
+    /*
+     * Recover canonical identity from an accepted abbreviation.
+     */
+    match = LINE_SCALAR_OPTION_NONE;
+
+    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
+        Tcl_Size fullLength;
+
+        fullLength = (Tcl_Size)strlen(optionMap[i].name);
+
+        if ((length > 0) && (length < fullLength) && (strncmp(string, optionMap[i].name, (size_t)length) == 0)) {
+            if (match == LINE_SCALAR_OPTION_NONE) {
+                match = optionMap[i].option;
+            } else if (match != optionMap[i].option) {
+                return LINE_SCALAR_OPTION_NONE;
+            }
+        }
+    }
+
+    return match;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * GetLineAreaOption --
+ *
+ *      Determines whether an option represents a manually converted
+ *      line-area option.
+ *
+ *      Tk_SetOptions has already rejected ambiguous and unknown option
+ *      abbreviations. This helper recovers the canonical option
+ *      identity from the original option/value vector.
+ *
+ *----------------------------------------------------------------------
+ */
+static LineAreaOption GetLineAreaOption(Tcl_Obj *objPtr) {
+    static const struct {
+        const char *name;
+        LineAreaOption option;
+    } optionMap[] = {{"-areapattern", LINE_AREA_OPTION_PATTERN}, {"-areatile", LINE_AREA_OPTION_TILE}};
+
+    const char *string;
+    Tcl_Size length;
+    LineAreaOption match;
+    size_t i;
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+
+    /*
+     * Prefer exact matches.
+     */
+    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
+        Tcl_Size fullLength;
+
+        fullLength = (Tcl_Size)strlen(optionMap[i].name);
+
+        if ((length == fullLength) && (memcmp(string, optionMap[i].name, (size_t)length) == 0)) {
+            return optionMap[i].option;
+        }
+    }
+
+    /*
+     * Recover the canonical identity from an accepted abbreviation.
+     */
+    match = LINE_AREA_OPTION_NONE;
+
+    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
+        Tcl_Size fullLength;
+
+        fullLength = (Tcl_Size)strlen(optionMap[i].name);
+
+        if ((length > 0) && (length < fullLength) && (strncmp(string, optionMap[i].name, (size_t)length) == 0)) {
+            if (match == LINE_AREA_OPTION_NONE) {
+                match = optionMap[i].option;
+            } else if (match != optionMap[i].option) {
+                return LINE_AREA_OPTION_NONE;
+            }
+        }
+    }
+
+    return match;
 }
 
 /*
@@ -1622,6 +1784,44 @@ static const char *PatternToString(ClientData clientData, Tk_Window tkwin, char 
 /*
  *----------------------------------------------------------------------
  *
+ * GetPatternFromString --
+ *
+ *      Parses an area-pattern name and acquires any required bitmap
+ *      resource without modifying the live line element.
+ *
+ *----------------------------------------------------------------------
+ */
+static int GetPatternFromString(Tcl_Interp *interp, Tk_Window tkwin, const char *string, Pixmap *stipplePtr) {
+    Pixmap stipple;
+
+    if ((string == NULL) || (string[0] == '\0')) {
+        stipple = None;
+    } else if (strcmp(string, "solid") == 0) {
+        stipple = PATTERN_SOLID;
+    } else {
+        stipple = Tk_GetBitmap(interp, tkwin, Tk_GetUid(string));
+
+        if (stipple == None) {
+            return TCL_ERROR;
+        }
+    }
+
+    *stipplePtr = stipple;
+
+    return TCL_OK;
+}
+
+static int GetPatternFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, Pixmap *stipplePtr) {
+    const char *string;
+
+    string = (objPtr == NULL) ? NULL : Tcl_GetString(objPtr);
+
+    return GetPatternFromString(interp, tkwin, string, stipplePtr);
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
  * StringToPattern --
  *
  *      TODO: Description
@@ -1644,24 +1844,287 @@ static const char *PatternToString(ClientData clientData, Tk_Window tkwin, char 
  */
 static int StringToPattern(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string,
                            char *widgRec, Tcl_Size offset) {
-    Pixmap *stipplePtr = (Pixmap *)(widgRec + offset);
-    Pixmap stipple;
+    Pixmap *stipplePtr;
+    Pixmap newStipple;
 
-    if ((string == NULL) || (string[0] == '\0')) {
-        stipple = None;
-    } else if (strcmp(string, "solid") == 0) {
-        stipple = PATTERN_SOLID;
-    } else {
-        stipple = Tk_GetBitmap(interp, tkwin, Tk_GetUid(string));
-        if (stipple == None) {
-            return TCL_ERROR;
-        }
+    stipplePtr = (Pixmap *)(widgRec + offset);
+
+    if (GetPatternFromString(interp, tkwin, string, &newStipple) != TCL_OK) {
+        return TCL_ERROR;
     }
+
     if ((*stipplePtr != None) && (*stipplePtr != PATTERN_SOLID)) {
         Tk_FreeBitmap(Tk_Display(tkwin), *stipplePtr);
     }
-    *stipplePtr = stipple;
+
+    *stipplePtr = newStipple;
+
     return TCL_OK;
+}
+
+static void FreeLinePattern(Display *display, Pixmap stipple) {
+    if ((stipple != None) && (stipple != PATTERN_SOLID)) {
+        Tk_FreeBitmap(display, stipple);
+    }
+}
+
+static int StageLineAreaPattern(Graph *graphPtr, Tcl_Obj *objPtr, LineAreaTransaction *transactionPtr) {
+    Pixmap newStipple;
+    unsigned int mask;
+
+    if (GetPatternFromObj(graphPtr->interp, graphPtr->tkwin, objPtr, &newStipple) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    mask = LINE_AREA_OPTION_MASK(LINE_AREA_OPTION_PATTERN);
+
+    /*
+     * Resolve the replacement before releasing an earlier staged
+     * candidate.
+     */
+    if (transactionPtr->stagedMask & mask) {
+        FreeLinePattern(graphPtr->display, transactionPtr->stipple);
+    }
+
+    transactionPtr->stipple = newStipple;
+    transactionPtr->stagedMask |= mask;
+
+    return TCL_OK;
+}
+
+static int StageLineAreaTile(Graph *graphPtr, Tcl_Obj *objPtr, LineAreaTransaction *transactionPtr) {
+    const char *name;
+    Rbc_Tile newTile;
+    unsigned int mask;
+
+    newTile = NULL;
+
+    if (objPtr != NULL) {
+        name = Tcl_GetString(objPtr);
+
+        if (name[0] != '\0') {
+            if (Rbc_GetTile(graphPtr->interp, graphPtr->tkwin, name, &newTile) != TCL_OK) {
+                return TCL_ERROR;
+            }
+        }
+    }
+
+    mask = LINE_AREA_OPTION_MASK(LINE_AREA_OPTION_TILE);
+
+    /*
+     * Acquire the replacement before releasing an earlier staged tile.
+     */
+    if ((transactionPtr->stagedMask & mask) && (transactionPtr->tile != NULL)) {
+        Rbc_FreeTile(transactionPtr->tile);
+    }
+
+    transactionPtr->tile = newTile;
+    transactionPtr->stagedMask |= mask;
+
+    return TCL_OK;
+}
+
+static GC CreateLineFillGC(Graph *graphPtr, Line *linePtr, Pixmap stipple) {
+    unsigned long gcMask;
+    XGCValues gcValues;
+
+    gcMask = 0;
+    memset(&gcValues, 0, sizeof(gcValues));
+
+    if (linePtr->fillFgColor != NULL) {
+        gcMask |= GCForeground;
+        gcValues.foreground = linePtr->fillFgColor->pixel;
+    }
+
+    if (linePtr->fillBgColor != NULL) {
+        gcMask |= GCBackground;
+        gcValues.background = linePtr->fillBgColor->pixel;
+    }
+
+    if ((stipple != None) && (stipple != PATTERN_SOLID)) {
+        gcMask |= GCStipple | GCFillStyle;
+
+        gcValues.stipple = stipple;
+        gcValues.fill_style = (linePtr->fillBgColor == NULL) ? FillStippled : FillOpaqueStippled;
+    }
+
+    return Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
+}
+
+static void FreeLineAreaTransaction(Graph *graphPtr, LineAreaTransaction *transactionPtr) {
+    if (transactionPtr->stagedMask & LINE_AREA_OPTION_MASK(LINE_AREA_OPTION_PATTERN)) {
+        FreeLinePattern(graphPtr->display, transactionPtr->stipple);
+    }
+
+    if (transactionPtr->tile != NULL) {
+        Rbc_FreeTile(transactionPtr->tile);
+    }
+
+    if (transactionPtr->gc != NULL) {
+        Tk_FreeGC(graphPtr->display, transactionPtr->gc);
+    }
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * PrepareLineAreaTransaction --
+ *
+ *      Parses area-pattern and tile options and constructs a
+ *      replacement fill GC without modifying the live line element.
+ *
+ *      Area foreground and background colors are already managed
+ *      transactionally by Tk_SetOptions.
+ *
+ *----------------------------------------------------------------------
+ */
+static int PrepareLineAreaTransaction(Graph *graphPtr, Element *elemPtr, Line *linePtr,
+                                      LineAreaTransaction *transactionPtr) {
+    unsigned int explicitMask;
+    Pixmap effectiveStipple;
+    int i;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+
+    explicitMask = 0;
+
+    assert((elemPtr->optionObjc & 1) == 0);
+
+    /*
+     * Determine which manually converted area options were supplied
+     * explicitly.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        LineAreaOption option;
+
+        option = GetLineAreaOption(elemPtr->optionObjv[i]);
+
+        if (option != LINE_AREA_OPTION_NONE) {
+            explicitMask |= LINE_AREA_OPTION_MASK(option);
+        }
+    }
+
+    /*
+     * During initial modern configuration, process effective defaults
+     * and option-database values not explicitly overridden.
+     */
+    if (!elemPtr->optionsConfigured) {
+        if (!(explicitMask & LINE_AREA_OPTION_MASK(LINE_AREA_OPTION_PATTERN)) && (linePtr->areaPatternObjPtr != NULL)) {
+            if (StageLineAreaPattern(graphPtr, linePtr->areaPatternObjPtr, transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & LINE_AREA_OPTION_MASK(LINE_AREA_OPTION_TILE)) && (linePtr->areaTileObjPtr != NULL)) {
+            if (StageLineAreaTile(graphPtr, linePtr->areaTileObjPtr, transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        }
+    }
+
+    /*
+     * Process explicit occurrences in their original order.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        LineAreaOption option;
+        Tcl_Obj *valueObjPtr;
+
+        option = GetLineAreaOption(elemPtr->optionObjv[i]);
+
+        valueObjPtr = elemPtr->optionObjv[i + 1];
+
+        switch (option) {
+        case LINE_AREA_OPTION_PATTERN:
+            if (StageLineAreaPattern(graphPtr, valueObjPtr, transactionPtr) != TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case LINE_AREA_OPTION_TILE:
+            if (StageLineAreaTile(graphPtr, valueObjPtr, transactionPtr) != TCL_OK) {
+                goto error;
+            }
+            break;
+
+        case LINE_AREA_OPTION_NONE:
+            break;
+        }
+    }
+
+    /*
+     * Build the replacement GC from the effective stipple and the
+     * colors currently installed by Tk_SetOptions.
+     */
+    if (transactionPtr->stagedMask & LINE_AREA_OPTION_MASK(LINE_AREA_OPTION_PATTERN)) {
+        effectiveStipple = transactionPtr->stipple;
+    } else {
+        effectiveStipple = linePtr->fillStipple;
+    }
+
+    transactionPtr->gc = CreateLineFillGC(graphPtr, linePtr, effectiveStipple);
+
+    return TCL_OK;
+
+error:
+    FreeLineAreaTransaction(graphPtr, transactionPtr);
+
+    return TCL_ERROR;
+}
+
+static void CommitLineAreaTransaction(Graph *graphPtr, Line *linePtr, LineAreaTransaction *transactionPtr) {
+    if (transactionPtr->stagedMask & LINE_AREA_OPTION_MASK(LINE_AREA_OPTION_PATTERN)) {
+        Pixmap oldStipple;
+
+        oldStipple = linePtr->fillStipple;
+
+        linePtr->fillStipple = transactionPtr->stipple;
+
+        transactionPtr->stipple = None;
+
+        FreeLinePattern(graphPtr->display, oldStipple);
+    }
+
+    if (transactionPtr->stagedMask & LINE_AREA_OPTION_MASK(LINE_AREA_OPTION_TILE)) {
+        Rbc_Tile oldTile;
+
+        oldTile = linePtr->fillTile;
+
+        linePtr->fillTile = transactionPtr->tile;
+
+        transactionPtr->tile = NULL;
+
+        if (linePtr->fillTile != NULL) {
+            Rbc_SetTileChangedProc(linePtr->fillTile, TileChangedProc, linePtr);
+        }
+
+        if (oldTile != NULL) {
+            Rbc_FreeTile(oldTile);
+        }
+    } else if (linePtr->fillTile != NULL) {
+        /*
+         * Ensure that an existing tile also has its callback after the
+         * initial modern configuration.
+         */
+        Rbc_SetTileChangedProc(linePtr->fillTile, TileChangedProc, linePtr);
+    }
+
+    if (transactionPtr->gc != NULL) {
+        GC oldGC;
+
+        oldGC = linePtr->fillGC;
+
+        linePtr->fillGC = transactionPtr->gc;
+
+        transactionPtr->gc = NULL;
+
+        if (oldGC != NULL) {
+            Tk_FreeGC(graphPtr->display, oldGC);
+        }
+    }
+
+    transactionPtr->stagedMask = 0;
 }
 
 static void FreeParsedSymbol(Display *display, ParsedSymbol *symbolPtr) {
@@ -1981,11 +2444,53 @@ static const char *SymbolToString(ClientData clientData, Tk_Window tkwin, char *
  *
  *----------------------------------------------------------------------
  */
-static char *NameOfSmooth(Smoothing value) {
-    if ((value < 0) || (value >= PEN_SMOOTH_LAST)) {
+static const char *NameOfSmooth(Smoothing value) {
+    switch (value) {
+    case PEN_SMOOTH_NONE:
+        return "linear";
+
+    case PEN_SMOOTH_STEP:
+        return "step";
+
+    case PEN_SMOOTH_NATURAL:
+        return "natural";
+
+    case PEN_SMOOTH_QUADRATIC:
+        return "quadratic";
+
+    case PEN_SMOOTH_CATROM:
+        return "catrom";
+
+    case PEN_SMOOTH_LAST:
+    default:
         return "unknown smooth value";
     }
-    return smoothingInfo[value].name;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * GetSmoothFromString --
+ *
+ *      Parses a line smoothing name without modifying a widget
+ *      record.
+ *
+ *----------------------------------------------------------------------
+ */
+static int GetSmoothFromString(Tcl_Interp *interp, const char *string, Smoothing *valuePtr) {
+    SmoothingInfo *siPtr;
+
+    for (siPtr = smoothingInfo; siPtr->name != NULL; siPtr++) {
+        if (strcmp(string, siPtr->name) == 0) {
+            *valuePtr = siPtr->value;
+            return TCL_OK;
+        }
+    }
+
+    Tcl_AppendResult(interp, "bad smooth value \"", string, "\": should be linear, step, natural, or quadratic",
+                     (char *)NULL);
+
+    return TCL_ERROR;
 }
 
 /*
@@ -2015,19 +2520,15 @@ static char *NameOfSmooth(Smoothing value) {
  */
 static int StringToSmooth(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string, char *widgRec,
                           Tcl_Size offset) {
-    Smoothing *valuePtr = (Smoothing *)(widgRec + offset);
-    register SmoothingInfo *siPtr;
+    Smoothing *valuePtr;
 
-    for (siPtr = smoothingInfo; siPtr->name != NULL; siPtr++) {
-        if (strcmp(string, siPtr->name) == 0) {
-            *valuePtr = siPtr->value;
-            return TCL_OK;
-        }
-    }
-    Tcl_AppendResult(interp, "bad smooth value \"", string, "\": should be \
-linear, step, natural, or quadratic",
-                     (char *)NULL);
-    return TCL_ERROR;
+    valuePtr = (Smoothing *)(widgRec + offset);
+
+    return GetSmoothFromString(interp, string, valuePtr);
+}
+
+static int GetSmoothFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, Smoothing *valuePtr) {
+    return GetSmoothFromString(interp, Tcl_GetString(objPtr), valuePtr);
 }
 
 /*
@@ -2062,6 +2563,39 @@ static const char *SmoothToString(ClientData clientData, Tk_Window tkwin, char *
 /*
  *----------------------------------------------------------------------
  *
+ * GetPenDirFromString --
+ *
+ *      Parses a trace-direction value without modifying a widget
+ *      record.
+ *
+ *----------------------------------------------------------------------
+ */
+static int GetPenDirFromString(Tcl_Interp *interp, const char *string, int *penDirPtr) {
+    size_t length;
+    char c;
+
+    c = string[0];
+    length = strlen(string);
+
+    if ((c == 'i') && (length <= strlen("increasing")) && (strncmp(string, "increasing", length) == 0)) {
+        *penDirPtr = PEN_INCREASING;
+    } else if ((c == 'd') && (length <= strlen("decreasing")) && (strncmp(string, "decreasing", length) == 0)) {
+        *penDirPtr = PEN_DECREASING;
+    } else if ((c == 'b') && (length <= strlen("both")) && (strncmp(string, "both", length) == 0)) {
+        *penDirPtr = PEN_BOTH_DIRECTIONS;
+    } else {
+        Tcl_AppendResult(interp, "bad trace value \"", string,
+                         "\" : should be \"increasing\", \"decreasing\", or \"both\"", (char *)NULL);
+
+        return TCL_ERROR;
+    }
+
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
  * StringToPenDir --
  *
  *      Convert the string representation of a line style or symbol name
@@ -2086,24 +2620,15 @@ static const char *SmoothToString(ClientData clientData, Tk_Window tkwin, char *
  */
 static int StringToPenDir(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string, char *widgRec,
                           Tcl_Size offset) {
-    int *penDirPtr = (int *)(widgRec + offset);
-    unsigned int length;
-    char c;
+    int *penDirPtr;
 
-    c = string[0];
-    length = strlen(string);
-    if ((c == 'i') && (strncmp(string, "increasing", length) == 0)) {
-        *penDirPtr = PEN_INCREASING;
-    } else if ((c == 'd') && (strncmp(string, "decreasing", length) == 0)) {
-        *penDirPtr = PEN_DECREASING;
-    } else if ((c == 'b') && (strncmp(string, "both", length) == 0)) {
-        *penDirPtr = PEN_BOTH_DIRECTIONS;
-    } else {
-        Tcl_AppendResult(interp, "bad trace value \"", string,
-                         "\" : should be \"increasing\", \"decreasing\", or \"both\"", (char *)NULL);
-        return TCL_ERROR;
-    }
-    return TCL_OK;
+    penDirPtr = (int *)(widgRec + offset);
+
+    return GetPenDirFromString(interp, string, penDirPtr);
+}
+
+static int GetPenDirFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *penDirPtr) {
+    return GetPenDirFromString(interp, Tcl_GetString(objPtr), penDirPtr);
 }
 
 /*
@@ -2164,6 +2689,173 @@ static const char *PenDirToString(ClientData clientData, Tk_Window tkwin, char *
     int penDir = *(int *)(widgRec + offset);
 
     return NameOfPenDir(penDir);
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * StageLineScalarOption --
+ *
+ *      Parses one line-specific scalar option into temporary
+ *      transaction storage without modifying the live line element.
+ *
+ *----------------------------------------------------------------------
+ */
+static int StageLineScalarOption(Graph *graphPtr, Tcl_Obj *objPtr, LineScalarOption option,
+                                 LineScalarTransaction *transactionPtr) {
+    int intValue;
+    Smoothing smoothValue;
+
+    switch (option) {
+    case LINE_SCALAR_OPTION_MAX_SYMBOLS:
+        if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, objPtr, PIXELS_NONNEGATIVE, &intValue) != TCL_OK) {
+            return TCL_ERROR;
+        }
+
+        transactionPtr->maxSymbols = intValue;
+        break;
+
+    case LINE_SCALAR_OPTION_SMOOTH:
+        if (GetSmoothFromObj(graphPtr->interp, objPtr, &smoothValue) != TCL_OK) {
+            return TCL_ERROR;
+        }
+
+        transactionPtr->smooth = smoothValue;
+        break;
+
+    case LINE_SCALAR_OPTION_TRACE:
+        if (GetPenDirFromObj(graphPtr->interp, objPtr, &intValue) != TCL_OK) {
+            return TCL_ERROR;
+        }
+
+        transactionPtr->penDir = intValue;
+        break;
+
+    case LINE_SCALAR_OPTION_NONE:
+    default:
+        Tcl_Panic("StageLineScalarOption called with invalid option");
+
+        return TCL_ERROR;
+    }
+
+    transactionPtr->stagedMask |= LINE_SCALAR_OPTION_MASK(option);
+
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * PrepareLineScalarTransaction --
+ *
+ *      Parses the line-specific scalar options involved in the current
+ *      modern configuration without modifying the live element.
+ *
+ *      Explicit repeated occurrences are processed in caller order, so
+ *      an invalid earlier occurrence is not hidden by a valid final
+ *      retained object value.
+ *
+ *----------------------------------------------------------------------
+ */
+static int PrepareLineScalarTransaction(Graph *graphPtr, Element *elemPtr, Line *linePtr,
+                                        LineScalarTransaction *transactionPtr) {
+    unsigned int explicitMask;
+    int i;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+
+    explicitMask = 0;
+
+    assert((elemPtr->optionObjc & 1) == 0);
+
+    /*
+     * Determine which scalar options were explicitly supplied.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        LineScalarOption option;
+
+        option = GetLineScalarOption(elemPtr->optionObjv[i]);
+
+        if (option != LINE_SCALAR_OPTION_NONE) {
+            explicitMask |= LINE_SCALAR_OPTION_MASK(option);
+        }
+    }
+
+    /*
+     * During the initial modern configuration, parse effective default
+     * and option-database values that were not explicitly overridden.
+     */
+    if (!elemPtr->optionsConfigured) {
+        if (!(explicitMask & LINE_SCALAR_OPTION_MASK(LINE_SCALAR_OPTION_MAX_SYMBOLS)) &&
+            (linePtr->maxSymbolsObjPtr != NULL)) {
+            if (StageLineScalarOption(graphPtr, linePtr->maxSymbolsObjPtr, LINE_SCALAR_OPTION_MAX_SYMBOLS,
+                                      transactionPtr) != TCL_OK) {
+                return TCL_ERROR;
+            }
+        }
+
+        if (!(explicitMask & LINE_SCALAR_OPTION_MASK(LINE_SCALAR_OPTION_SMOOTH)) && (linePtr->smoothObjPtr != NULL)) {
+            if (StageLineScalarOption(graphPtr, linePtr->smoothObjPtr, LINE_SCALAR_OPTION_SMOOTH, transactionPtr) !=
+                TCL_OK) {
+                return TCL_ERROR;
+            }
+        }
+
+        /*
+         * Strip elements have no -trace table entry, so traceObjPtr
+         * remains NULL for them.
+         */
+        if (!(explicitMask & LINE_SCALAR_OPTION_MASK(LINE_SCALAR_OPTION_TRACE)) && (linePtr->traceObjPtr != NULL)) {
+            if (StageLineScalarOption(graphPtr, linePtr->traceObjPtr, LINE_SCALAR_OPTION_TRACE, transactionPtr) !=
+                TCL_OK) {
+                return TCL_ERROR;
+            }
+        }
+    }
+
+    /*
+     * Process explicit occurrences in their original order.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        LineScalarOption option;
+
+        option = GetLineScalarOption(elemPtr->optionObjv[i]);
+
+        if (option == LINE_SCALAR_OPTION_NONE) {
+            continue;
+        }
+
+        if (StageLineScalarOption(graphPtr, elemPtr->optionObjv[i + 1], option, transactionPtr) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * CommitLineScalarTransaction --
+ *
+ *      Commits successfully parsed line-specific scalar values.
+ *
+ *----------------------------------------------------------------------
+ */
+static void CommitLineScalarTransaction(Line *linePtr, LineScalarTransaction *transactionPtr) {
+    if (transactionPtr->stagedMask & LINE_SCALAR_OPTION_MASK(LINE_SCALAR_OPTION_MAX_SYMBOLS)) {
+        linePtr->reqMaxSymbols = transactionPtr->maxSymbols;
+    }
+
+    if (transactionPtr->stagedMask & LINE_SCALAR_OPTION_MASK(LINE_SCALAR_OPTION_SMOOTH)) {
+        linePtr->reqSmooth = transactionPtr->smooth;
+    }
+
+    if (transactionPtr->stagedMask & LINE_SCALAR_OPTION_MASK(LINE_SCALAR_OPTION_TRACE)) {
+        linePtr->penDir = transactionPtr->penDir;
+    }
+
+    transactionPtr->stagedMask = 0;
 }
 
 /*
@@ -2813,14 +3505,16 @@ static void DestroyPen(Graph *graphPtr, Pen *penPtr) {
  *
  *----------------------------------------------------------------------
  */
-static void InitPen(LinePen *penPtr) {
+static void InitPen(LinePen *penPtr, const Tk_OptionSpec *optionSpecs, unsigned int flags) {
     Pen *corePtr;
+
+    assert(optionSpecs != NULL);
 
     corePtr = &penPtr->core;
 
     Rbc_InitTextStyle(&penPtr->valueStyle);
 
-    corePtr->optionSpecs = NULL;
+    corePtr->optionSpecs = optionSpecs;
     corePtr->optionTable = NULL;
 
     corePtr->optionsInitialized = FALSE;
@@ -2828,7 +3522,7 @@ static void InitPen(LinePen *penPtr) {
 
     corePtr->configProc = ConfigurePen;
     corePtr->destroyProc = DestroyPen;
-    corePtr->flags = NORMAL_PEN;
+    corePtr->flags = flags;
     corePtr->name = "";
 
     penPtr->errorBarLineWidth = 1;
@@ -2864,28 +3558,26 @@ static void InitPen(LinePen *penPtr) {
  *----------------------------------------------------------------------
  */
 Pen *Rbc_LinePen(char *penName) {
+    const Tk_OptionSpec *optionSpecs;
+    unsigned int flags;
     LinePen *penPtr;
     Pen *corePtr;
 
-    penPtr = RbcCalloc(1, sizeof(LinePen));
+    if (strcmp(penName, "activeLine") == 0) {
+        optionSpecs = activeLinePenOptionSpecs;
+        flags = ACTIVE_PEN;
+    } else {
+        optionSpecs = normalLinePenOptionSpecs;
+        flags = NORMAL_PEN;
+    }
 
+    penPtr = RbcCalloc(1, sizeof(LinePen));
     assert(penPtr != NULL);
 
-    InitPen(penPtr);
+    InitPen(penPtr, optionSpecs, flags);
 
     corePtr = &penPtr->core;
-
     corePtr->name = RbcStrdup(penName);
-
-    if (strcmp(penName, "activeLine") == 0) {
-        corePtr->flags = ACTIVE_PEN;
-
-        corePtr->optionSpecs = activeLinePenOptionSpecs;
-    } else {
-        corePtr->flags = NORMAL_PEN;
-
-        corePtr->optionSpecs = normalLinePenOptionSpecs;
-    }
 
     return corePtr;
 }
@@ -4763,6 +5455,9 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     ElemAxisTransaction axisTransaction;
     ElemStateTransaction stateTransaction;
     ElemTagsTransaction tagsTransaction;
+    ElemStylesTransaction stylesTransaction;
+    LineScalarTransaction scalarTransaction;
+    LineAreaTransaction areaTransaction;    
     unsigned long gcMask;
     XGCValues gcValues;
     GC newGC;
@@ -4772,6 +5467,9 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     int axisTransactionPrepared;
     int stateTransactionPrepared;
     int tagsTransactionPrepared;
+    int stylesTransactionPrepared;
+    int scalarTransactionPrepared;
+    int areaTransactionPrepared;    
 
     linePtr = LINE_FROM_CORE(elemPtr);
 
@@ -4780,12 +5478,18 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     memset(&axisTransaction, 0, sizeof(axisTransaction));
     memset(&stateTransaction, 0, sizeof(stateTransaction));
     memset(&tagsTransaction, 0, sizeof(tagsTransaction));
+    memset(&stylesTransaction, 0, sizeof(stylesTransaction));
+    memset(&scalarTransaction, 0, sizeof(scalarTransaction));
+    memset(&areaTransaction, 0, sizeof(areaTransaction));
 
     dataTransactionPrepared = FALSE;
     penTransactionPrepared = FALSE;
     axisTransactionPrepared = FALSE;
     stateTransactionPrepared = FALSE;
     tagsTransactionPrepared = FALSE;
+    stylesTransactionPrepared = FALSE;
+    scalarTransactionPrepared = FALSE;
+    areaTransactionPrepared = FALSE;
 
     /*
      * Parse all data-vector replacements before modifying the live
@@ -4865,12 +5569,63 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     }
 
     /*
-     * Configure the embedded line pen only after every requested data
-     * vector, named pen, axis mapping, state value, and bind-tags list
-     * has been validated.
+     * Parse the element's weighted pen styles before modifying the live
+     * palette.
+     *
+     * Line and strip elements both use line pens and LinePenStyle palette
+     * records.
      */
-    if (ConfigurePen(graphPtr, &linePtr->builtinPen.core) != TCL_OK) {
-        goto error;
+    if ((elemPtr->optionSpecs != NULL) &&
+        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_STYLES_MASK))) {
+        if (Rbc_PrepareElemStylesTransaction(graphPtr, elemPtr, rbcLineElementUid, sizeof(LinePenStyle),
+                                             &stylesTransaction) != TCL_OK) {
+            goto error;
+        }
+
+        stylesTransactionPrepared = TRUE;
+    }
+
+    /*
+     * Parse line-specific scalar values before modifying the live element.
+     *
+     * Both line and strip elements expose -maxsymbols and -smooth. Only
+     * graph line elements expose -trace.
+     */
+    if ((elemPtr->optionSpecs != NULL) &&
+        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_SCALAR_MASK))) {
+        if (PrepareLineScalarTransaction(graphPtr, elemPtr, linePtr, &scalarTransaction) != TCL_OK) {
+            goto error;
+        }
+
+        scalarTransactionPrepared = TRUE;
+    }
+
+    /*
+     * Resolve line-area resources and construct the replacement fill GC
+     * before modifying the live element.
+     *
+     * Strip elements have no area options, but initial modern
+     * configuration may still construct their empty fill GC.
+     */
+    if ((elemPtr->optionSpecs != NULL) &&
+        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_AREA_MASK))) {
+        if (PrepareLineAreaTransaction(graphPtr, elemPtr, linePtr, &areaTransaction) != TCL_OK) {
+            goto error;
+        }
+
+        areaTransactionPrepared = TRUE;
+    }
+
+    /*
+     * Configure the embedded line pen only when its options may have
+     * changed. The legacy fallback remains unconditional because its
+     * Tk_ConfigSpec values are not represented by an option-table mask.
+     */
+    if ((elemPtr->optionSpecs == NULL) || !elemPtr->optionsConfigured ||
+        (elemPtr->optionMask & LINE_ELEM_BUILTIN_PEN_MASK)) {
+        if (ConfigurePen(graphPtr, &linePtr->builtinPen.core) != TCL_OK) {
+            goto error;
+        }
     }
 
     /*
@@ -4893,6 +5648,18 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     if (tagsTransactionPrepared) {
         Rbc_CommitElemTagsTransaction(elemPtr, &tagsTransaction);
     }
+    
+    if (stylesTransactionPrepared) {
+        Rbc_CommitElemStylesTransaction(graphPtr, elemPtr, &stylesTransaction);
+    }
+
+    if (scalarTransactionPrepared) {
+        CommitLineScalarTransaction(linePtr, &scalarTransaction);
+    }
+
+    if (areaTransactionPrepared) {
+        CommitLineAreaTransaction(graphPtr, linePtr, &areaTransaction);
+    }
 
     /*
      * Use the embedded line pen when no named normal pen was selected.
@@ -4911,35 +5678,44 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
         stylePtr->penPtr = LINE_PEN_FROM_CORE(elemPtr->normalPenPtr);
     }
 
-    if (linePtr->fillTile != NULL) {
-        Rbc_SetTileChangedProc(linePtr->fillTile, TileChangedProc, linePtr);
+    /*
+     * The modern branch constructs and commits the replacement GC through
+     * LineAreaTransaction. Preserve the original setup for legacy
+     * Tk_ConfigSpec elements.
+     */
+    if (elemPtr->optionSpecs == NULL) {
+        if (linePtr->fillTile != NULL) {
+            Rbc_SetTileChangedProc(linePtr->fillTile, TileChangedProc, linePtr);
+        }
+
+        gcMask = 0;
+        memset(&gcValues, 0, sizeof(gcValues));
+
+        if (linePtr->fillFgColor != NULL) {
+            gcMask |= GCForeground;
+            gcValues.foreground = linePtr->fillFgColor->pixel;
+        }
+
+        if (linePtr->fillBgColor != NULL) {
+            gcMask |= GCBackground;
+            gcValues.background = linePtr->fillBgColor->pixel;
+        }
+
+        if ((linePtr->fillStipple != None) && (linePtr->fillStipple != PATTERN_SOLID)) {
+            gcMask |= GCStipple | GCFillStyle;
+            gcValues.stipple = linePtr->fillStipple;
+
+            gcValues.fill_style = (linePtr->fillBgColor == NULL) ? FillStippled : FillOpaqueStippled;
+        }
+
+        newGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
+
+        if (linePtr->fillGC != NULL) {
+            Tk_FreeGC(graphPtr->display, linePtr->fillGC);
+        }
+
+        linePtr->fillGC = newGC;
     }
-
-    gcMask = 0;
-
-    if (linePtr->fillFgColor != NULL) {
-        gcMask |= GCForeground;
-        gcValues.foreground = linePtr->fillFgColor->pixel;
-    }
-
-    if (linePtr->fillBgColor != NULL) {
-        gcMask |= GCBackground;
-        gcValues.background = linePtr->fillBgColor->pixel;
-    }
-
-    if ((linePtr->fillStipple != None) && (linePtr->fillStipple != PATTERN_SOLID)) {
-        gcMask |= GCStipple | GCFillStyle;
-        gcValues.stipple = linePtr->fillStipple;
-        gcValues.fill_style = (linePtr->fillBgColor == NULL) ? FillStippled : FillOpaqueStippled;
-    }
-
-    newGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
-
-    if (linePtr->fillGC != NULL) {
-        Tk_FreeGC(graphPtr->display, linePtr->fillGC);
-    }
-
-    linePtr->fillGC = newGC;
 
     /*
      * Nothing below this point can fail. Commit the staged vectors and
@@ -4977,6 +5753,14 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     return TCL_OK;
 
 error:
+    if (areaTransactionPrepared) {
+        FreeLineAreaTransaction(graphPtr, &areaTransaction);
+    }
+
+    if (stylesTransactionPrepared) {
+        Rbc_FreeElemStylesTransaction(graphPtr, &stylesTransaction);
+    }
+
     if (tagsTransactionPrepared) {
         Rbc_FreeElemTagsTransaction(&tagsTransaction);
     }
@@ -6770,7 +7554,12 @@ Element *Rbc_LineElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
         return NULL;
     }
     elemPtr = &linePtr->core;
-    elemPtr->optionSpecs = NULL;
+    if (classUid == rbcLineElementUid) {
+        elemPtr->optionSpecs = lineElemOptionSpecs;
+    } else {
+        elemPtr->optionSpecs = stripElemOptionSpecs;
+    }
+
     elemPtr->optionTable = NULL;
 
     elemPtr->optionMask = 0;
@@ -6781,11 +7570,11 @@ Element *Rbc_LineElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     elemPtr->optionsInitialized = FALSE;
     elemPtr->tkResourcesReleased = FALSE;
     elemPtr->procsPtr = &lineProcs;
-    if (classUid == rbcLineElementUid) {
-        elemPtr->specsPtr = lineElemConfigSpecs;
-    } else {
-        elemPtr->specsPtr = stripElemConfigSpecs;
-    }
+    /*
+     * Retain the legacy tables temporarily for source-level comparison.
+     * Runtime configuration now uses optionSpecs exclusively.
+     */
+    elemPtr->specsPtr = NULL;
 
     /*
      * By default an element's name and label are the same.
@@ -6796,10 +7585,14 @@ Element *Rbc_LineElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     elemPtr->flags = SCALE_SYMBOL;
     elemPtr->graphPtr = graphPtr;
     elemPtr->labelRelief = TK_RELIEF_FLAT;
+
+    InitPen(&linePtr->builtinPen, normalLinePenOptionSpecs, NORMAL_PEN);
+
     elemPtr->normalPenPtr = &linePtr->builtinPen.core;
+
     elemPtr->palette = Rbc_ChainCreate();
+
     linePtr->penDir = PEN_BOTH_DIRECTIONS;
     linePtr->reqSmooth = PEN_SMOOTH_NONE;
-    InitPen(&linePtr->builtinPen);
     return elemPtr;
 }

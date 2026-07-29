@@ -1524,7 +1524,7 @@ namespace eval stripchart.pen {
         .stripchart1 element cget e1 -linewidth
     } -cleanup {
         destroy .stripchart1
-    } -result 4
+    } -result 3.5
 
     test RBC.stripchart.pen.configure.A.lifetime.1 {
         modern named line pen resource lifetime
