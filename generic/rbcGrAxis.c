@@ -270,6 +270,13 @@ typedef struct {
     char **tags;
 } AxisTagsTransaction;
 
+typedef struct {
+    int staged;
+
+    char **formats;
+    int nFormats;
+} AxisFormatTransaction;
+
 static Tk_ConfigSpec configSpecs[] = {
     {TK_CONFIG_DOUBLE, "-autorange", "autoRange", "AutoRange", DEF_AXIS_RANGE, offsetof(Axis, windowSize),
      ALL_GRAPHS | TK_CONFIG_DONT_SET_DEFAULT},
@@ -1295,6 +1302,223 @@ static void CommitAxisTagsTransaction(Axis *axisPtr, AxisTagsTransaction *transa
     }
 }
 
+static void FreeAxisFormats(char **formats) {
+    if (formats != NULL) {
+        ckfree((char *)formats);
+    }
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * IsAxisLimitsFormatOption --
+ *
+ *      Determines whether an option name represents
+ *      "-limitsformat".
+ *
+ *      Tk_SetOptions has already rejected ambiguous or unknown
+ *      abbreviations.
+ *
+ *----------------------------------------------------------------------
+ */
+static int IsAxisLimitsFormatOption(Tcl_Obj *objPtr) {
+    static const char optionName[] = "-limitsformat";
+    const char *string;
+    Tcl_Size length;
+    Tcl_Size fullLength;
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+
+    fullLength = (Tcl_Size)(sizeof(optionName) - 1);
+
+    return ((length > 0) && (length <= fullLength) && (strncmp(string, optionName, (size_t)length) == 0));
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * GetAxisLimitsFormatsFromObj --
+ *
+ *      Parses the value of -limitsformat without modifying the live
+ *      Axis record.
+ *
+ *      The value must be a Tcl list containing at most two elements.
+ *      A NULL or empty value selects no limit formats.
+ *
+ *----------------------------------------------------------------------
+ */
+static int GetAxisLimitsFormatsFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, char ***formatsPtrPtr, int *nFormatsPtr) {
+    const char *string;
+    char **formats;
+    Tcl_Size nFormats;
+
+    *formatsPtrPtr = NULL;
+    *nFormatsPtr = 0;
+
+    if (objPtr == NULL) {
+        return TCL_OK;
+    }
+
+    string = Tcl_GetString(objPtr);
+
+    if (string[0] == '\0') {
+        return TCL_OK;
+    }
+
+    formats = NULL;
+    nFormats = 0;
+
+    if (Tcl_SplitList(interp, string, &nFormats, (const char ***)&formats) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    if (nFormats > 2) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("too many elements in limits format list \"%s\"", string));
+
+        FreeAxisFormats(formats);
+
+        return TCL_ERROR;
+    }
+
+    *formatsPtrPtr = formats;
+    *nFormatsPtr = (int)nFormats;
+
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * StageAxisLimitsFormats --
+ *
+ *      Parses a -limitsformat value into temporary transaction
+ *      storage without modifying the live Axis record.
+ *
+ *      An earlier staged candidate is retained until the replacement
+ *      has parsed successfully.
+ *
+ *----------------------------------------------------------------------
+ */
+static int StageAxisLimitsFormats(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisFormatTransaction *transactionPtr) {
+    char **newFormats;
+    int newNFormats;
+
+    newFormats = NULL;
+    newNFormats = 0;
+
+    if (GetAxisLimitsFormatsFromObj(interp, objPtr, &newFormats, &newNFormats) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    FreeAxisFormats(transactionPtr->formats);
+
+    transactionPtr->formats = newFormats;
+
+    transactionPtr->nFormats = newNFormats;
+
+    transactionPtr->staged = TRUE;
+
+    return TCL_OK;
+}
+
+static void FreeAxisFormatTransaction(AxisFormatTransaction *transactionPtr) {
+    FreeAxisFormats(transactionPtr->formats);
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * PrepareAxisFormatTransaction --
+ *
+ *      Parses all -limitsformat values involved in the current modern
+ *      configuration without modifying the live Axis record.
+ *
+ *      Explicit repeated occurrences are processed in caller order.
+ *      Therefore an invalid earlier value is not hidden by the final
+ *      retained option object.
+ *
+ *----------------------------------------------------------------------
+ */
+static int PrepareAxisFormatTransaction(Graph *graphPtr, Axis *axisPtr, AxisFormatTransaction *transactionPtr) {
+    int explicitlySpecified;
+    int i;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+
+    explicitlySpecified = FALSE;
+
+    assert((axisPtr->optionObjc & 1) == 0);
+
+    /*
+     * Determine whether -limitsformat was explicitly supplied.
+     */
+    for (i = 0; i < axisPtr->optionObjc; i += 2) {
+        if (IsAxisLimitsFormatOption(axisPtr->optionObjv[i])) {
+            explicitlySpecified = TRUE;
+        }
+    }
+
+    /*
+     * During initial modern configuration, parse the effective option
+     * database/default value unless explicitly overridden.
+     */
+    if (!axisPtr->optionsConfigured && !explicitlySpecified && (axisPtr->limitsFormatObjPtr != NULL)) {
+        if (StageAxisLimitsFormats(graphPtr->interp, axisPtr->limitsFormatObjPtr, transactionPtr) != TCL_OK) {
+            goto error;
+        }
+    }
+
+    /*
+     * Process explicit occurrences in caller order.
+     */
+    for (i = 0; i < axisPtr->optionObjc; i += 2) {
+        if (IsAxisLimitsFormatOption(axisPtr->optionObjv[i])) {
+            if (StageAxisLimitsFormats(graphPtr->interp, axisPtr->optionObjv[i + 1], transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        }
+    }
+
+    return TCL_OK;
+
+error:
+    FreeAxisFormatTransaction(transactionPtr);
+
+    return TCL_ERROR;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * CommitAxisFormatTransaction --
+ *
+ *      Replaces the live limit-format list with a successfully staged
+ *      candidate.
+ *
+ *----------------------------------------------------------------------
+ */
+static void CommitAxisFormatTransaction(Axis *axisPtr, AxisFormatTransaction *transactionPtr) {
+    char **oldFormats;
+
+    if (!transactionPtr->staged) {
+        return;
+    }
+
+    oldFormats = axisPtr->limitsFormats;
+
+    axisPtr->limitsFormats = transactionPtr->formats;
+
+    axisPtr->nFormats = transactionPtr->nFormats;
+
+    transactionPtr->formats = NULL;
+    transactionPtr->nFormats = 0;
+    transactionPtr->staged = FALSE;
+
+    FreeAxisFormats(oldFormats);
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -2088,6 +2312,7 @@ static void FreeAxisTicks(Ticks *ticksPtr) {
         ckfree((char *)ticksPtr);
     }
 }
+
 
 static AxisTickOption GetAxisTickOption(Tcl_Obj *objPtr) {
     static const struct {
@@ -3768,9 +3993,7 @@ static void DestroyAxis(Graph *graphPtr, Axis *axisPtr) {
     if (axisPtr->t2Ptr != NULL) {
         ckfree((char *)axisPtr->t2Ptr);
     }
-    if (axisPtr->limitsFormats != NULL) {
-        ckfree((char *)axisPtr->limitsFormats);
-    }
+    FreeAxisFormats(axisPtr->limitsFormats);
     FreeLabels(axisPtr->tickLabels);
     Rbc_ChainDestroy(axisPtr->tickLabels);
     if (axisPtr->segments != NULL) {
@@ -5078,6 +5301,7 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
     AxisPixelTransaction pixelTransaction;
     AxisShadowTransaction shadowTransaction;
     AxisTagsTransaction tagsTransaction;
+    AxisFormatTransaction formatTransaction;
 
     int limitTransactionPrepared;
     int tickTransactionPrepared;
@@ -5085,6 +5309,7 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
     int pixelTransactionPrepared;
     int shadowTransactionPrepared;
     int tagsTransactionPrepared;
+    int formatTransactionPrepared;
 
     memset(&limitTransaction, 0, sizeof(limitTransaction));
     memset(&tickTransaction, 0, sizeof(tickTransaction));
@@ -5092,6 +5317,7 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
     memset(&pixelTransaction, 0, sizeof(pixelTransaction));
     memset(&shadowTransaction, 0, sizeof(shadowTransaction));
     memset(&tagsTransaction, 0, sizeof(tagsTransaction));
+    memset(&formatTransaction, 0, sizeof(formatTransaction));
 
     limitTransactionPrepared = FALSE;
     tickTransactionPrepared = FALSE;
@@ -5099,6 +5325,7 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
     pixelTransactionPrepared = FALSE;
     shadowTransactionPrepared = FALSE;
     tagsTransactionPrepared = FALSE;
+    formatTransactionPrepared = FALSE;
 
     /*
      * Parse and validate retained axis-limit objects before modifying the
@@ -5173,6 +5400,19 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
         tagsTransactionPrepared = TRUE;
     }
 
+    /*
+     * Parse the optional one- or two-element limit-format list before
+     * replacing the live allocation.
+     */
+    if ((axisPtr->optionSpecs != NULL) &&
+        ((!axisPtr->optionsConfigured) || (axisPtr->optionMask & AXIS_LIMITS_FORMAT_MASK))) {
+        if (PrepareAxisFormatTransaction(graphPtr, axisPtr, &formatTransaction) != TCL_OK) {
+            goto error;
+        }
+
+        formatTransactionPrepared = TRUE;
+    }
+
     if (axisPtr->optionSpecs == NULL) {
         char errMsg[200];
         /* Check the requested axis limits. Can't allow -min to be greater
@@ -5222,6 +5462,10 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
         CommitAxisTagsTransaction(axisPtr, &tagsTransaction);
     }
 
+    if (formatTransactionPrepared) {
+        CommitAxisFormatTransaction(axisPtr, &formatTransaction);
+    }
+
     axisPtr->tickTextStyle.theta = FMOD(axisPtr->tickTextStyle.theta, 360.0);
     if (axisPtr->tickTextStyle.theta < 0.0) {
         axisPtr->tickTextStyle.theta += 360.0;
@@ -5254,6 +5498,9 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
     return TCL_OK;
 
 error:
+    if (formatTransactionPrepared) {
+        FreeAxisFormatTransaction(&formatTransaction);
+    }
     if (tagsTransactionPrepared) {
         FreeAxisTagsTransaction(&tagsTransaction);
     }
