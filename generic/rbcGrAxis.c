@@ -162,6 +162,7 @@ static Tk_CustomOption looseOption = {
 #define AXIS_LAYOUT_MASK (1u << 12)
 #define AXIS_MAP_MASK (1u << 13)
 #define AXIS_REDRAW_MASK (1u << 14)
+#define AXIS_LOG_SCALE_MASK (1u << 15)
 
 /*
  * Options that affect the axis's requested numerical range.
@@ -190,6 +191,36 @@ static Tk_CustomOption looseOption = {
 #define AXIS_TRANSACTION_MASK                                                                                          \
     (AXIS_TAGS_MASK | AXIS_LIMITS_FORMAT_MASK | AXIS_LIMITS_SHADOW_MASK | AXIS_LOOSE_MASK | AXIS_TICKS_MASK |          \
      AXIS_LIMITS_MASK | AXIS_SCROLL_LIMITS_MASK | AXIS_TICK_SHADOW_MASK | AXIS_TITLE_SHADOW_MASK | AXIS_PIXELS_MASK)
+
+typedef enum {
+    AXIS_LIMIT_OPTION_NONE,
+    AXIS_LIMIT_OPTION_MIN,
+    AXIS_LIMIT_OPTION_MAX,
+    AXIS_LIMIT_OPTION_SCROLL_MIN,
+    AXIS_LIMIT_OPTION_SCROLL_MAX
+} AxisLimitOption;
+
+#define AXIS_LIMIT_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
+
+typedef struct {
+    unsigned int stagedMask;
+
+    double reqMin;
+    double reqMax;
+    double scrollMin;
+    double scrollMax;
+} AxisLimitTransaction;
+
+typedef enum { AXIS_TICK_OPTION_NONE, AXIS_TICK_OPTION_MAJOR, AXIS_TICK_OPTION_MINOR } AxisTickOption;
+
+#define AXIS_TICK_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
+
+typedef struct {
+    unsigned int stagedMask;
+
+    Ticks *majorTicksPtr;
+    Ticks *minorTicksPtr;
+} AxisTickTransaction;
 
 static Tk_ConfigSpec configSpecs[] = {
     {TK_CONFIG_DOUBLE, "-autorange", "autoRange", "AutoRange", DEF_AXIS_RANGE, offsetof(Axis, windowSize),
@@ -326,7 +357,7 @@ static const Tk_OptionSpec axisOptionSpecs[] = {
     {TK_OPTION_STRING, "-linewidth", "lineWidth", "LineWidth", DEF_AXIS_LINE_WIDTH, offsetof(Axis, lineWidthObjPtr), -1,
      0, NULL, AXIS_PIXELS_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
     {TK_OPTION_BOOLEAN, "-logscale", "logScale", "LogScale", DEF_AXIS_LOGSCALE, -1, offsetof(Axis, logScale),
-     TK_OPTION_DONT_SET_DEFAULT, NULL, AXIS_MAP_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+     TK_OPTION_DONT_SET_DEFAULT, NULL, AXIS_LOG_SCALE_MASK | AXIS_MAP_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
     {TK_OPTION_STRING, "-loose", "loose", "Loose", DEF_AXIS_LOOSE, offsetof(Axis, looseObjPtr), -1, 0, NULL,
      AXIS_LOOSE_MASK | AXIS_REDRAW_MASK},
     {TK_OPTION_STRING, "-majorticks", "majorTicks", "MajorTicks", NULL, offsetof(Axis, majorTicksObjPtr), -1,
@@ -1211,6 +1242,307 @@ static void ReleaseAxisOptionResources(Graph *graphPtr, Axis *axisPtr) {
 /*
  *----------------------------------------------------------------------
  *
+ * GetAxisLimitOption --
+ *
+ *      Determines whether an option name represents one of the four
+ *      manually parsed axis-limit options.
+ *
+ *      Tk_SetOptions has already rejected unknown and ambiguous
+ *      abbreviations. This helper recovers the canonical identity from
+ *      the original option/value vector.
+ *
+ *----------------------------------------------------------------------
+ */
+static AxisLimitOption GetAxisLimitOption(Tcl_Obj *objPtr) {
+    static const struct {
+        const char *name;
+        AxisLimitOption option;
+    } optionMap[] = {{"-min", AXIS_LIMIT_OPTION_MIN},
+                     {"-max", AXIS_LIMIT_OPTION_MAX},
+                     {"-scrollmin", AXIS_LIMIT_OPTION_SCROLL_MIN},
+                     {"-scrollmax", AXIS_LIMIT_OPTION_SCROLL_MAX}};
+
+    const char *string;
+    Tcl_Size length;
+    AxisLimitOption match;
+    size_t i;
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+
+    /*
+     * Prefer exact matches. This is important for -min, which is also
+     * a prefix of -minorticks.
+     */
+    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
+        Tcl_Size fullLength;
+
+        fullLength = (Tcl_Size)strlen(optionMap[i].name);
+
+        if ((length == fullLength) && (memcmp(string, optionMap[i].name, (size_t)length) == 0)) {
+            return optionMap[i].option;
+        }
+    }
+
+    /*
+     * Recover an accepted unambiguous abbreviation.
+     */
+    match = AXIS_LIMIT_OPTION_NONE;
+
+    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
+        Tcl_Size fullLength;
+
+        fullLength = (Tcl_Size)strlen(optionMap[i].name);
+
+        if ((length > 0) && (length < fullLength) && (strncmp(string, optionMap[i].name, (size_t)length) == 0)) {
+            if (match == AXIS_LIMIT_OPTION_NONE) {
+                match = optionMap[i].option;
+            } else if (match != optionMap[i].option) {
+                return AXIS_LIMIT_OPTION_NONE;
+            }
+        }
+    }
+
+    return match;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * GetAxisLimitFromObj --
+ *
+ *      Parses an axis limit without modifying the live Axis record.
+ *
+ *      A NULL or empty object selects automatic scaling and is
+ *      represented internally by VALUE_UNDEFINED.
+ *
+ *----------------------------------------------------------------------
+ */
+static int GetAxisLimitFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, double *valuePtr) {
+    Tcl_Size length;
+
+    if (objPtr == NULL) {
+        *valuePtr = VALUE_UNDEFINED;
+        return TCL_OK;
+    }
+
+    (void)Tcl_GetStringFromObj(objPtr, &length);
+
+    if (length == 0) {
+        *valuePtr = VALUE_UNDEFINED;
+        return TCL_OK;
+    }
+
+    return Tcl_ExprDoubleObj(interp, objPtr, valuePtr);
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * StageAxisLimit --
+ *
+ *      Parses one limit option into temporary transaction storage.
+ *
+ *----------------------------------------------------------------------
+ */
+static int StageAxisLimit(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisLimitOption option,
+                          AxisLimitTransaction *transactionPtr) {
+    double value;
+
+    if (GetAxisLimitFromObj(interp, objPtr, &value) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    switch (option) {
+    case AXIS_LIMIT_OPTION_MIN:
+        transactionPtr->reqMin = value;
+        break;
+
+    case AXIS_LIMIT_OPTION_MAX:
+        transactionPtr->reqMax = value;
+        break;
+
+    case AXIS_LIMIT_OPTION_SCROLL_MIN:
+        transactionPtr->scrollMin = value;
+        break;
+
+    case AXIS_LIMIT_OPTION_SCROLL_MAX:
+        transactionPtr->scrollMax = value;
+        break;
+
+    case AXIS_LIMIT_OPTION_NONE:
+    default:
+        Tcl_Panic("StageAxisLimit called with invalid option");
+
+        return TCL_ERROR;
+    }
+
+    transactionPtr->stagedMask |= AXIS_LIMIT_OPTION_MASK(option);
+
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * PrepareAxisLimitTransaction --
+ *
+ *      Parses all axis-limit values involved in the current modern
+ *      configuration and validates the effective requested range
+ *      without modifying the live Axis record.
+ *
+ *      Explicit repeated occurrences are processed in caller order.
+ *      Therefore an invalid earlier expression is not hidden by a
+ *      valid final occurrence.
+ *
+ *----------------------------------------------------------------------
+ */
+static int PrepareAxisLimitTransaction(Graph *graphPtr, Axis *axisPtr, AxisLimitTransaction *transactionPtr) {
+    unsigned int explicitMask;
+    int i;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+
+    /*
+     * Start with the current effective live values. Options not
+     * involved in this configuration retain these candidates.
+     */
+    transactionPtr->reqMin = axisPtr->reqMin;
+
+    transactionPtr->reqMax = axisPtr->reqMax;
+
+    transactionPtr->scrollMin = axisPtr->scrollMin;
+
+    transactionPtr->scrollMax = axisPtr->scrollMax;
+
+    explicitMask = 0;
+
+    assert((axisPtr->optionObjc & 1) == 0);
+
+    /*
+     * Determine which limit options were explicitly supplied.
+     */
+    for (i = 0; i < axisPtr->optionObjc; i += 2) {
+        AxisLimitOption option;
+
+        option = GetAxisLimitOption(axisPtr->optionObjv[i]);
+
+        if (option != AXIS_LIMIT_OPTION_NONE) {
+            explicitMask |= AXIS_LIMIT_OPTION_MASK(option);
+        }
+    }
+
+    /*
+     * During initial modern configuration, parse option-database
+     * values that were not explicitly overridden.
+     */
+    if (!axisPtr->optionsConfigured) {
+        if (!(explicitMask & AXIS_LIMIT_OPTION_MASK(AXIS_LIMIT_OPTION_MIN)) && (axisPtr->minObjPtr != NULL)) {
+            if (StageAxisLimit(graphPtr->interp, axisPtr->minObjPtr, AXIS_LIMIT_OPTION_MIN, transactionPtr) != TCL_OK) {
+                return TCL_ERROR;
+            }
+        }
+
+        if (!(explicitMask & AXIS_LIMIT_OPTION_MASK(AXIS_LIMIT_OPTION_MAX)) && (axisPtr->maxObjPtr != NULL)) {
+            if (StageAxisLimit(graphPtr->interp, axisPtr->maxObjPtr, AXIS_LIMIT_OPTION_MAX, transactionPtr) != TCL_OK) {
+                return TCL_ERROR;
+            }
+        }
+
+        if (!(explicitMask & AXIS_LIMIT_OPTION_MASK(AXIS_LIMIT_OPTION_SCROLL_MIN)) &&
+            (axisPtr->scrollMinObjPtr != NULL)) {
+            if (StageAxisLimit(graphPtr->interp, axisPtr->scrollMinObjPtr, AXIS_LIMIT_OPTION_SCROLL_MIN,
+                               transactionPtr) != TCL_OK) {
+                return TCL_ERROR;
+            }
+        }
+
+        if (!(explicitMask & AXIS_LIMIT_OPTION_MASK(AXIS_LIMIT_OPTION_SCROLL_MAX)) &&
+            (axisPtr->scrollMaxObjPtr != NULL)) {
+            if (StageAxisLimit(graphPtr->interp, axisPtr->scrollMaxObjPtr, AXIS_LIMIT_OPTION_SCROLL_MAX,
+                               transactionPtr) != TCL_OK) {
+                return TCL_ERROR;
+            }
+        }
+    }
+
+    /*
+     * Process explicit occurrences in caller order.
+     */
+    for (i = 0; i < axisPtr->optionObjc; i += 2) {
+        AxisLimitOption option;
+
+        option = GetAxisLimitOption(axisPtr->optionObjv[i]);
+
+        if (option == AXIS_LIMIT_OPTION_NONE) {
+            continue;
+        }
+
+        if (StageAxisLimit(graphPtr->interp, axisPtr->optionObjv[i + 1], option, transactionPtr) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+
+    /*
+     * Validate the effective requested display limits.
+     */
+    if (DEFINED(transactionPtr->reqMin) && DEFINED(transactionPtr->reqMax) &&
+        (transactionPtr->reqMin >= transactionPtr->reqMax)) {
+        Tcl_SetObjResult(graphPtr->interp,
+                         Tcl_ObjPrintf("impossible limits "
+                                       "(min %g >= max %g) for axis \"%s\"",
+                                       transactionPtr->reqMin, transactionPtr->reqMax, axisPtr->name));
+
+        return TCL_ERROR;
+    }
+
+    /*
+     * Preserve the current legacy validation semantics: only a defined
+     * requested minimum is checked when logarithmic scaling is active.
+     */
+    if (axisPtr->logScale && DEFINED(transactionPtr->reqMin) && (transactionPtr->reqMin <= 0.0)) {
+        Tcl_SetObjResult(graphPtr->interp,
+                         Tcl_ObjPrintf("bad logscale limits "
+                                       "(min=%g,max=%g) for axis \"%s\"",
+                                       transactionPtr->reqMin, transactionPtr->reqMax, axisPtr->name));
+
+        return TCL_ERROR;
+    }
+
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * CommitAxisLimitTransaction --
+ *
+ *      Commits successfully parsed axis limits.
+ *
+ *----------------------------------------------------------------------
+ */
+static void CommitAxisLimitTransaction(Axis *axisPtr, AxisLimitTransaction *transactionPtr) {
+    if (transactionPtr->stagedMask & AXIS_LIMIT_OPTION_MASK(AXIS_LIMIT_OPTION_MIN)) {
+        axisPtr->reqMin = transactionPtr->reqMin;
+    }
+
+    if (transactionPtr->stagedMask & AXIS_LIMIT_OPTION_MASK(AXIS_LIMIT_OPTION_MAX)) {
+        axisPtr->reqMax = transactionPtr->reqMax;
+    }
+
+    if (transactionPtr->stagedMask & AXIS_LIMIT_OPTION_MASK(AXIS_LIMIT_OPTION_SCROLL_MIN)) {
+        axisPtr->scrollMin = transactionPtr->scrollMin;
+    }
+
+    if (transactionPtr->stagedMask & AXIS_LIMIT_OPTION_MASK(AXIS_LIMIT_OPTION_SCROLL_MAX)) {
+        axisPtr->scrollMax = transactionPtr->scrollMax;
+    }
+
+    transactionPtr->stagedMask = 0;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
  * FreeLabels --
  *
  *      TODO: Description
@@ -1299,6 +1631,279 @@ static TickLabel *MakeLabel(Graph *graphPtr, Axis *axisPtr, double value) {
     strcpy(labelPtr->string, string);
     labelPtr->anchorPos.x = labelPtr->anchorPos.y = DBL_MAX;
     return labelPtr;
+}
+
+static void FreeAxisTicks(Ticks *ticksPtr) {
+    if (ticksPtr != NULL) {
+        ckfree((char *)ticksPtr);
+    }
+}
+
+static AxisTickOption GetAxisTickOption(Tcl_Obj *objPtr) {
+    static const struct {
+        const char *name;
+        AxisTickOption option;
+    } optionMap[] = {{"-majorticks", AXIS_TICK_OPTION_MAJOR}, {"-minorticks", AXIS_TICK_OPTION_MINOR}};
+
+    const char *string;
+    Tcl_Size length;
+    AxisTickOption match;
+    size_t i;
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+
+    /*
+     * "-min" is a separate exact option, not an abbreviation of
+     * "-minorticks".
+     */
+    if ((length == 4) && (memcmp(string, "-min", 4) == 0)) {
+        return AXIS_TICK_OPTION_NONE;
+    }
+
+    /*
+     * Prefer exact matches.
+     */
+    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
+        Tcl_Size fullLength;
+
+        fullLength = (Tcl_Size)strlen(optionMap[i].name);
+
+        if ((length == fullLength) && (memcmp(string, optionMap[i].name, (size_t)length) == 0)) {
+            return optionMap[i].option;
+        }
+    }
+
+    /*
+     * Tk_SetOptions has already rejected ambiguous abbreviations.
+     */
+    match = AXIS_TICK_OPTION_NONE;
+
+    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
+        Tcl_Size fullLength;
+
+        fullLength = (Tcl_Size)strlen(optionMap[i].name);
+
+        if ((length > 0) && (length < fullLength) && (strncmp(string, optionMap[i].name, (size_t)length) == 0)) {
+            if (match == AXIS_TICK_OPTION_NONE) {
+                match = optionMap[i].option;
+            } else if (match != optionMap[i].option) {
+                return AXIS_TICK_OPTION_NONE;
+            }
+        }
+    }
+
+    return match;
+}
+
+static int GetAxisTicksFromObj(Graph *graphPtr, Axis *axisPtr, Tcl_Obj *objPtr, AxisTickOption option,
+                               Ticks **ticksPtrPtr) {
+    Axis scratch;
+    Tk_CustomOption *customOptionPtr;
+    Tcl_Size offset;
+    const char *string;
+    Ticks *newTicksPtr;
+    int result;
+
+    scratch = *axisPtr;
+
+    switch (option) {
+    case AXIS_TICK_OPTION_MAJOR:
+        scratch.t1Ptr = NULL;
+        customOptionPtr = &majorTicksOption;
+        offset = offsetof(Axis, t1Ptr);
+        break;
+
+    case AXIS_TICK_OPTION_MINOR:
+        scratch.t2Ptr = NULL;
+        customOptionPtr = &minorTicksOption;
+        offset = offsetof(Axis, t2Ptr);
+        break;
+
+    case AXIS_TICK_OPTION_NONE:
+    default:
+        Tcl_Panic("GetAxisTicksFromObj called with invalid option");
+
+        return TCL_ERROR;
+    }
+
+    string = (objPtr == NULL) ? "" : Tcl_GetString(objPtr);
+
+    result = (*customOptionPtr->parseProc)(customOptionPtr->clientData, graphPtr->interp, graphPtr->tkwin, string,
+                                           (char *)&scratch, offset);
+
+    if (result != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    if (option == AXIS_TICK_OPTION_MAJOR) {
+        newTicksPtr = scratch.t1Ptr;
+    } else {
+        newTicksPtr = scratch.t2Ptr;
+    }
+
+    *ticksPtrPtr = newTicksPtr;
+
+    return TCL_OK;
+}
+
+static int StageAxisTicks(Graph *graphPtr, Axis *axisPtr, Tcl_Obj *objPtr, AxisTickOption option,
+                          AxisTickTransaction *transactionPtr) {
+    Ticks *newTicksPtr;
+    Ticks **candidatePtrPtr;
+    unsigned int mask;
+
+    newTicksPtr = NULL;
+
+    if (GetAxisTicksFromObj(graphPtr, axisPtr, objPtr, option, &newTicksPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    switch (option) {
+    case AXIS_TICK_OPTION_MAJOR:
+        candidatePtrPtr = &transactionPtr->majorTicksPtr;
+        break;
+
+    case AXIS_TICK_OPTION_MINOR:
+        candidatePtrPtr = &transactionPtr->minorTicksPtr;
+        break;
+
+    case AXIS_TICK_OPTION_NONE:
+    default:
+        Tcl_Panic("StageAxisTicks called with invalid option");
+
+        return TCL_ERROR;
+    }
+
+    mask = AXIS_TICK_OPTION_MASK(option);
+
+    /*
+     * Parse the replacement before releasing an earlier staged
+     * candidate.
+     */
+    if (transactionPtr->stagedMask & mask) {
+        FreeAxisTicks(*candidatePtrPtr);
+    }
+
+    *candidatePtrPtr = newTicksPtr;
+    transactionPtr->stagedMask |= mask;
+
+    return TCL_OK;
+}
+
+static void FreeAxisTickTransaction(AxisTickTransaction *transactionPtr) {
+    FreeAxisTicks(transactionPtr->majorTicksPtr);
+
+    FreeAxisTicks(transactionPtr->minorTicksPtr);
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+}
+
+static int PrepareAxisTickTransaction(Graph *graphPtr, Axis *axisPtr, AxisTickTransaction *transactionPtr) {
+    unsigned int explicitMask;
+    int i;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+
+    explicitMask = 0;
+
+    assert((axisPtr->optionObjc & 1) == 0);
+
+    /*
+     * Determine which tick options were explicitly supplied.
+     */
+    for (i = 0; i < axisPtr->optionObjc; i += 2) {
+        AxisTickOption option;
+
+        option = GetAxisTickOption(axisPtr->optionObjv[i]);
+
+        if (option != AXIS_TICK_OPTION_NONE) {
+            explicitMask |= AXIS_TICK_OPTION_MASK(option);
+        }
+    }
+
+    /*
+     * On initial modern configuration, parse option-database values
+     * that were not explicitly overridden.
+     */
+    if (!axisPtr->optionsConfigured) {
+        if (!(explicitMask & AXIS_TICK_OPTION_MASK(AXIS_TICK_OPTION_MAJOR)) && (axisPtr->majorTicksObjPtr != NULL)) {
+            if (StageAxisTicks(graphPtr, axisPtr, axisPtr->majorTicksObjPtr, AXIS_TICK_OPTION_MAJOR, transactionPtr) !=
+                TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & AXIS_TICK_OPTION_MASK(AXIS_TICK_OPTION_MINOR)) && (axisPtr->minorTicksObjPtr != NULL)) {
+            if (StageAxisTicks(graphPtr, axisPtr, axisPtr->minorTicksObjPtr, AXIS_TICK_OPTION_MINOR, transactionPtr) !=
+                TCL_OK) {
+                goto error;
+            }
+        }
+    }
+
+    /*
+     * Process explicit repeated occurrences in caller order.
+     */
+    for (i = 0; i < axisPtr->optionObjc; i += 2) {
+        AxisTickOption option;
+
+        option = GetAxisTickOption(axisPtr->optionObjv[i]);
+
+        if (option == AXIS_TICK_OPTION_NONE) {
+            continue;
+        }
+
+        if (StageAxisTicks(graphPtr, axisPtr, axisPtr->optionObjv[i + 1], option, transactionPtr) != TCL_OK) {
+            goto error;
+        }
+    }
+
+    return TCL_OK;
+
+error:
+    FreeAxisTickTransaction(transactionPtr);
+
+    return TCL_ERROR;
+}
+
+static void CommitAxisTickTransaction(Axis *axisPtr, AxisTickTransaction *transactionPtr) {
+    if (transactionPtr->stagedMask & AXIS_TICK_OPTION_MASK(AXIS_TICK_OPTION_MAJOR)) {
+        Ticks *oldTicksPtr;
+
+        oldTicksPtr = axisPtr->t1Ptr;
+
+        axisPtr->t1Ptr = transactionPtr->majorTicksPtr;
+
+        transactionPtr->majorTicksPtr = NULL;
+
+        axisPtr->flags &= ~AXIS_CONFIG_MAJOR;
+
+        if (axisPtr->t1Ptr != NULL) {
+            axisPtr->flags |= AXIS_CONFIG_MAJOR;
+        }
+
+        FreeAxisTicks(oldTicksPtr);
+    }
+
+    if (transactionPtr->stagedMask & AXIS_TICK_OPTION_MASK(AXIS_TICK_OPTION_MINOR)) {
+        Ticks *oldTicksPtr;
+
+        oldTicksPtr = axisPtr->t2Ptr;
+
+        axisPtr->t2Ptr = transactionPtr->minorTicksPtr;
+
+        transactionPtr->minorTicksPtr = NULL;
+
+        axisPtr->flags &= ~AXIS_CONFIG_MINOR;
+
+        if (axisPtr->t2Ptr != NULL) {
+            axisPtr->flags |= AXIS_CONFIG_MINOR;
+        }
+
+        FreeAxisTicks(oldTicksPtr);
+    }
+
+    transactionPtr->stagedMask = 0;
 }
 
 /*
@@ -3568,26 +4173,77 @@ void Rbc_LayoutMargins(Graph *graphPtr) {
  * ----------------------------------------------------------------------
  */
 static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
-    char errMsg[200];
+    AxisLimitTransaction limitTransaction;
+    AxisTickTransaction tickTransaction;
+    int limitTransactionPrepared;
+    int tickTransactionPrepared;
 
-    /* Check the requested axis limits. Can't allow -min to be greater
-     * than -max, or have undefined log scale limits.  */
-    if (((DEFINED(axisPtr->reqMin)) && (DEFINED(axisPtr->reqMax))) && (axisPtr->reqMin >= axisPtr->reqMax)) {
-        sprintf(errMsg, "impossible limits (min %g >= max %g) for axis \"%s\"", axisPtr->reqMin, axisPtr->reqMax,
-                axisPtr->name);
-        Tcl_AppendResult(graphPtr->interp, errMsg, (char *)NULL);
-        /* Bad values, turn on axis auto-scaling */
-        axisPtr->reqMin = axisPtr->reqMax = VALUE_UNDEFINED;
-        return TCL_ERROR;
+    memset(&limitTransaction, 0, sizeof(limitTransaction));
+
+    memset(&tickTransaction, 0, sizeof(tickTransaction));
+
+    limitTransactionPrepared = FALSE;
+    tickTransactionPrepared = FALSE;
+
+    /*
+     * Parse and validate retained axis-limit objects before modifying the
+     * live requested range.
+     */
+    if ((axisPtr->optionSpecs != NULL) &&
+        ((!axisPtr->optionsConfigured) ||
+         (axisPtr->optionMask & (AXIS_LIMITS_MASK | AXIS_SCROLL_LIMITS_MASK | AXIS_LOG_SCALE_MASK)))) {
+        if (PrepareAxisLimitTransaction(graphPtr, axisPtr, &limitTransaction) != TCL_OK) {
+            goto error;
+        }
+
+        limitTransactionPrepared = TRUE;
     }
-    if ((axisPtr->logScale) && (DEFINED(axisPtr->reqMin)) && (axisPtr->reqMin <= 0.0)) {
-        sprintf(errMsg, "bad logscale limits (min=%g,max=%g) for axis \"%s\"", axisPtr->reqMin, axisPtr->reqMax,
-                axisPtr->name);
-        Tcl_AppendResult(graphPtr->interp, errMsg, (char *)NULL);
-        /* Bad minimum value, turn on auto-scaling */
-        axisPtr->reqMin = VALUE_UNDEFINED;
-        return TCL_ERROR;
+
+    /*
+     * Parse explicit major and minor tick lists before replacing the live
+     * tick allocations.
+     */
+    if ((axisPtr->optionSpecs != NULL) && ((!axisPtr->optionsConfigured) || (axisPtr->optionMask & AXIS_TICKS_MASK))) {
+        if (PrepareAxisTickTransaction(graphPtr, axisPtr, &tickTransaction) != TCL_OK) {
+            goto error;
+        }
+
+        tickTransactionPrepared = TRUE;
     }
+
+    if (axisPtr->optionSpecs == NULL) {
+        char errMsg[200];
+        /* Check the requested axis limits. Can't allow -min to be greater
+         * than -max, or have undefined log scale limits.  */
+        if (((DEFINED(axisPtr->reqMin)) && (DEFINED(axisPtr->reqMax))) && (axisPtr->reqMin >= axisPtr->reqMax)) {
+            sprintf(errMsg, "impossible limits (min %g >= max %g) for axis \"%s\"", axisPtr->reqMin, axisPtr->reqMax,
+                    axisPtr->name);
+            Tcl_AppendResult(graphPtr->interp, errMsg, (char *)NULL);
+            /* Bad values, turn on axis auto-scaling */
+            axisPtr->reqMin = axisPtr->reqMax = VALUE_UNDEFINED;
+            return TCL_ERROR;
+        }
+        if ((axisPtr->logScale) && (DEFINED(axisPtr->reqMin)) && (axisPtr->reqMin <= 0.0)) {
+            sprintf(errMsg, "bad logscale limits (min=%g,max=%g) for axis \"%s\"", axisPtr->reqMin, axisPtr->reqMax,
+                    axisPtr->name);
+            Tcl_AppendResult(graphPtr->interp, errMsg, (char *)NULL);
+            /* Bad minimum value, turn on auto-scaling */
+            axisPtr->reqMin = VALUE_UNDEFINED;
+            return TCL_ERROR;
+        }
+    }
+
+    /*
+     * No operation below this point can report a configuration error.
+     */
+    if (limitTransactionPrepared) {
+        CommitAxisLimitTransaction(axisPtr, &limitTransaction);
+    }
+
+    if (tickTransactionPrepared) {
+        CommitAxisTickTransaction(axisPtr, &tickTransaction);
+    }
+
     axisPtr->tickTextStyle.theta = FMOD(axisPtr->tickTextStyle.theta, 360.0);
     if (axisPtr->tickTextStyle.theta < 0.0) {
         axisPtr->tickTextStyle.theta += 360.0;
@@ -3618,6 +4274,13 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
     Rbc_EventuallyRedrawGraph(graphPtr);
 
     return TCL_OK;
+
+error:
+    if (tickTransactionPrepared) {
+        FreeAxisTickTransaction(&tickTransaction);
+    }
+
+    return TCL_ERROR;
 }
 
 /*
@@ -3646,17 +4309,6 @@ static Axis *CreateAxis(Graph *graphPtr, char *name, int margin) {
     Tcl_HashEntry *hPtr;
     int isNew;
 
-    axisPtr->optionSpecs = NULL;
-    axisPtr->optionTable = NULL;
-
-    axisPtr->optionMask = 0;
-    axisPtr->optionObjc = 0;
-    axisPtr->optionObjv = NULL;
-
-    axisPtr->optionsConfigured = FALSE;
-    axisPtr->optionsInitialized = FALSE;
-    axisPtr->tkResourcesReleased = FALSE;
-
     if (name[0] == '-') {
         Tcl_AppendResult(graphPtr->interp, "name of axis \"", name, "\" can't start with a '-'", (char *)NULL);
         return NULL;
@@ -3673,6 +4325,17 @@ static Axis *CreateAxis(Graph *graphPtr, char *name, int margin) {
     } else {
         axisPtr = RbcCalloc(1, sizeof(Axis));
         assert(axisPtr);
+
+        axisPtr->optionSpecs = NULL;
+        axisPtr->optionTable = NULL;
+
+        axisPtr->optionMask = 0;
+        axisPtr->optionObjc = 0;
+        axisPtr->optionObjv = NULL;
+
+        axisPtr->optionsConfigured = FALSE;
+        axisPtr->optionsInitialized = FALSE;
+        axisPtr->tkResourcesReleased = FALSE;
 
         axisPtr->name = RbcStrdup(name);
         axisPtr->hashPtr = hPtr;
