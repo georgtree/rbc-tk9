@@ -144,8 +144,7 @@ static Tk_CustomOption looseOption = {
  * Axis option conversion masks.
  *
  * These typeMask bits describe post-Tk_SetOptions work performed by
- * the modern axis configuration path. The modern option table remains
- * inactive until all corresponding transactions have been added.
+ * the modern axis configuration path.
  */
 #define AXIS_TAGS_MASK (1u << 0)
 #define AXIS_LIMITS_FORMAT_MASK (1u << 1)
@@ -5648,7 +5647,7 @@ static Axis *CreateAxis(Graph *graphPtr, char *name, int margin) {
         axisPtr = RbcCalloc(1, sizeof(Axis));
         assert(axisPtr);
 
-        axisPtr->optionSpecs = NULL;
+        axisPtr->optionSpecs = axisOptionSpecs;
         axisPtr->optionTable = NULL;
 
         axisPtr->optionMask = 0;
@@ -5870,42 +5869,48 @@ void Rbc_DestroyAxes(Graph *graphPtr) {
  *----------------------------------------------------------------------
  */
 int Rbc_DefaultAxes(Graph *graphPtr) {
-    register int i;
+    static char *axisNames[4] = {"x", "y", "x2", "y2"};
+
     Axis *axisPtr;
     Rbc_Chain *chainPtr;
-    static char *axisNames[4] = {"x", "y", "x2", "y2"};
-    int flags;
+    int i;
 
-    flags = Rbc_GraphType(graphPtr);
     for (i = 0; i < 4; i++) {
         chainPtr = Rbc_ChainCreate();
         graphPtr->axisChain[i] = chainPtr;
 
-        /* Create a default axis for each chain. */
+        /*
+         * Create a default axis for each margin.
+         */
         axisPtr = CreateAxis(graphPtr, axisNames[i], i);
+
         if (axisPtr == NULL) {
             return TCL_ERROR;
         }
-        axisPtr->refCount = 1; /* Default axes are assumed in use. */
+
+        /*
+         * Default axes are assumed to be in use and visible on their
+         * respective margins.
+         */
+        axisPtr->refCount = 1;
+
         axisPtr->classUid = (i & 1) ? rbcYAxisUid : rbcXAxisUid;
+
         axisPtr->flags |= AXIS_ONSCREEN;
 
         /*
-         * Rbc_ConfigureWidgetComponent creates a temporary child window
-         * by the name of the axis.  It's used so that the Tk routines
-         * that access the X resource database can describe a single
-         * component and not the entire graph.
+         * Initialise the modern option table, apply option-database
+         * defaults, and construct the derived axis resources.
          */
-        if (Rbc_ConfigureWidgetComponent(graphPtr->interp, graphPtr->tkwin, axisPtr->name, "Axis", configSpecs, 0,
-                                         (Tcl_Obj *const *)NULL, (char *)axisPtr, flags) != TCL_OK) {
+        if (ConfigureNewAxis(graphPtr, axisPtr, 0, NULL) != TCL_OK) {
             return TCL_ERROR;
         }
-        if (ConfigureAxis(graphPtr, axisPtr) != TCL_OK) {
-            return TCL_ERROR;
-        }
+
         axisPtr->linkPtr = Rbc_ChainAppend(chainPtr, axisPtr);
+
         axisPtr->chainPtr = chainPtr;
     }
+
     return TCL_OK;
 }
 
@@ -6012,6 +6017,9 @@ static int ConfigureOp(Graph *graphPtr, Axis *axisPtr, int margin, int objc, Tcl
 
     flags = TK_CONFIG_ARGV_ONLY | Rbc_GraphType(graphPtr);
 
+    /*
+     * Return configuration information for all options.
+     */
     if (objc == 0) {
         if (axisPtr->optionSpecs != NULL) {
             Tcl_Obj *infoObjPtr;
@@ -6034,6 +6042,9 @@ static int ConfigureOp(Graph *graphPtr, Axis *axisPtr, int margin, int objc, Tcl
         return Tk_ConfigureInfo(graphPtr->interp, graphPtr->tkwin, configSpecs, (char *)axisPtr, NULL, flags);
     }
 
+    /*
+     * Return configuration information for one option.
+     */
     if (objc == 1) {
         if (axisPtr->optionSpecs != NULL) {
             Tcl_Obj *infoObjPtr;
@@ -6057,20 +6068,18 @@ static int ConfigureOp(Graph *graphPtr, Axis *axisPtr, int margin, int objc, Tcl
                                 flags);
     }
 
+    /*
+     * Apply option/value pairs.
+     */
     if (axisPtr->optionSpecs != NULL) {
-        int optionMask;
-
-        if (ConfigureAxisOptions(graphPtr, axisPtr, objc, objv, &optionMask) != TCL_OK) {
+        if (ConfigureAxisOptions(graphPtr, axisPtr, objc, objv, NULL) != TCL_OK) {
             return TCL_ERROR;
         }
-
-        /*
-         * The next step will replace the legacy
-         * Rbc_ConfigModified() test below with mask-based
-         * invalidation.
-         */
-        (void)optionMask;
     } else {
+        /*
+         * Temporary legacy fallback. No newly created axis should use
+         * this path after axisOptionSpecs is activated.
+         */
         if (Tk_ConfigureWidget(graphPtr->interp, graphPtr->tkwin, configSpecs, objc, objv, axisPtr, flags) != TCL_OK) {
             return TCL_ERROR;
         }
@@ -6081,7 +6090,17 @@ static int ConfigureOp(Graph *graphPtr, Axis *axisPtr, int margin, int objc, Tcl
     }
 
     if (axisPtr->flags & AXIS_ONSCREEN) {
-        if (!Rbc_ConfigModified(graphPtr->interp, configSpecs, "-*color", "-background", "-bg", (char *)NULL)) {
+        if (axisPtr->optionSpecs != NULL) {
+            /*
+             * Do not use Rbc_ConfigModified here: it tracks the legacy
+             * Tk_ConfigSpec configuration path, not Tk_SetOptions.
+             *
+             * Be conservative during initial activation. ConfigureAxis
+             * already performs full axis invalidation, so rebuilding the
+             * backing store is safe.
+             */
+            graphPtr->flags |= REDRAW_BACKING_STORE;
+        } else if (!Rbc_ConfigModified(graphPtr->interp, configSpecs, "-*color", "-background", "-bg", (char *)NULL)) {
             graphPtr->flags |= REDRAW_BACKING_STORE;
         }
 
@@ -6392,24 +6411,24 @@ static int BindVirtualOp(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) {
  */
 static int CreateVirtualOp(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) {
     Axis *axisPtr;
-    int flags;
 
     axisPtr = CreateAxis(graphPtr, Tcl_GetString(objv[3]), MARGIN_NONE);
+
     if (axisPtr == NULL) {
         return TCL_ERROR;
     }
-    flags = Rbc_GraphType(graphPtr);
-    if (Rbc_ConfigureWidgetComponent(graphPtr->interp, graphPtr->tkwin, axisPtr->name, "Axis", configSpecs, objc - 4,
-                                     objv + 4, (char *)axisPtr, flags) != TCL_OK) {
+
+    if (ConfigureNewAxis(graphPtr, axisPtr, objc - 4, objv + 4) != TCL_OK) {
         goto error;
     }
-    if (ConfigureAxis(graphPtr, axisPtr) != TCL_OK) {
-        goto error;
-    }
+
     Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj(axisPtr->name, -1));
+
     return TCL_OK;
+
 error:
     DestroyAxis(graphPtr, axisPtr);
+
     return TCL_ERROR;
 }
 

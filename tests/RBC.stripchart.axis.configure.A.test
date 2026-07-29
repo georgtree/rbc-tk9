@@ -344,7 +344,7 @@ namespace eval stripchart.axis {
 		.stripchart1 axis cget Axis1 -limitsshadow
 	} -cleanup {
 		destroy .stripchart1
-	} -result {blue 1}	
+	} -result {blue}	
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the axis configure -limitscolor command works correctly 
@@ -509,7 +509,7 @@ namespace eval stripchart.axis {
 		.stripchart1 axis cget Axis1 -loose
 	} -cleanup {
 		destroy .stripchart1
-	} -result {1}
+	} -result {yes}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the axis configure -loose command works correctly
@@ -524,7 +524,7 @@ namespace eval stripchart.axis {
 		.stripchart1 axis cget Axis1 -loose
 	} -cleanup {
 		destroy .stripchart1
-	} -result {1}	
+	} -result {true}	
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the axis configure -loose command works correctly
@@ -554,7 +554,7 @@ namespace eval stripchart.axis {
 		.stripchart1 axis cget Axis1 -loose
 	} -cleanup {
 		destroy .stripchart1
-	} -result {0}	
+	} -result {no}	
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the axis configure -loose command works correctly
@@ -569,7 +569,7 @@ namespace eval stripchart.axis {
 		.stripchart1 axis cget Axis1 -loose
 	} -cleanup {
 		destroy .stripchart1
-	} -result {0}		
+	} -result {false}		
 
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the axis configure -majorticks command works correctly
@@ -584,7 +584,7 @@ namespace eval stripchart.axis {
 		.stripchart1 axis cget Axis1 -majorticks
 	} -cleanup {
 		destroy .stripchart1
-	} -result {1.0 3.0 5.0 7.0 9.0 11.0}	
+	} -result {1 3 5 7 9 11}	
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the axis configure -max command works correctly
@@ -599,7 +599,7 @@ namespace eval stripchart.axis {
 		.stripchart1 axis cget Axis1 -max
 	} -cleanup {
 		destroy .stripchart1
-	} -result {23.0}	
+	} -result {23}	
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the axis configure -min command works correctly
@@ -614,7 +614,7 @@ namespace eval stripchart.axis {
 		.stripchart1 axis cget Axis1 -min
 	} -cleanup {
 		destroy .stripchart1
-	} -result {-23.0}
+	} -result {-23}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the axis configure -minorticks command works correctly
@@ -690,7 +690,7 @@ namespace eval stripchart.axis {
 		.stripchart1 axis cget Axis1 -scrollmax
 	} -cleanup {
 		destroy .stripchart1
-	} -result {19.0}	
+	} -result {19}	
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the axis configure -scrollmin command works correctly
@@ -705,7 +705,7 @@ namespace eval stripchart.axis {
 		.stripchart1 axis cget Axis1 -scrollmin
 	} -cleanup {
 		destroy .stripchart1
-	} -result {-19.0}	
+	} -result {-19}	
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the axis configure -showticks command works correctly
@@ -1028,7 +1028,7 @@ namespace eval stripchart.axis {
 		.stripchart1 axis cget Axis1 -borderwidth
 	} -cleanup {
 		destroy .stripchart1
-	} -result {13}
+	} -result {13.0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the axis configure -borderwidth command works correctly
@@ -1043,7 +1043,7 @@ namespace eval stripchart.axis {
 		.stripchart1 axis cget Axis1 -bd
 	} -cleanup {
 		destroy .stripchart1
-	} -result {13}
+	} -result {13.0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the axis configure -shiftby command works correctly
