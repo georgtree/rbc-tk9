@@ -93,6 +93,34 @@ typedef struct {
 
     Graph *graphPtr; /* Graph widget of element*/
 
+    const Tk_OptionSpec *optionSpecs;
+    Tk_OptionTable optionTable;
+
+    int optionMask;
+    int optionObjc;
+    Tcl_Obj *const *optionObjv;
+
+    int optionsConfigured;
+    int optionsInitialized;
+    int tkResourcesReleased;
+
+    Tcl_Obj *bindTagsObjPtr;
+    Tcl_Obj *limitsFormatObjPtr;
+    Tcl_Obj *limitsShadowObjPtr;
+    Tcl_Obj *looseObjPtr;
+    Tcl_Obj *majorTicksObjPtr;
+    Tcl_Obj *minorTicksObjPtr;
+    Tcl_Obj *minObjPtr;
+    Tcl_Obj *maxObjPtr;
+    Tcl_Obj *scrollMinObjPtr;
+    Tcl_Obj *scrollMaxObjPtr;
+    Tcl_Obj *tickShadowObjPtr;
+    Tcl_Obj *titleShadowObjPtr;
+
+    Tcl_Obj *borderWidthObjPtr;
+    Tcl_Obj *lineWidthObjPtr;
+    Tcl_Obj *scrollIncrementObjPtr;
+
     unsigned int flags; /* Set bit field definitions below */
 
     /*

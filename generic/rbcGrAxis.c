@@ -140,6 +140,57 @@ static Tk_CustomOption looseOption = {
 #define DEF_AXIS_BORDERWIDTH "0"
 #define DEF_AXIS_RELIEF "flat"
 
+/*
+ * Axis option conversion masks.
+ *
+ * These typeMask bits describe post-Tk_SetOptions work performed by
+ * the modern axis configuration path. The modern option table remains
+ * inactive until all corresponding transactions have been added.
+ */
+#define AXIS_TAGS_MASK (1u << 0)
+#define AXIS_LIMITS_FORMAT_MASK (1u << 1)
+#define AXIS_LIMITS_SHADOW_MASK (1u << 2)
+#define AXIS_LOOSE_MASK (1u << 3)
+#define AXIS_MAJOR_TICKS_MASK (1u << 4)
+#define AXIS_MINOR_TICKS_MASK (1u << 5)
+#define AXIS_LIMITS_MASK (1u << 6)
+#define AXIS_SCROLL_LIMITS_MASK (1u << 7)
+#define AXIS_TICK_SHADOW_MASK (1u << 8)
+#define AXIS_TITLE_SHADOW_MASK (1u << 9)
+#define AXIS_PIXELS_MASK (1u << 10)
+#define AXIS_TEXT_STYLE_MASK (1u << 11)
+#define AXIS_LAYOUT_MASK (1u << 12)
+#define AXIS_MAP_MASK (1u << 13)
+#define AXIS_REDRAW_MASK (1u << 14)
+
+/*
+ * Options that affect the axis's requested numerical range.
+ */
+#define AXIS_RANGE_MASK (AXIS_LIMITS_MASK | AXIS_SCROLL_LIMITS_MASK | AXIS_LOOSE_MASK)
+
+/*
+ * Options that affect tick generation.
+ */
+#define AXIS_TICKS_MASK (AXIS_MAJOR_TICKS_MASK | AXIS_MINOR_TICKS_MASK)
+
+/*
+ * Options that require recalculating axis geometry.
+ */
+#define AXIS_GEOMETRY_MASK                                                                                             \
+    (AXIS_RANGE_MASK | AXIS_TICKS_MASK | AXIS_PIXELS_MASK | AXIS_TEXT_STYLE_MASK | AXIS_LAYOUT_MASK)
+
+/*
+ * Options that require remapping graph contents against this axis.
+ */
+#define AXIS_RESET_MASK (AXIS_GEOMETRY_MASK | AXIS_MAP_MASK)
+
+/*
+ * Manually parsed options retained as Tcl objects.
+ */
+#define AXIS_TRANSACTION_MASK                                                                                          \
+    (AXIS_TAGS_MASK | AXIS_LIMITS_FORMAT_MASK | AXIS_LIMITS_SHADOW_MASK | AXIS_LOOSE_MASK | AXIS_TICKS_MASK |          \
+     AXIS_LIMITS_MASK | AXIS_SCROLL_LIMITS_MASK | AXIS_TICK_SHADOW_MASK | AXIS_TITLE_SHADOW_MASK | AXIS_PIXELS_MASK)
+
 static Tk_ConfigSpec configSpecs[] = {
     {TK_CONFIG_DOUBLE, "-autorange", "autoRange", "AutoRange", DEF_AXIS_RANGE, offsetof(Axis, windowSize),
      ALL_GRAPHS | TK_CONFIG_DONT_SET_DEFAULT},
@@ -237,6 +288,95 @@ static Tk_ConfigSpec configSpecs[] = {
      TK_CONFIG_MONO_ONLY | ALL_GRAPHS, &rbcShadowOption},
     {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}};
 
+static const Tk_OptionSpec axisOptionSpecs[] = {
+    {TK_OPTION_DOUBLE, "-autorange", "autoRange", "AutoRange", DEF_AXIS_RANGE, -1, offsetof(Axis, windowSize),
+     TK_OPTION_DONT_SET_DEFAULT, NULL, AXIS_RESET_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_BORDER, "-background", "background", "Background", DEF_AXIS_BACKGROUND, -1, offsetof(Axis, border),
+     TK_OPTION_NULL_OK, NULL, AXIS_REDRAW_MASK},
+    {TK_OPTION_SYNONYM, "-bg", NULL, NULL, NULL, -1, -1, 0, "-background", 0},
+    {TK_OPTION_STRING, "-bindtags", "bindTags", "BindTags", DEF_AXIS_TAGS, offsetof(Axis, bindTagsObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, AXIS_TAGS_MASK},
+    {TK_OPTION_SYNONYM, "-bd", NULL, NULL, NULL, -1, -1, 0, "-borderwidth", 0},
+    {TK_OPTION_STRING, "-borderwidth", "borderWidth", "BorderWidth", DEF_AXIS_BORDERWIDTH,
+     offsetof(Axis, borderWidthObjPtr), -1, 0, NULL, AXIS_PIXELS_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {/*
+      * Tk_OptionSpec has no COLOR_ONLY/MONO_ONLY selection.
+      * Use the standard colour-display default.
+      */
+     TK_OPTION_COLOR, "-color", "color", "Color", DEF_AXIS_FOREGROUND, -1, offsetof(Axis, tickTextStyle.color), 0, NULL,
+     AXIS_REDRAW_MASK},
+    {TK_OPTION_STRING, "-command", "command", "Command", DEF_AXIS_COMMAND, -1, offsetof(Axis, formatCmd),
+     TK_OPTION_NULL_OK, NULL, AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_BOOLEAN, "-descending", "descending", "Descending", DEF_AXIS_DESCENDING, -1, offsetof(Axis, descending),
+     TK_OPTION_DONT_SET_DEFAULT, NULL, AXIS_MAP_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_AXIS_HIDE, -1, offsetof(Axis, hidden), TK_OPTION_DONT_SET_DEFAULT,
+     NULL, AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_JUSTIFY, "-justify", "justify", "Justify", DEF_AXIS_JUSTIFY, -1, offsetof(Axis, titleTextStyle.justify),
+     TK_OPTION_DONT_SET_DEFAULT, NULL, AXIS_TEXT_STYLE_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_BOOLEAN, "-labeloffset", "labelOffset", "LabelOffset", NULL, -1, offsetof(Axis, labelOffset), 0, NULL,
+     AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_COLOR, "-limitscolor", "limitsColor", "Color", DEF_AXIS_FOREGROUND, -1,
+     offsetof(Axis, limitsTextStyle.color), 0, NULL, AXIS_REDRAW_MASK},
+    {TK_OPTION_FONT, "-limitsfont", "limitsFont", "Font", DEF_AXIS_TICK_FONT, -1, offsetof(Axis, limitsTextStyle.font),
+     0, NULL, AXIS_TEXT_STYLE_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_STRING, "-limitsformat", "limitsFormat", "LimitsFormat", NULL, offsetof(Axis, limitsFormatObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, AXIS_LIMITS_FORMAT_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_STRING, "-limitsshadow", "limitsShadow", "Shadow", NULL, offsetof(Axis, limitsShadowObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, AXIS_LIMITS_SHADOW_MASK | AXIS_TEXT_STYLE_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_STRING, "-linewidth", "lineWidth", "LineWidth", DEF_AXIS_LINE_WIDTH, offsetof(Axis, lineWidthObjPtr), -1,
+     0, NULL, AXIS_PIXELS_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_BOOLEAN, "-logscale", "logScale", "LogScale", DEF_AXIS_LOGSCALE, -1, offsetof(Axis, logScale),
+     TK_OPTION_DONT_SET_DEFAULT, NULL, AXIS_MAP_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_STRING, "-loose", "loose", "Loose", DEF_AXIS_LOOSE, offsetof(Axis, looseObjPtr), -1, 0, NULL,
+     AXIS_LOOSE_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_STRING, "-majorticks", "majorTicks", "MajorTicks", NULL, offsetof(Axis, majorTicksObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, AXIS_MAJOR_TICKS_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_STRING, "-max", "max", "Max", NULL, offsetof(Axis, maxObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     AXIS_LIMITS_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_STRING, "-min", "min", "Min", NULL, offsetof(Axis, minObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     AXIS_LIMITS_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_STRING, "-minorticks", "minorTicks", "MinorTicks", NULL, offsetof(Axis, minorTicksObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, AXIS_MINOR_TICKS_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_RELIEF, "-relief", "relief", "Relief", DEF_AXIS_RELIEF, -1, offsetof(Axis, relief),
+     TK_OPTION_DONT_SET_DEFAULT, NULL, AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_DOUBLE, "-rotate", "rotate", "Rotate", DEF_AXIS_ROTATE, -1, offsetof(Axis, tickTextStyle.theta),
+     TK_OPTION_DONT_SET_DEFAULT, NULL, AXIS_TEXT_STYLE_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_STRING, "-scrollcommand", "scrollCommand", "ScrollCommand", NULL, -1, offsetof(Axis, scrollCmdPrefix),
+     TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING, "-scrollincrement", "scrollIncrement", "ScrollIncrement", DEF_AXIS_SCROLL_INCREMENT,
+     offsetof(Axis, scrollIncrementObjPtr), -1, 0, NULL, AXIS_PIXELS_MASK},
+    {TK_OPTION_STRING, "-scrollmax", "scrollMax", "ScrollMax", NULL, offsetof(Axis, scrollMaxObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, AXIS_SCROLL_LIMITS_MASK},
+    {TK_OPTION_STRING, "-scrollmin", "scrollMin", "ScrollMin", NULL, offsetof(Axis, scrollMinObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, AXIS_SCROLL_LIMITS_MASK},
+    {TK_OPTION_DOUBLE, "-shiftby", "shiftBy", "ShiftBy", DEF_AXIS_SHIFTBY, -1, offsetof(Axis, shiftBy),
+     TK_OPTION_DONT_SET_DEFAULT, NULL, AXIS_MAP_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_BOOLEAN, "-showticks", "showTicks", "ShowTicks", DEF_AXIS_SHOWTICKS, -1, offsetof(Axis, showTicks),
+     TK_OPTION_DONT_SET_DEFAULT, NULL, AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_DOUBLE, "-stepsize", "stepSize", "StepSize", DEF_AXIS_STEP, -1, offsetof(Axis, reqStep),
+     TK_OPTION_DONT_SET_DEFAULT, NULL, AXIS_MAP_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_DOUBLE, "-tickdivider", "tickDivider", "TickDivider", DEF_AXIS_STEP, -1, offsetof(Axis, tickZoom),
+     TK_OPTION_DONT_SET_DEFAULT, NULL, AXIS_MAP_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_INT, "-subdivisions", "subdivisions", "Subdivisions", DEF_AXIS_SUBDIVISIONS, -1,
+     offsetof(Axis, reqNumMinorTicks), 0, NULL, AXIS_MAP_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_FONT, "-tickfont", "tickFont", "Font", DEF_AXIS_TICK_FONT, -1, offsetof(Axis, tickTextStyle.font), 0,
+     NULL, AXIS_TEXT_STYLE_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_PIXELS, "-ticklength", "tickLength", "TickLength", DEF_AXIS_TICK_LENGTH, -1, offsetof(Axis, tickLength),
+     0, NULL, AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_STRING, "-tickshadow", "tickShadow", "Shadow", NULL, offsetof(Axis, tickShadowObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, AXIS_TICK_SHADOW_MASK | AXIS_TEXT_STYLE_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_STRING, "-title", "title", "Title", NULL, -1, offsetof(Axis, title),
+     TK_OPTION_DONT_SET_DEFAULT | TK_OPTION_NULL_OK, NULL, AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_BOOLEAN, "-titlealternate", "titleAlternate", "TitleAlternate", DEF_AXIS_TITLE_ALTERNATE, -1,
+     offsetof(Axis, titleAlternate), TK_OPTION_DONT_SET_DEFAULT, NULL, AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_COLOR, "-titlecolor", "titleColor", "Color", DEF_AXIS_FOREGROUND, -1,
+     offsetof(Axis, titleTextStyle.color), 0, NULL, AXIS_REDRAW_MASK},
+    {TK_OPTION_FONT, "-titlefont", "titleFont", "Font", DEF_AXIS_TITLE_FONT, -1, offsetof(Axis, titleTextStyle.font), 0,
+     NULL, AXIS_TEXT_STYLE_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_STRING, "-titleshadow", "titleShadow", "Shadow", NULL, offsetof(Axis, titleShadowObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, AXIS_TITLE_SHADOW_MASK | AXIS_TEXT_STYLE_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
+
 /* Rotation for each axis title */
 static double titleRotate[4] = {0.0, 90.0, 0.0, 270.0};
 
@@ -274,6 +414,10 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr);
 static int NameToAxis(Graph *graphPtr, const char *name, Axis **axisPtrPtr);
 static int GetAxis(Graph *graphPtr, const char *name, Rbc_Uid classUid, Axis **axisPtrPtr);
 static void FreeAxis(Graph *graphPtr, Axis *axisPtr);
+
+static int InitAxisOptions(Graph *graphPtr, Axis *axisPtr);
+static int ConfigureAxisOptions(Graph *graphPtr, Axis *axisPtr, int objc, Tcl_Obj *const objv[], int *maskPtr);
+static void ReleaseAxisOptionResources(Graph *graphPtr, Axis *axisPtr);
 
 typedef int(RbcGrAxisOp)(Graph *, Axis *, int, int, Tcl_Obj *const[]);
 typedef RbcGrAxisOp *RbcGrAxisOpPtr;
@@ -914,6 +1058,154 @@ static const char *LooseToString(ClientData clientData, Tk_Window tkwin, char *w
     Tcl_DStringFree(&dString);
     *freeProcPtr = (Tcl_FreeProc *)Tcl_Free;
     return result;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * InitAxisOptions --
+ *
+ *      Creates the axis option table and installs its default and
+ *      option-database values.
+ *
+ *      This function does not construct derived axis resources.
+ *      ConfigureAxisOptions performs that work through ConfigureAxis.
+ *
+ * Results:
+ *      TCL_OK if the axis options were initialised successfully.
+ *      TCL_ERROR otherwise.
+ *
+ * Side Effects:
+ *      Creates axisPtr->optionTable and stores Tk-managed option
+ *      resources in the Axis record.
+ *
+ *----------------------------------------------------------------------
+ */
+static int InitAxisOptions(Graph *graphPtr, Axis *axisPtr) {
+    assert(axisPtr->optionSpecs != NULL);
+    assert(!axisPtr->optionsInitialized);
+
+    axisPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, axisPtr->optionSpecs);
+
+    if (axisPtr->optionTable == NULL) {
+        return TCL_ERROR;
+    }
+
+    if (Tk_InitOptions(graphPtr->interp, (char *)axisPtr, axisPtr->optionTable, graphPtr->tkwin) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    axisPtr->optionsInitialized = TRUE;
+    axisPtr->tkResourcesReleased = FALSE;
+
+    return TCL_OK;
+}
+
+static void ResetAxisOptionContext(Axis *axisPtr) {
+    axisPtr->optionMask = 0;
+    axisPtr->optionObjc = 0;
+    axisPtr->optionObjv = NULL;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * ConfigureAxisOptions --
+ *
+ *      Applies modern axis option/value pairs transactionally and
+ *      invokes ConfigureAxis to validate and construct derived state.
+ *
+ *      The original option vector and Tk type mask are temporarily
+ *      retained in the Axis record so ConfigureAxis can process
+ *      repeated options in caller order.
+ *
+ * Results:
+ *      TCL_OK if all options and derived resources were configured.
+ *      TCL_ERROR otherwise.
+ *
+ * Side Effects:
+ *      On success, updates the axis configuration.
+ *      On failure, restores all Tk-managed option fields.
+ *
+ *----------------------------------------------------------------------
+ */
+static int ConfigureAxisOptions(Graph *graphPtr, Axis *axisPtr, int objc, Tcl_Obj *const objv[], int *maskPtr) {
+    Tk_SavedOptions savedOptions;
+    int mask;
+
+    assert(axisPtr->optionSpecs != NULL);
+    assert(axisPtr->optionTable != NULL);
+    assert(axisPtr->optionsInitialized);
+    assert((objc & 1) == 0);
+
+    memset(&savedOptions, 0, sizeof(savedOptions));
+
+    mask = 0;
+
+    axisPtr->optionMask = 0;
+    axisPtr->optionObjc = objc;
+    axisPtr->optionObjv = objv;
+
+    if (Tk_SetOptions(graphPtr->interp, (char *)axisPtr, axisPtr->optionTable, objc, objv, graphPtr->tkwin,
+                      &savedOptions, &mask) != TCL_OK) {
+        /*
+         * Use the same Tk_SetOptions failure cleanup sequence as
+         * ConfigureElementOptions.
+         */
+        ResetAxisOptionContext(axisPtr);
+        return TCL_ERROR;
+    }
+
+    axisPtr->optionMask = mask;
+
+    if (ConfigureAxis(graphPtr, axisPtr) != TCL_OK) {
+        /*
+         * Copy the exact restore/free ordering used by the working
+         * ConfigureElementOptions implementation.
+         */
+        Tk_RestoreSavedOptions(&savedOptions);
+
+        Tk_FreeSavedOptions(&savedOptions);
+
+        ResetAxisOptionContext(axisPtr);
+
+        return TCL_ERROR;
+    }
+
+    Tk_FreeSavedOptions(&savedOptions);
+
+    axisPtr->optionsConfigured = TRUE;
+
+    if (maskPtr != NULL) {
+        *maskPtr = mask;
+    }
+
+    ResetAxisOptionContext(axisPtr);
+
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * ReleaseAxisOptionResources --
+ *
+ *      Releases resources owned directly by the modern Tk option
+ *      table.
+ *
+ *      Derived axis resources remain the responsibility of the
+ *      existing concrete axis destructor.
+ *
+ *----------------------------------------------------------------------
+ */
+static void ReleaseAxisOptionResources(Graph *graphPtr, Axis *axisPtr) {
+    if (!axisPtr->optionsInitialized || axisPtr->tkResourcesReleased) {
+        return;
+    }
+
+    Tk_FreeConfigOptions((char *)axisPtr, axisPtr->optionTable, graphPtr->tkwin);
+
+    axisPtr->tkResourcesReleased = TRUE;
 }
 
 /*
@@ -3353,6 +3645,17 @@ static Axis *CreateAxis(Graph *graphPtr, char *name, int margin) {
     Axis *axisPtr;
     Tcl_HashEntry *hPtr;
     int isNew;
+
+    axisPtr->optionSpecs = NULL;
+    axisPtr->optionTable = NULL;
+
+    axisPtr->optionMask = 0;
+    axisPtr->optionObjc = 0;
+    axisPtr->optionObjv = NULL;
+
+    axisPtr->optionsConfigured = FALSE;
+    axisPtr->optionsInitialized = FALSE;
+    axisPtr->tkResourcesReleased = FALSE;
 
     if (name[0] == '-') {
         Tcl_AppendResult(graphPtr->interp, "name of axis \"", name, "\" can't start with a '-'", (char *)NULL);
