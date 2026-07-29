@@ -12,11 +12,7 @@
 #include "rbcGraph.h"
 #include <X11/Xutil.h>
 
-static Tk_OptionParseProc StringToColor;
-static Tk_OptionPrintProc ColorToString;
-Tk_CustomOption rbcColorOption = {StringToColor, ColorToString, (ClientData)0};
 
-static const char *NameOfColor(XColor *colorPtr);
 static Pen *NameToPen(Graph *graphPtr, Tcl_Obj *nameObj);
 
 typedef int(RbcGrPenOp)(Graph *, Tcl_Interp *, int, Tcl_Obj *const[]);
@@ -38,10 +34,9 @@ static int InitPenOptions(Graph *graphPtr, Pen *penPtr) {
     assert(penPtr->optionSpecs != NULL);
     penPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, penPtr->optionSpecs);
     /*
-     * Rbc_ConfigureWidgetComponent() lowercases the first character
-     * of the temporary component-window name. Preserve that behaviour
-     * for compatibility with pen names beginning with an uppercase
-     * letter.
+     * Preserve the historical component resource hierarchy for pen names
+     * beginning with an uppercase letter. Temporary Tk child names cannot
+     * begin with an uppercase character.
      */
     componentName = RbcStrdup(penPtr->name);
     if (componentName[0] != '\0') {
@@ -112,112 +107,6 @@ void Rbc_ReleasePenTkResources(Graph *graphPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
-
- * StringToColor --
- *
- *      Convert the string representation of a color into a XColor pointer.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tcl_Interp *interp - Interpreter to send results back to
- *      Tk_Window tkwin - Not used.
- *      const char *string - String representing color
- *      char *widgRec - Widget record
- *      Tcl_Size offset - Offset of color field in record
- *
- * Results:
- *      The return value is a standard Tcl result.  The color pointer is
- *      written into the widget record.
- *
- * Side Effects:
- *      TODO: Side Effects:
- *
- *----------------------------------------------------------------------
- */
-static int StringToColor(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string, char *widgRec,
-                         Tcl_Size offset) {
-    XColor **colorPtrPtr = (XColor **)(widgRec + offset);
-    XColor *colorPtr;
-    unsigned int length;
-    char c;
-
-    if ((string == NULL) || (*string == '\0')) {
-        *colorPtrPtr = NULL;
-        return TCL_OK;
-    }
-    c = string[0];
-    length = strlen(string);
-
-    if ((c == 'd') && (strncmp(string, "defcolor", length) == 0)) {
-        colorPtr = COLOR_DEFAULT;
-    } else {
-        colorPtr = Tk_GetColor(interp, tkwin, Tk_GetUid(string));
-        if (colorPtr == NULL) {
-            return TCL_ERROR;
-        }
-    }
-    *colorPtrPtr = colorPtr;
-    return TCL_OK;
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * NameOfColor --
- *
- *      Convert the color option value into a string.
- *
- * Parameters:
- *      XColor *colorPtr
- *
- * Results:
- *      The static string representing the color option is returned.
- *
- * Side Effects:
- *      TODO: Side Effects:
- *
- *----------------------------------------------------------------------
- */
-static const char *NameOfColor(XColor *colorPtr) {
-    if (colorPtr == NULL) {
-        return "";
-    } else if (colorPtr == COLOR_DEFAULT) {
-        return "defcolor";
-    } else {
-        return Tk_NameOfColor(colorPtr);
-    }
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * ColorToString --
- *
- *      Convert the color value into a string.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tk_Window tkwin - Not used.
- *      char *widgRec - Widget information record
- *      Tcl_Size offset - Offset of symbol type in record
- *      Tcl_FreeProc **freeProcPtr - Not used.
- *
- * Results:
- *      The string representing the symbol color is returned.
- *
- * Side Effects:
- *      TODO: Side Effects:
- *
- *----------------------------------------------------------------------
- */
-static const char *ColorToString(ClientData clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset,
-                                 Tcl_FreeProc **freeProcPtr) {
-    XColor *colorPtr = *(XColor **)(widgRec + offset);
-
-    return NameOfColor(colorPtr);
-}
 
 /*
  *----------------------------------------------------------------------

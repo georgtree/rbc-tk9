@@ -177,8 +177,7 @@ typedef enum {
     RBC_OP_ARG4  /* Op is the fifth argument. */
 } Rbc_OpIndex;
 
-#define RBC_OPSPEC_END                                                                                                 \
-    { NULL, NULL, 0, 0, NULL }
+#define RBC_OPSPEC_END {NULL, NULL, 0, 0, NULL}
 
 Rbc_Op Rbc_GetOpFromObj(Tcl_Interp *interp, Rbc_OpSpec *specArr, int operPos, int objc, Tcl_Obj *const *objv);
 
@@ -187,20 +186,12 @@ void Rbc_Draw3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border,
 void Rbc_Fill3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, int x, int y, int width, int height,
                          int borderWidth, int relief);
 
-#ifdef notdef
-#define Rbc_Fill3DRectangle Tk_Fill3DRectangle
-#define Rbc_Draw3DRectangle Tk_Draw3DRectangle
-#endif
 
 /* ---------------------------------------------------------------- */
 
 #define PIXELS_NONNEGATIVE 0
 #define PIXELS_POSITIVE 1
 #define PIXELS_ANY 2
-
-#define COUNT_NONNEGATIVE 0
-#define COUNT_POSITIVE 1
-#define COUNT_ANY 2
 
 #define RBC_SCROLL_MODE_CANVAS (1 << 0)
 #define RBC_SCROLL_MODE_LISTBOX (1 << 1)

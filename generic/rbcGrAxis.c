@@ -57,15 +57,6 @@ typedef struct {
     int label; /* Distance from axis to tick label.  */
 } AxisInfo;
 
-static Tk_OptionParseProc StringToAxis;
-static Tk_OptionPrintProc AxisToString;
-static Tk_OptionParseProc StringToAnyAxis;
-
-Tk_CustomOption rbcXAxisOption = {StringToAxis, AxisToString, (ClientData)&rbcXAxisUid};
-Tk_CustomOption rbcYAxisOption = {StringToAxis, AxisToString, (ClientData)&rbcYAxisUid};
-Tk_CustomOption rbcAnyXAxisOption = {StringToAnyAxis, AxisToString, (ClientData)&rbcXAxisUid};
-Tk_CustomOption rbcAnyYAxisOption = {StringToAnyAxis, AxisToString, (ClientData)&rbcYAxisUid};
-
 /* Axis flags: */
 
 #define DEF_AXIS_COMMAND (char *)NULL
@@ -400,11 +391,7 @@ static RbcGrAxisVirtualOp ViewOp;
  *
  *----------------------------------------------------------------------
  */
-static int Round(x)
-register double x;
-{
-    return (int)(x + ((x < 0.0) ? -0.5 : 0.5));
-}
+static int Round(register double x) { return (int)(x + ((x < 0.0) ? -0.5 : 0.5)); }
 
 /*
  *----------------------------------------------------------------------
@@ -465,9 +452,6 @@ static void SetAxisRange(AxisRange *rangePtr, double min, double max) {
  */
 static int InRange(register double x, AxisRange *rangePtr) {
     if (rangePtr->range < DBL_EPSILON) {
-#ifdef notdef
-        return (((rangePtr->max - x) >= (FABS(x) * DBL_EPSILON)) && ((x - rangePtr->min) >= (FABS(x) * DBL_EPSILON)));
-#endif
         return (FABS(rangePtr->max - x) >= DBL_EPSILON);
     } else {
         double norm;
@@ -485,121 +469,6 @@ static int AxisIsHorizontal(Graph *graphPtr, Axis *axisPtr) {
  * Custom option parse and print procedures
  * ----------------------------------------------------------------------
  */
-
-/*
- *----------------------------------------------------------------------
- *
- * StringToAnyAxis --
- *
- *      Converts the name of an axis to a pointer to its axis structure.
- *
- * Parameters:
- *      ClientData clientData - Class identifier of the type of axis we are looking for.
- *      Tcl_Interp *interp - Interpreter to send results back to.
- *      Tk_Window tkwin - Used to look up pointer to graph.
- *      const char *string - String representing new value.
- *      char *widgRec - Pointer to structure record.
- *      Tcl_Size offset - Offset of field in structure.
- *
- * Results:
- *      The return value is a standard Tcl result.  The axis flags are
- *      written into the widget record.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static int StringToAnyAxis(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string,
-                           char *widgRec, Tcl_Size offset) {
-    Axis **axisPtrPtr = (Axis **)(widgRec + offset);
-    Rbc_Uid classUid = *(Rbc_Uid *)clientData;
-    Graph *graphPtr;
-    Axis *axisPtr;
-
-    graphPtr = Rbc_GetGraphFromWindowData(tkwin);
-    if (*axisPtrPtr != NULL) {
-        FreeAxis(graphPtr, *axisPtrPtr);
-    }
-    if (string[0] == '\0') {
-        axisPtr = NULL;
-    } else if (GetAxis(graphPtr, string, classUid, &axisPtr) != TCL_OK) {
-        return TCL_ERROR;
-    }
-    *axisPtrPtr = axisPtr;
-    return TCL_OK;
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * StringToAxis --
- *
- *      Converts the name of an axis to a pointer to its axis structure.
- *
- * Parameters:
- *      ClientData clientData - Class identifier of the type of axis we are looking for.
- *      Tcl_Interp *interp - Interpreter to send results back to.
- *      Tk_Window tkwin - Used to look up pointer to graph.
- *      const char *string - String representing new value.
- *      char *widgRec - Pointer to structure record.
- *      Tcl_Size offset - Offset of field in structure.
- *
- * Results:
- *      The return value is a standard Tcl result.  The axis flags are
- *      written into the widget record.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static int StringToAxis(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string, char *widgRec,
-                        Tcl_Size offset) {
-    Axis **axisPtrPtr = (Axis **)(widgRec + offset);
-    Rbc_Uid classUid = *(Rbc_Uid *)clientData;
-    Graph *graphPtr;
-
-    graphPtr = Rbc_GetGraphFromWindowData(tkwin);
-    if (*axisPtrPtr != NULL) {
-        FreeAxis(graphPtr, *axisPtrPtr);
-    }
-    if (GetAxis(graphPtr, string, classUid, axisPtrPtr) != TCL_OK) {
-        return TCL_ERROR;
-    }
-    return TCL_OK;
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * AxisToString --
- *
- *      Convert the window coordinates into a string.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tk_Window tkwin - Not used.
- *      char *widgRec - Pointer to structure record.
- *      Tcl_Size offset - Offset of field in structure.
- *      Tcl_FreeProc **freeProcPtr - Not used.
- *
- * Results:
- *      The string representing the coordinate position is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *----------------------------------------------------------------------
- */
-static const char *AxisToString(ClientData clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset,
-                                Tcl_FreeProc **freeProcPtr) {
-    Axis *axisPtr = *(Axis **)(widgRec + offset);
-
-    if (axisPtr == NULL) {
-        return "";
-    }
-    return axisPtr->name;
-}
 
 /*
  *----------------------------------------------------------------------
@@ -4333,7 +4202,7 @@ static void GetAxisGeometry(Graph *graphPtr, Axis *axisPtr) {
     }
     if (axisPtr->showTicks) {
         int pad;
-        register int i, nLabels;
+        register int i;
         int lw, lh;
         double x, x2;
         int maxWidth, maxHeight;
@@ -4351,7 +4220,6 @@ static void GetAxisGeometry(Graph *graphPtr, Axis *axisPtr) {
         }
 
         maxHeight = maxWidth = 0;
-        nLabels = 0;
         for (i = 0; i < axisPtr->t1Ptr->nTicks; i++) {
             x2 = x = axisPtr->t1Ptr->values[i];
             if (axisPtr->labelOffset) {
@@ -4362,7 +4230,6 @@ static void GetAxisGeometry(Graph *graphPtr, Axis *axisPtr) {
             }
             labelPtr = MakeLabel(graphPtr, axisPtr, x);
             Rbc_ChainAppend(axisPtr->tickLabels, labelPtr);
-            nLabels++;
             /*
              * Get the dimensions of each tick label.
              * Remember tick labels can be multi-lined and/or rotated.
@@ -4385,7 +4252,6 @@ static void GetAxisGeometry(Graph *graphPtr, Axis *axisPtr) {
                 maxHeight = lh;
             }
         }
-        assert(nLabels <= axisPtr->t1Ptr->nTicks);
 
         /* Because the axis cap style is "CapProjecting", we need to
          * account for an extra 1.5 linewidth at the end of each

@@ -21,10 +21,9 @@
 #define DEF_GRID_MAP_X_GRAPH "x"
 #define DEF_GRID_MAP_X_BARCHART (char *)NULL
 #define DEF_GRID_MAP_Y "y"
-#define DEF_GRID_POSITION (char *)NULL
-#define GRID_REDRAW         (1U << 0)
-#define GRID_GC_CHANGED     (1U << 1)
-#define GRID_AXES_CHANGED   (1U << 2)
+#define GRID_REDRAW (1U << 0)
+#define GRID_GC_CHANGED (1U << 1)
+#define GRID_AXES_CHANGED (1U << 2)
 #define GRID_INITIALIZE_MASK (GRID_GC_CHANGED | GRID_AXES_CHANGED)
 
 static const Tk_OptionSpec graphGridOptionSpecs[] = {
@@ -85,10 +84,11 @@ static RbcGrGridOp ToggleOp;
  *      Grid *gridPtr
  *
  * Results:
- *      None
+ *      TCL_OK if the grid was configured successfully.
+ *      TCL_ERROR if a retained value or axis mapping is invalid.
  *
  * Side Effects:
- *      Crosshair GC is allocated.
+ *      May replace the grid GC and the retained X and Y axis references.
  *
  *----------------------------------------------------------------------
  */

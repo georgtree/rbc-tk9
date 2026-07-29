@@ -2175,8 +2175,6 @@ static void ClearPalette(Rbc_Chain *palette) {
  * ConfigurePen --
  *
  *      Sets up the appropriate configuration parameters in the GC.
- *      It is assumed the parameters have been previously set by
- *      a call to Tk_ConfigureWidget.
  *
  * Parameters:
  *      Graph *graphPtr
@@ -2905,11 +2903,6 @@ static void ReducePoints(MapInfo *mapPtr, double tolerance) {
         screenPts[i] = mapPtr->screenPts[k];
         indices[i] = mapPtr->indices[k];
     }
-#ifdef notdef
-    if (n < mapPtr->nScreenPts) {
-        fprintf(stderr, "reduced from %d to %d\n", mapPtr->nScreenPts, n);
-    }
-#endif
     ckfree((char *)mapPtr->screenPts);
     ckfree((char *)mapPtr->indices);
     ckfree((char *)simple);
@@ -4584,8 +4577,6 @@ static void TileChangedProc(ClientData clientData, Rbc_Tile tile) {
  * ConfigureLine --
  *
  *      Sets up the appropriate configuration parameters in the GC.
- *      It is assumed the parameters have been previously set by
- *      a call to Tk_ConfigureWidget.
  *
  * Parameters:
  *      Graph *graphPtr
@@ -4643,8 +4634,7 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
 
     /*
      * Parse all data-vector replacements before modifying the live
-     * element. This branch remains inactive while line and strip
-     * elements use their legacy Tk_ConfigSpec tables.
+     * element.
      */
     if (((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_DATA_MASK))) {
         if (Rbc_PrepareElemDataTransaction(graphPtr, elemPtr, &dataTransaction) != TCL_OK) {
@@ -4657,9 +4647,6 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     /*
      * Resolve named active and normal pens before modifying the live
      * element. Line and strip elements both require line-type pens.
-     *
-     * This branch remains inactive while the element constructors still
-     * select their legacy Tk_ConfigSpec tables.
      */
     if (((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_PEN_MASK))) {
         if (Rbc_PrepareElemPenTransaction(graphPtr, elemPtr, rbcLineElementUid, &penTransaction) != TCL_OK) {
@@ -4672,9 +4659,6 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     /*
      * Resolve the X and Y axis mappings before modifying the live
      * element.
-     *
-     * This branch remains inactive while the line and strip constructors
-     * continue to select their legacy Tk_ConfigSpec tables.
      */
     if (((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_AXES_MASK))) {
         if (Rbc_PrepareElemAxisTransaction(graphPtr, elemPtr, &axisTransaction) != TCL_OK) {

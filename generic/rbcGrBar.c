@@ -113,11 +113,6 @@ _Static_assert(offsetof(Bar, core) == 0, "Element core must be the first Bar mem
 #define BAR_CORE_OFFSET(member) (offsetof(Bar, core) + offsetof(Element, member))
 #define BAR_BUILTIN_PEN_OFFSET(member) (offsetof(Bar, builtinPen) + offsetof(BarPen, member))
 
-static Tk_OptionParseProc StringToBarMode;
-static Tk_OptionPrintProc BarModeToString;
-
-Tk_CustomOption rbcBarModeOption = {StringToBarMode, BarModeToString, (ClientData)0};
-
 #define DEF_BAR_ACTIVE_PEN "activeBar"
 #define DEF_BAR_AXIS_X "x"
 #define DEF_BAR_AXIS_Y "y"
@@ -471,7 +466,6 @@ static ElementSymbolToPostScriptProc SymbolToPostScript;
 static ElementMapProc MapBar;
 
 static int Round(register double x);
-static char *NameOfBarMode(BarMode mode);
 static void ClearPalette(Rbc_Chain *palette);
 static void InitPen(BarPen *penPtr, const Tk_OptionSpec *optionSpecs, unsigned int flags);
 static void CheckStacks(Graph *graphPtr, Axis2D *pairPtr, double *minPtr, double *maxPtr);
@@ -553,148 +547,6 @@ static int Round(register double x) { return (int)(x + ((x < 0.0) ? -0.5 : 0.5))
  * Custom option parse and print procedures
  * ----------------------------------------------------------------------
  */
-
-/*
- * ----------------------------------------------------------------------
- *
- * NameOfBarMode --
- *
- *      Converts the integer representing the mode style into a string.
- *
- * Parameters:
- *      BarMode mode
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
- */
-static char *NameOfBarMode(BarMode mode) {
-    switch (mode) {
-    case MODE_INFRONT:
-        return "infront";
-    case MODE_OVERLAP:
-        return "overlap";
-    case MODE_STACKED:
-        return "stacked";
-    case MODE_ALIGNED:
-        return "aligned";
-    default:
-        return "unknown mode value";
-    }
-}
-
-/*
- * ----------------------------------------------------------------------
- *
- * StringToMode --
- *
- *      Converts the mode string into its numeric representation.
- *
- *      Valid mode strings are:
- *
- *          "infront"   Draw a full bar at each point in the element.
- *
- *      "stacked"   Stack bar segments vertically. Each stack is defined
- *              by each ordinate at a particular abscissa. The height
- *              of each segment is represented by the sum the previous
- *              ordinates.
- *
- *      "aligned"   Align bar segments as smaller slices one next to
- *              the other.  Like "stacks", aligned segments are
- *              defined by each ordinate at a particular abscissa.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tcl_Interp *interp - Interpreter to send results back to.
- *      Tk_Window tkwin - Not used.
- *      const char *string - Mode style string
- *      char *widgRec - Cubicle structure record
- *      Tcl_Size offset - Offset of style in record
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
- */
-static int StringToBarMode(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string,
-                           char *widgRec, Tcl_Size offset) {
-    BarMode *modePtr = (BarMode *)(widgRec + offset);
-    int index;
-    static const struct barModeMap {
-        char *name;
-        BarMode mode;
-    } barModes[] = {{"aligned", MODE_ALIGNED}, {"infront", MODE_INFRONT}, {"normal", MODE_INFRONT},
-                    {"overlap", MODE_OVERLAP}, {"stacked", MODE_STACKED}, {NULL, (BarMode)0}};
-    Tcl_Obj *obj = Tcl_NewStringObj(string, -1);
-
-    Tcl_IncrRefCount(obj);
-    if (Tcl_GetIndexFromObjStruct(interp, obj, barModes, sizeof(struct barModeMap), "mode", 0, &index) != TCL_OK) {
-        return TCL_ERROR;
-    }
-    Tcl_DecrRefCount(obj);
-    *modePtr = barModes[index].mode;
-    return TCL_OK;
-    /*
-        unsigned int length;
-        char c;
-
-        c = string[0];
-        length = strlen(string);
-        if ((c == 'n') && (strncmp(string, "normal", length) == 0)) {
-        *modePtr = MODE_INFRONT;
-        } else if ((c == 'i') && (strncmp(string, "infront", length) == 0)) {
-        *modePtr = MODE_INFRONT;
-        } else if ((c == 's') && (strncmp(string, "stacked", length) == 0)) {
-        *modePtr = MODE_STACKED;
-        } else if ((c == 'a') && (strncmp(string, "aligned", length) == 0)) {
-        *modePtr = MODE_ALIGNED;
-        } else if ((c == 'o') && (strncmp(string, "overlap", length) == 0)) {
-        *modePtr = MODE_OVERLAP;
-        } else {
-        Tcl_AppendResult(interp, "bad mode argument \"", string,
-                 "\": should be \"infront\", \"stacked\", \"overlap\", or \"aligned\"",
-                 (char *)NULL);
-        return TCL_ERROR;
-        }
-        return TCL_OK;
-    */
-}
-
-/*
- * ----------------------------------------------------------------------
- *
- * BarModeToString --
- *
- *      Returns the mode style string based upon the mode flags.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tk_Window tkwin - Not used.
- *      char *widgRec - Row/column structure record
- *      Tcl_Size offset - Offset of mode in Partition record
- *      Tcl_FreeProc **freeProcPtr - Not used.
- *
- * Results:
- *      The mode style string is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
- */
-static const char *BarModeToString(ClientData clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset,
-                                   Tcl_FreeProc **freeProcPtr) {
-    BarMode mode = *(BarMode *)(widgRec + offset);
-
-    return NameOfBarMode(mode);
-}
 
 /*
  *----------------------------------------------------------------------
@@ -1118,9 +970,9 @@ static void CheckStacks(Graph *graphPtr, Axis2D *pairPtr, double *minPtr, double
  *
  * ConfigureBar --
  *
- *      Sets up the appropriate configuration parameters in the GC.
- *      It is assumed the parameters have been previously set by
- *      a call to Tk_ConfigureWidget.
+ * Tk_SetOptions has installed the candidate option values.
+ * This function validates retained values and constructs the
+ * replacement derived resources transactionally.
  *
  * Parameters:
  *      Graph *graphPtr
@@ -2285,7 +2137,6 @@ static void DrawActiveBar(Graph *graphPtr, Drawable drawable, Element *elemPtr) 
  * -----------------------------------------------------------------
  */
 static void SymbolToPostScript(Graph *graphPtr, PsToken psToken, Element *elemPtr, double x, double y, int size) {
-    Bar *barPtr = BAR_FROM_CORE(elemPtr);
     BarPen *bpPtr = BAR_PEN_FROM_CORE(elemPtr->normalPenPtr);
 
     if ((bpPtr->border == NULL) && (bpPtr->fgColor == NULL)) {

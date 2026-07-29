@@ -1055,7 +1055,7 @@ static int PopulateOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj 
     register int i, j;
     double slice, range;
     register double *valuePtr;
-    int count;
+    //int count;
     char *string;
 
     string = Tcl_GetString(objv[2]);
@@ -1077,7 +1077,7 @@ static int PopulateOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj 
     if (Rbc_VectorChangeLength(v2Ptr, size) != TCL_OK) {
         return TCL_ERROR;
     }
-    count = 0;
+    //count = 0;
     valuePtr = v2Ptr->valueArr;
     for (i = 0; i < (vPtr->length - 1); i++) {
         range = vPtr->valueArr[i + 1] - vPtr->valueArr[i];
@@ -1085,10 +1085,10 @@ static int PopulateOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj 
         for (j = 0; j <= density; j++) {
             *valuePtr = vPtr->valueArr[i] + (slice * (double)j);
             valuePtr++;
-            count++;
+            //count++;
         }
     }
-    count++;
+    //count++;
     *valuePtr = vPtr->valueArr[i];
     /*** assert(count == v2Ptr->length); */
     if (!isNew) {

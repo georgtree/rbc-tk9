@@ -113,17 +113,16 @@ typedef struct {
 #define DEF_LEGEND_RAISED "no"
 #define DEF_LEGEND_RELIEF "sunken"
 #define DEF_LEGEND_SHADOW_COLOR (char *)NULL
-#define DEF_LEGEND_SHADOW_MONO (char *)NULL
 #define DEF_LEGEND_ROWS "0"
 #define DEF_LEGEND_COLUMNS "0"
 
-#define LEGEND_REDRAW_CHANGED    (1U << 0)
-#define LEGEND_LAYOUT_CHANGED    (1U << 1)
-#define LEGEND_STYLE_CHANGED     (1U << 2)
-#define LEGEND_PADDING_CHANGED   (1U << 3)
-#define LEGEND_SHADOW_CHANGED    (1U << 4)
-#define LEGEND_POSITION_CHANGED  (1U << 5)
-#define LEGEND_VALIDATE_CHANGED  (1U << 6)
+#define LEGEND_REDRAW_CHANGED (1U << 0)
+#define LEGEND_LAYOUT_CHANGED (1U << 1)
+#define LEGEND_STYLE_CHANGED (1U << 2)
+#define LEGEND_PADDING_CHANGED (1U << 3)
+#define LEGEND_SHADOW_CHANGED (1U << 4)
+#define LEGEND_POSITION_CHANGED (1U << 5)
+#define LEGEND_VALIDATE_CHANGED (1U << 6)
 
 #define LEGEND_INITIALIZE_MASK                                                                                         \
     (LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_STYLE_CHANGED | LEGEND_PADDING_CHANGED |                   \

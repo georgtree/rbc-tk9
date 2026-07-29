@@ -20,12 +20,6 @@ static Tk_OptionParseProc StringToShadow;
 static Tk_OptionPrintProc ShadowToString;
 Tk_CustomOption rbcShadowOption = {StringToShadow, ShadowToString, (ClientData)0};
 
-
-#ifdef notdef
-static Tk_ConfigSpec *Rbc_GetCachedSpecs(Tcl_Interp *, const Tk_ConfigSpec *);
-#endif /* notdef */
-
-
 static int IsFillPrefix(const char *string, Tcl_Size length, const char *fullName) {
     Tcl_Size fullLength;
 

@@ -1003,22 +1003,17 @@ CreateEps(
  *
  *----------------------------------------------------------------------
  */
-static void
-ImageChangedProc(clientData, x, y, width, height, imageWidth, imageHeight)
-    ClientData clientData;
-    int x, y, width, height; /* Not used. */
-    int imageWidth, imageHeight; /* Not used. */
-{
+static void ImageChangedProc(ClientData clientData, int x, int y, int width, int height, int imageWidth,
+                             int imageHeight) {
     EpsItem *epsPtr = clientData;
 
     if ((epsPtr->preview == NULL) || (Tk_ImageIsDeleted(epsPtr->preview))) {
-    epsPtr->preview = NULL;
-    if (epsPtr->previewName != NULL) {
-        ckfree((char *)epsPtr->previewName);
-        epsPtr->previewName = NULL;
-    }
-    Tk_CanvasEventuallyRedraw(epsPtr->canvas, epsPtr->xLeft, epsPtr->yTop,
-                  epsPtr->xRight, epsPtr->yBottom);
+        epsPtr->preview = NULL;
+        if (epsPtr->previewName != NULL) {
+            ckfree((char *)epsPtr->previewName);
+            epsPtr->previewName = NULL;
+        }
+        Tk_CanvasEventuallyRedraw(epsPtr->canvas, epsPtr->xLeft, epsPtr->yTop, epsPtr->xRight, epsPtr->yBottom);
     }
 }
 
@@ -1285,16 +1280,11 @@ EpsCoords(
  *
  *----------------------------------------------------------------------
  */
-static void
-ComputeEpsBbox(canvas, epsPtr)
-    Tk_Canvas canvas; /* Canvas that contains item. */
-    EpsItem *epsPtr; /* Item whose bbox is to be recomputed. */
-{
+static void ComputeEpsBbox(Tk_Canvas canvas, EpsItem *epsPtr) {
     int x, y;
 
     x = ROUND(epsPtr->x), y = ROUND(epsPtr->y);
-    Rbc_TranslateAnchor(x, y, epsPtr->width, epsPtr->height, epsPtr->anchor,
-            &x, &y);
+    Rbc_TranslateAnchor(x, y, epsPtr->width, epsPtr->height, epsPtr->anchor, &x, &y);
     epsPtr->xLeft = epsPtr->canvasX = x;
     epsPtr->yTop = epsPtr->canvasY = y;
 
@@ -1462,12 +1452,7 @@ static void DisplayEps(Tk_Canvas canvas,      /* Canvas that contains item. */
  *----------------------------------------------------------------------
  */
 /*ARGSUSED*/
-static double
-EpsToPoint(canvas, itemPtr, coordArr)
-    Tk_Canvas canvas; /* Canvas containing item. */
-    Tk_Item *itemPtr; /* Item to check against point. */
-    double *coordArr; /* Pointer to x and y coordinates. */
-{
+static double EpsToPoint(Tk_Canvas canvas, Tk_Item *itemPtr, double *coordArr) {
     EpsItem *epsPtr = (EpsItem *)itemPtr;
     double dx, dy;
 
@@ -1475,18 +1460,18 @@ EpsToPoint(canvas, itemPtr, coordArr)
      * Point is outside rectangle.
      */
     if (coordArr[0] < epsPtr->xLeft) {
-    dx = epsPtr->xLeft - coordArr[0];
+        dx = epsPtr->xLeft - coordArr[0];
     } else if (coordArr[0] > epsPtr->xRight) {
-    dx = coordArr[0] - epsPtr->xRight;
+        dx = coordArr[0] - epsPtr->xRight;
     } else {
-    dx = 0;
+        dx = 0;
     }
     if (coordArr[1] < epsPtr->yTop) {
-    dy = epsPtr->yTop - coordArr[1];
+        dy = epsPtr->yTop - coordArr[1];
     } else if (coordArr[1] > epsPtr->yBottom) {
-    dy = coordArr[1] - epsPtr->yBottom;
+        dy = coordArr[1] - epsPtr->yBottom;
     } else {
-    dy = 0;
+        dy = 0;
     }
     return hypot(dx, dy);
 }
@@ -1510,23 +1495,16 @@ EpsToPoint(canvas, itemPtr, coordArr)
  *
  *----------------------------------------------------------------------
  */
-static int
-EpsToArea(canvas, itemPtr, area)
-    Tk_Canvas canvas; /* Canvas containing item. */
-    Tk_Item *itemPtr; /* Item to check against rectangle. */
-    double area[]; /* Pointer to array of four coordinates
-            * (x1, y1, x2, y2) describing rectangular
-            * area.  */
-{
+static int EpsToArea(Tk_Canvas canvas, Tk_Item *itemPtr, double *area) {
     EpsItem *epsPtr = (EpsItem *)itemPtr;
 
-    if ((area[2] <= epsPtr->xLeft) || (area[0] >= epsPtr->xRight) ||
-        (area[3] <= epsPtr->yTop) || (area[1] >= epsPtr->yBottom)) {
-    return -1;
+    if ((area[2] <= epsPtr->xLeft) || (area[0] >= epsPtr->xRight) || (area[3] <= epsPtr->yTop) ||
+        (area[1] >= epsPtr->yBottom)) {
+        return -1;
     }
-    if ((area[0] <= epsPtr->xLeft) && (area[1] <= epsPtr->yTop) &&
-        (area[2] >= epsPtr->xRight) && (area[3] >= epsPtr->yBottom)) {
-    return 1;
+    if ((area[0] <= epsPtr->xLeft) && (area[1] <= epsPtr->yTop) && (area[2] >= epsPtr->xRight) &&
+        (area[3] >= epsPtr->yBottom)) {
+        return 1;
     }
     return 0;
 }
@@ -1549,14 +1527,7 @@ EpsToArea(canvas, itemPtr, area)
  *
  *----------------------------------------------------------------------
  */
-static void
-ScaleEps(canvas, itemPtr, originX, originY, scaleX, scaleY)
-    Tk_Canvas canvas; /* Canvas containing rectangle. */
-    Tk_Item *itemPtr; /* Rectangle to be scaled. */
-    double originX, originY; /* Origin about which to scale rect. */
-    double scaleX; /* Amount to scale in X direction. */
-    double scaleY; /* Amount to scale in Y direction. */
-{
+static void ScaleEps(Tk_Canvas canvas, Tk_Item *itemPtr, double originX, double originY, double scaleX, double scaleY) {
     EpsItem *epsPtr = (EpsItem *)itemPtr;
 
     epsPtr->x = originX + scaleX * (epsPtr->x - originX);
@@ -1581,13 +1552,7 @@ ScaleEps(canvas, itemPtr, originX, originY, scaleX, scaleY)
  *
  *----------------------------------------------------------------------
  */
-static void
-TranslateEps(canvas, itemPtr, deltaX, deltaY)
-    Tk_Canvas canvas; /* Canvas containing item. */
-    Tk_Item *itemPtr; /* Item that is being moved. */
-    double deltaX, deltaY; /* Amount by which item is to be
-                * moved. */
-{
+static void TranslateEps(Tk_Canvas canvas, Tk_Item *itemPtr, double deltaX, double deltaY) {
     EpsItem *epsPtr = (EpsItem *)itemPtr;
 
     epsPtr->x += deltaX;
@@ -1615,17 +1580,7 @@ TranslateEps(canvas, itemPtr, deltaX, deltaY)
  *
  *----------------------------------------------------------------------
  */
-static int
-EpsToPostScript(interp, canvas, itemPtr, prepass)
-    Tcl_Interp *interp; /* Leave Postscript or error message
-             * here. */
-    Tk_Canvas canvas; /* Information about overall canvas. */
-    Tk_Item *itemPtr; /* Item for which Postscript is
-               * wanted. */
-    int prepass; /* 1 means this is a prepass to
-          * collect font information;  0 means
-          * final Postscript is being created. */
-{
+static int EpsToPostScript(Tcl_Interp *interp, Tk_Canvas canvas, Tk_Item *itemPtr, int prepass) {
     EpsItem *epsPtr = (EpsItem *)itemPtr;
     PsToken psToken;
     Tk_Window tkwin;
@@ -1633,7 +1588,7 @@ EpsToPostScript(interp, canvas, itemPtr, prepass)
     int x, y, width, height;
 
     if (prepass) {
-    return TCL_OK;
+        return TCL_OK;
     }
     tkwin = Tk_CanvasTkwin(epsPtr->canvas);
     psToken = Rbc_GetPsToken(interp, tkwin);
@@ -1641,35 +1596,32 @@ EpsToPostScript(interp, canvas, itemPtr, prepass)
     y = (int)Tk_CanvasPsY(canvas, (double)epsPtr->canvasY + epsPtr->height);
 
     if (epsPtr->fileName == NULL) {
-    /* No PostScript file, generate PostScript of resized image instead. */
-    if (epsPtr->tmpImage != NULL) {
-        Tk_PhotoHandle photo;
+        /* No PostScript file, generate PostScript of resized image instead. */
+        if (epsPtr->tmpImage != NULL) {
+            Tk_PhotoHandle photo;
 
-        Rbc_FormatToPostScript(psToken, "gsave\n");
-        /*
-         * First flip the PostScript y-coordinate axis so that the
-         * origin is the upper-left corner like our color image.
-         */
-        Rbc_FormatToPostScript(psToken, "  %d %d translate\n",
-                   x, y + epsPtr->height);
-        Rbc_FormatToPostScript(psToken, "  1 -1 scale\n");
+            Rbc_FormatToPostScript(psToken, "gsave\n");
+            /*
+             * First flip the PostScript y-coordinate axis so that the
+             * origin is the upper-left corner like our color image.
+             */
+            Rbc_FormatToPostScript(psToken, "  %d %d translate\n", x, y + epsPtr->height);
+            Rbc_FormatToPostScript(psToken, "  1 -1 scale\n");
 
-        photo = Tk_FindPhoto(epsPtr->interp,
-                  Rbc_NameOfImage(epsPtr->tmpImage));
-        Rbc_PhotoToPostScript(psToken, photo, 0.0, 0.0);
-        Rbc_FormatToPostScript(psToken, "grestore\n");
+            photo = Tk_FindPhoto(epsPtr->interp, Rbc_NameOfImage(epsPtr->tmpImage));
+            Rbc_PhotoToPostScript(psToken, photo, 0.0, 0.0);
+            Rbc_FormatToPostScript(psToken, "grestore\n");
 
-        Tcl_AppendResult(interp, Rbc_PostScriptFromToken(psToken),
-                 (char *)NULL);
-        Rbc_ReleasePsToken(psToken);
-    }
-    return TCL_OK;
+            Tcl_AppendResult(interp, Rbc_PostScriptFromToken(psToken), (char *)NULL);
+            Rbc_ReleasePsToken(psToken);
+        }
+        return TCL_OK;
     }
 
     /* Copy in the PostScript prolog for EPS encapsulation. */
 
     if (Rbc_FileToPostScript(psToken, "rbcCanvEps.pro") != TCL_OK) {
-    goto error;
+        goto error;
     }
     Rbc_AppendToPostScript(psToken, "BeginEPSF\n", (char *)NULL);
 
@@ -1682,15 +1634,11 @@ EpsToPostScript(interp, canvas, itemPtr, prepass)
 
     Rbc_FormatToPostScript(psToken, "%d %d translate\n", x, y);
     Rbc_FormatToPostScript(psToken, "%g %g scale\n", xScale, yScale);
-    Rbc_FormatToPostScript(psToken, "%d %d translate\n", -(epsPtr->llx),
-               -(epsPtr->lly));
-    Rbc_FormatToPostScript(psToken, "%d %d %d %d SetClipRegion\n",
-               epsPtr->llx, epsPtr->lly, epsPtr->urx, epsPtr->ury);
-    Rbc_AppendToPostScript(psToken, "%% including \"", epsPtr->fileName,
-               "\"\n\n", (char *)NULL);
+    Rbc_FormatToPostScript(psToken, "%d %d translate\n", -(epsPtr->llx), -(epsPtr->lly));
+    Rbc_FormatToPostScript(psToken, "%d %d %d %d SetClipRegion\n", epsPtr->llx, epsPtr->lly, epsPtr->urx, epsPtr->ury);
+    Rbc_AppendToPostScript(psToken, "%% including \"", epsPtr->fileName, "\"\n\n", (char *)NULL);
 
-    Rbc_AppendToPostScript(psToken, Tcl_DStringValue(&epsPtr->dString),
-               (char *)NULL);
+    Rbc_AppendToPostScript(psToken, Tcl_DStringValue(&epsPtr->dString), (char *)NULL);
     Rbc_AppendToPostScript(psToken, "EndEPSF\n", (char *)NULL);
     Tcl_AppendResult(interp, Rbc_PostScriptFromToken(psToken), (char *)NULL);
     Rbc_ReleasePsToken(psToken);
@@ -1743,10 +1691,7 @@ static Tk_ItemType epsItemType = {
  *
  *----------------------------------------------------------------------
  */
-void
-Rbc_InitEpsCanvasItem(interp)
-    Tcl_Interp *interp; /* Not used. */
-{
+void Rbc_InitEpsCanvasItem(Tcl_Interp *interp) {
     Tk_CreateItemType(&epsItemType);
     /* Initialize custom canvas option routines. */
     tagsOption.parseProc = Tk_CanvasTagsParseProc;

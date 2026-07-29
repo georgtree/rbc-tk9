@@ -15,8 +15,7 @@
 #include <stdarg.h>
 
 #ifndef HAVE_STRTOLOWER
-void strtolower(s) register char *s;
-{
+void strtolower(register char *s) {
     while (*s != '\0') {
         *s = tolower(UCHAR(*s));
         s++;

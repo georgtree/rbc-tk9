@@ -455,8 +455,8 @@ static int StageGraphPixelOption(Graph *graphPtr, Tcl_Obj *objPtr, GraphPixelOpt
     int value;
 
     /*
-     * The legacy graph table uses rbcDistanceOption for all of these
-     * options, which requires a non-negative distance.
+     * All graph distance options in this transaction, except
+     * -highlightthickness, require non-negative values.
      */
     if (option == GRAPH_PIXEL_OPTION_HIGHLIGHT_WIDTH) {
         /*
@@ -1821,7 +1821,7 @@ static int ConfigureGraph(Graph *graphPtr) {
     plotBackgroundModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_PLOT_BACKGROUND_MASK));
 
     /*
-     * Preserve the legacy normalisation behaviour for -barwidth.
+     * Preserve the historical normalisation behaviour for -barwidth.
      */
     if (graphPtr->barWidth <= 0.0) {
         graphPtr->barWidth = 0.1;
@@ -2668,57 +2668,6 @@ static int TransformOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *c
     return TCL_OK;
 }
 
-#ifdef notdef
-/*
- *----------------------------------------------------------------------
- *
- * StringToFormat --
- *
- *      Convert a string represent a node number into its integer
- *      value.
- *
- * Parameters:
- *      ClientData clientData - Contains a pointer to the tabset containing this image.
- *      Tcl_Interp *interp - Interpreter to send results back to
- *      char *switchName - Not used.
- *      char *string - String representation
- *      char *record - Structure record
- *      Tcl_Size offset - Offset to field in structure
- *
- * Results:
- *      The return value is a standard Tcl result.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static int StringToFormat(ClientData clientData, Tcl_Interp *interp, char *switchName, char *string, char *record,
-                          Tcl_Size offset) {
-    int *formatPtr = (int *)(record + offset);
-    char c;
-
-    c = string[0];
-    if ((c == 'p') && (strcmp(string, "photo") == 0)) {
-        *formatPtr = FORMAT_PHOTO;
-#ifdef WIN32
-    } else if ((c == 'e') && (strcmp(string, "emf") == 0)) {
-        *formatPtr = FORMAT_EMF;
-    } else if ((c == 'w') && (strcmp(string, "wmf") == 0)) {
-        *formatPtr = FORMAT_WMF;
-#endif /* WIN32 */
-    } else {
-#ifdef WIN32
-        Tcl_AppendResult(interp, "bad format \"", string, "\": should be photo, emf, or wmf.", (char *)NULL);
-#else
-        Tcl_AppendResult(interp, "bad format \"", string, "\": should be photo.", (char *)NULL);
-#endif /* WIN32 */
-        return TCL_ERROR;
-    }
-    return TCL_OK;
-}
-#endif /* notdef */
-
 #ifdef WIN32
 /*
  *----------------------------------------------------------------------
@@ -3516,9 +3465,6 @@ static void DisplayGraph(ClientData clientData) {
     if (graphPtr->tkwin == NULL) {
         return; /* Window destroyed (should not get here) */
     }
-#ifdef notdef
-    fprintf(stderr, "Calling DisplayGraph(%s)\n", Tk_PathName(graphPtr->tkwin));
-#endif
     if (Rbc_GraphUpdateNeeded(graphPtr)) {
         /*
          * One of the elements of the graph has a vector notification

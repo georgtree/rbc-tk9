@@ -26,18 +26,14 @@
  *
  *----------------------------------------------------------------------
  */
-void *
-RbcCalloc(nElems, sizeOfElem)
-    unsigned int nElems;
-    size_t sizeOfElem;
-{
+void *RbcCalloc(unsigned int nElems, size_t sizeOfElem) {
     char *allocPtr;
     size_t size;
 
     size = nElems * sizeOfElem;
     allocPtr = ckalloc(size);
     if (allocPtr != NULL) {
-    memset(allocPtr, 0, size);
+        memset(allocPtr, 0, size);
     }
     return allocPtr;
 }
@@ -57,18 +53,14 @@ RbcCalloc(nElems, sizeOfElem)
  *
  *----------------------------------------------------------------------
  */
-char *
-RbcStrdup(string)
-    const char *string;
-{
+char *RbcStrdup(const char *string) {
     size_t size;
     char *allocPtr;
 
     size = strlen(string) + 1;
     allocPtr = ckalloc(size * sizeof(char));
     if (allocPtr != NULL) {
-    strcpy(allocPtr, string);
+        strcpy(allocPtr, string);
     }
     return allocPtr;
 }
-

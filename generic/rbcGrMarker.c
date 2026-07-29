@@ -159,15 +159,6 @@ typedef struct {
     Marker core;
 
     /*
-     * Text specific fields and attributes
-     */
-#ifdef notdef
-    char *textVarName; /* Name of variable (malloc'ed) or
-                        * NULL. If non-NULL, graph displays
-                        * the contents of this variable. */
-#endif
-
-    /*
      * Original Tcl representations of manually converted options.
      */
     Tcl_Obj *padXObjPtr;
@@ -604,27 +595,17 @@ static const Tk_OptionSpec polygonMarkerMonoOptionSpecs[] = {
 #undef POLYGON_MARKER_OPTION_ENTRIES
 
 _Static_assert(offsetof(TextMarker, core) == 0, "Marker core must be first in TextMarker");
-
 _Static_assert(offsetof(WindowMarker, core) == 0, "Marker core must be first in WindowMarker");
-
 _Static_assert(offsetof(BitmapMarker, core) == 0, "Marker core must be first in BitmapMarker");
-
 _Static_assert(offsetof(ImageMarker, core) == 0, "Marker core must be first in ImageMarker");
-
 _Static_assert(offsetof(LineMarker, core) == 0, "Marker core must be first in LineMarker");
-
 _Static_assert(offsetof(PolygonMarker, core) == 0, "Marker core must be first in PolygonMarker");
 
 #define TEXT_MARKER_FROM_CORE(ptr) ((TextMarker *)((char *)(ptr) - offsetof(TextMarker, core)))
-
 #define WINDOW_MARKER_FROM_CORE(ptr) ((WindowMarker *)((char *)(ptr) - offsetof(WindowMarker, core)))
-
 #define BITMAP_MARKER_FROM_CORE(ptr) ((BitmapMarker *)((char *)(ptr) - offsetof(BitmapMarker, core)))
-
 #define IMAGE_MARKER_FROM_CORE(ptr) ((ImageMarker *)((char *)(ptr) - offsetof(ImageMarker, core)))
-
 #define LINE_MARKER_FROM_CORE(ptr) ((LineMarker *)((char *)(ptr) - offsetof(LineMarker, core)))
-
 #define POLYGON_MARKER_FROM_CORE(ptr) ((PolygonMarker *)((char *)(ptr) - offsetof(PolygonMarker, core)))
 
 static MarkerCreateProc CreateBitmapMarker, CreateLineMarker, CreateImageMarker, CreatePolygonMarker, CreateTextMarker,
@@ -651,7 +632,7 @@ static double VMap(Graph *graphPtr, Axis *axisPtr, double y);
 static Point2D MapPoint(Graph *graphPtr, Point2D *pointPtr, Axis2D *axesPtr);
 static Marker *CreateMarker(Graph *graphPtr, char *name, Rbc_Uid classUid);
 static void DestroyMarker(Marker *markerPtr);
-static int NameToMarker(Graph *graphPtr, char *name, Marker **markerPtrPtr);
+static int NameToMarker(Graph *graphPtr, const char *name, Marker **markerPtrPtr);
 
 typedef int(RbcGrMarkerOp)(Graph *, Tcl_Interp *, int, Tcl_Obj *const[]);
 typedef RbcGrMarkerOp *RbcGrMarkerOpPtr;
@@ -5090,7 +5071,7 @@ static Marker *CreatePolygonMarker(void) {
  *
  * Parameters:
  *      Graph *graphPtr
- *      char *name
+ *      const char *name
  *      Marker **markerPtrPtr
  *
  * Results:
@@ -5101,7 +5082,7 @@ static Marker *CreatePolygonMarker(void) {
  *
  *----------------------------------------------------------------------
  */
-static int NameToMarker(Graph *graphPtr, char *name, Marker **markerPtrPtr) {
+static int NameToMarker(Graph *graphPtr, const char *name, Marker **markerPtrPtr) {
     Tcl_HashEntry *hPtr;
 
     hPtr = Tcl_FindHashEntry(&graphPtr->markers.table, name);
