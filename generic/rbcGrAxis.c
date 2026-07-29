@@ -1541,8 +1541,14 @@ static void CommitAxisFormatTransaction(Axis *axisPtr, AxisFormatTransaction *tr
  *----------------------------------------------------------------------
  */
 static int InitAxisOptions(Graph *graphPtr, Axis *axisPtr) {
+    char *componentName;
+    int result;
+
+    if (axisPtr->optionsInitialized) {
+        return TCL_OK;
+    }
+
     assert(axisPtr->optionSpecs != NULL);
-    assert(!axisPtr->optionsInitialized);
 
     axisPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, axisPtr->optionSpecs);
 
@@ -1550,7 +1556,29 @@ static int InitAxisOptions(Graph *graphPtr, Axis *axisPtr) {
         return TCL_ERROR;
     }
 
-    if (Tk_InitOptions(graphPtr->interp, (char *)axisPtr, axisPtr->optionTable, graphPtr->tkwin) != TCL_OK) {
+    /*
+     * Preserve the legacy component resource hierarchy:
+     *
+     *     *graph.x.logScale
+     *     *graph.Axis.logScale
+     *
+     * Temporary Tk child names cannot begin with an uppercase
+     * character, so retain the same first-character conversion used
+     * by the modern element path.
+     */
+    componentName = RbcStrdup(axisPtr->name);
+
+    if (componentName[0] != '\0') {
+        componentName[0] = (char)tolower((unsigned char)componentName[0]);
+    }
+
+    result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, componentName, "Axis", (char *)axisPtr,
+                                      axisPtr->optionTable);
+
+    ckfree(componentName);
+
+    if (result != TCL_OK) {
+        axisPtr->optionTable = NULL;
         return TCL_ERROR;
     }
 
@@ -1590,56 +1618,65 @@ static void ResetAxisOptionContext(Axis *axisPtr) {
  */
 static int ConfigureAxisOptions(Graph *graphPtr, Axis *axisPtr, int objc, Tcl_Obj *const objv[], int *maskPtr) {
     Tk_SavedOptions savedOptions;
+    Tcl_Obj *errorObjPtr;
     int mask;
 
     assert(axisPtr->optionSpecs != NULL);
-    assert(axisPtr->optionTable != NULL);
     assert(axisPtr->optionsInitialized);
+    assert(axisPtr->optionTable != NULL);
     assert((objc & 1) == 0);
 
-    memset(&savedOptions, 0, sizeof(savedOptions));
-
-    mask = 0;
-
-    axisPtr->optionMask = 0;
-    axisPtr->optionObjc = objc;
-    axisPtr->optionObjv = objv;
+    /*
+     * Clear stale transaction context before invoking Tk.
+     */
+    ResetAxisOptionContext(axisPtr);
 
     if (Tk_SetOptions(graphPtr->interp, (char *)axisPtr, axisPtr->optionTable, objc, objv, graphPtr->tkwin,
                       &savedOptions, &mask) != TCL_OK) {
-        /*
-         * Use the same Tk_SetOptions failure cleanup sequence as
-         * ConfigureElementOptions.
-         */
-        ResetAxisOptionContext(axisPtr);
         return TCL_ERROR;
     }
 
+    /*
+     * Make the changed-option mask and original argument order
+     * available to the axis transactions.
+     */
     axisPtr->optionMask = mask;
+    axisPtr->optionObjc = objc;
+    axisPtr->optionObjv = objv;
 
     if (ConfigureAxis(graphPtr, axisPtr) != TCL_OK) {
         /*
-         * Copy the exact restore/free ordering used by the working
-         * ConfigureElementOptions implementation.
+         * Restoring Tk-managed options may alter the interpreter
+         * result. Preserve the error produced by ConfigureAxis.
          */
+        errorObjPtr = Tcl_GetObjResult(graphPtr->interp);
+
+        Tcl_IncrRefCount(errorObjPtr);
+
+        /*
+         * Never retain pointers to the caller-owned option vector
+         * while restoring the configuration.
+         */
+        ResetAxisOptionContext(axisPtr);
+
         Tk_RestoreSavedOptions(&savedOptions);
 
-        Tk_FreeSavedOptions(&savedOptions);
+        Tcl_SetObjResult(graphPtr->interp, errorObjPtr);
 
-        ResetAxisOptionContext(axisPtr);
+        Tcl_DecrRefCount(errorObjPtr);
 
         return TCL_ERROR;
     }
 
-    Tk_FreeSavedOptions(&savedOptions);
+    ResetAxisOptionContext(axisPtr);
 
     axisPtr->optionsConfigured = TRUE;
+
+    Tk_FreeSavedOptions(&savedOptions);
 
     if (maskPtr != NULL) {
         *maskPtr = mask;
     }
-
-    ResetAxisOptionContext(axisPtr);
 
     return TCL_OK;
 }
@@ -1658,11 +1695,21 @@ static int ConfigureAxisOptions(Graph *graphPtr, Axis *axisPtr, int objc, Tcl_Ob
  *----------------------------------------------------------------------
  */
 static void ReleaseAxisOptionResources(Graph *graphPtr, Axis *axisPtr) {
-    if (!axisPtr->optionsInitialized || axisPtr->tkResourcesReleased) {
+    if (axisPtr->tkResourcesReleased) {
         return;
     }
 
-    Tk_FreeConfigOptions((char *)axisPtr, axisPtr->optionTable, graphPtr->tkwin);
+    /*
+     * Do not retain pointers to configuration arguments during
+     * destruction.
+     */
+    ResetAxisOptionContext(axisPtr);
+
+    if (axisPtr->optionsInitialized) {
+        Tk_FreeConfigOptions((char *)axisPtr, axisPtr->optionTable, graphPtr->tkwin);
+
+        axisPtr->optionsInitialized = FALSE;
+    }
 
     axisPtr->tkResourcesReleased = TRUE;
 }
