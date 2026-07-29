@@ -402,7 +402,9 @@ static RbcGrAxisVirtualOp ViewOp;
  */
 static int Round(x)
 register double x;
-{ return (int)(x + ((x < 0.0) ? -0.5 : 0.5)); }
+{
+    return (int)(x + ((x < 0.0) ? -0.5 : 0.5));
+}
 
 /*
  *----------------------------------------------------------------------
@@ -618,9 +620,7 @@ static int IsAxisBindTagsOption(Tcl_Obj *objPtr) {
     Tcl_Size fullLength;
 
     string = Tcl_GetStringFromObj(objPtr, &length);
-
     fullLength = (Tcl_Size)(sizeof(optionName) - 1);
-
     return ((length > 0) && (length <= fullLength) && (strncmp(string, optionName, (size_t)length) == 0));
 }
 
@@ -641,18 +641,14 @@ static int StageAxisTags(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisTagsTransactio
     char **newTags;
 
     newTags = NULL;
-
     if (Rbc_GetStringListFromObj(interp, objPtr, &newTags) != TCL_OK) {
         return TCL_ERROR;
     }
-
     if (transactionPtr->tags != NULL) {
         ckfree((char *)transactionPtr->tags);
     }
-
     transactionPtr->tags = newTags;
     transactionPtr->staged = TRUE;
-
     return TCL_OK;
 }
 
@@ -660,7 +656,6 @@ static void FreeAxisTagsTransaction(AxisTagsTransaction *transactionPtr) {
     if (transactionPtr->tags != NULL) {
         ckfree((char *)transactionPtr->tags);
     }
-
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 

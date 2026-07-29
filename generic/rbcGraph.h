@@ -351,6 +351,42 @@ struct GraphStruct {
                            * away. */
     Tcl_Command cmdToken; /* Token for graph's widget command. */
 
+    /*
+     * Modern Tk option state.
+     */
+    Tk_OptionTable optionTable;
+
+    /*
+     * Original Tcl representations for values requiring additional
+     * conversion or validation.
+     */
+    Tcl_Obj *barModeObjPtr;
+    Tcl_Obj *borderWidthObjPtr;
+    Tcl_Obj *bottomMarginObjPtr;
+    Tcl_Obj *haloObjPtr;
+    Tcl_Obj *heightObjPtr;
+    Tcl_Obj *leftMarginObjPtr;
+    Tcl_Obj *plotBorderWidthObjPtr;
+    Tcl_Obj *plotPadXObjPtr;
+    Tcl_Obj *plotPadYObjPtr;
+    Tcl_Obj *rightMarginObjPtr;
+    Tcl_Obj *shadowObjPtr;
+    Tcl_Obj *tileObjPtr;
+    Tcl_Obj *topMarginObjPtr;
+    Tcl_Obj *widthObjPtr;
+
+    /*
+     * Temporary context for a modern option transaction.
+     */
+    unsigned int optionMask;
+    int optionObjc;
+    Tcl_Obj *const *optionObjv;
+
+    int optionsConfigured;    
+    
+    int optionsInitialized;
+    int tkResourcesReleased;
+    
     char *data; /* This value isn't used in C code.
                  * It may be used in Tcl bindings to
                  * associate extra data. */
