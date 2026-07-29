@@ -497,9 +497,6 @@ int Rbc_GetFillFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *fillPtr);
 int Rbc_GetStateFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *statePtr);
 int Rbc_GetStringListFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, char ***listPtrPtr);
 
-Tk_OptionParseProc Rbc_StringToFlag;
-Tk_OptionPrintProc Rbc_FlagToString;
-
 void Rbc_InitHexTable(char *table);
 
 GC Rbc_GetPrivateGC(Tk_Window tkwin, unsigned long gcMask, XGCValues *valuePtr);
@@ -511,18 +508,11 @@ void Rbc_FreePrivateGC(Display *display, GC gc);
 int Rbc_GetPixels(Tcl_Interp *, Tk_Window, const char *, int, int *);
 int Rbc_GetPixelsFromObj(Tcl_Interp *, Tk_Window, Tcl_Obj *, int, int *);
 
-char *Rbc_NameOfFill(int fill);
-
 int Rbc_GetXY(Tcl_Interp *interp, Tk_Window tkwin, const char *string, int *x, int *y);
 
 Point2D Rbc_GetProjection(int x, int y, Point2D *p, Point2D *q);
 
 void Rbc_DrawArrow(Display *display, Drawable drawable, GC gc, int x, int y, int arrowHeight, int orientation);
-
-Tk_OptionParseProc Rbc_StringToEnum;
-Tk_OptionPrintProc Rbc_EnumToString;
-
-int Rbc_ConfigModified(Tcl_Interp *, Tk_ConfigSpec *, ...);
 
 void Rbc_DStringAppendElements(Tcl_DString *, ...);
 
@@ -534,13 +524,6 @@ void Rbc_TranslateAnchor(int x, int y, int width, int height, Tk_Anchor anchor, 
 
 Point2D Rbc_TranslatePoint(Point2D *pointPtr, int width, int height, Tk_Anchor anchor);
 
-/*
-int Rbc_ConfigureWidgetComponent (Tcl_Interp *interp,
-    Tk_Window tkwin, char *name, char *class, Tk_ConfigSpec *specs,
-    int argc, const char **argv, char *widgRec, int flags);
-*/
-int Rbc_ConfigureWidgetComponent(Tcl_Interp *interp, Tk_Window tkwin, char *name, char *class, Tk_ConfigSpec *specs,
-                                 int objc, Tcl_Obj *const objv[], char *widgRec, int flags);
 Tk_Window Rbc_FindChild(Tk_Window parent, const char *name);
 int Rbc_InitComponentOptions(Tcl_Interp *interp, Tk_Window parent, const char *name, const char *className,
                              char *recordPtr, Tk_OptionTable optionTable);
