@@ -192,6 +192,8 @@ static Tk_CustomOption looseOption = {
     (AXIS_TAGS_MASK | AXIS_LIMITS_FORMAT_MASK | AXIS_LIMITS_SHADOW_MASK | AXIS_LOOSE_MASK | AXIS_TICKS_MASK |          \
      AXIS_LIMITS_MASK | AXIS_SCROLL_LIMITS_MASK | AXIS_TICK_SHADOW_MASK | AXIS_TITLE_SHADOW_MASK | AXIS_PIXELS_MASK)
 
+#define AXIS_SHADOW_MASK (AXIS_LIMITS_SHADOW_MASK | AXIS_TICK_SHADOW_MASK | AXIS_TITLE_SHADOW_MASK)
+
 typedef enum {
     AXIS_LIMIT_OPTION_NONE,
     AXIS_LIMIT_OPTION_MIN,
@@ -228,6 +230,45 @@ typedef struct {
     int looseMin;
     int looseMax;
 } AxisLooseTransaction;
+
+typedef enum {
+    AXIS_PIXEL_OPTION_NONE,
+    AXIS_PIXEL_OPTION_BORDER_WIDTH,
+    AXIS_PIXEL_OPTION_LINE_WIDTH,
+    AXIS_PIXEL_OPTION_SCROLL_INCREMENT
+} AxisPixelOption;
+
+#define AXIS_PIXEL_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
+
+typedef struct {
+    unsigned int stagedMask;
+
+    int borderWidth;
+    int lineWidth;
+    int scrollIncrement;
+} AxisPixelTransaction;
+
+typedef enum {
+    AXIS_SHADOW_OPTION_NONE,
+    AXIS_SHADOW_OPTION_LIMITS,
+    AXIS_SHADOW_OPTION_TICK,
+    AXIS_SHADOW_OPTION_TITLE
+} AxisShadowOption;
+
+#define AXIS_SHADOW_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
+
+typedef struct {
+    unsigned int stagedMask;
+
+    Shadow limitsShadow;
+    Shadow tickShadow;
+    Shadow titleShadow;
+} AxisShadowTransaction;
+
+typedef struct {
+    int staged;
+    char **tags;
+} AxisTagsTransaction;
 
 static Tk_ConfigSpec configSpecs[] = {
     {TK_CONFIG_DOUBLE, "-autorange", "autoRange", "AutoRange", DEF_AXIS_RANGE, offsetof(Axis, windowSize),
@@ -1101,6 +1142,162 @@ static const char *LooseToString(ClientData clientData, Tk_Window tkwin, char *w
 /*
  *----------------------------------------------------------------------
  *
+ * IsAxisBindTagsOption --
+ *
+ *      Determines whether an option name represents "-bindtags".
+ *
+ *      Tk_SetOptions has already rejected unknown and ambiguous
+ *      abbreviations.
+ *
+ *----------------------------------------------------------------------
+ */
+static int IsAxisBindTagsOption(Tcl_Obj *objPtr) {
+    static const char optionName[] = "-bindtags";
+    const char *string;
+    Tcl_Size length;
+    Tcl_Size fullLength;
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+
+    fullLength = (Tcl_Size)(sizeof(optionName) - 1);
+
+    return ((length > 0) && (length <= fullLength) && (strncmp(string, optionName, (size_t)length) == 0));
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * StageAxisTags --
+ *
+ *      Parses an axis bind-tags value into temporary transaction
+ *      storage without modifying the live Axis record.
+ *
+ *      A previous staged candidate is released only after its
+ *      replacement has parsed successfully.
+ *
+ *----------------------------------------------------------------------
+ */
+static int StageAxisTags(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisTagsTransaction *transactionPtr) {
+    char **newTags;
+
+    newTags = NULL;
+
+    if (Rbc_GetStringListFromObj(interp, objPtr, &newTags) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    if (transactionPtr->tags != NULL) {
+        ckfree((char *)transactionPtr->tags);
+    }
+
+    transactionPtr->tags = newTags;
+    transactionPtr->staged = TRUE;
+
+    return TCL_OK;
+}
+
+static void FreeAxisTagsTransaction(AxisTagsTransaction *transactionPtr) {
+    if (transactionPtr->tags != NULL) {
+        ckfree((char *)transactionPtr->tags);
+    }
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * PrepareAxisTagsTransaction --
+ *
+ *      Parses all -bindtags values involved in the current modern
+ *      configuration without modifying the live Axis record.
+ *
+ *      Explicit repeated occurrences are processed in caller order.
+ *      Therefore an invalid earlier value is not hidden by a valid
+ *      final retained value.
+ *
+ *----------------------------------------------------------------------
+ */
+static int PrepareAxisTagsTransaction(Graph *graphPtr, Axis *axisPtr, AxisTagsTransaction *transactionPtr) {
+    int explicitlySpecified;
+    int i;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+
+    explicitlySpecified = FALSE;
+
+    assert((axisPtr->optionObjc & 1) == 0);
+
+    /*
+     * Determine whether -bindtags was explicitly supplied.
+     */
+    for (i = 0; i < axisPtr->optionObjc; i += 2) {
+        if (IsAxisBindTagsOption(axisPtr->optionObjv[i])) {
+            explicitlySpecified = TRUE;
+        }
+    }
+
+    /*
+     * During initial modern configuration, parse the effective
+     * default or option-database value unless explicitly overridden.
+     */
+    if (!axisPtr->optionsConfigured && !explicitlySpecified && (axisPtr->bindTagsObjPtr != NULL)) {
+        if (StageAxisTags(graphPtr->interp, axisPtr->bindTagsObjPtr, transactionPtr) != TCL_OK) {
+            goto error;
+        }
+    }
+
+    /*
+     * Process every explicit occurrence in caller order.
+     */
+    for (i = 0; i < axisPtr->optionObjc; i += 2) {
+        if (IsAxisBindTagsOption(axisPtr->optionObjv[i])) {
+            if (StageAxisTags(graphPtr->interp, axisPtr->optionObjv[i + 1], transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        }
+    }
+
+    return TCL_OK;
+
+error:
+    FreeAxisTagsTransaction(transactionPtr);
+
+    return TCL_ERROR;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * CommitAxisTagsTransaction --
+ *
+ *      Replaces the live axis bind-tags list with a successfully
+ *      staged candidate.
+ *
+ *----------------------------------------------------------------------
+ */
+static void CommitAxisTagsTransaction(Axis *axisPtr, AxisTagsTransaction *transactionPtr) {
+    char **oldTags;
+
+    if (!transactionPtr->staged) {
+        return;
+    }
+
+    oldTags = axisPtr->tags;
+
+    axisPtr->tags = transactionPtr->tags;
+
+    transactionPtr->tags = NULL;
+    transactionPtr->staged = FALSE;
+
+    if (oldTags != NULL) {
+        ckfree((char *)oldTags);
+    }
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
  * InitAxisOptions --
  *
  *      Creates the axis option table and installs its default and
@@ -1340,6 +1537,252 @@ static int GetAxisLimitFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, double *valu
     }
 
     return Tcl_ExprDoubleObj(interp, objPtr, valuePtr);
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * GetAxisPixelOption --
+ *
+ *      Determines whether an option represents one of the manually
+ *      parsed axis pixel-distance options.
+ *
+ *      Tk_SetOptions has already rejected unknown or ambiguous
+ *      abbreviations. The exact "-bd" synonym is mapped to
+ *      "-borderwidth".
+ *
+ *----------------------------------------------------------------------
+ */
+static AxisPixelOption GetAxisPixelOption(Tcl_Obj *objPtr) {
+    static const struct {
+        const char *name;
+        AxisPixelOption option;
+    } optionMap[] = {{"-borderwidth", AXIS_PIXEL_OPTION_BORDER_WIDTH},
+                     {"-linewidth", AXIS_PIXEL_OPTION_LINE_WIDTH},
+                     {"-scrollincrement", AXIS_PIXEL_OPTION_SCROLL_INCREMENT}};
+
+    const char *string;
+    Tcl_Size length;
+    AxisPixelOption match;
+    size_t i;
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+
+    /*
+     * Handle the exact synonym separately. It is not an abbreviation
+     * of "-borderwidth".
+     */
+    if ((length == 3) && (memcmp(string, "-bd", 3) == 0)) {
+        return AXIS_PIXEL_OPTION_BORDER_WIDTH;
+    }
+
+    /*
+     * Prefer exact canonical names.
+     */
+    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
+        Tcl_Size fullLength;
+
+        fullLength = (Tcl_Size)strlen(optionMap[i].name);
+
+        if ((length == fullLength) && (memcmp(string, optionMap[i].name, (size_t)length) == 0)) {
+            return optionMap[i].option;
+        }
+    }
+
+    /*
+     * Recover a canonical option from an accepted abbreviation.
+     */
+    match = AXIS_PIXEL_OPTION_NONE;
+
+    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
+        Tcl_Size fullLength;
+
+        fullLength = (Tcl_Size)strlen(optionMap[i].name);
+
+        if ((length > 0) && (length < fullLength) && (strncmp(string, optionMap[i].name, (size_t)length) == 0)) {
+            if (match == AXIS_PIXEL_OPTION_NONE) {
+                match = optionMap[i].option;
+            } else if (match != optionMap[i].option) {
+                return AXIS_PIXEL_OPTION_NONE;
+            }
+        }
+    }
+
+    return match;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * StageAxisPixelOption --
+ *
+ *      Parses one pixel-distance option into temporary transaction
+ *      storage without modifying the live Axis record.
+ *
+ *----------------------------------------------------------------------
+ */
+static int StageAxisPixelOption(Graph *graphPtr, Tcl_Obj *objPtr, AxisPixelOption option,
+                                AxisPixelTransaction *transactionPtr) {
+    int check;
+    int value;
+
+    switch (option) {
+    case AXIS_PIXEL_OPTION_BORDER_WIDTH:
+    case AXIS_PIXEL_OPTION_LINE_WIDTH:
+        check = PIXELS_NONNEGATIVE;
+        break;
+
+    case AXIS_PIXEL_OPTION_SCROLL_INCREMENT:
+        check = PIXELS_POSITIVE;
+        break;
+
+    case AXIS_PIXEL_OPTION_NONE:
+    default:
+        Tcl_Panic("StageAxisPixelOption called with invalid option");
+
+        return TCL_ERROR;
+    }
+
+    if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, objPtr, check, &value) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    switch (option) {
+    case AXIS_PIXEL_OPTION_BORDER_WIDTH:
+        transactionPtr->borderWidth = value;
+        break;
+
+    case AXIS_PIXEL_OPTION_LINE_WIDTH:
+        transactionPtr->lineWidth = value;
+        break;
+
+    case AXIS_PIXEL_OPTION_SCROLL_INCREMENT:
+        transactionPtr->scrollIncrement = value;
+        break;
+
+    case AXIS_PIXEL_OPTION_NONE:
+    default:
+        Tcl_Panic("StageAxisPixelOption called with invalid option");
+
+        return TCL_ERROR;
+    }
+
+    transactionPtr->stagedMask |= AXIS_PIXEL_OPTION_MASK(option);
+
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * PrepareAxisPixelTransaction --
+ *
+ *      Parses all retained axis pixel options involved in the current
+ *      modern configuration without modifying the live Axis record.
+ *
+ *      Explicit repeated occurrences are processed in caller order.
+ *      An invalid earlier value therefore causes the whole configure
+ *      operation to fail.
+ *
+ *----------------------------------------------------------------------
+ */
+static int PrepareAxisPixelTransaction(Graph *graphPtr, Axis *axisPtr, AxisPixelTransaction *transactionPtr) {
+    unsigned int explicitMask;
+    int i;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+
+    explicitMask = 0;
+
+    assert((axisPtr->optionObjc & 1) == 0);
+
+    /*
+     * Determine which options were explicitly supplied.
+     */
+    for (i = 0; i < axisPtr->optionObjc; i += 2) {
+        AxisPixelOption option;
+
+        option = GetAxisPixelOption(axisPtr->optionObjv[i]);
+
+        if (option != AXIS_PIXEL_OPTION_NONE) {
+            explicitMask |= AXIS_PIXEL_OPTION_MASK(option);
+        }
+    }
+
+    /*
+     * During initial modern configuration, parse effective defaults
+     * and option-database values that were not explicitly overridden.
+     */
+    if (!axisPtr->optionsConfigured) {
+        if (!(explicitMask & AXIS_PIXEL_OPTION_MASK(AXIS_PIXEL_OPTION_BORDER_WIDTH)) &&
+            (axisPtr->borderWidthObjPtr != NULL)) {
+            if (StageAxisPixelOption(graphPtr, axisPtr->borderWidthObjPtr, AXIS_PIXEL_OPTION_BORDER_WIDTH,
+                                     transactionPtr) != TCL_OK) {
+                return TCL_ERROR;
+            }
+        }
+
+        if (!(explicitMask & AXIS_PIXEL_OPTION_MASK(AXIS_PIXEL_OPTION_LINE_WIDTH)) &&
+            (axisPtr->lineWidthObjPtr != NULL)) {
+            if (StageAxisPixelOption(graphPtr, axisPtr->lineWidthObjPtr, AXIS_PIXEL_OPTION_LINE_WIDTH,
+                                     transactionPtr) != TCL_OK) {
+                return TCL_ERROR;
+            }
+        }
+
+        if (!(explicitMask & AXIS_PIXEL_OPTION_MASK(AXIS_PIXEL_OPTION_SCROLL_INCREMENT)) &&
+            (axisPtr->scrollIncrementObjPtr != NULL)) {
+            if (StageAxisPixelOption(graphPtr, axisPtr->scrollIncrementObjPtr, AXIS_PIXEL_OPTION_SCROLL_INCREMENT,
+                                     transactionPtr) != TCL_OK) {
+                return TCL_ERROR;
+            }
+        }
+    }
+
+    /*
+     * Process explicit occurrences in their original order.
+     */
+    for (i = 0; i < axisPtr->optionObjc; i += 2) {
+        AxisPixelOption option;
+
+        option = GetAxisPixelOption(axisPtr->optionObjv[i]);
+
+        if (option == AXIS_PIXEL_OPTION_NONE) {
+            continue;
+        }
+
+        if (StageAxisPixelOption(graphPtr, axisPtr->optionObjv[i + 1], option, transactionPtr) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * CommitAxisPixelTransaction --
+ *
+ *      Commits successfully parsed pixel-distance values to the live
+ *      Axis record.
+ *
+ *----------------------------------------------------------------------
+ */
+static void CommitAxisPixelTransaction(Axis *axisPtr, AxisPixelTransaction *transactionPtr) {
+    if (transactionPtr->stagedMask & AXIS_PIXEL_OPTION_MASK(AXIS_PIXEL_OPTION_BORDER_WIDTH)) {
+        axisPtr->borderWidth = transactionPtr->borderWidth;
+    }
+
+    if (transactionPtr->stagedMask & AXIS_PIXEL_OPTION_MASK(AXIS_PIXEL_OPTION_LINE_WIDTH)) {
+        axisPtr->lineWidth = transactionPtr->lineWidth;
+    }
+
+    if (transactionPtr->stagedMask & AXIS_PIXEL_OPTION_MASK(AXIS_PIXEL_OPTION_SCROLL_INCREMENT)) {
+        axisPtr->scrollUnits = transactionPtr->scrollIncrement;
+    }
+
+    transactionPtr->stagedMask = 0;
 }
 
 /*
@@ -2099,6 +2542,255 @@ static void CommitAxisTickTransaction(Axis *axisPtr, AxisTickTransaction *transa
         }
 
         FreeAxisTicks(oldTicksPtr);
+    }
+
+    transactionPtr->stagedMask = 0;
+}
+
+static void FreeAxisShadow(Shadow *shadowPtr) {
+    if (shadowPtr->color != NULL) {
+        Tk_FreeColor(shadowPtr->color);
+    }
+
+    shadowPtr->color = NULL;
+    shadowPtr->offset = 0;
+}
+
+static AxisShadowOption GetAxisShadowOption(Tcl_Obj *objPtr) {
+    static const struct {
+        const char *name;
+        AxisShadowOption option;
+    } optionMap[] = {{"-limitsshadow", AXIS_SHADOW_OPTION_LIMITS},
+                     {"-tickshadow", AXIS_SHADOW_OPTION_TICK},
+                     {"-titleshadow", AXIS_SHADOW_OPTION_TITLE}};
+
+    const char *string;
+    Tcl_Size length;
+    AxisShadowOption match;
+    size_t i;
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+
+    /*
+     * Prefer exact option names.
+     */
+    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
+        Tcl_Size fullLength;
+
+        fullLength = (Tcl_Size)strlen(optionMap[i].name);
+
+        if ((length == fullLength) && (memcmp(string, optionMap[i].name, (size_t)length) == 0)) {
+            return optionMap[i].option;
+        }
+    }
+
+    /*
+     * Tk_SetOptions has already rejected ambiguous abbreviations.
+     */
+    match = AXIS_SHADOW_OPTION_NONE;
+
+    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
+        Tcl_Size fullLength;
+
+        fullLength = (Tcl_Size)strlen(optionMap[i].name);
+
+        if ((length > 0) && (length < fullLength) && (strncmp(string, optionMap[i].name, (size_t)length) == 0)) {
+            if (match == AXIS_SHADOW_OPTION_NONE) {
+                match = optionMap[i].option;
+            } else if (match != optionMap[i].option) {
+                return AXIS_SHADOW_OPTION_NONE;
+            }
+        }
+    }
+
+    return match;
+}
+
+static int StageAxisShadow(Graph *graphPtr, Tcl_Obj *objPtr, AxisShadowOption option,
+                           AxisShadowTransaction *transactionPtr) {
+    Shadow newShadow;
+    Shadow *candidatePtr;
+    unsigned int mask;
+
+    newShadow.color = NULL;
+    newShadow.offset = 0;
+
+    /*
+     * Rbc_GetShadowFromObj acquires the colour and validates the
+     * optional non-negative offset without modifying live state.
+     */
+    if (Rbc_GetShadowFromObj(graphPtr->interp, graphPtr->tkwin, objPtr, &newShadow) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    switch (option) {
+    case AXIS_SHADOW_OPTION_LIMITS:
+        candidatePtr = &transactionPtr->limitsShadow;
+        break;
+
+    case AXIS_SHADOW_OPTION_TICK:
+        candidatePtr = &transactionPtr->tickShadow;
+        break;
+
+    case AXIS_SHADOW_OPTION_TITLE:
+        candidatePtr = &transactionPtr->titleShadow;
+        break;
+
+    case AXIS_SHADOW_OPTION_NONE:
+    default:
+        FreeAxisShadow(&newShadow);
+
+        Tcl_Panic("StageAxisShadow called with invalid option");
+
+        return TCL_ERROR;
+    }
+
+    mask = AXIS_SHADOW_OPTION_MASK(option);
+
+    /*
+     * Parse and acquire the replacement before releasing an earlier
+     * staged candidate for the same option.
+     */
+    if (transactionPtr->stagedMask & mask) {
+        FreeAxisShadow(candidatePtr);
+    }
+
+    *candidatePtr = newShadow;
+    transactionPtr->stagedMask |= mask;
+
+    return TCL_OK;
+}
+
+static void FreeAxisShadowTransaction(AxisShadowTransaction *transactionPtr) {
+    FreeAxisShadow(&transactionPtr->limitsShadow);
+
+    FreeAxisShadow(&transactionPtr->tickShadow);
+
+    FreeAxisShadow(&transactionPtr->titleShadow);
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+}
+
+static int PrepareAxisShadowTransaction(Graph *graphPtr, Axis *axisPtr, AxisShadowTransaction *transactionPtr) {
+    unsigned int explicitMask;
+    int i;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+
+    explicitMask = 0;
+
+    assert((axisPtr->optionObjc & 1) == 0);
+
+    /*
+     * Determine which shadow options were explicitly supplied.
+     */
+    for (i = 0; i < axisPtr->optionObjc; i += 2) {
+        AxisShadowOption option;
+
+        option = GetAxisShadowOption(axisPtr->optionObjv[i]);
+
+        if (option != AXIS_SHADOW_OPTION_NONE) {
+            explicitMask |= AXIS_SHADOW_OPTION_MASK(option);
+        }
+    }
+
+    /*
+     * During initial modern configuration, parse effective option
+     * database values that were not explicitly overridden.
+     */
+    if (!axisPtr->optionsConfigured) {
+        if (!(explicitMask & AXIS_SHADOW_OPTION_MASK(AXIS_SHADOW_OPTION_LIMITS)) &&
+            (axisPtr->limitsShadowObjPtr != NULL)) {
+            if (StageAxisShadow(graphPtr, axisPtr->limitsShadowObjPtr, AXIS_SHADOW_OPTION_LIMITS, transactionPtr) !=
+                TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & AXIS_SHADOW_OPTION_MASK(AXIS_SHADOW_OPTION_TICK)) && (axisPtr->tickShadowObjPtr != NULL)) {
+            if (StageAxisShadow(graphPtr, axisPtr->tickShadowObjPtr, AXIS_SHADOW_OPTION_TICK, transactionPtr) !=
+                TCL_OK) {
+                goto error;
+            }
+        }
+
+        if (!(explicitMask & AXIS_SHADOW_OPTION_MASK(AXIS_SHADOW_OPTION_TITLE)) &&
+            (axisPtr->titleShadowObjPtr != NULL)) {
+            if (StageAxisShadow(graphPtr, axisPtr->titleShadowObjPtr, AXIS_SHADOW_OPTION_TITLE, transactionPtr) !=
+                TCL_OK) {
+                goto error;
+            }
+        }
+    }
+
+    /*
+     * Process explicit repeated occurrences in caller order. An
+     * invalid earlier value is therefore not hidden by a later valid
+     * occurrence.
+     */
+    for (i = 0; i < axisPtr->optionObjc; i += 2) {
+        AxisShadowOption option;
+
+        option = GetAxisShadowOption(axisPtr->optionObjv[i]);
+
+        if (option == AXIS_SHADOW_OPTION_NONE) {
+            continue;
+        }
+
+        if (StageAxisShadow(graphPtr, axisPtr->optionObjv[i + 1], option, transactionPtr) != TCL_OK) {
+            goto error;
+        }
+    }
+
+    return TCL_OK;
+
+error:
+    FreeAxisShadowTransaction(transactionPtr);
+
+    return TCL_ERROR;
+}
+
+static void CommitAxisShadowTransaction(Axis *axisPtr, AxisShadowTransaction *transactionPtr) {
+    if (transactionPtr->stagedMask & AXIS_SHADOW_OPTION_MASK(AXIS_SHADOW_OPTION_LIMITS)) {
+        Shadow oldShadow;
+
+        oldShadow = axisPtr->limitsTextStyle.shadow;
+
+        axisPtr->limitsTextStyle.shadow = transactionPtr->limitsShadow;
+
+        transactionPtr->limitsShadow.color = NULL;
+
+        transactionPtr->limitsShadow.offset = 0;
+
+        FreeAxisShadow(&oldShadow);
+    }
+
+    if (transactionPtr->stagedMask & AXIS_SHADOW_OPTION_MASK(AXIS_SHADOW_OPTION_TICK)) {
+        Shadow oldShadow;
+
+        oldShadow = axisPtr->tickTextStyle.shadow;
+
+        axisPtr->tickTextStyle.shadow = transactionPtr->tickShadow;
+
+        transactionPtr->tickShadow.color = NULL;
+
+        transactionPtr->tickShadow.offset = 0;
+
+        FreeAxisShadow(&oldShadow);
+    }
+
+    if (transactionPtr->stagedMask & AXIS_SHADOW_OPTION_MASK(AXIS_SHADOW_OPTION_TITLE)) {
+        Shadow oldShadow;
+
+        oldShadow = axisPtr->titleTextStyle.shadow;
+
+        axisPtr->titleTextStyle.shadow = transactionPtr->titleShadow;
+
+        transactionPtr->titleShadow.color = NULL;
+
+        transactionPtr->titleShadow.offset = 0;
+
+        FreeAxisShadow(&oldShadow);
     }
 
     transactionPtr->stagedMask = 0;
@@ -3057,6 +3749,15 @@ static void DestroyAxis(Graph *graphPtr, Axis *axisPtr) {
     Rbc_FreeTextStyle(graphPtr->display, &axisPtr->titleTextStyle);
     Rbc_FreeTextStyle(graphPtr->display, &axisPtr->limitsTextStyle);
     Rbc_FreeTextStyle(graphPtr->display, &axisPtr->tickTextStyle);
+/*
+ * Rbc_FreeTextStyle releases only the style GC. Shadow colours are
+ * acquired separately by the shadow option parser.
+ */
+    FreeAxisShadow(&axisPtr->titleTextStyle.shadow);
+
+    FreeAxisShadow(&axisPtr->limitsTextStyle.shadow);
+
+    FreeAxisShadow(&axisPtr->tickTextStyle.shadow);
 
     if (axisPtr->tickGC != NULL) {
         Tk_FreeGC(graphPtr->display, axisPtr->tickGC);
@@ -4374,20 +5075,30 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
     AxisLimitTransaction limitTransaction;
     AxisTickTransaction tickTransaction;
     AxisLooseTransaction looseTransaction;
+    AxisPixelTransaction pixelTransaction;
+    AxisShadowTransaction shadowTransaction;
+    AxisTagsTransaction tagsTransaction;
 
     int limitTransactionPrepared;
     int tickTransactionPrepared;
     int looseTransactionPrepared;
+    int pixelTransactionPrepared;
+    int shadowTransactionPrepared;
+    int tagsTransactionPrepared;
 
     memset(&limitTransaction, 0, sizeof(limitTransaction));
-
     memset(&tickTransaction, 0, sizeof(tickTransaction));
-
     memset(&looseTransaction, 0, sizeof(looseTransaction));
+    memset(&pixelTransaction, 0, sizeof(pixelTransaction));
+    memset(&shadowTransaction, 0, sizeof(shadowTransaction));
+    memset(&tagsTransaction, 0, sizeof(tagsTransaction));
 
     limitTransactionPrepared = FALSE;
     tickTransactionPrepared = FALSE;
     looseTransactionPrepared = FALSE;
+    pixelTransactionPrepared = FALSE;
+    shadowTransactionPrepared = FALSE;
+    tagsTransactionPrepared = FALSE;
 
     /*
      * Parse and validate retained axis-limit objects before modifying the
@@ -4427,6 +5138,41 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
         looseTransactionPrepared = TRUE;
     }
 
+    /*
+     * Parse non-negative axis widths and the positive scroll increment
+     * before modifying the live Axis record.
+     */
+    if ((axisPtr->optionSpecs != NULL) && ((!axisPtr->optionsConfigured) || (axisPtr->optionMask & AXIS_PIXELS_MASK))) {
+        if (PrepareAxisPixelTransaction(graphPtr, axisPtr, &pixelTransaction) != TCL_OK) {
+            goto error;
+        }
+
+        pixelTransactionPrepared = TRUE;
+    }
+
+    /*
+     * Parse all text shadow resources before replacing any live shadow
+     * colour references.
+     */
+    if ((axisPtr->optionSpecs != NULL) && ((!axisPtr->optionsConfigured) || (axisPtr->optionMask & AXIS_SHADOW_MASK))) {
+        if (PrepareAxisShadowTransaction(graphPtr, axisPtr, &shadowTransaction) != TCL_OK) {
+            goto error;
+        }
+
+        shadowTransactionPrepared = TRUE;
+    }
+
+    /*
+     * Parse the axis bind-tags list before replacing the live allocation.
+     */
+    if ((axisPtr->optionSpecs != NULL) && ((!axisPtr->optionsConfigured) || (axisPtr->optionMask & AXIS_TAGS_MASK))) {
+        if (PrepareAxisTagsTransaction(graphPtr, axisPtr, &tagsTransaction) != TCL_OK) {
+            goto error;
+        }
+
+        tagsTransactionPrepared = TRUE;
+    }
+
     if (axisPtr->optionSpecs == NULL) {
         char errMsg[200];
         /* Check the requested axis limits. Can't allow -min to be greater
@@ -4464,6 +5210,18 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
         CommitAxisLooseTransaction(axisPtr, &looseTransaction);
     }
 
+    if (pixelTransactionPrepared) {
+        CommitAxisPixelTransaction(axisPtr, &pixelTransaction);
+    }
+
+    if (shadowTransactionPrepared) {
+        CommitAxisShadowTransaction(axisPtr, &shadowTransaction);
+    }
+
+    if (tagsTransactionPrepared) {
+        CommitAxisTagsTransaction(axisPtr, &tagsTransaction);
+    }
+
     axisPtr->tickTextStyle.theta = FMOD(axisPtr->tickTextStyle.theta, 360.0);
     if (axisPtr->tickTextStyle.theta < 0.0) {
         axisPtr->tickTextStyle.theta += 360.0;
@@ -4496,6 +5254,12 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
     return TCL_OK;
 
 error:
+    if (tagsTransactionPrepared) {
+        FreeAxisTagsTransaction(&tagsTransaction);
+    }
+    if (shadowTransactionPrepared) {
+        FreeAxisShadowTransaction(&shadowTransaction);
+    }
     if (tickTransactionPrepared) {
         FreeAxisTickTransaction(&tickTransaction);
     }
