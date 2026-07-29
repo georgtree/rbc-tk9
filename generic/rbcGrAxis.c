@@ -222,6 +222,13 @@ typedef struct {
     Ticks *minorTicksPtr;
 } AxisTickTransaction;
 
+typedef struct {
+    int staged;
+
+    int looseMin;
+    int looseMax;
+} AxisLooseTransaction;
+
 static Tk_ConfigSpec configSpecs[] = {
     {TK_CONFIG_DOUBLE, "-autorange", "autoRange", "AutoRange", DEF_AXIS_RANGE, offsetof(Axis, windowSize),
      ALL_GRAPHS | TK_CONFIG_DONT_SET_DEFAULT},
@@ -1693,6 +1700,197 @@ static AxisTickOption GetAxisTickOption(Tcl_Obj *objPtr) {
     }
 
     return match;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * IsAxisLooseOption --
+ *
+ *      Determines whether an option name represents "-loose".
+ *
+ *      Tk_SetOptions has already rejected unknown and ambiguous
+ *      abbreviations. This helper recovers the canonical identity from
+ *      the original option/value vector.
+ *
+ *----------------------------------------------------------------------
+ */
+static int IsAxisLooseOption(Tcl_Obj *objPtr) {
+    static const char optionName[] = "-loose";
+    const char *string;
+    Tcl_Size length;
+    Tcl_Size fullLength;
+
+    string = Tcl_GetStringFromObj(objPtr, &length);
+
+    fullLength = (Tcl_Size)(sizeof(optionName) - 1);
+
+    return ((length > 0) && (length <= fullLength) && (strncmp(string, optionName, (size_t)length) == 0));
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * GetAxisLooseFromObj --
+ *
+ *      Parses the one- or two-element value of the axis -loose option
+ *      without modifying the live Axis record.
+ *
+ *      Boolean values map to TICK_RANGE_TIGHT or TICK_RANGE_LOOSE.
+ *      The exact value "always" maps to
+ *      TICK_RANGE_ALWAYS_LOOSE.
+ *
+ *----------------------------------------------------------------------
+ */
+static int GetAxisLooseFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *looseMinPtr, int *looseMaxPtr) {
+    Tcl_Obj **valueObjv;
+    Tcl_Size valueObjc;
+    int values[2];
+    Tcl_Size i;
+
+    if (Tcl_ListObjGetElements(interp, objPtr, &valueObjc, &valueObjv) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    if ((valueObjc < 1) || (valueObjc > 2)) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("wrong # elements in loose value \"%s\"", Tcl_GetString(objPtr)));
+
+        return TCL_ERROR;
+    }
+
+    for (i = 0; i < valueObjc; i++) {
+        const char *string;
+
+        string = Tcl_GetString(valueObjv[i]);
+
+        if (strcmp(string, "always") == 0) {
+            values[i] = TICK_RANGE_ALWAYS_LOOSE;
+        } else {
+            int boolean;
+
+            if (Tcl_GetBooleanFromObj(interp, valueObjv[i], &boolean) != TCL_OK) {
+                return TCL_ERROR;
+            }
+
+            values[i] = boolean ? TICK_RANGE_LOOSE : TICK_RANGE_TIGHT;
+        }
+    }
+
+    *looseMinPtr = values[0];
+    *looseMaxPtr = values[0];
+
+    if (valueObjc == 2) {
+        *looseMaxPtr = values[1];
+    }
+
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * StageAxisLoose --
+ *
+ *      Parses an axis -loose value into temporary transaction storage
+ *      without modifying the live Axis record.
+ *
+ *----------------------------------------------------------------------
+ */
+static int StageAxisLoose(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisLooseTransaction *transactionPtr) {
+    int looseMin;
+    int looseMax;
+
+    if (GetAxisLooseFromObj(interp, objPtr, &looseMin, &looseMax) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    transactionPtr->looseMin = looseMin;
+
+    transactionPtr->looseMax = looseMax;
+
+    transactionPtr->staged = TRUE;
+
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * PrepareAxisLooseTransaction --
+ *
+ *      Parses all -loose values involved in the current modern
+ *      configuration without modifying the live Axis record.
+ *
+ *      Explicit repeated occurrences are processed in caller order.
+ *      An invalid earlier occurrence therefore causes the complete
+ *      configuration to fail.
+ *
+ *----------------------------------------------------------------------
+ */
+static int PrepareAxisLooseTransaction(Graph *graphPtr, Axis *axisPtr, AxisLooseTransaction *transactionPtr) {
+    int explicitlySpecified;
+    int i;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+
+    explicitlySpecified = FALSE;
+
+    assert((axisPtr->optionObjc & 1) == 0);
+
+    /*
+     * Determine whether -loose was supplied explicitly.
+     */
+    for (i = 0; i < axisPtr->optionObjc; i += 2) {
+        if (IsAxisLooseOption(axisPtr->optionObjv[i])) {
+            explicitlySpecified = TRUE;
+        }
+    }
+
+    /*
+     * During initial modern configuration, parse the effective default
+     * or option-database value unless the caller explicitly overrides
+     * it.
+     */
+    if (!axisPtr->optionsConfigured && !explicitlySpecified && (axisPtr->looseObjPtr != NULL)) {
+        if (StageAxisLoose(graphPtr->interp, axisPtr->looseObjPtr, transactionPtr) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+
+    /*
+     * Process explicit occurrences in caller order.
+     */
+    for (i = 0; i < axisPtr->optionObjc; i += 2) {
+        if (IsAxisLooseOption(axisPtr->optionObjv[i])) {
+            if (StageAxisLoose(graphPtr->interp, axisPtr->optionObjv[i + 1], transactionPtr) != TCL_OK) {
+                return TCL_ERROR;
+            }
+        }
+    }
+
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * CommitAxisLooseTransaction --
+ *
+ *      Commits a successfully parsed -loose value to the live Axis
+ *      record.
+ *
+ *----------------------------------------------------------------------
+ */
+static void CommitAxisLooseTransaction(Axis *axisPtr, AxisLooseTransaction *transactionPtr) {
+    if (!transactionPtr->staged) {
+        return;
+    }
+
+    axisPtr->looseMin = transactionPtr->looseMin;
+
+    axisPtr->looseMax = transactionPtr->looseMax;
+
+    transactionPtr->staged = FALSE;
 }
 
 static int GetAxisTicksFromObj(Graph *graphPtr, Axis *axisPtr, Tcl_Obj *objPtr, AxisTickOption option,
@@ -4175,15 +4373,21 @@ void Rbc_LayoutMargins(Graph *graphPtr) {
 static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
     AxisLimitTransaction limitTransaction;
     AxisTickTransaction tickTransaction;
+    AxisLooseTransaction looseTransaction;
+
     int limitTransactionPrepared;
     int tickTransactionPrepared;
+    int looseTransactionPrepared;
 
     memset(&limitTransaction, 0, sizeof(limitTransaction));
 
     memset(&tickTransaction, 0, sizeof(tickTransaction));
 
+    memset(&looseTransaction, 0, sizeof(looseTransaction));
+
     limitTransactionPrepared = FALSE;
     tickTransactionPrepared = FALSE;
+    looseTransactionPrepared = FALSE;
 
     /*
      * Parse and validate retained axis-limit objects before modifying the
@@ -4209,6 +4413,18 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
         }
 
         tickTransactionPrepared = TRUE;
+    }
+
+    /*
+     * Parse the independently configurable loose minimum and maximum
+     * policies before modifying the live axis.
+     */
+    if ((axisPtr->optionSpecs != NULL) && ((!axisPtr->optionsConfigured) || (axisPtr->optionMask & AXIS_LOOSE_MASK))) {
+        if (PrepareAxisLooseTransaction(graphPtr, axisPtr, &looseTransaction) != TCL_OK) {
+            goto error;
+        }
+
+        looseTransactionPrepared = TRUE;
     }
 
     if (axisPtr->optionSpecs == NULL) {
@@ -4242,6 +4458,10 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
 
     if (tickTransactionPrepared) {
         CommitAxisTickTransaction(axisPtr, &tickTransaction);
+    }
+
+    if (looseTransactionPrepared) {
+        CommitAxisLooseTransaction(axisPtr, &looseTransaction);
     }
 
     axisPtr->tickTextStyle.theta = FMOD(axisPtr->tickTextStyle.theta, 360.0);
