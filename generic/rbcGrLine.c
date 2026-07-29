@@ -301,34 +301,6 @@ _Static_assert(offsetof(Line, core) == 0, "Element core must be the first Line m
 #define LINE_CORE_OFFSET(member) (offsetof(Line, core) + offsetof(Element, member))
 #define LINE_BUILTIN_PEN_OFFSET(member) (offsetof(Line, builtinPen) + offsetof(LinePen, member))
 
-static Tk_OptionParseProc StringToPattern;
-static Tk_OptionPrintProc PatternToString;
-static Tk_OptionParseProc StringToSmooth;
-static Tk_OptionPrintProc SmoothToString;
-static Tk_OptionParseProc StringToPenDir;
-static Tk_OptionPrintProc PenDirToString;
-static Tk_OptionParseProc StringToSymbol;
-static Tk_OptionPrintProc SymbolToString;
-
-static Tk_CustomOption patternOption = {StringToPattern, PatternToString, (ClientData)0};
-static Tk_CustomOption smoothOption = {StringToSmooth, SmoothToString, (ClientData)0};
-static Tk_CustomOption stylesOption = {Rbc_StringToStyles, Rbc_StylesToString, (ClientData)sizeof(LinePenStyle)};
-static Tk_CustomOption penDirOption = {StringToPenDir, PenDirToString, (ClientData)0};
-static Tk_CustomOption symbolOption = {StringToSymbol, SymbolToString, (ClientData)0};
-extern Tk_CustomOption rbcColorOption;
-extern Tk_CustomOption rbcDashesOption;
-extern Tk_CustomOption rbcDataOption;
-extern Tk_CustomOption rbcDataPairsOption;
-extern Tk_CustomOption rbcDistanceOption;
-extern Tk_CustomOption rbcListOption;
-extern Tk_CustomOption rbcLinePenOption;
-extern Tk_CustomOption rbcShadowOption;
-extern Tk_CustomOption rbcXAxisOption;
-extern Tk_CustomOption rbcYAxisOption;
-extern Tk_CustomOption rbcTileOption;
-extern Tk_CustomOption rbcFillOption;
-extern Tk_CustomOption rbcStateOption;
-
 #define DEF_LINE_ACTIVE_PEN "activeLine"
 #define DEF_LINE_AXIS_X "x"
 #define DEF_LINE_AXIS_Y "y"
@@ -975,187 +947,6 @@ typedef struct {
         LINE_ELEM_DATA_MASK | LINE_ELEM_MAP_ITEM_MASK                         \
     }
 
-static Tk_ConfigSpec lineElemConfigSpecs[] = {
-    {TK_CONFIG_CUSTOM, "-activepen", "activePen", "ActivePen", DEF_LINE_ACTIVE_PEN, LINE_CORE_OFFSET(activePenPtr),
-     TK_CONFIG_NULL_OK, &rbcLinePenOption},
-    {TK_CONFIG_CUSTOM, "-areapattern", "areaPattern", "AreaPattern", DEF_LINE_PATTERN, offsetof(Line, fillStipple),
-     TK_CONFIG_NULL_OK, &patternOption},
-    {TK_CONFIG_COLOR, "-areaforeground", "areaForeground", "areaForeground", DEF_LINE_PATTERN_FG,
-     offsetof(Line, fillFgColor), TK_CONFIG_NULL_OK},
-    {TK_CONFIG_COLOR, "-areabackground", "areaBackground", "areaBackground", DEF_LINE_PATTERN_BG,
-     offsetof(Line, fillBgColor), TK_CONFIG_NULL_OK},
-    {TK_CONFIG_CUSTOM, "-areatile", "areaTile", "AreaTile", DEF_LINE_PATTERN_TILE, offsetof(Line, fillTile),
-     TK_CONFIG_NULL_OK, &rbcTileOption},
-    {TK_CONFIG_CUSTOM, "-bindtags", "bindTags", "BindTags", DEF_LINE_TAGS, LINE_CORE_OFFSET(tags), TK_CONFIG_NULL_OK,
-     &rbcListOption},
-    {TK_CONFIG_COLOR, "-color", "color", "Color", DEF_LINE_PEN_COLOR, offsetof(Line, builtinPen.traceColor),
-     TK_CONFIG_COLOR_ONLY},
-    {TK_CONFIG_COLOR, "-color", "color", "Color", DEF_LINE_PEN_MONO, offsetof(Line, builtinPen.traceColor),
-     TK_CONFIG_MONO_ONLY},
-    {TK_CONFIG_CUSTOM, "-dashes", "dashes", "Dashes", DEF_LINE_DASHES, offsetof(Line, builtinPen.traceDashes),
-     TK_CONFIG_NULL_OK, &rbcDashesOption},
-    {TK_CONFIG_CUSTOM, "-data", "data", "Data", DEF_LINE_DATA, 0, 0, &rbcDataPairsOption},
-    {TK_CONFIG_CUSTOM, "-errorbarcolor", "errorBarColor", "ErrorBarColor", DEF_LINE_ERRORBAR_COLOR,
-     offsetof(Line, builtinPen.errorBarColor), 0, &rbcColorOption},
-    {TK_CONFIG_CUSTOM, "-errorbarwidth", "errorBarWidth", "ErrorBarWidth", DEF_LINE_ERRORBAR_LINE_WIDTH,
-     offsetof(Line, builtinPen.errorBarLineWidth), TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-errorbarcap", "errorBarCap", "ErrorBarCap", DEF_LINE_ERRORBAR_CAP_WIDTH,
-     offsetof(Line, builtinPen.errorBarCapWidth), TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-fill", "fill", "Fill", DEF_LINE_FILL_COLOR, offsetof(Line, builtinPen.symbol.fillColor),
-     TK_CONFIG_NULL_OK | TK_CONFIG_COLOR_ONLY, &rbcColorOption},
-    {TK_CONFIG_CUSTOM, "-fill", "fill", "Fill", DEF_LINE_FILL_MONO, offsetof(Line, builtinPen.symbol.fillColor),
-     TK_CONFIG_NULL_OK | TK_CONFIG_MONO_ONLY, &rbcColorOption},
-    {TK_CONFIG_BOOLEAN, "-hide", "hide", "Hide", DEF_LINE_HIDE, LINE_CORE_OFFSET(hidden), TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_STRING, "-label", "label", "Label", (char *)NULL, LINE_CORE_OFFSET(label), TK_CONFIG_NULL_OK},
-    {TK_CONFIG_RELIEF, "-labelrelief", "labelRelief", "LabelRelief", DEF_LINE_LABEL_RELIEF, LINE_CORE_OFFSET(labelRelief),
-     TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-linewidth", "lineWidth", "LineWidth", DEF_LINE_PEN_WIDTH,
-     offsetof(Line, builtinPen.traceWidth), TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-mapx", "mapX", "MapX", DEF_LINE_AXIS_X, LINE_CORE_OFFSET(axes.x), 0, &rbcXAxisOption},
-    {TK_CONFIG_CUSTOM, "-mapy", "mapY", "MapY", DEF_LINE_AXIS_Y, LINE_CORE_OFFSET(axes.y), 0, &rbcYAxisOption},
-    {TK_CONFIG_CUSTOM, "-maxsymbols", "maxSymbols", "MaxSymbols", DEF_LINE_MAX_SYMBOLS, offsetof(Line, reqMaxSymbols),
-     TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-offdash", "offDash", "OffDash", DEF_LINE_OFFDASH_COLOR,
-     offsetof(Line, builtinPen.traceOffColor), TK_CONFIG_NULL_OK | TK_CONFIG_COLOR_ONLY, &rbcColorOption},
-    {TK_CONFIG_CUSTOM, "-offdash", "offDash", "OffDash", DEF_LINE_OFFDASH_MONO,
-     offsetof(Line, builtinPen.traceOffColor), TK_CONFIG_NULL_OK | TK_CONFIG_MONO_ONLY, &rbcColorOption},
-    {TK_CONFIG_CUSTOM, "-outline", "outline", "Outline", DEF_LINE_OUTLINE_COLOR,
-     offsetof(Line, builtinPen.symbol.outlineColor), TK_CONFIG_COLOR_ONLY, &rbcColorOption},
-    {TK_CONFIG_CUSTOM, "-outline", "outline", "Outline", DEF_LINE_OUTLINE_MONO,
-     offsetof(Line, builtinPen.symbol.outlineColor), TK_CONFIG_MONO_ONLY, &rbcColorOption},
-    {TK_CONFIG_CUSTOM, "-outlinewidth", "outlineWidth", "OutlineWidth", DEF_LINE_OUTLINE_WIDTH,
-     offsetof(Line, builtinPen.symbol.outlineWidth), TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-pen", "pen", "Pen", (char *)NULL, LINE_CORE_OFFSET(normalPenPtr), TK_CONFIG_NULL_OK,
-     &rbcLinePenOption},
-    {TK_CONFIG_CUSTOM, "-pixels", "pixels", "Pixels", DEF_LINE_PIXELS, offsetof(Line, builtinPen.symbol.size),
-     GRAPH | STRIPCHART, &rbcDistanceOption},
-    {TK_CONFIG_DOUBLE, "-reduce", "reduce", "Reduce", DEF_LINE_REDUCE, offsetof(Line, rTolerance),
-     GRAPH | STRIPCHART | TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_BOOLEAN, "-scalesymbols", "scaleSymbols", "ScaleSymbols", DEF_LINE_SCALE_SYMBOLS,
-     LINE_CORE_OFFSET(scaleSymbols), TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-showerrorbars", "showErrorBars", "ShowErrorBars", DEF_LINE_SHOW_ERRORBARS,
-     offsetof(Line, builtinPen.errorBarShow), TK_CONFIG_DONT_SET_DEFAULT, &rbcFillOption},
-    {TK_CONFIG_CUSTOM, "-showvalues", "showValues", "ShowValues", DEF_PEN_SHOW_VALUES,
-     offsetof(Line, builtinPen.valueShow), TK_CONFIG_DONT_SET_DEFAULT, &rbcFillOption},
-    {TK_CONFIG_CUSTOM, "-smooth", "smooth", "Smooth", DEF_LINE_SMOOTH, offsetof(Line, reqSmooth),
-     TK_CONFIG_DONT_SET_DEFAULT, &smoothOption},
-    {TK_CONFIG_CUSTOM, "-state", "state", "State", DEF_LINE_STATE, LINE_CORE_OFFSET(state), TK_CONFIG_DONT_SET_DEFAULT,
-     &rbcStateOption},
-    {TK_CONFIG_CUSTOM, "-styles", "styles", "Styles", DEF_LINE_STYLES, LINE_CORE_OFFSET(palette), TK_CONFIG_NULL_OK,
-     &stylesOption},
-    {TK_CONFIG_CUSTOM, "-symbol", "symbol", "Symbol", DEF_LINE_SYMBOL, offsetof(Line, builtinPen.symbol),
-     TK_CONFIG_DONT_SET_DEFAULT, &symbolOption},
-    {TK_CONFIG_CUSTOM, "-trace", "trace", "Trace", DEF_LINE_PEN_DIRECTION, offsetof(Line, penDir),
-     TK_CONFIG_DONT_SET_DEFAULT, &penDirOption},
-    {TK_CONFIG_ANCHOR, "-valueanchor", "valueAnchor", "ValueAnchor", DEF_PEN_VALUE_ANCHOR,
-     offsetof(Line, builtinPen.valueStyle.anchor), 0},
-    {TK_CONFIG_COLOR, "-valuecolor", "valueColor", "ValueColor", DEF_PEN_VALUE_COLOR,
-     offsetof(Line, builtinPen.valueStyle.color), 0},
-    {TK_CONFIG_FONT, "-valuefont", "valueFont", "ValueFont", DEF_PEN_VALUE_FONT,
-     offsetof(Line, builtinPen.valueStyle.font), 0},
-    {TK_CONFIG_STRING, "-valueformat", "valueFormat", "ValueFormat", DEF_PEN_VALUE_FORMAT,
-     offsetof(Line, builtinPen.valueFormat), TK_CONFIG_NULL_OK},
-    {TK_CONFIG_DOUBLE, "-valuerotate", "valueRotate", "ValueRotate", DEF_PEN_VALUE_ROTATE,
-     offsetof(Line, builtinPen.valueStyle.theta), 0},
-    {TK_CONFIG_CUSTOM, "-valueshadow", "valueShadow", "ValueShadow", DEF_PEN_VALUE_SHADOW,
-     offsetof(Line, builtinPen.valueStyle.shadow), 0, &rbcShadowOption},
-    {TK_CONFIG_CUSTOM, "-weights", "weights", "Weights", (char *)NULL, LINE_CORE_OFFSET(w), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-x", "xData", "XData", (char *)NULL, LINE_CORE_OFFSET(x), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-xdata", "xData", "XData", (char *)NULL, LINE_CORE_OFFSET(x), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-xerror", "xError", "XError", (char *)NULL, LINE_CORE_OFFSET(xError), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-xhigh", "xHigh", "XHigh", (char *)NULL, LINE_CORE_OFFSET(xHigh), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-xlow", "xLow", "XLow", (char *)NULL, LINE_CORE_OFFSET(xLow), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-y", "yData", "YData", (char *)NULL, LINE_CORE_OFFSET(y), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-ydata", "yData", "YData", (char *)NULL, LINE_CORE_OFFSET(y), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-yerror", "yError", "YError", (char *)NULL, LINE_CORE_OFFSET(yError), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-yhigh", "yHigh", "YHigh", (char *)NULL, LINE_CORE_OFFSET(yHigh), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-ylow", "yLow", "YLow", (char *)NULL, LINE_CORE_OFFSET(yLow), 0, &rbcDataOption},
-    {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}};
-
-static Tk_ConfigSpec stripElemConfigSpecs[] = {
-    {TK_CONFIG_CUSTOM, "-activepen", "activePen", "ActivePen", DEF_LINE_ACTIVE_PEN, LINE_CORE_OFFSET(activePenPtr),
-     TK_CONFIG_NULL_OK, &rbcLinePenOption},
-    {TK_CONFIG_CUSTOM, "-bindtags", "bindTags", "BindTags", DEF_LINE_TAGS, LINE_CORE_OFFSET(tags), TK_CONFIG_NULL_OK,
-     &rbcListOption},
-    {TK_CONFIG_COLOR, "-color", "color", "Color", DEF_LINE_PEN_COLOR, offsetof(Line, builtinPen.traceColor),
-     TK_CONFIG_COLOR_ONLY},
-    {TK_CONFIG_COLOR, "-color", "color", "Color", DEF_LINE_PEN_MONO, offsetof(Line, builtinPen.traceColor),
-     TK_CONFIG_MONO_ONLY},
-    {TK_CONFIG_CUSTOM, "-dashes", "dashes", "Dashes", DEF_LINE_DASHES, offsetof(Line, builtinPen.traceDashes),
-     TK_CONFIG_NULL_OK, &rbcDashesOption},
-    {TK_CONFIG_CUSTOM, "-data", "data", "Data", DEF_LINE_DATA, 0, 0, &rbcDataPairsOption},
-    {TK_CONFIG_CUSTOM, "-errorbarcolor", "errorBarColor", "ErrorBarColor", DEF_LINE_ERRORBAR_COLOR,
-     offsetof(Line, builtinPen.errorBarColor), 0, &rbcColorOption},
-    {TK_CONFIG_CUSTOM, "-errorbarwidth", "errorBarWidth", "ErrorBarWidth", DEF_LINE_ERRORBAR_LINE_WIDTH,
-     offsetof(Line, builtinPen.errorBarLineWidth), TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-errorbarcap", "errorBarCap", "ErrorBarCap", DEF_LINE_ERRORBAR_CAP_WIDTH,
-     offsetof(Line, builtinPen.errorBarCapWidth), TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-fill", "fill", "Fill", DEF_LINE_FILL_COLOR, offsetof(Line, builtinPen.symbol.fillColor),
-     TK_CONFIG_NULL_OK | TK_CONFIG_COLOR_ONLY, &rbcColorOption},
-    {TK_CONFIG_CUSTOM, "-fill", "fill", "Fill", DEF_LINE_FILL_MONO, offsetof(Line, builtinPen.symbol.fillColor),
-     TK_CONFIG_NULL_OK | TK_CONFIG_MONO_ONLY, &rbcColorOption},
-    {TK_CONFIG_BOOLEAN, "-hide", "hide", "Hide", DEF_LINE_HIDE, LINE_CORE_OFFSET(hidden), TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_STRING, "-label", "label", "Label", (char *)NULL, LINE_CORE_OFFSET(label), TK_CONFIG_NULL_OK},
-    {TK_CONFIG_RELIEF, "-labelrelief", "labelRelief", "LabelRelief", DEF_LINE_LABEL_RELIEF,
-     LINE_CORE_OFFSET(labelRelief), TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-linewidth", "lineWidth", "LineWidth", DEF_LINE_PEN_WIDTH,
-     offsetof(Line, builtinPen.traceWidth), TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-mapx", "mapX", "MapX", DEF_LINE_AXIS_X, LINE_CORE_OFFSET(axes.x), 0, &rbcXAxisOption},
-    {TK_CONFIG_CUSTOM, "-mapy", "mapY", "MapY", DEF_LINE_AXIS_Y, LINE_CORE_OFFSET(axes.y), 0, &rbcYAxisOption},
-    {TK_CONFIG_CUSTOM, "-maxsymbols", "maxSymbols", "MaxSymbols", DEF_LINE_MAX_SYMBOLS, offsetof(Line, reqMaxSymbols),
-     TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-offdash", "offDash", "OffDash", DEF_LINE_OFFDASH_COLOR,
-     offsetof(Line, builtinPen.traceOffColor), TK_CONFIG_NULL_OK | TK_CONFIG_COLOR_ONLY, &rbcColorOption},
-    {TK_CONFIG_CUSTOM, "-offdash", "offDash", "OffDash", DEF_LINE_OFFDASH_MONO,
-     offsetof(Line, builtinPen.traceOffColor), TK_CONFIG_NULL_OK | TK_CONFIG_MONO_ONLY, &rbcColorOption},
-    {TK_CONFIG_CUSTOM, "-outline", "outline", "Outline", DEF_LINE_OUTLINE_COLOR,
-     offsetof(Line, builtinPen.symbol.outlineColor), TK_CONFIG_COLOR_ONLY, &rbcColorOption},
-    {TK_CONFIG_CUSTOM, "-outline", "outline", "Outline", DEF_LINE_OUTLINE_MONO,
-     offsetof(Line, builtinPen.symbol.outlineColor), TK_CONFIG_MONO_ONLY, &rbcColorOption},
-    {TK_CONFIG_CUSTOM, "-outlinewidth", "outlineWidth", "OutlineWidth", DEF_LINE_OUTLINE_WIDTH,
-     offsetof(Line, builtinPen.symbol.outlineWidth), TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_CUSTOM, "-pen", "pen", "Pen", (char *)NULL, LINE_CORE_OFFSET(normalPenPtr), TK_CONFIG_NULL_OK,
-     &rbcLinePenOption},
-    {TK_CONFIG_CUSTOM, "-pixels", "pixels", "Pixels", DEF_LINE_PIXELS, offsetof(Line, builtinPen.symbol.size), 0,
-     &rbcDistanceOption},
-    {TK_CONFIG_BOOLEAN, "-scalesymbols", "scaleSymbols", "ScaleSymbols", DEF_LINE_SCALE_SYMBOLS,
-     LINE_CORE_OFFSET(scaleSymbols), TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-showerrorbars", "showErrorBars", "ShowErrorBars", DEF_LINE_SHOW_ERRORBARS,
-     offsetof(Line, builtinPen.errorBarShow), TK_CONFIG_DONT_SET_DEFAULT, &rbcFillOption},
-    {TK_CONFIG_CUSTOM, "-showvalues", "showValues", "ShowValues", DEF_PEN_SHOW_VALUES,
-     offsetof(Line, builtinPen.valueShow), TK_CONFIG_DONT_SET_DEFAULT, &rbcFillOption},
-    {TK_CONFIG_CUSTOM, "-smooth", "smooth", "Smooth", DEF_LINE_SMOOTH, offsetof(Line, reqSmooth),
-     TK_CONFIG_DONT_SET_DEFAULT, &smoothOption},
-    {TK_CONFIG_CUSTOM, "-styles", "styles", "Styles", DEF_LINE_STYLES, LINE_CORE_OFFSET(palette), TK_CONFIG_NULL_OK,
-     &stylesOption},
-    {TK_CONFIG_CUSTOM, "-symbol", "symbol", "Symbol", DEF_LINE_SYMBOL, offsetof(Line, builtinPen.symbol),
-     TK_CONFIG_DONT_SET_DEFAULT, &symbolOption},
-    {TK_CONFIG_ANCHOR, "-valueanchor", "valueAnchor", "ValueAnchor", DEF_PEN_VALUE_ANCHOR,
-     offsetof(Line, builtinPen.valueStyle.anchor), 0},
-    {TK_CONFIG_COLOR, "-valuecolor", "valueColor", "ValueColor", DEF_PEN_VALUE_COLOR,
-     offsetof(Line, builtinPen.valueStyle.color), 0},
-    {TK_CONFIG_FONT, "-valuefont", "valueFont", "ValueFont", DEF_PEN_VALUE_FONT,
-     offsetof(Line, builtinPen.valueStyle.font), 0},
-    {TK_CONFIG_STRING, "-valueformat", "valueFormat", "ValueFormat", DEF_PEN_VALUE_FORMAT,
-     offsetof(Line, builtinPen.valueFormat), TK_CONFIG_NULL_OK},
-    {TK_CONFIG_DOUBLE, "-valuerotate", "valueRotate", "ValueRotate", DEF_PEN_VALUE_ROTATE,
-     offsetof(Line, builtinPen.valueStyle.theta), 0},
-    {TK_CONFIG_CUSTOM, "-valueshadow", "valueShadow", "ValueShadow", DEF_PEN_VALUE_SHADOW,
-     offsetof(Line, builtinPen.valueStyle.shadow), 0, &rbcShadowOption},
-    {TK_CONFIG_CUSTOM, "-weights", "weights", "Weights", (char *)NULL, LINE_CORE_OFFSET(w), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-x", "xData", "XData", (char *)NULL, LINE_CORE_OFFSET(x), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-xdata", "xData", "XData", (char *)NULL, LINE_CORE_OFFSET(x), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-y", "yData", "YData", (char *)NULL, LINE_CORE_OFFSET(y), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-xerror", "xError", "XError", (char *)NULL, LINE_CORE_OFFSET(xError), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-ydata", "yData", "YData", (char *)NULL, LINE_CORE_OFFSET(y), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-yerror", "yError", "YError", (char *)NULL, LINE_CORE_OFFSET(yError), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-xhigh", "xHigh", "XHigh", (char *)NULL, LINE_CORE_OFFSET(xHigh), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-xlow", "xLow", "XLow", (char *)NULL, LINE_CORE_OFFSET(xLow), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-yhigh", "yHigh", "YHigh", (char *)NULL, LINE_CORE_OFFSET(yHigh), 0, &rbcDataOption},
-    {TK_CONFIG_CUSTOM, "-ylow", "yLow", "YLow", (char *)NULL, LINE_CORE_OFFSET(yLow), 0, &rbcDataOption},
-    {TK_CONFIG_END, NULL, NULL, NULL, NULL, 0, 0}};
-
-
 static const Tk_OptionSpec lineElemOptionSpecs[] = {
     LINE_ELEMENT_OPTION_ENTRIES(
         LINE_ELEMENT_AREA_OPTION_ENTRIES,
@@ -1431,10 +1222,6 @@ static DistanceProc DistanceToLine;
 static Rbc_TileChangedProc TileChangedProc;
 
 INLINE static int Round(register double x);
-static int StringToBitmap(Tcl_Interp *interp, Tk_Window tkwin, Symbol *symbolPtr, const char *string);
-static char *NameOfSymbol(Symbol *symbolPtr);
-static const char *NameOfSmooth(Smoothing value);
-static char *NameOfPenDir(int penDir);
 static void ClearPalette(Rbc_Chain *palette);
 static void InitPen(LinePen *penPtr, const Tk_OptionSpec *optionSpecs, unsigned int flags);
 static int ScaleSymbol(Element *elemPtr, int normalSize);
@@ -1682,108 +1469,6 @@ INLINE static int Round(register double x) { return (int)(x + ((x < 0.0) ? -0.5 
 /*
  *----------------------------------------------------------------------
  *
- * StringToBitmap --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tk_Window tkwin
- *      Symbol *symbolPtr
- *      const char *string
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static int StringToBitmap(Tcl_Interp *interp, Tk_Window tkwin, Symbol *symbolPtr, const char *string) {
-    Pixmap bitmap, mask;
-    const char **elemArr;
-    Tcl_Size nElems;
-    int result;
-
-    if (Tcl_SplitList(interp, string, &nElems, &elemArr) != TCL_OK) {
-        return TCL_ERROR;
-    }
-
-    if (nElems > 2) {
-        Tcl_AppendResult(interp, "too many elements in bitmap list \"", string, "\": should be \"bitmap mask\"",
-                         (char *)NULL);
-        result = TCL_ERROR;
-        goto error;
-    }
-    mask = None;
-    bitmap = Tk_GetBitmap(interp, tkwin, Tk_GetUid(elemArr[0]));
-    if (bitmap == None) {
-        result = TCL_BREAK;
-        Tcl_ResetResult(interp);
-        goto error;
-    }
-    if ((nElems > 1) && (elemArr[1][0] != '\0')) {
-        mask = Tk_GetBitmap(interp, tkwin, Tk_GetUid(elemArr[1]));
-        if (mask == None) {
-            Tk_FreeBitmap(Tk_Display(tkwin), bitmap);
-            result = TCL_ERROR;
-            goto error;
-        }
-    }
-    ckfree((char *)elemArr);
-    if (symbolPtr->bitmap != None) {
-        Tk_FreeBitmap(Tk_Display(tkwin), symbolPtr->bitmap);
-    }
-    symbolPtr->bitmap = bitmap;
-    if (symbolPtr->mask != None) {
-        Tk_FreeBitmap(Tk_Display(tkwin), symbolPtr->mask);
-    }
-    symbolPtr->mask = mask;
-    return TCL_OK;
-error:
-    ckfree((char *)elemArr);
-    return result;
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * PatternToString --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tk_Window tkwin
- *      char *widgRec - Element information record
- *      Tcl_Size offset - Offset of field in record
- *      Tcl_FreeProc **freeProcPtr - Not used.
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static const char *PatternToString(ClientData clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset,
-                                   Tcl_FreeProc **freeProcPtr) {
-    Pixmap stipple = *(Pixmap *)(widgRec + offset);
-
-    if (stipple == None) {
-        return "";
-    }
-    if (stipple == PATTERN_SOLID) {
-        return "solid";
-    }
-    return Tk_NameOfBitmap(Tk_Display(tkwin), stipple);
-}
-
-/*
- *----------------------------------------------------------------------
- *
  * GetPatternFromString --
  *
  *      Parses an area-pattern name and acquires any required bitmap
@@ -1817,49 +1502,6 @@ static int GetPatternFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPt
     string = (objPtr == NULL) ? NULL : Tcl_GetString(objPtr);
 
     return GetPatternFromString(interp, tkwin, string, stipplePtr);
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * StringToPattern --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tcl_Interp *interp - Interpreter to send results back to
- *      Tk_Window tkwin - Not used.
- *      const char *string - String representing field
- *      char *widgRec - Element information record
- *      Tcl_Size offset - Offset of field in record
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static int StringToPattern(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string,
-                           char *widgRec, Tcl_Size offset) {
-    Pixmap *stipplePtr;
-    Pixmap newStipple;
-
-    stipplePtr = (Pixmap *)(widgRec + offset);
-
-    if (GetPatternFromString(interp, tkwin, string, &newStipple) != TCL_OK) {
-        return TCL_ERROR;
-    }
-
-    if ((*stipplePtr != None) && (*stipplePtr != PATTERN_SOLID)) {
-        Tk_FreeBitmap(Tk_Display(tkwin), *stipplePtr);
-    }
-
-    *stipplePtr = newStipple;
-
-    return TCL_OK;
 }
 
 static void FreeLinePattern(Display *display, Pixmap stipple) {
@@ -2266,210 +1908,6 @@ static int GetSymbolFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr
 /*
  *----------------------------------------------------------------------
  *
- * NameOfSymbol --
- *
- *      Converts the symbol value into its string representation.
- *
- * Parameters:
- *      Symbol *symbolPtr
- *
- * Results:
- *      The static string representing the symbol type is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static char *NameOfSymbol(Symbol *symbolPtr) {
-    switch (symbolPtr->type) {
-    case SYMBOL_NONE:
-        return "none";
-    case SYMBOL_SQUARE:
-        return "square";
-    case SYMBOL_CIRCLE:
-        return "circle";
-    case SYMBOL_DIAMOND:
-        return "diamond";
-    case SYMBOL_PLUS:
-        return "plus";
-    case SYMBOL_CROSS:
-        return "cross";
-    case SYMBOL_SPLUS:
-        return "splus";
-    case SYMBOL_SCROSS:
-        return "scross";
-    case SYMBOL_TRIANGLE:
-        return "triangle";
-    case SYMBOL_ARROW:
-        return "arrow";
-    case SYMBOL_BITMAP:
-        return "bitmap";
-    }
-    return NULL;
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * StringToSymbol --
- *
- *      Convert the string representation of a line style or symbol name
- *      into its numeric form.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tcl_Interp *interp - Interpreter to send results back to
- *      Tk_Window tkwin - Not used.
- *      const char *string - String representing symbol type
- *      char *widgRec - Element information record
- *      Tcl_Size offset - Offset of symbol type field in record
- *
- * Results:
- *      The return value is a standard Tcl result.  The symbol type is
- *      written into the widget record.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static int StringToSymbol(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string, char *widgRec,
-                          Tcl_Size offset) {
-    Symbol *symbolPtr = (Symbol *)(widgRec + offset);
-    unsigned int length;
-    char c;
-
-    c = string[0];
-    length = strlen(string);
-    if (c == '\0') {
-        symbolPtr->type = SYMBOL_NONE;
-    } else if ((c == 'n') && (strncmp(string, "none", length) == 0)) {
-        symbolPtr->type = SYMBOL_NONE;
-    } else if ((c == 'c') && (length > 1) && (strncmp(string, "circle", length) == 0)) {
-        symbolPtr->type = SYMBOL_CIRCLE;
-    } else if ((c == 's') && (length > 1) && (strncmp(string, "square", length) == 0)) {
-        symbolPtr->type = SYMBOL_SQUARE;
-    } else if ((c == 'd') && (strncmp(string, "diamond", length) == 0)) {
-        symbolPtr->type = SYMBOL_DIAMOND;
-    } else if ((c == 'p') && (strncmp(string, "plus", length) == 0)) {
-        symbolPtr->type = SYMBOL_PLUS;
-    } else if ((c == 'c') && (length > 1) && (strncmp(string, "cross", length) == 0)) {
-        symbolPtr->type = SYMBOL_CROSS;
-    } else if ((c == 's') && (length > 1) && (strncmp(string, "splus", length) == 0)) {
-        symbolPtr->type = SYMBOL_SPLUS;
-    } else if ((c == 's') && (length > 1) && (strncmp(string, "scross", length) == 0)) {
-        symbolPtr->type = SYMBOL_SCROSS;
-    } else if ((c == 't') && (strncmp(string, "triangle", length) == 0)) {
-        symbolPtr->type = SYMBOL_TRIANGLE;
-    } else if ((c == 'a') && (strncmp(string, "arrow", length) == 0)) {
-        symbolPtr->type = SYMBOL_ARROW;
-    } else {
-        int result;
-
-        result = StringToBitmap(interp, tkwin, symbolPtr, string);
-        if (result != TCL_OK) {
-            if (result != TCL_ERROR) {
-                Tcl_AppendResult(interp, "bad symbol \"", string,
-                                 "\": should be \"none\", \"circle\", \"square\", \"diamond\", \"plus\", \
-\"cross\", \"splus\", \"scross\", \"triangle\", \"arrow\" \
-or the name of a bitmap",
-                                 (char *)NULL);
-            }
-            return TCL_ERROR;
-        }
-        symbolPtr->type = SYMBOL_BITMAP;
-    }
-    return TCL_OK;
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * SymbolToString --
- *
- *      Convert the symbol value into a string.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tk_Window tkwin
- *      char *widgRec - Element information record
- *      Tcl_Size offset - Offset of symbol type field in record
- *      Tcl_FreeProc **freeProcPtr - Not used.
- *
- * Results:
- *      The string representing the symbol type or line style is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static const char *SymbolToString(ClientData clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset,
-                                  Tcl_FreeProc **freeProcPtr) {
-    Symbol *symbolPtr = (Symbol *)(widgRec + offset);
-    char *result;
-
-    if (symbolPtr->type == SYMBOL_BITMAP) {
-        Tcl_DString dString;
-
-        Tcl_DStringInit(&dString);
-        Tcl_DStringAppendElement(&dString, Tk_NameOfBitmap(Tk_Display(tkwin), symbolPtr->bitmap));
-        Tcl_DStringAppendElement(&dString,
-                                 (symbolPtr->mask == None) ? "" : Tk_NameOfBitmap(Tk_Display(tkwin), symbolPtr->mask));
-        result = RbcStrdup(Tcl_DStringValue(&dString));
-        Tcl_DStringFree(&dString);
-        *freeProcPtr = (Tcl_FreeProc *)Tcl_Free;
-    } else {
-        result = NameOfSymbol(symbolPtr);
-    }
-    return result;
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * NameOfSmooth --
- *
- *      Converts the smooth value into its string representation.
- *
- * Parameters:
- *      Smoothing value
- *
- * Results:
- *      The static string representing the smooth type is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static const char *NameOfSmooth(Smoothing value) {
-    switch (value) {
-    case PEN_SMOOTH_NONE:
-        return "linear";
-
-    case PEN_SMOOTH_STEP:
-        return "step";
-
-    case PEN_SMOOTH_NATURAL:
-        return "natural";
-
-    case PEN_SMOOTH_QUADRATIC:
-        return "quadratic";
-
-    case PEN_SMOOTH_CATROM:
-        return "catrom";
-
-    case PEN_SMOOTH_LAST:
-    default:
-        return "unknown smooth value";
-    }
-}
-
-/*
- *----------------------------------------------------------------------
- *
  * GetSmoothFromString --
  *
  *      Parses a line smoothing name without modifying a widget
@@ -2493,71 +1931,8 @@ static int GetSmoothFromString(Tcl_Interp *interp, const char *string, Smoothing
     return TCL_ERROR;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * StringToSmooth --
- *
- *      Convert the string representation of a line style or smooth name
- *      into its numeric form.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tcl_Interp *interp - Interpreter to send results back to
- *      Tk_Window tkwin - Not used.
- *      const char *string - String representing smooth type
- *      char *widgRec - Element information record
- *      Tcl_Size offset - Offset of smooth type field in record
- *
- * Results:
- *      The return value is a standard Tcl result.  The smooth type is
- *      written into the widget record.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static int StringToSmooth(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string, char *widgRec,
-                          Tcl_Size offset) {
-    Smoothing *valuePtr;
-
-    valuePtr = (Smoothing *)(widgRec + offset);
-
-    return GetSmoothFromString(interp, string, valuePtr);
-}
-
 static int GetSmoothFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, Smoothing *valuePtr) {
     return GetSmoothFromString(interp, Tcl_GetString(objPtr), valuePtr);
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * SmoothToString --
- *
- *      Convert the smooth value into a string.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tk_Window tkwin - Not used.
- *      char *widgRec - Element information record
- *      Tcl_Size offset - Offset of smooth type field in record
- *      Tcl_FreeProc **freeProcPtr - Not used.
- *
- * Results:
- *      The string representing the smooth type or line style is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static const char *SmoothToString(ClientData clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset,
-                                  Tcl_FreeProc **freeProcPtr) {
-    int smooth = *(int *)(widgRec + offset);
-
-    return NameOfSmooth(smooth);
 }
 
 /*
@@ -2593,102 +1968,8 @@ static int GetPenDirFromString(Tcl_Interp *interp, const char *string, int *penD
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * StringToPenDir --
- *
- *      Convert the string representation of a line style or symbol name
- *      into its numeric form.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tcl_Interp *interp - Interpreter to send results back to
- *      Tk_Window tkwin - Not used.
- *      const char *string - String representing pen direction
- *      char *widgRec - Element information record
- *      Tcl_Size offset - Offset of pen direction field in record 
- *
- * Results:
- *      The return value is a standard Tcl result.  The symbol type is
- *      written into the widget record.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static int StringToPenDir(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string, char *widgRec,
-                          Tcl_Size offset) {
-    int *penDirPtr;
-
-    penDirPtr = (int *)(widgRec + offset);
-
-    return GetPenDirFromString(interp, string, penDirPtr);
-}
-
 static int GetPenDirFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *penDirPtr) {
     return GetPenDirFromString(interp, Tcl_GetString(objPtr), penDirPtr);
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * NameOfPenDir --
- *
- *      Convert the pen direction into a string.
- *
- * Parameters:
- *      int penDir - Direction for pen drawing between points
- *
- * Results:
- *      The static string representing the pen direction is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static char *NameOfPenDir(int penDir) {
-    switch (penDir) {
-    case PEN_INCREASING:
-        return "increasing";
-    case PEN_DECREASING:
-        return "decreasing";
-    case PEN_BOTH_DIRECTIONS:
-        return "both";
-    default:
-        return "unknown trace direction";
-    }
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * PenDirToString --
- *
- *      Convert the pen direction into a string.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tk_Window tkwin - Not used.
- *      char *widgRec - Element information record
- *      Tcl_Size offset - Offset of pen direction field in record
- *      Tcl_FreeProc **freeProcPtr - Not used.
- *
- * Results:
- *      The string representing the pen drawing direction is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static const char *PenDirToString(ClientData clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset,
-                                  Tcl_FreeProc **freeProcPtr) {
-    int penDir = *(int *)(widgRec + offset);
-
-    return NameOfPenDir(penDir);
 }
 
 /*
@@ -2911,124 +2192,10 @@ static void ClearPalette(Rbc_Chain *palette) {
  *
  *----------------------------------------------------------------------
  */
-static int ConfigureLegacyPen(Graph *graphPtr, LinePen *lpPtr) {
-    unsigned long gcMask;
-    GC newGC;
-    XGCValues gcValues;
-    XColor *colorPtr;
-
-    Rbc_ResetTextStyle(graphPtr->tkwin, &(lpPtr->valueStyle));
-    /*
-     * Set the outline GC for this pen: GCForeground is outline color.
-     * GCBackground is the fill color (only used for bitmap symbols).
-     */
-    gcMask = (GCLineWidth | GCForeground);
-    colorPtr = lpPtr->symbol.outlineColor;
-    if (colorPtr == COLOR_DEFAULT) {
-        colorPtr = lpPtr->traceColor;
-    }
-    gcValues.foreground = colorPtr->pixel;
-    if (lpPtr->symbol.type == SYMBOL_BITMAP) {
-        colorPtr = lpPtr->symbol.fillColor;
-        if (colorPtr == COLOR_DEFAULT) {
-            colorPtr = lpPtr->traceColor;
-        }
-        /*
-         * Set a clip mask if either
-         *    1) no background color was designated or
-         *    2) a masking bitmap was specified.
-         *
-         * These aren't necessarily the bitmaps we'll be using for
-         * clipping. But this makes it unlikely that anyone else will
-         * be sharing this GC when we set the clip origin (at the time
-         * the bitmap is drawn).
-         */
-        if (colorPtr != NULL) {
-            gcValues.background = colorPtr->pixel;
-            gcMask |= GCBackground;
-            if (lpPtr->symbol.mask != None) {
-                gcValues.clip_mask = lpPtr->symbol.mask;
-                gcMask |= GCClipMask;
-            }
-        } else {
-            gcValues.clip_mask = lpPtr->symbol.bitmap;
-            gcMask |= GCClipMask;
-        }
-    }
-    gcValues.line_width = LineWidth(lpPtr->symbol.outlineWidth);
-    newGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
-    if (lpPtr->symbol.outlineGC != NULL) {
-        Tk_FreeGC(graphPtr->display, lpPtr->symbol.outlineGC);
-    }
-    lpPtr->symbol.outlineGC = newGC;
-
-    /* Fill GC for symbols: GCForeground is fill color */
-
-    gcMask = (GCLineWidth | GCForeground);
-    colorPtr = lpPtr->symbol.fillColor;
-    if (colorPtr == COLOR_DEFAULT) {
-        colorPtr = lpPtr->traceColor;
-    }
-    newGC = NULL;
-    if (colorPtr != NULL) {
-        gcValues.foreground = colorPtr->pixel;
-        newGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
-    }
-    if (lpPtr->symbol.fillGC != NULL) {
-        Tk_FreeGC(graphPtr->display, lpPtr->symbol.fillGC);
-    }
-    lpPtr->symbol.fillGC = newGC;
-
-    /* Line segments */
-
-    gcMask = (GCLineWidth | GCForeground | GCLineStyle | GCCapStyle | GCJoinStyle);
-    gcValues.cap_style = CapButt;
-    gcValues.join_style = JoinRound;
-    gcValues.line_style = LineSolid;
-    gcValues.line_width = LineWidth(lpPtr->traceWidth);
-
-    colorPtr = lpPtr->traceOffColor;
-    if (colorPtr == COLOR_DEFAULT) {
-        colorPtr = lpPtr->traceColor;
-    }
-    if (colorPtr != NULL) {
-        gcMask |= GCBackground;
-        gcValues.background = colorPtr->pixel;
-    }
-    gcValues.foreground = lpPtr->traceColor->pixel;
-    if (LineIsDashed(lpPtr->traceDashes)) {
-        gcValues.line_width = lpPtr->traceWidth;
-        gcValues.line_style = (colorPtr == NULL) ? LineOnOffDash : LineDoubleDash;
-    }
-    newGC = Rbc_GetPrivateGC(graphPtr->tkwin, gcMask, &gcValues);
-    if (lpPtr->traceGC != NULL) {
-        Rbc_FreePrivateGC(graphPtr->display, lpPtr->traceGC);
-    }
-    if (LineIsDashed(lpPtr->traceDashes)) {
-        lpPtr->traceDashes.offset = lpPtr->traceDashes.values[0] / 2;
-        Rbc_SetDashes(graphPtr->display, newGC, &(lpPtr->traceDashes));
-    }
-    lpPtr->traceGC = newGC;
-
-    gcMask = (GCLineWidth | GCForeground);
-    colorPtr = lpPtr->errorBarColor;
-    if (colorPtr == COLOR_DEFAULT) {
-        colorPtr = lpPtr->traceColor;
-    }
-    gcValues.line_width = LineWidth(lpPtr->errorBarLineWidth);
-    gcValues.foreground = colorPtr->pixel;
-    newGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
-    if (lpPtr->errorBarGC != NULL) {
-        Tk_FreeGC(graphPtr->display, lpPtr->errorBarGC);
-    }
-    lpPtr->errorBarGC = newGC;
-
-    return TCL_OK;
-}
-
-static int ConfigureModernPen(Graph *graphPtr, LinePen *lpPtr) {
-    Rbc_Dashes newDashes;
+static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
+    LinePen *lpPtr;
     ParsedSymbol newSymbol;
+    Rbc_Dashes newDashes;
     Shadow newShadow;
 
     XColor *newErrorBarColor;
@@ -3054,6 +2221,9 @@ static int ConfigureModernPen(Graph *graphPtr, LinePen *lpPtr) {
     XGCValues gcValues;
     unsigned long gcMask;
 
+    assert(penPtr->optionSpecs != NULL);
+    lpPtr = LINE_PEN_FROM_CORE(penPtr);
+    
     newErrorBarColor = NULL;
     newFillColor = NULL;
     newOffDashColor = NULL;
@@ -3385,18 +2555,6 @@ error:
     return TCL_ERROR;
 }
 
-static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
-    LinePen *lpPtr;
-
-    lpPtr = LINE_PEN_FROM_CORE(penPtr);
-
-    if (lpPtr->core.optionSpecs != NULL) {
-        return ConfigureModernPen(graphPtr, lpPtr);
-    }
-
-    return ConfigureLegacyPen(graphPtr, lpPtr);
-}
-
 /*
  *----------------------------------------------------------------------
  *
@@ -3462,28 +2620,23 @@ static void DestroyPen(Graph *graphPtr, Pen *penPtr) {
     }
 
     /*
-     * These resources are manually derived only for modern named
-     * line pens.
+     * These resources are manually derived from retained option objects
+     * and are not released by Tk_FreeConfigOptions.
      */
-    if (lpPtr->core.optionSpecs != NULL) {
-        FreeLinePenColor(lpPtr->errorBarColor);
+    FreeLinePenColor(lpPtr->errorBarColor);
+    FreeLinePenColor(lpPtr->symbol.fillColor);
+    FreeLinePenColor(lpPtr->traceOffColor);
+    FreeLinePenColor(lpPtr->symbol.outlineColor);
 
-        FreeLinePenColor(lpPtr->symbol.fillColor);
+    lpPtr->errorBarColor = NULL;
+    lpPtr->symbol.fillColor = NULL;
+    lpPtr->traceOffColor = NULL;
+    lpPtr->symbol.outlineColor = NULL;
 
-        FreeLinePenColor(lpPtr->traceOffColor);
+    if (lpPtr->valueStyle.shadow.color != NULL) {
+        Tk_FreeColor(lpPtr->valueStyle.shadow.color);
 
-        FreeLinePenColor(lpPtr->symbol.outlineColor);
-
-        lpPtr->errorBarColor = NULL;
-        lpPtr->symbol.fillColor = NULL;
-        lpPtr->traceOffColor = NULL;
-        lpPtr->symbol.outlineColor = NULL;
-
-        if (lpPtr->valueStyle.shadow.color != NULL) {
-            Tk_FreeColor(lpPtr->valueStyle.shadow.color);
-
-            lpPtr->valueStyle.shadow.color = NULL;
-        }
+        lpPtr->valueStyle.shadow.color = NULL;
     }
 }
 
@@ -5458,9 +4611,6 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     ElemStylesTransaction stylesTransaction;
     LineScalarTransaction scalarTransaction;
     LineAreaTransaction areaTransaction;    
-    unsigned long gcMask;
-    XGCValues gcValues;
-    GC newGC;
     Rbc_ChainLink *linkPtr;
     int dataTransactionPrepared;
     int penTransactionPrepared;
@@ -5496,8 +4646,7 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
      * element. This branch remains inactive while line and strip
      * elements use their legacy Tk_ConfigSpec tables.
      */
-    if ((elemPtr->optionSpecs != NULL) &&
-        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_DATA_MASK))) {
+    if (((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_DATA_MASK))) {
         if (Rbc_PrepareElemDataTransaction(graphPtr, elemPtr, &dataTransaction) != TCL_OK) {
             goto error;
         }
@@ -5512,8 +4661,7 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
      * This branch remains inactive while the element constructors still
      * select their legacy Tk_ConfigSpec tables.
      */
-    if ((elemPtr->optionSpecs != NULL) &&
-        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_PEN_MASK))) {
+    if (((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_PEN_MASK))) {
         if (Rbc_PrepareElemPenTransaction(graphPtr, elemPtr, rbcLineElementUid, &penTransaction) != TCL_OK) {
             goto error;
         }
@@ -5528,8 +4676,7 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
      * This branch remains inactive while the line and strip constructors
      * continue to select their legacy Tk_ConfigSpec tables.
      */
-    if ((elemPtr->optionSpecs != NULL) &&
-        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_AXES_MASK))) {
+    if (((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_AXES_MASK))) {
         if (Rbc_PrepareElemAxisTransaction(graphPtr, elemPtr, &axisTransaction) != TCL_OK) {
             goto error;
         }
@@ -5544,8 +4691,7 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
      * so stateObjPtr remains NULL and this transaction stages nothing for
      * them during initial configuration.
      */
-    if ((elemPtr->optionSpecs != NULL) &&
-        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_STATE_MASK))) {
+    if (((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_STATE_MASK))) {
         if (Rbc_PrepareElemStateTransaction(graphPtr, elemPtr, &stateTransaction) != TCL_OK) {
             goto error;
         }
@@ -5559,8 +4705,7 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
      * Both line and strip elements expose -bindtags in their modern
      * option tables.
      */
-    if ((elemPtr->optionSpecs != NULL) &&
-        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_TAGS_MASK))) {
+    if (((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_TAGS_MASK))) {
         if (Rbc_PrepareElemTagsTransaction(graphPtr, elemPtr, &tagsTransaction) != TCL_OK) {
             goto error;
         }
@@ -5575,8 +4720,7 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
      * Line and strip elements both use line pens and LinePenStyle palette
      * records.
      */
-    if ((elemPtr->optionSpecs != NULL) &&
-        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_STYLES_MASK))) {
+    if (((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_STYLES_MASK))) {
         if (Rbc_PrepareElemStylesTransaction(graphPtr, elemPtr, rbcLineElementUid, sizeof(LinePenStyle),
                                              &stylesTransaction) != TCL_OK) {
             goto error;
@@ -5591,8 +4735,7 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
      * Both line and strip elements expose -maxsymbols and -smooth. Only
      * graph line elements expose -trace.
      */
-    if ((elemPtr->optionSpecs != NULL) &&
-        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_SCALAR_MASK))) {
+    if (((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_SCALAR_MASK))) {
         if (PrepareLineScalarTransaction(graphPtr, elemPtr, linePtr, &scalarTransaction) != TCL_OK) {
             goto error;
         }
@@ -5607,8 +4750,7 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
      * Strip elements have no area options, but initial modern
      * configuration may still construct their empty fill GC.
      */
-    if ((elemPtr->optionSpecs != NULL) &&
-        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_AREA_MASK))) {
+    if (((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_AREA_MASK))) {
         if (PrepareLineAreaTransaction(graphPtr, elemPtr, linePtr, &areaTransaction) != TCL_OK) {
             goto error;
         }
@@ -5618,11 +4760,9 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
 
     /*
      * Configure the embedded line pen only when its options may have
-     * changed. The legacy fallback remains unconditional because its
-     * Tk_ConfigSpec values are not represented by an option-table mask.
+     * changed.
      */
-    if ((elemPtr->optionSpecs == NULL) || !elemPtr->optionsConfigured ||
-        (elemPtr->optionMask & LINE_ELEM_BUILTIN_PEN_MASK)) {
+    if (!elemPtr->optionsConfigured || (elemPtr->optionMask & LINE_ELEM_BUILTIN_PEN_MASK)) {
         if (ConfigurePen(graphPtr, &linePtr->builtinPen.core) != TCL_OK) {
             goto error;
         }
@@ -5661,13 +4801,7 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
         CommitLineAreaTransaction(graphPtr, linePtr, &areaTransaction);
     }
 
-    /*
-     * Use the embedded line pen when no named normal pen was selected.
-     * This fallback is still required by the legacy element path.
-     */
-    if (elemPtr->normalPenPtr == NULL) {
-        elemPtr->normalPenPtr = &linePtr->builtinPen.core;
-    }
+    assert(elemPtr->normalPenPtr != NULL);
 
     linkPtr = Rbc_ChainFirstLink(elemPtr->palette);
 
@@ -5676,45 +4810,6 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
 
         stylePtr = Rbc_ChainGetValue(linkPtr);
         stylePtr->penPtr = LINE_PEN_FROM_CORE(elemPtr->normalPenPtr);
-    }
-
-    /*
-     * The modern branch constructs and commits the replacement GC through
-     * LineAreaTransaction. Preserve the original setup for legacy
-     * Tk_ConfigSpec elements.
-     */
-    if (elemPtr->optionSpecs == NULL) {
-        if (linePtr->fillTile != NULL) {
-            Rbc_SetTileChangedProc(linePtr->fillTile, TileChangedProc, linePtr);
-        }
-
-        gcMask = 0;
-        memset(&gcValues, 0, sizeof(gcValues));
-
-        if (linePtr->fillFgColor != NULL) {
-            gcMask |= GCForeground;
-            gcValues.foreground = linePtr->fillFgColor->pixel;
-        }
-
-        if (linePtr->fillBgColor != NULL) {
-            gcMask |= GCBackground;
-            gcValues.background = linePtr->fillBgColor->pixel;
-        }
-
-        if ((linePtr->fillStipple != None) && (linePtr->fillStipple != PATTERN_SOLID)) {
-            gcMask |= GCStipple | GCFillStyle;
-            gcValues.stipple = linePtr->fillStipple;
-
-            gcValues.fill_style = (linePtr->fillBgColor == NULL) ? FillStippled : FillOpaqueStippled;
-        }
-
-        newGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
-
-        if (linePtr->fillGC != NULL) {
-            Tk_FreeGC(graphPtr->display, linePtr->fillGC);
-        }
-
-        linePtr->fillGC = newGC;
     }
 
     /*
@@ -5727,27 +4822,12 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
         Rbc_SyncElemDataOptionObjects(elemPtr);
     }
 
-    /*
-     * Modern line and strip elements use option-table masks.
-     * The legacy path continues to use Rbc_ConfigModified.
-     */
-    if (elemPtr->optionSpecs != NULL) {
-        if ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_SCALE_SYMBOL_MASK)) {
-            elemPtr->flags |= MAP_ITEM | SCALE_SYMBOL;
-        }
+    if (!elemPtr->optionsConfigured || (elemPtr->optionMask & LINE_ELEM_SCALE_SYMBOL_MASK)) {
+        elemPtr->flags |= MAP_ITEM | SCALE_SYMBOL;
+    }
 
-        if ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_MAP_ITEM_MASK)) {
-            elemPtr->flags |= MAP_ITEM;
-        }
-    } else {
-        if (Rbc_ConfigModified(graphPtr->interp, elemPtr->specsPtr, "-scalesymbols", (char *)NULL)) {
-            elemPtr->flags |= MAP_ITEM | SCALE_SYMBOL;
-        }
-
-        if (Rbc_ConfigModified(graphPtr->interp, elemPtr->specsPtr, "-pixels", "-trace", "-*data", "-smooth", "-map*",
-                               "-label", "-hide", "-x", "-y", "-areapattern", (char *)NULL)) {
-            elemPtr->flags |= MAP_ITEM;
-        }
+    if (!elemPtr->optionsConfigured || (elemPtr->optionMask & LINE_ELEM_MAP_ITEM_MASK)) {
+        elemPtr->flags |= MAP_ITEM;
     }
 
     return TCL_OK;
@@ -7570,11 +6650,6 @@ Element *Rbc_LineElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     elemPtr->optionsInitialized = FALSE;
     elemPtr->tkResourcesReleased = FALSE;
     elemPtr->procsPtr = &lineProcs;
-    /*
-     * Retain the legacy tables temporarily for source-level comparison.
-     * Runtime configuration now uses optionSpecs exclusively.
-     */
-    elemPtr->specsPtr = NULL;
 
     /*
      * By default an element's name and label are the same.

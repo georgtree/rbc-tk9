@@ -14,10 +14,7 @@
 
 static Tk_OptionParseProc StringToColor;
 static Tk_OptionPrintProc ColorToString;
-static Tk_OptionParseProc StringToPen;
-static Tk_OptionPrintProc PenToString;
 Tk_CustomOption rbcColorOption = {StringToColor, ColorToString, (ClientData)0};
-Tk_CustomOption rbcLinePenOption = {StringToPen, PenToString, (ClientData)&rbcLineElementUid};
 
 static const char *NameOfColor(XColor *colorPtr);
 static Pen *NameToPen(Graph *graphPtr, Tcl_Obj *nameObj);
@@ -220,84 +217,6 @@ static const char *ColorToString(ClientData clientData, Tk_Window tkwin, char *w
     XColor *colorPtr = *(XColor **)(widgRec + offset);
 
     return NameOfColor(colorPtr);
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * StringToPen --
- *
- *      Convert the color value into a string.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tcl_Interp *interp - Interpreter to send results back to
- *      Tk_Window tkwin - Not used.
- *      const char *string - String representing pen
- *      char *widgRec - Widget record
- *      Tcl_Size offset - Offset of pen field in record
- *
- * Results:
- *      The string representing the symbol color is returned.
- *
- * Side Effects:
- *      TODO: Side Effects:
- *
- *----------------------------------------------------------------------
- */
-static int StringToPen(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string, char *widgRec,
-                       Tcl_Size offset) {
-    Rbc_Uid classUid = *(Rbc_Uid *)clientData; /* Element type. */
-    Pen **penPtrPtr = (Pen **)(widgRec + offset);
-    Pen *penPtr;
-    Graph *graphPtr;
-
-    penPtr = NULL;
-    graphPtr = Rbc_GetGraphFromWindowData(tkwin);
-
-    if (classUid == NULL) {
-        classUid = graphPtr->classUid;
-    }
-    if ((string != NULL) && (string[0] != '\0')) {
-        if (Rbc_GetPen(graphPtr, string, classUid, &penPtr) != TCL_OK) {
-            return TCL_ERROR;
-        }
-    }
-    /* Release the old pen */
-    if (*penPtrPtr != NULL) {
-        Rbc_FreePen(graphPtr, *penPtrPtr);
-    }
-    *penPtrPtr = penPtr;
-    return TCL_OK;
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * PenToString --
- *
- *      Parse the name of the name.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tk_Window tkwin - Not used.
- *      char *widgRec - Widget information record
- *      Tcl_Size offset - Offset of pen in record
- *      Tcl_FreeProc **freeProcPtr - Not used.
- *
- * Results:
- *      The return value is a standard Tcl result.
- *
- * Side Effects:
- *      TODO: Side Effects:
- *
- *----------------------------------------------------------------------
- */
-static const char *PenToString(ClientData clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset,
-                               Tcl_FreeProc **freeProcPtr) {
-    Pen *penPtr = *(Pen **)(widgRec + offset);
-
-    return penPtr->name;
 }
 
 /*

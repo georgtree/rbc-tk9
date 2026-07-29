@@ -273,12 +273,6 @@ struct ElementStruct {
     ElementProcs *procsPtr;
 
     /*
-     * Legacy configuration table. Remove this after all element classes
-     * have been converted to Tk_OptionSpec.
-     */
-    Tk_ConfigSpec *specsPtr;
-
-    /*
      * Modern option-table configuration.
      */
     const Tk_OptionSpec *optionSpecs;
@@ -361,9 +355,6 @@ struct ElementStruct {
 
 Element *Rbc_BarElement(Graph *, const char *, Rbc_Uid);
 Element *Rbc_LineElement(Graph *, const char *, Rbc_Uid);
-
-extern Tk_OptionParseProc Rbc_StringToStyles;
-extern Tk_OptionPrintProc Rbc_StylesToString;
 
 void Rbc_FreeElemVector(ElemVector *vPtr);
 int Rbc_ParseElemVectorObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, ElemVector *candidatePtr);

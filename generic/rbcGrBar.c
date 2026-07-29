@@ -2662,7 +2662,6 @@ Element *Rbc_BarElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     elemPtr->tkResourcesReleased = FALSE;
     elemPtr->normalPenPtr = &barPtr->builtinPen.core;
     elemPtr->procsPtr = &barProcs;
-    elemPtr->specsPtr = NULL;
     elemPtr->labelRelief = TK_RELIEF_FLAT;
     elemPtr->classUid = classUid;
 

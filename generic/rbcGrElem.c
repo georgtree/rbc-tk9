@@ -15,15 +15,9 @@
 #include "rbcChain.h"
 #include <X11/Xutil.h>
 
-static Tk_OptionParseProc StringToData;
-static Tk_OptionPrintProc DataToString;
-static Tk_OptionParseProc StringToDataPairs;
-static Tk_OptionPrintProc DataPairsToString;
 static Tk_OptionParseProc StringToAlong;
 static Tk_OptionPrintProc AlongToString;
 static Tk_CustomOption alongOption = {StringToAlong, AlongToString, (ClientData)0};
-Tk_CustomOption rbcDataOption = {StringToData, DataToString, (ClientData)0};
-Tk_CustomOption rbcDataPairsOption = {StringToDataPairs, DataPairsToString, (ClientData)0};
 extern Tk_CustomOption rbcDistanceOption;
 
 #include "rbcGrElem.h"
@@ -2448,239 +2442,6 @@ void Rbc_CommitElemStylesTransaction(Graph *graphPtr, Element *elemPtr, ElemStyl
 /*
  *----------------------------------------------------------------------
  *
- * StringToData --
- *
- *      Given a Tcl list of numeric expression representing the element
- *      values, convert into an array of double precision values. In
- *      addition, the minimum and maximum values are saved.  Since
- *      elastic values are allow (values which translate to the
- *      min/max of the graph), we must try to get the non-elastic
- *      minimum and maximum.
- *
- * Parameters:
- *      ClientData clientData - Type of axis vector to fill
- *      Tcl_Interp *interp - Interpreter to send results back to.
- *      Tk_Window tkwin - Not used.
- *      const char *string - Tcl list of expressions
- *      char *widgRec - Element record
- *      Tcl_Size offset - Offset of vector in Element record
- *
- * Results:
- *      The return value is a standard Tcl result.  The vector is passed
- *      back via the vPtr.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static int StringToData(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string, char *widgRec,
-                        Tcl_Size offset) {
-    Element *elemPtr;
-    ElemVector *destPtr;
-    ElemVector candidate;
-    Tcl_Obj *objPtr;
-    int result;
-
-    elemPtr = (Element *)widgRec;
-    destPtr = (ElemVector *)(widgRec + offset);
-
-    objPtr = Tcl_NewStringObj(string, -1);
-    Tcl_IncrRefCount(objPtr);
-
-    result = Rbc_ParseElemVectorObj(interp, elemPtr, objPtr, &candidate);
-
-    Tcl_DecrRefCount(objPtr);
-
-    if (result != TCL_OK) {
-        Rbc_FreeElemVector(&candidate);
-        return TCL_ERROR;
-    }
-
-    Rbc_CommitElemVector(elemPtr, destPtr, &candidate);
-    elemPtr->flags |= MAP_ITEM;
-
-    return TCL_OK;
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * DataToString --
- *
- *      Convert the vector of floating point values into a Tcl list.
- *
- * Parameters:
- *      ClientData clientData - Type of axis vector to print
- *      Tk_Window tkwin - Not used.
- *      char *widgRec - Element record
- *      Tcl_Size offset - Offset of vector in Element record
- *      Tcl_FreeProc **freeProcPtr - Memory deallocation scheme to use
- *
- * Results:
- *      The string representation of the vector is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static const char *DataToString(ClientData clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset,
-                                Tcl_FreeProc **freeProcPtr) {
-    ElemVector *vPtr = (ElemVector *)(widgRec + offset);
-    Element *elemPtr = (Element *)(widgRec);
-    Tcl_DString dString;
-    char *result;
-    char string[TCL_DOUBLE_SPACE + 1];
-    double *p, *endPtr;
-
-    if (vPtr->clientId != NULL) {
-        return Rbc_NameOfVectorId(vPtr->clientId);
-    }
-    if (vPtr->nValues == 0) {
-        return "";
-    }
-    Tcl_DStringInit(&dString);
-    endPtr = vPtr->valueArr + vPtr->nValues;
-    for (p = vPtr->valueArr; p < endPtr; p++) {
-        Tcl_PrintDouble(elemPtr->graphPtr->interp, *p, string);
-        Tcl_DStringAppendElement(&dString, string);
-    }
-    result = Tcl_DStringValue(&dString);
-
-    /*
-     * If memory wasn't allocated for the dynamic string, do it here (it's
-     * currently on the stack), so that Tcl can free it normally.
-     */
-    if (result == dString.staticSpace) {
-        result = RbcStrdup(result);
-    }
-    *freeProcPtr = (Tcl_FreeProc *)Tcl_Free;
-    return result;
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * StringToDataPairs --
- *
- *      This procedure is like StringToData except that it interprets
- *      the list of numeric expressions as X Y coordinate pairs.  The
- *      minimum and maximum for both the X and Y vectors are
- *      determined.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tcl_Interp *interp - Interpreter to send results back to
- *      Tk_Window tkwin - Not used.
- *      const char *string - Tcl list of numeric expressions
- *      char *widgRec - Element record
- *      Tcl_Size offset - Not used.
- *
- * Results:
- *      The return value is a standard Tcl result.  The vectors are
- *      passed back via the widget record (elemPtr).
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static int StringToDataPairs(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string,
-                             char *widgRec, Tcl_Size offset) {
-    Element *elemPtr;
-    ElemVector xCandidate;
-    ElemVector yCandidate;
-    Tcl_Obj *objPtr;
-    int result;
-
-    elemPtr = (Element *)widgRec;
-
-    objPtr = Tcl_NewStringObj(string, -1);
-    Tcl_IncrRefCount(objPtr);
-
-    result = Rbc_ParseElemVectorPairsObj(interp, elemPtr, objPtr, &xCandidate, &yCandidate);
-
-    Tcl_DecrRefCount(objPtr);
-
-    if (result != TCL_OK) {
-        Rbc_FreeElemVector(&xCandidate);
-        Rbc_FreeElemVector(&yCandidate);
-        return TCL_ERROR;
-    }
-
-    /*
-     * Both candidates have already parsed successfully, so the live
-     * X and Y vectors can now be replaced together.
-     */
-    Rbc_CommitElemVector(elemPtr, &elemPtr->x, &xCandidate);
-    Rbc_CommitElemVector(elemPtr, &elemPtr->y, &yCandidate);
-
-    elemPtr->flags |= MAP_ITEM;
-    return TCL_OK;
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * DataPairsToString --
- *
- *      Convert pairs of floating point values in the X and Y arrays
- *      into a Tcl list.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tk_Window tkwin - Not used.
- *      char *widgRec - Element information record
- *      Tcl_Size offset - Not used.
- *      Tcl_FreeProc **freeProcPtr - Memory deallocation scheme to use
- *
- * Results:
- *      The return value is a string (Tcl list).
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static const char *DataPairsToString(ClientData clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset,
-                                     Tcl_FreeProc **freeProcPtr) {
-    Element *elemPtr = (Element *)widgRec;
-    Tcl_Interp *interp = elemPtr->graphPtr->interp;
-    int i;
-    int length;
-    char *result;
-    char string[TCL_DOUBLE_SPACE + 1];
-    Tcl_DString dString;
-
-    length = NumberOfPoints(elemPtr);
-    if (length < 1) {
-        return "";
-    }
-    Tcl_DStringInit(&dString);
-    for (i = 0; i < length; i++) {
-        Tcl_PrintDouble(interp, elemPtr->x.valueArr[i], string);
-        Tcl_DStringAppendElement(&dString, string);
-        Tcl_PrintDouble(interp, elemPtr->y.valueArr[i], string);
-        Tcl_DStringAppendElement(&dString, string);
-    }
-    result = Tcl_DStringValue(&dString);
-
-    /*
-     * If memory wasn't allocated for the dynamic string, do it here
-     * (it's currently on the stack), so that Tcl can free it
-     * normally.
-     */
-    if (result == dString.staticSpace) {
-        result = RbcStrdup(result);
-    }
-    *freeProcPtr = (Tcl_FreeProc *)Tcl_Free;
-    return result;
-}
-
-/*
- *----------------------------------------------------------------------
- *
  * StringToAlong --
  *
  *      Given a Tcl list of numeric expression representing the element
@@ -2922,120 +2683,6 @@ int Rbc_ParseStylesObj(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, size_
 
     *palettePtrPtr = palette;
     return TCL_OK;
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_StringToStyles --
- *
- *      Parse the list of style names.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tcl_Interp *interp - Interpreter to send results back to.
- *      Tk_Window tkwin - Not used.
- *      const char *string - String representing style list
- *      char *widgRec - Element information record
- *      Tcl_Size offset - Offset of symbol type field in record
- *
- * Results:
- *      The return value is a standard Tcl result.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-int Rbc_StringToStyles(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string, char *widgRec,
-                       Tcl_Size offset) {
-    Element *elemPtr;
-    Rbc_Chain **palettePtrPtr;
-    Rbc_Chain *newPalette;
-    Rbc_Chain *oldPalette;
-    Tcl_Obj *objPtr;
-    int result;
-
-    elemPtr = (Element *)widgRec;
-    palettePtrPtr = (Rbc_Chain **)(widgRec + offset);
-
-    objPtr = Tcl_NewStringObj((string == NULL) ? "" : string, -1);
-    Tcl_IncrRefCount(objPtr);
-
-    newPalette = NULL;
-
-    result = Rbc_ParseStylesObj(elemPtr->graphPtr, elemPtr, objPtr, (size_t)clientData, &newPalette);
-
-    Tcl_DecrRefCount(objPtr);
-
-    if (result != TCL_OK) {
-        return TCL_ERROR;
-    }
-
-    /*
-     * Parsing has completed successfully, so the live palette can now
-     * be replaced atomically.
-     */
-    oldPalette = *palettePtrPtr;
-    *palettePtrPtr = newPalette;
-
-    Rbc_DestroyPalette(elemPtr->graphPtr, oldPalette);
-
-    return TCL_OK;
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_StylesToString --
- *
- *      Convert the style information into a string.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tk_Window tkwin - Not used.
- *      char *widgRec - Element information record
- *      Tcl_Size offset - Not used.
- *      Tcl_FreeProc **freeProcPtr - Not used.
- *
- * Results:
- *      The string representing the style information is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-const char *Rbc_StylesToString(ClientData clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset,
-                               Tcl_FreeProc **freeProcPtr) {
-    Rbc_Chain *palette = *(Rbc_Chain **)(widgRec + offset);
-    Tcl_DString dString;
-    char *result;
-    Rbc_ChainLink *linkPtr;
-
-    Tcl_DStringInit(&dString);
-    linkPtr = Rbc_ChainFirstLink(palette);
-    if (linkPtr != NULL) {
-        Element *elemPtr = (Element *)(widgRec);
-        char string[TCL_DOUBLE_SPACE + 1];
-        Tcl_Interp *interp;
-        PenStyle *stylePtr;
-
-        interp = elemPtr->graphPtr->interp;
-        for (linkPtr = Rbc_ChainNextLink(linkPtr); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
-            stylePtr = Rbc_ChainGetValue(linkPtr);
-            Tcl_DStringStartSublist(&dString);
-            Tcl_DStringAppendElement(&dString, stylePtr->penPtr->name);
-            Tcl_PrintDouble(interp, stylePtr->weight.min, string);
-            Tcl_DStringAppendElement(&dString, string);
-            Tcl_PrintDouble(interp, stylePtr->weight.max, string);
-            Tcl_DStringAppendElement(&dString, string);
-            Tcl_DStringEndSublist(&dString);
-        }
-    }
-    result = RbcStrdup(Tcl_DStringValue(&dString));
-    *freeProcPtr = (Tcl_FreeProc *)Tcl_Free;
-    return result;
 }
 
 /*
@@ -3474,17 +3121,7 @@ static void DestroyElement(Graph *graphPtr, Element *elemPtr) {
     Rbc_DeleteBindings(graphPtr->bindTable, elemPtr);
     Rbc_LegendRemoveElement(graphPtr->legend, elemPtr);
 
-    if (elemPtr->optionSpecs != NULL) {
-        ReleaseElementResources(graphPtr, elemPtr);
-    } else {
-        Tk_FreeOptions(elemPtr->specsPtr, (char *)elemPtr, graphPtr->display, 0);
-
-        /*
-         * Legacy option tables release their Tk resources before the
-         * concrete element destructor is called.
-         */
-        (*elemPtr->procsPtr->destroyProc)(graphPtr, elemPtr);
-    }
+    ReleaseElementResources(graphPtr, elemPtr);
 
     /* Remove it also from the element display list */
     for (linkPtr = Rbc_ChainFirstLink(graphPtr->elements.displayList); linkPtr != NULL;
@@ -3555,33 +3192,21 @@ static int CreateElement(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj 
     elemPtr->hashPtr = hPtr;
     Tcl_SetHashValue(hPtr, elemPtr);
 
-    if (elemPtr->optionSpecs != NULL) {
-        if (InitElementOptions(graphPtr, elemPtr) != TCL_OK) {
-            DestroyElement(graphPtr, elemPtr);
-            return TCL_ERROR;
-        }
+    assert(elemPtr->optionSpecs != NULL);
 
-        /*
-         * Always use the transactional path, including when there are no
-         * explicit option/value pairs. Tk_InitOptions has already installed
-         * the defaults, and configProc must build the derived state from
-         * those defaults.
-         */
-        if (ConfigureElementOptions(graphPtr, elemPtr, objc - 4, objv + 4, NULL) != TCL_OK) {
-            DestroyElement(graphPtr, elemPtr);
-            return TCL_ERROR;
-        }
-    } else {
-        if (Rbc_ConfigureWidgetComponent(interp, graphPtr->tkwin, elemPtr->name, "Element", elemPtr->specsPtr, objc - 4,
-                                         objv + 4, (char *)elemPtr, 0) != TCL_OK) {
-            DestroyElement(graphPtr, elemPtr);
-            return TCL_ERROR;
-        }
+    if (InitElementOptions(graphPtr, elemPtr) != TCL_OK) {
+        DestroyElement(graphPtr, elemPtr);
+        return TCL_ERROR;
+    }
 
-        if ((*elemPtr->procsPtr->configProc)(graphPtr, elemPtr) != TCL_OK) {
-            DestroyElement(graphPtr, elemPtr);
-            return TCL_ERROR;
-        }
+    /*
+     * Always use the transactional path, including when no explicit
+     * option/value pairs were supplied. Tk_InitOptions installed the
+     * defaults, and configProc must construct the derived state.
+     */
+    if (ConfigureElementOptions(graphPtr, elemPtr, objc - 4, objv + 4, NULL) != TCL_OK) {
+        DestroyElement(graphPtr, elemPtr);
+        return TCL_ERROR;
     }
     Rbc_ChainPrepend(graphPtr->elements.displayList, elemPtr);
 
@@ -4096,23 +3721,21 @@ static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc,
  */
 static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
+    Tcl_Obj *resultObjPtr;
 
     if (NameToElement(graphPtr, objv[3], &elemPtr) != TCL_OK) {
-        return TCL_ERROR; /* Can't find named element */
-    }
-    if (elemPtr->optionSpecs != NULL) {
-        Tcl_Obj *resultObjPtr;
-
-        resultObjPtr = Tk_GetOptionValue(interp, (char *)elemPtr, elemPtr->optionTable, objv[4], graphPtr->tkwin);
-
-        if (resultObjPtr == NULL) {
-            return TCL_ERROR;
-        }
-        Tcl_SetObjResult(interp, resultObjPtr);
-        return TCL_OK;
+        return TCL_ERROR;
     }
 
-    return Tk_ConfigureValue(interp, graphPtr->tkwin, elemPtr->specsPtr, (char *)elemPtr, Tcl_GetString(objv[4]), 0);
+    resultObjPtr = Tk_GetOptionValue(interp, (char *)elemPtr, elemPtr->optionTable, objv[4], graphPtr->tkwin);
+
+    if (resultObjPtr == NULL) {
+        return TCL_ERROR;
+    }
+
+    Tcl_SetObjResult(interp, resultObjPtr);
+
+    return TCL_OK;
 }
 
 static Tk_ConfigSpec closestSpecs[] = {
@@ -4319,80 +3942,77 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc
  */
 static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
-    int flags;
-    int numNames, numOpts;
+    int numNames;
+    int numOpts;
     Tcl_Obj *const *options;
-    register int i;
+    int i;
 
-    /* Figure out where the option value pairs begin */
+    /*
+     * Figure out where the option/value pairs begin.
+     */
     objc -= 3;
     objv += 3;
+
     for (i = 0; i < objc; i++) {
-        const char *str = Tcl_GetString(objv[i]);
-        if (str[0] == '-') {
+        const char *string;
+
+        string = Tcl_GetString(objv[i]);
+
+        if (string[0] == '-') {
             break;
         }
+
         if (NameToElement(graphPtr, objv[i], &elemPtr) != TCL_OK) {
-            return TCL_ERROR; /* Can't find named element */
+            return TCL_ERROR;
         }
     }
-    numNames = i;              /* Number of element names specified */
-    numOpts = objc - i;        /* Number of options specified */
-    options = objv + numNames; /* Start of options in argv  */
+
+    numNames = i;
+    numOpts = objc - i;
+    options = objv + numNames;
 
     for (i = 0; i < numNames; i++) {
-        //    const char *str = Tcl_GetString(objv[i]);
-        NameToElement(graphPtr, objv[i], &elemPtr);
-        flags = TK_CONFIG_ARGV_ONLY;
+        if (NameToElement(graphPtr, objv[i], &elemPtr) != TCL_OK) {
+            return TCL_ERROR;
+        }
 
         if (numOpts == 0) {
-            if (elemPtr->optionSpecs != NULL) {
-                Tcl_Obj *resultObjPtr;
+            Tcl_Obj *resultObjPtr;
 
-                resultObjPtr = Tk_GetOptionInfo(interp, (char *)elemPtr, elemPtr->optionTable, NULL, graphPtr->tkwin);
+            resultObjPtr = Tk_GetOptionInfo(interp, (char *)elemPtr, elemPtr->optionTable, NULL, graphPtr->tkwin);
 
-                if (resultObjPtr == NULL) {
-                    return TCL_ERROR;
-                }
-                Tcl_SetObjResult(interp, resultObjPtr);
-                return TCL_OK;
+            if (resultObjPtr == NULL) {
+                return TCL_ERROR;
             }
 
-            return Tk_ConfigureInfo(interp, graphPtr->tkwin, elemPtr->specsPtr, (char *)elemPtr, (char *)NULL, flags);
+            Tcl_SetObjResult(interp, resultObjPtr);
+
+            return TCL_OK;
         }
 
         if (numOpts == 1) {
-            if (elemPtr->optionSpecs != NULL) {
-                Tcl_Obj *resultObjPtr;
+            Tcl_Obj *resultObjPtr;
 
-                resultObjPtr =
-                    Tk_GetOptionInfo(interp, (char *)elemPtr, elemPtr->optionTable, options[0], graphPtr->tkwin);
+            resultObjPtr = Tk_GetOptionInfo(interp, (char *)elemPtr, elemPtr->optionTable, options[0], graphPtr->tkwin);
 
-                if (resultObjPtr == NULL) {
-                    return TCL_ERROR;
-                }
-                Tcl_SetObjResult(interp, resultObjPtr);
-                return TCL_OK;
+            if (resultObjPtr == NULL) {
+                return TCL_ERROR;
             }
 
-            return Tk_ConfigureInfo(interp, graphPtr->tkwin, elemPtr->specsPtr, (char *)elemPtr,
-                                    Tcl_GetString(options[0]), flags);
+            Tcl_SetObjResult(interp, resultObjPtr);
+
+            return TCL_OK;
         }
-        if (elemPtr->optionSpecs != NULL) {
-            if (ConfigureElementOptions(graphPtr, elemPtr, numOpts, options, NULL) != TCL_OK) {
-                return TCL_ERROR;
-            }
-        } else {
-            if (Tk_ConfigureWidget(interp, graphPtr->tkwin, elemPtr->specsPtr, numOpts, options, elemPtr, flags) !=
-                TCL_OK) {
-                return TCL_ERROR;
-            }
 
-            if ((*elemPtr->procsPtr->configProc)(graphPtr, elemPtr) != TCL_OK) {
-                return TCL_ERROR;
-            }
+        if (ConfigureElementOptions(graphPtr, elemPtr, numOpts, options, NULL) != TCL_OK) {
+            return TCL_ERROR;
         }
-        if ((elemPtr->optionSpecs != NULL) || Rbc_ConfigModified(interp, elemPtr->specsPtr, "-hide", (char *)NULL)) {
+
+        /*
+         * Keep the element's hidden state and display-list membership
+         * synchronized.
+         */
+        {
             Rbc_ChainLink *linkPtr;
 
             for (linkPtr = Rbc_ChainFirstLink(graphPtr->elements.displayList); linkPtr != NULL;
@@ -4401,41 +4021,27 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int ob
                     break;
                 }
             }
-            if ((elemPtr->hidden) != (linkPtr == NULL)) {
 
-                /* The element's "hidden" variable is out of sync with
-                 * the display list. [That's what you get for having
-                 * two ways to do the same thing.]  This affects what
-                 * elements are considered for axis ranges and
-                 * displayed in the legend. Update the display list by
-                 * either by adding or removing the element.  */
-
+            if (elemPtr->hidden != (linkPtr == NULL)) {
                 if (linkPtr == NULL) {
                     Rbc_ChainPrepend(graphPtr->elements.displayList, elemPtr);
                 } else {
                     Rbc_ChainDeleteLink(graphPtr->elements.displayList, linkPtr);
                 }
             }
-            graphPtr->flags |= RESET_AXES;
-            elemPtr->flags |= MAP_ITEM;
         }
-        /* If data points or axes have changed, reset the axes (may
-         * affect autoscaling) and recalculate the screen points of
-         * the element. */
 
-        if ((elemPtr->optionSpecs != NULL) ||
-            Rbc_ConfigModified(interp, elemPtr->specsPtr, "-*data", "-map*", "-x", "-y", (char *)NULL)) {
-            graphPtr->flags |= RESET_WORLD;
-            elemPtr->flags |= MAP_ITEM;
-        }
-        /* The new label may change the size of the legend */
-        if ((elemPtr->optionSpecs != NULL) || Rbc_ConfigModified(interp, elemPtr->specsPtr, "-label", (char *)NULL)) {
-            graphPtr->flags |= (MAP_WORLD | REDRAW_WORLD);
-        }
+        graphPtr->flags |= RESET_AXES;
+        graphPtr->flags |= RESET_WORLD;
+        graphPtr->flags |= MAP_WORLD | REDRAW_WORLD;
+
+        elemPtr->flags |= MAP_ITEM;
     }
-    /* Update the pixmap if any configuration option changed */
-    graphPtr->flags |= (REDRAW_BACKING_STORE | DRAW_MARGINS);
+
+    graphPtr->flags |= REDRAW_BACKING_STORE | DRAW_MARGINS;
+
     Rbc_EventuallyRedrawGraph(graphPtr);
+
     return TCL_OK;
 }
 
