@@ -319,7 +319,7 @@ static int PrepareLegendWindow(Tcl_Interp *interp, Legend *legendPtr, const char
     }
     Rbc_SetWindowInstanceData(tkwin, legendPtr);
     Tk_CreateEventHandler(tkwin, ExposureMask | StructureNotifyMask, LegendEventProc, legendPtr);
-    cmdToken = Tcl_CreateObjCommand(interp, pathName, Rbc_GraphInstCmdProc, legendPtr->graphPtr, NULL);
+    cmdToken = Tcl_CreateObjCommand2(interp, pathName, Rbc_GraphInstCmdProc, legendPtr->graphPtr, NULL);
     if (cmdToken == NULL) {
         Tk_DeleteEventHandler(tkwin, ExposureMask | StructureNotifyMask, LegendEventProc, legendPtr);
         Rbc_DeleteWindowInstanceData(tkwin);
@@ -1638,13 +1638,13 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *c
     return TCL_OK;
 }
 
-static Rbc_OpSpec legendOps[] = {{"activate", (Rbc_Op)ActivateOp, 3, 0, "?pattern?..."},
-                                 {"bind", (Rbc_Op)BindOp, 3, 6, "elemName sequence command"},
-                                 {"cget", (Rbc_Op)CgetOp, 4, 4, "option"},
-                                 {"configure", (Rbc_Op)ConfigureOp, 3, 0, "?option value?..."},
-                                 {"deactivate", (Rbc_Op)ActivateOp, 3, 0, "?pattern?..."},
-                                 {"get", (Rbc_Op)GetOp, 4, 4, "index"},
-                                 RBC_OPSPEC_END};
+static const Rbc_OpSpec legendOps[] = {{"activate", (Rbc_Op)ActivateOp, 3, 0, "?pattern?..."},
+                                       {"bind", (Rbc_Op)BindOp, 3, 6, "elemName sequence command"},
+                                       {"cget", (Rbc_Op)CgetOp, 4, 4, "option"},
+                                       {"configure", (Rbc_Op)ConfigureOp, 3, 0, "?option value?..."},
+                                       {"deactivate", (Rbc_Op)ActivateOp, 3, 0, "?pattern?..."},
+                                       {"get", (Rbc_Op)GetOp, 4, 4, "index"},
+                                       RBC_OPSPEC_END};
 
 /*
  *----------------------------------------------------------------------
@@ -1667,7 +1667,7 @@ static Rbc_OpSpec legendOps[] = {{"activate", (Rbc_Op)ActivateOp, 3, 0, "?patter
  *
  *----------------------------------------------------------------------
  */
-int Rbc_LegendOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+int Rbc_LegendOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     RbcGrLegdOpPtr proc;
     int result;
 

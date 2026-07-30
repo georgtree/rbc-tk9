@@ -380,7 +380,7 @@ struct GraphStruct {
      * Temporary context for a modern option transaction.
      */
     unsigned int optionMask;
-    int optionObjc;
+    Tcl_Size optionObjc;
     Tcl_Obj *const *optionObjv;
 
     int optionsConfigured;    
@@ -605,14 +605,9 @@ struct GraphStruct {
  * ---------------------- Forward declarations ------------------------
  */
 
-typedef int (*Rbc_GraphOp)(
-    Graph *,
-    Tcl_Interp *,
-    int,
-    Tcl_Obj *const []
-);
+typedef int Rbc_GraphOpProc(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 
-Tcl_ObjCmdProc Rbc_GraphInstCmdProc;
+Tcl_ObjCmdProc2 Rbc_GraphInstCmdProc;
 int Rbc_CreatePostScript(Graph *graphPtr);
 int Rbc_CreateCrosshairs(Graph *graphPtr);
 int Rbc_CreateGrid(Graph *graphPtr);
@@ -666,17 +661,17 @@ Pen *Rbc_LinePen(char *penName);
 Pen *Rbc_CreatePen(Graph *graphPtr, char *penName, Rbc_Uid classUid, int nOpts, Tcl_Obj *const *options);
 void Rbc_FreePen(Graph *graphPtr, Pen *penPtr);
 
-int Rbc_VirtualAxisOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
-int Rbc_AxisOp(Graph *graphPtr, int margin, int objc, Tcl_Obj *const objv[]);
-int Rbc_ElementOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], Rbc_Uid classUid);
-int Rbc_GridOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
-int Rbc_CrosshairsOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
-int Rbc_MarkerOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
-int Rbc_PenOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
+int Rbc_VirtualAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+int Rbc_AxisOp(Graph *graphPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]);
+int Rbc_ElementOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Rbc_Uid classUid);
+int Rbc_GridOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+int Rbc_CrosshairsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+int Rbc_MarkerOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+int Rbc_PenOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 int Rbc_PointInPolygon(Point2D *samplePtr, Point2D *screenPts, int nScreenPts);
 int Rbc_RegionInPolygon(Extents2D *extsPtr, Point2D *points, int nPoints, int enclosed);
 int Rbc_PointInSegments(Point2D *samplePtr, Segment2D *segments, int nSegments, double halo);
-int Rbc_PostScriptOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
+int Rbc_PostScriptOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 int Rbc_GraphUpdateNeeded(Graph *graphPtr);
 int Rbc_DefaultAxes(Graph *graphPtr);
 Axis *Rbc_GetFirstAxis(Rbc_Chain *chainPtr);

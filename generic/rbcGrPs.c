@@ -1198,10 +1198,10 @@ error:
  *
  *--------------------------------------------------------------
  */
-static Rbc_OpSpec psOps[] = {{"cget", (Rbc_Op)CgetOp, 4, 4, "option"},
-                             {"configure", (Rbc_Op)ConfigureOp, 3, 0, "?option value?..."},
-                             {"output", (Rbc_Op)OutputOp, 3, 0, "?fileName? ?option value?..."},
-                             RBC_OPSPEC_END};
+static const Rbc_OpSpec psOps[] = {{"cget", (Rbc_Op)CgetOp, 4, 4, "option"},
+                                   {"configure", (Rbc_Op)ConfigureOp, 3, 0, "?option value?..."},
+                                   {"output", (Rbc_Op)OutputOp, 3, 0, "?fileName? ?option value?..."},
+                                   RBC_OPSPEC_END};
 
 /*
  *--------------------------------------------------------------
@@ -1224,7 +1224,7 @@ static Rbc_OpSpec psOps[] = {{"cget", (Rbc_Op)CgetOp, 4, 4, "option"},
  *
  *--------------------------------------------------------------
  */
-int Rbc_PostScriptOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+int Rbc_PostScriptOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     RbcGrPsOpPtr proc;
     int result;
 

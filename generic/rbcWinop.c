@@ -1348,7 +1348,7 @@ static int SubsampleOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     return TCL_OK;
 }
 
-static Rbc_OpSpec imageOps[] = {
+static const Rbc_OpSpec imageOps[] = {
     {"convolve", (Rbc_Op)ConvolveOp, 6, 6, "srcPhoto destPhoto filter"},
     {"gradient", (Rbc_Op)GradientOp, 7, 7, "photo left right type"},
     {"readjpeg", (Rbc_Op)ReadJPEGOp, 5, 5, "fileName photoName"},

@@ -665,7 +665,7 @@ static int ToggleOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
     return TCL_OK;
 }
 
-static Rbc_OpSpec xhairOps[] = {
+static const Rbc_OpSpec xhairOps[] = {
     {"cget", (Rbc_Op)CgetOp, 4, 4, "option"}, {"configure", (Rbc_Op)ConfigureOp, 3, 0, "?options...?"},
     {"off", (Rbc_Op)OffOp, 3, 3, ""},         {"on", (Rbc_Op)OnOp, 3, 3, ""},
     {"toggle", (Rbc_Op)ToggleOp, 3, 3, ""},   RBC_OPSPEC_END};
@@ -696,7 +696,7 @@ static Rbc_OpSpec xhairOps[] = {
  *
  *----------------------------------------------------------------------
  */
-int Rbc_CrosshairsOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+int Rbc_CrosshairsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     RbcGrHairsOpPtr proc;
 
     proc = (RbcGrHairsOpPtr)Rbc_GetOpFromObj(interp, xhairOps, RBC_OP_ARG2, objc, objv);

@@ -155,18 +155,25 @@ typedef int (*Rbc_Op)(void);
  *
  * Rbc_OpSpec --
  *
- *     Structure to specify a set of operations for a Tcl command.
- *      This is passed to the Rbc_GetOpFromObj procedure to look
- *      for a function pointer associated with the operation name.
+ *      Describes one operation provided by a Tcl command.
+ *
+ *      minArgs and maxArgs count the complete command argument vector,
+ *      including the command and operation names. A maxArgs value of
+ *      zero means that the operation has no upper argument limit.
+ *
+ *      The generic Rbc_Op procedure representation is retained
+ *      temporarily. Individual command families will replace it with
+ *      properly typed operation tables during their Tcl_ObjCmdProc2
+ *      conversion.
  *
  * ----------------------------------------------------------------------
  */
 typedef struct {
-    char *name; /* Name of operation */
-    Rbc_Op proc;
-    int minArgs; /* Minimum # args required */
-    int maxArgs; /* Maximum # args required */
-    char *usage; /* Usage message */
+    const char *name; /* Name of operation. */
+    Rbc_Op proc;      /* Operation procedure. */
+    Tcl_Size minArgs; /* Minimum number of arguments required. */
+    Tcl_Size maxArgs; /* Maximum number of arguments, or zero. */
+    const char *usage; /* Usage message following the operation name. */
 } Rbc_OpSpec;
 
 typedef enum {
@@ -177,9 +184,19 @@ typedef enum {
     RBC_OP_ARG4  /* Op is the fifth argument. */
 } Rbc_OpIndex;
 
+typedef struct {
+    const char *name;
+    Tcl_Size minArgs;
+    Tcl_Size maxArgs;
+    const char *usage;
+} Rbc_OpSpecHeader;
+
 #define RBC_OPSPEC_END {NULL, NULL, 0, 0, NULL}
 
-Rbc_Op Rbc_GetOpFromObj(Tcl_Interp *interp, Rbc_OpSpec *specArr, int operPos, int objc, Tcl_Obj *const *objv);
+Rbc_Op Rbc_GetOpFromObj(Tcl_Interp *interp, const Rbc_OpSpec *specArr, Tcl_Size operPos, Tcl_Size objc,
+                        Tcl_Obj *const objv[]);
+int Rbc_GetOpIndexFromObj(Tcl_Interp *interp, const void *specArr, Tcl_Size specSize, Tcl_Size operPos, Tcl_Size objc,
+                          Tcl_Obj *const objv[], int *indexPtr);
 
 void Rbc_Draw3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, int x, int y, int width, int height,
                          int borderWidth, int relief);

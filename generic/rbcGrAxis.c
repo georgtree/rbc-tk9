@@ -6079,10 +6079,10 @@ static int ViewOp(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) {
  *
  *----------------------------------------------------------------------
  */
-int Rbc_VirtualAxisOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+int Rbc_VirtualAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     RbcGrAxisVirtualOpPtr proc;
     int result;
-    static Rbc_OpSpec axisOps[] = {
+    static const Rbc_OpSpec axisOps[] = {
         {"bind", (Rbc_Op)BindVirtualOp, 3, 6, "axisName sequence command"},
         {"cget", (Rbc_Op)CgetVirtualOp, 5, 5, "axisName option"},
         {"configure", (Rbc_Op)ConfigureVirtualOp, 4, 0, "axisName ?axisName?... ?option value?..."},
@@ -6125,18 +6125,18 @@ int Rbc_VirtualAxisOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *co
  *
  *----------------------------------------------------------------------
  */
-int Rbc_AxisOp(Graph *graphPtr, int margin, int objc, Tcl_Obj *const objv[]) {
+int Rbc_AxisOp(Graph *graphPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int result;
     RbcGrAxisOpPtr proc;
     Axis *axisPtr;
-    static Rbc_OpSpec axisOps[] = {{"bind", (Rbc_Op)BindOp, 2, 5, "sequence command"},
-                                   {"cget", (Rbc_Op)CgetOp, 4, 4, "option"},
-                                   {"configure", (Rbc_Op)ConfigureOp, 3, 0, "?option value?..."},
-                                   {"invtransform", (Rbc_Op)InvTransformOp, 4, 4, "value"},
-                                   {"limits", (Rbc_Op)LimitsOp, 3, 3, ""},
-                                   {"transform", (Rbc_Op)TransformOp, 4, 4, "value"},
-                                   {"use", (Rbc_Op)UseOp, 3, 4, "?axisName?"},
-                                   RBC_OPSPEC_END};
+    static const Rbc_OpSpec axisOps[] = {{"bind", (Rbc_Op)BindOp, 2, 5, "sequence command"},
+                                         {"cget", (Rbc_Op)CgetOp, 4, 4, "option"},
+                                         {"configure", (Rbc_Op)ConfigureOp, 3, 0, "?option value?..."},
+                                         {"invtransform", (Rbc_Op)InvTransformOp, 4, 4, "value"},
+                                         {"limits", (Rbc_Op)LimitsOp, 3, 3, ""},
+                                         {"transform", (Rbc_Op)TransformOp, 4, 4, "value"},
+                                         {"use", (Rbc_Op)UseOp, 3, 4, "?axisName?"},
+                                         RBC_OPSPEC_END};
 
     proc = (RbcGrAxisOpPtr)Rbc_GetOpFromObj(graphPtr->interp, axisOps, RBC_OP_ARG2, objc, objv);
     if (proc == NULL) {

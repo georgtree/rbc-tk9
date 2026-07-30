@@ -592,7 +592,7 @@ static int ToggleOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
     return TCL_OK;
 }
 
-static Rbc_OpSpec gridOps[] = {
+static const Rbc_OpSpec gridOps[] = {
     {"cget", (Rbc_Op)CgetOp, 4, 4, "option"}, {"configure", (Rbc_Op)ConfigureOp, 3, 0, "?options...?"},
     {"off", (Rbc_Op)UnmapOp, 3, 3, ""},       {"on", (Rbc_Op)MapOp, 3, 3, ""},
     {"toggle", (Rbc_Op)ToggleOp, 3, 3, ""},   RBC_OPSPEC_END};
@@ -619,7 +619,7 @@ static Rbc_OpSpec gridOps[] = {
  *
  *----------------------------------------------------------------------
  */
-int Rbc_GridOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+int Rbc_GridOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     RbcGrGridOpPtr proc;
 
     proc = (RbcGrGridOpPtr)Rbc_GetOpFromObj(interp, gridOps, RBC_OP_ARG2, objc, objv);

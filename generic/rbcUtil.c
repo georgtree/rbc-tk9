@@ -666,48 +666,119 @@ Rbc_Uid Rbc_FindUid(char *string) {
  *
  * Rbc_GetOpFromObj --
  *
- *      Find the command operation given a string name.  This is
- *      useful where a group of command operations have the same
- *      argument signature.
+ *      Finds a command operation from its name and validates the
+ *      operation's argument count.
  *
  * Parameters:
- *      Tcl_Interp *interp - Interpreter to report errors to
- *      Rbc_OpSpec specArr[] - Op specification array
- *      int operPos - Position of operation in argument list.
- *      int objc - Number of arguments in the argument vector. This includes any prefixed arguments
- *      Tcl_Obj *const objv[] - Argument vector
+ *      Tcl_Interp *interp           - Interpreter used for error
+ *                                     reporting.
+ *      const Rbc_OpSpec *specArr    - Operation specification array.
+ *      Tcl_Size operPos             - Position of the operation name in
+ *                                     the argument vector.
+ *      Tcl_Size objc                - Number of argument objects.
+ *      Tcl_Obj *const objv[]        - Argument object vector.
  *
  * Results:
- *      If found, a pointer to the procedure (function pointer) is
- *      returned.  Otherwise NULL is returned and an error message
- *      containing a list of the possible commands is returned in
- *      the interpreter result.
+ *      Returns the selected operation procedure.
+ *      Returns NULL if the operation is missing or invalid, or if the
+ *      argument count is outside the operation's accepted range.
  *
- * Side effects:
- *      TODO: Side Effects
+ * Side Effects:
+ *      Sets the interpreter result on error.
  *
  *----------------------------------------------------------------------
  */
-Rbc_Op Rbc_GetOpFromObj(Tcl_Interp *interp, Rbc_OpSpec specArr[], int operPos, int objc, Tcl_Obj *const objv[]) {
-    Rbc_Op result = NULL;
+Rbc_Op Rbc_GetOpFromObj(Tcl_Interp *interp, const Rbc_OpSpec *specArr, Tcl_Size operPos, Tcl_Size objc,
+                        Tcl_Obj *const objv[]) {
     int index;
 
     if (objc <= operPos) {
         Tcl_WrongNumArgs(interp, objc, objv, "subcommand ?arg ...?");
-        goto done;
+        return NULL;
     }
 
+    /*
+     * Tcl_GetIndexFromObjStruct still returns the selected table index
+     * through an int. Operation tables contain only a small fixed number
+     * of entries, so the index itself is not a Tcl-sized collection
+     * length.
+     */
     if (Tcl_GetIndexFromObjStruct(interp, objv[operPos], specArr, sizeof(Rbc_OpSpec), "subcommand", 0, &index) !=
         TCL_OK) {
-        goto done;
+        return NULL;
     }
 
     if ((objc < specArr[index].minArgs) || ((specArr[index].maxArgs > 0) && (objc > specArr[index].maxArgs))) {
         Tcl_WrongNumArgs(interp, operPos + 1, objv, specArr[index].usage);
-        goto done;
+        return NULL;
     }
-    result = specArr[index].proc;
 
-done:
-    return result;
+    return specArr[index].proc;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_GetOpIndexFromObj --
+ *
+ *      Finds an operation in a typed operation table and validates its
+ *      argument count.
+ *
+ *      Each table entry must begin with an Rbc_OpSpecHeader. specSize is
+ *      the size of one complete typed table entry.
+ *
+ * Parameters:
+ *      Tcl_Interp *interp        - Interpreter used for error reporting.
+ *      const void *specArr       - Typed operation table.
+ *      Tcl_Size specSize         - Size of one table entry.
+ *      Tcl_Size operPos          - Position of the operation name.
+ *      Tcl_Size objc             - Number of argument objects.
+ *      Tcl_Obj *const objv[]     - Argument object vector.
+ *      int *indexPtr             - Destination for the selected table
+ *                                  index.
+ *
+ * Results:
+ *      TCL_OK if a valid operation was found and its argument count is
+ *      valid.
+ *      TCL_ERROR otherwise.
+ *
+ * Side Effects:
+ *      Sets the interpreter result on error.
+ *
+ *----------------------------------------------------------------------
+ */
+int Rbc_GetOpIndexFromObj(Tcl_Interp *interp, const void *specArr, Tcl_Size specSize, Tcl_Size operPos, Tcl_Size objc,
+                          Tcl_Obj *const objv[], int *indexPtr) {
+    const Rbc_OpSpecHeader *headerPtr;
+    const char *entryPtr;
+    int index;
+
+    assert(specArr != NULL);
+    assert(specSize >= (Tcl_Size)sizeof(Rbc_OpSpecHeader));
+    assert(indexPtr != NULL);
+
+    if (objc <= operPos) {
+        Tcl_WrongNumArgs(interp, objc, objv, "subcommand ?arg ...?");
+        return TCL_ERROR;
+    }
+
+    /*
+     * The operation name is the first field of Rbc_OpSpecHeader, and
+     * Rbc_OpSpecHeader is the first field of every typed entry.
+     */
+    if (Tcl_GetIndexFromObjStruct(interp, objv[operPos], specArr, specSize, "subcommand", 0, &index) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    entryPtr = (const char *)specArr + ((Tcl_Size)index * specSize);
+    headerPtr = (const Rbc_OpSpecHeader *)entryPtr;
+
+    if ((objc < headerPtr->minArgs) || ((headerPtr->maxArgs > 0) && (objc > headerPtr->maxArgs))) {
+        Tcl_WrongNumArgs(interp, operPos + 1, objv, headerPtr->usage);
+        return TCL_ERROR;
+    }
+
+    *indexPtr = index;
+
+    return TCL_OK;
 }

@@ -990,9 +990,9 @@ int Rbc_NaturalSpline(Point2D origPts[], int nOrigPts, Point2D intpPts[], int nI
     return TRUE;
 }
 
-static Rbc_OpSpec splineOps[] = {{"natural", (Rbc_Op)Rbc_NaturalSpline, 6, 6, "x y splx sply"},
-                                 {"quadratic", (Rbc_Op)Rbc_QuadraticSpline, 6, 6, "x y splx sply"},
-                                 RBC_OPSPEC_END};
+static const Rbc_OpSpec splineOps[] = {{"natural", (Rbc_Op)Rbc_NaturalSpline, 6, 6, "x y splx sply"},
+                                       {"quadratic", (Rbc_Op)Rbc_QuadraticSpline, 6, 6, "x y splx sply"},
+                                       RBC_OPSPEC_END};
 
 /*
  *--------------------------------------------------------------

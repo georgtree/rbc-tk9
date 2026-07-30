@@ -717,13 +717,13 @@ static int TypeOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const 
     return TCL_OK;
 }
 
-static Rbc_OpSpec penOps[] = {{"cget", (Rbc_Op)CgetOp, 5, 5, "penName option"},
-                              {"configure", (Rbc_Op)ConfigureOp, 4, 0, "penName ?penName?... ?option value?..."},
-                              {"create", (Rbc_Op)CreateOp, 4, 0, "penName ?option value?..."},
-                              {"delete", (Rbc_Op)DeleteOp, 3, 0, "?penName?..."},
-                              {"names", (Rbc_Op)NamesOp, 3, 0, "?pattern?..."},
-                              {"type", (Rbc_Op)TypeOp, 4, 4, "penName"},
-                              RBC_OPSPEC_END};
+static const Rbc_OpSpec penOps[] = {{"cget", (Rbc_Op)CgetOp, 5, 5, "penName option"},
+                                    {"configure", (Rbc_Op)ConfigureOp, 4, 0, "penName ?penName?... ?option value?..."},
+                                    {"create", (Rbc_Op)CreateOp, 4, 0, "penName ?option value?..."},
+                                    {"delete", (Rbc_Op)DeleteOp, 3, 0, "?penName?..."},
+                                    {"names", (Rbc_Op)NamesOp, 3, 0, "?pattern?..."},
+                                    {"type", (Rbc_Op)TypeOp, 4, 4, "penName"},
+                                    RBC_OPSPEC_END};
 
 /*
  *----------------------------------------------------------------------
@@ -746,7 +746,7 @@ static Rbc_OpSpec penOps[] = {{"cget", (Rbc_Op)CgetOp, 5, 5, "penName option"},
  *
  *----------------------------------------------------------------------
  */
-int Rbc_PenOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+int Rbc_PenOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     RbcGrPenOpPtr proc;
 
     proc = (RbcGrPenOpPtr)Rbc_GetOpFromObj(interp, penOps, RBC_OP_ARG2, objc, objv);

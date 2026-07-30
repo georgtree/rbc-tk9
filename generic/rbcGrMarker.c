@@ -5785,19 +5785,19 @@ static int TypeOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const 
 
 /* Public routines */
 
-static Rbc_OpSpec markerOps[] = {{"after", (Rbc_Op)RelinkOp, 4, 5, "marker ?afterMarker?"},
-                                 {"before", (Rbc_Op)RelinkOp, 4, 5, "marker ?beforeMarker?"},
-                                 {"bind", (Rbc_Op)BindOp, 3, 6, "marker sequence command"},
-                                 {"cget", (Rbc_Op)CgetOp, 5, 5, "marker option"},
-                                 {"configure", (Rbc_Op)ConfigureOp, 4, 0, "marker ?marker?... ?option value?..."},
-                                 {"create", (Rbc_Op)CreateOp, 4, 0, "type ?option value?..."},
-                                 {"delete", (Rbc_Op)DeleteOp, 3, 0, "?marker?..."},
-                                 {"exists", (Rbc_Op)ExistsOp, 4, 4, "marker"},
-                                 {"find", (Rbc_Op)FindOp, 8, 8, "enclosed|overlapping x1 y1 x2 y2"},
-                                 {"get", (Rbc_Op)GetOp, 4, 4, "name"},
-                                 {"names", (Rbc_Op)NamesOp, 3, 0, "?pattern?..."},
-                                 {"type", (Rbc_Op)TypeOp, 4, 4, "marker"},
-                                 RBC_OPSPEC_END};
+static const Rbc_OpSpec markerOps[] = {{"after", (Rbc_Op)RelinkOp, 4, 5, "marker ?afterMarker?"},
+                                       {"before", (Rbc_Op)RelinkOp, 4, 5, "marker ?beforeMarker?"},
+                                       {"bind", (Rbc_Op)BindOp, 3, 6, "marker sequence command"},
+                                       {"cget", (Rbc_Op)CgetOp, 5, 5, "marker option"},
+                                       {"configure", (Rbc_Op)ConfigureOp, 4, 0, "marker ?marker?... ?option value?..."},
+                                       {"create", (Rbc_Op)CreateOp, 4, 0, "type ?option value?..."},
+                                       {"delete", (Rbc_Op)DeleteOp, 3, 0, "?marker?..."},
+                                       {"exists", (Rbc_Op)ExistsOp, 4, 4, "marker"},
+                                       {"find", (Rbc_Op)FindOp, 8, 8, "enclosed|overlapping x1 y1 x2 y2"},
+                                       {"get", (Rbc_Op)GetOp, 4, 4, "name"},
+                                       {"names", (Rbc_Op)NamesOp, 3, 0, "?pattern?..."},
+                                       {"type", (Rbc_Op)TypeOp, 4, 4, "marker"},
+                                       RBC_OPSPEC_END};
 
 /*
  * ----------------------------------------------------------------------
@@ -5822,7 +5822,7 @@ static Rbc_OpSpec markerOps[] = {{"after", (Rbc_Op)RelinkOp, 4, 5, "marker ?afte
  *
  * ----------------------------------------------------------------------
  */
-int Rbc_MarkerOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+int Rbc_MarkerOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     RbcGrMarkerOpPtr proc;
     int result;
 

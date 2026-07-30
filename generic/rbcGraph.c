@@ -26,6 +26,7 @@
 #include "rbcBind.h"
 #include "rbcGrElem.h"
 #include <X11/Xutil.h>
+#include <tcl.h>
 
 Rbc_Uid rbcXAxisUid;
 Rbc_Uid rbcYAxisUid;
@@ -289,9 +290,9 @@ static Tcl_FreeProc DestroyGraph;
 static Tk_EventProc GraphEventProc;
 
 static Rbc_BindPickProc PickEntry;
-static Tcl_ObjCmdProc StripchartObjCmd;
-static Tcl_ObjCmdProc BarchartObjCmd;
-static Tcl_ObjCmdProc GraphObjCmd;
+static Tcl_ObjCmdProc2 StripchartObjCmd;
+static Tcl_ObjCmdProc2 BarchartObjCmd;
+static Tcl_ObjCmdProc2 GraphObjCmd;
 static Tcl_CmdDeleteProc GraphInstCmdDeleteProc;
 static Rbc_TileChangedProc TileChangedProc;
 
@@ -299,31 +300,31 @@ static void AdjustAxisPointers(Graph *graphPtr);
 static int InitPens(Graph *graphPtr);
 static int InitGraphOptions(Graph *graphPtr);
 static void ResetGraphOptionContext(Graph *graphPtr);
-static int ConfigureGraphOptions(Graph *graphPtr, int objc, Tcl_Obj *const objv[], int *maskPtr);
-static int ConfigureNewGraph(Graph *graphPtr, int objc, Tcl_Obj *const objv[]);
+static int ConfigureGraphOptions(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[], int *maskPtr);
+static int ConfigureNewGraph(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]);
 static void ReleaseGraphOptionResources(Graph *graphPtr);
-static Graph *CreateGraph(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], Rbc_Uid classUid);
+static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Rbc_Uid classUid);
 static int ConfigureGraph(Graph *graphPtr);
-static int NewGraph(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], Rbc_Uid classUid);
+static int NewGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Rbc_Uid classUid);
 
 static void DrawMargins(Graph *graphPtr, Drawable drawable);
 static void DrawPlotRegion(Graph *graphPtr, Drawable drawable);
 static void UpdateMarginTraces(Graph *graphPtr);
 
-static int XAxisOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
-static int X2AxisOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
-static int YAxisOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
-static int Y2AxisOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
-static int BarOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
-static int LineOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
-static int ElementOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
-static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
-static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
-static int ExtentsOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
-static int InsideOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
-static int InvtransformOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
-static int TransformOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
-static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
+static int XAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+static int X2AxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+static int YAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+static int Y2AxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+static int BarOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+static int LineOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+static int ElementOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+static int ExtentsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+static int InsideOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+static int InvtransformOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+static int TransformOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 
 #ifdef WIN32
 static int InitMetaFileHeader(Tk_Window tkwin, int width, int height, APMHEADER *mfhPtr);
@@ -334,6 +335,11 @@ typedef struct {
     const char *name;
     int option;
 } GraphOptionName;
+
+typedef struct {
+    Rbc_OpSpecHeader header;
+    Rbc_GraphOpProc *proc;
+} GraphOpSpec;
 
 static int GetGraphOptionFromObj(Tcl_Obj *objPtr, const GraphOptionName *optionMap, size_t nOptions) {
     const char *string;
@@ -527,7 +533,7 @@ static int StageGraphPixelOption(Graph *graphPtr, Tcl_Obj *objPtr, GraphPixelOpt
 static int PrepareGraphPixelTransaction(Graph *graphPtr, GraphPixelTransaction *transactionPtr) {
     unsigned int explicitMask;
     GraphPixelOption option;
-    int i;
+    Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
     explicitMask = 0;
@@ -682,7 +688,7 @@ static int StageGraphPaddingOption(Graph *graphPtr, Tcl_Obj *objPtr, GraphPaddin
 static int PrepareGraphPaddingTransaction(Graph *graphPtr, GraphPaddingTransaction *transactionPtr) {
     unsigned int explicitMask;
     GraphPaddingOption option;
-    int i;
+    Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
     explicitMask = 0;
@@ -774,7 +780,7 @@ static int StageGraphBarMode(Graph *graphPtr, Tcl_Obj *objPtr, GraphBarModeTrans
 
 static int PrepareGraphBarModeTransaction(Graph *graphPtr, GraphBarModeTransaction *transactionPtr) {
     int explicitlySet;
-    int i;
+    Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
     explicitlySet = FALSE;
@@ -857,7 +863,7 @@ static void FreeGraphShadowTransaction(GraphShadowTransaction *transactionPtr) {
 
 static int PrepareGraphShadowTransaction(Graph *graphPtr, GraphShadowTransaction *transactionPtr) {
     int explicitlySet;
-    int i;
+    Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
     explicitlySet = FALSE;
@@ -945,7 +951,7 @@ static void FreeGraphTileTransaction(GraphTileTransaction *transactionPtr) {
 
 static int PrepareGraphTileTransaction(Graph *graphPtr, GraphTileTransaction *transactionPtr) {
     int explicitlySet;
-    int i;
+    Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
     explicitlySet = FALSE;
@@ -1541,7 +1547,7 @@ static void ResetGraphOptionContext(Graph *graphPtr) {
  *
  *----------------------------------------------------------------------
  */
-static int ConfigureGraphOptions(Graph *graphPtr, int objc, Tcl_Obj *const objv[], int *maskPtr) {
+static int ConfigureGraphOptions(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[], int *maskPtr) {
     Tk_SavedOptions savedOptions;
     Tcl_Obj *errorObjPtr;
     int mask;
@@ -1640,7 +1646,7 @@ static int ConfigureGraphOptions(Graph *graphPtr, int objc, Tcl_Obj *const objv[
  *
  *----------------------------------------------------------------------
  */
-static int ConfigureNewGraph(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) {
+static int ConfigureNewGraph(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     if (InitGraphOptions(graphPtr) != TCL_OK) {
         return TCL_ERROR;
     }
@@ -2049,7 +2055,7 @@ static void DestroyGraph(DestroyData dataPtr) {
  *
  *----------------------------------------------------------------------
  */
-static Graph *CreateGraph(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], Rbc_Uid classUid) {
+static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Rbc_Uid classUid) {
     Graph *graphPtr;
     Tk_Window tkwin;
     const char *pathName = Tcl_GetString(objv[1]);
@@ -2145,7 +2151,7 @@ static Graph *CreateGraph(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], R
     Tk_CreateEventHandler(graphPtr->tkwin, ExposureMask | StructureNotifyMask | FocusChangeMask, GraphEventProc,
                           graphPtr);
 
-    graphPtr->cmdToken = Tcl_CreateObjCommand(interp, pathName, Rbc_GraphInstCmdProc, graphPtr, GraphInstCmdDeleteProc);
+    graphPtr->cmdToken = Tcl_CreateObjCommand2(interp, pathName, Rbc_GraphInstCmdProc, graphPtr, GraphInstCmdDeleteProc);
 #ifdef ITCL_NAMESPACES
     Itk_SetWidgetCommand(graphPtr->tkwin, graphPtr->cmdToken);
 #endif
@@ -2179,7 +2185,7 @@ error:
  *
  *----------------------------------------------------------------------
  */
-static int XAxisOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int XAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int margin;
 
     margin = (graphPtr->inverted) ? MARGIN_LEFT : MARGIN_BOTTOM;
@@ -2207,7 +2213,7 @@ static int XAxisOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const
  *
  *----------------------------------------------------------------------
  */
-static int X2AxisOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int X2AxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int margin;
 
     margin = (graphPtr->inverted) ? MARGIN_RIGHT : MARGIN_TOP;
@@ -2235,7 +2241,7 @@ static int X2AxisOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
  *
  *----------------------------------------------------------------------
  */
-static int YAxisOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int YAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int margin;
 
     margin = (graphPtr->inverted) ? MARGIN_BOTTOM : MARGIN_LEFT;
@@ -2263,7 +2269,7 @@ static int YAxisOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const
  *
  *----------------------------------------------------------------------
  */
-static int Y2AxisOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int Y2AxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int margin;
 
     margin = (graphPtr->inverted) ? MARGIN_TOP : MARGIN_RIGHT;
@@ -2291,7 +2297,7 @@ static int Y2AxisOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
  *
  *----------------------------------------------------------------------
  */
-static int BarOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int BarOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return Rbc_ElementOp(graphPtr, interp, objc, objv, rbcBarElementUid);
 }
 
@@ -2316,7 +2322,7 @@ static int BarOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const o
  *
  *----------------------------------------------------------------------
  */
-static int LineOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int LineOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return Rbc_ElementOp(graphPtr, interp, objc, objv, rbcLineElementUid);
 }
 
@@ -2341,7 +2347,7 @@ static int LineOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const 
  *
  *----------------------------------------------------------------------
  */
-static int ElementOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int ElementOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return Rbc_ElementOp(graphPtr, interp, objc, objv, graphPtr->classUid);
 }
 
@@ -2366,7 +2372,7 @@ static int ElementOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *con
  *
  *----------------------------------------------------------------------
  */
-static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Obj *infoObjPtr;
 
     assert(graphPtr->optionTable != NULL);
@@ -2420,7 +2426,7 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *c
  *
  *----------------------------------------------------------------------
  */
-static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Obj *valueObjPtr;
 
     assert(graphPtr->optionTable != NULL);
@@ -2468,7 +2474,7 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const 
  *
  *--------------------------------------------------------------
  */
-static int ExtentsOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int ExtentsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     static const char *const extentOps[] = {"plotheight", "plotwidth",   "plotarea",  "legend",
                                             "leftmargin", "rightmargin", "topmargin", "bottommargin"};
     static enum {
@@ -2543,7 +2549,7 @@ static int ExtentsOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *con
  *
  *--------------------------------------------------------------
  */
-static int InsideOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int InsideOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int x, y;
     Extents2D exts;
     int result;
@@ -2587,7 +2593,7 @@ static int InsideOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
  *
  * ------------------------------------------------------------------------
  */
-static int InvtransformOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int InvtransformOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     double x, y;
     Point2D point;
     Axis2D axes;
@@ -2640,7 +2646,7 @@ static int InvtransformOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj
  *
  * -------------------------------------------------------------------------
  */
-static int TransformOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int TransformOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     double x, y;
     Point2D point;
     Axis2D axes;
@@ -2812,7 +2818,7 @@ error:
  *
  * -------------------------------------------------------------------------
  */
-static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int result;
     Pixmap drawable;
     int noBackingStore = 0;
@@ -2976,28 +2982,41 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const 
     return result;
 }
 
-static Rbc_OpSpec graphOps[] = {{"axis", (Rbc_Op)Rbc_VirtualAxisOp, 2, 0, "oper ?args?"},
-                                {"bar", (Rbc_Op)BarOp, 2, 0, "oper ?args?"},
-                                {"cget", (Rbc_Op)CgetOp, 3, 3, "option"},
-                                {"configure", (Rbc_Op)ConfigureOp, 2, 0, "?option value?..."},
-                                {"crosshairs", (Rbc_Op)Rbc_CrosshairsOp, 2, 0, "oper ?args?"},
-                                {"element", (Rbc_Op)ElementOp, 2, 0, "oper ?args?"},
-                                {"extents", (Rbc_Op)ExtentsOp, 3, 3, "item"},
-                                {"grid", (Rbc_Op)Rbc_GridOp, 2, 0, "oper ?args?"},
-                                {"inside", (Rbc_Op)InsideOp, 4, 4, "winX winY"},
-                                {"invtransform", (Rbc_Op)InvtransformOp, 4, 4, "winX winY"},
-                                {"legend", (Rbc_Op)Rbc_LegendOp, 2, 0, "oper ?args?"},
-                                {"line", (Rbc_Op)LineOp, 2, 0, "oper ?args?"},
-                                {"marker", (Rbc_Op)Rbc_MarkerOp, 2, 0, "oper ?args?"},
-                                {"pen", (Rbc_Op)Rbc_PenOp, 2, 0, "oper ?args?"},
-                                {"postscript", (Rbc_Op)Rbc_PostScriptOp, 2, 0, "oper ?args?"},
-                                {"snap", (Rbc_Op)SnapOp, 3, 0, "name ?-option value ...?"},
-                                {"transform", (Rbc_Op)TransformOp, 4, 4, "x y"},
-                                {"x2axis", (Rbc_Op)X2AxisOp, 2, 0, "oper ?args?"},
-                                {"xaxis", (Rbc_Op)XAxisOp, 2, 0, "oper ?args?"},
-                                {"y2axis", (Rbc_Op)Y2AxisOp, 2, 0, "oper ?args?"},
-                                {"yaxis", (Rbc_Op)YAxisOp, 2, 0, "oper ?args?"},
-                                RBC_OPSPEC_END};
+static const GraphOpSpec graphOps[] = {{{"axis", 2, 0, "oper ?args?"}, Rbc_VirtualAxisOp},
+                                      {{"bar", 2, 0, "oper ?args?"}, BarOp},
+                                      {{"cget", 3, 3, "option"}, CgetOp},
+                                      {{"configure", 2, 0, "?option value?..."}, ConfigureOp},
+                                      {{"crosshairs", 2, 0, "oper ?args?"}, Rbc_CrosshairsOp},
+                                      {{"element", 2, 0, "oper ?args?"}, ElementOp},
+                                      {{"extents", 3, 3, "item"}, ExtentsOp},
+                                      {{"grid", 2, 0, "oper ?args?"}, Rbc_GridOp},
+                                      {{"inside", 4, 4, "winX winY"}, InsideOp},
+                                      {{"invtransform", 4, 4, "winX winY"}, InvtransformOp},
+                                      {{"legend", 2, 0, "oper ?args?"}, Rbc_LegendOp},
+                                      {{"line", 2, 0, "oper ?args?"}, LineOp},
+                                      {{"marker", 2, 0, "oper ?args?"}, Rbc_MarkerOp},
+                                      {{"pen", 2, 0, "oper ?args?"}, Rbc_PenOp},
+                                      {{"postscript", 2, 0, "oper ?args?"}, Rbc_PostScriptOp},
+                                      {{"snap", 3, 0, "name ?-option value ...?"}, SnapOp},
+                                      {{"transform", 4, 4, "x y"}, TransformOp},
+                                      {{"x2axis", 2, 0, "oper ?args?"}, X2AxisOp},
+                                      {{"xaxis", 2, 0, "oper ?args?"}, XAxisOp},
+                                      {{"y2axis", 2, 0, "oper ?args?"}, Y2AxisOp},
+                                      {{"yaxis", 2, 0, "oper ?args?"}, YAxisOp},
+                                      {{NULL, 0, 0, NULL}, NULL}
+
+};
+
+static Rbc_GraphOpProc *GetGraphOpFromObj(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    int index;
+
+    if (Rbc_GetOpIndexFromObj(interp, graphOps, (Tcl_Size)sizeof(graphOps[0]), RBC_OP_ARG1, objc, objv, &index) !=
+        TCL_OK) {
+        return NULL;
+    }
+
+    return graphOps[index].proc;
+}
 
 /*
  *----------------------------------------------------------------------
@@ -3020,17 +3039,17 @@ static Rbc_OpSpec graphOps[] = {{"axis", (Rbc_Op)Rbc_VirtualAxisOp, 2, 0, "oper 
  *
  *----------------------------------------------------------------------
  */
-int Rbc_GraphInstCmdProc(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    Rbc_GraphOp proc;
+int Rbc_GraphInstCmdProc(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    Rbc_GraphOpProc *proc;
     int result;
     Graph *graphPtr = clientData;
 
-    proc = (Rbc_GraphOp)Rbc_GetOpFromObj(interp, graphOps, RBC_OP_ARG1, objc, objv);
+    proc = GetGraphOpFromObj(interp, objc, objv);
     if (proc == NULL) {
         return TCL_ERROR;
     }
     Tcl_Preserve(graphPtr);
-    result = (*proc)(graphPtr, interp, objc, objv);
+    result = proc(graphPtr, interp, objc, objv);
     Tcl_Release(graphPtr);
     return result;
 }
@@ -3057,7 +3076,7 @@ int Rbc_GraphInstCmdProc(ClientData clientData, Tcl_Interp *interp, int objc, Tc
  *
  * --------------------------------------------------------------------------
  */
-static int NewGraph(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], Rbc_Uid classUid) {
+static int NewGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Rbc_Uid classUid) {
     Graph *graphPtr;
     if (objc < 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "pathName ?-option value ...?");
@@ -3093,7 +3112,7 @@ static int NewGraph(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], Rbc_Uid
  *
  * --------------------------------------------------------------------------
  */
-static int GraphObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int GraphObjCmd(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return NewGraph(interp, objc, objv, rbcLineElementUid);
 }
 
@@ -3119,7 +3138,7 @@ static int GraphObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
  *
  *--------------------------------------------------------------
  */
-static int BarchartObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int BarchartObjCmd(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return NewGraph(interp, objc, objv, rbcBarElementUid);
 }
 
@@ -3145,7 +3164,7 @@ static int BarchartObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, T
  *
  *--------------------------------------------------------------
  */
-static int StripchartObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int StripchartObjCmd(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return NewGraph(interp, objc, objv, rbcStripElementUid);
 }
 
@@ -3552,9 +3571,9 @@ int Rbc_GraphInit(Tcl_Interp *interp) {
     rbcXAxisUid = (Rbc_Uid)Tk_GetUid("X");
     rbcYAxisUid = (Rbc_Uid)Tk_GetUid("Y");
 
-    Tcl_CreateObjCommand(interp, "rbc::graph", GraphObjCmd, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
-    Tcl_CreateObjCommand(interp, "rbc::barchart", BarchartObjCmd, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
-    Tcl_CreateObjCommand(interp, "rbc::stripchart", StripchartObjCmd, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
+    Tcl_CreateObjCommand2(interp, "rbc::graph", GraphObjCmd, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
+    Tcl_CreateObjCommand2(interp, "rbc::barchart", BarchartObjCmd, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
+    Tcl_CreateObjCommand2(interp, "rbc::stripchart", StripchartObjCmd, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
     return TCL_OK;
 }
 

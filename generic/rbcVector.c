@@ -116,11 +116,11 @@ int Rbc_VectorInit(Tcl_Interp *interp) {
     return TCL_OK;
 }
 
-static Rbc_OpSpec vectorOpCmd[] = {{"create", (Rbc_Op)VectorCreateObjCmd, 2, 0, "?vecName? ?switches...?"},
-                                   {"destroy", (Rbc_Op)VectorDestroyObjCmd, 2, 0, "?vecName...?"},
-                                   {"expr", (Rbc_Op)VectorExprObjCmd, 3, 3, "expression"},
-                                   {"names", (Rbc_Op)VectorNamesObjCmd, 2, 3, "?pattern...?"},
-                                   RBC_OPSPEC_END};
+static const Rbc_OpSpec vectorOpCmd[] = {{"create", (Rbc_Op)VectorCreateObjCmd, 2, 0, "?vecName? ?switches...?"},
+                                         {"destroy", (Rbc_Op)VectorDestroyObjCmd, 2, 0, "?vecName...?"},
+                                         {"expr", (Rbc_Op)VectorExprObjCmd, 3, 3, "expression"},
+                                         {"names", (Rbc_Op)VectorNamesObjCmd, 2, 3, "?pattern...?"},
+                                         RBC_OPSPEC_END};
 
 /*
  * ------------------------------------------------------------------------

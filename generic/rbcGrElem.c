@@ -4328,20 +4328,21 @@ static int TypeOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc, T
 /*
  * Global routines:
  */
-static Rbc_OpSpec elemOps[] = {{"activate", (Rbc_Op)ActivateOp, 3, 0, "?elemName? ?index...?"},
-                               {"bind", (Rbc_Op)BindOp, 3, 6, "elemName sequence command"},
-                               {"cget", (Rbc_Op)CgetOp, 5, 5, "elemName option"},
-                               {"closest", (Rbc_Op)ClosestOp, 6, 0, "x y varName ?option value?... ?elemName?..."},
-                               {"configure", (Rbc_Op)ConfigureOp, 4, 0, "elemName ?elemName?... ?option value?..."},
-                               {"create", (Rbc_Op)CreateOp, 4, 0, "elemName ?option value?..."},
-                               {"deactivate", (Rbc_Op)DeactivateOp, 3, 0, "?elemName?..."},
-                               {"delete", (Rbc_Op)DeleteOp, 3, 0, "?elemName?..."},
-                               {"exists", (Rbc_Op)ExistsOp, 4, 4, "elemName"},
-                               {"get", (Rbc_Op)GetOp, 4, 4, "name"},
-                               {"names", (Rbc_Op)NamesOp, 3, 0, "?pattern?..."},
-                               {"show", (Rbc_Op)ShowOp, 3, 4, "?elemList?"},
-                               {"type", (Rbc_Op)TypeOp, 4, 4, "elemName"},
-                               RBC_OPSPEC_END};
+static const Rbc_OpSpec elemOps[] = {
+    {"activate", (Rbc_Op)ActivateOp, 3, 0, "?elemName? ?index...?"},
+    {"bind", (Rbc_Op)BindOp, 3, 6, "elemName sequence command"},
+    {"cget", (Rbc_Op)CgetOp, 5, 5, "elemName option"},
+    {"closest", (Rbc_Op)ClosestOp, 6, 0, "x y varName ?option value?... ?elemName?..."},
+    {"configure", (Rbc_Op)ConfigureOp, 4, 0, "elemName ?elemName?... ?option value?..."},
+    {"create", (Rbc_Op)CreateOp, 4, 0, "elemName ?option value?..."},
+    {"deactivate", (Rbc_Op)DeactivateOp, 3, 0, "?elemName?..."},
+    {"delete", (Rbc_Op)DeleteOp, 3, 0, "?elemName?..."},
+    {"exists", (Rbc_Op)ExistsOp, 4, 4, "elemName"},
+    {"get", (Rbc_Op)GetOp, 4, 4, "name"},
+    {"names", (Rbc_Op)NamesOp, 3, 0, "?pattern?..."},
+    {"show", (Rbc_Op)ShowOp, 3, 4, "?elemList?"},
+    {"type", (Rbc_Op)TypeOp, 4, 4, "elemName"},
+    RBC_OPSPEC_END};
 
 /*
  * ----------------------------------------------------------------
@@ -4367,7 +4368,7 @@ static Rbc_OpSpec elemOps[] = {{"activate", (Rbc_Op)ActivateOp, 3, 0, "?elemName
  *
  * ----------------------------------------------------------------
  */
-int Rbc_ElementOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], Rbc_Uid type) {
+int Rbc_ElementOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Rbc_Uid type) {
     RbcGrElementOpPtr proc;
     int result;
 
