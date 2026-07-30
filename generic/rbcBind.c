@@ -486,8 +486,6 @@ int Rbc_ConfigureBindings(Tcl_Interp *interp, Rbc_BindTableStruct *bindPtr, Clie
     return TCL_OK;
 }
 
-#if (TCL_MAJOR_VERSION >= 8)
-
 /*
  *--------------------------------------------------------------
  *
@@ -510,26 +508,30 @@ int Rbc_ConfigureBindings(Tcl_Interp *interp, Rbc_BindTableStruct *bindPtr, Clie
  *
  *--------------------------------------------------------------
  */
-int Rbc_ConfigureBindingsFromObj(Tcl_Interp *interp, Rbc_BindTableStruct *bindPtr, ClientData item, int objc,
-                                 Tcl_Obj *const *objv) {
+int Rbc_ConfigureBindingsFromObj(Tcl_Interp *interp, Rbc_BindTableStruct *bindPtr, ClientData item, Tcl_Size objc,
+                                 Tcl_Obj *const objv[]) {
     const char *command;
+    const char *seq;
+    const char *string;
     unsigned long mask;
-    char *seq;
-    char *string;
 
     if (objc == 0) {
         Tk_GetAllBindings(interp, bindPtr->bindingTable, item);
         return TCL_OK;
     }
+
     string = Tcl_GetString(objv[0]);
+
     if (objc == 1) {
         command = Tk_GetBinding(interp, bindPtr->bindingTable, item, string);
+
         if (command == NULL) {
-            Tcl_ResetResult(interp);
-            Tcl_AppendResult(interp, "invalid binding event \"", string, "\"", (char *)NULL);
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("invalid binding event \"%s\"", string));
             return TCL_ERROR;
         }
-        Tcl_SetResult(interp, command, TCL_VOLATILE);
+
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(command, -1));
+
         return TCL_OK;
     }
 
@@ -545,19 +547,24 @@ int Rbc_ConfigureBindingsFromObj(Tcl_Interp *interp, Rbc_BindTableStruct *bindPt
     } else {
         mask = Tk_CreateBinding(interp, bindPtr->bindingTable, item, seq, command, FALSE);
     }
+
     if (mask == 0) {
         return TCL_ERROR;
     }
+
     if (mask & (unsigned)~ALL_VALID_EVENTS_MASK) {
         Tk_DeleteBinding(interp, bindPtr->bindingTable, item, seq);
-        Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "requested illegal events; ", "only key, button, motion, enter, leave, and virtual ",
-                         "events may be used", (char *)NULL);
+
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("requested illegal events; only key, button, "
+                                                  "motion, enter, leave, and virtual events may "
+                                                  "be used",
+                                                  -1));
+
         return TCL_ERROR;
     }
+
     return TCL_OK;
 }
-#endif
 
 /*
  *--------------------------------------------------------------

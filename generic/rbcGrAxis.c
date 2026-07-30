@@ -12,6 +12,7 @@
 #include "rbcGraph.h"
 #include "rbcGrElem.h"
 #include <X11/Xutil.h>
+#include <tcl.h>
 
 #define DEF_NUM_TICKS 4 /* Each minor tick is 20% */
 #define STATIC_TICK_SPACE 10
@@ -331,8 +332,8 @@ static void MakeAxisLine(Graph *graphPtr, Axis *axisPtr, int line, Segment2D *se
 static void MakeTick(Graph *graphPtr, Axis *axisPtr, double value, int tick, int line, Segment2D *segPtr);
 static void MapAxis(Graph *graphPtr, Axis *axisPtr, int offset, int margin);
 static double AdjustViewport(double offset, double windowSize);
-static int GetAxisScrollInfo(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], double *offsetPtr, double windowSize,
-                             double scrollUnits);
+static int GetAxisScrollInfo(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], double *offsetPtr,
+                             double windowSize, double scrollUnits);
 static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr);
 static void AxisToPostScript(PsToken psToken, Axis *axisPtr);
 static void MakeGridLine(Graph *graphPtr, Axis *axisPtr, double value, Segment2D *segPtr);
@@ -344,13 +345,25 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr);
 static int NameToAxis(Graph *graphPtr, const char *name, Axis **axisPtrPtr);
 static int GetAxis(Graph *graphPtr, const char *name, Rbc_Uid classUid, Axis **axisPtrPtr);
 static void FreeAxis(Graph *graphPtr, Axis *axisPtr);
-static int ConfigureNewAxis(Graph *graphPtr, Axis *axisPtr, int objc, Tcl_Obj *const objv[]);
+static int ConfigureNewAxis(Graph *graphPtr, Axis *axisPtr, Tcl_Size objc, Tcl_Obj *const objv[]);
 static int InitAxisOptions(Graph *graphPtr, Axis *axisPtr);
-static int ConfigureAxisOptions(Graph *graphPtr, Axis *axisPtr, int objc, Tcl_Obj *const objv[], int *maskPtr);
+static int ConfigureAxisOptions(Graph *graphPtr, Axis *axisPtr, Tcl_Size objc, Tcl_Obj *const objv[], int *maskPtr);
 static void ReleaseAxisOptionResources(Graph *graphPtr, Axis *axisPtr);
 
-typedef int(RbcGrAxisOp)(Graph *, Axis *, int, int, Tcl_Obj *const[]);
-typedef RbcGrAxisOp *RbcGrAxisOpPtr;
+typedef int RbcGrAxisOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]);
+
+typedef int RbcGrAxisVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]);
+
+typedef struct {
+    Rbc_OpSpecHeader header;
+    RbcGrAxisOp *proc;
+} AxisOpSpec;
+
+typedef struct {
+    Rbc_OpSpecHeader header;
+    RbcGrAxisVirtualOp *proc;
+} AxisVirtualOpSpec;
+
 static RbcGrAxisOp BindOp;
 static RbcGrAxisOp CgetOp;
 static RbcGrAxisOp ConfigureOp;
@@ -359,8 +372,6 @@ static RbcGrAxisOp LimitsOp;
 static RbcGrAxisOp TransformOp;
 static RbcGrAxisOp UseOp;
 
-typedef int(RbcGrAxisVirtualOp)(Graph *, int, Tcl_Obj *const[]);
-typedef RbcGrAxisVirtualOp *RbcGrAxisVirtualOpPtr;
 static RbcGrAxisVirtualOp BindVirtualOp;
 static RbcGrAxisVirtualOp CgetVirtualOp;
 static RbcGrAxisVirtualOp ConfigureVirtualOp;
@@ -544,7 +555,7 @@ static void FreeAxisTagsTransaction(AxisTagsTransaction *transactionPtr) {
  */
 static int PrepareAxisTagsTransaction(Graph *graphPtr, Axis *axisPtr, AxisTagsTransaction *transactionPtr) {
     int explicitlySpecified;
-    int i;
+    Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 
@@ -760,7 +771,7 @@ static void FreeAxisFormatTransaction(AxisFormatTransaction *transactionPtr) {
  */
 static int PrepareAxisFormatTransaction(Graph *graphPtr, Axis *axisPtr, AxisFormatTransaction *transactionPtr) {
     int explicitlySpecified;
-    int i;
+    Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 
@@ -931,7 +942,7 @@ static void ResetAxisOptionContext(Axis *axisPtr) {
  *
  *----------------------------------------------------------------------
  */
-static int ConfigureAxisOptions(Graph *graphPtr, Axis *axisPtr, int objc, Tcl_Obj *const objv[], int *maskPtr) {
+static int ConfigureAxisOptions(Graph *graphPtr, Axis *axisPtr, Tcl_Size objc, Tcl_Obj *const objv[], int *maskPtr) {
     Tk_SavedOptions savedOptions;
     Tcl_Obj *errorObjPtr;
     int mask;
@@ -995,7 +1006,7 @@ static int ConfigureAxisOptions(Graph *graphPtr, Axis *axisPtr, int objc, Tcl_Ob
     return TCL_OK;
 }
 
-static int ConfigureNewAxis(Graph *graphPtr, Axis *axisPtr, int objc, Tcl_Obj *const objv[]) {
+static int ConfigureNewAxis(Graph *graphPtr, Axis *axisPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     if (InitAxisOptions(graphPtr, axisPtr) != TCL_OK) {
         return TCL_ERROR;
     }
@@ -1286,7 +1297,7 @@ static int StageAxisPixelOption(Graph *graphPtr, Tcl_Obj *objPtr, AxisPixelOptio
  */
 static int PrepareAxisPixelTransaction(Graph *graphPtr, Axis *axisPtr, AxisPixelTransaction *transactionPtr) {
     unsigned int explicitMask;
-    int i;
+    Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 
@@ -1446,7 +1457,7 @@ static int StageAxisLimit(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisLimitOption o
  */
 static int PrepareAxisLimitTransaction(Graph *graphPtr, Axis *axisPtr, AxisLimitTransaction *transactionPtr) {
     unsigned int explicitMask;
-    int i;
+    Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 
@@ -1871,7 +1882,7 @@ static int StageAxisLoose(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisLooseTransact
  */
 static int PrepareAxisLooseTransaction(Graph *graphPtr, Axis *axisPtr, AxisLooseTransaction *transactionPtr) {
     int explicitlySpecified;
-    int i;
+    Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 
@@ -2033,7 +2044,7 @@ static void FreeAxisTickTransaction(AxisTickTransaction *transactionPtr) {
 
 static int PrepareAxisTickTransaction(Graph *graphPtr, Axis *axisPtr, AxisTickTransaction *transactionPtr) {
     unsigned int explicitMask;
-    int i;
+    Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 
@@ -2265,7 +2276,7 @@ static void FreeAxisShadowTransaction(AxisShadowTransaction *transactionPtr) {
 
 static int PrepareAxisShadowTransaction(Graph *graphPtr, Axis *axisPtr, AxisShadowTransaction *transactionPtr) {
     unsigned int explicitMask;
-    int i;
+    Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 
@@ -3836,7 +3847,7 @@ static double AdjustViewport(double offset, double windowSize) {
  *
  *----------------------------------------------------------------------
  */
-static int GetAxisScrollInfo(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], double *offsetPtr, double windowSize,
+static int GetAxisScrollInfo(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], double *offsetPtr, double windowSize,
                              double scrollUnits) {
     char c;
     const char *s;
@@ -5202,7 +5213,7 @@ int Rbc_DefaultAxes(Graph *graphPtr) {
  *
  *----------------------------------------------------------------------
  */
-static int BindOp(Graph *graphPtr, Axis *axisPtr, int margin, int objc, Tcl_Obj *const objv[]) {
+static int BindOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
 
     return Rbc_ConfigureBindingsFromObj(interp, graphPtr->bindTable, Rbc_MakeAxisTag(graphPtr, axisPtr->name), objc,
@@ -5232,7 +5243,7 @@ static int BindOp(Graph *graphPtr, Axis *axisPtr, int margin, int objc, Tcl_Obj 
  *
  * ----------------------------------------------------------------------
  */
-static int CgetOp(Graph *graphPtr, Axis *axisPtr, int margin, int objc, Tcl_Obj *const objv[]) {
+static int CgetOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Obj *valueObjPtr;
 
     assert(axisPtr->optionTable != NULL);
@@ -5273,7 +5284,7 @@ static int CgetOp(Graph *graphPtr, Axis *axisPtr, int margin, int objc, Tcl_Obj 
  *
  * ----------------------------------------------------------------------
  */
-static int ConfigureOp(Graph *graphPtr, Axis *axisPtr, int margin, int objc, Tcl_Obj *const objv[]) {
+static int ConfigureOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Obj *infoObjPtr;
 
     assert(axisPtr->optionTable != NULL);
@@ -5347,7 +5358,7 @@ static int ConfigureOp(Graph *graphPtr, Axis *axisPtr, int margin, int objc, Tcl
  *
  *--------------------------------------------------------------
  */
-static int LimitsOp(Graph *graphPtr, Axis *axisPtr, int margin, int objc, Tcl_Obj *const objv[]) {
+static int LimitsOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
     double min, max;
     Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
@@ -5392,7 +5403,7 @@ static int LimitsOp(Graph *graphPtr, Axis *axisPtr, int margin, int objc, Tcl_Ob
  *
  * ----------------------------------------------------------------------
  */
-static int InvTransformOp(Graph *graphPtr, Axis *axisPtr, int margin, int objc, Tcl_Obj *const objv[]) {
+static int InvTransformOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
     int x;    /* Integer window coordinate*/
     double y; /* Real graph coordinate */
@@ -5444,7 +5455,7 @@ static int InvTransformOp(Graph *graphPtr, Axis *axisPtr, int margin, int objc, 
  *
  * ----------------------------------------------------------------------
  */
-static int TransformOp(Graph *graphPtr, Axis *axisPtr, int margin, int objc, /* Not used. */
+static int TransformOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, /* Not used. */
                        Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
     double x;
@@ -5490,7 +5501,7 @@ static int TransformOp(Graph *graphPtr, Axis *axisPtr, int margin, int objc, /* 
  *
  *--------------------------------------------------------------
  */
-static int UseOp(Graph *graphPtr, Axis *axisPtr, int margin, int objc, Tcl_Obj *const objv[]) {
+static int UseOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
     Rbc_Chain *chainPtr;
     Tcl_Size nNames, i;
@@ -5579,7 +5590,7 @@ static int UseOp(Graph *graphPtr, Axis *axisPtr, int margin, int objc, Tcl_Obj *
  *
  *----------------------------------------------------------------------
  */
-static int BindVirtualOp(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) {
+static int BindVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
 
     if (objc == 3) {
@@ -5620,7 +5631,7 @@ static int BindVirtualOp(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) {
  *
  * ----------------------------------------------------------------------
  */
-static int CreateVirtualOp(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) {
+static int CreateVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Axis *axisPtr;
 
     axisPtr = CreateAxis(graphPtr, Tcl_GetString(objv[3]), MARGIN_NONE);
@@ -5664,7 +5675,7 @@ error:
  *
  * ----------------------------------------------------------------------
  */
-static int CgetVirtualOp(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) {
+static int CgetVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Axis *axisPtr;
 
     if (NameToAxis(graphPtr, Tcl_GetString(objv[3]), &axisPtr) != TCL_OK) {
@@ -5695,12 +5706,13 @@ static int CgetVirtualOp(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) {
  *
  * ----------------------------------------------------------------------
  */
-static int ConfigureVirtualOp(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) {
+static int ConfigureVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Axis *axisPtr;
-    int nNames, nOpts;
+    Tcl_Size nNames;
+    Tcl_Size nOpts;
+    Tcl_Size i;
     Tcl_Obj *const *options;
-    register int i;
-
+ 
     /* Figure out where the option value pairs begin */
     objc -= 3;
     objv += 3;
@@ -5754,8 +5766,8 @@ static int ConfigureVirtualOp(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) 
  *
  * ----------------------------------------------------------------------
  */
-static int DeleteVirtualOp(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) {
-    register int i;
+static int DeleteVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    Tcl_Size i;
     Axis *axisPtr;
 
     for (i = 3; i < objc; i++) {
@@ -5793,7 +5805,7 @@ static int DeleteVirtualOp(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) {
  *
  * ----------------------------------------------------------------------
  */
-static int GetOp(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) {
+static int GetOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
     register Axis *axisPtr;
 
@@ -5837,7 +5849,7 @@ static int GetOp(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) {
  *
  * ----------------------------------------------------------------------
  */
-static int InvTransformVirtualOp(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) {
+static int InvTransformVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Axis *axisPtr;
 
     if (NameToAxis(graphPtr, Tcl_GetString(objv[3]), &axisPtr) != TCL_OK) {
@@ -5868,7 +5880,7 @@ static int InvTransformVirtualOp(Graph *graphPtr, int objc, Tcl_Obj *const objv[
  *
  *--------------------------------------------------------------
  */
-static int LimitsVirtualOp(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) {
+static int LimitsVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Axis *axisPtr;
 
     if (NameToAxis(graphPtr, Tcl_GetString(objv[3]), &axisPtr) != TCL_OK) {
@@ -5897,12 +5909,12 @@ static int LimitsVirtualOp(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) {
  *
  * ----------------------------------------------------------------------
  */
-static int NamesVirtualOp(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) {
+static int NamesVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
     Tcl_HashEntry *hPtr;
     Tcl_HashSearch cursor;
     Axis *axisPtr;
-    register int i;
+    Tcl_Size i;
     Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
 
     for (hPtr = Tcl_FirstHashEntry(&graphPtr->axes.table, &cursor); hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
@@ -5948,7 +5960,7 @@ static int NamesVirtualOp(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) {
  *
  * ----------------------------------------------------------------------
  */
-static int TransformVirtualOp(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) {
+static int TransformVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Axis *axisPtr;
 
     if (NameToAxis(graphPtr, Tcl_GetString(objv[3]), &axisPtr) != TCL_OK) {
@@ -5977,7 +5989,7 @@ static int TransformVirtualOp(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) 
  *
  *----------------------------------------------------------------------
  */
-static int ViewOp(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) {
+static int ViewOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Axis *axisPtr;
     Tcl_Interp *interp = graphPtr->interp;
     double axisOffset, scrollUnits;
@@ -6080,28 +6092,32 @@ static int ViewOp(Graph *graphPtr, int objc, Tcl_Obj *const objv[]) {
  *----------------------------------------------------------------------
  */
 int Rbc_VirtualAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    RbcGrAxisVirtualOpPtr proc;
-    int result;
-    static const Rbc_OpSpec axisOps[] = {
-        {"bind", (Rbc_Op)BindVirtualOp, 3, 6, "axisName sequence command"},
-        {"cget", (Rbc_Op)CgetVirtualOp, 5, 5, "axisName option"},
-        {"configure", (Rbc_Op)ConfigureVirtualOp, 4, 0, "axisName ?axisName?... ?option value?..."},
-        {"create", (Rbc_Op)CreateVirtualOp, 4, 0, "axisName ?option value?..."},
-        {"delete", (Rbc_Op)DeleteVirtualOp, 3, 0, "?axisName?..."},
-        {"get", (Rbc_Op)GetOp, 4, 4, "name"},
-        {"invtransform", (Rbc_Op)InvTransformVirtualOp, 5, 5, "axisName value"},
-        {"limits", (Rbc_Op)LimitsVirtualOp, 4, 4, "axisName"},
-        {"names", (Rbc_Op)NamesVirtualOp, 3, 0, "?pattern?..."},
-        {"transform", (Rbc_Op)TransformVirtualOp, 5, 5, "axisName value"},
-        {"view", (Rbc_Op)ViewOp, 4, 7, "axisName ?moveto fract? ?scroll number what?"},
-        RBC_OPSPEC_END};
+    static const AxisVirtualOpSpec axisOps[] = {
+        {{"bind", 3, 6, "axisName sequence command"}, BindVirtualOp},
+        {{"cget", 5, 5, "axisName option"}, CgetVirtualOp},
+        {{"configure", 4, 0, "axisName ?axisName?... ?option value?..."}, ConfigureVirtualOp},
+        {{"create", 4, 0, "axisName ?option value?..."}, CreateVirtualOp},
+        {{"delete", 3, 0, "?axisName?..."}, DeleteVirtualOp},
+        {{"get", 4, 4, "name"}, GetOp},
+        {{"invtransform", 5, 5, "axisName value"}, InvTransformVirtualOp},
+        {{"limits", 4, 4, "axisName"}, LimitsVirtualOp},
+        {{"names", 3, 0, "?pattern?..."}, NamesVirtualOp},
+        {{"transform", 5, 5, "axisName value"}, TransformVirtualOp},
+        {{"view", 4, 7,
+          "axisName ?moveto fract? "
+          "?scroll number what?"},
+         ViewOp},
 
-    proc = (RbcGrAxisVirtualOpPtr)Rbc_GetOpFromObj(interp, axisOps, RBC_OP_ARG2, objc, objv);
-    if (proc == NULL) {
+        {{NULL, 0, 0, NULL}, NULL}};
+
+    int index;
+
+    if (Rbc_GetOpIndexFromObj(interp, axisOps, (Tcl_Size)sizeof(axisOps[0]), RBC_OP_ARG2, objc, objv, &index) !=
+        TCL_OK) {
         return TCL_ERROR;
     }
-    result = (*proc)(graphPtr, objc, objv);
-    return result;
+
+    return axisOps[index].proc(graphPtr, objc, objv);
 }
 
 /*
@@ -6126,25 +6142,26 @@ int Rbc_VirtualAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
  *----------------------------------------------------------------------
  */
 int Rbc_AxisOp(Graph *graphPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    int result;
-    RbcGrAxisOpPtr proc;
-    Axis *axisPtr;
-    static const Rbc_OpSpec axisOps[] = {{"bind", (Rbc_Op)BindOp, 2, 5, "sequence command"},
-                                         {"cget", (Rbc_Op)CgetOp, 4, 4, "option"},
-                                         {"configure", (Rbc_Op)ConfigureOp, 3, 0, "?option value?..."},
-                                         {"invtransform", (Rbc_Op)InvTransformOp, 4, 4, "value"},
-                                         {"limits", (Rbc_Op)LimitsOp, 3, 3, ""},
-                                         {"transform", (Rbc_Op)TransformOp, 4, 4, "value"},
-                                         {"use", (Rbc_Op)UseOp, 3, 4, "?axisName?"},
-                                         RBC_OPSPEC_END};
+    static const AxisOpSpec axisOps[] = {{{"bind", 2, 5, "sequence command"}, BindOp},
+                                         {{"cget", 4, 4, "option"}, CgetOp},
+                                         {{"configure", 3, 0, "?option value?..."}, ConfigureOp},
+                                         {{"invtransform", 4, 4, "value"}, InvTransformOp},
+                                         {{"limits", 3, 3, ""}, LimitsOp},
+                                         {{"transform", 4, 4, "value"}, TransformOp},
+                                         {{"use", 3, 4, "?axisName?"}, UseOp},
+                                         {{NULL, 0, 0, NULL}, NULL}};
 
-    proc = (RbcGrAxisOpPtr)Rbc_GetOpFromObj(graphPtr->interp, axisOps, RBC_OP_ARG2, objc, objv);
-    if (proc == NULL) {
+    Axis *axisPtr;
+    int index;
+
+    if (Rbc_GetOpIndexFromObj(graphPtr->interp, axisOps, (Tcl_Size)sizeof(axisOps[0]), RBC_OP_ARG2, objc, objv,
+                              &index) != TCL_OK) {
         return TCL_ERROR;
     }
+
     axisPtr = Rbc_GetFirstAxis(graphPtr->margins[margin].axes);
-    result = (*proc)(graphPtr, axisPtr, margin, objc - 3, objv + 3);
-    return result;
+
+    return axisOps[index].proc(graphPtr, axisPtr, margin, objc - 3, objv + 3);
 }
 
 /*

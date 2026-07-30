@@ -13,6 +13,7 @@
 #define _RBCGRAXIS
 
 #include "rbcList.h"
+#include <tcl.h>
 
 /*
  * -------------------------------------------------------------------
@@ -96,7 +97,7 @@ typedef struct {
     Tk_OptionTable optionTable;
 
     int optionMask;
-    int optionObjc;
+    Tcl_Size optionObjc;
     Tcl_Obj *const *optionObjv;
 
     int optionsConfigured;
