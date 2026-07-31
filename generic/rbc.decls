@@ -19,7 +19,7 @@ scspec RBCAPI
 ###  Reading and writing image data from channels and/or strings.
 
 declare 0 {
-    int Rbc_CreateVector(Tcl_Interp *interp, const char *vecName, int size, Rbc_Vector ** vecPtrPtr)
+    int Rbc_CreateVector(Tcl_Interp *interp, const char *vecName, Tcl_Size size, Rbc_Vector **vecPtrPtr)
 }
 
 declare 1 {
@@ -27,27 +27,29 @@ declare 1 {
 }
 
 declare 2 {
-    int Rbc_ResizeVector (Rbc_Vector *vecPtr, int nValues)
+    int Rbc_ResizeVector(Rbc_Vector *vecPtr, Tcl_Size nValues)
 }
 
 declare 3 {
     char *Rbc_NameOfVector (Rbc_Vector *vecPtr)
 }
 
+
 declare 4 {
-    int Rbc_ResetVector (Rbc_Vector *vecPtr, double *dataArr, int nValues, int arraySize, Tcl_FreeProc *freeProc)
+    int Rbc_ResetVector(Rbc_Vector *vecPtr, double *dataArr, Tcl_Size nValues, Tcl_Size arraySize, Tcl_FreeProc *freeProc)
 }
 
 declare 5 {
     double *Rbc_VectorData (Rbc_Vector *v)
 }
 
+
 declare 6 {
-    int Rbc_VectorLength (Rbc_Vector *v)
+    Tcl_Size Rbc_VectorLength(Rbc_Vector *v)
 }
 
 declare 7 {
-    int Rbc_VectorSize (Rbc_Vector *v)
+    Tcl_Size Rbc_VectorSize(Rbc_Vector *v)
 }
 
 declare 8 {

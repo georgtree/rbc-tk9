@@ -502,20 +502,30 @@ static double Product(Rbc_Vector *vecPtr) {
  *--------------------------------------------------------------
  */
 static int Sort(VectorObject *vPtr) {
-    int *indexArr;
+    Tcl_Size *indexArr;
     double *tempArr;
-    register int i;
+    Tcl_Size i;
+    size_t byteCount;
 
     indexArr = Rbc_VectorSortIndex(&vPtr, 1);
-    tempArr = (double *)ckalloc(sizeof(double) * vPtr->length);
+    if (indexArr == NULL) {
+        return TCL_ERROR;
+    }
+    if ((size_t)vPtr->length > (SIZE_MAX / sizeof(double))) {
+        ckfree(indexArr);
+        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("vector is too large to sort", -1));
+        return TCL_ERROR;
+    }
+    byteCount = (size_t)vPtr->length * sizeof(double);
+    tempArr = ckalloc(byteCount);
     for (i = vPtr->first; i <= vPtr->last; i++) {
         tempArr[i] = vPtr->valueArr[indexArr[i]];
     }
-    ckfree((char *)indexArr);
+    ckfree(indexArr);
     for (i = vPtr->first; i <= vPtr->last; i++) {
         vPtr->valueArr[i] = tempArr[i];
     }
-    ckfree((char *)tempArr);
+    ckfree(tempArr);
     return TCL_OK;
 }
 
@@ -569,27 +579,28 @@ static double Length(Rbc_Vector *vecPtr) {
  */
 static double Median(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
-    int *iArr;
+    Tcl_Size *iArr;
+    Tcl_Size mid;
     double q2;
-    int mid;
 
     if (vPtr->length == 0) {
         return -DBL_MAX;
     }
     iArr = Rbc_VectorSortIndex(&vPtr, 1);
+    if (iArr == NULL) {
+        return -DBL_MAX;
+    }
     mid = (vPtr->length - 1) / 2;
-
     /*
-     * Determine Q2 by checking if the number of elements [0..n-1] is
-     * odd or even.  If even, we must take the average of the two
-     * middle values.
+     * Determine Q2 by checking whether the number of elements is odd
+     * or even. For an even count, average the two middle values.
      */
-    if (vPtr->length & 1) { /* Odd */
+    if (vPtr->length & 1) {
         q2 = vPtr->valueArr[iArr[mid]];
-    } else { /* Even */
+    } else {
         q2 = (vPtr->valueArr[iArr[mid]] + vPtr->valueArr[iArr[mid + 1]]) * 0.5;
     }
-    ckfree((char *)iArr);
+    ckfree(iArr);
     return q2;
 }
 
@@ -807,34 +818,30 @@ static double Kurtosis(Rbc_Vector *vecPtr) {
  */
 static double Q1(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
+    Tcl_Size *iArr;
     double q1;
-    int *iArr;
 
     if (vPtr->length == 0) {
         return -DBL_MAX;
     }
     iArr = Rbc_VectorSortIndex(&vPtr, 1);
-
+    if (iArr == NULL) {
+        return -DBL_MAX;
+    }
     if (vPtr->length < 4) {
         q1 = vPtr->valueArr[iArr[0]];
     } else {
-        int mid, q;
-
+        Tcl_Size mid;
+        Tcl_Size q;
         mid = (vPtr->length - 1) / 2;
         q = mid / 2;
-
-        /*
-         * Determine Q1 by checking if the number of elements in the
-         * bottom half [0..mid) is odd or even.   If even, we must
-         * take the average of the two middle values.
-         */
-        if (mid & 1) { /* Odd */
+        if (mid & 1) {
             q1 = vPtr->valueArr[iArr[q]];
-        } else { /* Even */
+        } else {
             q1 = (vPtr->valueArr[iArr[q]] + vPtr->valueArr[iArr[q + 1]]) * 0.5;
         }
     }
-    ckfree((char *)iArr);
+    ckfree(iArr);
     return q1;
 }
 
@@ -858,35 +865,30 @@ static double Q1(Rbc_Vector *vecPtr) {
  */
 static double Q3(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
+    Tcl_Size *iArr;
     double q3;
-    int *iArr;
 
     if (vPtr->length == 0) {
         return -DBL_MAX;
     }
-
     iArr = Rbc_VectorSortIndex(&vPtr, 1);
-
+    if (iArr == NULL) {
+        return -DBL_MAX;
+    }
     if (vPtr->length < 4) {
         q3 = vPtr->valueArr[iArr[vPtr->length - 1]];
     } else {
-        int mid, q;
-
+        Tcl_Size mid;
+        Tcl_Size q;
         mid = (vPtr->length - 1) / 2;
         q = (vPtr->length + mid) / 2;
-
-        /*
-         * Determine Q3 by checking if the number of elements in the
-         * upper half (mid..n-1] is odd or even.   If even, we must
-         * take the average of the two middle values.
-         */
-        if (mid & 1) { /* Odd */
+        if (mid & 1) {
             q3 = vPtr->valueArr[iArr[q]];
-        } else { /* Even */
+        } else {
             q3 = (vPtr->valueArr[iArr[q]] + vPtr->valueArr[iArr[q + 1]]) * 0.5;
         }
     }
-    ckfree((char *)iArr);
+    ckfree(iArr);
     return q3;
 }
 

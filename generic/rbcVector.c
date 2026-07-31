@@ -86,6 +86,21 @@ static double MakeNaN(void) {
 }
 #endif /* !__BORLANDC__  && !_MSC_VER */
 
+static int GetVectorByteCount(Tcl_Interp *interp, Tcl_Size count, size_t *byteCountPtr) {
+    if (count < 0) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("vector size cannot be negative", -1));
+        return TCL_ERROR;
+    }
+
+    if ((size_t)count > (SIZE_MAX / sizeof(double))) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("vector size is too large", -1));
+        return TCL_ERROR;
+    }
+
+    *byteCountPtr = (size_t)count * sizeof(double);
+    return TCL_OK;
+}
+
 /*
  * -----------------------------------------------------------------------
  *
@@ -878,7 +893,7 @@ void Rbc_VectorFree(VectorObject *vPtr) {
  */
 int Rbc_VectorDuplicate(VectorObject *destPtr, VectorObject *srcPtr) {
     int nBytes;
-    int length;
+    Tcl_Size length;
 
     length = srcPtr->last - srcPtr->first + 1;
     if (Rbc_VectorChangeLength(destPtr, length) != TCL_OK) {
@@ -1041,7 +1056,7 @@ int Rbc_VectorMapVariable(Tcl_Interp *interp, VectorObject *vPtr, const char *na
  *
  * -----------------------------------------------------------------------
  */
-int Rbc_VectorReset(VectorObject *vPtr, double *valueArr, int length, int size, Tcl_FreeProc *freeProc) {
+int Rbc_VectorReset(VectorObject *vPtr, double *valueArr, Tcl_Size length, Tcl_Size size, Tcl_FreeProc *freeProc) {
     if (vPtr->valueArr != valueArr) { /* New array of values resides
                                        * in different memory than
                                        * the current vector.  */
@@ -1246,78 +1261,85 @@ static void VectorFlushCache(VectorObject *vPtr) {
  *
  * ----------------------------------------------------------------------
  */
-int Rbc_VectorChangeLength(VectorObject *vPtr, int length) {
-    int newSize; /* Size of array in elements */
+int Rbc_VectorChangeLength(VectorObject *vPtr, Tcl_Size length) {
+    Tcl_Size newSize;
+    Tcl_Size used;
     double *newArr;
     Tcl_FreeProc *freeProc;
-    Tcl_Obj *resultPtr;
+
+    if (length < 0) {
+        Tcl_SetObjResult(vPtr->interp, Tcl_ObjPrintf("bad vector size \"%" TCL_SIZE_MODIFIER "d\"", length));
+        return TCL_ERROR;
+    }
 
     newArr = NULL;
     newSize = 0;
     freeProc = TCL_STATIC;
 
     if (length > 0) {
-        int wanted, used;
+        size_t byteCount;
 
-        wanted = length;
+        newSize = DEF_ARRAY_SIZE;
+
+        while (newSize < length) {
+            if (newSize > (TCL_SIZE_MAX / 2)) {
+                newSize = length;
+                break;
+            }
+            newSize *= 2;
+        }
+
+        if (GetVectorByteCount(vPtr->interp, newSize, &byteCount) != TCL_OK) {
+            return TCL_ERROR;
+        }
+
         used = vPtr->length;
 
-        /* Compute the new size by doubling old size until it's big enough */
-        newSize = DEF_ARRAY_SIZE;
-        if (wanted > DEF_ARRAY_SIZE) {
-            while (newSize < wanted) {
-                newSize += newSize;
-            }
+        if (used > length) {
+            used = length;
         }
+
         freeProc = vPtr->freeProc;
+
         if (newSize == vPtr->size) {
-            /* Same size, use current array. */
             newArr = vPtr->valueArr;
         } else {
-            /* Dynamically allocate memory for the new array. */
-            newArr = (double *)ckalloc(newSize * sizeof(double));
+            newArr = Tcl_AttemptAlloc(byteCount);
+
             if (newArr == NULL) {
-                resultPtr = Tcl_NewStringObj("", -1);
-                Tcl_AppendStringsToObj(resultPtr, "can't allocate ", Rbc_Itoa(newSize), " elements for vector \"",
-                                       vPtr->name, "\"", NULL);
-                Tcl_SetObjResult(vPtr->interp, resultPtr);
+                Tcl_SetObjResult(vPtr->interp,
+                                 Tcl_ObjPrintf("can't allocate %" TCL_SIZE_MODIFIER "d elements for vector \"%s\"",
+                                               newSize, vPtr->name));
                 return TCL_ERROR;
             }
-            if (used > wanted) {
-                used = wanted;
-            }
-            /* Copy any previous data */
+
             if (used > 0) {
-                memcpy(newArr, vPtr->valueArr, used * sizeof(double));
+                memcpy(newArr, vPtr->valueArr, (size_t)used * sizeof(double));
             }
+
             freeProc = TCL_DYNAMIC;
         }
-        /* Clear any new slots that we're now using in the array */
-        if (wanted > used) {
-            memset(newArr + used, 0, (wanted - used) * sizeof(double));
+
+        if (length > used) {
+            memset(newArr + used, 0, (size_t)(length - used) * sizeof(double));
         }
     }
-    if ((newArr != vPtr->valueArr) && (vPtr->valueArr != NULL)) {
-        /*
-         * We're not using the old storage anymore, so free it if it's
-         * not static.  It's static because the user previously reset
-         * the vector with a statically allocated array (setting freeProc
-         * to TCL_STATIC).
-         */
-        if (vPtr->freeProc != TCL_STATIC) {
-            if (vPtr->freeProc == TCL_DYNAMIC) {
-                ckfree((char *)vPtr->valueArr);
-            } else {
-                (*vPtr->freeProc)((char *)vPtr->valueArr);
-            }
+
+    if ((newArr != vPtr->valueArr) && (vPtr->valueArr != NULL) && (vPtr->freeProc != TCL_STATIC)) {
+        if (vPtr->freeProc == TCL_DYNAMIC) {
+            ckfree(vPtr->valueArr);
+        } else {
+            vPtr->freeProc(vPtr->valueArr);
         }
     }
+
     vPtr->valueArr = newArr;
     vPtr->size = newSize;
     vPtr->length = length;
     vPtr->first = 0;
     vPtr->last = length - 1;
-    vPtr->freeProc = freeProc; /* Set the type of the new storage */
+    vPtr->freeProc = freeProc;
+
     return TCL_OK;
 }
 
@@ -1381,7 +1403,7 @@ int Rbc_VectorLookupName(VectorInterpData *dataPtr, char *vecName, VectorObject 
  */
 void Rbc_VectorUpdateRange(VectorObject *vPtr) {
     double min, max;
-    register int i;
+    Tcl_Size i;
 
     min = DBL_MAX, max = -DBL_MAX;
     for (i = 0; i < vPtr->length; i++) {
@@ -1402,6 +1424,31 @@ void Rbc_VectorUpdateRange(VectorObject *vPtr) {
     vPtr->min = min;
     vPtr->max = max;
     vPtr->notifyFlags &= ~UPDATE_RANGE;
+}
+
+static int GetVectorIndexValue(Tcl_Interp *interp, VectorObject *vPtr, const char *string, Tcl_Size *valuePtr) {
+    Tcl_Obj *exprObjPtr;
+    Tcl_Obj *valueObjPtr;
+    int result;
+
+    exprObjPtr = Tcl_NewStringObj(string, -1);
+    Tcl_IncrRefCount(exprObjPtr);
+    result = Tcl_GetSizeIntFromObj(interp, exprObjPtr, valuePtr);
+    if (result != TCL_OK) {
+        Tcl_ResetResult(vPtr->interp);
+        result = Tcl_ExprObj(vPtr->interp, exprObjPtr, &valueObjPtr);
+        if (result == TCL_OK) {
+            result = Tcl_GetSizeIntFromObj(vPtr->interp, valueObjPtr, valuePtr);
+        }
+        if (result != TCL_OK) {
+            Tcl_ResetResult(vPtr->interp);
+            if (interp != NULL) {
+                Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad index \"%s\"", string));
+            }
+        }
+    }
+    Tcl_DecrRefCount(exprObjPtr);
+    return result;
 }
 
 /*
@@ -1431,91 +1478,163 @@ void Rbc_VectorUpdateRange(VectorObject *vPtr) {
  *
  * ----------------------------------------------------------------------
  */
-int Rbc_VectorGetIndex(Tcl_Interp *interp, VectorObject *vPtr, const char *string, int *indexPtr, int flags,
+int Rbc_VectorGetIndex(Tcl_Interp *interp, VectorObject *vPtr, const char *string, Tcl_Size *indexPtr, int flags,
                        Rbc_VectorIndexProc **procPtrPtr) {
-    char c;
-    int value;
-    Tcl_Obj *stringObj;
+    Tcl_Obj *indexObjPtr;
+    Tcl_Size value;
+    int result;
 
-    c = string[0];
+    assert(vPtr != NULL);
+    assert(string != NULL);
+    assert(indexPtr != NULL);
 
-    if (c == '\0') {
-        /* check out the empty string, or else Tcl_ExprLong will return 0 */
+    if (procPtrPtr != NULL) {
+        *procPtrPtr = NULL;
+    }
+
+    if (string[0] == '\0') {
+        /*
+         * Do not pass the empty string to the expression parser, where
+         * it could otherwise be interpreted as zero.
+         */
         if (interp != NULL) {
-            Tcl_AppendResult(interp, "can not use the empty string as index", (char *)NULL);
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("can not use the empty string as index", -1));
         }
-        return TCL_ERROR;
-    } else if (c == 'e') {
-        /* check for "end" and "end-N" */
-        Tcl_Size idx;
-        int result;
 
+        return TCL_ERROR;
+    }
+
+    if (string[0] == 'e') {
+        /*
+         * Parse "end" and index expressions based on "end", such as
+         * "end-1".
+         */
         if (vPtr->length < 1) {
             if (interp != NULL) {
-                Tcl_AppendResult(interp, "bad index \"", string, "\": vector is empty", (char *)NULL);
+                Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad index \"%s\": vector is empty", string));
             }
+
             return TCL_ERROR;
         }
-        stringObj = Tcl_NewStringObj(string, -1);
-        Tcl_IncrRefCount(stringObj);
-        result = Tcl_GetIntForIndex(interp, stringObj, vPtr->length - 1, &idx);
-        if (result == TCL_OK) {
-            /* index must be in the valid range */
-            if (idx >= 0 && idx < vPtr->length) {
-                *indexPtr = (int)idx;
-            } else {
-                if (interp != NULL) {
-                    Tcl_AppendResult(interp, "index \"", string, "\" is out of range", (char *)NULL);
-                }
-                result = TCL_ERROR;
-            }
+
+        indexObjPtr = Tcl_NewStringObj(string, -1);
+        Tcl_IncrRefCount(indexObjPtr);
+
+        result = Tcl_GetIntForIndex(interp, indexObjPtr, vPtr->length - 1, &value);
+
+        Tcl_DecrRefCount(indexObjPtr);
+
+        if (result != TCL_OK) {
+            return TCL_ERROR;
         }
-        Tcl_DecrRefCount(stringObj);
-        return result;
-    } else if ((c == '+') && (strcmp(string, "++end") == 0)) {
-        *indexPtr = vPtr->length;
+
+        if ((value < 0) || (value >= vPtr->length)) {
+            if (interp != NULL) {
+                Tcl_SetObjResult(interp, Tcl_ObjPrintf("index \"%s\" is out of range", string));
+            }
+
+            return TCL_ERROR;
+        }
+
+        *indexPtr = value;
+
         return TCL_OK;
     }
+
+    if ((string[0] == '+') && (strcmp(string, "++end") == 0)) {
+        /*
+         * The special append index denotes the position immediately
+         * after the final vector value.
+         */
+        *indexPtr = vPtr->length;
+
+        return TCL_OK;
+    }
+
     if (procPtrPtr != NULL) {
         Tcl_HashEntry *hPtr;
 
-        hPtr = Tcl_FindHashEntry(&(vPtr->dataPtr->indexProcTable), string);
+        hPtr = Tcl_FindHashEntry(&vPtr->dataPtr->indexProcTable, string);
+
         if (hPtr != NULL) {
             *indexPtr = SPECIAL_INDEX;
             *procPtrPtr = (Rbc_VectorIndexProc *)Tcl_GetHashValue(hPtr);
+
             return TCL_OK;
         }
     }
-    if (Tcl_GetInt(interp, (char *)string, &value) != TCL_OK) {
-        long int lvalue;
+
+    indexObjPtr = Tcl_NewStringObj(string, -1);
+    Tcl_IncrRefCount(indexObjPtr);
+
+    /*
+     * First try a plain Tcl-sized integer without modifying either
+     * interpreter result.
+     */
+    result = Tcl_GetSizeIntFromObj(NULL, indexObjPtr, &value);
+
+    if (result != TCL_OK) {
+        Tcl_Obj *valueObjPtr;
+
+        valueObjPtr = NULL;
+
         /*
-         * Unlike Tcl_GetInt, Tcl_ExprLong needs a valid interpreter,
-         * but the interp passed in may be NULL.  So we have to use
-         * vPtr->interp and then reset the result.
+         * Preserve the historical support for index expressions. Use the
+         * vector's interpreter because the public interp argument may be
+         * NULL.
          */
-        if (Tcl_ExprLong(vPtr->interp, (char *)string, &lvalue) != TCL_OK) {
+        result = Tcl_ExprObj(vPtr->interp, indexObjPtr, &valueObjPtr);
+
+        if (result == TCL_OK) {
+            result = Tcl_GetSizeIntFromObj(vPtr->interp, valueObjPtr, &value);
+
+            Tcl_DecrRefCount(valueObjPtr);
+        }
+
+        if (result != TCL_OK) {
             Tcl_ResetResult(vPtr->interp);
+
             if (interp != NULL) {
-                Tcl_AppendResult(interp, "bad index \"", string, "\"", (char *)NULL);
+                Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad index \"%s\"", string));
             }
+
+            Tcl_DecrRefCount(indexObjPtr);
+
             return TCL_ERROR;
         }
-        value = (int)lvalue;
     }
-    /*
-     * Correct the index by the current value of the offset. This makes
-     * all the numeric indices non-negative, which is how we distinguish
-     * the special non-numeric indices.
-     */
-    value -= vPtr->offset;
 
-    if ((value < 0) || ((flags & INDEX_CHECK) && (value >= vPtr->length))) {
+    Tcl_DecrRefCount(indexObjPtr);
+
+    /*
+     * Convert the externally visible index to the vector's zero-based
+     * storage index.
+     *
+     * Check before subtraction to avoid signed Tcl_Size overflow. If the
+     * external value is smaller than the offset, the resulting internal
+     * index would be negative. A negative offset can instead cause an
+     * upward overflow.
+     */
+    if ((value < vPtr->offset) || ((vPtr->offset < 0) && (value > (TCL_SIZE_MAX + vPtr->offset)))) {
         if (interp != NULL) {
-            Tcl_AppendResult(interp, "index \"", string, "\" is out of range", (char *)NULL);
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("index \"%s\" is out of range", string));
         }
+
         return TCL_ERROR;
     }
+
+    value -= vPtr->offset;
+
+    if ((flags & INDEX_CHECK) && (value >= vPtr->length)) {
+        if (interp != NULL) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("index \"%s\" is out of range", string));
+        }
+
+        return TCL_ERROR;
+    }
+
     *indexPtr = value;
+
     return TCL_OK;
 }
 
@@ -1547,7 +1666,7 @@ int Rbc_VectorGetIndex(Tcl_Interp *interp, VectorObject *vPtr, const char *strin
  */
 int Rbc_VectorGetIndexRange(Tcl_Interp *interp, VectorObject *vPtr, const char *string, int flags,
                             Rbc_VectorIndexProc **procPtrPtr) {
-    int ielem;
+    Tcl_Size ielem;
     char *colon;
 
     colon = NULL;
@@ -2108,8 +2227,8 @@ static VectorObject *FindVectorInNamespace(VectorInterpData *dataPtr, Tcl_Namesp
  *
  *----------------------------------------------------------------------
  */
-Tcl_Obj *Rbc_GetValues(VectorObject *vPtr, int first, int last) {
-    register int i;
+Tcl_Obj *Rbc_GetValues(VectorObject *vPtr, Tcl_Size first, Tcl_Size last) {
+    Tcl_Size i;
     Tcl_Obj *listObjPtr;
 
     listObjPtr = Tcl_NewListObj(0, NULL);
@@ -2140,8 +2259,8 @@ Tcl_Obj *Rbc_GetValues(VectorObject *vPtr, int first, int last) {
  *
  * ----------------------------------------------------------------------
  */
-void Rbc_ReplicateValue(VectorObject *vPtr, int first, int last, double value) {
-    register int i;
+void Rbc_ReplicateValue(VectorObject *vPtr, Tcl_Size first, Tcl_Size last, double value) {
+    Tcl_Size i;
 
     for (i = first; i <= last; i++) {
         vPtr->valueArr[i] = value;
@@ -2551,7 +2670,7 @@ int Rbc_GetVector(Tcl_Interp *interp, const char *name, Rbc_Vector **vecPtrPtr) 
  * -----------------------------------------------------------------------
  */
 int Rbc_CreateVector2(Tcl_Interp *interp, const char *vecName, const char *cmdName, const char *varName,
-                      int initialSize, Rbc_Vector **vecPtrPtr) {
+                      Tcl_Size initialSize, Rbc_Vector **vecPtrPtr) {
     VectorInterpData *dataPtr; /* Interpreter-specific data. */
     VectorObject *vPtr;
     int isNew;
@@ -2602,7 +2721,7 @@ int Rbc_CreateVector2(Tcl_Interp *interp, const char *vecName, const char *cmdNa
  *
  *--------------------------------------------------------------
  */
-int Rbc_CreateVector(Tcl_Interp *interp, const char *name, int size, Rbc_Vector **vecPtrPtr) {
+int Rbc_CreateVector(Tcl_Interp *interp, const char *name, Tcl_Size size, Rbc_Vector **vecPtrPtr) {
     return Rbc_CreateVector2(interp, name, name, name, size, vecPtrPtr);
 }
 
@@ -2629,11 +2748,11 @@ int Rbc_CreateVector(Tcl_Interp *interp, const char *name, int size, Rbc_Vector 
  *
  * -----------------------------------------------------------------------
  */
-int Rbc_ResizeVector(Rbc_Vector *vecPtr, int length) {
+int Rbc_ResizeVector(Rbc_Vector *vecPtr, Tcl_Size length) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
 
     if (Rbc_VectorChangeLength(vPtr, length) != TCL_OK) {
-        Tcl_AppendResult(vPtr->interp, "can't resize vector \"", vPtr->name, "\"", (char *)NULL);
+        Tcl_SetObjResult(vPtr->interp, Tcl_ObjPrintf("can't resize vector \"%s\"", vPtr->name));
         return TCL_ERROR;
     }
     if (vPtr->flush) {
@@ -2695,11 +2814,11 @@ char *Rbc_NameOfVector(Rbc_Vector *vecPtr) {
  *
  * -----------------------------------------------------------------------
  */
-int Rbc_ResetVector(Rbc_Vector *vecPtr, double *valueArr, int length, int size, Tcl_FreeProc *freeProc) {
+int Rbc_ResetVector(Rbc_Vector *vecPtr, double *valueArr, Tcl_Size length, Tcl_Size size, Tcl_FreeProc *freeProc) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
 
     if (size < 0) {
-        Tcl_AppendResult(vPtr->interp, "bad array size", (char *)NULL);
+        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("bad vector array size", -1));
         return TCL_ERROR;
     }
     return Rbc_VectorReset(vPtr, valueArr, length, size, freeProc);
@@ -2709,8 +2828,8 @@ void Rbc_FreeVector(Rbc_Vector *v) { Rbc_VectorFree((VectorObject *)v); }
 
 double *Rbc_VectorData(Rbc_Vector *v) { return Rbc_VecData(v); }
 
-int Rbc_VectorLength(Rbc_Vector *v) { return Rbc_VecLength(v); }
+Tcl_Size Rbc_VectorLength(Rbc_Vector *v) { return Rbc_VecLength(v); }
 
-int Rbc_VectorSize(Rbc_Vector *v) { return Rbc_VecSize(v); }
+Tcl_Size Rbc_VectorSize(Rbc_Vector *v) { return Rbc_VecSize(v); }
 
 int Rbc_VectorDirty(Rbc_Vector *v) { return Rbc_VecDirty(v); }

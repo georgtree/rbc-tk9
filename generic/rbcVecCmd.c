@@ -32,17 +32,17 @@ enum NativeFormats {
 
 /* Pointer to the array of values currently being sorted. */
 static VectorObject **sortVectorArr;
-static int nSortVectors;
+static Tcl_Size nSortVectors;
 static int reverse;
 
 static int AppendVector(VectorObject *destPtr, VectorObject *srcPtr);
 static int AppendList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]);
-static int CopyValues(VectorObject *vPtr, char *byteArr, enum NativeFormats fmt, int size, int length, int swap,
-                      int *indexPtr);
+static int CopyValues(VectorObject *vPtr, char *byteArr, enum NativeFormats fmt, int size, Tcl_Size length, int swap,
+                      Tcl_Size *indexPtr);
 static int InRange(double value, double min, double max);
 static int CopyList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]);
-static int *SortVectors(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const *objv);
-static int CompareVectors(void *a, void *b);
+static Tcl_Size *SortVectors(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const *objv);
+static int CompareVectors(const void *a, const void *b);
 
 /* Instance Functions Definitions (rbcVecObjCmd.c) */
 typedef int RbcVectorCmdOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
@@ -230,7 +230,7 @@ static int AppendOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
  */
 static int ArithOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const *objv) {
     register double value;
-    register int i;
+    Tcl_Size i;
     VectorObject *v2Ptr;
     double scalar;
     Tcl_Obj *listObjPtr;
@@ -239,8 +239,8 @@ static int ArithOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
     v2Ptr = Rbc_VectorParseElement((Tcl_Interp *)NULL, vPtr->dataPtr, Tcl_GetString(objv[2]), (char **)NULL,
                                    NS_SEARCH_BOTH);
     if (v2Ptr != NULL) {
-        register int j;
-        int length;
+        Tcl_Size j;
+        Tcl_Size length;
 
         length = v2Ptr->last - v2Ptr->first + 1;
         if (length != vPtr->length) {
@@ -389,7 +389,7 @@ static Tcl_Size ParseFormat(void *clientData, Tcl_Interp *interp, Tcl_Size objc,
 static Tcl_Size ParseAt(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const *objv, void *dstPtr) {
     VectorObject *vPtr = (VectorObject *)clientData;
     const char *string;
-    int first;
+    Tcl_Size first;
 
     if (objc == 0) {
         Tcl_SetObjResult(interp,
@@ -445,10 +445,11 @@ static int BinreadOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_
     char *byteArr;
     char *string;
     enum NativeFormats fmt;
-    int arraySize, bytesRead;
-    int count = 0, total;
-    int first = vPtr->length;
-    int size, length, mode;
+    Tcl_Size arraySize, bytesRead;
+    Tcl_Size count = 0, total;
+    Tcl_Size first = vPtr->length;
+    int size, mode;
+    Tcl_Size length;
     int swap = FALSE;
     struct NativeFmtValue nfmt = {sizeof(double), FMT_DOUBLE};
     Tcl_DString ds;
@@ -607,8 +608,8 @@ static int ClearOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
 static int DeleteOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     unsigned char *unsetArr;
     Tcl_Size i;
-    register int valueIndex, j;
-    register int count;
+    Tcl_Size valueIndex, j;
+    Tcl_Size count;
     char *string;
 
     /* FIXME: Don't delete vector with no indices.  */
@@ -680,7 +681,7 @@ static int DeleteOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
 static int DupOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     VectorObject *v2Ptr;
     int isNew;
-    register int i;
+    Tcl_Size i;
     char *string;
 
     for (i = 2; i < objc; i++) {
@@ -763,7 +764,7 @@ static int ExprOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
  * -----------------------------------------------------------------------
  */
 static int IndexOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    int first, last;
+    Tcl_Size first, last;
     char *string;
 
     string = Tcl_GetString(objv[2]);
@@ -882,9 +883,9 @@ static int MergeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
     VectorObject *v2Ptr;
     VectorObject **vecArr;
     register VectorObject **vPtrPtr;
-    int refSize, length, nElem;
+    Tcl_Size refSize, length, nElem;
     Tcl_Size i;
-    register int valueIndex;
+    Tcl_Size valueIndex;
     double *valuePtr, *valueArr;
 
     /* Allocate an array of vector pointers of each vector to be
@@ -956,7 +957,7 @@ static int MergeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
  * -----------------------------------------------------------------------
  */
 static int NormalizeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    register int i;
+    Tcl_Size i;
     double range;
 
     Rbc_VectorUpdateRange(vPtr);
@@ -1024,12 +1025,12 @@ static int NormalizeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tc
  */
 static int OffsetOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     if (objc == 3) {
-        int newOffset;
+        Tcl_Size value;
 
-        if (Tcl_GetIntFromObj(interp, objv[2], &newOffset) != TCL_OK) {
+        if (Tcl_GetSizeIntFromObj(interp, objv[2], &value) != TCL_OK) {
             return TCL_ERROR;
         }
-        vPtr->offset = newOffset;
+        vPtr->offset = value;
     }
     Tcl_SetObjResult(interp, Tcl_NewIntObj(vPtr->offset));
     return TCL_OK;
@@ -1059,9 +1060,9 @@ static int OffsetOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
  */
 static int PopulateOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     VectorObject *v2Ptr;
-    int size, density;
+    Tcl_Size size, density;
     int isNew;
-    register int i, j;
+    Tcl_Size i, j;
     double slice, range;
     register double *valuePtr;
     //int count;
@@ -1075,7 +1076,7 @@ static int PopulateOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
     if (vPtr->length == 0) {
         return TCL_OK; /* Source vector is empty. */
     }
-    if (Tcl_GetIntFromObj(interp, objv[3], &density) != TCL_OK) {
+    if (Tcl_GetSizeIntFromObj(interp, objv[3], &density) != TCL_OK) {
         return TCL_ERROR;
     }
     if (density < 1) {
@@ -1132,7 +1133,7 @@ static int PopulateOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
  */
 static int RandomOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
 #ifdef HAVE_DRAND48
-    register int i;
+    Tcl_Size i;
 
     for (i = 0; i < vPtr->length; i++) {
         vPtr->valueArr[i] = drand48();
@@ -1170,8 +1171,8 @@ static int RandomOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
  */
 static int RangeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Obj *listObjPtr;
-    int first, last;
-    register int i;
+    Tcl_Size first, last;
+    Tcl_Size i;
 
     if ((Rbc_VectorGetIndex(interp, vPtr, Tcl_GetString(objv[2]), &first, INDEX_CHECK, (Rbc_VectorIndexProc **)NULL) !=
          TCL_OK) ||
@@ -1220,7 +1221,7 @@ static int RangeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
  */
 static int SearchOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     double min, max;
-    register int i;
+    Tcl_Size i;
     int wantValue;
     char *string;
     Tcl_Obj *listObjPtr;
@@ -1275,10 +1276,10 @@ static int SearchOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
  * -----------------------------------------------------------------------
  */
 static int SeqOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    register int i;
+    Tcl_Size i;
     double start, finish, step;
     int fillVector;
-    int nSteps;
+    Tcl_Size nSteps;
     char *string;
 
     if (Rbc_GetDouble(interp, objv[2], &start) != TCL_OK) {
@@ -1413,11 +1414,11 @@ static int SortOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
     VectorObject *v2Ptr;
     char *string;
     double *mergeArr;
-    int *iArr;
-    int refSize, nBytes;
+    Tcl_Size *iArr;
+    Tcl_Size refSize, nBytes;
     int result;
     Tcl_Size i;
-    register int n;
+    Tcl_Size n;
 
     reverse = FALSE;
     if (objc > 2) {
@@ -1515,12 +1516,12 @@ static int SplitOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
     Tcl_Size argIndex;
     VectorObject *v2Ptr;
     const char *string;
-    int nVectors;
-    int sourceIndex;
-    int destIndex;
-    int oldSize;
-    int newSize;
-    int extra;
+    Tcl_Size nVectors;
+    Tcl_Size sourceIndex;
+    Tcl_Size destIndex;
+    Tcl_Size oldSize;
+    Tcl_Size newSize;
+    Tcl_Size extra;
     int isNew;
 
     nVectorArgs = objc - 2;
@@ -1545,7 +1546,7 @@ static int SplitOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
     nVectors = (int)nVectorArgs;
 
     if ((vPtr->length % nVectors) != 0) {
-        Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't split vector \"%s\" into %d even parts.", vPtr->name, nVectors));
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't split vector \"%s\" into %lld even parts.", vPtr->name, nVectors));
 
         return TCL_ERROR;
     }
@@ -1653,7 +1654,7 @@ static int VariableOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
  */
 static int AppendVector(VectorObject *destPtr, VectorObject *srcPtr) {
     int nBytes;
-    int oldSize, newSize;
+    Tcl_Size oldSize, newSize;
 
     oldSize = destPtr->length;
     newSize = oldSize + srcPtr->last - srcPtr->first + 1;
@@ -1687,10 +1688,10 @@ static int AppendVector(VectorObject *destPtr, VectorObject *srcPtr) {
  * -----------------------------------------------------------------------
  */
 static int AppendList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    int count;
+    Tcl_Size count;
     Tcl_Size i;
     double value;
-    int oldSize;
+    Tcl_Size oldSize;
 
     if (objc > INT_MAX) {
         Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("too many vector values", -1));
@@ -1737,15 +1738,15 @@ static int AppendList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]) 
  *
  *--------------------------------------------------------------
  */
-static int CopyValues(VectorObject *vPtr, char *byteArr, enum NativeFormats fmt, int size, int length, int swap,
-                      int *indexPtr) {
-    register int i, n;
-    int newSize;
+static int CopyValues(VectorObject *vPtr, char *byteArr, enum NativeFormats fmt, int size, Tcl_Size length, int swap,
+                      Tcl_Size *indexPtr) {
+    Tcl_Size i, n;
+    Tcl_Size newSize;
 
     if ((swap) && (size > 1)) {
         int nBytes = size * length;
         register unsigned char *p;
-        register int left, right;
+        Tcl_Size left, right;
 
         for (i = 0; i < nBytes; i += size) {
             p = (unsigned char *)(byteArr + i);
@@ -1926,20 +1927,20 @@ static int CopyList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
  *
  *--------------------------------------------------------------
  */
-int *Rbc_VectorSortIndex(VectorObject **vPtrPtr, int nVectors) {
-    int *indexArr;
-    register int i;
+Tcl_Size *Rbc_VectorSortIndex(VectorObject **vPtrPtr, Tcl_Size nVectors) {
+    Tcl_Size *indexArr;
+    Tcl_Size i;
     VectorObject *vPtr = *vPtrPtr;
-    int length;
+    Tcl_Size length;
 
     length = vPtr->last - vPtr->first + 1;
-    indexArr = (int *)ckalloc(sizeof(int) * length);
+    indexArr = (Tcl_Size *)ckalloc(sizeof(Tcl_Size) * length);
     for (i = vPtr->first; i <= vPtr->last; i++) {
         indexArr[i] = i;
     }
     sortVectorArr = vPtrPtr;
     nSortVectors = nVectors;
-    qsort((char *)indexArr, length, sizeof(int), (QSortCompareProc *)CompareVectors);
+    qsort(indexArr, (size_t)length, sizeof(Tcl_Size), CompareVectors);
     return indexArr;
 }
 
@@ -1964,10 +1965,10 @@ int *Rbc_VectorSortIndex(VectorObject **vPtrPtr, int nVectors) {
  *
  *--------------------------------------------------------------
  */
-static int *SortVectors(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const *objv) {
+static Tcl_Size *SortVectors(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const *objv) {
     VectorObject **vPtrArray, *v2Ptr;
-    int *iArr;
-    register int i;
+    Tcl_Size *iArr;
+    Tcl_Size i;
 
     vPtrArray = (VectorObject **)ckalloc(sizeof(VectorObject *) * (objc + 1));
     vPtrArray[0] = vPtr;
@@ -2008,21 +2009,26 @@ error:
  *
  *--------------------------------------------------------------
  */
-static int CompareVectors(void *a, void *b) {
-    double delta;
-    int i;
-    int sign;
-    register VectorObject *vPtr;
+static int CompareVectors(const void *a, const void *b) {
+    Tcl_Size i1;
+    Tcl_Size i2;
+    Tcl_Size vectorIndex;
 
-    sign = (reverse) ? -1 : 1;
-    for (i = 0; i < nSortVectors; i++) {
-        vPtr = sortVectorArr[i];
-        delta = vPtr->valueArr[*(int *)a] - vPtr->valueArr[*(int *)b];
+    i1 = *(const Tcl_Size *)a;
+    i2 = *(const Tcl_Size *)b;
+
+    for (vectorIndex = 0; vectorIndex < nSortVectors; vectorIndex++) {
+        double delta;
+
+        delta = sortVectorArr[vectorIndex]->valueArr[i1] - sortVectorArr[vectorIndex]->valueArr[i2];
+
         if (delta < 0.0) {
-            return (-1 * sign);
-        } else if (delta > 0.0) {
-            return (1 * sign);
+            return reverse ? 1 : -1;
+        }
+        if (delta > 0.0) {
+            return reverse ? -1 : 1;
         }
     }
+
     return 0;
 }

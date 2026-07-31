@@ -17,12 +17,12 @@
 #include "rbcChain.h"
 
 typedef struct Rbc_Vector_s {
-    double *valueArr; /* Array of values (possibly malloc-ed) */
-    int numValues;    /* Number of values in the array */
-    int arraySize;    /* Size of the allocated space */
-    double min, max;  /* Minimum and maximum values in the vector */
-    int dirty;        /* Indicates if the vector has been updated */
-    int reserved;     /* Reserved for future use */
+    double *valueArr;   /* Array of values (possibly malloc-ed) */
+    Tcl_Size numValues; /* Number of values in the array */
+    Tcl_Size arraySize; /* Size of the allocated space */
+    double min, max;    /* Minimum and maximum values in the vector */
+    int dirty;          /* Indicates if the vector has been updated */
+    int reserved;       /* Reserved for future use */
 } Rbc_Vector;
 
 #define Rbc_VecData(v) ((v)->valueArr)
@@ -121,8 +121,8 @@ typedef struct {
      * of Rbc_Vector in rbcVector.h too.
      */
     double *valueArr; /* Array of values (malloc-ed) */
-    int length;       /* Current number of values in the array. */
-    int size;         /* Maximum number of values that can be stored
+    Tcl_Size length;  /* Current number of values in the array. */
+    Tcl_Size size;    /* Maximum number of values that can be stored
                        * in the value array. */
     double min, max;  /* Minimum and maximum values in the vector */
     int dirty;        /* Indicates if the vector has been updated */
@@ -146,7 +146,7 @@ typedef struct {
                              * mapped to the vector
                              * (malloc'ed). If NULL, indicates
                              * that the vector isn't mapped to any variable */
-    int offset;             /* Offset from zero of the vector's
+    Tcl_Size offset;        /* Offset from zero of the vector's
                              * starting index */
     Tcl_Command cmdToken;   /* Token for vector's Tcl command. */
     Rbc_Chain *chainPtr;    /* List of clients using this vector */
@@ -158,8 +158,8 @@ typedef struct {
                              * non-zero, free the vector when its
                              * variable is unset. */
     int flush;
-    int first, last; /* Selected region of vector. This is used
-                      * mostly for the math routines */
+    Tcl_Size first, last; /* Selected region of vector. This is used
+                           * mostly for the math routines */
 } VectorObject;
 
 typedef struct Rbc_VectorIdStruct *Rbc_VectorId;
@@ -279,22 +279,22 @@ typedef struct {
 void Rbc_VectorFlushCache(VectorObject *vPtr);
 VectorObject *Rbc_VectorParseElement(Tcl_Interp *interp, VectorInterpData *dataPtr, const char *start, char **endPtr,
                                      int flags);
-int Rbc_VectorChangeLength(VectorObject *vPtr, int length);
+int Rbc_VectorChangeLength(VectorObject *vPtr, Tcl_Size length);
 void Rbc_VectorUpdateClients(VectorObject *vPtr);
 int Rbc_VectorMapVariable(Tcl_Interp *interp, VectorObject *vPtr, const char *name);
 VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, const char *cmdName, const char *varName,
                                int *newPtr);
-int Rbc_VectorGetIndex(Tcl_Interp *interp, VectorObject *vPtr, const char *string, int *indexPtr, int flags,
+int Rbc_VectorGetIndex(Tcl_Interp *interp, VectorObject *vPtr, const char *string, Tcl_Size *indexPtr, int flags,
                        Rbc_VectorIndexProc **procPtrPtr);
 int Rbc_GetDouble(Tcl_Interp *interp, Tcl_Obj *objPtr, double *valuePtr);
 void Rbc_VectorFree(VectorObject *vPtr);
 int Rbc_VectorGetIndexRange(Tcl_Interp *interp, VectorObject *vPtr, const char *string, int flags,
                             Rbc_VectorIndexProc **procPtrPtr);
 int Rbc_VectorDuplicate(VectorObject *destPtr, VectorObject *srcPtr);
-Tcl_Obj *Rbc_GetValues(VectorObject *vPtr, int first, int last);
-void Rbc_ReplicateValue(VectorObject *vPtr, int first, int last, double value);
+Tcl_Obj *Rbc_GetValues(VectorObject *vPtr, Tcl_Size first, Tcl_Size last);
+void Rbc_ReplicateValue(VectorObject *vPtr, Tcl_Size first, Tcl_Size last, double value);
 int Rbc_VectorLookupName(VectorInterpData *dataPtr, char *vecName, VectorObject **vPtrPtr);
-int Rbc_VectorReset(VectorObject *vPtr, double *valueArr, int length, int size, Tcl_FreeProc *freeProc);
+int Rbc_VectorReset(VectorObject *vPtr, double *valueArr, Tcl_Size length, Tcl_Size size, Tcl_FreeProc *freeProc);
 void Rbc_VectorUpdateRange(VectorObject *vPtr);
 VectorObject *Rbc_VectorNew(VectorInterpData *dataPtr);
 VectorInterpData *Rbc_VectorGetInterpData(Tcl_Interp *interp);
@@ -306,11 +306,13 @@ Rbc_VectorId Rbc_AllocVectorId(Tcl_Interp *interp, const char *vecName);
 void Rbc_SetVectorChangedProc(Rbc_VectorId clientId, Rbc_VectorChangedProc *proc, ClientData clientData);
 char *Rbc_NameOfVectorId(Rbc_VectorId clientId);
 int Rbc_GetVector(Tcl_Interp *interp, const char *vecName, Rbc_Vector **vecPtrPtr);
-int Rbc_CreateVector(Tcl_Interp *interp, const char *vecName, int size, Rbc_Vector **vecPtrPtr);
-int Rbc_ResizeVector(Rbc_Vector *vecPtr, int nValues);
+int Rbc_CreateVector(Tcl_Interp *interp, const char *vecName, Tcl_Size size, Rbc_Vector **vecPtrPtr);
+int Rbc_CreateVector2(Tcl_Interp *interp, const char *vecName, const char *cmdName, const char *varName,
+                      Tcl_Size initialSize, Rbc_Vector **vecPtrPtr);
+int Rbc_ResizeVector(Rbc_Vector *vecPtr, Tcl_Size nValues);
 char *Rbc_NameOfVector(Rbc_Vector *vecPtr);
-int Rbc_ResetVector(Rbc_Vector *vecPtr, double *dataArr, int nValues, int arraySize, Tcl_FreeProc *freeProc);
-int Rbc_VectorReset(VectorObject *vPtr, double *dataArr, int nValues, int arraySize, Tcl_FreeProc *freeProc);
+
+int Rbc_ResetVector(Rbc_Vector *vecPtr, double *dataArr, Tcl_Size nValues, Tcl_Size arraySize, Tcl_FreeProc *freeProc);
 
 /* Instance Functions Definitions (rbcVecObjCmd.c) */
 Tcl_ObjCmdProc2 Rbc_VectorInstanceObjCmd;
@@ -326,6 +328,10 @@ double Rbc_VecMax(Rbc_Vector *vecPtr);
 int Rbc_ExprVector(Tcl_Interp *interp, char *string, Rbc_Vector *vecPtr);
 void Rbc_VectorInstallMathFunctions(Tcl_HashTable *tablePtr);
 void Rbc_VectorInstallSpecialIndices(Tcl_HashTable *tablePtr);
-int *Rbc_VectorSortIndex(VectorObject **vPtrPtr, int nVectors);
+Tcl_Size *Rbc_VectorSortIndex(VectorObject **vPtrPtr, Tcl_Size nVectors);
+
+Tcl_Size Rbc_VectorLength(Rbc_Vector *v);
+Tcl_Size Rbc_VectorSize(Rbc_Vector *v);
+
 
 #endif /* _RBCVECTOR */
