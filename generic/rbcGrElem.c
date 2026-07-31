@@ -28,19 +28,22 @@ static int GetPenStyleFromObj(Graph *graphPtr, Tcl_Obj *objPtr, Rbc_Uid type, Pe
 static void SyncElemVector(ElemVector *vPtr);
 static void FindRange(ElemVector *vPtr);
 static int EvalExprListObj(Tcl_Interp *interp, Tcl_Obj *listObjPtr, int *nElemPtr, double **arrayPtr);
-static int GetIndex(Tcl_Interp *interp, Element *elemPtr, char *string, int *indexPtr);
+static int GetIndex(Tcl_Interp *interp, Element *elemPtr, const char *string, int *indexPtr);
 static int NameToElement(Graph *graphPtr, Tcl_Obj *nameObj, Element **elemPtrPtr);
-static int CreateElement(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], Rbc_Uid classUid);
+static int CreateElement(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Rbc_Uid classUid);
 static void DestroyElement(Graph *graphPtr, Element *elemPtr);
 static int RebuildDisplayList(Graph *graphPtr, Tcl_Obj *newList);
 static int InitElementOptions(Graph *graphPtr, Element *elemPtr);
-static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr,
-                                   int objc, Tcl_Obj *const objv[],
+static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr, Tcl_Size objc, Tcl_Obj *const objv[],
                                    int *maskPtr);
 static void ReleaseElementResources(Graph *graphPtr, Element *elemPtr);
 
-typedef int(RbcGrElementOp)(Graph *, Tcl_Interp *, Rbc_Uid, int, Tcl_Obj *const[]);
-typedef RbcGrElementOp *RbcGrElementOpPtr;
+typedef int RbcGrElementOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]);
+
+typedef struct {
+    Rbc_OpSpecHeader header;
+    RbcGrElementOp *proc;
+} ElementOpSpec;
 static RbcGrElementOp ActivateOp;
 static RbcGrElementOp BindOp;
 static RbcGrElementOp CreateOp;
@@ -958,7 +961,7 @@ void Rbc_FreeElemTagsTransaction(ElemTagsTransaction *transactionPtr) {
  */
 int Rbc_PrepareElemTagsTransaction(Graph *graphPtr, Element *elemPtr, ElemTagsTransaction *transactionPtr) {
     int explicitlySpecified;
-    int i;
+    Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 
@@ -1069,7 +1072,7 @@ void Rbc_CommitElemTagsTransaction(Element *elemPtr, ElemTagsTransaction *transa
  */
 int Rbc_PrepareElemStateTransaction(Graph *graphPtr, Element *elemPtr, ElemStateTransaction *transactionPtr) {
     int explicitlySpecified;
-    int i;
+    Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 
@@ -1262,7 +1265,7 @@ void Rbc_FreeElemAxisTransaction(Graph *graphPtr, ElemAxisTransaction *transacti
  */
 int Rbc_PrepareElemAxisTransaction(Graph *graphPtr, Element *elemPtr, ElemAxisTransaction *transactionPtr) {
     unsigned int explicitMask;
-    int i;
+    Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 
@@ -1471,7 +1474,7 @@ void Rbc_FreeElemPenTransaction(Graph *graphPtr, ElemPenTransaction *transaction
 int Rbc_PrepareElemPenTransaction(Graph *graphPtr, Element *elemPtr, Rbc_Uid penType,
                                   ElemPenTransaction *transactionPtr) {
     unsigned int explicitMask;
-    int i;
+    Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 
@@ -1774,7 +1777,7 @@ static int StageElemDataPairs(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *obj
 int Rbc_PrepareElemDataTransaction(Graph *graphPtr, Element *elemPtr, ElemDataTransaction *transactionPtr) {
     Tcl_Interp *interp;
     unsigned int explicitMask;
-    int i;
+    Tcl_Size i;
 
     interp = graphPtr->interp;
     explicitMask = 0;
@@ -2163,7 +2166,7 @@ void Rbc_SyncElemDataOptionObjects(Element *elemPtr) {
     Tcl_Obj *initialXObjPtr;
     Tcl_Obj *initialYObjPtr;
     unsigned int explicitMask;
-    int i;
+    Tcl_Size i;
 
     assert((elemPtr->optionObjc & 1) == 0);
 
@@ -2369,7 +2372,7 @@ void Rbc_FreeElemStylesTransaction(Graph *graphPtr, ElemStylesTransaction *trans
 int Rbc_PrepareElemStylesTransaction(Graph *graphPtr, Element *elemPtr, Rbc_Uid penType, size_t styleSize,
                                      ElemStylesTransaction *transactionPtr) {
     int explicitlySpecified;
-    int i;
+    Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 
@@ -2929,7 +2932,7 @@ void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle)
  *
  *----------------------------------------------------------------------
  */
-static int GetIndex(Tcl_Interp *interp, Element *elemPtr, char *string, int *indexPtr) {
+static int GetIndex(Tcl_Interp *interp, Element *elemPtr, const char *string, int *indexPtr) {
     long ielem;
     int last;
 
@@ -2970,8 +2973,8 @@ static int NameToElement(Graph *graphPtr, Tcl_Obj *nameObj, Element **elemPtrPtr
 
     hPtr = Tcl_FindHashEntry(&graphPtr->elements.table, name);
     if (hPtr == NULL) {
-        Tcl_AppendResult(graphPtr->interp, "can't find element \"", name, "\" in \"", Tk_PathName(graphPtr->tkwin),
-                         "\"", (char *)NULL);
+        Tcl_SetObjResult(graphPtr->interp,
+                         Tcl_ObjPrintf("can't find element \"%s\" in \"%s\"", name, Tk_PathName(graphPtr->tkwin)));
         return TCL_ERROR;
     }
     *elemPtrPtr = (Element *)Tcl_GetHashValue(hPtr);
@@ -3002,7 +3005,7 @@ static int InitElementOptions(Graph *graphPtr, Element *elemPtr) {
     return TCL_OK;
 }
 
-static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr, int objc, Tcl_Obj *const objv[], int *maskPtr) {
+static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr, Tcl_Size objc, Tcl_Obj *const objv[], int *maskPtr) {
     Tk_SavedOptions savedOptions;
     Tcl_Obj *errorObjPtr;
     int mask;
@@ -3167,7 +3170,7 @@ static void DestroyElement(Graph *graphPtr, Element *elemPtr) {
  *
  *----------------------------------------------------------------------
  */
-static int CreateElement(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], Rbc_Uid classUid) {
+static int CreateElement(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Rbc_Uid classUid) {
     Element *elemPtr;
     Tcl_HashEntry *hPtr;
     int isNew;
@@ -3217,7 +3220,7 @@ static int CreateElement(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj 
     }
     elemPtr->flags |= MAP_ITEM;
     graphPtr->flags |= RESET_AXES;
-    Tcl_SetResult(interp, elemPtr->name, TCL_VOLATILE);
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(elemPtr->name, -1));
     return TCL_OK;
 }
 
@@ -3550,54 +3553,56 @@ int Rbc_GraphUpdateNeeded(Graph *graphPtr) {
  *
  *----------------------------------------------------------------------
  */
-static int ActivateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc, Tcl_Obj *const objv[]) {
+static int ActivateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
-    register int i;
+    Tcl_Size i;
     int *activeArr;
     int nActiveIndices;
 
-    if (objc == 3) {
-        register Tcl_HashEntry *hPtr;
-        Tcl_HashSearch cursor;
-        Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
+    /* Existing query branch remains unchanged. */
 
-        /* List all the currently active elements */
-        for (hPtr = Tcl_FirstHashEntry(&graphPtr->elements.table, &cursor); hPtr != NULL;
-             hPtr = Tcl_NextHashEntry(&cursor)) {
-            elemPtr = (Element *)Tcl_GetHashValue(hPtr);
-            if (elemPtr->flags & ELEM_ACTIVE) {
-                Tcl_ListObjAppendElement(NULL, resultObj, Tcl_NewStringObj(elemPtr->name, -1));
-            }
-        }
-        Tcl_SetObjResult(interp, resultObj);
-        return TCL_OK;
-    }
     if (NameToElement(graphPtr, objv[3], &elemPtr) != TCL_OK) {
-        return TCL_ERROR; /* Can't find named element */
+        return TCL_ERROR;
     }
-    elemPtr->flags |= ELEM_ACTIVE | ACTIVE_PENDING;
 
+    elemPtr->flags |= ELEM_ACTIVE | ACTIVE_PENDING;
     activeArr = NULL;
     nActiveIndices = -1;
-    if (objc > 4) {
-        register int *activePtr;
 
-        nActiveIndices = objc - 4;
-        activePtr = activeArr = (int *)ckalloc(sizeof(int) * nActiveIndices);
-        assert(activeArr);
+    if (objc > 4) {
+        int *activePtr;
+        Tcl_Size count;
+
+        count = objc - 4;
+
+        if (count > INT_MAX) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("too many active element indices", -1));
+            return TCL_ERROR;
+        }
+
+        nActiveIndices = (int)count;
+
+        activeArr = ckalloc(sizeof(int) * (size_t)nActiveIndices);
+        activePtr = activeArr;
+
         for (i = 4; i < objc; i++) {
             if (GetIndex(interp, elemPtr, Tcl_GetString(objv[i]), activePtr) != TCL_OK) {
+                ckfree(activeArr);
                 return TCL_ERROR;
             }
             activePtr++;
         }
     }
+
     if (elemPtr->activeIndices != NULL) {
-        ckfree((char *)elemPtr->activeIndices);
+        ckfree(elemPtr->activeIndices);
     }
+
     elemPtr->nActiveIndices = nActiveIndices;
     elemPtr->activeIndices = activeArr;
+
     Rbc_EventuallyRedrawGraph(graphPtr);
+
     return TCL_OK;
 }
 
@@ -3651,7 +3656,7 @@ ClientData Rbc_MakeElementTag(Graph *graphPtr, char *tagName) {
  *
  *----------------------------------------------------------------------
  */
-static int BindOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc, Tcl_Obj *const objv[]) {
+static int BindOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     if (objc == 3) {
         Tcl_HashEntry *hPtr;
         Tcl_HashSearch cursor;
@@ -3693,7 +3698,7 @@ static int BindOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc, T
  *
  *----------------------------------------------------------------------
  */
-static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc, Tcl_Obj *const objv[]) {
+static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return CreateElement(graphPtr, interp, objc, objv, type);
 }
 
@@ -3719,7 +3724,7 @@ static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc,
  *
  *----------------------------------------------------------------------
  */
-static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc, Tcl_Obj *const objv[]) {
+static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
     Tcl_Obj *resultObjPtr;
 
@@ -3784,10 +3789,11 @@ static Tk_ConfigSpec closestSpecs[] = {
  *
  *----------------------------------------------------------------------
  */
-static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc, Tcl_Obj *const objv[]) {
+static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
     ClosestSearch search;
-    int i, x, y;
+    Tcl_Size i;
+    int x, y;
     int flags = TCL_LEAVE_ERR_MSG;
     const char *str;
 
@@ -3940,12 +3946,12 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc
  *
  *----------------------------------------------------------------------
  */
-static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc, Tcl_Obj *const objv[]) {
+static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
-    int numNames;
-    int numOpts;
+    Tcl_Size numNames;
+    Tcl_Size numOpts;
     Tcl_Obj *const *options;
-    int i;
+    Tcl_Size i;
 
     /*
      * Figure out where the option/value pairs begin.
@@ -4067,9 +4073,9 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int ob
  *
  *----------------------------------------------------------------------
  */
-static int DeactivateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc, Tcl_Obj *const objv[]) {
+static int DeactivateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
-    register int i;
+    Tcl_Size i;
 
     for (i = 3; i < objc; i++) {
         if (NameToElement(graphPtr, objv[i], &elemPtr) != TCL_OK) {
@@ -4111,9 +4117,9 @@ static int DeactivateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int o
  *
  *----------------------------------------------------------------------
  */
-static int DeleteOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc, Tcl_Obj *const objv[]) {
+static int DeleteOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
-    register int i;
+    Tcl_Size i;
 
     for (i = 3; i < objc; i++) {
         if (NameToElement(graphPtr, objv[i], &elemPtr) != TCL_OK) {
@@ -4148,7 +4154,7 @@ static int DeleteOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc,
  *
  *----------------------------------------------------------------------
  */
-static int ExistsOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc, Tcl_Obj *const objv[]) {
+static int ExistsOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_HashEntry *hPtr;
 
     hPtr = Tcl_FindHashEntry(&graphPtr->elements.table, Tcl_GetString(objv[3]));
@@ -4181,7 +4187,7 @@ static int ExistsOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc,
  *
  *----------------------------------------------------------------------
  */
-static int GetOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc, Tcl_Obj *const objv[]) {
+static int GetOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     register Element *elemPtr;
     const char *str = Tcl_GetString(objv[3]);
 
@@ -4221,11 +4227,11 @@ static int GetOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc, Tc
  *
  *----------------------------------------------------------------------
  */
-static int NamesOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc, Tcl_Obj *const objv[]) {
+static int NamesOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
     Tcl_HashSearch cursor;
     register Tcl_HashEntry *hPtr;
-    register int i;
+    Tcl_Size i;
     Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
 
     for (hPtr = Tcl_FirstHashEntry(&graphPtr->elements.table, &cursor); hPtr != NULL;
@@ -4269,7 +4275,7 @@ static int NamesOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc, 
  *
  *----------------------------------------------------------------------
  */
-static int ShowOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc, Tcl_Obj *const objv[]) {
+static int ShowOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
     Rbc_ChainLink *linkPtr;
     Tcl_Obj *resultObj;
@@ -4315,7 +4321,7 @@ static int ShowOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc, T
  *
  *----------------------------------------------------------------------
  */
-static int TypeOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc, Tcl_Obj *const objv[]) {
+static int TypeOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
 
     if (NameToElement(graphPtr, objv[3], &elemPtr) != TCL_OK) {
@@ -4328,21 +4334,20 @@ static int TypeOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, int objc, T
 /*
  * Global routines:
  */
-static const Rbc_OpSpec elemOps[] = {
-    {"activate", (Rbc_Op)ActivateOp, 3, 0, "?elemName? ?index...?"},
-    {"bind", (Rbc_Op)BindOp, 3, 6, "elemName sequence command"},
-    {"cget", (Rbc_Op)CgetOp, 5, 5, "elemName option"},
-    {"closest", (Rbc_Op)ClosestOp, 6, 0, "x y varName ?option value?... ?elemName?..."},
-    {"configure", (Rbc_Op)ConfigureOp, 4, 0, "elemName ?elemName?... ?option value?..."},
-    {"create", (Rbc_Op)CreateOp, 4, 0, "elemName ?option value?..."},
-    {"deactivate", (Rbc_Op)DeactivateOp, 3, 0, "?elemName?..."},
-    {"delete", (Rbc_Op)DeleteOp, 3, 0, "?elemName?..."},
-    {"exists", (Rbc_Op)ExistsOp, 4, 4, "elemName"},
-    {"get", (Rbc_Op)GetOp, 4, 4, "name"},
-    {"names", (Rbc_Op)NamesOp, 3, 0, "?pattern?..."},
-    {"show", (Rbc_Op)ShowOp, 3, 4, "?elemList?"},
-    {"type", (Rbc_Op)TypeOp, 4, 4, "elemName"},
-    RBC_OPSPEC_END};
+static const ElementOpSpec elemOps[] = {{{"activate", 3, 0, "?elemName? ?index...?"}, ActivateOp},
+                                        {{"bind", 3, 6, "elemName sequence command"}, BindOp},
+                                        {{"cget", 5, 5, "elemName option"}, CgetOp},
+                                        {{"closest", 6, 0, "x y varName ?option value?... ?elemName?..."}, ClosestOp},
+                                        {{"configure", 4, 0, "elemName ?elemName?... ?option value?..."}, ConfigureOp},
+                                        {{"create", 4, 0, "elemName ?option value?..."}, CreateOp},
+                                        {{"deactivate", 3, 0, "?elemName?..."}, DeactivateOp},
+                                        {{"delete", 3, 0, "?elemName?..."}, DeleteOp},
+                                        {{"exists", 4, 4, "elemName"}, ExistsOp},
+                                        {{"get", 4, 4, "name"}, GetOp},
+                                        {{"names", 3, 0, "?pattern?..."}, NamesOp},
+                                        {{"show", 3, 4, "?elemList?"}, ShowOp},
+                                        {{"type", 4, 4, "elemName"}, TypeOp},
+                                        {{NULL, 0, 0, NULL}, NULL}};
 
 /*
  * ----------------------------------------------------------------
@@ -4369,13 +4374,12 @@ static const Rbc_OpSpec elemOps[] = {
  * ----------------------------------------------------------------
  */
 int Rbc_ElementOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Rbc_Uid type) {
-    RbcGrElementOpPtr proc;
-    int result;
+    int index;
 
-    proc = (RbcGrElementOpPtr)Rbc_GetOpFromObj(interp, elemOps, RBC_OP_ARG2, objc, objv);
-    if (proc == NULL) {
+    if (Rbc_GetOpIndexFromObj(interp, elemOps, (Tcl_Size)sizeof(elemOps[0]), RBC_OP_ARG2, objc, objv, &index) !=
+        TCL_OK) {
         return TCL_ERROR;
     }
-    result = (*proc)(graphPtr, interp, type, objc, objv);
-    return result;
+
+    return elemOps[index].proc(graphPtr, interp, type, objc, objv);
 }

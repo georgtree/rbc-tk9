@@ -286,7 +286,7 @@ struct ElementStruct {
      * and must never be retained after configProc returns.
      */
     int optionMask;
-    int optionObjc;
+    Tcl_Size optionObjc;
     Tcl_Obj *const *optionObjv;
 
     /*
