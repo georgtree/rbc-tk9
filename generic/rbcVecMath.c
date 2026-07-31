@@ -71,8 +71,8 @@ static int precTable[] = {
 };
 
 static void InstallIndexProc(Tcl_HashTable *tablePtr, char *string, Rbc_VectorIndexProc *procPtr);
-static int First(VectorObject *vPtr);
-static int Next(VectorObject *vPtr, int current);
+static Tcl_Size First(VectorObject *vPtr);
+static Tcl_Size Next(VectorObject *vPtr, Tcl_Size current);
 static double Mean(Rbc_Vector *vecPtr);
 static double Sum(Rbc_Vector *vecPtr);
 static double Product(Rbc_Vector *vecPtr);
@@ -142,6 +142,47 @@ static MathFunction mathFunctions[] = {
         (char *)NULL,
     },
 };
+
+static int GetDoubleArrayByteCount(Tcl_Interp *interp, Tcl_Size count, size_t *byteCountPtr) {
+    size_t sizeCount;
+
+    if (count < 0) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("array size cannot be negative", -1));
+        return TCL_ERROR;
+    }
+    sizeCount = (size_t)count;
+    if (((Tcl_Size)sizeCount != count) || (sizeCount > (SIZE_MAX / sizeof(double)))) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("array size is too large", -1));
+        return TCL_ERROR;
+    }
+    *byteCountPtr = sizeCount * sizeof(double);
+    return TCL_OK;
+}
+
+static int GetRotationOffset(Tcl_Interp *interp, double scalar, Tcl_Size length, Tcl_Size *offsetPtr) {
+    double remainder;
+
+    *offsetPtr = 0;
+    if (length <= 1) {
+        return TCL_OK;
+    }
+    if (!FINITE(scalar)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("shift count must be finite", -1));
+        return TCL_ERROR;
+    }
+    /*
+     * Preserve the old behavior where negative shift counts did
+     * nothing.
+     */
+    if (scalar <= 0.0) {
+        return TCL_OK;
+    }
+    remainder = fmod(scalar, (double)length);
+    if (remainder > 0.0) {
+        *offsetPtr = (Tcl_Size)remainder;
+    }
+    return TCL_OK;
+}
 
 /*
  *----------------------------------------------------------------------
@@ -256,8 +297,8 @@ static void InstallIndexProc(Tcl_HashTable *tablePtr, char *string, Rbc_VectorIn
  *
  *--------------------------------------------------------------
  */
-static int First(VectorObject *vPtr) {
-    register int i;
+static Tcl_Size First(VectorObject *vPtr) {
+    Tcl_Size i;
 
     for (i = vPtr->first; i <= vPtr->last; i++) {
         if (FINITE(vPtr->valueArr[i])) {
@@ -290,8 +331,8 @@ static int First(VectorObject *vPtr) {
  *
  *--------------------------------------------------------------
  */
-static int Next(VectorObject *vPtr, int current) {
-    register int i;
+static Tcl_Size Next(VectorObject *vPtr, Tcl_Size current) {
+    Tcl_Size i;
 
     for (i = current + 1; i <= vPtr->last; i++) {
         if (FINITE(vPtr->valueArr[i])) {
@@ -324,7 +365,7 @@ double Rbc_VecMin(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
 
     double min;
-    register int i;
+    Tcl_Size i;
 
     min = rbcNaN;
     for (i = 0; i < vPtr->length; i++) {
@@ -366,7 +407,7 @@ double Rbc_VecMin(Rbc_Vector *vecPtr) {
 double Rbc_VecMax(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
     double max;
-    register int i;
+    Tcl_Size i;
 
     max = rbcNaN;
     for (i = 0; i < vPtr->length; i++) {
@@ -407,8 +448,8 @@ double Rbc_VecMax(Rbc_Vector *vecPtr) {
  */
 static double Mean(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
-    register int i;
-    int count;
+    Tcl_Size i;
+    Tcl_Size count;
     double sum;
 
     sum = 0.0;
@@ -441,7 +482,7 @@ static double Mean(Rbc_Vector *vecPtr) {
  */
 static double Sum(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
-    register int i;
+    Tcl_Size i;
     double sum;
 
     sum = 0.0;
@@ -472,7 +513,7 @@ static double Sum(Rbc_Vector *vecPtr) {
  */
 static double Product(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
-    register int i;
+    Tcl_Size i;
     register double prod;
 
     prod = 1.0;
@@ -504,28 +545,40 @@ static double Product(Rbc_Vector *vecPtr) {
 static int Sort(VectorObject *vPtr) {
     Tcl_Size *indexArr;
     double *tempArr;
+    Tcl_Size rangeLength;
     Tcl_Size i;
+    size_t count;
     size_t byteCount;
 
+    rangeLength = vPtr->last - vPtr->first + 1;
+    if (rangeLength <= 1) {
+        return TCL_OK;
+    }
     indexArr = Rbc_VectorSortIndex(&vPtr, 1);
     if (indexArr == NULL) {
         return TCL_ERROR;
     }
-    if ((size_t)vPtr->length > (SIZE_MAX / sizeof(double))) {
+    count = (size_t)rangeLength;
+    if (((Tcl_Size)count != rangeLength) || (count > (SIZE_MAX / sizeof(double)))) {
         ckfree(indexArr);
-        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("vector is too large to sort", -1));
+        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("vector range is too large to sort", -1));
         return TCL_ERROR;
     }
-    byteCount = (size_t)vPtr->length * sizeof(double);
-    tempArr = ckalloc(byteCount);
-    for (i = vPtr->first; i <= vPtr->last; i++) {
+    byteCount = count * sizeof(double);
+    tempArr = Tcl_AttemptAlloc(byteCount);
+    if (tempArr == NULL) {
+        ckfree(indexArr);
+        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("can't allocate temporary sort array", -1));
+        return TCL_ERROR;
+    }
+    for (i = 0; i < rangeLength; i++) {
         tempArr[i] = vPtr->valueArr[indexArr[i]];
     }
-    ckfree(indexArr);
-    for (i = vPtr->first; i <= vPtr->last; i++) {
-        vPtr->valueArr[i] = tempArr[i];
+    for (i = 0; i < rangeLength; i++) {
+        vPtr->valueArr[vPtr->first + i] = tempArr[i];
     }
     ckfree(tempArr);
+    ckfree(indexArr);
     return TCL_OK;
 }
 
@@ -549,8 +602,8 @@ static int Sort(VectorObject *vPtr) {
  */
 static double Length(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
-    int count;
-    register int i;
+    Tcl_Size count;
+    Tcl_Size i;
 
     count = 0;
     for (i = First(vPtr); i >= 0; i = Next(vPtr, i)) {
@@ -625,8 +678,8 @@ static double Median(Rbc_Vector *vecPtr) {
 static double Variance(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
     register double dx, var, mean;
-    register int i;
-    int count;
+    Tcl_Size i;
+    Tcl_Size count;
 
     mean = Mean(vecPtr);
     var = 0.0;
@@ -664,8 +717,8 @@ static double Variance(Rbc_Vector *vecPtr) {
 static double Skew(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
     register double diff, var, skew, mean, diffsq;
-    register int i;
-    int count;
+    Tcl_Size i;
+    Tcl_Size count;
 
     mean = Mean(vecPtr);
     var = skew = 0.0;
@@ -735,8 +788,8 @@ static double StdDeviation(Rbc_Vector *vecPtr) {
 static double AvgDeviation(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
     register double diff, avg, mean;
-    register int i;
-    int count;
+    Tcl_Size i;
+    Tcl_Size count;
 
     mean = Mean(vecPtr);
     avg = 0.0;
@@ -774,8 +827,8 @@ static double AvgDeviation(Rbc_Vector *vecPtr) {
 static double Kurtosis(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
     register double diff, diffsq, kurt, var, mean;
-    register int i;
-    int count;
+    Tcl_Size i;
+    Tcl_Size count;
 
     mean = Mean(vecPtr);
     var = kurt = 0.0;
@@ -913,7 +966,7 @@ static double Q3(Rbc_Vector *vecPtr) {
 static int Norm(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
     double norm, range, min, max;
-    register int i;
+    Tcl_Size i;
 
     min = Rbc_VecMin(vecPtr);
     max = Rbc_VecMax(vecPtr);
@@ -945,8 +998,8 @@ static int Norm(Rbc_Vector *vecPtr) {
  */
 static double Nonzeros(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
-    register int i;
-    int count;
+    Tcl_Size i;
+    Tcl_Size count;
 
     count = 0;
     for (i = First(vPtr); i >= 0; i = Next(vPtr, i)) {
@@ -1048,7 +1101,7 @@ int Rbc_ExprVector(Tcl_Interp *interp, char *string, Rbc_Vector *vecPtr) {
     if (vPtr != NULL) {
         Rbc_VectorDuplicate(vPtr, value.vPtr);
     } else {
-        register int i;
+        Tcl_Size i;
         Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
         /* No result vector.  Put values in the interpreter result.  */
         for (i = 0; i < value.vPtr->length; i++) {
@@ -1091,7 +1144,7 @@ static int EvaluateExpression(Tcl_Interp *interp, char *string, Value *valuePtr)
     ParseInfo info;
     int result;
     VectorObject *vPtr;
-    register int i;
+    Tcl_Size i;
 
     info.expr = info.nextPtr = string;
     valuePtr->pv.buffer = valuePtr->pv.next = valuePtr->staticSpace;
@@ -1158,7 +1211,7 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
     int gotOp;
     int result;
     VectorObject *vPtr, *v2Ptr;
-    register int i;
+    Tcl_Size i;
 
     /*
      * There are two phases to this procedure.  First, pick off an initial
@@ -1347,47 +1400,67 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
             }
             break;
         case LEFT_SHIFT: {
-            int offset;
+            Tcl_Size offset;
+            Tcl_Size remaining;
+            size_t holdBytes;
+            size_t remainingBytes;
+            double *hold;
 
-            offset = (int)scalar % vPtr->length;
-            if (offset > 0) {
-                double *hold;
-                register int j;
-
-                hold = (double *)ckalloc(sizeof(double) * offset);
-                for (i = 0; i < offset; i++) {
-                    hold[i] = opnd[i];
-                }
-                for (i = offset, j = 0; i < vPtr->length; i++, j++) {
-                    opnd[j] = opnd[i];
-                }
-                for (i = 0, j = vPtr->length - offset; j < vPtr->length; i++, j++) {
-                    opnd[j] = hold[i];
-                }
-                ckfree((char *)hold);
+            if (GetRotationOffset(interp, scalar, vPtr->length, &offset) != TCL_OK) {
+                goto error;
             }
-        } break;
+            if (offset == 0) {
+                break;
+            }
+            remaining = vPtr->length - offset;
+            if (GetDoubleArrayByteCount(interp, offset, &holdBytes) != TCL_OK) {
+                goto error;
+            }
+            if (GetDoubleArrayByteCount(interp, remaining, &remainingBytes) != TCL_OK) {
+                goto error;
+            }
+            hold = Tcl_AttemptAlloc(holdBytes);
+            if (hold == NULL) {
+                Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate vector rotation buffer", -1));
+                goto error;
+            }
+            memcpy(hold, opnd, holdBytes);
+            memmove(opnd, opnd + offset, remainingBytes);
+            memcpy(opnd + remaining, hold, holdBytes);
+            ckfree(hold);
+            break;
+        }
         case RIGHT_SHIFT: {
-            int offset;
+            Tcl_Size offset;
+            Tcl_Size remaining;
+            size_t holdBytes;
+            size_t remainingBytes;
+            double *hold;
 
-            offset = (int)scalar % vPtr->length;
-            if (offset > 0) {
-                double *hold;
-                register int j;
-
-                hold = (double *)ckalloc(sizeof(double) * offset);
-                for (i = vPtr->length - offset, j = 0; i < vPtr->length; i++, j++) {
-                    hold[j] = opnd[i];
-                }
-                for (i = vPtr->length - offset - 1, j = vPtr->length - 1; i >= 0; i--, j--) {
-                    opnd[j] = opnd[i];
-                }
-                for (i = 0; i < offset; i++) {
-                    opnd[i] = hold[i];
-                }
-                ckfree((char *)hold);
+            if (GetRotationOffset(interp, scalar, vPtr->length, &offset) != TCL_OK) {
+                goto error;
             }
-        } break;
+            if (offset == 0) {
+                break;
+            }
+            remaining = vPtr->length - offset;
+            if (GetDoubleArrayByteCount(interp, offset, &holdBytes) != TCL_OK) {
+                goto error;
+            }
+            if (GetDoubleArrayByteCount(interp, remaining, &remainingBytes) != TCL_OK) {
+                goto error;
+            }
+            hold = Tcl_AttemptAlloc(holdBytes);
+            if (hold == NULL) {
+                Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate vector rotation buffer", -1));
+                goto error;
+            }
+            memcpy(hold, opnd + remaining, holdBytes);
+            memmove(opnd + offset, opnd, remainingBytes);
+            memcpy(opnd, hold, holdBytes);
+            ckfree(hold);
+            break;
+        }
         default:
             Tcl_AppendResult(interp, "unknown operator in expression", (char *)NULL);
             goto error;
@@ -2075,7 +2148,7 @@ static int ParseMathFunction(Tcl_Interp *interp, char *start, ParseInfo *parsePt
  */
 static int ComponentFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr) {
     ComponentProc *procPtr = (ComponentProc *)clientData;
-    register int i;
+    Tcl_Size i;
 
     errno = 0;
     for (i = First(vPtr); i >= 0; i = Next(vPtr, i)) {
