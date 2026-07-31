@@ -630,12 +630,16 @@ static int GetCoordinate(Tcl_Interp *interp, const char *expr, double *valuePtr)
 static double HMap(Graph *graphPtr, Axis *axisPtr, double x);
 static double VMap(Graph *graphPtr, Axis *axisPtr, double y);
 static Point2D MapPoint(Graph *graphPtr, Point2D *pointPtr, Axis2D *axesPtr);
-static Marker *CreateMarker(Graph *graphPtr, char *name, Rbc_Uid classUid);
+static Marker *CreateMarker(Graph *graphPtr, const char *name, Rbc_Uid classUid);
 static void DestroyMarker(Marker *markerPtr);
 static int NameToMarker(Graph *graphPtr, const char *name, Marker **markerPtrPtr);
 
-typedef int(RbcGrMarkerOp)(Graph *, Tcl_Interp *, int, Tcl_Obj *const[]);
-typedef RbcGrMarkerOp *RbcGrMarkerOpPtr;
+typedef int RbcGrMarkerOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+
+typedef struct {
+    Rbc_OpSpecHeader header;
+    RbcGrMarkerOp *proc;
+} MarkerOpSpec;
 static RbcGrMarkerOp BindOp;
 static RbcGrMarkerOp CgetOp;
 static RbcGrMarkerOp ConfigureOp;
@@ -796,7 +800,7 @@ static int RestoreMarkerOptions(Tcl_Interp *interp, Tk_SavedOptions *savedOption
     return TCL_ERROR;
 }
 
-static int ConfigureMarkerOptions(Marker *markerPtr, int objc, Tcl_Obj *const objv[], int creating) {
+static int ConfigureMarkerOptions(Marker *markerPtr, Tcl_Size objc, Tcl_Obj *const objv[], int creating) {
     Graph *graphPtr;
     Tk_SavedOptions savedOptions;
     Tcl_HashEntry *hPtr;
@@ -1402,7 +1406,7 @@ static Point2D MapPoint(Graph *graphPtr, Point2D *pointPtr, Axis2D *axesPtr) {
  *
  *----------------------------------------------------------------------
  */
-static Marker *CreateMarker(Graph *graphPtr, char *name, Rbc_Uid classUid) {
+static Marker *CreateMarker(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     Marker *markerPtr;
 
     /* Create the new marker based upon the given type */
@@ -5090,8 +5094,8 @@ static int NameToMarker(Graph *graphPtr, const char *name, Marker **markerPtrPtr
         *markerPtrPtr = (Marker *)Tcl_GetHashValue(hPtr);
         return TCL_OK;
     }
-    Tcl_AppendResult(graphPtr->interp, "can't find marker \"", name, "\" in \"", Tk_PathName(graphPtr->tkwin),
-                     (char *)NULL);
+    Tcl_SetObjResult(graphPtr->interp,
+                     Tcl_ObjPrintf("can't find marker \"%s\" in \"%s\"", name, Tk_PathName(graphPtr->tkwin)));
     return TCL_ERROR;
 }
 
@@ -5116,10 +5120,10 @@ static int NameToMarker(Graph *graphPtr, const char *name, Marker **markerPtrPtr
  *
  * ----------------------------------------------------------------------
  */
-static int NamesOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int NamesOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Marker *markerPtr;
     Rbc_ChainLink *linkPtr;
-    register int i;
+    Tcl_Size i;
     Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
 
     Tcl_ResetResult(interp);
@@ -5190,7 +5194,7 @@ ClientData Rbc_MakeMarkerTag(Graph *graphPtr, char *tagName) {
  *
  *----------------------------------------------------------------------
  */
-static int BindOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int BindOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     if (objc == 3) {
         Tcl_HashEntry *hPtr;
         Tcl_HashSearch cursor;
@@ -5230,7 +5234,7 @@ static int BindOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const 
  *
  *----------------------------------------------------------------------
  */
-static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Marker *markerPtr;
     Tcl_Obj *resultObjPtr;
 
@@ -5266,12 +5270,12 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const 
  *
  * ----------------------------------------------------------------------
  */
-static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Marker *markerPtr;
-    int nNames;
-    int nOpts;
+    Tcl_Size nNames;
+    Tcl_Size nOpts;
     Tcl_Obj *const *options;
-    int i;
+    Tcl_Size i;
     const char *string;
 
     /*
@@ -5345,15 +5349,15 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *c
  *
  * ----------------------------------------------------------------------
  */
-static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Marker *markerPtr;
     Tcl_HashEntry *hPtr;
     Rbc_Uid classUid;
-    char *name;
+    const char *name;
     char generatedName[200];
     int isNew;
     int index;
-    int i;
+    Tcl_Size i;
 
     static const struct markerTypeMap {
         const char *name;
@@ -5499,9 +5503,9 @@ static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
  *
  * ----------------------------------------------------------------------
  */
-static int DeleteOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int DeleteOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Marker *markerPtr;
-    register int i;
+    Tcl_Size i;
 
     for (i = 3; i < objc; i++) {
         if (NameToMarker(graphPtr, Tcl_GetString(objv[i]), &markerPtr) == TCL_OK) {
@@ -5539,7 +5543,7 @@ static int DeleteOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
  *
  *----------------------------------------------------------------------
  */
-static int GetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int GetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     register Marker *markerPtr;
     const char *str = Tcl_GetString(objv[3]);
 
@@ -5582,7 +5586,7 @@ static int GetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const o
  *
  * ----------------------------------------------------------------------
  */
-static int RelinkOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int RelinkOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Rbc_ChainLink *linkPtr, *placePtr;
     Marker *markerPtr;
     const char *str;
@@ -5639,7 +5643,7 @@ static int RelinkOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
  *
  * ----------------------------------------------------------------------
  */
-static int FindOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int FindOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Rbc_ChainLink *linkPtr;
     Extents2D exts;
     Marker *markerPtr;
@@ -5742,7 +5746,7 @@ static int FindOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const 
  *
  * ----------------------------------------------------------------------
  */
-static int ExistsOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int ExistsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_HashEntry *hPtr;
 
     hPtr = Tcl_FindHashEntry(&graphPtr->markers.table, Tcl_GetString(objv[3]));
@@ -5773,7 +5777,7 @@ static int ExistsOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
  *
  * ----------------------------------------------------------------------
  */
-static int TypeOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int TypeOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Marker *markerPtr;
 
     if (NameToMarker(graphPtr, Tcl_GetString(objv[3]), &markerPtr) != TCL_OK) {
@@ -5785,19 +5789,19 @@ static int TypeOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const 
 
 /* Public routines */
 
-static const Rbc_OpSpec markerOps[] = {{"after", (Rbc_Op)RelinkOp, 4, 5, "marker ?afterMarker?"},
-                                       {"before", (Rbc_Op)RelinkOp, 4, 5, "marker ?beforeMarker?"},
-                                       {"bind", (Rbc_Op)BindOp, 3, 6, "marker sequence command"},
-                                       {"cget", (Rbc_Op)CgetOp, 5, 5, "marker option"},
-                                       {"configure", (Rbc_Op)ConfigureOp, 4, 0, "marker ?marker?... ?option value?..."},
-                                       {"create", (Rbc_Op)CreateOp, 4, 0, "type ?option value?..."},
-                                       {"delete", (Rbc_Op)DeleteOp, 3, 0, "?marker?..."},
-                                       {"exists", (Rbc_Op)ExistsOp, 4, 4, "marker"},
-                                       {"find", (Rbc_Op)FindOp, 8, 8, "enclosed|overlapping x1 y1 x2 y2"},
-                                       {"get", (Rbc_Op)GetOp, 4, 4, "name"},
-                                       {"names", (Rbc_Op)NamesOp, 3, 0, "?pattern?..."},
-                                       {"type", (Rbc_Op)TypeOp, 4, 4, "marker"},
-                                       RBC_OPSPEC_END};
+static const MarkerOpSpec markerOps[] = {{{"after", 4, 5, "marker ?afterMarker?"}, RelinkOp},
+                                         {{"before", 4, 5, "marker ?beforeMarker?"}, RelinkOp},
+                                         {{"bind", 3, 6, "marker sequence command"}, BindOp},
+                                         {{"cget", 5, 5, "marker option"}, CgetOp},
+                                         {{"configure", 4, 0, "marker ?marker?... ?option value?..."}, ConfigureOp},
+                                         {{"create", 4, 0, "type ?option value?..."}, CreateOp},
+                                         {{"delete", 3, 0, "?marker?..."}, DeleteOp},
+                                         {{"exists", 4, 4, "marker"}, ExistsOp},
+                                         {{"find", 8, 8, "enclosed|overlapping x1 y1 x2 y2"}, FindOp},
+                                         {{"get", 4, 4, "name"}, GetOp},
+                                         {{"names", 3, 0, "?pattern?..."}, NamesOp},
+                                         {{"type", 4, 4, "marker"}, TypeOp},
+                                         {{NULL, 0, 0, NULL}, NULL}};
 
 /*
  * ----------------------------------------------------------------------
@@ -5823,15 +5827,14 @@ static const Rbc_OpSpec markerOps[] = {{"after", (Rbc_Op)RelinkOp, 4, 5, "marker
  * ----------------------------------------------------------------------
  */
 int Rbc_MarkerOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    RbcGrMarkerOpPtr proc;
-    int result;
+    int index;
 
-    proc = (RbcGrMarkerOpPtr)Rbc_GetOpFromObj(interp, markerOps, RBC_OP_ARG2, objc, objv);
-    if (proc == NULL) {
+    if (Rbc_GetOpIndexFromObj(interp, markerOps, (Tcl_Size)sizeof(markerOps[0]), RBC_OP_ARG2, objc, objv, &index) !=
+        TCL_OK) {
         return TCL_ERROR;
     }
-    result = (*proc)(graphPtr, interp, objc, objv);
-    return result;
+
+    return markerOps[index].proc(graphPtr, interp, objc, objv);
 }
 
 /*
