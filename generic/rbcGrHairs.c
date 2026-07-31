@@ -84,8 +84,12 @@ static const Tk_OptionSpec crosshairsOptionSpecs[] = {
 static void TurnOffHairs(Tk_Window tkwin, Crosshairs *chPtr);
 static void TurnOnHairs(Graph *graphPtr, Crosshairs *chPtr);
 
-typedef int(RbcGrHairsOp)(Graph *, Tcl_Interp *, int, Tcl_Obj *const[]);
-typedef RbcGrHairsOp *RbcGrHairsOpPtr;
+typedef int RbcGrHairsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+
+typedef struct {
+    Rbc_OpSpecHeader header;
+    RbcGrHairsOp *proc;
+} CrosshairsOpSpec;
 static RbcGrHairsOp CgetOp;
 static RbcGrHairsOp ConfigureOp;
 static RbcGrHairsOp OnOp;
@@ -495,7 +499,7 @@ error:
  *
  *----------------------------------------------------------------------
  */
-static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Crosshairs *chPtr;
     Tcl_Obj *resultObjPtr;
 
@@ -530,7 +534,7 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const 
  *
  *----------------------------------------------------------------------
  */
-static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Crosshairs *chPtr;
     Tcl_Obj *resultObjPtr;
     Tk_SavedOptions savedOptions;
@@ -591,7 +595,7 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *c
  *
  *----------------------------------------------------------------------
  */
-static int OnOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int OnOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Crosshairs *chPtr = graphPtr->crosshairs;
 
     if (chPtr->hidden) {
@@ -622,7 +626,7 @@ static int OnOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const ob
  *
  *----------------------------------------------------------------------
  */
-static int OffOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int OffOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Crosshairs *chPtr = graphPtr->crosshairs;
 
     if (!chPtr->hidden) {
@@ -653,7 +657,7 @@ static int OffOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const o
  *
  *----------------------------------------------------------------------
  */
-static int ToggleOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int ToggleOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Crosshairs *chPtr = graphPtr->crosshairs;
 
     chPtr->hidden = (chPtr->hidden == 0);
@@ -665,10 +669,12 @@ static int ToggleOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
     return TCL_OK;
 }
 
-static const Rbc_OpSpec xhairOps[] = {
-    {"cget", (Rbc_Op)CgetOp, 4, 4, "option"}, {"configure", (Rbc_Op)ConfigureOp, 3, 0, "?options...?"},
-    {"off", (Rbc_Op)OffOp, 3, 3, ""},         {"on", (Rbc_Op)OnOp, 3, 3, ""},
-    {"toggle", (Rbc_Op)ToggleOp, 3, 3, ""},   RBC_OPSPEC_END};
+static const CrosshairsOpSpec xhairOps[] = {{{"cget", 4, 4, "option"}, CgetOp},
+                                            {{"configure", 3, 0, "?options...?"}, ConfigureOp},
+                                            {{"off", 3, 3, ""}, OffOp},
+                                            {{"on", 3, 3, ""}, OnOp},
+                                            {{"toggle", 3, 3, ""}, ToggleOp},
+                                            {{NULL, 0, 0, NULL}, NULL}};
 
 /*
  *----------------------------------------------------------------------
@@ -697,11 +703,12 @@ static const Rbc_OpSpec xhairOps[] = {
  *----------------------------------------------------------------------
  */
 int Rbc_CrosshairsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    RbcGrHairsOpPtr proc;
+    int index;
 
-    proc = (RbcGrHairsOpPtr)Rbc_GetOpFromObj(interp, xhairOps, RBC_OP_ARG2, objc, objv);
-    if (proc == NULL) {
+    if (Rbc_GetOpIndexFromObj(interp, xhairOps, (Tcl_Size)sizeof(xhairOps[0]), RBC_OP_ARG2, objc, objv, &index) !=
+        TCL_OK) {
         return TCL_ERROR;
     }
-    return (*proc)(graphPtr, interp, objc, objv);
+
+    return xhairOps[index].proc(graphPtr, interp, objc, objv);
 }

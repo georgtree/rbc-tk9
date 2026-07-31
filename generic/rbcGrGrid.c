@@ -62,8 +62,12 @@ static const Tk_OptionSpec barGridOptionSpecs[] = {
 
 static int ConfigureGrid(Graph *graphPtr, Grid *gridPtr, int mask);
 
-typedef int(RbcGrGridOp)(Graph *, Tcl_Interp *, int, Tcl_Obj *const[]);
-typedef RbcGrGridOp *RbcGrGridOpPtr;
+typedef int RbcGrGridOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+
+typedef struct {
+    Rbc_OpSpecHeader header;
+    RbcGrGridOp *proc;
+} GridOpSpec;
 static RbcGrGridOp CgetOp;
 static RbcGrGridOp ConfigureOp;
 static RbcGrGridOp MapOp;
@@ -414,7 +418,7 @@ error:
  *
  *----------------------------------------------------------------------
  */
-static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Grid *gridPtr;
     Tcl_Obj *resultObjPtr;
 
@@ -450,7 +454,7 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const 
  *
  *----------------------------------------------------------------------
  */
-static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Grid *gridPtr;
     Tcl_Obj *resultObjPtr;
     Tk_SavedOptions savedOptions;
@@ -519,7 +523,7 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *c
  *
  *----------------------------------------------------------------------
  */
-static int MapOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int MapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
     if (gridPtr->hidden) {
         gridPtr->hidden = FALSE; /* Changes "-hide" configuration option */
@@ -550,7 +554,7 @@ static int MapOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const o
  *
  *----------------------------------------------------------------------
  */
-static int UnmapOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int UnmapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
 
     if (!gridPtr->hidden) {
@@ -583,7 +587,7 @@ static int UnmapOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const
  *
  *----------------------------------------------------------------------
  */
-static int ToggleOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int ToggleOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
 
     gridPtr->hidden = (!gridPtr->hidden);
@@ -592,10 +596,12 @@ static int ToggleOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
     return TCL_OK;
 }
 
-static const Rbc_OpSpec gridOps[] = {
-    {"cget", (Rbc_Op)CgetOp, 4, 4, "option"}, {"configure", (Rbc_Op)ConfigureOp, 3, 0, "?options...?"},
-    {"off", (Rbc_Op)UnmapOp, 3, 3, ""},       {"on", (Rbc_Op)MapOp, 3, 3, ""},
-    {"toggle", (Rbc_Op)ToggleOp, 3, 3, ""},   RBC_OPSPEC_END};
+static const GridOpSpec gridOps[] = {{{"cget", 4, 4, "option"}, CgetOp},
+                                     {{"configure", 3, 0, "?options...?"}, ConfigureOp},
+                                     {{"off", 3, 3, ""}, UnmapOp},
+                                     {{"on", 3, 3, ""}, MapOp},
+                                     {{"toggle", 3, 3, ""}, ToggleOp},
+                                     {{NULL, 0, 0, NULL}, NULL}};
 
 /*
  *----------------------------------------------------------------------
@@ -620,11 +626,12 @@ static const Rbc_OpSpec gridOps[] = {
  *----------------------------------------------------------------------
  */
 int Rbc_GridOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    RbcGrGridOpPtr proc;
+    int index;
 
-    proc = (RbcGrGridOpPtr)Rbc_GetOpFromObj(interp, gridOps, RBC_OP_ARG2, objc, objv);
-    if (proc == NULL) {
+    if (Rbc_GetOpIndexFromObj(interp, gridOps, (Tcl_Size)sizeof(gridOps[0]), RBC_OP_ARG2, objc, objv, &index) !=
+        TCL_OK) {
         return TCL_ERROR;
     }
-    return (*proc)(graphPtr, interp, objc, objv);
+
+    return gridOps[index].proc(graphPtr, interp, objc, objv);
 }
