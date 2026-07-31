@@ -17,15 +17,20 @@
 #include <X11/Xutil.h>
 #ifndef WIN32
 #include <X11/Xproto.h>
+static RbcWinOp ColormapOp;
 #endif
 
-static Tcl_ObjCmdProc WinopCmd;
+static Tcl_ObjCmdProc2 WinopCmd;
 
 static int GetRealizedWindow(Tcl_Interp *interp, const char *string, Tk_Window *tkwinPtr);
 static Window StringToWindow(Tcl_Interp *interp, const char *string);
 
-typedef int(RbcWinOp)(ClientData, Tcl_Interp *, int, Tcl_Obj *const[]);
-typedef RbcWinOp *RbcWinOpPtr;
+typedef int RbcWinOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+
+typedef struct {
+    Rbc_OpSpecHeader header;
+    RbcWinOp *proc;
+} WinopOpSpec;
 static RbcWinOp LowerOp;
 static RbcWinOp RaiseOp;
 static RbcWinOp MapOp;
@@ -255,7 +260,7 @@ static int GetWindowSize(Tcl_Interp *interp, Window window, int *widthPtr, int *
  *
  *--------------------------------------------------------------
  */
-static int ColormapOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int ColormapOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     register int i;
     Tk_Window tkwin;
 #define MAXCOLORS 256
@@ -327,8 +332,8 @@ static int ColormapOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
  *
  *--------------------------------------------------------------
  */
-static int LowerOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    register int i;
+static int LowerOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    Tcl_Size i;
     Tk_Window tkwin;
 
     for (i = 2; i < objc; i++) {
@@ -363,8 +368,8 @@ static int LowerOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
  *--------------------------------------------------------------
  */
 
-static int RaiseOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    register int i;
+static int RaiseOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    Tcl_Size i;
     Tk_Window tkwin;
 
     for (i = 2; i < objc; i++) {
@@ -398,8 +403,8 @@ static int RaiseOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
  *
  *--------------------------------------------------------------
  */
-static int MapOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    register int i;
+static int MapOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    Tcl_Size i;
     Window window;
     Display *display;
 
@@ -451,7 +456,7 @@ static int MapOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *c
  *
  *--------------------------------------------------------------
  */
-static int MoveOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int MoveOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int x, y;
     Tk_Window tkwin;
     //    Window window;
@@ -497,8 +502,8 @@ static int MoveOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
  *
  *--------------------------------------------------------------
  */
-static int UnmapOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    register int i;
+static int UnmapOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    Tcl_Size i;
     Window window;
     Display *display;
 
@@ -551,7 +556,7 @@ static int UnmapOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
  *
  *--------------------------------------------------------------
  */
-static int ChangesOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int ChangesOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_Window tkwin;
 
     if (GetRealizedWindow(interp, Tcl_GetString(objv[2]), &tkwin) != TCL_OK) {
@@ -592,7 +597,7 @@ static int ChangesOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
  *
  *--------------------------------------------------------------
  */
-static int QueryOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int QueryOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int rootX, rootY, childX, childY;
     Window root, child;
     unsigned int mask;
@@ -627,7 +632,7 @@ static int QueryOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
  *
  *--------------------------------------------------------------
  */
-static int WarpToOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int WarpToOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_Window tkwin, mainWindow;
     mainWindow = (Tk_Window)clientData;
 
@@ -657,48 +662,6 @@ static int WarpToOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
     return QueryOp(clientData, interp, 0, NULL);
 }
 
-#ifdef notdef
-/*
- *--------------------------------------------------------------
- *
- * ReparentOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
-static int ReparentOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    Tk_Window tkwin;
-
-    if (GetRealizedWindow(interp, Tcl_GetString(objv[2]), &tkwin) != TCL_OK) {
-        return TCL_ERROR;
-    }
-    if (objc == 4) {
-        Tk_Window newParent;
-
-        if (GetRealizedWindow(interp, Tcl_GetString(objv[3]), &newParent) != TCL_OK) {
-            return TCL_ERROR;
-        }
-        Rbc_RelinkWindow2(tkwin, Rbc_GetRealWindowId(tkwin), newParent, 0, 0);
-    } else {
-        Rbc_UnlinkWindow(tkwin);
-    }
-    return TCL_OK;
-}
-#endif
-
 /*
  * This is a temporary home for these image routines.  They will be
  * moved when a new image type is created for them.
@@ -725,7 +688,7 @@ static int ReparentOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
  *
  *--------------------------------------------------------------
  */
-static int ConvolveOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int ConvolveOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_PhotoHandle srcPhoto, destPhoto;
     Rbc_ColorImage srcImage, destImage;
     Filter2D filter;
@@ -733,7 +696,7 @@ static int ConvolveOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
     Tcl_Obj **valueArr;
     double *kernel;
     double value, sum;
-    register int i;
+    Tcl_Size i;
     int dim;
     int result = TCL_ERROR;
     const char *srcName = Tcl_GetString(objv[2]);
@@ -760,12 +723,25 @@ static int ConvolveOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
         Tcl_AppendResult(interp, "empty kernel", (char *)NULL);
         goto error;
     }
+    if (nValues > INT_MAX) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("convolution kernel is too large", -1));
+        goto error;
+    }
     dim = (int)sqrt((double)nValues);
+    if (((Tcl_Size)dim * (Tcl_Size)dim) != nValues) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("kernel must be square", -1));
+        goto error;
+    }
     if ((dim * dim) != (int)nValues) {
         Tcl_AppendResult(interp, "kernel must be square", (char *)NULL);
         goto error;
     }
-    kernel = (double *)ckalloc(sizeof(double) * nValues);
+    if (nValues > (Tcl_Size)(SIZE_MAX / sizeof(double))) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("convolution kernel is too large", -1));
+        goto error;
+    }
+
+    kernel = ckalloc(sizeof(double) * (size_t)nValues);
     sum = 0.0;
     for (i = 0; i < nValues; i++) {
         if (Tcl_GetDoubleFromObj(interp, valueArr[i], &value) != TCL_OK) {
@@ -787,7 +763,7 @@ static int ConvolveOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
     result = TCL_OK;
 error:
     if (kernel != NULL) {
-        ckfree((char *)kernel);
+        ckfree(kernel);
     }
     return result;
 }
@@ -813,7 +789,7 @@ error:
  *
  *--------------------------------------------------------------
  */
-static int QuantizeOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int QuantizeOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_PhotoHandle srcPhoto, destPhoto;
     Tk_PhotoImageBlock src, dest;
     Rbc_ColorImage srcImage, destImage;
@@ -878,7 +854,7 @@ static int QuantizeOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
  *
  *--------------------------------------------------------------
  */
-static int ReadJPEGOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int ReadJPEGOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
 #if HAVE_JPEGLIB_H
     Tk_PhotoHandle photo; /* The photo image to write into. */
     const char *name = Tcl_GetString(objv[3]);
@@ -916,7 +892,7 @@ static int ReadJPEGOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
  *
  *--------------------------------------------------------------
  */
-static int GradientOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int GradientOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_PhotoHandle photo;
     Tk_PhotoImageBlock src;
     XColor *leftPtr, *rightPtr;
@@ -1081,7 +1057,7 @@ done:
  *
  *--------------------------------------------------------------
  */
-static int ResampleOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int ResampleOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_PhotoHandle srcPhoto, destPhoto;
     Tk_PhotoImageBlock src, dest;
     ResampleFilter *filterPtr, *vertFilterPtr, *horzFilterPtr;
@@ -1168,7 +1144,7 @@ static int ResampleOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
  *
  *--------------------------------------------------------------
  */
-static int RotateOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int RotateOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_PhotoHandle srcPhoto, destPhoto;
     Rbc_ColorImage srcImage, destImage;
     double theta;
@@ -1225,7 +1201,7 @@ static int RotateOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
  *
  *--------------------------------------------------------------
  */
-static int SnapOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int SnapOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_Window tkwin;
     int width, height, destWidth, destHeight;
     Window window;
@@ -1272,7 +1248,7 @@ static int SnapOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
  *
  *--------------------------------------------------------------
  */
-static int SubsampleOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int SubsampleOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_Window tkwin;
     Tk_PhotoHandle srcPhoto, destPhoto;
     Tk_PhotoImageBlock src, dest;
@@ -1348,15 +1324,17 @@ static int SubsampleOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     return TCL_OK;
 }
 
-static const Rbc_OpSpec imageOps[] = {
-    {"convolve", (Rbc_Op)ConvolveOp, 6, 6, "srcPhoto destPhoto filter"},
-    {"gradient", (Rbc_Op)GradientOp, 7, 7, "photo left right type"},
-    {"readjpeg", (Rbc_Op)ReadJPEGOp, 5, 5, "fileName photoName"},
-    {"resample", (Rbc_Op)ResampleOp, 5, 7, "srcPhoto destPhoto ?horzFilter vertFilter?"},
-    {"rotate", (Rbc_Op)RotateOp, 6, 6, "srcPhoto destPhoto angle"},
-    {"snap", (Rbc_Op)SnapOp, 5, 7, "window photoName ?width height?"},
-    {"subsample", (Rbc_Op)SubsampleOp, 9, 11, "srcPhoto destPhoto x y width height ?horzFilter? ?vertFilter?"},
-    RBC_OPSPEC_END};
+static const WinopOpSpec imageOps[] = {{{"convolve", 6, 6, "srcPhoto destPhoto filter"}, ConvolveOp},
+                                       {{"gradient", 7, 7, "photo left right type"}, GradientOp},
+                                       {{"readjpeg", 5, 5, "fileName photoName"}, ReadJPEGOp},
+                                       {{"resample", 5, 7, "srcPhoto destPhoto ?horzFilter vertFilter?"}, ResampleOp},
+                                       {{"rotate", 6, 6, "srcPhoto destPhoto angle"}, RotateOp},
+                                       {{"snap", 5, 7, "window photoName ?width height?"}, SnapOp},
+                                       {{"subsample", 9, 11,
+                                         "srcPhoto destPhoto x y width height "
+                                         "?horzFilter? ?vertFilter?"},
+                                        SubsampleOp},
+                                       {{NULL, 0, 0, NULL}, NULL}};
 
 /*
  *--------------------------------------------------------------
@@ -1379,42 +1357,43 @@ static const Rbc_OpSpec imageOps[] = {
  *
  *--------------------------------------------------------------
  */
-static int ImageOp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    RbcWinOpPtr proc;
-    int result;
-
-    proc = (RbcWinOpPtr)Rbc_GetOpFromObj(interp, imageOps, RBC_OP_ARG2, objc, objv);
-    if (proc == NULL) {
+static int ImageOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    int index;
+    (void)clientData;
+    if (Rbc_GetOpIndexFromObj(interp, imageOps, (Tcl_Size)sizeof(imageOps[0]), RBC_OP_ARG2, objc, objv, &index) !=
+        TCL_OK) {
         return TCL_ERROR;
     }
-    clientData = (ClientData)Tk_MainWindow(interp);
-    result = (*proc)(clientData, interp, objc - 1, objv + 1);
-    return result;
+
+    /*
+     * Remove the "image" word so the selected operation sees the same
+     * argument positions as its direct rbc::winop form.
+     */
+    return imageOps[index].proc(Tk_MainWindow(interp), interp, objc - 1, objv + 1);
 }
 
-static Rbc_OpSpec winOps[] = {
-    {"changes", (Rbc_Op)ChangesOp, 3, 3, "window"},
+static const WinopOpSpec winOps[] = {{{"changes", 3, 3, "window"}, ChangesOp},
 #ifndef WIN32
-    {"colormap", (Rbc_Op)ColormapOp, 3, 3, "window"},
+                                     {{"colormap", 3, 3, "window"}, ColormapOp},
 #endif
-    {"convolve", (Rbc_Op)ConvolveOp, 5, 5, "srcPhoto destPhoto filter"},
-    {"image", (Rbc_Op)ImageOp, 2, 0, "args"},
-    {"lower", (Rbc_Op)LowerOp, 2, 0, "window ?window?..."},
-    {"map", (Rbc_Op)MapOp, 2, 0, "window ?window?..."},
-    {"move", (Rbc_Op)MoveOp, 5, 5, "window x y"},
-    {"quantize", (Rbc_Op)QuantizeOp, 4, 5, "srcPhoto destPhoto ?nColors?"},
-    {"query", (Rbc_Op)QueryOp, 2, 2, ""},
-    {"raise", (Rbc_Op)RaiseOp, 2, 0, "window ?window?..."},
-    {"readjpeg", (Rbc_Op)ReadJPEGOp, 4, 4, "fileName photoName"},
-#ifdef notdef
-    {"reparent", (Rbc_Op)ReparentOp, 3, 4, "window ?parent?"},
-#endif
-    {"resample", (Rbc_Op)ResampleOp, 4, 6, "srcPhoto destPhoto ?horzFilter vertFilter?"},
-    {"snap", (Rbc_Op)SnapOp, 4, 6, "window photoName ?width height?"},
-    {"subsample", (Rbc_Op)SubsampleOp, 8, 10, "srcPhoto destPhoto x y width height ?horzFilter? ?vertFilter?"},
-    {"unmap", (Rbc_Op)UnmapOp, 2, 0, "window ?window?..."},
-    {"warpto", (Rbc_Op)WarpToOp, 2, 3, "?window?"},
-    RBC_OPSPEC_END};
+                                     {{"convolve", 5, 5, "srcPhoto destPhoto filter"}, ConvolveOp},
+                                     {{"image", 2, 0, "args"}, ImageOp},
+                                     {{"lower", 2, 0, "window ?window?..."}, LowerOp},
+                                     {{"map", 2, 0, "window ?window?..."}, MapOp},
+                                     {{"move", 5, 5, "window x y"}, MoveOp},
+                                     {{"quantize", 4, 5, "srcPhoto destPhoto ?nColors?"}, QuantizeOp},
+                                     {{"query", 2, 2, ""}, QueryOp},
+                                     {{"raise", 2, 0, "window ?window?..."}, RaiseOp},
+                                     {{"readjpeg", 4, 4, "fileName photoName"}, ReadJPEGOp},
+                                     {{"resample", 4, 6, "srcPhoto destPhoto ?horzFilter vertFilter?"}, ResampleOp},
+                                     {{"snap", 4, 6, "window photoName ?width height?"}, SnapOp},
+                                     {{"subsample", 8, 10,
+                                       "srcPhoto destPhoto x y width height "
+                                       "?horzFilter? ?vertFilter?"},
+                                      SubsampleOp},
+                                     {{"unmap", 2, 0, "window ?window?..."}, UnmapOp},
+                                     {{"warpto", 2, 3, "?window?"}, WarpToOp},
+                                     {{NULL, 0, 0, NULL}, NULL}};
 
 /*
  *--------------------------------------------------------------
@@ -1437,17 +1416,14 @@ static Rbc_OpSpec winOps[] = {
  *
  *--------------------------------------------------------------
  */
-static int WinopCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    RbcWinOpPtr proc;
-    int result;
+static int WinopCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    int index;
 
-    proc = (RbcWinOpPtr)Rbc_GetOpFromObj(interp, winOps, RBC_OP_ARG1, objc, objv);
-    if (proc == NULL) {
+    (void)clientData;
+    if (Rbc_GetOpIndexFromObj(interp, winOps, (Tcl_Size)sizeof(winOps[0]), RBC_OP_ARG1, objc, objv, &index) != TCL_OK) {
         return TCL_ERROR;
     }
-    clientData = (ClientData)Tk_MainWindow(interp);
-    result = (*proc)(clientData, interp, objc, objv);
-    return result;
+    return winOps[index].proc(Tk_MainWindow(interp), interp, objc, objv);
 }
 
 /*
@@ -1469,7 +1445,7 @@ static int WinopCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
  *--------------------------------------------------------------
  */
 int Rbc_WinopInit(Tcl_Interp *interp) {
-    Tcl_CreateObjCommand(interp, "rbc::winop", WinopCmd, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
+    Tcl_CreateObjCommand2(interp, "rbc::winop", WinopCmd, NULL, NULL);
     return TCL_OK;
 }
 
