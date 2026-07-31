@@ -886,7 +886,7 @@ static void InitPen(BarPen *penPtr, const Tk_OptionSpec *optionSpecs, unsigned i
  *
  *----------------------------------------------------------------------
  */
-Pen *Rbc_BarPen(char *penName) {
+Pen *Rbc_BarPen(const char *penName) {
     const Tk_OptionSpec *optionSpecs;
     unsigned int flags;
     BarPen *penPtr;

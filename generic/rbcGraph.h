@@ -656,9 +656,9 @@ void Rbc_UpdateCrosshairs(Graph *graphPtr);
 void Rbc_DestroyPens(Graph *graphPtr);
 void Rbc_ReleasePenTkResources(Graph *graphPtr);
 int Rbc_GetPen(Graph *graphPtr, const char *name, Rbc_Uid classUid, Pen **penPtrPtr);
-Pen *Rbc_BarPen(char *penName);
-Pen *Rbc_LinePen(char *penName);
-Pen *Rbc_CreatePen(Graph *graphPtr, char *penName, Rbc_Uid classUid, int nOpts, Tcl_Obj *const *options);
+Pen *Rbc_BarPen(const char *penName);
+Pen *Rbc_LinePen(const char *penName);
+Pen *Rbc_CreatePen(Graph *graphPtr, const char *penName, Rbc_Uid classUid, Tcl_Size nOpts, Tcl_Obj *const options[]);
 void Rbc_FreePen(Graph *graphPtr, Pen *penPtr);
 
 int Rbc_VirtualAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);

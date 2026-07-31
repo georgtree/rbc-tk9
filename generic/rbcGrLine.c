@@ -2708,7 +2708,7 @@ static void InitPen(LinePen *penPtr, const Tk_OptionSpec *optionSpecs, unsigned 
  *
  *----------------------------------------------------------------------
  */
-Pen *Rbc_LinePen(char *penName) {
+Pen *Rbc_LinePen(const char *penName) {
     const Tk_OptionSpec *optionSpecs;
     unsigned int flags;
     LinePen *penPtr;
