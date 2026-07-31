@@ -12,19 +12,18 @@
 #include "tcl.h"
 #include "rbcVector.h"
 
-typedef int (*RbcVectorOp)(
-    ClientData,
-    Tcl_Interp *,
-    int,
-    Tcl_Obj *const []
-);
+typedef int RbcVectorOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 
-static Tcl_ObjCmdProc VectorObjCmd;
+typedef struct {
+    Rbc_OpSpecHeader header;
+    RbcVectorOp *proc;
+} VectorOpSpec;
 
-static Tcl_ObjCmdProc VectorCreateObjCmd;
-static Tcl_ObjCmdProc VectorDestroyObjCmd;
-static Tcl_ObjCmdProc VectorExprObjCmd;
-static Tcl_ObjCmdProc VectorNamesObjCmd;
+static Tcl_ObjCmdProc2 VectorObjCmd;
+static Tcl_ObjCmdProc2 VectorCreateObjCmd;
+static Tcl_ObjCmdProc2 VectorDestroyObjCmd;
+static Tcl_ObjCmdProc2 VectorExprObjCmd;
+static Tcl_ObjCmdProc2 VectorNamesObjCmd;
 
 static Tcl_CmdDeleteProc VectorInstDeleteProc;
 
@@ -111,16 +110,16 @@ int Rbc_VectorInit(Tcl_Interp *interp) {
     rbcNaN = MakeNaN();
 
     dataPtr = Rbc_VectorGetInterpData(interp);
-    Tcl_CreateObjCommand(interp, "rbc::vector", VectorObjCmd, dataPtr, NULL);
+    Tcl_CreateObjCommand2(interp, "rbc::vector", VectorObjCmd, dataPtr, NULL);
 
     return TCL_OK;
 }
 
-static const Rbc_OpSpec vectorOpCmd[] = {{"create", (Rbc_Op)VectorCreateObjCmd, 2, 0, "?vecName? ?switches...?"},
-                                         {"destroy", (Rbc_Op)VectorDestroyObjCmd, 2, 0, "?vecName...?"},
-                                         {"expr", (Rbc_Op)VectorExprObjCmd, 3, 3, "expression"},
-                                         {"names", (Rbc_Op)VectorNamesObjCmd, 2, 3, "?pattern...?"},
-                                         RBC_OPSPEC_END};
+static const VectorOpSpec vectorOpCmd[] = {{{"create", 2, 0, "?vecName? ?switches...?"}, VectorCreateObjCmd},
+                                           {{"destroy", 2, 0, "?vecName?..."}, VectorDestroyObjCmd},
+                                           {{"expr", 3, 3, "expression"}, VectorExprObjCmd},
+                                           {{"names", 2, 3, "?pattern?..."}, VectorNamesObjCmd},
+                                           {{NULL, 0, 0, NULL}, NULL}};
 
 /*
  * ------------------------------------------------------------------------
@@ -144,14 +143,15 @@ static const Rbc_OpSpec vectorOpCmd[] = {{"create", (Rbc_Op)VectorCreateObjCmd, 
  *
  * ------------------------------------------------------------------------
  */
-static int VectorObjCmd(ClientData dataPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    RbcVectorOp proc;
-    proc = (RbcVectorOp)Rbc_GetOpFromObj(interp, vectorOpCmd, RBC_OP_ARG1, objc, objv);
-    if (NULL == proc) {
+static int VectorObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    int index;
+
+    if (Rbc_GetOpIndexFromObj(interp, vectorOpCmd, (Tcl_Size)sizeof(vectorOpCmd[0]), RBC_OP_ARG1, objc, objv, &index) !=
+        TCL_OK) {
         return TCL_ERROR;
     }
 
-    return proc(dataPtr, interp, objc, objv);
+    return vectorOpCmd[index].proc(clientData, interp, objc, objv);
 }
 
 /*
@@ -163,7 +163,7 @@ static Tcl_Size ParseBool(void *clientData, Tcl_Interp *interp, Tcl_Size objc, T
     const char *optionName = (const char *)clientData;
 
     if (objc != 1) {
-        Tcl_AppendResult(interp, "option \"", optionName, "\" requires a boolean value", NULL);
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("option \"%s\" requires a boolean value", optionName));
         return -1;
     }
 
@@ -201,7 +201,7 @@ static Tcl_Size ParseBool(void *clientData, Tcl_Interp *interp, Tcl_Size objc, T
  *
  *----------------------------------------------------------------------
  */
-static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     VectorInterpData *dataPtr = clientData;
     VectorObject *vPtr;
     Tcl_Obj *resultPtr; /* for the result of this function */
@@ -210,7 +210,7 @@ static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, int obj
     Tcl_Obj **objNameArray; /* holds all vector names specified */
     Tcl_Size count;
     Tcl_DString ds;
-    register int i;
+    Tcl_Size i;
     const Tcl_ArgvInfo argsTable[] = {{TCL_ARGV_STRING, "-command", NULL, &cmdName, NULL, NULL},
                                       {TCL_ARGV_GENFUNC, "-flush", ParseBool, &flush, NULL, NULL},
                                       {TCL_ARGV_INT, "-length", NULL, &defLen, NULL, NULL},
@@ -390,12 +390,12 @@ error:
  *
  *----------------------------------------------------------------------
  */
-static int VectorDestroyObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int VectorDestroyObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     /* Not Implemented Correctly */
 
     VectorInterpData *dataPtr = clientData;
     VectorObject *vPtr;
-    register int i;
+    Tcl_Size i;
     for (i = 2; i < objc; i++) {
         if (Rbc_VectorLookupName(dataPtr, Tcl_GetString(objv[i]), &vPtr) != TCL_OK) {
             return TCL_ERROR;
@@ -428,7 +428,7 @@ static int VectorDestroyObjCmd(ClientData clientData, Tcl_Interp *interp, int ob
  *
  *----------------------------------------------------------------------
  */
-static int VectorExprObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int VectorExprObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return Rbc_ExprVector(interp, Tcl_GetString(objv[2]), (Rbc_Vector *)NULL);
 }
 
@@ -455,7 +455,7 @@ static int VectorExprObjCmd(ClientData clientData, Tcl_Interp *interp, int objc,
  *
  *----------------------------------------------------------------------
  */
-static int VectorNamesObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int VectorNamesObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     VectorInterpData *dataPtr = clientData;
     Tcl_HashEntry *hPtr;
     const char *name;
@@ -709,8 +709,15 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
         }
 
         if (Tcl_GetCommandInfo(interp, cmdName, &cmdInfo)) {
-            if (vPtr != cmdInfo.objClientData) {
+            /*
+             * Vector instance commands are registered through
+             * Tcl_CreateObjCommand2(), so their original callback and client
+             * data are stored in objProc2 and objClientData2.
+             */
+            if ((cmdInfo.isNativeObjectProc != 2) || (cmdInfo.objProc2 != Rbc_VectorInstanceObjCmd) ||
+                (cmdInfo.objClientData2 != vPtr)) {
                 Tcl_AppendStringsToObj(resultPtr, "command \"", cmdName, "\" already exists", NULL);
+
                 Tcl_SetObjResult(interp, resultPtr);
                 goto error;
             }
@@ -722,7 +729,7 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
     }
 
     if (cmdName != NULL) {
-        vPtr->cmdToken = Tcl_CreateObjCommand(interp, cmdName, Rbc_VectorInstanceObjCmd, vPtr, VectorInstDeleteProc);
+        vPtr->cmdToken = Tcl_CreateObjCommand2(interp, cmdName, Rbc_VectorInstanceObjCmd, vPtr, VectorInstDeleteProc);
     }
 
     /* process array variable: */
@@ -742,9 +749,10 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
     return vPtr;
 
 error:
-    if (vPtr != NULL) {
+    if ((vPtr != NULL) && isNew) {
         Rbc_VectorFree(vPtr);
     }
+
     Tcl_DStringFree(&qualVecNamePtr);
     return NULL;
 }

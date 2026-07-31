@@ -313,7 +313,7 @@ int Rbc_ResetVector(Rbc_Vector *vecPtr, double *dataArr, int nValues, int arrayS
 int Rbc_VectorReset(VectorObject *vPtr, double *dataArr, int nValues, int arraySize, Tcl_FreeProc *freeProc);
 
 /* Instance Functions Definitions (rbcVecObjCmd.c) */
-Tcl_ObjCmdProc Rbc_VectorInstanceObjCmd;
+Tcl_ObjCmdProc2 Rbc_VectorInstanceObjCmd;
 double drand48(void);
 
 /* Vector Math Definitions (rbcVecMath.c) */

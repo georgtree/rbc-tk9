@@ -3555,28 +3555,56 @@ int Rbc_GraphUpdateNeeded(Graph *graphPtr) {
  */
 static int ActivateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
-    Tcl_Size i;
     int *activeArr;
     int nActiveIndices;
+    Tcl_Size i;
 
-    /* Existing query branch remains unchanged. */
+    (void)type;
+
+    /*
+     * With no element name, return all currently active elements.
+     */
+    if (objc == 3) {
+        Tcl_HashEntry *hPtr;
+        Tcl_HashSearch cursor;
+        Tcl_Obj *resultObjPtr;
+
+        resultObjPtr = Tcl_NewListObj(0, NULL);
+
+        for (hPtr = Tcl_FirstHashEntry(&graphPtr->elements.table, &cursor); hPtr != NULL;
+             hPtr = Tcl_NextHashEntry(&cursor)) {
+            elemPtr = Tcl_GetHashValue(hPtr);
+
+            if (elemPtr->flags & ELEM_ACTIVE) {
+                Tcl_ListObjAppendElement(interp, resultObjPtr, Tcl_NewStringObj(elemPtr->name, -1));
+            }
+        }
+
+        Tcl_SetObjResult(interp, resultObjPtr);
+
+        return TCL_OK;
+    }
 
     if (NameToElement(graphPtr, objv[3], &elemPtr) != TCL_OK) {
         return TCL_ERROR;
     }
 
-    elemPtr->flags |= ELEM_ACTIVE | ACTIVE_PENDING;
     activeArr = NULL;
     nActiveIndices = -1;
 
     if (objc > 4) {
-        int *activePtr;
         Tcl_Size count;
+        int *activePtr;
 
         count = objc - 4;
 
+        /*
+         * Element point indices are still int-sized. Remove this
+         * conversion guard during the element/vector size migration.
+         */
         if (count > INT_MAX) {
             Tcl_SetObjResult(interp, Tcl_NewStringObj("too many active element indices", -1));
+
             return TCL_ERROR;
         }
 
@@ -3585,27 +3613,36 @@ static int ActivateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Siz
         activeArr = ckalloc(sizeof(int) * (size_t)nActiveIndices);
         activePtr = activeArr;
 
+        /*
+         * Prepare the replacement completely before modifying the live
+         * element state.
+         */
         for (i = 4; i < objc; i++) {
             if (GetIndex(interp, elemPtr, Tcl_GetString(objv[i]), activePtr) != TCL_OK) {
                 ckfree(activeArr);
                 return TCL_ERROR;
             }
+
             activePtr++;
         }
     }
 
+    /*
+     * Commit the replacement only after every supplied index has been
+     * validated.
+     */
     if (elemPtr->activeIndices != NULL) {
         ckfree(elemPtr->activeIndices);
     }
 
-    elemPtr->nActiveIndices = nActiveIndices;
     elemPtr->activeIndices = activeArr;
+    elemPtr->nActiveIndices = nActiveIndices;
+    elemPtr->flags |= ELEM_ACTIVE | ACTIVE_PENDING;
 
     Rbc_EventuallyRedrawGraph(graphPtr);
 
     return TCL_OK;
 }
-
 /*
  *----------------------------------------------------------------------
  *

@@ -36,17 +36,21 @@ static int nSortVectors;
 static int reverse;
 
 static int AppendVector(VectorObject *destPtr, VectorObject *srcPtr);
-static int AppendList(VectorObject *vPtr, int objc, Tcl_Obj *const objv[]);
+static int AppendList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]);
 static int CopyValues(VectorObject *vPtr, char *byteArr, enum NativeFormats fmt, int size, int length, int swap,
                       int *indexPtr);
 static int InRange(double value, double min, double max);
-static int CopyList(VectorObject *vPtr, int objc, Tcl_Obj *const objv[]);
+static int CopyList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]);
 static int *SortVectors(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const *objv);
 static int CompareVectors(void *a, void *b);
 
 /* Instance Functions Definitions (rbcVecObjCmd.c) */
-typedef int(RbcVectorCmdOp)(VectorObject *, Tcl_Interp *, int, Tcl_Obj *const[]);
-typedef RbcVectorCmdOp *RbcVectorCmdOpPtr;
+typedef int RbcVectorCmdOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+
+typedef struct {
+    Rbc_OpSpecHeader header;
+    RbcVectorCmdOp *proc;
+} VectorInstOpSpec;
 static RbcVectorCmdOp AppendOp;
 static RbcVectorCmdOp ArithOp;
 static RbcVectorCmdOp BinreadOp;
@@ -73,31 +77,31 @@ double drand48(void) { return (double)rand() / (double)RAND_MAX; }
 
 void srand48(long int seed) { srand(seed); }
 
-static const Rbc_OpSpec vectorInstOpCmd[] = {{"*", (Rbc_Op)ArithOp, 3, 3, "list"},
-                                             {"+", (Rbc_Op)ArithOp, 3, 3, "list"},
-                                             {"-", (Rbc_Op)ArithOp, 3, 3, "list"},
-                                             {"/", (Rbc_Op)ArithOp, 3, 3, "list"},
-                                             {"append", (Rbc_Op)AppendOp, 3, 0, "item ?item...?"},
-                                             {"binread", (Rbc_Op)BinreadOp, 3, 0, "channel ?numValues? ?flags?"},
-                                             {"clear", (Rbc_Op)ClearOp, 2, 2, ""},
-                                             {"delete", (Rbc_Op)DeleteOp, 3, 0, "index ?index...?"},
-                                             {"dup", (Rbc_Op)DupOp, 3, 3, "vecname"},
-                                             {"expr", (Rbc_Op)ExprOp, 3, 3, "expression"},
-                                             {"index", (Rbc_Op)IndexOp, 3, 4, "index ?value?"},
-                                             {"length", (Rbc_Op)LengthOp, 2, 3, "?newSize?"},
-                                             {"merge", (Rbc_Op)MergeOp, 3, 0, "vecName ?vecName...?"},
-                                             {"normalize", (Rbc_Op)NormalizeOp, 2, 3, "?vecName?"},
-                                             {"offset", (Rbc_Op)OffsetOp, 2, 3, "?offset?"},
-                                             {"populate", (Rbc_Op)PopulateOp, 4, 4, "vecName density"},
-                                             {"random", (Rbc_Op)RandomOp, 2, 2, ""},
-                                             {"range", (Rbc_Op)RangeOp, 4, 4, "first last"},
-                                             {"search", (Rbc_Op)SearchOp, 3, 5, "?-value? value ?value?"},
-                                             {"seq", (Rbc_Op)SeqOp, 4, 5, "start end ?step?"},
-                                             {"set", (Rbc_Op)SetOp, 3, 3, "list"},
-                                             {"sort", (Rbc_Op)SortOp, 2, 0, "?-reverse? ?vecName...?"},
-                                             {"split", (Rbc_Op)SplitOp, 2, 0, "?vecName...?"},
-                                             {"variable", (Rbc_Op)VariableOp, 2, 3, "?varName?"},
-                                             RBC_OPSPEC_END};
+static const VectorInstOpSpec vectorInstOpCmd[] = {{{"*", 3, 3, "list"}, ArithOp},
+                                                   {{"+", 3, 3, "list"}, ArithOp},
+                                                   {{"-", 3, 3, "list"}, ArithOp},
+                                                   {{"/", 3, 3, "list"}, ArithOp},
+                                                   {{"append", 3, 0, "item ?item...?"}, AppendOp},
+                                                   {{"binread", 3, 0, "channel ?numValues? ?flags?"}, BinreadOp},
+                                                   {{"clear", 2, 2, ""}, ClearOp},
+                                                   {{"delete", 3, 0, "index ?index?..."}, DeleteOp},
+                                                   {{"dup", 3, 3, "vecname"}, DupOp},
+                                                   {{"expr", 3, 3, "expression"}, ExprOp},
+                                                   {{"index", 3, 4, "index ?value?"}, IndexOp},
+                                                   {{"length", 2, 3, "?newSize?"}, LengthOp},
+                                                   {{"merge", 3, 0, "vecName ?vecName?..."}, MergeOp},
+                                                   {{"normalize", 2, 3, "?vecName?"}, NormalizeOp},
+                                                   {{"offset", 2, 3, "?offset?"}, OffsetOp},
+                                                   {{"populate", 4, 4, "vecName density"}, PopulateOp},
+                                                   {{"random", 2, 2, ""}, RandomOp},
+                                                   {{"range", 4, 4, "first last"}, RangeOp},
+                                                   {{"search", 3, 5, "?-value? value ?value?"}, SearchOp},
+                                                   {{"seq", 4, 5, "start end ?step?"}, SeqOp},
+                                                   {{"set", 3, 3, "list"}, SetOp},
+                                                   {{"sort", 2, 0, "?-reverse? ?vecName?..."}, SortOp},
+                                                   {{"split", 2, 0, "?vecName?..."}, SplitOp},
+                                                   {{"variable", 2, 3, "?varName?"}, VariableOp},
+                                                   {{NULL, 0, 0, NULL}, NULL}};
 
 /*
  * ----------------------------------------------------------------------
@@ -124,21 +128,24 @@ static const Rbc_OpSpec vectorInstOpCmd[] = {{"*", (Rbc_Op)ArithOp, 3, 3, "list"
  *
  * ----------------------------------------------------------------------
  */
-int Rbc_VectorInstanceObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    VectorObject *vPtr = clientData;
-    RbcVectorCmdOpPtr proc;
+int Rbc_VectorInstanceObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    VectorObject *vPtr;
+    int index;
 
-    proc = (RbcVectorCmdOpPtr)Rbc_GetOpFromObj(interp, vectorInstOpCmd, RBC_OP_ARG1, objc, objv);
+    vPtr = clientData;
 
-    if (NULL == proc) {
+    if (Rbc_GetOpIndexFromObj(interp, vectorInstOpCmd, (Tcl_Size)sizeof(vectorInstOpCmd[0]), RBC_OP_ARG1, objc, objv,
+                              &index) != TCL_OK) {
         return TCL_ERROR;
     }
 
-    /* reset selected indices */
+    /*
+     * Reset the selected region before each instance operation.
+     */
     vPtr->first = 0;
     vPtr->last = vPtr->length - 1;
 
-    return (*proc)(vPtr, interp, objc, objv);
+    return vectorInstOpCmd[index].proc(vPtr, interp, objc, objv);
 }
 
 /*
@@ -165,8 +172,8 @@ int Rbc_VectorInstanceObjCmd(ClientData clientData, Tcl_Interp *interp, int objc
  *
  * -----------------------------------------------------------------------
  */
-static int AppendOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    register int i;
+static int AppendOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    Tcl_Size i;
     int result;
     VectorObject *v2Ptr;
 
@@ -182,7 +189,7 @@ static int AppendOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *c
             if (Tcl_ListObjGetElements(interp, objv[i], &nElem, &elemObjArr) != TCL_OK) {
                 return TCL_ERROR;
             }
-            result = AppendList(vPtr, (int)nElem, elemObjArr);
+            result = AppendList(vPtr, nElem, elemObjArr);
         }
         if (result != TCL_OK) {
             return TCL_ERROR;
@@ -221,7 +228,7 @@ static int AppendOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *c
  *
  * -----------------------------------------------------------------------
  */
-static int ArithOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const *objv) {
+static int ArithOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const *objv) {
     register double value;
     register int i;
     VectorObject *v2Ptr;
@@ -433,7 +440,7 @@ static Tcl_Size ParseAt(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl
  *
  * -----------------------------------------------------------------------
  */
-static int BinreadOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int BinreadOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Channel channel;
     char *byteArr;
     char *string;
@@ -567,7 +574,7 @@ error:
  *
  * -----------------------------------------------------------------------
  */
-static int ClearOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int ClearOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Rbc_VectorFlushCache(vPtr);
     return TCL_OK;
 }
@@ -597,9 +604,10 @@ static int ClearOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *co
  *
  * -----------------------------------------------------------------------
  */
-static int DeleteOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int DeleteOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     unsigned char *unsetArr;
-    register int i, j;
+    Tcl_Size i;
+    register int valueIndex, j;
     register int count;
     char *string;
 
@@ -629,12 +637,12 @@ static int DeleteOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *c
         }
     }
     count = 0;
-    for (i = 0; i < vPtr->length; i++) {
-        if (GetBit(i)) {
+    for (valueIndex = 0; valueIndex < vPtr->length; valueIndex++) {
+        if (GetBit(valueIndex)) {
             continue; /* Skip elements marked for deletion. */
         }
-        if (count < i) {
-            vPtr->valueArr[count] = vPtr->valueArr[i];
+        if (count < valueIndex) {
+            vPtr->valueArr[count] = vPtr->valueArr[valueIndex];
         }
         count++;
     }
@@ -669,7 +677,7 @@ static int DeleteOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *c
  *
  * -----------------------------------------------------------------------
  */
-static int DupOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int DupOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     VectorObject *v2Ptr;
     int isNew;
     register int i;
@@ -719,7 +727,7 @@ static int DupOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
  *
  *----------------------------------------------------------------------
  */
-static int ExprOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int ExprOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     if (Rbc_ExprVector(interp, Tcl_GetString(objv[2]), (Rbc_Vector *)vPtr) != TCL_OK) {
         return TCL_ERROR;
     }
@@ -754,7 +762,7 @@ static int ExprOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *con
  *
  * -----------------------------------------------------------------------
  */
-static int IndexOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int IndexOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int first, last;
     char *string;
 
@@ -824,7 +832,7 @@ static int IndexOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *co
  *
  * -----------------------------------------------------------------------
  */
-static int LengthOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int LengthOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     if (objc == 3) {
         int size;
 
@@ -870,12 +878,13 @@ static int LengthOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *c
  *
  * -----------------------------------------------------------------------
  */
-static int MergeOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int MergeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     VectorObject *v2Ptr;
     VectorObject **vecArr;
     register VectorObject **vPtrPtr;
     int refSize, length, nElem;
-    register int i;
+    Tcl_Size i;
+    register int valueIndex;
     double *valuePtr, *valueArr;
 
     /* Allocate an array of vector pointers of each vector to be
@@ -914,9 +923,9 @@ static int MergeOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *co
     }
     /* Merge the values from each of the vectors into the current vector */
     valuePtr = valueArr;
-    for (i = 0; i < refSize; i++) {
+    for (valueIndex = 0; valueIndex < refSize; valueIndex++) {
         for (vPtrPtr = vecArr; *vPtrPtr != NULL; vPtrPtr++) {
-            *valuePtr++ = (*vPtrPtr)->valueArr[i + (*vPtrPtr)->first];
+            *valuePtr++ = (*vPtrPtr)->valueArr[valueIndex + (*vPtrPtr)->first];
         }
     }
     ckfree((char *)vecArr);
@@ -946,7 +955,7 @@ static int MergeOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *co
  *
  * -----------------------------------------------------------------------
  */
-static int NormalizeOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int NormalizeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     register int i;
     double range;
 
@@ -1013,7 +1022,7 @@ static int NormalizeOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj
  *
  * -----------------------------------------------------------------------
  */
-static int OffsetOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int OffsetOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     if (objc == 3) {
         int newOffset;
 
@@ -1048,7 +1057,7 @@ static int OffsetOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *c
  *
  * -----------------------------------------------------------------------
  */
-static int PopulateOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int PopulateOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     VectorObject *v2Ptr;
     int size, density;
     int isNew;
@@ -1121,7 +1130,7 @@ static int PopulateOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj 
  *
  * -----------------------------------------------------------------------
  */
-static int RandomOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int RandomOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
 #ifdef HAVE_DRAND48
     register int i;
 
@@ -1159,7 +1168,7 @@ static int RandomOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *c
  *
  * -----------------------------------------------------------------------
  */
-static int RangeOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int RangeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Obj *listObjPtr;
     int first, last;
     register int i;
@@ -1209,7 +1218,7 @@ static int RangeOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *co
  *
  * -----------------------------------------------------------------------
  */
-static int SearchOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int SearchOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     double min, max;
     register int i;
     int wantValue;
@@ -1265,7 +1274,7 @@ static int SearchOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *c
  *
  * -----------------------------------------------------------------------
  */
-static int SeqOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int SeqOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     register int i;
     double start, finish, step;
     int fillVector;
@@ -1330,7 +1339,7 @@ static int SeqOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
  *
  * -----------------------------------------------------------------------
  */
-static int SetOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int SetOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int result;
     VectorObject *v2Ptr;
     Tcl_Size nElem;
@@ -1357,7 +1366,7 @@ static int SetOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
             result = Rbc_VectorDuplicate(vPtr, v2Ptr);
         }
     } else if (Tcl_ListObjGetElements(interp, objv[2], &nElem, &elemObjArr) == TCL_OK) {
-        result = CopyList(vPtr, (int)nElem, elemObjArr);
+        result = CopyList(vPtr, nElem, elemObjArr);
     } else {
         return TCL_ERROR;
     }
@@ -1400,14 +1409,15 @@ static int SetOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
  *
  * -----------------------------------------------------------------------
  */
-static int SortOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int SortOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     VectorObject *v2Ptr;
     char *string;
     double *mergeArr;
     int *iArr;
     int refSize, nBytes;
     int result;
-    register int i, n;
+    Tcl_Size i;
+    register int n;
 
     reverse = FALSE;
     if (objc > 2) {
@@ -1500,41 +1510,92 @@ error:
  *
  * -----------------------------------------------------------------------
  */
-static int SplitOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int SplitOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    Tcl_Size nVectorArgs;
+    Tcl_Size argIndex;
+    VectorObject *v2Ptr;
+    const char *string;
     int nVectors;
+    int sourceIndex;
+    int destIndex;
+    int oldSize;
+    int newSize;
+    int extra;
+    int isNew;
 
-    nVectors = objc - 2;
-    /* make it a no-op if no vectors are supplied */
-    if (nVectors == 0)
+    nVectorArgs = objc - 2;
+
+    /*
+     * Make this a no-op if no destination vectors were supplied.
+     */
+    if (nVectorArgs == 0) {
         return TCL_OK;
+    }
 
-    if ((vPtr->length % nVectors) != 0) {
-        Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't split vector \"%s\" into %d even parts.", vPtr->name, nVectors));
+    /*
+     * Vector lengths and indices are still int-sized. This guard can be
+     * removed when the vector size model is converted to Tcl_Size.
+     */
+    if (nVectorArgs > INT_MAX) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("too many destination vectors", -1));
+
         return TCL_ERROR;
     }
 
-    VectorObject *v2Ptr;
-    char *string; /* Name of vector. */
-    int i, j, k;
-    int oldSize, newSize, extra, isNew;
+    nVectors = (int)nVectorArgs;
+
+    if ((vPtr->length % nVectors) != 0) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't split vector \"%s\" into %d even parts.", vPtr->name, nVectors));
+
+        return TCL_ERROR;
+    }
 
     extra = vPtr->length / nVectors;
-    for (i = 0; i < nVectors; i++) {
-        string = Tcl_GetString(objv[i + 2]);
+
+    for (argIndex = 0; argIndex < nVectorArgs; argIndex++) {
+        string = Tcl_GetString(objv[argIndex + 2]);
+
         v2Ptr = Rbc_VectorCreate(vPtr->dataPtr, string, string, string, &isNew);
+
+        if (v2Ptr == NULL) {
+            return TCL_ERROR;
+        }
+
         oldSize = v2Ptr->length;
+
+        if (oldSize > (INT_MAX - extra)) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("resulting vector \"%s\" is too large", string));
+
+            return TCL_ERROR;
+        }
+
         newSize = oldSize + extra;
+
         if (Rbc_VectorChangeLength(v2Ptr, newSize) != TCL_OK) {
             return TCL_ERROR;
         }
-        for (j = i, k = oldSize; j < vPtr->length; j += nVectors, k++) {
-            v2Ptr->valueArr[k] = vPtr->valueArr[j];
+
+        /*
+         * argIndex is known to fit in int because nVectorArgs was checked
+         * against INT_MAX.
+         */
+        sourceIndex = (int)argIndex;
+        destIndex = oldSize;
+
+        while (sourceIndex < vPtr->length) {
+            v2Ptr->valueArr[destIndex] = vPtr->valueArr[sourceIndex];
+
+            sourceIndex += nVectors;
+            destIndex++;
         }
+
         Rbc_VectorUpdateClients(v2Ptr);
+
         if (v2Ptr->flush) {
             Rbc_VectorFlushCache(v2Ptr);
         }
     }
+
     return TCL_OK;
 }
 
@@ -1559,14 +1620,14 @@ static int SplitOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *co
  *
  * -----------------------------------------------------------------------
  */
-static int VariableOp(VectorObject *vPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int VariableOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     if (objc > 2) {
         if (Rbc_VectorMapVariable(interp, vPtr, Tcl_GetString(objv[2])) != TCL_OK) {
             return TCL_ERROR;
         }
     }
     if (vPtr->arrayName != NULL) {
-        Tcl_SetResult(interp, vPtr->arrayName, TCL_VOLATILE);
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(vPtr->arrayName, -1));
     }
     return TCL_OK;
 }
@@ -1625,11 +1686,16 @@ static int AppendVector(VectorObject *destPtr, VectorObject *srcPtr) {
  *
  * -----------------------------------------------------------------------
  */
-static int AppendList(VectorObject *vPtr, int objc, Tcl_Obj *const objv[]) {
+static int AppendList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int count;
-    register int i;
+    Tcl_Size i;
     double value;
     int oldSize;
+
+    if (objc > INT_MAX) {
+        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("too many vector values", -1));
+        return TCL_ERROR;
+    }
 
     oldSize = vPtr->length;
     if (Rbc_VectorChangeLength(vPtr, vPtr->length + objc) != TCL_OK) {
@@ -1819,9 +1885,14 @@ static int InRange(double value, double min, double max) {
  *
  *--------------------------------------------------------------
  */
-static int CopyList(VectorObject *vPtr, int objc, Tcl_Obj *const objv[]) {
-    register int i;
+static int CopyList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    Tcl_Size i;
     double value;
+
+    if (objc > INT_MAX) {
+        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("too many vector values", -1));
+        return TCL_ERROR;
+    }
 
     if (Rbc_VectorChangeLength(vPtr, objc) != TCL_OK) {
         return TCL_ERROR;
