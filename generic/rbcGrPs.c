@@ -84,17 +84,21 @@ extern void Rbc_GridToPostScript(Graph *graphPtr, PsToken psToken);
 extern void Rbc_AxesToPostScript(Graph *graphPtr, PsToken psToken);
 extern void Rbc_AxisLimitsToPostScript(Graph *graphPtr, PsToken psToken);
 
-typedef int(RbcGrPsOp)(Graph *, Tcl_Interp *, int, Tcl_Obj *const[]);
-typedef RbcGrPsOp *RbcGrPsOpPtr;
+typedef int RbcGrPsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+
+typedef struct {
+    Rbc_OpSpecHeader header;
+    RbcGrPsOp *proc;
+} PostScriptOpSpec;
 static RbcGrPsOp CgetOp;
 static RbcGrPsOp ConfigureOp;
 static RbcGrPsOp OutputOp;
 
 static int ComputeBoundingBox(Graph *graphPtr, PostScript *psPtr);
 static void PreviewImage(Graph *graphPtr, PsToken psToken);
-static int PostScriptPreamble(Graph *graphPtr, char *fileName, PsToken psToken);
+static int PostScriptPreamble(Graph *graphPtr, const char *fileName, PsToken psToken);
 static void MarginsToPostScript(Graph *graphPtr, PsToken psToken);
-static int GraphToPostScript(Graph *graphPtr, char *ident, PsToken psToken);
+static int GraphToPostScript(Graph *graphPtr, const char *ident, PsToken psToken);
 
 #ifdef WIN32
 static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, FILE *f);
@@ -235,7 +239,7 @@ static int ConfigurePostScript(Graph *graphPtr, PostScript *psPtr, int mask) {
     return TCL_OK;
 }
 
-static int SetPostScriptOptions(Graph *graphPtr, PostScript *psPtr, int objc, Tcl_Obj *const objv[],
+static int SetPostScriptOptions(Graph *graphPtr, PostScript *psPtr, Tcl_Size objc, Tcl_Obj *const objv[],
                                 Tk_SavedOptions *savedOptionsPtr, int *maskPtr) {
     if (Tk_SetOptions(graphPtr->interp, (char *)psPtr, psPtr->optionTable, objc, objv, graphPtr->tkwin, savedOptionsPtr,
                       maskPtr) != TCL_OK) {
@@ -304,7 +308,7 @@ void Rbc_DestroyPostScript(Graph *graphPtr) {
  *
  *--------------------------------------------------------------
  */
-static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     PostScript *psPtr;
     Tcl_Obj *resultObjPtr;
 
@@ -338,7 +342,7 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const 
  *
  * ----------------------------------------------------------------------
  */
-static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     PostScript *psPtr;
     Tcl_Obj *resultObjPtr;
     Tk_SavedOptions savedOptions;
@@ -585,7 +589,7 @@ static void PreviewImage(Graph *graphPtr, PsToken psToken) {
  *
  *--------------------------------------------------------------
  */
-static int PostScriptPreamble(Graph *graphPtr, char *fileName, PsToken psToken) {
+static int PostScriptPreamble(Graph *graphPtr, const char *fileName, PsToken psToken) {
     PostScript *psPtr = (PostScript *)graphPtr->postscript;
     time_t ticks;
     char date[200]; /* Hold the date string from ctime() */
@@ -781,7 +785,7 @@ static void MarginsToPostScript(Graph *graphPtr, PsToken psToken) {
  *
  *--------------------------------------------------------------
  */
-static int GraphToPostScript(Graph *graphPtr, char *ident, PsToken psToken) {
+static int GraphToPostScript(Graph *graphPtr, const char *ident, PsToken psToken) {
     int x, y, width, height;
     int result;
 
@@ -1049,35 +1053,39 @@ error:
  *
  *----------------------------------------------------------------------
  */
-static int OutputOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    PostScript *psPtr = (PostScript *)graphPtr->postscript;
-    FILE *f = NULL;
+static int OutputOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    PostScript *psPtr;
+    FILE *f;
     PsToken psToken;
-    char *fileName = NULL; /* Name of file to write PostScript output
-                            * If NULL, output is returned via
-                            * the interpreter result. */
-    int optionIndex;
-    
+    const char *fileName;
+    Tcl_Size optionIndex;
+
     psPtr = graphPtr->postscript;
     f = NULL;
     psToken = NULL;
     fileName = NULL;
     optionIndex = 3;
+
     if (objc > 3) {
         const char *arg;
+
         arg = Tcl_GetString(objv[3]);
+
         if (arg[0] != '-') {
-            fileName = (char *)arg;
+            fileName = arg;
             optionIndex = 4;
         }
     }
+
     if (objc > optionIndex) {
         Tk_SavedOptions savedOptions;
         int mask;
+
         if (SetPostScriptOptions(graphPtr, psPtr, objc - optionIndex, objv + optionIndex, &savedOptions, &mask) !=
             TCL_OK) {
             return TCL_ERROR;
         }
+
         /*
          * Successful output options remain installed, matching the
          * existing command semantics.
@@ -1109,21 +1117,21 @@ static int OutputOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *cons
     if (f != NULL) {
 #ifdef WIN32
         if ((psPtr->addPreview) && (psPtr->previewFormat != PS_PREVIEW_EPSI)) {
-            if (CreateWindowsEPS(graphPtr, psToken, f)) {
-                return TCL_ERROR;
+            if (CreateWindowsEPS(graphPtr, psToken, f) != TCL_OK) {
+                goto error;
             }
         } else {
             fputs(Rbc_PostScriptFromToken(psToken), f);
             if (ferror(f)) {
-                Tcl_AppendResult(interp, "error writing file \"", fileName, "\": ", Tcl_PosixError(interp),
-                                 (char *)NULL);
+                Tcl_SetObjResult(interp,
+                                 Tcl_ObjPrintf("error writing file \"%s\": %s", fileName, Tcl_PosixError(interp)));
                 goto error;
             }
         }
 #else
         fputs(Rbc_PostScriptFromToken(psToken), f);
         if (ferror(f)) {
-            Tcl_AppendResult(interp, "error writing file \"", fileName, "\": ", Tcl_PosixError(interp), (char *)NULL);
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("error writing file \"%s\": %s", fileName, Tcl_PosixError(interp)));
             goto error;
         }
 #endif /* WIN32 */
@@ -1198,10 +1206,10 @@ error:
  *
  *--------------------------------------------------------------
  */
-static const Rbc_OpSpec psOps[] = {{"cget", (Rbc_Op)CgetOp, 4, 4, "option"},
-                                   {"configure", (Rbc_Op)ConfigureOp, 3, 0, "?option value?..."},
-                                   {"output", (Rbc_Op)OutputOp, 3, 0, "?fileName? ?option value?..."},
-                                   RBC_OPSPEC_END};
+static const PostScriptOpSpec psOps[] = {{{"cget", 4, 4, "option"}, CgetOp},
+                                         {{"configure", 3, 0, "?option value?..."}, ConfigureOp},
+                                         {{"output", 3, 0, "?fileName? ?option value?..."}, OutputOp},
+                                         {{NULL, 0, 0, NULL}, NULL}};
 
 /*
  *--------------------------------------------------------------
@@ -1225,13 +1233,11 @@ static const Rbc_OpSpec psOps[] = {{"cget", (Rbc_Op)CgetOp, 4, 4, "option"},
  *--------------------------------------------------------------
  */
 int Rbc_PostScriptOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    RbcGrPsOpPtr proc;
-    int result;
+    int index;
 
-    proc = (RbcGrPsOpPtr)Rbc_GetOpFromObj(interp, psOps, RBC_OP_ARG2, objc, objv);
-    if (proc == NULL) {
+    if (Rbc_GetOpIndexFromObj(interp, psOps, (Tcl_Size)sizeof(psOps[0]), RBC_OP_ARG2, objc, objv, &index) != TCL_OK) {
         return TCL_ERROR;
     }
-    result = (*proc)(graphPtr, interp, objc, objv);
-    return result;
+
+    return psOps[index].proc(graphPtr, interp, objc, objv);
 }
