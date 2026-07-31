@@ -11,12 +11,11 @@
 
 #include "rbcInt.h"
 
-typedef int (*Rbc_SplineOp)(
-    Point2D *,
-    int,
-    Point2D *, 
-    int 
-);
+typedef int (*Rbc_SplineOp)(Point2D *, int, Point2D *, int);
+typedef struct {
+    Rbc_OpSpecHeader header;
+    Rbc_SplineOp proc;
+} SplineOpSpec;
 typedef double TriDiagonalMatrix[3];
 typedef struct {
     double b, c, d;
@@ -48,7 +47,7 @@ typedef struct {
 #define Y1 param[8]
 #define Y2 param[9]
 
-static Tcl_ObjCmdProc SplineObjCmd;
+static Tcl_ObjCmdProc2 SplineObjCmd;
 static int Search(Point2D points[], int nPoints, double key, int *foundPtr);
 static int QuadChoose(Point2D *p, Point2D *q, double m1, double m2, double epsilon);
 static void QuadCases(Point2D *p, Point2D *q, double m1, double m2, double param[], int which);
@@ -990,9 +989,9 @@ int Rbc_NaturalSpline(Point2D origPts[], int nOrigPts, Point2D intpPts[], int nI
     return TRUE;
 }
 
-static const Rbc_OpSpec splineOps[] = {{"natural", (Rbc_Op)Rbc_NaturalSpline, 6, 6, "x y splx sply"},
-                                       {"quadratic", (Rbc_Op)Rbc_QuadraticSpline, 6, 6, "x y splx sply"},
-                                       RBC_OPSPEC_END};
+static const SplineOpSpec splineOps[] = {{{"natural", 6, 6, "x y splx sply"}, Rbc_NaturalSpline},
+                                         {{"quadratic", 6, 6, "x y splx sply"}, Rbc_QuadraticSpline},
+                                         {{NULL, 0, 0, NULL}, NULL}};
 
 /*
  *--------------------------------------------------------------
@@ -1015,19 +1014,33 @@ static const Rbc_OpSpec splineOps[] = {{"natural", (Rbc_Op)Rbc_NaturalSpline, 6,
  *
  *--------------------------------------------------------------
  */
-static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    Rbc_Vector *x;
+    Rbc_Vector *y;
+    Rbc_Vector *splX;
+    Rbc_Vector *splY;
     Rbc_SplineOp proc;
-    Rbc_Vector *x, *y, *splX, *splY;
-    const char *xName, *yName, *splXName, *splYName;
-    double *xArr, *yArr;
-    register int i;
-    Point2D *origPts, *intpPts;
-    int nOrigPts, nIntpPts;
+    const char *xName;
+    const char *yName;
+    const char *splXName;
+    const char *splYName;
+    double *xArr;
+    double *yArr;
+    Point2D *origPts;
+    Point2D *intpPts;
+    int nOrigPts;
+    int nIntpPts;
+    int index;
+    int i;
 
-    proc = (Rbc_SplineOp)Rbc_GetOpFromObj(interp, splineOps, RBC_OP_ARG1, objc, objv);
-    if (proc == NULL) {
+    (void)clientData;
+
+    if (Rbc_GetOpIndexFromObj(interp, splineOps, (Tcl_Size)sizeof(splineOps[0]), RBC_OP_ARG1, objc, objv, &index) !=
+        TCL_OK) {
         return TCL_ERROR;
     }
+
+    proc = splineOps[index].proc;
 
     xName = Tcl_GetString(objv[2]);
     yName = Tcl_GetString(objv[3]);
@@ -1040,22 +1053,22 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
     }
     nOrigPts = Rbc_VecLength(x);
     if (nOrigPts < 3) {
-        Tcl_AppendResult(interp, "length of vector \"", xName, "\" is < 3", (char *)NULL);
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("length of vector \"%s\" is < 3", xName));
         return TCL_ERROR;
     }
     for (i = 1; i < nOrigPts; i++) {
         if (Rbc_VecData(x)[i] < Rbc_VecData(x)[i - 1]) {
-            Tcl_AppendResult(interp, "x vector \"", xName, "\" must be monotonically increasing", (char *)NULL);
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("x vector \"%s\" must be monotonically increasing", xName));
             return TCL_ERROR;
         }
     }
     /* Check that all the data points aren't the same. */
     if (Rbc_VecData(x)[i - 1] <= Rbc_VecData(x)[0]) {
-        Tcl_AppendResult(interp, "x vector \"", xName, "\" must be monotonically increasing", (char *)NULL);
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("x vector \"%s\" must be monotonically increasing", xName));
         return TCL_ERROR;
     }
     if (nOrigPts != Rbc_VecLength(y)) {
-        Tcl_AppendResult(interp, "vectors \"", xName, "\" and \"", yName, " have different lengths", (char *)NULL);
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("vectors \"%s\" and \"%s\" have different lengths", xName, yName));
         return TCL_ERROR;
     }
     nIntpPts = Rbc_VecLength(splX);
@@ -1077,15 +1090,16 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
             return TCL_ERROR;
         }
     }
-    origPts = (Point2D *)ckalloc(sizeof(Point2D) * nOrigPts);
+    origPts = ckalloc(sizeof(Point2D) * (size_t)nOrigPts);
     if (origPts == NULL) {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't allocate \"%d\" points", nOrigPts));
         return TCL_ERROR;
     }
-    intpPts = (Point2D *)ckalloc(sizeof(Point2D) * nIntpPts);
+    intpPts = ckalloc(sizeof(Point2D) * (size_t)nIntpPts);
     if (intpPts == NULL) {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't allocate \"%d\" points", nIntpPts));
-        ckfree((char *)origPts);
+
+        ckfree(origPts);
         return TCL_ERROR;
     }
     xArr = Rbc_VecData(x);
@@ -1100,8 +1114,8 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
         intpPts[i].x = xArr[i];
         intpPts[i].y = yArr[i];
     }
-    if (!(*proc)(origPts, nOrigPts, intpPts, nIntpPts)) {
-        Tcl_AppendResult(interp, "error generating spline for \"", Rbc_NameOfVector(splY), "\"", (char *)NULL);
+    if (!proc(origPts, nOrigPts, intpPts, nIntpPts)) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("error generating spline for \"%s\"", Rbc_NameOfVector(splY)));
         ckfree((char *)origPts);
         ckfree((char *)intpPts);
         return TCL_ERROR;
@@ -1141,7 +1155,7 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
  *--------------------------------------------------------------
  */
 int Rbc_SplineInit(Tcl_Interp *interp) {
-    Tcl_CreateObjCommand(interp, "::rbc::spline", SplineObjCmd, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
+    Tcl_CreateObjCommand2(interp, "::rbc::spline", SplineObjCmd, NULL, NULL);
     return TCL_OK;
 }
 
