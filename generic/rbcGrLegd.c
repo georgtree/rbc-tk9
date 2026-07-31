@@ -184,8 +184,12 @@ static void EventuallyRedrawLegend(Legend *legendPtr);
 static void SetLegendOrigin(Legend *legendPtr);
 static int ConfigureLegend(Graph *graphPtr, Legend *legendPtr, int mask);
 
-typedef int(RbcGrLegdOp)(Graph *, Tcl_Interp *, int, Tcl_Obj *const[]);
-typedef RbcGrLegdOp *RbcGrLegdOpPtr;
+typedef int RbcGrLegdOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+
+typedef struct {
+    Rbc_OpSpecHeader header;
+    RbcGrLegdOp *proc;
+} LegendOpSpec;
 static RbcGrLegdOp GetOp;
 static RbcGrLegdOp ActivateOp;
 static RbcGrLegdOp BindOp;
@@ -1402,7 +1406,7 @@ error:
  *
  *----------------------------------------------------------------------
  */
-static int GetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int GetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     register Element *elemPtr;
     Legend *legendPtr = graphPtr->legend;
     int x, y;
@@ -1420,7 +1424,7 @@ static int GetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const o
         elemPtr = (Element *)PickLegendEntry(graphPtr, x, y, NULL);
     }
     if (elemPtr != NULL) {
-        Tcl_SetResult(interp, elemPtr->name, TCL_VOLATILE);
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(elemPtr->name, -1));
     }
     return TCL_OK;
 }
@@ -1446,13 +1450,13 @@ static int GetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const o
  *
  *----------------------------------------------------------------------
  */
-static int ActivateOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int ActivateOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Legend *legendPtr = graphPtr->legend;
     Element *elemPtr;
     unsigned int active, redraw;
     Tcl_HashEntry *hPtr;
     Tcl_HashSearch cursor;
-    register int i;
+    Tcl_Size i;
     const char *str = Tcl_GetString(objv[2]);
     Tcl_Obj *resultObj;
 
@@ -1524,11 +1528,11 @@ static int ActivateOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *co
  *
  *----------------------------------------------------------------------
  */
-static int BindOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int BindOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     if (objc == 3) {
         Tcl_HashEntry *hPtr;
         Tcl_HashSearch cursor;
-        char *tagName;
+        const char *tagName;
         Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
 
         for (hPtr = Tcl_FirstHashEntry(&(graphPtr->elements.tagTable), &cursor); hPtr != NULL;
@@ -1564,7 +1568,7 @@ static int BindOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const 
  *
  *----------------------------------------------------------------------
  */
-static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Legend *legendPtr;
     Tcl_Obj *resultObjPtr;
 
@@ -1598,7 +1602,7 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const 
  *
  *----------------------------------------------------------------------
  */
-static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Legend *legendPtr;
     Tcl_Obj *resultObjPtr;
     Tk_SavedOptions savedOptions;
@@ -1638,13 +1642,13 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, int objc, Tcl_Obj *c
     return TCL_OK;
 }
 
-static const Rbc_OpSpec legendOps[] = {{"activate", (Rbc_Op)ActivateOp, 3, 0, "?pattern?..."},
-                                       {"bind", (Rbc_Op)BindOp, 3, 6, "elemName sequence command"},
-                                       {"cget", (Rbc_Op)CgetOp, 4, 4, "option"},
-                                       {"configure", (Rbc_Op)ConfigureOp, 3, 0, "?option value?..."},
-                                       {"deactivate", (Rbc_Op)ActivateOp, 3, 0, "?pattern?..."},
-                                       {"get", (Rbc_Op)GetOp, 4, 4, "index"},
-                                       RBC_OPSPEC_END};
+static const LegendOpSpec legendOps[] = {{{"activate", 3, 0, "?pattern?..."}, ActivateOp},
+                                         {{"bind", 3, 6, "elemName sequence command"}, BindOp},
+                                         {{"cget", 4, 4, "option"}, CgetOp},
+                                         {{"configure", 3, 0, "?option value?..."}, ConfigureOp},
+                                         {{"deactivate", 3, 0, "?pattern?..."}, ActivateOp},
+                                         {{"get", 4, 4, "index"}, GetOp},
+                                         {{NULL, 0, 0, NULL}, NULL}};
 
 /*
  *----------------------------------------------------------------------
@@ -1668,15 +1672,14 @@ static const Rbc_OpSpec legendOps[] = {{"activate", (Rbc_Op)ActivateOp, 3, 0, "?
  *----------------------------------------------------------------------
  */
 int Rbc_LegendOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    RbcGrLegdOpPtr proc;
-    int result;
+    int index;
 
-    proc = (RbcGrLegdOpPtr)Rbc_GetOpFromObj(interp, legendOps, RBC_OP_ARG2, objc, objv);
-    if (proc == NULL) {
+    if (Rbc_GetOpIndexFromObj(interp, legendOps, (Tcl_Size)sizeof(legendOps[0]), RBC_OP_ARG2, objc, objv, &index) !=
+        TCL_OK) {
         return TCL_ERROR;
     }
-    result = (*proc)(graphPtr, interp, objc, objv);
-    return result;
+
+    return legendOps[index].proc(graphPtr, interp, objc, objv);
 }
 
 /*
