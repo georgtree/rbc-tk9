@@ -14,6 +14,33 @@
 #include <stdlib.h>
 #include "rbcVector.h"
 
+static int AddVectorSizes(Tcl_Interp *interp, Tcl_Size a, Tcl_Size b, Tcl_Size *resultPtr) {
+    if ((a < 0) || (b < 0) || (a > (TCL_SIZE_MAX - b))) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("vector size is too large", -1));
+        return TCL_ERROR;
+    }
+    *resultPtr = a + b;
+    return TCL_OK;
+}
+
+static int MultiplyVectorSizes(Tcl_Interp *interp, Tcl_Size a, Tcl_Size b, Tcl_Size *resultPtr) {
+    if ((a < 0) || (b < 0) || ((b != 0) && (a > (TCL_SIZE_MAX / b)))) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("vector size is too large", -1));
+        return TCL_ERROR;
+    }  
+    *resultPtr = a * b;
+    return TCL_OK;
+}
+
+static int GetArrayByteCount(Tcl_Interp *interp, Tcl_Size count, size_t elementSize, size_t *byteCountPtr) {
+    if ((count < 0) || ((Tcl_WideUInt)count > (Tcl_WideUInt)(SIZE_MAX / elementSize))) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("allocation size is too large", -1));
+        return TCL_ERROR;
+    }
+    *byteCountPtr = (size_t)count * elementSize;
+    return TCL_OK;
+}
+
 enum NativeFormats {
     FMT_UNKNOWN = -1,
     FMT_UCHAR,
@@ -352,8 +379,15 @@ static Tcl_Size ParseFormat(void *clientData, Tcl_Interp *interp, Tcl_Size objc,
         Tcl_AppendResult(interp, "unknown binary format \"", string, "\"", NULL);
         return -1;
     }
-    if (Tcl_GetInt(NULL, string + 1, &size) != TCL_OK) {
-        Tcl_AppendResult(interp, "unknown binary format \"", string, "\": incorrect byte size", NULL);
+    
+    Tcl_Obj *sizeObjPtr;
+    int result;
+    sizeObjPtr = Tcl_NewStringObj(string + 1, len - 1);
+    Tcl_IncrRefCount(sizeObjPtr);
+    result = Tcl_GetIntFromObj(NULL, sizeObjPtr, &size);
+    Tcl_DecrRefCount(sizeObjPtr);
+    if (result != TCL_OK) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("unknown binary format \"%s\": incorrect byte size", string));
         return -1;
     }
 
@@ -404,7 +438,7 @@ static Tcl_Size ParseAt(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl
         Tcl_AppendResult(interp, "index \"", string, "\" is out of range", NULL);
         return -1;
     }
-    *(int *)dstPtr = first;
+    *(Tcl_Size *)dstPtr = first;
     return 1;
 }
 /*
@@ -835,13 +869,12 @@ static int IndexOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
  */
 static int LengthOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     if (objc == 3) {
-        int size;
-
-        if (Tcl_GetIntFromObj(interp, objv[2], &size) != TCL_OK) {
+        Tcl_Size size;
+        if (Tcl_GetSizeIntFromObj(interp, objv[2], &size) != TCL_OK) {
             return TCL_ERROR;
         }
         if (size < 0) {
-            Tcl_AppendResult(interp, "bad vector size \"", Tcl_GetString(objv[2]), "\"", (char *)NULL);
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad vector size \"%s\"", Tcl_GetString(objv[2])));
             return TCL_ERROR;
         }
         if (Rbc_VectorChangeLength(vPtr, size) != TCL_OK) {
@@ -852,7 +885,7 @@ static int LengthOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
         }
         Rbc_VectorUpdateClients(vPtr);
     }
-    Tcl_SetObjResult(interp, Tcl_NewIntObj(vPtr->length));
+    Tcl_SetObjResult(interp, Tcl_NewWideIntObj((Tcl_WideInt)vPtr->length));
     return TCL_OK;
 }
 
@@ -1026,13 +1059,12 @@ static int NormalizeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tc
 static int OffsetOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     if (objc == 3) {
         Tcl_Size value;
-
         if (Tcl_GetSizeIntFromObj(interp, objv[2], &value) != TCL_OK) {
             return TCL_ERROR;
         }
         vPtr->offset = value;
     }
-    Tcl_SetObjResult(interp, Tcl_NewIntObj(vPtr->offset));
+    Tcl_SetObjResult(interp, Tcl_NewWideIntObj((Tcl_WideInt)vPtr->offset));
     return TCL_OK;
 }
 
@@ -1060,47 +1092,119 @@ static int OffsetOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
  */
 static int PopulateOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     VectorObject *v2Ptr;
-    Tcl_Size size, density;
+    VectorObject *sourcePtr;
+    VectorObject *tmpPtr;
+    Tcl_Size density;
+    Tcl_Size intervals;
+    Tcl_Size valuesPerInterval;
+    Tcl_Size populatedValues;
+    Tcl_Size newSize;
+    Tcl_Size i;
+    Tcl_Size j;
+    double *valuePtr;
+    const char *name;
+    double range;
+    double slice;
     int isNew;
-    Tcl_Size i, j;
-    double slice, range;
-    register double *valuePtr;
-    //int count;
-    char *string;
 
-    string = Tcl_GetString(objv[2]);
-    v2Ptr = Rbc_VectorCreate(vPtr->dataPtr, string, string, string, &isNew);
-    if (v2Ptr == NULL) {
-        return TCL_ERROR;
-    }
-    if (vPtr->length == 0) {
-        return TCL_OK; /* Source vector is empty. */
-    }
+    (void)objc;
+    /*
+     * Parse and validate the number of values inserted between each
+     * pair of source values.
+     */
     if (Tcl_GetSizeIntFromObj(interp, objv[3], &density) != TCL_OK) {
         return TCL_ERROR;
     }
     if (density < 1) {
-        Tcl_AppendResult(interp, "bad density \"", Tcl_GetString(objv[3]), "\"", (char *)NULL);
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad density \"%s\"", Tcl_GetString(objv[3])));
         return TCL_ERROR;
     }
-    size = (vPtr->length - 1) * (density + 1) + 1;
-    if (Rbc_VectorChangeLength(v2Ptr, size) != TCL_OK) {
-        return TCL_ERROR;
-    }
-    //count = 0;
-    valuePtr = v2Ptr->valueArr;
-    for (i = 0; i < (vPtr->length - 1); i++) {
-        range = vPtr->valueArr[i + 1] - vPtr->valueArr[i];
-        slice = range / (double)(density + 1);
-        for (j = 0; j <= density; j++) {
-            *valuePtr = vPtr->valueArr[i] + (slice * (double)j);
-            valuePtr++;
-            //count++;
+
+    /*
+     * Calculate:
+     *
+     *     newSize =
+     *         (sourceLength - 1) * (density + 1) + 1
+     *
+     * Check each operation before performing it, because Tcl_Size is
+     * signed and overflowing it would be undefined behaviour.
+     */
+    if (vPtr->length == 0) {
+        newSize = 0;
+    } else {
+        intervals = vPtr->length - 1;
+        if (density == TCL_SIZE_MAX) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("density is too large", -1));
+            return TCL_ERROR;
+        }
+        valuesPerInterval = density + 1;
+        if (MultiplyVectorSizes(interp, intervals, valuesPerInterval, &populatedValues) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if (AddVectorSizes(interp, populatedValues, 1, &newSize) != TCL_OK) {
+            return TCL_ERROR;
         }
     }
-    //count++;
-    *valuePtr = vPtr->valueArr[i];
-    /*** assert(count == v2Ptr->length); */
+    name = Tcl_GetString(objv[2]);
+    v2Ptr = Rbc_VectorCreate(vPtr->dataPtr, name, name, name, &isNew);
+    if (v2Ptr == NULL) {
+        return TCL_ERROR;
+    }
+    /*
+     * The source and destination may be the same vector. Preserve the
+     * source values before resizing the destination.
+     *
+     * This is the same temporary-vector technique already used by SetOp().
+     */
+    sourcePtr = vPtr;
+    tmpPtr = NULL;
+    if (v2Ptr == vPtr) {
+        tmpPtr = Rbc_VectorNew(vPtr->dataPtr);
+        if (tmpPtr == NULL) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate temporary vector", -1));
+            return TCL_ERROR;
+        }
+        if (Rbc_VectorDuplicate(tmpPtr, vPtr) != TCL_OK) {
+            Rbc_VectorFree(tmpPtr);
+            return TCL_ERROR;
+        }
+        sourcePtr = tmpPtr;
+    }
+    if (Rbc_VectorChangeLength(v2Ptr, newSize) != TCL_OK) {
+        if (tmpPtr != NULL) {
+            Rbc_VectorFree(tmpPtr);
+        }
+        return TCL_ERROR;
+    }
+    if (sourcePtr->length > 0) {
+        valuesPerInterval = density + 1;
+        valuePtr = v2Ptr->valueArr;
+        for (i = 0; i < (sourcePtr->length - 1); i++) {
+            range = sourcePtr->valueArr[i + 1] - sourcePtr->valueArr[i];
+            slice = range / (double)valuesPerInterval;
+            /*
+             * Write the interval's starting value followed by the
+             * requested intermediate values. The ending value is
+             * written as the start of the next interval.
+             */
+            for (j = 0; j < valuesPerInterval; j++) {
+                *valuePtr++ = sourcePtr->valueArr[i] + (slice * (double)j);
+            }
+        }
+        /*
+         * The final source value is not written by the interval loop.
+         */
+        *valuePtr++ = sourcePtr->valueArr[sourcePtr->length - 1];
+        assert(valuePtr == (v2Ptr->valueArr + v2Ptr->length));
+    }
+    if (tmpPtr != NULL) {
+        Rbc_VectorFree(tmpPtr);
+    }
+    /*
+     * New vectors have no existing clients to notify. Existing vectors,
+     * including an in-place population, must have their caches and clients
+     * updated.
+     */
     if (!isNew) {
         if (v2Ptr->flush) {
             Rbc_VectorFlushCache(v2Ptr);
@@ -1532,46 +1636,23 @@ static int SplitOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
     if (nVectorArgs == 0) {
         return TCL_OK;
     }
-
-    /*
-     * Vector lengths and indices are still int-sized. This guard can be
-     * removed when the vector size model is converted to Tcl_Size.
-     */
-    if (nVectorArgs > INT_MAX) {
-        Tcl_SetObjResult(interp, Tcl_NewStringObj("too many destination vectors", -1));
-
-        return TCL_ERROR;
-    }
-
-    nVectors = (int)nVectorArgs;
-
+    nVectors = nVectorArgs;
     if ((vPtr->length % nVectors) != 0) {
-        Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't split vector \"%s\" into %lld even parts.", vPtr->name, nVectors));
-
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't split vector \"%s\" into %" TCL_SIZE_MODIFIER "d even parts.",
+                                               vPtr->name, nVectors));
         return TCL_ERROR;
     }
-
     extra = vPtr->length / nVectors;
-
     for (argIndex = 0; argIndex < nVectorArgs; argIndex++) {
         string = Tcl_GetString(objv[argIndex + 2]);
-
         v2Ptr = Rbc_VectorCreate(vPtr->dataPtr, string, string, string, &isNew);
-
         if (v2Ptr == NULL) {
             return TCL_ERROR;
         }
-
         oldSize = v2Ptr->length;
-
-        if (oldSize > (INT_MAX - extra)) {
-            Tcl_SetObjResult(interp, Tcl_ObjPrintf("resulting vector \"%s\" is too large", string));
-
+        if (AddVectorSizes(interp, oldSize, extra, &newSize) != TCL_OK) {
             return TCL_ERROR;
         }
-
-        newSize = oldSize + extra;
-
         if (Rbc_VectorChangeLength(v2Ptr, newSize) != TCL_OK) {
             return TCL_ERROR;
         }
@@ -1582,21 +1663,17 @@ static int SplitOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
          */
         sourceIndex = (int)argIndex;
         destIndex = oldSize;
-
         while (sourceIndex < vPtr->length) {
             v2Ptr->valueArr[destIndex] = vPtr->valueArr[sourceIndex];
 
             sourceIndex += nVectors;
             destIndex++;
         }
-
         Rbc_VectorUpdateClients(v2Ptr);
-
         if (v2Ptr->flush) {
             Rbc_VectorFlushCache(v2Ptr);
         }
     }
-
     return TCL_OK;
 }
 
@@ -1653,16 +1730,25 @@ static int VariableOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
  * -----------------------------------------------------------------------
  */
 static int AppendVector(VectorObject *destPtr, VectorObject *srcPtr) {
-    int nBytes;
-    Tcl_Size oldSize, newSize;
+    Tcl_Size sourceLength;
+    Tcl_Size oldSize;
+    Tcl_Size newSize;
+    size_t byteCount;
 
+    sourceLength = srcPtr->last - srcPtr->first + 1;
     oldSize = destPtr->length;
-    newSize = oldSize + srcPtr->last - srcPtr->first + 1;
+    if (AddVectorSizes(destPtr->interp, oldSize, sourceLength, &newSize) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (GetArrayByteCount(destPtr->interp, sourceLength, sizeof(double), &byteCount) != TCL_OK) {
+        return TCL_ERROR;
+    }
     if (Rbc_VectorChangeLength(destPtr, newSize) != TCL_OK) {
         return TCL_ERROR;
     }
-    nBytes = (newSize - oldSize) * sizeof(double);
-    memcpy((char *)(destPtr->valueArr + oldSize), (srcPtr->valueArr + srcPtr->first), nBytes);
+    if (byteCount > 0) {
+        memmove(destPtr->valueArr + oldSize, srcPtr->valueArr + srcPtr->first, byteCount);
+    }
     destPtr->notifyFlags |= UPDATE_RANGE;
     return TCL_OK;
 }
@@ -1688,27 +1774,24 @@ static int AppendVector(VectorObject *destPtr, VectorObject *srcPtr) {
  * -----------------------------------------------------------------------
  */
 static int AppendList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    Tcl_Size count;
+    Tcl_Size oldSize;
+    Tcl_Size newSize;
     Tcl_Size i;
     double value;
-    Tcl_Size oldSize;
-
-    if (objc > INT_MAX) {
-        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("too many vector values", -1));
-        return TCL_ERROR;
-    }
 
     oldSize = vPtr->length;
-    if (Rbc_VectorChangeLength(vPtr, vPtr->length + objc) != TCL_OK) {
+    if (AddVectorSizes(vPtr->interp, oldSize, objc, &newSize) != TCL_OK) {
         return TCL_ERROR;
     }
-    count = oldSize;
+    if (Rbc_VectorChangeLength(vPtr, newSize) != TCL_OK) {
+        return TCL_ERROR;
+    }
     for (i = 0; i < objc; i++) {
         if (Rbc_GetDouble(vPtr->interp, objv[i], &value) != TCL_OK) {
-            Rbc_VectorChangeLength(vPtr, count);
+            Rbc_VectorChangeLength(vPtr, oldSize);
             return TCL_ERROR;
         }
-        vPtr->valueArr[count++] = value;
+        vPtr->valueArr[oldSize + i] = value;
     }
     vPtr->notifyFlags |= UPDATE_RANGE;
     return TCL_OK;
@@ -1744,16 +1827,26 @@ static int CopyValues(VectorObject *vPtr, char *byteArr, enum NativeFormats fmt,
     Tcl_Size newSize;
 
     if ((swap) && (size > 1)) {
-        int nBytes = size * length;
-        register unsigned char *p;
-        Tcl_Size left, right;
+        size_t nBytes;
+        size_t byteOffset;
+        unsigned char *p;
+        unsigned char temp;
+        int left;
+        int right;
 
-        for (i = 0; i < nBytes; i += size) {
-            p = (unsigned char *)(byteArr + i);
-            for (left = 0, right = size - 1; left < right; left++, right--) {
-                p[left] ^= p[right];
-                p[right] ^= p[left];
-                p[left] ^= p[right];
+        if ((length < 0) || (size <= 0) || ((size_t)length > (SIZE_MAX / (size_t)size))) {
+            Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("binary data size is too large", -1));
+            return TCL_ERROR;
+        }
+        nBytes = (size_t)length * (size_t)size;
+        if (swap) {
+            for (byteOffset = 0; byteOffset < nBytes; byteOffset += (size_t)size) {
+                p = (unsigned char *)byteArr + byteOffset;
+                for (left = 0, right = size - 1; left < right; left++, right--) {
+                    temp = p[left];
+                    p[left] = p[right];
+                    p[right] = temp;
+                }
             }
         }
     }
@@ -1860,7 +1953,6 @@ static int InRange(double value, double min, double max) {
         return (FABS(max - value) < DBL_EPSILON);
     } else {
         double norm;
-
         norm = (value - min) / range;
         return ((norm >= -DBL_EPSILON) && ((norm - 1.0) < DBL_EPSILON));
     }
@@ -1889,11 +1981,6 @@ static int InRange(double value, double min, double max) {
 static int CopyList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Size i;
     double value;
-
-    if (objc > INT_MAX) {
-        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("too many vector values", -1));
-        return TCL_ERROR;
-    }
 
     if (Rbc_VectorChangeLength(vPtr, objc) != TCL_OK) {
         return TCL_ERROR;
@@ -1928,15 +2015,24 @@ static int CopyList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
  *--------------------------------------------------------------
  */
 Tcl_Size *Rbc_VectorSortIndex(VectorObject **vPtrPtr, Tcl_Size nVectors) {
+    VectorObject *vPtr;
     Tcl_Size *indexArr;
-    Tcl_Size i;
-    VectorObject *vPtr = *vPtrPtr;
     Tcl_Size length;
+    Tcl_Size i;
+    size_t byteCount;
 
+    vPtr = *vPtrPtr;
     length = vPtr->last - vPtr->first + 1;
-    indexArr = (Tcl_Size *)ckalloc(sizeof(Tcl_Size) * length);
-    for (i = vPtr->first; i <= vPtr->last; i++) {
-        indexArr[i] = i;
+    if (GetArrayByteCount(vPtr->interp, length, sizeof(Tcl_Size), &byteCount) != TCL_OK) {
+        return NULL;
+    }
+    indexArr = Tcl_AttemptAlloc(byteCount);
+    if ((indexArr == NULL) && (byteCount > 0)) {
+        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("can't allocate vector sort indices", -1));
+        return NULL;
+    }
+    for (i = 0; i < length; i++) {
+        indexArr[i] = vPtr->first + i;
     }
     sortVectorArr = vPtrPtr;
     nSortVectors = nVectors;

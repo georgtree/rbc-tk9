@@ -190,6 +190,34 @@ static Tcl_Size ParseBool(void *clientData, Tcl_Interp *interp, Tcl_Size objc, T
     return 1;
 }
 
+static Tcl_Size ParseVectorLength(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[],
+                                  void *dstPtr) {
+    Tcl_Size value;
+
+    (void)clientData;
+    if (objc == 0) {
+        Tcl_SetObjResult(interp,
+                         Tcl_ObjPrintf("option \"%s\" requires an additional argument", Tcl_GetString(objv[-1])));
+        return -1;
+    }
+    if (Tcl_GetSizeIntFromObj(interp, objv[0], &value) != TCL_OK) {
+        return -1;
+    }
+    *(Tcl_Size *)dstPtr = value;
+    return 1;
+}
+
+static int GetSizeFromString(Tcl_Interp *interp, const char *string, Tcl_Size *valuePtr) {
+    Tcl_Obj *objPtr;
+    int result;
+
+    objPtr = Tcl_NewStringObj(string, -1);
+    Tcl_IncrRefCount(objPtr);
+    result = Tcl_GetSizeIntFromObj(interp, objPtr, valuePtr);
+    Tcl_DecrRefCount(objPtr);
+    return result;
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -221,14 +249,16 @@ static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Siz
     VectorObject *vPtr;
     Tcl_Obj *resultPtr; /* for the result of this function */
     char *cmdName, *varName;
-    int freeOnUnset, flush, defLen;
+    int freeOnUnset;
+    int flush;
+    Tcl_Size defLen;
     Tcl_Obj **objNameArray; /* holds all vector names specified */
     Tcl_Size count;
     Tcl_DString ds;
     Tcl_Size i;
     const Tcl_ArgvInfo argsTable[] = {{TCL_ARGV_STRING, "-command", NULL, &cmdName, NULL, NULL},
                                       {TCL_ARGV_GENFUNC, "-flush", ParseBool, &flush, NULL, NULL},
-                                      {TCL_ARGV_INT, "-length", NULL, &defLen, NULL, NULL},
+                                      {TCL_ARGV_GENFUNC, "-length", ParseVectorLength, &defLen, NULL, NULL},
                                       {TCL_ARGV_STRING, "-variable", NULL, &varName, NULL, NULL},
                                       {TCL_ARGV_GENFUNC, "-watchunset", ParseBool, &freeOnUnset, NULL, NULL},
                                       TCL_ARGV_TABLE_END};
@@ -286,7 +316,10 @@ static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Siz
     vPtr = NULL;
     for (i = 1; i < count; i++) {
         char *leftParen, *rightParen; /* positions of left and right parens in vector specification */
-        int isNew, size, first, last;
+        int isNew;
+        Tcl_Size size;
+        Tcl_Size first;
+        Tcl_Size last;
         char *vecName; /* name of a vector */
 
         Tcl_DStringFree(&ds);
@@ -312,20 +345,36 @@ static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Siz
             if (colon != NULL) {
                 /* Specification is in the form vecName(first:last) */
                 *colon = '\0';
-                result = Tcl_GetInt(interp, leftParen + 1, &first);
+                result = GetSizeFromString(interp, leftParen + 1, &first);
                 if ((*(colon + 1) != '\0') && (result == TCL_OK)) {
-                    result = Tcl_GetInt(interp, colon + 1, &last);
+                    result = GetSizeFromString(interp, colon + 1, &last);
                     if (first > last) {
                         Tcl_AppendStringsToObj(resultPtr, "bad vector range \"", vecName, "\"", NULL);
                         Tcl_SetObjResult(interp, resultPtr);
                         result = TCL_ERROR;
                     }
-                    size = (last - first) + 1;
+                    if (first > last) {
+                        Tcl_AppendStringsToObj(resultPtr, "bad vector range \"", vecName, "\"", NULL);
+                        Tcl_SetObjResult(interp, resultPtr);
+                        result = TCL_ERROR;
+                    } else if ((first < 0) && (last >= (TCL_SIZE_MAX + first))) {
+                        Tcl_SetObjResult(interp, Tcl_ObjPrintf("vector range \"%s\" is too large", vecName));
+                        result = TCL_ERROR;
+                    } else {
+                        Tcl_Size difference;
+                        difference = last - first;
+                        if (difference == TCL_SIZE_MAX) {
+                            Tcl_SetObjResult(interp, Tcl_ObjPrintf("vector range \"%s\" is too large", vecName));
+                            result = TCL_ERROR;
+                        } else {
+                            size = difference + 1;
+                        }
+                    }
                 }
                 *colon = ':';
             } else {
                 /* Specification is in the form vecName(size) */
-                result = Tcl_GetInt(interp, leftParen + 1, &size);
+                result = GetSizeFromString(interp, leftParen + 1, &size);
             }
             *rightParen = ')';
             if (result != TCL_OK) {
@@ -892,15 +941,19 @@ void Rbc_VectorFree(VectorObject *vPtr) {
  * ----------------------------------------------------------------------
  */
 int Rbc_VectorDuplicate(VectorObject *destPtr, VectorObject *srcPtr) {
-    int nBytes;
     Tcl_Size length;
+    size_t byteCount;
 
     length = srcPtr->last - srcPtr->first + 1;
+    if (GetVectorByteCount(destPtr->interp, length, &byteCount) != TCL_OK) {
+        return TCL_ERROR;
+    }
     if (Rbc_VectorChangeLength(destPtr, length) != TCL_OK) {
         return TCL_ERROR;
     }
-    nBytes = length * sizeof(double);
-    memcpy(destPtr->valueArr, srcPtr->valueArr + srcPtr->first, nBytes);
+    if (byteCount > 0) {
+        memmove(destPtr->valueArr, srcPtr->valueArr + srcPtr->first, byteCount);
+    }
     destPtr->offset = srcPtr->offset;
     return TCL_OK;
 }
@@ -1426,31 +1479,6 @@ void Rbc_VectorUpdateRange(VectorObject *vPtr) {
     vPtr->notifyFlags &= ~UPDATE_RANGE;
 }
 
-static int GetVectorIndexValue(Tcl_Interp *interp, VectorObject *vPtr, const char *string, Tcl_Size *valuePtr) {
-    Tcl_Obj *exprObjPtr;
-    Tcl_Obj *valueObjPtr;
-    int result;
-
-    exprObjPtr = Tcl_NewStringObj(string, -1);
-    Tcl_IncrRefCount(exprObjPtr);
-    result = Tcl_GetSizeIntFromObj(interp, exprObjPtr, valuePtr);
-    if (result != TCL_OK) {
-        Tcl_ResetResult(vPtr->interp);
-        result = Tcl_ExprObj(vPtr->interp, exprObjPtr, &valueObjPtr);
-        if (result == TCL_OK) {
-            result = Tcl_GetSizeIntFromObj(vPtr->interp, valueObjPtr, valuePtr);
-        }
-        if (result != TCL_OK) {
-            Tcl_ResetResult(vPtr->interp);
-            if (interp != NULL) {
-                Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad index \"%s\"", string));
-            }
-        }
-    }
-    Tcl_DecrRefCount(exprObjPtr);
-    return result;
-}
-
 /*
  * ----------------------------------------------------------------------
  *
@@ -1862,7 +1890,7 @@ void Rbc_VectorUpdateClients(VectorObject *vPtr) {
 static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *part1, char *part2, int flags) {
     Rbc_VectorIndexProc *indexProc;
     VectorObject *vPtr = clientData;
-    int first, last;
+    Tcl_Size first, last;
     int varFlags;
 
     static char message[MAX_ERR_MSG + 1];
@@ -1905,6 +1933,9 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
             goto error;
         }
         if (first == vPtr->length || last == vPtr->length) {
+            if (vPtr->length == TCL_SIZE_MAX) {
+                return "vector is too large";
+            }
             if (Rbc_VectorChangeLength(vPtr, vPtr->length + 1) != TCL_OK) {
                 return "error resizing vector";
             }
@@ -1944,7 +1975,7 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
             }
         }
     } else if (flags & TCL_TRACE_UNSETS) {
-        register int i, j;
+        Tcl_Size i, j;
 
         if ((first == vPtr->length) || (first == SPECIAL_INDEX)) {
             return "special vector index";
