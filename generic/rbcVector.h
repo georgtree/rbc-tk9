@@ -277,8 +277,8 @@ typedef struct {
 
 /* Vector Operators Definitions (rbcVector.c) */
 void Rbc_VectorFlushCache(VectorObject *vPtr);
-VectorObject *Rbc_VectorParseElement(Tcl_Interp *interp, VectorInterpData *dataPtr, const char *start, char **endPtr,
-                                     int flags);
+VectorObject *Rbc_VectorParseElement(Tcl_Interp *interp, VectorInterpData *dataPtr, const char *start,
+                                     const char **endPtr, int flags);
 int Rbc_VectorChangeLength(VectorObject *vPtr, Tcl_Size length);
 void Rbc_VectorUpdateClients(VectorObject *vPtr);
 int Rbc_VectorMapVariable(Tcl_Interp *interp, VectorObject *vPtr, const char *name);
@@ -293,7 +293,7 @@ int Rbc_VectorGetIndexRange(Tcl_Interp *interp, VectorObject *vPtr, const char *
 int Rbc_VectorDuplicate(VectorObject *destPtr, VectorObject *srcPtr);
 Tcl_Obj *Rbc_GetValues(VectorObject *vPtr, Tcl_Size first, Tcl_Size last);
 void Rbc_ReplicateValue(VectorObject *vPtr, Tcl_Size first, Tcl_Size last, double value);
-int Rbc_VectorLookupName(VectorInterpData *dataPtr, char *vecName, VectorObject **vPtrPtr);
+int Rbc_VectorLookupName(VectorInterpData *dataPtr, const char *vecName, VectorObject **vPtrPtr);
 int Rbc_VectorReset(VectorObject *vPtr, double *valueArr, Tcl_Size length, Tcl_Size size, Tcl_FreeProc *freeProc);
 void Rbc_VectorUpdateRange(VectorObject *vPtr);
 VectorObject *Rbc_VectorNew(VectorInterpData *dataPtr);

@@ -205,8 +205,7 @@ static int AppendOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
     VectorObject *v2Ptr;
 
     for (i = 2; i < objc; i++) {
-        v2Ptr = Rbc_VectorParseElement((Tcl_Interp *)NULL, vPtr->dataPtr, Tcl_GetString(objv[i]), (char **)NULL,
-                                       NS_SEARCH_BOTH);
+        v2Ptr = Rbc_VectorParseElement(NULL, vPtr->dataPtr, Tcl_GetString(objv[i]), NULL, NS_SEARCH_BOTH);
         if (v2Ptr != NULL) {
             result = AppendVector(vPtr, v2Ptr);
         } else {
@@ -263,8 +262,7 @@ static int ArithOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
     Tcl_Obj *listObjPtr;
     char *string;
 
-    v2Ptr = Rbc_VectorParseElement((Tcl_Interp *)NULL, vPtr->dataPtr, Tcl_GetString(objv[2]), (char **)NULL,
-                                   NS_SEARCH_BOTH);
+    v2Ptr = Rbc_VectorParseElement(NULL, vPtr->dataPtr, Tcl_GetString(objv[2]), NULL, NS_SEARCH_BOTH);
     if (v2Ptr != NULL) {
         Tcl_Size j;
         Tcl_Size length;

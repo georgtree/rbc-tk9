@@ -737,7 +737,7 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
             }
         }
         qualVecName = (char *)vecName;
-        vPtr = Rbc_VectorParseElement((Tcl_Interp *)NULL, dataPtr, qualVecName, (char **)NULL, NS_SEARCH_CURRENT);
+        vPtr = Rbc_VectorParseElement(NULL, dataPtr, qualVecName, NULL, NS_SEARCH_CURRENT);
     }
 
     if (vPtr == NULL) {
@@ -1420,16 +1420,16 @@ int Rbc_VectorChangeLength(VectorObject *vPtr, Tcl_Size length) {
  *
  * ----------------------------------------------------------------------
  */
-int Rbc_VectorLookupName(VectorInterpData *dataPtr, char *vecName, VectorObject **vPtrPtr) {
+int Rbc_VectorLookupName(VectorInterpData *dataPtr, const char *vecName, VectorObject **vPtrPtr) {
     VectorObject *vPtr;
-    char *endPtr;
+    const char *endPtr;
 
     vPtr = Rbc_VectorParseElement(dataPtr->interp, dataPtr, vecName, &endPtr, NS_SEARCH_BOTH);
     if (vPtr == NULL) {
         return TCL_ERROR;
     }
     if (*endPtr != '\0') {
-        Tcl_AppendResult(dataPtr->interp, "extra characters after vector name", (char *)NULL);
+        Tcl_SetObjResult(dataPtr->interp, Tcl_NewStringObj("extra characters after vector name", -1));
         return TCL_ERROR;
     }
     *vPtrPtr = vPtr;
@@ -1666,6 +1666,20 @@ int Rbc_VectorGetIndex(Tcl_Interp *interp, VectorObject *vPtr, const char *strin
     return TCL_OK;
 }
 
+static int GetVectorIndexFromSpan(Tcl_Interp *interp, VectorObject *vPtr, const char *start, const char *end,
+                                  Tcl_Size *indexPtr, int flags) {
+    Tcl_Obj *objPtr;
+    int result;
+
+    assert(start != NULL);
+    assert(end >= start);
+    objPtr = Tcl_NewStringObj(start, (Tcl_Size)(end - start));
+    Tcl_IncrRefCount(objPtr);
+    result = Rbc_VectorGetIndex(interp, vPtr, Tcl_GetString(objPtr), indexPtr, flags, NULL);
+    Tcl_DecrRefCount(objPtr);
+    return result;
+}
+
 /*
  * ----------------------------------------------------------------------
  *
@@ -1694,50 +1708,59 @@ int Rbc_VectorGetIndex(Tcl_Interp *interp, VectorObject *vPtr, const char *strin
  */
 int Rbc_VectorGetIndexRange(Tcl_Interp *interp, VectorObject *vPtr, const char *string, int flags,
                             Rbc_VectorIndexProc **procPtrPtr) {
-    Tcl_Size ielem;
-    char *colon;
+    const char *colon;
+    Tcl_Size first;
+    Tcl_Size last;
+    Tcl_Size index;
 
+    assert(vPtr != NULL);
+    assert(string != NULL);
+    if (procPtrPtr != NULL) {
+        *procPtrPtr = NULL;
+    }
     colon = NULL;
     if (flags & INDEX_COLON) {
         colon = strchr(string, ':');
     }
-    if (colon != NULL) {
-        /* there is a colon in the index specification */
-        if (string == colon) {
-            vPtr->first = 0; /* Default to the first index */
-        } else {
-            int result;
-
-            *colon = '\0';
-            result = Rbc_VectorGetIndex(interp, vPtr, string, &ielem, flags, (Rbc_VectorIndexProc **)NULL);
-            *colon = ':';
-            if (result != TCL_OK) {
-                return TCL_ERROR;
-            }
-            vPtr->first = ielem;
-        }
-        if (*(colon + 1) == '\0') {
-            /* Default to the last index */
-            vPtr->last = (vPtr->length > 0) ? vPtr->length - 1 : 0;
-        } else {
-            if (Rbc_VectorGetIndex(interp, vPtr, colon + 1, &ielem, flags, (Rbc_VectorIndexProc **)NULL) != TCL_OK) {
-                return TCL_ERROR;
-            }
-            vPtr->last = ielem;
-        }
-        if (vPtr->first > vPtr->last) {
-            if (interp != NULL) {
-                Tcl_AppendResult(interp, "bad range \"", string, "\" (first > last)", (char *)NULL);
-            }
+    if (colon == NULL) {
+        if (Rbc_VectorGetIndex(interp, vPtr, string, &index, flags, procPtrPtr) != TCL_OK) {
             return TCL_ERROR;
         }
-    } else {
-        /* there is no colon in the index */
-        if (Rbc_VectorGetIndex(interp, vPtr, string, &ielem, flags, procPtrPtr) != TCL_OK) {
-            return TCL_ERROR;
-        }
-        vPtr->last = vPtr->first = ielem;
+        vPtr->first = index;
+        vPtr->last = index;
+        return TCL_OK;
     }
+    /*
+     * Parse the first part without writing a temporary NUL into string.
+     */
+    if (colon == string) {
+        first = 0;
+    } else {
+        if (GetVectorIndexFromSpan(interp, vPtr, string, colon, &first, flags) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+    /*
+     * Parse the second part. It is already NUL-terminated.
+     */
+    if (colon[1] == '\0') {
+        last = (vPtr->length > 0) ? vPtr->length - 1 : 0;
+    } else {
+        if (Rbc_VectorGetIndex(interp, vPtr, colon + 1, &last, flags, NULL) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+    if (first > last) {
+        if (interp != NULL) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad range \"%s\" (first > last)", string));
+        }
+        return TCL_ERROR;
+    }
+    /*
+     * Commit only after the complete range has been validated.
+     */
+    vPtr->first = first;
+    vPtr->last = last;
     return TCL_OK;
 }
 
@@ -1763,63 +1786,87 @@ int Rbc_VectorGetIndexRange(Tcl_Interp *interp, VectorObject *vPtr, const char *
  *
  * ----------------------------------------------------------------------
  */
-VectorObject *Rbc_VectorParseElement(Tcl_Interp *interp, VectorInterpData *dataPtr, const char *start, char **endPtr,
-                                     int flags) {
-    register char *p;
-    char saved;
+VectorObject *Rbc_VectorParseElement(Tcl_Interp *interp, VectorInterpData *dataPtr, const char *start,
+                                     const char **endPtr, int flags) {
+    const char *p;
     VectorObject *vPtr;
+    Tcl_Obj *nameObjPtr;
+    Tcl_Size oldFirst;
+    Tcl_Size oldLast;
 
-    p = (char *)start;
-    /* Find the end of the vector name */
+    assert(dataPtr != NULL);
+    assert(start != NULL);
+    /*
+     * Find the end of the vector name.
+     */
+    p = start;
     while (VECTOR_CHAR(*p)) {
         p++;
     }
-    saved = *p;
-    *p = '\0';
-
-    vPtr = GetVectorObject(dataPtr, start, flags);
+    /*
+     * Copy only the vector-name portion. Do not write into start.
+     */
+    nameObjPtr = Tcl_NewStringObj(start, (Tcl_Size)(p - start));
+    Tcl_IncrRefCount(nameObjPtr);
+    vPtr = GetVectorObject(dataPtr, Tcl_GetString(nameObjPtr), flags);
     if (vPtr == NULL) {
         if (interp != NULL) {
-            Tcl_AppendResult(interp, "can't find vector \"", start, "\"", (char *)NULL);
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't find vector \"%s\"", Tcl_GetString(nameObjPtr)));
         }
-        *p = saved;
+        Tcl_DecrRefCount(nameObjPtr);
         return NULL;
     }
-    *p = saved;
+    Tcl_DecrRefCount(nameObjPtr);
+    oldFirst = vPtr->first;
+    oldLast = vPtr->last;
+    /*
+     * With no explicit range, select the complete vector.
+     */
     vPtr->first = 0;
     vPtr->last = vPtr->length - 1;
     if (*p == '(') {
-        int count, result;
-
-        start = p + 1;
-        p++;
-
-        /* Find the matching right parenthesis */
-        count = 1;
+        const char *rangeStart;
+        Tcl_Size depth;
+        Tcl_Obj *rangeObjPtr;
+        int result;
+        rangeStart = p + 1;
+        p = rangeStart;
+        depth = 1;
+        /*
+         * Find the matching closing parenthesis. Nested parentheses are
+         * allowed in index expressions.
+         */
         while (*p != '\0') {
-            if (*p == ')') {
-                count--;
-                if (count == 0) {
+            if (*p == '(') {
+                depth++;
+            } else if (*p == ')') {
+                depth--;
+                if (depth == 0) {
                     break;
                 }
-            } else if (*p == '(') {
-                count++;
             }
             p++;
         }
-        if (count > 0) {
+        if (depth != 0) {
             if (interp != NULL) {
-                Tcl_AppendResult(interp, "unbalanced parentheses \"", start, "\"", (char *)NULL);
+                Tcl_SetObjResult(interp, Tcl_ObjPrintf("unbalanced parentheses \"%s\"", rangeStart));
             }
+            vPtr->first = oldFirst;
+            vPtr->last = oldLast;
             return NULL;
         }
-        *p = '\0';
-        result =
-            Rbc_VectorGetIndexRange(interp, vPtr, start, (INDEX_COLON | INDEX_CHECK), (Rbc_VectorIndexProc **)NULL);
-        *p = ')';
+        rangeObjPtr = Tcl_NewStringObj(rangeStart, (Tcl_Size)(p - rangeStart));
+        Tcl_IncrRefCount(rangeObjPtr);
+        result = Rbc_VectorGetIndexRange(interp, vPtr, Tcl_GetString(rangeObjPtr), INDEX_COLON | INDEX_CHECK, NULL);
+        Tcl_DecrRefCount(rangeObjPtr);
         if (result != TCL_OK) {
+            vPtr->first = oldFirst;
+            vPtr->last = oldLast;
             return NULL;
         }
+        /*
+         * Advance beyond the closing parenthesis.
+         */
         p++;
     }
     if (endPtr != NULL) {
@@ -2090,35 +2137,48 @@ static char *BuildQualifiedName(Tcl_Interp *interp, const char *name, Tcl_DStrin
  */
 static int ParseQualifiedName(Tcl_Interp *interp, const char *qualName, Tcl_Namespace **nsPtrPtr,
                               const char **namePtrPtr) {
-    register char *p, *colon;
+    const char *p;
+    const char *separator;
+    const char *name;
     Tcl_Namespace *nsPtr;
 
-    colon = NULL;
-    p = (char *)(qualName + strlen(qualName));
-    while (--p > qualName) {
-        if ((*p == ':') && (*(p - 1) == ':')) {
-            p++; /* just after the last "::" */
-            colon = p - 2;
+    separator = NULL;
+    name = qualName;
+    /*
+     * Find the final namespace separator without walking before the
+     * beginning of an empty or one-character string.
+     */
+    p = qualName + strlen(qualName);
+    while (p > (qualName + 1)) {
+        p--;
+        if ((*p == ':') && (p[-1] == ':')) {
+            separator = p - 1;
+            name = p + 1;
             break;
         }
     }
-    if (colon == NULL) {
+    if (separator == NULL) {
         *nsPtrPtr = NULL;
-        *namePtrPtr = (char *)qualName;
+        *namePtrPtr = qualName;
         return TCL_OK;
     }
-    *colon = '\0';
-    if (qualName[0] == '\0') {
+    if (separator == qualName) {
+        /*
+         * A name beginning with "::" belongs to the global namespace.
+         */
         nsPtr = Tcl_GetGlobalNamespace(interp);
     } else {
-        nsPtr = Tcl_FindNamespace(interp, (char *)qualName, (Tcl_Namespace *)NULL, 0);
+        Tcl_Obj *namespaceObjPtr;
+        namespaceObjPtr = Tcl_NewStringObj(qualName, (Tcl_Size)(separator - qualName));
+        Tcl_IncrRefCount(namespaceObjPtr);
+        nsPtr = Tcl_FindNamespace(interp, Tcl_GetString(namespaceObjPtr), NULL, 0);
+        Tcl_DecrRefCount(namespaceObjPtr);
     }
-    *colon = ':';
     if (nsPtr == NULL) {
         return TCL_ERROR;
     }
     *nsPtrPtr = nsPtr;
-    *namePtrPtr = p;
+    *namePtrPtr = name;
     return TCL_OK;
 }
 
@@ -2651,22 +2711,11 @@ char *Rbc_NameOfVectorId(Rbc_VectorId clientId) {
  * -----------------------------------------------------------------------
  */
 int Rbc_GetVector(Tcl_Interp *interp, const char *name, Rbc_Vector **vecPtrPtr) {
-    VectorInterpData *dataPtr; /* Interpreter-specific data. */
+    VectorInterpData *dataPtr;
     VectorObject *vPtr;
-    char *nameCopy;
-    int result;
 
     dataPtr = Rbc_VectorGetInterpData(interp);
-    /*
-     * If the vector name was passed via a read-only string (e.g. "x"),
-     * the VectorParseName routine will segfault when it tries to write
-     * into the string.  Therefore make a writable copy and free it
-     * when we're done.
-     */
-    nameCopy = RbcStrdup(name);
-    result = Rbc_VectorLookupName(dataPtr, nameCopy, &vPtr);
-    ckfree((char *)nameCopy);
-    if (result != TCL_OK) {
+    if (Rbc_VectorLookupName(dataPtr, name, &vPtr) != TCL_OK) {
         return TCL_ERROR;
     }
     Rbc_VectorUpdateRange(vPtr);
@@ -2702,21 +2751,16 @@ int Rbc_GetVector(Tcl_Interp *interp, const char *name, Rbc_Vector **vecPtrPtr) 
  */
 int Rbc_CreateVector2(Tcl_Interp *interp, const char *vecName, const char *cmdName, const char *varName,
                       Tcl_Size initialSize, Rbc_Vector **vecPtrPtr) {
-    VectorInterpData *dataPtr; /* Interpreter-specific data. */
+    VectorInterpData *dataPtr;
     VectorObject *vPtr;
     int isNew;
-    char *nameCopy;
 
     if (initialSize < 0) {
-        Tcl_AppendResult(interp, "bad vector size \"", Rbc_Itoa(initialSize), "\"", (char *)NULL);
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad vector size \"%" TCL_SIZE_MODIFIER "d\"", initialSize));
         return TCL_ERROR;
     }
     dataPtr = Rbc_VectorGetInterpData(interp);
-
-    nameCopy = RbcStrdup(vecName);
-    vPtr = Rbc_VectorCreate(dataPtr, nameCopy, cmdName, varName, &isNew);
-    ckfree((char *)nameCopy);
-
+    vPtr = Rbc_VectorCreate(dataPtr, vecName, cmdName, varName, &isNew);
     if (vPtr == NULL) {
         return TCL_ERROR;
     }

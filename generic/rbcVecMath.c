@@ -1746,6 +1746,7 @@ static int NextToken(Tcl_Interp *interp, ParseInfo *parsePtr, Value *valuePtr) {
     register char *p;
     char *endPtr;
     const char *var;
+    const char *vectorEndPtr;
     int result;
 
     p = parsePtr->nextPtr;
@@ -1930,12 +1931,12 @@ static int NextToken(Tcl_Interp *interp, ParseInfo *parsePtr, Value *valuePtr) {
             while (isspace(UCHAR(*p))) {
                 p++; /* Skip spaces leading the vector name. */
             }
-            vPtr = Rbc_VectorParseElement(interp, valuePtr->vPtr->dataPtr, p, &endPtr, NS_SEARCH_BOTH);
+            vPtr = Rbc_VectorParseElement(interp, valuePtr->vPtr->dataPtr, p, &vectorEndPtr, NS_SEARCH_BOTH);
             if (vPtr == NULL) {
                 return TCL_ERROR;
             }
             Rbc_VectorDuplicate(valuePtr->vPtr, vPtr);
-            parsePtr->nextPtr = endPtr;
+            parsePtr->nextPtr = (char *)vectorEndPtr;
         }
     }
     return TCL_OK;
@@ -1999,48 +2000,39 @@ static double Fmod(double x, double y) {
  */
 
 static int ParseString(Tcl_Interp *interp, const char *string, Value *valuePtr) {
-    char *endPtr;
+    char *numberEndPtr;
+    const char *vectorEndPtr;
     double value;
 
     errno = 0;
-
-    /*
-     * The string can be either a number or a vector.  First try to
-     * convert the string to a number.  If that fails then see if
-     * we can find a vector by that name.
-     */
-
-    value = strtod(string, &endPtr);
-    if ((endPtr != string) && (*endPtr == '\0')) {
+    value = strtod(string, &numberEndPtr);
+    if ((numberEndPtr != string) && (*numberEndPtr == '\0')) {
         if (errno != 0) {
             Tcl_ResetResult(interp);
             MathError(interp, value);
             return TCL_ERROR;
         }
-        /* Numbers are stored as single element vectors. */
         if (Rbc_VectorChangeLength(valuePtr->vPtr, 1) != TCL_OK) {
             return TCL_ERROR;
         }
         valuePtr->vPtr->valueArr[0] = value;
         return TCL_OK;
-    } else {
+    }
+    while (isspace(UCHAR(*string))) {
+        string++;
+    }
+    {
         VectorObject *vPtr;
-
-        while (isspace(UCHAR(*string))) {
-            string++; /* Skip spaces leading the vector name. */
-        }
-        vPtr = Rbc_VectorParseElement(interp, valuePtr->vPtr->dataPtr, string, &endPtr, NS_SEARCH_BOTH);
+        vPtr = Rbc_VectorParseElement(interp, valuePtr->vPtr->dataPtr, string, &vectorEndPtr, NS_SEARCH_BOTH);
         if (vPtr == NULL) {
             return TCL_ERROR;
         }
-        if (*endPtr != '\0') {
-            Tcl_AppendResult(interp, "extra characters after vector", (char *)NULL);
+        if (*vectorEndPtr != '\0') {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("extra characters after vector", -1));
             return TCL_ERROR;
         }
-        /* Copy the designated vector to our temporary. */
-        Rbc_VectorDuplicate(valuePtr->vPtr, vPtr);
+        return Rbc_VectorDuplicate(valuePtr->vPtr, vPtr);
     }
-    return TCL_OK;
 }
 
 /*
