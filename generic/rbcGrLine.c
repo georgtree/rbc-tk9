@@ -1226,7 +1226,7 @@ static void InitPen(LinePen *penPtr, const Tk_OptionSpec *optionSpecs, unsigned 
 static int ScaleSymbol(Element *elemPtr, int normalSize);
 static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
 static void ReducePoints(MapInfo *mapPtr, double tolerance);
-static void GenerateSteps(MapInfo *mapPtr);
+static void GenerateSteps(Line *linePtr, MapInfo *mapPtr);
 static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
 static void GenerateParametricSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
 static void MapSymbols(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
@@ -2954,38 +2954,41 @@ static void ReducePoints(MapInfo *mapPtr, double tolerance) {
  *
  *----------------------------------------------------------------------
  */
-static void GenerateSteps(MapInfo *mapPtr) {
-    int newSize;
-    register int i, count;
+static void GenerateSteps(Line *linePtr, MapInfo *mapPtr) {
     Point2D *screenPts;
     Tcl_Size *indices;
+    Tcl_Size newSize;
+    int i;
+    int count;
 
-    newSize = ((mapPtr->nScreenPts - 1) * 2) + 1;
-    screenPts = (Point2D *)ckalloc(newSize * sizeof(Point2D));
-    assert(screenPts);
+    if (mapPtr->nScreenPts < 2) {
+        return;
+    }
+    newSize = ((Tcl_Size)mapPtr->nScreenPts - 1) * 2 + 1;
+    if (newSize > INT_MAX) {
+        /*
+         * Retain the original unsmoothed coordinates.
+         */
+        linePtr->smooth = PEN_SMOOTH_NONE;
+        return;
+    }
+    screenPts = ckalloc((size_t)newSize * sizeof(*screenPts));
     indices = ckalloc((size_t)newSize * sizeof(*indices));
-    assert(indices);
-
     screenPts[0] = mapPtr->screenPts[0];
     indices[0] = mapPtr->indices[0];
-
     count = 1;
     for (i = 1; i < mapPtr->nScreenPts; i++) {
         screenPts[count + 1] = mapPtr->screenPts[i];
-
-        /* Hold last y-coordinate, use new x-coordinate */
         screenPts[count].x = screenPts[count + 1].x;
         screenPts[count].y = screenPts[count - 1].y;
-
-        /* Use the same style for both the hold and the step points */
         indices[count] = indices[count + 1] = mapPtr->indices[i];
         count += 2;
     }
-    ckfree((char *)mapPtr->screenPts);
-    ckfree((char *)mapPtr->indices);
-    mapPtr->indices = indices;
+    ckfree(mapPtr->screenPts);
+    ckfree(mapPtr->indices);
     mapPtr->screenPts = screenPts;
-    mapPtr->nScreenPts = newSize;
+    mapPtr->indices = indices;
+    mapPtr->nScreenPts = (int)newSize;
 }
 
 /*
@@ -3016,12 +3019,17 @@ static void GenerateSteps(MapInfo *mapPtr) {
  */
 static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     int extra;
-    register int i, j, count;
     Point2D *origPts, *intpPts;
     Tcl_Size *indices;
-    int nIntpPts, nOrigPts;
+    Tcl_Size capacity;
+    Tcl_Size count;
+    Tcl_Size i;
+    Tcl_Size j;
+    Tcl_Size nOrigPts;
+    Tcl_Size nIntpPts;
     int result;
     int x;
+
 
     nOrigPts = mapPtr->nScreenPts;
     origPts = mapPtr->screenPts;
@@ -3043,6 +3051,11 @@ static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     if (extra < 1) {
         return;
     }
+    capacity = (Tcl_Size)nOrigPts + (Tcl_Size)extra + 1;
+    if (capacity > INT_MAX) {
+        linePtr->smooth = PEN_SMOOTH_NONE;
+        return;
+    }    
     nIntpPts = nOrigPts + extra + 1;
     intpPts = (Point2D *)ckalloc(nIntpPts * sizeof(Point2D));
     assert(intpPts);
@@ -3094,6 +3107,12 @@ static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
         }
     }
     nIntpPts = count;
+    if (nIntpPts > INT_MAX) {
+        linePtr->smooth = PEN_SMOOTH_NONE;
+        ckfree(intpPts);
+        ckfree(indices);
+        return;
+    }
     result = FALSE;
     if (linePtr->smooth == PEN_SMOOTH_NATURAL) {
         result = Rbc_NaturalSpline(origPts, nOrigPts, intpPts, nIntpPts);
@@ -3112,7 +3131,7 @@ static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
         ckfree((char *)mapPtr->indices);
         mapPtr->indices = indices;
         mapPtr->screenPts = intpPts;
-        mapPtr->nScreenPts = nIntpPts;
+        mapPtr->nScreenPts = (int)nIntpPts;
     }
 }
 
@@ -3144,109 +3163,180 @@ static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
  */
 static void GenerateParametricSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Extents2D exts;
-    Point2D *origPts, *intpPts;
-    Point2D p, q;
-    double dist;
+    Point2D *origPts;
+    Point2D *intpPts;
     Tcl_Size *indices;
-    int nIntpPts, nOrigPts;
+    Tcl_Size nOrigPts;
+    Tcl_Size nIntpPts;
+    Tcl_Size capacity;
+    Tcl_Size count;
+    Tcl_Size i;
+    Tcl_Size j;
     int result;
-    register int i, j, count;
 
-    nOrigPts = mapPtr->nScreenPts;
-    origPts = mapPtr->screenPts;
     assert(mapPtr->nScreenPts > 0);
-
+    origPts = mapPtr->screenPts;
+    nOrigPts = (Tcl_Size)mapPtr->nScreenPts;
+    intpPts = NULL;
+    indices = NULL;
     Rbc_GraphExtents(graphPtr, &exts);
 
     /*
-     * Populate the x2 array with both the original X-coordinates and
-     * extra X-coordinates for each horizontal pixel that the line
-     * segment contains.
+     * Every original point is retained. Additional points are generated
+     * at approximately two-pixel intervals along the visible portion of
+     * each segment.
      */
-    count = 1;
+    capacity = nOrigPts;
     for (i = 0, j = 1; j < nOrigPts; i++, j++) {
+        Point2D p;
+        Point2D q;
+        
         p = origPts[i];
         q = origPts[j];
-        count++;
         if (Rbc_LineRectClip(&exts, &p, &q)) {
-            count += (int)(hypot(q.x - p.x, q.y - p.y) * 0.5);
+            double dist;
+            double distP;
+            double distQ;
+
+            dist = hypot(origPts[j].x - origPts[i].x, origPts[j].y - origPts[i].y);
+            /*
+             * Coincident points do not contribute interpolation samples.
+             */
+            if (!FINITE(dist) || (dist <= DBL_EPSILON)) {
+                continue;
+            }
+            distP = hypot(p.x - origPts[i].x, p.y - origPts[i].y);
+            distQ = hypot(q.x - origPts[i].x, q.y - origPts[i].y);
+            /*
+             * The first additional sample is two pixels from the clipped
+             * starting point.
+             */
+            distP += 2.0;
+            if (distP <= distQ) {
+                double extraValue;
+                Tcl_Size extra;
+                extraValue = floor((distQ - distP) / 2.0) + 1.0;
+                if (!FINITE(extraValue) || (extraValue > (double)((Tcl_Size)INT_MAX - capacity))) {
+                    goto fallback;
+                }
+                extra = (Tcl_Size)extraValue;
+                capacity += extra;
+            }
         }
     }
-    nIntpPts = count;
-    intpPts = (Point2D *)ckalloc(nIntpPts * sizeof(Point2D));
-    assert(intpPts);
-
-    indices = ckalloc((size_t)nIntpPts * sizeof(*indices));
-    assert(indices);
-
     /*
-     * FIXME: This is just plain wrong.  The spline should be computed
-     *        and evaluated in separate steps.  This will mean breaking
-     *          up this routine since the catrom coefficients can be
-     *          independently computed for original data point.  This
-     *          also handles the problem of allocating enough points
-     *          since evaluation is independent of the number of points
-     *        to be evalualted.  The interpolated
-     *          line segments should be clipped, not the original segments.
+     * MapInfo.nScreenPts and the current drawing pipeline still use int.
+     */
+    if ((capacity < 1) || (capacity > INT_MAX)) {
+        goto fallback;
+    }
+    if (((size_t)capacity > (SIZE_MAX / sizeof(*intpPts))) || ((size_t)capacity > (SIZE_MAX / sizeof(*indices)))) {
+        goto fallback;
+    }
+    intpPts = Tcl_AttemptAlloc((size_t)capacity * sizeof(*intpPts));
+    if (intpPts == NULL) {
+        goto fallback;
+    }
+    indices = Tcl_AttemptAlloc((size_t)capacity * sizeof(*indices));
+    if (indices == NULL) {
+        goto fallback;
+    }
+    /*
+     * Store Catmull-Rom evaluation parameters in intpPts:
+     *
+     *     x = source interval
+     *     y = parameter t within that interval
+     *
+     * Rbc_CatromParametricSpline() replaces these parameters with the
+     * corresponding interpolated screen coordinates.
      */
     count = 0;
     for (i = 0, j = 1; j < nOrigPts; i++, j++) {
+        Point2D p;
+        Point2D q;
+        double dist;
+
         p = origPts[i];
         q = origPts[j];
-
-        dist = hypot(q.x - p.x, q.y - p.y);
-        /* Add the original x-coordinate */
+        if (count >= capacity) {
+            goto fallback;
+        }
+        /*
+         * Retain the original point at the beginning of this interval.
+         */
         intpPts[count].x = (double)i;
         intpPts[count].y = 0.0;
-
-        /* Include the starting offset of the point in the offset array */
         indices[count] = mapPtr->indices[i];
         count++;
-
-        /* Is any part of the interval (line segment) in the plotting
-         * area?  */
-
+        dist = hypot(origPts[j].x - origPts[i].x, origPts[j].y - origPts[i].y);
+        if (!FINITE(dist) || (dist <= DBL_EPSILON)) {
+            continue;
+        }
         if (Rbc_LineRectClip(&exts, &p, &q)) {
-            double distP, distQ;
+            double distP;
+            double distQ;
 
             distP = hypot(p.x - origPts[i].x, p.y - origPts[i].y);
             distQ = hypot(q.x - origPts[i].x, q.y - origPts[i].y);
             distP += 2.0;
             while (distP <= distQ) {
-                /* Point is indicated by its interval and parameter t. */
+                if (count >= capacity) {
+                    goto fallback;
+                }
+                /*
+                 * Identify the point by its source interval and its
+                 * normalized position within that interval.
+                 */
                 intpPts[count].x = (double)i;
                 intpPts[count].y = distP / dist;
+                /*
+                 * Interpolated points map to the source point beginning
+                 * the interval.
+                 */
                 indices[count] = mapPtr->indices[i];
                 count++;
                 distP += 2.0;
             }
         }
     }
-    intpPts[count].x = (double)i;
+
+    /*
+     * Append the final original point.
+     */
+    if (count >= capacity) {
+        goto fallback;
+    }
+    intpPts[count].x = (double)(nOrigPts - 1);
     intpPts[count].y = 0.0;
-    indices[count] = mapPtr->indices[i];
+    indices[count] = mapPtr->indices[nOrigPts - 1];
     count++;
     nIntpPts = count;
-    result = FALSE;
-    if (linePtr->smooth == PEN_SMOOTH_NATURAL) {
-        result = Rbc_NaturalParametricSpline(origPts, nOrigPts, &exts, FALSE, intpPts, nIntpPts);
-    } else if (linePtr->smooth == PEN_SMOOTH_CATROM) {
-        result = Rbc_CatromParametricSpline(origPts, nOrigPts, intpPts, nIntpPts);
-    }
+    result = Rbc_CatromParametricSpline(origPts, nOrigPts, intpPts, nIntpPts);
     if (!result) {
-        /* The spline interpolation failed.  We'll fallback to the
-         * current coordinates and do no smoothing (standard line
-         * segments).  */
-        linePtr->smooth = PEN_SMOOTH_NONE;
-        ckfree((char *)intpPts);
-        ckfree((char *)indices);
-    } else {
-        ckfree((char *)mapPtr->screenPts);
-        ckfree((char *)mapPtr->indices);
-        mapPtr->indices = indices;
-        mapPtr->screenPts = intpPts;
-        mapPtr->nScreenPts = nIntpPts;
+        goto fallback;
     }
+    /*
+     * Commit only after spline generation succeeds.
+     */
+    ckfree(mapPtr->screenPts);
+    ckfree(mapPtr->indices);
+    mapPtr->screenPts = intpPts;
+    mapPtr->indices = indices;
+    mapPtr->nScreenPts = (int)nIntpPts;
+    return;
+
+fallback:
+    if (intpPts != NULL) {
+        ckfree(intpPts);
+    }
+    if (indices != NULL) {
+        ckfree(indices);
+    }
+    /*
+     * Preserve the original MapInfo arrays and fall back to straight
+     * line segments.
+     */
+    linePtr->smooth = PEN_SMOOTH_NONE;
 }
 
 /*
@@ -4069,7 +4159,7 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
 
         switch (linePtr->smooth) {
         case PEN_SMOOTH_STEP:
-            GenerateSteps(&mapInfo);
+            GenerateSteps(linePtr, &mapInfo);
             break;
 
         case PEN_SMOOTH_NATURAL:

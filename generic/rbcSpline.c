@@ -11,7 +11,7 @@
 
 #include "rbcInt.h"
 
-typedef int (*Rbc_SplineOp)(Point2D *, int, Point2D *, int);
+typedef int (*Rbc_SplineOp)(Point2D *, Tcl_Size, Point2D *, Tcl_Size);
 typedef struct {
     Rbc_OpSpecHeader header;
     Rbc_SplineOp proc;
@@ -48,19 +48,31 @@ typedef struct {
 #define Y2 param[9]
 
 static Tcl_ObjCmdProc2 SplineObjCmd;
-static int Search(Point2D points[], int nPoints, double key, int *foundPtr);
+static Tcl_Size Search(Point2D points[], Tcl_Size nPoints, double key, int *foundPtr);
 static int QuadChoose(Point2D *p, Point2D *q, double m1, double m2, double epsilon);
 static void QuadCases(Point2D *p, Point2D *q, double m1, double m2, double param[], int which);
 static int QuadSelect(Point2D *p, Point2D *q, double m1, double m2, double epsilon, double param[]);
 INLINE static double QuadGetImage(double p1, double p2, double p3, double x1, double x2, double x3);
 static void QuadSpline(Point2D *intp, Point2D *left, Point2D *right, double param[], int ncase);
-static void QuadSlopes(Point2D points[], double *m, int nPoints);
-static int QuadEval(Point2D origPts[], int nOrigPts, Point2D intpPts[], int nIntpPts, double *m, double epsilon);
-static int SolveCubic1(TriDiagonalMatrix A[], int n);
-static void SolveCubic2(TriDiagonalMatrix A[], CubicSpline spline[], int nIntervals);
-static CubicSpline *CubicSlopes(Point2D points[], int nPoints, int isClosed, double unitX, double unitY);
-static int CubicEval(Point2D origPts[], int nOrigPts, Point2D intpPts[], int nIntpPts, CubicSpline spline[]);
+static void QuadSlopes(Point2D points[], double *m, Tcl_Size nPoints);
+static int QuadEval(Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts, double *m,
+                    double epsilon);
+static int SolveCubic1(TriDiagonalMatrix A[], Tcl_Size n);
+static void SolveCubic2(TriDiagonalMatrix A[], CubicSpline spline[], Tcl_Size nIntervals);
+static CubicSpline *CubicSlopes(Point2D points[], Tcl_Size nPoints, int isClosed, double unitX, double unitY);
+static Tcl_Size CubicEval(Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts,
+                          CubicSpline spline[]);
 static void CatromCoeffs(Point2D *p, Point2D *a, Point2D *b, Point2D *c, Point2D *d);
+
+
+
+static int GetSplineArrayByteCount(Tcl_Size count, size_t elementSize, size_t *byteCountPtr) {
+    if ((count < 0) || (elementSize == 0) || ((Tcl_WideUInt)count > (Tcl_WideUInt)(SIZE_MAX / elementSize))) {
+        return TCL_ERROR;
+    }
+    *byteCountPtr = (size_t)count * elementSize;
+    return TCL_OK;
+}
 
 /*
  * -----------------------------------------------------------------------
@@ -85,24 +97,28 @@ static void CatromCoeffs(Point2D *p, Point2D *a, Point2D *b, Point2D *c, Point2D
  *
  * -----------------------------------------------------------------------
  */
-static int Search(Point2D points[], int nPoints, double key, int *foundPtr) {
-    int high, low, mid;
+static Tcl_Size Search(Point2D points[], Tcl_Size nPoints, double key, int *foundPtr) {
+    Tcl_Size high;
+    Tcl_Size low;
+    Tcl_Size mid;
 
     low = 0;
     high = nPoints - 1;
-
     while (high >= low) {
-        mid = (high + low) / 2;
+        /*
+         * Avoid overflow from (high + low) / 2.
+         */
+        mid = low + ((high - low) / 2);
         if (key > points[mid].x) {
             low = mid + 1;
         } else if (key < points[mid].x) {
             high = mid - 1;
         } else {
-            *foundPtr = 1;
+            *foundPtr = TRUE;
             return mid;
         }
     }
-    *foundPtr = 0;
+    *foundPtr = FALSE;
     return low;
 }
 
@@ -500,12 +516,12 @@ static void QuadSpline(Point2D *intp, Point2D *left, Point2D *right, double para
  *
  * -----------------------------------------------------------------------
  */
-static void QuadSlopes(Point2D points[], double *m, int nPoints) {
+static void QuadSlopes(Point2D points[], double *m, Tcl_Size nPoints) {
     double xbar, xmid, xhat, ydif1, ydif2;
     double yxmid;
     double m1, m2;
     double m1s, m2s;
-    register int i, n, l;
+    Tcl_Size i, n, l;
 
     m1s = m2s = m1 = m2 = 0;
     for (l = 0, i = 1, n = 2; i < (nPoints - 1); l++, i++, n++) {
@@ -649,14 +665,15 @@ static void QuadSlopes(Point2D points[], double *m, int nPoints) {
  *
  *--------------------------------------------------------------
  */
-static int QuadEval(Point2D origPts[], int nOrigPts, Point2D intpPts[], int nIntpPts, double *m, double epsilon) {
+static int QuadEval(Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts, double *m,
+                    double epsilon) {
     int error;
-    register int i, j;
+    Tcl_Size i, j;
     double param[10];
     int ncase;
-    int start, end;
-    int l, p;
-    register int n;
+    Tcl_Size start, end;
+    Tcl_Size l, p;
+    Tcl_Size n;
     int found;
 
     /* Initialize indices and set error result */
@@ -862,23 +879,24 @@ noExtrapolation:
  *
  *--------------------------------------------------------------
  */
-int Rbc_QuadraticSpline(Point2D origPts[], int nOrigPts, Point2D intpPts[], int nIntpPts) {
+int Rbc_QuadraticSpline(Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts) {
     double epsilon;
     double *work;
+    size_t byteCount;
     int result;
 
-    work = (double *)ckalloc(nOrigPts * sizeof(double));
-    assert(work);
-
-    epsilon = 0.0; /* TBA: adjust error via command-line option */
-    /* allocate space for vectors used in calculation */
-    QuadSlopes(origPts, work, nOrigPts);
-    result = QuadEval(origPts, nOrigPts, intpPts, nIntpPts, work, epsilon);
-    ckfree((char *)work);
-    if (result > 1) {
+    if (GetSplineArrayByteCount(nOrigPts, sizeof(double), &byteCount) != TCL_OK) {
         return FALSE;
     }
-    return TRUE;
+    work = Tcl_AttemptAlloc((byteCount > 0) ? byteCount : 1);
+    if (work == NULL) {
+        return FALSE;
+    }
+    epsilon = 0.0;
+    QuadSlopes(origPts, work, nOrigPts);
+    result = QuadEval(origPts, nOrigPts, intpPts, nIntpPts, work, epsilon);
+    ckfree(work);
+    return (result <= 1);
 }
 
 /*
@@ -912,14 +930,14 @@ int Rbc_QuadraticSpline(Point2D origPts[], int nOrigPts, Point2D intpPts[], int 
  *
  *--------------------------------------------------------------
  */
-int Rbc_NaturalSpline(Point2D origPts[], int nOrigPts, Point2D intpPts[], int nIntpPts) {
+int Rbc_NaturalSpline(Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts) {
     Cubic2D *eq;
     Point2D *iPtr, *endPtr;
     TriDiagonalMatrix *A;
     double *dx; /* vector of deltas in x */
     double x, dy, alpha;
     int isKnot;
-    register int i, j, n;
+    Tcl_Size i, j, n;
 
     dx = (double *)ckalloc(sizeof(double) * nOrigPts);
     /* Calculate vector of differences */
@@ -1028,25 +1046,23 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
     double *yArr;
     Point2D *origPts;
     Point2D *intpPts;
-    int nOrigPts;
-    int nIntpPts;
+    Tcl_Size nOrigPts;
+    Tcl_Size nIntpPts;
+    Tcl_Size i;
+    size_t origBytes;
+    size_t intpBytes;
     int index;
-    int i;
 
     (void)clientData;
-
     if (Rbc_GetOpIndexFromObj(interp, splineOps, (Tcl_Size)sizeof(splineOps[0]), RBC_OP_ARG1, objc, objv, &index) !=
         TCL_OK) {
         return TCL_ERROR;
     }
-
     proc = splineOps[index].proc;
-
     xName = Tcl_GetString(objv[2]);
     yName = Tcl_GetString(objv[3]);
     splXName = Tcl_GetString(objv[4]);
     splYName = Tcl_GetString(objv[5]);
-
     if ((Rbc_GetVector(interp, xName, &x) != TCL_OK) || (Rbc_GetVector(interp, yName, &y) != TCL_OK) ||
         (Rbc_GetVector(interp, splXName, &splX) != TCL_OK)) {
         return TCL_ERROR;
@@ -1056,50 +1072,50 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("length of vector \"%s\" is < 3", xName));
         return TCL_ERROR;
     }
+    if (nOrigPts != Rbc_VecLength(y)) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("vectors \"%s\" and \"%s\" have different lengths", xName, yName));
+        return TCL_ERROR;
+    }
     for (i = 1; i < nOrigPts; i++) {
         if (Rbc_VecData(x)[i] < Rbc_VecData(x)[i - 1]) {
             Tcl_SetObjResult(interp, Tcl_ObjPrintf("x vector \"%s\" must be monotonically increasing", xName));
             return TCL_ERROR;
         }
     }
-    /* Check that all the data points aren't the same. */
-    if (Rbc_VecData(x)[i - 1] <= Rbc_VecData(x)[0]) {
+    if (Rbc_VecData(x)[nOrigPts - 1] <= Rbc_VecData(x)[0]) {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("x vector \"%s\" must be monotonically increasing", xName));
-        return TCL_ERROR;
-    }
-    if (nOrigPts != Rbc_VecLength(y)) {
-        Tcl_SetObjResult(interp, Tcl_ObjPrintf("vectors \"%s\" and \"%s\" have different lengths", xName, yName));
         return TCL_ERROR;
     }
     nIntpPts = Rbc_VecLength(splX);
     if (Rbc_GetVector(interp, splYName, &splY) != TCL_OK) {
         /*
-         * If the named vector to hold the ordinates of the spline
-         * doesn't exist, create one the same size as the vector
-         * containing the abscissas.
+         * The missing-vector error is replaced by the result from
+         * Rbc_CreateVector().
          */
+        Tcl_ResetResult(interp);
         if (Rbc_CreateVector(interp, splYName, nIntpPts, &splY) != TCL_OK) {
             return TCL_ERROR;
         }
     } else if (nIntpPts != Rbc_VecLength(splY)) {
-        /*
-         * The x and y vectors differ in size. Make the number of ordinates
-         * the same as the number of abscissas.
-         */
         if (Rbc_ResizeVector(splY, nIntpPts) != TCL_OK) {
             return TCL_ERROR;
         }
     }
-    origPts = ckalloc(sizeof(Point2D) * (size_t)nOrigPts);
-    if (origPts == NULL) {
-        Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't allocate \"%d\" points", nOrigPts));
+    if ((GetSplineArrayByteCount(nOrigPts, sizeof(Point2D), &origBytes) != TCL_OK) ||
+        (GetSplineArrayByteCount(nIntpPts, sizeof(Point2D), &intpBytes) != TCL_OK)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("spline point array is too large", -1));
         return TCL_ERROR;
     }
-    intpPts = ckalloc(sizeof(Point2D) * (size_t)nIntpPts);
+    origPts = Tcl_AttemptAlloc((origBytes > 0) ? origBytes : 1);
+    if (origPts == NULL) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't allocate %" TCL_SIZE_MODIFIER "d source points", nOrigPts));
+        return TCL_ERROR;
+    }
+    intpPts = Tcl_AttemptAlloc((intpBytes > 0) ? intpBytes : 1);
     if (intpPts == NULL) {
-        Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't allocate \"%d\" points", nIntpPts));
-
         ckfree(origPts);
+        Tcl_SetObjResult(interp,
+                         Tcl_ObjPrintf("can't allocate %" TCL_SIZE_MODIFIER "d interpolation points", nIntpPts));
         return TCL_ERROR;
     }
     xArr = Rbc_VecData(x);
@@ -1116,20 +1132,16 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
     }
     if (!proc(origPts, nOrigPts, intpPts, nIntpPts)) {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("error generating spline for \"%s\"", Rbc_NameOfVector(splY)));
-        ckfree((char *)origPts);
-        ckfree((char *)intpPts);
+        ckfree(origPts);
+        ckfree(intpPts);
         return TCL_ERROR;
     }
     yArr = Rbc_VecData(splY);
     for (i = 0; i < nIntpPts; i++) {
         yArr[i] = intpPts[i].y;
     }
-    ckfree((char *)origPts);
-    ckfree((char *)intpPts);
-
-    /* Finally update the vector. The size of the vector hasn't
-     * changed, just the data. Reset the vector using TCL_STATIC to
-     * indicate this. */
+    ckfree(origPts);
+    ckfree(intpPts);
     if (Rbc_ResetVector(splY, Rbc_VecData(splY), Rbc_VecLength(splY), Rbc_VecSize(splY), TCL_STATIC) != TCL_OK) {
         return TCL_ERROR;
     }
@@ -1201,8 +1213,8 @@ int Rbc_SplineInit(Tcl_Interp *interp) {
  *
  *--------------------------------------------------------------
  */
-static int SolveCubic1(TriDiagonalMatrix A[], int n) {
-    int i;
+static int SolveCubic1(TriDiagonalMatrix A[], Tcl_Size n) {
+    Tcl_Size i;
     double m_ij, m_n, m_nn, d;
 
     if (n < 1) {
@@ -1281,10 +1293,10 @@ static int SolveCubic1(TriDiagonalMatrix A[], int n) {
  *
  *--------------------------------------------------------------
  */
-static void SolveCubic2(TriDiagonalMatrix A[], CubicSpline spline[], int nIntervals) {
-    int i;
+static void SolveCubic2(TriDiagonalMatrix A[], CubicSpline spline[], Tcl_Size nIntervals) {
+    Tcl_Size i;
     double x, y;
-    int n, m;
+    Tcl_Size n, m;
 
     n = nIntervals - 2;
     m = nIntervals - 1;
@@ -1352,10 +1364,10 @@ static void SolveCubic2(TriDiagonalMatrix A[], CubicSpline spline[], int nInterv
  *
  *--------------------------------------------------------------
  */
-static CubicSpline *CubicSlopes(Point2D points[], int nPoints, int isClosed, double unitX, double unitY) {
+static CubicSpline *CubicSlopes(Point2D points[], Tcl_Size nPoints, int isClosed, double unitX, double unitY) {
     CubicSpline *spline;
     register CubicSpline *s1, *s2;
-    int n, i;
+    Tcl_Size n, i;
     double norm, dx, dy;
     TriDiagonalMatrix *A; /* The tri-diagonal matrix is saved here. */
 
@@ -1496,47 +1508,53 @@ static CubicSpline *CubicSlopes(Point2D points[], int nPoints, int isClosed, dou
  *
  *--------------------------------------------------------------
  */
-static int CubicEval(Point2D origPts[], int nOrigPts, Point2D intpPts[], int nIntpPts, CubicSpline spline[]) {
-    double t, tSkip, tMax;
-    Point2D p, q;
-    double d, hx, dx0, dx01, hy, dy0, dy01;
-    register int i, j, count;
+static Tcl_Size CubicEval(Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts,
+                          CubicSpline spline[]) {
+    double t;
+    double tSkip;
+    double tMax;
+    Point2D p;
+    Point2D q;
+    double d;
+    double hx;
+    double dx0;
+    double dx01;
+    double hy;
+    double dy0;
+    double dy01;
+    Tcl_Size i;
+    Tcl_Size j;
+    Tcl_Size count;
 
-    /* Sum the lengths of all the segments (intervals). */
+    if ((nOrigPts < 2) || (nIntpPts < 2)) {
+        return 0;
+    }
     tMax = 0.0;
-    for (i = 0; i < nOrigPts - 1; i++) {
+    for (i = 0; i < (nOrigPts - 1); i++) {
         tMax += spline[i].t;
     }
-
-    /* Need a better way of doing this... */
-
-    /* The distance between interpolated points */
-    tSkip = (1. - 1e-7) * tMax / (nIntpPts - 1);
-
-    t = 0.0; /* Spline parameter value. */
+    tSkip = (1.0 - 1.0e-7) * tMax / (double)(nIntpPts - 1);
+    t = 0.0;
     q = origPts[0];
     count = 0;
-
-    intpPts[count++] = q; /* First point. */
+    intpPts[count++] = q;
     t += tSkip;
-
     for (i = 0, j = 1; j < nOrigPts; i++, j++) {
-        d = spline[i].t; /* Interval length */
+        d = spline[i].t;
         p = q;
         q = origPts[i + 1];
         hx = (q.x - p.x) / d;
         hy = (q.y - p.y) / d;
-        dx0 = (spline[j].x + 2 * spline[i].x) / 6.0;
-        dy0 = (spline[j].y + 2 * spline[i].y) / 6.0;
+        dx0 = (spline[j].x + 2.0 * spline[i].x) / 6.0;
+        dy0 = (spline[j].y + 2.0 * spline[i].y) / 6.0;
         dx01 = (spline[j].x - spline[i].x) / (6.0 * d);
         dy01 = (spline[j].y - spline[i].y) / (6.0 * d);
-        while (t <= spline[i].t) { /* t in current interval ? */
+        while ((t <= spline[i].t) && (count < nIntpPts)) {
             p.x += t * (hx + (t - d) * (dx0 + t * dx01));
             p.y += t * (hy + (t - d) * (dy0 + t * dy01));
             intpPts[count++] = p;
             t += tSkip;
         }
-        /* Parameter t relative to start of next interval */
         t -= spline[i].t;
     }
     return count;
@@ -1571,41 +1589,37 @@ static int CubicEval(Point2D origPts[], int nOrigPts, Point2D intpPts[], int nIn
  *
  *--------------------------------------------------------------
  */
-int Rbc_NaturalParametricSpline(Point2D origPts[], int nOrigPts, Extents2D *extsPtr, int isClosed, Point2D *intpPts,
-                                int nIntpPts) {
-    double unitX, unitY; /* To define norm (x,y)-plane */
+Tcl_Size Rbc_NaturalParametricSpline(Point2D origPts[], Tcl_Size nOrigPts, Extents2D *extsPtr, int isClosed,
+                                     Point2D *intpPts, Tcl_Size nIntpPts) {
+    double unitX;
+    double unitY;
     CubicSpline *spline;
-    int result;
+    Tcl_Size result;
 
     if (nOrigPts < 3) {
         return 0;
     }
     if (isClosed) {
-        origPts[nOrigPts].x = origPts[0].x;
-        origPts[nOrigPts].y = origPts[0].y;
+        if (nOrigPts == TCL_SIZE_MAX) {
+            return 0;
+        }
+        origPts[nOrigPts] = origPts[0];
         nOrigPts++;
     }
-    /* Width and height of the grid is used at unit length (2d-norm) */
     unitX = extsPtr->right - extsPtr->left;
     unitY = extsPtr->bottom - extsPtr->top;
-
     if (unitX < FLT_EPSILON) {
         unitX = FLT_EPSILON;
     }
     if (unitY < FLT_EPSILON) {
         unitY = FLT_EPSILON;
     }
-    /* Calculate parameters for cubic spline:
-     *        t     = arc length of interval.
-     *        dxdt2 = second derivatives of x with respect to t,
-     *        dydt2 = second derivatives of y with respect to t,
-     */
     spline = CubicSlopes(origPts, nOrigPts, isClosed, unitX, unitY);
     if (spline == NULL) {
         return 0;
     }
     result = CubicEval(origPts, nOrigPts, intpPts, nIntpPts, spline);
-    ckfree((char *)spline);
+    ckfree(spline);
     return result;
 }
 
@@ -1664,34 +1678,49 @@ static void CatromCoeffs(Point2D *p, Point2D *a, Point2D *b, Point2D *c, Point2D
  *
  *----------------------------------------------------------------------
  */
-int
-Rbc_CatromParametricSpline(Point2D *points, int nPoints, Point2D *intpPts, int nIntpPts) {
-    register int i;
+int Rbc_CatromParametricSpline(Point2D *points, Tcl_Size nPoints, Point2D *intpPts, Tcl_Size nIntpPts) {
     Point2D *origPts;
+    Point2D a;
+    Point2D b;
+    Point2D c;
+    Point2D d;
+    Tcl_Size extendedCount;
+    Tcl_Size i;
+    Tcl_Size interval;
+    size_t byteCount;
     double t;
-    int interval;
-    Point2D a, b, c, d;
 
-    assert(nPoints > 0);
-    /*
-     * The spline is computed in screen coordinates instead of data
-     * points so that we can select the abscissas of the interpolated
-     * points from each pixel horizontally across the plotting area.
-     */
-    origPts = (Point2D *)ckalloc((nPoints + 4) * sizeof(Point2D));
-    memcpy(origPts + 1, points, sizeof(Point2D) * nPoints);
-
+    if (nPoints < 1) {
+        return FALSE;
+    }
+    if (nPoints > (TCL_SIZE_MAX - 4)) {
+        return FALSE;
+    }
+    extendedCount = nPoints + 4;
+    if (GetSplineArrayByteCount(extendedCount, sizeof(Point2D), &byteCount) != TCL_OK) {
+        return FALSE;
+    }
+    origPts = Tcl_AttemptAlloc(byteCount);
+    if (origPts == NULL) {
+        return FALSE;
+    }
+    memcpy(origPts + 1, points, (size_t)nPoints * sizeof(Point2D));
     origPts[0] = origPts[1];
     origPts[nPoints + 2] = origPts[nPoints + 1] = origPts[nPoints];
-
     for (i = 0; i < nIntpPts; i++) {
-    interval = (int)intpPts[i].x;
-    t = intpPts[i].y;
-    assert(interval < nPoints);
-    CatromCoeffs(origPts + interval, &a, &b, &c, &d);
-    intpPts[i].x = (d.x + t * (c.x + t * (b.x + t * a.x))) / 2.0;
-    intpPts[i].y = (d.y + t * (c.y + t * (b.y + t * a.y))) / 2.0;
+        double intervalValue;
+
+        intervalValue = intpPts[i].x;
+        if (!FINITE(intervalValue) || (intervalValue < 0.0) || (intervalValue > (double)(nPoints - 1))) {
+            ckfree(origPts);
+            return FALSE;
+        }
+        interval = (Tcl_Size)intervalValue;
+        t = intpPts[i].y;
+        CatromCoeffs(origPts + interval, &a, &b, &c, &d);
+        intpPts[i].x = (d.x + t * (c.x + t * (b.x + t * a.x))) / 2.0;
+        intpPts[i].y = (d.y + t * (c.y + t * (b.y + t * a.y))) / 2.0;
     }
-    ckfree((char *)origPts);
-    return 1;
+    ckfree(origPts);
+    return TRUE;
 }

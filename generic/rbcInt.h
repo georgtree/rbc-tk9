@@ -488,16 +488,16 @@ char *Rbc_Itoa(int value);
 char *Rbc_Utoa(unsigned int value);
 char *Rbc_Dtoa(Tcl_Interp *interp, double value);
 
-int Rbc_NaturalSpline(Point2D *origPts, int nOrigPts, Point2D *intpPts, int nIntpPts);
+int Rbc_NaturalSpline(Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
 
-int Rbc_QuadraticSpline(Point2D *origPts, int nOrigPts, Point2D *intpPts, int nIntpPts);
+int Rbc_QuadraticSpline(Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
 
 int Rbc_SimplifyLine(Point2D *origPts, int low, int high, double tolerance, int indices[]);
 
-int Rbc_NaturalParametricSpline(Point2D *origPts, int nOrigPts, Extents2D *extsPtr, int isClosed, Point2D *intpPts,
-                                int nIntpPts);
+Tcl_Size Rbc_NaturalParametricSpline(Point2D *origPts, Tcl_Size nOrigPts, Extents2D *extsPtr, int isClosed,
+                                     Point2D *intpPts, Tcl_Size nIntpPts);
 
-int Rbc_CatromParametricSpline(Point2D *origPts, int nOrigPts, Point2D *intpPts, int nIntpPts);
+int Rbc_CatromParametricSpline(Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
 
 int Rbc_GetShadowFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, Shadow *shadowPtr);
 
