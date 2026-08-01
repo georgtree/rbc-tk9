@@ -4042,8 +4042,8 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size
                            flags) == NULL) {
             return TCL_ERROR;
         }
-        if (Tcl_ObjSetVar2(interp, objv[5], Tcl_NewStringObj("index", -1), Tcl_NewIntObj(search.index), flags) ==
-            NULL) {
+        if (Tcl_ObjSetVar2(interp, objv[5], Tcl_NewStringObj("index", -1), Tcl_NewWideIntObj((Tcl_WideInt)search.index),
+                           flags) == NULL) {
             return TCL_ERROR;
         }
         if (Tcl_ObjSetVar2(interp, objv[5], Tcl_NewStringObj("x", -1), Tcl_NewDoubleObj(search.point.x), flags) ==

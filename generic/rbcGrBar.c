@@ -11,6 +11,7 @@
 
 #include "rbcGraph.h"
 #include <X11/Xutil.h>
+#include <tcl.h>
 
 #include "rbcGrElem.h"
 
@@ -93,7 +94,7 @@ typedef struct {
      */
     BarPen builtinPen;
 
-    int *rectToData;
+    Tcl_Size *rectToData;
     XRectangle *rectangles; /* Array of rectangles comprising the bar
                              * segments of the element. */
     int nRects;             /* # of visible bar segments for element */
@@ -103,7 +104,7 @@ typedef struct {
     int nActive;
 
     XRectangle *activeRects;
-    int *activeToData;
+    Tcl_Size *activeToData;
 } Bar;
 
 _Static_assert(offsetof(Bar, core) == 0, "Element core must be the first Bar member");
@@ -475,11 +476,11 @@ static void ResetBar(Bar *barPtr);
 
 static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, XRectangle *rectangles, int nRects);
 static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPen *penPtr, XRectangle *rectangles,
-                          int nRects, int *rectToData);
+                          int nRects, const Tcl_Size *rectToData);
 static void SegmentsToPostScript(Graph *graphPtr, PsToken psToken, BarPen *penPtr, register XRectangle *rectPtr,
                                  int nRects);
 static void BarValuesToPostScript(Graph *graphPtr, PsToken psToken, Bar *barPtr, BarPen *penPtr, XRectangle *rectangles,
-                                  int nRects, int *rectToData);
+                                  int nRects, const Tcl_Size *rectToData);
 
 static int IsBarPenPrefix(const char *string, Tcl_Size length, const char *fullName) {
     Tcl_Size fullLength;
@@ -1207,7 +1208,7 @@ static void GetBarExtents(Element *elemPtr, Extents2D *extsPtr) {
     Graph *graphPtr = elemPtr->graphPtr;
     Bar *barPtr = BAR_FROM_CORE(elemPtr);
     double middle, barWidth;
-    int nPoints;
+    Tcl_Size nPoints;
 
     extsPtr->top = extsPtr->left = DBL_MAX;
     extsPtr->bottom = extsPtr->right = -DBL_MAX;
@@ -1254,7 +1255,7 @@ static void GetBarExtents(Element *elemPtr, Extents2D *extsPtr) {
     }
     /* Correct the extents for error bars if they exist. */
     if (elemPtr->xError.nValues > 0) {
-        register int i;
+        Tcl_Size i;
         double x;
 
         /* Correct the data limits for error bars */
@@ -1295,7 +1296,7 @@ static void GetBarExtents(Element *elemPtr, Extents2D *extsPtr) {
         }
     }
     if (elemPtr->yError.nValues > 0) {
-        register int i;
+        Tcl_Size i;
         double y;
 
         nPoints = MIN(elemPtr->yError.nValues, nPoints);
@@ -1367,7 +1368,7 @@ static void ClosestBar(Graph *graphPtr, Element *elemPtr, ClosestSearch *searchP
     XRectangle *rectPtr;
     double left, right, top, bottom;
     double minDist, dist;
-    int imin;
+    Tcl_Size imin;
     register int i;
 
     minDist = searchPtr->dist;
@@ -1458,20 +1459,20 @@ static void MergePens(Bar *barPtr, PenStyle **dataToStyle) {
 
     if (barPtr->nRects > 0) {
         XRectangle *rectangles;
-        int *rectToData;
-        int dataIndex;
-        register XRectangle *rectPtr;
-        int *indexPtr;
-        register int i;
+        XRectangle *rectPtr;
+        Tcl_Size *rectToData;
+        Tcl_Size *indexPtr;
+        Tcl_Size dataIndex;
+        int i;
 
-        rectangles = (XRectangle *)ckalloc(barPtr->nRects * sizeof(XRectangle));
-        rectToData = (int *)ckalloc(barPtr->nRects * sizeof(int));
-        assert(rectangles && rectToData);
-
-        rectPtr = rectangles, indexPtr = rectToData;
-        for (linkPtr = Rbc_ChainFirstLink(barPtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        rectangles = ckalloc((size_t)barPtr->nRects * sizeof(*rectangles));
+        rectToData = ckalloc((size_t)barPtr->nRects * sizeof(*rectToData));
+        rectPtr = rectangles;
+        indexPtr = rectToData;
+        for (linkPtr = Rbc_ChainFirstLink(barPtr->core.palette); linkPtr != NULL;
+             linkPtr = Rbc_ChainNextLink(linkPtr)) {
             stylePtr = Rbc_ChainGetValue(linkPtr);
-            stylePtr->symbolSize = rectPtr->width / 2;
+            stylePtr->symbolSize = barPtr->rectangles->width / 2;
             stylePtr->rectangles = rectPtr;
             for (i = 0; i < barPtr->nRects; i++) {
                 dataIndex = barPtr->rectToData[i];
@@ -1480,11 +1481,11 @@ static void MergePens(Bar *barPtr, PenStyle **dataToStyle) {
                     *indexPtr++ = dataIndex;
                 }
             }
-            stylePtr->nRects = rectPtr - stylePtr->rectangles;
+            stylePtr->nRects = (int)(rectPtr - stylePtr->rectangles);
         }
-        ckfree((char *)barPtr->rectangles);
+        ckfree(barPtr->rectangles);
         barPtr->rectangles = rectangles;
-        ckfree((char *)barPtr->rectToData);
+        ckfree(barPtr->rectToData);
         barPtr->rectToData = rectToData;
     }
     if (barPtr->core.xErrorBarCnt > 0) {
@@ -1569,38 +1570,48 @@ static void MergePens(Bar *barPtr, PenStyle **dataToStyle) {
  */
 static void MapActiveBars(Bar *barPtr) {
     if (barPtr->activeRects != NULL) {
-        ckfree((char *)barPtr->activeRects);
+        ckfree(barPtr->activeRects);
         barPtr->activeRects = NULL;
     }
     if (barPtr->activeToData != NULL) {
-        ckfree((char *)barPtr->activeToData);
+        ckfree(barPtr->activeToData);
         barPtr->activeToData = NULL;
     }
     barPtr->nActive = 0;
-
     if (barPtr->core.nActiveIndices > 0) {
         XRectangle *activeRects;
-        int *activeToData;
-        register int i, n;
-        register int count;
-
-        activeRects = (XRectangle *)ckalloc(sizeof(XRectangle) * barPtr->core.nActiveIndices);
-        assert(activeRects);
-        activeToData = (int *)ckalloc(sizeof(int) * barPtr->core.nActiveIndices);
-        assert(activeToData);
+        Tcl_Size *activeToData;
+        Tcl_Size activeIndex;
+        Tcl_Size n;
+        int i;
+        int count;
+        activeRects = ckalloc((size_t)barPtr->core.nActiveIndices * sizeof(*activeRects));
+        activeToData = ckalloc((size_t)barPtr->core.nActiveIndices * sizeof(*activeToData));
         count = 0;
         for (i = 0; i < barPtr->nRects; i++) {
             for (n = 0; n < barPtr->core.nActiveIndices; n++) {
-                if (barPtr->rectToData[i] == barPtr->core.activeIndices[n]) {
+                activeIndex = barPtr->core.activeIndices[n];
+                if (barPtr->rectToData[i] == activeIndex) {
                     activeRects[count] = barPtr->rectangles[i];
-                    activeToData[count] = i;
+                    /*
+                     * Store the source data index, not the
+                     * rectangle-array index.
+                     */
+                    activeToData[count] = barPtr->rectToData[i];
+
                     count++;
+                    break;
                 }
             }
         }
-        barPtr->nActive = count;
-        barPtr->activeRects = activeRects;
-        barPtr->activeToData = activeToData;
+        if (count > 0) {
+            barPtr->nActive = count;
+            barPtr->activeRects = activeRects;
+            barPtr->activeToData = activeToData;
+        } else {
+            ckfree(activeRects);
+            ckfree(activeToData);
+        }
     }
     barPtr->core.flags &= ~ACTIVE_PENDING;
 }
@@ -1701,12 +1712,13 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
     double barWidth, barOffset;
     double baseline;
     double dx, dy;
-    int *rectToData; /* Maps rectangles to data point indices */
+    Tcl_Size *rectToData; /* Maps rectangles to data point indices */
     int height;
     int invertBar;
-    int nPoints, count;
+    Tcl_Size nPoints;
+    int  count;
     register XRectangle *rectPtr, *rectangles;
-    register int i;
+    Tcl_Size i;
     int size;
     Rbc_ChainLink *linkPtr;
     BarPenStyle *stylePtr;
@@ -1727,9 +1739,9 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
      * Create an array of rectangles representing the screen coordinates
      * of all the segments in the bar.
      */
-    rectPtr = rectangles = (XRectangle *)ckalloc(nPoints * sizeof(XRectangle));
+    rectPtr = rectangles = ckalloc((size_t)nPoints * sizeof(*rectangles));
     assert(rectangles);
-    rectToData = RbcCalloc(nPoints, sizeof(int));
+    rectToData = RbcCalloc((size_t)nPoints, sizeof(*rectToData));
     assert(rectToData);
 
     x = barPtr->core.x.valueArr, y = barPtr->core.y.valueArr;
@@ -1972,12 +1984,14 @@ static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, 
  * -----------------------------------------------------------------
  */
 static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPen *penPtr, XRectangle *rectangles,
-                          int nRects, int *rectToData) {
-    XRectangle *rectPtr, *endPtr;
+                          int nRects, const Tcl_Size *rectToData) {
+    XRectangle *rectPtr;
+    XRectangle *endPtr;
     int count;
     char *fmt;
     char string[TCL_DOUBLE_SPACE * 2 + 2];
-    double x, y;
+    double x;
+    double y;
     Point2D anchorPos;
 
     count = 0;
@@ -1986,9 +2000,10 @@ static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPe
         fmt = "%g";
     }
     for (rectPtr = rectangles, endPtr = rectangles + nRects; rectPtr < endPtr; rectPtr++) {
-        x = barPtr->core.x.valueArr[rectToData[count]];
-        y = barPtr->core.y.valueArr[rectToData[count]];
-        count++;
+        Tcl_Size dataIndex;
+        dataIndex = rectToData[count++];
+        x = barPtr->core.x.valueArr[dataIndex];
+        y = barPtr->core.y.valueArr[dataIndex];
         if (penPtr->valueShow == SHOW_X) {
             sprintf(string, fmt, x);
         } else if (penPtr->valueShow == SHOW_Y) {
@@ -2011,7 +2026,7 @@ static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPe
                 anchorPos.y += rectPtr->height;
             }
         }
-        Rbc_DrawText(graphPtr->tkwin, drawable, string, &(penPtr->valueStyle), (int)anchorPos.x, (int)anchorPos.y);
+        Rbc_DrawText(graphPtr->tkwin, drawable, string, &penPtr->valueStyle, (int)anchorPos.x, (int)anchorPos.y);
     }
 }
 
@@ -2263,7 +2278,7 @@ static void SegmentsToPostScript(Graph *graphPtr, PsToken psToken, BarPen *penPt
  *----------------------------------------------------------------------
  */
 static void BarValuesToPostScript(Graph *graphPtr, PsToken psToken, Bar *barPtr, BarPen *penPtr, XRectangle *rectangles,
-                                  int nRects, int *rectToData) {
+                                  int nRects, const Tcl_Size *rectToData) {
     XRectangle *rectPtr, *endPtr;
     int count;
     char *fmt;
@@ -2277,9 +2292,10 @@ static void BarValuesToPostScript(Graph *graphPtr, PsToken psToken, Bar *barPtr,
         fmt = "%g";
     }
     for (rectPtr = rectangles, endPtr = rectangles + nRects; rectPtr < endPtr; rectPtr++) {
-        x = barPtr->core.x.valueArr[rectToData[count]];
-        y = barPtr->core.y.valueArr[rectToData[count]];
-        count++;
+        Tcl_Size dataIndex;
+        dataIndex = rectToData[count++];
+        x = barPtr->core.x.valueArr[rectToData[dataIndex]];
+        y = barPtr->core.y.valueArr[rectToData[dataIndex]];
         if (penPtr->valueShow == SHOW_X) {
             sprintf(string, fmt, x);
         } else if (penPtr->valueShow == SHOW_Y) {

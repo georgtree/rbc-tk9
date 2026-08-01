@@ -122,7 +122,7 @@ typedef struct {
 
     Point2D point; /* Graph coordinates of closest point */
 
-    int index; /* Index of closest data point */
+    Tcl_Size index; /* Index of closest data point */
 
     double dist; /* Distance in screen coordinates */
 
