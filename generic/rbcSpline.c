@@ -119,32 +119,6 @@ static int SplineEvaluationPointsAreFinite(const Point2D *points, Tcl_Size nPoin
     return TRUE;
 }
 
-static int CheckFiniteSourceValues(Tcl_Interp *interp, const char *xName, const double *x, const char *yName,
-                                   const double *y, Tcl_Size numValues) {
-    Tcl_Size i;
-    for (i = 0; i < numValues; i++) {
-        if ((!isfinite(x[i])) || (!isfinite(y[i]))) {
-            Tcl_SetObjResult(interp,
-                             Tcl_ObjPrintf("vectors \"%s\" and \"%s\" must contain only finite values", xName, yName));
-            return TCL_ERROR;
-        }
-    }
-    return TCL_OK;
-}
-
-static int CheckFiniteInterpolationValues(Tcl_Interp *interp, const char *vectorName, const double *values,
-                                          Tcl_Size numValues) {
-    Tcl_Size i;
-    for (i = 0; i < numValues; i++) {
-        if (!isfinite(values[i])) {
-            Tcl_SetObjResult(interp,
-                             Tcl_ObjPrintf("interpolation vector \"%s\" must contain only finite values", vectorName));
-            return TCL_ERROR;
-        }
-    }
-    return TCL_OK;
-}
-
 /*
  * -----------------------------------------------------------------------
  *
@@ -1227,14 +1201,10 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
         }
     }
     for (i = 1; i < nOrigPts; i++) {
-        if (xArr[i] < xArr[i - 1]) {
-            Tcl_SetObjResult(interp, Tcl_ObjPrintf("x vector \"%s\" must be monotonically increasing", xName));
+        if (xArr[i] <= xArr[i - 1]) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("x vector \"%s\" must be strictly increasing", xName));
             return TCL_ERROR;
         }
-    }
-    if (xArr[nOrigPts - 1] <= xArr[0]) {
-        Tcl_SetObjResult(interp, Tcl_ObjPrintf("x vector \"%s\" must be monotonically increasing", xName));
-        return TCL_ERROR;
     }
     nIntpPts = Rbc_VecLength(splX);
     /*
@@ -1242,13 +1212,6 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
      * result vector.  An invalid command should not modify splY.
      */
     xArr = Rbc_VecData(splX);
-    for (i = 0; i < nIntpPts; i++) {
-        if (!FINITE(xArr[i])) {
-            Tcl_SetObjResult(interp,
-                             Tcl_ObjPrintf("interpolation vector \"%s\" must contain only finite values", splXName));
-            return TCL_ERROR;
-        }
-    }
     if (Rbc_GetVector(interp, splYName, &splY) != TCL_OK) {
         /*
          * The missing-vector error is replaced by the result from

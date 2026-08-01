@@ -135,25 +135,25 @@
 #undef ROUND
 #define ROUND(x) ((int)((x) + (((x) < 0.0) ? -0.5 : 0.5)))
 
-#ifndef FINITE /* Also defined in rbcVector.h ! */
-#ifdef _MSC_VER
+#ifndef FINITE
+#if defined(_MSC_VER)
 #define FINITE(x) _finite(x)
-#else
-#ifdef HAVE_FINITE
-#define FINITE(x) finite(x)
-#else
-#ifdef HAVE_ISFINITE
+#elif defined(_WIN32)
+/*
+ * MinGW/UCRT provides the C99 isfinite macro, but rbcWinConfig.h
+ * does not define HAVE_ISFINITE.
+ */
 #define FINITE(x) isfinite(x)
+#elif defined(HAVE_FINITE)
+#define FINITE(x) finite(x)
+#elif defined(HAVE_ISFINITE)
+#define FINITE(x) isfinite(x)
+#elif defined(HAVE_ISNAN)
+#define FINITE(x) (!isnan(x) && ((x) != HUGE_VAL) && ((x) != -HUGE_VAL))
 #else
-#ifdef HAVE_ISNAN
-#define FINITE(x) (!isnan(x))
-#else
-#define FINITE(x) (TRUE)
-#endif /* HAVE_ISNAN */
-#endif /* HAVE_ISFINITE */
-#endif /* HAVE_FINITE */
-#endif /* _MSC_VER */
-#endif /* FINITE */
+#error "No method available to test whether a floating-point value is finite"
+#endif
+#endif
 
 extern double rbcNaN;
 

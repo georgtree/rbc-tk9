@@ -30,24 +30,6 @@ typedef struct Rbc_Vector_s {
 #define Rbc_VecSize(v) ((v)->arraySize)
 #define Rbc_VecDirty(v) ((v)->dirty)
 
-#ifdef _MSC_VER
-#define FINITE(x) _finite(x)
-#else
-#ifdef HAVE_FINITE
-#define FINITE(x) finite(x)
-#else
-#ifdef HAVE_ISFINITE
-#define FINITE(x) isfinite(x)
-#else
-#ifdef HAVE_ISNAN
-#define FINITE(x) (!isnan(x))
-#else
-#define FINITE(x) (TRUE)
-#endif /* HAVE_ISNAN */
-#endif /* HAVE_ISFINITE */
-#endif /* HAVE_FINITE */
-#endif /* _MSC_VER */
-
 #define VECTOR_THREAD_KEY "Rbc Vector Data"
 #define VECTOR_MAGIC ((unsigned int) 0x46170277)
 #define MAX_ERR_MSG 1023
