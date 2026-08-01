@@ -1,0 +1,221 @@
+# RBC.spline.A.test --
+#
+###Abstract
+# This file tests the natural and quadratic spline commands.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide spline
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure natural spline rejects duplicate source X coordinates.
+# ------------------------------------------------------------------------------------
+test RBC.spline.A.1.1 {
+    spline natural: duplicate source X coordinates
+} -setup {
+    vector create VectorX
+    VectorX set {0 1 1 2}
+
+    vector create VectorY
+    VectorY set {0 1 2 3}
+
+    vector create VectorEval
+    VectorEval set {0 0.5 1 1.5 2}
+} -body {
+    set code [catch {
+        spline natural VectorX VectorY VectorEval VectorResult
+    } message]
+
+    list $code $message
+} -cleanup {
+    foreach vectorName {
+        VectorX VectorY VectorEval VectorResult
+    } {
+        catch {vector destroy $vectorName}
+    }
+} -result {1 {x vector "VectorX" must be strictly increasing}}
+
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure quadratic spline rejects duplicate source X coordinates.
+# ------------------------------------------------------------------------------------
+test RBC.spline.A.1.2 {
+    spline quadratic: duplicate source X coordinates
+} -setup {
+    vector create VectorX
+    VectorX set {0 1 1 2}
+
+    vector create VectorY
+    VectorY set {0 1 2 3}
+
+    vector create VectorEval
+    VectorEval set {0 0.5 1 1.5 2}
+} -body {
+    set code [catch {
+        spline quadratic VectorX VectorY VectorEval VectorResult
+    } message]
+
+    list $code $message
+} -cleanup {
+    foreach vectorName {
+        VectorX VectorY VectorEval VectorResult
+    } {
+        catch {vector destroy $vectorName}
+    }
+} -result {1 {x vector "VectorX" must be strictly increasing}}
+
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure spline rejects a non-finite source X value.
+# ------------------------------------------------------------------------------------
+test RBC.spline.A.2.1 {
+    spline natural: non-finite source X value
+} -setup {
+    vector create VectorX
+    VectorX set {0 1 Inf}
+
+    vector create VectorY
+    VectorY set {0 1 2}
+
+    vector create VectorEval
+    VectorEval set {0 0.5 1}
+} -body {
+    set code [catch {
+        spline natural VectorX VectorY VectorEval VectorResult
+    } message]
+
+    list $code $message
+} -cleanup {
+    foreach vectorName {
+        VectorX VectorY VectorEval VectorResult
+    } {
+        catch {vector destroy $vectorName}
+    }
+} -result {1 {vectors "VectorX" and "VectorY" must contain only finite values}}
+
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure spline rejects a non-finite source Y value.
+# ------------------------------------------------------------------------------------
+test RBC.spline.A.2.2 {
+    spline natural: non-finite source Y value
+} -setup {
+    vector create VectorX
+    VectorX set {0 1 2}
+
+    vector create VectorY
+    VectorY set {0 Inf 2}
+
+    vector create VectorEval
+    VectorEval set {0 0.5 1}
+} -body {
+    set code [catch {
+        spline natural VectorX VectorY VectorEval VectorResult
+    } message]
+
+    list $code $message
+} -cleanup {
+    foreach vectorName {
+        VectorX VectorY VectorEval VectorResult
+    } {
+        catch {vector destroy $vectorName}
+    }
+} -result {1 {vectors "VectorX" and "VectorY" must contain only finite values}}
+
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure spline rejects a non-finite interpolation X value.
+# ------------------------------------------------------------------------------------
+test RBC.spline.A.2.3 {
+    spline natural: non-finite interpolation X value
+} -setup {
+    vector create VectorX
+    VectorX set {0 1 2}
+
+    vector create VectorY
+    VectorY set {0 1 2}
+
+    vector create VectorEval
+    VectorEval set {0 Inf 2}
+} -body {
+    set code [catch {
+        spline natural VectorX VectorY VectorEval VectorResult
+    } message]
+
+    list $code $message
+} -cleanup {
+    foreach vectorName {
+        VectorX VectorY VectorEval VectorResult
+    } {
+        catch {vector destroy $vectorName}
+    }
+} -result {1 {interpolation vector "VectorEval" must contain only finite values}}
+
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure natural spline accepts an empty interpolation vector.
+# ------------------------------------------------------------------------------------
+test RBC.spline.A.3.1 {
+    spline natural: empty interpolation vector
+} -setup {
+    vector create VectorX
+    VectorX set {0 1 2}
+
+    vector create VectorY
+    VectorY set {0 1 2}
+
+    vector create VectorEval
+} -body {
+    spline natural VectorX VectorY VectorEval VectorResult
+
+    list \
+        [VectorEval length] \
+        [VectorResult length]
+} -cleanup {
+    foreach vectorName {
+        VectorX VectorY VectorEval VectorResult
+    } {
+        catch {vector destroy $vectorName}
+    }
+} -result {0 0}
+
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure quadratic spline accepts an empty interpolation vector.
+# ------------------------------------------------------------------------------------
+test RBC.spline.A.3.2 {
+    spline quadratic: empty interpolation vector
+} -setup {
+    vector create VectorX
+    VectorX set {0 1 2}
+
+    vector create VectorY
+    VectorY set {0 1 2}
+
+    vector create VectorEval
+} -body {
+    spline quadratic VectorX VectorY VectorEval VectorResult
+
+    list \
+        [VectorEval length] \
+        [VectorResult length]
+} -cleanup {
+    foreach vectorName {
+        VectorX VectorY VectorEval VectorResult
+    } {
+        catch {vector destroy $vectorName}
+    }
+} -result {0 0}
+
+
+cleanupTests

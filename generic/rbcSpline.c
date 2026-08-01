@@ -74,6 +74,77 @@ static int GetSplineArrayByteCount(Tcl_Size count, size_t elementSize, size_t *b
     return TCL_OK;
 }
 
+static int SplinePointsAreFinite(const Point2D *points, Tcl_Size nPoints) {
+    Tcl_Size i;
+
+    if ((points == NULL) || (nPoints < 0)) {
+        return FALSE;
+    }
+    for (i = 0; i < nPoints; i++) {
+        if (!FINITE(points[i].x) || !FINITE(points[i].y)) {
+            return FALSE;
+        }
+    }
+    return TRUE;
+}
+
+static int SplinePointsHaveIncreasingX(const Point2D *points, Tcl_Size nPoints) {
+    Tcl_Size i;
+
+    if ((points == NULL) || (nPoints < 2)) {
+        return FALSE;
+    }
+    if (!SplinePointsAreFinite(points, nPoints)) {
+        return FALSE;
+    }
+    for (i = 1; i < nPoints; i++) {
+        if (!(points[i].x > points[i - 1].x)) {
+            return FALSE;
+        }
+    }
+    return TRUE;
+}
+
+static int SplineEvaluationPointsAreFinite(const Point2D *points, Tcl_Size nPoints) {
+    Tcl_Size i;
+
+    if ((points == NULL) || (nPoints < 0)) {
+        return FALSE;
+    }
+    for (i = 0; i < nPoints; i++) {
+        if (!FINITE(points[i].x)) {
+            return FALSE;
+        }
+    }
+    return TRUE;
+}
+
+static int CheckFiniteSourceValues(Tcl_Interp *interp, const char *xName, const double *x, const char *yName,
+                                   const double *y, Tcl_Size numValues) {
+    Tcl_Size i;
+    for (i = 0; i < numValues; i++) {
+        if ((!isfinite(x[i])) || (!isfinite(y[i]))) {
+            Tcl_SetObjResult(interp,
+                             Tcl_ObjPrintf("vectors \"%s\" and \"%s\" must contain only finite values", xName, yName));
+            return TCL_ERROR;
+        }
+    }
+    return TCL_OK;
+}
+
+static int CheckFiniteInterpolationValues(Tcl_Interp *interp, const char *vectorName, const double *values,
+                                          Tcl_Size numValues) {
+    Tcl_Size i;
+    for (i = 0; i < numValues; i++) {
+        if (!isfinite(values[i])) {
+            Tcl_SetObjResult(interp,
+                             Tcl_ObjPrintf("interpolation vector \"%s\" must contain only finite values", vectorName));
+            return TCL_ERROR;
+        }
+    }
+    return TCL_OK;
+}
+
 /*
  * -----------------------------------------------------------------------
  *
@@ -885,10 +956,17 @@ int Rbc_QuadraticSpline(Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[],
     size_t byteCount;
     int result;
 
-    if (GetSplineArrayByteCount(nOrigPts, sizeof(double), &byteCount) != TCL_OK) {
+    if ((nOrigPts < 3) || (nIntpPts < 0) || !SplinePointsHaveIncreasingX(origPts, nOrigPts) ||
+        !SplineEvaluationPointsAreFinite(intpPts, nIntpPts)) {
         return FALSE;
     }
-    work = Tcl_AttemptAlloc((byteCount > 0) ? byteCount : 1);
+    if (nIntpPts == 0) {
+        return TRUE;
+    }
+    if (GetSplineArrayByteCount(nOrigPts, sizeof(*work), &byteCount) != TCL_OK) {
+        return FALSE;
+    }
+    work = Tcl_AttemptAlloc(byteCount);
     if (work == NULL) {
         return FALSE;
     }
@@ -896,6 +974,13 @@ int Rbc_QuadraticSpline(Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[],
     QuadSlopes(origPts, work, nOrigPts);
     result = QuadEval(origPts, nOrigPts, intpPts, nIntpPts, work, epsilon);
     ckfree(work);
+    /*
+     * QuadEval returns:
+     *
+     *   0 -- successful interpolation
+     *   1 -- successful interpolation with extrapolation
+     *   2 -- invalid evaluation-point ordering
+     */
     return (result <= 1);
 }
 
@@ -932,79 +1017,130 @@ int Rbc_QuadraticSpline(Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[],
  */
 int Rbc_NaturalSpline(Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts) {
     Cubic2D *eq;
-    Point2D *iPtr, *endPtr;
     TriDiagonalMatrix *A;
-    double *dx; /* vector of deltas in x */
-    double x, dy, alpha;
-    int isKnot;
-    Tcl_Size i, j, n;
+    double *dx;
+    Tcl_Size nIntervals;
+    Tcl_Size i;
+    Tcl_Size j;
+    size_t dxBytes;
+    size_t matrixBytes;
+    size_t equationBytes;
+    int result;
 
-    dx = (double *)ckalloc(sizeof(double) * nOrigPts);
-    /* Calculate vector of differences */
-    for (i = 0, j = 1; j < nOrigPts; i++, j++) {
-        dx[i] = origPts[j].x - origPts[i].x;
-        if (dx[i] < 0.0) {
-            return 0;
+    eq = NULL;
+    A = NULL;
+    dx = NULL;
+    result = FALSE;
+    if ((nOrigPts < 3) || (nIntpPts < 0) || !SplinePointsHaveIncreasingX(origPts, nOrigPts) ||
+        !SplineEvaluationPointsAreFinite(intpPts, nIntpPts)) {
+        return FALSE;
+    }
+    if (nIntpPts == 0) {
+        return TRUE;
+    }
+    nIntervals = nOrigPts - 1;
+    if ((GetSplineArrayByteCount(nIntervals, sizeof(*dx), &dxBytes) != TCL_OK) ||
+        (GetSplineArrayByteCount(nOrigPts, sizeof(*A), &matrixBytes) != TCL_OK) ||
+        (GetSplineArrayByteCount(nOrigPts, sizeof(*eq), &equationBytes) != TCL_OK)) {
+        return FALSE;
+    }
+    dx = Tcl_AttemptAlloc(dxBytes);
+    if (dx == NULL) {
+        goto cleanup;
+    }
+    for (i = 0; i < nIntervals; i++) {
+        dx[i] = origPts[i + 1].x - origPts[i].x;
+        /*
+         * Strictly increasing X values were checked above, but retain
+         * the local check before every later division.
+         */
+        if (!FINITE(dx[i]) || (dx[i] <= 0.0)) {
+            goto cleanup;
         }
     }
-    n = nOrigPts - 1; /* Number of intervals. */
-    A = (TriDiagonalMatrix *)ckalloc(sizeof(TriDiagonalMatrix) * nOrigPts);
+    A = Tcl_AttemptAlloc(matrixBytes);
     if (A == NULL) {
-        ckfree((char *)dx);
-        return 0;
+        goto cleanup;
     }
-    /* Vectors to solve the tridiagonal matrix */
-    A[0][0] = A[n][0] = 1.0;
-    A[0][1] = A[n][1] = 0.0;
-    A[0][2] = A[n][2] = 0.0;
+    A[0][0] = 1.0;
+    A[0][1] = 0.0;
+    A[0][2] = 0.0;
+    A[nIntervals][0] = 1.0;
+    A[nIntervals][1] = 0.0;
+    A[nIntervals][2] = 0.0;
+    for (i = 0, j = 1; j < nIntervals; i++, j++) {
+        double alpha;
 
-    /* Calculate the intermediate results */
-    for (i = 0, j = 1; j < n; j++, i++) {
-        alpha = 3.0 *
-                ((origPts[j + 1].y / dx[j]) - (origPts[j].y / dx[i]) - (origPts[j].y / dx[j]) + (origPts[i].y / dx[i]));
-        A[j][0] = 2 * (dx[j] + dx[i]) - dx[i] * A[i][1];
+        alpha = 3.0 * ((origPts[j + 1].y - origPts[j].y) / dx[j] - (origPts[j].y - origPts[i].y) / dx[i]);
+        A[j][0] = 2.0 * (dx[j] + dx[i]) - dx[i] * A[i][1];
+        if (!FINITE(A[j][0]) || (A[j][0] == 0.0)) {
+            goto cleanup;
+        }
         A[j][1] = dx[j] / A[j][0];
         A[j][2] = (alpha - dx[i] * A[i][2]) / A[j][0];
     }
-    eq = (Cubic2D *)ckalloc(sizeof(Cubic2D) * nOrigPts);
-
+    eq = Tcl_AttemptAlloc(equationBytes);
     if (eq == NULL) {
-        ckfree((char *)A);
-        ckfree((char *)dx);
-        return FALSE;
+        goto cleanup;
     }
-    eq[0].c = eq[n].c = 0.0;
-    for (j = n, i = n - 1; i >= 0; i--, j--) {
+    eq[0].c = 0.0;
+    eq[nIntervals].c = 0.0;
+    /*
+     * Back-substitute from interval nIntervals - 1 down to zero.
+     * This form avoids relying on a signed index becoming negative.
+     */
+    for (i = nIntervals; i-- > 0;) {
+        double dy;
+
+        j = i + 1;
         eq[i].c = A[i][2] - A[i][1] * eq[j].c;
         dy = origPts[i + 1].y - origPts[i].y;
-        eq[i].b = (dy) / dx[i] - dx[i] * (eq[j].c + 2.0 * eq[i].c) / 3.0;
+        eq[i].b = dy / dx[i] - dx[i] * (eq[j].c + 2.0 * eq[i].c) / 3.0;
         eq[i].d = (eq[j].c - eq[i].c) / (3.0 * dx[i]);
     }
-    ckfree((char *)A);
-    ckfree((char *)dx);
+    for (i = 0; i < nIntpPts; i++) {
+        double x;
+        Tcl_Size interval;
+        int isKnot;
 
-    endPtr = intpPts + nIntpPts;
-    /* Now calculate the new values */
-    for (iPtr = intpPts; iPtr < endPtr; iPtr++) {
-        iPtr->y = 0.0;
-        x = iPtr->x;
-
-        /* Is it outside the interval? */
-        if ((x < origPts[0].x) || (x > origPts[n].x)) {
+        x = intpPts[i].x;
+        intpPts[i].y = 0.0;
+        if ((x < origPts[0].x) || (x > origPts[nIntervals].x)) {
             continue;
         }
-        /* Search for the interval containing x in the point array */
-        i = Search(origPts, nOrigPts, x, &isKnot);
+        interval = Search(origPts, nOrigPts, x, &isKnot);
         if (isKnot) {
-            iPtr->y = origPts[i].y;
+            intpPts[i].y = origPts[interval].y;
         } else {
-            i--;
-            x -= origPts[i].x;
-            iPtr->y = origPts[i].y + x * (eq[i].b + x * (eq[i].c + x * eq[i].d));
+            double localX;
+
+            /*
+             * Since x is within the interpolation domain and is not
+             * the first knot, Search must return a positive insertion
+             * position.
+             */
+            if (interval == 0) {
+                goto cleanup;
+            }
+            interval--;
+            localX = x - origPts[interval].x;
+            intpPts[i].y =
+                origPts[interval].y + localX * (eq[interval].b + localX * (eq[interval].c + localX * eq[interval].d));
         }
     }
-    ckfree((char *)eq);
-    return TRUE;
+    result = TRUE;
+
+cleanup:
+    if (eq != NULL) {
+        ckfree(eq);
+    }
+    if (A != NULL) {
+        ckfree(A);
+    }
+    if (dx != NULL) {
+        ckfree(dx);
+    }
+    return result;
 }
 
 static const SplineOpSpec splineOps[] = {{{"natural", 6, 6, "x y splx sply"}, Rbc_NaturalSpline},
@@ -1076,17 +1212,43 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("vectors \"%s\" and \"%s\" have different lengths", xName, yName));
         return TCL_ERROR;
     }
+    /*
+     * Validate the source data before testing monotonicity.  Comparisons
+     * involving NaN are false, so a NaN X value could otherwise pass the
+     * monotonicity checks below.
+     */
+    xArr = Rbc_VecData(x);
+    yArr = Rbc_VecData(y);
+    for (i = 0; i < nOrigPts; i++) {
+        if ((!FINITE(xArr[i])) || (!FINITE(yArr[i]))) {
+            Tcl_SetObjResult(interp,
+                             Tcl_ObjPrintf("vectors \"%s\" and \"%s\" must contain only finite values", xName, yName));
+            return TCL_ERROR;
+        }
+    }
     for (i = 1; i < nOrigPts; i++) {
-        if (Rbc_VecData(x)[i] < Rbc_VecData(x)[i - 1]) {
+        if (xArr[i] < xArr[i - 1]) {
             Tcl_SetObjResult(interp, Tcl_ObjPrintf("x vector \"%s\" must be monotonically increasing", xName));
             return TCL_ERROR;
         }
     }
-    if (Rbc_VecData(x)[nOrigPts - 1] <= Rbc_VecData(x)[0]) {
+    if (xArr[nOrigPts - 1] <= xArr[0]) {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("x vector \"%s\" must be monotonically increasing", xName));
         return TCL_ERROR;
     }
     nIntpPts = Rbc_VecLength(splX);
+    /*
+     * Validate the interpolation abscissas before creating or resizing the
+     * result vector.  An invalid command should not modify splY.
+     */
+    xArr = Rbc_VecData(splX);
+    for (i = 0; i < nIntpPts; i++) {
+        if (!FINITE(xArr[i])) {
+            Tcl_SetObjResult(interp,
+                             Tcl_ObjPrintf("interpolation vector \"%s\" must contain only finite values", splXName));
+            return TCL_ERROR;
+        }
+    }
     if (Rbc_GetVector(interp, splYName, &splY) != TCL_OK) {
         /*
          * The missing-vector error is replaced by the result from
@@ -1125,6 +1287,14 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
         origPts[i].y = yArr[i];
     }
     xArr = Rbc_VecData(splX);
+    for (i = 0; i < nIntpPts; i++) {
+        if (!FINITE(xArr[i])) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("interpolation vector \"%s\" "
+                                                   "must contain only finite values",
+                                                   splXName));
+            return TCL_ERROR;
+        }
+    }
     yArr = Rbc_VecData(splY);
     for (i = 0; i < nIntpPts; i++) {
         intpPts[i].x = xArr[i];
@@ -1366,119 +1536,120 @@ static void SolveCubic2(TriDiagonalMatrix A[], CubicSpline spline[], Tcl_Size nI
  */
 static CubicSpline *CubicSlopes(Point2D points[], Tcl_Size nPoints, int isClosed, double unitX, double unitY) {
     CubicSpline *spline;
-    register CubicSpline *s1, *s2;
-    Tcl_Size n, i;
-    double norm, dx, dy;
-    TriDiagonalMatrix *A; /* The tri-diagonal matrix is saved here. */
+    CubicSpline *s1;
+    CubicSpline *s2;
+    TriDiagonalMatrix *A;
+    Tcl_Size n;
+    Tcl_Size i;
+    size_t splineBytes;
+    size_t matrixBytes;
 
-    spline = (CubicSpline *)ckalloc(sizeof(CubicSpline) * nPoints);
+    spline = NULL;
+    A = NULL;
+    if ((nPoints < 3) || !SplinePointsAreFinite(points, nPoints) || !FINITE(unitX) || !FINITE(unitY) ||
+        (unitX <= 0.0) || (unitY <= 0.0)) {
+        return NULL;
+    }
+    if (isClosed && ((points[0].x != points[nPoints - 1].x) || (points[0].y != points[nPoints - 1].y))) {
+        return NULL;
+    }
+    if ((GetSplineArrayByteCount(nPoints, sizeof(*spline), &splineBytes) != TCL_OK) ||
+        (GetSplineArrayByteCount(nPoints, sizeof(*A), &matrixBytes) != TCL_OK)) {
+        return NULL;
+    }
+    spline = Tcl_AttemptAlloc(splineBytes);
     if (spline == NULL) {
         return NULL;
     }
-    A = (TriDiagonalMatrix *)ckalloc(sizeof(TriDiagonalMatrix) * nPoints);
+    A = Tcl_AttemptAlloc(matrixBytes);
     if (A == NULL) {
-        ckfree((char *)spline);
+        ckfree(spline);
         return NULL;
     }
-    /*
-     * Calculate first differences in (dxdt2[i], y[i]) and interval lengths
-     * in dist[i]:
-     */
     s1 = spline;
-    for (i = 0; i < nPoints - 1; i++) {
+    for (i = 0; i < (nPoints - 1); i++, s1++) {
+        double dx;
+        double dy;
+
         s1->x = points[i + 1].x - points[i].x;
         s1->y = points[i + 1].y - points[i].y;
-
-        /*
-         * The Norm of a linear stroke is calculated in "normal coordinates"
-         * and used as interval length:
-         */
         dx = s1->x / unitX;
         dy = s1->y / unitY;
-        s1->t = sqrt(dx * dx + dy * dy);
-
-        s1->x /= s1->t; /* first difference, with unit norm: */
-        s1->y /= s1->t; /*   || (dxdt2[i], y[i]) || = 1      */
-        s1++;
+        s1->t = hypot(dx, dy);
+        /*
+         * Consecutive coincident points create a zero-length interval,
+         * which makes the normalized first difference undefined.
+         */
+        if (!FINITE(s1->t) || (s1->t <= DBL_EPSILON)) {
+            ckfree(A);
+            ckfree(spline);
+            return NULL;
+        }
+        s1->x /= s1->t;
+        s1->y /= s1->t;
     }
-
-    /*
-     * Setup linear System:  Ax = b
-     */
-    n = nPoints - 2; /* Without first and last point */
+    n = nPoints - 2;
     if (isClosed) {
-        /* First and last points must be equal for CLOSED_CONTOURs */
         spline[nPoints - 1].t = spline[0].t;
         spline[nPoints - 1].x = spline[0].x;
         spline[nPoints - 1].y = spline[0].y;
-        n++; /* Add last point (= first point) */
+        n++;
     }
-    s1 = spline, s2 = s1 + 1;
-    for (i = 0; i < n; i++) {
-        /* Matrix A, mainly tridiagonal with cyclic second index
-           ("j = j+n mod n")
-        */
-        A[i][0] = s1->t;                 /* Off-diagonal element A_{i,i-1} */
-        A[i][1] = 2.0 * (s1->t + s2->t); /* A_{i,i} */
-        A[i][2] = s2->t;                 /* Off-diagonal element A_{i,i+1} */
+    s1 = spline;
+    s2 = spline + 1;
+    for (i = 0; i < n; i++, s1++, s2++) {
+        double dx;
+        double dy;
+        double norm;
 
-        /* Right side b_x and b_y */
+        A[i][0] = s1->t;
+        A[i][1] = 2.0 * (s1->t + s2->t);
+        A[i][2] = s2->t;
         s1->x = (s2->x - s1->x) * 6.0;
         s1->y = (s2->y - s1->y) * 6.0;
-
-        /*
-         * If the linear stroke shows a cusp of more than 90 degree,
-         * the right side is reduced to avoid oscillations in the
-         * spline:
-         */
-        /*
-         * The Norm of a linear stroke is calculated in "normal coordinates"
-         * and used as interval length:
-         */
         dx = s1->x / unitX;
         dy = s1->y / unitY;
-        norm = sqrt(dx * dx + dy * dy) / 8.5;
+        norm = hypot(dx, dy) / 8.5;
+        if (!FINITE(norm)) {
+            ckfree(A);
+            ckfree(spline);
+            return NULL;
+        }
         if (norm > 1.0) {
-            /* The first derivative will not be continuous */
             s1->x /= norm;
             s1->y /= norm;
         }
-        s1++, s2++;
     }
-
     if (!isClosed) {
-        /* Third derivative is set to zero at both ends */
-        A[0][1] += A[0][0];         /* A_{0,0}     */
-        A[0][0] = 0.0;              /* A_{0,n-1}   */
-        A[n - 1][1] += A[n - 1][2]; /* A_{n-1,n-1} */
-        A[n - 1][2] = 0.0;          /* A_{n-1,0}   */
+        A[0][1] += A[0][0];
+        A[0][0] = 0.0;
+        A[n - 1][1] += A[n - 1][2];
+        A[n - 1][2] = 0.0;
     }
-    /* Solve linear systems for dxdt2[] and y[] */
-
-    if (SolveCubic1(A, n)) {       /* Cholesky decomposition */
-        SolveCubic2(A, spline, n); /* A * dxdt2 = b_x */
-    } else {                       /* Should not happen, but who knows ... */
-        ckfree((char *)A);
-        ckfree((char *)spline);
+    if (!SolveCubic1(A, n)) {
+        ckfree(A);
+        ckfree(spline);
         return NULL;
     }
-    /* Shift all second derivatives one place right and update the ends. */
-    s2 = spline + n, s1 = s2 - 1;
-    for (/* empty */; s2 > spline; s2--, s1--) {
+    SolveCubic2(A, spline, n);
+    s2 = spline + n;
+    s1 = s2 - 1;
+    while (s2 > spline) {
         s2->x = s1->x;
         s2->y = s1->y;
+        s2--;
+        s1--;
     }
     if (isClosed) {
         spline[0].x = spline[n].x;
         spline[0].y = spline[n].y;
     } else {
-        /* Third derivative is 0.0 for the first and last interval. */
         spline[0].x = spline[1].x;
         spline[0].y = spline[1].y;
         spline[n + 1].x = spline[n].x;
         spline[n + 1].y = spline[n].y;
     }
-    ckfree((char *)A);
+    ckfree(A);
     return spline;
 }
 
@@ -1513,49 +1684,63 @@ static Tcl_Size CubicEval(Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[
     double t;
     double tSkip;
     double tMax;
-    Point2D p;
-    Point2D q;
-    double d;
-    double hx;
-    double dx0;
-    double dx01;
-    double hy;
-    double dy0;
-    double dy01;
     Tcl_Size i;
     Tcl_Size j;
     Tcl_Size count;
 
-    if ((nOrigPts < 2) || (nIntpPts < 2)) {
+    if ((nOrigPts < 2) || (nIntpPts < 2) || (origPts == NULL) || (intpPts == NULL) || (spline == NULL)) {
         return 0;
     }
     tMax = 0.0;
     for (i = 0; i < (nOrigPts - 1); i++) {
+        if (!FINITE(spline[i].t) || (spline[i].t <= 0.0) || (tMax > DBL_MAX - spline[i].t)) {
+            return 0;
+        }
         tMax += spline[i].t;
     }
+    if (!FINITE(tMax) || (tMax <= 0.0)) {
+        return 0;
+    }
     tSkip = (1.0 - 1.0e-7) * tMax / (double)(nIntpPts - 1);
-    t = 0.0;
-    q = origPts[0];
+    if (!FINITE(tSkip) || (tSkip <= 0.0)) {
+        return 0;
+    }
     count = 0;
-    intpPts[count++] = q;
-    t += tSkip;
+    intpPts[count++] = origPts[0];
+    t = tSkip;
     for (i = 0, j = 1; j < nOrigPts; i++, j++) {
+        Point2D p;
+        Point2D q;
+        double d;
+        double hx;
+        double hy;
+        double dx0;
+        double dy0;
+        double dx01;
+        double dy01;
+
+        p = origPts[i];
+        q = origPts[j];
         d = spline[i].t;
-        p = q;
-        q = origPts[i + 1];
         hx = (q.x - p.x) / d;
         hy = (q.y - p.y) / d;
         dx0 = (spline[j].x + 2.0 * spline[i].x) / 6.0;
         dy0 = (spline[j].y + 2.0 * spline[i].y) / 6.0;
         dx01 = (spline[j].x - spline[i].x) / (6.0 * d);
         dy01 = (spline[j].y - spline[i].y) / (6.0 * d);
-        while ((t <= spline[i].t) && (count < nIntpPts)) {
-            p.x += t * (hx + (t - d) * (dx0 + t * dx01));
-            p.y += t * (hy + (t - d) * (dy0 + t * dy01));
-            intpPts[count++] = p;
+        while ((t <= d) && (count < nIntpPts)) {
+            Point2D value;
+            /*
+             * Evaluate each point relative to the fixed start of the
+             * interval. Do not accumulate on the previous generated
+             * point.
+             */
+            value.x = p.x + t * (hx + (t - d) * (dx0 + t * dx01));
+            value.y = p.y + t * (hy + (t - d) * (dy0 + t * dy01));
+            intpPts[count++] = value;
             t += tSkip;
         }
-        t -= spline[i].t;
+        t -= d;
     }
     return count;
 }
@@ -1591,35 +1776,65 @@ static Tcl_Size CubicEval(Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[
  */
 Tcl_Size Rbc_NaturalParametricSpline(Point2D origPts[], Tcl_Size nOrigPts, Extents2D *extsPtr, int isClosed,
                                      Point2D *intpPts, Tcl_Size nIntpPts) {
+    Point2D *workPts;
+    Point2D *ownedPts;
+    CubicSpline *spline;
+    Tcl_Size workCount;
+    Tcl_Size result;
     double unitX;
     double unitY;
-    CubicSpline *spline;
-    Tcl_Size result;
 
-    if (nOrigPts < 3) {
+    workPts = origPts;
+    ownedPts = NULL;
+    spline = NULL;
+    workCount = nOrigPts;
+    result = 0;
+    if ((origPts == NULL) || (intpPts == NULL) || (extsPtr == NULL) || (nOrigPts < 3) || (nIntpPts < 2) ||
+        !SplinePointsAreFinite(origPts, nOrigPts)) {
         return 0;
     }
     if (isClosed) {
-        if (nOrigPts == TCL_SIZE_MAX) {
-            return 0;
+        int alreadyClosed;
+
+        alreadyClosed = (origPts[0].x == origPts[nOrigPts - 1].x) && (origPts[0].y == origPts[nOrigPts - 1].y);
+        if (!alreadyClosed) {
+            Tcl_Size closedCount;
+            size_t byteCount;
+            if (nOrigPts == TCL_SIZE_MAX) {
+                return 0;
+            }
+            closedCount = nOrigPts + 1;
+            if (GetSplineArrayByteCount(closedCount, sizeof(*ownedPts), &byteCount) != TCL_OK) {
+                return 0;
+            }
+            ownedPts = Tcl_AttemptAlloc(byteCount);
+            if (ownedPts == NULL) {
+                return 0;
+            }
+            memcpy(ownedPts, origPts, (size_t)nOrigPts * sizeof(*ownedPts));
+            ownedPts[nOrigPts] = origPts[0];
+            workPts = ownedPts;
+            workCount = closedCount;
         }
-        origPts[nOrigPts] = origPts[0];
-        nOrigPts++;
     }
-    unitX = extsPtr->right - extsPtr->left;
-    unitY = extsPtr->bottom - extsPtr->top;
-    if (unitX < FLT_EPSILON) {
+    unitX = fabs(extsPtr->right - extsPtr->left);
+    unitY = fabs(extsPtr->bottom - extsPtr->top);
+    if (!FINITE(unitX) || (unitX < FLT_EPSILON)) {
         unitX = FLT_EPSILON;
     }
-    if (unitY < FLT_EPSILON) {
+    if (!FINITE(unitY) || (unitY < FLT_EPSILON)) {
         unitY = FLT_EPSILON;
     }
-    spline = CubicSlopes(origPts, nOrigPts, isClosed, unitX, unitY);
-    if (spline == NULL) {
-        return 0;
+    spline = CubicSlopes(workPts, workCount, isClosed, unitX, unitY);
+    if (spline != NULL) {
+        result = CubicEval(workPts, workCount, intpPts, nIntpPts, spline);
     }
-    result = CubicEval(origPts, nOrigPts, intpPts, nIntpPts, spline);
-    ckfree(spline);
+    if (spline != NULL) {
+        ckfree(spline);
+    }
+    if (ownedPts != NULL) {
+        ckfree(ownedPts);
+    }
     return result;
 }
 
@@ -1690,6 +1905,10 @@ int Rbc_CatromParametricSpline(Point2D *points, Tcl_Size nPoints, Point2D *intpP
     size_t byteCount;
     double t;
 
+    if ((points == NULL) || (intpPts == NULL) || (nPoints < 1) || (nIntpPts < 0) ||
+        !SplinePointsAreFinite(points, nPoints)) {
+        return FALSE;
+    }
     if (nPoints < 1) {
         return FALSE;
     }
@@ -1711,7 +1930,9 @@ int Rbc_CatromParametricSpline(Point2D *points, Tcl_Size nPoints, Point2D *intpP
         double intervalValue;
 
         intervalValue = intpPts[i].x;
-        if (!FINITE(intervalValue) || (intervalValue < 0.0) || (intervalValue > (double)(nPoints - 1))) {
+        t = intpPts[i].y;
+        if (!FINITE(intervalValue) || !FINITE(t) || (intervalValue < 0.0) || (intervalValue > (double)(nPoints - 1)) ||
+            (floor(intervalValue) != intervalValue) || (t < 0.0) || (t > 1.0)) {
             ckfree(origPts);
             return FALSE;
         }
