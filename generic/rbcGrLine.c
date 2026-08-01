@@ -175,8 +175,8 @@ typedef struct {
                             * segments in the element's array. */
     Segment2D *yErrorBars; /* Point to start of this pen's Y-error bar
                             * segments in the element's array. */
-    int xErrorBarCnt;      /* # of error bars for this pen. */
-    int yErrorBarCnt;      /* # of error bars for this pen. */
+    Tcl_Size xErrorBarCnt;      /* # of error bars for this pen. */
+    Tcl_Size yErrorBarCnt;      /* # of error bars for this pen. */
 
     int errorBarCapWidth; /* Length of the cap ends on each
                            * error bar. */
@@ -3498,15 +3498,18 @@ static void MergePens(Line *linePtr, PenStyle **dataToStyle) {
         linePtr->symbolToData = symbolToData;
     }
     if (linePtr->core.xErrorBarCnt > 0) {
-        Segment2D *xErrorBars, *segPtr;
-        int *xErrorToData, *indexPtr;
-        int dataIndex;
-
-        xErrorBars = (Segment2D *)ckalloc(linePtr->core.xErrorBarCnt * sizeof(Segment2D));
-        xErrorToData = (int *)ckalloc(linePtr->core.xErrorBarCnt * sizeof(int));
-        assert(xErrorBars);
-        segPtr = xErrorBars, indexPtr = xErrorToData;
-        for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        Segment2D *errorBars;
+        Segment2D *segPtr;
+        Tcl_Size *errorToData;
+        Tcl_Size *indexPtr;
+        Tcl_Size dataIndex;
+        Tcl_Size i;
+        errorBars = ckalloc((size_t)linePtr->core.xErrorBarCnt * sizeof(*errorBars));
+        errorToData = ckalloc((size_t)linePtr->core.xErrorBarCnt * sizeof(*errorToData));
+        segPtr = errorBars;
+        indexPtr = errorToData;
+        for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL;
+             linkPtr = Rbc_ChainNextLink(linkPtr)) {
             stylePtr = Rbc_ChainGetValue(linkPtr);
             stylePtr->xErrorBars = segPtr;
             for (i = 0; i < linePtr->core.xErrorBarCnt; i++) {
@@ -3516,23 +3519,26 @@ static void MergePens(Line *linePtr, PenStyle **dataToStyle) {
                     *indexPtr++ = dataIndex;
                 }
             }
-            stylePtr->xErrorBarCnt = segPtr - stylePtr->xErrorBars;
+            stylePtr->xErrorBarCnt = (Tcl_Size)(segPtr - stylePtr->xErrorBars);
         }
-        ckfree((char *)linePtr->core.xErrorBars);
-        linePtr->core.xErrorBars = xErrorBars;
-        ckfree((char *)linePtr->core.xErrorToData);
-        linePtr->core.xErrorToData = xErrorToData;
+        ckfree(linePtr->core.xErrorBars);
+        linePtr->core.xErrorBars = errorBars;
+        ckfree(linePtr->core.xErrorToData);
+        linePtr->core.xErrorToData = errorToData;
     }
     if (linePtr->core.yErrorBarCnt > 0) {
-        Segment2D *errorBars, *segPtr;
-        int *errorToData, *indexPtr;
-        int dataIndex;
-
-        errorBars = (Segment2D *)ckalloc(linePtr->core.yErrorBarCnt * sizeof(Segment2D));
-        errorToData = (int *)ckalloc(linePtr->core.yErrorBarCnt * sizeof(int));
-        assert(errorBars);
-        segPtr = errorBars, indexPtr = errorToData;
-        for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        Segment2D *errorBars;
+        Segment2D *segPtr;
+        Tcl_Size *errorToData;
+        Tcl_Size *indexPtr;
+        Tcl_Size dataIndex;
+        Tcl_Size i;
+        errorBars = ckalloc((size_t)linePtr->core.yErrorBarCnt * sizeof(*errorBars));
+        errorToData = ckalloc((size_t)linePtr->core.yErrorBarCnt * sizeof(*errorToData));
+        segPtr = errorBars;
+        indexPtr = errorToData;
+        for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL;
+             linkPtr = Rbc_ChainNextLink(linkPtr)) {
             stylePtr = Rbc_ChainGetValue(linkPtr);
             stylePtr->yErrorBars = segPtr;
             for (i = 0; i < linePtr->core.yErrorBarCnt; i++) {
@@ -3542,11 +3548,11 @@ static void MergePens(Line *linePtr, PenStyle **dataToStyle) {
                     *indexPtr++ = dataIndex;
                 }
             }
-            stylePtr->yErrorBarCnt = segPtr - stylePtr->yErrorBars;
+            stylePtr->yErrorBarCnt = (Tcl_Size)(segPtr - stylePtr->yErrorBars);
         }
-        ckfree((char *)linePtr->core.yErrorBars);
+        ckfree(linePtr->core.yErrorBars);
         linePtr->core.yErrorBars = errorBars;
-        ckfree((char *)linePtr->core.yErrorToData);
+        ckfree(linePtr->core.yErrorToData);
         linePtr->core.yErrorToData = errorToData;
     }
 }
@@ -3950,9 +3956,16 @@ static void ResetLine(Line *linePtr) {
     }
     linePtr->core.xErrorBars = linePtr->core.yErrorBars = linePtr->strips = NULL;
     linePtr->symbolPts = linePtr->activePts = NULL;
-    linePtr->stripToData = linePtr->symbolToData = linePtr->core.xErrorToData = linePtr->core.yErrorToData =
-        linePtr->activeToData = NULL;
-    linePtr->nActivePts = linePtr->nSymbolPts = linePtr->nStrips = linePtr->core.xErrorBarCnt = linePtr->core.yErrorBarCnt = 0;
+    linePtr->stripToData = NULL;
+    linePtr->symbolToData = NULL;
+    linePtr->activeToData = NULL;
+    linePtr->core.xErrorToData = NULL;
+    linePtr->core.yErrorToData = NULL;
+    linePtr->nActivePts = 0;
+    linePtr->nSymbolPts = 0;
+    linePtr->nStrips = 0;
+    linePtr->core.xErrorBarCnt = 0;
+    linePtr->core.yErrorBarCnt = 0;
 }
 
 /*

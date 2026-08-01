@@ -82,9 +82,9 @@ typedef struct {
     Segment2D *yErrorBars; /* Point to start of this pen's Y-error bar
                             * segments in the element's array. */
 
-    int xErrorBarCnt; /* # of error bars for this pen. */
+    Tcl_Size xErrorBarCnt; /* # of error bars for this pen. */
 
-    int yErrorBarCnt; /* # of error bars for this pen. */
+    Tcl_Size yErrorBarCnt; /* # of error bars for this pen. */
 
     int errorBarCapWidth; /* Length of the cap ends on each
                            * error bar. */
@@ -259,12 +259,12 @@ struct ElementStruct {
     ElemVector yHigh, yLow; /* Absolute/asymmetric Y-coordinate high/low
                 error values. */
 
-    int *activeIndices; /* Array of indices (malloc-ed) which
+    Tcl_Size *activeIndices; /* Array of indices (malloc-ed) which
                          * indicate which data points are
                          * active (drawn with "active"
                          * colors). */
 
-    int nActiveIndices; /* Number of active data points.
+    Tcl_Size nActiveIndices; /* Number of active data points.
                          * Special case: if nActiveIndices < 0
                          * and the active bit is set in
                          * "flags", then all data points are

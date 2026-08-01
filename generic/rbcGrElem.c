@@ -3676,7 +3676,6 @@ static int ActivateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Siz
     Element *elemPtr;
     Tcl_Size *activeArr;
     Tcl_Size nActiveIndices;
-    Tcl_Size i;
 
     (void)type;
 

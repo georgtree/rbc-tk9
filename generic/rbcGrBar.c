@@ -65,9 +65,9 @@ typedef struct {
 
     Segment2D *yErrorBars; /* Point to start of this pen's Y-error bar
                             * segments in the element's array. */
-    int xErrorBarCnt;      /* # of error bars for this pen. */
+    Tcl_Size xErrorBarCnt;      /* # of error bars for this pen. */
 
-    int yErrorBarCnt; /* # of error bars for this pen. */
+    Tcl_Size yErrorBarCnt; /* # of error bars for this pen. */
 
     int errorBarCapWidth; /* Length of the cap ends on each
                            * error bar. */
@@ -1488,16 +1488,19 @@ static void MergePens(Bar *barPtr, PenStyle **dataToStyle) {
         barPtr->rectToData = rectToData;
     }
     if (barPtr->core.xErrorBarCnt > 0) {
-        Segment2D *errorBars, *segPtr;
-        Tcl_Size *errorToData, *indexPtr;
-        int dataIndex;
-        register int i;
+        Segment2D *errorBars;
+        Segment2D *segPtr;
+        Tcl_Size *errorToData;
+        Tcl_Size *indexPtr;
+        Tcl_Size dataIndex;
+        Tcl_Size i;
 
-        errorBars = (Segment2D *)ckalloc(barPtr->core.xErrorBarCnt * sizeof(Segment2D));
-        errorToData = (int *)ckalloc(barPtr->core.xErrorBarCnt * sizeof(int));
-        assert(errorBars);
-        segPtr = errorBars, indexPtr = errorToData;
-        for (linkPtr = Rbc_ChainFirstLink(barPtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        errorBars = ckalloc((size_t)barPtr->core.xErrorBarCnt * sizeof(*errorBars));
+        errorToData = ckalloc((size_t)barPtr->core.xErrorBarCnt * sizeof(*errorToData));
+        segPtr = errorBars;
+        indexPtr = errorToData;
+        for (linkPtr = Rbc_ChainFirstLink(barPtr->core.palette); linkPtr != NULL;
+             linkPtr = Rbc_ChainNextLink(linkPtr)) {
             stylePtr = Rbc_ChainGetValue(linkPtr);
             stylePtr->xErrorBars = segPtr;
             for (i = 0; i < barPtr->core.xErrorBarCnt; i++) {
@@ -1507,24 +1510,27 @@ static void MergePens(Bar *barPtr, PenStyle **dataToStyle) {
                     *indexPtr++ = dataIndex;
                 }
             }
-            stylePtr->xErrorBarCnt = segPtr - stylePtr->xErrorBars;
+            stylePtr->xErrorBarCnt = (Tcl_Size)(segPtr - stylePtr->xErrorBars);
         }
-        ckfree((char *)barPtr->core.xErrorBars);
+        ckfree(barPtr->core.xErrorBars);
         barPtr->core.xErrorBars = errorBars;
-        ckfree((char *)barPtr->core.xErrorToData);
+        ckfree(barPtr->core.xErrorToData);
         barPtr->core.xErrorToData = errorToData;
     }
     if (barPtr->core.yErrorBarCnt > 0) {
-        Segment2D *errorBars, *segPtr;
-        Tcl_Size *errorToData, *indexPtr;
-        int dataIndex;
-        register int i;
+        Segment2D *errorBars;
+        Segment2D *segPtr;
+        Tcl_Size *errorToData;
+        Tcl_Size *indexPtr;
+        Tcl_Size dataIndex;
+        Tcl_Size i;
+        errorBars = ckalloc((size_t)barPtr->core.yErrorBarCnt * sizeof(*errorBars));
+        errorToData = ckalloc((size_t)barPtr->core.yErrorBarCnt * sizeof(*errorToData));
+        segPtr = errorBars;
+        indexPtr = errorToData;
 
-        errorBars = (Segment2D *)ckalloc(barPtr->core.yErrorBarCnt * sizeof(Segment2D));
-        errorToData = (int *)ckalloc(barPtr->core.yErrorBarCnt * sizeof(int));
-        assert(errorBars);
-        segPtr = errorBars, indexPtr = errorToData;
-        for (linkPtr = Rbc_ChainFirstLink(barPtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        for (linkPtr = Rbc_ChainFirstLink(barPtr->core.palette); linkPtr != NULL;
+             linkPtr = Rbc_ChainNextLink(linkPtr)) {
             stylePtr = Rbc_ChainGetValue(linkPtr);
             stylePtr->yErrorBars = segPtr;
             for (i = 0; i < barPtr->core.yErrorBarCnt; i++) {
@@ -1534,11 +1540,11 @@ static void MergePens(Bar *barPtr, PenStyle **dataToStyle) {
                     *indexPtr++ = dataIndex;
                 }
             }
-            stylePtr->yErrorBarCnt = segPtr - stylePtr->yErrorBars;
+            stylePtr->yErrorBarCnt = (Tcl_Size)(segPtr - stylePtr->yErrorBars);
         }
-        ckfree((char *)barPtr->core.yErrorBars);
+        ckfree(barPtr->core.yErrorBars);
         barPtr->core.yErrorBars = errorBars;
-        ckfree((char *)barPtr->core.yErrorToData);
+        ckfree(barPtr->core.yErrorToData);
         barPtr->core.yErrorToData = errorToData;
     }
 }
@@ -1644,10 +1650,16 @@ static void ResetBar(Bar *barPtr) {
     if (barPtr->rectToData != NULL) {
         ckfree((char *)barPtr->rectToData);
     }
-    barPtr->activeToData = barPtr->core.xErrorToData = barPtr->core.yErrorToData = barPtr->rectToData = NULL;
+    barPtr->activeToData = NULL;
+    barPtr->rectToData = NULL;
+    barPtr->core.xErrorToData = NULL;
+    barPtr->core.yErrorToData = NULL;
     barPtr->activeRects = barPtr->rectangles = NULL;
     barPtr->core.xErrorBars = barPtr->core.yErrorBars = NULL;
-    barPtr->nActive = barPtr->core.xErrorBarCnt = barPtr->core.yErrorBarCnt = barPtr->nRects = 0;
+    barPtr->nActive = 0;
+    barPtr->nRects = 0;
+    barPtr->core.xErrorBarCnt = 0;
+    barPtr->core.yErrorBarCnt = 0;
 }
 
 /*
