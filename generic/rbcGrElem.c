@@ -10,6 +10,7 @@
  */
 
 #include <ctype.h>
+#include <stdint.h>
 #include <limits.h>
 #include "rbcGraph.h"
 #include "rbcChain.h"
@@ -27,8 +28,8 @@ static Rbc_VectorChangedProc VectorChangedProc;
 static int GetPenStyleFromObj(Graph *graphPtr, Tcl_Obj *objPtr, Rbc_Uid type, PenStyle *stylePtr);
 static void SyncElemVector(ElemVector *vPtr);
 static void FindRange(ElemVector *vPtr);
-static int EvalExprListObj(Tcl_Interp *interp, Tcl_Obj *listObjPtr, int *nElemPtr, double **arrayPtr);
-static int GetIndex(Tcl_Interp *interp, Element *elemPtr, const char *string, int *indexPtr);
+static int EvalExprListObj(Tcl_Interp *interp, Tcl_Obj *listObjPtr, Tcl_Size *nElemPtr, double **arrayPtr);
+static int GetIndex(Tcl_Interp *interp, Element *elemPtr, const char *string, Tcl_Size *indexPtr);
 static int NameToElement(Graph *graphPtr, Tcl_Obj *nameObj, Element **elemPtrPtr);
 static int CreateElement(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Rbc_Uid classUid);
 static void DestroyElement(Graph *graphPtr, Element *elemPtr);
@@ -79,6 +80,15 @@ typedef enum { ELEM_PEN_OPTION_NONE, ELEM_PEN_OPTION_ACTIVE, ELEM_PEN_OPTION_NOR
 typedef enum { ELEM_AXIS_OPTION_NONE, ELEM_AXIS_OPTION_X, ELEM_AXIS_OPTION_Y } ElemAxisOption;
 
 #define ELEM_AXIS_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
+
+static int GetElemArrayByteCount(Tcl_Interp *interp, Tcl_Size count, size_t elementSize, size_t *byteCountPtr) {
+    if ((count < 0) || (elementSize == 0) || ((Tcl_WideUInt)count > (Tcl_WideUInt)(SIZE_MAX / elementSize))) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("element data array is too large", -1));
+        return TCL_ERROR;
+    }
+    *byteCountPtr = (size_t)count * elementSize;
+    return TCL_OK;
+}
 
 /*
  * ----------------------------------------------------------------------
@@ -211,24 +221,25 @@ static void SyncElemVector(ElemVector *vPtr) {
  *----------------------------------------------------------------------
  */
 static void FindRange(ElemVector *vPtr) {
-    register int i;
-    register double *x;
-    register double min, max;
+    Tcl_Size i;
+    double *x;
+    double min;
+    double max;
 
     if ((vPtr->nValues < 1) || (vPtr->valueArr == NULL)) {
-        return; /* This shouldn't ever happen. */
+        return;
     }
     x = vPtr->valueArr;
-
-    min = DBL_MAX, max = -DBL_MAX;
+    min = DBL_MAX;
+    max = -DBL_MAX;
     for (i = 0; i < vPtr->nValues; i++) {
         if (FINITE(x[i])) {
-            min = max = x[i];
+            min = x[i];
+            max = x[i];
             break;
         }
     }
-    /*  Initialize values to track the vector range */
-    for (/* empty */; i < vPtr->nValues; i++) {
+    for (; i < vPtr->nValues; i++) {
         if (FINITE(x[i])) {
             if (x[i] < min) {
                 min = x[i];
@@ -237,7 +248,8 @@ static void FindRange(ElemVector *vPtr) {
             }
         }
     }
-    vPtr->min = min, vPtr->max = max;
+    vPtr->min = min;
+    vPtr->max = max;
 }
 
 /*
@@ -262,7 +274,7 @@ static void FindRange(ElemVector *vPtr) {
  *----------------------------------------------------------------------
  */
 double Rbc_FindElemVectorMinimum(ElemVector *vPtr, double minLimit) {
-    register int i;
+    Tcl_Size i;
     register double *arr;
     register double min, x;
 
@@ -387,41 +399,40 @@ static void VectorChangedProc(Tcl_Interp *interp, ClientData clientData, Rbc_Vec
  *
  *----------------------------------------------------------------------
  */
-static int EvalExprListObj(Tcl_Interp *interp, Tcl_Obj *listObjPtr, int *nElemPtr, double **arrayPtr) {
+static int EvalExprListObj(Tcl_Interp *interp, Tcl_Obj *listObjPtr, Tcl_Size *nElemPtr, double **arrayPtr) {
     Tcl_Obj **objv;
     Tcl_Size objc;
     Tcl_Size i;
     double *array;
+    size_t byteCount;
 
     *nElemPtr = 0;
     *arrayPtr = NULL;
-
     if (Tcl_ListObjGetElements(interp, listObjPtr, &objc, &objv) != TCL_OK) {
         return TCL_ERROR;
     }
-
-    if (objc > INT_MAX) {
-        Tcl_SetObjResult(interp, Tcl_NewStringObj("too many data points", -1));
-        return TCL_ERROR;
-    }
-
     array = NULL;
     if (objc > 0) {
-        array = (double *)ckalloc(sizeof(double) * (size_t)objc);
-
+        if (GetElemArrayByteCount(interp, objc, sizeof(double), &byteCount) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        array = Tcl_AttemptAlloc(byteCount);
+        if (array == NULL) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate element data array", -1));
+            return TCL_ERROR;
+        }
         for (i = 0; i < objc; i++) {
             /*
-             * Preserve the legacy behaviour: every list member may
-             * be a Tcl numeric expression, not only a plain double.
+             * Preserve the existing behaviour: list members may be Tcl
+             * numeric expressions rather than only literal doubles.
              */
             if (Tcl_ExprDouble(interp, Tcl_GetString(objv[i]), array + i) != TCL_OK) {
-                ckfree((char *)array);
+                ckfree(array);
                 return TCL_ERROR;
             }
         }
     }
-
-    *nElemPtr = (int)objc;
+    *nElemPtr = objc;
     *arrayPtr = array;
     return TCL_OK;
 }
@@ -524,51 +535,57 @@ int Rbc_ParseElemVectorObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr
 int Rbc_ParseElemVectorPairsObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, ElemVector *xCandidatePtr,
                                 ElemVector *yCandidatePtr) {
     double *pairArr;
-    int nElem;
-    int nValues;
-    int i;
+    Tcl_Size nElem;
+    Tcl_Size nValues;
+    Tcl_Size i;
+    size_t byteCount;
 
     memset(xCandidatePtr, 0, sizeof(*xCandidatePtr));
     memset(yCandidatePtr, 0, sizeof(*yCandidatePtr));
-
     xCandidatePtr->elemPtr = elemPtr;
     yCandidatePtr->elemPtr = elemPtr;
-
     if (EvalExprListObj(interp, objPtr, &nElem, &pairArr) != TCL_OK) {
         return TCL_ERROR;
     }
-
     if ((nElem & 1) != 0) {
         Tcl_SetObjResult(interp, Tcl_NewStringObj("odd number of data points", -1));
-
         if (pairArr != NULL) {
-            ckfree((char *)pairArr);
+            ckfree(pairArr);
         }
         return TCL_ERROR;
     }
-
     nValues = nElem / 2;
-
     if (nValues > 0) {
-        xCandidatePtr->valueArr = (double *)ckalloc(sizeof(double) * (size_t)nValues);
-        yCandidatePtr->valueArr = (double *)ckalloc(sizeof(double) * (size_t)nValues);
-
+        if (GetElemArrayByteCount(interp, nValues, sizeof(double), &byteCount) != TCL_OK) {
+            ckfree(pairArr);
+            return TCL_ERROR;
+        }
+        xCandidatePtr->valueArr = Tcl_AttemptAlloc(byteCount);
+        if (xCandidatePtr->valueArr == NULL) {
+            ckfree(pairArr);
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate element X data", -1));
+            return TCL_ERROR;
+        }
+        yCandidatePtr->valueArr = Tcl_AttemptAlloc(byteCount);
+        if (yCandidatePtr->valueArr == NULL) {
+            ckfree(xCandidatePtr->valueArr);
+            xCandidatePtr->valueArr = NULL;
+            ckfree(pairArr);
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate element Y data", -1));
+            return TCL_ERROR;
+        }
         for (i = 0; i < nValues; i++) {
             xCandidatePtr->valueArr[i] = pairArr[i * 2];
             yCandidatePtr->valueArr[i] = pairArr[i * 2 + 1];
         }
-
-        ckfree((char *)pairArr);
+        ckfree(pairArr);
     }
-
     xCandidatePtr->nValues = nValues;
     xCandidatePtr->arraySize = nValues;
     yCandidatePtr->nValues = nValues;
     yCandidatePtr->arraySize = nValues;
-
     FindRange(xCandidatePtr);
     FindRange(yCandidatePtr);
-
     return TCL_OK;
 }
 
@@ -2482,7 +2499,9 @@ static int StringToAlong(ClientData clientData, Tcl_Interp *interp, Tk_Window tk
     } else if ((string[0] == 'b') && (strcmp(string, "both") == 0)) {
         *intPtr = SEARCH_BOTH;
     } else {
-        Tcl_AppendResult(interp, "bad along value \"", string, "\"", (char *)NULL);
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad along value \"%s\": "
+                                               "must be x, y, or both",
+                                               string));
         return TCL_ERROR;
     }
     return TCL_OK;
@@ -2708,8 +2727,8 @@ int Rbc_ParseStylesObj(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, size_
  *----------------------------------------------------------------------
  */
 PenStyle **Rbc_StyleMap(Element *elemPtr) {
-    register int i;
-    int nWeights; /* Number of weights to be examined.
+    Tcl_Size i;
+    Tcl_Size nWeights; /* Number of weights to be examined.
                    * If there are more data points than
                    * weights, they will default to the
                    * normal pen. */
@@ -2720,7 +2739,7 @@ PenStyle **Rbc_StyleMap(Element *elemPtr) {
     Rbc_ChainLink *linkPtr;
     PenStyle *stylePtr;
     double *w; /* Weight vector */
-    int nPoints;
+    Tcl_Size nPoints;
 
     nPoints = NumberOfPoints(elemPtr);
     nWeights = MIN(elemPtr->w.nValues, nPoints);
@@ -2732,7 +2751,7 @@ PenStyle **Rbc_StyleMap(Element *elemPtr) {
      * Create a style mapping array (data point index to style),
      * initialized to the default style.
      */
-    dataToStyle = (PenStyle **)ckalloc(nPoints * sizeof(PenStyle *));
+    dataToStyle = ckalloc((size_t)nPoints * sizeof(PenStyle *));
     assert(dataToStyle);
     for (i = 0; i < nPoints; i++) {
         dataToStyle[i] = stylePtr;
@@ -2777,13 +2796,49 @@ PenStyle **Rbc_StyleMap(Element *elemPtr) {
  *
  *----------------------------------------------------------------------
  */
+static int AllocateErrorBarArrays(Tcl_Interp *interp, Tcl_Size nPoints, Segment2D **segmentsPtr, Tcl_Size **mapPtr) {
+    Tcl_Size capacity;
+    size_t segmentBytes;
+    size_t mapBytes;
+
+    *segmentsPtr = NULL;
+    *mapPtr = NULL;
+    if ((nPoints < 0) || (nPoints > (TCL_SIZE_MAX / 3))) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("too many error-bar points", -1));
+        return TCL_ERROR;
+    }
+    capacity = nPoints * 3;
+    if (GetElemArrayByteCount(interp, capacity, sizeof(Segment2D), &segmentBytes) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (GetElemArrayByteCount(interp, capacity, sizeof(Tcl_Size), &mapBytes) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    *segmentsPtr = Tcl_AttemptAlloc(segmentBytes);
+    if ((*segmentsPtr == NULL) && (segmentBytes > 0)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate error-bar segments", -1));
+        return TCL_ERROR;
+    }
+    *mapPtr = Tcl_AttemptAlloc(mapBytes);
+    if ((*mapPtr == NULL) && (mapBytes > 0)) {
+        ckfree(*segmentsPtr);
+        *segmentsPtr = NULL;
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate error-bar index map", -1));
+        return TCL_ERROR;
+    }
+    return TCL_OK;
+}
+
 void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle) {
-    int n, nPoints;
     Extents2D exts;
-    PenStyle *stylePtr;
+    Tcl_Size n;
+    Tcl_Size nPoints;
 
     Rbc_GraphExtents(graphPtr, &exts);
     nPoints = NumberOfPoints(elemPtr);
+    /*
+     * Map X error bars.
+     */
     if (elemPtr->xError.nValues > 0) {
         n = MIN(elemPtr->xError.nValues, nPoints);
     } else {
@@ -2792,60 +2847,81 @@ void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle)
     if (n > 0) {
         Segment2D *errorBars;
         Segment2D *segPtr;
-        double high, low;
-        double x, y;
-        int *errorToData;
-        int *indexPtr;
-        register int i;
-
-        segPtr = errorBars = (Segment2D *)ckalloc(n * 3 * sizeof(Segment2D));
-        indexPtr = errorToData = (int *)ckalloc(n * 3 * sizeof(int));
+        Tcl_Size *errorToData;
+        Tcl_Size *indexPtr;
+        Tcl_Size i;
+        if (AllocateErrorBarArrays(graphPtr->interp, n, &errorBars, &errorToData) != TCL_OK) {
+            return;
+        }
+        segPtr = errorBars;
+        indexPtr = errorToData;
         for (i = 0; i < n; i++) {
+            PenStyle *stylePtr;
+            double high;
+            double low;
+            double x;
+            double y;
             x = elemPtr->x.valueArr[i];
             y = elemPtr->y.valueArr[i];
             stylePtr = dataToStyle[i];
-            if ((FINITE(x)) && (FINITE(y))) {
-                if (elemPtr->xError.nValues > 0) {
-                    high = x + elemPtr->xError.valueArr[i];
-                    low = x - elemPtr->xError.valueArr[i];
-                } else {
-                    high = elemPtr->xHigh.valueArr[i];
-                    low = elemPtr->xLow.valueArr[i];
+            if (!FINITE(x) || !FINITE(y)) {
+                continue;
+            }
+            if (elemPtr->xError.nValues > 0) {
+                high = x + elemPtr->xError.valueArr[i];
+                low = x - elemPtr->xError.valueArr[i];
+            } else {
+                high = elemPtr->xHigh.valueArr[i];
+                low = elemPtr->xLow.valueArr[i];
+            }
+            if (!FINITE(high) || !FINITE(low)) {
+                continue;
+            }
+            {
+                Point2D p;
+                Point2D q;
+                p = Rbc_Map2D(graphPtr, high, y, &elemPtr->axes);
+                q = Rbc_Map2D(graphPtr, low, y, &elemPtr->axes);
+                /*
+                 * Main horizontal error-bar segment.
+                 */
+                segPtr->p = p;
+                segPtr->q = q;
+                if (Rbc_LineRectClip(&exts, &segPtr->p, &segPtr->q)) {
+                    segPtr++;
+                    *indexPtr++ = i;
                 }
-                if ((FINITE(high)) && (FINITE(low))) {
-                    Point2D p, q;
-
-                    p = Rbc_Map2D(graphPtr, high, y, &elemPtr->axes);
-                    q = Rbc_Map2D(graphPtr, low, y, &elemPtr->axes);
-                    segPtr->p = p;
-                    segPtr->q = q;
-                    if (Rbc_LineRectClip(&exts, &segPtr->p, &segPtr->q)) {
-                        segPtr++;
-                        *indexPtr++ = i;
-                    }
-                    /* Left cap */
-                    segPtr->p.x = segPtr->q.x = p.x;
-                    segPtr->p.y = p.y - stylePtr->errorBarCapWidth;
-                    segPtr->q.y = p.y + stylePtr->errorBarCapWidth;
-                    if (Rbc_LineRectClip(&exts, &segPtr->p, &segPtr->q)) {
-                        segPtr++;
-                        *indexPtr++ = i;
-                    }
-                    /* Right cap */
-                    segPtr->p.x = segPtr->q.x = q.x;
-                    segPtr->p.y = q.y - stylePtr->errorBarCapWidth;
-                    segPtr->q.y = q.y + stylePtr->errorBarCapWidth;
-                    if (Rbc_LineRectClip(&exts, &segPtr->p, &segPtr->q)) {
-                        segPtr++;
-                        *indexPtr++ = i;
-                    }
+                /*
+                 * First cap.
+                 */
+                segPtr->p.x = p.x;
+                segPtr->q.x = p.x;
+                segPtr->p.y = p.y - stylePtr->errorBarCapWidth;
+                segPtr->q.y = p.y + stylePtr->errorBarCapWidth;
+                if (Rbc_LineRectClip(&exts, &segPtr->p, &segPtr->q)) {
+                    segPtr++;
+                    *indexPtr++ = i;
+                }
+                /*
+                 * Second cap.
+                 */
+                segPtr->p.x = q.x;
+                segPtr->q.x = q.x;
+                segPtr->p.y = q.y - stylePtr->errorBarCapWidth;
+                segPtr->q.y = q.y + stylePtr->errorBarCapWidth;
+                if (Rbc_LineRectClip(&exts, &segPtr->p, &segPtr->q)) {
+                    segPtr++;
+                    *indexPtr++ = i;
                 }
             }
         }
         elemPtr->xErrorBars = errorBars;
-        elemPtr->xErrorBarCnt = segPtr - errorBars;
+        elemPtr->xErrorBarCnt = (Tcl_Size)(segPtr - errorBars);
         elemPtr->xErrorToData = errorToData;
     }
+    /*
+     * Map Y error bars.
+     */
     if (elemPtr->yError.nValues > 0) {
         n = MIN(elemPtr->yError.nValues, nPoints);
     } else {
@@ -2854,58 +2930,76 @@ void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle)
     if (n > 0) {
         Segment2D *errorBars;
         Segment2D *segPtr;
-        double high, low;
-        double x, y;
-        int *errorToData;
-        int *indexPtr;
-        register int i;
-
-        segPtr = errorBars = (Segment2D *)ckalloc(n * 3 * sizeof(Segment2D));
-        indexPtr = errorToData = (int *)ckalloc(n * 3 * sizeof(int));
+        Tcl_Size *errorToData;
+        Tcl_Size *indexPtr;
+        Tcl_Size i;
+        if (AllocateErrorBarArrays(graphPtr->interp, n, &errorBars, &errorToData) != TCL_OK) {
+            return;
+        }
+        segPtr = errorBars;
+        indexPtr = errorToData;
         for (i = 0; i < n; i++) {
+            PenStyle *stylePtr;
+            double high;
+            double low;
+            double x;
+            double y;
             x = elemPtr->x.valueArr[i];
             y = elemPtr->y.valueArr[i];
             stylePtr = dataToStyle[i];
-            if ((FINITE(x)) && (FINITE(y))) {
-                if (elemPtr->yError.nValues > 0) {
-                    high = y + elemPtr->yError.valueArr[i];
-                    low = y - elemPtr->yError.valueArr[i];
-                } else {
-                    high = elemPtr->yHigh.valueArr[i];
-                    low = elemPtr->yLow.valueArr[i];
+            if (!FINITE(x) || !FINITE(y)) {
+                continue;
+            }
+            if (elemPtr->yError.nValues > 0) {
+                high = y + elemPtr->yError.valueArr[i];
+                low = y - elemPtr->yError.valueArr[i];
+            } else {
+                high = elemPtr->yHigh.valueArr[i];
+                low = elemPtr->yLow.valueArr[i];
+            }
+            if (!FINITE(high) || !FINITE(low)) {
+                continue;
+            }
+            {
+                Point2D p;
+                Point2D q;
+                p = Rbc_Map2D(graphPtr, x, high, &elemPtr->axes);
+                q = Rbc_Map2D(graphPtr, x, low, &elemPtr->axes);
+                /*
+                 * Main vertical error-bar segment.
+                 */
+                segPtr->p = p;
+                segPtr->q = q;
+                if (Rbc_LineRectClip(&exts, &segPtr->p, &segPtr->q)) {
+                    segPtr++;
+                    *indexPtr++ = i;
                 }
-                if ((FINITE(high)) && (FINITE(low))) {
-                    Point2D p, q;
-
-                    p = Rbc_Map2D(graphPtr, x, high, &elemPtr->axes);
-                    q = Rbc_Map2D(graphPtr, x, low, &elemPtr->axes);
-                    segPtr->p = p;
-                    segPtr->q = q;
-                    if (Rbc_LineRectClip(&exts, &segPtr->p, &segPtr->q)) {
-                        segPtr++;
-                        *indexPtr++ = i;
-                    }
-                    /* Top cap. */
-                    segPtr->p.y = segPtr->q.y = p.y;
-                    segPtr->p.x = p.x - stylePtr->errorBarCapWidth;
-                    segPtr->q.x = p.x + stylePtr->errorBarCapWidth;
-                    if (Rbc_LineRectClip(&exts, &segPtr->p, &segPtr->q)) {
-                        segPtr++;
-                        *indexPtr++ = i;
-                    }
-                    /* Bottom cap. */
-                    segPtr->p.y = segPtr->q.y = q.y;
-                    segPtr->p.x = q.x - stylePtr->errorBarCapWidth;
-                    segPtr->q.x = q.x + stylePtr->errorBarCapWidth;
-                    if (Rbc_LineRectClip(&exts, &segPtr->p, &segPtr->q)) {
-                        segPtr++;
-                        *indexPtr++ = i;
-                    }
+                /*
+                 * First cap.
+                 */
+                segPtr->p.y = p.y;
+                segPtr->q.y = p.y;
+                segPtr->p.x = p.x - stylePtr->errorBarCapWidth;
+                segPtr->q.x = p.x + stylePtr->errorBarCapWidth;
+                if (Rbc_LineRectClip(&exts, &segPtr->p, &segPtr->q)) {
+                    segPtr++;
+                    *indexPtr++ = i;
+                }
+                /*
+                 * Second cap.
+                 */
+                segPtr->p.y = q.y;
+                segPtr->q.y = q.y;
+                segPtr->p.x = q.x - stylePtr->errorBarCapWidth;
+                segPtr->q.x = q.x + stylePtr->errorBarCapWidth;
+                if (Rbc_LineRectClip(&exts, &segPtr->p, &segPtr->q)) {
+                    segPtr++;
+                    *indexPtr++ = i;
                 }
             }
         }
         elemPtr->yErrorBars = errorBars;
-        elemPtr->yErrorBarCnt = segPtr - errorBars;
+        elemPtr->yErrorBarCnt = (Tcl_Size)(segPtr - errorBars);
         elemPtr->yErrorToData = errorToData;
     }
 }
@@ -2932,17 +3026,42 @@ void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle)
  *
  *----------------------------------------------------------------------
  */
-static int GetIndex(Tcl_Interp *interp, Element *elemPtr, const char *string, int *indexPtr) {
-    long ielem;
-    int last;
+static int GetIndex(Tcl_Interp *interp, Element *elemPtr, const char *string, Tcl_Size *indexPtr) {
+    Tcl_Size nPoints;
+    Tcl_Size last;
+    Tcl_Size ielem;
 
-    last = NumberOfPoints(elemPtr) - 1;
-    if ((*string == 'e') && (strcmp("end", string) == 0)) {
-        ielem = last;
-    } else if (Tcl_ExprLong(interp, string, &ielem) != TCL_OK) {
+    nPoints = NumberOfPoints(elemPtr);
+    if (nPoints == 0) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("can't select an index from an empty element", -1));
         return TCL_ERROR;
     }
-    *indexPtr = (int)ielem;
+    last = nPoints - 1;
+    if ((string[0] == 'e') && (strcmp(string, "end") == 0)) {
+        ielem = last;
+    } else {
+        Tcl_Obj *exprObjPtr;
+        Tcl_Obj *valueObjPtr;
+        int result;
+        exprObjPtr = Tcl_NewStringObj(string, -1);
+        Tcl_IncrRefCount(exprObjPtr);
+        valueObjPtr = NULL;
+        result = Tcl_ExprObj(interp, exprObjPtr, &valueObjPtr);
+        Tcl_DecrRefCount(exprObjPtr);
+        if (result != TCL_OK) {
+            return TCL_ERROR;
+        }
+        result = Tcl_GetSizeIntFromObj(interp, valueObjPtr, &ielem);
+        Tcl_DecrRefCount(valueObjPtr);
+        if (result != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+    if ((ielem < 0) || (ielem > last)) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("element index \"%s\" is out of range", string));
+        return TCL_ERROR;
+    }
+    *indexPtr = ielem;
     return TCL_OK;
 }
 
@@ -3555,8 +3674,8 @@ int Rbc_GraphUpdateNeeded(Graph *graphPtr) {
  */
 static int ActivateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Element *elemPtr;
-    int *activeArr;
-    int nActiveIndices;
+    Tcl_Size *activeArr;
+    Tcl_Size nActiveIndices;
     Tcl_Size i;
 
     (void)type;
@@ -3594,30 +3713,26 @@ static int ActivateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Siz
 
     if (objc > 4) {
         Tcl_Size count;
-        int *activePtr;
+        Tcl_Size *activePtr;
+        size_t byteCount;
 
         count = objc - 4;
 
-        /*
-         * Element point indices are still int-sized. Remove this
-         * conversion guard during the element/vector size migration.
-         */
-        if (count > INT_MAX) {
-            Tcl_SetObjResult(interp, Tcl_NewStringObj("too many active element indices", -1));
-
+        if (GetElemArrayByteCount(interp, count, sizeof(Tcl_Size), &byteCount) != TCL_OK) {
             return TCL_ERROR;
         }
 
-        nActiveIndices = (int)count;
+        activeArr = Tcl_AttemptAlloc(byteCount);
 
-        activeArr = ckalloc(sizeof(int) * (size_t)nActiveIndices);
+        if (activeArr == NULL) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate active element indices", -1));
+            return TCL_ERROR;
+        }
+
         activePtr = activeArr;
+        nActiveIndices = count;
 
-        /*
-         * Prepare the replacement completely before modifying the live
-         * element state.
-         */
-        for (i = 4; i < objc; i++) {
+        for (Tcl_Size i = 4; i < objc; i++) {
             if (GetIndex(interp, elemPtr, Tcl_GetString(objv[i]), activePtr) != TCL_OK) {
                 ckfree(activeArr);
                 return TCL_ERROR;

@@ -164,9 +164,9 @@ typedef struct {
 
     double *valueArr;
 
-    int nValues;
+    Tcl_Size nValues;
 
-    int arraySize;
+    Tcl_Size arraySize;
 
     double min, max;
 
@@ -327,12 +327,13 @@ struct ElementStruct {
                             * segments in the element's array. */
     Segment2D *yErrorBars; /* Point to start of this pen's Y-error bar
                             * segments in the element's array. */
-    int xErrorBarCnt;      /* # of error bars for this pen. */
-    int yErrorBarCnt;      /* # of error bars for this pen. */
+    
+    Tcl_Size xErrorBarCnt;      /* # of error bars for this pen. */
+    Tcl_Size yErrorBarCnt;      /* # of error bars for this pen. */
 
-    int *xErrorToData; /* Maps error bar segments back to the data
+    Tcl_Size *xErrorToData; /* Maps error bar segments back to the data
                         * point. */
-    int *yErrorToData; /* Maps error bar segments back to the data
+    Tcl_Size *yErrorToData; /* Maps error bar segments back to the data
                         * point. */
 
     int errorBarCapWidth; /* Length of cap on error bars */

@@ -1461,7 +1461,7 @@ static void MergePens(Bar *barPtr, PenStyle **dataToStyle) {
         int *rectToData;
         int dataIndex;
         register XRectangle *rectPtr;
-        register int *indexPtr;
+        int *indexPtr;
         register int i;
 
         rectangles = (XRectangle *)ckalloc(barPtr->nRects * sizeof(XRectangle));
@@ -1489,7 +1489,7 @@ static void MergePens(Bar *barPtr, PenStyle **dataToStyle) {
     }
     if (barPtr->core.xErrorBarCnt > 0) {
         Segment2D *errorBars, *segPtr;
-        int *errorToData, *indexPtr;
+        Tcl_Size *errorToData, *indexPtr;
         int dataIndex;
         register int i;
 
@@ -1516,7 +1516,7 @@ static void MergePens(Bar *barPtr, PenStyle **dataToStyle) {
     }
     if (barPtr->core.yErrorBarCnt > 0) {
         Segment2D *errorBars, *segPtr;
-        int *errorToData, *indexPtr;
+        Tcl_Size *errorToData, *indexPtr;
         int dataIndex;
         register int i;
 
