@@ -1125,9 +1125,12 @@ void Rbc_RegionToPostScript(struct PsTokenStruct *tokenPtr, double x, double y, 
  *
  *--------------------------------------------------------------
  */
-void Rbc_PathToPostScript(struct PsTokenStruct *tokenPtr, register Point2D *screenPts, int nScreenPts) {
+void Rbc_PathToPostScript(struct PsTokenStruct *tokenPtr, register Point2D *screenPts, Tcl_Size nScreenPts) {
     register Point2D *pointPtr, *endPtr;
 
+    if (nScreenPts <= 0) {
+        return;
+    }
     pointPtr = screenPts;
     Rbc_FormatToPostScript(tokenPtr, "newpath %g %g moveto\n", pointPtr->x, pointPtr->y);
     pointPtr++;
@@ -1871,7 +1874,7 @@ void Rbc_BitmapToPostScript(struct PsTokenStruct *tokenPtr, Display *display, Pi
  *
  *--------------------------------------------------------------
  */
-void Rbc_2DSegmentsToPostScript(PsToken psToken, register Segment2D *segPtr, int nSegments) {
+void Rbc_2DSegmentsToPostScript(PsToken psToken, register Segment2D *segPtr, Tcl_Size nSegments) {
     register Segment2D *endPtr;
 
     for (endPtr = segPtr + nSegments; segPtr < endPtr; segPtr++) {

@@ -79,7 +79,7 @@ void Rbc_LineDashesToPostScript(PsToken psToken, Rbc_Dashes *dashesPtr);
 
 void Rbc_LineWidthToPostScript(PsToken psToken, int lineWidth);
 
-void Rbc_PathToPostScript(PsToken psToken, Point2D *screenPts, int nScreenPts);
+void Rbc_PathToPostScript(PsToken psToken, Point2D *screenPts, Tcl_Size nScreenPts);
 
 void Rbc_PhotoToPostScript(PsToken psToken, Tk_PhotoHandle photoToken, double x, double y);
 void Rbc_PolygonToPostScript(PsToken psToken, Point2D *screenPts, int nScreenPts);
@@ -105,6 +105,6 @@ void Rbc_LineAttributesToPostScript(PsToken psToken, XColor *colorPtr, int lineW
 
 int Rbc_FileToPostScript(PsToken psToken, char *fileName);
 
-void Rbc_2DSegmentsToPostScript(PsToken psToken, Segment2D *segments, int nSegments);
+void Rbc_2DSegmentsToPostScript(PsToken psToken, Segment2D *segments, Tcl_Size nSegments);
 
 #endif /* _RBCPS */

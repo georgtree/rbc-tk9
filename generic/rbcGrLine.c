@@ -59,7 +59,7 @@ static SmoothingInfo smoothingInfo[] = {{"linear", PEN_SMOOTH_NONE},         {"s
 
 typedef struct {
     Point2D *screenPts; /* Array of transformed coordinates */
-    int nScreenPts;     /* Number of coordinates */
+    Tcl_Size nScreenPts;     /* Number of coordinates */
     Tcl_Size *indices;  /* Maps segments/traces to data points */
 } MapInfo;
 
@@ -103,10 +103,10 @@ typedef struct {
 } ParsedSymbol;
 
 typedef struct {
-    int start;              /* Index into the X-Y coordinate
+    Tcl_Size start;         /* Index into the X-Y coordinate
                              * arrays indicating where trace
                              * starts. */
-    int nScreenPts;         /* Number of points in the continuous
+    Tcl_Size nScreenPts;    /* Number of points in the continuous
                              * trace */
     Point2D *screenPts;     /* Array of screen coordinates
                              * (malloc-ed) representing the
@@ -187,14 +187,14 @@ typedef struct {
 
     Point2D *symbolPts; /* Points to start of array for this pen. */
 
-    int nSymbolPts; /* # of points for this pen. */
+    Tcl_Size nSymbolPts; /* # of points for this pen. */
 
     /* The last two fields are used only for stripcharts. */
 
     Segment2D *strips; /* Points to start of the line segments
                         * for this pen. */
 
-    int nStrips; /* # of line segments for this pen. */
+    Tcl_Size nStrips; /* # of line segments for this pen. */
 
 } LinePenStyle;
 
@@ -244,7 +244,7 @@ typedef struct {
     /* Symbol points */
     Point2D *symbolPts; /* Holds the screen coordinates of all
                          * the data points for the element. */
-    int nSymbolPts;     /* Number of points */
+    Tcl_Size nSymbolPts;     /* Number of points */
 
     Tcl_Size *symbolToData; /* Contains indices of data points.
                         * It's first used to map pens to the
@@ -256,7 +256,7 @@ typedef struct {
     /* Active symbol points */
     Point2D *activePts; /* Array of indices representing the
                          * "active" points. */
-    int nActivePts;     /* Number of indices in the above array. */
+    Tcl_Size nActivePts;     /* Number of indices in the above array. */
 
     Tcl_Size *activeToData; /* Contains indices of data points.
                         * It's first used to map pens to the
@@ -266,8 +266,8 @@ typedef struct {
                         * point. */
 
     int reqMaxSymbols;
-    int symbolInterval;
-    int symbolCounter;
+    Tcl_Size symbolInterval;
+    Tcl_Size symbolCounter;
 
     /* X-Y graph-specific fields */
 
@@ -288,7 +288,7 @@ typedef struct {
     Segment2D *strips; /* Holds the the line segments of the
                         * element trace. The segments are
                         * grouped by pen style. */
-    int nStrips;       /* Number of line segments to be drawn. */
+    Tcl_Size nStrips;       /* Number of line segments to be drawn. */
     Tcl_Size *stripToData;  /* Pen to visible line segment mapping. */
 
 } Line;
@@ -1236,7 +1236,7 @@ static void MergePens(Line *linePtr, PenStyle **dataToStyle);
 INLINE static int OutCode(Extents2D *extsPtr, Point2D *p);
 static int ClipSegment(Extents2D *extsPtr, register int code1, register int code2, register Point2D *p,
                        register Point2D *q);
-static void SaveTrace(Line *linePtr, int start, int length, MapInfo *mapPtr);
+static void SaveTrace(Line *linePtr, Tcl_Size start, Tcl_Size length, MapInfo *mapPtr);
 static void FreeTraces(Line *linePtr);
 static void MapTraces(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
 static void MapFillArea(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
@@ -1244,17 +1244,17 @@ static void ResetLine(Line *linePtr);
 static int ClosestTrace(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr, DistanceProc *distProc);
 static int ClosestStrip(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr, DistanceProc *distProc);
 static void ClosestPoint(Line *linePtr, ClosestSearch *searchPtr);
-static void DrawCircles(Display *display, Drawable drawable, Line *linePtr, LinePen *penPtr, int nSymbolPts,
+static void DrawCircles(Display *display, Drawable drawable, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts,
                         Point2D *symbolPts, int radius);
-static void DrawSquares(Display *display, Drawable drawable, Line *linePtr, LinePen *penPtr, int nSymbolPts,
+static void DrawSquares(Display *display, Drawable drawable, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts,
                         register Point2D *symbolPts, int r);
-static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, int size, int nSymbolPts,
-                        Point2D *symbolPts);
+static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, int size,
+                        Tcl_Size nSymbolPts, Point2D *symbolPts);
 static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr);
-static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, int nSymbolPts,
+static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts,
                        Point2D *symbolPts, const Tcl_Size *pointToData);
 static void GetSymbolPostScriptInfo(Graph *graphPtr, PsToken psToken, LinePen *penPtr, int size);
-static void SymbolsToPostScript(Graph *graphPtr, PsToken psToken, LinePen *penPtr, int size, int nSymbolPts,
+static void SymbolsToPostScript(Graph *graphPtr, PsToken psToken, LinePen *penPtr, int size, Tcl_Size nSymbolPts,
                                 Point2D *symbolPts);
 static void SetLineAttributes(PsToken psToken, LinePen *penPtr);
 static void TracesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr);
@@ -2836,7 +2836,7 @@ static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Tcl_Size nDataPoints;
     Tcl_Size nScreenPoints;
     Tcl_Size i;
-    int count;
+    Tcl_Size count;
 
     mapPtr->screenPts = NULL;
     mapPtr->indices = NULL;
@@ -2856,10 +2856,6 @@ static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
         }
     }
     if (nScreenPoints == 0) {
-        return;
-    }
-    if (nScreenPoints > INT_MAX) {
-        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("too many finite line points to display", -1));
         return;
     }
     screenPts = ckalloc((size_t)nScreenPoints * sizeof(*screenPts));
@@ -2912,10 +2908,10 @@ static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
 static void ReducePoints(MapInfo *mapPtr, double tolerance) {
     Point2D *screenPts;
     Tcl_Size *indices;
-    int *simple;
-    int i;
-    int k;
-    int n;
+    Tcl_Size *simple;
+    Tcl_Size i;
+    Tcl_Size k;
+    Tcl_Size n;
 
     simple = ckalloc((size_t)mapPtr->nScreenPts * sizeof(*simple));
     indices = ckalloc((size_t)mapPtr->nScreenPts * sizeof(*indices));
@@ -2957,21 +2953,18 @@ static void ReducePoints(MapInfo *mapPtr, double tolerance) {
 static void GenerateSteps(Line *linePtr, MapInfo *mapPtr) {
     Point2D *screenPts;
     Tcl_Size *indices;
+    Tcl_Size i;
+    Tcl_Size count;
     Tcl_Size newSize;
-    int i;
-    int count;
 
     if (mapPtr->nScreenPts < 2) {
         return;
     }
-    newSize = ((Tcl_Size)mapPtr->nScreenPts - 1) * 2 + 1;
-    if (newSize > INT_MAX) {
-        /*
-         * Retain the original unsmoothed coordinates.
-         */
+    if (mapPtr->nScreenPts > (TCL_SIZE_MAX / 2) + 1) {
         linePtr->smooth = PEN_SMOOTH_NONE;
         return;
     }
+    newSize = (mapPtr->nScreenPts - 1) * 2 + 1;
     screenPts = ckalloc((size_t)newSize * sizeof(*screenPts));
     indices = ckalloc((size_t)newSize * sizeof(*indices));
     screenPts[0] = mapPtr->screenPts[0];
@@ -2988,7 +2981,7 @@ static void GenerateSteps(Line *linePtr, MapInfo *mapPtr) {
     ckfree(mapPtr->indices);
     mapPtr->screenPts = screenPts;
     mapPtr->indices = indices;
-    mapPtr->nScreenPts = (int)newSize;
+    mapPtr->nScreenPts = newSize;
 }
 
 /*
@@ -3052,10 +3045,6 @@ static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
         return;
     }
     capacity = (Tcl_Size)nOrigPts + (Tcl_Size)extra + 1;
-    if (capacity > INT_MAX) {
-        linePtr->smooth = PEN_SMOOTH_NONE;
-        return;
-    }    
     nIntpPts = nOrigPts + extra + 1;
     intpPts = (Point2D *)ckalloc(nIntpPts * sizeof(Point2D));
     assert(intpPts);
@@ -3131,7 +3120,7 @@ static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
         ckfree((char *)mapPtr->indices);
         mapPtr->indices = indices;
         mapPtr->screenPts = intpPts;
-        mapPtr->nScreenPts = (int)nIntpPts;
+        mapPtr->nScreenPts = nIntpPts;
     }
 }
 
@@ -3176,7 +3165,7 @@ static void GenerateParametricSpline(Graph *graphPtr, Line *linePtr, MapInfo *ma
 
     assert(mapPtr->nScreenPts > 0);
     origPts = mapPtr->screenPts;
-    nOrigPts = (Tcl_Size)mapPtr->nScreenPts;
+    nOrigPts = mapPtr->nScreenPts;
     intpPts = NULL;
     indices = NULL;
     Rbc_GraphExtents(graphPtr, &exts);
@@ -3216,7 +3205,7 @@ static void GenerateParametricSpline(Graph *graphPtr, Line *linePtr, MapInfo *ma
                 double extraValue;
                 Tcl_Size extra;
                 extraValue = floor((distQ - distP) / 2.0) + 1.0;
-                if (!FINITE(extraValue) || (extraValue > (double)((Tcl_Size)INT_MAX - capacity))) {
+                if (!FINITE(extraValue) || (extraValue > (double)(TCL_SIZE_MAX - capacity))) {
                     goto fallback;
                 }
                 extra = (Tcl_Size)extraValue;
@@ -3227,9 +3216,6 @@ static void GenerateParametricSpline(Graph *graphPtr, Line *linePtr, MapInfo *ma
     /*
      * MapInfo.nScreenPts and the current drawing pipeline still use int.
      */
-    if ((capacity < 1) || (capacity > INT_MAX)) {
-        goto fallback;
-    }
     if (((size_t)capacity > (SIZE_MAX / sizeof(*intpPts))) || ((size_t)capacity > (SIZE_MAX / sizeof(*indices)))) {
         goto fallback;
     }
@@ -3322,7 +3308,7 @@ static void GenerateParametricSpline(Graph *graphPtr, Line *linePtr, MapInfo *ma
     ckfree(mapPtr->indices);
     mapPtr->screenPts = intpPts;
     mapPtr->indices = indices;
-    mapPtr->nScreenPts = (int)nIntpPts;
+    mapPtr->nScreenPts = nIntpPts;
     return;
 
 fallback:
@@ -3364,8 +3350,8 @@ static void MapSymbols(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Extents2D exts;
     Point2D *symbolPts;
     Tcl_Size *indices;
-    int i;
-    int count;
+    Tcl_Size i;
+    Tcl_Size count;
 
     symbolPts = ckalloc((size_t)mapPtr->nScreenPts * sizeof(*symbolPts));
     indices = ckalloc((size_t)mapPtr->nScreenPts * sizeof(*indices));
@@ -3417,7 +3403,7 @@ static void MapActiveSymbols(Graph *graphPtr, Line *linePtr) {
     Tcl_Size nPoints;
     Tcl_Size pointIndex;
     Tcl_Size i;
-    int count;
+    Tcl_Size count;
 
     if (linePtr->activePts != NULL) {
         ckfree(linePtr->activePts);
@@ -3429,11 +3415,6 @@ static void MapActiveSymbols(Graph *graphPtr, Line *linePtr) {
     }
     linePtr->nActivePts = 0;
     if (linePtr->core.nActiveIndices <= 0) {
-        linePtr->core.flags &= ~ACTIVE_PENDING;
-        return;
-    }
-    if (linePtr->core.nActiveIndices > INT_MAX) {
-        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("too many active line points to display", -1));
         linePtr->core.flags &= ~ACTIVE_PENDING;
         return;
     }
@@ -3502,8 +3483,8 @@ static void MapStrip(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Tcl_Size *indexPtr;
     Point2D *pointPtr;
     Point2D *endPtr;
-    int count;
-    int capacity;
+    Tcl_Size count;
+    Tcl_Size capacity;
 
     if (mapPtr->nScreenPts < 2) {
         return;
@@ -3600,7 +3581,7 @@ static void MergePens(Line *linePtr, PenStyle **dataToStyle) {
                     *indexPtr++ = dataIndex;
                 }
             }
-            stylePtr->nStrips = (int)(segPtr - stylePtr->strips);
+            stylePtr->nStrips = (Tcl_Size)(segPtr - stylePtr->strips);
         }
         ckfree(linePtr->strips);
         linePtr->strips = strips;
@@ -3629,7 +3610,7 @@ static void MergePens(Line *linePtr, PenStyle **dataToStyle) {
                     *indexPtr++ = dataIndex;
                 }
             }
-            stylePtr->nSymbolPts = (int)(pointPtr - stylePtr->symbolPts);
+            stylePtr->nSymbolPts = (Tcl_Size)(pointPtr - stylePtr->symbolPts);
         }
         ckfree(linePtr->symbolPts);
         linePtr->symbolPts = symbolPts;
@@ -3822,12 +3803,12 @@ static int ClipSegment(Extents2D *extsPtr, register int code1, register int code
  *
  *----------------------------------------------------------------------
  */
-static void SaveTrace(Line *linePtr, int start, int length, MapInfo *mapPtr) {
+static void SaveTrace(Line *linePtr, Tcl_Size start, Tcl_Size length, MapInfo *mapPtr) {
     LineTrace *tracePtr;
     Point2D *screenPts;
     Tcl_Size *indices;
-    int i;
-    int j;
+    Tcl_Size i;
+    Tcl_Size j;
 
     tracePtr = ckalloc(sizeof(*tracePtr));
     screenPts = ckalloc((size_t)length * sizeof(*screenPts));
@@ -3844,7 +3825,7 @@ static void SaveTrace(Line *linePtr, int start, int length, MapInfo *mapPtr) {
          */
         for (i = 0, j = start; i < length; i++, j++) {
             screenPts[i] = mapPtr->screenPts[j];
-            indices[i] = (Tcl_Size)j;
+            indices[i] = j;
         }
     }
     tracePtr->nScreenPts = length;
@@ -3910,12 +3891,12 @@ static void FreeTraces(Line *linePtr) {
  *----------------------------------------------------------------------
  */
 static void MapTraces(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
-    int start, count;
+    Tcl_Size start, count;
     int code1, code2;
     Point2D *p, *q;
     Point2D s;
     Extents2D exts;
-    register int i;
+    Tcl_Size i;
     int broken, offscreen;
 
     Rbc_GraphExtents(graphPtr, &exts);
@@ -3994,8 +3975,16 @@ static void MapFillArea(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Point2D *origPts, *clipPts;
     Extents2D exts;
     double maxY;
-    register int i, n;
+    register int n;
+    Tcl_Size i;
 
+    if (mapPtr->nScreenPts > (Tcl_Size)(INT_MAX - 3)) {
+        /*
+         * Filled polygons still use the int-based X polygon
+         * drawing path.  The line and symbols may still be drawn.
+         */
+        return;
+    }
     if (linePtr->fillPts != NULL) {
         ckfree((char *)linePtr->fillPts);
         linePtr->fillPts = NULL;
@@ -4004,7 +3993,7 @@ static void MapFillArea(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     if (mapPtr->nScreenPts < 3) {
         return;
     }
-    n = mapPtr->nScreenPts + 3;
+    n = (int)mapPtr->nScreenPts + 3;
     Rbc_GraphExtents(graphPtr, &exts);
 
     maxY = (double)graphPtr->bottom;
@@ -4476,7 +4465,7 @@ static int ClosestTrace(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr
 static int ClosestStrip(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr, DistanceProc *distProc) {
     Point2D closest, b;
     double dist, minDist;
-    int count;
+    Tcl_Size count;
     register Segment2D *s;
     Tcl_Size dataIndex;
 
@@ -4526,7 +4515,7 @@ static int ClosestStrip(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr
 static void ClosestPoint(Line *linePtr, ClosestSearch *searchPtr) {
     double dist, minDist;
     double dx, dy;
-    int count;
+    Tcl_Size count;
     register Point2D *pointPtr;
     Tcl_Size dataIndex;    
 
@@ -5097,7 +5086,7 @@ static void ClosestLine(Graph *graphPtr, Element *elemPtr, ClosestSearch *search
  *
  *----------------------------------------------------------------------
  */
-static void DrawCircles(Display *display, Drawable drawable, Line *linePtr, LinePen *penPtr, int nSymbolPts,
+static void DrawCircles(Display *display, Drawable drawable, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts,
                         Point2D *symbolPts, int radius) {
     HBRUSH brush, oldBrush;
     HPEN pen, oldPen;
@@ -5160,14 +5149,14 @@ static void DrawCircles(Display *display, Drawable drawable, Line *linePtr, Line
  *
  *----------------------------------------------------------------------
  */
-static void DrawCircles(Display *display, Drawable drawable, Line *linePtr, LinePen *penPtr, int nSymbolPts,
+static void DrawCircles(Display *display, Drawable drawable, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts,
                         Point2D *symbolPts, int radius) {
     register int i;
     XArc *arcArr; /* Array of arcs (circle) */
     register XArc *arcPtr;
     int reqSize, nArcs;
     int s;
-    int count;
+    Tcl_Size count;
     register Point2D *pointPtr, *endPtr;
 
     s = radius + radius;
@@ -5237,15 +5226,15 @@ static void DrawCircles(Display *display, Drawable drawable, Line *linePtr, Line
  *
  *----------------------------------------------------------------------
  */
-static void DrawSquares(Display *display, Drawable drawable, Line *linePtr, LinePen *penPtr, int nSymbolPts,
+static void DrawSquares(Display *display, Drawable drawable, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts,
                         register Point2D *symbolPts, int r) {
     XRectangle *rectArr;
     register Point2D *pointPtr, *endPtr;
     register XRectangle *rectPtr;
-    int reqSize, nRects;
+    Tcl_Size reqSize, nRects;
     int s;
-    register int i;
-    int count;
+    Tcl_Size i;
+    Tcl_Size count;
 
     s = r + r;
     rectArr = (XRectangle *)ckalloc(nSymbolPts * sizeof(XRectangle));
@@ -5311,12 +5300,12 @@ static void DrawSquares(Display *display, Drawable drawable, Line *linePtr, Line
  *
  * -----------------------------------------------------------------
  */
-static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, int size, int nSymbolPts,
-                        Point2D *symbolPts) {
+static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, int size,
+                        Tcl_Size nSymbolPts, Point2D *symbolPts) {
     XPoint pattern[13]; /* Template for polygon symbols */
     int r1, r2;
-    register int i, n;
-    int count;
+    Tcl_Size i, n;
+    Tcl_Size count;
     register Point2D *pointPtr, *endPtr;
 #define SQRT_PI 1.77245385090552
 #define S_RATIO 0.886226925452758
@@ -5356,7 +5345,8 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
     case SYMBOL_SCROSS: {
         XSegment *segArr; /* Array of line segments (splus, scross) */
         register XSegment *segPtr;
-        int reqSize, nSegs, chunk;
+        Tcl_Size reqSize, nSegs;
+        int chunk;
 
         if (penPtr->symbol.type == SYMBOL_SCROSS) {
             r2 = Round(r2 * M_SQRT1_2);
@@ -5753,10 +5743,10 @@ static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
     POINT *points;
     TkWinDCState state;
     LineTrace *tracePtr;
-    int j;
-    int nPoints, remaining;
+    Tcl_Size j;
+    Tcl_Size nPoints, remaining;
     register POINT *p;
-    register int count;
+    Tcl_Size count;
 
     /*
      * Depending if the line is wide (> 1 pixel), arbitrarily break
@@ -5860,16 +5850,16 @@ static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
     Rbc_ChainLink *linkPtr;
     LineTrace *tracePtr;
     XPoint *points;
-    int j;
-    int nPoints, remaining;
+    Tcl_Size j;
+    Tcl_Size nPoints, remaining;
     register XPoint *p;
-    register int count;
+    Tcl_Size count;
 
     nPoints = Rbc_MaxRequestSize(graphPtr->display, sizeof(XPoint)) - 1;
     points = (XPoint *)ckalloc((nPoints + 1) * sizeof(XPoint));
 
     for (linkPtr = Rbc_ChainFirstLink(linePtr->traces); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
-        int n;
+        Tcl_Size n;
 
         tracePtr = Rbc_ChainGetValue(linkPtr);
 
@@ -5944,11 +5934,11 @@ static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
  *
  *----------------------------------------------------------------------
  */
-static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, int nSymbolPts,
+static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts,
                        Point2D *symbolPts, const Tcl_Size *pointToData) {
     Point2D *pointPtr;
     Point2D *endPtr;
-    int count;
+    Tcl_Size count;
     char string[TCL_DOUBLE_SPACE * 2 + 2];
     char *fmt;
 
@@ -6079,7 +6069,7 @@ static void DrawNormalLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
     LinePen *penPtr;
     Rbc_ChainLink *linkPtr;
     register LinePenStyle *stylePtr;
-    unsigned int count;
+    Tcl_Size count;
 
     /* Fill area under the curve */
     if (linePtr->fillPts != NULL) {
@@ -6119,14 +6109,15 @@ static void DrawNormalLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
     }
 
     if (linePtr->reqMaxSymbols > 0) {
-        int total;
+        Tcl_Size total;
 
         total = 0;
         for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
             stylePtr = Rbc_ChainGetValue(linkPtr);
             total += stylePtr->nSymbolPts;
         }
-        linePtr->symbolInterval = total / linePtr->reqMaxSymbols;
+        linePtr->symbolInterval = total / (Tcl_Size)linePtr->reqMaxSymbols;
+
         linePtr->symbolCounter = 0;
     }
 
@@ -6278,7 +6269,7 @@ static void GetSymbolPostScriptInfo(Graph *graphPtr, PsToken psToken, LinePen *p
  *
  * -----------------------------------------------------------------
  */
-static void SymbolsToPostScript(Graph *graphPtr, PsToken psToken, LinePen *penPtr, int size, int nSymbolPts,
+static void SymbolsToPostScript(Graph *graphPtr, PsToken psToken, LinePen *penPtr, int size, Tcl_Size nSymbolPts,
                                 Point2D *symbolPts) {
     double symbolSize;
     register Point2D *pointPtr, *endPtr;

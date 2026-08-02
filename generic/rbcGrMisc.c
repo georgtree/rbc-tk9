@@ -34,7 +34,7 @@ static int GetColorPair(Tcl_Interp *interp, Tk_Window tkwin, const char *fgStr, 
                         int allowDefault);
 static const char *NameOfColor(XColor *colorPtr);
 static int ClipTest(double ds, double dr, double *t1, double *t2);
-static double FindSplit(Point2D points[], int i, int j, int *split);
+static double FindSplit(Point2D points[], Tcl_Size i, Tcl_Size j, Tcl_Size *split);
 
 /* ----------------------------------------------------------------------
  * Custom option parse and print procedures
@@ -1473,12 +1473,12 @@ void Rbc_SetDashes(Display *display, GC gc, Rbc_Dashes *dashesPtr) {
  *
  *----------------------------------------------------------------------
  */
-static double FindSplit(Point2D points[], int i, int j, int *split) {
+static double FindSplit(Point2D points[], Tcl_Size i, Tcl_Size j, Tcl_Size *split) {
     double maxDist;
 
     maxDist = -1.0;
     if ((i + 1) < j) {
-        register int k;
+        Tcl_Size k;
         double a, b, c;
         double sqDist;
 
@@ -1532,21 +1532,21 @@ static double FindSplit(Point2D points[], int i, int j, int *split) {
  *
  *----------------------------------------------------------------------
  */
-int Rbc_SimplifyLine(Point2D inputPts[], int low, int high, double tolerance, int indices[]) {
+int Rbc_SimplifyLine(Point2D inputPts[], Tcl_Size low, Tcl_Size high, double tolerance, Tcl_Size indices[]) {
 #define StackPush(a) s++, stack[s] = (a)
 #define StackPop(a) (a) = stack[s], s--
 #define StackEmpty() (s < 0)
 #define StackTop() stack[s]
-    int *stack;
-    int split = -1;
+    Tcl_Size *stack;
+    Tcl_Size split = -1;
     double sqDist, sqTolerance;
-    int s = -1; /* Points to top stack item. */
-    int count;
+    Tcl_Size s = -1; /* Points to top stack item. */
+    Tcl_Size count;
 
-    stack = (int *)ckalloc(sizeof(int) * (high - low + 1));
+    stack = (Tcl_Size *)ckalloc(sizeof(Tcl_Size) * (high - low + 1));
     StackPush(high);
     count = 0;
-    indices[count++] = 0;
+    indices[count++] = low;
     sqTolerance = tolerance * tolerance;
     while (!StackEmpty()) {
         sqDist = FindSplit(inputPts, low, StackTop(), &split);
@@ -1583,24 +1583,37 @@ int Rbc_SimplifyLine(Point2D inputPts[], int low, int high, double tolerance, in
  *
  *----------------------------------------------------------------------
  */
-void Rbc_Draw2DSegments(Display *display, Drawable drawable, GC gc, register Segment2D *segPtr, int nSegments) {
-    XSegment *xSegPtr, *xSegArr;
-    Segment2D *endPtr;
+void Rbc_Draw2DSegments(Display *display, Drawable drawable, GC gc, Segment2D *segments, Tcl_Size nSegments) {
+    XSegment *xSegments;
+    int maxSegments;
 
-    xSegArr = (XSegment *)ckalloc(nSegments * sizeof(XSegment));
-    if (xSegArr == NULL) {
+    if (nSegments <= 0) {
         return;
     }
-    xSegPtr = xSegArr;
-    for (endPtr = segPtr + nSegments; segPtr < endPtr; segPtr++) {
-        xSegPtr->x1 = (short int)segPtr->p.x;
-        xSegPtr->y1 = (short int)segPtr->p.y;
-        xSegPtr->x2 = (short int)segPtr->q.x;
-        xSegPtr->y2 = (short int)segPtr->q.y;
-        xSegPtr++;
+    maxSegments = Rbc_MaxRequestSize(display, sizeof(XSegment));
+    if (maxSegments < 1) {
+        return;
     }
-    XDrawSegments(display, drawable, gc, xSegArr, nSegments);
-    ckfree((char *)xSegArr);
+    xSegments = ckalloc((size_t)maxSegments * sizeof(*xSegments));
+    while (nSegments > 0) {
+        Tcl_Size remaining;
+        int chunk;
+        int i;
+
+        remaining = nSegments;
+        chunk = (remaining > (Tcl_Size)maxSegments) ? maxSegments : (int)remaining;
+        for (i = 0; i < chunk; i++) {
+            xSegments[i].x1 = (short int)segments[i].p.x;
+            xSegments[i].y1 = (short int)segments[i].p.y;
+            xSegments[i].x2 = (short int)segments[i].q.x;
+            xSegments[i].y2 = (short int)segments[i].q.y;
+        }
+        XDrawSegments(display, drawable, gc, xSegments, chunk);
+        segments += chunk;
+        nSegments -= chunk;
+    }
+
+    ckfree(xSegments);
 }
 
 /*
