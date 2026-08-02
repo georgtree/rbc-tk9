@@ -97,12 +97,12 @@ typedef enum {
  * -------------------------------------------------------------------
  */
 typedef struct {
-    int freq;    /* Number of occurrences of x-coordinate */
-    Axis2D axes; /* Indicates which x and y axis are mapped to
-                  * the x-value */
-    double sum;  /* Sum of the ordinates of each duplicate
-                  * abscissa */
-    int count;
+    Tcl_Size freq; /* Number of occurrences of x-coordinate */
+    Axis2D axes;   /* Indicates which x and y axis are mapped to
+                    * the x-value */
+    double sum;    /* Sum of the ordinates of each duplicate
+                    * abscissa */
+    Tcl_Size count;
     double lastY;
 
 } FreqInfo;
@@ -365,7 +365,7 @@ struct GraphStruct {
     Tcl_Obj *bottomMarginObjPtr;
     Tcl_Obj *haloObjPtr;
     Tcl_Obj *heightObjPtr;
-    Tcl_Obj *highlightWidthObjPtr;    
+    Tcl_Obj *highlightWidthObjPtr;
     Tcl_Obj *leftMarginObjPtr;
     Tcl_Obj *plotBorderWidthObjPtr;
     Tcl_Obj *plotPadXObjPtr;
@@ -383,11 +383,11 @@ struct GraphStruct {
     Tcl_Size optionObjc;
     Tcl_Obj *const *optionObjv;
 
-    int optionsConfigured;    
-    
+    int optionsConfigured;
+
     int optionsInitialized;
     int tkResourcesReleased;
-    
+
     char *data; /* This value isn't used in C code.
                  * It may be used in Tcl bindings to
                  * associate extra data. */
@@ -514,7 +514,7 @@ struct GraphStruct {
                               * This information can also be accessed
                               * by the frequency hash table */
     Tcl_HashTable freqTable; /* */
-    int nStacks;             /* Number of entries in frequency array.
+    Tcl_Size nStacks;        /* Number of entries in frequency array.
                               * If zero, indicates nothing special needs
                               * to be done for "stack" or "align" modes */
     char *dataCmd;           /* New data callback? */

@@ -9,6 +9,7 @@
  * See "license.terms" for details.
  */
 
+#include <stdint.h>
 #include "rbcGraph.h"
 #include <X11/Xutil.h>
 #include <tcl.h>
@@ -79,7 +80,7 @@ typedef struct {
     /* Bar chart specific data. */
     XRectangle *rectangles; /* Indicates starting location in bar
                              * array for this pen. */
-    int nRects;             /* Number of bar segments for this pen. */
+    Tcl_Size nRects;             /* Number of bar segments for this pen. */
 
 } BarPenStyle;
 
@@ -97,11 +98,11 @@ typedef struct {
     Tcl_Size *rectToData;
     XRectangle *rectangles; /* Array of rectangles comprising the bar
                              * segments of the element. */
-    int nRects;             /* # of visible bar segments for element */
+    Tcl_Size nRects;             /* # of visible bar segments for element */
 
     int padX; /* Spacing on either side of bar */
     double barWidth;
-    int nActive;
+    Tcl_Size nActive;
 
     XRectangle *activeRects;
     Tcl_Size *activeToData;
@@ -474,13 +475,14 @@ static void MergePens(Bar *barPtr, PenStyle **dataToStyle);
 static void MapActiveBars(Bar *barPtr);
 static void ResetBar(Bar *barPtr);
 
-static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, XRectangle *rectangles, int nRects);
+static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, XRectangle *rectangles,
+                            Tcl_Size nRects);
 static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPen *penPtr, XRectangle *rectangles,
-                          int nRects, const Tcl_Size *rectToData);
-static void SegmentsToPostScript(Graph *graphPtr, PsToken psToken, BarPen *penPtr, register XRectangle *rectPtr,
-                                 int nRects);
+                          Tcl_Size nRects, const Tcl_Size *rectToData);
+static void SegmentsToPostScript(Graph *graphPtr, PsToken psToken, BarPen *penPtr, XRectangle *rectPtr,
+                                 Tcl_Size nRects);
 static void BarValuesToPostScript(Graph *graphPtr, PsToken psToken, Bar *barPtr, BarPen *penPtr, XRectangle *rectangles,
-                                  int nRects, const Tcl_Size *rectToData);
+                                  Tcl_Size nRects, const Tcl_Size *rectToData);
 
 static int IsBarPenPrefix(const char *string, Tcl_Size length, const char *fullName) {
     Tcl_Size fullLength;
@@ -938,7 +940,7 @@ Pen *Rbc_BarPen(const char *penName) {
  */
 static void CheckStacks(Graph *graphPtr, Axis2D *pairPtr, double *minPtr, double *maxPtr) {
     FreqInfo *infoPtr;
-    register int i;
+    Tcl_Size i;
 
     if ((graphPtr->mode != MODE_STACKED) || (graphPtr->nStacks == 0)) {
         return;
@@ -1369,7 +1371,7 @@ static void ClosestBar(Graph *graphPtr, Element *elemPtr, ClosestSearch *searchP
     double left, right, top, bottom;
     double minDist, dist;
     Tcl_Size imin;
-    register int i;
+    Tcl_Size i;
 
     minDist = searchPtr->dist;
     imin = 0;
@@ -1463,7 +1465,7 @@ static void MergePens(Bar *barPtr, PenStyle **dataToStyle) {
         Tcl_Size *rectToData;
         Tcl_Size *indexPtr;
         Tcl_Size dataIndex;
-        int i;
+        Tcl_Size i;
 
         rectangles = ckalloc((size_t)barPtr->nRects * sizeof(*rectangles));
         rectToData = ckalloc((size_t)barPtr->nRects * sizeof(*rectToData));
@@ -1481,7 +1483,7 @@ static void MergePens(Bar *barPtr, PenStyle **dataToStyle) {
                     *indexPtr++ = dataIndex;
                 }
             }
-            stylePtr->nRects = (int)(rectPtr - stylePtr->rectangles);
+            stylePtr->nRects = (Tcl_Size)(rectPtr - stylePtr->rectangles);
         }
         ckfree(barPtr->rectangles);
         barPtr->rectangles = rectangles;
@@ -1583,8 +1585,8 @@ static void MapActiveBars(Bar *barPtr) {
         Tcl_Size *activeToData;
         Tcl_Size activeIndex;
         Tcl_Size n;
-        int i;
-        int count;
+        Tcl_Size i;
+        Tcl_Size count;
         activeRects = ckalloc((size_t)barPtr->core.nActiveIndices * sizeof(*activeRects));
         activeToData = ckalloc((size_t)barPtr->core.nActiveIndices * sizeof(*activeToData));
         count = 0;
@@ -1716,7 +1718,7 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
     int height;
     int invertBar;
     Tcl_Size nPoints;
-    int  count;
+    Tcl_Size count;
     register XRectangle *rectPtr, *rectangles;
     Tcl_Size i;
     int size;
@@ -1778,19 +1780,17 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
                     c1.y += c2.y;
                     infoPtr->lastY = c1.y;
                     break;
-
                 case MODE_ALIGNED:
                     infoPtr->count++;
                     slice = barWidth / (double)infoPtr->freq;
-                    c1.x += slice * (infoPtr->freq - infoPtr->count);
+                    c1.x += slice * (double)(infoPtr->freq - infoPtr->count);
                     c2.x = c1.x + slice;
                     break;
-
                 case MODE_OVERLAP:
                     infoPtr->count++;
-                    slice = barWidth / (double)(infoPtr->freq * 2);
-                    width = slice * (infoPtr->freq + 1);
-                    c1.x += slice * (infoPtr->freq - infoPtr->count);
+                    slice = barWidth / ((double)infoPtr->freq * 2.0);
+                    width = slice * ((double)infoPtr->freq + 1.0);
+                    c1.x += slice * (double)(infoPtr->freq - infoPtr->count);
                     c2.x = c1.x + width;
                     break;
                 case MODE_INFRONT:
@@ -1942,17 +1942,38 @@ static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int
  *
  * -----------------------------------------------------------------
  */
-static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, XRectangle *rectangles, int nRects) {
-    register XRectangle *rectPtr;
+static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, XRectangle *rectangles,
+                            Tcl_Size nRects) {
+    XRectangle *rectPtr;
+    XRectangle *endPtr;
+    Tcl_Size offset;
+    int maxRects;
 
-    if ((penPtr->border == NULL) && (penPtr->fgColor == NULL)) {
+    if ((nRects <= 0) || ((penPtr->border == NULL) && (penPtr->fgColor == NULL))) {
         return;
     }
-    XFillRectangles(graphPtr->display, drawable, penPtr->gc, rectangles, nRects);
-    if ((penPtr->border != NULL) && (penPtr->borderWidth > 0) && (penPtr->relief != TK_RELIEF_FLAT)) {
-        XRectangle *endPtr;
+    /*
+     * XFillRectangles accepts an int count and each request has a
+     * protocol-dependent maximum size.  Keep the internal count as
+     * Tcl_Size and narrow only each bounded request.
+     */
+    maxRects = Rbc_MaxRequestSize(graphPtr->display, sizeof(XRectangle));
+    if (maxRects < 1) {
+        return;
+    }
+    offset = 0;
+    while (offset < nRects) {
+        Tcl_Size remaining;
+        int chunk;
 
-        for (rectPtr = rectangles, endPtr = rectangles + nRects; rectPtr < endPtr; rectPtr++) {
+        remaining = nRects - offset;
+        chunk = (remaining > (Tcl_Size)maxRects) ? maxRects : (int)remaining;
+        XFillRectangles(graphPtr->display, drawable, penPtr->gc, rectangles + offset, chunk);
+        offset += chunk;
+    }
+    if ((penPtr->border != NULL) && (penPtr->borderWidth > 0) && (penPtr->relief != TK_RELIEF_FLAT)) {
+        endPtr = rectangles + nRects;
+        for (rectPtr = rectangles; rectPtr < endPtr; rectPtr++) {
             Rbc_Draw3DRectangle(graphPtr->tkwin, drawable, penPtr->border, rectPtr->x, rectPtr->y, rectPtr->width,
                                 rectPtr->height, penPtr->borderWidth, penPtr->relief);
         }
@@ -1984,10 +2005,10 @@ static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, 
  * -----------------------------------------------------------------
  */
 static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPen *penPtr, XRectangle *rectangles,
-                          int nRects, const Tcl_Size *rectToData) {
+                          Tcl_Size nRects, const Tcl_Size *rectToData) {
     XRectangle *rectPtr;
     XRectangle *endPtr;
-    int count;
+    Tcl_Size count;
     char *fmt;
     char string[TCL_DOUBLE_SPACE * 2 + 2];
     double x;
@@ -2058,7 +2079,7 @@ static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPe
  */
 static void DrawNormalBar(Graph *graphPtr, Drawable drawable, Element *elemPtr) {
     Bar *barPtr = BAR_FROM_CORE(elemPtr);
-    int count;
+    Tcl_Size count;
     Rbc_ChainLink *linkPtr;
     register BarPenStyle *stylePtr;
     BarPen *penPtr;
@@ -2217,7 +2238,7 @@ static void SymbolToPostScript(Graph *graphPtr, PsToken psToken, Element *elemPt
  *----------------------------------------------------------------------
  */
 static void SegmentsToPostScript(Graph *graphPtr, PsToken psToken, BarPen *penPtr, register XRectangle *rectPtr,
-                                 int nRects) {
+                                 Tcl_Size nRects) {
     XRectangle *endPtr;
 
     if ((penPtr->border == NULL) && (penPtr->fgColor == NULL)) {
@@ -2278,9 +2299,9 @@ static void SegmentsToPostScript(Graph *graphPtr, PsToken psToken, BarPen *penPt
  *----------------------------------------------------------------------
  */
 static void BarValuesToPostScript(Graph *graphPtr, PsToken psToken, Bar *barPtr, BarPen *penPtr, XRectangle *rectangles,
-                                  int nRects, const Tcl_Size *rectToData) {
+                                  Tcl_Size nRects, const Tcl_Size *rectToData) {
     XRectangle *rectPtr, *endPtr;
-    int count;
+    Tcl_Size count;
     char *fmt;
     char string[TCL_DOUBLE_SPACE * 2 + 2];
     double x, y;
@@ -2294,8 +2315,8 @@ static void BarValuesToPostScript(Graph *graphPtr, PsToken psToken, Bar *barPtr,
     for (rectPtr = rectangles, endPtr = rectangles + nRects; rectPtr < endPtr; rectPtr++) {
         Tcl_Size dataIndex;
         dataIndex = rectToData[count++];
-        x = barPtr->core.x.valueArr[rectToData[dataIndex]];
-        y = barPtr->core.y.valueArr[rectToData[dataIndex]];
+        x = barPtr->core.x.valueArr[dataIndex];
+        y = barPtr->core.y.valueArr[dataIndex];
         if (penPtr->valueShow == SHOW_X) {
             sprintf(string, fmt, x);
         } else if (penPtr->valueShow == SHOW_Y) {
@@ -2395,7 +2416,7 @@ static void NormalBarToPostScript(Graph *graphPtr, PsToken psToken, Element *ele
     Bar *barPtr = BAR_FROM_CORE(elemPtr);
     Rbc_ChainLink *linkPtr;
     register BarPenStyle *stylePtr;
-    int count;
+    Tcl_Size count;
     BarPen *penPtr;
     XColor *colorPtr;
 
@@ -2590,13 +2611,14 @@ void Rbc_InitFreqTable(Graph *graphPtr) {
     Tcl_HashSearch cursor;
     Bar *barPtr;
     int isNew;
-    int nStacks, nSegs;
-    int nPoints;
+    Tcl_Size nStacks;
+    Tcl_Size nSegs;
+    Tcl_Size nPoints;
+    Tcl_Size i;
+    Tcl_Size count;
     FreqKey key;
     Tcl_HashTable freqTable;
-    register int i;
     double *xArr;
-    Tcl_Size count;
     /*
      * Free resources associated with a previous frequency table. This
      * includes the array of frequency information and the table itself
@@ -2640,13 +2662,13 @@ void Rbc_InitFreqTable(Graph *graphPtr) {
             if (isNew) {
                 count = 1;
             } else {
-                count = (Tcl_Size)Tcl_GetHashValue(hPtr);
+                count = (Tcl_Size)(uintptr_t)Tcl_GetHashValue(hPtr);
                 if (count == 1) {
                     nStacks++;
                 }
                 count++;
             }
-            Tcl_SetHashValue(hPtr, (ClientData)count);
+            Tcl_SetHashValue(hPtr, (ClientData)(uintptr_t)count);
         }
     }
     if (nSegs == 0) {
@@ -2657,15 +2679,15 @@ void Rbc_InitFreqTable(Graph *graphPtr) {
         FreqKey *keyPtr;
         Tcl_HashEntry *h2Ptr;
 
-        graphPtr->freqArr = RbcCalloc(nStacks, sizeof(FreqInfo));
+        graphPtr->freqArr = RbcCalloc((size_t)nStacks, sizeof(FreqInfo));
         assert(graphPtr->freqArr);
         infoPtr = graphPtr->freqArr;
         for (hPtr = Tcl_FirstHashEntry(&freqTable, &cursor); hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
-            count = (Tcl_Size)Tcl_GetHashValue(hPtr);
+            count = (Tcl_Size)(uintptr_t)Tcl_GetHashValue(hPtr);
             keyPtr = (FreqKey *)Tcl_GetHashKey(&freqTable, hPtr);
             if (count > 1) {
                 h2Ptr = Tcl_CreateHashEntry(&(graphPtr->freqTable), (char *)keyPtr, &isNew);
-                count = (Tcl_Size)Tcl_GetHashValue(hPtr);
+                count = (Tcl_Size)(uintptr_t)Tcl_GetHashValue(hPtr);
                 infoPtr->freq = count;
                 infoPtr->axes = keyPtr->axes;
                 Tcl_SetHashValue(h2Ptr, infoPtr);
@@ -2708,8 +2730,8 @@ void Rbc_ComputeStacks(Graph *graphPtr) {
     FreqKey key;
     Rbc_ChainLink *linkPtr;
     Tcl_HashEntry *hPtr;
-    int nPoints;
-    register int i;
+    Tcl_Size nPoints;
+    Tcl_Size i;
     register FreqInfo *infoPtr;
     double *xArr, *yArr;
 
@@ -2717,15 +2739,12 @@ void Rbc_ComputeStacks(Graph *graphPtr) {
         return;
     }
     /* Reset the sums for all duplicate values to zero. */
-
     infoPtr = graphPtr->freqArr;
     for (i = 0; i < graphPtr->nStacks; i++) {
         infoPtr->sum = 0.0;
         infoPtr++;
     }
-
     /* Look at each bar point, adding the ordinates of duplicate abscissas */
-
     for (linkPtr = Rbc_ChainFirstLink(graphPtr->elements.displayList); linkPtr != NULL;
          linkPtr = Rbc_ChainNextLink(linkPtr)) {
         elemPtr = Rbc_ChainGetValue(linkPtr);
