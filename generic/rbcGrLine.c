@@ -3044,13 +3044,26 @@ static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     if (extra < 1) {
         return;
     }
-    capacity = (Tcl_Size)nOrigPts + (Tcl_Size)extra + 1;
-    nIntpPts = nOrigPts + extra + 1;
-    intpPts = (Point2D *)ckalloc(nIntpPts * sizeof(Point2D));
-    assert(intpPts);
-
-    indices = ckalloc((size_t)nIntpPts * sizeof(*indices));
-    assert(indices);
+    if (nOrigPts > TCL_SIZE_MAX - (Tcl_Size)extra - 1) {
+        linePtr->smooth = PEN_SMOOTH_NONE;
+        return;
+    }
+    capacity = nOrigPts + (Tcl_Size)extra + 1;
+    if (((size_t)capacity > SIZE_MAX / sizeof(*intpPts)) || ((size_t)capacity > SIZE_MAX / sizeof(*indices))) {
+        linePtr->smooth = PEN_SMOOTH_NONE;
+        return;
+    }
+    intpPts = Tcl_AttemptAlloc((size_t)capacity * sizeof(*intpPts));
+    if (intpPts == NULL) {
+        linePtr->smooth = PEN_SMOOTH_NONE;
+        return;
+    }
+    indices = Tcl_AttemptAlloc((size_t)capacity * sizeof(*indices));
+    if (indices == NULL) {
+        ckfree(intpPts);
+        linePtr->smooth = PEN_SMOOTH_NONE;
+        return;
+    }
 
     /* Populate the x2 array with both the original X-coordinates and
      * extra X-coordinates for each horizontal pixel that the line
@@ -3096,12 +3109,6 @@ static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
         }
     }
     nIntpPts = count;
-    if (nIntpPts > INT_MAX) {
-        linePtr->smooth = PEN_SMOOTH_NONE;
-        ckfree(intpPts);
-        ckfree(indices);
-        return;
-    }
     result = FALSE;
     if (linePtr->smooth == PEN_SMOOTH_NATURAL) {
         result = Rbc_NaturalSpline(origPts, nOrigPts, intpPts, nIntpPts);
