@@ -44,13 +44,13 @@ struct LegendStruct {
     int tkResourcesReleased;
 
     unsigned int flags;
-    Rbc_Uid classUid;          /* Type: Element or Marker. */
-    int hidden;                /* If non-zero, don't display the legend. */
-    int raised;                /* If non-zero, draw the legend last, above
-                                * everything else. */
-    int nEntries;              /* Number of element entries in table. */
-    short int width, height;   /* Dimensions of the legend */
-    short int nColumns, nRows; /* Number of columns and rows in legend */
+    Rbc_Uid classUid;         /* Type: Element or Marker. */
+    int hidden;               /* If non-zero, don't display the legend. */
+    int raised;               /* If non-zero, draw the legend last, above
+                               * everything else. */
+    Tcl_Size nEntries;        /* Number of element entries in table. */
+    int width, height;        /* Dimensions of the legend */
+    Tcl_Size nColumns, nRows; /* Number of columns and rows in legend */
     int site;
     Point2D anchorPos; /* Says how to position the legend. Indicates
                         * the site and/or x-y screen coordinates of
@@ -90,6 +90,28 @@ typedef struct {
 #define padTop padY.side1
 #define padBottom padY.side2
 #define PADDING(x) ((x).side1 + (x).side2)
+
+static int GetLegendPixelDimension(Tcl_Size count, int entrySize, int borderWidth, const Rbc_Pad *padPtr,
+                                   int *dimensionPtr) {
+    Tcl_WideInt base;
+    Tcl_WideInt maximumCount;
+
+    if ((count < 0) || (entrySize < 0) || (borderWidth < 0) || (padPtr->side1 < 0) || (padPtr->side2 < 0)) {
+        return TCL_ERROR;
+    }
+    base = 2 * (Tcl_WideInt)borderWidth + (Tcl_WideInt)padPtr->side1 + (Tcl_WideInt)padPtr->side2;
+    if (base > INT_MAX) {
+        return TCL_ERROR;
+    }
+    if (entrySize > 0) {
+        maximumCount = ((Tcl_WideInt)INT_MAX - base) / (Tcl_WideInt)entrySize;
+        if ((Tcl_WideInt)count > maximumCount) {
+            return TCL_ERROR;
+        }
+    }
+    *dimensionPtr = (int)(base + ((Tcl_WideInt)count * (Tcl_WideInt)entrySize));
+    return TCL_OK;
+}
 
 #define DEF_LEGEND_ACTIVE_BACKGROUND STD_ACTIVE_BACKGROUND
 #define DEF_LEGEND_ACTIVE_BG_MONO STD_ACTIVE_BG_MONO
@@ -605,18 +627,21 @@ static ClientData PickLegendEntry(ClientData clientData, int x, int y, ClientDat
 
     if ((x >= 0) && (x < width) && (y >= 0) && (y < height)) {
         int row, column;
-        int n;
+        Tcl_Size n;
 
         /*
          * It's in the bounding box, so compute the index.
          */
+        if ((legendPtr->style.width <= 0) || (legendPtr->style.height <= 0) || (legendPtr->nRows <= 0)) {
+            return NULL;
+        }
         row = y / legendPtr->style.height;
         column = x / legendPtr->style.width;
-        n = (column * legendPtr->nRows) + row;
+        n = ((Tcl_Size)column * legendPtr->nRows) + (Tcl_Size)row;
         if (n < legendPtr->nEntries) {
             Rbc_ChainLink *linkPtr;
             Element *elemPtr;
-            int count;
+            Tcl_Size count;
 
             /* Legend entries are stored in reverse. */
             count = 0;
@@ -629,9 +654,6 @@ static ClientData PickLegendEntry(ClientData clientData, int x, int y, ClientDat
                     }
                     count++;
                 }
-            }
-            if (linkPtr != NULL) {
-                return Rbc_ChainGetValue(linkPtr);
             }
         }
     }
@@ -673,10 +695,13 @@ static ClientData PickLegendEntry(ClientData clientData, int x, int y, ClientDat
 void Rbc_MapLegend(Legend *legendPtr, int plotWidth, int plotHeight) {
     Rbc_ChainLink *linkPtr;
     Element *elemPtr;
-    int nRows, nColumns, nEntries;
+    Tcl_Size nRows;
+    Tcl_Size nColumns;
+    Tcl_Size nEntries;
     int legendWidth, legendHeight;
     int entryWidth, entryHeight;
     int symbolWidth;
+    Tcl_WideInt dimension;
     Tk_FontMetrics fontMetrics;
 
     /* Initialize legend values to default (no legend displayed) */
@@ -730,12 +755,31 @@ void Rbc_MapLegend(Legend *legendPtr, int plotWidth, int plotHeight) {
 
     Tk_GetFontMetrics(legendPtr->style.font, &fontMetrics);
     symbolWidth = 2 * fontMetrics.ascent;
-
-    entryWidth += 2 * legendPtr->entryBorderWidth + PADDING(legendPtr->ipadX) + 5 + symbolWidth;
-    entryHeight += 2 * legendPtr->entryBorderWidth + PADDING(legendPtr->ipadY);
-
-    legendWidth = plotWidth - 2 * legendPtr->borderWidth - PADDING(legendPtr->padX);
-    legendHeight = plotHeight - 2 * legendPtr->borderWidth - PADDING(legendPtr->padY);
+    dimension = (Tcl_WideInt)entryWidth + 2 * (Tcl_WideInt)legendPtr->entryBorderWidth +
+                (Tcl_WideInt)legendPtr->ipadX.side1 + (Tcl_WideInt)legendPtr->ipadX.side2 + 5 +
+                (Tcl_WideInt)symbolWidth;
+    if ((dimension < 1) || (dimension > INT_MAX)) {
+        return;
+    }
+    entryWidth = (int)dimension;
+    dimension = (Tcl_WideInt)entryHeight + 2 * (Tcl_WideInt)legendPtr->entryBorderWidth +
+                (Tcl_WideInt)legendPtr->ipadY.side1 + (Tcl_WideInt)legendPtr->ipadY.side2;
+    if ((dimension < 1) || (dimension > INT_MAX)) {
+        return;
+    }
+    entryHeight = (int)dimension;
+    dimension = (Tcl_WideInt)plotWidth - 2 * (Tcl_WideInt)legendPtr->borderWidth - (Tcl_WideInt)legendPtr->padX.side1 -
+                (Tcl_WideInt)legendPtr->padX.side2;
+    if ((dimension < 1) || (dimension > INT_MAX)) {
+        return;
+    }
+    legendWidth = (int)dimension;
+    dimension = (Tcl_WideInt)plotHeight - 2 * (Tcl_WideInt)legendPtr->borderWidth - (Tcl_WideInt)legendPtr->padY.side1 -
+                (Tcl_WideInt)legendPtr->padY.side2;
+    if ((dimension < 1) || (dimension > INT_MAX)) {
+        return;
+    }
+    legendHeight = (int)dimension;
 
     /*
      * The number of rows and columns is computed as one of the following:
@@ -747,12 +791,12 @@ void Rbc_MapLegend(Legend *legendPtr, int plotWidth, int plotHeight) {
      *                    size of plot.
      */
     if (legendPtr->reqRows > 0) {
-        nRows = legendPtr->reqRows;
+        nRows = (Tcl_Size)legendPtr->reqRows;
         if (nRows > nEntries) {
             nRows = nEntries;
         }
         if (legendPtr->reqColumns > 0) {
-            nColumns = legendPtr->reqColumns;
+            nColumns = (Tcl_Size)legendPtr->reqColumns;
             if (nColumns > nEntries) {
                 nColumns = nEntries; /* Both -rows, -columns set. */
             }
@@ -760,16 +804,15 @@ void Rbc_MapLegend(Legend *legendPtr, int plotWidth, int plotHeight) {
             nColumns = ((nEntries - 1) / nRows) + 1; /* Only -rows. */
         }
     } else if (legendPtr->reqColumns > 0) { /* Only -columns. */
-        nColumns = legendPtr->reqColumns;
+        nColumns = (Tcl_Size)legendPtr->reqColumns;
         if (nColumns > nEntries) {
             nColumns = nEntries;
         }
         nRows = ((nEntries - 1) / nColumns) + 1;
     } else {
         /* Compute # of rows and columns from the legend size. */
-        nRows = legendHeight / entryHeight;
-        nColumns = legendWidth / entryWidth;
-
+        nRows = (Tcl_Size)(legendHeight / entryHeight);
+        nColumns = (Tcl_Size)(legendWidth / entryWidth);
         if (nRows > nEntries) {
             nRows = nEntries;
         } else if (nRows < 1) {
@@ -792,11 +835,14 @@ void Rbc_MapLegend(Legend *legendPtr, int plotWidth, int plotHeight) {
     if (nColumns < 1) {
         nColumns = 1;
     }
-    legendWidth = 2 * legendPtr->borderWidth + PADDING(legendPtr->padX);
-    legendHeight = 2 * legendPtr->borderWidth + PADDING(legendPtr->padY);
-    legendHeight += nRows * entryHeight;
-    legendWidth += nColumns * entryWidth;
-
+    if (GetLegendPixelDimension(nColumns, entryWidth, legendPtr->borderWidth, &legendPtr->padX, &legendWidth) !=
+        TCL_OK) {
+        return;
+    }
+    if (GetLegendPixelDimension(nRows, entryHeight, legendPtr->borderWidth, &legendPtr->padY, &legendHeight) !=
+        TCL_OK) {
+        return;
+    }
     legendPtr->height = legendHeight;
     legendPtr->width = legendWidth;
     legendPtr->nRows = nRows;
@@ -804,7 +850,6 @@ void Rbc_MapLegend(Legend *legendPtr, int plotWidth, int plotHeight) {
     legendPtr->nEntries = nEntries;
     legendPtr->style.height = entryHeight;
     legendPtr->style.width = entryWidth;
-
     if ((legendPtr->tkwin != legendPtr->graphPtr->tkwin) &&
         ((Tk_ReqWidth(legendPtr->tkwin) != legendWidth) || (Tk_ReqHeight(legendPtr->tkwin) != legendHeight))) {
         Tk_GeometryRequest(legendPtr->tkwin, legendWidth, legendHeight);
@@ -837,7 +882,7 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
     Tk_3DBorder border;
     Tk_FontMetrics fontMetrics;
     Tk_Window tkwin;
-    int count;
+    Tcl_Size count;
     int labelX, startY, symbolX, symbolY;
     int symbolSize, midX, midY;
     int width, height;
@@ -977,7 +1022,7 @@ void Rbc_LegendToPostScript(Legend *legendPtr, PsToken psToken) {
     double x, y, startY;
     Element *elemPtr;
     int labelX, symbolX, symbolY;
-    int count;
+    Tcl_Size count;
     Rbc_ChainLink *linkPtr;
     int symbolSize, midX, midY;
     int width, height;
