@@ -17,7 +17,6 @@
 #include <X11/Xutil.h>
 #ifndef WIN32
 #include <X11/Xproto.h>
-static RbcWinOp ColormapOp;
 #endif
 
 static Tcl_ObjCmdProc2 WinopCmd;
@@ -31,6 +30,9 @@ typedef struct {
     Rbc_OpSpecHeader header;
     RbcWinOp *proc;
 } WinopOpSpec;
+#ifndef WIN32
+static RbcWinOp ColormapOp;
+#endif
 static RbcWinOp LowerOp;
 static RbcWinOp RaiseOp;
 static RbcWinOp MapOp;
