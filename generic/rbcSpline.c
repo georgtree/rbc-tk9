@@ -9,6 +9,7 @@
  * See "license.terms" for details.
  */
 
+#include <stdint.h>
 #include "rbcInt.h"
 
 typedef int (*Rbc_SplineOp)(Point2D *, Tcl_Size, Point2D *, Tcl_Size);

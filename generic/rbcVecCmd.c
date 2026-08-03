@@ -10,6 +10,7 @@
  * See "license.terms" for details.
  */
 
+#include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
 #include "rbcVector.h"
