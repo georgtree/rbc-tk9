@@ -12,6 +12,7 @@
 #include "rbcGraph.h"
 #include "rbcGrElem.h"
 #include <X11/Xutil.h>
+#include <stdint.h>
 #include <tcl.h>
 
 #define DEF_NUM_TICKS 4 /* Each minor tick is 20% */
@@ -1946,45 +1947,63 @@ static void CommitAxisLooseTransaction(Axis *axisPtr, AxisLooseTransaction *tran
     transactionPtr->staged = FALSE;
 }
 
+static int GetTicksByteCount(Tcl_Size nTicks, size_t *sizePtr) {
+    size_t headerSize;
+
+    if (nTicks < 0) {
+        return TCL_ERROR;
+    }
+    headerSize = offsetof(Ticks, values);
+    if ((size_t)nTicks > (SIZE_MAX - headerSize) / sizeof(double)) {
+        return TCL_ERROR;
+    }
+    *sizePtr = headerSize + ((size_t)nTicks * sizeof(double));
+    return TCL_OK;
+}
+
 static int GetAxisTicksFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, Ticks **ticksPtrPtr) {
     Tcl_Obj **exprObjv;
     Tcl_Size nExprs;
-    Ticks *ticksPtr;
     Tcl_Size i;
+    Ticks *ticksPtr;
+    size_t size;
 
     *ticksPtrPtr = NULL;
-
     if (objPtr == NULL) {
         return TCL_OK;
     }
-
     if (Tcl_ListObjGetElements(interp, objPtr, &nExprs, &exprObjv) != TCL_OK) {
         return TCL_ERROR;
     }
-
     if (nExprs == 0) {
         return TCL_OK;
     }
-
     /*
-     * Preserve the allocation layout used by the former
-     * StringToTicks parser and by generated tick arrays.
+     * GetAxisGeometry() already treats more than MAXTICKS as invalid.
+     * Reject such a configuration here instead of allocating it and
+     * aborting later during layout.
      */
-    ticksPtr = (Ticks *)ckalloc(sizeof(Ticks) + ((size_t)nExprs * sizeof(double)));
-
-    assert(ticksPtr != NULL);
-
+    if (nExprs > (Tcl_Size)MAXTICKS) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("too many axis ticks: maximum is %d", MAXTICKS));
+        return TCL_ERROR;
+    }
+    if (GetTicksByteCount(nExprs, &size) != TCL_OK) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("axis tick array is too large", -1));
+        return TCL_ERROR;
+    }
+    ticksPtr = Tcl_AttemptAlloc(size);
+    if (ticksPtr == NULL) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate axis tick array", -1));
+        return TCL_ERROR;
+    }
     for (i = 0; i < nExprs; i++) {
         if (Tcl_ExprDoubleObj(interp, exprObjv[i], &ticksPtr->values[i]) != TCL_OK) {
-            ckfree((char *)ticksPtr);
-
+            ckfree(ticksPtr);
             return TCL_ERROR;
         }
     }
-
-    ticksPtr->nTicks = (int)nExprs;
+    ticksPtr->nTicks = nExprs;
     *ticksPtrPtr = ticksPtr;
-
     return TCL_OK;
 }
 
@@ -2831,32 +2850,39 @@ static double NiceNum(double x, int round) {
  *----------------------------------------------------------------------
  */
 static Ticks *GenerateTicks(TickSweep *sweepPtr) {
+    static const double logTable[] = {0.0,
+                                      0.301029995663981,
+                                      0.477121254719662,
+                                      0.602059991327962,
+                                      0.698970004336019,
+                                      0.778151250383644,
+                                      0.845098040014257,
+                                      0.903089986991944,
+                                      0.954242509439325,
+                                      1.0};
     Ticks *ticksPtr;
-    register int i;
+    Tcl_Size i;
+    size_t size;
 
-    ticksPtr = (Ticks *)ckalloc(sizeof(Ticks) + (sweepPtr->nSteps * sizeof(double)));
-    assert(ticksPtr);
-
+    if (GetTicksByteCount(sweepPtr->nSteps, &size) != TCL_OK) {
+        Tcl_Panic("axis tick array size overflow");
+    }
+    if ((sweepPtr->step == 0.0) && (sweepPtr->nSteps > (Tcl_Size)(sizeof(logTable) / sizeof(logTable[0])))) {
+        Tcl_Panic("invalid logarithmic tick count");
+    }
+    ticksPtr = ckalloc(size);
     if (sweepPtr->step == 0.0) {
-        static double logTable[] = {/* Precomputed log10 values [1..10] */
-                                    0.0,
-                                    0.301029995663981,
-                                    0.477121254719662,
-                                    0.602059991327962,
-                                    0.698970004336019,
-                                    0.778151250383644,
-                                    0.845098040014257,
-                                    0.903089986991944,
-                                    0.954242509439325,
-                                    1.0};
-        /* Hack: A zero step indicates to use log values. */
+        /*
+         * A zero step requests the precomputed logarithmic minor-tick
+         * positions.
+         */
         for (i = 0; i < sweepPtr->nSteps; i++) {
             ticksPtr->values[i] = logTable[i];
         }
     } else {
         double value;
 
-        value = sweepPtr->initial; /* Start from smallest axis tick */
+        value = sweepPtr->initial;
         for (i = 0; i < sweepPtr->nSteps; i++) {
             value = UROUND(value, sweepPtr->step);
             ticksPtr->values[i] = value;
@@ -2952,15 +2978,13 @@ static void LogScaleAxis(Axis *axisPtr, double min, double max) {
     double range;
     double tickMin, tickMax;
     double majorStep, minorStep;
-    int nMajor, nMinor;
+    Tcl_Size nMajor, nMinor;
 
     min = (min != 0.0) ? log10(FABS(min)) : 0.0;
     max = (max != 0.0) ? log10(FABS(max)) : 1.0;
-
     tickMin = floor(min);
     tickMax = ceil(max);
     range = tickMax - tickMin;
-
     if (range > 10) {
         /* There are too many decades to display a major tick at every
          * decade.  Instead, treat the axis as a linear scale.  */
@@ -2968,20 +2992,19 @@ static void LogScaleAxis(Axis *axisPtr, double min, double max) {
         majorStep = NiceNum(range / DEF_NUM_TICKS, 1);
         tickMin = UFLOOR(tickMin, majorStep);
         tickMax = UCEIL(tickMax, majorStep);
-        nMajor = (int)((tickMax - tickMin) / majorStep) + 1;
+        nMajor = (Tcl_Size)((tickMax - tickMin) / majorStep) + 1;
         minorStep = EXP10(floor(log10(majorStep)));
         if (minorStep == majorStep) {
             nMinor = 4, minorStep = 0.2;
         } else {
-            nMinor = Round(majorStep / minorStep) - 1;
+            nMinor = (Tcl_Size)Round(majorStep / minorStep) - 1;
         }
     } else {
         if (tickMin == tickMax) {
             tickMax++;
         }
         majorStep = 1.0;
-        nMajor = (int)(tickMax - tickMin + 1); /* FIXME: Check this. */
-
+        nMajor = (Tcl_Size)(tickMax - tickMin + 1); /* FIXME: Check this. */
         minorStep = 0.0; /* This is a special hack to pass
                           * information to the GenerateTicks
                           * routine. An interval of 0.0 tells
@@ -3078,7 +3101,7 @@ static void LinearScaleAxis(Axis *axisPtr, double min, double max) {
     double range, step;
     double tickMin, tickMax;
     double axisMin, axisMax;
-    int nTicks;
+    Tcl_Size  nTicks;
 
     range = max - min;
 
@@ -3100,7 +3123,7 @@ static void LinearScaleAxis(Axis *axisPtr, double min, double max) {
     axisMin = tickMin = floor(min / step) * step + 0.0;
     axisMax = tickMax = ceil(max / step) * step + 0.0;
 
-    nTicks = Round((tickMax - tickMin) / step) + 1;
+    nTicks = (Tcl_Size)Round((tickMax - tickMin) / step) + 1;
     axisPtr->majorSweep.step = step;
     axisPtr->majorSweep.initial = tickMin;
     axisPtr->majorSweep.nSteps = nTicks;
@@ -3127,7 +3150,7 @@ static void LinearScaleAxis(Axis *axisPtr, double min, double max) {
     /* Now calculate the minor tick step and number. */
 
     if ((axisPtr->reqNumMinorTicks > 0) && ((axisPtr->flags & AXIS_CONFIG_MAJOR) == 0)) {
-        nTicks = axisPtr->reqNumMinorTicks - 1;
+        nTicks = (Tcl_Size)axisPtr->reqNumMinorTicks - 1;
         step = 1.0 / (nTicks + 1);
     } else {
         nTicks = 0; /* No minor ticks. */
@@ -3676,8 +3699,9 @@ static void MakeTick(Graph *graphPtr, Axis *axisPtr, double value, int tick, int
  * -----------------------------------------------------------------
  */
 static void MapAxis(Graph *graphPtr, Axis *axisPtr, int offset, int margin) {
-    int arraySize;
-    int nMajorTicks, nMinorTicks;
+    Tcl_Size arraySize;
+    Tcl_Size nMajorTicks;
+    Tcl_Size nMinorTicks;
     AxisInfo info;
     Segment2D *segments;
     Segment2D *segPtr;
@@ -3687,8 +3711,10 @@ static void MapAxis(Graph *graphPtr, Axis *axisPtr, int offset, int margin) {
     /* Save all line coordinates in an array of line segments. */
 
     if (axisPtr->segments != NULL) {
-        ckfree((char *)axisPtr->segments);
+        ckfree(axisPtr->segments);
+        axisPtr->segments = NULL;
     }
+    axisPtr->nSegments = 0;
     nMajorTicks = nMinorTicks = 0;
     if (axisPtr->t1Ptr != NULL) {
         nMajorTicks = axisPtr->t1Ptr->nTicks;
@@ -3696,9 +3722,17 @@ static void MapAxis(Graph *graphPtr, Axis *axisPtr, int offset, int margin) {
     if (axisPtr->t2Ptr != NULL) {
         nMinorTicks = axisPtr->t2Ptr->nTicks;
     }
+    if ((nMinorTicks == TCL_SIZE_MAX) || (nMajorTicks > (TCL_SIZE_MAX - 1) / (nMinorTicks + 1))) {
+        return;
+    }
     arraySize = 1 + (nMajorTicks * (nMinorTicks + 1));
-    segments = (Segment2D *)ckalloc(arraySize * sizeof(Segment2D));
-    assert(segments);
+    if ((size_t)arraySize > SIZE_MAX / sizeof(*segments)) {
+        return;
+    }
+    segments = Tcl_AttemptAlloc((size_t)arraySize * sizeof(*segments));
+    if (segments == NULL) {
+        return;
+    }
 
     segPtr = segments;
     if (axisPtr->lineWidth > 0) {
@@ -3709,7 +3743,8 @@ static void MapAxis(Graph *graphPtr, Axis *axisPtr, int offset, int margin) {
     if (axisPtr->showTicks) {
         double t1, t2;
         double labelPos;
-        register int i, j;
+        Tcl_Size i;
+        Tcl_Size j;
         int isHoriz;
         TickLabel *labelPtr;
         Rbc_ChainLink *linkPtr;
@@ -3763,9 +3798,13 @@ static void MapAxis(Graph *graphPtr, Axis *axisPtr, int offset, int margin) {
     } else {
         axisPtr->height = graphPtr->bottom - graphPtr->top;
     }
-    axisPtr->segments = segments;
-    axisPtr->nSegments = segPtr - segments;
+    axisPtr->nSegments = (Tcl_Size)(segPtr - segments);
     assert(axisPtr->nSegments <= arraySize);
+    if (axisPtr->nSegments > 0) {
+        axisPtr->segments = segments;
+    } else {
+        ckfree(segments);
+    }
 }
 
 /*
@@ -4118,47 +4157,62 @@ static void MakeGridLine(Graph *graphPtr, Axis *axisPtr, double value, Segment2D
  *
  *----------------------------------------------------------------------
  */
-void Rbc_GetAxisSegments(Graph *graphPtr, Axis *axisPtr, Segment2D **segPtrPtr, int *nSegmentsPtr) {
-    int needed;
-    Ticks *t1Ptr, *t2Ptr;
-    register int i;
-    double value;
-    Segment2D *segments, *segPtr;
+void Rbc_GetAxisSegments(Graph *graphPtr, Axis *axisPtr, Segment2D **segPtrPtr, Tcl_Size *nSegmentsPtr) {
+    Ticks *t1Ptr;
+    Ticks *t2Ptr;
+    Segment2D *segments;
+    Segment2D *segPtr;
+    Tcl_Size needed;
+    Tcl_Size nSegments;
+    Tcl_Size i;
+    int freeT1;
+    int freeT2;
 
-    *nSegmentsPtr = 0;
     *segPtrPtr = NULL;
+    *nSegmentsPtr = 0;
     if (axisPtr == NULL) {
         return;
     }
     t1Ptr = axisPtr->t1Ptr;
+    freeT1 = FALSE;
     if (t1Ptr == NULL) {
         t1Ptr = GenerateTicks(&axisPtr->majorSweep);
+        freeT1 = TRUE;
     }
     t2Ptr = axisPtr->t2Ptr;
+    freeT2 = FALSE;
     if (t2Ptr == NULL) {
         t2Ptr = GenerateTicks(&axisPtr->minorSweep);
+        freeT2 = TRUE;
     }
-
     needed = t1Ptr->nTicks;
     if (graphPtr->gridPtr->minorGrid) {
-        needed += (t1Ptr->nTicks * t2Ptr->nTicks);
+        if ((t2Ptr->nTicks > 0) && (t1Ptr->nTicks > (TCL_SIZE_MAX - needed) / t2Ptr->nTicks)) {
+            goto cleanup;
+        }
+        needed += t1Ptr->nTicks * t2Ptr->nTicks;
     }
-    if (needed == 0) {
-        return;
+    if (needed <= 0) {
+        goto cleanup;
     }
-    segments = (Segment2D *)ckalloc(sizeof(Segment2D) * needed);
+    if ((size_t)needed > SIZE_MAX / sizeof(*segments)) {
+        goto cleanup;
+    }
+    segments = Tcl_AttemptAlloc((size_t)needed * sizeof(*segments));
     if (segments == NULL) {
-        return; /* Can't allocate memory for grid. */
+        goto cleanup;
     }
-
     segPtr = segments;
     for (i = 0; i < t1Ptr->nTicks; i++) {
+        double value;
+
         value = t1Ptr->values[i];
         if (graphPtr->gridPtr->minorGrid) {
-            register int j;
-            double subValue;
+            Tcl_Size j;
 
             for (j = 0; j < t2Ptr->nTicks; j++) {
+                double subValue;
+
                 subValue = value + (axisPtr->majorSweep.step * t2Ptr->values[j]);
                 if (InRange(subValue, &axisPtr->axisRange)) {
                     MakeGridLine(graphPtr, axisPtr, subValue, segPtr);
@@ -4171,16 +4225,22 @@ void Rbc_GetAxisSegments(Graph *graphPtr, Axis *axisPtr, Segment2D **segPtrPtr, 
             segPtr++;
         }
     }
+    nSegments = (Tcl_Size)(segPtr - segments);
+    assert(nSegments <= needed);
+    if (nSegments > 0) {
+        *segPtrPtr = segments;
+        *nSegmentsPtr = nSegments;
+    } else {
+        ckfree(segments);
+    }
 
-    if (t1Ptr != axisPtr->t1Ptr) {
-        ckfree((char *)t1Ptr); /* Free generated ticks. */
+cleanup:
+    if (freeT1) {
+        ckfree(t1Ptr);
     }
-    if (t2Ptr != axisPtr->t2Ptr) {
-        ckfree((char *)t2Ptr); /* Free generated ticks. */
+    if (freeT2) {
+        ckfree(t2Ptr);
     }
-    *nSegmentsPtr = segPtr - segments;
-    assert(*nSegmentsPtr <= needed);
-    *segPtrPtr = segments;
 }
 
 /*
@@ -4213,23 +4273,22 @@ static void GetAxisGeometry(Graph *graphPtr, Axis *axisPtr) {
     }
     if (axisPtr->showTicks) {
         int pad;
-        register int i;
+        Tcl_Size i;
         int lw, lh;
         double x, x2;
         int maxWidth, maxHeight;
         TickLabel *labelPtr;
 
         SweepTicks(axisPtr);
-
         if (axisPtr->t1Ptr->nTicks < 0) {
-            fprintf(stderr, "%s major ticks can't be %d\n", axisPtr->name, axisPtr->t1Ptr->nTicks);
+            fprintf(stderr, "%s major ticks can't be %lld\n", axisPtr->name, (long long)axisPtr->t1Ptr->nTicks);
             abort();
         }
         if (axisPtr->t1Ptr->nTicks > MAXTICKS) {
-            fprintf(stderr, "too big, %s major ticks can't be %d\n", axisPtr->name, axisPtr->t1Ptr->nTicks);
+            fprintf(stderr, "too big, %s major ticks can't be %lld\n", axisPtr->name,
+                    (long long)axisPtr->t1Ptr->nTicks);
             abort();
         }
-
         maxHeight = maxWidth = 0;
         for (i = 0; i < axisPtr->t1Ptr->nTicks; i++) {
             x2 = x = axisPtr->t1Ptr->values[i];
@@ -4248,12 +4307,10 @@ static void GetAxisGeometry(Graph *graphPtr, Axis *axisPtr) {
             Rbc_GetTextExtents(&axisPtr->tickTextStyle, labelPtr->string, &lw, &lh);
             labelPtr->width = lw;
             labelPtr->height = lh;
-
             if (axisPtr->tickTextStyle.theta > 0.0) {
                 double rotWidth, rotHeight;
 
-                Rbc_GetBoundingBox(lw, lh, axisPtr->tickTextStyle.theta, &rotWidth, &rotHeight, (Point2D *)NULL);
-                lw = ROUND(rotWidth);
+                Rbc_GetBoundingBox(lw, lh, axisPtr->tickTextStyle.theta, &rotWidth, &rotHeight, (Point2D *)NULL);                lw = ROUND(rotWidth);
                 lh = ROUND(rotHeight);
             }
             if (maxWidth < lw) {
@@ -4263,13 +4320,10 @@ static void GetAxisGeometry(Graph *graphPtr, Axis *axisPtr) {
                 maxHeight = lh;
             }
         }
-
         /* Because the axis cap style is "CapProjecting", we need to
          * account for an extra 1.5 linewidth at the end of each
          * line.  */
-
         pad = ((axisPtr->lineWidth * 15) / 10);
-
         if (AxisIsHorizontal(graphPtr, axisPtr)) {
             height += maxHeight + pad;
         } else {
@@ -4281,7 +4335,6 @@ static void GetAxisGeometry(Graph *graphPtr, Axis *axisPtr) {
             height += ABS(axisPtr->tickLength);
         }
     }
-
     if (axisPtr->title != NULL) {
         if (axisPtr->titleAlternate) {
             if (height < axisPtr->titleHeight) {
@@ -4291,7 +4344,6 @@ static void GetAxisGeometry(Graph *graphPtr, Axis *axisPtr) {
             height += axisPtr->titleHeight + AXIS_TITLE_PAD;
         }
     }
-
     /* Correct for orientation of the axis. */
     if (AxisIsHorizontal(graphPtr, axisPtr)) {
         axisPtr->height = height;

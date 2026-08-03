@@ -55,7 +55,7 @@ typedef struct {
  * ----------------------------------------------------------------------
  */
 typedef struct {
-    int nTicks;       /* # of ticks on axis */
+    Tcl_Size nTicks;  /* # of ticks on axis */
     double values[1]; /* Array of tick values (malloc-ed). */
 } Ticks;
 
@@ -70,9 +70,9 @@ typedef struct {
  * ----------------------------------------------------------------------
  */
 typedef struct {
-    double initial; /* Initial value */
-    double step;    /* Size of interval */
-    int nSteps;     /* Number of intervals. */
+    double initial;  /* Initial value */
+    double step;     /* Size of interval */
+    Tcl_Size nSteps; /* Number of intervals. */
 } TickSweep;
 
 /*
@@ -285,7 +285,7 @@ typedef struct {
                           * coordinates are relative to the
                           * axis. */
 
-    int nSegments; /* Number of segments in the above array. */
+    Tcl_Size nSegments; /* Number of segments in the above array. */
 
     Rbc_Chain *tickLabels; /* Contains major tick label strings
                             * and their offsets along the axis. */

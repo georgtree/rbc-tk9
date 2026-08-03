@@ -201,7 +201,7 @@ static int ConfigureGrid(Graph *graphPtr, Grid *gridPtr, int mask) {
  */
 void Rbc_MapGrid(Graph *graphPtr) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
-    int nSegments;
+    Tcl_Size nSegments;
     Segment2D *segments;
 
     if (gridPtr->x.segments != NULL) {

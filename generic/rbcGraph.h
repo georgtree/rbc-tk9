@@ -282,7 +282,7 @@ typedef struct {
 
     struct GridSegments {
         Segment2D *segments;
-        int nSegments;
+        Tcl_Size nSegments;
     } x, y;
 } Grid;
 
@@ -675,7 +675,7 @@ int Rbc_PostScriptOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
 int Rbc_GraphUpdateNeeded(Graph *graphPtr);
 int Rbc_DefaultAxes(Graph *graphPtr);
 Axis *Rbc_GetFirstAxis(Rbc_Chain *chainPtr);
-void Rbc_GetAxisSegments(Graph *graphPtr, Axis *axisPtr, Segment2D **segPtrPtr, int *nSegmentsPtr);
+void Rbc_GetAxisSegments(Graph *graphPtr, Axis *axisPtr, Segment2D **segPtrPtr, Tcl_Size *nSegmentsPtr);
 Marker *Rbc_NearestMarker(Graph *graphPtr, int x, int y, int under);
 Axis *Rbc_NearestAxis(Graph *graphPtr, int x, int y);
 
