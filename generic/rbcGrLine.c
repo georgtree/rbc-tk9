@@ -1258,7 +1258,7 @@ static void SymbolsToPostScript(Graph *graphPtr, PsToken psToken, LinePen *penPt
                                 Point2D *symbolPts);
 static void SetLineAttributes(PsToken psToken, LinePen *penPtr);
 static void TracesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr);
-static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, int nSymbolPts, Point2D *symbolPts,
+static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts, Point2D *symbolPts,
                                const Tcl_Size *pointToData);
 static int GetDrawablePolygonPointCount(Display *display, Tcl_Size nPoints);
 
@@ -5202,16 +5202,22 @@ static void DrawCircles(Display *display, Drawable drawable, Line *linePtr, Line
  */
 static void DrawCircles(Display *display, Drawable drawable, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts,
                         Point2D *symbolPts, int radius) {
-    register int i;
+    Tcl_Size i;
     XArc *arcArr; /* Array of arcs (circle) */
-    register XArc *arcPtr;
+    XArc *arcPtr;
     int reqSize, nArcs;
     int s;
     Tcl_Size count;
     register Point2D *pointPtr, *endPtr;
 
     s = radius + radius;
-    arcArr = (XArc *)ckalloc(nSymbolPts * sizeof(XArc));
+    if ((nSymbolPts <= 0) || ((size_t)nSymbolPts > SIZE_MAX / sizeof(*arcArr))) {
+        return;
+    }
+    arcArr = Tcl_AttemptAlloc((size_t)nSymbolPts * sizeof(*arcArr));
+    if (arcArr == NULL) {
+        return;
+    }
     arcPtr = arcArr;
 
     if (linePtr->symbolInterval > 0) {
@@ -5239,8 +5245,15 @@ static void DrawCircles(Display *display, Drawable drawable, Line *linePtr, Line
         }
     }
     reqSize = MAX_DRAWARCS(display);
-    for (i = 0; i < count; i += reqSize) {
-        nArcs = ((i + reqSize) > count) ? (count - i) : reqSize;
+    if (reqSize < 1) {
+        ckfree(arcArr);
+        return;
+    }
+    for (i = 0; i < count; i += (Tcl_Size)reqSize) {
+        Tcl_Size remaining;
+
+        remaining = count - i;
+        nArcs = (remaining > (Tcl_Size)reqSize) ? reqSize : (int)remaining;
         if (penPtr->symbol.fillGC != NULL) {
             XFillArcs(display, drawable, penPtr->symbol.fillGC, arcArr + i, nArcs);
         }
@@ -5282,13 +5295,20 @@ static void DrawSquares(Display *display, Drawable drawable, Line *linePtr, Line
     XRectangle *rectArr;
     register Point2D *pointPtr, *endPtr;
     register XRectangle *rectPtr;
-    Tcl_Size reqSize, nRects;
+    int reqSize;
+    int nRects;
     int s;
     Tcl_Size i;
     Tcl_Size count;
 
     s = r + r;
-    rectArr = (XRectangle *)ckalloc(nSymbolPts * sizeof(XRectangle));
+    if ((nSymbolPts <= 0) || ((size_t)nSymbolPts > SIZE_MAX / sizeof(*rectArr))) {
+        return;
+    }
+    rectArr = Tcl_AttemptAlloc((size_t)nSymbolPts * sizeof(*rectArr));
+    if (rectArr == NULL) {
+        return;
+    }
     rectPtr = rectArr;
 
     if (linePtr->symbolInterval > 0) {
@@ -5312,8 +5332,15 @@ static void DrawSquares(Display *display, Drawable drawable, Line *linePtr, Line
         }
     }
     reqSize = MAX_DRAWRECTANGLES(display);
-    for (i = 0; i < count; i += reqSize) {
-        nRects = ((i + reqSize) > count) ? (count - i) : reqSize;
+    if (reqSize < 1) {
+        ckfree(rectArr);
+        return;
+    }
+    for (i = 0; i < count; i += (Tcl_Size)reqSize) {
+        Tcl_Size remaining;
+
+        remaining = count - i;
+        nRects = (remaining > (Tcl_Size)reqSize) ? reqSize : (int)remaining;
         if (penPtr->symbol.fillGC != NULL) {
             XFillRectangles(display, drawable, penPtr->symbol.fillGC, rectArr + i, nRects);
         }
@@ -5362,18 +5389,39 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
 #define S_RATIO 0.886226925452758
 
     if (size < 3) {
-        if (penPtr->symbol.fillGC != NULL) {
+        if ((penPtr->symbol.fillGC != NULL) && (nSymbolPts > 0)) {
             XPoint *points;
+            Tcl_Size offset;
+            int maxPoints;
 
-            points = (XPoint *)ckalloc(nSymbolPts * sizeof(XPoint));
-            count = 0;
-            for (pointPtr = symbolPts, endPtr = symbolPts + nSymbolPts; pointPtr < endPtr; pointPtr++) {
-                points[count].x = (short int)pointPtr->x;
-                points[count].y = (short int)pointPtr->y;
-                count++;
+            maxPoints = Rbc_MaxRequestSize(graphPtr->display, sizeof(XPoint));
+
+            if (maxPoints < 1) {
+                return;
             }
-            XDrawPoints(graphPtr->display, drawable, penPtr->symbol.fillGC, points, nSymbolPts, CoordModeOrigin);
-            ckfree((char *)points);
+            if ((size_t)maxPoints > SIZE_MAX / sizeof(*points)) {
+                return;
+            }
+            points = Tcl_AttemptAlloc((size_t)maxPoints * sizeof(*points));
+            if (points == NULL) {
+                return;
+            }
+            offset = 0;
+            while (offset < nSymbolPts) {
+                Tcl_Size remaining;
+                int chunk;
+                int j;
+
+                remaining = nSymbolPts - offset;
+                chunk = (remaining > (Tcl_Size)maxPoints) ? maxPoints : (int)remaining;
+                for (j = 0; j < chunk; j++) {
+                    points[j].x = (short int)symbolPts[offset + j].x;
+                    points[j].y = (short int)symbolPts[offset + j].y;
+                }
+                XDrawPoints(graphPtr->display, drawable, penPtr->symbol.fillGC, points, chunk, CoordModeOrigin);
+                offset += chunk;
+            }
+            ckfree(points);
         }
         return;
     }
@@ -5396,7 +5444,8 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
     case SYMBOL_SCROSS: {
         XSegment *segArr; /* Array of line segments (splus, scross) */
         register XSegment *segPtr;
-        Tcl_Size reqSize, nSegs;
+        Tcl_Size nSegs;
+        int reqSize;
         int chunk;
 
         if (penPtr->symbol.type == SYMBOL_SCROSS) {
@@ -5408,7 +5457,13 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
             pattern[0].x = pattern[2].y = -r2;
             pattern[1].x = pattern[3].y = r2;
         }
-        segArr = (XSegment *)ckalloc(nSymbolPts * 2 * sizeof(XSegment));
+        if ((nSymbolPts > TCL_SIZE_MAX / 2) || ((size_t)nSymbolPts > SIZE_MAX / (2 * sizeof(*segArr)))) {
+            return;
+        }
+        segArr = Tcl_AttemptAlloc((size_t)nSymbolPts * 2 * sizeof(*segArr));
+        if (segArr == NULL) {
+            return;
+        }
         segPtr = segArr;
         if (linePtr->symbolInterval > 0) {
             count = 0;
@@ -5444,10 +5499,16 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
             }
         }
         nSegs = count * 2;
-        /* Always draw skinny symbols regardless of the outline width */
         reqSize = MAX_DRAWSEGMENTS(graphPtr->display);
-        for (i = 0; i < nSegs; i += reqSize) {
-            chunk = ((i + reqSize) > nSegs) ? (nSegs - i) : reqSize;
+        if (reqSize < 1) {
+            ckfree(segArr);
+            return;
+        }
+        for (i = 0; i < nSegs; i += (Tcl_Size)reqSize) {
+            Tcl_Size remaining;
+
+            remaining = nSegs - i;
+            chunk = (remaining > (Tcl_Size)reqSize) ? reqSize : (int)remaining;
             XDrawSegments(graphPtr->display, drawable, penPtr->symbol.outlineGC, segArr + i, chunk);
         }
         ckfree((char *)segArr);
@@ -5493,7 +5554,13 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
             }
             pattern[12] = pattern[0];
         }
-        polygon = (XPoint *)ckalloc(nSymbolPts * 13 * sizeof(XPoint));
+        if ((nSymbolPts <= 0) || ((size_t)nSymbolPts > SIZE_MAX / (13u * sizeof(*polygon)))) {
+            return;
+        }
+        polygon = Tcl_AttemptAlloc((size_t)nSymbolPts * 13u * sizeof(*polygon));
+        if (polygon == NULL) {
+            return;
+        }
         p = polygon;
         if (linePtr->symbolInterval > 0) {
             count = 0;
@@ -5550,7 +5617,13 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
         pattern[3].y = pattern[2].x = r1;
         pattern[4] = pattern[0];
 
-        polygon = (XPoint *)ckalloc(nSymbolPts * 5 * sizeof(XPoint));
+        if ((nSymbolPts <= 0) || ((size_t)nSymbolPts > SIZE_MAX / (5u * sizeof(*polygon)))) {
+            return;
+        }
+        polygon = Tcl_AttemptAlloc((size_t)nSymbolPts * 5u * sizeof(*polygon));
+        if (polygon == NULL) {
+            return;
+        }
         p = polygon;
         if (linePtr->symbolInterval > 0) {
             count = 0;
@@ -5625,7 +5698,13 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
             pattern[2].y = pattern[1].y = h2;
             pattern[2].x = -b2;
         }
-        polygon = (XPoint *)ckalloc(nSymbolPts * 4 * sizeof(XPoint));
+        if ((nSymbolPts <= 0) || ((size_t)nSymbolPts > SIZE_MAX / (4u * sizeof(*polygon)))) {
+            return;
+        }
+        polygon = Tcl_AttemptAlloc((size_t)nSymbolPts * 4u * sizeof(*polygon));
+        if (polygon == NULL) {
+            return;
+        }
         p = polygon;
         if (linePtr->symbolInterval > 0) {
             count = 0;
@@ -5794,81 +5873,95 @@ static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
     POINT *points;
     TkWinDCState state;
     LineTrace *tracePtr;
-    Tcl_Size j;
-    Tcl_Size nPoints, remaining;
-    register POINT *p;
     Tcl_Size count;
+    Tcl_Size j;
+    Tcl_Size remaining;
+    int maxPoints;
 
     /*
-     * Depending if the line is wide (> 1 pixel), arbitrarily break
-     * the line in sections of 100 points.  This bit of weirdness has
-     * to do with wide geometric pens.  The longer the polyline, the
-     * slower it draws.  The trade off is that we lose dash and cap
-     * uniformity for unbearably slow polyline draws.
+     * Depending on whether the line is wide (> 1 pixel), arbitrarily
+     * break the line into sections of 100 points.  Long polylines
+     * drawn with wide geometric pens can be prohibitively slow.
      */
     if (penPtr->traceGC->line_width > 1) {
-        nPoints = 100;
+        maxPoints = 100;
     } else {
-        nPoints = Rbc_MaxRequestSize(graphPtr->display, sizeof(POINT)) - 1;
+        int requestSize;
+
+        requestSize = Rbc_MaxRequestSize(graphPtr->display, sizeof(POINT));
+        /*
+         * Reserve one point in each request for the endpoint shared
+         * with the preceding chunk.
+         */
+        if (requestSize <= 1) {
+            return;
+        }
+        maxPoints = requestSize - 1;
     }
-    points = (POINT *)ckalloc((nPoints + 1) * sizeof(POINT));
-
+    if (maxPoints < 2) {
+        return;
+    }
+    if (((size_t)maxPoints + 1u) > SIZE_MAX / sizeof(*points)) {
+        return;
+    }
+    points = Tcl_AttemptAlloc(((size_t)maxPoints + 1u) * sizeof(*points));
+    if (points == NULL) {
+        return;
+    }
     dc = TkWinGetDrawableDC(graphPtr->display, drawable, &state);
-
     pen = Rbc_GCToPen(dc, penPtr->traceGC);
     oldPen = SelectPen(dc, pen);
     brush = CreateSolidBrush(penPtr->traceGC->foreground);
     oldBrush = SelectBrush(dc, brush);
     SetROP2(dc, tkpWinRopModes[penPtr->traceGC->function]);
-
     for (linkPtr = Rbc_ChainFirstLink(linePtr->traces); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        Tcl_Size firstCount;
+
         tracePtr = Rbc_ChainGetValue(linkPtr);
-
         /*
-         * If the trace has to be split into separate XDrawLines
-         * calls, then the end point of the current trace is also the
-         * starting point of the new split.
+         * A polyline requires at least two points.
          */
-
-        /* Step 1. Convert and draw the first section of the trace.
-         *       It may contain the entire trace. */
-
-        for (p = points, count = 0; count < MIN(nPoints, tracePtr->nScreenPts); count++, p++) {
-            p->x = (int)tracePtr->screenPts[count].x;
-            p->y = (int)tracePtr->screenPts[count].y;
+        if (tracePtr->nScreenPts < 2) {
+            continue;
         }
-        Polyline(dc, points, count);
-
-        /* Step 2. Next handle any full-size chunks left. */
-
-        while ((count + nPoints) < tracePtr->nScreenPts) {
-            /* Start with the last point of the previous trace. */
-            points[0].x = points[nPoints - 1].x;
-            points[0].y = points[nPoints - 1].y;
-
-            for (p = points + 1, j = 0; j < nPoints; j++, count++, p++) {
-                p->x = (int)tracePtr->screenPts[count].x;
-                p->y = (int)tracePtr->screenPts[count].y;
+        /*
+         * Step 1: draw the first section.  It may contain the entire
+         * trace.
+         */
+        firstCount = MIN((Tcl_Size)maxPoints, tracePtr->nScreenPts);
+        for (count = 0; count < firstCount; count++) {
+            points[count].x = (int)tracePtr->screenPts[count].x;
+            points[count].y = (int)tracePtr->screenPts[count].y;
+        }
+        Polyline(dc, points, (int)firstCount);
+        /*
+         * Step 2: draw full continuation chunks.  Each continuation
+         * starts with the last point drawn by the preceding request.
+         */
+        while ((tracePtr->nScreenPts - count) > (Tcl_Size)maxPoints) {
+            points[0].x = (int)tracePtr->screenPts[count - 1].x;
+            points[0].y = (int)tracePtr->screenPts[count - 1].y;
+            for (j = 0; j < (Tcl_Size)maxPoints; j++, count++) {
+                points[j + 1].x = (int)tracePtr->screenPts[count].x;
+                points[j + 1].y = (int)tracePtr->screenPts[count].y;
             }
-            Polyline(dc, points, nPoints + 1);
+            Polyline(dc, points, maxPoints + 1);
         }
-
-        /* Step 3. Convert and draw the remaining points. */
-
+        /*
+         * Step 3: draw the final partial chunk.
+         */
         remaining = tracePtr->nScreenPts - count;
         if (remaining > 0) {
-            /* Start with the last point of the previous trace. */
-            points[0].x = points[nPoints - 1].x;
-            points[0].y = points[nPoints - 1].y;
-
-            for (p = points + 1; count < tracePtr->nScreenPts; count++, p++) {
-                p->x = (int)tracePtr->screenPts[count].x;
-                p->y = (int)tracePtr->screenPts[count].y;
+            points[0].x = (int)tracePtr->screenPts[count - 1].x;
+            points[0].y = (int)tracePtr->screenPts[count - 1].y;
+            for (j = 0; j < remaining; j++, count++) {
+                points[j + 1].x = (int)tracePtr->screenPts[count].x;
+                points[j + 1].y = (int)tracePtr->screenPts[count].y;
             }
-            Polyline(dc, points, remaining + 1);
+            Polyline(dc, points, (int)remaining + 1);
         }
     }
-    ckfree((char *)points);
+    ckfree(points);
     DeletePen(SelectPen(dc, oldPen));
     DeleteBrush(SelectBrush(dc, oldBrush));
     TkWinReleaseDrawableDC(drawable, dc, &state);
@@ -5901,63 +5994,81 @@ static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
     Rbc_ChainLink *linkPtr;
     LineTrace *tracePtr;
     XPoint *points;
-    Tcl_Size j;
-    Tcl_Size nPoints, remaining;
-    register XPoint *p;
     Tcl_Size count;
+    Tcl_Size j;
+    Tcl_Size remaining;
+    int maxPoints;
+    int requestSize;
 
-    nPoints = Rbc_MaxRequestSize(graphPtr->display, sizeof(XPoint)) - 1;
-    points = (XPoint *)ckalloc((nPoints + 1) * sizeof(XPoint));
+    requestSize = Rbc_MaxRequestSize(graphPtr->display, sizeof(XPoint));
 
+    /*
+     * Reserve one point in each request for the endpoint shared with
+     * the preceding chunk.
+     */
+    if (requestSize <= 1) {
+        return;
+    }
+    maxPoints = requestSize - 1;
+    if (maxPoints < 2) {
+        return;
+    }
+    if (((size_t)maxPoints + 1u) > SIZE_MAX / sizeof(*points)) {
+        return;
+    }
+    points = Tcl_AttemptAlloc(((size_t)maxPoints + 1u) * sizeof(*points));
+    if (points == NULL) {
+        return;
+    }
     for (linkPtr = Rbc_ChainFirstLink(linePtr->traces); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
-        Tcl_Size n;
+        Tcl_Size firstCount;
 
         tracePtr = Rbc_ChainGetValue(linkPtr);
-
         /*
-         * If the trace has to be split into separate XDrawLines
-         * calls, then the end point of the current trace is also the
-         * starting point of the new split.
+         * XDrawLines requires at least two useful points to produce a
+         * line.
          */
-        /* Step 1. Convert and draw the first section of the trace.
-         *       It may contain the entire trace. */
-
-        n = MIN(nPoints, tracePtr->nScreenPts);
-        for (p = points, count = 0; count < n; count++, p++) {
-            p->x = (short int)tracePtr->screenPts[count].x;
-            p->y = (short int)tracePtr->screenPts[count].y;
+        if (tracePtr->nScreenPts < 2) {
+            continue;
         }
-        XDrawLines(graphPtr->display, drawable, penPtr->traceGC, points, count, CoordModeOrigin);
-
-        /* Step 2. Next handle any full-size chunks left. */
-
-        while ((count + nPoints) < tracePtr->nScreenPts) {
-            /* Start with the last point of the previous trace. */
-            points[0].x = points[nPoints - 1].x;
-            points[0].y = points[nPoints - 1].y;
-
-            for (p = points + 1, j = 0; j < nPoints; j++, count++, p++) {
-                p->x = (short int)tracePtr->screenPts[count].x;
-                p->y = (short int)tracePtr->screenPts[count].y;
+        /*
+         * Step 1: draw the first section.  It may contain the entire
+         * trace.
+         */
+        firstCount = MIN((Tcl_Size)maxPoints, tracePtr->nScreenPts);
+        for (count = 0; count < firstCount; count++) {
+            points[count].x = (short int)tracePtr->screenPts[count].x;
+            points[count].y = (short int)tracePtr->screenPts[count].y;
+        }
+        XDrawLines(graphPtr->display, drawable, penPtr->traceGC, points, (int)firstCount, CoordModeOrigin);
+        /*
+         * Step 2: draw full continuation chunks.  Each continuation
+         * starts with the last point drawn by the preceding request.
+         */
+        while ((tracePtr->nScreenPts - count) > (Tcl_Size)maxPoints) {
+            points[0].x = (short int)tracePtr->screenPts[count - 1].x;
+            points[0].y = (short int)tracePtr->screenPts[count - 1].y;
+            for (j = 0; j < (Tcl_Size)maxPoints; j++, count++) {
+                points[j + 1].x = (short int)tracePtr->screenPts[count].x;
+                points[j + 1].y = (short int)tracePtr->screenPts[count].y;
             }
-            XDrawLines(graphPtr->display, drawable, penPtr->traceGC, points, nPoints + 1, CoordModeOrigin);
+            XDrawLines(graphPtr->display, drawable, penPtr->traceGC, points, maxPoints + 1, CoordModeOrigin);
         }
-
-        /* Step 3. Convert and draw the remaining points. */
-
+        /*
+         * Step 3: draw the final partial chunk.
+         */
         remaining = tracePtr->nScreenPts - count;
         if (remaining > 0) {
-            /* Start with the last point of the previous trace. */
-            points[0].x = points[nPoints - 1].x;
-            points[0].y = points[nPoints - 1].y;
-            for (p = points + 1; count < tracePtr->nScreenPts; count++, p++) {
-                p->x = (short int)tracePtr->screenPts[count].x;
-                p->y = (short int)tracePtr->screenPts[count].y;
+            points[0].x = (short int)tracePtr->screenPts[count - 1].x;
+            points[0].y = (short int)tracePtr->screenPts[count - 1].y;
+            for (j = 0; j < remaining; j++, count++) {
+                points[j + 1].x = (short int)tracePtr->screenPts[count].x;
+                points[j + 1].y = (short int)tracePtr->screenPts[count].y;
             }
-            XDrawLines(graphPtr->display, drawable, penPtr->traceGC, points, remaining + 1, CoordModeOrigin);
+            XDrawLines(graphPtr->display, drawable, penPtr->traceGC, points, (int)remaining + 1, CoordModeOrigin);
         }
     }
-    ckfree((char *)points);
+    ckfree(points);
 }
 #endif /* WIN32 */
 
@@ -6508,11 +6619,11 @@ static void TracesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr) 
  *
  *----------------------------------------------------------------------
  */
-static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, int nSymbolPts, Point2D *symbolPts,
+static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts, Point2D *symbolPts,
                                const Tcl_Size *pointToData) {
     Point2D *pointPtr;
     Point2D *endPtr;
-    int count;
+    Tcl_Size count;
     char string[TCL_DOUBLE_SPACE * 2 + 2];
     char *fmt;
 
@@ -6636,7 +6747,7 @@ static void NormalLineToPostScript(Graph *graphPtr, PsToken psToken, Element *el
     register LinePenStyle *stylePtr;
     Rbc_ChainLink *linkPtr;
     LinePen *penPtr;
-    unsigned int count;
+    Tcl_Size count;
     XColor *colorPtr;
 
     /* Draw fill area */
