@@ -9,6 +9,7 @@
  *
  * See "license.terms" for details.
  */
+#include <stdint.h>
 #include "rbcGraph.h"
 #include "rbcChain.h"
 #include <X11/Xutil.h>
