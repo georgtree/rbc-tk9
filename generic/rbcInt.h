@@ -492,7 +492,7 @@ int Rbc_NaturalSpline(Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl
 
 int Rbc_QuadraticSpline(Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
 
-int Rbc_SimplifyLine(Point2D *origPts, Tcl_Size low, Tcl_Size high, double tolerance, Tcl_Size indices[]);
+Tcl_Size Rbc_SimplifyLine(Point2D *origPts, Tcl_Size low, Tcl_Size high, double tolerance, Tcl_Size indices[]);
 
 Tcl_Size Rbc_NaturalParametricSpline(Point2D *origPts, Tcl_Size nOrigPts, Extents2D *extsPtr, int isClosed,
                                      Point2D *intpPts, Tcl_Size nIntpPts);

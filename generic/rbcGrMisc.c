@@ -702,33 +702,32 @@ int Rbc_LineRectClip(Extents2D *extsPtr, Point2D *p, Point2D *q) {
  *
  *----------------------------------------------------------------------
  */
-int Rbc_PolyRectClip(Extents2D *extsPtr, Point2D *points, int nPoints, Point2D *clipPts) {
+Tcl_Size Rbc_PolyRectClip(Extents2D *extsPtr, Point2D *points, Tcl_Size nPoints, Point2D *clipPts) {
     Point2D *endPtr;
     double dx, dy;
     double tin1, tin2;
     double tinx, tiny;
     double xin, yin, xout, yout;
-    int count;
-    register Point2D *p; /* First vertex of input polygon edge. */
-    register Point2D *q; /* Last vertex of input polygon edge. */
-    register Point2D *r;
+    Tcl_Size count;
+    Point2D *p;
+    Point2D *q;
+    Point2D *r;
 
+    if (nPoints <= 0) {
+        return 0;
+    }
     r = clipPts;
-    count = 0; /* Counts # of vertices in output polygon. */
-
+    count = 0;
     points[nPoints] = points[0];
-
     for (p = points, q = p + 1, endPtr = p + nPoints; p < endPtr; p++, q++) {
         dx = q->x - p->x; /* X-direction */
         dy = q->y - p->y; /* Y-direction */
-
         if (FABS(dx) < EPSILON) {
             dx = (p->x > extsPtr->left) ? -EPSILON : EPSILON;
         }
         if (FABS(dy) < EPSILON) {
             dy = (p->y > extsPtr->top) ? -EPSILON : EPSILON;
         }
-
         if (dx > 0.0) { /* Left */
             xin = extsPtr->left;
             xout = extsPtr->right + 1.0;
@@ -743,10 +742,8 @@ int Rbc_PolyRectClip(Extents2D *extsPtr, Point2D *points, int nPoints, Point2D *
             yin = extsPtr->bottom + 1.0;
             yout = extsPtr->top;
         }
-
         tinx = (xin - p->x) / dx;
         tiny = (yin - p->y) / dy;
-
         if (tinx < tiny) { /* Hits x first */
             tin1 = tinx;
             tin2 = tiny;
@@ -754,7 +751,6 @@ int Rbc_PolyRectClip(Extents2D *extsPtr, Point2D *points, int nPoints, Point2D *
             tin1 = tiny;
             tin2 = tinx;
         }
-
         if (tin1 <= 1.0) {
             if (tin1 > 0.0) {
                 AddVertex(xin, yin);
@@ -765,7 +761,6 @@ int Rbc_PolyRectClip(Extents2D *extsPtr, Point2D *points, int nPoints, Point2D *
                 toutx = (xout - p->x) / dx;
                 touty = (yout - p->y) / dy;
                 tout1 = MIN(toutx, touty);
-
                 if ((tin2 > 0.0) || (tout1 > 0.0)) {
                     if (tin2 <= tout1) {
                         if (tin2 > 0.0) {
@@ -1519,10 +1514,10 @@ static double FindSplit(Point2D points[], Tcl_Size i, Tcl_Size j, Tcl_Size *spli
  *
  * Parameters:
  *      Point2D inputPts[]
- *      int low
- *      int high
+ *      Tcl_Size low
+ *      Tcl_Size high
  *      double tolerance
- *      int indices[]
+ *      Tcl_Size indices[]
  *
  * Results:
  *      TODO: Results
@@ -1532,7 +1527,7 @@ static double FindSplit(Point2D points[], Tcl_Size i, Tcl_Size j, Tcl_Size *spli
  *
  *----------------------------------------------------------------------
  */
-int Rbc_SimplifyLine(Point2D inputPts[], Tcl_Size low, Tcl_Size high, double tolerance, Tcl_Size indices[]) {
+Tcl_Size Rbc_SimplifyLine(Point2D inputPts[], Tcl_Size low, Tcl_Size high, double tolerance, Tcl_Size indices[]) {
 #define StackPush(a) s++, stack[s] = (a)
 #define StackPop(a) (a) = stack[s], s--
 #define StackEmpty() (s < 0)

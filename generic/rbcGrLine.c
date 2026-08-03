@@ -236,7 +236,7 @@ typedef struct {
     Rbc_Tile fillTile;  /* Tile for fill area. */
     Pixmap fillStipple; /* Stipple for fill area. */
 
-    int nFillPts;
+    Tcl_Size nFillPts;
     Point2D *fillPts; /* Array of points used to draw
                        * polygon to fill area under the
                        * curve */
@@ -1260,6 +1260,7 @@ static void SetLineAttributes(PsToken psToken, LinePen *penPtr);
 static void TracesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr);
 static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, int nSymbolPts, Point2D *symbolPts,
                                const Tcl_Size *pointToData);
+static int GetDrawablePolygonPointCount(Display *display, Tcl_Size nPoints);
 
 #ifdef WIN32
 MODULE_SCOPE const int tkpWinRopModes[];
@@ -1311,6 +1312,24 @@ static void FreeLinePenColor(XColor *colorPtr) {
     if ((colorPtr != NULL) && (colorPtr != COLOR_DEFAULT)) {
         Tk_FreeColor(colorPtr);
     }
+}
+
+static int GetDrawablePolygonPointCount(Display *display, Tcl_Size nPoints) {
+    if ((nPoints < 3) || (nPoints > (Tcl_Size)INT_MAX)) {
+        return 0;
+    }
+#ifndef WIN32
+    {
+        int maxPoints;
+        maxPoints = Rbc_MaxRequestSize(display, sizeof(XPoint));
+        if ((maxPoints < 3) || (nPoints > (Tcl_Size)maxPoints)) {
+            return 0;
+        }
+    }
+#else
+    (void)display;
+#endif
+    return (int)nPoints;
 }
 
 /*
@@ -2846,8 +2865,6 @@ static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     y = linePtr->core.y.valueArr;
     /*
      * Count only the finite points that will actually be mapped.
-     * A source index may be wider than int, but the current screen-point
-     * pipeline still uses an int count.
      */
     nScreenPoints = 0;
     for (i = 0; i < nDataPoints; i++) {
@@ -3022,7 +3039,6 @@ static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Tcl_Size nIntpPts;
     int result;
     int x;
-
 
     nOrigPts = mapPtr->nScreenPts;
     origPts = mapPtr->screenPts;
@@ -3220,9 +3236,6 @@ static void GenerateParametricSpline(Graph *graphPtr, Line *linePtr, MapInfo *ma
             }
         }
     }
-    /*
-     * MapInfo.nScreenPts and the current drawing pipeline still use int.
-     */
     if (((size_t)capacity > (SIZE_MAX / sizeof(*intpPts))) || ((size_t)capacity > (SIZE_MAX / sizeof(*indices)))) {
         goto fallback;
     }
@@ -3979,32 +3992,61 @@ static void MapTraces(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
  *----------------------------------------------------------------------
  */
 static void MapFillArea(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
-    Point2D *origPts, *clipPts;
+    Point2D *origPts;
+    Point2D *clipPts;
     Extents2D exts;
     double maxY;
-    register int n;
+    Tcl_Size inputCount;
+    Tcl_Size origCount;
+    Tcl_Size clipCapacity;
+    Tcl_Size n;
     Tcl_Size i;
 
-    if (mapPtr->nScreenPts > (Tcl_Size)(INT_MAX - 3)) {
-        /*
-         * Filled polygons still use the int-based X polygon
-         * drawing path.  The line and symbols may still be drawn.
-         */
-        return;
-    }
+    /*
+     * Always discard the previous mapped polygon first.  The old code
+     * performed its INT_MAX check before this cleanup, which could leave
+     * a stale fill polygon after remapping failed.
+     */
     if (linePtr->fillPts != NULL) {
-        ckfree((char *)linePtr->fillPts);
+        ckfree(linePtr->fillPts);
         linePtr->fillPts = NULL;
         linePtr->nFillPts = 0;
     }
     if (mapPtr->nScreenPts < 3) {
         return;
     }
-    n = (int)mapPtr->nScreenPts + 3;
+    /*
+     * Add two bottom vertices and one extra array element in which
+     * Rbc_PolyRectClip() temporarily stores the closing vertex.
+     */
+    if (mapPtr->nScreenPts > TCL_SIZE_MAX - 3) {
+        return;
+    }
+    inputCount = mapPtr->nScreenPts + 2;
+    origCount = inputCount + 1;
+    /*
+     * The clipping routine can emit at most three vertices per input
+     * edge, followed by one closing vertex.
+     */
+    if (inputCount > (TCL_SIZE_MAX - 1) / 3) {
+        return;
+    }
+    clipCapacity = inputCount * 3 + 1;
+    if ((origCount > (Tcl_Size)(SIZE_MAX / sizeof(*origPts))) ||
+        (clipCapacity > (Tcl_Size)(SIZE_MAX / sizeof(*clipPts)))) {
+        return;
+    }
+    origPts = (Point2D *)Tcl_AttemptAlloc((size_t)origCount * sizeof(*origPts));
+    if (origPts == NULL) {
+        return;
+    }
+    clipPts = (Point2D *)Tcl_AttemptAlloc((size_t)clipCapacity * sizeof(*clipPts));
+    if (clipPts == NULL) {
+        ckfree(origPts);
+        return;
+    }
     Rbc_GraphExtents(graphPtr, &exts);
-
     maxY = (double)graphPtr->bottom;
-    origPts = (Point2D *)ckalloc(sizeof(Point2D) * n);
     for (i = 0; i < mapPtr->nScreenPts; i++) {
         origPts[i].x = mapPtr->screenPts[i].x + 1;
         origPts[i].y = mapPtr->screenPts[i].y;
@@ -4012,27 +4054,29 @@ static void MapFillArea(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
             maxY = origPts[i].y;
         }
     }
-    /* Add edges to make (if necessary) the polygon fill to the bottom
-     * of plotting window */
+    /*
+     * Add edges that extend the polygon to the bottom of the plotting
+     * area.
+     */
     origPts[i].x = origPts[i - 1].x;
     origPts[i].y = maxY;
     i++;
     origPts[i].x = origPts[0].x;
     origPts[i].y = maxY;
     i++;
+    /*
+     * Storage for the closing vertex used by Rbc_PolyRectClip().
+     * This element is not included in inputCount.
+     */
     origPts[i] = origPts[0];
-
-    clipPts = (Point2D *)ckalloc(sizeof(Point2D) * n * 3);
-    assert(clipPts);
-    n = Rbc_PolyRectClip(&exts, origPts, n - 1, clipPts);
-
-    ckfree((char *)origPts);
+    n = Rbc_PolyRectClip(&exts, origPts, inputCount, clipPts);
+    ckfree(origPts);
     if (n < 3) {
-        ckfree((char *)clipPts);
-    } else {
-        linePtr->fillPts = clipPts;
-        linePtr->nFillPts = n;
+        ckfree(clipPts);
+        return;
     }
+    linePtr->fillPts = clipPts;
+    linePtr->nFillPts = n;
 }
 
 /*
@@ -6081,28 +6125,28 @@ static void DrawNormalLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
     /* Fill area under the curve */
     if (linePtr->fillPts != NULL) {
         XPoint *points;
-        Point2D *endPtr, *pointPtr;
+        int nPoints;
 
-        points = (XPoint *)ckalloc(sizeof(XPoint) * linePtr->nFillPts);
-        count = 0;
-        for (pointPtr = linePtr->fillPts, endPtr = linePtr->fillPts + linePtr->nFillPts; pointPtr < endPtr;
-             pointPtr++) {
-            points[count].x = (short int)pointPtr->x;
-            points[count].y = (short int)pointPtr->y;
-            count++;
+        nPoints = GetDrawablePolygonPointCount(graphPtr->display, linePtr->nFillPts);
+        if (nPoints > 0) {
+            points = (XPoint *)Tcl_AttemptAlloc((size_t)nPoints * sizeof(*points));
+            if (points != NULL) {
+                for (count = 0; count < linePtr->nFillPts; count++) {
+                    points[count].x = (short int)linePtr->fillPts[count].x;
+                    points[count].y = (short int)linePtr->fillPts[count].y;
+                }
+                if (linePtr->fillTile != NULL) {
+                    Rbc_SetTileOrigin(graphPtr->tkwin, linePtr->fillTile, 0, 0);
+                    Rbc_TilePolygon(graphPtr->tkwin, drawable, linePtr->fillTile, points, nPoints);
+                } else if (linePtr->fillStipple != None) {
+                    XFillPolygon(graphPtr->display, drawable, linePtr->fillGC, points, nPoints, Complex,
+                                 CoordModeOrigin);
+                }
+                ckfree(points);
+            }
         }
-        if (linePtr->fillTile != NULL) {
-            Rbc_SetTileOrigin(graphPtr->tkwin, linePtr->fillTile, 0, 0);
-            Rbc_TilePolygon(graphPtr->tkwin, drawable, linePtr->fillTile, points, linePtr->nFillPts);
-        } else if (linePtr->fillStipple != None) {
-            XFillPolygon(graphPtr->display, drawable, linePtr->fillGC, points, linePtr->nFillPts, Complex,
-                         CoordModeOrigin);
-        }
-        ckfree((char *)points);
     }
-
     /* Lines: stripchart segments or graph traces. */
-
     if (linePtr->nStrips > 0) {
         for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
             stylePtr = Rbc_ChainGetValue(linkPtr);

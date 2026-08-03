@@ -82,7 +82,7 @@ void Rbc_LineWidthToPostScript(PsToken psToken, int lineWidth);
 void Rbc_PathToPostScript(PsToken psToken, Point2D *screenPts, Tcl_Size nScreenPts);
 
 void Rbc_PhotoToPostScript(PsToken psToken, Tk_PhotoHandle photoToken, double x, double y);
-void Rbc_PolygonToPostScript(PsToken psToken, Point2D *screenPts, int nScreenPts);
+void Rbc_PolygonToPostScript(PsToken psToken, Point2D *screenPts, Tcl_Size nScreenPts);
 
 void Rbc_LineToPostScript(PsToken psToken, XPoint *pointArr, int nPoints);
 

@@ -1161,7 +1161,10 @@ void Rbc_PathToPostScript(struct PsTokenStruct *tokenPtr, register Point2D *scre
  *
  *--------------------------------------------------------------
  */
-void Rbc_PolygonToPostScript(struct PsTokenStruct *tokenPtr, Point2D *screenPts, int nScreenPts) {
+void Rbc_PolygonToPostScript(struct PsTokenStruct *tokenPtr, Point2D *screenPts, Tcl_Size nScreenPts) {
+    if (nScreenPts <= 0) {
+        return;
+    }
     Rbc_PathToPostScript(tokenPtr, screenPts, nScreenPts);
     Rbc_FormatToPostScript(tokenPtr, "%g %g ", screenPts[0].x, screenPts[0].y);
     Rbc_AppendToPostScript(tokenPtr, " lineto closepath Fill\n", (char *)NULL);
