@@ -109,7 +109,7 @@ struct MarkerStruct {
     Tcl_HashEntry *hashPtr;
     Rbc_ChainLink *linkPtr;
     Point2D *worldPts; /* Coordinate array to position marker */
-    int nWorldPts;     /* Number of points in above array */
+    Tcl_Size nWorldPts;     /* Number of points in above array */
     char *elemName;    /* Element associated with marker */
     Axis2D axes;
     int drawUnder;        /* If non-zero, draw the marker
@@ -376,7 +376,7 @@ typedef struct {
     char **tags;
 
     Point2D *worldPts;
-    int nWorldPts;
+    Tcl_Size nWorldPts;
 
     Axis *xAxis;
     Axis *yAxis;
@@ -443,7 +443,7 @@ typedef struct {
                           * the mapped line.  The segments may
                           * not necessarily be connected after
                           * clipping. */
-    int nSegments;       /* # segments in the above array. */
+    Tcl_Size nSegments;       /* # segments in the above array. */
 
     int xor ;
     int xorState; /* State of the XOR drawing. Indicates
@@ -528,7 +528,7 @@ typedef struct {
                        * form a degenerate polygon after clipping.
                        */
 
-    int nFillPts; /* # points in the above array. */
+    Tcl_Size nFillPts; /* # points in the above array. */
 
     Segment2D *outlinePts; /* Malloc'ed array of points.
                             * Represents individual line segments
@@ -537,7 +537,7 @@ typedef struct {
                             * segments may not necessarily be
                             * closed or connected after clipping. */
 
-    int nOutlinePts; /* # points in the above array. */
+    Tcl_Size nOutlinePts; /* # points in the above array. */
 
     int xor ;
     int xorState; /* State of the XOR drawing. Indicates
@@ -1003,14 +1003,14 @@ static int GetMarkerStateFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *state
     return TCL_OK;
 }
 
-static int GetMarkerCoordinatesFromObj(Marker *markerPtr, Tcl_Obj *objPtr, Point2D **worldPtsPtr, int *nWorldPtsPtr) {
+static int GetMarkerCoordinatesFromObj(Marker *markerPtr, Tcl_Obj *objPtr, Point2D **worldPtsPtr, Tcl_Size *nWorldPtsPtr) {
     Tcl_Interp *interp;
     Tcl_Obj **objv;
     Tcl_Size objc;
     Tcl_Size i;
-    int minArgs;
-    int maxArgs;
-    int nWorldPts;
+    Tcl_Size minArgs;
+    Tcl_Size maxArgs;
+    Tcl_Size nWorldPts;
     Point2D *worldPts;
     Point2D *pointPtr;
 
@@ -1066,13 +1066,17 @@ static int GetMarkerCoordinatesFromObj(Marker *markerPtr, Tcl_Obj *objPtr, Point
 
         return TCL_ERROR;
     }
-
-    nWorldPts = (int)(objc / 2);
-
-    worldPts = ckalloc((size_t)nWorldPts * sizeof(Point2D));
-
+    nWorldPts = objc / 2;
+    if ((size_t)nWorldPts > SIZE_MAX / sizeof(*worldPts)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("too many marker coordinates specified", -1));
+        return TCL_ERROR;
+    }
+    worldPts = Tcl_AttemptAlloc((size_t)nWorldPts * sizeof(*worldPts));
+    if (worldPts == NULL) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate marker coordinate array", -1));
+        return TCL_ERROR;
+    }
     pointPtr = worldPts;
-
     for (i = 0; i < objc; i += 2) {
         if ((GetCoordinate(interp, Tcl_GetString(objv[i]), &pointPtr->x) != TCL_OK) ||
             (GetCoordinate(interp, Tcl_GetString(objv[i + 1]), &pointPtr->y) != TCL_OK)) {
@@ -1964,7 +1968,7 @@ static void MapBitmapMarker(Marker *markerPtr) {
         double tx, ty;
         double rotWidth, rotHeight;
         Point2D polygon[5];
-        int n;
+        Tcl_Size n;
 
         /*
          * Compute a polygon to represent the background area of the bitmap.
@@ -1992,7 +1996,8 @@ static void MapBitmapMarker(Marker *markerPtr) {
             memcpy(&bmPtr->outline, polygon, sizeof(Point2D) * 4);
             bmPtr->nOutlinePts = 4;
         } else {
-            bmPtr->nOutlinePts = n;
+            assert(n <= MAX_OUTLINE_POINTS);
+            bmPtr->nOutlinePts = (int)n;
         }
     }
 }
@@ -3993,34 +3998,43 @@ static void ChildCustodyProc(ClientData clientData, Tk_Window tkwin) {
  * ----------------------------------------------------------------------
  */
 static void MapLineMarker(Marker *markerPtr) {
-    Graph *graphPtr = markerPtr->graphPtr;
-    LineMarker *lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
-    Point2D *srcPtr, *endPtr;
-    Segment2D *segments, *segPtr;
+    Graph *graphPtr;
+    LineMarker *lmPtr;
+    Point2D *srcPtr;
+    Point2D *endPtr;
+    Segment2D *segments;
+    Segment2D *segPtr;
     Point2D p, q, next;
     Extents2D exts;
+    Tcl_Size capacity;
 
+    graphPtr = markerPtr->graphPtr;
+    lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
     lmPtr->nSegments = 0;
+    lmPtr->core.clipped = TRUE;
     if (lmPtr->segments != NULL) {
-        ckfree((char *)lmPtr->segments);
+        ckfree(lmPtr->segments);
+        lmPtr->segments = NULL;
     }
     if (lmPtr->core.nWorldPts < 2) {
-        return; /* Too few points */
+        return;
+    }
+    /*
+     * One source edge can produce at most one clipped segment.
+     */
+    capacity = lmPtr->core.nWorldPts - 1;
+    if ((size_t)capacity > SIZE_MAX / sizeof(*segments)) {
+        return;
+    }
+    segments = Tcl_AttemptAlloc((size_t)capacity * sizeof(*segments));
+    if (segments == NULL) {
+        return;
     }
     Rbc_GraphExtents(graphPtr, &exts);
-
-    /*
-     * Allow twice the number of world coordinates. The line will
-     * represented as series of line segments, not one continous
-     * polyline.  This is because clipping against the plot area may
-     * chop the line into several disconnected segments.
-     */
-    segments = (Segment2D *)ckalloc(lmPtr->core.nWorldPts * sizeof(Segment2D));
     srcPtr = lmPtr->core.worldPts;
     p = MapPoint(graphPtr, srcPtr, &lmPtr->core.axes);
     p.x += lmPtr->core.xOffset;
     p.y += lmPtr->core.yOffset;
-
     segPtr = segments;
     for (srcPtr++, endPtr = lmPtr->core.worldPts + lmPtr->core.nWorldPts; srcPtr < endPtr; srcPtr++) {
         next = MapPoint(graphPtr, srcPtr, &lmPtr->core.axes);
@@ -4034,9 +4048,13 @@ static void MapLineMarker(Marker *markerPtr) {
         }
         p = next;
     }
-    lmPtr->nSegments = segPtr - segments;
+    lmPtr->nSegments = (Tcl_Size)(segPtr - segments);
+    if (lmPtr->nSegments == 0) {
+        ckfree(segments);
+        return;
+    }
     lmPtr->segments = segments;
-    lmPtr->core.clipped = (lmPtr->nSegments == 0);
+    lmPtr->core.clipped = FALSE;
 }
 
 /*
@@ -4085,37 +4103,44 @@ static int PointInLineMarker(Marker *markerPtr, Point2D *samplePtr) {
  *----------------------------------------------------------------------
  */
 static int RegionInLineMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed) {
-    LineMarker *lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
+    LineMarker *lmPtr;
+    Point2D *pointPtr;
+    Point2D *endPtr;
 
+    lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
     if (lmPtr->core.nWorldPts < 2) {
         return FALSE;
     }
     if (enclosed) {
         Point2D p;
-        Point2D *pointPtr, *endPtr;
 
-        for (pointPtr = lmPtr->core.worldPts, endPtr = lmPtr->core.worldPts + lmPtr->core.nWorldPts; pointPtr < endPtr; pointPtr++) {
+        for (pointPtr = lmPtr->core.worldPts, endPtr = lmPtr->core.worldPts + lmPtr->core.nWorldPts; pointPtr < endPtr;
+             pointPtr++) {
             p = MapPoint(lmPtr->core.graphPtr, pointPtr, &lmPtr->core.axes);
-            if ((p.x < extsPtr->left) && (p.x > extsPtr->right) && (p.y < extsPtr->top) && (p.y > extsPtr->bottom)) {
+            p.x += lmPtr->core.xOffset;
+            p.y += lmPtr->core.yOffset;
+            if ((p.x < extsPtr->left) || (p.x > extsPtr->right) || (p.y < extsPtr->top) || (p.y > extsPtr->bottom)) {
                 return FALSE;
             }
         }
-        return TRUE; /* All points inside bounding box. */
+        return TRUE;
     } else {
-        Point2D p, q;
-        int count;
-        Point2D *pointPtr, *endPtr;
+        Point2D p;
+        Point2D q;
 
-        count = 0;
-        for (pointPtr = lmPtr->core.worldPts, endPtr = lmPtr->core.worldPts + (lmPtr->core.nWorldPts - 1); pointPtr < endPtr;
-             pointPtr++) {
+        endPtr = lmPtr->core.worldPts + lmPtr->core.nWorldPts - 1;
+        for (pointPtr = lmPtr->core.worldPts; pointPtr < endPtr; pointPtr++) {
             p = MapPoint(lmPtr->core.graphPtr, pointPtr, &lmPtr->core.axes);
             q = MapPoint(lmPtr->core.graphPtr, pointPtr + 1, &lmPtr->core.axes);
+            p.x += lmPtr->core.xOffset;
+            p.y += lmPtr->core.yOffset;
+            q.x += lmPtr->core.xOffset;
+            q.y += lmPtr->core.yOffset;
             if (Rbc_LineRectClip(extsPtr, &p, &q)) {
-                count++;
+                return TRUE;
             }
         }
-        return (count > 0); /* At least 1 segment passes through region. */
+        return FALSE;
     }
 }
 
@@ -4477,95 +4502,109 @@ static Marker *CreateLineMarker() {
  * ----------------------------------------------------------------------
  */
 static void MapPolygonMarker(Marker *markerPtr) {
-    Graph *graphPtr = markerPtr->graphPtr;
-    PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
-    Point2D *srcPtr, *destPtr, *endPtr;
+    Graph *graphPtr;
+    PolygonMarker *pmPtr;
+    Point2D *srcPtr;
+    Point2D *destPtr;
+    Point2D *endPtr;
     Point2D *screenPts;
     Extents2D exts;
-    int nScreenPts;
+    Tcl_Size nVertices;
+    Tcl_Size screenCapacity;
 
+    graphPtr = markerPtr->graphPtr;
+    pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
     if (pmPtr->outlinePts != NULL) {
-        ckfree((char *)pmPtr->outlinePts);
+        ckfree(pmPtr->outlinePts);
         pmPtr->outlinePts = NULL;
-        pmPtr->nOutlinePts = 0;
     }
+    pmPtr->nOutlinePts = 0;
     if (pmPtr->fillPts != NULL) {
-        ckfree((char *)pmPtr->fillPts);
+        ckfree(pmPtr->fillPts);
         pmPtr->fillPts = NULL;
-        pmPtr->nFillPts = 0;
     }
+    pmPtr->nFillPts = 0;
     if (pmPtr->screenPts != NULL) {
-        ckfree((char *)pmPtr->screenPts);
+        ckfree(pmPtr->screenPts);
         pmPtr->screenPts = NULL;
     }
-    if (pmPtr->core.nWorldPts < 3) {
-        return; /* Too few points */
+    pmPtr->core.clipped = TRUE;
+    nVertices = pmPtr->core.nWorldPts;
+    if (nVertices < 3) {
+        return;
     }
-
     /*
-     * Allocate and fill a temporary array to hold the screen
-     * coordinates of the polygon.
+     * Reserve one extra point for Rbc_PolyRectClip(), which uses it
+     * temporarily as the closing vertex.
      */
-    nScreenPts = pmPtr->core.nWorldPts + 1;
-    screenPts = (Point2D *)ckalloc((nScreenPts + 1) * sizeof(Point2D));
-    endPtr = pmPtr->core.worldPts + pmPtr->core.nWorldPts;
+    if (nVertices == TCL_SIZE_MAX) {
+        return;
+    }
+    screenCapacity = nVertices + 1;
+    if ((size_t)screenCapacity > SIZE_MAX / sizeof(*screenPts)) {
+        return;
+    }
+    screenPts = Tcl_AttemptAlloc((size_t)screenCapacity * sizeof(*screenPts));
+    if (screenPts == NULL) {
+        return;
+    }
     destPtr = screenPts;
-    for (srcPtr = pmPtr->core.worldPts; srcPtr < endPtr; srcPtr++) {
+    endPtr = pmPtr->core.worldPts + nVertices;
+    for (srcPtr = pmPtr->core.worldPts; srcPtr < endPtr; srcPtr++, destPtr++) {
         *destPtr = MapPoint(graphPtr, srcPtr, &pmPtr->core.axes);
         destPtr->x += pmPtr->core.xOffset;
         destPtr->y += pmPtr->core.yOffset;
-        destPtr++;
     }
-    *destPtr = screenPts[0];
-
+    screenPts[nVertices] = screenPts[0];
+    pmPtr->screenPts = screenPts;
     Rbc_GraphExtents(graphPtr, &exts);
-    pmPtr->core.clipped = TRUE;
-    if (pmPtr->fill.fgColor != NULL) { /* Polygon fill required. */
+    if (pmPtr->fill.fgColor != NULL) {
         Point2D *fillPts;
-        int n;
+        Tcl_Size fillCapacity;
+        Tcl_Size nFillPts;
 
-        fillPts = (Point2D *)ckalloc(sizeof(Point2D) * nScreenPts * 3);
-        assert(fillPts);
-        n = Rbc_PolyRectClip(&exts, screenPts, pmPtr->core.nWorldPts, fillPts);
-        if (n < 3) {
-            ckfree((char *)fillPts);
-        } else {
-            pmPtr->nFillPts = n;
-            pmPtr->fillPts = fillPts;
-            pmPtr->core.clipped = FALSE;
+        if (nVertices <= (TCL_SIZE_MAX - 1) / 3) {
+            fillCapacity = nVertices * 3 + 1;
+            if ((size_t)fillCapacity <= SIZE_MAX / sizeof(*fillPts)) {
+                fillPts = Tcl_AttemptAlloc((size_t)fillCapacity * sizeof(*fillPts));
+                if (fillPts != NULL) {
+                    nFillPts = Rbc_PolyRectClip(&exts, screenPts, nVertices, fillPts);
+                    if (nFillPts >= 3) {
+                        pmPtr->fillPts = fillPts;
+                        pmPtr->nFillPts = nFillPts;
+                        pmPtr->core.clipped = FALSE;
+                    } else {
+                        ckfree(fillPts);
+                    }
+                }
+            }
         }
     }
     if ((pmPtr->outline.fgColor != NULL) && (pmPtr->lineWidth > 0)) {
         Segment2D *outlinePts;
-        register Segment2D *segPtr;
-        /*
-         * Generate line segments representing the polygon outline.
-         * The resulting outline may or may not be closed from
-         * viewport clipping.
-         */
-        outlinePts = (Segment2D *)ckalloc(nScreenPts * sizeof(Segment2D));
-        if (outlinePts == NULL) {
-            return; /* Can't allocate point array */
-        }
-        /*
-         * Note that this assumes that the point array contains an
-         * extra point that closes the polygon.
-         */
-        segPtr = outlinePts;
-        for (srcPtr = screenPts, endPtr = screenPts + (nScreenPts - 1); srcPtr < endPtr; srcPtr++) {
-            segPtr->p = srcPtr[0];
-            segPtr->q = srcPtr[1];
-            if (Rbc_LineRectClip(&exts, &segPtr->p, &segPtr->q)) {
-                segPtr++;
+        Segment2D *segPtr;
+
+        if ((size_t)nVertices <= SIZE_MAX / sizeof(*outlinePts)) {
+            outlinePts = Tcl_AttemptAlloc((size_t)nVertices * sizeof(*outlinePts));
+            if (outlinePts != NULL) {
+                segPtr = outlinePts;
+                for (srcPtr = screenPts, endPtr = screenPts + nVertices; srcPtr < endPtr; srcPtr++) {
+                    segPtr->p = srcPtr[0];
+                    segPtr->q = srcPtr[1];
+                    if (Rbc_LineRectClip(&exts, &segPtr->p, &segPtr->q)) {
+                        segPtr++;
+                    }
+                }
+                pmPtr->nOutlinePts = (Tcl_Size)(segPtr - outlinePts);
+                if (pmPtr->nOutlinePts > 0) {
+                    pmPtr->outlinePts = outlinePts;
+                    pmPtr->core.clipped = FALSE;
+                } else {
+                    ckfree(outlinePts);
+                }
             }
         }
-        pmPtr->nOutlinePts = segPtr - outlinePts;
-        pmPtr->outlinePts = outlinePts;
-        if (pmPtr->nOutlinePts > 0) {
-            pmPtr->core.clipped = FALSE;
-        }
     }
-    pmPtr->screenPts = screenPts;
 }
 
 /*
@@ -4588,12 +4627,13 @@ static void MapPolygonMarker(Marker *markerPtr) {
  *----------------------------------------------------------------------
  */
 static int PointInPolygonMarker(Marker *markerPtr, Point2D *samplePtr) {
-    PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
+    PolygonMarker *pmPtr;
 
-    if (pmPtr->core.nWorldPts < 2) {
+    pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
+    if ((pmPtr->screenPts == NULL) || (pmPtr->core.nWorldPts < 3)) {
         return FALSE;
     }
-    return Rbc_PointInPolygon(samplePtr, pmPtr->screenPts, pmPtr->core.nWorldPts + 1);
+    return Rbc_PointInPolygon(samplePtr, pmPtr->screenPts, pmPtr->core.nWorldPts);
 }
 
 /*
@@ -4617,12 +4657,13 @@ static int PointInPolygonMarker(Marker *markerPtr, Point2D *samplePtr) {
  *----------------------------------------------------------------------
  */
 static int RegionInPolygonMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed) {
-    PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
+    PolygonMarker *pmPtr;
 
-    if (pmPtr->core.nWorldPts >= 3) {
-        return Rbc_RegionInPolygon(extsPtr, pmPtr->screenPts, pmPtr->core.nWorldPts, enclosed);
+    pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
+    if ((pmPtr->screenPts == NULL) || (pmPtr->core.nWorldPts < 3)) {
+        return FALSE;
     }
-    return FALSE;
+    return Rbc_RegionInPolygon(extsPtr, pmPtr->screenPts, pmPtr->core.nWorldPts, enclosed);
 }
 
 /*
@@ -4644,29 +4685,57 @@ static int RegionInPolygonMarker(Marker *markerPtr, Extents2D *extsPtr, int encl
  *
  *----------------------------------------------------------------------
  */
-static void DrawPolygonMarker(Marker *markerPtr, Drawable drawable) {
-    Graph *graphPtr = markerPtr->graphPtr;
-    PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
 
-    /* Draw polygon fill region */
-    if ((pmPtr->nFillPts > 0) && (pmPtr->fill.fgColor != NULL)) {
-        XPoint *destPtr, *pointArr;
-        Point2D *srcPtr, *endPtr;
-
-        pointArr = (XPoint *)ckalloc(pmPtr->nFillPts * sizeof(XPoint));
-        if (pointArr == NULL) {
-            return;
-        }
-        destPtr = pointArr;
-        for (srcPtr = pmPtr->fillPts, endPtr = pmPtr->fillPts + pmPtr->nFillPts; srcPtr < endPtr; srcPtr++) {
-            destPtr->x = (short int)srcPtr->x;
-            destPtr->y = (short int)srcPtr->y;
-            destPtr++;
-        }
-        XFillPolygon(graphPtr->display, drawable, pmPtr->fillGC, pointArr, pmPtr->nFillPts, Complex, CoordModeOrigin);
-        ckfree((char *)pointArr);
+static int GetMarkerPolygonPointCount(Display *display, Tcl_Size nPoints) {
+    if ((nPoints < 3) || (nPoints > (Tcl_Size)INT_MAX)) {
+        return 0;
     }
-    /* and then the outline */
+#ifndef WIN32
+    {
+        int maxPoints;
+
+        maxPoints = Rbc_MaxRequestSize(display, sizeof(XPoint));
+        if ((maxPoints < 3) || (nPoints > (Tcl_Size)maxPoints)) {
+            return 0;
+        }
+    }
+#else
+    (void)display;
+#endif
+    return (int)nPoints;
+}
+static void DrawPolygonMarker(Marker *markerPtr, Drawable drawable) {
+    Graph *graphPtr;
+    PolygonMarker *pmPtr;
+
+    graphPtr = markerPtr->graphPtr;
+    pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
+    /*
+     * Draw the polygon fill.  XFillPolygon requires an int count and
+     * the complete polygon must fit in one native request.
+     */
+    if ((pmPtr->nFillPts >= 3) && (pmPtr->fill.fgColor != NULL)) {
+        XPoint *pointArr;
+        Tcl_Size i;
+        int nPoints;
+
+        nPoints = GetMarkerPolygonPointCount(graphPtr->display, pmPtr->nFillPts);
+        if (nPoints > 0) {
+            pointArr = Tcl_AttemptAlloc((size_t)nPoints * sizeof(*pointArr));
+            if (pointArr != NULL) {
+                for (i = 0; i < pmPtr->nFillPts; i++) {
+                    pointArr[i].x = (short int)pmPtr->fillPts[i].x;
+                    pointArr[i].y = (short int)pmPtr->fillPts[i].y;
+                }
+                XFillPolygon(graphPtr->display, drawable, pmPtr->fillGC, pointArr, nPoints, Complex, CoordModeOrigin);
+                ckfree(pointArr);
+            }
+        }
+    }
+    /*
+     * Outline segments can be safely chunked by
+     * Rbc_Draw2DSegments().
+     */
     if ((pmPtr->nOutlinePts > 0) && (pmPtr->lineWidth > 0) && (pmPtr->outline.fgColor != NULL)) {
         Rbc_Draw2DSegments(graphPtr->display, drawable, pmPtr->outlineGC, pmPtr->outlinePts, pmPtr->nOutlinePts);
     }
@@ -4695,15 +4764,13 @@ static void PolygonMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
     Graph *graphPtr = markerPtr->graphPtr;
     PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
 
-    if (pmPtr->fill.fgColor != NULL) {
-
+    if ((pmPtr->nFillPts >= 3) && (pmPtr->fill.fgColor != NULL)) {
         /*
          * Options:  fg bg
          *            Draw outline only.
          *         x          Draw solid or stipple.
          *         x  x       Draw solid or stipple.
          */
-
         /* Create a path to use for both the polygon and its outline. */
         Rbc_PathToPostScript(psToken, pmPtr->fillPts, pmPtr->nFillPts);
         Rbc_AppendToPostScript(psToken, "closepath\n", (char *)NULL);
@@ -4724,7 +4791,7 @@ static void PolygonMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
     }
 
     /* Draw the outline in the foreground color.  */
-    if ((pmPtr->lineWidth > 0) && (pmPtr->outline.fgColor != NULL)) {
+    if ((pmPtr->nOutlinePts > 0) && (pmPtr->lineWidth > 0) && (pmPtr->outline.fgColor != NULL)) {
 
         /*  Set up the line attributes.  */
         Rbc_LineAttributesToPostScript(psToken, pmPtr->outline.fgColor, pmPtr->lineWidth, &pmPtr->dashes,

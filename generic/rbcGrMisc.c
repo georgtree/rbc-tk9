@@ -419,24 +419,33 @@ static const char *ColorPairToString(ClientData clientData, Tk_Window tkwin, cha
  *
  *----------------------------------------------------------------------
  */
-int Rbc_PointInSegments(Point2D *samplePtr, Segment2D *segments, int nSegments, double halo) {
-    register Segment2D *segPtr, *endPtr;
+int Rbc_PointInSegments(Point2D *samplePtr, Segment2D *segments, Tcl_Size nSegments, double halo) {
+    Segment2D *segPtr;
+    Segment2D *endPtr;
     double left, right, top, bottom;
     Point2D p, t;
-    double dist, minDist;
+    double dist;
+    double minDist;
 
+    if ((segments == NULL) || (nSegments <= 0)) {
+        return FALSE;
+    }
     minDist = DBL_MAX;
     for (segPtr = segments, endPtr = segments + nSegments; segPtr < endPtr; segPtr++) {
         t = Rbc_GetProjection((int)samplePtr->x, (int)samplePtr->y, &segPtr->p, &segPtr->q);
         if (segPtr->p.x > segPtr->q.x) {
-            right = segPtr->p.x, left = segPtr->q.x;
+            right = segPtr->p.x;
+            left = segPtr->q.x;
         } else {
-            right = segPtr->q.x, left = segPtr->p.x;
+            right = segPtr->q.x;
+            left = segPtr->p.x;
         }
         if (segPtr->p.y > segPtr->q.y) {
-            bottom = segPtr->p.y, top = segPtr->q.y;
+            bottom = segPtr->p.y;
+            top = segPtr->q.y;
         } else {
-            bottom = segPtr->q.y, top = segPtr->p.y;
+            bottom = segPtr->q.y;
+            top = segPtr->p.y;
         }
         p.x = BOUND(t.x, left, right);
         p.y = BOUND(t.y, top, bottom);
@@ -468,21 +477,32 @@ int Rbc_PointInSegments(Point2D *samplePtr, Segment2D *segments, int nSegments, 
  *
  *----------------------------------------------------------------------
  */
-int Rbc_PointInPolygon(Point2D *samplePtr, Point2D *points, int nPoints) {
-    double b;
-    register Point2D *p, *q, *endPtr;
-    register int count;
+int Rbc_PointInPolygon(Point2D *samplePtr, Point2D *points, Tcl_Size nPoints) {
+    Point2D *p;
+    Point2D *q;
+    Point2D *endPtr;
+    double xIntersection;
+    int inside;
 
-    count = 0;
-    for (p = points, q = p + 1, endPtr = p + nPoints; q < endPtr; p++, q++) {
+    if ((points == NULL) || (nPoints < 3)) {
+        return FALSE;
+    }
+    /*
+     * Start with the closing edge from the last vertex to the first.
+     * The caller no longer needs to append a duplicate first point.
+     */
+    p = points + nPoints - 1;
+    endPtr = points + nPoints;
+    inside = FALSE;
+    for (q = points; q < endPtr; p = q, q++) {
         if (((p->y <= samplePtr->y) && (samplePtr->y < q->y)) || ((q->y <= samplePtr->y) && (samplePtr->y < p->y))) {
-            b = (q->x - p->x) * (samplePtr->y - p->y) / (q->y - p->y) + p->x;
-            if (samplePtr->x < b) {
-                count++; /* Count the number of intersections. */
+            xIntersection = (q->x - p->x) * (samplePtr->y - p->y) / (q->y - p->y) + p->x;
+            if (samplePtr->x < xIntersection) {
+                inside = !inside;
             }
         }
     }
-    return (count & 0x01);
+    return inside;
 }
 
 /*
@@ -506,39 +526,46 @@ int Rbc_PointInPolygon(Point2D *samplePtr, Point2D *points, int nPoints) {
  *
  *----------------------------------------------------------------------
  */
-int Rbc_RegionInPolygon(Extents2D *extsPtr, Point2D *points, int nPoints, int enclosed) {
-    register Point2D *pointPtr, *endPtr;
+int Rbc_RegionInPolygon(Extents2D *extsPtr, Point2D *points, Tcl_Size nPoints, int enclosed) {
+    Point2D *pointPtr;
+    Point2D *endPtr;
 
+    if ((points == NULL) || (nPoints < 3)) {
+        return FALSE;
+    }
     if (enclosed) {
         /*
-         * All points of the polygon must be inside the rectangle.
+         * Every polygon vertex must be inside the region.
          */
         for (pointPtr = points, endPtr = points + nPoints; pointPtr < endPtr; pointPtr++) {
             if ((pointPtr->x < extsPtr->left) || (pointPtr->x > extsPtr->right) || (pointPtr->y < extsPtr->top) ||
                 (pointPtr->y > extsPtr->bottom)) {
-                return FALSE; /* One point is exterior. */
+                return FALSE;
             }
         }
         return TRUE;
     } else {
-        Point2D p, q;
+        Point2D *pPtr;
+        Point2D *qPtr;
+        Point2D p;
+        Point2D q;
 
         /*
-         * If any segment of the polygon clips the bounding region, the
-         * polygon overlaps the rectangle.
+         * Test every edge, including the closing edge from the final
+         * vertex to the first, without modifying the caller's array.
          */
-        points[nPoints] = points[0];
-        for (pointPtr = points, endPtr = points + nPoints; pointPtr < endPtr; pointPtr++) {
-            p = *pointPtr;
-            q = *(pointPtr + 1);
+        pPtr = points + nPoints - 1;
+        endPtr = points + nPoints;
+        for (qPtr = points; qPtr < endPtr; pPtr = qPtr, qPtr++) {
+            p = *pPtr;
+            q = *qPtr;
             if (Rbc_LineRectClip(extsPtr, &p, &q)) {
                 return TRUE;
             }
         }
         /*
-         * Otherwise the polygon and rectangle are either disjoint
-         * or enclosed.  Check if one corner of the rectangle is
-         * inside the polygon.
+         * No edge crossed the rectangle.  The rectangle may still be
+         * completely inside the polygon.
          */
         p.x = extsPtr->left;
         p.y = extsPtr->top;

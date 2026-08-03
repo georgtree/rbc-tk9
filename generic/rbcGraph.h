@@ -668,9 +668,9 @@ int Rbc_GridOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *cons
 int Rbc_CrosshairsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 int Rbc_MarkerOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 int Rbc_PenOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
-int Rbc_PointInPolygon(Point2D *samplePtr, Point2D *screenPts, int nScreenPts);
-int Rbc_RegionInPolygon(Extents2D *extsPtr, Point2D *points, int nPoints, int enclosed);
-int Rbc_PointInSegments(Point2D *samplePtr, Segment2D *segments, int nSegments, double halo);
+int Rbc_PointInPolygon(Point2D *samplePtr, Point2D *screenPts, Tcl_Size nScreenPts);
+int Rbc_RegionInPolygon(Extents2D *extsPtr, Point2D *points, Tcl_Size nPoints, int enclosed);
+int Rbc_PointInSegments(Point2D *samplePtr, Segment2D *segments, Tcl_Size nSegments, double halo);
 int Rbc_PostScriptOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 int Rbc_GraphUpdateNeeded(Graph *graphPtr);
 int Rbc_DefaultAxes(Graph *graphPtr);
