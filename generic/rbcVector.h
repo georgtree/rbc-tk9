@@ -13,6 +13,7 @@
 #define _RBCVECTOR
 
 #include <ctype.h>
+#include <stdint.h>
 #include "rbcInt.h"
 #include "rbcChain.h"
 
