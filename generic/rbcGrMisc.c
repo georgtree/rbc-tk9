@@ -68,7 +68,8 @@ static double FindSplit(Point2D points[], Tcl_Size i, Tcl_Size j, Tcl_Size *spli
  *----------------------------------------------------------------------
  */
 int Rbc_GetXY(Tcl_Interp *interp, Tk_Window tkwin, const char *string, int *xPtr, int *yPtr) {
-    char *comma;
+    const char *comma;
+    Tcl_DString xString;
     int result;
     int x, y;
 
@@ -83,15 +84,23 @@ int Rbc_GetXY(Tcl_Interp *interp, Tk_Window tkwin, const char *string, int *xPtr
     if (comma == NULL) {
         goto badFormat;
     }
-    *comma = '\0';
-    result = ((Tk_GetPixels(interp, tkwin, string + 1, &x) == TCL_OK) &&
-              (Tk_GetPixels(interp, tkwin, comma + 1, &y) == TCL_OK));
-    *comma = ',';
-    if (!result) {
+    /*
+     * Copy the X component because string is read-only.  The previous
+     * implementation temporarily replaced the comma with a NUL byte.
+     */
+    Tcl_DStringInit(&xString);
+    Tcl_DStringAppend(&xString, string + 1, (Tcl_Size)(comma - (string + 1)));
+    result = Tk_GetPixels(interp, tkwin, Tcl_DStringValue(&xString), &x);
+    Tcl_DStringFree(&xString);
+    if (result == TCL_OK) {
+        result = Tk_GetPixels(interp, tkwin, comma + 1, &y);
+    }
+    if (result != TCL_OK) {
         Tcl_AppendResult(interp, ": can't parse position \"", string, "\"", (char *)NULL);
         return TCL_ERROR;
     }
-    *xPtr = x, *yPtr = y;
+    *xPtr = x;
+    *yPtr = y;
     return TCL_OK;
 
 badFormat:
