@@ -158,6 +158,7 @@ customMatch approxEqual approxNestedEqual
 testConstraint isInteractive true
 testConstraint isZoom true
 testConstraint isCrosshairs true
+testConstraint isAxes true
 
 
 ### general configuration tests
@@ -675,43 +676,36 @@ test crosshairsInteractive-6 {interactive crosshairs with closes element coordin
     destroy $widget
 }
 
+#### axes
+test axesInteractive-1 {interactive change of axis scale} -constraints {isInteractive isAxes} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -scaletoggle all]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+    $widget graph configure -title {Interactive crosshairs with closes element coordinate marker} {*}$titleFont
+    $widget graph element create line1 -xdata xVec1 -ydata yVec1
+    $widget graph element create line2 -xdata xVec2 -ydata yVec2
+    set graph [$widget subwidget graph]
+    set axis x
+    set side bottom
+} -body {
+    WaitForWindow $graph
+    lassign [FindAxisPoint $graph $axis $side] axisX axisY
+    set plotX [expr {[$graph extents leftmargin] + [$graph extents plotwidth] / 2}]
+    set plotY [expr {[$graph extents topmargin] + [$graph extents plotheight] / 2}]
+    lappend scale [lindex [$graph axis configure $axis -logscale] end]
+    GenerateGraphEvent $graph <Motion> $axisX $axisY 500
+    GenerateGraphEvent $graph <ButtonPress-1> $axisX $axisY 500
+    GenerateGraphEvent $graph <ButtonRelease-1> $axisX $axisY 20
+    lappend scale [lindex [$graph axis configure $axis -logscale] end]
+    GenerateGraphEvent $graph <Motion> $plotX $plotY 500
+    return $scale
+}  -result {0 1} -cleanup {
+    destroy $widget
+}
+
 cleanupTests
 
-# test RBC.element.show.A.1.1 {
-#     element show: single element name
-# } -setup {
-#     set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400 -zoom -zoommod {Control-} -zoomtitle -zoommark\
-#                         -zoomboxopts {-outline red -linewidth 1} -crosshairs -crosshairsmode current -crosshairsopts {-color blue}\
-#                         -crosshairsmarkopts {-font {Helvetica 10}} -crosshairsclosestopts {-interpolate yes -single no}\
-#                         -scaletoggle all]
-#     grid .gtb -row 0 -column 0 -sticky nsew
-#     grid columnconfigure . 0 -weight 1
-#     grid rowconfigure . 0 -weight 1
-#     $widget widgetcommand graph element create line1 -xdata { 0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0 }\
-#             -ydata {26.18 50.46 72.85 93.31 111.86 128.47 143.14 155.85 166.60 175.38}
-#     $widget widgetcommand graph element create line2 -xdata { 0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0 }\
-#             -ydata {16.18 60.46 82.85 103.31 121.86 138.47 153.14 165.85 176.60 185.38}
-#     set graph [$widget subwidget graph]
-#     set axis x
-#     set side bottom
-# } -body {
-#     WaitForWindow $graph
-#     lassign [FindAxisPoint $graph $axis $side] axisX axisY
-#     set plotX [expr {[$graph extents leftmargin] + [$graph extents plotwidth] / 2}]
-#     set plotY [expr {[$graph extents topmargin] + [$graph extents plotheight] / 2}]
-#     puts "Initial logscale: \ [lindex [$graph axis configure $axis -logscale] end]"
-#     sleep 500 
-#     GenerateGraphEvent $graph <Motion> $axisX $axisY
-#     sleep 1500 
-#     GenerateGraphEvent $graph <ButtonPress-1> $axisX $axisY -button 1
-#     sleep 1520 
-#     GenerateGraphEvent $graph <ButtonRelease-1> $axisX $axisY -button 1
-#     sleep 2000 
-#     puts "Current logscale: \ [lindex [$graph axis configure $axis -logscale] end]"
-#     sleep 3000 
-#     GenerateGraphEvent $graph <Motion> $plotX $plotY
-# } -cleanup {
-#     destroy $widget
-# } -result {Element1}
+
 
 

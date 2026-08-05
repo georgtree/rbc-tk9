@@ -6640,3 +6640,16 @@ ClientData Rbc_MakeAxisTag(Graph *graphPtr, char *tagName) {
     assert(hPtr);
     return Tcl_GetHashKey(&graphPtr->axes.tagTable, hPtr);
 }
+
+void Rbc_AppendAxisBindingTags(Graph *graphPtr, Axis *axisPtr, Rbc_List list) {
+    char **p;
+
+    Rbc_ListAppend(list, Rbc_MakeAxisTag(graphPtr, axisPtr->name), 0);
+    Rbc_ListAppend(list, Rbc_MakeAxisTag(graphPtr, axisPtr->classUid), 0);
+    if (axisPtr->tags == NULL) {
+        return;
+    }
+    for (p = axisPtr->tags; *p != NULL; p++) {
+        Rbc_ListAppend(list, Rbc_MakeAxisTag(graphPtr, *p), 0);
+    }
+}

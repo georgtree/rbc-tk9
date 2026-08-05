@@ -684,6 +684,9 @@ MakeTagProc Rbc_MakeElementTag;
 MakeTagProc Rbc_MakeMarkerTag;
 MakeTagProc Rbc_MakeAxisTag;
 
+void Rbc_AppendAxisBindingTags(Graph *graphPtr, Axis *axisPtr, Rbc_List list);
+void Rbc_AppendElementBindingTags(Graph *graphPtr, Element *elemPtr, Rbc_List list);
+void Rbc_AppendMarkerBindingTags(Graph *graphPtr, Marker *markerPtr, Rbc_List list);
 Rbc_BindTagProc Rbc_GraphTags;
 
 int Rbc_GraphType(Graph *graphPtr);

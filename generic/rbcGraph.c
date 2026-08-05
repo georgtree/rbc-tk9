@@ -110,6 +110,12 @@ Rbc_Uid rbcWindowMarkerUid;
 #define GRAPH_PLOT_BACKGROUND_MASK (1u << 13)
 
 typedef enum {
+    GRAPH_BIND_CONTEXT_AXIS = 1,
+    GRAPH_BIND_CONTEXT_ELEMENT,
+    GRAPH_BIND_CONTEXT_MARKER
+} GraphBindContext;
+
+typedef enum {
     GRAPH_PIXEL_OPTION_NONE,
     GRAPH_PIXEL_OPTION_BORDER_WIDTH,
     GRAPH_PIXEL_OPTION_BOTTOM_MARGIN,
@@ -1266,73 +1272,44 @@ static int InitPens(Graph *graphPtr) {
  *
  * Rbc_GraphTags --
  *
- *      Sets the binding tags for a graph object. This routine is
- *      called by Tk when an event occurs in the graph.  It fills
- *      an array of pointers with bind tag addresses.
- *
- *      The object addresses are strings hashed in one of two tag
- *      tables: one for elements and the another for markers.  Note
- *      that there's only one binding table for elements and markers.
- *      [We don't want to trigger both a marker and element bind
- *      command for the same event.]  But we don't want a marker and
- *      element with the same tag name to activate the others
- *      bindings. A tag "all" for markers should mean all markers, not
- *      all markers and elements.  As a result, element and marker
- *      tags are stored in separate hash tables, which means we can't
- *      generate the same tag address for both an elements and marker,
- *      even if they have the same name.
+ *      Appends the binding identifiers for the picked graph object.
+ *      The object type is supplied explicitly by PickEntry through the
+ *      binding context; no common structure layout is assumed.
  *
  * Parameters:
- *      Rbc_BindTable table
- *      ClientData object
- *      ClientData context - Not used.
- *      Rbc_List list
+ *      Rbc_BindTable table - Graph binding table.
+ *      ClientData object   - Picked Axis, Element, or Marker pointer.
+ *      ClientData context  - GraphBindContext value.
+ *      Rbc_List list       - Destination binding identifier list.
  *
  * Results:
  *      None.
  *
- * Side effects:
- *      This information will be used by the binding code in rbcUtil.c
- *      to determine what graph objects match the current event.  The
- *      tags are placed in tagArr and *nTagsPtr is set with the
- *      number of tags found.
+ * Side Effects:
+ *      Appends the object's name, class, and configured bind tags.
  *
  *----------------------------------------------------------------------
  */
 void Rbc_GraphTags(Rbc_BindTable table, ClientData object, ClientData context, Rbc_List list) {
-    Element *elemPtr;
-    MakeTagProc *tagProc;
     Graph *graphPtr;
 
     graphPtr = (Graph *)Rbc_GetBindingData(table);
-    /*
-     * Trick:   Markers, elements, and axes have the same first few
-     *          fields in their structures, such as "type", "name", or
-     *          "tags".  This is so we can look at graph objects
-     *          interchangably.  It doesn't matter what we cast the
-     *          object to.
-     */
-    elemPtr = (Element *)object;
-
-    if ((elemPtr->classUid == rbcLineElementUid) || (elemPtr->classUid == rbcStripElementUid) ||
-        (elemPtr->classUid == rbcBarElementUid)) {
-        tagProc = Rbc_MakeElementTag;
-    } else if ((elemPtr->classUid == rbcXAxisUid) || (elemPtr->classUid == rbcYAxisUid)) {
-        tagProc = Rbc_MakeAxisTag;
-    } else {
-        tagProc = Rbc_MakeMarkerTag;
-    }
-    /*
-     * Always add the name of the object to the tag array.
-     */
-    Rbc_ListAppend(list, (*tagProc)(graphPtr, elemPtr->name), 0);
-    Rbc_ListAppend(list, (*tagProc)(graphPtr, elemPtr->classUid), 0);
-    if (elemPtr->tags != NULL) {
-        register char **p;
-
-        for (p = elemPtr->tags; *p != NULL; p++) {
-            Rbc_ListAppend(list, (*tagProc)(graphPtr, *p), 0);
-        }
+    switch ((GraphBindContext)PTR2INT(context)) {
+    case GRAPH_BIND_CONTEXT_AXIS:
+        Rbc_AppendAxisBindingTags(graphPtr, (Axis *)object, list);
+        break;
+    case GRAPH_BIND_CONTEXT_ELEMENT:
+        Rbc_AppendElementBindingTags(graphPtr, (Element *)object, list);
+        break;
+    case GRAPH_BIND_CONTEXT_MARKER:
+        Rbc_AppendMarkerBindingTags(graphPtr, (Marker *)object, list);
+        break;
+    default:
+        /*
+         * An object returned by PickEntry must always have a valid
+         * GraphBindContext.
+         */
+        break;
     }
 }
 
@@ -1361,35 +1338,43 @@ void Rbc_GraphTags(Rbc_BindTable table, ClientData object, ClientData context, R
  *----------------------------------------------------------------------
  */
 static ClientData PickEntry(ClientData clientData, int x, int y, ClientData *contextPtr) {
-    Graph *graphPtr = clientData;
+    Graph *graphPtr;
     Rbc_ChainLink *linkPtr;
+    Axis *axisPtr;
     Element *elemPtr;
     Marker *markerPtr;
     Extents2D exts;
 
+    graphPtr = clientData;
+    *contextPtr = NULL;
     if (graphPtr->flags & MAP_ALL) {
-        /* Need to recalculate graph layout first */
+        /*
+         * Need to recalculate graph layout first.
+         */
         Rbc_LayoutGraph(graphPtr);
     }
     Rbc_GraphExtents(graphPtr, &exts);
-
     if ((x > exts.right) || (x < exts.left) || (y > exts.bottom) || (y < exts.top)) {
         /*
-         * Sample coordinate is in one of the graph margins.  Can only
-         * pick an axis.
+         * The sample coordinate is in one of the graph margins.
+         * Only an axis can be picked there.
          */
-        return Rbc_NearestAxis(graphPtr, x, y);
+        axisPtr = Rbc_NearestAxis(graphPtr, x, y);
+        if (axisPtr != NULL) {
+            *contextPtr = INT2PTR(GRAPH_BIND_CONTEXT_AXIS);
+        }
+        return axisPtr;
     }
-
     /*
-     * From top-to-bottom check:
-     *    1. markers drawn on top (-under false).
-     *    2. elements using its display list back to front.
-     *  3. markers drawn under element (-under true).
+     * Search from top to bottom:
+     *
+     * 1. Markers drawn above elements.
+     * 2. Elements, from the back of the display list.
+     * 3. Markers drawn below elements.
      */
-    markerPtr = (Marker *)Rbc_NearestMarker(graphPtr, x, y, FALSE);
+    markerPtr = Rbc_NearestMarker(graphPtr, x, y, FALSE);
     if (markerPtr != NULL) {
-        /* Found a marker (-under false). */
+        *contextPtr = INT2PTR(GRAPH_BIND_CONTEXT_MARKER);
         return markerPtr;
     }
     {
@@ -1402,12 +1387,11 @@ static ClientData PickEntry(ClientData clientData, int x, int y, ClientData *con
         search.y = y;
         search.dist = (double)(search.halo + 1);
         search.mode = SEARCH_AUTO;
-
         for (linkPtr = Rbc_ChainLastLink(graphPtr->elements.displayList); linkPtr != NULL;
              linkPtr = Rbc_ChainPrevLink(linkPtr)) {
             elemPtr = Rbc_ChainGetValue(linkPtr);
-            if ((elemPtr->flags & MAP_ITEM) || (Rbc_VectorNotifyPending(elemPtr->x.clientId)) ||
-                (Rbc_VectorNotifyPending(elemPtr->y.clientId))) {
+            if ((elemPtr->flags & MAP_ITEM) || Rbc_VectorNotifyPending(elemPtr->x.clientId) ||
+                Rbc_VectorNotifyPending(elemPtr->y.clientId)) {
                 continue;
             }
             if ((!elemPtr->hidden) && (elemPtr->state == STATE_NORMAL)) {
@@ -1415,17 +1399,15 @@ static ClientData PickEntry(ClientData clientData, int x, int y, ClientData *con
             }
         }
         if (search.dist <= (double)search.halo) {
-            /* Found an element within the
-             * minimum halo distance. */
+            *contextPtr = INT2PTR(GRAPH_BIND_CONTEXT_ELEMENT);
             return search.elemPtr;
         }
     }
-    markerPtr = (Marker *)Rbc_NearestMarker(graphPtr, x, y, TRUE);
+    markerPtr = Rbc_NearestMarker(graphPtr, x, y, TRUE);
     if (markerPtr != NULL) {
-        /* Found a marker (-under true) */
+        *contextPtr = INT2PTR(GRAPH_BIND_CONTEXT_MARKER);
         return markerPtr;
     }
-    /* Nothing found. */
     return NULL;
 }
 

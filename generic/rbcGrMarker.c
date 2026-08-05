@@ -5240,6 +5240,19 @@ ClientData Rbc_MakeMarkerTag(Graph *graphPtr, char *tagName) {
     return Tcl_GetHashKey(&graphPtr->markers.tagTable, hPtr);
 }
 
+void Rbc_AppendMarkerBindingTags(Graph *graphPtr, Marker *markerPtr, Rbc_List list) {
+    char **p;
+
+    Rbc_ListAppend(list, Rbc_MakeMarkerTag(graphPtr, markerPtr->name), 0);
+    Rbc_ListAppend(list, Rbc_MakeMarkerTag(graphPtr, markerPtr->classUid), 0);
+    if (markerPtr->tags == NULL) {
+        return;
+    }
+    for (p = markerPtr->tags; *p != NULL; p++) {
+        Rbc_ListAppend(list, Rbc_MakeMarkerTag(graphPtr, *p), 0);
+    }
+}
+
 /*
  *----------------------------------------------------------------------
  *

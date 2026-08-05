@@ -3785,6 +3785,19 @@ ClientData Rbc_MakeElementTag(Graph *graphPtr, char *tagName) {
     return Tcl_GetHashKey(&graphPtr->elements.tagTable, hPtr);
 }
 
+void Rbc_AppendElementBindingTags(Graph *graphPtr, Element *elemPtr, Rbc_List list) {
+    char **p;
+
+    Rbc_ListAppend(list, Rbc_MakeElementTag(graphPtr, elemPtr->name), 0);
+    Rbc_ListAppend(list, Rbc_MakeElementTag(graphPtr, elemPtr->classUid), 0);
+    if (elemPtr->tags == NULL) {
+        return;
+    }
+    for (p = elemPtr->tags; *p != NULL; p++) {
+        Rbc_ListAppend(list, Rbc_MakeElementTag(graphPtr, *p), 0);
+    }
+}
+
 /*
  *----------------------------------------------------------------------
  *
