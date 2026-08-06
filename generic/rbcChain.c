@@ -109,6 +109,9 @@ void Rbc_ChainLinkAfter(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr, Rbc_ChainLi
             afterPtr->nextPtr = linkPtr;
         }
     }
+    if (chainPtr->nLinks == TCL_SIZE_MAX) {
+        Tcl_Panic("Rbc_ChainLinkAfter: chain length overflow");
+    }
     chainPtr->nLinks++;
 }
 
@@ -151,6 +154,9 @@ void Rbc_ChainLinkBefore(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr, Rbc_ChainL
             }
             beforePtr->prevPtr = linkPtr;
         }
+    }
+    if (chainPtr->nLinks == TCL_SIZE_MAX) {
+        Tcl_Panic("Rbc_ChainLinkBefore: chain length overflow");
     }
     chainPtr->nLinks++;
 }
@@ -286,6 +292,7 @@ void Rbc_ChainUnlinkLink(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr) {
         unlinked = TRUE;
     }
     if (unlinked) {
+        assert(chainPtr->nLinks > 0);
         chainPtr->nLinks--;
     }
     linkPtr->prevPtr = linkPtr->nextPtr = NULL;
@@ -380,7 +387,7 @@ Rbc_ChainLink *Rbc_ChainPrepend(Rbc_Chain *chainPtr, ClientData clientData) {
  *      routine also allocates extra memory in the node for data.
  *
  * Parameters:
- *      unsigned int extraSize
+ *      size_t extraSize - Number of embedded client-data bytes.
  *
  * Results:
  *      The return value is the pointer to the newly created entry.
@@ -390,15 +397,22 @@ Rbc_ChainLink *Rbc_ChainPrepend(Rbc_Chain *chainPtr, ClientData clientData) {
  *
  *----------------------------------------------------------------------
  */
-Rbc_ChainLink *Rbc_ChainAllocLink(unsigned int extraSize) {
+Rbc_ChainLink *Rbc_ChainAllocLink(size_t extraSize) {
     Rbc_ChainLink *linkPtr;
-    unsigned int linkSize;
+    size_t linkSize;
+    size_t totalSize;
 
-    linkSize = ALIGN(sizeof(Rbc_ChainLink));
-    linkPtr = RbcCalloc(1, linkSize + extraSize);
-    assert(linkPtr);
+    linkSize = ALIGN(sizeof(*linkPtr));
+    if (extraSize > SIZE_MAX - linkSize) {
+        Tcl_Panic("Rbc_ChainAllocLink: allocation size overflow");
+    }
+    totalSize = linkSize + extraSize;
+    linkPtr = RbcCalloc(1, totalSize);
     if (extraSize > 0) {
-        /* Point clientData at the memory beyond the normal structure. */
+        /*
+         * Point clientData at the aligned storage immediately after
+         * the normal link structure.
+         */
         linkPtr->clientData = (ClientData)((char *)linkPtr + linkSize);
     }
     return linkPtr;

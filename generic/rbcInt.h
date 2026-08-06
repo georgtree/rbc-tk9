@@ -598,7 +598,7 @@ Tcl_AppInitProc Rbc_SplineInit;
 #endif
 
 char *RbcStrdup(const char *ptr);
-void *RbcCalloc(unsigned int nElem, size_t size);
+void *RbcCalloc(size_t nElem, size_t size);
 
 #ifdef WIN32
 #include "rbcWin.h"

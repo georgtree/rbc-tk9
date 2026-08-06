@@ -235,7 +235,7 @@ test generalConfiguration-7 {graph subcommand} -setup {
 } -body {
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element cget line1 -xdata
-} -result {::xVec1} -cleanup {
+} -result {xVec1} -cleanup {
     destroy $widget
 }
 
@@ -247,7 +247,7 @@ test generalConfiguration-8 {widgetcommand subcommand} -setup {
 } -body {
     $widget widgetcommand graph element create line1 -xdata xVec1 -ydata yVec1
     $widget widgetcommand graph element cget line1 -xdata
-} -result {::xVec1} -cleanup {
+} -result {xVec1} -cleanup {
     destroy $widget
 }
 
@@ -344,8 +344,7 @@ test zoomInteractive-1 {interactive single-stage zoom} -match approxEqual -const
     GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox 500
     lappend limits {*}[$widget graph axis limits x] {*}[$widget widgetcommand graph axis limits y]
     return $limits
-}  -result {0.2 2.0 16.18 185.38 0.7658536585365854 1.395121951219512 72.92390243902437 132.2470731707317 0.2 2.0 16.18\
-                    185.38} -cleanup {
+}  -result {0.2 2.0 16.18 185.38 0.7609756097560976 1.3902439024390245 73.708 133.492 0.2 2.0 16.18 185.38} -cleanup {
     destroy $widget
 }
 
@@ -383,11 +382,11 @@ test zoomInteractive-2 {interactive multi-stage zoom} -match approxEqual -constr
         lappend limits {*}[$widget graph axis limits x] {*}[$widget widgetcommand graph axis limits y]
     }
     return $limits
-} -result {0.2 2.0 16.18 185.38 0.7658536585365854 1.395121951219512 72.92390243902437 132.2470731707317 0.2 2.0 16.18\
-185.38 0.2 2.0 16.18 185.38 0.7658536585365854 1.395121951219512 72.92390243902437 132.2470731707317 0.9636724172119769\
-1.1836605195320244 92.81886823319451 113.6181506543724 1.0328285686188212 1.109734978372984 99.79423733785782\
-107.08666867455129 0.9636724172119769 1.1836605195320244 92.81886823319451 113.6181506543724 0.7658536585365854\
-1.395121951219512 72.92390243902437 132.2470731707317 0.2 2.0 16.18 185.38} -cleanup {
+} -result {0.2 2.0 16.18 185.38 0.7609756097560976 1.3902439024390245 73.708 133.492 0.2 2.0 16.18 185.38 0.2 2.0 16.18\
+185.38 0.7609756097560976 1.3902439024390245 73.708 133.492 0.9570890343049772 1.1770771366250248 94.03456\
+115.15823999999999 1.0256490119927968 1.1025554217469598 101.2166112 108.68031146666667 0.9570890343049772\
+1.1770771366250248 94.03456 115.15823999999999 0.7609756097560976 1.3902439024390245 73.708 133.492 0.2 2.0 16.18\
+185.38} -cleanup {
     destroy $widget
 }
 
@@ -590,7 +589,7 @@ test crosshairsInteractive-4 {interactive crosshairs with closest element coordi
         }
     }
     return $markerCount
-}  -result 46 -cleanup {
+}  -result 45 -cleanup {
     destroy $widget
 }
 

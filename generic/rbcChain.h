@@ -14,7 +14,7 @@
 
 #include <tcl.h>
 
-#define Rbc_ChainGetLength(c) (((c) == NULL) ? 0 : (c)->nLinks)
+#define Rbc_ChainGetLength(c) (((c) == NULL) ? (Tcl_Size)0 : (c)->nLinks)
 #define Rbc_ChainFirstLink(c) (((c) == NULL) ? NULL : (c)->headPtr)
 #define Rbc_ChainLastLink(c) (((c) == NULL) ? NULL : (c)->tailPtr)
 #define Rbc_ChainPrevLink(l) ((l)->prevPtr)
@@ -45,14 +45,14 @@ typedef int(Rbc_ChainCompareProc)(Rbc_ChainLink **l1PtrPtr, Rbc_ChainLink **l2Pt
 typedef struct {
     Rbc_ChainLink *headPtr; /* Pointer to first element in chain */
     Rbc_ChainLink *tailPtr; /* Pointer to last element in chain */
-    int nLinks;             /* Number of elements in chain */
+    Tcl_Size nLinks;             /* Number of elements in chain */
 } Rbc_Chain;
 
 void Rbc_ChainInit(Rbc_Chain *chainPtr);
 Rbc_Chain *Rbc_ChainCreate();
 void Rbc_ChainDestroy(Rbc_Chain *chainPtr);
 Rbc_ChainLink *Rbc_ChainNewLink(void);
-Rbc_ChainLink *Rbc_ChainAllocLink(unsigned int size);
+Rbc_ChainLink *Rbc_ChainAllocLink(size_t size);
 Rbc_ChainLink *Rbc_ChainAppend(Rbc_Chain *chainPtr, ClientData clientData);
 Rbc_ChainLink *Rbc_ChainPrepend(Rbc_Chain *chainPtr, ClientData clientData);
 void Rbc_ChainReset(Rbc_Chain *chainPtr);

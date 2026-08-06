@@ -26,15 +26,23 @@
  *
  *----------------------------------------------------------------------
  */
-void *RbcCalloc(unsigned int nElems, size_t sizeOfElem) {
+void *RbcCalloc(size_t nElems, size_t sizeOfElem) {
     char *allocPtr;
     size_t size;
 
-    size = nElems * sizeOfElem;
-    allocPtr = ckalloc(size);
-    if (allocPtr != NULL) {
-        memset(allocPtr, 0, size);
+    if ((nElems != 0) && (sizeOfElem > SIZE_MAX / nElems)) {
+        Tcl_Panic("RbcCalloc: allocation size overflow");
     }
+    size = nElems * sizeOfElem;
+    /*
+     * Keep the allocation valid even for an empty logical array.
+     * This preserves the existing non-NULL, ckalloc-style behaviour.
+     */
+    if (size == 0) {
+        size = 1;
+    }
+    allocPtr = ckalloc(size);
+    memset(allocPtr, 0, size);
     return allocPtr;
 }
 

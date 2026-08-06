@@ -2671,14 +2671,14 @@ int Rbc_ParseStylesObj(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, size_
      * The first entry is always reserved for the element's normal pen.
      * This entry does not own a pen reference.
      */
-    linkPtr = Rbc_ChainAllocLink((unsigned int)styleSize);
+    linkPtr = Rbc_ChainAllocLink(styleSize);
     Rbc_ChainLinkBefore(palette, linkPtr, NULL);
 
     stylePtr = Rbc_ChainGetValue(linkPtr);
     stylePtr->penPtr = elemPtr->normalPenPtr;
 
     for (i = 0; i < objc; i++) {
-        linkPtr = Rbc_ChainAllocLink((unsigned int)styleSize);
+        linkPtr = Rbc_ChainAllocLink(styleSize);
 
         stylePtr = Rbc_ChainGetValue(linkPtr);
 
@@ -2751,8 +2751,7 @@ PenStyle **Rbc_StyleMap(Element *elemPtr) {
      * Create a style mapping array (data point index to style),
      * initialized to the default style.
      */
-    dataToStyle = ckalloc((size_t)nPoints * sizeof(PenStyle *));
-    assert(dataToStyle);
+    dataToStyle = RbcCalloc((size_t)nPoints, sizeof(*dataToStyle));
     for (i = 0; i < nPoints; i++) {
         dataToStyle[i] = stylePtr;
     }
