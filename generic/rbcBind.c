@@ -76,13 +76,14 @@ static void PickCurrentItem(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr);
  */
 static void DoEvent(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr, ClientData item, ClientData context) {
     Rbc_List bindIds;
-    int nIds;
+    Tcl_Size nIds;
 
     if ((bindPtr->tkwin == NULL) || (bindPtr->bindingTable == NULL)) {
         return;
     }
-    /* Rbc doesn't set either focusItem or focusContext and both are NULL.
-     * This results effectively in KeyPress/KeyRelease events to be ignored
+    /*
+     * Rbc does not currently set focusItem or focusContext.  When
+     * they are NULL, key events are effectively ignored.
      */
     if ((eventPtr->type == KeyPress) || (eventPtr->type == KeyRelease)) {
         item = bindPtr->focusItem;
@@ -91,14 +92,10 @@ static void DoEvent(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr, ClientData i
     if (item == NULL) {
         return;
     }
-
-    /*
-     * Invoke the binding system.
-     */
     bindIds = Rbc_ListCreate(TCL_ONE_WORD_KEYS);
     if (bindPtr->tagProc == NULL) {
-        Rbc_ListAppend(bindIds, (char *)Tk_GetUid("all"), 0);
-        Rbc_ListAppend(bindIds, (char *)item, 0);
+        Rbc_ListAppend(bindIds, (const char *)Tk_GetUid("all"), NULL);
+        Rbc_ListAppend(bindIds, (const char *)item, NULL);
     } else {
         (*bindPtr->tagProc)(bindPtr, item, context, bindIds);
     }
@@ -106,19 +103,35 @@ static void DoEvent(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr, ClientData i
     if (nIds > 0) {
         ClientData *idArray;
         ClientData tags[32];
-        register Rbc_ListNode node;
+        Rbc_ListNode node;
+        Tcl_Size i;
+        int dynamic;
+        int numObjects;
 
-        idArray = tags;
-        if (nIds >= 32) {
-            idArray = (ClientData *)ckalloc(sizeof(ClientData) * nIds);
+        /*
+         * Tk_BindEvent() still exposes an int object count.
+         */
+        if (nIds > (Tcl_Size)INT_MAX) {
+            Rbc_ListDestroy(bindIds);
+
+            Tcl_Panic("DoEvent: too many binding tags");
         }
-        nIds = 0;
+        numObjects = (int)nIds;
+        dynamic = (nIds > 32);
+        if (dynamic) {
+            idArray = RbcCalloc((size_t)nIds, sizeof(*idArray));
+        } else {
+            idArray = tags;
+        }
+        i = 0;
         for (node = Rbc_ListFirstNode(bindIds); node != NULL; node = Rbc_ListNextNode(node)) {
-            idArray[nIds++] = (ClientData)Rbc_ListGetKey(node);
+            assert(i < nIds);
+            idArray[i++] = (ClientData)Rbc_ListGetKey(node);
         }
-        Tk_BindEvent(bindPtr->bindingTable, eventPtr, bindPtr->tkwin, nIds, idArray);
-        if (nIds >= 32) {
-            ckfree((char *)idArray);
+        assert(i == nIds);
+        Tk_BindEvent(bindPtr->bindingTable, eventPtr, bindPtr->tkwin, numObjects, idArray);
+        if (dynamic) {
+            ckfree(idArray);
         }
     }
     Rbc_ListDestroy(bindIds);

@@ -60,7 +60,5 @@ void Rbc_ChainLinkAfter(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr, Rbc_ChainLi
 void Rbc_ChainLinkBefore(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr, Rbc_ChainLink *beforeLinkPtr);
 void Rbc_ChainUnlinkLink(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr);
 void Rbc_ChainDeleteLink(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr);
-Rbc_ChainLink *Rbc_ChainGetNthLink(Rbc_Chain *chainPtr, int n);
-void Rbc_ChainSort(Rbc_Chain *chainPtr, Rbc_ChainCompareProc *proc);
 
 #endif /* _RBCCHAIN */

@@ -11,6 +11,8 @@
 
 #include "rbcInt.h"
 #include "rbcList.h"
+#include <stddef.h>
+#include <stdint.h>
 
 static struct Rbc_ListNodeStruct *FindString (struct Rbc_ListStruct *listPtr, const char *key);
 static Rbc_ListNode FindOneWord (struct Rbc_ListStruct *listPtr, const char *key);
@@ -99,10 +101,16 @@ static Rbc_ListNode FindOneWord(struct Rbc_ListStruct *listPtr, const char *key)
  *--------------------------------------------------------------
  */
 static Rbc_ListNode FindArray(struct Rbc_ListStruct *listPtr, const char *key) {
-    register struct Rbc_ListNodeStruct *nodePtr;
-    int nBytes;
+    struct Rbc_ListNodeStruct *nodePtr;
+    size_t nBytes;
 
-    nBytes = sizeof(int) * listPtr->type;
+    if (listPtr->type <= TCL_ONE_WORD_KEYS) {
+        Tcl_Panic("FindArray: invalid array-key size");
+    }
+    if ((size_t)listPtr->type > SIZE_MAX / sizeof(int)) {
+        Tcl_Panic("FindArray: array-key size overflow");
+    }
+    nBytes = (size_t)listPtr->type * sizeof(int);
     for (nodePtr = listPtr->headPtr; nodePtr != NULL; nodePtr = nodePtr->nextPtr) {
         if (memcmp(key, nodePtr->key.words, nBytes) == 0) {
             return nodePtr;
@@ -177,30 +185,50 @@ Rbc_List Rbc_ListCreate(int type) {
  *      The return value is the pointer to the newly created node.
  *
  * Side Effects:
- *      The key is not copied, only the Uid is kept.  It is assumed
+ *      String and integer-array keys are copied into the node.
+ *      One-word keys are retained as pointer values. It is assumed
  *      this key will not change in the life of the node.
  *
  *----------------------------------------------------------------------
  */
 Rbc_ListNode Rbc_ListCreateNode(struct Rbc_ListStruct *listPtr, const char *key) {
-    register struct Rbc_ListNodeStruct *nodePtr;
-    int keySize;
+    struct Rbc_ListNodeStruct *nodePtr;
+    size_t baseSize;
+    size_t keySize;
+    size_t totalSize;
 
+    baseSize = offsetof(struct Rbc_ListNodeStruct, key);
     if (listPtr->type == TCL_STRING_KEYS) {
-        keySize = strlen(key) + 1;
+        size_t length;
+
+        length = strlen(key);
+        if (length == SIZE_MAX) {
+            Tcl_Panic("Rbc_ListCreateNode: string-key size overflow");
+        }
+        keySize = length + 1;
     } else if (listPtr->type == TCL_ONE_WORD_KEYS) {
-        keySize = sizeof(int);
+        keySize = sizeof(nodePtr->key.oneWordValue);
     } else {
-        keySize = sizeof(int) * listPtr->type;
+        if (listPtr->type <= TCL_ONE_WORD_KEYS) {
+            Tcl_Panic("Rbc_ListCreateNode: invalid key type");
+        }
+        if ((size_t)listPtr->type > SIZE_MAX / sizeof(int)) {
+            Tcl_Panic("Rbc_ListCreateNode: array-key size overflow");
+        }
+        keySize = (size_t)listPtr->type * sizeof(int);
     }
-    nodePtr = RbcCalloc(1, sizeof(struct Rbc_ListNodeStruct) + keySize - 4);
-    assert(nodePtr);
+    if (keySize > SIZE_MAX - baseSize) {
+        Tcl_Panic("Rbc_ListCreateNode: allocation size overflow");
+    }
+    totalSize = baseSize + keySize;
+    nodePtr = RbcCalloc(1, totalSize);
     nodePtr->clientData = NULL;
-    nodePtr->nextPtr = nodePtr->prevPtr = NULL;
+    nodePtr->nextPtr = NULL;
+    nodePtr->prevPtr = NULL;
     nodePtr->listPtr = listPtr;
     switch (listPtr->type) {
     case TCL_STRING_KEYS:
-        strcpy(nodePtr->key.string, key);
+        memcpy(nodePtr->key.string, key, keySize);
         break;
     case TCL_ONE_WORD_KEYS:
         nodePtr->key.oneWordValue = key;
@@ -318,6 +346,9 @@ void Rbc_ListInit(struct Rbc_ListStruct *listPtr, int type) {
  */
 void Rbc_ListLinkAfter(struct Rbc_ListStruct *listPtr, struct Rbc_ListNodeStruct *nodePtr,
                        struct Rbc_ListNodeStruct *afterPtr) {
+    if (listPtr->nNodes == TCL_SIZE_MAX) {
+        Tcl_Panic("Rbc_ListLinkAfter: list length overflow");
+    }
     if (listPtr->headPtr == NULL) {
         listPtr->tailPtr = listPtr->headPtr = nodePtr;
     } else {
@@ -364,6 +395,9 @@ void Rbc_ListLinkAfter(struct Rbc_ListStruct *listPtr, struct Rbc_ListNodeStruct
  */
 void Rbc_ListLinkBefore(struct Rbc_ListStruct *listPtr, struct Rbc_ListNodeStruct *nodePtr,
                         struct Rbc_ListNodeStruct *beforePtr) {
+    if (listPtr->nNodes == TCL_SIZE_MAX) {
+        Tcl_Panic("Rbc_ListLinkBefore: list length overflow");
+    }
     if (listPtr->headPtr == NULL) {
         listPtr->tailPtr = listPtr->headPtr = nodePtr;
     } else {
@@ -421,8 +455,11 @@ void Rbc_ListUnlinkNode(struct Rbc_ListNodeStruct *nodePtr) {
         if (nodePtr->prevPtr != NULL) {
             nodePtr->prevPtr->nextPtr = nodePtr->nextPtr;
         }
-        nodePtr->listPtr = NULL;
+        assert(listPtr->nNodes > 0);
         listPtr->nNodes--;
+        nodePtr->listPtr = NULL;
+        nodePtr->prevPtr = NULL;
+        nodePtr->nextPtr = NULL;
     }
 }
 
@@ -578,7 +615,7 @@ Rbc_ListNode Rbc_ListPrepend(struct Rbc_ListStruct *listPtr, const char *key, Cl
  *
  * Parameters:
  *      struct Rbc_ListStruct *listPtr - List to traverse
- *      int position - Index of node to select from front or back of the list.
+ *      Tcl_Size position - Index of node to select from front or back of the list.
  *      int direction
  *
  * Results:
@@ -590,24 +627,25 @@ Rbc_ListNode Rbc_ListPrepend(struct Rbc_ListStruct *listPtr, const char *key, Cl
  *
  *----------------------------------------------------------------------
  */
-Rbc_ListNode Rbc_ListGetNthNode(struct Rbc_ListStruct *listPtr, int position, int direction) {
-    register struct Rbc_ListNodeStruct *nodePtr;
+Rbc_ListNode Rbc_ListGetNthNode(struct Rbc_ListStruct *listPtr, Tcl_Size position, int direction) {
+    struct Rbc_ListNodeStruct *nodePtr;
 
-    if (listPtr != NULL) {
-        if (direction > 0) {
-            for (nodePtr = listPtr->headPtr; nodePtr != NULL; nodePtr = nodePtr->nextPtr) {
-                if (position == 0) {
-                    return nodePtr;
-                }
-                position--;
+    if ((listPtr == NULL) || (position < 0) || (position >= listPtr->nNodes)) {
+        return NULL;
+    }
+    if (direction > 0) {
+        for (nodePtr = listPtr->headPtr; nodePtr != NULL; nodePtr = nodePtr->nextPtr) {
+            if (position == 0) {
+                return nodePtr;
             }
-        } else {
-            for (nodePtr = listPtr->tailPtr; nodePtr != NULL; nodePtr = nodePtr->prevPtr) {
-                if (position == 0) {
-                    return nodePtr;
-                }
-                position--;
+            position--;
+        }
+    } else {
+        for (nodePtr = listPtr->tailPtr; nodePtr != NULL; nodePtr = nodePtr->prevPtr) {
+            if (position == 0) {
+                return nodePtr;
             }
+            position--;
         }
     }
     return NULL;
@@ -635,23 +673,26 @@ Rbc_ListNode Rbc_ListGetNthNode(struct Rbc_ListStruct *listPtr, int position, in
  */
 void Rbc_ListSort(struct Rbc_ListStruct *listPtr, Rbc_ListCompareProc *proc) {
     struct Rbc_ListNodeStruct **nodeArr;
-    register struct Rbc_ListNodeStruct *nodePtr;
-    register int i;
+    struct Rbc_ListNodeStruct *nodePtr;
+    Tcl_Size i;
 
-    if (listPtr->nNodes < 2) {
+    if ((listPtr == NULL) || (listPtr->nNodes < 2)) {
         return;
     }
-    nodeArr = (struct Rbc_ListNodeStruct **)ckalloc(sizeof(Rbc_List) * (listPtr->nNodes + 1));
+    if (listPtr->nNodes > (Tcl_Size)(SIZE_MAX / sizeof(*nodeArr))) {
+        Tcl_Panic("Rbc_ListSort: node-array size overflow");
+    }
+    nodeArr = Tcl_AttemptAlloc((size_t)listPtr->nNodes * sizeof(*nodeArr));
     if (nodeArr == NULL) {
-        return; /* Out of memory. */
+        return;
     }
     i = 0;
     for (nodePtr = listPtr->headPtr; nodePtr != NULL; nodePtr = nodePtr->nextPtr) {
+        assert(i < listPtr->nNodes);
         nodeArr[i++] = nodePtr;
     }
-    qsort((char *)nodeArr, listPtr->nNodes, sizeof(struct Rbc_ListNodeStruct *), (QSortCompareProc *)proc);
-
-    /* Rethread the list. */
+    assert(i == listPtr->nNodes);
+    qsort(nodeArr, (size_t)listPtr->nNodes, sizeof(*nodeArr), (QSortCompareProc *)proc);
     nodePtr = nodeArr[0];
     listPtr->headPtr = nodePtr;
     nodePtr->prevPtr = NULL;
@@ -662,5 +703,5 @@ void Rbc_ListSort(struct Rbc_ListStruct *listPtr, Rbc_ListCompareProc *proc) {
     }
     listPtr->tailPtr = nodePtr;
     nodePtr->nextPtr = NULL;
-    ckfree((char *)nodeArr);
+    ckfree(nodeArr);
 }

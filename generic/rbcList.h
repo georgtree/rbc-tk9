@@ -11,6 +11,8 @@
 #ifndef _RBCLIST
 #define _RBCLIST
 
+#include <tcl.h>
+
 typedef struct Rbc_ListStruct *Rbc_List;
 typedef struct Rbc_ListNodeStruct *Rbc_ListNode;
 
@@ -24,7 +26,7 @@ struct Rbc_ListNodeStruct {
     struct Rbc_ListStruct *listPtr;     /* List to eventually insert node */
     union {                             /* Key has one of these forms: */
         const char *oneWordValue;       /* One-word value for key. */
-        int *words[1];                  /* Multiple integer words for key.
+        int words[1];                   /* Multiple integer words for key.
                                          * The actual size will be as large
                                          * as necessary for this table's
                                          * keys. */
@@ -42,7 +44,7 @@ typedef int(Rbc_ListCompareProc)(Rbc_ListNode *node1Ptr, Rbc_ListNode *node2Ptr)
 struct Rbc_ListStruct {
     struct Rbc_ListNodeStruct *headPtr; /* Pointer to first element in list */
     struct Rbc_ListNodeStruct *tailPtr; /* Pointer to last element in list */
-    int nNodes;                         /* Number of node currently in the list. */
+    Tcl_Size nNodes;                    /* Number of node currently in the list. */
     int type;                           /* Type of keys in list. */
 };
 
@@ -60,10 +62,10 @@ void Rbc_ListLinkBefore(Rbc_List list, Rbc_ListNode node, Rbc_ListNode beforeNod
 void Rbc_ListUnlinkNode(Rbc_ListNode node);
 Rbc_ListNode Rbc_ListGetNode(Rbc_List list, const char *key);
 void Rb_ListDeleteNodeByKey(Rbc_List list, const char *key);
-Rbc_ListNode Rbc_ListGetNthNode(Rbc_List list, int position, int direction);
+Rbc_ListNode Rbc_ListGetNthNode(Rbc_List list, Tcl_Size position, int direction);
 void Rbc_ListSort(Rbc_List list, Rbc_ListCompareProc *proc);
 
-#define Rbc_ListGetLength(list) (((list) == NULL) ? 0 : ((struct Rbc_ListStruct *)list)->nNodes)
+#define Rbc_ListGetLength(list) (((list) == NULL) ? (Tcl_Size)0 : ((struct Rbc_ListStruct *)list)->nNodes)
 #define Rbc_ListFirstNode(list) (((list) == NULL) ? NULL : ((struct Rbc_ListStruct *)list)->headPtr)
 #define Rbc_ListLastNode(list) (((list) == NULL) ? NULL : ((struct Rbc_ListStruct *)list)->tailPtr)
 #define Rbc_ListPrevNode(node) ((node)->prevPtr)
