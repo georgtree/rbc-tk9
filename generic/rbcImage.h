@@ -129,7 +129,7 @@ typedef struct ColorImage {
 #define Rbc_ColorImageHeight(c) ((c)->height)
 #define Rbc_ColorImageWidth(c) ((c)->width)
 #define Rbc_ColorImageBits(c) ((c)->bits)
-#define Rbc_ColorImagePixel(c, x, y) ((c)->bits + ((c)->width * (y)) + (x))
+#define Rbc_ColorImagePixel(c, x, y) ((c)->bits + ((size_t)(c)->width * (size_t)(y)) + (size_t)(x))
 
 /*
  *----------------------------------------------------------------------

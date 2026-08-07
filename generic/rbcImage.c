@@ -17,6 +17,7 @@
 #include <X11/Xproto.h>
 #endif
 #include <stdint.h>
+#include <stddef.h>
 
 #define CLAMP(c) ((((c) < 0.0) ? 0.0 : ((c) > 255.0) ? 255.0 : (c)))
 
@@ -87,6 +88,16 @@ static size_t GetColorImagePixelCount(int width, int height) {
         Tcl_Panic("GetColorImagePixelCount: image size overflow");
     }
     return (size_t)width * (size_t)height;
+}
+
+static ptrdiff_t GetPhotoByteOffset(const Tk_PhotoImageBlock *blockPtr, int x, int y) {
+    Tcl_WideInt offset;
+
+    offset = ((Tcl_WideInt)y * (Tcl_WideInt)blockPtr->pitch) + ((Tcl_WideInt)x * (Tcl_WideInt)blockPtr->pixelSize);
+    if ((offset < (Tcl_WideInt)PTRDIFF_MIN) || (offset > (Tcl_WideInt)PTRDIFF_MAX)) {
+        Tcl_Panic("GetPhotoByteOffset: photo offset overflow");
+    }
+    return (ptrdiff_t)offset;
 }
 
 /*
@@ -215,18 +226,17 @@ void Rbc_GammaCorrectColorImage(Rbc_ColorImage src, double newGamma) {
  *----------------------------------------------------------------------
  */
 void Rbc_ColorImageToGreyscale(Rbc_ColorImage image) {
-    register Pix32 *srcPtr, *endPtr;
-    double Y;
-    int nPixels;
-    int width, height;
+    Pix32 *srcPtr;
+    Pix32 *endPtr;
+    double y;
+    size_t nPixels;
 
-    width = Rbc_ColorImageWidth(image);
-    height = Rbc_ColorImageHeight(image);
-    nPixels = width * height;
+    nPixels = GetColorImagePixelCount(Rbc_ColorImageWidth(image), Rbc_ColorImageHeight(image));
     srcPtr = Rbc_ColorImageBits(image);
-    for (endPtr = srcPtr + nPixels; srcPtr < endPtr; srcPtr++) {
-        Y = ((0.212671 * (double)srcPtr->Red) + (0.715160 * (double)srcPtr->Green) + (0.072169 * (double)srcPtr->Blue));
-        srcPtr->Red = srcPtr->Green = srcPtr->Blue = (unsigned char)CLAMP(Y);
+    endPtr = srcPtr + nPixels;
+    for (; srcPtr < endPtr; srcPtr++) {
+        y = (0.212671 * (double)srcPtr->Red) + (0.715160 * (double)srcPtr->Green) + (0.072169 * (double)srcPtr->Blue);
+        srcPtr->Red = srcPtr->Green = srcPtr->Blue = (unsigned char)CLAMP(y);
     }
 }
 
@@ -258,8 +268,11 @@ void Rbc_ColorImageToPhoto(Tcl_Interp *interp, Rbc_ColorImage src, Tk_PhotoHandl
     height = Rbc_ColorImageHeight(src);
 
     Tk_PhotoGetImage(photo, &dest);
-    dest.pixelSize = sizeof(Pix32);
-    dest.pitch = sizeof(Pix32) * width;
+    if ((size_t)width > (size_t)INT_MAX / sizeof(Pix32)) {
+        Tcl_Panic("Rbc_ColorImageToPhoto: photo pitch overflow");
+    }
+    dest.pixelSize = (int)sizeof(Pix32);
+    dest.pitch = (int)((size_t)width * sizeof(Pix32));
     dest.width = width;
     dest.height = height;
     dest.offset[0] = offsetof(Pix32, Red);
@@ -296,44 +309,44 @@ void Rbc_ColorImageToPhoto(Tcl_Interp *interp, Rbc_ColorImage src, Tk_PhotoHandl
 Rbc_ColorImage Rbc_PhotoRegionToColorImage(Tk_PhotoHandle photo, int x, int y, int width, int height) {
     Tk_PhotoImageBlock src;
     Rbc_ColorImage image;
-    register Pix32 *destPtr;
-    register unsigned char *srcData;
-    register int offset;
-    unsigned int offR, offG, offB, offA;
+    Pix32 *destPtr;
+    unsigned char *srcRowPtr;
+    unsigned char *srcData;
+    int offR, offG, offB, offA;
+    int row, column;
 
     Tk_PhotoGetImage(photo, &src);
     if (x < 0) {
         x = 0;
+    } else if (x > src.width) {
+        x = src.width;
     }
     if (y < 0) {
         y = 0;
+    } else if (y > src.height) {
+        y = src.height;
     }
-    if (width < 0) {
-        width = src.width;
-    }
-    if (height < 0) {
-        height = src.height;
-    }
-    if ((x + width) > src.width) {
+    /*
+     * Use subtraction rather than x + width / y + height, avoiding
+     * signed overflow while clipping the requested region.
+     */
+    if ((width < 0) || (width > (src.width - x))) {
         width = src.width - x;
     }
-    if ((height + y) > src.height) {
-        height = src.width - y;
+    if ((height < 0) || (height > (src.height - y))) {
+        height = src.height - y;
     }
     image = Rbc_CreateColorImage(width, height);
     destPtr = Rbc_ColorImageBits(image);
-
-    offset = (x * src.pixelSize) + (y * src.pitch);
-
     offR = src.offset[0];
     offG = src.offset[1];
     offB = src.offset[2];
     offA = src.offset[3];
-
+    srcRowPtr = src.pixelPtr + GetPhotoByteOffset(&src, x, y);
     if (src.pixelSize == 4) {
-        for (y = 0; y < height; y++) {
-            srcData = src.pixelPtr + offset;
-            for (x = 0; x < width; x++) {
+        for (row = 0; row < height; row++) {
+            srcData = srcRowPtr;
+            for (column = 0; column < width; column++) {
                 destPtr->Red = srcData[offR];
                 destPtr->Green = srcData[offG];
                 destPtr->Blue = srcData[offB];
@@ -341,33 +354,31 @@ Rbc_ColorImage Rbc_PhotoRegionToColorImage(Tk_PhotoHandle photo, int x, int y, i
                 srcData += src.pixelSize;
                 destPtr++;
             }
-            offset += src.pitch;
+            srcRowPtr += src.pitch;
         }
     } else if (src.pixelSize == 3) {
-        for (y = 0; y < height; y++) {
-            srcData = src.pixelPtr + offset;
-            for (x = 0; x < width; x++) {
+        for (row = 0; row < height; row++) {
+            srcData = srcRowPtr;
+            for (column = 0; column < width; column++) {
                 destPtr->Red = srcData[offR];
                 destPtr->Green = srcData[offG];
                 destPtr->Blue = srcData[offB];
-                /* No transparency information */
                 destPtr->Alpha = (unsigned char)-1;
                 srcData += src.pixelSize;
                 destPtr++;
             }
-            offset += src.pitch;
+            srcRowPtr += src.pitch;
         }
     } else {
-        for (y = 0; y < height; y++) {
-            srcData = src.pixelPtr + offset;
-            for (x = 0; x < width; x++) {
+        for (row = 0; row < height; row++) {
+            srcData = srcRowPtr;
+            for (column = 0; column < width; column++) {
                 destPtr->Red = destPtr->Green = destPtr->Blue = srcData[offA];
-                /* No transparency information */
                 destPtr->Alpha = (unsigned char)-1;
                 srcData += src.pixelSize;
                 destPtr++;
             }
-            offset += src.pitch;
+            srcRowPtr += src.pitch;
         }
     }
     return image;
@@ -395,20 +406,20 @@ Rbc_ColorImage Rbc_PhotoToColorImage(Tk_PhotoHandle photo) {
     Rbc_ColorImage image;
     Tk_PhotoImageBlock src;
     int width, height;
-    register Pix32 *destPtr;
-    register int offset;
-    register int x, y;
-    register unsigned char *srcData;
+    Pix32 *destPtr;
+    unsigned char *srcRowPtr;
+    unsigned char *srcData;
+    int x, y;
 
     Tk_PhotoGetImage(photo, &src);
     width = src.width;
     height = src.height;
     image = Rbc_CreateColorImage(width, height);
     destPtr = Rbc_ColorImageBits(image);
-    offset = 0;
+    srcRowPtr = src.pixelPtr;
     if (src.pixelSize == 4) {
         for (y = 0; y < height; y++) {
-            srcData = src.pixelPtr + offset;
+            srcData = srcRowPtr;
             for (x = 0; x < width; x++) {
                 destPtr->Red = srcData[src.offset[0]];
                 destPtr->Green = srcData[src.offset[1]];
@@ -417,11 +428,11 @@ Rbc_ColorImage Rbc_PhotoToColorImage(Tk_PhotoHandle photo) {
                 srcData += src.pixelSize;
                 destPtr++;
             }
-            offset += src.pitch;
+            srcRowPtr += src.pitch;
         }
     } else if (src.pixelSize == 3) {
         for (y = 0; y < height; y++) {
-            srcData = src.pixelPtr + offset;
+            srcData = srcRowPtr;
             for (x = 0; x < width; x++) {
                 destPtr->Red = srcData[src.offset[0]];
                 destPtr->Green = srcData[src.offset[1]];
@@ -431,11 +442,11 @@ Rbc_ColorImage Rbc_PhotoToColorImage(Tk_PhotoHandle photo) {
                 srcData += src.pixelSize;
                 destPtr++;
             }
-            offset += src.pitch;
+            srcRowPtr += src.pitch;
         }
     } else {
         for (y = 0; y < height; y++) {
-            srcData = src.pixelPtr + offset;
+            srcData = srcRowPtr;
             for (x = 0; x < width; x++) {
                 destPtr->Red = destPtr->Green = destPtr->Blue = srcData[src.offset[0]];
                 /* No transparency information */
@@ -443,7 +454,7 @@ Rbc_ColorImage Rbc_PhotoToColorImage(Tk_PhotoHandle photo) {
                 srcData += src.pixelSize;
                 destPtr++;
             }
-            offset += src.pitch;
+            srcRowPtr += src.pitch;
         }
     }
     return image;
@@ -1152,7 +1163,7 @@ static void ZoomImageVertically(Rbc_ColorImage src, Rbc_ColorImage dest, Resampl
 
     /* Pre-calculate filter contributions for a row */
     size = ComputeWeights(srcHeight, destHeight, filterPtr, &samples);
-    endPtr = (Sample *)((char *)samples + (destHeight * size));
+    endPtr = (Sample *)((char *)samples + ((size_t)destHeight * size));
 
     /* Apply filter to zoom vertically from tmp to destination */
     for (x = 0; x < srcWidth; x++) {
@@ -1160,7 +1171,7 @@ static void ZoomImageVertically(Rbc_ColorImage src, Rbc_ColorImage dest, Resampl
         destPtr = Rbc_ColorImageBits(dest) + x;
         for (s = samples; s < endPtr; s = (Sample *)((char *)s + size)) {
             red = green = blue = alpha = 0;
-            srcPtr = srcColumnPtr + (s->start * srcWidth);
+            srcPtr = srcColumnPtr + ((size_t)s->start * (size_t)srcWidth);
             for (weight = s->weights, i = 0; i < s->count; i++, weight++) {
                 red += srcPtr->Red * weight->i;
                 green += srcPtr->Green * weight->i;
@@ -1213,11 +1224,9 @@ static void ZoomImageHorizontally(Rbc_ColorImage src, Rbc_ColorImage dest, Resam
     srcWidth = Rbc_ColorImageWidth(src);
     srcHeight = Rbc_ColorImageHeight(src);
     destWidth = Rbc_ColorImageWidth(dest);
-
     /* Pre-calculate filter contributions for a row */
     size = ComputeWeights(srcWidth, destWidth, filterPtr, &samples);
-    endPtr = (Sample *)((char *)samples + (destWidth * size));
-
+    endPtr = (Sample *)((char *)samples + ((size_t)destWidth * size));
     /* Apply filter to zoom horizontally from srcPtr to tmpPixels */
     srcRowPtr = Rbc_ColorImageBits(src);
     destPtr = Rbc_ColorImageBits(dest);
@@ -1375,8 +1384,8 @@ void Rbc_ResizePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, register int x
     destImage = Rbc_CreateColorImage(dest.width, dest.height);
     xScale = (double)width / (double)dest.width;
     yScale = (double)height / (double)dest.height;
-    mapX = (int *)ckalloc(sizeof(int) * dest.width);
-    mapY = (int *)ckalloc(sizeof(int) * dest.height);
+    mapX = RbcCalloc((size_t)dest.width, sizeof(*mapX));
+    mapY = RbcCalloc((size_t)dest.height, sizeof(*mapY));
     for (x = 0; x < dest.width; x++) {
         sx = (int)(xScale * (double)(x + left));
         if (sx > right) {
@@ -1394,9 +1403,9 @@ void Rbc_ResizePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, register int x
     destPtr = Rbc_ColorImageBits(destImage);
     if (src.pixelSize == 4) {
         for (y = 0; y < dest.height; y++) {
-            srcRowPtr = src.pixelPtr + (mapY[y] * src.pitch);
+            srcRowPtr = src.pixelPtr + GetPhotoByteOffset(&src, 0, mapY[y]);
             for (x = 0; x < dest.width; x++) {
-                srcPtr = srcRowPtr + (mapX[x] * src.pixelSize);
+                srcPtr = srcRowPtr + GetPhotoByteOffset(&src, mapX[x], 0);
                 destPtr->Red = srcPtr[src.offset[0]];
                 destPtr->Green = srcPtr[src.offset[1]];
                 destPtr->Blue = srcPtr[src.offset[2]];
@@ -1406,9 +1415,9 @@ void Rbc_ResizePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, register int x
         }
     } else if (src.pixelSize == 3) {
         for (y = 0; y < dest.height; y++) {
-            srcRowPtr = src.pixelPtr + (mapY[y] * src.pitch);
+            srcRowPtr = src.pixelPtr + GetPhotoByteOffset(&src, 0, mapY[y]);
             for (x = 0; x < dest.width; x++) {
-                srcPtr = srcRowPtr + (mapX[x] * src.pixelSize);
+                srcPtr = srcRowPtr + GetPhotoByteOffset(&src, mapX[x], 0);
                 destPtr->Red = srcPtr[src.offset[0]];
                 destPtr->Green = srcPtr[src.offset[1]];
                 destPtr->Blue = srcPtr[src.offset[2]];
@@ -1418,9 +1427,9 @@ void Rbc_ResizePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, register int x
         }
     } else {
         for (y = 0; y < dest.height; y++) {
-            srcRowPtr = src.pixelPtr + (mapY[y] * src.pitch);
+            srcRowPtr = src.pixelPtr + GetPhotoByteOffset(&src, 0, mapY[y]);
             for (x = 0; x < dest.width; x++) {
-                srcPtr = srcRowPtr + (mapX[x] * src.pixelSize);
+                srcPtr = srcRowPtr + GetPhotoByteOffset(&src, mapX[x], 0);
                 destPtr->Red = destPtr->Green = destPtr->Blue = srcPtr[src.offset[0]];
                 destPtr->Alpha = (unsigned char)-1;
                 destPtr++;
@@ -1472,12 +1481,11 @@ Rbc_ColorImage Rbc_ResizeColorImage(Rbc_ColorImage src, register int x, register
 
     left = x, top = y;
     right = x + width - 1, bottom = y + height - 1;
-
     dest = Rbc_CreateColorImage(destWidth, destHeight);
     xScale = (double)width / (double)destWidth;
     yScale = (double)height / (double)destHeight;
-    mapX = (int *)ckalloc(sizeof(int) * destWidth);
-    mapY = (int *)ckalloc(sizeof(int) * destHeight);
+    mapX = RbcCalloc((size_t)destWidth, sizeof(*mapX));
+    mapY = RbcCalloc((size_t)destHeight, sizeof(*mapY));
     for (x = 0; x < destWidth; x++) {
         sx = (int)(xScale * (double)(x + left));
         if (sx > right) {
@@ -1494,7 +1502,7 @@ Rbc_ColorImage Rbc_ResizeColorImage(Rbc_ColorImage src, register int x, register
     }
     destPtr = Rbc_ColorImageBits(dest);
     for (y = 0; y < destHeight; y++) {
-        srcRowPtr = Rbc_ColorImageBits(src) + (Rbc_ColorImageWidth(src) * mapY[y]);
+        srcRowPtr = Rbc_ColorImagePixel(src, 0, mapY[y]);
         for (x = 0; x < destWidth; x++) {
             srcPtr = srcRowPtr + mapX[x];
             destPtr->value = srcPtr->value; /* Copy the pixel. */
@@ -1549,9 +1557,8 @@ Rbc_ColorImage Rbc_ResizeColorSubimage(Rbc_ColorImage src, int regionX, int regi
 
     xScale = (double)srcWidth / (double)destWidth;
     yScale = (double)srcHeight / (double)destHeight;
-    mapX = (int *)ckalloc(sizeof(int) * regionWidth);
-    mapY = (int *)ckalloc(sizeof(int) * regionHeight);
-
+    mapX = RbcCalloc((size_t)regionWidth, sizeof(*mapX));
+    mapY = RbcCalloc((size_t)regionHeight, sizeof(*mapY));
     /* Precompute scaling factors for each row and column. */
     for (x = 0; x < regionWidth; x++) {
         sx = (int)(xScale * (double)(x + regionX));
@@ -1562,7 +1569,7 @@ Rbc_ColorImage Rbc_ResizeColorSubimage(Rbc_ColorImage src, int regionX, int regi
     }
     for (y = 0; y < regionHeight; y++) {
         sy = (int)(yScale * (double)(y + regionY));
-        if (sy > srcHeight) {
+        if (sy >= srcHeight) {
             sy = srcHeight - 1;
         }
         mapY[y] = sy;
@@ -1571,7 +1578,7 @@ Rbc_ColorImage Rbc_ResizeColorSubimage(Rbc_ColorImage src, int regionX, int regi
     dest = Rbc_CreateColorImage(regionWidth, regionHeight);
     destPtr = Rbc_ColorImageBits(dest);
     for (y = 0; y < regionHeight; y++) {
-        srcRowPtr = Rbc_ColorImageBits(src) + (Rbc_ColorImageWidth(src) * mapY[y]);
+        srcRowPtr = Rbc_ColorImagePixel(src, 0, mapY[y]);
         for (x = 0; x < regionWidth; x++) {
             srcPtr = srcRowPtr + mapX[x];
             destPtr->value = srcPtr->value; /* Copy the pixel. */
