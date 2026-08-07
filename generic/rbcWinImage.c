@@ -16,8 +16,19 @@
 
 #define CLAMP(c) ((((c) < 0.0) ? 0.0 : ((c) > 255.0) ? 255.0 : (c)))
 
-#define GetBit(x, y) srcBits[(srcBytesPerRow * (srcHeight - y - 1)) + (x >> 3)] & (0x80 >> (x & 7))
-#define SetBit(x, y) destBits[(destBytesPerRow * (destHeight - y - 1)) + (x >> 3)] |= (0x80 >> (x & 7))
+#define GetBit(x, y)                                                                                                   \
+    (srcBits[((size_t)srcBytesPerRow * (size_t)(srcHeight - (y) - 1)) + ((size_t)(x) >> 3)] & (0x80 >> ((x) & 7)))
+
+#define SetBit(x, y)                                                                                                   \
+    (destBits[((size_t)destBytesPerRow * (size_t)(destHeight - (y) - 1)) + ((size_t)(x) >> 3)] |= (0x80 >> ((x) & 7)))
+
+static int GetMonoBitmapStride(int width) {
+    if ((width < 0) || (width > INT_MAX - 31)) {
+        Tcl_Panic("monochrome bitmap stride overflow");
+    }
+
+    return ((width + 31) & ~31) / 8;
+}
 
 /*
  *----------------------------------------------------------------------
@@ -98,47 +109,48 @@ Pixmap Rbc_ColorImageToPixmap2(Display *display, int depth, Rbc_ColorImage image
     BITMAP bm;
     HBITMAP hBitmap;
     TkWinBitmap *twdPtr;
-    int width, height;
-    register Pix32 *srcPtr;
-    register int x, y;
-    register unsigned char *destPtr;
+    Pix32 *srcPtr;
     unsigned char *bits;
+    unsigned char *destPtr;
+    int width, height;
+    int rowBytes;
+    int x, y;
 
     *colorTablePtr = NULL;
     width = Rbc_ColorImageWidth(image);
     height = Rbc_ColorImageHeight(image);
-
-    /*
-     * Copy the color image RGB data into the DIB. The DIB scanlines
-     * are stored bottom-to-top and the order of the RGB color
-     * components is BGR. Who says Win32 GDI programming isn't
-     * backwards?
-     */
-    bits = (unsigned char *)ckalloc(width * height * sizeof(unsigned char));
-    assert(bits);
-    srcPtr = Rbc_ColorImageBits(image);
-    for (y = height - 1; y >= 0; y--) {
-        destPtr = bits + (y * width);
+    if ((width <= 0) || (height <= 0)) {
+        return None;
+    }
+    if (width > INT_MAX / (int)sizeof(Pix32)) {
+        return None;
+    }
+    rowBytes = width * (int)sizeof(Pix32);
+    bits = RbcCalloc((size_t)height, (size_t)rowBytes);
+    for (y = 0; y < height; y++) {
+        srcPtr = Rbc_ColorImagePixel(image, 0, height - y - 1);
+        destPtr = bits + ((size_t)y * (size_t)rowBytes);
         for (x = 0; x < width; x++) {
             *destPtr++ = srcPtr->Blue;
             *destPtr++ = srcPtr->Green;
             *destPtr++ = srcPtr->Red;
-            *destPtr++ = (unsigned char)-1;
+            *destPtr++ = srcPtr->Alpha;
             srcPtr++;
         }
     }
-    bm.bmType = 0;
+    ZeroMemory(&bm, sizeof(bm));
     bm.bmWidth = width;
     bm.bmHeight = height;
-    bm.bmWidthBytes = width;
+    bm.bmWidthBytes = rowBytes;
     bm.bmPlanes = 1;
     bm.bmBitsPixel = 32;
     bm.bmBits = bits;
     hBitmap = CreateBitmapIndirect(&bm);
-
-    /* Create a windows version of a drawable. */
-    twdPtr = (TkWinBitmap *)ckalloc(sizeof(TkWinBitmap));
-    assert(twdPtr);
+    ckfree(bits);
+    if (hBitmap == NULL) {
+        return None;
+    }
+    twdPtr = RbcCalloc(1, sizeof(*twdPtr));
     twdPtr->type = TWD_BITMAP;
     twdPtr->handle = hBitmap;
     twdPtr->depth = depth;
@@ -188,8 +200,15 @@ Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, int 
     Rbc_ColorImage image;
     unsigned char lut[256];
 
+    hBitmap = NULL;
+    oldBitmap = NULL;
+    memDC = NULL;
+    hPalette = NULL;
+    image = NULL;
+    if ((width <= 0) || (height <= 0) || (!FINITE(inputGamma)) || (inputGamma <= 0.0)) {
+        return NULL;
+    }
     hDC = TkWinGetDrawableDC(Tk_Display(tkwin), drawable, &state);
-
     /* Create the intermediate drawing surface at window resolution. */
     ZeroMemory(&info, sizeof(info));
     info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -199,9 +218,14 @@ Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, int 
     info.bmiHeader.biBitCount = 32;
     info.bmiHeader.biCompression = BI_RGB;
     hBitmap = CreateDIBSection(hDC, &info, DIB_RGB_COLORS, &data, NULL, 0);
+    if ((hBitmap == NULL) || (data == NULL)) {
+        goto done;
+    }
     memDC = CreateCompatibleDC(hDC);
+    if (memDC == NULL) {
+        goto done;
+    }
     oldBitmap = SelectBitmap(memDC, hBitmap);
-
     hPalette = Rbc_GetSystemPalette();
     if (hPalette != NULL) {
         SelectPalette(hDC, hPalette, FALSE);
@@ -226,7 +250,6 @@ Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, int 
     srcArr = (unsigned char *)ds.dsBm.bmBits;
     image = Rbc_CreateColorImage(width, height);
     destPtr = Rbc_ColorImageBits(image);
-
     {
         register int i;
         double value;
@@ -236,16 +259,14 @@ Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, int 
             lut[i] = (unsigned char)CLAMP(value);
         }
     }
-
     /*
      * Copy the DIB RGB data into the color image. The DIB scanlines
      * are stored bottom-to-top and the order of the RGB color
      * components is BGR. Who says Win32 GDI programming isn't
      * backwards?
      */
-
     for (y = height - 1; y >= 0; y--) {
-        srcPtr = srcArr + (y * ds.dsBm.bmWidthBytes);
+        srcPtr = srcArr + ((size_t)y * (size_t)ds.dsBm.bmWidthBytes);
         for (x = 0; x < width; x++) {
             destPtr->Blue = lut[*srcPtr++];
             destPtr->Green = lut[*srcPtr++];
@@ -256,8 +277,16 @@ Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, int 
         }
     }
 done:
-    DeleteBitmap(SelectBitmap(memDC, oldBitmap));
-    DeleteDC(memDC);
+    if (memDC != NULL) {
+        if (oldBitmap != NULL) {
+            DeleteBitmap(SelectBitmap(memDC, oldBitmap));
+        } else if (hBitmap != NULL) {
+            DeleteObject(hBitmap);
+        }
+        DeleteDC(memDC);
+    } else if (hBitmap != NULL) {
+        DeleteObject(hBitmap);
+    }
     TkWinReleaseDrawableDC(drawable, hDC, &state);
     if (hPalette != NULL) {
         DeletePalette(hPalette);
@@ -286,21 +315,21 @@ done:
  */
 Pixmap Rbc_PhotoImageMask(Tk_Window tkwin, Tk_PhotoImageBlock src) {
     TkWinBitmap *twdPtr;
-    int offset, count;
-    register int x, y;
+    size_t count = 0;
+    int x, y;
     unsigned char *srcPtr;
     int destBytesPerRow;
     int destHeight;
     unsigned char *destBits;
+    unsigned char *srcRowPtr;
 
-    destBytesPerRow = ((src.width + 31) & ~31) / 8;
+    destBytesPerRow = GetMonoBitmapStride(src.width);
     destBits = RbcCalloc(src.height, destBytesPerRow);
     destHeight = src.height;
-
-    offset = count = 0;
+    srcRowPtr = src.pixelPtr;
     /* FIXME: figure out why this is so! */
     for (y = src.height - 1; y >= 0; y--) {
-        srcPtr = src.pixelPtr + offset;
+        srcPtr = srcRowPtr;
         for (x = 0; x < src.width; x++) {
             if (srcPtr[src.offset[3]] == 0x00) {
                 SetBit(x, y);
@@ -308,7 +337,7 @@ Pixmap Rbc_PhotoImageMask(Tk_Window tkwin, Tk_PhotoImageBlock src) {
             }
             srcPtr += src.pixelSize;
         }
-        offset += src.pitch;
+        srcRowPtr += src.pitch;
     }
     if (count > 0) {
         HBITMAP hBitmap;
@@ -322,8 +351,11 @@ Pixmap Rbc_PhotoImageMask(Tk_Window tkwin, Tk_PhotoImageBlock src) {
         bm.bmBitsPixel = 1;
         bm.bmBits = destBits;
         hBitmap = CreateBitmapIndirect(&bm);
-
-        twdPtr = (TkWinBitmap *)ckalloc(sizeof(TkWinBitmap));
+        if (hBitmap == NULL) {
+            ckfree(destBits);
+            return None;
+        }
+        twdPtr = RbcCalloc(1, sizeof(*twdPtr));
         assert(twdPtr);
         twdPtr->type = TWD_BITMAP;
         twdPtr->handle = hBitmap;
@@ -363,8 +395,8 @@ Pixmap Rbc_PhotoImageMask(Tk_Window tkwin, Tk_PhotoImageBlock src) {
  */
 Pixmap Rbc_ColorImageMask(Tk_Window tkwin, Rbc_ColorImage image) {
     TkWinBitmap *twdPtr;
-    int count;
-    register int x, y;
+    size_t count;
+    int x, y;
     Pix32 *srcPtr;
     int destBytesPerRow;
     int destWidth, destHeight;
@@ -397,7 +429,6 @@ Pixmap Rbc_ColorImageMask(Tk_Window tkwin, Rbc_ColorImage image) {
         bm.bmBitsPixel = 1;
         bm.bmBits = destBits;
         hBitmap = CreateBitmapIndirect(&bm);
-
         twdPtr = (TkWinBitmap *)ckalloc(sizeof(TkWinBitmap));
         assert(twdPtr);
         twdPtr->type = TWD_BITMAP;
@@ -450,158 +481,217 @@ Pixmap Rbc_ColorImageMask(Tk_Window tkwin, Rbc_ColorImage image) {
  */
 Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcHeight, double theta, int *destWidthPtr,
                         int *destHeightPtr) {
-    Display *display; /* X display */
-    Window root;      /* Root window drawable */
+    Display *display;
+    Window root;
     Pixmap destBitmap;
     double rotWidth, rotHeight;
+    double widthValue, heightValue;
     HDC hDC;
     TkWinDCState state;
-    register int x, y;   /* Destination bitmap coordinates */
-    register int sx, sy; /* Source bitmap coordinates */
-    unsigned long pixel;
     HBITMAP hBitmap;
+    unsigned char *srcBits;
+    unsigned char *destBits;
+    int srcBytesPerRow;
+    int destBytesPerRow;
+    int destWidth, destHeight;
+    int x, y;
+    int sx, sy;
     int result;
+    size_t imageSize;
+    unsigned long pixel;
+
     struct MonoBitmap {
         BITMAPINFOHEADER bi;
         RGBQUAD colors[2];
     } mb;
-    int srcBytesPerRow, destBytesPerRow;
-    int destWidth, destHeight;
-    unsigned char *srcBits, *destBits;
-
+    if ((srcWidth <= 0) || (srcHeight <= 0) || (!FINITE(theta)) || (destWidthPtr == NULL) || (destHeightPtr == NULL)) {
+        return None;
+    }
+    *destWidthPtr = 0;
+    *destHeightPtr = 0;
     display = Tk_Display(tkwin);
-    root = RootWindow(Tk_Display(tkwin), Tk_ScreenNumber(tkwin));
+    root = RootWindow(display, Tk_ScreenNumber(tkwin));
+    /*
+     * Normalize the angle to [0,360).  This is important for the
+     * right-angle switch below: FMOD(-90,360) is otherwise -90.
+     */
+    theta = FMOD(theta, 360.0);
+    if (theta < 0.0) {
+        theta += 360.0;
+    }
+    /*
+     * Determine the dimensions needed to contain the rotated bitmap.
+     */
     Rbc_GetBoundingBox(srcWidth, srcHeight, theta, &rotWidth, &rotHeight, (Point2D *)NULL);
-
-    destWidth = (int)ceil(rotWidth);
-    destHeight = (int)ceil(rotHeight);
+    widthValue = ceil(rotWidth);
+    heightValue = ceil(rotHeight);
+    if ((!FINITE(widthValue)) || (!FINITE(heightValue)) || (widthValue < 1.0) || (heightValue < 1.0) ||
+        (widthValue > (double)INT_MAX) || (heightValue > (double)INT_MAX)) {
+        return None;
+    }
+    destWidth = (int)widthValue;
+    destHeight = (int)heightValue;
+    /*
+     * Windows monochrome bitmap scanlines are DWORD aligned.
+     *
+     * Calculate:
+     *
+     *     ((width + 31) & ~31) / 8
+     *
+     * without overflowing signed int.
+     */
+    if (destWidth > (INT_MAX - 31)) {
+        return None;
+    }
+    destBytesPerRow = ((destWidth + 31) & ~31) / 8;
+    if (destBytesPerRow <= 0) {
+        return None;
+    }
+    if ((size_t)destHeight > SIZE_MAX / (size_t)destBytesPerRow) {
+        return None;
+    }
+    imageSize = (size_t)destHeight * (size_t)destBytesPerRow;
+    /*
+     * biSizeImage is a DWORD, so this is an actual Win32 boundary.
+     */
+    if (imageSize > (size_t)UINT32_MAX) {
+        return None;
+    }
     destBitmap = Tk_GetPixmap(display, root, destWidth, destHeight, 1);
     if (destBitmap == None) {
-        return None; /* Can't allocate pixmap. */
+        return None;
     }
     srcBits = Rbc_GetBitmapData(display, srcBitmap, srcWidth, srcHeight, &srcBytesPerRow);
     if (srcBits == NULL) {
         OutputDebugStringA("Rbc_GetBitmapData failed");
+        Tk_FreePixmap(display, destBitmap);
         return None;
     }
-    destBytesPerRow = ((destWidth + 31) & ~31) / 8;
-    destBits = RbcCalloc(destHeight, destBytesPerRow);
-
-    theta = FMOD(theta, 360.0);
-    if (FMOD(theta, (double)90.0) == 0.0) {
+    if (srcBytesPerRow <= 0) {
+        ckfree(srcBits);
+        Tk_FreePixmap(display, destBitmap);
+        return None;
+    }
+    destBits = RbcCalloc((size_t)destHeight, (size_t)destBytesPerRow);
+    /*
+     * Windows monochrome bitmaps are bottom-to-top.  The mappings
+     * below intentionally preserve the orientation of the original
+     * implementation.
+     */
+    if (FMOD(theta, 90.0) == 0.0) {
         int quadrant;
-
-        /* Handle right-angle rotations specially. */
 
         quadrant = (int)(theta / 90.0);
         switch (quadrant) {
-        case ROTATE_270: /* 270 degrees */
+        case ROTATE_270:
             for (y = 0; y < destHeight; y++) {
                 sx = y;
                 for (x = 0; x < destWidth; x++) {
                     sy = destWidth - x - 1;
+                    if ((sx < 0) || (sx >= srcWidth) || (sy < 0) || (sy >= srcHeight)) {
+                        continue;
+                    }
                     pixel = GetBit(sx, sy);
-                    if (pixel) {
+                    if (pixel != 0) {
                         SetBit(x, y);
                     }
                 }
             }
             break;
-
-        case ROTATE_180: /* 180 degrees */
+        case ROTATE_180:
             for (y = 0; y < destHeight; y++) {
                 sy = destHeight - y - 1;
                 for (x = 0; x < destWidth; x++) {
                     sx = destWidth - x - 1;
+                    if ((sx < 0) || (sx >= srcWidth) || (sy < 0) || (sy >= srcHeight)) {
+                        continue;
+                    }
                     pixel = GetBit(sx, sy);
-                    if (pixel) {
+                    if (pixel != 0) {
                         SetBit(x, y);
                     }
                 }
             }
             break;
-
-        case ROTATE_90: /* 90 degrees */
+        case ROTATE_90:
             for (y = 0; y < destHeight; y++) {
                 sx = destHeight - y - 1;
                 for (x = 0; x < destWidth; x++) {
                     sy = x;
+                    if ((sx < 0) || (sx >= srcWidth) || (sy < 0) || (sy >= srcHeight)) {
+                        continue;
+                    }
                     pixel = GetBit(sx, sy);
-                    if (pixel) {
+                    if (pixel != 0) {
                         SetBit(x, y);
                     }
                 }
             }
             break;
-
-        case ROTATE_0: /* 0 degrees */
+        case ROTATE_0:
             for (y = 0; y < destHeight; y++) {
                 for (x = 0; x < destWidth; x++) {
+                    if ((x >= srcWidth) || (y >= srcHeight)) {
+                        continue;
+                    }
                     pixel = GetBit(x, y);
-                    if (pixel) {
+                    if (pixel != 0) {
                         SetBit(x, y);
                     }
                 }
             }
             break;
-
         default:
-            /* The calling routine should never let this happen. */
+            /*
+             * theta is normalized to [0,360), so an exact multiple
+             * of 90 must be one of the four cases above.
+             */
             break;
         }
     } else {
-        double radians, sinTheta, cosTheta;
-        double srcCX, srcCY;   /* Center of source rectangle */
-        double destCX, destCY; /* Center of destination rectangle */
+        double radians;
+        double sinTheta, cosTheta;
+        double srcCX, srcCY;
+        double destCX, destCY;
         double tx, ty;
-        double rx, ry; /* Angle of rotation for x and y coordinates */
+        double rx, ry;
 
         radians = (theta / 180.0) * M_PI;
-        sinTheta = sin(radians), cosTheta = cos(radians);
-
-        /*
-         * Coordinates of the centers of the source and destination rectangles
-         */
-        srcCX = srcWidth * 0.5;
-        srcCY = srcHeight * 0.5;
-        destCX = destWidth * 0.5;
-        destCY = destHeight * 0.5;
-
-        /* Rotate each pixel of dest image, placing results in source image */
-
+        sinTheta = sin(radians);
+        cosTheta = cos(radians);
+        srcCX = (double)srcWidth * 0.5;
+        srcCY = (double)srcHeight * 0.5;
+        destCX = (double)destWidth * 0.5;
+        destCY = (double)destHeight * 0.5;
         for (y = 0; y < destHeight; y++) {
-            ty = y - destCY;
+            ty = (double)y - destCY;
             for (x = 0; x < destWidth; x++) {
-
-                /* Translate origin to center of destination image */
-                tx = x - destCX;
-
-                /* Rotate the coordinates about the origin */
+                tx = (double)x - destCX;
+                /*
+                 * Inverse-map the destination coordinate into the
+                 * unrotated source bitmap.
+                 */
                 rx = (tx * cosTheta) - (ty * sinTheta);
                 ry = (tx * sinTheta) + (ty * cosTheta);
-
-                /* Translate back to the center of the source image */
                 rx += srcCX;
                 ry += srcCY;
-
                 sx = ROUND(rx);
                 sy = ROUND(ry);
-
-                /*
-                 * Verify the coordinates, since the destination image can be
-                 * bigger than the source
-                 */
-
-                if ((sx >= srcWidth) || (sx < 0) || (sy >= srcHeight) || (sy < 0)) {
+                if ((sx < 0) || (sx >= srcWidth) || (sy < 0) || (sy >= srcHeight)) {
                     continue;
                 }
                 pixel = GetBit(sx, sy);
-                if (pixel) {
+                if (pixel != 0) {
                     SetBit(x, y);
                 }
             }
         }
     }
+
+    /*
+     * Transfer the rotated bit array into the Windows bitmap backing
+     * the Tk pixmap.
+     */
     hBitmap = ((TkWinDrawable *)destBitmap)->bitmap.handle;
     ZeroMemory(&mb, sizeof(mb));
     mb.bi.biSize = sizeof(BITMAPINFOHEADER);
@@ -610,25 +700,29 @@ Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int src
     mb.bi.biCompression = BI_RGB;
     mb.bi.biWidth = destWidth;
     mb.bi.biHeight = destHeight;
-    mb.bi.biSizeImage = destBytesPerRow * destHeight;
-    mb.colors[0].rgbBlue = mb.colors[0].rgbRed = mb.colors[0].rgbGreen = 0x0;
-    mb.colors[1].rgbBlue = mb.colors[1].rgbRed = mb.colors[1].rgbGreen = 0xFF;
+    mb.bi.biSizeImage = (DWORD)imageSize;
+    mb.colors[0].rgbBlue = 0x00;
+    mb.colors[0].rgbGreen = 0x00;
+    mb.colors[0].rgbRed = 0x00;
+    mb.colors[1].rgbBlue = 0xFF;
+    mb.colors[1].rgbGreen = 0xFF;
+    mb.colors[1].rgbRed = 0xFF;
     hDC = TkWinGetDrawableDC(display, destBitmap, &state);
-    result = SetDIBits(hDC, hBitmap, 0, destHeight, (LPVOID)destBits, (BITMAPINFO *)&mb, DIB_RGB_COLORS);
+    result = SetDIBits(hDC, hBitmap, 0, (UINT)destHeight, (const VOID *)destBits, (BITMAPINFO *)&mb, DIB_RGB_COLORS);
     TkWinReleaseDrawableDC(destBitmap, hDC, &state);
-    if (!result) {
+    ckfree(destBits);
+    ckfree(srcBits);
+    if (result == 0) {
 #if WINDEBUG
-        PurifyPrintf("can't setDIBits: %s\n", Rbc_LastError());
+        PurifyPrintf("can't SetDIBits: %s\n", Rbc_LastError());
 #endif
-        destBitmap = None;
+        /*
+         * The original code merely replaced destBitmap with None,
+         * leaking the pixmap.  Release it first.
+         */
+        Tk_FreePixmap(display, destBitmap);
+        return None;
     }
-    if (destBits != NULL) {
-        ckfree((char *)destBits);
-    }
-    if (srcBits != NULL) {
-        ckfree((char *)srcBits);
-    }
-
     *destWidthPtr = destWidth;
     *destHeightPtr = destHeight;
     return destBitmap;
@@ -721,9 +815,9 @@ Pixmap Rbc_ScaleBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcH
  *
  * -----------------------------------------------------------------------
  */
-Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, unsigned int srcWidth, unsigned int srcHeight,
-                                   int regionX, int regionY, unsigned int regionWidth, unsigned int regionHeight,
-                                   unsigned int virtWidth, unsigned int virtHeight, double theta) {
+Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcHeight,
+                                   int regionX, int regionY, int regionWidth, int regionHeight,
+                                   int virtWidth, int virtHeight, double theta) {
     Display *display; /* X display */
     HBITMAP hBitmap;
     HDC hDC;
@@ -1066,18 +1160,22 @@ done:
  *
  *--------------------------------------------------------------
  */
-Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, char *fileName) {
+Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, const char *fileName) {
     JPEG_CORE_PROPERTIES jpgProps;
-    Rbc_ColorImage image;
+    Rbc_ColorImage image = NULL;
 
     ZeroMemory(&jpgProps, sizeof(JPEG_CORE_PROPERTIES));
     if (ijlInit(&jpgProps) != IJL_OK) {
         Tcl_AppendResult(interp, "can't initialize Intel JPEG library", (char *)NULL);
         return NULL;
     }
-    jpgProps.JPGFile = fileName;
+    jpgProps.JPGFile = (char *)fileName;
     if (ijlRead(&jpgProps, IJL_JFILE_READPARAMS) != IJL_OK) {
         Tcl_AppendResult(interp, "can't read JPEG file header from \"", fileName, "\" file.", (char *)NULL);
+        goto error;
+    }
+    if ((jpgProps.JPGWidth <= 0) || (jpgProps.JPGHeight <= 0)) {
+        Tcl_AppendResult(interp, "bad JPEG image size", (char *)NULL);
         goto error;
     }
 
@@ -1096,26 +1194,19 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, char *fileName) {
         jpgProps.DIBChannels = 4;
         jpgProps.DIBColor = IJL_RGBA_FPX;
         break;
-
     case 3:
         jpgProps.JPGColor = IJL_YCBCR;
         jpgProps.DIBChannels = 4;
         jpgProps.DIBColor = IJL_RGBA_FPX;
         break;
-
     case 4:
         jpgProps.JPGColor = IJL_YCBCRA_FPX;
         jpgProps.DIBChannels = 4;
         jpgProps.DIBColor = IJL_RGBA_FPX;
         break;
-
     default:
-        /* This catches everything else, but no color twist will be
-           performed by the IJL. */
-        jpgProps.DIBColor = (IJL_COLOR)IJL_OTHER;
-        jpgProps.JPGColor = (IJL_COLOR)IJL_OTHER;
-        jpgProps.DIBChannels = jpgProps.JPGChannels;
-        break;
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("unsupported JPEG channel count %d", jpgProps.JPGChannels));
+        goto error;
     }
 
     jpgProps.DIBWidth = jpgProps.JPGWidth;
@@ -1238,7 +1329,7 @@ static void MessageProc(j_common_ptr jpgPtr) {
  *
  *----------------------------------------------------------------------
  */
-Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, char *fileName) {
+Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, const char *fileName) {
     struct jpeg_decompress_struct jpg;
     Rbc_ColorImage image;
     unsigned int imageWidth, imageHeight;
@@ -1246,7 +1337,6 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, char *fileName) {
     ReaderHandler handler;
     FILE *f;
     JSAMPLE **readBuffer;
-    int row_stride;
     register int i;
     register JSAMPLE *bufPtr;
 
@@ -1282,6 +1372,13 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, char *fileName) {
     jpeg_read_header(&jpg, TRUE); /* Step 3: read file parameters */
 
     jpeg_start_decompress(&jpg); /* Step 5: Start decompressor */
+    if ((jpg.output_width < 1) || (jpg.output_height < 1) || (jpg.output_width > (JDIMENSION)INT_MAX) ||
+        (jpg.output_height > (JDIMENSION)INT_MAX)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("bad JPEG image size", -1));
+        jpeg_destroy_decompress(&jpg);
+        fclose(f);
+        return NULL;
+    }
     imageWidth = jpg.output_width;
     imageHeight = jpg.output_height;
     if ((imageWidth < 1) || (imageHeight < 1)) {
@@ -1290,8 +1387,15 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, char *fileName) {
         return NULL;
     }
     /* JSAMPLEs per row in output buffer */
-    row_stride = imageWidth * jpg.output_components;
+    if ((jpg.output_components == 0) || (jpg.output_width > (JDIMENSION_MAX / jpg.output_components))) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("JPEG row is too large", -1));
+        jpeg_destroy_decompress(&jpg);
+        fclose(f);
+        return NULL;
+    }
+    JDIMENSION rowStride;
 
+    rowStride = jpg.output_width * jpg.output_components;
     /* Make a one-row-high sample array that will go away when done
      * with image */
     readBuffer = (*jpg.mem->alloc_sarray)((j_common_ptr)&jpg, JPOOL_IMAGE, row_stride, 1);
@@ -1312,7 +1416,7 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, char *fileName) {
         while (jpg.output_scanline < imageHeight) {
             jpeg_read_scanlines(&jpg, readBuffer, 1);
             bufPtr = readBuffer[0];
-            for (i = 0; i < (int)imageWidth; i++) {
+            for (JDIMENSION i = 0; i < imageWidth; i++) {
                 destPtr->Red = *bufPtr++;
                 destPtr->Green = *bufPtr++;
                 destPtr->Blue = *bufPtr++;

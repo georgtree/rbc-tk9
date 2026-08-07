@@ -153,7 +153,7 @@ typedef double(ResampleFilterProc)(double value);
  *----------------------------------------------------------------------
  */
 typedef struct {
-    char *name;               /* Name of the filter */
+    const char *name;         /* Name of the filter */
     ResampleFilterProc *proc; /* 1-D filter procedure. */
     double support;           /* Width of 1-D filter */
 } ResampleFilter;
@@ -197,7 +197,7 @@ int Rbc_GetResampleFilterFromObj(Tcl_Interp *interp, Tcl_Obj *filterObj, Resampl
 void Rbc_FreeColorImage(Rbc_ColorImage image);
 
 #if HAVE_JPEG
-Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, char *fileName);
+Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, const char *fileName);
 #endif
 
 Rbc_ColorImage Rbc_PhotoToColorImage(Tk_PhotoHandle photo);
@@ -257,8 +257,7 @@ Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap bitmap, int width, int height, d
 Pixmap Rbc_ScaleBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcHeight, int scaledWidth,
                        int scaledHeight);
 
-Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, unsigned int srcWidth, unsigned int srcHeight,
-                                   int regionX, int regionY, unsigned int regionWidth, unsigned int regionHeight,
-                                   unsigned int virtWidth, unsigned int virtHeight, double theta);
-
+Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcHeight, int regionX,
+                                   int regionY, int regionWidth, int regionHeight, int virtWidth, int virtHeight,
+                                   double theta);
 #endif /* _RBCIMAGE */

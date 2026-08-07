@@ -2852,17 +2852,9 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
                 if (Tcl_GetIntFromObj(interp, objv[i + 1], &data.height)) {
                     return TCL_ERROR;
                 }
-                if (data.height > SHRT_MAX) {
-                    Tcl_SetObjResult(interp, Tcl_ObjPrintf("-height must be smaller than %d", SHRT_MAX));
-                    return TCL_ERROR;
-                }
                 break;
             case OPT_WIDTH:
                 if (Tcl_GetIntFromObj(interp, objv[i + 1], &data.width)) {
-                    return TCL_ERROR;
-                }
-                if (data.width > SHRT_MAX) {
-                    Tcl_SetObjResult(interp, Tcl_ObjPrintf("-width must be smaller than %d", SHRT_MAX));
                     return TCL_ERROR;
                 }
                 break;

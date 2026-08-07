@@ -15,6 +15,33 @@
 #include "rbcImage.h"
 #include <X11/Xutil.h>
 #include <X11/Xproto.h>
+#include <stdint.h>
+#include <stddef.h>
+
+static size_t GetUnixImagePixelCount(int width, int height) {
+    if ((width < 0) || (height < 0)) {
+        Tcl_Panic("negative image dimension");
+    }
+    if ((width != 0) && ((size_t)height > SIZE_MAX / (size_t)width)) {
+        Tcl_Panic("image size overflow");
+    }
+    return (size_t)width * (size_t)height;
+}
+
+static size_t GetPackedBitmapRowBytes(int width) {
+    if (width < 0) {
+        Tcl_Panic("negative bitmap width");
+    }
+    return ((size_t)width + 7u) / 8u;
+}
+
+static int GetBitmapDimension(double value) {
+    value = ceil(value);
+    if ((!FINITE(value)) || (value < 1.0) || (value > (double)INT_MAX)) {
+        return 0;
+    }
+    return (int)value;
+}
 
 #define CLAMP(c) ((((c) < 0.0) ? 0.0 : ((c) > 255.0) ? 255.0 : (c)))
 
@@ -231,35 +258,39 @@ Pixmap Rbc_ColorImageToPixmap(Tcl_Interp *interp, Tk_Window tkwin, Rbc_ColorImag
     GC pixmapGC;
     Visual *visualPtr;
     XImage *imagePtr;
-    int nPixels;
+    size_t nPixels;
+    size_t rowBytes;
 
     visualPtr = Tk_Visual(tkwin);
     width = Rbc_ColorImageWidth(image);
     height = Rbc_ColorImageHeight(image);
+    if ((width <= 0) || (height <= 0)) {
+        return None;
+    }
+    if ((size_t)width > (size_t)INT_MAX / sizeof(Pix32)) {
+        return None;
+    }
+    rowBytes = (size_t)width * sizeof(Pix32);
     display = Tk_Display(tkwin);
-
     ComputeMasks(visualPtr);
-
     *colorTablePtr = NULL;
     imagePtr =
         XCreateImage(Tk_Display(tkwin), visualPtr, Tk_Depth(tkwin), ZPixmap, 0, (char *)NULL, width, height, 32, 0);
-    assert(imagePtr);
-
-    nPixels = width * height;
-    imagePtr->data = (char *)ckalloc(sizeof(Pix32) * nPixels);
-    assert(imagePtr->data);
-
+    if (imagePtr == NULL) {
+        return None;
+    }
+    nPixels = GetUnixImagePixelCount(width, height);
+    imagePtr->data = RbcCalloc(nPixels, sizeof(Pix32));
     imagePtr->byte_order = MSBFirst; /* Force the byte order */
     imagePtr->bitmap_bit_order = imagePtr->byte_order;
-    imagePtr->bytes_per_line = width * sizeof(Pix32);
-
+    imagePtr->bytes_per_line = (int)rowBytes;
     switch (visualPtr->class) {
     case TrueColor: {
         register int x, y;
         register Pix32 *srcPtr;
         register char *destPtr;
         unsigned int pixel;
-        int rowOffset;
+        size_t rowOffset;
 
         /*
          * Compute the colormap locations directly from pixel RGB values.
@@ -294,7 +325,7 @@ Pixmap Rbc_ColorImageToPixmap(Tcl_Interp *interp, Tk_Window tkwin, Rbc_ColorImag
         register Pix32 *srcPtr;
         register char *destPtr;
         unsigned int pixel;
-        int rowOffset;
+        size_t rowOffset;
         struct ColorTableStruct *colorTabPtr;
 
         /* Build a color table first */
@@ -337,7 +368,7 @@ Pixmap Rbc_ColorImageToPixmap(Tcl_Interp *interp, Tk_Window tkwin, Rbc_ColorImag
         register Pix32 *srcPtr;
         register char *destPtr;
         unsigned int pixel;
-        int rowOffset;
+        size_t rowOffset;
         struct ColorTableStruct *colorTabPtr;
 
         colorTabPtr = Rbc_PseudoColorTable(interp, tkwin, image);
@@ -369,7 +400,8 @@ Pixmap Rbc_ColorImageToPixmap(Tcl_Interp *interp, Tk_Window tkwin, Rbc_ColorImag
         *colorTablePtr = colorTabPtr;
     } break;
     default:
-        return None; /* Bad or unknown visual class. */
+        XDestroyImage(imagePtr);
+        return None;
     }
     pixmapGC = Tk_GetGC(tkwin, 0L, (XGCValues *)NULL);
     pixmap = Tk_GetPixmap(display, Tk_WindowId(tkwin), width, height, Tk_Depth(tkwin));
@@ -433,18 +465,22 @@ Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, regi
     Visual *visualPtr;
     unsigned char lut[256];
 
+    if ((width <= 0) || (height <= 0) || (!FINITE(inputGamma)) || (inputGamma <= 0.0)) {
+        return NULL;
+    }
     errHandler = Tk_CreateErrorHandler(Tk_Display(tkwin), BadMatch, X_GetImage, -1, XGetImageErrorProc, &result);
     imagePtr = XGetImage(Tk_Display(tkwin), drawable, x, y, width, height, AllPlanes, ZPixmap);
+    if ((result != TCL_OK) || (imagePtr == NULL)) {
+        return NULL;
+    }
     Tk_DeleteErrorHandler(errHandler);
     XSync(Tk_Display(tkwin), False);
     if (result != TCL_OK) {
         return NULL;
     }
-
     {
         register int i;
         double value;
-
         for (i = 0; i < 256; i++) {
             value = pow(i / 255.0, inputGamma) * 255.0 + 0.5;
             lut[i] = (unsigned char)CLAMP(value);
@@ -466,11 +502,9 @@ Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, regi
         for (y = 0; y < height; y++) {
             for (x = 0; x < width; x++) {
                 pixel = XGetPixel(imagePtr, x, y);
-
                 red = ((pixel & visualPtr->red_mask) >> redMaskShift) << redAdjust;
                 green = ((pixel & visualPtr->green_mask) >> greenMaskShift) << greenAdjust;
                 blue = ((pixel & visualPtr->blue_mask) >> blueMaskShift) << blueAdjust;
-
                 /*
                  * The number of bits per color in the pixel may be
                  * less than eight. For example, 15/16 bit displays
@@ -493,15 +527,15 @@ Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, regi
         Tcl_HashTable pixelTable;
         XColor *colorPtr, *colorArr;
         Pix32 *endPtr;
-        int nPixels;
-        int nColors;
+        size_t nPixels;
+        Tcl_Size nColors;
         int isNew;
 
         /*
          * Fill the array with each pixel of the image. At the same time, build
          * up a hashtable of the pixels used.
          */
-        nPixels = width * height;
+        nPixels = GetUnixImagePixelCount(width, height);
         Tcl_InitHashTable(&pixelTable, TCL_ONE_WORD_KEYS);
         destPtr = Rbc_ColorImageBits(image);
         for (y = 0; y < height; y++) {
@@ -532,7 +566,14 @@ Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, regi
             Tcl_SetHashValue(hPtr, (char *)colorPtr);
             colorPtr++;
         }
-        XQueryColors(Tk_Display(tkwin), Tk_Colormap(tkwin), colorArr, nColors);
+        if (nColors > (Tcl_Size)INT_MAX) {
+            XDestroyImage(imagePtr);
+            Tcl_DeleteHashTable(&pixelTable);
+            Rbc_FreeColorImage(image);
+            return NULL;
+        }
+        colorArr = RbcCalloc((size_t)nColors, sizeof(*colorArr));
+        XQueryColors(Tk_Display(tkwin), Tk_Colormap(tkwin), colorArr, (int)nColors);
 
         /*
          * Go again through the array of pixels, replacing each pixel
@@ -556,24 +597,24 @@ Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, regi
 
 Pixmap Rbc_PhotoImageMask(Tk_Window tkwin, Tk_PhotoImageBlock src) {
     Pixmap bitmap;
-    int arraySize, bytes_per_line;
-    int offset, count;
+    size_t bytesPerLine;
+    size_t count = 0;
     int value, bitMask;
-    register int x, y;
+    int x, y;
     unsigned char *bits;
     unsigned char *srcPtr;
     unsigned char *destPtr;
     unsigned long pixel;
+    unsigned char *srcRowPtr;
 
-    bytes_per_line = (src.width + 7) / 8;
-    arraySize = src.height * bytes_per_line;
-    bits = (unsigned char *)ckalloc(sizeof(unsigned char) * arraySize);
+    bytesPerLine = GetPackedBitmapRowBytes(src.width);
+    bits = RbcCalloc((size_t)src.height, bytesPerLine);
     assert(bits);
     destPtr = bits;
-    offset = count = 0;
+    srcRowPtr = src.pixelPtr;
     for (y = 0; y < src.height; y++) {
         value = 0, bitMask = 1;
-        srcPtr = src.pixelPtr + offset;
+        srcPtr = srcRowPtr;
         for (x = 0; x < src.width; /*empty*/) {
             pixel = (srcPtr[src.offset[3]] != 0x00);
             if (pixel) {
@@ -592,7 +633,7 @@ Pixmap Rbc_PhotoImageMask(Tk_Window tkwin, Tk_PhotoImageBlock src) {
         if (x & 7) {
             *destPtr++ = (unsigned char)value;
         }
-        offset += src.pitch;
+        srcRowPtr += src.pitch;
     }
     if (count > 0) {
         Tk_MakeWindowExist(tkwin);
@@ -607,8 +648,8 @@ Pixmap Rbc_PhotoImageMask(Tk_Window tkwin, Tk_PhotoImageBlock src) {
 
 Pixmap Rbc_ColorImageMask(Tk_Window tkwin, Rbc_ColorImage image) {
     Pixmap bitmap;
-    int arraySize, bytes_per_line;
-    int count;
+    size_t bytesPerLine;
+    size_t count;
     int value, bitMask;
     register int x, y;
     unsigned char *bits;
@@ -619,9 +660,8 @@ Pixmap Rbc_ColorImageMask(Tk_Window tkwin, Rbc_ColorImage image) {
 
     width = Rbc_ColorImageWidth(image);
     height = Rbc_ColorImageHeight(image);
-    bytes_per_line = (width + 7) / 8;
-    arraySize = height * bytes_per_line;
-    bits = (unsigned char *)ckalloc(sizeof(unsigned char) * arraySize);
+    bytesPerLine = GetPackedBitmapRowBytes(width);
+    bits = RbcCalloc((size_t)height, bytesPerLine);
     assert(bits);
     destPtr = bits;
     count = 0;
@@ -694,13 +734,18 @@ Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int src
     GC bitmapGC;
     double rotWidth, rotHeight;
 
+    if ((srcWidth <= 0) || (srcHeight <= 0) || (!FINITE(theta))) {
+        return None;
+    }
     display = Tk_Display(tkwin);
     root = RootWindow(Tk_Display(tkwin), Tk_ScreenNumber(tkwin));
-
     /* Create a bitmap and image big enough to contain the rotated text */
     Rbc_GetBoundingBox(srcWidth, srcHeight, theta, &rotWidth, &rotHeight, (Point2D *)NULL);
-    destWidth = ROUND(rotWidth);
-    destHeight = ROUND(rotHeight);
+    destWidth = GetBitmapDimension(rotWidth);
+    destHeight = GetBitmapDimension(rotHeight);
+    if ((destWidth == 0) || (destHeight == 0)) {
+        return None;
+    }
     destBitmap = Tk_GetPixmap(display, root, destWidth, destHeight, 1);
     bitmapGC = Rbc_GetBitmapGC(tkwin);
     XSetForeground(display, bitmapGC, 0x0);
@@ -713,7 +758,6 @@ Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int src
         int quadrant;
 
         /* Handle right-angle rotations specifically */
-
         quadrant = (int)(theta / 90.0);
         switch (quadrant) {
         case ROTATE_270: /* 270 degrees */
@@ -728,7 +772,6 @@ Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int src
                 }
             }
             break;
-
         case ROTATE_180: /* 180 degrees */
             for (y = 0; y < destHeight; y++) {
                 sy = destHeight - y - 1;
@@ -740,7 +783,6 @@ Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int src
                 }
             }
             break;
-
         case ROTATE_90: /* 90 degrees */
             for (y = 0; y < destHeight; y++) {
                 sx = destHeight - y - 1;
@@ -753,7 +795,6 @@ Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int src
                 }
             }
             break;
-
         case ROTATE_0: /* 0 degrees */
             for (y = 0; y < destHeight; y++) {
                 for (x = 0; x < destWidth; x++) {
@@ -764,7 +805,6 @@ Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int src
                 }
             }
             break;
-
         default:
             /* The calling routine should never let this happen. */
             break;
@@ -780,7 +820,6 @@ Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int src
 
         radians = (theta / 180.0) * M_PI;
         sinTheta = sin(radians), cosTheta = cos(radians);
-
         /*
          * Coordinates of the centers of the source and destination rectangles
          */
@@ -788,33 +827,25 @@ Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int src
         soy = srcHeight * 0.5;
         destCX = destWidth * 0.5;
         destCY = destHeight * 0.5;
-
         /* For each pixel of the destination image, transform back to the
          * associated pixel in the source image. */
-
         for (y = 0; y < destHeight; y++) {
             ty = y - destCY;
             for (x = 0; x < destWidth; x++) {
-
                 /* Translate origin to center of destination image. */
                 tx = x - destCX;
-
                 /* Rotate the coordinates about the origin. */
                 rx = (tx * cosTheta) - (ty * sinTheta);
                 ry = (tx * sinTheta) + (ty * cosTheta);
-
                 /* Translate back to the center of the source image. */
                 rx += sox;
                 ry += soy;
-
                 sx = ROUND(rx);
                 sy = ROUND(ry);
-
                 /*
                  * Verify the coordinates, since the destination image can be
                  * bigger than the source.
                  */
-
                 if ((sx >= srcWidth) || (sx < 0) || (sy >= srcHeight) || (sy < 0)) {
                     continue;
                 }
@@ -827,7 +858,6 @@ Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int src
     }
     /* Write the rotated image into the destination bitmap. */
     XPutImage(display, destBitmap, bitmapGC, dest, 0, 0, 0, 0, destWidth, destHeight);
-
     /* Clean up the temporary resources used. */
     XDestroyImage(src), XDestroyImage(dest);
     *destWidthPtr = destWidth;
@@ -874,19 +904,18 @@ Pixmap Rbc_ScaleBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcH
     register int x, y;   /* Destination bitmap coordinates */
     unsigned long pixel;
 
+    if ((srcWidth <= 0) || (srcHeight <= 0) || (destWidth <= 0) || (destHeight <= 0)) {
+        return None;
+    }
     /* Create a new bitmap the size of the region and clear it */
-
     display = Tk_Display(tkwin);
-
     root = RootWindow(Tk_Display(tkwin), Tk_ScreenNumber(tkwin));
     destBitmap = Tk_GetPixmap(display, root, destWidth, destHeight, 1);
     bitmapGC = Rbc_GetBitmapGC(tkwin);
     XSetForeground(display, bitmapGC, 0x0);
     XFillRectangle(display, destBitmap, bitmapGC, 0, 0, destWidth, destHeight);
-
     src = XGetImage(display, srcBitmap, 0, 0, srcWidth, srcHeight, 1, ZPixmap);
     dest = XGetImage(display, destBitmap, 0, 0, destWidth, destHeight, 1, ZPixmap);
-
     /*
      * Scale each pixel of destination image from results of source
      * image. Verify the coordinates, since the destination image can
@@ -894,7 +923,6 @@ Pixmap Rbc_ScaleBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcH
      */
     xScale = (double)srcWidth / (double)destWidth;
     yScale = (double)srcHeight / (double)destHeight;
-
     /* Map each pixel in the destination image back to the source. */
     for (y = 0; y < destHeight; y++) {
         sy = (int)(yScale * (double)y);
@@ -907,7 +935,6 @@ Pixmap Rbc_ScaleBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcH
         }
     }
     /* Write the scaled image into the destination bitmap */
-
     XPutImage(display, destBitmap, bitmapGC, dest, 0, 0, 0, 0, destWidth, destHeight);
     XDestroyImage(src), XDestroyImage(dest);
     return destBitmap;
@@ -934,14 +961,14 @@ Pixmap Rbc_ScaleBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcH
  * Parameters:
  *      Tk_Window tkwin
  *      Pixmap srcBitmap - Source bitmap.
- *      unsigned int srcWidth - -
- *      unsigned int srcHeight - Size of source bitmap
+ *      int srcWidth - -
+ *      int srcHeight - Size of source bitmap
  *      int regionX - -
  *      int regionY - - Offset of region in virtual destination bitmap.
- *      unsigned int regionWidth - -
- *      unsigned int regionHeight - Desire size of bitmap region.
- *      unsigned int destWidth - -
- *      unsigned int destHeight - Virtual size of destination bitmap.
+ *      int regionWidth - -
+ *      int regionHeight - Desire size of bitmap region.
+ *      int virtWidth - -
+ *      int virtHeight - Virtual size of destination bitmap.
  *      double theta - Angle to rotate bitmap.
  *
  * Results:
@@ -952,49 +979,48 @@ Pixmap Rbc_ScaleBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcH
  *
  * -----------------------------------------------------------------------
  */
-Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, unsigned int srcWidth, unsigned int srcHeight,
-                                   int regionX, int regionY, unsigned int regionWidth, unsigned int regionHeight,
-                                   unsigned int destWidth, unsigned int destHeight, double theta) {
+Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcHeight, int regionX,
+                                   int regionY, int regionWidth, int regionHeight, int virtWidth, int virtHeight,
+                                   double theta) {
     Display *display;
     Window root;
     Pixmap destBitmap;
     XImage *src, *dest;
-    register int x, y;
-    register int sx, sy;
+    int x, y;
+    int sx, sy;
     unsigned long pixel;
     double xScale, yScale;
     double rotWidth, rotHeight;
     GC bitmapGC;
-
+    
+    if ((srcWidth <= 0) || (srcHeight <= 0) || (regionWidth <= 0) || (regionHeight <= 0) || (virtWidth <= 0) ||
+        (virtHeight <= 0) || (!FINITE(theta))) {
+        return None;
+    }
     display = Tk_Display(tkwin);
     root = RootWindow(Tk_Display(tkwin), Tk_ScreenNumber(tkwin));
-
     /* Create a bitmap and image big enough to contain the rotated text */
     bitmapGC = Rbc_GetBitmapGC(tkwin);
     destBitmap = Tk_GetPixmap(display, root, regionWidth, regionHeight, 1);
     XSetForeground(display, bitmapGC, 0x0);
     XFillRectangle(display, destBitmap, bitmapGC, 0, 0, regionWidth, regionHeight);
-
     src = XGetImage(display, srcBitmap, 0, 0, srcWidth, srcHeight, 1, ZPixmap);
     dest = XGetImage(display, destBitmap, 0, 0, regionWidth, regionHeight, 1, ZPixmap);
     theta = FMOD(theta, 360.0);
-
     Rbc_GetBoundingBox(srcWidth, srcHeight, theta, &rotWidth, &rotHeight, (Point2D *)NULL);
-    xScale = rotWidth / (double)destWidth;
-    yScale = rotHeight / (double)destHeight;
-
+    xScale = rotWidth / (double)virtWidth;
+    yScale = rotHeight / (double)virtHeight;
     if (FMOD(theta, (double)90.0) == 0.0) {
         int quadrant;
 
         /* Handle right-angle rotations specifically */
-
         quadrant = (int)(theta / 90.0);
         switch (quadrant) {
         case ROTATE_270: /* 270 degrees */
             for (y = 0; y < regionHeight; y++) {
                 sx = (int)(yScale * (double)(y + regionY));
                 for (x = 0; x < regionWidth; x++) {
-                    sy = (int)(xScale * (double)(destWidth - (x + regionX) - 1));
+                    sy = (int)(xScale * ((double)virtWidth - ((double)x + (double)regionX) - 1.0));
                     pixel = XGetPixel(src, sx, sy);
                     if (pixel) {
                         XPutPixel(dest, x, y, pixel);
@@ -1002,12 +1028,11 @@ Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, unsigned i
                 }
             }
             break;
-
         case ROTATE_180: /* 180 degrees */
             for (y = 0; y < regionHeight; y++) {
-                sy = (int)(yScale * (double)(destHeight - (y + regionY) - 1));
+                sy = (int)(yScale * ((double)virtHeight - ((double)y + (double)regionY) - 1.0));
                 for (x = 0; x < regionWidth; x++) {
-                    sx = (int)(xScale * (double)(destWidth - (x + regionX) - 1));
+                    sx = (int)(xScale * ((double)virtWidth - ((double)x + (double)regionX) - 1.0));
                     pixel = XGetPixel(src, sx, sy);
                     if (pixel) {
                         XPutPixel(dest, x, y, pixel);
@@ -1015,10 +1040,9 @@ Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, unsigned i
                 }
             }
             break;
-
         case ROTATE_90: /* 90 degrees */
             for (y = 0; y < regionHeight; y++) {
-                sx = (int)(yScale * (double)(destHeight - (y + regionY) - 1));
+                sx = (int)(yScale * ((double)virtHeight - ((double)y + (double)regionY) - 1.0));
                 for (x = 0; x < regionWidth; x++) {
                     sy = (int)(xScale * (double)(x + regionX));
                     pixel = XGetPixel(src, sx, sy);
@@ -1028,12 +1052,11 @@ Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, unsigned i
                 }
             }
             break;
-
         case ROTATE_0: /* 0 degrees */
             for (y = 0; y < regionHeight; y++) {
-                sy = (int)(yScale * (double)(y + regionY));
+                sy = (int)(yScale * ((double)y + (double)regionY));
                 for (x = 0; x < regionWidth; x++) {
-                    sx = (int)(xScale * (double)(x + regionX));
+                    sx = (int)(xScale * ((double)x + (double)regionX));
                     pixel = XGetPixel(src, sx, sy);
                     if (pixel) {
                         XPutPixel(dest, x, y, pixel);
@@ -1041,7 +1064,6 @@ Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, unsigned i
                 }
             }
             break;
-
         default:
             /* The calling routine should never let this happen. */
             break;
@@ -1057,7 +1079,6 @@ Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, unsigned i
 
         radians = (theta / 180.0) * M_PI;
         sinTheta = sin(radians), cosTheta = cos(radians);
-
         /*
          * Coordinates of the centers of the source and destination rectangles
          */
@@ -1065,33 +1086,25 @@ Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, unsigned i
         soy = srcHeight * 0.5;
         rox = rotWidth * 0.5;
         roy = rotHeight * 0.5;
-
         /* For each pixel of the destination image, transform back to the
          * associated pixel in the source image. */
-
         for (y = 0; y < regionHeight; y++) {
-            ty = (yScale * (double)(y + regionY)) - roy;
+            ty = (yScale * ((double)y + (double)regionY)) - roy;
             for (x = 0; x < regionWidth; x++) {
-
                 /* Translate origin to center of destination image. */
-                tx = (xScale * (double)(x + regionX)) - rox;
-
+                tx = (xScale * ((double)x + (double)regionX)) - rox;
                 /* Rotate the coordinates about the origin. */
                 rx = (tx * cosTheta) - (ty * sinTheta);
                 ry = (tx * sinTheta) + (ty * cosTheta);
-
                 /* Translate back to the center of the source image. */
                 rx += sox;
                 ry += soy;
-
                 sx = ROUND(rx);
                 sy = ROUND(ry);
-
                 /*
                  * Verify the coordinates, since the destination image can be
                  * bigger than the source.
                  */
-
                 if ((sx >= srcWidth) || (sx < 0) || (sy >= srcHeight) || (sy < 0)) {
                     continue;
                 }
@@ -1104,7 +1117,6 @@ Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, unsigned i
     }
     /* Write the rotated image into the destination bitmap. */
     XPutImage(display, destBitmap, bitmapGC, dest, 0, 0, 0, 0, regionWidth, regionHeight);
-
     /* Clean up the temporary resources used. */
     XDestroyImage(src), XDestroyImage(dest);
     return destBitmap;

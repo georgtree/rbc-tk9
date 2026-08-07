@@ -47,12 +47,14 @@ typedef struct {
  * NB: these must start out 0!
  *----------------------------------------------------------------------
  */
+
+typedef int64_t Moment;
 typedef struct {
-    long int wt[33][33][33];  /* # pixels in voxel */
-    long int mR[33][33][33];  /* Sum over voxel of red pixel values */
-    long int mG[33][33][33];  /* Sum over voxel of green pixel values */
-    long int mB[33][33][33];  /* Sum over voxel of blue pixel values */
-    long int gm2[33][33][33]; /* Variance */
+    Moment wt[33][33][33];  /* # pixels in voxel */
+    Moment mR[33][33][33];  /* Sum over voxel of red pixel values */
+    Moment mG[33][33][33];  /* Sum over voxel of green pixel values */
+    Moment mB[33][33][33];  /* Sum over voxel of blue pixel values */
+    Moment gm2[33][33][33]; /* Variance */
 } ColorImageStatistics;
 
 static void ZoomImageVertically(Rbc_ColorImage src, Rbc_ColorImage dest, ResampleFilter *filterPtr);
@@ -66,12 +68,12 @@ static Rbc_ColorImage Rotate180(Rbc_ColorImage src);
 static Rbc_ColorImage Rotate270(Rbc_ColorImage src);
 static ColorImageStatistics *GetColorImageStatistics(Rbc_ColorImage image);
 static void M3d(ColorImageStatistics *s);
-static INLINE long int Volume(Cube *cubePtr, long int m[33][33][33]);
-static long int Bottom(Cube *cubePtr, unsigned char dir, long int m[33][33][33]);
-static long int Top(Cube *cubePtr, unsigned char dir, int pos, long int m[33][33][33]);
+static INLINE Moment Volume(Cube *cubePtr, Moment m[33][33][33]);
+static Moment Bottom(Cube *cubePtr, unsigned char dir, Moment m[33][33][33]);
+static Moment Top(Cube *cubePtr, unsigned char dir, int pos, Moment m[33][33][33]);
 static double Variance(Cube *cubePtr, ColorImageStatistics *s);
-static double Maximize(Cube *cubePtr, unsigned char dir, int first, int last, int *cut, long int rWhole,
-                       long int gWhole, long int bWhole, long int wWhole, ColorImageStatistics *s);
+static double Maximize(Cube *cubePtr, unsigned char dir, int first, int last, int *cut, Moment rWhole,
+                       Moment gWhole, Moment bWhole, Moment wWhole, ColorImageStatistics *s);
 static int Cut(Cube *set1, Cube *set2, ColorImageStatistics *s);
 static int SplitColorSpace(ColorImageStatistics *s, Cube *cubes, int nColors);
 static void Mark(Cube *cubePtr, int label, unsigned int tag[33][33][33]);
@@ -98,6 +100,71 @@ static ptrdiff_t GetPhotoByteOffset(const Tk_PhotoImageBlock *blockPtr, int x, i
         Tcl_Panic("GetPhotoByteOffset: photo offset overflow");
     }
     return (ptrdiff_t)offset;
+}
+
+static int ClipImageRegion(int imageWidth, int imageHeight, int *xPtr, int *yPtr, int *widthPtr, int *heightPtr) {
+    int x, y;
+    int width, height;
+
+    if ((imageWidth < 0) || (imageHeight < 0)) {
+        Tcl_Panic("ClipImageRegion: negative image dimension");
+    }
+    x = *xPtr;
+    y = *yPtr;
+    width = *widthPtr;
+    height = *heightPtr;
+    if (x < 0) {
+        x = 0;
+    } else if (x > imageWidth) {
+        x = imageWidth;
+    }
+    if (y < 0) {
+        y = 0;
+    } else if (y > imageHeight) {
+        y = imageHeight;
+    }
+    if ((width < 0) || (width > imageWidth - x)) {
+        width = imageWidth - x;
+    }
+    if ((height < 0) || (height > imageHeight - y)) {
+        height = imageHeight - y;
+    }
+    *xPtr = x;
+    *yPtr = y;
+    *widthPtr = width;
+    *heightPtr = height;
+    return ((width > 0) && (height > 0));
+}
+
+static int MapNearestCoordinate(int origin, int span, int position, int destSpan) {
+    int offset;
+    double value;
+
+    assert(span > 0);
+    assert(destSpan > 0);
+    assert(position >= 0);
+    assert(position < destSpan);
+    value = ((double)position * (double)span) / (double)destSpan;
+    offset = (int)value;
+    if (offset >= span) {
+        offset = span - 1;
+    }
+    return origin + offset;
+}
+
+static int MapVirtualCoordinate(int srcSize, double virtualPosition, int virtualSize) {
+    double value;
+
+    assert(srcSize > 0);
+    assert(virtualSize > 0);
+    value = virtualPosition * (double)srcSize / (double)virtualSize;
+    if (value <= 0.0) {
+        return 0;
+    }
+    if (value >= (double)srcSize) {
+        return srcSize - 1;
+    }
+    return (int)value;
 }
 
 /*
@@ -184,6 +251,9 @@ void Rbc_GammaCorrectColorImage(Rbc_ColorImage src, double newGamma) {
     unsigned char lut[256];
     double invGamma;
 
+    if ((!FINITE(newGamma)) || (newGamma <= 0.0)) {
+        Tcl_Panic("Rbc_GammaCorrectColorImage: invalid gamma");
+    }
     invGamma = 1.0 / newGamma;
     for (i = 0; i < 256; i++) {
         value = 255.0 * pow((double)i / 255.0, invGamma);
@@ -316,27 +386,11 @@ Rbc_ColorImage Rbc_PhotoRegionToColorImage(Tk_PhotoHandle photo, int x, int y, i
     int row, column;
 
     Tk_PhotoGetImage(photo, &src);
-    if (x < 0) {
-        x = 0;
-    } else if (x > src.width) {
-        x = src.width;
-    }
-    if (y < 0) {
-        y = 0;
-    } else if (y > src.height) {
-        y = src.height;
-    }
-    /*
-     * Use subtraction rather than x + width / y + height, avoiding
-     * signed overflow while clipping the requested region.
-     */
-    if ((width < 0) || (width > (src.width - x))) {
-        width = src.width - x;
-    }
-    if ((height < 0) || (height > (src.height - y))) {
-        height = src.height - y;
-    }
+    (void)ClipImageRegion(src.width, src.height, &x, &y, &width, &height);
     image = Rbc_CreateColorImage(width, height);
+    if ((width == 0) || (height == 0)) {
+        return image;
+    }
     destPtr = Rbc_ColorImageBits(image);
     offR = src.offset[0];
     offG = src.offset[1];
@@ -1192,7 +1246,7 @@ static size_t ComputeWeights(int srcWidth, int destWidth, ResampleFilter *filter
 static void ZoomImageVertically(Rbc_ColorImage src, Rbc_ColorImage dest, ResampleFilter *filterPtr) {
     Sample *samples, *s, *endPtr;
     int destWidth, destHeight;
-    int red, green, blue, alpha;
+    int64_t red, green, blue, alpha;
     int srcWidth, srcHeight;
     register Pix32 *srcColumnPtr;
     register Pix32 *srcPtr, *destPtr;
@@ -1261,7 +1315,7 @@ static void ZoomImageHorizontally(Rbc_ColorImage src, Rbc_ColorImage dest, Resam
     Sample *samples, *s, *endPtr;
     Weight *weight;
     int destWidth;
-    int red, green, blue, alpha;
+    int64_t red, green, blue, alpha;
     int srcWidth, srcHeight;
     int y, i;
     register Pix32 *srcPtr, *destPtr;
@@ -1331,11 +1385,16 @@ Rbc_ColorImage Rbc_ResampleColorImage(Rbc_ColorImage src, int width, int height,
                                       ResampleFilter *vertFilterPtr) {
     Rbc_ColorImage tmp, dest;
 
+    if ((width < 0) || (height < 0)) {
+        Tcl_Panic("Rbc_ResampleColorImage: negative destination dimension");
+    }
+    if ((horzFilterPtr == NULL) || (vertFilterPtr == NULL)) {
+        Tcl_Panic("Rbc_ResampleColorImage: missing resampling filter");
+    }
     /*
      * It's usually faster to zoom vertically last.  This has to do
      * with the fact that images are stored in contiguous rows.
      */
-
     tmp = Rbc_CreateColorImage(width, Rbc_ColorImageHeight(src));
     ZoomImageHorizontally(src, tmp, horzFilterPtr);
     dest = Rbc_CreateColorImage(width, height);
@@ -1416,78 +1475,16 @@ void Rbc_ResamplePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, int x, int y
  *
  *----------------------------------------------------------------------
  */
-void Rbc_ResizePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, register int x, register int y, int width, int height,
+void Rbc_ResizePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, int x, int y, int width, int height,
                      Tk_PhotoHandle destPhoto) {
-    double xScale, yScale;
+    Tk_PhotoImageBlock dest;
+    Rbc_ColorImage srcImage;
     Rbc_ColorImage destImage;
-    Pix32 *destPtr;
-    Tk_PhotoImageBlock src, dest;
-    unsigned char *srcPtr, *srcRowPtr;
-    int *mapX, *mapY;
-    register int sx, sy;
-    int left, right, top, bottom;
-
-    Tk_PhotoGetImage(srcPhoto, &src);
     Tk_PhotoGetImage(destPhoto, &dest);
-
-    left = x, top = y, right = x + width - 1, bottom = y + height - 1;
-    destImage = Rbc_CreateColorImage(dest.width, dest.height);
-    xScale = (double)width / (double)dest.width;
-    yScale = (double)height / (double)dest.height;
-    mapX = RbcCalloc((size_t)dest.width, sizeof(*mapX));
-    mapY = RbcCalloc((size_t)dest.height, sizeof(*mapY));
-    for (x = 0; x < dest.width; x++) {
-        sx = (int)(xScale * (double)(x + left));
-        if (sx > right) {
-            sx = right;
-        }
-        mapX[x] = sx;
-    }
-    for (y = 0; y < dest.height; y++) {
-        sy = (int)(yScale * (double)(y + top));
-        if (sy > bottom) {
-            sy = bottom;
-        }
-        mapY[y] = sy;
-    }
-    destPtr = Rbc_ColorImageBits(destImage);
-    if (src.pixelSize == 4) {
-        for (y = 0; y < dest.height; y++) {
-            srcRowPtr = src.pixelPtr + GetPhotoByteOffset(&src, 0, mapY[y]);
-            for (x = 0; x < dest.width; x++) {
-                srcPtr = srcRowPtr + GetPhotoByteOffset(&src, mapX[x], 0);
-                destPtr->Red = srcPtr[src.offset[0]];
-                destPtr->Green = srcPtr[src.offset[1]];
-                destPtr->Blue = srcPtr[src.offset[2]];
-                destPtr->Alpha = srcPtr[src.offset[3]];
-                destPtr++;
-            }
-        }
-    } else if (src.pixelSize == 3) {
-        for (y = 0; y < dest.height; y++) {
-            srcRowPtr = src.pixelPtr + GetPhotoByteOffset(&src, 0, mapY[y]);
-            for (x = 0; x < dest.width; x++) {
-                srcPtr = srcRowPtr + GetPhotoByteOffset(&src, mapX[x], 0);
-                destPtr->Red = srcPtr[src.offset[0]];
-                destPtr->Green = srcPtr[src.offset[1]];
-                destPtr->Blue = srcPtr[src.offset[2]];
-                destPtr->Alpha = (unsigned char)-1;
-                destPtr++;
-            }
-        }
-    } else {
-        for (y = 0; y < dest.height; y++) {
-            srcRowPtr = src.pixelPtr + GetPhotoByteOffset(&src, 0, mapY[y]);
-            for (x = 0; x < dest.width; x++) {
-                srcPtr = srcRowPtr + GetPhotoByteOffset(&src, mapX[x], 0);
-                destPtr->Red = destPtr->Green = destPtr->Blue = srcPtr[src.offset[0]];
-                destPtr->Alpha = (unsigned char)-1;
-                destPtr++;
-            }
-        }
-    }
-    ckfree((char *)mapX);
-    ckfree((char *)mapY);
+    srcImage = Rbc_PhotoRegionToColorImage(srcPhoto, x, y, width, height);
+    destImage = Rbc_ResizeColorImage(srcImage, 0, 0, Rbc_ColorImageWidth(srcImage), Rbc_ColorImageHeight(srcImage),
+                                     dest.width, dest.height);
+    Rbc_FreeColorImage(srcImage);
     Rbc_ColorImageToPhoto(interp, destImage, destPhoto);
     Rbc_FreeColorImage(destImage);
 }
@@ -1520,47 +1517,50 @@ void Rbc_ResizePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, register int x
  *
  *----------------------------------------------------------------------
  */
-Rbc_ColorImage Rbc_ResizeColorImage(Rbc_ColorImage src, register int x, register int y, int width, int height,
-                                    int destWidth, int destHeight) {
-    register int sx, sy;
-    double xScale, yScale;
+Rbc_ColorImage Rbc_ResizeColorImage(Rbc_ColorImage src, int x, int y, int width, int height, int destWidth,
+                                    int destHeight) {
     Rbc_ColorImage dest;
-    Pix32 *srcPtr, *srcRowPtr, *destPtr;
-    int *mapX, *mapY;
-    int left, right, top, bottom;
+    Pix32 *srcPtr;
+    Pix32 *srcRowPtr;
+    Pix32 *destPtr;
+    int *mapX;
+    int *mapY;
+    int srcWidth;
+    int srcHeight;
+    int i;
+    int j;
 
-    left = x, top = y;
-    right = x + width - 1, bottom = y + height - 1;
+    if ((destWidth < 0) || (destHeight < 0)) {
+        Tcl_Panic("Rbc_ResizeColorImage: negative destination dimension");
+    }
     dest = Rbc_CreateColorImage(destWidth, destHeight);
-    xScale = (double)width / (double)destWidth;
-    yScale = (double)height / (double)destHeight;
+    if ((destWidth == 0) || (destHeight == 0)) {
+        return dest;
+    }
+    srcWidth = Rbc_ColorImageWidth(src);
+    srcHeight = Rbc_ColorImageHeight(src);
+    if (!ClipImageRegion(srcWidth, srcHeight, &x, &y, &width, &height)) {
+        return dest;
+    }
     mapX = RbcCalloc((size_t)destWidth, sizeof(*mapX));
     mapY = RbcCalloc((size_t)destHeight, sizeof(*mapY));
-    for (x = 0; x < destWidth; x++) {
-        sx = (int)(xScale * (double)(x + left));
-        if (sx > right) {
-            sx = right;
-        }
-        mapX[x] = sx;
+    for (i = 0; i < destWidth; i++) {
+        mapX[i] = MapNearestCoordinate(x, width, i, destWidth);
     }
-    for (y = 0; y < destHeight; y++) {
-        sy = (int)(yScale * (double)(y + top));
-        if (sy > bottom) {
-            sy = bottom;
-        }
-        mapY[y] = sy;
+    for (i = 0; i < destHeight; i++) {
+        mapY[i] = MapNearestCoordinate(y, height, i, destHeight);
     }
     destPtr = Rbc_ColorImageBits(dest);
-    for (y = 0; y < destHeight; y++) {
-        srcRowPtr = Rbc_ColorImagePixel(src, 0, mapY[y]);
-        for (x = 0; x < destWidth; x++) {
-            srcPtr = srcRowPtr + mapX[x];
-            destPtr->value = srcPtr->value; /* Copy the pixel. */
+    for (i = 0; i < destHeight; i++) {
+        srcRowPtr = Rbc_ColorImagePixel(src, 0, mapY[i]);
+        for (j = 0; j < destWidth; j++) {
+            srcPtr = srcRowPtr + mapX[j];
+            destPtr->value = srcPtr->value;
             destPtr++;
         }
     }
-    ckfree((char *)mapX);
-    ckfree((char *)mapY);
+    ckfree(mapX);
+    ckfree(mapY);
     return dest;
 }
 
@@ -1595,48 +1595,49 @@ Rbc_ColorImage Rbc_ResizeColorImage(Rbc_ColorImage src, register int x, register
 Rbc_ColorImage Rbc_ResizeColorSubimage(Rbc_ColorImage src, int regionX, int regionY, int regionWidth, int regionHeight,
                                        int destWidth, int destHeight) {
     Rbc_ColorImage dest;
-    Pix32 *srcPtr, *srcRowPtr, *destPtr;
-    double xScale, yScale;
-    int *mapX, *mapY;
-    int srcWidth, srcHeight;
-    register int sx, sy;
-    register int x, y;
+    Pix32 *srcPtr;
+    Pix32 *srcRowPtr;
+    Pix32 *destPtr;
+    int *mapX;
+    int *mapY;
+    int srcWidth;
+    int srcHeight;
+    int x, y;
 
+    if ((regionWidth < 0) || (regionHeight < 0)) {
+        Tcl_Panic("Rbc_ResizeColorSubimage: negative region dimension");
+    }
+    dest = Rbc_CreateColorImage(regionWidth, regionHeight);
+    if ((regionWidth == 0) || (regionHeight == 0)) {
+        return dest;
+    }
+    if ((destWidth <= 0) || (destHeight <= 0)) {
+        Tcl_Panic("Rbc_ResizeColorSubimage: invalid virtual image dimension");
+    }
     srcWidth = Rbc_ColorImageWidth(src);
     srcHeight = Rbc_ColorImageHeight(src);
-
-    xScale = (double)srcWidth / (double)destWidth;
-    yScale = (double)srcHeight / (double)destHeight;
+    if ((srcWidth <= 0) || (srcHeight <= 0)) {
+        return dest;
+    }
     mapX = RbcCalloc((size_t)regionWidth, sizeof(*mapX));
     mapY = RbcCalloc((size_t)regionHeight, sizeof(*mapY));
-    /* Precompute scaling factors for each row and column. */
     for (x = 0; x < regionWidth; x++) {
-        sx = (int)(xScale * (double)(x + regionX));
-        if (sx >= srcWidth) {
-            sx = srcWidth - 1;
-        }
-        mapX[x] = sx;
+        mapX[x] = MapVirtualCoordinate(srcWidth, (double)regionX + (double)x, destWidth);
     }
     for (y = 0; y < regionHeight; y++) {
-        sy = (int)(yScale * (double)(y + regionY));
-        if (sy >= srcHeight) {
-            sy = srcHeight - 1;
-        }
-        mapY[y] = sy;
+        mapY[y] = MapVirtualCoordinate(srcHeight, (double)regionY + (double)y, destHeight);
     }
-
-    dest = Rbc_CreateColorImage(regionWidth, regionHeight);
     destPtr = Rbc_ColorImageBits(dest);
     for (y = 0; y < regionHeight; y++) {
         srcRowPtr = Rbc_ColorImagePixel(src, 0, mapY[y]);
         for (x = 0; x < regionWidth; x++) {
             srcPtr = srcRowPtr + mapX[x];
-            destPtr->value = srcPtr->value; /* Copy the pixel. */
+            destPtr->value = srcPtr->value;
             destPtr++;
         }
     }
-    ckfree((char *)mapX);
-    ckfree((char *)mapY);
+    ckfree(mapX);
+    ckfree(mapY);
     return dest;
 }
 
@@ -1663,19 +1664,28 @@ Rbc_ColorImage Rbc_ResizeColorSubimage(Rbc_ColorImage src, int regionX, int regi
  */
 Rbc_ColorImage Rbc_ConvolveColorImage(Rbc_ColorImage src, Filter2D *filterPtr) {
     Rbc_ColorImage dest;
-    register Pix32 *srcPtr, *destPtr;
-#define MAXROWS 24
-    register int sx, sy, dx, dy;
-    register int x, y;
+    Pix32 *srcPtr;
+    Pix32 *destPtr;
+    double *valuePtr;
     double red, green, blue;
     int width, height;
     int radius;
-    register double *valuePtr;
+    int dx, dy;
+    Tcl_WideInt sx, sy;
 
+    if ((filterPtr == NULL) || (filterPtr->kernel == NULL) || (!FINITE(filterPtr->support)) ||
+        (!FINITE(filterPtr->sum)) || (filterPtr->sum == 0.0) || (filterPtr->support < 0.0)) {
+        Tcl_Panic("Rbc_ConvolveColorImage: invalid filter");
+    }
+    if (filterPtr->support > (double)(INT_MAX / 2)) {
+        Tcl_Panic("Rbc_ConvolveColorImage: filter radius too large");
+    }
     width = Rbc_ColorImageWidth(src);
     height = Rbc_ColorImageHeight(src);
-
     dest = Rbc_CreateColorImage(width, height);
+    if ((width <= 0) || (height <= 0)) {
+        return dest;
+    }
     radius = (int)filterPtr->support;
     if (radius < 1) {
         radius = 1;
@@ -1685,27 +1695,30 @@ Rbc_ColorImage Rbc_ConvolveColorImage(Rbc_ColorImage src, Filter2D *filterPtr) {
         for (dx = 0; dx < width; dx++) {
             red = green = blue = 0.0;
             valuePtr = filterPtr->kernel;
-            for (sy = (dy - radius); sy <= (dy + radius); sy++) {
-                y = sy;
-                if (y < 0) {
+            for (sy = (Tcl_WideInt)dy - radius; sy <= (Tcl_WideInt)dy + radius; sy++) {
+                int y;
+
+                if (sy < 0) {
                     y = 0;
-                } else if (y >= height) {
+                } else if (sy >= height) {
                     y = height - 1;
+                } else {
+                    y = (int)sy;
                 }
-                for (sx = (dx - radius); sx <= (dx + radius); sx++) {
-                    x = sx;
-                    if (x < 0) {
+                for (sx = (Tcl_WideInt)dx - radius; sx <= (Tcl_WideInt)dx + radius; sx++) {
+                    int x;
+
+                    if (sx < 0) {
                         x = 0;
                     } else if (sx >= width) {
                         x = width - 1;
+                    } else {
+                        x = (int)sx;
                     }
                     srcPtr = Rbc_ColorImagePixel(src, x, y);
                     red += *valuePtr * (double)srcPtr->Red;
                     green += *valuePtr * (double)srcPtr->Green;
                     blue += *valuePtr * (double)srcPtr->Blue;
-#ifdef notdef
-                    fprintf(stderr, "%d,%d = r=%f,g=%f,b=%f\n", x, y, red, green, blue);
-#endif
                     valuePtr++;
                 }
             }
@@ -1756,6 +1769,11 @@ int Rbc_SnapPhoto(Tcl_Interp *interp, Tk_Window tkwin, Drawable drawable, int x,
     Tk_PhotoHandle photo; /* The photo image to write into. */
     Rbc_ColorImage image;
 
+    if ((width <= 0) || (height <= 0) || (destWidth < 0) || (destHeight < 0) || (!FINITE(inputGamma)) ||
+        (inputGamma <= 0.0)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("invalid snapshot dimensions or gamma", -1));
+        return TCL_ERROR;
+    }
     photo = Tk_FindPhoto(interp, photoName);
     if (photo == NULL) {
         Tcl_AppendResult(interp, "can't find photo \"", photoName, "\"", (char *)NULL);
@@ -1808,14 +1826,14 @@ int Rbc_SnapPhoto(Tcl_Interp *interp, Tk_Window tkwin, Drawable drawable, int x,
  *
  *----------------------------------------------------------------------
  */
-int Rbc_JPEGToPhoto(Tcl_Interp *interp, char *fileName, Tk_PhotoHandle photo) {
+int Rbc_JPEGToPhoto(Tcl_Interp *interp, const char *fileName, Tk_PhotoHandle photo) {
     Rbc_ColorImage image;
 
     image = Rbc_JPEGToColorImage(interp, fileName);
     if (image == NULL) {
         return TCL_ERROR;
     }
-    Rbc_ColorImageToPhoto(image, photo);
+    Rbc_ColorImageToPhoto(interp, image, photo);
     Rbc_FreeColorImage(image);
     return TCL_OK;
 }
@@ -2017,8 +2035,17 @@ static int GetRotationDimension(double value) {
     if ((!FINITE(value)) || (value < 0.0) || (value > (double)INT_MAX)) {
         Tcl_Panic("image rotation dimension overflow");
     }
-
     return (int)value;
+}
+
+static int GetShearOffset(double value) {
+    double result;
+
+    result = floor(value);
+    if ((!FINITE(result)) || (result < (double)INT_MIN) || (result > (double)INT_MAX)) {
+        Tcl_Panic("image shear offset overflow");
+    }
+    return (int)result;
 }
 
 /*
@@ -2072,13 +2099,13 @@ static Rbc_ColorImage Rotate45(Rbc_ColorImage src, double theta, Pix32 bgColor) 
     if (tanTheta >= 0.0) { /* Positive angle */
         for (y = 0; y < tmpHeight; y++) {
             skewf = (y + 0.5) * tanTheta;
-            skewi = (int)floor(skewf);
+            skewi = GetShearOffset(skewf);
             ShearY(src, tmp1, y, skewi, skewf - skewi, bgColor);
         }
     } else { /* Negative angle */
         for (y = 0; y < tmpHeight; y++) {
             skewf = ((y - srcHeight) + 0.5) * tanTheta;
-            skewi = (int)floor(skewf);
+            skewi = GetShearOffset(skewf);
             ShearY(src, tmp1, y, skewi, skewf - skewi, bgColor);
         }
     }
@@ -2091,7 +2118,7 @@ static Rbc_ColorImage Rotate45(Rbc_ColorImage src, double theta, Pix32 bgColor) 
         skewf = (srcWidth - tmpWidth) * -sinTheta;
     }
     for (x = 0; x < tmpWidth; x++) {
-        skewi = (int)floor(skewf);
+        skewi = GetShearOffset(skewf);
         ShearX(tmp1, tmp2, x, skewi, skewf - skewi, bgColor);
         skewf -= sinTheta;
     }
@@ -2105,7 +2132,7 @@ static Rbc_ColorImage Rotate45(Rbc_ColorImage src, double theta, Pix32 bgColor) 
         skewf = tanTheta * ((srcWidth - 1) * -sinTheta - (tmpHeight - 1));
     }
     for (y = 0; y < tmpHeight; y++) {
-        skewi = (int)floor(skewf);
+        skewi = GetShearOffset(skewf);
         ShearY(tmp2, dest, y, skewi, skewf - skewi, bgColor);
         skewf += tanTheta;
     }
@@ -2281,9 +2308,14 @@ static Rbc_ColorImage Rotate270(Rbc_ColorImage src) {
 Rbc_ColorImage Rbc_RotateColorImage(Rbc_ColorImage src, double angle) {
     Rbc_ColorImage dest, tmp;
     int quadrant;
-
+    
+    if (!FINITE(angle)) {
+        Tcl_Panic("Rbc_RotateColorImage: non-finite rotation angle");
+    }
+    if ((Rbc_ColorImageWidth(src) <= 0) || (Rbc_ColorImageHeight(src) <= 0)) {
+        return CopyColorImage(src);
+    }
     tmp = src; /* Suppress compiler warning. */
-
     /* Make the angle positive between 0 and 360 degrees. */
     angle = FMOD(angle, 360.0);
     if (angle < 0.0) {
@@ -2371,20 +2403,17 @@ static ColorImageStatistics *GetColorImageStatistics(Rbc_ColorImage image) {
     register int r, g, b;
 #define MAX_INTENSITIES 256
     unsigned int sqr[MAX_INTENSITIES];
-    int numPixels;
+    size_t numPixels;
     Pix32 *srcPtr, *endPtr;
     register int i;
     ColorImageStatistics *s;
 
     s = RbcCalloc(1, sizeof(ColorImageStatistics));
-    assert(s);
-
     /* Precompute table of squares. */
     for (i = 0; i < MAX_INTENSITIES; i++) {
         sqr[i] = i * i;
     }
-    numPixels = Rbc_ColorImageWidth(image) * Rbc_ColorImageHeight(image);
-
+    numPixels = GetColorImagePixelCount(Rbc_ColorImageWidth(image), Rbc_ColorImageHeight(image));
     for (srcPtr = Rbc_ColorImageBits(image), endPtr = srcPtr + numPixels; srcPtr < endPtr; srcPtr++) {
         /*
          * Reduce the number of bits (5) per color component. This
@@ -2438,9 +2467,9 @@ static ColorImageStatistics *GetColorImageStatistics(Rbc_ColorImage image) {
  */
 static void M3d(ColorImageStatistics *s) {
     register unsigned char i, r, g, b, r0;
-    long int line, rLine, gLine, bLine;
-    long int area[33], rArea[33], gArea[33], bArea[33];
-    unsigned int line2, area2[33];
+    Moment line, rLine, gLine, bLine;
+    Moment area[33], rArea[33], gArea[33], bArea[33];
+    Moment line2, area2[33];
 
     for (r = 1, r0 = 0; r <= 32; r++, r0++) {
         for (i = 0; i <= 32; ++i) {
@@ -2483,7 +2512,7 @@ static void M3d(ColorImageStatistics *s) {
  *
  * Parameters:
  *      Cube *cubePtr
- *      long int m[33][33][33]
+ *      Moment m[33][33][33]
  *
  * Results:
  *      TODO: Results
@@ -2493,7 +2522,7 @@ static void M3d(ColorImageStatistics *s) {
  *
  *--------------------------------------------------------------
  */
-static INLINE long int Volume(Cube *cubePtr, long int m[33][33][33]) {
+static INLINE Moment Volume(Cube *cubePtr, Moment m[33][33][33]) {
     return (m[R1][G1][B1] - m[R1][G1][B0] - m[R1][G0][B1] + m[R1][G0][B0] - m[R0][G1][B1] + m[R0][G1][B0] +
             m[R0][G0][B1] - m[R0][G0][B0]);
 }
@@ -2521,7 +2550,7 @@ static INLINE long int Volume(Cube *cubePtr, long int m[33][33][33]) {
  * Parameters:
  *      Cube *cubePtr
  *      unsigned char dir
- *      long int m[33][33][33] - Moment
+ *      Moment m[33][33][33] - Moment
  *
  * Results:
  *      TODO: Results
@@ -2531,7 +2560,7 @@ static INLINE long int Volume(Cube *cubePtr, long int m[33][33][33]) {
  *
  *--------------------------------------------------------------
  */
-static long int Bottom(Cube *cubePtr, unsigned char dir, long int m[33][33][33]) {
+static Moment Bottom(Cube *cubePtr, unsigned char dir, Moment m[33][33][33]) {
     switch (dir) {
     case RED:
         return -m[R0][G1][B1] + m[R0][G1][B0] + m[R0][G0][B1] - m[R0][G0][B0];
@@ -2555,7 +2584,7 @@ static long int Bottom(Cube *cubePtr, unsigned char dir, long int m[33][33][33])
  *      Cube *cubePtr
  *      unsigned char dir
  *      int pos
- *      long int m[33][33][33] - Moment
+ *      Moment m[33][33][33] - Moment
  *
  * Results:
  *      TODO: Results
@@ -2565,7 +2594,7 @@ static long int Bottom(Cube *cubePtr, unsigned char dir, long int m[33][33][33])
  *
  *--------------------------------------------------------------
  */
-static long int Top(Cube *cubePtr, unsigned char dir, int pos, long int m[33][33][33]) {
+static Moment Top(Cube *cubePtr, unsigned char dir, int pos, Moment m[33][33][33]) {
     switch (dir) {
     case RED:
         return (m[pos][G1][B1] - m[pos][G1][B0] - m[pos][G0][B1] + m[pos][G0][B0]);
@@ -2600,14 +2629,20 @@ static long int Top(Cube *cubePtr, unsigned char dir, int pos, long int m[33][33
  *--------------------------------------------------------------
  */
 static double Variance(Cube *cubePtr, ColorImageStatistics *s) {
-    double dR, dG, dB, xx;
+    Moment weight;
+    double dR, dG, dB;
+    double xx;
 
-    dR = Volume(cubePtr, s->mR);
-    dG = Volume(cubePtr, s->mG);
-    dB = Volume(cubePtr, s->mB);
-    xx = (s->gm2[R1][G1][B1] - s->gm2[R1][G1][B0] - s->gm2[R1][G0][B1] + s->gm2[R1][G0][B0] - s->gm2[R0][G1][B1] +
-          s->gm2[R0][G1][B0] + s->gm2[R0][G0][B1] - s->gm2[R0][G0][B0]);
-    return (xx - (dR * dR + dG * dG + dB * dB) / Volume(cubePtr, s->wt));
+    dR = (double)Volume(cubePtr, s->mR);
+    dG = (double)Volume(cubePtr, s->mG);
+    dB = (double)Volume(cubePtr, s->mB);
+    weight = Volume(cubePtr, s->wt);
+    if (weight <= 0) {
+        return 0.0;
+    }
+    xx = (double)(s->gm2[R1][G1][B1] - s->gm2[R1][G1][B0] - s->gm2[R1][G0][B1] + s->gm2[R1][G0][B0] -
+                  s->gm2[R0][G1][B1] + s->gm2[R0][G1][B0] + s->gm2[R0][G0][B1] - s->gm2[R0][G0][B0]);
+    return xx - ((dR * dR) + (dG * dG) + (dB * dB)) / (double)weight;
 }
 
 /*
@@ -2629,10 +2664,10 @@ static double Variance(Cube *cubePtr, ColorImageStatistics *s) {
  *      int first
  *      int last
  *      int *cut
- *      long int rWhole
- *      long int gWhole
- *      long int bWhole
- *      long int wWhole
+ *      Moment rWhole
+ *      Moment gWhole
+ *      Moment bWhole
+ *      Moment wWhole
  *      ColorImageStatistics *s
  *
  * Results:
@@ -2643,10 +2678,10 @@ static double Variance(Cube *cubePtr, ColorImageStatistics *s) {
  *
  *--------------------------------------------------------------
  */
-static double Maximize(Cube *cubePtr, unsigned char dir, int first, int last, int *cut, long int rWhole,
-                       long int gWhole, long int bWhole, long int wWhole, ColorImageStatistics *s) {
-    register long int rHalf, gHalf, bHalf, wHalf;
-    long int rBase, gBase, bBase, wBase;
+static double Maximize(Cube *cubePtr, unsigned char dir, int first, int last, int *cut, Moment rWhole,
+                       Moment gWhole, Moment bWhole, Moment wWhole, ColorImageStatistics *s) {
+    Moment rHalf, gHalf, bHalf, wHalf;
+    Moment rBase, gBase, bBase, wBase;
     register int i;
     register double temp, max;
 
@@ -2666,7 +2701,9 @@ static double Maximize(Cube *cubePtr, unsigned char dir, int first, int last, in
         if (wHalf == 0) { /* subbox could be empty of pixels! */
             continue;     /* never split into an empty box */
         } else {
-            temp = ((double)rHalf * rHalf + (float)gHalf * gHalf + (double)bHalf * bHalf) / wHalf;
+            temp =
+                (((double)rHalf * (double)rHalf) + ((double)gHalf * (double)gHalf) + ((double)bHalf * (double)bHalf)) /
+                (double)wHalf;
         }
         rHalf = rWhole - rHalf;
         gHalf = gWhole - gHalf;
@@ -2675,7 +2712,9 @@ static double Maximize(Cube *cubePtr, unsigned char dir, int first, int last, in
         if (wHalf == 0) { /* Subbox could be empty of pixels! */
             continue;     /* never split into an empty box */
         } else {
-            temp += ((double)rHalf * rHalf + (float)gHalf * gHalf + (double)bHalf * bHalf) / wHalf;
+            temp +=
+                (((double)rHalf * (double)rHalf) + ((double)gHalf * (double)gHalf) + ((double)bHalf * (double)bHalf)) /
+                (double)wHalf;
         }
         if (temp > max) {
             max = temp;
@@ -2709,17 +2748,15 @@ static int Cut(Cube *set1, Cube *set2, ColorImageStatistics *s) {
     unsigned char dir;
     int rCut, gCut, bCut;
     double rMax, gMax, bMax;
-    long int rWhole, gWhole, bWhole, wWhole;
+    Moment rWhole, gWhole, bWhole, wWhole;
 
     rWhole = Volume(set1, s->mR);
     gWhole = Volume(set1, s->mG);
     bWhole = Volume(set1, s->mB);
     wWhole = Volume(set1, s->wt);
-
     rMax = Maximize(set1, RED, set1->r0 + 1, set1->r1, &rCut, rWhole, gWhole, bWhole, wWhole, s);
     gMax = Maximize(set1, GREEN, set1->g0 + 1, set1->g1, &gCut, rWhole, gWhole, bWhole, wWhole, s);
     bMax = Maximize(set1, BLUE, set1->b0 + 1, set1->b1, &bCut, rWhole, gWhole, bWhole, wWhole, s);
-
     if ((rMax >= gMax) && (rMax >= bMax)) {
         dir = RED;
         if (rCut < 0) {
@@ -2731,20 +2768,17 @@ static int Cut(Cube *set1, Cube *set2, ColorImageStatistics *s) {
     set2->r1 = set1->r1;
     set2->g1 = set1->g1;
     set2->b1 = set1->b1;
-
     switch (dir) {
     case RED:
         set2->r0 = set1->r1 = rCut;
         set2->g0 = set1->g0;
         set2->b0 = set1->b0;
         break;
-
     case GREEN:
         set2->g0 = set1->g1 = gCut;
         set2->r0 = set1->r0;
         set2->b0 = set1->b0;
         break;
-
     case BLUE:
         set2->b0 = set1->b1 = bCut;
         set2->r0 = set1->r0;
@@ -2781,9 +2815,8 @@ static int SplitColorSpace(ColorImageStatistics *s, Cube *cubes, int nColors) {
     register int i;
     register int n, k;
 
-    vv = (double *)ckalloc(sizeof(double) * nColors);
+    vv = RbcCalloc((size_t)nColors, sizeof(*vv));
     assert(vv);
-
     cubes[0].r0 = cubes[0].g0 = cubes[0].b0 = 0;
     cubes[0].r1 = cubes[0].g1 = cubes[0].b1 = 32;
     for (i = 1, n = 0; i < nColors; i++) {
@@ -2802,7 +2835,6 @@ static int SplitColorSpace(ColorImageStatistics *s, Cube *cubes, int nColors) {
             vv[n] = 0.0; /* don't try to split this box again */
             i--;         /* didn't create box i */
         }
-
         n = 0;
         temp = vv[0];
         for (k = 1; k <= i; k++) {
@@ -2842,7 +2874,7 @@ static int SplitColorSpace(ColorImageStatistics *s, Cube *cubes, int nColors) {
  *--------------------------------------------------------------
  */
 static void Mark(Cube *cubePtr, int label, unsigned int tag[33][33][33]) {
-    register int r, g, b;
+    int r, g, b;
 
     for (r = R0 + 1; r <= R1; r++) {
         for (g = G0 + 1; g <= G1; g++) {
@@ -2877,13 +2909,11 @@ static unsigned int *CreateColorLookupTable(ColorImageStatistics *s, Cube *cubes
     unsigned int *lut;
     Pix32 color;
     unsigned int red, green, blue;
-    unsigned int weight;
-    register Cube *cubePtr;
-    register int i;
+    Moment weight;
+    Cube *cubePtr;
+    int i;
 
-    lut = RbcCalloc(sizeof(unsigned int), 33 * 33 * 33);
-    assert(lut);
-
+    lut = RbcCalloc(33u * 33u * 33u, sizeof(*lut));
     color.Alpha = (unsigned char)-1;
     for (cubePtr = cubes, i = 0; i < nColors; i++, cubePtr++) {
         weight = Volume(cubePtr, s->wt);
@@ -2925,15 +2955,11 @@ static unsigned int *CreateColorLookupTable(ColorImageStatistics *s, Cube *cubes
  */
 static void MapColors(Rbc_ColorImage src, Rbc_ColorImage dest, unsigned int lut[33][33][33]) {
     /* Apply the color lookup table against the original image */
-    int width, height;
-    int count;
+    size_t count;
     Pix32 *srcPtr, *destPtr, *endPtr;
     unsigned char alpha;
 
-    width = Rbc_ColorImageWidth(src);
-    height = Rbc_ColorImageHeight(src);
-    count = width * height;
-
+    count = GetColorImagePixelCount(Rbc_ColorImageWidth(src), Rbc_ColorImageHeight(src));
     srcPtr = Rbc_ColorImageBits(src);
     destPtr = Rbc_ColorImageBits(dest);
     for (endPtr = destPtr + count; destPtr < endPtr; srcPtr++, destPtr++) {
@@ -2988,18 +3014,24 @@ int Rbc_QuantizeColorImage(Rbc_ColorImage src, Rbc_ColorImage dest, int reduceCo
     int nColors;
     unsigned int *lut;
 
+    if ((reduceColors < 1) || (reduceColors > 256)) {
+        return TCL_ERROR;
+    }
+    if ((Rbc_ColorImageWidth(src) != Rbc_ColorImageWidth(dest)) ||
+        (Rbc_ColorImageHeight(src) != Rbc_ColorImageHeight(dest))) {
+        return TCL_ERROR;
+    }
+    if ((Rbc_ColorImageWidth(src) == 0) || (Rbc_ColorImageHeight(src) == 0)) {
+        return TCL_OK;
+    }
     /*
      * Allocated a structure to hold color statistics.
      */
     statistics = GetColorImageStatistics(src);
     M3d(statistics);
-
-    cubes = (Cube *)ckalloc(sizeof(Cube) * reduceColors);
-    assert(cubes);
-
+    cubes = RbcCalloc((size_t)reduceColors, sizeof(*cubes));
     nColors = SplitColorSpace(statistics, cubes, reduceColors);
     assert(nColors <= reduceColors);
-
     lut = CreateColorLookupTable(statistics, cubes, nColors);
     ckfree((char *)statistics);
     ckfree((char *)cubes);
@@ -3033,8 +3065,18 @@ int Rbc_QuantizeColorImage(Rbc_ColorImage src, Rbc_ColorImage dest, int reduceCo
 Region2D *Rbc_SetRegion(int x, int y, int width, int height, Region2D *regionPtr) {
     regionPtr->left = x;
     regionPtr->top = y;
-    regionPtr->right = x + width - 1;
-    regionPtr->bottom = y + height - 1;
+    {
+        Tcl_WideInt right;
+        Tcl_WideInt bottom;
+
+        right = (Tcl_WideInt)x + (Tcl_WideInt)width - 1;
+        bottom = (Tcl_WideInt)y + (Tcl_WideInt)height - 1;
+        if ((right < INT_MIN) || (right > INT_MAX) || (bottom < INT_MIN) || (bottom > INT_MAX)) {
+            Tcl_Panic("Rbc_SetRegion: region coordinate overflow");
+        }
+        regionPtr->right = (int)right;
+        regionPtr->bottom = (int)bottom;
+    }
     return regionPtr;
 }
 
@@ -3306,12 +3348,12 @@ static void TempImageChangedProc(ClientData clientData, int x, int y, int width,
  */
 Tk_Image Rbc_CreateTemporaryImage(Tcl_Interp *interp, Tk_Window tkwin, ClientData clientData) {
     Tk_Image token;
-    char *name; /* Contains image name. */
+    const char *name; /* Contains image name. */
 
     if (Tcl_Eval(interp, "image create photo") != TCL_OK) {
         return NULL;
     }
-    name = (char *)Tcl_GetStringResult(interp);
+    name = Tcl_GetStringResult(interp);
     token = Tk_GetImage(interp, tkwin, name, TempImageChangedProc, clientData);
     if (token == NULL) {
         return NULL;
