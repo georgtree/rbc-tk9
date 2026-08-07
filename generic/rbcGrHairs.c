@@ -38,23 +38,23 @@ struct CrosshairsStruct {
     /*
      * Derived and runtime state.
      */    
-    XPoint hotSpot;     /* Hot spot for crosshairs */
-    int visible;        /* Internal state of crosshairs. If non-zero,
-                         * crosshairs are displayed. */
-    int hidden;         /* If non-zero, crosshairs are not displayed.
-                         * This is not necessarily consistent with the
-                         * internal state variable.  This is true when
-                         * the hot spot is off the graph.  */
-    Rbc_Dashes dashes;  /* Dashstyle of the crosshairs. This represents
-                         * an array of alternatingly drawn pixel
-                         * values. If NULL, the hairs are drawn as a
-                         * solid line */
-    int lineWidth;      /* Width of the simulated crosshair lines */
-    XSegment segArr[2]; /* Positions of line segments representing the
-                         * simulated crosshairs. */
-    XColor *colorPtr;   /* Foreground color of crosshairs */
-    GC gc;              /* Graphics context for crosshairs. Set to
-                         * GXxor to not require redraws of graph */
+    Point2D hotSpot;     /* Hot spot for crosshairs */
+    int visible;         /* Internal state of crosshairs. If non-zero,
+                          * crosshairs are displayed. */
+    int hidden;          /* If non-zero, crosshairs are not displayed.
+                          * This is not necessarily consistent with the
+                          * internal state variable.  This is true when
+                          * the hot spot is off the graph.  */
+    Rbc_Dashes dashes;   /* Dashstyle of the crosshairs. This represents
+                          * an array of alternatingly drawn pixel
+                          * values. If NULL, the hairs are drawn as a
+                          * solid line */
+    int lineWidth;       /* Width of the simulated crosshair lines */
+    Segment2D segArr[2]; /* Positions of line segments representing the
+                          * simulated crosshairs. */
+    XColor *colorPtr;    /* Foreground color of crosshairs */
+    GC gc;               /* Graphics context for crosshairs. Set to
+                          * GXxor to not require redraws of graph */
 };
 
 #define DEF_HAIRS_DASHES (char *)NULL
@@ -118,8 +118,8 @@ static RbcGrHairsOp ToggleOp;
  *----------------------------------------------------------------------
  */
 static void TurnOffHairs(Tk_Window tkwin, Crosshairs *chPtr) {
-    if (Tk_IsMapped(tkwin) && (chPtr->visible)) {
-        XDrawSegments(Tk_Display(tkwin), Tk_WindowId(tkwin), chPtr->gc, chPtr->segArr, 2);
+    if (Tk_IsMapped(tkwin) && chPtr->visible) {
+        Rbc_Draw2DSegments(Tk_Display(tkwin), Tk_WindowId(tkwin), chPtr->gc, chPtr->segArr, 2);
         chPtr->visible = FALSE;
     }
 }
@@ -147,14 +147,14 @@ static void TurnOffHairs(Tk_Window tkwin, Crosshairs *chPtr) {
 static void TurnOnHairs(Graph *graphPtr, Crosshairs *chPtr) {
     if (Tk_IsMapped(graphPtr->tkwin) && (!chPtr->visible)) {
         if (!PointInGraph(graphPtr, chPtr->hotSpot.x, chPtr->hotSpot.y)) {
-            return; /* Coordinates are off the graph */
+            return;
         }
-        XDrawSegments(graphPtr->display, Tk_WindowId(graphPtr->tkwin), chPtr->gc, chPtr->segArr, 2);
+        Rbc_Draw2DSegments(graphPtr->display, Tk_WindowId(graphPtr->tkwin), chPtr->gc, chPtr->segArr, 2);
         chPtr->visible = TRUE;
     }
 }
 
-static int GetCrosshairPositionFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, XPoint *pointPtr) {
+static int GetCrosshairPositionFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, Point2D *pointPtr) {
     const char *string;
     const char *comma;
     Tcl_Size length;
@@ -166,8 +166,8 @@ static int GetCrosshairPositionFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_
     int result;
 
     if ((objPtr == NULL) || (Tcl_GetCharLength(objPtr) == 0)) {
-        pointPtr->x = -SHRT_MAX;
-        pointPtr->y = -SHRT_MAX;
+        pointPtr->x = (double)INT_MIN;
+        pointPtr->y = (double)INT_MIN;
         return TCL_OK;
     }
     string = Tcl_GetStringFromObj(objPtr, &length);
@@ -196,12 +196,8 @@ static int GetCrosshairPositionFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_
         Tcl_AppendResult(interp, ": can't parse position \"", string, "\"", (char *)NULL);
         return TCL_ERROR;
     }
-    if ((x < SHRT_MIN) || (x > SHRT_MAX) || (y < SHRT_MIN) || (y > SHRT_MAX)) {
-        Tcl_SetObjResult(interp, Tcl_ObjPrintf("position \"%s\" is outside the supported range", string));
-        return TCL_ERROR;
-    }
-    pointPtr->x = (short)x;
-    pointPtr->y = (short)y;
+    pointPtr->x = (double)x;
+    pointPtr->y = (double)y;
     return TCL_OK;
 }
 
@@ -228,7 +224,7 @@ static int GetCrosshairPositionFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_
 
 static int ConfigureCrosshairs(Graph *graphPtr, Crosshairs *chPtr, int mask) {
     Rbc_Dashes newDashes;
-    XPoint newHotSpot;
+    Point2D newHotSpot;
     int newLineWidth;
     XGCValues gcValues;
     unsigned long gcMask;
@@ -303,12 +299,12 @@ static int ConfigureCrosshairs(Graph *graphPtr, Crosshairs *chPtr, int mask) {
      * Rebuild all segment coordinates. This also handles calls made
      * when the graph background or plot geometry has changed.
      */
-    chPtr->segArr[0].x1 = chPtr->segArr[0].x2 = chPtr->hotSpot.x;
-    chPtr->segArr[0].y1 = graphPtr->bottom;
-    chPtr->segArr[0].y2 = graphPtr->top;
-    chPtr->segArr[1].y1 = chPtr->segArr[1].y2 = chPtr->hotSpot.y;
-    chPtr->segArr[1].x1 = graphPtr->left;
-    chPtr->segArr[1].x2 = graphPtr->right;
+    chPtr->segArr[0].p.x = chPtr->segArr[0].q.x = chPtr->hotSpot.x;
+    chPtr->segArr[0].p.y = (double)graphPtr->bottom;
+    chPtr->segArr[0].q.y = (double)graphPtr->top;
+    chPtr->segArr[1].p.y = chPtr->segArr[1].q.y = chPtr->hotSpot.y;
+    chPtr->segArr[1].p.x = (double)graphPtr->left;
+    chPtr->segArr[1].q.x = (double)graphPtr->right;
     if (!chPtr->hidden) {
         TurnOnHairs(graphPtr, chPtr);
     }
@@ -396,12 +392,13 @@ void Rbc_DisableCrosshairs(Graph *graphPtr) {
  *----------------------------------------------------------------------
  */
 void Rbc_UpdateCrosshairs(Graph *graphPtr) {
-    Crosshairs *chPtr = graphPtr->crosshairs;
+    Crosshairs *chPtr;
 
-    chPtr->segArr[0].y1 = graphPtr->bottom;
-    chPtr->segArr[0].y2 = graphPtr->top;
-    chPtr->segArr[1].x1 = graphPtr->left;
-    chPtr->segArr[1].x2 = graphPtr->right;
+    chPtr = graphPtr->crosshairs;
+    chPtr->segArr[0].p.y = (double)graphPtr->bottom;
+    chPtr->segArr[0].q.y = (double)graphPtr->top;
+    chPtr->segArr[1].p.x = (double)graphPtr->left;
+    chPtr->segArr[1].q.x = (double)graphPtr->right;
 }
 
 /*
