@@ -347,6 +347,16 @@ typedef struct {
     Rbc_GraphOpProc *proc;
 } GraphOpSpec;
 
+static int GraphLayoutInt(Tcl_WideInt value) {
+    if (value > INT_MAX) {
+        return INT_MAX;
+    }
+    if (value < INT_MIN) {
+        return INT_MIN;
+    }
+    return (int)value;
+}
+
 static int GetGraphOptionFromObj(Tcl_Obj *objPtr, const GraphOptionName *optionMap, size_t nOptions) {
     const char *string;
     Tcl_Size length;
@@ -1726,118 +1736,94 @@ static int ConfigureGraph(Graph *graphPtr) {
 
     assert(graphPtr->optionsInitialized);
     assert(graphPtr->optionTable != NULL);    
-
     memset(&barModeTransaction, 0, sizeof(barModeTransaction));
     memset(&paddingTransaction, 0, sizeof(paddingTransaction));
     memset(&pixelTransaction, 0, sizeof(pixelTransaction));
     memset(&shadowTransaction, 0, sizeof(shadowTransaction));
     memset(&tileTransaction, 0, sizeof(tileTransaction));
-
     barModeTransactionPrepared = FALSE;
     paddingTransactionPrepared = FALSE;
     pixelTransactionPrepared = FALSE;
     shadowTransactionPrepared = FALSE;
     tileTransactionPrepared = FALSE;
-
     if ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_PIXELS_MASK)) {
         if (PrepareGraphPixelTransaction(graphPtr, &pixelTransaction) != TCL_OK) {
             goto error;
         }
-
         pixelTransactionPrepared = TRUE;
     }
-
     if ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_PADDING_MASK)) {
         if (PrepareGraphPaddingTransaction(graphPtr, &paddingTransaction) != TCL_OK) {
             goto error;
         }
-
         paddingTransactionPrepared = TRUE;
     }
-
     if ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_BAR_MODE_MASK)) {
         if (PrepareGraphBarModeTransaction(graphPtr, &barModeTransaction) != TCL_OK) {
             goto error;
         }
-
         barModeTransactionPrepared = TRUE;
     }
-
     if ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_SHADOW_MASK)) {
         if (PrepareGraphShadowTransaction(graphPtr, &shadowTransaction) != TCL_OK) {
             goto error;
         }
-
         shadowTransactionPrepared = TRUE;
     }
-
     if ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_TILE_MASK)) {
         if (PrepareGraphTileTransaction(graphPtr, &tileTransaction) != TCL_OK) {
             goto error;
         }
-
         tileTransactionPrepared = TRUE;
     }
-
     /*
      * No operation below this point can report a configuration error.
      */
     if (pixelTransactionPrepared) {
         CommitGraphPixelTransaction(graphPtr, &pixelTransaction);
     }
-
     if (paddingTransactionPrepared) {
         CommitGraphPaddingTransaction(graphPtr, &paddingTransaction);
     }
-
     if (barModeTransactionPrepared) {
         CommitGraphBarModeTransaction(graphPtr, &barModeTransaction);
     }
-
     if (shadowTransactionPrepared) {
         CommitGraphShadowTransaction(graphPtr, &shadowTransaction);
     }
-
     if (tileTransactionPrepared) {
         CommitGraphTileTransaction(graphPtr, &tileTransaction);
     }
-
     invertXYModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_INVERT_XY_MASK));
-
     layoutModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_LAYOUT_MASK));
-
     plotBackgroundModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_PLOT_BACKGROUND_MASK));
-
     /*
      * Preserve the historical normalisation behaviour for -barwidth.
      */
     if (graphPtr->barWidth <= 0.0) {
         graphPtr->barWidth = 0.1;
     }
-    graphPtr->inset = graphPtr->borderWidth + graphPtr->highlightWidth + 1;
+    graphPtr->inset = GraphLayoutInt((Tcl_WideInt)graphPtr->borderWidth + (Tcl_WideInt)graphPtr->highlightWidth + 1);
     if ((graphPtr->reqHeight != Tk_ReqHeight(graphPtr->tkwin)) ||
         (graphPtr->reqWidth != Tk_ReqWidth(graphPtr->tkwin))) {
         Tk_GeometryRequest(graphPtr->tkwin, graphPtr->reqWidth, graphPtr->reqHeight);
     }
     Tk_SetInternalBorder(graphPtr->tkwin, graphPtr->borderWidth);
     colorPtr = Tk_3DBorderColor(graphPtr->border);
-
     if (graphPtr->title != NULL) {
         int w, h;
 
         Rbc_GetTextExtents(&graphPtr->titleTextStyle, graphPtr->title, &w, &h);
-        graphPtr->titleTextStyle.height = h + 10;
+        graphPtr->titleTextStyle.height = GraphLayoutInt((Tcl_WideInt)h + 10);
     } else {
         graphPtr->titleTextStyle.width = graphPtr->titleTextStyle.height = 0;
     }
-
     /*
      * Create GCs for interior and exterior regions, and a background
      * GC for clearing the margins with XFillRectangle
      */
 
     /* Margin GC */
-
     gcValues.foreground = graphPtr->titleTextStyle.color->pixel;
     gcValues.background = colorPtr->pixel;
     gcMask = (GCForeground | GCBackground);
@@ -1846,18 +1832,14 @@ static int ConfigureGraph(Graph *graphPtr) {
         Tk_FreeGC(graphPtr->display, graphPtr->drawGC);
     }
     graphPtr->drawGC = newGC;
-
     /* Plot fill GC (Background = Foreground) */
-
     gcValues.foreground = graphPtr->plotBg->pixel;
     newGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
     if (graphPtr->plotFillGC != NULL) {
         Tk_FreeGC(graphPtr->display, graphPtr->plotFillGC);
     }
     graphPtr->plotFillGC = newGC;
-
     /* Margin fill GC (Background = Foreground) */
-
     gcValues.foreground = colorPtr->pixel;
     gcValues.background = graphPtr->titleTextStyle.color->pixel;
     newGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
@@ -1868,26 +1850,20 @@ static int ConfigureGraph(Graph *graphPtr) {
     if (graphPtr->tile != NULL) {
         Rbc_SetTileChangedProc(graphPtr->tile, TileChangedProc, graphPtr);
     }
-
     Rbc_ResetTextStyle(graphPtr->tkwin, &graphPtr->titleTextStyle);
-
     if (invertXYModified) {
-
         /*
          * If the -inverted option changed, we need to readjust the pointers
          * to the axes and recompute the their scales.
          */
-
         AdjustAxisPointers(graphPtr);
         graphPtr->flags |= RESET_AXES;
     }
     if ((!graphPtr->backingStore) && (graphPtr->backPixmap != None)) {
-
         /*
          * Free the pixmap if we're not buffering the display of elements
          * anymore.
          */
-
         Tk_FreePixmap(graphPtr->display, graphPtr->backPixmap);
         graphPtr->backPixmap = None;
     }
@@ -1896,7 +1872,6 @@ static int ConfigureGraph(Graph *graphPtr) {
      * the plotarea has been changed.
      */
     Rbc_ConfigureCrosshairs(graphPtr);
-
     /*
      *  Update the layout of the graph (and redraw the elements) if
      *  any of the following graph options which affect the size of
@@ -1924,11 +1899,9 @@ error:
     if (shadowTransactionPrepared) {
         FreeGraphShadowTransaction(&shadowTransaction);
     }
-
     if (tileTransactionPrepared) {
         FreeGraphTileTransaction(&tileTransaction);
     }
-
     return TCL_ERROR;
 }
 
@@ -3370,20 +3343,16 @@ void Rbc_DrawGraph(Graph *graphPtr, Drawable drawable, int backingStore) {
             DrawPlotRegion(graphPtr, graphPtr->backPixmap);
             graphPtr->flags &= ~REDRAW_BACKING_STORE;
         }
-
         /* Copy the pixmap to the one used for drawing the entire graph. */
-
         XCopyArea(graphPtr->display, graphPtr->backPixmap, drawable, graphPtr->drawGC, graphPtr->left, graphPtr->top,
                   (graphPtr->right - graphPtr->left + 1), (graphPtr->bottom - graphPtr->top + 1), graphPtr->left,
                   graphPtr->top);
     } else {
         DrawPlotRegion(graphPtr, drawable);
     }
-
     /* Draw markers above elements */
     Rbc_DrawMarkers(graphPtr, drawable, MARKER_ABOVE);
     Rbc_DrawActiveElements(graphPtr, drawable);
-
     if (graphPtr->flags & DRAW_MARGINS) {
         DrawMargins(graphPtr, drawable);
     }
@@ -3392,9 +3361,16 @@ void Rbc_DrawGraph(Graph *graphPtr, Drawable drawable, int backingStore) {
     }
     /* Draw 3D border just inside of the focus highlight ring. */
     if ((graphPtr->borderWidth > 0) && (graphPtr->relief != TK_RELIEF_FLAT)) {
-        Rbc_Draw3DRectangle(graphPtr->tkwin, drawable, graphPtr->border, graphPtr->highlightWidth,
-                            graphPtr->highlightWidth, graphPtr->width - 2 * graphPtr->highlightWidth,
-                            graphPtr->height - 2 * graphPtr->highlightWidth, graphPtr->borderWidth, graphPtr->relief);
+        Tcl_WideInt width;
+        Tcl_WideInt height;
+
+        width = (Tcl_WideInt)graphPtr->width - (2 * (Tcl_WideInt)graphPtr->highlightWidth);
+        height = (Tcl_WideInt)graphPtr->height - (2 * (Tcl_WideInt)graphPtr->highlightWidth);
+        if ((width > 0) && (height > 0)) {
+            Rbc_Draw3DRectangle(graphPtr->tkwin, drawable, graphPtr->border, graphPtr->highlightWidth,
+                                graphPtr->highlightWidth, GraphLayoutInt(width), GraphLayoutInt(height),
+                                graphPtr->borderWidth, graphPtr->relief);
+        }
     }
     /* Draw focus highlight ring. */
     if ((graphPtr->highlightWidth > 0) && (graphPtr->flags & GRAPH_FOCUS)) {

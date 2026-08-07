@@ -385,6 +385,36 @@ static RbcGrAxisVirtualOp NamesVirtualOp;
 static RbcGrAxisVirtualOp TransformVirtualOp;
 static RbcGrAxisVirtualOp ViewOp;
 
+static int LayoutInt(Tcl_WideInt value) {
+    if (value > INT_MAX) {
+        return INT_MAX;
+    }
+    if (value < INT_MIN) {
+        return INT_MIN;
+    }
+    return (int)value;
+}
+
+static int LayoutSize(Tcl_WideInt value) {
+    if (value <= 0) {
+        return 0;
+    }
+    if (value > INT_MAX) {
+        return INT_MAX;
+    }
+    return (int)value;
+}
+
+static int LayoutRange(Tcl_WideInt value) {
+    if (value < 1) {
+        return 1;
+    }
+    if (value > INT_MAX) {
+        return INT_MAX;
+    }
+    return (int)value;
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -4263,16 +4293,16 @@ cleanup:
  *----------------------------------------------------------------------
  */
 static void GetAxisGeometry(Graph *graphPtr, Axis *axisPtr) {
-    int height;
+    Tcl_WideInt height;
 
     FreeLabels(axisPtr->tickLabels);
     height = 0;
     if (axisPtr->lineWidth > 0) {
         /* Leave room for axis baseline (and pad) */
-        height += axisPtr->lineWidth + 2;
+        height += (Tcl_WideInt)axisPtr->lineWidth + 2;
     }
     if (axisPtr->showTicks) {
-        int pad;
+        Tcl_WideInt pad;
         Tcl_Size i;
         int lw, lh;
         double x, x2;
@@ -4310,8 +4340,9 @@ static void GetAxisGeometry(Graph *graphPtr, Axis *axisPtr) {
             if (axisPtr->tickTextStyle.theta > 0.0) {
                 double rotWidth, rotHeight;
 
-                Rbc_GetBoundingBox(lw, lh, axisPtr->tickTextStyle.theta, &rotWidth, &rotHeight, (Point2D *)NULL);                lw = ROUND(rotWidth);
-                lh = ROUND(rotHeight);
+                Rbc_GetBoundingBox(lw, lh, axisPtr->tickTextStyle.theta, &rotWidth, &rotHeight, (Point2D *)NULL);
+                lw = (rotWidth >= (double)INT_MAX) ? INT_MAX : ROUND(rotWidth);
+                lh = (rotHeight >= (double)INT_MAX) ? INT_MAX : ROUND(rotHeight);
             }
             if (maxWidth < lw) {
                 maxWidth = lw;
@@ -4323,16 +4354,20 @@ static void GetAxisGeometry(Graph *graphPtr, Axis *axisPtr) {
         /* Because the axis cap style is "CapProjecting", we need to
          * account for an extra 1.5 linewidth at the end of each
          * line.  */
-        pad = ((axisPtr->lineWidth * 15) / 10);
+        pad = ((Tcl_WideInt)axisPtr->lineWidth * 15) / 10;
         if (AxisIsHorizontal(graphPtr, axisPtr)) {
-            height += maxHeight + pad;
+            height += (Tcl_WideInt)maxHeight + pad;
         } else {
-            height += maxWidth + pad;
+            height += (Tcl_WideInt)maxWidth + pad;
         }
         if (axisPtr->lineWidth > 0) {
             /* Distance from axis line to tick label. */
             height += AXIS_TITLE_PAD;
-            height += ABS(axisPtr->tickLength);
+            if (axisPtr->tickLength < 0) {
+                height -= (Tcl_WideInt)axisPtr->tickLength;
+            } else {
+                height += (Tcl_WideInt)axisPtr->tickLength;
+            }
         }
     }
     if (axisPtr->title != NULL) {
@@ -4341,14 +4376,14 @@ static void GetAxisGeometry(Graph *graphPtr, Axis *axisPtr) {
                 height = axisPtr->titleHeight;
             }
         } else {
-            height += axisPtr->titleHeight + AXIS_TITLE_PAD;
+            height += (Tcl_WideInt)axisPtr->titleHeight + AXIS_TITLE_PAD;
         }
     }
     /* Correct for orientation of the axis. */
     if (AxisIsHorizontal(graphPtr, axisPtr)) {
-        axisPtr->height = height;
+        axisPtr->height = LayoutSize(height);
     } else {
-        axisPtr->width = height;
+        axisPtr->width = LayoutSize(height);
     }
 }
 
@@ -4381,9 +4416,9 @@ static void GetAxisGeometry(Graph *graphPtr, Axis *axisPtr) {
 static int GetMarginGeometry(Graph *graphPtr, Margin *marginPtr) {
     Rbc_ChainLink *linkPtr;
     Axis *axisPtr;
-    int width, height;
+    Tcl_WideInt width, height;
+    Tcl_WideInt length;
     int isHoriz;
-    int length;
     Tcl_Size count;
 
     isHoriz = HORIZMARGIN(marginPtr);
@@ -4418,10 +4453,10 @@ static int GetMarginGeometry(Graph *graphPtr, Margin *marginPtr) {
         height = 3;
     }
     marginPtr->nAxes = count;
-    marginPtr->axesTitleLength = length;
-    marginPtr->width = width;
-    marginPtr->height = height;
-    marginPtr->axesOffset = (HORIZMARGIN(marginPtr)) ? height : width;
+    marginPtr->axesTitleLength = LayoutSize(length);
+    marginPtr->width = LayoutSize(width);
+    marginPtr->height = LayoutSize(height);
+    marginPtr->axesOffset = HORIZMARGIN(marginPtr) ? marginPtr->height : marginPtr->width;
     return marginPtr->axesOffset;
 }
 
@@ -4447,9 +4482,9 @@ static int GetMarginGeometry(Graph *graphPtr, Margin *marginPtr) {
  *
  *---------------------------------------------------------------------- */
 static void ComputeMargins(Graph *graphPtr) {
-    int left, right, top, bottom;
-    int width, height;
-    int insets;
+    Tcl_WideInt left, right, top, bottom;
+    Tcl_WideInt width, height;
+    Tcl_WideInt insets;
 
     /*
      * Step 1:    Compute the amount of space needed to display the
@@ -4460,35 +4495,33 @@ static void ComputeMargins(Graph *graphPtr) {
     bottom = GetMarginGeometry(graphPtr, &graphPtr->bottomMargin);
     left = GetMarginGeometry(graphPtr, &graphPtr->leftMargin);
     right = GetMarginGeometry(graphPtr, &graphPtr->rightMargin);
-
     /*
      * Step 2:  Add the graph title height to the top margin.
      */
     if (graphPtr->title != NULL) {
         top += graphPtr->titleTextStyle.height;
     }
-    insets = 2 * (graphPtr->inset + graphPtr->plotBorderWidth);
-
+    insets = 2 * ((Tcl_WideInt)graphPtr->inset + (Tcl_WideInt)graphPtr->plotBorderWidth);
     /*
      * Step 3:  Use the current estimate of the plot area to compute
      *        the legend size.  Add it to the proper margin.
      */
     width = graphPtr->width - (insets + left + right);
     height = graphPtr->height - (insets + top + bottom);
-    Rbc_MapLegend(graphPtr->legend, width, height);
+    Rbc_MapLegend(graphPtr->legend, LayoutSize(width), LayoutSize(height));
     if (!Rbc_LegendIsHidden(graphPtr->legend)) {
         switch (Rbc_LegendSite(graphPtr->legend)) {
         case LEGEND_RIGHT:
-            right += Rbc_LegendWidth(graphPtr->legend) + 2;
+            right += (Tcl_WideInt)Rbc_LegendWidth(graphPtr->legend) + 2;
             break;
         case LEGEND_LEFT:
-            left += Rbc_LegendWidth(graphPtr->legend) + 2;
+            left += (Tcl_WideInt)Rbc_LegendWidth(graphPtr->legend) + 2;
             break;
         case LEGEND_TOP:
-            top += Rbc_LegendHeight(graphPtr->legend) + 2;
+            top += (Tcl_WideInt)Rbc_LegendHeight(graphPtr->legend) + 2;
             break;
         case LEGEND_BOTTOM:
-            bottom += Rbc_LegendHeight(graphPtr->legend) + 2;
+            bottom += (Tcl_WideInt)Rbc_LegendHeight(graphPtr->legend) + 2;
             break;
         case LEGEND_XY:
         case LEGEND_PLOT:
@@ -4497,18 +4530,16 @@ static void ComputeMargins(Graph *graphPtr) {
             break;
         }
     }
-
     /*
      * Recompute the plotarea, now accounting for the legend.
      */
     width = graphPtr->width - (insets + left + right);
     height = graphPtr->height - (insets + top + bottom);
-
     /*
      * Step 5:    If necessary, correct for the requested plot area
      *        aspect ratio.
      */
-    if (graphPtr->aspect > 0.0) {
+    if ((graphPtr->aspect > 0.0) && (width > 0) && (height > 0)) {
         double ratio;
 
         /*
@@ -4520,7 +4551,7 @@ static void ComputeMargins(Graph *graphPtr) {
             int scaledWidth;
 
             /* Shrink the width. */
-            scaledWidth = (int)(height * graphPtr->aspect);
+            scaledWidth = (int)((double)height * graphPtr->aspect);
             if (scaledWidth < 1) {
                 scaledWidth = 1;
             }
@@ -4531,7 +4562,7 @@ static void ComputeMargins(Graph *graphPtr) {
             int scaledHeight;
 
             /* Shrink the height. */
-            scaledHeight = (int)(width / graphPtr->aspect);
+            scaledHeight = (int)((double)width / graphPtr->aspect);
             if (scaledHeight < 1) {
                 scaledHeight = 1;
             }
@@ -4540,13 +4571,11 @@ static void ComputeMargins(Graph *graphPtr) {
             /* CHECK THIS: height = scaledHeight; */
         }
     }
-
     /*
      * Step 6:    If there's multiple axes in a margin, the axis
      *        titles will be displayed in the adjoining marging.
      *        Make sure there's room for the longest axis titles.
      */
-
     if (top < graphPtr->leftMargin.axesTitleLength) {
         top = graphPtr->leftMargin.axesTitleLength;
     }
@@ -4559,17 +4588,14 @@ static void ComputeMargins(Graph *graphPtr) {
     if (right < graphPtr->topMargin.axesTitleLength) {
         right = graphPtr->topMargin.axesTitleLength;
     }
-
     /*
      * Step 7:  Override calculated values with requested margin
      *        sizes.
      */
-
-    graphPtr->leftMargin.width = left;
-    graphPtr->rightMargin.width = right;
-    graphPtr->topMargin.height = top;
-    graphPtr->bottomMargin.height = bottom;
-
+    graphPtr->leftMargin.width = LayoutSize(left);
+    graphPtr->rightMargin.width = LayoutSize(right);
+    graphPtr->topMargin.height = LayoutSize(top);
+    graphPtr->bottomMargin.height = LayoutSize(bottom);
     if (graphPtr->leftMargin.reqSize > 0) {
         graphPtr->leftMargin.width = graphPtr->leftMargin.reqSize;
     }
@@ -4676,51 +4702,51 @@ static void ComputeMargins(Graph *graphPtr) {
  * -----------------------------------------------------------------
  */
 void Rbc_LayoutMargins(Graph *graphPtr) {
-    int width, height;
-    int titleY;
-    int left, right, top, bottom;
+    Tcl_WideInt width, height;
+    Tcl_WideInt left, right;
+    Tcl_WideInt top, bottom;
+    Tcl_WideInt value;
 
     ComputeMargins(graphPtr);
-    left = graphPtr->leftMargin.width + graphPtr->inset + graphPtr->plotBorderWidth;
-    right = graphPtr->rightMargin.width + graphPtr->inset + graphPtr->plotBorderWidth;
-    top = graphPtr->topMargin.height + graphPtr->inset + graphPtr->plotBorderWidth;
-    bottom = graphPtr->bottomMargin.height + graphPtr->inset + graphPtr->plotBorderWidth;
 
-    /* Based upon the margins, calculate the space left for the graph. */
-    width = graphPtr->width - (left + right);
-    height = graphPtr->height - (top + bottom);
+    left =
+        (Tcl_WideInt)graphPtr->leftMargin.width + (Tcl_WideInt)graphPtr->inset + (Tcl_WideInt)graphPtr->plotBorderWidth;
+    right = (Tcl_WideInt)graphPtr->rightMargin.width + (Tcl_WideInt)graphPtr->inset +
+            (Tcl_WideInt)graphPtr->plotBorderWidth;
+    top =
+        (Tcl_WideInt)graphPtr->topMargin.height + (Tcl_WideInt)graphPtr->inset + (Tcl_WideInt)graphPtr->plotBorderWidth;
+    bottom = (Tcl_WideInt)graphPtr->bottomMargin.height + (Tcl_WideInt)graphPtr->inset +
+             (Tcl_WideInt)graphPtr->plotBorderWidth;
+    /*
+     * Calculate the plotting cavity using wide intermediates.  The
+     * drawable geometry itself remains int.
+     */
+    width = (Tcl_WideInt)graphPtr->width - left - right;
+    height = (Tcl_WideInt)graphPtr->height - top - bottom;
     if (width < 1) {
         width = 1;
     }
     if (height < 1) {
         height = 1;
     }
-    graphPtr->left = left;
-    graphPtr->right = left + width;
-    graphPtr->bottom = top + height;
-    graphPtr->top = top;
-
-    graphPtr->vOffset = top + graphPtr->padTop;
-    graphPtr->vRange = height - PADDING(graphPtr->padY);
-    graphPtr->hOffset = left + graphPtr->padLeft;
-    graphPtr->hRange = width - PADDING(graphPtr->padX);
-
-    if (graphPtr->vRange < 1) {
-        graphPtr->vRange = 1;
-    }
-    if (graphPtr->hRange < 1) {
-        graphPtr->hRange = 1;
-    }
+    graphPtr->left = LayoutInt(left);
+    graphPtr->top = LayoutInt(top);
+    graphPtr->right = LayoutInt(left + width);
+    graphPtr->bottom = LayoutInt(top + height);
+    value = top + (Tcl_WideInt)graphPtr->padTop;
+    graphPtr->vOffset = LayoutInt(value);
+    value = height - PADDING(graphPtr->padY);
+    graphPtr->vRange = LayoutRange(value);
+    value = left + (Tcl_WideInt)graphPtr->padLeft;
+    graphPtr->hOffset = LayoutInt(value);
+    value = width - PADDING(graphPtr->padX);
+    graphPtr->hRange = LayoutRange(value);
     graphPtr->hScale = 1.0 / (double)graphPtr->hRange;
     graphPtr->vScale = 1.0 / (double)graphPtr->vRange;
-
-    /*
-     * Calculate the placement of the graph title so it is centered within the
-     * space provided for it in the top margin
-     */
-    titleY = graphPtr->titleTextStyle.height;
-    graphPtr->titleY = (titleY / 2) + graphPtr->inset;
-    graphPtr->titleX = (graphPtr->right + graphPtr->left) / 2;
+    value = ((Tcl_WideInt)graphPtr->titleTextStyle.height / 2) + (Tcl_WideInt)graphPtr->inset;
+    graphPtr->titleY = LayoutInt(value);
+    value = (Tcl_WideInt)graphPtr->right + (Tcl_WideInt)graphPtr->left;
+    graphPtr->titleX = LayoutInt(value / 2);
 }
 
 /*

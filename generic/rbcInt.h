@@ -315,7 +315,7 @@ typedef struct {
 #define padRight padX.side2
 #define padTop padY.side1
 #define padBottom padY.side2
-#define PADDING(x) ((x).side1 + (x).side2)
+#define PADDING(x) ((Tcl_WideInt)(x).side1 + (Tcl_WideInt)(x).side2)
 
 int Rbc_GetPadFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, Rbc_Pad *padPtr);
 
