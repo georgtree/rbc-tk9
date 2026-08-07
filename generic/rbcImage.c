@@ -965,29 +965,6 @@ int Rbc_GetResampleFilterFromObj(Tcl_Interp *interp, Tcl_Obj *filterObj, Resampl
 #define uchar2si(b) (((int)(b)) << 14)
 #define si2int(s) (((s) + 8192) >> 14)
 
-#ifdef notdef
-typedef struct {
-    int pixel;
-    union Weight {
-        int i; /* Fixed point, scaled integer. */
-        float f;
-    } weight;
-} Sample;
-
-typedef struct {
-    int count;       /* Number of contributors */
-    Sample *samples; /* Array of contributors */
-} Contribution;
-
-typedef struct {
-    int pixel;
-    union Weight {
-        int i; /* Fixed point, scaled integer. */
-        float f;
-    } weight;
-} Sample;
-#endif
-
 typedef union {
     int i; /* Fixed point, scaled integer. */
     float f;
@@ -998,6 +975,76 @@ typedef struct {
     int start;
     Weight weights[1]; /* Array of weights. */
 } Sample;
+
+static size_t GetSampleRecordSize(int nWeights) {
+    size_t size;
+    size_t extraWeights;
+
+    if (nWeights <= 0) {
+        Tcl_Panic("GetSampleRecordSize: invalid weight count");
+    }
+    size = sizeof(Sample);
+    extraWeights = (size_t)nWeights - 1u;
+    if (extraWeights > (SIZE_MAX - size) / sizeof(Weight)) {
+        Tcl_Panic("GetSampleRecordSize: sample size overflow");
+    }
+    return size + (extraWeights * sizeof(Weight));
+}
+
+static int GetFilterSize(int srcWidth, double radius) {
+    double value;
+
+    if (srcWidth <= 0) {
+        Tcl_Panic("GetFilterSize: invalid source width");
+    }
+    if ((!FINITE(radius)) || (radius < 0.0)) {
+        Tcl_Panic("GetFilterSize: invalid filter radius");
+    }
+    value = (radius * 2.0) + 2.0;
+    /*
+     * A clipped filter can never contain more source samples than
+     * there are source pixels.  Capping here also avoids converting
+     * a value larger than INT_MAX to int.
+     */
+    if ((!FINITE(value)) || (value >= (double)srcWidth)) {
+        return srcWidth;
+    }
+    if (value < 1.0) {
+        return 1;
+    }
+    return (int)value;
+}
+
+static void GetFilterBounds(int srcWidth, double center, double radius, int *leftPtr, int *rightPtr) {
+    double value;
+    int left;
+    int right;
+
+    if ((srcWidth <= 0) || (!FINITE(center)) || (!FINITE(radius)) || (radius < 0.0)) {
+        Tcl_Panic("GetFilterBounds: invalid filter geometry");
+    }
+    value = center - radius + 0.5;
+    if (value <= 0.0) {
+        left = 0;
+    } else if (value >= (double)srcWidth) {
+        left = srcWidth - 1;
+    } else {
+        left = (int)value;
+    }
+    value = center + radius + 0.5;
+    if (value <= 0.0) {
+        right = 0;
+    } else if (value >= (double)srcWidth) {
+        right = srcWidth - 1;
+    } else {
+        right = (int)value;
+    }
+    assert(left >= 0);
+    assert(right < srcWidth);
+    assert(left <= right);
+    *leftPtr = left;
+    *rightPtr = right;
+}
 
 /*
  *--------------------------------------------------------------
@@ -1022,94 +1069,91 @@ typedef struct {
  */
 static size_t ComputeWeights(int srcWidth, int destWidth, ResampleFilter *filterPtr, Sample **samplePtrPtr) {
     Sample *samples;
+    Sample *s;
+    Weight *weight;
     double scale;
-    int filterSize;
     double center;
-    register Sample *s;
-    register Weight *weight;
-    register int x, i;
-    register int left, right; /* filter bounds */
-    double factor, sum;
+    double radius;
+    double factor;
+    double sum;
+    double fscale;
+    int filterSize;
+    int x;
+    int i;
+    int left;
+    int right;
     size_t size;
 
-    /* Pre-calculate filter contributions for a row */
+    if ((srcWidth <= 0) || (destWidth <= 0)) {
+        Tcl_Panic("ComputeWeights: invalid image dimension");
+    }
+    if ((filterPtr == NULL) || (filterPtr->proc == NULL)) {
+        Tcl_Panic("ComputeWeights: invalid resampling filter");
+    }
     scale = (double)destWidth / (double)srcWidth;
-
+    if ((!FINITE(scale)) || (scale <= 0.0)) {
+        Tcl_Panic("ComputeWeights: invalid image scale");
+    }
     if (scale < 1.0) {
-        double radius, fscale;
-
-        /* Downsample */
-
+        /*
+         * Downsampling broadens the effective filter radius.
+         */
         radius = filterPtr->support / scale;
         fscale = 1.0 / scale;
-        filterSize = (int)(radius * 2 + 2);
-
-        size = sizeof(Sample) + (filterSize - 1) * sizeof(Weight);
-        samples = RbcCalloc(destWidth, size);
-        assert(samples);
-
+        filterSize = GetFilterSize(srcWidth, radius);
+        size = GetSampleRecordSize(filterSize);
+        samples = RbcCalloc((size_t)destWidth, size);
         s = samples;
         for (x = 0; x < destWidth; x++) {
             center = (double)x * fscale;
-
-            /* Determine bounds of filter and its density */
-            left = (int)(center - radius + 0.5);
-            if (left < 0) {
-                left = 0;
-            }
-            right = (int)(center + radius + 0.5);
-            if (right >= srcWidth) {
-                right = srcWidth - 1;
-            }
-            sum = 0.0;
+            GetFilterBounds(srcWidth, center, radius, &left, &right);
             s->start = left;
+            s->count = right - left + 1;
+            assert(s->count > 0);
+            assert(s->count <= filterSize);
+            sum = 0.0;
             for (weight = s->weights, i = left; i <= right; i++, weight++) {
                 weight->f = (float)(*filterPtr->proc)(((double)i + 0.5 - center) * scale);
                 sum += weight->f;
             }
-            s->count = right - left + 1;
-
             factor = (sum == 0.0) ? 1.0 : (1.0 / sum);
             for (weight = s->weights, i = left; i <= right; i++, weight++) {
+                float tmp;
+
                 weight->f = (float)(weight->f * factor);
-                float tmp = weight->f;
+                tmp = weight->f;
                 weight->i = float2si(tmp);
             }
             s = (Sample *)((char *)s + size);
         }
     } else {
-        double fscale;
-        /* Upsample */
-
-        filterSize = (int)(filterPtr->support * 2 + 2);
-        size = sizeof(Sample) + (filterSize - 1) * sizeof(Weight);
-        samples = RbcCalloc(destWidth, size);
-        assert(samples);
-
+        /*
+         * Upsampling uses the filter's native support radius.
+         */
+        radius = filterPtr->support;
         fscale = 1.0 / scale;
-
+        filterSize = GetFilterSize(srcWidth, radius);
+        size = GetSampleRecordSize(filterSize);
+        samples = RbcCalloc((size_t)destWidth, size);
         s = samples;
         for (x = 0; x < destWidth; x++) {
             center = (double)x * fscale;
-            left = (int)(center - filterPtr->support + 0.5);
-            if (left < 0) {
-                left = 0;
-            }
-            right = (int)(center + filterPtr->support + 0.5);
-            if (right >= srcWidth) {
-                right = srcWidth - 1;
-            }
-            sum = 0.0;
+            GetFilterBounds(srcWidth, center, radius, &left, &right);
             s->start = left;
+            s->count = right - left + 1;
+            assert(s->count > 0);
+            assert(s->count <= filterSize);
+            sum = 0.0;
             for (weight = s->weights, i = left; i <= right; i++, weight++) {
                 weight->f = (float)(*filterPtr->proc)((double)i - center + 0.5);
                 sum += weight->f;
             }
-            s->count = right - left + 1;
             factor = (sum == 0.0) ? 1.0 : (1.0 / sum);
             for (weight = s->weights, i = left; i <= right; i++, weight++) {
+                float tmp;
+
                 weight->f = (float)(weight->f * factor);
-                float tmp = weight->f;
+                tmp = weight->f;
                 weight->i = float2si(tmp);
             }
             s = (Sample *)((char *)s + size);
@@ -1160,6 +1204,9 @@ static void ZoomImageVertically(Rbc_ColorImage src, Rbc_ColorImage dest, Resampl
     srcHeight = Rbc_ColorImageHeight(src);
     destWidth = Rbc_ColorImageWidth(dest);
     destHeight = Rbc_ColorImageHeight(dest);
+    if ((srcWidth <= 0) || (srcHeight <= 0) || (destWidth <= 0) || (destHeight <= 0)) {
+        return;
+    }
 
     /* Pre-calculate filter contributions for a row */
     size = ComputeWeights(srcHeight, destHeight, filterPtr, &samples);
@@ -1224,6 +1271,9 @@ static void ZoomImageHorizontally(Rbc_ColorImage src, Rbc_ColorImage dest, Resam
     srcWidth = Rbc_ColorImageWidth(src);
     srcHeight = Rbc_ColorImageHeight(src);
     destWidth = Rbc_ColorImageWidth(dest);
+    if ((srcWidth <= 0) || (srcHeight <= 0) || (destWidth <= 0) || (Rbc_ColorImageHeight(dest) <= 0)) {
+        return;
+    }
     /* Pre-calculate filter contributions for a row */
     size = ComputeWeights(srcWidth, destWidth, filterPtr, &samples);
     endPtr = (Sample *)((char *)samples + ((size_t)destWidth * size));
