@@ -177,7 +177,7 @@ typedef struct {
 
     Point2D titlePos; /* Position of the title */
 
-    unsigned short int titleWidth, titleHeight;
+    int titleWidth, titleHeight;
 
     int lineWidth; /* Width of lines representing axis
                     * (including ticks).  If zero, then
@@ -277,7 +277,7 @@ typedef struct {
     Rbc_ChainLink *linkPtr; /* Axis link in margin list. */
     Rbc_Chain *chainPtr;
 
-    short int width, height; /* Extents of axis */
+    int width, height; /* Extents of axis */
 
     Segment2D *segments; /* Array of line segments representing
                           * the major and minor ticks, but also

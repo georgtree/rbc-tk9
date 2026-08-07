@@ -4383,7 +4383,8 @@ static int GetMarginGeometry(Graph *graphPtr, Margin *marginPtr) {
     Axis *axisPtr;
     int width, height;
     int isHoriz;
-    int length, count;
+    int length;
+    Tcl_Size count;
 
     isHoriz = HORIZMARGIN(marginPtr);
     /* Count the number of visible axes. */
@@ -4392,6 +4393,9 @@ static int GetMarginGeometry(Graph *graphPtr, Margin *marginPtr) {
     for (linkPtr = Rbc_ChainFirstLink(marginPtr->axes); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
         axisPtr = Rbc_ChainGetValue(linkPtr);
         if ((!axisPtr->hidden) && (axisPtr->flags & AXIS_ONSCREEN)) {
+            if (count == TCL_SIZE_MAX) {
+                Tcl_Panic("GetMarginGeometry: visible axis count overflow");
+            }
             count++;
             if (graphPtr->flags & GET_AXIS_GEOMETRY) {
                 GetAxisGeometry(graphPtr, axisPtr);
@@ -4898,8 +4902,8 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
         int w, h;
 
         Rbc_GetTextExtents(&axisPtr->titleTextStyle, axisPtr->title, &w, &h);
-        axisPtr->titleWidth = (short int)w;
-        axisPtr->titleHeight = (short int)h;
+        axisPtr->titleWidth = w;
+        axisPtr->titleHeight = h;
     }
 
     /*

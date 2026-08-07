@@ -299,15 +299,15 @@ typedef struct {
 typedef struct CrosshairsStruct Crosshairs;
 
 typedef struct {
-    short int width, height; /* Extents of the margin */
+    int width, height; /* Extents of the margin */
 
-    short int axesOffset;
-    short int axesTitleLength; /* Width of the widest title to be shown.
-                                * Multiple titles are displayed in
-                                * another margin. This is the minimum
-                                * space requirement. */
-    unsigned int nAxes;        /* Number of axes to be displayed */
-    Rbc_Chain *axes;           /* Extra axes associated with this margin */
+    int axesOffset;
+    int axesTitleLength; /* Width of the widest title to be shown.
+                          * Multiple titles are displayed in
+                          * another margin. This is the minimum
+                          * space requirement. */
+    Tcl_Size nAxes;      /* Number of axes to be displayed */
+    Rbc_Chain *axes;     /* Extra axes associated with this margin */
 
     char *varName; /* If non-NULL, name of variable to be
                     * updated when the margin size changes */
@@ -412,7 +412,7 @@ struct GraphStruct {
     XColor *highlightColor;   /* Color for drawing traversal highlight. */
 
     char *title;
-    short int titleX, titleY;
+    int titleX, titleY;
     TextStyle titleTextStyle; /* Graph title */
 
     char *takeFocus;
@@ -469,8 +469,8 @@ struct GraphStruct {
     /* If non-zero, force plot to conform to aspect ratio W/H */
     double aspect;
 
-    short int left, right; /* Coordinates of plot bbox */
-    short int top, bottom;
+    int left, right; /* Coordinates of plot bounding box. */
+    int top, bottom;
 
     Rbc_Pad padX;        /* Vertical padding for plotarea */
     int vRange, vOffset; /* Vertical axis range and offset from the
