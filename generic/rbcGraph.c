@@ -286,7 +286,7 @@ static const Tk_OptionSpec graphOptionSpecs[] = {
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 typedef struct {
-    char *name;
+    const char *name;
     int width, height;
     int format;
 } SnapData;
@@ -334,7 +334,7 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
 
 #ifdef WIN32
 static int InitMetaFileHeader(Tk_Window tkwin, int width, int height, APMHEADER *mfhPtr);
-static int CreateAPMetaFile(Tcl_Interp *interp, HANDLE hMetaFile, HDC hDC, APMHEADER *mfhPtr, char *fileName);
+static int CreateAPMetaFile(Tcl_Interp *interp, HANDLE hMetaFile, HDC hDC, APMHEADER *mfhPtr, const char *fileName);
 #endif
 
 typedef struct {
@@ -2717,7 +2717,7 @@ static int InitMetaFileHeader(Tk_Window tkwin, int width, int height, APMHEADER 
  *      HANDLE hMetaFile
  *      HDC hDC
  *      APMHEADER *mfhPtr
- *      char *fileName
+ *      const char *fileName
  *
  * Results:
  *      TODO: Results
@@ -2727,7 +2727,7 @@ static int InitMetaFileHeader(Tk_Window tkwin, int width, int height, APMHEADER 
  *
  *----------------------------------------------------------------------
  */
-static int CreateAPMetaFile(Tcl_Interp *interp, HANDLE hMetaFile, HDC hDC, APMHEADER *mfhPtr, char *fileName) {
+static int CreateAPMetaFile(Tcl_Interp *interp, HANDLE hMetaFile, HDC hDC, APMHEADER *mfhPtr, const char *fileName) {
     HANDLE hFile;
     HANDLE hMem;
     LPVOID buffer;
@@ -2786,7 +2786,7 @@ error:
  * Parameters:
  *      Graph *graphPtr
  *      Tcl_Interp *interp
- *      int objc
+ *      Tcl_Size objc
  *      Tcl_Obj *const objv[]
  *
  * Results:
@@ -2807,7 +2807,7 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
     SnapData data;
     enum SnapFormatE { FORMAT_PHOTO, FORMAT_EMF, FORMAT_WMF };
     static const struct SnapFormatS {
-        char *name;
+        const char *name;
         enum SnapFormatE format;
     } snapFormatOpts[] = {
 #ifdef WIN32
@@ -2818,9 +2818,11 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
         {"wmf", FORMAT_WMF},
 #endif
         {NULL, 0}};
-    static const char *optNames[] = {"-format", "-height", "-width", NULL};
+    static const char *const optNames[] = {"-format", "-height", "-width", NULL};
     enum { OPT_FORMAT, OPT_HEIGHT, OPT_WIDTH };
-    int i, index, optidx;
+    Tcl_Size i;
+    int index;
+    int optidx;
 
     if ((objc % 2) != 1) {
         Tcl_WrongNumArgs(interp, 2, objv, "name ?-option value ...?");

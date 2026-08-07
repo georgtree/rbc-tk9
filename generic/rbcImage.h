@@ -224,7 +224,7 @@ void Rbc_ResizePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, int x, int y, 
                      Tk_PhotoHandle destPhoto);
 
 int Rbc_SnapPhoto(Tcl_Interp *interp, Tk_Window tkwin, Drawable drawable, int x, int y, int width, int height,
-                  int destWidth, int destHeight, char *photoName, double inputGamma);
+                  int destWidth, int destHeight, const char *photoName, double inputGamma);
 
 Region2D *Rbc_SetRegion(int x, int y, int width, int height, Region2D *regionPtr);
 

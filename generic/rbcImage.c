@@ -16,6 +16,7 @@
 #ifndef WIN32
 #include <X11/Xproto.h>
 #endif
+#include <stdint.h>
 
 #define CLAMP(c) ((((c) < 0.0) ? 0.0 : ((c) > 255.0) ? 255.0 : (c)))
 
@@ -78,6 +79,16 @@ static void MapColors(Rbc_ColorImage src, Rbc_ColorImage dest, unsigned int lut[
 
 ResampleFilter *rbcBoxFilterPtr; /* The ubiquitous box filter */
 
+static size_t GetColorImagePixelCount(int width, int height) {
+    if ((width < 0) || (height < 0)) {
+        Tcl_Panic("GetColorImagePixelCount: negative image dimension");
+    }
+    if ((width != 0) && ((size_t)height > SIZE_MAX / (size_t)width)) {
+        Tcl_Panic("GetColorImagePixelCount: image size overflow");
+    }
+    return (size_t)width * (size_t)height;
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -102,14 +113,11 @@ ResampleFilter *rbcBoxFilterPtr; /* The ubiquitous box filter */
  */
 Rbc_ColorImage Rbc_CreateColorImage(int width, int height) {
     struct ColorImage *imagePtr;
-    size_t size;
+    size_t nPixels;
 
-    size = width * height;
-    imagePtr = (struct ColorImage *)ckalloc(sizeof(struct ColorImage));
-    assert(imagePtr);
-    imagePtr->bits = (Pix32 *)ckalloc(sizeof(Pix32) * size);
-    assert(imagePtr->bits);
-
+    nPixels = GetColorImagePixelCount(width, height);
+    imagePtr = RbcCalloc(1, sizeof(*imagePtr));
+    imagePtr->bits = RbcCalloc(nPixels, sizeof(*imagePtr->bits));
     imagePtr->width = width;
     imagePtr->height = height;
     return imagePtr;
@@ -158,9 +166,9 @@ void Rbc_FreeColorImage(struct ColorImage *imagePtr) {
  *--------------------------------------------------------------
  */
 void Rbc_GammaCorrectColorImage(Rbc_ColorImage src, double newGamma) {
-    unsigned int nPixels;
-    register Pix32 *srcPtr, *endPtr;
-    register unsigned int i;
+    size_t nPixels;
+    Pix32 *srcPtr, *endPtr;
+    unsigned int i;
     double value;
     unsigned char lut[256];
     double invGamma;
@@ -170,7 +178,7 @@ void Rbc_GammaCorrectColorImage(Rbc_ColorImage src, double newGamma) {
         value = 255.0 * pow((double)i / 255.0, invGamma);
         lut[i] = (unsigned char)CLAMP(value);
     }
-    nPixels = Rbc_ColorImageWidth(src) * Rbc_ColorImageHeight(src);
+    nPixels = GetColorImagePixelCount(Rbc_ColorImageWidth(src), Rbc_ColorImageHeight(src));
     srcPtr = Rbc_ColorImageBits(src);
     for (endPtr = srcPtr + nPixels; srcPtr < endPtr; srcPtr++) {
         srcPtr->Red = lut[srcPtr->Red];
@@ -1687,7 +1695,7 @@ Rbc_ColorImage Rbc_ConvolveColorImage(Rbc_ColorImage src, Filter2D *filterPtr) {
  *----------------------------------------------------------------------
  */
 int Rbc_SnapPhoto(Tcl_Interp *interp, Tk_Window tkwin, Drawable drawable, int x, int y, int width, int height,
-                  int destWidth, int destHeight, char *photoName, double inputGamma) {
+                  int destWidth, int destHeight, const char *photoName, double inputGamma) {
     Tk_PhotoHandle photo; /* The photo image to write into. */
     Rbc_ColorImage image;
 
@@ -2105,16 +2113,19 @@ static Rbc_ColorImage Rotate45(Rbc_ColorImage src, double theta, Pix32 bgColor) 
  * ---------------------------------------------------------------------------
  */
 static Rbc_ColorImage CopyColorImage(Rbc_ColorImage src) {
-    unsigned int width, height;
-    Pix32 *srcPtr, *destPtr;
+    int width, height;
+    size_t nPixels;
+    Pix32 *srcPtr;
+    Pix32 *destPtr;
     Rbc_ColorImage dest;
 
     width = Rbc_ColorImageWidth(src);
     height = Rbc_ColorImageHeight(src);
+    nPixels = GetColorImagePixelCount(width, height);
     dest = Rbc_CreateColorImage(width, height);
     srcPtr = Rbc_ColorImageBits(src);
     destPtr = Rbc_ColorImageBits(dest);
-    memcpy(destPtr, srcPtr, width * height * sizeof(Pix32));
+    memcpy(destPtr, srcPtr, nPixels * sizeof(*destPtr));
     return dest;
 }
 
