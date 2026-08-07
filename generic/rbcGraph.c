@@ -3150,6 +3150,17 @@ static int StripchartObjCmd(void *clientData, Tcl_Interp *interp, Tcl_Size objc,
     return NewGraph(interp, objc, objv, rbcStripElementUid);
 }
 
+static void FillMarginRectangle(Graph *graphPtr, Drawable drawable, int x, int y, int width, int height) {
+    if ((width <= 0) || (height <= 0)) {
+        return;
+    }
+    if (graphPtr->tile != NULL) {
+        Rbc_TileRectangle(graphPtr->tkwin, drawable, graphPtr->tile, x, y, width, height);
+    } else {
+        XFillRectangle(graphPtr->display, drawable, graphPtr->fillGC, x, y, (unsigned int)width, (unsigned int)height);
+    }
+}
+
 /*
  * -----------------------------------------------------------------------
  *
@@ -3200,34 +3211,32 @@ static int StripchartObjCmd(void *clientData, Tcl_Interp *interp, Tcl_Size objc,
  * -----------------------------------------------------------------------
  */
 static void DrawMargins(Graph *graphPtr, Drawable drawable) {
-    XRectangle rects[4];
-    /*
-     * Draw the four outer rectangles which encompass the plotting
-     * surface. This clears the surrounding area and clips the plot.
-     */
-    rects[0].x = rects[0].y = rects[3].x = rects[1].x = 0;
-    rects[0].width = rects[3].width = (short int)graphPtr->width;
-    rects[0].height = (short int)graphPtr->top;
-    rects[3].y = graphPtr->bottom;
-    rects[3].height = graphPtr->height - graphPtr->bottom;
-    rects[2].y = rects[1].y = graphPtr->top;
-    rects[1].width = graphPtr->left;
-    rects[2].height = rects[1].height = graphPtr->bottom - graphPtr->top;
-    rects[2].x = graphPtr->right;
-    rects[2].width = graphPtr->width - graphPtr->right;
+    int middleHeight;
 
+    /*
+     * Draw the four outer rectangles surrounding the plotting
+     * surface.  Keep graph geometry as int all the way to the
+     * native drawing boundary.
+     */
     if (graphPtr->tile != NULL) {
         Rbc_SetTileOrigin(graphPtr->tkwin, graphPtr->tile, 0, 0);
-        Rbc_TileRectangles(graphPtr->tkwin, drawable, graphPtr->tile, rects, 4);
-    } else {
-        XFillRectangles(graphPtr->display, drawable, graphPtr->fillGC, rects, 4);
     }
-
-    /* Draw 3D border around the plotting area */
-
+    middleHeight = graphPtr->bottom - graphPtr->top;
+    /* Top margin. */
+    FillMarginRectangle(graphPtr, drawable, 0, 0, graphPtr->width, graphPtr->top);
+    /* Left margin. */
+    FillMarginRectangle(graphPtr, drawable, 0, graphPtr->top, graphPtr->left, middleHeight);
+    /* Right margin. */
+    FillMarginRectangle(graphPtr, drawable, graphPtr->right, graphPtr->top, graphPtr->width - graphPtr->right,
+                        middleHeight);
+    /* Bottom margin. */
+    FillMarginRectangle(graphPtr, drawable, 0, graphPtr->bottom, graphPtr->width, graphPtr->height - graphPtr->bottom);
+    /*
+     * Draw the 3D border around the plotting area.
+     */
     if (graphPtr->plotBorderWidth > 0) {
-        int x, y, width, height;
-
+        int x, y;
+        int width, height;
         x = graphPtr->left - graphPtr->plotBorderWidth;
         y = graphPtr->top - graphPtr->plotBorderWidth;
         width = (graphPtr->right - graphPtr->left) + (2 * graphPtr->plotBorderWidth);
@@ -3236,7 +3245,6 @@ static void DrawMargins(Graph *graphPtr, Drawable drawable) {
                             graphPtr->plotRelief);
     }
     if (Rbc_LegendSite(graphPtr->legend) & LEGEND_IN_MARGIN) {
-        /* Legend is drawn on one of the graph margins */
         Rbc_DrawLegend(graphPtr->legend, drawable);
     }
     if (graphPtr->title != NULL) {

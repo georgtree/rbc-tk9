@@ -1009,15 +1009,14 @@ void Rbc_TilePolygon(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, 
  *
  *--------------------------------------------------------------
  */
-void Rbc_TileRectangle(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, int x, int y, unsigned int width,
-                       unsigned int height) {
+void Rbc_TileRectangle(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, int x, int y, int width, int height) {
     HBITMAP oldBitmap;
     HDC hDC, memDC;
     Tile *tilePtr;
     TkWinDCState state;
     TkWinDrawable *twdPtr;
 
-    if (drawable == None) {
+    if ((drawable == None) || (width <= 0) || (height <= 0)) {
         return;
     }
     tilePtr = clientPtr->tilePtr;
@@ -1069,7 +1068,7 @@ void Rbc_TileRectangle(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr
  *--------------------------------------------------------------
  */
 void Rbc_TileRectangles(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, XRectangle rectArr[],
-                        int nRectangles) {
+                        Tcl_Size nRectangles) {
     HBITMAP oldBitmap;
     HDC hDC, memDC;
     Tile *tilePtr;
@@ -1077,13 +1076,12 @@ void Rbc_TileRectangles(Tk_Window tkwin, Drawable drawable, TileClient *clientPt
     TkWinDrawable *twdPtr;
     XRectangle *rectPtr, *endPtr;
 
-    if (drawable == None) {
+    if ((drawable == None) || (rectArr == NULL) || (nRectangles <= 0)) {
         return;
     }
     tilePtr = clientPtr->tilePtr;
     hDC = TkWinGetDrawableDC(Tk_Display(tkwin), drawable, &state);
     SetROP2(hDC, tkpWinRopModes[tilePtr->gc->function]);
-
     twdPtr = (TkWinDrawable *)tilePtr->pixmap;
     memDC = CreateCompatibleDC(hDC);
     oldBitmap = SelectBitmap(memDC, twdPtr->bitmap.handle);
@@ -1143,8 +1141,8 @@ void Rbc_TileRectangles(Tk_Window tkwin, Drawable drawable, TileClient *clientPt
  *
  *----------------------------------------------------------------------
  */
-static Pixmap RectangleMask(Display *display, Drawable drawable, int x, int y, unsigned int width, unsigned int height,
-                            Pixmap mask, int xOrigin, int yOrigin) {
+static Pixmap RectangleMask(Display *display, Drawable drawable, int x, int y, int width, int height, Pixmap mask,
+                            int xOrigin, int yOrigin) {
     GC gc;
     Pixmap bitmap;
     XGCValues gcValues;
@@ -1159,7 +1157,7 @@ static Pixmap RectangleMask(Display *display, Drawable drawable, int x, int y, u
     gcValues.ts_y_origin = yOrigin - y;
     gcValues.stipple = mask;
     gc = XCreateGC(display, bitmap, gcMask, &gcValues);
-    XFillRectangle(display, bitmap, gc, 0, 0, width, height);
+    XFillRectangle(display, bitmap, gc, 0, 0, (unsigned int)width, (unsigned int)height);
     Rbc_FreePrivateGC(display, gc);
     return bitmap;
 }
@@ -1190,11 +1188,13 @@ static Pixmap RectangleMask(Display *display, Drawable drawable, int x, int y, u
  *
  *----------------------------------------------------------------------
  */
-void Rbc_TileRectangle(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, int x, int y, unsigned int width,
-                       unsigned int height) {
+void Rbc_TileRectangle(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, int x, int y, int width, int height) {
     Tile *tilePtr;
     Display *display;
 
+    if ((drawable == None) || (width <= 0) || (height <= 0)) {
+        return;
+    }
     display = Tk_Display(tkwin);
     tilePtr = clientPtr->tilePtr;
     if (clientPtr->tilePtr->mask != None) {
@@ -1204,12 +1204,12 @@ void Rbc_TileRectangle(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr
                              clientPtr->yOrigin);
         XSetClipMask(display, tilePtr->gc, mask);
         XSetClipOrigin(display, tilePtr->gc, x, y);
-        XFillRectangle(display, drawable, tilePtr->gc, x, y, width, height);
+        XFillRectangle(display, drawable, tilePtr->gc, x, y, (unsigned int)width, (unsigned int)height);
         XSetClipMask(display, tilePtr->gc, None);
         XSetClipOrigin(display, tilePtr->gc, 0, 0);
         Tk_FreePixmap(display, mask);
     } else {
-        XFillRectangle(display, drawable, tilePtr->gc, x, y, width, height);
+        XFillRectangle(display, drawable, tilePtr->gc, x, y, (unsigned int)width, (unsigned int)height);
     }
 }
 
@@ -1238,19 +1238,40 @@ void Rbc_TileRectangle(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr
  *----------------------------------------------------------------------
  */
 void Rbc_TileRectangles(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, XRectangle rectArr[],
-                        int nRectangles) {
+                        Tcl_Size nRectangles) {
     Tile *tilePtr;
 
+    if ((drawable == None) || (rectArr == NULL) || (nRectangles <= 0)) {
+        return;
+    }
     tilePtr = clientPtr->tilePtr;
     if (tilePtr->mask != None) {
-        XRectangle *rectPtr, *endPtr;
+        Tcl_Size i;
 
-        endPtr = rectArr + nRectangles;
-        for (rectPtr = rectArr; rectPtr < endPtr; rectPtr++) {
-            Rbc_TileRectangle(tkwin, drawable, clientPtr, rectPtr->x, rectPtr->y, rectPtr->width, rectPtr->height);
+        for (i = 0; i < nRectangles; i++) {
+            Rbc_TileRectangle(tkwin, drawable, clientPtr, (int)rectArr[i].x, (int)rectArr[i].y, (int)rectArr[i].width,
+                              (int)rectArr[i].height);
         }
     } else {
-        XFillRectangles(Tk_Display(tkwin), drawable, tilePtr->gc, rectArr, nRectangles);
+        Display *display;
+        Tcl_Size offset;
+        int maxRects;
+
+        display = Tk_Display(tkwin);
+        maxRects = Rbc_MaxRequestSize(display, sizeof(XRectangle));
+        if (maxRects < 1) {
+            return;
+        }
+        offset = 0;
+        while (offset < nRectangles) {
+            Tcl_Size remaining;
+            int chunk;
+
+            remaining = nRectangles - offset;
+            chunk = (remaining > (Tcl_Size)maxRects) ? maxRects : (int)remaining;
+            XFillRectangles(display, drawable, tilePtr->gc, rectArr + offset, chunk);
+            offset += chunk;
+        }
     }
 }
 

@@ -1849,10 +1849,6 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
         if (rectPtr->height < 1) {
             rectPtr->height = 1;
         }
-        rectPtr->height = height + 1;
-        if (rectPtr->height < 1) {
-            rectPtr->height = 1;
-        }
         rectToData[count] = i; /* Save the data index corresponding to the
                                 * rectangle */
         rectPtr++;

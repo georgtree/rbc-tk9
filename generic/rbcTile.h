@@ -27,9 +27,8 @@ char *Rbc_NameOfTile(Rbc_Tile tile);
 
 void Rbc_SetTileChangedProc(Rbc_Tile tile, Rbc_TileChangedProc *changeProc, ClientData clientData);
 
-void Rbc_TileRectangle(Tk_Window tkwin, Drawable drawable, Rbc_Tile tile, int x, int y, unsigned int width,
-                       unsigned int height);
-void Rbc_TileRectangles(Tk_Window tkwin, Drawable drawable, Rbc_Tile tile, XRectangle *rectArr, int nRects);
+void Rbc_TileRectangle(Tk_Window tkwin, Drawable drawable, Rbc_Tile tile, int x, int y, int width, int height);
+void Rbc_TileRectangles(Tk_Window tkwin, Drawable drawable, Rbc_Tile tile, XRectangle *rectArr, Tcl_Size nRects);
 void Rbc_TilePolygon(Tk_Window tkwin, Drawable drawable, Rbc_Tile tile, XPoint *pointArr, int nPoints);
 Pixmap Rbc_PixmapOfTile(Rbc_Tile tile);
 
