@@ -10,6 +10,7 @@
  */
 
 #include <stdint.h>
+#include <limits.h>
 #include "rbcGraph.h"
 #include <X11/Xutil.h>
 #include <tcl.h>
@@ -53,6 +54,13 @@ typedef struct {
     TextStyle valueStyle;
 } BarPen;
 
+typedef struct {
+    int x;
+    int y;
+    int width;
+    int height;
+} BarRectangle;
+
 #define BAR_PEN_FROM_CORE(penPtr) ((BarPen *)((char *)(penPtr) - offsetof(BarPen, core)))
 
 #define BAR_PEN_CORE_OFFSET(member) (offsetof(BarPen, core) + offsetof(Pen, member))
@@ -67,7 +75,7 @@ typedef struct {
 
     Segment2D *yErrorBars; /* Point to start of this pen's Y-error bar
                             * segments in the element's array. */
-    Tcl_Size xErrorBarCnt;      /* # of error bars for this pen. */
+    Tcl_Size xErrorBarCnt; /* # of error bars for this pen. */
 
     Tcl_Size yErrorBarCnt; /* # of error bars for this pen. */
 
@@ -78,9 +86,9 @@ typedef struct {
                      * current graph size. */
 
     /* Bar chart specific data. */
-    XRectangle *rectangles; /* Indicates starting location in bar
-                             * array for this pen. */
-    Tcl_Size nRects;             /* Number of bar segments for this pen. */
+    BarRectangle *rectangles; /* Indicates starting location in bar
+                               * array for this pen. */
+    Tcl_Size nRects;          /* Number of bar segments for this pen. */
 
 } BarPenStyle;
 
@@ -96,7 +104,7 @@ typedef struct {
     BarPen builtinPen;
 
     Tcl_Size *rectToData;
-    XRectangle *rectangles; /* Array of rectangles comprising the bar
+    BarRectangle *rectangles; /* Array of rectangles comprising the bar
                              * segments of the element. */
     Tcl_Size nRects;             /* # of visible bar segments for element */
 
@@ -104,7 +112,7 @@ typedef struct {
     double barWidth;
     Tcl_Size nActive;
 
-    XRectangle *activeRects;
+    BarRectangle *activeRects;
     Tcl_Size *activeToData;
 } Bar;
 
@@ -475,14 +483,14 @@ static void MergePens(Bar *barPtr, PenStyle **dataToStyle);
 static void MapActiveBars(Bar *barPtr);
 static void ResetBar(Bar *barPtr);
 
-static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, XRectangle *rectangles,
+static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, BarRectangle *rectangles,
                             Tcl_Size nRects);
-static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPen *penPtr, XRectangle *rectangles,
+static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPen *penPtr, BarRectangle *rectangles,
                           Tcl_Size nRects, const Tcl_Size *rectToData);
-static void SegmentsToPostScript(Graph *graphPtr, PsToken psToken, BarPen *penPtr, XRectangle *rectPtr,
+static void SegmentsToPostScript(Graph *graphPtr, PsToken psToken, BarPen *penPtr, BarRectangle *rectPtr,
                                  Tcl_Size nRects);
-static void BarValuesToPostScript(Graph *graphPtr, PsToken psToken, Bar *barPtr, BarPen *penPtr, XRectangle *rectangles,
-                                  Tcl_Size nRects, const Tcl_Size *rectToData);
+static void BarValuesToPostScript(Graph *graphPtr, PsToken psToken, Bar *barPtr, BarPen *penPtr,
+                                  BarRectangle *rectangles, Tcl_Size nRects, const Tcl_Size *rectToData);
 
 static int IsBarPenPrefix(const char *string, Tcl_Size length, const char *fullName) {
     Tcl_Size fullLength;
@@ -1367,7 +1375,7 @@ static void ClosestBar(Graph *graphPtr, Element *elemPtr, ClosestSearch *searchP
     Bar *barPtr = BAR_FROM_CORE(elemPtr);
     Point2D *pointPtr, *endPtr;
     Point2D t, outline[5];
-    XRectangle *rectPtr;
+    BarRectangle *rectPtr;
     double left, right, top, bottom;
     double minDist, dist;
     Tcl_Size imin;
@@ -1378,14 +1386,15 @@ static void ClosestBar(Graph *graphPtr, Element *elemPtr, ClosestSearch *searchP
 
     rectPtr = barPtr->rectangles;
     for (i = 0; i < barPtr->nRects; i++) {
-        if (PointInRectangle(rectPtr, searchPtr->x, searchPtr->y)) {
+        left = (double)rectPtr->x;
+        top = (double)rectPtr->y;
+        right = left + (double)rectPtr->width;
+        bottom = top + (double)rectPtr->height;
+        if ((searchPtr->x >= left) && (searchPtr->x <= right) && (searchPtr->y >= top) && (searchPtr->y <= bottom)) {
             imin = barPtr->rectToData[i];
             minDist = 0.0;
             break;
         }
-        left = rectPtr->x, top = rectPtr->y;
-        right = (double)(rectPtr->x + rectPtr->width);
-        bottom = (double)(rectPtr->y + rectPtr->height);
         outline[4].x = outline[3].x = outline[0].x = left;
         outline[4].y = outline[1].y = outline[0].y = top;
         outline[2].x = outline[1].x = right;
@@ -1460,15 +1469,15 @@ static void MergePens(Bar *barPtr, PenStyle **dataToStyle) {
      * styles together.  */
 
     if (barPtr->nRects > 0) {
-        XRectangle *rectangles;
-        XRectangle *rectPtr;
+        BarRectangle *rectangles;
+        BarRectangle *rectPtr;
         Tcl_Size *rectToData;
         Tcl_Size *indexPtr;
         Tcl_Size dataIndex;
         Tcl_Size i;
 
-        rectangles = ckalloc((size_t)barPtr->nRects * sizeof(*rectangles));
-        rectToData = ckalloc((size_t)barPtr->nRects * sizeof(*rectToData));
+        rectangles = RbcCalloc((size_t)barPtr->nRects, sizeof(*rectangles));
+        rectToData = RbcCalloc((size_t)barPtr->nRects, sizeof(*rectToData));
         rectPtr = rectangles;
         indexPtr = rectToData;
         for (linkPtr = Rbc_ChainFirstLink(barPtr->core.palette); linkPtr != NULL;
@@ -1581,14 +1590,14 @@ static void MapActiveBars(Bar *barPtr) {
     }
     barPtr->nActive = 0;
     if (barPtr->core.nActiveIndices > 0) {
-        XRectangle *activeRects;
+        BarRectangle *activeRects;
         Tcl_Size *activeToData;
         Tcl_Size activeIndex;
         Tcl_Size n;
         Tcl_Size i;
         Tcl_Size count;
-        activeRects = ckalloc((size_t)barPtr->core.nActiveIndices * sizeof(*activeRects));
-        activeToData = ckalloc((size_t)barPtr->core.nActiveIndices * sizeof(*activeToData));
+        activeRects = RbcCalloc((size_t)barPtr->core.nActiveIndices, sizeof(*activeRects));
+        activeToData = RbcCalloc((size_t)barPtr->core.nActiveIndices, sizeof(*activeToData));
         count = 0;
         for (i = 0; i < barPtr->nRects; i++) {
             for (n = 0; n < barPtr->core.nActiveIndices; n++) {
@@ -1719,7 +1728,8 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
     int invertBar;
     Tcl_Size nPoints;
     Tcl_Size count;
-    register XRectangle *rectPtr, *rectangles;
+    BarRectangle *rectPtr;
+    BarRectangle *rectangles;
     Tcl_Size i;
     int size;
     Rbc_ChainLink *linkPtr;
@@ -1741,8 +1751,7 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
      * Create an array of rectangles representing the screen coordinates
      * of all the segments in the bar.
      */
-    rectPtr = rectangles = ckalloc((size_t)nPoints * sizeof(*rectangles));
-    assert(rectangles);
+    rectPtr = rectangles = RbcCalloc((size_t)nPoints, sizeof(*rectangles));
     rectToData = RbcCalloc((size_t)nPoints, sizeof(*rectToData));
     assert(rectToData);
 
@@ -1825,16 +1834,20 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
         }
         dx = c1.x - c2.x;
         dy = c1.y - c2.y;
-        height = (int)Round(FABS(dy));
+        height = Round(FABS(dy));
         if (invertBar) {
-            rectPtr->y = (short int)MIN(c1.y, c2.y);
+            rectPtr->y = (int)MIN(c1.y, c2.y);
         } else {
-            rectPtr->y = (short int)(MAX(c1.y, c2.y)) - height;
+            rectPtr->y = (int)MAX(c1.y, c2.y) - height;
         }
-        rectPtr->x = (short int)MIN(c1.x, c2.x);
-        rectPtr->width = (short int)Round(FABS(dx)) + 1;
+        rectPtr->x = (int)MIN(c1.x, c2.x);
+        rectPtr->width = Round(FABS(dx)) + 1;
         if (rectPtr->width < 1) {
             rectPtr->width = 1;
+        }
+        rectPtr->height = height + 1;
+        if (rectPtr->height < 1) {
+            rectPtr->height = 1;
         }
         rectPtr->height = height + 1;
         if (rectPtr->height < 1) {
@@ -1931,7 +1944,7 @@ static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int
  *      Graph *graphPtr
  *      Drawable drawable - Pixmap or window to draw into
  *      BarPen *penPtr
- *      XRectangle *rectangles
+ *      BarRectangle *rectangles
  *      int nRects
  *
  * Results:
@@ -1942,38 +1955,70 @@ static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int
  *
  * -----------------------------------------------------------------
  */
-static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, XRectangle *rectangles,
+static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, BarRectangle *rectangles,
                             Tcl_Size nRects) {
-    XRectangle *rectPtr;
-    XRectangle *endPtr;
-    Tcl_Size offset;
+    BarRectangle *rectPtr;
+    BarRectangle *endPtr;
+    XRectangle *xRects;
+    Tcl_Size i;
     int maxRects;
+    int nBuffered;
 
     if ((nRects <= 0) || ((penPtr->border == NULL) && (penPtr->fgColor == NULL))) {
         return;
     }
-    /*
-     * XFillRectangles accepts an int count and each request has a
-     * protocol-dependent maximum size.  Keep the internal count as
-     * Tcl_Size and narrow only each bounded request.
-     */
     maxRects = Rbc_MaxRequestSize(graphPtr->display, sizeof(XRectangle));
     if (maxRects < 1) {
         return;
     }
-    offset = 0;
-    while (offset < nRects) {
-        Tcl_Size remaining;
-        int chunk;
-
-        remaining = nRects - offset;
-        chunk = (remaining > (Tcl_Size)maxRects) ? maxRects : (int)remaining;
-        XFillRectangles(graphPtr->display, drawable, penPtr->gc, rectangles + offset, chunk);
-        offset += chunk;
+    xRects = Tcl_AttemptAlloc((size_t)maxRects * sizeof(*xRects));
+    if (xRects == NULL) {
+        return;
     }
+    nBuffered = 0;
+    for (i = 0; i < nRects; i++) {
+        BarRectangle *srcPtr;
+
+        srcPtr = rectangles + i;
+        /*
+         * XRectangle itself uses signed 16-bit coordinates and
+         * unsigned 16-bit dimensions.  Preserve batching for the
+         * normal case and fall back to the int-based Xlib call when
+         * a rectangle does not fit that representation.
+         */
+        if ((srcPtr->x >= SHRT_MIN) && (srcPtr->x <= SHRT_MAX) && (srcPtr->y >= SHRT_MIN) && (srcPtr->y <= SHRT_MAX) &&
+            (srcPtr->width >= 0) && (srcPtr->width <= USHRT_MAX) && (srcPtr->height >= 0) &&
+            (srcPtr->height <= USHRT_MAX)) {
+            xRects[nBuffered].x = (short)srcPtr->x;
+            xRects[nBuffered].y = (short)srcPtr->y;
+            xRects[nBuffered].width = (unsigned short)srcPtr->width;
+            xRects[nBuffered].height = (unsigned short)srcPtr->height;
+            nBuffered++;
+            if (nBuffered == maxRects) {
+                XFillRectangles(graphPtr->display, drawable, penPtr->gc, xRects, nBuffered);
+                nBuffered = 0;
+            }
+        } else {
+            /*
+             * Flush the batched XRectangle request before issuing the
+             * wider int-coordinate API call.
+             */
+            if (nBuffered > 0) {
+                XFillRectangles(graphPtr->display, drawable, penPtr->gc, xRects, nBuffered);
+                nBuffered = 0;
+            }
+            if ((srcPtr->width > 0) && (srcPtr->height > 0)) {
+                XFillRectangle(graphPtr->display, drawable, penPtr->gc, srcPtr->x, srcPtr->y,
+                               (unsigned int)srcPtr->width, (unsigned int)srcPtr->height);
+            }
+        }
+    }
+    if (nBuffered > 0) {
+        XFillRectangles(graphPtr->display, drawable, penPtr->gc, xRects, nBuffered);
+    }
+    ckfree(xRects);
     if ((penPtr->border != NULL) && (penPtr->borderWidth > 0) && (penPtr->relief != TK_RELIEF_FLAT)) {
-        endPtr = rectangles + nRects;
-        for (rectPtr = rectangles; rectPtr < endPtr; rectPtr++) {
+        for (rectPtr = rectangles, endPtr = rectangles + nRects; rectPtr < endPtr; rectPtr++) {
             Rbc_Draw3DRectangle(graphPtr->tkwin, drawable, penPtr->border, rectPtr->x, rectPtr->y, rectPtr->width,
                                 rectPtr->height, penPtr->borderWidth, penPtr->relief);
         }
@@ -1992,7 +2037,7 @@ static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, 
  *      Drawable drawable
  *      Bar *barPtr
  *      BarPen *penPtr
- *      XRectangle *rectangles
+ *      BarRectangle *rectangles
  *      int nRects
  *      int *rectToData
  *
@@ -2004,10 +2049,10 @@ static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, 
  *
  * -----------------------------------------------------------------
  */
-static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPen *penPtr, XRectangle *rectangles,
+static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPen *penPtr, BarRectangle *rectangles,
                           Tcl_Size nRects, const Tcl_Size *rectToData) {
-    XRectangle *rectPtr;
-    XRectangle *endPtr;
+    BarRectangle *rectPtr;
+    BarRectangle *endPtr;
     Tcl_Size count;
     char *fmt;
     char string[TCL_DOUBLE_SPACE * 2 + 2];
@@ -2226,7 +2271,7 @@ static void SymbolToPostScript(Graph *graphPtr, PsToken psToken, Element *elemPt
  *      Graph *graphPtr
  *      PsToken psToken
  *      BarPen *penPtr
- *      register XRectangle *rectPtr
+ *      BarRectangle *rectPtr
  *      int nRects
  *
  * Results:
@@ -2237,9 +2282,9 @@ static void SymbolToPostScript(Graph *graphPtr, PsToken psToken, Element *elemPt
  *
  *----------------------------------------------------------------------
  */
-static void SegmentsToPostScript(Graph *graphPtr, PsToken psToken, BarPen *penPtr, register XRectangle *rectPtr,
+static void SegmentsToPostScript(Graph *graphPtr, PsToken psToken, BarPen *penPtr, BarRectangle *rectPtr,
                                  Tcl_Size nRects) {
-    XRectangle *endPtr;
+    BarRectangle *endPtr;
 
     if ((penPtr->border == NULL) && (penPtr->fgColor == NULL)) {
         return;
@@ -2249,8 +2294,8 @@ static void SegmentsToPostScript(Graph *graphPtr, PsToken psToken, BarPen *penPt
             continue;
         }
         if (penPtr->stipple != None) {
-            Rbc_RegionToPostScript(psToken, (double)rectPtr->x, (double)rectPtr->y, (int)rectPtr->width - 1,
-                                   (int)rectPtr->height - 1);
+            Rbc_RegionToPostScript(psToken, (double)rectPtr->x, (double)rectPtr->y, rectPtr->width - 1,
+                                   rectPtr->height - 1);
             if (penPtr->border != NULL) {
                 Rbc_BackgroundToPostScript(psToken, Tk_3DBorderColor(penPtr->border));
                 Rbc_AppendToPostScript(psToken, "Fill\n", (char *)NULL);
@@ -2263,12 +2308,12 @@ static void SegmentsToPostScript(Graph *graphPtr, PsToken psToken, BarPen *penPt
             Rbc_StippleToPostScript(psToken, graphPtr->display, penPtr->stipple);
         } else if (penPtr->fgColor != NULL) {
             Rbc_ForegroundToPostScript(psToken, penPtr->fgColor);
-            Rbc_RectangleToPostScript(psToken, (double)rectPtr->x, (double)rectPtr->y, (int)rectPtr->width - 1,
-                                      (int)rectPtr->height - 1);
+            Rbc_RectangleToPostScript(psToken, (double)rectPtr->x, (double)rectPtr->y, rectPtr->width - 1,
+                                      rectPtr->height - 1);
         }
         if ((penPtr->border != NULL) && (penPtr->borderWidth > 0) && (penPtr->relief != TK_RELIEF_FLAT)) {
             Rbc_Draw3DRectangleToPostScript(psToken, penPtr->border, (double)rectPtr->x, (double)rectPtr->y,
-                                            (int)rectPtr->width, (int)rectPtr->height, penPtr->borderWidth,
+                                            rectPtr->width, rectPtr->height, penPtr->borderWidth,
                                             penPtr->relief);
         }
     }
@@ -2286,7 +2331,7 @@ static void SegmentsToPostScript(Graph *graphPtr, PsToken psToken, BarPen *penPt
  *      PsToken psToken
  *      Bar *barPtr
  *      BarPen *penPtr
- *      XRectangle *rectangles
+ *      BarRectangle *rectangles
  *      int nRects
  *      int *rectToData
  *
@@ -2298,9 +2343,9 @@ static void SegmentsToPostScript(Graph *graphPtr, PsToken psToken, BarPen *penPt
  *
  *----------------------------------------------------------------------
  */
-static void BarValuesToPostScript(Graph *graphPtr, PsToken psToken, Bar *barPtr, BarPen *penPtr, XRectangle *rectangles,
-                                  Tcl_Size nRects, const Tcl_Size *rectToData) {
-    XRectangle *rectPtr, *endPtr;
+static void BarValuesToPostScript(Graph *graphPtr, PsToken psToken, Bar *barPtr, BarPen *penPtr,
+                                  BarRectangle *rectangles, Tcl_Size nRects, const Tcl_Size *rectToData) {
+    BarRectangle *rectPtr, *endPtr;
     Tcl_Size count;
     char *fmt;
     char string[TCL_DOUBLE_SPACE * 2 + 2];
