@@ -556,7 +556,7 @@ void Rbc_UpdateScrollbar(Tcl_Interp *interp, char *scrollCmd, double firstFract,
 
 #if defined(HAVE_JPEGLIB_H) || defined(HAVE_IJL_H)
 #define HAVE_JPEG 1
-int Rbc_JPEGToPhoto(Tcl_Interp *interp, char *fileName, Tk_PhotoHandle photo);
+int Rbc_JPEGToPhoto(Tcl_Interp *interp, const char *fileName, Tk_PhotoHandle photo);
 #endif /* HAVE_JPEGLIB_H || HAVE_IJL_H */
 
 #define Rbc_SetBooleanResult(i, b) Tcl_SetResult((i), (b) ? "1" : "0", TCL_STATIC)
