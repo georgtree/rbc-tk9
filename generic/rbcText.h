@@ -110,11 +110,12 @@ void Rbc_SetDrawTextStyle(TextStyle *stylePtr, Tk_Font font, GC gc, XColor *norm
 void Rbc_SetPrintTextStyle(TextStyle *stylePtr, Tk_Font font, XColor *fgColor, XColor *bgColor, XColor *shadowColor,
                            double theta, Tk_Anchor anchor, Tk_Justify justify, int leader, int shadowOffset);
 
-void Rbc_DrawText(Tk_Window tkwin, Drawable drawable, char *string, TextStyle *stylePtr, int x, int y);
+void Rbc_DrawText(Tk_Window tkwin, Drawable drawable, const char *string, TextStyle *stylePtr, int x, int y);
 
 void Rbc_DrawTextLayout(Tk_Window tkwin, Drawable drawable, TextLayout *textPtr, TextStyle *stylePtr, int x, int y);
 
-void Rbc_DrawText2(Tk_Window tkwin, Drawable drawable, char *string, TextStyle *stylePtr, int x, int y, Dim2D *dimPtr);
+void Rbc_DrawText2(Tk_Window tkwin, Drawable drawable, const char *string, TextStyle *stylePtr, int x, int y,
+                   Dim2D *dimPtr);
 
 Pixmap Rbc_CreateTextBitmap(Tk_Window tkwin, TextLayout *textPtr, TextStyle *stylePtr, int *widthPtr, int *heightPtr);
 

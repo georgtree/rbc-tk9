@@ -85,12 +85,6 @@ typedef struct {
     const char *windowName;
 } LegendPosition;
 
-#define padLeft padX.side1
-#define padRight padX.side2
-#define padTop padY.side1
-#define padBottom padY.side2
-#define PADDING(x) ((x).side1 + (x).side2)
-
 static int GetLegendPixelDimension(Tcl_Size count, int entrySize, int borderWidth, const Rbc_Pad *padPtr,
                                    int *dimensionPtr) {
     Tcl_WideInt base;

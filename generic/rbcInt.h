@@ -308,7 +308,7 @@ typedef int(QSortCompareProc)(const void *, const void *);
  * ----------------------------------------------------------------------
  */
 typedef struct {
-    short int side1, side2;
+    int side1, side2;
 } Rbc_Pad;
 
 #define padLeft padX.side1
@@ -404,7 +404,7 @@ typedef struct {
  * -------------------------------------------------------------------
  */
 typedef struct {
-    short int width, height;
+    int width, height;
 } Dim2D;
 
 /*

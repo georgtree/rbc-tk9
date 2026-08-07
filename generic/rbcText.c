@@ -874,13 +874,18 @@ void Rbc_DrawTextLayout(Tk_Window tkwin, Drawable drawable, TextLayout *textPtr,
  *
  *--------------------------------------------------------------
  */
-void Rbc_DrawText2(Tk_Window tkwin, Drawable drawable, char string[], TextStyle *tsPtr, int x, int y, Dim2D *areaPtr) {
+void Rbc_DrawText2(Tk_Window tkwin, Drawable drawable, const char *string, TextStyle *tsPtr, int x, int y,
+                   Dim2D *areaPtr) {
     TextLayout *textPtr;
     int width, height;
     double theta;
 
+    if (areaPtr != NULL) {
+        areaPtr->width = 0;
+        areaPtr->height = 0;
+    }
     if ((string == NULL) || (*string == '\0')) {
-        return; /* Empty string, do nothing */
+        return;
     }
     textPtr = Rbc_GetTextLayout(string, tsPtr);
     Rbc_DrawTextLayout(tkwin, drawable, textPtr, tsPtr, x, y);
@@ -897,9 +902,11 @@ void Rbc_DrawText2(Tk_Window tkwin, Drawable drawable, char string[], TextStyle 
         width = ROUND(rotWidth);
         height = ROUND(rotHeight);
     }
-    areaPtr->width = width;
-    areaPtr->height = height;
-    ckfree((char *)textPtr);
+    if (areaPtr != NULL) {
+        areaPtr->width = width;
+        areaPtr->height = height;
+    }
+    ckfree(textPtr);
 }
 
 /*
@@ -925,15 +932,15 @@ void Rbc_DrawText2(Tk_Window tkwin, Drawable drawable, char string[], TextStyle 
  *
  *--------------------------------------------------------------
  */
-void Rbc_DrawText(Tk_Window tkwin, Drawable drawable, char string[], TextStyle *tsPtr, int x, int y) {
+void Rbc_DrawText(Tk_Window tkwin, Drawable drawable, const char *string, TextStyle *tsPtr, int x, int y) {
     TextLayout *textPtr;
 
     if ((string == NULL) || (*string == '\0')) {
-        return; /* Empty string, do nothing */
+        return;
     }
     textPtr = Rbc_GetTextLayout(string, tsPtr);
     Rbc_DrawTextLayout(tkwin, drawable, textPtr, tsPtr, x, y);
-    ckfree((char *)textPtr);
+    ckfree(textPtr);
 }
 
 /*
