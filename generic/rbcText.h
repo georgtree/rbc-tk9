@@ -22,21 +22,20 @@
  * ----------------------------------------------------------------------
  */
 typedef struct {
-    char *text; /* Text to be displayed */
+    const char *text; /* Text to be displayed. */
 
-    short int x, y; /* X-Y offset of the baseline from the
-                     * upper-left corner of the bbox. */
+    int x, y; /* X-Y offset of the baseline from the
+               * upper-left corner of the bounding box. */
 
-    short int sx, sy; /* See rbcWinUtil.c */
+    int sx, sy; /* Reserved screen-coordinate fields. */
 
-    short int count; /* Number of bytes in text. The actual
-                      * character count may differ because of
-                      * multi-byte UTF encodings. */
+    Tcl_Size count; /* Number of bytes in text. The actual
+                     * character count may differ because of
+                     * multi-byte UTF encodings. */
 
-    short int width; /* Width of segment in pixels. This
-                      * information is used to draw
-                      * PostScript strings the same width
-                      * as X. */
+    int width; /* Width of segment in pixels. This is used
+                * to draw PostScript strings at the same
+                * width as the screen representation. */
 } TextFragment;
 
 /*
@@ -47,9 +46,9 @@ typedef struct {
  * ----------------------------------------------------------------------
  */
 typedef struct {
-    int nFrags;              /* # fragments of text */
-    short int width, height; /* Dimensions of text bounding box */
-    TextFragment fragArr[1]; /* Information about each fragment of text */
+    Tcl_Size nFrags;         /* Number of text fragments. */
+    int width, height;       /* Dimensions of text bounding box. */
+    TextFragment fragArr[1]; /* Information about each fragment. */
 } TextLayout;
 
 typedef struct {
@@ -72,9 +71,9 @@ typedef struct {
  * ----------------------------------------------------------------------
  */
 typedef struct {
-    unsigned int state;      /* If non-zero, indicates to draw text
-                              * in the active color */
-    short int width, height; /* Extents of text */
+    unsigned int state; /* If non-zero, indicates to draw text
+                         * in the active color */
+    int width, height;  /* Extents of text */
 
     XColor *color;       /* Normal color */
     XColor *activeColor; /* Active color */
@@ -90,13 +89,13 @@ typedef struct {
     Tk_Anchor anchor;    /* Indicates how the text is anchored around
                           * its x and y coordinates. */
     Rbc_Pad padX, padY;  /* # pixels padding of around text region */
-    short int leader;    /* # pixels spacing between lines of text */
+    int leader;          /* # pixels spacing between lines of text */
 
 } TextStyle;
 
-TextLayout *Rbc_GetTextLayout(char *string, TextStyle *stylePtr);
+TextLayout *Rbc_GetTextLayout(const char *string, TextStyle *stylePtr);
 
-void Rbc_GetTextExtents(TextStyle *stylePtr, char *text, int *widthPtr, int *heightPtr);
+void Rbc_GetTextExtents(TextStyle *tsPtr, const char *string, int *widthPtr, int *heightPtr);
 
 void Rbc_InitTextStyle(TextStyle *stylePtr);
 

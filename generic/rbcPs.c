@@ -1667,9 +1667,10 @@ void Rbc_FontToPostScript(struct PsTokenStruct *tokenPtr, Tk_Font font) {
  *--------------------------------------------------------------
  */
 static void TextLayoutToPostScript(struct PsTokenStruct *tokenPtr, int x, int y, TextLayout *textPtr) {
-    char *src, *end;
+    const char *src;
+    const char *end;
     TextFragment *fragPtr;
-    int i;
+    Tcl_Size i;
     char c;
     Tcl_UniChar ch;
     char buf[5];

@@ -106,17 +106,7 @@ static void DoEvent(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr, ClientData i
         Rbc_ListNode node;
         Tcl_Size i;
         int dynamic;
-        int numObjects;
 
-        /*
-         * Tk_BindEvent() still exposes an int object count.
-         */
-        if (nIds > (Tcl_Size)INT_MAX) {
-            Rbc_ListDestroy(bindIds);
-
-            Tcl_Panic("DoEvent: too many binding tags");
-        }
-        numObjects = (int)nIds;
         dynamic = (nIds > 32);
         if (dynamic) {
             idArray = RbcCalloc((size_t)nIds, sizeof(*idArray));
@@ -129,7 +119,7 @@ static void DoEvent(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr, ClientData i
             idArray[i++] = (ClientData)Rbc_ListGetKey(node);
         }
         assert(i == nIds);
-        Tk_BindEvent(bindPtr->bindingTable, eventPtr, bindPtr->tkwin, numObjects, idArray);
+        Tk_BindEvent(bindPtr->bindingTable, eventPtr, bindPtr->tkwin, nIds, idArray);
         if (dynamic) {
             ckfree(idArray);
         }
