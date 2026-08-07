@@ -1797,42 +1797,44 @@ int Rbc_JPEGToPhoto(Tcl_Interp *interp, char *fileName, Tk_PhotoHandle photo) {
  * --------------------------------------------------------------------------
  */
 static void ShearY(Rbc_ColorImage src, Rbc_ColorImage dest, int y, int offset, double frac, Pix32 bgColor) {
-    Pix32 *srcPtr, *destPtr;
-    Pix32 *srcRowPtr, *destRowPtr;
-    register int x, dx;
-    int destWidth;
+    Pix32 *srcPtr;
+    Pix32 *srcRowPtr;
+    Pix32 *destPtr;
+    Pix32 *destRowPtr;
     int srcWidth;
-    int red, blue, green, alpha;
+    int destWidth;
+    int x, dx;
+    int red, green, blue, alpha;
     int leftRed, leftGreen, leftBlue, leftAlpha;
     int oldLeftRed, oldLeftGreen, oldLeftBlue, oldLeftAlpha;
     int ifrac;
 
     srcWidth = Rbc_ColorImageWidth(src);
     destWidth = Rbc_ColorImageWidth(dest);
-
-    destRowPtr = Rbc_ColorImageBits(dest) + (y * destWidth);
-    srcRowPtr = Rbc_ColorImageBits(src) + (y * srcWidth);
-
-    destPtr = destRowPtr;
-    for (x = 0; x < offset; x++) {
-        *destPtr++ = bgColor;
+    srcRowPtr = Rbc_ColorImagePixel(src, 0, y);
+    destRowPtr = Rbc_ColorImagePixel(dest, 0, y);
+    /*
+     * Initialize the complete destination row.  This avoids creating
+     * pointers outside the destination image when the shear offset is
+     * negative or larger than the destination width.
+     */
+    for (x = 0; x < destWidth; x++) {
+        destRowPtr[x] = bgColor;
     }
-    destPtr = destRowPtr + offset;
-    srcPtr = srcRowPtr;
-    dx = offset;
-
     oldLeftRed = uchar2si(bgColor.Red);
     oldLeftGreen = uchar2si(bgColor.Green);
     oldLeftBlue = uchar2si(bgColor.Blue);
     oldLeftAlpha = uchar2si(bgColor.Alpha);
-
     ifrac = float2si(frac);
-    for (x = 0; x < srcWidth; x++, dx++) { /* Loop through row pixels */
+    srcPtr = srcRowPtr;
+    dx = offset;
+    for (x = 0; x < srcWidth; x++, dx++, srcPtr++) {
         leftRed = srcPtr->Red * ifrac;
         leftGreen = srcPtr->Green * ifrac;
         leftBlue = srcPtr->Blue * ifrac;
         leftAlpha = srcPtr->Alpha * ifrac;
         if ((dx >= 0) && (dx < destWidth)) {
+            destPtr = destRowPtr + dx;
             red = uchar2si(srcPtr->Red) - (leftRed - oldLeftRed);
             green = uchar2si(srcPtr->Green) - (leftGreen - oldLeftGreen);
             blue = uchar2si(srcPtr->Blue) - (leftBlue - oldLeftBlue);
@@ -1846,16 +1848,17 @@ static void ShearY(Rbc_ColorImage src, Rbc_ColorImage dest, int y, int offset, d
         oldLeftGreen = leftGreen;
         oldLeftBlue = leftBlue;
         oldLeftAlpha = leftAlpha;
-        srcPtr++, destPtr++;
     }
-    x = srcWidth + offset;
-    destPtr = Rbc_ColorImageBits(dest) + (y * destWidth) + x;
-    if (x < destWidth) {
+    /*
+     * Emit the residual antialiased pixel following the final source
+     * pixel, if it lies inside the destination row.
+     */
+    if ((dx >= 0) && (dx < destWidth)) {
         leftRed = uchar2si(bgColor.Red);
         leftGreen = uchar2si(bgColor.Green);
         leftBlue = uchar2si(bgColor.Blue);
         leftAlpha = uchar2si(bgColor.Alpha);
-
+        destPtr = destRowPtr + dx;
         red = leftRed + oldLeftRed - (bgColor.Red * ifrac);
         green = leftGreen + oldLeftGreen - (bgColor.Green * ifrac);
         blue = leftBlue + oldLeftBlue - (bgColor.Blue * ifrac);
@@ -1864,10 +1867,6 @@ static void ShearY(Rbc_ColorImage src, Rbc_ColorImage dest, int y, int offset, d
         destPtr->Green = SICLAMP(green);
         destPtr->Blue = SICLAMP(blue);
         destPtr->Alpha = SICLAMP(alpha);
-        destPtr++;
-    }
-    for (x++; x < destWidth; x++) {
-        *destPtr++ = bgColor;
     }
 }
 
@@ -1897,46 +1896,31 @@ static void ShearY(Rbc_ColorImage src, Rbc_ColorImage dest, int y, int offset, d
  * --------------------------------------------------------------------------
  */
 static void ShearX(Rbc_ColorImage src, Rbc_ColorImage dest, int x, int offset, double frac, Pix32 bgColor) {
-    Pix32 *srcPtr, *destPtr;
-    register int y, dy;
-#ifdef notef
-    int srcWidth;
-    int destWidth;
-#endif
-    int destHeight;
+    Pix32 *srcPtr;
+    Pix32 *destPtr;
     int srcHeight;
-    int red, blue, green, alpha;
+    int destHeight;
+    int y, dy;
+    int red, green, blue, alpha;
     int leftRed, leftGreen, leftBlue, leftAlpha;
     int oldLeftRed, oldLeftGreen, oldLeftBlue, oldLeftAlpha;
     int ifrac;
 
-#ifdef notdef
-    srcWidth = Rbc_ColorImageWidth(src);
-    destWidth = Rbc_ColorImageWidth(dest);
-#endif
     srcHeight = Rbc_ColorImageHeight(src);
     destHeight = Rbc_ColorImageHeight(dest);
-#ifdef notdef
-    destPtr = Rbc_ColorImageBits(dest) + x;
-#endif
-    for (y = 0; y < offset; y++) {
+    /*
+     * Initialize the complete destination column.
+     */
+    for (y = 0; y < destHeight; y++) {
         destPtr = Rbc_ColorImagePixel(dest, x, y);
         *destPtr = bgColor;
-#ifdef notdef
-        destPtr += destWidth;
-#endif
     }
-
     oldLeftRed = uchar2si(bgColor.Red);
     oldLeftGreen = uchar2si(bgColor.Green);
     oldLeftBlue = uchar2si(bgColor.Blue);
     oldLeftAlpha = uchar2si(bgColor.Alpha);
-#ifdef notdef
-    destPtr = Rbc_ColorImageBits(dest) + x + offset;
-    srcPtr = Rbc_ColorImageBits(src) + x;
-#endif
-    dy = offset;
     ifrac = float2si(frac);
+    dy = offset;
     for (y = 0; y < srcHeight; y++, dy++) {
         srcPtr = Rbc_ColorImagePixel(src, x, y);
         leftRed = srcPtr->Red * ifrac;
@@ -1958,22 +1942,16 @@ static void ShearX(Rbc_ColorImage src, Rbc_ColorImage dest, int x, int offset, d
         oldLeftGreen = leftGreen;
         oldLeftBlue = leftBlue;
         oldLeftAlpha = leftAlpha;
-#ifdef notdef
-        srcPtr += srcWidth;
-        destPtr += destWidth;
-#endif
     }
-    y = srcHeight + offset;
-#ifdef notdef
-    destPtr = Rbc_ColorImageBits(dest) + (y * destWidth) + x + offset;
-#endif
-    if (y < destHeight) {
+    /*
+     * Emit the residual antialiased pixel after the source column.
+     */
+    if ((dy >= 0) && (dy < destHeight)) {
         leftRed = uchar2si(bgColor.Red);
         leftGreen = uchar2si(bgColor.Green);
         leftBlue = uchar2si(bgColor.Blue);
         leftAlpha = uchar2si(bgColor.Alpha);
-
-        destPtr = Rbc_ColorImagePixel(dest, x, y);
+        destPtr = Rbc_ColorImagePixel(dest, x, dy);
         red = leftRed + oldLeftRed - (bgColor.Red * ifrac);
         green = leftGreen + oldLeftGreen - (bgColor.Green * ifrac);
         blue = leftBlue + oldLeftBlue - (bgColor.Blue * ifrac);
@@ -1982,18 +1960,15 @@ static void ShearX(Rbc_ColorImage src, Rbc_ColorImage dest, int x, int offset, d
         destPtr->Green = SICLAMP(green);
         destPtr->Blue = SICLAMP(blue);
         destPtr->Alpha = SICLAMP(alpha);
-#ifdef notdef
-        destPtr += destWidth;
-#endif
+    }
+}
+
+static int GetRotationDimension(double value) {
+    if ((!FINITE(value)) || (value < 0.0) || (value > (double)INT_MAX)) {
+        Tcl_Panic("image rotation dimension overflow");
     }
 
-    for (y++; y < destHeight; y++) {
-        destPtr = Rbc_ColorImagePixel(dest, x, y);
-        *destPtr = bgColor;
-#ifdef notdef
-        destPtr += destWidth;
-#endif
-    }
+    return (int)value;
 }
 
 /*
@@ -2039,14 +2014,11 @@ static Rbc_ColorImage Rotate45(Rbc_ColorImage src, double theta, Pix32 bgColor) 
     srcWidth = Rbc_ColorImageWidth(src);
     srcHeight = Rbc_ColorImageHeight(src);
 
-    tmpWidth = srcWidth + (int)(srcHeight * FABS(tanTheta));
+    tmpWidth = GetRotationDimension((double)srcWidth + ((double)srcHeight * FABS(tanTheta)));
     tmpHeight = srcHeight;
 
     /* 1st shear */
-
     tmp1 = Rbc_CreateColorImage(tmpWidth, tmpHeight);
-    assert(tmp1);
-
     if (tanTheta >= 0.0) { /* Positive angle */
         for (y = 0; y < tmpHeight; y++) {
             skewf = (y + 0.5) * tanTheta;
@@ -2060,13 +2032,9 @@ static Rbc_ColorImage Rotate45(Rbc_ColorImage src, double theta, Pix32 bgColor) 
             ShearY(src, tmp1, y, skewi, skewf - skewi, bgColor);
         }
     }
-    tmpHeight = (int)(srcWidth * FABS(sinTheta) + srcHeight * cosTheta) + 1;
-
+    tmpHeight = GetRotationDimension(((double)srcWidth * FABS(sinTheta)) + ((double)srcHeight * cosTheta) + 1.0);
     tmp2 = Rbc_CreateColorImage(tmpWidth, tmpHeight);
-    assert(tmp2);
-
     /* 2nd shear */
-
     if (sinTheta > 0.0) { /* Positive angle */
         skewf = (srcWidth - 1) * sinTheta;
     } else { /* Negative angle */
@@ -2077,16 +2045,10 @@ static Rbc_ColorImage Rotate45(Rbc_ColorImage src, double theta, Pix32 bgColor) 
         ShearX(tmp1, tmp2, x, skewi, skewf - skewi, bgColor);
         skewf -= sinTheta;
     }
-
     Rbc_FreeColorImage(tmp1);
-
     /* 3rd shear */
-
-    tmpWidth = (int)(srcHeight * FABS(sinTheta) + srcWidth * cosTheta) + 1;
-
+    tmpWidth = GetRotationDimension(((double)srcHeight * FABS(sinTheta)) + ((double)srcWidth * cosTheta) + 1.0);
     dest = Rbc_CreateColorImage(tmpWidth, tmpHeight);
-    assert(dest);
-
     if (sinTheta >= 0.0) { /* Positive angle */
         skewf = (srcWidth - 1) * sinTheta * -tanTheta;
     } else { /* Negative angle */
@@ -2157,23 +2119,17 @@ static Rbc_ColorImage CopyColorImage(Rbc_ColorImage src) {
  * ---------------------------------------------------------------------------
  */
 static Rbc_ColorImage Rotate90(Rbc_ColorImage src) {
-    int width, height, offset;
-    Pix32 *srcPtr, *destPtr;
     Rbc_ColorImage dest;
-    register int x, y;
+    int srcWidth;
+    int srcHeight;
+    int x, y;
 
-    height = Rbc_ColorImageWidth(src);
-    width = Rbc_ColorImageHeight(src);
-
-    srcPtr = Rbc_ColorImageBits(src);
-    dest = Rbc_CreateColorImage(width, height);
-    offset = (height - 1) * width;
-
-    for (x = 0; x < width; x++) {
-        destPtr = Rbc_ColorImageBits(dest) + offset + x;
-        for (y = 0; y < height; y++) {
-            *destPtr = *srcPtr++;
-            destPtr -= width;
+    srcWidth = Rbc_ColorImageWidth(src);
+    srcHeight = Rbc_ColorImageHeight(src);
+    dest = Rbc_CreateColorImage(srcHeight, srcWidth);
+    for (y = 0; y < srcHeight; y++) {
+        for (x = 0; x < srcWidth; x++) {
+            *Rbc_ColorImagePixel(dest, y, srcWidth - x - 1) = *Rbc_ColorImagePixel(src, x, y);
         }
     }
     return dest;
@@ -2200,23 +2156,18 @@ static Rbc_ColorImage Rotate90(Rbc_ColorImage src) {
  * ---------------------------------------------------------------------------
  */
 static Rbc_ColorImage Rotate180(Rbc_ColorImage src) {
-    int width, height, offset;
-    Pix32 *srcPtr, *destPtr;
     Rbc_ColorImage dest;
-    register int x, y;
+    int width;
+    int height;
+    int x, y;
 
     width = Rbc_ColorImageWidth(src);
     height = Rbc_ColorImageHeight(src);
     dest = Rbc_CreateColorImage(width, height);
-
-    srcPtr = Rbc_ColorImageBits(src);
-    offset = (height - 1) * width;
     for (y = 0; y < height; y++) {
-        destPtr = Rbc_ColorImageBits(dest) + offset + width - 1;
         for (x = 0; x < width; x++) {
-            *destPtr-- = *srcPtr++;
+            *Rbc_ColorImagePixel(dest, width - x - 1, height - y - 1) = *Rbc_ColorImagePixel(src, x, y);
         }
-        offset -= width;
     }
     return dest;
 }
@@ -2242,21 +2193,17 @@ static Rbc_ColorImage Rotate180(Rbc_ColorImage src) {
  * ---------------------------------------------------------------------------
  */
 static Rbc_ColorImage Rotate270(Rbc_ColorImage src) {
-    int width, height;
-    Pix32 *srcPtr, *destPtr;
     Rbc_ColorImage dest;
-    register int x, y;
+    int srcWidth;
+    int srcHeight;
+    int x, y;
 
-    height = Rbc_ColorImageWidth(src);
-    width = Rbc_ColorImageHeight(src);
-    dest = Rbc_CreateColorImage(width, height);
-
-    srcPtr = Rbc_ColorImageBits(src);
-    for (x = width - 1; x >= 0; x--) {
-        destPtr = Rbc_ColorImageBits(dest) + x;
-        for (y = 0; y < height; y++) {
-            *destPtr = *srcPtr++;
-            destPtr += width;
+    srcWidth = Rbc_ColorImageWidth(src);
+    srcHeight = Rbc_ColorImageHeight(src);
+    dest = Rbc_CreateColorImage(srcHeight, srcWidth);
+    for (y = 0; y < srcHeight; y++) {
+        for (x = 0; x < srcWidth; x++) {
+            *Rbc_ColorImagePixel(dest, srcHeight - y - 1, x) = *Rbc_ColorImagePixel(src, x, y);
         }
     }
     return dest;
