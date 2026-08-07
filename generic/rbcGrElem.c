@@ -16,11 +16,6 @@
 #include "rbcChain.h"
 #include <X11/Xutil.h>
 
-static Tk_OptionParseProc StringToAlong;
-static Tk_OptionPrintProc AlongToString;
-static Tk_CustomOption alongOption = {StringToAlong, AlongToString, (ClientData)0};
-extern Tk_CustomOption rbcDistanceOption;
-
 #include "rbcGrElem.h"
 
 static Rbc_VectorChangedProc VectorChangedProc;
@@ -2459,90 +2454,87 @@ void Rbc_CommitElemStylesTransaction(Graph *graphPtr, Element *elemPtr, ElemStyl
     Rbc_DestroyPalette(graphPtr, oldPalette);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * StringToAlong --
- *
- *      Given a Tcl list of numeric expression representing the element
- *      values, convert into an array of double precision values. In
- *      addition, the minimum and maximum values are saved.  Since
- *      elastic values are allow (values which translate to the
- *      min/max of the graph), we must try to get the non-elastic
- *      minimum and maximum.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tcl_Interp *interp - Interpreter to send results back to.
- *      Tk_Window tkwin - Not used.
- *      const char *string - String representation of value.
- *      char *widgRec - Widget record.
- *      Tcl_Size offset - Offset of field in widget record.
- *
- * Results:
- *      The return value is a standard Tcl result.  The vector is passed
- *      back via the vPtr.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static int StringToAlong(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string, char *widgRec,
-                         Tcl_Size offset) {
-    int *intPtr = (int *)(widgRec + offset);
+static int GetAlongFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *alongPtr) {
+    const char *string;
+    int along;
 
+    string = Tcl_GetString(objPtr);
     if ((string[0] == 'x') && (string[1] == '\0')) {
-        *intPtr = SEARCH_X;
+        along = SEARCH_X;
     } else if ((string[0] == 'y') && (string[1] == '\0')) {
-        *intPtr = SEARCH_Y;
-    } else if ((string[0] == 'b') && (strcmp(string, "both") == 0)) {
-        *intPtr = SEARCH_BOTH;
+        along = SEARCH_Y;
+    } else if (strcmp(string, "both") == 0) {
+        along = SEARCH_BOTH;
     } else {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad along value \"%s\": "
                                                "must be x, y, or both",
                                                string));
         return TCL_ERROR;
     }
+    *alongPtr = along;
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * AlongToString --
- *
- *      Convert the vector of floating point values into a Tcl list.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tk_Window tkwin - Not used.
- *      char *widgRec - Widget record
- *      Tcl_Size offset - Offset of field in widget record
- *      Tcl_FreeProc **freeProcPtr - Memory deallocation scheme to use
- *
- * Results:
- *      The string representation of the vector is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static const char *AlongToString(ClientData clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset,
-                                 Tcl_FreeProc **freeProcPtr) {
-    int along = *(int *)(widgRec + offset);
+typedef enum { CLOSEST_OPTION_ALONG, CLOSEST_OPTION_HALO, CLOSEST_OPTION_INTERPOLATE } ClosestOption;
 
-    switch (along) {
-    case SEARCH_X:
-        return "x";
-    case SEARCH_Y:
-        return "y";
-    case SEARCH_BOTH:
-        return "both";
-    default:
-        return "unknown along value";
+static const char *const closestOptionNames[] = {"-along", "-halo", "-interpolate", NULL};
+
+static int ParseClosestOptions(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[],
+                               ClosestSearch *searchPtr, Tcl_Size *nextPtr) {
+    Tcl_Size i;
+
+    for (i = 6; i < objc;) {
+        const char *string;
+        int optionIndex;
+
+        string = Tcl_GetString(objv[i]);
+        /*
+         * The first non-option starts the optional element-name list.
+         */
+        if (string[0] != '-') {
+            break;
+        }
+        /*
+         * "--" explicitly terminates option parsing.  This allows an
+         * element whose name begins with '-' to be specified.
+         */
+        if ((string[1] == '-') && (string[2] == '\0')) {
+            i++;
+            break;
+        }
+        if (Tcl_GetIndexFromObj(interp, objv[i], closestOptionNames, "option", 0, &optionIndex) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if ((i + 1) >= objc) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("value for \"%s\" missing", string));
+            return TCL_ERROR;
+        }
+        switch ((ClosestOption)optionIndex) {
+        case CLOSEST_OPTION_ALONG:
+            if (GetAlongFromObj(interp, objv[i + 1], &searchPtr->along) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            break;
+        case CLOSEST_OPTION_HALO:
+            if (Rbc_GetPixelsFromObj(interp, graphPtr->tkwin, objv[i + 1], PIXELS_NONNEGATIVE, &searchPtr->halo) !=
+                TCL_OK) {
+                return TCL_ERROR;
+            }
+            break;
+        case CLOSEST_OPTION_INTERPOLATE: {
+            int interpolate;
+
+            if (Tcl_GetBooleanFromObj(interp, objv[i + 1], &interpolate) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            searchPtr->mode = interpolate ? SEARCH_TRACES : SEARCH_POINTS;
+            break;
+        }
+        }
+        i += 2;
     }
+    *nextPtr = i;
+    return TCL_OK;
 }
 
 /*
@@ -3906,14 +3898,6 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size ob
     return TCL_OK;
 }
 
-static Tk_ConfigSpec closestSpecs[] = {
-    {TK_CONFIG_CUSTOM, "-halo", (char *)NULL, (char *)NULL, (char *)NULL, offsetof(ClosestSearch, halo), 0,
-     &rbcDistanceOption},
-    {TK_CONFIG_BOOLEAN, "-interpolate", (char *)NULL, (char *)NULL, (char *)NULL, offsetof(ClosestSearch, mode), 0},
-    {TK_CONFIG_CUSTOM, "-along", (char *)NULL, (char *)NULL, (char *)NULL, offsetof(ClosestSearch, along), 0,
-     &alongOption},
-    {TK_CONFIG_END, (char *)NULL, (char *)NULL, (char *)NULL, (char *)NULL, 0, 0}};
-
 /*
  *----------------------------------------------------------------------
  *
@@ -3958,7 +3942,6 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size
     Tcl_Size i;
     int x, y;
     int flags = TCL_LEAVE_ERR_MSG;
-    const char *str;
 
     if (graphPtr->flags & RESET_AXES) {
         Rbc_ResetAxes(graphPtr);
@@ -3976,35 +3959,16 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size
 
         temp = x, x = y, y = temp;
     }
-    for (i = 6; i < objc; i += 2) { /* Count switches-value pairs */
-        str = Tcl_GetString(objv[i]);
-        if ((str[0] != '-') || ((str[1] == '-') && (str[2] == '\0'))) {
-            break;
-        }
-    }
-    if (i > objc) {
-        i = objc;
-    }
-
     search.mode = SEARCH_POINTS;
     search.halo = graphPtr->halo;
     search.index = -1;
     search.along = SEARCH_BOTH;
     search.x = x;
     search.y = y;
-
-    if (Tk_ConfigureWidget(interp, graphPtr->tkwin, closestSpecs, i - 6, objv + 6, &search, TK_CONFIG_ARGV_ONLY) !=
-        TCL_OK) {
-        return TCL_ERROR; /* Error occurred processing an option. */
-    }
-    if (i < objc) {
-        str = Tcl_GetString(objv[i]);
-        if (str[0] == '-') {
-            i++; /* Skip "--" */
-        }
+    if (ParseClosestOptions(graphPtr, interp, objc, objv, &search, &i) != TCL_OK) {
+        return TCL_ERROR;
     }
     search.dist = (double)(search.halo + 1);
-
     if (i < objc) {
         for (/* empty */; i < objc; i++) {
             if (NameToElement(graphPtr, objv[i], &elemPtr) != TCL_OK) {
@@ -4497,20 +4461,21 @@ static int TypeOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size ob
 /*
  * Global routines:
  */
-static const ElementOpSpec elemOps[] = {{{"activate", 3, 0, "?elemName? ?index...?"}, ActivateOp},
-                                        {{"bind", 3, 6, "elemName sequence command"}, BindOp},
-                                        {{"cget", 5, 5, "elemName option"}, CgetOp},
-                                        {{"closest", 6, 0, "x y varName ?option value?... ?elemName?..."}, ClosestOp},
-                                        {{"configure", 4, 0, "elemName ?elemName?... ?option value?..."}, ConfigureOp},
-                                        {{"create", 4, 0, "elemName ?option value?..."}, CreateOp},
-                                        {{"deactivate", 3, 0, "?elemName?..."}, DeactivateOp},
-                                        {{"delete", 3, 0, "?elemName?..."}, DeleteOp},
-                                        {{"exists", 4, 4, "elemName"}, ExistsOp},
-                                        {{"get", 4, 4, "name"}, GetOp},
-                                        {{"names", 3, 0, "?pattern?..."}, NamesOp},
-                                        {{"show", 3, 4, "?elemList?"}, ShowOp},
-                                        {{"type", 4, 4, "elemName"}, TypeOp},
-                                        {{NULL, 0, 0, NULL}, NULL}};
+static const ElementOpSpec elemOps[] = {
+    {{"activate", 3, 0, "?elemName? ?index...?"}, ActivateOp},
+    {{"bind", 3, 6, "elemName sequence command"}, BindOp},
+    {{"cget", 5, 5, "elemName option"}, CgetOp},
+    {{"closest", 6, 0, "x y varName ?option value?... ?--? ?elemName?..."}, ClosestOp},
+    {{"configure", 4, 0, "elemName ?elemName?... ?option value?..."}, ConfigureOp},
+    {{"create", 4, 0, "elemName ?option value?..."}, CreateOp},
+    {{"deactivate", 3, 0, "?elemName?..."}, DeactivateOp},
+    {{"delete", 3, 0, "?elemName?..."}, DeleteOp},
+    {{"exists", 4, 4, "elemName"}, ExistsOp},
+    {{"get", 4, 4, "name"}, GetOp},
+    {{"names", 3, 0, "?pattern?..."}, NamesOp},
+    {{"show", 3, 4, "?elemList?"}, ShowOp},
+    {{"type", 4, 4, "elemName"}, TypeOp},
+    {{NULL, 0, 0, NULL}, NULL}};
 
 /*
  * ----------------------------------------------------------------
