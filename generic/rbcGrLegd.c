@@ -686,7 +686,9 @@ static ClientData PickLegendEntry(ClientData clientData, int x, int y, ClientDat
                 continue;
             }
             if (count == n) {
-                *contextPtr = (ClientData)elemPtr->label;
+                if (contextPtr != NULL) {
+                    *contextPtr = (ClientData)elemPtr->label;
+                }
                 return elemPtr;
             }
             count++;
