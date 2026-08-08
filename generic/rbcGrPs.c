@@ -372,6 +372,26 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
     return TCL_OK;
 }
 
+static int PostScriptLayoutInt(Tcl_WideInt value) {
+    if (value > INT_MAX) {
+        return INT_MAX;
+    }
+    if (value < INT_MIN) {
+        return INT_MIN;
+    }
+    return (int)value;
+}
+
+static Tcl_WideInt PostScriptLayoutSize(Tcl_WideInt value) {
+    if (value < 1) {
+        return 1;
+    }
+    if (value > INT_MAX) {
+        return INT_MAX;
+    }
+    return value;
+}
+
 /*
  * --------------------------------------------------------------------------
  *
@@ -402,15 +422,20 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
  * --------------------------------------------------------------------------
  */
 static int ComputeBoundingBox(Graph *graphPtr, PostScript *psPtr) {
-    int paperWidth, paperHeight;
-    int x, y, hSize, vSize, hBorder, vBorder;
-    double hScale, vScale, scale;
+    Tcl_WideInt paperWidth;
+    Tcl_WideInt paperHeight;
+    Tcl_WideInt x, y;
+    Tcl_WideInt hSize, vSize;
+    Tcl_WideInt hBorder, vBorder;
+    Tcl_WideInt availableWidth;
+    Tcl_WideInt availableHeight;
+    double hScale, vScale;
+    double scale;
 
     x = psPtr->padLeft;
     y = psPtr->padTop;
     hBorder = PADDING(psPtr->padX);
     vBorder = PADDING(psPtr->padY);
-
     if (psPtr->reqWidth > 0) {
         graphPtr->width = psPtr->reqWidth;
     }
@@ -424,10 +449,8 @@ static int ComputeBoundingBox(Graph *graphPtr, PostScript *psPtr) {
         hSize = graphPtr->width;
         vSize = graphPtr->height;
     }
-    /*
-     * If the paper size wasn't specified, set it to the graph size plus
-     * the paper border.
-     */
+    hSize = PostScriptLayoutSize(hSize);
+    vSize = PostScriptLayoutSize(vSize);
     paperWidth = psPtr->reqPaperWidth;
     paperHeight = psPtr->reqPaperHeight;
     if (paperWidth < 1) {
@@ -436,21 +459,47 @@ static int ComputeBoundingBox(Graph *graphPtr, PostScript *psPtr) {
     if (paperHeight < 1) {
         paperHeight = vSize + vBorder;
     }
-    hScale = vScale = 1.0;
-    /*
-     * Scale the plot size (the graph itself doesn't change size) if
-     * it's bigger than the paper or if -maxpect was set.
-     */
+    paperWidth = PostScriptLayoutSize(paperWidth);
+    paperHeight = PostScriptLayoutSize(paperHeight);
+    availableWidth = paperWidth - hBorder;
+    availableHeight = paperHeight - vBorder;
+    if (availableWidth < 1) {
+        availableWidth = 1;
+    }
+    if (availableHeight < 1) {
+        availableHeight = 1;
+    }
+    hScale = 1.0;
+    vScale = 1.0;
     if ((psPtr->maxpect) || ((hSize + hBorder) > paperWidth)) {
-        hScale = (double)(paperWidth - hBorder) / (double)hSize;
+        hScale = (double)availableWidth / (double)hSize;
     }
     if ((psPtr->maxpect) || ((vSize + vBorder) > paperHeight)) {
-        vScale = (double)(paperHeight - vBorder) / (double)vSize;
+        vScale = (double)availableHeight / (double)vSize;
     }
     scale = MIN(hScale, vScale);
+    if ((!FINITE(scale)) || (scale <= 0.0)) {
+        scale = 1.0;
+    }
     if (scale != 1.0) {
-        hSize = (int)((hSize * scale) + 0.5);
-        vSize = (int)((vSize * scale) + 0.5);
+        double value;
+
+        value = ((double)hSize * scale) + 0.5;
+        if (value < 1.0) {
+            hSize = 1;
+        } else if (value > (double)INT_MAX) {
+            hSize = INT_MAX;
+        } else {
+            hSize = (Tcl_WideInt)value;
+        }
+        value = ((double)vSize * scale) + 0.5;
+        if (value < 1.0) {
+            vSize = 1;
+        } else if (value > (double)INT_MAX) {
+            vSize = INT_MAX;
+        } else {
+            vSize = (Tcl_WideInt)value;
+        }
     }
     psPtr->pageScale = scale;
     if (psPtr->center) {
@@ -461,14 +510,13 @@ static int ComputeBoundingBox(Graph *graphPtr, PostScript *psPtr) {
             y = (paperHeight - vSize) / 2;
         }
     }
-    psPtr->left = x;
-    psPtr->bottom = y;
-    psPtr->right = x + hSize - 1;
-    psPtr->top = y + vSize - 1;
-
+    psPtr->left = PostScriptLayoutInt(x);
+    psPtr->bottom = PostScriptLayoutInt(y);
+    psPtr->right = PostScriptLayoutInt(x + hSize - 1);
+    psPtr->top = PostScriptLayoutInt(y + vSize - 1);
     graphPtr->flags |= LAYOUT_NEEDED | MAP_WORLD;
     Rbc_LayoutGraph(graphPtr);
-    return paperHeight;
+    return (int)paperHeight;
 }
 
 /*

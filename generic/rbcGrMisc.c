@@ -601,10 +601,10 @@ int Rbc_RegionInPolygon(Extents2D *extsPtr, Point2D *points, Tcl_Size nPoints, i
  *----------------------------------------------------------------------
  */
 void Rbc_GraphExtents(Graph *graphPtr, Extents2D *extsPtr) {
-    extsPtr->left = (double)(graphPtr->hOffset - graphPtr->padX.side1);
-    extsPtr->top = (double)(graphPtr->vOffset - graphPtr->padY.side1);
-    extsPtr->right = (double)(graphPtr->hOffset + graphPtr->hRange + graphPtr->padX.side2);
-    extsPtr->bottom = (double)(graphPtr->vOffset + graphPtr->vRange + graphPtr->padY.side2);
+    extsPtr->left = (double)graphPtr->hOffset - (double)graphPtr->padX.side1;
+    extsPtr->top = (double)graphPtr->vOffset - (double)graphPtr->padY.side1;
+    extsPtr->right = (double)graphPtr->hOffset + (double)graphPtr->hRange + (double)graphPtr->padX.side2;
+    extsPtr->bottom = (double)graphPtr->vOffset + (double)graphPtr->vRange + (double)graphPtr->padY.side2;
 }
 
 /*

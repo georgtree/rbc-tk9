@@ -680,6 +680,24 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -padx command accepts values larger than
+	# SHRT_MAX for text markers.
+	# ------------------------------------------------------------------------------------
+	test RBC.graph.marker.configure.text.A.8.8 {
+		graph marker configure text: padx - values larger than SHRT_MAX
+	} -setup {
+		graph .graph1
+		.graph1 marker create text -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -padx {40000 40001}
+		.graph1 marker cget Marker1 -padx
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {40000 40001}
+
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -pady command works correctly for text 
@@ -811,6 +829,23 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -pady command accepts values larger than
+	# SHRT_MAX for text markers.
+	# ------------------------------------------------------------------------------------
+	test RBC.graph.marker.configure.text.A.9.8 {
+		graph marker configure text: pady - values larger than SHRT_MAX
+	} -setup {
+		graph .graph1
+		.graph1 marker create text -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -pady {40002 40003}
+		.graph1 marker cget Marker1 -pady
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+    } -result {40002 40003}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -rotate command works correctly when given
@@ -1004,6 +1039,23 @@ namespace eval graph.marker {
 	} -cleanup {
 		destroy .graph1
 	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -shadow command accepts an offset larger than
+	# SHRT_MAX for text markers.
+	# ------------------------------------------------------------------------------------
+	test RBC.graph.marker.configure.text.A.12.6 {
+		graph marker configure text: shadow - offset larger than SHRT_MAX
+	} -setup {
+		graph .graph1
+		.graph1 marker create text -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -shadow {black 40000}
+		.graph1 marker cget Marker1 -shadow
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {black 40000}
 
     test RBC.graph.marker.configure.text.A.rollback.1 {
         text marker configuration is atomic

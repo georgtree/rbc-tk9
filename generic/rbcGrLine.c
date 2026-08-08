@@ -2214,13 +2214,11 @@ static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     ParsedSymbol newSymbol;
     Rbc_Dashes newDashes;
     Shadow newShadow;
-
     XColor *newErrorBarColor;
     XColor *newFillColor;
     XColor *newOffDashColor;
     XColor *newOutlineColor;
     XColor *colorPtr;
-
     int newErrorBarLineWidth;
     int newErrorBarCapWidth;
     int newTraceWidth;
@@ -2228,31 +2226,24 @@ static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     int newSymbolSize;
     int newErrorBarShow;
     int newValueShow;
-
     GC newOutlineGC;
     GC newFillGC;
     GC newTraceGC;
     GC newErrorBarGC;
     GC newValueGC;
-
     XGCValues gcValues;
     unsigned long gcMask;
-
     assert(penPtr->optionSpecs != NULL);
     lpPtr = LINE_PEN_FROM_CORE(penPtr);
-    
     newErrorBarColor = NULL;
     newFillColor = NULL;
     newOffDashColor = NULL;
     newOutlineColor = NULL;
-
     newShadow.color = NULL;
     newShadow.offset = 0;
-
     newSymbol.type = SYMBOL_NONE;
     newSymbol.bitmap = None;
     newSymbol.mask = None;
-
     newOutlineGC = NULL;
     newFillGC = NULL;
     newTraceGC = NULL;
@@ -2265,192 +2256,140 @@ static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     if (Rbc_GetDashesFromObj(graphPtr->interp, lpPtr->dashesObjPtr, &newDashes) != TCL_OK) {
         goto error;
     }
-
     if (GetLinePenColorFromObj(graphPtr->interp, graphPtr->tkwin, lpPtr->errorBarColorObjPtr, FALSE,
                                &newErrorBarColor) != TCL_OK) {
         goto error;
     }
-
     if (GetLinePenColorFromObj(graphPtr->interp, graphPtr->tkwin, lpPtr->fillObjPtr, TRUE, &newFillColor) != TCL_OK) {
         goto error;
     }
-
     if (GetLinePenColorFromObj(graphPtr->interp, graphPtr->tkwin, lpPtr->offDashObjPtr, TRUE, &newOffDashColor) !=
         TCL_OK) {
         goto error;
     }
-
     if (GetLinePenColorFromObj(graphPtr->interp, graphPtr->tkwin, lpPtr->outlineObjPtr, FALSE, &newOutlineColor) !=
         TCL_OK) {
         goto error;
     }
-
     if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, lpPtr->errorBarWidthObjPtr, PIXELS_NONNEGATIVE,
                              &newErrorBarLineWidth) != TCL_OK) {
         goto error;
     }
-
     if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, lpPtr->errorBarCapObjPtr, PIXELS_NONNEGATIVE,
                              &newErrorBarCapWidth) != TCL_OK) {
         goto error;
     }
-
     if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, lpPtr->lineWidthObjPtr, PIXELS_NONNEGATIVE,
                              &newTraceWidth) != TCL_OK) {
         goto error;
     }
-
     if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, lpPtr->outlineWidthObjPtr, PIXELS_NONNEGATIVE,
                              &newOutlineWidth) != TCL_OK) {
         goto error;
     }
-
     if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, lpPtr->pixelsObjPtr, PIXELS_NONNEGATIVE,
                              &newSymbolSize) != TCL_OK) {
         goto error;
     }
-
     if (Rbc_GetFillFromObj(graphPtr->interp, lpPtr->showErrorBarsObjPtr, &newErrorBarShow) != TCL_OK) {
         goto error;
     }
-
     if (Rbc_GetFillFromObj(graphPtr->interp, lpPtr->showValuesObjPtr, &newValueShow) != TCL_OK) {
         goto error;
     }
-
     if (Rbc_GetShadowFromObj(graphPtr->interp, graphPtr->tkwin, lpPtr->valueShadowObjPtr, &newShadow) != TCL_OK) {
         goto error;
     }
-
     if (GetSymbolFromObj(graphPtr->interp, graphPtr->tkwin, lpPtr->symbolObjPtr, &newSymbol) != TCL_OK) {
         goto error;
     }
-
     /*
      * Text GC.
      */
     gcMask = GCFont;
     gcValues.font = Tk_FontId(lpPtr->valueStyle.font);
-
     if (lpPtr->valueStyle.color != NULL) {
         gcMask |= GCForeground;
         gcValues.foreground = lpPtr->valueStyle.color->pixel;
     }
-
     newValueGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
-
     /*
      * Symbol outline GC.
      */
     gcMask = GCLineWidth | GCForeground;
-
     colorPtr = newOutlineColor;
-
     if (colorPtr == COLOR_DEFAULT) {
         colorPtr = lpPtr->traceColor;
     }
-
     gcValues.foreground = colorPtr->pixel;
     gcValues.line_width = LineWidth(newOutlineWidth);
-
     if (newSymbol.type == SYMBOL_BITMAP) {
         colorPtr = newFillColor;
-
         if (colorPtr == COLOR_DEFAULT) {
             colorPtr = lpPtr->traceColor;
         }
-
         if (colorPtr != NULL) {
             gcValues.background = colorPtr->pixel;
-
             gcMask |= GCBackground;
-
             if (newSymbol.mask != None) {
                 gcValues.clip_mask = newSymbol.mask;
-
                 gcMask |= GCClipMask;
             }
         } else {
             gcValues.clip_mask = newSymbol.bitmap;
-
             gcMask |= GCClipMask;
         }
     }
-
     newOutlineGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
-
     /*
      * Symbol fill GC.
      */
     colorPtr = newFillColor;
-
     if (colorPtr == COLOR_DEFAULT) {
         colorPtr = lpPtr->traceColor;
     }
-
     if (colorPtr != NULL) {
         gcMask = GCLineWidth | GCForeground;
         gcValues.line_width = LineWidth(newOutlineWidth);
-
         gcValues.foreground = colorPtr->pixel;
-
         newFillGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
     }
-
     /*
      * Trace GC.
      */
     gcMask = GCLineWidth | GCForeground | GCLineStyle | GCCapStyle | GCJoinStyle;
-
     gcValues.cap_style = CapButt;
     gcValues.join_style = JoinRound;
     gcValues.line_style = LineSolid;
     gcValues.line_width = LineWidth(newTraceWidth);
-
     colorPtr = newOffDashColor;
-
     if (colorPtr == COLOR_DEFAULT) {
         colorPtr = lpPtr->traceColor;
     }
-
     if (colorPtr != NULL) {
         gcMask |= GCBackground;
         gcValues.background = colorPtr->pixel;
     }
-
     gcValues.foreground = lpPtr->traceColor->pixel;
-
     if (LineIsDashed(newDashes)) {
-        gcValues.line_width = newTraceWidth;
-
         gcValues.line_style = (colorPtr == NULL) ? LineOnOffDash : LineDoubleDash;
     }
-
     newTraceGC = Rbc_GetPrivateGC(graphPtr->tkwin, gcMask, &gcValues);
-
     if (LineIsDashed(newDashes)) {
         newDashes.offset = newDashes.values[0] / 2;
-
         Rbc_SetDashes(graphPtr->display, newTraceGC, &newDashes);
     }
-
     /*
      * Error-bar GC.
      */
     colorPtr = newErrorBarColor;
-
     if (colorPtr == COLOR_DEFAULT) {
         colorPtr = lpPtr->traceColor;
     }
-
     gcMask = GCLineWidth | GCForeground;
-
     gcValues.line_width = LineWidth(newErrorBarLineWidth);
-
     gcValues.foreground = colorPtr->pixel;
-
     newErrorBarGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
-
     /*
      * Commit derived colours.
      */
@@ -2458,103 +2397,70 @@ static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     FreeLinePenColor(lpPtr->symbol.fillColor);
     FreeLinePenColor(lpPtr->traceOffColor);
     FreeLinePenColor(lpPtr->symbol.outlineColor);
-
     lpPtr->errorBarColor = newErrorBarColor;
-
     lpPtr->symbol.fillColor = newFillColor;
-
     lpPtr->traceOffColor = newOffDashColor;
-
     lpPtr->symbol.outlineColor = newOutlineColor;
-
     newErrorBarColor = NULL;
     newFillColor = NULL;
     newOffDashColor = NULL;
     newOutlineColor = NULL;
-
     /*
      * Commit shadow.
      */
     if (lpPtr->valueStyle.shadow.color != NULL) {
         Tk_FreeColor(lpPtr->valueStyle.shadow.color);
     }
-
     lpPtr->valueStyle.shadow = newShadow;
-
     newShadow.color = NULL;
-
     /*
      * Commit symbol bitmap resources.
      */
     if (lpPtr->symbol.bitmap != None) {
         Tk_FreeBitmap(graphPtr->display, lpPtr->symbol.bitmap);
     }
-
     if (lpPtr->symbol.mask != None) {
         Tk_FreeBitmap(graphPtr->display, lpPtr->symbol.mask);
     }
-
     lpPtr->symbol.type = newSymbol.type;
-
     lpPtr->symbol.bitmap = newSymbol.bitmap;
-
     lpPtr->symbol.mask = newSymbol.mask;
-
     newSymbol.bitmap = None;
     newSymbol.mask = None;
-
     /*
      * Commit scalar derived fields.
      */
     lpPtr->traceDashes = newDashes;
-
     lpPtr->traceWidth = newTraceWidth;
-
     lpPtr->errorBarLineWidth = newErrorBarLineWidth;
-
     lpPtr->errorBarCapWidth = newErrorBarCapWidth;
-
     lpPtr->symbol.outlineWidth = newOutlineWidth;
-
     lpPtr->symbol.size = newSymbolSize;
-
     lpPtr->errorBarShow = newErrorBarShow;
-
     lpPtr->valueShow = newValueShow;
-
     /*
      * Commit GCs.
      */
     if (lpPtr->valueStyle.gc != NULL) {
         Tk_FreeGC(graphPtr->display, lpPtr->valueStyle.gc);
     }
-
     if (lpPtr->symbol.outlineGC != NULL) {
         Tk_FreeGC(graphPtr->display, lpPtr->symbol.outlineGC);
     }
-
     if (lpPtr->symbol.fillGC != NULL) {
         Tk_FreeGC(graphPtr->display, lpPtr->symbol.fillGC);
     }
-
     if (lpPtr->traceGC != NULL) {
         Rbc_FreePrivateGC(graphPtr->display, lpPtr->traceGC);
     }
-
     if (lpPtr->errorBarGC != NULL) {
         Tk_FreeGC(graphPtr->display, lpPtr->errorBarGC);
     }
-
     lpPtr->valueStyle.gc = newValueGC;
-
     lpPtr->symbol.outlineGC = newOutlineGC;
-
     lpPtr->symbol.fillGC = newFillGC;
-
     lpPtr->traceGC = newTraceGC;
-
     lpPtr->errorBarGC = newErrorBarGC;
-
     return TCL_OK;
 
 error:
@@ -2562,13 +2468,10 @@ error:
     FreeLinePenColor(newFillColor);
     FreeLinePenColor(newOffDashColor);
     FreeLinePenColor(newOutlineColor);
-
     if (newShadow.color != NULL) {
         Tk_FreeColor(newShadow.color);
     }
-
     FreeParsedSymbol(graphPtr->display, &newSymbol);
-
     return TCL_ERROR;
 }
 
@@ -2787,43 +2690,88 @@ Pen *Rbc_LinePen(const char *penName) {
  *----------------------------------------------------------------------
  */
 static int ScaleSymbol(Element *elemPtr, int normalSize) {
-    int maxSize;
     double scale;
+    double scaledSize;
+    int maxSize;
     int newSize;
 
     scale = 1.0;
     if (elemPtr->scaleSymbols) {
-        double xRange, yRange;
+        double xRange;
+        double yRange;
 
-        xRange = (elemPtr->axes.x->max - elemPtr->axes.x->min);
-        yRange = (elemPtr->axes.y->max - elemPtr->axes.y->min);
+        xRange = elemPtr->axes.x->max - elemPtr->axes.x->min;
+        yRange = elemPtr->axes.y->max - elemPtr->axes.y->min;
         if (elemPtr->flags & SCALE_SYMBOL) {
-            /* Save the ranges as a baseline for future scaling. */
+            /*
+             * Save the current ranges as the baseline for future
+             * symbol scaling.
+             */
             elemPtr->xRange = xRange;
             elemPtr->yRange = yRange;
             elemPtr->flags &= ~SCALE_SYMBOL;
-        } else {
-            double xScale, yScale;
+        } else if (FINITE(xRange) && FINITE(yRange) && FINITE(elemPtr->xRange) && FINITE(elemPtr->yRange) &&
+                   (xRange > 0.0) && (yRange > 0.0) && (elemPtr->xRange > 0.0) && (elemPtr->yRange > 0.0)) {
+            double xScale;
+            double yScale;
 
-            /* Scale the symbol by the smallest change in the X or Y axes */
+            /*
+             * Scale the symbol by the smaller change in the X and Y
+             * axis ranges.
+             */
             xScale = elemPtr->xRange / xRange;
             yScale = elemPtr->yRange / yRange;
             scale = MIN(xScale, yScale);
+            if ((!FINITE(scale)) || (scale <= 0.0)) {
+                scale = 1.0;
+            }
         }
     }
-    newSize = Round(normalSize * scale);
-
     /*
-     * Don't let the size of symbols go unbounded. Both X and Win32
-     * drawing routines assume coordinates to be a signed short int.
+     * The symbol must never exceed the drawable graph range.  Keep
+     * the scaling calculation in double and narrow only after the
+     * result has been bounded.
      */
-    maxSize = (int)MIN(elemPtr->graphPtr->hRange, elemPtr->graphPtr->vRange);
-    if (newSize > maxSize) {
-        newSize = maxSize;
+    maxSize = MIN(elemPtr->graphPtr->hRange, elemPtr->graphPtr->vRange);
+    if (maxSize < 1) {
+        maxSize = 1;
     }
-
-    /* Make the symbol size odd so that its center is a single pixel. */
-    newSize |= 0x01;
+    scaledSize = (double)normalSize * scale;
+    if ((!FINITE(scaledSize)) || (scaledSize >= (double)maxSize)) {
+        newSize = maxSize;
+    } else if (scaledSize <= 1.0) {
+        newSize = 1;
+    } else {
+        /*
+         * scaledSize is now known to be in the representable int
+         * range, because maxSize itself is int.
+         */
+        newSize = Round(scaledSize);
+        if (newSize < 1) {
+            newSize = 1;
+        } else if (newSize > maxSize) {
+            newSize = maxSize;
+        }
+    }
+    /*
+     * Make the symbol size odd so its center is a single pixel.
+     *
+     * The old code did:
+     *
+     *     newSize |= 0x01;
+     *
+     * after applying maxSize.  If maxSize was even that could make
+     * the final symbol one pixel larger than the graph range.
+     */
+    if ((newSize & 0x01) == 0) {
+        if (newSize < maxSize) {
+            newSize++;
+        } else if (newSize > 1) {
+            newSize--;
+        } else {
+            newSize = 1;
+        }
+    }
     return newSize;
 }
 

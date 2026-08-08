@@ -55,12 +55,6 @@ int Rbc_GetFillFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *fillPtr) {
 }
 
 static int DoCheck(Tcl_Interp *interp, int length, int check) {
-    if (length >= SHRT_MAX) {
-        Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad distance \"%d\": "
-                                               "too big to represent",
-                                               length));
-        return TCL_ERROR;
-    }
     switch (check) {
     case PIXELS_NONNEGATIVE:
         if (length < 0) {

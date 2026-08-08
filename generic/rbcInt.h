@@ -277,7 +277,26 @@ void Rbc_Fill3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border,
 #define STD_SHADOW_COLOR RGB_GREY64
 #define STD_SHADOW_MONO RGB_BLACK
 
-#define LineWidth(w) (((w) > 1) ? (w) : 0)
+static inline int Rbc_NativeLineWidth(int width) {
+    if (width <= 1) {
+        /*
+         * Preserve the existing RBC policy: widths zero and one use
+         * the native thin-line representation.
+         */
+        return 0;
+    }
+#ifndef WIN32
+    /*
+     * X11 represents GC line-width as CARD16.
+     */
+    if (width > USHRT_MAX) {
+        return USHRT_MAX;
+    }
+#endif
+    return width;
+}
+
+#define LineWidth(w) Rbc_NativeLineWidth((w))
 
 typedef void *DestroyData;
 

@@ -24,6 +24,27 @@ static int initialized;
 static void DrawTextLayout(Display *display, Drawable drawable, GC gc, Tk_Font font, register int x, register int y,
                            TextLayout *textPtr, double theta);
 
+
+static int TextLayoutInt(Tcl_WideInt value) {
+    if (value > INT_MAX) {
+        return INT_MAX;
+    }
+    if (value < INT_MIN) {
+        return INT_MIN;
+    }
+    return (int)value;
+}
+
+static int TextLayoutSize(Tcl_WideInt value) {
+    if (value <= 0) {
+        return 0;
+    }
+    if (value > INT_MAX) {
+        return INT_MAX;
+    }
+    return (int)value;
+}
+
 static size_t GetTextLayoutByteCount(Tcl_Size nFrags) {
     size_t headerSize;
 
@@ -35,6 +56,16 @@ static size_t GetTextLayoutByteCount(Tcl_Size nFrags) {
         Tcl_Panic("GetTextLayoutByteCount: layout size overflow");
     }
     return headerSize + ((size_t)nFrags * sizeof(TextFragment));
+}
+
+static int TextRotatedSize(double value) {
+    if ((!FINITE(value)) || (value <= 0.0)) {
+        return 0;
+    }
+    if (value >= (double)INT_MAX) {
+        return INT_MAX;
+    }
+    return ROUND(value);
 }
 
 /*
@@ -76,14 +107,11 @@ static void DrawTextLayout(Display *display, Drawable drawable, GC gc, Tk_Font f
         cosA = cos(theta * M_PI / 180.0);
         width = textPtr->width;
         height = textPtr->height;
-
         Rbc_GetBoundingBox(width, height, theta, &rotWidth, &rotHeight, (Point2D *)NULL);
-        rW = ROUND(rotWidth);
-        rH = ROUND(rotHeight);
+        rW = TextRotatedSize(rotWidth);
+        rH = TextRotatedSize(rotHeight);
     }
-
     fragPtr = textPtr->fragArr;
-
     for (i = 0; i < textPtr->nFrags; i++, fragPtr++) {
         if (theta == 0.0) {
             Tk_DrawChars(display, drawable, gc, font, fragPtr->text, fragPtr->count, x + fragPtr->x, y + fragPtr->y);
@@ -425,7 +453,6 @@ void Rbc_GetBoundingBox(int width, int height, double theta, double *rotWidthPtr
         int quadrant;
 
         /* Handle right-angle rotations specifically */
-
         quadrant = (int)(theta / 90.0);
         switch (quadrant) {
         case ROTATE_270: /* 270 degrees */
@@ -463,18 +490,14 @@ void Rbc_GetBoundingBox(int width, int height, double theta, double *rotWidthPtr
         return;
     }
     /* Set the four corners of the rectangle whose center is the origin */
-
     corner[1].x = corner[2].x = (double)width * 0.5;
     corner[0].x = corner[3].x = -corner[1].x;
     corner[2].y = corner[3].y = (double)height * 0.5;
     corner[0].y = corner[1].y = -corner[2].y;
-
     theta = (-theta / 180.0) * M_PI;
     sinTheta = sin(theta), cosTheta = cos(theta);
     xMax = yMax = 0.0;
-
     /* Rotate the four corners and find the maximum X and Y coordinates */
-
     for (i = 0; i < 4; i++) {
         x = (corner[i].x * cosTheta) - (corner[i].y * sinTheta);
         y = (corner[i].x * sinTheta) + (corner[i].y * cosTheta);
@@ -489,7 +512,6 @@ void Rbc_GetBoundingBox(int width, int height, double theta, double *rotWidthPtr
             bbox[i].y = y;
         }
     }
-
     /*
      * By symmetry, the width and height of the bounding box are
      * twice the maximum x and y coordinates.
@@ -808,13 +830,10 @@ void Rbc_DrawTextLayout(Tk_Window tkwin, Drawable drawable, TextLayout *textPtr,
     }
     tsPtr->theta = theta;
     active = tsPtr->state & STATE_ACTIVE;
-
     Rbc_GetBoundingBox(textPtr->width, textPtr->height, theta, &rotWidth, &rotHeight, (Point2D *)NULL);
-    newWidth = ROUND(rotWidth);
-    newHeight = ROUND(rotHeight);
-
+    newWidth = TextRotatedSize(rotWidth);
+    newHeight = TextRotatedSize(rotHeight);
     Rbc_TranslateAnchor(x, y, newWidth, newHeight, tsPtr->anchor, &x, &y);
-
     if (tsPtr->state & (STATE_DISABLED | STATE_EMPHASIS)) {
         XColor xcolor1, xcolor2, *color1, *color2;
         Tk_Get3DBorderColors(tsPtr->border, NULL, &xcolor2, &xcolor1);
@@ -899,8 +918,8 @@ void Rbc_DrawText2(Tk_Window tkwin, Drawable drawable, const char *string, TextS
         double rotWidth, rotHeight;
 
         Rbc_GetBoundingBox(width, height, theta, &rotWidth, &rotHeight, (Point2D *)NULL);
-        width = ROUND(rotWidth);
-        height = ROUND(rotHeight);
+        width = TextRotatedSize(rotWidth);
+        height = TextRotatedSize(rotHeight);
     }
     if (areaPtr != NULL) {
         areaPtr->width = width;

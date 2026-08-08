@@ -2200,6 +2200,22 @@ namespace eval graph.configure {
 	} -cleanup {
 	    destroy .graph1
 	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the configure -plotpadx command accepts values larger than
+	# SHRT_MAX.
+	# ------------------------------------------------------------------------------------
+	test RBC.graph.configure.A.27.10 {
+		graph configure: plotpadx - values larger than SHRT_MAX
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		.graph1 configure -plotpadx {40000 40001}
+		.graph1 cget -plotpadx
+	} -cleanup {
+		destroy .graph1
+	} -result {40000 40001}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -plotpady command works correctly when given an
@@ -2359,6 +2375,22 @@ namespace eval graph.configure {
 	} -cleanup {
 	    destroy .graph1
 	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the configure -plotpady command accepts values larger than
+	# SHRT_MAX.
+	# ------------------------------------------------------------------------------------
+	test RBC.graph.configure.A.28.10 {
+		graph configure: plotpady - values larger than SHRT_MAX
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		.graph1 configure -plotpady {40002 40003}
+		.graph1 cget -plotpady
+	} -cleanup {
+		destroy .graph1
+	} -result {40002 40003}
 
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -plotrelief command works correctly when given 'flat' 

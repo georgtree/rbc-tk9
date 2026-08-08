@@ -560,6 +560,21 @@ namespace eval graph.axis {
 	} -cleanup {
 		destroy .graph1
 	} -result {0}	
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the axis configure -linewidth command accepts values larger than
+	# SHRT_MAX and preserves the configured value.
+	# ------------------------------------------------------------------------------------
+	test RBC.graph.axis.configure.A.12.5 {
+		Linewidth larger than SHRT_MAX
+	} -setup {
+		graph .graph1
+		.graph1 axis create Axis1
+	} -body {
+		.graph1 axis configure Axis1 -linewidth 40000
+		.graph1 axis cget Axis1 -linewidth
+	} -cleanup {
+		destroy .graph1
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the axis configure -logscale command works correctly
