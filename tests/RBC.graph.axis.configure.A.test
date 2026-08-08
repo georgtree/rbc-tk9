@@ -575,6 +575,7 @@ namespace eval graph.axis {
 		.graph1 axis cget Axis1 -linewidth
 	} -cleanup {
 		destroy .graph1
+	} -result {40000}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the axis configure -logscale command works correctly

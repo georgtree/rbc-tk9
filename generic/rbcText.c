@@ -167,10 +167,7 @@ TextLayout *Rbc_GetTextLayout(const char *string, TextStyle *tsPtr) {
     }
     Tk_GetFontMetrics(tsPtr->font, &fontMetrics);
     value = (Tcl_WideInt)fontMetrics.linespace + (Tcl_WideInt)tsPtr->leader + (Tcl_WideInt)tsPtr->shadow.offset;
-    if ((value < 0) || (value > INT_MAX)) {
-        Tcl_Panic("Rbc_GetTextLayout: line height overflow");
-    }
-    lineHeight = (int)value;
+    lineHeight = TextLayoutSize(value);
     /*
      * Each newline terminates one fragment.  If the string does not
      * end in a newline, the final sequence is another fragment.
@@ -208,11 +205,7 @@ TextLayout *Rbc_GetTextLayout(const char *string, TextStyle *tsPtr) {
             width = 0;
             if (count > 0) {
                 value = (Tcl_WideInt)Tk_TextWidth(tsPtr->font, lineStart, count) + (Tcl_WideInt)tsPtr->shadow.offset;
-                if ((value < 0) || (value > INT_MAX)) {
-                    ckfree(textPtr);
-                    Tcl_Panic("Rbc_GetTextLayout: text width overflow");
-                }
-                width = (int)value;
+                width = TextLayoutSize(value);
                 if (width > maxWidth) {
                     maxWidth = width;
                 }
@@ -222,17 +215,14 @@ TextLayout *Rbc_GetTextLayout(const char *string, TextStyle *tsPtr) {
             fragPtr->count = count;
             fragPtr->width = width;
             value = height + (Tcl_WideInt)fontMetrics.ascent;
-            if ((value < INT_MIN) || (value > INT_MAX)) {
-                ckfree(textPtr);
-                Tcl_Panic("Rbc_GetTextLayout: baseline overflow");
-            }
-            fragPtr->y = (int)value;
+            fragPtr->y = TextLayoutInt(value);
             fragPtr++;
             populated++;
-            height += lineHeight;
-            if ((height < INT_MIN) || (height > INT_MAX)) {
-                ckfree(textPtr);
-                Tcl_Panic("Rbc_GetTextLayout: text height overflow");
+            height += (Tcl_WideInt)lineHeight;
+            if (height > INT_MAX) {
+                height = INT_MAX;
+            } else if (height < INT_MIN) {
+                height = INT_MIN;
             }
             lineStart = p + 1;
             count = 0;
@@ -246,11 +236,7 @@ TextLayout *Rbc_GetTextLayout(const char *string, TextStyle *tsPtr) {
     }
     if (populated < textPtr->nFrags) {
         value = (Tcl_WideInt)Tk_TextWidth(tsPtr->font, lineStart, count) + (Tcl_WideInt)tsPtr->shadow.offset;
-        if ((value < 0) || (value > INT_MAX)) {
-            ckfree(textPtr);
-            Tcl_Panic("Rbc_GetTextLayout: text width overflow");
-        }
-        width = (int)value;
+        width = TextLayoutSize(value);
         if (width > maxWidth) {
             maxWidth = width;
         }
@@ -258,34 +244,23 @@ TextLayout *Rbc_GetTextLayout(const char *string, TextStyle *tsPtr) {
         fragPtr->count = count;
         fragPtr->width = width;
         value = height + (Tcl_WideInt)fontMetrics.ascent;
-        if ((value < INT_MIN) || (value > INT_MAX)) {
-            ckfree(textPtr);
-            Tcl_Panic("Rbc_GetTextLayout: baseline overflow");
+        fragPtr->y = TextLayoutInt(value);
+        height += (Tcl_WideInt)lineHeight;
+        if (height > INT_MAX) {
+            height = INT_MAX;
+        } else if (height < INT_MIN) {
+            height = INT_MIN;
         }
-        fragPtr->y = (int)value;
-        height += lineHeight;
         populated++;
     }
     assert(populated == textPtr->nFrags);
     value = (Tcl_WideInt)maxWidth + (Tcl_WideInt)tsPtr->padX.side1 + (Tcl_WideInt)tsPtr->padX.side2;
-    if ((value < 0) || (value > INT_MAX)) {
-        ckfree(textPtr);
-        Tcl_Panic("Rbc_GetTextLayout: padded width overflow");
-    }
-    textPtr->width = (int)value;
-    height += tsPtr->padBottom;
+    textPtr->width = TextLayoutSize(value);
+    height += (Tcl_WideInt)tsPtr->padBottom;
     if (textPtr->nFrags > 0) {
-        /*
-         * lineHeight includes leader spacing after each line.  Remove
-         * it after the final fragment.
-         */
-        height -= tsPtr->leader;
+        height -= (Tcl_WideInt)tsPtr->leader;
     }
-    if ((height < 0) || (height > INT_MAX)) {
-        ckfree(textPtr);
-        Tcl_Panic("Rbc_GetTextLayout: padded height overflow");
-    }
-    textPtr->height = (int)height;
+    textPtr->height = TextLayoutSize(height);
     fragPtr = textPtr->fragArr;
     for (i = 0; i < textPtr->nFrags; i++, fragPtr++) {
         switch (tsPtr->justify) {
@@ -294,10 +269,11 @@ TextLayout *Rbc_GetTextLayout(const char *string, TextStyle *tsPtr) {
             fragPtr->x = tsPtr->padLeft;
             break;
         case TK_JUSTIFY_RIGHT:
-            fragPtr->x = (textPtr->width - fragPtr->width) - tsPtr->padRight;
+            fragPtr->x =
+                TextLayoutInt((Tcl_WideInt)textPtr->width - (Tcl_WideInt)fragPtr->width - (Tcl_WideInt)tsPtr->padRight);
             break;
         case TK_JUSTIFY_CENTER:
-            fragPtr->x = (textPtr->width - fragPtr->width) / 2;
+            fragPtr->x = TextLayoutInt(((Tcl_WideInt)textPtr->width - (Tcl_WideInt)fragPtr->width) / 2);
             break;
         }
     }
@@ -344,8 +320,10 @@ void Rbc_GetTextExtents(TextStyle *tsPtr, const char *string, int *widthPtr, int
     }
     Tk_GetFontMetrics(tsPtr->font, &fontMetrics);
     lineHeight = (Tcl_WideInt)fontMetrics.linespace + (Tcl_WideInt)tsPtr->leader + (Tcl_WideInt)tsPtr->shadow.offset;
-    if ((lineHeight < 0) || (lineHeight > INT_MAX)) {
-        Tcl_Panic("Rbc_GetTextExtents: line height overflow");
+    if (lineHeight < 0) {
+        lineHeight = 0;
+    } else if (lineHeight > INT_MAX) {
+        lineHeight = INT_MAX;
     }
     count = 0;
     width = 0;
@@ -355,17 +333,14 @@ void Rbc_GetTextExtents(TextStyle *tsPtr, const char *string, int *widthPtr, int
         if (*p == '\n') {
             if (count > 0) {
                 value = (Tcl_WideInt)Tk_TextWidth(tsPtr->font, lineStart, count) + (Tcl_WideInt)tsPtr->shadow.offset;
-                if ((value < 0) || (value > INT_MAX)) {
-                    Tcl_Panic("Rbc_GetTextExtents: text width overflow");
-                }
-                w = (int)value;
+                w = TextLayoutSize(value);
                 if (w > width) {
                     width = w;
                 }
             }
             height += lineHeight;
             if (height > INT_MAX) {
-                Tcl_Panic("Rbc_GetTextExtents: text height overflow");
+                height = INT_MAX;
             }
             lineStart = p + 1;
             count = 0;
@@ -378,25 +353,19 @@ void Rbc_GetTextExtents(TextStyle *tsPtr, const char *string, int *widthPtr, int
     }
     if ((count > 0) && ((p == string) || (*(p - 1) != '\n'))) {
         value = (Tcl_WideInt)Tk_TextWidth(tsPtr->font, lineStart, count) + (Tcl_WideInt)tsPtr->shadow.offset;
-        if ((value < 0) || (value > INT_MAX)) {
-            Tcl_Panic("Rbc_GetTextExtents: text width overflow");
-        }
-        w = (int)value;
+        w = TextLayoutSize(value);
         if (w > width) {
             width = w;
         }
         height += lineHeight;
+        if (height > INT_MAX) {
+            height = INT_MAX;
+        }
     }
     value = (Tcl_WideInt)width + (Tcl_WideInt)tsPtr->padX.side1 + (Tcl_WideInt)tsPtr->padX.side2;
-    if ((value < 0) || (value > INT_MAX)) {
-        Tcl_Panic("Rbc_GetTextExtents: padded width overflow");
-    }
-    *widthPtr = (int)value;
+    *widthPtr = TextLayoutSize(value);
     value = height + (Tcl_WideInt)tsPtr->padY.side1 + (Tcl_WideInt)tsPtr->padY.side2;
-    if ((value < 0) || (value > INT_MAX)) {
-        Tcl_Panic("Rbc_GetTextExtents: padded height overflow");
-    }
-    *heightPtr = (int)value;
+    *heightPtr = TextLayoutSize(value);
 }
 
 /*
