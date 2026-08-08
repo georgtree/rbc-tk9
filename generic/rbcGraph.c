@@ -1391,11 +1391,11 @@ static ClientData PickEntry(ClientData clientData, int x, int y, ClientData *con
         ClosestSearch search;
 
         search.along = SEARCH_BOTH;
-        search.halo = graphPtr->halo + 1;
+        search.halo = (graphPtr->halo < INT_MAX) ? graphPtr->halo + 1 : INT_MAX;
         search.index = -1;
         search.x = x;
         search.y = y;
-        search.dist = (double)(search.halo + 1);
+        search.dist = (double)search.halo + 1.0;
         search.mode = SEARCH_AUTO;
         for (linkPtr = Rbc_ChainLastLink(graphPtr->elements.displayList); linkPtr != NULL;
              linkPtr = Rbc_ChainPrevLink(linkPtr)) {

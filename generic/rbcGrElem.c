@@ -3968,7 +3968,7 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size
     if (ParseClosestOptions(graphPtr, interp, objc, objv, &search, &i) != TCL_OK) {
         return TCL_ERROR;
     }
-    search.dist = (double)(search.halo + 1);
+    search.dist = (double)search.halo + 1.0;
     if (i < objc) {
         for (/* empty */; i < objc; i++) {
             if (NameToElement(graphPtr, objv[i], &elemPtr) != TCL_OK) {

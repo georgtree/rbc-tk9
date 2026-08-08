@@ -68,6 +68,19 @@ static int TextRotatedSize(double value) {
     return ROUND(value);
 }
 
+static int TextLayoutCoordinate(double value) {
+    if (!FINITE(value)) {
+        return 0;
+    }
+    if (value >= (double)INT_MAX) {
+        return INT_MAX;
+    }
+    if (value <= (double)INT_MIN) {
+        return INT_MIN;
+    }
+    return ROUND(value);
+}
+
 /*
  *--------------------------------------------------------------
  *
@@ -97,16 +110,24 @@ static void DrawTextLayout(Display *display, Drawable drawable, GC gc, Tk_Font f
                            double theta) {
     TextFragment *fragPtr;
     Tcl_Size i;
-    int newX = 0, newY = 0, width = 0, height = 0, rW = 0, rH = 0;
-    double realX, realY;
-    double sinA, cosA;
-    double rotWidth, rotHeight;
+    int width;
+    int height;
+    int rW;
+    int rH;
+    double sinA;
+    double cosA;
+    double rotWidth;
+    double rotHeight;
 
+    width = 0;
+    height = 0;
+    rW = 0;
+    rH = 0;
     if (theta != 0.0) {
-        sinA = sin(theta * M_PI / 180.0);
-        cosA = cos(theta * M_PI / 180.0);
         width = textPtr->width;
         height = textPtr->height;
+        sinA = sin(theta * M_PI / 180.0);
+        cosA = cos(theta * M_PI / 180.0);
         Rbc_GetBoundingBox(width, height, theta, &rotWidth, &rotHeight, (Point2D *)NULL);
         rW = TextRotatedSize(rotWidth);
         rH = TextRotatedSize(rotHeight);
@@ -114,12 +135,28 @@ static void DrawTextLayout(Display *display, Drawable drawable, GC gc, Tk_Font f
     fragPtr = textPtr->fragArr;
     for (i = 0; i < textPtr->nFrags; i++, fragPtr++) {
         if (theta == 0.0) {
-            Tk_DrawChars(display, drawable, gc, font, fragPtr->text, fragPtr->count, x + fragPtr->x, y + fragPtr->y);
+            int drawX;
+            int drawY;
+
+            drawX = TextLayoutInt((Tcl_WideInt)x + (Tcl_WideInt)fragPtr->x);
+            drawY = TextLayoutInt((Tcl_WideInt)y + (Tcl_WideInt)fragPtr->y);
+            Tk_DrawChars(display, drawable, gc, font, fragPtr->text, fragPtr->count, drawX, drawY);
         } else {
-            realX = (fragPtr->x - width / 2) * cosA + (fragPtr->y - height / 2) * sinA;
-            realY = (fragPtr->y - height / 2) * cosA - (fragPtr->x - width / 2) * sinA;
-            newX = ROUND(realX) + x + rW / 2;
-            newY = ROUND(realY) + y + rH / 2;
+            double realX;
+            double realY;
+            int newX;
+            int newY;
+            /*
+             * Convert to double before subtracting half the layout
+             * dimensions.  Doing the subtraction in int can overflow
+             * for saturated fragment coordinates.
+             */
+            realX = (((double)fragPtr->x - ((double)width * 0.5)) * cosA) +
+                    (((double)fragPtr->y - ((double)height * 0.5)) * sinA);
+            realY = (((double)fragPtr->y - ((double)height * 0.5)) * cosA) -
+                    (((double)fragPtr->x - ((double)width * 0.5)) * sinA);
+            newX = TextLayoutCoordinate(realX + (double)x + ((double)rW * 0.5));
+            newY = TextLayoutCoordinate(realY + (double)y + ((double)rH * 0.5));
             TkDrawAngledChars(display, drawable, gc, font, fragPtr->text, fragPtr->count, newX, newY, theta);
         }
     }
@@ -525,41 +562,47 @@ void Rbc_GetBoundingBox(int width, int height, double theta, double *rotWidthPtr
  * -----------------------------------------------------------------
  */
 void Rbc_TranslateAnchor(int x, int y, int width, int height, Tk_Anchor anchor, int *transXPtr, int *transYPtr) {
+    Tcl_WideInt tx;
+    Tcl_WideInt ty;
+
+    tx = x;
+    ty = y;
+
     switch (anchor) {
     case TK_ANCHOR_NULL:
-    case TK_ANCHOR_NW: /* Upper left corner */
+    case TK_ANCHOR_NW:
         break;
-    case TK_ANCHOR_W: /* Left center */
-        y -= (height / 2);
+    case TK_ANCHOR_W:
+        ty -= (Tcl_WideInt)height / 2;
         break;
-    case TK_ANCHOR_SW: /* Lower left corner */
-        y -= height;
+    case TK_ANCHOR_SW:
+        ty -= (Tcl_WideInt)height;
         break;
-    case TK_ANCHOR_N: /* Top center */
-        x -= (width / 2);
+    case TK_ANCHOR_N:
+        tx -= (Tcl_WideInt)width / 2;
         break;
-    case TK_ANCHOR_CENTER: /* Center */
-        x -= (width / 2);
-        y -= (height / 2);
+    case TK_ANCHOR_CENTER:
+        tx -= (Tcl_WideInt)width / 2;
+        ty -= (Tcl_WideInt)height / 2;
         break;
-    case TK_ANCHOR_S: /* Bottom center */
-        x -= (width / 2);
-        y -= height;
+    case TK_ANCHOR_S:
+        tx -= (Tcl_WideInt)width / 2;
+        ty -= (Tcl_WideInt)height;
         break;
-    case TK_ANCHOR_NE: /* Upper right corner */
-        x -= width;
+    case TK_ANCHOR_NE:
+        tx -= (Tcl_WideInt)width;
         break;
-    case TK_ANCHOR_E: /* Right center */
-        x -= width;
-        y -= (height / 2);
+    case TK_ANCHOR_E:
+        tx -= (Tcl_WideInt)width;
+        ty -= (Tcl_WideInt)height / 2;
         break;
-    case TK_ANCHOR_SE: /* Lower right corner */
-        x -= width;
-        y -= height;
+    case TK_ANCHOR_SE:
+        tx -= (Tcl_WideInt)width;
+        ty -= (Tcl_WideInt)height;
         break;
     }
-    *transXPtr = x;
-    *transYPtr = y;
+    *transXPtr = TextLayoutInt(tx);
+    *transYPtr = TextLayoutInt(ty);
 }
 
 /*
@@ -816,7 +859,8 @@ void Rbc_DrawTextLayout(Tk_Window tkwin, Drawable drawable, TextLayout *textPtr,
         if (color1 != NULL) {
             XSetForeground(display, tsPtr->gc, color1->pixel);
         }
-        DrawTextLayout(display, drawable, tsPtr->gc, tsPtr->font, x + 1, y + 1, textPtr, theta);
+        DrawTextLayout(display, drawable, tsPtr->gc, tsPtr->font, TextLayoutInt((Tcl_WideInt)x + 1),
+                       TextLayoutInt((Tcl_WideInt)y + 1), textPtr, theta);
         if (color2 != NULL) {
             XSetForeground(display, tsPtr->gc, color2->pixel);
         }
@@ -825,8 +869,9 @@ void Rbc_DrawTextLayout(Tk_Window tkwin, Drawable drawable, TextLayout *textPtr,
     } else {
         if ((tsPtr->shadow.offset > 0) && (tsPtr->shadow.color != NULL)) {
             XSetForeground(display, tsPtr->gc, tsPtr->shadow.color->pixel);
-            DrawTextLayout(display, drawable, tsPtr->gc, tsPtr->font, x + tsPtr->shadow.offset,
-                           y + tsPtr->shadow.offset, textPtr, theta);
+            DrawTextLayout(display, drawable, tsPtr->gc, tsPtr->font,
+                           TextLayoutInt((Tcl_WideInt)x + (Tcl_WideInt)tsPtr->shadow.offset),
+                           TextLayoutInt((Tcl_WideInt)y + (Tcl_WideInt)tsPtr->shadow.offset), textPtr, theta);
             XSetForeground(display, tsPtr->gc, tsPtr->color->pixel);
         }
         if (active) {
