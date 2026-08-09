@@ -51,7 +51,7 @@ char *Rbc_ScratchBufferFromToken(PsToken psToken);
 
 void Rbc_AppendToPostScript(PsToken, ...);
 
-void Rbc_FormatToPostScript(PsToken, char *, ...);
+void Rbc_FormatToPostScript(PsToken, const char *, ...);
 
 void Rbc_Draw3DRectangleToPostScript(PsToken psToken, Tk_3DBorder border, double x, double y, int width, int height,
                                      int borderWidth, int relief);

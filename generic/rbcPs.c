@@ -178,14 +178,29 @@ void Rbc_AppendToPostScript(struct PsTokenStruct *tokenPtr, ...) {
  *
  *--------------------------------------------------------------
  */
-void Rbc_FormatToPostScript(struct PsTokenStruct *tokenPtr, char *fmt, ...) {
+void Rbc_FormatToPostScript(struct PsTokenStruct *tokenPtr, const char *fmt, ...) {
     va_list argList;
-    //    char *fmt;
+    char *buffer;
+    int nBytes;
 
     va_start(argList, fmt);
-    vsprintf(tokenPtr->scratchArr, fmt, argList);
-    Tcl_DStringAppend(&(tokenPtr->dString), tokenPtr->scratchArr, -1);
+    nBytes = vsnprintf(tokenPtr->scratchArr, sizeof(tokenPtr->scratchArr), fmt, argList);
     va_end(argList);
+    if (nBytes < 0) {
+        return;
+    }
+    if ((size_t)nBytes < sizeof(tokenPtr->scratchArr)) {
+        Tcl_DStringAppend(&(tokenPtr->dString), tokenPtr->scratchArr, nBytes);
+        return;
+    }
+    buffer = (char *)ckalloc((size_t)nBytes + 1);
+    va_start(argList, fmt);
+    nBytes = vsnprintf(buffer, (size_t)nBytes + 1, fmt, argList);
+    va_end(argList);
+    if (nBytes >= 0) {
+        Tcl_DStringAppend(&(tokenPtr->dString), buffer, nBytes);
+    }
+    ckfree(buffer);
 }
 
 /*
@@ -213,16 +228,14 @@ int Rbc_FileToPostScript(struct PsTokenStruct *tokenPtr, char *fileName) {
     Tcl_Interp *interp;
     char *buf;
     char *libDir;
-    int nBytes;
+    Tcl_Size nBytes;
 
     interp = tokenPtr->interp;
     buf = tokenPtr->scratchArr;
-
     /*
      * Read in a standard prolog file from file and append it to the
      * PostScript output stored in the Tcl_DString in tokenPtr.
      */
-
     libDir = (char *)Tcl_GetVar(interp, "rbc::library", TCL_GLOBAL_ONLY);
     if (libDir == NULL) {
         Tcl_AppendResult(interp, "couldn't find rbc script library:", "global variable \"rbc::library\" doesn't exist",
@@ -239,6 +252,7 @@ int Rbc_FileToPostScript(struct PsTokenStruct *tokenPtr, char *fileName) {
     if (channel == NULL) {
         Tcl_AppendResult(interp, "couldn't open prologue file \"", fileName, "\": ", Tcl_PosixError(interp),
                          (char *)NULL);
+        Tcl_DStringFree(&dString);
         return TCL_ERROR;
     }
     for (;;) {
@@ -461,7 +475,7 @@ void Rbc_BitmapDataToPostScript(struct PsTokenStruct *tokenPtr, Display *display
     Rbc_AppendToPostScript(tokenPtr, "\t<", (char *)NULL);
     byteCount = bitPos = 0; /* Suppress compiler warning */
     for (y = height - 1; y >= 0; y--) {
-        srcPtr = srcBits + (bytesPerRow * y);
+        srcPtr = srcBits + ((size_t)bytesPerRow * (size_t)y);
         byte = 0;
         for (x = 0; x < width; x++) {
             bitPos = x % 8;
@@ -605,17 +619,15 @@ int Rbc_ColorImageToPsData(Rbc_ColorImage image, int nComponents, Tcl_DString *r
     register Pix32 *pixelPtr;
     unsigned char byte;
     int width, height;
-    int offset;
     int nLines;
+
     width = Rbc_ColorImageWidth(image);
     height = Rbc_ColorImageHeight(image);
-
     nLines = 0;
     count = 0;
-    offset = (height - 1) * width;
     if (nComponents == 3) {
-        for (y = (height - 1); y >= 0; y--) {
-            pixelPtr = Rbc_ColorImageBits(image) + offset;
+        for (y = height - 1; y >= 0; y--) {
+            pixelPtr = Rbc_ColorImagePixel(image, 0, y);
             for (x = 0; x < width; x++, pixelPtr++) {
                 if (count == 0) {
                     Tcl_DStringAppend(resultPtr, prefix, -1);
@@ -634,11 +646,10 @@ int Rbc_ColorImageToPsData(Rbc_ColorImage image, int nComponents, Tcl_DString *r
                 }
                 Tcl_DStringAppend(resultPtr, string, -1);
             }
-            offset -= width;
         }
     } else if (nComponents == 1) {
-        for (y = (height - 1); y >= 0; y--) {
-            pixelPtr = Rbc_ColorImageBits(image) + offset;
+        for (y = height - 1; y >= 0; y--) {
+            pixelPtr = Rbc_ColorImagePixel(image, 0, y);
             for (x = 0; x < width; x++, pixelPtr++) {
                 if (count == 0) {
                     Tcl_DStringAppend(resultPtr, prefix, -1);
@@ -656,7 +667,6 @@ int Rbc_ColorImageToPsData(Rbc_ColorImage image, int nComponents, Tcl_DString *r
                 }
                 Tcl_DStringAppend(resultPtr, string, -1);
             }
-            offset -= width;
         }
     }
     if (count != 0) {
