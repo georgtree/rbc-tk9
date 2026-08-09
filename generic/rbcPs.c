@@ -709,11 +709,11 @@ static const char *NameOfAtom(Tk_Window tkwin, Atom atom) {
 #endif /* WIN32 */
 
 typedef struct {
-    char *alias;
-    char *fontName;
+    const char *alias;
+    const char *fontName;
 } FontMap;
 
-static FontMap psFontMap[] = {
+static const FontMap psFontMap[] = {
     {
         "Arial",
         "Helvetica",
@@ -784,7 +784,7 @@ static FontMap psFontMap[] = {
     },
 };
 
-static int nFontNames = (sizeof(psFontMap) / sizeof(FontMap));
+static const size_t nFontNames = sizeof(psFontMap) / sizeof(psFontMap[0]);
 
 #ifndef WIN32
 /*
@@ -810,13 +810,11 @@ static int nFontNames = (sizeof(psFontMap) / sizeof(FontMap));
  *
  * -----------------------------------------------------------------
  */
-static char *XFontStructToPostScript(Tk_Window tkwin, XFontStruct *fontPtr) {
+static const char *XFontStructToPostScript(Tk_Window tkwin, XFontStruct *fontPtr, Tcl_DString *resultPtr) {
     Atom atom;
     const char *fullName, *family, *foundry, *src;
-    register char *dest;
-    int familyLen;
-    char *start;
-    static char string[200]; /* What size? */
+    size_t familyLen;
+    size_t i;
 
     if (XGetFontProperty(fontPtr, XA_FULL_NAME, &atom) == False) {
         return NULL;
@@ -832,57 +830,63 @@ static char *XFontStructToPostScript(Tk_Window tkwin, XFontStruct *fontPtr) {
     if (XGetFontProperty(fontPtr, XA_FAMILY_NAME, &atom)) {
         family = NameOfAtom(tkwin, atom);
     }
-    /*
-     * Try to map the font only if the foundry is Adobe
-     */
     if ((foundry == NULL) || (family == NULL)) {
         return NULL;
     }
+    /*
+     * Save the typeface portion of the full name before mapping the
+     * family name to its PostScript equivalent.
+     */
     src = NULL;
     familyLen = strlen(family);
     if (strncasecmp(fullName, family, familyLen) == 0) {
         src = fullName + familyLen;
     }
     if (strcmp(foundry, "Adobe") != 0) {
-        register int i;
-
         if (strncasecmp(family, "itc ", 4) == 0) {
-            family += 4; /* Throw out the "itc" prefix */
+            family += 4;
         }
         for (i = 0; i < nFontNames; i++) {
             if (strcasecmp(family, psFontMap[i].alias) == 0) {
                 family = psFontMap[i].fontName;
+                break;
             }
         }
         if (i == nFontNames) {
-            family = "Helvetica"; /* Default to a known font */
+            family = "Helvetica";
         }
     }
+    Tcl_DStringSetLength(resultPtr, 0);
+    Tcl_DStringAppend(resultPtr, family, -1);
     /*
-     * PostScript font name is in the form <family>-<type face>
-     */
-    sprintf(string, "%s-", family);
-    dest = start = string + strlen(string);
-
-    /*
-     * Append the type face (part of the full name trailing the family name)
-     * to the the PostScript font name, removing any spaces or dashes
+     * Append the typeface portion, removing spaces and dashes.
      *
-     * ex. " Bold Italic" ==> "BoldItalic"
+     * Example:
+     *
+     *      " Bold Italic" -> "-BoldItalic"
      */
     if (src != NULL) {
-        while (*src != '\0') {
-            if ((*src != ' ') && (*src != '-')) {
-                *dest++ = *src;
+        const char *p;
+        int haveTypeface;
+
+        haveTypeface = 0;
+        for (p = src; *p != '\0'; p++) {
+            if ((*p != ' ') && (*p != '-')) {
+                haveTypeface = 1;
+                break;
             }
-            src++;
+        }
+        if (haveTypeface) {
+            Tcl_DStringAppend(resultPtr, "-", 1);
+            while (*src != '\0') {
+                if ((*src != ' ') && (*src != '-')) {
+                    Tcl_DStringAppend(resultPtr, src, 1);
+                }
+                src++;
+            }
         }
     }
-    if (dest == start) {
-        --dest; /* Remove '-' to leave just the family name */
-    }
-    *dest = '\0'; /* Make a valid string */
-    return string;
+    return Tcl_DStringValue(resultPtr);
 }
 
 #endif /* !WIN32 */
@@ -1437,13 +1441,15 @@ void Rbc_StippleToPostScript(struct PsTokenStruct *tokenPtr, Display *display, P
  */
 void Rbc_ColorImageToPostScript(struct PsTokenStruct *tokenPtr, Rbc_ColorImage image, double x, double y) {
     int width, height;
-    int tmpSize;
+    size_t tmpSize;
 
     width = Rbc_ColorImageWidth(image);
     height = Rbc_ColorImageHeight(image);
-
-    tmpSize = width;
+    tmpSize = (size_t)width;
     if (tokenPtr->colorMode == PS_MODE_COLOR) {
+        if (tmpSize > SIZE_MAX / 3) {
+            return;
+        }
         tmpSize *= 3;
     }
     Rbc_FormatToPostScript(tokenPtr, "\n/tmpStr %d string def\n", tmpSize);
@@ -1569,12 +1575,13 @@ void Rbc_PhotoToPostScript(struct PsTokenStruct *tokenPtr, Tk_PhotoHandle photo,
 void Rbc_FontToPostScript(struct PsTokenStruct *tokenPtr, Tk_Font font) {
 #ifndef WIN32
     XFontStruct *fontPtr = (XFontStruct *)font;
+    Tcl_DString mappedName;
 #endif /* !WIN32 */
     Tcl_Interp *interp = tokenPtr->interp;
     const char *fontName;
     double pointSize;
     Tk_Uid family;
-    register int i;
+    size_t i;
     Tcl_Obj *fontDescObj, *familyObj;
 
     fontName = Tk_NameOfFont(font);
@@ -1583,9 +1590,9 @@ void Rbc_FontToPostScript(struct PsTokenStruct *tokenPtr, Tk_Font font) {
      * Use the font variable information if it exists.
      */
     if (tokenPtr->fontVarName != NULL) {
-        char *fontInfo;
+        const char *fontInfo;
 
-        fontInfo = (char *)Tcl_GetVar2(interp, tokenPtr->fontVarName, fontName, 0);
+        fontInfo = Tcl_GetVar2(interp, tokenPtr->fontVarName, fontName, 0);
         if (fontInfo != NULL) {
             Tcl_Size nProps;
             const char **propArr = NULL;
@@ -1593,7 +1600,9 @@ void Rbc_FontToPostScript(struct PsTokenStruct *tokenPtr, Tk_Font font) {
             if (Tcl_SplitList(interp, fontInfo, &nProps, &propArr) == TCL_OK) {
                 int newSize;
 
-                fontName = propArr[0];
+                if (nProps > 0) {
+                    fontName = propArr[0];
+                }
                 if ((nProps == 2) && (Tcl_GetInt(interp, propArr[1], &newSize) == TCL_OK)) {
                     pointSize = (double)newSize;
                 }
@@ -1635,9 +1644,11 @@ void Rbc_FontToPostScript(struct PsTokenStruct *tokenPtr, Tk_Font font) {
      */
     fontName = NULL;
     pointSize = 12.0;
-
 #ifndef WIN32
-    /* Can you believe what I have to go through to get an XFontStruct? */
+    /*
+     * Can you believe what I have to go through to get an XFontStruct?
+     */
+    Tcl_DStringInit(&mappedName);
     fontPtr = XLoadQueryFont(Tk_Display(tokenPtr->tkwin), Tk_NameOfFont(font));
     if (fontPtr != NULL) {
         unsigned long fontProp;
@@ -1645,14 +1656,17 @@ void Rbc_FontToPostScript(struct PsTokenStruct *tokenPtr, Tk_Font font) {
         if (XGetFontProperty(fontPtr, XA_POINT_SIZE, &fontProp) != False) {
             pointSize = (double)fontProp / 10.0;
         }
-        fontName = XFontStructToPostScript(tokenPtr->tkwin, fontPtr);
+        fontName = XFontStructToPostScript(tokenPtr->tkwin, fontPtr, &mappedName);
         XFreeFont(Tk_Display(tokenPtr->tkwin), fontPtr);
     }
 #endif /* !WIN32 */
     if ((fontName == NULL) || (fontName[0] == '\0')) {
-        fontName = "Helvetica-Bold"; /* Defaulting to a known PS font */
+        fontName = "Helvetica-Bold";
     }
     Rbc_FormatToPostScript(tokenPtr, "%g /%s SetFont\n", pointSize, fontName);
+#ifndef WIN32
+    Tcl_DStringFree(&mappedName);
+#endif /* !WIN32 */
 }
 
 /*
