@@ -173,57 +173,95 @@ unsigned char *Rbc_GetBitmapData(Display *display, Pixmap bitmap, int width, int
     HDC dc;
     int result;
     unsigned char *bits;
-    unsigned int size;
+    size_t headerSize;
+    size_t imageSize;
+    size_t minImageSize;
+    size_t totalSize;
     HBITMAP hBitmap;
     BITMAPINFOHEADER *bmiPtr;
     HANDLE hMem, hMem2;
-    int bytesPerRow, imageSize;
+    int bytesPerRow;
 
-    size = sizeof(BITMAPINFOHEADER) + 2 * sizeof(RGBQUAD);
-    hMem = GlobalAlloc(GHND, size);
+    if (pitchPtr == NULL) {
+        return NULL;
+    }
+    *pitchPtr = 0;
+    if ((bitmap == None) || (width <= 0) || (height <= 0) || (width > INT_MAX - 31)) {
+        return NULL;
+    }
+    /*
+     * Windows monochrome DIB scanlines are DWORD aligned.
+     */
+    bytesPerRow = ((width + 31) & ~31) / 8;
+    if (bytesPerRow <= 0) {
+        return NULL;
+    }
+    if ((size_t)height > SIZE_MAX / (size_t)bytesPerRow) {
+        return NULL;
+    }
+    minImageSize = (size_t)height * (size_t)bytesPerRow;
+    headerSize = sizeof(BITMAPINFOHEADER) + (2 * sizeof(RGBQUAD));
+    hMem = GlobalAlloc(GHND, headerSize);
+    if (hMem == NULL) {
+        return NULL;
+    }
     bmiPtr = (BITMAPINFOHEADER *)GlobalLock(hMem);
+    if (bmiPtr == NULL) {
+        GlobalFree(hMem);
+        return NULL;
+    }
     bmiPtr->biSize = sizeof(BITMAPINFOHEADER);
     bmiPtr->biPlanes = 1;
     bmiPtr->biBitCount = 1;
     bmiPtr->biCompression = BI_RGB;
     bmiPtr->biWidth = width;
     bmiPtr->biHeight = height;
-
     hBitmap = ((TkWinDrawable *)bitmap)->bitmap.handle;
     dc = TkWinGetDrawableDC(display, bitmap, &state);
-    result = GetDIBits(dc, hBitmap, 0, height, (LPVOID)NULL, (BITMAPINFO *)bmiPtr, DIB_RGB_COLORS);
+    result = GetDIBits(dc, hBitmap, 0, (UINT)height, NULL, (BITMAPINFO *)bmiPtr, DIB_RGB_COLORS);
     TkWinReleaseDrawableDC(bitmap, dc, &state);
     if (!result) {
         GlobalUnlock(hMem);
         GlobalFree(hMem);
         return NULL;
     }
-    imageSize = bmiPtr->biSizeImage;
+    imageSize = (size_t)bmiPtr->biSizeImage;
     GlobalUnlock(hMem);
-    bytesPerRow = ((width + 31) & ~31) / 8;
-    if (imageSize == 0) {
-        imageSize = bytesPerRow * height;
+    /*
+     * BI_RGB is allowed to report biSizeImage == 0.  In that case,
+     * derive the required size from the DWORD-aligned row stride.
+     */
+    if (imageSize < minImageSize) {
+        imageSize = minImageSize;
     }
-    hMem2 = GlobalReAlloc(hMem, size + imageSize, 0);
+    if (imageSize > SIZE_MAX - headerSize) {
+        GlobalFree(hMem);
+        return NULL;
+    }
+    totalSize = headerSize + imageSize;
+    hMem2 = GlobalReAlloc(hMem, totalSize, 0);
     if (hMem2 == NULL) {
         GlobalFree(hMem);
         return NULL;
     }
     hMem = hMem2;
-    bmiPtr = (LPBITMAPINFOHEADER)GlobalLock(hMem);
+    bmiPtr = (BITMAPINFOHEADER *)GlobalLock(hMem);
+    if (bmiPtr == NULL) {
+        GlobalFree(hMem);
+        return NULL;
+    }
     dc = TkWinGetDrawableDC(display, bitmap, &state);
-    result = GetDIBits(dc, hBitmap, 0, height, (unsigned char *)bmiPtr + size, (BITMAPINFO *)bmiPtr, DIB_RGB_COLORS);
+    result = GetDIBits(dc, hBitmap, 0, (UINT)height, (unsigned char *)bmiPtr + headerSize, (BITMAPINFO *)bmiPtr,
+                       DIB_RGB_COLORS);
     TkWinReleaseDrawableDC(bitmap, dc, &state);
     bits = NULL;
     if (!result) {
         OutputDebugStringA("GetDIBits failed\n");
     } else {
-        bits = (unsigned char *)ckalloc(imageSize);
-        if (bits != NULL) {
-            memcpy(bits, (unsigned char *)bmiPtr + size, imageSize);
-        }
+        bits = ckalloc(imageSize);
+        memcpy(bits, (unsigned char *)bmiPtr + headerSize, imageSize);
+        *pitchPtr = bytesPerRow;
     }
-    *pitchPtr = bytesPerRow;
     GlobalUnlock(hMem);
     GlobalFree(hMem);
     return bits;

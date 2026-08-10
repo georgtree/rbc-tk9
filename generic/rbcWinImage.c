@@ -23,10 +23,9 @@
     (destBits[((size_t)destBytesPerRow * (size_t)(destHeight - (y) - 1)) + ((size_t)(x) >> 3)] |= (0x80 >> ((x) & 7)))
 
 static int GetMonoBitmapStride(int width) {
-    if ((width < 0) || (width > INT_MAX - 31)) {
-        Tcl_Panic("monochrome bitmap stride overflow");
+    if ((width <= 0) || (width > INT_MAX - 31)) {
+        return 0;
     }
-
     return ((width + 31) & ~31) / 8;
 }
 
@@ -323,8 +322,14 @@ Pixmap Rbc_PhotoImageMask(Tk_Window tkwin, Tk_PhotoImageBlock src) {
     unsigned char *destBits;
     unsigned char *srcRowPtr;
 
+    if (src.height <= 0) {
+        return None;
+    }
     destBytesPerRow = GetMonoBitmapStride(src.width);
-    destBits = RbcCalloc(src.height, destBytesPerRow);
+    if (destBytesPerRow == 0) {
+        return None;
+    }
+    destBits = RbcCalloc((size_t)src.height, (size_t)destBytesPerRow);
     destHeight = src.height;
     srcRowPtr = src.pixelPtr;
     /* FIXME: figure out why this is so! */
@@ -404,8 +409,14 @@ Pixmap Rbc_ColorImageMask(Tk_Window tkwin, Rbc_ColorImage image) {
 
     destWidth = Rbc_ColorImageWidth(image);
     destHeight = Rbc_ColorImageHeight(image);
-    destBytesPerRow = ((destWidth + 31) & ~31) / 8;
-    destBits = RbcCalloc(destHeight, destBytesPerRow);
+    if (destHeight <= 0) {
+        return None;
+    }
+    destBytesPerRow = GetMonoBitmapStride(destWidth);
+    if (destBytesPerRow == 0) {
+        return None;
+    }
+    destBits = RbcCalloc((size_t)destHeight, (size_t)destBytesPerRow);
     count = 0;
     srcPtr = Rbc_ColorImageBits(image);
     for (y = 0; y < destHeight; y++) {
@@ -417,34 +428,32 @@ Pixmap Rbc_ColorImageMask(Tk_Window tkwin, Rbc_ColorImage image) {
             srcPtr++;
         }
     }
+    twdPtr = NULL;
     if (count > 0) {
         HBITMAP hBitmap;
         BITMAP bm;
 
         bm.bmType = 0;
-        bm.bmWidth = Rbc_ColorImageWidth(image);
-        bm.bmHeight = Rbc_ColorImageHeight(image);
+        bm.bmWidth = destWidth;
+        bm.bmHeight = destHeight;
         bm.bmWidthBytes = destBytesPerRow;
         bm.bmPlanes = 1;
         bm.bmBitsPixel = 1;
         bm.bmBits = destBits;
         hBitmap = CreateBitmapIndirect(&bm);
-        twdPtr = (TkWinBitmap *)ckalloc(sizeof(TkWinBitmap));
-        assert(twdPtr);
-        twdPtr->type = TWD_BITMAP;
-        twdPtr->handle = hBitmap;
-        twdPtr->depth = 1;
-        if (Tk_WindowId(tkwin) == None) {
-            twdPtr->colormap = DefaultColormap(Tk_Display(tkwin), DefaultScreen(Tk_Display(tkwin)));
-        } else {
-            twdPtr->colormap = Tk_Colormap(tkwin);
+        if (hBitmap != NULL) {
+            twdPtr = RbcCalloc(1, sizeof(*twdPtr));
+            twdPtr->type = TWD_BITMAP;
+            twdPtr->handle = hBitmap;
+            twdPtr->depth = 1;
+            if (Tk_WindowId(tkwin) == None) {
+                twdPtr->colormap = DefaultColormap(Tk_Display(tkwin), DefaultScreen(Tk_Display(tkwin)));
+            } else {
+                twdPtr->colormap = Tk_Colormap(tkwin);
+            }
         }
-    } else {
-        twdPtr = NULL;
     }
-    if (destBits != NULL) {
-        ckfree((char *)destBits);
-    }
+    ckfree(destBits);
     return (Pixmap)twdPtr;
 }
 
@@ -540,11 +549,8 @@ Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int src
      *
      * without overflowing signed int.
      */
-    if (destWidth > (INT_MAX - 31)) {
-        return None;
-    }
-    destBytesPerRow = ((destWidth + 31) & ~31) / 8;
-    if (destBytesPerRow <= 0) {
+    destBytesPerRow = GetMonoBitmapStride(destWidth);
+    if (destBytesPerRow == 0) {
         return None;
     }
     if ((size_t)destHeight > SIZE_MAX / (size_t)destBytesPerRow) {
@@ -833,11 +839,16 @@ Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWid
     register int x, y;   /* Destination bitmap coordinates */
     unsigned char *srcBits, *destBits;
     unsigned long pixel;
+    size_t imageSize;
     struct MonoBitmap {
         BITMAPINFOHEADER bi;
         RGBQUAD colors[2];
     } mb;
 
+    if ((srcWidth <= 0) || (srcHeight <= 0) || (regionWidth <= 0) || (regionHeight <= 0) || (virtWidth <= 0) ||
+        (virtHeight <= 0) || (!FINITE(theta))) {
+        return None;
+    }
     display = Tk_Display(tkwin);
     root = RootWindow(Tk_Display(tkwin), Tk_ScreenNumber(tkwin));
 
@@ -849,22 +860,39 @@ Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWid
     srcBits = Rbc_GetBitmapData(display, srcBitmap, srcWidth, srcHeight, &srcBytesPerRow);
     if (srcBits == NULL) {
         OutputDebugStringA("Rbc_GetBitmapData failed");
+        Tk_FreePixmap(display, destBitmap);
         return None;
     }
-    destBytesPerRow = ((regionWidth + 31) & ~31) / 8;
-    destBits = RbcCalloc(regionHeight, destBytesPerRow);
+    destBytesPerRow = GetMonoBitmapStride(regionWidth);
+    if (destBytesPerRow == 0) {
+        ckfree(srcBits);
+        Tk_FreePixmap(display, destBitmap);
+        return None;
+    }
+    if ((size_t)regionHeight > SIZE_MAX / (size_t)destBytesPerRow) {
+        ckfree(srcBits);
+        Tk_FreePixmap(display, destBitmap);
+        return None;
+    }
+    imageSize = (size_t)regionHeight * (size_t)destBytesPerRow;
+    if (imageSize > (size_t)UINT32_MAX) {
+        ckfree(srcBits);
+        Tk_FreePixmap(display, destBitmap);
+        return None;
+    }
+    destBits = RbcCalloc((size_t)regionHeight, (size_t)destBytesPerRow);
     destHeight = regionHeight;
-
     theta = FMOD(theta, 360.0);
+    if (theta < 0.0) {
+        theta += 360.0;
+    }
     Rbc_GetBoundingBox(srcWidth, srcHeight, theta, &rotWidth, &rotHeight, (Point2D *)NULL);
     xScale = rotWidth / (double)virtWidth;
     yScale = rotHeight / (double)virtHeight;
-
     if (FMOD(theta, (double)90.0) == 0.0) {
         int quadrant;
 
         /* Handle right-angle rotations specifically */
-
         quadrant = (int)(theta / 90.0);
         switch (quadrant) {
         case ROTATE_270: /* 270 degrees */
@@ -879,7 +907,6 @@ Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWid
                 }
             }
             break;
-
         case ROTATE_180: /* 180 degrees */
             for (y = 0; y < (int)regionHeight; y++) {
                 sy = (int)(yScale * (double)(virtHeight - (y + regionY) - 1));
@@ -892,7 +919,6 @@ Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWid
                 }
             }
             break;
-
         case ROTATE_90: /* 90 degrees */
             for (y = 0; y < (int)regionHeight; y++) {
                 sx = (int)(yScale * (double)(virtHeight - (y + regionY) - 1));
@@ -905,7 +931,6 @@ Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWid
                 }
             }
             break;
-
         case ROTATE_0: /* 0 degrees */
             for (y = 0; y < (int)regionHeight; y++) {
                 sy = (int)(yScale * (double)(y + regionY));
@@ -918,7 +943,6 @@ Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWid
                 }
             }
             break;
-
         default:
             /* The calling routine should never let this happen. */
             break;
@@ -988,7 +1012,7 @@ Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWid
     mb.bi.biCompression = BI_RGB;
     mb.bi.biWidth = regionWidth;
     mb.bi.biHeight = regionHeight;
-    mb.bi.biSizeImage = destBytesPerRow * regionHeight;
+    mb.bi.biSizeImage = (DWORD)imageSize;
     mb.colors[0].rgbBlue = mb.colors[0].rgbRed = mb.colors[0].rgbGreen = 0x0;
     mb.colors[1].rgbBlue = mb.colors[1].rgbRed = mb.colors[1].rgbGreen = 0xFF;
     hDC = TkWinGetDrawableDC(display, destBitmap, &state);
@@ -998,6 +1022,7 @@ Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWid
 #if WINDEBUG
         PurifyPrintf("can't setDIBits: %s\n", Rbc_LastError());
 #endif
+        Tk_FreePixmap(display, destBitmap);
         destBitmap = None;
     }
     if (destBits != NULL) {
