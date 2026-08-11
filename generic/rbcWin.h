@@ -184,7 +184,7 @@ EXTERN void Rbc_EmulateXWarpPointer(Display *display, Window srcWindow, Window d
 
 extern unsigned char *Rbc_GetBitmapData(Display *display, Pixmap bitmap, int width, int height, int *pitchPtr);
 
-extern HPALETTE Rbc_GetSystemPalette();
+extern HPALETTE Rbc_GetSystemPalette(void);
 
 extern HPEN Rbc_GCToPen(HDC dc, GC gc);
 

@@ -121,24 +121,30 @@ static int bltModes[] = {
  *
  *--------------------------------------------------------------
  */
-HPALETTE
-Rbc_GetSystemPalette() {
+HPALETTE Rbc_GetSystemPalette(void) {
     HDC hDC;
     HPALETTE hPalette;
     DWORD flags;
 
     hPalette = NULL;
-    hDC = GetDC(NULL); /* Get the desktop device context */
+    hDC = GetDC(NULL);
+    if (hDC == NULL) {
+        return NULL;
+    }
     flags = GetDeviceCaps(hDC, RASTERCAPS);
     if (flags & RC_PALETTE) {
         LOGPALETTE *palettePtr;
+        size_t size;
 
-        palettePtr = (LOGPALETTE *)GlobalAlloc(GPTR, sizeof(LOGPALETTE) + 256 * sizeof(PALETTEENTRY));
-        palettePtr->palVersion = 0x300;
-        palettePtr->palNumEntries = 256;
-        GetSystemPaletteEntries(hDC, 0, 256, palettePtr->palPalEntry);
-        hPalette = CreatePalette(palettePtr);
-        GlobalFree(palettePtr);
+        size = sizeof(LOGPALETTE) + (256 * sizeof(PALETTEENTRY));
+        palettePtr = (LOGPALETTE *)GlobalAlloc(GPTR, size);
+        if (palettePtr != NULL) {
+            palettePtr->palVersion = 0x300;
+            palettePtr->palNumEntries = 256;
+            GetSystemPaletteEntries(hDC, 0, 256, palettePtr->palPalEntry);
+            hPalette = CreatePalette(palettePtr);
+            GlobalFree(palettePtr);
+        }
     }
     ReleaseDC(NULL, hDC);
     return hPalette;
@@ -506,7 +512,6 @@ static int GetDashInfo(HDC dc, GC gc, DashInfo *infoPtr) {
     dashOffset = gc->dash_offset;
     if ((int)gc->dashes == -1) {
         XGCValuesEx *gcPtr = (XGCValuesEx *)gc;
-
         if (gcPtr->nDashValues == 1) {
             dashValue = gcPtr->dashValues[0];
         }
@@ -590,10 +595,8 @@ static XGCValuesEx *CreateGC() {
     gcPtr->subwindow_mode = ClipByChildren;
     gcPtr->tile = None;
     gcPtr->ts_x_origin = gcPtr->ts_y_origin = 0;
-
     gcPtr->dashes = -1; /* Mark that this an extended GC */
     gcPtr->nDashValues = 0;
-
     return gcPtr;
 }
 
@@ -667,7 +670,7 @@ GC Rbc_EmulateXCreateGC(Display *display, Drawable drawable, unsigned long mask,
     if (mask & GCTileStipXOrigin) {
         destPtr->ts_x_origin = srcPtr->ts_x_origin;
     }
-    if (mask & GCTileStipXOrigin) {
+    if (mask & GCTileStipYOrigin) {
         destPtr->ts_y_origin = srcPtr->ts_y_origin;
     }
     if (mask & GCFont) {
@@ -766,7 +769,7 @@ HPEN Rbc_GCToPen(HDC dc, GC gc) {
         XGCValuesEx *gcPtr = (XGCValuesEx *)gc;
 
         if ((int)gc->dashes == -1) {
-            register int i;
+            int i;
 
             nValues = strlen(gcPtr->dashValues);
             for (i = 0; i < nValues; i++) {
@@ -782,7 +785,6 @@ HPEN Rbc_GCToPen(HDC dc, GC gc) {
             gc->dashes = -1;
         }
     }
-
     switch (nValues) {
     case 0:
         lineStyle = PS_SOLID;
@@ -799,11 +801,9 @@ HPEN Rbc_GCToPen(HDC dc, GC gc) {
         lineStyle = PS_DOT;
         break;
     }
-
     lBrush.lbStyle = BS_SOLID;
     lBrush.lbColor = gc->foreground;
     lBrush.lbHatch = 0; /* Value is ignored when style is BS_SOLID. */
-
     lineAttrs = 0;
     switch (gc->cap_style) {
     case CapNotLast:
@@ -830,7 +830,6 @@ HPEN Rbc_GCToPen(HDC dc, GC gc) {
         break;
     }
     SetBkMode(dc, TRANSPARENT);
-
     if (Rbc_GetPlatformId() == VER_PLATFORM_WIN32_NT) {
         /* Windows NT/2000/XP. */
         if (nValues > 0) {
@@ -898,10 +897,10 @@ void Rbc_EmulateXDrawRectangles(Display *display, Drawable drawable, GC gc, XRec
     TkWinDCState state;
     HBRUSH brush, oldBrush;
     HDC dc;
-    register XRectangle *rectPtr;
-    register int i;
+    XRectangle *rectPtr;
+    int i;
 
-    if (drawable == None) {
+    if ((drawable == None) || (rectArr == NULL) || (nRects <= 0)) {
         return;
     }
     dc = TkWinGetDrawableDC(display, drawable, &state);
@@ -1006,7 +1005,6 @@ static void DrawArc(HDC dc, int arcMode, XArc *arcPtr, HPEN pen, HBRUSH brush) {
     }
     start = arcPtr->angle1, extent = arcPtr->angle2;
     clockwise = (extent < 0); /* Non-zero if clockwise */
-
     /*
      * Compute the absolute starting and ending angles in normalized radians.
      * Swap the start and end if drawing clockwise.
@@ -1027,7 +1025,6 @@ static void DrawArc(HDC dc, int arcMode, XArc *arcPtr, HPEN pen, HBRUSH brush) {
 #define XAngleToRadians(a) ((double)(a) / 64 * M_PI / 180);
     radian_start = XAngleToRadians(start);
     radian_end = XAngleToRadians(extent);
-
     /*
      * Now compute points on the radial lines that define the starting and
      * ending angles.  Be sure to take into account that the y-coordinate
@@ -1035,20 +1032,17 @@ static void DrawArc(HDC dc, int arcMode, XArc *arcPtr, HPEN pen, HBRUSH brush) {
      */
     dx = arcPtr->width * 0.5;
     dy = arcPtr->height * 0.5;
-
     xr = arcPtr->x + dx;
     yr = arcPtr->y + dy;
     xstart = (int)((xr + cos(radian_start) * dx) + 0.5);
     ystart = (int)((yr + sin(-radian_start) * dy) + 0.5);
     xend = (int)((xr + cos(radian_end) * dx) + 0.5);
     yend = (int)((yr + sin(-radian_end) * dy) + 0.5);
-
     /*
      * Now draw a filled or open figure.  Note that we have to
      * increase the size of the bounding box by one to account for the
      * difference in pixel definitions between X and Windows.
      */
-
     if (brush == 0) {
         /*
          * Note that this call will leave a gap of one pixel at the
@@ -1103,7 +1097,7 @@ void Rbc_EmulateXDrawArcs(Display *display, Drawable drawable, GC gc, XArc *arcA
     HBRUSH brush, oldBrush;
     HDC dc;
     TkWinDCState state;
-    register XArc *arcPtr, *endPtr;
+    XArc *arcPtr, *endPtr;
 
     //    display->request++;
     if (drawable == None) {
@@ -1150,11 +1144,11 @@ void Rbc_EmulateXFillArcs(Display *display, Drawable drawable, GC gc, XArc *arcA
     HBRUSH brush, oldBrush;
     HPEN pen, oldPen;
     HDC dc;
-    register XArc *arcPtr, *endPtr;
+    XArc *arcPtr, *endPtr;
     TkWinDCState state;
 
     //    display->request++;
-    if (drawable == None) {
+    if ((drawable == None) || (arcArr == NULL) || (nArcs <= 0)) {
         return;
     }
     dc = TkWinGetDrawableDC(display, drawable, &state);
@@ -1286,7 +1280,7 @@ void Rbc_EmulateXDrawLine(Display *display, Drawable drawable, GC gc, int x1, in
 static void DrawLine(Display *display, Drawable drawable, GC gc, POINT *points, int nPoints) {
     TkWinDCState state;
     HDC dc;
-    register int i, n;
+    int i, n;
     int start, extra, size;
     HPEN pen, oldPen;
     HBRUSH brush, oldBrush;
@@ -1300,7 +1294,6 @@ static void DrawLine(Display *display, Drawable drawable, GC gc, POINT *points, 
     brush = CreateSolidBrush(gc->foreground);
     oldBrush = SelectBrush(dc, brush);
     SetROP2(dc, tkpWinRopModes[gc->function]);
-
     start = extra = 0;
     /*
      * Depending if the line is wide (> 1 pixel), arbitrarily break
@@ -1349,7 +1342,7 @@ static void DrawLine(Display *display, Drawable drawable, GC gc, POINT *points, 
  *--------------------------------------------------------------
  */
 void Rbc_EmulateXDrawLines(Display *display, Drawable drawable, GC gc, XPoint *pointArr, int nPoints, int mode) {
-    if (drawable == None) {
+    if ((drawable == None) || (pointArr == NULL) || (nPoints <= 0)) {
         return;
     }
     if (gc->line_style != LineSolid) { /* Handle dotted lines specially */
@@ -1362,8 +1355,8 @@ void Rbc_EmulateXDrawLines(Display *display, Drawable drawable, GC gc, XPoint *p
         SetROP2(dc, tkpWinRopModes[gc->function]);
         result = GetDashInfo(dc, gc, &info);
         if (result) {
-            register XPoint *p1, *p2;
-            register int i;
+            XPoint *p1, *p2;
+            int i;
 
             p1 = pointArr;
             p2 = p1 + 1;
@@ -1380,7 +1373,10 @@ void Rbc_EmulateXDrawLines(Display *display, Drawable drawable, GC gc, XPoint *p
         POINT *points, *destPtr;
         XPoint *srcPtr, *endPtr;
 
-        points = (POINT *)ckalloc(sizeof(POINT) * nPoints);
+        if ((size_t)nPoints > SIZE_MAX / sizeof(*points)) {
+            return;
+        }
+        points = (POINT *)ckalloc((size_t)nPoints * sizeof(*points));
         if (points == NULL) {
             return;
         }
@@ -1442,11 +1438,11 @@ void Rbc_EmulateXDrawLines(Display *display, Drawable drawable, GC gc, XPoint *p
  */
 void Rbc_EmulateXDrawSegments(Display *display, Drawable drawable, GC gc, XSegment *segArr, int nSegments) {
     HDC dc;
-    register XSegment *segPtr, *endPtr;
+    XSegment *segPtr, *endPtr;
     TkWinDCState state;
 
     //    display->request++;
-    if (drawable == None) {
+    if ((drawable == None) || (segArr == NULL) || (nSegments <= 0)) {
         return;
     }
     dc = TkWinGetDrawableDC(display, drawable, &state);
@@ -1526,7 +1522,7 @@ void Rbc_EmulateXDrawRectangle(Display *display, Drawable drawable, GC gc, int x
     SetROP2(dc, tkpWinRopModes[gc->function]);
     if (gc->line_style != LineSolid) {
         /* Handle dotted lines specially */
-        register int x2, y2;
+        int x2, y2;
         DashInfo info;
 
         if (!GetDashInfo(dc, gc, &info)) {
@@ -1577,11 +1573,11 @@ void Rbc_EmulateXDrawRectangle(Display *display, Drawable drawable, GC gc, int x
 void Rbc_EmulateXDrawPoints(Display *display, Drawable drawable, GC gc, XPoint *pointArr, int nPoints, int mode) {
     /* Ignored. CoordModeOrigin is assumed. */
     HDC dc;
-    register XPoint *pointPtr, *endPtr;
+    XPoint *pointPtr, *endPtr;
     TkWinDCState state;
 
     //    display->request++;
-    if (drawable == None) {
+    if ((drawable == None) || (pointArr == NULL) || (nPoints <= 0)) {
         return;
     }
     dc = TkWinGetDrawableDC(display, drawable, &state);
@@ -1784,14 +1780,13 @@ void Rbc_EmulateXFillRectangles(Display *display, Drawable drawable, GC gc, XRec
     RECT rect;
     TkWinDCState state;
     TkWinDrawable *twdPtr;
-    register XRectangle *rectPtr, *endPtr;
+    XRectangle *rectPtr, *endPtr;
 
-    if (drawable == None) {
+    if ((drawable == None) || (rectArr == NULL) || (nRectangles <= 0)) {
         return;
     }
     hDC = TkWinGetDrawableDC(display, drawable, &state);
     SetROP2(hDC, tkpWinRopModes[gc->function]);
-
     switch (gc->fill_style) {
     case FillTiled:
         if (gc->tile == None) {
@@ -1828,7 +1823,6 @@ void Rbc_EmulateXFillRectangles(Display *display, Drawable drawable, GC gc, XRec
         SetBrushOrgEx(hDC, gc->ts_x_origin, gc->ts_y_origin, NULL);
         oldBrush = SelectBrush(hDC, hBrush);
         memDC = CreateCompatibleDC(hDC);
-
         /*
          * For each rectangle, create a drawing surface which is the size of
          * the rectangle and fill it with the background color.  Then merge the
@@ -1858,7 +1852,6 @@ void Rbc_EmulateXFillRectangles(Display *display, Drawable drawable, GC gc, XRec
         SelectBrush(hDC, oldBrush);
         DeleteBrush(hBrush);
         break;
-
     case FillSolid:
     fillSolid:
         memDC = CreateCompatibleDC(hDC);
@@ -1920,7 +1913,6 @@ void Rbc_EmulateXFillRectangle(Display *display, Drawable drawable, GC gc, int x
     rect.left = rect.top = 0;
     rect.right = width;
     rect.bottom = height;
-
     switch (gc->fill_style) {
     case FillTiled: {
         TkWinDrawable *twdPtr;
@@ -1939,14 +1931,12 @@ void Rbc_EmulateXFillRectangle(Display *display, Drawable drawable, GC gc, int x
         twdPtr = (TkWinDrawable *)gc->tile;
         /* The tiling routine needs to know the size of the bitmap */
         GetObject(twdPtr->bitmap.handle, sizeof(BITMAP), &bm);
-
         memDC = CreateCompatibleDC(hDC);
         oldBitmap = SelectBitmap(memDC, twdPtr->bitmap.handle);
         TileArea(hDC, memDC, gc->ts_x_origin, gc->ts_y_origin, bm.bmWidth, bm.bmHeight, x, y, width, height);
         SelectBitmap(memDC, oldBitmap);
         DeleteDC(memDC);
     } break;
-
     case FillOpaqueStippled:
     case FillStippled: {
         TkWinDrawable *twdPtr;
@@ -1966,7 +1956,6 @@ void Rbc_EmulateXFillRectangle(Display *display, Drawable drawable, GC gc, int x
         SetBrushOrgEx(hDC, gc->ts_x_origin, gc->ts_y_origin, NULL);
         oldBrush = SelectBrush(hDC, hBrush);
         memDC = CreateCompatibleDC(hDC);
-
         hBrushFg = CreateSolidBrush(gc->foreground);
         hBrushBg = CreateSolidBrush(gc->background);
         hBitmap = CreateCompatibleBitmap(hDC, width, height);
@@ -1986,7 +1975,6 @@ void Rbc_EmulateXFillRectangle(Display *display, Drawable drawable, GC gc, int x
         DeleteBitmap(hBitmap);
         DeleteDC(memDC);
     } break;
-
     case FillSolid: {
         HBRUSH hBrush;
         HBITMAP oldBitmap, hBitmap;
@@ -2193,7 +2181,6 @@ void Rbc_EmulateXCopyPlane(Display *display, Drawable src, Drawable dest, GC gc,
         Tcl_Panic("Unexpected plane specified for XCopyPlane");
     }
     srcDC = TkWinGetDrawableDC(display, src, &srcState);
-
     if (src != dest) {
         destDC = TkWinGetDrawableDC(display, dest, &destState);
     } else {
@@ -2214,9 +2201,7 @@ void Rbc_EmulateXCopyPlane(Display *display, Drawable src, Drawable dest, GC gc,
         SetBkColor(destDC, gc->foreground);
         SetTextColor(destDC, gc->background);
         BitBlt(destDC, destX, destY, width, height, srcDC, srcX, srcY, SRCCOPY);
-
         SelectClipRgn(destDC, NULL);
-
     } else if (clipPtr->type == TKP_CLIP_PIXMAP) {
         Drawable mask;
         /*
@@ -2230,7 +2215,6 @@ void Rbc_EmulateXCopyPlane(Display *display, Drawable src, Drawable dest, GC gc,
          * copying the clip mask into the destination.
          */
         mask = clipPtr->value.pixmap;
-
 #if WINDEBUG
         PurifyPrintf("mask %s src\n", (mask == src) ? "==" : "!=");
         PurifyPrintf("GetDeviceCaps=%x\n", GetDeviceCaps(destDC, TECHNOLOGY) & DT_RASDISPLAY);
@@ -2255,10 +2239,8 @@ void Rbc_EmulateXCopyPlane(Display *display, Drawable src, Drawable dest, GC gc,
              */
             SetTextColor(destDC, RGB(255, 255, 255));
             SetBkColor(destDC, RGB(0, 0, 0));
-
             /* FIXME: Handle gc->clip_?_origin's */
             BitBlt(destDC, destX, destY, width, height, maskDC, 0, 0, SRCAND);
-
             SetTextColor(destDC, gc->background);
             SetBkColor(destDC, gc->foreground);
             BitBlt(destDC, destX, destY, width, height, srcDC, srcX, srcY, SRCINVERT);
@@ -2324,10 +2306,8 @@ void Rbc_EmulateXCopyArea(Display *display, Drawable src, Drawable dest, GC gc, 
         SelectClipRgn(destDC, (HRGN)clipPtr->value.region);
         OffsetClipRgn(destDC, gc->clip_x_origin, gc->clip_y_origin);
     }
-
     BitBlt(destDC, destX, destY, width, height, srcDC, srcX, srcY, bltModes[gc->function]);
     SelectClipRgn(destDC, NULL);
-
     if (src != dest) {
         TkWinReleaseDrawableDC(dest, destDC, &destState);
     }
@@ -2372,8 +2352,16 @@ static void StippleRegion(Display *display, HDC hDC, GC gc, int x, int y, int wi
     int startX, startY; /* Starting upper left corner of region. */
 
     twdPtr = (TkWinDrawable *)gc->stipple;
+    if ((gc->stipple == None) || (twdPtr == NULL)) {
+        return;
+    }
+    if (GetObject(twdPtr->bitmap.handle, sizeof(BITMAP), &bm) == 0) {
+        return;
+    }
+    if ((bm.bmWidth <= 0) || (bm.bmHeight <= 0)) {
+        return;
+    }
     GetObject(twdPtr->bitmap.handle, sizeof(BITMAP), &bm);
-
     startX = x;
     if (x < gc->ts_x_origin) {
         dx = (gc->ts_x_origin - x) % bm.bmWidth;
@@ -2407,7 +2395,6 @@ static void StippleRegion(Display *display, HDC hDC, GC gc, int x, int y, int wi
     right = x + width;
     top = y;
     bottom = y + height;
-
     maskDC = memDC = CreateCompatibleDC(hDC);
     oldBitmap = SelectBitmap(memDC, twdPtr->bitmap.handle);
     mask = gc->stipple;
@@ -2425,7 +2412,6 @@ static void StippleRegion(Display *display, HDC hDC, GC gc, int x, int y, int wi
             maskDC = TkWinGetDrawableDC(display, mask, &maskState);
         }
     }
-
     for (y = startY; y < bottom; y += bm.bmHeight) {
         srcY = 0;
         destY = y;
@@ -2514,18 +2500,18 @@ void Rbc_EmulateXFillPolygon(Display *display, Drawable drawable, GC gc, XPoint 
     TkWinDCState state;
     int fillMode;
 
-    if (drawable == None) {
+    if ((drawable == None) || (pointPtr == NULL) || (nPoints <= 0)) {
         return;
     }
-
+    if ((size_t)nPoints > SIZE_MAX / sizeof(*winPts)) {
+        return;
+    }
     /* Determine the bounding box of the polygon. */
     bbox.left = bbox.right = pointPtr->x;
     bbox.top = bbox.bottom = pointPtr->y;
-
     hDC = TkWinGetDrawableDC(display, drawable, &state);
-
     /* Allocate array of POINTS to create the polygon's path. */
-    winPts = (POINT *)ckalloc(sizeof(POINT) * nPoints);
+    winPts = (POINT *)ckalloc((size_t)nPoints * sizeof(*winPts));
     endPtr = winPts + nPoints;
     for (p = winPts; p < endPtr; p++) {
         if (pointPtr->x < bbox.left) {
@@ -2544,10 +2530,8 @@ void Rbc_EmulateXFillPolygon(Display *display, Drawable drawable, GC gc, XPoint 
         p->y = pointPtr->y;
         pointPtr++;
     }
-
     SetROP2(hDC, tkpWinRopModes[gc->function]);
     fillMode = (gc->fill_rule == EvenOddRule) ? ALTERNATE : WINDING;
-
     if ((gc->fill_style == FillStippled) || (gc->fill_style == FillOpaqueStippled)) {
         int width, height;
 
@@ -2559,16 +2543,15 @@ void Rbc_EmulateXFillPolygon(Display *display, Drawable drawable, GC gc, XPoint 
         /* Use the polygon as a clip path. */
         LPtoDP(hDC, winPts, nPoints);
         hRgn = CreatePolygonRgn(winPts, nPoints, fillMode);
-        SelectClipRgn(hDC, hRgn);
-        OffsetClipRgn(hDC, bbox.left, bbox.top);
-
-        /* Tile the bounding box. */
-        width = bbox.right - bbox.left + 1;
-        height = bbox.bottom - bbox.top + 1;
-        StippleRegion(display, hDC, gc, bbox.left, bbox.top, width, height);
-
-        SelectClipRgn(hDC, NULL);
-        DeleteRgn(hRgn);
+        if (hRgn != NULL) {
+            SelectClipRgn(hDC, hRgn);
+            OffsetClipRgn(hDC, bbox.left, bbox.top);
+            width = bbox.right - bbox.left + 1;
+            height = bbox.bottom - bbox.top + 1;
+            StippleRegion(display, hDC, gc, bbox.left, bbox.top, width, height);
+            SelectClipRgn(hDC, NULL);
+            DeleteRgn(hRgn);
+        }
     } else {
         HPEN oldPen;
         HBRUSH oldBrush;
