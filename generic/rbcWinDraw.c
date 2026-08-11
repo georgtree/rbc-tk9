@@ -1100,7 +1100,7 @@ void Rbc_EmulateXDrawArcs(Display *display, Drawable drawable, GC gc, XArc *arcA
     XArc *arcPtr, *endPtr;
 
     //    display->request++;
-    if (drawable == None) {
+    if ((drawable == None) || (arcArr == NULL) || (nArcs <= 0)) {
         return;
     }
     dc = TkWinGetDrawableDC(display, drawable, &state);
@@ -1642,7 +1642,7 @@ void Rbc_EmulateXSetDashes(Display *display, GC gc, int dashOffset, _Xconst char
  */
 void Rbc_EmulateXDrawString(Display *display, Drawable drawable, GC gc, int x, int y, _Xconst char *string,
                             int length) {
-    if (drawable == None) {
+    if ((drawable == None) || (string == NULL) || (length <= 0)) {
         return;
     }
     Tk_DrawChars(display, drawable, gc, (Tk_Font)gc->font, string, length, x, y);
@@ -2351,6 +2351,9 @@ static void StippleRegion(Display *display, HDC hDC, GC gc, int x, int y, int wi
     int srcX, srcY;
     int startX, startY; /* Starting upper left corner of region. */
 
+    if ((hDC == NULL) || (gc == NULL) || (width <= 0) || (height <= 0)) {
+        return;
+    }
     twdPtr = (TkWinDrawable *)gc->stipple;
     if ((gc->stipple == None) || (twdPtr == NULL)) {
         return;
@@ -2361,7 +2364,6 @@ static void StippleRegion(Display *display, HDC hDC, GC gc, int x, int y, int wi
     if ((bm.bmWidth <= 0) || (bm.bmHeight <= 0)) {
         return;
     }
-    GetObject(twdPtr->bitmap.handle, sizeof(BITMAP), &bm);
     startX = x;
     if (x < gc->ts_x_origin) {
         dx = (gc->ts_x_origin - x) % bm.bmWidth;

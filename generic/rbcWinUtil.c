@@ -30,9 +30,8 @@
  *
  *--------------------------------------------------------------
  */
-int Rbc_GetPlatformId() {
+int Rbc_GetPlatformId(void) {
     static int platformId = 0;
-
     if (platformId == 0) {
         OSVERSIONINFO opsysInfo;
 
@@ -62,16 +61,24 @@ int Rbc_GetPlatformId() {
  *
  *--------------------------------------------------------------
  */
-char *Rbc_LastError() {
+char *Rbc_LastError(void) {
     static char buffer[1024];
-    int length;
+    DWORD error;
+    DWORD length;
 
-    FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(),
-                   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), /* Default language */
-                   buffer, 1024, NULL);
-    length = strlen(buffer);
-    if (buffer[length - 2] == '\r') {
-        buffer[length - 2] = '\0';
+    error = GetLastError();
+
+    length = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, error,
+                            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buffer, (DWORD)sizeof(buffer), NULL);
+    if (length == 0) {
+        snprintf(buffer, sizeof(buffer), "Windows error %lu", (unsigned long)error);
+        return buffer;
+    }
+    /*
+     * FormatMessage normally terminates system messages with CR/LF.
+     */
+    while ((length > 0) && ((buffer[length - 1] == '\r') || (buffer[length - 1] == '\n'))) {
+        buffer[--length] = '\0';
     }
     return buffer;
 }

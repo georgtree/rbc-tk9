@@ -75,8 +75,8 @@ extern int Rbc_AsyncRead(int fd, char *buffer, unsigned int size);
 extern int Rbc_AsyncWrite(int fd, char *buffer, unsigned int size);
 extern void Rbc_CreateFileHandler(int fd, int flags, Tcl_FileProc *proc, ClientData clientData);
 extern void Rbc_DeleteFileHandler(int fd);
-extern int Rbc_GetPlatformId();
-extern char *Rbc_LastError();
+extern int Rbc_GetPlatformId(void);
+extern char *Rbc_LastError(void);
 
 #undef EXPORT
 #define EXPORT __declspec(dllexport)
@@ -161,7 +161,6 @@ EXTERN void Rbc_EmulateXDrawPoints(Display *display, Drawable drawable, GC gc, X
 EXTERN void Rbc_EmulateXDrawRectangle(Display *display, Drawable drawable, GC gc, int x, int y, unsigned int width,
                                       unsigned int height);
 EXTERN void Rbc_EmulateXDrawRectangles(Display *display, Drawable drawable, GC gc, XRectangle *rectArr, int nRects);
-EXTERN void Rbc_EmulateXDrawSegments(Display *display, Drawable drawable, GC gc, XSegment *segArr, int nSegments);
 EXTERN void Rbc_EmulateXDrawSegments(Display *display, Drawable drawable, GC gc, XSegment *segArr, int nSegments);
 EXTERN void Rbc_EmulateXDrawString(Display *display, Drawable drawable, GC gc, int x, int y, _Xconst char *string,
                                    int length);

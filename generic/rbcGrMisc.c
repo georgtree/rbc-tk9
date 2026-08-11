@@ -1812,8 +1812,18 @@ int Rbc_MaxRequestSize(Display *display, unsigned int elemSize) {
 #else
     size = XMaxRequestSize(display);
 #endif
+    if ((elemSize == 0) || (size <= 4)) {
+        return 0;
+    }
     size -= 4;
-    return ((size * 4) / elemSize);
+    if (size > (LONG_MAX / 4)) {
+        return 0;
+    }
+    size *= 4;
+    if ((unsigned long)size / elemSize > INT_MAX) {
+        return INT_MAX;
+    }
+    return (int)((unsigned long)size / elemSize);
 }
 
 #undef Rbc_Fill3DRectangle
