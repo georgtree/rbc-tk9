@@ -15,37 +15,6 @@
 /*
  *--------------------------------------------------------------
  *
- * Rbc_GetPlatformId --
- *
- *      TODO: Description
- *
- * Parameters:
- *      None
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
-int Rbc_GetPlatformId(void) {
-    static int platformId = 0;
-    if (platformId == 0) {
-        OSVERSIONINFO opsysInfo;
-
-        opsysInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-        if (GetVersionEx(&opsysInfo)) {
-            platformId = opsysInfo.dwPlatformId;
-        }
-    }
-    return platformId;
-}
-
-/*
- *--------------------------------------------------------------
- *
  * Rbc_LastError --
  *
  *      TODO: Description

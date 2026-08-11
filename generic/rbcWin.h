@@ -75,7 +75,6 @@ extern int Rbc_AsyncRead(int fd, char *buffer, unsigned int size);
 extern int Rbc_AsyncWrite(int fd, char *buffer, unsigned int size);
 extern void Rbc_CreateFileHandler(int fd, int flags, Tcl_FileProc *proc, ClientData clientData);
 extern void Rbc_DeleteFileHandler(int fd);
-extern int Rbc_GetPlatformId(void);
 extern char *Rbc_LastError(void);
 
 #undef EXPORT
@@ -107,21 +106,10 @@ extern char *Rbc_LastError(void);
  */
 #endif /* __GNUC__ */
 
-/*
-#define XCopyArea        Rbc_EmulateXCopyArea
-#define XCopyPlane        Rbc_EmulateXCopyPlane
-*/
 #undef XDrawArcs
 #define XDrawArcs Rbc_EmulateXDrawArcs
-/*
-#define XDrawLine        Rbc_EmulateXDrawLine
-#define XDrawLines        Rbc_EmulateXDrawLines
-*/
 #undef XDrawPoints
 #define XDrawPoints Rbc_EmulateXDrawPoints
-/*
-#define XDrawRectangle        Rbc_EmulateXDrawRectangle
-*/
 #undef XDrawRectangles
 #define XDrawRectangles Rbc_EmulateXDrawRectangles
 #undef XDrawSegments
@@ -130,54 +118,21 @@ extern char *Rbc_LastError(void);
 #define XDrawString Rbc_EmulateXDrawString
 #undef XFillArcs
 #define XFillArcs Rbc_EmulateXFillArcs
-/*
-#define XFillPolygon        Rbc_EmulateXFillPolygon
-#define XFillRectangle        Rbc_EmulateXFillRectangle
-#define XFillRectangles        Rbc_EmulateXFillRectangles
-#define XFree            Rbc_EmulateXFree
-#define XGetWindowAttributes    Rbc_EmulateXGetWindowAttributes
-*/
+
 #undef XLowerWindow
 #define XLowerWindow Rbc_EmulateXLowerWindow
 #define XMaxRequestSize Rbc_EmulateXMaxRequestSize
-/*
-#define XRaiseWindow        Rbc_EmulateXRaiseWindow
-*/
-/*
-#define XSetDashes        Rbc_EmulateXSetDashes
-#define XUnmapWindow        Rbc_EmulateXUnmapWindow
-#define XWarpPointer        Rbc_EmulateXWarpPointer
-*/
 
-EXTERN void Rbc_EmulateXCopyArea(Display *display, Drawable src, Drawable dest, GC gc, int src_x, int src_y,
-                                 unsigned int width, unsigned int height, int dest_x, int dest_y);
-EXTERN void Rbc_EmulateXCopyPlane(Display *display, Drawable src, Drawable dest, GC gc, int src_x, int src_y,
-                                  unsigned int width, unsigned int height, int dest_x, int dest_y, unsigned long plane);
+
 EXTERN void Rbc_EmulateXDrawArcs(Display *display, Drawable drawable, GC gc, XArc *arcArr, int nArcs);
-EXTERN void Rbc_EmulateXDrawLine(Display *display, Drawable drawable, GC gc, int x1, int y1, int x2, int y2);
-EXTERN void Rbc_EmulateXDrawLines(Display *display, Drawable drawable, GC gc, XPoint *pointArr, int nPoints, int mode);
 EXTERN void Rbc_EmulateXDrawPoints(Display *display, Drawable drawable, GC gc, XPoint *pointArr, int nPoints, int mode);
-EXTERN void Rbc_EmulateXDrawRectangle(Display *display, Drawable drawable, GC gc, int x, int y, unsigned int width,
-                                      unsigned int height);
 EXTERN void Rbc_EmulateXDrawRectangles(Display *display, Drawable drawable, GC gc, XRectangle *rectArr, int nRects);
 EXTERN void Rbc_EmulateXDrawSegments(Display *display, Drawable drawable, GC gc, XSegment *segArr, int nSegments);
 EXTERN void Rbc_EmulateXDrawString(Display *display, Drawable drawable, GC gc, int x, int y, _Xconst char *string,
                                    int length);
 EXTERN void Rbc_EmulateXFillArcs(Display *display, Drawable drawable, GC gc, XArc *arcArr, int nArcs);
-EXTERN void Rbc_EmulateXFillPolygon(Display *display, Drawable drawable, GC gc, XPoint *points, int nPoints, int shape,
-                                    int mode);
-EXTERN void Rbc_EmulateXFillRectangle(Display *display, Drawable drawable, GC gc, int x, int y, unsigned int width,
-                                      unsigned int height);
-EXTERN void Rbc_EmulateXFillRectangles(Display *display, Drawable drawable, GC gc, XRectangle *rectArr, int nRects);
-EXTERN void Rbc_EmulateXFree(void *ptr);
-EXTERN int Rbc_EmulateXGetWindowAttributes(Display *display, Window window, XWindowAttributes *attrsPtr);
 EXTERN void Rbc_EmulateXLowerWindow(Display *display, Window window);
-EXTERN void Rbc_EmulateXMapWindow(Display *display, Window window);
 EXTERN long Rbc_EmulateXMaxRequestSize(Display *display);
-EXTERN void Rbc_EmulateXRaiseWindow(Display *display, Window window);
-EXTERN void Rbc_EmulateXUnmapWindow(Display *display, Window window);
-EXTERN void Rbc_EmulateXWarpPointer(Display *display, Window srcWindow, Window destWindow, int srcX, int srcY,
-                                    unsigned int srcWidth, unsigned int srcHeight, int destX, int destY);
 
 extern unsigned char *Rbc_GetBitmapData(Display *display, Pixmap bitmap, int width, int height, int *pitchPtr);
 
