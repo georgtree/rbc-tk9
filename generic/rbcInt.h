@@ -566,10 +566,10 @@ int Rbc_AdjustViewport(int offset, int worldSize, int windowSize, int scrollUnit
 int Rbc_GetScrollInfo(Tcl_Interp *interp, int argc, char **argv, int *offsetPtr, int worldSize, int windowSize,
                       int scrollUnits, int scrollMode);
 
-int Rbc_GetScrollInfoFromObj(Tcl_Interp *interp, int objc, Tcl_Obj *const *objv, int *offsetPtr, int worldSize,
+int Rbc_GetScrollInfoFromObj(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], int *offsetPtr, int worldSize,
                              int windowSize, int scrollUnits, int scrollMode);
 
-void Rbc_UpdateScrollbar(Tcl_Interp *interp, char *scrollCmd, double firstFract, double lastFract);
+void Rbc_UpdateScrollbar(Tcl_Interp *interp, const char *scrollCmd, double firstFract, double lastFract);
 
 #if defined(HAVE_JPEGLIB_H) || defined(HAVE_IJL_H)
 #define HAVE_JPEG 1

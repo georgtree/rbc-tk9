@@ -210,7 +210,7 @@ static const char *PointToString(ClientData clientData, Tk_Window tkwin, char *w
  */
 static int GetColorPair(Tcl_Interp *interp, Tk_Window tkwin, const char *fgStr, const char *bgStr, ColorPair *pairPtr,
                         int allowDefault) {
-    unsigned int length;
+    size_t length;
     XColor *fgColor, *bgColor;
 
     length = strlen(fgStr);
@@ -920,133 +920,6 @@ Point2D Rbc_GetProjection(int x, int y, Point2D *p, Point2D *q) {
     return t;
 }
 
-#define SetColor(c, r, g, b)                                                                                           \
-    ((c)->red = (int)((r) * 65535.0), (c)->green = (int)((g) * 65535.0), (c)->blue = (int)((b) * 65535.0))
-
-#ifdef notdef
-/*
- *----------------------------------------------------------------------
- *
- * XColorToHSV --
- *
- *      TODO: Description
- *
- * Parameters:
- *      XColor *colorPtr
- *      HSV *hsvPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static void XColorToHSV(XColor *colorPtr, HSV *hsvPtr) {
-    unsigned short max, min;
-    double range;
-    unsigned short *colorValues;
-
-    /* Find the minimum and maximum RGB intensities */
-    colorValues = (unsigned short *)&colorPtr->red;
-    max = MAX3(colorValues[0], colorValues[1], colorValues[2]);
-    min = MIN3(colorValues[0], colorValues[1], colorValues[2]);
-
-    hsvPtr->val = (double)max / 65535.0;
-    hsvPtr->hue = hsvPtr->sat = 0.0;
-
-    range = (double)(max - min);
-    if (max != min) {
-        hsvPtr->sat = range / (double)max;
-    }
-    if (hsvPtr->sat > 0.0) {
-        double red, green, blue;
-
-        /* Normalize the RGB values */
-        red = (double)(max - colorPtr->red) / range;
-        green = (double)(max - colorPtr->green) / range;
-        blue = (double)(max - colorPtr->blue) / range;
-
-        if (colorPtr->red == max) {
-            hsvPtr->hue = (blue - green);
-        } else if (colorPtr->green == max) {
-            hsvPtr->hue = 2 + (red - blue);
-        } else if (colorPtr->blue == max) {
-            hsvPtr->hue = 4 + (green - red);
-        }
-        hsvPtr->hue *= 60.0;
-    } else {
-        hsvPtr->sat = 0.5;
-    }
-    if (hsvPtr->hue < 0.0) {
-        hsvPtr->hue += 360.0;
-    }
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * HSVToXColor --
- *
- *      TODO: Description
- *
- * Parameters:
- *      HSV *hsvPtr
- *      XColor *colorPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static void HSVToXColor(HSV *hsvPtr, XColor *colorPtr) {
-    double hue, p, q, t;
-    double frac;
-    int quadrant;
-
-    if (hsvPtr->val < 0.0) {
-        hsvPtr->val = 0.0;
-    } else if (hsvPtr->val > 1.0) {
-        hsvPtr->val = 1.0;
-    }
-    if (hsvPtr->sat == 0.0) {
-        SetColor(colorPtr, hsvPtr->val, hsvPtr->val, hsvPtr->val);
-        return;
-    }
-    hue = FMOD(hsvPtr->hue, 360.0) / 60.0;
-    quadrant = (int)floor(hue);
-    frac = hsvPtr->hue - quadrant;
-    p = hsvPtr->val * (1 - (hsvPtr->sat));
-    q = hsvPtr->val * (1 - (hsvPtr->sat * frac));
-    t = hsvPtr->val * (1 - (hsvPtr->sat * (1 - frac)));
-
-    switch (quadrant) {
-    case 0:
-        SetColor(colorPtr, hsvPtr->val, t, p);
-        break;
-    case 1:
-        SetColor(colorPtr, q, hsvPtr->val, p);
-        break;
-    case 2:
-        SetColor(colorPtr, p, hsvPtr->val, t);
-        break;
-    case 3:
-        SetColor(colorPtr, p, q, hsvPtr->val);
-        break;
-    case 4:
-        SetColor(colorPtr, t, p, hsvPtr->val);
-        break;
-    case 5:
-        SetColor(colorPtr, hsvPtr->val, p, q);
-        break;
-    }
-}
-#endif /* notdef */
-
 /*
  *----------------------------------------------------------------------
  *
@@ -1163,7 +1036,7 @@ int Rbc_AdjustViewport(int offset, int worldSize, int windowSize, int scrollUnit
 int Rbc_GetScrollInfo(Tcl_Interp *interp, int argc, char **argv, int *offsetPtr, int worldSize, int windowSize,
                       int scrollUnits, int scrollMode) {
     char c;
-    unsigned int length;
+    size_t length;
     int offset;
     int count;
     double fract;
@@ -1212,7 +1085,6 @@ int Rbc_GetScrollInfo(Tcl_Interp *interp, int argc, char **argv, int *offsetPtr,
     return TCL_OK;
 }
 
-#if (TCL_MAJOR_VERSION >= 8)
 /*
  *----------------------------------------------------------------------
  *
@@ -1238,14 +1110,14 @@ int Rbc_GetScrollInfo(Tcl_Interp *interp, int argc, char **argv, int *offsetPtr,
  *
  *----------------------------------------------------------------------
  */
-int Rbc_GetScrollInfoFromObj(Tcl_Interp *interp, int objc, Tcl_Obj *const *objv, int *offsetPtr, int worldSize,
+int Rbc_GetScrollInfoFromObj(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], int *offsetPtr, int worldSize,
                              int windowSize, int scrollUnits, int scrollMode) {
     char c;
-    unsigned int length;
+    size_t length;
     int offset;
     int count;
     double fract;
-    char *string;
+    const char *string;
 
     offset = *offsetPtr;
 
@@ -1293,7 +1165,6 @@ int Rbc_GetScrollInfoFromObj(Tcl_Interp *interp, int objc, Tcl_Obj *const *objv,
     *offsetPtr = Rbc_AdjustViewport(offset, worldSize, windowSize, scrollUnits, scrollMode);
     return TCL_OK;
 }
-#endif /* TCL_MAJOR_VERSION >= 8 */
 
 /*
  * ----------------------------------------------------------------------
@@ -1319,14 +1190,19 @@ int Rbc_GetScrollInfoFromObj(Tcl_Interp *interp, int objc, Tcl_Obj *const *objv,
  *
  * ----------------------------------------------------------------------
  */
-void Rbc_UpdateScrollbar(Tcl_Interp *interp, char *scrollCmd, double firstFract, double lastFract) {
-    char string[200];
+void Rbc_UpdateScrollbar(Tcl_Interp *interp, const char *scrollCmd, double firstFract, double lastFract) {
+    char first[TCL_DOUBLE_SPACE];
+    char last[TCL_DOUBLE_SPACE];
     Tcl_DString dString;
 
+    Tcl_PrintDouble(interp, firstFract, first);
+    Tcl_PrintDouble(interp, lastFract, last);
     Tcl_DStringInit(&dString);
     Tcl_DStringAppend(&dString, scrollCmd, -1);
-    sprintf(string, " %f %f", firstFract, lastFract);
-    Tcl_DStringAppend(&dString, string, -1);
+    Tcl_DStringAppend(&dString, " ", 1);
+    Tcl_DStringAppend(&dString, first, -1);
+    Tcl_DStringAppend(&dString, " ", 1);
+    Tcl_DStringAppend(&dString, last, -1);
     if (Tcl_GlobalEval(interp, Tcl_DStringValue(&dString)) != TCL_OK) {
         Tcl_BackgroundError(interp);
     }
@@ -1840,7 +1716,6 @@ int Rbc_MaxRequestSize(Display *display, unsigned int elemSize) {
  */
 void Rbc_Fill3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, int x, int y, int width, int height,
                          int borderWidth, int relief) {
-#ifndef notdef
     if ((borderWidth > 1) && (width > 2) && (height > 2) &&
         ((relief == TK_RELIEF_SUNKEN) || (relief == TK_RELIEF_RAISED))) {
         GC lightGC, darkGC;
@@ -1848,8 +1723,6 @@ void Rbc_Fill3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border,
 
         x2 = x + width - 1;
         y2 = y + height - 1;
-#define TK_3D_LIGHT2_GC TK_3D_DARK_GC + 1
-#define TK_3D_DARK2_GC TK_3D_DARK_GC + 2
         if (relief == TK_RELIEF_RAISED) {
             lightGC = Tk_3DBorderGC(tkwin, border, TK_3D_FLAT_GC);
 #ifdef WIN32
@@ -1869,9 +1742,12 @@ void Rbc_Fill3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border,
         XDrawLine(Tk_Display(tkwin), drawable, darkGC, x2, y2, x2, y);
         XDrawLine(Tk_Display(tkwin), drawable, darkGC, x2, y2, x, y2);
         XDrawLine(Tk_Display(tkwin), drawable, lightGC, x, y, x, y2);
-        x++, y++, width -= 2, height -= 2, borderWidth--;
+        x++;
+        y++;
+        width -= 2;
+        height -= 2;
+        borderWidth--;
     }
-#endif
     Tk_Fill3DRectangle(tkwin, drawable, border, x, y, width, height, borderWidth, relief);
 }
 
@@ -1904,7 +1780,6 @@ void Rbc_Fill3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border,
  */
 void Rbc_Draw3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, int x, int y, int width, int height,
                          int borderWidth, int relief) {
-#ifndef notdef
     if ((borderWidth > 1) && (width > 2) && (height > 2) &&
         ((relief == TK_RELIEF_SUNKEN) || (relief == TK_RELIEF_RAISED))) {
         GC lightGC, darkGC;
@@ -1931,362 +1806,11 @@ void Rbc_Draw3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border,
         XDrawLine(Tk_Display(tkwin), drawable, lightGC, x, y, x2, y);
         XDrawLine(Tk_Display(tkwin), drawable, darkGC, x2, y2, x, y2);
         XDrawLine(Tk_Display(tkwin), drawable, lightGC, x, y, x, y2);
-        x++, y++, width -= 2, height -= 2, borderWidth--;
+        x++;
+        y++;
+        width -= 2;
+        height -= 2;
+        borderWidth--;
     }
-#endif
     Tk_Draw3DRectangle(tkwin, drawable, border, x, y, width, height, borderWidth, relief);
 }
-
-#ifdef notdef
-typedef struct {
-    Screen *screen;
-    Visual *visual;
-    Colormap colormap;
-    Tk_Uid nameUid;
-} BorderKey;
-
-typedef struct {
-    Screen *screen;     /* Screen on which the border will be used. */
-    Visual *visual;     /* Visual for all windows and pixmaps using
-                         * the border. */
-    int depth;          /* Number of bits per pixel of drawables where
-                         * the border will be used. */
-    Colormap colormap;  /* Colormap out of which pixels are
-                         * allocated. */
-    int refCount;       /* Number of active uses of this color
-                         * (each active use corresponds to a
-                         * call to Rbc_Get3DBorder).  If this
-                         * count is 0, then this structure is
-                         * no longer valid and it isn't
-                         * present in borderTable: it is being
-                         * kept around only because there are
-                         * objects referring to it.  The
-                         * structure is freed when refCount is
-                         * 0. */
-    XColor *bgColorPtr; /* Color of face. */
-    XColor *shadows[4];
-    Pixmap darkStipple;  /* Stipple pattern to use for drawing
-                          * shadows areas.  Used for displays with
-                          * <= 64 colors or where colormap has filled
-                          * up. */
-    Pixmap lightStipple; /* Stipple pattern to use for drawing
-                          * shadows areas.  Used for displays with
-                          * <= 64 colors or where colormap has filled
-                          * up. */
-    GC bgGC;             /* Used (if necessary) to draw areas in
-                          * the background color. */
-    GC lightGC, darkGC;
-    Tcl_HashEntry *hashPtr; /* Entry in borderTable (needed in
-                             * order to delete structure). */
-    struct Rbc_3DBorderStruct *nextPtr;
-} Border, *Rbc_3DBorder;
-
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_Draw3DRectangle --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tk_Window tkwin - Window for which border was allocated.
- *      Drawable drawable - X window or pixmap in which to draw.
- *      Tk_3DBorder border - Token for border to draw.
- *      int x - -
- *      int y - -
- *      int width - -
- *      int height - Outside area of rectangular region. 
- *      int borderWidth - Desired width for border, in pixels. Border will be *inside* region.
- *      int relief - Indicates 3D effect: TK_RELIEF_FLAT, TK_RELIEF_RAISED, or TK_RELIEF_SUNKEN.
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-void Rbc_Draw3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, int x, int y, int width, int height,
-                         int borderWidth, int relief) {
-    if ((width > (2 * borderWidth)) && (height > (2 * borderWidth))) {
-        int x2, y2;
-        int i;
-
-        x2 = x + width - 1;
-        y2 = y + height - 1;
-
-        XSetForeground(borderPtr->lightGC, borderPtr->shadows[0]);
-        XSetForeground(borderPtr->darkGC, borderPtr->shadows[3]);
-        XDrawLine(Tk_Display(tkwin), drawable, borderPtr->lightGC, x, y, x2, y);
-        XDrawLine(Tk_Display(tkwin), drawable, borderPtr->lightGC, x, y, x, y2);
-        XDrawLine(Tk_Display(tkwin), drawable, borderPtr->darkGC, x2, y, x2, y2);
-        XDrawLine(Tk_Display(tkwin), drawable, borderPtr->darkGC, x2, y2, x, y2);
-        XSetForeground(borderPtr->lightGC, borderPtr->shadows[1]);
-        XSetForeground(borderPtr->darkGC, borderPtr->shadows[2]);
-        for (i = 1; i < (borderWidth - 1); i++) {
-
-            /*
-             *  +---------
-             *  |+-------
-             *  ||+-----
-             *  |||
-             *  |||
-             *  ||
-             *  |
-             */
-            x++, y++, x2--, y2--;
-            XDrawLine(Tk_Display(tkwin), drawable, borderPtr->lightGC, x, y, x2, y);
-            XDrawLine(Tk_Display(tkwin), drawable, borderPtr->lightGC, x, y, x, y2);
-            XDrawLine(Tk_Display(tkwin), drawable, borderPtr->darkGC, x2, y, x2, y2);
-            XDrawLine(Tk_Display(tkwin), drawable, borderPtr->darkGC, x2, y2, x, y2);
-        }
-    }
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_Fill3DRectangle --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tk_Window tkwin - Window for which border was allocated.
- *      Drawable drawable - X window or pixmap in which to draw.
- *      Tk_3DBorder border - Token for border to draw.
- *      int x - -
- *      int y - -
- *      int width - -
- *      int height - Outside area of rectangular region. 
- *      int borderWidth - Desired width for border, in pixels. Border will be *inside* region.
- *      int relief - Indicates 3D effect: TK_RELIEF_FLAT, TK_RELIEF_RAISED, or TK_RELIEF_SUNKEN.
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-void Rbc_Fill3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, int x, int y, int width, int height,
-                         int borderWidth, int relief) {
-    Rbc_3DBorder *borderPtr;
-
-    if (borderPtr != NULL) {
-        XFillRectangle(Tk_Display(tkwin), drawable, borderPtr->bgGC, x, y, width, height);
-    }
-    if ((borderWidth > 0) && (relief != TK_RELIEF_FLAT)) {
-        Rbc_Draw3DRectangle(tkwin, drawable, borderPtr, x, y, width, height, borderWidth, relief);
-    }
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * FreeBorder --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Display *display
- *      Border *borderPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-void FreeBorder(Display *display, Border *borderPtr) {
-    int i;
-
-    if (borderPtr->bgColorPtr != NULL) {
-        Tk_FreeColor(display, borderPtr->bgColorPtr);
-    }
-    for (i = 0; i < 4; i++) {
-        Tk_FreeColor(display, borderPtr->shadows[i]);
-    }
-    if (borderPtr->tile != NULL) {
-        Rbc_FreeTile(tile);
-    }
-    if (borderPtr->darkGC != NULL) {
-        Rbc_FreePrivateGC(display, borderPtr->darkGC);
-    }
-    if (borderPtr->lightGC != NULL) {
-        Rbc_FreePrivateGC(tkwin, borderPtr->lightGC);
-    }
-    if (borderPtr->bgGC != NULL) {
-        Rbc_FreePrivateGC(tkwin, borderPtr->bgGC);
-    }
-    ckree((char *)borderPtr);
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_Free3DBorder --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Display *display
- *      Rbc_3DBorder border
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-void Rbc_Free3DBorder(Display *display, Rbc_3DBorder border) {
-    Border *borderPtr = (Border *)border;
-
-    borderPtr->refCount--;
-    if (borderPtr->refCount >= 0) {
-        /* Search for the border in the bucket. Start at the head. */
-        headPtr = Tcl_GetHashValue(borderPtr->hashPtr);
-        lastPtr = NULL;
-        while ((headPtr != borderPtr) && (headPtr != NULL)) {
-            lastPtr = headPtr;
-            headPtr = headPtr->next;
-        }
-        if (headPtr == NULL) {
-            return; /* This can't happen. It means that
-                     * we could not find the border. */
-        }
-        if (lastPtr != NULL) {
-            lastPtr->next = borderPtr->next;
-        } else {
-            Tcl_DeleteHashEntry(borderPtr->hashPtr);
-        }
-        FreeBorder(display, borderPtr);
-    }
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_Get3DBorder --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      Tk_Window tkwin
- *      char *borderName
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-Rbc_3DBorder *Rbc_Get3DBorder(Tcl_Interp *interp, Tk_Window tkwin, char *borderName) {
-    Rbc_3DBorder *borderPtr, *lastBorderPtr;
-    Tcl_HashEntry *hPtr;
-    Rbc_Tile tile;
-    XColor *bgColorPtr;
-    char **argv;
-    char *colorName;
-    int argc;
-    int isNew;
-
-    lastBorderPtr = NULL;
-    hPtr = Tcl_CreateHashEntry(&dataPtr->borderTable, borderName, &isNew);
-    if (!isNew) {
-        borderPtr = lastBorderPtr = Tcl_GetHashValue(hPtr);
-        while (borderPtr != NULL) {
-            if ((Tk_Screen(tkwin) == borderPtr->screen) && (Tk_Colormap(tkwin) == borderPtr->colormap)) {
-                borderPtr->refCount++;
-                return borderPtr;
-            }
-            borderPtr = borderPtr->nextPtr;
-        }
-    }
-    /* Create a new border. */
-    argv = NULL;
-    bgColorPtr = NULL;
-    tile = NULL;
-
-    if (Tcl_SplitList(interp, borderName, &argc, &argv) != TCL_OK) {
-        goto error;
-    }
-    colorName = borderName;
-    if ((argc == 2) && (Rbc_GetTile(interp, tkwin, argv[0], &tile) == TCL_OK)) {
-        colorName = argv[1];
-    }
-    bgColorPtr = Tk_GetColor(interp, tkwin, colorName);
-    if (bgColorPtr == NULL) {
-        goto error;
-    }
-
-    /* Create a new border */
-    borderPtr = Rbc_Calloc(1, sizeof(Rbc_3DBorder));
-    assert(borderPtr);
-    borderPtr->screen = Tk_Screen(tkwin);
-    borderPtr->visual = Tk_Visual(tkwin);
-    borderPtr->depth = Tk_Depth(tkwin);
-    borderPtr->colormap = Tk_Colormap(tkwin);
-    borderPtr->refCount = 1;
-    borderPtr->bgColorPtr = bgColorPtr;
-    borderPtr->tile = tile;
-    borderPtr->darkGC = Rbc_GetPrivateGC(tkwin, 0, NULL);
-    borderPtr->lightGC = Rbc_GetPrivateGC(tkwin, 0, NULL);
-    borderPtr->hashPtr = lastBorderPtr->hashPtr;
-    lastBorderPtr->nextPtr = lastBorderPtr;
-    {
-        HSV hsv;
-        XColor color;
-        double sat, sat0, diff, step, hstep;
-        int count;
-
-        /* Convert the face (background) color to HSV */
-        XColorToHSV(borderPtr->bgColorPtr, &hsv);
-
-        /* Using the color as the baseline intensity, pick a set of
-         * colors around the intensity. */
-#define UFLOOR(x, u) (floor((x) * (u)) / (u))
-        diff = hsv.sat - UFLOOR(hsv.sat, 0.2);
-        sat = 0.1 + (diff - 0.1);
-        sat0 = hsv.sat;
-        count = 0;
-        for (sat = 0.1 + (diff - 0.1); sat <= 1.0; sat += 0.2) {
-            if (FABS(sat0 - sat) >= 0.1) {
-                hsv.sat = sat;
-                HSVToXColor(&hsv, &color);
-                borderPtr->shadows[count] = Tk_GetColorByValue(tkwin, &color);
-                count++;
-            }
-        }
-    }
-    Tcl_SetHashValue(hPtr, borderPtr);
-    if (argv != NULL) {
-        ckfree((char *)argv);
-    }
-    return TCL_OK;
-
-error:
-    if (argv != NULL) {
-        ckfree((char *)argv);
-    }
-    if (tile != NULL) {
-        Rbc_FreeTile(tile);
-    }
-    if (bgColorPtr != NULL) {
-        Tk_FreeColor(bgColorPtr);
-    }
-    if (isNew) {
-        Tcl_DeleteHashEntry(&borderTable, hPtr);
-    }
-    return NULL;
-}
-
-#endif
