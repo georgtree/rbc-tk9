@@ -66,16 +66,13 @@
  *    around to various routines while parsing the EPS file.
  */
 typedef struct {
-    int maxBytes; /* Maximum length of PostScript code.  */
-    int lineNumber; /* Current line number of EPS file */
-    char line[MAX_EPS_LINE_LENGTH + 1]; /* Buffer to contain a single line from
-                     * the PostScript file. */
-    char hexTable[256]; /* Table for converting ASCII hex digits to
-             * values */
-    char *nextPtr; /* Pointer to the next character to process on
-            * the current line.  If NULL (or if nextPtr
-            * points a NULL byte), this indicates the
-            * the next line needs to be read. */
+    size_t maxBytes;  /* Maximum bytes in PostScript section.
+                       * Zero means read to EOF. */
+    size_t bytesRead; /* Bytes consumed from PostScript section. */
+    int lineNumber;
+    char line[MAX_EPS_LINE_LENGTH + 1];
+    char hexTable[256];
+    char *nextPtr;
     FILE *f;
 } EpsParseInfo;
 
@@ -297,20 +294,40 @@ SkipBlanks(
  *
  *----------------------------------------------------------------------
  */
-static int
-ReadPsLine(
-    EpsParseInfo *piPtr)
-{
-    if (ftell(piPtr->f) < piPtr->maxBytes) {
-    if (fgets(piPtr->line, MAX_EPS_LINE_LENGTH, piPtr->f) != NULL) {
-        piPtr->lineNumber++;
+static int ReadPsLine(EpsParseInfo *piPtr) {
+    int maxChars;
+
+    if ((piPtr->maxBytes != 0) && (piPtr->bytesRead >= piPtr->maxBytes)) {
+        return FALSE;
+    }
+
+    maxChars = MAX_EPS_LINE_LENGTH;
+
+    if (piPtr->maxBytes != 0) {
+        size_t remaining;
+
+        remaining = piPtr->maxBytes - piPtr->bytesRead;
+
+        /*
+         * fgets reads at most n - 1 characters.
+         */
+        if (remaining < (size_t)(MAX_EPS_LINE_LENGTH - 1)) {
+            maxChars = (int)remaining + 1;
+        }
+    }
+
+    if (fgets(piPtr->line, maxChars, piPtr->f) == NULL) {
+        return FALSE;
+    }
+
+    piPtr->bytesRead += strlen(piPtr->line);
+    piPtr->lineNumber++;
+
 #if DEBUG_READER
-        PurifyPrintf("%d: %s\n", piPtr->lineNumber, piPtr->line);
+    PurifyPrintf("%d: %s\n", piPtr->lineNumber, piPtr->line);
 #endif
-        return TRUE;
-    }
-    }
-    return FALSE;
+
+    return TRUE;
 }
 
 /*
@@ -362,57 +379,51 @@ ReverseBits(
  *
  *----------------------------------------------------------------------
  */
-static int
-GetHexValue(
-    EpsParseInfo *piPtr,
-    unsigned char *bytePtr)
-{
+static int GetHexValue(EpsParseInfo *piPtr, unsigned char *bytePtr) {
     register char *p;
     unsigned int byte;
 
     p = piPtr->nextPtr;
     if (p == NULL) {
-nextLine:
-    if (!ReadPsLine(piPtr)) {
+    nextLine:
+        if (!ReadPsLine(piPtr)) {
 #if DEBUG_READER
-        PurifyPrintf("short file\n");
+            PurifyPrintf("short file\n");
 #endif
-        return TCL_ERROR;    /* Short file */
-    }
-    if (piPtr->line[0] != '%') {
+            return TCL_ERROR; /* Short file */
+        }
+        if (piPtr->line[0] != '%') {
 #if DEBUG_READER
-        PurifyPrintf("line doesn't start with %% (%s)\n", piPtr->line);
+            PurifyPrintf("line doesn't start with %% (%s)\n", piPtr->line);
+#endif
+            return TCL_ERROR;
+        }
+        if ((piPtr->line[1] == '%') && (strncmp(piPtr->line + 2, "EndPreview", 10) == 0)) {
+#if DEBUG_READER
+            PurifyPrintf("end of preview (%s)\n", piPtr->line);
+#endif
+            return TCL_RETURN;
+        }
+        p = piPtr->line + 1;
+    }
+    while (isspace(UCHAR(*p))) {
+        p++;
+    }
+    if (*p == '\0') {
+        goto nextLine;
+    }
+    if ((!isxdigit(UCHAR(p[0]))) || (!isxdigit(UCHAR(p[1])))) {
+#if DEBUG_READER
+        PurifyPrintf("not a hex digit (%s)\n", piPtr->line);
 #endif
         return TCL_ERROR;
     }
-    if ((piPtr->line[1] == '%') &&
-        (strncmp(piPtr->line + 2, "EndPreview", 10) == 0)) {
-#if DEBUG_READER
-        PurifyPrintf("end of preview (%s)\n", piPtr->line);
-#endif
-        return TCL_RETURN;
-    }
-    p = piPtr->line + 1;
-    }
-    while (isspace((int)*p)) {
-    p++;            /* Skip spaces */
-    }
-    if (*p == '\0') {
-    goto nextLine;
-    }
-    if ((!isxdigit((int)p[0])) || (!isxdigit((int)p[1]))) {
-#if DEBUG_READER
-    PurifyPrintf("not a hex digit (%s)\n", piPtr->line);
-#endif
-    return TCL_ERROR;
-    }
-    byte = (piPtr->hexTable[(int)p[0]] << 4) | piPtr->hexTable[(int)p[1]];
+    byte = (piPtr->hexTable[UCHAR(p[0])] << 4) | piPtr->hexTable[UCHAR(p[1])];
     p += 2;
     piPtr->nextPtr = p;
     *bytePtr = byte;
     return TCL_OK;
 }
-
 
 /*
  *----------------------------------------------------------------------
@@ -467,7 +478,7 @@ ReadEPSI(
     unsigned char byte;
 
     for (y = height - 1; y >= 0; y--) {
-        destPtr = Rbc_ColorImageBits(image) + (y * width);
+        destPtr = Rbc_ColorImagePixel(image, 0, y);
         for (x = 0; x < width; x++, destPtr++) {
         result = GetHexValue(piPtr, &byte);
         if (result == TCL_ERROR) {
@@ -553,11 +564,7 @@ error:
  *
  *----------------------------------------------------------------------
  */
-static int
-ReadPostScript(
-    Tcl_Interp *interp,
-    EpsItem *epsPtr)
-{
+static int ReadPostScript(Tcl_Interp *interp, EpsItem *epsPtr) {
     char *field;
     char *dscTitle, *dscBoundingBox;
     char *dscEndComments;
@@ -565,30 +572,30 @@ ReadPostScript(
 
     pi.line[0] = '\0';
     pi.maxBytes = epsPtr->psLength;
+    pi.bytesRead = 0;
     pi.lineNumber = 0;
     pi.f = epsPtr->psFile;
 
-    Tcl_DStringInit(&epsPtr->dString);
-    if (pi.maxBytes == 0) {
-    pi.maxBytes = INT_MAX;
-    }
+    Tcl_DStringSetLength(&epsPtr->dString, 0);
     if (epsPtr->psStart > 0) {
-    if (fseek(epsPtr->psFile, epsPtr->psStart, 0) != 0) {
-        Tcl_AppendResult(interp,
-                 "can't seek to start of PostScript code in \"",
-                 epsPtr->fileName, "\"", (char *)NULL);
-        return TCL_ERROR;
-    }
+        if (epsPtr->psStart > (size_t)LONG_MAX) {
+            Tcl_AppendResult(interp, "PostScript offset is too large in \"", epsPtr->fileName, "\"", (char *)NULL);
+            return TCL_ERROR;
+        }
+
+        if (fseek(epsPtr->psFile, (long)epsPtr->psStart, SEEK_SET) != 0) {
+            Tcl_AppendResult(interp, "can't seek to start of PostScript code in \"", epsPtr->fileName, "\"",
+                             (char *)NULL);
+            return TCL_ERROR;
+        }
     }
     if (!ReadPsLine(&pi)) {
-    Tcl_AppendResult(interp, "file \"", epsPtr->fileName, "\" is empty?",
-             (char *)NULL);
-    return TCL_ERROR;
+        Tcl_AppendResult(interp, "file \"", epsPtr->fileName, "\" is empty?", (char *)NULL);
+        return TCL_ERROR;
     }
     if (strncmp(pi.line, "%!PS", 4) != 0) {
-    Tcl_AppendResult(interp, "file \"", epsPtr->fileName,
-             "\" doesn't start with \"%!PS\"", (char *)NULL);
-    return TCL_ERROR;
+        Tcl_AppendResult(interp, "file \"", epsPtr->fileName, "\" doesn't start with \"%!PS\"", (char *)NULL);
+        return TCL_ERROR;
     }
 
     /*
@@ -597,77 +604,70 @@ ReadPostScript(
      * have another EPS file embedded into it.
      */
     dscBoundingBox = dscTitle = dscEndComments = NULL;
-    pi.lineNumber = 1;
     while (ReadPsLine(&pi)) {
-    pi.lineNumber++;
-    if ((pi.line[0] == '%') && (pi.line[1] == '%')) { /* Header comment */
-        field = pi.line + 2;
-        if (field[0] == 'B') {
-        if (strncmp(field, "BeginSetup", 8) == 0) {
-            break;    /* Done */
-        }
-        if (strncmp(field, "BeginProlog", 8) == 0) {
-            break;    /* Done */
-        }
-        if ((strncmp(field, "BoundingBox:", 12) == 0) &&
-            (dscBoundingBox == NULL)) {
-            int nFields;
+        if ((pi.line[0] == '%') && (pi.line[1] == '%')) { /* Header comment */
+            field = pi.line + 2;
+            if (field[0] == 'B') {
+                if (strncmp(field, "BeginSetup", 8) == 0) {
+                    break; /* Done */
+                }
+                if (strncmp(field, "BeginProlog", 8) == 0) {
+                    break; /* Done */
+                }
+                if ((strncmp(field, "BoundingBox:", 12) == 0) && (dscBoundingBox == NULL)) {
+                    int nFields;
 
-            dscBoundingBox = field + 12;
-            nFields = sscanf(dscBoundingBox, "%d %d %d %d",
-                     &(epsPtr->llx), &(epsPtr->lly),
-                     &(epsPtr->urx), &(epsPtr->ury));
-            if (nFields != 4) {
-            Tcl_AppendResult(interp,
-                     "bad \"%%BoundingBox\" values: \"",
-                     dscBoundingBox, "\"", (char *)NULL);
-            goto error;
+                    dscBoundingBox = field + 12;
+                    nFields = sscanf(dscBoundingBox, "%d %d %d %d", &(epsPtr->llx), &(epsPtr->lly), &(epsPtr->urx),
+                                     &(epsPtr->ury));
+                    if (nFields != 4) {
+                        Tcl_AppendResult(interp, "bad \"%%BoundingBox\" values: \"", dscBoundingBox, "\"",
+                                         (char *)NULL);
+                        goto error;
+                    }
+                }
+            } else if ((field[0] == 'T') && (strncmp(field, "Title:", 6) == 0)) {
+                if (dscTitle == NULL) {
+                    dscTitle = RbcStrdup(field + 6);
+                }
+            } else if (field[0] == 'E') {
+                if (strncmp(field, "EndComments", 11) == 0) {
+                    dscEndComments = field;
+                    break; /* Done */
+                }
             }
-        }
-        } else if ((field[0] == 'T') &&
-               (strncmp(field, "Title:", 6) == 0)) {
-        if (dscTitle == NULL) {
-            dscTitle = RbcStrdup(field + 6);
-        }
-        } else if (field[0] == 'E') {
-        if (strncmp(field, "EndComments", 11) == 0) {
-            dscEndComments = field;
-            break;    /* Done */
-        }
-        }
-    }            /* %% */
+        } /* %% */
     }
     if (dscBoundingBox == NULL) {
-    Tcl_AppendResult(interp, "no \"%%BoundingBox:\" found in \"",
-             epsPtr->fileName, "\"", (char *)NULL);
-    goto error;
+        Tcl_AppendResult(interp, "no \"%%BoundingBox:\" found in \"", epsPtr->fileName, "\"", (char *)NULL);
+        goto error;
     }
     if (dscEndComments != NULL) {
-    /* Check if a "%%BeginPreview" immediately follows */
-    while (ReadPsLine(&pi)) {
-        field = SkipBlanks(&pi);
-        if (field[0] != '\0') {
-        break;
+        /* Check if a "%%BeginPreview" immediately follows */
+        while (ReadPsLine(&pi)) {
+            field = SkipBlanks(&pi);
+            if (field[0] != '\0') {
+                break;
+            }
+        }
+        if (strncmp(pi.line, "%%BeginPreview:", 15) == 0) {
+            ReadEPSI(epsPtr, &pi);
         }
     }
-    if (strncmp(pi.line, "%%BeginPreview:", 15) == 0) {
-        ReadEPSI(epsPtr, &pi);
-    }
-    }
     if (dscTitle != NULL) {
-    epsPtr->title = dscTitle;
+        epsPtr->title = dscTitle;
     }
     /* Finally save the PostScript into a dynamic string. */
     while (ReadPsLine(&pi)) {
-    Tcl_DStringAppend(&epsPtr->dString, pi.line, -1);
-    Tcl_DStringAppend(&epsPtr->dString, "\n", 1);
+        Tcl_DStringAppend(&epsPtr->dString, pi.line, -1);
+        Tcl_DStringAppend(&epsPtr->dString, "\n", 1);
     }
     return TCL_OK;
 error:
     if (dscTitle != NULL) {
-    ckfree((char *)dscTitle);
+        ckfree((char *)dscTitle);
     }
-    return TCL_ERROR;    /* BoundingBox: is required. */
+    return TCL_ERROR; /* BoundingBox: is required. */
 }
 
 /*
@@ -685,22 +685,18 @@ error:
  *
  *----------------------------------------------------------------------
  */
-static int
-OpenEpsFile(
-    Tcl_Interp *interp,
-    EpsItem *epsPtr)
-{
+static int OpenEpsFile(Tcl_Interp *interp, EpsItem *epsPtr) {
     FILE *f;
 #ifdef WIN32
     DOSEPSHEADER dosHeader;
-    int nBytes;
+    size_t nBytes;
 #endif
 
     f = fopen(epsPtr->fileName, "rb");
     if (f == NULL) {
-    Tcl_AppendResult(epsPtr->interp, "can't open \"", epsPtr->fileName,
-             "\": ", Tcl_PosixError(epsPtr->interp), (char *)NULL);
-    return TCL_ERROR;
+        Tcl_AppendResult(epsPtr->interp, "can't open \"", epsPtr->fileName, "\": ", Tcl_PosixError(epsPtr->interp),
+                         (char *)NULL);
+        return TCL_ERROR;
     }
     epsPtr->psFile = f;
     epsPtr->psStart = epsPtr->psLength = 0L;
@@ -708,28 +704,28 @@ OpenEpsFile(
     epsPtr->tiffStart = epsPtr->tiffLength = 0L;
 
 #ifdef WIN32
-    nBytes = fread(&dosHeader, sizeof(DOSEPSHEADER), 1, f);
-    if ((nBytes == sizeof(DOSEPSHEADER)) &&
-        (dosHeader.magic[0] == 0xC5) && (dosHeader.magic[1] == 0xD0) &&
-        (dosHeader.magic[2] == 0xD3) && (dosHeader.magic[3] == 0xC6)) {
+    nBytes = fread(&dosHeader, 1, sizeof(dosHeader), f);
 
-    /* DOS EPS file */
-    epsPtr->psStart = dosHeader.psStart;
-    epsPtr->wmfStart = dosHeader.wmfStart;
-    epsPtr->wmfLength = dosHeader.wmfLength;
-    epsPtr->tiffStart = dosHeader.tiffStart;
-    epsPtr->tiffLength = dosHeader.tiffLength;
-    epsPtr->previewFormat = PS_PREVIEW_EPSI;
+    if ((nBytes == sizeof(dosHeader)) && (dosHeader.magic[0] == 0xC5) && (dosHeader.magic[1] == 0xD0) &&
+        (dosHeader.magic[2] == 0xD3) && (dosHeader.magic[3] == 0xC6)) {
+        /* DOS EPS file. */
+        epsPtr->psStart = dosHeader.psStart;
+        epsPtr->psLength = dosHeader.psLength;
+        epsPtr->wmfStart = dosHeader.wmfStart;
+        epsPtr->wmfLength = dosHeader.wmfLength;
+        epsPtr->tiffStart = dosHeader.tiffStart;
+        epsPtr->tiffLength = dosHeader.tiffLength;
+        epsPtr->previewFormat = PS_PREVIEW_EPSI;
 #ifdef HAVE_TIFF_H
-    if (epsPtr->tiffLength > 0) {
-        epsPtr->previewFormat = PS_PREVIEW_TIFF;
+        if (epsPtr->tiffLength > 0) {
+            epsPtr->previewFormat = PS_PREVIEW_TIFF;
+        }
+#endif
+        if (epsPtr->wmfLength > 0) {
+            epsPtr->previewFormat = PS_PREVIEW_WMF;
+        }
     }
-#endif /* HAVE_TIFF_H */
-    if (epsPtr->wmfLength > 0) {
-        epsPtr->previewFormat = PS_PREVIEW_WMF;
-    }
-    }
-    fseek(f, 0, 0);
+    fseek(f, 0, SEEK_SET);
 #endif /* WIN32 */
     return ReadPostScript(interp, epsPtr);
 }
@@ -851,45 +847,43 @@ ReadWMF(f, epsPtr, headerPtr)
  *
  *----------------------------------------------------------------------
  */
-static void
-DeleteEps(
-    Tk_Canvas canvas, /* Info about overall canvas widget. */
-    Tk_Item *itemPtr, /* Item that is being deleted. */
-    Display *display) /* Display containing window for
-               * canvas. */
+static void DeleteEps(Tk_Canvas canvas, /* Info about overall canvas widget. */
+                      Tk_Item *itemPtr, /* Item that is being deleted. */
+                      Display *display) /* Display containing window for
+                                         * canvas. */
 {
     EpsItem *epsPtr = (EpsItem *)itemPtr;
-
     Tk_FreeOptions(configSpecs, (char *)epsPtr, display, 0);
     CloseEpsFile(epsPtr);
+    Tcl_DStringFree(&epsPtr->dString);
     if (epsPtr->colorImage != NULL) {
-    Rbc_FreeColorImage(epsPtr->colorImage);
+        Rbc_FreeColorImage(epsPtr->colorImage);
     }
     if (epsPtr->preview != NULL) {
-    Tk_FreeImage(epsPtr->preview);
+        Tk_FreeImage(epsPtr->preview);
     }
     if (epsPtr->previewName != NULL) {
-    ckfree((char *)epsPtr->previewName);
+        ckfree((char *)epsPtr->previewName);
     }
     if (epsPtr->tmpImage != NULL) {
-    Rbc_DestroyTemporaryImage(epsPtr->interp, epsPtr->tmpImage);
+        Rbc_DestroyTemporaryImage(epsPtr->interp, epsPtr->tmpImage);
     }
     if (epsPtr->pixmap != None) {
 #ifdef notyet
-    Rbc_FreeColorTable(epsPtr->colorTable);
+        Rbc_FreeColorTable(epsPtr->colorTable);
 #endif
-    Tk_FreePixmap(display, epsPtr->pixmap);
+        Tk_FreePixmap(display, epsPtr->pixmap);
     }
     if (epsPtr->stipple != None) {
-    Tk_FreePixmap(display, epsPtr->stipple);
+        Tk_FreePixmap(display, epsPtr->stipple);
     }
     if (epsPtr->fillGC != NULL) {
-    Tk_FreeGC(display, epsPtr->fillGC);
+        Tk_FreeGC(display, epsPtr->fillGC);
     }
     Rbc_FreeTextStyle(display, &(epsPtr->titleStyle));
 
     if (epsPtr->title != NULL) {
-    ckfree((char *)epsPtr->title);
+        ckfree((char *)epsPtr->title);
     }
 }
 
@@ -1124,6 +1118,10 @@ static int ConfigureEps(Tcl_Interp *interp,    /* Used for error reporting. */
         }
     }
     if (fileModified) {
+        if (epsPtr->title != NULL) {
+            ckfree(epsPtr->title);
+            epsPtr->title = NULL;
+        }
         CloseEpsFile(epsPtr);
         if (epsPtr->pixmap != None) {
 #ifdef notyet
