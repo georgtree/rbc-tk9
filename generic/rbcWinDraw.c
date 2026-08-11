@@ -15,7 +15,7 @@
 #include <X11/Xlib.h>
 
 #define WINDEBUG 0
-
+#define XAngleToRadians(a) ((double)(a) / 64.0 * M_PI / 180.0)
 
 const int tkpWinRopModes[] = {
     R2_BLACK,       /* GXclear */
@@ -256,54 +256,6 @@ void Rbc_EmulateXLowerWindow(Display *display, Window window) {
     SetWindowPos(hWnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 }
 
-typedef struct {
-    HDC dc;
-    int count;
-    COLORREF color;
-    int offset, nBits;
-} DashInfo;
-
-/*
- *--------------------------------------------------------------
- *
- * GetDashInfo --
- *
- *      TODO: Description
- *
- * Parameters:
- *      HDC dc
- *      GC gc
- *      DashInfo *infoPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
-static int GetDashInfo(HDC dc, GC gc, DashInfo *infoPtr) {
-    const unsigned char *dashPtr;
-    int dashValue;
-
-    dashPtr = (const unsigned char *)&gc->dashes;
-    /*
-     * The LineDDA implementation only handles a single repeating
-     * dash length.  Multi-value patterns are handled by Rbc_GCToPen.
-     */
-    if ((dashPtr[0] == 0) || (dashPtr[1] != 0)) {
-        return FALSE;
-    }
-    dashValue = dashPtr[0];
-    infoPtr->dc = dc;
-    infoPtr->nBits = dashValue;
-    infoPtr->offset = gc->dash_offset;
-    infoPtr->count = 0;
-    infoPtr->color = gc->foreground;
-    return TRUE;
-}
-
 /*
  *--------------------------------------------------------------
  *
@@ -513,8 +465,7 @@ static void DrawArc(HDC dc, int arcMode, XArc *arcPtr, HPEN pen, HBRUSH brush) {
     double radian_start, radian_end, xr, yr;
     double dx, dy;
 
-    if ((arcPtr->angle1 == 0) && (arcPtr->angle2 == 23040)) {
-        /* Handle special case of circle or ellipse */
+    if ((arcPtr->angle2 >= (64 * 360)) || (arcPtr->angle2 <= -(64 * 360))) {
         Ellipse(dc, arcPtr->x, arcPtr->y, arcPtr->x + arcPtr->width + 1, arcPtr->y + arcPtr->height + 1);
         return;
     }
@@ -537,7 +488,6 @@ static void DrawArc(HDC dc, int arcMode, XArc *arcPtr, HPEN pen, HBRUSH brush) {
         start = extent;
         extent = tmp;
     }
-#define XAngleToRadians(a) ((double)(a) / 64 * M_PI / 180);
     radian_start = XAngleToRadians(start);
     radian_end = XAngleToRadians(extent);
     /*
@@ -559,11 +509,6 @@ static void DrawArc(HDC dc, int arcMode, XArc *arcPtr, HPEN pen, HBRUSH brush) {
      * difference in pixel definitions between X and Windows.
      */
     if (brush == 0) {
-        /*
-         * Note that this call will leave a gap of one pixel at the
-         * end of the arc for thin arcs.  We can't use ArcTo because
-         * it's only supported under Windows NT.
-         */
         Arc(dc, arcPtr->x, arcPtr->y, arcPtr->x + arcPtr->width + 1, arcPtr->y + arcPtr->height + 1, xstart, ystart,
             xend, yend);
         /* FIXME: */
@@ -684,37 +629,6 @@ void Rbc_EmulateXFillArcs(Display *display, Drawable drawable, GC gc, XArc *arcA
 /*
  *----------------------------------------------------------------------
  *
- * DrawDot --
- *
- *      Draws a dot.
- *
- * Parameters:
- *      int x - x-coordinate of point
- *      int y - y-coordinate of point
- *      LPARAM clientData - Line information
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Renders a dot.
- *
- *----------------------------------------------------------------------
- */
-static void CALLBACK DrawDot(int x, int y, LPARAM clientData) {
-    DashInfo *infoPtr = (DashInfo *)clientData;
-    int count;
-
-    infoPtr->count++;
-    count = (infoPtr->count + infoPtr->offset) / infoPtr->nBits;
-    if (count & 0x1) {
-        SetPixelV(infoPtr->dc, x, y, infoPtr->color);
-    }
-}
-
-/*
- *----------------------------------------------------------------------
- *
  * Rbc_EmultateXDrawSegments --
  *
  *      Draws multiple, unconnected lines. For each segment, draws a
@@ -741,40 +655,23 @@ static void CALLBACK DrawDot(int x, int y, LPARAM clientData) {
  */
 void Rbc_EmulateXDrawSegments(Display *display, Drawable drawable, GC gc, XSegment *segArr, int nSegments) {
     HDC dc;
+    HPEN pen, oldPen;
     XSegment *segPtr, *endPtr;
     TkWinDCState state;
 
-    //    display->request++;
     if ((drawable == None) || (segArr == NULL) || (nSegments <= 0)) {
         return;
     }
     dc = TkWinGetDrawableDC(display, drawable, &state);
     SetROP2(dc, tkpWinRopModes[gc->function]);
-    if ((gc->line_style != LineSolid) && (gc->line_width <= 1)) {
-        /* Handle dotted lines specially */
-        DashInfo info;
-
-        if (!GetDashInfo(dc, gc, &info)) {
-            goto usePen;
-        }
-        endPtr = segArr + nSegments;
-        for (segPtr = segArr; segPtr < endPtr; segPtr++) {
-            info.count = 0; /* Reset dash counter after every segment. */
-            LineDDA(segPtr->x1, segPtr->y1, segPtr->x2, segPtr->y2, DrawDot, (LPARAM)&info);
-        }
-    } else {
-        HPEN pen, oldPen;
-
-    usePen:
-        pen = Rbc_GCToPen(dc, gc);
-        oldPen = SelectPen(dc, pen);
-        endPtr = segArr + nSegments;
-        for (segPtr = segArr; segPtr < endPtr; segPtr++) {
-            MoveToEx(dc, segPtr->x1, segPtr->y1, (LPPOINT)NULL);
-            LineTo(dc, segPtr->x2, segPtr->y2);
-        }
-        DeletePen(SelectPen(dc, oldPen));
+    pen = Rbc_GCToPen(dc, gc);
+    oldPen = SelectPen(dc, pen);
+    endPtr = segArr + nSegments;
+    for (segPtr = segArr; segPtr < endPtr; segPtr++) {
+        MoveToEx(dc, segPtr->x1, segPtr->y1, NULL);
+        LineTo(dc, segPtr->x2, segPtr->y2);
     }
+    DeletePen(SelectPen(dc, oldPen));
     TkWinReleaseDrawableDC(drawable, dc, &state);
 }
 
@@ -806,20 +703,30 @@ void Rbc_EmulateXDrawSegments(Display *display, Drawable drawable, GC gc, XSegme
  *----------------------------------------------------------------------
  */
 void Rbc_EmulateXDrawPoints(Display *display, Drawable drawable, GC gc, XPoint *pointArr, int nPoints, int mode) {
-    /* Ignored. CoordModeOrigin is assumed. */
     HDC dc;
-    XPoint *pointPtr, *endPtr;
     TkWinDCState state;
+    int i;
 
-    //    display->request++;
     if ((drawable == None) || (pointArr == NULL) || (nPoints <= 0)) {
         return;
     }
     dc = TkWinGetDrawableDC(display, drawable, &state);
     SetROP2(dc, tkpWinRopModes[gc->function]);
-    endPtr = pointArr + nPoints;
-    for (pointPtr = pointArr; pointPtr < endPtr; pointPtr++) {
-        SetPixelV(dc, pointPtr->x, pointPtr->y, gc->foreground);
+    if (mode == CoordModeOrigin) {
+        for (i = 0; i < nPoints; i++) {
+            SetPixelV(dc, pointArr[i].x, pointArr[i].y, gc->foreground);
+        }
+    } else {
+        LONG x, y;
+
+        x = pointArr[0].x;
+        y = pointArr[0].y;
+        SetPixelV(dc, x, y, gc->foreground);
+        for (i = 1; i < nPoints; i++) {
+            x += pointArr[i].x;
+            y += pointArr[i].y;
+            SetPixelV(dc, x, y, gc->foreground);
+        }
     }
     TkWinReleaseDrawableDC(drawable, dc, &state);
 }
