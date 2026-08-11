@@ -269,6 +269,7 @@ static void ScaleEps(Tk_Canvas, Tk_Item *, double, double, double, double);
 static void TranslateEps(Tk_Canvas, Tk_Item *, double, double);
 static int EpsToPostScript(Tcl_Interp *, Tk_Canvas, Tk_Item *, int);
 static int ReadPostScript(Tcl_Interp *, EpsItem *);
+static void AppendPsLine(Tcl_DString *, const char *);
 
 /*
  *----------------------------------------------------------------------
@@ -315,14 +316,11 @@ static int ReadPsLine(EpsParseInfo *piPtr) {
     if ((piPtr->maxBytes != 0) && (piPtr->bytesRead >= piPtr->maxBytes)) {
         return FALSE;
     }
-
     maxChars = MAX_EPS_LINE_LENGTH;
-
     if (piPtr->maxBytes != 0) {
         size_t remaining;
 
         remaining = piPtr->maxBytes - piPtr->bytesRead;
-
         /*
          * fgets reads at most n - 1 characters.
          */
@@ -330,19 +328,29 @@ static int ReadPsLine(EpsParseInfo *piPtr) {
             maxChars = (int)remaining + 1;
         }
     }
-
     if (fgets(piPtr->line, maxChars, piPtr->f) == NULL) {
         return FALSE;
     }
-
     piPtr->bytesRead += strlen(piPtr->line);
     piPtr->lineNumber++;
-
 #if DEBUG_READER
     PurifyPrintf("%d: %s\n", piPtr->lineNumber, piPtr->line);
 #endif
-
     return TRUE;
+}
+
+static void AppendPsLine(Tcl_DString *dStringPtr, const char *line) {
+    size_t length;
+
+    length = strlen(line);
+    Tcl_DStringAppend(dStringPtr, line, -1);
+    /*
+     * fgets normally retains the newline.  Add one only when the
+     * final line, or a size-limited read, did not contain it.
+     */
+    if ((length == 0) || (line[length - 1] != '\n')) {
+        Tcl_DStringAppend(dStringPtr, "\n", 1);
+    }
 }
 
 /*
@@ -487,11 +495,8 @@ static void ReadEPSI(EpsItem *epsPtr, EpsParseInfo *piPtr) {
             destPtr = Rbc_ColorImagePixel(image, 0, y);
             for (x = 0; x < width; x++, destPtr++) {
                 result = GetHexValue(piPtr, &byte);
-                if (result == TCL_ERROR) {
+                if (result != TCL_OK) {
                     goto error;
-                }
-                if (result == TCL_RETURN) {
-                    goto done;
                 }
                 destPtr->Red = destPtr->Green = destPtr->Blue = ~byte;
                 destPtr->Alpha = 0xFF;
@@ -510,11 +515,8 @@ static void ReadEPSI(EpsItem *epsPtr, EpsParseInfo *piPtr) {
             for (x = 0; x < width; x++, destPtr++) {
                 if (bit == 8) {
                     result = GetHexValue(piPtr, &byte);
-                    if (result == TCL_ERROR) {
+                    if (result != TCL_OK) {
                         goto error;
-                    }
-                    if (result == TCL_RETURN) {
-                        goto done;
                     }
                     byte = ReverseBits(byte);
                     bit = 0;
@@ -528,7 +530,6 @@ static void ReadEPSI(EpsItem *epsPtr, EpsParseInfo *piPtr) {
     } else {
         fprintf(stderr, "unknown EPSI bitsPerPixel (%d)\n", bitsPerPixel);
     }
-done:
     epsPtr->colorImage = image;
     epsPtr->lastLine = piPtr->lineNumber + 1;
     return;
@@ -572,16 +573,17 @@ error:
  */
 static int ReadPostScript(Tcl_Interp *interp, EpsItem *epsPtr) {
     char *field;
-    char *dscTitle, *dscBoundingBox;
-    char *dscEndComments;
+    char *dscTitle;
     EpsParseInfo pi;
+    int haveBoundingBox;
+    int sawEndComments;
+    int haveBodyLine;
 
     pi.line[0] = '\0';
     pi.maxBytes = epsPtr->psLength;
     pi.bytesRead = 0;
     pi.lineNumber = 0;
     pi.f = epsPtr->psFile;
-
     Tcl_DStringSetLength(&epsPtr->dString, 0);
     if (epsPtr->psStart > 0) {
         if (epsPtr->psStart > (size_t)LONG_MAX) {
@@ -603,77 +605,102 @@ static int ReadPostScript(Tcl_Interp *interp, EpsItem *epsPtr) {
         Tcl_AppendResult(interp, "file \"", epsPtr->fileName, "\" doesn't start with \"%!PS\"", (char *)NULL);
         return TCL_ERROR;
     }
-
+    dscTitle = NULL;
+    haveBoundingBox = FALSE;
+    sawEndComments = FALSE;
+    haveBodyLine = FALSE;
     /*
-     * Initialize field flags to NULL. We want to look only at the
-     * first appearance of these comment fields.  The file itself may
-     * have another EPS file embedded into it.
+     * Scan the DSC header.  Stop at %%EndComments, %%BeginProlog,
+     * %%BeginSetup, or the first actual PostScript statement.
      */
-    dscBoundingBox = dscTitle = dscEndComments = NULL;
     while (ReadPsLine(&pi)) {
-        if ((pi.line[0] == '%') && (pi.line[1] == '%')) { /* Header comment */
-            field = pi.line + 2;
+        field = SkipBlanks(&pi);
+        if ((field[0] == '%') && (field[1] == '%')) {
+            field += 2;
             if (field[0] == 'B') {
-                if (strncmp(field, "BeginSetup", 8) == 0) {
-                    break; /* Done */
+                if ((strncmp(field, "BeginSetup", 10) == 0) || (strncmp(field, "BeginProlog", 11) == 0)) {
+                    haveBodyLine = TRUE;
+                    break;
                 }
-                if (strncmp(field, "BeginProlog", 8) == 0) {
-                    break; /* Done */
-                }
-                if ((strncmp(field, "BoundingBox:", 12) == 0) && (dscBoundingBox == NULL)) {
+                if ((strncmp(field, "BoundingBox:", 12) == 0) && (!haveBoundingBox)) {
+                    long long llx, lly, urx, ury;
                     int nFields;
 
-                    dscBoundingBox = field + 12;
-                    nFields = sscanf(dscBoundingBox, "%d %d %d %d", &(epsPtr->llx), &(epsPtr->lly), &(epsPtr->urx),
-                                     &(epsPtr->ury));
-                    if (nFields != 4) {
-                        Tcl_AppendResult(interp, "bad \"%%BoundingBox\" values: \"", dscBoundingBox, "\"",
-                                         (char *)NULL);
+                    field += 12;
+                    nFields = sscanf(field, "%lld %lld %lld %lld", &llx, &lly, &urx, &ury);
+                    if ((nFields != 4) || (llx < INT_MIN) || (llx > INT_MAX) || (lly < INT_MIN) || (lly > INT_MAX) ||
+                        (urx < INT_MIN) || (urx > INT_MAX) || (ury < INT_MIN) || (ury > INT_MAX) || (urx <= llx) ||
+                        (ury <= lly) || ((urx - llx) > INT_MAX) || ((ury - lly) > INT_MAX)) {
+                        Tcl_AppendResult(interp, "bad \"%%BoundingBox\" values: \"", field, "\"", (char *)NULL);
                         goto error;
                     }
+                    epsPtr->llx = (int)llx;
+                    epsPtr->lly = (int)lly;
+                    epsPtr->urx = (int)urx;
+                    epsPtr->ury = (int)ury;
+                    haveBoundingBox = TRUE;
                 }
             } else if ((field[0] == 'T') && (strncmp(field, "Title:", 6) == 0)) {
                 if (dscTitle == NULL) {
                     dscTitle = RbcStrdup(field + 6);
                 }
-            } else if (field[0] == 'E') {
-                if (strncmp(field, "EndComments", 11) == 0) {
-                    dscEndComments = field;
-                    break; /* Done */
-                }
+            } else if ((field[0] == 'E') && (strncmp(field, "EndComments", 11) == 0)) {
+                sawEndComments = TRUE;
+                break;
             }
-        } /* %% */
+            continue;
+        }
+        /*
+         * Blank lines and ordinary PostScript comments are still
+         * compatible with being in the header.  The first executable
+         * line marks the beginning of the body.
+         */
+        if ((field[0] != '\0') && (field[0] != '%')) {
+            haveBodyLine = TRUE;
+            break;
+        }
     }
-    if (dscBoundingBox == NULL) {
+    if (!haveBoundingBox) {
         Tcl_AppendResult(interp, "no \"%%BoundingBox:\" found in \"", epsPtr->fileName, "\"", (char *)NULL);
         goto error;
     }
-    if (dscEndComments != NULL) {
-        /* Check if a "%%BeginPreview" immediately follows */
+    /*
+     * An EPSI preview may immediately follow %%EndComments.
+     * Ignore intervening blank lines.
+     */
+    if (sawEndComments) {
         while (ReadPsLine(&pi)) {
             field = SkipBlanks(&pi);
-            if (field[0] != '\0') {
-                break;
+            if (field[0] == '\0') {
+                continue;
             }
-        }
-        if (strncmp(pi.line, "%%BeginPreview:", 15) == 0) {
-            ReadEPSI(epsPtr, &pi);
+            if (strncmp(pi.line, "%%BeginPreview:", 15) == 0) {
+                ReadEPSI(epsPtr, &pi);
+            } else {
+                haveBodyLine = TRUE;
+            }
+            break;
         }
     }
     if (dscTitle != NULL) {
         epsPtr->title = dscTitle;
     }
-    /* Finally save the PostScript into a dynamic string. */
+    /*
+     * Save the first body line already consumed by the parser.
+     */
+    if (haveBodyLine) {
+        AppendPsLine(&epsPtr->dString, pi.line);
+    }
     while (ReadPsLine(&pi)) {
-        Tcl_DStringAppend(&epsPtr->dString, pi.line, -1);
-        Tcl_DStringAppend(&epsPtr->dString, "\n", 1);
+        AppendPsLine(&epsPtr->dString, pi.line);
     }
     return TCL_OK;
+
 error:
     if (dscTitle != NULL) {
-        ckfree((char *)dscTitle);
+        ckfree(dscTitle);
     }
-    return TCL_ERROR; /* BoundingBox: is required. */
+    return TCL_ERROR;
 }
 
 /*
@@ -712,7 +739,6 @@ static int OpenEpsFile(Tcl_Interp *interp, EpsItem *epsPtr) {
     nBytes = fread(&dosHeader, 1, sizeof(dosHeader), f);
     if ((nBytes == sizeof(dosHeader)) && (dosHeader.magic[0] == 0xC5) && (dosHeader.magic[1] == 0xD0) &&
         (dosHeader.magic[2] == 0xD3) && (dosHeader.magic[3] == 0xC6)) {
-        /* DOS EPS file. */
         epsPtr->psStart = dosHeader.psStart;
         epsPtr->psLength = dosHeader.psLength;
         epsPtr->wmfStart = dosHeader.wmfStart;
@@ -729,9 +755,21 @@ static int OpenEpsFile(Tcl_Interp *interp, EpsItem *epsPtr) {
             epsPtr->previewFormat = PS_PREVIEW_WMF;
         }
     }
-    fseek(f, 0, SEEK_SET);
+    if (fseek(f, 0, SEEK_SET) != 0) {
+        Tcl_AppendResult(interp, "can't seek in \"", epsPtr->fileName, "\": ", Tcl_PosixError(interp), (char *)NULL);
+        CloseEpsFile(epsPtr);
+        return TCL_ERROR;
+    }
 #endif /* WIN32 */
-    return ReadPostScript(interp, epsPtr);
+    {
+        int result;
+
+        result = ReadPostScript(interp, epsPtr);
+        if (result != TCL_OK) {
+            CloseEpsFile(epsPtr);
+        }
+        return result;
+    }
 }
 
 /*

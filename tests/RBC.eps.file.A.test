@@ -66,6 +66,70 @@ namespace eval eps.file {
 		.canvas1 delete 1
 	    destroy .canvas1
 	} -result {0}
+
+    test RBC.eps.file.A.2.1 {
+        eps file: preserve first body line after EndComments
+    } -setup {
+        canvas .canvas1
+        .canvas1 create eps 0 0
+        set fd [open out.ps w]
+        fconfigure $fd -translation lf
+        chan puts $fd "%!PS-Adobe-3.0 EPSF-3.0"
+        chan puts $fd "%%BoundingBox: 0 0 10 10"
+        chan puts $fd "%%EndComments"
+        chan puts $fd "FIRST_BODY_TOKEN"
+        chan puts $fd "SECOND_BODY_TOKEN"
+        chan close $fd
+    } -body {
+        .canvas1 itemconfigure 1 -file out.ps
+        set ps [.canvas1 postscript]
+        list [expr {[string first "FIRST_BODY_TOKEN" $ps] >= 0}] [expr {[string first "SECOND_BODY_TOKEN" $ps] >= 0}]
+    } -cleanup {
+        .canvas1 delete 1
+        destroy .canvas1
+        file delete -force out.ps
+    } -result {1 1}
+
+    test RBC.eps.file.A.2.2 {
+        eps file: preserve body without EndComments
+    } -setup {
+        canvas .canvas1
+        .canvas1 create eps 0 0
+        set fd [open out.ps w]
+        fconfigure $fd -translation lf
+        chan puts $fd "%!PS-Adobe-3.0 EPSF-3.0"
+        chan puts $fd "%%BoundingBox: 0 0 10 10"
+        chan puts $fd "FIRST_BODY_TOKEN"
+        chan puts $fd "SECOND_BODY_TOKEN"
+        chan close $fd
+    } -body {
+        .canvas1 itemconfigure 1 -file out.ps
+        set ps [.canvas1 postscript]
+        list [expr {[string first "FIRST_BODY_TOKEN" $ps] >= 0}] [expr {[string first "SECOND_BODY_TOKEN" $ps] >= 0}]
+    } -cleanup {
+        .canvas1 delete 1
+        destroy .canvas1
+        file delete -force out.ps
+    } -result {1 1}
+
+    test RBC.eps.file.A.2.3 {
+        eps file: reject zero-width BoundingBox
+    } -setup {
+        canvas .canvas1
+        .canvas1 create eps 0 0
+        set fd [open out.ps w]
+        fconfigure $fd -translation lf
+        chan puts $fd "%!PS-Adobe-3.0 EPSF-3.0"
+        chan puts $fd "%%BoundingBox: 0 0 0 10"
+        chan puts $fd "%%EndComments"
+        chan close $fd
+    } -body {
+        catch {.canvas1 itemconfigure 1 -file out.ps}
+    } -cleanup {
+        .canvas1 delete 1
+        destroy .canvas1
+        file delete -force out.ps
+    } -result {1}
 	
 	cleanupTests
 }
