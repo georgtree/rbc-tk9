@@ -456,6 +456,7 @@ static int XGetImageErrorProc(ClientData clientData, XErrorEvent *errEventPtr) {
  */
 Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, register int x, register int y, int width,
                                         int height, double inputGamma) {
+    Display *display;
     XImage *imagePtr;
     Rbc_ColorImage image;
     register Pix32 *destPtr;
@@ -468,19 +469,25 @@ Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, regi
     if ((width <= 0) || (height <= 0) || (!FINITE(inputGamma)) || (inputGamma <= 0.0)) {
         return NULL;
     }
-    errHandler = Tk_CreateErrorHandler(Tk_Display(tkwin), BadMatch, X_GetImage, -1, XGetImageErrorProc, &result);
-    imagePtr = XGetImage(Tk_Display(tkwin), drawable, x, y, width, height, AllPlanes, ZPixmap);
-    if ((result != TCL_OK) || (imagePtr == NULL)) {
-        return NULL;
-    }
+    display = Tk_Display(tkwin);
+    errHandler = Tk_CreateErrorHandler(display, BadMatch, X_GetImage, -1, XGetImageErrorProc, &result);
+    imagePtr = XGetImage(display, drawable, x, y, width, height, AllPlanes, ZPixmap);
+    /*
+     * Force delivery of any asynchronous X error while our handler is
+     * still installed.
+     */
+    XSync(display, False);
     Tk_DeleteErrorHandler(errHandler);
-    XSync(Tk_Display(tkwin), False);
-    if (result != TCL_OK) {
+    if ((result != TCL_OK) || (imagePtr == NULL)) {
+        if (imagePtr != NULL) {
+            XDestroyImage(imagePtr);
+        }
         return NULL;
     }
     {
-        register int i;
+        int i;
         double value;
+
         for (i = 0; i < 256; i++) {
             value = pow(i / 255.0, inputGamma) * 255.0 + 0.5;
             lut[i] = (unsigned char)CLAMP(value);
@@ -493,9 +500,10 @@ Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, regi
     visualPtr = Tk_Visual(tkwin);
     if (visualPtr->class == TrueColor) {
         unsigned int red, green, blue;
+
         /*
          * Directly compute the RGB color values from the pixel index
-         * rather than of going through XQueryColors.
+         * rather than going through XQueryColors.
          */
         ComputeMasks(visualPtr);
         destPtr = Rbc_ColorImageBits(image);
@@ -505,14 +513,6 @@ Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, regi
                 red = ((pixel & visualPtr->red_mask) >> redMaskShift) << redAdjust;
                 green = ((pixel & visualPtr->green_mask) >> greenMaskShift) << greenAdjust;
                 blue = ((pixel & visualPtr->blue_mask) >> blueMaskShift) << blueAdjust;
-                /*
-                 * The number of bits per color in the pixel may be
-                 * less than eight. For example, 15/16 bit displays
-                 * (hi-color) use only 5 bits, 8-bit displays use 2 or
-                 * 3 bits (don't ask me why you'd have an 8-bit
-                 * TrueColor display). So shift back the least
-                 * significant bits.
-                 */
                 destPtr->Red = lut[red];
                 destPtr->Green = lut[green];
                 destPtr->Blue = lut[blue];
@@ -532,8 +532,8 @@ Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, regi
         int isNew;
 
         /*
-         * Fill the array with each pixel of the image. At the same time, build
-         * up a hashtable of the pixels used.
+         * Fill the image with each pixel value and build a table of
+         * the unique pixels used.
          */
         nPixels = GetUnixImagePixelCount(width, height);
         Tcl_InitHashTable(&pixelTable, TCL_ONE_WORD_KEYS);
@@ -550,34 +550,29 @@ Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, regi
             }
         }
         XDestroyImage(imagePtr);
-
         /*
-         * Convert the hashtable of pixels into an array of XColors so
-         * that we can call XQueryColors with it. XQueryColors will
-         * convert the pixels into their RGB values.
+         * XQueryColors takes the number of colors as an int.
          */
         nColors = pixelTable.numEntries;
-        colorArr = (XColor *)ckalloc(sizeof(XColor) * nColors);
-        assert(colorArr);
-
+        if (nColors > (Tcl_Size)INT_MAX) {
+            Tcl_DeleteHashTable(&pixelTable);
+            Rbc_FreeColorImage(image);
+            return NULL;
+        }
+        /*
+         * Build one XColor array.  The hash-table values point directly
+         * into this array, which XQueryColors then fills in place.
+         */
+        colorArr = RbcCalloc((size_t)nColors, sizeof(*colorArr));
         colorPtr = colorArr;
         for (hPtr = Tcl_FirstHashEntry(&pixelTable, &cursor); hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
             colorPtr->pixel = (unsigned long)Tcl_GetHashValue(hPtr);
             Tcl_SetHashValue(hPtr, (char *)colorPtr);
             colorPtr++;
         }
-        if (nColors > (Tcl_Size)INT_MAX) {
-            XDestroyImage(imagePtr);
-            Tcl_DeleteHashTable(&pixelTable);
-            Rbc_FreeColorImage(image);
-            return NULL;
-        }
-        colorArr = RbcCalloc((size_t)nColors, sizeof(*colorArr));
-        XQueryColors(Tk_Display(tkwin), Tk_Colormap(tkwin), colorArr, (int)nColors);
-
+        XQueryColors(display, Tk_Colormap(tkwin), colorArr, (int)nColors);
         /*
-         * Go again through the array of pixels, replacing each pixel
-         * of the image with its RGB value.
+         * Replace each stored pixel value with its RGB value.
          */
         destPtr = Rbc_ColorImageBits(image);
         endPtr = destPtr + nPixels;
@@ -750,10 +745,21 @@ Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int src
     bitmapGC = Rbc_GetBitmapGC(tkwin);
     XSetForeground(display, bitmapGC, 0x0);
     XFillRectangle(display, destBitmap, bitmapGC, 0, 0, destWidth, destHeight);
-
     src = XGetImage(display, srcBitmap, 0, 0, srcWidth, srcHeight, 1, ZPixmap);
+    if (src == NULL) {
+        Tk_FreePixmap(display, destBitmap);
+        return None;
+    }
     dest = XGetImage(display, destBitmap, 0, 0, destWidth, destHeight, 1, ZPixmap);
+    if (dest == NULL) {
+        XDestroyImage(src);
+        Tk_FreePixmap(display, destBitmap);
+        return None;
+    }
     theta = FMOD(theta, 360.0);
+    if (theta < 0.0) {
+        theta += 360.0;
+    }
     if (FMOD(theta, (double)90.0) == 0.0) {
         int quadrant;
 
@@ -859,7 +865,8 @@ Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int src
     /* Write the rotated image into the destination bitmap. */
     XPutImage(display, destBitmap, bitmapGC, dest, 0, 0, 0, 0, destWidth, destHeight);
     /* Clean up the temporary resources used. */
-    XDestroyImage(src), XDestroyImage(dest);
+    XDestroyImage(src);
+    XDestroyImage(dest);
     *destWidthPtr = destWidth;
     *destHeightPtr = destHeight;
     return destBitmap;
@@ -915,7 +922,16 @@ Pixmap Rbc_ScaleBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcH
     XSetForeground(display, bitmapGC, 0x0);
     XFillRectangle(display, destBitmap, bitmapGC, 0, 0, destWidth, destHeight);
     src = XGetImage(display, srcBitmap, 0, 0, srcWidth, srcHeight, 1, ZPixmap);
+    if (src == NULL) {
+        Tk_FreePixmap(display, destBitmap);
+        return None;
+    }
     dest = XGetImage(display, destBitmap, 0, 0, destWidth, destHeight, 1, ZPixmap);
+    if (dest == NULL) {
+        XDestroyImage(src);
+        Tk_FreePixmap(display, destBitmap);
+        return None;
+    }
     /*
      * Scale each pixel of destination image from results of source
      * image. Verify the coordinates, since the destination image can
@@ -936,7 +952,8 @@ Pixmap Rbc_ScaleBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcH
     }
     /* Write the scaled image into the destination bitmap */
     XPutImage(display, destBitmap, bitmapGC, dest, 0, 0, 0, 0, destWidth, destHeight);
-    XDestroyImage(src), XDestroyImage(dest);
+    XDestroyImage(src);
+    XDestroyImage(dest);
     return destBitmap;
 }
 
@@ -1005,8 +1022,20 @@ Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWid
     XSetForeground(display, bitmapGC, 0x0);
     XFillRectangle(display, destBitmap, bitmapGC, 0, 0, regionWidth, regionHeight);
     src = XGetImage(display, srcBitmap, 0, 0, srcWidth, srcHeight, 1, ZPixmap);
+    if (src == NULL) {
+        Tk_FreePixmap(display, destBitmap);
+        return None;
+    }
     dest = XGetImage(display, destBitmap, 0, 0, regionWidth, regionHeight, 1, ZPixmap);
+    if (dest == NULL) {
+        XDestroyImage(src);
+        Tk_FreePixmap(display, destBitmap);
+        return None;
+    }
     theta = FMOD(theta, 360.0);
+    if (theta < 0.0) {
+        theta += 360.0;
+    }
     Rbc_GetBoundingBox(srcWidth, srcHeight, theta, &rotWidth, &rotHeight, (Point2D *)NULL);
     xScale = rotWidth / (double)virtWidth;
     yScale = rotHeight / (double)virtHeight;
@@ -1118,7 +1147,8 @@ Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWid
     /* Write the rotated image into the destination bitmap. */
     XPutImage(display, destBitmap, bitmapGC, dest, 0, 0, 0, 0, regionWidth, regionHeight);
     /* Clean up the temporary resources used. */
-    XDestroyImage(src), XDestroyImage(dest);
+    XDestroyImage(src);
+    XDestroyImage(dest);
     return destBitmap;
 }
 
