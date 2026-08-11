@@ -149,7 +149,6 @@ extern char *Rbc_LastError(void);
 #define XWarpPointer        Rbc_EmulateXWarpPointer
 */
 
-EXTERN GC Rbc_EmulateXCreateGC(Display *display, Drawable drawable, unsigned long mask, XGCValues *valuesPtr);
 EXTERN void Rbc_EmulateXCopyArea(Display *display, Drawable src, Drawable dest, GC gc, int src_x, int src_y,
                                  unsigned int width, unsigned int height, int dest_x, int dest_y);
 EXTERN void Rbc_EmulateXCopyPlane(Display *display, Drawable src, Drawable dest, GC gc, int src_x, int src_y,
@@ -176,7 +175,6 @@ EXTERN void Rbc_EmulateXLowerWindow(Display *display, Window window);
 EXTERN void Rbc_EmulateXMapWindow(Display *display, Window window);
 EXTERN long Rbc_EmulateXMaxRequestSize(Display *display);
 EXTERN void Rbc_EmulateXRaiseWindow(Display *display, Window window);
-EXTERN void Rbc_EmulateXSetDashes(Display *display, GC gc, int dashOffset, _Xconst char *dashList, int n);
 EXTERN void Rbc_EmulateXUnmapWindow(Display *display, Window window);
 EXTERN void Rbc_EmulateXWarpPointer(Display *display, Window srcWindow, Window destWindow, int srcX, int srcY,
                                     unsigned int srcWidth, unsigned int srcHeight, int destX, int destY);

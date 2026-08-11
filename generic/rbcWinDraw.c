@@ -16,39 +16,6 @@
 
 #define WINDEBUG 0
 
-/*
- * Data structure for setting graphics context.
- */
-typedef struct {
-    int function;             /* logical operation */
-    unsigned long plane_mask; /* plane mask */
-    unsigned long foreground; /* foreground pixel */
-    unsigned long background; /* background pixel */
-    int line_width;           /* line width */
-    int line_style;           /* LineSolid, LineOnOffDash, LineDoubleDash */
-    int cap_style;            /* CapNotLast, CapButt,
-                       CapRound, CapProjecting */
-    int join_style;           /* JoinMiter, JoinRound, JoinBevel */
-    int fill_style;           /* FillSolid, FillTiled,
-                      FillStippled, FillOpaeueStippled */
-    int fill_rule;            /* EvenOddRule, WindingRule */
-    int arc_mode;             /* ArcChord, ArcPieSlice */
-    Pixmap tile;              /* tile pixmap for tiling operations */
-    Pixmap stipple;           /* stipple 1 plane pixmap for stipping */
-    int ts_x_origin;          /* offset for tile or stipple operations */
-    int ts_y_origin;
-    Font font;               /* default text font for text operations */
-    int subwindow_mode;      /* ClipByChildren, IncludeInferiors */
-    Bool graphics_exposures; /* boolean, should exposures be generated */
-    int clip_x_origin;       /* origin for clipping */
-    int clip_y_origin;
-    Pixmap clip_mask; /* bitmap clipping; other calls for rects */
-    int dash_offset;  /* patterned/dashed line information */
-    char dashes;      /* If -1, indicates that the extended
-                       * information below is available. */
-    int nDashValues;
-    char dashValues[12];
-} XGCValuesEx;
 
 const int tkpWinRopModes[] = {
     R2_BLACK,       /* GXclear */
@@ -458,36 +425,6 @@ typedef struct {
 /*
  *--------------------------------------------------------------
  *
- * Rbc_SetDashes --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Display *display
- *      GC gc
- *      Rbc_Dashes *dashesPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
-void Rbc_SetDashes(Display *display, GC gc, Rbc_Dashes *dashesPtr) {
-    XGCValuesEx *gcPtr = (XGCValuesEx *)gc;
-
-    /* This must be used only with a privately created GC */
-    assert((int)gcPtr->dashes == -1);
-    gcPtr->nDashValues = strlen((char *)dashesPtr->values);
-    gcPtr->dash_offset = dashesPtr->offset;
-    strcpy(gcPtr->dashValues, (char *)dashesPtr->values);
-}
-
-/*
- *--------------------------------------------------------------
- *
  * GetDashInfo --
  *
  *      TODO: Description
@@ -506,24 +443,21 @@ void Rbc_SetDashes(Display *display, GC gc, Rbc_Dashes *dashesPtr) {
  *--------------------------------------------------------------
  */
 static int GetDashInfo(HDC dc, GC gc, DashInfo *infoPtr) {
-    int dashOffset, dashValue;
+    const unsigned char *dashPtr;
+    int dashValue;
 
-    dashValue = 0;
-    dashOffset = gc->dash_offset;
-    if ((int)gc->dashes == -1) {
-        XGCValuesEx *gcPtr = (XGCValuesEx *)gc;
-        if (gcPtr->nDashValues == 1) {
-            dashValue = gcPtr->dashValues[0];
-        }
-    } else if (gc->dashes > 0) {
-        dashValue = (int)gc->dashes;
-    }
-    if (dashValue == 0) {
+    dashPtr = (const unsigned char *)&gc->dashes;
+    /*
+     * The LineDDA implementation only handles a single repeating
+     * dash length.  Multi-value patterns are handled by Rbc_GCToPen.
+     */
+    if ((dashPtr[0] == 0) || (dashPtr[1] != 0)) {
         return FALSE;
     }
+    dashValue = dashPtr[0];
     infoPtr->dc = dc;
     infoPtr->nBits = dashValue;
-    infoPtr->offset = dashOffset;
+    infoPtr->offset = gc->dash_offset;
     infoPtr->count = 0;
     infoPtr->color = gc->foreground;
     return TRUE;
@@ -549,165 +483,6 @@ static int GetDashInfo(HDC dc, GC gc, DashInfo *infoPtr) {
  *--------------------------------------------------------------
  */
 void Rbc_SetROP2(HDC dc, int function) { SetROP2(dc, tkpWinRopModes[function]); }
-
-/*
- *--------------------------------------------------------------
- *
- * CreateGC --
- *
- *      TODO: Description
- *
- * Parameters:
- *      None
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
-static XGCValuesEx *CreateGC() {
-    XGCValuesEx *gcPtr;
-
-    gcPtr = (XGCValuesEx *)ckalloc(sizeof(XGCValuesEx));
-    if (gcPtr == NULL) {
-        return NULL;
-    }
-    gcPtr->arc_mode = ArcPieSlice;
-    gcPtr->background = 0xffffff;
-    gcPtr->cap_style = CapNotLast;
-    gcPtr->clip_mask = None;
-    gcPtr->clip_x_origin = gcPtr->clip_y_origin = 0;
-    gcPtr->dash_offset = 0;
-    gcPtr->fill_rule = WindingRule;
-    gcPtr->fill_style = FillSolid;
-    gcPtr->font = None;
-    gcPtr->foreground = 0;
-    gcPtr->function = GXcopy;
-    gcPtr->graphics_exposures = True;
-    gcPtr->join_style = JoinMiter;
-    gcPtr->line_style = LineSolid;
-    gcPtr->line_width = 0;
-    gcPtr->plane_mask = ~0;
-    gcPtr->stipple = None;
-    gcPtr->subwindow_mode = ClipByChildren;
-    gcPtr->tile = None;
-    gcPtr->ts_x_origin = gcPtr->ts_y_origin = 0;
-    gcPtr->dashes = -1; /* Mark that this an extended GC */
-    gcPtr->nDashValues = 0;
-    return gcPtr;
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_EmulateXCreateGC --
- *
- *      Allocate a new extended GC, and initialize the specified fields.
- *
- * Parameters:
- *      Display *display
- *      Drawable drawable
- *      unsigned long mask
- *      XGCValues *srcPtr
- *
- * Results:
- *      Returns a newly allocated GC.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-GC Rbc_EmulateXCreateGC(Display *display, Drawable drawable, unsigned long mask, XGCValues *srcPtr) {
-    XGCValuesEx *destPtr;
-
-    destPtr = CreateGC();
-    if (destPtr == NULL) {
-        return None;
-    }
-    if (mask & GCFunction) {
-        destPtr->function = srcPtr->function;
-    }
-    if (mask & GCPlaneMask) {
-        destPtr->plane_mask = srcPtr->plane_mask;
-    }
-    if (mask & GCForeground) {
-        destPtr->foreground = srcPtr->foreground;
-    }
-    if (mask & GCBackground) {
-        destPtr->background = srcPtr->background;
-    }
-    if (mask & GCLineWidth) {
-        destPtr->line_width = srcPtr->line_width;
-    }
-    if (mask & GCLineStyle) {
-        destPtr->line_style = srcPtr->line_style;
-    }
-    if (mask & GCCapStyle) {
-        destPtr->cap_style = srcPtr->cap_style;
-    }
-    if (mask & GCJoinStyle) {
-        destPtr->join_style = srcPtr->join_style;
-    }
-    if (mask & GCFillStyle) {
-        destPtr->fill_style = srcPtr->fill_style;
-    }
-    if (mask & GCFillRule) {
-        destPtr->fill_rule = srcPtr->fill_rule;
-    }
-    if (mask & GCArcMode) {
-        destPtr->arc_mode = srcPtr->arc_mode;
-    }
-    if (mask & GCTile) {
-        destPtr->tile = srcPtr->tile;
-    }
-    if (mask & GCStipple) {
-        destPtr->stipple = srcPtr->stipple;
-    }
-    if (mask & GCTileStipXOrigin) {
-        destPtr->ts_x_origin = srcPtr->ts_x_origin;
-    }
-    if (mask & GCTileStipYOrigin) {
-        destPtr->ts_y_origin = srcPtr->ts_y_origin;
-    }
-    if (mask & GCFont) {
-        destPtr->font = srcPtr->font;
-    }
-    if (mask & GCSubwindowMode) {
-        destPtr->subwindow_mode = srcPtr->subwindow_mode;
-    }
-    if (mask & GCGraphicsExposures) {
-        destPtr->graphics_exposures = srcPtr->graphics_exposures;
-    }
-    if (mask & GCClipXOrigin) {
-        destPtr->clip_x_origin = srcPtr->clip_x_origin;
-    }
-    if (mask & GCClipYOrigin) {
-        destPtr->clip_y_origin = srcPtr->clip_y_origin;
-    }
-    if (mask & GCDashOffset) {
-        destPtr->dash_offset = srcPtr->dash_offset;
-    }
-    if (mask & GCDashList) {
-        destPtr->dashes = srcPtr->dashes;
-    }
-    if (mask & GCClipMask) {
-        struct ClipMask {
-            int type; /* TKP_CLIP_PIXMAP or TKP_CLIP_REGION */
-            Pixmap pixmap;
-        } *clipPtr;
-
-        clipPtr = (struct ClipMask *)ckalloc(sizeof(struct ClipMask));
-#define TKP_CLIP_PIXMAP 0
-        clipPtr->type = TKP_CLIP_PIXMAP;
-        clipPtr->pixmap = srcPtr->clip_mask;
-        destPtr->clip_mask = (Pixmap)clipPtr;
-    }
-    return (GC)destPtr;
-}
 
 /*
  *----------------------------------------------------------------------
@@ -755,6 +530,18 @@ GC Rbc_EmulateXCreateGC(Display *display, Drawable drawable, unsigned long mask,
  *
  *----------------------------------------------------------------------
  */
+
+static int GetGCDashValues(GC gc, DWORD *dashArr) {
+    const unsigned char *srcPtr;
+    int nValues;
+
+    srcPtr = (const unsigned char *)&gc->dashes;
+    for (nValues = 0; (nValues < RBC_MAX_DASH_VALUES) && (srcPtr[nValues] != 0); nValues++) {
+        dashArr[nValues] = (DWORD)srcPtr[nValues];
+    }
+    return nValues;
+}
+
 HPEN Rbc_GCToPen(HDC dc, GC gc) {
     DWORD lineAttrs, lineStyle;
     DWORD dashArr[12];
@@ -766,23 +553,15 @@ HPEN Rbc_GCToPen(HDC dc, GC gc) {
     nValues = 0;
     lineWidth = (gc->line_width < 1) ? 1 : gc->line_width;
     if ((gc->line_style == LineOnOffDash) || (gc->line_style == LineDoubleDash)) {
-        XGCValuesEx *gcPtr = (XGCValuesEx *)gc;
+        nValues = GetGCDashValues(gc, dashArr);
 
-        if ((int)gc->dashes == -1) {
-            int i;
-
-            nValues = strlen(gcPtr->dashValues);
-            for (i = 0; i < nValues; i++) {
-                dashArr[i] = (DWORD)gcPtr->dashValues[i];
-            }
-            if (nValues == 1) {
-                dashArr[1] = dashArr[0];
-                nValues = 2;
-            }
-        } else {
-            dashArr[1] = dashArr[0] = (DWORD)gc->dashes;
+        /*
+         * ExtCreatePen needs a repeating user style.  Preserve the
+         * historical RBC behavior for a one-element dash list.
+         */
+        if (nValues == 1) {
+            dashArr[1] = dashArr[0];
             nValues = 2;
-            gc->dashes = -1;
         }
     }
     switch (nValues) {
@@ -1587,33 +1366,6 @@ void Rbc_EmulateXDrawPoints(Display *display, Drawable drawable, GC gc, XPoint *
         SetPixelV(dc, pointPtr->x, pointPtr->y, gc->foreground);
     }
     TkWinReleaseDrawableDC(drawable, dc, &state);
-}
-
-/*
- *--------------------------------------------------------------
- *
- * Rbc_EmulateXSetDashes --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Display *display
- *      GC gc
- *      int dashOffset
- *      _Xconst char *dashList
- *      int n
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
-void Rbc_EmulateXSetDashes(Display *display, GC gc, int dashOffset, _Xconst char *dashList, int n) {
-    gc->dashes = (unsigned char)strlen(dashList);
-    gc->dash_offset = PTR2INT(dashList);
 }
 
 /*

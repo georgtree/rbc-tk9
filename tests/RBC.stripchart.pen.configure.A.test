@@ -93,7 +93,7 @@ namespace eval stripchart.pen {
 	} -setup {
 		stripchart .stripchart1
 	} -body {
-		if {[catch {.stripchart1 pen configure "activeLine" -dashes {2 3 2 4 2 3 2 4 2 3 2 4}}]} {
+		if {[catch {.stripchart1 pen configure "activeLine" -dashes {2 3 2 4 2 3 2 4 2 3 2}}]} {
 			return 0
 		} else {
 			return 1
@@ -137,6 +137,59 @@ namespace eval stripchart.pen {
 	} -cleanup {
 		destroy .stripchart1
 	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -dashes command accepts the maximum supported
+	# number of dash values.
+	# ------------------------------------------------------------------------------------
+    test RBC.stripchart.pen.configure.A.2.6 {
+		stripchart pen: configure - dashes - maximum dash list
+	} -setup {
+        stripchart .stripchart1
+    } -body {
+        .stripchart1 pen configure "activeLine" -dashes {1 2 3 4 5 6 7 8 9 10}
+        .stripchart1 pen cget "activeLine" -dashes
+    } -cleanup {
+        destroy .stripchart1
+    } -result {1 2 3 4 5 6 7 8 9 10}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the maximum individual dash value is preserved.
+	# ------------------------------------------------------------------------------------
+    test RBC.stripchart.pen.configure.A.2.7 {
+		stripchart pen: configure - dashes - maximum dash value
+	} -setup {
+        stripchart .stripchart1
+    } -body {
+        .stripchart1 pen configure "activeLine" -dashes {255 1}
+        .stripchart1 pen cget "activeLine" -dashes
+    } -cleanup {
+        destroy .stripchart1
+    } -result {255 1}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure a pen with high-valued, multi-element dashes can be used repeatedly
+	# for drawing without corrupting the GC dash state.
+	# ------------------------------------------------------------------------------------
+    test RBC.stripchart.pen.configure.A.2.8 {
+		stripchart pen: configure - dashes - repeated native drawing
+	} -setup {
+        stripchart .stripchart1 -width 300 -height 200
+        pack .stripchart1
+        .stripchart1 pen create Pen1 -dashes {255 1 10 2} -linewidth 2
+        .stripchart1 element create Element1 -data {0 0 1 1 2 0 3 1} -pen Pen1
+    } -body {
+        update idletasks
+        # Force the element to be mapped and drawn again using the
+        # same pen/GC.
+        .stripchart1 element configure Element1 -hide 1
+        update idletasks
+        .stripchart1 element configure Element1 -hide 0
+        update idletasks
+        .stripchart1 pen cget Pen1 -dashes
+    } -cleanup {
+        destroy .stripchart1
+    } -result {255 1 10 2}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure that the fill configuration works for valid fill colors

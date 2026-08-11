@@ -354,17 +354,15 @@ int Rbc_GetPadFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, Rbc_
 #define FILL_Y 2
 #define FILL_BOTH 3
 
+#define RBC_MAX_DASH_VALUES 10
+
 /*
- * ----------------------------------------------------------------------
- *
  * Rbc_Dashes --
  *
- *     List of dash values (maximum 11 based upon PostScript limit).
- *
- * ----------------------------------------------------------------------
+ *     List of dash values.  One additional byte terminates the list.
  */
 typedef struct {
-    unsigned char values[12];
+    unsigned char values[RBC_MAX_DASH_VALUES + 1];
     int offset;
 } Rbc_Dashes;
 

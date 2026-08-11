@@ -88,19 +88,20 @@ namespace eval graph.pen {
 	# Purpose: Ensure the pen configure -dashes command works correctly when given a dash
 	# list that is too long.
 	# ------------------------------------------------------------------------------------
-	test RBC.graph.pen.configure.A.2.3 {
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -dashes command rejects a dash list with more
+	# than the maximum supported number of values.
+	# ------------------------------------------------------------------------------------
+    test RBC.graph.pen.configure.A.2.3 {
 		graph pen: configure - dashes - long dash list
 	} -setup {
-		graph .graph1
-	} -body {
-		if {[catch {.graph1 pen configure "activeLine" -dashes {2 3 2 4 2 3 2 4 2 3 2 4}}]} {
-			return 0
-		} else {
-			return 1
-		}
-	} -cleanup {
-		destroy .graph1
-	} -result {0}
+        graph .graph1
+    } -body {
+        catch {.graph1 pen configure "activeLine" -dashes {1 2 3 4 5 6 7 8 9 10 11}} message
+        list $message [.graph1 pen cget "activeLine" -dashes]
+    } -cleanup {
+        destroy .graph1
+    } -result {{too many values in dash list "1 2 3 4 5 6 7 8 9 10 11"} {}}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the pen configure -dashes command works correctly when given an
@@ -137,6 +138,59 @@ namespace eval graph.pen {
 	} -cleanup {
 		destroy .graph1
 	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -dashes command accepts the maximum supported
+	# number of dash values.
+	# ------------------------------------------------------------------------------------
+    test RBC.graph.pen.configure.A.2.6 {
+		graph pen: configure - dashes - maximum dash list
+	} -setup {
+        graph .graph1
+    } -body {
+        .graph1 pen configure "activeLine" -dashes {1 2 3 4 5 6 7 8 9 10}
+        .graph1 pen cget "activeLine" -dashes
+    } -cleanup {
+        destroy .graph1
+    } -result {1 2 3 4 5 6 7 8 9 10}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the maximum individual dash value is preserved.
+	# ------------------------------------------------------------------------------------
+    test RBC.graph.pen.configure.A.2.7 {
+		graph pen: configure - dashes - maximum dash value
+	} -setup {
+        graph .graph1
+    } -body {
+        .graph1 pen configure "activeLine" -dashes {255 1}
+        .graph1 pen cget "activeLine" -dashes
+    } -cleanup {
+        destroy .graph1
+    } -result {255 1}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure a pen with high-valued, multi-element dashes can be used repeatedly
+	# for drawing without corrupting the GC dash state.
+	# ------------------------------------------------------------------------------------
+    test RBC.graph.pen.configure.A.2.8 {
+		graph pen: configure - dashes - repeated native drawing
+	} -setup {
+        graph .graph1 -width 300 -height 200
+        pack .graph1
+        .graph1 pen create Pen1 -dashes {255 1 10 2} -linewidth 2
+        .graph1 element create Element1 -data {0 0 1 1 2 0 3 1} -pen Pen1
+    } -body {
+        update idletasks
+        # Force the element to be mapped and drawn again using the
+        # same pen/GC.
+        .graph1 element configure Element1 -hide 1
+        update idletasks
+        .graph1 element configure Element1 -hide 0
+        update idletasks
+        .graph1 pen cget Pen1 -dashes
+    } -cleanup {
+        destroy .graph1
+    } -result {255 1 10 2}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure that the fill configuration works for valid fill colors

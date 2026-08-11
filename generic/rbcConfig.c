@@ -445,7 +445,7 @@ int Rbc_GetDashesFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, Rbc_Dashes *dashes
         if (Tcl_ListObjGetElements(interp, objPtr, &nValues, &valueObjv) != TCL_OK) {
             return TCL_ERROR;
         }
-        if (nValues > 11) {
+        if (nValues > RBC_MAX_DASH_VALUES) {
             Tcl_SetObjResult(interp, Tcl_ObjPrintf("too many values in dash list \"%s\"", string));
             return TCL_ERROR;
         }

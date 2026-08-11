@@ -1358,14 +1358,7 @@ void Rbc_UpdateScrollbar(Tcl_Interp *interp, char *scrollCmd, double firstFract,
  *----------------------------------------------------------------------
  */
 GC Rbc_GetPrivateGCFromDrawable(Display *display, Drawable drawable, unsigned long gcMask, XGCValues *valuePtr) {
-    GC newGC;
-
-#ifdef WIN32
-    newGC = Rbc_EmulateXCreateGC(display, drawable, gcMask, valuePtr);
-#else
-    newGC = XCreateGC(display, drawable, gcMask, valuePtr);
-#endif
-    return newGC;
+    return XCreateGC(display, drawable, gcMask, valuePtr);
 }
 
 /*
@@ -1457,31 +1450,23 @@ void Rbc_FreePrivateGC(Display *display, GC gc) {
     XFreeGC(display, gc);
 }
 
-#ifndef WIN32
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_SetDashes --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Display *display
- *      GC gc
- *      Rbc_Dashes *dashesPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-void Rbc_SetDashes(Display *display, GC gc, Rbc_Dashes *dashesPtr) {
-    XSetDashes(display, gc, dashesPtr->offset, (const char *)dashesPtr->values, strlen((char *)dashesPtr->values));
+static int GetDashCount(const Rbc_Dashes *dashesPtr) {
+    int n;
+
+    for (n = 0; n < RBC_MAX_DASH_VALUES; n++) {
+        if (dashesPtr->values[n] == 0) {
+            break;
+        }
+    }
+    return n;
 }
-#endif
+
+void Rbc_SetDashes(Display *display, GC gc, Rbc_Dashes *dashesPtr) {
+    int nValues;
+
+    nValues = GetDashCount(dashesPtr);
+    XSetDashes(display, gc, dashesPtr->offset, (const char *)dashesPtr->values, nValues);
+}
 
 /*
  *----------------------------------------------------------------------
