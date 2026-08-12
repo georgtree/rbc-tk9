@@ -81,6 +81,94 @@ static int DoCheck(Tcl_Interp *interp, int length, int check) {
 /*
  *----------------------------------------------------------------------
  *
+ * Rbc_GetCanonicalOptionName --
+ *
+ *      Resolves an option name using the same matching rules as
+ *      Tk_SetOptions: exact names take precedence over abbreviations,
+ *      and an abbreviation must identify one unique option name.
+ *
+ *      Synonyms are resolved to their canonical option names.
+ *
+ * Parameters:
+ *      Tcl_Obj *objPtr               - Option-name object.
+ *      const Tk_OptionSpec *specs    - Complete option specification
+ *                                      table used by Tk_SetOptions.
+ *
+ * Results:
+ *      Returns the canonical option name, or NULL when no unique match
+ *      exists.
+ *
+ * Side Effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+const char *Rbc_GetCanonicalOptionName(Tcl_Obj *objPtr, const Tk_OptionSpec *specs) {
+    const Tk_OptionSpec *bestPtr;
+    const Tk_OptionSpec *tablePtr;
+    const char *name;
+    Tcl_Size length;
+
+    if ((objPtr == NULL) || (specs == NULL)) {
+        return NULL;
+    }
+    name = Tcl_GetStringFromObj(objPtr, &length);
+    if (length <= 0) {
+        return NULL;
+    }
+    bestPtr = NULL;
+    tablePtr = specs;
+    /*
+     * Tk option tables may be chained through the clientData member of
+     * the TK_OPTION_END entry.
+     */
+    while (tablePtr != NULL) {
+        const Tk_OptionSpec *specPtr;
+
+        for (specPtr = tablePtr; specPtr->type != TK_OPTION_END; specPtr++) {
+            size_t fullLength;
+
+            fullLength = strlen(specPtr->optionName);
+            if (length > (Tcl_Size)fullLength) {
+                continue;
+            }
+            if (memcmp(name, specPtr->optionName, (size_t)length) != 0) {
+                continue;
+            }
+            /*
+             * Exact option names always win, even when they are also
+             * prefixes of longer option names.
+             */
+            if (length == (Tcl_Size)fullLength) {
+                if (specPtr->type == TK_OPTION_SYNONYM) {
+                    return (const char *)specPtr->clientData;
+                }
+                return specPtr->optionName;
+            }
+            /*
+             * This is an abbreviation.  It is usable only if every
+             * match has the same complete option name.
+             */
+            if (bestPtr == NULL) {
+                bestPtr = specPtr;
+            } else if (strcmp(bestPtr->optionName, specPtr->optionName) != 0) {
+                return NULL;
+            }
+        }
+        tablePtr = (const Tk_OptionSpec *)specPtr->clientData;
+    }
+    if (bestPtr == NULL) {
+        return NULL;
+    }
+    if (bestPtr->type == TK_OPTION_SYNONYM) {
+        return (const char *)bestPtr->clientData;
+    }
+    return bestPtr->optionName;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
  * Rbc_GetPixels --
  *
  *      Like Tk_GetPixels, but checks for negative, zero.

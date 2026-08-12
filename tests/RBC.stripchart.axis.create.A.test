@@ -69,5 +69,18 @@ namespace eval stripchart.axis {
 		destroy .stripchart1
 	} -result {0}
 
+    test RBC.stripchart.axis.create.A.title.1 {
+        stripchart axis create: -title is not -titleshadow
+    } -setup {
+        stripchart .stripchart1
+    } -body {
+        set result [.stripchart1 axis create temp -title temp -limitscolor blue3 -limitsformat "%4.4g"\
+                            -titlecolor blue3]
+        list $result [.stripchart1 axis cget temp -title] [.stripchart1 axis cget temp -limitscolor]\
+                [.stripchart1 axis cget temp -titlecolor]
+    } -cleanup {
+        destroy .stripchart1
+    } -result {temp temp blue3 blue3}
+
 	cleanupTests
 }

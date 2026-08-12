@@ -615,6 +615,23 @@ namespace eval stripchart.axis {
 	} -cleanup {
 		destroy .stripchart1
 	} -result {-23}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the exact -min option is not interpreted as an abbreviation of
+	# -minorticks.
+	# ------------------------------------------------------------------------------------
+    test RBC.stripchart.axis.configure.A.17.2 {
+		Min - exact option does not match minorticks
+	} -setup {
+        stripchart .stripchart1
+        .stripchart1 axis create Axis1
+        .stripchart1 axis configure Axis1 -minorticks {0.2 0.4 0.6 0.8}
+    } -body {
+        .stripchart1 axis configure Axis1 -min 1.25
+        list [.stripchart1 axis cget Axis1 -min] [.stripchart1 axis cget Axis1 -minorticks]
+    } -cleanup {
+        destroy .stripchart1
+    } -result {1.25 {0.2 0.4 0.6 0.8}}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the axis configure -minorticks command works correctly
@@ -871,6 +888,22 @@ namespace eval stripchart.axis {
 	} -cleanup {
 		destroy .stripchart1
 	} -result {Test Title}	
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure a unique abbreviation of -titleshadow is resolved against the full
+	# option table and still reaches the shadow transaction.
+	# ------------------------------------------------------------------------------------
+	test RBC.stripchart.axis.configure.A.28.2 {
+		Titleshadow - unique abbreviation
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 axis create Axis1
+	} -body {
+		.stripchart1 axis configure Axis1 -titlesh blue3
+		.stripchart1 axis cget Axis1 -titleshadow
+	} -cleanup {
+		destroy .stripchart1
+	} -result {blue3}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the axis configure -titlealternate command works correctly

@@ -415,6 +415,13 @@ static int LayoutRange(Tcl_WideInt value) {
     return (int)value;
 }
 
+static int IsAxisOption(Tcl_Obj *objPtr, const char *optionName) {
+    const char *name;
+
+    name = Rbc_GetCanonicalOptionName(objPtr, axisOptionSpecs);
+    return ((name != NULL) && (strcmp(name, optionName) == 0));
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -524,16 +531,7 @@ static int AxisIsHorizontal(Graph *graphPtr, Axis *axisPtr) {
  *
  *----------------------------------------------------------------------
  */
-static int IsAxisBindTagsOption(Tcl_Obj *objPtr) {
-    static const char optionName[] = "-bindtags";
-    const char *string;
-    Tcl_Size length;
-    Tcl_Size fullLength;
-
-    string = Tcl_GetStringFromObj(objPtr, &length);
-    fullLength = (Tcl_Size)(sizeof(optionName) - 1);
-    return ((length > 0) && (length <= fullLength) && (strncmp(string, optionName, (size_t)length) == 0));
-}
+static int IsAxisBindTagsOption(Tcl_Obj *objPtr) { return IsAxisOption(objPtr, "-bindtags"); }
 
 /*
  *----------------------------------------------------------------------
@@ -680,18 +678,7 @@ static void FreeAxisFormats(char **formats) {
  *
  *----------------------------------------------------------------------
  */
-static int IsAxisLimitsFormatOption(Tcl_Obj *objPtr) {
-    static const char optionName[] = "-limitsformat";
-    const char *string;
-    Tcl_Size length;
-    Tcl_Size fullLength;
-
-    string = Tcl_GetStringFromObj(objPtr, &length);
-
-    fullLength = (Tcl_Size)(sizeof(optionName) - 1);
-
-    return ((length > 0) && (length <= fullLength) && (strncmp(string, optionName, (size_t)length) == 0));
-}
+static int IsAxisLimitsFormatOption(Tcl_Obj *objPtr) { return IsAxisOption(objPtr, "-limitsformat"); }
 
 /*
  *----------------------------------------------------------------------
@@ -1098,55 +1085,25 @@ static void ReleaseAxisOptionResources(Graph *graphPtr, Axis *axisPtr) {
  *----------------------------------------------------------------------
  */
 static AxisLimitOption GetAxisLimitOption(Tcl_Obj *objPtr) {
-    static const struct {
-        const char *name;
-        AxisLimitOption option;
-    } optionMap[] = {{"-min", AXIS_LIMIT_OPTION_MIN},
-                     {"-max", AXIS_LIMIT_OPTION_MAX},
-                     {"-scrollmin", AXIS_LIMIT_OPTION_SCROLL_MIN},
-                     {"-scrollmax", AXIS_LIMIT_OPTION_SCROLL_MAX}};
+    const char *name;
 
-    const char *string;
-    Tcl_Size length;
-    AxisLimitOption match;
-    size_t i;
-
-    string = Tcl_GetStringFromObj(objPtr, &length);
-
-    /*
-     * Prefer exact matches. This is important for -min, which is also
-     * a prefix of -minorticks.
-     */
-    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
-        Tcl_Size fullLength;
-
-        fullLength = (Tcl_Size)strlen(optionMap[i].name);
-
-        if ((length == fullLength) && (memcmp(string, optionMap[i].name, (size_t)length) == 0)) {
-            return optionMap[i].option;
-        }
+    name = Rbc_GetCanonicalOptionName(objPtr, axisOptionSpecs);
+    if (name == NULL) {
+        return AXIS_LIMIT_OPTION_NONE;
     }
-
-    /*
-     * Recover an accepted unambiguous abbreviation.
-     */
-    match = AXIS_LIMIT_OPTION_NONE;
-
-    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
-        Tcl_Size fullLength;
-
-        fullLength = (Tcl_Size)strlen(optionMap[i].name);
-
-        if ((length > 0) && (length < fullLength) && (strncmp(string, optionMap[i].name, (size_t)length) == 0)) {
-            if (match == AXIS_LIMIT_OPTION_NONE) {
-                match = optionMap[i].option;
-            } else if (match != optionMap[i].option) {
-                return AXIS_LIMIT_OPTION_NONE;
-            }
-        }
+    if (strcmp(name, "-min") == 0) {
+        return AXIS_LIMIT_OPTION_MIN;
     }
-
-    return match;
+    if (strcmp(name, "-max") == 0) {
+        return AXIS_LIMIT_OPTION_MAX;
+    }
+    if (strcmp(name, "-scrollmin") == 0) {
+        return AXIS_LIMIT_OPTION_SCROLL_MIN;
+    }
+    if (strcmp(name, "-scrollmax") == 0) {
+        return AXIS_LIMIT_OPTION_SCROLL_MAX;
+    }
+    return AXIS_LIMIT_OPTION_NONE;
 }
 
 /*
@@ -1194,61 +1151,22 @@ static int GetAxisLimitFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, double *valu
  *----------------------------------------------------------------------
  */
 static AxisPixelOption GetAxisPixelOption(Tcl_Obj *objPtr) {
-    static const struct {
-        const char *name;
-        AxisPixelOption option;
-    } optionMap[] = {{"-borderwidth", AXIS_PIXEL_OPTION_BORDER_WIDTH},
-                     {"-linewidth", AXIS_PIXEL_OPTION_LINE_WIDTH},
-                     {"-scrollincrement", AXIS_PIXEL_OPTION_SCROLL_INCREMENT}};
+    const char *name;
 
-    const char *string;
-    Tcl_Size length;
-    AxisPixelOption match;
-    size_t i;
-
-    string = Tcl_GetStringFromObj(objPtr, &length);
-
-    /*
-     * Handle the exact synonym separately. It is not an abbreviation
-     * of "-borderwidth".
-     */
-    if ((length == 3) && (memcmp(string, "-bd", 3) == 0)) {
+    name = Rbc_GetCanonicalOptionName(objPtr, axisOptionSpecs);
+    if (name == NULL) {
+        return AXIS_PIXEL_OPTION_NONE;
+    }
+    if (strcmp(name, "-borderwidth") == 0) {
         return AXIS_PIXEL_OPTION_BORDER_WIDTH;
     }
-
-    /*
-     * Prefer exact canonical names.
-     */
-    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
-        Tcl_Size fullLength;
-
-        fullLength = (Tcl_Size)strlen(optionMap[i].name);
-
-        if ((length == fullLength) && (memcmp(string, optionMap[i].name, (size_t)length) == 0)) {
-            return optionMap[i].option;
-        }
+    if (strcmp(name, "-linewidth") == 0) {
+        return AXIS_PIXEL_OPTION_LINE_WIDTH;
     }
-
-    /*
-     * Recover a canonical option from an accepted abbreviation.
-     */
-    match = AXIS_PIXEL_OPTION_NONE;
-
-    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
-        Tcl_Size fullLength;
-
-        fullLength = (Tcl_Size)strlen(optionMap[i].name);
-
-        if ((length > 0) && (length < fullLength) && (strncmp(string, optionMap[i].name, (size_t)length) == 0)) {
-            if (match == AXIS_PIXEL_OPTION_NONE) {
-                match = optionMap[i].option;
-            } else if (match != optionMap[i].option) {
-                return AXIS_PIXEL_OPTION_NONE;
-            }
-        }
+    if (strcmp(name, "-scrollincrement") == 0) {
+        return AXIS_PIXEL_OPTION_SCROLL_INCREMENT;
     }
-
-    return match;
+    return AXIS_PIXEL_OPTION_NONE;
 }
 
 /*
@@ -1729,61 +1647,20 @@ static void FreeAxisTicks(Ticks *ticksPtr) {
     }
 }
 
-
 static AxisTickOption GetAxisTickOption(Tcl_Obj *objPtr) {
-    static const struct {
-        const char *name;
-        AxisTickOption option;
-    } optionMap[] = {{"-majorticks", AXIS_TICK_OPTION_MAJOR}, {"-minorticks", AXIS_TICK_OPTION_MINOR}};
+    const char *name;
 
-    const char *string;
-    Tcl_Size length;
-    AxisTickOption match;
-    size_t i;
-
-    string = Tcl_GetStringFromObj(objPtr, &length);
-
-    /*
-     * "-min" is a separate exact option, not an abbreviation of
-     * "-minorticks".
-     */
-    if ((length == 4) && (memcmp(string, "-min", 4) == 0)) {
+    name = Rbc_GetCanonicalOptionName(objPtr, axisOptionSpecs);
+    if (name == NULL) {
         return AXIS_TICK_OPTION_NONE;
     }
-
-    /*
-     * Prefer exact matches.
-     */
-    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
-        Tcl_Size fullLength;
-
-        fullLength = (Tcl_Size)strlen(optionMap[i].name);
-
-        if ((length == fullLength) && (memcmp(string, optionMap[i].name, (size_t)length) == 0)) {
-            return optionMap[i].option;
-        }
+    if (strcmp(name, "-majorticks") == 0) {
+        return AXIS_TICK_OPTION_MAJOR;
     }
-
-    /*
-     * Tk_SetOptions has already rejected ambiguous abbreviations.
-     */
-    match = AXIS_TICK_OPTION_NONE;
-
-    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
-        Tcl_Size fullLength;
-
-        fullLength = (Tcl_Size)strlen(optionMap[i].name);
-
-        if ((length > 0) && (length < fullLength) && (strncmp(string, optionMap[i].name, (size_t)length) == 0)) {
-            if (match == AXIS_TICK_OPTION_NONE) {
-                match = optionMap[i].option;
-            } else if (match != optionMap[i].option) {
-                return AXIS_TICK_OPTION_NONE;
-            }
-        }
+    if (strcmp(name, "-minorticks") == 0) {
+        return AXIS_TICK_OPTION_MINOR;
     }
-
-    return match;
+    return AXIS_TICK_OPTION_NONE;
 }
 
 /*
@@ -1799,18 +1676,7 @@ static AxisTickOption GetAxisTickOption(Tcl_Obj *objPtr) {
  *
  *----------------------------------------------------------------------
  */
-static int IsAxisLooseOption(Tcl_Obj *objPtr) {
-    static const char optionName[] = "-loose";
-    const char *string;
-    Tcl_Size length;
-    Tcl_Size fullLength;
-
-    string = Tcl_GetStringFromObj(objPtr, &length);
-
-    fullLength = (Tcl_Size)(sizeof(optionName) - 1);
-
-    return ((length > 0) && (length <= fullLength) && (strncmp(string, optionName, (size_t)length) == 0));
-}
+static int IsAxisLooseOption(Tcl_Obj *objPtr) { return IsAxisOption(objPtr, "-loose"); }
 
 /*
  *----------------------------------------------------------------------
@@ -2209,53 +2075,22 @@ static void FreeAxisShadow(Shadow *shadowPtr) {
 }
 
 static AxisShadowOption GetAxisShadowOption(Tcl_Obj *objPtr) {
-    static const struct {
-        const char *name;
-        AxisShadowOption option;
-    } optionMap[] = {{"-limitsshadow", AXIS_SHADOW_OPTION_LIMITS},
-                     {"-tickshadow", AXIS_SHADOW_OPTION_TICK},
-                     {"-titleshadow", AXIS_SHADOW_OPTION_TITLE}};
+    const char *name;
 
-    const char *string;
-    Tcl_Size length;
-    AxisShadowOption match;
-    size_t i;
-
-    string = Tcl_GetStringFromObj(objPtr, &length);
-
-    /*
-     * Prefer exact option names.
-     */
-    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
-        Tcl_Size fullLength;
-
-        fullLength = (Tcl_Size)strlen(optionMap[i].name);
-
-        if ((length == fullLength) && (memcmp(string, optionMap[i].name, (size_t)length) == 0)) {
-            return optionMap[i].option;
-        }
+    name = Rbc_GetCanonicalOptionName(objPtr, axisOptionSpecs);
+    if (name == NULL) {
+        return AXIS_SHADOW_OPTION_NONE;
     }
-
-    /*
-     * Tk_SetOptions has already rejected ambiguous abbreviations.
-     */
-    match = AXIS_SHADOW_OPTION_NONE;
-
-    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
-        Tcl_Size fullLength;
-
-        fullLength = (Tcl_Size)strlen(optionMap[i].name);
-
-        if ((length > 0) && (length < fullLength) && (strncmp(string, optionMap[i].name, (size_t)length) == 0)) {
-            if (match == AXIS_SHADOW_OPTION_NONE) {
-                match = optionMap[i].option;
-            } else if (match != optionMap[i].option) {
-                return AXIS_SHADOW_OPTION_NONE;
-            }
-        }
+    if (strcmp(name, "-limitsshadow") == 0) {
+        return AXIS_SHADOW_OPTION_LIMITS;
     }
-
-    return match;
+    if (strcmp(name, "-tickshadow") == 0) {
+        return AXIS_SHADOW_OPTION_TICK;
+    }
+    if (strcmp(name, "-titleshadow") == 0) {
+        return AXIS_SHADOW_OPTION_TITLE;
+    }
+    return AXIS_SHADOW_OPTION_NONE;
 }
 
 static int StageAxisShadow(Graph *graphPtr, Tcl_Obj *objPtr, AxisShadowOption option,

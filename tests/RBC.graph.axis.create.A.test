@@ -69,5 +69,16 @@ namespace eval graph.axis {
 		destroy .graph1
 	} -result {0}
 
+    test RBC.graph.axis.create.A.title.1 {
+        graph axis create: -title is not -titleshadow
+    } -setup {
+        graph .graph1
+    } -body {
+        set result [.graph1 axis create temp -title temp -titlecolor blue3]
+        list $result [.graph1 axis cget temp -title] [.graph1 axis cget temp -titlecolor]
+    } -cleanup {
+        destroy .graph1
+    } -result {temp temp blue3}
+
 	cleanupTests
 }

@@ -529,9 +529,13 @@ option add *zoomOutline.xor yes
 proc rbc::MarchingAnts {graph offset} {
     variable zoomInfo
     incr offset
-    if {[$graph marker exists zoomOutline]} {
+    set result [catch {$graph marker exists zoomOutline}]
+    if {$result} {
         $graph marker configure zoomOutline -dashoffset $offset
         set interval $zoomInfo($graph,interval)
+        if {[info exists zoomInfo($graph,afterId)]} {
+            after cancel $zoomInfo($graph,afterId)
+        }
         set id [after $interval [list rbc::MarchingAnts $graph $offset]]
         set zoomInfo($graph,afterId) $id
     }

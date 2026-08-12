@@ -1347,54 +1347,23 @@ static int GetDrawablePolygonPointCount(Display *display, Tcl_Size nPoints) {
  *
  *----------------------------------------------------------------------
  */
-static LineScalarOption GetLineScalarOption(Tcl_Obj *objPtr) {
-    static const struct {
-        const char *name;
-        LineScalarOption option;
-    } optionMap[] = {{"-maxsymbols", LINE_SCALAR_OPTION_MAX_SYMBOLS},
-                     {"-smooth", LINE_SCALAR_OPTION_SMOOTH},
-                     {"-trace", LINE_SCALAR_OPTION_TRACE}};
+static LineScalarOption GetLineScalarOption(Element *elemPtr, Tcl_Obj *objPtr) {
+    const char *name;
 
-    const char *string;
-    Tcl_Size length;
-    LineScalarOption match;
-    size_t i;
-
-    string = Tcl_GetStringFromObj(objPtr, &length);
-
-    /*
-     * Prefer exact matches.
-     */
-    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
-        Tcl_Size fullLength;
-
-        fullLength = (Tcl_Size)strlen(optionMap[i].name);
-
-        if ((length == fullLength) && (memcmp(string, optionMap[i].name, (size_t)length) == 0)) {
-            return optionMap[i].option;
-        }
+    name = Rbc_GetCanonicalOptionName(objPtr, elemPtr->optionSpecs);
+    if (name == NULL) {
+        return LINE_SCALAR_OPTION_NONE;
     }
-
-    /*
-     * Recover canonical identity from an accepted abbreviation.
-     */
-    match = LINE_SCALAR_OPTION_NONE;
-
-    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
-        Tcl_Size fullLength;
-
-        fullLength = (Tcl_Size)strlen(optionMap[i].name);
-
-        if ((length > 0) && (length < fullLength) && (strncmp(string, optionMap[i].name, (size_t)length) == 0)) {
-            if (match == LINE_SCALAR_OPTION_NONE) {
-                match = optionMap[i].option;
-            } else if (match != optionMap[i].option) {
-                return LINE_SCALAR_OPTION_NONE;
-            }
-        }
+    if (strcmp(name, "-maxsymbols") == 0) {
+        return LINE_SCALAR_OPTION_MAX_SYMBOLS;
     }
-
-    return match;
+    if (strcmp(name, "-smooth") == 0) {
+        return LINE_SCALAR_OPTION_SMOOTH;
+    }
+    if (strcmp(name, "-trace") == 0) {
+        return LINE_SCALAR_OPTION_TRACE;
+    }
+    return LINE_SCALAR_OPTION_NONE;
 }
 
 /*
@@ -1411,52 +1380,20 @@ static LineScalarOption GetLineScalarOption(Tcl_Obj *objPtr) {
  *
  *----------------------------------------------------------------------
  */
-static LineAreaOption GetLineAreaOption(Tcl_Obj *objPtr) {
-    static const struct {
-        const char *name;
-        LineAreaOption option;
-    } optionMap[] = {{"-areapattern", LINE_AREA_OPTION_PATTERN}, {"-areatile", LINE_AREA_OPTION_TILE}};
+static LineAreaOption GetLineAreaOption(Element *elemPtr, Tcl_Obj *objPtr) {
+    const char *name;
 
-    const char *string;
-    Tcl_Size length;
-    LineAreaOption match;
-    size_t i;
-
-    string = Tcl_GetStringFromObj(objPtr, &length);
-
-    /*
-     * Prefer exact matches.
-     */
-    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
-        Tcl_Size fullLength;
-
-        fullLength = (Tcl_Size)strlen(optionMap[i].name);
-
-        if ((length == fullLength) && (memcmp(string, optionMap[i].name, (size_t)length) == 0)) {
-            return optionMap[i].option;
-        }
+    name = Rbc_GetCanonicalOptionName(objPtr, elemPtr->optionSpecs);
+    if (name == NULL) {
+        return LINE_AREA_OPTION_NONE;
     }
-
-    /*
-     * Recover the canonical identity from an accepted abbreviation.
-     */
-    match = LINE_AREA_OPTION_NONE;
-
-    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
-        Tcl_Size fullLength;
-
-        fullLength = (Tcl_Size)strlen(optionMap[i].name);
-
-        if ((length > 0) && (length < fullLength) && (strncmp(string, optionMap[i].name, (size_t)length) == 0)) {
-            if (match == LINE_AREA_OPTION_NONE) {
-                match = optionMap[i].option;
-            } else if (match != optionMap[i].option) {
-                return LINE_AREA_OPTION_NONE;
-            }
-        }
+    if (strcmp(name, "-areapattern") == 0) {
+        return LINE_AREA_OPTION_PATTERN;
     }
-
-    return match;
+    if (strcmp(name, "-areatile") == 0) {
+        return LINE_AREA_OPTION_TILE;
+    }
+    return LINE_AREA_OPTION_NONE;
 }
 
 /*
@@ -1660,7 +1597,7 @@ static int PrepareLineAreaTransaction(Graph *graphPtr, Element *elemPtr, Line *l
     for (i = 0; i < elemPtr->optionObjc; i += 2) {
         LineAreaOption option;
 
-        option = GetLineAreaOption(elemPtr->optionObjv[i]);
+        option = GetLineAreaOption(elemPtr, elemPtr->optionObjv[i]);
 
         if (option != LINE_AREA_OPTION_NONE) {
             explicitMask |= LINE_AREA_OPTION_MASK(option);
@@ -1692,7 +1629,7 @@ static int PrepareLineAreaTransaction(Graph *graphPtr, Element *elemPtr, Line *l
         LineAreaOption option;
         Tcl_Obj *valueObjPtr;
 
-        option = GetLineAreaOption(elemPtr->optionObjv[i]);
+        option = GetLineAreaOption(elemPtr, elemPtr->optionObjv[i]);
 
         valueObjPtr = elemPtr->optionObjv[i + 1];
 
@@ -2074,7 +2011,7 @@ static int PrepareLineScalarTransaction(Graph *graphPtr, Element *elemPtr, Line 
     for (i = 0; i < elemPtr->optionObjc; i += 2) {
         LineScalarOption option;
 
-        option = GetLineScalarOption(elemPtr->optionObjv[i]);
+        option = GetLineScalarOption(elemPtr, elemPtr->optionObjv[i]);
 
         if (option != LINE_SCALAR_OPTION_NONE) {
             explicitMask |= LINE_SCALAR_OPTION_MASK(option);
@@ -2119,7 +2056,7 @@ static int PrepareLineScalarTransaction(Graph *graphPtr, Element *elemPtr, Line 
     for (i = 0; i < elemPtr->optionObjc; i += 2) {
         LineScalarOption option;
 
-        option = GetLineScalarOption(elemPtr->optionObjv[i]);
+        option = GetLineScalarOption(elemPtr, elemPtr->optionObjv[i]);
 
         if (option == LINE_SCALAR_OPTION_NONE) {
             continue;

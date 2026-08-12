@@ -358,68 +358,30 @@ static int GraphLayoutInt(Tcl_WideInt value) {
 }
 
 static int GetGraphOptionFromObj(Tcl_Obj *objPtr, const GraphOptionName *optionMap, size_t nOptions) {
-    const char *string;
-    Tcl_Size length;
-    int match;
+    const char *name;
     size_t i;
 
-    string = Tcl_GetStringFromObj(objPtr, &length);
-
-    /*
-     * Prefer exact names. This is required for aliases such as -bd and
-     * -bm, and for canonical names that are prefixes of other options.
-     */
+    name = Rbc_GetCanonicalOptionName(objPtr, graphOptionSpecs);
+    if (name == NULL) {
+        return 0;
+    }
     for (i = 0; i < nOptions; i++) {
-        Tcl_Size fullLength;
-
-        fullLength = (Tcl_Size)strlen(optionMap[i].name);
-
-        if ((length == fullLength) && (memcmp(string, optionMap[i].name, (size_t)length) == 0)) {
+        if (strcmp(name, optionMap[i].name) == 0) {
             return optionMap[i].option;
         }
     }
-
-    /*
-     * Tk_SetOptions has already rejected unknown and ambiguous option
-     * abbreviations. Recover the accepted canonical identity.
-     */
-    match = 0;
-
-    for (i = 0; i < nOptions; i++) {
-        Tcl_Size fullLength;
-
-        fullLength = (Tcl_Size)strlen(optionMap[i].name);
-
-        if ((length > 0) && (length < fullLength) && (strncmp(string, optionMap[i].name, (size_t)length) == 0)) {
-            if (match == 0) {
-                match = optionMap[i].option;
-            } else if (match != optionMap[i].option) {
-                return 0;
-            }
-        }
-    }
-
-    return match;
+    return 0;
 }
 
 static int IsGraphOption(Tcl_Obj *objPtr, const char *optionName) {
-    const char *string;
-    Tcl_Size length;
-    Tcl_Size fullLength;
+    const char *name;
 
-    string = Tcl_GetStringFromObj(objPtr, &length);
-    fullLength = (Tcl_Size)strlen(optionName);
-
-    return ((length > 0) && (length <= fullLength) && (strncmp(string, optionName, (size_t)length) == 0));
+    name = Rbc_GetCanonicalOptionName(objPtr, graphOptionSpecs);
+    return ((name != NULL) && (strcmp(name, optionName) == 0));
 }
 
 static GraphPixelOption GetGraphPixelOption(Tcl_Obj *objPtr) {
-    static const GraphOptionName optionMap[] = {{"-bd", GRAPH_PIXEL_OPTION_BORDER_WIDTH},
-                                                {"-bm", GRAPH_PIXEL_OPTION_BOTTOM_MARGIN},
-                                                {"-lm", GRAPH_PIXEL_OPTION_LEFT_MARGIN},
-                                                {"-rm", GRAPH_PIXEL_OPTION_RIGHT_MARGIN},
-                                                {"-tm", GRAPH_PIXEL_OPTION_TOP_MARGIN},
-                                                {"-highlightthickness", GRAPH_PIXEL_OPTION_HIGHLIGHT_WIDTH},
+    static const GraphOptionName optionMap[] = {{"-highlightthickness", GRAPH_PIXEL_OPTION_HIGHLIGHT_WIDTH},
                                                 {"-borderwidth", GRAPH_PIXEL_OPTION_BORDER_WIDTH},
                                                 {"-bottommargin", GRAPH_PIXEL_OPTION_BOTTOM_MARGIN},
                                                 {"-halo", GRAPH_PIXEL_OPTION_HALO},
@@ -429,7 +391,6 @@ static GraphPixelOption GetGraphPixelOption(Tcl_Obj *objPtr) {
                                                 {"-rightmargin", GRAPH_PIXEL_OPTION_RIGHT_MARGIN},
                                                 {"-topmargin", GRAPH_PIXEL_OPTION_TOP_MARGIN},
                                                 {"-width", GRAPH_PIXEL_OPTION_WIDTH}};
-
     return (GraphPixelOption)GetGraphOptionFromObj(objPtr, optionMap, sizeof(optionMap) / sizeof(optionMap[0]));
 }
 

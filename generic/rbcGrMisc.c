@@ -13,13 +13,8 @@
 #include "rbcGraph.h"
 #include <X11/Xutil.h>
 
+#include <math.h>
 #include <stdarg.h>
-
-/*
-typedef struct {
-    double hue, sat, val;
-} HSV;
-*/
 
 static Tk_OptionParseProc StringToPoint;
 static Tk_OptionPrintProc PointToString;
@@ -28,8 +23,6 @@ static Tk_OptionPrintProc ColorPairToString;
 Tk_CustomOption rbcPointOption = {StringToPoint, PointToString, (ClientData)0};
 Tk_CustomOption rbcColorPairOption = {StringToColorPair, ColorPairToString, (ClientData)0};
 
-// static void XColorToHSV (XColor *colorPtr, HSV *hsvPtr);
-// static void HSVToXColor (HSV *hsvPtr, XColor *colorPtr);
 static int GetColorPair(Tcl_Interp *interp, Tk_Window tkwin, const char *fgStr, const char *bgStr, ColorPair *pairPtr,
                         int allowDefault);
 static const char *NameOfColor(XColor *colorPtr);
@@ -920,6 +913,16 @@ Point2D Rbc_GetProjection(int x, int y, Point2D *p, Point2D *q) {
     return t;
 }
 
+static int ClampScrollValue(long double value) {
+    if (value > (long double)INT_MAX) {
+        return INT_MAX;
+    }
+    if (value < (long double)INT_MIN) {
+        return INT_MIN;
+    }
+    return (int)value;
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -957,55 +960,65 @@ Point2D Rbc_GetProjection(int x, int y, Point2D *p, Point2D *q) {
  *----------------------------------------------------------------------
  */
 int Rbc_AdjustViewport(int offset, int worldSize, int windowSize, int scrollUnits, int scrollMode) {
+    Tcl_WideInt newOffset;
+    Tcl_WideInt world;
+    Tcl_WideInt window;
+    Tcl_WideInt units;
+
+    newOffset = offset;
+    world = worldSize;
+    window = windowSize;
+    units = scrollUnits;
     switch (scrollMode) {
     case RBC_SCROLL_MODE_CANVAS:
-
         /*
          * Canvas-style scrolling allows the world to be scrolled
          * within the window.
          */
-
-        if (worldSize < windowSize) {
-            if ((worldSize - offset) > windowSize) {
-                offset = worldSize - windowSize;
+        if (world < window) {
+            if ((world - newOffset) > window) {
+                newOffset = world - window;
             }
-            if (offset > 0) {
-                offset = 0;
+            if (newOffset > 0) {
+                newOffset = 0;
             }
         } else {
-            if ((offset + windowSize) > worldSize) {
-                offset = worldSize - windowSize;
+            if ((newOffset + window) > world) {
+                newOffset = world - window;
             }
-            if (offset < 0) {
-                offset = 0;
+            if (newOffset < 0) {
+                newOffset = 0;
             }
         }
         break;
-
     case RBC_SCROLL_MODE_LISTBOX:
-        if (offset < 0) {
-            offset = 0;
+        if (newOffset >= world) {
+            newOffset = world - units;
         }
-        if (offset >= worldSize) {
-            offset = worldSize - scrollUnits;
+        if (newOffset < 0) {
+            newOffset = 0;
         }
         break;
-
     case RBC_SCROLL_MODE_HIERBOX:
-
         /*
          * Hierbox-style scrolling allows the world to be scrolled
          * within the window.
          */
-        if ((offset + windowSize) > worldSize) {
-            offset = worldSize - windowSize;
+        if ((newOffset + window) > world) {
+            newOffset = world - window;
         }
-        if (offset < 0) {
-            offset = 0;
+        if (newOffset < 0) {
+            newOffset = 0;
         }
         break;
     }
-    return offset;
+    if (newOffset > INT_MAX) {
+        return INT_MAX;
+    }
+    if (newOffset < INT_MIN) {
+        return INT_MIN;
+    }
+    return (int)newOffset;
 }
 
 /*
@@ -1039,8 +1052,12 @@ int Rbc_GetScrollInfo(Tcl_Interp *interp, int argc, char **argv, int *offsetPtr,
     size_t length;
     int offset;
     int count;
+    int delta;
     double fract;
 
+    if ((argc < 1) || (argv == NULL)) {
+        return TCL_ERROR;
+    }
     offset = *offsetPtr;
     c = argv[0][0];
     length = strlen(argv[0]);
@@ -1063,7 +1080,8 @@ int Rbc_GetScrollInfo(Tcl_Interp *interp, int argc, char **argv, int *offsetPtr,
             Tcl_AppendResult(interp, "unknown \"scroll\" units \"", argv[2], "\"", (char *)NULL);
             return TCL_ERROR;
         }
-        offset += (int)fract;
+        delta = ClampScrollValue((long double)fract);
+        offset = ClampScrollValue((long double)offset + (long double)delta);
     } else if ((c == 'm') && (strncmp(argv[0], "moveto", length) == 0)) {
         if (argc != 2) {
             return TCL_ERROR;
@@ -1072,14 +1090,22 @@ int Rbc_GetScrollInfo(Tcl_Interp *interp, int argc, char **argv, int *offsetPtr,
         if (Tcl_GetDouble(interp, argv[1], &fract) != TCL_OK) {
             return TCL_ERROR;
         }
-        offset = (int)(worldSize * fract);
+        long double position;
+
+        if (!isfinite(fract)) {
+            Tcl_AppendResult(interp, "bad scroll fraction \"", argv[1], "\": must be finite", (char *)NULL);
+            return TCL_ERROR;
+        }
+        position = (long double)worldSize * (long double)fract;
+        offset = ClampScrollValue(position);
     } else {
         /* Treat like "scroll units" */
         if (Tcl_GetInt(interp, argv[0], &count) != TCL_OK) {
             return TCL_ERROR;
         }
         fract = (double)count * scrollUnits;
-        offset += (int)fract;
+        delta = ClampScrollValue((long double)fract);
+        offset = ClampScrollValue((long double)offset + (long double)delta);
     }
     *offsetPtr = Rbc_AdjustViewport(offset, worldSize, windowSize, scrollUnits, scrollMode);
     return TCL_OK;
@@ -1112,15 +1138,18 @@ int Rbc_GetScrollInfo(Tcl_Interp *interp, int argc, char **argv, int *offsetPtr,
  */
 int Rbc_GetScrollInfoFromObj(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], int *offsetPtr, int worldSize,
                              int windowSize, int scrollUnits, int scrollMode) {
-    char c;
+    const char *string;
     size_t length;
+    char c;
     int offset;
     int count;
+    int delta;
     double fract;
-    const char *string;
 
+    if ((objc < 1) || (objv == NULL)) {
+        return TCL_ERROR;
+    }
     offset = *offsetPtr;
-
     string = Tcl_GetString(objv[0]);
     c = string[0];
     length = strlen(string);
@@ -1128,7 +1157,9 @@ int Rbc_GetScrollInfoFromObj(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const o
         if (objc != 3) {
             return TCL_ERROR;
         }
-        /* scroll number unit/page */
+        /*
+         * scroll number units|pages
+         */
         if (Tcl_GetIntFromObj(interp, objv[1], &count) != TCL_OK) {
             return TCL_ERROR;
         }
@@ -1136,31 +1167,49 @@ int Rbc_GetScrollInfoFromObj(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const o
         c = string[0];
         length = strlen(string);
         if ((c == 'u') && (strncmp(string, "units", length) == 0)) {
-            fract = (double)count * scrollUnits;
+            fract = (double)count * (double)scrollUnits;
         } else if ((c == 'p') && (strncmp(string, "pages", length) == 0)) {
-            /* A page is 90% of the view-able window. */
-            fract = (double)count * windowSize * 0.9;
+            /*
+             * A page is 90% of the visible window.
+             */
+            fract = (double)count * (double)windowSize * 0.9;
         } else {
             Tcl_AppendResult(interp, "unknown \"scroll\" units \"", Tcl_GetString(objv[2]), "\"", (char *)NULL);
             return TCL_ERROR;
         }
-        offset += (int)fract;
+        /*
+         * Preserve the historical truncation of the scroll delta
+         * before adding it to the current integer offset.
+         */
+        delta = ClampScrollValue((long double)fract);
+        offset = ClampScrollValue((long double)offset + (long double)delta);
+
     } else if ((c == 'm') && (strncmp(string, "moveto", length) == 0)) {
+        long double position;
+
         if (objc != 2) {
             return TCL_ERROR;
         }
-        /* moveto fraction */
         if (Tcl_GetDoubleFromObj(interp, objv[1], &fract) != TCL_OK) {
             return TCL_ERROR;
         }
-        offset = (int)(worldSize * fract);
+        if (!isfinite(fract)) {
+            Tcl_AppendResult(interp, "bad scroll fraction \"", Tcl_GetString(objv[1]), "\": must be finite",
+                             (char *)NULL);
+            return TCL_ERROR;
+        }
+        position = (long double)worldSize * (long double)fract;
+        offset = ClampScrollValue(position);
     } else {
-        /* Treat like "scroll units" */
+        /*
+         * Treat like "scroll units".
+         */
         if (Tcl_GetIntFromObj(interp, objv[0], &count) != TCL_OK) {
             return TCL_ERROR;
         }
-        fract = (double)count * scrollUnits;
-        offset += (int)fract;
+        fract = (double)count * (double)scrollUnits;
+        delta = ClampScrollValue((long double)fract);
+        offset = ClampScrollValue((long double)offset + (long double)delta);
     }
     *offsetPtr = Rbc_AdjustViewport(offset, worldSize, windowSize, scrollUnits, scrollMode);
     return TCL_OK;

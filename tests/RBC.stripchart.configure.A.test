@@ -525,6 +525,21 @@ namespace eval stripchart.configure {
 	} -result {0}
 
 	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the -bd synonym is canonicalized to -borderwidth before stripchart
+	# option transaction processing.
+	# ------------------------------------------------------------------------------------
+	test RBC.stripchart.configure.A.6.7 {
+		stripchart configure: borderwidth - bd synonym
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		.stripchart1 configure -bd 4
+		list [.stripchart1 cget -bd] [.stripchart1 cget -borderwidth]
+	} -cleanup {
+		destroy .stripchart1
+	} -result {4 4}
+
+	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -bottommargin command works correctly when given a 
 	# positive integer value.
 	# ------------------------------------------------------------------------------------

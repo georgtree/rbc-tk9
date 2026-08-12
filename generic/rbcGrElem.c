@@ -648,73 +648,45 @@ void Rbc_CommitElemVector(Element *elemPtr, ElemVector *destPtr, ElemVector *can
  *
  *----------------------------------------------------------------------
  */
-static ElemDataOption GetElemDataOption(Tcl_Obj *objPtr) {
-    static const struct {
-        const char *name;
-        ElemDataOption option;
-    } optionMap[] = {{"-data", ELEM_DATA_OPTION_PAIRS},
-                     {"-weights", ELEM_DATA_OPTION_WEIGHTS},
+static ElemDataOption GetElemDataOption(Element *elemPtr, Tcl_Obj *objPtr) {
+    const char *name;
 
-                     {"-x", ELEM_DATA_OPTION_X},
-                     {"-xdata", ELEM_DATA_OPTION_X},
-                     {"-y", ELEM_DATA_OPTION_Y},
-                     {"-ydata", ELEM_DATA_OPTION_Y},
-
-                     {"-xerror", ELEM_DATA_OPTION_X_ERROR},
-                     {"-xhigh", ELEM_DATA_OPTION_X_HIGH},
-                     {"-xlow", ELEM_DATA_OPTION_X_LOW},
-
-                     {"-yerror", ELEM_DATA_OPTION_Y_ERROR},
-                     {"-yhigh", ELEM_DATA_OPTION_Y_HIGH},
-                     {"-ylow", ELEM_DATA_OPTION_Y_LOW}};
-
-    const char *string;
-    Tcl_Size length;
-    ElemDataOption match;
-    size_t i;
-
-    string = Tcl_GetStringFromObj(objPtr, &length);
-
-    /*
-     * Prefer an exact match. For example, "-x" must mean "-x", not an
-     * ambiguous prefix of "-xdata", "-xerror", "-xhigh", and "-xlow".
-     */
-    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
-        Tcl_Size fullLength;
-
-        fullLength = (Tcl_Size)strlen(optionMap[i].name);
-
-        if ((length == fullLength) && (memcmp(string, optionMap[i].name, (size_t)length) == 0)) {
-            return optionMap[i].option;
-        }
+    name = Rbc_GetCanonicalOptionName(objPtr, elemPtr->optionSpecs);
+    if (name == NULL) {
+        return ELEM_DATA_OPTION_NONE;
+    }
+    if (strcmp(name, "-data") == 0) {
+        return ELEM_DATA_OPTION_PAIRS;
+    }
+    if (strcmp(name, "-weights") == 0) {
+        return ELEM_DATA_OPTION_WEIGHTS;
+    }
+    if (strcmp(name, "-x") == 0) {
+        return ELEM_DATA_OPTION_X;
+    }
+    if (strcmp(name, "-y") == 0) {
+        return ELEM_DATA_OPTION_Y;
+    }
+    if (strcmp(name, "-xerror") == 0) {
+        return ELEM_DATA_OPTION_X_ERROR;
+    }
+    if (strcmp(name, "-xhigh") == 0) {
+        return ELEM_DATA_OPTION_X_HIGH;
+    }
+    if (strcmp(name, "-xlow") == 0) {
+        return ELEM_DATA_OPTION_X_LOW;
+    }
+    if (strcmp(name, "-yerror") == 0) {
+        return ELEM_DATA_OPTION_Y_ERROR;
+    }
+    if (strcmp(name, "-yhigh") == 0) {
+        return ELEM_DATA_OPTION_Y_HIGH;
+    }
+    if (strcmp(name, "-ylow") == 0) {
+        return ELEM_DATA_OPTION_Y_LOW;
     }
 
-    /*
-     * Tk_SetOptions has already checked that an abbreviation is valid
-     * and unambiguous. Repeat enough of that matching here to recover
-     * the canonical data-option identity.
-     */
-    match = ELEM_DATA_OPTION_NONE;
-
-    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
-        Tcl_Size fullLength;
-
-        fullLength = (Tcl_Size)strlen(optionMap[i].name);
-
-        if ((length > 0) && (length < fullLength) && (strncmp(string, optionMap[i].name, (size_t)length) == 0)) {
-            if (match == ELEM_DATA_OPTION_NONE) {
-                match = optionMap[i].option;
-            } else if (match != optionMap[i].option) {
-                /*
-                 * This should already have been rejected by
-                 * Tk_SetOptions.
-                 */
-                return ELEM_DATA_OPTION_NONE;
-            }
-        }
-    }
-
-    return match;
+    return ELEM_DATA_OPTION_NONE;
 }
 
 /*
@@ -731,52 +703,20 @@ static ElemDataOption GetElemDataOption(Tcl_Obj *objPtr) {
  *
  *----------------------------------------------------------------------
  */
-static ElemPenOption GetElemPenOption(Tcl_Obj *objPtr) {
-    static const struct {
-        const char *name;
-        ElemPenOption option;
-    } optionMap[] = {{"-activepen", ELEM_PEN_OPTION_ACTIVE}, {"-pen", ELEM_PEN_OPTION_NORMAL}};
+static ElemPenOption GetElemPenOption(Element *elemPtr, Tcl_Obj *objPtr) {
+    const char *name;
 
-    const char *string;
-    Tcl_Size length;
-    ElemPenOption match;
-    size_t i;
-
-    string = Tcl_GetStringFromObj(objPtr, &length);
-
-    /*
-     * Prefer exact matches.
-     */
-    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
-        Tcl_Size fullLength;
-
-        fullLength = (Tcl_Size)strlen(optionMap[i].name);
-
-        if ((length == fullLength) && (memcmp(string, optionMap[i].name, (size_t)length) == 0)) {
-            return optionMap[i].option;
-        }
+    name = Rbc_GetCanonicalOptionName(objPtr, elemPtr->optionSpecs);
+    if (name == NULL) {
+        return ELEM_PEN_OPTION_NONE;
     }
-
-    /*
-     * Recover a canonical option from an accepted abbreviation.
-     */
-    match = ELEM_PEN_OPTION_NONE;
-
-    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
-        Tcl_Size fullLength;
-
-        fullLength = (Tcl_Size)strlen(optionMap[i].name);
-
-        if ((length > 0) && (length < fullLength) && (strncmp(string, optionMap[i].name, (size_t)length) == 0)) {
-            if (match == ELEM_PEN_OPTION_NONE) {
-                match = optionMap[i].option;
-            } else if (match != optionMap[i].option) {
-                return ELEM_PEN_OPTION_NONE;
-            }
-        }
+    if (strcmp(name, "-activepen") == 0) {
+        return ELEM_PEN_OPTION_ACTIVE;
     }
-
-    return match;
+    if (strcmp(name, "-pen") == 0) {
+        return ELEM_PEN_OPTION_NORMAL;
+    }
+    return ELEM_PEN_OPTION_NONE;
 }
 
 /*
@@ -802,52 +742,20 @@ static ElemPenOption GetElemPenOption(Tcl_Obj *objPtr) {
  *
  *----------------------------------------------------------------------
  */
-static ElemAxisOption GetElemAxisOption(Tcl_Obj *objPtr) {
-    static const struct {
-        const char *name;
-        ElemAxisOption option;
-    } optionMap[] = {{"-mapx", ELEM_AXIS_OPTION_X}, {"-mapy", ELEM_AXIS_OPTION_Y}};
+static ElemAxisOption GetElemAxisOption(Element *elemPtr, Tcl_Obj *objPtr) {
+    const char *name;
 
-    const char *string;
-    Tcl_Size length;
-    ElemAxisOption match;
-    size_t i;
-
-    string = Tcl_GetStringFromObj(objPtr, &length);
-
-    /*
-     * Prefer exact matches.
-     */
-    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
-        Tcl_Size fullLength;
-
-        fullLength = (Tcl_Size)strlen(optionMap[i].name);
-
-        if ((length == fullLength) && (memcmp(string, optionMap[i].name, (size_t)length) == 0)) {
-            return optionMap[i].option;
-        }
+    name = Rbc_GetCanonicalOptionName(objPtr, elemPtr->optionSpecs);
+    if (name == NULL) {
+        return ELEM_AXIS_OPTION_NONE;
     }
-
-    /*
-     * Recover a canonical option from an accepted abbreviation.
-     */
-    match = ELEM_AXIS_OPTION_NONE;
-
-    for (i = 0; i < sizeof(optionMap) / sizeof(optionMap[0]); i++) {
-        Tcl_Size fullLength;
-
-        fullLength = (Tcl_Size)strlen(optionMap[i].name);
-
-        if ((length > 0) && (length < fullLength) && (strncmp(string, optionMap[i].name, (size_t)length) == 0)) {
-            if (match == ELEM_AXIS_OPTION_NONE) {
-                match = optionMap[i].option;
-            } else if (match != optionMap[i].option) {
-                return ELEM_AXIS_OPTION_NONE;
-            }
-        }
+    if (strcmp(name, "-mapx") == 0) {
+        return ELEM_AXIS_OPTION_X;
     }
-
-    return match;
+    if (strcmp(name, "-mapy") == 0) {
+        return ELEM_AXIS_OPTION_Y;
+    }
+    return ELEM_AXIS_OPTION_NONE;
 }
 
 /*
@@ -872,16 +780,11 @@ static ElemAxisOption GetElemAxisOption(Tcl_Obj *objPtr) {
  *
  *----------------------------------------------------------------------
  */
-static int IsElemStateOption(Tcl_Obj *objPtr) {
-    static const char optionName[] = "-state";
-    const char *string;
-    Tcl_Size length;
-    Tcl_Size fullLength;
+static int IsElemStateOption(Element *elemPtr, Tcl_Obj *objPtr) {
+    const char *name;
 
-    string = Tcl_GetStringFromObj(objPtr, &length);
-    fullLength = (Tcl_Size)(sizeof(optionName) - 1);
-
-    return ((length > 0) && (length <= fullLength) && (strncmp(string, optionName, (size_t)length) == 0));
+    name = Rbc_GetCanonicalOptionName(objPtr, elemPtr->optionSpecs);
+    return ((name != NULL) && (strcmp(name, "-state") == 0));
 }
 
 /*
@@ -897,15 +800,11 @@ static int IsElemStateOption(Tcl_Obj *objPtr) {
  *
  *----------------------------------------------------------------------
  */
-static int IsElemBindTagsOption(Tcl_Obj *objPtr) {
-    static const char optionName[] = "-bindtags";
-    const char *string;
-    Tcl_Size length;
-    Tcl_Size fullLength;
+static int IsElemBindTagsOption(Element *elemPtr, Tcl_Obj *objPtr) {
+    const char *name;
 
-    string = Tcl_GetStringFromObj(objPtr, &length);
-    fullLength = (Tcl_Size)(sizeof(optionName) - 1);
-    return ((length > 0) && (length <= fullLength) && (strncmp(string, optionName, (size_t)length) == 0));
+    name = Rbc_GetCanonicalOptionName(objPtr, elemPtr->optionSpecs);
+    return ((name != NULL) && (strcmp(name, "-bindtags") == 0));
 }
 
 /*
@@ -985,7 +884,7 @@ int Rbc_PrepareElemTagsTransaction(Graph *graphPtr, Element *elemPtr, ElemTagsTr
      * Determine whether -bindtags was supplied explicitly.
      */
     for (i = 0; i < elemPtr->optionObjc; i += 2) {
-        if (IsElemBindTagsOption(elemPtr->optionObjv[i])) {
+        if (IsElemBindTagsOption(elemPtr, elemPtr->optionObjv[i])) {
             explicitlySpecified = TRUE;
         }
     }
@@ -1007,7 +906,7 @@ int Rbc_PrepareElemTagsTransaction(Graph *graphPtr, Element *elemPtr, ElemTagsTr
      * final value and would conceal an invalid earlier occurrence.
      */
     for (i = 0; i < elemPtr->optionObjc; i += 2) {
-        if (IsElemBindTagsOption(elemPtr->optionObjv[i])) {
+        if (IsElemBindTagsOption(elemPtr, elemPtr->optionObjv[i])) {
             if (StageElemTags(graphPtr->interp, elemPtr->optionObjv[i + 1], transactionPtr) != TCL_OK) {
                 goto error;
             }
@@ -1096,7 +995,7 @@ int Rbc_PrepareElemStateTransaction(Graph *graphPtr, Element *elemPtr, ElemState
      * Determine whether -state was supplied explicitly.
      */
     for (i = 0; i < elemPtr->optionObjc; i += 2) {
-        if (IsElemStateOption(elemPtr->optionObjv[i])) {
+        if (IsElemStateOption(elemPtr, elemPtr->optionObjv[i])) {
             explicitlySpecified = TRUE;
         }
     }
@@ -1125,7 +1024,7 @@ int Rbc_PrepareElemStateTransaction(Graph *graphPtr, Element *elemPtr, ElemState
      * the final retained value.
      */
     for (i = 0; i < elemPtr->optionObjc; i += 2) {
-        if (IsElemStateOption(elemPtr->optionObjv[i])) {
+        if (IsElemStateOption(elemPtr, elemPtr->optionObjv[i])) {
             if (Rbc_GetStateFromObj(graphPtr->interp, elemPtr->optionObjv[i + 1], &transactionPtr->state) != TCL_OK) {
                 return TCL_ERROR;
             }
@@ -1291,7 +1190,7 @@ int Rbc_PrepareElemAxisTransaction(Graph *graphPtr, Element *elemPtr, ElemAxisTr
     for (i = 0; i < elemPtr->optionObjc; i += 2) {
         ElemAxisOption option;
 
-        option = GetElemAxisOption(elemPtr->optionObjv[i]);
+        option = GetElemAxisOption(elemPtr, elemPtr->optionObjv[i]);
 
         if (option != ELEM_AXIS_OPTION_NONE) {
             explicitMask |= ELEM_AXIS_OPTION_MASK(option);
@@ -1326,7 +1225,7 @@ int Rbc_PrepareElemAxisTransaction(Graph *graphPtr, Element *elemPtr, ElemAxisTr
         ElemAxisOption option;
         Tcl_Obj *valueObjPtr;
 
-        option = GetElemAxisOption(elemPtr->optionObjv[i]);
+        option = GetElemAxisOption(elemPtr, elemPtr->optionObjv[i]);
 
         valueObjPtr = elemPtr->optionObjv[i + 1];
 
@@ -1500,7 +1399,7 @@ int Rbc_PrepareElemPenTransaction(Graph *graphPtr, Element *elemPtr, Rbc_Uid pen
     for (i = 0; i < elemPtr->optionObjc; i += 2) {
         ElemPenOption option;
 
-        option = GetElemPenOption(elemPtr->optionObjv[i]);
+        option = GetElemPenOption(elemPtr, elemPtr->optionObjv[i]);
 
         if (option != ELEM_PEN_OPTION_NONE) {
             explicitMask |= ELEM_PEN_OPTION_MASK(option);
@@ -1534,7 +1433,7 @@ int Rbc_PrepareElemPenTransaction(Graph *graphPtr, Element *elemPtr, Rbc_Uid pen
         ElemPenOption option;
         Tcl_Obj *valueObjPtr;
 
-        option = GetElemPenOption(elemPtr->optionObjv[i]);
+        option = GetElemPenOption(elemPtr, elemPtr->optionObjv[i]);
 
         valueObjPtr = elemPtr->optionObjv[i + 1];
 
@@ -1806,7 +1705,7 @@ int Rbc_PrepareElemDataTransaction(Graph *graphPtr, Element *elemPtr, ElemDataTr
     for (i = 0; i < elemPtr->optionObjc; i += 2) {
         ElemDataOption option;
 
-        option = GetElemDataOption(elemPtr->optionObjv[i]);
+        option = GetElemDataOption(elemPtr, elemPtr->optionObjv[i]);
         if (option != ELEM_DATA_OPTION_NONE) {
             explicitMask |= ELEM_DATA_OPTION_MASK(option);
         }
@@ -1900,7 +1799,7 @@ int Rbc_PrepareElemDataTransaction(Graph *graphPtr, Element *elemPtr, ElemDataTr
         ElemDataOption option;
         Tcl_Obj *valueObjPtr;
 
-        option = GetElemDataOption(elemPtr->optionObjv[i]);
+        option = GetElemDataOption(elemPtr, elemPtr->optionObjv[i]);
         valueObjPtr = elemPtr->optionObjv[i + 1];
 
         switch (option) {
@@ -2187,7 +2086,7 @@ void Rbc_SyncElemDataOptionObjects(Element *elemPtr) {
     for (i = 0; i < elemPtr->optionObjc; i += 2) {
         ElemDataOption option;
 
-        option = GetElemDataOption(elemPtr->optionObjv[i]);
+        option = GetElemDataOption(elemPtr, elemPtr->optionObjv[i]);
 
         if (option != ELEM_DATA_OPTION_NONE) {
             explicitMask |= ELEM_DATA_OPTION_MASK(option);
@@ -2264,7 +2163,7 @@ void Rbc_SyncElemDataOptionObjects(Element *elemPtr) {
         ElemDataOption option;
         Tcl_Obj *valueObjPtr;
 
-        option = GetElemDataOption(elemPtr->optionObjv[i]);
+        option = GetElemDataOption(elemPtr, elemPtr->optionObjv[i]);
         valueObjPtr = elemPtr->optionObjv[i + 1];
 
         switch (option) {
@@ -2308,16 +2207,11 @@ void Rbc_SyncElemDataOptionObjects(Element *elemPtr) {
  *
  *----------------------------------------------------------------------
  */
-static int IsElemStylesOption(Tcl_Obj *objPtr) {
-    static const char optionName[] = "-styles";
-    const char *string;
-    Tcl_Size length;
-    Tcl_Size fullLength;
+static int IsElemStylesOption(Element *elemPtr, Tcl_Obj *objPtr) {
+    const char *name;
 
-    string = Tcl_GetStringFromObj(objPtr, &length);
-    fullLength = (Tcl_Size)(sizeof(optionName) - 1);
-
-    return ((length > 0) && (length <= fullLength) && (strncmp(string, optionName, (size_t)length) == 0));
+    name = Rbc_GetCanonicalOptionName(objPtr, elemPtr->optionSpecs);
+    return ((name != NULL) && (strcmp(name, "-styles") == 0));
 }
 
 /*
@@ -2393,7 +2287,7 @@ int Rbc_PrepareElemStylesTransaction(Graph *graphPtr, Element *elemPtr, Rbc_Uid 
     assert((elemPtr->optionObjc & 1) == 0);
 
     for (i = 0; i < elemPtr->optionObjc; i += 2) {
-        if (IsElemStylesOption(elemPtr->optionObjv[i])) {
+        if (IsElemStylesOption(elemPtr, elemPtr->optionObjv[i])) {
             explicitlySpecified = TRUE;
         }
     }
@@ -2413,7 +2307,7 @@ int Rbc_PrepareElemStylesTransaction(Graph *graphPtr, Element *elemPtr, Rbc_Uid 
      * Process every explicit occurrence in original caller order.
      */
     for (i = 0; i < elemPtr->optionObjc; i += 2) {
-        if (IsElemStylesOption(elemPtr->optionObjv[i])) {
+        if (IsElemStylesOption(elemPtr, elemPtr->optionObjv[i])) {
             if (StageElemStyles(graphPtr, elemPtr, elemPtr->optionObjv[i + 1], penType, styleSize, transactionPtr) !=
                 TCL_OK) {
                 goto error;

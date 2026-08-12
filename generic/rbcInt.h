@@ -571,6 +571,8 @@ int Rbc_GetScrollInfoFromObj(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const o
 
 void Rbc_UpdateScrollbar(Tcl_Interp *interp, const char *scrollCmd, double firstFract, double lastFract);
 
+const char *Rbc_GetCanonicalOptionName(Tcl_Obj *objPtr, const Tk_OptionSpec *specs);
+
 #if defined(HAVE_JPEGLIB_H) || defined(HAVE_IJL_H)
 #define HAVE_JPEG 1
 int Rbc_JPEGToPhoto(Tcl_Interp *interp, const char *fileName, Tk_PhotoHandle photo);

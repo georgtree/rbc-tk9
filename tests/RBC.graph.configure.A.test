@@ -525,6 +525,21 @@ namespace eval graph.configure {
 	} -result {0}
 
 	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the -bd synonym is canonicalized to -borderwidth before graph option
+	# transaction processing.
+	# ------------------------------------------------------------------------------------
+	test RBC.graph.configure.A.6.7 {
+		graph configure: borderwidth - bd synonym
+	} -setup {
+		graph .graph1
+	} -body {
+		.graph1 configure -bd 4
+		list [.graph1 cget -bd] [.graph1 cget -borderwidth]
+	} -cleanup {
+		destroy .graph1
+	} -result {4 4}
+
+	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -bottommargin command works correctly when given a 
 	# positive integer value.
 	# ------------------------------------------------------------------------------------
