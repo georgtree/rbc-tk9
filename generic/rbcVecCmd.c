@@ -949,7 +949,11 @@ static int IndexOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
             return TCL_ERROR;
         }
         if (first == vPtr->length) {
-            if (Rbc_VectorChangeLength(vPtr, vPtr->length + 1) != TCL_OK) {
+            Tcl_Size newSize;
+            if (AddVectorSizes(interp, vPtr->length, 1, &newSize) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            if (Rbc_VectorChangeLength(vPtr, newSize) != TCL_OK) {
                 return TCL_ERROR;
             }
         }
@@ -1481,15 +1485,29 @@ static int SearchOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
     if ((min - max) >= DBL_EPSILON) {
         return TCL_OK; /* Bogus range. Don't bother looking. */
     }
-    listObjPtr = Tcl_NewListObj(0, (Tcl_Obj **)NULL);
-
+    listObjPtr = Tcl_NewListObj(0, NULL);
+    Tcl_IncrRefCount(listObjPtr);
     for (i = 0; i < vPtr->length; i++) {
         if (InRange(vPtr->valueArr[i], min, max)) {
-            Tcl_ListObjAppendElement(interp, listObjPtr,
-                                     wantValue ? Tcl_NewDoubleObj(vPtr->valueArr[i]) : Tcl_NewIntObj(i + vPtr->offset));
+            Tcl_Obj *objPtr;
+
+            if (wantValue) {
+                objPtr = Tcl_NewDoubleObj(vPtr->valueArr[i]);
+            } else {
+                Tcl_Size index;
+                if ((vPtr->offset > 0) && (i > (TCL_SIZE_MAX - vPtr->offset))) {
+                    Tcl_DecrRefCount(listObjPtr);
+                    Tcl_SetObjResult(interp, Tcl_NewStringObj("vector index is too large", -1));
+                    return TCL_ERROR;
+                }
+                index = i + vPtr->offset;
+                objPtr = Tcl_NewWideIntObj((Tcl_WideInt)index);
+            }
+            Tcl_ListObjAppendElement(interp, listObjPtr, objPtr);
         }
     }
     Tcl_SetObjResult(interp, listObjPtr);
+    Tcl_DecrRefCount(listObjPtr);
     return TCL_OK;
 }
 
@@ -1801,6 +1819,8 @@ static int SplitOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
     Tcl_Size nVectorArgs;
     Tcl_Size argIndex;
     VectorObject *v2Ptr;
+    VectorObject *sourcePtr;
+    VectorObject *tmpPtr;
     const char *string;
     Tcl_Size nVectors;
     Tcl_Size sourceIndex;
@@ -1811,38 +1831,51 @@ static int SplitOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
     int isNew;
 
     nVectorArgs = objc - 2;
-
-    /*
-     * Make this a no-op if no destination vectors were supplied.
-     */
     if (nVectorArgs == 0) {
         return TCL_OK;
     }
     nVectors = nVectorArgs;
     if ((vPtr->length % nVectors) != 0) {
-        Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't split vector \"%s\" into %" TCL_SIZE_MODIFIER "d even parts.",
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't split vector \"%s\" into "
+                                               "%" TCL_SIZE_MODIFIER "d even parts.",
                                                vPtr->name, nVectors));
         return TCL_ERROR;
     }
     extra = vPtr->length / nVectors;
+    sourcePtr = vPtr;
+    tmpPtr = NULL;
     for (argIndex = 0; argIndex < nVectorArgs; argIndex++) {
         string = Tcl_GetString(objv[argIndex + 2]);
         v2Ptr = Rbc_VectorCreate(vPtr->dataPtr, string, string, string, &isNew);
         if (v2Ptr == NULL) {
-            return TCL_ERROR;
+            goto error;
+        }
+        /*
+         * The source may also be one of the destinations.  Preserve
+         * the original source before resizing it.
+         */
+        if ((v2Ptr == vPtr) && (tmpPtr == NULL)) {
+            tmpPtr = Rbc_VectorNew(vPtr->dataPtr);
+            if (tmpPtr == NULL) {
+                Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate temporary vector", -1));
+                goto error;
+            }
+            if (Rbc_VectorDuplicate(tmpPtr, vPtr) != TCL_OK) {
+                goto error;
+            }
+            sourcePtr = tmpPtr;
         }
         oldSize = v2Ptr->length;
         if (AddVectorSizes(interp, oldSize, extra, &newSize) != TCL_OK) {
-            return TCL_ERROR;
+            goto error;
         }
         if (Rbc_VectorChangeLength(v2Ptr, newSize) != TCL_OK) {
-            return TCL_ERROR;
+            goto error;
         }
         sourceIndex = argIndex;
         destIndex = oldSize;
-        while (sourceIndex < vPtr->length) {
-            v2Ptr->valueArr[destIndex] = vPtr->valueArr[sourceIndex];
-
+        while (sourceIndex < sourcePtr->length) {
+            v2Ptr->valueArr[destIndex] = sourcePtr->valueArr[sourceIndex];
             sourceIndex += nVectors;
             destIndex++;
         }
@@ -1851,7 +1884,16 @@ static int SplitOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
             Rbc_VectorFlushCache(v2Ptr);
         }
     }
+    if (tmpPtr != NULL) {
+        Rbc_VectorFree(tmpPtr);
+    }
     return TCL_OK;
+
+error:
+    if (tmpPtr != NULL) {
+        Rbc_VectorFree(tmpPtr);
+    }
+    return TCL_ERROR;
 }
 
 /*
@@ -2279,6 +2321,7 @@ static Tcl_Size *SortVectors(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size ob
     Tcl_Size *iArr;
     Tcl_Size vectorCount;
     Tcl_Size i;
+    Tcl_Size j;
     size_t vectorBytes;
 
     if (AddVectorSizes(interp, objc, 1, &vectorCount) != TCL_OK) {
@@ -2298,6 +2341,17 @@ static Tcl_Size *SortVectors(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size ob
             Tcl_AppendResult(interp, "vector \"", v2Ptr->name, "\" is not the same size as \"", vPtr->name, "\"",
                              (char *)NULL);
             goto error;
+        }
+        /*
+         * A vector may participate in the sort only once.  Applying the
+         * resulting permutation more than once would reorder its already
+         * sorted contents a second time.
+         */
+        for (j = 0; j <= i; j++) {
+            if (vPtrArray[j] == v2Ptr) {
+                Tcl_SetObjResult(interp, Tcl_ObjPrintf("vector \"%s\" specified more than once", v2Ptr->name));
+                goto error;
+            }
         }
         vPtrArray[i + 1] = v2Ptr;
     }

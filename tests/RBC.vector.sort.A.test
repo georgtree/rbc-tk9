@@ -108,6 +108,33 @@ namespace eval vector.sort {
 	    vector destroy Vector1
 		vector destroy Vector2
 	} -result {1}
+
+    test RBC.vector.sort.A.3.1 {
+        vector sort: primary vector repeated as auxiliary
+    } -setup {
+        vector create Vector1
+        Vector1 set {3 1 2}
+    } -body {
+        set code [catch {Vector1 sort Vector1}]
+        list $code [Vector1 range 0 end]
+    } -cleanup {
+        vector destroy Vector1
+    } -result {1 {3.0 1.0 2.0}}
+
+    test RBC.vector.sort.A.3.2 {
+        vector sort: auxiliary vector repeated
+    } -setup {
+        vector create Vector1
+        Vector1 set {3 1 2}
+        vector create Vector2
+        Vector2 set {30 10 20}
+    } -body {
+        set code [catch { Vector1 sort Vector2 Vector2}]
+        list $code [Vector1 range 0 end] [Vector2 range 0 end]
+    } -cleanup {
+        vector destroy Vector1
+        vector destroy Vector2
+    } -result {1 {3.0 1.0 2.0} {30.0 10.0 20.0}}
 	
 	cleanupTests
 }
