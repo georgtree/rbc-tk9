@@ -217,5 +217,89 @@ test RBC.spline.A.3.2 {
     }
 } -result {0 0}
 
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure quadratic spline evaluates every point to the left of the source
+# interval.  The final left-hand extrapolation point must not be skipped.
+# ------------------------------------------------------------------------------------
+test RBC.spline.A.4.1 {
+    spline quadratic: left extrapolation point is not skipped
+} -setup {
+    vector create VectorX
+    VectorX set {0 1 2}
+    vector create VectorY
+    VectorY set {0 1 2}
+    vector create VectorEval
+    VectorEval set {-1 0.5}
+} -body {
+    spline quadratic VectorX VectorY VectorEval VectorResult
+    VectorResult range 0 end
+} -cleanup {
+    foreach vectorName {
+        VectorX
+        VectorY
+        VectorEval
+        VectorResult
+    } {
+        catch { vector destroy $vectorName }
+    }
+} -result {-1.0 0.5}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure quadratic spline handles an evaluation vector entirely to the left
+# of the source interval without reading beyond the interpolation array.
+# ------------------------------------------------------------------------------------
+test RBC.spline.A.4.2 {
+    spline quadratic: all evaluation points left of source interval
+} -setup {
+    vector create VectorX
+    VectorX set {0 1 2}
+    vector create VectorY
+    VectorY set {0 1 2}
+    vector create VectorEval
+    VectorEval set {-2 -1}
+} -body {
+    spline quadratic VectorX VectorY VectorEval VectorResult
+    VectorResult range 0 end
+} -cleanup {
+    foreach vectorName {
+        VectorX
+        VectorY
+        VectorEval
+        VectorResult
+    } {
+        catch { vector destroy $vectorName }
+    }
+} -result {-2.0 -1.0}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure quadratic spline handles an evaluation vector entirely to the right
+# of the source interval without using end == -1 as an array index.
+# ------------------------------------------------------------------------------------
+test RBC.spline.A.4.3 {
+    spline quadratic: all evaluation points right of source interval
+} -setup {
+    vector create VectorX
+    VectorX set {0 1 2}
+
+    vector create VectorY
+    VectorY set {0 1 2}
+
+    vector create VectorEval
+    VectorEval set {3 4}
+} -body {
+    spline quadratic VectorX VectorY VectorEval VectorResult
+
+    VectorResult range 0 end
+} -cleanup {
+    foreach vectorName {
+        VectorX
+        VectorY
+        VectorEval
+        VectorResult
+    } {
+        catch { vector destroy $vectorName }
+    }
+} -result {3.0 4.0}
+
 
 cleanupTests

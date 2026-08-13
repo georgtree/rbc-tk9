@@ -756,31 +756,40 @@ static int QuadEval(Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl
     }
 
     if (start > 0) {
-        error = 1; /* Set error value to indicate that
-                    * extrapolation has occurred. */
+        error = 1;
         /*
-         * Calculate the images of points of evaluation whose abscissas
-         * are less than the abscissa of the first data point.
+         * Calculate the images of all evaluation points whose
+         * abscissas are less than the first source abscissa.
          */
         ncase = QuadSelect(origPts, origPts + 1, m[0], m[1], epsilon, param);
-        for (j = 0; j < (start - 1); j++) {
+        for (j = 0; j < start; j++) {
             QuadSpline(intpPts + j, origPts, origPts + 1, param, ncase);
         }
-        if (nIntpPts == 1) {
+        /*
+         * Every evaluation point lies to the left of the source
+         * interval.  They have all been evaluated, and intpPts[start]
+         * would be one past the end of the array.
+         */
+        if (start >= nIntpPts) {
             return error;
         }
     }
-    if ((nIntpPts == 1) && (end != (nIntpPts - 1))) {
+    /*
+     * Every evaluation point lies to the right of the source interval.
+     * Prepare the final spline interval and go directly to right-hand
+     * extrapolation.  In this case end == -1, so the loop at
+     * noExtrapolation starts at element zero.
+     */
+    if (end < 0) {
+        error = 1;
+        ncase = QuadSelect(origPts + p, origPts + l, m[p], m[l], epsilon, param);
         goto noExtrapolation;
     }
-
     /*
      * Search locates the interval in which the first in-range
      * point of evaluation lies.
      */
-
     i = Search(origPts, nOrigPts, intpPts[start].x, &found);
-
     n = i + 1;
     if (n >= nOrigPts) {
         n = nOrigPts - 1;
