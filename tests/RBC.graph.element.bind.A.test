@@ -70,6 +70,41 @@ namespace eval graph.element {
         unset -nocomplain ::elementBindingResult
         destroy .graph1
     } -result {Element1}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure a key event is delivered to the currently picked element when no
+	# explicit binding-table focus item has been established.
+	# ------------------------------------------------------------------------------------
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure a key event is delivered to the currently picked element when no
+	# explicit binding-table focus item has been established.
+	# ------------------------------------------------------------------------------------
+    test RBC.graph.element.bind.A.1.3 {
+		Element key binding is delivered to current element
+	} -setup {
+        graph .graph1 -width 400 -height 300
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 10
+        .graph1 axis configure y -min 0 -max 10
+        .graph1 element create Element1 -data {2 2 5 5 8 8} -symbol circle
+        set ::elementKeyBindingResult {}
+        .graph1 element bind Element1 <KeyPress-a> {
+			set ::elementKeyBindingResult Element1
+		}
+        update
+        lassign [.graph1 transform 5 5] x y
+        focus -force .graph1
+        update
+    } -body {
+        event generate .graph1 <Motion> -x $x -y $y
+        update
+        event generate .graph1 <KeyPress> -keysym a
+        update
+        set ::elementKeyBindingResult
+    } -cleanup {
+        unset -nocomplain ::elementKeyBindingResult
+        destroy .graph1
+    } -result {Element1}
 	
 	cleanupTests
 }

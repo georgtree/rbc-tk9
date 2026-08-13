@@ -82,10 +82,11 @@ static void DoEvent(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr, ClientData i
         return;
     }
     /*
-     * Rbc does not currently set focusItem or focusContext.  When
-     * they are NULL, key events are effectively ignored.
+     * If a binding client has established an explicit focus item,
+     * route key events to it.  Otherwise use the current picked item
+     * supplied by BindProc.
      */
-    if ((eventPtr->type == KeyPress) || (eventPtr->type == KeyRelease)) {
+    if (((eventPtr->type == KeyPress) || (eventPtr->type == KeyRelease)) && (bindPtr->focusItem != NULL)) {
         item = bindPtr->focusItem;
         context = bindPtr->focusContext;
     }
@@ -416,7 +417,6 @@ static void BindProc(ClientData clientData, XEvent *eventPtr) {
     case KeyPress:
     case KeyRelease:
         bindPtr->state = eventPtr->xkey.state;
-        PickCurrentItem(bindPtr, eventPtr);
         DoEvent(bindPtr, eventPtr, bindPtr->currentItem, bindPtr->currentContext);
         break;
     }

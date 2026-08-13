@@ -209,6 +209,41 @@ namespace eval graph.legend {
     } -cleanup {
         destroy .graph1
     } -result {Line1 {}}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure a key event is delivered to the currently picked legend entry.
+	# ------------------------------------------------------------------------------------
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure a key event is delivered to the currently picked legend entry.
+	# ------------------------------------------------------------------------------------
+    test RBC.graph.legend.bind.A.1.9 {
+		Legend key binding is delivered to current entry
+	} -setup {
+        graph .graph1 -width 400 -height 300
+        set X {1 2 3 4 5}
+        set Y {2 4 6 8 10}
+        .graph1 element create Line1 -x $X -y $Y
+        .graph1 element create Line2 -x $Y -y $X
+        pack .graph1
+        update
+        set ::legendKeyBindingResult {}
+        .graph1 legend bind Line1 <KeyPress-a> {
+			set ::legendKeyBindingResult Line1
+		}
+        set point [FindLegendEntryPoint .graph1 Line1]
+        focus -force .graph1
+        update
+    } -body {
+        lassign $point x y
+        event generate .graph1 <Motion> -x $x -y $y
+        update
+        event generate .graph1 <KeyPress> -keysym a
+        update
+        set ::legendKeyBindingResult
+    } -cleanup {
+        unset -nocomplain ::legendKeyBindingResult
+        destroy .graph1
+    } -result {Line1}
 	
 	cleanupTests
 }
