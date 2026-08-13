@@ -225,6 +225,7 @@ static const Tk_OptionSpec legendOptionSpecs[] = {
 
 static Tcl_IdleProc DisplayLegend;
 static Rbc_BindPickProc PickLegendEntry;
+static Rbc_BindTagProc LegendTags;
 static Tk_EventProc LegendEventProc;
 
 static void EventuallyRedrawLegend(Legend *legendPtr);
@@ -248,6 +249,24 @@ static int IsLegendPositionPrefix(const char *string, Tcl_Size length, const cha
 
     fullLength = (Tcl_Size)strlen(fullName);
     return ((length > 0) && (length <= fullLength) && (strncmp(string, fullName, (size_t)length) == 0));
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * LegendTags --
+ *
+ *      Appends binding tags for the element represented by a legend
+ *      entry.
+ *
+ *----------------------------------------------------------------------
+ */
+static void LegendTags(Rbc_BindTable table, ClientData object, ClientData context, Rbc_List list) {
+    Graph *graphPtr;
+
+    (void)context;
+    graphPtr = (Graph *)Rbc_GetBindingData(table);
+    Rbc_AppendElementBindingTags(graphPtr, (Element *)object, list);
 }
 
 static int GetLegendPositionFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, LegendPosition *positionPtr) {
@@ -651,6 +670,9 @@ static ClientData PickLegendEntry(ClientData clientData, int x, int y, ClientDat
     Tcl_Size row, column;
     Tcl_Size n;
 
+    if (contextPtr != NULL) {
+        *contextPtr = NULL;
+    }
     graphPtr = clientData;
     legendPtr = graphPtr->legend;
     localX = (Tcl_WideInt)x - (Tcl_WideInt)legendPtr->x - (Tcl_WideInt)legendPtr->borderWidth;
@@ -686,9 +708,6 @@ static ClientData PickLegendEntry(ClientData clientData, int x, int y, ClientDat
                 continue;
             }
             if (count == n) {
-                if (contextPtr != NULL) {
-                    *contextPtr = (ClientData)elemPtr->label;
-                }
                 return elemPtr;
             }
             count++;
@@ -1441,7 +1460,7 @@ int Rbc_CreateLegend(Graph *graphPtr) {
     legendPtr->style.justify = TK_JUSTIFY_LEFT;
     legendPtr->style.anchor = TK_ANCHOR_NW;
     legendPtr->bindTable =
-        Rbc_CreateBindingTable(graphPtr->interp, graphPtr->tkwin, graphPtr, PickLegendEntry, Rbc_GraphTags);
+        Rbc_CreateBindingTable(graphPtr->interp, graphPtr->tkwin, graphPtr, PickLegendEntry, LegendTags);
     legendPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, legendOptionSpecs);
     if (Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, "legend", "Legend", (char *)legendPtr,
                                  legendPtr->optionTable) != TCL_OK) {

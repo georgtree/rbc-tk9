@@ -20,6 +20,20 @@ namespace import rbc::*
 package require tcltest
 namespace import tcltest::*
 namespace eval graph.legend {    
+
+    proc FindLegendEntryPoint {graph name} {
+        update idletasks
+        set width [winfo width $graph]
+        set height [winfo height $graph]
+        for {set y 0} {$y < $height} {incr y} {
+            for {set x 0} {$x < $width} {incr x} {
+                if {[$graph legend get @$x,$y] eq $name} {
+                    return [list $x $y]
+                }
+            }
+        }
+        return {}
+    }
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure that bindings can be created for a legend element.
 	# ------------------------------------------------------------------------------------ 
@@ -137,6 +151,64 @@ namespace eval graph.legend {
 	} -cleanup {
 	    destroy .graph1
 	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure a real pointer event over a legend entry dispatches the element's
+	# legend binding. This exercises picking and legend binding-tag generation.
+	# ------------------------------------------------------------------------------------
+    test RBC.graph.legend.bind.A.1.7 {
+		Legend binding is delivered to picked element
+	} -setup {
+        graph .graph1 -width 400 -height 300
+        set X {1 2 3 4 5}
+        set Y {2 4 6 8 10}
+        .graph1 element create Line1 -x $X -y $Y
+        .graph1 element create Line2 -x $Y -y $X
+        pack .graph1
+        update idletasks
+        set ::legendBindingResult {}
+        .graph1 legend bind Line1 <Enter> {
+			set ::legendBindingResult entered
+		}
+        set point [FindLegendEntryPoint .graph1 Line1]
+    } -body {
+        lassign $point x y
+        event generate .graph1 <Motion> -x $x -y $y
+        update
+        list $::legendBindingResult [.graph1 legend get current]
+    } -cleanup {
+        unset -nocomplain ::legendBindingResult
+        destroy .graph1
+    } -result {entered Line1}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure Rbc_ActiveLegend receives legend Enter/Leave events through the
+	# element's "all" binding tag and activates/deactivates the picked legend entry.
+	# ------------------------------------------------------------------------------------
+    test RBC.graph.legend.bind.A.1.8 {
+		Rbc_ActiveLegend responds to legend pointer events
+	} -setup {
+        graph .graph1 -width 400 -height 300
+        set X {1 2 3 4 5}
+        set Y {2 4 6 8 10}
+        .graph1 element create Line1 -x $X -y $Y
+        .graph1 element create Line2 -x $Y -y $X
+        pack .graph1
+        update idletasks
+        Rbc_ActiveLegend .graph1
+        set point [FindLegendEntryPoint .graph1 Line1]
+    } -body {
+        lassign $point x y
+        event generate .graph1 <Motion> -x $x -y $y
+        update
+        set activeAfterEnter [.graph1 legend activate ThisElementDoesNotExist]
+        event generate .graph1 <Leave> -x $x -y $y
+        update
+        set activeAfterLeave [.graph1 legend activate ThisElementDoesNotExist]
+        list $activeAfterEnter $activeAfterLeave
+    } -cleanup {
+        destroy .graph1
+    } -result {Line1 {}}
 	
 	cleanupTests
 }

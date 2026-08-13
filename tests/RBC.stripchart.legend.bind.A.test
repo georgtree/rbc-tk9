@@ -20,6 +20,20 @@ namespace import rbc::*
 package require tcltest
 namespace import tcltest::*
 namespace eval stripchart.legend {    
+
+	proc FindLegendEntryPoint {graph name} {
+		update idletasks
+		set width [winfo width $graph]
+		set height [winfo height $graph]
+		for {set y 0} {$y < $height} {incr y} {
+			for {set x 0} {$x < $width} {incr x} {
+				if {[$graph legend get @$x,$y] eq $name} {
+					return [list $x $y]
+				}
+			}
+		}
+		return {}
+	}
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure that bindings can be created for a legend element.
 	# ------------------------------------------------------------------------------------ 
@@ -137,6 +151,35 @@ namespace eval stripchart.legend {
 	} -cleanup {
 	    destroy .stripchart1
 	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure Rbc_ActiveLegend receives legend Enter/Leave events for stripchart
+	# entries and activates/deactivates the picked entry.
+	# ------------------------------------------------------------------------------------
+    test RBC.stripchart.legend.bind.A.1.7 {
+		Rbc_ActiveLegend responds to legend pointer events
+	} -setup {
+        stripchart .stripchart1 -width 400 -height 300
+        set X {1 2 3 4 5}
+        set Y {2 4 6 8 10}
+        .stripchart1 element create Line1 -x $X -y $Y
+        .stripchart1 element create Line2 -x $Y -y $X
+        pack .stripchart1
+        update idletasks
+        Rbc_ActiveLegend .stripchart1
+        set point [FindLegendEntryPoint .stripchart1 Line1]
+    } -body {
+        lassign $point x y
+        event generate .stripchart1 <Motion> -x $x -y $y
+        update
+        set activeAfterEnter [.stripchart1 legend activate ThisElementDoesNotExist]
+        event generate .stripchart1 <Leave> -x $x -y $y
+        update
+        set activeAfterLeave [.stripchart1 legend activate ThisElementDoesNotExist]
+        list $activeAfterEnter $activeAfterLeave
+    } -cleanup {
+        destroy .stripchart1
+    } -result {Line1 {}}
 	
 	cleanupTests
 }
