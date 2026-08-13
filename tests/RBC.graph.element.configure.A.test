@@ -3814,6 +3814,74 @@ namespace eval graph.element {
 	} -result {0}
 
 	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure reduction of a two-point line preserves the line trace and does not
+	# corrupt the mapped point arrays.
+	# ------------------------------------------------------------------------------------
+    test RBC.graph.element.configure.A.48.6 {
+		graph element configure: reduce - two point line
+	} -setup {
+        graph .graph1 -width 400 -height 300
+        pack .graph1
+        .graph1 axis configure x -min -1 -max 11
+        .graph1 axis configure y -min -1 -max 11
+        .graph1 element create Element1 -data {0 0 10 10} -reduce 2
+        update idletasks
+    } -body {
+        lassign [.graph1 transform 5 5] x y
+        set found [.graph1 element closest $x $y info -interpolate 1 -halo 2 Element1]
+        list $found $info(name)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .graph1
+    } -result {1 Element1}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure reduction preserves an excursion when the first and last points of
+	# the simplification interval coincide.
+	# ------------------------------------------------------------------------------------
+    test RBC.graph.element.configure.A.48.7 {
+		graph element configure: reduce - coincident endpoints
+	} -setup {
+        graph .graph1 -width 400 -height 300
+        pack .graph1
+        .graph1 axis configure x -min -1 -max 2
+        .graph1 axis configure y -min -1 -max 11
+        .graph1 element create Element1 -data {0 0 1 10 0 0} -reduce 1
+        update idletasks
+    } -body {
+        # Pick exactly at the excursion point.  This point must remain
+        # part of the reduced trace.
+        lassign [.graph1 transform 1 10] x y
+        set found [.graph1 element closest $x $y info -interpolate 1 -halo 2 Element1]
+        list $found $info(name)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .graph1
+    } -result {1 Element1}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure reduction still preserves an ordinary point whose distance from the
+	# endpoint line is greater than the reduction tolerance.
+	# ------------------------------------------------------------------------------------
+    test RBC.graph.element.configure.A.48.8 {
+		graph element configure: reduce - nondegenerate excursion
+	} -setup {
+        graph .graph1 -width 400 -height 300
+        pack .graph1
+        .graph1 axis configure x -min -1 -max 3
+        .graph1 axis configure y -min -1 -max 11
+        .graph1 element create Element1 -data {0 0 1 10 2 0} -reduce 1
+        update idletasks
+    } -body {
+        lassign [.graph1 transform 1 10] x y
+        set found [.graph1 element closest $x $y info -interpolate 1 -halo 2 Element1]
+        list $found $info(name)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .graph1
+    } -result {1 Element1}
+
+	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -areatile command works correctly when given
 	# an existing image name.
 	# ------------------------------------------------------------------------------------

@@ -1415,40 +1415,64 @@ void Rbc_SetDashes(Display *display, GC gc, Rbc_Dashes *dashesPtr) {
  *----------------------------------------------------------------------
  */
 static double FindSplit(Point2D points[], Tcl_Size i, Tcl_Size j, Tcl_Size *split) {
-    double maxDist;
+    Tcl_Size k;
+    double dx, dy;
+    double length;
+    double maxSqDist;
 
-    maxDist = -1.0;
-    if ((i + 1) < j) {
-        Tcl_Size k;
-        double a, b, c;
-        double sqDist;
-
+    if (split == NULL) {
+        return -1.0;
+    }
+    *split = -1;
+    if ((points == NULL) || (i < 0) || (j <= i) || ((j - i) <= 1)) {
+        return -1.0;
+    }
+    dx = points[j].x - points[i].x;
+    dy = points[j].y - points[i].y;
+    length = hypot(dx, dy);
+    maxSqDist = -1.0;
+    if (length > DBL_EPSILON) {
         /*
+         * Compute the perpendicular distance from each intermediate
+         * point to the infinite line through the two endpoints.
          *
-         * sqDist P(k) =  |  1  P(i).x  P(i).y  |
-         *          |  1  P(j).x  P(j).y  |
-         *                |  1  P(k).x  P(k).y  |
-         *              ---------------------------
-         *       (P(i).x - P(j).x)^2 + (P(i).y - P(j).y)^2
+         * The segment length is common to every candidate, but doing
+         * the normalization here avoids the old division-by-zero case
+         * when the endpoints coincide.
          */
+        for (k = i + 1; k < j; k++) {
+            double cross;
+            double dist;
+            double sqDist;
 
-        a = points[i].y - points[j].y;
-        b = points[j].x - points[i].x;
-        c = (points[i].x * points[j].y) - (points[i].y * points[j].x);
-        for (k = (i + 1); k < j; k++) {
-            sqDist = (points[k].x * a) + (points[k].y * b) + c;
-            if (sqDist < 0.0) {
-                sqDist = -sqDist;
-            }
-            if (sqDist > maxDist) {
-                maxDist = sqDist; /* Track the maximum. */
+            cross = ((points[k].x - points[i].x) * dy) - ((points[k].y - points[i].y) * dx);
+            dist = fabs(cross) / length;
+            sqDist = dist * dist;
+            if (sqDist > maxSqDist) {
+                maxSqDist = sqDist;
                 *split = k;
             }
         }
-        /* Correction for segment length---should be redone if can == 0 */
-        maxDist *= maxDist / (a * a + b * b);
+    } else {
+        /*
+         * Coincident endpoints do not define a unique line.  Measure
+         * each intermediate point from the common endpoint instead.
+         * This preserves excursions that return to their starting
+         * point.
+         */
+        for (k = i + 1; k < j; k++) {
+            double dist;
+            double sqDist;
+
+            dist = hypot(points[k].x - points[i].x, points[k].y - points[i].y);
+            sqDist = dist * dist;
+            if (sqDist > maxSqDist) {
+                maxSqDist = sqDist;
+                *split = k;
+            }
+        }
     }
-    return maxDist;
+    return maxSqDist;
 }
 
 /*
@@ -1474,31 +1498,79 @@ static double FindSplit(Point2D points[], Tcl_Size i, Tcl_Size j, Tcl_Size *spli
  *----------------------------------------------------------------------
  */
 Tcl_Size Rbc_SimplifyLine(Point2D inputPts[], Tcl_Size low, Tcl_Size high, double tolerance, Tcl_Size indices[]) {
-#define StackPush(a) s++, stack[s] = (a)
-#define StackPop(a) (a) = stack[s], s--
-#define StackEmpty() (s < 0)
-#define StackTop() stack[s]
     Tcl_Size *stack;
-    Tcl_Size split = -1;
-    double sqDist, sqTolerance;
-    Tcl_Size s = -1; /* Points to top stack item. */
+    Tcl_Size nPoints;
+    Tcl_Size top;
     Tcl_Size count;
+    double sqTolerance;
 
-    stack = (Tcl_Size *)ckalloc(sizeof(Tcl_Size) * (high - low + 1));
-    StackPush(high);
-    count = 0;
-    indices[count++] = low;
+    if ((inputPts == NULL) || (indices == NULL) || (low < 0) || (high < low)) {
+        return 0;
+    }
+    /*
+     * A one-point line is already fully simplified.
+     */
+    if (low == high) {
+        indices[0] = low;
+        return 1;
+    }
+    /*
+     * high - low is safe because both are non-negative and high >= low.
+     * Guard the final +1 separately.
+     */
+    if ((high - low) == TCL_SIZE_MAX) {
+        return 0;
+    }
+    nPoints = (high - low) + 1;
+    if ((size_t)nPoints > SIZE_MAX / sizeof(*stack)) {
+        return 0;
+    }
+    stack = Tcl_AttemptAlloc((size_t)nPoints * sizeof(*stack));
+    if (stack == NULL) {
+        return 0;
+    }
+    /*
+     * The first point is always retained.  Stack entries represent
+     * right-hand endpoints of intervals still to process.
+     */
+    indices[0] = low;
+    count = 1;
+    top = 0;
+    stack[0] = high;
     sqTolerance = tolerance * tolerance;
-    while (!StackEmpty()) {
-        sqDist = FindSplit(inputPts, low, StackTop(), &split);
-        if (sqDist > sqTolerance) {
-            StackPush(split);
+    while (top >= 0) {
+        Tcl_Size end;
+        Tcl_Size split;
+        double sqDist;
+
+        end = stack[top];
+        split = -1;
+        sqDist = FindSplit(inputPts, low, end, &split);
+        if ((split >= 0) && (sqDist > sqTolerance)) {
+            /*
+             * Process [low, split] first while retaining "end" below
+             * it on the stack.
+             */
+            if ((top + 1) >= nPoints) {
+                ckfree(stack);
+                return 0;
+            }
+            stack[++top] = split;
         } else {
-            indices[count++] = StackTop();
-            StackPop(low);
+            /*
+             * This interval needs no further split.  Its right endpoint
+             * becomes the next retained point.
+             */
+            if (count >= nPoints) {
+                ckfree(stack);
+                return 0;
+            }
+            indices[count++] = end;
+            low = end;
+            top--;
         }
     }
-    ckfree((char *)stack);
+    ckfree(stack);
     return count;
 }
 

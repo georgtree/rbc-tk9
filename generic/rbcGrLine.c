@@ -2812,22 +2812,58 @@ static void ReducePoints(MapInfo *mapPtr, double tolerance) {
     Point2D *screenPts;
     Tcl_Size *indices;
     Tcl_Size *simple;
-    Tcl_Size i;
-    Tcl_Size k;
+    Tcl_Size nPoints;
     Tcl_Size n;
+    Tcl_Size i;
 
-    simple = ckalloc((size_t)mapPtr->nScreenPts * sizeof(*simple));
-    indices = ckalloc((size_t)mapPtr->nScreenPts * sizeof(*indices));
-    screenPts = ckalloc((size_t)mapPtr->nScreenPts * sizeof(*screenPts));
-    n = Rbc_SimplifyLine(mapPtr->screenPts, 0, mapPtr->nScreenPts - 1, tolerance, simple);
+    if ((mapPtr == NULL) || (mapPtr->screenPts == NULL) || (mapPtr->indices == NULL) || (mapPtr->nScreenPts < 2)) {
+        return;
+    }
+    nPoints = mapPtr->nScreenPts;
+    if ((size_t)nPoints > SIZE_MAX / sizeof(*simple)) {
+        return;
+    }
+    simple = Tcl_AttemptAlloc((size_t)nPoints * sizeof(*simple));
+    if (simple == NULL) {
+        return;
+    }
+    n = Rbc_SimplifyLine(mapPtr->screenPts, 0, nPoints - 1, tolerance, simple);
+    if ((n <= 0) || (n > nPoints)) {
+        ckfree(simple);
+        return;
+    }
+    /*
+     * Nothing was eliminated.  Keep the existing arrays.
+     */
+    if (n == nPoints) {
+        ckfree(simple);
+        return;
+    }
+    if (((size_t)n > SIZE_MAX / sizeof(*screenPts)) || ((size_t)n > SIZE_MAX / sizeof(*indices))) {
+        ckfree(simple);
+        return;
+    }
+    screenPts = Tcl_AttemptAlloc((size_t)n * sizeof(*screenPts));
+    if (screenPts == NULL) {
+        ckfree(simple);
+        return;
+    }
+    indices = Tcl_AttemptAlloc((size_t)n * sizeof(*indices));
+    if (indices == NULL) {
+        ckfree(screenPts);
+        ckfree(simple);
+        return;
+    }
     for (i = 0; i < n; i++) {
+        Tcl_Size k;
+
         k = simple[i];
         screenPts[i] = mapPtr->screenPts[k];
         indices[i] = mapPtr->indices[k];
     }
+    ckfree(simple);
     ckfree(mapPtr->screenPts);
     ckfree(mapPtr->indices);
-    ckfree(simple);
     mapPtr->screenPts = screenPts;
     mapPtr->indices = indices;
     mapPtr->nScreenPts = n;
