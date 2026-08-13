@@ -1333,6 +1333,14 @@ static int GetDrawablePolygonPointCount(Display *display, Tcl_Size nPoints) {
     return (int)nPoints;
 }
 
+static int GetLineArrayByteCount(Tcl_Size count, size_t elementSize, size_t *bytesPtr) {
+    if ((count < 0) || (elementSize == 0) || ((uintmax_t)count > (uintmax_t)(SIZE_MAX / elementSize))) {
+        return TCL_ERROR;
+    }
+    *bytesPtr = (size_t)count * elementSize;
+    return TCL_OK;
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -2895,6 +2903,8 @@ static void GenerateSteps(Line *linePtr, MapInfo *mapPtr) {
     Tcl_Size i;
     Tcl_Size count;
     Tcl_Size newSize;
+    size_t pointBytes;
+    size_t indexBytes;
 
     if (mapPtr->nScreenPts < 2) {
         return;
@@ -2904,8 +2914,22 @@ static void GenerateSteps(Line *linePtr, MapInfo *mapPtr) {
         return;
     }
     newSize = (mapPtr->nScreenPts - 1) * 2 + 1;
-    screenPts = ckalloc((size_t)newSize * sizeof(*screenPts));
-    indices = ckalloc((size_t)newSize * sizeof(*indices));
+    if ((GetLineArrayByteCount(newSize, sizeof(*screenPts), &pointBytes) != TCL_OK) ||
+        (GetLineArrayByteCount(newSize, sizeof(*indices), &indexBytes) != TCL_OK)) {
+        linePtr->smooth = PEN_SMOOTH_NONE;
+        return;
+    }
+    screenPts = Tcl_AttemptAlloc(pointBytes);
+    if (screenPts == NULL) {
+        linePtr->smooth = PEN_SMOOTH_NONE;
+        return;
+    }
+    indices = Tcl_AttemptAlloc(indexBytes);
+    if (indices == NULL) {
+        ckfree(screenPts);
+        linePtr->smooth = PEN_SMOOTH_NONE;
+        return;
+    }
     screenPts[0] = mapPtr->screenPts[0];
     indices[0] = mapPtr->indices[0];
     count = 1;
@@ -2913,7 +2937,8 @@ static void GenerateSteps(Line *linePtr, MapInfo *mapPtr) {
         screenPts[count + 1] = mapPtr->screenPts[i];
         screenPts[count].x = screenPts[count + 1].x;
         screenPts[count].y = screenPts[count - 1].y;
-        indices[count] = indices[count + 1] = mapPtr->indices[i];
+        indices[count] = mapPtr->indices[i];
+        indices[count + 1] = mapPtr->indices[i];
         count += 2;
     }
     ckfree(mapPtr->screenPts);
@@ -2950,7 +2975,8 @@ static void GenerateSteps(Line *linePtr, MapInfo *mapPtr) {
  *----------------------------------------------------------------------
  */
 static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
-    int extra;
+    Tcl_Size extra;
+    Tcl_WideInt span;
     Point2D *origPts, *intpPts;
     Tcl_Size *indices;
     Tcl_Size capacity;
@@ -2978,16 +3004,23 @@ static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
      * points so that we can select the abscissas of the interpolated
      * points from each pixel horizontally across the plotting area.
      */
-    extra = (graphPtr->right - graphPtr->left) + 1;
-    if (extra < 1) {
+    span = (Tcl_WideInt)graphPtr->right - (Tcl_WideInt)graphPtr->left + 1;
+    if (span < 1) {
         return;
     }
-    if (nOrigPts > TCL_SIZE_MAX - (Tcl_Size)extra - 1) {
+    if ((Tcl_WideUInt)span > (Tcl_WideUInt)TCL_SIZE_MAX) {
         linePtr->smooth = PEN_SMOOTH_NONE;
         return;
     }
-    capacity = nOrigPts + (Tcl_Size)extra + 1;
-    if (((size_t)capacity > SIZE_MAX / sizeof(*intpPts)) || ((size_t)capacity > SIZE_MAX / sizeof(*indices))) {
+    extra = (Tcl_Size)span;
+    if (nOrigPts > TCL_SIZE_MAX - extra - 1) {
+        linePtr->smooth = PEN_SMOOTH_NONE;
+        return;
+    }
+    capacity = nOrigPts + extra + 1;
+    if (((Tcl_WideUInt)capacity > (Tcl_WideUInt)(SIZE_MAX / sizeof(*intpPts))) ||
+        ((Tcl_WideUInt)capacity > (Tcl_WideUInt)(SIZE_MAX / sizeof(*indices)))) {
+
         linePtr->smooth = PEN_SMOOTH_NONE;
         return;
     }
@@ -3002,46 +3035,51 @@ static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
         linePtr->smooth = PEN_SMOOTH_NONE;
         return;
     }
-
     /* Populate the x2 array with both the original X-coordinates and
      * extra X-coordinates for each horizontal pixel that the line
      * segment contains. */
     count = 0;
     for (i = 0, j = 1; j < nOrigPts; i++, j++) {
-
         /* Add the original x-coordinate */
         intpPts[count].x = origPts[i].x;
-
         /* Include the starting offset of the point in the offset array */
         indices[count] = mapPtr->indices[i];
         count++;
-
-        /* Is any part of the interval (line segment) in the plotting
-         * area?  */
-        if ((origPts[j].x >= (double)graphPtr->left) || (origPts[i].x <= (double)graphPtr->right)) {
+        /*
+         * Does any part of this interval intersect the plotting area?
+         */
+        if ((origPts[j].x >= (double)graphPtr->left) && (origPts[i].x <= (double)graphPtr->right)) {
+            double first;
+            double limit;
             int last;
-
-            x = (int)(origPts[i].x + 1.0);
-
             /*
-             * Since the line segment may be partially clipped on the
-             * left or right side, the points to interpolate are
-             * always interior to the plotting area.
-             *
-             *           left                right
-             *      x1----|--------------------------|---x2
-             *
-             * Pick the max of the starting X-coordinate and the
-             * left edge and the min of the last X-coordinate and
-             * the right edge.
+             * Clip in floating-point before converting to int.
+             * This preserves the existing interpolation-point
+             * selection for ordinary screen coordinates while
+             * preventing out-of-range floating-to-integer conversion
+             * for heavily clipped intervals.
              */
-            x = MAX(x, graphPtr->left);
-            last = (int)MIN(origPts[j].x, graphPtr->right);
-
-            /* Add the extra x-coordinates to the interval. */
+            first = origPts[i].x + 1.0;
+            if (first < (double)graphPtr->left) {
+                first = (double)graphPtr->left;
+            } else if (first > (double)graphPtr->right) {
+                first = (double)graphPtr->right;
+            }
+            limit = origPts[j].x;
+            if (limit < (double)graphPtr->left) {
+                limit = (double)graphPtr->left;
+            } else if (limit > (double)graphPtr->right) {
+                limit = (double)graphPtr->right;
+            }
+            x = (int)first;
+            last = (int)limit;
+            /*
+             * Add extra X-coordinates to the interval.
+             */
             while (x < last) {
                 indices[count] = mapPtr->indices[i];
-                intpPts[count++].x = (double)x;
+                intpPts[count].x = (double)x;
+                count++;
                 x++;
             }
         }
@@ -3298,9 +3336,25 @@ static void MapSymbols(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Tcl_Size *indices;
     Tcl_Size i;
     Tcl_Size count;
+    size_t pointBytes;
+    size_t indexBytes;
 
-    symbolPts = ckalloc((size_t)mapPtr->nScreenPts * sizeof(*symbolPts));
-    indices = ckalloc((size_t)mapPtr->nScreenPts * sizeof(*indices));
+    if (mapPtr->nScreenPts <= 0) {
+        return;
+    }
+    if ((GetLineArrayByteCount(mapPtr->nScreenPts, sizeof(*symbolPts), &pointBytes) != TCL_OK) ||
+        (GetLineArrayByteCount(mapPtr->nScreenPts, sizeof(*indices), &indexBytes) != TCL_OK)) {
+        return;
+    }
+    symbolPts = Tcl_AttemptAlloc(pointBytes);
+    if (symbolPts == NULL) {
+        return;
+    }
+    indices = Tcl_AttemptAlloc(indexBytes);
+    if (indices == NULL) {
+        ckfree(symbolPts);
+        return;
+    }
     Rbc_GraphExtents(graphPtr, &exts);
     count = 0;
     for (i = 0; i < mapPtr->nScreenPts; i++) {
@@ -3317,9 +3371,6 @@ static void MapSymbols(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     } else {
         ckfree(symbolPts);
         ckfree(indices);
-        linePtr->symbolPts = NULL;
-        linePtr->symbolToData = NULL;
-        linePtr->nSymbolPts = 0;
     }
 }
 
@@ -3364,8 +3415,27 @@ static void MapActiveSymbols(Graph *graphPtr, Line *linePtr) {
         linePtr->core.flags &= ~ACTIVE_PENDING;
         return;
     }
-    activePts = ckalloc((size_t)linePtr->core.nActiveIndices * sizeof(*activePts));
-    activeToData = ckalloc((size_t)linePtr->core.nActiveIndices * sizeof(*activeToData));
+    {
+        size_t pointBytes;
+        size_t indexBytes;
+
+        if ((GetLineArrayByteCount(linePtr->core.nActiveIndices, sizeof(*activePts), &pointBytes) != TCL_OK) ||
+            (GetLineArrayByteCount(linePtr->core.nActiveIndices, sizeof(*activeToData), &indexBytes) != TCL_OK)) {
+            linePtr->core.flags &= ~ACTIVE_PENDING;
+            return;
+        }
+        activePts = Tcl_AttemptAlloc(pointBytes);
+        if (activePts == NULL) {
+            linePtr->core.flags &= ~ACTIVE_PENDING;
+            return;
+        }
+        activeToData = Tcl_AttemptAlloc(indexBytes);
+        if (activeToData == NULL) {
+            ckfree(activePts);
+            linePtr->core.flags &= ~ACTIVE_PENDING;
+            return;
+        }
+    }
     Rbc_GraphExtents(graphPtr, &exts);
     nPoints = NumberOfPoints(&linePtr->core);
     count = 0;
@@ -3436,8 +3506,24 @@ static void MapStrip(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
         return;
     }
     capacity = mapPtr->nScreenPts - 1;
-    strips = ckalloc((size_t)capacity * sizeof(*strips));
-    indices = ckalloc((size_t)capacity * sizeof(*indices));
+    {
+        size_t stripBytes;
+        size_t indexBytes;
+
+        if ((GetLineArrayByteCount(capacity, sizeof(*strips), &stripBytes) != TCL_OK) ||
+            (GetLineArrayByteCount(capacity, sizeof(*indices), &indexBytes) != TCL_OK)) {
+            return;
+        }
+        strips = Tcl_AttemptAlloc(stripBytes);
+        if (strips == NULL) {
+            return;
+        }
+        indices = Tcl_AttemptAlloc(indexBytes);
+        if (indices == NULL) {
+            ckfree(strips);
+            return;
+        }
+    }
     segPtr = strips;
     indexPtr = mapPtr->indices;
     count = 0;

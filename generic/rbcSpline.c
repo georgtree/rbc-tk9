@@ -849,6 +849,7 @@ int Rbc_QuadraticSpline(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intp
     double *work;
     size_t byteCount;
     int result;
+    Tcl_Size i;
 
     if ((nOrigPts < 3) || (nIntpPts < 0) || !SplinePointsHaveIncreasingX(origPts, nOrigPts) ||
         !SplineEvaluationPointsAreFinite(intpPts, nIntpPts)) {
@@ -866,16 +867,18 @@ int Rbc_QuadraticSpline(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intp
     }
     epsilon = 0.0;
     QuadSlopes(origPts, work, nOrigPts);
+    for (i = 0; i < nOrigPts; i++) {
+        if (!FINITE(work[i])) {
+            ckfree(work);
+            return FALSE;
+        }
+    }
     result = QuadEval(origPts, nOrigPts, intpPts, nIntpPts, work, epsilon);
     ckfree(work);
-    /*
-     * QuadEval returns:
-     *
-     *   0 -- successful interpolation
-     *   1 -- successful interpolation with extrapolation
-     *   2 -- invalid evaluation-point ordering
-     */
-    return (result <= 1);
+    if (result > 1) {
+        return FALSE;
+    }
+    return SplinePointsAreFinite(intpPts, nIntpPts);
 }
 
 /*
@@ -966,12 +969,18 @@ int Rbc_NaturalSpline(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPt
         double alpha;
 
         alpha = 3.0 * ((origPts[j + 1].y - origPts[j].y) / dx[j] - (origPts[j].y - origPts[i].y) / dx[i]);
+        if (!FINITE(alpha)) {
+            goto cleanup;
+        }
         A[j][0] = 2.0 * (dx[j] + dx[i]) - dx[i] * A[i][1];
-        if (!FINITE(A[j][0]) || (A[j][0] == 0.0)) {
+        if ((!FINITE(A[j][0])) || (A[j][0] == 0.0)) {
             goto cleanup;
         }
         A[j][1] = dx[j] / A[j][0];
         A[j][2] = (alpha - dx[i] * A[i][2]) / A[j][0];
+        if ((!FINITE(A[j][1])) || (!FINITE(A[j][2]))) {
+            goto cleanup;
+        }
     }
     eq = Tcl_AttemptAlloc(equationBytes);
     if (eq == NULL) {
@@ -991,6 +1000,9 @@ int Rbc_NaturalSpline(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPt
         dy = origPts[i + 1].y - origPts[i].y;
         eq[i].b = dy / dx[i] - dx[i] * (eq[j].c + 2.0 * eq[i].c) / 3.0;
         eq[i].d = (eq[j].c - eq[i].c) / (3.0 * dx[i]);
+        if ((!FINITE(eq[i].b)) || (!FINITE(eq[i].c)) || (!FINITE(eq[i].d))) {
+            goto cleanup;
+        }
     }
     for (i = 0; i < nIntpPts; i++) {
         double x;
@@ -1005,6 +1017,9 @@ int Rbc_NaturalSpline(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPt
         interval = Search(origPts, nOrigPts, x, &isKnot);
         if (isKnot) {
             intpPts[i].y = origPts[interval].y;
+            if (!FINITE(intpPts[i].y)) {
+                goto cleanup;
+            }
         } else {
             double localX;
 
@@ -1020,6 +1035,9 @@ int Rbc_NaturalSpline(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPt
             localX = x - origPts[interval].x;
             intpPts[i].y =
                 origPts[interval].y + localX * (eq[interval].b + localX * (eq[interval].c + localX * eq[interval].d));
+            if (!FINITE(intpPts[i].y)) {
+                goto cleanup;
+            }
         }
     }
     result = TRUE;
@@ -1296,7 +1314,7 @@ static int SolveCubic1(TriDiagonalMatrix A[], Tcl_Size n) {
         return FALSE; /* Dimension should be at least 1 */
     }
     d = A[0][1]; /* D_{0,0} = A_{0,0} */
-    if (d <= 0.0) {
+    if ((!FINITE(d)) || (d <= 0.0)) {
         return FALSE; /* A (or D) should be positive definite */
     }
     m_n = A[0][0];      /*  A_{0,n-1}  */
@@ -1535,6 +1553,16 @@ static CubicSpline *CubicSlopes(const Point2D points[], Tcl_Size nPoints, int is
         return NULL;
     }
     SolveCubic2(A, spline, n);
+    /*
+     * Reject arithmetic overflow in the solved second derivatives.
+     */
+    for (i = 0; i < nPoints; i++) {
+        if ((!FINITE(spline[i].x)) || (!FINITE(spline[i].y))) {
+            ckfree(A);
+            ckfree(spline);
+            return NULL;
+        }
+    }
     s2 = spline + n;
     s1 = s2 - 1;
     while (s2 > spline) {
@@ -1640,6 +1668,9 @@ static Tcl_Size CubicEval(const Point2D origPts[], Tcl_Size nOrigPts, Point2D in
              */
             value.x = p.x + t * (hx + (t - d) * (dx0 + t * dx01));
             value.y = p.y + t * (hy + (t - d) * (dy0 + t * dy01));
+            if ((!FINITE(value.x)) || (!FINITE(value.y))) {
+                return 0;
+            }
             intpPts[count++] = value;
             t += tSkip;
         }
@@ -1808,7 +1839,6 @@ int Rbc_CatromParametricSpline(const Point2D *points, Tcl_Size nPoints, Point2D 
 
     if ((points == NULL) || (intpPts == NULL) || (nPoints < 1) || (nIntpPts < 0) ||
         !SplinePointsAreFinite(points, nPoints)) {
-
         return FALSE;
     }
     if (nPoints > (TCL_SIZE_MAX - 4)) {
@@ -1862,6 +1892,10 @@ int Rbc_CatromParametricSpline(const Point2D *points, Tcl_Size nPoints, Point2D 
         CatromCoeffs(origPts + interval, &a, &b, &c, &d);
         intpPts[i].x = (d.x + t * (c.x + t * (b.x + t * a.x))) / 2.0;
         intpPts[i].y = (d.y + t * (c.y + t * (b.y + t * a.y))) / 2.0;
+        if ((!FINITE(intpPts[i].x)) || (!FINITE(intpPts[i].y))) {
+            ckfree(origPts);
+            return FALSE;
+        }
     }
     ckfree(origPts);
     return TRUE;
