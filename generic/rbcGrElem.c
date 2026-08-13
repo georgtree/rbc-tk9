@@ -2614,46 +2614,58 @@ int Rbc_ParseStylesObj(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, size_
  */
 PenStyle **Rbc_StyleMap(Element *elemPtr) {
     Tcl_Size i;
-    Tcl_Size nWeights; /* Number of weights to be examined.
-                   * If there are more data points than
-                   * weights, they will default to the
-                   * normal pen. */
-
-    PenStyle **dataToStyle; /* Directory of styles.  Each array
-                             * element represents the style for
-                             * the data point at that index */
+    Tcl_Size nWeights;
+    PenStyle **dataToStyle;
     Rbc_ChainLink *linkPtr;
     PenStyle *stylePtr;
-    double *w; /* Weight vector */
+    const double *w;
     Tcl_Size nPoints;
+    size_t byteCount;
 
     nPoints = NumberOfPoints(elemPtr);
     nWeights = MIN(elemPtr->w.nValues, nPoints);
     w = elemPtr->w.valueArr;
     linkPtr = Rbc_ChainFirstLink(elemPtr->palette);
     stylePtr = Rbc_ChainGetValue(linkPtr);
-
     /*
-     * Create a style mapping array (data point index to style),
-     * initialized to the default style.
+     * A style-map entry is required for every data point.  Preserve
+     * the allocator's fatal-overflow semantics, but validate the
+     * Tcl_Size value before converting it to size_t.
      */
-    dataToStyle = RbcCalloc((size_t)nPoints, sizeof(*dataToStyle));
+    if ((Tcl_WideUInt)nPoints > (Tcl_WideUInt)(SIZE_MAX / sizeof(*dataToStyle))) {
+        Tcl_Panic("Rbc_StyleMap: allocation size overflow");
+    }
+    byteCount = (size_t)nPoints * sizeof(*dataToStyle);
+    /*
+     * Keep an allocation for the empty case because callers
+     * unconditionally release the returned pointer.
+     */
+    if (byteCount == 0) {
+        byteCount = 1;
+    }
+    dataToStyle = ckalloc(byteCount);
+    /*
+     * Initialize every data point to the normal style.
+     */
     for (i = 0; i < nPoints; i++) {
         dataToStyle[i] = stylePtr;
     }
-
+    /*
+     * Replace the normal style for points whose weights fall inside
+     * one of the configured style ranges.
+     */
     for (i = 0; i < nWeights; i++) {
         for (linkPtr = Rbc_ChainLastLink(elemPtr->palette); linkPtr != NULL; linkPtr = Rbc_ChainPrevLink(linkPtr)) {
+            double norm;
+
             stylePtr = Rbc_ChainGetValue(linkPtr);
-
-            if (stylePtr->weight.range > 0.0) {
-                double norm;
-
-                norm = (w[i] - stylePtr->weight.min) / stylePtr->weight.range;
-                if (((norm - 1.0) <= DBL_EPSILON) && (((1.0 - norm) - 1.0) <= DBL_EPSILON)) {
-                    dataToStyle[i] = stylePtr;
-                    break; /* Done: found range that matches. */
-                }
+            if (stylePtr->weight.range <= 0.0) {
+                continue;
+            }
+            norm = (w[i] - stylePtr->weight.min) / stylePtr->weight.range;
+            if (((norm - 1.0) <= DBL_EPSILON) && (((1.0 - norm) - 1.0) <= DBL_EPSILON)) {
+                dataToStyle[i] = stylePtr;
+                break;
             }
         }
     }
@@ -2823,6 +2835,56 @@ void Rbc_ExpandErrorBarExtents(Element *elemPtr, Extents2D *extsPtr) {
 /*
  *----------------------------------------------------------------------
  *
+ * AllocateErrorBarArrays --
+ *
+ *      Allocates storage for mapped error-bar segments and their
+ *      data-index map.  Each source point may generate a main
+ *      segment and two caps.
+ *
+ * Parameters:
+ *      Tcl_Size nPoints       - Number of source error-bar points.
+ *      Segment2D **segmentsPtr
+ *                             - Receives the segment array.
+ *      Tcl_Size **mapPtr      - Receives the data-index array.
+ *
+ * Results:
+ *      TCL_OK if the requested allocation sizes are representable.
+ *      TCL_ERROR if the required count or byte size would overflow.
+ *
+ * Side Effects:
+ *      Allocates both result arrays with ckalloc() on success.
+ *
+ *----------------------------------------------------------------------
+ */
+static int AllocateErrorBarArrays(Tcl_Size nPoints, Segment2D **segmentsPtr, Tcl_Size **mapPtr) {
+    Tcl_Size capacity;
+    size_t segmentBytes;
+    size_t mapBytes;
+
+    *segmentsPtr = NULL;
+    *mapPtr = NULL;
+    /*
+     * Each data point can generate one main error-bar segment
+     * and two caps.
+     */
+    if ((nPoints < 0) || (nPoints > (TCL_SIZE_MAX / 3))) {
+        return TCL_ERROR;
+    }
+    capacity = nPoints * 3;
+    if (((Tcl_WideUInt)capacity > (Tcl_WideUInt)(SIZE_MAX / sizeof(**segmentsPtr))) ||
+        ((Tcl_WideUInt)capacity > (Tcl_WideUInt)(SIZE_MAX / sizeof(**mapPtr)))) {
+        return TCL_ERROR;
+    }
+    segmentBytes = (size_t)capacity * sizeof(**segmentsPtr);
+    mapBytes = (size_t)capacity * sizeof(**mapPtr);
+    *segmentsPtr = ckalloc(segmentBytes);
+    *mapPtr = ckalloc(mapBytes);
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
  * Rbc_MapErrorBars --
  *
  *      Creates two arrays of points and pen indices, filled with
@@ -2841,39 +2903,6 @@ void Rbc_ExpandErrorBarExtents(Element *elemPtr, Extents2D *extsPtr) {
  *
  *----------------------------------------------------------------------
  */
-static int AllocateErrorBarArrays(Tcl_Interp *interp, Tcl_Size nPoints, Segment2D **segmentsPtr, Tcl_Size **mapPtr) {
-    Tcl_Size capacity;
-    size_t segmentBytes;
-    size_t mapBytes;
-
-    *segmentsPtr = NULL;
-    *mapPtr = NULL;
-    if ((nPoints < 0) || (nPoints > (TCL_SIZE_MAX / 3))) {
-        Tcl_SetObjResult(interp, Tcl_NewStringObj("too many error-bar points", -1));
-        return TCL_ERROR;
-    }
-    capacity = nPoints * 3;
-    if (GetElemArrayByteCount(interp, capacity, sizeof(Segment2D), &segmentBytes) != TCL_OK) {
-        return TCL_ERROR;
-    }
-    if (GetElemArrayByteCount(interp, capacity, sizeof(Tcl_Size), &mapBytes) != TCL_OK) {
-        return TCL_ERROR;
-    }
-    *segmentsPtr = Tcl_AttemptAlloc(segmentBytes);
-    if ((*segmentsPtr == NULL) && (segmentBytes > 0)) {
-        Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate error-bar segments", -1));
-        return TCL_ERROR;
-    }
-    *mapPtr = Tcl_AttemptAlloc(mapBytes);
-    if ((*mapPtr == NULL) && (mapBytes > 0)) {
-        ckfree(*segmentsPtr);
-        *segmentsPtr = NULL;
-        Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate error-bar index map", -1));
-        return TCL_ERROR;
-    }
-    return TCL_OK;
-}
-
 void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle) {
     Extents2D exts;
     Tcl_Size n;
@@ -2895,7 +2924,7 @@ void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle)
         Tcl_Size *errorToData;
         Tcl_Size *indexPtr;
         Tcl_Size i;
-        if (AllocateErrorBarArrays(graphPtr->interp, n, &errorBars, &errorToData) != TCL_OK) {
+        if (AllocateErrorBarArrays(n, &errorBars, &errorToData) != TCL_OK) {
             return;
         }
         segPtr = errorBars;
@@ -2982,7 +3011,7 @@ void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle)
         Tcl_Size *errorToData;
         Tcl_Size *indexPtr;
         Tcl_Size i;
-        if (AllocateErrorBarArrays(graphPtr->interp, n, &errorBars, &errorToData) != TCL_OK) {
+        if (AllocateErrorBarArrays(n, &errorBars, &errorToData) != TCL_OK) {
             return;
         }
         segPtr = errorBars;

@@ -3037,7 +3037,6 @@ static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     capacity = nOrigPts + extra + 1;
     if (((Tcl_WideUInt)capacity > (Tcl_WideUInt)(SIZE_MAX / sizeof(*intpPts))) ||
         ((Tcl_WideUInt)capacity > (Tcl_WideUInt)(SIZE_MAX / sizeof(*indices)))) {
-
         linePtr->smooth = PEN_SMOOTH_NONE;
         return;
     }
@@ -3617,13 +3616,11 @@ static void MergePens(Line *linePtr, PenStyle **dataToStyle) {
     if ((linePtr->nStrips > 0) &&
         ((GetLineArrayByteCount(linePtr->nStrips, sizeof(*linePtr->strips), &stripsBytes) != TCL_OK) ||
          (GetLineArrayByteCount(linePtr->nStrips, sizeof(*linePtr->stripToData), &stripToDataBytes) != TCL_OK))) {
-
         return;
     }
     if ((linePtr->nSymbolPts > 0) &&
         ((GetLineArrayByteCount(linePtr->nSymbolPts, sizeof(*linePtr->symbolPts), &symbolPtsBytes) != TCL_OK) ||
          (GetLineArrayByteCount(linePtr->nSymbolPts, sizeof(*linePtr->symbolToData), &symbolToDataBytes) != TCL_OK))) {
-
         return;
     }
     if ((linePtr->core.xErrorBarCnt > 0) &&
@@ -3640,10 +3637,8 @@ static void MergePens(Line *linePtr, PenStyle **dataToStyle) {
           TCL_OK))) {
         return;
     }
-
     /* We have more than one style. Group line segments and points of
      * like pen styles.  */
-
     if (linePtr->nStrips > 0) {
         Segment2D *strips;
         Segment2D *segPtr;
