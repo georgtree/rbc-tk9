@@ -1891,6 +1891,20 @@ namespace eval barchart.element {
 		destroy .barchart1
 	} -result {0}
 
+    test RBC.barchart.element.configure.A.26.6 {
+        barchart element configure: valuerotate - non-finite value
+    } -setup {
+        barchart .barchart1
+        .barchart1 element create Element1
+        set old [.barchart1 element cget Element1 -valuerotate]
+    } -body {
+        set code [catch {.barchart1 element configure Element1 -valuerotate NaN}]
+        list $code [expr {[.barchart1 element cget Element1 -valuerotate] eq $old}]
+    } -cleanup {
+        .barchart1 element delete Element1
+        destroy .barchart1
+    } -result {1 1}
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -valueshadow command works correctly when  
 	# given a valid color name.
@@ -2718,6 +2732,20 @@ namespace eval barchart.element {
 		.barchart1 element delete Element1
 		destroy .barchart1
 	} -result {0.0}
+
+    test RBC.barchart.element.configure.A.35.7 {
+        barchart element configure: barwidth - non-finite value
+    } -setup {
+        barchart .barchart1
+        .barchart1 element create Element1
+        set old [.barchart1 element cget Element1 -barwidth]
+    } -body {
+        set code [catch {.barchart1 element configure Element1 -barwidth Inf}]
+        list $code [expr {[.barchart1 element cget Element1 -barwidth] eq $old}]
+    } -cleanup {
+        .barchart1 element delete Element1
+        destroy .barchart1
+    } -result {1 1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -borderwidth command works correctly when 

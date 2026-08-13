@@ -98,6 +98,18 @@ namespace eval barchart.configure {
 		destroy .barchart1
 	} -result {0}
 
+    test RBC.barchart.configure.A.1.6 {
+        barchart configure: aspect - non-finite value
+    } -setup {
+        barchart .barchart1
+        set old [.barchart1 cget -aspect]
+    } -body {
+        set code [catch {.barchart1 configure -aspect Inf}]
+        list $code [expr {[.barchart1 cget -aspect] eq $old}]
+    } -cleanup {
+        destroy .barchart1
+    } -result {1 1}
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -background command works correctly when given a valid
 	# color name.
@@ -331,6 +343,21 @@ namespace eval barchart.configure {
 	} -cleanup {
 		destroy .barchart1
 	} -result {0.1}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure graph -barwidth rejects non-finite values transactionally.
+    # ------------------------------------------------------------------------------------
+    test RBC.barchart.configure.A.4.7 {
+        barchart configure: barwidth - non-finite value
+    } -setup {
+        barchart .barchart1
+        set old [.barchart1 cget -barwidth]
+    } -body {
+        set code [catch {.barchart1 configure -barwidth Inf}]
+        list $code [expr {[.barchart1 cget -barwidth] eq $old}]
+    } -cleanup {
+        destroy .barchart1
+    } -result {1 1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -baseline command works correctly when given a
@@ -424,6 +451,21 @@ namespace eval barchart.configure {
 	} -cleanup {
 		destroy .barchart1
 	} -result {0.0}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure graph -baseline rejects non-finite values transactionally.
+    # ------------------------------------------------------------------------------------
+    test RBC.barchart.configure.A.5.7 {
+        barchart configure: baseline - non-finite value
+    } -setup {
+        barchart .barchart1
+        set old [.barchart1 cget -baseline]
+    } -body {
+        set code [catch {.barchart1 configure -baseline NaN}]
+        list $code [expr {[.barchart1 cget -baseline] eq $old}]
+    } -cleanup {
+        destroy .barchart1
+    } -result {1 1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the configure -borderwidth command works correctly when given a 

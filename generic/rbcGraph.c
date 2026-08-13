@@ -1707,6 +1707,23 @@ static int ConfigureGraph(Graph *graphPtr) {
     pixelTransactionPrepared = FALSE;
     shadowTransactionPrepared = FALSE;
     tileTransactionPrepared = FALSE;
+    /*
+     * TK_OPTION_DOUBLE accepts the numeric value itself, but these
+     * options participate directly in layout and graph-coordinate
+     * arithmetic and must therefore be finite.
+     */
+    if (!FINITE(graphPtr->aspect)) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("-aspect must be a finite value", -1));
+        goto error;
+    }
+    if (!FINITE(graphPtr->barWidth)) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("-barwidth must be a finite value", -1));
+        goto error;
+    }
+    if (!FINITE(graphPtr->baseline)) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("-baseline must be a finite value", -1));
+        goto error;
+    }
     if ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_PIXELS_MASK)) {
         if (PrepareGraphPixelTransaction(graphPtr, &pixelTransaction) != TCL_OK) {
             goto error;

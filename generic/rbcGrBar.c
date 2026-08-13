@@ -643,6 +643,15 @@ static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     newShadow.offset = 0;
 
     /*
+     * Rotation eventually reaches trigonometric and screen-coordinate
+     * calculations, so a non-finite angle is not meaningful.
+     */
+    if (!FINITE(bpPtr->valueStyle.theta)) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("-valuerotate must be a finite value", -1));
+        goto error;
+    }
+
+    /*
      * Parse and validate every fallible derived value first.
      */
     if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, bpPtr->borderWidthObjPtr, PIXELS_NONNEGATIVE,
@@ -1039,6 +1048,14 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
     stylesTransactionPrepared = FALSE;
 
     /*
+     * Non-positive element bar widths retain their historical meaning:
+     * use the graph-wide bar width.  Only non-finite values are invalid.
+     */
+    if (!FINITE(barPtr->barWidth)) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("-barwidth must be a finite value", -1));
+        goto error;
+    }
+    /*
      * Parse all fallible element-data conversions before modifying any
      * live vectors or derived drawing resources.
      */
@@ -1377,7 +1394,6 @@ static void MergePens(Bar *barPtr, PenStyle **dataToStyle) {
         stylePtr = Rbc_ChainGetValue(linkPtr);
         stylePtr->nRects = barPtr->nRects;
         stylePtr->rectangles = barPtr->rectangles;
-        stylePtr->symbolSize = barPtr->rectangles->width / 2;
         stylePtr->xErrorBarCnt = barPtr->core.xErrorBarCnt;
         stylePtr->xErrorBars = barPtr->core.xErrorBars;
         stylePtr->yErrorBarCnt = barPtr->core.yErrorBarCnt;
@@ -1421,7 +1437,6 @@ static void MergePens(Bar *barPtr, PenStyle **dataToStyle) {
         for (linkPtr = Rbc_ChainFirstLink(barPtr->core.palette); linkPtr != NULL;
              linkPtr = Rbc_ChainNextLink(linkPtr)) {
             stylePtr = Rbc_ChainGetValue(linkPtr);
-            stylePtr->symbolSize = barPtr->rectangles->width / 2;
             stylePtr->rectangles = rectPtr;
             for (i = 0; i < barPtr->nRects; i++) {
                 dataIndex = barPtr->rectToData[i];
@@ -2697,9 +2712,6 @@ void Rbc_InitFreqTable(Graph *graphPtr) {
         graphPtr->freqArr = RbcCalloc(1, freqBytes);
         assert(graphPtr->freqArr);
         infoPtr = graphPtr->freqArr;
-        graphPtr->freqArr = RbcCalloc((size_t)nStacks, sizeof(FreqInfo));
-        assert(graphPtr->freqArr);
-        infoPtr = graphPtr->freqArr;
         for (hPtr = Tcl_FirstHashEntry(&freqTable, &cursor); hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
             count = (Tcl_Size)(uintptr_t)Tcl_GetHashValue(hPtr);
             keyPtr = (FreqKey *)Tcl_GetHashKey(&freqTable, hPtr);
@@ -2805,9 +2817,14 @@ void Rbc_ComputeStacks(Graph *graphPtr) {
  *----------------------------------------------------------------------
  */
 void Rbc_ResetStacks(Graph *graphPtr) {
-    register FreqInfo *infoPtr, *endPtr;
+    FreqInfo *infoPtr;
+    Tcl_Size i;
 
-    for (infoPtr = graphPtr->freqArr, endPtr = graphPtr->freqArr + graphPtr->nStacks; infoPtr < endPtr; infoPtr++) {
+    if ((graphPtr->nStacks <= 0) || (graphPtr->freqArr == NULL)) {
+        return;
+    }
+    infoPtr = graphPtr->freqArr;
+    for (i = 0; i < graphPtr->nStacks; i++, infoPtr++) {
         infoPtr->lastY = 0.0;
         infoPtr->count = 0;
     }
