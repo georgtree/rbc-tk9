@@ -91,12 +91,10 @@ static int GetVectorByteCount(Tcl_Interp *interp, Tcl_Size count, size_t *byteCo
         Tcl_SetObjResult(interp, Tcl_NewStringObj("vector size cannot be negative", -1));
         return TCL_ERROR;
     }
-
-    if ((size_t)count > (SIZE_MAX / sizeof(double))) {
+    if ((Tcl_WideUInt)count > (Tcl_WideUInt)(SIZE_MAX / sizeof(double))) {
         Tcl_SetObjResult(interp, Tcl_NewStringObj("vector size is too large", -1));
         return TCL_ERROR;
     }
-
     *byteCountPtr = (size_t)count * sizeof(double);
     return TCL_OK;
 }
@@ -174,18 +172,18 @@ static int VectorObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
  */
 static Tcl_Size ParseBool(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], void *dstPtr) {
     int value;
-    int *dst = (int *)dstPtr;
-    const char *optionName = (const char *)clientData;
+    int *dst;
+    const char *optionName;
 
-    if (objc != 1) {
+    dst = (int *)dstPtr;
+    optionName = (const char *)clientData;
+    if (objc < 1) {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("option \"%s\" requires a boolean value", optionName));
         return -1;
     }
-
     if (Tcl_GetBooleanFromObj(interp, objv[0], &value) != TCL_OK) {
         return -1;
     }
-
     *dst = value;
     return 1;
 }
@@ -193,11 +191,11 @@ static Tcl_Size ParseBool(void *clientData, Tcl_Interp *interp, Tcl_Size objc, T
 static Tcl_Size ParseVectorLength(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[],
                                   void *dstPtr) {
     Tcl_Size value;
+    const char *optionName;
 
-    (void)clientData;
-    if (objc == 0) {
-        Tcl_SetObjResult(interp,
-                         Tcl_ObjPrintf("option \"%s\" requires an additional argument", Tcl_GetString(objv[-1])));
+    optionName = (const char *)clientData;
+    if (objc < 1) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("option \"%s\" requires an additional argument", optionName));
         return -1;
     }
     if (Tcl_GetSizeIntFromObj(interp, objv[0], &value) != TCL_OK) {
@@ -257,10 +255,10 @@ static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Siz
     Tcl_DString ds;
     Tcl_Size i;
     const Tcl_ArgvInfo argsTable[] = {{TCL_ARGV_STRING, "-command", NULL, &cmdName, NULL, NULL},
-                                      {TCL_ARGV_GENFUNC, "-flush", ParseBool, &flush, NULL, NULL},
-                                      {TCL_ARGV_GENFUNC, "-length", ParseVectorLength, &defLen, NULL, NULL},
+                                      {TCL_ARGV_GENFUNC, "-flush", ParseBool, &flush, NULL, "-flush"},
+                                      {TCL_ARGV_GENFUNC, "-length", ParseVectorLength, &defLen, NULL, "-length"},
                                       {TCL_ARGV_STRING, "-variable", NULL, &varName, NULL, NULL},
-                                      {TCL_ARGV_GENFUNC, "-watchunset", ParseBool, &freeOnUnset, NULL, NULL},
+                                      {TCL_ARGV_GENFUNC, "-watchunset", ParseBool, &freeOnUnset, NULL, "-watchunset"},
                                       TCL_ARGV_TABLE_END};
 
     /*
@@ -348,11 +346,6 @@ static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Siz
                 result = GetSizeFromString(interp, leftParen + 1, &first);
                 if ((*(colon + 1) != '\0') && (result == TCL_OK)) {
                     result = GetSizeFromString(interp, colon + 1, &last);
-                    if (first > last) {
-                        Tcl_AppendStringsToObj(resultPtr, "bad vector range \"", vecName, "\"", NULL);
-                        Tcl_SetObjResult(interp, resultPtr);
-                        result = TCL_ERROR;
-                    }
                     if (first > last) {
                         Tcl_AppendStringsToObj(resultPtr, "bad vector range \"", vecName, "\"", NULL);
                         Tcl_SetObjResult(interp, resultPtr);
@@ -1110,42 +1103,65 @@ int Rbc_VectorMapVariable(Tcl_Interp *interp, VectorObject *vPtr, const char *na
  * -----------------------------------------------------------------------
  */
 int Rbc_VectorReset(VectorObject *vPtr, double *valueArr, Tcl_Size length, Tcl_Size size, Tcl_FreeProc *freeProc) {
-    if (vPtr->valueArr != valueArr) { /* New array of values resides
-                                       * in different memory than
-                                       * the current vector.  */
+    size_t sizeBytes;
+    size_t lengthBytes;
+
+    if (length < 0) {
+        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("vector length cannot be negative", -1));
+        return TCL_ERROR;
+    }
+    if (size < 0) {
+        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("vector array size cannot be negative", -1));
+        return TCL_ERROR;
+    }
+    if (length > size) {
+        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("vector length exceeds array size", -1));
+        return TCL_ERROR;
+    }
+    if ((GetVectorByteCount(vPtr->interp, size, &sizeBytes) != TCL_OK) ||
+        (GetVectorByteCount(vPtr->interp, length, &lengthBytes) != TCL_OK)) {
+        return TCL_ERROR;
+    }
+    if (vPtr->valueArr != valueArr) {
+        /*
+         * New array of values resides in different memory than the
+         * current vector.
+         */
         if ((valueArr == NULL) || (size == 0)) {
-            /* Empty array. Set up default values */
             freeProc = TCL_STATIC;
             valueArr = NULL;
-            size = length = 0;
+            size = 0;
+            length = 0;
         } else if (freeProc == TCL_VOLATILE) {
             double *newArr;
-            /* Data is volatile. Make a copy of the value array.  */
-            newArr = (double *)ckalloc(size * sizeof(double));
-            if (newArr == NULL) {
-                Tcl_AppendResult(vPtr->interp, "can't allocate ", Rbc_Itoa(size), " elements for vector \"", vPtr->name,
-                                 "\"", (char *)NULL);
-                return TCL_ERROR;
+
+            /*
+             * Data is volatile.  Make an owned copy while preserving
+             * the caller-supplied capacity.
+             */
+            newArr = ckalloc(sizeBytes);
+            if (lengthBytes > 0) {
+                memcpy(newArr, valueArr, lengthBytes);
             }
-            memcpy((char *)newArr, (char *)valueArr, sizeof(double) * length);
             valueArr = newArr;
             freeProc = TCL_DYNAMIC;
         }
 
         if (vPtr->freeProc != TCL_STATIC) {
-            /* Old data was dynamically allocated. Free it before
-             * attaching new data.  */
+            /*
+             * Old data was dynamically allocated. Free it before
+             * attaching new data.
+             */
             if (vPtr->freeProc == TCL_DYNAMIC) {
-                ckfree((char *)vPtr->valueArr);
+                ckfree(vPtr->valueArr);
             } else {
-                vPtr->freeProc((char *)vPtr->valueArr);
+                vPtr->freeProc(vPtr->valueArr);
             }
         }
         vPtr->freeProc = freeProc;
         vPtr->valueArr = valueArr;
         vPtr->size = size;
     }
-
     vPtr->length = length;
     if (vPtr->flush) {
         Rbc_VectorFlushCache(vPtr);
@@ -2890,21 +2906,11 @@ char *Rbc_NameOfVector(Rbc_Vector *vecPtr) {
  * -----------------------------------------------------------------------
  */
 int Rbc_ResetVector(Rbc_Vector *vecPtr, double *valueArr, Tcl_Size length, Tcl_Size size, Tcl_FreeProc *freeProc) {
-    VectorObject *vPtr = (VectorObject *)vecPtr;
-
-    if (size < 0) {
-        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("bad vector array size", -1));
-        return TCL_ERROR;
-    }
-    return Rbc_VectorReset(vPtr, valueArr, length, size, freeProc);
+    return Rbc_VectorReset((VectorObject *)vecPtr, valueArr, length, size, freeProc);
 }
 
 void Rbc_FreeVector(Rbc_Vector *v) { Rbc_VectorFree((VectorObject *)v); }
-
 double *Rbc_VectorData(Rbc_Vector *v) { return Rbc_VecData(v); }
-
 Tcl_Size Rbc_VectorLength(Rbc_Vector *v) { return Rbc_VecLength(v); }
-
 Tcl_Size Rbc_VectorSize(Rbc_Vector *v) { return Rbc_VecSize(v); }
-
 int Rbc_VectorDirty(Rbc_Vector *v) { return Rbc_VecDirty(v); }

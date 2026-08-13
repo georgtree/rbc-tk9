@@ -268,6 +268,30 @@ namespace eval vector.create {
     } -cleanup {
         vector destroy Vector1
     } -result {1}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure a GENFUNC option can be followed by additional vector options.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.create.A.4.3 {
+        vector create: boolean option followed by another option
+    } -body {
+        vector create Vector1 -flush true -length 5
+        Vector1 length
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {5}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure a missing -length value reports an error safely.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.create.A.4.4 {
+        vector create: missing length argument
+    } -body {
+        catch {vector create Vector1 -length} message
+        set message
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {option "-length" requires an additional argument}
 	
     cleanupTests
 }
