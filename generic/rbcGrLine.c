@@ -2750,6 +2750,8 @@ static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Tcl_Size nScreenPoints;
     Tcl_Size i;
     Tcl_Size count;
+    size_t pointBytes;
+    size_t indexBytes;
 
     mapPtr->screenPts = NULL;
     mapPtr->indices = NULL;
@@ -2769,8 +2771,19 @@ static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     if (nScreenPoints == 0) {
         return;
     }
-    screenPts = ckalloc((size_t)nScreenPoints * sizeof(*screenPts));
-    indices = ckalloc((size_t)nScreenPoints * sizeof(*indices));
+    if ((GetLineArrayByteCount(nScreenPoints, sizeof(*screenPts), &pointBytes) != TCL_OK) ||
+        (GetLineArrayByteCount(nScreenPoints, sizeof(*indices), &indexBytes) != TCL_OK)) {
+        return;
+    }
+    screenPts = Tcl_AttemptAlloc(pointBytes);
+    if (screenPts == NULL) {
+        return;
+    }
+    indices = Tcl_AttemptAlloc(indexBytes);
+    if (indices == NULL) {
+        ckfree(screenPts);
+        return;
+    }
     count = 0;
     if (graphPtr->inverted) {
         for (i = 0; i < nDataPoints; i++) {
@@ -2821,6 +2834,9 @@ static void ReducePoints(MapInfo *mapPtr, double tolerance) {
     Tcl_Size *indices;
     Tcl_Size *simple;
     Tcl_Size nPoints;
+    size_t simpleBytes;
+    size_t pointBytes;
+    size_t indexBytes;
     Tcl_Size n;
     Tcl_Size i;
 
@@ -2828,10 +2844,10 @@ static void ReducePoints(MapInfo *mapPtr, double tolerance) {
         return;
     }
     nPoints = mapPtr->nScreenPts;
-    if ((size_t)nPoints > SIZE_MAX / sizeof(*simple)) {
+    if (GetLineArrayByteCount(nPoints, sizeof(*simple), &simpleBytes) != TCL_OK) {
         return;
     }
-    simple = Tcl_AttemptAlloc((size_t)nPoints * sizeof(*simple));
+    simple = Tcl_AttemptAlloc(simpleBytes);
     if (simple == NULL) {
         return;
     }
@@ -2847,16 +2863,17 @@ static void ReducePoints(MapInfo *mapPtr, double tolerance) {
         ckfree(simple);
         return;
     }
-    if (((size_t)n > SIZE_MAX / sizeof(*screenPts)) || ((size_t)n > SIZE_MAX / sizeof(*indices))) {
+    if ((GetLineArrayByteCount(n, sizeof(*screenPts), &pointBytes) != TCL_OK) ||
+        (GetLineArrayByteCount(n, sizeof(*indices), &indexBytes) != TCL_OK)) {
         ckfree(simple);
         return;
     }
-    screenPts = Tcl_AttemptAlloc((size_t)n * sizeof(*screenPts));
+    screenPts = Tcl_AttemptAlloc(pointBytes);
     if (screenPts == NULL) {
         ckfree(simple);
         return;
     }
-    indices = Tcl_AttemptAlloc((size_t)n * sizeof(*indices));
+    indices = Tcl_AttemptAlloc(indexBytes);
     if (indices == NULL) {
         ckfree(screenPts);
         ckfree(simple);
@@ -3570,6 +3587,14 @@ static void MergePens(Line *linePtr, PenStyle **dataToStyle) {
     LinePenStyle *stylePtr;
     Tcl_Size i;
     Rbc_ChainLink *linkPtr;
+    size_t stripsBytes = 0;
+    size_t stripToDataBytes = 0;
+    size_t symbolPtsBytes = 0;
+    size_t symbolToDataBytes = 0;
+    size_t xErrorBarsBytes = 0;
+    size_t xErrorToDataBytes = 0;
+    size_t yErrorBarsBytes = 0;
+    size_t yErrorToDataBytes = 0;
 
     if (Rbc_ChainGetLength(linePtr->core.palette) < 2) {
         linkPtr = Rbc_ChainFirstLink(linePtr->core.palette);
@@ -3585,6 +3610,36 @@ static void MergePens(Line *linePtr, PenStyle **dataToStyle) {
         stylePtr->errorBarCapWidth = linePtr->core.errorBarCapWidth;
         return;
     }
+    /*
+     * Validate all allocation sizes before modifying any style slices.
+     * Ordinary allocation failure remains handled by ckalloc().
+     */
+    if ((linePtr->nStrips > 0) &&
+        ((GetLineArrayByteCount(linePtr->nStrips, sizeof(*linePtr->strips), &stripsBytes) != TCL_OK) ||
+         (GetLineArrayByteCount(linePtr->nStrips, sizeof(*linePtr->stripToData), &stripToDataBytes) != TCL_OK))) {
+
+        return;
+    }
+    if ((linePtr->nSymbolPts > 0) &&
+        ((GetLineArrayByteCount(linePtr->nSymbolPts, sizeof(*linePtr->symbolPts), &symbolPtsBytes) != TCL_OK) ||
+         (GetLineArrayByteCount(linePtr->nSymbolPts, sizeof(*linePtr->symbolToData), &symbolToDataBytes) != TCL_OK))) {
+
+        return;
+    }
+    if ((linePtr->core.xErrorBarCnt > 0) &&
+        ((GetLineArrayByteCount(linePtr->core.xErrorBarCnt, sizeof(*linePtr->core.xErrorBars), &xErrorBarsBytes) !=
+          TCL_OK) ||
+         (GetLineArrayByteCount(linePtr->core.xErrorBarCnt, sizeof(*linePtr->core.xErrorToData), &xErrorToDataBytes) !=
+          TCL_OK))) {
+        return;
+    }
+    if ((linePtr->core.yErrorBarCnt > 0) &&
+        ((GetLineArrayByteCount(linePtr->core.yErrorBarCnt, sizeof(*linePtr->core.yErrorBars), &yErrorBarsBytes) !=
+          TCL_OK) ||
+         (GetLineArrayByteCount(linePtr->core.yErrorBarCnt, sizeof(*linePtr->core.yErrorToData), &yErrorToDataBytes) !=
+          TCL_OK))) {
+        return;
+    }
 
     /* We have more than one style. Group line segments and points of
      * like pen styles.  */
@@ -3596,8 +3651,8 @@ static void MergePens(Line *linePtr, PenStyle **dataToStyle) {
         Tcl_Size *indexPtr;
         Tcl_Size dataIndex;
 
-        strips = ckalloc((size_t)linePtr->nStrips * sizeof(*strips));
-        stripToData = ckalloc((size_t)linePtr->nStrips * sizeof(*stripToData));
+        strips = ckalloc(stripsBytes);
+        stripToData = ckalloc(stripToDataBytes);
         segPtr = strips;
         indexPtr = stripToData;
         for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL;
@@ -3625,8 +3680,8 @@ static void MergePens(Line *linePtr, PenStyle **dataToStyle) {
         Tcl_Size *indexPtr;
         Tcl_Size dataIndex;
 
-        symbolPts = ckalloc((size_t)linePtr->nSymbolPts * sizeof(*symbolPts));
-        symbolToData = ckalloc((size_t)linePtr->nSymbolPts * sizeof(*symbolToData));
+        symbolPts = ckalloc(symbolPtsBytes);
+        symbolToData = ckalloc(symbolToDataBytes);
         pointPtr = symbolPts;
         indexPtr = symbolToData;
         for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL;
@@ -3654,8 +3709,8 @@ static void MergePens(Line *linePtr, PenStyle **dataToStyle) {
         Tcl_Size *indexPtr;
         Tcl_Size dataIndex;
         Tcl_Size i;
-        errorBars = ckalloc((size_t)linePtr->core.xErrorBarCnt * sizeof(*errorBars));
-        errorToData = ckalloc((size_t)linePtr->core.xErrorBarCnt * sizeof(*errorToData));
+        errorBars = ckalloc(xErrorBarsBytes);
+        errorToData = ckalloc(xErrorToDataBytes);
         segPtr = errorBars;
         indexPtr = errorToData;
         for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL;
@@ -3683,8 +3738,9 @@ static void MergePens(Line *linePtr, PenStyle **dataToStyle) {
         Tcl_Size *indexPtr;
         Tcl_Size dataIndex;
         Tcl_Size i;
-        errorBars = ckalloc((size_t)linePtr->core.yErrorBarCnt * sizeof(*errorBars));
-        errorToData = ckalloc((size_t)linePtr->core.yErrorBarCnt * sizeof(*errorToData));
+
+        errorBars = ckalloc(yErrorBarsBytes);
+        errorToData = ckalloc(yErrorToDataBytes);
         segPtr = errorBars;
         indexPtr = errorToData;
         for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL;
@@ -3821,8 +3877,9 @@ static int ClipSegment(Extents2D *extsPtr, register int code1, register int code
  *
  * Parameters:
  *      Line *linePtr
- *      int start - Starting index of the trace in data point array. Used to figure out closest point
- *      int length - Number of points forming the trace
+ *      Tcl_Size start  - Starting index of the trace in the mapped
+ *                        point array.
+ *      Tcl_Size length - Number of points forming the trace.
  *      MapInfo *mapPtr
  *
  * Results:
@@ -3849,10 +3906,6 @@ static void SaveTrace(Line *linePtr, Tcl_Size start, Tcl_Size length, MapInfo *m
             indices[i] = mapPtr->indices[j];
         }
     } else {
-        /*
-         * This branch should normally no longer be needed because
-         * GetScreenPoints always creates a mapping array.
-         */
         for (i = 0, j = start; i < length; i++, j++) {
             screenPts[i] = mapPtr->screenPts[j];
             indices[i] = j;
