@@ -553,6 +553,13 @@ static void FreeBarPenColor(XColor *colorPtr) {
  */
 static int Round(register double x) { return (int)(x + ((x < 0.0) ? -0.5 : 0.5)); }
 
+static int GetBarArrayByteCount(Tcl_Size count, size_t elementSize, size_t *bytesPtr) {
+    if ((count < 0) || (elementSize == 0) || ((uintmax_t)count > (uintmax_t)(SIZE_MAX / elementSize))) {
+        return TCL_ERROR;
+    }
+    *bytesPtr = (size_t)count * elementSize;
+    return TCL_OK;
+}
 /*
  * ----------------------------------------------------------------------
  * Custom option parse and print procedures
@@ -1358,6 +1365,12 @@ static void ClosestBar(Graph *graphPtr, Element *elemPtr, ClosestSearch *searchP
 static void MergePens(Bar *barPtr, PenStyle **dataToStyle) {
     BarPenStyle *stylePtr;
     Rbc_ChainLink *linkPtr;
+    size_t rectanglesBytes = 0;
+    size_t rectToDataBytes = 0;
+    size_t xErrorBarsBytes = 0;
+    size_t xErrorToDataBytes = 0;
+    size_t yErrorBarsBytes = 0;
+    size_t yErrorToDataBytes = 0;
 
     if (Rbc_ChainGetLength(barPtr->core.palette) < 2) {
         linkPtr = Rbc_ChainFirstLink(barPtr->core.palette);
@@ -1371,9 +1384,28 @@ static void MergePens(Bar *barPtr, PenStyle **dataToStyle) {
         stylePtr->yErrorBars = barPtr->core.yErrorBars;
         return;
     }
+
+    if ((barPtr->nRects > 0) &&
+        ((GetBarArrayByteCount(barPtr->nRects, sizeof(*barPtr->rectangles), &rectanglesBytes) != TCL_OK) ||
+         (GetBarArrayByteCount(barPtr->nRects, sizeof(*barPtr->rectToData), &rectToDataBytes) != TCL_OK))) {
+        return;
+    }
+    if ((barPtr->core.xErrorBarCnt > 0) &&
+        ((GetBarArrayByteCount(barPtr->core.xErrorBarCnt, sizeof(*barPtr->core.xErrorBars), &xErrorBarsBytes) !=
+          TCL_OK) ||
+         (GetBarArrayByteCount(barPtr->core.xErrorBarCnt, sizeof(*barPtr->core.xErrorToData), &xErrorToDataBytes) !=
+          TCL_OK))) {
+        return;
+    }
+    if ((barPtr->core.yErrorBarCnt > 0) &&
+        ((GetBarArrayByteCount(barPtr->core.yErrorBarCnt, sizeof(*barPtr->core.yErrorBars), &yErrorBarsBytes) !=
+          TCL_OK) ||
+         (GetBarArrayByteCount(barPtr->core.yErrorBarCnt, sizeof(*barPtr->core.yErrorToData), &yErrorToDataBytes) !=
+          TCL_OK))) {
+        return;
+    }
     /* We have more than one style. Group bar segments of like pen
      * styles together.  */
-
     if (barPtr->nRects > 0) {
         BarRectangle *rectangles;
         BarRectangle *rectPtr;
@@ -1382,8 +1414,8 @@ static void MergePens(Bar *barPtr, PenStyle **dataToStyle) {
         Tcl_Size dataIndex;
         Tcl_Size i;
 
-        rectangles = RbcCalloc((size_t)barPtr->nRects, sizeof(*rectangles));
-        rectToData = RbcCalloc((size_t)barPtr->nRects, sizeof(*rectToData));
+        rectangles = ckalloc(rectanglesBytes);
+        rectToData = ckalloc(rectToDataBytes);
         rectPtr = rectangles;
         indexPtr = rectToData;
         for (linkPtr = Rbc_ChainFirstLink(barPtr->core.palette); linkPtr != NULL;
@@ -1413,8 +1445,8 @@ static void MergePens(Bar *barPtr, PenStyle **dataToStyle) {
         Tcl_Size dataIndex;
         Tcl_Size i;
 
-        errorBars = ckalloc((size_t)barPtr->core.xErrorBarCnt * sizeof(*errorBars));
-        errorToData = ckalloc((size_t)barPtr->core.xErrorBarCnt * sizeof(*errorToData));
+        errorBars = ckalloc(xErrorBarsBytes);
+        errorToData = ckalloc(xErrorToDataBytes);
         segPtr = errorBars;
         indexPtr = errorToData;
         for (linkPtr = Rbc_ChainFirstLink(barPtr->core.palette); linkPtr != NULL;
@@ -1442,11 +1474,11 @@ static void MergePens(Bar *barPtr, PenStyle **dataToStyle) {
         Tcl_Size *indexPtr;
         Tcl_Size dataIndex;
         Tcl_Size i;
-        errorBars = ckalloc((size_t)barPtr->core.yErrorBarCnt * sizeof(*errorBars));
-        errorToData = ckalloc((size_t)barPtr->core.yErrorBarCnt * sizeof(*errorToData));
+
+        errorBars = ckalloc(yErrorBarsBytes);
+        errorToData = ckalloc(yErrorToDataBytes);
         segPtr = errorBars;
         indexPtr = errorToData;
-
         for (linkPtr = Rbc_ChainFirstLink(barPtr->core.palette); linkPtr != NULL;
              linkPtr = Rbc_ChainNextLink(linkPtr)) {
             stylePtr = Rbc_ChainGetValue(linkPtr);
@@ -1502,8 +1534,16 @@ static void MapActiveBars(Bar *barPtr) {
         Tcl_Size n;
         Tcl_Size i;
         Tcl_Size count;
-        activeRects = RbcCalloc((size_t)barPtr->core.nActiveIndices, sizeof(*activeRects));
-        activeToData = RbcCalloc((size_t)barPtr->core.nActiveIndices, sizeof(*activeToData));
+        size_t activeRectsBytes;
+        size_t activeToDataBytes;
+
+        if ((GetBarArrayByteCount(barPtr->core.nActiveIndices, sizeof(*activeRects), &activeRectsBytes) != TCL_OK) ||
+            (GetBarArrayByteCount(barPtr->core.nActiveIndices, sizeof(*activeToData), &activeToDataBytes) != TCL_OK)) {
+            barPtr->core.flags &= ~ACTIVE_PENDING;
+            return;
+        }
+        activeRects = ckalloc(activeRectsBytes);
+        activeToData = ckalloc(activeToDataBytes);
         count = 0;
         for (i = 0; i < barPtr->nRects; i++) {
             for (n = 0; n < barPtr->core.nActiveIndices; n++) {
@@ -1625,7 +1665,8 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
     PenStyle **dataToStyle;
     Point2D c1, c2; /* Two opposite corners of the rectangle
                      * in graph coordinates. */
-    double *x, *y;
+    const double *x;
+    const double *y;
     double barWidth, barOffset;
     double baseline;
     double dx, dy;
@@ -1640,11 +1681,17 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
     int size;
     Rbc_ChainLink *linkPtr;
     BarPenStyle *stylePtr;
+    size_t rectanglesBytes;
+    size_t rectToDataBytes;
 
     ResetBar(barPtr);
     nPoints = NumberOfPoints(elemPtr);
     if (nPoints < 1) {
         return; /* No data points */
+    }
+    if ((GetBarArrayByteCount(nPoints, sizeof(*rectangles), &rectanglesBytes) != TCL_OK) ||
+        (GetBarArrayByteCount(nPoints, sizeof(*rectToData), &rectToDataBytes) != TCL_OK)) {
+        return;
     }
     barWidth = graphPtr->barWidth;
     if (barPtr->barWidth > 0.0) {
@@ -1652,15 +1699,13 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
     }
     baseline = (barPtr->core.axes.y->logScale) ? 1.0 : graphPtr->baseline;
     barOffset = barWidth * 0.5;
-
     /*
      * Create an array of rectangles representing the screen coordinates
      * of all the segments in the bar.
      */
-    rectPtr = rectangles = RbcCalloc((size_t)nPoints, sizeof(*rectangles));
-    rectToData = RbcCalloc((size_t)nPoints, sizeof(*rectToData));
-    assert(rectToData);
-
+    rectangles = ckalloc(rectanglesBytes);
+    rectToData = ckalloc(rectToDataBytes);
+    rectPtr = rectangles;
     x = barPtr->core.x.valueArr, y = barPtr->core.y.valueArr;
     count = 0;
     for (i = 0; i < nPoints; i++) {
@@ -1726,17 +1771,27 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
          */
         c1 = Rbc_Map2D(graphPtr, c1.x, c1.y, &barPtr->core.axes);
         c2 = Rbc_Map2D(graphPtr, c2.x, c2.y, &barPtr->core.axes);
-
-        /* Bound the bars vertically by the size of the graph window */
-        if (c1.y < 0.0) {
-            c1.y = 0.0;
-        } else if (c1.y > (double)graphPtr->height) {
-            c1.y = (double)graphPtr->height;
+        /*
+         * Mapping should normally produce finite screen coordinates.
+         * Ignore a bar if arithmetic overflow or an invalid transform did
+         * not.
+         */
+        if ((!FINITE(c1.x)) || (!FINITE(c1.y)) || (!FINITE(c2.x)) || (!FINITE(c2.y))) {
+            continue;
         }
-        if (c2.y < 0.0) {
-            c2.y = 0.0;
-        } else if (c2.y > (double)graphPtr->height) {
-            c2.y = (double)graphPtr->height;
+        /*
+         * Bound horizontal coordinates by the graph window before converting
+         * them to int, just as the vertical coordinates are bounded below.
+         */
+        if (c1.x < 0.0) {
+            c1.x = 0.0;
+        } else if (c1.x > (double)graphPtr->width) {
+            c1.x = (double)graphPtr->width;
+        }
+        if (c2.x < 0.0) {
+            c2.x = 0.0;
+        } else if (c2.x > (double)graphPtr->width) {
+            c2.x = (double)graphPtr->width;
         }
         dx = c1.x - c2.x;
         dy = c1.y - c2.y;
@@ -2582,8 +2637,6 @@ void Rbc_InitFreqTable(Graph *graphPtr) {
         return; /* No frequency table is needed for
                  * "infront" mode */
     }
-    Tcl_InitHashTable(&(graphPtr->freqTable), sizeof(FreqKey) / sizeof(int));
-
     /*
      * Initialize a hash table and fill it with unique abscissas.
      * Keep track of the frequency of each x-coordinate and how many
@@ -2619,13 +2672,31 @@ void Rbc_InitFreqTable(Graph *graphPtr) {
         }
     }
     if (nSegs == 0) {
-        return; /* No bar elements to be displayed */
+        Tcl_DeleteHashTable(&freqTable);
+        return;
     }
     if (nStacks > 0) {
         FreqInfo *infoPtr;
         FreqKey *keyPtr;
         Tcl_HashEntry *h2Ptr;
-
+        size_t freqBytes;
+        if (GetBarArrayByteCount(nStacks, sizeof(*graphPtr->freqArr), &freqBytes) != TCL_OK) {
+            Tcl_DeleteHashTable(&freqTable);
+            return;
+        }
+        /*
+         * The persistent table exists only when there really are
+         * duplicate abscissas.  graphPtr->nStacks therefore remains a
+         * valid indication that this table has been initialized.
+         */
+        Tcl_InitHashTable(&(graphPtr->freqTable), sizeof(FreqKey) / sizeof(int));
+        /*
+         * FreqInfo.count, lastY and sum rely on initial zero values, so
+         * preserve calloc semantics here.
+         */
+        graphPtr->freqArr = RbcCalloc(1, freqBytes);
+        assert(graphPtr->freqArr);
+        infoPtr = graphPtr->freqArr;
         graphPtr->freqArr = RbcCalloc((size_t)nStacks, sizeof(FreqInfo));
         assert(graphPtr->freqArr);
         infoPtr = graphPtr->freqArr;
