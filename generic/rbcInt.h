@@ -497,68 +497,42 @@ char *Rbc_Itoa(int value);
 char *Rbc_Utoa(unsigned int value);
 char *Rbc_Dtoa(Tcl_Interp *interp, double value);
 
-int Rbc_NaturalSpline(Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
-
-int Rbc_QuadraticSpline(Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
-
+int Rbc_NaturalSpline(const Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
+int Rbc_QuadraticSpline(const Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
 Tcl_Size Rbc_SimplifyLine(const Point2D *origPts, Tcl_Size low, Tcl_Size high, double tolerance, Tcl_Size indices[]);
-
-Tcl_Size Rbc_NaturalParametricSpline(Point2D *origPts, Tcl_Size nOrigPts, Extents2D *extsPtr, int isClosed,
+Tcl_Size Rbc_NaturalParametricSpline(const Point2D *origPts, Tcl_Size nOrigPts, const Extents2D *extsPtr, int isClosed,
                                      Point2D *intpPts, Tcl_Size nIntpPts);
-
-int Rbc_CatromParametricSpline(Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
-
+int Rbc_CatromParametricSpline(const Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
 int Rbc_GetShadowFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, Shadow *shadowPtr);
-
 int Rbc_GetFillFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *fillPtr);
 int Rbc_GetStateFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *statePtr);
 int Rbc_GetStringListFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, char ***listPtrPtr);
-
 void Rbc_InitHexTable(char *table);
-
 GC Rbc_GetPrivateGC(Tk_Window tkwin, unsigned long gcMask, XGCValues *valuePtr);
-
 GC Rbc_GetPrivateGCFromDrawable(Display *display, Drawable drawable, unsigned long gcMask, XGCValues *valuePtr);
-
 void Rbc_FreePrivateGC(Display *display, GC gc);
-
 int Rbc_GetPixels(Tcl_Interp *, Tk_Window, const char *, int, int *);
 int Rbc_GetPixelsFromObj(Tcl_Interp *, Tk_Window, Tcl_Obj *, int, int *);
-
 int Rbc_GetXY(Tcl_Interp *interp, Tk_Window tkwin, const char *string, int *x, int *y);
-
 void Rbc_DStringAppendElements(Tcl_DString *, ...);
-
 void Rbc_GetBoundingBox(int width, int height, double theta, double *widthPtr, double *heightPtr, Point2D *points);
-
 void Rbc_InitEpsCanvasItem(Tcl_Interp *interp);
-
 void Rbc_TranslateAnchor(int x, int y, int width, int height, Tk_Anchor anchor, int *transXPtr, int *transYPtr);
-
 Point2D Rbc_TranslatePoint(Point2D *pointPtr, int width, int height, Tk_Anchor anchor);
-
 Tk_Window Rbc_FindChild(Tk_Window parent, const char *name);
 int Rbc_InitComponentOptions(Tcl_Interp *interp, Tk_Window parent, const char *name, const char *className,
                              char *recordPtr, Tk_OptionTable optionTable);
-
 int Rbc_MaxRequestSize(Display *display, unsigned int elemSize);
-
 Window Rbc_GetRealWindowId(Tk_Window tkwin);
-
 ClientData Rbc_GetWindowInstanceData(Tk_Window tkwin);
 void Rbc_SetWindowInstanceData(Tk_Window tkwin, ClientData instanceData);
 void Rbc_DeleteWindowInstanceData(Tk_Window tkwin);
-
 int Rbc_AdjustViewport(int offset, int worldSize, int windowSize, int scrollUnits, int scrollMode);
-
 int Rbc_GetScrollInfo(Tcl_Interp *interp, int argc, char **argv, int *offsetPtr, int worldSize, int windowSize,
                       int scrollUnits, int scrollMode);
-
 int Rbc_GetScrollInfoFromObj(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], int *offsetPtr, int worldSize,
                              int windowSize, int scrollUnits, int scrollMode);
-
 void Rbc_UpdateScrollbar(Tcl_Interp *interp, const char *scrollCmd, double firstFract, double lastFract);
-
 const char *Rbc_GetCanonicalOptionName(Tcl_Obj *objPtr, const Tk_OptionSpec *specs);
 
 #if defined(HAVE_JPEGLIB_H) || defined(HAVE_IJL_H)

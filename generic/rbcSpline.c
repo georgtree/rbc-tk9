@@ -12,7 +12,7 @@
 #include <stdint.h>
 #include "rbcInt.h"
 
-typedef int (*Rbc_SplineOp)(Point2D *, Tcl_Size, Point2D *, Tcl_Size);
+typedef int (*Rbc_SplineOp)(const Point2D *, Tcl_Size, Point2D *, Tcl_Size);
 typedef struct {
     Rbc_OpSpecHeader header;
     Rbc_SplineOp proc;
@@ -49,22 +49,21 @@ typedef struct {
 #define Y2 param[9]
 
 static Tcl_ObjCmdProc2 SplineObjCmd;
-static Tcl_Size Search(Point2D points[], Tcl_Size nPoints, double key, int *foundPtr);
-static int QuadChoose(Point2D *p, Point2D *q, double m1, double m2, double epsilon);
-static void QuadCases(Point2D *p, Point2D *q, double m1, double m2, double param[], int which);
-static int QuadSelect(Point2D *p, Point2D *q, double m1, double m2, double epsilon, double param[]);
+static Tcl_Size Search(const Point2D points[], Tcl_Size nPoints, double key, int *foundPtr);
+static int QuadChoose(const Point2D *p, const Point2D *q, double m1, double m2, double epsilon);
+static void QuadCases(const Point2D *p, const Point2D *q, double m1, double m2, double param[], int which);
+static int QuadSelect(const Point2D *p, const Point2D *q, double m1, double m2, double epsilon, double param[]);
 INLINE static double QuadGetImage(double p1, double p2, double p3, double x1, double x2, double x3);
-static void QuadSpline(Point2D *intp, Point2D *left, Point2D *right, double param[], int ncase);
-static void QuadSlopes(Point2D points[], double *m, Tcl_Size nPoints);
-static int QuadEval(Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts, double *m,
+static void QuadSpline(Point2D *intp, const Point2D *left, const Point2D *right, const double param[], int ncase);
+static void QuadSlopes(const Point2D points[], double *m, Tcl_Size nPoints);
+static int QuadEval(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts, const double *m,
                     double epsilon);
 static int SolveCubic1(TriDiagonalMatrix A[], Tcl_Size n);
-static void SolveCubic2(TriDiagonalMatrix A[], CubicSpline spline[], Tcl_Size nIntervals);
-static CubicSpline *CubicSlopes(Point2D points[], Tcl_Size nPoints, int isClosed, double unitX, double unitY);
-static Tcl_Size CubicEval(Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts,
-                          CubicSpline spline[]);
-static void CatromCoeffs(Point2D *p, Point2D *a, Point2D *b, Point2D *c, Point2D *d);
-
+static void SolveCubic2(const TriDiagonalMatrix A[], CubicSpline spline[], Tcl_Size nIntervals);
+static CubicSpline *CubicSlopes(const Point2D points[], Tcl_Size nPoints, int isClosed, double unitX, double unitY);
+static Tcl_Size CubicEval(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts,
+                          const CubicSpline spline[]);
+static void CatromCoeffs(const Point2D *p, Point2D *a, Point2D *b, Point2D *c, Point2D *d);
 
 
 static int GetSplineArrayByteCount(Tcl_Size count, size_t elementSize, size_t *byteCountPtr) {
@@ -143,7 +142,7 @@ static int SplineEvaluationPointsAreFinite(const Point2D *points, Tcl_Size nPoin
  *
  * -----------------------------------------------------------------------
  */
-static Tcl_Size Search(Point2D points[], Tcl_Size nPoints, double key, int *foundPtr) {
+static Tcl_Size Search(const Point2D points[], Tcl_Size nPoints, double key, int *foundPtr) {
     Tcl_Size high;
     Tcl_Size low;
     Tcl_Size mid;
@@ -194,7 +193,7 @@ static Tcl_Size Search(Point2D points[], Tcl_Size nPoints, double key, int *foun
  *
  *-----------------------------------------------------------------------
  */
-static int QuadChoose(Point2D *p, Point2D *q, double m1, double m2, double epsilon) {
+static int QuadChoose(const Point2D *p, const Point2D *q, double m1, double m2, double epsilon) {
     double slope;
 
     /* Calculate the slope of the line joining P and Q. */
@@ -327,7 +326,7 @@ static int QuadChoose(Point2D *p, Point2D *q, double m1, double m2, double epsil
  *
  * -----------------------------------------------------------------------
  */
-static void QuadCases(Point2D *p, Point2D *q, double m1, double m2, double param[], int which) {
+static void QuadCases(const Point2D *p, const Point2D *q, double m1, double m2, double param[], int which) {
     if ((which == 3) || (which == 4)) { /* Parameters used in both 3 and 4 */
         double mbar1, mbar2, mbar3, c1, d1, h1, j1, k1;
 
@@ -406,7 +405,7 @@ static void QuadCases(Point2D *p, Point2D *q, double m1, double m2, double param
  *
  *--------------------------------------------------------------
  */
-static int QuadSelect(Point2D *p, Point2D *q, double m1, double m2, double epsilon, double param[]) {
+static int QuadSelect(const Point2D *p, const Point2D *q, double m1, double m2, double epsilon, double param[]) {
     int ncase;
 
     ncase = QuadChoose(p, q, m1, m2, epsilon);
@@ -489,7 +488,7 @@ INLINE static double QuadGetImage(double p1, double p2, double p3, double x1, do
  *
  * -----------------------------------------------------------------------
  */
-static void QuadSpline(Point2D *intp, Point2D *left, Point2D *right, double param[], int ncase) {
+static void QuadSpline(Point2D *intp, const Point2D *left, const Point2D *right, const double param[], int ncase) {
     double y;
 
     if (ncase == 4) {
@@ -562,7 +561,7 @@ static void QuadSpline(Point2D *intp, Point2D *left, Point2D *right, double para
  *
  * -----------------------------------------------------------------------
  */
-static void QuadSlopes(Point2D points[], double *m, Tcl_Size nPoints) {
+static void QuadSlopes(const Point2D points[], double *m, Tcl_Size nPoints) {
     double xbar, xmid, xhat, ydif1, ydif2;
     double yxmid;
     double m1, m2;
@@ -711,7 +710,7 @@ static void QuadSlopes(Point2D points[], double *m, Tcl_Size nPoints) {
  *
  *--------------------------------------------------------------
  */
-static int QuadEval(Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts, double *m,
+static int QuadEval(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts, const double *m,
                     double epsilon) {
     int error;
     Tcl_Size i, j;
@@ -934,7 +933,7 @@ noExtrapolation:
  *
  *--------------------------------------------------------------
  */
-int Rbc_QuadraticSpline(Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts) {
+int Rbc_QuadraticSpline(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts) {
     double epsilon;
     double *work;
     size_t byteCount;
@@ -999,7 +998,7 @@ int Rbc_QuadraticSpline(Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[],
  *
  *--------------------------------------------------------------
  */
-int Rbc_NaturalSpline(Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts) {
+int Rbc_NaturalSpline(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts) {
     Cubic2D *eq;
     TriDiagonalMatrix *A;
     double *dx;
@@ -1162,8 +1161,9 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
     const char *yName;
     const char *splXName;
     const char *splYName;
-    double *xArr;
-    double *yArr;
+    const double *xArr;
+    const double *yArr;
+    double *resultArr;
     Point2D *origPts;
     Point2D *intpPts;
     Tcl_Size nOrigPts;
@@ -1293,9 +1293,9 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
             goto cleanup;
         }
     }
-    yArr = Rbc_VecData(splY);
+    resultArr = Rbc_VecData(splY);
     for (i = 0; i < nIntpPts; i++) {
-        yArr[i] = intpPts[i].y;
+        resultArr[i] = intpPts[i].y;
     }
     if (Rbc_ResetVector(splY, Rbc_VecData(splY), Rbc_VecLength(splY), Rbc_VecSize(splY), TCL_STATIC) != TCL_OK) {
         goto cleanup;
@@ -1457,7 +1457,7 @@ static int SolveCubic1(TriDiagonalMatrix A[], Tcl_Size n) {
  *
  *--------------------------------------------------------------
  */
-static void SolveCubic2(TriDiagonalMatrix A[], CubicSpline spline[], Tcl_Size nIntervals) {
+static void SolveCubic2(const TriDiagonalMatrix A[], CubicSpline spline[], Tcl_Size nIntervals) {
     Tcl_Size i;
     double x, y;
     Tcl_Size n, m;
@@ -1528,7 +1528,7 @@ static void SolveCubic2(TriDiagonalMatrix A[], CubicSpline spline[], Tcl_Size nI
  *
  *--------------------------------------------------------------
  */
-static CubicSpline *CubicSlopes(Point2D points[], Tcl_Size nPoints, int isClosed, double unitX, double unitY) {
+static CubicSpline *CubicSlopes(const Point2D points[], Tcl_Size nPoints, int isClosed, double unitX, double unitY) {
     CubicSpline *spline;
     CubicSpline *s1;
     CubicSpline *s2;
@@ -1673,8 +1673,8 @@ static CubicSpline *CubicSlopes(Point2D points[], Tcl_Size nPoints, int isClosed
  *
  *--------------------------------------------------------------
  */
-static Tcl_Size CubicEval(Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts,
-                          CubicSpline spline[]) {
+static Tcl_Size CubicEval(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts,
+                          const CubicSpline spline[]) {
     double t;
     double tSkip;
     double tMax;
@@ -1768,9 +1768,9 @@ static Tcl_Size CubicEval(Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[
  *
  *--------------------------------------------------------------
  */
-Tcl_Size Rbc_NaturalParametricSpline(Point2D origPts[], Tcl_Size nOrigPts, Extents2D *extsPtr, int isClosed,
+Tcl_Size Rbc_NaturalParametricSpline(const Point2D origPts[], Tcl_Size nOrigPts, const Extents2D *extsPtr, int isClosed,
                                      Point2D *intpPts, Tcl_Size nIntpPts) {
-    Point2D *workPts;
+    const Point2D *workPts;
     Point2D *ownedPts;
     CubicSpline *spline;
     Tcl_Size workCount;
@@ -1854,7 +1854,7 @@ Tcl_Size Rbc_NaturalParametricSpline(Point2D origPts[], Tcl_Size nOrigPts, Exten
  *
  *--------------------------------------------------------------
  */
-static void CatromCoeffs(Point2D *p, Point2D *a, Point2D *b, Point2D *c, Point2D *d) {
+static void CatromCoeffs(const Point2D *p, Point2D *a, Point2D *b, Point2D *c, Point2D *d) {
     a->x = -p[0].x + 3.0 * p[1].x - 3.0 * p[2].x + p[3].x;
     b->x = 2.0 * p[0].x - 5.0 * p[1].x + 4.0 * p[2].x - p[3].x;
     c->x = -p[0].x + p[2].x;
@@ -1887,7 +1887,7 @@ static void CatromCoeffs(Point2D *p, Point2D *a, Point2D *b, Point2D *c, Point2D
  *
  *----------------------------------------------------------------------
  */
-int Rbc_CatromParametricSpline(Point2D *points, Tcl_Size nPoints, Point2D *intpPts, Tcl_Size nIntpPts) {
+int Rbc_CatromParametricSpline(const Point2D *points, Tcl_Size nPoints, Point2D *intpPts, Tcl_Size nIntpPts) {
     Point2D *origPts;
     Point2D a;
     Point2D b;
@@ -1895,42 +1895,60 @@ int Rbc_CatromParametricSpline(Point2D *points, Tcl_Size nPoints, Point2D *intpP
     Point2D d;
     Tcl_Size extendedCount;
     Tcl_Size i;
-    Tcl_Size interval;
     size_t byteCount;
-    double t;
 
     if ((points == NULL) || (intpPts == NULL) || (nPoints < 1) || (nIntpPts < 0) ||
         !SplinePointsAreFinite(points, nPoints)) {
-        return FALSE;
-    }
-    if (nPoints < 1) {
+
         return FALSE;
     }
     if (nPoints > (TCL_SIZE_MAX - 4)) {
         return FALSE;
     }
+    /*
+     * Validate every interpolation parameter before modifying
+     * any element of intpPts.
+     *
+     * intpPts[i].x is the source interval number and
+     * intpPts[i].y is the normalized position within it.
+     *
+     * The final source point is represented specially as
+     * interval nPoints - 1 with t == 0.0.
+     */
+    for (i = 0; i < nIntpPts; i++) {
+        double intervalValue;
+        double t;
+
+        intervalValue = intpPts[i].x;
+        t = intpPts[i].y;
+        if ((!FINITE(intervalValue)) || (!FINITE(t)) || (intervalValue < 0.0) ||
+            (intervalValue > (double)(nPoints - 1)) || (floor(intervalValue) != intervalValue) || (t < 0.0) ||
+            (t > 1.0) || ((intervalValue == (double)(nPoints - 1)) && (t != 0.0))) {
+            return FALSE;
+        }
+    }
     extendedCount = nPoints + 4;
-    if (GetSplineArrayByteCount(extendedCount, sizeof(Point2D), &byteCount) != TCL_OK) {
+    if (GetSplineArrayByteCount(extendedCount, sizeof(*origPts), &byteCount) != TCL_OK) {
         return FALSE;
     }
     origPts = Tcl_AttemptAlloc(byteCount);
     if (origPts == NULL) {
         return FALSE;
     }
-    memcpy(origPts + 1, points, (size_t)nPoints * sizeof(Point2D));
+    memcpy(origPts + 1, points, (size_t)nPoints * sizeof(*origPts));
     origPts[0] = origPts[1];
-    origPts[nPoints + 2] = origPts[nPoints + 1] = origPts[nPoints];
+    origPts[nPoints + 1] = origPts[nPoints];
+    origPts[nPoints + 2] = origPts[nPoints];
+    /*
+     * All operations that can fail are complete.  It is now safe
+     * to replace the interpolation parameters with generated
+     * coordinates.
+     */
     for (i = 0; i < nIntpPts; i++) {
-        double intervalValue;
+        Tcl_Size interval;
+        double t;
 
-        intervalValue = intpPts[i].x;
-        t = intpPts[i].y;
-        if (!FINITE(intervalValue) || !FINITE(t) || (intervalValue < 0.0) || (intervalValue > (double)(nPoints - 1)) ||
-            (floor(intervalValue) != intervalValue) || (t < 0.0) || (t > 1.0)) {
-            ckfree(origPts);
-            return FALSE;
-        }
-        interval = (Tcl_Size)intervalValue;
+        interval = (Tcl_Size)intpPts[i].x;
         t = intpPts[i].y;
         CatromCoeffs(origPts + interval, &a, &b, &c, &d);
         intpPts[i].x = (d.x + t * (c.x + t * (b.x + t * a.x))) / 2.0;
