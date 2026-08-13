@@ -1732,6 +1732,56 @@ namespace eval graph.axis {
 	} -cleanup {
 		destroy .graph1
 	} -result {13.0}
+
+    test RBC.graph.axis.configure.A.40.1 {
+        axis configure: direct double options reject non-finite values
+    } -setup {
+        graph .graph1
+        .graph1 axis create Axis1
+        set options {-autorange -rotate -shiftby -stepsize -tickdivider}
+        set old {}
+        foreach option $options {
+            dict set old $option [.graph1 axis cget Axis1 $option]
+        }
+    } -body {
+        set result {}
+        foreach option $options {
+            set code [catch {.graph1 axis configure Axis1 $option Inf}]
+            lappend result $code [expr {[.graph1 axis cget Axis1 $option] eq [dict get $old $option]}]
+        }
+        set result
+    } -cleanup {
+        destroy .graph1
+    } -result {1 1 1 1 1 1 1 1 1 1}
+
+    test RBC.graph.axis.configure.A.40.2 {
+        axis configure: limits reject non-finite values transactionally
+    } -setup {
+        graph .graph1
+        .graph1 axis create Axis1
+        .graph1 axis configure Axis1 -min 1 -max 10
+        set oldMin [.graph1 axis cget Axis1 -min]
+        set oldMax [.graph1 axis cget Axis1 -max]
+    } -body {
+        set code [catch {.graph1 axis configure Axis1 -min Inf}]
+        list $code [expr {[.graph1 axis cget Axis1 -min] eq $oldMin}] [expr {[.graph1 axis cget Axis1 -max] eq $oldMax}]
+    } -cleanup {
+        destroy .graph1
+    } -result {1 1 1}
+
+    test RBC.graph.axis.configure.A.40.3 {
+        axis configure: explicit ticks reject non-finite values transactionally
+    } -setup {
+        graph .graph1
+        .graph1 axis create Axis1
+        .graph1 axis configure Axis1 -majorticks {0 1 2}
+        set old [.graph1 axis cget Axis1 -majorticks]
+    } -body {
+        set code [catch {.graph1 axis configure Axis1 -majorticks {0 Inf 2}}]
+        list $code [expr {[.graph1 axis cget Axis1 -majorticks] eq $old}]
+    } -cleanup {
+        destroy .graph1
+    } -result {1 1}
 	
 	cleanupTests
 }

@@ -1125,15 +1125,19 @@ static int GetAxisLimitFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, double *valu
         *valuePtr = VALUE_UNDEFINED;
         return TCL_OK;
     }
-
     (void)Tcl_GetStringFromObj(objPtr, &length);
-
     if (length == 0) {
         *valuePtr = VALUE_UNDEFINED;
         return TCL_OK;
     }
-
-    return Tcl_ExprDoubleObj(interp, objPtr, valuePtr);
+    if (Tcl_ExprDoubleObj(interp, objPtr, valuePtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (!FINITE(*valuePtr)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("axis limit must be a finite value", -1));
+        return TCL_ERROR;
+    }
+    return TCL_OK;
 }
 
 /*
@@ -1850,10 +1854,10 @@ static int GetTicksByteCount(Tcl_Size nTicks, size_t *sizePtr) {
         return TCL_ERROR;
     }
     headerSize = offsetof(Ticks, values);
-    if ((size_t)nTicks > (SIZE_MAX - headerSize) / sizeof(double)) {
+    if ((uintmax_t)nTicks > (uintmax_t)((SIZE_MAX - headerSize) / sizeof(double))) {
         return TCL_ERROR;
     }
-    *sizePtr = headerSize + ((size_t)nTicks * sizeof(double));
+    *sizePtr = headerSize + (size_t)nTicks * sizeof(double);
     return TCL_OK;
 }
 
@@ -1895,6 +1899,11 @@ static int GetAxisTicksFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, Ticks **tick
     for (i = 0; i < nExprs; i++) {
         if (Tcl_ExprDoubleObj(interp, exprObjv[i], &ticksPtr->values[i]) != TCL_OK) {
             ckfree(ticksPtr);
+            return TCL_ERROR;
+        }
+        if (!FINITE(ticksPtr->values[i])) {
+            ckfree(ticksPtr);
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("axis tick values must be finite", -1));
             return TCL_ERROR;
         }
     }
@@ -4612,7 +4621,6 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
     AxisShadowTransaction shadowTransaction;
     AxisTagsTransaction tagsTransaction;
     AxisFormatTransaction formatTransaction;
-
     int limitTransactionPrepared;
     int tickTransactionPrepared;
     int looseTransactionPrepared;
@@ -4628,7 +4636,6 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
     memset(&shadowTransaction, 0, sizeof(shadowTransaction));
     memset(&tagsTransaction, 0, sizeof(tagsTransaction));
     memset(&formatTransaction, 0, sizeof(formatTransaction));
-
     limitTransactionPrepared = FALSE;
     tickTransactionPrepared = FALSE;
     looseTransactionPrepared = FALSE;
@@ -4636,7 +4643,26 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
     shadowTransactionPrepared = FALSE;
     tagsTransactionPrepared = FALSE;
     formatTransactionPrepared = FALSE;
-
+    if (!FINITE(axisPtr->windowSize)) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("-autorange must be a finite value", -1));
+        goto error;
+    }
+    if (!FINITE(axisPtr->tickTextStyle.theta)) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("-rotate must be a finite value", -1));
+        goto error;
+    }
+    if (!FINITE(axisPtr->shiftBy)) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("-shiftby must be a finite value", -1));
+        goto error;
+    }
+    if (!FINITE(axisPtr->reqStep)) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("-stepsize must be a finite value", -1));
+        goto error;
+    }
+    if (!FINITE(axisPtr->tickZoom)) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("-tickdivider must be a finite value", -1));
+        goto error;
+    }
     /*
      * Parse and validate retained axis-limit objects before modifying the
      * live requested range.
@@ -4752,12 +4778,11 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
         CommitAxisFormatTransaction(axisPtr, &formatTransaction);
     }
 
-    axisPtr->tickTextStyle.theta = FMOD(axisPtr->tickTextStyle.theta, 360.0);
+    axisPtr->tickTextStyle.theta = fmod(axisPtr->tickTextStyle.theta, 360.0);
     if (axisPtr->tickTextStyle.theta < 0.0) {
         axisPtr->tickTextStyle.theta += 360.0;
     }
     ResetTextStyles(graphPtr, axisPtr);
-
     axisPtr->titleWidth = axisPtr->titleHeight = 0;
     if (axisPtr->title != NULL) {
         int w, h;
