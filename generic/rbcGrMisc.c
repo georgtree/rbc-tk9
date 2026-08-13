@@ -391,6 +391,36 @@ static const char *ColorPairToString(ClientData clientData, Tk_Window tkwin, cha
     return result;
 }
 
+double Rbc_GetClosestPointOnSegment(const Point2D *samplePtr, const Point2D *p, const Point2D *q, Point2D *closestPtr) {
+    double dx, dy;
+    double length;
+    double ux, uy;
+    double along;
+
+    if ((samplePtr == NULL) || (p == NULL) || (q == NULL) || (closestPtr == NULL)) {
+        return DBL_MAX;
+    }
+    dx = q->x - p->x;
+    dy = q->y - p->y;
+    length = hypot(dx, dy);
+    if (length <= DBL_EPSILON) {
+        *closestPtr = *p;
+        return hypot(samplePtr->x - p->x, samplePtr->y - p->y);
+    }
+    ux = dx / length;
+    uy = dy / length;
+    along = ((samplePtr->x - p->x) * ux) + ((samplePtr->y - p->y) * uy);
+    if (along <= 0.0) {
+        *closestPtr = *p;
+    } else if (along >= length) {
+        *closestPtr = *q;
+    } else {
+        closestPtr->x = p->x + (along * ux);
+        closestPtr->y = p->y + (along * uy);
+    }
+    return hypot(samplePtr->x - closestPtr->x, samplePtr->y - closestPtr->y);
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -415,39 +445,21 @@ static const char *ColorPairToString(ClientData clientData, Tk_Window tkwin, cha
 int Rbc_PointInSegments(Point2D *samplePtr, Segment2D *segments, Tcl_Size nSegments, double halo) {
     Segment2D *segPtr;
     Segment2D *endPtr;
-    double left, right, top, bottom;
-    Point2D p, t;
-    double dist;
-    double minDist;
 
-    if ((segments == NULL) || (nSegments <= 0)) {
+    if ((samplePtr == NULL) || (segments == NULL) || (nSegments <= 0) || (halo <= 0.0)) {
         return FALSE;
     }
-    minDist = DBL_MAX;
-    for (segPtr = segments, endPtr = segments + nSegments; segPtr < endPtr; segPtr++) {
-        t = Rbc_GetProjection((int)samplePtr->x, (int)samplePtr->y, &segPtr->p, &segPtr->q);
-        if (segPtr->p.x > segPtr->q.x) {
-            right = segPtr->p.x;
-            left = segPtr->q.x;
-        } else {
-            right = segPtr->q.x;
-            left = segPtr->p.x;
-        }
-        if (segPtr->p.y > segPtr->q.y) {
-            bottom = segPtr->p.y;
-            top = segPtr->q.y;
-        } else {
-            bottom = segPtr->q.y;
-            top = segPtr->p.y;
-        }
-        p.x = BOUND(t.x, left, right);
-        p.y = BOUND(t.y, top, bottom);
-        dist = hypot(p.x - samplePtr->x, p.y - samplePtr->y);
-        if (dist < minDist) {
-            minDist = dist;
+    endPtr = segments + nSegments;
+    for (segPtr = segments; segPtr < endPtr; segPtr++) {
+        Point2D closest;
+        double dist;
+
+        dist = Rbc_GetClosestPointOnSegment(samplePtr, &segPtr->p, &segPtr->q, &closest);
+        if (dist < halo) {
+            return TRUE;
         }
     }
-    return (minDist < halo);
+    return FALSE;
 }
 
 /*
@@ -713,6 +725,12 @@ int Rbc_LineRectClip(Extents2D *extsPtr, Point2D *p, Point2D *q) {
  *      complex, connected by zero width/height segments.  The drawing
  *      routine (such as XFillPolygon) will not draw a connecting
  *      segment.
+ *      inputPts is read-only and contains exactly nInputPts vertices.
+ *      The closing edge from the last vertex to the first is generated
+ *      internally.
+ *
+ *      outputCapacity is the number of Point2D entries available in
+ *      outputPts.
  *
  *      Reference:  Liang-Barsky Polygon Clipping Algorithm
  *
@@ -731,58 +749,74 @@ int Rbc_LineRectClip(Extents2D *extsPtr, Point2D *p, Point2D *q) {
  *
  *----------------------------------------------------------------------
  */
-Tcl_Size Rbc_PolyRectClip(Extents2D *extsPtr, Point2D *points, Tcl_Size nPoints, Point2D *clipPts) {
-    Point2D *endPtr;
+static int AppendClipVertex(Point2D *points, Tcl_Size capacity, Tcl_Size *countPtr, double x, double y) {
+    Tcl_Size count;
+
+    count = *countPtr;
+    if ((points == NULL) || (count < 0) || (count >= capacity)) {
+        return FALSE;
+    }
+    points[count].x = x;
+    points[count].y = y;
+    *countPtr = count + 1;
+    return TRUE;
+}
+
+Tcl_Size Rbc_PolyRectClip(Extents2D *extsPtr, const Point2D *points, Tcl_Size nPoints, Point2D *clipPts,
+                          Tcl_Size clipCapacity) {
     double dx, dy;
     double tin1, tin2;
     double tinx, tiny;
     double xin, yin, xout, yout;
     Tcl_Size count;
-    Point2D *p;
-    Point2D *q;
-    Point2D *r;
+    Tcl_Size i;
 
-    if (nPoints <= 0) {
+    if ((extsPtr == NULL) || (points == NULL) || (clipPts == NULL) || (nPoints <= 0) || (clipCapacity <= 0)) {
         return 0;
     }
-    r = clipPts;
     count = 0;
-    points[nPoints] = points[0];
-    for (p = points, q = p + 1, endPtr = p + nPoints; p < endPtr; p++, q++) {
-        dx = q->x - p->x; /* X-direction */
-        dy = q->y - p->y; /* Y-direction */
+    for (i = 0; i < nPoints; i++) {
+        const Point2D *p;
+        const Point2D *q;
+
+        p = points + i;
+        q = (i + 1 < nPoints) ? (points + i + 1) : points;
+        dx = q->x - p->x;
+        dy = q->y - p->y;
         if (FABS(dx) < EPSILON) {
             dx = (p->x > extsPtr->left) ? -EPSILON : EPSILON;
         }
         if (FABS(dy) < EPSILON) {
             dy = (p->y > extsPtr->top) ? -EPSILON : EPSILON;
         }
-        if (dx > 0.0) { /* Left */
+        if (dx > 0.0) {
             xin = extsPtr->left;
             xout = extsPtr->right + 1.0;
-        } else { /* Right */
+        } else {
             xin = extsPtr->right + 1.0;
             xout = extsPtr->left;
         }
-        if (dy > 0.0) { /* Top */
+        if (dy > 0.0) {
             yin = extsPtr->top;
             yout = extsPtr->bottom + 1.0;
-        } else { /* Bottom */
+        } else {
             yin = extsPtr->bottom + 1.0;
             yout = extsPtr->top;
         }
         tinx = (xin - p->x) / dx;
         tiny = (yin - p->y) / dy;
-        if (tinx < tiny) { /* Hits x first */
+        if (tinx < tiny) {
             tin1 = tinx;
             tin2 = tiny;
-        } else { /* Hits y first */
+        } else {
             tin1 = tiny;
             tin2 = tinx;
         }
         if (tin1 <= 1.0) {
             if (tin1 > 0.0) {
-                AddVertex(xin, yin);
+                if (!AppendClipVertex(clipPts, clipCapacity, &count, xin, yin)) {
+                    return 0;
+                }
             }
             if (tin2 <= 1.0) {
                 double toutx, touty, tout1;
@@ -794,123 +828,54 @@ Tcl_Size Rbc_PolyRectClip(Extents2D *extsPtr, Point2D *points, Tcl_Size nPoints,
                     if (tin2 <= tout1) {
                         if (tin2 > 0.0) {
                             if (tinx > tiny) {
-                                AddVertex(xin, p->y + tinx * dy);
+                                if (!AppendClipVertex(clipPts, clipCapacity, &count, xin, p->y + tinx * dy)) {
+                                    return 0;
+                                }
                             } else {
-                                AddVertex(p->x + tiny * dx, yin);
+                                if (!AppendClipVertex(clipPts, clipCapacity, &count, p->x + tiny * dx, yin)) {
+                                    return 0;
+                                }
                             }
                         }
                         if (tout1 < 1.0) {
                             if (toutx < touty) {
-                                AddVertex(xout, p->y + toutx * dy);
+                                if (!AppendClipVertex(clipPts, clipCapacity, &count, xout, p->y + toutx * dy)) {
+                                    return 0;
+                                }
                             } else {
-                                AddVertex(p->x + touty * dx, yout);
+                                if (!AppendClipVertex(clipPts, clipCapacity, &count, p->x + touty * dx, yout)) {
+                                    return 0;
+                                }
                             }
                         } else {
-                            AddVertex(q->x, q->y);
+                            if (!AppendClipVertex(clipPts, clipCapacity, &count, q->x, q->y)) {
+                                return 0;
+                            }
                         }
                     } else {
                         if (tinx > tiny) {
-                            AddVertex(xin, yout);
+                            if (!AppendClipVertex(clipPts, clipCapacity, &count, xin, yout)) {
+                                return 0;
+                            }
                         } else {
-                            AddVertex(xout, yin);
+                            if (!AppendClipVertex(clipPts, clipCapacity, &count, xout, yin)) {
+                                return 0;
+                            }
                         }
                     }
                 }
             }
         }
     }
+    /*
+     * Preserve the historical explicitly closed output polygon.
+     */
     if (count > 0) {
-        LastVertex(clipPts[0].x, clipPts[0].y);
+        if (!AppendClipVertex(clipPts, clipCapacity, &count, clipPts[0].x, clipPts[0].y)) {
+            return 0;
+        }
     }
     return count;
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_GetProjection --
- *
- *      Computes the projection of a point on a line.  The line (given
- *      by two points), is assumed the be infinite.
- *
- *      Compute the slope (angle) of the line and rotate it 90 degrees.
- *      Using the slope-intercept method (we know the second line from
- *      the sample test point and the computed slope), then find the
- *      intersection of both lines. This will be the projection of the
- *      sample point on the first line.
- *
- * Parameters:
- *      int x - Screen coordinate of the sample point.
- *      int y - Screen coordinate of the sample point.
- *      Point2D *p - Line segment to project point onto
- *      Point2D *q - Line segment to project point onto
- *
- * Results:
- *      Returns the coordinates of the projection on the line.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-Point2D Rbc_GetProjection(int x, int y, Point2D *p, Point2D *q) {
-    double dx, dy;
-    Point2D t;
-
-    dx = p->x - q->x;
-    dy = p->y - q->y;
-
-    /* Test for horizontal and vertical lines */
-    if (FABS(dx) < DBL_EPSILON) {
-        t.x = p->x, t.y = (double)y;
-    } else if (FABS(dy) < DBL_EPSILON) {
-        t.x = (double)x, t.y = p->y;
-    } else {
-        double m1, m2;     /* Slope of both lines */
-        double b1, b2;     /* y-intercepts */
-        double midX, midY; /* Midpoint of line segment. */
-        double ax, ay, bx, by;
-
-        /* Compute the slop and intercept of the line segment. */
-        m1 = (dy / dx);
-        b1 = p->y - (p->x * m1);
-
-        /*
-         * Compute the slope and intercept of a second line segment:
-         * one that intersects through sample X-Y coordinate with a
-         * slope perpendicular to original line.
-         */
-
-        /* Find midpoint of original segment. */
-        midX = (p->x + q->x) * 0.5;
-        midY = (p->y + q->y) * 0.5;
-
-        /* Rotate the line 90 degrees */
-        ax = midX - (0.5 * dy);
-        ay = midY - (0.5 * -dx);
-        bx = midX + (0.5 * dy);
-        by = midY + (0.5 * -dx);
-
-        m2 = (ay - by) / (ax - bx);
-        b2 = y - (x * m2);
-
-        /*
-         * Given the equations of two lines which contain the same point,
-         *
-         *    y = m1 * x + b1
-         *    y = m2 * x + b2
-         *
-         * solve for the intersection.
-         *
-         *    x = (b2 - b1) / (m1 - m2)
-         *    y = m1 * x + b1
-         *
-         */
-
-        t.x = (b2 - b1) / (m1 - m2);
-        t.y = m1 * t.x + b1;
-    }
-    return t;
 }
 
 static int ClampScrollValue(long double value) {

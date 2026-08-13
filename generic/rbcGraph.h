@@ -619,7 +619,8 @@ Point2D Rbc_InvMap2D(Graph *graphPtr, double x, double y, Axis2D *pairPtr);
 Point2D Rbc_Map2D(Graph *graphPtr, double x, double y, Axis2D *pairPtr);
 Graph *Rbc_GetGraphFromWindowData(Tk_Window tkwin);
 int Rbc_LineRectClip(Extents2D *extsPtr, Point2D *p, Point2D *q);
-Tcl_Size Rbc_PolyRectClip(Extents2D *extsPtr, Point2D *inputPts, Tcl_Size nInputPts, Point2D *outputPts);
+Tcl_Size Rbc_PolyRectClip(Extents2D *extsPtr, const Point2D *inputPts, Tcl_Size nInputPts, Point2D *outputPts,
+                          Tcl_Size outputCapacity);
 void Rbc_ReleaseLegendTkResources(Graph *graphPtr);
 
 void Rbc_ComputeStacks(Graph *graphPtr);
@@ -676,6 +677,7 @@ int Rbc_GraphUpdateNeeded(Graph *graphPtr);
 int Rbc_DefaultAxes(Graph *graphPtr);
 Axis *Rbc_GetFirstAxis(Rbc_Chain *chainPtr);
 void Rbc_GetAxisSegments(Graph *graphPtr, Axis *axisPtr, Segment2D **segPtrPtr, Tcl_Size *nSegmentsPtr);
+double Rbc_GetClosestPointOnSegment(const Point2D *samplePtr, const Point2D *p, const Point2D *q, Point2D *closestPtr);
 Marker *Rbc_NearestMarker(Graph *graphPtr, int x, int y, int under);
 Axis *Rbc_NearestAxis(Graph *graphPtr, int x, int y);
 

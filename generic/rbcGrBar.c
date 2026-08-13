@@ -1374,7 +1374,7 @@ static void GetBarExtents(Element *elemPtr, Extents2D *extsPtr) {
 static void ClosestBar(Graph *graphPtr, Element *elemPtr, ClosestSearch *searchPtr) {
     Bar *barPtr = BAR_FROM_CORE(elemPtr);
     Point2D *pointPtr, *endPtr;
-    Point2D t, outline[5];
+    Point2D sample, t, outline[5];
     BarRectangle *rectPtr;
     double left, right, top, bottom;
     double minDist, dist;
@@ -1383,9 +1383,10 @@ static void ClosestBar(Graph *graphPtr, Element *elemPtr, ClosestSearch *searchP
 
     minDist = searchPtr->dist;
     imin = 0;
-
+    sample.x = searchPtr->x;
+    sample.y = searchPtr->y;
     rectPtr = barPtr->rectangles;
-    for (i = 0; i < barPtr->nRects; i++) {
+    for (i = 0; i < barPtr->nRects; i++, rectPtr++) {
         left = (double)rectPtr->x;
         top = (double)rectPtr->y;
         right = left + (double)rectPtr->width;
@@ -1399,26 +1400,13 @@ static void ClosestBar(Graph *graphPtr, Element *elemPtr, ClosestSearch *searchP
         outline[4].y = outline[1].y = outline[0].y = top;
         outline[2].x = outline[1].x = right;
         outline[3].y = outline[2].y = bottom;
-
         for (pointPtr = outline, endPtr = outline + 4; pointPtr < endPtr; pointPtr++) {
-            t = Rbc_GetProjection(searchPtr->x, searchPtr->y, pointPtr, pointPtr + 1);
-            if (t.x > right) {
-                t.x = right;
-            } else if (t.x < left) {
-                t.x = left;
-            }
-            if (t.y > bottom) {
-                t.y = bottom;
-            } else if (t.y < top) {
-                t.y = top;
-            }
-            dist = hypot((t.x - searchPtr->x), (t.y - searchPtr->y));
+            dist = Rbc_GetClosestPointOnSegment(&sample, pointPtr, pointPtr + 1, &t);
             if (dist < minDist) {
                 minDist = dist;
                 imin = barPtr->rectToData[i];
             }
         }
-        rectPtr++;
     }
     if (minDist < searchPtr->dist) {
         searchPtr->elemPtr = &barPtr->core;

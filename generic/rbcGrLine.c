@@ -3919,7 +3919,6 @@ static void MapFillArea(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Extents2D exts;
     double maxY;
     Tcl_Size inputCount;
-    Tcl_Size origCount;
     Tcl_Size clipCapacity;
     Tcl_Size n;
     Tcl_Size i;
@@ -3938,14 +3937,13 @@ static void MapFillArea(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
         return;
     }
     /*
-     * Add two bottom vertices and one extra array element in which
-     * Rbc_PolyRectClip() temporarily stores the closing vertex.
+     * Add two bottom vertices to close the fill polygon.
+     * Rbc_PolyRectClip() now generates the closing edge internally.
      */
-    if (mapPtr->nScreenPts > TCL_SIZE_MAX - 3) {
+    if (mapPtr->nScreenPts > TCL_SIZE_MAX - 2) {
         return;
     }
     inputCount = mapPtr->nScreenPts + 2;
-    origCount = inputCount + 1;
     /*
      * The clipping routine can emit at most three vertices per input
      * edge, followed by one closing vertex.
@@ -3954,11 +3952,11 @@ static void MapFillArea(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
         return;
     }
     clipCapacity = inputCount * 3 + 1;
-    if ((origCount > (Tcl_Size)(SIZE_MAX / sizeof(*origPts))) ||
+    if ((inputCount > (Tcl_Size)(SIZE_MAX / sizeof(*origPts))) ||
         (clipCapacity > (Tcl_Size)(SIZE_MAX / sizeof(*clipPts)))) {
         return;
     }
-    origPts = (Point2D *)Tcl_AttemptAlloc((size_t)origCount * sizeof(*origPts));
+    origPts = (Point2D *)Tcl_AttemptAlloc((size_t)inputCount * sizeof(*origPts));
     if (origPts == NULL) {
         return;
     }
@@ -3986,12 +3984,7 @@ static void MapFillArea(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     origPts[i].x = origPts[0].x;
     origPts[i].y = maxY;
     i++;
-    /*
-     * Storage for the closing vertex used by Rbc_PolyRectClip().
-     * This element is not included in inputCount.
-     */
-    origPts[i] = origPts[0];
-    n = Rbc_PolyRectClip(&exts, origPts, inputCount, clipPts);
+    n = Rbc_PolyRectClip(&exts, origPts, inputCount, clipPts, clipCapacity);
     ckfree(origPts);
     if (n < 3) {
         ckfree(clipPts);
@@ -4203,30 +4196,11 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
  *----------------------------------------------------------------------
  */
 static double DistanceToLine(int x, int y, Point2D *p, Point2D *q, Point2D *t) {
-    double right, left, top, bottom;
+    Point2D sample;
 
-    *t = Rbc_GetProjection(x, y, p, q);
-    if (p->x > q->x) {
-        right = p->x, left = q->x;
-    } else {
-        left = p->x, right = q->x;
-    }
-    if (p->y > q->y) {
-        bottom = p->y, top = q->y;
-    } else {
-        top = p->y, bottom = q->y;
-    }
-    if (t->x > right) {
-        t->x = right;
-    } else if (t->x < left) {
-        t->x = left;
-    }
-    if (t->y > bottom) {
-        t->y = bottom;
-    } else if (t->y < top) {
-        t->y = top;
-    }
-    return hypot((t->x - x), (t->y - y));
+    sample.x = (double)x;
+    sample.y = (double)y;
+    return Rbc_GetClosestPointOnSegment(&sample, p, q, t);
 }
 
 /*

@@ -1967,7 +1967,7 @@ static void MapBitmapMarker(Marker *markerPtr) {
         double xScale, yScale;
         double tx, ty;
         double rotWidth, rotHeight;
-        Point2D polygon[5];
+        Point2D polygon[4];
         Tcl_Size n;
 
         /*
@@ -1990,7 +1990,7 @@ static void MapBitmapMarker(Marker *markerPtr) {
             polygon[i].y = (polygon[i].y * yScale) + ty;
         }
         Rbc_GraphExtents(graphPtr, &exts);
-        n = Rbc_PolyRectClip(&exts, polygon, 4, bmPtr->outline);
+        n = Rbc_PolyRectClip(&exts, polygon, 4, bmPtr->outline, MAX_OUTLINE_POINTS);
         assert(n <= MAX_OUTLINE_POINTS);
         if (n < 3) {
             memcpy(&bmPtr->outline, polygon, sizeof(Point2D) * 4);
@@ -4510,7 +4510,6 @@ static void MapPolygonMarker(Marker *markerPtr) {
     Point2D *screenPts;
     Extents2D exts;
     Tcl_Size nVertices;
-    Tcl_Size screenCapacity;
 
     graphPtr = markerPtr->graphPtr;
     pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
@@ -4533,18 +4532,10 @@ static void MapPolygonMarker(Marker *markerPtr) {
     if (nVertices < 3) {
         return;
     }
-    /*
-     * Reserve one extra point for Rbc_PolyRectClip(), which uses it
-     * temporarily as the closing vertex.
-     */
-    if (nVertices == TCL_SIZE_MAX) {
+    if ((size_t)nVertices > SIZE_MAX / sizeof(*screenPts)) {
         return;
     }
-    screenCapacity = nVertices + 1;
-    if ((size_t)screenCapacity > SIZE_MAX / sizeof(*screenPts)) {
-        return;
-    }
-    screenPts = Tcl_AttemptAlloc((size_t)screenCapacity * sizeof(*screenPts));
+    screenPts = Tcl_AttemptAlloc((size_t)nVertices * sizeof(*screenPts));
     if (screenPts == NULL) {
         return;
     }
@@ -4555,7 +4546,6 @@ static void MapPolygonMarker(Marker *markerPtr) {
         destPtr->x += pmPtr->core.xOffset;
         destPtr->y += pmPtr->core.yOffset;
     }
-    screenPts[nVertices] = screenPts[0];
     pmPtr->screenPts = screenPts;
     Rbc_GraphExtents(graphPtr, &exts);
     if (pmPtr->fill.fgColor != NULL) {
@@ -4568,7 +4558,7 @@ static void MapPolygonMarker(Marker *markerPtr) {
             if ((size_t)fillCapacity <= SIZE_MAX / sizeof(*fillPts)) {
                 fillPts = Tcl_AttemptAlloc((size_t)fillCapacity * sizeof(*fillPts));
                 if (fillPts != NULL) {
-                    nFillPts = Rbc_PolyRectClip(&exts, screenPts, nVertices, fillPts);
+                    nFillPts = Rbc_PolyRectClip(&exts, screenPts, nVertices, fillPts, fillCapacity);
                     if (nFillPts >= 3) {
                         pmPtr->fillPts = fillPts;
                         pmPtr->nFillPts = nFillPts;
@@ -4588,9 +4578,13 @@ static void MapPolygonMarker(Marker *markerPtr) {
             outlinePts = Tcl_AttemptAlloc((size_t)nVertices * sizeof(*outlinePts));
             if (outlinePts != NULL) {
                 segPtr = outlinePts;
-                for (srcPtr = screenPts, endPtr = screenPts + nVertices; srcPtr < endPtr; srcPtr++) {
-                    segPtr->p = srcPtr[0];
-                    segPtr->q = srcPtr[1];
+                endPtr = screenPts + nVertices;
+                for (srcPtr = screenPts; srcPtr < endPtr; srcPtr++) {
+                    Point2D *nextPtr;
+
+                    nextPtr = (srcPtr + 1 < endPtr) ? srcPtr + 1 : screenPts;
+                    segPtr->p = *srcPtr;
+                    segPtr->q = *nextPtr;
                     if (Rbc_LineRectClip(&exts, &segPtr->p, &segPtr->q)) {
                         segPtr++;
                     }
