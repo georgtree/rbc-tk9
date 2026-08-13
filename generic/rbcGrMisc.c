@@ -16,18 +16,15 @@
 #include <math.h>
 #include <stdarg.h>
 
-static Tk_OptionParseProc StringToPoint;
-static Tk_OptionPrintProc PointToString;
 static Tk_OptionParseProc StringToColorPair;
 static Tk_OptionPrintProc ColorPairToString;
-Tk_CustomOption rbcPointOption = {StringToPoint, PointToString, (ClientData)0};
 Tk_CustomOption rbcColorPairOption = {StringToColorPair, ColorPairToString, (ClientData)0};
 
 static int GetColorPair(Tcl_Interp *interp, Tk_Window tkwin, const char *fgStr, const char *bgStr, ColorPair *pairPtr,
                         int allowDefault);
 static const char *NameOfColor(XColor *colorPtr);
 static int ClipTest(double ds, double dr, double *t1, double *t2);
-static double FindSplit(Point2D points[], Tcl_Size i, Tcl_Size j, Tcl_Size *split);
+static double FindSplit(const Point2D points[], Tcl_Size i, Tcl_Size j, Tcl_Size *split);
 
 /* ----------------------------------------------------------------------
  * Custom option parse and print procedures
@@ -39,24 +36,22 @@ static double FindSplit(Point2D points[], Tcl_Size i, Tcl_Size j, Tcl_Size *spli
  *
  * Rbc_GetXY --
  *
- *      Converts a string in the form "@x,y" into an XPoint structure
- *      of the x and y coordinates.
+ *      Parses a position in the form "@x,y".
  *
  * Parameters:
- *      Tcl_Interp *interp
- *      Tk_Window tkwin
- *      const char *string
- *      int *xPtr
- *      int *yPtr
+ *      Tcl_Interp *interp - Interpreter used for error reporting.
+ *      Tk_Window tkwin    - Window used to convert Tk distance units.
+ *      const char *string - Position string.
+ *      int *xPtr          - Receives the X coordinate.
+ *      int *yPtr          - Receives the Y coordinate.
  *
  * Results:
- *      A standard Tcl result. If the string represents a valid position
- *      *pointPtr* will contain the converted x and y coordinates and
- *      TCL_OK is returned.  Otherwise, TCL_ERROR is returned and
- *      the interpreter result will contain an error message.
+ *      Returns TCL_OK and stores the converted coordinates in xPtr
+ *      and yPtr on success.  Returns TCL_ERROR and sets the interpreter
+ *      result if the position is malformed or cannot be converted.
  *
  * Side Effects:
- *      TODO: Side Effects
+ *      May set the interpreter result.
  *
  *----------------------------------------------------------------------
  */
@@ -99,83 +94,6 @@ int Rbc_GetXY(Tcl_Interp *interp, Tk_Window tkwin, const char *string, int *xPtr
 badFormat:
     Tcl_AppendResult(interp, "bad position \"", string, "\": should be \"@x,y\"", (char *)NULL);
     return TCL_ERROR;
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * StringToPoint --
- *
- *      Convert the string representation of a legend XY position into
- *      window coordinates.  The form of the string must be "@x,y" or
- *      none.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tcl_Interp *interp - Interpreter to send results back to
- *      Tk_Window tkwin - Not used.
- *      const char *string - New legend position string
- *      char *widgRec - Widget record
- *      Tcl_Size offset - offset to XPoint structure
- *
- * Results:
- *      A standard Tcl result.  The symbol type is written into the
- *      widget record.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static int StringToPoint(ClientData clientData, Tcl_Interp *interp, Tk_Window tkwin, const char *string, char *widgRec,
-                         Tcl_Size offset) {
-    XPoint *pointPtr = (XPoint *)(widgRec + offset);
-    int x, y;
-
-    if (Rbc_GetXY(interp, tkwin, string, &x, &y) != TCL_OK) {
-        return TCL_ERROR;
-    }
-    pointPtr->x = x, pointPtr->y = y;
-    return TCL_OK;
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * PointToString --
- *
- *      Convert the window coordinates into a string.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tk_Window tkwin - Not used.
- *      char *widgRec - Widget record
- *      Tcl_Size offset - Not used.
- *      Tcl_FreeProc **freeProcPtr - Memory deallocation scheme to use
- *
- * Results:
- *      The string representing the coordinate position is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static const char *PointToString(ClientData clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset,
-                                 Tcl_FreeProc **freeProcPtr) {
-    char *result;
-    XPoint *pointPtr = (XPoint *)(widgRec + offset);
-
-    result = "";
-    if ((pointPtr->x != -SHRT_MAX) && (pointPtr->y != -SHRT_MAX)) {
-        char string[200];
-
-        sprintf(string, "@%d,%d", pointPtr->x, pointPtr->y);
-        result = RbcStrdup(string);
-        assert(result);
-        *freeProcPtr = (Tcl_FreeProc *)Tcl_Free;
-    }
-    return result;
 }
 
 /*
@@ -744,13 +662,6 @@ int Rbc_LineRectClip(const Extents2D *extsPtr, const Point2D *p, const Point2D *
     double t2;
 
     if ((!IsValidExtents(extsPtr)) || (!IsFinitePoint(p)) || (!IsFinitePoint(q))) {
-        return FALSE;
-    }
-    if ((!FINITE(extsPtr->left)) || (!FINITE(extsPtr->right)) || (!FINITE(extsPtr->top)) ||
-        (!FINITE(extsPtr->bottom)) || (!FINITE(p->x)) || (!FINITE(p->y)) || (!FINITE(q->x)) || (!FINITE(q->y))) {
-        return FALSE;
-    }
-    if ((extsPtr->left > extsPtr->right) || (extsPtr->top > extsPtr->bottom)) {
         return FALSE;
     }
     t1 = 0.0;
@@ -1444,7 +1355,7 @@ void Rbc_SetDashes(Display *display, GC gc, Rbc_Dashes *dashesPtr) {
  *
  *----------------------------------------------------------------------
  */
-static double FindSplit(Point2D points[], Tcl_Size i, Tcl_Size j, Tcl_Size *split) {
+static double FindSplit(const Point2D points[], Tcl_Size i, Tcl_Size j, Tcl_Size *split) {
     Tcl_Size k;
     double dx, dy;
     double length;
@@ -1527,7 +1438,7 @@ static double FindSplit(Point2D points[], Tcl_Size i, Tcl_Size j, Tcl_Size *spli
  *
  *----------------------------------------------------------------------
  */
-Tcl_Size Rbc_SimplifyLine(Point2D inputPts[], Tcl_Size low, Tcl_Size high, double tolerance, Tcl_Size indices[]) {
+Tcl_Size Rbc_SimplifyLine(const Point2D inputPts[], Tcl_Size low, Tcl_Size high, double tolerance, Tcl_Size indices[]) {
     Tcl_Size *stack;
     Tcl_Size nPoints;
     Tcl_Size top;
@@ -1626,172 +1537,59 @@ Tcl_Size Rbc_SimplifyLine(Point2D inputPts[], Tcl_Size low, Tcl_Size high, doubl
  *
  *----------------------------------------------------------------------
  */
-void Rbc_Draw2DSegments(Display *display, Drawable drawable, GC gc, Segment2D *segments, Tcl_Size nSegments) {
+void Rbc_Draw2DSegments(Display *display, Drawable drawable, GC gc, const Segment2D *segments, Tcl_Size nSegments) {
     XSegment *xSegments;
+    Extents2D protocolExtents;
     int maxSegments;
 
-    if (nSegments <= 0) {
+    if ((display == NULL) || (segments == NULL) || (nSegments <= 0)) {
         return;
     }
     maxSegments = Rbc_MaxRequestSize(display, sizeof(XSegment));
     if (maxSegments < 1) {
         return;
     }
-    xSegments = ckalloc((size_t)maxSegments * sizeof(*xSegments));
+    xSegments = Tcl_AttemptAlloc((size_t)maxSegments * sizeof(*xSegments));
+    if (xSegments == NULL) {
+        return;
+    }
+    /*
+     * X11 PolySegment coordinates are signed 16-bit values.
+     * Clip geometry to that representable region before converting
+     * Point2D coordinates to XSegment coordinates.
+     */
+    protocolExtents.left = (double)SHRT_MIN;
+    protocolExtents.right = (double)SHRT_MAX;
+    protocolExtents.top = (double)SHRT_MIN;
+    protocolExtents.bottom = (double)SHRT_MAX;
     while (nSegments > 0) {
         Tcl_Size remaining;
         int chunk;
+        int nDrawn;
         int i;
 
         remaining = nSegments;
         chunk = (remaining > (Tcl_Size)maxSegments) ? maxSegments : (int)remaining;
+        nDrawn = 0;
         for (i = 0; i < chunk; i++) {
-            xSegments[i].x1 = (short int)segments[i].p.x;
-            xSegments[i].y1 = (short int)segments[i].p.y;
-            xSegments[i].x2 = (short int)segments[i].q.x;
-            xSegments[i].y2 = (short int)segments[i].q.y;
+            Segment2D clipped;
+
+            if (!Rbc_LineRectClip(&protocolExtents, &segments[i].p, &segments[i].q, &clipped)) {
+                continue;
+            }
+            xSegments[nDrawn].x1 = (short)clipped.p.x;
+            xSegments[nDrawn].y1 = (short)clipped.p.y;
+            xSegments[nDrawn].x2 = (short)clipped.q.x;
+            xSegments[nDrawn].y2 = (short)clipped.q.y;
+            nDrawn++;
         }
-        XDrawSegments(display, drawable, gc, xSegments, chunk);
+        if (nDrawn > 0) {
+            XDrawSegments(display, drawable, gc, xSegments, nDrawn);
+        }
         segments += chunk;
         nSegments -= chunk;
     }
-
     ckfree(xSegments);
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_DrawArrow --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Display *display
- *      Drawable drawable
- *      GC gc
- *      int x
- *      int y
- *      int arrowHeight
- *      int orientation
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-void Rbc_DrawArrow(Display *display, Drawable drawable, GC gc, int x, int y, int arrowHeight, int orientation) {
-    XPoint arrow[5];
-    int a, b;
-
-    a = arrowHeight / 2 + 1;
-    b = arrowHeight;
-    switch (orientation) {
-    case ARROW_UP:
-        /*
-         *            0
-         *            +
-         *           / \
-         *          /   \
-         *         /     \  a
-         *        /       \
-         *   x,y /         \
-         *      +-----------+
-         *     1      b      2
-         */
-        arrow[0].x = x;
-        arrow[0].y = y - a;
-        arrow[1].x = arrow[0].x - b;
-        arrow[1].y = arrow[0].y + b;
-        arrow[2].x = arrow[0].x + b;
-        arrow[2].y = arrow[0].y + b;
-        arrow[3].x = arrow[0].x;
-        arrow[3].y = arrow[0].y;
-        break;
-
-    case ARROW_DOWN:
-        /*
-         *     1      b      2
-         *      +-----------+
-         *       \         /
-         *        \  x,y  /
-         *         \     /  a
-         *          \   /
-         *           \ /
-         *            +
-         *            0
-         */
-        arrow[0].x = x;
-        arrow[0].y = y + a;
-        arrow[1].x = arrow[0].x - b;
-        arrow[1].y = arrow[0].y - b;
-        arrow[2].x = arrow[0].x + b;
-        arrow[2].y = arrow[0].y - b;
-        arrow[3].x = arrow[0].x;
-        arrow[3].y = arrow[0].y;
-        break;
-
-    case ARROW_RIGHT:
-        /*
-         *       2
-         *       +
-         *       |\
-         *       | \
-         *       |  \
-         *       |   \
-         *       |    \
-         *       | x,y + 0
-         *       |    /
-         *       |   /
-         *       |  /
-         *       | /
-         *       |/
-         *       +
-         *       1
-         */
-        arrow[0].x = x + a;
-        arrow[0].y = y;
-        arrow[1].x = arrow[0].x - b;
-        arrow[1].y = arrow[0].y + b;
-        arrow[2].x = arrow[0].x - b;
-        arrow[2].y = arrow[0].y - b;
-        arrow[3].x = arrow[0].x;
-        arrow[3].y = arrow[0].y;
-        break;
-
-    case ARROW_LEFT:
-        /*
-         *              2
-         *              +
-         *             /|
-         *            / |
-         *           /  |
-         *          /   |
-         *         /    |
-         *       0+ x,y |
-         *         \    |
-         *          \   |
-         *           \  |
-         *            \ |
-         *             \|
-         *              +
-         *              1
-         */
-        arrow[0].x = x - a;
-        arrow[0].y = y;
-        arrow[1].x = arrow[0].x + b;
-        arrow[1].y = arrow[0].y + b;
-        arrow[2].x = arrow[0].x + b;
-        arrow[2].y = arrow[0].y - b;
-        arrow[3].x = arrow[0].x;
-        arrow[3].y = arrow[0].y;
-        break;
-    }
-    XFillPolygon(display, drawable, gc, arrow, 4, Convex, CoordModeOrigin);
-    XDrawLines(display, drawable, gc, arrow, 4, CoordModeOrigin);
 }
 
 /*

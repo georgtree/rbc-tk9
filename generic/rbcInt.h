@@ -477,14 +477,6 @@ void Rbc_FreeColorPair(ColorPair *pairPtr);
 #define STATE_DISABLED (1 << 1)
 #define STATE_EMPHASIS (1 << 2)
 
-#define ARROW_LEFT (0)
-#define ARROW_UP (1)
-#define ARROW_RIGHT (2)
-#define ARROW_DOWN (3)
-#define ARROW_OFFSET 4
-#define STD_ARROW_HEIGHT 3
-#define STD_ARROW_WIDTH ((2 * (ARROW_OFFSET - 1)) + 1)
-
 #include "rbcText.h"
 
 /*
@@ -509,7 +501,7 @@ int Rbc_NaturalSpline(Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl
 
 int Rbc_QuadraticSpline(Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
 
-Tcl_Size Rbc_SimplifyLine(Point2D *origPts, Tcl_Size low, Tcl_Size high, double tolerance, Tcl_Size indices[]);
+Tcl_Size Rbc_SimplifyLine(const Point2D *origPts, Tcl_Size low, Tcl_Size high, double tolerance, Tcl_Size indices[]);
 
 Tcl_Size Rbc_NaturalParametricSpline(Point2D *origPts, Tcl_Size nOrigPts, Extents2D *extsPtr, int isClosed,
                                      Point2D *intpPts, Tcl_Size nIntpPts);
@@ -534,10 +526,6 @@ int Rbc_GetPixels(Tcl_Interp *, Tk_Window, const char *, int, int *);
 int Rbc_GetPixelsFromObj(Tcl_Interp *, Tk_Window, Tcl_Obj *, int, int *);
 
 int Rbc_GetXY(Tcl_Interp *interp, Tk_Window tkwin, const char *string, int *x, int *y);
-
-Point2D Rbc_GetProjection(int x, int y, Point2D *p, Point2D *q);
-
-void Rbc_DrawArrow(Display *display, Drawable drawable, GC gc, int x, int y, int arrowHeight, int orientation);
 
 void Rbc_DStringAppendElements(Tcl_DString *, ...);
 
