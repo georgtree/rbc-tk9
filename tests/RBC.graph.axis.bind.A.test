@@ -107,6 +107,53 @@ namespace eval graph.axis {
 	} -cleanup {
 	    destroy .graph1
 	} -result {<Key> <Double-Button-1>}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure a real pointer event over an axis dispatches the binding associated
+	# with that axis name.
+	# ------------------------------------------------------------------------------------
+    test RBC.graph.axis.bind.A.1.6 {
+		Axis binding is delivered to picked axis
+	} -setup {
+        graph .graph1 -width 400 -height 300
+        pack .graph1
+        .graph1 axis configure x -title "X Axis" -linewidth 2
+        update idletasks
+        set ::axisBindingResult {}
+        .graph1 axis bind x <Enter> {
+			set ::axisBindingResult x
+		}
+        lassign [.graph1 extents plotarea] left top width height
+        set right [expr {$left + $width - 1}]
+        set bottom [expr {$top + $height - 1}]
+    } -body {
+        #
+        # Start inside the plot so that no axis is current.
+        #
+        event generate .graph1 <Motion> -x [expr {$left + $width / 2}] -y [expr {$top + $height / 2}]
+        update
+        #
+        # Search only the bottom margin.  This avoids depending on
+        # font metrics, DPI, tick-label sizes, or exact axis offsets.
+        #
+        for {set y [expr {$bottom + 1}]} {$y < [winfo height .graph1]} {incr y} {
+            for {set x $left} {$x <= $right} {incr x} {
+                event generate .graph1 <Motion> -x $x -y $y
+                update
+
+                if {$::axisBindingResult eq "x"} {
+                    break
+                }
+            }
+            if {$::axisBindingResult eq "x"} {
+                break
+            }
+        }
+        set ::axisBindingResult
+    } -cleanup {
+        unset -nocomplain ::axisBindingResult
+        destroy .graph1
+    } -result {x}
 	
 	cleanupTests
 }

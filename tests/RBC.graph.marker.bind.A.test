@@ -107,6 +107,35 @@ namespace eval graph.marker {
 	} -cleanup {
 	    destroy .graph1
 	} -result {<Key> <Double-Button-1>}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure a real pointer event over a marker dispatches the binding associated
+	# with that marker name.
+	# ------------------------------------------------------------------------------------
+    test RBC.graph.marker.bind.A.1.6 {
+		Marker binding is delivered to picked marker
+	} -setup {
+        graph .graph1 -width 400 -height 300
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 10
+        .graph1 axis configure y -min 0 -max 10
+        .graph1 marker create text -name marker1 -coords {5 5} -text "MARKER" -anchor center
+        .graph1 marker bind marker1 <Enter> {
+			set ::markerBindingResult marker1
+		}
+        set ::markerBindingResult {}
+        update idletasks
+        lassign [.graph1 transform 5 5] x y
+    } -body {
+        event generate .graph1 <Motion> -x 0 -y 0
+        update
+        event generate .graph1 <Motion> -x $x -y $y
+        update
+        set ::markerBindingResult
+    } -cleanup {
+        unset -nocomplain ::markerBindingResult
+        destroy .graph1
+    } -result {marker1}
 	
 	cleanupTests
 }

@@ -38,6 +38,38 @@ namespace eval graph.element {
 		.graph1 element delete Element1
 		destroy .graph1
 	} -result {Binding1}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure a real pointer event over an element dispatches the binding associated
+	# with that element name.
+	# ------------------------------------------------------------------------------------
+    test RBC.graph.element.bind.A.1.2 {
+		Element binding is delivered to picked element
+	} -setup {
+        graph .graph1 -width 400 -height 300
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 10
+        .graph1 axis configure y -min 0 -max 10
+        .graph1 element create Element1 -data {2 2 5 5 8 8} -symbol circle
+        .graph1 element bind Element1 <Enter> {
+			set ::elementBindingResult Element1
+		}
+        set ::elementBindingResult {}
+        update idletasks
+        lassign [.graph1 transform 5 5] x y
+    } -body {
+        #
+        # Establish a different current object first.
+        #
+        event generate .graph1 <Motion> -x 0 -y 0
+        update
+        event generate .graph1 <Motion> -x $x -y $y
+        update
+        set ::elementBindingResult
+    } -cleanup {
+        unset -nocomplain ::elementBindingResult
+        destroy .graph1
+    } -result {Element1}
 	
 	cleanupTests
 }
