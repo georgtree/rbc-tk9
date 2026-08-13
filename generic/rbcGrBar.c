@@ -1724,6 +1724,9 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
     x = barPtr->core.x.valueArr, y = barPtr->core.y.valueArr;
     count = 0;
     for (i = 0; i < nPoints; i++) {
+        if ((!FINITE(x[i])) || (!FINITE(y[i]))) {
+            continue;
+        }
         if (((x[i] - barWidth) > barPtr->core.axes.x->axisRange.max) ||
             ((x[i] + barWidth) < barPtr->core.axes.x->axisRange.min)) {
             continue; /* Abscissa is out of range of the x-axis */
@@ -1732,16 +1735,14 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
         c1.y = y[i];
         c2.x = c1.x + barWidth;
         c2.y = baseline;
-
         /*
          * If the mode is "aligned" or "stacked" we need to adjust the
          * x or y coordinates of the two corners.
          */
-
         if ((graphPtr->nStacks > 0) && (graphPtr->mode != MODE_INFRONT)) {
             Tcl_HashEntry *hPtr;
 
-            key.value = x[i];
+            key.value = (x[i] == 0.0) ? 0.0 : x[i];
             key.axes = barPtr->core.axes;
             hPtr = Tcl_FindHashEntry(&(graphPtr->freqTable), (char *)&key);
             if (hPtr != NULL) {
@@ -1750,11 +1751,20 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
 
                 infoPtr = (FreqInfo *)Tcl_GetHashValue(hPtr);
                 switch (graphPtr->mode) {
-                case MODE_STACKED:
+                case MODE_STACKED: {
+                    double stackedY;
+                    stackedY = c1.y + infoPtr->lastY;
+                    /*
+                     * Do not let one overflowing stack value poison every subsequent
+                     * bar at this abscissa.
+                     */
+                    if (!FINITE(stackedY)) {
+                        continue;
+                    }
                     c2.y = infoPtr->lastY;
-                    c1.y += c2.y;
-                    infoPtr->lastY = c1.y;
-                    break;
+                    c1.y = stackedY;
+                    infoPtr->lastY = stackedY;
+                } break;
                 case MODE_ALIGNED:
                     infoPtr->count++;
                     slice = barWidth / (double)infoPtr->freq;
@@ -1807,6 +1817,16 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
             c2.x = 0.0;
         } else if (c2.x > (double)graphPtr->width) {
             c2.x = (double)graphPtr->width;
+        }
+        if (c1.y < 0.0) {
+            c1.y = 0.0;
+        } else if (c1.y > (double)graphPtr->height) {
+            c1.y = (double)graphPtr->height;
+        }
+        if (c2.y < 0.0) {
+            c2.y = 0.0;
+        } else if (c2.y > (double)graphPtr->height) {
+            c2.y = (double)graphPtr->height;
         }
         dx = c1.x - c2.x;
         dy = c1.y - c2.y;
@@ -2635,7 +2655,8 @@ void Rbc_InitFreqTable(Graph *graphPtr) {
     Tcl_Size count;
     FreqKey key;
     Tcl_HashTable freqTable;
-    double *xArr;
+    const double *xArr;
+    const double *yArr;
     /*
      * Free resources associated with a previous frequency table. This
      * includes the array of frequency information and the table itself
@@ -2668,20 +2689,27 @@ void Rbc_InitFreqTable(Graph *graphPtr) {
         nSegs++;
         barPtr = BAR_FROM_CORE(elemPtr);
         xArr = barPtr->core.x.valueArr;
+        yArr = barPtr->core.y.valueArr;
         nPoints = NumberOfPoints(elemPtr);
         for (i = 0; i < nPoints; i++) {
-            key.value = xArr[i];
+            if ((!FINITE(xArr[i])) || (!FINITE(yArr[i]))) {
+                continue;
+            }
+            /*
+             * FreqKey is a binary hash key.  Normalize signed zero so that
+             * -0.0 and +0.0 identify the same numeric abscissa.
+             */
+            key.value = (xArr[i] == 0.0) ? 0.0 : xArr[i];
             key.axes = barPtr->core.axes;
             hPtr = Tcl_CreateHashEntry(&freqTable, (char *)&key, &isNew);
-            assert(hPtr != NULL);
             if (isNew) {
                 count = 1;
             } else {
                 count = (Tcl_Size)(uintptr_t)Tcl_GetHashValue(hPtr);
-                if (count == 1) {
+                count++;
+                if (count == 2) {
                     nStacks++;
                 }
-                count++;
             }
             Tcl_SetHashValue(hPtr, (ClientData)(uintptr_t)count);
         }
@@ -2763,7 +2791,8 @@ void Rbc_ComputeStacks(Graph *graphPtr) {
     Tcl_Size nPoints;
     Tcl_Size i;
     register FreqInfo *infoPtr;
-    double *xArr, *yArr;
+    const double *xArr;
+    const double *yArr;
 
     if ((graphPtr->mode != MODE_STACKED) || (graphPtr->nStacks == 0)) {
         return;
@@ -2786,14 +2815,16 @@ void Rbc_ComputeStacks(Graph *graphPtr) {
         yArr = barPtr->core.y.valueArr;
         nPoints = NumberOfPoints(elemPtr);
         for (i = 0; i < nPoints; i++) {
-            key.value = xArr[i];
-            key.axes = barPtr->core.axes;
-            hPtr = Tcl_FindHashEntry(&(graphPtr->freqTable), (char *)&key);
-            if (hPtr == NULL) {
+            if ((!FINITE(xArr[i])) || (!FINITE(yArr[i]))) {
                 continue;
             }
-            infoPtr = (FreqInfo *)Tcl_GetHashValue(hPtr);
-            infoPtr->sum += yArr[i];
+            key.value = (xArr[i] == 0.0) ? 0.0 : xArr[i];
+            key.axes = barPtr->core.axes;
+            hPtr = Tcl_FindHashEntry(&(graphPtr->freqTable), (char *)&key);
+            if (hPtr != NULL) {
+                infoPtr = Tcl_GetHashValue(hPtr);
+                infoPtr->sum += yArr[i];
+            }
         }
     }
 }
