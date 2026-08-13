@@ -3046,6 +3046,20 @@ static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
             }
         }
     }
+    /*
+     * The interval loop retains the original point at the beginning
+     * of each interval, so the final original point has not yet been
+     * added.
+     */
+    if (count >= capacity) {
+        linePtr->smooth = PEN_SMOOTH_NONE;
+        ckfree(intpPts);
+        ckfree(indices);
+        return;
+    }
+    intpPts[count].x = origPts[nOrigPts - 1].x;
+    indices[count] = mapPtr->indices[nOrigPts - 1];
+    count++;
     nIntpPts = count;
     result = FALSE;
     if (linePtr->smooth == PEN_SMOOTH_NATURAL) {

@@ -13,11 +13,14 @@
 #include "rbcInt.h"
 
 typedef int (*Rbc_SplineOp)(const Point2D *, Tcl_Size, Point2D *, Tcl_Size);
+
 typedef struct {
     Rbc_OpSpecHeader header;
     Rbc_SplineOp proc;
 } SplineOpSpec;
+
 typedef double TriDiagonalMatrix[3];
+
 typedef struct {
     double b, c, d;
 } Cubic2D;
@@ -37,6 +40,7 @@ typedef struct {
 /*
  * Quadratic spline parameters
  */
+#define QUAD_PARAM_COUNT 10
 #define E1 param[0]
 #define E2 param[1]
 #define V1 param[2]
@@ -134,8 +138,9 @@ static int SplineEvaluationPointsAreFinite(const Point2D *points, Tcl_Size nPoin
  *      int *foundPtr - (out) Returns 1 if s is found in x and 0 otherwise.
  *
  * Results:
- *      Returns the index of the largest value in xtab for which
- *      x[i] < key.
+ *      Returns the index of key when it is found.  Otherwise,
+ *      returns the insertion position: the index of the smallest
+ *      source value greater than key.
  *
  * Side effects:
  *      TODO: Side Effects
@@ -198,19 +203,16 @@ static int QuadChoose(const Point2D *p, const Point2D *q, double m1, double m2, 
 
     /* Calculate the slope of the line joining P and Q. */
     slope = (q->y - p->y) / (q->x - p->x);
-
     if (slope != 0.0) {
         double relerr;
         double mref, mref1, mref2, prod1, prod2;
 
         prod1 = slope * m1;
         prod2 = slope * m2;
-
         /* Find the absolute values of the slopes slope, m1, and m2. */
         mref = FABS(slope);
         mref1 = FABS(m1);
         mref2 = FABS(m2);
-
         /*
          * If the relative deviation of m1 or m2 from slope is less than
          * epsilon, then choose case 2 or case 3.
@@ -327,7 +329,17 @@ static int QuadChoose(const Point2D *p, const Point2D *q, double m1, double m2, 
  * -----------------------------------------------------------------------
  */
 static void QuadCases(const Point2D *p, const Point2D *q, double m1, double m2, double param[], int which) {
-    if ((which == 3) || (which == 4)) { /* Parameters used in both 3 and 4 */
+    Tcl_Size i;
+
+    /*
+     * QuadSpline uses a case-dependent subset of these parameters.
+     * Initialize the complete parameter set so that every call to
+     * QuadCases produces a fully defined output array.
+     */
+    for (i = 0; i < QUAD_PARAM_COUNT; i++) {
+        param[i] = 0.0;
+    }
+    if ((which == 3) || (which == 4)) {
         double mbar1, mbar2, mbar3, c1, d1, h1, j1, k1;
 
         c1 = p->x + (q->y - p->y) / m1;
@@ -336,7 +348,6 @@ static void QuadCases(const Point2D *p, const Point2D *q, double m1, double m2, 
         j1 = d1 * 2.0 - q->x;
         mbar1 = (q->y - p->y) / (h1 - p->x);
         mbar2 = (p->y - q->y) / (j1 - q->x);
-
         if (which == 4) { /* Case 4. */
             Y1 = (p->x + c1) / 2.0;
             V1 = (p->x + Y1) / 2.0;
@@ -443,7 +454,6 @@ INLINE static double QuadGetImage(double p1, double p2, double p3, double x1, do
     A = x1 - x2;
     B = x2 - x3;
     C = x1 - x3;
-
     y = (p1 * (A * A) + p2 * 2.0 * B * A + p3 * (B * B)) / (C * C);
     return y;
 }
@@ -495,7 +505,6 @@ static void QuadSpline(Point2D *intp, const Point2D *left, const Point2D *right,
         /*
          * Case 4:  More than one knot was placed in the interval.
          */
-
         /*
          * Determine the location of data point relative to the 1st knot.
          */
@@ -517,7 +526,6 @@ static void QuadSpline(Point2D *intp, const Point2D *left, const Point2D *right,
             y = Y2;
         }
     } else {
-
         /*
          * Cases 1, 2, or 3:
          *
@@ -604,7 +612,6 @@ static void QuadSlopes(const Point2D points[], double *m, Tcl_Size nPoints) {
             m[i] = ydif1 / (points[i].x - xhat);
         }
     }
-
     /* Calculate the slope at the last point, x(n). */
     i = nPoints - 2;
     n = nPoints - 1;
@@ -618,7 +625,6 @@ static void QuadSlopes(const Point2D points[], double *m, Tcl_Size nPoints) {
             m[n] = 0.0;
         }
     }
-
     /* Calculate the slope at the first point, x(0). */
     if ((m1s * m2s) < 0.0) {
         m[0] = m1s * 2.0;
@@ -712,174 +718,79 @@ static void QuadSlopes(const Point2D points[], double *m, Tcl_Size nPoints) {
  */
 static int QuadEval(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts, const double *m,
                     double epsilon) {
+    double param[QUAD_PARAM_COUNT];
+    Tcl_Size left;
+    Tcl_Size right;
+    Tcl_Size selectedLeft;
+    Tcl_Size last;
+    Tcl_Size i;
     int error;
-    Tcl_Size i, j;
-    double param[10];
     int ncase;
-    Tcl_Size start, end;
-    Tcl_Size l, p;
-    Tcl_Size n;
-    int found;
-
-    /* Initialize indices and set error result */
-    error = 0;
-    l = nOrigPts - 1;
-    p = l - 1;
-    ncase = 1;
 
     /*
-     * Determine if abscissas of new vector are non-decreasing.
+     * Evaluation points must be non-decreasing.
      */
-    for (j = 1; j < nIntpPts; j++) {
-        if (intpPts[j].x < intpPts[j - 1].x) {
+    for (i = 1; i < nIntpPts; i++) {
+        if (intpPts[i].x < intpPts[i - 1].x) {
             return 2;
         }
     }
-    /*
-     * Determine if any of the points in xval are LESS than the
-     * abscissa of the first data point.
-     */
-    for (start = 0; start < nIntpPts; start++) {
-        if (intpPts[start].x >= origPts[0].x) {
-            break;
-        }
-    }
-    /*
-     * Determine if any of the points in xval are GREATER than the
-     * abscissa of the l data point.
-     */
-    for (end = nIntpPts - 1; end >= 0; end--) {
-        if (intpPts[end].x <= origPts[l].x) {
-            break;
-        }
-    }
+    error = 0;
+    last = nOrigPts - 1;
+    left = 0;
+    right = 1;
+    selectedLeft = -1;
+    ncase = 0;
+    for (i = 0; i < nIntpPts; i++) {
+        double x;
 
-    if (start > 0) {
-        error = 1;
-        /*
-         * Calculate the images of all evaluation points whose
-         * abscissas are less than the first source abscissa.
-         */
-        ncase = QuadSelect(origPts, origPts + 1, m[0], m[1], epsilon, param);
-        for (j = 0; j < start; j++) {
-            QuadSpline(intpPts + j, origPts, origPts + 1, param, ncase);
-        }
-        /*
-         * Every evaluation point lies to the left of the source
-         * interval.  They have all been evaluated, and intpPts[start]
-         * would be one past the end of the array.
-         */
-        if (start >= nIntpPts) {
-            return error;
-        }
-    }
-    /*
-     * Every evaluation point lies to the right of the source interval.
-     * Prepare the final spline interval and go directly to right-hand
-     * extrapolation.  In this case end == -1, so the loop at
-     * noExtrapolation starts at element zero.
-     */
-    if (end < 0) {
-        error = 1;
-        ncase = QuadSelect(origPts + p, origPts + l, m[p], m[l], epsilon, param);
-        goto noExtrapolation;
-    }
-    /*
-     * Search locates the interval in which the first in-range
-     * point of evaluation lies.
-     */
-    i = Search(origPts, nOrigPts, intpPts[start].x, &found);
-    n = i + 1;
-    if (n >= nOrigPts) {
-        n = nOrigPts - 1;
-        i = nOrigPts - 2;
-    }
-    /*
-     * If the first in-range point of evaluation is equal to one
-     * of the data points, assign the appropriate value from y.
-     * Continue until a point of evaluation is found which is not
-     * equal to a data point.
-     */
-    if (found) {
-        do {
-            intpPts[start].y = origPts[i].y;
-            start++;
-            if (start >= nIntpPts) {
-                return error;
+        x = intpPts[i].x;
+        if (x < origPts[0].x) {
+            /*
+             * Extrapolate using the first source interval.
+             */
+            error = 1;
+            left = 0;
+            right = 1;
+        } else if (x > origPts[last].x) {
+            /*
+             * Extrapolate using the final source interval.
+             */
+            error = 1;
+            left = last - 1;
+            right = last;
+        } else {
+            /*
+             * Evaluation points are non-decreasing, so the source
+             * interval can only move forward.
+             */
+            while ((right < last) && (x > origPts[right].x)) {
+
+                left++;
+                right++;
             }
-        } while (intpPts[start - 1].x == intpPts[start].x);
-
-        for (;;) {
-            if (intpPts[start].x < origPts[n].x) {
-                break; /* Break out of for-loop */
+            /*
+             * Preserve source knots exactly instead of evaluating
+             * the polynomial at them.
+             */
+            if (x == origPts[left].x) {
+                intpPts[i].y = origPts[left].y;
+                continue;
             }
-            if (intpPts[start].x == origPts[n].x) {
-                do {
-                    intpPts[start].y = origPts[n].y;
-                    start++;
-                    if (start >= nIntpPts) {
-                        return error;
-                    }
-                } while (intpPts[start].x == intpPts[start - 1].x);
-            }
-            i++;
-            n++;
-        }
-    }
-    /*
-     * Calculate the images of all the points which lie within
-     * range of the data.
-     */
-    if ((i > 0) || (error != 1)) {
-        ncase = QuadSelect(origPts + i, origPts + n, m[i], m[n], epsilon, param);
-    }
-    for (j = start; j <= end; j++) {
-        /*
-         * If xx(j) - x(n) is negative, do not recalculate
-         * the parameters for this section of the spline since
-         * they are already known.
-         */
-        if (intpPts[j].x == origPts[n].x) {
-            intpPts[j].y = origPts[n].y;
-            continue;
-        } else if (intpPts[j].x > origPts[n].x) {
-            double delta;
-
-            /* Determine that the routine is in the correct part of
-               the spline. */
-            do {
-                i++, n++;
-                delta = intpPts[j].x - origPts[n].x;
-            } while (delta > 0.0);
-
-            if (delta < 0.0) {
-                ncase = QuadSelect(origPts + i, origPts + n, m[i], m[n], epsilon, param);
-            } else if (delta == 0.0) {
-                intpPts[j].y = origPts[n].y;
+            if (x == origPts[right].x) {
+                intpPts[i].y = origPts[right].y;
                 continue;
             }
         }
-        QuadSpline(intpPts + j, origPts + i, origPts + n, param, ncase);
-    }
-
-    if (end == (nIntpPts - 1)) {
-        return error;
-    }
-    if ((n == l) && (intpPts[end].x != origPts[l].x)) {
-        goto noExtrapolation;
-    }
-
-    error = 1; /* Set error value to indicate that
-                * extrapolation has occurred. */
-    ncase = QuadSelect(origPts + p, origPts + l, m[p], m[l], epsilon, param);
-
-noExtrapolation:
-    /*
-     * Calculate the images of the points of evaluation whose
-     * abscissas are greater than the abscissa of the last data point.
-     */
-    for (j = (end + 1); j < nIntpPts; j++) {
-        QuadSpline(intpPts + j, origPts + p, origPts + l, param, ncase);
+        /*
+         * Recalculate spline parameters only when the source
+         * interval changes.
+         */
+        if (selectedLeft != left) {
+            ncase = QuadSelect(origPts + left, origPts + right, m[left], m[right], epsilon, param);
+            selectedLeft = left;
+        }
+        QuadSpline(intpPts + i, origPts + left, origPts + right, param, ncase);
     }
     return error;
 }
@@ -1464,7 +1375,6 @@ static void SolveCubic2(const TriDiagonalMatrix A[], CubicSpline spline[], Tcl_S
 
     n = nIntervals - 2;
     m = nIntervals - 1;
-
     /* Division by transpose of C : b = C^{-T} * b */
     x = spline[m].x;
     y = spline[m].y;
@@ -1484,7 +1394,6 @@ static void SolveCubic2(const TriDiagonalMatrix A[], CubicSpline spline[], Tcl_S
         spline[i].x /= A[i][1];
         spline[i].y /= A[i][1];
     }
-
     /* Division by C: b = C^{-1} * b */
     x = spline[m].x;
     y = spline[m].y;
