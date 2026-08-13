@@ -389,5 +389,6 @@ void Rbc_DestroyPalette(Graph *graphPtr, Rbc_Chain *palette);
 int Rbc_ParseStylesObj(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, size_t styleSize, Rbc_Chain **palettePtrPtr);
 PenStyle **Rbc_StyleMap(Element *elemPtr);
 void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle);
+void Rbc_ExpandErrorBarExtents(Element *elemPtr, Extents2D *extsPtr);
 
 #endif /* _RBCGRELEM */

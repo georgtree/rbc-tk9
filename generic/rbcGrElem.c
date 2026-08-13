@@ -2663,6 +2663,166 @@ PenStyle **Rbc_StyleMap(Element *elemPtr) {
 /*
  *----------------------------------------------------------------------
  *
+ * Rbc_ExpandErrorBarExtents --
+ *
+ *      Expands element extents to include error-bar coordinates.
+ *      Only error values that correspond to actual element data points
+ *      and can therefore be mapped by Rbc_MapErrorBars are considered.
+ *
+ * Parameters:
+ *      Element *elemPtr    - Element containing data and error vectors.
+ *      Extents2D *extsPtr  - Extents to expand.
+ *
+ * Results:
+ *      None.
+ *
+ * Side Effects:
+ *      May expand the supplied extents.
+ *
+ *----------------------------------------------------------------------
+ */
+void Rbc_ExpandErrorBarExtents(Element *elemPtr, Extents2D *extsPtr) {
+    Tcl_Size nPoints;
+    Tcl_Size n;
+    Tcl_Size i;
+
+    if ((elemPtr == NULL) || (extsPtr == NULL)) {
+        return;
+    }
+    nPoints = NumberOfPoints(elemPtr);
+    if (nPoints <= 0) {
+        return;
+    }
+    /*
+     * X error bars.
+     */
+    if (elemPtr->xError.nValues > 0) {
+        n = MIN(elemPtr->xError.nValues, nPoints);
+        for (i = 0; i < n; i++) {
+            double error;
+            double high;
+            double low;
+            double x;
+
+            x = elemPtr->x.valueArr[i];
+            error = elemPtr->xError.valueArr[i];
+            if ((!FINITE(x)) || (!FINITE(error))) {
+                continue;
+            }
+            high = x + error;
+            low = x - error;
+            if ((!FINITE(high)) || (!FINITE(low))) {
+                continue;
+            }
+            if (high > extsPtr->right) {
+                extsPtr->right = high;
+            }
+            if (elemPtr->axes.x->logScale) {
+                if (low < 0.0) {
+                    low = -low;
+                }
+                if ((low > DBL_MIN) && (low < extsPtr->left)) {
+                    extsPtr->left = low;
+                }
+            } else if (low < extsPtr->left) {
+                extsPtr->left = low;
+            }
+        }
+    } else {
+        n = MIN3(elemPtr->xHigh.nValues, elemPtr->xLow.nValues, nPoints);
+        for (i = 0; i < n; i++) {
+            double high;
+            double low;
+
+            high = elemPtr->xHigh.valueArr[i];
+            low = elemPtr->xLow.valueArr[i];
+            if ((!FINITE(high)) || (!FINITE(low))) {
+                continue;
+            }
+            if (high > extsPtr->right) {
+                extsPtr->right = high;
+            }
+            if (elemPtr->axes.x->logScale) {
+                if (low < 0.0) {
+                    low = -low;
+                }
+                if ((low > DBL_MIN) && (low < extsPtr->left)) {
+                    extsPtr->left = low;
+                }
+            } else if (low < extsPtr->left) {
+                extsPtr->left = low;
+            }
+        }
+    }
+    /*
+     * Y error bars.
+     *
+     * Start again from the original number of data points.  X and Y
+     * error-vector lengths are independent.
+     */
+    if (elemPtr->yError.nValues > 0) {
+        n = MIN(elemPtr->yError.nValues, nPoints);
+        for (i = 0; i < n; i++) {
+            double error;
+            double high;
+            double low;
+            double y;
+
+            y = elemPtr->y.valueArr[i];
+            error = elemPtr->yError.valueArr[i];
+            if ((!FINITE(y)) || (!FINITE(error))) {
+                continue;
+            }
+            high = y + error;
+            low = y - error;
+            if ((!FINITE(high)) || (!FINITE(low))) {
+                continue;
+            }
+            if (high > extsPtr->bottom) {
+                extsPtr->bottom = high;
+            }
+            if (elemPtr->axes.y->logScale) {
+                if (low < 0.0) {
+                    low = -low;
+                }
+                if ((low > DBL_MIN) && (low < extsPtr->top)) {
+                    extsPtr->top = low;
+                }
+            } else if (low < extsPtr->top) {
+                extsPtr->top = low;
+            }
+        }
+    } else {
+        n = MIN3(elemPtr->yHigh.nValues, elemPtr->yLow.nValues, nPoints);
+        for (i = 0; i < n; i++) {
+            double high;
+            double low;
+
+            high = elemPtr->yHigh.valueArr[i];
+            low = elemPtr->yLow.valueArr[i];
+            if ((!FINITE(high)) || (!FINITE(low))) {
+                continue;
+            }
+            if (high > extsPtr->bottom) {
+                extsPtr->bottom = high;
+            }
+            if (elemPtr->axes.y->logScale) {
+                if (low < 0.0) {
+                    low = -low;
+                }
+                if ((low > DBL_MIN) && (low < extsPtr->top)) {
+                    extsPtr->top = low;
+                }
+            } else if (low < extsPtr->top) {
+                extsPtr->top = low;
+            }
+        }
+    }
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
  * Rbc_MapErrorBars --
  *
  *      Creates two arrays of points and pen indices, filled with
