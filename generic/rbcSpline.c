@@ -1172,8 +1172,12 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
     size_t origBytes;
     size_t intpBytes;
     int index;
+    int result;
 
     (void)clientData;
+    origPts = NULL;
+    intpPts = NULL;
+    result = TCL_ERROR;
     if (Rbc_GetOpIndexFromObj(interp, splineOps, (Tcl_Size)sizeof(splineOps[0]), RBC_OP_ARG1, objc, objv, &index) !=
         TCL_OK) {
         return TCL_ERROR;
@@ -1197,16 +1201,16 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
         return TCL_ERROR;
     }
     /*
-     * Validate the source data before testing monotonicity.  Comparisons
-     * involving NaN are false, so a NaN X value could otherwise pass the
-     * monotonicity checks below.
+     * Validate source data before doing any work that can modify
+     * another vector.
      */
     xArr = Rbc_VecData(x);
     yArr = Rbc_VecData(y);
     for (i = 0; i < nOrigPts; i++) {
         if ((!FINITE(xArr[i])) || (!FINITE(yArr[i]))) {
-            Tcl_SetObjResult(interp,
-                             Tcl_ObjPrintf("vectors \"%s\" and \"%s\" must contain only finite values", xName, yName));
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("vectors \"%s\" and \"%s\" "
+                                                   "must contain only finite values",
+                                                   xName, yName));
             return TCL_ERROR;
         }
     }
@@ -1216,49 +1220,11 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
             return TCL_ERROR;
         }
     }
-    nIntpPts = Rbc_VecLength(splX);
     /*
-     * Validate the interpolation abscissas before creating or resizing the
-     * result vector.  An invalid command should not modify splY.
+     * Validate all interpolation abscissas before creating or
+     * resizing the result vector.
      */
-    xArr = Rbc_VecData(splX);
-    if (Rbc_GetVector(interp, splYName, &splY) != TCL_OK) {
-        /*
-         * The missing-vector error is replaced by the result from
-         * Rbc_CreateVector().
-         */
-        Tcl_ResetResult(interp);
-        if (Rbc_CreateVector(interp, splYName, nIntpPts, &splY) != TCL_OK) {
-            return TCL_ERROR;
-        }
-    } else if (nIntpPts != Rbc_VecLength(splY)) {
-        if (Rbc_ResizeVector(splY, nIntpPts) != TCL_OK) {
-            return TCL_ERROR;
-        }
-    }
-    if ((GetSplineArrayByteCount(nOrigPts, sizeof(Point2D), &origBytes) != TCL_OK) ||
-        (GetSplineArrayByteCount(nIntpPts, sizeof(Point2D), &intpBytes) != TCL_OK)) {
-        Tcl_SetObjResult(interp, Tcl_NewStringObj("spline point array is too large", -1));
-        return TCL_ERROR;
-    }
-    origPts = Tcl_AttemptAlloc((origBytes > 0) ? origBytes : 1);
-    if (origPts == NULL) {
-        Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't allocate %" TCL_SIZE_MODIFIER "d source points", nOrigPts));
-        return TCL_ERROR;
-    }
-    intpPts = Tcl_AttemptAlloc((intpBytes > 0) ? intpBytes : 1);
-    if (intpPts == NULL) {
-        ckfree(origPts);
-        Tcl_SetObjResult(interp,
-                         Tcl_ObjPrintf("can't allocate %" TCL_SIZE_MODIFIER "d interpolation points", nIntpPts));
-        return TCL_ERROR;
-    }
-    xArr = Rbc_VecData(x);
-    yArr = Rbc_VecData(y);
-    for (i = 0; i < nOrigPts; i++) {
-        origPts[i].x = xArr[i];
-        origPts[i].y = yArr[i];
-    }
+    nIntpPts = Rbc_VecLength(splX);
     xArr = Rbc_VecData(splX);
     for (i = 0; i < nIntpPts; i++) {
         if (!FINITE(xArr[i])) {
@@ -1268,27 +1234,82 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
             return TCL_ERROR;
         }
     }
-    yArr = Rbc_VecData(splY);
+    /*
+     * Allocate and populate private copies of all spline inputs
+     * before touching splY.  This also makes output aliasing with
+     * x, y, or splX safe.
+     */
+    if ((GetSplineArrayByteCount(nOrigPts, sizeof(*origPts), &origBytes) != TCL_OK) ||
+        (GetSplineArrayByteCount(nIntpPts, sizeof(*intpPts), &intpBytes) != TCL_OK)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("spline point array is too large", -1));
+        return TCL_ERROR;
+    }
+    origPts = Tcl_AttemptAlloc(origBytes);
+    if (origPts == NULL) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't allocate %" TCL_SIZE_MODIFIER "d source points", nOrigPts));
+        return TCL_ERROR;
+    }
+    /*
+     * Keep a non-NULL interpolation array even for an empty vector,
+     * since the spline helpers accept nIntpPts == 0 but still
+     * validate the array pointer.
+     */
+    intpPts = Tcl_AttemptAlloc((intpBytes > 0) ? intpBytes : sizeof(*intpPts));
+    if (intpPts == NULL) {
+        Tcl_SetObjResult(interp,
+                         Tcl_ObjPrintf("can't allocate %" TCL_SIZE_MODIFIER "d interpolation points", nIntpPts));
+
+        goto cleanup;
+    }
+    xArr = Rbc_VecData(x);
+    yArr = Rbc_VecData(y);
+    for (i = 0; i < nOrigPts; i++) {
+        origPts[i].x = xArr[i];
+        origPts[i].y = yArr[i];
+    }
+    xArr = Rbc_VecData(splX);
     for (i = 0; i < nIntpPts; i++) {
         intpPts[i].x = xArr[i];
-        intpPts[i].y = yArr[i];
+        intpPts[i].y = 0.0;
     }
+    /*
+     * Generate the complete result in private storage first.
+     * Failure must leave splY untouched.
+     */
     if (!proc(origPts, nOrigPts, intpPts, nIntpPts)) {
-        Tcl_SetObjResult(interp, Tcl_ObjPrintf("error generating spline for \"%s\"", Rbc_NameOfVector(splY)));
-        ckfree(origPts);
-        ckfree(intpPts);
-        return TCL_ERROR;
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("error generating spline for \"%s\"", splYName));
+        goto cleanup;
+    }
+    /*
+     * Only now resolve/create/resize the result vector.
+     */
+    if (Rbc_GetVector(interp, splYName, &splY) != TCL_OK) {
+        Tcl_ResetResult(interp);
+        if (Rbc_CreateVector(interp, splYName, nIntpPts, &splY) != TCL_OK) {
+            goto cleanup;
+        }
+    } else if (nIntpPts != Rbc_VecLength(splY)) {
+        if (Rbc_ResizeVector(splY, nIntpPts) != TCL_OK) {
+            goto cleanup;
+        }
     }
     yArr = Rbc_VecData(splY);
     for (i = 0; i < nIntpPts; i++) {
         yArr[i] = intpPts[i].y;
     }
-    ckfree(origPts);
-    ckfree(intpPts);
     if (Rbc_ResetVector(splY, Rbc_VecData(splY), Rbc_VecLength(splY), Rbc_VecSize(splY), TCL_STATIC) != TCL_OK) {
-        return TCL_ERROR;
+        goto cleanup;
     }
-    return TCL_OK;
+    result = TCL_OK;
+
+cleanup:
+    if (intpPts != NULL) {
+        ckfree(intpPts);
+    }
+    if (origPts != NULL) {
+        ckfree(origPts);
+    }
+    return result;
 }
 
 /*
