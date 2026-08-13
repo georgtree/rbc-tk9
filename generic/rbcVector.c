@@ -99,6 +99,11 @@ static int GetVectorByteCount(Tcl_Interp *interp, Tcl_Size count, size_t *byteCo
     return TCL_OK;
 }
 
+static char *VectorTraceError(Tcl_Obj *objPtr) {
+    Tcl_IncrRefCount(objPtr);
+    return (char *)objPtr;
+}
+
 /*
  * -----------------------------------------------------------------------
  *
@@ -1955,8 +1960,6 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
     Tcl_Size first, last;
     int varFlags;
 
-    static char message[MAX_ERR_MSG + 1];
-
     if (part2 == NULL) {
         if (flags & TCL_TRACE_UNSETS) {
             /* vector is deleted via an unset on the whole array variable */
@@ -1973,14 +1976,14 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
     }
     first = vPtr->first;
     last = vPtr->last;
-    varFlags = TCL_LEAVE_ERR_MSG | (TCL_GLOBAL_ONLY & flags);
+    varFlags = TCL_LEAVE_ERR_MSG | (flags & (TCL_GLOBAL_ONLY | TCL_NAMESPACE_ONLY));
     if (flags & TCL_TRACE_WRITES) {
         double value;
         Tcl_Obj *objPtr;
 
         if (first == SPECIAL_INDEX || last == SPECIAL_INDEX) {
             /* Tried to set "min" or "max" */
-            return "read-only index";
+            return VectorTraceError(Tcl_NewStringObj("read-only index", -1));
         }
         objPtr = Tcl_GetVar2Ex(interp, part1, part2, varFlags);
         if (objPtr == NULL) {
@@ -1996,10 +1999,10 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
         }
         if (first == vPtr->length || last == vPtr->length) {
             if (vPtr->length == TCL_SIZE_MAX) {
-                return "vector is too large";
+                return VectorTraceError(Tcl_NewStringObj("vector is too large", -1));
             }
             if (Rbc_VectorChangeLength(vPtr, vPtr->length + 1) != TCL_OK) {
-                return "error resizing vector";
+                return VectorTraceError(Tcl_NewStringObj("error resizing vector", -1));
             }
         }
         /* Set possibly an entire range of values */
@@ -2009,7 +2012,7 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
         Tcl_Obj *objPtr;
 
         if (first == vPtr->length || last == vPtr->length) {
-            return "write-only index";
+            return VectorTraceError(Tcl_NewStringObj("write-only index", -1));
         }
         if (vPtr->length == 0) {
             if (Tcl_SetVar2(interp, part1, part2, "", varFlags) == NULL) {
@@ -2040,7 +2043,7 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
         Tcl_Size i, j;
 
         if ((first == vPtr->length) || (first == SPECIAL_INDEX)) {
-            return "special vector index";
+            return VectorTraceError(Tcl_NewStringObj("special vector index", -1));
         }
         /*
          * Collapse the vector from the point of the first unset element.
@@ -2055,7 +2058,7 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
             VectorFlushCache(vPtr);
         }
     } else {
-        return "unknown variable trace flag";
+        return VectorTraceError(Tcl_NewStringObj("unknown variable trace flag", -1));
     }
     if (flags & (TCL_TRACE_UNSETS | TCL_TRACE_WRITES)) {
         Rbc_VectorUpdateClients(vPtr);
@@ -2064,9 +2067,7 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
     return NULL;
 
 error:
-    strncpy(message, Tcl_GetStringResult(interp), MAX_ERR_MSG);
-    message[MAX_ERR_MSG] = '\0';
-    return message;
+    return VectorTraceError(Tcl_GetObjResult(interp));
 }
 
 /*

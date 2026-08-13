@@ -145,18 +145,15 @@ static MathFunction mathFunctions[] = {
 };
 
 static int GetDoubleArrayByteCount(Tcl_Interp *interp, Tcl_Size count, size_t *byteCountPtr) {
-    size_t sizeCount;
-
     if (count < 0) {
         Tcl_SetObjResult(interp, Tcl_NewStringObj("array size cannot be negative", -1));
         return TCL_ERROR;
     }
-    sizeCount = (size_t)count;
-    if (((Tcl_Size)sizeCount != count) || (sizeCount > (SIZE_MAX / sizeof(double)))) {
+    if ((Tcl_WideUInt)count > (Tcl_WideUInt)(SIZE_MAX / sizeof(double))) {
         Tcl_SetObjResult(interp, Tcl_NewStringObj("array size is too large", -1));
         return TCL_ERROR;
     }
-    *byteCountPtr = sizeCount * sizeof(double);
+    *byteCountPtr = (size_t)count * sizeof(double);
     return TCL_OK;
 }
 
@@ -548,7 +545,6 @@ static int Sort(VectorObject *vPtr) {
     double *tempArr;
     Tcl_Size rangeLength;
     Tcl_Size i;
-    size_t count;
     size_t byteCount;
 
     rangeLength = vPtr->last - vPtr->first + 1;
@@ -559,13 +555,10 @@ static int Sort(VectorObject *vPtr) {
     if (indexArr == NULL) {
         return TCL_ERROR;
     }
-    count = (size_t)rangeLength;
-    if (((Tcl_Size)count != rangeLength) || (count > (SIZE_MAX / sizeof(double)))) {
+    if (GetDoubleArrayByteCount(vPtr->interp, rangeLength, &byteCount) != TCL_OK) {
         ckfree(indexArr);
-        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("vector range is too large to sort", -1));
         return TCL_ERROR;
     }
-    byteCount = count * sizeof(double);
     tempArr = Tcl_AttemptAlloc(byteCount);
     if (tempArr == NULL) {
         ckfree(indexArr);
@@ -652,7 +645,7 @@ static double Median(Rbc_Vector *vecPtr) {
     if (vPtr->length & 1) {
         q2 = vPtr->valueArr[iArr[mid]];
     } else {
-        q2 = (vPtr->valueArr[iArr[mid]] + vPtr->valueArr[iArr[mid + 1]]) * 0.5;
+        q2 = vPtr->valueArr[iArr[mid]] * 0.5 + vPtr->valueArr[iArr[mid + 1]] * 0.5;
     }
     ckfree(iArr);
     return q2;
@@ -892,7 +885,7 @@ static double Q1(Rbc_Vector *vecPtr) {
         if (mid & 1) {
             q1 = vPtr->valueArr[iArr[q]];
         } else {
-            q1 = (vPtr->valueArr[iArr[q]] + vPtr->valueArr[iArr[q + 1]]) * 0.5;
+            q1 = vPtr->valueArr[iArr[q]] * 0.5 + vPtr->valueArr[iArr[q + 1]] * 0.5;
         }
     }
     ckfree(iArr);
@@ -935,11 +928,11 @@ static double Q3(Rbc_Vector *vecPtr) {
         Tcl_Size mid;
         Tcl_Size q;
         mid = (vPtr->length - 1) / 2;
-        q = (vPtr->length + mid) / 2;
+        q = mid + (vPtr->length - mid) / 2;
         if (mid & 1) {
             q3 = vPtr->valueArr[iArr[q]];
         } else {
-            q3 = (vPtr->valueArr[iArr[q]] + vPtr->valueArr[iArr[q + 1]]) * 0.5;
+            q3 = vPtr->valueArr[iArr[q]] * 0.5 + vPtr->valueArr[iArr[q + 1]] * 0.5;
         }
     }
     ckfree(iArr);

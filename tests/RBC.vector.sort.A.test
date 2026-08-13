@@ -154,6 +154,15 @@ namespace eval vector.sort {
         vector destroy Vector1
         vector destroy Vector2
     } -result {{-13.11 -1.5 -1.1 1.2 7.3 9.5} -1.3 8.4}
+
+    test RBC.vector.sort.A.3.4 {
+        vector sort: empty vector
+    } -setup { vector create Vector1} -body {
+        set code [catch {Vector1 sort}]
+        list $code [Vector1 length]
+    } -cleanup {
+        vector destroy Vector1
+    } -result {0 0}
 	
 	cleanupTests
 }

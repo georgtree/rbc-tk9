@@ -33,12 +33,11 @@ typedef struct Rbc_Vector_s {
 
 #define VECTOR_THREAD_KEY "Rbc Vector Data"
 #define VECTOR_MAGIC ((unsigned int) 0x46170277)
-#define MAX_ERR_MSG 1023
 #define DEF_ARRAY_SIZE 64
 #define BUFFER_SIZE 1024
 #define STATIC_STRING_SPACE 150
 
-#define TRACE_ALL (TCL_TRACE_WRITES | TCL_TRACE_READS | TCL_TRACE_UNSETS)
+#define TRACE_ALL (TCL_TRACE_WRITES | TCL_TRACE_READS | TCL_TRACE_UNSETS | TCL_TRACE_RESULT_OBJECT)
 
 /* These defines allow parsing of different types of indices */
 

@@ -2316,6 +2316,19 @@ Tcl_Size *Rbc_VectorSortIndex(VectorObject **vPtrPtr, Tcl_Size nVectors) {
 
     vPtr = *vPtrPtr;
     length = vPtr->last - vPtr->first + 1;
+    if (length == 0) {
+        /*
+         * Callers use NULL to indicate failure.  Return a harmless
+         * allocation for an empty successful sort instead of relying on
+         * platform-specific zero-size allocation behavior.
+         */
+        indexArr = Tcl_AttemptAlloc(sizeof(*indexArr));
+        if (indexArr == NULL) {
+            Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("can't allocate vector sort indices", -1));
+            return NULL;
+        }
+        return indexArr;
+    }
     if (GetArrayByteCount(vPtr->interp, length, sizeof(*indexArr), &byteCount) != TCL_OK) {
         return NULL;
     }
