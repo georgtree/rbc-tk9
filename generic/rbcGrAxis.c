@@ -26,7 +26,6 @@
 /*
  * Round x in terms of units
  */
-#define UROUND(x, u) (Round((x) / (u)) * (u))
 #define UCEIL(x, u) (ceil((x) / (u)) * (u))
 #define UFLOOR(x, u) (floor((x) / (u)) * (u))
 
@@ -420,6 +419,107 @@ static int IsAxisOption(Tcl_Obj *objPtr, const char *optionName) {
 
     name = Rbc_GetCanonicalOptionName(objPtr, axisOptionSpecs);
     return ((name != NULL) && (strcmp(name, optionName) == 0));
+}
+
+static double RoundToStep(double value, double step) {
+    double scaled;
+    double result;
+
+    if ((!FINITE(value)) || (!FINITE(step)) || (step == 0.0)) {
+        return value;
+    }
+    scaled = value / step;
+    /*
+     * Do not convert a potentially enormous quotient through int.
+     * For ordinary values round() has the same halfway-away-from-zero
+     * behaviour as the old Round() helper.
+     */
+    if (!FINITE(scaled)) {
+        return value;
+    }
+    result = round(scaled) * step;
+    if (!FINITE(result)) {
+        return value;
+    }
+    return result;
+}
+
+static int GetLinearSweep(double min, double max, double step, double *tickMinPtr, double *tickMaxPtr,
+                          Tcl_Size *nTicksPtr) {
+    double first;
+    double last;
+    double count;
+    double tickMin;
+    double tickMax;
+    
+    if ((!FINITE(min)) || (!FINITE(max)) || (!FINITE(step)) || (step <= 0.0)) {
+        return FALSE;
+    }
+    /*
+     * Work in units of the tick step.  Do not form
+     *
+     *     (tickMax - tickMin) / step
+     *
+     * because the subtraction can overflow even when min and max are
+     * individually finite.
+     */
+    first = floor(min / step);
+    last = ceil(max / step);
+    if ((!FINITE(first)) || (!FINITE(last))) {
+        return FALSE;
+    }
+    count = last - first + 1.0;
+    /*
+     * Validate while the count is still double.  Only convert to
+     * Tcl_Size after proving that it is small and representable.
+     */
+    if ((!FINITE(count)) || (count < 1.0) || (count > (double)MAXTICKS)) {
+        return FALSE;
+    }
+    tickMin = first * step;
+    tickMax = last * step;
+    if ((!FINITE(tickMin)) || (!FINITE(tickMax))) {
+        return FALSE;
+    }
+    *tickMinPtr = tickMin + 0.0;
+    *tickMaxPtr = tickMax + 0.0;
+    *nTicksPtr = (Tcl_Size)count;
+    return TRUE;
+}
+
+static double AutomaticLinearStep(double min, double max) {
+    double range;
+    double step;
+
+    range = max - min;
+    if (FINITE(range) && (range > 0.0)) {
+        /*
+         * Preserve the old automatic scaling calculation for ordinary
+         * representable ranges.
+         */
+        range = NiceNum(range, 0);
+        step = NiceNum(range / DEF_NUM_TICKS, 1);
+        if (FINITE(step) && (step > 0.0)) {
+            return step;
+        }
+    }
+    /*
+     * max - min may overflow even though both limits are finite.
+     * Compute approximately one quarter of the range without first
+     * forming the full difference.
+     */
+    range = max * 0.25 - min * 0.25;
+    if (FINITE(range) && (range > 0.0)) {
+        step = NiceNum(range, 1);
+        if (FINITE(step) && (step > 0.0)) {
+            return step;
+        }
+    }
+    /*
+     * Extremely degenerate/subnormal range.  A unit step is preferable
+     * to producing a zero or non-finite tick interval.
+     */
+    return 1.0;
 }
 
 /*
@@ -2734,36 +2834,53 @@ static Ticks *GenerateTicks(TickSweep *sweepPtr) {
                                       0.903089986991944,
                                       0.954242509439325,
                                       1.0};
+
     Ticks *ticksPtr;
+    Tcl_Size nSteps;
     Tcl_Size i;
     size_t size;
 
-    if (GetTicksByteCount(sweepPtr->nSteps, &size) != TCL_OK) {
-        Tcl_Panic("axis tick array size overflow");
+    nSteps = sweepPtr->nSteps;
+    /*
+     * Generated sweeps are internal layout data.  An invalid sweep
+     * should result in no ticks, not terminate the application.
+     */
+    if ((nSteps < 0) || (nSteps > (Tcl_Size)MAXTICKS) || (!FINITE(sweepPtr->initial)) || (!FINITE(sweepPtr->step))) {
+        nSteps = 0;
     }
-    if ((sweepPtr->step == 0.0) && (sweepPtr->nSteps > (Tcl_Size)(sizeof(logTable) / sizeof(logTable[0])))) {
-        Tcl_Panic("invalid logarithmic tick count");
+    if ((sweepPtr->step == 0.0) && (nSteps > (Tcl_Size)(sizeof(logTable) / sizeof(logTable[0])))) {
+        nSteps = 0;
+    }
+    if (GetTicksByteCount(nSteps, &size) != TCL_OK) {
+        /*
+         * nSteps is already bounded by MAXTICKS, so this is only a
+         * final defensive fallback.
+         */
+        nSteps = 0;
+        if (GetTicksByteCount(0, &size) != TCL_OK) {
+            Tcl_Panic("can't represent empty axis tick array");
+        }
     }
     ticksPtr = ckalloc(size);
     if (sweepPtr->step == 0.0) {
-        /*
-         * A zero step requests the precomputed logarithmic minor-tick
-         * positions.
-         */
-        for (i = 0; i < sweepPtr->nSteps; i++) {
+        for (i = 0; i < nSteps; i++) {
             ticksPtr->values[i] = logTable[i];
         }
     } else {
         double value;
 
         value = sweepPtr->initial;
-        for (i = 0; i < sweepPtr->nSteps; i++) {
-            value = UROUND(value, sweepPtr->step);
+        for (i = 0; i < nSteps; i++) {
+            value = RoundToStep(value, sweepPtr->step);
+            if (!FINITE(value)) {
+                break;
+            }
             ticksPtr->values[i] = value;
             value += sweepPtr->step;
         }
+        nSteps = i;
     }
-    ticksPtr->nTicks = sweepPtr->nSteps;
+    ticksPtr->nTicks = nSteps;
     return ticksPtr;
 }
 
@@ -2972,44 +3089,68 @@ static void LogScaleAxis(Axis *axisPtr, double min, double max) {
  * ----------------------------------------------------------------------
  */
 static void LinearScaleAxis(Axis *axisPtr, double min, double max) {
-    double range, step;
-    double tickMin, tickMax;
-    double axisMin, axisMax;
-    Tcl_Size  nTicks;
+    double step;
+    double tickMin;
+    double tickMax;
+    double axisMin;
+    double axisMax;
+    double halfRange;
+    Tcl_Size nTicks;
+    int haveSweep;
 
-    range = max - min;
-
-    /* Calculate the major tick stepping. */
+    haveSweep = FALSE;
+    /*
+     * Honour a requested step when it yields a practical tick count.
+     *
+     * Preserve the historical behaviour that scales an overly large
+     * requested interval down until at least a few intervals fit in
+     * the current range.
+     */
     if (axisPtr->reqStep > 0.0) {
-        /* An interval was designated by the user.  Keep scaling it
-         * until it fits comfortably within the current range of the
-         * axis.  */
         step = axisPtr->reqStep;
-        while ((2 * step) >= range) {
-            step *= 0.5;
+        /*
+         * This is (max - min) / 2 without first forming max - min,
+         * which may overflow.
+         */
+        halfRange = max * 0.5 - min * 0.5;
+        if (FINITE(halfRange) && (halfRange > 0.0)) {
+            while ((step >= halfRange) && (step > 0.0)) {
+                step *= 0.5;
+            }
         }
-    } else {
-        range = NiceNum(range, 0);
-        step = NiceNum(range / DEF_NUM_TICKS, 1);
+        if (GetLinearSweep(min, max, step, &tickMin, &tickMax, &nTicks)) {
+            haveSweep = TRUE;
+        }
     }
-
-    /* Find the outer tick values. Add 0.0 to prevent getting -0.0. */
-    axisMin = tickMin = floor(min / step) * step + 0.0;
-    axisMax = tickMax = ceil(max / step) * step + 0.0;
-
-    nTicks = (Tcl_Size)Round((tickMax - tickMin) / step) + 1;
+    /*
+     * A requested interval may be finite but far too small for this
+     * particular range.  In that case use the normal automatically
+     * selected interval rather than generating thousands of ticks.
+     */
+    if (!haveSweep) {
+        step = AutomaticLinearStep(min, max);
+        if (GetLinearSweep(min, max, step, &tickMin, &tickMax, &nTicks)) {
+            haveSweep = TRUE;
+        }
+    }
+    if (!haveSweep) {
+        /*
+         * The range is numerically too degenerate to produce a useful
+         * sweep.  Keep the axis range but generate no major ticks.
+         */
+        step = 1.0;
+        tickMin = min;
+        tickMax = max;
+        nTicks = 0;
+    }
+    axisMin = tickMin;
+    axisMax = tickMax;
     axisPtr->majorSweep.step = step;
     axisPtr->majorSweep.initial = tickMin;
     axisPtr->majorSweep.nSteps = nTicks;
-
     /*
      * The limits of the axis are either the range of the data
-     * ("tight") or at the next outer tick interval ("loose").  The
-     * looseness or tightness has to do with how the axis fits the
-     * range of data values.  This option is overridden when
-     * the user sets an axis limit (by either -min or -max option).
-     * The axis limit is always at the selected limit (otherwise we
-     * assume that user would have picked a different number).
+     * ("tight") or at the next outer tick interval ("loose").
      */
     if ((axisPtr->looseMin == TICK_RANGE_TIGHT) ||
         ((axisPtr->looseMin == TICK_RANGE_LOOSE) && (DEFINED(axisPtr->reqMin)))) {
@@ -3020,20 +3161,22 @@ static void LinearScaleAxis(Axis *axisPtr, double min, double max) {
         axisMax = max;
     }
     SetAxisRange(&axisPtr->axisRange, axisMin, axisMax);
-
-    /* Now calculate the minor tick step and number. */
-
+    /*
+     * Calculate the minor tick step and number.
+     */
     if ((axisPtr->reqNumMinorTicks > 0) && ((axisPtr->flags & AXIS_CONFIG_MAJOR) == 0)) {
         nTicks = (Tcl_Size)axisPtr->reqNumMinorTicks - 1;
-        step = 1.0 / (nTicks + 1);
+        step = 1.0 / ((double)nTicks + 1.0);
     } else {
-        nTicks = 0; /* No minor ticks. */
-        step = 0.5; /* Don't set the minor tick interval
-                     * to 0.0. It makes the GenerateTicks
-                     * routine create minor log-scale tick
-                     * marks.  */
+        nTicks = 0;
+        /*
+         * Don't use zero here.  GenerateTicks uses a zero interval to
+         * identify logarithmic minor ticks.
+         */
+        step = 0.5;
     }
-    axisPtr->minorSweep.initial = axisPtr->minorSweep.step = step;
+    axisPtr->minorSweep.initial = step;
+    axisPtr->minorSweep.step = step;
     axisPtr->minorSweep.nSteps = nTicks;
 }
 
@@ -4069,10 +4212,15 @@ void Rbc_GetAxisSegments(Graph *graphPtr, Axis *axisPtr, Segment2D **segPtrPtr, 
     if (needed <= 0) {
         goto cleanup;
     }
-    if ((size_t)needed > SIZE_MAX / sizeof(*segments)) {
-        goto cleanup;
+    {
+        size_t segmentBytes;
+
+        if ((uintmax_t)needed > (uintmax_t)(SIZE_MAX / sizeof(*segments))) {
+            goto cleanup;
+        }
+        segmentBytes = (size_t)needed * sizeof(*segments);
+        segments = Tcl_AttemptAlloc(segmentBytes);
     }
-    segments = Tcl_AttemptAlloc((size_t)needed * sizeof(*segments));
     if (segments == NULL) {
         goto cleanup;
     }
@@ -4154,15 +4302,6 @@ static void GetAxisGeometry(Graph *graphPtr, Axis *axisPtr) {
         TickLabel *labelPtr;
 
         SweepTicks(axisPtr);
-        if (axisPtr->t1Ptr->nTicks < 0) {
-            fprintf(stderr, "%s major ticks can't be %lld\n", axisPtr->name, (long long)axisPtr->t1Ptr->nTicks);
-            abort();
-        }
-        if (axisPtr->t1Ptr->nTicks > MAXTICKS) {
-            fprintf(stderr, "too big, %s major ticks can't be %lld\n", axisPtr->name,
-                    (long long)axisPtr->t1Ptr->nTicks);
-            abort();
-        }
         maxHeight = maxWidth = 0;
         for (i = 0; i < axisPtr->t1Ptr->nTicks; i++) {
             x2 = x = axisPtr->t1Ptr->values[i];
@@ -4661,6 +4800,12 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
     }
     if (!FINITE(axisPtr->tickZoom)) {
         Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("-tickdivider must be a finite value", -1));
+        goto error;
+    }
+    if (axisPtr->reqNumMinorTicks > (MAXTICKS + 1)) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_ObjPrintf("-subdivisions is too large: "
+                                                         "maximum is %d",
+                                                         MAXTICKS + 1));
         goto error;
     }
     /*

@@ -1782,6 +1782,30 @@ namespace eval graph.axis {
     } -cleanup {
         destroy .graph1
     } -result {1 1}
+
+    test RBC.graph.axis.configure.A.40.4 {
+        axis: extremely small stepsize does not generate excessive ticks
+    } -setup {
+        graph .graph1
+    } -body {
+        .graph1 xaxis configure -min 0 -max 1 -stepsize 1e-300
+        set code [catch { update idletasks}]
+        list $code [.graph1 xaxis cget -stepsize]
+    } -cleanup {
+        destroy .graph1
+    } -result {0 1e-300}
+
+    test RBC.graph.axis.configure.A.40.5 {
+    axis configure: excessive subdivisions rejected transactionally
+    } -setup {
+        graph .graph1
+        set old [.graph1 xaxis cget -subdivisions]
+    } -body {
+        set code [catch {.graph1 xaxis configure -subdivisions 1000000}]
+        list $code [expr {[.graph1 xaxis cget -subdivisions] eq $old}]
+    } -cleanup {
+        destroy .graph1
+    } -result {1 1}
 	
 	cleanupTests
 }
