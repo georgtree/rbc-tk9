@@ -4460,33 +4460,39 @@ static int ClosestStrip(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr
  *----------------------------------------------------------------------
  */
 static void ClosestPoint(Line *linePtr, ClosestSearch *searchPtr) {
-    double dist, minDist;
-    double dx, dy;
+    Point2D *pointPtr;
+    double minDist;
     Tcl_Size count;
-    register Point2D *pointPtr;
-    Tcl_Size dataIndex;    
+    Tcl_Size dataIndex;
 
     minDist = searchPtr->dist;
-    dataIndex = 0;
-
+    dataIndex = -1;
     /*
      * Instead of testing each data point in graph coordinates, look at
-     * the array of mapped screen coordinates. The advantages are
-     *   1) only examine points that are visible (unclipped), and
-     *   2) the computed distance is already in screen coordinates.
+     * the array of mapped screen coordinates.  The advantages are:
+     *
+     * 1) only visible, unclipped points are examined;
+     * 2) distances are already measured in screen coordinates.
      */
     pointPtr = linePtr->symbolPts;
     for (count = 0; count < linePtr->nSymbolPts; count++, pointPtr++) {
-        dx = (double)(searchPtr->x - pointPtr->x);
-        dy = (double)(searchPtr->y - pointPtr->y);
-        if (searchPtr->along == SEARCH_BOTH) {
+        double dx;
+        double dy;
+        double dist;
+
+        dx = fabs((double)searchPtr->x - pointPtr->x);
+        dy = fabs((double)searchPtr->y - pointPtr->y);
+        switch (searchPtr->along) {
+        case SEARCH_BOTH:
             dist = hypot(dx, dy);
-        } else if (searchPtr->along == SEARCH_X) {
+            break;
+        case SEARCH_X:
             dist = dx;
-        } else if (searchPtr->along == SEARCH_Y) {
+            break;
+        case SEARCH_Y:
             dist = dy;
-        } else {
-            /* This can't happen */
+            break;
+        default:
             continue;
         }
         if (dist < minDist) {
@@ -4494,7 +4500,7 @@ static void ClosestPoint(Line *linePtr, ClosestSearch *searchPtr) {
             minDist = dist;
         }
     }
-    if (minDist < searchPtr->dist) {
+    if ((dataIndex >= 0) && (minDist < searchPtr->dist)) {
         searchPtr->elemPtr = &linePtr->core;
         searchPtr->dist = minDist;
         searchPtr->index = dataIndex;

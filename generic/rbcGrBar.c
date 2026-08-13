@@ -1222,7 +1222,6 @@ static void GetBarExtents(Element *elemPtr, Extents2D *extsPtr) {
 
     extsPtr->top = extsPtr->left = DBL_MAX;
     extsPtr->bottom = extsPtr->right = -DBL_MAX;
-
     nPoints = NumberOfPoints(elemPtr);
     if (nPoints < 1) {
         return; /* No data points */
