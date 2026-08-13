@@ -391,25 +391,49 @@ static const char *ColorPairToString(ClientData clientData, Tk_Window tkwin, cha
     return result;
 }
 
+static int IsFinitePoint(const Point2D *pointPtr) {
+    return ((pointPtr != NULL) && FINITE(pointPtr->x) && FINITE(pointPtr->y));
+}
+
+static int IsValidExtents(const Extents2D *extsPtr) {
+    return ((extsPtr != NULL) && FINITE(extsPtr->left) && FINITE(extsPtr->right) && FINITE(extsPtr->top) &&
+            FINITE(extsPtr->bottom) && (extsPtr->left <= extsPtr->right) && (extsPtr->top <= extsPtr->bottom));
+}
+
 double Rbc_GetClosestPointOnSegment(const Point2D *samplePtr, const Point2D *p, const Point2D *q, Point2D *closestPtr) {
     double dx, dy;
+    double sx, sy;
     double length;
     double ux, uy;
     double along;
 
-    if ((samplePtr == NULL) || (p == NULL) || (q == NULL) || (closestPtr == NULL)) {
+    if ((!IsFinitePoint(samplePtr)) || (!IsFinitePoint(p)) || (!IsFinitePoint(q)) || (closestPtr == NULL)) {
         return DBL_MAX;
     }
     dx = q->x - p->x;
     dy = q->y - p->y;
+    if ((!FINITE(dx)) || (!FINITE(dy))) {
+        return DBL_MAX;
+    }
     length = hypot(dx, dy);
+    if (!FINITE(length)) {
+        return DBL_MAX;
+    }
     if (length <= DBL_EPSILON) {
         *closestPtr = *p;
         return hypot(samplePtr->x - p->x, samplePtr->y - p->y);
     }
+    sx = samplePtr->x - p->x;
+    sy = samplePtr->y - p->y;
+    if ((!FINITE(sx)) || (!FINITE(sy))) {
+        return DBL_MAX;
+    }
     ux = dx / length;
     uy = dy / length;
-    along = ((samplePtr->x - p->x) * ux) + ((samplePtr->y - p->y) * uy);
+    along = (sx * ux) + (sy * uy);
+    if (!FINITE(along)) {
+        return DBL_MAX;
+    }
     if (along <= 0.0) {
         *closestPtr = *p;
     } else if (along >= length) {
@@ -442,11 +466,11 @@ double Rbc_GetClosestPointOnSegment(const Point2D *samplePtr, const Point2D *p, 
  *
  *----------------------------------------------------------------------
  */
-int Rbc_PointInSegments(Point2D *samplePtr, Segment2D *segments, Tcl_Size nSegments, double halo) {
-    Segment2D *segPtr;
-    Segment2D *endPtr;
+int Rbc_PointInSegments(const Point2D *samplePtr, const Segment2D *segments, Tcl_Size nSegments, double halo) {
+    const Segment2D *segPtr;
+    const Segment2D *endPtr;
 
-    if ((samplePtr == NULL) || (segments == NULL) || (nSegments <= 0) || (halo <= 0.0)) {
+    if ((!IsFinitePoint(samplePtr)) || (segments == NULL) || (nSegments <= 0) || (!FINITE(halo)) || (halo <= 0.0)) {
         return FALSE;
     }
     endPtr = segments + nSegments;
@@ -482,26 +506,42 @@ int Rbc_PointInSegments(Point2D *samplePtr, Segment2D *segments, Tcl_Size nSegme
  *
  *----------------------------------------------------------------------
  */
-int Rbc_PointInPolygon(Point2D *samplePtr, Point2D *points, Tcl_Size nPoints) {
-    Point2D *p;
-    Point2D *q;
-    Point2D *endPtr;
-    double xIntersection;
+int Rbc_PointInPolygon(const Point2D *samplePtr, const Point2D *points, Tcl_Size nPoints) {
+    const Point2D *p;
+    const Point2D *q;
+    const Point2D *endPtr;
     int inside;
 
-    if ((points == NULL) || (nPoints < 3)) {
+    if ((!IsFinitePoint(samplePtr)) || (points == NULL) || (nPoints < 3)) {
         return FALSE;
     }
-    /*
-     * Start with the closing edge from the last vertex to the first.
-     * The caller no longer needs to append a duplicate first point.
-     */
     p = points + nPoints - 1;
+    if (!IsFinitePoint(p)) {
+        return FALSE;
+    }
     endPtr = points + nPoints;
     inside = FALSE;
     for (q = points; q < endPtr; p = q, q++) {
+        double xIntersection;
+
+        if (!IsFinitePoint(q)) {
+            return FALSE;
+        }
         if (((p->y <= samplePtr->y) && (samplePtr->y < q->y)) || ((q->y <= samplePtr->y) && (samplePtr->y < p->y))) {
-            xIntersection = (q->x - p->x) * (samplePtr->y - p->y) / (q->y - p->y) + p->x;
+            double dx;
+            double dy;
+            double fraction;
+
+            dx = q->x - p->x;
+            dy = q->y - p->y;
+            if ((!FINITE(dx)) || (!FINITE(dy)) || (dy == 0.0)) {
+                return FALSE;
+            }
+            fraction = (samplePtr->y - p->y) / dy;
+            xIntersection = p->x + (fraction * dx);
+            if (!FINITE(xIntersection)) {
+                return FALSE;
+            }
             if (samplePtr->x < xIntersection) {
                 inside = !inside;
             }
@@ -531,18 +571,28 @@ int Rbc_PointInPolygon(Point2D *samplePtr, Point2D *points, Tcl_Size nPoints) {
  *
  *----------------------------------------------------------------------
  */
-int Rbc_RegionInPolygon(Extents2D *extsPtr, Point2D *points, Tcl_Size nPoints, int enclosed) {
-    Point2D *pointPtr;
-    Point2D *endPtr;
+int Rbc_RegionInPolygon(const Extents2D *extsPtr, const Point2D *points, Tcl_Size nPoints, int enclosed) {
+    const Point2D *pointPtr;
+    const Point2D *endPtr;
 
-    if ((points == NULL) || (nPoints < 3)) {
+    if ((!IsValidExtents(extsPtr)) || (points == NULL) || (nPoints < 3)) {
         return FALSE;
+    }
+    endPtr = points + nPoints;
+    /*
+     * Reject malformed polygons before doing any geometric test.
+     */
+    for (pointPtr = points; pointPtr < endPtr; pointPtr++) {
+        if (!IsFinitePoint(pointPtr)) {
+            return FALSE;
+        }
     }
     if (enclosed) {
         /*
          * Every polygon vertex must be inside the region.
          */
-        for (pointPtr = points, endPtr = points + nPoints; pointPtr < endPtr; pointPtr++) {
+        for (pointPtr = points; pointPtr < endPtr; pointPtr++) {
+
             if ((pointPtr->x < extsPtr->left) || (pointPtr->x > extsPtr->right) || (pointPtr->y < extsPtr->top) ||
                 (pointPtr->y > extsPtr->bottom)) {
                 return FALSE;
@@ -550,20 +600,22 @@ int Rbc_RegionInPolygon(Extents2D *extsPtr, Point2D *points, Tcl_Size nPoints, i
         }
         return TRUE;
     } else {
-        Point2D *pPtr;
-        Point2D *qPtr;
+        const Point2D *pPtr;
+        const Point2D *qPtr;
         Point2D sample;
 
+        /*
+         * Test every polygon edge, including the closing edge.
+         */
         pPtr = points + nPoints - 1;
-        endPtr = points + nPoints;
         for (qPtr = points; qPtr < endPtr; pPtr = qPtr, qPtr++) {
             if (Rbc_LineRectClip(extsPtr, pPtr, qPtr, NULL)) {
                 return TRUE;
             }
         }
         /*
-         * No edge crossed the rectangle.  The rectangle may still be
-         * completely inside the polygon.
+         * No polygon edge crossed the rectangle.  The rectangle
+         * may still lie completely inside the polygon.
          */
         sample.x = extsPtr->left;
         sample.y = extsPtr->top;
@@ -691,7 +743,7 @@ int Rbc_LineRectClip(const Extents2D *extsPtr, const Point2D *p, const Point2D *
     double t1;
     double t2;
 
-    if ((extsPtr == NULL) || (p == NULL) || (q == NULL)) {
+    if ((!IsValidExtents(extsPtr)) || (!IsFinitePoint(p)) || (!IsFinitePoint(q))) {
         return FALSE;
     }
     if ((!FINITE(extsPtr->left)) || (!FINITE(extsPtr->right)) || (!FINITE(extsPtr->top)) ||
@@ -722,8 +774,6 @@ int Rbc_LineRectClip(const Extents2D *extsPtr, const Point2D *p, const Point2D *
 }
 
 #define EPSILON FLT_EPSILON
-#define AddVertex(vx, vy) r->x = (vx), r->y = (vy), r++, count++
-#define LastVertex(vx, vy) r->x = (vx), r->y = (vy), count++
 
 /*
  *----------------------------------------------------------------------
@@ -772,7 +822,7 @@ static int AppendClipVertex(Point2D *points, Tcl_Size capacity, Tcl_Size *countP
     return TRUE;
 }
 
-Tcl_Size Rbc_PolyRectClip(Extents2D *extsPtr, const Point2D *points, Tcl_Size nPoints, Point2D *clipPts,
+Tcl_Size Rbc_PolyRectClip(const Extents2D *extsPtr, const Point2D *points, Tcl_Size nPoints, Point2D *clipPts,
                           Tcl_Size clipCapacity) {
     double dx, dy;
     double tin1, tin2;
@@ -781,8 +831,13 @@ Tcl_Size Rbc_PolyRectClip(Extents2D *extsPtr, const Point2D *points, Tcl_Size nP
     Tcl_Size count;
     Tcl_Size i;
 
-    if ((extsPtr == NULL) || (points == NULL) || (clipPts == NULL) || (nPoints <= 0) || (clipCapacity <= 0)) {
+    if ((!IsValidExtents(extsPtr)) || (points == NULL) || (clipPts == NULL) || (nPoints <= 0) || (clipCapacity <= 0)) {
         return 0;
+    }
+    for (i = 0; i < nPoints; i++) {
+        if (!IsFinitePoint(points + i)) {
+            return 0;
+        }
     }
     count = 0;
     for (i = 0; i < nPoints; i++) {
