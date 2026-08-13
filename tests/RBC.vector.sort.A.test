@@ -135,6 +135,25 @@ namespace eval vector.sort {
         vector destroy Vector1
         vector destroy Vector2
     } -result {1 {3.0 1.0 2.0} {30.0 10.0 20.0}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure -reverse state from the instance sort command does not leak into
+    # vector math functions that use Rbc_VectorSortIndex internally.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.sort.A.3.3 {
+        vector sort: reverse state does not leak into vector math
+    } -setup {
+        vector create Vector1
+        Vector1 set {1 2 3 4}
+        vector create Vector2
+        Vector2 set {-13.11 -1.5 7.3 9.5 -1.1 1.2}
+    } -body {
+        Vector1 sort -reverse
+        list [vector expr {sort(Vector2)}] [vector expr {q1(Vector2)}] [vector expr {q3(Vector2)}]
+    } -cleanup {
+        vector destroy Vector1
+        vector destroy Vector2
+    } -result {{-13.11 -1.5 -1.1 1.2 7.3 9.5} -1.3 8.4}
 	
 	cleanupTests
 }

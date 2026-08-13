@@ -58,11 +58,6 @@ enum NativeFormats {
     FMT_DOUBLE
 };
 
-/* Pointer to the array of values currently being sorted. */
-static VectorObject **sortVectorArr;
-static Tcl_Size nSortVectors;
-static int reverse;
-
 static int AppendVector(VectorObject *destPtr, VectorObject *srcPtr);
 static int AppendList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]);
 static int CopyValues(VectorObject *vPtr, char *byteArr, enum NativeFormats fmt, int size, Tcl_Size length, int swap,
@@ -70,7 +65,10 @@ static int CopyValues(VectorObject *vPtr, char *byteArr, enum NativeFormats fmt,
 static int InRange(double value, double min, double max);
 static int CopyList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]);
 static Tcl_Size *SortVectors(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const *objv);
-static int CompareVectors(const void *a, const void *b);
+static int CompareVectorIndices(VectorObject *const *vectorArr, Tcl_Size nVectors, Tcl_Size i1, Tcl_Size i2);
+static void SiftVectorIndices(Tcl_Size *indexArr, Tcl_Size start, Tcl_Size end, VectorObject *const *vectorArr,
+                              Tcl_Size nVectors);
+static void SortVectorIndices(Tcl_Size *indexArr, Tcl_Size length, VectorObject *const *vectorArr, Tcl_Size nVectors);
 
 /* Instance Functions Definitions (rbcVecObjCmd.c) */
 typedef int RbcVectorCmdOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
@@ -1736,6 +1734,7 @@ static int SortOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
     Tcl_Size refSize;
     size_t nBytes;
     int result;
+    int reverse;
     Tcl_Size i;
     Tcl_Size n;
 
@@ -1763,7 +1762,27 @@ static int SortOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
         return TCL_ERROR;
     }
     refSize = vPtr->length;
+    /*
+     * Rbc_VectorSortIndex always returns ascending order.  Reverse the
+     * permutation locally for the instance command's -reverse option.
+     * This keeps reverse ordering out of the shared sort implementation.
+     */
+    if ((reverse) && (refSize > 1)) {
+        Tcl_Size left;
+        Tcl_Size right;
 
+        left = 0;
+        right = refSize - 1;
+        while (left < right) {
+            Tcl_Size tmp;
+
+            tmp = iArr[left];
+            iArr[left] = iArr[right];
+            iArr[right] = tmp;
+            left++;
+            right--;
+        }
+    }
     /*
      * Create an array to store a copy of the current values of the
      * vector. We'll merge the values back into the vector based upon
@@ -2297,7 +2316,7 @@ Tcl_Size *Rbc_VectorSortIndex(VectorObject **vPtrPtr, Tcl_Size nVectors) {
 
     vPtr = *vPtrPtr;
     length = vPtr->last - vPtr->first + 1;
-    if (GetArrayByteCount(vPtr->interp, length, sizeof(Tcl_Size), &byteCount) != TCL_OK) {
+    if (GetArrayByteCount(vPtr->interp, length, sizeof(*indexArr), &byteCount) != TCL_OK) {
         return NULL;
     }
     indexArr = Tcl_AttemptAlloc(byteCount);
@@ -2308,9 +2327,7 @@ Tcl_Size *Rbc_VectorSortIndex(VectorObject **vPtrPtr, Tcl_Size nVectors) {
     for (i = 0; i < length; i++) {
         indexArr[i] = vPtr->first + i;
     }
-    sortVectorArr = vPtrPtr;
-    nSortVectors = nVectors;
-    qsort(indexArr, (size_t)length, sizeof(Tcl_Size), CompareVectors);
+    SortVectorIndices(indexArr, length, vPtrPtr, nVectors);
     return indexArr;
 }
 
@@ -2382,45 +2399,90 @@ error:
     return iArr;
 }
 
-/*
- *--------------------------------------------------------------
- *
- * CompareVectors --
- *
- *      TODO: Description
- *
- * Parameters:
- *      void *a
- *      void *b
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
-static int CompareVectors(const void *a, const void *b) {
-    Tcl_Size i1;
-    Tcl_Size i2;
+static int CompareVectorIndices(VectorObject *const *vectorArr, Tcl_Size nVectors, Tcl_Size i1, Tcl_Size i2) {
     Tcl_Size vectorIndex;
 
-    i1 = *(const Tcl_Size *)a;
-    i2 = *(const Tcl_Size *)b;
+    for (vectorIndex = 0; vectorIndex < nVectors; vectorIndex++) {
+        double value1;
+        double value2;
 
-    for (vectorIndex = 0; vectorIndex < nSortVectors; vectorIndex++) {
-        double delta;
-
-        delta = sortVectorArr[vectorIndex]->valueArr[i1] - sortVectorArr[vectorIndex]->valueArr[i2];
-
-        if (delta < 0.0) {
-            return reverse ? 1 : -1;
+        value1 = vectorArr[vectorIndex]->valueArr[i1];
+        value2 = vectorArr[vectorIndex]->valueArr[i2];
+        if (value1 < value2) {
+            return -1;
         }
-        if (delta > 0.0) {
-            return reverse ? -1 : 1;
+        if (value1 > value2) {
+            return 1;
         }
     }
-
     return 0;
+}
+
+static void SiftVectorIndices(Tcl_Size *indexArr, Tcl_Size start, Tcl_Size end, VectorObject *const *vectorArr,
+                              Tcl_Size nVectors) {
+    Tcl_Size root;
+
+    if (end <= start) {
+        return;
+    }
+    root = start;
+    /*
+     * Build/restore a max heap.  The bound on root also guarantees
+     * that root * 2 + 1 cannot overflow Tcl_Size.
+     */
+    while (root <= ((end - 1) / 2)) {
+        Tcl_Size child;
+        Tcl_Size swapIndex;
+        Tcl_Size tmp;
+
+        child = root * 2 + 1;
+        swapIndex = root;
+        if (CompareVectorIndices(vectorArr, nVectors, indexArr[swapIndex], indexArr[child]) < 0) {
+            swapIndex = child;
+        }
+        if ((child < end) &&
+            (CompareVectorIndices(vectorArr, nVectors, indexArr[swapIndex], indexArr[child + 1]) < 0)) {
+            swapIndex = child + 1;
+        }
+        if (swapIndex == root) {
+            return;
+        }
+        tmp = indexArr[root];
+        indexArr[root] = indexArr[swapIndex];
+        indexArr[swapIndex] = tmp;
+        root = swapIndex;
+    }
+}
+
+static void SortVectorIndices(Tcl_Size *indexArr, Tcl_Size length, VectorObject *const *vectorArr, Tcl_Size nVectors) {
+    Tcl_Size start;
+    Tcl_Size end;
+
+    if (length < 2) {
+        return;
+    }
+    /*
+     * Heapify.
+     */
+    start = (length - 2) / 2;
+    for (;;) {
+        SiftVectorIndices(indexArr, start, length - 1, vectorArr, nVectors);
+        if (start == 0) {
+            break;
+        }
+        start--;
+    }
+    /*
+     * Repeatedly move the largest remaining index to the end.
+     */
+    end = length - 1;
+    while (end > 0) {
+        Tcl_Size tmp;
+
+        tmp = indexArr[end];
+        indexArr[end] = indexArr[0];
+        indexArr[0] = tmp;
+        end--;
+        SiftVectorIndices(indexArr, 0, end, vectorArr, nVectors);
+    }
 }
