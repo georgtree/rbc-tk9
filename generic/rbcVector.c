@@ -1086,8 +1086,9 @@ int Rbc_VectorMapVariable(Tcl_Interp *interp, VectorObject *vPtr, const char *na
  * Parameters:
  *      VectorObject *vPtr
  *      double *valueArr - Array containing the elements of the vector. If NULL, indicates to reset the vector.
- *      int length - The number of elements that the vector currently holds.
- *      int size - The maximum number of elements that the array can hold.
+ *      Tcl_Size length - Number of elements currently in the vector.
+ *      Tcl_Size size   - Maximum number of elements the supplied
+ *                        array can hold.
  *      Tcl_FreeProc *freeProc - Address of memory deallocation routine for the array of values.  Can also be 
  *                               TCL_STATIC, TCL_DYNAMIC, or TCL_VOLATILE.
  *
@@ -1103,6 +1104,7 @@ int Rbc_VectorMapVariable(Tcl_Interp *interp, VectorObject *vPtr, const char *na
  * -----------------------------------------------------------------------
  */
 int Rbc_VectorReset(VectorObject *vPtr, double *valueArr, Tcl_Size length, Tcl_Size size, Tcl_FreeProc *freeProc) {
+    double *newArr;
     size_t sizeBytes;
     size_t lengthBytes;
 
@@ -1122,46 +1124,43 @@ int Rbc_VectorReset(VectorObject *vPtr, double *valueArr, Tcl_Size length, Tcl_S
         (GetVectorByteCount(vPtr->interp, length, &lengthBytes) != TCL_OK)) {
         return TCL_ERROR;
     }
-    if (vPtr->valueArr != valueArr) {
+    /*
+     * A NULL array or zero capacity represents an empty vector.
+     */
+    if ((valueArr == NULL) || (size == 0)) {
+        valueArr = NULL;
+        length = 0;
+        size = 0;
+        freeProc = TCL_STATIC;
+    } else if (freeProc == TCL_VOLATILE) {
         /*
-         * New array of values resides in different memory than the
-         * current vector.
+         * Volatile storage must be copied even when valueArr happens
+         * to be the same address as the vector's current array.
          */
-        if ((valueArr == NULL) || (size == 0)) {
-            freeProc = TCL_STATIC;
-            valueArr = NULL;
-            size = 0;
-            length = 0;
-        } else if (freeProc == TCL_VOLATILE) {
-            double *newArr;
-
-            /*
-             * Data is volatile.  Make an owned copy while preserving
-             * the caller-supplied capacity.
-             */
-            newArr = ckalloc(sizeBytes);
-            if (lengthBytes > 0) {
-                memcpy(newArr, valueArr, lengthBytes);
-            }
-            valueArr = newArr;
-            freeProc = TCL_DYNAMIC;
+        newArr = ckalloc(sizeBytes);
+        if (lengthBytes > 0) {
+            memcpy(newArr, valueArr, lengthBytes);
         }
-
-        if (vPtr->freeProc != TCL_STATIC) {
-            /*
-             * Old data was dynamically allocated. Free it before
-             * attaching new data.
-             */
-            if (vPtr->freeProc == TCL_DYNAMIC) {
-                ckfree(vPtr->valueArr);
-            } else {
-                vPtr->freeProc(vPtr->valueArr);
-            }
-        }
-        vPtr->freeProc = freeProc;
-        vPtr->valueArr = valueArr;
-        vPtr->size = size;
+        valueArr = newArr;
+        freeProc = TCL_DYNAMIC;
     }
+    /*
+     * Release the old array only when it is actually being replaced.
+     */
+    if ((vPtr->valueArr != valueArr) && (vPtr->valueArr != NULL) && (vPtr->freeProc != TCL_STATIC)) {
+        if (vPtr->freeProc == TCL_DYNAMIC) {
+            ckfree(vPtr->valueArr);
+        } else {
+            vPtr->freeProc(vPtr->valueArr);
+        }
+    }
+    /*
+     * Record the complete new array contract even if the address did
+     * not change.  The caller may have resized storage in place.
+     */
+    vPtr->freeProc = freeProc;
+    vPtr->valueArr = valueArr;
+    vPtr->size = size;
     vPtr->length = length;
     if (vPtr->flush) {
         Rbc_VectorFlushCache(vPtr);

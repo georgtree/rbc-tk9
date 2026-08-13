@@ -767,6 +767,8 @@ static int DeleteOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
     Tcl_Size valueIndex, j;
     Tcl_Size count;
     char *string;
+    Tcl_Size bitmapSize;
+    size_t bitmapBytes;
 
     /* FIXME: Don't delete vector with no indices.  */
     if (objc == 2) {
@@ -776,8 +778,26 @@ static int DeleteOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
     /*
      * Allocate an "unset" bitmap the size of the vector.
      */
-    unsetArr = (unsigned char *)RbcCalloc(sizeof(unsigned char), (vPtr->length + 7) / 8);
-    /***    assert(unsetArr); */
+    /*
+     * One bit per vector element.  Avoid "(length + 7) / 8", since
+     * the addition can overflow Tcl_Size before the division.
+     */
+    bitmapSize = vPtr->length / 8;
+    if ((vPtr->length & 7) != 0) {
+        bitmapSize++;
+    }
+    if (GetArrayByteCount(interp, bitmapSize, sizeof(*unsetArr), &bitmapBytes) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    /*
+     * Keep one byte for the empty-vector case so the existing cleanup
+     * path can remain unconditional.
+     */
+    if (bitmapBytes == 0) {
+        bitmapBytes = 1;
+    }
+    unsetArr = ckalloc(bitmapBytes);
+    memset(unsetArr, 0, bitmapBytes);
 
 #define SetBit(i) unsetArr[(i) >> 3] |= (1 << ((i) & 0x07))
 #define GetBit(i) (unsetArr[(i) >> 3] & (1 << ((i) & 0x07)))
