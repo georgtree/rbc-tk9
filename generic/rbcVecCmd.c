@@ -355,6 +355,7 @@ static Tcl_Size ParseFormat(void *clientData, Tcl_Interp *interp, Tcl_Size objc,
     Tcl_Size len;
     const char *string;
 
+    (void)clientData;
     static const struct NativeFmtValue rtable[] = {
         {sizeof(float), FMT_FLOAT}, {sizeof(double), FMT_DOUBLE}, {-1, FMT_UNKNOWN}};
     static const struct NativeFmtValue itable[] = {
@@ -366,13 +367,10 @@ static Tcl_Size ParseFormat(void *clientData, Tcl_Interp *interp, Tcl_Size objc,
                                                    {sizeof(unsigned long), FMT_ULONG},
                                                    {sizeof(unsigned long long), FMT_ULONGLONG},
                                                    {-1, FMT_UNKNOWN}};
-
-    if (objc == 0) {
-        Tcl_SetObjResult(interp,
-                         Tcl_ObjPrintf("option \"%s\" requires an additional argument", Tcl_GetString(objv[-1])));
+    if (objc < 1) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("option \"-format\" requires an additional argument", -1));
         return -1;
     }
-
     string = Tcl_GetStringFromObj(objv[0], &len);
     if (len < 2) {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("unknown binary format \"%s\"", string));
@@ -426,9 +424,8 @@ static Tcl_Size ParseAt(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl
     const char *string;
     Tcl_Size first;
 
-    if (objc == 0) {
-        Tcl_SetObjResult(interp,
-                         Tcl_ObjPrintf("option \"%s\" requires an additional argument", Tcl_GetString(objv[-1])));
+    if (objc < 1) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("option \"-at\" requires an additional argument", -1));
         return -1;
     }
     string = Tcl_GetString(objv[0]);
@@ -1040,55 +1037,68 @@ static int LengthOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
 static int MergeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     VectorObject *v2Ptr;
     VectorObject **vecArr;
-    register VectorObject **vPtrPtr;
-    Tcl_Size refSize, length, nElem;
+    VectorObject **vPtrPtr;
+    Tcl_Size refSize;
+    Tcl_Size length;
+    Tcl_Size nElem;
     Tcl_Size i;
     Tcl_Size valueIndex;
-    double *valuePtr, *valueArr;
+    double *valuePtr;
+    double *valueArr;
+    size_t vectorBytes;
+    size_t valueBytes;
 
-    /* Allocate an array of vector pointers of each vector to be
-     * merged in the current vector.  */
-    vecArr = (VectorObject **)ckalloc(sizeof(VectorObject *) * objc);
-    /***    assert(vecArr); */
+    if (GetArrayByteCount(interp, objc, sizeof(*vecArr), &vectorBytes) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    vecArr = ckalloc(vectorBytes);
     vPtrPtr = vecArr;
-
     refSize = -1;
     nElem = 0;
     for (i = 2; i < objc; i++) {
         if (Rbc_VectorLookupName(vPtr->dataPtr, Tcl_GetString(objv[i]), &v2Ptr) != TCL_OK) {
-            ckfree((char *)vecArr);
+            ckfree(vecArr);
             return TCL_ERROR;
         }
-        /* Check that all the vectors are the same length */
         length = v2Ptr->last - v2Ptr->first + 1;
         if (refSize < 0) {
             refSize = length;
+
         } else if (length != refSize) {
-            Tcl_AppendResult(vPtr->interp, "vectors \"", vPtr->name, "\" and \"", v2Ptr->name, "\" differ in length",
+            Tcl_AppendResult(interp, "vectors \"", vPtr->name, "\" and \"", v2Ptr->name, "\" differ in length",
                              (char *)NULL);
-            ckfree((char *)vecArr);
+            ckfree(vecArr);
             return TCL_ERROR;
         }
         *vPtrPtr++ = v2Ptr;
-        nElem += refSize;
+        if (AddVectorSizes(interp, nElem, refSize, &nElem) != TCL_OK) {
+            ckfree(vecArr);
+            return TCL_ERROR;
+        }
     }
     *vPtrPtr = NULL;
-
-    valueArr = (double *)ckalloc(sizeof(double) * nElem);
-    if (valueArr == NULL) {
-        Tcl_AppendResult(vPtr->interp, "not enough memory to allocate ", Rbc_Itoa(nElem), " vector elements",
-                         (char *)NULL);
+    if (GetArrayByteCount(interp, nElem, sizeof(*valueArr), &valueBytes) != TCL_OK) {
+        ckfree(vecArr);
         return TCL_ERROR;
     }
-    /* Merge the values from each of the vectors into the current vector */
+    if (nElem > 0) {
+        valueArr = ckalloc(valueBytes);
+    } else {
+        valueArr = NULL;
+    }
     valuePtr = valueArr;
     for (valueIndex = 0; valueIndex < refSize; valueIndex++) {
         for (vPtrPtr = vecArr; *vPtrPtr != NULL; vPtrPtr++) {
             *valuePtr++ = (*vPtrPtr)->valueArr[valueIndex + (*vPtrPtr)->first];
         }
     }
-    ckfree((char *)vecArr);
-    Rbc_VectorReset(vPtr, valueArr, nElem, nElem, TCL_DYNAMIC);
+    ckfree(vecArr);
+    if (Rbc_VectorReset(vPtr, valueArr, nElem, nElem, TCL_DYNAMIC) != TCL_OK) {
+        if (valueArr != NULL) {
+            ckfree(valueArr);
+        }
+        return TCL_ERROR;
+    }
     return TCL_OK;
 }
 
@@ -1506,10 +1516,14 @@ static int SearchOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
  */
 static int SeqOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Size i;
-    double start, finish, step;
-    int fillVector;
     Tcl_Size nSteps;
-    char *string;
+    double start;
+    double finish;
+    double step;
+    double span;
+    double steps;
+    int fillVector;
+    const char *string;
 
     if (Rbc_GetDouble(interp, objv[2], &start) != TCL_OK) {
         return TCL_ERROR;
@@ -1526,16 +1540,53 @@ static int SeqOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
         return TCL_ERROR;
     }
     if (fillVector) {
+        /*
+         * "end" means fill the vector's existing length.  There is
+         * no floating-point-to-size conversion in this case.
+         */
         nSteps = vPtr->length;
     } else {
-        nSteps = (int)((finish - start) / step) + 1;
+        /*
+         * These values determine the resulting allocation size, so
+         * they must yield a finite and representable count.
+         */
+        if ((!FINITE(start)) || (!FINITE(finish)) || (!FINITE(step))) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("sequence bounds and step must be finite", -1));
+            return TCL_ERROR;
+        }
+        if (step == 0.0) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("sequence step cannot be zero", -1));
+            return TCL_ERROR;
+        }
+        span = (finish - start) / step;
+        if (!FINITE(span)) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("sequence size is too large", -1));
+            return TCL_ERROR;
+        }
+        /*
+         * Preserve the old C cast semantics: the old `(int)span`
+         * truncated toward zero.
+         */
+        steps = trunc(span) + 1.0;
+        if (steps <= 0.0) {
+            return TCL_OK;
+        }
+        /*
+         * (double)TCL_SIZE_MAX rounds upward on a 64-bit Tcl_Size,
+         * which makes this a conservative boundary before the cast.
+         */
+        if (steps >= (double)TCL_SIZE_MAX) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("sequence size is too large", -1));
+            return TCL_ERROR;
+        }
+        nSteps = (Tcl_Size)steps;
     }
     if (nSteps > 0) {
         if (Rbc_VectorChangeLength(vPtr, nSteps) != TCL_OK) {
             return TCL_ERROR;
         }
         for (i = 0; i < nSteps; i++) {
-            vPtr->valueArr[i] = start + (step * (double)i);
+            vPtr->valueArr[i] = start + step * (double)i;
         }
         if (vPtr->flush) {
             Rbc_VectorFlushCache(vPtr);
@@ -1644,7 +1695,8 @@ static int SortOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
     char *string;
     double *mergeArr;
     Tcl_Size *iArr;
-    Tcl_Size refSize, nBytes;
+    Tcl_Size refSize;
+    size_t nBytes;
     int result;
     Tcl_Size i;
     Tcl_Size n;
@@ -1679,9 +1731,14 @@ static int SortOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
      * vector. We'll merge the values back into the vector based upon
      * the indices found in the index array.
      */
-    nBytes = sizeof(double) * refSize;
-    mergeArr = (double *)ckalloc(nBytes);
-    memcpy((char *)mergeArr, (char *)vPtr->valueArr, nBytes);
+    if (GetArrayByteCount(interp, refSize, sizeof(*mergeArr), &nBytes) != TCL_OK) {
+        ckfree(iArr);
+        return TCL_ERROR;
+    }
+    mergeArr = ckalloc(nBytes);
+    if (nBytes > 0) {
+        memcpy(mergeArr, vPtr->valueArr, nBytes);
+    }
     for (n = 0; n < refSize; n++) {
         vPtr->valueArr[n] = mergeArr[iArr[n]];
     }
@@ -1781,12 +1838,7 @@ static int SplitOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
         if (Rbc_VectorChangeLength(v2Ptr, newSize) != TCL_OK) {
             return TCL_ERROR;
         }
-
-        /*
-         * argIndex is known to fit in int because nVectorArgs was checked
-         * against INT_MAX.
-         */
-        sourceIndex = (int)argIndex;
+        sourceIndex = argIndex;
         destIndex = oldSize;
         while (sourceIndex < vPtr->length) {
             v2Ptr->valueArr[destIndex] = vPtr->valueArr[sourceIndex];
@@ -1855,12 +1907,19 @@ static int VariableOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
  * -----------------------------------------------------------------------
  */
 static int AppendVector(VectorObject *destPtr, VectorObject *srcPtr) {
+    Tcl_Size sourceFirst;
     Tcl_Size sourceLength;
     Tcl_Size oldSize;
     Tcl_Size newSize;
     size_t byteCount;
 
-    sourceLength = srcPtr->last - srcPtr->first + 1;
+    /*
+     * Preserve the selected source range before resizing the
+     * destination.  destPtr and srcPtr may refer to the same vector,
+     * and resizing resets its first/last selection.
+     */
+    sourceFirst = srcPtr->first;
+    sourceLength = srcPtr->last - sourceFirst + 1;
     oldSize = destPtr->length;
     if (AddVectorSizes(destPtr->interp, oldSize, sourceLength, &newSize) != TCL_OK) {
         return TCL_ERROR;
@@ -1872,7 +1931,7 @@ static int AppendVector(VectorObject *destPtr, VectorObject *srcPtr) {
         return TCL_ERROR;
     }
     if (byteCount > 0) {
-        memmove(destPtr->valueArr + oldSize, srcPtr->valueArr + srcPtr->first, byteCount);
+        memmove(destPtr->valueArr + oldSize, srcPtr->valueArr + sourceFirst, byteCount);
     }
     destPtr->notifyFlags |= UPDATE_RANGE;
     return TCL_OK;
@@ -2215,11 +2274,20 @@ Tcl_Size *Rbc_VectorSortIndex(VectorObject **vPtrPtr, Tcl_Size nVectors) {
  *--------------------------------------------------------------
  */
 static Tcl_Size *SortVectors(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const *objv) {
-    VectorObject **vPtrArray, *v2Ptr;
+    VectorObject **vPtrArray;
+    VectorObject *v2Ptr;
     Tcl_Size *iArr;
+    Tcl_Size vectorCount;
     Tcl_Size i;
+    size_t vectorBytes;
 
-    vPtrArray = (VectorObject **)ckalloc(sizeof(VectorObject *) * (objc + 1));
+    if (AddVectorSizes(interp, objc, 1, &vectorCount) != TCL_OK) {
+        return NULL;
+    }
+    if (GetArrayByteCount(interp, vectorCount, sizeof(*vPtrArray), &vectorBytes) != TCL_OK) {
+        return NULL;
+    }
+    vPtrArray = ckalloc(vectorBytes);
     vPtrArray[0] = vPtr;
     iArr = NULL;
     for (i = 0; i < objc; i++) {
@@ -2233,9 +2301,10 @@ static Tcl_Size *SortVectors(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size ob
         }
         vPtrArray[i + 1] = v2Ptr;
     }
-    iArr = Rbc_VectorSortIndex(vPtrArray, objc + 1);
+    iArr = Rbc_VectorSortIndex(vPtrArray, vectorCount);
+    
 error:
-    ckfree((char *)vPtrArray);
+    ckfree(vPtrArray);
     return iArr;
 }
 

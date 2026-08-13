@@ -61,6 +61,18 @@ namespace eval vector.seq {
 	} -cleanup {
 	    vector destroy TestVector
 	} -result {5.0 4.0 3.0 2.0 1.0 0.0}
+
+    test RBC.vector.seq.A.1.4 {
+        vector seq: zero step is rejected
+    } -setup {
+        vector create TestVector
+        TestVector set {10 20}
+    } -body {
+        set code [catch {TestVector seq 0 5 0}]
+        list $code [TestVector range 0 end]
+    } -cleanup {
+        vector destroy TestVector
+    } -result {1 {10.0 20.0}}
 	
 	cleanupTests
 }

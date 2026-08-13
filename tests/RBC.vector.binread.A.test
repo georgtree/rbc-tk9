@@ -289,6 +289,32 @@ test RBC.vector.binread.A.4.8 {
     unset Channel
 } -result {0.0 4.678870346324924e+163}
 
+test RBC.vector.binread.A.5.1 {
+    vector binread: missing -format argument
+} -setup {
+    vector create Vector1
+    set Channel [open [file join [file dirname [info script]] binReadTestFile.txt] r]
+} -body {
+    catch {Vector1 binread $Channel -format} message
+    set message
+} -cleanup {
+    vector destroy Vector1
+    close $Channel
+} -result {option "-format" requires an additional argument}
+
+test RBC.vector.binread.A.5.2 {
+    vector binread: missing -at argument
+} -setup {
+    vector create Vector1
+    set Channel [open [file join [file dirname [info script]] binReadTestFile.txt] r]
+} -body {
+    catch {Vector1 binread $Channel -at} message
+    set message
+} -cleanup {
+    vector destroy Vector1
+    close $Channel
+} -result {option "-at" requires an additional argument}
+
 
 cleanupTests
 #}

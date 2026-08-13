@@ -90,6 +90,18 @@ namespace import tcltest::*
 	} -cleanup {
 		vector destroy foo
 	} -result {0}
+
+    test RBC.vector.append.A.1.5 {
+        vector append: selected range of itself
+    } -setup {
+        vector create foo
+        foo set {1 2 3 4}
+    } -body {
+        foo append foo(1:2)
+        foo range 0 end
+    } -cleanup {
+        vector destroy foo
+    } -result {1.0 2.0 3.0 4.0 2.0 3.0}
 	
 	cleanupTests
 #}
