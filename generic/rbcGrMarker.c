@@ -4004,7 +4004,7 @@ static void MapLineMarker(Marker *markerPtr) {
     Point2D *endPtr;
     Segment2D *segments;
     Segment2D *segPtr;
-    Point2D p, q, next;
+    Point2D p, next;
     Extents2D exts;
     Tcl_Size capacity;
 
@@ -4040,10 +4040,7 @@ static void MapLineMarker(Marker *markerPtr) {
         next = MapPoint(graphPtr, srcPtr, &lmPtr->core.axes);
         next.x += lmPtr->core.xOffset;
         next.y += lmPtr->core.yOffset;
-        q = next;
-        if (Rbc_LineRectClip(&exts, &p, &q)) {
-            segPtr->p = p;
-            segPtr->q = q;
+        if (Rbc_LineRectClip(&exts, &p, &next, segPtr)) {
             segPtr++;
         }
         p = next;
@@ -4136,7 +4133,7 @@ static int RegionInLineMarker(Marker *markerPtr, Extents2D *extsPtr, int enclose
             p.y += lmPtr->core.yOffset;
             q.x += lmPtr->core.xOffset;
             q.y += lmPtr->core.yOffset;
-            if (Rbc_LineRectClip(extsPtr, &p, &q)) {
+            if (Rbc_LineRectClip(extsPtr, &p, &q, NULL)) {
                 return TRUE;
             }
         }
@@ -4583,9 +4580,7 @@ static void MapPolygonMarker(Marker *markerPtr) {
                     Point2D *nextPtr;
 
                     nextPtr = (srcPtr + 1 < endPtr) ? srcPtr + 1 : screenPts;
-                    segPtr->p = *srcPtr;
-                    segPtr->q = *nextPtr;
-                    if (Rbc_LineRectClip(&exts, &segPtr->p, &segPtr->q)) {
+                    if (Rbc_LineRectClip(&exts, srcPtr, nextPtr, segPtr)) {
                         segPtr++;
                     }
                 }

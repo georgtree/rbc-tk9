@@ -3122,25 +3122,15 @@ static void GenerateParametricSpline(Graph *graphPtr, Line *linePtr, MapInfo *ma
      */
     capacity = nOrigPts;
     for (i = 0, j = 1; j < nOrigPts; i++, j++) {
-        Point2D p;
-        Point2D q;
-        
-        p = origPts[i];
-        q = origPts[j];
-        if (Rbc_LineRectClip(&exts, &p, &q)) {
-            double dist;
+        Segment2D clipped;
+        double dist;
+
+        if (Rbc_LineRectClip(&exts, &origPts[i], &origPts[j], &clipped)) {
             double distP;
             double distQ;
 
-            dist = hypot(origPts[j].x - origPts[i].x, origPts[j].y - origPts[i].y);
-            /*
-             * Coincident points do not contribute interpolation samples.
-             */
-            if (!FINITE(dist) || (dist <= DBL_EPSILON)) {
-                continue;
-            }
-            distP = hypot(p.x - origPts[i].x, p.y - origPts[i].y);
-            distQ = hypot(q.x - origPts[i].x, q.y - origPts[i].y);
+            distP = hypot(clipped.p.x - origPts[i].x, clipped.p.y - origPts[i].y);
+            distQ = hypot(clipped.q.x - origPts[i].x, clipped.q.y - origPts[i].y);
             /*
              * The first additional sample is two pixels from the clipped
              * starting point.
@@ -3180,12 +3170,9 @@ static void GenerateParametricSpline(Graph *graphPtr, Line *linePtr, MapInfo *ma
      */
     count = 0;
     for (i = 0, j = 1; j < nOrigPts; i++, j++) {
-        Point2D p;
-        Point2D q;
+        Segment2D clipped;
         double dist;
 
-        p = origPts[i];
-        q = origPts[j];
         if (count >= capacity) {
             goto fallback;
         }
@@ -3197,15 +3184,19 @@ static void GenerateParametricSpline(Graph *graphPtr, Line *linePtr, MapInfo *ma
         indices[count] = mapPtr->indices[i];
         count++;
         dist = hypot(origPts[j].x - origPts[i].x, origPts[j].y - origPts[i].y);
-        if (!FINITE(dist) || (dist <= DBL_EPSILON)) {
+        if ((!FINITE(dist)) || (dist <= DBL_EPSILON)) {
             continue;
         }
-        if (Rbc_LineRectClip(&exts, &p, &q)) {
+        if (Rbc_LineRectClip(&exts, &origPts[i], &origPts[j], &clipped)) {
             double distP;
             double distQ;
 
-            distP = hypot(p.x - origPts[i].x, p.y - origPts[i].y);
-            distQ = hypot(q.x - origPts[i].x, q.y - origPts[i].y);
+            distP = hypot(clipped.p.x - origPts[i].x, clipped.p.y - origPts[i].y);
+            distQ = hypot(clipped.q.x - origPts[i].x, clipped.q.y - origPts[i].y);
+            /*
+             * Insert interpolated points every two screen pixels over
+             * the visible portion of the source interval.
+             */
             distP += 2.0;
             while (distP <= distQ) {
                 if (count >= capacity) {
@@ -3227,7 +3218,6 @@ static void GenerateParametricSpline(Graph *graphPtr, Line *linePtr, MapInfo *ma
             }
         }
     }
-
     /*
      * Append the final original point.
      */
@@ -3440,9 +3430,7 @@ static void MapStrip(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Rbc_GraphExtents(graphPtr, &exts);
     for (pointPtr = mapPtr->screenPts, endPtr = mapPtr->screenPts + (mapPtr->nScreenPts - 1); pointPtr < endPtr;
          pointPtr++, indexPtr++) {
-        segPtr->p = pointPtr[0];
-        segPtr->q = pointPtr[1];
-        if (Rbc_LineRectClip(&exts, &segPtr->p, &segPtr->q)) {
+        if (Rbc_LineRectClip(&exts, &pointPtr[0], &pointPtr[1], segPtr)) {
             segPtr++;
             indices[count] = *indexPtr;
             count++;

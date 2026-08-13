@@ -552,19 +552,12 @@ int Rbc_RegionInPolygon(Extents2D *extsPtr, Point2D *points, Tcl_Size nPoints, i
     } else {
         Point2D *pPtr;
         Point2D *qPtr;
-        Point2D p;
-        Point2D q;
+        Point2D sample;
 
-        /*
-         * Test every edge, including the closing edge from the final
-         * vertex to the first, without modifying the caller's array.
-         */
         pPtr = points + nPoints - 1;
         endPtr = points + nPoints;
         for (qPtr = points; qPtr < endPtr; pPtr = qPtr, qPtr++) {
-            p = *pPtr;
-            q = *qPtr;
-            if (Rbc_LineRectClip(extsPtr, &p, &q)) {
+            if (Rbc_LineRectClip(extsPtr, pPtr, qPtr, NULL)) {
                 return TRUE;
             }
         }
@@ -572,9 +565,9 @@ int Rbc_RegionInPolygon(Extents2D *extsPtr, Point2D *points, Tcl_Size nPoints, i
          * No edge crossed the rectangle.  The rectangle may still be
          * completely inside the polygon.
          */
-        p.x = extsPtr->left;
-        p.y = extsPtr->top;
-        return Rbc_PointInPolygon(&p, points, nPoints);
+        sample.x = extsPtr->left;
+        sample.y = extsPtr->top;
+        return Rbc_PointInPolygon(&sample, points, nPoints);
     }
 }
 
@@ -666,49 +659,66 @@ static int ClipTest(double ds, double dr, double *t1, double *t2) {
  *
  * Rbc_LineRectClip --
  *
- *      Clips the given line segment to a rectangular region.  The
- *      coordinates of the clipped line segment are returned.  The
- *      original coordinates are overwritten.
- *
- *      Reference:  Liang-Barsky Line Clipping Algorithm.
+ *      Clips a line segment to a rectangular region using the
+ *      Liang-Barsky line clipping algorithm.
  *
  * Parameters:
- *      Extents2D *extsPtr - Rectangular region to clip.
- *      Point2D *p - (in/out) Coordinates of original and clipped line segment.
- *      Point2D *q - (in/out) Coordinates of original and clipped line segment.
+ *      const Extents2D *extsPtr
+ *          Rectangular clipping region.
+ *
+ *      const Point2D *p
+ *      const Point2D *q
+ *          Original line segment endpoints.
+ *
+ *      Segment2D *clippedPtr
+ *          Receives the clipped line segment when non-NULL and the
+ *          segment intersects the clipping region.  May be NULL when
+ *          only visibility is required.
  *
  * Results:
- *      Returns if line segment is visible within the region. The
- *      coordinates of the original line segment are overwritten
- *      by the clipped coordinates.
+ *      Returns TRUE if any portion of the line segment lies within the
+ *      clipping region, FALSE otherwise.
  *
  * Side Effects:
- *      TODO: Side Effects
+ *      Writes the clipped segment to clippedPtr on success when
+ *      clippedPtr is non-NULL.  The input endpoints are never modified.
  *
  *----------------------------------------------------------------------
  */
-int Rbc_LineRectClip(Extents2D *extsPtr, Point2D *p, Point2D *q) {
-    double t1, t2;
-    double dx, dy;
+int Rbc_LineRectClip(const Extents2D *extsPtr, const Point2D *p, const Point2D *q, Segment2D *clippedPtr) {
+    double dx;
+    double dy;
+    double t1;
+    double t2;
 
+    if ((extsPtr == NULL) || (p == NULL) || (q == NULL)) {
+        return FALSE;
+    }
+    if ((!FINITE(extsPtr->left)) || (!FINITE(extsPtr->right)) || (!FINITE(extsPtr->top)) ||
+        (!FINITE(extsPtr->bottom)) || (!FINITE(p->x)) || (!FINITE(p->y)) || (!FINITE(q->x)) || (!FINITE(q->y))) {
+        return FALSE;
+    }
+    if ((extsPtr->left > extsPtr->right) || (extsPtr->top > extsPtr->bottom)) {
+        return FALSE;
+    }
     t1 = 0.0;
     t2 = 1.0;
     dx = q->x - p->x;
-    if ((ClipTest(-dx, p->x - extsPtr->left, &t1, &t2)) && (ClipTest(dx, extsPtr->right - p->x, &t1, &t2))) {
-        dy = q->y - p->y;
-        if ((ClipTest(-dy, p->y - extsPtr->top, &t1, &t2)) && (ClipTest(dy, extsPtr->bottom - p->y, &t1, &t2))) {
-            if (t2 < 1.0) {
-                q->x = p->x + t2 * dx;
-                q->y = p->y + t2 * dy;
-            }
-            if (t1 > 0.0) {
-                p->x += t1 * dx;
-                p->y += t1 * dy;
-            }
-            return TRUE;
-        }
+    dy = q->y - p->y;
+    if ((!FINITE(dx)) || (!FINITE(dy))) {
+        return FALSE;
     }
-    return FALSE;
+    if ((!ClipTest(-dx, p->x - extsPtr->left, &t1, &t2)) || (!ClipTest(dx, extsPtr->right - p->x, &t1, &t2)) ||
+        (!ClipTest(-dy, p->y - extsPtr->top, &t1, &t2)) || (!ClipTest(dy, extsPtr->bottom - p->y, &t1, &t2))) {
+        return FALSE;
+    }
+    if (clippedPtr != NULL) {
+        clippedPtr->p.x = p->x + (t1 * dx);
+        clippedPtr->p.y = p->y + (t1 * dy);
+        clippedPtr->q.x = p->x + (t2 * dx);
+        clippedPtr->q.y = p->y + (t2 * dy);
+    }
+    return TRUE;
 }
 
 #define EPSILON FLT_EPSILON

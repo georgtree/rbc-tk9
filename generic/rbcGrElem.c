@@ -2932,29 +2932,33 @@ void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle)
                  */
                 segPtr->p = p;
                 segPtr->q = q;
-                if (Rbc_LineRectClip(&exts, &segPtr->p, &segPtr->q)) {
+                if (Rbc_LineRectClip(&exts, &p, &q, segPtr)) {
                     segPtr++;
                     *indexPtr++ = i;
                 }
                 /*
                  * First cap.
                  */
-                segPtr->p.x = p.x;
-                segPtr->q.x = p.x;
-                segPtr->p.y = p.y - stylePtr->errorBarCapWidth;
-                segPtr->q.y = p.y + stylePtr->errorBarCapWidth;
-                if (Rbc_LineRectClip(&exts, &segPtr->p, &segPtr->q)) {
+                Point2D capP;
+                Point2D capQ;
+
+                capP.x = p.x;
+                capP.y = p.y - stylePtr->errorBarCapWidth;
+                capQ.x = p.x;
+                capQ.y = p.y + stylePtr->errorBarCapWidth;
+                if (Rbc_LineRectClip(&exts, &capP, &capQ, segPtr)) {
+
                     segPtr++;
                     *indexPtr++ = i;
                 }
                 /*
                  * Second cap.
                  */
-                segPtr->p.x = q.x;
-                segPtr->q.x = q.x;
-                segPtr->p.y = q.y - stylePtr->errorBarCapWidth;
-                segPtr->q.y = q.y + stylePtr->errorBarCapWidth;
-                if (Rbc_LineRectClip(&exts, &segPtr->p, &segPtr->q)) {
+                capP.x = q.x;
+                capP.y = q.y - stylePtr->errorBarCapWidth;
+                capQ.x = q.x;
+                capQ.y = q.y + stylePtr->errorBarCapWidth;
+                if (Rbc_LineRectClip(&exts, &capP, &capQ, segPtr)) {
                     segPtr++;
                     *indexPtr++ = i;
                 }
@@ -3008,6 +3012,8 @@ void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle)
             {
                 Point2D p;
                 Point2D q;
+                Point2D capP;
+                Point2D capQ;
                 p = Rbc_Map2D(graphPtr, x, high, &elemPtr->axes);
                 q = Rbc_Map2D(graphPtr, x, low, &elemPtr->axes);
                 /*
@@ -3015,29 +3021,29 @@ void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle)
                  */
                 segPtr->p = p;
                 segPtr->q = q;
-                if (Rbc_LineRectClip(&exts, &segPtr->p, &segPtr->q)) {
+                if (Rbc_LineRectClip(&exts, &p, &q, segPtr)) {
                     segPtr++;
                     *indexPtr++ = i;
                 }
                 /*
                  * First cap.
                  */
-                segPtr->p.y = p.y;
-                segPtr->q.y = p.y;
-                segPtr->p.x = p.x - stylePtr->errorBarCapWidth;
-                segPtr->q.x = p.x + stylePtr->errorBarCapWidth;
-                if (Rbc_LineRectClip(&exts, &segPtr->p, &segPtr->q)) {
+                capP.x = p.x - stylePtr->errorBarCapWidth;
+                capP.y = p.y;
+                capQ.x = p.x + stylePtr->errorBarCapWidth;
+                capQ.y = p.y;
+                if (Rbc_LineRectClip(&exts, &capP, &capQ, segPtr)) {
                     segPtr++;
                     *indexPtr++ = i;
                 }
                 /*
                  * Second cap.
                  */
-                segPtr->p.y = q.y;
-                segPtr->q.y = q.y;
-                segPtr->p.x = q.x - stylePtr->errorBarCapWidth;
-                segPtr->q.x = q.x + stylePtr->errorBarCapWidth;
-                if (Rbc_LineRectClip(&exts, &segPtr->p, &segPtr->q)) {
+                capP.x = q.x - stylePtr->errorBarCapWidth;
+                capP.y = q.y;
+                capQ.x = q.x + stylePtr->errorBarCapWidth;
+                capQ.y = q.y;
+                if (Rbc_LineRectClip(&exts, &capP, &capQ, segPtr)) {
                     segPtr++;
                     *indexPtr++ = i;
                 }

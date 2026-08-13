@@ -618,7 +618,7 @@ double Rbc_VMap(Graph *graphPtr, Axis *axisPtr, double y);
 Point2D Rbc_InvMap2D(Graph *graphPtr, double x, double y, Axis2D *pairPtr);
 Point2D Rbc_Map2D(Graph *graphPtr, double x, double y, Axis2D *pairPtr);
 Graph *Rbc_GetGraphFromWindowData(Tk_Window tkwin);
-int Rbc_LineRectClip(Extents2D *extsPtr, Point2D *p, Point2D *q);
+int Rbc_LineRectClip(const Extents2D *extsPtr, const Point2D *p, const Point2D *q, Segment2D *clippedPtr);
 Tcl_Size Rbc_PolyRectClip(Extents2D *extsPtr, const Point2D *inputPts, Tcl_Size nInputPts, Point2D *outputPts,
                           Tcl_Size outputCapacity);
 void Rbc_ReleaseLegendTkResources(Graph *graphPtr);
