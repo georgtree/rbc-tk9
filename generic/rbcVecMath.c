@@ -182,6 +182,29 @@ static int GetRotationOffset(Tcl_Interp *interp, double scalar, Tcl_Size length,
     return TCL_OK;
 }
 
+static void InitValueParseBuffer(Value *valuePtr) {
+    valuePtr->pv.buffer = valuePtr->staticSpace;
+    valuePtr->pv.next = valuePtr->staticSpace;
+    valuePtr->pv.end = valuePtr->staticSpace + STATIC_STRING_SPACE - 1;
+    valuePtr->pv.expandProc = TclExpandParseValue;
+    valuePtr->pv.clientData = NULL;
+}
+
+static void FreeValueParseBuffer(Value *valuePtr) {
+    if (valuePtr->pv.buffer != valuePtr->staticSpace) {
+        ckfree(valuePtr->pv.buffer);
+    }
+    /*
+     * Restore a valid static-buffer state.  This also makes repeated
+     * cleanup harmless from the caller's point of view.
+     */
+    valuePtr->pv.buffer = valuePtr->staticSpace;
+    valuePtr->pv.next = valuePtr->staticSpace;
+    valuePtr->pv.end = valuePtr->staticSpace + STATIC_STRING_SPACE - 1;
+    valuePtr->pv.expandProc = TclExpandParseValue;
+    valuePtr->pv.clientData = NULL;
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -1081,30 +1104,48 @@ static double Round(double value) {
  *--------------------------------------------------------------
  */
 int Rbc_ExprVector(Tcl_Interp *interp, char *string, Rbc_Vector *vecPtr) {
-    VectorInterpData *dataPtr; /* Interpreter-specific data. */
-    VectorObject *vPtr = (VectorObject *)vecPtr;
+    VectorInterpData *dataPtr;
+    VectorObject *vPtr;
     Value value;
+    int result;
 
+    vPtr = (VectorObject *)vecPtr;
     dataPtr = (vecPtr != NULL) ? vPtr->dataPtr : Rbc_VectorGetInterpData(interp);
     value.vPtr = Rbc_VectorNew(dataPtr);
-    if (EvaluateExpression(interp, string, &value) != TCL_OK) {
-        Rbc_VectorFree(value.vPtr);
-        return TCL_ERROR;
+    result = EvaluateExpression(interp, string, &value);
+    if (result != TCL_OK) {
+        goto done;
     }
-
     if (vPtr != NULL) {
-        Rbc_VectorDuplicate(vPtr, value.vPtr);
+        /*
+         * Propagate an allocation/size failure instead of silently
+         * reporting a successful vector expression.
+         */
+        result = Rbc_VectorDuplicate(vPtr, value.vPtr);
+        if (result != TCL_OK) {
+            goto done;
+        }
     } else {
         Tcl_Size i;
-        Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
-        /* No result vector.  Put values in the interpreter result.  */
+        Tcl_Obj *resultObj;
+
+        resultObj = Tcl_NewListObj(0, NULL);
         for (i = 0; i < value.vPtr->length; i++) {
             Tcl_ListObjAppendElement(NULL, resultObj, Tcl_NewDoubleObj(value.vPtr->valueArr[i]));
         }
         Tcl_SetObjResult(interp, resultObj);
     }
+    result = TCL_OK;
+
+done:
+    /*
+     * EvaluateExpression() may have expanded Value.pv beyond its
+     * embedded staticSpace buffer.  Release that storage on every
+     * exit path.
+     */
+    FreeValueParseBuffer(&value);
     Rbc_VectorFree(value.vPtr);
-    return TCL_OK;
+    return result;
 }
 
 /*
@@ -1141,11 +1182,7 @@ static int EvaluateExpression(Tcl_Interp *interp, char *string, Value *valuePtr)
     Tcl_Size i;
 
     info.expr = info.nextPtr = string;
-    valuePtr->pv.buffer = valuePtr->pv.next = valuePtr->staticSpace;
-    valuePtr->pv.end = valuePtr->pv.buffer + STATIC_STRING_SPACE - 1;
-    valuePtr->pv.expandProc = TclExpandParseValue;
-    valuePtr->pv.clientData = NULL;
-
+    InitValueParseBuffer(valuePtr);
     result = NextValue(interp, &info, -1, valuePtr);
     if (result != TCL_OK) {
         return result;
@@ -1216,11 +1253,7 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
     v2Ptr = Rbc_VectorNew(vPtr->dataPtr);
     gotOp = FALSE;
     value2.vPtr = v2Ptr;
-    value2.pv.buffer = value2.pv.next = value2.staticSpace;
-    value2.pv.end = value2.pv.buffer + STATIC_STRING_SPACE - 1;
-    value2.pv.expandProc = TclExpandParseValue;
-    value2.pv.clientData = NULL;
-
+    InitValueParseBuffer(&value2);
     result = NextToken(interp, parsePtr, valuePtr);
     if (result != TCL_OK) {
         goto done;
@@ -1650,17 +1683,14 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
         }
     }
     }
+
 done:
-    if (value2.pv.buffer != value2.staticSpace) {
-        ckfree((char *)value2.pv.buffer);
-    }
+    FreeValueParseBuffer(&value2);
     Rbc_VectorFree(v2Ptr);
     return result;
 
 error:
-    if (value2.pv.buffer != value2.staticSpace) {
-        ckfree((char *)value2.pv.buffer);
-    }
+    FreeValueParseBuffer(&value2);
     Rbc_VectorFree(v2Ptr);
     return TCL_ERROR;
 }

@@ -893,6 +893,25 @@ namespace eval vector.expr {
 		set code [catch {vector expr {[error nested-failure]}} message]
 		list $code $message
 	} -result {1 nested-failure}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure command substitution results larger than the embedded parse buffer
+	#          are handled correctly.
+	# ------------------------------------------------------------------------------------
+	test RBC.vector.expr.A.2.7 {
+		Large command substitution
+	} -body {
+		vector expr {[format %0200d 5]}
+	} -result {5.0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Exercise cleanup of an expanded substitution buffer on an error path.
+	# ------------------------------------------------------------------------------------
+	test RBC.vector.expr.A.2.8 {
+		Large command substitution error
+	} -body {
+		catch {vector expr {[string repeat x 200]}}
+	} -result {1}
 	
 	cleanupTests
 }
