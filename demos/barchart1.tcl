@@ -100,6 +100,7 @@ Rbc_ZoomStack .bc
 Rbc_Crosshairs .bc
 Rbc_ActiveLegend .bc
 Rbc_ClosestPoint .bc
+Rbc_AxisScaleActive .bc y
 .bc axis bind x <Enter> {
     set axis [%W axis get current]
     %W axis configure $axis -color blue3 -titlecolor blue3

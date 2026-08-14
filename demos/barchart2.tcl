@@ -153,6 +153,7 @@ Rbc_ZoomStack $graph
 Rbc_Crosshairs $graph
 Rbc_ActiveLegend $graph
 Rbc_ClosestPoint $graph
+Rbc_AxisScaleActive $graph y
 $graph marker bind all <B2-Motion> {
     set coords [%W invtransform %x %y]
     catch {%W marker configure [%W marker get current] -coords $coords}

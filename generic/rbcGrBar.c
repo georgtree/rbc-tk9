@@ -1760,8 +1760,11 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
                 infoPtr = (FreqInfo *)Tcl_GetHashValue(hPtr);
                 switch (graphPtr->mode) {
                 case MODE_STACKED: {
+                    double previousY;
                     double stackedY;
-                    stackedY = c1.y + infoPtr->lastY;
+
+                    previousY = infoPtr->lastY;
+                    stackedY = c1.y + previousY;
                     /*
                      * Do not let one overflowing stack value poison every subsequent
                      * bar at this abscissa.
@@ -1769,7 +1772,18 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
                     if (!FINITE(stackedY)) {
                         continue;
                     }
-                    c2.y = infoPtr->lastY;
+                    /*
+                     * The stack accumulator starts at zero, because stacked values are
+                     * additive data quantities.  Zero itself cannot be drawn on a
+                     * logarithmic axis, so use the established log-bar baseline (1.0)
+                     * only as the lower edge of the first visible stacked segment.
+                     */
+                    if (barPtr->core.axes.y->logScale && (previousY <= 0.0)) {
+                        c2.y = baseline;
+
+                    } else {
+                        c2.y = previousY;
+                    }
                     c1.y = stackedY;
                     infoPtr->lastY = stackedY;
                 } break;
@@ -2703,6 +2717,9 @@ void Rbc_InitFreqTable(Graph *graphPtr) {
             if ((!FINITE(xArr[i])) || (!FINITE(yArr[i]))) {
                 continue;
             }
+            if (barPtr->core.axes.y->logScale && (yArr[i] <= 0.0)) {
+                continue;
+            }
             /*
              * FreqKey is a binary hash key.  Normalize signed zero so that
              * -0.0 and +0.0 identify the same numeric abscissa.
@@ -2824,6 +2841,9 @@ void Rbc_ComputeStacks(Graph *graphPtr) {
         nPoints = NumberOfPoints(elemPtr);
         for (i = 0; i < nPoints; i++) {
             if ((!FINITE(xArr[i])) || (!FINITE(yArr[i]))) {
+                continue;
+            }
+            if (barPtr->core.axes.y->logScale && (yArr[i] <= 0.0)) {
                 continue;
             }
             key.value = (xArr[i] == 0.0) ? 0.0 : xArr[i];
