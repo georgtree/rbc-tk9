@@ -19,6 +19,31 @@ namespace import tcltest::*
 
 namespace eval graph.element.smooth {
 
+    proc FindThreePointTrace {graph x0 y0 x1 y1} {
+        set ps [$graph postscript output]
+        #
+        # Rbc_FormatToPostScript() uses %g for trace coordinates.
+        #
+        set number {[-+0-9.eE]+}
+
+        set pattern\
+                [format { newpath (%s) (%s) moveto\n (%s) (%s) lineto\n (%s) (%s) lineto\nDashesProc stroke} $number\
+                         $number $number $number $number $number]
+
+        foreach {whole sx sy mx my ex ey} [regexp -all -inline -- $pattern $ps] {
+            #
+            # transform returns rounded coordinates while PostScript retains
+            # the mapped doubles.  Use the transformed endpoints only to
+            # identify the element trace, with a one-pixel tolerance.
+            #
+            if { (abs(double($sx) - $x0) <= 1.0) && (abs(double($sy) - $y0) <= 1.0) && (abs(double($ex) - $x1) <= 1.0)\
+                         && (abs(double($ey) - $y1) <= 1.0) } {
+                return [list $sx $sy $mx $my $ex $ey]
+            }
+        }
+        return {}
+    }
+
     # --------------------------------------------------------------------------------
     # Purpose: Ensure Catrom smoothing handles consecutive coincident data points.
     # --------------------------------------------------------------------------------
@@ -146,6 +171,105 @@ namespace eval graph.element.smooth {
         catch {destroy .graph1}
     } -result {1 1}
 
+    test RBC.graph.element.smooth.A.3.0 {
+        graph postscript: short trace is not split unnecessarily
+    } -setup {
+        graph .graph1
+        pack .graph1
+        .graph1 element create Element1 -xdata {0 1 2} -ydata {0 1 0} -symbol none -smooth linear
+        .graph1 axis configure x -min -1 -max 3
+        .graph1 axis configure y -min -1 -max 2
+        update idletasks
+    } -body {
+        set ps [.graph1 postscript output]
+        set number {[-+0-9.eE]+}
+        set pattern\
+                [format { newpath %s %s moveto\n %s %s lineto\n %s %s lineto\nDashesProc stroke} $number $number\
+                         $number $number $number $number]
+        regexp -- $pattern $ps
+    } -cleanup {
+        catch {.graph1 element delete Element1}
+        catch {destroy .graph1}
+    } -result 1
+
+    # --------------------------------------------------------------------------------
+    # Purpose: Ensure step smoothing changes data X first in a normal graph.
+    # --------------------------------------------------------------------------------
+    test RBC.graph.element.smooth.A.3.1 {
+        graph element smooth: normal step geometry
+    } -setup {
+        graph .graph1
+        pack .graph1
+        .graph1 element create Element1 -xdata {0 1} -ydata {0 1} -symbol none -smooth step
+        .graph1 axis configure x -min 0 -max 1
+        .graph1 axis configure y -min 0 -max 1
+        update idletasks
+    } -body {
+        lassign [.graph1 transform 0 0] x0 y0
+        lassign [.graph1 transform 1 1] x1 y1
+        set trace [FindThreePointTrace .graph1 $x0 $y0 $x1 $y1]
+        if {[llength $trace] != 6} {
+            return no-trace
+        }
+        lassign $trace sx sy mx my ex ey
+        list [expr {$mx == $ex}] [expr {$my == $sy}]
+    } -result {1 1} -cleanup {
+        catch {.graph1 element delete Element1}
+        catch {destroy .graph1}
+    }
+
+
+    # --------------------------------------------------------------------------------
+    # Purpose: Ensure step smoothing changes data X first when graph axes are inverted.
+    # --------------------------------------------------------------------------------
+    test RBC.graph.element.smooth.A.3.2 {
+        graph element smooth: inverted step geometry
+    } -setup {
+        graph .graph1 -invertxy yes
+        pack .graph1
+        .graph1 element create Element1 -xdata {0 1} -ydata {0 1} -symbol none -smooth step
+        .graph1 axis configure x -min 0 -max 1
+        .graph1 axis configure y -min 0 -max 1
+        update idletasks
+    } -body {
+        lassign [.graph1 transform 0 0] x0 y0
+        lassign [.graph1 transform 1 1] x1 y1
+        set trace [FindThreePointTrace .graph1 $x0 $y0 $x1 $y1]
+        if {[llength $trace] != 6} {
+            return no-trace
+        }
+        lassign $trace sx sy mx my ex ey
+        list [expr {$mx == $sx}] [expr {$my == $ey}]
+    } -cleanup {
+        catch {.graph1 element delete Element1}
+        catch {destroy .graph1}
+    } -result {1 1}
+
+    # --------------------------------------------------------------------------------
+    # Purpose: Ensure descending data-X mapping does not change step semantics.
+    # --------------------------------------------------------------------------------
+    test RBC.graph.element.smooth.A.3.3 {
+        graph element smooth: inverted descending X step geometry
+        } -setup {
+        graph .graph1 -invertxy yes
+        pack .graph1
+        .graph1 element create Element1 -xdata {0 1} -ydata {0 1} -symbol none -smooth step
+        .graph1 axis configure x -min 0 -max 1 -descending yes
+        .graph1 axis configure y -min 0 -max 1
+        update idletasks
+    } -body {
+        lassign [.graph1 transform 0 0] x0 y0
+        lassign [.graph1 transform 1 1] x1 y1
+        set trace [FindThreePointTrace .graph1 $x0 $y0 $x1 $y1]
+        if {[llength $trace] != 6} {
+            return no-trace
+        }
+        lassign $trace sx sy mx my ex ey
+        list [expr {$mx == $sx}] [expr {$my == $ey}]
+    } -cleanup {
+        catch {.graph1 element delete Element1}
+        catch {destroy .graph1}
+    } -result {1 1}
 
     cleanupTests
 }

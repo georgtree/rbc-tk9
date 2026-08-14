@@ -1235,7 +1235,7 @@ static void InitPen(LinePen *penPtr, const Tk_OptionSpec *optionSpecs, unsigned 
 static int ScaleSymbol(Element *elemPtr, int normalSize);
 static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
 static void ReducePoints(MapInfo *mapPtr, double tolerance);
-static void GenerateSteps(Line *linePtr, MapInfo *mapPtr);
+static void GenerateSteps(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
 static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
 static void GenerateParametricSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
 static void MapSymbols(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
@@ -2998,7 +2998,7 @@ static void ReducePoints(MapInfo *mapPtr, double tolerance) {
  *
  *----------------------------------------------------------------------
  */
-static void GenerateSteps(Line *linePtr, MapInfo *mapPtr) {
+static void GenerateSteps(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Point2D *screenPts;
     Tcl_Size *indices;
     unsigned char *breakBefore;
@@ -3035,7 +3035,6 @@ static void GenerateSteps(Line *linePtr, MapInfo *mapPtr) {
     breakBefore = NULL;
     if (mapPtr->breakBefore != NULL) {
         size_t breakBytes;
-
         if (GetLineArrayByteCount(newSize, sizeof(*breakBefore), &breakBytes) != TCL_OK) {
             ckfree(screenPts);
             ckfree(indices);
@@ -3058,8 +3057,8 @@ static void GenerateSteps(Line *linePtr, MapInfo *mapPtr) {
     count = 1;
     for (i = 1; i < mapPtr->nScreenPts; i++) {
         /*
-         * Do not manufacture the horizontal step segment across a
-         * missing-data boundary.
+         * Do not manufacture a step segment across a missing-data
+         * boundary.
          */
         if ((mapPtr->breakBefore != NULL) && mapPtr->breakBefore[i]) {
             screenPts[count] = mapPtr->screenPts[i];
@@ -3068,9 +3067,26 @@ static void GenerateSteps(Line *linePtr, MapInfo *mapPtr) {
             count++;
             continue;
         }
+        /*
+         * Step-and-hold changes data X first while holding data Y
+         * constant, then changes data Y.
+         *
+         * Normally data X maps to screen X, so the intermediate
+         * point is:
+         *
+         *     (next.x, previous.y)
+         *
+         * With -invertxy, data X maps to screen Y instead, so it is:
+         *
+         *     (previous.x, next.y)
+         */
+        screenPts[count] = screenPts[count - 1];
+        if (graphPtr->inverted) {
+            screenPts[count].y = mapPtr->screenPts[i].y;
+        } else {
+            screenPts[count].x = mapPtr->screenPts[i].x;
+        }
         screenPts[count + 1] = mapPtr->screenPts[i];
-        screenPts[count].x = screenPts[count + 1].x;
-        screenPts[count].y = screenPts[count - 1].y;
         indices[count] = mapPtr->indices[i];
         indices[count + 1] = mapPtr->indices[i];
         if (breakBefore != NULL) {
@@ -4553,7 +4569,7 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
 
         switch (linePtr->smooth) {
         case PEN_SMOOTH_STEP:
-            GenerateSteps(linePtr, &mapInfo);
+            GenerateSteps(graphPtr, linePtr, &mapInfo);
             break;
 
         case PEN_SMOOTH_NATURAL:
@@ -6830,8 +6846,14 @@ static void SetLineAttributes(PsToken psToken, LinePen *penPtr) {
 static void TracesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr) {
     Rbc_ChainLink *linkPtr;
     LineTrace *tracePtr;
-    register Point2D *pointPtr, *endPtr;
+    register Point2D *pointPtr;
+    register Point2D *endPtr;
     int count;
+
+#define PS_MAXPATH 1500
+    /*
+     * Maximum number of components in a PostScript level-1 path.
+     */
 
     SetLineAttributes(psToken, penPtr);
     for (linkPtr = Rbc_ChainFirstLink(linePtr->traces); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
@@ -6839,24 +6861,35 @@ static void TracesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr) 
         if (tracePtr->nScreenPts <= 0) {
             continue;
         }
-#define PS_MAXPATH                                                                                                     \
-    1500 /* Maximum number of components in a PostScript                                                               \
-          * (level 1) path. */
         pointPtr = tracePtr->screenPts;
         Rbc_FormatToPostScript(psToken, " newpath %g %g moveto\n", pointPtr->x, pointPtr->y);
         pointPtr++;
-        count = 0;
-        for (endPtr = tracePtr->screenPts + (tracePtr->nScreenPts - 1); pointPtr < endPtr; pointPtr++) {
+        /*
+         * Count path components, including the initial moveto.
+         */
+        count = 1;
+        endPtr = tracePtr->screenPts + (tracePtr->nScreenPts - 1);
+        for (; pointPtr < endPtr; pointPtr++) {
             Rbc_FormatToPostScript(psToken, " %g %g lineto\n", pointPtr->x, pointPtr->y);
-            if ((count % PS_MAXPATH) == 0) {
-                Rbc_FormatToPostScript(psToken, "DashesProc stroke\n newpath  %g %g moveto\n", pointPtr->x,
-                                       pointPtr->y);
-            }
             count++;
+            /*
+             * Finish the current path only after it has reached the
+             * maximum size.  Restart at the current point so that the
+             * following segment remains connected.
+             */
+            if (count >= PS_MAXPATH) {
+                Rbc_FormatToPostScript(psToken,
+                                       "DashesProc stroke\n"
+                                       " newpath %g %g moveto\n",
+                                       pointPtr->x, pointPtr->y);
+                count = 1;
+            }
         }
         Rbc_FormatToPostScript(psToken, " %g %g lineto\n", pointPtr->x, pointPtr->y);
         Rbc_AppendToPostScript(psToken, "DashesProc stroke\n", (char *)NULL);
     }
+
+#undef PS_MAXPATH
 }
 
 /*
