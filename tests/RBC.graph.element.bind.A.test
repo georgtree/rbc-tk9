@@ -105,6 +105,43 @@ namespace eval graph.element {
         unset -nocomplain ::elementKeyBindingResult
         destroy .graph1
     } -result {Element1}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Non-positive data on a logarithmic axis must break a line trace rather
+    # than reconnecting the valid points on either side of the invalid sample.
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.element.bind.A.1.4 {
+        Logscale invalid point breaks line trace
+    } -setup {
+        graph .graph1 -width 600 -height 400 -halo 3
+        pack .graph1
+        .graph1 axis configure x -min 1 -max 5
+        .graph1 axis configure y -logscale yes -min 1 -max 100
+        .graph1 element create Element1 -data {1 10 2 10 3 -1 4 10 5 10} -symbol none -linewidth 2
+        .graph1 element bind Element1 <Enter> {
+            set ::elementGapHit 1
+        }
+        set ::elementGapHit 0
+        update
+        lassign [.graph1 transform 3 10] x y
+    } -body {
+        #
+        # Ensure there is no current element first.
+        #
+        event generate .graph1 <Motion> -x 0 -y 0
+        update
+        set ::elementGapHit 0
+        #
+        # This lies exactly on the false segment that would connect
+        # data points 2 and 4 if the omitted point were merely compacted.
+        #
+        event generate .graph1 <Motion> -x $x -y $y
+        update
+        set ::elementGapHit
+    } -cleanup {
+        unset -nocomplain ::elementGapHit
+        destroy .graph1
+    } -result 0
 	
 	cleanupTests
 }

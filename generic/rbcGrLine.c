@@ -59,9 +59,17 @@ static SmoothingInfo smoothingInfo[] = {{"linear", PEN_SMOOTH_NONE},         {"s
                                         {(char *)NULL, PEN_SMOOTH_LAST}};
 
 typedef struct {
-    Point2D *screenPts; /* Array of transformed coordinates */
-    Tcl_Size nScreenPts;     /* Number of coordinates */
-    Tcl_Size *indices;  /* Maps segments/traces to data points */
+    Point2D *screenPts;  /* Array of transformed coordinates */
+    Tcl_Size nScreenPts; /* Number of coordinates */
+    Tcl_Size *indices;   /* Maps segments/traces to data points */
+    /*
+     * Optional parallel array.  A non-zero entry at i means that no
+     * line segment may be drawn from screenPts[i - 1] to
+     * screenPts[i].
+     *
+     * NULL means that the entire mapped point array is continuous.
+     */
+    unsigned char *breakBefore;
 } MapInfo;
 
 /*
@@ -2746,21 +2754,25 @@ static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     const double *y;
     Point2D *screenPts;
     Tcl_Size *indices;
+    unsigned char *breakBefore;
     Tcl_Size nDataPoints;
     Tcl_Size nScreenPoints;
     Tcl_Size i;
     Tcl_Size count;
     size_t pointBytes;
     size_t indexBytes;
+    int hasBreaks;
 
     mapPtr->screenPts = NULL;
     mapPtr->indices = NULL;
+    mapPtr->breakBefore = NULL;
     mapPtr->nScreenPts = 0;
     nDataPoints = NumberOfPoints(&linePtr->core);
     x = linePtr->core.x.valueArr;
     y = linePtr->core.y.valueArr;
     /*
-     * Count only the finite points that will actually be mapped.
+     * This is only an allocation upper bound.  Some finite raw data
+     * may still be outside the domain of a logarithmic axis.
      */
     nScreenPoints = 0;
     for (i = 0; i < nDataPoints; i++) {
@@ -2793,8 +2805,9 @@ static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
         }
         point = Rbc_Map2D(graphPtr, x[i], y[i], &linePtr->core.axes);
         /*
-         * Non-positive data on a logarithmic axis intentionally maps to
-         * a non-finite point and is omitted.
+         * Non-positive data on a logarithmic axis intentionally maps
+         * to a non-finite coordinate.  It represents a break in the
+         * data rather than a point to draw.
          */
         if ((!FINITE(point.x)) || (!FINITE(point.y))) {
             continue;
@@ -2808,9 +2821,42 @@ static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
         ckfree(indices);
         return;
     }
+    /*
+     * Detect discontinuities while indices still refer directly to
+     * the original data array.  Later smoothing and reduction destroy
+     * that simple relationship.
+     */
+    hasBreaks = FALSE;
+    for (i = 1; i < count; i++) {
+        if (indices[i] != indices[i - 1] + 1) {
+            hasBreaks = TRUE;
+            break;
+        }
+    }
+    breakBefore = NULL;
+    if (hasBreaks) {
+        size_t breakBytes;
+
+        if (GetLineArrayByteCount(count, sizeof(*breakBefore), &breakBytes) != TCL_OK) {
+            ckfree(screenPts);
+            ckfree(indices);
+            return;
+        }
+        breakBefore = Tcl_AttemptAlloc(breakBytes);
+        if (breakBefore == NULL) {
+            ckfree(screenPts);
+            ckfree(indices);
+            return;
+        }
+        breakBefore[0] = FALSE;
+        for (i = 1; i < count; i++) {
+            breakBefore[i] = (indices[i] != indices[i - 1] + 1);
+        }
+    }
     mapPtr->screenPts = screenPts;
-    mapPtr->nScreenPts = count;
     mapPtr->indices = indices;
+    mapPtr->breakBefore = breakBefore;
+    mapPtr->nScreenPts = count;
 }
 
 /*
@@ -2836,13 +2882,15 @@ static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
 static void ReducePoints(MapInfo *mapPtr, double tolerance) {
     Point2D *screenPts;
     Tcl_Size *indices;
+    unsigned char *breakBefore;
     Tcl_Size *simple;
     Tcl_Size nPoints;
+    Tcl_Size n;
+    Tcl_Size i;
+    Tcl_Size runStart;
     size_t simpleBytes;
     size_t pointBytes;
     size_t indexBytes;
-    Tcl_Size n;
-    Tcl_Size i;
 
     if ((mapPtr == NULL) || (mapPtr->screenPts == NULL) || (mapPtr->indices == NULL) || (mapPtr->nScreenPts < 2)) {
         return;
@@ -2855,19 +2903,26 @@ static void ReducePoints(MapInfo *mapPtr, double tolerance) {
     if (simple == NULL) {
         return;
     }
-    n = Rbc_SimplifyLine(mapPtr->screenPts, 0, nPoints - 1, tolerance, simple);
-    if ((n <= 0) || (n > nPoints)) {
-        ckfree(simple);
-        return;
+    n = 0;
+    runStart = 0;
+    for (i = 1; i <= nPoints; i++) {
+        if ((i == nPoints) || ((mapPtr->breakBefore != NULL) && mapPtr->breakBefore[i])) {
+            Tcl_Size runCount;
+
+            runCount = Rbc_SimplifyLine(mapPtr->screenPts, runStart, i - 1, tolerance, simple + n);
+            if ((runCount <= 0) || (runCount > nPoints - n)) {
+                ckfree(simple);
+                return;
+            }
+            n += runCount;
+            runStart = i;
+        }
     }
-    /*
-     * Nothing was eliminated.  Keep the existing arrays.
-     */
     if (n == nPoints) {
         ckfree(simple);
         return;
     }
-    if ((GetLineArrayByteCount(n, sizeof(*screenPts), &pointBytes) != TCL_OK) ||
+    if ((n <= 0) || (GetLineArrayByteCount(n, sizeof(*screenPts), &pointBytes) != TCL_OK) ||
         (GetLineArrayByteCount(n, sizeof(*indices), &indexBytes) != TCL_OK)) {
         ckfree(simple);
         return;
@@ -2883,18 +2938,43 @@ static void ReducePoints(MapInfo *mapPtr, double tolerance) {
         ckfree(simple);
         return;
     }
+    breakBefore = NULL;
+    if (mapPtr->breakBefore != NULL) {
+        size_t breakBytes;
+
+        if (GetLineArrayByteCount(n, sizeof(*breakBefore), &breakBytes) != TCL_OK) {
+            ckfree(screenPts);
+            ckfree(indices);
+            ckfree(simple);
+            return;
+        }
+        breakBefore = Tcl_AttemptAlloc(breakBytes);
+        if (breakBefore == NULL) {
+            ckfree(screenPts);
+            ckfree(indices);
+            ckfree(simple);
+            return;
+        }
+    }
     for (i = 0; i < n; i++) {
         Tcl_Size k;
 
         k = simple[i];
         screenPts[i] = mapPtr->screenPts[k];
         indices[i] = mapPtr->indices[k];
+        if (breakBefore != NULL) {
+            breakBefore[i] = mapPtr->breakBefore[k];
+        }
     }
     ckfree(simple);
     ckfree(mapPtr->screenPts);
     ckfree(mapPtr->indices);
+    if (mapPtr->breakBefore != NULL) {
+        ckfree(mapPtr->breakBefore);
+    }
     mapPtr->screenPts = screenPts;
     mapPtr->indices = indices;
+    mapPtr->breakBefore = breakBefore;
     mapPtr->nScreenPts = n;
 }
 
@@ -2921,6 +3001,7 @@ static void ReducePoints(MapInfo *mapPtr, double tolerance) {
 static void GenerateSteps(Line *linePtr, MapInfo *mapPtr) {
     Point2D *screenPts;
     Tcl_Size *indices;
+    unsigned char *breakBefore;
     Tcl_Size i;
     Tcl_Size count;
     Tcl_Size newSize;
@@ -2951,22 +3032,62 @@ static void GenerateSteps(Line *linePtr, MapInfo *mapPtr) {
         linePtr->smooth = PEN_SMOOTH_NONE;
         return;
     }
+    breakBefore = NULL;
+    if (mapPtr->breakBefore != NULL) {
+        size_t breakBytes;
+
+        if (GetLineArrayByteCount(newSize, sizeof(*breakBefore), &breakBytes) != TCL_OK) {
+            ckfree(screenPts);
+            ckfree(indices);
+            linePtr->smooth = PEN_SMOOTH_NONE;
+            return;
+        }
+        breakBefore = Tcl_AttemptAlloc(breakBytes);
+        if (breakBefore == NULL) {
+            ckfree(screenPts);
+            ckfree(indices);
+            linePtr->smooth = PEN_SMOOTH_NONE;
+            return;
+        }
+    }
     screenPts[0] = mapPtr->screenPts[0];
     indices[0] = mapPtr->indices[0];
+    if (breakBefore != NULL) {
+        breakBefore[0] = FALSE;
+    }
     count = 1;
     for (i = 1; i < mapPtr->nScreenPts; i++) {
+        /*
+         * Do not manufacture the horizontal step segment across a
+         * missing-data boundary.
+         */
+        if ((mapPtr->breakBefore != NULL) && mapPtr->breakBefore[i]) {
+            screenPts[count] = mapPtr->screenPts[i];
+            indices[count] = mapPtr->indices[i];
+            breakBefore[count] = TRUE;
+            count++;
+            continue;
+        }
         screenPts[count + 1] = mapPtr->screenPts[i];
         screenPts[count].x = screenPts[count + 1].x;
         screenPts[count].y = screenPts[count - 1].y;
         indices[count] = mapPtr->indices[i];
         indices[count + 1] = mapPtr->indices[i];
+        if (breakBefore != NULL) {
+            breakBefore[count] = FALSE;
+            breakBefore[count + 1] = FALSE;
+        }
         count += 2;
     }
     ckfree(mapPtr->screenPts);
     ckfree(mapPtr->indices);
+    if (mapPtr->breakBefore != NULL) {
+        ckfree(mapPtr->breakBefore);
+    }
     mapPtr->screenPts = screenPts;
     mapPtr->indices = indices;
-    mapPtr->nScreenPts = newSize;
+    mapPtr->breakBefore = breakBefore;
+    mapPtr->nScreenPts = count;
 }
 
 /*
@@ -3473,6 +3594,9 @@ static void MapActiveSymbols(Graph *graphPtr, Line *linePtr) {
             continue;
         }
         point = Rbc_Map2D(graphPtr, x, y, &linePtr->core.axes);
+        if ((!FINITE(point.x)) || (!FINITE(point.y))) {
+            continue;
+        }
         if (!PointInRegion(&exts, point.x, point.y)) {
             continue;
         }
@@ -3514,11 +3638,8 @@ static void MapActiveSymbols(Graph *graphPtr, Line *linePtr) {
 static void MapStrip(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Extents2D exts;
     Segment2D *strips;
-    Segment2D *segPtr;
     Tcl_Size *indices;
-    Tcl_Size *indexPtr;
-    Point2D *pointPtr;
-    Point2D *endPtr;
+    Tcl_Size i;
     Tcl_Size count;
     Tcl_Size capacity;
 
@@ -3544,15 +3665,14 @@ static void MapStrip(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
             return;
         }
     }
-    segPtr = strips;
-    indexPtr = mapPtr->indices;
     count = 0;
     Rbc_GraphExtents(graphPtr, &exts);
-    for (pointPtr = mapPtr->screenPts, endPtr = mapPtr->screenPts + (mapPtr->nScreenPts - 1); pointPtr < endPtr;
-         pointPtr++, indexPtr++) {
-        if (Rbc_LineRectClip(&exts, &pointPtr[0], &pointPtr[1], segPtr)) {
-            segPtr++;
-            indices[count] = *indexPtr;
+    for (i = 0; i + 1 < mapPtr->nScreenPts; i++) {
+        if ((mapPtr->breakBefore != NULL) && mapPtr->breakBefore[i + 1]) {
+            continue;
+        }
+        if (Rbc_LineRectClip(&exts, &mapPtr->screenPts[i], &mapPtr->screenPts[i + 1], &strips[count])) {
+            indices[count] = mapPtr->indices[i];
             count++;
         }
     }
@@ -3987,6 +4107,19 @@ static void MapTraces(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     p = mapPtr->screenPts;
     q = p + 1;
     for (i = 1; i < mapPtr->nScreenPts; i++, p++, q++) {
+        if ((mapPtr->breakBefore != NULL) && mapPtr->breakBefore[i]) {
+            /*
+             * q starts a new continuous data run.  Save the previous trace
+             * without ever clipping or testing the nonexistent p->q segment.
+             */
+            if (count > 1) {
+                start = i - count;
+                SaveTrace(linePtr, start, count, mapPtr);
+            }
+            count = 1;
+            code1 = OutCode(&exts, q);
+            continue;
+        }
         code2 = OutCode(&exts, q);
         if (code2 != 0) {
             /* Save the coordinates of the last point, before clipping */
@@ -4072,6 +4205,14 @@ static void MapFillArea(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
         ckfree(linePtr->fillPts);
         linePtr->fillPts = NULL;
         linePtr->nFillPts = 0;
+    }
+    /*
+     * Line currently stores one fill polygon only.  Filling a mapped
+     * line containing discontinuities would incorrectly bridge separate
+     * data runs.
+     */
+    if (mapPtr->breakBefore != NULL) {
+        return;
     }
     if (mapPtr->nScreenPts < 3) {
         return;
@@ -4259,8 +4400,11 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
 
         case PEN_SMOOTH_NATURAL:
         case PEN_SMOOTH_QUADRATIC:
-            if (mapInfo.nScreenPts < 3) {
-                /* Can't interpolate with less than three points. */
+            if ((mapInfo.nScreenPts < 3) || (mapInfo.breakBefore != NULL)) {
+                /*
+                 * Never interpolate through missing data.  Proper per-run
+                 * spline generation can be added separately.
+                 */
                 linePtr->smooth = PEN_SMOOTH_NONE;
             } else {
                 GenerateSpline(graphPtr, linePtr, &mapInfo);
@@ -4268,8 +4412,7 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
             break;
 
         case PEN_SMOOTH_CATROM:
-            if (mapInfo.nScreenPts < 3) {
-                /* Can't interpolate with less than three points. */
+            if ((mapInfo.nScreenPts < 3) || (mapInfo.breakBefore != NULL)) {
                 linePtr->smooth = PEN_SMOOTH_NONE;
             } else {
                 GenerateParametricSpline(graphPtr, linePtr, &mapInfo);
@@ -4293,6 +4436,9 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
     }
     ckfree(mapInfo.screenPts);
     ckfree(mapInfo.indices);
+    if (mapInfo.breakBefore != NULL) {
+        ckfree(mapInfo.breakBefore);
+    }
 
     /* Set the symbol size of all the pen styles. */
     for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
