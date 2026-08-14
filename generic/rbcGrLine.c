@@ -2742,8 +2742,8 @@ static int ScaleSymbol(Element *elemPtr, int normalSize) {
  *----------------------------------------------------------------------
  */
 static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
-    double *x;
-    double *y;
+    const double *x;
+    const double *y;
     Point2D *screenPts;
     Tcl_Size *indices;
     Tcl_Size nDataPoints;
@@ -2785,24 +2785,28 @@ static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
         return;
     }
     count = 0;
-    if (graphPtr->inverted) {
-        for (i = 0; i < nDataPoints; i++) {
-            if (FINITE(x[i]) && FINITE(y[i])) {
-                screenPts[count].x = Rbc_HMap(graphPtr, linePtr->core.axes.y, y[i]);
-                screenPts[count].y = Rbc_VMap(graphPtr, linePtr->core.axes.x, x[i]);
-                indices[count] = i;
-                count++;
-            }
+    for (i = 0; i < nDataPoints; i++) {
+        Point2D point;
+
+        if ((!FINITE(x[i])) || (!FINITE(y[i]))) {
+            continue;
         }
-    } else {
-        for (i = 0; i < nDataPoints; i++) {
-            if (FINITE(x[i]) && FINITE(y[i])) {
-                screenPts[count].x = Rbc_HMap(graphPtr, linePtr->core.axes.x, x[i]);
-                screenPts[count].y = Rbc_VMap(graphPtr, linePtr->core.axes.y, y[i]);
-                indices[count] = i;
-                count++;
-            }
+        point = Rbc_Map2D(graphPtr, x[i], y[i], &linePtr->core.axes);
+        /*
+         * Non-positive data on a logarithmic axis intentionally maps to
+         * a non-finite point and is omitted.
+         */
+        if ((!FINITE(point.x)) || (!FINITE(point.y))) {
+            continue;
         }
+        screenPts[count] = point;
+        indices[count] = i;
+        count++;
+    }
+    if (count == 0) {
+        ckfree(screenPts);
+        ckfree(indices);
+        return;
     }
     mapPtr->screenPts = screenPts;
     mapPtr->nScreenPts = count;

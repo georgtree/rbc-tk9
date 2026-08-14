@@ -269,21 +269,21 @@ static void FindRange(ElemVector *vPtr) {
  *----------------------------------------------------------------------
  */
 double Rbc_FindElemVectorMinimum(ElemVector *vPtr, double minLimit) {
+    const double *arr;
+    double min;
     Tcl_Size i;
-    register double *arr;
-    register double min, x;
 
     min = DBL_MAX;
     arr = vPtr->valueArr;
     for (i = 0; i < vPtr->nValues; i++) {
-        x = arr[i];
-        if (x < 0.0) {
-            /* What do you do about negative values when using log
-             * scale values seems like a grey area.  Mirror. */
-            x = -x;
+        double value;
+
+        value = arr[i];
+        if ((!FINITE(value)) || (value < minLimit)) {
+            continue;
         }
-        if ((x > minLimit) && (min > x)) {
-            min = x;
+        if (value < min) {
+            min = value;
         }
     }
     if (min == DBL_MAX) {
@@ -2730,10 +2730,10 @@ void Rbc_ExpandErrorBarExtents(Element *elemPtr, Extents2D *extsPtr) {
                 extsPtr->right = high;
             }
             if (elemPtr->axes.x->logScale) {
-                if (low < 0.0) {
-                    low = -low;
+                if ((high >= DBL_MIN) && (high > extsPtr->right)) {
+                    extsPtr->right = high;
                 }
-                if ((low > DBL_MIN) && (low < extsPtr->left)) {
+                if ((low >= DBL_MIN) && (low < extsPtr->left)) {
                     extsPtr->left = low;
                 }
             } else if (low < extsPtr->left) {
@@ -2755,10 +2755,10 @@ void Rbc_ExpandErrorBarExtents(Element *elemPtr, Extents2D *extsPtr) {
                 extsPtr->right = high;
             }
             if (elemPtr->axes.x->logScale) {
-                if (low < 0.0) {
-                    low = -low;
+                if ((high >= DBL_MIN) && (high > extsPtr->right)) {
+                    extsPtr->right = high;
                 }
-                if ((low > DBL_MIN) && (low < extsPtr->left)) {
+                if ((low >= DBL_MIN) && (low < extsPtr->left)) {
                     extsPtr->left = low;
                 }
             } else if (low < extsPtr->left) {
@@ -2794,10 +2794,10 @@ void Rbc_ExpandErrorBarExtents(Element *elemPtr, Extents2D *extsPtr) {
                 extsPtr->bottom = high;
             }
             if (elemPtr->axes.y->logScale) {
-                if (low < 0.0) {
-                    low = -low;
+                if ((high >= DBL_MIN) && (high > extsPtr->bottom)) {
+                    extsPtr->bottom = high;
                 }
-                if ((low > DBL_MIN) && (low < extsPtr->top)) {
+                if ((low >= DBL_MIN) && (low < extsPtr->top)) {
                     extsPtr->top = low;
                 }
             } else if (low < extsPtr->top) {
@@ -2819,10 +2819,10 @@ void Rbc_ExpandErrorBarExtents(Element *elemPtr, Extents2D *extsPtr) {
                 extsPtr->bottom = high;
             }
             if (elemPtr->axes.y->logScale) {
-                if (low < 0.0) {
-                    low = -low;
+                if ((high >= DBL_MIN) && (high > extsPtr->bottom)) {
+                    extsPtr->bottom = high;
                 }
-                if ((low > DBL_MIN) && (low < extsPtr->top)) {
+                if ((low >= DBL_MIN) && (low < extsPtr->top)) {
                     extsPtr->top = low;
                 }
             } else if (low < extsPtr->top) {
@@ -2956,6 +2956,9 @@ void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle)
                 Point2D q;
                 p = Rbc_Map2D(graphPtr, high, y, &elemPtr->axes);
                 q = Rbc_Map2D(graphPtr, low, y, &elemPtr->axes);
+                if ((!FINITE(p.x)) || (!FINITE(p.y)) || (!FINITE(q.x)) || (!FINITE(q.y))) {
+                    continue;
+                }
                 /*
                  * Main horizontal error-bar segment.
                  */
@@ -3045,6 +3048,9 @@ void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle)
                 Point2D capQ;
                 p = Rbc_Map2D(graphPtr, x, high, &elemPtr->axes);
                 q = Rbc_Map2D(graphPtr, x, low, &elemPtr->axes);
+                if ((!FINITE(p.x)) || (!FINITE(p.y)) || (!FINITE(q.x)) || (!FINITE(q.y))) {
+                    continue;
+                }
                 /*
                  * Main vertical error-bar segment.
                  */

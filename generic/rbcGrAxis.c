@@ -333,6 +333,10 @@ static void AxisOffsets(Graph *graphPtr, Axis *axisPtr, int margin, int axisOffs
 static void MakeAxisLine(Graph *graphPtr, Axis *axisPtr, int line, Segment2D *segPtr);
 static void MakeTick(Graph *graphPtr, Axis *axisPtr, double value, int tick, int line, Segment2D *segPtr);
 static void MapAxis(Graph *graphPtr, Axis *axisPtr, int offset, int margin);
+static double LogAxisValue(double exponent);
+static double MapHorizontalAxisCoordinate(Graph *graphPtr, Axis *axisPtr, double value);
+static double MapVerticalAxisCoordinate(Graph *graphPtr, Axis *axisPtr, double value);
+static void MakeLogRange(double value, double *minPtr, double *maxPtr);
 static double AdjustViewport(double offset, double windowSize);
 static int GetAxisScrollInfo(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], double *offsetPtr,
                              double windowSize, double scrollUnits);
@@ -622,6 +626,86 @@ static double InterpolateAxisValue(const AxisRange *rangePtr, double norm) {
      * interpolation between two finite endpoints.
      */
     return ((1.0 - norm) * (rangePtr->min * 0.5) + norm * (rangePtr->max * 0.5)) * 2.0;
+}
+
+static double LogAxisValue(double exponent) {
+    double minExponent;
+    double maxExponent;
+    double value;
+
+    if (!FINITE(exponent)) {
+        return NAN;
+    }
+    minExponent = log10(DBL_MIN);
+    maxExponent = log10(DBL_MAX);
+    if ((exponent < minExponent) || (exponent > maxExponent)) {
+        return NAN;
+    }
+    /*
+     * Avoid pow() rounding across the representable endpoints.
+     */
+    if (exponent <= minExponent) {
+        return DBL_MIN;
+    }
+    if (exponent >= maxExponent) {
+        return DBL_MAX;
+    }
+    value = EXP10(exponent);
+    if ((!FINITE(value)) || (value <= 0.0)) {
+        return NAN;
+    }
+    return value;
+}
+
+static double MapHorizontalAxisCoordinate(Graph *graphPtr, Axis *axisPtr, double value) {
+    value = NormalizeAxisValue(&axisPtr->axisRange, value);
+    if (!FINITE(value)) {
+        return NAN;
+    }
+    if (axisPtr->descending) {
+        value = 1.0 - value;
+    }
+    return value * graphPtr->hRange + graphPtr->hOffset;
+}
+
+static double MapVerticalAxisCoordinate(Graph *graphPtr, Axis *axisPtr, double value) {
+    value = NormalizeAxisValue(&axisPtr->axisRange, value);
+    if (!FINITE(value)) {
+        return NAN;
+    }
+    if (axisPtr->descending) {
+        value = 1.0 - value;
+    }
+    return (1.0 - value) * graphPtr->vRange + graphPtr->vOffset;
+}
+
+static void MakeLogRange(double value, double *minPtr, double *maxPtr) {
+    double exponent;
+    double low;
+    double high;
+    double minExponent;
+    double maxExponent;
+
+    if ((!FINITE(value)) || (value <= 0.0)) {
+        *minPtr = 0.001;
+        *maxPtr = 1.0;
+        return;
+    }
+    minExponent = log10(DBL_MIN);
+    maxExponent = log10(DBL_MAX);
+    exponent = log10(value);
+    low = exponent - 0.5;
+    high = exponent + 0.5;
+    if (low < minExponent) {
+        low = minExponent;
+        high = MIN(maxExponent, minExponent + 1.0);
+    }
+    if (high > maxExponent) {
+        high = maxExponent;
+        low = MAX(minExponent, maxExponent - 1.0);
+    }
+    *minPtr = LogAxisValue(low);
+    *maxPtr = LogAxisValue(high);
 }
 
 /*
@@ -1770,23 +1854,34 @@ static int PrepareAxisLimitTransaction(Graph *graphPtr, Axis *axisPtr, AxisLimit
                          Tcl_ObjPrintf("impossible limits "
                                        "(min %g >= max %g) for axis \"%s\"",
                                        transactionPtr->reqMin, transactionPtr->reqMax, axisPtr->name));
-
         return TCL_ERROR;
     }
-
-    /*
-     * Preserve the current legacy validation semantics: only a defined
-     * requested minimum is checked when logarithmic scaling is active.
-     */
-    if (axisPtr->logScale && DEFINED(transactionPtr->reqMin) && (transactionPtr->reqMin <= 0.0)) {
-        Tcl_SetObjResult(graphPtr->interp,
-                         Tcl_ObjPrintf("bad logscale limits "
-                                       "(min=%g,max=%g) for axis \"%s\"",
-                                       transactionPtr->reqMin, transactionPtr->reqMax, axisPtr->name));
-
-        return TCL_ERROR;
+    if (axisPtr->logScale) {
+        if (DEFINED(transactionPtr->reqMin) && (transactionPtr->reqMin <= 0.0)) {
+            Tcl_SetObjResult(graphPtr->interp, Tcl_ObjPrintf("-min must be positive for "
+                                                             "logscale axis \"%s\"",
+                                                             axisPtr->name));
+            return TCL_ERROR;
+        }
+        if (DEFINED(transactionPtr->reqMax) && (transactionPtr->reqMax <= 0.0)) {
+            Tcl_SetObjResult(graphPtr->interp, Tcl_ObjPrintf("-max must be positive for "
+                                                             "logscale axis \"%s\"",
+                                                             axisPtr->name));
+            return TCL_ERROR;
+        }
+        if (DEFINED(transactionPtr->scrollMin) && (transactionPtr->scrollMin <= 0.0)) {
+            Tcl_SetObjResult(graphPtr->interp, Tcl_ObjPrintf("-scrollmin must be positive for "
+                                                             "logscale axis \"%s\"",
+                                                             axisPtr->name));
+            return TCL_ERROR;
+        }
+        if (DEFINED(transactionPtr->scrollMax) && (transactionPtr->scrollMax <= 0.0)) {
+            Tcl_SetObjResult(graphPtr->interp, Tcl_ObjPrintf("-scrollmax must be positive for "
+                                                             "logscale axis \"%s\"",
+                                                             axisPtr->name));
+            return TCL_ERROR;
+        }
     }
-
     return TCL_OK;
 }
 
@@ -2590,7 +2685,7 @@ double Rbc_InvHMap(Graph *graphPtr, Axis *axisPtr, double x) {
     }
     value = InterpolateAxisValue(&axisPtr->axisRange, x);
     if (axisPtr->logScale) {
-        value = EXP10(value);
+        value = LogAxisValue(value);
     }
     return value;
 }
@@ -2626,7 +2721,7 @@ double Rbc_InvVMap(Graph *graphPtr, Axis *axisPtr, double y) {
     }
     value = InterpolateAxisValue(&axisPtr->axisRange, 1.0 - y);
     if (axisPtr->logScale) {
-        value = EXP10(value);
+        value = LogAxisValue(value);
     }
     return value;
 }
@@ -2654,15 +2749,19 @@ double Rbc_InvVMap(Graph *graphPtr, Axis *axisPtr, double y) {
  * ----------------------------------------------------------------------
  */
 double Rbc_HMap(Graph *graphPtr, Axis *axisPtr, double x) {
-    if ((axisPtr->logScale) && (x != 0.0)) {
-        x = log10(FABS(x));
+    if (!FINITE(x)) {
+        return NAN;
     }
-    /* Map graph coordinate to normalized coordinates [0..1] */
-    x = NormalizeAxisValue(&axisPtr->axisRange, x);
-    if (axisPtr->descending) {
-        x = 1.0 - x;
+    if (axisPtr->logScale) {
+        if (x <= 0.0) {
+            return NAN;
+        }
+        x = log10(x);
+        if (!FINITE(x)) {
+            return NAN;
+        }
     }
-    return (x * graphPtr->hRange + graphPtr->hOffset);
+    return MapHorizontalAxisCoordinate(graphPtr, axisPtr, x);
 }
 
 /*
@@ -2688,15 +2787,19 @@ double Rbc_HMap(Graph *graphPtr, Axis *axisPtr, double x) {
  * ----------------------------------------------------------------------
  */
 double Rbc_VMap(Graph *graphPtr, Axis *axisPtr, double y) {
-    if ((axisPtr->logScale) && (y != 0.0)) {
-        y = log10(FABS(y));
+    if (!FINITE(y)) {
+        return NAN;
     }
-    /* Map graph coordinate to normalized coordinates [0..1] */
-    y = NormalizeAxisValue(&axisPtr->axisRange, y);
-    if (axisPtr->descending) {
-        y = 1.0 - y;
+    if (axisPtr->logScale) {
+        if (y <= 0.0) {
+            return NAN;
+        }
+        y = log10(y);
+        if (!FINITE(y)) {
+            return NAN;
+        }
     }
-    return (((1.0 - y) * graphPtr->vRange) + graphPtr->vOffset);
+    return MapVerticalAxisCoordinate(graphPtr, axisPtr, y);
 }
 
 /*
@@ -2840,21 +2943,31 @@ static void FixAxisRange(Axis *axisPtr) {
             max = 1.0;
         }
     }
+    if (axisPtr->logScale) {
+        if ((!FINITE(min)) || (min <= 0.0)) {
+            min = 0.001;
+        }
+        if ((!FINITE(max)) || (max <= 0.0)) {
+            max = 1.0;
+        }
+    }
     if (min >= max) {
-        double value;
-
-        /*
-         * There is no range of data (i.e. min is not less than max),
-         * so manufacture one.
-         */
-        value = min;
-        if (value == 0.0) {
-            min = -0.1, max = 0.1;
+        if (axisPtr->logScale) {
+            MakeLogRange(min, &min, &max);
         } else {
-            double x;
+            double value;
 
-            x = FABS(value) * 0.1;
-            min = value - x, max = value + x;
+            value = min;
+            if (value == 0.0) {
+                min = -0.1;
+                max = 0.1;
+            } else {
+                double x;
+
+                x = FABS(value) * 0.1;
+                min = value - x;
+                max = value + x;
+            }
         }
     }
     SetAxisRange(&axisPtr->valueRange, min, max);
@@ -2872,22 +2985,32 @@ static void FixAxisRange(Axis *axisPtr) {
     if (DEFINED(axisPtr->reqMax)) {
         axisPtr->max = axisPtr->reqMax;
     }
+    if (axisPtr->max <= axisPtr->min) {
+        if (axisPtr->logScale) {
+            double minExponent;
+            double maxExponent;
 
-    if (axisPtr->max < axisPtr->min) {
+            minExponent = log10(DBL_MIN);
+            maxExponent = log10(DBL_MAX);
+            if (!DEFINED(axisPtr->reqMin)) {
+                double exponent;
 
-        /*
-         * If the limits still don't make sense, it's because one
-         * limit configuration option (-min or -max) was set and the
-         * other default (based upon the data) is too small or large.
-         * Remedy this by making up a new min or max from the
-         * user-defined limit.
-         */
+                exponent = log10(axisPtr->max);
+                axisPtr->min = LogAxisValue(MAX(minExponent, exponent - 1.0));
+            }
+            if (!DEFINED(axisPtr->reqMax)) {
+                double exponent;
 
-        if (!DEFINED(axisPtr->reqMin)) {
-            axisPtr->min = axisPtr->max - (FABS(axisPtr->max) * 0.1);
-        }
-        if (!DEFINED(axisPtr->reqMax)) {
-            axisPtr->max = axisPtr->min + (FABS(axisPtr->max) * 0.1);
+                exponent = log10(axisPtr->min);
+                axisPtr->max = LogAxisValue(MIN(maxExponent, exponent + 1.0));
+            }
+        } else {
+            if (!DEFINED(axisPtr->reqMin)) {
+                axisPtr->min = axisPtr->max - FABS(axisPtr->max) * 0.1;
+            }
+            if (!DEFINED(axisPtr->reqMax)) {
+                axisPtr->max = axisPtr->min + FABS(axisPtr->max) * 0.1;
+            }
         }
     }
     /*
@@ -2991,16 +3114,8 @@ static double NiceNum(double x, int round) {
  *----------------------------------------------------------------------
  */
 static Ticks *GenerateTicks(TickSweep *sweepPtr) {
-    static const double logTable[] = {0.0,
-                                      0.301029995663981,
-                                      0.477121254719662,
-                                      0.602059991327962,
-                                      0.698970004336019,
-                                      0.778151250383644,
-                                      0.845098040014257,
-                                      0.903089986991944,
-                                      0.954242509439325,
-                                      1.0};
+    static const double logTable[] = {0.301029995663981, 0.477121254719662, 0.602059991327962, 0.698970004336019,
+                                      0.778151250383644, 0.845098040014257, 0.903089986991944, 0.954242509439325};
 
     Ticks *ticksPtr;
     Tcl_Size nSteps;
@@ -3133,60 +3248,120 @@ static Ticks *GenerateTicks(TickSweep *sweepPtr) {
  *
  * ---------------------------------------------------------------------- */
 static void LogScaleAxis(Axis *axisPtr, double min, double max) {
+    double logMin;
+    double logMax;
+    double tickMin;
+    double tickMax;
+    double axisMin;
+    double axisMax;
     double range;
-    double tickMin, tickMax;
-    double majorStep, minorStep;
-    Tcl_Size nMajor, nMinor;
+    double majorStep;
+    double minorStep;
+    double minExponent;
+    double maxExponent;
+    Tcl_Size nMajor;
+    Tcl_Size nMinor;
+    int wideRange;
+    int haveSweep;
 
-    min = (min != 0.0) ? log10(FABS(min)) : 0.0;
-    max = (max != 0.0) ? log10(FABS(max)) : 1.0;
-    tickMin = floor(min);
-    tickMax = ceil(max);
-    range = tickMax - tickMin;
-    if (range > 10) {
-        /* There are too many decades to display a major tick at every
-         * decade.  Instead, treat the axis as a linear scale.  */
+    minExponent = log10(DBL_MIN);
+    maxExponent = log10(DBL_MAX);
+    /*
+     * FixAxisRange should already guarantee this, but keep the
+     * numerical core self-contained.
+     */
+    if ((!FINITE(min)) || (min <= 0.0)) {
+        min = 0.001;
+    }
+    if ((!FINITE(max)) || (max <= 0.0)) {
+        max = 1.0;
+    }
+    logMin = log10(min);
+    logMax = log10(max);
+    /*
+     * Two distinct raw doubles can occasionally collapse onto the
+     * same logarithm through rounding.  Ensure a drawable exponent
+     * range.
+     */
+    if (!(logMin < logMax)) {
+        double center;
+
+        center = logMin;
+        logMin = MAX(minExponent, center - 0.5);
+        logMax = MIN(maxExponent, center + 0.5);
+        if (!(logMin < logMax)) {
+            if (center >= maxExponent) {
+                logMax = maxExponent;
+                logMin = MAX(minExponent, maxExponent - 1.0);
+            } else {
+                logMin = minExponent;
+                logMax = MIN(maxExponent, minExponent + 1.0);
+            }
+        }
+    }
+    range = ceil(logMax) - floor(logMin);
+    wideRange = (range > 10.0);
+    if (wideRange) {
         range = NiceNum(range, 0);
         majorStep = NiceNum(range / DEF_NUM_TICKS, 1);
-        tickMin = UFLOOR(tickMin, majorStep);
-        tickMax = UCEIL(tickMax, majorStep);
-        nMajor = (Tcl_Size)((tickMax - tickMin) / majorStep) + 1;
-        minorStep = EXP10(floor(log10(majorStep)));
-        if (minorStep == majorStep) {
-            nMinor = 4, minorStep = 0.2;
-        } else {
-            nMinor = (Tcl_Size)Round(majorStep / minorStep) - 1;
+        if ((!FINITE(majorStep)) || (majorStep <= 0.0)) {
+            majorStep = 1.0;
         }
     } else {
-        if (tickMin == tickMax) {
-            tickMax++;
-        }
         majorStep = 1.0;
-        nMajor = (Tcl_Size)(tickMax - tickMin + 1); /* FIXME: Check this. */
-        minorStep = 0.0; /* This is a special hack to pass
-                          * information to the GenerateTicks
-                          * routine. An interval of 0.0 tells
-                          *    1) this is a minor sweep and
-                          *    2) the axis is log scale.
-                          */
-        nMinor = 10;
     }
+    haveSweep = GetLinearSweep(logMin, logMax, majorStep, &tickMin, &tickMax, &nMajor);
+    if (!haveSweep) {
+        majorStep = 1.0;
+        haveSweep = GetLinearSweep(logMin, logMax, majorStep, &tickMin, &tickMax, &nMajor);
+    }
+    if (!haveSweep) {
+        tickMin = logMin;
+        tickMax = logMax;
+        nMajor = 0;
+    }
+    axisMin = tickMin;
+    axisMax = tickMax;
     if ((axisPtr->looseMin == TICK_RANGE_TIGHT) ||
-        ((axisPtr->looseMin == TICK_RANGE_LOOSE) && (DEFINED(axisPtr->reqMin)))) {
-        tickMin = min;
-        nMajor++;
+        ((axisPtr->looseMin == TICK_RANGE_LOOSE) && DEFINED(axisPtr->reqMin))) {
+        axisMin = logMin;
     }
     if ((axisPtr->looseMax == TICK_RANGE_TIGHT) ||
-        ((axisPtr->looseMax == TICK_RANGE_LOOSE) && (DEFINED(axisPtr->reqMax)))) {
-        tickMax = max;
+        ((axisPtr->looseMax == TICK_RANGE_LOOSE) && DEFINED(axisPtr->reqMax))) {
+        axisMax = logMax;
+    }
+    /*
+     * axisRange for a log axis is stored in exponent coordinates, but
+     * it must still represent values convertible back to finite doubles.
+     */
+    axisMin = MAX(axisMin, minExponent);
+    axisMax = MIN(axisMax, maxExponent);
+    if (!(axisMin < axisMax)) {
+        axisMin = logMin;
+        axisMax = logMax;
     }
     axisPtr->majorSweep.step = majorStep;
-    axisPtr->majorSweep.initial = floor(tickMin);
+    axisPtr->majorSweep.initial = tickMin;
     axisPtr->majorSweep.nSteps = nMajor;
-    axisPtr->minorSweep.initial = axisPtr->minorSweep.step = minorStep;
+    if (wideRange) {
+        /*
+         * Wide log axes are treated linearly in exponent space.
+         * Generate four equally spaced minor ticks between majors.
+         */
+        minorStep = 0.2;
+        nMinor = 4;
+    } else {
+        /*
+         * step == 0 tells GenerateTicks to use the logarithmic 2..9
+         * minor-tick table.
+         */
+        minorStep = 0.0;
+        nMinor = 8;
+    }
+    axisPtr->minorSweep.initial = minorStep;
+    axisPtr->minorSweep.step = minorStep;
     axisPtr->minorSweep.nSteps = nMinor;
-
-    SetAxisRange(&axisPtr->axisRange, tickMin, tickMax);
+    SetAxisRange(&axisPtr->axisRange, axisMin, axisMax);
 }
 
 /*
@@ -3794,22 +3969,19 @@ static void AxisOffsets(Graph *graphPtr, Axis *axisPtr, int margin, int axisOffs
  *----------------------------------------------------------------------
  */
 static void MakeAxisLine(Graph *graphPtr, Axis *axisPtr, int line, Segment2D *segPtr) {
-    double min, max;
+    double min;
+    double max;
 
     min = axisPtr->axisRange.min;
     max = axisPtr->axisRange.max;
-    if (axisPtr->logScale) {
-        min = EXP10(min);
-        max = EXP10(max);
-    }
     if (AxisIsHorizontal(graphPtr, axisPtr)) {
-        segPtr->p.x = Rbc_HMap(graphPtr, axisPtr, min);
-        segPtr->q.x = Rbc_HMap(graphPtr, axisPtr, max);
+        segPtr->p.x = MapHorizontalAxisCoordinate(graphPtr, axisPtr, min);
+        segPtr->q.x = MapHorizontalAxisCoordinate(graphPtr, axisPtr, max);
         segPtr->p.y = segPtr->q.y = line;
     } else {
-        segPtr->q.x = segPtr->p.x = line;
-        segPtr->p.y = Rbc_VMap(graphPtr, axisPtr, min);
-        segPtr->q.y = Rbc_VMap(graphPtr, axisPtr, max);
+        segPtr->p.x = segPtr->q.x = line;
+        segPtr->p.y = MapVerticalAxisCoordinate(graphPtr, axisPtr, min);
+        segPtr->q.y = MapVerticalAxisCoordinate(graphPtr, axisPtr, max);
     }
 }
 
@@ -3837,16 +4009,13 @@ static void MakeAxisLine(Graph *graphPtr, Axis *axisPtr, int line, Segment2D *se
  *----------------------------------------------------------------------
  */
 static void MakeTick(Graph *graphPtr, Axis *axisPtr, double value, int tick, int line, Segment2D *segPtr) {
-    if (axisPtr->logScale) {
-        value = EXP10(value);
-    }
     if (AxisIsHorizontal(graphPtr, axisPtr)) {
-        segPtr->p.x = segPtr->q.x = Rbc_HMap(graphPtr, axisPtr, value);
+        segPtr->p.x = segPtr->q.x = MapHorizontalAxisCoordinate(graphPtr, axisPtr, value);
         segPtr->p.y = line;
         segPtr->q.y = tick;
     } else {
         segPtr->p.x = line;
-        segPtr->p.y = segPtr->q.y = Rbc_VMap(graphPtr, axisPtr, value);
+        segPtr->p.y = segPtr->q.y = MapVerticalAxisCoordinate(graphPtr, axisPtr, value);
         segPtr->q.x = tick;
     }
 }
@@ -4201,8 +4370,8 @@ static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
             axisPtr->max = axisPtr->min + viewWidth;
             viewMax = viewMin + viewWidth;
             if (axisPtr->logScale) {
-                axisPtr->min = EXP10(axisPtr->min);
-                axisPtr->max = EXP10(axisPtr->max);
+                axisPtr->min = LogAxisValue(axisPtr->min);
+                axisPtr->max = LogAxisValue(axisPtr->max);
             }
             Rbc_UpdateScrollbar(graphPtr->interp, axisPtr->scrollCmdPrefix, (viewMin / worldWidth),
                                 (viewMax / worldWidth));
@@ -4212,8 +4381,8 @@ static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
             axisPtr->min = axisPtr->max - viewWidth;
             viewMin = viewMax + viewWidth;
             if (axisPtr->logScale) {
-                axisPtr->min = EXP10(axisPtr->min);
-                axisPtr->max = EXP10(axisPtr->max);
+                axisPtr->min = LogAxisValue(axisPtr->min);
+                axisPtr->max = LogAxisValue(axisPtr->max);
             }
             Rbc_UpdateScrollbar(graphPtr->interp, axisPtr->scrollCmdPrefix, (viewMax / worldWidth),
                                 (viewMin / worldWidth));
@@ -4303,18 +4472,14 @@ static void AxisToPostScript(PsToken psToken, Axis *axisPtr) {
  *----------------------------------------------------------------------
  */
 static void MakeGridLine(Graph *graphPtr, Axis *axisPtr, double value, Segment2D *segPtr) {
-    if (axisPtr->logScale) {
-        value = EXP10(value);
-    }
-    /* Grid lines run orthogonally to the axis */
     if (AxisIsHorizontal(graphPtr, axisPtr)) {
         segPtr->p.y = graphPtr->top;
         segPtr->q.y = graphPtr->bottom;
-        segPtr->p.x = segPtr->q.x = Rbc_HMap(graphPtr, axisPtr, value);
+        segPtr->p.x = segPtr->q.x = MapHorizontalAxisCoordinate(graphPtr, axisPtr, value);
     } else {
         segPtr->p.x = graphPtr->left;
         segPtr->q.x = graphPtr->right;
-        segPtr->p.y = segPtr->q.y = Rbc_VMap(graphPtr, axisPtr, value);
+        segPtr->p.y = segPtr->q.y = MapVerticalAxisCoordinate(graphPtr, axisPtr, value);
     }
 }
 
@@ -5621,8 +5786,8 @@ static int LimitsOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, T
         Rbc_ResetAxes(graphPtr);
     }
     if (axisPtr->logScale) {
-        min = EXP10(axisPtr->axisRange.min);
-        max = EXP10(axisPtr->axisRange.max);
+        min = LogAxisValue(axisPtr->axisRange.min);
+        max = LogAxisValue(axisPtr->axisRange.max);
     } else {
         min = axisPtr->axisRange.min;
         max = axisPtr->axisRange.max;
@@ -5729,6 +5894,10 @@ static int TransformOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc
     }
     if (!FINITE(value)) {
         Tcl_SetObjResult(interp, Tcl_NewStringObj("axis value must be finite", -1));
+        return TCL_ERROR;
+    }
+    if (axisPtr->logScale && (value <= 0.0)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("logscale axis value must be positive", -1));
         return TCL_ERROR;
     }
     if (AxisIsHorizontal(graphPtr, axisPtr)) {
@@ -6338,8 +6507,8 @@ static int ViewOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
         axisPtr->reqMin = axisPtr->reqMax - viewWidth;
     }
     if (axisPtr->logScale) {
-        axisPtr->reqMin = EXP10(axisPtr->reqMin);
-        axisPtr->reqMax = EXP10(axisPtr->reqMax);
+        axisPtr->reqMin = LogAxisValue(axisPtr->reqMin);
+        axisPtr->reqMax = LogAxisValue(axisPtr->reqMax);
     }
     graphPtr->flags |= (GET_AXIS_GEOMETRY | LAYOUT_NEEDED | RESET_AXES);
     Rbc_EventuallyRedrawGraph(graphPtr);

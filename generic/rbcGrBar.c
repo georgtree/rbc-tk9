@@ -1727,9 +1727,17 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
         if ((!FINITE(x[i])) || (!FINITE(y[i]))) {
             continue;
         }
-        if (((x[i] - barWidth) > barPtr->core.axes.x->axisRange.max) ||
-            ((x[i] + barWidth) < barPtr->core.axes.x->axisRange.min)) {
-            continue; /* Abscissa is out of range of the x-axis */
+        if (barPtr->core.axes.x->logScale && ((x[i] - barOffset) <= 0.0)) {
+            continue;
+        }
+        if (barPtr->core.axes.y->logScale && (y[i] <= 0.0)) {
+            continue;
+        }
+        if (!barPtr->core.axes.x->logScale) {
+            if (((x[i] - barWidth) > barPtr->core.axes.x->axisRange.max) ||
+                ((x[i] + barWidth) < barPtr->core.axes.x->axisRange.min)) {
+                continue;
+            }
         }
         c1.x = x[i] - barOffset;
         c1.y = y[i];

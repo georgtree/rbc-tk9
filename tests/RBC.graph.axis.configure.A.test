@@ -732,7 +732,28 @@ namespace eval graph.axis {
 		}
 	} -cleanup {
 		destroy .graph1
-	} -result {0}	
+	} -result {0}
+
+    test RBC.graph.axis.configure.A.13.8 {
+        Logscale - non-positive explicit limits rejected transactionally
+    } -setup {
+        graph .graph1
+        .graph1 axis create Axis1
+        .graph1 axis configure Axis1 -logscale yes -min 1 -max 100 -scrollmin 1 -scrollmax 100
+        set old {}
+        foreach option {-min -max -scrollmin -scrollmax} {
+            dict set old $option [.graph1 axis cget Axis1 $option]
+        }
+    } -body {
+        set result {}
+        foreach {option value} {-min 0 -max -1 -scrollmin 0 -scrollmax -1} {
+            set code [catch {.graph1 axis configure Axis1 $option $value}]
+            lappend result $code [expr {[.graph1 axis cget Axis1 $option] eq [dict get $old $option]}]
+        }
+        set result
+    } -cleanup {
+        destroy .graph1
+    } -result {1 1 1 1 1 1 1 1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the axis configure -loose command works correctly
