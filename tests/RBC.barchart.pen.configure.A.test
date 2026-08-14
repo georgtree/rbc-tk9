@@ -1215,6 +1215,20 @@ namespace eval barchart.pen {
 		.barchart1 pen delete pen1
 		destroy .barchart1
 	} -result {formatstring}
+
+    test RBC.barchart.pen.configure.A.15.2 {
+        barchart pen configure: valueformat - rollback
+    } -setup {
+        barchart .barchart1
+        .barchart1 pen create pen1
+        .barchart1 pen configure pen1 -valueformat %.2f
+    } -body {
+        set code [catch {.barchart1 pen configure pen1 -valueformat {%g %g}}]
+        list $code [.barchart1 pen cget pen1 -valueformat]
+    } -cleanup {
+        .barchart1 pen delete pen1
+        destroy .barchart1
+    } -result {1 %.2f}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the pen configure -valuefont command works correctly when given  

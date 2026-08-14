@@ -2015,6 +2015,20 @@ namespace eval barchart.element {
 		.barchart1 element delete Element1
 		destroy .barchart1
 	} -result {formatstring}
+
+    test RBC.barchart.element.configure.A.28.2 {
+        barchart element configure: valueformat - rollback
+    } -setup {
+        barchart .barchart1
+        .barchart1 element create Element1
+        .barchart1 element configure Element1 -valueformat %.2f
+    } -body {
+        set code [catch {.barchart1 element configure Element1 -valueformat %*f}]
+        list $code [.barchart1 element cget Element1 -valueformat]
+    } -cleanup {
+        .barchart1 element delete Element1
+        destroy .barchart1
+    } -result {1 %.2f}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -valuefont command works correctly when given  

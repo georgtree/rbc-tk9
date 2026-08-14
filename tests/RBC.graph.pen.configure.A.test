@@ -1438,6 +1438,20 @@ namespace eval graph.pen {
 		.graph1 pen delete pen1
 		destroy .graph1
 	} -result {formatstring}
+
+    test RBC.graph.pen.configure.A.18.2 {
+        graph pen configure: valueformat - rollback
+    } -setup {
+        graph .graph1
+        .graph1 pen create pen1
+        .graph1 pen configure pen1 -valueformat %.3f
+    } -body {
+        set code [catch {.graph1 pen configure pen1 -valueformat %s}]
+        list $code [.graph1 pen cget pen1 -valueformat]
+    } -cleanup {
+        .graph1 pen delete pen1
+        destroy .graph1
+    } -result {1 %.3f}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the pen configure -valuefont command works correctly when given  

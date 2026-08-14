@@ -2203,6 +2203,9 @@ static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     newErrorBarGC = NULL;
     newValueGC = NULL;
 
+    if (Rbc_ValidateValueFormat(graphPtr->interp, lpPtr->valueFormat) != TCL_OK) {
+        goto error;
+    }
     /*
      * Parse all derived fields first.
      */
@@ -6380,13 +6383,8 @@ static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
     Point2D *pointPtr;
     Point2D *endPtr;
     Tcl_Size count;
-    char string[TCL_DOUBLE_SPACE * 2 + 2];
-    char *fmt;
+    char string[RBC_VALUE_LABEL_SIZE];
 
-    fmt = penPtr->valueFormat;
-    if (fmt == NULL) {
-        fmt = "%g";
-    }
     count = 0;
     for (pointPtr = symbolPts, endPtr = symbolPts + nSymbolPts; pointPtr < endPtr; pointPtr++) {
         Tcl_Size dataIndex;
@@ -6395,15 +6393,7 @@ static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
         dataIndex = pointToData[count++];
         x = linePtr->core.x.valueArr[dataIndex];
         y = linePtr->core.y.valueArr[dataIndex];
-        if (penPtr->valueShow == SHOW_X) {
-            sprintf(string, fmt, x);
-        } else if (penPtr->valueShow == SHOW_Y) {
-            sprintf(string, fmt, y);
-        } else if (penPtr->valueShow == SHOW_BOTH) {
-            sprintf(string, fmt, x);
-            strcat(string, ",");
-            sprintf(string + strlen(string), fmt, y);
-        }
+        Rbc_FormatValueLabel(string, sizeof(string), penPtr->valueFormat, penPtr->valueShow, x, y);
         Rbc_DrawText(graphPtr->tkwin, drawable, string, &penPtr->valueStyle, (int)pointPtr->x, (int)pointPtr->y);
     }
 }
@@ -6920,13 +6910,8 @@ static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, 
     Point2D *pointPtr;
     Point2D *endPtr;
     Tcl_Size count;
-    char string[TCL_DOUBLE_SPACE * 2 + 2];
-    char *fmt;
+    char string[RBC_VALUE_LABEL_SIZE];
 
-    fmt = penPtr->valueFormat;
-    if (fmt == NULL) {
-        fmt = "%g";
-    }
     count = 0;
     for (pointPtr = symbolPts, endPtr = symbolPts + nSymbolPts; pointPtr < endPtr; pointPtr++) {
         Tcl_Size dataIndex;
@@ -6936,15 +6921,7 @@ static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, 
         dataIndex = pointToData[count++];
         x = linePtr->core.x.valueArr[dataIndex];
         y = linePtr->core.y.valueArr[dataIndex];
-        if (penPtr->valueShow == SHOW_X) {
-            sprintf(string, fmt, x);
-        } else if (penPtr->valueShow == SHOW_Y) {
-            sprintf(string, fmt, y);
-        } else if (penPtr->valueShow == SHOW_BOTH) {
-            sprintf(string, fmt, x);
-            strcat(string, ",");
-            sprintf(string + strlen(string), fmt, y);
-        }
+        Rbc_FormatValueLabel(string, sizeof(string), penPtr->valueFormat, penPtr->valueShow, x, y);
         Rbc_TextToPostScript(psToken, string, &penPtr->valueStyle, pointPtr->x, pointPtr->y);
     }
 }

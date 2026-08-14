@@ -638,9 +638,12 @@ static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     GC newValueGC;
 
     newErrorBarColor = NULL;
-
     newShadow.color = NULL;
     newShadow.offset = 0;
+
+    if (Rbc_ValidateValueFormat(graphPtr->interp, bpPtr->valueFormat) != TCL_OK) {
+        goto error;
+    }
 
     /*
      * Rotation eventually reaches trigonometric and screen-coordinate
@@ -2068,31 +2071,18 @@ static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPe
     BarRectangle *rectPtr;
     BarRectangle *endPtr;
     Tcl_Size count;
-    char *fmt;
-    char string[TCL_DOUBLE_SPACE * 2 + 2];
+    char string[RBC_VALUE_LABEL_SIZE];
     double x;
     double y;
     Point2D anchorPos;
 
     count = 0;
-    fmt = penPtr->valueFormat;
-    if (fmt == NULL) {
-        fmt = "%g";
-    }
     for (rectPtr = rectangles, endPtr = rectangles + nRects; rectPtr < endPtr; rectPtr++) {
         Tcl_Size dataIndex;
         dataIndex = rectToData[count++];
         x = barPtr->core.x.valueArr[dataIndex];
         y = barPtr->core.y.valueArr[dataIndex];
-        if (penPtr->valueShow == SHOW_X) {
-            sprintf(string, fmt, x);
-        } else if (penPtr->valueShow == SHOW_Y) {
-            sprintf(string, fmt, y);
-        } else if (penPtr->valueShow == SHOW_BOTH) {
-            sprintf(string, fmt, x);
-            strcat(string, ",");
-            sprintf(string + strlen(string), fmt, y);
-        }
+        Rbc_FormatValueLabel(string, sizeof(string), penPtr->valueFormat, penPtr->valueShow, x, y);
         if (graphPtr->inverted) {
             anchorPos.y = rectPtr->y + rectPtr->height * 0.5;
             anchorPos.x = rectPtr->x + rectPtr->width;
@@ -2361,30 +2351,17 @@ static void BarValuesToPostScript(Graph *graphPtr, PsToken psToken, Bar *barPtr,
                                   BarRectangle *rectangles, Tcl_Size nRects, const Tcl_Size *rectToData) {
     BarRectangle *rectPtr, *endPtr;
     Tcl_Size count;
-    char *fmt;
-    char string[TCL_DOUBLE_SPACE * 2 + 2];
+    char string[RBC_VALUE_LABEL_SIZE];
     double x, y;
     Point2D anchorPos;
 
     count = 0;
-    fmt = penPtr->valueFormat;
-    if (fmt == NULL) {
-        fmt = "%g";
-    }
     for (rectPtr = rectangles, endPtr = rectangles + nRects; rectPtr < endPtr; rectPtr++) {
         Tcl_Size dataIndex;
         dataIndex = rectToData[count++];
         x = barPtr->core.x.valueArr[dataIndex];
         y = barPtr->core.y.valueArr[dataIndex];
-        if (penPtr->valueShow == SHOW_X) {
-            sprintf(string, fmt, x);
-        } else if (penPtr->valueShow == SHOW_Y) {
-            sprintf(string, fmt, y);
-        } else if (penPtr->valueShow == SHOW_BOTH) {
-            sprintf(string, fmt, x);
-            strcat(string, ",");
-            sprintf(string + strlen(string), fmt, y);
-        }
+        Rbc_FormatValueLabel(string, sizeof(string), penPtr->valueFormat, penPtr->valueShow, x, y);
         if (graphPtr->inverted) {
             anchorPos.y = rectPtr->y + rectPtr->height * 0.5;
             anchorPos.x = rectPtr->x + rectPtr->width;

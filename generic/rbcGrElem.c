@@ -11,6 +11,7 @@
 
 #include <ctype.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <limits.h>
 #include "rbcGraph.h"
 #include "rbcChain.h"
@@ -167,6 +168,191 @@ static int GetPenStyleFromObj(Graph *graphPtr, Tcl_Obj *objPtr, Rbc_Uid type, Pe
 
     stylePtr->penPtr = penPtr;
     return TCL_OK;
+}
+
+#define VALUE_FORMAT_LIMIT 200
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_ValidateValueFormat --
+ *
+ *      Validates a printf-style format used for graph element value
+ *      labels.
+ *
+ *      Formatting receives exactly one double at a time.  Therefore
+ *      the format may contain at most one floating-point conversion.
+ *      Literal-only formats are permitted for compatibility.
+ *
+ * Results:
+ *      TCL_OK if the format is safe for a double argument.
+ *      TCL_ERROR otherwise.
+ *
+ *----------------------------------------------------------------------
+ */
+int Rbc_ValidateValueFormat(Tcl_Interp *interp, const char *format) {
+    const char *p;
+    int nConversions;
+
+    if (format == NULL) {
+        return TCL_OK;
+    }
+    if (strlen(format) > VALUE_FORMAT_LIMIT) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("value format is too long: \"%s\"", format));
+        return TCL_ERROR;
+    }
+    nConversions = 0;
+    for (p = format; *p != '\0'; p++) {
+        unsigned long value;
+
+        if (*p != '%') {
+            continue;
+        }
+        p++;
+        /*
+         * Literal percent.
+         */
+        if (*p == '%') {
+            continue;
+        }
+        if (*p == '\0') {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("incomplete value format \"%s\"", format));
+            return TCL_ERROR;
+        }
+        /*
+         * Only one double is passed to snprintf().
+         */
+        if (nConversions != 0) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("value format \"%s\" contains more than one conversion", format));
+            return TCL_ERROR;
+        }
+        /*
+         * Standard printf flags.
+         */
+        while ((*p == '-') || (*p == '+') || (*p == ' ') || (*p == '#') || (*p == '0')) {
+            p++;
+        }
+        /*
+         * A dynamic width consumes another argument.
+         */
+        if (*p == '*') {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("value format \"%s\" cannot use a dynamic field width", format));
+            return TCL_ERROR;
+        }
+        value = 0;
+        while ((*p >= '0') && (*p <= '9')) {
+            if (value <= (unsigned long)VALUE_FORMAT_LIMIT) {
+                value = value * 10u + (unsigned long)(*p - '0');
+            }
+            p++;
+        }
+        if (value > (unsigned long)VALUE_FORMAT_LIMIT) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("value format \"%s\" has an excessive field width", format));
+            return TCL_ERROR;
+        }
+        /*
+         * Precision.
+         */
+        if (*p == '.') {
+            p++;
+            if (*p == '*') {
+                Tcl_SetObjResult(interp, Tcl_ObjPrintf("value format \"%s\" cannot use a dynamic precision", format));
+                return TCL_ERROR;
+            }
+            value = 0;
+            while ((*p >= '0') && (*p <= '9')) {
+                if (value <= (unsigned long)VALUE_FORMAT_LIMIT) {
+                    value = value * 10u + (unsigned long)(*p - '0');
+                }
+                p++;
+            }
+            if (value > (unsigned long)VALUE_FORMAT_LIMIT) {
+                Tcl_SetObjResult(interp, Tcl_ObjPrintf("value format \"%s\" has an excessive precision", format));
+                return TCL_ERROR;
+            }
+        }
+        /*
+         * 'l' is valid with floating conversions for printf.
+         * 'L' is deliberately rejected because it requires a
+         * long double rather than the double we supply.
+         */
+        if (*p == 'l') {
+            p++;
+        }
+        if ((*p != 'a') && (*p != 'A') && (*p != 'e') && (*p != 'E') && (*p != 'f') && (*p != 'F') && (*p != 'g') &&
+            (*p != 'G')) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("invalid floating-point conversion in value format \"%s\"", format));
+            return TCL_ERROR;
+        }
+        nConversions++;
+    }
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_FormatValueLabel --
+ *
+ *      Formats one graph element value label into a bounded buffer.
+ *
+ *      SHOW_BOTH formats X and Y independently using the same format,
+ *      separated by a comma.
+ *
+ *----------------------------------------------------------------------
+ */
+void Rbc_FormatValueLabel(char *buffer, size_t bufferSize, const char *format, int show, double x, double y) {
+    const char *fmt;
+    int n;
+    size_t used;
+
+    if (bufferSize == 0) {
+        return;
+    }
+    buffer[0] = '\0';
+    fmt = (format != NULL) ? format : "%g";
+    switch (show) {
+    case SHOW_X:
+        n = snprintf(buffer, bufferSize, fmt, x);
+        if (n < 0) {
+            buffer[0] = '\0';
+        }
+        break;
+    case SHOW_Y:
+        n = snprintf(buffer, bufferSize, fmt, y);
+        if (n < 0) {
+            buffer[0] = '\0';
+        }
+        break;
+    case SHOW_BOTH:
+        n = snprintf(buffer, bufferSize, fmt, x);
+        if (n < 0) {
+            buffer[0] = '\0';
+            break;
+        }
+        used = (size_t)n;
+        /*
+         * snprintf() reports the number of characters that would have
+         * been written.  Do not append if the first value was
+         * truncated.
+         */
+        if (used >= bufferSize) {
+            buffer[bufferSize - 1] = '\0';
+            break;
+        }
+        if ((used + 1) >= bufferSize) {
+            break;
+        }
+        buffer[used++] = ',';
+        buffer[used] = '\0';
+        n = snprintf(buffer + used, bufferSize - used, fmt, y);
+        if (n < 0) {
+            buffer[used] = '\0';
+        }
+        break;
+    default:
+        break;
+    }
 }
 
 /*

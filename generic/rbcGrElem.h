@@ -21,6 +21,15 @@
 #define SHOW_Y 2
 #define SHOW_BOTH 3
 
+/*
+ * Maximum storage used for a formatted element value label.
+ *
+ * Value formats are separately constrained in length, field width,
+ * and precision.  Formatting is also bounded with snprintf(), so this
+ * limit is a final output bound rather than a memory-safety assumption.
+ */
+#define RBC_VALUE_LABEL_SIZE 2048
+
 #define SEARCH_POINTS 0 /* Search for closest data point. */
 #define SEARCH_TRACES                                                                                                  \
     1 /* Search for closest point on trace.                                                                            \
@@ -390,5 +399,7 @@ int Rbc_ParseStylesObj(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, size_
 PenStyle **Rbc_StyleMap(Element *elemPtr);
 void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle);
 void Rbc_ExpandErrorBarExtents(Element *elemPtr, Extents2D *extsPtr);
+int Rbc_ValidateValueFormat(Tcl_Interp *interp, const char *format);
+void Rbc_FormatValueLabel(char *buffer, size_t bufferSize, const char *format, int show, double x, double y);
 
 #endif /* _RBCGRELEM */
