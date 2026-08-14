@@ -524,6 +524,20 @@ static double AutomaticLinearStep(double min, double max) {
     return 1.0;
 }
 
+static int AxisRotatedSize(double value) {
+    if ((!FINITE(value)) || (value <= 0.0)) {
+        return 0;
+    }
+    /*
+     * ROUND adds 0.5 before converting to int, so values within
+     * half a unit of INT_MAX must also be clamped before that cast.
+     */
+    if (value >= ((double)INT_MAX - 0.5)) {
+        return INT_MAX;
+    }
+    return ROUND(value);
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -833,6 +847,111 @@ static int IsAxisLimitsFormatOption(Tcl_Obj *objPtr) { return IsAxisOption(objPt
  *
  *----------------------------------------------------------------------
  */
+static int ValidateAxisLimitFormat(Tcl_Interp *interp, const char *format) {
+    const char *p;
+    int nConversions;
+
+    if (strlen(format) > TICK_LABEL_SIZE) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("axis limit format is too long: \"%s\"", format));
+        return TCL_ERROR;
+    }
+    nConversions = 0;
+    for (p = format; *p != '\0'; p++) {
+        unsigned long value;
+
+        if (*p != '%') {
+            continue;
+        }
+        p++;
+        /*
+         * A literal percent does not consume an argument.
+         */
+        if (*p == '%') {
+            continue;
+        }
+        if (*p == '\0') {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("incomplete axis limit format \"%s\"", format));
+            return TCL_ERROR;
+        }
+        /*
+         * Only one double is passed to the formatter.
+         */
+        if (nConversions != 0) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("axis limit format \"%s\" "
+                                                   "contains more than one conversion",
+                                                   format));
+            return TCL_ERROR;
+        }
+        /*
+         * Standard printf flags.
+         */
+        while ((*p == '-') || (*p == '+') || (*p == ' ') || (*p == '#') || (*p == '0')) {
+            p++;
+        }
+        /*
+         * Dynamic width requires another argument and is therefore
+         * not valid here.
+         */
+        if (*p == '*') {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("axis limit format \"%s\" "
+                                                   "cannot use a dynamic field width",
+                                                   format));
+            return TCL_ERROR;
+        }
+        value = 0;
+        while ((*p >= '0') && (*p <= '9')) {
+            if (value <= (unsigned long)TICK_LABEL_SIZE) {
+                value = value * 10u + (unsigned long)(*p - '0');
+            }
+            p++;
+        }
+        if (value > (unsigned long)TICK_LABEL_SIZE) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("axis limit format \"%s\" "
+                                                   "has an excessive field width",
+                                                   format));
+            return TCL_ERROR;
+        }
+        if (*p == '.') {
+            p++;
+            if (*p == '*') {
+                Tcl_SetObjResult(interp, Tcl_ObjPrintf("axis limit format \"%s\" "
+                                                       "cannot use a dynamic precision",
+                                                       format));
+                return TCL_ERROR;
+            }
+            value = 0;
+            while ((*p >= '0') && (*p <= '9')) {
+                if (value <= (unsigned long)TICK_LABEL_SIZE) {
+                    value = value * 10u + (unsigned long)(*p - '0');
+                }
+                p++;
+            }
+            if (value > (unsigned long)TICK_LABEL_SIZE) {
+                Tcl_SetObjResult(interp, Tcl_ObjPrintf("axis limit format \"%s\" "
+                                                       "has an excessive precision",
+                                                       format));
+                return TCL_ERROR;
+            }
+        }
+        /*
+         * printf accepts 'l' with floating conversions.  'L' would
+         * require a long double, which we do not pass.
+         */
+        if (*p == 'l') {
+            p++;
+        }
+        if ((*p != 'a') && (*p != 'A') && (*p != 'e') && (*p != 'E') && (*p != 'f') && (*p != 'F') && (*p != 'g') &&
+            (*p != 'G')) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("invalid floating-point conversion "
+                                                   "in axis limit format \"%s\"",
+                                                   format));
+            return TCL_ERROR;
+        }
+        nConversions++;
+    }
+    return TCL_OK;
+}
+
 static int GetAxisLimitsFormatsFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, char ***formatsPtrPtr, int *nFormatsPtr) {
     const char *string;
     char **formats;
@@ -865,10 +984,18 @@ static int GetAxisLimitsFormatsFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, char
 
         return TCL_ERROR;
     }
+    {
+        Tcl_Size i;
 
+        for (i = 0; i < nFormats; i++) {
+            if (ValidateAxisLimitFormat(interp, formats[i]) != TCL_OK) {
+                FreeAxisFormats(formats);
+                return TCL_ERROR;
+            }
+        }
+    }
     *formatsPtrPtr = formats;
     *nFormatsPtr = (int)nFormats;
-
     return TCL_OK;
 }
 
@@ -4364,8 +4491,8 @@ static void GetAxisGeometry(Graph *graphPtr, Axis *axisPtr) {
                 double rotWidth, rotHeight;
 
                 Rbc_GetBoundingBox(lw, lh, axisPtr->tickTextStyle.theta, &rotWidth, &rotHeight, (Point2D *)NULL);
-                lw = (rotWidth >= (double)INT_MAX) ? INT_MAX : ROUND(rotWidth);
-                lh = (rotHeight >= (double)INT_MAX) ? INT_MAX : ROUND(rotHeight);
+                lw = AxisRotatedSize(rotWidth);
+                lh = AxisRotatedSize(rotHeight);
             }
             if (maxWidth < lw) {
                 maxWidth = lw;
@@ -6455,16 +6582,15 @@ void Rbc_DrawAxisLimits(Graph *graphPtr, Drawable drawable) {
     int isHoriz;
     char *minPtr, *maxPtr;
     char *minFormat, *maxFormat;
-    char minString[200], maxString[200];
+    char minString[TICK_LABEL_SIZE + 1];
+    char maxString[TICK_LABEL_SIZE + 1];
     int vMin, hMin, vMax, hMax;
 
 #define SPACING 8
     vMin = vMax = graphPtr->left + graphPtr->padLeft + 2;
     hMin = hMax = graphPtr->bottom - graphPtr->padBottom - 2; /* Offsets */
-
     for (hPtr = Tcl_FirstHashEntry(&graphPtr->axes.table, &cursor); hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
         axisPtr = (Axis *)Tcl_GetHashValue(hPtr);
-
         if (axisPtr->nFormats == 0) {
             continue;
         }
@@ -6476,11 +6602,11 @@ void Rbc_DrawAxisLimits(Graph *graphPtr, Drawable drawable) {
         }
         if (minFormat[0] != '\0') {
             minPtr = minString;
-            sprintf(minString, minFormat, axisPtr->axisRange.min);
+            snprintf(minString, sizeof(minString), minFormat, axisPtr->axisRange.min);
         }
         if (maxFormat[0] != '\0') {
             maxPtr = maxString;
-            sprintf(maxString, maxFormat, axisPtr->axisRange.max);
+            snprintf(maxString, sizeof(maxString), maxFormat, axisPtr->axisRange.max);
         }
         if (axisPtr->descending) {
             char *tmp;
@@ -6543,7 +6669,7 @@ void Rbc_AxisLimitsToPostScript(Graph *graphPtr, PsToken psToken) {
     Tcl_HashEntry *hPtr;
     Tcl_HashSearch cursor;
     double vMin, hMin, vMax, hMax;
-    char string[200];
+    char string[TICK_LABEL_SIZE + 1];
     int textWidth, textHeight;
     char *minFmt, *maxFmt;
 
@@ -6552,7 +6678,6 @@ void Rbc_AxisLimitsToPostScript(Graph *graphPtr, PsToken psToken) {
     hMin = hMax = graphPtr->bottom - graphPtr->padBottom - 2; /* Offsets */
     for (hPtr = Tcl_FirstHashEntry(&graphPtr->axes.table, &cursor); hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
         axisPtr = (Axis *)Tcl_GetHashValue(hPtr);
-
         if (axisPtr->nFormats == 0) {
             continue;
         }
@@ -6561,7 +6686,7 @@ void Rbc_AxisLimitsToPostScript(Graph *graphPtr, PsToken psToken) {
             maxFmt = axisPtr->limitsFormats[1];
         }
         if (*maxFmt != '\0') {
-            sprintf(string, maxFmt, axisPtr->axisRange.max);
+            snprintf(string, sizeof(string), maxFmt, axisPtr->axisRange.max);
             Rbc_GetTextExtents(&axisPtr->tickTextStyle, string, &textWidth, &textHeight);
             if ((textWidth > 0) && (textHeight > 0)) {
                 if (axisPtr->classUid == rbcXAxisUid) {
@@ -6578,7 +6703,7 @@ void Rbc_AxisLimitsToPostScript(Graph *graphPtr, PsToken psToken) {
             }
         }
         if (*minFmt != '\0') {
-            sprintf(string, minFmt, axisPtr->axisRange.min);
+            snprintf(string, sizeof(string), minFmt, axisPtr->axisRange.min);
             Rbc_GetTextExtents(&axisPtr->tickTextStyle, string, &textWidth, &textHeight);
             if ((textWidth > 0) && (textHeight > 0)) {
                 axisPtr->limitsTextStyle.anchor = TK_ANCHOR_SW;
@@ -6668,12 +6793,11 @@ Axis *Rbc_NearestAxis(Graph *graphPtr, int x, int y) {
                 labelPtr = Rbc_ChainGetValue(linkPtr);
                 Rbc_GetBoundingBox(labelPtr->width, labelPtr->height, axisPtr->tickTextStyle.theta, &rotWidth,
                                    &rotHeight, bbox);
-                width = ROUND(rotWidth);
-                height = ROUND(rotHeight);
+                width = AxisRotatedSize(rotWidth);
+                height = AxisRotatedSize(rotHeight);
                 t = Rbc_TranslatePoint(&labelPtr->anchorPos, width, height, axisPtr->tickTextStyle.anchor);
                 t.x = x - t.x - (width * 0.5);
                 t.y = y - t.y - (height * 0.5);
-
                 bbox[4] = bbox[0];
                 if (Rbc_PointInPolygon(&t, bbox, 5)) {
                     axisPtr->detail = "label";
@@ -6693,7 +6817,6 @@ Axis *Rbc_NearestAxis(Graph *graphPtr, int x, int y) {
              * corner of the bounding box.  */
             t.x = x - t.x - (width / 2);
             t.y = y - t.y - (height / 2);
-
             bbox[4] = bbox[0];
             if (Rbc_PointInPolygon(&t, bbox, 5)) {
                 axisPtr->detail = "title";
