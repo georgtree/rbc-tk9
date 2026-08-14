@@ -1717,7 +1717,7 @@ static void TextLayoutToPostScript(struct PsTokenStruct *tokenPtr, int x, int y,
                  * and ")", or control characters are contained in the text
                  * string, use octal escape sequence with them.
                  */
-                sprintf(buf, "\\%03o", ch);
+                snprintf(buf, sizeof(buf), "\\%03o", ch);
                 Tcl_DStringAppend(&ds, buf, -1);
             } else if ((ch < 0x7f)) {
                 /*
@@ -1732,7 +1732,7 @@ static void TextLayoutToPostScript(struct PsTokenStruct *tokenPtr, int x, int y,
                  * TODO: use adobe glyph list to display additional chars
                  * (see Tk_TextLayoutToPostscript).
                  */
-                sprintf(buf, "\\%03o", ch <= 0xff ? ch : 0x20);
+                snprintf(buf, sizeof(buf), "\\%03o", ch <= 0xff ? ch : 0x20);
                 Tcl_DStringAppend(&ds, buf, -1);
             }
         }

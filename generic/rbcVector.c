@@ -717,7 +717,7 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
         char string[200];
 
         do {
-            sprintf(string, "vector%d", dataPtr->nextId++);
+            snprintf(string, sizeof(string), "vector%d", dataPtr->nextId++);
             qualVecName = GetQualifiedName(nsPtr, string, &qualVecNamePtr);
             hPtr = Tcl_FindHashEntry(&(dataPtr->vectorTable), qualVecName);
         } while (hPtr != NULL);

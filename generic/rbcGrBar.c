@@ -2588,19 +2588,16 @@ Element *Rbc_BarElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     elemPtr = &barPtr->core;
     elemPtr->optionSpecs = barElemOptionSpecs;
     elemPtr->optionTable = NULL;
-
     elemPtr->optionMask = 0;
     elemPtr->optionObjc = 0;
     elemPtr->optionObjv = NULL;
     elemPtr->optionsConfigured = FALSE;
-
     elemPtr->optionsInitialized = FALSE;
     elemPtr->tkResourcesReleased = FALSE;
     elemPtr->normalPenPtr = &barPtr->builtinPen.core;
     elemPtr->procsPtr = &barProcs;
     elemPtr->labelRelief = TK_RELIEF_FLAT;
     elemPtr->classUid = classUid;
-
     /*
      * By default, an element's name and label are identical.
      */

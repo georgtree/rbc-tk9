@@ -111,6 +111,20 @@ namespace eval eps.shadow {
 		.canvas1 delete 1
 	    destroy .canvas1
 	} -result {0}
+
+    test RBC.eps.shadow.A.1.6 {
+        eps shadow: color containing whitespace round-trips
+    } -setup {
+        canvas .canvas1
+        .canvas1 create eps 0 0
+    } -body {
+        .canvas1 itemconfigure 1 -shadow {{light blue} 4}
+        set shadow [.canvas1 itemcget 1 -shadow]
+        list [llength $shadow] [lindex $shadow 0] [lindex $shadow 1]
+    } -cleanup {
+        .canvas1 delete 1
+        destroy .canvas1
+    } -result {2 {light blue} 4}
 	
 	cleanupTests
 }

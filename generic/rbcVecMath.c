@@ -1701,7 +1701,7 @@ static void MathError(Tcl_Interp *interp, double value) {
     } else {
         char buf[20];
 
-        sprintf(buf, "%d", errno);
+        snprintf(buf, sizeof(buf), "%d", errno);
         Tcl_AppendResult(interp, "unknown floating-point error, ", "errno = ", buf, (char *)NULL);
         Tcl_SetErrorCode(interp, "ARITH", "UNKNOWN", Tcl_GetStringResult(interp), (char *)NULL);
     }

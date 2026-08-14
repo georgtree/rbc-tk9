@@ -466,39 +466,31 @@ static int StringToShadow(ClientData clientData, Tcl_Interp *interp, Tk_Window t
  *
  * ShadowToString --
  *
- *      Converts the two pad values into a Tcl list.  Each pad has two
- *      pixel values.  For vertical pads, they represent the top and bottom
- *      margins.  For horizontal pads, they're the left and right margins.
- *      All pad values are non-negative integers.
- *
- * Parameters:
- *      ClientData clientData - Not used.
- *      Tk_Window tkwin - Not used.
- *      char *widgRec - Structure record
- *      Tcl_Size offset - Offset of pad in record
- *      Tcl_FreeProc **freeProcPtr - Not used.
+ *      Converts the shadow color and offset into a Tcl list.
  *
  * Results:
- *      The padding list is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
+ *      A Tcl list containing the shadow color and offset.
  *
  *----------------------------------------------------------------------
  */
 static const char *ShadowToString(ClientData clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset,
                                   Tcl_FreeProc **freeProcPtr) {
-    Shadow *shadowPtr = (Shadow *)(widgRec + offset);
+    Shadow *shadowPtr;
+    char offsetString[32];
+    const char *elements[2];
     char *result;
 
-    result = "";
-    if (shadowPtr->color != NULL) {
-        char string[200];
-
-        sprintf(string, "%s %d", Tk_NameOfColor(shadowPtr->color), shadowPtr->offset);
-        result = RbcStrdup(string);
-        *freeProcPtr = (Tcl_FreeProc *)Tcl_Free;
+    (void)clientData;
+    (void)tkwin;
+    shadowPtr = (Shadow *)(widgRec + offset);
+    if (shadowPtr->color == NULL) {
+        return "";
     }
+    snprintf(offsetString, sizeof(offsetString), "%d", shadowPtr->offset);
+    elements[0] = Tk_NameOfColor(shadowPtr->color);
+    elements[1] = offsetString;
+    result = Tcl_Merge(2, elements);
+    *freeProcPtr = (Tcl_FreeProc *)Tcl_Free;
     return result;
 }
 

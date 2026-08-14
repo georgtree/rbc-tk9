@@ -405,7 +405,7 @@ static char stringRep[200];
  *--------------------------------------------------------------
  */
 char *Rbc_Itoa(int value) {
-    sprintf(stringRep, "%d", value);
+    snprintf(stringRep, sizeof(stringRep), "%d", value);
     return stringRep;
 }
 
@@ -428,7 +428,7 @@ char *Rbc_Itoa(int value) {
  *--------------------------------------------------------------
  */
 char *Rbc_Utoa(unsigned int value) {
-    sprintf(stringRep, "%u", value);
+    snprintf(stringRep, sizeof(stringRep), "%u", value);
     return stringRep;
 }
 

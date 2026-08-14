@@ -355,7 +355,7 @@ int Rbc_ParseQuotes(Tcl_Interp *interp, char *string, int termChar, int flags, c
             char buf[30];
 
             Tcl_ResetResult(interp);
-            sprintf(buf, "missing %c", termChar);
+            snprintf(buf, sizeof(buf), "missing %c", termChar);
             Tcl_SetResult(interp, buf, TCL_VOLATILE);
             *termPtr = string - 1;
             return TCL_ERROR;
