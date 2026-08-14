@@ -1796,7 +1796,7 @@ namespace eval graph.axis {
     } -result {0 1e-300}
 
     test RBC.graph.axis.configure.A.40.5 {
-    axis configure: excessive subdivisions rejected transactionally
+        axis configure: excessive subdivisions rejected transactionally
     } -setup {
         graph .graph1
         set old [.graph1 xaxis cget -subdivisions]

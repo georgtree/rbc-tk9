@@ -314,6 +314,8 @@ static double titleRotate[4] = {0.0, 90.0, 0.0, 270.0};
 /* Forward declarations */
 static int Round(register double x);
 static void SetAxisRange(AxisRange *rangePtr, double min, double max);
+static double NormalizeAxisValue(const AxisRange *rangePtr, double value);
+static double InterpolateAxisValue(const AxisRange *rangePtr, double norm);
 static int InRange(register double x, AxisRange *rangePtr);
 static int AxisIsHorizontal(Graph *graphPtr, Axis *axisPtr);
 static void FreeLabels(Rbc_Chain *chainPtr);
@@ -572,6 +574,42 @@ static void SetAxisRange(AxisRange *rangePtr, double min, double max) {
     rangePtr->scale = 1.0 / rangePtr->range;
 }
 
+static double NormalizeAxisValue(const AxisRange *rangePtr, double value) {
+    /*
+     * Use the ordinary expression whenever the stored range is
+     * representable.  This preserves existing numerical behaviour
+     * for normal axes.
+     */
+    if (FINITE(rangePtr->range)) {
+        return (value - rangePtr->min) * rangePtr->scale;
+    }
+    /*
+     * max - min can overflow even when min and max are both finite.
+     * Dividing numerator and denominator by two first represents the
+     * same normalized coordinate without forming that full range.
+     */
+    {
+        double halfRange;
+        halfRange = rangePtr->max * 0.5 - rangePtr->min * 0.5;
+        if ((!FINITE(halfRange)) || (halfRange == 0.0)) {
+            return NAN;
+        }
+        return (value * 0.5 - rangePtr->min * 0.5) / halfRange;
+    }
+}
+
+static double InterpolateAxisValue(const AxisRange *rangePtr, double norm) {
+    if (FINITE(rangePtr->range)) {
+        return norm * rangePtr->range + rangePtr->min;
+    }
+    /*
+     * Reconstruct a value from an overflow-sized range without ever
+     * forming max - min.  For norm in [0,1] this is the usual linear
+     * interpolation between two finite endpoints.
+     */
+    return ((1.0 - norm) * (rangePtr->min * 0.5) + norm * (rangePtr->max * 0.5)) * 2.0;
+}
+
 /*
  * ----------------------------------------------------------------------
  *
@@ -599,15 +637,17 @@ static void SetAxisRange(AxisRange *rangePtr, double min, double max) {
  *
  * ----------------------------------------------------------------------
  */
-static int InRange(register double x, AxisRange *rangePtr) {
-    if (rangePtr->range < DBL_EPSILON) {
-        return (FABS(rangePtr->max - x) >= DBL_EPSILON);
-    } else {
-        double norm;
+static int InRange(double x, AxisRange *rangePtr) {
+    double norm;
 
-        norm = (x - rangePtr->min) * rangePtr->scale;
-        return ((norm >= -DBL_EPSILON) && ((norm - 1.0) < DBL_EPSILON));
+    if (!FINITE(x)) {
+        return FALSE;
     }
+    norm = NormalizeAxisValue(rangePtr, x);
+    if (!FINITE(norm)) {
+        return FALSE;
+    }
+    return ((norm >= -DBL_EPSILON) && ((norm - 1.0) < DBL_EPSILON));
 }
 
 static int AxisIsHorizontal(Graph *graphPtr, Axis *axisPtr) {
@@ -2421,7 +2461,7 @@ double Rbc_InvHMap(Graph *graphPtr, Axis *axisPtr, double x) {
     if (axisPtr->descending) {
         x = 1.0 - x;
     }
-    value = (x * axisPtr->axisRange.range) + axisPtr->axisRange.min;
+    value = InterpolateAxisValue(&axisPtr->axisRange, x);
     if (axisPtr->logScale) {
         value = EXP10(value);
     }
@@ -2457,7 +2497,7 @@ double Rbc_InvVMap(Graph *graphPtr, Axis *axisPtr, double y) {
     if (axisPtr->descending) {
         y = 1.0 - y;
     }
-    value = ((1.0 - y) * axisPtr->axisRange.range) + axisPtr->axisRange.min;
+    value = InterpolateAxisValue(&axisPtr->axisRange, 1.0 - y);
     if (axisPtr->logScale) {
         value = EXP10(value);
     }
@@ -2491,7 +2531,7 @@ double Rbc_HMap(Graph *graphPtr, Axis *axisPtr, double x) {
         x = log10(FABS(x));
     }
     /* Map graph coordinate to normalized coordinates [0..1] */
-    x = (x - axisPtr->axisRange.min) * axisPtr->axisRange.scale;
+    x = NormalizeAxisValue(&axisPtr->axisRange, x);
     if (axisPtr->descending) {
         x = 1.0 - x;
     }
@@ -2525,7 +2565,7 @@ double Rbc_VMap(Graph *graphPtr, Axis *axisPtr, double y) {
         y = log10(FABS(y));
     }
     /* Map graph coordinate to normalized coordinates [0..1] */
-    y = (y - axisPtr->axisRange.min) * axisPtr->axisRange.scale;
+    y = NormalizeAxisValue(&axisPtr->axisRange, y);
     if (axisPtr->descending) {
         y = 1.0 - y;
     }
@@ -5513,6 +5553,10 @@ static int InvTransformOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size o
     } else {
         y = Rbc_InvVMap(graphPtr, axisPtr, (double)x);
     }
+    if (!FINITE(y)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("inverse axis transform is outside the representable range", -1));
+        return TCL_ERROR;
+    }
     Tcl_SetObjResult(interp, Tcl_NewDoubleObj(y));
     return TCL_OK;
 }
@@ -5542,23 +5586,41 @@ static int InvTransformOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size o
  *
  * ----------------------------------------------------------------------
  */
-static int TransformOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, /* Not used. */
-                       Tcl_Obj *const objv[]) {
-    Tcl_Interp *interp = graphPtr->interp;
-    double x;
+static int TransformOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    Tcl_Interp *interp;
+    double value;
+    double screen;
 
+    (void)margin;
+    (void)objc;
+    interp = graphPtr->interp;
     if (graphPtr->flags & RESET_AXES) {
         Rbc_ResetAxes(graphPtr);
     }
-    if (Tcl_ExprDoubleObj(interp, objv[0], &x) != TCL_OK) {
+    if (Tcl_ExprDoubleObj(interp, objv[0], &value) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (!FINITE(value)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("axis value must be finite", -1));
         return TCL_ERROR;
     }
     if (AxisIsHorizontal(graphPtr, axisPtr)) {
-        x = Rbc_HMap(graphPtr, axisPtr, x);
+        screen = Rbc_HMap(graphPtr, axisPtr, value);
     } else {
-        x = Rbc_VMap(graphPtr, axisPtr, x);
+        screen = Rbc_VMap(graphPtr, axisPtr, value);
     }
-    Tcl_SetObjResult(interp, Tcl_NewIntObj((int)x));
+    /*
+     * Window coordinates throughout the graph implementation are int.
+     * Validate before making the floating-to-integer conversion.
+     */
+    if ((!FINITE(screen)) || (screen < (double)INT_MIN) || (screen > (double)INT_MAX)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("transformed axis coordinate is outside the integer range", -1));
+        return TCL_ERROR;
+    }
+    /*
+     * Preserve the historical truncation-toward-zero behaviour.
+     */
+    Tcl_SetObjResult(interp, Tcl_NewIntObj((int)screen));
     return TCL_OK;
 }
 
