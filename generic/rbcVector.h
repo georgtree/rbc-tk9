@@ -35,7 +35,6 @@ typedef struct Rbc_Vector_s {
 #define VECTOR_MAGIC ((unsigned int) 0x46170277)
 #define DEF_ARRAY_SIZE 64
 #define BUFFER_SIZE 1024
-#define STATIC_STRING_SPACE 150
 
 #define TRACE_ALL (TCL_TRACE_WRITES | TCL_TRACE_READS | TCL_TRACE_UNSETS | TCL_TRACE_RESULT_OBJECT)
 
@@ -219,25 +218,8 @@ enum Tokens {
     OLD_BIT_NOT
 };
 
-typedef struct ParseValueStruct ParseValue;
-
-struct ParseValueStruct {
-    char *buffer;                                      /* Address of first character in
-                                                        * output buffer. */
-    char *next;                                        /* Place to store next character in
-                                                        * output buffer. */
-    char *end;                                         /* Address of the last usable character
-                                                        * in the buffer. */
-    void (*expandProc)(ParseValue *pvPtr, int needed); /* Procedure to call when space runs out;
-                                                        * it will make more space. */
-    ClientData clientData;                             /* Arbitrary information for use of
-                                                        * expandProc. */
-};
-
 typedef struct {
     VectorObject *vPtr;
-    char staticSpace[STATIC_STRING_SPACE];
-    ParseValue pv; /* Used to hold a string value, if any. */
 } Value;
 
 /*

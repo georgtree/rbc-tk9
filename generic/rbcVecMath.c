@@ -39,15 +39,6 @@ typedef struct {
                             * function. */
 } MathFunction;
 
-#define TclParseBraces Rbc_ParseBraces
-#define TclParseNestedCmd Rbc_ParseNestedCmd
-#define TclParseQuotes Rbc_ParseQuotes
-#define TclExpandParseValue Rbc_ExpandParseValue
-
-int TclParseBraces(Tcl_Interp *interp, char *string, char **termPtr, ParseValue *pvPtr);
-int TclParseNestedCmd(Tcl_Interp *interp, char *string, int flags, char **termPtr, ParseValue *pvPtr);
-int TclParseQuotes(Tcl_Interp *interp, char *string, int termChar, int flags, char **termPtr, ParseValue *pvPtr);
-void TclExpandParseValue(ParseValue *pvPtr, int needed);
 
 #ifdef DBL_MAX
 #define IS_INF(v) (((v) > DBL_MAX) || ((v) < -DBL_MAX))
@@ -102,6 +93,10 @@ static int ParseMathFunction(Tcl_Interp *interp, char *start, ParseInfo *parsePt
 static int ComponentFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr);
 static int ScalarFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr);
 static int VectorFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr);
+static int ParseSubstitutionResult(Tcl_Interp *interp, Value *valuePtr);
+static int ParseBracketValue(Tcl_Interp *interp, const char *string, const char **termPtr, Value *valuePtr);
+static int ParseQuotedValue(Tcl_Interp *interp, const char *string, const char **termPtr, Value *valuePtr);
+static int ParseBracedValue(Tcl_Interp *interp, const char *string, const char **termPtr, Value *valuePtr);
 
 static MathFunction mathFunctions[] = {
     {"abs", (GenericMathProc *)ComponentFunc, (ClientData)Fabs},
@@ -180,29 +175,6 @@ static int GetRotationOffset(Tcl_Interp *interp, double scalar, Tcl_Size length,
         *offsetPtr = (Tcl_Size)remainder;
     }
     return TCL_OK;
-}
-
-static void InitValueParseBuffer(Value *valuePtr) {
-    valuePtr->pv.buffer = valuePtr->staticSpace;
-    valuePtr->pv.next = valuePtr->staticSpace;
-    valuePtr->pv.end = valuePtr->staticSpace + STATIC_STRING_SPACE - 1;
-    valuePtr->pv.expandProc = TclExpandParseValue;
-    valuePtr->pv.clientData = NULL;
-}
-
-static void FreeValueParseBuffer(Value *valuePtr) {
-    if (valuePtr->pv.buffer != valuePtr->staticSpace) {
-        ckfree(valuePtr->pv.buffer);
-    }
-    /*
-     * Restore a valid static-buffer state.  This also makes repeated
-     * cleanup harmless from the caller's point of view.
-     */
-    valuePtr->pv.buffer = valuePtr->staticSpace;
-    valuePtr->pv.next = valuePtr->staticSpace;
-    valuePtr->pv.end = valuePtr->staticSpace + STATIC_STRING_SPACE - 1;
-    valuePtr->pv.expandProc = TclExpandParseValue;
-    valuePtr->pv.clientData = NULL;
 }
 
 /*
@@ -1138,12 +1110,6 @@ int Rbc_ExprVector(Tcl_Interp *interp, char *string, Rbc_Vector *vecPtr) {
     result = TCL_OK;
 
 done:
-    /*
-     * EvaluateExpression() may have expanded Value.pv beyond its
-     * embedded staticSpace buffer.  Release that storage on every
-     * exit path.
-     */
-    FreeValueParseBuffer(&value);
     Rbc_VectorFree(value.vPtr);
     return result;
 }
@@ -1182,7 +1148,6 @@ static int EvaluateExpression(Tcl_Interp *interp, char *string, Value *valuePtr)
     Tcl_Size i;
 
     info.expr = info.nextPtr = string;
-    InitValueParseBuffer(valuePtr);
     result = NextValue(interp, &info, -1, valuePtr);
     if (result != TCL_OK) {
         return result;
@@ -1253,7 +1218,6 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
     v2Ptr = Rbc_VectorNew(vPtr->dataPtr);
     gotOp = FALSE;
     value2.vPtr = v2Ptr;
-    InitValueParseBuffer(&value2);
     result = NextToken(interp, parsePtr, valuePtr);
     if (result != TCL_OK) {
         goto done;
@@ -1314,8 +1278,6 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
      */
     for (;;) {
         operator= parsePtr->token;
-
-        value2.pv.next = value2.pv.buffer;
         if ((operator<MULT) || (operator>= UNARY_MINUS)) {
             if ((operator== END) || (operator== CLOSE_PAREN) || (operator== COMMA)) {
                 result = TCL_OK;
@@ -1685,12 +1647,10 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
     }
 
 done:
-    FreeValueParseBuffer(&value2);
     Rbc_VectorFree(v2Ptr);
     return result;
 
 error:
-    FreeValueParseBuffer(&value2);
     Rbc_VectorFree(v2Ptr);
     return TCL_ERROR;
 }
@@ -1737,6 +1697,98 @@ static void MathError(Tcl_Interp *interp, double value) {
     }
 }
 
+static int ParseSubstitutionResult(Tcl_Interp *interp, Value *valuePtr) {
+    Tcl_Obj *resultObj;
+    const char *string;
+    int result;
+
+    /*
+     * Keep the result object alive while ParseString() works.
+     * ParseString() may replace the interpreter result itself.
+     */
+    resultObj = Tcl_GetObjResult(interp);
+    Tcl_IncrRefCount(resultObj);
+    string = Tcl_GetString(resultObj);
+    Tcl_ResetResult(interp);
+    result = ParseString(interp, string, valuePtr);
+    Tcl_DecrRefCount(resultObj);
+    return result;
+}
+
+static int ParseBracketValue(Tcl_Interp *interp, const char *string, const char **termPtr, Value *valuePtr) {
+    Tcl_Parse parse;
+    const char *scanPtr;
+    const char *commandEnd;
+    const char *closePtr;
+    Tcl_Size scriptLength;
+    int result;
+
+    scanPtr = string;
+    closePtr = NULL;
+    for (;;) {
+        result = Tcl_ParseCommand(interp, scanPtr, -1, 1, &parse);
+        if (result != TCL_OK) {
+            return result;
+        }
+        if (parse.commandSize <= 0) {
+            Tcl_FreeParse(&parse);
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("missing close-bracket", -1));
+            return TCL_ERROR;
+        }
+        commandEnd = parse.commandStart + parse.commandSize;
+        if ((commandEnd > parse.commandStart) && (commandEnd[-1] == ']')) {
+            closePtr = commandEnd - 1;
+            Tcl_FreeParse(&parse);
+            break;
+        }
+        Tcl_FreeParse(&parse);
+        if (*commandEnd == '\0') {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("missing close-bracket", -1));
+            return TCL_ERROR;
+        }
+        scanPtr = commandEnd;
+    }
+    *termPtr = closePtr + 1;
+    scriptLength = (Tcl_Size)(closePtr - string);
+    result = Tcl_EvalEx(interp, string, scriptLength, 0);
+    if (result != TCL_OK) {
+        return result;
+    }
+    return ParseSubstitutionResult(interp, valuePtr);
+}
+
+static int ParseQuotedValue(Tcl_Interp *interp, const char *string, const char **termPtr, Value *valuePtr) {
+    Tcl_Parse parse;
+    int result;
+
+    result = Tcl_ParseQuotedString(interp, string, -1, &parse, 0, termPtr);
+    if (result != TCL_OK) {
+        return result;
+    }
+    result = Tcl_EvalTokensStandard(interp, parse.tokenPtr, parse.numTokens);
+    Tcl_FreeParse(&parse);
+    if (result != TCL_OK) {
+        return result;
+    }
+    return ParseSubstitutionResult(interp, valuePtr);
+}
+
+static int ParseBracedValue(Tcl_Interp *interp, const char *string, const char **termPtr, Value *valuePtr) {
+    Tcl_Parse parse;
+    int result;
+
+    result = Tcl_ParseBraces(interp, string, -1, &parse, 0, termPtr);
+    if (result != TCL_OK) {
+        return result;
+    }
+    result = Tcl_EvalTokensStandard(interp, parse.tokenPtr, parse.numTokens);
+    Tcl_FreeParse(&parse);
+    if (result != TCL_OK) {
+        return result;
+    }
+    return ParseSubstitutionResult(interp, valuePtr);
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -1768,6 +1820,7 @@ static void MathError(Tcl_Interp *interp, double value) {
  */
 static int NextToken(Tcl_Interp *interp, ParseInfo *parsePtr, Value *valuePtr) {
     register char *p;
+    const char *termPtr;    
     char *endPtr;
     const char *var;
     const char *vectorEndPtr;
@@ -1827,34 +1880,31 @@ static int NextToken(Tcl_Interp *interp, ParseInfo *parsePtr, Value *valuePtr) {
         return result;
     case '[':
         parsePtr->token = VALUE;
-        result = TclParseNestedCmd(interp, p + 1, 0, &endPtr, &(valuePtr->pv));
+        result = ParseBracketValue(interp, p + 1, &termPtr, valuePtr);
         if (result != TCL_OK) {
             return result;
         }
-        parsePtr->nextPtr = endPtr;
-        Tcl_ResetResult(interp);
-        result = ParseString(interp, valuePtr->pv.buffer, valuePtr);
-        return result;
+        parsePtr->nextPtr = (char *)termPtr;
+        return TCL_OK;
+
     case '"':
         parsePtr->token = VALUE;
-        result = TclParseQuotes(interp, p + 1, '"', 0, &endPtr, &(valuePtr->pv));
+        result = ParseQuotedValue(interp, p, &termPtr, valuePtr);
         if (result != TCL_OK) {
             return result;
         }
-        parsePtr->nextPtr = endPtr;
-        Tcl_ResetResult(interp);
-        result = ParseString(interp, valuePtr->pv.buffer, valuePtr);
-        return result;
+        parsePtr->nextPtr = (char *)termPtr;
+        return TCL_OK;
+
     case '{':
         parsePtr->token = VALUE;
-        result = TclParseBraces(interp, p + 1, &endPtr, &valuePtr->pv);
+        result = ParseBracedValue(interp, p, &termPtr, valuePtr);
         if (result != TCL_OK) {
             return result;
         }
-        parsePtr->nextPtr = endPtr;
-        Tcl_ResetResult(interp);
-        result = ParseString(interp, valuePtr->pv.buffer, valuePtr);
-        return result;
+        parsePtr->nextPtr = (char *)termPtr;
+        return TCL_OK;
+        
     case '(':
         parsePtr->token = OPEN_PAREN;
         break;
@@ -2123,7 +2173,6 @@ static int ParseMathFunction(Tcl_Interp *interp, char *start, ParseInfo *parsePt
     /* Pick up the single value as the argument to the function */
     parsePtr->token = OPEN_PAREN;
     parsePtr->nextPtr = p + 1;
-    valuePtr->pv.next = valuePtr->pv.buffer;
     if (NextValue(interp, parsePtr, -1, valuePtr) != TCL_OK) {
         return TCL_ERROR; /* Parse error */
     }

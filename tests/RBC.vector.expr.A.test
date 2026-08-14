@@ -912,6 +912,58 @@ namespace eval vector.expr {
 	} -body {
 		catch {vector expr {[string repeat x 200]}}
 	} -result {1}
-	
+
+    test RBC.vector.expr.A.3.1 {
+        Quoted variable substitution
+    } -setup {
+        set ::rbcVectorExprTmp 12.5
+    } -body {
+        vector expr {"$::rbcVectorExprTmp"}
+    } -cleanup {
+        unset -nocomplain ::rbcVectorExprTmp
+    } -result {12.5}
+
+    test RBC.vector.expr.A.3.2 {
+        Quoted command substitution
+    } -body {
+        vector expr {"[expr {3 * 4}]"}
+    } -result {12.0}
+
+    test RBC.vector.expr.A.3.3 {
+        Quoted backslash substitution
+    } -body {
+        vector expr {"\x31\x32"}
+    } -result {12.0}
+
+    test RBC.vector.expr.A.3.4 {
+        Large quoted variable substitution
+    } -setup {
+        set ::rbcVectorExprTmp \
+            [format %0200d 5]
+    } -body {
+        vector expr {"$::rbcVectorExprTmp"}
+    } -cleanup {
+        unset -nocomplain ::rbcVectorExprTmp
+    } -result {5.0}
+
+    test RBC.vector.expr.A.3.5 {
+        Braced value
+    } -body {
+        vector expr {{12.5}}
+    } -result {12.5}
+
+    test RBC.vector.expr.A.3.6 {
+        Missing close quote
+    } -body {
+        set expression [format "%c12.5" 34]
+        catch {vector expr $expression}
+    } -result 1
+
+    test RBC.vector.expr.A.3.7 {
+        Missing close brace
+    } -body {
+        set expression [format "%c12.5" 123]
+        catch {vector expr $expression}
+    } -result 1
 	cleanupTests
 }
