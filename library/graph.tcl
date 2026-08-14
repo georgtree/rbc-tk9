@@ -293,7 +293,7 @@ proc rbc::CrosshairsClosest {graph {event Any-Motion} {state on} {halo 10} {inte
         if {@single@} {
             set result [%W element closest %x %y pointVar -along both -interpolate @interpolate@ -halo @halo@]
             if {$result} {
-                %W marker create text -name cursorText$i -anchor n\
+                %W marker create text -name cursorText -anchor n\
                         -text "$pointVar(name): x=[format %%.4g $pointVar(x)] \ny=[format %%.4g $pointVar(y)]"\
                         -coords "$pointVar(x) $pointVar(y)"
                 rbc::AddBitmapPoint %W cursorBitmap "$pointVar(x) $pointVar(y)"

@@ -3110,16 +3110,14 @@ static void GenerateSteps(Line *linePtr, MapInfo *mapPtr) {
  *      The temporary arrays for screen coordinates and data indices
  *      are updated based upon spline.
  *
- * FIXME:  Can't interpolate knots along the Y-axis.   Need to break
- *       up point array into interchangable X and Y vectors earlier.
- *       Pass extents (left/right or top/bottom) as parameters.
- *
  *----------------------------------------------------------------------
  */
 static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Tcl_Size extra;
     Tcl_WideInt span;
-    Point2D *origPts, *intpPts;
+    Point2D *origPts;
+    Point2D *splinePts;
+    Point2D *intpPts;
     Tcl_Size *indices;
     Tcl_Size capacity;
     Tcl_Size count;
@@ -3127,26 +3125,102 @@ static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Tcl_Size j;
     Tcl_Size nOrigPts;
     Tcl_Size nIntpPts;
+    size_t splineBytes;
+    double plotMin;
+    double plotMax;
+    double firstU;
+    double nextU;
+    int reversed;
     int result;
-    int x;
+    int sample;
 
     nOrigPts = mapPtr->nScreenPts;
     origPts = mapPtr->screenPts;
-    assert(mapPtr->nScreenPts > 0);
-    for (i = 0, j = 1; j < nOrigPts; i++, j++) {
-        if (origPts[j].x <= origPts[i].x) {
-            return; /* Points are not monotonically increasing */
-        }
-    }
-    if (((origPts[0].x > (double)graphPtr->right)) || ((origPts[mapPtr->nScreenPts - 1].x < (double)graphPtr->left))) {
-        return; /* All points are clipped */
+    assert(nOrigPts > 0);
+    if (nOrigPts < 3) {
+        return;
     }
     /*
-     * The spline is computed in screen coordinates instead of data
-     * points so that we can select the abscissas of the interpolated
-     * points from each pixel horizontally across the plotting area.
+     * Natural and quadratic splines are functions of data X.
+     *
+     * Normally data X maps to screen X.  For an inverted graph it
+     * maps to screen Y instead.  Select that screen coordinate as the
+     * spline abscissa.
      */
-    span = (Tcl_WideInt)graphPtr->right - (Tcl_WideInt)graphPtr->left + 1;
+    if (graphPtr->inverted) {
+        plotMin = (double)graphPtr->top;
+        plotMax = (double)graphPtr->bottom;
+        span = (Tcl_WideInt)graphPtr->bottom - (Tcl_WideInt)graphPtr->top + 1;
+        firstU = origPts[0].y;
+        nextU = origPts[1].y;
+    } else {
+        plotMin = (double)graphPtr->left;
+        plotMax = (double)graphPtr->right;
+        span = (Tcl_WideInt)graphPtr->right - (Tcl_WideInt)graphPtr->left + 1;
+        firstU = origPts[0].x;
+        nextU = origPts[1].x;
+    }
+    /*
+     * The spline routines require strictly increasing abscissas.
+     * Screen coordinates may instead decrease when the corresponding
+     * axis is descending, or simply because data X is mapped to the
+     * vertical screen direction.  Reflect the spline coordinate when
+     * necessary rather than reversing the point array.  This preserves
+     * data and index order.
+     */
+    if (nextU > firstU) {
+        reversed = FALSE;
+    } else if (nextU < firstU) {
+        reversed = TRUE;
+    } else {
+        return;
+    }
+    for (i = 0, j = 1; j < nOrigPts; i++, j++) {
+        double u;
+        double v;
+
+        if (graphPtr->inverted) {
+            u = origPts[i].y;
+            v = origPts[j].y;
+        } else {
+            u = origPts[i].x;
+            v = origPts[j].x;
+        }
+        if ((!reversed && (v <= u)) || (reversed && (v >= u))) {
+            return;
+        }
+    }
+    /*
+     * Reflect the visible spline-coordinate interval too, so that both
+     * source and interpolation coordinates use the same increasing
+     * canonical coordinate system.
+     */
+    if (reversed) {
+        double tmp;
+
+        tmp = plotMin;
+        plotMin = -plotMax;
+        plotMax = -tmp;
+        firstU = -firstU;
+        if (graphPtr->inverted) {
+            nextU = -origPts[nOrigPts - 1].y;
+        } else {
+            nextU = -origPts[nOrigPts - 1].x;
+        }
+    } else {
+        if (graphPtr->inverted) {
+            nextU = origPts[nOrigPts - 1].y;
+        } else {
+            nextU = origPts[nOrigPts - 1].x;
+        }
+    }
+    /*
+     * The canonical source abscissas are increasing, so this test also
+     * covers either screen direction.
+     */
+    if ((firstU > plotMax) || (nextU < plotMin)) {
+        return;
+    }
     if (span < 1) {
         return;
     }
@@ -3165,101 +3239,152 @@ static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
         linePtr->smooth = PEN_SMOOTH_NONE;
         return;
     }
+    if (GetLineArrayByteCount(nOrigPts, sizeof(*splinePts), &splineBytes) != TCL_OK) {
+        linePtr->smooth = PEN_SMOOTH_NONE;
+        return;
+    }
+    splinePts = Tcl_AttemptAlloc(splineBytes);
+    if (splinePts == NULL) {
+        linePtr->smooth = PEN_SMOOTH_NONE;
+        return;
+    }
+    /*
+     * Convert screen coordinates into the canonical spline coordinate
+     * system:
+     *
+     *     spline x = mapped data-X direction
+     *     spline y = mapped data-Y direction
+     *
+     * The spline x coordinate is reflected when necessary so that it
+     * is always strictly increasing.
+     */
+    for (i = 0; i < nOrigPts; i++) {
+        if (graphPtr->inverted) {
+            splinePts[i].x = origPts[i].y;
+            splinePts[i].y = origPts[i].x;
+        } else {
+            splinePts[i] = origPts[i];
+        }
+        if (reversed) {
+            splinePts[i].x = -splinePts[i].x;
+        }
+    }
     intpPts = Tcl_AttemptAlloc((size_t)capacity * sizeof(*intpPts));
     if (intpPts == NULL) {
+        ckfree(splinePts);
         linePtr->smooth = PEN_SMOOTH_NONE;
         return;
     }
     indices = Tcl_AttemptAlloc((size_t)capacity * sizeof(*indices));
     if (indices == NULL) {
         ckfree(intpPts);
+        ckfree(splinePts);
         linePtr->smooth = PEN_SMOOTH_NONE;
         return;
     }
-    /* Populate the x2 array with both the original X-coordinates and
-     * extra X-coordinates for each horizontal pixel that the line
-     * segment contains. */
+    /*
+     * Populate the interpolation abscissas with every original knot
+     * plus one sample for each intervening visible screen pixel along
+     * the mapped data-X direction.
+     */
     count = 0;
     for (i = 0, j = 1; j < nOrigPts; i++, j++) {
-        /* Add the original x-coordinate */
-        intpPts[count].x = origPts[i].x;
-        /* Include the starting offset of the point in the offset array */
+        intpPts[count].x = splinePts[i].x;
         indices[count] = mapPtr->indices[i];
         count++;
         /*
-         * Does any part of this interval intersect the plotting area?
+         * Does any part of this interval intersect the plotting area
+         * along the spline coordinate?
          */
-        if ((origPts[j].x >= (double)graphPtr->left) && (origPts[i].x <= (double)graphPtr->right)) {
+        if ((splinePts[j].x >= plotMin) && (splinePts[i].x <= plotMax)) {
+
             double first;
             double limit;
             int last;
+
             /*
-             * Clip in floating-point before converting to int.
-             * This preserves the existing interpolation-point
-             * selection for ordinary screen coordinates while
-             * preventing out-of-range floating-to-integer conversion
-             * for heavily clipped intervals.
+             * Clip in floating point before converting to int.
              */
-            first = origPts[i].x + 1.0;
-            if (first < (double)graphPtr->left) {
-                first = (double)graphPtr->left;
-            } else if (first > (double)graphPtr->right) {
-                first = (double)graphPtr->right;
+            first = splinePts[i].x + 1.0;
+            if (first < plotMin) {
+                first = plotMin;
+            } else if (first > plotMax) {
+                first = plotMax;
             }
-            limit = origPts[j].x;
-            if (limit < (double)graphPtr->left) {
-                limit = (double)graphPtr->left;
-            } else if (limit > (double)graphPtr->right) {
-                limit = (double)graphPtr->right;
+            limit = splinePts[j].x;
+            if (limit < plotMin) {
+                limit = plotMin;
+            } else if (limit > plotMax) {
+                limit = plotMax;
             }
-            x = (int)first;
+            sample = (int)first;
             last = (int)limit;
-            /*
-             * Add extra X-coordinates to the interval.
-             */
-            while (x < last) {
+            while (sample < last) {
                 indices[count] = mapPtr->indices[i];
-                intpPts[count].x = (double)x;
+                intpPts[count].x = (double)sample;
                 count++;
-                x++;
+                sample++;
             }
         }
     }
     /*
-     * The interval loop retains the original point at the beginning
-     * of each interval, so the final original point has not yet been
-     * added.
+     * The interval loop retains each interval's first knot.  Append the
+     * final original knot explicitly.
      */
     if (count >= capacity) {
         linePtr->smooth = PEN_SMOOTH_NONE;
         ckfree(intpPts);
         ckfree(indices);
+        ckfree(splinePts);
         return;
     }
-    intpPts[count].x = origPts[nOrigPts - 1].x;
+    intpPts[count].x = splinePts[nOrigPts - 1].x;
     indices[count] = mapPtr->indices[nOrigPts - 1];
     count++;
     nIntpPts = count;
     result = FALSE;
     if (linePtr->smooth == PEN_SMOOTH_NATURAL) {
-        result = Rbc_NaturalSpline(origPts, nOrigPts, intpPts, nIntpPts);
+        result = Rbc_NaturalSpline(splinePts, nOrigPts, intpPts, nIntpPts);
     } else if (linePtr->smooth == PEN_SMOOTH_QUADRATIC) {
-        result = Rbc_QuadraticSpline(origPts, nOrigPts, intpPts, nIntpPts);
+        result = Rbc_QuadraticSpline(splinePts, nOrigPts, intpPts, nIntpPts);
     }
+    ckfree(splinePts);
     if (!result) {
-        /* The spline interpolation failed.  We'll fallback to the
-         * current coordinates and do no smoothing (standard line
-         * segments).  */
+        /*
+         * The spline interpolation failed.  Fall back to the original
+         * coordinates and ordinary line segments.
+         */
         linePtr->smooth = PEN_SMOOTH_NONE;
-        ckfree((char *)intpPts);
-        ckfree((char *)indices);
-    } else {
-        ckfree((char *)mapPtr->screenPts);
-        ckfree((char *)mapPtr->indices);
-        mapPtr->indices = indices;
-        mapPtr->screenPts = intpPts;
-        mapPtr->nScreenPts = nIntpPts;
+        ckfree(intpPts);
+        ckfree(indices);
+        return;
     }
+    /*
+     * Transform the generated canonical spline coordinates back into
+     * actual screen coordinates.
+     */
+    for (i = 0; i < nIntpPts; i++) {
+        double u;
+        double v;
+
+        u = intpPts[i].x;
+        v = intpPts[i].y;
+        if (reversed) {
+            u = -u;
+        }
+        if (graphPtr->inverted) {
+            intpPts[i].x = v;
+            intpPts[i].y = u;
+        } else {
+            intpPts[i].x = u;
+            intpPts[i].y = v;
+        }
+    }
+    ckfree(mapPtr->screenPts);
+    ckfree(mapPtr->indices);
+    mapPtr->indices = indices;
+    mapPtr->screenPts = intpPts;
+    mapPtr->nScreenPts = nIntpPts;
 }
 
 /*
@@ -3281,10 +3406,6 @@ static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
  * Side Effects:
  *      The temporary arrays for screen coordinates and data indices
  *      are updated based upon spline.
- *
- * FIXME:  Can't interpolate knots along the Y-axis.   Need to break
- *       up point array into interchangable X and Y vectors earlier.
- *       Pass extents (left/right or top/bottom) as parameters.
  *
  *----------------------------------------------------------------------
  */

@@ -58,6 +58,7 @@ Rbc_ZoomStack .graph
 Rbc_ActiveLegend .graph
 Rbc_ClosestPoint .graph
 Rbc_PrintKey .graph
-set toolbar [Rbc_ToolbarCrosshair {} .graph]
+set toolbar [Rbc_Toolbar {} .graph]
+Rbc_CrosshairsClosest .graph
 pack $toolbar -side left
 .graph grid on
