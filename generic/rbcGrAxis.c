@@ -1971,11 +1971,10 @@ static TickLabel *MakeLabel(Graph *graphPtr, Axis *axisPtr, double value) {
 
     /* Generate a default tick label based upon the tick value.  */
     if (axisPtr->logScale) {
-        sprintf(string, "1E%d", ROUND(value));
+        snprintf(string, sizeof(string), "1E%d", ROUND(value));
     } else {
-        sprintf(string, "%.*g", NUMDIGITS, value);
+        snprintf(string, sizeof(string), "%.*g", NUMDIGITS, value);
     }
-
     if (axisPtr->formatCmd != NULL) {
         Tcl_Interp *interp = graphPtr->interp;
         Tk_Window tkwin = graphPtr->tkwin;
@@ -6727,7 +6726,7 @@ void Rbc_AxesToPostScript(Graph *graphPtr, PsToken psToken) {
  * Rbc_DrawAxisLimits --
  *
  *      Draws the min/max values of the axis in the plotting area.
- *      The text strings are formatted according to the "sprintf"
+ *      The text strings are formatted according to the printf-style
  *      format descriptors in the limitsFormats array.
  *
  * Parameters:
@@ -6979,8 +6978,8 @@ Axis *Rbc_NearestAxis(Graph *graphPtr, int x, int y) {
 
             Rbc_GetTextExtents(&axisPtr->titleTextStyle, axisPtr->title, &width, &height);
             Rbc_GetBoundingBox(width, height, axisPtr->titleTextStyle.theta, &rotWidth, &rotHeight, bbox);
-            width = ROUND(rotWidth);
-            height = ROUND(rotHeight);
+            width = AxisRotatedSize(rotWidth);
+            height = AxisRotatedSize(rotHeight);
             t = Rbc_TranslatePoint(&axisPtr->titlePos, width, height, axisPtr->titleTextStyle.anchor);
             /* Translate the point so that the 0,0 is the upper left
              * corner of the bounding box.  */
