@@ -833,6 +833,66 @@ namespace eval vector.expr {
 	} -cleanup {
 		vector destroy Vector1
 	} -result {0.0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure command substitution works inside vector expressions.
+	# ------------------------------------------------------------------------------------
+	test RBC.vector.expr.A.2.1 {
+		Command substitution
+	} -body {
+		vector expr {[expr {2 + 3}]}
+	} -result {5.0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure command substitution may contain multiple Tcl commands.
+	# ------------------------------------------------------------------------------------
+	test RBC.vector.expr.A.2.2 {
+		Multiple commands in command substitution
+	} -body {
+		vector expr {[set ::rbcVectorExprTmp 4; expr {$::rbcVectorExprTmp + 3}]}
+	} -cleanup {
+		unset -nocomplain ::rbcVectorExprTmp
+	} -result {7.0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure nested brackets are matched correctly.
+	# ------------------------------------------------------------------------------------
+	test RBC.vector.expr.A.2.3 {
+		Nested command substitution
+	} -body {
+		vector expr {[expr {[expr {2 + 3}] * 2}]}
+	} -result {10.0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the expression parser resumes immediately after the matching ].
+	# ------------------------------------------------------------------------------------
+	test RBC.vector.expr.A.2.4 {
+		Command substitution termination
+	} -body {
+		vector expr {
+			[expr {2 + 3}] * 4
+		}
+	} -result {20.0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure malformed command substitution reports an error.
+	# ------------------------------------------------------------------------------------
+	test RBC.vector.expr.A.2.5 {
+		Missing close bracket
+	} -body {
+		set code [catch { vector expr {[expr {2 + 3}} } message]
+		list $code [string match {*missing close-bracket*} $message]
+	} -result {1 1}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure errors from nested Tcl commands propagate normally.
+	# ------------------------------------------------------------------------------------
+	test RBC.vector.expr.A.2.6 {
+		Command substitution error
+	} -body {
+		set code [catch {vector expr {[error nested-failure]}} message]
+		list $code $message
+	} -result {1 nested-failure}
 	
 	cleanupTests
 }

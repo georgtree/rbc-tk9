@@ -11,6 +11,7 @@
 
 #include "rbcParse.h"
 #include <string.h>
+#include <limits.h>
 
 /*
  *--------------------------------------------------------------
@@ -101,36 +102,93 @@ void Rbc_ExpandParseValue(ParseValue *parsePtr, int needed) {
  *--------------------------------------------------------------
  */
 int Rbc_ParseNestedCmd(Tcl_Interp *interp, char *string, int flags, char **termPtr, ParseValue *parsePtr) {
-    int result, length, shortfall;
-    Interp *iPtr = (Interp *)interp;
+    Tcl_Parse parse;
+    Tcl_Obj *resultObj;
+    const char *scanPtr;
+    const char *commandEnd;
+    const char *closePtr;
+    const char *value;
+    Tcl_Size scriptLength;
+    Tcl_Size length;
+    Tcl_Size available;
+    Tcl_Size needed;
+    int result;
 
-    iPtr->evalFlags = flags | TCL_BRACKET_TERM;
-    result = Tcl_Eval(interp, string);
-    *termPtr = (string + iPtr->termOffset);
-    if (result != TCL_OK) {
-        /*
-         * The increment below results in slightly cleaner message in
-         * the errorInfo variable (the close-bracket will appear).
-         */
-
-        if (**termPtr == ']') {
-            *termPtr += 1;
+    scanPtr = string;
+    closePtr = NULL;
+    /*
+     * Find the close bracket using Tcl's public command parser.
+     *
+     * A command substitution may contain multiple commands, so parse
+     * one command at a time until Tcl reports a command terminated by
+     * the outer ']'.
+     */
+    for (;;) {
+        result = Tcl_ParseCommand(interp, scanPtr, -1, 1, &parse);
+        if (result != TCL_OK) {
+            *termPtr = string + strlen(string);
+            return result;
         }
+        if (parse.commandSize <= 0) {
+            Tcl_FreeParse(&parse);
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("missing close-bracket", -1));
+            *termPtr = string + strlen(string);
+            return TCL_ERROR;
+        }
+        commandEnd = parse.commandStart + parse.commandSize;
+        if ((commandEnd > parse.commandStart) && (commandEnd[-1] == ']')) {
+            closePtr = commandEnd - 1;
+            Tcl_FreeParse(&parse);
+            break;
+        }
+        Tcl_FreeParse(&parse);
+        if (*commandEnd == '\0') {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("missing close-bracket", -1));
+            *termPtr = (char *)commandEnd;
+            return TCL_ERROR;
+        }
+        scanPtr = commandEnd;
+    }
+    /*
+     * The caller expects termPtr to point immediately after the
+     * matching close bracket.
+     */
+    *termPtr = (char *)(closePtr + 1);
+    /*
+     * Evaluate exactly the script inside the brackets.  This replaces
+     * the old TCL_BRACKET_TERM manipulation of Tcl's private Interp
+     * structure.
+     */
+    scriptLength = (Tcl_Size)(closePtr - string);
+    result = Tcl_EvalEx(interp, string, scriptLength, flags);
+    if (result != TCL_OK) {
         return result;
     }
-    (*termPtr) += 1;
-    length = strlen(iPtr->result);
-    shortfall = length + 1 - (parsePtr->end - parsePtr->next);
-    if (shortfall > 0) {
-        (*parsePtr->expandProc)(parsePtr, shortfall);
-    }
-    strcpy(parsePtr->next, iPtr->result);
-    parsePtr->next += length;
 
-    //    Tcl_FreeResult(interp);
+    /*
+     * Copy the command result through the public Tcl object API.
+     */
+    resultObj = Tcl_GetObjResult(interp);
+    value = Tcl_GetStringFromObj(resultObj, &length);
+    available = (Tcl_Size)(parsePtr->end - parsePtr->next);
+    if (length > available) {
+        needed = length - available;
+        /*
+         * ParseValue's legacy expansion interface still takes int.
+         * Do not narrow a Tcl_Size silently.
+         */
+        if (needed > INT_MAX) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("vector expression substitution result is too large", -1));
+            return TCL_ERROR;
+        }
+        (*parsePtr->expandProc)(parsePtr, (int)needed);
+    }
+    if (length > 0) {
+        memcpy(parsePtr->next, value, (size_t)length);
+        parsePtr->next += length;
+    }
+    *parsePtr->next = '\0';
     Tcl_ResetResult(interp);
-    iPtr->result = iPtr->resultSpace;
-    iPtr->resultSpace[0] = '\0';
     return TCL_OK;
 }
 
