@@ -4193,6 +4193,33 @@ static void FreeTraces(Line *linePtr) {
     linePtr->traces = NULL;
 }
 
+static double TraceAbscissa(Graph *graphPtr, Line *linePtr, const Point2D *pointPtr) {
+    double value;
+    
+    /*
+     * -trace increasing/decreasing refers to the element's data-X
+     * coordinate, not to left-to-right screen motion.
+     *
+     * Normally data X maps to screen X.  In an inverted graph it maps
+     * to screen Y; a normal vertical mapping runs in the opposite
+     * screen direction.
+     */
+    if (graphPtr->inverted) {
+        value = -pointPtr->y;
+    } else {
+        value = pointPtr->x;
+    }
+    /*
+     * Axis -descending reverses whichever screen direction maps data X.
+     * Undo that reversal so increasing value always corresponds to
+     * increasing data X.
+     */
+    if (linePtr->core.axes.x->descending) {
+        value = -value;
+    }
+    return value;
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -4214,13 +4241,19 @@ static void FreeTraces(Line *linePtr) {
  *----------------------------------------------------------------------
  */
 static void MapTraces(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
-    Tcl_Size start, count;
-    int code1, code2;
-    Point2D *p, *q;
+    Tcl_Size start;
+    Tcl_Size count;
+    int code1;
+    int code2;
+    Point2D *p;
+    Point2D *q;
     Point2D s;
     Extents2D exts;
     Tcl_Size i;
-    int broken, offscreen;
+    int broken;
+    int offscreen;
+    double lastX;
+    double nextX;
 
     Rbc_GraphExtents(graphPtr, &exts);
     count = 1;
@@ -4230,8 +4263,9 @@ static void MapTraces(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     for (i = 1; i < mapPtr->nScreenPts; i++, p++, q++) {
         if ((mapPtr->breakBefore != NULL) && mapPtr->breakBefore[i]) {
             /*
-             * q starts a new continuous data run.  Save the previous trace
-             * without ever clipping or testing the nonexistent p->q segment.
+             * q starts a new continuous data run.  Save the previous
+             * trace without ever clipping or testing the nonexistent
+             * p->q segment.
              */
             if (count > 1) {
                 start = i - count;
@@ -4243,35 +4277,38 @@ static void MapTraces(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
         }
         code2 = OutCode(&exts, q);
         if (code2 != 0) {
-            /* Save the coordinates of the last point, before clipping */
+            /*
+             * Save the coordinates of the last point before clipping.
+             */
             s = *q;
         }
-        broken = BROKEN_TRACE(linePtr->penDir, p->x, q->x);
+        /*
+         * Test direction in a coordinate whose increasing direction
+         * always corresponds to increasing element data X.
+         */
+        lastX = TraceAbscissa(graphPtr, linePtr, p);
+        nextX = TraceAbscissa(graphPtr, linePtr, q);
+        broken = BROKEN_TRACE(linePtr->penDir, lastX, nextX);
         offscreen = ClipSegment(&exts, code1, code2, p, q);
         if (broken || offscreen) {
-
             /*
-             * The last line segment is either totally clipped by the plotting
-             * area or the x-direction is wrong, breaking the trace.  Either
-             * way, save information about the last trace (if one exists),
-             * discarding the current line segment
+             * The last line segment is either totally clipped by the
+             * plotting area or has the wrong data-X direction,
+             * breaking the trace.
              */
-
             if (count > 1) {
                 start = i - count;
                 SaveTrace(linePtr, start, count, mapPtr);
                 count = 1;
             }
         } else {
-            count++; /* Add the point to the trace. */
+            count++;
             if (code2 != 0) {
-
                 /*
-                 * If the last point is clipped, this means that the trace is
-                 * broken after this point.  Restore the original coordinate
-                 * (before clipping) after saving the trace.
+                 * If the last point is clipped, the trace is broken
+                 * after this point.  Restore the original coordinate
+                 * after saving the trace.
                  */
-
                 start = i - (count - 1);
                 SaveTrace(linePtr, start, count, mapPtr);
                 mapPtr->screenPts[i] = s;
