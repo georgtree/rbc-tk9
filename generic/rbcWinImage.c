@@ -12,7 +12,6 @@
 
 #include "rbcInt.h"
 #include "rbcImage.h"
-#include "rbcTkInt.h"
 #include <X11/Xutil.h>
 
 #define CLAMP(c) ((((c) < 0.0) ? 0.0 : ((c) > 255.0) ? 255.0 : (c)))
@@ -108,7 +107,6 @@ Pixmap Rbc_ColorImageToPixmap(Tcl_Interp *interp, Tk_Window tkwin, Rbc_ColorImag
 Pixmap Rbc_ColorImageToPixmap2(Display *display, int depth, Rbc_ColorImage image, ColorTable *colorTablePtr) {
     BITMAP bm;
     HBITMAP hBitmap;
-    TkWinBitmap *twdPtr;
     Pix32 *srcPtr;
     unsigned char *bits;
     unsigned char *destPtr;
@@ -150,12 +148,7 @@ Pixmap Rbc_ColorImageToPixmap2(Display *display, int depth, Rbc_ColorImage image
     if (hBitmap == NULL) {
         return None;
     }
-    twdPtr = RbcCalloc(1, sizeof(*twdPtr));
-    twdPtr->type = TWD_BITMAP;
-    twdPtr->handle = hBitmap;
-    twdPtr->depth = depth;
-    twdPtr->colormap = DefaultColormap(display, DefaultScreen(display));
-    return (Pixmap)twdPtr;
+    return Rbc_WinCreatePixmapFromBitmap(hBitmap, depth, DefaultColormap(display, DefaultScreen(display)));
 }
 
 /*
@@ -308,7 +301,7 @@ done:
  *--------------------------------------------------------------
  */
 Pixmap Rbc_PhotoImageMask(Tk_Window tkwin, Tk_PhotoImageBlock src) {
-    TkWinBitmap *twdPtr;
+    Pixmap bitmap;
     size_t count = 0;
     int x, y;
     unsigned char *srcPtr;
@@ -317,6 +310,7 @@ Pixmap Rbc_PhotoImageMask(Tk_Window tkwin, Tk_PhotoImageBlock src) {
     unsigned char *destBits;
     unsigned char *srcRowPtr;
 
+    bitmap = None;    
     if (src.height <= 0) {
         return None;
     }
@@ -355,23 +349,18 @@ Pixmap Rbc_PhotoImageMask(Tk_Window tkwin, Tk_PhotoImageBlock src) {
             ckfree(destBits);
             return None;
         }
-        twdPtr = RbcCalloc(1, sizeof(*twdPtr));
-        assert(twdPtr);
-        twdPtr->type = TWD_BITMAP;
-        twdPtr->handle = hBitmap;
-        twdPtr->depth = 1;
+        Colormap colormap;
         if (Tk_WindowId(tkwin) == None) {
-            twdPtr->colormap = DefaultColormap(Tk_Display(tkwin), DefaultScreen(Tk_Display(tkwin)));
+            colormap = DefaultColormap(Tk_Display(tkwin), DefaultScreen(Tk_Display(tkwin)));
         } else {
-            twdPtr->colormap = Tk_Colormap(tkwin);
+            colormap = Tk_Colormap(tkwin);
         }
-    } else {
-        twdPtr = NULL;
+        bitmap = Rbc_WinCreatePixmapFromBitmap(hBitmap, 1, colormap);
     }
     if (destBits != NULL) {
         ckfree((char *)destBits);
     }
-    return (Pixmap)twdPtr;
+    return bitmap;
 }
 
 /*
@@ -394,7 +383,7 @@ Pixmap Rbc_PhotoImageMask(Tk_Window tkwin, Tk_PhotoImageBlock src) {
  *--------------------------------------------------------------
  */
 Pixmap Rbc_ColorImageMask(Tk_Window tkwin, Rbc_ColorImage image) {
-    TkWinBitmap *twdPtr;
+    Pixmap bitmap;
     size_t count;
     int x, y;
     Pix32 *srcPtr;
@@ -423,7 +412,7 @@ Pixmap Rbc_ColorImageMask(Tk_Window tkwin, Rbc_ColorImage image) {
             srcPtr++;
         }
     }
-    twdPtr = NULL;
+    bitmap = None;
     if (count > 0) {
         HBITMAP hBitmap;
         BITMAP bm;
@@ -437,19 +426,18 @@ Pixmap Rbc_ColorImageMask(Tk_Window tkwin, Rbc_ColorImage image) {
         bm.bmBits = destBits;
         hBitmap = CreateBitmapIndirect(&bm);
         if (hBitmap != NULL) {
-            twdPtr = RbcCalloc(1, sizeof(*twdPtr));
-            twdPtr->type = TWD_BITMAP;
-            twdPtr->handle = hBitmap;
-            twdPtr->depth = 1;
+            Colormap colormap;
+
             if (Tk_WindowId(tkwin) == None) {
-                twdPtr->colormap = DefaultColormap(Tk_Display(tkwin), DefaultScreen(Tk_Display(tkwin)));
+                colormap = DefaultColormap(Tk_Display(tkwin), DefaultScreen(Tk_Display(tkwin)));
             } else {
-                twdPtr->colormap = Tk_Colormap(tkwin);
+                colormap = Tk_Colormap(tkwin);
             }
+            bitmap = Rbc_WinCreatePixmapFromBitmap(hBitmap, 1, colormap);
         }
     }
     ckfree(destBits);
-    return (Pixmap)twdPtr;
+    return bitmap;
 }
 
 /*

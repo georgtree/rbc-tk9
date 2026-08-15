@@ -192,6 +192,36 @@ void Rbc_WinReleaseDrawableDC(Rbc_WinDrawableDC *statePtr) {
  */
 void Rbc_WinSetROP2(HDC dc, int function) { SetROP2(dc, tkpWinRopModes[function]); }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_WinCreatePixmapFromBitmap --
+ *
+ *      Wraps a native Windows bitmap in the representation expected
+ *      by Tk's Windows Xlib compatibility layer.
+ *
+ * Results:
+ *      A Pixmap backed by the supplied HBITMAP, or None if hBitmap
+ *      is NULL.
+ *
+ * Side effects:
+ *      Allocates a small private Tk drawable wrapper.
+ *
+ *----------------------------------------------------------------------
+ */
+Pixmap Rbc_WinCreatePixmapFromBitmap(HBITMAP hBitmap, int depth, Colormap colormap) {
+    TkWinBitmap *bitmapPtr;
+
+    if (hBitmap == NULL) {
+        return None;
+    }
+    bitmapPtr = (TkWinBitmap *)ckalloc(sizeof(*bitmapPtr));
+    bitmapPtr->type = TWD_BITMAP;
+    bitmapPtr->handle = hBitmap;
+    bitmapPtr->colormap = colormap;
+    bitmapPtr->depth = depth;
+    return (Pixmap)bitmapPtr;
+}
 
 /*
  *----------------------------------------------------------------------
