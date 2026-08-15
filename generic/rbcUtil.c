@@ -704,61 +704,6 @@ Rbc_Uid Rbc_FindUid(char *string) {
 /*
  *----------------------------------------------------------------------
  *
- * Rbc_GetOpFromObj --
- *
- *      Finds a command operation from its name and validates the
- *      operation's argument count.
- *
- * Parameters:
- *      Tcl_Interp *interp           - Interpreter used for error
- *                                     reporting.
- *      const Rbc_OpSpec *specArr    - Operation specification array.
- *      Tcl_Size operPos             - Position of the operation name in
- *                                     the argument vector.
- *      Tcl_Size objc                - Number of argument objects.
- *      Tcl_Obj *const objv[]        - Argument object vector.
- *
- * Results:
- *      Returns the selected operation procedure.
- *      Returns NULL if the operation is missing or invalid, or if the
- *      argument count is outside the operation's accepted range.
- *
- * Side Effects:
- *      Sets the interpreter result on error.
- *
- *----------------------------------------------------------------------
- */
-Rbc_Op Rbc_GetOpFromObj(Tcl_Interp *interp, const Rbc_OpSpec *specArr, Tcl_Size operPos, Tcl_Size objc,
-                        Tcl_Obj *const objv[]) {
-    int index;
-
-    if (objc <= operPos) {
-        Tcl_WrongNumArgs(interp, objc, objv, "subcommand ?arg ...?");
-        return NULL;
-    }
-
-    /*
-     * Tcl_GetIndexFromObjStruct still returns the selected table index
-     * through an int. Operation tables contain only a small fixed number
-     * of entries, so the index itself is not a Tcl-sized collection
-     * length.
-     */
-    if (Tcl_GetIndexFromObjStruct(interp, objv[operPos], specArr, sizeof(Rbc_OpSpec), "subcommand", 0, &index) !=
-        TCL_OK) {
-        return NULL;
-    }
-
-    if ((objc < specArr[index].minArgs) || ((specArr[index].maxArgs > 0) && (objc > specArr[index].maxArgs))) {
-        Tcl_WrongNumArgs(interp, operPos + 1, objv, specArr[index].usage);
-        return NULL;
-    }
-
-    return specArr[index].proc;
-}
-
-/*
- *----------------------------------------------------------------------
- *
  * Rbc_GetOpIndexFromObj --
  *
  *      Finds an operation in a typed operation table and validates its

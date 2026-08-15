@@ -139,43 +139,6 @@
  */
 #define UCHAR(c) ((unsigned char) (c))
 
-/*
- * ----------------------------------------------------------------------
- *
- * Rbc_Op --
- *
- *     Generic function prototype of CmdOptions.
- *
- * ----------------------------------------------------------------------
- */
-typedef int (*Rbc_Op)(void);
-
-/*
- * ----------------------------------------------------------------------
- *
- * Rbc_OpSpec --
- *
- *      Describes one operation provided by a Tcl command.
- *
- *      minArgs and maxArgs count the complete command argument vector,
- *      including the command and operation names. A maxArgs value of
- *      zero means that the operation has no upper argument limit.
- *
- *      The generic Rbc_Op procedure representation is retained
- *      temporarily. Individual command families will replace it with
- *      properly typed operation tables during their Tcl_ObjCmdProc2
- *      conversion.
- *
- * ----------------------------------------------------------------------
- */
-typedef struct {
-    const char *name; /* Name of operation. */
-    Rbc_Op proc;      /* Operation procedure. */
-    Tcl_Size minArgs; /* Minimum number of arguments required. */
-    Tcl_Size maxArgs; /* Maximum number of arguments, or zero. */
-    const char *usage; /* Usage message following the operation name. */
-} Rbc_OpSpec;
-
 typedef enum {
     RBC_OP_ARG0, /* Op is the first argument. */
     RBC_OP_ARG1, /* Op is the second argument. */
@@ -191,13 +154,8 @@ typedef struct {
     const char *usage;
 } Rbc_OpSpecHeader;
 
-#define RBC_OPSPEC_END {NULL, NULL, 0, 0, NULL}
-
-Rbc_Op Rbc_GetOpFromObj(Tcl_Interp *interp, const Rbc_OpSpec *specArr, Tcl_Size operPos, Tcl_Size objc,
-                        Tcl_Obj *const objv[]);
 int Rbc_GetOpIndexFromObj(Tcl_Interp *interp, const void *specArr, Tcl_Size specSize, Tcl_Size operPos, Tcl_Size objc,
                           Tcl_Obj *const objv[], int *indexPtr);
-
 void Rbc_Draw3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, int x, int y, int width, int height,
                          int borderWidth, int relief);
 void Rbc_Fill3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, int x, int y, int width, int height,
@@ -529,8 +487,6 @@ ClientData Rbc_GetWindowInstanceData(Tk_Window tkwin);
 void Rbc_SetWindowInstanceData(Tk_Window tkwin, ClientData instanceData);
 void Rbc_DeleteWindowInstanceData(Tk_Window tkwin);
 int Rbc_AdjustViewport(int offset, int worldSize, int windowSize, int scrollUnits, int scrollMode);
-int Rbc_GetScrollInfo(Tcl_Interp *interp, int argc, char **argv, int *offsetPtr, int worldSize, int windowSize,
-                      int scrollUnits, int scrollMode);
 int Rbc_GetScrollInfoFromObj(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], int *offsetPtr, int worldSize,
                              int windowSize, int scrollUnits, int scrollMode);
 const char *Rbc_GetCanonicalOptionName(Tcl_Obj *objPtr, const Tk_OptionSpec *specs);
