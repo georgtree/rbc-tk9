@@ -439,27 +439,6 @@ void Rbc_EmulateXLowerWindow(Display *display, Window window) {
 }
 
 /*
- *--------------------------------------------------------------
- *
- * Rbc_SetROP2 --
- *
- *      TODO: Description
- *
- * Parameters:
- *      HDC dc
- *      int function
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
-void Rbc_SetROP2(HDC dc, int function) { SetROP2(dc, tkpWinRopModes[function]); }
-
-/*
  *----------------------------------------------------------------------
  *
  * Rbc_GCToPen --

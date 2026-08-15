@@ -54,7 +54,7 @@ static int GetMonoBitmapStride(int width) {
  */
 Pixmap Rbc_ColorImageToPixmap(Tcl_Interp *interp, Tk_Window tkwin, Rbc_ColorImage image, ColorTable *colorTablePtr) {
     HDC pixmapDC;
-    TkWinDCState state;
+    Rbc_WinDrawableDC *dcStatePtr;
     Display *display;
     int width, height, depth;
     Pixmap pixmap;
@@ -69,7 +69,7 @@ Pixmap Rbc_ColorImageToPixmap(Tcl_Interp *interp, Tk_Window tkwin, Rbc_ColorImag
     depth = Tk_Depth(tkwin);
 
     pixmap = Tk_GetPixmap(display, Tk_WindowId(tkwin), width, height, depth);
-    pixmapDC = TkWinGetDrawableDC(display, pixmap, &state);
+    pixmapDC = Rbc_WinAcquireDrawableDC(display, pixmap, &dcStatePtr);
 
     srcPtr = Rbc_ColorImageBits(image);
     for (y = 0; y < height; y++) {
@@ -79,7 +79,7 @@ Pixmap Rbc_ColorImageToPixmap(Tcl_Interp *interp, Tk_Window tkwin, Rbc_ColorImag
             srcPtr++;
         }
     }
-    TkWinReleaseDrawableDC(pixmap, pixmapDC, &state);
+    Rbc_WinReleaseDrawableDC(dcStatePtr);
     return pixmap;
 }
 
@@ -195,7 +195,7 @@ Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, int 
     unsigned char *srcArr;
     register unsigned char *srcPtr;
     HDC hDC;
-    TkWinDCState state;
+    Rbc_WinDrawableDC *dcStatePtr;
     register Pix32 *destPtr;
     Rbc_ColorImage image;
     unsigned char lut[256];
@@ -208,7 +208,7 @@ Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, int 
     if ((width <= 0) || (height <= 0) || (!FINITE(inputGamma)) || (inputGamma <= 0.0)) {
         return NULL;
     }
-    hDC = TkWinGetDrawableDC(Tk_Display(tkwin), drawable, &state);
+    hDC = Rbc_WinAcquireDrawableDC(Tk_Display(tkwin), drawable, &dcStatePtr);
     /* Create the intermediate drawing surface at window resolution. */
     ZeroMemory(&info, sizeof(info));
     info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -236,15 +236,9 @@ Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, int 
     image = NULL;
     /* Copy the window contents to the memory surface. */
     if (!BitBlt(memDC, 0, 0, width, height, hDC, x, y, SRCCOPY)) {
-#ifdef notdef
-        PurifyPrintf("can't blit: %s\n", Rbc_LastError());
-#endif
         goto done;
     }
     if (GetObject(hBitmap, sizeof(DIBSECTION), &ds) == 0) {
-#ifdef notdef
-        PurifyPrintf("can't get object: %s\n", Rbc_LastError());
-#endif
         goto done;
     }
     srcArr = (unsigned char *)ds.dsBm.bmBits;
@@ -287,7 +281,7 @@ done:
     } else if (hBitmap != NULL) {
         DeleteObject(hBitmap);
     }
-    TkWinReleaseDrawableDC(drawable, hDC, &state);
+    Rbc_WinReleaseDrawableDC(dcStatePtr);
     if (hPalette != NULL) {
         DeletePalette(hPalette);
     }
@@ -497,7 +491,7 @@ Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int src
     double rotWidth, rotHeight;
     double widthValue, heightValue;
     HDC hDC;
-    TkWinDCState state;
+    Rbc_WinDrawableDC *dcStatePtr;
     HBITMAP hBitmap;
     unsigned char *srcBits;
     unsigned char *destBits;
@@ -699,7 +693,7 @@ Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int src
      * Transfer the rotated bit array into the Windows bitmap backing
      * the Tk pixmap.
      */
-    hBitmap = ((TkWinDrawable *)destBitmap)->bitmap.handle;
+    hBitmap = Rbc_WinGetPixmapHandle(destBitmap);
     ZeroMemory(&mb, sizeof(mb));
     mb.bi.biSize = sizeof(BITMAPINFOHEADER);
     mb.bi.biPlanes = 1;
@@ -714,9 +708,9 @@ Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int src
     mb.colors[1].rgbBlue = 0xFF;
     mb.colors[1].rgbGreen = 0xFF;
     mb.colors[1].rgbRed = 0xFF;
-    hDC = TkWinGetDrawableDC(display, destBitmap, &state);
+    hDC = Rbc_WinAcquireDrawableDC(display, destBitmap, &dcStatePtr);
     result = SetDIBits(hDC, hBitmap, 0, (UINT)destHeight, (const VOID *)destBits, (BITMAPINFO *)&mb, DIB_RGB_COLORS);
-    TkWinReleaseDrawableDC(destBitmap, hDC, &state);
+    Rbc_WinReleaseDrawableDC(dcStatePtr);
     ckfree(destBits);
     ckfree(srcBits);
     if (result == 0) {
@@ -759,7 +753,8 @@ Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int src
  * -----------------------------------------------------------------------
  */
 Pixmap Rbc_ScaleBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcHeight, int destWidth, int destHeight) {
-    TkWinDCState srcState, destState;
+    Rbc_WinDrawableDC *srcStatePtr;
+    Rbc_WinDrawableDC *destStatePtr;
     HDC src, dest;
     Pixmap destBitmap;
     Window root;
@@ -773,13 +768,13 @@ Pixmap Rbc_ScaleBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcH
     if (destBitmap == None) {
         return None;
     }
-    src = TkWinGetDrawableDC(display, srcBitmap, &srcState);
-    dest = TkWinGetDrawableDC(display, destBitmap, &destState);
+    src = Rbc_WinAcquireDrawableDC(display, srcBitmap, &srcStatePtr);
+    dest = Rbc_WinAcquireDrawableDC(display, destBitmap, &destStatePtr);
 
     StretchBlt(dest, 0, 0, destWidth, destHeight, src, 0, 0, srcWidth, srcHeight, SRCCOPY);
 
-    TkWinReleaseDrawableDC(srcBitmap, src, &srcState);
-    TkWinReleaseDrawableDC(destBitmap, dest, &destState);
+    Rbc_WinReleaseDrawableDC(srcStatePtr);
+    Rbc_WinReleaseDrawableDC(destStatePtr);
     return destBitmap;
 }
 
@@ -829,7 +824,7 @@ Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWid
     HBITMAP hBitmap;
     HDC hDC;
     Pixmap destBitmap;
-    TkWinDCState state;
+    Rbc_WinDrawableDC *dcStatePtr;
     Window root; /* Root window drawable */
     double rotWidth, rotHeight;
     double xScale, yScale;
@@ -1005,7 +1000,7 @@ Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWid
         }
     }
     /* Write the rotated image into the destination bitmap. */
-    hBitmap = ((TkWinDrawable *)destBitmap)->bitmap.handle;
+    hBitmap = Rbc_WinGetPixmapHandle(destBitmap);
     ZeroMemory(&mb, sizeof(mb));
     mb.bi.biSize = sizeof(BITMAPINFOHEADER);
     mb.bi.biPlanes = 1;
@@ -1016,9 +1011,9 @@ Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWid
     mb.bi.biSizeImage = (DWORD)imageSize;
     mb.colors[0].rgbBlue = mb.colors[0].rgbRed = mb.colors[0].rgbGreen = 0x0;
     mb.colors[1].rgbBlue = mb.colors[1].rgbRed = mb.colors[1].rgbGreen = 0xFF;
-    hDC = TkWinGetDrawableDC(display, destBitmap, &state);
+    hDC = Rbc_WinAcquireDrawableDC(display, destBitmap, &dcStatePtr);
     result = SetDIBits(hDC, hBitmap, 0, regionHeight, (LPVOID)destBits, (BITMAPINFO *)&mb, DIB_RGB_COLORS);
-    TkWinReleaseDrawableDC(destBitmap, hDC, &state);
+    Rbc_WinReleaseDrawableDC(dcStatePtr);
     if (!result) {
 #if WINDEBUG
         PurifyPrintf("can't setDIBits: %s\n", Rbc_LastError());
@@ -1034,134 +1029,6 @@ Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWid
     }
     return destBitmap;
 }
-
-#ifdef notdef
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_BlendColorImage --
- *
- *      Takes a snapshot of an X drawable (pixmap or window) and
- *      converts it to a color image.
- *
- * Parameters:
- *      Tk_Window tkwin
- *      Drawable drawable
- *      int width - -
- *      int height - Dimension of the drawable.
- *      Region2D *regionPtr - Region to be snapped.
- *
- * Results:
- *      Returns a color image of the drawable.  If an error occurred,
- *      NULL is returned.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-void Rbc_BlendColorImage(Tk_Window tkwin, Drawable drawable, int width, int height, Region2D *regionPtr) {
-    void *data;
-    BITMAPINFO info;
-    DIBSECTION ds;
-    HBITMAP hBitmap, oldBitmap;
-    HPALETTE hPalette;
-    HDC memDC;
-    unsigned char *srcArr;
-    register unsigned char *srcPtr;
-    HDC hDC;
-    TkWinDCState state;
-    register Pix32 *destPtr;
-    Rbc_ColorImage image;
-    register int x, y;
-
-    if (regionPtr == NULL) {
-        regionPtr = Rbc_SetRegion(0, 0, ColorImageWidth(image), ColorImageHeight(image), &region);
-    }
-    if (regionPtr->left < 0) {
-        regionPtr->left = 0;
-    }
-    if (regionPtr->right >= destWidth) {
-        regionPtr->right = destWidth - 1;
-    }
-    if (regionPtr->top < 0) {
-        regionPtr->top = 0;
-    }
-    if (regionPtr->bottom >= destHeight) {
-        regionPtr->bottom = destHeight - 1;
-    }
-    width = RegionWidth(regionPtr);
-    height = RegionHeight(regionPtr);
-
-    hDC = TkWinGetDrawableDC(display, drawable, &state);
-
-    /* Create the intermediate drawing surface at window resolution. */
-    ZeroMemory(&info, sizeof(info));
-    info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-    info.bmiHeader.biWidth = width;
-    info.bmiHeader.biHeight = height;
-    info.bmiHeader.biPlanes = 1;
-    info.bmiHeader.biBitCount = 32;
-    info.bmiHeader.biCompression = BI_RGB;
-    hBitmap = CreateDIBSection(hDC, &info, DIB_RGB_COLORS, &data, NULL, 0);
-    memDC = CreateCompatibleDC(hDC);
-    oldBitmap = SelectBitmap(memDC, hBitmap);
-
-    hPalette = Rbc_GetSystemPalette();
-    if (hPalette != NULL) {
-        SelectPalette(hDC, hPalette, FALSE);
-        RealizePalette(hDC);
-        SelectPalette(memDC, hPalette, FALSE);
-        RealizePalette(memDC);
-    }
-    image = NULL;
-    /* Copy the window contents to the memory surface. */
-    if (!BitBlt(memDC, 0, 0, width, height, hDC, regionPtr->left, regionPtr->top, SRCCOPY)) {
-#ifdef notdef
-        PurifyPrintf("can't blit: %s\n", Rbc_LastError());
-#endif
-        goto done;
-    }
-    if (GetObject(hBitmap, sizeof(DIBSECTION), &ds) == 0) {
-#ifdef notdef
-        PurifyPrintf("can't get object: %s\n", Rbc_LastError());
-#endif
-        goto done;
-    }
-    srcArr = (unsigned char *)ds.dsBm.bmBits;
-    image = Rbc_CreateColorImage(width, height);
-    destPtr = Rbc_ColorImageBits(image);
-
-    /*
-     * Copy the DIB RGB data into the color image. The DIB scanlines
-     * are stored bottom-to-top and the order of the RGBA color
-     * components is BGRA. Who says Win32 GDI programming isn't
-     * backwards?
-     */
-    for (y = height - 1; y >= 0; y--) {
-        srcPtr = srcArr + (y * ds.dsBm.bmWidthBytes);
-        for (x = 0; x < width; x++) {
-            if (destPtr->Alpha > 0) {
-                /* Blend colorimage with background. */
-                destPtr->Blue = *srcPtr++;
-                destPtr->Green = *srcPtr++;
-                destPtr->Red = *srcPtr++;
-                destPtr->Alpha = (unsigned char)-1;
-                srcPtr++;
-            }
-            destPtr++;
-        }
-    }
-done:
-    DeleteBitmap(SelectBitmap(memDC, oldBitmap));
-    DeleteDC(memDC);
-    TkWinReleaseDrawableDC(drawable, hDC, &state);
-    if (hPalette != NULL) {
-        DeletePalette(hPalette);
-    }
-    return image;
-}
-#endif
 
 #ifdef HAVE_IJL_H
 
