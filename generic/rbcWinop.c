@@ -19,7 +19,7 @@
 #include <X11/Xproto.h>
 #endif
 #ifdef WIN32
-#include "rbcTkInt.h"
+#include <tkPlatDecls.h>
 #endif
 
 static Tcl_ObjCmdProc2 WinopCmd;
@@ -123,12 +123,7 @@ static Window StringToWindow(Tcl_Interp *interp, const char *string) {
         }
     } else if (Tcl_GetInt(interp, string, &xid) == TCL_OK) {
 #ifdef WIN32
-        static TkWinWindow tkWinWindow;
-
-        tkWinWindow.handle = (HWND)INT2PTR(xid);
-        tkWinWindow.winPtr = NULL;
-        tkWinWindow.type = TWD_WINDOW;
-        return (Window)&tkWinWindow;
+        return Rbc_WinWindowFromHWND((HWND)INT2PTR(xid));
 #else
         return (Window)xid;
 #endif
@@ -160,23 +155,19 @@ static Window StringToWindow(Tcl_Interp *interp, const char *string) {
  *--------------------------------------------------------------
  */
 static int GetWindowSize(Tcl_Interp *interp, Window window, int *widthPtr, int *heightPtr) {
-    TkWinWindow *winPtr;
+    HWND hWnd;
     RECT region;
-    Tcl_WideInt width;
-    Tcl_WideInt height;
 
-    winPtr = (TkWinWindow *)window;
-    if (!GetWindowRect(winPtr->handle, &region)) {
+    (void)interp;
+    hWnd = Tk_GetHWND(window);
+    if (hWnd == NULL) {
         return TCL_ERROR;
     }
-    width = (Tcl_WideInt)region.right - (Tcl_WideInt)region.left;
-    height = (Tcl_WideInt)region.bottom - (Tcl_WideInt)region.top;
-    if ((width <= 0) || (width > INT_MAX) || (height <= 0) || (height > INT_MAX)) {
-        Tcl_SetObjResult(interp, Tcl_NewStringObj("window dimensions are invalid", -1));
+    if (!GetWindowRect(hWnd, &region)) {
         return TCL_ERROR;
     }
-    *widthPtr = (int)width;
-    *heightPtr = (int)height;
+    *widthPtr = region.right - region.left;
+    *heightPtr = region.bottom - region.top;
     return TCL_OK;
 }
 

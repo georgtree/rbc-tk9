@@ -135,6 +135,7 @@ EXTERN void Rbc_EmulateXLowerWindow(Display *display, Window window);
 EXTERN long Rbc_EmulateXMaxRequestSize(Display *display);
 Drawable Rbc_WinCreateDrawableFromDC(HDC dc);
 void Rbc_WinFreeDrawableFromDC(Drawable drawable);
+Window Rbc_WinWindowFromHWND(HWND hWnd);
 
 extern unsigned char *Rbc_GetBitmapData(Display *display, Pixmap bitmap, int width, int height, int *pitchPtr);
 

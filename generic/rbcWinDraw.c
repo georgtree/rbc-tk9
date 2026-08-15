@@ -89,6 +89,34 @@ void Rbc_WinFreeDrawableFromDC(Drawable drawable) {
 }
 
 /*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_WinWindowFromHWND --
+ *
+ *      Wraps a native Windows HWND in the Window representation
+ *      expected by Tk's Windows Xlib compatibility layer.
+ *
+ *      The returned Window is backed by static storage and is valid
+ *      until the next call to this function.
+ *
+ * Results:
+ *      A Window representing the supplied HWND.
+ *
+ * Side effects:
+ *      Replaces the contents of the internal wrapper.
+ *
+ *----------------------------------------------------------------------
+ */
+Window Rbc_WinWindowFromHWND(HWND hWnd) {
+    static TkWinWindow window;
+
+    window.type = TWD_WINDOW;
+    window.handle = hWnd;
+    window.winPtr = NULL;
+    return (Window)&window;
+}
+
+/*
  *--------------------------------------------------------------
  *
  * Rbc_GetSystemPalette --
