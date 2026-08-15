@@ -113,6 +113,7 @@ typedef struct {
 #define AXIS_REDRAW_MASK (1u << 14)
 #define AXIS_LOG_SCALE_MASK (1u << 15)
 #define AXIS_FORMAT_COMMAND_MASK (1u << 16)
+#define AXIS_SCROLL_COMMAND_MASK (1u << 17)
 
 /*
  * Options that affect the axis's requested numerical range.
@@ -273,8 +274,8 @@ static const Tk_OptionSpec axisOptionSpecs[] = {
      TK_OPTION_DONT_SET_DEFAULT, NULL, AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
     {TK_OPTION_DOUBLE, "-rotate", "rotate", "Rotate", DEF_AXIS_ROTATE, -1, offsetof(Axis, tickTextStyle.theta),
      TK_OPTION_DONT_SET_DEFAULT, NULL, AXIS_TEXT_STYLE_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
-    {TK_OPTION_STRING, "-scrollcommand", "scrollCommand", "ScrollCommand", NULL, -1, offsetof(Axis, scrollCmdPrefix),
-     TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING, "-scrollcommand", "scrollCommand", "ScrollCommand", NULL, offsetof(Axis, scrollCmdObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, AXIS_SCROLL_COMMAND_MASK},
     {TK_OPTION_STRING, "-scrollincrement", "scrollIncrement", "ScrollIncrement", DEF_AXIS_SCROLL_INCREMENT,
      offsetof(Axis, scrollIncrementObjPtr), -1, 0, NULL, AXIS_PIXELS_MASK},
     {TK_OPTION_STRING, "-scrollmax", "scrollMax", "ScrollMax", NULL, offsetof(Axis, scrollMaxObjPtr), -1,
@@ -421,7 +422,7 @@ static int LayoutRange(Tcl_WideInt value) {
     return (int)value;
 }
 
-static int ValidateAxisFormatCommand(Tcl_Interp *interp, Tcl_Obj *objPtr) {
+static int ValidateAxisCommandPrefix(Tcl_Interp *interp, Tcl_Obj *objPtr) {
     Tcl_Size objc;
     Tcl_Obj **objv;
 
@@ -432,6 +433,60 @@ static int ValidateAxisFormatCommand(Tcl_Interp *interp, Tcl_Obj *objPtr) {
         return TCL_ERROR;
     }
     return TCL_OK;
+}
+
+static void UpdateAxisScrollbar(Graph *graphPtr, Axis *axisPtr, double firstFract, double lastFract) {
+    Tcl_Interp *interp;
+    Tcl_Obj *cmdObj;
+    Tcl_Obj **objv;
+    Tcl_Size prefixObjc;
+    Tcl_Size objc;
+    int result;
+
+    if (axisPtr->scrollCmdObjPtr == NULL) {
+        return;
+    }
+    interp = graphPtr->interp;
+    result = Tcl_ListObjLength(interp, axisPtr->scrollCmdObjPtr, &prefixObjc);
+    if (result != TCL_OK) {
+        Tcl_BackgroundException(interp, result);
+        Tcl_ResetResult(interp);
+        return;
+    }
+    /*
+     * Treat an empty command prefix as no callback.
+     */
+    if (prefixObjc == 0) {
+        Tcl_ResetResult(interp);
+        return;
+    }
+    /*
+     * Never modify the Tk-managed option object itself.
+     */
+    cmdObj = Tcl_DuplicateObj(axisPtr->scrollCmdObjPtr);
+    Tcl_IncrRefCount(cmdObj);
+    result = Tcl_ListObjAppendElement(interp, cmdObj, Tcl_NewDoubleObj(firstFract));
+    if (result == TCL_OK) {
+        result = Tcl_ListObjAppendElement(interp, cmdObj, Tcl_NewDoubleObj(lastFract));
+    }
+    if (result == TCL_OK) {
+        result = Tcl_ListObjGetElements(interp, cmdObj, &objc, &objv);
+    }
+    if (result == TCL_OK) {
+        Tcl_ResetResult(interp);
+
+        /*
+         * Preserve the old Tcl_GlobalEval() global-scope behaviour,
+         * but invoke the command as an object vector rather than
+         * reparsing it as a script.
+         */
+        result = Tcl_EvalObjv(interp, objc, objv, TCL_EVAL_GLOBAL);
+    }
+    Tcl_DecrRefCount(cmdObj);
+    if (result != TCL_OK) {
+        Tcl_BackgroundException(interp, result);
+    }
+    Tcl_ResetResult(interp);
 }
 
 static int IsAxisOption(Tcl_Obj *objPtr, const char *optionName) {
@@ -4395,7 +4450,7 @@ static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
         Rbc_DrawText(graphPtr->tkwin, drawable, axisPtr->title, &axisPtr->titleTextStyle, (int)axisPtr->titlePos.x,
                      (int)axisPtr->titlePos.y);
     }
-    if (axisPtr->scrollCmdPrefix != NULL) {
+    if (axisPtr->scrollCmdObjPtr != NULL) {
         double viewWidth, viewMin, viewMax;
         double worldWidth, worldMin, worldMax;
         double fract;
@@ -4426,14 +4481,12 @@ static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
         worldWidth = worldMax - worldMin;
         viewWidth = viewMax - viewMin;
         isHoriz = AxisIsHorizontal(graphPtr, axisPtr);
-
         if (isHoriz != axisPtr->descending) {
             fract = (viewMin - worldMin) / worldWidth;
         } else {
             fract = (worldMax - viewMax) / worldWidth;
         }
         fract = AdjustViewport(fract, viewWidth / worldWidth);
-
         if (isHoriz != axisPtr->descending) {
             viewMin = (fract * worldWidth);
             axisPtr->min = viewMin + worldMin;
@@ -4443,8 +4496,7 @@ static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
                 axisPtr->min = LogAxisValue(axisPtr->min);
                 axisPtr->max = LogAxisValue(axisPtr->max);
             }
-            Rbc_UpdateScrollbar(graphPtr->interp, axisPtr->scrollCmdPrefix, (viewMin / worldWidth),
-                                (viewMax / worldWidth));
+            UpdateAxisScrollbar(graphPtr, axisPtr, viewMin / worldWidth, viewMax / worldWidth);
         } else {
             viewMax = (fract * worldWidth);
             axisPtr->max = worldMax - viewMax;
@@ -4454,8 +4506,7 @@ static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
                 axisPtr->min = LogAxisValue(axisPtr->min);
                 axisPtr->max = LogAxisValue(axisPtr->max);
             }
-            Rbc_UpdateScrollbar(graphPtr->interp, axisPtr->scrollCmdPrefix, (viewMax / worldWidth),
-                                (viewMin / worldWidth));
+            UpdateAxisScrollbar(graphPtr, axisPtr, viewMax / worldWidth, viewMin / worldWidth);
         }
     }
     if (axisPtr->showTicks) {
@@ -5286,7 +5337,15 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
      * back.
      */
     if ((!axisPtr->optionsConfigured) || (axisPtr->optionMask & AXIS_FORMAT_COMMAND_MASK)) {
-        if (ValidateAxisFormatCommand(graphPtr->interp, axisPtr->formatCmdObjPtr) != TCL_OK) {
+        if (ValidateAxisCommandPrefix(graphPtr->interp, axisPtr->formatCmdObjPtr) != TCL_OK) {
+            goto error;
+        }
+    }
+    /*
+     * -scrollcommand is also a Tcl command prefix.
+     */
+    if ((!axisPtr->optionsConfigured) || (axisPtr->optionMask & AXIS_SCROLL_COMMAND_MASK)) {
+        if (ValidateAxisCommandPrefix(graphPtr->interp, axisPtr->scrollCmdObjPtr) != TCL_OK) {
             goto error;
         }
     }

@@ -1148,21 +1148,65 @@ namespace eval graph.axis {
 		destroy .graph1
 	} -result {0}		
 	
-	# ------------------------------------------------------------------------------------
-	# Purpose: Ensure the axis configure -scrollcommand command works correctly
-	# TODO: NOT COMPLETE
-	# ------------------------------------------------------------------------------------
-	test RBC.graph.axis.configure.A.20.1 {
-		Scrollcommand
-	} -setup {
-		graph .graph1
-		.graph1 axis create Axis1
-	} -body {
-		.graph1 axis configure Axis1 -scrollcommand
-		.graph1 axis cget Axis1 -scrollcommand
-	} -cleanup {
-		destroy .graph1
-	} -result {}	
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure the default -scrollcommand value is empty.
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.axis.configure.A.20.1 {
+        Scrollcommand default
+    } -setup {
+        graph .graph1
+        .graph1 axis create Axis1
+    } -body {
+        .graph1 axis cget Axis1 -scrollcommand
+    } -cleanup {
+        destroy .graph1
+    } -result {}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure -scrollcommand is invoked as a command prefix with the first and
+    #          last scrollbar fractions appended.
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.axis.configure.A.20.2 {
+        Scrollcommand prefix
+    } -setup {
+        proc ::RbcAxisScrollbar {tag first last} {
+            set ::rbcAxisScrollbarArgs [list $tag $first $last]
+        }
+        set ::rbcAxisScrollbarArgs {}
+        graph .graph1
+        pack .graph1
+        .graph1 element create Element1 -xdata {0 100} -ydata {0 1} -symbol none
+        .graph1 axis configure x -min 20 -max 40 -scrollmin 0 -scrollmax 100 -scrollcommand\
+                [list ::RbcAxisScrollbar {extra argument}]
+        update idletasks
+    } -body {
+        list [lindex $::rbcAxisScrollbarArgs 0] [expr {abs([lindex $::rbcAxisScrollbarArgs 1] - 0.2) < 1.0e-12}]\
+                [expr {abs([lindex $::rbcAxisScrollbarArgs 2] - 0.4) < 1.0e-12}]
+    } -cleanup {
+        catch {.graph1 element delete Element1}
+        catch {destroy .graph1}
+        rename ::RbcAxisScrollbar {}
+        unset -nocomplain ::rbcAxisScrollbarArgs
+    } -result {{extra argument} 1 1}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure malformed command prefixes are rejected without changing the
+    #          existing -scrollcommand value.
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.axis.configure.A.20.3 {
+        Scrollcommand invalid prefix rolls back
+    } -setup {
+        graph .graph1
+        .graph1 axis create Axis1
+        .graph1 axis configure Axis1 -scrollcommand {set ::rbcAxisScrollbar}
+        set old [.graph1 axis cget Axis1 -scrollcommand]
+    } -body {
+        set bad [format %c 123]
+        set code [catch [list .graph1 axis configure Axis1 -scrollcommand $bad]]
+        list $code [expr {[.graph1 axis cget Axis1 -scrollcommand] eq $old}]
+    } -cleanup {
+        destroy .graph1
+    } -result {1 1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the axis configure -scrollmax command works correctly

@@ -106,6 +106,7 @@ typedef struct {
 
     Tcl_Obj *bindTagsObjPtr;
     Tcl_Obj *formatCmdObjPtr;
+    Tcl_Obj *scrollCmdObjPtr;
     Tcl_Obj *limitsFormatObjPtr;
     Tcl_Obj *limitsShadowObjPtr;
     Tcl_Obj *looseObjPtr;
@@ -207,7 +208,6 @@ typedef struct {
     TextStyle tickTextStyle; /* Text attributes (color, font, rotation,
                               * etc.) for labels at each major tick. */
 
-    char *scrollCmdPrefix;
     int scrollUnits;
 
     double min, max; /* The actual axis range. */
