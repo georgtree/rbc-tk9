@@ -2841,7 +2841,7 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
         Tk_FreePixmap(graphPtr->display, drawable);
 #ifdef WIN32
     } else if ((data.format == FORMAT_WMF) || (data.format == FORMAT_EMF)) {
-        TkWinDC drawableDC;
+        Drawable metaDrawable;
         TkWinDCState state;
         HDC hRefDC, hDC;
         HENHMETAFILE hMetaFile;
@@ -2865,13 +2865,12 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
             return TCL_ERROR;
         }
 
-        drawableDC.hdc = hDC;
-        drawableDC.type = TWD_WINDC;
+        metaDrawable = Rbc_WinCreateDrawableFromDC(hDC);
 
         Rbc_LayoutGraph(graphPtr);
         graphPtr->flags |= RESET_WORLD;
-        Rbc_DrawGraph(graphPtr, (Drawable)&drawableDC, FALSE);
-
+        Rbc_DrawGraph(graphPtr, metaDrawable, FALSE);
+        Rbc_WinFreeDrawableFromDC(metaDrawable);
         hMetaFile = CloseEnhMetaFile(hDC);
         if (strcmp(data.name, "CLIPBOARD") == 0) {
             HWND hWnd;

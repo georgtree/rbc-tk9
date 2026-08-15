@@ -133,6 +133,8 @@ EXTERN void Rbc_EmulateXDrawString(Display *display, Drawable drawable, GC gc, i
 EXTERN void Rbc_EmulateXFillArcs(Display *display, Drawable drawable, GC gc, XArc *arcArr, int nArcs);
 EXTERN void Rbc_EmulateXLowerWindow(Display *display, Window window);
 EXTERN long Rbc_EmulateXMaxRequestSize(Display *display);
+Drawable Rbc_WinCreateDrawableFromDC(HDC dc);
+void Rbc_WinFreeDrawableFromDC(Drawable drawable);
 
 extern unsigned char *Rbc_GetBitmapData(Display *display, Pixmap bitmap, int width, int height, int *pitchPtr);
 

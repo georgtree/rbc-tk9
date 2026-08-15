@@ -37,6 +37,56 @@ const int tkpWinRopModes[] = {
     R2_WHITE        /* GXset */
 };
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_WinCreateDrawableFromDC --
+ *
+ *      Wraps a Windows device context in a Tk Windows drawable.
+ *      The returned drawable must be released with
+ *      Rbc_WinFreeDrawableFromDC().
+ *
+ * Results:
+ *      A drawable representing the supplied HDC.
+ *
+ * Side effects:
+ *      Allocates a small private Tk drawable wrapper.
+ *
+ *----------------------------------------------------------------------
+ */
+Drawable Rbc_WinCreateDrawableFromDC(HDC dc) {
+    TkWinDC *dcPtr;
+
+    if (dc == NULL) {
+        return None;
+    }
+    dcPtr = (TkWinDC *)ckalloc(sizeof(*dcPtr));
+    dcPtr->type = TWD_WINDC;
+    dcPtr->hdc = dc;
+    return (Drawable)dcPtr;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_WinFreeDrawableFromDC --
+ *
+ *      Releases a drawable created by Rbc_WinCreateDrawableFromDC().
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      Frees the drawable wrapper.  The underlying HDC is not
+ *      released or destroyed.
+ *
+ *----------------------------------------------------------------------
+ */
+void Rbc_WinFreeDrawableFromDC(Drawable drawable) {
+    if (drawable != None) {
+        ckfree((char *)drawable);
+    }
+}
 
 /*
  *--------------------------------------------------------------

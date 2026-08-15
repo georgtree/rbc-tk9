@@ -14,7 +14,7 @@
 #include <X11/Xutil.h>
 #include <stdarg.h>
 #ifdef WIN32
-#include "rbcTkInt.h"
+#include <tkPlatDecls.h>
 #endif
 
 #define PS_PREVIEW_EPSI 0
@@ -1022,8 +1022,8 @@ static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, FILE *f) {
     HDC hRefDC, hDC;
     HENHMETAFILE hMetaFile;
     Tcl_DString dString;
-    TkWinDC drawableDC;
-    TkWinDCState state;
+    Drawable metaDrawable;
+    HWND hWnd;
     int result;
     unsigned char *buffer;
     char *psBuffer;
@@ -1048,7 +1048,8 @@ static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, FILE *f) {
     epsHeader.checksum = 0xFFFF;
 
     result = TCL_ERROR;
-    hRefDC = TkWinGetDrawableDC(graphPtr->display, Tk_WindowId(graphPtr->tkwin), &state);
+    hWnd = Tk_GetHWND(Tk_WindowId(graphPtr->tkwin));
+    hRefDC = GetDC(hWnd);
 
     /* Build a description string. */
     Tcl_DStringInit(&dString);
@@ -1067,15 +1068,15 @@ static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, FILE *f) {
     }
     /* Assemble a Tk drawable that points to the metafile and let the
      * graph's drawing routine draw into it. */
-    drawableDC.hdc = hDC;
-    drawableDC.type = TWD_WINDC;
+    metaDrawable = Rbc_WinCreateDrawableFromDC(hDC);
 
     graphPtr->width = Tk_Width(graphPtr->tkwin);
     graphPtr->height = Tk_Height(graphPtr->tkwin);
     graphPtr->flags |= RESET_WORLD;
     Rbc_LayoutGraph(graphPtr);
-    Rbc_DrawGraph(graphPtr, (Drawable)&drawableDC, FALSE);
+    Rbc_DrawGraph(graphPtr, metaDrawable, FALSE);
     GdiFlush();
+    Rbc_WinFreeDrawableFromDC(metaDrawable);
     hMetaFile = CloseEnhMetaFile(hDC);
 
     size = GetWinMetaFileBits(hMetaFile, 0, NULL, MM_ANISOTROPIC, hRefDC);
@@ -1116,7 +1117,7 @@ static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, FILE *f) {
 
 error:
     DeleteEnhMetaFile(hMetaFile);
-    TkWinReleaseDrawableDC(Tk_WindowId(graphPtr->tkwin), hRefDC, &state);
+    ReleaseDC(hWnd, hRefDC);
     if (hMem != NULL) {
         GlobalUnlock(hMem);
         GlobalFree(hMem);
