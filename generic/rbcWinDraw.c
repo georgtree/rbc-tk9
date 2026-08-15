@@ -15,6 +15,12 @@
 #include <X11/Xlib.h>
 #include "rbcTkInt.h"
 
+struct Rbc_WinDrawableDC {
+    TkWinDCState state;
+    Drawable drawable;
+    HDC dc;
+};
+
 #define WINDEBUG 0
 #define XAngleToRadians(a) ((double)(a) / 64.0 * M_PI / 180.0)
 
@@ -115,6 +121,76 @@ Window Rbc_WinWindowFromHWND(HWND hWnd) {
     window.winPtr = NULL;
     return (Window)&window;
 }
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_WinAcquireDrawableDC --
+ *
+ *      Obtains a Windows device context for an arbitrary Tk drawable.
+ *      The returned state must be released with
+ *      Rbc_WinReleaseDrawableDC().
+ *
+ * Results:
+ *      The Windows device context associated with the drawable.
+ *
+ * Side effects:
+ *      Allocates a small state object used to restore Tk's drawable
+ *      state when the DC is released.
+ *
+ *----------------------------------------------------------------------
+ */
+HDC Rbc_WinAcquireDrawableDC(Display *display, Drawable drawable, Rbc_WinDrawableDC **statePtrPtr) {
+    Rbc_WinDrawableDC *statePtr;
+
+    statePtr = (Rbc_WinDrawableDC *)ckalloc(sizeof(*statePtr));
+    statePtr->drawable = drawable;
+    statePtr->dc = TkWinGetDrawableDC(display, drawable, &statePtr->state);
+    *statePtrPtr = statePtr;
+    return statePtr->dc;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_WinReleaseDrawableDC --
+ *
+ *      Releases a device context obtained by
+ *      Rbc_WinAcquireDrawableDC().
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      Restores Tk's drawable state and frees the RBC state object.
+ *
+ *----------------------------------------------------------------------
+ */
+void Rbc_WinReleaseDrawableDC(Rbc_WinDrawableDC *statePtr) {
+    if (statePtr == NULL) {
+        return;
+    }
+    TkWinReleaseDrawableDC(statePtr->drawable, statePtr->dc, &statePtr->state);
+    ckfree((char *)statePtr);
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_WinSetROP2 --
+ *
+ *      Sets the Windows raster operation corresponding to an X11
+ *      graphics-function value.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      Changes the raster operation mode of the supplied DC.
+ *
+ *----------------------------------------------------------------------
+ */
+void Rbc_WinSetROP2(HDC dc, int function) { SetROP2(dc, tkpWinRopModes[function]); }
 
 /*
  *--------------------------------------------------------------

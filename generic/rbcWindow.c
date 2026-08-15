@@ -203,11 +203,6 @@ static void AssocDataCleanup(void *assocData, Tcl_Interp *interp) {
  *--------------------------------------------------------------
  */
 void Rbc_SetWindowInstanceData(Tk_Window tkwin, ClientData instanceData) {
-    /*
-        TkWindow *winPtr = (TkWindow *)tkwin;
-
-        winPtr->instanceData = instanceData;
-    */
     Tcl_Interp *interp = Tk_Interp(tkwin);
     Tcl_HashTable *assocData = Tcl_GetAssocData(interp, INST_DATA_KEY, NULL);
     Tcl_HashEntry *entryPtr;
@@ -242,11 +237,6 @@ void Rbc_SetWindowInstanceData(Tk_Window tkwin, ClientData instanceData) {
  *--------------------------------------------------------------
  */
 ClientData Rbc_GetWindowInstanceData(Tk_Window tkwin) {
-    /*
-        TkWindow *winPtr = (TkWindow *)tkwin;
-
-        return winPtr->instanceData;
-    */
     Tcl_Interp *interp = Tk_Interp(tkwin);
     Tcl_HashTable *assocData = Tcl_GetAssocData(interp, INST_DATA_KEY, NULL);
     Tcl_HashEntry *entryPtr;

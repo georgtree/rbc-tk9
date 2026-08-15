@@ -71,6 +71,11 @@ typedef struct {
 } APMHEADER;
 #pragma pack()
 
+typedef struct Rbc_WinDrawableDC Rbc_WinDrawableDC;
+HDC Rbc_WinAcquireDrawableDC(Display *display, Drawable drawable, Rbc_WinDrawableDC **statePtrPtr);
+void Rbc_WinReleaseDrawableDC(Rbc_WinDrawableDC *statePtr);
+void Rbc_WinSetROP2(HDC dc, int function);
+
 extern int Rbc_AsyncRead(int fd, char *buffer, unsigned int size);
 extern int Rbc_AsyncWrite(int fd, char *buffer, unsigned int size);
 extern void Rbc_CreateFileHandler(int fd, int flags, Tcl_FileProc *proc, ClientData clientData);

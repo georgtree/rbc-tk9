@@ -13,9 +13,6 @@
 #include "rbcGraph.h"
 #include "rbcChain.h"
 #include <X11/Xutil.h>
-#ifdef WIN32
-#include "rbcTkInt.h"
-#endif
 
 #include "rbcGrElem.h"
 
@@ -5427,7 +5424,7 @@ static void DrawCircles(Display *display, Drawable drawable, Line *linePtr, Line
     HBRUSH brush, oldBrush;
     HPEN pen, oldPen;
     HDC dc;
-    TkWinDCState state;
+    Rbc_WinDrawableDC *dcStatePtr;
     register Point2D *pointPtr, *endPtr;
 
     if (drawable == None) {
@@ -5436,7 +5433,7 @@ static void DrawCircles(Display *display, Drawable drawable, Line *linePtr, Line
     if ((penPtr->symbol.fillGC == NULL) && (penPtr->symbol.outlineWidth == 0)) {
         return;
     }
-    dc = TkWinGetDrawableDC(display, drawable, &state);
+    dc = Rbc_WinAcquireDrawableDC(display, drawable, &dcStatePtr);
     /* SetROP2(dc, tkpWinRopModes[penPtr->symbol.fillGC->function]); */
     if (penPtr->symbol.fillGC != NULL) {
         brush = CreateSolidBrush(penPtr->symbol.fillGC->foreground);
@@ -5456,7 +5453,7 @@ static void DrawCircles(Display *display, Drawable drawable, Line *linePtr, Line
     }
     DeleteBrush(SelectBrush(dc, oldBrush));
     DeletePen(SelectPen(dc, oldPen));
-    TkWinReleaseDrawableDC(drawable, dc, &state);
+    Rbc_WinReleaseDrawableDC(dcStatePtr);
 }
 
 #else
@@ -6156,7 +6153,7 @@ static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
     HDC dc;
     HPEN pen, oldPen;
     POINT *points;
-    TkWinDCState state;
+    Rbc_WinDrawableDC *dcStatePtr;
     LineTrace *tracePtr;
     Tcl_Size count;
     Tcl_Size j;
@@ -6193,12 +6190,12 @@ static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
     if (points == NULL) {
         return;
     }
-    dc = TkWinGetDrawableDC(graphPtr->display, drawable, &state);
+    dc = Rbc_WinAcquireDrawableDC(graphPtr->display, drawable, &dcStatePtr);
     pen = Rbc_GCToPen(dc, penPtr->traceGC);
     oldPen = SelectPen(dc, pen);
     brush = CreateSolidBrush(penPtr->traceGC->foreground);
     oldBrush = SelectBrush(dc, brush);
-    SetROP2(dc, tkpWinRopModes[penPtr->traceGC->function]);
+    Rbc_WinSetROP2(dc, penPtr->traceGC->function);
     for (linkPtr = Rbc_ChainFirstLink(linePtr->traces); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
         Tcl_Size firstCount;
 
@@ -6249,7 +6246,7 @@ static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
     ckfree(points);
     DeletePen(SelectPen(dc, oldPen));
     DeleteBrush(SelectBrush(dc, oldBrush));
-    TkWinReleaseDrawableDC(drawable, dc, &state);
+    Rbc_WinReleaseDrawableDC(dcStatePtr);
 }
 
 #else
