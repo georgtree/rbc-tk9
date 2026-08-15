@@ -112,6 +112,7 @@ typedef struct {
 #define AXIS_MAP_MASK (1u << 13)
 #define AXIS_REDRAW_MASK (1u << 14)
 #define AXIS_LOG_SCALE_MASK (1u << 15)
+#define AXIS_FORMAT_COMMAND_MASK (1u << 16)
 
 /*
  * Options that affect the axis's requested numerical range.
@@ -236,8 +237,8 @@ static const Tk_OptionSpec axisOptionSpecs[] = {
       */
      TK_OPTION_COLOR, "-color", "color", "Color", DEF_AXIS_FOREGROUND, -1, offsetof(Axis, tickTextStyle.color), 0, NULL,
      AXIS_REDRAW_MASK},
-    {TK_OPTION_STRING, "-command", "command", "Command", DEF_AXIS_COMMAND, -1, offsetof(Axis, formatCmd),
-     TK_OPTION_NULL_OK, NULL, AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_STRING, "-command", "command", "Command", DEF_AXIS_COMMAND, offsetof(Axis, formatCmdObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, AXIS_FORMAT_COMMAND_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
     {TK_OPTION_BOOLEAN, "-descending", "descending", "Descending", DEF_AXIS_DESCENDING, -1, offsetof(Axis, descending),
      TK_OPTION_DONT_SET_DEFAULT, NULL, AXIS_MAP_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
     {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_AXIS_HIDE, -1, offsetof(Axis, hidden), TK_OPTION_DONT_SET_DEFAULT,
@@ -418,6 +419,19 @@ static int LayoutRange(Tcl_WideInt value) {
         return INT_MAX;
     }
     return (int)value;
+}
+
+static int ValidateAxisFormatCommand(Tcl_Interp *interp, Tcl_Obj *objPtr) {
+    Tcl_Size objc;
+    Tcl_Obj **objv;
+
+    if (objPtr == NULL) {
+        return TCL_OK;
+    }
+    if (Tcl_ListObjGetElements(interp, objPtr, &objc, &objv) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    return TCL_OK;
 }
 
 static int IsAxisOption(Tcl_Obj *objPtr, const char *optionName) {
@@ -1943,6 +1957,21 @@ static void FreeLabels(Rbc_Chain *chainPtr) {
     Rbc_ChainReset(chainPtr);
 }
 
+static TickLabel *NewTickLabel(const char *string) {
+    TickLabel *labelPtr;
+    size_t length;
+
+    length = strlen(string);
+    if (length > (SIZE_MAX - sizeof(TickLabel))) {
+        Tcl_Panic("NewTickLabel: label size overflow");
+    }
+    labelPtr = (TickLabel *)ckalloc(sizeof(TickLabel) + length);
+    memcpy(labelPtr->string, string, length + 1);
+    labelPtr->anchorPos.x = DBL_MAX;
+    labelPtr->anchorPos.y = DBL_MAX;
+    return labelPtr;
+}
+
 /*
  * ----------------------------------------------------------------------
  *
@@ -1966,44 +1995,86 @@ static void FreeLabels(Rbc_Chain *chainPtr) {
  * ----------------------------------------------------------------------
  */
 static TickLabel *MakeLabel(Graph *graphPtr, Axis *axisPtr, double value) {
-    char string[TICK_LABEL_SIZE + 1];
-    TickLabel *labelPtr;
+    char defaultLabel[TICK_LABEL_SIZE + 1];
 
-    /* Generate a default tick label based upon the tick value.  */
+    /*
+     * Generate the standard label first.  Keep this exact legacy
+     * representation as the second argument passed to -command.
+     */
     if (axisPtr->logScale) {
-        snprintf(string, sizeof(string), "1E%d", ROUND(value));
+        snprintf(defaultLabel, sizeof(defaultLabel), "1E%d", ROUND(value));
     } else {
-        snprintf(string, sizeof(string), "%.*g", NUMDIGITS, value);
+        snprintf(defaultLabel, sizeof(defaultLabel), "%.*g", NUMDIGITS, value);
     }
-    if (axisPtr->formatCmd != NULL) {
-        Tcl_Interp *interp = graphPtr->interp;
-        Tk_Window tkwin = graphPtr->tkwin;
+    if (axisPtr->formatCmdObjPtr != NULL) {
+        Tcl_Interp *interp;
+        Tcl_Obj *cmdObj;
+        Tcl_Obj **objv;
+        Tcl_Size prefixObjc;
+        Tcl_Size objc;
+        int result;
 
+        interp = graphPtr->interp;
         /*
-         * A Tcl proc was designated to format tick labels. Append the path
-         * name of the widget and the default tick label as arguments when
-         * invoking it. Copy and save the new label from the interpreter
-         * result.
+         * An empty prefix means standard formatting.
          */
-        Tcl_ResetResult(interp);
-        if (Tcl_VarEval(interp, axisPtr->formatCmd, " ", Tk_PathName(tkwin), " ", string, (char *)NULL) != TCL_OK) {
-            Tcl_BackgroundError(interp);
-        } else {
+        result = Tcl_ListObjLength(interp, axisPtr->formatCmdObjPtr, &prefixObjc);
+        if (result != TCL_OK) {
             /*
-             * The proc could return a string of any length, so arbitrarily
-             * limit it to what will fit in the return string.
+             * ConfigureAxis() normally makes this impossible, but
+             * preserve the old background-error behaviour if it does
+             * occur during drawing.
              */
-            strncpy(string, Tcl_GetStringResult(interp), TICK_LABEL_SIZE);
-            string[TICK_LABEL_SIZE] = '\0';
+            Tcl_BackgroundException(interp, result);
+            Tcl_ResetResult(interp);
+            return NewTickLabel(defaultLabel);
+        }
+        if (prefixObjc == 0) {
+            return NewTickLabel(defaultLabel);
+        }
+        /*
+         * Duplicate the prefix so the Tk-managed option object is
+         * never modified.
+         */
+        cmdObj = Tcl_DuplicateObj(axisPtr->formatCmdObjPtr);
+        Tcl_IncrRefCount(cmdObj);
+        result = Tcl_ListObjAppendElement(interp, cmdObj, Tcl_NewStringObj(Tk_PathName(graphPtr->tkwin), -1));
+        if (result == TCL_OK) {
+            result = Tcl_ListObjAppendElement(interp, cmdObj, Tcl_NewStringObj(defaultLabel, -1));
+        }
+        if (result == TCL_OK) {
+            result = Tcl_ListObjGetElements(interp, cmdObj, &objc, &objv);
+        }
+        if (result == TCL_OK) {
+            Tcl_ResetResult(interp);
+            result = Tcl_EvalObjv(interp, objc, objv, 0);
+        }
+        Tcl_DecrRefCount(cmdObj);
+        if (result != TCL_OK) {
+            /*
+             * Axis formatting happens during redraw, so there is no
+             * synchronous Tcl command to return the error through.
+             */
+            Tcl_BackgroundException(interp, result);
+            Tcl_ResetResult(interp);
+            return NewTickLabel(defaultLabel);
+        } else {
+            TickLabel *labelPtr;
+            const char *string;
 
-            Tcl_ResetResult(interp); /* Clear the interpreter's result. */
+            string = Tcl_GetString(Tcl_GetObjResult(interp));
+            /*
+             * Copy the complete callback result before resetting the
+             * interpreter result.  TickLabel storage is dynamically
+             * sized, so there is no need for the old 200-byte
+             * truncation.
+             */
+            labelPtr = NewTickLabel(string);
+            Tcl_ResetResult(interp);
+            return labelPtr;
         }
     }
-    labelPtr = (TickLabel *)ckalloc(sizeof(TickLabel) + strlen(string));
-    assert(labelPtr);
-    strcpy(labelPtr->string, string);
-    labelPtr->anchorPos.x = labelPtr->anchorPos.y = DBL_MAX;
-    return labelPtr;
+    return NewTickLabel(defaultLabel);
 }
 
 static void FreeAxisTicks(Ticks *ticksPtr) {
@@ -5148,10 +5219,8 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
         if (PrepareAxisLimitTransaction(graphPtr, axisPtr, &limitTransaction) != TCL_OK) {
             goto error;
         }
-
         limitTransactionPrepared = TRUE;
     }
-
     /*
      * Parse explicit major and minor tick lists before replacing the live
      * tick allocations.
@@ -5160,10 +5229,8 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
         if (PrepareAxisTickTransaction(graphPtr, axisPtr, &tickTransaction) != TCL_OK) {
             goto error;
         }
-
         tickTransactionPrepared = TRUE;
     }
-
     /*
      * Parse the independently configurable loose minimum and maximum
      * policies before modifying the live axis.
@@ -5172,10 +5239,8 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
         if (PrepareAxisLooseTransaction(graphPtr, axisPtr, &looseTransaction) != TCL_OK) {
             goto error;
         }
-
         looseTransactionPrepared = TRUE;
     }
-
     /*
      * Parse non-negative axis widths and the positive scroll increment
      * before modifying the live Axis record.
@@ -5184,10 +5249,8 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
         if (PrepareAxisPixelTransaction(graphPtr, axisPtr, &pixelTransaction) != TCL_OK) {
             goto error;
         }
-
         pixelTransactionPrepared = TRUE;
     }
-
     /*
      * Parse all text shadow resources before replacing any live shadow
      * colour references.
@@ -5196,10 +5259,8 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
         if (PrepareAxisShadowTransaction(graphPtr, axisPtr, &shadowTransaction) != TCL_OK) {
             goto error;
         }
-
         shadowTransactionPrepared = TRUE;
     }
-
     /*
      * Parse the axis bind-tags list before replacing the live allocation.
      */
@@ -5207,10 +5268,8 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
         if (PrepareAxisTagsTransaction(graphPtr, axisPtr, &tagsTransaction) != TCL_OK) {
             goto error;
         }
-
         tagsTransactionPrepared = TRUE;
     }
-
     /*
      * Parse the optional one- or two-element limit-format list before
      * replacing the live allocation.
@@ -5219,10 +5278,18 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
         if (PrepareAxisFormatTransaction(graphPtr, axisPtr, &formatTransaction) != TCL_OK) {
             goto error;
         }
-
         formatTransactionPrepared = TRUE;
     }
-
+    /*
+     * -command is a Tcl command prefix.  Validate its list
+     * representation while Tk's option transaction can still be rolled
+     * back.
+     */
+    if ((!axisPtr->optionsConfigured) || (axisPtr->optionMask & AXIS_FORMAT_COMMAND_MASK)) {
+        if (ValidateAxisFormatCommand(graphPtr->interp, axisPtr->formatCmdObjPtr) != TCL_OK) {
+            goto error;
+        }
+    }
     /*
      * No operation below this point can report a configuration error.
      */

@@ -105,6 +105,7 @@ typedef struct {
     int tkResourcesReleased;
 
     Tcl_Obj *bindTagsObjPtr;
+    Tcl_Obj *formatCmdObjPtr;
     Tcl_Obj *limitsFormatObjPtr;
     Tcl_Obj *limitsShadowObjPtr;
     Tcl_Obj *looseObjPtr;
@@ -205,10 +206,6 @@ typedef struct {
 
     TextStyle tickTextStyle; /* Text attributes (color, font, rotation,
                               * etc.) for labels at each major tick. */
-
-    char *formatCmd; /* Specifies a Tcl command, to be invoked
-                      * by the axis whenever it has to generate
-                      * tick labels. */
 
     char *scrollCmdPrefix;
     int scrollUnits;

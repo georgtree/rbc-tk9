@@ -95,20 +95,68 @@ namespace eval graph.axis {
 		destroy .graph1
 	} -result {0}
 	
-	# ------------------------------------------------------------------------------------
-	# Purpose: Ensure the axis configure -command command works correctly
-	# TODO: NOT COMPLETE
-	# ------------------------------------------------------------------------------------
-	test RBC.graph.axis.configure.A.3.1 {
-		Command
-	} -setup {
-		graph .graph1
-		.graph1 axis create Axis1
-	} -body {
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure -command is invoked as a command prefix with the widget pathname
+    #          and standard tick value appended.
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.axis.configure.A.3.1 {
+        Command prefix
+    } -setup {
+        proc ::RbcAxisFormat {prefix widget value} {
+            set ::rbcAxisFormatArgs [list $prefix $widget $value]
+            return "${prefix}:${value}"
+        }
+        set ::rbcAxisFormatArgs {}
+        graph .graph1
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 1 -majorticks {0 1} -command [list ::RbcAxisFormat {extra argument}]
+        update idletasks
+    } -body {
+        list [lindex $::rbcAxisFormatArgs 0] [lindex $::rbcAxisFormatArgs 1]\
+                [expr {[lindex $::rbcAxisFormatArgs 2] in {0 1}}]
+    } -cleanup {
+        destroy .graph1
+        rename ::RbcAxisFormat {}
+        unset -nocomplain ::rbcAxisFormatArgs
+    } -result {{extra argument} .graph1 1}
 
-	} -cleanup {
-		destroy .graph1
-	} -result {}
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure formatter results are not truncated to TICK_LABEL_SIZE.
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.axis.configure.A.3.2 {
+        Command result longer than 200 bytes
+    } -setup {
+        proc ::RbcLongAxisFormat {widget value} {
+            return [string repeat X 300]
+        }
+        graph .graph1
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 1 -majorticks {0 1} -command ::RbcLongAxisFormat
+        update idletasks
+    } -body {
+        set ps [.graph1 postscript output]
+        expr {[string first [string repeat X 300] $ps] >= 0}
+    } -cleanup {
+        destroy .graph1
+        rename ::RbcLongAxisFormat {}
+    } -result 1
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure malformed command prefixes are rejected transactionally.
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.axis.configure.A.3.3 {
+        Invalid command prefix rolls back
+    } -setup {
+        graph .graph1
+        .graph1 axis configure x -command {format %.2f}
+        set old [.graph1 axis cget x -command]
+    } -body {
+        set bad [format %c 123]
+        set code [catch [list .graph1 axis configure x -command $bad]]
+        list $code [expr {[.graph1 axis cget x -command] eq $old}]
+    } -cleanup {
+        destroy .graph1
+    } -result {1 1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the axis configure -descending command works correctly
