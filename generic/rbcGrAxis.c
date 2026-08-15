@@ -1913,7 +1913,6 @@ static int PrepareAxisLimitTransaction(Graph *graphPtr, Axis *axisPtr, AxisLimit
             return TCL_ERROR;
         }
     }
-
     /*
      * Validate the effective requested display limits.
      */
@@ -1923,6 +1922,15 @@ static int PrepareAxisLimitTransaction(Graph *graphPtr, Axis *axisPtr, AxisLimit
                          Tcl_ObjPrintf("impossible limits "
                                        "(min %g >= max %g) for axis \"%s\"",
                                        transactionPtr->reqMin, transactionPtr->reqMax, axisPtr->name));
+        return TCL_ERROR;
+    }
+    if (DEFINED(transactionPtr->scrollMin) && DEFINED(transactionPtr->scrollMax) &&
+        (transactionPtr->scrollMin >= transactionPtr->scrollMax)) {
+        Tcl_SetObjResult(graphPtr->interp,
+                         Tcl_ObjPrintf("impossible scroll limits "
+                                       "(scrollmin %g >= scrollmax %g) "
+                                       "for axis \"%s\"",
+                                       transactionPtr->scrollMin, transactionPtr->scrollMax, axisPtr->name));
         return TCL_ERROR;
     }
     if (axisPtr->logScale) {
@@ -4341,6 +4349,109 @@ static double AdjustViewport(double offset, double windowSize) {
     return offset;
 }
 
+static int GetAxisScrollState(Axis *axisPtr, AxisRange *rangePtr, double *viewMinNormPtr, double *viewMaxNormPtr) {
+    double worldMin;
+    double worldMax;
+    double viewMin;
+    double viewMax;
+    double viewMinNorm;
+    double viewMaxNorm;
+
+    worldMin = axisPtr->valueRange.min;
+    worldMax = axisPtr->valueRange.max;
+    viewMin = axisPtr->min;
+    viewMax = axisPtr->max;
+    /*
+     * A newly created or currently unused axis may not have had a
+     * data range established yet.  valueRange then still contains
+     * its reset sentinels.  Use the current axis limits as the
+     * fallback for whichever world endpoint is missing.
+     *
+     * This preserves the historical behaviour of:
+     *
+     *     axis create Axis1
+     *     axis configure Axis1 -scrollmax 10
+     *     axis view Axis1
+     *
+     * which reports an empty view at 0.
+     */
+    if (worldMin == DBL_MAX) {
+        worldMin = viewMin;
+    }
+    if (worldMax == -DBL_MAX) {
+        worldMax = viewMax;
+    }
+    if (DEFINED(axisPtr->scrollMin)) {
+        worldMin = axisPtr->scrollMin;
+    }
+    if (DEFINED(axisPtr->scrollMax)) {
+        worldMax = axisPtr->scrollMax;
+    }
+    if ((!FINITE(worldMin)) || (!FINITE(worldMax)) || (!FINITE(viewMin)) || (!FINITE(viewMax))) {
+        return FALSE;
+    }
+    if (axisPtr->logScale) {
+        if ((worldMin <= 0.0) || (worldMax <= 0.0) || (viewMin <= 0.0) || (viewMax <= 0.0)) {
+            return FALSE;
+        }
+        worldMin = log10(worldMin);
+        worldMax = log10(worldMax);
+        viewMin = log10(viewMin);
+        viewMax = log10(viewMax);
+    }
+    /*
+     * The world must have a non-zero increasing range, but an unused
+     * axis is allowed to have a zero-width current view.
+     */
+    if (worldMin >= worldMax) {
+        return FALSE;
+    }
+    /*
+     * Preserve the historical scrolling semantics: the current viewport
+     * is first intersected with the effective scroll region.  This is
+     * important when an automatically generated axis range extends
+     * outside -scrollmin/-scrollmax.
+     *
+     * If the entire view lies outside the world, collapse it onto the
+     * nearest boundary.
+     */
+    if (viewMax < worldMin) {
+        viewMin = worldMin;
+        viewMax = worldMin;
+
+    } else if (viewMin > worldMax) {
+        viewMin = worldMax;
+        viewMax = worldMax;
+
+    } else {
+        if (viewMin < worldMin) {
+            viewMin = worldMin;
+        }
+
+        if (viewMax > worldMax) {
+            viewMax = worldMax;
+        }
+    }
+    if (axisPtr->logScale) {
+        if ((worldMin <= 0.0) || (worldMax <= 0.0) || (viewMin <= 0.0) || (viewMax <= 0.0)) {
+            return FALSE;
+        }
+        worldMin = log10(worldMin);
+        worldMax = log10(worldMax);
+        viewMin = log10(viewMin);
+        viewMax = log10(viewMax);
+    }
+    SetAxisRange(rangePtr, worldMin, worldMax);
+    viewMinNorm = NormalizeAxisValue(rangePtr, viewMin);
+    viewMaxNorm = NormalizeAxisValue(rangePtr, viewMax);
+    if ((!FINITE(viewMinNorm)) || (!FINITE(viewMaxNorm)) || (viewMinNorm > viewMaxNorm)) {
+        return FALSE;
+    }
+    *viewMinNormPtr = viewMinNorm;
+    *viewMaxNormPtr = viewMaxNorm;
+    return TRUE;
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -4451,62 +4562,51 @@ static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
                      (int)axisPtr->titlePos.y);
     }
     if (axisPtr->scrollCmdObjPtr != NULL) {
-        double viewWidth, viewMin, viewMax;
-        double worldWidth, worldMin, worldMax;
+        AxisRange scrollRange;
+        double first;
+        double last;
+        double windowSize;
         double fract;
+        double newMin;
+        double newMax;
         int isHoriz;
 
-        worldMin = axisPtr->valueRange.min;
-        worldMax = axisPtr->valueRange.max;
-        if (DEFINED(axisPtr->scrollMin)) {
-            worldMin = axisPtr->scrollMin;
-        }
-        if (DEFINED(axisPtr->scrollMax)) {
-            worldMax = axisPtr->scrollMax;
-        }
-        viewMin = axisPtr->min;
-        viewMax = axisPtr->max;
-        if (viewMin < worldMin) {
-            viewMin = worldMin;
-        }
-        if (viewMax > worldMax) {
-            viewMax = worldMax;
-        }
-        if (axisPtr->logScale) {
-            worldMin = log10(worldMin);
-            worldMax = log10(worldMax);
-            viewMin = log10(viewMin);
-            viewMax = log10(viewMax);
-        }
-        worldWidth = worldMax - worldMin;
-        viewWidth = viewMax - viewMin;
-        isHoriz = AxisIsHorizontal(graphPtr, axisPtr);
-        if (isHoriz != axisPtr->descending) {
-            fract = (viewMin - worldMin) / worldWidth;
-        } else {
-            fract = (worldMax - viewMax) / worldWidth;
-        }
-        fract = AdjustViewport(fract, viewWidth / worldWidth);
-        if (isHoriz != axisPtr->descending) {
-            viewMin = (fract * worldWidth);
-            axisPtr->min = viewMin + worldMin;
-            axisPtr->max = axisPtr->min + viewWidth;
-            viewMax = viewMin + viewWidth;
-            if (axisPtr->logScale) {
-                axisPtr->min = LogAxisValue(axisPtr->min);
-                axisPtr->max = LogAxisValue(axisPtr->max);
+        if (GetAxisScrollState(axisPtr, &scrollRange, &first, &last)) {
+            windowSize = last - first;
+            isHoriz = AxisIsHorizontal(graphPtr, axisPtr);
+            /*
+             * Scrollbar coordinates always increase from left-to-right
+             * or top-to-bottom.  Convert the mapped data interval into
+             * that orientation.
+             */
+            if (isHoriz != axisPtr->descending) {
+                fract = first;
+            } else {
+                fract = 1.0 - last;
             }
-            UpdateAxisScrollbar(graphPtr, axisPtr, viewMin / worldWidth, viewMax / worldWidth);
-        } else {
-            viewMax = (fract * worldWidth);
-            axisPtr->max = worldMax - viewMax;
-            axisPtr->min = axisPtr->max - viewWidth;
-            viewMin = viewMax + viewWidth;
-            if (axisPtr->logScale) {
-                axisPtr->min = LogAxisValue(axisPtr->min);
-                axisPtr->max = LogAxisValue(axisPtr->max);
+            fract = AdjustViewport(fract, windowSize);
+            if (isHoriz != axisPtr->descending) {
+                first = fract;
+                last = fract + windowSize;
+            } else {
+                last = 1.0 - fract;
+                first = last - windowSize;
             }
-            UpdateAxisScrollbar(graphPtr, axisPtr, viewMax / worldWidth, viewMin / worldWidth);
+            newMin = InterpolateAxisValue(&scrollRange, first);
+            newMax = InterpolateAxisValue(&scrollRange, last);
+            if (axisPtr->logScale) {
+                newMin = LogAxisValue(newMin);
+                newMax = LogAxisValue(newMax);
+            }
+            /*
+             * Never let malformed or numerically unrepresentable scroll
+             * geometry poison the live axis with NaN/Inf.
+             */
+            if (FINITE(newMin) && FINITE(newMax) && (newMin < newMax)) {
+                axisPtr->min = newMin;
+                axisPtr->max = newMax;
+                UpdateAxisScrollbar(graphPtr, axisPtr, fract, fract + windowSize);
+            }
         }
     }
     if (axisPtr->showTicks) {
@@ -6561,80 +6661,74 @@ static int TransformVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const obj
  */
 static int ViewOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Axis *axisPtr;
-    Tcl_Interp *interp = graphPtr->interp;
-    double axisOffset, scrollUnits;
+    AxisRange scrollRange;
+    Tcl_Interp *interp;
+    double first;
+    double last;
+    double windowSize;
     double fract;
-    double viewMin, viewMax, worldMin, worldMax;
-    double viewWidth, worldWidth;
+    double scrollUnits;
+    double newMin;
+    double newMax;
+    int forward;
 
+    interp = graphPtr->interp;
     if (NameToAxis(graphPtr, Tcl_GetString(objv[3]), &axisPtr) != TCL_OK) {
         return TCL_ERROR;
     }
-    worldMin = axisPtr->valueRange.min;
-    worldMax = axisPtr->valueRange.max;
-    /* Override data dimensions with user-selected limits. */
-    if (DEFINED(axisPtr->scrollMin)) {
-        worldMin = axisPtr->scrollMin;
+    if (!GetAxisScrollState(axisPtr, &scrollRange, &first, &last)) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("axis \"%s\" has an invalid scroll region", axisPtr->name));
+        return TCL_ERROR;
     }
-    if (DEFINED(axisPtr->scrollMax)) {
-        worldMax = axisPtr->scrollMax;
-    }
-    viewMin = axisPtr->min;
-    viewMax = axisPtr->max;
-    /* Bound the view within scroll region. */
-    if (viewMin < worldMin) {
-        viewMin = worldMin;
-    }
-    if (viewMax > worldMax) {
-        viewMax = worldMax;
-    }
-    if (axisPtr->logScale) {
-        worldMin = log10(worldMin);
-        worldMax = log10(worldMax);
-        viewMin = log10(viewMin);
-        viewMax = log10(viewMax);
-    }
-    worldWidth = worldMax - worldMin;
-    viewWidth = viewMax - viewMin;
-
-    /* Unlike horizontal axes, vertical axis values run opposite of
-     * the scrollbar first/last values.  So instead of pushing the
-     * axis minimum around, we move the maximum instead. */
-
-    if (AxisIsHorizontal(graphPtr, axisPtr) != axisPtr->descending) {
-        axisOffset = viewMin - worldMin;
+    windowSize = last - first;
+    forward = (AxisIsHorizontal(graphPtr, axisPtr) != axisPtr->descending);
+    if (forward) {
+        fract = first;
         scrollUnits = (double)axisPtr->scrollUnits * graphPtr->hScale;
     } else {
-        axisOffset = worldMax - viewMax;
+        fract = 1.0 - last;
         scrollUnits = (double)axisPtr->scrollUnits * graphPtr->vScale;
     }
     if (objc == 4) {
-        Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
+        Tcl_Obj *resultObj;
 
-        /* Note: Bound the fractions between 0.0 and 1.0 to support
-         * "canvas"-style scrolling. */
-        fract = axisOffset / worldWidth;
+        resultObj = Tcl_NewListObj(0, NULL);
         Tcl_ListObjAppendElement(NULL, resultObj, Tcl_NewDoubleObj(CLAMP(fract, 0.0, 1.0)));
-        fract = (axisOffset + viewWidth) / worldWidth;
-        Tcl_ListObjAppendElement(NULL, resultObj, Tcl_NewDoubleObj(CLAMP(fract, 0.0, 1.0)));
+        Tcl_ListObjAppendElement(NULL, resultObj, Tcl_NewDoubleObj(CLAMP(fract + windowSize, 0.0, 1.0)));
         Tcl_SetObjResult(interp, resultObj);
         return TCL_OK;
     }
-    fract = axisOffset / worldWidth;
-    if (GetAxisScrollInfo(interp, objc - 4, objv + 4, &fract, viewWidth / worldWidth, scrollUnits) != TCL_OK) {
+    if (windowSize <= 0.0) {
+        /*
+         * There is no established viewport to move yet.  Preserve the
+         * historical no-op behaviour for an unused axis.
+         */
+        return TCL_OK;
+    }
+    if (GetAxisScrollInfo(interp, objc - 4, objv + 4, &fract, windowSize, scrollUnits) != TCL_OK) {
         return TCL_ERROR;
     }
-    if (AxisIsHorizontal(graphPtr, axisPtr) != axisPtr->descending) {
-        axisPtr->reqMin = (fract * worldWidth) + worldMin;
-        axisPtr->reqMax = axisPtr->reqMin + viewWidth;
+    if (forward) {
+        first = fract;
+        last = fract + windowSize;
     } else {
-        axisPtr->reqMax = worldMax - (fract * worldWidth);
-        axisPtr->reqMin = axisPtr->reqMax - viewWidth;
+        last = 1.0 - fract;
+        first = last - windowSize;
     }
+    newMin = InterpolateAxisValue(&scrollRange, first);
+    newMax = InterpolateAxisValue(&scrollRange, last);
     if (axisPtr->logScale) {
-        axisPtr->reqMin = LogAxisValue(axisPtr->reqMin);
-        axisPtr->reqMax = LogAxisValue(axisPtr->reqMax);
+        newMin = LogAxisValue(newMin);
+        newMax = LogAxisValue(newMax);
     }
+    if ((!FINITE(newMin)) || (!FINITE(newMax)) || (newMin >= newMax)) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("scroll request produced an invalid range "
+                                               "for axis \"%s\"",
+                                               axisPtr->name));
+        return TCL_ERROR;
+    }
+    axisPtr->reqMin = newMin;
+    axisPtr->reqMax = newMax;
     graphPtr->flags |= (GET_AXIS_GEOMETRY | LAYOUT_NEEDED | RESET_AXES);
     Rbc_EventuallyRedrawGraph(graphPtr);
     return TCL_OK;

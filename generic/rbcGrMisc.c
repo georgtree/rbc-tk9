@@ -1157,49 +1157,6 @@ int Rbc_GetScrollInfoFromObj(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const o
 }
 
 /*
- * ----------------------------------------------------------------------
- *
- * Rbc_UpdateScrollbar --
- *
- *      Invoke a Tcl command to the scrollbar, defining the new
- *      position and length of the scroll. See the Tk documentation
- *      for further information on the scrollbar.  It is assumed the
- *      scrollbar command prefix is valid.
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      char *scrollCmd - scrollbar command
- *      double firstFract
- *      double lastFract
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Scrollbar is commanded to change position and/or size.
- *
- * ----------------------------------------------------------------------
- */
-void Rbc_UpdateScrollbar(Tcl_Interp *interp, const char *scrollCmd, double firstFract, double lastFract) {
-    char first[TCL_DOUBLE_SPACE];
-    char last[TCL_DOUBLE_SPACE];
-    Tcl_DString dString;
-
-    Tcl_PrintDouble(interp, firstFract, first);
-    Tcl_PrintDouble(interp, lastFract, last);
-    Tcl_DStringInit(&dString);
-    Tcl_DStringAppend(&dString, scrollCmd, -1);
-    Tcl_DStringAppend(&dString, " ", 1);
-    Tcl_DStringAppend(&dString, first, -1);
-    Tcl_DStringAppend(&dString, " ", 1);
-    Tcl_DStringAppend(&dString, last, -1);
-    if (Tcl_GlobalEval(interp, Tcl_DStringValue(&dString)) != TCL_OK) {
-        Tcl_BackgroundError(interp);
-    }
-    Tcl_DStringFree(&dString);
-}
-
-/*
  *----------------------------------------------------------------------
  *
  * Rbc_GetPrivateGCFromDrawable --
