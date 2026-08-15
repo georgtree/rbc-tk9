@@ -44,67 +44,40 @@ struct PsTokenStruct {
 };
 
 PsToken Rbc_GetPsToken(Tcl_Interp *interp, Tk_Window tkwin);
-
 void Rbc_ReleasePsToken(PsToken psToken);
 char *Rbc_PostScriptFromToken(PsToken psToken);
 char *Rbc_ScratchBufferFromToken(PsToken psToken);
-
 void Rbc_AppendToPostScript(PsToken, ...);
-
 void Rbc_FormatToPostScript(PsToken, const char *, ...);
-
+void Rbc_AppendPostScriptString(PsToken psToken, const char *string, Tcl_Size length);
 void Rbc_Draw3DRectangleToPostScript(PsToken psToken, Tk_3DBorder border, double x, double y, int width, int height,
                                      int borderWidth, int relief);
-
 void Rbc_Fill3DRectangleToPostScript(PsToken psToken, Tk_3DBorder border, double x, double y, int width, int height,
                                      int borderWidth, int relief);
-
 void Rbc_BackgroundToPostScript(PsToken psToken, XColor *colorPtr);
-
 void Rbc_BitmapDataToPostScript(PsToken psToken, Display *display, Pixmap bitmap, int width, int height);
-
 void Rbc_ClearBackgroundToPostScript(PsToken psToken);
-
 int Rbc_ColorImageToPsData(Rbc_ColorImage image, int nComponents, Tcl_DString *resultPtr, char *prefix);
-
 void Rbc_ColorImageToPostScript(PsToken psToken, Rbc_ColorImage image, double x, double y);
-
 void Rbc_ForegroundToPostScript(PsToken psToken, XColor *colorPtr);
-
 void Rbc_FontToPostScript(PsToken psToken, Tk_Font font);
-
 void Rbc_WindowToPostScript(PsToken psToken, Tk_Window tkwin, double x, double y);
-
 void Rbc_LineDashesToPostScript(PsToken psToken, Rbc_Dashes *dashesPtr);
-
 void Rbc_LineWidthToPostScript(PsToken psToken, int lineWidth);
-
 void Rbc_PathToPostScript(PsToken psToken, Point2D *screenPts, Tcl_Size nScreenPts);
-
 void Rbc_PhotoToPostScript(PsToken psToken, Tk_PhotoHandle photoToken, double x, double y);
 void Rbc_PolygonToPostScript(PsToken psToken, Point2D *screenPts, Tcl_Size nScreenPts);
-
 void Rbc_LineToPostScript(PsToken psToken, XPoint *pointArr, int nPoints);
-
 void Rbc_TextToPostScript(PsToken psToken, char *string, TextStyle *attrPtr, double x, double y);
-
 void Rbc_RectangleToPostScript(PsToken psToken, double x, double y, int width, int height);
-
 void Rbc_RegionToPostScript(PsToken psToken, double x, double y, int width, int height);
-
 void Rbc_RectanglesToPostScript(PsToken psToken, XRectangle *rectArr, int nRects);
-
 void Rbc_BitmapToPostScript(PsToken psToken, Display *display, Pixmap bitmap, double scaleX, double scaleY);
-
 void Rbc_SegmentsToPostScript(PsToken psToken, XSegment *segArr, int nSegs);
-
 void Rbc_StippleToPostScript(PsToken psToken, Display *display, Pixmap bitmap);
-
 void Rbc_LineAttributesToPostScript(PsToken psToken, XColor *colorPtr, int lineWidth, Rbc_Dashes *dashesPtr,
                                     int capStyle, int joinStyle);
-
 int Rbc_FileToPostScript(PsToken psToken, char *fileName);
-
 void Rbc_2DSegmentsToPostScript(PsToken psToken, Segment2D *segments, Tcl_Size nSegments);
 
 #endif /* _RBCPS */

@@ -640,6 +640,7 @@ static void PreviewImage(Graph *graphPtr, PsToken psToken) {
 static int PostScriptPreamble(Graph *graphPtr, const char *fileName, PsToken psToken) {
     PostScript *psPtr = (PostScript *)graphPtr->postscript;
     time_t ticks;
+    const char *dateString;    
     char date[200]; /* Hold the date string from ctime() */
     const char *version;
     double dpiX, dpiY;
@@ -683,16 +684,28 @@ static int PostScriptPreamble(Graph *graphPtr, const char *fileName, PsToken psT
     if (version == NULL) {
         version = "???";
     }
-    Rbc_FormatToPostScript(psToken, "%%%%Creator: (Rbc %s %s)\n", version, Tk_Class(graphPtr->tkwin));
-
+    Rbc_AppendToPostScript(psToken, "%%Creator: (Rbc ", (char *)NULL);
+    Rbc_AppendPostScriptString(psToken, version, -1);
+    Rbc_AppendToPostScript(psToken, " ", (char *)NULL);
+    Rbc_AppendPostScriptString(psToken, Tk_Class(graphPtr->tkwin), -1);
+    Rbc_AppendToPostScript(psToken, ")\n", (char *)NULL);
     ticks = time((time_t *)NULL);
-    strcpy(date, ctime(&ticks));
-    nl = date + strlen(date) - 1;
-    if (*nl == '\n') {
-        *nl = '\0';
+    dateString = ctime(&ticks);
+    if (dateString == NULL) {
+        snprintf(date, sizeof(date), "???");
+    } else {
+        snprintf(date, sizeof(date), "%s", dateString);
+        nl = strchr(date, '\n');
+        if (nl != NULL) {
+            *nl = '\0';
+        }
     }
-    Rbc_FormatToPostScript(psToken, "%%%%CreationDate: (%s)\n", date);
-    Rbc_FormatToPostScript(psToken, "%%%%Title: (%s)\n", fileName);
+    Rbc_AppendToPostScript(psToken, "%%CreationDate: (", (char *)NULL);
+    Rbc_AppendPostScriptString(psToken, date, -1);
+    Rbc_AppendToPostScript(psToken, ")\n", (char *)NULL);
+    Rbc_AppendToPostScript(psToken, "%%Title: (", (char *)NULL);
+    Rbc_AppendPostScriptString(psToken, fileName, -1);
+    Rbc_AppendToPostScript(psToken, ")\n", (char *)NULL);
     Rbc_AppendToPostScript(psToken, "%%DocumentData: Clean7Bit\n", (char *)NULL);
     if (psPtr->landscape) {
         Rbc_AppendToPostScript(psToken, "%%Orientation: Landscape\n", (char *)NULL);
@@ -714,9 +727,42 @@ static int PostScriptPreamble(Graph *graphPtr, const char *fileName, PsToken psT
         if (who == NULL) {
             who = "???";
         }
-        Rbc_AppendToPostScript(psToken, "8 /Helvetica SetFont\n", "10 30 moveto\n", "(Date: ", date, ") show\n",
-                               "10 20 moveto\n", "(File: ", fileName, ") show\n", "10 10 moveto\n",
-                               "(Created by: ", who, "@", Tcl_GetHostName(), ") show\n", "0 0 moveto\n", (char *)NULL);
+        if (psPtr->footer) {
+            const char *who;
+            const char *host;
+            who = getenv("LOGNAME");
+            if (who == NULL) {
+                who = "???";
+            }
+            host = Tcl_GetHostName();
+            if (host == NULL) {
+                host = "???";
+            }
+            Rbc_AppendToPostScript(psToken,
+                                   "8 /Helvetica SetFont\n"
+                                   "10 30 moveto\n"
+                                   "(Date: ",
+                                   (char *)NULL);
+            Rbc_AppendPostScriptString(psToken, date, -1);
+            Rbc_AppendToPostScript(psToken,
+                                   ") show\n"
+                                   "10 20 moveto\n"
+                                   "(File: ",
+                                   (char *)NULL);
+            Rbc_AppendPostScriptString(psToken, fileName, -1);
+            Rbc_AppendToPostScript(psToken,
+                                   ") show\n"
+                                   "10 10 moveto\n"
+                                   "(Created by: ",
+                                   (char *)NULL);
+            Rbc_AppendPostScriptString(psToken, who, -1);
+            Rbc_AppendToPostScript(psToken, "@", (char *)NULL);
+            Rbc_AppendPostScriptString(psToken, host, -1);
+            Rbc_AppendToPostScript(psToken,
+                                   ") show\n"
+                                   "0 0 moveto\n",
+                                   (char *)NULL);
+        }
     }
     /*
      * Set the conversion from PostScript to X11 coordinates.  Scale

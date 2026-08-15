@@ -203,6 +203,43 @@ void Rbc_FormatToPostScript(struct PsTokenStruct *tokenPtr, const char *fmt, ...
     ckfree(buffer);
 }
 
+void Rbc_AppendPostScriptString(PsToken psToken, const char *string, Tcl_Size length) {
+    const char *src;
+    const char *end;
+    Tcl_UniChar ch;
+    char c;
+    char buf[5];
+
+    if (string == NULL) {
+        return;
+    }
+    src = string;
+    if (length < 0) {
+        end = string + strlen(string);
+    } else {
+        end = string + length;
+    }
+    while (src < end) {
+        src += Tcl_UtfToUniChar(src, &ch);
+        if ((ch == '\\') || (ch == '(') || (ch == ')') || (ch < ' ') || (ch >= 0x7f)) {
+            unsigned int value;
+
+            /*
+             * PostScript text output is encoded as ISO-8859-1.
+             * Characters outside that range cannot be represented
+             * directly, so preserve the existing text-output
+             * behaviour and substitute a space.
+             */
+            value = (ch <= 0xff) ? (unsigned int)ch : 0x20u;
+            snprintf(buf, sizeof(buf), "\\%03o", value);
+            Tcl_DStringAppend(&psToken->dString, buf, -1);
+        } else {
+            c = (char)ch;
+            Tcl_DStringAppend(&psToken->dString, &c, 1);
+        }
+    }
+}
+
 /*
  *--------------------------------------------------------------
  *
@@ -1690,55 +1727,18 @@ void Rbc_FontToPostScript(struct PsTokenStruct *tokenPtr, Tk_Font font) {
  *
  *--------------------------------------------------------------
  */
-static void TextLayoutToPostScript(struct PsTokenStruct *tokenPtr, int x, int y, TextLayout *textPtr) {
-    const char *src;
-    const char *end;
+static void TextLayoutToPostScript(PsToken psToken, int x, int y, TextLayout *textPtr) {
     TextFragment *fragPtr;
     Tcl_Size i;
-    char c;
-    Tcl_UniChar ch;
-    char buf[5];
-    Tcl_DString ds;
 
     fragPtr = textPtr->fragArr;
     for (i = 0; i < textPtr->nFrags; i++, fragPtr++) {
         if (fragPtr->count < 1) {
             continue;
         }
-        Tcl_DStringInit(&ds);
-        Rbc_AppendToPostScript(tokenPtr, "(", (char *)NULL);
-        src = fragPtr->text;
-        end = src + fragPtr->count;
-        while (src < end) {
-            src += Tcl_UtfToUniChar(src, &ch);
-            if ((ch == '\\') || (ch == '(') || (ch == ')') || ch < ' ') {
-                /*
-                 * If special PostScript characters characters "\", "(",
-                 * and ")", or control characters are contained in the text
-                 * string, use octal escape sequence with them.
-                 */
-                snprintf(buf, sizeof(buf), "\\%03o", ch);
-                Tcl_DStringAppend(&ds, buf, -1);
-            } else if ((ch < 0x7f)) {
-                /*
-                 * A normal ascii character
-                 */
-                c = (char)ch;
-                Tcl_DStringAppend(&ds, &c, 1);
-            } else {
-                /* Add only unicode chars in the range up to 255 (iso8859-1).
-                 * The font has been reencoded to ISOLatin1Encoding.
-                 * Replace unavailable chars with a space.
-                 * TODO: use adobe glyph list to display additional chars
-                 * (see Tk_TextLayoutToPostscript).
-                 */
-                snprintf(buf, sizeof(buf), "\\%03o", ch <= 0xff ? ch : 0x20);
-                Tcl_DStringAppend(&ds, buf, -1);
-            }
-        }
-        Rbc_AppendToPostScript(tokenPtr, Tcl_DStringValue(&ds), (char *)NULL);
-        Rbc_FormatToPostScript(tokenPtr, ") %d %d %d DrawAdjText\n", fragPtr->width, x + fragPtr->x, y + fragPtr->y);
-        Tcl_DStringFree(&ds);
+        Rbc_AppendToPostScript(psToken, "(", (char *)NULL);
+        Rbc_AppendPostScriptString(psToken, fragPtr->text, fragPtr->count);
+        Rbc_FormatToPostScript(psToken, ") %d %d %d DrawAdjText\n", fragPtr->width, x + fragPtr->x, y + fragPtr->y);
     }
 }
 
