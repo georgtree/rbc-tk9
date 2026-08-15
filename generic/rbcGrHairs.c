@@ -193,7 +193,7 @@ static int GetCrosshairPositionFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_
     Tcl_DecrRefCount(xObjPtr);
     Tcl_DecrRefCount(yObjPtr);
     if (result != TCL_OK) {
-        Tcl_AppendResult(interp, ": can't parse position \"", string, "\"", (char *)NULL);
+        Rbc_AppendResultStrings(interp, ": can't parse position \"", string, "\"", (char *)NULL);
         return TCL_ERROR;
     }
     pointPtr->x = (double)x;

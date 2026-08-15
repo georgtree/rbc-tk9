@@ -384,6 +384,46 @@ void Rbc_DStringAppendElements(Tcl_DString *dsPtr, ...) {
     va_end(argList);
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_AppendResultStrings --
+ *
+ *      Appends one or more NUL-terminated strings to the current
+ *      interpreter result using Tcl's object result API.
+ *
+ *      The argument list must be terminated by NULL.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      Replaces the interpreter result with an object containing the
+ *      previous result followed by all supplied strings.
+ *
+ *----------------------------------------------------------------------
+ */
+void Rbc_AppendResultStrings(Tcl_Interp *interp, ...) {
+    Tcl_Obj *resultObj;
+    const char *string;
+    va_list args;
+
+    /*
+     * Never modify the interpreter's current result object in place.
+     * It may be shared with another owner.  Work on a duplicate and
+     * install the completed object afterward.
+     */
+    resultObj = Tcl_DuplicateObj(Tcl_GetObjResult(interp));
+    Tcl_IncrRefCount(resultObj);
+    va_start(args, interp);
+    while ((string = va_arg(args, const char *)) != NULL) {
+        Tcl_AppendToObj(resultObj, string, -1);
+    }
+    va_end(args);
+    Tcl_SetObjResult(interp, resultObj);
+    Tcl_DecrRefCount(resultObj);
+}
+
 static char stringRep[200];
 
 /*

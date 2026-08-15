@@ -268,7 +268,7 @@ static int ArithOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
 
         length = v2Ptr->last - v2Ptr->first + 1;
         if (length != vPtr->length) {
-            Tcl_AppendResult(interp, "vectors \"", Tcl_GetString(objv[0]), "\" and \"", Tcl_GetString(objv[2]),
+            Rbc_AppendResultStrings(interp, "vectors \"", Tcl_GetString(objv[0]), "\" and \"", Tcl_GetString(objv[2]),
                              "\" are not the same length", (char *)NULL);
             return TCL_ERROR;
         }
@@ -431,7 +431,7 @@ static Tcl_Size ParseAt(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl
         return -1;
     }
     if (first > vPtr->length || first < 0) {
-        Tcl_AppendResult(interp, "index \"", string, "\" is out of range", NULL);
+        Rbc_AppendResultStrings(interp, "index \"", string, "\" is out of range", NULL);
         return -1;
     }
     *(Tcl_Size *)dstPtr = first;
@@ -950,7 +950,7 @@ static int IndexOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
         Tcl_Obj *listObjPtr;
 
         if (first == vPtr->length || last == vPtr->length) {
-            Tcl_AppendResult(interp, "can't get index \"", string, "\"", (char *)NULL);
+            Rbc_AppendResultStrings(interp, "can't get index \"", string, "\"", (char *)NULL);
             return TCL_ERROR; /* Can't read from index "++end" */
         }
         listObjPtr = Rbc_GetValues(vPtr, first, last);
@@ -960,7 +960,7 @@ static int IndexOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
 
         /* FIXME: huh? Why set values here?.  */
         if (first == SPECIAL_INDEX) {
-            Tcl_AppendResult(interp, "can't set index \"", string, "\"", (char *)NULL);
+            Rbc_AppendResultStrings(interp, "can't set index \"", string, "\"", (char *)NULL);
             return TCL_ERROR; /* Tried to set "min" or "max" */
         }
         if (Rbc_GetDouble(vPtr->interp, objv[3], &value) != TCL_OK) {
@@ -1087,7 +1087,7 @@ static int MergeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
             refSize = length;
 
         } else if (length != refSize) {
-            Tcl_AppendResult(interp, "vectors \"", vPtr->name, "\" and \"", v2Ptr->name, "\" differ in length",
+            Rbc_AppendResultStrings(interp, "vectors \"", vPtr->name, "\" and \"", v2Ptr->name, "\" differ in length",
                              (char *)NULL);
             ckfree(vecArr);
             return TCL_ERROR;
@@ -1746,7 +1746,7 @@ static int SortOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
             if ((length > 1) && (strncmp(string, "-reverse", length) == 0)) {
                 reverse = TRUE;
             } else {
-                Tcl_AppendResult(interp, "unknown flag \"", string, "\": should be \"-reverse\"", (char *)NULL);
+                Rbc_AppendResultStrings(interp, "unknown flag \"", string, "\": should be \"-reverse\"", (char *)NULL);
                 return TCL_ERROR;
             }
             objc--;
@@ -1812,7 +1812,7 @@ static int SortOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
             goto error;
         }
         if (v2Ptr->length != refSize) {
-            Tcl_AppendResult(interp, "vector \"", v2Ptr->name, "\" is not the same size as \"", vPtr->name, "\"",
+            Rbc_AppendResultStrings(interp, "vector \"", v2Ptr->name, "\" is not the same size as \"", vPtr->name, "\"",
                              (char *)NULL);
             goto error;
         }
@@ -2388,7 +2388,7 @@ static Tcl_Size *SortVectors(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size ob
             goto error;
         }
         if (v2Ptr->length != vPtr->length) {
-            Tcl_AppendResult(interp, "vector \"", v2Ptr->name, "\" is not the same size as \"", vPtr->name, "\"",
+            Rbc_AppendResultStrings(interp, "vector \"", v2Ptr->name, "\" is not the same size as \"", vPtr->name, "\"",
                              (char *)NULL);
             goto error;
         }

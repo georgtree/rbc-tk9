@@ -1153,7 +1153,7 @@ static int EvaluateExpression(Tcl_Interp *interp, char *string, Value *valuePtr)
         return result;
     }
     if (info.token != END) {
-        Tcl_AppendResult(interp, ": syntax error in expression \"", string, "\"", (char *)NULL);
+        Rbc_AppendResultStrings(interp, ": syntax error in expression \"", string, "\"", (char *)NULL);
         return TCL_ERROR;
     }
     vPtr = valuePtr->vPtr;
@@ -1231,7 +1231,7 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
             goto done;
         }
         if (parsePtr->token != CLOSE_PAREN) {
-            Tcl_AppendResult(interp, "unmatched parentheses in expression \"", parsePtr->expr, "\"", (char *)NULL);
+            Rbc_AppendResultStrings(interp, "unmatched parentheses in expression \"", parsePtr->expr, "\"", (char *)NULL);
             result = TCL_ERROR;
             goto done;
         }
@@ -1259,11 +1259,11 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
             }
             break;
         default:
-            Tcl_AppendResult(interp, "unknown operator", (char *)NULL);
+            Rbc_AppendResultStrings(interp, "unknown operator", (char *)NULL);
             goto error;
         }
         } else if (parsePtr->token != VALUE) {
-            Tcl_AppendResult(interp, "missing operand", (char *)NULL);
+            Rbc_AppendResultStrings(interp, "missing operand", (char *)NULL);
             goto error;
         }
     }
@@ -1283,7 +1283,7 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
                 result = TCL_OK;
                 goto done;
             } else {
-                Tcl_AppendResult(interp, "bad operator", (char *)NULL);
+                Rbc_AppendResultStrings(interp, "bad operator", (char *)NULL);
                 goto error;
             }
         }
@@ -1297,7 +1297,7 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
     }
     if ((parsePtr->token < MULT) && (parsePtr->token != VALUE) && (parsePtr->token != END) &&
         (parsePtr->token != CLOSE_PAREN) && (parsePtr->token != COMMA)) {
-        Tcl_AppendResult(interp, "unexpected token in expression", (char *)NULL);
+        Rbc_AppendResultStrings(interp, "unexpected token in expression", (char *)NULL);
         goto error;
     }
     /*
@@ -1321,7 +1321,7 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
             break;
         case DIVIDE:
             if (scalar == 0.0) {
-                Tcl_AppendResult(interp, "divide by zero", (char *)NULL);
+                Rbc_AppendResultStrings(interp, "divide by zero", (char *)NULL);
                 goto error;
             }
             for (i = 0; i < vPtr->length; i++) {
@@ -1451,7 +1451,7 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
             break;
         }
         default:
-            Tcl_AppendResult(interp, "unknown operator in expression", (char *)NULL);
+            Rbc_AppendResultStrings(interp, "unknown operator in expression", (char *)NULL);
             goto error;
         }
 
@@ -1479,7 +1479,7 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
         case DIVIDE:
             for (i = 0; i < vPtr->length; i++) {
                 if (opnd[i] == 0.0) {
-                    Tcl_AppendResult(interp, "divide by zero", (char *)NULL);
+                    Rbc_AppendResultStrings(interp, "divide by zero", (char *)NULL);
                     goto error;
                 }
                 opnd[i] = (scalar / opnd[i]);
@@ -1543,10 +1543,10 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
 
         case LEFT_SHIFT:
         case RIGHT_SHIFT:
-            Tcl_AppendResult(interp, "second shift operand must be scalar", (char *)NULL);
+            Rbc_AppendResultStrings(interp, "second shift operand must be scalar", (char *)NULL);
             goto error;
         default:
-            Tcl_AppendResult(interp, "unknown operator in expression", (char *)NULL);
+            Rbc_AppendResultStrings(interp, "unknown operator in expression", (char *)NULL);
             goto error;
         }
     } else {
@@ -1555,7 +1555,7 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
          * Carry out the function of the specified operator.
          */
         if (vPtr->length != v2Ptr->length) {
-            Tcl_AppendResult(interp, "vectors are different lengths", (char *)NULL);
+            Rbc_AppendResultStrings(interp, "vectors are different lengths", (char *)NULL);
             goto error;
         }
         opnd1 = vPtr->valueArr, opnd2 = v2Ptr->valueArr;
@@ -1568,7 +1568,7 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
         case DIVIDE:
             for (i = 0; i < vPtr->length; i++) {
                 if (opnd2[i] == 0.0) {
-                    Tcl_AppendResult(interp, "can't divide by 0.0 vector component", (char *)NULL);
+                    Rbc_AppendResultStrings(interp, "can't divide by 0.0 vector component", (char *)NULL);
                     goto error;
                 }
                 opnd1[i] /= opnd2[i];
@@ -1637,10 +1637,10 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
             break;
         case LEFT_SHIFT:
         case RIGHT_SHIFT:
-            Tcl_AppendResult(interp, "second shift operand must be scalar", (char *)NULL);
+            Rbc_AppendResultStrings(interp, "second shift operand must be scalar", (char *)NULL);
             goto error;
         default:
-            Tcl_AppendResult(interp, "unknown operator in expression", (char *)NULL);
+            Rbc_AppendResultStrings(interp, "unknown operator in expression", (char *)NULL);
             goto error;
         }
     }
@@ -2197,7 +2197,7 @@ static int ParseMathFunction(Tcl_Interp *interp, char *start, ParseInfo *parsePt
         return TCL_ERROR; /* Parse error */
     }
     if (parsePtr->token != CLOSE_PAREN) {
-        Tcl_AppendResult(interp, "unmatched parentheses in expression \"", parsePtr->expr, "\"", (char *)NULL);
+        Rbc_AppendResultStrings(interp, "unmatched parentheses in expression \"", parsePtr->expr, "\"", (char *)NULL);
         return TCL_ERROR; /* Missing right parenthesis */
     }
     mathPtr = (MathFunction *)Tcl_GetHashValue(hPtr);

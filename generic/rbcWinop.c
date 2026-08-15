@@ -494,11 +494,11 @@ static int MoveOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_
         return TCL_ERROR;
     }
     if (Tk_GetPixelsFromObj(interp, tkwin, objv[3], &x) != TCL_OK) {
-        Tcl_AppendResult(interp, ": bad window x-coordinate", (char *)NULL);
+        Rbc_AppendResultStrings(interp, ": bad window x-coordinate", (char *)NULL);
         return TCL_ERROR;
     }
     if (Tk_GetPixelsFromObj(interp, tkwin, objv[4], &y) != TCL_OK) {
-        Tcl_AppendResult(interp, ": bad window y-coordinate", (char *)NULL);
+        Rbc_AppendResultStrings(interp, ": bad window y-coordinate", (char *)NULL);
         return TCL_ERROR;
     }
     //    XMoveWindow(display, window, x, y);
@@ -677,7 +677,7 @@ static int WarpToOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tc
                 return TCL_ERROR;
             }
             if (!Tk_IsMapped(tkwin)) {
-                Tcl_AppendResult(interp, "can't warp to unmapped window \"", Tk_PathName(tkwin), "\"", (char *)NULL);
+                Rbc_AppendResultStrings(interp, "can't warp to unmapped window \"", Tk_PathName(tkwin), "\"", (char *)NULL);
                 return TCL_ERROR;
             }
             XWarpPointer(Tk_Display(tkwin), None, Tk_WindowId(tkwin), 0, 0, 0, 0, Tk_Width(tkwin) / 2,
@@ -729,13 +729,13 @@ static int ConvolveOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
 
     srcPhoto = Tk_FindPhoto(interp, srcName);
     if (srcPhoto == NULL) {
-        Tcl_AppendResult(interp, "source image \"", srcName, "\" doesn't", " exist or is not a photo image",
+        Rbc_AppendResultStrings(interp, "source image \"", srcName, "\" doesn't", " exist or is not a photo image",
                          (char *)NULL);
         return TCL_ERROR;
     }
     destPhoto = Tk_FindPhoto(interp, destName);
     if (destPhoto == NULL) {
-        Tcl_AppendResult(interp, "destination image \"", destName, "\" doesn't", " exist or is not a photo image",
+        Rbc_AppendResultStrings(interp, "destination image \"", destName, "\" doesn't", " exist or is not a photo image",
                          (char *)NULL);
         return TCL_ERROR;
     }
@@ -745,7 +745,7 @@ static int ConvolveOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
 
     kernel = NULL;
     if (nValues == 0) {
-        Tcl_AppendResult(interp, "empty kernel", (char *)NULL);
+        Rbc_AppendResultStrings(interp, "empty kernel", (char *)NULL);
         goto error;
     }
     if (nValues > INT_MAX) {
@@ -824,18 +824,18 @@ static int QuantizeOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
 
     srcPhoto = Tk_FindPhoto(interp, srcName);
     if (srcPhoto == NULL) {
-        Tcl_AppendResult(interp, "source image \"", srcName, "\" doesn't", " exist or is not a photo image",
+        Rbc_AppendResultStrings(interp, "source image \"", srcName, "\" doesn't", " exist or is not a photo image",
                          (char *)NULL);
         return TCL_ERROR;
     }
     Tk_PhotoGetImage(srcPhoto, &src);
     if ((src.width <= 1) || (src.height <= 1)) {
-        Tcl_AppendResult(interp, "source image \"", srcName, "\" is empty", (char *)NULL);
+        Rbc_AppendResultStrings(interp, "source image \"", srcName, "\" is empty", (char *)NULL);
         return TCL_ERROR;
     }
     destPhoto = Tk_FindPhoto(interp, destName);
     if (destPhoto == NULL) {
-        Tcl_AppendResult(interp, "destination image \"", destName, "\" doesn't", " exist or is not a photo image",
+        Rbc_AppendResultStrings(interp, "destination image \"", destName, "\" doesn't", " exist or is not a photo image",
                          (char *)NULL);
         return TCL_ERROR;
     }
@@ -894,12 +894,12 @@ static int ReadJPEGOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
 
     photo = Tk_FindPhoto(interp, name);
     if (photo == NULL) {
-        Tcl_AppendResult(interp, "image \"", name, "\" doesn't", " exist or is not a photo image", (char *)NULL);
+        Rbc_AppendResultStrings(interp, "image \"", name, "\" doesn't", " exist or is not a photo image", (char *)NULL);
         return TCL_ERROR;
     }
     return Rbc_JPEGToPhoto(interp, Tcl_GetString(objv[2]), photo);
 #else
-    Tcl_AppendResult(interp, "JPEG support not compiled", (char *)NULL);
+    Rbc_AppendResultStrings(interp, "JPEG support not compiled", (char *)NULL);
     return TCL_ERROR;
 #endif
 }
@@ -944,7 +944,7 @@ static int GradientOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
     tkwin = Tk_MainWindow(interp);
     photo = Tk_FindPhoto(interp, name);
     if (photo == NULL) {
-        Tcl_AppendResult(interp, "source image \"", name, "\" doesn't", " exist or is not a photo image", (char *)NULL);
+        Rbc_AppendResultStrings(interp, "source image \"", name, "\" doesn't", " exist or is not a photo image", (char *)NULL);
         return TCL_ERROR;
     }
     Tk_PhotoGetImage(photo, &src);
@@ -1105,13 +1105,13 @@ static int ResampleOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
 
     srcPhoto = Tk_FindPhoto(interp, srcName);
     if (srcPhoto == NULL) {
-        Tcl_AppendResult(interp, "source image \"", srcName, "\" doesn't", " exist or is not a photo image",
+        Rbc_AppendResultStrings(interp, "source image \"", srcName, "\" doesn't", " exist or is not a photo image",
                          (char *)NULL);
         return TCL_ERROR;
     }
     destPhoto = Tk_FindPhoto(interp, destName);
     if (destPhoto == NULL) {
-        Tcl_AppendResult(interp, "destination image \"", destName, "\" doesn't", " exist or is not a photo image",
+        Rbc_AppendResultStrings(interp, "destination image \"", destName, "\" doesn't", " exist or is not a photo image",
                          (char *)NULL);
         return TCL_ERROR;
     }
@@ -1130,7 +1130,7 @@ static int ResampleOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
     }
     Tk_PhotoGetImage(srcPhoto, &src);
     if ((src.width <= 1) || (src.height <= 1)) {
-        Tcl_AppendResult(interp, "source image \"", srcName, "\" is empty", (char *)NULL);
+        Rbc_AppendResultStrings(interp, "source image \"", srcName, "\" is empty", (char *)NULL);
         return TCL_ERROR;
     }
     Tk_PhotoGetImage(destPhoto, &dest);
@@ -1191,12 +1191,12 @@ static int RotateOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tc
 
     srcPhoto = Tk_FindPhoto(interp, srcName);
     if (srcPhoto == NULL) {
-        Tcl_AppendResult(interp, "image \"", srcName, "\" doesn't", " exist or is not a photo image", (char *)NULL);
+        Rbc_AppendResultStrings(interp, "image \"", srcName, "\" doesn't", " exist or is not a photo image", (char *)NULL);
         return TCL_ERROR;
     }
     destPhoto = Tk_FindPhoto(interp, destName);
     if (destPhoto == NULL) {
-        Tcl_AppendResult(interp, "destination image \"", destName, "\" doesn't", " exist or is not a photo image",
+        Rbc_AppendResultStrings(interp, "destination image \"", destName, "\" doesn't", " exist or is not a photo image",
                          (char *)NULL);
         return TCL_ERROR;
     }
@@ -1255,7 +1255,7 @@ static int SnapOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_
         return TCL_ERROR;
     }
     if (GetWindowSize(interp, window, &width, &height) != TCL_OK) {
-        Tcl_AppendResult(interp, "can't get window geometry of \"", wname, "\"", (char *)NULL);
+        Rbc_AppendResultStrings(interp, "can't get window geometry of \"", wname, "\"", (char *)NULL);
         return TCL_ERROR;
     }
     destWidth = width, destHeight = height;
@@ -1304,13 +1304,13 @@ static int SubsampleOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc,
 
     srcPhoto = Tk_FindPhoto(interp, srcName);
     if (srcPhoto == NULL) {
-        Tcl_AppendResult(interp, "source image \"", srcName, "\" doesn't", " exist or is not a photo image",
+        Rbc_AppendResultStrings(interp, "source image \"", srcName, "\" doesn't", " exist or is not a photo image",
                          (char *)NULL);
         return TCL_ERROR;
     }
     destPhoto = Tk_FindPhoto(interp, destName);
     if (destPhoto == NULL) {
-        Tcl_AppendResult(interp, "destination image \"", destName, "\" doesn't", " exist or is not a photo image",
+        Rbc_AppendResultStrings(interp, "destination image \"", destName, "\" doesn't", " exist or is not a photo image",
                          (char *)NULL);
         return TCL_ERROR;
     }

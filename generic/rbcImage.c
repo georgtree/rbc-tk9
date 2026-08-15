@@ -1776,12 +1776,12 @@ int Rbc_SnapPhoto(Tcl_Interp *interp, Tk_Window tkwin, Drawable drawable, int x,
     }
     photo = Tk_FindPhoto(interp, photoName);
     if (photo == NULL) {
-        Tcl_AppendResult(interp, "can't find photo \"", photoName, "\"", (char *)NULL);
+        Rbc_AppendResultStrings(interp, "can't find photo \"", photoName, "\"", (char *)NULL);
         return TCL_ERROR;
     }
     image = Rbc_DrawableToColorImage(tkwin, drawable, x, y, width, height, inputGamma);
     if (image == NULL) {
-        Tcl_AppendResult(interp, "can't grab window or pixmap (possibly obscured?)", (char *)NULL);
+        Rbc_AppendResultStrings(interp, "can't grab window or pixmap (possibly obscured?)", (char *)NULL);
         return TCL_ERROR; /* Can't grab window image */
     }
     if ((destWidth != width) || (destHeight != height)) {

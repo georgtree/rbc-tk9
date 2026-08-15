@@ -1191,16 +1191,16 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, const char *fileName) {
 
     ZeroMemory(&jpgProps, sizeof(JPEG_CORE_PROPERTIES));
     if (ijlInit(&jpgProps) != IJL_OK) {
-        Tcl_AppendResult(interp, "can't initialize Intel JPEG library", (char *)NULL);
+        Rbc_AppendResultStrings(interp, "can't initialize Intel JPEG library", (char *)NULL);
         return NULL;
     }
     jpgProps.JPGFile = (char *)fileName;
     if (ijlRead(&jpgProps, IJL_JFILE_READPARAMS) != IJL_OK) {
-        Tcl_AppendResult(interp, "can't read JPEG file header from \"", fileName, "\" file.", (char *)NULL);
+        Rbc_AppendResultStrings(interp, "can't read JPEG file header from \"", fileName, "\" file.", (char *)NULL);
         goto error;
     }
     if ((jpgProps.JPGWidth <= 0) || (jpgProps.JPGHeight <= 0)) {
-        Tcl_AppendResult(interp, "bad JPEG image size", (char *)NULL);
+        Rbc_AppendResultStrings(interp, "bad JPEG image size", (char *)NULL);
         goto error;
     }
 
@@ -1242,7 +1242,7 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, const char *fileName) {
 
     jpgProps.DIBBytes = (BYTE *)Rbc_ColorImageBits(image);
     if (ijlRead(&jpgProps, IJL_JFILE_READWHOLEIMAGE) != IJL_OK) {
-        Tcl_AppendResult(interp, "can't read image data from \"", fileName, "\"", (char *)NULL);
+        Rbc_AppendResultStrings(interp, "can't read image data from \"", fileName, "\"", (char *)NULL);
         goto error;
     }
     if (ijlFree(&jpgProps) != IJL_OK) {
@@ -1367,7 +1367,7 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, const char *fileName) {
 
     f = fopen(fileName, "rb");
     if (f == NULL) {
-        Tcl_AppendResult(interp, "can't open \"", fileName, "\":", Tcl_PosixError(interp), (char *)NULL);
+        Rbc_AppendResultStrings(interp, "can't open \"", fileName, "\":", Tcl_PosixError(interp), (char *)NULL);
         return NULL;
     }
     image = NULL;
@@ -1407,7 +1407,7 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, const char *fileName) {
     imageWidth = jpg.output_width;
     imageHeight = jpg.output_height;
     if ((imageWidth < 1) || (imageHeight < 1)) {
-        Tcl_AppendResult(interp, "bad JPEG image size", (char *)NULL);
+        Rbc_AppendResultStrings(interp, "bad JPEG image size", (char *)NULL);
         fclose(f);
         return NULL;
     }

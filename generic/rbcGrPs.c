@@ -1059,7 +1059,7 @@ static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, FILE *f) {
     Tcl_DStringFree(&dString);
 
     if (hDC == NULL) {
-        Tcl_AppendResult(graphPtr->interp, "can't create metafile: ", Rbc_LastError(), (char *)NULL);
+        Rbc_AppendResultStrings(graphPtr->interp, "can't create metafile: ", Rbc_LastError(), (char *)NULL);
         return TCL_ERROR;
     }
     /* Assemble a Tk drawable that points to the metafile and let the
@@ -1078,12 +1078,12 @@ static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, FILE *f) {
     size = GetWinMetaFileBits(hMetaFile, 0, NULL, MM_ANISOTROPIC, hRefDC);
     hMem = GlobalAlloc(GHND, size);
     if (hMem == NULL) {
-        Tcl_AppendResult(graphPtr->interp, "can't allocate global memory:", Rbc_LastError(), (char *)NULL);
+        Rbc_AppendResultStrings(graphPtr->interp, "can't allocate global memory:", Rbc_LastError(), (char *)NULL);
         goto error;
     }
     buffer = (LPVOID)GlobalLock(hMem);
     if (!GetWinMetaFileBits(hMetaFile, size, buffer, MM_ANISOTROPIC, hRefDC)) {
-        Tcl_AppendResult(graphPtr->interp, "can't get metafile data:", Rbc_LastError(), (char *)NULL);
+        Rbc_AppendResultStrings(graphPtr->interp, "can't get metafile data:", Rbc_LastError(), (char *)NULL);
         goto error;
     }
 
@@ -1096,17 +1096,17 @@ static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, FILE *f) {
 
     /* Write out the eps header, */
     if (fwrite(&epsHeader, 1, sizeof(epsHeader), f) != sizeof(epsHeader)) {
-        Tcl_AppendResult(graphPtr->interp, "error writing eps header:", Rbc_LastError(), (char *)NULL);
+        Rbc_AppendResultStrings(graphPtr->interp, "error writing eps header:", Rbc_LastError(), (char *)NULL);
         goto error;
     }
     /* the PostScript, */
     if (fwrite(psBuffer, 1, epsHeader.psLength, f) != epsHeader.psLength) {
-        Tcl_AppendResult(graphPtr->interp, "error writing PostScript data:", Rbc_LastError(), (char *)NULL);
+        Rbc_AppendResultStrings(graphPtr->interp, "error writing PostScript data:", Rbc_LastError(), (char *)NULL);
         goto error;
     }
     /* and finally the metadata itself. */
     if (fwrite(buffer, 1, size, f) != size) {
-        Tcl_AppendResult(graphPtr->interp, "error writing metafile data:", Rbc_LastError(), (char *)NULL);
+        Rbc_AppendResultStrings(graphPtr->interp, "error writing metafile data:", Rbc_LastError(), (char *)NULL);
         goto error;
     }
     result = TCL_OK;

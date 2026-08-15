@@ -3568,12 +3568,12 @@ static int CreateElement(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
     const char *elemName = Tcl_GetString(objv[3]);
 
     if (elemName[0] == '-') {
-        Tcl_AppendResult(graphPtr->interp, "name of element \"", elemName, "\" can't start with a '-'", (char *)NULL);
+        Rbc_AppendResultStrings(graphPtr->interp, "name of element \"", elemName, "\" can't start with a '-'", (char *)NULL);
         return TCL_ERROR;
     }
     hPtr = Tcl_CreateHashEntry(&graphPtr->elements.table, elemName, &isNew);
     if (!isNew) {
-        Tcl_AppendResult(interp, "element \"", elemName, "\" already exists in \"", Tcl_GetString(objv[0]), "\"",
+        Rbc_AppendResultStrings(interp, "element \"", elemName, "\" already exists in \"", Tcl_GetString(objv[0]), "\"",
                          (char *)NULL);
         return TCL_ERROR;
     }
@@ -3648,10 +3648,7 @@ static int RebuildDisplayList(Graph *graphPtr, Tcl_Obj *newListObj) {
     register Tcl_HashEntry *hPtr;
     Element *elemPtr; /* Element information record */
 
-    //    if (Tcl_ListObjGetElementsSplitList(graphPtr->interp, newList, &nNames, &nameArr) != TCL_OK) {
     if (Tcl_ListObjGetElements(graphPtr->interp, newListObj, &nNames, &nameObjArr) != TCL_OK) {
-        //    Tcl_AppendResult(graphPtr->interp, "can't split name list \"", newList,
-        //         "\"", (char *)NULL);
         return TCL_ERROR;
     }
     /* Clear the display list and mark all elements as hidden.  */
@@ -4228,11 +4225,11 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size
         Rbc_ResetAxes(graphPtr);
     }
     if (Tk_GetPixelsFromObj(interp, graphPtr->tkwin, objv[3], &x) != TCL_OK) {
-        Tcl_AppendResult(interp, ": bad window x-coordinate", (char *)NULL);
+        Rbc_AppendResultStrings(interp, ": bad window x-coordinate", (char *)NULL);
         return TCL_ERROR;
     }
     if (Tk_GetPixelsFromObj(interp, graphPtr->tkwin, objv[4], &y) != TCL_OK) {
-        Tcl_AppendResult(interp, ": bad window y-coordinate", (char *)NULL);
+        Rbc_AppendResultStrings(interp, ": bad window y-coordinate", (char *)NULL);
         return TCL_ERROR;
     }
     if (graphPtr->inverted) {
@@ -4256,7 +4253,7 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size
                 return TCL_ERROR; /* Can't find named element */
             }
             if (elemPtr->hidden) {
-                Tcl_AppendResult(interp, "element \"", Tcl_GetString(objv[i]), "\" is hidden", (char *)NULL);
+                Rbc_AppendResultStrings(interp, "element \"", Tcl_GetString(objv[i]), "\" is hidden", (char *)NULL);
                 return TCL_ERROR; /* Element isn't visible */
             }
             /* Check if the X or Y vectors have notifications pending */

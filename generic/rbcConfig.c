@@ -434,7 +434,7 @@ static int StringToShadow(ClientData clientData, Tcl_Interp *interp, Tk_Window t
             return TCL_ERROR;
         }
         if ((nElem < 1) || (nElem > 2)) {
-            Tcl_AppendResult(interp, "wrong # elements in drop shadow value", (char *)NULL);
+            Rbc_AppendResultStrings(interp, "wrong # elements in drop shadow value", (char *)NULL);
             ckfree((char *)elemArr);
             return TCL_ERROR;
         }

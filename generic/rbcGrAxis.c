@@ -4503,7 +4503,7 @@ static int GetAxisScrollInfo(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const o
             /* A page is 90% of the view-able window. */
             fract = (double)count * windowSize * 0.9;
         } else {
-            Tcl_AppendResult(interp, "unknown \"scroll\" units \"", s, "\"", (char *)NULL);
+            Rbc_AppendResultStrings(interp, "unknown \"scroll\" units \"", s, "\"", (char *)NULL);
             return TCL_ERROR;
         }
         offset += fract;
@@ -5554,15 +5554,15 @@ static Axis *CreateAxis(Graph *graphPtr, char *name, int margin) {
     int isNew;
 
     if (name[0] == '-') {
-        Tcl_AppendResult(graphPtr->interp, "name of axis \"", name, "\" can't start with a '-'", (char *)NULL);
+        Rbc_AppendResultStrings(graphPtr->interp, "name of axis \"", name, "\" can't start with a '-'", (char *)NULL);
         return NULL;
     }
     hPtr = Tcl_CreateHashEntry(&graphPtr->axes.table, name, &isNew);
     if (!isNew) {
         axisPtr = (Axis *)Tcl_GetHashValue(hPtr);
         if (!axisPtr->deletePending) {
-            Tcl_AppendResult(graphPtr->interp, "axis \"", name, "\" already exists in \"", Tk_PathName(graphPtr->tkwin),
-                             "\"", (char *)NULL);
+            Rbc_AppendResultStrings(graphPtr->interp, "axis \"", name, "\" already exists in \"",
+                                    Tk_PathName(graphPtr->tkwin), "\"", (char *)NULL);
             return NULL;
         }
         axisPtr->deletePending = FALSE;
@@ -5642,8 +5642,8 @@ static int NameToAxis(Graph *graphPtr, const char *name, Axis **axisPtrPtr) {
             return TCL_OK;
         }
     }
-    Tcl_AppendResult(graphPtr->interp, "can't find axis \"", name, "\" in \"", Tk_PathName(graphPtr->tkwin), "\"",
-                     (char *)NULL);
+    Rbc_AppendResultStrings(graphPtr->interp, "can't find axis \"", name, "\" in \"", Tk_PathName(graphPtr->tkwin),
+                            "\"", (char *)NULL);
     *axisPtrPtr = NULL;
     return TCL_ERROR;
 }
@@ -5680,8 +5680,8 @@ static int GetAxis(Graph *graphPtr, const char *axisName, Rbc_Uid classUid, Axis
             /* Set the axis type on the first use of it. */
             axisPtr->classUid = classUid;
         } else if (axisPtr->classUid != classUid) {
-            Tcl_AppendResult(graphPtr->interp, "axis \"", axisName, "\" is already in use on an opposite ",
-                             axisPtr->classUid, "-axis", (char *)NULL);
+            Rbc_AppendResultStrings(graphPtr->interp, "axis \"", axisName, "\" is already in use on an opposite ",
+                                    axisPtr->classUid, "-axis", (char *)NULL);
             return TCL_ERROR;
         }
         axisPtr->refCount++;

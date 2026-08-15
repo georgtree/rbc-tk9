@@ -1897,7 +1897,7 @@ static int GetSmoothFromString(Tcl_Interp *interp, const char *string, Smoothing
         }
     }
 
-    Tcl_AppendResult(interp, "bad smooth value \"", string, "\": should be linear, step, natural, or quadratic",
+    Rbc_AppendResultStrings(interp, "bad smooth value \"", string, "\": should be linear, step, natural, or quadratic",
                      (char *)NULL);
 
     return TCL_ERROR;
@@ -1931,7 +1931,7 @@ static int GetPenDirFromString(Tcl_Interp *interp, const char *string, int *penD
     } else if ((c == 'b') && (length <= strlen("both")) && (strncmp(string, "both", length) == 0)) {
         *penDirPtr = PEN_BOTH_DIRECTIONS;
     } else {
-        Tcl_AppendResult(interp, "bad trace value \"", string,
+        Rbc_AppendResultStrings(interp, "bad trace value \"", string,
                          "\" : should be \"increasing\", \"decreasing\", or \"both\"", (char *)NULL);
 
         return TCL_ERROR;

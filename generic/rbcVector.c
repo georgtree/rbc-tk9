@@ -2544,11 +2544,11 @@ int Rbc_GetVectorById(Tcl_Interp *interp, Rbc_VectorId clientId, Rbc_Vector **ve
     VectorClient *clientPtr = (VectorClient *)clientId;
 
     if (clientPtr->magic != VECTOR_MAGIC) {
-        Tcl_AppendResult(interp, "bad vector token", (char *)NULL);
+        Rbc_AppendResultStrings(interp, "bad vector token", (char *)NULL);
         return TCL_ERROR;
     }
     if (clientPtr->serverPtr == NULL) {
-        Tcl_AppendResult(interp, "vector no longer exists", (char *)NULL);
+        Rbc_AppendResultStrings(interp, "vector no longer exists", (char *)NULL);
         return TCL_ERROR;
     }
     Rbc_VectorUpdateRange(clientPtr->serverPtr);

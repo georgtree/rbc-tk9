@@ -515,6 +515,7 @@ int Rbc_GetPixels(Tcl_Interp *, Tk_Window, const char *, int, int *);
 int Rbc_GetPixelsFromObj(Tcl_Interp *, Tk_Window, Tcl_Obj *, int, int *);
 int Rbc_GetXY(Tcl_Interp *interp, Tk_Window tkwin, const char *string, int *x, int *y);
 void Rbc_DStringAppendElements(Tcl_DString *, ...);
+void Rbc_AppendResultStrings(Tcl_Interp *interp, ...);
 void Rbc_GetBoundingBox(int width, int height, double theta, double *widthPtr, double *heightPtr, Point2D *points);
 void Rbc_InitEpsCanvasItem(Tcl_Interp *interp);
 void Rbc_TranslateAnchor(int x, int y, int width, int height, Tk_Anchor anchor, int *transXPtr, int *transYPtr);

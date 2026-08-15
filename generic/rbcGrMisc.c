@@ -84,7 +84,7 @@ int Rbc_GetXY(Tcl_Interp *interp, Tk_Window tkwin, const char *string, int *xPtr
         result = Tk_GetPixels(interp, tkwin, comma + 1, &y);
     }
     if (result != TCL_OK) {
-        Tcl_AppendResult(interp, ": can't parse position \"", string, "\"", (char *)NULL);
+        Rbc_AppendResultStrings(interp, ": can't parse position \"", string, "\"", (char *)NULL);
         return TCL_ERROR;
     }
     *xPtr = x;
@@ -92,7 +92,7 @@ int Rbc_GetXY(Tcl_Interp *interp, Tk_Window tkwin, const char *string, int *xPtr
     return TCL_OK;
 
 badFormat:
-    Tcl_AppendResult(interp, "bad position \"", string, "\": should be \"@x,y\"", (char *)NULL);
+    Rbc_AppendResultStrings(interp, "bad position \"", string, "\": should be \"@x,y\"", (char *)NULL);
     return TCL_ERROR;
 }
 
@@ -230,7 +230,7 @@ static int StringToColorPair(ClientData clientData, Tcl_Interp *interp, Tk_Windo
             break;
         default:
             result = TCL_ERROR;
-            Tcl_AppendResult(interp, "too many names in colors list", (char *)NULL);
+            Rbc_AppendResultStrings(interp, "too many names in colors list", (char *)NULL);
         }
         ckfree((char *)colors);
         if (result != TCL_OK) {
@@ -1018,7 +1018,7 @@ int Rbc_GetScrollInfo(Tcl_Interp *interp, int argc, char **argv, int *offsetPtr,
             /* A page is 90% of the view-able window. */
             fract = (double)count * windowSize * 0.9;
         } else {
-            Tcl_AppendResult(interp, "unknown \"scroll\" units \"", argv[2], "\"", (char *)NULL);
+            Rbc_AppendResultStrings(interp, "unknown \"scroll\" units \"", argv[2], "\"", (char *)NULL);
             return TCL_ERROR;
         }
         delta = ClampScrollValue((long double)fract);
@@ -1034,7 +1034,7 @@ int Rbc_GetScrollInfo(Tcl_Interp *interp, int argc, char **argv, int *offsetPtr,
         long double position;
 
         if (!isfinite(fract)) {
-            Tcl_AppendResult(interp, "bad scroll fraction \"", argv[1], "\": must be finite", (char *)NULL);
+            Rbc_AppendResultStrings(interp, "bad scroll fraction \"", argv[1], "\": must be finite", (char *)NULL);
             return TCL_ERROR;
         }
         position = (long double)worldSize * (long double)fract;
@@ -1115,7 +1115,7 @@ int Rbc_GetScrollInfoFromObj(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const o
              */
             fract = (double)count * (double)windowSize * 0.9;
         } else {
-            Tcl_AppendResult(interp, "unknown \"scroll\" units \"", Tcl_GetString(objv[2]), "\"", (char *)NULL);
+            Rbc_AppendResultStrings(interp, "unknown \"scroll\" units \"", Tcl_GetString(objv[2]), "\"", (char *)NULL);
             return TCL_ERROR;
         }
         /*
@@ -1135,7 +1135,7 @@ int Rbc_GetScrollInfoFromObj(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const o
             return TCL_ERROR;
         }
         if (!isfinite(fract)) {
-            Tcl_AppendResult(interp, "bad scroll fraction \"", Tcl_GetString(objv[1]), "\": must be finite",
+            Rbc_AppendResultStrings(interp, "bad scroll fraction \"", Tcl_GetString(objv[1]), "\": must be finite",
                              (char *)NULL);
             return TCL_ERROR;
         }

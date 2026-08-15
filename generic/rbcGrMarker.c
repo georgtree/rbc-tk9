@@ -2494,7 +2494,7 @@ static int ConfigureImageMarker(Marker *markerPtr) {
     if ((imageName != NULL) && (imageName[0] != '\0')) {
         newTkImage = Tk_GetImage(graphPtr->interp, graphPtr->tkwin, imageName, ImageChangedProc, imPtr);
         if (newTkImage == NULL) {
-            Tcl_AppendResult(graphPtr->interp, "can't find an image \"", imageName, "\"", (char *)NULL);
+            Rbc_AppendResultStrings(graphPtr->interp, "can't find an image \"", imageName, "\"", (char *)NULL);
             goto error;
         }
         photo = Tk_FindPhoto(graphPtr->interp, imageName);
@@ -5740,7 +5740,7 @@ static int FindOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
         } else if (strcmp(argv[3], "overlapping") == 0) {
         mode = FIND_OVERLAPPING;
         } else {
-        Tcl_AppendResult(interp, "bad search type \"", argv[3],
+        Rbc_AppendResultStrings(interp, "bad search type \"", argv[3],
                  ": should be \"enclosed\", or \"overlapping\"", (char *)NULL);
         return TCL_ERROR;
         }

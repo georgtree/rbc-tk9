@@ -275,7 +275,7 @@ int Rbc_FileToPostScript(struct PsTokenStruct *tokenPtr, char *fileName) {
      */
     libDir = (char *)Tcl_GetVar(interp, "rbc::library", TCL_GLOBAL_ONLY);
     if (libDir == NULL) {
-        Tcl_AppendResult(interp, "couldn't find rbc script library:", "global variable \"rbc::library\" doesn't exist",
+        Rbc_AppendResultStrings(interp, "couldn't find rbc script library:", "global variable \"rbc::library\" doesn't exist",
                          (char *)NULL);
         return TCL_ERROR;
     }
@@ -287,7 +287,7 @@ int Rbc_FileToPostScript(struct PsTokenStruct *tokenPtr, char *fileName) {
     Rbc_AppendToPostScript(tokenPtr, "\n% including file \"", fileName, "\"\n\n", (char *)NULL);
     channel = Tcl_OpenFileChannel(interp, fileName, "r", 0);
     if (channel == NULL) {
-        Tcl_AppendResult(interp, "couldn't open prologue file \"", fileName, "\": ", Tcl_PosixError(interp),
+        Rbc_AppendResultStrings(interp, "couldn't open prologue file \"", fileName, "\": ", Tcl_PosixError(interp),
                          (char *)NULL);
         Tcl_DStringFree(&dString);
         return TCL_ERROR;
@@ -295,7 +295,7 @@ int Rbc_FileToPostScript(struct PsTokenStruct *tokenPtr, char *fileName) {
     for (;;) {
         nBytes = Tcl_Read(channel, buf, PSTOKEN_BUFSIZ);
         if (nBytes < 0) {
-            Tcl_AppendResult(interp, "error reading prologue file \"", fileName, "\": ", Tcl_PosixError(interp),
+            Rbc_AppendResultStrings(interp, "error reading prologue file \"", fileName, "\": ", Tcl_PosixError(interp),
                              (char *)NULL);
             Tcl_Close(interp, channel);
             Tcl_DStringFree(&dString);

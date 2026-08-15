@@ -2694,26 +2694,26 @@ static int CreateAPMetaFile(Tcl_Interp *interp, HANDLE hMetaFile, HDC hDC, APMHE
                         CREATE_ALWAYS,                /* Overwrite any existing file */
                         FILE_ATTRIBUTE_NORMAL, NULL); /* No template file */
     if (hFile == INVALID_HANDLE_VALUE) {
-        Tcl_AppendResult(interp, "can't create metafile \"", fileName, "\":", Rbc_LastError(), (char *)NULL);
+        Rbc_AppendResultStrings(interp, "can't create metafile \"", fileName, "\":", Rbc_LastError(), (char *)NULL);
         return TCL_ERROR;
     }
     if ((!WriteFile(hFile, (LPVOID)mfhPtr, sizeof(APMHEADER), &count, NULL)) || (count != sizeof(APMHEADER))) {
-        Tcl_AppendResult(interp, "can't create metafile header to \"", fileName, "\":", Rbc_LastError(), (char *)NULL);
+        Rbc_AppendResultStrings(interp, "can't create metafile header to \"", fileName, "\":", Rbc_LastError(), (char *)NULL);
         goto error;
     }
     nBytes = GetWinMetaFileBits(hMetaFile, 0, NULL, MM_ANISOTROPIC, hDC);
     hMem = GlobalAlloc(GHND, nBytes);
     if (hMem == NULL) {
-        Tcl_AppendResult(interp, "can't create allocate global memory:", Rbc_LastError(), (char *)NULL);
+        Rbc_AppendResultStrings(interp, "can't create allocate global memory:", Rbc_LastError(), (char *)NULL);
         goto error;
     }
     buffer = (LPVOID)GlobalLock(hMem);
     if (!GetWinMetaFileBits(hMetaFile, nBytes, buffer, MM_ANISOTROPIC, hDC)) {
-        Tcl_AppendResult(interp, "can't get metafile bits:", Rbc_LastError(), (char *)NULL);
+        Rbc_AppendResultStrings(interp, "can't get metafile bits:", Rbc_LastError(), (char *)NULL);
         goto error;
     }
     if ((!WriteFile(hFile, buffer, nBytes, &count, NULL)) || (count != nBytes)) {
-        Tcl_AppendResult(interp, "can't write metafile bits:", Rbc_LastError(), (char *)NULL);
+        Rbc_AppendResultStrings(interp, "can't write metafile bits:", Rbc_LastError(), (char *)NULL);
         goto error;
     }
     result = TCL_OK;
@@ -2858,7 +2858,7 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
         Tcl_DStringFree(&dString);
 
         if (hDC == NULL) {
-            Tcl_AppendResult(interp, "can't create metafile: ", Rbc_LastError(), (char *)NULL);
+            Rbc_AppendResultStrings(interp, "can't create metafile: ", Rbc_LastError(), (char *)NULL);
             return TCL_ERROR;
         }
 
@@ -2901,7 +2901,7 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
         TkWinReleaseDrawableDC(drawable, hRefDC, &state);
 #endif /*WIN32*/
     } else {
-        Tcl_AppendResult(interp, "bad snapshot format", (char *)NULL);
+        Rbc_AppendResultStrings(interp, "bad snapshot format", (char *)NULL);
         return TCL_ERROR;
     }
     graphPtr->flags = MAP_WORLD;

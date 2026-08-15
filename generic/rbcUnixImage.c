@@ -1223,7 +1223,7 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, char *fileName) {
 
     f = fopen(fileName, "rb");
     if (f == NULL) {
-        Tcl_AppendResult(interp, "can't open \"", fileName, "\":", Tcl_PosixError(interp), (char *)NULL);
+        Rbc_AppendResultStrings(interp, "can't open \"", fileName, "\":", Tcl_PosixError(interp), (char *)NULL);
         return NULL;
     }
     image = NULL;
@@ -1256,7 +1256,7 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, char *fileName) {
     imageWidth = jpg.output_width;
     imageHeight = jpg.output_height;
     if ((imageWidth < 1) || (imageHeight < 1)) {
-        Tcl_AppendResult(interp, "bad JPEG image size", (char *)NULL);
+        Rbc_AppendResultStrings(interp, "bad JPEG image size", (char *)NULL);
         fclose(f);
         return NULL;
     }

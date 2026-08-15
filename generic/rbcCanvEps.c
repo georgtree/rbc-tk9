@@ -587,22 +587,22 @@ static int ReadPostScript(Tcl_Interp *interp, EpsItem *epsPtr) {
     Tcl_DStringSetLength(&epsPtr->dString, 0);
     if (epsPtr->psStart > 0) {
         if (epsPtr->psStart > (size_t)LONG_MAX) {
-            Tcl_AppendResult(interp, "PostScript offset is too large in \"", epsPtr->fileName, "\"", (char *)NULL);
+            Rbc_AppendResultStrings(interp, "PostScript offset is too large in \"", epsPtr->fileName, "\"", (char *)NULL);
             return TCL_ERROR;
         }
 
         if (fseek(epsPtr->psFile, (long)epsPtr->psStart, SEEK_SET) != 0) {
-            Tcl_AppendResult(interp, "can't seek to start of PostScript code in \"", epsPtr->fileName, "\"",
+            Rbc_AppendResultStrings(interp, "can't seek to start of PostScript code in \"", epsPtr->fileName, "\"",
                              (char *)NULL);
             return TCL_ERROR;
         }
     }
     if (!ReadPsLine(&pi)) {
-        Tcl_AppendResult(interp, "file \"", epsPtr->fileName, "\" is empty?", (char *)NULL);
+        Rbc_AppendResultStrings(interp, "file \"", epsPtr->fileName, "\" is empty?", (char *)NULL);
         return TCL_ERROR;
     }
     if (strncmp(pi.line, "%!PS", 4) != 0) {
-        Tcl_AppendResult(interp, "file \"", epsPtr->fileName, "\" doesn't start with \"%!PS\"", (char *)NULL);
+        Rbc_AppendResultStrings(interp, "file \"", epsPtr->fileName, "\" doesn't start with \"%!PS\"", (char *)NULL);
         return TCL_ERROR;
     }
     dscTitle = NULL;
@@ -631,7 +631,7 @@ static int ReadPostScript(Tcl_Interp *interp, EpsItem *epsPtr) {
                     if ((nFields != 4) || (llx < INT_MIN) || (llx > INT_MAX) || (lly < INT_MIN) || (lly > INT_MAX) ||
                         (urx < INT_MIN) || (urx > INT_MAX) || (ury < INT_MIN) || (ury > INT_MAX) || (urx <= llx) ||
                         (ury <= lly) || ((urx - llx) > INT_MAX) || ((ury - lly) > INT_MAX)) {
-                        Tcl_AppendResult(interp, "bad \"%%BoundingBox\" values: \"", field, "\"", (char *)NULL);
+                        Rbc_AppendResultStrings(interp, "bad \"%%BoundingBox\" values: \"", field, "\"", (char *)NULL);
                         goto error;
                     }
                     epsPtr->llx = (int)llx;
@@ -661,7 +661,7 @@ static int ReadPostScript(Tcl_Interp *interp, EpsItem *epsPtr) {
         }
     }
     if (!haveBoundingBox) {
-        Tcl_AppendResult(interp, "no \"%%BoundingBox:\" found in \"", epsPtr->fileName, "\"", (char *)NULL);
+        Rbc_AppendResultStrings(interp, "no \"%%BoundingBox:\" found in \"", epsPtr->fileName, "\"", (char *)NULL);
         goto error;
     }
     /*
@@ -727,7 +727,7 @@ static int OpenEpsFile(Tcl_Interp *interp, EpsItem *epsPtr) {
 
     f = fopen(epsPtr->fileName, "rb");
     if (f == NULL) {
-        Tcl_AppendResult(epsPtr->interp, "can't open \"", epsPtr->fileName, "\": ", Tcl_PosixError(epsPtr->interp),
+        Rbc_AppendResultStrings(epsPtr->interp, "can't open \"", epsPtr->fileName, "\": ", Tcl_PosixError(epsPtr->interp),
                          (char *)NULL);
         return TCL_ERROR;
     }
@@ -756,7 +756,7 @@ static int OpenEpsFile(Tcl_Interp *interp, EpsItem *epsPtr) {
         }
     }
     if (fseek(f, 0, SEEK_SET) != 0) {
-        Tcl_AppendResult(interp, "can't seek in \"", epsPtr->fileName, "\": ", Tcl_PosixError(interp), (char *)NULL);
+        Rbc_AppendResultStrings(interp, "can't seek in \"", epsPtr->fileName, "\": ", Tcl_PosixError(interp), (char *)NULL);
         CloseEpsFile(epsPtr);
         return TCL_ERROR;
     }
@@ -839,13 +839,13 @@ ReadWMF(f, epsPtr, headerPtr)
     Tk_Window tkwin;
 
     if (fseek(f, headerPtr->wmfStart, 0) != 0) {
-    Tcl_AppendResult(interp, "can't seek in \"", epsPtr->fileName,
+    Rbc_AppendResultStrings(interp, "can't seek in \"", epsPtr->fileName,
              "\"", (char *)NULL);
     return TCL_ERROR;
     }
     hMem = GlobalAlloc(GHND, size);
     if (hMem == NULL) {
-    Tcl_AppendResult(graphPtr->interp, "can't allocate global memory:",
+    Rbc_AppendResultStrings(graphPtr->interp, "can't allocate global memory:",
              Rbc_LastError(), (char *)NULL);
     return TCL_ERROR;
     }
@@ -861,7 +861,7 @@ ReadWMF(f, epsPtr, headerPtr)
     hDC = CreateEnhMetaFile(hRefDC, NULL, NULL, NULL);
     mfp.hMF = CloseEnhMetaFile(hDC);
     hMetaFile = SetWinMetaFileBits(size, buffer, MM_ANISOTROPIC, &pict);
-    Tcl_AppendResult(graphPtr->interp, "can't get metafile data:",
+    Rbc_AppendResultStrings(graphPtr->interp, "can't get metafile data:",
              Rbc_LastError(), (char *)NULL);
     goto error;
 }
@@ -955,7 +955,7 @@ static int CreateEps(Tcl_Interp *interp,    /* Interpreter for error reporting. 
 
     tkwin = Tk_CanvasTkwin(canvas);
     if (objc < 2) {
-        Tcl_AppendResult(interp, "wrong # args: should be \"", Tk_PathName(tkwin), " create ", itemPtr->typePtr->name,
+        Rbc_AppendResultStrings(interp, "wrong # args: should be \"", Tk_PathName(tkwin), " create ", itemPtr->typePtr->name,
                          " x1 y1 ?options?\"", (char *)NULL);
         return TCL_ERROR;
     }
@@ -1131,13 +1131,13 @@ static int ConfigureEps(Tcl_Interp *interp,    /* Used for error reporting. */
              */
             photo = Tk_FindPhoto(interp, epsPtr->previewName);
             if (photo == NULL) {
-                Tcl_AppendResult(interp, "image \"", epsPtr->previewName, "\" doesn't  exist or is not a photo image",
+                Rbc_AppendResultStrings(interp, "image \"", epsPtr->previewName, "\" doesn't  exist or is not a photo image",
                                  (char *)NULL);
                 return TCL_ERROR;
             }
             epsPtr->preview = Tk_GetImage(interp, tkwin, epsPtr->previewName, ImageChangedProc, epsPtr);
             if (epsPtr->preview == NULL) {
-                Tcl_AppendResult(interp, "can't find an image \"", epsPtr->previewName, "\"", (char *)NULL);
+                Rbc_AppendResultStrings(interp, "can't find an image \"", epsPtr->previewName, "\"", (char *)NULL);
                 ckfree((char *)epsPtr->previewName);
                 epsPtr->previewName = NULL;
                 return TCL_ERROR;
@@ -1630,7 +1630,7 @@ static int EpsToPostScript(Tcl_Interp *interp, Tk_Canvas canvas, Tk_Item *itemPt
             photo = Tk_FindPhoto(epsPtr->interp, Rbc_NameOfImage(epsPtr->tmpImage));
             Rbc_PhotoToPostScript(psToken, photo, 0.0, 0.0);
             Rbc_FormatToPostScript(psToken, "grestore\n");
-            Tcl_AppendResult(interp, Rbc_PostScriptFromToken(psToken), (char *)NULL);
+            Rbc_AppendResultStrings(interp, Rbc_PostScriptFromToken(psToken), (char *)NULL);
             Rbc_ReleasePsToken(psToken);
         }
         return TCL_OK;
@@ -1652,7 +1652,7 @@ static int EpsToPostScript(Tcl_Interp *interp, Tk_Canvas canvas, Tk_Item *itemPt
     Rbc_AppendToPostScript(psToken, "%% including \"", epsPtr->fileName, "\"\n\n", (char *)NULL);
     Rbc_AppendToPostScript(psToken, Tcl_DStringValue(&epsPtr->dString), (char *)NULL);
     Rbc_AppendToPostScript(psToken, "EndEPSF\n", (char *)NULL);
-    Tcl_AppendResult(interp, Rbc_PostScriptFromToken(psToken), (char *)NULL);
+    Rbc_AppendResultStrings(interp, Rbc_PostScriptFromToken(psToken), (char *)NULL);
     Rbc_ReleasePsToken(psToken);
     return TCL_OK;
 
