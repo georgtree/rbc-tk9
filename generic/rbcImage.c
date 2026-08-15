@@ -3347,14 +3347,35 @@ static void TempImageChangedProc(ClientData clientData, int x, int y, int width,
  *--------------------------------------------------------------
  */
 Tk_Image Rbc_CreateTemporaryImage(Tcl_Interp *interp, Tk_Window tkwin, ClientData clientData) {
+    Tcl_Obj *objv[3];
+    Tcl_Obj *resultObj;
+    const char *name;
     Tk_Image token;
-    const char *name; /* Contains image name. */
+    int result;
 
-    if (Tcl_Eval(interp, "image create photo") != TCL_OK) {
+    objv[0] = Tcl_NewStringObj("image", -1);
+    objv[1] = Tcl_NewStringObj("create", -1);
+    objv[2] = Tcl_NewStringObj("photo", -1);
+    Tcl_IncrRefCount(objv[0]);
+    Tcl_IncrRefCount(objv[1]);
+    Tcl_IncrRefCount(objv[2]);
+    result = Tcl_EvalObjv(interp, 3, objv, 0);
+    Tcl_DecrRefCount(objv[2]);
+    Tcl_DecrRefCount(objv[1]);
+    Tcl_DecrRefCount(objv[0]);
+    if (result != TCL_OK) {
         return NULL;
     }
-    name = Tcl_GetStringResult(interp);
+    /*
+     * Hold the result object while Tk_GetImage() consumes the image
+     * name.  Tk_GetImage() may itself modify the interpreter result
+     * on failure.
+     */
+    resultObj = Tcl_GetObjResult(interp);
+    Tcl_IncrRefCount(resultObj);
+    name = Tcl_GetString(resultObj);
     token = Tk_GetImage(interp, tkwin, name, TempImageChangedProc, clientData);
+    Tcl_DecrRefCount(resultObj);
     if (token == NULL) {
         return NULL;
     }
