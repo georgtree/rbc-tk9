@@ -18,6 +18,9 @@
 #ifndef WIN32
 #include <X11/Xproto.h>
 #endif
+#ifdef WIN32
+#include "rbcTkInt.h"
+#endif
 
 static Tcl_ObjCmdProc2 WinopCmd;
 

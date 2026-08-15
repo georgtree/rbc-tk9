@@ -13,6 +13,9 @@
 #include "rbcGraph.h"
 #include "rbcChain.h"
 #include <X11/Xutil.h>
+#ifdef WIN32
+#include "rbcTkInt.h"
+#endif
 
 #include "rbcGrElem.h"
 

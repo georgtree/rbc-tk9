@@ -21,11 +21,7 @@
 #define USE_NON_CONST
 #include <tcl.h>
 
-/* Backwards Compatiablitity with previous Tk versions */
-#define USE_OLD_CANVAS
-
 #include <tk.h>
-#include "rbcTkInt.h"
 
 #if !defined(INT2PTR)
 #define INT2PTR(p) ((void *)(ptrdiff_t)(p))

@@ -831,42 +831,6 @@ static void ReadTiffPreview(EpsItem *epsPtr) {
 }
 #endif
 
-#ifdef notdef
-ReadWMF(f, epsPtr, headerPtr)
-    FILE *f;
-{
-    HANDLE hMem;
-    Tk_Window tkwin;
-
-    if (fseek(f, headerPtr->wmfStart, 0) != 0) {
-    Rbc_AppendResultStrings(interp, "can't seek in \"", epsPtr->fileName,
-             "\"", (char *)NULL);
-    return TCL_ERROR;
-    }
-    hMem = GlobalAlloc(GHND, size);
-    if (hMem == NULL) {
-    Rbc_AppendResultStrings(graphPtr->interp, "can't allocate global memory:",
-             Rbc_LastError(), (char *)NULL);
-    return TCL_ERROR;
-    }
-    buffer = (LPVOID)GlobalLock(hMem);
-    /* Read the header and see what kind of meta file it is. */
-    fread(buffer, sizeof(unsigned char), headerPtr->wmfLength, f);
-    mfp.mm = 0;
-    mfp.xExt = epsPtr->width;
-    mfp.yExt = epsPtr->height;
-    mfp.hMF = hMetaFile;
-    tkwin = Tk_CanvasTkwin(epsPtr->canvas);
-    hRefDC = TkWinGetDrawableDC(Tk_Display(tkwin), Tk_WindowId(tkwin), &state);
-    hDC = CreateEnhMetaFile(hRefDC, NULL, NULL, NULL);
-    mfp.hMF = CloseEnhMetaFile(hDC);
-    hMetaFile = SetWinMetaFileBits(size, buffer, MM_ANISOTROPIC, &pict);
-    Rbc_AppendResultStrings(graphPtr->interp, "can't get metafile data:",
-             Rbc_LastError(), (char *)NULL);
-    goto error;
-}
-#endif
-
 /*
  *----------------------------------------------------------------------
  *

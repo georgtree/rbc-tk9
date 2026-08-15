@@ -12,6 +12,7 @@
 
 #include "rbcInt.h"
 #include "rbcImage.h"
+#include "rbcTkInt.h"
 #include <X11/Xutil.h>
 
 #define CLAMP(c) ((((c) < 0.0) ? 0.0 : ((c) > 255.0) ? 255.0 : (c)))

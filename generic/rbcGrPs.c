@@ -13,6 +13,9 @@
 #include "rbcGraph.h"
 #include <X11/Xutil.h>
 #include <stdarg.h>
+#ifdef WIN32
+#include "rbcTkInt.h"
+#endif
 
 #define PS_PREVIEW_EPSI 0
 #define PS_PREVIEW_WMF 1

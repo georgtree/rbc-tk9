@@ -27,6 +27,9 @@
 #include "rbcGrElem.h"
 #include <X11/Xutil.h>
 #include <tcl.h>
+#ifdef WIN32
+#include "rbcTkInt.h"
+#endif
 
 Rbc_Uid rbcXAxisUid;
 Rbc_Uid rbcYAxisUid;

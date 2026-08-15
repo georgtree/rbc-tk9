@@ -13,6 +13,7 @@
 #include "rbcInt.h"
 #include <X11/Xutil.h>
 #include <X11/Xlib.h>
+#include "rbcTkInt.h"
 
 #define WINDEBUG 0
 #define XAngleToRadians(a) ((double)(a) / 64.0 * M_PI / 180.0)
