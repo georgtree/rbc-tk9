@@ -539,7 +539,7 @@ const char *Rbc_GetCanonicalOptionName(Tcl_Obj *objPtr, const Tk_OptionSpec *spe
 int Rbc_JPEGToPhoto(Tcl_Interp *interp, const char *fileName, Tk_PhotoHandle photo);
 #endif /* HAVE_JPEGLIB_H || HAVE_IJL_H */
 
-#define Rbc_SetBooleanResult(i, b) Tcl_SetResult((i), (b) ? "1" : "0", TCL_STATIC)
+#define Rbc_SetBooleanResult(i, b) Tcl_SetObjResult((i), Tcl_NewBooleanObj((b) != 0))
 
 /*
  * Define this if you want to be able to tile to the main window "."

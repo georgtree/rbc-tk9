@@ -965,5 +965,18 @@ namespace eval vector.expr {
         set expression [format "%c12.5" 123]
         catch {vector expr $expression}
     } -result 1
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure floating-point domain errors set both the result and structured
+    #          errorCode correctly.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.expr.A.4.1 {
+        Math domain error result and errorCode
+    } -body {
+        set code [catch {vector expr {sqrt(-1)}} message options]
+        list $code $message [dict get $options -errorcode]
+    } -result {1 {domain error: argument not in valid range} {ARITH DOMAIN {domain error: argument not in valid\
+                                                                                    range}}}
+
 	cleanupTests
 }

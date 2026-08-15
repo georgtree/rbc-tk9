@@ -460,17 +460,14 @@ int Rbc_ConfigureBindings(Tcl_Interp *interp, Rbc_BindTableStruct *bindPtr, Clie
         if (command == NULL) {
             return TCL_ERROR;
         }
-        Tcl_SetResult(interp, command, TCL_VOLATILE);
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(command, -1));
         return TCL_OK;
     }
-
     seq = argv[0];
     command = argv[1];
-
     if (command[0] == '\0') {
         return Tk_DeleteBinding(interp, bindPtr->bindingTable, item, seq);
     }
-
     if (command[0] == '+') {
         mask = Tk_CreateBinding(interp, bindPtr->bindingTable, item, seq, command + 1, TRUE);
     } else {
@@ -481,9 +478,10 @@ int Rbc_ConfigureBindings(Tcl_Interp *interp, Rbc_BindTableStruct *bindPtr, Clie
     }
     if (mask & (unsigned)~ALL_VALID_EVENTS_MASK) {
         Tk_DeleteBinding(interp, bindPtr->bindingTable, item, seq);
-        Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "requested illegal events; ", "only key, button, motion, enter, leave, and virtual ",
-                         "events may be used", (char *)NULL);
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("requested illegal events; "
+                                                  "only key, button, motion, enter, leave, and virtual "
+                                                  "events may be used",
+                                                  -1));
         return TCL_ERROR;
     }
     return TCL_OK;

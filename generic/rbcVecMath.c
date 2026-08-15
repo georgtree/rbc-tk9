@@ -1655,6 +1655,18 @@ error:
     return TCL_ERROR;
 }
 
+static void SetMathError(Tcl_Interp *interp, const char *className, Tcl_Obj *messageObj) {
+    Tcl_Obj *codeObj;
+    Tcl_Obj *codeObjv[3];
+
+    codeObjv[0] = Tcl_NewStringObj("ARITH", -1);
+    codeObjv[1] = Tcl_NewStringObj(className, -1);
+    codeObjv[2] = messageObj;
+    codeObj = Tcl_NewListObj(3, codeObjv);
+    Tcl_SetObjResult(interp, messageObj);
+    Tcl_SetObjErrorCode(interp, codeObj);
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -1677,24 +1689,33 @@ error:
  *----------------------------------------------------------------------
  */
 static void MathError(Tcl_Interp *interp, double value) {
+    Tcl_Obj *messageObj;
+    const char *className;
+
     if ((errno == EDOM) || (value != value)) {
-        Tcl_AppendResult(interp, "domain error: argument not in valid range", (char *)NULL);
-        Tcl_SetErrorCode(interp, "ARITH", "DOMAIN", Tcl_GetStringResult(interp), (char *)NULL);
+        className = "DOMAIN";
+        messageObj = Tcl_NewStringObj("domain error: "
+                                      "argument not in valid range",
+                                      -1);
     } else if ((errno == ERANGE) || IS_INF(value)) {
         if (value == 0.0) {
-            Tcl_AppendResult(interp, "floating-point value too small to represent", (char *)NULL);
-            Tcl_SetErrorCode(interp, "ARITH", "UNDERFLOW", Tcl_GetStringResult(interp), (char *)NULL);
+            className = "UNDERFLOW";
+            messageObj = Tcl_NewStringObj("floating-point value "
+                                          "too small to represent",
+                                          -1);
         } else {
-            Tcl_AppendResult(interp, "floating-point value too large to represent", (char *)NULL);
-            Tcl_SetErrorCode(interp, "ARITH", "OVERFLOW", Tcl_GetStringResult(interp), (char *)NULL);
+            className = "OVERFLOW";
+            messageObj = Tcl_NewStringObj("floating-point value "
+                                          "too large to represent",
+                                          -1);
         }
     } else {
-        char buf[20];
-
-        snprintf(buf, sizeof(buf), "%d", errno);
-        Tcl_AppendResult(interp, "unknown floating-point error, ", "errno = ", buf, (char *)NULL);
-        Tcl_SetErrorCode(interp, "ARITH", "UNKNOWN", Tcl_GetStringResult(interp), (char *)NULL);
+        className = "UNKNOWN";
+        messageObj = Tcl_ObjPrintf("unknown floating-point error, "
+                                   "errno = %d",
+                                   errno);
     }
+    SetMathError(interp, className, messageObj);
 }
 
 static int ParseSubstitutionResult(Tcl_Interp *interp, Value *valuePtr) {
@@ -1800,8 +1821,7 @@ static int ParseBracedValue(Tcl_Interp *interp, const char *string, const char *
  * Parameters:
  *      Tcl_Interp *interp - Interpreter to use for error reporting.
  *      ParseInfo *parsePtr - Describes the state of the parse.
- *      Value *valuePtr - Where to store value, if that is what's parsed from string.  Caller must have initialized pv 
- *                        field correctly.
+ *      Value *valuePtr - Where to store a parsed value.
  *
  * Results:
  *      TCL_OK is returned unless an error occurred while doing lexical

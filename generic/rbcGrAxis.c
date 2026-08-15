@@ -6487,10 +6487,8 @@ static int GetOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
         const char c = s[0];
 
         if ((c == 'c') && (strcmp(s, "current") == 0)) {
-            //            Tcl_SetResult(interp, axisPtr->name, TCL_VOLATILE);
             Tcl_SetObjResult(interp, Tcl_NewStringObj(axisPtr->name, -1));
         } else if ((c == 'd') && (strcmp(s, "detail") == 0)) {
-            //            Tcl_SetResult(interp, axisPtr->detail, TCL_VOLATILE);
             Tcl_SetObjResult(interp, Tcl_NewStringObj(axisPtr->detail, -1));
         }
     }
