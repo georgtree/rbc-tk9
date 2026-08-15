@@ -3381,12 +3381,26 @@ Tk_Image Rbc_CreateTemporaryImage(Tcl_Interp *interp, Tk_Window tkwin, ClientDat
  *--------------------------------------------------------------
  */
 int Rbc_DestroyTemporaryImage(Tcl_Interp *interp, Tk_Image tkImage) {
-    if (tkImage != NULL) {
-        if (Tcl_VarEval(interp, "image delete ", Rbc_NameOfImage(tkImage), (char *)NULL) != TCL_OK) {
-            return TCL_ERROR;
-        }
-        Tk_FreeImage(tkImage);
+    Tcl_Obj *objv[3];
+    int result;
+
+    if (tkImage == NULL) {
+        return TCL_OK;
     }
+    objv[0] = Tcl_NewStringObj("image", -1);
+    objv[1] = Tcl_NewStringObj("delete", -1);
+    objv[2] = Tcl_NewStringObj(Rbc_NameOfImage(tkImage), -1);
+    Tcl_IncrRefCount(objv[0]);
+    Tcl_IncrRefCount(objv[1]);
+    Tcl_IncrRefCount(objv[2]);
+    result = Tcl_EvalObjv(interp, 3, objv, 0);
+    Tcl_DecrRefCount(objv[2]);
+    Tcl_DecrRefCount(objv[1]);
+    Tcl_DecrRefCount(objv[0]);
+    if (result != TCL_OK) {
+        return TCL_ERROR;
+    }
+    Tk_FreeImage(tkImage);
     return TCL_OK;
 }
 
