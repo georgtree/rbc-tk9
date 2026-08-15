@@ -13,9 +13,6 @@
 #include "rbcChain.h"
 #include "rbcImage.h"
 #include <X11/Xutil.h>
-#ifdef WIN32
-#include "rbcTkInt.h"
-#endif
 
 #include "rbcTile.h"
 
@@ -764,7 +761,6 @@ void Rbc_SetTSOrigin(Tk_Window tkwin, TileClient *clientPtr, int x, int y) {
 }
 
 #ifdef WIN32
-MODULE_SCOPE const int tkpWinRopModes[];
 #define MASKPAT 0x00E20746 /* dest = (src & pat) | (!src & dst) */
 #define COPYFG 0x00CA0749  /* dest = (pat & src) | (!pat & dst) */
 #define COPYBG 0x00AC0744  /* dest = (!pat & src) | (pat & dst) */
@@ -866,16 +862,16 @@ static void TileRegion(HDC srcDC, HDC destDC, HDC maskDC, TileClient *clientPtr,
             if (tilePtr->mask != None) { /* With transparency. */
 #ifdef notdef
                 HDC maskDC;
-                TkWinDCState maskState;
+                Rbc_WinDrawableDC *maskStatePtr;
 
-                maskDC = TkWinGetDrawableDC(tilePtr->display, tilePtr->mask, &maskState);
+                maskDC = Rbc_WinAcquireDrawableDC(tilePtr->display, tilePtr->mask, &maskStatePtr);
                 SetBkColor(destDC, RGB(255, 255, 255));
                 SetTextColor(destDC, RGB(0, 0, 0));
 #endif
                 BitBlt(destDC, destX, destY, destWidth, destHeight, maskDC, 0, 0, SRCAND);
                 BitBlt(destDC, destX, destY, destWidth, destHeight, srcDC, srcX, srcY, SRCPAINT);
 #ifdef notdef
-                TkWinReleaseDrawableDC(tilePtr->mask, maskDC, &maskState);
+                Rbc_WinReleaseDrawableDC(maskStatePtr);
 #endif
             } else { /* Opaque tile. */
                 BitBlt(destDC, destX, destY, destWidth, destHeight, srcDC, srcX, srcY, SRCCOPY);
@@ -913,8 +909,8 @@ void Rbc_TilePolygon(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, 
     POINT *p, *winPts;
     Region2D bbox;
     Tile *tilePtr;
-    TkWinDCState state;
-    TkWinDrawable *twdPtr;
+    Rbc_WinDrawableDC *dcStatePtr;
+    HBITMAP hBitmap;
     XPoint *endPtr, *pointPtr;
     int fillMode;
     int width, height;
@@ -954,8 +950,8 @@ void Rbc_TilePolygon(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, 
         p++;
     }
 
-    hDC = TkWinGetDrawableDC(Tk_Display(tkwin), drawable, &state);
-    SetROP2(hDC, tkpWinRopModes[tilePtr->gc->function]);
+    hDC = Rbc_WinAcquireDrawableDC(Tk_Display(tkwin), drawable, &dcStatePtr);
+    Rbc_WinSetROP2(hDC, tilePtr->gc->function);
     fillMode = (tilePtr->gc->fill_rule == EvenOddRule) ? ALTERNATE : WINDING;
     /* Use the polygon as a clip path. */
     LPtoDP(hDC, winPts, nPoints);
@@ -964,20 +960,20 @@ void Rbc_TilePolygon(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, 
     OffsetClipRgn(hDC, bbox.left, bbox.top);
     ckfree((char *)winPts);
 
-    twdPtr = (TkWinDrawable *)tilePtr->pixmap;
+    hBitmap = Rbc_WinGetPixmapHandle(tilePtr->pixmap);
     memDC = CreateCompatibleDC(hDC);
-    oldBitmap = SelectBitmap(memDC, twdPtr->bitmap.handle);
+    oldBitmap = SelectBitmap(memDC, hBitmap);
 
     /* Tile the bounding box. */
     if (tilePtr->mask != None) {
-        TkWinDCState maskState;
+        Rbc_WinDrawableDC *maskStatePtr;
         HDC maskDC;
 
-        maskDC = TkWinGetDrawableDC(tilePtr->display, tilePtr->mask, &maskState);
+        maskDC = Rbc_WinAcquireDrawableDC(tilePtr->display, tilePtr->mask, &maskStatePtr);
         SetBkColor(hDC, RGB(255, 255, 255));
         SetTextColor(hDC, RGB(0, 0, 0));
         TileRegion(memDC, hDC, maskDC, clientPtr, bbox.left, bbox.top, width, height);
-        TkWinReleaseDrawableDC(tilePtr->mask, maskDC, &maskState);
+        Rbc_WinReleaseDrawableDC(maskStatePtr);
     } else {
         TileRegion(memDC, hDC, NULL, clientPtr, bbox.left, bbox.top, width, height);
     }
@@ -985,7 +981,7 @@ void Rbc_TilePolygon(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, 
     DeleteDC(memDC);
     SelectClipRgn(hDC, NULL);
     DeleteRgn(hRgn);
-    TkWinReleaseDrawableDC(drawable, hDC, &state);
+    Rbc_WinReleaseDrawableDC(dcStatePtr);
 }
 
 /*
@@ -1016,36 +1012,36 @@ void Rbc_TileRectangle(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr
     HBITMAP oldBitmap;
     HDC hDC, memDC;
     Tile *tilePtr;
-    TkWinDCState state;
-    TkWinDrawable *twdPtr;
+    Rbc_WinDrawableDC *dcStatePtr;
+    HBITMAP hBitmap;
 
     if ((drawable == None) || (width <= 0) || (height <= 0)) {
         return;
     }
     tilePtr = clientPtr->tilePtr;
-    hDC = TkWinGetDrawableDC(Tk_Display(tkwin), drawable, &state);
-    SetROP2(hDC, tkpWinRopModes[tilePtr->gc->function]);
+    hDC = Rbc_WinAcquireDrawableDC(Tk_Display(tkwin), drawable, &dcStatePtr);
+    Rbc_WinSetROP2(hDC, tilePtr->gc->function);
 
-    twdPtr = (TkWinDrawable *)tilePtr->pixmap;
+    hBitmap = Rbc_WinGetPixmapHandle(tilePtr->pixmap);
     memDC = CreateCompatibleDC(hDC);
-    oldBitmap = SelectBitmap(memDC, twdPtr->bitmap.handle);
+    oldBitmap = SelectBitmap(memDC, hBitmap);
 
     /* Tile the bounding box. */
     if (tilePtr->mask != None) {
-        TkWinDCState maskState;
+        Rbc_WinDrawableDC *maskStatePtr;
         HDC maskDC;
 
-        maskDC = TkWinGetDrawableDC(tilePtr->display, tilePtr->mask, &maskState);
+        maskDC = Rbc_WinAcquireDrawableDC(tilePtr->display, tilePtr->mask, &maskStatePtr);
         SetBkColor(hDC, RGB(255, 255, 255));
         SetTextColor(hDC, RGB(0, 0, 0));
         TileRegion(memDC, hDC, maskDC, clientPtr, x, y, width, height);
-        TkWinReleaseDrawableDC(tilePtr->mask, maskDC, &maskState);
+        Rbc_WinReleaseDrawableDC(maskStatePtr);
     } else {
         TileRegion(memDC, hDC, NULL, clientPtr, x, y, width, height);
     }
     SelectBitmap(memDC, oldBitmap);
     DeleteDC(memDC);
-    TkWinReleaseDrawableDC(drawable, hDC, &state);
+    Rbc_WinReleaseDrawableDC(dcStatePtr);
 }
 
 /*
@@ -1075,34 +1071,34 @@ void Rbc_TileRectangles(Tk_Window tkwin, Drawable drawable, TileClient *clientPt
     HBITMAP oldBitmap;
     HDC hDC, memDC;
     Tile *tilePtr;
-    TkWinDCState state;
-    TkWinDrawable *twdPtr;
+    Rbc_WinDrawableDC *dcStatePtr;
+    HBITMAP hBitmap;
     XRectangle *rectPtr, *endPtr;
 
     if ((drawable == None) || (rectArr == NULL) || (nRectangles <= 0)) {
         return;
     }
     tilePtr = clientPtr->tilePtr;
-    hDC = TkWinGetDrawableDC(Tk_Display(tkwin), drawable, &state);
-    SetROP2(hDC, tkpWinRopModes[tilePtr->gc->function]);
-    twdPtr = (TkWinDrawable *)tilePtr->pixmap;
+    hDC = Rbc_WinAcquireDrawableDC(Tk_Display(tkwin), drawable, &dcStatePtr);
+    Rbc_WinSetROP2(hDC, tilePtr->gc->function);
+    hBitmap = Rbc_WinGetPixmapHandle(tilePtr->pixmap);
     memDC = CreateCompatibleDC(hDC);
-    oldBitmap = SelectBitmap(memDC, twdPtr->bitmap.handle);
+    oldBitmap = SelectBitmap(memDC, hBitmap);
 
     endPtr = rectArr + nRectangles;
     /* Tile the bounding box. */
     if (tilePtr->mask != None) {
-        TkWinDCState maskState;
+        Rbc_WinDrawableDC *maskStatePtr;
         HDC maskDC;
 
-        maskDC = TkWinGetDrawableDC(tilePtr->display, tilePtr->mask, &maskState);
+        maskDC = Rbc_WinAcquireDrawableDC(tilePtr->display, tilePtr->mask, &maskStatePtr);
         SetBkColor(hDC, RGB(255, 255, 255));
         SetTextColor(hDC, RGB(0, 0, 0));
         for (rectPtr = rectArr; rectPtr < endPtr; rectPtr++) {
             TileRegion(memDC, hDC, maskDC, clientPtr, (int)rectPtr->x, (int)rectPtr->y, (int)rectPtr->width,
                        (int)rectPtr->height);
         }
-        TkWinReleaseDrawableDC(tilePtr->mask, maskDC, &maskState);
+        Rbc_WinReleaseDrawableDC(maskStatePtr);
     } else {
         for (rectPtr = rectArr; rectPtr < endPtr; rectPtr++) {
             TileRegion(memDC, hDC, NULL, clientPtr, (int)rectPtr->x, (int)rectPtr->y, (int)rectPtr->width,
@@ -1111,7 +1107,7 @@ void Rbc_TileRectangles(Tk_Window tkwin, Drawable drawable, TileClient *clientPt
     }
     SelectBitmap(memDC, oldBitmap);
     DeleteDC(memDC);
-    TkWinReleaseDrawableDC(drawable, hDC, &state);
+    Rbc_WinReleaseDrawableDC(dcStatePtr);
 }
 
 #else

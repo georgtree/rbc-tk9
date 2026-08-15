@@ -192,6 +192,33 @@ void Rbc_WinReleaseDrawableDC(Rbc_WinDrawableDC *statePtr) {
  */
 void Rbc_WinSetROP2(HDC dc, int function) { SetROP2(dc, tkpWinRopModes[function]); }
 
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_WinGetPixmapHandle --
+ *
+ *      Returns the native Windows bitmap handle backing a Tk pixmap.
+ *
+ * Results:
+ *      The HBITMAP associated with the pixmap, or NULL if the
+ *      drawable is not a bitmap.
+ *
+ *----------------------------------------------------------------------
+ */
+HBITMAP Rbc_WinGetPixmapHandle(Pixmap pixmap) {
+    TkWinDrawable *twdPtr;
+
+    if (pixmap == None) {
+        return NULL;
+    }
+    twdPtr = (TkWinDrawable *)pixmap;
+    if (twdPtr->type != TWD_BITMAP) {
+        return NULL;
+    }
+    return twdPtr->bitmap.handle;
+}
+
 /*
  *--------------------------------------------------------------
  *

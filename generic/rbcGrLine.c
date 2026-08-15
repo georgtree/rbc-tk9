@@ -1271,10 +1271,6 @@ static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, 
                                const Tcl_Size *pointToData);
 static int GetDrawablePolygonPointCount(Display *display, Tcl_Size nPoints);
 
-#ifdef WIN32
-MODULE_SCOPE const int tkpWinRopModes[];
-#endif
-
 static int IsLinePenPrefix(const char *string, Tcl_Size length, const char *fullName) {
     Tcl_Size fullLength;
 
@@ -5434,7 +5430,6 @@ static void DrawCircles(Display *display, Drawable drawable, Line *linePtr, Line
         return;
     }
     dc = Rbc_WinAcquireDrawableDC(display, drawable, &dcStatePtr);
-    /* SetROP2(dc, tkpWinRopModes[penPtr->symbol.fillGC->function]); */
     if (penPtr->symbol.fillGC != NULL) {
         brush = CreateSolidBrush(penPtr->symbol.fillGC->foreground);
     } else {
