@@ -28,7 +28,7 @@
 #include <X11/Xutil.h>
 #include <tcl.h>
 #ifdef WIN32
-#include "rbcTkInt.h"
+#include <tkPlatDecls.h>
 #endif
 
 Rbc_Uid rbcXAxisUid;
@@ -2842,13 +2842,15 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
 #ifdef WIN32
     } else if ((data.format == FORMAT_WMF) || (data.format == FORMAT_EMF)) {
         Drawable metaDrawable;
-        TkWinDCState state;
-        HDC hRefDC, hDC;
+        HWND hWnd;
+        HDC hRefDC;
+        HDC hDC;
         HENHMETAFILE hMetaFile;
         Tcl_DString dString;
         char *title;
 
-        hRefDC = TkWinGetDrawableDC(graphPtr->display, drawable, &state);
+        hWnd = Tk_GetHWND(drawable);
+        hRefDC = GetDC(hWnd);
 
         Tcl_DStringInit(&dString);
         Tcl_DStringAppend(&dString, "RBC Graph ", -1);
@@ -2861,6 +2863,7 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
         Tcl_DStringFree(&dString);
 
         if (hDC == NULL) {
+            ReleaseDC(hWnd, hRefDC);
             Rbc_AppendResultStrings(interp, "can't create metafile: ", Rbc_LastError(), (char *)NULL);
             return TCL_ERROR;
         }
@@ -2873,9 +2876,6 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
         Rbc_WinFreeDrawableFromDC(metaDrawable);
         hMetaFile = CloseEnhMetaFile(hDC);
         if (strcmp(data.name, "CLIPBOARD") == 0) {
-            HWND hWnd;
-
-            hWnd = Tk_GetHWND(drawable);
             OpenClipboard(hWnd);
             EmptyClipboard();
             SetClipboardData(CF_ENHMETAFILE, hMetaFile);
@@ -2900,7 +2900,7 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
             }
             DeleteEnhMetaFile(hMetaFile);
         }
-        TkWinReleaseDrawableDC(drawable, hRefDC, &state);
+        ReleaseDC(hWnd, hRefDC);
 #endif /*WIN32*/
     } else {
         Rbc_AppendResultStrings(interp, "bad snapshot format", (char *)NULL);
