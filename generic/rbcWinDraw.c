@@ -321,7 +321,7 @@ HPALETTE Rbc_GetSystemPalette(void) {
  *--------------------------------------------------------------
  */
 unsigned char *Rbc_GetBitmapData(Display *display, Pixmap bitmap, int width, int height, int *pitchPtr) {
-    TkWinDCState state;
+    Rbc_WinDrawableDC *dcStatePtr;
     HDC dc;
     int result;
     unsigned char *bits;
@@ -368,10 +368,15 @@ unsigned char *Rbc_GetBitmapData(Display *display, Pixmap bitmap, int width, int
     bmiPtr->biCompression = BI_RGB;
     bmiPtr->biWidth = width;
     bmiPtr->biHeight = height;
-    hBitmap = ((TkWinDrawable *)bitmap)->bitmap.handle;
-    dc = TkWinGetDrawableDC(display, bitmap, &state);
+    hBitmap = Rbc_WinGetPixmapHandle(bitmap);
+    if (hBitmap == NULL) {
+        GlobalUnlock(hMem);
+        GlobalFree(hMem);
+        return NULL;
+    }
+    dc = Rbc_WinAcquireDrawableDC(display, bitmap, &dcStatePtr);
     result = GetDIBits(dc, hBitmap, 0, (UINT)height, NULL, (BITMAPINFO *)bmiPtr, DIB_RGB_COLORS);
-    TkWinReleaseDrawableDC(bitmap, dc, &state);
+    Rbc_WinReleaseDrawableDC(dcStatePtr);
     if (!result) {
         GlobalUnlock(hMem);
         GlobalFree(hMem);
@@ -402,10 +407,10 @@ unsigned char *Rbc_GetBitmapData(Display *display, Pixmap bitmap, int width, int
         GlobalFree(hMem);
         return NULL;
     }
-    dc = TkWinGetDrawableDC(display, bitmap, &state);
+    dc = Rbc_WinAcquireDrawableDC(display, bitmap, &dcStatePtr);
     result = GetDIBits(dc, hBitmap, 0, (UINT)height, (unsigned char *)bmiPtr + headerSize, (BITMAPINFO *)bmiPtr,
                        DIB_RGB_COLORS);
-    TkWinReleaseDrawableDC(bitmap, dc, &state);
+    Rbc_WinReleaseDrawableDC(dcStatePtr);
     bits = NULL;
     if (!result) {
         OutputDebugStringA("GetDIBits failed\n");
@@ -602,7 +607,7 @@ HPEN Rbc_GCToPen(HDC dc, GC gc) {
  */
 void Rbc_EmulateXDrawRectangles(Display *display, Drawable drawable, GC gc, XRectangle *rectArr, int nRects) {
     HPEN pen, oldPen;
-    TkWinDCState state;
+    Rbc_WinDrawableDC *dcStatePtr;
     HBRUSH brush, oldBrush;
     HDC dc;
     XRectangle *rectPtr;
@@ -611,12 +616,12 @@ void Rbc_EmulateXDrawRectangles(Display *display, Drawable drawable, GC gc, XRec
     if ((drawable == None) || (rectArr == NULL) || (nRects <= 0)) {
         return;
     }
-    dc = TkWinGetDrawableDC(display, drawable, &state);
+    dc = Rbc_WinAcquireDrawableDC(display, drawable, &dcStatePtr);
     pen = Rbc_GCToPen(dc, gc);
     brush = GetStockObject(NULL_BRUSH);
     oldPen = SelectPen(dc, pen);
     oldBrush = SelectBrush(dc, brush);
-    SetROP2(dc, tkpWinRopModes[gc->function]);
+    Rbc_WinSetROP2(dc, gc->function);
     rectPtr = rectArr;
     for (i = 0; i < nRects; i++, rectPtr++) {
         Rectangle(dc, (int)rectPtr->x, (int)rectPtr->y, (int)(rectPtr->x + rectPtr->width + 1),
@@ -624,7 +629,7 @@ void Rbc_EmulateXDrawRectangles(Display *display, Drawable drawable, GC gc, XRec
     }
     DeletePen(SelectPen(dc, oldPen));
     DeleteBrush(SelectBrush(dc, oldBrush));
-    TkWinReleaseDrawableDC(drawable, dc, &state);
+    Rbc_WinReleaseDrawableDC(dcStatePtr);
 }
 
 /*
@@ -747,15 +752,15 @@ void Rbc_EmulateXDrawArcs(Display *display, Drawable drawable, GC gc, XArc *arcA
     HPEN pen, oldPen;
     HBRUSH brush, oldBrush;
     HDC dc;
-    TkWinDCState state;
+    Rbc_WinDrawableDC *dcStatePtr;
     XArc *arcPtr, *endPtr;
 
     //    display->request++;
     if ((drawable == None) || (arcArr == NULL) || (nArcs <= 0)) {
         return;
     }
-    dc = TkWinGetDrawableDC(display, drawable, &state);
-    SetROP2(dc, tkpWinRopModes[gc->function]);
+    dc = Rbc_WinAcquireDrawableDC(display, drawable, &dcStatePtr);
+    Rbc_WinSetROP2(dc, gc->function);
     pen = Rbc_GCToPen(dc, gc);
     oldPen = SelectPen(dc, pen);
     brush = GetStockBrush(NULL_BRUSH);
@@ -766,7 +771,7 @@ void Rbc_EmulateXDrawArcs(Display *display, Drawable drawable, GC gc, XArc *arcA
     }
     DeleteBrush(SelectBrush(dc, oldBrush));
     DeletePen(SelectPen(dc, oldPen));
-    TkWinReleaseDrawableDC(drawable, dc, &state);
+    Rbc_WinReleaseDrawableDC(dcStatePtr);
 }
 
 /*
@@ -796,14 +801,14 @@ void Rbc_EmulateXFillArcs(Display *display, Drawable drawable, GC gc, XArc *arcA
     HPEN pen, oldPen;
     HDC dc;
     XArc *arcPtr, *endPtr;
-    TkWinDCState state;
+    Rbc_WinDrawableDC *dcStatePtr;
 
     //    display->request++;
     if ((drawable == None) || (arcArr == NULL) || (nArcs <= 0)) {
         return;
     }
-    dc = TkWinGetDrawableDC(display, drawable, &state);
-    SetROP2(dc, tkpWinRopModes[gc->function]);
+    dc = Rbc_WinAcquireDrawableDC(display, drawable, &dcStatePtr);
+    Rbc_WinSetROP2(dc, gc->function);
     pen = Rbc_GCToPen(dc, gc);
     oldPen = SelectPen(dc, pen);
     brush = CreateSolidBrush(gc->foreground);
@@ -814,7 +819,7 @@ void Rbc_EmulateXFillArcs(Display *display, Drawable drawable, GC gc, XArc *arcA
     }
     DeleteBrush(SelectBrush(dc, oldBrush));
     DeletePen(SelectPen(dc, oldPen));
-    TkWinReleaseDrawableDC(drawable, dc, &state);
+    Rbc_WinReleaseDrawableDC(dcStatePtr);
 }
 
 /*
@@ -848,13 +853,13 @@ void Rbc_EmulateXDrawSegments(Display *display, Drawable drawable, GC gc, XSegme
     HDC dc;
     HPEN pen, oldPen;
     XSegment *segPtr, *endPtr;
-    TkWinDCState state;
+    Rbc_WinDrawableDC *dcStatePtr;
 
     if ((drawable == None) || (segArr == NULL) || (nSegments <= 0)) {
         return;
     }
-    dc = TkWinGetDrawableDC(display, drawable, &state);
-    SetROP2(dc, tkpWinRopModes[gc->function]);
+    dc = Rbc_WinAcquireDrawableDC(display, drawable, &dcStatePtr);
+    Rbc_WinSetROP2(dc, gc->function);
     pen = Rbc_GCToPen(dc, gc);
     oldPen = SelectPen(dc, pen);
     endPtr = segArr + nSegments;
@@ -863,7 +868,7 @@ void Rbc_EmulateXDrawSegments(Display *display, Drawable drawable, GC gc, XSegme
         LineTo(dc, segPtr->x2, segPtr->y2);
     }
     DeletePen(SelectPen(dc, oldPen));
-    TkWinReleaseDrawableDC(drawable, dc, &state);
+    Rbc_WinReleaseDrawableDC(dcStatePtr);
 }
 
 /*
@@ -895,14 +900,14 @@ void Rbc_EmulateXDrawSegments(Display *display, Drawable drawable, GC gc, XSegme
  */
 void Rbc_EmulateXDrawPoints(Display *display, Drawable drawable, GC gc, XPoint *pointArr, int nPoints, int mode) {
     HDC dc;
-    TkWinDCState state;
+    Rbc_WinDrawableDC *dcStatePtr;
     int i;
 
     if ((drawable == None) || (pointArr == NULL) || (nPoints <= 0)) {
         return;
     }
-    dc = TkWinGetDrawableDC(display, drawable, &state);
-    SetROP2(dc, tkpWinRopModes[gc->function]);
+    dc = Rbc_WinAcquireDrawableDC(display, drawable, &dcStatePtr);
+    Rbc_WinSetROP2(dc, gc->function);
     if (mode == CoordModeOrigin) {
         for (i = 0; i < nPoints; i++) {
             SetPixelV(dc, pointArr[i].x, pointArr[i].y, gc->foreground);
@@ -919,7 +924,7 @@ void Rbc_EmulateXDrawPoints(Display *display, Drawable drawable, GC gc, XPoint *
             SetPixelV(dc, x, y, gc->foreground);
         }
     }
-    TkWinReleaseDrawableDC(drawable, dc, &state);
+    Rbc_WinReleaseDrawableDC(dcStatePtr);
 }
 
 /*
