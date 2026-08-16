@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>vector command &#8212; rbc  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Vector instance VECINST command" href="rbc-rbc-VECINST.html" />
+    <link rel="prev" title="::rbc" href="rbc-rbc.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rbc-rbc-VECINST.html" title="Vector instance VECINST command"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rbc-rbc.html" title="::rbc"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="docutils literal notranslate"><span class="pre">vector</span></code> command</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="vector-command">
+<span id="r-vector-command"></span><span id="r-60vector6020command"></span><span id="r-3a3arbc3a3avector"></span><h1><code class="docutils literal notranslate"><span class="pre">vector</span></code> command<a class="headerlink" href="#vector-command" title="Link to this heading">¶</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">::rbc::vector</span></code> command creates and manages vectors of double-precision floating-point values.</p>
+<p>A vector can be accessed through:</p>
+<ul class="simple">
+<li><p>its vector instance command</p></li>
+<li><p>an associated Tcl array variable</p></li>
+<li><p>the RBC C API.</p></li>
+</ul>
+<p>Creating a vector normally creates both an instance command and an associated Tcl array variable with the same
+name.</p>
+<section id="vector-creation-forms">
+<span id="r-rbc-vector-vector-creation-forms"></span><span id="r-3a3arbc3a3avectorqzvector20creation20forms"></span><h2>Vector creation forms<a class="headerlink" href="#vector-creation-forms" title="Link to this heading">¶</a></h2>
+<p>Vectors may be created with an initially empty value array:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>x
+</pre></div>
+</div>
+<p>A size may be included in the vector specification:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>x<span class="k">(</span><span class="nv">100</span><span class="k">)</span>
+</pre></div>
+</div>
+<p>This creates a vector containing 100 values.</p>
+<p>An explicit external index range may also be specified:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>x<span class="k">(</span><span class="nv">-5</span><span class="o">:</span><span class="mi">14</span><span class="k">)</span>
+</pre></div>
+</div>
+<p>This creates 20 values and sets the vector index offset so that its externally visible indices run from -5
+through 14.</p>
+<p>The special name <code class="docutils literal notranslate"><span class="pre">#auto</span></code> requests an automatically generated vector name.</p>
+<p>Vector names may be namespace-qualified.</p>
+</section>
+<section id="vector-instances">
+<span id="r-rbc-vector-vector-instances"></span><span id="r-3a3arbc3a3avectorqzvector20instances"></span><h2>Vector instances<a class="headerlink" href="#vector-instances" title="Link to this heading">¶</a></h2>
+<p>The examples and command descriptions below use <code class="docutils literal notranslate"><span class="pre">VECINST</span></code> to denote the Tcl command associated with an
+individual vector.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>x<span class="w"> </span><span class="k">[</span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>x<span class="k">]</span>
+<span class="nv">$x</span><span class="w"> </span><span class="nv">seq</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="mf">0.5</span>
+<span class="nb">puts</span><span class="w"> </span><span class="k">[</span><span class="nv">$x</span><span class="w"> </span><span class="nv">length</span><span class="k">]</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+<p class="centered">
+<strong>Copyright (c) George Yashin</strong></p></section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">vector</span></code> command</a><ul>
+<li><a class="reference internal" href="#vector-creation-forms">Vector creation forms</a></li>
+<li><a class="reference internal" href="#vector-instances">Vector instances</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rbc-rbc.html"
+                          title="previous chapter">::rbc</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rbc-rbc-VECINST.html"
+                          title="next chapter">Vector instance <code class="docutils literal notranslate"><span class="pre">VECINST</span></code> command</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rbc-rbc-vector.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rbc-rbc-VECINST.html" title="Vector instance VECINST command"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rbc-rbc.html" title="::rbc"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="docutils literal notranslate"><span class="pre">vector</span></code> command</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright George Yashin.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    </div>
+  </body>
+</html>

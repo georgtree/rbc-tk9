@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Tcl/Tk9.0 upgrade &#8212; rbc  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="::rbc" href="rbc-rbc.html" />
+    <link rel="prev" title="Rbc - Refactored BLT Components" href="rbc.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rbc-rbc.html" title="::rbc"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rbc.html" title="Rbc - Refactored BLT Components"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Tcl/Tk9.0 upgrade</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="tcl-tk9-0-upgrade">
+<span id="r-tcl-tk9-0-upgrade"></span><span id="r-tcl2ftk92e020upgrade"></span><span id="r-3a3atcltk9upgrade"></span><h1>Tcl/Tk9.0 upgrade<a class="headerlink" href="#tcl-tk9-0-upgrade" title="Link to this heading">¶</a></h1>
+<section id="tcl-tk-9-modernization">
+<span id="r-tcltk9upgrade-tcl-tk-9-modernization"></span><span id="r-3a3atcltk9upgradeqztcl2ftk20920modernization"></span><h2>Tcl/Tk 9 Modernization<a class="headerlink" href="#tcl-tk-9-modernization" title="Link to this heading">¶</a></h2>
+<p>The original Rbc codebase was designed around Tcl/Tk 8.x APIs and data-size assumptions. Although an earlier
+port made Rbc build with Tcl/Tk 9, this fork has undergone a much broader modernization to use Tcl/Tk 9
+interfaces correctly, remove obsolete compatibility infrastructure, improve 64-bit safety, and harden the
+graphing code against numerical, memory, and platform-specific edge cases.</p>
+<p>The modernization covers the following areas.</p>
+<section id="tcl-9-command-and-object-api">
+<span id="r-tcltk9upgrade-tcl-9-command-and-object-api"></span><span id="r-3a3atcltk9upgradeqztcl20920command20and20object20api"></span><h3>Tcl 9 command and object API<a class="headerlink" href="#tcl-9-command-and-object-api" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Converted command implementations to the Tcl 9 object-based command interface.</p></li>
+<li><p>Updated command callbacks to use <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code> argument counts where appropriate.</p></li>
+<li><p>Migrated command creation to <code class="docutils literal notranslate"><span class="pre">Tcl_CreateObjCommand2()</span></code> for Tcl 9 large-argument support.</p></li>
+<li><p>Replaced remaining old string-based command and result handling with <code class="docutils literal notranslate"><span class="pre">Tcl_Obj</span></code>-based APIs.</p></li>
+<li><p>Removed obsolete command parsing infrastructure inherited from the original BLT/Rbc implementation.</p></li>
+<li><p>Reworked operation dispatch tables and argument validation around object-based parsing.</p></li>
+<li><p>Improved const-correctness throughout Tcl-facing APIs and removed casts that previously discarded <code class="docutils literal notranslate"><span class="pre">const</span></code>.</p></li>
+<li><p>Removed several local copies or emulations of Tcl internal parsing structures and functions.</p></li>
+</ul>
+</section>
+<section id="bit-and-tcl-size-support">
+<span id="r-tcltk9upgrade-64-bit-and-tcl-size-support"></span><span id="r-3a3atcltk9upgradeqz642dbit20and2060tcl5fsize6020support"></span><h3>64-bit and <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code> support<a class="headerlink" href="#bit-and-tcl-size-support" title="Link to this heading">¶</a></h3>
+<p>A large part of the original code assumed that collection sizes, vector lengths and indexes fit in an
+<code class="docutils literal notranslate"><span class="pre">int</span></code>. These assumptions were systematically removed.</p>
+<ul class="simple">
+<li><p>Converted vector lengths, indexes and capacities to <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code>.</p></li>
+<li><p>Converted spline point counts and interpolation indexes to <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code>.</p></li>
+<li><p>Converted graph element point indexes and data-index mappings to <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code>.</p></li>
+<li><p>Converted error-bar index mappings and element-to-data mappings to <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code>.</p></li>
+<li><p>Updated sorting, searching, closest-point and line-reduction code for large indexes.</p></li>
+<li><p>Updated chain/list traversal code where sizes or indexes could exceed the old 32-bit assumptions.</p></li>
+<li><p>Fixed vector binary-reading and vector mathematical operations for Tcl 9 size semantics.</p></li>
+<li><p>Added overflow checks before converting between <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code>, <code class="docutils literal notranslate"><span class="pre">size_t</span></code>, integers and allocation sizes.</p></li>
+<li><p>Added allocation-overflow guards for dynamically sized arrays throughout graph, spline and vector code.</p></li>
+</ul>
+<p>This removes a large class of silent truncation and overflow problems that were possible with large datasets.</p>
+</section>
+<section id="modern-tk-option-handling">
+<span id="r-tcltk9upgrade-modern-tk-option-handling"></span><span id="r-3a3atcltk9upgradeqzmodern20tk20option20handling"></span><h3>Modern Tk option handling<a class="headerlink" href="#modern-tk-option-handling" title="Link to this heading">¶</a></h3>
+<p>The graph subsystem previously relied heavily on the legacy Tk configuration API. Most of it has been replaced
+with the modern Tk option-table interface.</p>
+<p>The following subsystems were migrated to <code class="docutils literal notranslate"><span class="pre">Tk_OptionSpec</span></code>/<code class="docutils literal notranslate"><span class="pre">Tk_OptionTable</span></code> based configuration:</p>
+<ul class="simple">
+<li><p>graph widgets</p></li>
+<li><p>axes</p></li>
+<li><p>legends</p></li>
+<li><p>grid</p></li>
+<li><p>crosshairs</p></li>
+<li><p>pens</p></li>
+<li><p>markers</p></li>
+<li><p>line elements</p></li>
+<li><p>stripchart elements</p></li>
+<li><p>bar elements</p></li>
+<li><p>PostScript options</p></li>
+</ul>
+<p>Legacy configuration tables and their associated processing functions were removed after the new
+implementations were activated.</p>
+<p>Custom option types were added or rewritten for complex Rbc values such as:</p>
+<ul class="simple">
+<li><p>vectors</p></li>
+<li><p>axes</p></li>
+<li><p>pens</p></li>
+<li><p>tags</p></li>
+<li><p>element styles</p></li>
+<li><p>states</p></li>
+<li><p>coordinates</p></li>
+<li><p>padding and margins</p></li>
+<li><p>format strings</p></li>
+<li><p>graph-specific enumerations</p></li>
+</ul>
+<p>Configuration processing was also made transactional where needed. Invalid option changes now preserve the
+previous valid object state instead of leaving partially modified graph objects.</p>
+<p>The EPS canvas item remains on <code class="docutils literal notranslate"><span class="pre">Tk_ConfigSpec</span></code>/<code class="docutils literal notranslate"><span class="pre">Tk_ConfigureWidget()</span></code> because the public Tk 9 <code class="docutils literal notranslate"><span class="pre">Tk_ItemType</span></code>
+canvas-item interface still exposes the legacy configuration mechanism.</p>
+</section>
+<section id="graph-object-and-resource-lifetime">
+<span id="r-tcltk9upgrade-graph-object-and-resource-lifetime"></span><span id="r-3a3atcltk9upgradeqzgraph20object20and20resource20lifetime"></span><h3>Graph object and resource lifetime<a class="headerlink" href="#graph-object-and-resource-lifetime" title="Link to this heading">¶</a></h3>
+<p>Configuration modernization exposed a number of ownership and rollback problems that were corrected at the same
+time.</p>
+<ul class="simple">
+<li><p>Reworked creation, configuration and destruction paths for graph components.</p></li>
+<li><p>Improved rollback after failed configurations.</p></li>
+<li><p>Corrected ownership of dynamically allocated option values.</p></li>
+<li><p>Fixed temporary Tk image creation and destruction.</p></li>
+<li><p>Corrected resource cleanup for legends, markers, pens and elements.</p></li>
+<li><p>Hardened vector mathematical operations against ownership and aliasing problems.</p></li>
+<li><p>Removed dead initialization and cleanup paths inherited from the old configuration system.</p></li>
+<li><p>Removed substantial amounts of obsolete and unreachable compatibility code.</p></li>
+</ul>
+</section>
+<section id="axis-and-coordinate-system-modernization">
+<span id="r-tcltk9upgrade-axis-and-coordinate-system-modernization"></span><span id="r-3a3atcltk9upgradeqzaxis20and20coordinate2dsystem20modernization"></span><h3>Axis and coordinate-system modernization<a class="headerlink" href="#axis-and-coordinate-system-modernization" title="Link to this heading">¶</a></h3>
+<p>The axis implementation received extensive numerical and behavioral cleanup.</p>
+<ul class="simple">
+<li><p>Hardened coordinate mapping against integer overflow and extreme coordinate ranges.</p></li>
+<li><p>Widened intermediate geometry calculations before converting to Tk/X11 integer coordinates.</p></li>
+<li><p>Added safe handling for rotated-axis dimensions.</p></li>
+<li><p>Added validation for non-finite configuration values.</p></li>
+<li><p>Hardened generated tick calculations against invalid or degenerate ranges.</p></li>
+<li><p>Added guards against ill-defined tick spacing and numerical overflow.</p></li>
+<li><p>Corrected axis scrolling and <code class="docutils literal notranslate"><span class="pre">-scrollcommand</span></code> behavior.</p></li>
+<li><p>Corrected tick-label command callback handling.</p></li>
+<li><p>Improved option validation and rollback for axis configuration.</p></li>
+<li><p>Hardened user-controlled formatting options and removed unsafe formatting operations.</p></li>
+</ul>
+<p>Logarithmic axes were also substantially corrected:</p>
+<ul class="simple">
+<li><p>Logarithmic axes now use well-defined positive-domain semantics.</p></li>
+<li><p>Invalid/non-positive points are excluded instead of being mapped through invalid logarithms.</p></li>
+<li><p>Line elements are split at invalid log-domain points instead of drawing across discontinuities.</p></li>
+<li><p>Bar charts correctly handle logarithmic axis mapping.</p></li>
+<li><p>Stacked bars were corrected for logarithmic scales.</p></li>
+<li><p>Extreme logarithmic ranges are handled more safely.</p></li>
+<li><p>Smoothing no longer bridges invalid log-domain gaps.</p></li>
+</ul>
+</section>
+<section id="line-bar-and-element-processing">
+<span id="r-tcltk9upgrade-line-bar-and-element-processing"></span><span id="r-3a3atcltk9upgradeqzline2c20bar20and20element20processing"></span><h3>Line, bar and element processing<a class="headerlink" href="#line-bar-and-element-processing" title="Link to this heading">¶</a></h3>
+<p>The internal representation and processing of graph elements were extensively updated.</p>
+<ul class="simple">
+<li><p>Modernized element option handling.</p></li>
+<li><p>Reworked vector association using object-based APIs.</p></li>
+<li><p>Updated element state, tag, pen, style and axis handling.</p></li>
+<li><p>Fixed error-bar mapping and data-index tracking.</p></li>
+<li><p>Corrected closest-point and closest-segment calculations.</p></li>
+<li><p>Corrected element binding/tag behavior.</p></li>
+<li><p>Fixed line-reduction routines and their index handling.</p></li>
+<li><p>Hardened construction of mapped point arrays and drawing traces.</p></li>
+<li><p>Replaced internal uses of narrow X11 rectangle structures where larger internal coordinates were required.</p></li>
+<li><p>Added explicit handling of <code class="docutils literal notranslate"><span class="pre">NaN</span></code> and infinite values in plotted data.</p></li>
+<li><p>Corrected bar handling of non-finite data.</p></li>
+<li><p>Corrected several element formatting and <code class="docutils literal notranslate"><span class="pre">-valueformat</span></code> paths.</p></li>
+<li><p>Fixed step-generation behavior.</p></li>
+<li><p>Corrected line <code class="docutils literal notranslate"><span class="pre">-trace</span></code> behavior.</p></li>
+</ul>
+</section>
+<section id="spline-subsystem">
+<span id="r-tcltk9upgrade-spline-subsystem"></span><span id="r-3a3atcltk9upgradeqzspline20subsystem"></span><h3>Spline subsystem<a class="headerlink" href="#spline-subsystem" title="Link to this heading">¶</a></h3>
+<p>The spline implementation received both Tcl 9 size conversion and significant correctness hardening.</p>
+<ul class="simple">
+<li><p>Converted point counts and indexes to <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code>.</p></li>
+<li><p>Added allocation-overflow checks.</p></li>
+<li><p>Added explicit validation of finite source and interpolation coordinates.</p></li>
+<li><p>Added validation that source X coordinates satisfy the requirements of the selected spline algorithm.</p></li>
+<li><p>Made spline command execution transactional.</p></li>
+<li><p>Source vectors are now validated and copied before modifying the output vector.</p></li>
+<li><p>Fixed aliasing cases where the destination vector is also one of the input vectors.</p></li>
+<li><p>Prevented partial modification of interpolation arrays when validation fails.</p></li>
+<li><p>Improved const-correctness of spline input arrays.</p></li>
+<li><p>Corrected natural/quadratic spline behavior for descending screen coordinates.</p></li>
+<li><p>Added support for descending X axes and inverted graph axes without incorrectly rejecting otherwise valid spline data.</p></li>
+<li><p>Added regression tests for invalid values, duplicate coordinates, aliasing and direction handling.</p></li>
+</ul>
+</section>
+<section id="vector-subsystem">
+<span id="r-tcltk9upgrade-vector-subsystem"></span><span id="r-3a3atcltk9upgradeqzvector20subsystem"></span><h3>Vector subsystem<a class="headerlink" href="#vector-subsystem" title="Link to this heading">¶</a></h3>
+<p>Vector handling was updated substantially beyond the minimum required for compilation with Tcl 9.</p>
+<ul class="simple">
+<li><p>Added Tcl 9 sized vector indexing.</p></li>
+<li><p>Converted sorting indexes to <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code>.</p></li>
+<li><p>Removed global state from vector sorting operations.</p></li>
+<li><p>Updated vector arithmetic and mathematical operations.</p></li>
+<li><p>Corrected vector duplication and overwrite behavior.</p></li>
+<li><p>Corrected binary-read operations.</p></li>
+<li><p>Hardened allocation and capacity calculations.</p></li>
+<li><p>Improved parsing and const-correctness.</p></li>
+<li><p>Removed legacy parser dependencies.</p></li>
+<li><p>Improved ownership of temporary data used by mathematical operations.</p></li>
+<li><p>Added stricter handling of invalid and non-finite input.</p></li>
+</ul>
+</section>
+<section id="geometry-text-and-drawing">
+<span id="r-tcltk9upgrade-geometry-text-and-drawing"></span><span id="r-3a3atcltk9upgradeqzgeometry2c20text20and20drawing"></span><h3>Geometry, text and drawing<a class="headerlink" href="#geometry-text-and-drawing" title="Link to this heading">¶</a></h3>
+<p>Many drawing routines inherited assumptions from old X11 APIs where coordinates and dimensions were commonly
+stored in narrow integer types.</p>
+<p>The modernization:</p>
+<ul class="simple">
+<li><p>widened internal geometry calculations;</p></li>
+<li><p>added checked conversion at native drawing boundaries;</p></li>
+<li><p>hardened rotated text and bounding-box calculations;</p></li>
+<li><p>updated text-layout processing;</p></li>
+<li><p>hardened shadows, halos and graph-layout coordinate arithmetic;</p></li>
+<li><p>corrected clipping and projection calculations;</p></li>
+<li><p>updated polygon, rectangle and region processing;</p></li>
+<li><p>added guards around fixed-size polygon and symbol allocations;</p></li>
+<li><p>corrected point-in-region and projection helpers;</p></li>
+<li><p>fixed drawing-boundary issues discovered on both Windows and Linux.</p></li>
+</ul>
+<p>The intent is to keep high-precision or wide internal calculations for as long as possible and narrow them only
+when calling APIs that inherently require integer coordinates.</p>
+</section>
+<section id="image-and-bitmap-handling">
+<span id="r-tcltk9upgrade-image-and-bitmap-handling"></span><span id="r-3a3atcltk9upgradeqzimage20and20bitmap20handling"></span><h3>Image and bitmap handling<a class="headerlink" href="#image-and-bitmap-handling" title="Link to this heading">¶</a></h3>
+<p>The image-processing code was significantly updated for current Tk behavior.</p>
+<ul class="simple">
+<li><p>Updated photo-image access and processing.</p></li>
+<li><p>Corrected temporary image lifetime management.</p></li>
+<li><p>Updated bitmap rotation and scaling code.</p></li>
+<li><p>Unified bitmap-region operations across platforms.</p></li>
+<li><p>Corrected Unix image handling.</p></li>
+<li><p>Corrected Windows bitmap representation and mask generation.</p></li>
+<li><p>Hardened bitmap allocation and size calculations.</p></li>
+<li><p>Isolated native bitmap-handle access behind Rbc Windows helper functions.</p></li>
+</ul>
+</section>
+<section id="postscript-output">
+<span id="r-tcltk9upgrade-postscript-output"></span><span id="r-3a3atcltk9upgradeqzpostscript20output"></span><h3>PostScript output<a class="headerlink" href="#postscript-output" title="Link to this heading">¶</a></h3>
+<p>The PostScript subsystem was modernized and hardened alongside the graph code.</p>
+<ul class="simple">
+<li><p>Updated PostScript option handling.</p></li>
+<li><p>Updated image generation and bitmap handling.</p></li>
+<li><p>Corrected PostScript writer behavior.</p></li>
+<li><p>Replaced unsafe formatting paths.</p></li>
+<li><p>Hardened formatting and buffer handling.</p></li>
+<li><p>Updated coordinate and size handling for the modernized graph structures.</p></li>
+</ul>
+</section>
+<section id="windows-drawing-backend">
+<span id="r-tcltk9upgrade-windows-drawing-backend"></span><span id="r-3a3atcltk9upgradeqzwindows20drawing20backend"></span><h3>Windows drawing backend<a class="headerlink" href="#windows-drawing-backend" title="Link to this heading">¶</a></h3>
+<p>The Windows drawing implementation received a substantial cleanup.</p>
+<p>Obsolete compatibility code and dead drawing implementations were removed, and the remaining native drawing
+code was reorganized behind an Rbc-owned Windows abstraction.</p>
+<p>Rbc code outside the Windows backend no longer accesses Tk’s private Windows drawable structures directly.</p>
+<p>Operations such as:</p>
+<ul class="simple">
+<li><p>acquiring and releasing a drawable <code class="docutils literal notranslate"><span class="pre">HDC</span></code>;</p></li>
+<li><p>extracting an <code class="docutils literal notranslate"><span class="pre">HBITMAP</span></code> from a Tk pixmap;</p></li>
+<li><p>wrapping an <code class="docutils literal notranslate"><span class="pre">HBITMAP</span></code> as a pixmap;</p></li>
+<li><p>wrapping a native <code class="docutils literal notranslate"><span class="pre">HDC</span></code>;</p></li>
+<li><p>mapping an <code class="docutils literal notranslate"><span class="pre">HWND</span></code> to the required drawable representation;</p></li>
+<li><p>setting Windows GDI raster operations</p></li>
+</ul>
+<p>are now isolated behind <code class="docutils literal notranslate"><span class="pre">Rbc_Win*</span></code> helper functions.</p>
+<p>This reduced the former widespread dependency on:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">TkWinDrawable</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TkWinBitmap</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TkWinDC</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TkWinDCState</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TkWinGetDrawableDC()</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TkWinReleaseDrawableDC()</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TWD_*</span></code></p></li>
+</ul>
+<p>to a single Windows implementation unit, <code class="docutils literal notranslate"><span class="pre">rbcWinDraw.c</span></code>.</p>
+</section>
+<section id="remaining-private-tk-dependencies">
+<span id="r-tcltk9upgrade-remaining-private-tk-dependencies"></span><span id="r-3a3atcltk9upgradeqzremaining20private20tk20dependencies"></span><h3>Remaining private Tk dependencies<a class="headerlink" href="#remaining-private-tk-dependencies" title="Link to this heading">¶</a></h3>
+<p>Complete elimination of private Tk interfaces is currently not practical without either changes in Tk itself or
+a significant drawing-backend redesign.</p>
+<p>The remaining dependencies are deliberately isolated:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">rbcText.c</span></code> uses Tk’s internal <code class="docutils literal notranslate"><span class="pre">TkDrawAngledChars()</span></code> functionality for rotated text. Tk does not currently provide equivalent functionality through its public API.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rbcWinDraw.c</span></code> uses <code class="docutils literal notranslate"><span class="pre">tkWinInt.h</span></code> to bridge between Tk drawables and native Windows GDI objects.</p></li>
+</ul>
+<p>No other graph, element, image or general Rbc code needs to know about Tk’s Windows-private drawable structures.</p>
+<p>Compiler diagnostics caused by known attribute mismatches inside the private Tk headers are suppressed only
+around those specific includes; warnings remain enabled for Rbc’s own source code.</p>
+</section>
+<section id="c-safety-and-hardening">
+<span id="r-tcltk9upgrade-c-safety-and-hardening"></span><span id="r-3a3atcltk9upgradeqzc20safety20and20hardening"></span><h3>C safety and hardening<a class="headerlink" href="#c-safety-and-hardening" title="Link to this heading">¶</a></h3>
+<p>The Tcl/Tk 9 work also included a wider C safety audit.</p>
+<ul class="simple">
+<li><p>Replaced unsafe <code class="docutils literal notranslate"><span class="pre">sprintf()</span></code> usage with bounded or object-based formatting.</p></li>
+<li><p>Added validation for user-controlled numeric formatting strings.</p></li>
+<li><p>Added multiplication and allocation-overflow checks.</p></li>
+<li><p>Added range checks before narrowing floating-point or wide integer values.</p></li>
+<li><p>Added explicit handling of <code class="docutils literal notranslate"><span class="pre">NaN</span></code> and infinity.</p></li>
+<li><p>Removed undefined or questionable integer-overflow paths.</p></li>
+<li><p>Improved <code class="docutils literal notranslate"><span class="pre">const</span></code> correctness.</p></li>
+<li><p>Removed mutations through pointers to constant data.</p></li>
+<li><p>Fixed uninitialized index/data-mapping cases.</p></li>
+<li><p>Removed obsolete K&amp;R-era and compatibility code where encountered.</p></li>
+<li><p>Removed dead <code class="docutils literal notranslate"><span class="pre">#ifdef</span> <span class="pre">notdef</span></code> and otherwise unreachable implementations where they no longer served a purpose.</p></li>
+</ul>
+</section>
+<section id="bindings-and-tags">
+<span id="r-tcltk9upgrade-bindings-and-tags"></span><span id="r-3a3atcltk9upgradeqzbindings20and20tags"></span><h3>Bindings and tags<a class="headerlink" href="#bindings-and-tags" title="Link to this heading">¶</a></h3>
+<p>The graph binding infrastructure was corrected and expanded during the migration.</p>
+<ul class="simple">
+<li><p>Fixed axis bindings.</p></li>
+<li><p>Fixed element bindings.</p></li>
+<li><p>Fixed marker bindings.</p></li>
+<li><p>Fixed legend binding activation.</p></li>
+<li><p>Corrected graph tag generation and lookup.</p></li>
+<li><p>Updated bind-tag handling after the option-system migration.</p></li>
+<li><p>Added regression tests for the affected binding paths.</p></li>
+</ul>
+</section>
+<section id="regression-testing">
+<span id="r-tcltk9upgrade-regression-testing"></span><span id="r-3a3atcltk9upgradeqzregression20testing"></span><h3>Regression testing<a class="headerlink" href="#regression-testing" title="Link to this heading">¶</a></h3>
+<p>The modernization was accompanied by a substantial expansion of the test suite.</p>
+<p>New regression coverage was added for areas including:</p>
+<ul class="simple">
+<li><p>option configuration and rollback;</p></li>
+<li><p>axes and axis bindings;</p></li>
+<li><p>markers;</p></li>
+<li><p>element options and bindings;</p></li>
+<li><p>legends;</p></li>
+<li><p>vectors and vector arithmetic;</p></li>
+<li><p>splines;</p></li>
+<li><p>non-finite values;</p></li>
+<li><p>logarithmic axes;</p></li>
+<li><p>bar charts;</p></li>
+<li><p>PostScript output;</p></li>
+<li><p>bitmap and image handling;</p></li>
+<li><p>formatting options;</p></li>
+<li><p>error bars;</p></li>
+<li><p>closest-point calculations;</p></li>
+<li><p>coordinate and integer-boundary cases.</p></li>
+</ul>
+<p>Manual graph tests and demos were also repeatedly exercised during the migration.</p>
+<p>The resulting code has been tested on both Windows and Linux with Tcl/Tk 9.x.</p>
+</section>
+<section id="result">
+<span id="r-tcltk9upgrade-result"></span><span id="r-3a3atcltk9upgradeqzresult"></span><h3>Result<a class="headerlink" href="#result" title="Link to this heading">¶</a></h3>
+<p>The current codebase is no longer merely an older Rbc implementation adjusted until it compiles with Tcl/Tk9.0.
+The major subsystems now use Tcl/Tk 9-sized interfaces and modern Tk configuration machinery, large-dataset
+index handling is based on <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code>, numerical and allocation boundaries are explicitly checked, and the
+unavoidable private Tk dependencies are confined to narrow platform/rendering interfaces.</p>
+<p>The remaining use of legacy or private Tk interfaces is intentional:</p>
+<ul class="simple">
+<li><p>the EPS canvas item uses the configuration API still required by Tk’s public custom-canvas-item interface;</p></li>
+<li><p>rotated text uses Tk’s unsupported angled-text API;</p></li>
+<li><p>the Windows drawing adapter uses Tk’s private drawable representation.</p></li>
+</ul>
+<p>These remaining interfaces can only be removed cleanly if equivalent public Tk APIs become available or if the
+relevant rendering code is replaced with an independent backend.</p>
+<hr class="docutils" />
+<p class="centered">
+<strong>Copyright (c) George Yashin</strong></p></section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Tcl/Tk9.0 upgrade</a><ul>
+<li><a class="reference internal" href="#tcl-tk-9-modernization">Tcl/Tk 9 Modernization</a><ul>
+<li><a class="reference internal" href="#tcl-9-command-and-object-api">Tcl 9 command and object API</a></li>
+<li><a class="reference internal" href="#bit-and-tcl-size-support">64-bit and <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code> support</a></li>
+<li><a class="reference internal" href="#modern-tk-option-handling">Modern Tk option handling</a></li>
+<li><a class="reference internal" href="#graph-object-and-resource-lifetime">Graph object and resource lifetime</a></li>
+<li><a class="reference internal" href="#axis-and-coordinate-system-modernization">Axis and coordinate-system modernization</a></li>
+<li><a class="reference internal" href="#line-bar-and-element-processing">Line, bar and element processing</a></li>
+<li><a class="reference internal" href="#spline-subsystem">Spline subsystem</a></li>
+<li><a class="reference internal" href="#vector-subsystem">Vector subsystem</a></li>
+<li><a class="reference internal" href="#geometry-text-and-drawing">Geometry, text and drawing</a></li>
+<li><a class="reference internal" href="#image-and-bitmap-handling">Image and bitmap handling</a></li>
+<li><a class="reference internal" href="#postscript-output">PostScript output</a></li>
+<li><a class="reference internal" href="#windows-drawing-backend">Windows drawing backend</a></li>
+<li><a class="reference internal" href="#remaining-private-tk-dependencies">Remaining private Tk dependencies</a></li>
+<li><a class="reference internal" href="#c-safety-and-hardening">C safety and hardening</a></li>
+<li><a class="reference internal" href="#bindings-and-tags">Bindings and tags</a></li>
+<li><a class="reference internal" href="#regression-testing">Regression testing</a></li>
+<li><a class="reference internal" href="#result">Result</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rbc.html"
+                          title="previous chapter">Rbc - Refactored BLT Components</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rbc-rbc.html"
+                          title="next chapter">::rbc</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rbc-TclTk9Upgrade.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rbc-rbc.html" title="::rbc"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rbc.html" title="Rbc - Refactored BLT Components"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Tcl/Tk9.0 upgrade</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright George Yashin.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    </div>
+  </body>
+</html>

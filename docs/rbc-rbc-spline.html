@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Spline interpolation &#8212; rbc  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Vector instance VECINST command" href="rbc-rbc-VECINST.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rbc-rbc-VECINST.html" title="Vector instance VECINST command"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Spline interpolation</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="spline-interpolation">
+<span id="r-spline-interpolation"></span><span id="r-spline20interpolation"></span><span id="r-3a3arbc3a3aspline"></span><h1>Spline interpolation<a class="headerlink" href="#spline-interpolation" title="Link to this heading">¶</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">spline</span></code> command performs spline interpolation and extrapolation on data stored in Rbc vectors. Two
+interpolation methods are available:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">natural</span></code> - natural cubic spline interpolation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">quadratic</span></code> - shape-preserving quadratic spline interpolation.</p></li>
+</ul>
+<p>Both operations use the same four-vector interface:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">spline</span><span class="w"> </span>method<span class="w"> </span>x<span class="w"> </span>y<span class="w"> </span>splX<span class="w"> </span>splY
+</pre></div>
+</div>
+<p>The vectors <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> contain the source data points. The vector <code class="docutils literal notranslate"><span class="pre">splX</span></code> contains the X coordinates at
+which the spline is evaluated, and <code class="docutils literal notranslate"><span class="pre">splY</span></code> receives the corresponding calculated Y coordinates.</p>
+<section id="source-data">
+<span id="r-rbc-spline-source-data"></span><span id="r-3a3arbc3a3asplineqzsource20data"></span><h2>Source data<a class="headerlink" href="#source-data" title="Link to this heading">¶</a></h2>
+<p>The source vectors <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> must have the same length and contain at least three values. All source
+X and Y values must be finite.</p>
+<p>Values in <code class="docutils literal notranslate"><span class="pre">x</span></code> must be strictly increasing. Duplicate or decreasing X coordinates are not permitted.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">vector</span><span class="w"> </span>create<span class="w"> </span>x<span class="w"> </span>y
+
+<span class="nv">x</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="k">}</span>
+<span class="nv">y</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span>
+</pre></div>
+</div>
+<p>If source data are not already ordered by X coordinate, the vector <code class="docutils literal notranslate"><span class="pre">sort</span></code> operation can reorder <code class="docutils literal notranslate"><span class="pre">x</span></code> while
+applying the same permutation to <code class="docutils literal notranslate"><span class="pre">y</span></code>:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>sort<span class="w"> </span>y
+</pre></div>
+</div>
+</section>
+<section id="evaluation-coordinates">
+<span id="r-rbc-spline-evaluation-coordinates"></span><span id="r-3a3arbc3a3asplineqzevaluation20coordinates"></span><h2>Evaluation coordinates<a class="headerlink" href="#evaluation-coordinates" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">splX</span></code> vector specifies the X coordinates at which the spline is evaluated. All values in <code class="docutils literal notranslate"><span class="pre">splX</span></code> must
+be finite.</p>
+<p>Unlike the source <code class="docutils literal notranslate"><span class="pre">x</span></code> vector, <code class="docutils literal notranslate"><span class="pre">splX</span></code> does not have to be sorted. Evaluation coordinates may appear in any
+order, and the values in <code class="docutils literal notranslate"><span class="pre">splY</span></code> are produced in the corresponding order.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">splX</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">2.5</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="mf">4.5</span><span class="w"> </span><span class="o">-</span><span class="mf">1.0</span><span class="w"> </span><span class="mf">1.5</span><span class="k">}</span>
+<span class="nv">spline</span><span class="w"> </span>natural<span class="w"> </span>x<span class="w"> </span>y<span class="w"> </span>splX<span class="w"> </span>splY
+</pre></div>
+</div>
+<p>Each component of <code class="docutils literal notranslate"><span class="pre">splY</span></code> corresponds to the component at the same position in <code class="docutils literal notranslate"><span class="pre">splX</span></code>.</p>
+<p>Evaluation coordinates may lie outside the range of the source <code class="docutils literal notranslate"><span class="pre">x</span></code> vector. Both spline methods extrapolate
+such points:</p>
+<ul class="simple">
+<li><p>values below the first source X coordinate are extrapolated using the first spline interval;</p></li>
+<li><p>values above the last source X coordinate are extrapolated using the last spline interval.</p></li>
+</ul>
+<p>Thus interpolation and extrapolation use the same command and no separate extrapolation option is required.</p>
+</section>
+<section id="generating-evaluation-coordinates">
+<span id="r-rbc-spline-generating-evaluation-coordinates"></span><span id="r-3a3arbc3a3asplineqzgenerating20evaluation20coordinates"></span><h2>Generating evaluation coordinates<a class="headerlink" href="#generating-evaluation-coordinates" title="Link to this heading">¶</a></h2>
+<p>The vector <code class="docutils literal notranslate"><span class="pre">populate</span></code> operation is convenient for generating a more densely sampled set of X coordinates
+between the original source points:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>populate<span class="w"> </span>splX<span class="w"> </span><span class="mi">10</span>
+<span class="nv">spline</span><span class="w"> </span>natural<span class="w"> </span>x<span class="w"> </span>y<span class="w"> </span>splX<span class="w"> </span>splY
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">populate</span></code> is not required. <code class="docutils literal notranslate"><span class="pre">splX</span></code> may contain any finite coordinates appropriate for the application.</p>
+</section>
+<section id="output-vector">
+<span id="r-rbc-spline-output-vector"></span><span id="r-3a3arbc3a3asplineqzoutput20vector"></span><h2>Output vector<a class="headerlink" href="#output-vector" title="Link to this heading">¶</a></h2>
+<p>The result vector <code class="docutils literal notranslate"><span class="pre">splY</span></code> has the same length as <code class="docutils literal notranslate"><span class="pre">splX</span></code>.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">splY</span></code> does not exist, it is created. If it already exists, it is resized when necessary and its previous
+contents are replaced.</p>
+<p>Spline generation is transactional. The source vectors and evaluation coordinates are validated and the
+complete result is calculated before <code class="docutils literal notranslate"><span class="pre">splY</span></code> is created, resized, or modified. If spline generation fails,
+an existing <code class="docutils literal notranslate"><span class="pre">splY</span></code> vector is left unchanged.</p>
+<p>Because the inputs are copied before the output vector is modified, <code class="docutils literal notranslate"><span class="pre">splY</span></code> may safely be the same vector as
+<code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, or <code class="docutils literal notranslate"><span class="pre">splX</span></code>.</p>
+</section>
+<section id="example">
+<span id="r-rbc-spline-example"></span><span id="r-3a3arbc3a3asplineqzexample"></span><h2>Example<a class="headerlink" href="#example" title="Link to this heading">¶</a></h2>
+<p>The following example generates both natural and quadratic spline values from the same source data:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">vector</span><span class="w"> </span>create<span class="w"> </span>x<span class="w"> </span>y<span class="w"> </span>splX
+
+<span class="nv">x</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="k">}</span>
+<span class="nv">y</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span>
+
+<span class="nv">splX</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">-1.0</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="mf">1.5</span><span class="w"> </span><span class="mf">2.5</span><span class="w"> </span><span class="mf">4.0</span><span class="w"> </span><span class="mf">5.0</span><span class="k">}</span>
+
+<span class="nv">spline</span><span class="w"> </span>natural<span class="w"> </span>x<span class="w"> </span>y<span class="w"> </span>splX<span class="w"> </span>naturalY
+<span class="nv">spline</span><span class="w"> </span>quadratic<span class="w"> </span>x<span class="w"> </span>y<span class="w"> </span>splX<span class="w"> </span>quadraticY
+</pre></div>
+</div>
+<p>The first and last evaluation coordinates lie outside the source range and are therefore extrapolated.</p>
+</section>
+<section id="natural-cubic-spline">
+<span id="r-rbc-spline-natural-cubic-spline"></span><span id="r-3a3arbc3a3asplineqznatural20cubic20spline"></span><h2>Natural cubic spline<a class="headerlink" href="#natural-cubic-spline" title="Link to this heading">¶</a></h2>
+<p>A natural spline is a piecewise cubic interpolating function that passes through every source data point.
+Its second derivative is zero at the first and last source points, providing the natural boundary
+conditions.</p>
+<p>For evaluation coordinates outside the source range, the cubic polynomial of the first or last spline
+interval is continued beyond its endpoint.</p>
+<p>Natural cubic splines generally produce smooth curves with continuous first and second derivatives.</p>
+</section>
+<section id="shape-preserving-quadratic-spline">
+<span id="r-rbc-spline-shape-preserving-quadratic-spline"></span><span id="r-3a3arbc3a3asplineqzshape2dpreserving20quadratic20spline"></span><h2>Shape-preserving quadratic spline<a class="headerlink" href="#shape-preserving-quadratic-spline" title="Link to this heading">¶</a></h2>
+<p>The quadratic method generates an osculatory piecewise quadratic spline. Slopes at the source points are
+selected to preserve monotonicity and convexity where those properties are compatible with the source data.</p>
+<p>For evaluation coordinates outside the source range, the spline defined by the first or last source
+interval is continued beyond its endpoint.</p>
+<p>This method can be useful when preserving the qualitative shape of the source data is more important than
+the additional smoothness of a cubic spline.</p>
+</section>
+<section id="errors">
+<span id="r-rbc-spline-errors"></span><span id="r-3a3arbc3a3asplineqzerrors"></span><h2>Errors<a class="headerlink" href="#errors" title="Link to this heading">¶</a></h2>
+<p>Spline generation fails if:</p>
+<ul class="simple">
+<li><p>either source vector contains fewer than three values;</p></li>
+<li><p>the source vectors have different lengths;</p></li>
+<li><p>a source X or Y value is not finite;</p></li>
+<li><p>the source X coordinates are not strictly increasing;</p></li>
+<li><p>an evaluation X coordinate is not finite;</p></li>
+<li><p>required temporary storage cannot be allocated;</p></li>
+<li><p>the spline calculation produces an invalid numerical result.</p></li>
+</ul>
+<p>An error does not partially modify the output vector.</p>
+</section>
+<section id="references">
+<span id="r-rbc-spline-references"></span><span id="r-3a3arbc3a3asplineqzreferences"></span><h2>References<a class="headerlink" href="#references" title="Link to this heading">¶</a></h2>
+<p>The natural cubic spline implementation is based on:</p>
+<ul class="simple">
+<li><ol class="upperalpha simple" start="18">
+<li><ol class="upperalpha simple" start="12">
+<li><p>Burden, J. D. Faires and A. C. Reynolds, <em>Numerical Analysis</em>, Prindle, Weber &amp; Schmidt, 1981.</p></li>
+</ol>
+</li>
+</ol>
+</li>
+</ul>
+<p>The shape-preserving quadratic spline implementation is based on:</p>
+<ul class="simple">
+<li><ol class="upperalpha simple" start="4">
+<li><ol class="upperalpha simple" start="6">
+<li><p>McAllister and J. A. Roulier, <em>An Algorithm for Computing a Shape-Preserving Osculatory Quadratic Spline</em>, ACM Transactions on Mathematical Software, Algorithm 574.</p></li>
+</ol>
+</li>
+</ol>
+</li>
+</ul>
+<hr class="docutils" />
+<p class="centered">
+<strong>Copyright (c) George Yashin</strong></p></section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Spline interpolation</a><ul>
+<li><a class="reference internal" href="#source-data">Source data</a></li>
+<li><a class="reference internal" href="#evaluation-coordinates">Evaluation coordinates</a></li>
+<li><a class="reference internal" href="#generating-evaluation-coordinates">Generating evaluation coordinates</a></li>
+<li><a class="reference internal" href="#output-vector">Output vector</a></li>
+<li><a class="reference internal" href="#example">Example</a></li>
+<li><a class="reference internal" href="#natural-cubic-spline">Natural cubic spline</a></li>
+<li><a class="reference internal" href="#shape-preserving-quadratic-spline">Shape-preserving quadratic spline</a></li>
+<li><a class="reference internal" href="#errors">Errors</a></li>
+<li><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rbc-rbc-VECINST.html"
+                          title="previous chapter">Vector instance <code class="docutils literal notranslate"><span class="pre">VECINST</span></code> command</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rbc-rbc-spline.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rbc-rbc-VECINST.html" title="Vector instance VECINST command"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Spline interpolation</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright George Yashin.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    </div>
+  </body>
+</html>

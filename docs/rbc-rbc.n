@@ -1,0 +1,1060 @@
+'\"
+'\" '\" Copyright (c) George Yashin
+'\"
+.TH "rbc" 3tcl 0\&.5\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.SH NAME
+rbc - Commands in namespace rbc
+.SH SYNOPSIS
+\fBspline\fP \fIsubcommand \&.\&.\&.\fP
+.br
+\fBspline natural\fP \fIx y splX splY\fP
+.br
+\fBspline quadratic\fP \fIx y splX splY\fP
+.br
+\fBVECINST\fP \fIsubcommand \&.\&.\&.\fP
+.br
+\fBVECINST *\fP \fIlist\fP
+.br
+\fBVECINST +\fP \fIlist\fP
+.br
+\fBVECINST -\fP \fIlist\fP
+.br
+\fBVECINST /\fP \fIlist\fP
+.br
+\fBVECINST append\fP \fIitem ?item \&.\&.\&.?\fP
+.br
+\fBVECINST binread\fP \fIchannel ?numValues? ?-at index? ?-format format? ?-swap?\fP
+.br
+\fBVECINST clear\fP
+.br
+\fBVECINST delete\fP \fIindex ?index \&.\&.\&.?\fP
+.br
+\fBVECINST dup\fP \fIvecName\fP
+.br
+\fBVECINST expr\fP \fIexpression\fP
+.br
+\fBVECINST index\fP \fIindex\fP
+.br
+\fBVECINST index\fP \fIindex value\fP
+.br
+\fBVECINST length\fP \fInewSize\fP
+.br
+\fBVECINST merge\fP \fIvecName ?vecName \&.\&.\&.?\fP
+.br
+\fBVECINST normalize\fP \fIvecName\fP
+.br
+\fBVECINST offset\fP \fIoffset\fP
+.br
+\fBVECINST populate\fP \fIvecName density\fP
+.br
+\fBVECINST random\fP
+.br
+\fBVECINST range\fP \fIfirst last\fP
+.br
+\fBVECINST search\fP \fIvalue\fP
+.br
+\fBVECINST search\fP \fIvalue1 value2\fP
+.br
+\fBVECINST search\fP \fI-value value\fP
+.br
+\fBVECINST search\fP \fI-value value1 value2\fP
+.br
+\fBVECINST seq\fP \fIstart end ?step?\fP
+.br
+\fBVECINST set\fP \fIlist\fP
+.br
+\fBVECINST sort\fP \fI?-reverse? ?vecName \&.\&.\&.?\fP
+.br
+\fBVECINST split\fP \fI?vecName \&.\&.\&.?\fP
+.br
+\fBVECINST variable\fP \fIvarName\fP
+.br
+\fBvector\fP \fIsubcommand \&.\&.\&.\fP
+.br
+\fBvector create\fP \fIvecName ?vecName \&.\&.\&.? ?switch value \&.\&.\&.?\fP
+.br
+\fBvector destroy\fP \fIvecName ?vecName \&.\&.\&.?\fP
+.br
+\fBvector expr\fP \fIexpression\fP
+.br
+\fBvector names\fP \fIpattern\fP
+.br
+.SH ::RBC
+.SH COMMANDS
+.PP
+.RS -4n
+\fBspline\fR (::rbc)
+.RE
+.PP
+A
+command
+ensemble\&.
+.RS 4n
+\fBspline\fP \fIsubcommand \&.\&.\&.\fP
+.br
+.RE
+.PP
+\fBDescription\fR
+.PP
+The ensemble supports the following subcommands:
+.RS 4n
+.TP
+\fInatural\fP
+Computes a natural cubic spline through the source vectors x and y and evaluates it at every X coordinate in splX\&. Evaluation coordinates may appear in any order\&. Coordinates outside the source X range are extrapolated using the cubic polynomial of the first or last spline interval\&.
+.TP
+\fIquadratic\fP
+Computes a shape-preserving quadratic spline through the source vectors x and y and evaluates it at every X coordinate in splX\&. Evaluation coordinates may appear in any order\&. Coordinates outside the source X range are extrapolated using the spline defined by the first or last source interval\&.
+.RE
+.PP
+Refer to the documentation of each subcommand for details\&.
+.PP
+.RS -4n
+\fBspline natural\fR (::rbc)
+.RE
+.PP
+Computes a natural cubic spline through the source vectors x and y and evaluates it at every X
+coordinate in splX\&. Evaluation coordinates may appear in any order\&. Coordinates outside the source
+X range are extrapolated using the cubic polynomial of the first or last spline interval\&.
+.RS 4n
+\fBspline natural\fP \fIx y splX splY\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+x
+Vector containing the finite, strictly increasing X coordinates of the source points\&.
+.TP
+y
+Vector containing the finite Y coordinates of the source points; it must have the same length as x\&.
+.TP
+splX
+Vector containing finite X coordinates at which the spline is evaluated; values may be in any order and may lie outside the source X range\&.
+.TP
+splY
+Vector in which the interpolated or extrapolated Y coordinates are stored; it is created or resized as necessary\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBspline quadratic\fR (::rbc)
+.RE
+.PP
+Computes a shape-preserving quadratic spline through the source vectors x and y and evaluates it at
+every X coordinate in splX\&. Evaluation coordinates may appear in any order\&. Coordinates outside the
+source X range are extrapolated using the spline defined by the first or last source interval\&.
+.RS 4n
+\fBspline quadratic\fP \fIx y splX splY\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+x
+Vector containing the finite, strictly increasing X coordinates of the source points\&.
+.TP
+y
+Vector containing the finite Y coordinates of the source points; it must have the same length as x\&.
+.TP
+splX
+Vector containing finite X coordinates at which the spline is evaluated; values may be in any order and may lie outside the source X range\&.
+.TP
+splY
+Vector in which the interpolated or extrapolated Y coordinates are stored; it is created or resized as necessary\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBVECINST\fR (::rbc)
+.RE
+.PP
+A
+command
+ensemble\&.
+.RS 4n
+\fBVECINST\fP \fIsubcommand \&.\&.\&.\fP
+.br
+.RE
+.PP
+\fBDescription\fR
+.PP
+The ensemble supports the following subcommands:
+.RS 4n
+.TP
+\fI*\fP
+Multiplies every value of the vector by a scalar or by the corresponding value of another vector\&. list may name another vector or contain a scalar value\&. If another vector is used, it must have the same number of selected values\&.
+.TP
+\fI+\fP
+Adds a scalar or another vector component-by-component\&.
+.TP
+\fI-\fP
+Subtracts a scalar or another vector component-by-component\&.
+.TP
+\fI/\fP
+Divides every vector value by a scalar or by the corresponding value of another vector\&.
+.TP
+\fIappend\fP
+Appends values to the vector\&. Each item may be another vector or a Tcl list of numeric values\&.
+.TP
+\fIbinread\fP
+Reads native binary numeric values from a Tcl channel into the vector\&.
+.TP
+\fIclear\fP
+Clears cached elements of the Tcl array associated with the vector\&. This does not remove values from the vector\&. It can be used to release memory occupied by cached array-index entries\&.
+.TP
+\fIdelete\fP
+Deletes one or more indices or index ranges from the vector\&. Remaining values are compacted after the deleted values are removed\&.
+.TP
+\fIdup\fP
+Copies this vector into another vector\&. The destination vector is created if necessary\&. If it already exists, its contents are replaced\&.
+.TP
+\fIexpr\fP
+Evaluates expression and stores the result in this vector\&.
+.TP
+\fIindex\fP
+Reads or writes a vector value or range\&.  With no value argument, returns the value or values selected by index\&. With value, assigns that numeric value to every element selected by index\&. The special ++end index may be used when setting a value to append one new element\&.
+.TP
+\fIlength\fP
+Queries or changes the vector length\&. If newSize is supplied, the vector is resized\&. New elements created by enlarging the vector are initialized by the vector resizing machinery\&.
+.TP
+\fImerge\fP
+Interleaves values from two or more vectors and stores the result in this vector\&. All input vectors must contain the same number of selected values\&.
+.TP
+\fInormalize\fP
+Normalizes vector values to the range 0\&.0 through 1\&.0 using: (value - minimum) / (maximum - minimum) With no destination vector, returns the normalized values as a Tcl list\&. If vecName is supplied, that vector is created or resized and the normalized values are stored there\&.
+.TP
+\fIoffset\fP
+Queries or changes the external index offset of the vector\&. The offset changes the numeric indices through which the vector is addressed without moving the underlying data\&.
+.TP
+\fIpopulate\fP
+Creates a more densely sampled vector using linear interpolation\&.  density intermediate values are inserted between every adjacent pair of source values\&. density must be at least 1\&. The destination may be the same vector as the source\&.
+.TP
+\fIrandom\fP
+Fills the vector with pseudo-random values in the range # [0\&.0, 1\&.0)\&. The current vector length is preserved\&. Each existing component is replaced by a newly generated pseudo-random value\&. An empty vector remains empty\&.
+.TP
+\fIrange\fP
+Returns an inclusive range of vector values\&. If first is less than or equal to last, values are returned in ascending index order\&. If first is greater than last, values are returned in descending index order\&. first and last are normal vector indices and may use forms such as end\&. This operation does not modify the vector\&. A list containing the selected vector values\&.
+.TP
+\fIsearch\fP
+Searches the vector for values in a numeric range\&. With one numeric argument, returns matches equal to that value\&. With two numeric arguments, returns matches between min and max, inclusive within the implementation's floating-point tolerance\&. By default matching vector indices are returned\&. With -value, matching vector values are returned instead\&.
+.TP
+\fIseq\fP
+Generates an arithmetic sequence\&.
+.TP
+\fIset\fP
+Replaces the contents of the vector\&. list may be a Tcl list of numeric values or the name of another vector\&.
+.TP
+\fIsort\fP
+Sorts this vector\&. Additional vectors may be supplied\&. They must have the same length and are rearranged using the same permutation, allowing associated data to remain aligned\&. -reverse requests descending rather than ascending order\&.
+.TP
+\fIsplit\fP
+Distributes values from this vector among destination vectors in round-robin order\&. The source vector length must be evenly divisible by the number of destination vectors\&. Existing destination contents are preserved and the split values are appended\&.
+.TP
+\fIvariable\fP
+Queries or changes the Tcl array variable associated with the vector\&. Supplying an empty variable name removes the current mapping\&.
+.RE
+.PP
+Refer to the documentation of each subcommand for details\&.
+.PP
+.RS -4n
+\fBVECINST *\fR (::rbc)
+.RE
+.PP
+Multiplies every value of the vector by a scalar or by the corresponding value of another vector\&.
+list may name another vector or contain a scalar value\&. If another vector is used, it must have the same
+number of selected values\&.
+.RS 4n
+\fBVECINST *\fP \fIlist\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+list
+Vector name or scalar value\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+A list containing the resulting values\&. The vector itself # is not modified\&.
+.PP
+.RS -4n
+\fBVECINST +\fR (::rbc)
+.RE
+.PP
+Adds a scalar or another vector component-by-component\&.
+.RS 4n
+\fBVECINST +\fP \fIlist\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+list
+Vector name or scalar value\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+A list containing the resulting values\&. The vector itself # is not modified\&.
+.PP
+.RS -4n
+\fBVECINST -\fR (::rbc)
+.RE
+.PP
+Subtracts a scalar or another vector component-by-component\&.
+.RS 4n
+\fBVECINST -\fP \fIlist\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+list
+Vector name or scalar value\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+A list containing the resulting values\&. The vector itself # is not modified\&.
+.PP
+.RS -4n
+\fBVECINST /\fR (::rbc)
+.RE
+.PP
+Divides every vector value by a scalar or by the corresponding value of another vector\&.
+.RS 4n
+\fBVECINST /\fP \fIlist\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+list
+Vector name or scalar value\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+A list containing the resulting values\&. The vector itself # is not modified\&.
+.PP
+.RS -4n
+\fBVECINST append\fR (::rbc)
+.RE
+.PP
+Appends values to the vector\&. Each item may be another vector or a Tcl list of numeric values\&.
+.RS 4n
+\fBVECINST append\fP \fIitem ?item \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+item
+Vector name or list of numeric values\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBVECINST binread\fR (::rbc)
+.RE
+.PP
+Reads native binary numeric values from a Tcl channel into the vector\&.
+.RS 4n
+\fBVECINST binread\fP \fIchannel ?numValues? ?-at index? ?-format format? ?-swap?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+-at index
+Starts storing values at index\&. Existing values are # overwritten from that position\&. Without -at, values # are appended to the vector\&.
+.TP
+-format format
+Native numeric input representation\&. Formats have the form i#, u#, r#, or f#, where # is # the native type size in bytes\&. The default is the # native C double representation\&.
+.TP
+-swap
+Reverses the byte order of each input value\&.
+.TP
+channel
+Name of a readable Tcl channel\&.
+.TP
+numValues
+Optional maximum number of values to read\&. A value of zero, or omission of the argument, reads until EOF\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+The channel is temporarily placed in binary translation mode and its previous translation setting is
+restored before the command returns\&. A read that ends in the middle of a binary value is an error\&.
+.PP
+\fBReturn value\fR
+.PP
+Number of complete values read\&.
+.PP
+.RS -4n
+\fBVECINST clear\fR (::rbc)
+.RE
+.PP
+Clears cached elements of the Tcl array associated with the vector\&. This does not remove values from the
+vector\&. It can be used to release memory occupied by cached array-index entries\&.
+.RS 4n
+\fBVECINST clear\fP
+.br
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBVECINST delete\fR (::rbc)
+.RE
+.PP
+Deletes one or more indices or index ranges from the vector\&. Remaining values are compacted after the
+deleted values are removed\&.
+.RS 4n
+\fBVECINST delete\fP \fIindex ?index \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+index
+Vector index or colon-separated index range\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBVECINST dup\fR (::rbc)
+.RE
+.PP
+Copies this vector into another vector\&. The destination vector is created if necessary\&. If it already
+exists, its contents are replaced\&.
+.RS 4n
+\fBVECINST dup\fP \fIvecName\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+vecName
+Destination vector\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBVECINST expr\fR (::rbc)
+.RE
+.PP
+Evaluates expression and stores the result in this vector\&.
+.RS 4n
+\fBVECINST expr\fP \fIexpression\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+expression
+Vector expression\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBVECINST index\fR (::rbc)
+.RE
+.PP
+Reads or writes a vector value or range\&.  With no value argument, returns the value or values selected by
+index\&. With value, assigns that numeric value to every element selected by index\&. The special
+++end index may be used when setting a value to append one new element\&.
+.RS 4n
+\fBVECINST index\fP \fIindex\fP
+.br
+\fBVECINST index\fP \fIindex value\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+index
+Vector index or range\&.
+.TP
+value
+Optional numeric value\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Selected value(s) when querying, or the assigned value when setting\&.
+.PP
+.RS -4n
+\fBVECINST length\fR (::rbc)
+.RE
+.PP
+Queries or changes the vector length\&. If newSize is supplied, the vector is resized\&. New elements
+created by enlarging the vector are initialized by the vector resizing machinery\&.
+.RS 4n
+\fBVECINST length\fP \fInewSize\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+newSize
+New non-negative vector length\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Current vector length\&.
+.PP
+.RS -4n
+\fBVECINST merge\fR (::rbc)
+.RE
+.PP
+Interleaves values from two or more vectors and stores the result in this vector\&. All input vectors must
+contain the same number of selected values\&.
+.RS 4n
+\fBVECINST merge\fP \fIvecName ?vecName \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+vecName
+Input vector\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+For vectors a={1 2} and b={10 20}, merging a b produces:
+.PP
+.RS 4n
+.nf
+1 10 2 20
+.fi
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBVECINST normalize\fR (::rbc)
+.RE
+.PP
+Normalizes vector values to the range 0\&.0 through 1\&.0 using: (value - minimum) / (maximum - minimum)
+With no destination vector, returns the normalized values as a Tcl list\&. If vecName is supplied, that
+vector is created or resized and the normalized values are stored there\&.
+.RS 4n
+\fBVECINST normalize\fP \fIvecName\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+vecName
+Optional destination vector\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Normalized list when no destination is specified; otherwise # nothing\&.
+.PP
+.RS -4n
+\fBVECINST offset\fR (::rbc)
+.RE
+.PP
+Queries or changes the external index offset of the vector\&. The offset changes the numeric indices
+through which the vector is addressed without moving the underlying data\&.
+.RS 4n
+\fBVECINST offset\fP \fIoffset\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+offset
+New Tcl-sized integer offset\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Current offset\&.
+.PP
+.RS -4n
+\fBVECINST populate\fR (::rbc)
+.RE
+.PP
+Creates a more densely sampled vector using linear interpolation\&.  density intermediate values are
+inserted between every adjacent pair of source values\&. density must be at least 1\&. The destination may
+be the same vector as the source\&.
+.RS 4n
+\fBVECINST populate\fP \fIvecName density\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+vecName
+Destination vector\&.
+.TP
+density
+Number of interpolated values inserted between each pair\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBVECINST random\fR (::rbc)
+.RE
+.PP
+Fills the vector with pseudo-random values in the range # [0\&.0, 1\&.0)\&. The current vector length is
+preserved\&. Each existing component is replaced by a newly generated pseudo-random value\&. An empty vector
+remains empty\&.
+.RS 4n
+\fBVECINST random\fP
+.br
+.RE
+.PP
+\fBDescription\fR
+.PP
+Example:
+.PP
+.RS 4n
+.nf
+x length 100
+x random
+.fi
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBVECINST range\fR (::rbc)
+.RE
+.PP
+Returns an inclusive range of vector values\&. If first is less than or equal to last, values are
+returned in ascending index order\&. If first is greater than last, values are returned in descending
+index order\&. first and last are normal vector indices and may use forms such as end\&. This
+operation does not modify the vector\&.
+A list containing the selected vector values\&.
+.RS 4n
+\fBVECINST range\fP \fIfirst last\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+first
+First vector index\&.
+.TP
+last
+Last vector index\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+Example:
+.PP
+.RS 4n
+.nf
+x set {10 20 30 40 50}
+
+x range 1 3
+# -> 20\&.0 30\&.0 40\&.0
+
+x range 3 1
+# -> 40\&.0 30\&.0 20\&.0
+.fi
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns an inclusive range of vector values\&. If first is less than or equal to last, values are
+returned in ascending index order\&. If first is greater than last, values are returned in descending
+index order\&. first and last are normal vector indices and may use forms such as end\&. This
+operation does not modify the vector\&.
+A list containing the selected vector values\&.
+.PP
+.RS -4n
+\fBVECINST search\fR (::rbc)
+.RE
+.PP
+Searches the vector for values in a numeric range\&. With one numeric argument, returns matches equal to
+that value\&. With two numeric arguments, returns matches between min and max, inclusive within the
+implementation's floating-point tolerance\&. By default matching vector indices are returned\&. With -value,
+matching vector values are returned instead\&.
+.RS 4n
+\fBVECINST search\fP \fIvalue\fP
+.br
+\fBVECINST search\fP \fIvalue1 value2\fP
+.br
+\fBVECINST search\fP \fI-value value\fP
+.br
+\fBVECINST search\fP \fI-value value1 value2\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+-value
+Return values instead of indices\&.
+.TP
+max
+Optional upper bound\&.
+.TP
+min
+Lower bound, or the exact value when max is omitted\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+List of matching indices or values\&.
+.PP
+.RS -4n
+\fBVECINST seq\fR (::rbc)
+.RE
+.PP
+Generates an arithmetic sequence\&.
+.RS 4n
+\fBVECINST seq\fP \fIstart end ?step?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+end
+Numeric end value or literal end\&.
+.TP
+start
+First value\&.
+.TP
+step
+Optional increment\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+With a numeric end, the vector is resized to hold the generated sequence:
+.PP
+.RS 4n
+.nf
+x seq 0 10 0\&.5
+.fi
+.RE
+.PP
+If the second argument is the literal end, the vector keeps its current length and is filled starting at
+start using step:
+.PP
+.RS 4n
+.nf
+x length 100
+x seq 0 end 0\&.1
+.fi
+.RE
+.PP
+step defaults to 1\&.0 and must be non-zero\&. Sequence bounds and step must be finite\&.
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBVECINST set\fR (::rbc)
+.RE
+.PP
+Replaces the contents of the vector\&. list may be a Tcl list of numeric values or the name of another
+vector\&.
+.RS 4n
+\fBVECINST set\fP \fIlist\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+list
+Numeric list or vector name\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBVECINST sort\fR (::rbc)
+.RE
+.PP
+Sorts this vector\&. Additional vectors may be supplied\&. They must have the same length and are
+rearranged using the same permutation, allowing associated data to remain aligned\&. -reverse requests
+descending rather than ascending order\&.
+.RS 4n
+\fBVECINST sort\fP \fI?-reverse? ?vecName \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+-reverse
+Sort in descending order\&.
+.TP
+vecName
+Optional associated vector to reorder\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBVECINST split\fR (::rbc)
+.RE
+.PP
+Distributes values from this vector among destination vectors in round-robin order\&. The source vector
+length must be evenly divisible by the number of destination vectors\&. Existing destination contents are
+preserved and the split values are appended\&.
+.RS 4n
+\fBVECINST split\fP \fI?vecName \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+vecName
+Destination vector\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+For example, splitting:
+.PP
+.RS 4n
+.nf
+{1 10 2 20 3 30}
+.fi
+.RE
+.PP
+into vectors x and y appends {1 2 3} to x and {10 20 30} to y\&.
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBVECINST variable\fR (::rbc)
+.RE
+.PP
+Queries or changes the Tcl array variable associated with the vector\&. Supplying an empty variable name
+removes the current mapping\&.
+.RS 4n
+\fBVECINST variable\fP \fIvarName\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+varName
+Optional Tcl array variable name\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Name of the currently mapped variable, or an empty result # if no variable is mapped\&.
+.PP
+.RS -4n
+\fBvector\fR (::rbc)
+.RE
+.PP
+A
+command
+ensemble\&.
+.RS 4n
+\fBvector\fP \fIsubcommand \&.\&.\&.\fP
+.br
+.RE
+.PP
+\fBDescription\fR
+.PP
+The ensemble supports the following subcommands:
+.RS 4n
+.TP
+\fIcreate\fP
+Creates one or more vectors\&.
+.TP
+\fIdestroy\fP
+Destroys one or more vectors\&. Destroying a vector removes its associated vector instance command and Tcl array variable and notifies clients that use the vector\&.
+.TP
+\fIexpr\fP
+Evaluates a vector expression\&. expression may contain scalars, vectors, vector ranges, arithmetic operators, and the vector mathematical functions described in \fIVector expressions\fP\&. Unlike the instance \fI::rbc::VECINST::expr\fP operation, this command does not store the result in an existing vector\&.
+.TP
+\fInames\fP
+Returns the names of existing vectors\&. If pattern is supplied, only vector names matching the Tcl glob pattern are returned\&. A list of vector names\&.
+.RE
+.PP
+Refer to the documentation of each subcommand for details\&.
+.PP
+.RS -4n
+\fBvector create\fR (::rbc)
+.RE
+.PP
+Creates one or more vectors\&.
+.RS 4n
+\fBvector create\fP \fIvecName ?vecName \&.\&.\&.? ?switch value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+-command commandName
+Sets the Tcl command associated with the vector\&. This option can only be used when creating one vector\&.
+.TP
+-flush boolean
+If true, cached entries in the associated Tcl array are flushed whenever the vector is modified\&.
+.TP
+-length size
+Sets the initial length when no size is included in the vector specification\&. size must be zero or greater\&.
+.TP
+-variable varName
+Sets the Tcl array variable associated with the vector\&. This option can only be used when creating one vector\&.
+.TP
+-watchunset boolean
+If true, unsetting the complete associated # array variable destroys the vector\&.
+.TP
+vecName
+Vector name or vector specification\&. A specification may have the form name, name(size), or name(first:last)\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+Example:
+.PP
+.RS 4n
+.nf
+::rbc::vector create x
+::rbc::vector create y(100)
+::rbc::vector create z(-10:10)
+set v [::rbc::vector create #auto]
+.fi
+.RE
+.PP
+\fBReturn value\fR
+.PP
+The name of the last vector created\&.
+.PP
+.RS -4n
+\fBvector destroy\fR (::rbc)
+.RE
+.PP
+Destroys one or more vectors\&. Destroying a vector removes its associated vector instance command and Tcl
+array variable and notifies clients that use the vector\&.
+.RS 4n
+\fBvector destroy\fP \fIvecName ?vecName \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+vecName
+Name of a vector to destroy\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBvector expr\fR (::rbc)
+.RE
+.PP
+Evaluates a vector expression\&. expression may contain scalars, vectors, vector ranges, arithmetic
+operators, and the vector mathematical functions described in \fIVector expressions\fP\&. Unlike the instance
+\fI::rbc::VECINST::expr\fP operation, this command does not store the result in an existing vector\&.
+.RS 4n
+\fBvector expr\fP \fIexpression\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+expression
+Vector expression to evaluate\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+The scalar value or list of vector values produced by the expression\&.
+.PP
+.RS -4n
+\fBvector names\fR (::rbc)
+.RE
+.PP
+Returns the names of existing vectors\&. If pattern is supplied, only vector names matching the Tcl glob
+pattern are returned\&.
+A list of vector names\&.
+.RS 4n
+\fBvector names\fP \fIpattern\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+pattern
+Optional Tcl glob pattern\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the names of existing vectors\&. If pattern is supplied, only vector names matching the Tcl glob
+pattern are returned\&.
+A list of vector names\&.
+

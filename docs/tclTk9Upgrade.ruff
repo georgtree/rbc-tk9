@@ -1,0 +1,342 @@
+namespace eval TclTk9Upgrade {
+    variable _ruff_ns_opts {
+        -heading {Tcl/Tk9.0 upgrade}
+    }
+    variable _ruff_preamble {
+
+        ## Tcl/Tk 9 Modernization
+
+        The original Rbc codebase was designed around Tcl/Tk 8.x APIs and data-size assumptions. Although an earlier
+        port made Rbc build with Tcl/Tk 9, this fork has undergone a much broader modernization to use Tcl/Tk 9
+        interfaces correctly, remove obsolete compatibility infrastructure, improve 64-bit safety, and harden the
+        graphing code against numerical, memory, and platform-specific edge cases.
+
+        The modernization covers the following areas.
+
+        ### Tcl 9 command and object API
+
+        - Converted command implementations to the Tcl 9 object-based command interface.
+        - Updated command callbacks to use `Tcl_Size` argument counts where appropriate.
+        - Migrated command creation to `Tcl_CreateObjCommand2()` for Tcl 9 large-argument support.
+        - Replaced remaining old string-based command and result handling with `Tcl_Obj`-based APIs.
+        - Removed obsolete command parsing infrastructure inherited from the original BLT/Rbc implementation.
+        - Reworked operation dispatch tables and argument validation around object-based parsing.
+        - Improved const-correctness throughout Tcl-facing APIs and removed casts that previously discarded `const`.
+        - Removed several local copies or emulations of Tcl internal parsing structures and functions.
+
+        ### 64-bit and `Tcl_Size` support
+
+        A large part of the original code assumed that collection sizes, vector lengths and indexes fit in an
+        `int`. These assumptions were systematically removed.
+
+        - Converted vector lengths, indexes and capacities to `Tcl_Size`.
+        - Converted spline point counts and interpolation indexes to `Tcl_Size`.
+        - Converted graph element point indexes and data-index mappings to `Tcl_Size`.
+        - Converted error-bar index mappings and element-to-data mappings to `Tcl_Size`.
+        - Updated sorting, searching, closest-point and line-reduction code for large indexes.
+        - Updated chain/list traversal code where sizes or indexes could exceed the old 32-bit assumptions.
+        - Fixed vector binary-reading and vector mathematical operations for Tcl 9 size semantics.
+        - Added overflow checks before converting between `Tcl_Size`, `size_t`, integers and allocation sizes.
+        - Added allocation-overflow guards for dynamically sized arrays throughout graph, spline and vector code.
+
+        This removes a large class of silent truncation and overflow problems that were possible with large datasets.
+
+        ### Modern Tk option handling
+
+        The graph subsystem previously relied heavily on the legacy Tk configuration API. Most of it has been replaced
+        with the modern Tk option-table interface.
+
+        The following subsystems were migrated to `Tk_OptionSpec`/`Tk_OptionTable` based configuration:
+
+        - graph widgets
+        - axes
+        - legends
+        - grid
+        - crosshairs
+        - pens
+        - markers
+        - line elements
+        - stripchart elements
+        - bar elements
+        - PostScript options
+
+        Legacy configuration tables and their associated processing functions were removed after the new
+        implementations were activated.
+
+        Custom option types were added or rewritten for complex Rbc values such as:
+
+        - vectors
+        - axes
+        - pens
+        - tags
+        - element styles
+        - states
+        - coordinates
+        - padding and margins
+        - format strings
+        - graph-specific enumerations
+
+        Configuration processing was also made transactional where needed. Invalid option changes now preserve the
+        previous valid object state instead of leaving partially modified graph objects.
+
+        The EPS canvas item remains on `Tk_ConfigSpec`/`Tk_ConfigureWidget()` because the public Tk 9 `Tk_ItemType`
+        canvas-item interface still exposes the legacy configuration mechanism.
+
+        ### Graph object and resource lifetime
+
+        Configuration modernization exposed a number of ownership and rollback problems that were corrected at the same
+        time.
+
+        - Reworked creation, configuration and destruction paths for graph components.
+        - Improved rollback after failed configurations.
+        - Corrected ownership of dynamically allocated option values.
+        - Fixed temporary Tk image creation and destruction.
+        - Corrected resource cleanup for legends, markers, pens and elements.
+        - Hardened vector mathematical operations against ownership and aliasing problems.
+        - Removed dead initialization and cleanup paths inherited from the old configuration system.
+        - Removed substantial amounts of obsolete and unreachable compatibility code.
+
+        ### Axis and coordinate-system modernization
+
+        The axis implementation received extensive numerical and behavioral cleanup.
+
+        - Hardened coordinate mapping against integer overflow and extreme coordinate ranges.
+        - Widened intermediate geometry calculations before converting to Tk/X11 integer coordinates.
+        - Added safe handling for rotated-axis dimensions.
+        - Added validation for non-finite configuration values.
+        - Hardened generated tick calculations against invalid or degenerate ranges.
+        - Added guards against ill-defined tick spacing and numerical overflow.
+        - Corrected axis scrolling and `-scrollcommand` behavior.
+        - Corrected tick-label command callback handling.
+        - Improved option validation and rollback for axis configuration.
+        - Hardened user-controlled formatting options and removed unsafe formatting operations.
+
+        Logarithmic axes were also substantially corrected:
+
+        - Logarithmic axes now use well-defined positive-domain semantics.
+        - Invalid/non-positive points are excluded instead of being mapped through invalid logarithms.
+        - Line elements are split at invalid log-domain points instead of drawing across discontinuities.
+        - Bar charts correctly handle logarithmic axis mapping.
+        - Stacked bars were corrected for logarithmic scales.
+        - Extreme logarithmic ranges are handled more safely.
+        - Smoothing no longer bridges invalid log-domain gaps.
+
+        ### Line, bar and element processing
+
+        The internal representation and processing of graph elements were extensively updated.
+
+        - Modernized element option handling.
+        - Reworked vector association using object-based APIs.
+        - Updated element state, tag, pen, style and axis handling.
+        - Fixed error-bar mapping and data-index tracking.
+        - Corrected closest-point and closest-segment calculations.
+        - Corrected element binding/tag behavior.
+        - Fixed line-reduction routines and their index handling.
+        - Hardened construction of mapped point arrays and drawing traces.
+        - Replaced internal uses of narrow X11 rectangle structures where larger internal coordinates were required.
+        - Added explicit handling of `NaN` and infinite values in plotted data.
+        - Corrected bar handling of non-finite data.
+        - Corrected several element formatting and `-valueformat` paths.
+        - Fixed step-generation behavior.
+        - Corrected line `-trace` behavior.
+
+        ### Spline subsystem
+
+        The spline implementation received both Tcl 9 size conversion and significant correctness hardening.
+
+        - Converted point counts and indexes to `Tcl_Size`.
+        - Added allocation-overflow checks.
+        - Added explicit validation of finite source and interpolation coordinates.
+        - Added validation that source X coordinates satisfy the requirements of the selected spline algorithm.
+        - Made spline command execution transactional.
+        - Source vectors are now validated and copied before modifying the output vector.
+        - Fixed aliasing cases where the destination vector is also one of the input vectors.
+        - Prevented partial modification of interpolation arrays when validation fails.
+        - Improved const-correctness of spline input arrays.
+        - Corrected natural/quadratic spline behavior for descending screen coordinates.
+        - Added support for descending X axes and inverted graph axes without incorrectly rejecting otherwise valid
+          spline data.
+        - Added regression tests for invalid values, duplicate coordinates, aliasing and direction handling.
+
+        ### Vector subsystem
+
+        Vector handling was updated substantially beyond the minimum required for compilation with Tcl 9.
+
+        - Added Tcl 9 sized vector indexing.
+        - Converted sorting indexes to `Tcl_Size`.
+        - Removed global state from vector sorting operations.
+        - Updated vector arithmetic and mathematical operations.
+        - Corrected vector duplication and overwrite behavior.
+        - Corrected binary-read operations.
+        - Hardened allocation and capacity calculations.
+        - Improved parsing and const-correctness.
+        - Removed legacy parser dependencies.
+        - Improved ownership of temporary data used by mathematical operations.
+        - Added stricter handling of invalid and non-finite input.
+
+        ### Geometry, text and drawing
+
+        Many drawing routines inherited assumptions from old X11 APIs where coordinates and dimensions were commonly
+        stored in narrow integer types.
+
+        The modernization:
+
+        - widened internal geometry calculations;
+        - added checked conversion at native drawing boundaries;
+        - hardened rotated text and bounding-box calculations;
+        - updated text-layout processing;
+        - hardened shadows, halos and graph-layout coordinate arithmetic;
+        - corrected clipping and projection calculations;
+        - updated polygon, rectangle and region processing;
+        - added guards around fixed-size polygon and symbol allocations;
+        - corrected point-in-region and projection helpers;
+        - fixed drawing-boundary issues discovered on both Windows and Linux.
+
+        The intent is to keep high-precision or wide internal calculations for as long as possible and narrow them only
+        when calling APIs that inherently require integer coordinates.
+
+        ### Image and bitmap handling
+
+        The image-processing code was significantly updated for current Tk behavior.
+
+        - Updated photo-image access and processing.
+        - Corrected temporary image lifetime management.
+        - Updated bitmap rotation and scaling code.
+        - Unified bitmap-region operations across platforms.
+        - Corrected Unix image handling.
+        - Corrected Windows bitmap representation and mask generation.
+        - Hardened bitmap allocation and size calculations.
+        - Isolated native bitmap-handle access behind Rbc Windows helper functions.
+
+        ### PostScript output
+
+        The PostScript subsystem was modernized and hardened alongside the graph code.
+
+        - Updated PostScript option handling.
+        - Updated image generation and bitmap handling.
+        - Corrected PostScript writer behavior.
+        - Replaced unsafe formatting paths.
+        - Hardened formatting and buffer handling.
+        - Updated coordinate and size handling for the modernized graph structures.
+
+        ### Windows drawing backend
+
+        The Windows drawing implementation received a substantial cleanup.
+
+        Obsolete compatibility code and dead drawing implementations were removed, and the remaining native drawing
+        code was reorganized behind an Rbc-owned Windows abstraction.
+
+        Rbc code outside the Windows backend no longer accesses Tk's private Windows drawable structures directly.
+
+        Operations such as:
+
+        - acquiring and releasing a drawable `HDC`;
+        - extracting an `HBITMAP` from a Tk pixmap;
+        - wrapping an `HBITMAP` as a pixmap;
+        - wrapping a native `HDC`;
+        - mapping an `HWND` to the required drawable representation;
+        - setting Windows GDI raster operations
+
+        are now isolated behind `Rbc_Win*` helper functions.
+
+        This reduced the former widespread dependency on:
+
+        - `TkWinDrawable`
+        - `TkWinBitmap`
+        - `TkWinDC`
+        - `TkWinDCState`
+        - `TkWinGetDrawableDC()`
+        - `TkWinReleaseDrawableDC()`
+        - `TWD_*`
+
+        to a single Windows implementation unit, `rbcWinDraw.c`.
+
+        ### Remaining private Tk dependencies
+
+        Complete elimination of private Tk interfaces is currently not practical without either changes in Tk itself or
+        a significant drawing-backend redesign.
+
+        The remaining dependencies are deliberately isolated:
+
+        - `rbcText.c` uses Tk's internal `TkDrawAngledChars()` functionality for rotated text. Tk does not currently
+          provide equivalent functionality through its public API.
+        - `rbcWinDraw.c` uses `tkWinInt.h` to bridge between Tk drawables and native Windows GDI objects.
+
+        No other graph, element, image or general Rbc code needs to know about Tk's Windows-private drawable structures.
+
+        Compiler diagnostics caused by known attribute mismatches inside the private Tk headers are suppressed only
+        around those specific includes; warnings remain enabled for Rbc's own source code.
+
+        ### C safety and hardening
+
+        The Tcl/Tk 9 work also included a wider C safety audit.
+
+        - Replaced unsafe `sprintf()` usage with bounded or object-based formatting.
+        - Added validation for user-controlled numeric formatting strings.
+        - Added multiplication and allocation-overflow checks.
+        - Added range checks before narrowing floating-point or wide integer values.
+        - Added explicit handling of `NaN` and infinity.
+        - Removed undefined or questionable integer-overflow paths.
+        - Improved `const` correctness.
+        - Removed mutations through pointers to constant data.
+        - Fixed uninitialized index/data-mapping cases.
+        - Removed obsolete K&R-era and compatibility code where encountered.
+        - Removed dead `#ifdef notdef` and otherwise unreachable implementations where they no longer served a purpose.
+
+        ### Bindings and tags
+
+        The graph binding infrastructure was corrected and expanded during the migration.
+
+        - Fixed axis bindings.
+        - Fixed element bindings.
+        - Fixed marker bindings.
+        - Fixed legend binding activation.
+        - Corrected graph tag generation and lookup.
+        - Updated bind-tag handling after the option-system migration.
+        - Added regression tests for the affected binding paths.
+
+        ### Regression testing
+
+        The modernization was accompanied by a substantial expansion of the test suite.
+
+        New regression coverage was added for areas including:
+
+        - option configuration and rollback;
+        - axes and axis bindings;
+        - markers;
+        - element options and bindings;
+        - legends;
+        - vectors and vector arithmetic;
+        - splines;
+        - non-finite values;
+        - logarithmic axes;
+        - bar charts;
+        - PostScript output;
+        - bitmap and image handling;
+        - formatting options;
+        - error bars;
+        - closest-point calculations;
+        - coordinate and integer-boundary cases.
+
+        Manual graph tests and demos were also repeatedly exercised during the migration.
+
+        The resulting code has been tested on both Windows and Linux with Tcl/Tk 9.x.
+
+        ### Result
+
+        The current codebase is no longer merely an older Rbc implementation adjusted until it compiles with Tcl/Tk9.0.
+        The major subsystems now use Tcl/Tk 9-sized interfaces and modern Tk configuration machinery, large-dataset
+        index handling is based on `Tcl_Size`, numerical and allocation boundaries are explicitly checked, and the
+        unavoidable private Tk dependencies are confined to narrow platform/rendering interfaces.
+
+        The remaining use of legacy or private Tk interfaces is intentional:
+
+        - the EPS canvas item uses the configuration API still required by Tk's public custom-canvas-item interface;
+        - rotated text uses Tk's unsupported angled-text API;
+        - the Windows drawing adapter uses Tk's private drawable representation.
+
+        These remaining interfaces can only be removed cleanly if equivalent public Tk APIs become available or if the
+        relevant rendering code is replaced with an independent backend.
+
+    }
+}

@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>::rbc &#8212; rbc  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="vector command" href="rbc-rbc-vector.html" />
+    <link rel="prev" title="Tcl/Tk9.0 upgrade" href="rbc-TclTk9Upgrade.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rbc-rbc-vector.html" title="vector command"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rbc-TclTk9Upgrade.html" title="Tcl/Tk9.0 upgrade"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">::rbc</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="rbc">
+<span id="r-rbc"></span><span id="r-3a3arbc"></span><h1>::rbc<a class="headerlink" href="#rbc" title="Link to this heading">¶</a></h1>
+<section id="commands">
+<span id="r-rbc-commands"></span><span id="r-3a3arbcqzcommands"></span><h2>Commands<a class="headerlink" href="#commands" title="Link to this heading">¶</a></h2>
+<section id="spline">
+<span id="r-3a3arbc3a3aspline"></span><span id="index-1"></span><span id="index-0"></span><h3><code class="docutils literal notranslate"><span class="pre">spline</span></code><a class="headerlink" href="#spline" title="Link to this heading">¶</a></h3>
+<p>A
+command
+ensemble.</p>
+<pre class="literal-block"><strong>spline</strong> <em>subcommand ...</em></pre>
+<p class="rubric">Description</p>
+<p>The ensemble supports the following subcommands:</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#r-3a3arbc3a3aspline20natural"><span class="std std-ref">natural</span></a></dt><dd><p>Computes a natural cubic spline through the source vectors <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> and evaluates it at every X coordinate in <code class="docutils literal notranslate"><span class="pre">splX</span></code>. Evaluation coordinates may appear in any order. Coordinates outside the source X range are extrapolated using the cubic polynomial of the first or last spline interval.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aspline20quadratic"><span class="std std-ref">quadratic</span></a></dt><dd><p>Computes a shape-preserving quadratic spline through the source vectors <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> and evaluates it at every X coordinate in <code class="docutils literal notranslate"><span class="pre">splX</span></code>. Evaluation coordinates may appear in any order. Coordinates outside the source X range are extrapolated using the spline defined by the first or last source interval.</p>
+</dd>
+</dl>
+<p>Refer to the documentation of each subcommand for details.</p>
+</section>
+<section id="spline-natural">
+<span id="r-3a3arbc3a3aspline20natural"></span><span id="index-3"></span><span id="index-2"></span><h3><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">natural</span></code><a class="headerlink" href="#spline-natural" title="Link to this heading">¶</a></h3>
+<p>Computes a natural cubic spline through the source vectors <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> and evaluates it at every X
+coordinate in <code class="docutils literal notranslate"><span class="pre">splX</span></code>. Evaluation coordinates may appear in any order. Coordinates outside the source
+X range are extrapolated using the cubic polynomial of the first or last spline interval.</p>
+<pre class="literal-block"><strong>spline natural</strong> <em>x y splX splY</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">x</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Vector containing the finite, strictly increasing X coordinates of the source points.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">y</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Vector containing the finite Y coordinates of the source points; it must have the same length as <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">splX</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Vector containing finite X coordinates at which the spline is evaluated; values may be in any order and may lie outside the source X range.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">splY</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Vector in which the interpolated or extrapolated Y coordinates are stored; it is created or resized as necessary.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Nothing.</p>
+</section>
+<section id="spline-quadratic">
+<span id="r-3a3arbc3a3aspline20quadratic"></span><span id="index-5"></span><span id="index-4"></span><h3><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">quadratic</span></code><a class="headerlink" href="#spline-quadratic" title="Link to this heading">¶</a></h3>
+<p>Computes a shape-preserving quadratic spline through the source vectors <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> and evaluates it at
+every X coordinate in <code class="docutils literal notranslate"><span class="pre">splX</span></code>. Evaluation coordinates may appear in any order. Coordinates outside the
+source X range are extrapolated using the spline defined by the first or last source interval.</p>
+<pre class="literal-block"><strong>spline quadratic</strong> <em>x y splX splY</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">x</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Vector containing the finite, strictly increasing X coordinates of the source points.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">y</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Vector containing the finite Y coordinates of the source points; it must have the same length as <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">splX</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Vector containing finite X coordinates at which the spline is evaluated; values may be in any order and may lie outside the source X range.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">splY</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Vector in which the interpolated or extrapolated Y coordinates are stored; it is created or resized as necessary.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Nothing.</p>
+</section>
+<section id="vecinst">
+<span id="r-3a3arbc3a3avecinst"></span><span id="index-7"></span><span id="index-6"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span></code><a class="headerlink" href="#vecinst" title="Link to this heading">¶</a></h3>
+<p>A
+command
+ensemble.</p>
+<pre class="literal-block"><strong>VECINST</strong> <em>subcommand ...</em></pre>
+<p class="rubric">Description</p>
+<p>The ensemble supports the following subcommands:</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst202a"><span class="std std-ref">*</span></a></dt><dd><p>Multiplies every value of the vector by a scalar or by the corresponding value of another vector. <code class="docutils literal notranslate"><span class="pre">list</span></code> may name another vector or contain a scalar value. If another vector is used, it must have the same number of selected values.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst202b"><span class="std std-ref">+</span></a></dt><dd><p>Adds a scalar or another vector component-by-component.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst202d"><span class="std std-ref">-</span></a></dt><dd><p>Subtracts a scalar or another vector component-by-component.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst202f"><span class="std std-ref">/</span></a></dt><dd><p>Divides every vector value by a scalar or by the corresponding value of another vector.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20append"><span class="std std-ref">append</span></a></dt><dd><p>Appends values to the vector. Each item may be another vector or a Tcl list of numeric values.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20binread"><span class="std std-ref">binread</span></a></dt><dd><p>Reads native binary numeric values from a Tcl channel into the vector.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20clear"><span class="std std-ref">clear</span></a></dt><dd><p>Clears cached elements of the Tcl array associated with the vector. This does not remove values from the vector. It can be used to release memory occupied by cached array-index entries.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20delete"><span class="std std-ref">delete</span></a></dt><dd><p>Deletes one or more indices or index ranges from the vector. Remaining values are compacted after the deleted values are removed.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20dup"><span class="std std-ref">dup</span></a></dt><dd><p>Copies this vector into another vector. The destination vector is created if necessary. If it already exists, its contents are replaced.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20expr"><span class="std std-ref">expr</span></a></dt><dd><p>Evaluates <code class="docutils literal notranslate"><span class="pre">expression</span></code> and stores the result in this vector.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20index"><span class="std std-ref">index</span></a></dt><dd><p>Reads or writes a vector value or range.  With no value argument, returns the value or values selected by <code class="docutils literal notranslate"><span class="pre">index</span></code>. With <code class="docutils literal notranslate"><span class="pre">value</span></code>, assigns that numeric value to every element selected by <code class="docutils literal notranslate"><span class="pre">index</span></code>. The special <code class="docutils literal notranslate"><span class="pre">++end</span></code> index may be used when setting a value to append one new element.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20length"><span class="std std-ref">length</span></a></dt><dd><p>Queries or changes the vector length. If <code class="docutils literal notranslate"><span class="pre">newSize</span></code> is supplied, the vector is resized. New elements created by enlarging the vector are initialized by the vector resizing machinery.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20merge"><span class="std std-ref">merge</span></a></dt><dd><p>Interleaves values from two or more vectors and stores the result in this vector. All input vectors must contain the same number of selected values.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20normalize"><span class="std std-ref">normalize</span></a></dt><dd><p>Normalizes vector values to the range 0.0 through 1.0 using: <code class="docutils literal notranslate"><span class="pre">(value</span> <span class="pre">-</span> <span class="pre">minimum)</span> <span class="pre">/</span> <span class="pre">(maximum</span> <span class="pre">-</span> <span class="pre">minimum)</span></code> With no destination vector, returns the normalized values as a Tcl list. If <code class="docutils literal notranslate"><span class="pre">vecName</span></code> is supplied, that vector is created or resized and the normalized values are stored there.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20offset"><span class="std std-ref">offset</span></a></dt><dd><p>Queries or changes the external index offset of the vector. The offset changes the numeric indices through which the vector is addressed without moving the underlying data.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20populate"><span class="std std-ref">populate</span></a></dt><dd><p>Creates a more densely sampled vector using linear interpolation.  <code class="docutils literal notranslate"><span class="pre">density</span></code> intermediate values are inserted between every adjacent pair of source values. <code class="docutils literal notranslate"><span class="pre">density</span></code> must be at least 1. The destination may be the same vector as the source.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20random"><span class="std std-ref">random</span></a></dt><dd><p>Fills the vector with pseudo-random values in the range # <code class="docutils literal notranslate"><span class="pre">[0.0,</span> <span class="pre">1.0)</span></code>. The current vector length is preserved. Each existing component is replaced by a newly generated pseudo-random value. An empty vector remains empty.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20range"><span class="std std-ref">range</span></a></dt><dd><p>Returns an inclusive range of vector values. If <code class="docutils literal notranslate"><span class="pre">first</span></code> is less than or equal to <code class="docutils literal notranslate"><span class="pre">last</span></code>, values are returned in ascending index order. If <code class="docutils literal notranslate"><span class="pre">first</span></code> is greater than <code class="docutils literal notranslate"><span class="pre">last</span></code>, values are returned in descending index order. <code class="docutils literal notranslate"><span class="pre">first</span></code> and <code class="docutils literal notranslate"><span class="pre">last</span></code> are normal vector indices and may use forms such as <code class="docutils literal notranslate"><span class="pre">end</span></code>. This operation does not modify the vector. A list containing the selected vector values.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20search"><span class="std std-ref">search</span></a></dt><dd><p>Searches the vector for values in a numeric range. With one numeric argument, returns matches equal to that value. With two numeric arguments, returns matches between <code class="docutils literal notranslate"><span class="pre">min</span></code> and <code class="docutils literal notranslate"><span class="pre">max</span></code>, inclusive within the implementation’s floating-point tolerance. By default matching vector indices are returned. With <code class="docutils literal notranslate"><span class="pre">-value</span></code>, matching vector values are returned instead.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20seq"><span class="std std-ref">seq</span></a></dt><dd><p>Generates an arithmetic sequence.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20set"><span class="std std-ref">set</span></a></dt><dd><p>Replaces the contents of the vector. <code class="docutils literal notranslate"><span class="pre">list</span></code> may be a Tcl list of numeric values or the name of another vector.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20sort"><span class="std std-ref">sort</span></a></dt><dd><p>Sorts this vector. Additional vectors may be supplied. They must have the same length and are rearranged using the same permutation, allowing associated data to remain aligned. <code class="docutils literal notranslate"><span class="pre">-reverse</span></code> requests descending rather than ascending order.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20split"><span class="std std-ref">split</span></a></dt><dd><p>Distributes values from this vector among destination vectors in round-robin order. The source vector length must be evenly divisible by the number of destination vectors. Existing destination contents are preserved and the split values are appended.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20variable"><span class="std std-ref">variable</span></a></dt><dd><p>Queries or changes the Tcl array variable associated with the vector. Supplying an empty variable name removes the current mapping.</p>
+</dd>
+</dl>
+<p>Refer to the documentation of each subcommand for details.</p>
+</section>
+<section id="r-3a3arbc3a3avecinst202a">
+<span id="index-9"></span><span id="index-8"></span><span id="id1"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">*</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202a" title="Link to this heading">¶</a></h3>
+<p>Multiplies every value of the vector by a scalar or by the corresponding value of another vector.
+<code class="docutils literal notranslate"><span class="pre">list</span></code> may name another vector or contain a scalar value. If another vector is used, it must have the same
+number of selected values.</p>
+<pre class="literal-block"><strong>VECINST *</strong> <em>list</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">list</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Vector name or scalar value.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>A list containing the resulting values. The vector itself # is not modified.</p>
+</section>
+<section id="r-3a3arbc3a3avecinst202b">
+<span id="index-11"></span><span id="index-10"></span><span id="id2"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">+</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202b" title="Link to this heading">¶</a></h3>
+<p>Adds a scalar or another vector component-by-component.</p>
+<pre class="literal-block"><strong>VECINST +</strong> <em>list</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">list</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Vector name or scalar value.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>A list containing the resulting values. The vector itself # is not modified.</p>
+</section>
+<section id="r-3a3arbc3a3avecinst202d">
+<span id="index-13"></span><span id="index-12"></span><span id="id3"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">-</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202d" title="Link to this heading">¶</a></h3>
+<p>Subtracts a scalar or another vector component-by-component.</p>
+<pre class="literal-block"><strong>VECINST -</strong> <em>list</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">list</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Vector name or scalar value.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>A list containing the resulting values. The vector itself # is not modified.</p>
+</section>
+<section id="r-3a3arbc3a3avecinst202f">
+<span id="index-15"></span><span id="index-14"></span><span id="id4"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">/</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202f" title="Link to this heading">¶</a></h3>
+<p>Divides every vector value by a scalar or by the corresponding value of another vector.</p>
+<pre class="literal-block"><strong>VECINST /</strong> <em>list</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">list</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Vector name or scalar value.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>A list containing the resulting values. The vector itself # is not modified.</p>
+</section>
+<section id="vecinst-append">
+<span id="r-3a3arbc3a3avecinst20append"></span><span id="index-17"></span><span id="index-16"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">append</span></code><a class="headerlink" href="#vecinst-append" title="Link to this heading">¶</a></h3>
+<p>Appends values to the vector. Each item may be another vector or a Tcl list of numeric values.</p>
+<pre class="literal-block"><strong>VECINST append</strong> <em>item ?item ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">item</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Vector name or list of numeric values.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Nothing.</p>
+</section>
+<section id="vecinst-binread">
+<span id="r-3a3arbc3a3avecinst20binread"></span><span id="index-19"></span><span id="index-18"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">binread</span></code><a class="headerlink" href="#vecinst-binread" title="Link to this heading">¶</a></h3>
+<p>Reads native binary numeric values from a Tcl channel into the vector.</p>
+<pre class="literal-block"><strong>VECINST binread</strong> <em>channel ?numValues? ?-at index? ?-format format? ?-swap?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-at</span> <span class="pre">index</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Starts storing values at <code class="docutils literal notranslate"><span class="pre">index</span></code>. Existing values are # overwritten from that position. Without <code class="docutils literal notranslate"><span class="pre">-at</span></code>, values # are appended to the vector.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-format</span> <span class="pre">format</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Native numeric input representation. Formats have the form <code class="docutils literal notranslate"><span class="pre">i#</span></code>, <code class="docutils literal notranslate"><span class="pre">u#</span></code>, <code class="docutils literal notranslate"><span class="pre">r#</span></code>, or <code class="docutils literal notranslate"><span class="pre">f#</span></code>, where <code class="docutils literal notranslate"><span class="pre">#</span></code> is # the native type size in bytes. The default is the # native C <code class="docutils literal notranslate"><span class="pre">double</span></code> representation.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-swap</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reverses the byte order of each input value.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">channel</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Name of a readable Tcl channel.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">numValues</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional maximum number of values to read. A value of zero, or omission of the argument, reads until EOF.</p>
+</dd>
+</dl>
+<p class="rubric">Description</p>
+<p>The channel is temporarily placed in binary translation mode and its previous translation setting is
+restored before the command returns. A read that ends in the middle of a binary value is an error.</p>
+<p class="rubric">Return value</p>
+<p>Number of complete values read.</p>
+</section>
+<section id="vecinst-clear">
+<span id="r-3a3arbc3a3avecinst20clear"></span><span id="index-21"></span><span id="index-20"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">clear</span></code><a class="headerlink" href="#vecinst-clear" title="Link to this heading">¶</a></h3>
+<p>Clears cached elements of the Tcl array associated with the vector. This does not remove values from the
+vector. It can be used to release memory occupied by cached array-index entries.</p>
+<pre class="literal-block"><strong>VECINST clear</strong></pre>
+<p class="rubric">Return value</p>
+<p>Nothing.</p>
+</section>
+<section id="vecinst-delete">
+<span id="r-3a3arbc3a3avecinst20delete"></span><span id="index-23"></span><span id="index-22"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">delete</span></code><a class="headerlink" href="#vecinst-delete" title="Link to this heading">¶</a></h3>
+<p>Deletes one or more indices or index ranges from the vector. Remaining values are compacted after the
+deleted values are removed.</p>
+<pre class="literal-block"><strong>VECINST delete</strong> <em>index ?index ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">index</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Vector index or colon-separated index range.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Nothing.</p>
+</section>
+<section id="vecinst-dup">
+<span id="r-3a3arbc3a3avecinst20dup"></span><span id="index-25"></span><span id="index-24"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">dup</span></code><a class="headerlink" href="#vecinst-dup" title="Link to this heading">¶</a></h3>
+<p>Copies this vector into another vector. The destination vector is created if necessary. If it already
+exists, its contents are replaced.</p>
+<pre class="literal-block"><strong>VECINST dup</strong> <em>vecName</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">vecName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Destination vector.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Nothing.</p>
+</section>
+<section id="vecinst-expr">
+<span id="r-3a3arbc3a3avecinst20expr"></span><span id="index-27"></span><span id="index-26"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">expr</span></code><a class="headerlink" href="#vecinst-expr" title="Link to this heading">¶</a></h3>
+<p>Evaluates <code class="docutils literal notranslate"><span class="pre">expression</span></code> and stores the result in this vector.</p>
+<pre class="literal-block"><strong>VECINST expr</strong> <em>expression</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">expression</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Vector expression.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Nothing.</p>
+</section>
+<section id="vecinst-index">
+<span id="r-3a3arbc3a3avecinst20index"></span><span id="index-29"></span><span id="index-28"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">index</span></code><a class="headerlink" href="#vecinst-index" title="Link to this heading">¶</a></h3>
+<p>Reads or writes a vector value or range.  With no value argument, returns the value or values selected by
+<code class="docutils literal notranslate"><span class="pre">index</span></code>. With <code class="docutils literal notranslate"><span class="pre">value</span></code>, assigns that numeric value to every element selected by <code class="docutils literal notranslate"><span class="pre">index</span></code>. The special
+<code class="docutils literal notranslate"><span class="pre">++end</span></code> index may be used when setting a value to append one new element.</p>
+<pre class="literal-block"><strong>VECINST index</strong> <em>index</em>
+<strong>VECINST index</strong> <em>index value</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">index</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Vector index or range.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">value</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional numeric value.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Selected value(s) when querying, or the assigned value when setting.</p>
+</section>
+<section id="vecinst-length">
+<span id="r-3a3arbc3a3avecinst20length"></span><span id="index-31"></span><span id="index-30"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">length</span></code><a class="headerlink" href="#vecinst-length" title="Link to this heading">¶</a></h3>
+<p>Queries or changes the vector length. If <code class="docutils literal notranslate"><span class="pre">newSize</span></code> is supplied, the vector is resized. New elements
+created by enlarging the vector are initialized by the vector resizing machinery.</p>
+<pre class="literal-block"><strong>VECINST length</strong> <em>newSize</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">newSize</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>New non-negative vector length.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Current vector length.</p>
+</section>
+<section id="vecinst-merge">
+<span id="r-3a3arbc3a3avecinst20merge"></span><span id="index-33"></span><span id="index-32"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">merge</span></code><a class="headerlink" href="#vecinst-merge" title="Link to this heading">¶</a></h3>
+<p>Interleaves values from two or more vectors and stores the result in this vector. All input vectors must
+contain the same number of selected values.</p>
+<pre class="literal-block"><strong>VECINST merge</strong> <em>vecName ?vecName ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">vecName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Input vector.</p>
+</dd>
+</dl>
+<p class="rubric">Description</p>
+<p>For vectors <code class="docutils literal notranslate"><span class="pre">a={1</span> <span class="pre">2}</span></code> and <code class="docutils literal notranslate"><span class="pre">b={10</span> <span class="pre">20}</span></code>, merging <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">b</span></code> produces:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">1</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">20</span>
+</pre></div>
+</div>
+<p class="rubric">Return value</p>
+<p>Nothing.</p>
+</section>
+<section id="vecinst-normalize">
+<span id="r-3a3arbc3a3avecinst20normalize"></span><span id="index-35"></span><span id="index-34"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">normalize</span></code><a class="headerlink" href="#vecinst-normalize" title="Link to this heading">¶</a></h3>
+<p>Normalizes vector values to the range 0.0 through 1.0 using: <code class="docutils literal notranslate"><span class="pre">(value</span> <span class="pre">-</span> <span class="pre">minimum)</span> <span class="pre">/</span> <span class="pre">(maximum</span> <span class="pre">-</span> <span class="pre">minimum)</span></code>
+With no destination vector, returns the normalized values as a Tcl list. If <code class="docutils literal notranslate"><span class="pre">vecName</span></code> is supplied, that
+vector is created or resized and the normalized values are stored there.</p>
+<pre class="literal-block"><strong>VECINST normalize</strong> <em>vecName</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">vecName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional destination vector.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Normalized list when no destination is specified; otherwise # nothing.</p>
+</section>
+<section id="vecinst-offset">
+<span id="r-3a3arbc3a3avecinst20offset"></span><span id="index-37"></span><span id="index-36"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">offset</span></code><a class="headerlink" href="#vecinst-offset" title="Link to this heading">¶</a></h3>
+<p>Queries or changes the external index offset of the vector. The offset changes the numeric indices
+through which the vector is addressed without moving the underlying data.</p>
+<pre class="literal-block"><strong>VECINST offset</strong> <em>offset</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">offset</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>New Tcl-sized integer offset.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Current offset.</p>
+</section>
+<section id="vecinst-populate">
+<span id="r-3a3arbc3a3avecinst20populate"></span><span id="index-39"></span><span id="index-38"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">populate</span></code><a class="headerlink" href="#vecinst-populate" title="Link to this heading">¶</a></h3>
+<p>Creates a more densely sampled vector using linear interpolation.  <code class="docutils literal notranslate"><span class="pre">density</span></code> intermediate values are
+inserted between every adjacent pair of source values. <code class="docutils literal notranslate"><span class="pre">density</span></code> must be at least 1. The destination may
+be the same vector as the source.</p>
+<pre class="literal-block"><strong>VECINST populate</strong> <em>vecName density</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">vecName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Destination vector.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">density</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Number of interpolated values inserted between each pair.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Nothing.</p>
+</section>
+<section id="vecinst-random">
+<span id="r-3a3arbc3a3avecinst20random"></span><span id="index-41"></span><span id="index-40"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">random</span></code><a class="headerlink" href="#vecinst-random" title="Link to this heading">¶</a></h3>
+<p>Fills the vector with pseudo-random values in the range # <code class="docutils literal notranslate"><span class="pre">[0.0,</span> <span class="pre">1.0)</span></code>. The current vector length is
+preserved. Each existing component is replaced by a newly generated pseudo-random value. An empty vector
+remains empty.</p>
+<pre class="literal-block"><strong>VECINST random</strong></pre>
+<p class="rubric">Description</p>
+<p>Example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>length<span class="w"> </span><span class="mi">100</span>
+<span class="nv">x</span><span class="w"> </span>random
+</pre></div>
+</div>
+<p class="rubric">Return value</p>
+<p>Nothing.</p>
+</section>
+<section id="vecinst-range">
+<span id="r-3a3arbc3a3avecinst20range"></span><span id="index-43"></span><span id="index-42"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">range</span></code><a class="headerlink" href="#vecinst-range" title="Link to this heading">¶</a></h3>
+<p>Returns an inclusive range of vector values. If <code class="docutils literal notranslate"><span class="pre">first</span></code> is less than or equal to <code class="docutils literal notranslate"><span class="pre">last</span></code>, values are
+returned in ascending index order. If <code class="docutils literal notranslate"><span class="pre">first</span></code> is greater than <code class="docutils literal notranslate"><span class="pre">last</span></code>, values are returned in descending
+index order. <code class="docutils literal notranslate"><span class="pre">first</span></code> and <code class="docutils literal notranslate"><span class="pre">last</span></code> are normal vector indices and may use forms such as <code class="docutils literal notranslate"><span class="pre">end</span></code>. This
+operation does not modify the vector.
+A list containing the selected vector values.</p>
+<pre class="literal-block"><strong>VECINST range</strong> <em>first last</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">first</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>First vector index.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">last</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Last vector index.</p>
+</dd>
+</dl>
+<p class="rubric">Description</p>
+<p>Example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">10</span><span class="w"> </span><span class="mi">20</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="mi">40</span><span class="w"> </span><span class="mi">50</span><span class="k">}</span>
+
+<span class="nv">x</span><span class="w"> </span>range<span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">3</span>
+<span class="c"># -&gt; 20.0 30.0 40.0</span>
+
+<span class="nv">x</span><span class="w"> </span>range<span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">1</span>
+<span class="c"># -&gt; 40.0 30.0 20.0</span>
+</pre></div>
+</div>
+<p class="rubric">Return value</p>
+<p>Returns an inclusive range of vector values. If <code class="docutils literal notranslate"><span class="pre">first</span></code> is less than or equal to <code class="docutils literal notranslate"><span class="pre">last</span></code>, values are
+returned in ascending index order. If <code class="docutils literal notranslate"><span class="pre">first</span></code> is greater than <code class="docutils literal notranslate"><span class="pre">last</span></code>, values are returned in descending
+index order. <code class="docutils literal notranslate"><span class="pre">first</span></code> and <code class="docutils literal notranslate"><span class="pre">last</span></code> are normal vector indices and may use forms such as <code class="docutils literal notranslate"><span class="pre">end</span></code>. This
+operation does not modify the vector.
+A list containing the selected vector values.</p>
+</section>
+<section id="vecinst-search">
+<span id="r-3a3arbc3a3avecinst20search"></span><span id="index-45"></span><span id="index-44"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">search</span></code><a class="headerlink" href="#vecinst-search" title="Link to this heading">¶</a></h3>
+<p>Searches the vector for values in a numeric range. With one numeric argument, returns matches equal to
+that value. With two numeric arguments, returns matches between <code class="docutils literal notranslate"><span class="pre">min</span></code> and <code class="docutils literal notranslate"><span class="pre">max</span></code>, inclusive within the
+implementation’s floating-point tolerance. By default matching vector indices are returned. With <code class="docutils literal notranslate"><span class="pre">-value</span></code>,
+matching vector values are returned instead.</p>
+<pre class="literal-block"><strong>VECINST search</strong> <em>value</em>
+<strong>VECINST search</strong> <em>value1 value2</em>
+<strong>VECINST search</strong> <em>-value value</em>
+<strong>VECINST search</strong> <em>-value value1 value2</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-value</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Return values instead of indices.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">max</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional upper bound.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">min</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Lower bound, or the exact value when <code class="docutils literal notranslate"><span class="pre">max</span></code> is omitted.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>List of matching indices or values.</p>
+</section>
+<section id="vecinst-seq">
+<span id="r-3a3arbc3a3avecinst20seq"></span><span id="index-47"></span><span id="index-46"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">seq</span></code><a class="headerlink" href="#vecinst-seq" title="Link to this heading">¶</a></h3>
+<p>Generates an arithmetic sequence.</p>
+<pre class="literal-block"><strong>VECINST seq</strong> <em>start end ?step?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">end</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Numeric end value or literal <code class="docutils literal notranslate"><span class="pre">end</span></code>.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">start</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>First value.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">step</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional increment.</p>
+</dd>
+</dl>
+<p class="rubric">Description</p>
+<p>With a numeric <code class="docutils literal notranslate"><span class="pre">end</span></code>, the vector is resized to hold the generated sequence:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>seq<span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="mf">0.5</span>
+</pre></div>
+</div>
+<p>If the second argument is the literal <code class="docutils literal notranslate"><span class="pre">end</span></code>, the vector keeps its current length and is filled starting at
+<code class="docutils literal notranslate"><span class="pre">start</span></code> using <code class="docutils literal notranslate"><span class="pre">step</span></code>:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>length<span class="w"> </span><span class="mi">100</span>
+<span class="nv">x</span><span class="w"> </span>seq<span class="w"> </span><span class="mi">0</span><span class="w"> </span>end<span class="w"> </span><span class="mf">0.1</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">step</span></code> defaults to 1.0 and must be non-zero. Sequence bounds and step must be finite.</p>
+<p class="rubric">Return value</p>
+<p>Nothing.</p>
+</section>
+<section id="vecinst-set">
+<span id="r-3a3arbc3a3avecinst20set"></span><span id="index-49"></span><span id="index-48"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">set</span></code><a class="headerlink" href="#vecinst-set" title="Link to this heading">¶</a></h3>
+<p>Replaces the contents of the vector. <code class="docutils literal notranslate"><span class="pre">list</span></code> may be a Tcl list of numeric values or the name of another
+vector.</p>
+<pre class="literal-block"><strong>VECINST set</strong> <em>list</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">list</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Numeric list or vector name.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Nothing.</p>
+</section>
+<section id="vecinst-sort">
+<span id="r-3a3arbc3a3avecinst20sort"></span><span id="index-51"></span><span id="index-50"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">sort</span></code><a class="headerlink" href="#vecinst-sort" title="Link to this heading">¶</a></h3>
+<p>Sorts this vector. Additional vectors may be supplied. They must have the same length and are
+rearranged using the same permutation, allowing associated data to remain aligned. <code class="docutils literal notranslate"><span class="pre">-reverse</span></code> requests
+descending rather than ascending order.</p>
+<pre class="literal-block"><strong>VECINST sort</strong> <em>?-reverse? ?vecName ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-reverse</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sort in descending order.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">vecName</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional associated vector to reorder.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Nothing.</p>
+</section>
+<section id="vecinst-split">
+<span id="r-3a3arbc3a3avecinst20split"></span><span id="index-53"></span><span id="index-52"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">split</span></code><a class="headerlink" href="#vecinst-split" title="Link to this heading">¶</a></h3>
+<p>Distributes values from this vector among destination vectors in round-robin order. The source vector
+length must be evenly divisible by the number of destination vectors. Existing destination contents are
+preserved and the split values are appended.</p>
+<pre class="literal-block"><strong>VECINST split</strong> <em>?vecName ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">vecName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Destination vector.</p>
+</dd>
+</dl>
+<p class="rubric">Description</p>
+<p>For example, splitting:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">20</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">30</span><span class="k">}</span>
+</pre></div>
+</div>
+<p>into vectors <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> appends <code class="docutils literal notranslate"><span class="pre">{1</span> <span class="pre">2</span> <span class="pre">3}</span></code> to <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">{10</span> <span class="pre">20</span> <span class="pre">30}</span></code> to <code class="docutils literal notranslate"><span class="pre">y</span></code>.</p>
+<p class="rubric">Return value</p>
+<p>Nothing.</p>
+</section>
+<section id="vecinst-variable">
+<span id="r-3a3arbc3a3avecinst20variable"></span><span id="index-55"></span><span id="index-54"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">variable</span></code><a class="headerlink" href="#vecinst-variable" title="Link to this heading">¶</a></h3>
+<p>Queries or changes the Tcl array variable associated with the vector. Supplying an empty variable name
+removes the current mapping.</p>
+<pre class="literal-block"><strong>VECINST variable</strong> <em>varName</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">varName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional Tcl array variable name.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Name of the currently mapped variable, or an empty result # if no variable is mapped.</p>
+</section>
+<section id="vector">
+<span id="r-3a3arbc3a3avector"></span><span id="index-57"></span><span id="index-56"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span></code><a class="headerlink" href="#vector" title="Link to this heading">¶</a></h3>
+<p>A
+command
+ensemble.</p>
+<pre class="literal-block"><strong>vector</strong> <em>subcommand ...</em></pre>
+<p class="rubric">Description</p>
+<p>The ensemble supports the following subcommands:</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#r-3a3arbc3a3avector20create"><span class="std std-ref">create</span></a></dt><dd><p>Creates one or more vectors.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avector20destroy"><span class="std std-ref">destroy</span></a></dt><dd><p>Destroys one or more vectors. Destroying a vector removes its associated vector instance command and Tcl array variable and notifies clients that use the vector.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avector20expr"><span class="std std-ref">expr</span></a></dt><dd><p>Evaluates a vector expression. <code class="docutils literal notranslate"><span class="pre">expression</span></code> may contain scalars, vectors, vector ranges, arithmetic operators, and the vector mathematical functions described in <a class="reference internal" href="rbc-rbc-VECINST.html#r-3a3arbc3a3avecinstqzvector20expressions"><span class="std std-ref">Vector expressions</span></a>. Unlike the instance [::rbc::VECINST::expr] operation, this command does not store the result in an existing vector.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avector20names"><span class="std std-ref">names</span></a></dt><dd><p>Returns the names of existing vectors. If <code class="docutils literal notranslate"><span class="pre">pattern</span></code> is supplied, only vector names matching the Tcl glob pattern are returned. A list of vector names.</p>
+</dd>
+</dl>
+<p>Refer to the documentation of each subcommand for details.</p>
+</section>
+<section id="vector-create">
+<span id="r-3a3arbc3a3avector20create"></span><span id="index-59"></span><span id="index-58"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">create</span></code><a class="headerlink" href="#vector-create" title="Link to this heading">¶</a></h3>
+<p>Creates one or more vectors.</p>
+<pre class="literal-block"><strong>vector create</strong> <em>vecName ?vecName ...? ?switch value ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-command</span> <span class="pre">commandName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sets the Tcl command associated with the vector. This option can only be used when creating one vector.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-flush</span> <span class="pre">boolean</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>If true, cached entries in the associated Tcl array are flushed whenever the vector is modified.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-length</span> <span class="pre">size</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sets the initial length when no size is included in the vector specification. <code class="docutils literal notranslate"><span class="pre">size</span></code> must be zero or greater.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-variable</span> <span class="pre">varName</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Sets the Tcl array variable associated with the vector. This option can only be used when creating one vector.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-watchunset</span> <span class="pre">boolean</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>If true, unsetting the complete associated # array variable destroys the vector.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">vecName</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Vector name or vector specification. A specification may have the form <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">name(size)</span></code>, or <code class="docutils literal notranslate"><span class="pre">name(first:last)</span></code>.</p>
+</dd>
+</dl>
+<p class="rubric">Description</p>
+<p>Example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>x
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>y<span class="k">(</span><span class="nv">100</span><span class="k">)</span>
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>z<span class="k">(</span><span class="nv">-10</span><span class="o">:</span><span class="mi">10</span><span class="k">)</span>
+<span class="k">set</span><span class="w"> </span>v<span class="w"> </span><span class="k">[</span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span><span class="err">#</span>auto<span class="k">]</span>
+</pre></div>
+</div>
+<p class="rubric">Return value</p>
+<p>The name of the last vector created.</p>
+</section>
+<section id="vector-destroy">
+<span id="r-3a3arbc3a3avector20destroy"></span><span id="index-61"></span><span id="index-60"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">destroy</span></code><a class="headerlink" href="#vector-destroy" title="Link to this heading">¶</a></h3>
+<p>Destroys one or more vectors. Destroying a vector removes its associated vector instance command and Tcl
+array variable and notifies clients that use the vector.</p>
+<pre class="literal-block"><strong>vector destroy</strong> <em>vecName ?vecName ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">vecName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of a vector to destroy.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Nothing.</p>
+</section>
+<section id="vector-expr">
+<span id="r-3a3arbc3a3avector20expr"></span><span id="index-63"></span><span id="index-62"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">expr</span></code><a class="headerlink" href="#vector-expr" title="Link to this heading">¶</a></h3>
+<p>Evaluates a vector expression. <code class="docutils literal notranslate"><span class="pre">expression</span></code> may contain scalars, vectors, vector ranges, arithmetic
+operators, and the vector mathematical functions described in <a class="reference internal" href="rbc-rbc-VECINST.html#r-3a3arbc3a3avecinstqzvector20expressions"><span class="std std-ref">Vector expressions</span></a>. Unlike the instance
+[::rbc::VECINST::expr] operation, this command does not store the result in an existing vector.</p>
+<pre class="literal-block"><strong>vector expr</strong> <em>expression</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">expression</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Vector expression to evaluate.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>The scalar value or list of vector values produced by the expression.</p>
+</section>
+<section id="vector-names">
+<span id="r-3a3arbc3a3avector20names"></span><span id="index-65"></span><span id="index-64"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">names</span></code><a class="headerlink" href="#vector-names" title="Link to this heading">¶</a></h3>
+<p>Returns the names of existing vectors. If <code class="docutils literal notranslate"><span class="pre">pattern</span></code> is supplied, only vector names matching the Tcl glob
+pattern are returned.
+A list of vector names.</p>
+<pre class="literal-block"><strong>vector names</strong> <em>pattern</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">pattern</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional Tcl glob pattern.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Returns the names of existing vectors. If <code class="docutils literal notranslate"><span class="pre">pattern</span></code> is supplied, only vector names matching the Tcl glob
+pattern are returned.
+A list of vector names.</p>
+<hr class="docutils" />
+<p class="centered">
+<strong>Copyright (c) George Yashin</strong></p></section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">::rbc</a><ul>
+<li><a class="reference internal" href="#commands">Commands</a><ul>
+<li><a class="reference internal" href="#spline"><code class="docutils literal notranslate"><span class="pre">spline</span></code></a></li>
+<li><a class="reference internal" href="#spline-natural"><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">natural</span></code></a></li>
+<li><a class="reference internal" href="#spline-quadratic"><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">quadratic</span></code></a></li>
+<li><a class="reference internal" href="#vecinst"><code class="docutils literal notranslate"><span class="pre">VECINST</span></code></a></li>
+<li><a class="reference internal" href="#r-3a3arbc3a3avecinst202a"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">*</span></code></a></li>
+<li><a class="reference internal" href="#r-3a3arbc3a3avecinst202b"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">+</span></code></a></li>
+<li><a class="reference internal" href="#r-3a3arbc3a3avecinst202d"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">-</span></code></a></li>
+<li><a class="reference internal" href="#r-3a3arbc3a3avecinst202f"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">/</span></code></a></li>
+<li><a class="reference internal" href="#vecinst-append"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">append</span></code></a></li>
+<li><a class="reference internal" href="#vecinst-binread"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">binread</span></code></a></li>
+<li><a class="reference internal" href="#vecinst-clear"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">clear</span></code></a></li>
+<li><a class="reference internal" href="#vecinst-delete"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">delete</span></code></a></li>
+<li><a class="reference internal" href="#vecinst-dup"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">dup</span></code></a></li>
+<li><a class="reference internal" href="#vecinst-expr"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">expr</span></code></a></li>
+<li><a class="reference internal" href="#vecinst-index"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">index</span></code></a></li>
+<li><a class="reference internal" href="#vecinst-length"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">length</span></code></a></li>
+<li><a class="reference internal" href="#vecinst-merge"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">merge</span></code></a></li>
+<li><a class="reference internal" href="#vecinst-normalize"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">normalize</span></code></a></li>
+<li><a class="reference internal" href="#vecinst-offset"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">offset</span></code></a></li>
+<li><a class="reference internal" href="#vecinst-populate"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">populate</span></code></a></li>
+<li><a class="reference internal" href="#vecinst-random"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">random</span></code></a></li>
+<li><a class="reference internal" href="#vecinst-range"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">range</span></code></a></li>
+<li><a class="reference internal" href="#vecinst-search"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">search</span></code></a></li>
+<li><a class="reference internal" href="#vecinst-seq"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">seq</span></code></a></li>
+<li><a class="reference internal" href="#vecinst-set"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">set</span></code></a></li>
+<li><a class="reference internal" href="#vecinst-sort"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">sort</span></code></a></li>
+<li><a class="reference internal" href="#vecinst-split"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">split</span></code></a></li>
+<li><a class="reference internal" href="#vecinst-variable"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">variable</span></code></a></li>
+<li><a class="reference internal" href="#vector"><code class="docutils literal notranslate"><span class="pre">vector</span></code></a></li>
+<li><a class="reference internal" href="#vector-create"><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">create</span></code></a></li>
+<li><a class="reference internal" href="#vector-destroy"><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">destroy</span></code></a></li>
+<li><a class="reference internal" href="#vector-expr"><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">expr</span></code></a></li>
+<li><a class="reference internal" href="#vector-names"><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">names</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rbc-TclTk9Upgrade.html"
+                          title="previous chapter">Tcl/Tk9.0 upgrade</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rbc-rbc-vector.html"
+                          title="next chapter"><code class="docutils literal notranslate"><span class="pre">vector</span></code> command</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rbc-rbc.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rbc-rbc-vector.html" title="vector command"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rbc-TclTk9Upgrade.html" title="Tcl/Tk9.0 upgrade"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">::rbc</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright George Yashin.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    </div>
+  </body>
+</html>

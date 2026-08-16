@@ -14,7 +14,7 @@ dnl	to configure the system for the local environment.
 # so you can encode the package version directly into the source files.
 #-----------------------------------------------------------------------
 
-AC_INIT([rbc],[0.2.0])
+AC_INIT([rbc],[0.5.0])
 
 #--------------------------------------------------------------------
 # Call TEA_INIT as the first TEA_ macro to set up initial vars.
@@ -74,6 +74,39 @@ TEA_ADD_CFLAGS([])
 TEA_ADD_STUB_SOURCES([generic/rbcStubLib.c])
 TEA_ADD_TCL_SOURCES([library/graph.tcl library/graphtoolbar.tcl library/rbcCanvEps.pro library/rbcGraph.pro library/circle.xbm library/circle_mask.xbm])
 
+DOC_HTML_FILES="index.html objects.inv search.html searchindex.js genindex.html"
+DOC_SRCDIR="${srcdir}/docs"
+if test -d "$DOC_SRCDIR"; then
+    # Add all top-level *.html files from docs/, not subdirectories.
+    for f in "$DOC_SRCDIR"/*.html; do
+        test -f "$f" || continue
+
+        b=`basename "$f"`
+
+        case " $DOC_HTML_FILES " in
+            *" $b "*) ;;
+            *) DOC_HTML_FILES="$DOC_HTML_FILES $b" ;;
+        esac
+    done
+    # Add everything from docs/_static and docs/assets recursively.
+    for d in _static assets; do
+        if test -d "$DOC_SRCDIR/$d"; then
+            for f in `find "$DOC_SRCDIR/$d" -type f -print`; do
+                rel=`echo "$f" | sed "s|^$DOC_SRCDIR/||"`
+
+                case " $DOC_HTML_FILES " in
+                    *" $rel "*) ;;
+                    *) DOC_HTML_FILES="$DOC_HTML_FILES $rel" ;;
+                esac
+            done
+        fi
+    done
+
+else
+    AC_MSG_WARN([documentation directory not found: $DOC_SRCDIR])
+fi
+#AC_MSG_NOTICE([DOC_HTML_FILES = $DOC_HTML_FILES])
+AC_SUBST([DOC_HTML_FILES])
 
 #------------------------------------------------------------------------
 # RBC_ADD_TCL_DEMOS --

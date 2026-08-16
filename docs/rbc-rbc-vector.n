@@ -1,0 +1,72 @@
+'\"
+'\" '\" Copyright (c) George Yashin
+'\"
+.TH "rbc::vector" 3tcl 0\&.5\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.SH NAME
+rbc::vector - Commands in namespace rbc::vector
+.SH "VECTOR COMMAND"
+.PP
+The ::rbc::vector command creates and manages vectors of double-precision floating-point values\&.
+.PP
+A vector can be accessed through:
+.TP
+\(bu
+its vector instance command
+.TP
+\(bu
+an associated Tcl array variable
+.TP
+\(bu
+the RBC C API\&.
+.PP
+Creating a vector normally creates both an instance command and an associated Tcl array variable with the same
+name\&.
+.SH "VECTOR CREATION FORMS"
+.PP
+Vectors may be created with an initially empty value array:
+.PP
+.RS 4n
+.nf
+::rbc::vector create x
+.fi
+.RE
+.PP
+A size may be included in the vector specification:
+.PP
+.RS 4n
+.nf
+::rbc::vector create x(100)
+.fi
+.RE
+.PP
+This creates a vector containing 100 values\&.
+.PP
+An explicit external index range may also be specified:
+.PP
+.RS 4n
+.nf
+::rbc::vector create x(-5:14)
+.fi
+.RE
+.PP
+This creates 20 values and sets the vector index offset so that its externally visible indices run from -5
+through 14\&.
+.PP
+The special name #auto requests an automatically generated vector name\&.
+.PP
+Vector names may be namespace-qualified\&.
+.SH "VECTOR INSTANCES"
+.PP
+The examples and command descriptions below use VECINST to denote the Tcl command associated with an
+individual vector\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+set x [::rbc::vector create x]
+$x seq 0 10 0\&.5
+puts [$x length]
+.fi
+.RE
+

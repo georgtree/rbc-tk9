@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Vector instance VECINST command &#8212; rbc  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Spline interpolation" href="rbc-rbc-spline.html" />
+    <link rel="prev" title="vector command" href="rbc-rbc-vector.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rbc-rbc-spline.html" title="Spline interpolation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rbc-rbc-vector.html" title="vector command"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector instance <code class="docutils literal notranslate"><span class="pre">VECINST</span></code> command</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="vector-instance-vecinst-command">
+<span id="r-vector-instance-vecinst-command"></span><span id="r-vector20instance2060vecinst6020command"></span><span id="r-3a3arbc3a3avecinst"></span><h1>Vector instance <code class="docutils literal notranslate"><span class="pre">VECINST</span></code> command<a class="headerlink" href="#vector-instance-vecinst-command" title="Link to this heading">¶</a></h1>
+<p>Commands in this namespace document operations accepted by an individual Rbc vector command.</p>
+<p><code class="docutils literal notranslate"><span class="pre">VECINST</span></code> is used below as a placeholder for the actual vector command:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>x
+<span class="nv">x</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">5</span><span class="k">}</span>
+<span class="nb">puts</span><span class="w"> </span><span class="k">[</span><span class="nv">x</span><span class="w"> </span>length<span class="k">]</span>
+</pre></div>
+</div>
+<section id="vector-indices">
+<span id="r-rbc-vecinst-vector-indices"></span><span id="r-3a3arbc3a3avecinstqzvector20indices"></span><h2>Vector indices<a class="headerlink" href="#vector-indices" title="Link to this heading">¶</a></h2>
+<p>Vector indices are Tcl-sized integer values adjusted by the vector’s current [offset].</p>
+<p>The index <code class="docutils literal notranslate"><span class="pre">end</span></code> refers to the last value. Tcl index expressions based on <code class="docutils literal notranslate"><span class="pre">end</span></code> are supported, for example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>index<span class="w"> </span>end
+<span class="nv">x</span><span class="w"> </span>index<span class="w"> </span>end-1
+</pre></div>
+</div>
+<p>The special index <code class="docutils literal notranslate"><span class="pre">++end</span></code> denotes the position immediately after the final value and may be used when setting a
+value to append one element:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>index<span class="w"> </span><span class="o">++</span>end<span class="w"> </span><span class="mf">10.0</span>
+</pre></div>
+</div>
+<p>Colon-separated ranges may be used by operations that accept ranges:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>index<span class="w"> </span><span class="mi">2</span><span class="o">:</span><span class="mi">5</span>
+</pre></div>
+</div>
+<p>An omitted range endpoint denotes the beginning or end of the vector:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>index<span class="w"> </span><span class="mi">2</span><span class="o">:</span>
+<span class="nv">x</span><span class="w"> </span>index<span class="w"> </span><span class="o">:</span><span class="mi">5</span>
+<span class="nv">x</span><span class="w"> </span>index<span class="w"> </span><span class="o">:</span>
+</pre></div>
+</div>
+<p>The associated Tcl array additionally supports the special calculated indices <code class="docutils literal notranslate"><span class="pre">min</span></code>, <code class="docutils literal notranslate"><span class="pre">max</span></code>, <code class="docutils literal notranslate"><span class="pre">mean</span></code>, <code class="docutils literal notranslate"><span class="pre">sum</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">prod</span></code>.</p>
+</section>
+<section id="vector-expressions">
+<span id="r-rbc-vecinst-vector-expressions"></span><span id="r-3a3arbc3a3avecinstqzvector20expressions"></span><h2>Vector expressions<a class="headerlink" href="#vector-expressions" title="Link to this heading">¶</a></h2>
+<p>Vector expressions perform arithmetic, comparison, logical, and mathematical operations on vectors.</p>
+<p>Expressions can be evaluated with the top-level <code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">expr</span></code> command:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">expression</span><span class="k">}</span>
+</pre></div>
+</div>
+<p>or with the <code class="docutils literal notranslate"><span class="pre">expr</span></code> operation of a vector instance:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">VECINST</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">expression</span><span class="k">}</span>
+</pre></div>
+</div>
+<p>The top-level form returns the result. The vector-instance form stores the result in <code class="docutils literal notranslate"><span class="pre">VECINST</span></code>.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">vector</span><span class="w"> </span>create<span class="w"> </span>x<span class="w"> </span>y
+
+<span class="nv">x</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="k">}</span>
+<span class="nv">y</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">10</span><span class="w"> </span><span class="mi">20</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="mi">40</span><span class="k">}</span>
+
+<span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>y<span class="k">}</span>
+
+<span class="c"># -&gt; 11.0 22.0 33.0 44.0</span>
+<span class="nv">x</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span>
+<span class="nv">x</span><span class="w"> </span>range<span class="w"> </span><span class="mi">0</span><span class="w"> </span>end
+<span class="c"># -&gt; 2.0 4.0 6.0 8.0</span>
+</pre></div>
+</div>
+<section id="scalars-and-vectors">
+<span id="r-rbc-vecinst-scalars-and-vectors"></span><span id="r-3a3arbc3a3avecinstqzscalars20and20vectors"></span><h3>Scalars and vectors<a class="headerlink" href="#scalars-and-vectors" title="Link to this heading">¶</a></h3>
+<p>A numeric scalar is treated as a single value. When one operand is a scalar and the other is a vector, the
+scalar operation is applied to every component of the vector.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span>
+<span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">10</span><span class="k">}</span>
+<span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">100</span><span class="w"> </span><span class="o">-</span><span class="w"> </span>x<span class="k">}</span>
+</pre></div>
+</div>
+<p>When both operands are vectors, the operation is performed component by component. The vectors must have
+compatible lengths.</p>
+<p>For example, given:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span>
+<span class="nv">y</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">10</span><span class="w"> </span><span class="mi">20</span><span class="w"> </span><span class="mi">30</span><span class="k">}</span>
+</pre></div>
+</div>
+<p>the expression:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span>y<span class="k">}</span>
+</pre></div>
+</div>
+<p>returns:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>10.0 40.0 90.0
+</pre></div>
+</div>
+<p>Vector names, numeric values, Tcl variable substitutions, command substitutions, quoted or braced values, and
+parenthesized subexpressions may be used as expression operands.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>scale<span class="w"> </span><span class="mi">10</span>
+
+<span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nv">$scale</span><span class="k">}</span>
+<span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="k">[</span><span class="nv">y</span><span class="w"> </span>index<span class="w"> </span><span class="mi">0</span><span class="k">]}</span>
+<span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{(</span><span class="nv">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>y<span class="k">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nv">2</span><span class="k">}</span>
+</pre></div>
+</div>
+</section>
+<section id="operators">
+<span id="r-rbc-vecinst-operators"></span><span id="r-3a3arbc3a3avecinstqzoperators"></span><h3>Operators<a class="headerlink" href="#operators" title="Link to this heading">¶</a></h3>
+<p>The following operators are supported, listed from highest to lowest precedence.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Operators</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-</span></code> <code class="docutils literal notranslate"><span class="pre">!</span></code></p></td>
+<td><p>Unary minus and logical NOT</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">^</span></code></p></td>
+<td><p>Exponentiation</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">*</span></code> <code class="docutils literal notranslate"><span class="pre">/</span></code> <code class="docutils literal notranslate"><span class="pre">%</span></code></p></td>
+<td><p>Multiplication, division, and remainder</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">+</span></code> <code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p>Addition and subtraction</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&lt;&lt;</span></code> <code class="docutils literal notranslate"><span class="pre">&gt;&gt;</span></code></p></td>
+<td><p>Circular left and right vector shift</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&lt;</span></code> <code class="docutils literal notranslate"><span class="pre">&gt;</span></code> <code class="docutils literal notranslate"><span class="pre">&lt;=</span></code> <code class="docutils literal notranslate"><span class="pre">&gt;=</span></code></p></td>
+<td><p>Relational comparison</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">==</span></code> <code class="docutils literal notranslate"><span class="pre">!=</span></code></p></td>
+<td><p>Equality and inequality comparison</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;&amp;</span></code></p></td>
+<td><p>Logical AND</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">\|\|</span></code></p></td>
+<td><p>Logical OR</p></td>
+</tr>
+</tbody>
+</table>
+<p>Binary operators at the same precedence level are evaluated from left to right.</p>
+<p>Arithmetic operators operate component by component.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span>
+
+<span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">10</span><span class="k">}</span>
+<span class="c"># -&gt; 11.0 12.0 13.0</span>
+
+<span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span>
+<span class="c"># -&gt; 2.0 4.0 6.0</span>
+</pre></div>
+</div>
+<p>Comparison operators return <code class="docutils literal notranslate"><span class="pre">1.0</span></code> when the comparison is true and <code class="docutils literal notranslate"><span class="pre">0.0</span></code> when it is false.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">10</span><span class="k">}</span>
+
+<span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">x</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">4</span><span class="k">}</span>
+<span class="c"># -&gt; 0.0 1.0 1.0</span>
+</pre></div>
+</div>
+<p>Logical operators similarly produce <code class="docutils literal notranslate"><span class="pre">1.0</span></code> or <code class="docutils literal notranslate"><span class="pre">0.0</span></code>.</p>
+<p>The unary <code class="docutils literal notranslate"><span class="pre">!</span></code> operator returns <code class="docutils literal notranslate"><span class="pre">1.0</span></code> for a zero-valued component and <code class="docutils literal notranslate"><span class="pre">0.0</span></code> for a non-zero component.</p>
+</section>
+<section id="circular-shifts">
+<span id="r-rbc-vecinst-circular-shifts"></span><span id="r-3a3arbc3a3avecinstqzcircular20shifts"></span><h3>Circular shifts<a class="headerlink" href="#circular-shifts" title="Link to this heading">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">&lt;&lt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&gt;&gt;</span></code> operators perform circular shifts of vector components. They are not integer bit-shift
+operators.</p>
+<p>The right-hand operand must be a scalar specifying the number of positions to shift.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="k">}</span>
+
+<span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">x</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">1</span><span class="k">}</span>
+<span class="c"># -&gt; 2.0 3.0 4.0 1.0</span>
+
+<span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">x</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">1</span><span class="k">}</span>
+<span class="c"># -&gt; 4.0 1.0 2.0 3.0</span>
+</pre></div>
+</div>
+<p>Values shifted past one end of the vector reappear at the opposite end.</p>
+</section>
+<section id="mathematical-functions">
+<span id="r-rbc-vecinst-mathematical-functions"></span><span id="r-3a3arbc3a3avecinstqzmathematical20functions"></span><h3>Mathematical functions<a class="headerlink" href="#mathematical-functions" title="Link to this heading">¶</a></h3>
+<p>Vector expressions provide mathematical functions in three general categories:</p>
+<ul class="simple">
+<li><p>component functions, which operate independently on each vector component</p></li>
+<li><p>scalar functions, which reduce a vector to one value</p></li>
+<li><p>vector functions, which transform a vector into another vector.</p></li>
+</ul>
+<section id="component-functions">
+<span id="r-rbc-vecinst-component-functions"></span><span id="r-3a3arbc3a3avecinstqzcomponent20functions"></span><h4>Component functions<a class="headerlink" href="#component-functions" title="Link to this heading">¶</a></h4>
+<p>Component functions apply the selected operation independently to every vector component and return a vector of
+the same length.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Function</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">abs</span></code></p></td>
+<td><p>Absolute value</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">acos</span></code></p></td>
+<td><p>Arc cosine</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">asin</span></code></p></td>
+<td><p>Arc sine</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">atan</span></code></p></td>
+<td><p>Arc tangent</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ceil</span></code></p></td>
+<td><p>Smallest integral value not less than the component</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">cos</span></code></p></td>
+<td><p>Cosine</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cosh</span></code></p></td>
+<td><p>Hyperbolic cosine</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">exp</span></code></p></td>
+<td><p>Exponential</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">floor</span></code></p></td>
+<td><p>Largest integral value not greater than the component</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">log</span></code></p></td>
+<td><p>Natural logarithm</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">log10</span></code></p></td>
+<td><p>Base-10 logarithm</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">random</span></code></p></td>
+<td><p>Generates a pseudo-random value in the range <code class="docutils literal notranslate"><span class="pre">[0.0,</span> <span class="pre">1.0)</span></code> for each component</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">round</span></code></p></td>
+<td><p>Rounds to the nearest integral value</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sin</span></code></p></td>
+<td><p>Sine</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sinh</span></code></p></td>
+<td><p>Hyperbolic sine</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sqrt</span></code></p></td>
+<td><p>Square root</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tan</span></code></p></td>
+<td><p>Tangent</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tanh</span></code></p></td>
+<td><p>Hyperbolic tangent</p></td>
+</tr>
+</tbody>
+</table>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">9</span><span class="w"> </span><span class="mi">16</span><span class="k">}</span>
+
+<span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">sqrt</span><span class="k">(</span><span class="nv">x</span><span class="k">)}</span>
+<span class="c"># -&gt; 1.0 2.0 3.0 4.0</span>
+</pre></div>
+</div>
+<p>Functions may be combined with operators and other functions:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">sin</span><span class="k">(</span><span class="nv">x</span><span class="k">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span>
+<span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">sqrt</span><span class="k">(</span><span class="nv">abs</span><span class="k">(</span><span class="nv">x</span><span class="k">))}</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">random</span></code> function ignores the values of its input components and generates one pseudo-random value for each
+component:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>length<span class="w"> </span><span class="mi">100</span>
+
+<span class="k">set</span><span class="w"> </span>values<span class="w"> </span><span class="k">[</span><span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">random</span><span class="k">(</span><span class="nv">x</span><span class="k">)}]</span>
+</pre></div>
+</div>
+<p>The number of generated values is therefore determined by the length of the argument vector.</p>
+</section>
+<section id="scalar-functions">
+<span id="r-rbc-vecinst-scalar-functions"></span><span id="r-3a3arbc3a3avecinstqzscalar20functions"></span><h4>Scalar functions<a class="headerlink" href="#scalar-functions" title="Link to this heading">¶</a></h4>
+<p>Scalar functions reduce a vector to a single numeric value.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Function</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">adev</span></code></p></td>
+<td><p>Average absolute deviation from the mean</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">kurtosis</span></code></p></td>
+<td><p>Fisher excess kurtosis</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">length</span></code></p></td>
+<td><p>Number of finite components</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">max</span></code></p></td>
+<td><p>Maximum finite component</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mean</span></code></p></td>
+<td><p>Arithmetic mean</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">median</span></code></p></td>
+<td><p>Median value</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">min</span></code></p></td>
+<td><p>Minimum finite component</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">nz</span></code></p></td>
+<td><p>Number of non-zero components</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">prod</span></code></p></td>
+<td><p>Product of the components</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">q1</span></code></p></td>
+<td><p>First quartile</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">q3</span></code></p></td>
+<td><p>Third quartile</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sdev</span></code></p></td>
+<td><p>Sample standard deviation</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">skew</span></code></p></td>
+<td><p>Skewness</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sum</span></code></p></td>
+<td><p>Sum of the components</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">var</span></code></p></td>
+<td><p>Sample variance</p></td>
+</tr>
+</tbody>
+</table>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">5</span><span class="k">}</span>
+
+<span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">mean</span><span class="k">(</span><span class="nv">x</span><span class="k">)}</span>
+<span class="c"># -&gt; 3.0</span>
+
+<span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">sum</span><span class="k">(</span><span class="nv">x</span><span class="k">)}</span>
+<span class="c"># -&gt; 15.0</span>
+
+<span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">min</span><span class="k">(</span><span class="nv">x</span><span class="k">)}</span>
+<span class="c"># -&gt; 1.0</span>
+
+<span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">max</span><span class="k">(</span><span class="nv">x</span><span class="k">)}</span>
+<span class="c"># -&gt; 5.0</span>
+</pre></div>
+</div>
+<p>Scalar functions can participate in larger expressions:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">x</span><span class="w"> </span><span class="o">-</span><span class="w"> </span>mean<span class="k">(</span><span class="nv">x</span><span class="k">)}</span>
+<span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">x</span><span class="w"> </span><span class="o">/</span><span class="w"> </span>max<span class="k">(</span><span class="nv">x</span><span class="k">)}</span>
+</pre></div>
+</div>
+</section>
+<section id="vector-functions">
+<span id="r-rbc-vecinst-vector-functions"></span><span id="r-3a3arbc3a3avecinstqzvector20functions"></span><h4>Vector functions<a class="headerlink" href="#vector-functions" title="Link to this heading">¶</a></h4>
+<p>Vector functions transform their argument and return another vector.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Function</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">norm</span></code></p></td>
+<td><p>Normalizes the components to the range <code class="docutils literal notranslate"><span class="pre">[0.0,</span> <span class="pre">1.0]</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sort</span></code></p></td>
+<td><p>Returns the components sorted in ascending order</p></td>
+</tr>
+</tbody>
+</table>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">30</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="mi">20</span><span class="k">}</span>
+
+<span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">sort</span><span class="k">(</span><span class="nv">x</span><span class="k">)}</span>
+<span class="c"># -&gt; 10.0 20.0 30.0</span>
+</pre></div>
+</div>
+<p>Normalization maps the minimum component to <code class="docutils literal notranslate"><span class="pre">0.0</span></code> and the maximum component to <code class="docutils literal notranslate"><span class="pre">1.0</span></code>:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">10</span><span class="w"> </span><span class="mi">20</span><span class="w"> </span><span class="mi">30</span><span class="k">}</span>
+
+<span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">norm</span><span class="k">(</span><span class="nv">x</span><span class="k">)}</span>
+<span class="c"># -&gt; 0.0 0.5 1.0</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="expression-results">
+<span id="r-rbc-vecinst-expression-results"></span><span id="r-3a3arbc3a3avecinstqzexpression20results"></span><h3>Expression results<a class="headerlink" href="#expression-results" title="Link to this heading">¶</a></h3>
+<p>The result of <code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">expr</span></code> is returned to the caller:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>result<span class="w"> </span><span class="k">[</span><span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="k">}]</span>
+</pre></div>
+</div>
+<p>The instance form stores the expression result directly in the vector:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span>
+</pre></div>
+</div>
+<p>This permits in-place transformations such as:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">x</span><span class="w"> </span><span class="o">-</span><span class="w"> </span>mean<span class="k">(</span><span class="nv">x</span><span class="k">)}</span>
+<span class="nv">x</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">abs</span><span class="k">(</span><span class="nv">x</span><span class="k">)}</span>
+<span class="nv">x</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">norm</span><span class="k">(</span><span class="nv">x</span><span class="k">)}</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+<p class="centered">
+<strong>Copyright (c) George Yashin</strong></p></section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Vector instance <code class="docutils literal notranslate"><span class="pre">VECINST</span></code> command</a><ul>
+<li><a class="reference internal" href="#vector-indices">Vector indices</a></li>
+<li><a class="reference internal" href="#vector-expressions">Vector expressions</a><ul>
+<li><a class="reference internal" href="#scalars-and-vectors">Scalars and vectors</a></li>
+<li><a class="reference internal" href="#operators">Operators</a></li>
+<li><a class="reference internal" href="#circular-shifts">Circular shifts</a></li>
+<li><a class="reference internal" href="#mathematical-functions">Mathematical functions</a><ul>
+<li><a class="reference internal" href="#component-functions">Component functions</a></li>
+<li><a class="reference internal" href="#scalar-functions">Scalar functions</a></li>
+<li><a class="reference internal" href="#vector-functions">Vector functions</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#expression-results">Expression results</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rbc-rbc-vector.html"
+                          title="previous chapter"><code class="docutils literal notranslate"><span class="pre">vector</span></code> command</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rbc-rbc-spline.html"
+                          title="next chapter">Spline interpolation</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rbc-rbc-VECINST.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rbc-rbc-spline.html" title="Spline interpolation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rbc-rbc-vector.html" title="vector command"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector instance <code class="docutils literal notranslate"><span class="pre">VECINST</span></code> command</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright George Yashin.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    </div>
+  </body>
+</html>

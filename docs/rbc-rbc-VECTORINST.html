@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Vector instance command &#8212; rbc  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector instance command</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="vector-instance-command">
+<span id="r-vector-instance-command"></span><span id="r-vector20instance20command"></span><span id="r-3a3arbc3a3avectorinst"></span><h1>Vector instance command<a class="headerlink" href="#vector-instance-command" title="Link to this heading">¶</a></h1>
+<p>Commands in this namespace document operations accepted by an
+individual Rbc vector command.</p>
+<p><code class="docutils literal notranslate"><span class="pre">VECTORINST</span></code> is used below as a placeholder for the actual vector command:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>x
+<span class="nv">x</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">5</span><span class="k">}</span>
+<span class="nb">puts</span><span class="w"> </span><span class="k">[</span><span class="nv">x</span><span class="w"> </span>length<span class="k">]</span>
+</pre></div>
+</div>
+<section id="vector-indices">
+<span id="r-rbc-vectorinst-vector-indices"></span><span id="r-3a3arbc3a3avectorinstqzvector20indices"></span><h2>Vector indices<a class="headerlink" href="#vector-indices" title="Link to this heading">¶</a></h2>
+<p>Vector indices are Tcl-sized integer values adjusted by the vector’s
+current [offset].</p>
+<p>The index <code class="docutils literal notranslate"><span class="pre">end</span></code> refers to the last value. Tcl index expressions based
+on <code class="docutils literal notranslate"><span class="pre">end</span></code> are supported, for example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>index<span class="w"> </span>end
+<span class="nv">x</span><span class="w"> </span>index<span class="w"> </span>end-1
+</pre></div>
+</div>
+<p>The special index <code class="docutils literal notranslate"><span class="pre">++end</span></code> denotes the position immediately after the
+final value and may be used when setting a value to append one element:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>index<span class="w"> </span><span class="o">++</span>end<span class="w"> </span><span class="mf">10.0</span>
+</pre></div>
+</div>
+<p>Colon-separated ranges may be used by operations that accept ranges:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>index<span class="w"> </span><span class="mi">2</span><span class="o">:</span><span class="mi">5</span>
+</pre></div>
+</div>
+<p>An omitted range endpoint denotes the beginning or end of the vector:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>index<span class="w"> </span><span class="mi">2</span><span class="o">:</span>
+<span class="nv">x</span><span class="w"> </span>index<span class="w"> </span><span class="o">:</span><span class="mi">5</span>
+<span class="nv">x</span><span class="w"> </span>index<span class="w"> </span><span class="o">:</span>
+</pre></div>
+</div>
+<p>The associated Tcl array additionally supports the special calculated
+indices <code class="docutils literal notranslate"><span class="pre">min</span></code>, <code class="docutils literal notranslate"><span class="pre">max</span></code>, <code class="docutils literal notranslate"><span class="pre">mean</span></code>, <code class="docutils literal notranslate"><span class="pre">sum</span></code>, and <code class="docutils literal notranslate"><span class="pre">prod</span></code>.</p>
+</section>
+<section id="vector-expressions">
+<span id="r-rbc-vectorinst-vector-expressions"></span><span id="r-3a3arbc3a3avectorinstqzvector20expressions"></span><h2>Vector expressions<a class="headerlink" href="#vector-expressions" title="Link to this heading">¶</a></h2>
+<p>Vector expressions operate on scalar values and complete vectors or
+selected vector ranges. Arithmetic involving a vector is performed
+component by component.</p>
+<p>This section will contain the complete operator and mathematical
+function reference.</p>
+<hr class="docutils" />
+<p class="centered">
+<strong>Copyright (c) George Yashin</strong></p></section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Vector instance command</a><ul>
+<li><a class="reference internal" href="#vector-indices">Vector indices</a></li>
+<li><a class="reference internal" href="#vector-expressions">Vector expressions</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rbc-rbc-VECTORINST.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector instance command</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright George Yashin.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    </div>
+  </body>
+</html>

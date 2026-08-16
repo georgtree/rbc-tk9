@@ -1,0 +1,185 @@
+'\"
+'\" '\" Copyright (c) George Yashin
+'\"
+.TH "rbc::spline" 3tcl 0\&.5\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.SH NAME
+rbc::spline - Commands in namespace rbc::spline
+.SH "SPLINE INTERPOLATION"
+.PP
+The spline command performs spline interpolation and extrapolation on data stored in Rbc vectors\&. Two
+interpolation methods are available:
+.TP
+\(bu
+natural - natural cubic spline interpolation\&.
+.TP
+\(bu
+quadratic - shape-preserving quadratic spline interpolation\&.
+.PP
+Both operations use the same four-vector interface:
+.PP
+.RS 4n
+.nf
+spline method x y splX splY
+.fi
+.RE
+.PP
+The vectors x and y contain the source data points\&. The vector splX contains the X coordinates at
+which the spline is evaluated, and splY receives the corresponding calculated Y coordinates\&.
+.SS "SOURCE DATA"
+.PP
+The source vectors x and y must have the same length and contain at least three values\&. All source
+X and Y values must be finite\&.
+.PP
+Values in x must be strictly increasing\&. Duplicate or decreasing X coordinates are not permitted\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+vector create x y
+
+x set {0 1 2 3 4}
+y set {0 2 1 4 3}
+.fi
+.RE
+.PP
+If source data are not already ordered by X coordinate, the vector sort operation can reorder x while
+applying the same permutation to y:
+.PP
+.RS 4n
+.nf
+x sort y
+.fi
+.RE
+.SS "EVALUATION COORDINATES"
+.PP
+The splX vector specifies the X coordinates at which the spline is evaluated\&. All values in splX must
+be finite\&.
+.PP
+Unlike the source x vector, splX does not have to be sorted\&. Evaluation coordinates may appear in any
+order, and the values in splY are produced in the corresponding order\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+splX set {2\&.5 0\&.5 4\&.5 -1\&.0 1\&.5}
+spline natural x y splX splY
+.fi
+.RE
+.PP
+Each component of splY corresponds to the component at the same position in splX\&.
+.PP
+Evaluation coordinates may lie outside the range of the source x vector\&. Both spline methods extrapolate
+such points:
+.TP
+\(bu
+values below the first source X coordinate are extrapolated using the first spline interval;
+.TP
+\(bu
+values above the last source X coordinate are extrapolated using the last spline interval\&.
+.PP
+Thus interpolation and extrapolation use the same command and no separate extrapolation option is required\&.
+.SS "GENERATING EVALUATION COORDINATES"
+.PP
+The vector populate operation is convenient for generating a more densely sampled set of X coordinates
+between the original source points:
+.PP
+.RS 4n
+.nf
+x populate splX 10
+spline natural x y splX splY
+.fi
+.RE
+.PP
+populate is not required\&. splX may contain any finite coordinates appropriate for the application\&.
+.SS "OUTPUT VECTOR"
+.PP
+The result vector splY has the same length as splX\&.
+.PP
+If splY does not exist, it is created\&. If it already exists, it is resized when necessary and its previous
+contents are replaced\&.
+.PP
+Spline generation is transactional\&. The source vectors and evaluation coordinates are validated and the
+complete result is calculated before splY is created, resized, or modified\&. If spline generation fails,
+an existing splY vector is left unchanged\&.
+.PP
+Because the inputs are copied before the output vector is modified, splY may safely be the same vector as
+x, y, or splX\&.
+.SS EXAMPLE
+.PP
+The following example generates both natural and quadratic spline values from the same source data:
+.PP
+.RS 4n
+.nf
+vector create x y splX
+
+x set {0 1 2 3 4}
+y set {0 2 1 4 3}
+
+splX set {-1\&.0 0\&.0 0\&.5 1\&.5 2\&.5 4\&.0 5\&.0}
+
+spline natural x y splX naturalY
+spline quadratic x y splX quadraticY
+.fi
+.RE
+.PP
+The first and last evaluation coordinates lie outside the source range and are therefore extrapolated\&.
+.SS "NATURAL CUBIC SPLINE"
+.PP
+A natural spline is a piecewise cubic interpolating function that passes through every source data point\&.
+Its second derivative is zero at the first and last source points, providing the natural boundary
+conditions\&.
+.PP
+For evaluation coordinates outside the source range, the cubic polynomial of the first or last spline
+interval is continued beyond its endpoint\&.
+.PP
+Natural cubic splines generally produce smooth curves with continuous first and second derivatives\&.
+.SS "SHAPE-PRESERVING QUADRATIC SPLINE"
+.PP
+The quadratic method generates an osculatory piecewise quadratic spline\&. Slopes at the source points are
+selected to preserve monotonicity and convexity where those properties are compatible with the source data\&.
+.PP
+For evaluation coordinates outside the source range, the spline defined by the first or last source
+interval is continued beyond its endpoint\&.
+.PP
+This method can be useful when preserving the qualitative shape of the source data is more important than
+the additional smoothness of a cubic spline\&.
+.SS ERRORS
+.PP
+Spline generation fails if:
+.TP
+\(bu
+either source vector contains fewer than three values;
+.TP
+\(bu
+the source vectors have different lengths;
+.TP
+\(bu
+a source X or Y value is not finite;
+.TP
+\(bu
+the source X coordinates are not strictly increasing;
+.TP
+\(bu
+an evaluation X coordinate is not finite;
+.TP
+\(bu
+required temporary storage cannot be allocated;
+.TP
+\(bu
+the spline calculation produces an invalid numerical result\&.
+.PP
+An error does not partially modify the output vector\&.
+.SS REFERENCES
+.PP
+The natural cubic spline implementation is based on:
+.TP
+\(bu
+R\&. L\&. Burden, J\&. D\&. Faires and A\&. C\&. Reynolds, \fINumerical Analysis\fP, Prindle, Weber & Schmidt, 1981\&.
+.PP
+The shape-preserving quadratic spline implementation is based on:
+.TP
+\(bu
+D\&. F\&. McAllister and J\&. A\&. Roulier, \fIAn Algorithm for Computing a Shape-Preserving Osculatory Quadratic Spline\fP, ACM Transactions on Mathematical Software, Algorithm 574\&.
+

@@ -1,0 +1,422 @@
+'\"
+'\" '\" Copyright (c) George Yashin
+'\"
+.TH "rbc::VECINST" 3tcl 0\&.5\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.SH NAME
+rbc::VECINST - Commands in namespace rbc::VECINST
+.SH "VECTOR INSTANCE VECINST COMMAND"
+.PP
+Commands in this namespace document operations accepted by an individual Rbc vector command\&.
+.PP
+VECINST is used below as a placeholder for the actual vector command:
+.PP
+.RS 4n
+.nf
+::rbc::vector create x
+x set {1 2 3 4 5}
+puts [x length]
+.fi
+.RE
+.SH "VECTOR INDICES"
+.PP
+Vector indices are Tcl-sized integer values adjusted by the vector's current \fIoffset\fP\&.
+.PP
+The index end refers to the last value\&. Tcl index expressions based on end are supported, for example:
+.PP
+.RS 4n
+.nf
+x index end
+x index end-1
+.fi
+.RE
+.PP
+The special index ++end denotes the position immediately after the final value and may be used when setting a
+value to append one element:
+.PP
+.RS 4n
+.nf
+x index ++end 10\&.0
+.fi
+.RE
+.PP
+Colon-separated ranges may be used by operations that accept ranges:
+.PP
+.RS 4n
+.nf
+x index 2:5
+.fi
+.RE
+.PP
+An omitted range endpoint denotes the beginning or end of the vector:
+.PP
+.RS 4n
+.nf
+x index 2:
+x index :5
+x index :
+.fi
+.RE
+.PP
+The associated Tcl array additionally supports the special calculated indices min, max, mean, sum, and
+prod\&.
+.SH "VECTOR EXPRESSIONS"
+.PP
+Vector expressions perform arithmetic, comparison, logical, and mathematical operations on vectors\&.
+.PP
+Expressions can be evaluated with the top-level vector expr command:
+.PP
+.RS 4n
+.nf
+vector expr {expression}
+.fi
+.RE
+.PP
+or with the expr operation of a vector instance:
+.PP
+.RS 4n
+.nf
+VECINST expr {expression}
+.fi
+.RE
+.PP
+The top-level form returns the result\&. The vector-instance form stores the result in VECINST\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+vector create x y
+
+x set {1 2 3 4}
+y set {10 20 30 40}
+
+vector expr {x + y}
+
+# -> 11\&.0 22\&.0 33\&.0 44\&.0
+x expr {x * 2}
+x range 0 end
+# -> 2\&.0 4\&.0 6\&.0 8\&.0
+.fi
+.RE
+.SS "SCALARS AND VECTORS"
+.PP
+A numeric scalar is treated as a single value\&. When one operand is a scalar and the other is a vector, the
+scalar operation is applied to every component of the vector\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+vector expr {x * 2}
+vector expr {x + 10}
+vector expr {100 - x}
+.fi
+.RE
+.PP
+When both operands are vectors, the operation is performed component by component\&. The vectors must have
+compatible lengths\&.
+.PP
+For example, given:
+.PP
+.RS 4n
+.nf
+x set {1 2 3}
+y set {10 20 30}
+.fi
+.RE
+.PP
+the expression:
+.PP
+.RS 4n
+.nf
+vector expr {x * y}
+.fi
+.RE
+.PP
+returns:
+.PP
+.RS 4n
+.nf
+10\&.0 40\&.0 90\&.0
+.fi
+.RE
+.PP
+Vector names, numeric values, Tcl variable substitutions, command substitutions, quoted or braced values, and
+parenthesized subexpressions may be used as expression operands\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+set scale 10
+
+vector expr {x * $scale}
+vector expr {x + [y index 0]}
+vector expr {(x + y) / 2}
+.fi
+.RE
+.SS OPERATORS
+.PP
+The following operators are supported, listed from highest to lowest precedence\&.
+.TS
+tab(:) box;
+l l.
+Operators: Description
+_
+- !: Unary minus and logical NOT
+^: Exponentiation
+* / %: Multiplication, division, and remainder
++ -: Addition and subtraction
+<< >>: Circular left and right vector shift
+< > <= >= : Relational comparison
+== !=: Equality and inequality comparison
+&&: Logical AND
+\\|\\|: Logical OR
+.TE
+.PP
+Binary operators at the same precedence level are evaluated from left to right\&.
+.PP
+Arithmetic operators operate component by component\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+x set {1 2 3}
+
+vector expr {x + 10}
+# -> 11\&.0 12\&.0 13\&.0
+
+vector expr {x * 2}
+# -> 2\&.0 4\&.0 6\&.0
+.fi
+.RE
+.PP
+Comparison operators return 1\&.0 when the comparison is true and 0\&.0 when it is false\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+x set {1 5 10}
+
+vector expr {x > 4}
+# -> 0\&.0 1\&.0 1\&.0
+.fi
+.RE
+.PP
+Logical operators similarly produce 1\&.0 or 0\&.0\&.
+.PP
+The unary ! operator returns 1\&.0 for a zero-valued component and 0\&.0 for a non-zero component\&.
+.SS "CIRCULAR SHIFTS"
+.PP
+The << and >> operators perform circular shifts of vector components\&. They are not integer bit-shift
+operators\&.
+.PP
+The right-hand operand must be a scalar specifying the number of positions to shift\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+x set {1 2 3 4}
+
+vector expr {x << 1}
+# -> 2\&.0 3\&.0 4\&.0 1\&.0
+
+vector expr {x >> 1}
+# -> 4\&.0 1\&.0 2\&.0 3\&.0
+.fi
+.RE
+.PP
+Values shifted past one end of the vector reappear at the opposite end\&.
+.SS "MATHEMATICAL FUNCTIONS"
+.PP
+Vector expressions provide mathematical functions in three general categories:
+.TP
+\(bu
+component functions, which operate independently on each vector component
+.TP
+\(bu
+scalar functions, which reduce a vector to one value
+.TP
+\(bu
+vector functions, which transform a vector into another vector\&.
+.PP
+\fBComponent functions\fR
+.PP
+Component functions apply the selected operation independently to every vector component and return a vector of
+the same length\&.
+.TS
+tab(|) box;
+l l.
+Function | Description
+_
+abs| Absolute value
+acos| Arc cosine
+asin| Arc sine
+atan| Arc tangent
+ceil| Smallest integral value not less than the component
+cos| Cosine
+cosh| Hyperbolic cosine
+exp| Exponential
+floor| Largest integral value not greater than the component
+log| Natural logarithm
+log10| Base-10 logarithm
+random | Generates a pseudo-random value in the range [0\&.0, 1\&.0) for each component
+round| Rounds to the nearest integral value
+sin| Sine
+sinh| Hyperbolic sine
+sqrt| Square root
+tan| Tangent
+tanh| Hyperbolic tangent
+.TE
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+x set {1 4 9 16}
+
+vector expr {sqrt(x)}
+# -> 1\&.0 2\&.0 3\&.0 4\&.0
+.fi
+.RE
+.PP
+Functions may be combined with operators and other functions:
+.PP
+.RS 4n
+.nf
+vector expr {sin(x) * 2}
+vector expr {sqrt(abs(x))}
+.fi
+.RE
+.PP
+The random function ignores the values of its input components and generates one pseudo-random value for each
+component:
+.PP
+.RS 4n
+.nf
+x length 100
+
+set values [vector expr {random(x)}]
+.fi
+.RE
+.PP
+The number of generated values is therefore determined by the length of the argument vector\&.
+.PP
+\fBScalar functions\fR
+.PP
+Scalar functions reduce a vector to a single numeric value\&.
+.TS
+tab(|) box;
+l l.
+Function| Description
+_
+adev| Average absolute deviation from the mean
+kurtosis | Fisher excess kurtosis
+length| Number of finite components
+max| Maximum finite component
+mean| Arithmetic mean
+median| Median value
+min| Minimum finite component
+nz| Number of non-zero components
+prod| Product of the components
+q1| First quartile
+q3| Third quartile
+sdev| Sample standard deviation
+skew| Skewness
+sum| Sum of the components
+var| Sample variance
+.TE
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+x set {1 2 3 4 5}
+
+vector expr {mean(x)}
+# -> 3\&.0
+
+vector expr {sum(x)}
+# -> 15\&.0
+
+vector expr {min(x)}
+# -> 1\&.0
+
+vector expr {max(x)}
+# -> 5\&.0
+.fi
+.RE
+.PP
+Scalar functions can participate in larger expressions:
+.PP
+.RS 4n
+.nf
+vector expr {x - mean(x)}
+vector expr {x / max(x)}
+.fi
+.RE
+.PP
+\fBVector functions\fR
+.PP
+Vector functions transform their argument and return another vector\&.
+.TS
+tab(|) box;
+l l.
+Function | Description
+_
+norm| Normalizes the components to the range [0\&.0, 1\&.0]
+sort| Returns the components sorted in ascending order
+.TE
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+x set {30 10 20}
+
+vector expr {sort(x)}
+# -> 10\&.0 20\&.0 30\&.0
+.fi
+.RE
+.PP
+Normalization maps the minimum component to 0\&.0 and the maximum component to 1\&.0:
+.PP
+.RS 4n
+.nf
+x set {10 20 30}
+
+vector expr {norm(x)}
+# -> 0\&.0 0\&.5 1\&.0
+.fi
+.RE
+.SS "EXPRESSION RESULTS"
+.PP
+The result of vector expr is returned to the caller:
+.PP
+.RS 4n
+.nf
+set result [vector expr {x * 2}]
+.fi
+.RE
+.PP
+The instance form stores the expression result directly in the vector:
+.PP
+.RS 4n
+.nf
+x expr {x * 2}
+.fi
+.RE
+.PP
+This permits in-place transformations such as:
+.PP
+.RS 4n
+.nf
+x expr {x - mean(x)}
+x expr {abs(x)}
+x expr {norm(x)}
+.fi
+.RE
+

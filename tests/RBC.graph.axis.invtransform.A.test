@@ -1,0 +1,63 @@
+# RBC.graph.axis.invtransform.A.test --
+#
+###Abstract
+
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Revision String
+# SVN: $Id$
+
+###Package Definition
+package provide graph.axis
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval graph.axis {
+
+    test RBC.graph.axis.invtransform.A.1.1 {
+        axis invtransform: overflow-sized finite axis range
+    } -setup {
+        graph .graph1
+        place .graph1 -x 0 -y 0 -width 600 -height 400
+        .graph1 xaxis configure -min -1e308 -max 1e308
+        update idletasks
+        set left [.graph1 xaxis transform -1e308]
+        set right [.graph1 xaxis transform 1e308]
+    } -body {
+        set leftValue [.graph1 xaxis invtransform $left]
+        set rightValue [.graph1 xaxis invtransform $right]
+
+        list [expr {isfinite($leftValue) && ($leftValue < -9e307)}]\
+                [expr {isfinite($rightValue) && ($rightValue > 9e307) }]
+    } -cleanup {
+        destroy .graph1
+    } -result {1 1}
+
+    test RBC.graph.axis.invtransform.A.1.2 {
+        axis invtransform: midpoint of overflow-sized range
+    } -setup {
+        graph .graph1
+        place .graph1 -x 0 -y 0 -width 600 -height 400
+        .graph1 xaxis configure -min -1e308 -max 1e308
+        update idletasks
+        set left [.graph1 xaxis transform -1e308]
+        set middle [.graph1 xaxis transform 0]
+        set right [.graph1 xaxis transform 1e308]
+    } -body {
+        set leftValue [.graph1 xaxis invtransform $left]
+        set middleValue [.graph1 xaxis invtransform $middle]
+        set rightValue [.graph1 xaxis invtransform $right]
+        expr {isfinite($leftValue) && isfinite($middleValue) && isfinite($rightValue) && ($leftValue < $middleValue)\
+                      && ($middleValue < $rightValue)}
+    } -cleanup {
+        destroy .graph1
+    } -result 1
+
+    cleanupTests
+}

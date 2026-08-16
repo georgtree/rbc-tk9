@@ -1,25 +1,50 @@
+package require ruff
 package require fileutil
 
-set script_path [file dirname [file normalize [info script]]]
+set docDir [file dirname [file normalize [info script]]]
+set sourceDir [file join $docDir ..]
+source [file join $docDir startPage.ruff]
+source [file join $docDir tclTk9Upgrade.ruff]
+source [file join $docDir vector.ruff]
+source [file join $docDir spline.ruff]
 
-# nroff generating
-set files {index.md graph.md stripchart.md barchart.md spline.md vector.md winop.md}
+set packageVersion [package versions rbc]
+puts $packageVersion
+set title "Upgraded Tcl/Tk9.0-ready RBC package"
 
-foreach file [lrange $files 1 end] {
-    exec md2man-roff [file join $script_path $file] > [file join $script_path [file rootname $file].n]
+set commonSphinx [list -title $title -sortnamespaces false -preamble $startPage -pagesplit namespace -recurse false\
+                    -includesource false -pagesplit namespace -autopunctuate true -compact false -includeprivate true\
+                    -product rbc -diagrammer "ditaa --border-width 1" -version $packageVersion\
+                    -copyright "George Yashin" {*}$::argv]
+set commonNroff [list -title $title -sortnamespaces false -preamble $startPage -pagesplit namespace -recurse false\
+                         -pagesplit namespace -autopunctuate true -compact false -includeprivate false\
+                         -product rbc -diagrammer "ditaa --border-width 1" -version $packageVersion\
+                         -copyright "George Yashin" {*}$::argv]
+
+set namespaces [list ::TclTk9Upgrade ::rbc ::rbc::vector ::rbc::VECINST ::rbc::spline]
+
+ruff::document $namespaces -format sphinx -outfile rbc.rst -outdir [file join $docDir sphinx] {*}$commonSphinx
+ruff::document $namespaces -format nroff -outdir $docDir -outfile rbc.n {*}$commonNroff
+
+::fileutil::appendToFile [file join $docDir sphinx conf.py] {html_theme = "classic"
+extensions = [
+    "sphinx.ext.githubpages",
+]
+from pygments.lexers.tcl import TclLexer
+from pygments.token import Operator
+
+class MyTclLexer(TclLexer):
+    def get_tokens_unprocessed(self, text):
+        for i, t, v in super().get_tokens_unprocessed(text):
+            if v == "=":
+                yield i, Operator, v   # or Name.Builtin
+            else:
+                yield i, t, v
+
+def setup(app):
+    from sphinx.highlighting import lexers
+    lexers["tcl"] = MyTclLexer()
 }
 
-# html generating
-foreach file $files {
-    catch {exec {*}[list pandoc [file join $script_path $file] -s -o [file join $script_path\
-                                                                              [file rootname $file].html]]} errorStr
-    puts $errorStr
-    lappend html_files [file join $script_path [file rootname $file].html]
-}
-
-proc processContents {fileContents} {
-    return [string map {{max-width: 36em} max-width:72em .md .html} $fileContents]
-}
-foreach html_file $html_files {
-    fileutil::updateInPlace $html_file processContents
-}
+catch {exec sphinx-build -b html [file join $docDir sphinx] [file join $docDir]} errorStr
+puts $errorStr

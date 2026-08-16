@@ -1,0 +1,74 @@
+# RBC.graph.element.closest.A.test --
+#
+###Abstract
+# This file contains the automatic tests that test the element closest
+# function of the graph RBC component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Revision String
+# SVN: $Id$
+###Package Definition
+package provide graph.element
+
+package require rbc
+namespace import rbc::*
+package require tcltest
+namespace import tcltest::*
+
+namespace eval graph.element {
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure -along x compares absolute X distance. A farther point to the right
+	# must not win merely because its signed screen-coordinate difference is negative.
+	# ------------------------------------------------------------------------------------
+    test RBC.graph.element.closest.A.1.1 {
+		graph element closest: along x uses absolute distance
+	} -setup {
+        graph .graph1 -width 400 -height 300
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 10
+        .graph1 axis configure y -min 0 -max 10
+        .graph1 element create Element1 -data {4 2 9 8} -symbol circle
+        update idletasks
+    } -body {
+        lassign [.graph1 transform 5 5] x y
+        set found [.graph1 element closest $x $y info -along x -interpolate 0 -halo 1000 Element1]
+        set index [expr {
+			[info exists info(index)] ? $info(index) : -1
+		}]
+        list $found $info(name) $index
+    } -cleanup {
+        unset -nocomplain info
+        destroy .graph1
+    } -result {1 Element1 0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure -along y compares absolute Y distance. A farther point below the
+	# query must not win merely because its signed screen-coordinate difference is negative.
+	# ------------------------------------------------------------------------------------
+    test RBC.graph.element.closest.A.1.2 {
+		graph element closest: along y uses absolute distance
+	} -setup {
+        graph .graph1 -width 400 -height 300
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 10
+        .graph1 axis configure y -min 0 -max 10
+        .graph1 element create Element1 -data {2 6 8 1} -symbol circle
+        update idletasks
+    } -body {
+        lassign [.graph1 transform 5 5] x y
+        set found [.graph1 element closest $x $y info -along y -interpolate 0 -halo 1000 Element1]
+        set index [expr {
+			[info exists info(index)] ? $info(index) : -1
+		}]
+        list $found $info(name) $index
+    } -cleanup {
+        unset -nocomplain info
+        destroy .graph1
+    } -result {1 Element1 0}
+
+	cleanupTests
+}

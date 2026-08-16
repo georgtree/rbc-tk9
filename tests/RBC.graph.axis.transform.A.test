@@ -1,0 +1,83 @@
+# RBC.graph.axis.transform.A.test --
+#
+###Abstract
+
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Revision String
+# SVN: $Id$
+
+###Package Definition
+package provide graph.axis
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval graph.axis {
+
+    test RBC.graph.axis.transform.A.1.1 {
+        axis transform: non-finite value is rejected
+    } -setup {
+        graph .graph1
+    } -body {
+        catch {.graph1 xaxis transform Inf}
+    } -cleanup {
+        destroy .graph1
+    } -result 1
+
+    test RBC.graph.axis.transform.A.1.2 {
+        axis transform: finite range whose difference overflows
+    } -setup {
+        graph .graph1
+        place .graph1 -x 0 -y 0 -width 600 -height 400
+        .graph1 xaxis configure -min -1e308 -max 1e308
+        update idletasks
+    } -body {
+        set left [.graph1 xaxis transform -1e308]
+        set middle [.graph1 xaxis transform 0]
+        set right [.graph1 xaxis transform 1e308]
+        list [string is integer -strict $left] [string is integer -strict $middle] [string is integer -strict $right] \
+                [expr {($left < $middle) && ($middle < $right)}]
+    } -cleanup {
+        destroy .graph1
+    } -result {1 1 1 1}
+
+    test RBC.graph.axis.transform.A.1.3 {
+        axis transform: logscale accepts only positive values
+    } -setup {
+        graph .graph1
+        place .graph1 -x 0 -y 0 -width 600 -height 400
+        .graph1 xaxis configure -logscale yes -min 1 -max 100
+        update idletasks
+    } -body {
+        set p1 [.graph1 xaxis transform 1]
+        set p10 [.graph1 xaxis transform 10]
+        set p100 [.graph1 xaxis transform 100]
+        list [catch {.graph1 xaxis transform 0}] [catch {.graph1 xaxis transform -10}]\
+                [expr {($p1 < $p10) && ($p10 < $p100) }]
+    } -cleanup {
+        destroy .graph1
+    } -result {1 1 1}
+
+    test RBC.graph.axis.transform.A.1.4 {
+        axis transform: logscale near DBL_MAX
+    } -setup {
+        graph .graph1
+        place .graph1 -x 0 -y 0 -width 600 -height 400
+        .graph1 xaxis configure -logscale yes -min 1 -max 1.7976931348623157e308
+        update idletasks
+    } -body {
+        set limits [.graph1 xaxis limits]
+        set screen [.graph1 xaxis transform 1.7976931348623157e308]
+        list [expr {[lindex $limits 0] > 0.0 && [lindex $limits 1] > 1e308}] [string is integer -strict $screen]
+    } -cleanup {
+        destroy .graph1
+    } -result {1 1}
+
+    cleanupTests
+}

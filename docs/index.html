@@ -1,242 +1,200 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
-<head>
-  <meta charset="utf-8" />
-  <meta name="generator" content="pandoc" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>index</title>
-  <style>
-    html {
-      color: #1a1a1a;
-      background-color: #fdfdfd;
-    }
-    body {
-      margin: 0 auto;
-      max-width:72em;
-      padding-left: 50px;
-      padding-right: 50px;
-      padding-top: 50px;
-      padding-bottom: 50px;
-      hyphens: auto;
-      overflow-wrap: break-word;
-      text-rendering: optimizeLegibility;
-      font-kerning: normal;
-    }
-    @media (max-width: 600px) {
-      body {
-        font-size: 0.9em;
-        padding: 12px;
-      }
-      h1 {
-        font-size: 1.8em;
-      }
-    }
-    @media print {
-      html {
-        background-color: white;
-      }
-      body {
-        background-color: transparent;
-        color: black;
-        font-size: 12pt;
-      }
-      p, h2, h3 {
-        orphans: 3;
-        widows: 3;
-      }
-      h2, h3, h4 {
-        page-break-after: avoid;
-      }
-    }
-    p {
-      margin: 1em 0;
-    }
-    a {
-      color: #1a1a1a;
-    }
-    a:visited {
-      color: #1a1a1a;
-    }
-    img {
-      max-width: 100%;
-    }
-    h1, h2, h3, h4, h5, h6 {
-      margin-top: 1.4em;
-    }
-    h5, h6 {
-      font-size: 1em;
-      font-style: italic;
-    }
-    h6 {
-      font-weight: normal;
-    }
-    ol, ul {
-      padding-left: 1.7em;
-      margin-top: 1em;
-    }
-    li > ol, li > ul {
-      margin-top: 0;
-    }
-    blockquote {
-      margin: 1em 0 1em 1.7em;
-      padding-left: 1em;
-      border-left: 2px solid #e6e6e6;
-      color: #606060;
-    }
-    code {
-      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
-      font-size: 85%;
-      margin: 0;
-      hyphens: manual;
-    }
-    pre {
-      margin: 1em 0;
-      overflow: auto;
-    }
-    pre code {
-      padding: 0;
-      overflow: visible;
-      overflow-wrap: normal;
-    }
-    .sourceCode {
-     background-color: transparent;
-     overflow: visible;
-    }
-    hr {
-      background-color: #1a1a1a;
-      border: none;
-      height: 1px;
-      margin: 1em 0;
-    }
-    table {
-      margin: 1em 0;
-      border-collapse: collapse;
-      width: 100%;
-      overflow-x: auto;
-      display: block;
-      font-variant-numeric: lining-nums tabular-nums;
-    }
-    table caption {
-      margin-bottom: 0.75em;
-    }
-    tbody {
-      margin-top: 0.5em;
-      border-top: 1px solid #1a1a1a;
-      border-bottom: 1px solid #1a1a1a;
-    }
-    th {
-      border-top: 1px solid #1a1a1a;
-      padding: 0.25em 0.5em 0.25em 0.5em;
-    }
-    td {
-      padding: 0.125em 0.5em 0.25em 0.5em;
-    }
-    header {
-      margin-bottom: 4em;
-      text-align: center;
-    }
-    #TOC li {
-      list-style: none;
-    }
-    #TOC ul {
-      padding-left: 1.3em;
-    }
-    #TOC > ul {
-      padding-left: 0;
-    }
-    #TOC a:not(:hover) {
-      text-decoration: none;
-    }
-    code{white-space: pre-wrap;}
-    span.smallcaps{font-variant: small-caps;}
-    div.columns{display: flex; gap: min(4vw, 1.5em);}
-    div.column{flex: auto; overflow-x: auto;}
-    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-    /* The extra [class] is a hack that increases specificity enough to
-       override a similar rule in reveal.js */
-    ul.task-list[class]{list-style: none;}
-    ul.task-list li input[type="checkbox"] {
-      font-size: inherit;
-      width: 0.8em;
-      margin: 0 0.8em 0.2em -1.6em;
-      vertical-align: middle;
-    }
-    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
-  </style>
-</head>
-<body>
-<h1 id="rbc---refactored-blt-components">Rbc - Refactored BLT
-Components</h1>
-<p>This is version 0.2 of the Rbc library. It should be considered alpha
-quality software.</p>
-<p>Rbc is an extension of the Tcl/Tk toolkit and contains refactored
-components from version 2.4z of the BLT library. These components were
-refactored so that they would function with version Tcl/Tk 8.5.</p>
-<p>Later, it was updated by Emiliano Gavilán to work with Tcl/Tk
-9.0.</p>
-<p>This is my personal fork of Emiliano <a
-href="https://chiselapp.com/user/egavilan/repository/rbc-tk9">repository</a>.
-This fork has updated documentation to markdown format, additional code
-in <code>graph.tcl</code> library. Also I am going to apply any further
-improvements from Emiliano repository.</p>
-<p>Rbc is available from: https://github.com/georgtree/rbc-tk9</p>
-<p>More information on BLT is available from:
-http://www.sourceforge.net/projects/blt/files</p>
-<p>Rbc is intended to work with Tcl/Tk versions 8.7 and 9.0, although it
-may work with others. Rbc is a TEA compliant extension, although it is
-not (yet) entirely free of dependency on Tcl/Tk private structures. So,
-for compilation you need Tcl/Tk sources.</p>
-<p>Rbc is a subset of BLT, contains the essential components for
-developing data graphing applications. Some BLT components have been
-superseded by advances in Tcl and Tk, and some others have been
-extracted into separate extensions. Rbc contains the following BLT
-components:</p>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>&lt;no title&gt; &#8212; rbc  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Rbc - Refactored BLT Components" href="rbc.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rbc.html" title="Rbc - Refactored BLT Components"
+             accesskey="N">next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">&lt;no title&gt;</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li><p>graph, barchart, stripchart</p>
-<p>These components use an X-Y coordinate system to plot data and are
-meant to be used with vector data objects. The graphs will automatically
-be redrawn should the vector data change.</p></li>
-<li><p>vector</p>
-<p>This component is used to manage floating point values. They are
-meant to be used to handle data for the plotting components.</p></li>
-<li><p>winop</p>
-<p>This component provides basic window operations.</p></li>
+<li class="toctree-l1"><a class="reference internal" href="rbc.html">Rbc - Refactored BLT Components</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc.html#building-from-source">Building from Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc.html#documentation">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc.html#history">History</a></li>
 </ul>
-<h2 id="installation">Installation</h2>
-<p>For binary installations, just unzip or untar the package into your
-Tcl library.</p>
-<h2 id="building-from-source">Building from Source</h2>
-<p>Rbc is a TEA compliant extension. You should be able to unpack the
-source code, and perform the usual configure/make /make install
-procedure. Making the test target will run the automated test suite.</p>
-<p>Since Rbc still depends on some Tcl/Tk private data structures, you
-may experience some difficulty in bulding it against some Tcl
-distributions which do not have the complete set of public and private
-headers.</p>
-<h2 id="documentation">Documentation</h2>
-<ul>
-<li><a href="./graph.html">Graph</a></li>
-<li><a href="./barchart.html">Barchart</a></li>
-<li><a href="./stripchart.html">Stripchart</a></li>
-<li><a href="./vector.html">Vector</a></li>
-<li><a href="./spline.html">Spline</a></li>
-<li><a href="./winop.html">Winop</a></li>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-TclTk9Upgrade.html">Tcl/Tk9.0 upgrade</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-TclTk9Upgrade.html#tcl-tk-9-modernization">Tcl/Tk 9 Modernization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-TclTk9Upgrade.html#tcl-9-command-and-object-api">Tcl 9 command and object API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-TclTk9Upgrade.html#bit-and-tcl-size-support">64-bit and <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code> support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-TclTk9Upgrade.html#modern-tk-option-handling">Modern Tk option handling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-TclTk9Upgrade.html#graph-object-and-resource-lifetime">Graph object and resource lifetime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-TclTk9Upgrade.html#axis-and-coordinate-system-modernization">Axis and coordinate-system modernization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-TclTk9Upgrade.html#line-bar-and-element-processing">Line, bar and element processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-TclTk9Upgrade.html#spline-subsystem">Spline subsystem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-TclTk9Upgrade.html#vector-subsystem">Vector subsystem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-TclTk9Upgrade.html#geometry-text-and-drawing">Geometry, text and drawing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-TclTk9Upgrade.html#image-and-bitmap-handling">Image and bitmap handling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-TclTk9Upgrade.html#postscript-output">PostScript output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-TclTk9Upgrade.html#windows-drawing-backend">Windows drawing backend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-TclTk9Upgrade.html#remaining-private-tk-dependencies">Remaining private Tk dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-TclTk9Upgrade.html#c-safety-and-hardening">C safety and hardening</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-TclTk9Upgrade.html#bindings-and-tags">Bindings and tags</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-TclTk9Upgrade.html#regression-testing">Regression testing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-TclTk9Upgrade.html#result">Result</a></li>
 </ul>
-<h2 id="history">History</h2>
-<p>In order to fulfill degree requirements, the four of us undertook the
-refactoring of a few commonly used BLT components. The project was
-proposed by an alumnus of the students’ institute and was accepted by
-the school’s Computer Science and Software Engineering Department. The
-project began in the Fall of 2008 and culminated on the students’
-graduation in the Spring of 2009. In addition to refactoring parts of
-BLT, we also began developing a graphical data analysis tool that is
-designed to work with Rbc (and BLT) and be easily extensible. For more
-information see the GDAT project available at:
-http://www.sourceforge.net/projects/gdat/</p>
-<p>In keeping with the spirit of BLT, we have released this project to
-the open source community in hopes that you will continue development
-and add more components from the BLT library that are compatible with
-version 8.5 and later of Tcl/Tk.</p>
-<p>sjg,njh,sjs,jms</p>
-</body>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-rbc.html">::rbc</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-rbc.html#commands">Commands</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#spline"><code class="docutils literal notranslate"><span class="pre">spline</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#spline-natural"><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">natural</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#spline-quadratic"><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">quadratic</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vecinst"><code class="docutils literal notranslate"><span class="pre">VECINST</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#r-3a3arbc3a3avecinst202a"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">*</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#r-3a3arbc3a3avecinst202b"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">+</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#r-3a3arbc3a3avecinst202d"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">-</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#r-3a3arbc3a3avecinst202f"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">/</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vecinst-append"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">append</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vecinst-binread"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">binread</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vecinst-clear"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">clear</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vecinst-delete"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">delete</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vecinst-dup"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">dup</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vecinst-expr"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">expr</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vecinst-index"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">index</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vecinst-length"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">length</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vecinst-merge"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">merge</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vecinst-normalize"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">normalize</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vecinst-offset"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">offset</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vecinst-populate"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">populate</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vecinst-random"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">random</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vecinst-range"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">range</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vecinst-search"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">search</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vecinst-seq"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">seq</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vecinst-set"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">set</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vecinst-sort"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">sort</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vecinst-split"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">split</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vecinst-variable"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">variable</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vector"><code class="docutils literal notranslate"><span class="pre">vector</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vector-create"><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">create</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vector-destroy"><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">destroy</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vector-expr"><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">expr</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc.html#vector-names"><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">names</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-rbc-vector.html"><code class="docutils literal notranslate"><span class="pre">vector</span></code> command</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-rbc-vector.html#vector-creation-forms">Vector creation forms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-rbc-vector.html#vector-instances">Vector instances</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-rbc-VECINST.html">Vector instance <code class="docutils literal notranslate"><span class="pre">VECINST</span></code> command</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-rbc-VECINST.html#vector-indices">Vector indices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-rbc-VECINST.html#vector-expressions">Vector expressions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc-VECINST.html#scalars-and-vectors">Scalars and vectors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc-VECINST.html#operators">Operators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc-VECINST.html#circular-shifts">Circular shifts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc-VECINST.html#mathematical-functions">Mathematical functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rbc-rbc-VECINST.html#component-functions">Component functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="rbc-rbc-VECINST.html#scalar-functions">Scalar functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="rbc-rbc-VECINST.html#vector-functions">Vector functions</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-rbc-VECINST.html#expression-results">Expression results</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-rbc-spline.html">Spline interpolation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-rbc-spline.html#source-data">Source data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-rbc-spline.html#evaluation-coordinates">Evaluation coordinates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-rbc-spline.html#generating-evaluation-coordinates">Generating evaluation coordinates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-rbc-spline.html#output-vector">Output vector</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-rbc-spline.html#example">Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-rbc-spline.html#natural-cubic-spline">Natural cubic spline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-rbc-spline.html#shape-preserving-quadratic-spline">Shape-preserving quadratic spline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-rbc-spline.html#errors">Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-rbc-spline.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="genindex.html">Index</a></li>
+</ul>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rbc.html"
+                          title="next chapter">Rbc - Refactored BLT Components</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rbc.html" title="Rbc - Refactored BLT Components"
+             >next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">&lt;no title&gt;</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright George Yashin.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    </div>
+  </body>
 </html>

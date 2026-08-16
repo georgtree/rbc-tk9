@@ -1,0 +1,81 @@
+# RBC.graph.element.trace.A.test --
+#
+###Abstract
+# This file contains regression tests for graph element trace direction.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide graph.element.trace
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+
+namespace eval graph.element.trace {
+    # --------------------------------------------------------------------------------
+    # Purpose: Ensure -trace increasing/decreasing follows data X rather than screen X
+    #          when the X axis is descending.
+    # --------------------------------------------------------------------------------
+    test RBC.graph.element.trace.A.1.1 {
+        graph element trace: descending X axis
+    } -setup {
+        graph .graph1
+        pack .graph1
+        .graph1 element create Element1 -xdata {0 1 2 3 4} -ydata {0 1 0 1 0} -symbol none -linewidth 1 -trace both
+        .graph1 axis configure x -min 0 -max 4 -descending yes
+        .graph1 axis configure y -min 0 -max 1
+        update idletasks
+    } -body {
+        .graph1 element configure Element1 -trace both
+        update idletasks
+        set bothCount [regexp -all { lineto} [.graph1 postscript output]]
+        .graph1 element configure Element1 -trace increasing
+        update idletasks
+        set increasingCount [regexp -all { lineto} [.graph1 postscript output]]
+        .graph1 element configure Element1 -trace decreasing
+        update idletasks
+        set decreasingCount [regexp -all { lineto} [.graph1 postscript output]]
+        list [expr {$increasingCount == $bothCount}] [expr {$decreasingCount < $bothCount}]
+    } -cleanup {
+        catch {.graph1 element delete Element1}
+        catch {destroy .graph1}
+    } -result {1 1}
+
+    # --------------------------------------------------------------------------------
+    # Purpose: Ensure -trace follows data X rather than screen X when graph axes are
+    #          inverted.  Deliberately make Y decrease while X increases.
+    # --------------------------------------------------------------------------------
+    test RBC.graph.element.trace.A.1.2 {
+        graph element trace: inverted graph axes
+    } -setup {
+        graph .graph1 -invertxy yes
+        pack .graph1
+        .graph1 element create Element1 -xdata {0 1 2 3 4} -ydata {4 3 2 1 0} -symbol none -linewidth 1 -trace both
+        .graph1 axis configure x -min 0 -max 4
+        .graph1 axis configure y -min 0 -max 4
+        update idletasks
+    } -body {
+        .graph1 element configure Element1 -trace both
+        update idletasks
+        set bothCount [regexp -all { lineto} [.graph1 postscript output]]
+        .graph1 element configure Element1 -trace increasing
+        update idletasks
+        set increasingCount [regexp -all { lineto} [.graph1 postscript output]]
+        .graph1 element configure Element1 -trace decreasing
+        update idletasks
+        set decreasingCount [regexp -all { lineto} [.graph1 postscript output]]
+        list [expr {$increasingCount == $bothCount}] [expr {$decreasingCount < $bothCount}]
+    } -cleanup {
+        catch {.graph1 element delete Element1}
+        catch {destroy .graph1}
+    } -result {1 1}
+
+
+    cleanupTests
+}

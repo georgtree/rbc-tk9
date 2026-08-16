@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Rbc - Refactored BLT Components &#8212; rbc  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tcl/Tk9.0 upgrade" href="rbc-TclTk9Upgrade.html" />
+    <link rel="prev" title="&lt;no title&gt;" href="index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rbc-TclTk9Upgrade.html" title="Tcl/Tk9.0 upgrade"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="&lt;no title&gt;"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Rbc - Refactored BLT Components</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="rbc-refactored-blt-components">
+<span id="r-rbc-refactored-blt-components"></span><span id="r-rbc202d20refactored20blt20components"></span><h1>Rbc - Refactored BLT Components<a class="headerlink" href="#rbc-refactored-blt-components" title="Link to this heading">¶</a></h1>
+<p>This is version 0.5 of the Rbc library.</p>
+<p>Rbc is an extension of the Tcl/Tk toolkit and contains refactored components from version 2.4z of the BLT library.
+These components were refactored so that they would function with version Tcl/Tk 8.5.</p>
+<p>Later, it was updated by Emiliano Gavilán to work with Tcl/Tk 9.0.</p>
+<p>This is my personal fork of Emiliano <a class="reference external" href="https://chiselapp.com/user/egavilan/repository/rbc-tk9">repository</a>.</p>
+<p>There are multiple additions and improvements that were added to upgrade package to full Tcl/Tk9.0 support, it
+is described on a <a class="reference external" href="tcl-tk-9-upgrade">separate page</a></p>
+<p>Rbc is available from:
+<a class="reference external" href="https://github.com/georgtree/rbc-tk9">https://github.com/georgtree/rbc-tk9</a></p>
+<p>More information on BLT is available from:
+<a class="reference external" href="http://www.sourceforge.net/projects/blt/files">http://www.sourceforge.net/projects/blt/files</a></p>
+<p>Rbc is intended to work <strong>only</strong> Tcl/Tk version 9.0, although it may work with others. Rbc is a TEA compliant
+extension, although it is not (yet) entirely free of dependency on Tcl/Tk private structures. So, for compilation
+you need Tcl/Tk sources.</p>
+<p>Rbc is a subset of BLT, contains the essential components for developing data graphing applications. Some BLT
+components have been superseded by advances in Tcl and Tk, and some others have been extracted into separate
+extensions.
+Rbc contains the following BLT components:</p>
+<ul class="simple">
+<li><p>graph, barchart, stripchart</p></li>
+</ul>
+<p>These components use an X-Y coordinate system to plot data and are meant to be used with vector data objects. The
+graphs will automatically be redrawn should the vector data change.</p>
+<ul class="simple">
+<li><p>vector</p></li>
+</ul>
+<p>This component is used to manage floating point values. They are meant to be used to handle data for the plotting
+components.</p>
+<ul class="simple">
+<li><p>winop</p></li>
+</ul>
+<p>This component provides basic window operations.</p>
+<section id="installation">
+<span id="r-installation"></span><h2>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h2>
+<p>For binary installations, just unzip or untar the package into your Tcl library.</p>
+</section>
+<section id="building-from-source">
+<span id="r-building-from-source"></span><span id="r-building20from20source"></span><h2>Building from Source<a class="headerlink" href="#building-from-source" title="Link to this heading">¶</a></h2>
+<p>Rbc is a TEA compliant extension. You should be able to unpack the source code, and perform the usual
+<code class="docutils literal notranslate"><span class="pre">configure/make/make</span> <span class="pre">install</span></code> procedure. Making the test target will run the automated test suite.</p>
+<p>Since Rbc still depends on some Tcl/Tk private data structures, you may experience some difficulty in bulding it  against some Tcl distributions which do not have the complete set of public and private headers.</p>
+</section>
+<section id="documentation">
+<span id="r-documentation"></span><h2>Documentation<a class="headerlink" href="#documentation" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Documentation could be found <a class="reference external" href="https://georgtree.github.io/rbc/">here</a>.</p></li>
+</ul>
+</section>
+<section id="history">
+<span id="r-history"></span><h2>History<a class="headerlink" href="#history" title="Link to this heading">¶</a></h2>
+<p>In order to fulfill degree requirements, the four of us undertook the refactoring of a few commonly used BLT
+components.  The project was proposed by an alumnus of the students’ institute and was accepted by the school’s
+Computer Science and Software Engineering Department. The project began in the Fall of 2008 and culminated on the
+students’ graduation in the Spring of 2009. In addition to refactoring parts of BLT, we also began developing a
+graphical data analysis tool that is designed to work with Rbc (and BLT) and be easily extensible. For more
+information see the GDAT project available at: <a class="reference external" href="http://www.sourceforge.net/projects/gdat/">http://www.sourceforge.net/projects/gdat/</a></p>
+<p>In keeping with the spirit of BLT, we have released this project to the open source community in hopes that you will
+continue development and add more components from the BLT library that are compatible with version 8.5 and later of
+Tcl/Tk.</p>
+<p>sjg,njh,sjs,jms</p>
+<hr class="docutils" />
+<p class="centered">
+<strong>Copyright (c) George Yashin</strong></p></section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Rbc - Refactored BLT Components</a><ul>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#building-from-source">Building from Source</a></li>
+<li><a class="reference internal" href="#documentation">Documentation</a></li>
+<li><a class="reference internal" href="#history">History</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="index.html"
+                          title="previous chapter">&lt;no title&gt;</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rbc-TclTk9Upgrade.html"
+                          title="next chapter">Tcl/Tk9.0 upgrade</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rbc.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rbc-TclTk9Upgrade.html" title="Tcl/Tk9.0 upgrade"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="&lt;no title&gt;"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Rbc - Refactored BLT Components</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright George Yashin.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    </div>
+  </body>
+</html>

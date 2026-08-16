@@ -1,0 +1,719 @@
+namespace eval ::rbc::vector {
+
+    variable _ruff_ns_opts {
+        -heading {`vector` command}
+        -excludeprocs {.*}
+    }
+
+    variable _ruff_preamble {
+        The `::rbc::vector` command creates and manages vectors of double-precision floating-point values.
+
+        A vector can be accessed through:
+        - its vector instance command
+        - an associated Tcl array variable
+        - the RBC C API.
+
+        Creating a vector normally creates both an instance command and an associated Tcl array variable with the same
+        name.
+
+        ## Vector creation forms
+        Vectors may be created with an initially empty value array:
+        ```tcl
+        ::rbc::vector create x
+        ```
+
+        A size may be included in the vector specification:
+        ```tcl
+        ::rbc::vector create x(100)
+        ```
+
+        This creates a vector containing 100 values.
+
+        An explicit external index range may also be specified:
+        ```tcl
+        ::rbc::vector create x(-5:14)
+        ```
+
+        This creates 20 values and sets the vector index offset so that its externally visible indices run from -5
+        through 14.
+
+        The special name `#auto` requests an automatically generated vector name.
+
+        Vector names may be namespace-qualified.
+
+        ## Vector instances
+        The examples and command descriptions below use `VECINST` to denote the Tcl command associated with an
+        individual vector.
+
+        For example:
+        ```tcl
+        set x [::rbc::vector create x]
+        $x seq 0 10 0.5
+        puts [$x length]
+        ```
+    }
+
+    proc create {args} {
+        # Creates one or more vectors.
+        # vecName - vector name or vector specification. A specification may have the form `name`, `name(size)`, or 
+        #   `name(first:last)`.        
+        # -command commandName - sets the Tcl command associated with the vector. This option can only be used when
+        #   creating one vector.
+        # -flush boolean - if true, cached entries in the associated Tcl array are flushed whenever the vector is 
+        #   modified.
+        # -length size - sets the initial length when no size is included in the vector specification. `size` must be
+        #   zero or greater.
+        # -variable varName - sets the Tcl array variable associated with the vector. This option can only be used
+        #   when creating one vector.
+        # -watchunset boolean - if true, unsetting the complete associated # array variable destroys the vector.
+        # Returns: The name of the last vector created.
+        #
+        # Example:
+        # ```tcl
+        # ::rbc::vector create x
+        # ::rbc::vector create y(100)
+        # ::rbc::vector create z(-10:10)
+        # set v [::rbc::vector create #auto]
+        # ```
+        # Synopsis: vecName ?vecName ...? ?switch value ...?
+    }
+
+    proc destroy {args} {
+        # Destroys one or more vectors. Destroying a vector removes its associated vector instance command and Tcl
+        # array variable and notifies clients that use the vector.
+        # vecName - name of a vector to destroy.
+        # Returns: Nothing.
+        # Synopsis: vecName ?vecName ...?
+    }
+
+    proc expr {expression} {
+        # Evaluates a vector expression. `expression` may contain scalars, vectors, vector ranges, arithmetic
+        # operators, and the vector mathematical functions described in [Vector expressions]. Unlike the instance
+        # [::rbc::VECINST::expr] operation, this command does not store the result in an existing vector.
+        # expression - vector expression to evaluate.
+        # Returns: The scalar value or list of vector values produced by the expression.
+    }
+
+    proc names {args} {
+        # Returns the names of existing vectors. If `pattern` is supplied, only vector names matching the Tcl glob
+        # pattern are returned.
+        # pattern - optional Tcl glob pattern.
+        # Returns: A list of vector names.
+        # Synopsis:
+        # Synopsis: pattern
+    }
+
+    namespace export *
+    namespace ensemble create
+
+}
+
+namespace eval ::rbc::VECINST {
+
+    variable _ruff_ns_opts {
+        -heading {Vector instance `VECINST` command}
+        -excludeprocs {.*}
+    }
+
+    variable _ruff_preamble {
+        Commands in this namespace document operations accepted by an individual Rbc vector command.
+
+        `VECINST` is used below as a placeholder for the actual vector command:
+
+        ```tcl
+        ::rbc::vector create x
+        x set {1 2 3 4 5}
+        puts [x length]
+        ```
+
+        ## Vector indices
+        Vector indices are Tcl-sized integer values adjusted by the vector's current [offset].
+
+        The index `end` refers to the last value. Tcl index expressions based on `end` are supported, for example:
+        ```tcl
+        x index end
+        x index end-1
+        ```
+
+        The special index `++end` denotes the position immediately after the final value and may be used when setting a
+        value to append one element:
+        ```tcl
+        x index ++end 10.0
+        ```
+
+        Colon-separated ranges may be used by operations that accept ranges:
+        ```tcl
+        x index 2:5
+        ```
+
+        An omitted range endpoint denotes the beginning or end of the vector:
+        ```tcl
+        x index 2:
+        x index :5
+        x index :
+        ```
+
+        The associated Tcl array additionally supports the special calculated indices `min`, `max`, `mean`, `sum`, and
+        `prod`.
+
+        ## Vector expressions
+        Vector expressions perform arithmetic, comparison, logical, and mathematical operations on vectors.
+
+        Expressions can be evaluated with the top-level `vector expr` command:
+        ```tcl
+        vector expr {expression}
+        ```
+
+        or with the `expr` operation of a vector instance:
+        ```tcl
+        VECINST expr {expression}
+        ```
+
+        The top-level form returns the result. The vector-instance form stores the result in `VECINST`.
+
+        For example:
+
+        ```tcl
+        vector create x y
+
+        x set {1 2 3 4}
+        y set {10 20 30 40}
+
+        vector expr {x + y}
+
+        # -> 11.0 22.0 33.0 44.0
+        x expr {x * 2}
+        x range 0 end
+        # -> 2.0 4.0 6.0 8.0
+        ```
+
+        ### Scalars and vectors
+
+        A numeric scalar is treated as a single value. When one operand is a scalar and the other is a vector, the 
+        scalar operation is applied to every component of the vector.
+
+        For example:
+
+        ```tcl
+        vector expr {x * 2}
+        vector expr {x + 10}
+        vector expr {100 - x}
+        ```
+
+        When both operands are vectors, the operation is performed component by component. The vectors must have
+        compatible lengths.
+
+        For example, given:
+        ```tcl
+        x set {1 2 3}
+        y set {10 20 30}
+        ```
+
+        the expression:
+        ```tcl
+        vector expr {x * y}
+        ```
+
+        returns:
+        ```text
+        10.0 40.0 90.0
+        ```
+
+        Vector names, numeric values, Tcl variable substitutions, command substitutions, quoted or braced values, and
+        parenthesized subexpressions may be used as expression operands.
+
+        For example:
+
+        ```tcl
+        set scale 10
+
+        vector expr {x * $scale}
+        vector expr {x + [y index 0]}
+        vector expr {(x + y) / 2}
+        ```
+
+        ### Operators
+        The following operators are supported, listed from highest to lowest precedence.
+
+        | Operators         | Description                             |
+        |-------------------|-----------------------------------------|
+        | `-` `!`           | Unary minus and logical NOT             |
+        | `^`               | Exponentiation                          |
+        | `*` `/` `%`       | Multiplication, division, and remainder |
+        | `+` `-`           | Addition and subtraction                |
+        | `<<` `>>`         | Circular left and right vector shift    |
+        | `<` `>` `<=` `>=` | Relational comparison                   |
+        | `==` `!=`         | Equality and inequality comparison      |
+        | `&&`              | Logical AND                             |
+        | `\|\|`              | Logical OR                              |
+
+        Binary operators at the same precedence level are evaluated from left to right.
+
+        Arithmetic operators operate component by component.
+
+        For example:
+        ```tcl
+        x set {1 2 3}
+
+        vector expr {x + 10}
+        # -> 11.0 12.0 13.0
+
+        vector expr {x * 2}
+        # -> 2.0 4.0 6.0
+        ```
+
+        Comparison operators return `1.0` when the comparison is true and `0.0` when it is false.
+
+        For example:
+        ```tcl
+        x set {1 5 10}
+
+        vector expr {x > 4}
+        # -> 0.0 1.0 1.0
+        ```
+
+        Logical operators similarly produce `1.0` or `0.0`.
+
+        The unary `!` operator returns `1.0` for a zero-valued component and `0.0` for a non-zero component.
+
+        ### Circular shifts
+        The `<<` and `>>` operators perform circular shifts of vector components. They are not integer bit-shift
+        operators.
+
+        The right-hand operand must be a scalar specifying the number of positions to shift.
+
+        For example:
+        ```tcl
+        x set {1 2 3 4}
+
+        vector expr {x << 1}
+        # -> 2.0 3.0 4.0 1.0
+
+        vector expr {x >> 1}
+        # -> 4.0 1.0 2.0 3.0
+        ```
+
+        Values shifted past one end of the vector reappear at the opposite end.
+
+        ### Mathematical functions
+        Vector expressions provide mathematical functions in three general categories:
+        - component functions, which operate independently on each vector component
+        - scalar functions, which reduce a vector to one value
+        - vector functions, which transform a vector into another vector.
+
+        #### Component functions
+        Component functions apply the selected operation independently to every vector component and return a vector of
+        the same length.
+
+        | Function | Description                                                                  |
+        |----------|------------------------------------------------------------------------------|
+        | `abs`    | Absolute value                                                               |
+        | `acos`   | Arc cosine                                                                   |
+        | `asin`   | Arc sine                                                                     |
+        | `atan`   | Arc tangent                                                                  |
+        | `ceil`   | Smallest integral value not less than the component                          |
+        | `cos`    | Cosine                                                                       |
+        | `cosh`   | Hyperbolic cosine                                                            |
+        | `exp`    | Exponential                                                                  |
+        | `floor`  | Largest integral value not greater than the component                        |
+        | `log`    | Natural logarithm                                                            |
+        | `log10`  | Base-10 logarithm                                                            |
+        | `random` | Generates a pseudo-random value in the range `[0.0, 1.0)` for each component |
+        | `round`  | Rounds to the nearest integral value                                         |
+        | `sin`    | Sine                                                                         |
+        | `sinh`   | Hyperbolic sine                                                              |
+        | `sqrt`   | Square root                                                                  |
+        | `tan`    | Tangent                                                                      |
+        | `tanh`   | Hyperbolic tangent                                                           |
+
+        For example:
+        ```tcl
+        x set {1 4 9 16}
+
+        vector expr {sqrt(x)}
+        # -> 1.0 2.0 3.0 4.0
+        ```
+
+        Functions may be combined with operators and other functions:
+        ```tcl
+        vector expr {sin(x) * 2}
+        vector expr {sqrt(abs(x))}
+        ```
+
+        The `random` function ignores the values of its input components and generates one pseudo-random value for each
+        component:
+        ```tcl
+        x length 100
+
+        set values [vector expr {random(x)}]
+        ```
+
+        The number of generated values is therefore determined by the length of the argument vector.
+
+        #### Scalar functions
+        Scalar functions reduce a vector to a single numeric value.
+
+        | Function   | Description                              |
+        |------------|------------------------------------------|
+        | `adev`     | Average absolute deviation from the mean |
+        | `kurtosis` | Fisher excess kurtosis                   |
+        | `length`   | Number of finite components              |
+        | `max`      | Maximum finite component                 |
+        | `mean`     | Arithmetic mean                          |
+        | `median`   | Median value                             |
+        | `min`      | Minimum finite component                 |
+        | `nz`       | Number of non-zero components            |
+        | `prod`     | Product of the components                |
+        | `q1`       | First quartile                           |
+        | `q3`       | Third quartile                           |
+        | `sdev`     | Sample standard deviation                |
+        | `skew`     | Skewness                                 |
+        | `sum`      | Sum of the components                    |
+        | `var`      | Sample variance                          |
+
+        For example:
+        ```tcl
+        x set {1 2 3 4 5}
+
+        vector expr {mean(x)}
+        # -> 3.0
+
+        vector expr {sum(x)}
+        # -> 15.0
+
+        vector expr {min(x)}
+        # -> 1.0
+
+        vector expr {max(x)}
+        # -> 5.0
+        ```
+
+        Scalar functions can participate in larger expressions:
+        ```tcl
+        vector expr {x - mean(x)}
+        vector expr {x / max(x)}
+        ```
+
+        #### Vector functions
+        Vector functions transform their argument and return another vector.
+
+        | Function | Description                                         |
+        |----------|-----------------------------------------------------|
+        | `norm`   | Normalizes the components to the range `[0.0, 1.0]` |
+        | `sort`   | Returns the components sorted in ascending order    |
+
+        For example:
+
+        ```tcl
+        x set {30 10 20}
+
+        vector expr {sort(x)}
+        # -> 10.0 20.0 30.0
+        ```
+
+        Normalization maps the minimum component to `0.0` and the maximum component to `1.0`:
+
+        ```tcl
+        x set {10 20 30}
+
+        vector expr {norm(x)}
+        # -> 0.0 0.5 1.0
+        ```
+
+        ### Expression results
+        The result of `vector expr` is returned to the caller:
+        ```tcl
+        set result [vector expr {x * 2}]
+        ```
+
+        The instance form stores the expression result directly in the vector:
+        ```tcl
+        x expr {x * 2}
+        ```
+
+        This permits in-place transformations such as:
+        ```tcl
+        x expr {x - mean(x)}
+        x expr {abs(x)}
+        x expr {norm(x)}
+        ```
+
+    }
+
+    proc multiply {list} {
+        # Multiplies every value of the vector by a scalar or by the corresponding value of another vector.  
+        # `list` may name another vector or contain a scalar value. If another vector is used, it must have the same
+        # number of selected values.
+        # list - vector name or scalar value.
+        # Returns: A list containing the resulting values. The vector itself # is not modified.
+    }
+
+    proc + {list} {
+        # Adds a scalar or another vector component-by-component.
+        # list - vector name or scalar value.
+        # Returns: A list containing the resulting values. The vector itself # is not modified.
+    }
+
+    proc - {list} {
+        # Subtracts a scalar or another vector component-by-component.
+        # list - vector name or scalar value.
+        # Returns: A list containing the resulting values. The vector itself # is not modified.
+    }
+
+    proc / {list} {
+        # Divides every vector value by a scalar or by the corresponding value of another vector.
+        # list - vector name or scalar value.
+        # Returns: A list containing the resulting values. The vector itself # is not modified.
+    }
+
+    proc append {args} {
+        # Appends values to the vector. Each item may be another vector or a Tcl list of numeric values.
+        # item - vector name or list of numeric values.
+        # Returns: Nothing.
+        # Synopsis: item ?item ...?
+    }
+
+    proc binread {args} {
+        # Reads native binary numeric values from a Tcl channel into the vector.
+        # channel - name of a readable Tcl channel.
+        # numValues - optional maximum number of values to read. A value of zero, or omission of the argument, reads
+        #   until EOF.
+        # -at index - starts storing values at `index`. Existing values are # overwritten from that position. Without
+        #   `-at`, values # are appended to the vector.
+        # -format format - native numeric input representation. Formats have the form `i#`, `u#`, `r#`, or `f#`,
+        #   where `#` is # the native type size in bytes. The default is the # native C `double` representation.
+        # -swap - reverses the byte order of each input value.
+        #
+        # The channel is temporarily placed in binary translation mode and its previous translation setting is
+        # restored before the command returns. A read that ends in the middle of a binary value is an error.
+        # Returns: Number of complete values read.
+        # Synopsis: channel ?numValues? ?-at index? ?-format format? ?-swap?
+    }
+
+    proc clear {} {
+        # Clears cached elements of the Tcl array associated with the vector. This does not remove values from the
+        # vector. It can be used to release memory occupied by cached array-index entries.
+        # Returns: Nothing.
+    }
+
+    proc delete {args} {
+        # Deletes one or more indices or index ranges from the vector. Remaining values are compacted after the
+        # deleted values are removed.
+        # index - vector index or colon-separated index range.
+        # Returns: Nothing.
+        # Synopsis: index ?index ...?
+    }
+
+    proc dup {vecName} {
+        # Copies this vector into another vector. The destination vector is created if necessary. If it already
+        # exists, its contents are replaced.
+        # vecName - destination vector.
+        # Returns: Nothing.
+    }
+
+    proc expr {expression} {
+        # Evaluates `expression` and stores the result in this vector.
+        # expression - vector expression.
+        # Returns: Nothing.
+    }
+
+    proc index {args} {
+        # Reads or writes a vector value or range.  With no value argument, returns the value or values selected by
+        # `index`. With `value`, assigns that numeric value to every element selected by `index`. The special
+        # `++end` index may be used when setting a value to append one new element.
+        # index - vector index or range.
+        # value - optional numeric value.
+        # Returns: Selected value(s) when querying, or the assigned value when setting.
+        # Synopsis: index
+        # Synopsis: index value
+    }
+
+    proc length {args} {
+        # Queries or changes the vector length. If `newSize` is supplied, the vector is resized. New elements
+        # created by enlarging the vector are initialized by the vector resizing machinery.
+        # newSize - new non-negative vector length.
+        # Returns: Current vector length.
+        # Synopsis:
+        # Synopsis: newSize
+    }
+
+    proc merge {args} {
+        # Interleaves values from two or more vectors and stores the result in this vector. All input vectors must
+        # contain the same number of selected values.
+        # vecName - input vector.
+        #
+        # For vectors `a={1 2}` and `b={10 20}`, merging `a b` produces:
+        # ```tcl
+        # 1 10 2 20
+        # ```
+        # Returns: Nothing.
+        # Synopsis: vecName ?vecName ...?
+    }
+
+    proc normalize {args} {
+        # Normalizes vector values to the range 0.0 through 1.0 using: `(value - minimum) / (maximum - minimum)`
+        # With no destination vector, returns the normalized values as a Tcl list. If `vecName` is supplied, that
+        # vector is created or resized and the normalized values are stored there.
+        # vecName - optional destination vector.
+        # Returns: Normalized list when no destination is specified; otherwise # nothing.
+        # Synopsis:
+        # Synopsis: vecName
+    }
+
+    proc offset {args} {
+        # Queries or changes the external index offset of the vector. The offset changes the numeric indices
+        # through which the vector is addressed without moving the underlying data.
+        # offset - new Tcl-sized integer offset.
+        # Returns: Current offset.
+        # Synopsis:
+        # Synopsis: offset
+    }
+
+    proc populate {vecName density} {
+        # Creates a more densely sampled vector using linear interpolation.  `density` intermediate values are
+        # inserted between every adjacent pair of source values. `density` must be at least 1. The destination may
+        # be the same vector as the source.
+        # vecName - destination vector.
+        # density - number of interpolated values inserted between each pair.
+        # Returns: Nothing.
+    }
+
+    proc random {} {
+        # Fills the vector with pseudo-random values in the range # `[0.0, 1.0)`. The current vector length is
+        # preserved. Each existing component is replaced by a newly generated pseudo-random value. An empty vector
+        # remains empty.
+        #
+        # Example:
+        # ```tcl
+        # x length 100
+        # x random
+        # ```
+        # Returns: Nothing.
+    }
+
+    proc range {first last} {
+        # Returns an inclusive range of vector values. If `first` is less than or equal to `last`, values are
+        # returned in ascending index order. If `first` is greater than `last`, values are returned in descending
+        # index order. `first` and `last` are normal vector indices and may use forms such as `end`. This
+        # operation does not modify the vector.
+        # first - first vector index.
+        # last - last vector index.
+        #
+        # Example:
+        # ```tcl
+        # x set {10 20 30 40 50}
+        #
+        # x range 1 3
+        # # -> 20.0 30.0 40.0
+        #
+        # x range 3 1
+        # # -> 40.0 30.0 20.0
+        # ```
+        # Returns: A list containing the selected vector values.
+    }
+
+    proc search {args} {
+        # Searches the vector for values in a numeric range. With one numeric argument, returns matches equal to
+        # that value. With two numeric arguments, returns matches between `min` and `max`, inclusive within the
+        # implementation's floating-point tolerance. By default matching vector indices are returned. With `-value`,
+        # matching vector values are returned instead.
+        # -value - return values instead of indices.
+        # min - lower bound, or the exact value when `max` is omitted.
+        # max - optional upper bound.
+        # Returns: List of matching indices or values.
+        # Synopsis: value
+        # Synopsis: value1 value2
+        # Synopsis: -value value
+        # Synopsis: -value value1 value2
+    }
+
+    proc seq {args} {
+        # Generates an arithmetic sequence.
+        # start - first value.
+        # end - numeric end value or literal `end`.
+        # step - optional increment.
+        #
+        # With a numeric `end`, the vector is resized to hold the generated sequence:
+        # ```tcl
+        # x seq 0 10 0.5
+        # ```
+        # If the second argument is the literal `end`, the vector keeps its current length and is filled starting at
+        # `start` using `step`:
+        # ```tcl
+        # x length 100
+        # x seq 0 end 0.1
+        # ```
+        # `step` defaults to 1.0 and must be non-zero. Sequence bounds and step must be finite.
+        # Returns: Nothing.
+        # Synopsis: start end ?step?
+    }
+
+    proc set {list} {
+        # Replaces the contents of the vector. `list` may be a Tcl list of numeric values or the name of another
+        # vector.
+        # list - numeric list or vector name.
+        # Returns: Nothing.
+    }
+
+    proc sort {args} {
+        # Sorts this vector. Additional vectors may be supplied. They must have the same length and are
+        # rearranged using the same permutation, allowing associated data to remain aligned. `-reverse` requests
+        # descending rather than ascending order.
+        # -reverse - sort in descending order.
+        # vecName - optional associated vector to reorder.
+        # Returns: Nothing.
+        # Synopsis: ?-reverse? ?vecName ...?
+    }
+
+    proc split {args} {
+        # Distributes values from this vector among destination vectors in round-robin order. The source vector
+        # length must be evenly divisible by the number of destination vectors. Existing destination contents are
+        # preserved and the split values are appended.
+        # vecName - destination vector.
+        #
+        # For example, splitting:
+        # ```tcl
+        # {1 10 2 20 3 30}
+        # ```
+        # into vectors `x` and `y` appends `{1 2 3}` to `x` and `{10 20 30}` to `y`.
+        # Returns: Nothing.
+        # Synopsis: ?vecName ...?
+    }
+
+    proc variable {args} {
+        # Queries or changes the Tcl array variable associated with the vector. Supplying an empty variable name
+        # removes the current mapping.
+        # varName - optional Tcl array variable name.
+        # Returns: Name of the currently mapped variable, or an empty result # if no variable is mapped.
+        # Synopsis:
+        # Synopsis: varName
+    }
+
+    namespace export *
+    namespace ensemble create -map {
+        * multiply
+        + +
+        - -
+        / /
+        append append
+        binread binread
+        clear clear
+        delete delete 
+        dup dup 
+        expr expr 
+        index index 
+        length length 
+        merge merge 
+        normalize normalize 
+        offset offset 
+        populate populate 
+        random random 
+        range range 
+        search search 
+        seq seq 
+        set set 
+        sort sort 
+        split split 
+        variable variable 
+    }
+}
