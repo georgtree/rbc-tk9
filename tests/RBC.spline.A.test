@@ -485,5 +485,53 @@ test RBC.spline.A.5.2 {
     }
 } -result {1 {error generating spline for "VectorResult"} {10.0 20.0}}
 
+test RBC.spline.extrapolate.A.1.1 {
+    natural spline extrapolates and accepts unordered interpolation X
+} -body {
+    vector create x y splX splY
+    x set {0.0 1.0 2.0}
+    y set {0.0 1.0 2.0}
+    splX set {-1.0 0.0 0.5 3.0 2.0 1.5 -2.0}
+    spline natural x y splX splY
+    set expected {-1.0 0.0 0.5 3.0 2.0 1.5 -2.0}
+    set ok 1
+    foreach actual [splY range 0 end] wanted $expected {
+        if {abs($actual - $wanted) > 1.0e-12} {
+            set ok 0
+            break
+        }
+    }
+    set ok
+} -cleanup {
+    catch {vector destroy x}
+    catch {vector destroy y}
+    catch {vector destroy splX}
+    catch {vector destroy splY}
+} -result 1
+
+test RBC.spline.extrapolate.A.1.1 {
+    quadratic spline extrapolates and accepts unordered interpolation X
+} -body {
+    vector create x y splX splY
+    x set {0.0 1.0 2.0}
+    y set {0.0 1.0 2.0}
+    splX set {-1.0 0.0 0.5 3.0 2.0 1.5 -2.0}
+    spline quadratic x y splX splY
+    set expected {-1.0 0.0 0.5 3.0 2.0 1.5 -2.0}
+    set ok 1
+    foreach actual [splY range 0 end] wanted $expected {
+        if {abs($actual - $wanted) > 1.0e-12} {
+            set ok 0
+            break
+        }
+    }
+    set ok
+} -cleanup {
+    catch {vector destroy x}
+    catch {vector destroy y}
+    catch {vector destroy splX}
+    catch {vector destroy splY}
+} -result 1
+
 
 cleanupTests

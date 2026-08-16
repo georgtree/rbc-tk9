@@ -680,18 +680,16 @@ static void QuadSlopes(const Point2D points[], double *m, Tcl_Size nPoints) {
  *                     should be greater than or equal to
  *                     machine epsilon.
  *
- *      ON OUTPUT--
- *        yval         contains the images of the points in
- *                     xval.
- *        err          one of the following error codes:
- *                       0 - QuadEval ran normally.
- *                       1 - xval(i) is less than xtab(1)
- *                           for at least one i or xval(i)
- *                           is greater than xtab(num) for
- *                           at least one i. QuadEval will
- *                           extrapolate to provide function
- *                           values for these abscissas.
- *                       2 - xval(i+1) < xval(i) for some i.
+ *
+ * Results:
+ *      Returns 0 when all evaluation points are inside the source
+ *      domain, 1 when one or more points are extrapolated, and 2
+ *      on an internal evaluation error.
+ *
+ *      Evaluation points may appear in any order. Points outside
+ *      the source domain are extrapolated using the first or last
+ *      spline interval.
+ *
  *
  *      QuadEval calls the following subroutines or functions:
  *
@@ -724,21 +722,11 @@ static int QuadEval(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[
     Tcl_Size selectedLeft;
     Tcl_Size last;
     Tcl_Size i;
-    int error;
+    int extrapolated;
     int ncase;
 
-    /*
-     * Evaluation points must be non-decreasing.
-     */
-    for (i = 1; i < nIntpPts; i++) {
-        if (intpPts[i].x < intpPts[i - 1].x) {
-            return 2;
-        }
-    }
-    error = 0;
+    extrapolated = FALSE;
     last = nOrigPts - 1;
-    left = 0;
-    right = 1;
     selectedLeft = -1;
     ncase = 0;
     for (i = 0; i < nIntpPts; i++) {
@@ -749,38 +737,39 @@ static int QuadEval(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[
             /*
              * Extrapolate using the first source interval.
              */
-            error = 1;
+            extrapolated = TRUE;
             left = 0;
             right = 1;
         } else if (x > origPts[last].x) {
             /*
              * Extrapolate using the final source interval.
              */
-            error = 1;
+            extrapolated = TRUE;
             left = last - 1;
             right = last;
         } else {
-            /*
-             * Evaluation points are non-decreasing, so the source
-             * interval can only move forward.
-             */
-            while ((right < last) && (x > origPts[right].x)) {
+            Tcl_Size position;
+            int isKnot;
 
-                left++;
-                right++;
-            }
+            position = Search(origPts, nOrigPts, x, &isKnot);
             /*
              * Preserve source knots exactly instead of evaluating
              * the polynomial at them.
              */
-            if (x == origPts[left].x) {
-                intpPts[i].y = origPts[left].y;
+            if (isKnot) {
+                intpPts[i].y = origPts[position].y;
                 continue;
             }
-            if (x == origPts[right].x) {
-                intpPts[i].y = origPts[right].y;
-                continue;
+            /*
+             * Search returns the insertion position. Since x is
+             * inside the source domain and is not a knot, it is
+             * the right endpoint of the interval containing x.
+             */
+            if ((position == 0) || (position >= nOrigPts)) {
+                return 2;
             }
+            left = position - 1;
+            right = position;
         }
         /*
          * Recalculate spline parameters only when the source
@@ -792,7 +781,7 @@ static int QuadEval(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[
         }
         QuadSpline(intpPts + i, origPts + left, origPts + right, param, ncase);
     }
-    return error;
+    return extrapolated ? 1 : 0;
 }
 
 /*
@@ -817,8 +806,8 @@ static int QuadEval(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[
  *
  *        X,Y    Contain n-long arrays of data (x is
  *               increasing)
- *        XM     Contains m-long array of x values
- *               (increasing)
+ *        XM     XM Contains m-long array of finite x values. Values may be
+ *                 in any order and may lie outside the source domain.
  *        eps    Relative error tolerance
  *        n      Number of input data points
  *        m      Number of output data points
@@ -1006,38 +995,49 @@ int Rbc_NaturalSpline(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPt
     }
     for (i = 0; i < nIntpPts; i++) {
         double x;
+        double localX;
         Tcl_Size interval;
         int isKnot;
 
         x = intpPts[i].x;
-        intpPts[i].y = 0.0;
-        if ((x < origPts[0].x) || (x > origPts[nIntervals].x)) {
-            continue;
-        }
-        interval = Search(origPts, nOrigPts, x, &isKnot);
-        if (isKnot) {
-            intpPts[i].y = origPts[interval].y;
-            if (!FINITE(intpPts[i].y)) {
-                goto cleanup;
-            }
-        } else {
-            double localX;
-
+        if (x < origPts[0].x) {
             /*
-             * Since x is within the interpolation domain and is not
-             * the first knot, Search must return a positive insertion
-             * position.
+             * Extrapolate using the first spline interval.
+             */
+            interval = 0;
+        } else if (x > origPts[nIntervals].x) {
+            /*
+             * Extrapolate using the final spline interval.
+             */
+            interval = nIntervals - 1;
+        } else {
+            interval = Search(origPts, nOrigPts, x, &isKnot);
+            /*
+             * Preserve source knots exactly instead of evaluating
+             * the polynomial at them.
+             */
+            if (isKnot) {
+                intpPts[i].y = origPts[interval].y;
+                if (!FINITE(intpPts[i].y)) {
+                    goto cleanup;
+                }
+                continue;
+            }
+            /*
+             * Search returns the insertion position. Since x is
+             * inside the source domain and is not a knot, this must
+             * be the right endpoint of a valid interval.
              */
             if (interval == 0) {
                 goto cleanup;
             }
             interval--;
-            localX = x - origPts[interval].x;
-            intpPts[i].y =
-                origPts[interval].y + localX * (eq[interval].b + localX * (eq[interval].c + localX * eq[interval].d));
-            if (!FINITE(intpPts[i].y)) {
-                goto cleanup;
-            }
+        }
+        localX = x - origPts[interval].x;
+        intpPts[i].y =
+            origPts[interval].y + localX * (eq[interval].b + localX * (eq[interval].c + localX * eq[interval].d));
+        if (!FINITE(intpPts[i].y)) {
+            goto cleanup;
         }
     }
     result = TRUE;
