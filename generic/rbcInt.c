@@ -113,13 +113,22 @@ int DLLEXPORT Rbc_Init(Tcl_Interp *interp) {
         }
     }
 
-    Rbc_VectorInit(interp);
-    Rbc_GraphInit(interp);
-    Rbc_WinopInit(interp);
+    if (Rbc_VectorInit(interp) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (Rbc_GraphInit(interp) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (Rbc_WinopInit(interp) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    /*
+     * Tk_CreateItemType() returns void, so this initializer
+     * cannot report an error.
+     */
     Rbc_InitEpsCanvasItem(interp);
-    Rbc_SplineInit(interp);
-
-    Tcl_PkgProvideEx(interp, PACKAGE_NAME, PACKAGE_VERSION, (ClientData)&rbcStubs);
-
-    return TCL_OK;
+    if (Rbc_SplineInit(interp) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    return Tcl_PkgProvideEx(interp, PACKAGE_NAME, PACKAGE_VERSION, (ClientData)&rbcStubs);
 }

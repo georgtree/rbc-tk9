@@ -18,7 +18,6 @@
 #include <windowsx.h>
 #endif /* WIN32 */
 
-#define USE_NON_CONST
 #include <tcl.h>
 
 #include <tk.h>
