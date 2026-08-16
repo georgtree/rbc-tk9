@@ -314,7 +314,6 @@ static const Tk_OptionSpec axisOptionSpecs[] = {
 static double titleRotate[4] = {0.0, 90.0, 0.0, 270.0};
 
 /* Forward declarations */
-static int Round(register double x);
 static void SetAxisRange(AxisRange *rangePtr, double min, double max);
 static double NormalizeAxisValue(const AxisRange *rangePtr, double value);
 static double InterpolateAxisValue(const AxisRange *rangePtr, double norm);
@@ -610,26 +609,6 @@ static int AxisRotatedSize(double value) {
     }
     return ROUND(value);
 }
-
-/*
- *----------------------------------------------------------------------
- *
- * Round --
- *
- *      TODO: Description
- *
- * Parameters:
- *      x
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static int Round(register double x) { return (int)(x + ((x < 0.0) ? -0.5 : 0.5)); }
 
 /*
  *----------------------------------------------------------------------

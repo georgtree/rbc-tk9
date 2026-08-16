@@ -18,7 +18,16 @@
  * Private Tk Windows interfaces are confined to this translation unit.
  * Do not expose these types or functions through RBC headers.
  */
+#if defined(_WIN32) && defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+#endif
+
 #include "tkWinInt.h"
+
+#if defined(_WIN32) && defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 struct Rbc_WinDrawableDC {
     TkWinDCState state;

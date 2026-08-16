@@ -12,7 +12,23 @@
 #include "rbcInt.h"
 #include <X11/Xutil.h>
 #include "rbcImage.h"
-#include <tkInt.h> /* needed for TkDrawAngledChars */
+/*
+ * TkDrawAngledChars is part of Tk's unsupported internal API.
+ *
+ * On MinGW, Tk's internal declarations redeclare several Xlib
+ * compatibility functions with different dllimport attributes,
+ * producing -Wattributes warnings inside Tk headers.
+ */
+#if defined(_WIN32) && defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+#endif
+
+#include <tkInt.h>
+
+#if defined(_WIN32) && defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 #include <stddef.h>
 #include <stdint.h>
 

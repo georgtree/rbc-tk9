@@ -3452,7 +3452,6 @@ static void GenerateParametricSpline(Graph *graphPtr, Line *linePtr, MapInfo *ma
     capacity = nOrigPts;
     for (i = 0, j = 1; j < nOrigPts; i++, j++) {
         Segment2D clipped;
-        double dist;
 
         if (Rbc_LineRectClip(&exts, &origPts[i], &origPts[j], &clipped)) {
             double distP;
