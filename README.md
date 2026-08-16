@@ -9,7 +9,7 @@ Later, it was updated by Emiliano Gavilán to work with Tcl/Tk 9.0.
 This is my personal fork of Emiliano [repository](https://chiselapp.com/user/egavilan/repository/rbc-tk9). 
 
 There are multiple additions and improvements that were added to upgrade package to full Tcl/Tk9.0 support, it 
-is described on a [separate page](tcl-tk-9-upgrade)
+is described on a [separate page](https://georgtree.github.io/rbc-tk9/rbc-tk9-TclTk9Upgrade.html)
 
 Rbc is available from:
 https://github.com/georgtree/rbc-tk9
@@ -53,7 +53,7 @@ against some Tcl distributions which do not have the complete set of public and 
 
 
 ## Documentation
-- Documentation could be found [here](https://georgtree.github.io/rbc/).
+- Documentation could be found [here](https://georgtree.github.io/rbc-tk9/).
 
 
 ## History

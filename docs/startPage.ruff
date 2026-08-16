@@ -11,7 +11,7 @@ variable startPage {
     This is my personal fork of Emiliano [repository](https://chiselapp.com/user/egavilan/repository/rbc-tk9). 
 
     There are multiple additions and improvements that were added to upgrade package to full Tcl/Tk9.0 support, it 
-    is described on a [separate page](tcl-tk-9-upgrade)
+    is described on a [separate page](https://georgtree.github.io/rbc-tk9/rbc-tk9-TclTk9Upgrade.html)
 
     Rbc is available from:
     https://github.com/georgtree/rbc-tk9
@@ -55,7 +55,7 @@ variable startPage {
 
 
     ## Documentation
-    - Documentation could be found [here](https://georgtree.github.io/rbc/).
+    - Documentation could be found [here](https://georgtree.github.io/rbc-tk9/).
 
 
     ## History

@@ -37,7 +37,7 @@
 
 PKG_SOURCES	= @PKG_SOURCES@
 PKG_OBJECTS	= @PKG_OBJECTS@
-
+DOC_HTML_FILES = @DOC_HTML_FILES@
 PKG_STUB_SOURCES = @PKG_STUB_SOURCES@
 PKG_STUB_OBJECTS = @PKG_STUB_OBJECTS@
 
@@ -98,6 +98,7 @@ INSTALL_PROGRAM	= @INSTALL_PROGRAM@
 INSTALL_LIBRARY	= @INSTALL_PROGRAM@
 INSTALL_DATA	= @INSTALL_DATA@
 INSTALL_SCRIPT	= @INSTALL_SCRIPT@
+DOC_INSTALL_DIR = $(DESTDIR)/usr/local/share/$(PACKAGE_NAME)$(PACKAGE_VERSION)/doc
 
 PACKAGE_NAME	= @PACKAGE_NAME@
 PACKAGE_VERSION	= @PACKAGE_VERSION@
@@ -211,7 +212,7 @@ doc:
 
 #  We don't have any docs to install, yet
 #install: all install-binaries install-libraries install-doc
-install: all install-binaries install-libraries install-demos
+install: all install-binaries install-libraries install-demos install-doc
 
 install-binaries: binaries install-lib-binaries install-bin-binaries
 
@@ -259,12 +260,24 @@ install-demos: demos
 # directory.
 #========================================================================
 
-install-doc: 
-	@mkdir -p $(DESTDIR)$(mandir)/mann
+install-doc:
+	@$(INSTALL_DATA_DIR) "$(DESTDIR)$(mandir)/mann"
 	@echo "Installing documentation in $(DESTDIR)$(mandir)"
 	@list='$(srcdir)/docs/*.n'; for i in $$list; do \
 	    echo "Installing $$i"; \
-	    $(INSTALL_DATA) $$i $(DESTDIR)$(mandir)/mann ; \
+	    $(INSTALL_DATA) $$i "$(DESTDIR)$(mandir)/mann" ; \
+	done
+	@$(INSTALL_DATA_DIR) "$(DOC_INSTALL_DIR)"
+	@echo "Installing html documentation in $(DOC_INSTALL_DIR)"
+	@list='$(DOC_HTML_FILES)'; for p in $$list; do \
+	  if test -f "$(srcdir)/docs/$$p"; then \
+	    d=`dirname "$$p"`; \
+	    if test "x$$d" != "x."; then \
+	      $(INSTALL_DATA_DIR) "$(DOC_INSTALL_DIR)/$$d"; \
+	    fi; \
+	    echo " Install $(srcdir)/docs/$$p $(DOC_INSTALL_DIR)/$$p"; \
+	    $(INSTALL_DATA) "$(srcdir)/docs/$$p" "$(DOC_INSTALL_DIR)/$$p"; \
+	  fi; \
 	done
 
 test: binaries libraries
@@ -352,7 +365,6 @@ dist: dist-clean
 		$(DIST_DIR)/tclconfig/
 	chmod 664 $(DIST_DIR)/tclconfig/tcl.m4
 	chmod +x $(DIST_DIR)/tclconfig/install-sh
-
 	list='doc generic library mac tests unix win'; \
 	for p in $$list; do \
 	    if test -d $(srcdir)/$$p ; then \
@@ -360,7 +372,6 @@ dist: dist-clean
 		cp -p $(srcdir)/$$p/*.* $(DIST_DIR)/$$p/; \
 	    fi; \
 	done
-
 	list='demos'; \
 	for p in $$list; do \
 	    if test -d $(srcdir)/$$p ; then \
@@ -368,7 +379,18 @@ dist: dist-clean
 		cp -r -p $(srcdir)/$$p $(DIST_DIR)/; \
 	    fi; \
 	done
-
+	@$(INSTALL_DATA_DIR) "$(DIST_DIR)/docs"
+	@echo "Copying html documentation to $(DIST_DIR)/docs"
+	@list='$(DOC_HTML_FILES)'; for p in $$list; do \
+	  if test -f "$(srcdir)/docs/$$p"; then \
+	    d=`dirname "$$p"`; \
+	    if test "x$$d" != "x."; then \
+	      $(INSTALL_DATA_DIR) "$(DIST_DIR)/docs/$$d"; \
+	    fi; \
+	    echo " Copy $(srcdir)/docs/$$p $(DIST_DIR)/docs/$$p"; \
+	    $(INSTALL_DATA) "$(srcdir)/docs/$$p" "$(DIST_DIR)/docs/$$p"; \
+	  fi; \
+	done
 	(cd $(DIST_ROOT); $(COMPRESS);)
 
 #========================================================================
@@ -384,6 +406,10 @@ clean:
 	-test -z "$(BINARIES)" || rm -f $(BINARIES)
 	-rm -f *.$(OBJEXT) core *.core
 	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
+	-rm -rf docs/sphinx
+	-rm -rf docs/.doctrees
+	-rm -rf docs/_sources
+	-rm -f docs/.buildinfo
 
 distclean: clean
 	-rm -f *.tab.c
@@ -472,6 +498,9 @@ uninstall-binaries:
 	list='$(bin_BINARIES)'; for p in $$list; do \
 	  rm -f $(DESTDIR)$(bindir)/$$p; \
 	done
+
+uninstall:
+	rm -rf "$(DESTDIR)$(pkglibdir)"
 
 .PHONY: all binaries clean depend distclean doc install libraries test
 

@@ -23,7 +23,7 @@ set commonNroff [list -title $title -sortnamespaces false -preamble $startPage -
 
 set namespaces [list ::TclTk9Upgrade ::rbc ::rbc::vector ::rbc::VECINST ::rbc::spline]
 
-ruff::document $namespaces -format sphinx -outfile rbc.rst -outdir [file join $docDir sphinx] {*}$commonSphinx
+ruff::document $namespaces -format sphinx -outfile rbc-tk9.rst -outdir [file join $docDir sphinx] {*}$commonSphinx
 ruff::document $namespaces -format nroff -outdir $docDir -outfile rbc.n {*}$commonNroff
 
 ::fileutil::appendToFile [file join $docDir sphinx conf.py] {html_theme = "classic"

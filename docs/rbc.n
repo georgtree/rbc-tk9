@@ -16,7 +16,7 @@ Later, it was updated by Emiliano Gavilán to work with Tcl/Tk 9\&.0\&.
 This is my personal fork of Emiliano \fIrepository\fP [URL: https://chiselapp\&.com/user/egavilan/repository/rbc-tk9]\&.
 .PP
 There are multiple additions and improvements that were added to upgrade package to full Tcl/Tk9\&.0 support, it
-is described on a \fIseparate page\fP [URL: tcl-tk-9-upgrade]
+is described on a \fIseparate page\fP [URL: https://georgtree\&.github\&.io/rbc-tk9/rbc-tk9-TclTk9Upgrade\&.html]
 .PP
 Rbc is available from:
 https://github\&.com/georgtree/rbc-tk9
@@ -61,7 +61,7 @@ Since Rbc still depends on some Tcl/Tk private data structures, you may experien
 .SH DOCUMENTATION
 .TP
 \(bu
-Documentation could be found \fIhere\fP [URL: https://georgtree\&.github\&.io/rbc/]\&.
+Documentation could be found \fIhere\fP [URL: https://georgtree\&.github\&.io/rbc-tk9/]\&.
 .SH HISTORY
 .PP
 In order to fulfill degree requirements, the four of us undertook the refactoring of a few commonly used BLT
