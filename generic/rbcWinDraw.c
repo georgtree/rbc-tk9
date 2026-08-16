@@ -13,7 +13,12 @@
 #include "rbcInt.h"
 #include <X11/Xutil.h>
 #include <X11/Xlib.h>
-#include "rbcTkInt.h"
+
+/*
+ * Private Tk Windows interfaces are confined to this translation unit.
+ * Do not expose these types or functions through RBC headers.
+ */
+#include "tkWinInt.h"
 
 struct Rbc_WinDrawableDC {
     TkWinDCState state;
@@ -24,7 +29,7 @@ struct Rbc_WinDrawableDC {
 #define WINDEBUG 0
 #define XAngleToRadians(a) ((double)(a) / 64.0 * M_PI / 180.0)
 
-const int tkpWinRopModes[] = {
+static const int rbcWinRopModes[] = {
     R2_BLACK,       /* GXclear */
     R2_MASKPEN,     /* GXand */
     R2_MASKPENNOT,  /* GXandReverse */
@@ -190,7 +195,7 @@ void Rbc_WinReleaseDrawableDC(Rbc_WinDrawableDC *statePtr) {
  *
  *----------------------------------------------------------------------
  */
-void Rbc_WinSetROP2(HDC dc, int function) { SetROP2(dc, tkpWinRopModes[function]); }
+void Rbc_WinSetROP2(HDC dc, int function) { SetROP2(dc, rbcWinRopModes[function]); }
 
 /*
  *----------------------------------------------------------------------

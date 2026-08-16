@@ -6249,6 +6249,7 @@ printf %s "checking for X11 header files... " >&6; }
 printf "%s\n" "${INCLUDE_DIR_NATIVE}" >&6; }
     fi
 
+if test "${TEA_PLATFORM}" = "windows" ; then
 
     # Allow for --with-tkinclude to take effect and define ${ac_cv_c_tkh}
 
@@ -6319,6 +6320,7 @@ printf %s "checking for Tk private include files... " >&6; }
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: ${result}" >&5
 printf "%s\n" "${result}" >&6; }
 
+fi
 #TEA_PATH_X
 
 #--------------------------------------------------------------------
