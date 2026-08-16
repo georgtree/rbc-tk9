@@ -67,7 +67,7 @@ namespace eval vector.range {
 		foo range 2 1
 	} -cleanup {
 		vector destroy foo
-	} -result {2.0 3.0}
+	} -result {3.0 2.0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the vector range command works correctly when given a valid vector 
@@ -83,6 +83,16 @@ namespace eval vector.range {
 	} -cleanup {
 		vector destroy foo
 	} -result {2.0 3.0 4.0}
+
+    test RBC.vector.range.A.1.5 {
+        range in descending direction
+    } -body {
+        vector create x
+        x set {10 20 30 40 50}
+        x range 3 1
+    } -cleanup {
+        catch {vector destroy x}
+    } -result {40.0 30.0 20.0}
 	
 	cleanupTests
 }

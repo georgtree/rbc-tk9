@@ -354,6 +354,9 @@ void Rbc_Panic(char *format, ...) {
     abort();
 }
 
+
+double Rbc_RandomDouble(void) { return (double)rand() / ((double)RAND_MAX + 1.0); }
+
 /*
  *--------------------------------------------------------------
  *

@@ -280,7 +280,6 @@ int Rbc_ResetVector(Rbc_Vector *vecPtr, double *dataArr, Tcl_Size nValues, Tcl_S
 
 /* Instance Functions Definitions (rbcVecObjCmd.c) */
 Tcl_ObjCmdProc2 Rbc_VectorInstanceObjCmd;
-double drand48(void);
 
 /* Vector Math Definitions (rbcVecMath.c) */
 typedef double(ComponentProc)(double value);

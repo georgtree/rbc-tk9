@@ -974,7 +974,7 @@ static int GradientOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
 
         for (y = 0; y < src.height; y++) {
             for (x = 0; x < src.width; x++) {
-                t = (double)x * (drand48() * 0.10 - 0.05);
+                t = (double)x * (Rbc_RandomDouble() * 0.10 - 0.05);
                 t = CLAMP(t);
                 destPtr->Red = (unsigned char)(left[0] + t * range[0]);
                 destPtr->Green = (unsigned char)(left[1] + t * range[1]);
@@ -999,7 +999,7 @@ static int GradientOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
             for (x = 0; x < src.width; x++) {
                 dx = (x / (double)src.width) - midX;
                 t = 1.0 - (double)sqrt(dx * dx + dy2);
-                t += t * (drand48() * 0.10 - 0.05);
+                t += t * (Rbc_RandomDouble() * 0.10 - 0.05);
                 t = CLAMP(t);
                 destPtr->Red = (unsigned char)(left[0] + t * range[0]);
                 destPtr->Green = (unsigned char)(left[1] + t * range[1]);
@@ -1030,7 +1030,7 @@ static int GradientOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
                 px = dx * cosTheta - dy * sinTheta;
                 py = dx * sinTheta + dy * cosTheta;
                 t = FABS(px) + FABS(py);
-                t += t * (drand48() * 0.10 - 0.05);
+                t += t * (Rbc_RandomDouble() * 0.10 - 0.05);
                 t = CLAMP(t);
                 destPtr->Red = (unsigned char)(left[0] + t * range[0]);
                 destPtr->Green = (unsigned char)(left[1] + t * range[1]);

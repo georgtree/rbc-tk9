@@ -449,6 +449,7 @@ void Rbc_FreeColorPair(ColorPair *pairPtr);
 char *Rbc_Itoa(int value);
 char *Rbc_Utoa(unsigned int value);
 char *Rbc_Dtoa(Tcl_Interp *interp, double value);
+double Rbc_RandomDouble(void);
 
 int Rbc_NaturalSpline(const Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
 int Rbc_QuadraticSpline(const Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);

@@ -99,10 +99,6 @@ static RbcVectorCmdOp SortOp;
 static RbcVectorCmdOp SplitOp;
 static RbcVectorCmdOp VariableOp;
 
-double drand48(void) { return (double)rand() / (double)RAND_MAX; }
-
-void srand48(long int seed) { srand(seed); }
-
 static const VectorInstOpSpec vectorInstOpCmd[] = {{{"*", 3, 3, "list"}, ArithOp},
                                                    {{"+", 3, 3, "list"}, ArithOp},
                                                    {{"-", 3, 3, "list"}, ArithOp},
@@ -1393,13 +1389,14 @@ static int PopulateOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
  * -----------------------------------------------------------------------
  */
 static int RandomOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-#ifdef HAVE_DRAND48
     Tcl_Size i;
 
+    (void)interp;
+    (void)objc;
+    (void)objv;
     for (i = 0; i < vPtr->length; i++) {
-        vPtr->valueArr[i] = drand48();
+        vPtr->valueArr[i] = Rbc_RandomDouble();
     }
-#endif
     if (vPtr->flush) {
         Rbc_VectorFlushCache(vPtr);
     }
@@ -1443,8 +1440,7 @@ static int RangeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
     }
     listObjPtr = Tcl_NewListObj(0, NULL);
     if (first > last) {
-        /* Return the list reversed */
-        for (i = last; i <= first; i++) {
+        for (i = first; i >= last; i--) {
             Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(vPtr->valueArr[i]));
         }
     } else {

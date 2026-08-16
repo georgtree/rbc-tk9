@@ -65,6 +65,7 @@ static int precTable[] = {
 static void InstallIndexProc(Tcl_HashTable *tablePtr, char *string, Rbc_VectorIndexProc *procPtr);
 static Tcl_Size First(VectorObject *vPtr);
 static Tcl_Size Next(VectorObject *vPtr, Tcl_Size current);
+static double Random(double value);
 static double Mean(Rbc_Vector *vecPtr);
 static double Sum(Rbc_Vector *vecPtr);
 static double Product(Rbc_Vector *vecPtr);
@@ -122,7 +123,7 @@ static MathFunction mathFunctions[] = {
     {"q1", (GenericMathProc *)ScalarFunc, (ClientData)Q1},
     {"q3", (GenericMathProc *)ScalarFunc, (ClientData)Q3},
     {"prod", (GenericMathProc *)ScalarFunc, (ClientData)Product},
-    {"random", (GenericMathProc *)ComponentFunc, (ClientData)drand48},
+    {"random", (GenericMathProc *)ComponentFunc, (ClientData)Random},
     {"round", (GenericMathProc *)ComponentFunc, (ClientData)Round},
     {"sdev", (GenericMathProc *)ScalarFunc, (ClientData)StdDeviation},
     {"sin", (GenericMathProc *)ComponentFunc, (ClientData)sin},
@@ -376,6 +377,12 @@ double Rbc_VecMin(Rbc_Vector *vecPtr) {
     }
     vPtr->min = min;
     return vPtr->min;
+}
+
+static double Random(double value) {
+    (void)value;
+
+    return Rbc_RandomDouble();
 }
 
 /*
