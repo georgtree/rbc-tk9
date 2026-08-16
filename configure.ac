@@ -333,9 +333,7 @@ TEA_PUBLIC_TCL_HEADERS
 #TEA_PRIVATE_TCL_HEADERS
 
 TEA_PUBLIC_TK_HEADERS
-if test "${TEA_PLATFORM}" = "windows" ; then
-    TEA_PRIVATE_TK_HEADERS
-fi
+TEA_PRIVATE_TK_HEADERS
 #TEA_PATH_X
 
 #--------------------------------------------------------------------
