@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Graph widget instance GRAPHINST command &#8212; rbc  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="vector command" href="rbc-tk9-rbc-vector.html" />
+    <link rel="prev" title="::rbc" href="rbc-tk9-rbc.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-vector.html" title="vector command"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc.html" title="::rbc"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Graph widget instance <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code> command</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="graph-widget-instance-graphinst-command">
+<span id="r-graph-widget-instance-graphinst-command"></span><span id="r-graph20widget20instance2060graphinst6020command"></span><span id="r-3a3arbc3a3agraphinst"></span><h1>Graph widget instance <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code> command<a class="headerlink" href="#graph-widget-instance-graphinst-command" title="Link to this heading">¶</a></h1>
+<p>Commands in this namespace document operations accepted by graph, barchart, and stripchart widget instances.</p>
+<p><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code> is used below as a placeholder for the actual widget command:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">graph</span><span class="w"> </span>.g
+<span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>title<span class="w"> </span><span class="s2">&quot;Example&quot;</span>
+</pre></div>
+</div>
+<p>The same widget instance interface is shared by all three graph types. The main difference is the default
+element type used by the <code class="docutils literal notranslate"><span class="pre">element</span></code> operation:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Widget created by</p></th>
+<th class="head"><p>Default element type</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">graph</span></code></p></td>
+<td><p>line</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">barchart</span></code></p></td>
+<td><p>bar</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stripchart</span></code></p></td>
+<td><p>strip</p></td>
+</tr>
+</tbody>
+</table>
+<p>Explicit <code class="docutils literal notranslate"><span class="pre">line</span></code> and <code class="docutils literal notranslate"><span class="pre">bar</span></code> operations are also available independently of the widget’s default element type.</p>
+<p>Graph widgets contain several components with their own command interfaces:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Operation</p></th>
+<th class="head"><p>Component</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">axis</span></code></p></td>
+<td><p>virtual axes</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">xaxis</span></code>, <code class="docutils literal notranslate"><span class="pre">x2axis</span></code>, <code class="docutils literal notranslate"><span class="pre">yaxis</span></code>, <code class="docutils literal notranslate"><span class="pre">y2axis</span></code></p></td>
+<td><p>axes mapped to graph margins</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">element</span></code></p></td>
+<td><p>elements of the widget’s default type</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">line</span></code></p></td>
+<td><p>line elements</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bar</span></code></p></td>
+<td><p>bar elements</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">marker</span></code></p></td>
+<td><p>graph markers</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pen</span></code></p></td>
+<td><p>drawing pens</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">legend</span></code></p></td>
+<td><p>graph legend</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">grid</span></code></p></td>
+<td><p>graph grid</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">crosshairs</span></code></p></td>
+<td><p>interactive crosshairs</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">postscript</span></code></p></td>
+<td><p>PostScript output</p></td>
+</tr>
+</tbody>
+</table>
+<p>These component interfaces are documented separately.</p>
+<section id="coordinate-systems">
+<span id="r-rbc-graphinst-coordinate-systems"></span><span id="r-3a3arbc3a3agraphinstqzcoordinate20systems"></span><h2>Coordinate systems<a class="headerlink" href="#coordinate-systems" title="Link to this heading">¶</a></h2>
+<p>Graph widgets use two coordinate systems:</p>
+<ul class="simple">
+<li><p><strong>graph coordinates</strong> are the numeric data values represented by the axes</p></li>
+<li><p><strong>window coordinates</strong> are pixel positions within the widget.</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">transform</span></code> operation converts graph coordinates to window coordinates, while <code class="docutils literal notranslate"><span class="pre">invtransform</span></code> performs the
+reverse conversion.</p>
+<p>The general <code class="docutils literal notranslate"><span class="pre">transform</span></code> and <code class="docutils literal notranslate"><span class="pre">invtransform</span></code> operations use the graph’s primary X and Y axes. To transform a
+value using a particular axis, use that axis’s <code class="docutils literal notranslate"><span class="pre">transform</span></code> or <code class="docutils literal notranslate"><span class="pre">invtransform</span></code> operation.</p>
+</section>
+<section id="widget-options">
+<span id="r-rbc-graphinst-widget-options"></span><span id="r-3a3arbc3a3agraphinstqzwidget20options"></span><h2>Widget options<a class="headerlink" href="#widget-options" title="Link to this heading">¶</a></h2>
+<p>The following options configure the graph widget itself. They are shared by <code class="docutils literal notranslate"><span class="pre">graph</span></code>, <code class="docutils literal notranslate"><span class="pre">barchart</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">stripchart</span></code> and may be specified when the widget is created or modified later with <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">configure</span></code>.</p>
+<p>Some options, such as <code class="docutils literal notranslate"><span class="pre">-barmode</span></code>, <code class="docutils literal notranslate"><span class="pre">-barwidth</span></code>, and <code class="docutils literal notranslate"><span class="pre">-baseline</span></code>, primarily affect bar elements but are available
+on all three graph widget types.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-aspect</span> <span class="pre">ratio</span></code></p></td>
+<td><p>Sets a fixed width-to-height aspect ratio for the plotting area. A positive value causes one dimension of the plotting area to be reduced as necessary to maintain the requested ratio. A value less than or equal to zero disables aspect-ratio enforcement. The default is <code class="docutils literal notranslate"><span class="pre">0.0</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-background</span> <span class="pre">color</span></code></p></td>
+<td><p>Sets the background used for the outer graph area and margins. The plotting area has its own <code class="docutils literal notranslate"><span class="pre">-plotbackground</span></code> option. <code class="docutils literal notranslate"><span class="pre">-bg</span></code> is a synonym.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-barmode</span> <span class="pre">mode</span></code></p></td>
+<td><p>Controls how bar elements having the same X coordinate are arranged. Valid modes are <code class="docutils literal notranslate"><span class="pre">normal</span></code>, <code class="docutils literal notranslate"><span class="pre">infront</span></code>, <code class="docutils literal notranslate"><span class="pre">aligned</span></code>, <code class="docutils literal notranslate"><span class="pre">overlap</span></code>, and <code class="docutils literal notranslate"><span class="pre">stacked</span></code>. <code class="docutils literal notranslate"><span class="pre">normal</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">infront</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">normal</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-barwidth</span> <span class="pre">width</span></code></p></td>
+<td><p>Sets the default width of bar elements in graph-coordinate units. The value must be finite. Values less than or equal to zero are normalized to <code class="docutils literal notranslate"><span class="pre">0.1</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">0.8</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-baseline</span> <span class="pre">value</span></code></p></td>
+<td><p>Sets the baseline from which bars are drawn. The value must be finite. The default is <code class="docutils literal notranslate"><span class="pre">0.0</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-borderwidth</span> <span class="pre">width</span></code></p></td>
+<td><p>Sets the width of the 3-D border around the outside of the widget. The appearance of the border is controlled by <code class="docutils literal notranslate"><span class="pre">-relief</span></code>. <code class="docutils literal notranslate"><span class="pre">-bd</span></code> is a synonym.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-bottommargin</span> <span class="pre">size</span></code></p></td>
+<td><p>Sets the requested size of the bottom margin. A value of <code class="docutils literal notranslate"><span class="pre">0</span></code> lets the graph calculate the required size automatically. <code class="docutils literal notranslate"><span class="pre">-bm</span></code> is a synonym.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-bottomvariable</span> <span class="pre">varName</span></code></p></td>
+<td><p>Names a global Tcl variable that is updated with the actual size of the bottom margin after graph layout. An empty value disables the variable update.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-bufferelements</span> <span class="pre">boolean</span></code></p></td>
+<td><p>Enables caching of the plotted elements in a backing pixmap. This can improve redraw performance when elements remain unchanged while markers, legends, or other overlays are updated. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-buffergraph</span> <span class="pre">boolean</span></code></p></td>
+<td><p>Enables double-buffering of the complete graph. When enabled, the graph is first rendered into a pixmap and then copied to the widget window, reducing visible redraw flicker. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-cursor</span> <span class="pre">cursor</span></code></p></td>
+<td><p>Specifies the mouse cursor displayed over the graph widget. The default is <code class="docutils literal notranslate"><span class="pre">crosshair</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-data</span> <span class="pre">string</span></code></p></td>
+<td><p>Stores application-defined data associated with the graph widget. The graph rendering code does not interpret this value; it may be used by Tcl code or bindings to associate additional information with the widget.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-datacommand</span> <span class="pre">command</span></code></p></td>
+<td><p>Stores an application-defined command string associated with the graph. The graph core currently does not invoke this command automatically.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-font</span> <span class="pre">fontName</span></code></p></td>
+<td><p>Specifies the font used for the graph title.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-foreground</span> <span class="pre">color</span></code></p></td>
+<td><p>Specifies the foreground color of the graph title. <code class="docutils literal notranslate"><span class="pre">-fg</span></code> is a synonym.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-halo</span> <span class="pre">distance</span></code></p></td>
+<td><p>Sets the default maximum screen distance used when searching for a closest data point or element. Operations that provide their own halo value override this setting. The default is <code class="docutils literal notranslate"><span class="pre">2m</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-height</span> <span class="pre">distance</span></code></p></td>
+<td><p>Specifies the requested height of the graph widget. The default is <code class="docutils literal notranslate"><span class="pre">4i</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-highlightbackground</span> <span class="pre">color</span></code></p></td>
+<td><p>Specifies the color used for the traversal highlight area when the widget does not have keyboard focus.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-highlightcolor</span> <span class="pre">color</span></code></p></td>
+<td><p>Specifies the color used for the traversal highlight when the widget has keyboard focus.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-highlightthickness</span> <span class="pre">width</span></code></p></td>
+<td><p>Specifies the width of the keyboard-focus highlight around the widget. The default is <code class="docutils literal notranslate"><span class="pre">2</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-invertxy</span> <span class="pre">boolean</span></code></p></td>
+<td><p>Swaps the placement and orientation of the logical X and Y axes. When enabled, X axes are displayed vertically and Y axes horizontally. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-justify</span> <span class="pre">justify</span></code></p></td>
+<td><p>Specifies the justification of multi-line graph title text. Valid values are <code class="docutils literal notranslate"><span class="pre">left</span></code>, <code class="docutils literal notranslate"><span class="pre">center</span></code>, and <code class="docutils literal notranslate"><span class="pre">right</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">center</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-leftmargin</span> <span class="pre">size</span></code></p></td>
+<td><p>Sets the requested size of the left margin. A value of <code class="docutils literal notranslate"><span class="pre">0</span></code> lets the graph calculate the required size automatically. <code class="docutils literal notranslate"><span class="pre">-lm</span></code> is a synonym.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-leftvariable</span> <span class="pre">varName</span></code></p></td>
+<td><p>Names a global Tcl variable that is updated with the actual size of the left margin after graph layout. An empty value disables the variable update.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-plotbackground</span> <span class="pre">color</span></code></p></td>
+<td><p>Specifies the background color of the plotting area. This is independent of the outer <code class="docutils literal notranslate"><span class="pre">-background</span></code> color. The default is <code class="docutils literal notranslate"><span class="pre">white</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-plotborderwidth</span> <span class="pre">width</span></code></p></td>
+<td><p>Sets the width of the 3-D border surrounding the plotting area. Its appearance is controlled by <code class="docutils literal notranslate"><span class="pre">-plotrelief</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-plotpadx</span> <span class="pre">pad</span></code></p></td>
+<td><p>Sets horizontal padding around the plotting area. <code class="docutils literal notranslate"><span class="pre">pad</span></code> may contain one screen distance, applied to both sides, or two distances specifying the left and right padding separately. The default is <code class="docutils literal notranslate"><span class="pre">8</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-plotpady</span> <span class="pre">pad</span></code></p></td>
+<td><p>Sets vertical padding around the plotting area. <code class="docutils literal notranslate"><span class="pre">pad</span></code> may contain one screen distance, applied to both sides, or two distances specifying the top and bottom padding separately. The default is <code class="docutils literal notranslate"><span class="pre">8</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-plotrelief</span> <span class="pre">relief</span></code></p></td>
+<td><p>Specifies the 3-D relief of the plotting area. Valid values are the standard Tk relief values. The default is <code class="docutils literal notranslate"><span class="pre">sunken</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-relief</span> <span class="pre">relief</span></code></p></td>
+<td><p>Specifies the 3-D relief of the outer graph widget. Valid values are the standard Tk relief values. The default is <code class="docutils literal notranslate"><span class="pre">flat</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-rightmargin</span> <span class="pre">size</span></code></p></td>
+<td><p>Sets the requested size of the right margin. A value of <code class="docutils literal notranslate"><span class="pre">0</span></code> lets the graph calculate the required size automatically. <code class="docutils literal notranslate"><span class="pre">-rm</span></code> is a synonym.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-rightvariable</span> <span class="pre">varName</span></code></p></td>
+<td><p>Names a global Tcl variable that is updated with the actual size of the right margin after graph layout. An empty value disables the variable update.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-shadow</span> <span class="pre">shadow</span></code></p></td>
+<td><p>Specifies the shadow used when drawing the graph title. An empty value disables the title shadow.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-takefocus</span> <span class="pre">focus</span></code></p></td>
+<td><p>Controls whether the graph participates in keyboard focus traversal. It has the same interpretation as the standard Tk <code class="docutils literal notranslate"><span class="pre">-takefocus</span></code> option. The default is an empty value.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-tile</span> <span class="pre">image</span></code></p></td>
+<td><p>Specifies an image used to tile the background of the graph margins. An empty value disables tiling and uses the normal <code class="docutils literal notranslate"><span class="pre">-background</span></code> instead.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-title</span> <span class="pre">text</span></code></p></td>
+<td><p>Specifies the graph title. An empty value suppresses the title.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-topmargin</span> <span class="pre">size</span></code></p></td>
+<td><p>Sets the requested size of the top margin. A value of <code class="docutils literal notranslate"><span class="pre">0</span></code> lets the graph calculate the required size automatically. <code class="docutils literal notranslate"><span class="pre">-tm</span></code> is a synonym.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-topvariable</span> <span class="pre">varName</span></code></p></td>
+<td><p>Names a global Tcl variable that is updated with the actual size of the top margin after graph layout. An empty value disables the variable update.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-width</span> <span class="pre">distance</span></code></p></td>
+<td><p>Specifies the requested width of the graph widget. The default is <code class="docutils literal notranslate"><span class="pre">5i</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+<section id="bar-modes">
+<span id="r-rbc-graphinst-bar-modes"></span><span id="r-3a3arbc3a3agraphinstqzbar20modes"></span><h3>Bar modes<a class="headerlink" href="#bar-modes" title="Link to this heading">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">-barmode</span></code> option determines how bars from different elements are arranged when they use the same X
+coordinate.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Mode</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">normal</span></code></p></td>
+<td><p>Equivalent to <code class="docutils literal notranslate"><span class="pre">infront</span></code>. This is the default.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">infront</span></code></p></td>
+<td><p>Draws each successive bar in front of the previous bar.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stacked</span></code></p></td>
+<td><p>Stacks successive bars vertically.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">aligned</span></code></p></td>
+<td><p>Places bars side by side.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">overlap</span></code></p></td>
+<td><p>Places bars side by side with a small overlap.</p></td>
+</tr>
+</tbody>
+</table>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">barchart</span><span class="w"> </span>.b
+<span class="nv">.b</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>barmode<span class="w"> </span>stacked
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">-barmode</span></code>, <code class="docutils literal notranslate"><span class="pre">-barwidth</span></code>, and <code class="docutils literal notranslate"><span class="pre">-baseline</span></code> options have no significant effect unless bar elements are present
+in the graph.</p>
+</section>
+<section id="margins">
+<span id="r-rbc-graphinst-margins"></span><span id="r-3a3arbc3a3agraphinstqzmargins"></span><h3>Margins<a class="headerlink" href="#margins" title="Link to this heading">¶</a></h3>
+<p>The graph has four margins surrounding the plotting area. Their sizes are normally calculated automatically
+from axes, axis titles, tick labels, the graph title, and the legend.</p>
+<p>The margin options:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>-bottommargin
+-leftmargin
+-rightmargin
+-topmargin
+</pre></div>
+</div>
+<p>override the automatically calculated size when set to a positive screen distance. Setting a margin size to <code class="docutils literal notranslate"><span class="pre">0</span></code>
+restores automatic sizing.</p>
+<p>The corresponding options:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>-bottomvariable
+-leftvariable
+-rightvariable
+-topvariable
+</pre></div>
+</div>
+<p>can be used to observe the actual calculated margin sizes. After layout and drawing, Rbc writes the current
+size of each configured margin to the specified global Tcl variable.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">graph</span><span class="w"> </span>.g<span class="w"> </span><span class="o">-</span>leftvariable<span class="w"> </span>leftSize<span class="w"> </span><span class="o">-</span>bottomvariable<span class="w"> </span>bottomSize
+
+<span class="nv">pack</span><span class="w"> </span>.g<span class="w"> </span><span class="o">-</span>fill<span class="w"> </span>both<span class="w"> </span><span class="o">-</span>expand<span class="w"> </span>yes
+<span class="k">update</span><span class="w"> </span>idletasks
+
+<span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;left margin: $leftSize&quot;</span>
+<span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;bottom margin: $bottomSize&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="plotting-area">
+<span id="r-rbc-graphinst-plotting-area"></span><span id="r-3a3arbc3a3agraphinstqzplotting20area"></span><h3>Plotting area<a class="headerlink" href="#plotting-area" title="Link to this heading">¶</a></h3>
+<p>The outer graph background and the plotting-area background are configured independently.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">graph</span><span class="w"> </span>.g<span class="w">  </span><span class="o">-</span>background<span class="w"> </span>grey90<span class="w">  </span><span class="o">-</span>plotbackground<span class="w"> </span>white<span class="w">  </span><span class="o">-</span>plotrelief<span class="w"> </span>sunken<span class="w">  </span><span class="o">-</span>plotborderwidth<span class="w"> </span><span class="mi">2</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">-plotpadx</span></code> and <code class="docutils literal notranslate"><span class="pre">-plotpady</span></code> add space immediately around the plotting surface. Each option accepts either one
+distance:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>plotpadx<span class="w"> </span><span class="mi">10</span>
+</pre></div>
+</div>
+<p>or two distances for the two sides:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>plotpadx<span class="w"> </span><span class="k">{</span><span class="nv">5</span><span class="w"> </span><span class="mi">15</span><span class="k">}</span>
+<span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>plotpady<span class="w"> </span><span class="k">{</span><span class="nv">10</span><span class="w"> </span><span class="mi">20</span><span class="k">}</span>
+</pre></div>
+</div>
+</section>
+<section id="aspect-ratio">
+<span id="r-rbc-graphinst-aspect-ratio"></span><span id="r-3a3arbc3a3agraphinstqzaspect20ratio"></span><h3>Aspect ratio<a class="headerlink" href="#aspect-ratio" title="Link to this heading">¶</a></h3>
+<p>A positive <code class="docutils literal notranslate"><span class="pre">-aspect</span></code> value constrains the plotting area to a requested width-to-height ratio.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>aspect<span class="w"> </span><span class="mf">1.0</span>
+</pre></div>
+</div>
+<p>requests a square plotting area, while:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>aspect<span class="w"> </span><span class="mf">1.5</span>
+</pre></div>
+</div>
+<p>requests a plotting area whose width is 1.5 times its height.</p>
+<p>Rbc satisfies the requested ratio by reducing the usable width or height of the plotting area; it does not
+enlarge the widget. Set <code class="docutils literal notranslate"><span class="pre">-aspect</span></code> to <code class="docutils literal notranslate"><span class="pre">0</span></code> to disable the constraint.</p>
+</section>
+<section id="buffering">
+<span id="r-rbc-graphinst-buffering"></span><span id="r-3a3arbc3a3agraphinstqzbuffering"></span><h3>Buffering<a class="headerlink" href="#buffering" title="Link to this heading">¶</a></h3>
+<p>Two separate buffering mechanisms are available.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-buffergraph</span></code> controls double-buffering of the complete widget. With double-buffering enabled, Rbc renders the
+graph to an off-screen pixmap and copies the completed image to the window.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-bufferelements</span></code> controls an additional backing store containing the plot region and data elements. It is
+useful when elements themselves are unchanged but the graph must frequently redraw objects placed above them,
+such as markers.</p>
+<p>Element buffering is only used when graph double-buffering is also enabled.</p>
+<p>For graphs whose element data or axes change very frequently, disabling <code class="docutils literal notranslate"><span class="pre">-bufferelements</span></code> may avoid maintaining
+a cache that cannot be reused.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>buffergraph<span class="w"> </span>yes<span class="w"> </span><span class="o">-</span>bufferelements<span class="w"> </span>no
+</pre></div>
+</div>
+</section>
+<section id="application-data">
+<span id="r-rbc-graphinst-application-data"></span><span id="r-3a3arbc3a3agraphinstqzapplication20data"></span><h3>Application data<a class="headerlink" href="#application-data" title="Link to this heading">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">-data</span></code> option is an application-defined storage slot. Rbc stores the supplied value but does not interpret
+it in the C graph implementation.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">[</span><span class="nb">dict</span><span class="w"> </span>create<span class="w"> </span>source<span class="w"> </span>simulation1<span class="w"> </span>quantity<span class="w"> </span>voltage<span class="k">]</span>
+
+<span class="k">set</span><span class="w"> </span>graphData<span class="w"> </span><span class="k">[</span><span class="nv">.g</span><span class="w"> </span>cget<span class="w"> </span><span class="o">-</span>data<span class="k">]</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">-datacommand</span></code> similarly stores a command string. It is retained as part of the graph configuration interface,
+but the current graph core does not automatically execute it.</p>
+<hr class="docutils" />
+<p class="centered">
+<strong>Copyright (c) George Yashin</strong></p></section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Graph widget instance <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code> command</a><ul>
+<li><a class="reference internal" href="#coordinate-systems">Coordinate systems</a></li>
+<li><a class="reference internal" href="#widget-options">Widget options</a><ul>
+<li><a class="reference internal" href="#bar-modes">Bar modes</a></li>
+<li><a class="reference internal" href="#margins">Margins</a></li>
+<li><a class="reference internal" href="#plotting-area">Plotting area</a></li>
+<li><a class="reference internal" href="#aspect-ratio">Aspect ratio</a></li>
+<li><a class="reference internal" href="#buffering">Buffering</a></li>
+<li><a class="reference internal" href="#application-data">Application data</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rbc-tk9-rbc.html"
+                          title="previous chapter">::rbc</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rbc-tk9-rbc-vector.html"
+                          title="next chapter"><code class="docutils literal notranslate"><span class="pre">vector</span></code> command</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rbc-tk9-rbc-GRAPHINST.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-vector.html" title="vector command"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc.html" title="::rbc"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Graph widget instance <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code> command</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright George Yashin.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    </div>
+  </body>
+</html>

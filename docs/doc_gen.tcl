@@ -5,6 +5,7 @@ set docDir [file dirname [file normalize [info script]]]
 set sourceDir [file join $docDir ..]
 source [file join $docDir startPage.ruff]
 source [file join $docDir tclTk9Upgrade.ruff]
+source [file join $docDir rbc.ruff]
 source [file join $docDir vector.ruff]
 source [file join $docDir spline.ruff]
 
@@ -21,7 +22,7 @@ set commonNroff [list -title $title -sortnamespaces false -preamble $startPage -
                          -product rbc -diagrammer "ditaa --border-width 1" -version $packageVersion\
                          -copyright "George Yashin" {*}$::argv]
 
-set namespaces [list ::TclTk9Upgrade ::rbc ::rbc::vector ::rbc::VECINST ::rbc::spline]
+set namespaces [list ::TclTk9Upgrade ::rbc ::rbc::GRAPHINST ::rbc::vector ::rbc::VECINST ::rbc::spline]
 
 ruff::document $namespaces -format sphinx -outfile rbc-tk9.rst -outdir [file join $docDir sphinx] {*}$commonSphinx
 ruff::document $namespaces -format nroff -outdir $docDir -outfile rbc.n {*}$commonNroff

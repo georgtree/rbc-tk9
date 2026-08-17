@@ -5,11 +5,63 @@
 .SH NAME
 rbc - Commands in namespace rbc
 .SH SYNOPSIS
+\fBbarchart\fP \fIpathName ?option value \&.\&.\&.?\fP
+.br
+\fBgraph\fP \fIpathName ?option value \&.\&.\&.?\fP
+.br
+\fBGRAPHINST\fP \fIsubcommand \&.\&.\&.\fP
+.br
+\fBGRAPHINST axis\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+\fBGRAPHINST bar\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+\fBGRAPHINST cget\fP \fIoption\fP
+.br
+\fBGRAPHINST configure\fP \fIoption\fP
+.br
+\fBGRAPHINST configure\fP \fI?option value \&.\&.\&.?\fP
+.br
+\fBGRAPHINST crosshairs\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+\fBGRAPHINST element\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+\fBGRAPHINST extents\fP \fIitem\fP
+.br
+\fBGRAPHINST grid\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+\fBGRAPHINST inside\fP \fIwinX winY\fP
+.br
+\fBGRAPHINST invtransform\fP \fIwinX winY\fP
+.br
+\fBGRAPHINST legend\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+\fBGRAPHINST line\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+\fBGRAPHINST marker\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+\fBGRAPHINST pen\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+\fBGRAPHINST postscript\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+\fBGRAPHINST snap\fP \fIname ?-format format? ?-height height? ?-width width?\fP
+.br
+\fBGRAPHINST transform\fP \fIx y\fP
+.br
+\fBGRAPHINST x2axis\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+\fBGRAPHINST xaxis\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+\fBGRAPHINST y2axis\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+\fBGRAPHINST yaxis\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
 \fBspline\fP \fIsubcommand \&.\&.\&.\fP
 .br
 \fBspline natural\fP \fIx y splX splY\fP
 .br
 \fBspline quadratic\fP \fIx y splX splY\fP
+.br
+\fBstripchart\fP \fIpathName ?option value \&.\&.\&.?\fP
 .br
 \fBVECINST\fP \fIsubcommand \&.\&.\&.\fP
 .br
@@ -81,6 +133,633 @@ rbc - Commands in namespace rbc
 .br
 .SH ::RBC
 .SH COMMANDS
+.PP
+.RS -4n
+\fBbarchart\fR (::rbc)
+.RE
+.PP
+Creates a barchart widget\&. A barchart uses bar elements as its default element type\&. It uses the same graph
+widget infrastructure and common components as graph, but elements created through the generic
+GRAPHINST element interface are bar elements by default\&. Configuration options supplied when the widget
+is created are the same options accepted later by GRAPHINST configure\&.
+.RS 4n
+\fBbarchart\fP \fIpathName ?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+pathName
+Tk pathname of the barchart widget to create\&.
+.TP
+option
+Graph widget configuration option\&.
+.TP
+value
+Value for the configuration option\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+Example:
+.PP
+.RS 4n
+.nf
+barchart \&.b -title "Example barchart" -width 800 -height 500
+pack \&.b -fill both -expand yes
+.fi
+.RE
+.PP
+\fBReturn value\fR
+.PP
+The pathname of the newly created barchart widget\&.
+.PP
+.RS -4n
+\fBgraph\fR (::rbc)
+.RE
+.PP
+Creates a graph widget\&. A graph uses line elements as its default element type\&. The widget supports the
+common graph components such as axes, elements, markers, pens, legends, grids, crosshairs, and PostScript
+output\&. Configuration options supplied when the widget is created are the same options accepted later by
+GRAPHINST configure\&.
+.RS 4n
+\fBgraph\fP \fIpathName ?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+pathName
+Tk pathname of the graph widget to create\&.
+.TP
+option
+Graph widget configuration option\&.
+.TP
+value
+Value for the configuration option\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+Example:
+.PP
+.RS 4n
+.nf
+graph \&.g -title "Example graph" -width 800 -height 500
+pack \&.g -fill both -expand yes
+.fi
+.RE
+.PP
+\fBReturn value\fR
+.PP
+The pathname of the newly created graph widget\&.
+.PP
+.RS -4n
+\fBGRAPHINST\fR (::rbc)
+.RE
+.PP
+A
+command
+ensemble\&.
+.RS 4n
+\fBGRAPHINST\fP \fIsubcommand \&.\&.\&.\fP
+.br
+.RE
+.PP
+\fBDescription\fR
+.PP
+The ensemble supports the following subcommands:
+.RS 4n
+.TP
+\fIaxis\fP
+Performs an operation on the graph's virtual axes\&. Virtual axes can be created, deleted, configured, transformed, bound to events, and mapped to graph margins\&.
+.TP
+\fIbar\fP
+Performs an element operation using bar elements explicitly, regardless of the default element type of the graph widget\&.
+.TP
+\fIcget\fP
+Returns the current value of a graph widget configuration option\&. Current value of option\&.
+.TP
+\fIconfigure\fP
+Queries or modifies graph widget configuration options\&. With no arguments, returns configuration information for all widget options\&. With one option, returns configuration information for that option\&. With one or more option/value pairs, changes the specified options\&.
+.TP
+\fIcrosshairs\fP
+Performs an operation on the graph crosshairs\&.
+.TP
+\fIelement\fP
+Performs an operation on graph elements using the widget's default element type\&. The default is a line element for graph, a bar element for barchart, and a strip element for stripchart\&.
+.TP
+\fIextents\fP
+Returns the size or geometry of a graph component\&. For plotheight, plotwidth, and the margin items, returns one size in pixels\&. For plotarea and legend, returns a list of four values in the form x y width height\&.
+.TP
+\fIgrid\fP
+Performs an operation on the graph grid\&.
+.TP
+\fIinside\fP
+Tests whether a window coordinate lies inside the graph plotting area\&.
+.TP
+\fIinvtransform\fP
+Converts a point from window coordinates to graph coordinates using the graph's primary X and Y axes\&. winX and winY may be Tcl expressions that evaluate to numeric values\&.
+.TP
+\fIlegend\fP
+Performs an operation on the graph legend\&.
+.TP
+\fIline\fP
+Performs an element operation using line elements explicitly, regardless of the default element type of the graph widget\&.
+.TP
+\fImarker\fP
+Performs an operation on graph markers\&.
+.TP
+\fIpen\fP
+Performs an operation on graph pens\&. Pens define reusable drawing attributes for line and bar elements\&.
+.TP
+\fIpostscript\fP
+Performs a PostScript output operation for the graph\&.
+.TP
+\fIsnap\fP
+Renders a snapshot of the graph\&. By default the snapshot is written to an existing Tk photo image\&. On Windows, snapshots can also be written as Windows Metafile (wmf) or Enhanced Metafile (emf) output\&.
+.TP
+\fItransform\fP
+Converts a point from graph coordinates to window coordinates using the graph's primary X and Y axes\&. x and y may be Tcl expressions that evaluate to numeric values\&.
+.TP
+\fIx2axis\fP
+Performs an operation on the axis mapped to the secondary X-axis margin\&. With a normal graph orientation this is the top margin\&.
+.TP
+\fIxaxis\fP
+Performs an operation on the axis mapped to the primary X-axis margin\&. With a normal graph orientation this is the bottom margin\&.
+.TP
+\fIy2axis\fP
+Performs an operation on the axis mapped to the secondary Y-axis margin\&. With a normal graph orientation this is the right margin\&.
+.TP
+\fIyaxis\fP
+Performs an operation on the axis mapped to the primary Y-axis margin\&. With a normal graph orientation this is the left margin\&.
+.RE
+.PP
+Refer to the documentation of each subcommand for details\&.
+.PP
+.RS -4n
+\fBGRAPHINST axis\fR (::rbc)
+.RE
+.PP
+Performs an operation on the graph's virtual axes\&. Virtual axes can be created, deleted, configured,
+transformed, bound to events, and mapped to graph margins\&.
+.RS 4n
+\fBGRAPHINST axis\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Result of the selected axis operation\&.
+.PP
+.RS -4n
+\fBGRAPHINST bar\fR (::rbc)
+.RE
+.PP
+Performs an element operation using bar elements explicitly, regardless of the default element type of the
+graph widget\&.
+.RS 4n
+\fBGRAPHINST bar\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Result of the selected element operation\&.
+.PP
+.RS -4n
+\fBGRAPHINST cget\fR (::rbc)
+.RE
+.PP
+Returns the current value of a graph widget configuration option\&.
+Current value of option\&.
+.RS 4n
+\fBGRAPHINST cget\fP \fIoption\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+option
+Graph widget configuration option\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+See \fIWidget options\fP for the complete list of supported options and their descriptions\&.
+.PP
+\fBReturn value\fR
+.PP
+Returns the current value of a graph widget configuration option\&.
+Current value of option\&.
+.PP
+.RS -4n
+\fBGRAPHINST configure\fR (::rbc)
+.RE
+.PP
+Queries or modifies graph widget configuration options\&. With no arguments, returns configuration information
+for all widget options\&. With one option, returns configuration information for that option\&. With one or more
+option/value pairs, changes the specified options\&.
+.RS 4n
+\fBGRAPHINST configure\fP \fIoption\fP
+.br
+\fBGRAPHINST configure\fP \fI?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+option
+Graph widget configuration option\&.
+.TP
+value
+New value for the option\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+See \fIWidget options\fP for the complete list of supported options and their descriptions\&.
+.PP
+\fBReturn value\fR
+.PP
+Configuration information when querying; nothing when setting options\&.
+.PP
+.RS -4n
+\fBGRAPHINST crosshairs\fR (::rbc)
+.RE
+.PP
+Performs an operation on the graph crosshairs\&.
+.RS 4n
+\fBGRAPHINST crosshairs\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Result of the selected crosshairs operation\&.
+.PP
+.RS -4n
+\fBGRAPHINST element\fR (::rbc)
+.RE
+.PP
+Performs an operation on graph elements using the widget's default element type\&. The default is a line
+element for graph, a bar element for barchart, and a strip element for stripchart\&.
+.RS 4n
+\fBGRAPHINST element\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Result of the selected element operation\&.
+.PP
+.RS -4n
+\fBGRAPHINST extents\fR (::rbc)
+.RE
+.PP
+Returns the size or geometry of a graph component\&.
+For plotheight, plotwidth, and the margin items, returns one size in pixels\&. For plotarea and
+legend, returns a list of four values in the form x y width height\&.
+.RS 4n
+\fBGRAPHINST extents\fP \fIitem\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+item
+Component whose extents are requested\&. Must be plotheight, plotwidth, plotarea, legend, leftmargin, rightmargin, topmargin, or bottommargin\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the size or geometry of a graph component\&.
+For plotheight, plotwidth, and the margin items, returns one size in pixels\&. For plotarea and
+legend, returns a list of four values in the form x y width height\&.
+.PP
+.RS -4n
+\fBGRAPHINST grid\fR (::rbc)
+.RE
+.PP
+Performs an operation on the graph grid\&.
+.RS 4n
+\fBGRAPHINST grid\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Result of the selected grid operation\&.
+.PP
+.RS -4n
+\fBGRAPHINST inside\fR (::rbc)
+.RE
+.PP
+Tests whether a window coordinate lies inside the graph plotting area\&.
+.RS 4n
+\fBGRAPHINST inside\fP \fIwinX winY\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+winX
+X coordinate in window coordinates\&.
+.TP
+winY
+Y coordinate in window coordinates\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Boolean value indicating whether the point is inside the plotting area\&.
+.PP
+.RS -4n
+\fBGRAPHINST invtransform\fR (::rbc)
+.RE
+.PP
+Converts a point from window coordinates to graph coordinates using the graph's primary X and Y axes\&.
+winX and winY may be Tcl expressions that evaluate to numeric values\&.
+.RS 4n
+\fBGRAPHINST invtransform\fP \fIwinX winY\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+winX
+X coordinate in window coordinates\&.
+.TP
+winY
+Y coordinate in window coordinates\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+A two-element list containing the corresponding graph coordinates x y\&.
+.PP
+.RS -4n
+\fBGRAPHINST legend\fR (::rbc)
+.RE
+.PP
+Performs an operation on the graph legend\&.
+.RS 4n
+\fBGRAPHINST legend\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Result of the selected legend operation\&.
+.PP
+.RS -4n
+\fBGRAPHINST line\fR (::rbc)
+.RE
+.PP
+Performs an element operation using line elements explicitly, regardless of the default element type of the
+graph widget\&.
+.RS 4n
+\fBGRAPHINST line\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Result of the selected element operation\&.
+.PP
+.RS -4n
+\fBGRAPHINST marker\fR (::rbc)
+.RE
+.PP
+Performs an operation on graph markers\&.
+.RS 4n
+\fBGRAPHINST marker\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Result of the selected marker operation\&.
+.PP
+.RS -4n
+\fBGRAPHINST pen\fR (::rbc)
+.RE
+.PP
+Performs an operation on graph pens\&. Pens define reusable drawing attributes for line and bar elements\&.
+.RS 4n
+\fBGRAPHINST pen\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Result of the selected pen operation\&.
+.PP
+.RS -4n
+\fBGRAPHINST postscript\fR (::rbc)
+.RE
+.PP
+Performs a PostScript output operation for the graph\&.
+.RS 4n
+\fBGRAPHINST postscript\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Result of the selected PostScript operation\&.
+.PP
+.RS -4n
+\fBGRAPHINST snap\fR (::rbc)
+.RE
+.PP
+Renders a snapshot of the graph\&. By default the snapshot is written to an existing Tk photo image\&. On
+Windows, snapshots can also be written as Windows Metafile (wmf) or Enhanced Metafile (emf) output\&.
+.RS 4n
+\fBGRAPHINST snap\fP \fIname ?-format format? ?-height height? ?-width width?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+-format format
+Output format\&. photo is available on all platforms\&. wmf and emf are available on Windows\&. The default is photo\&.
+.TP
+-height height
+Height of the rendered snapshot\&. If omitted, the current widget height is used\&.
+.TP
+-width width
+Width of the rendered snapshot\&. If omitted, the current widget width is used\&.
+.TP
+name
+For photo format, name of an existing Tk photo image; for wmf or emf, output filename\&. On Windows, CLIPBOARD writes metafile output to the clipboard instead of a file\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+Example:
+.PP
+.RS 4n
+.nf
+image create photo graphImage
+\&.g snap graphImage
+
+\&.g snap graphImage -width 1200 -height 800
+.fi
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBGRAPHINST transform\fR (::rbc)
+.RE
+.PP
+Converts a point from graph coordinates to window coordinates using the graph's primary X and Y axes\&.
+x and y may be Tcl expressions that evaluate to numeric values\&.
+.RS 4n
+\fBGRAPHINST transform\fP \fIx y\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+x
+X coordinate in graph coordinates\&.
+.TP
+y
+Y coordinate in graph coordinates\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+A two-element list containing the corresponding integer window coordinates x y\&.
+.PP
+.RS -4n
+\fBGRAPHINST x2axis\fR (::rbc)
+.RE
+.PP
+Performs an operation on the axis mapped to the secondary X-axis margin\&. With a normal graph orientation
+this is the top margin\&.
+.RS 4n
+\fBGRAPHINST x2axis\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Result of the selected margin-axis operation\&.
+.PP
+.RS -4n
+\fBGRAPHINST xaxis\fR (::rbc)
+.RE
+.PP
+Performs an operation on the axis mapped to the primary X-axis margin\&. With a normal graph orientation this
+is the bottom margin\&.
+.RS 4n
+\fBGRAPHINST xaxis\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Result of the selected margin-axis operation\&.
+.PP
+.RS -4n
+\fBGRAPHINST y2axis\fR (::rbc)
+.RE
+.PP
+Performs an operation on the axis mapped to the secondary Y-axis margin\&. With a normal graph orientation
+this is the right margin\&.
+.RS 4n
+\fBGRAPHINST y2axis\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Result of the selected margin-axis operation\&.
+.PP
+.RS -4n
+\fBGRAPHINST yaxis\fR (::rbc)
+.RE
+.PP
+Performs an operation on the axis mapped to the primary Y-axis margin\&. With a normal graph orientation this
+is the left margin\&.
+.RS 4n
+\fBGRAPHINST yaxis\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Result of the selected margin-axis operation\&.
 .PP
 .RS -4n
 \fBspline\fR (::rbc)
@@ -171,6 +850,47 @@ Vector in which the interpolated or extrapolated Y coordinates are stored; it is
 \fBReturn value\fR
 .PP
 Nothing\&.
+.PP
+.RS -4n
+\fBstripchart\fR (::rbc)
+.RE
+.PP
+Creates a stripchart widget\&. A stripchart uses strip elements as its default element type\&. It uses the same
+graph widget infrastructure and common components as graph, but elements created through the generic
+GRAPHINST element interface are strip elements by default\&. Configuration options supplied when the widget
+is created are the same options accepted later by GRAPHINST configure\&.
+.RS 4n
+\fBstripchart\fP \fIpathName ?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+pathName
+Tk pathname of the stripchart widget to create\&.
+.TP
+option
+Graph widget configuration option\&.
+.TP
+value
+Value for the configuration option\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+Example:
+.PP
+.RS 4n
+.nf
+stripchart \&.s -title "Example stripchart" -width 800 -height 500
+pack \&.s -fill both -expand yes
+.fi
+.RE
+.PP
+\fBReturn value\fR
+.PP
+The pathname of the newly created stripchart widget\&.
 .PP
 .RS -4n
 \fBVECINST\fR (::rbc)

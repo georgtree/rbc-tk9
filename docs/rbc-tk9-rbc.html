@@ -15,7 +15,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="vector command" href="rbc-tk9-rbc-vector.html" />
+    <link rel="next" title="Graph widget instance GRAPHINST command" href="rbc-tk9-rbc-GRAPHINST.html" />
     <link rel="prev" title="Tcl/Tk9.0 upgrade" href="rbc-tk9-TclTk9Upgrade.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="Related">
@@ -25,7 +25,7 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="rbc-tk9-rbc-vector.html" title="vector command"
+          <a href="rbc-tk9-rbc-GRAPHINST.html" title="Graph widget instance GRAPHINST command"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="rbc-tk9-TclTk9Upgrade.html" title="Tcl/Tk9.0 upgrade"
@@ -44,8 +44,374 @@
 <span id="r-rbc"></span><span id="r-3a3arbc"></span><h1>::rbc<a class="headerlink" href="#rbc" title="Link to this heading">¶</a></h1>
 <section id="commands">
 <span id="r-rbc-commands"></span><span id="r-3a3arbcqzcommands"></span><h2>Commands<a class="headerlink" href="#commands" title="Link to this heading">¶</a></h2>
+<section id="barchart">
+<span id="r-3a3arbc3a3abarchart"></span><span id="index-1"></span><span id="index-0"></span><h3><code class="docutils literal notranslate"><span class="pre">barchart</span></code><a class="headerlink" href="#barchart" title="Link to this heading">¶</a></h3>
+<p>Creates a barchart widget. A barchart uses bar elements as its default element type. It uses the same graph
+widget infrastructure and common components as <code class="docutils literal notranslate"><span class="pre">graph</span></code>, but elements created through the generic
+<code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">element</span></code> interface are bar elements by default. Configuration options supplied when the widget
+is created are the same options accepted later by <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">configure</span></code>.</p>
+<pre class="literal-block"><strong>barchart</strong> <em>pathName ?option value ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">pathName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tk pathname of the barchart widget to create.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">option</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Graph widget configuration option.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">value</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Value for the configuration option.</p>
+</dd>
+</dl>
+<p class="rubric">Description</p>
+<p>Example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">barchart</span><span class="w"> </span>.b<span class="w"> </span><span class="o">-</span>title<span class="w"> </span><span class="s2">&quot;Example barchart&quot;</span><span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">800</span><span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">500</span>
+<span class="nv">pack</span><span class="w"> </span>.b<span class="w"> </span><span class="o">-</span>fill<span class="w"> </span>both<span class="w"> </span><span class="o">-</span>expand<span class="w"> </span>yes
+</pre></div>
+</div>
+<p class="rubric">Return value</p>
+<p>The pathname of the newly created barchart widget.</p>
+</section>
+<section id="graph">
+<span id="r-3a3arbc3a3agraph"></span><span id="index-3"></span><span id="index-2"></span><h3><code class="docutils literal notranslate"><span class="pre">graph</span></code><a class="headerlink" href="#graph" title="Link to this heading">¶</a></h3>
+<p>Creates a graph widget. A graph uses line elements as its default element type. The widget supports the
+common graph components such as axes, elements, markers, pens, legends, grids, crosshairs, and PostScript
+output. Configuration options supplied when the widget is created are the same options accepted later by
+<code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">configure</span></code>.</p>
+<pre class="literal-block"><strong>graph</strong> <em>pathName ?option value ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">pathName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tk pathname of the graph widget to create.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">option</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Graph widget configuration option.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">value</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Value for the configuration option.</p>
+</dd>
+</dl>
+<p class="rubric">Description</p>
+<p>Example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">graph</span><span class="w"> </span>.g<span class="w"> </span><span class="o">-</span>title<span class="w"> </span><span class="s2">&quot;Example graph&quot;</span><span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">800</span><span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">500</span>
+<span class="nv">pack</span><span class="w"> </span>.g<span class="w"> </span><span class="o">-</span>fill<span class="w"> </span>both<span class="w"> </span><span class="o">-</span>expand<span class="w"> </span>yes
+</pre></div>
+</div>
+<p class="rubric">Return value</p>
+<p>The pathname of the newly created graph widget.</p>
+</section>
+<section id="graphinst">
+<span id="r-3a3arbc3a3agraphinst"></span><span id="index-5"></span><span id="index-4"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code><a class="headerlink" href="#graphinst" title="Link to this heading">¶</a></h3>
+<p>A
+command
+ensemble.</p>
+<pre class="literal-block"><strong>GRAPHINST</strong> <em>subcommand ...</em></pre>
+<p class="rubric">Description</p>
+<p>The ensemble supports the following subcommands:</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20axis"><span class="std std-ref">axis</span></a></dt><dd><p>Performs an operation on the graph’s virtual axes. Virtual axes can be created, deleted, configured, transformed, bound to events, and mapped to graph margins.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20bar"><span class="std std-ref">bar</span></a></dt><dd><p>Performs an element operation using bar elements explicitly, regardless of the default element type of the graph widget.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Returns the current value of a graph widget configuration option. Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20configure"><span class="std std-ref">configure</span></a></dt><dd><p>Queries or modifies graph widget configuration options. With no arguments, returns configuration information for all widget options. With one option, returns configuration information for that option. With one or more option/value pairs, changes the specified options.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20crosshairs"><span class="std std-ref">crosshairs</span></a></dt><dd><p>Performs an operation on the graph crosshairs.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20element"><span class="std std-ref">element</span></a></dt><dd><p>Performs an operation on graph elements using the widget’s default element type. The default is a line element for <code class="docutils literal notranslate"><span class="pre">graph</span></code>, a bar element for <code class="docutils literal notranslate"><span class="pre">barchart</span></code>, and a strip element for <code class="docutils literal notranslate"><span class="pre">stripchart</span></code>.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20extents"><span class="std std-ref">extents</span></a></dt><dd><p>Returns the size or geometry of a graph component. For <code class="docutils literal notranslate"><span class="pre">plotheight</span></code>, <code class="docutils literal notranslate"><span class="pre">plotwidth</span></code>, and the margin items, returns one size in pixels. For <code class="docutils literal notranslate"><span class="pre">plotarea</span></code> and <code class="docutils literal notranslate"><span class="pre">legend</span></code>, returns a list of four values in the form <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">y</span> <span class="pre">width</span> <span class="pre">height</span></code>.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20grid"><span class="std std-ref">grid</span></a></dt><dd><p>Performs an operation on the graph grid.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20inside"><span class="std std-ref">inside</span></a></dt><dd><p>Tests whether a window coordinate lies inside the graph plotting area.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20invtransform"><span class="std std-ref">invtransform</span></a></dt><dd><p>Converts a point from window coordinates to graph coordinates using the graph’s primary X and Y axes. <code class="docutils literal notranslate"><span class="pre">winX</span></code> and <code class="docutils literal notranslate"><span class="pre">winY</span></code> may be Tcl expressions that evaluate to numeric values.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20legend"><span class="std std-ref">legend</span></a></dt><dd><p>Performs an operation on the graph legend.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20line"><span class="std std-ref">line</span></a></dt><dd><p>Performs an element operation using line elements explicitly, regardless of the default element type of the graph widget.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20marker"><span class="std std-ref">marker</span></a></dt><dd><p>Performs an operation on graph markers.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20pen"><span class="std std-ref">pen</span></a></dt><dd><p>Performs an operation on graph pens. Pens define reusable drawing attributes for line and bar elements.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20postscript"><span class="std std-ref">postscript</span></a></dt><dd><p>Performs a PostScript output operation for the graph.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20snap"><span class="std std-ref">snap</span></a></dt><dd><p>Renders a snapshot of the graph. By default the snapshot is written to an existing Tk photo image. On Windows, snapshots can also be written as Windows Metafile (<code class="docutils literal notranslate"><span class="pre">wmf</span></code>) or Enhanced Metafile (<code class="docutils literal notranslate"><span class="pre">emf</span></code>) output.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20transform"><span class="std std-ref">transform</span></a></dt><dd><p>Converts a point from graph coordinates to window coordinates using the graph’s primary X and Y axes. <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> may be Tcl expressions that evaluate to numeric values.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20x2axis"><span class="std std-ref">x2axis</span></a></dt><dd><p>Performs an operation on the axis mapped to the secondary X-axis margin. With a normal graph orientation this is the top margin.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20xaxis"><span class="std std-ref">xaxis</span></a></dt><dd><p>Performs an operation on the axis mapped to the primary X-axis margin. With a normal graph orientation this is the bottom margin.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20y2axis"><span class="std std-ref">y2axis</span></a></dt><dd><p>Performs an operation on the axis mapped to the secondary Y-axis margin. With a normal graph orientation this is the right margin.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20yaxis"><span class="std std-ref">yaxis</span></a></dt><dd><p>Performs an operation on the axis mapped to the primary Y-axis margin. With a normal graph orientation this is the left margin.</p>
+</dd>
+</dl>
+<p>Refer to the documentation of each subcommand for details.</p>
+</section>
+<section id="graphinst-axis">
+<span id="r-3a3arbc3a3agraphinst20axis"></span><span id="index-7"></span><span id="index-6"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">axis</span></code><a class="headerlink" href="#graphinst-axis" title="Link to this heading">¶</a></h3>
+<p>Performs an operation on the graph’s virtual axes. Virtual axes can be created, deleted, configured,
+transformed, bound to events, and mapped to graph margins.</p>
+<pre class="literal-block"><strong>GRAPHINST axis</strong> <em>operation ?args ...?</em></pre>
+<p class="rubric">Parameters</p>
+<p class="rubric">Return value</p>
+<p>Result of the selected axis operation.</p>
+</section>
+<section id="graphinst-bar">
+<span id="r-3a3arbc3a3agraphinst20bar"></span><span id="index-9"></span><span id="index-8"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">bar</span></code><a class="headerlink" href="#graphinst-bar" title="Link to this heading">¶</a></h3>
+<p>Performs an element operation using bar elements explicitly, regardless of the default element type of the
+graph widget.</p>
+<pre class="literal-block"><strong>GRAPHINST bar</strong> <em>operation ?args ...?</em></pre>
+<p class="rubric">Parameters</p>
+<p class="rubric">Return value</p>
+<p>Result of the selected element operation.</p>
+</section>
+<section id="graphinst-cget">
+<span id="r-3a3arbc3a3agraphinst20cget"></span><span id="index-11"></span><span id="index-10"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">cget</span></code><a class="headerlink" href="#graphinst-cget" title="Link to this heading">¶</a></h3>
+<p>Returns the current value of a graph widget configuration option.
+Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+<pre class="literal-block"><strong>GRAPHINST cget</strong> <em>option</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">option</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Graph widget configuration option.</p>
+</dd>
+</dl>
+<p class="rubric">Description</p>
+<p>See <a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#r-3a3arbc3a3agraphinstqzwidget20options"><span class="std std-ref">Widget options</span></a> for the complete list of supported options and their descriptions.</p>
+<p class="rubric">Return value</p>
+<p>Returns the current value of a graph widget configuration option.
+Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+</section>
+<section id="graphinst-configure">
+<span id="r-3a3arbc3a3agraphinst20configure"></span><span id="index-13"></span><span id="index-12"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">configure</span></code><a class="headerlink" href="#graphinst-configure" title="Link to this heading">¶</a></h3>
+<p>Queries or modifies graph widget configuration options. With no arguments, returns configuration information
+for all widget options. With one option, returns configuration information for that option. With one or more
+option/value pairs, changes the specified options.</p>
+<pre class="literal-block"><strong>GRAPHINST configure</strong> <em>option</em>
+<strong>GRAPHINST configure</strong> <em>?option value ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">option</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Graph widget configuration option.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">value</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>New value for the option.</p>
+</dd>
+</dl>
+<p class="rubric">Description</p>
+<p>See <a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#r-3a3arbc3a3agraphinstqzwidget20options"><span class="std std-ref">Widget options</span></a> for the complete list of supported options and their descriptions.</p>
+<p class="rubric">Return value</p>
+<p>Configuration information when querying; nothing when setting options.</p>
+</section>
+<section id="graphinst-crosshairs">
+<span id="r-3a3arbc3a3agraphinst20crosshairs"></span><span id="index-15"></span><span id="index-14"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">crosshairs</span></code><a class="headerlink" href="#graphinst-crosshairs" title="Link to this heading">¶</a></h3>
+<p>Performs an operation on the graph crosshairs.</p>
+<pre class="literal-block"><strong>GRAPHINST crosshairs</strong> <em>operation ?args ...?</em></pre>
+<p class="rubric">Parameters</p>
+<p class="rubric">Return value</p>
+<p>Result of the selected crosshairs operation.</p>
+</section>
+<section id="graphinst-element">
+<span id="r-3a3arbc3a3agraphinst20element"></span><span id="index-17"></span><span id="index-16"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">element</span></code><a class="headerlink" href="#graphinst-element" title="Link to this heading">¶</a></h3>
+<p>Performs an operation on graph elements using the widget’s default element type. The default is a line
+element for <code class="docutils literal notranslate"><span class="pre">graph</span></code>, a bar element for <code class="docutils literal notranslate"><span class="pre">barchart</span></code>, and a strip element for <code class="docutils literal notranslate"><span class="pre">stripchart</span></code>.</p>
+<pre class="literal-block"><strong>GRAPHINST element</strong> <em>operation ?args ...?</em></pre>
+<p class="rubric">Parameters</p>
+<p class="rubric">Return value</p>
+<p>Result of the selected element operation.</p>
+</section>
+<section id="graphinst-extents">
+<span id="r-3a3arbc3a3agraphinst20extents"></span><span id="index-19"></span><span id="index-18"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">extents</span></code><a class="headerlink" href="#graphinst-extents" title="Link to this heading">¶</a></h3>
+<p>Returns the size or geometry of a graph component.
+For <code class="docutils literal notranslate"><span class="pre">plotheight</span></code>, <code class="docutils literal notranslate"><span class="pre">plotwidth</span></code>, and the margin items, returns one size in pixels. For <code class="docutils literal notranslate"><span class="pre">plotarea</span></code> and
+<code class="docutils literal notranslate"><span class="pre">legend</span></code>, returns a list of four values in the form <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">y</span> <span class="pre">width</span> <span class="pre">height</span></code>.</p>
+<pre class="literal-block"><strong>GRAPHINST extents</strong> <em>item</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">item</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Component whose extents are requested. Must be <code class="docutils literal notranslate"><span class="pre">plotheight</span></code>, <code class="docutils literal notranslate"><span class="pre">plotwidth</span></code>, <code class="docutils literal notranslate"><span class="pre">plotarea</span></code>, <code class="docutils literal notranslate"><span class="pre">legend</span></code>, <code class="docutils literal notranslate"><span class="pre">leftmargin</span></code>, <code class="docutils literal notranslate"><span class="pre">rightmargin</span></code>, <code class="docutils literal notranslate"><span class="pre">topmargin</span></code>, or <code class="docutils literal notranslate"><span class="pre">bottommargin</span></code>.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Returns the size or geometry of a graph component.
+For <code class="docutils literal notranslate"><span class="pre">plotheight</span></code>, <code class="docutils literal notranslate"><span class="pre">plotwidth</span></code>, and the margin items, returns one size in pixels. For <code class="docutils literal notranslate"><span class="pre">plotarea</span></code> and
+<code class="docutils literal notranslate"><span class="pre">legend</span></code>, returns a list of four values in the form <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">y</span> <span class="pre">width</span> <span class="pre">height</span></code>.</p>
+</section>
+<section id="graphinst-grid">
+<span id="r-3a3arbc3a3agraphinst20grid"></span><span id="index-21"></span><span id="index-20"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">grid</span></code><a class="headerlink" href="#graphinst-grid" title="Link to this heading">¶</a></h3>
+<p>Performs an operation on the graph grid.</p>
+<pre class="literal-block"><strong>GRAPHINST grid</strong> <em>operation ?args ...?</em></pre>
+<p class="rubric">Parameters</p>
+<p class="rubric">Return value</p>
+<p>Result of the selected grid operation.</p>
+</section>
+<section id="graphinst-inside">
+<span id="r-3a3arbc3a3agraphinst20inside"></span><span id="index-23"></span><span id="index-22"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">inside</span></code><a class="headerlink" href="#graphinst-inside" title="Link to this heading">¶</a></h3>
+<p>Tests whether a window coordinate lies inside the graph plotting area.</p>
+<pre class="literal-block"><strong>GRAPHINST inside</strong> <em>winX winY</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">winX</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>X coordinate in window coordinates.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">winY</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Y coordinate in window coordinates.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Boolean value indicating whether the point is inside the plotting area.</p>
+</section>
+<section id="graphinst-invtransform">
+<span id="r-3a3arbc3a3agraphinst20invtransform"></span><span id="index-25"></span><span id="index-24"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">invtransform</span></code><a class="headerlink" href="#graphinst-invtransform" title="Link to this heading">¶</a></h3>
+<p>Converts a point from window coordinates to graph coordinates using the graph’s primary X and Y axes.
+<code class="docutils literal notranslate"><span class="pre">winX</span></code> and <code class="docutils literal notranslate"><span class="pre">winY</span></code> may be Tcl expressions that evaluate to numeric values.</p>
+<pre class="literal-block"><strong>GRAPHINST invtransform</strong> <em>winX winY</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">winX</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>X coordinate in window coordinates.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">winY</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Y coordinate in window coordinates.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>A two-element list containing the corresponding graph coordinates <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">y</span></code>.</p>
+</section>
+<section id="graphinst-legend">
+<span id="r-3a3arbc3a3agraphinst20legend"></span><span id="index-27"></span><span id="index-26"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">legend</span></code><a class="headerlink" href="#graphinst-legend" title="Link to this heading">¶</a></h3>
+<p>Performs an operation on the graph legend.</p>
+<pre class="literal-block"><strong>GRAPHINST legend</strong> <em>operation ?args ...?</em></pre>
+<p class="rubric">Parameters</p>
+<p class="rubric">Return value</p>
+<p>Result of the selected legend operation.</p>
+</section>
+<section id="graphinst-line">
+<span id="r-3a3arbc3a3agraphinst20line"></span><span id="index-29"></span><span id="index-28"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">line</span></code><a class="headerlink" href="#graphinst-line" title="Link to this heading">¶</a></h3>
+<p>Performs an element operation using line elements explicitly, regardless of the default element type of the
+graph widget.</p>
+<pre class="literal-block"><strong>GRAPHINST line</strong> <em>operation ?args ...?</em></pre>
+<p class="rubric">Parameters</p>
+<p class="rubric">Return value</p>
+<p>Result of the selected element operation.</p>
+</section>
+<section id="graphinst-marker">
+<span id="r-3a3arbc3a3agraphinst20marker"></span><span id="index-31"></span><span id="index-30"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">marker</span></code><a class="headerlink" href="#graphinst-marker" title="Link to this heading">¶</a></h3>
+<p>Performs an operation on graph markers.</p>
+<pre class="literal-block"><strong>GRAPHINST marker</strong> <em>operation ?args ...?</em></pre>
+<p class="rubric">Parameters</p>
+<p class="rubric">Return value</p>
+<p>Result of the selected marker operation.</p>
+</section>
+<section id="graphinst-pen">
+<span id="r-3a3arbc3a3agraphinst20pen"></span><span id="index-33"></span><span id="index-32"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">pen</span></code><a class="headerlink" href="#graphinst-pen" title="Link to this heading">¶</a></h3>
+<p>Performs an operation on graph pens. Pens define reusable drawing attributes for line and bar elements.</p>
+<pre class="literal-block"><strong>GRAPHINST pen</strong> <em>operation ?args ...?</em></pre>
+<p class="rubric">Parameters</p>
+<p class="rubric">Return value</p>
+<p>Result of the selected pen operation.</p>
+</section>
+<section id="graphinst-postscript">
+<span id="r-3a3arbc3a3agraphinst20postscript"></span><span id="index-35"></span><span id="index-34"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">postscript</span></code><a class="headerlink" href="#graphinst-postscript" title="Link to this heading">¶</a></h3>
+<p>Performs a PostScript output operation for the graph.</p>
+<pre class="literal-block"><strong>GRAPHINST postscript</strong> <em>operation ?args ...?</em></pre>
+<p class="rubric">Parameters</p>
+<p class="rubric">Return value</p>
+<p>Result of the selected PostScript operation.</p>
+</section>
+<section id="graphinst-snap">
+<span id="r-3a3arbc3a3agraphinst20snap"></span><span id="index-37"></span><span id="index-36"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">snap</span></code><a class="headerlink" href="#graphinst-snap" title="Link to this heading">¶</a></h3>
+<p>Renders a snapshot of the graph. By default the snapshot is written to an existing Tk photo image. On
+Windows, snapshots can also be written as Windows Metafile (<code class="docutils literal notranslate"><span class="pre">wmf</span></code>) or Enhanced Metafile (<code class="docutils literal notranslate"><span class="pre">emf</span></code>) output.</p>
+<pre class="literal-block"><strong>GRAPHINST snap</strong> <em>name ?-format format? ?-height height? ?-width width?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-format</span> <span class="pre">format</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Output format. <code class="docutils literal notranslate"><span class="pre">photo</span></code> is available on all platforms. <code class="docutils literal notranslate"><span class="pre">wmf</span></code> and <code class="docutils literal notranslate"><span class="pre">emf</span></code> are available on Windows. The default is <code class="docutils literal notranslate"><span class="pre">photo</span></code>.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-height</span> <span class="pre">height</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Height of the rendered snapshot. If omitted, the current widget height is used.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-width</span> <span class="pre">width</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Width of the rendered snapshot. If omitted, the current widget width is used.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">name</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>For <code class="docutils literal notranslate"><span class="pre">photo</span></code> format, name of an existing Tk photo image; for <code class="docutils literal notranslate"><span class="pre">wmf</span></code> or <code class="docutils literal notranslate"><span class="pre">emf</span></code>, output filename. On Windows, <code class="docutils literal notranslate"><span class="pre">CLIPBOARD</span></code> writes metafile output to the clipboard instead of a file.</p>
+</dd>
+</dl>
+<p class="rubric">Description</p>
+<p>Example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">image</span><span class="w"> </span>create<span class="w"> </span>photo<span class="w"> </span>graphImage
+<span class="nv">.g</span><span class="w"> </span>snap<span class="w"> </span>graphImage
+
+<span class="nv">.g</span><span class="w"> </span>snap<span class="w"> </span>graphImage<span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">1200</span><span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">800</span>
+</pre></div>
+</div>
+<p class="rubric">Return value</p>
+<p>Nothing.</p>
+</section>
+<section id="graphinst-transform">
+<span id="r-3a3arbc3a3agraphinst20transform"></span><span id="index-39"></span><span id="index-38"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">transform</span></code><a class="headerlink" href="#graphinst-transform" title="Link to this heading">¶</a></h3>
+<p>Converts a point from graph coordinates to window coordinates using the graph’s primary X and Y axes.
+<code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> may be Tcl expressions that evaluate to numeric values.</p>
+<pre class="literal-block"><strong>GRAPHINST transform</strong> <em>x y</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">x</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>X coordinate in graph coordinates.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">y</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Y coordinate in graph coordinates.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>A two-element list containing the corresponding integer window coordinates <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">y</span></code>.</p>
+</section>
+<section id="graphinst-x2axis">
+<span id="r-3a3arbc3a3agraphinst20x2axis"></span><span id="index-41"></span><span id="index-40"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">x2axis</span></code><a class="headerlink" href="#graphinst-x2axis" title="Link to this heading">¶</a></h3>
+<p>Performs an operation on the axis mapped to the secondary X-axis margin. With a normal graph orientation
+this is the top margin.</p>
+<pre class="literal-block"><strong>GRAPHINST x2axis</strong> <em>operation ?args ...?</em></pre>
+<p class="rubric">Parameters</p>
+<p class="rubric">Return value</p>
+<p>Result of the selected margin-axis operation.</p>
+</section>
+<section id="graphinst-xaxis">
+<span id="r-3a3arbc3a3agraphinst20xaxis"></span><span id="index-43"></span><span id="index-42"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">xaxis</span></code><a class="headerlink" href="#graphinst-xaxis" title="Link to this heading">¶</a></h3>
+<p>Performs an operation on the axis mapped to the primary X-axis margin. With a normal graph orientation this
+is the bottom margin.</p>
+<pre class="literal-block"><strong>GRAPHINST xaxis</strong> <em>operation ?args ...?</em></pre>
+<p class="rubric">Parameters</p>
+<p class="rubric">Return value</p>
+<p>Result of the selected margin-axis operation.</p>
+</section>
+<section id="graphinst-y2axis">
+<span id="r-3a3arbc3a3agraphinst20y2axis"></span><span id="index-45"></span><span id="index-44"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">y2axis</span></code><a class="headerlink" href="#graphinst-y2axis" title="Link to this heading">¶</a></h3>
+<p>Performs an operation on the axis mapped to the secondary Y-axis margin. With a normal graph orientation
+this is the right margin.</p>
+<pre class="literal-block"><strong>GRAPHINST y2axis</strong> <em>operation ?args ...?</em></pre>
+<p class="rubric">Parameters</p>
+<p class="rubric">Return value</p>
+<p>Result of the selected margin-axis operation.</p>
+</section>
+<section id="graphinst-yaxis">
+<span id="r-3a3arbc3a3agraphinst20yaxis"></span><span id="index-47"></span><span id="index-46"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">yaxis</span></code><a class="headerlink" href="#graphinst-yaxis" title="Link to this heading">¶</a></h3>
+<p>Performs an operation on the axis mapped to the primary Y-axis margin. With a normal graph orientation this
+is the left margin.</p>
+<pre class="literal-block"><strong>GRAPHINST yaxis</strong> <em>operation ?args ...?</em></pre>
+<p class="rubric">Parameters</p>
+<p class="rubric">Return value</p>
+<p>Result of the selected margin-axis operation.</p>
+</section>
 <section id="spline">
-<span id="r-3a3arbc3a3aspline"></span><span id="index-1"></span><span id="index-0"></span><h3><code class="docutils literal notranslate"><span class="pre">spline</span></code><a class="headerlink" href="#spline" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3aspline"></span><span id="index-49"></span><span id="index-48"></span><h3><code class="docutils literal notranslate"><span class="pre">spline</span></code><a class="headerlink" href="#spline" title="Link to this heading">¶</a></h3>
 <p>A
 command
 ensemble.</p>
@@ -61,7 +427,7 @@ ensemble.</p>
 <p>Refer to the documentation of each subcommand for details.</p>
 </section>
 <section id="spline-natural">
-<span id="r-3a3arbc3a3aspline20natural"></span><span id="index-3"></span><span id="index-2"></span><h3><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">natural</span></code><a class="headerlink" href="#spline-natural" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3aspline20natural"></span><span id="index-51"></span><span id="index-50"></span><h3><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">natural</span></code><a class="headerlink" href="#spline-natural" title="Link to this heading">¶</a></h3>
 <p>Computes a natural cubic spline through the source vectors <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> and evaluates it at every X
 coordinate in <code class="docutils literal notranslate"><span class="pre">splX</span></code>. Evaluation coordinates may appear in any order. Coordinates outside the source
 X range are extrapolated using the cubic polynomial of the first or last spline interval.</p>
@@ -85,7 +451,7 @@ X range are extrapolated using the cubic polynomial of the first or last spline 
 <p>Nothing.</p>
 </section>
 <section id="spline-quadratic">
-<span id="r-3a3arbc3a3aspline20quadratic"></span><span id="index-5"></span><span id="index-4"></span><h3><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">quadratic</span></code><a class="headerlink" href="#spline-quadratic" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3aspline20quadratic"></span><span id="index-53"></span><span id="index-52"></span><h3><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">quadratic</span></code><a class="headerlink" href="#spline-quadratic" title="Link to this heading">¶</a></h3>
 <p>Computes a shape-preserving quadratic spline through the source vectors <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> and evaluates it at
 every X coordinate in <code class="docutils literal notranslate"><span class="pre">splX</span></code>. Evaluation coordinates may appear in any order. Coordinates outside the
 source X range are extrapolated using the spline defined by the first or last source interval.</p>
@@ -108,8 +474,36 @@ source X range are extrapolated using the spline defined by the first or last so
 <p class="rubric">Return value</p>
 <p>Nothing.</p>
 </section>
+<section id="stripchart">
+<span id="r-3a3arbc3a3astripchart"></span><span id="index-55"></span><span id="index-54"></span><h3><code class="docutils literal notranslate"><span class="pre">stripchart</span></code><a class="headerlink" href="#stripchart" title="Link to this heading">¶</a></h3>
+<p>Creates a stripchart widget. A stripchart uses strip elements as its default element type. It uses the same
+graph widget infrastructure and common components as <code class="docutils literal notranslate"><span class="pre">graph</span></code>, but elements created through the generic
+<code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">element</span></code> interface are strip elements by default. Configuration options supplied when the widget
+is created are the same options accepted later by <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">configure</span></code>.</p>
+<pre class="literal-block"><strong>stripchart</strong> <em>pathName ?option value ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">pathName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tk pathname of the stripchart widget to create.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">option</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Graph widget configuration option.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">value</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Value for the configuration option.</p>
+</dd>
+</dl>
+<p class="rubric">Description</p>
+<p>Example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">stripchart</span><span class="w"> </span>.s<span class="w"> </span><span class="o">-</span>title<span class="w"> </span><span class="s2">&quot;Example stripchart&quot;</span><span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">800</span><span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">500</span>
+<span class="nv">pack</span><span class="w"> </span>.s<span class="w"> </span><span class="o">-</span>fill<span class="w"> </span>both<span class="w"> </span><span class="o">-</span>expand<span class="w"> </span>yes
+</pre></div>
+</div>
+<p class="rubric">Return value</p>
+<p>The pathname of the newly created stripchart widget.</p>
+</section>
 <section id="vecinst">
-<span id="r-3a3arbc3a3avecinst"></span><span id="index-7"></span><span id="index-6"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span></code><a class="headerlink" href="#vecinst" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst"></span><span id="index-57"></span><span id="index-56"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span></code><a class="headerlink" href="#vecinst" title="Link to this heading">¶</a></h3>
 <p>A
 command
 ensemble.</p>
@@ -169,7 +563,7 @@ ensemble.</p>
 <p>Refer to the documentation of each subcommand for details.</p>
 </section>
 <section id="r-3a3arbc3a3avecinst202a">
-<span id="index-9"></span><span id="index-8"></span><span id="id1"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">*</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202a" title="Link to this heading">¶</a></h3>
+<span id="index-59"></span><span id="index-58"></span><span id="id1"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">*</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202a" title="Link to this heading">¶</a></h3>
 <p>Multiplies every value of the vector by a scalar or by the corresponding value of another vector.
 <code class="docutils literal notranslate"><span class="pre">list</span></code> may name another vector or contain a scalar value. If another vector is used, it must have the same
 number of selected values.</p>
@@ -184,7 +578,7 @@ number of selected values.</p>
 <p>A list containing the resulting values. The vector itself # is not modified.</p>
 </section>
 <section id="r-3a3arbc3a3avecinst202b">
-<span id="index-11"></span><span id="index-10"></span><span id="id2"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">+</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202b" title="Link to this heading">¶</a></h3>
+<span id="index-61"></span><span id="index-60"></span><span id="id2"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">+</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202b" title="Link to this heading">¶</a></h3>
 <p>Adds a scalar or another vector component-by-component.</p>
 <pre class="literal-block"><strong>VECINST +</strong> <em>list</em></pre>
 <p class="rubric">Parameters</p>
@@ -197,7 +591,7 @@ number of selected values.</p>
 <p>A list containing the resulting values. The vector itself # is not modified.</p>
 </section>
 <section id="r-3a3arbc3a3avecinst202d">
-<span id="index-13"></span><span id="index-12"></span><span id="id3"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">-</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202d" title="Link to this heading">¶</a></h3>
+<span id="index-63"></span><span id="index-62"></span><span id="id3"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">-</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202d" title="Link to this heading">¶</a></h3>
 <p>Subtracts a scalar or another vector component-by-component.</p>
 <pre class="literal-block"><strong>VECINST -</strong> <em>list</em></pre>
 <p class="rubric">Parameters</p>
@@ -210,7 +604,7 @@ number of selected values.</p>
 <p>A list containing the resulting values. The vector itself # is not modified.</p>
 </section>
 <section id="r-3a3arbc3a3avecinst202f">
-<span id="index-15"></span><span id="index-14"></span><span id="id4"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">/</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202f" title="Link to this heading">¶</a></h3>
+<span id="index-65"></span><span id="index-64"></span><span id="id4"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">/</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202f" title="Link to this heading">¶</a></h3>
 <p>Divides every vector value by a scalar or by the corresponding value of another vector.</p>
 <pre class="literal-block"><strong>VECINST /</strong> <em>list</em></pre>
 <p class="rubric">Parameters</p>
@@ -223,7 +617,7 @@ number of selected values.</p>
 <p>A list containing the resulting values. The vector itself # is not modified.</p>
 </section>
 <section id="vecinst-append">
-<span id="r-3a3arbc3a3avecinst20append"></span><span id="index-17"></span><span id="index-16"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">append</span></code><a class="headerlink" href="#vecinst-append" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20append"></span><span id="index-67"></span><span id="index-66"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">append</span></code><a class="headerlink" href="#vecinst-append" title="Link to this heading">¶</a></h3>
 <p>Appends values to the vector. Each item may be another vector or a Tcl list of numeric values.</p>
 <pre class="literal-block"><strong>VECINST append</strong> <em>item ?item ...?</em></pre>
 <p class="rubric">Parameters</p>
@@ -236,7 +630,7 @@ number of selected values.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-binread">
-<span id="r-3a3arbc3a3avecinst20binread"></span><span id="index-19"></span><span id="index-18"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">binread</span></code><a class="headerlink" href="#vecinst-binread" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20binread"></span><span id="index-69"></span><span id="index-68"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">binread</span></code><a class="headerlink" href="#vecinst-binread" title="Link to this heading">¶</a></h3>
 <p>Reads native binary numeric values from a Tcl channel into the vector.</p>
 <pre class="literal-block"><strong>VECINST binread</strong> <em>channel ?numValues? ?-at index? ?-format format? ?-swap?</em></pre>
 <p class="rubric">Parameters</p>
@@ -264,7 +658,7 @@ restored before the command returns. A read that ends in the middle of a binary 
 <p>Number of complete values read.</p>
 </section>
 <section id="vecinst-clear">
-<span id="r-3a3arbc3a3avecinst20clear"></span><span id="index-21"></span><span id="index-20"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">clear</span></code><a class="headerlink" href="#vecinst-clear" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20clear"></span><span id="index-71"></span><span id="index-70"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">clear</span></code><a class="headerlink" href="#vecinst-clear" title="Link to this heading">¶</a></h3>
 <p>Clears cached elements of the Tcl array associated with the vector. This does not remove values from the
 vector. It can be used to release memory occupied by cached array-index entries.</p>
 <pre class="literal-block"><strong>VECINST clear</strong></pre>
@@ -272,7 +666,7 @@ vector. It can be used to release memory occupied by cached array-index entries.
 <p>Nothing.</p>
 </section>
 <section id="vecinst-delete">
-<span id="r-3a3arbc3a3avecinst20delete"></span><span id="index-23"></span><span id="index-22"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">delete</span></code><a class="headerlink" href="#vecinst-delete" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20delete"></span><span id="index-73"></span><span id="index-72"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">delete</span></code><a class="headerlink" href="#vecinst-delete" title="Link to this heading">¶</a></h3>
 <p>Deletes one or more indices or index ranges from the vector. Remaining values are compacted after the
 deleted values are removed.</p>
 <pre class="literal-block"><strong>VECINST delete</strong> <em>index ?index ...?</em></pre>
@@ -286,7 +680,7 @@ deleted values are removed.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-dup">
-<span id="r-3a3arbc3a3avecinst20dup"></span><span id="index-25"></span><span id="index-24"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">dup</span></code><a class="headerlink" href="#vecinst-dup" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20dup"></span><span id="index-75"></span><span id="index-74"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">dup</span></code><a class="headerlink" href="#vecinst-dup" title="Link to this heading">¶</a></h3>
 <p>Copies this vector into another vector. The destination vector is created if necessary. If it already
 exists, its contents are replaced.</p>
 <pre class="literal-block"><strong>VECINST dup</strong> <em>vecName</em></pre>
@@ -300,7 +694,7 @@ exists, its contents are replaced.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-expr">
-<span id="r-3a3arbc3a3avecinst20expr"></span><span id="index-27"></span><span id="index-26"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">expr</span></code><a class="headerlink" href="#vecinst-expr" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20expr"></span><span id="index-77"></span><span id="index-76"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">expr</span></code><a class="headerlink" href="#vecinst-expr" title="Link to this heading">¶</a></h3>
 <p>Evaluates <code class="docutils literal notranslate"><span class="pre">expression</span></code> and stores the result in this vector.</p>
 <pre class="literal-block"><strong>VECINST expr</strong> <em>expression</em></pre>
 <p class="rubric">Parameters</p>
@@ -313,7 +707,7 @@ exists, its contents are replaced.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-index">
-<span id="r-3a3arbc3a3avecinst20index"></span><span id="index-29"></span><span id="index-28"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">index</span></code><a class="headerlink" href="#vecinst-index" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20index"></span><span id="index-79"></span><span id="index-78"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">index</span></code><a class="headerlink" href="#vecinst-index" title="Link to this heading">¶</a></h3>
 <p>Reads or writes a vector value or range.  With no value argument, returns the value or values selected by
 <code class="docutils literal notranslate"><span class="pre">index</span></code>. With <code class="docutils literal notranslate"><span class="pre">value</span></code>, assigns that numeric value to every element selected by <code class="docutils literal notranslate"><span class="pre">index</span></code>. The special
 <code class="docutils literal notranslate"><span class="pre">++end</span></code> index may be used when setting a value to append one new element.</p>
@@ -332,7 +726,7 @@ exists, its contents are replaced.</p>
 <p>Selected value(s) when querying, or the assigned value when setting.</p>
 </section>
 <section id="vecinst-length">
-<span id="r-3a3arbc3a3avecinst20length"></span><span id="index-31"></span><span id="index-30"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">length</span></code><a class="headerlink" href="#vecinst-length" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20length"></span><span id="index-81"></span><span id="index-80"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">length</span></code><a class="headerlink" href="#vecinst-length" title="Link to this heading">¶</a></h3>
 <p>Queries or changes the vector length. If <code class="docutils literal notranslate"><span class="pre">newSize</span></code> is supplied, the vector is resized. New elements
 created by enlarging the vector are initialized by the vector resizing machinery.</p>
 <pre class="literal-block"><strong>VECINST length</strong> <em>newSize</em></pre>
@@ -346,7 +740,7 @@ created by enlarging the vector are initialized by the vector resizing machinery
 <p>Current vector length.</p>
 </section>
 <section id="vecinst-merge">
-<span id="r-3a3arbc3a3avecinst20merge"></span><span id="index-33"></span><span id="index-32"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">merge</span></code><a class="headerlink" href="#vecinst-merge" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20merge"></span><span id="index-83"></span><span id="index-82"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">merge</span></code><a class="headerlink" href="#vecinst-merge" title="Link to this heading">¶</a></h3>
 <p>Interleaves values from two or more vectors and stores the result in this vector. All input vectors must
 contain the same number of selected values.</p>
 <pre class="literal-block"><strong>VECINST merge</strong> <em>vecName ?vecName ...?</em></pre>
@@ -365,7 +759,7 @@ contain the same number of selected values.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-normalize">
-<span id="r-3a3arbc3a3avecinst20normalize"></span><span id="index-35"></span><span id="index-34"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">normalize</span></code><a class="headerlink" href="#vecinst-normalize" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20normalize"></span><span id="index-85"></span><span id="index-84"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">normalize</span></code><a class="headerlink" href="#vecinst-normalize" title="Link to this heading">¶</a></h3>
 <p>Normalizes vector values to the range 0.0 through 1.0 using: <code class="docutils literal notranslate"><span class="pre">(value</span> <span class="pre">-</span> <span class="pre">minimum)</span> <span class="pre">/</span> <span class="pre">(maximum</span> <span class="pre">-</span> <span class="pre">minimum)</span></code>
 With no destination vector, returns the normalized values as a Tcl list. If <code class="docutils literal notranslate"><span class="pre">vecName</span></code> is supplied, that
 vector is created or resized and the normalized values are stored there.</p>
@@ -380,7 +774,7 @@ vector is created or resized and the normalized values are stored there.</p>
 <p>Normalized list when no destination is specified; otherwise # nothing.</p>
 </section>
 <section id="vecinst-offset">
-<span id="r-3a3arbc3a3avecinst20offset"></span><span id="index-37"></span><span id="index-36"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">offset</span></code><a class="headerlink" href="#vecinst-offset" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20offset"></span><span id="index-87"></span><span id="index-86"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">offset</span></code><a class="headerlink" href="#vecinst-offset" title="Link to this heading">¶</a></h3>
 <p>Queries or changes the external index offset of the vector. The offset changes the numeric indices
 through which the vector is addressed without moving the underlying data.</p>
 <pre class="literal-block"><strong>VECINST offset</strong> <em>offset</em></pre>
@@ -394,7 +788,7 @@ through which the vector is addressed without moving the underlying data.</p>
 <p>Current offset.</p>
 </section>
 <section id="vecinst-populate">
-<span id="r-3a3arbc3a3avecinst20populate"></span><span id="index-39"></span><span id="index-38"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">populate</span></code><a class="headerlink" href="#vecinst-populate" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20populate"></span><span id="index-89"></span><span id="index-88"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">populate</span></code><a class="headerlink" href="#vecinst-populate" title="Link to this heading">¶</a></h3>
 <p>Creates a more densely sampled vector using linear interpolation.  <code class="docutils literal notranslate"><span class="pre">density</span></code> intermediate values are
 inserted between every adjacent pair of source values. <code class="docutils literal notranslate"><span class="pre">density</span></code> must be at least 1. The destination may
 be the same vector as the source.</p>
@@ -412,7 +806,7 @@ be the same vector as the source.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-random">
-<span id="r-3a3arbc3a3avecinst20random"></span><span id="index-41"></span><span id="index-40"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">random</span></code><a class="headerlink" href="#vecinst-random" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20random"></span><span id="index-91"></span><span id="index-90"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">random</span></code><a class="headerlink" href="#vecinst-random" title="Link to this heading">¶</a></h3>
 <p>Fills the vector with pseudo-random values in the range # <code class="docutils literal notranslate"><span class="pre">[0.0,</span> <span class="pre">1.0)</span></code>. The current vector length is
 preserved. Each existing component is replaced by a newly generated pseudo-random value. An empty vector
 remains empty.</p>
@@ -427,7 +821,7 @@ remains empty.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-range">
-<span id="r-3a3arbc3a3avecinst20range"></span><span id="index-43"></span><span id="index-42"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">range</span></code><a class="headerlink" href="#vecinst-range" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20range"></span><span id="index-93"></span><span id="index-92"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">range</span></code><a class="headerlink" href="#vecinst-range" title="Link to this heading">¶</a></h3>
 <p>Returns an inclusive range of vector values. If <code class="docutils literal notranslate"><span class="pre">first</span></code> is less than or equal to <code class="docutils literal notranslate"><span class="pre">last</span></code>, values are
 returned in ascending index order. If <code class="docutils literal notranslate"><span class="pre">first</span></code> is greater than <code class="docutils literal notranslate"><span class="pre">last</span></code>, values are returned in descending
 index order. <code class="docutils literal notranslate"><span class="pre">first</span></code> and <code class="docutils literal notranslate"><span class="pre">last</span></code> are normal vector indices and may use forms such as <code class="docutils literal notranslate"><span class="pre">end</span></code>. This
@@ -462,7 +856,7 @@ operation does not modify the vector.
 A list containing the selected vector values.</p>
 </section>
 <section id="vecinst-search">
-<span id="r-3a3arbc3a3avecinst20search"></span><span id="index-45"></span><span id="index-44"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">search</span></code><a class="headerlink" href="#vecinst-search" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20search"></span><span id="index-95"></span><span id="index-94"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">search</span></code><a class="headerlink" href="#vecinst-search" title="Link to this heading">¶</a></h3>
 <p>Searches the vector for values in a numeric range. With one numeric argument, returns matches equal to
 that value. With two numeric arguments, returns matches between <code class="docutils literal notranslate"><span class="pre">min</span></code> and <code class="docutils literal notranslate"><span class="pre">max</span></code>, inclusive within the
 implementation’s floating-point tolerance. By default matching vector indices are returned. With <code class="docutils literal notranslate"><span class="pre">-value</span></code>,
@@ -487,7 +881,7 @@ matching vector values are returned instead.</p>
 <p>List of matching indices or values.</p>
 </section>
 <section id="vecinst-seq">
-<span id="r-3a3arbc3a3avecinst20seq"></span><span id="index-47"></span><span id="index-46"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">seq</span></code><a class="headerlink" href="#vecinst-seq" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20seq"></span><span id="index-97"></span><span id="index-96"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">seq</span></code><a class="headerlink" href="#vecinst-seq" title="Link to this heading">¶</a></h3>
 <p>Generates an arithmetic sequence.</p>
 <pre class="literal-block"><strong>VECINST seq</strong> <em>start end ?step?</em></pre>
 <p class="rubric">Parameters</p>
@@ -518,7 +912,7 @@ matching vector values are returned instead.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-set">
-<span id="r-3a3arbc3a3avecinst20set"></span><span id="index-49"></span><span id="index-48"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">set</span></code><a class="headerlink" href="#vecinst-set" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20set"></span><span id="index-99"></span><span id="index-98"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">set</span></code><a class="headerlink" href="#vecinst-set" title="Link to this heading">¶</a></h3>
 <p>Replaces the contents of the vector. <code class="docutils literal notranslate"><span class="pre">list</span></code> may be a Tcl list of numeric values or the name of another
 vector.</p>
 <pre class="literal-block"><strong>VECINST set</strong> <em>list</em></pre>
@@ -532,7 +926,7 @@ vector.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-sort">
-<span id="r-3a3arbc3a3avecinst20sort"></span><span id="index-51"></span><span id="index-50"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">sort</span></code><a class="headerlink" href="#vecinst-sort" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20sort"></span><span id="index-101"></span><span id="index-100"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">sort</span></code><a class="headerlink" href="#vecinst-sort" title="Link to this heading">¶</a></h3>
 <p>Sorts this vector. Additional vectors may be supplied. They must have the same length and are
 rearranged using the same permutation, allowing associated data to remain aligned. <code class="docutils literal notranslate"><span class="pre">-reverse</span></code> requests
 descending rather than ascending order.</p>
@@ -550,7 +944,7 @@ descending rather than ascending order.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-split">
-<span id="r-3a3arbc3a3avecinst20split"></span><span id="index-53"></span><span id="index-52"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">split</span></code><a class="headerlink" href="#vecinst-split" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20split"></span><span id="index-103"></span><span id="index-102"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">split</span></code><a class="headerlink" href="#vecinst-split" title="Link to this heading">¶</a></h3>
 <p>Distributes values from this vector among destination vectors in round-robin order. The source vector
 length must be evenly divisible by the number of destination vectors. Existing destination contents are
 preserved and the split values are appended.</p>
@@ -571,7 +965,7 @@ preserved and the split values are appended.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-variable">
-<span id="r-3a3arbc3a3avecinst20variable"></span><span id="index-55"></span><span id="index-54"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">variable</span></code><a class="headerlink" href="#vecinst-variable" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20variable"></span><span id="index-105"></span><span id="index-104"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">variable</span></code><a class="headerlink" href="#vecinst-variable" title="Link to this heading">¶</a></h3>
 <p>Queries or changes the Tcl array variable associated with the vector. Supplying an empty variable name
 removes the current mapping.</p>
 <pre class="literal-block"><strong>VECINST variable</strong> <em>varName</em></pre>
@@ -585,7 +979,7 @@ removes the current mapping.</p>
 <p>Name of the currently mapped variable, or an empty result # if no variable is mapped.</p>
 </section>
 <section id="vector">
-<span id="r-3a3arbc3a3avector"></span><span id="index-57"></span><span id="index-56"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span></code><a class="headerlink" href="#vector" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avector"></span><span id="index-107"></span><span id="index-106"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span></code><a class="headerlink" href="#vector" title="Link to this heading">¶</a></h3>
 <p>A
 command
 ensemble.</p>
@@ -605,7 +999,7 @@ ensemble.</p>
 <p>Refer to the documentation of each subcommand for details.</p>
 </section>
 <section id="vector-create">
-<span id="r-3a3arbc3a3avector20create"></span><span id="index-59"></span><span id="index-58"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">create</span></code><a class="headerlink" href="#vector-create" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avector20create"></span><span id="index-109"></span><span id="index-108"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">create</span></code><a class="headerlink" href="#vector-create" title="Link to this heading">¶</a></h3>
 <p>Creates one or more vectors.</p>
 <pre class="literal-block"><strong>vector create</strong> <em>vecName ?vecName ...? ?switch value ...?</em></pre>
 <p class="rubric">Parameters</p>
@@ -641,7 +1035,7 @@ ensemble.</p>
 <p>The name of the last vector created.</p>
 </section>
 <section id="vector-destroy">
-<span id="r-3a3arbc3a3avector20destroy"></span><span id="index-61"></span><span id="index-60"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">destroy</span></code><a class="headerlink" href="#vector-destroy" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avector20destroy"></span><span id="index-111"></span><span id="index-110"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">destroy</span></code><a class="headerlink" href="#vector-destroy" title="Link to this heading">¶</a></h3>
 <p>Destroys one or more vectors. Destroying a vector removes its associated vector instance command and Tcl
 array variable and notifies clients that use the vector.</p>
 <pre class="literal-block"><strong>vector destroy</strong> <em>vecName ?vecName ...?</em></pre>
@@ -655,7 +1049,7 @@ array variable and notifies clients that use the vector.</p>
 <p>Nothing.</p>
 </section>
 <section id="vector-expr">
-<span id="r-3a3arbc3a3avector20expr"></span><span id="index-63"></span><span id="index-62"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">expr</span></code><a class="headerlink" href="#vector-expr" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avector20expr"></span><span id="index-113"></span><span id="index-112"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">expr</span></code><a class="headerlink" href="#vector-expr" title="Link to this heading">¶</a></h3>
 <p>Evaluates a vector expression. <code class="docutils literal notranslate"><span class="pre">expression</span></code> may contain scalars, vectors, vector ranges, arithmetic
 operators, and the vector mathematical functions described in <a class="reference internal" href="rbc-tk9-rbc-VECINST.html#r-3a3arbc3a3avecinstqzvector20expressions"><span class="std std-ref">Vector expressions</span></a>. Unlike the instance
 [::rbc::VECINST::expr] operation, this command does not store the result in an existing vector.</p>
@@ -670,7 +1064,7 @@ operators, and the vector mathematical functions described in <a class="referenc
 <p>The scalar value or list of vector values produced by the expression.</p>
 </section>
 <section id="vector-names">
-<span id="r-3a3arbc3a3avector20names"></span><span id="index-65"></span><span id="index-64"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">names</span></code><a class="headerlink" href="#vector-names" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avector20names"></span><span id="index-115"></span><span id="index-114"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">names</span></code><a class="headerlink" href="#vector-names" title="Link to this heading">¶</a></h3>
 <p>Returns the names of existing vectors. If <code class="docutils literal notranslate"><span class="pre">pattern</span></code> is supplied, only vector names matching the Tcl glob
 pattern are returned.
 A list of vector names.</p>
@@ -703,9 +1097,34 @@ A list of vector names.</p>
     <ul>
 <li><a class="reference internal" href="#">::rbc</a><ul>
 <li><a class="reference internal" href="#commands">Commands</a><ul>
+<li><a class="reference internal" href="#barchart"><code class="docutils literal notranslate"><span class="pre">barchart</span></code></a></li>
+<li><a class="reference internal" href="#graph"><code class="docutils literal notranslate"><span class="pre">graph</span></code></a></li>
+<li><a class="reference internal" href="#graphinst"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code></a></li>
+<li><a class="reference internal" href="#graphinst-axis"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">axis</span></code></a></li>
+<li><a class="reference internal" href="#graphinst-bar"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">bar</span></code></a></li>
+<li><a class="reference internal" href="#graphinst-cget"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">cget</span></code></a></li>
+<li><a class="reference internal" href="#graphinst-configure"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">configure</span></code></a></li>
+<li><a class="reference internal" href="#graphinst-crosshairs"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">crosshairs</span></code></a></li>
+<li><a class="reference internal" href="#graphinst-element"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">element</span></code></a></li>
+<li><a class="reference internal" href="#graphinst-extents"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">extents</span></code></a></li>
+<li><a class="reference internal" href="#graphinst-grid"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">grid</span></code></a></li>
+<li><a class="reference internal" href="#graphinst-inside"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">inside</span></code></a></li>
+<li><a class="reference internal" href="#graphinst-invtransform"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">invtransform</span></code></a></li>
+<li><a class="reference internal" href="#graphinst-legend"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">legend</span></code></a></li>
+<li><a class="reference internal" href="#graphinst-line"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">line</span></code></a></li>
+<li><a class="reference internal" href="#graphinst-marker"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">marker</span></code></a></li>
+<li><a class="reference internal" href="#graphinst-pen"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">pen</span></code></a></li>
+<li><a class="reference internal" href="#graphinst-postscript"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">postscript</span></code></a></li>
+<li><a class="reference internal" href="#graphinst-snap"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">snap</span></code></a></li>
+<li><a class="reference internal" href="#graphinst-transform"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">transform</span></code></a></li>
+<li><a class="reference internal" href="#graphinst-x2axis"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">x2axis</span></code></a></li>
+<li><a class="reference internal" href="#graphinst-xaxis"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">xaxis</span></code></a></li>
+<li><a class="reference internal" href="#graphinst-y2axis"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">y2axis</span></code></a></li>
+<li><a class="reference internal" href="#graphinst-yaxis"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">yaxis</span></code></a></li>
 <li><a class="reference internal" href="#spline"><code class="docutils literal notranslate"><span class="pre">spline</span></code></a></li>
 <li><a class="reference internal" href="#spline-natural"><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">natural</span></code></a></li>
 <li><a class="reference internal" href="#spline-quadratic"><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">quadratic</span></code></a></li>
+<li><a class="reference internal" href="#stripchart"><code class="docutils literal notranslate"><span class="pre">stripchart</span></code></a></li>
 <li><a class="reference internal" href="#vecinst"><code class="docutils literal notranslate"><span class="pre">VECINST</span></code></a></li>
 <li><a class="reference internal" href="#r-3a3arbc3a3avecinst202a"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">*</span></code></a></li>
 <li><a class="reference internal" href="#r-3a3arbc3a3avecinst202b"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">+</span></code></a></li>
@@ -750,8 +1169,8 @@ A list of vector names.</p>
   </div>
   <div>
     <h4>Next topic</h4>
-    <p class="topless"><a href="rbc-tk9-rbc-vector.html"
-                          title="next chapter"><code class="docutils literal notranslate"><span class="pre">vector</span></code> command</a></p>
+    <p class="topless"><a href="rbc-tk9-rbc-GRAPHINST.html"
+                          title="next chapter">Graph widget instance <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code> command</a></p>
   </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
@@ -781,7 +1200,7 @@ A list of vector names.</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="rbc-tk9-rbc-vector.html" title="vector command"
+          <a href="rbc-tk9-rbc-GRAPHINST.html" title="Graph widget instance GRAPHINST command"
              >next</a> |</li>
         <li class="right" >
           <a href="rbc-tk9-TclTk9Upgrade.html" title="Tcl/Tk9.0 upgrade"

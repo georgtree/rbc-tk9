@@ -1,0 +1,487 @@
+# tcl-lsp: disable=W111
+namespace eval ::rbc {
+
+    proc graph {pathName args} {
+        # Creates a graph widget. A graph uses line elements as its default element type. The widget supports the
+        # common graph components such as axes, elements, markers, pens, legends, grids, crosshairs, and PostScript
+        # output. Configuration options supplied when the widget is created are the same options accepted later by
+        # `GRAPHINST configure`.
+        # pathName - Tk pathname of the graph widget to create.
+        # option - graph widget configuration option.
+        # value - value for the configuration option.
+        # Returns: The pathname of the newly created graph widget.
+        #
+        # Example:
+        # ```tcl
+        # graph .g -title "Example graph" -width 800 -height 500
+        # pack .g -fill both -expand yes
+        # ```
+        # Synopsis: pathName ?option value ...?
+    }
+
+    proc barchart {pathName args} {
+        # Creates a barchart widget. A barchart uses bar elements as its default element type. It uses the same graph
+        # widget infrastructure and common components as `graph`, but elements created through the generic
+        # `GRAPHINST element` interface are bar elements by default. Configuration options supplied when the widget
+        # is created are the same options accepted later by `GRAPHINST configure`.
+        # pathName - Tk pathname of the barchart widget to create.
+        # option - graph widget configuration option.
+        # value - value for the configuration option.
+        # Returns: The pathname of the newly created barchart widget.
+        #
+        # Example:
+        # ```tcl
+        # barchart .b -title "Example barchart" -width 800 -height 500
+        # pack .b -fill both -expand yes
+        # ```
+        # Synopsis: pathName ?option value ...?
+    }
+
+    proc stripchart {pathName args} {
+        # Creates a stripchart widget. A stripchart uses strip elements as its default element type. It uses the same
+        # graph widget infrastructure and common components as `graph`, but elements created through the generic
+        # `GRAPHINST element` interface are strip elements by default. Configuration options supplied when the widget
+        # is created are the same options accepted later by `GRAPHINST configure`.
+        # pathName - Tk pathname of the stripchart widget to create.
+        # option - graph widget configuration option.
+        # value - value for the configuration option.
+        # Returns: The pathname of the newly created stripchart widget.
+        #
+        # Example:
+        # ```tcl
+        # stripchart .s -title "Example stripchart" -width 800 -height 500
+        # pack .s -fill both -expand yes
+        # ```
+        # Synopsis: pathName ?option value ...?
+    }
+
+    namespace export graph barchart stripchart
+}
+
+namespace eval ::rbc::GRAPHINST {
+    variable _ruff_ns_opts {
+        -heading {Graph widget instance `GRAPHINST` command}
+        -excludeprocs {.*}
+    }
+
+    variable _ruff_preamble {
+        Commands in this namespace document operations accepted by graph, barchart, and stripchart widget instances.
+
+        `GRAPHINST` is used below as a placeholder for the actual widget command:
+
+        ```tcl
+        graph .g
+        .g configure -title "Example"
+        ```
+
+        The same widget instance interface is shared by all three graph types. The main difference is the default
+        element type used by the `element` operation:
+
+        | Widget created by | Default element type |
+        |-------------------|----------------------|
+        | `graph`           | line                 |
+        | `barchart`        | bar                  |
+        | `stripchart`      | strip                |
+
+        Explicit `line` and `bar` operations are also available independently of the widget's default element type.
+
+        Graph widgets contain several components with their own command interfaces:
+
+        | Operation                            | Component                             |
+        |--------------------------------------|---------------------------------------|
+        | `axis`                               | virtual axes                          |
+        | `xaxis`, `x2axis`, `yaxis`, `y2axis` | axes mapped to graph margins          |
+        | `element`                            | elements of the widget's default type |
+        | `line`                               | line elements                         |
+        | `bar`                                | bar elements                          |
+        | `marker`                             | graph markers                         |
+        | `pen`                                | drawing pens                          |
+        | `legend`                             | graph legend                          |
+        | `grid`                               | graph grid                            |
+        | `crosshairs`                         | interactive crosshairs                |
+        | `postscript`                         | PostScript output                     |
+
+        These component interfaces are documented separately.
+
+        ## Coordinate systems
+
+        Graph widgets use two coordinate systems:
+
+        * **graph coordinates** are the numeric data values represented by the axes
+        * **window coordinates** are pixel positions within the widget.
+
+        The `transform` operation converts graph coordinates to window coordinates, while `invtransform` performs the
+        reverse conversion.
+
+        The general `transform` and `invtransform` operations use the graph's primary X and Y axes. To transform a
+        value using a particular axis, use that axis's `transform` or `invtransform` operation.
+
+        ## Widget options
+
+        The following options configure the graph widget itself. They are shared by `graph`, `barchart`, and
+        `stripchart` and may be specified when the widget is created or modified later with `GRAPHINST configure`.
+
+        Some options, such as `-barmode`, `-barwidth`, and `-baseline`, primarily affect bar elements but are available
+        on all three graph widget types.
+
+        | Option                       | Description                                                                                                                                                                                                                                                                         |
+        |------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+        | `-aspect ratio`              | Sets a fixed width-to-height aspect ratio for the plotting area. A positive value causes one dimension of the plotting area to be reduced as necessary to maintain the requested ratio. A value less than or equal to zero disables aspect-ratio enforcement. The default is `0.0`. |
+        | `-background color`          | Sets the background used for the outer graph area and margins. The plotting area has its own `-plotbackground` option. `-bg` is a synonym.                                                                                                                                          |
+        | `-barmode mode`              | Controls how bar elements having the same X coordinate are arranged. Valid modes are `normal`, `infront`, `aligned`, `overlap`, and `stacked`. `normal` is equivalent to `infront`. The default is `normal`.                                                                        |
+        | `-barwidth width`            | Sets the default width of bar elements in graph-coordinate units. The value must be finite. Values less than or equal to zero are normalized to `0.1`. The default is `0.8`.                                                                                                        |
+        | `-baseline value`            | Sets the baseline from which bars are drawn. The value must be finite. The default is `0.0`.                                                                                                                                                                                        |
+        | `-borderwidth width`         | Sets the width of the 3-D border around the outside of the widget. The appearance of the border is controlled by `-relief`. `-bd` is a synonym.                                                                                                                                     |
+        | `-bottommargin size`         | Sets the requested size of the bottom margin. A value of `0` lets the graph calculate the required size automatically. `-bm` is a synonym.                                                                                                                                          |
+        | `-bottomvariable varName`    | Names a global Tcl variable that is updated with the actual size of the bottom margin after graph layout. An empty value disables the variable update.                                                                                                                              |
+        | `-bufferelements boolean`    | Enables caching of the plotted elements in a backing pixmap. This can improve redraw performance when elements remain unchanged while markers, legends, or other overlays are updated. The default is `1`.                                                                          |
+        | `-buffergraph boolean`       | Enables double-buffering of the complete graph. When enabled, the graph is first rendered into a pixmap and then copied to the widget window, reducing visible redraw flicker. The default is `1`.                                                                                  |
+        | `-cursor cursor`             | Specifies the mouse cursor displayed over the graph widget. The default is `crosshair`.                                                                                                                                                                                             |
+        | `-data string`               | Stores application-defined data associated with the graph widget. The graph rendering code does not interpret this value; it may be used by Tcl code or bindings to associate additional information with the widget.                                                               |
+        | `-datacommand command`       | Stores an application-defined command string associated with the graph. The graph core currently does not invoke this command automatically.                                                                                                                                        |
+        | `-font fontName`             | Specifies the font used for the graph title.                                                                                                                                                                                                                                        |
+        | `-foreground color`          | Specifies the foreground color of the graph title. `-fg` is a synonym.                                                                                                                                                                                                              |
+        | `-halo distance`             | Sets the default maximum screen distance used when searching for a closest data point or element. Operations that provide their own halo value override this setting. The default is `2m`.                                                                                          |
+        | `-height distance`           | Specifies the requested height of the graph widget. The default is `4i`.                                                                                                                                                                                                            |
+        | `-highlightbackground color` | Specifies the color used for the traversal highlight area when the widget does not have keyboard focus.                                                                                                                                                                             |
+        | `-highlightcolor color`      | Specifies the color used for the traversal highlight when the widget has keyboard focus.                                                                                                                                                                                            |
+        | `-highlightthickness width`  | Specifies the width of the keyboard-focus highlight around the widget. The default is `2`.                                                                                                                                                                                          |
+        | `-invertxy boolean`          | Swaps the placement and orientation of the logical X and Y axes. When enabled, X axes are displayed vertically and Y axes horizontally. The default is `0`.                                                                                                                         |
+        | `-justify justify`           | Specifies the justification of multi-line graph title text. Valid values are `left`, `center`, and `right`. The default is `center`.                                                                                                                                                |
+        | `-leftmargin size`           | Sets the requested size of the left margin. A value of `0` lets the graph calculate the required size automatically. `-lm` is a synonym.                                                                                                                                            |
+        | `-leftvariable varName`      | Names a global Tcl variable that is updated with the actual size of the left margin after graph layout. An empty value disables the variable update.                                                                                                                                |
+        | `-plotbackground color`      | Specifies the background color of the plotting area. This is independent of the outer `-background` color. The default is `white`.                                                                                                                                                  |
+        | `-plotborderwidth width`     | Sets the width of the 3-D border surrounding the plotting area. Its appearance is controlled by `-plotrelief`.                                                                                                                                                                      |
+        | `-plotpadx pad`              | Sets horizontal padding around the plotting area. `pad` may contain one screen distance, applied to both sides, or two distances specifying the left and right padding separately. The default is `8`.                                                                              |
+        | `-plotpady pad`              | Sets vertical padding around the plotting area. `pad` may contain one screen distance, applied to both sides, or two distances specifying the top and bottom padding separately. The default is `8`.                                                                                |
+        | `-plotrelief relief`         | Specifies the 3-D relief of the plotting area. Valid values are the standard Tk relief values. The default is `sunken`.                                                                                                                                                             |
+        | `-relief relief`             | Specifies the 3-D relief of the outer graph widget. Valid values are the standard Tk relief values. The default is `flat`.                                                                                                                                                          |
+        | `-rightmargin size`          | Sets the requested size of the right margin. A value of `0` lets the graph calculate the required size automatically. `-rm` is a synonym.                                                                                                                                           |
+        | `-rightvariable varName`     | Names a global Tcl variable that is updated with the actual size of the right margin after graph layout. An empty value disables the variable update.                                                                                                                               |
+        | `-shadow shadow`             | Specifies the shadow used when drawing the graph title. An empty value disables the title shadow.                                                                                                                                                                                   |
+        | `-takefocus focus`           | Controls whether the graph participates in keyboard focus traversal. It has the same interpretation as the standard Tk `-takefocus` option. The default is an empty value.                                                                                                          |
+        | `-tile image`                | Specifies an image used to tile the background of the graph margins. An empty value disables tiling and uses the normal `-background` instead.                                                                                                                                      |
+        | `-title text`                | Specifies the graph title. An empty value suppresses the title.                                                                                                                                                                                                                     |
+        | `-topmargin size`            | Sets the requested size of the top margin. A value of `0` lets the graph calculate the required size automatically. `-tm` is a synonym.                                                                                                                                             |
+        | `-topvariable varName`       | Names a global Tcl variable that is updated with the actual size of the top margin after graph layout. An empty value disables the variable update.                                                                                                                                 |
+        | `-width distance`            | Specifies the requested width of the graph widget. The default is `5i`.                                                                                                                                                                                                             |
+
+        ### Bar modes
+
+        The `-barmode` option determines how bars from different elements are arranged when they use the same X
+        coordinate.
+
+        | Mode      | Description                                             |
+        |-----------|---------------------------------------------------------|
+        | `normal`  | Equivalent to `infront`. This is the default.           |
+        | `infront` | Draws each successive bar in front of the previous bar. |
+        | `stacked` | Stacks successive bars vertically.                      |
+        | `aligned` | Places bars side by side.                               |
+        | `overlap` | Places bars side by side with a small overlap.          |
+
+        For example:
+
+        ```tcl
+        barchart .b
+        .b configure -barmode stacked
+        ```
+
+        The `-barmode`, `-barwidth`, and `-baseline` options have no significant effect unless bar elements are present
+        in the graph.
+
+        ### Margins
+
+        The graph has four margins surrounding the plotting area. Their sizes are normally calculated automatically
+        from axes, axis titles, tick labels, the graph title, and the legend.
+
+        The margin options:
+
+        ```text
+        -bottommargin
+        -leftmargin
+        -rightmargin
+        -topmargin
+        ```
+
+        override the automatically calculated size when set to a positive screen distance. Setting a margin size to `0`
+        restores automatic sizing.
+
+        The corresponding options:
+
+        ```text
+        -bottomvariable
+        -leftvariable
+        -rightvariable
+        -topvariable
+        ```
+
+        can be used to observe the actual calculated margin sizes. After layout and drawing, Rbc writes the current
+        size of each configured margin to the specified global Tcl variable.
+
+        For example:
+
+        ```tcl
+        graph .g -leftvariable leftSize -bottomvariable bottomSize
+
+        pack .g -fill both -expand yes
+        update idletasks
+
+        puts "left margin: $leftSize"
+        puts "bottom margin: $bottomSize"
+        ```
+
+        ### Plotting area
+
+        The outer graph background and the plotting-area background are configured independently.
+
+        ```tcl
+        graph .g \
+            -background grey90 \
+            -plotbackground white \
+            -plotrelief sunken \
+            -plotborderwidth 2
+        ```
+
+        `-plotpadx` and `-plotpady` add space immediately around the plotting surface. Each option accepts either one
+        distance:
+
+        ```tcl
+        .g configure -plotpadx 10
+        ```
+
+        or two distances for the two sides:
+
+        ```tcl
+        .g configure -plotpadx {5 15}
+        .g configure -plotpady {10 20}
+        ```
+
+        ### Aspect ratio
+
+        A positive `-aspect` value constrains the plotting area to a requested width-to-height ratio.
+
+        For example:
+
+        ```tcl
+        .g configure -aspect 1.0
+        ```
+
+        requests a square plotting area, while:
+
+        ```tcl
+        .g configure -aspect 1.5
+        ```
+
+        requests a plotting area whose width is 1.5 times its height.
+
+        Rbc satisfies the requested ratio by reducing the usable width or height of the plotting area; it does not
+        enlarge the widget. Set `-aspect` to `0` to disable the constraint.
+
+        ### Buffering
+
+        Two separate buffering mechanisms are available.
+
+        `-buffergraph` controls double-buffering of the complete widget. With double-buffering enabled, Rbc renders the
+        graph to an off-screen pixmap and copies the completed image to the window.
+
+        `-bufferelements` controls an additional backing store containing the plot region and data elements. It is
+        useful when elements themselves are unchanged but the graph must frequently redraw objects placed above them,
+        such as markers.
+
+        Element buffering is only used when graph double-buffering is also enabled.
+
+        For graphs whose element data or axes change very frequently, disabling `-bufferelements` may avoid maintaining
+        a cache that cannot be reused.
+
+        For example:
+
+        ```tcl
+        .g configure -buffergraph yes -bufferelements no
+        ```
+
+        ### Application data
+
+        The `-data` option is an application-defined storage slot. Rbc stores the supplied value but does not interpret
+        it in the C graph implementation.
+
+        For example:
+
+        ```tcl
+        .g configure -data [dict create source simulation1 quantity voltage]
+
+        set graphData [.g cget -data]
+        ```
+
+        `-datacommand` similarly stores a command string. It is retained as part of the graph configuration interface,
+        but the current graph core does not automatically execute it.
+    }
+
+    proc axis {args} {
+        # Performs an operation on the graph's virtual axes. Virtual axes can be created, deleted, configured,
+        # transformed, bound to events, and mapped to graph margins.
+        # Returns: Result of the selected axis operation.
+        # Synopsis: operation ?args ...?
+    }
+
+    proc bar {args} {
+        # Performs an element operation using bar elements explicitly, regardless of the default element type of the
+        # graph widget.
+        # Returns: Result of the selected element operation.
+        # Synopsis: operation ?args ...?
+    }
+
+    proc cget {option} {
+        # Returns the current value of a graph widget configuration option.
+        # option - graph widget configuration option.
+        #
+        # See [Widget options] for the complete list of supported options and their descriptions.
+        # Returns: Current value of `option`.
+    }
+
+    proc configure {args} {
+        # Queries or modifies graph widget configuration options. With no arguments, returns configuration information
+        # for all widget options. With one option, returns configuration information for that option. With one or more
+        # option/value pairs, changes the specified options.
+        # option - graph widget configuration option.
+        # value - new value for the option.
+        #
+        # See [Widget options] for the complete list of supported options and their descriptions.
+        # Returns: Configuration information when querying; nothing when setting options.
+        # Synopsis:
+        # Synopsis: option
+        # Synopsis: ?option value ...?
+    }
+
+    proc crosshairs {args} {
+        # Performs an operation on the graph crosshairs.
+        # Returns: Result of the selected crosshairs operation.
+        # Synopsis: operation ?args ...?
+    }
+
+    proc element {args} {
+        # Performs an operation on graph elements using the widget's default element type. The default is a line
+        # element for `graph`, a bar element for `barchart`, and a strip element for `stripchart`.
+        # Returns: Result of the selected element operation.
+        # Synopsis: operation ?args ...?
+    }
+
+    proc extents {item} {
+        # Returns the size or geometry of a graph component.
+        # item - component whose extents are requested. Must be `plotheight`, `plotwidth`, `plotarea`, `legend`,
+        #   `leftmargin`, `rightmargin`, `topmargin`, or `bottommargin`.
+        # Returns: For `plotheight`, `plotwidth`, and the margin items, returns one size in pixels. For `plotarea` and
+        #   `legend`, returns a list of four values in the form `x y width height`.
+    }
+
+    proc grid {args} {
+        # Performs an operation on the graph grid.
+        # Returns: Result of the selected grid operation.
+        # Synopsis: operation ?args ...?
+    }
+
+    proc inside {winX winY} {
+        # Tests whether a window coordinate lies inside the graph plotting area.
+        # winX - X coordinate in window coordinates.
+        # winY - Y coordinate in window coordinates.
+        # Returns: Boolean value indicating whether the point is inside the plotting area.
+    }
+
+    proc invtransform {winX winY} {
+        # Converts a point from window coordinates to graph coordinates using the graph's primary X and Y axes.
+        # `winX` and `winY` may be Tcl expressions that evaluate to numeric values.
+        # winX - X coordinate in window coordinates.
+        # winY - Y coordinate in window coordinates.
+        # Returns: A two-element list containing the corresponding graph coordinates `x y`.
+    }
+
+    proc legend {args} {
+        # Performs an operation on the graph legend.
+        # Returns: Result of the selected legend operation.
+        # Synopsis: operation ?args ...?
+    }
+
+    proc line {args} {
+        # Performs an element operation using line elements explicitly, regardless of the default element type of the
+        # graph widget.
+        # Returns: Result of the selected element operation.
+        # Synopsis: operation ?args ...?
+    }
+
+    proc marker {args} {
+        # Performs an operation on graph markers.
+        # Returns: Result of the selected marker operation.
+        # Synopsis: operation ?args ...?
+    }
+
+    proc pen {args} {
+        # Performs an operation on graph pens. Pens define reusable drawing attributes for line and bar elements.
+        # Returns: Result of the selected pen operation.
+        # Synopsis: operation ?args ...?
+    }
+
+    proc postscript {args} {
+        # Performs a PostScript output operation for the graph.
+        # Returns: Result of the selected PostScript operation.
+        # Synopsis: operation ?args ...?
+    }
+
+    proc snap {args} {
+        # Renders a snapshot of the graph. By default the snapshot is written to an existing Tk photo image. On
+        # Windows, snapshots can also be written as Windows Metafile (`wmf`) or Enhanced Metafile (`emf`) output.
+        # name - for `photo` format, name of an existing Tk photo image; for `wmf` or `emf`, output filename. On
+        #   Windows, `CLIPBOARD` writes metafile output to the clipboard instead of a file.
+        # -format format - output format. `photo` is available on all platforms. `wmf` and `emf` are available on
+        #   Windows. The default is `photo`.
+        # -height height - height of the rendered snapshot. If omitted, the current widget height is used.
+        # -width width - width of the rendered snapshot. If omitted, the current widget width is used.
+        # Returns: Nothing.
+        #
+        # Example:
+        # ```tcl
+        # image create photo graphImage
+        # .g snap graphImage
+        #
+        # .g snap graphImage -width 1200 -height 800
+        # ```
+        # Synopsis: name ?-format format? ?-height height? ?-width width?
+    }
+
+    proc transform {x y} {
+        # Converts a point from graph coordinates to window coordinates using the graph's primary X and Y axes.
+        # `x` and `y` may be Tcl expressions that evaluate to numeric values.
+        # x - X coordinate in graph coordinates.
+        # y - Y coordinate in graph coordinates.
+        # Returns: A two-element list containing the corresponding integer window coordinates `x y`.
+    }
+
+    proc x2axis {args} {
+        # Performs an operation on the axis mapped to the secondary X-axis margin. With a normal graph orientation
+        # this is the top margin.
+        # Returns: Result of the selected margin-axis operation.
+        # Synopsis: operation ?args ...?
+    }
+
+    proc xaxis {args} {
+        # Performs an operation on the axis mapped to the primary X-axis margin. With a normal graph orientation this
+        # is the bottom margin.
+        # Returns: Result of the selected margin-axis operation.
+        # Synopsis: operation ?args ...?
+    }
+
+    proc y2axis {args} {
+        # Performs an operation on the axis mapped to the secondary Y-axis margin. With a normal graph orientation
+        # this is the right margin.
+        # Returns: Result of the selected margin-axis operation.
+        # Synopsis: operation ?args ...?
+    }
+
+    proc yaxis {args} {
+        # Performs an operation on the axis mapped to the primary Y-axis margin. With a normal graph orientation this
+        # is the left margin.
+        # Returns: Result of the selected margin-axis operation.
+        # Synopsis: operation ?args ...?
+    }
+
+    namespace export *
+    namespace ensemble create
+}
