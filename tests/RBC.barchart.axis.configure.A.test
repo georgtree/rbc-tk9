@@ -1164,22 +1164,5 @@ namespace eval barchart.axis {
 		destroy .barchart1
 	} -result {red}
 	
-	# ------------------------------------------------------------------------------------
-	# Purpose: Ensure the axis configure -tickdivider command works correctly
-	# ------------------------------------------------------------------------------------
-	test RBC.barchart.axis.configure.A.39.1 {
-		Tickdivider
-	} -setup {
-		barchart .barchart1
-		.barchart1 axis create Axis1
-	} -body {
-		.barchart1 axis configure Axis1 -tickdivider 13.0
-		.barchart1 axis cget Axis1 -tickdivider
-	} -cleanup {
-		destroy .barchart1
-	} -result {13.0}
-	
-
-	
 	cleanupTests
 }

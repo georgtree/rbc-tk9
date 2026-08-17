@@ -1921,27 +1921,12 @@ namespace eval graph.axis {
 		destroy .graph1
 	} -result {red}
 	
-	# ------------------------------------------------------------------------------------
-	# Purpose: Ensure the axis configure -tickdivider command works correctly
-	# ------------------------------------------------------------------------------------
-	test RBC.graph.axis.configure.A.39.1 {
-		Tickdivider
-	} -setup {
-		graph .graph1
-		.graph1 axis create Axis1
-	} -body {
-		.graph1 axis configure Axis1 -tickdivider 13.0
-		.graph1 axis cget Axis1 -tickdivider
-	} -cleanup {
-		destroy .graph1
-	} -result {13.0}
-
     test RBC.graph.axis.configure.A.40.1 {
         axis configure: direct double options reject non-finite values
     } -setup {
         graph .graph1
         .graph1 axis create Axis1
-        set options {-autorange -rotate -shiftby -stepsize -tickdivider}
+        set options {-autorange -rotate -shiftby -stepsize}
         set old {}
         foreach option $options {
             dict set old $option [.graph1 axis cget Axis1 $option]
@@ -1955,7 +1940,7 @@ namespace eval graph.axis {
         set result
     } -cleanup {
         destroy .graph1
-    } -result {1 1 1 1 1 1 1 1 1 1}
+    } -result {1 1 1 1 1 1 1 1}
 
     test RBC.graph.axis.configure.A.40.2 {
         axis configure: limits reject non-finite values transactionally

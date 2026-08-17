@@ -242,12 +242,6 @@ typedef struct {
                      * upon the range of elements mapped to the
                      * axis. The default value is 0.0. */
 
-    double tickZoom; /* If > 0.0, overrides the computed major
-                      * tick interval.  Otherwise a stepsize
-                      * is automatically calculated, based
-                      * upon the range of elements mapped to the
-                      * axis. The default value is 0.0. */
-
     GC tickGC; /* Graphics context for axis and tick labels */
 
     Ticks *t1Ptr; /* Array of major tick positions. May be

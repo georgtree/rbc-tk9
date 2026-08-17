@@ -1213,22 +1213,5 @@ namespace eval stripchart.axis {
 		destroy .stripchart1
 	} -result {red}
 	
-	# ------------------------------------------------------------------------------------
-	# Purpose: Ensure the axis configure -tickdivider command works correctly
-	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.axis.configure.A.39.1 {
-		Tickdivider
-	} -setup {
-		stripchart .stripchart1
-		.stripchart1 axis create Axis1
-	} -body {
-		.stripchart1 axis configure Axis1 -tickdivider 13.0
-		.stripchart1 axis cget Axis1 -tickdivider
-	} -cleanup {
-		destroy .stripchart1
-	} -result {13.0}
-	
-
-	
 	cleanupTests
 }

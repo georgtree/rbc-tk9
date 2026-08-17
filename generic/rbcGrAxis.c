@@ -288,8 +288,6 @@ static const Tk_OptionSpec axisOptionSpecs[] = {
      TK_OPTION_DONT_SET_DEFAULT, NULL, AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
     {TK_OPTION_DOUBLE, "-stepsize", "stepSize", "StepSize", DEF_AXIS_STEP, -1, offsetof(Axis, reqStep),
      TK_OPTION_DONT_SET_DEFAULT, NULL, AXIS_MAP_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
-    {TK_OPTION_DOUBLE, "-tickdivider", "tickDivider", "TickDivider", DEF_AXIS_STEP, -1, offsetof(Axis, tickZoom),
-     TK_OPTION_DONT_SET_DEFAULT, NULL, AXIS_MAP_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
     {TK_OPTION_INT, "-subdivisions", "subdivisions", "Subdivisions", DEF_AXIS_SUBDIVISIONS, -1,
      offsetof(Axis, reqNumMinorTicks), 0, NULL, AXIS_MAP_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
     {TK_OPTION_FONT, "-tickfont", "tickFont", "Font", DEF_AXIS_TICK_FONT, -1, offsetof(Axis, tickTextStyle.font), 0,
@@ -5328,10 +5326,6 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
     }
     if (!FINITE(axisPtr->reqStep)) {
         Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("-stepsize must be a finite value", -1));
-        goto error;
-    }
-    if (!FINITE(axisPtr->tickZoom)) {
-        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("-tickdivider must be a finite value", -1));
         goto error;
     }
     if (axisPtr->reqNumMinorTicks > (MAXTICKS + 1)) {
