@@ -250,13 +250,13 @@ transparent.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-color</span> <span class="pre">color</span></code></p></td>
-<td><p>Sets the trace color. A normal line pen defaults to navy blue; <code class="docutils literal notranslate"><span class="pre">activeLine</span></code> defaults to blue.</p></td>
+<td><p>Specifies the color of the line trace. The default is <code class="docutils literal notranslate"><span class="pre">navyblue</span></code>; the built-in <code class="docutils literal notranslate"><span class="pre">activeLine</span></code> pen defaults to <code class="docutils literal notranslate"><span class="pre">blue</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-dashes</span> <span class="pre">dashes</span></code></p></td>
 <td><p>Sets the trace dash pattern. An empty value selects a solid line.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbarcap</span> <span class="pre">width</span></code></p></td>
-<td><p>Sets the non-negative error-bar cap width. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbarcap</span> <span class="pre">distance</span></code></p></td>
+<td><p>Specifies the requested size of error-bar caps. A positive value selects an explicit size; <code class="docutils literal notranslate"><span class="pre">0</span></code> automatically derives the size from the symbol size for line pens or the bar width for bar pens. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbarcolor</span> <span class="pre">color</span></code></p></td>
 <td><p>Sets the error-bar color. <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> uses the trace color.</p></td>
@@ -265,16 +265,16 @@ transparent.</p>
 <td><p>Sets the non-negative error-bar line width. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-fill</span> <span class="pre">color</span></code></p></td>
-<td><p>Sets the symbol fill color. <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> uses the trace color; an empty value leaves the symbol unfilled.</p></td>
+<td><p>Specifies the fill color of symbols. <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> uses the line trace color. An empty value leaves symbols unfilled. The default is <code class="docutils literal notranslate"><span class="pre">defcolor</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-linewidth</span> <span class="pre">width</span></code></p></td>
 <td><p>Sets the non-negative trace width. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>; <code class="docutils literal notranslate"><span class="pre">0</span></code> suppresses the trace.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-offdash</span> <span class="pre">color</span></code></p></td>
-<td><p>Sets the color of the gaps in a dashed trace. An empty value leaves them transparent.</p></td>
+<td><p>Specifies the color used for the off portions of a dashed line. <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> uses the line trace color. An empty value uses ordinary on/off dashes. The default is empty.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-outline</span> <span class="pre">color</span></code></p></td>
-<td><p>Sets the symbol outline color. <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> uses the trace color.</p></td>
+<td><p>Specifies the outline color of symbols. <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> uses the line trace color. The default is <code class="docutils literal notranslate"><span class="pre">defcolor</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-outlinewidth</span> <span class="pre">width</span></code></p></td>
 <td><p>Sets the non-negative symbol outline width. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></td>
@@ -377,7 +377,7 @@ transparent.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-background</span> <span class="pre">color</span></code></p></td>
-<td><p>Sets the bar border/stipple background. A normal bar pen defaults to navy blue; <code class="docutils literal notranslate"><span class="pre">activeBar</span></code> defaults to red.</p></td>
+<td><p>Specifies the bar background and the color resource used for its 3-D border. With a stipple, it supplies the stipple background. An empty value disables the background and 3-D border. The default is <code class="docutils literal notranslate"><span class="pre">navyblue</span></code>; <code class="docutils literal notranslate"><span class="pre">activeBar</span></code> defaults to <code class="docutils literal notranslate"><span class="pre">red</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-bg</span> <span class="pre">color</span></code></p></td>
 <td><p>Synonym for <code class="docutils literal notranslate"><span class="pre">-background</span></code>.</p></td>
@@ -388,8 +388,8 @@ transparent.</p>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-bd</span> <span class="pre">width</span></code></p></td>
 <td><p>Synonym for <code class="docutils literal notranslate"><span class="pre">-borderwidth</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbarcap</span> <span class="pre">width</span></code></p></td>
-<td><p>Sets the non-negative error-bar cap width. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbarcap</span> <span class="pre">distance</span></code></p></td>
+<td><p>Specifies the requested size of error-bar caps. A positive value selects an explicit size; <code class="docutils literal notranslate"><span class="pre">0</span></code> automatically derives the size from the symbol size for line pens or the bar width for bar pens. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbarcolor</span> <span class="pre">color</span></code></p></td>
 <td><p>Sets the error-bar color. <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> uses the normal bar color.</p></td>
@@ -398,7 +398,7 @@ transparent.</p>
 <td><p>Sets the non-negative error-bar line width. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-foreground</span> <span class="pre">color</span></code></p></td>
-<td><p>Sets the primary bar fill color. A normal bar pen defaults to blue; <code class="docutils literal notranslate"><span class="pre">activeBar</span></code> defaults to pink.</p></td>
+<td><p>Specifies the primary bar fill color. With a stipple, it supplies the stipple foreground. An empty value disables the foreground fill. The default is <code class="docutils literal notranslate"><span class="pre">blue</span></code>; <code class="docutils literal notranslate"><span class="pre">activeBar</span></code> defaults to <code class="docutils literal notranslate"><span class="pre">pink</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-fg</span> <span class="pre">color</span></code></p></td>
 <td><p>Synonym for <code class="docutils literal notranslate"><span class="pre">-foreground</span></code>.</p></td>

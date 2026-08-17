@@ -136,12 +136,12 @@ tab(|) box;
 l l.
 Option| Description
 _
--color color| Specifies the color of the grid lines\&. The default is grey64\&.
+-color color | Specifies the color of the grid lines\&. The default is grey64 on color displays and black on monochrome displays\&.
 -dashes dashList| Specifies the dash pattern used for grid lines\&. The default is dot\&. An empty value selects solid lines\&.
 -hide boolean| Specifies whether the grid is hidden\&. The default is yes for graph and stripchart, and no for barchart\&.
--linewidth distance | Specifies the width of the grid lines\&. The default is 0\&.
--mapx axisName| Specifies the X axis whose tick positions generate vertical grid lines\&. The default is x for graph and stripchart, and empty for barchart\&.
--mapy axisName| Specifies the Y axis whose tick positions generate horizontal grid lines\&. The default is y\&.
+-linewidth distance | Specifies the width of the grid lines as a non-negative screen distance\&. Values 0 and 1 use the native thin-line representation\&. The default is 0\&.
+-mapx axisName | Specifies the X axis whose tick positions generate vertical grid lines\&. The axis must exist and must be an X axis\&. An empty value disables vertical grid lines\&. The default is x for graph and stripchart, and empty for barchart\&.
+-mapy axisName | Specifies the Y axis whose tick positions generate horizontal grid lines\&. The axis must exist and must be a Y axis\&. An empty value disables horizontal grid lines\&. The default is y\&.
 -minor boolean| Specifies whether grid lines are also generated at minor tick positions\&. The default is yes\&.
 .TE
 .PP

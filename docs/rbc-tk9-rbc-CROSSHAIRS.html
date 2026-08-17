@@ -84,10 +84,13 @@ crosshairs visible does not cause lines to be drawn if the configured position i
 </section>
 <section id="showing-and-hiding-crosshairs">
 <span id="r-rbc-crosshairs-showing-and-hiding-crosshairs"></span><span id="r-3a3arbc3a3acrosshairsqzshowing20and20hiding20crosshairs"></span><h2>Showing and hiding crosshairs<a class="headerlink" href="#showing-and-hiding-crosshairs" title="Link to this heading">¶</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">-hide</span></code> option controls whether crosshairs are enabled:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>crosshairs<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>hide<span class="w"> </span>no
+<p><code class="docutils literal notranslate"><span class="pre">-hide</span></code> controls whether the crosshairs are enabled. Actual drawing also depends on the configured position.
+Crosshairs whose position is empty or outside the plotting area remain logically enabled but are not drawn.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>crosshairs<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>position<span class="w"> </span><span class="k">{}</span><span class="w"> </span><span class="o">-</span>hide<span class="w"> </span>no
 </pre></div>
 </div>
+<p>leaves <code class="docutils literal notranslate"><span class="pre">-hide</span></code> set to <code class="docutils literal notranslate"><span class="pre">no</span></code>, but no crosshair lines are visible until a drawable position is configured.</p>
 <p><code class="docutils literal notranslate"><span class="pre">CROSSHAIRS</span> <span class="pre">on</span></code>, <code class="docutils literal notranslate"><span class="pre">CROSSHAIRS</span> <span class="pre">off</span></code>, and <code class="docutils literal notranslate"><span class="pre">CROSSHAIRS</span> <span class="pre">toggle</span></code> provide convenient alternatives:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>crosshairs<span class="w"> </span>on
 <span class="nv">.g</span><span class="w"> </span>crosshairs<span class="w"> </span>off
@@ -136,7 +139,7 @@ contents to be redrawn.</p>
 <td><p>Specifies whether the crosshairs are hidden. The default is <code class="docutils literal notranslate"><span class="pre">yes</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-linewidth</span> <span class="pre">distance</span></code></p></td>
-<td><p>Specifies the width of the crosshair lines. The value must be non-negative. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
+<td><p>Specifies the width of the crosshair lines as a non-negative screen distance. Values <code class="docutils literal notranslate"><span class="pre">0</span></code> and <code class="docutils literal notranslate"><span class="pre">1</span></code> use the native thin-line representation. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-position</span> <span class="pre">position</span></code></p></td>
 <td><p>Specifies the intersection of the crosshair lines as a widget screen position of the form <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code>. An empty value specifies no drawable position. The default is empty.</p></td>

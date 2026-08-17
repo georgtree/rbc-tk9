@@ -76,13 +76,18 @@ bind \&.g <Motion> {
 .RE
 .SH "SHOWING AND HIDING CROSSHAIRS"
 .PP
-The -hide option controls whether crosshairs are enabled:
+-hide controls whether the crosshairs are enabled\&. Actual drawing also depends on the configured position\&.
+Crosshairs whose position is empty or outside the plotting area remain logically enabled but are not drawn\&.
+.PP
+For example:
 .PP
 .RS 4n
 .nf
-\&.g crosshairs configure -hide no
+\&.g crosshairs configure -position {} -hide no
 .fi
 .RE
+.PP
+leaves -hide set to no, but no crosshair lines are visible until a drawable position is configured\&.
 .PP
 CROSSHAIRS on, CROSSHAIRS off, and CROSSHAIRS toggle provide convenient alternatives:
 .PP
@@ -131,7 +136,7 @@ _
 -color color| Specifies the color of the crosshair lines\&. The default is black\&.
 -dashes dashList| Specifies the dash pattern used for the crosshair lines\&. An empty value selects solid lines\&. The default is empty\&.
 -hide boolean| Specifies whether the crosshairs are hidden\&. The default is yes\&.
--linewidth distance | Specifies the width of the crosshair lines\&. The value must be non-negative\&. The default is 0\&.
+-linewidth distance | Specifies the width of the crosshair lines as a non-negative screen distance\&. Values 0 and 1 use the native thin-line representation\&. The default is 0\&.
 -position position| Specifies the intersection of the crosshair lines as a widget screen position of the form @x,y\&. An empty value specifies no drawable position\&. The default is empty\&.
 .TE
 .PP

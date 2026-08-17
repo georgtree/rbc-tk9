@@ -248,15 +248,15 @@ tab(|) box;
 l l.
 Option| Description
 _
--color color| Sets the trace color\&. A normal line pen defaults to navy blue; activeLine defaults to blue\&.
+-color color | Specifies the color of the line trace\&. The default is navyblue; the built-in activeLine pen defaults to blue\&.
 -dashes dashes| Sets the trace dash pattern\&. An empty value selects a solid line\&.
--errorbarcap width| Sets the non-negative error-bar cap width\&. The default is 1\&.
+-errorbarcap distance | Specifies the requested size of error-bar caps\&. A positive value selects an explicit size; 0 automatically derives the size from the symbol size for line pens or the bar width for bar pens\&. The default is 1\&.
 -errorbarcolor color | Sets the error-bar color\&. defcolor uses the trace color\&.
 -errorbarwidth width | Sets the non-negative error-bar line width\&. The default is 1\&.
--fill color| Sets the symbol fill color\&. defcolor uses the trace color; an empty value leaves the symbol unfilled\&.
+-fill color | Specifies the fill color of symbols\&. defcolor uses the line trace color\&. An empty value leaves symbols unfilled\&. The default is defcolor\&.
 -linewidth width| Sets the non-negative trace width\&. The default is 1; 0 suppresses the trace\&.
--offdash color| Sets the color of the gaps in a dashed trace\&. An empty value leaves them transparent\&.
--outline color| Sets the symbol outline color\&. defcolor uses the trace color\&.
+-offdash color | Specifies the color used for the off portions of a dashed line\&. defcolor uses the line trace color\&. An empty value uses ordinary on/off dashes\&. The default is empty\&.
+-outline color | Specifies the outline color of symbols\&. defcolor uses the line trace color\&. The default is defcolor\&.
 -outlinewidth width| Sets the non-negative symbol outline width\&. The default is 1\&.
 -pixels size| Sets the requested symbol size\&. The default is 0\&.125i\&.
 -showerrorbars value | Selects which X and/or Y error bars are displayed\&. The default is both\&.
@@ -339,15 +339,15 @@ tab(|) box;
 l l.
 Option| Description
 _
--background color| Sets the bar border/stipple background\&. A normal bar pen defaults to navy blue; activeBar defaults to red\&.
--bg color| Synonym for -background\&.
+-background color | Specifies the bar background and the color resource used for its 3-D border\&. With a stipple, it supplies the stipple background\&. An empty value disables the background and 3-D border\&. The default is navyblue; activeBar defaults to red\&.
+-bg color | Synonym for -background\&.
 -borderwidth width| Sets the non-negative 3-D border width\&. The default is 2\&.
 -bd width| Synonym for -borderwidth\&.
--errorbarcap width| Sets the non-negative error-bar cap width\&. The default is 1\&.
+-errorbarcap distance | Specifies the requested size of error-bar caps\&. A positive value selects an explicit size; 0 automatically derives the size from the symbol size for line pens or the bar width for bar pens\&. The default is 1\&.
 -errorbarcolor color | Sets the error-bar color\&. defcolor uses the normal bar color\&.
 -errorbarwidth width | Sets the non-negative error-bar line width\&. The default is 1\&.
--foreground color| Sets the primary bar fill color\&. A normal bar pen defaults to blue; activeBar defaults to pink\&.
--fg color| Synonym for -foreground\&.
+-foreground color | Specifies the primary bar fill color\&. With a stipple, it supplies the stipple foreground\&. An empty value disables the foreground fill\&. The default is blue; activeBar defaults to pink\&.
+-fg color | Synonym for -foreground\&.
 -relief relief| Sets the bar's 3-D relief\&. The default is raised\&.
 -showerrorbars value | Selects which X and/or Y error bars are displayed\&. The default is both\&.
 -showvalues value| Selects which coordinate values are displayed\&. The default is no\&.

@@ -421,13 +421,13 @@ rectangle.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-activepen</span> <span class="pre">penName</span></code></p></td>
-<td><p>Selects the bar pen used for active elements or active points. The default is <code class="docutils literal notranslate"><span class="pre">activeBar</span></code>.</p></td>
+<td><p>Specifies the named bar pen used when the element is active. An empty value disables the named active pen. The default is <code class="docutils literal notranslate"><span class="pre">activeBar</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-background</span> <span class="pre">color</span></code></p></td>
 <td><p>Sets the built-in pen’s 3-D border/stipple background color. The default is <code class="docutils literal notranslate"><span class="pre">navyblue</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-barwidth</span> <span class="pre">width</span></code></p></td>
-<td><p>Overrides the graph-wide bar width when positive. A non-positive value uses the graph <code class="docutils literal notranslate"><span class="pre">-barwidth</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">0.0</span></code>.</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-barwidth</span> <span class="pre">value</span></code></p></td>
+<td><p>Specifies the width of bars for this element. A positive value overrides the graph widget’s <code class="docutils literal notranslate"><span class="pre">-barwidth</span></code>; <code class="docutils literal notranslate"><span class="pre">0.0</span></code> uses the graph’s bar width. The default is <code class="docutils literal notranslate"><span class="pre">0.0</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-bd</span> <span class="pre">width</span></code></p></td>
 <td><p>Synonym for <code class="docutils literal notranslate"><span class="pre">-borderwidth</span></code>.</p></td>
@@ -469,13 +469,13 @@ rectangle.</p>
 <td><p>Sets the relief used for the element’s legend label. The default is <code class="docutils literal notranslate"><span class="pre">flat</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-mapx</span> <span class="pre">axisName</span></code></p></td>
-<td><p>Selects the X axis used to map the element. The default is <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></td>
+<td><p>Specifies the X axis used to map the element’s X coordinates. The axis must exist and must be an X axis. The default is <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-mapy</span> <span class="pre">axisName</span></code></p></td>
-<td><p>Selects the Y axis used to map the element. The default is <code class="docutils literal notranslate"><span class="pre">y</span></code>.</p></td>
+<td><p>Specifies the Y axis used to map the element’s Y coordinates. The axis must exist and must be a Y axis. The default is <code class="docutils literal notranslate"><span class="pre">y</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-pen</span> <span class="pre">penName</span></code></p></td>
-<td><p>Selects a named bar pen as the normal pen. An empty value selects the built-in pen.</p></td>
+<td><p>Specifies a named bar pen containing the element’s normal drawing attributes. An empty value uses the element’s built-in pen.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-relief</span> <span class="pre">relief</span></code></p></td>
 <td><p>Sets the built-in pen’s bar relief. The default is <code class="docutils literal notranslate"><span class="pre">raised</span></code>.</p></td>

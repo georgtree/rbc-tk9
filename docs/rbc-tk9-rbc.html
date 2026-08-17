@@ -342,7 +342,7 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3acrosshairs20off"><span class="std std-ref">off</span></a></dt><dd><p>Hides the crosshairs. This is equivalent to setting <code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">yes</span></code>. If the crosshairs are already hidden, the operation has no effect.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3acrosshairs20on"><span class="std std-ref">on</span></a></dt><dd><p>Enables the crosshairs. This is equivalent to setting <code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">no</span></code>. The lines are drawn only if the configured position lies inside the plotting area.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3acrosshairs20on"><span class="std std-ref">on</span></a></dt><dd><p>Enables the crosshairs by setting <code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">no</span></code>. The lines are drawn only when the configured position lies inside the plotting area; an empty or out-of-range position may therefore leave enabled crosshairs invisible.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3acrosshairs20toggle"><span class="std std-ref">toggle</span></a></dt><dd><p>Toggles crosshair visibility. Enabled crosshairs become hidden and hidden crosshairs become enabled. The resulting state is reflected by the <code class="docutils literal notranslate"><span class="pre">-hide</span></code> configuration option.</p>
 </dd>
@@ -394,8 +394,8 @@ operation has no effect.</p>
 </section>
 <section id="crosshairs-on">
 <span id="r-3a3arbc3a3acrosshairs20on"></span><span id="index-35"></span><span id="index-34"></span><h3><code class="docutils literal notranslate"><span class="pre">CROSSHAIRS</span> <span class="pre">on</span></code><a class="headerlink" href="#crosshairs-on" title="Link to this heading">¶</a></h3>
-<p>Enables the crosshairs. This is equivalent to setting <code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">no</span></code>. The lines are drawn only if the configured
-position lies inside the plotting area.</p>
+<p>Enables the crosshairs by setting <code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">no</span></code>. The lines are drawn only when the configured position lies
+inside the plotting area; an empty or out-of-range position may therefore leave enabled crosshairs invisible.</p>
 <pre class="literal-block"><strong>CROSSHAIRS on</strong></pre>
 <p class="rubric">Return value</p>
 <p>Nothing.</p>
@@ -1136,7 +1136,7 @@ ensemble.</p>
 <p class="rubric">Description</p>
 <p>The ensemble supports the following subcommands:</p>
 <dl class="simple">
-<dt><a class="reference internal" href="#r-3a3arbc3a3alegend20activate"><span class="std std-ref">activate</span></a></dt><dd><p>Marks matching legend entries active. Each pattern is matched against element names. Active entries are drawn using the legend’s active background, foreground, border width, and relief.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3alegend20activate"><span class="std std-ref">activate</span></a></dt><dd><p>Marks matching legend entries active. Each pattern is matched against element names. After applying all patterns, the command returns the names of all legend entries that are currently active. A pattern that matches no element has no effect.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3alegend20bind"><span class="std std-ref">bind</span></a></dt><dd><p>Queries or changes event bindings for legend entries associated with <code class="docutils literal notranslate"><span class="pre">tagName</span></code>. Element names are implicit binding tags. With no sequence, returns the bound event sequences. With a sequence but no command, returns the current binding. With a sequence and command, creates or replaces the binding; a command beginning with <code class="docutils literal notranslate"><span class="pre">+</span></code> appends to an existing binding.</p>
 </dd>
@@ -1144,7 +1144,7 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3alegend20configure"><span class="std std-ref">configure</span></a></dt><dd><p>Queries or modifies legend configuration options. With no arguments, returns all configuration information. With one option, returns information for that option. Otherwise <code class="docutils literal notranslate"><span class="pre">args</span></code> contains option/value pairs to change. See <a class="reference internal" href="rbc-tk9-rbc-LEGEND.html#r-3a3arbc3a3alegendqzlegend20options"><span class="std std-ref">Legend options</span></a>.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3alegend20deactivate"><span class="std std-ref">deactivate</span></a></dt><dd><p>Marks matching legend entries inactive. Each pattern is matched against element names. Inactive entries are drawn using the normal legend appearance.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3alegend20deactivate"><span class="std std-ref">deactivate</span></a></dt><dd><p>Marks matching legend entries inactive. Each pattern is matched against element names. Inactive entries are drawn using the normal legend appearance. A pattern that matches no element has no effect.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3alegend20get"><span class="std std-ref">get</span></a></dt><dd><p>Returns the element name represented by the legend entry at <code class="docutils literal notranslate"><span class="pre">position</span></code>. <code class="docutils literal notranslate"><span class="pre">position</span></code> may be <code class="docutils literal notranslate"><span class="pre">current</span></code>, meaning the legend entry currently under the pointer, or an explicit screen coordinate of the form <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code>. If no legend entry is present at the requested position, an empty string is returned. Name of the corresponding graph element, or an empty string if no entry is found.</p>
 </dd>
@@ -1153,8 +1153,9 @@ ensemble.</p>
 </section>
 <section id="legend-activate">
 <span id="r-3a3arbc3a3alegend20activate"></span><span id="index-127"></span><span id="index-126"></span><h3><code class="docutils literal notranslate"><span class="pre">LEGEND</span> <span class="pre">activate</span></code><a class="headerlink" href="#legend-activate" title="Link to this heading">¶</a></h3>
-<p>Marks matching legend entries active. Each pattern is matched against element names. Active entries are drawn
-using the legend’s active background, foreground, border width, and relief.</p>
+<p>Marks matching legend entries active. Each pattern is matched against element names. After applying all
+patterns, the command returns the names of all legend entries that are currently active. A pattern that
+matches no element has no effect.</p>
 <pre class="literal-block"><strong>LEGEND activate</strong> <em>pattern ?pattern ...?</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -1163,7 +1164,7 @@ using the legend’s active background, foreground, border width, and relief.</p
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Nothing.</p>
+<p>List of all currently active legend entries.</p>
 </section>
 <section id="legend-bind">
 <span id="r-3a3arbc3a3alegend20bind"></span><span id="index-129"></span><span id="index-128"></span><h3><code class="docutils literal notranslate"><span class="pre">LEGEND</span> <span class="pre">bind</span></code><a class="headerlink" href="#legend-bind" title="Link to this heading">¶</a></h3>
@@ -1223,7 +1224,7 @@ See <a class="reference internal" href="rbc-tk9-rbc-LEGEND.html#r-3a3arbc3a3aleg
 <section id="legend-deactivate">
 <span id="r-3a3arbc3a3alegend20deactivate"></span><span id="index-135"></span><span id="index-134"></span><h3><code class="docutils literal notranslate"><span class="pre">LEGEND</span> <span class="pre">deactivate</span></code><a class="headerlink" href="#legend-deactivate" title="Link to this heading">¶</a></h3>
 <p>Marks matching legend entries inactive. Each pattern is matched against element names. Inactive entries are
-drawn using the normal legend appearance.</p>
+drawn using the normal legend appearance. A pattern that matches no element has no effect.</p>
 <pre class="literal-block"><strong>LEGEND deactivate</strong> <em>pattern ?pattern ...?</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -1407,21 +1408,21 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3amarker20before"><span class="std std-ref">before</span></a></dt><dd><p>Changes the position of a marker in the marker display list. If <code class="docutils literal notranslate"><span class="pre">beforeMarker</span></code> is specified, <code class="docutils literal notranslate"><span class="pre">markerName</span></code> is moved immediately before it. If it is omitted, <code class="docutils literal notranslate"><span class="pre">markerName</span></code> is moved to the beginning of the marker display list.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3amarker20bind"><span class="std std-ref">bind</span></a></dt><dd><p>Queries or changes event bindings associated with a marker binding tag. With only <code class="docutils literal notranslate"><span class="pre">tagName</span></code>, returns the sequences for which bindings exist. With <code class="docutils literal notranslate"><span class="pre">sequence</span></code>, returns the binding for that sequence. With <code class="docutils literal notranslate"><span class="pre">command</span></code>, creates or replaces the binding.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3amarker20bind"><span class="std std-ref">bind</span></a></dt><dd><p>Queries or changes marker bindings. With no arguments, returns the known marker binding tags. With only a tag name, returns the event sequences bound to that tag. With a tag and sequence, returns the binding for that sequence. With a command as well, creates or replaces the binding; a command beginning with <code class="docutils literal notranslate"><span class="pre">+</span></code> appends to the existing binding.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3amarker20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Returns the current value of one configuration option of a marker. The available options depend on the concrete marker type. See <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-3a3arbc3a3amarkerqzmarker20types20and20options"><span class="std std-ref">Marker types and options</span></a>. Current value of the requested option.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3amarker20configure"><span class="std std-ref">configure</span></a></dt><dd><p>Queries or modifies marker configuration options. With no additional arguments, returns all configuration information. With one option, returns information for that option. Otherwise <code class="docutils literal notranslate"><span class="pre">args</span></code> contains option/value pairs to change. See <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-3a3arbc3a3amarkerqzmarker20types20and20options"><span class="std std-ref">Marker types and options</span></a>.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3amarker20configure"><span class="std std-ref">configure</span></a></dt><dd><p>Queries or modifies marker configuration options. One or more marker names may be supplied before the first option. With no option, returns all configuration information for the first marker. With one option, returns information for that option for the first marker. With option/value pairs, applies the same changes to every listed marker. See <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-3a3arbc3a3amarkerqzmarker20types20and20options"><span class="std std-ref">Marker types and options</span></a>.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3amarker20create"><span class="std std-ref">create</span></a></dt><dd><p>Creates a new marker of the specified type. <code class="docutils literal notranslate"><span class="pre">type</span></code> may be <code class="docutils literal notranslate"><span class="pre">bitmap</span></code>, <code class="docutils literal notranslate"><span class="pre">image</span></code>, <code class="docutils literal notranslate"><span class="pre">line</span></code>, <code class="docutils literal notranslate"><span class="pre">polygon</span></code>, <code class="docutils literal notranslate"><span class="pre">text</span></code>, or <code class="docutils literal notranslate"><span class="pre">window</span></code>. Use <code class="docutils literal notranslate"><span class="pre">-name</span></code> to specify an explicit marker name; otherwise Rbc generates one automatically. See <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-3a3arbc3a3amarkerqzmarker20types20and20options"><span class="std std-ref">Marker types and options</span></a>.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3amarker20create"><span class="std std-ref">create</span></a></dt><dd><p>Creates a new marker of the specified type. <code class="docutils literal notranslate"><span class="pre">type</span></code> may be <code class="docutils literal notranslate"><span class="pre">bitmap</span></code>, <code class="docutils literal notranslate"><span class="pre">image</span></code>, <code class="docutils literal notranslate"><span class="pre">line</span></code>, <code class="docutils literal notranslate"><span class="pre">polygon</span></code>, <code class="docutils literal notranslate"><span class="pre">text</span></code>, or <code class="docutils literal notranslate"><span class="pre">window</span></code>. Use <code class="docutils literal notranslate"><span class="pre">-name</span></code> to specify an explicit marker name; otherwise Rbc generates one automatically. Creating a marker with the same name as an existing marker replaces the existing marker. See <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-3a3arbc3a3amarkerqzmarker20types20and20options"><span class="std std-ref">Marker types and options</span></a>.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3amarker20delete"><span class="std std-ref">delete</span></a></dt><dd><p>Deletes one or more markers. Supplying no marker names has no effect.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3amarker20exists"><span class="std std-ref">exists</span></a></dt><dd><p>Reports whether a marker with the specified name exists.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3amarker20find"><span class="std std-ref">find</span></a></dt><dd><p>Finds markers relative to a rectangular screen region. <code class="docutils literal notranslate"><span class="pre">mode</span></code> may be <code class="docutils literal notranslate"><span class="pre">enclosed</span></code>, which selects markers completely contained by the region, or <code class="docutils literal notranslate"><span class="pre">overlapping</span></code>, which selects markers that intersect it.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3amarker20find"><span class="std std-ref">find</span></a></dt><dd><p>Finds the first displayed marker relative to a rectangular screen region. <code class="docutils literal notranslate"><span class="pre">mode</span></code> may be <code class="docutils literal notranslate"><span class="pre">enclosed</span></code>, which requires the marker to be contained by the region, or <code class="docutils literal notranslate"><span class="pre">overlapping</span></code>, which requires it to intersect the region. Hidden markers and markers associated with hidden elements are ignored.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3amarker20get"><span class="std std-ref">get</span></a></dt><dd><p>Returns markers selected by a marker name or marker binding tag. List of matching marker names.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3amarker20get"><span class="std std-ref">get</span></a></dt><dd><p>Returns the marker currently selected by the graph’s binding machinery. The supported selector is <code class="docutils literal notranslate"><span class="pre">current</span></code>. If there is no current marker, an empty string is returned. Name of the current marker, or an empty string.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3amarker20names"><span class="std std-ref">names</span></a></dt><dd><p>Returns marker names. If patterns are supplied, only marker names matching at least one glob pattern are returned. List of marker names.</p>
 </dd>
@@ -1467,24 +1468,25 @@ list.</p>
 </section>
 <section id="marker-bind">
 <span id="r-3a3arbc3a3amarker20bind"></span><span id="index-161"></span><span id="index-160"></span><h3><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">bind</span></code><a class="headerlink" href="#marker-bind" title="Link to this heading">¶</a></h3>
-<p>Queries or changes event bindings associated with a marker binding tag. With only <code class="docutils literal notranslate"><span class="pre">tagName</span></code>, returns the
-sequences for which bindings exist. With <code class="docutils literal notranslate"><span class="pre">sequence</span></code>, returns the binding for that sequence. With <code class="docutils literal notranslate"><span class="pre">command</span></code>,
-creates or replaces the binding.</p>
-<pre class="literal-block"><strong>MARKER bind</strong> <em>tagName ?sequence? ?command?</em></pre>
+<p>Queries or changes marker bindings. With no arguments, returns the known marker binding tags. With only a
+tag name, returns the event sequences bound to that tag. With a tag and sequence, returns the binding for
+that sequence. With a command as well, creates or replaces the binding; a command beginning with <code class="docutils literal notranslate"><span class="pre">+</span></code> appends
+to the existing binding.</p>
+<pre class="literal-block"><strong>MARKER bind</strong> <em>?tagName? ?sequence? ?command?</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">command</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional Tcl command to invoke for the binding.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">sequence</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional event sequence.</p>
+</dd>
 <dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">tagName</span></code><span class="colon">:</span></dt>
-<dd class="field-odd"><p>Marker binding tag.</p>
-</dd>
-<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">command</span></code><span class="colon">:</span></dt>
-<dd class="field-even"><p>Optional Tcl command to invoke for the binding.</p>
-</dd>
-<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">sequence</span></code><span class="colon">:</span></dt>
-<dd class="field-odd"><p>Optional event sequence.</p>
+<dd class="field-odd"><p>Optional marker binding tag.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Binding information when querying, otherwise nothing.</p>
+<p>Binding tags or binding information when querying, otherwise nothing.</p>
 </section>
 <section id="marker-cget">
 <span id="r-3a3arbc3a3amarker20cget"></span><span id="index-163"></span><span id="index-162"></span><h3><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">cget</span></code><a class="headerlink" href="#marker-cget" title="Link to this heading">¶</a></h3>
@@ -1508,14 +1510,15 @@ Current value of the requested option.</p>
 </section>
 <section id="marker-configure">
 <span id="r-3a3arbc3a3amarker20configure"></span><span id="index-165"></span><span id="index-164"></span><h3><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">configure</span></code><a class="headerlink" href="#marker-configure" title="Link to this heading">¶</a></h3>
-<p>Queries or modifies marker configuration options. With no additional arguments, returns all configuration
-information. With one option, returns information for that option. Otherwise <code class="docutils literal notranslate"><span class="pre">args</span></code> contains option/value
-pairs to change. See <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-3a3arbc3a3amarkerqzmarker20types20and20options"><span class="std std-ref">Marker types and options</span></a>.</p>
-<pre class="literal-block"><strong>MARKER configure</strong> <em>markerName ?option? ?value ...?</em></pre>
+<p>Queries or modifies marker configuration options. One or more marker names may be supplied before the first
+option. With no option, returns all configuration information for the first marker. With one option, returns
+information for that option for the first marker. With option/value pairs, applies the same changes to every
+listed marker. See <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-3a3arbc3a3amarkerqzmarker20types20and20options"><span class="std std-ref">Marker types and options</span></a>.</p>
+<pre class="literal-block"><strong>MARKER configure</strong> <em>markerName ?markerName ...? ?option value ...?</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
 <dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">markerName</span></code><span class="colon">:</span></dt>
-<dd class="field-odd"><p>Name of the marker.</p>
+<dd class="field-odd"><p>Name of a marker to query or configure.</p>
 </dd>
 <dt class="field-even"><code class="docutils literal notranslate"><span class="pre">option</span></code><span class="colon">:</span></dt>
 <dd class="field-even"><p>Marker configuration option.</p>
@@ -1530,7 +1533,8 @@ pairs to change. See <a class="reference internal" href="rbc-tk9-rbc-MARKER.html
 <section id="marker-create">
 <span id="r-3a3arbc3a3amarker20create"></span><span id="index-167"></span><span id="index-166"></span><h3><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">create</span></code><a class="headerlink" href="#marker-create" title="Link to this heading">¶</a></h3>
 <p>Creates a new marker of the specified type. <code class="docutils literal notranslate"><span class="pre">type</span></code> may be <code class="docutils literal notranslate"><span class="pre">bitmap</span></code>, <code class="docutils literal notranslate"><span class="pre">image</span></code>, <code class="docutils literal notranslate"><span class="pre">line</span></code>, <code class="docutils literal notranslate"><span class="pre">polygon</span></code>, <code class="docutils literal notranslate"><span class="pre">text</span></code>, or
-<code class="docutils literal notranslate"><span class="pre">window</span></code>. Use <code class="docutils literal notranslate"><span class="pre">-name</span></code> to specify an explicit marker name; otherwise Rbc generates one automatically. See
+<code class="docutils literal notranslate"><span class="pre">window</span></code>. Use <code class="docutils literal notranslate"><span class="pre">-name</span></code> to specify an explicit marker name; otherwise Rbc generates one automatically. Creating
+a marker with the same name as an existing marker replaces the existing marker. See
 <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-3a3arbc3a3amarkerqzmarker20types20and20options"><span class="std std-ref">Marker types and options</span></a>.</p>
 <pre class="literal-block"><strong>MARKER create</strong> <em>type ?option value ...?</em></pre>
 <p class="rubric">Parameters</p>
@@ -1576,8 +1580,9 @@ pairs to change. See <a class="reference internal" href="rbc-tk9-rbc-MARKER.html
 </section>
 <section id="marker-find">
 <span id="r-3a3arbc3a3amarker20find"></span><span id="index-173"></span><span id="index-172"></span><h3><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">find</span></code><a class="headerlink" href="#marker-find" title="Link to this heading">¶</a></h3>
-<p>Finds markers relative to a rectangular screen region. <code class="docutils literal notranslate"><span class="pre">mode</span></code> may be <code class="docutils literal notranslate"><span class="pre">enclosed</span></code>, which selects markers
-completely contained by the region, or <code class="docutils literal notranslate"><span class="pre">overlapping</span></code>, which selects markers that intersect it.</p>
+<p>Finds the first displayed marker relative to a rectangular screen region. <code class="docutils literal notranslate"><span class="pre">mode</span></code> may be <code class="docutils literal notranslate"><span class="pre">enclosed</span></code>, which
+requires the marker to be contained by the region, or <code class="docutils literal notranslate"><span class="pre">overlapping</span></code>, which requires it to intersect the
+region. Hidden markers and markers associated with hidden elements are ignored.</p>
 <pre class="literal-block"><strong>MARKER find</strong> <em>enclosed|overlapping x1 y1 x2 y2</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -1598,22 +1603,24 @@ completely contained by the region, or <code class="docutils literal notranslate
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>List of matching marker names.</p>
+<p>Name of the first matching marker, or an empty string if none matches.</p>
 </section>
 <section id="marker-get">
 <span id="r-3a3arbc3a3amarker20get"></span><span id="index-175"></span><span id="index-174"></span><h3><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">get</span></code><a class="headerlink" href="#marker-get" title="Link to this heading">¶</a></h3>
-<p>Returns markers selected by a marker name or marker binding tag.
-List of matching marker names.</p>
-<pre class="literal-block"><strong>MARKER get</strong> <em>name</em></pre>
+<p>Returns the marker currently selected by the graph’s binding machinery. The supported selector is <code class="docutils literal notranslate"><span class="pre">current</span></code>.
+If there is no current marker, an empty string is returned.
+Name of the current marker, or an empty string.</p>
+<pre class="literal-block"><strong>MARKER get</strong> <em>current</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
 <dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">name</span></code><span class="colon">:</span></dt>
-<dd class="field-odd"><p>Marker name or marker binding tag.</p>
+<dd class="field-odd"><p>Marker selector; currently <code class="docutils literal notranslate"><span class="pre">current</span></code>.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Returns markers selected by a marker name or marker binding tag.
-List of matching marker names.</p>
+<p>Returns the marker currently selected by the graph’s binding machinery. The supported selector is <code class="docutils literal notranslate"><span class="pre">current</span></code>.
+If there is no current marker, an empty string is returned.
+Name of the current marker, or an empty string.</p>
 </section>
 <section id="marker-names">
 <span id="r-3a3arbc3a3amarker20names"></span><span id="index-177"></span><span id="index-176"></span><h3><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">names</span></code><a class="headerlink" href="#marker-names" title="Link to this heading">¶</a></h3>
@@ -1658,7 +1665,7 @@ ensemble.</p>
 <dl class="simple">
 <dt><a class="reference internal" href="#r-3a3arbc3a3apen20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Returns the current value of a pen configuration option. Available options depend on whether the named pen is a line or bar pen. See <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzline20pen20options"><span class="std std-ref">line pen options</span></a> and <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzbar20pen20options"><span class="std std-ref">bar pen options</span></a>. Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3apen20configure"><span class="std std-ref">configure</span></a></dt><dd><p>Queries or modifies pen configuration. When querying, one pen name is used. When setting options, multiple pen names may precede the option/value pairs and the same configuration is applied to each named pen. All pens being configured must support the supplied options.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3apen20configure"><span class="std std-ref">configure</span></a></dt><dd><p>Queries or modifies pen configuration options. One or more pen names may be supplied before the first option. With no option, returns all configuration information for the first pen. With one option, returns information for that option for the first pen. With option/value pairs, applies the same changes to every listed pen. See <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzline20pen20options"><span class="std std-ref">line pen options</span></a> and <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzbar20pen20options"><span class="std std-ref">bar pen options</span></a>.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3apen20create"><span class="std std-ref">create</span></a></dt><dd><p>Creates a new named pen. <code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">line</span></code> creates a line pen, <code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">bar</span></code> creates a bar pen, and <code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">strip</span></code> creates a line pen suitable for strip elements. If <code class="docutils literal notranslate"><span class="pre">-type</span></code> is omitted, the graph widget’s default element type determines the pen type. See <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzline20pen20options"><span class="std std-ref">line pen options</span></a> and <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzbar20pen20options"><span class="std std-ref">bar pen options</span></a>.</p>
 </dd>
@@ -1693,29 +1700,25 @@ Current value of <code class="docutils literal notranslate"><span class="pre">op
 </section>
 <section id="pen-configure">
 <span id="r-3a3arbc3a3apen20configure"></span><span id="index-185"></span><span id="index-184"></span><h3><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">configure</span></code><a class="headerlink" href="#pen-configure" title="Link to this heading">¶</a></h3>
-<p>Queries or modifies pen configuration. When querying, one pen name is used. When setting options, multiple
-pen names may precede the option/value pairs and the same configuration is applied to each named pen. All
-pens being configured must support the supplied options.</p>
-<pre class="literal-block"><strong>PEN configure</strong> <em>penName</em>
-<strong>PEN configure</strong> <em>penName option</em>
-<strong>PEN configure</strong> <em>penName ?penName ...? ?option value ...?</em></pre>
+<p>Queries or modifies pen configuration options. One or more pen names may be supplied before the first option.
+With no option, returns all configuration information for the first pen. With one option, returns information
+for that option for the first pen. With option/value pairs, applies the same changes to every listed pen. See
+<a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzline20pen20options"><span class="std std-ref">line pen options</span></a> and <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzbar20pen20options"><span class="std std-ref">bar pen options</span></a>.</p>
+<pre class="literal-block"><strong>PEN configure</strong> <em>penName ?penName ...? ?option value ...?</em></pre>
 <p class="rubric">Parameters</p>
-<p class="rubric">Description</p>
-<p>See <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzline20pen20options"><span class="std std-ref">line pen options</span></a> and <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzbar20pen20options"><span class="std std-ref">bar pen options</span></a> for the complete option
-references.</p>
 <dl class="field-list simple">
-<dt class="field-odd">penName<span class="colon">:</span></dt>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">penName</span></code><span class="colon">:</span></dt>
 <dd class="field-odd"><p>Name of a pen to query or configure.</p>
 </dd>
-<dt class="field-even">option<span class="colon">:</span></dt>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">option</span></code><span class="colon">:</span></dt>
 <dd class="field-even"><p>Pen configuration option.</p>
 </dd>
-<dt class="field-odd">value<span class="colon">:</span></dt>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">value</span></code><span class="colon">:</span></dt>
 <dd class="field-odd"><p>New value for the option.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Configuration information when querying; nothing when setting options.</p>
+<p>Configuration information when querying, otherwise nothing.</p>
 </section>
 <section id="pen-create">
 <span id="r-3a3arbc3a3apen20create"></span><span id="index-187"></span><span id="index-186"></span><h3><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">create</span></code><a class="headerlink" href="#pen-create" title="Link to this heading">¶</a></h3>
@@ -1995,7 +1998,7 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20populate"><span class="std std-ref">populate</span></a></dt><dd><p>Creates a more densely sampled vector using linear interpolation.  <code class="docutils literal notranslate"><span class="pre">density</span></code> intermediate values are inserted between every adjacent pair of source values. <code class="docutils literal notranslate"><span class="pre">density</span></code> must be at least 1. The destination may be the same vector as the source.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20random"><span class="std std-ref">random</span></a></dt><dd><p>Fills the vector with pseudo-random values in the range # <code class="docutils literal notranslate"><span class="pre">[0.0,</span> <span class="pre">1.0)</span></code>. The current vector length is preserved. Each existing component is replaced by a newly generated pseudo-random value. An empty vector remains empty.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20random"><span class="std std-ref">random</span></a></dt><dd><p>Fills the vector with pseudo-random values in the range <code class="docutils literal notranslate"><span class="pre">[0.0,</span> <span class="pre">1.0)</span></code>. The current vector length is preserved. Each existing component is replaced by a newly generated pseudo-random value. An empty vector remains empty.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20range"><span class="std std-ref">range</span></a></dt><dd><p>Returns an inclusive range of vector values. If <code class="docutils literal notranslate"><span class="pre">first</span></code> is less than or equal to <code class="docutils literal notranslate"><span class="pre">last</span></code>, values are returned in ascending index order. If <code class="docutils literal notranslate"><span class="pre">first</span></code> is greater than <code class="docutils literal notranslate"><span class="pre">last</span></code>, values are returned in descending index order. <code class="docutils literal notranslate"><span class="pre">first</span></code> and <code class="docutils literal notranslate"><span class="pre">last</span></code> are normal vector indices and may use forms such as <code class="docutils literal notranslate"><span class="pre">end</span></code>. This operation does not modify the vector. A list containing the selected vector values.</p>
 </dd>
@@ -2027,7 +2030,7 @@ number of selected values.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>A list containing the resulting values. The vector itself # is not modified.</p>
+<p>A list containing the resulting values. The vector itself is not modified.</p>
 </section>
 <section id="r-3a3arbc3a3avecinst202b">
 <span id="index-215"></span><span id="index-214"></span><span id="id2"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">+</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202b" title="Link to this heading">¶</a></h3>
@@ -2040,7 +2043,7 @@ number of selected values.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>A list containing the resulting values. The vector itself # is not modified.</p>
+<p>A list containing the resulting values. The vector itself is not modified.</p>
 </section>
 <section id="r-3a3arbc3a3avecinst202d">
 <span id="index-217"></span><span id="index-216"></span><span id="id3"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">-</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202d" title="Link to this heading">¶</a></h3>
@@ -2053,7 +2056,7 @@ number of selected values.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>A list containing the resulting values. The vector itself # is not modified.</p>
+<p>A list containing the resulting values. The vector itself is not modified.</p>
 </section>
 <section id="r-3a3arbc3a3avecinst202f">
 <span id="index-219"></span><span id="index-218"></span><span id="id4"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">/</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202f" title="Link to this heading">¶</a></h3>
@@ -2066,7 +2069,7 @@ number of selected values.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>A list containing the resulting values. The vector itself # is not modified.</p>
+<p>A list containing the resulting values. The vector itself is not modified.</p>
 </section>
 <section id="vecinst-append">
 <span id="r-3a3arbc3a3avecinst20append"></span><span id="index-221"></span><span id="index-220"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">append</span></code><a class="headerlink" href="#vecinst-append" title="Link to this heading">¶</a></h3>
@@ -2088,10 +2091,10 @@ number of selected values.</p>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
 <dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-at</span> <span class="pre">index</span></code><span class="colon">:</span></dt>
-<dd class="field-odd"><p>Starts storing values at <code class="docutils literal notranslate"><span class="pre">index</span></code>. Existing values are # overwritten from that position. Without <code class="docutils literal notranslate"><span class="pre">-at</span></code>, values # are appended to the vector.</p>
+<dd class="field-odd"><p>Starts storing values at <code class="docutils literal notranslate"><span class="pre">index</span></code>. Existing values are overwritten from that position. Without <code class="docutils literal notranslate"><span class="pre">-at</span></code>, values are appended to the vector.</p>
 </dd>
 <dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-format</span> <span class="pre">format</span></code><span class="colon">:</span></dt>
-<dd class="field-even"><p>Native numeric input representation. Formats have the form <code class="docutils literal notranslate"><span class="pre">i#</span></code>, <code class="docutils literal notranslate"><span class="pre">u#</span></code>, <code class="docutils literal notranslate"><span class="pre">r#</span></code>, or <code class="docutils literal notranslate"><span class="pre">f#</span></code>, where <code class="docutils literal notranslate"><span class="pre">#</span></code> is # the native type size in bytes. The default is the # native C <code class="docutils literal notranslate"><span class="pre">double</span></code> representation.</p>
+<dd class="field-even"><p>Native numeric input representation. Formats have the form <code class="docutils literal notranslate"><span class="pre">i#</span></code>, <code class="docutils literal notranslate"><span class="pre">u#</span></code>, <code class="docutils literal notranslate"><span class="pre">r#</span></code>, or <code class="docutils literal notranslate"><span class="pre">f#</span></code>, where <code class="docutils literal notranslate"><span class="pre">#</span></code> is the native type size in bytes. The default is the native C <code class="docutils literal notranslate"><span class="pre">double</span></code> representation.</p>
 </dd>
 <dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-swap</span></code><span class="colon">:</span></dt>
 <dd class="field-odd"><p>Reverses the byte order of each input value.</p>
@@ -2223,7 +2226,7 @@ vector is created or resized and the normalized values are stored there.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Normalized list when no destination is specified; otherwise # nothing.</p>
+<p>Normalized list when no destination is specified; otherwise nothing.</p>
 </section>
 <section id="vecinst-offset">
 <span id="r-3a3arbc3a3avecinst20offset"></span><span id="index-241"></span><span id="index-240"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">offset</span></code><a class="headerlink" href="#vecinst-offset" title="Link to this heading">¶</a></h3>
@@ -2259,7 +2262,7 @@ be the same vector as the source.</p>
 </section>
 <section id="vecinst-random">
 <span id="r-3a3arbc3a3avecinst20random"></span><span id="index-245"></span><span id="index-244"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">random</span></code><a class="headerlink" href="#vecinst-random" title="Link to this heading">¶</a></h3>
-<p>Fills the vector with pseudo-random values in the range # <code class="docutils literal notranslate"><span class="pre">[0.0,</span> <span class="pre">1.0)</span></code>. The current vector length is
+<p>Fills the vector with pseudo-random values in the range <code class="docutils literal notranslate"><span class="pre">[0.0,</span> <span class="pre">1.0)</span></code>. The current vector length is
 preserved. Each existing component is replaced by a newly generated pseudo-random value. An empty vector
 remains empty.</p>
 <pre class="literal-block"><strong>VECINST random</strong></pre>
@@ -2428,7 +2431,7 @@ removes the current mapping.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Name of the currently mapped variable, or an empty result # if no variable is mapped.</p>
+<p>Name of the currently mapped variable, or an empty result if no variable is mapped.</p>
 </section>
 <section id="vector">
 <span id="r-3a3arbc3a3avector"></span><span id="index-261"></span><span id="index-260"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span></code><a class="headerlink" href="#vector" title="Link to this heading">¶</a></h3>
@@ -2443,7 +2446,7 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3avector20destroy"><span class="std std-ref">destroy</span></a></dt><dd><p>Destroys one or more vectors. Destroying a vector removes its associated vector instance command and Tcl array variable and notifies clients that use the vector.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3avector20expr"><span class="std std-ref">expr</span></a></dt><dd><p>Evaluates a vector expression. <code class="docutils literal notranslate"><span class="pre">expression</span></code> may contain scalars, vectors, vector ranges, arithmetic operators, and the vector mathematical functions described in <a class="reference internal" href="rbc-tk9-rbc-VECINST.html#r-3a3arbc3a3avecinstqzvector20expressions"><span class="std std-ref">Vector expressions</span></a>. Unlike the instance [::rbc::VECINST::expr] operation, this command does not store the result in an existing vector.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avector20expr"><span class="std std-ref">expr</span></a></dt><dd><p>Evaluates a vector expression. <code class="docutils literal notranslate"><span class="pre">expression</span></code> may contain scalars, vectors, vector ranges, arithmetic operators, and the vector mathematical functions described in <a class="reference internal" href="rbc-tk9-rbc-VECINST.html#r-3a3arbc3a3avecinstqzvector20expressions"><span class="std std-ref">Vector expressions</span></a>. Unlike the instance [VECINST::expr] operation, this command does not store the result in an existing vector.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3avector20names"><span class="std std-ref">names</span></a></dt><dd><p>Returns the names of existing vectors. If <code class="docutils literal notranslate"><span class="pre">pattern</span></code> is supplied, only vector names matching the Tcl glob pattern are returned. A list of vector names.</p>
 </dd>
@@ -2469,7 +2472,7 @@ ensemble.</p>
 <dd class="field-even"><p>Sets the Tcl array variable associated with the vector. This option can only be used when creating one vector.</p>
 </dd>
 <dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-watchunset</span> <span class="pre">boolean</span></code><span class="colon">:</span></dt>
-<dd class="field-odd"><p>If true, unsetting the complete associated # array variable destroys the vector.</p>
+<dd class="field-odd"><p>If true, unsetting the complete associated array variable destroys the vector.</p>
 </dd>
 <dt class="field-even"><code class="docutils literal notranslate"><span class="pre">vecName</span></code><span class="colon">:</span></dt>
 <dd class="field-even"><p>Vector name or vector specification. A specification may have the form <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">name(size)</span></code>, or <code class="docutils literal notranslate"><span class="pre">name(first:last)</span></code>.</p>
@@ -2504,7 +2507,7 @@ array variable and notifies clients that use the vector.</p>
 <span id="r-3a3arbc3a3avector20expr"></span><span id="index-267"></span><span id="index-266"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">expr</span></code><a class="headerlink" href="#vector-expr" title="Link to this heading">¶</a></h3>
 <p>Evaluates a vector expression. <code class="docutils literal notranslate"><span class="pre">expression</span></code> may contain scalars, vectors, vector ranges, arithmetic
 operators, and the vector mathematical functions described in <a class="reference internal" href="rbc-tk9-rbc-VECINST.html#r-3a3arbc3a3avecinstqzvector20expressions"><span class="std std-ref">Vector expressions</span></a>. Unlike the instance
-[::rbc::VECINST::expr] operation, this command does not store the result in an existing vector.</p>
+[VECINST::expr] operation, this command does not store the result in an existing vector.</p>
 <pre class="literal-block"><strong>vector expr</strong> <em>expression</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">

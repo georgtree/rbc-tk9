@@ -90,10 +90,17 @@ Letter paper:</p>
 height = 11 inches
 </pre></div>
 </div>
-<p>The default horizontal and vertical page padding is one inch:</p>
+<p><code class="docutils literal notranslate"><span class="pre">-padx</span></code> and <code class="docutils literal notranslate"><span class="pre">-pady</span></code> specify padding between the graph and the paper boundaries. Each value may contain either
+one or two Tk screen distances.</p>
+<p>A single value applies equally to both sides:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>postscript<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>padx<span class="w"> </span><span class="mi">1</span>i<span class="w"> </span><span class="o">-</span>pady<span class="w"> </span><span class="mi">1</span>i
 </pre></div>
 </div>
+<p>Two values specify the two sides independently:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>postscript<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>padx<span class="w"> </span><span class="k">{</span><span class="nv">0.5i</span><span class="w"> </span><span class="mi">1</span>i<span class="k">}</span><span class="w"> </span><span class="o">-</span>pady<span class="w"> </span><span class="k">{</span><span class="nv">0.75i</span><span class="w"> </span><span class="mf">1.25</span>i<span class="k">}</span>
+</pre></div>
+</div>
+<p>The default horizontal and vertical padding is one inch on each side.</p>
 <p>If the graph together with its padding is larger than the available paper area, it is reduced while preserving
 its aspect ratio.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-maxpect</span> <span class="pre">yes</span></code> additionally scales the graph to make maximum use of the available paper area while preserving
@@ -140,6 +147,10 @@ its aspect ratio, even when the graph would already fit without scaling.</p>
 </tr>
 </tbody>
 </table>
+<p>Non-empty prefixes of these names are also accepted:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>postscript<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>colormode<span class="w"> </span>mono
+</pre></div>
+</div>
 <p>For example:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>postscript<span class="w"> </span>output<span class="w"> </span>graph.eps<span class="w"> </span><span class="o">-</span>colormode<span class="w"> </span>grayscale
 </pre></div>
@@ -148,15 +159,11 @@ its aspect ratio, even when the graph would already fit without scaling.</p>
 <section id="color-maps">
 <span id="r-rbc-postscript-color-maps"></span><span id="r-3a3arbc3a3apostscriptqzcolor20maps"></span><h2>Color maps<a class="headerlink" href="#color-maps" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">-colormap</span></code> may name a Tcl array containing custom PostScript translations for Tk colors.</p>
-<p>Array elements are indexed by Tk color names. The value is PostScript code used instead of the automatically
-generated color conversion.</p>
-<p>For example:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>psColors<span class="k">(</span><span class="nv">red</span><span class="k">)</span><span class="w">   </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span>SetFgColor<span class="k">}</span>
-<span class="k">set</span><span class="w"> </span>psColors<span class="k">(</span><span class="nv">white</span><span class="k">)</span><span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span>SetBgColor<span class="k">}</span>
-<span class="nv">.g</span><span class="w"> </span>postscript<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>colormap<span class="w"> </span>psColors
-</pre></div>
-</div>
-<p>Colors without an entry in the array use the normal automatic conversion.</p>
+<p>Array elements are indexed by Tk color names. If an entry exists, its value is inserted verbatim into the
+PostScript output in place of Rbc’s normal color conversion. Colors without an entry use the normal automatic
+conversion.</p>
+<p>Because the same color map is consulted for both foreground and background colors, each custom translation
+should contain complete PostScript code suitable for every context in which that Tk color is used.</p>
 <p>An empty <code class="docutils literal notranslate"><span class="pre">-colormap</span></code> value disables the custom color map.</p>
 </section>
 <section id="font-maps">
@@ -226,8 +233,11 @@ filename, and creator host information.</p>
 </tr>
 </tbody>
 </table>
-<p>Windows WMF and TIFF previews are used when writing the EPS output to a file. They produce the corresponding
-binary EPS preview representation rather than an inline EPSI preview.</p>
+<p>Non-empty prefixes of the available format names are also accepted.</p>
+<p><code class="docutils literal notranslate"><span class="pre">epsi</span></code> embeds a grayscale EPSI preview directly in the PostScript data and therefore works both when the
+PostScript is returned and when it is written to a file.</p>
+<p>On Windows, <code class="docutils literal notranslate"><span class="pre">wmf</span></code> and, when available, <code class="docutils literal notranslate"><span class="pre">tiff</span></code> previews are produced only when <code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span> <span class="pre">output</span></code> writes to a
+file. They generate the corresponding binary EPS preview representation rather than an inline EPSI preview.</p>
 <p>Preview generation is disabled by default.</p>
 </section>
 <section id="postscript-options">
@@ -250,7 +260,7 @@ binary EPS preview representation rather than an inline EPSI preview.</p>
 <td><p>Specifies the name of a Tcl array containing custom PostScript color translations. An empty value disables custom mappings. The default is empty.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-colormode</span> <span class="pre">mode</span></code></p></td>
-<td><p>Specifies the output color mode. Accepted modes are <code class="docutils literal notranslate"><span class="pre">color</span></code>, <code class="docutils literal notranslate"><span class="pre">grayscale</span></code>, <code class="docutils literal notranslate"><span class="pre">greyscale</span></code>, and <code class="docutils literal notranslate"><span class="pre">monochrome</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">color</span></code>.</p></td>
+<td><p>Specifies the output color mode. Accepted modes are <code class="docutils literal notranslate"><span class="pre">color</span></code>, <code class="docutils literal notranslate"><span class="pre">grayscale</span></code>, <code class="docutils literal notranslate"><span class="pre">greyscale</span></code>, and <code class="docutils literal notranslate"><span class="pre">monochrome</span></code>; non-empty prefixes are also accepted. The default is <code class="docutils literal notranslate"><span class="pre">color</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-decorations</span> <span class="pre">boolean</span></code></p></td>
 <td><p>Specifies whether graph backgrounds and decorative borders are reproduced. The default is <code class="docutils literal notranslate"><span class="pre">yes</span></code>.</p></td>
@@ -262,7 +272,7 @@ binary EPS preview representation rather than an inline EPSI preview.</p>
 <td><p>Specifies whether identifying footer information is added to the PostScript output. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-height</span> <span class="pre">distance</span></code></p></td>
-<td><p>Specifies the requested output graph height. <code class="docutils literal notranslate"><span class="pre">0</span></code> uses the graph’s current height. The value must be non-negative. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
+<td><p>Specifies the requested output graph height as a non-negative screen distance. <code class="docutils literal notranslate"><span class="pre">0</span></code> uses the graph’s current height. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-landscape</span> <span class="pre">boolean</span></code></p></td>
 <td><p>Specifies landscape rather than portrait orientation. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
@@ -271,16 +281,16 @@ binary EPS preview representation rather than an inline EPSI preview.</p>
 <td><p>Specifies whether the graph is scaled to make maximum use of the available paper area while preserving its aspect ratio. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-padx</span> <span class="pre">padding</span></code></p></td>
-<td><p>Specifies horizontal padding between the graph and paper boundaries. The default is <code class="docutils literal notranslate"><span class="pre">1.0i</span></code>.</p></td>
+<td><p>Specifies horizontal padding between the graph and paper boundaries. The value may contain one or two non-negative screen distances. The default is <code class="docutils literal notranslate"><span class="pre">1.0i</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-pady</span> <span class="pre">padding</span></code></p></td>
-<td><p>Specifies vertical padding between the graph and paper boundaries. The default is <code class="docutils literal notranslate"><span class="pre">1.0i</span></code>.</p></td>
+<td><p>Specifies vertical padding between the graph and paper boundaries. The value may contain one or two non-negative screen distances. The default is <code class="docutils literal notranslate"><span class="pre">1.0i</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-paperheight</span> <span class="pre">distance</span></code></p></td>
-<td><p>Specifies the paper height. The value must be positive. The default is <code class="docutils literal notranslate"><span class="pre">11.0i</span></code>.</p></td>
+<td><p>Specifies the positive paper height. The default is <code class="docutils literal notranslate"><span class="pre">11.0i</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-paperwidth</span> <span class="pre">distance</span></code></p></td>
-<td><p>Specifies the paper width. The value must be positive. The default is <code class="docutils literal notranslate"><span class="pre">8.5i</span></code>.</p></td>
+<td><p>Specifies the positive paper width. The default is <code class="docutils literal notranslate"><span class="pre">8.5i</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-preview</span> <span class="pre">boolean</span></code></p></td>
 <td><p>Specifies whether a preview image is included in the EPS output. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
@@ -289,7 +299,7 @@ binary EPS preview representation rather than an inline EPSI preview.</p>
 <td><p>Specifies the preview format. <code class="docutils literal notranslate"><span class="pre">epsi</span></code> is always supported; Windows also supports <code class="docutils literal notranslate"><span class="pre">wmf</span></code>, and may support <code class="docutils literal notranslate"><span class="pre">tiff</span></code> when built with TIFF support. The default is <code class="docutils literal notranslate"><span class="pre">epsi</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-width</span> <span class="pre">distance</span></code></p></td>
-<td><p>Specifies the requested output graph width. <code class="docutils literal notranslate"><span class="pre">0</span></code> uses the graph’s current width. The value must be non-negative. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
+<td><p>Specifies the requested output graph width as a non-negative screen distance. <code class="docutils literal notranslate"><span class="pre">0</span></code> uses the graph’s current width. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
 </tr>
 </tbody>
 </table>

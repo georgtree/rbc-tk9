@@ -226,11 +226,7 @@ namespace eval ::rbc::GRAPHINST {
         The outer graph background and the plotting-area background are configured independently.
 
         ```tcl
-        graph .g \
-            -background grey90 \
-            -plotbackground white \
-            -plotrelief sunken \
-            -plotborderwidth 2
+        graph .g -background grey90 -plotbackground white -plotrelief sunken -plotborderwidth 2
         ```
 
         `-plotpadx` and `-plotpady` add space immediately around the plotting surface. Each option accepts either one
@@ -290,7 +286,6 @@ namespace eval ::rbc::GRAPHINST {
         For example:
         ```tcl
         .g configure -data [dict create source simulation1 quantity voltage]
-
         set graphData [.g cget -data]
         ```
 

@@ -108,7 +108,7 @@ select an explicit name. If <code class="docutils literal notranslate"><span cla
 <td><p>One or two X-Y pairs</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">image</span></code></p></td>
-<td><p>One X-Y pair</p></td>
+<td><p>One or two X-Y pairs</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">line</span></code></p></td>
 <td><p>Two or more X-Y pairs</p></td>
@@ -124,9 +124,11 @@ select an explicit name. If <code class="docutils literal notranslate"><span cla
 </tr>
 </tbody>
 </table>
+<p>For bitmap and image markers, one X-Y pair specifies the marker position. Two pairs specify opposite corners
+of a bounding rectangle. Bitmap markers are scaled to that rectangle. Photo images are likewise scaled to the
+rectangle; other Tk image types are drawn at their natural size.</p>
+<p>Coordinate values may be Tcl numeric expressions. <code class="docutils literal notranslate"><span class="pre">Inf</span></code>, <code class="docutils literal notranslate"><span class="pre">+Inf</span></code>, and <code class="docutils literal notranslate"><span class="pre">-Inf</span></code> select elastic axis bounds.</p>
 <p>An empty <code class="docutils literal notranslate"><span class="pre">-coords</span></code> value leaves the marker without drawable coordinates.</p>
-<p>Markers may also use <code class="docutils literal notranslate"><span class="pre">-Inf</span></code> and <code class="docutils literal notranslate"><span class="pre">Inf</span></code> coordinates. These track the minimum and maximum limits of the
-corresponding axis. This is useful for annotations that must remain attached to an edge of the plotting area.</p>
 <p>For example:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>marker<span class="w"> </span>create<span class="w"> </span>text<span class="w"> </span><span class="o">-</span>coords<span class="w"> </span><span class="k">{</span><span class="nv">-Inf</span><span class="w"> </span>Inf<span class="k">}</span><span class="w"> </span><span class="o">-</span>anchor<span class="w"> </span>nw<span class="w"> </span><span class="o">-</span>text<span class="w"> </span><span class="s2">&quot;upper left&quot;</span>
 </pre></div>
@@ -228,16 +230,16 @@ option valid for one marker type is not necessarily valid for another.</p>
 <td><p>Specifies whether the marker is hidden. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-mapx</span> <span class="pre">axisName</span></code></p></td>
-<td><p>Specifies the X axis used to map marker coordinates. The default is <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></td>
+<td><p>Specifies the X axis used to map marker coordinates. The axis must exist and must be an X axis. The default is <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-mapy</span> <span class="pre">axisName</span></code></p></td>
-<td><p>Specifies the Y axis used to map marker coordinates. The default is <code class="docutils literal notranslate"><span class="pre">y</span></code>.</p></td>
+<td><p>Specifies the Y axis used to map marker coordinates. The axis must exist and must be a Y axis. The default is <code class="docutils literal notranslate"><span class="pre">y</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-name</span> <span class="pre">markerName</span></code></p></td>
-<td><p>Specifies the marker name. When omitted during creation, Rbc generates a name.</p></td>
+<td><p>Specifies the marker name. During creation, an omitted name is generated automatically. Reconfiguring <code class="docutils literal notranslate"><span class="pre">-name</span></code> renames the marker; the new name must be non-empty, must not begin with <code class="docutils literal notranslate"><span class="pre">-</span></code>, and must not already belong to another marker.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-state</span> <span class="pre">state</span></code></p></td>
-<td><p>Specifies the marker state. The default is <code class="docutils literal notranslate"><span class="pre">normal</span></code>.</p></td>
+<td><p>Specifies the marker state: <code class="docutils literal notranslate"><span class="pre">normal</span></code>, <code class="docutils literal notranslate"><span class="pre">active</span></code>, or <code class="docutils literal notranslate"><span class="pre">disabled</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">normal</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-under</span> <span class="pre">boolean</span></code></p></td>
 <td><p>Specifies whether the marker is drawn below graph elements rather than above them. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
@@ -358,7 +360,7 @@ option valid for one marker type is not necessarily valid for another.</p>
 <td><p>Specifies the offset into the dash pattern. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-fill</span> <span class="pre">color</span></code></p></td>
-<td><p>Specifies the secondary line color. An empty value disables the secondary color.</p></td>
+<td><p>Specifies the color used for the off portions of a dashed line. An empty value uses ordinary on/off dashes. The default is empty.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-join</span> <span class="pre">style</span></code></p></td>
 <td><p>Specifies how adjacent segments are joined. Accepted styles are <code class="docutils literal notranslate"><span class="pre">bevel</span></code>, <code class="docutils literal notranslate"><span class="pre">miter</span></code>, and <code class="docutils literal notranslate"><span class="pre">round</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">miter</span></code>.</p></td>
@@ -393,20 +395,29 @@ option valid for one marker type is not necessarily valid for another.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-dashes</span> <span class="pre">dashList</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-cap</span> <span class="pre">style</span></code></p></td>
+<td><p>Specifies the outline cap style. Accepted styles are <code class="docutils literal notranslate"><span class="pre">butt</span></code>, <code class="docutils literal notranslate"><span class="pre">projecting</span></code>, and <code class="docutils literal notranslate"><span class="pre">round</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">butt</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-dashes</span> <span class="pre">dashList</span></code></p></td>
 <td><p>Specifies the dash pattern used for the polygon outline. An empty value selects a solid outline.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-fill</span> <span class="pre">color</span></code></p></td>
-<td><p>Specifies the polygon fill color. An empty value makes the interior transparent.</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-fill</span> <span class="pre">colorList</span></code></p></td>
+<td><p>Specifies the polygon fill colors. The value may contain one foreground color or a foreground and background color. With <code class="docutils literal notranslate"><span class="pre">-stipple</span></code>, the second color supplies the stipple background. An empty value disables filling. The default foreground color is <code class="docutils literal notranslate"><span class="pre">red</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-join</span> <span class="pre">style</span></code></p></td>
+<td><p>Specifies how adjacent outline segments are joined. Accepted styles are <code class="docutils literal notranslate"><span class="pre">bevel</span></code>, <code class="docutils literal notranslate"><span class="pre">miter</span></code>, and <code class="docutils literal notranslate"><span class="pre">round</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">miter</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-linewidth</span> <span class="pre">distance</span></code></p></td>
-<td><p>Specifies the width of the polygon outline.</p></td>
+<td><p>Specifies the width of the polygon outline. The value must be non-negative. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-outline</span> <span class="pre">color</span></code></p></td>
-<td><p>Specifies the color of the polygon outline.</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-outline</span> <span class="pre">colorList</span></code></p></td>
+<td><p>Specifies the polygon outline colors. The value may contain one foreground color or a foreground and background color. For dashed outlines, the second color is used for the off portions of the dash pattern. An empty value disables the outline color. The default foreground color is <code class="docutils literal notranslate"><span class="pre">black</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-stipple</span> <span class="pre">bitmap</span></code></p></td>
-<td><p>Specifies an optional stipple bitmap used when filling the polygon. An empty value selects a solid fill.</p></td>
+<td><p>Specifies an optional stipple bitmap used when filling the polygon. An empty value selects an unstippled fill.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-xor</span> <span class="pre">boolean</span></code></p></td>
+<td><p>Specifies whether the polygon outline uses XOR drawing. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
 </tr>
 </tbody>
 </table>
@@ -498,13 +509,13 @@ option valid for one marker type is not necessarily valid for another.</p>
 <td><p>Specifies how the window is positioned relative to its coordinate. The default is <code class="docutils literal notranslate"><span class="pre">center</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-height</span> <span class="pre">distance</span></code></p></td>
-<td><p>Specifies an explicit height for the embedded window. A value of <code class="docutils literal notranslate"><span class="pre">0</span></code> uses its requested height.</p></td>
+<td><p>Specifies an explicit positive height for the embedded window. When left at its initial default of <code class="docutils literal notranslate"><span class="pre">0</span></code>, the child’s requested height is used. Explicitly configuring <code class="docutils literal notranslate"><span class="pre">0</span></code> is not accepted.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-width</span> <span class="pre">distance</span></code></p></td>
-<td><p>Specifies an explicit width for the embedded window. A value of <code class="docutils literal notranslate"><span class="pre">0</span></code> uses its requested width.</p></td>
+<td><p>Specifies an explicit positive width for the embedded window. When left at its initial default of <code class="docutils literal notranslate"><span class="pre">0</span></code>, the child’s requested width is used. Explicitly configuring <code class="docutils literal notranslate"><span class="pre">0</span></code> is not accepted.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-window</span> <span class="pre">pathName</span></code></p></td>
-<td><p>Specifies the Tk window managed by the marker.</p></td>
+<td><p>Specifies the Tk window managed by the marker. The window must be a direct child of the graph widget. An empty value removes the managed window.</p></td>
 </tr>
 </tbody>
 </table>

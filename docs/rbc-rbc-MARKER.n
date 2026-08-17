@@ -56,17 +56,20 @@ l l.
 Marker type | Coordinates
 _
 bitmap| One or two X-Y pairs
-image| One X-Y pair
+image| One or two X-Y pairs
 line| Two or more X-Y pairs
 polygon| Three or more X-Y pairs
 text| One X-Y pair
 window| One X-Y pair
 .TE
 .PP
-An empty -coords value leaves the marker without drawable coordinates\&.
+For bitmap and image markers, one X-Y pair specifies the marker position\&. Two pairs specify opposite corners
+of a bounding rectangle\&. Bitmap markers are scaled to that rectangle\&. Photo images are likewise scaled to the
+rectangle; other Tk image types are drawn at their natural size\&.
 .PP
-Markers may also use -Inf and Inf coordinates\&. These track the minimum and maximum limits of the
-corresponding axis\&. This is useful for annotations that must remain attached to an edge of the plotting area\&.
+Coordinate values may be Tcl numeric expressions\&. Inf, +Inf, and -Inf select elastic axis bounds\&.
+.PP
+An empty -coords value leaves the marker without drawable coordinates\&.
 .PP
 For example:
 .PP
@@ -149,10 +152,10 @@ _
 -coords coordList| Specifies the graph coordinates of the marker\&. The required number of coordinates depends on the marker type\&. The default is empty\&.
 -element elementName | Associates the marker with an element\&. The marker is displayed only while that element is displayed\&. An empty value removes the association\&.
 -hide boolean| Specifies whether the marker is hidden\&. The default is no\&.
--mapx axisName| Specifies the X axis used to map marker coordinates\&. The default is x\&.
--mapy axisName| Specifies the Y axis used to map marker coordinates\&. The default is y\&.
--name markerName| Specifies the marker name\&. When omitted during creation, Rbc generates a name\&.
--state state| Specifies the marker state\&. The default is normal\&.
+-mapx axisName | Specifies the X axis used to map marker coordinates\&. The axis must exist and must be an X axis\&. The default is x\&.
+-mapy axisName | Specifies the Y axis used to map marker coordinates\&. The axis must exist and must be a Y axis\&. The default is y\&.
+-name markerName | Specifies the marker name\&. During creation, an omitted name is generated automatically\&. Reconfiguring -name renames the marker; the new name must be non-empty, must not begin with -, and must not already belong to another marker\&.
+-state state | Specifies the marker state: normal, active, or disabled\&. The default is normal\&.
 -under boolean| Specifies whether the marker is drawn below graph elements rather than above them\&. The default is no\&.
 -xoffset distance| Adds a horizontal screen-coordinate offset after the marker has been mapped\&. The default is 0\&.
 -yoffset distance| Adds a vertical screen-coordinate offset after the marker has been mapped\&. The default is 0\&.
@@ -223,7 +226,7 @@ _
 -cap style| Specifies the line cap style\&. Accepted styles are butt, projecting, and round\&. The default is butt\&.
 -dashes dashList| Specifies the dash pattern\&. An empty value selects a solid line\&.
 -dashoffset distance | Specifies the offset into the dash pattern\&. The default is 0\&.
--fill color| Specifies the secondary line color\&. An empty value disables the secondary color\&.
+-fill color | Specifies the color used for the off portions of a dashed line\&. An empty value uses ordinary on/off dashes\&. The default is empty\&.
 -join style| Specifies how adjacent segments are joined\&. Accepted styles are bevel, miter, and round\&. The default is miter\&.
 -linewidth distance| Specifies the line width\&. The default is 1\&.
 -outline color| Specifies the primary line color\&. The default is black\&.
@@ -243,13 +246,16 @@ In addition to the common marker options, polygon markers support:
 .TS
 tab(|) box;
 l l.
-Option| Description
+Option | Description
 _
--dashes dashList| Specifies the dash pattern used for the polygon outline\&. An empty value selects a solid outline\&.
--fill color| Specifies the polygon fill color\&. An empty value makes the interior transparent\&.
--linewidth distance | Specifies the width of the polygon outline\&.
--outline color| Specifies the color of the polygon outline\&.
--stipple bitmap| Specifies an optional stipple bitmap used when filling the polygon\&. An empty value selects a solid fill\&.
+-cap style | Specifies the outline cap style\&. Accepted styles are butt, projecting, and round\&. The default is butt\&.
+-dashes dashList | Specifies the dash pattern used for the polygon outline\&. An empty value selects a solid outline\&.
+-fill colorList | Specifies the polygon fill colors\&. The value may contain one foreground color or a foreground and background color\&. With -stipple, the second color supplies the stipple background\&. An empty value disables filling\&. The default foreground color is red\&.
+-join style | Specifies how adjacent outline segments are joined\&. Accepted styles are bevel, miter, and round\&. The default is miter\&.
+-linewidth distance | Specifies the width of the polygon outline\&. The value must be non-negative\&. The default is 1\&.
+-outline colorList | Specifies the polygon outline colors\&. The value may contain one foreground color or a foreground and background color\&. For dashed outlines, the second color is used for the off portions of the dash pattern\&. An empty value disables the outline color\&. The default foreground color is black\&.
+-stipple bitmap | Specifies an optional stipple bitmap used when filling the polygon\&. An empty value selects an unstippled fill\&.
+-xor boolean | Specifies whether the polygon outline uses XOR drawing\&. The default is no\&.
 .TE
 .SS "TEXT MARKER OPTIONS"
 .PP
@@ -302,9 +308,9 @@ l l.
 Option| Description
 _
 -anchor anchor| Specifies how the window is positioned relative to its coordinate\&. The default is center\&.
--height distance | Specifies an explicit height for the embedded window\&. A value of 0 uses its requested height\&.
--width distance| Specifies an explicit width for the embedded window\&. A value of 0 uses its requested width\&.
--window pathName | Specifies the Tk window managed by the marker\&.
+-height distance | Specifies an explicit positive height for the embedded window\&. When left at its initial default of 0, the child's requested height is used\&. Explicitly configuring 0 is not accepted\&.
+-width distance | Specifies an explicit positive width for the embedded window\&. When left at its initial default of 0, the child's requested width is used\&. Explicitly configuring 0 is not accepted\&.
+-window pathName | Specifies the Tk window managed by the marker\&. The window must be a direct child of the graph widget\&. An empty value removes the managed window\&.
 .TE
 .SH "OPTION DATABASE"
 .PP

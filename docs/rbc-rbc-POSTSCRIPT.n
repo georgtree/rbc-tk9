@@ -90,13 +90,26 @@ height = 11 inches
 .fi
 .RE
 .PP
-The default horizontal and vertical page padding is one inch:
+-padx and -pady specify padding between the graph and the paper boundaries\&. Each value may contain either
+one or two Tk screen distances\&.
+.PP
+A single value applies equally to both sides:
 .PP
 .RS 4n
 .nf
 \&.g postscript configure -padx 1i -pady 1i
 .fi
 .RE
+.PP
+Two values specify the two sides independently:
+.PP
+.RS 4n
+.nf
+\&.g postscript configure -padx {0\&.5i 1i} -pady {0\&.75i 1\&.25i}
+.fi
+.RE
+.PP
+The default horizontal and vertical padding is one inch on each side\&.
 .PP
 If the graph together with its padding is larger than the available paper area, it is reduced while preserving
 its aspect ratio\&.
@@ -130,13 +143,21 @@ The supported modes are:
 .TS
 tab(|) box;
 l l.
-Mode| Description
+Mode | Description
 _
-color| Generates color output\&. This is the default\&.
-grayscale| Converts colors to grayscale\&.
-greyscale| Alternative spelling of grayscale\&.
+color | Generates color output\&. This is the default\&.
+grayscale | Converts colors to grayscale\&.
+greyscale | Alternative spelling of grayscale\&.
 monochrome | Generates monochrome output\&.
 .TE
+.PP
+Non-empty prefixes of these names are also accepted:
+.PP
+.RS 4n
+.nf
+\&.g postscript configure -colormode mono
+.fi
+.RE
 .PP
 For example:
 .PP
@@ -149,20 +170,12 @@ For example:
 .PP
 -colormap may name a Tcl array containing custom PostScript translations for Tk colors\&.
 .PP
-Array elements are indexed by Tk color names\&. The value is PostScript code used instead of the automatically
-generated color conversion\&.
+Array elements are indexed by Tk color names\&. If an entry exists, its value is inserted verbatim into the
+PostScript output in place of Rbc's normal color conversion\&. Colors without an entry use the normal automatic
+conversion\&.
 .PP
-For example:
-.PP
-.RS 4n
-.nf
-set psColors(red)   {0 1 1 SetFgColor}
-set psColors(white) {0 0 0 SetBgColor}
-\&.g postscript configure -colormap psColors
-.fi
-.RE
-.PP
-Colors without an entry in the array use the normal automatic conversion\&.
+Because the same color map is consulted for both foreground and background colors, each custom translation
+should contain complete PostScript code suitable for every context in which that Tk color is used\&.
 .PP
 An empty -colormap value disables the custom color map\&.
 .SH "FONT MAPS"
@@ -239,12 +252,17 @@ l l.
 Format | Availability
 _
 epsi | All platforms
-wmf| Windows
+wmf | Windows
 tiff | Windows builds compiled with TIFF support
 .TE
 .PP
-Windows WMF and TIFF previews are used when writing the EPS output to a file\&. They produce the corresponding
-binary EPS preview representation rather than an inline EPSI preview\&.
+Non-empty prefixes of the available format names are also accepted\&.
+.PP
+epsi embeds a grayscale EPSI preview directly in the PostScript data and therefore works both when the
+PostScript is returned and when it is written to a file\&.
+.PP
+On Windows, wmf and, when available, tiff previews are produced only when POSTSCRIPT output writes to a
+file\&. They generate the corresponding binary EPS preview representation rather than an inline EPSI preview\&.
 .PP
 Preview generation is disabled by default\&.
 .SH "POSTSCRIPT OPTIONS"
@@ -255,20 +273,20 @@ Option| Description
 _
 -center boolean| Specifies whether the graph is centered on the page\&. The default is yes\&.
 -colormap arrayName| Specifies the name of a Tcl array containing custom PostScript color translations\&. An empty value disables custom mappings\&. The default is empty\&.
--colormode mode| Specifies the output color mode\&. Accepted modes are color, grayscale, greyscale, and monochrome\&. The default is color\&.
+-colormode mode | Specifies the output color mode\&. Accepted modes are color, grayscale, greyscale, and monochrome; non-empty prefixes are also accepted\&. The default is color\&.
 -decorations boolean| Specifies whether graph backgrounds and decorative borders are reproduced\&. The default is yes\&.
 -fontmap arrayName| Specifies the name of a Tcl array containing custom Tk-to-PostScript font mappings\&. An empty value disables custom mappings\&. The default is empty\&.
 -footer boolean| Specifies whether identifying footer information is added to the PostScript output\&. The default is no\&.
--height distance| Specifies the requested output graph height\&. 0 uses the graph's current height\&. The value must be non-negative\&. The default is 0\&.
+-height distance | Specifies the requested output graph height as a non-negative screen distance\&. 0 uses the graph's current height\&. The default is 0\&.
 -landscape boolean| Specifies landscape rather than portrait orientation\&. The default is no\&.
 -maxpect boolean| Specifies whether the graph is scaled to make maximum use of the available paper area while preserving its aspect ratio\&. The default is no\&.
--padx padding| Specifies horizontal padding between the graph and paper boundaries\&. The default is 1\&.0i\&.
--pady padding| Specifies vertical padding between the graph and paper boundaries\&. The default is 1\&.0i\&.
--paperheight distance | Specifies the paper height\&. The value must be positive\&. The default is 11\&.0i\&.
--paperwidth distance| Specifies the paper width\&. The value must be positive\&. The default is 8\&.5i\&.
+-padx padding | Specifies horizontal padding between the graph and paper boundaries\&. The value may contain one or two non-negative screen distances\&. The default is 1\&.0i\&.
+-pady padding | Specifies vertical padding between the graph and paper boundaries\&. The value may contain one or two non-negative screen distances\&. The default is 1\&.0i\&.
+-paperheight distance | Specifies the positive paper height\&. The default is 11\&.0i\&.
+-paperwidth distance | Specifies the positive paper width\&. The default is 8\&.5i\&.
 -preview boolean| Specifies whether a preview image is included in the EPS output\&. The default is no\&.
 -previewformat format | Specifies the preview format\&. epsi is always supported; Windows also supports wmf, and may support tiff when built with TIFF support\&. The default is epsi\&.
--width distance| Specifies the requested output graph width\&. 0 uses the graph's current width\&. The value must be non-negative\&. The default is 0\&.
+-width distance | Specifies the requested output graph width as a non-negative screen distance\&. 0 uses the graph's current width\&. The default is 0\&.
 .TE
 .PP
 PostScript configuration options may also be supplied through Tk's option database\&. The resource name is

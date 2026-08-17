@@ -436,7 +436,7 @@ runs.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-activepen</span> <span class="pre">penName</span></code></p></td>
-<td><p>Selects the line pen used for active elements or active points. The default is <code class="docutils literal notranslate"><span class="pre">activeLine</span></code>; an empty value disables the separate active pen.</p></td>
+<td><p>Specifies the named line pen used when the element is active. An empty value disables the named active pen. The default is <code class="docutils literal notranslate"><span class="pre">activeLine</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-areabackground</span> <span class="pre">color</span></code></p></td>
 <td><p>Sets the background color used by an area stipple. The default is white.</p></td>
@@ -487,13 +487,13 @@ runs.</p>
 <td><p>Sets the built-in normal pen’s trace width. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>; <code class="docutils literal notranslate"><span class="pre">0</span></code> suppresses the trace.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-mapx</span> <span class="pre">axisName</span></code></p></td>
-<td><p>Selects the X axis used to map the element. The default is <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></td>
+<td><p>Specifies the X axis used to map the element’s X coordinates. The axis must exist and must be an X axis. The default is <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-mapy</span> <span class="pre">axisName</span></code></p></td>
-<td><p>Selects the Y axis used to map the element. The default is <code class="docutils literal notranslate"><span class="pre">y</span></code>.</p></td>
+<td><p>Specifies the Y axis used to map the element’s Y coordinates. The axis must exist and must be a Y axis. The default is <code class="docutils literal notranslate"><span class="pre">y</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-maxsymbols</span> <span class="pre">number</span></code></p></td>
-<td><p>Controls symbol display density. <code class="docutils literal notranslate"><span class="pre">0</span></code> displays all eligible symbols.</p></td>
+<td><p>Requests a reduced symbol display density when the element contains many points. <code class="docutils literal notranslate"><span class="pre">0</span></code> draws symbols without this reduction. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-offdash</span> <span class="pre">color</span></code></p></td>
 <td><p>Sets the color of gaps in dashed traces. An empty value leaves the gaps transparent.</p></td>
@@ -505,7 +505,7 @@ runs.</p>
 <td><p>Sets the symbol outline width. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-pen</span> <span class="pre">penName</span></code></p></td>
-<td><p>Selects a named line pen as the normal pen. An empty value selects the built-in pen.</p></td>
+<td><p>Specifies a named line pen containing the element’s normal drawing attributes. An empty value uses the element’s built-in pen.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-pixels</span> <span class="pre">size</span></code></p></td>
 <td><p>Sets the requested symbol size. The default is <code class="docutils literal notranslate"><span class="pre">0.125i</span></code>.</p></td>

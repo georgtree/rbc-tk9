@@ -197,7 +197,7 @@ The outer graph background and the plotting-area background are configured indep
 .PP
 .RS 4n
 .nf
-graph \&.g  -background grey90  -plotbackground white  -plotrelief sunken  -plotborderwidth 2
+graph \&.g -background grey90 -plotbackground white -plotrelief sunken -plotborderwidth 2
 .fi
 .RE
 .PP
@@ -275,7 +275,6 @@ For example:
 .RS 4n
 .nf
 \&.g configure -data [dict create source simulation1 quantity voltage]
-
 set graphData [\&.g cget -data]
 .fi
 .RE

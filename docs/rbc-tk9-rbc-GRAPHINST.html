@@ -345,7 +345,7 @@ size of each configured margin to the specified global Tcl variable.</p>
 <section id="plotting-area">
 <span id="r-rbc-graphinst-plotting-area"></span><span id="r-3a3arbc3a3agraphinstqzplotting20area"></span><h3>Plotting area<a class="headerlink" href="#plotting-area" title="Link to this heading">¶</a></h3>
 <p>The outer graph background and the plotting-area background are configured independently.</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">graph</span><span class="w"> </span>.g<span class="w">  </span><span class="o">-</span>background<span class="w"> </span>grey90<span class="w">  </span><span class="o">-</span>plotbackground<span class="w"> </span>white<span class="w">  </span><span class="o">-</span>plotrelief<span class="w"> </span>sunken<span class="w">  </span><span class="o">-</span>plotborderwidth<span class="w"> </span><span class="mi">2</span>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">graph</span><span class="w"> </span>.g<span class="w"> </span><span class="o">-</span>background<span class="w"> </span>grey90<span class="w"> </span><span class="o">-</span>plotbackground<span class="w"> </span>white<span class="w"> </span><span class="o">-</span>plotrelief<span class="w"> </span>sunken<span class="w"> </span><span class="o">-</span>plotborderwidth<span class="w"> </span><span class="mi">2</span>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">-plotpadx</span></code> and <code class="docutils literal notranslate"><span class="pre">-plotpady</span></code> add space immediately around the plotting surface. Each option accepts either one
@@ -396,7 +396,6 @@ a cache that cannot be reused.</p>
 it in the C graph implementation.</p>
 <p>For example:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">[</span><span class="nb">dict</span><span class="w"> </span>create<span class="w"> </span>source<span class="w"> </span>simulation1<span class="w"> </span>quantity<span class="w"> </span>voltage<span class="k">]</span>
-
 <span class="k">set</span><span class="w"> </span>graphData<span class="w"> </span><span class="k">[</span><span class="nv">.g</span><span class="w"> </span>cget<span class="w"> </span><span class="o">-</span>data<span class="k">]</span>
 </pre></div>
 </div>

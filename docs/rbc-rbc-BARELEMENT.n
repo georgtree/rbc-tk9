@@ -450,9 +450,9 @@ tab(|) box;
 l l.
 Option| Description
 _
--activepen penName| Selects the bar pen used for active elements or active points\&. The default is activeBar\&.
+-activepen penName| Specifies the named bar pen used when the element is active\&. An empty value disables the named active pen\&. The default is activeBar\&.
 -background color| Sets the built-in pen's 3-D border/stipple background color\&. The default is navyblue\&.
--barwidth width| Overrides the graph-wide bar width when positive\&. A non-positive value uses the graph -barwidth\&. The default is 0\&.0\&.
+-barwidth value| Specifies the width of bars for this element\&. A positive value overrides the graph widget's -barwidth; 0\&.0 uses the graph's bar width\&. The default is 0\&.0\&.
 -bd width| Synonym for -borderwidth\&.
 -bg color| Synonym for -background\&.
 -bindtags tags| Specifies additional graph binding tags for the element\&. The default is all\&.
@@ -466,9 +466,9 @@ _
 -hide boolean| Controls whether the element is displayed\&. The default is no\&.
 -label text| Sets the element label displayed in the legend\&. The initial label is the element name\&.
 -labelrelief relief| Sets the relief used for the element's legend label\&. The default is flat\&.
--mapx axisName| Selects the X axis used to map the element\&. The default is x\&.
--mapy axisName| Selects the Y axis used to map the element\&. The default is y\&.
--pen penName| Selects a named bar pen as the normal pen\&. An empty value selects the built-in pen\&.
+-mapx axisName| Specifies the X axis used to map the element's X coordinates\&. The axis must exist and must be an X axis\&. The default is x\&.
+-mapy axisName| Specifies the Y axis used to map the element's Y coordinates\&. The axis must exist and must be a Y axis\&. The default is y\&.
+-pen penName| Specifies a named bar pen containing the element's normal drawing attributes\&. An empty value uses the element's built-in pen\&.
 -relief relief| Sets the built-in pen's bar relief\&. The default is raised\&.
 -showerrorbars value | Selects which X and/or Y error bars are displayed\&. The default is both\&.
 -showvalues value| Selects which coordinate values are displayed next to bars\&. The default is no\&.

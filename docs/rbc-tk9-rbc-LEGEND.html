@@ -69,8 +69,9 @@ legend.</p>
 <span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>deactivate<span class="w"> </span>signal1
 </pre></div>
 </div>
-<p>Activating a legend entry changes only its appearance in the legend. To highlight the graph element itself,
-activate the element separately:</p>
+<p>Activating a legend entry changes only the appearance of the entry in the legend. It does not activate the
+corresponding data points or change how the element is drawn in the plotting area.</p>
+<p>To activate both independently:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>activate<span class="w"> </span>signal1
 <span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>activate<span class="w"> </span>signal1
 </pre></div>
@@ -150,7 +151,8 @@ around the outside of the complete legend.</p>
 </section>
 <section id="active-entries">
 <span id="r-rbc-legend-active-entries"></span><span id="r-3a3arbc3a3alegendqzactive20entries"></span><h2>Active entries<a class="headerlink" href="#active-entries" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">LEGEND</span> <span class="pre">activate</span></code> marks entries for drawing with the active legend style.</p>
+<p><code class="docutils literal notranslate"><span class="pre">LEGEND</span> <span class="pre">activate</span></code> marks entries for drawing with the active legend style and returns the names of all entries
+that are currently active.</p>
 <p>The active appearance is controlled by:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">-activebackground</span></code></p></li>

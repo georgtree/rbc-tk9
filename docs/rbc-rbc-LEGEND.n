@@ -49,8 +49,10 @@ Legend entries may be made active independently of the corresponding graph eleme
 .fi
 .RE
 .PP
-Activating a legend entry changes only its appearance in the legend\&. To highlight the graph element itself,
-activate the element separately:
+Activating a legend entry changes only the appearance of the entry in the legend\&. It does not activate the
+corresponding data points or change how the element is drawn in the plotting area\&.
+.PP
+To activate both independently:
 .PP
 .RS 4n
 .nf
@@ -136,7 +138,8 @@ Each padding value may contain either one screen distance or two:
 A single value applies equally to both sides\&. Two values specify the two sides independently\&.
 .SH "ACTIVE ENTRIES"
 .PP
-LEGEND activate marks entries for drawing with the active legend style\&.
+LEGEND activate marks entries for drawing with the active legend style and returns the names of all entries
+that are currently active\&.
 .PP
 The active appearance is controlled by:
 .TP

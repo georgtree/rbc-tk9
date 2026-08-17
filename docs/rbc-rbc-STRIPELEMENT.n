@@ -196,7 +196,7 @@ tab(|) box;
 l l.
 Option| Description
 _
--activepen penName| Selects the line pen used for active elements or active points\&. The default is activeLine; an empty value disables the separate active pen\&.
+-activepen penName| Specifies the named line pen used when the element is active\&. An empty value disables the named active pen\&. The default is activeLine\&.
 -bindtags tags| Specifies additional graph binding tags for the element\&. The default is all\&.
 -color color| Sets the built-in normal pen's trace color\&.
 -dashes dashes| Sets the built-in normal pen's trace dash pattern\&. An empty value selects a solid line\&.
@@ -209,13 +209,13 @@ _
 -label text| Sets the element label used by the legend\&. The initial label is the element name\&.
 -labelrelief relief| Sets the relief used for the element's legend label\&.
 -linewidth width| Sets the built-in normal pen's trace width\&. A value of 0 suppresses the connecting trace\&.
--mapx axisName| Selects the X axis used to map the element\&. The default is x\&.
--mapy axisName| Selects the Y axis used to map the element\&. The default is y\&.
+-mapx axisName| Specifies the X axis used to map the element's X coordinates\&. The axis must exist and must be an X axis\&. The default is x\&.
+-mapy axisName| Specifies the Y axis used to map the element's Y coordinates\&. The axis must exist and must be a Y axis\&. The default is y\&.
 -maxsymbols number| Controls symbol display density\&. 0 displays all eligible symbols\&.
 -offdash color| Sets the color of gaps in dashed traces\&. An empty value leaves the gaps transparent\&.
 -outline color| Sets the symbol outline color\&. defcolor uses the trace color\&.
 -outlinewidth width| Sets the symbol outline width\&.
--pen penName| Selects a named line pen as the normal pen\&. An empty value selects the built-in pen\&.
+-pen penName| Specifies a named line pen containing the element's normal drawing attributes\&. An empty value uses the element's built-in pen\&.
 -pixels size| Sets the requested symbol size\&.
 -scalesymbols boolean | Controls automatic symbol-size scaling as axis ranges change\&.
 -showerrorbars value| Selects which X and/or Y error bars are drawn\&.

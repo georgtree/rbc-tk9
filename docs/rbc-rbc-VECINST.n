@@ -419,4 +419,317 @@ x expr {abs(x)}
 x expr {norm(x)}
 .fi
 .RE
+.SH "C LANGUAGE API"
+.PP
+Rbc vectors can be created, inspected, modified, and destroyed directly from C code\&. This is useful for Tcl
+extensions that generate or acquire large numeric data sets and want to make those values available to Tcl
+scripts or graph elements without converting every value to and from a Tcl list\&.
+.PP
+Include the Rbc public header:
+.PP
+.RS 4n
+.nf
+#include <rbc\&.h>
+.fi
+.RE
+.PP
+Rbc exports its public C interface through the Rbc stubs table\&. An extension using the stubs interface should
+initialize it before calling Rbc functions:
+.PP
+.RS 4n
+.nf
+static int InitRbcApi(Tcl_Interp *interp, const char *version) {
+    if (Rbc_InitStubs(interp, version, 0) == NULL) {
+        return TCL_ERROR;
+    }
+
+    return TCL_OK;
+}
+.fi
+.RE
+.PP
+version is the minimum Rbc package version required by the extension\&. Rbc_InitStubs also ensures that the
+Rbc package is loaded in the interpreter\&.
+.SS "VECTOR REPRESENTATION"
+.PP
+The public vector structure is:
+.PP
+.RS 4n
+.nf
+typedef struct Rbc_Vector_s {
+    double *valueArr;
+    Tcl_Size numValues;
+    Tcl_Size arraySize;
+    double min, max;
+    int dirty;
+    int reserved;
+} Rbc_Vector;
+.fi
+.RE
+.PP
+valueArr contains the double-precision vector components\&. numValues is the logical length of the vector,
+while arraySize is the capacity of the underlying array and is therefore greater than or equal to
+numValues\&.
+.PP
+Applications should normally use the public accessor functions rather than directly accessing the corresponding
+structure fields\&.
+.SS "PUBLIC VECTOR FUNCTIONS"
+.PP
+The following vector functions are exported through the Rbc stubs interface:
+.TS
+tab(|) box;
+l l.
+Function | Description
+_
+int Rbc_CreateVector(Tcl_Interp *interp, const char *vecName, Tcl_Size size, Rbc_Vector **vecPtrPtr) | Creates the named vector and its normal Tcl command and array mappings\&. size specifies the initial length of a new vector\&. On success, stores a pointer to the vector in vecPtrPtr and returns TCL_OK\&.
+int Rbc_GetVector(Tcl_Interp *interp, const char *vecName, Rbc_Vector **vecPtrPtr) | Looks up an existing vector by name\&. On success, stores its pointer in vecPtrPtr and returns TCL_OK\&.
+int Rbc_ResizeVector(Rbc_Vector *vecPtr, Tcl_Size nValues) | Changes the logical length of a vector\&. Existing values are preserved as far as possible and clients of the vector are notified of the change\&.
+char *Rbc_NameOfVector(Rbc_Vector *vecPtr) | Returns the name of a vector\&. The returned string belongs to Rbc and must not be freed or modified by the caller\&.
+int Rbc_ResetVector(Rbc_Vector *vecPtr, double *dataArr, Tcl_Size nValues, Tcl_Size arraySize, Tcl_FreeProc *freeProc) | Replaces the vector's data array and records its ownership policy\&. Clients of the vector are notified of the change\&.
+double *Rbc_VectorData(Rbc_Vector *vecPtr) | Returns a pointer to the vector's current data array\&. The returned storage belongs to the vector and must not be freed by the caller\&.
+Tcl_Size Rbc_VectorLength(Rbc_Vector *vecPtr) | Returns the current logical number of values in the vector\&.
+Tcl_Size Rbc_VectorSize(Rbc_Vector *vecPtr) | Returns the current capacity of the vector's data array\&.
+int Rbc_VectorDirty(Rbc_Vector *vecPtr) | Returns the vector's update counter\&. The counter is incremented when the vector is changed\&.
+int Rbc_VectorExists2(Tcl_Interp *interp, const char *vecName) | Returns non-zero if the named vector exists and zero otherwise\&.
+void Rbc_FreeVector(Rbc_Vector *vecPtr) | Destroys the vector, removes its Tcl command and array mapping, releases its storage according to its ownership policy, and invalidates vecPtr\&.
+.TE
+.PP
+Functions returning int as a Tcl status return TCL_OK on success and TCL_ERROR on failure\&. When an
+interpreter is available, an explanatory error message is left in its result\&.
+.PP
+Vector lengths and capacities use Tcl_Size, allowing the C interface to represent Tcl 9-sized vectors\&.
+.SS "READING VECTOR DATA"
+.PP
+Rbc_GetVector obtains the C representation of a vector that already exists in the interpreter\&.
+.PP
+For example, this function calculates the sum of a vector without converting its contents to a Tcl list:
+.PP
+.RS 4n
+.nf
+static int SumVector(Tcl_Interp *interp, const char *name, double *sumPtr) {
+    Rbc_Vector *vecPtr;
+    double *dataArr;
+    Tcl_Size nValues;
+    Tcl_Size i;
+    double sum;
+
+    if (Rbc_GetVector(interp, name, &vecPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    dataArr = Rbc_VectorData(vecPtr);
+    nValues = Rbc_VectorLength(vecPtr);
+    sum = 0\&.0;
+    for (i = 0; i < nValues; i++) {
+        sum += dataArr[i];
+    }
+    *sumPtr = sum;
+    return TCL_OK;
+}
+.fi
+.RE
+.PP
+The pointer returned by Rbc_VectorData remains owned by Rbc\&. Do not free it\&. It may also become invalid after
+an operation that resizes, resets, or destroys the vector, so obtain it again after such an operation\&.
+.SS "UPDATING VECTORS FROM C"
+.PP
+Rbc_ResetVector is the normal way to install externally generated data into an Rbc vector\&. It also notifies
+clients of the vector that its contents have changed\&.
+.PP
+For example, Tcl may create two vectors and use them as graph data:
+.PP
+.RS 4n
+.nf
+::rbc::vector create X Y
+graph \&.g
+\&.g line create signal -xdata X -ydata Y
+.fi
+.RE
+.PP
+C code can then update both vectors:
+.PP
+.RS 4n
+.nf
+#include <math\&.h>
+#include <rbc\&.h>
+
+static int UpdateSignal(Tcl_Interp *interp) {
+    Rbc_Vector *xVecPtr;
+    Rbc_Vector *yVecPtr;
+    double x[100];
+    double y[100];
+    Tcl_Size i;
+
+    if (Rbc_GetVector(interp, "X", &xVecPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (Rbc_GetVector(interp, "Y", &yVecPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    for (i = 0; i < 100; i++) {
+        x[i] = (double)i * 0\&.01;
+        y[i] = sin(x[i]);
+    }
+    if (Rbc_ResetVector(xVecPtr, x, 100, 100, TCL_VOLATILE) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (Rbc_ResetVector(yVecPtr, y, 100, 100, TCL_VOLATILE) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    return TCL_OK;
+}
+.fi
+.RE
+.PP
+TCL_VOLATILE is appropriate here because x and y are local arrays\&. Rbc copies the supplied values into
+storage that it owns before Rbc_ResetVector returns\&.
+.PP
+Graph elements or other Rbc clients using X and Y are notified that the vector contents have changed and
+can update themselves without recreating the vectors\&.
+.SS "DATA OWNERSHIP"
+.PP
+The freeProc argument of Rbc_ResetVector specifies who owns dataArr and how it will eventually be
+released\&.
+.TS
+tab(|) box;
+l l.
+freeProc | Storage ownership
+_
+TCL_VOLATILE | Rbc copies the supplied data into its own storage\&. The caller retains ownership of dataArr and may reuse or release it immediately after the call returns\&.
+TCL_STATIC | Rbc uses dataArr directly but never frees it\&. The caller must keep the array valid for as long as the vector uses it\&.
+TCL_DYNAMIC | Rbc takes ownership of dataArr and releases it with Tcl's allocator when the storage is replaced or the vector is destroyed\&. The array must therefore have been allocated with compatible Tcl allocation routines such as Tcl_Alloc\&.
+custom Tcl_FreeProc * | Rbc takes ownership of dataArr and invokes the supplied deallocation procedure when the storage is no longer needed\&.
+.TE
+.PP
+nValues specifies the logical number of values currently stored in the vector\&. arraySize specifies the
+capacity of the supplied array and must be greater than or equal to nValues\&.
+.PP
+Passing NULL for dataArr, or an arraySize of 0, resets the vector to an empty vector\&.
+.PP
+For example, dynamically allocated storage can be transferred directly to a vector:
+.PP
+.RS 4n
+.nf
+static int SetGeneratedData(Tcl_Interp *interp, const char *name) {
+    Rbc_Vector *vecPtr;
+    double *dataArr;
+    Tcl_Size nValues;
+    Tcl_Size i;
+
+    nValues = 100;
+    if (Rbc_GetVector(interp, name, &vecPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    dataArr = (double *)Tcl_Alloc((size_t)nValues * sizeof(double));
+    for (i = 0; i < nValues; i++) {
+        dataArr[i] = (double)i * (double)i;
+    }
+    if (Rbc_ResetVector(vecPtr, dataArr, nValues, nValues, TCL_DYNAMIC) != TCL_OK) {
+        Tcl_Free((char *)dataArr);
+        return TCL_ERROR;
+    }
+    /*
+     * Rbc now owns dataArr\&.
+     * Do not free or reuse it here\&.
+     */
+    return TCL_OK;
+}
+.fi
+.RE
+.PP
+When TCL_DYNAMIC is used, ownership transfers to Rbc only after a successful Rbc_ResetVector call\&.
+.SS "CREATING VECTORS FROM C"
+.PP
+Rbc_CreateVector creates the Tcl-visible vector and returns its C representation in one operation\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+static int CreateTimeVector(Tcl_Interp *interp) {
+    Rbc_Vector *vecPtr;
+    double *dataArr;
+    Tcl_Size nValues;
+    Tcl_Size i;
+
+    nValues = 1000;
+    if (Rbc_CreateVector(interp, "time", nValues, &vecPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    dataArr = Rbc_VectorData(vecPtr);
+    for (i = 0; i < nValues; i++) {
+        dataArr[i] = (double)i * 1\&.0e-6;
+    }
+    return TCL_OK;
+}
+.fi
+.RE
+.PP
+Directly modifying the array returned by Rbc_VectorData does not itself notify vector clients\&. If existing
+clients must observe a change, use Rbc_ResetVector to install the new data, or another Rbc vector operation
+that performs the appropriate update notification\&.
+.SS "RESIZING A VECTOR"
+.PP
+Rbc_ResizeVector changes a vector's logical length and notifies clients of the change\&.
+.PP
+.RS 4n
+.nf
+Rbc_Vector *vecPtr;
+
+if (Rbc_GetVector(interp, "data", &vecPtr) != TCL_OK) {
+    return TCL_ERROR;
+}
+if (Rbc_ResizeVector(vecPtr, 10000) != TCL_OK) {
+    return TCL_ERROR;
+}
+.fi
+.RE
+.PP
+Values already in the vector are preserved when possible\&. When a vector is enlarged, newly created components
+are initialized to zero\&.
+.SS "TESTING FOR A VECTOR"
+.PP
+Rbc_VectorExists2 can be used when C code accepts either an existing vector or needs to create one:
+.PP
+.RS 4n
+.nf
+Rbc_Vector *vecPtr;
+
+if (Rbc_VectorExists2(interp, "data")) {
+    if (Rbc_GetVector(interp, "data", &vecPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+} else {
+    if (Rbc_CreateVector(interp, "data", 0, &vecPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+}
+.fi
+.RE
+.SS "DESTROYING A VECTOR"
+.PP
+Rbc_FreeVector destroys a vector obtained from Rbc_GetVector or Rbc_CreateVector:
+.PP
+.RS 4n
+.nf
+Rbc_Vector *vecPtr;
+
+if (Rbc_GetVector(interp, "temporary", &vecPtr) != TCL_OK) {
+    return TCL_ERROR;
+}
+Rbc_FreeVector(vecPtr);
+/*
+ * vecPtr is invalid from this point onward\&.
+ */
+.fi
+.RE
+.PP
+Destroying the vector also removes its associated Tcl command and array mapping and releases vector storage
+according to the ownership policy established by Rbc_ResetVector\&.
+.SS "COMPATIBILITY WITH OLDER RBC VECTOR APIS"
+.PP
+Older BLT and Rbc manuals describe additional C functions for vector client identifiers, change callbacks,
+deletion by name, and custom vector indices\&. Those routines are not part of the current public Rbc stubs
+interface and are intentionally not documented here\&.
+.PP
+Use the functions listed in \fIPublic vector functions\fP when writing new extensions\&.
 

@@ -159,7 +159,7 @@ horizontal grid lines associated with its Y axis.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-color</span> <span class="pre">color</span></code></p></td>
-<td><p>Specifies the color of the grid lines. The default is <code class="docutils literal notranslate"><span class="pre">grey64</span></code>.</p></td>
+<td><p>Specifies the color of the grid lines. The default is <code class="docutils literal notranslate"><span class="pre">grey64</span></code> on color displays and <code class="docutils literal notranslate"><span class="pre">black</span></code> on monochrome displays.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-dashes</span> <span class="pre">dashList</span></code></p></td>
 <td><p>Specifies the dash pattern used for grid lines. The default is <code class="docutils literal notranslate"><span class="pre">dot</span></code>. An empty value selects solid lines.</p></td>
@@ -168,13 +168,13 @@ horizontal grid lines associated with its Y axis.</p>
 <td><p>Specifies whether the grid is hidden. The default is <code class="docutils literal notranslate"><span class="pre">yes</span></code> for <code class="docutils literal notranslate"><span class="pre">graph</span></code> and <code class="docutils literal notranslate"><span class="pre">stripchart</span></code>, and <code class="docutils literal notranslate"><span class="pre">no</span></code> for <code class="docutils literal notranslate"><span class="pre">barchart</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-linewidth</span> <span class="pre">distance</span></code></p></td>
-<td><p>Specifies the width of the grid lines. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
+<td><p>Specifies the width of the grid lines as a non-negative screen distance. Values <code class="docutils literal notranslate"><span class="pre">0</span></code> and <code class="docutils literal notranslate"><span class="pre">1</span></code> use the native thin-line representation. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-mapx</span> <span class="pre">axisName</span></code></p></td>
-<td><p>Specifies the X axis whose tick positions generate vertical grid lines. The default is <code class="docutils literal notranslate"><span class="pre">x</span></code> for <code class="docutils literal notranslate"><span class="pre">graph</span></code> and <code class="docutils literal notranslate"><span class="pre">stripchart</span></code>, and empty for <code class="docutils literal notranslate"><span class="pre">barchart</span></code>.</p></td>
+<td><p>Specifies the X axis whose tick positions generate vertical grid lines. The axis must exist and must be an X axis. An empty value disables vertical grid lines. The default is <code class="docutils literal notranslate"><span class="pre">x</span></code> for <code class="docutils literal notranslate"><span class="pre">graph</span></code> and <code class="docutils literal notranslate"><span class="pre">stripchart</span></code>, and empty for <code class="docutils literal notranslate"><span class="pre">barchart</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-mapy</span> <span class="pre">axisName</span></code></p></td>
-<td><p>Specifies the Y axis whose tick positions generate horizontal grid lines. The default is <code class="docutils literal notranslate"><span class="pre">y</span></code>.</p></td>
+<td><p>Specifies the Y axis whose tick positions generate horizontal grid lines. The axis must exist and must be a Y axis. An empty value disables horizontal grid lines. The default is <code class="docutils literal notranslate"><span class="pre">y</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-minor</span> <span class="pre">boolean</span></code></p></td>
 <td><p>Specifies whether grid lines are also generated at minor tick positions. The default is <code class="docutils literal notranslate"><span class="pre">yes</span></code>.</p></td>

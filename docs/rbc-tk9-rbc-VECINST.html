@@ -457,6 +457,319 @@ component:</p>
 <span class="nv">x</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">norm</span><span class="k">(</span><span class="nv">x</span><span class="k">)}</span>
 </pre></div>
 </div>
+</section>
+</section>
+<section id="c-language-api">
+<span id="r-rbc-vecinst-c-language-api"></span><span id="r-3a3arbc3a3avecinstqzc20language20api"></span><h2>C language API<a class="headerlink" href="#c-language-api" title="Link to this heading">¶</a></h2>
+<p>Rbc vectors can be created, inspected, modified, and destroyed directly from C code. This is useful for Tcl
+extensions that generate or acquire large numeric data sets and want to make those values available to Tcl
+scripts or graph elements without converting every value to and from a Tcl list.</p>
+<p>Include the Rbc public header:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;rbc.h&gt;</span>
+</pre></div>
+</div>
+<p>Rbc exports its public C interface through the Rbc stubs table. An extension using the stubs interface should
+initialize it before calling Rbc functions:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">InitRbcApi</span><span class="p">(</span><span class="n">Tcl_Interp</span><span class="w"> </span><span class="o">*</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">version</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_InitStubs</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="n">version</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">version</span></code> is the minimum Rbc package version required by the extension. <code class="docutils literal notranslate"><span class="pre">Rbc_InitStubs</span></code> also ensures that the
+Rbc package is loaded in the interpreter.</p>
+<section id="vector-representation">
+<span id="r-rbc-vecinst-vector-representation"></span><span id="r-3a3arbc3a3avecinstqzvector20representation"></span><h3>Vector representation<a class="headerlink" href="#vector-representation" title="Link to this heading">¶</a></h3>
+<p>The public vector structure is:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Rbc_Vector_s</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">valueArr</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Tcl_Size</span><span class="w"> </span><span class="n">numValues</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Tcl_Size</span><span class="w"> </span><span class="n">arraySize</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">min</span><span class="p">,</span><span class="w"> </span><span class="n">max</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">dirty</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">reserved</span><span class="p">;</span>
+<span class="p">}</span><span class="w"> </span><span class="n">Rbc_Vector</span><span class="p">;</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">valueArr</span></code> contains the double-precision vector components. <code class="docutils literal notranslate"><span class="pre">numValues</span></code> is the logical length of the vector,
+while <code class="docutils literal notranslate"><span class="pre">arraySize</span></code> is the capacity of the underlying array and is therefore greater than or equal to
+<code class="docutils literal notranslate"><span class="pre">numValues</span></code>.</p>
+<p>Applications should normally use the public accessor functions rather than directly accessing the corresponding
+structure fields.</p>
+</section>
+<section id="public-vector-functions">
+<span id="r-rbc-vecinst-public-vector-functions"></span><span id="r-3a3arbc3a3avecinstqzpublic20vector20functions"></span><h3>Public vector functions<a class="headerlink" href="#public-vector-functions" title="Link to this heading">¶</a></h3>
+<p>The following vector functions are exported through the Rbc stubs interface:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Function</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">Rbc_CreateVector(Tcl_Interp</span> <span class="pre">*interp,</span> <span class="pre">const</span> <span class="pre">char</span> <span class="pre">*vecName,</span> <span class="pre">Tcl_Size</span> <span class="pre">size,</span> <span class="pre">Rbc_Vector</span> <span class="pre">**vecPtrPtr)</span></code></p></td>
+<td><p>Creates the named vector and its normal Tcl command and array mappings. <code class="docutils literal notranslate"><span class="pre">size</span></code> specifies the initial length of a new vector. On success, stores a pointer to the vector in <code class="docutils literal notranslate"><span class="pre">vecPtrPtr</span></code> and returns <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">Rbc_GetVector(Tcl_Interp</span> <span class="pre">*interp,</span> <span class="pre">const</span> <span class="pre">char</span> <span class="pre">*vecName,</span> <span class="pre">Rbc_Vector</span> <span class="pre">**vecPtrPtr)</span></code></p></td>
+<td><p>Looks up an existing vector by name. On success, stores its pointer in <code class="docutils literal notranslate"><span class="pre">vecPtrPtr</span></code> and returns <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">Rbc_ResizeVector(Rbc_Vector</span> <span class="pre">*vecPtr,</span> <span class="pre">Tcl_Size</span> <span class="pre">nValues)</span></code></p></td>
+<td><p>Changes the logical length of a vector. Existing values are preserved as far as possible and clients of the vector are notified of the change.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">char</span> <span class="pre">*Rbc_NameOfVector(Rbc_Vector</span> <span class="pre">*vecPtr)</span></code></p></td>
+<td><p>Returns the name of a vector. The returned string belongs to Rbc and must not be freed or modified by the caller.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">Rbc_ResetVector(Rbc_Vector</span> <span class="pre">*vecPtr,</span> <span class="pre">double</span> <span class="pre">*dataArr,</span> <span class="pre">Tcl_Size</span> <span class="pre">nValues,</span> <span class="pre">Tcl_Size</span> <span class="pre">arraySize,</span> <span class="pre">Tcl_FreeProc</span> <span class="pre">*freeProc)</span></code></p></td>
+<td><p>Replaces the vector’s data array and records its ownership policy. Clients of the vector are notified of the change.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">double</span> <span class="pre">*Rbc_VectorData(Rbc_Vector</span> <span class="pre">*vecPtr)</span></code></p></td>
+<td><p>Returns a pointer to the vector’s current data array. The returned storage belongs to the vector and must not be freed by the caller.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tcl_Size</span> <span class="pre">Rbc_VectorLength(Rbc_Vector</span> <span class="pre">*vecPtr)</span></code></p></td>
+<td><p>Returns the current logical number of values in the vector.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tcl_Size</span> <span class="pre">Rbc_VectorSize(Rbc_Vector</span> <span class="pre">*vecPtr)</span></code></p></td>
+<td><p>Returns the current capacity of the vector’s data array.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">Rbc_VectorDirty(Rbc_Vector</span> <span class="pre">*vecPtr)</span></code></p></td>
+<td><p>Returns the vector’s update counter. The counter is incremented when the vector is changed.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">Rbc_VectorExists2(Tcl_Interp</span> <span class="pre">*interp,</span> <span class="pre">const</span> <span class="pre">char</span> <span class="pre">*vecName)</span></code></p></td>
+<td><p>Returns non-zero if the named vector exists and zero otherwise.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">Rbc_FreeVector(Rbc_Vector</span> <span class="pre">*vecPtr)</span></code></p></td>
+<td><p>Destroys the vector, removes its Tcl command and array mapping, releases its storage according to its ownership policy, and invalidates <code class="docutils literal notranslate"><span class="pre">vecPtr</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Functions returning <code class="docutils literal notranslate"><span class="pre">int</span></code> as a Tcl status return <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code> on success and <code class="docutils literal notranslate"><span class="pre">TCL_ERROR</span></code> on failure. When an
+interpreter is available, an explanatory error message is left in its result.</p>
+<p>Vector lengths and capacities use <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code>, allowing the C interface to represent Tcl 9-sized vectors.</p>
+</section>
+<section id="reading-vector-data">
+<span id="r-rbc-vecinst-reading-vector-data"></span><span id="r-3a3arbc3a3avecinstqzreading20vector20data"></span><h3>Reading vector data<a class="headerlink" href="#reading-vector-data" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_GetVector</span></code> obtains the C representation of a vector that already exists in the interpreter.</p>
+<p>For example, this function calculates the sum of a vector without converting its contents to a Tcl list:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">SumVector</span><span class="p">(</span><span class="n">Tcl_Interp</span><span class="w"> </span><span class="o">*</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">sumPtr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">Rbc_Vector</span><span class="w"> </span><span class="o">*</span><span class="n">vecPtr</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">dataArr</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Tcl_Size</span><span class="w"> </span><span class="n">nValues</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Tcl_Size</span><span class="w"> </span><span class="n">i</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">sum</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_GetVector</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">vecPtr</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">dataArr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Rbc_VectorData</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">);</span>
+<span class="w">    </span><span class="n">nValues</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Rbc_VectorLength</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">);</span>
+<span class="w">    </span><span class="n">sum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">nValues</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">sum</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">dataArr</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="o">*</span><span class="n">sumPtr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sum</span><span class="p">;</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The pointer returned by <code class="docutils literal notranslate"><span class="pre">Rbc_VectorData</span></code> remains owned by Rbc. Do not free it. It may also become invalid after
+an operation that resizes, resets, or destroys the vector, so obtain it again after such an operation.</p>
+</section>
+<section id="updating-vectors-from-c">
+<span id="r-rbc-vecinst-updating-vectors-from-c"></span><span id="r-3a3arbc3a3avecinstqzupdating20vectors20from20c"></span><h3>Updating vectors from C<a class="headerlink" href="#updating-vectors-from-c" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_ResetVector</span></code> is the normal way to install externally generated data into an Rbc vector. It also notifies
+clients of the vector that its contents have changed.</p>
+<p>For example, Tcl may create two vectors and use them as graph data:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>X<span class="w"> </span>Y
+<span class="nv">graph</span><span class="w"> </span>.g
+<span class="nv">.g</span><span class="w"> </span>line<span class="w"> </span>create<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>xdata<span class="w"> </span>X<span class="w"> </span><span class="o">-</span>ydata<span class="w"> </span>Y
+</pre></div>
+</div>
+<p>C code can then update both vectors:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;math.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;rbc.h&gt;</span>
+
+<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">UpdateSignal</span><span class="p">(</span><span class="n">Tcl_Interp</span><span class="w"> </span><span class="o">*</span><span class="n">interp</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">Rbc_Vector</span><span class="w"> </span><span class="o">*</span><span class="n">xVecPtr</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Rbc_Vector</span><span class="w"> </span><span class="o">*</span><span class="n">yVecPtr</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="mi">100</span><span class="p">];</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">y</span><span class="p">[</span><span class="mi">100</span><span class="p">];</span>
+<span class="w">    </span><span class="n">Tcl_Size</span><span class="w"> </span><span class="n">i</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_GetVector</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;X&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">xVecPtr</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_GetVector</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Y&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">yVecPtr</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">100</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">i</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">0.01</span><span class="p">;</span>
+<span class="w">        </span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_ResetVector</span><span class="p">(</span><span class="n">xVecPtr</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="n">TCL_VOLATILE</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_ResetVector</span><span class="p">(</span><span class="n">yVecPtr</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="n">TCL_VOLATILE</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">TCL_VOLATILE</span></code> is appropriate here because <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> are local arrays. Rbc copies the supplied values into
+storage that it owns before <code class="docutils literal notranslate"><span class="pre">Rbc_ResetVector</span></code> returns.</p>
+<p>Graph elements or other Rbc clients using <code class="docutils literal notranslate"><span class="pre">X</span></code> and <code class="docutils literal notranslate"><span class="pre">Y</span></code> are notified that the vector contents have changed and
+can update themselves without recreating the vectors.</p>
+</section>
+<section id="data-ownership">
+<span id="r-rbc-vecinst-data-ownership"></span><span id="r-3a3arbc3a3avecinstqzdata20ownership"></span><h3>Data ownership<a class="headerlink" href="#data-ownership" title="Link to this heading">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">freeProc</span></code> argument of <code class="docutils literal notranslate"><span class="pre">Rbc_ResetVector</span></code> specifies who owns <code class="docutils literal notranslate"><span class="pre">dataArr</span></code> and how it will eventually be
+released.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">freeProc</span></code></p></th>
+<th class="head"><p>Storage ownership</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TCL_VOLATILE</span></code></p></td>
+<td><p>Rbc copies the supplied data into its own storage. The caller retains ownership of <code class="docutils literal notranslate"><span class="pre">dataArr</span></code> and may reuse or release it immediately after the call returns.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TCL_STATIC</span></code></p></td>
+<td><p>Rbc uses <code class="docutils literal notranslate"><span class="pre">dataArr</span></code> directly but never frees it. The caller must keep the array valid for as long as the vector uses it.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TCL_DYNAMIC</span></code></p></td>
+<td><p>Rbc takes ownership of <code class="docutils literal notranslate"><span class="pre">dataArr</span></code> and releases it with Tcl’s allocator when the storage is replaced or the vector is destroyed. The array must therefore have been allocated with compatible Tcl allocation routines such as <code class="docutils literal notranslate"><span class="pre">Tcl_Alloc</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>custom <code class="docutils literal notranslate"><span class="pre">Tcl_FreeProc</span> <span class="pre">*</span></code></p></td>
+<td><p>Rbc takes ownership of <code class="docutils literal notranslate"><span class="pre">dataArr</span></code> and invokes the supplied deallocation procedure when the storage is no longer needed.</p></td>
+</tr>
+</tbody>
+</table>
+<p><code class="docutils literal notranslate"><span class="pre">nValues</span></code> specifies the logical number of values currently stored in the vector. <code class="docutils literal notranslate"><span class="pre">arraySize</span></code> specifies the
+capacity of the supplied array and must be greater than or equal to <code class="docutils literal notranslate"><span class="pre">nValues</span></code>.</p>
+<p>Passing <code class="docutils literal notranslate"><span class="pre">NULL</span></code> for <code class="docutils literal notranslate"><span class="pre">dataArr</span></code>, or an <code class="docutils literal notranslate"><span class="pre">arraySize</span></code> of <code class="docutils literal notranslate"><span class="pre">0</span></code>, resets the vector to an empty vector.</p>
+<p>For example, dynamically allocated storage can be transferred directly to a vector:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">SetGeneratedData</span><span class="p">(</span><span class="n">Tcl_Interp</span><span class="w"> </span><span class="o">*</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">Rbc_Vector</span><span class="w"> </span><span class="o">*</span><span class="n">vecPtr</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">dataArr</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Tcl_Size</span><span class="w"> </span><span class="n">nValues</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Tcl_Size</span><span class="w"> </span><span class="n">i</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">nValues</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">100</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_GetVector</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">vecPtr</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">dataArr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">Tcl_Alloc</span><span class="p">((</span><span class="kt">size_t</span><span class="p">)</span><span class="n">nValues</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">));</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">nValues</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">dataArr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">i</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">i</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_ResetVector</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">,</span><span class="w"> </span><span class="n">dataArr</span><span class="p">,</span><span class="w"> </span><span class="n">nValues</span><span class="p">,</span><span class="w"> </span><span class="n">nValues</span><span class="p">,</span><span class="w"> </span><span class="n">TCL_DYNAMIC</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Tcl_Free</span><span class="p">((</span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">dataArr</span><span class="p">);</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="cm">/*</span>
+<span class="cm">     * Rbc now owns dataArr.</span>
+<span class="cm">     * Do not free or reuse it here.</span>
+<span class="cm">     */</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>When <code class="docutils literal notranslate"><span class="pre">TCL_DYNAMIC</span></code> is used, ownership transfers to Rbc only after a successful <code class="docutils literal notranslate"><span class="pre">Rbc_ResetVector</span></code> call.</p>
+</section>
+<section id="creating-vectors-from-c">
+<span id="r-rbc-vecinst-creating-vectors-from-c"></span><span id="r-3a3arbc3a3avecinstqzcreating20vectors20from20c"></span><h3>Creating vectors from C<a class="headerlink" href="#creating-vectors-from-c" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_CreateVector</span></code> creates the Tcl-visible vector and returns its C representation in one operation.</p>
+<p>For example:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">CreateTimeVector</span><span class="p">(</span><span class="n">Tcl_Interp</span><span class="w"> </span><span class="o">*</span><span class="n">interp</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">Rbc_Vector</span><span class="w"> </span><span class="o">*</span><span class="n">vecPtr</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">dataArr</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Tcl_Size</span><span class="w"> </span><span class="n">nValues</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Tcl_Size</span><span class="w"> </span><span class="n">i</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">nValues</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1000</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_CreateVector</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;time&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">nValues</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">vecPtr</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">dataArr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Rbc_VectorData</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">);</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">nValues</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">dataArr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">i</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1.0e-6</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Directly modifying the array returned by <code class="docutils literal notranslate"><span class="pre">Rbc_VectorData</span></code> does not itself notify vector clients. If existing
+clients must observe a change, use <code class="docutils literal notranslate"><span class="pre">Rbc_ResetVector</span></code> to install the new data, or another Rbc vector operation
+that performs the appropriate update notification.</p>
+</section>
+<section id="resizing-a-vector">
+<span id="r-rbc-vecinst-resizing-a-vector"></span><span id="r-3a3arbc3a3avecinstqzresizing20a20vector"></span><h3>Resizing a vector<a class="headerlink" href="#resizing-a-vector" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_ResizeVector</span></code> changes a vector’s logical length and notifies clients of the change.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">Rbc_Vector</span><span class="w"> </span><span class="o">*</span><span class="n">vecPtr</span><span class="p">;</span>
+
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_GetVector</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;data&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">vecPtr</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_ResizeVector</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">,</span><span class="w"> </span><span class="mi">10000</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Values already in the vector are preserved when possible. When a vector is enlarged, newly created components
+are initialized to zero.</p>
+</section>
+<section id="testing-for-a-vector">
+<span id="r-rbc-vecinst-testing-for-a-vector"></span><span id="r-3a3arbc3a3avecinstqztesting20for20a20vector"></span><h3>Testing for a vector<a class="headerlink" href="#testing-for-a-vector" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_VectorExists2</span></code> can be used when C code accepts either an existing vector or needs to create one:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">Rbc_Vector</span><span class="w"> </span><span class="o">*</span><span class="n">vecPtr</span><span class="p">;</span>
+
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_VectorExists2</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;data&quot;</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_GetVector</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;data&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">vecPtr</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_CreateVector</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;data&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">vecPtr</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="destroying-a-vector">
+<span id="r-rbc-vecinst-destroying-a-vector"></span><span id="r-3a3arbc3a3avecinstqzdestroying20a20vector"></span><h3>Destroying a vector<a class="headerlink" href="#destroying-a-vector" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_FreeVector</span></code> destroys a vector obtained from <code class="docutils literal notranslate"><span class="pre">Rbc_GetVector</span></code> or <code class="docutils literal notranslate"><span class="pre">Rbc_CreateVector</span></code>:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">Rbc_Vector</span><span class="w"> </span><span class="o">*</span><span class="n">vecPtr</span><span class="p">;</span>
+
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_GetVector</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;temporary&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">vecPtr</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">Rbc_FreeVector</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">);</span>
+<span class="cm">/*</span>
+<span class="cm"> * vecPtr is invalid from this point onward.</span>
+<span class="cm"> */</span>
+</pre></div>
+</div>
+<p>Destroying the vector also removes its associated Tcl command and array mapping and releases vector storage
+according to the ownership policy established by <code class="docutils literal notranslate"><span class="pre">Rbc_ResetVector</span></code>.</p>
+</section>
+<section id="compatibility-with-older-rbc-vector-apis">
+<span id="r-rbc-vecinst-compatibility-with-older-rbc-vector-apis"></span><span id="r-3a3arbc3a3avecinstqzcompatibility20with20older20rbc20vector20apis"></span><h3>Compatibility with older Rbc vector APIs<a class="headerlink" href="#compatibility-with-older-rbc-vector-apis" title="Link to this heading">¶</a></h3>
+<p>Older BLT and Rbc manuals describe additional C functions for vector client identifiers, change callbacks,
+deletion by name, and custom vector indices. Those routines are not part of the current public Rbc stubs
+interface and are intentionally not documented here.</p>
+<p>Use the functions listed in <a class="reference internal" href="#r-3a3arbc3a3avecinstqzpublic20vector20functions"><span class="std std-ref">Public vector functions</span></a> when writing new extensions.</p>
 <hr class="docutils" />
 <p class="centered">
 <strong>Copyright (c) George Yashin</strong></p></section>
@@ -486,6 +799,19 @@ component:</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#expression-results">Expression results</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c-language-api">C language API</a><ul>
+<li><a class="reference internal" href="#vector-representation">Vector representation</a></li>
+<li><a class="reference internal" href="#public-vector-functions">Public vector functions</a></li>
+<li><a class="reference internal" href="#reading-vector-data">Reading vector data</a></li>
+<li><a class="reference internal" href="#updating-vectors-from-c">Updating vectors from C</a></li>
+<li><a class="reference internal" href="#data-ownership">Data ownership</a></li>
+<li><a class="reference internal" href="#creating-vectors-from-c">Creating vectors from C</a></li>
+<li><a class="reference internal" href="#resizing-a-vector">Resizing a vector</a></li>
+<li><a class="reference internal" href="#testing-for-a-vector">Testing for a vector</a></li>
+<li><a class="reference internal" href="#destroying-a-vector">Destroying a vector</a></li>
+<li><a class="reference internal" href="#compatibility-with-older-rbc-vector-apis">Compatibility with older Rbc vector APIs</a></li>
 </ul>
 </li>
 </ul>
