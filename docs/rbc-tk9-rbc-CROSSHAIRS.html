@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Graph crosshairs CROSSHAIRS command &#8212; rbc  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Graph PostScript POSTSCRIPT command" href="rbc-tk9-rbc-POSTSCRIPT.html" />
+    <link rel="prev" title="Graph grid GRID command" href="rbc-tk9-rbc-GRID.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-POSTSCRIPT.html" title="Graph PostScript POSTSCRIPT command"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-GRID.html" title="Graph grid GRID command"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Graph crosshairs <code class="docutils literal notranslate"><span class="pre">CROSSHAIRS</span></code> command</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="graph-crosshairs-crosshairs-command">
+<span id="r-graph-crosshairs-crosshairs-command"></span><span id="r-graph20crosshairs2060crosshairs6020command"></span><span id="r-3a3arbc3a3acrosshairs"></span><h1>Graph crosshairs <code class="docutils literal notranslate"><span class="pre">CROSSHAIRS</span></code> command<a class="headerlink" href="#graph-crosshairs-crosshairs-command" title="Link to this heading">¶</a></h1>
+<p>Commands in this namespace document the graph crosshairs.</p>
+<p><code class="docutils literal notranslate"><span class="pre">CROSSHAIRS</span></code> is used below as a placeholder for:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">GRAPHINST</span><span class="w"> </span>crosshairs
+</pre></div>
+</div>
+<p>Crosshairs are a pair of horizontal and vertical lines that intersect at a selected position in the plotting
+area.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">graph</span><span class="w"> </span>.g
+<span class="nv">.g</span><span class="w"> </span>crosshairs<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>position<span class="w"> </span>@100,80<span class="w"> </span><span class="o">-</span>hide<span class="w"> </span>no
+</pre></div>
+</div>
+<p>The vertical line extends across the height of the plotting area and the horizontal line extends across its
+width.</p>
+<p>The crosshairs are a single graph component. There are no named crosshair objects.</p>
+<section id="crosshair-position">
+<span id="r-rbc-crosshairs-crosshair-position"></span><span id="r-3a3arbc3a3acrosshairsqzcrosshair20position"></span><h2>Crosshair position<a class="headerlink" href="#crosshair-position" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">-position</span></code> option specifies the point where the horizontal and vertical lines intersect.</p>
+<p>Positions use widget screen coordinates rather than graph data coordinates and have the form:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span>@x,y
+</pre></div>
+</div>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>crosshairs<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>position<span class="w"> </span>@120,75
+</pre></div>
+</div>
+<p>Both <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> are Tk screen distances, so standard Tk distance units may be used:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>crosshairs<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>position<span class="w"> </span>@2c,1c
+</pre></div>
+</div>
+<p>An empty <code class="docutils literal notranslate"><span class="pre">-position</span></code> value leaves the crosshairs without a drawable position.</p>
+<p>Crosshairs are displayed only when their position lies inside the graph plotting area. Therefore making the
+crosshairs visible does not cause lines to be drawn if the configured position is outside that area.</p>
+<p>Crosshair positions are commonly updated from pointer events:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">bind</span><span class="w"> </span>.g<span class="w"> </span><span class="o">&lt;</span>Motion<span class="o">&gt;</span><span class="w"> </span><span class="k">{</span>
+<span class="w">    </span><span class="o">%</span><span class="nv">W</span><span class="w"> </span>crosshairs<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>position<span class="w"> </span>@<span class="o">%</span>x,<span class="o">%</span>y
+<span class="k">}</span>
+</pre></div>
+</div>
+</section>
+<section id="showing-and-hiding-crosshairs">
+<span id="r-rbc-crosshairs-showing-and-hiding-crosshairs"></span><span id="r-3a3arbc3a3acrosshairsqzshowing20and20hiding20crosshairs"></span><h2>Showing and hiding crosshairs<a class="headerlink" href="#showing-and-hiding-crosshairs" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">-hide</span></code> option controls whether crosshairs are enabled:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>crosshairs<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>hide<span class="w"> </span>no
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">CROSSHAIRS</span> <span class="pre">on</span></code>, <code class="docutils literal notranslate"><span class="pre">CROSSHAIRS</span> <span class="pre">off</span></code>, and <code class="docutils literal notranslate"><span class="pre">CROSSHAIRS</span> <span class="pre">toggle</span></code> provide convenient alternatives:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>crosshairs<span class="w"> </span>on
+<span class="nv">.g</span><span class="w"> </span>crosshairs<span class="w"> </span>off
+<span class="nv">.g</span><span class="w"> </span>crosshairs<span class="w"> </span>toggle
+</pre></div>
+</div>
+<p>These operations change the same state represented by <code class="docutils literal notranslate"><span class="pre">-hide</span></code>.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>crosshairs<span class="w"> </span>off
+<span class="nb">puts</span><span class="w"> </span><span class="k">[</span><span class="nv">.g</span><span class="w"> </span>crosshairs<span class="w"> </span>cget<span class="w"> </span><span class="o">-</span>hide<span class="k">]</span>
+</pre></div>
+</div>
+<p>reports a true value.</p>
+<p>Crosshairs are hidden by default.</p>
+</section>
+<section id="crosshair-appearance">
+<span id="r-rbc-crosshairs-crosshair-appearance"></span><span id="r-3a3arbc3a3acrosshairsqzcrosshair20appearance"></span><h2>Crosshair appearance<a class="headerlink" href="#crosshair-appearance" title="Link to this heading">¶</a></h2>
+<p>The crosshair lines may be configured independently of graph elements:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>crosshairs<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>color<span class="w"> </span>red<span class="w"> </span><span class="o">-</span>linewidth<span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">-</span>dashes<span class="w"> </span><span class="k">{</span><span class="nv">4</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span>
+</pre></div>
+</div>
+<p>An empty <code class="docutils literal notranslate"><span class="pre">-dashes</span></code> value selects solid lines.</p>
+<p>Crosshairs are drawn directly over the graph and can therefore be moved or removed without requiring the graph
+contents to be redrawn.</p>
+</section>
+<section id="crosshairs-options">
+<span id="r-rbc-crosshairs-crosshairs-options"></span><span id="r-3a3arbc3a3acrosshairsqzcrosshairs20options"></span><h2>Crosshairs options<a class="headerlink" href="#crosshairs-options" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-color</span> <span class="pre">color</span></code></p></td>
+<td><p>Specifies the color of the crosshair lines. The default is <code class="docutils literal notranslate"><span class="pre">black</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-dashes</span> <span class="pre">dashList</span></code></p></td>
+<td><p>Specifies the dash pattern used for the crosshair lines. An empty value selects solid lines. The default is empty.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">boolean</span></code></p></td>
+<td><p>Specifies whether the crosshairs are hidden. The default is <code class="docutils literal notranslate"><span class="pre">yes</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-linewidth</span> <span class="pre">distance</span></code></p></td>
+<td><p>Specifies the width of the crosshair lines. The value must be non-negative. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-position</span> <span class="pre">position</span></code></p></td>
+<td><p>Specifies the intersection of the crosshair lines as a widget screen position of the form <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code>. An empty value specifies no drawable position. The default is empty.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Crosshair configuration options may also be supplied through Tk’s option database. The resource name is
+<code class="docutils literal notranslate"><span class="pre">crosshairs</span></code> and the resource class is <code class="docutils literal notranslate"><span class="pre">Crosshairs</span></code>.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">option</span><span class="w"> </span>add<span class="w"> </span><span class="o">*</span>Graph.crosshairs.Color<span class="w"> </span>red
+<span class="nv">option</span><span class="w"> </span>add<span class="w"> </span><span class="o">*</span>Graph.Crosshairs.Linewidth<span class="w"> </span><span class="mi">1</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+<p class="centered">
+<strong>Copyright (c) George Yashin</strong></p></section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Graph crosshairs <code class="docutils literal notranslate"><span class="pre">CROSSHAIRS</span></code> command</a><ul>
+<li><a class="reference internal" href="#crosshair-position">Crosshair position</a></li>
+<li><a class="reference internal" href="#showing-and-hiding-crosshairs">Showing and hiding crosshairs</a></li>
+<li><a class="reference internal" href="#crosshair-appearance">Crosshair appearance</a></li>
+<li><a class="reference internal" href="#crosshairs-options">Crosshairs options</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rbc-tk9-rbc-GRID.html"
+                          title="previous chapter">Graph grid <code class="docutils literal notranslate"><span class="pre">GRID</span></code> command</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rbc-tk9-rbc-POSTSCRIPT.html"
+                          title="next chapter">Graph PostScript <code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span></code> command</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rbc-tk9-rbc-CROSSHAIRS.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-POSTSCRIPT.html" title="Graph PostScript POSTSCRIPT command"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-GRID.html" title="Graph grid GRID command"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Graph crosshairs <code class="docutils literal notranslate"><span class="pre">CROSSHAIRS</span></code> command</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright George Yashin.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    </div>
+  </body>
+</html>

@@ -2358,3 +2358,1207 @@ namespace eval ::rbc::PEN {
     namespace export *
     namespace ensemble create
 }
+
+namespace eval ::rbc::MARKER {
+    variable _ruff_ns_opts {
+        -heading {Graph marker `MARKER` command}
+        -excludeprocs {.*}
+    }
+
+    variable _ruff_preamble {
+        Commands in this namespace document graph markers.
+
+        `MARKER` is used below as a placeholder for:
+
+        ```tcl
+        GRAPHINST marker
+        ```
+
+        Markers are graph annotations. They are independent of graph elements and do not contribute to the calculation
+        of axis limits.
+
+        Rbc provides six marker types:
+
+        | Type      | Description                                  |
+        |-----------|----------------------------------------------|
+        | `bitmap`  | Displays a Tk bitmap                         |
+        | `image`   | Displays a Tk image                          |
+        | `line`    | Displays one or more connected line segments |
+        | `polygon` | Displays a filled and/or outlined polygon    |
+        | `text`    | Displays text                                |
+        | `window`  | Displays an embedded Tk window               |
+
+        A marker is created by specifying its type:
+        ```tcl
+        graph .g
+        .g marker create text -name label -coords {1.0 2.0} -text "Operating point"
+        .g marker create line -name limit -coords {0 5 10 5} -outline red
+        ```
+
+        Unlike elements and pens, the marker name is not a positional argument of `MARKER create`. Use `-name` to
+        select an explicit name. If `-name` is omitted, Rbc generates a marker name.
+
+        ## Marker coordinates
+        Marker coordinates are graph coordinates and are mapped through the axes selected by `-mapx` and `-mapy`.
+
+        The number of coordinates depends on the marker type:
+
+        | Marker type | Coordinates             |
+        |-------------|-------------------------|
+        | `bitmap`    | One or two X-Y pairs    |
+        | `image`     | One X-Y pair            |
+        | `line`      | Two or more X-Y pairs   |
+        | `polygon`   | Three or more X-Y pairs |
+        | `text`      | One X-Y pair            |
+        | `window`    | One X-Y pair            |
+
+        An empty `-coords` value leaves the marker without drawable coordinates.
+
+        Markers may also use `-Inf` and `Inf` coordinates. These track the minimum and maximum limits of the
+        corresponding axis. This is useful for annotations that must remain attached to an edge of the plotting area.
+
+        For example:
+        ```tcl
+        .g marker create text -coords {-Inf Inf} -anchor nw -text "upper left"
+        ```
+
+        ## Drawing order
+        Markers have their own display order. `MARKER before` and `MARKER after` change the position of a marker in
+        that order.
+
+        By default markers are drawn over graph elements. The `-under` option changes whether an individual marker is
+        drawn below or above the element layer.
+
+        ```tcl
+        .g marker configure region -under yes
+        ```
+
+        The marker ordering operations affect ordering between markers; they do not replace the `-under` setting.
+
+        ## Element association
+        `-element` associates a marker with an element:
+
+        ```tcl
+        .g marker create text -name note -element signal -coords {2 5} -text signal
+        ```
+
+        The marker is displayed only while the associated element is displayed. An empty `-element` value removes the
+        association.
+
+        ## Marker bindings
+        Markers participate in graph component bindings. Bindings are made with `MARKER bind`.
+
+        Every marker has its marker name as an implicit binding tag. Additional tags are selected with `-bindtags`.
+
+        The default binding tags depend on the marker type:
+
+        | Type      | Default `-bindtags` |
+        |-----------|---------------------|
+        | `bitmap`  | `Bitmap all`        |
+        | `image`   | `Image all`         |
+        | `line`    | `Line all`          |
+        | `polygon` | `Polygon all`       |
+        | `text`    | `Text all`          |
+        | `window`  | `Window all`        |
+
+        For example:
+        ```tcl
+        .g marker create text -name note -coords {1 2} -text "click me" -bindtags {annotation all}
+        .g marker bind annotation <Button-1> {
+            puts "annotation selected"
+        }
+        ```
+
+        ## Marker types and options
+        All marker types share the coordinate, visibility, axis-mapping, naming, binding, state, drawing-order, and
+        offset options described below. Each concrete marker type then adds its own drawing options.
+
+        `MARKER cget` and `MARKER configure` operate on the option table of the concrete marker being addressed. An
+        option valid for one marker type is not necessarily valid for another.
+
+        ### Common marker options
+
+        | Option                 | Description                                                                                                                                                        |
+        |------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+        | `-bindtags tagList`    | Specifies additional binding tags associated with the marker. The marker name is always an implicit binding tag. The default class tag depends on the marker type. |
+        | `-coords coordList`    | Specifies the graph coordinates of the marker. The required number of coordinates depends on the marker type. The default is empty.                                |
+        | `-element elementName` | Associates the marker with an element. The marker is displayed only while that element is displayed. An empty value removes the association.                       |
+        | `-hide boolean`        | Specifies whether the marker is hidden. The default is `no`.                                                                                                       |
+        | `-mapx axisName`       | Specifies the X axis used to map marker coordinates. The default is `x`.                                                                                           |
+        | `-mapy axisName`       | Specifies the Y axis used to map marker coordinates. The default is `y`.                                                                                           |
+        | `-name markerName`     | Specifies the marker name. When omitted during creation, Rbc generates a name.                                                                                     |
+        | `-state state`         | Specifies the marker state. The default is `normal`.                                                                                                               |
+        | `-under boolean`       | Specifies whether the marker is drawn below graph elements rather than above them. The default is `no`.                                                            |
+        | `-xoffset distance`    | Adds a horizontal screen-coordinate offset after the marker has been mapped. The default is `0`.                                                                   |
+        | `-yoffset distance`    | Adds a vertical screen-coordinate offset after the marker has been mapped. The default is `0`.                                                                     |
+
+        ### Bitmap marker options
+        Bitmap markers display a Tk bitmap.
+
+        ```tcl
+        .g marker create bitmap -name bitmap1 -coords {1 2} -bitmap questhead
+        ```
+
+        In addition to the common marker options, bitmap markers support:
+
+        | Option              | Description                                                                                            |
+        |---------------------|--------------------------------------------------------------------------------------------------------|
+        | `-anchor anchor`    | Specifies how the bitmap is positioned relative to its reference coordinates. The default is `center`. |
+        | `-background color` | Specifies the bitmap background color. This is a synonym for `-fill`.                                  |
+        | `-bg color`         | Synonym for `-background`.                                                                             |
+        | `-bitmap bitmap`    | Specifies the Tk bitmap to display.                                                                    |
+        | `-fill color`       | Specifies the bitmap background color.                                                                 |
+        | `-foreground color` | Specifies the bitmap foreground color. This is a synonym for `-outline`.                               |
+        | `-fg color`         | Synonym for `-foreground`.                                                                             |
+        | `-mask bitmap`      | Specifies an optional bitmap mask.                                                                     |
+        | `-outline color`    | Specifies the bitmap foreground color.                                                                 |
+        | `-rotate degrees`   | Specifies the rotation angle in degrees. The default is `0`.                                           |
+
+        ### Image marker options
+        Image markers display a Tk image.
+
+        ```tcl
+        image create photo icon -file icon.png
+        .g marker create image -name iconMarker -coords {1 2} -image icon
+        ```
+
+        In addition to the common marker options, image markers support:
+
+        | Option             | Description                                                                                |
+        |--------------------|--------------------------------------------------------------------------------------------|
+        | `-anchor anchor`   | Specifies how the image is positioned relative to its coordinate. The default is `center`. |
+        | `-image imageName` | Specifies the Tk image to display.                                                         |
+
+        ### Line marker options
+        Line markers draw connected line segments through their X-Y coordinate pairs.
+
+        ```tcl
+        .g marker create line -name threshold -coords {-Inf 5 Inf 5} -outline red -linewidth 2
+        ```
+
+        In addition to the common marker options, line markers support:
+
+        | Option                 | Description                                                                                                            |
+        |------------------------|------------------------------------------------------------------------------------------------------------------------|
+        | `-cap style`           | Specifies the line cap style. Accepted styles are `butt`, `projecting`, and `round`. The default is `butt`.            |
+        | `-dashes dashList`     | Specifies the dash pattern. An empty value selects a solid line.                                                       |
+        | `-dashoffset distance` | Specifies the offset into the dash pattern. The default is `0`.                                                        |
+        | `-fill color`          | Specifies the secondary line color. An empty value disables the secondary color.                                       |
+        | `-join style`          | Specifies how adjacent segments are joined. Accepted styles are `bevel`, `miter`, and `round`. The default is `miter`. |
+        | `-linewidth distance`  | Specifies the line width. The default is `1`.                                                                          |
+        | `-outline color`       | Specifies the primary line color. The default is `black`.                                                              |
+        | `-xor boolean`         | Specifies whether the line is drawn using XOR drawing. The default is `no`.                                            |
+
+        ### Polygon marker options
+        Polygon markers draw the closed polygon formed by their coordinate pairs.
+
+        ```tcl
+        .g marker create polygon -name region -coords {0 0 4 0 4 3 0 3} -fill lightblue -outline navy
+        ```
+
+        In addition to the common marker options, polygon markers support:
+
+        | Option                | Description                                                                                              |
+        |-----------------------|----------------------------------------------------------------------------------------------------------|
+        | `-dashes dashList`    | Specifies the dash pattern used for the polygon outline. An empty value selects a solid outline.         |
+        | `-fill color`         | Specifies the polygon fill color. An empty value makes the interior transparent.                         |
+        | `-linewidth distance` | Specifies the width of the polygon outline.                                                              |
+        | `-outline color`      | Specifies the color of the polygon outline.                                                              |
+        | `-stipple bitmap`     | Specifies an optional stipple bitmap used when filling the polygon. An empty value selects a solid fill. |
+
+        ### Text marker options
+        Text markers display one or more lines of text.
+
+        ```tcl
+        .g marker create text -name annotation -coords {3 8} -text "maximum" -anchor s
+        ```
+
+        In addition to the common marker options, text markers support:
+
+        | Option              | Description                                                                               |
+        |---------------------|-------------------------------------------------------------------------------------------|
+        | `-anchor anchor`    | Specifies how the text is positioned relative to its coordinate. The default is `center`. |
+        | `-background color` | Specifies the text background color. This is a synonym for `-fill`.                       |
+        | `-bg color`         | Synonym for `-background`.                                                                |
+        | `-fill color`       | Specifies the text background color.                                                      |
+        | `-font font`        | Specifies the font used to draw the text.                                                 |
+        | `-foreground color` | Specifies the text color. This is a synonym for `-outline`.                               |
+        | `-fg color`         | Synonym for `-foreground`.                                                                |
+        | `-justify justify`  | Specifies justification of multiline text. The default is `left`.                         |
+        | `-outline color`    | Specifies the text color. The default is `black`.                                         |
+        | `-padx padding`     | Specifies horizontal padding around the text. The default is `4`.                         |
+        | `-pady padding`     | Specifies vertical padding around the text. The default is `4`.                           |
+        | `-rotate degrees`   | Specifies the text rotation angle in degrees. The default is `0`.                         |
+        | `-shadow shadow`    | Specifies the text shadow.                                                                |
+        | `-text text`        | Specifies the text to display.                                                            |
+
+        ### Window marker options
+        Window markers display a Tk window inside the graph.
+
+        The window must be managed by the graph marker.
+
+        ```tcl
+        button .g.info -text Info
+        .g marker create window -name infoMarker -coords {2 4} -window .g.info
+        ```
+
+        In addition to the common marker options, window markers support:
+
+        | Option             | Description                                                                                     |
+        |--------------------|-------------------------------------------------------------------------------------------------|
+        | `-anchor anchor`   | Specifies how the window is positioned relative to its coordinate. The default is `center`.     |
+        | `-height distance` | Specifies an explicit height for the embedded window. A value of `0` uses its requested height. |
+        | `-width distance`  | Specifies an explicit width for the embedded window. A value of `0` uses its requested width.   |
+        | `-window pathName` | Specifies the Tk window managed by the marker.                                                  |
+
+        ## Option database
+        Marker options may be supplied through Tk's option database. Each concrete marker type has its own resource
+        class:
+
+        | Marker type | Resource class  |
+        |-------------|-----------------|
+        | `bitmap`    | `BitmapMarker`  |
+        | `image`     | `ImageMarker`   |
+        | `line`      | `LineMarker`    |
+        | `polygon`   | `PolygonMarker` |
+        | `text`      | `TextMarker`    |
+        | `window`    | `WindowMarker`  |
+
+        The resource name is the marker name.
+
+        For example:
+        ```tcl
+        option add *Graph.TextMarker.Foreground navy
+        option add *Graph.LineMarker.LineWidth 2
+        ```
+    }
+
+    proc after {markerName args} {
+        # Changes the position of a marker in the marker display list. If `afterMarker` is specified, `markerName` is
+        # moved immediately after it. If it is omitted, `markerName` is moved to the end of the marker display list.
+        # markerName - name of the marker to move.
+        # afterMarker - optional marker after which `markerName` is placed.
+        # Returns: Nothing.
+        # Synopsis: markerName ?afterMarker?
+    }
+
+    proc before {markerName args} {
+        # Changes the position of a marker in the marker display list. If `beforeMarker` is specified, `markerName` is
+        # moved immediately before it. If it is omitted, `markerName` is moved to the beginning of the marker display
+        # list.
+        # markerName - name of the marker to move.
+        # beforeMarker - optional marker before which `markerName` is placed.
+        # Returns: Nothing.
+        # Synopsis: markerName ?beforeMarker?
+    }
+
+    proc bind {tagName args} {
+        # Queries or changes event bindings associated with a marker binding tag. With only `tagName`, returns the
+        # sequences for which bindings exist. With `sequence`, returns the binding for that sequence. With `command`,
+        # creates or replaces the binding.
+        # tagName - marker binding tag.
+        # sequence - optional event sequence.
+        # command - optional Tcl command to invoke for the binding.
+        # Returns: Binding information when querying, otherwise nothing.
+        # Synopsis: tagName ?sequence? ?command?
+    }
+
+    proc cget {markerName option} {
+        # Returns the current value of one configuration option of a marker. The available options depend on the
+        # concrete marker type. See [Marker types and options][Marker types and options].
+        # markerName - name of the marker.
+        # option - marker configuration option.
+        # Returns: Current value of the requested option.
+        # Synopsis: markerName option
+    }
+
+    proc configure {markerName args} {
+        # Queries or modifies marker configuration options. With no additional arguments, returns all configuration
+        # information. With one option, returns information for that option. Otherwise `args` contains option/value
+        # pairs to change. See [Marker types and options][Marker types and options].
+        # markerName - name of the marker.
+        # option - marker configuration option.
+        # value - new value for the option.
+        # Returns: Configuration information when querying, otherwise nothing.
+        # Synopsis: markerName ?option? ?value ...?
+    }
+
+    proc create {type args} {
+        # Creates a new marker of the specified type. `type` may be `bitmap`, `image`, `line`, `polygon`, `text`, or
+        # `window`. Use `-name` to specify an explicit marker name; otherwise Rbc generates one automatically. See
+        # [Marker types and options][Marker types and options].
+        # type - type of marker to create.
+        # option - initial marker configuration option.
+        # value - initial value for the option.
+        # Returns: Name of the newly created marker.
+        # Synopsis: type ?option value ...?
+    }
+
+    proc delete {args} {
+        # Deletes one or more markers. Supplying no marker names has no effect.
+        # markerName - name of a marker to delete.
+        # Returns: Nothing.
+        # Synopsis: ?markerName ...?
+    }
+
+    proc exists {markerName} {
+        # Reports whether a marker with the specified name exists.
+        # markerName - marker name to test.
+        # Returns: `1` if the marker exists and `0` otherwise.
+        # Synopsis: markerName
+    }
+
+    proc find {mode x1 y1 x2 y2} {
+        # Finds markers relative to a rectangular screen region. `mode` may be `enclosed`, which selects markers
+        # completely contained by the region, or `overlapping`, which selects markers that intersect it.
+        # mode - search mode, `enclosed` or `overlapping`.
+        # x1 - first X coordinate of the search rectangle.
+        # y1 - first Y coordinate of the search rectangle.
+        # x2 - second X coordinate of the search rectangle.
+        # y2 - second Y coordinate of the search rectangle.
+        # Returns: List of matching marker names.
+        # Synopsis: enclosed|overlapping x1 y1 x2 y2
+    }
+
+    proc get {name} {
+        # Returns markers selected by a marker name or marker binding tag.
+        # name - marker name or marker binding tag.
+        # Returns: List of matching marker names.
+        # Synopsis: name
+    }
+
+    proc names {args} {
+        # Returns marker names. If patterns are supplied, only marker names matching at least one glob pattern are
+        # returned.
+        # pattern - optional glob pattern used to select marker names.
+        # Returns: List of marker names.
+        # Synopsis: ?pattern ...?
+    }
+
+    proc type {markerName} {
+        # Returns the concrete type of an existing marker.
+        # markerName - name of the marker.
+        # Returns: Marker type: `bitmap`, `image`, `line`, `polygon`, `text`, or `window`.
+        # Synopsis: markerName
+    }
+
+    namespace export *
+    namespace ensemble create
+}
+
+namespace eval ::rbc::LEGEND {
+    variable _ruff_ns_opts {
+        -heading {Graph legend `LEGEND` command}
+        -excludeprocs {.*}
+    }
+
+    variable _ruff_preamble {
+        Commands in this namespace document the graph legend.
+
+        `LEGEND` is used below as a placeholder for:
+
+        ```tcl
+        GRAPHINST legend
+        ```
+
+        The legend displays an entry for graph elements. Each entry contains the element's symbol and label and uses the
+        drawing attributes of that element.
+
+        For example:
+        ```tcl
+        graph .g
+
+        .g element create signal1 -x {0 1 2 3} -y {1 4 2 5} -label "Input"
+        .g element create signal2 -x {0 1 2 3} -y {3 2 5 4} -label "Output"
+        .g legend configure -position rightmargin
+        ```
+
+        The legend is a single component of the graph. Unlike elements, markers, or pens, there are no named legend
+        objects.
+
+        ## Legend entries
+        Legend entries correspond to graph elements. The element's `-label` option supplies the text displayed in the
+        legend.
+
+        The order of legend entries follows the element display order.
+
+        Legend entries may be made active independently of the corresponding graph elements:
+        ```tcl
+        .g legend activate signal1
+        .g legend deactivate signal1
+        ```
+
+        Activating a legend entry changes only its appearance in the legend. To highlight the graph element itself,
+        activate the element separately:
+        ```tcl
+        .g legend activate signal1
+        .g element activate signal1
+        ```
+
+        ## Legend position
+        The `-position` option determines where the legend is displayed.
+
+        | Position       | Description                                                       |
+        |----------------|-------------------------------------------------------------------|
+        | `leftmargin`   | Draws the legend in the left graph margin.                        |
+        | `rightmargin`  | Draws the legend in the right graph margin. This is the default.  |
+        | `topmargin`    | Draws the legend in the top graph margin.                         |
+        | `bottommargin` | Draws the legend in the bottom graph margin.                      |
+        | `plotarea`     | Draws the legend inside the plotting area.                        |
+        | `@x,y`         | Places the legend at the specified screen coordinates.            |
+        | `.window`      | Creates an external legend window with the specified Tk pathname. |
+
+        For example:
+        ```tcl
+        .g legend configure -position plotarea -anchor ne
+        ```
+
+        places the legend in the upper-right part of the plotting area.
+
+        An explicit screen position may also be used:
+        ```tcl
+        .g legend configure -position @20,30 -anchor nw
+        ```
+
+        For an `@x,y` position, negative coordinates are measured from the opposite edge of the graph. For example, a
+        negative X coordinate is relative to the right edge and a negative Y coordinate is relative to the bottom edge.
+
+        A pathname beginning with `.` selects an external legend window:
+        ```tcl
+        .g legend configure -position .legend
+        ```
+
+        Rbc creates the window at that pathname and draws the legend into it. If the external legend window is
+        destroyed, the legend returns to `rightmargin`.
+
+        The `-anchor` option controls how the legend is positioned relative to its selected site or screen coordinate.
+
+        ## Legend layout
+        Legend entries are arranged as a table.
+
+        `-rows` and `-columns` can be used to request a particular table shape:
+        ```tcl
+        .g legend configure -columns 2
+        ```
+
+        A value of `0` leaves that dimension automatic.
+
+        `-ipadx` and `-ipady` specify padding inside individual legend entries. `-padx` and `-pady` specify padding
+        around the outside of the complete legend.
+
+        Each padding value may contain either one screen distance or two:
+        ```tcl
+        .g legend configure -ipadx {2 6} -pady {4 8}
+        ```
+
+        A single value applies equally to both sides. Two values specify the two sides independently.
+
+        ## Active entries
+        `LEGEND activate` marks entries for drawing with the active legend style.
+
+        The active appearance is controlled by:
+        - `-activebackground`
+        - `-activeborderwidth`
+        - `-activeforeground`
+        - `-activerelief`
+
+        For example:
+        ```tcl
+        .g legend configure -activebackground lightblue -activeforeground navy -activerelief raised
+        .g legend activate signal1
+        ```
+
+        `LEGEND deactivate` restores the normal legend appearance.
+
+        ## Legend bindings
+        Event bindings may be associated with legend entries using `LEGEND bind`.
+
+        Element names act as binding tags for their corresponding legend entries:
+        ```tcl
+        .g legend bind signal1 <Button-1> {
+            puts "signal1"
+        }
+        ```
+
+        The element under the current pointer may be obtained with `LEGEND get` and used by a binding:
+        ```tcl
+        .g legend bind all <Button-1> {
+            set element [.g legend get current]
+            puts $element
+        }
+        ```
+
+        `LEGEND get` can also identify the entry at an explicit screen position.
+
+        ## Legend options
+
+        | Option                        | Description                                                                                                                                                                        |
+        |-------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+        | `-activebackground color`     | Specifies the background color used for active legend entries.                                                                                                                     |
+        | `-activeborderwidth distance` | Specifies the border width around an active legend entry. The default is `2`.                                                                                                      |
+        | `-activeforeground color`     | Specifies the text color used for active legend entries.                                                                                                                           |
+        | `-activerelief relief`        | Specifies the relief used for active legend entries. The default is `flat`.                                                                                                        |
+        | `-anchor anchor`              | Specifies how the legend is positioned relative to the location selected by `-position`. The default is `n`.                                                                       |
+        | `-background color`           | Specifies the legend background. An empty value makes the legend background transparent.                                                                                           |
+        | `-bg color`                   | Synonym for `-background`.                                                                                                                                                         |
+        | `-borderwidth distance`       | Specifies the width of the border around the complete legend.                                                                                                                      |
+        | `-bd distance`                | Synonym for `-borderwidth`.                                                                                                                                                        |
+        | `-columns number`             | Requests the number of columns used to arrange legend entries. `0` selects automatic layout. The default is `0`.                                                                   |
+        | `-font font`                  | Specifies the font used for element labels in the legend.                                                                                                                          |
+        | `-foreground color`           | Specifies the normal text color of legend entries.                                                                                                                                 |
+        | `-fg color`                   | Synonym for `-foreground`.                                                                                                                                                         |
+        | `-hide boolean`               | Specifies whether the legend is hidden. The default is `no`.                                                                                                                       |
+        | `-ipadx padding`              | Specifies horizontal padding inside each legend entry. The default is `1`.                                                                                                         |
+        | `-ipady padding`              | Specifies vertical padding inside each legend entry. The default is `1`.                                                                                                           |
+        | `-padx padding`               | Specifies horizontal padding around the complete legend. The default is `1`.                                                                                                       |
+        | `-pady padding`               | Specifies vertical padding around the complete legend. The default is `1`.                                                                                                         |
+        | `-position position`          | Specifies where the legend is drawn. Accepted forms are `leftmargin`, `rightmargin`, `topmargin`, `bottommargin`, `plotarea`, `.window`, and `@x,y`. The default is `rightmargin`. |
+        | `-raised boolean`             | Specifies whether the legend is drawn above graph elements when the legend overlaps the plotting area. The default is `no`.                                                        |
+        | `-relief relief`              | Specifies the relief of the border around the complete legend. The default is `sunken`.                                                                                            |
+        | `-rows number`                | Requests the number of rows used to arrange legend entries. `0` selects automatic layout. The default is `0`.                                                                      |
+        | `-shadow shadow`              | Specifies a shadow for legend entry text. An empty value disables the shadow.                                                                                                      |
+
+        Legend configuration options may also be set through Tk's option database. The resource name is `legend` and
+        the resource class is `Legend`.
+
+        For example:
+        ```tcl
+        option add *Graph.legend.Foreground navy
+        option add *Graph.Legend.Relief raised
+        ```
+    }
+
+    proc activate {args} {
+        # Marks matching legend entries active. Each pattern is matched against element names. Active entries are drawn
+        # using the legend's active background, foreground, border width, and relief.
+        # pattern - glob pattern selecting element names whose legend entries are activated.
+        # Returns: Nothing.
+        # Synopsis: pattern ?pattern ...?
+    }
+
+    proc bind {tagName args} {
+        # Queries or changes event bindings for legend entries associated with `tagName`. Element names are implicit
+        # binding tags. With no sequence, returns the bound event sequences. With a sequence but no command, returns the
+        # current binding. With a sequence and command, creates or replaces the binding; a command beginning with `+`
+        # appends to an existing binding.
+        # tagName - legend entry binding tag.
+        # sequence - optional event sequence.
+        # command - optional Tcl command associated with the event sequence.
+        # Returns: Binding information when querying, otherwise nothing.
+        # Synopsis: tagName ?sequence? ?command?
+    }
+
+    proc cget {option} {
+        # Returns the current value of one legend configuration option. See [Legend options][Legend options].
+        # option - legend configuration option.
+        # Returns: Current value of the requested option.
+        # Synopsis: option
+    }
+
+    proc configure {args} {
+        # Queries or modifies legend configuration options. With no arguments, returns all configuration information.
+        # With one option, returns information for that option. Otherwise `args` contains option/value pairs to change.
+        # See [Legend options][Legend options].
+        # option - legend configuration option.
+        # value - new value for the option.
+        # Returns: Configuration information when querying, otherwise nothing.
+        # Synopsis: ?option? ?value ...?
+    }
+
+    proc deactivate {args} {
+        # Marks matching legend entries inactive. Each pattern is matched against element names. Inactive entries are
+        # drawn using the normal legend appearance.
+        # pattern - glob pattern selecting element names whose legend entries are deactivated.
+        # Returns: Nothing.
+        # Synopsis: pattern ?pattern ...?
+    }
+
+    proc get {position} {
+        # Returns the element name represented by the legend entry at `position`. `position` may be `current`, meaning
+        # the legend entry currently under the pointer, or an explicit screen coordinate of the form `@x,y`. If no
+        # legend entry is present at the requested position, an empty string is returned.
+        # position - `current` or a screen position of the form `@x,y`.
+        # Returns: Name of the corresponding graph element, or an empty string if no entry is found.
+        # Synopsis: current|@x,y
+    }
+
+    namespace export *
+    namespace ensemble create
+}
+
+namespace eval ::rbc::GRID {
+    variable _ruff_ns_opts {
+        -heading {Graph grid `GRID` command}
+        -excludeprocs {.*}
+    }
+
+    variable _ruff_preamble {
+        Commands in this namespace document the graph grid.
+
+        `GRID` is used below as a placeholder for:
+
+        ```tcl
+        GRAPHINST grid
+        ```
+
+        The grid draws horizontal and vertical lines across the plotting area at axis tick positions.
+
+        For example:
+        ```tcl
+        graph .g
+        .g grid configure -hide no -color grey70 -dashes dot
+        ```
+
+        The grid is a single component of the graph. Unlike elements, markers, or pens, there are no named grid
+        objects.
+
+        ## Grid axes
+        `-mapx` and `-mapy` select the axes whose tick positions are used to generate the grid.
+
+        `-mapx` controls the vertical grid lines:
+        ```tcl
+        .g grid configure -mapx x
+        ```
+
+        `-mapy` controls the horizontal grid lines:
+        ```tcl
+        .g grid configure -mapy y
+        ```
+
+        Either mapping may be empty to disable grid lines for that direction:
+        ```tcl
+        .g grid configure -mapx {}
+        ```
+
+        This is especially useful for bar charts, where the default grid uses only the Y axis.
+
+        The axis names refer to graph axes documented by [AXIS].
+
+        ## Major and minor grid lines
+        Grid lines normally follow both major and minor axis ticks.
+
+        The `-minor` option controls whether lines are also drawn at minor tick positions:
+
+        ```tcl
+        .g grid configure -minor no
+        ```
+
+        With `-minor no`, only major tick positions generate grid lines. With `-minor yes`, minor tick positions are
+        included as well.
+
+        The number and spacing of the grid lines therefore depend on the tick configuration of the mapped axes.
+
+        ## Showing and hiding the grid
+        The `-hide` option controls grid visibility:
+        ```tcl
+        .g grid configure -hide no
+        ```
+
+        The `GRID on`, `GRID off`, and `GRID toggle` operations provide convenient alternatives:
+        ```tcl
+        .g grid on
+        .g grid off
+        .g grid toggle
+        ```
+
+        These operations change the same state represented by `-hide`. For example, after:
+        ```tcl
+        .g grid off
+        ```
+
+        querying:
+        ```tcl
+        .g grid cget -hide
+        ```
+
+        returns a true value.
+
+        ## Widget-specific defaults
+        The initial grid configuration depends on the graph widget type.
+
+        | Widget       | `-hide` | `-mapx` | `-mapy` |
+        |--------------|---------|---------|---------|
+        | `graph`      | `yes`   | `x`     | `y`     |
+        | `stripchart` | `yes`   | `x`     | `y`     |
+        | `barchart`   | `no`    | empty   | `y`     |
+
+        Thus a `graph` or `stripchart` does not initially display its grid, while a `barchart` initially displays
+        horizontal grid lines associated with its Y axis.
+
+        The remaining grid defaults are common to all graph widget types.
+
+        ## Grid options
+
+        | Option                | Description                                                                                                                                        |
+        |-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
+        | `-color color`        | Specifies the color of the grid lines. The default is `grey64`.                                                                                    |
+        | `-dashes dashList`    | Specifies the dash pattern used for grid lines. The default is `dot`. An empty value selects solid lines.                                          |
+        | `-hide boolean`       | Specifies whether the grid is hidden. The default is `yes` for `graph` and `stripchart`, and `no` for `barchart`.                                  |
+        | `-linewidth distance` | Specifies the width of the grid lines. The default is `0`.                                                                                         |
+        | `-mapx axisName`      | Specifies the X axis whose tick positions generate vertical grid lines. The default is `x` for `graph` and `stripchart`, and empty for `barchart`. |
+        | `-mapy axisName`      | Specifies the Y axis whose tick positions generate horizontal grid lines. The default is `y`.                                                      |
+        | `-minor boolean`      | Specifies whether grid lines are also generated at minor tick positions. The default is `yes`.                                                     |
+
+        Grid configuration options may also be supplied through Tk's option database. The resource name is `grid` and
+        the resource class is `Grid`.
+
+        For example:
+        ```tcl
+        option add *Graph.grid.Color grey70
+        option add *Graph.Grid.Linewidth 1
+        ```
+    }
+
+    proc cget {option} {
+        # Returns the current value of one grid configuration option. See [Grid options][Grid options].
+        # option - grid configuration option.
+        # Returns: Current value of the requested option.
+        # Synopsis: option
+    }
+
+    proc configure {args} {
+        # Queries or modifies grid configuration options. With no arguments, returns all configuration information.
+        # With one option, returns information for that option. Otherwise `args` contains option/value pairs to change.
+        # See [Grid options][Grid options].
+        # option - grid configuration option.
+        # value - new value for the option.
+        # Returns: Configuration information when querying, otherwise nothing.
+        # Synopsis: ?option? ?value ...?
+    }
+
+    proc off {} {
+        # Hides the grid. This is equivalent to setting `-hide yes`. If the grid is already hidden, the operation has
+        # no effect.
+        # Returns: Nothing.
+        # Synopsis:
+    }
+
+    proc on {} {
+        # Displays the grid. This is equivalent to setting `-hide no`. If the grid is already displayed, the operation
+        # has no effect.
+        # Returns: Nothing.
+        # Synopsis:
+    }
+
+    proc toggle {} {
+        # Toggles grid visibility. A visible grid becomes hidden and a hidden grid becomes visible. The resulting state
+        # is reflected by the `-hide` configuration option.
+        # Returns: Nothing.
+        # Synopsis:
+    }
+
+    namespace export *
+    namespace ensemble create
+}
+
+namespace eval ::rbc::CROSSHAIRS {
+    variable _ruff_ns_opts {
+        -heading {Graph crosshairs `CROSSHAIRS` command}
+        -excludeprocs {.*}
+    }
+
+    variable _ruff_preamble {
+        Commands in this namespace document the graph crosshairs.
+
+        `CROSSHAIRS` is used below as a placeholder for:
+
+        ```tcl
+        GRAPHINST crosshairs
+        ```
+
+        Crosshairs are a pair of horizontal and vertical lines that intersect at a selected position in the plotting
+        area.
+
+        For example:
+        ```tcl
+        graph .g
+        .g crosshairs configure -position @100,80 -hide no
+        ```
+
+        The vertical line extends across the height of the plotting area and the horizontal line extends across its
+        width.
+
+        The crosshairs are a single graph component. There are no named crosshair objects.
+
+        ## Crosshair position
+        The `-position` option specifies the point where the horizontal and vertical lines intersect.
+
+        Positions use widget screen coordinates rather than graph data coordinates and have the form:
+        ```tcl
+        @x,y
+        ```
+
+        For example:
+        ```tcl
+        .g crosshairs configure -position @120,75
+        ```
+
+        Both `x` and `y` are Tk screen distances, so standard Tk distance units may be used:
+        ```tcl
+        .g crosshairs configure -position @2c,1c
+        ```
+
+        An empty `-position` value leaves the crosshairs without a drawable position.
+
+        Crosshairs are displayed only when their position lies inside the graph plotting area. Therefore making the
+        crosshairs visible does not cause lines to be drawn if the configured position is outside that area.
+
+        Crosshair positions are commonly updated from pointer events:
+        ```tcl
+        bind .g <Motion> {
+            %W crosshairs configure -position @%x,%y
+        }
+        ```
+
+        ## Showing and hiding crosshairs
+        The `-hide` option controls whether crosshairs are enabled:
+        ```tcl
+        .g crosshairs configure -hide no
+        ```
+
+        `CROSSHAIRS on`, `CROSSHAIRS off`, and `CROSSHAIRS toggle` provide convenient alternatives:
+        ```tcl
+        .g crosshairs on
+        .g crosshairs off
+        .g crosshairs toggle
+        ```
+
+        These operations change the same state represented by `-hide`.
+
+        For example:
+        ```tcl
+        .g crosshairs off
+        puts [.g crosshairs cget -hide]
+        ```
+
+        reports a true value.
+
+        Crosshairs are hidden by default.
+
+        ## Crosshair appearance
+        The crosshair lines may be configured independently of graph elements:
+
+        ```tcl
+        .g crosshairs configure -color red -linewidth 1 -dashes {4 2}
+        ```
+
+        An empty `-dashes` value selects solid lines.
+
+        Crosshairs are drawn directly over the graph and can therefore be moved or removed without requiring the graph
+        contents to be redrawn.
+
+        ## Crosshairs options
+
+        | Option                | Description                                                                                                                                                            |
+        |-----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+        | `-color color`        | Specifies the color of the crosshair lines. The default is `black`.                                                                                                    |
+        | `-dashes dashList`    | Specifies the dash pattern used for the crosshair lines. An empty value selects solid lines. The default is empty.                                                     |
+        | `-hide boolean`       | Specifies whether the crosshairs are hidden. The default is `yes`.                                                                                                     |
+        | `-linewidth distance` | Specifies the width of the crosshair lines. The value must be non-negative. The default is `0`.                                                                        |
+        | `-position position`  | Specifies the intersection of the crosshair lines as a widget screen position of the form `@x,y`. An empty value specifies no drawable position. The default is empty. |
+
+        Crosshair configuration options may also be supplied through Tk's option database. The resource name is
+        `crosshairs` and the resource class is `Crosshairs`.
+
+        For example:
+        ```tcl
+        option add *Graph.crosshairs.Color red
+        option add *Graph.Crosshairs.Linewidth 1
+        ```
+    }
+
+    proc cget {option} {
+        # Returns the current value of one crosshairs configuration option. See
+        # [Crosshairs options][Crosshairs options].
+        # option - crosshairs configuration option.
+        # Returns: Current value of the requested option.
+        # Synopsis: option
+    }
+
+    proc configure {args} {
+        # Queries or modifies crosshairs configuration options. With no arguments, returns all configuration
+        # information. With one option, returns information for that option. Otherwise `args` contains option/value
+        # pairs to change. See [Crosshairs options][Crosshairs options].
+        # option - crosshairs configuration option.
+        # value - new value for the option.
+        # Returns: Configuration information when querying, otherwise nothing.
+        # Synopsis: ?option? ?value ...?
+    }
+
+    proc off {} {
+        # Hides the crosshairs. This is equivalent to setting `-hide yes`. If the crosshairs are already hidden, the
+        # operation has no effect.
+        # Returns: Nothing.
+        # Synopsis:
+    }
+
+    proc on {} {
+        # Enables the crosshairs. This is equivalent to setting `-hide no`. The lines are drawn only if the configured
+        # position lies inside the plotting area.
+        # Returns: Nothing.
+        # Synopsis:
+    }
+
+    proc toggle {} {
+        # Toggles crosshair visibility. Enabled crosshairs become hidden and hidden crosshairs become enabled. The
+        # resulting state is reflected by the `-hide` configuration option.
+        # Returns: Nothing.
+        # Synopsis:
+    }
+
+    namespace export *
+    namespace ensemble create
+}
+
+namespace eval ::rbc::POSTSCRIPT {
+    variable _ruff_ns_opts {
+        -heading {Graph PostScript `POSTSCRIPT` command}
+        -excludeprocs {.*}
+    }
+
+    variable _ruff_preamble {
+        Commands in this namespace document graph PostScript output.
+
+        `POSTSCRIPT` is used below as a placeholder for:
+        ```tcl
+        GRAPHINST postscript
+        ```
+
+        The PostScript component generates an Encapsulated PostScript representation of the graph.
+
+        The generated PostScript can either be returned directly:
+        ```tcl
+        set ps [.g postscript output]
+        ```
+
+        or written to a file:
+
+        ```tcl
+        .g postscript output graph.eps
+        ```
+
+        The PostScript component is a single graph component. There are no named PostScript objects.
+
+        ## Generating PostScript
+        `POSTSCRIPT output` generates the complete graph, including the plotting area, axes, elements, grid, markers,
+        legend, title, and margins.
+
+        With no filename, the generated PostScript is returned as the command result:
+        ```tcl
+        set data [.g postscript output]
+        ```
+
+        When a filename is supplied, the output is written to that file and the command returns an empty result:
+        ```tcl
+        .g postscript output graph.eps
+        ```
+
+        Configuration options may also be supplied directly to `output`:
+        ```tcl
+        .g postscript output graph.eps -landscape yes -colormode grayscale
+        ```
+
+        Options successfully supplied to `POSTSCRIPT output` become the current PostScript configuration. They are not
+        temporary options applying only to that output operation.
+
+        ## Output size
+        By default `-width` and `-height` are `0`, which causes the current graph dimensions to be used.
+
+        An explicit output size can be requested:
+        ```tcl
+        .g postscript configure -width 6i -height 4i
+        ```
+
+        These dimensions are expressed as Tk screen distances.
+
+        The paper dimensions are controlled by `-paperwidth` and `-paperheight`. Their defaults correspond to US
+        Letter paper:
+        ```text
+        width  = 8.5 inches
+        height = 11 inches
+        ```
+
+        The default horizontal and vertical page padding is one inch:
+        ```tcl
+        .g postscript configure -padx 1i -pady 1i
+        ```
+
+        If the graph together with its padding is larger than the available paper area, it is reduced while preserving
+        its aspect ratio.
+
+        `-maxpect yes` additionally scales the graph to make maximum use of the available paper area while preserving
+        its aspect ratio, even when the graph would already fit without scaling.
+
+        ## Centering and orientation
+        The graph is centered on the page by default.
+        ```tcl
+        .g postscript configure -center yes
+        ```
+
+        `-landscape yes` selects landscape orientation:
+        ```tcl
+        .g postscript configure -landscape yes
+        ```
+
+        The generated EPS header records either portrait or landscape orientation.
+
+        ## Color modes
+        `-colormode` controls how colors are represented in PostScript.
+
+        The supported modes are:
+
+        | Mode         | Description                                  |
+        |--------------|----------------------------------------------|
+        | `color`      | Generates color output. This is the default. |
+        | `grayscale`  | Converts colors to grayscale.                |
+        | `greyscale`  | Alternative spelling of `grayscale`.         |
+        | `monochrome` | Generates monochrome output.                 |
+
+        For example:
+        ```tcl
+        .g postscript output graph.eps -colormode grayscale
+        ```
+
+        ## Color maps
+        `-colormap` may name a Tcl array containing custom PostScript translations for Tk colors.
+
+        Array elements are indexed by Tk color names. The value is PostScript code used instead of the automatically
+        generated color conversion.
+
+        For example:
+        ```tcl
+        set psColors(red)   {0 1 1 SetFgColor}
+        set psColors(white) {0 0 0 SetBgColor}
+        .g postscript configure -colormap psColors
+        ```
+
+        Colors without an entry in the array use the normal automatic conversion.
+
+        An empty `-colormap` value disables the custom color map.
+
+        ## Font maps
+        `-fontmap` may name a Tcl array used to override the automatic mapping of Tk fonts to PostScript fonts.
+
+        Each array element is indexed by a Tk font name. Its value is a list containing a PostScript font name and,
+        optionally, a point size:
+        ```tcl
+        set psFonts(MyGraphFont) {Helvetica 10}
+        .g postscript configure -fontmap psFonts
+        ```
+
+        If the point size is omitted, Rbc determines the size from the Tk font.
+
+        Fonts not found in the specified array are mapped automatically to suitable PostScript fonts.
+
+        An empty `-fontmap` value disables the custom font map.
+
+        ## Decorations
+        `-decorations` controls whether widget-style backgrounds and borders are reproduced in the PostScript output.
+
+        The default is:
+        ```tcl
+        -decorations yes
+        ```
+
+        With decorations disabled, the graph and plotting-area backgrounds are cleared rather than reproduced using
+        their configured background colors, and the plotting-area 3-D border is omitted.
+
+        For example:
+        ```tcl
+        .g postscript output graph.eps -decorations no
+        ```
+
+        ## Footer
+        `-footer yes` adds identifying information to the generated PostScript, including the creation date, output
+        filename, and creator host information.
+
+        The footer is disabled by default:
+        ```tcl
+        .g postscript configure -footer no
+        ```
+
+        ## Preview images
+        `-preview yes` requests a preview image in the generated EPS output.
+
+        The default preview format is:
+        ```tcl
+        -previewformat epsi
+        ```
+
+        `epsi` is supported on all platforms and embeds a grayscale EPSI preview in the PostScript data.
+
+        Additional preview formats are platform dependent:
+
+        | Format | Availability                              |
+        |--------|-------------------------------------------|
+        | `epsi` | All platforms                             |
+        | `wmf`  | Windows                                   |
+        | `tiff` | Windows builds compiled with TIFF support |
+
+        Windows WMF and TIFF previews are used when writing the EPS output to a file. They produce the corresponding
+        binary EPS preview representation rather than an inline EPSI preview.
+
+        Preview generation is disabled by default.
+
+        ## PostScript options
+        | Option                  | Description                                                                                                                                                        |
+        |-------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+        | `-center boolean`       | Specifies whether the graph is centered on the page. The default is `yes`.                                                                                         |
+        | `-colormap arrayName`   | Specifies the name of a Tcl array containing custom PostScript color translations. An empty value disables custom mappings. The default is empty.                  |
+        | `-colormode mode`       | Specifies the output color mode. Accepted modes are `color`, `grayscale`, `greyscale`, and `monochrome`. The default is `color`.                                   |
+        | `-decorations boolean`  | Specifies whether graph backgrounds and decorative borders are reproduced. The default is `yes`.                                                                   |
+        | `-fontmap arrayName`    | Specifies the name of a Tcl array containing custom Tk-to-PostScript font mappings. An empty value disables custom mappings. The default is empty.                 |
+        | `-footer boolean`       | Specifies whether identifying footer information is added to the PostScript output. The default is `no`.                                                           |
+        | `-height distance`      | Specifies the requested output graph height. `0` uses the graph's current height. The value must be non-negative. The default is `0`.                              |
+        | `-landscape boolean`    | Specifies landscape rather than portrait orientation. The default is `no`.                                                                                         |
+        | `-maxpect boolean`      | Specifies whether the graph is scaled to make maximum use of the available paper area while preserving its aspect ratio. The default is `no`.                      |
+        | `-padx padding`         | Specifies horizontal padding between the graph and paper boundaries. The default is `1.0i`.                                                                        |
+        | `-pady padding`         | Specifies vertical padding between the graph and paper boundaries. The default is `1.0i`.                                                                          |
+        | `-paperheight distance` | Specifies the paper height. The value must be positive. The default is `11.0i`.                                                                                    |
+        | `-paperwidth distance`  | Specifies the paper width. The value must be positive. The default is `8.5i`.                                                                                      |
+        | `-preview boolean`      | Specifies whether a preview image is included in the EPS output. The default is `no`.                                                                              |
+        | `-previewformat format` | Specifies the preview format. `epsi` is always supported; Windows also supports `wmf`, and may support `tiff` when built with TIFF support. The default is `epsi`. |
+        | `-width distance`       | Specifies the requested output graph width. `0` uses the graph's current width. The value must be non-negative. The default is `0`.                                |
+
+        PostScript configuration options may also be supplied through Tk's option database. The resource name is
+        `postscript` and the resource class is `Postscript`.
+
+        For example:
+        ```tcl
+        option add *Graph.postscript.Center no
+        option add *Graph.Postscript.ColorMode grayscale
+        ```
+    }
+
+    proc cget {option} {
+        # Returns the current value of one PostScript configuration option. See
+        # [PostScript options][PostScript options].
+        # option - PostScript configuration option.
+        # Returns: Current value of the requested option.
+        # Synopsis: option
+    }
+
+    proc configure {args} {
+        # Queries or modifies PostScript configuration options. With no arguments, returns all configuration
+        # information. With one option, returns information for that option. Otherwise `args` contains option/value
+        # pairs to change. See [PostScript options][PostScript options].
+        # option - PostScript configuration option.
+        # value - new value for the option.
+        # Returns: Configuration information when querying, otherwise nothing.
+        # Synopsis: ?option? ?value ...?
+    }
+
+    proc output {args} {
+        # Generates an Encapsulated PostScript representation of the graph. If `fileName` is supplied, the output is
+        # written to that file; otherwise the generated PostScript is returned as the command result. Configuration
+        # options may be supplied after the optional filename and remain installed after successful output.
+        # fileName - optional name of the file to create.
+        # option - optional PostScript configuration option.
+        # value - value for the configuration option.
+        # Returns: Generated PostScript when no filename is supplied, otherwise nothing.
+        # Synopsis: ?fileName? ?option value ...?
+    }
+
+    namespace export *
+    namespace ensemble create
+}

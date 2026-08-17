@@ -47,6 +47,18 @@ rbc - Commands in namespace rbc
 .br
 \fBbarchart\fP \fIpathName ?option value \&.\&.\&.?\fP
 .br
+\fBCROSSHAIRS\fP \fIsubcommand \&.\&.\&.\fP
+.br
+\fBCROSSHAIRS cget\fP \fIoption\fP
+.br
+\fBCROSSHAIRS configure\fP \fI?option? ?value \&.\&.\&.?\fP
+.br
+\fBCROSSHAIRS off\fP
+.br
+\fBCROSSHAIRS on\fP
+.br
+\fBCROSSHAIRS toggle\fP
+.br
 \fBELEMENT\fP \fIsubcommand \&.\&.\&.\fP
 .br
 \fBELEMENT activate\fP \fIelemName ?index \&.\&.\&.?\fP
@@ -131,6 +143,32 @@ rbc - Commands in namespace rbc
 .br
 \fBGRAPHINST yaxis\fP \fIoperation ?args \&.\&.\&.?\fP
 .br
+\fBGRID\fP \fIsubcommand \&.\&.\&.\fP
+.br
+\fBGRID cget\fP \fIoption\fP
+.br
+\fBGRID configure\fP \fI?option? ?value \&.\&.\&.?\fP
+.br
+\fBGRID off\fP
+.br
+\fBGRID on\fP
+.br
+\fBGRID toggle\fP
+.br
+\fBLEGEND\fP \fIsubcommand \&.\&.\&.\fP
+.br
+\fBLEGEND activate\fP \fIpattern ?pattern \&.\&.\&.?\fP
+.br
+\fBLEGEND bind\fP \fItagName ?sequence? ?command?\fP
+.br
+\fBLEGEND cget\fP \fIoption\fP
+.br
+\fBLEGEND configure\fP \fI?option? ?value \&.\&.\&.?\fP
+.br
+\fBLEGEND deactivate\fP \fIpattern ?pattern \&.\&.\&.?\fP
+.br
+\fBLEGEND get\fP \fIcurrent|@x,y\fP
+.br
 \fBMARGINAXIS\fP \fIsubcommand \&.\&.\&.\fP
 .br
 \fBMARGINAXIS bind\fP \fIsequence\fP
@@ -151,6 +189,32 @@ rbc - Commands in namespace rbc
 .br
 \fBMARGINAXIS use\fP \fIaxisList\fP
 .br
+\fBMARKER\fP \fIsubcommand \&.\&.\&.\fP
+.br
+\fBMARKER after\fP \fImarkerName ?afterMarker?\fP
+.br
+\fBMARKER before\fP \fImarkerName ?beforeMarker?\fP
+.br
+\fBMARKER bind\fP \fItagName ?sequence? ?command?\fP
+.br
+\fBMARKER cget\fP \fImarkerName option\fP
+.br
+\fBMARKER configure\fP \fImarkerName ?option? ?value \&.\&.\&.?\fP
+.br
+\fBMARKER create\fP \fItype ?option value \&.\&.\&.?\fP
+.br
+\fBMARKER delete\fP \fI?markerName \&.\&.\&.?\fP
+.br
+\fBMARKER exists\fP \fImarkerName\fP
+.br
+\fBMARKER find\fP \fIenclosed|overlapping x1 y1 x2 y2\fP
+.br
+\fBMARKER get\fP \fIname\fP
+.br
+\fBMARKER names\fP \fI?pattern \&.\&.\&.?\fP
+.br
+\fBMARKER type\fP \fImarkerName\fP
+.br
 \fBPEN\fP \fIsubcommand \&.\&.\&.\fP
 .br
 \fBPEN cget\fP \fIpenName option\fP
@@ -168,6 +232,14 @@ rbc - Commands in namespace rbc
 \fBPEN names\fP \fI?pattern \&.\&.\&.?\fP
 .br
 \fBPEN type\fP \fIpenName\fP
+.br
+\fBPOSTSCRIPT\fP \fIsubcommand \&.\&.\&.\fP
+.br
+\fBPOSTSCRIPT cget\fP \fIoption\fP
+.br
+\fBPOSTSCRIPT configure\fP \fI?option? ?value \&.\&.\&.?\fP
+.br
+\fBPOSTSCRIPT output\fP \fI?fileName? ?option value \&.\&.\&.?\fP
 .br
 \fBspline\fP \fIsubcommand \&.\&.\&.\fP
 .br
@@ -658,6 +730,137 @@ pack \&.b -fill both -expand yes
 \fBReturn value\fR
 .PP
 The pathname of the newly created barchart widget\&.
+.PP
+.RS -4n
+\fBCROSSHAIRS\fR (::rbc)
+.RE
+.PP
+A
+command
+ensemble\&.
+.RS 4n
+\fBCROSSHAIRS\fP \fIsubcommand \&.\&.\&.\fP
+.br
+.RE
+.PP
+\fBDescription\fR
+.PP
+The ensemble supports the following subcommands:
+.RS 4n
+.TP
+\fIcget\fP
+Returns the current value of one crosshairs configuration option\&. See \fICrosshairs options\fP\&. Current value of the requested option\&.
+.TP
+\fIconfigure\fP
+Queries or modifies crosshairs configuration options\&. With no arguments, returns all configuration information\&. With one option, returns information for that option\&. Otherwise args contains option/value pairs to change\&. See \fICrosshairs options\fP\&.
+.TP
+\fIoff\fP
+Hides the crosshairs\&. This is equivalent to setting -hide yes\&. If the crosshairs are already hidden, the operation has no effect\&.
+.TP
+\fIon\fP
+Enables the crosshairs\&. This is equivalent to setting -hide no\&. The lines are drawn only if the configured position lies inside the plotting area\&.
+.TP
+\fItoggle\fP
+Toggles crosshair visibility\&. Enabled crosshairs become hidden and hidden crosshairs become enabled\&. The resulting state is reflected by the -hide configuration option\&.
+.RE
+.PP
+Refer to the documentation of each subcommand for details\&.
+.PP
+.RS -4n
+\fBCROSSHAIRS cget\fR (::rbc)
+.RE
+.PP
+Returns the current value of one crosshairs configuration option\&. See
+\fICrosshairs options\fP\&.
+Current value of the requested option\&.
+.RS 4n
+\fBCROSSHAIRS cget\fP \fIoption\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+option
+Crosshairs configuration option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the current value of one crosshairs configuration option\&. See
+\fICrosshairs options\fP\&.
+Current value of the requested option\&.
+.PP
+.RS -4n
+\fBCROSSHAIRS configure\fR (::rbc)
+.RE
+.PP
+Queries or modifies crosshairs configuration options\&. With no arguments, returns all configuration
+information\&. With one option, returns information for that option\&. Otherwise args contains option/value
+pairs to change\&. See \fICrosshairs options\fP\&.
+.RS 4n
+\fBCROSSHAIRS configure\fP \fI?option? ?value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+option
+Crosshairs configuration option\&.
+.TP
+value
+New value for the option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Configuration information when querying, otherwise nothing\&.
+.PP
+.RS -4n
+\fBCROSSHAIRS off\fR (::rbc)
+.RE
+.PP
+Hides the crosshairs\&. This is equivalent to setting -hide yes\&. If the crosshairs are already hidden, the
+operation has no effect\&.
+.RS 4n
+\fBCROSSHAIRS off\fP
+.br
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBCROSSHAIRS on\fR (::rbc)
+.RE
+.PP
+Enables the crosshairs\&. This is equivalent to setting -hide no\&. The lines are drawn only if the configured
+position lies inside the plotting area\&.
+.RS 4n
+\fBCROSSHAIRS on\fP
+.br
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBCROSSHAIRS toggle\fR (::rbc)
+.RE
+.PP
+Toggles crosshair visibility\&. Enabled crosshairs become hidden and hidden crosshairs become enabled\&. The
+resulting state is reflected by the -hide configuration option\&.
+.RS 4n
+\fBCROSSHAIRS toggle\fP
+.br
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
 .PP
 .RS -4n
 \fBELEMENT\fR (::rbc)
@@ -1689,6 +1892,323 @@ is the left margin\&.
 Result of the selected margin-axis operation\&.
 .PP
 .RS -4n
+\fBGRID\fR (::rbc)
+.RE
+.PP
+A
+command
+ensemble\&.
+.RS 4n
+\fBGRID\fP \fIsubcommand \&.\&.\&.\fP
+.br
+.RE
+.PP
+\fBDescription\fR
+.PP
+The ensemble supports the following subcommands:
+.RS 4n
+.TP
+\fIcget\fP
+Returns the current value of one grid configuration option\&. See \fIGrid options\fP\&. Current value of the requested option\&.
+.TP
+\fIconfigure\fP
+Queries or modifies grid configuration options\&. With no arguments, returns all configuration information\&. With one option, returns information for that option\&. Otherwise args contains option/value pairs to change\&. See \fIGrid options\fP\&.
+.TP
+\fIoff\fP
+Hides the grid\&. This is equivalent to setting -hide yes\&. If the grid is already hidden, the operation has no effect\&.
+.TP
+\fIon\fP
+Displays the grid\&. This is equivalent to setting -hide no\&. If the grid is already displayed, the operation has no effect\&.
+.TP
+\fItoggle\fP
+Toggles grid visibility\&. A visible grid becomes hidden and a hidden grid becomes visible\&. The resulting state is reflected by the -hide configuration option\&.
+.RE
+.PP
+Refer to the documentation of each subcommand for details\&.
+.PP
+.RS -4n
+\fBGRID cget\fR (::rbc)
+.RE
+.PP
+Returns the current value of one grid configuration option\&. See \fIGrid options\fP\&.
+Current value of the requested option\&.
+.RS 4n
+\fBGRID cget\fP \fIoption\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+option
+Grid configuration option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the current value of one grid configuration option\&. See \fIGrid options\fP\&.
+Current value of the requested option\&.
+.PP
+.RS -4n
+\fBGRID configure\fR (::rbc)
+.RE
+.PP
+Queries or modifies grid configuration options\&. With no arguments, returns all configuration information\&.
+With one option, returns information for that option\&. Otherwise args contains option/value pairs to change\&.
+See \fIGrid options\fP\&.
+.RS 4n
+\fBGRID configure\fP \fI?option? ?value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+option
+Grid configuration option\&.
+.TP
+value
+New value for the option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Configuration information when querying, otherwise nothing\&.
+.PP
+.RS -4n
+\fBGRID off\fR (::rbc)
+.RE
+.PP
+Hides the grid\&. This is equivalent to setting -hide yes\&. If the grid is already hidden, the operation has
+no effect\&.
+.RS 4n
+\fBGRID off\fP
+.br
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBGRID on\fR (::rbc)
+.RE
+.PP
+Displays the grid\&. This is equivalent to setting -hide no\&. If the grid is already displayed, the operation
+has no effect\&.
+.RS 4n
+\fBGRID on\fP
+.br
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBGRID toggle\fR (::rbc)
+.RE
+.PP
+Toggles grid visibility\&. A visible grid becomes hidden and a hidden grid becomes visible\&. The resulting state
+is reflected by the -hide configuration option\&.
+.RS 4n
+\fBGRID toggle\fP
+.br
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBLEGEND\fR (::rbc)
+.RE
+.PP
+A
+command
+ensemble\&.
+.RS 4n
+\fBLEGEND\fP \fIsubcommand \&.\&.\&.\fP
+.br
+.RE
+.PP
+\fBDescription\fR
+.PP
+The ensemble supports the following subcommands:
+.RS 4n
+.TP
+\fIactivate\fP
+Marks matching legend entries active\&. Each pattern is matched against element names\&. Active entries are drawn using the legend's active background, foreground, border width, and relief\&.
+.TP
+\fIbind\fP
+Queries or changes event bindings for legend entries associated with tagName\&. Element names are implicit binding tags\&. With no sequence, returns the bound event sequences\&. With a sequence but no command, returns the current binding\&. With a sequence and command, creates or replaces the binding; a command beginning with + appends to an existing binding\&.
+.TP
+\fIcget\fP
+Returns the current value of one legend configuration option\&. See \fILegend options\fP\&. Current value of the requested option\&.
+.TP
+\fIconfigure\fP
+Queries or modifies legend configuration options\&. With no arguments, returns all configuration information\&. With one option, returns information for that option\&. Otherwise args contains option/value pairs to change\&. See \fILegend options\fP\&.
+.TP
+\fIdeactivate\fP
+Marks matching legend entries inactive\&. Each pattern is matched against element names\&. Inactive entries are drawn using the normal legend appearance\&.
+.TP
+\fIget\fP
+Returns the element name represented by the legend entry at position\&. position may be current, meaning the legend entry currently under the pointer, or an explicit screen coordinate of the form @x,y\&. If no legend entry is present at the requested position, an empty string is returned\&. Name of the corresponding graph element, or an empty string if no entry is found\&.
+.RE
+.PP
+Refer to the documentation of each subcommand for details\&.
+.PP
+.RS -4n
+\fBLEGEND activate\fR (::rbc)
+.RE
+.PP
+Marks matching legend entries active\&. Each pattern is matched against element names\&. Active entries are drawn
+using the legend's active background, foreground, border width, and relief\&.
+.RS 4n
+\fBLEGEND activate\fP \fIpattern ?pattern \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+pattern
+Glob pattern selecting element names whose legend entries are activated\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBLEGEND bind\fR (::rbc)
+.RE
+.PP
+Queries or changes event bindings for legend entries associated with tagName\&. Element names are implicit
+binding tags\&. With no sequence, returns the bound event sequences\&. With a sequence but no command, returns the
+current binding\&. With a sequence and command, creates or replaces the binding; a command beginning with +
+appends to an existing binding\&.
+.RS 4n
+\fBLEGEND bind\fP \fItagName ?sequence? ?command?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+tagName
+Legend entry binding tag\&.
+.TP
+command
+Optional Tcl command associated with the event sequence\&.
+.TP
+sequence
+Optional event sequence\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Binding information when querying, otherwise nothing\&.
+.PP
+.RS -4n
+\fBLEGEND cget\fR (::rbc)
+.RE
+.PP
+Returns the current value of one legend configuration option\&. See \fILegend options\fP\&.
+Current value of the requested option\&.
+.RS 4n
+\fBLEGEND cget\fP \fIoption\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+option
+Legend configuration option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the current value of one legend configuration option\&. See \fILegend options\fP\&.
+Current value of the requested option\&.
+.PP
+.RS -4n
+\fBLEGEND configure\fR (::rbc)
+.RE
+.PP
+Queries or modifies legend configuration options\&. With no arguments, returns all configuration information\&.
+With one option, returns information for that option\&. Otherwise args contains option/value pairs to change\&.
+See \fILegend options\fP\&.
+.RS 4n
+\fBLEGEND configure\fP \fI?option? ?value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+option
+Legend configuration option\&.
+.TP
+value
+New value for the option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Configuration information when querying, otherwise nothing\&.
+.PP
+.RS -4n
+\fBLEGEND deactivate\fR (::rbc)
+.RE
+.PP
+Marks matching legend entries inactive\&. Each pattern is matched against element names\&. Inactive entries are
+drawn using the normal legend appearance\&.
+.RS 4n
+\fBLEGEND deactivate\fP \fIpattern ?pattern \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+pattern
+Glob pattern selecting element names whose legend entries are deactivated\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBLEGEND get\fR (::rbc)
+.RE
+.PP
+Returns the element name represented by the legend entry at position\&. position may be current, meaning
+the legend entry currently under the pointer, or an explicit screen coordinate of the form @x,y\&. If no
+legend entry is present at the requested position, an empty string is returned\&.
+Name of the corresponding graph element, or an empty string if no entry is found\&.
+.RS 4n
+\fBLEGEND get\fP \fIcurrent|@x,y\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+position
+current or a screen position of the form @x,y\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the element name represented by the legend entry at position\&. position may be current, meaning
+the legend entry currently under the pointer, or an explicit screen coordinate of the form @x,y\&. If no
+legend entry is present at the requested position, an empty string is returned\&.
+Name of the corresponding graph element, or an empty string if no entry is found\&.
+.PP
+.RS -4n
 \fBMARGINAXIS\fR (::rbc)
 .RE
 .PP
@@ -1902,6 +2422,375 @@ Tcl list containing zero or more virtual axis names\&.
 Ordered list of assigned axis names when querying; nothing when changing the assignment\&.
 .PP
 .RS -4n
+\fBMARKER\fR (::rbc)
+.RE
+.PP
+A
+command
+ensemble\&.
+.RS 4n
+\fBMARKER\fP \fIsubcommand \&.\&.\&.\fP
+.br
+.RE
+.PP
+\fBDescription\fR
+.PP
+The ensemble supports the following subcommands:
+.RS 4n
+.TP
+\fIafter\fP
+Changes the position of a marker in the marker display list\&. If afterMarker is specified, markerName is moved immediately after it\&. If it is omitted, markerName is moved to the end of the marker display list\&.
+.TP
+\fIbefore\fP
+Changes the position of a marker in the marker display list\&. If beforeMarker is specified, markerName is moved immediately before it\&. If it is omitted, markerName is moved to the beginning of the marker display list\&.
+.TP
+\fIbind\fP
+Queries or changes event bindings associated with a marker binding tag\&. With only tagName, returns the sequences for which bindings exist\&. With sequence, returns the binding for that sequence\&. With command, creates or replaces the binding\&.
+.TP
+\fIcget\fP
+Returns the current value of one configuration option of a marker\&. The available options depend on the concrete marker type\&. See \fIMarker types and options\fP\&. Current value of the requested option\&.
+.TP
+\fIconfigure\fP
+Queries or modifies marker configuration options\&. With no additional arguments, returns all configuration information\&. With one option, returns information for that option\&. Otherwise args contains option/value pairs to change\&. See \fIMarker types and options\fP\&.
+.TP
+\fIcreate\fP
+Creates a new marker of the specified type\&. type may be bitmap, image, line, polygon, text, or window\&. Use -name to specify an explicit marker name; otherwise Rbc generates one automatically\&. See \fIMarker types and options\fP\&.
+.TP
+\fIdelete\fP
+Deletes one or more markers\&. Supplying no marker names has no effect\&.
+.TP
+\fIexists\fP
+Reports whether a marker with the specified name exists\&.
+.TP
+\fIfind\fP
+Finds markers relative to a rectangular screen region\&. mode may be enclosed, which selects markers completely contained by the region, or overlapping, which selects markers that intersect it\&.
+.TP
+\fIget\fP
+Returns markers selected by a marker name or marker binding tag\&. List of matching marker names\&.
+.TP
+\fInames\fP
+Returns marker names\&. If patterns are supplied, only marker names matching at least one glob pattern are returned\&. List of marker names\&.
+.TP
+\fItype\fP
+Returns the concrete type of an existing marker\&. Marker type: bitmap, image, line, polygon, text, or window\&.
+.RE
+.PP
+Refer to the documentation of each subcommand for details\&.
+.PP
+.RS -4n
+\fBMARKER after\fR (::rbc)
+.RE
+.PP
+Changes the position of a marker in the marker display list\&. If afterMarker is specified, markerName is
+moved immediately after it\&. If it is omitted, markerName is moved to the end of the marker display list\&.
+.RS 4n
+\fBMARKER after\fP \fImarkerName ?afterMarker?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+markerName
+Name of the marker to move\&.
+.TP
+afterMarker
+Optional marker after which markerName is placed\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBMARKER before\fR (::rbc)
+.RE
+.PP
+Changes the position of a marker in the marker display list\&. If beforeMarker is specified, markerName is
+moved immediately before it\&. If it is omitted, markerName is moved to the beginning of the marker display
+list\&.
+.RS 4n
+\fBMARKER before\fP \fImarkerName ?beforeMarker?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+markerName
+Name of the marker to move\&.
+.TP
+beforeMarker
+Optional marker before which markerName is placed\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBMARKER bind\fR (::rbc)
+.RE
+.PP
+Queries or changes event bindings associated with a marker binding tag\&. With only tagName, returns the
+sequences for which bindings exist\&. With sequence, returns the binding for that sequence\&. With command,
+creates or replaces the binding\&.
+.RS 4n
+\fBMARKER bind\fP \fItagName ?sequence? ?command?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+tagName
+Marker binding tag\&.
+.TP
+command
+Optional Tcl command to invoke for the binding\&.
+.TP
+sequence
+Optional event sequence\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Binding information when querying, otherwise nothing\&.
+.PP
+.RS -4n
+\fBMARKER cget\fR (::rbc)
+.RE
+.PP
+Returns the current value of one configuration option of a marker\&. The available options depend on the
+concrete marker type\&. See \fIMarker types and options\fP\&.
+Current value of the requested option\&.
+.RS 4n
+\fBMARKER cget\fP \fImarkerName option\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+markerName
+Name of the marker\&.
+.TP
+option
+Marker configuration option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the current value of one configuration option of a marker\&. The available options depend on the
+concrete marker type\&. See \fIMarker types and options\fP\&.
+Current value of the requested option\&.
+.PP
+.RS -4n
+\fBMARKER configure\fR (::rbc)
+.RE
+.PP
+Queries or modifies marker configuration options\&. With no additional arguments, returns all configuration
+information\&. With one option, returns information for that option\&. Otherwise args contains option/value
+pairs to change\&. See \fIMarker types and options\fP\&.
+.RS 4n
+\fBMARKER configure\fP \fImarkerName ?option? ?value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+markerName
+Name of the marker\&.
+.TP
+option
+Marker configuration option\&.
+.TP
+value
+New value for the option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Configuration information when querying, otherwise nothing\&.
+.PP
+.RS -4n
+\fBMARKER create\fR (::rbc)
+.RE
+.PP
+Creates a new marker of the specified type\&. type may be bitmap, image, line, polygon, text, or
+window\&. Use -name to specify an explicit marker name; otherwise Rbc generates one automatically\&. See
+\fIMarker types and options\fP\&.
+.RS 4n
+\fBMARKER create\fP \fItype ?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+type
+Type of marker to create\&.
+.TP
+option
+Initial marker configuration option\&.
+.TP
+value
+Initial value for the option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Name of the newly created marker\&.
+.PP
+.RS -4n
+\fBMARKER delete\fR (::rbc)
+.RE
+.PP
+Deletes one or more markers\&. Supplying no marker names has no effect\&.
+.RS 4n
+\fBMARKER delete\fP \fI?markerName \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+markerName
+Name of a marker to delete\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBMARKER exists\fR (::rbc)
+.RE
+.PP
+Reports whether a marker with the specified name exists\&.
+.RS 4n
+\fBMARKER exists\fP \fImarkerName\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+markerName
+Marker name to test\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+1 if the marker exists and 0 otherwise\&.
+.PP
+.RS -4n
+\fBMARKER find\fR (::rbc)
+.RE
+.PP
+Finds markers relative to a rectangular screen region\&. mode may be enclosed, which selects markers
+completely contained by the region, or overlapping, which selects markers that intersect it\&.
+.RS 4n
+\fBMARKER find\fP \fIenclosed|overlapping x1 y1 x2 y2\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+mode
+Search mode, enclosed or overlapping\&.
+.TP
+x1
+First X coordinate of the search rectangle\&.
+.TP
+y1
+First Y coordinate of the search rectangle\&.
+.TP
+x2
+Second X coordinate of the search rectangle\&.
+.TP
+y2
+Second Y coordinate of the search rectangle\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+List of matching marker names\&.
+.PP
+.RS -4n
+\fBMARKER get\fR (::rbc)
+.RE
+.PP
+Returns markers selected by a marker name or marker binding tag\&.
+List of matching marker names\&.
+.RS 4n
+\fBMARKER get\fP \fIname\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Marker name or marker binding tag\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns markers selected by a marker name or marker binding tag\&.
+List of matching marker names\&.
+.PP
+.RS -4n
+\fBMARKER names\fR (::rbc)
+.RE
+.PP
+Returns marker names\&. If patterns are supplied, only marker names matching at least one glob pattern are
+returned\&.
+List of marker names\&.
+.RS 4n
+\fBMARKER names\fP \fI?pattern \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+pattern
+Optional glob pattern used to select marker names\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns marker names\&. If patterns are supplied, only marker names matching at least one glob pattern are
+returned\&.
+List of marker names\&.
+.PP
+.RS -4n
+\fBMARKER type\fR (::rbc)
+.RE
+.PP
+Returns the concrete type of an existing marker\&.
+Marker type: bitmap, image, line, polygon, text, or window\&.
+.RS 4n
+\fBMARKER type\fP \fImarkerName\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+markerName
+Name of the marker\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the concrete type of an existing marker\&.
+Marker type: bitmap, image, line, polygon, text, or window\&.
+.PP
+.RS -4n
 \fBPEN\fR (::rbc)
 .RE
 .PP
@@ -2109,6 +2998,115 @@ Returns the concrete class of the named pen\&. Line and strip pens return LineEl
 BarElement\&. This reports the actual pen implementation and is independent of the textual creation-time
 -type representation\&.
 LineElement or BarElement\&.
+.PP
+.RS -4n
+\fBPOSTSCRIPT\fR (::rbc)
+.RE
+.PP
+A
+command
+ensemble\&.
+.RS 4n
+\fBPOSTSCRIPT\fP \fIsubcommand \&.\&.\&.\fP
+.br
+.RE
+.PP
+\fBDescription\fR
+.PP
+The ensemble supports the following subcommands:
+.RS 4n
+.TP
+\fIcget\fP
+Returns the current value of one PostScript configuration option\&. See \fIPostScript options\fP\&. Current value of the requested option\&.
+.TP
+\fIconfigure\fP
+Queries or modifies PostScript configuration options\&. With no arguments, returns all configuration information\&. With one option, returns information for that option\&. Otherwise args contains option/value pairs to change\&. See \fIPostScript options\fP\&.
+.TP
+\fIoutput\fP
+Generates an Encapsulated PostScript representation of the graph\&. If fileName is supplied, the output is written to that file; otherwise the generated PostScript is returned as the command result\&. Configuration options may be supplied after the optional filename and remain installed after successful output\&.
+.RE
+.PP
+Refer to the documentation of each subcommand for details\&.
+.PP
+.RS -4n
+\fBPOSTSCRIPT cget\fR (::rbc)
+.RE
+.PP
+Returns the current value of one PostScript configuration option\&. See
+\fIPostScript options\fP\&.
+Current value of the requested option\&.
+.RS 4n
+\fBPOSTSCRIPT cget\fP \fIoption\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+option
+PostScript configuration option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the current value of one PostScript configuration option\&. See
+\fIPostScript options\fP\&.
+Current value of the requested option\&.
+.PP
+.RS -4n
+\fBPOSTSCRIPT configure\fR (::rbc)
+.RE
+.PP
+Queries or modifies PostScript configuration options\&. With no arguments, returns all configuration
+information\&. With one option, returns information for that option\&. Otherwise args contains option/value
+pairs to change\&. See \fIPostScript options\fP\&.
+.RS 4n
+\fBPOSTSCRIPT configure\fP \fI?option? ?value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+option
+PostScript configuration option\&.
+.TP
+value
+New value for the option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Configuration information when querying, otherwise nothing\&.
+.PP
+.RS -4n
+\fBPOSTSCRIPT output\fR (::rbc)
+.RE
+.PP
+Generates an Encapsulated PostScript representation of the graph\&. If fileName is supplied, the output is
+written to that file; otherwise the generated PostScript is returned as the command result\&. Configuration
+options may be supplied after the optional filename and remain installed after successful output\&.
+.RS 4n
+\fBPOSTSCRIPT output\fP \fI?fileName? ?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+fileName
+Optional name of the file to create\&.
+.TP
+option
+Optional PostScript configuration option\&.
+.TP
+value
+Value for the configuration option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Generated PostScript when no filename is supplied, otherwise nothing\&.
 .PP
 .RS -4n
 \fBspline\fR (::rbc)

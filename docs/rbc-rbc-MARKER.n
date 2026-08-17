@@ -1,0 +1,336 @@
+'\"
+'\" '\" Copyright (c) George Yashin
+'\"
+.TH "rbc::MARKER" 3tcl 0\&.5\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.SH NAME
+rbc::MARKER - Commands in namespace rbc::MARKER
+.SH "GRAPH MARKER MARKER COMMAND"
+.PP
+Commands in this namespace document graph markers\&.
+.PP
+MARKER is used below as a placeholder for:
+.PP
+.RS 4n
+.nf
+GRAPHINST marker
+.fi
+.RE
+.PP
+Markers are graph annotations\&. They are independent of graph elements and do not contribute to the calculation
+of axis limits\&.
+.PP
+Rbc provides six marker types:
+.TS
+tab(|) box;
+l l.
+Type| Description
+_
+bitmap| Displays a Tk bitmap
+image| Displays a Tk image
+line| Displays one or more connected line segments
+polygon | Displays a filled and/or outlined polygon
+text| Displays text
+window| Displays an embedded Tk window
+.TE
+.PP
+A marker is created by specifying its type:
+.PP
+.RS 4n
+.nf
+graph \&.g
+\&.g marker create text -name label -coords {1\&.0 2\&.0} -text "Operating point"
+\&.g marker create line -name limit -coords {0 5 10 5} -outline red
+.fi
+.RE
+.PP
+Unlike elements and pens, the marker name is not a positional argument of MARKER create\&. Use -name to
+select an explicit name\&. If -name is omitted, Rbc generates a marker name\&.
+.SH "MARKER COORDINATES"
+.PP
+Marker coordinates are graph coordinates and are mapped through the axes selected by -mapx and -mapy\&.
+.PP
+The number of coordinates depends on the marker type:
+.TS
+tab(|) box;
+l l.
+Marker type | Coordinates
+_
+bitmap| One or two X-Y pairs
+image| One X-Y pair
+line| Two or more X-Y pairs
+polygon| Three or more X-Y pairs
+text| One X-Y pair
+window| One X-Y pair
+.TE
+.PP
+An empty -coords value leaves the marker without drawable coordinates\&.
+.PP
+Markers may also use -Inf and Inf coordinates\&. These track the minimum and maximum limits of the
+corresponding axis\&. This is useful for annotations that must remain attached to an edge of the plotting area\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+\&.g marker create text -coords {-Inf Inf} -anchor nw -text "upper left"
+.fi
+.RE
+.SH "DRAWING ORDER"
+.PP
+Markers have their own display order\&. MARKER before and MARKER after change the position of a marker in
+that order\&.
+.PP
+By default markers are drawn over graph elements\&. The -under option changes whether an individual marker is
+drawn below or above the element layer\&.
+.PP
+.RS 4n
+.nf
+\&.g marker configure region -under yes
+.fi
+.RE
+.PP
+The marker ordering operations affect ordering between markers; they do not replace the -under setting\&.
+.SH "ELEMENT ASSOCIATION"
+.PP
+-element associates a marker with an element:
+.PP
+.RS 4n
+.nf
+\&.g marker create text -name note -element signal -coords {2 5} -text signal
+.fi
+.RE
+.PP
+The marker is displayed only while the associated element is displayed\&. An empty -element value removes the
+association\&.
+.SH "MARKER BINDINGS"
+.PP
+Markers participate in graph component bindings\&. Bindings are made with MARKER bind\&.
+.PP
+Every marker has its marker name as an implicit binding tag\&. Additional tags are selected with -bindtags\&.
+.PP
+The default binding tags depend on the marker type:
+.TS
+tab(|) box;
+l l.
+Type| Default -bindtags
+_
+bitmap| Bitmap all
+image| Image all
+line| Line all
+polygon | Polygon all
+text| Text all
+window| Window all
+.TE
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+\&.g marker create text -name note -coords {1 2} -text "click me" -bindtags {annotation all}
+\&.g marker bind annotation <Button-1> {
+    puts "annotation selected"
+}
+.fi
+.RE
+.SH "MARKER TYPES AND OPTIONS"
+.PP
+All marker types share the coordinate, visibility, axis-mapping, naming, binding, state, drawing-order, and
+offset options described below\&. Each concrete marker type then adds its own drawing options\&.
+.PP
+MARKER cget and MARKER configure operate on the option table of the concrete marker being addressed\&. An
+option valid for one marker type is not necessarily valid for another\&.
+.SS "COMMON MARKER OPTIONS"
+.TS
+tab(|) box;
+l l.
+Option| Description
+_
+-bindtags tagList| Specifies additional binding tags associated with the marker\&. The marker name is always an implicit binding tag\&. The default class tag depends on the marker type\&.
+-coords coordList| Specifies the graph coordinates of the marker\&. The required number of coordinates depends on the marker type\&. The default is empty\&.
+-element elementName | Associates the marker with an element\&. The marker is displayed only while that element is displayed\&. An empty value removes the association\&.
+-hide boolean| Specifies whether the marker is hidden\&. The default is no\&.
+-mapx axisName| Specifies the X axis used to map marker coordinates\&. The default is x\&.
+-mapy axisName| Specifies the Y axis used to map marker coordinates\&. The default is y\&.
+-name markerName| Specifies the marker name\&. When omitted during creation, Rbc generates a name\&.
+-state state| Specifies the marker state\&. The default is normal\&.
+-under boolean| Specifies whether the marker is drawn below graph elements rather than above them\&. The default is no\&.
+-xoffset distance| Adds a horizontal screen-coordinate offset after the marker has been mapped\&. The default is 0\&.
+-yoffset distance| Adds a vertical screen-coordinate offset after the marker has been mapped\&. The default is 0\&.
+.TE
+.SS "BITMAP MARKER OPTIONS"
+.PP
+Bitmap markers display a Tk bitmap\&.
+.PP
+.RS 4n
+.nf
+\&.g marker create bitmap -name bitmap1 -coords {1 2} -bitmap questhead
+.fi
+.RE
+.PP
+In addition to the common marker options, bitmap markers support:
+.TS
+tab(|) box;
+l l.
+Option| Description
+_
+-anchor anchor| Specifies how the bitmap is positioned relative to its reference coordinates\&. The default is center\&.
+-background color | Specifies the bitmap background color\&. This is a synonym for -fill\&.
+-bg color| Synonym for -background\&.
+-bitmap bitmap| Specifies the Tk bitmap to display\&.
+-fill color| Specifies the bitmap background color\&.
+-foreground color | Specifies the bitmap foreground color\&. This is a synonym for -outline\&.
+-fg color| Synonym for -foreground\&.
+-mask bitmap| Specifies an optional bitmap mask\&.
+-outline color| Specifies the bitmap foreground color\&.
+-rotate degrees| Specifies the rotation angle in degrees\&. The default is 0\&.
+.TE
+.SS "IMAGE MARKER OPTIONS"
+.PP
+Image markers display a Tk image\&.
+.PP
+.RS 4n
+.nf
+image create photo icon -file icon\&.png
+\&.g marker create image -name iconMarker -coords {1 2} -image icon
+.fi
+.RE
+.PP
+In addition to the common marker options, image markers support:
+.TS
+tab(|) box;
+l l.
+Option| Description
+_
+-anchor anchor| Specifies how the image is positioned relative to its coordinate\&. The default is center\&.
+-image imageName | Specifies the Tk image to display\&.
+.TE
+.SS "LINE MARKER OPTIONS"
+.PP
+Line markers draw connected line segments through their X-Y coordinate pairs\&.
+.PP
+.RS 4n
+.nf
+\&.g marker create line -name threshold -coords {-Inf 5 Inf 5} -outline red -linewidth 2
+.fi
+.RE
+.PP
+In addition to the common marker options, line markers support:
+.TS
+tab(|) box;
+l l.
+Option| Description
+_
+-cap style| Specifies the line cap style\&. Accepted styles are butt, projecting, and round\&. The default is butt\&.
+-dashes dashList| Specifies the dash pattern\&. An empty value selects a solid line\&.
+-dashoffset distance | Specifies the offset into the dash pattern\&. The default is 0\&.
+-fill color| Specifies the secondary line color\&. An empty value disables the secondary color\&.
+-join style| Specifies how adjacent segments are joined\&. Accepted styles are bevel, miter, and round\&. The default is miter\&.
+-linewidth distance| Specifies the line width\&. The default is 1\&.
+-outline color| Specifies the primary line color\&. The default is black\&.
+-xor boolean| Specifies whether the line is drawn using XOR drawing\&. The default is no\&.
+.TE
+.SS "POLYGON MARKER OPTIONS"
+.PP
+Polygon markers draw the closed polygon formed by their coordinate pairs\&.
+.PP
+.RS 4n
+.nf
+\&.g marker create polygon -name region -coords {0 0 4 0 4 3 0 3} -fill lightblue -outline navy
+.fi
+.RE
+.PP
+In addition to the common marker options, polygon markers support:
+.TS
+tab(|) box;
+l l.
+Option| Description
+_
+-dashes dashList| Specifies the dash pattern used for the polygon outline\&. An empty value selects a solid outline\&.
+-fill color| Specifies the polygon fill color\&. An empty value makes the interior transparent\&.
+-linewidth distance | Specifies the width of the polygon outline\&.
+-outline color| Specifies the color of the polygon outline\&.
+-stipple bitmap| Specifies an optional stipple bitmap used when filling the polygon\&. An empty value selects a solid fill\&.
+.TE
+.SS "TEXT MARKER OPTIONS"
+.PP
+Text markers display one or more lines of text\&.
+.PP
+.RS 4n
+.nf
+\&.g marker create text -name annotation -coords {3 8} -text "maximum" -anchor s
+.fi
+.RE
+.PP
+In addition to the common marker options, text markers support:
+.TS
+tab(|) box;
+l l.
+Option| Description
+_
+-anchor anchor| Specifies how the text is positioned relative to its coordinate\&. The default is center\&.
+-background color | Specifies the text background color\&. This is a synonym for -fill\&.
+-bg color| Synonym for -background\&.
+-fill color| Specifies the text background color\&.
+-font font| Specifies the font used to draw the text\&.
+-foreground color | Specifies the text color\&. This is a synonym for -outline\&.
+-fg color| Synonym for -foreground\&.
+-justify justify| Specifies justification of multiline text\&. The default is left\&.
+-outline color| Specifies the text color\&. The default is black\&.
+-padx padding| Specifies horizontal padding around the text\&. The default is 4\&.
+-pady padding| Specifies vertical padding around the text\&. The default is 4\&.
+-rotate degrees| Specifies the text rotation angle in degrees\&. The default is 0\&.
+-shadow shadow| Specifies the text shadow\&.
+-text text| Specifies the text to display\&.
+.TE
+.SS "WINDOW MARKER OPTIONS"
+.PP
+Window markers display a Tk window inside the graph\&.
+.PP
+The window must be managed by the graph marker\&.
+.PP
+.RS 4n
+.nf
+button \&.g\&.info -text Info
+\&.g marker create window -name infoMarker -coords {2 4} -window \&.g\&.info
+.fi
+.RE
+.PP
+In addition to the common marker options, window markers support:
+.TS
+tab(|) box;
+l l.
+Option| Description
+_
+-anchor anchor| Specifies how the window is positioned relative to its coordinate\&. The default is center\&.
+-height distance | Specifies an explicit height for the embedded window\&. A value of 0 uses its requested height\&.
+-width distance| Specifies an explicit width for the embedded window\&. A value of 0 uses its requested width\&.
+-window pathName | Specifies the Tk window managed by the marker\&.
+.TE
+.SH "OPTION DATABASE"
+.PP
+Marker options may be supplied through Tk's option database\&. Each concrete marker type has its own resource
+class:
+.TS
+tab(|) box;
+l l.
+Marker type | Resource class
+_
+bitmap| BitmapMarker
+image| ImageMarker
+line| LineMarker
+polygon| PolygonMarker
+text| TextMarker
+window| WindowMarker
+.TE
+.PP
+The resource name is the marker name\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+option add *Graph\&.TextMarker\&.Foreground navy
+option add *Graph\&.LineMarker\&.LineWidth 2
+.fi
+.RE
+

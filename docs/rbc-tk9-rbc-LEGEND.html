@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Graph legend LEGEND command &#8212; rbc  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Graph grid GRID command" href="rbc-tk9-rbc-GRID.html" />
+    <link rel="prev" title="Graph marker MARKER command" href="rbc-tk9-rbc-MARKER.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-GRID.html" title="Graph grid GRID command"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-MARKER.html" title="Graph marker MARKER command"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Graph legend <code class="docutils literal notranslate"><span class="pre">LEGEND</span></code> command</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="graph-legend-legend-command">
+<span id="r-graph-legend-legend-command"></span><span id="r-graph20legend2060legend6020command"></span><span id="r-3a3arbc3a3alegend"></span><h1>Graph legend <code class="docutils literal notranslate"><span class="pre">LEGEND</span></code> command<a class="headerlink" href="#graph-legend-legend-command" title="Link to this heading">¶</a></h1>
+<p>Commands in this namespace document the graph legend.</p>
+<p><code class="docutils literal notranslate"><span class="pre">LEGEND</span></code> is used below as a placeholder for:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">GRAPHINST</span><span class="w"> </span>legend
+</pre></div>
+</div>
+<p>The legend displays an entry for graph elements. Each entry contains the element’s symbol and label and uses the
+drawing attributes of that element.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">graph</span><span class="w"> </span>.g
+
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>signal1<span class="w"> </span><span class="o">-</span>x<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>y<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">5</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>label<span class="w"> </span><span class="s2">&quot;Input&quot;</span>
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>signal2<span class="w"> </span><span class="o">-</span>x<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>y<span class="w"> </span><span class="k">{</span><span class="nv">3</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">4</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>label<span class="w"> </span><span class="s2">&quot;Output&quot;</span>
+<span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>position<span class="w"> </span>rightmargin
+</pre></div>
+</div>
+<p>The legend is a single component of the graph. Unlike elements, markers, or pens, there are no named legend
+objects.</p>
+<section id="legend-entries">
+<span id="r-rbc-legend-legend-entries"></span><span id="r-3a3arbc3a3alegendqzlegend20entries"></span><h2>Legend entries<a class="headerlink" href="#legend-entries" title="Link to this heading">¶</a></h2>
+<p>Legend entries correspond to graph elements. The element’s <code class="docutils literal notranslate"><span class="pre">-label</span></code> option supplies the text displayed in the
+legend.</p>
+<p>The order of legend entries follows the element display order.</p>
+<p>Legend entries may be made active independently of the corresponding graph elements:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>activate<span class="w"> </span>signal1
+<span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>deactivate<span class="w"> </span>signal1
+</pre></div>
+</div>
+<p>Activating a legend entry changes only its appearance in the legend. To highlight the graph element itself,
+activate the element separately:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>activate<span class="w"> </span>signal1
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>activate<span class="w"> </span>signal1
+</pre></div>
+</div>
+</section>
+<section id="legend-position">
+<span id="r-rbc-legend-legend-position"></span><span id="r-3a3arbc3a3alegendqzlegend20position"></span><h2>Legend position<a class="headerlink" href="#legend-position" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">-position</span></code> option determines where the legend is displayed.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Position</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">leftmargin</span></code></p></td>
+<td><p>Draws the legend in the left graph margin.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rightmargin</span></code></p></td>
+<td><p>Draws the legend in the right graph margin. This is the default.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">topmargin</span></code></p></td>
+<td><p>Draws the legend in the top graph margin.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">bottommargin</span></code></p></td>
+<td><p>Draws the legend in the bottom graph margin.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plotarea</span></code></p></td>
+<td><p>Draws the legend inside the plotting area.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code></p></td>
+<td><p>Places the legend at the specified screen coordinates.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">.window</span></code></p></td>
+<td><p>Creates an external legend window with the specified Tk pathname.</p></td>
+</tr>
+</tbody>
+</table>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>position<span class="w"> </span>plotarea<span class="w"> </span><span class="o">-</span>anchor<span class="w"> </span><span class="ow">ne</span>
+</pre></div>
+</div>
+<p>places the legend in the upper-right part of the plotting area.</p>
+<p>An explicit screen position may also be used:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>position<span class="w"> </span>@20,30<span class="w"> </span><span class="o">-</span>anchor<span class="w"> </span>nw
+</pre></div>
+</div>
+<p>For an <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code> position, negative coordinates are measured from the opposite edge of the graph. For example, a
+negative X coordinate is relative to the right edge and a negative Y coordinate is relative to the bottom edge.</p>
+<p>A pathname beginning with <code class="docutils literal notranslate"><span class="pre">.</span></code> selects an external legend window:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>position<span class="w"> </span>.legend
+</pre></div>
+</div>
+<p>Rbc creates the window at that pathname and draws the legend into it. If the external legend window is
+destroyed, the legend returns to <code class="docutils literal notranslate"><span class="pre">rightmargin</span></code>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">-anchor</span></code> option controls how the legend is positioned relative to its selected site or screen coordinate.</p>
+</section>
+<section id="legend-layout">
+<span id="r-rbc-legend-legend-layout"></span><span id="r-3a3arbc3a3alegendqzlegend20layout"></span><h2>Legend layout<a class="headerlink" href="#legend-layout" title="Link to this heading">¶</a></h2>
+<p>Legend entries are arranged as a table.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-rows</span></code> and <code class="docutils literal notranslate"><span class="pre">-columns</span></code> can be used to request a particular table shape:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>columns<span class="w"> </span><span class="mi">2</span>
+</pre></div>
+</div>
+<p>A value of <code class="docutils literal notranslate"><span class="pre">0</span></code> leaves that dimension automatic.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-ipadx</span></code> and <code class="docutils literal notranslate"><span class="pre">-ipady</span></code> specify padding inside individual legend entries. <code class="docutils literal notranslate"><span class="pre">-padx</span></code> and <code class="docutils literal notranslate"><span class="pre">-pady</span></code> specify padding
+around the outside of the complete legend.</p>
+<p>Each padding value may contain either one screen distance or two:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>ipadx<span class="w"> </span><span class="k">{</span><span class="nv">2</span><span class="w"> </span><span class="mi">6</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>pady<span class="w"> </span><span class="k">{</span><span class="nv">4</span><span class="w"> </span><span class="mi">8</span><span class="k">}</span>
+</pre></div>
+</div>
+<p>A single value applies equally to both sides. Two values specify the two sides independently.</p>
+</section>
+<section id="active-entries">
+<span id="r-rbc-legend-active-entries"></span><span id="r-3a3arbc3a3alegendqzactive20entries"></span><h2>Active entries<a class="headerlink" href="#active-entries" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">LEGEND</span> <span class="pre">activate</span></code> marks entries for drawing with the active legend style.</p>
+<p>The active appearance is controlled by:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">-activebackground</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-activeborderwidth</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-activeforeground</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-activerelief</span></code></p></li>
+</ul>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>activebackground<span class="w"> </span>lightblue<span class="w"> </span><span class="o">-</span>activeforeground<span class="w"> </span>navy<span class="w"> </span><span class="o">-</span>activerelief<span class="w"> </span>raised
+<span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>activate<span class="w"> </span>signal1
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">LEGEND</span> <span class="pre">deactivate</span></code> restores the normal legend appearance.</p>
+</section>
+<section id="legend-bindings">
+<span id="r-rbc-legend-legend-bindings"></span><span id="r-3a3arbc3a3alegendqzlegend20bindings"></span><h2>Legend bindings<a class="headerlink" href="#legend-bindings" title="Link to this heading">¶</a></h2>
+<p>Event bindings may be associated with legend entries using <code class="docutils literal notranslate"><span class="pre">LEGEND</span> <span class="pre">bind</span></code>.</p>
+<p>Element names act as binding tags for their corresponding legend entries:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>bind<span class="w"> </span>signal1<span class="w"> </span><span class="o">&lt;</span>Button-1<span class="o">&gt;</span><span class="w"> </span><span class="k">{</span>
+<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;signal1&quot;</span>
+<span class="k">}</span>
+</pre></div>
+</div>
+<p>The element under the current pointer may be obtained with <code class="docutils literal notranslate"><span class="pre">LEGEND</span> <span class="pre">get</span></code> and used by a binding:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>bind<span class="w"> </span>all<span class="w"> </span><span class="o">&lt;</span>Button-1<span class="o">&gt;</span><span class="w"> </span><span class="k">{</span>
+<span class="w">    </span><span class="k">set</span><span class="w"> </span>element<span class="w"> </span><span class="k">[</span><span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>get<span class="w"> </span>current<span class="k">]</span>
+<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="nv">$element</span>
+<span class="k">}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">LEGEND</span> <span class="pre">get</span></code> can also identify the entry at an explicit screen position.</p>
+</section>
+<section id="legend-options">
+<span id="r-rbc-legend-legend-options"></span><span id="r-3a3arbc3a3alegendqzlegend20options"></span><h2>Legend options<a class="headerlink" href="#legend-options" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-activebackground</span> <span class="pre">color</span></code></p></td>
+<td><p>Specifies the background color used for active legend entries.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-activeborderwidth</span> <span class="pre">distance</span></code></p></td>
+<td><p>Specifies the border width around an active legend entry. The default is <code class="docutils literal notranslate"><span class="pre">2</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-activeforeground</span> <span class="pre">color</span></code></p></td>
+<td><p>Specifies the text color used for active legend entries.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-activerelief</span> <span class="pre">relief</span></code></p></td>
+<td><p>Specifies the relief used for active legend entries. The default is <code class="docutils literal notranslate"><span class="pre">flat</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-anchor</span> <span class="pre">anchor</span></code></p></td>
+<td><p>Specifies how the legend is positioned relative to the location selected by <code class="docutils literal notranslate"><span class="pre">-position</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-background</span> <span class="pre">color</span></code></p></td>
+<td><p>Specifies the legend background. An empty value makes the legend background transparent.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-bg</span> <span class="pre">color</span></code></p></td>
+<td><p>Synonym for <code class="docutils literal notranslate"><span class="pre">-background</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-borderwidth</span> <span class="pre">distance</span></code></p></td>
+<td><p>Specifies the width of the border around the complete legend.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-bd</span> <span class="pre">distance</span></code></p></td>
+<td><p>Synonym for <code class="docutils literal notranslate"><span class="pre">-borderwidth</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-columns</span> <span class="pre">number</span></code></p></td>
+<td><p>Requests the number of columns used to arrange legend entries. <code class="docutils literal notranslate"><span class="pre">0</span></code> selects automatic layout. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-font</span> <span class="pre">font</span></code></p></td>
+<td><p>Specifies the font used for element labels in the legend.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-foreground</span> <span class="pre">color</span></code></p></td>
+<td><p>Specifies the normal text color of legend entries.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-fg</span> <span class="pre">color</span></code></p></td>
+<td><p>Synonym for <code class="docutils literal notranslate"><span class="pre">-foreground</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">boolean</span></code></p></td>
+<td><p>Specifies whether the legend is hidden. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-ipadx</span> <span class="pre">padding</span></code></p></td>
+<td><p>Specifies horizontal padding inside each legend entry. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-ipady</span> <span class="pre">padding</span></code></p></td>
+<td><p>Specifies vertical padding inside each legend entry. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-padx</span> <span class="pre">padding</span></code></p></td>
+<td><p>Specifies horizontal padding around the complete legend. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-pady</span> <span class="pre">padding</span></code></p></td>
+<td><p>Specifies vertical padding around the complete legend. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-position</span> <span class="pre">position</span></code></p></td>
+<td><p>Specifies where the legend is drawn. Accepted forms are <code class="docutils literal notranslate"><span class="pre">leftmargin</span></code>, <code class="docutils literal notranslate"><span class="pre">rightmargin</span></code>, <code class="docutils literal notranslate"><span class="pre">topmargin</span></code>, <code class="docutils literal notranslate"><span class="pre">bottommargin</span></code>, <code class="docutils literal notranslate"><span class="pre">plotarea</span></code>, <code class="docutils literal notranslate"><span class="pre">.window</span></code>, and <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">rightmargin</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-raised</span> <span class="pre">boolean</span></code></p></td>
+<td><p>Specifies whether the legend is drawn above graph elements when the legend overlaps the plotting area. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-relief</span> <span class="pre">relief</span></code></p></td>
+<td><p>Specifies the relief of the border around the complete legend. The default is <code class="docutils literal notranslate"><span class="pre">sunken</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-rows</span> <span class="pre">number</span></code></p></td>
+<td><p>Requests the number of rows used to arrange legend entries. <code class="docutils literal notranslate"><span class="pre">0</span></code> selects automatic layout. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-shadow</span> <span class="pre">shadow</span></code></p></td>
+<td><p>Specifies a shadow for legend entry text. An empty value disables the shadow.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Legend configuration options may also be set through Tk’s option database. The resource name is <code class="docutils literal notranslate"><span class="pre">legend</span></code> and
+the resource class is <code class="docutils literal notranslate"><span class="pre">Legend</span></code>.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">option</span><span class="w"> </span>add<span class="w"> </span><span class="o">*</span>Graph.legend.Foreground<span class="w"> </span>navy
+<span class="nv">option</span><span class="w"> </span>add<span class="w"> </span><span class="o">*</span>Graph.Legend.Relief<span class="w"> </span>raised
+</pre></div>
+</div>
+<hr class="docutils" />
+<p class="centered">
+<strong>Copyright (c) George Yashin</strong></p></section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Graph legend <code class="docutils literal notranslate"><span class="pre">LEGEND</span></code> command</a><ul>
+<li><a class="reference internal" href="#legend-entries">Legend entries</a></li>
+<li><a class="reference internal" href="#legend-position">Legend position</a></li>
+<li><a class="reference internal" href="#legend-layout">Legend layout</a></li>
+<li><a class="reference internal" href="#active-entries">Active entries</a></li>
+<li><a class="reference internal" href="#legend-bindings">Legend bindings</a></li>
+<li><a class="reference internal" href="#legend-options">Legend options</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rbc-tk9-rbc-MARKER.html"
+                          title="previous chapter">Graph marker <code class="docutils literal notranslate"><span class="pre">MARKER</span></code> command</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rbc-tk9-rbc-GRID.html"
+                          title="next chapter">Graph grid <code class="docutils literal notranslate"><span class="pre">GRID</span></code> command</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rbc-tk9-rbc-LEGEND.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-GRID.html" title="Graph grid GRID command"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-MARKER.html" title="Graph marker MARKER command"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Graph legend <code class="docutils literal notranslate"><span class="pre">LEGEND</span></code> command</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright George Yashin.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    </div>
+  </body>
+</html>

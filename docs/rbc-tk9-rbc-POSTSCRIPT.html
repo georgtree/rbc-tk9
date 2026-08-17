@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Graph PostScript POSTSCRIPT command &#8212; rbc  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="vector command" href="rbc-tk9-rbc-vector.html" />
+    <link rel="prev" title="Graph crosshairs CROSSHAIRS command" href="rbc-tk9-rbc-CROSSHAIRS.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-vector.html" title="vector command"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-CROSSHAIRS.html" title="Graph crosshairs CROSSHAIRS command"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Graph PostScript <code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span></code> command</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="graph-postscript-postscript-command">
+<span id="r-graph-postscript-postscript-command"></span><span id="r-graph20postscript2060postscript6020command"></span><span id="r-3a3arbc3a3apostscript"></span><h1>Graph PostScript <code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span></code> command<a class="headerlink" href="#graph-postscript-postscript-command" title="Link to this heading">¶</a></h1>
+<p>Commands in this namespace document graph PostScript output.</p>
+<p><code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span></code> is used below as a placeholder for:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">GRAPHINST</span><span class="w"> </span>postscript
+</pre></div>
+</div>
+<p>The PostScript component generates an Encapsulated PostScript representation of the graph.</p>
+<p>The generated PostScript can either be returned directly:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>ps<span class="w"> </span><span class="k">[</span><span class="nv">.g</span><span class="w"> </span>postscript<span class="w"> </span>output<span class="k">]</span>
+</pre></div>
+</div>
+<p>or written to a file:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>postscript<span class="w"> </span>output<span class="w"> </span>graph.eps
+</pre></div>
+</div>
+<p>The PostScript component is a single graph component. There are no named PostScript objects.</p>
+<section id="generating-postscript">
+<span id="r-rbc-postscript-generating-postscript"></span><span id="r-3a3arbc3a3apostscriptqzgenerating20postscript"></span><h2>Generating PostScript<a class="headerlink" href="#generating-postscript" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span> <span class="pre">output</span></code> generates the complete graph, including the plotting area, axes, elements, grid, markers,
+legend, title, and margins.</p>
+<p>With no filename, the generated PostScript is returned as the command result:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>data<span class="w"> </span><span class="k">[</span><span class="nv">.g</span><span class="w"> </span>postscript<span class="w"> </span>output<span class="k">]</span>
+</pre></div>
+</div>
+<p>When a filename is supplied, the output is written to that file and the command returns an empty result:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>postscript<span class="w"> </span>output<span class="w"> </span>graph.eps
+</pre></div>
+</div>
+<p>Configuration options may also be supplied directly to <code class="docutils literal notranslate"><span class="pre">output</span></code>:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>postscript<span class="w"> </span>output<span class="w"> </span>graph.eps<span class="w"> </span><span class="o">-</span>landscape<span class="w"> </span>yes<span class="w"> </span><span class="o">-</span>colormode<span class="w"> </span>grayscale
+</pre></div>
+</div>
+<p>Options successfully supplied to <code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span> <span class="pre">output</span></code> become the current PostScript configuration. They are not
+temporary options applying only to that output operation.</p>
+</section>
+<section id="output-size">
+<span id="r-rbc-postscript-output-size"></span><span id="r-3a3arbc3a3apostscriptqzoutput20size"></span><h2>Output size<a class="headerlink" href="#output-size" title="Link to this heading">¶</a></h2>
+<p>By default <code class="docutils literal notranslate"><span class="pre">-width</span></code> and <code class="docutils literal notranslate"><span class="pre">-height</span></code> are <code class="docutils literal notranslate"><span class="pre">0</span></code>, which causes the current graph dimensions to be used.</p>
+<p>An explicit output size can be requested:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>postscript<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">6</span>i<span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">4</span>i
+</pre></div>
+</div>
+<p>These dimensions are expressed as Tk screen distances.</p>
+<p>The paper dimensions are controlled by <code class="docutils literal notranslate"><span class="pre">-paperwidth</span></code> and <code class="docutils literal notranslate"><span class="pre">-paperheight</span></code>. Their defaults correspond to US
+Letter paper:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>width  = 8.5 inches
+height = 11 inches
+</pre></div>
+</div>
+<p>The default horizontal and vertical page padding is one inch:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>postscript<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>padx<span class="w"> </span><span class="mi">1</span>i<span class="w"> </span><span class="o">-</span>pady<span class="w"> </span><span class="mi">1</span>i
+</pre></div>
+</div>
+<p>If the graph together with its padding is larger than the available paper area, it is reduced while preserving
+its aspect ratio.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-maxpect</span> <span class="pre">yes</span></code> additionally scales the graph to make maximum use of the available paper area while preserving
+its aspect ratio, even when the graph would already fit without scaling.</p>
+</section>
+<section id="centering-and-orientation">
+<span id="r-rbc-postscript-centering-and-orientation"></span><span id="r-3a3arbc3a3apostscriptqzcentering20and20orientation"></span><h2>Centering and orientation<a class="headerlink" href="#centering-and-orientation" title="Link to this heading">¶</a></h2>
+<p>The graph is centered on the page by default.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>postscript<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>center<span class="w"> </span>yes
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">-landscape</span> <span class="pre">yes</span></code> selects landscape orientation:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>postscript<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>landscape<span class="w"> </span>yes
+</pre></div>
+</div>
+<p>The generated EPS header records either portrait or landscape orientation.</p>
+</section>
+<section id="color-modes">
+<span id="r-rbc-postscript-color-modes"></span><span id="r-3a3arbc3a3apostscriptqzcolor20modes"></span><h2>Color modes<a class="headerlink" href="#color-modes" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">-colormode</span></code> controls how colors are represented in PostScript.</p>
+<p>The supported modes are:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Mode</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">color</span></code></p></td>
+<td><p>Generates color output. This is the default.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">grayscale</span></code></p></td>
+<td><p>Converts colors to grayscale.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">greyscale</span></code></p></td>
+<td><p>Alternative spelling of <code class="docutils literal notranslate"><span class="pre">grayscale</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">monochrome</span></code></p></td>
+<td><p>Generates monochrome output.</p></td>
+</tr>
+</tbody>
+</table>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>postscript<span class="w"> </span>output<span class="w"> </span>graph.eps<span class="w"> </span><span class="o">-</span>colormode<span class="w"> </span>grayscale
+</pre></div>
+</div>
+</section>
+<section id="color-maps">
+<span id="r-rbc-postscript-color-maps"></span><span id="r-3a3arbc3a3apostscriptqzcolor20maps"></span><h2>Color maps<a class="headerlink" href="#color-maps" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">-colormap</span></code> may name a Tcl array containing custom PostScript translations for Tk colors.</p>
+<p>Array elements are indexed by Tk color names. The value is PostScript code used instead of the automatically
+generated color conversion.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>psColors<span class="k">(</span><span class="nv">red</span><span class="k">)</span><span class="w">   </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span>SetFgColor<span class="k">}</span>
+<span class="k">set</span><span class="w"> </span>psColors<span class="k">(</span><span class="nv">white</span><span class="k">)</span><span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span>SetBgColor<span class="k">}</span>
+<span class="nv">.g</span><span class="w"> </span>postscript<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>colormap<span class="w"> </span>psColors
+</pre></div>
+</div>
+<p>Colors without an entry in the array use the normal automatic conversion.</p>
+<p>An empty <code class="docutils literal notranslate"><span class="pre">-colormap</span></code> value disables the custom color map.</p>
+</section>
+<section id="font-maps">
+<span id="r-rbc-postscript-font-maps"></span><span id="r-3a3arbc3a3apostscriptqzfont20maps"></span><h2>Font maps<a class="headerlink" href="#font-maps" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">-fontmap</span></code> may name a Tcl array used to override the automatic mapping of Tk fonts to PostScript fonts.</p>
+<p>Each array element is indexed by a Tk font name. Its value is a list containing a PostScript font name and,
+optionally, a point size:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>psFonts<span class="k">(</span><span class="nv">MyGraphFont</span><span class="k">)</span><span class="w"> </span><span class="k">{</span><span class="nv">Helvetica</span><span class="w"> </span><span class="mi">10</span><span class="k">}</span>
+<span class="nv">.g</span><span class="w"> </span>postscript<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>fontmap<span class="w"> </span>psFonts
+</pre></div>
+</div>
+<p>If the point size is omitted, Rbc determines the size from the Tk font.</p>
+<p>Fonts not found in the specified array are mapped automatically to suitable PostScript fonts.</p>
+<p>An empty <code class="docutils literal notranslate"><span class="pre">-fontmap</span></code> value disables the custom font map.</p>
+</section>
+<section id="decorations">
+<span id="r-rbc-postscript-decorations"></span><span id="r-3a3arbc3a3apostscriptqzdecorations"></span><h2>Decorations<a class="headerlink" href="#decorations" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">-decorations</span></code> controls whether widget-style backgrounds and borders are reproduced in the PostScript output.</p>
+<p>The default is:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">-decorations</span><span class="w"> </span>yes
+</pre></div>
+</div>
+<p>With decorations disabled, the graph and plotting-area backgrounds are cleared rather than reproduced using
+their configured background colors, and the plotting-area 3-D border is omitted.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>postscript<span class="w"> </span>output<span class="w"> </span>graph.eps<span class="w"> </span><span class="o">-</span>decorations<span class="w"> </span>no
+</pre></div>
+</div>
+</section>
+<section id="footer">
+<span id="r-rbc-postscript-footer"></span><span id="r-3a3arbc3a3apostscriptqzfooter"></span><h2>Footer<a class="headerlink" href="#footer" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">-footer</span> <span class="pre">yes</span></code> adds identifying information to the generated PostScript, including the creation date, output
+filename, and creator host information.</p>
+<p>The footer is disabled by default:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>postscript<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>footer<span class="w"> </span>no
+</pre></div>
+</div>
+</section>
+<section id="preview-images">
+<span id="r-rbc-postscript-preview-images"></span><span id="r-3a3arbc3a3apostscriptqzpreview20images"></span><h2>Preview images<a class="headerlink" href="#preview-images" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">-preview</span> <span class="pre">yes</span></code> requests a preview image in the generated EPS output.</p>
+<p>The default preview format is:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">-previewformat</span><span class="w"> </span>epsi
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">epsi</span></code> is supported on all platforms and embeds a grayscale EPSI preview in the PostScript data.</p>
+<p>Additional preview formats are platform dependent:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Format</p></th>
+<th class="head"><p>Availability</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">epsi</span></code></p></td>
+<td><p>All platforms</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">wmf</span></code></p></td>
+<td><p>Windows</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tiff</span></code></p></td>
+<td><p>Windows builds compiled with TIFF support</p></td>
+</tr>
+</tbody>
+</table>
+<p>Windows WMF and TIFF previews are used when writing the EPS output to a file. They produce the corresponding
+binary EPS preview representation rather than an inline EPSI preview.</p>
+<p>Preview generation is disabled by default.</p>
+</section>
+<section id="postscript-options">
+<span id="r-rbc-postscript-postscript-options"></span><span id="r-3a3arbc3a3apostscriptqzpostscript20options"></span><h2>PostScript options<a class="headerlink" href="#postscript-options" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-center</span> <span class="pre">boolean</span></code></p></td>
+<td><p>Specifies whether the graph is centered on the page. The default is <code class="docutils literal notranslate"><span class="pre">yes</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-colormap</span> <span class="pre">arrayName</span></code></p></td>
+<td><p>Specifies the name of a Tcl array containing custom PostScript color translations. An empty value disables custom mappings. The default is empty.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-colormode</span> <span class="pre">mode</span></code></p></td>
+<td><p>Specifies the output color mode. Accepted modes are <code class="docutils literal notranslate"><span class="pre">color</span></code>, <code class="docutils literal notranslate"><span class="pre">grayscale</span></code>, <code class="docutils literal notranslate"><span class="pre">greyscale</span></code>, and <code class="docutils literal notranslate"><span class="pre">monochrome</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">color</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-decorations</span> <span class="pre">boolean</span></code></p></td>
+<td><p>Specifies whether graph backgrounds and decorative borders are reproduced. The default is <code class="docutils literal notranslate"><span class="pre">yes</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-fontmap</span> <span class="pre">arrayName</span></code></p></td>
+<td><p>Specifies the name of a Tcl array containing custom Tk-to-PostScript font mappings. An empty value disables custom mappings. The default is empty.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-footer</span> <span class="pre">boolean</span></code></p></td>
+<td><p>Specifies whether identifying footer information is added to the PostScript output. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-height</span> <span class="pre">distance</span></code></p></td>
+<td><p>Specifies the requested output graph height. <code class="docutils literal notranslate"><span class="pre">0</span></code> uses the graph’s current height. The value must be non-negative. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-landscape</span> <span class="pre">boolean</span></code></p></td>
+<td><p>Specifies landscape rather than portrait orientation. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-maxpect</span> <span class="pre">boolean</span></code></p></td>
+<td><p>Specifies whether the graph is scaled to make maximum use of the available paper area while preserving its aspect ratio. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-padx</span> <span class="pre">padding</span></code></p></td>
+<td><p>Specifies horizontal padding between the graph and paper boundaries. The default is <code class="docutils literal notranslate"><span class="pre">1.0i</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-pady</span> <span class="pre">padding</span></code></p></td>
+<td><p>Specifies vertical padding between the graph and paper boundaries. The default is <code class="docutils literal notranslate"><span class="pre">1.0i</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-paperheight</span> <span class="pre">distance</span></code></p></td>
+<td><p>Specifies the paper height. The value must be positive. The default is <code class="docutils literal notranslate"><span class="pre">11.0i</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-paperwidth</span> <span class="pre">distance</span></code></p></td>
+<td><p>Specifies the paper width. The value must be positive. The default is <code class="docutils literal notranslate"><span class="pre">8.5i</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-preview</span> <span class="pre">boolean</span></code></p></td>
+<td><p>Specifies whether a preview image is included in the EPS output. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-previewformat</span> <span class="pre">format</span></code></p></td>
+<td><p>Specifies the preview format. <code class="docutils literal notranslate"><span class="pre">epsi</span></code> is always supported; Windows also supports <code class="docutils literal notranslate"><span class="pre">wmf</span></code>, and may support <code class="docutils literal notranslate"><span class="pre">tiff</span></code> when built with TIFF support. The default is <code class="docutils literal notranslate"><span class="pre">epsi</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-width</span> <span class="pre">distance</span></code></p></td>
+<td><p>Specifies the requested output graph width. <code class="docutils literal notranslate"><span class="pre">0</span></code> uses the graph’s current width. The value must be non-negative. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+<p>PostScript configuration options may also be supplied through Tk’s option database. The resource name is
+<code class="docutils literal notranslate"><span class="pre">postscript</span></code> and the resource class is <code class="docutils literal notranslate"><span class="pre">Postscript</span></code>.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">option</span><span class="w"> </span>add<span class="w"> </span><span class="o">*</span>Graph.postscript.Center<span class="w"> </span>no
+<span class="nv">option</span><span class="w"> </span>add<span class="w"> </span><span class="o">*</span>Graph.Postscript.ColorMode<span class="w"> </span>grayscale
+</pre></div>
+</div>
+<hr class="docutils" />
+<p class="centered">
+<strong>Copyright (c) George Yashin</strong></p></section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Graph PostScript <code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span></code> command</a><ul>
+<li><a class="reference internal" href="#generating-postscript">Generating PostScript</a></li>
+<li><a class="reference internal" href="#output-size">Output size</a></li>
+<li><a class="reference internal" href="#centering-and-orientation">Centering and orientation</a></li>
+<li><a class="reference internal" href="#color-modes">Color modes</a></li>
+<li><a class="reference internal" href="#color-maps">Color maps</a></li>
+<li><a class="reference internal" href="#font-maps">Font maps</a></li>
+<li><a class="reference internal" href="#decorations">Decorations</a></li>
+<li><a class="reference internal" href="#footer">Footer</a></li>
+<li><a class="reference internal" href="#preview-images">Preview images</a></li>
+<li><a class="reference internal" href="#postscript-options">PostScript options</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rbc-tk9-rbc-CROSSHAIRS.html"
+                          title="previous chapter">Graph crosshairs <code class="docutils literal notranslate"><span class="pre">CROSSHAIRS</span></code> command</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rbc-tk9-rbc-vector.html"
+                          title="next chapter"><code class="docutils literal notranslate"><span class="pre">vector</span></code> command</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rbc-tk9-rbc-POSTSCRIPT.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-vector.html" title="vector command"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-CROSSHAIRS.html" title="Graph crosshairs CROSSHAIRS command"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Graph PostScript <code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span></code> command</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright George Yashin.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    </div>
+  </body>
+</html>
