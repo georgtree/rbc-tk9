@@ -1,0 +1,456 @@
+'\"
+'\" '\" Copyright (c) George Yashin
+'\"
+.TH "rbc::LINEELEMENT" 3tcl 0\&.5\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.SH NAME
+rbc::LINEELEMENT - Commands in namespace rbc::LINEELEMENT
+.SH "LINE ELEMENT LINEELEMENT OPTIONS"
+.PP
+This page documents the configuration and behavior of line elements\&.
+.PP
+LINEELEMENT denotes an element whose concrete type is LineElement\&. A line element may be created through
+the default element interface of a graph widget:
+.PP
+.RS 4n
+.nf
+graph \&.g
+\&.g element create signal
+.fi
+.RE
+.PP
+or explicitly with:
+.PP
+.RS 4n
+.nf
+\&.g line create signal
+.fi
+.RE
+.PP
+The common element operations such as create, configure, activate, closest, bind, and delete are
+documented in \fIELEMENT\fP\&.
+.SH DATA
+.PP
+X and Y coordinates may be supplied separately with -x and -y:
+.PP
+.RS 4n
+.nf
+\&.g element create signal  -x {0 1 2 3 4}  -y {1 4 2 5 3}
+.fi
+.RE
+.PP
+-xdata and -ydata are synonyms for -x and -y\&.
+.PP
+Each value may be a Tcl numeric expression\&. The option may also name an existing Rbc vector:
+.PP
+.RS 4n
+.nf
+vector create time voltage
+
+time set    {0 1 2 3 4}
+voltage set {1 4 2 5 3}
+
+\&.g element create signal -x time -y voltage
+.fi
+.RE
+.PP
+When an Rbc vector is used, changes to the vector automatically invalidate and update the graph element\&.
+.PP
+The number of usable data points is the smaller of the X and Y vector lengths\&.
+.PP
+As an alternative, -data accepts one even-length list containing alternating X and Y coordinates:
+.PP
+.RS 4n
+.nf
+\&.g element create signal -data {0 1 1 4 2 2 3 5 4 3}
+.fi
+.RE
+.PP
+This is equivalent to:
+.PP
+.RS 4n
+.nf
+-x {0 1 2 3 4} -y {1 4 2 5 3}
+.fi
+.RE
+.PP
+When -data, -x, and -y occur in the same configuration command, they are processed from left to right;
+the last option affecting a coordinate wins\&.
+.PP
+Configuring -x or -y separately invalidates the retained paired -data representation\&. Configuring
+-data later restores a coherent paired representation\&.
+.PP
+Non-finite X or Y values are not drawn\&. They create a discontinuity in the trace rather than causing the
+points on either side to be connected\&.
+.PP
+The same applies to values outside the domain of a logarithmic axis\&. In particular, non-positive values on
+a logarithmic X or Y axis form breaks in the line\&.
+.SH "AXIS MAPPING"
+.PP
+-mapx and -mapy select the virtual axes used to map the element\&. Their defaults are x and y\&.
+.PP
+.RS 4n
+.nf
+\&.g axis create y2data
+\&.g y2axis use y2data
+
+\&.g element create signal -x time -y voltage -mapy y2data
+.fi
+.RE
+.PP
+The selected axes must have the appropriate X or Y orientation\&.
+.SH "LINE DRAWING"
+.PP
+The element contains a built-in normal line pen\&. The following options configure that built-in pen directly:
+.TS
+tab(|) box;
+l l.
+Option| Description
+_
+-color color| Sets the trace color\&. The default is navy blue\&.
+-linewidth width | Sets the non-negative trace width\&. A value of 0 suppresses the connecting line while symbols may still be displayed\&. The default is 1\&.
+-dashes dashes| Specifies the dash pattern for the trace\&. An empty value draws a solid line\&.
+-offdash color| Specifies the color used for the gaps of a dashed line\&. An empty value leaves dash gaps transparent\&. defcolor selects the normal trace color\&.
+.TE
+.PP
+A separately created line pen may replace the built-in normal pen with -pen:
+.PP
+.RS 4n
+.nf
+\&.g pen create traces -type line -color red -linewidth 2
+\&.g element configure signal -pen traces
+.fi
+.RE
+.PP
+An empty -pen value selects the element's built-in pen again\&.
+.PP
+-activepen selects the pen used when the element or individual points are active\&. Its default is
+activeLine\&. An empty value disables the separate active pen\&.
+.SH SMOOTHING
+.PP
+-smooth controls how consecutive valid data points are connected\&.
+.TS
+tab(|) box;
+l l.
+Value| Description
+_
+linear| Connects points with ordinary straight line segments\&. This is the default\&.
+step| Uses step-and-hold interpolation: data X changes first while data Y remains constant, then Y changes\&.
+natural| Uses natural cubic spline interpolation in mapped screen coordinates\&.
+cubic| Synonym for natural\&.
+quadratic | Uses the shape-preserving quadratic spline in mapped screen coordinates\&.
+catrom| Uses a Catmull-Rom parametric spline\&.
+.TE
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+\&.g element configure signal -smooth natural
+.fi
+.RE
+.PP
+Spline smoothing operates on mapped screen coordinates\&. This means it follows the actual displayed geometry,
+including descending axes, inverted graphs, and logarithmic mapping\&.
+.PP
+Natural, quadratic, and Catmull-Rom smoothing require at least three mapped points\&.
+.PP
+Spline smoothing is not performed across missing or invalid data\&. If the mapped data contain a discontinuity,
+the current implementation falls back to ordinary linear segments for the element rather than constructing
+separate splines for each continuous run\&.
+.PP
+Step smoothing preserves discontinuities and never manufactures a step across a missing-data boundary\&.
+.SH "TRACE DIRECTION"
+.PP
+-trace determines whether connecting segments are drawn when X values change direction\&.
+.TS
+tab(|) box;
+l l.
+Value| Description
+_
+both| Connects points regardless of whether X increases or decreases\&. This is the default\&.
+increasing | Draws only portions whose X coordinates proceed in the increasing direction\&.
+decreasing | Draws only portions whose X coordinates proceed in the decreasing direction\&.
+.TE
+.PP
+The option is useful for datasets that retrace their X coordinates and where only one sweep direction should
+be displayed\&.
+.SH "POINT REDUCTION"
+.PP
+-reduce enables screen-space simplification of the mapped line\&.
+.PP
+A positive value specifies the reduction tolerance\&. A value less than or equal to zero disables reduction;
+the default is 0\&.0\&.
+.PP
+.RS 4n
+.nf
+\&.g element configure signal -reduce 1\&.0
+.fi
+.RE
+.PP
+Reduction is performed separately for every continuous data run, so it does not reconnect traces across
+missing values\&.
+.PP
+Reduction affects rendered geometry only; it does not modify the element's source data\&.
+.SH SYMBOLS
+.PP
+Symbols may be drawn at element data points using -symbol\&.
+.PP
+The built-in symbol names are:
+.PP
+.RS 4n
+.nf
+none
+circle
+square
+diamond
+plus
+cross
+splus
+scross
+triangle
+arrow
+.fi
+.RE
+.PP
+The default is circle\&. An empty value is equivalent to none\&.
+.PP
+A Tk bitmap may also be used as a symbol\&. The value is a one- or two-element list:
+.PP
+.RS 4n
+.nf
+-symbol bitmap
+-symbol {bitmap mask}
+.fi
+.RE
+.PP
+where bitmap and optional mask are names understood by Tk's bitmap machinery\&.
+.PP
+Symbol appearance is controlled by:
+.TS
+tab(|) box;
+l l.
+Option| Description
+_
+-pixels size| Sets the requested symbol size\&. The default is 0\&.125i\&.
+-fill color| Sets the symbol fill color\&. defcolor uses the trace color\&. An empty value leaves the symbol unfilled\&.
+-outline color| Sets the symbol outline color\&. defcolor uses the trace color\&.
+-outlinewidth width| Sets the non-negative symbol outline width\&. The default is 1\&.
+-scalesymbols boolean | Controls whether symbol sizes change as the graph axis ranges change\&. The default is yes\&.
+-maxsymbols number| Reduces the density of displayed symbols\&. 0 displays symbols at all eligible points\&.
+.TE
+.PP
+-maxsymbols is a display-density control rather than a modification of the source data\&. When positive, Rbc
+computes an interval and draws approximately the requested number of symbols across the visible element\&.
+.SH "ERROR BARS"
+.PP
+Error-bar data may be specified in either symmetric or asymmetric form\&.
+.PP
+Symmetric X errors use:
+.PP
+.RS 4n
+.nf
+-xerror values
+.fi
+.RE
+.PP
+and produce limits:
+.PP
+.RS 4n
+.nf
+x - error
+x + error
+.fi
+.RE
+.PP
+Symmetric Y errors similarly use:
+.PP
+.RS 4n
+.nf
+-yerror values
+.fi
+.RE
+.PP
+Asymmetric or absolute limits may instead be supplied using:
+.PP
+.RS 4n
+.nf
+-xlow
+-xhigh
+-ylow
+-yhigh
+.fi
+.RE
+.PP
+When -xerror contains values it takes precedence over -xlow and -xhigh\&. Likewise, -yerror takes
+precedence over -ylow and -yhigh\&.
+.PP
+Error vectors may be Tcl lists or Rbc vector names, in the same way as X and Y data\&.
+.PP
+The drawing style is controlled by:
+.TS
+tab(|) box;
+l l.
+Option| Description
+_
+-showerrorbars value | Selects which error bars are displayed\&. The default is both\&.
+-errorbarcolor color | Sets the error-bar color\&. defcolor uses the trace color\&.
+-errorbarwidth width | Sets the non-negative error-bar line width\&. The default is 1\&.
+-errorbarcap width| Sets the requested non-negative cap width\&. The default is 1\&.
+.TE
+.SH "VALUE LABELS"
+.PP
+Data values may be displayed next to symbols with -showvalues\&.
+.PP
+The value may select X values, Y values, both coordinates, or no values\&. The default is no\&.
+.PP
+When both coordinates are requested, the formatted X and Y values are displayed together\&.
+.PP
+Value-label appearance is controlled by:
+.TS
+tab(|) box;
+l l.
+Option| Description
+_
+-valueanchor anchor | Specifies the Tk anchor of the label relative to the data point\&. The default is s\&.
+-valuecolor color| Sets the label color\&. The default is black\&.
+-valuefont font| Sets the label font\&.
+-valueformat format | Sets the printf-style floating-point format\&. The default is %g\&.
+-valuerotate angle| Rotates the label by the specified angle in degrees\&. The default is 0\&.0\&.
+-valueshadow shadow | Specifies an optional text shadow\&. An empty value disables the shadow\&.
+.TE
+.PP
+-valueformat is validated before it is accepted\&. It may contain at most one floating-point conversion,
+using a, A, e, E, f, F, g, or G\&. Dynamic width or precision using * is not permitted\&.
+.SH "PENS, WEIGHTS, AND STYLES"
+.PP
+-weights associates one numeric weight with each data point\&. The value may be a Tcl list or the name of an
+Rbc vector\&.
+.PP
+-styles maps ranges of those weights to named line pens\&.
+.PP
+Each entry in the -styles list has one of two forms:
+.PP
+.RS 4n
+.nf
+penName
+penName min max
+.fi
+.RE
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+\&.g pen create low  -type line -color blue
+\&.g pen create high -type line -color red
+
+\&.g element configure signal -weights {0\&.2 0\&.4 1\&.2 1\&.8} -styles {{low 0 1} {high 1 2}}
+.fi
+.RE
+.PP
+A style without explicit limits receives the legacy default range based on its position in the style list:
+the first style covers 0 through 1, the second 1 through 2, and so on\&.
+.PP
+Points whose weights do not match a configured style use the element's normal pen\&.
+.PP
+Later style entries take precedence when weight ranges overlap\&.
+.PP
+The selected pen controls the drawing attributes associated with the mapped points, including symbols,
+traces, and error bars\&.
+.SH "AREA UNDER THE LINE"
+.PP
+Line elements, unlike strip elements, may fill the area beneath the rendered trace\&.
+.PP
+Area filling is enabled by either -areapattern or -areatile\&.
+.PP
+-areapattern accepts:
+.TP
+\(bu
+an empty value to disable the pattern;
+.TP
+\(bu
+solid for a solid fill;
+.TP
+\(bu
+the name of a Tk bitmap to use as a stipple\&.
+.PP
+The stipple colors are controlled by -areaforeground and -areabackground\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+\&.g element configure signal -areapattern solid -areaforeground lightblue
+.fi
+.RE
+.PP
+-areatile specifies an Rbc tile/image used to fill the area\&. An empty value disables the tile\&.
+.PP
+The fill polygon follows the mapped line and is closed against the bottom of the plotting area\&.
+.PP
+Area filling uses the geometry after smoothing and point reduction\&.
+.PP
+The current implementation stores one fill polygon per line element\&. Consequently, if the mapped line
+contains a discontinuity, area filling is suppressed rather than incorrectly filling across separate data
+runs\&.
+.SH "LINE ELEMENT OPTIONS"
+.PP
+The complete line-element option set is:
+.TS
+tab(|) box;
+l l.
+Option| Description
+_
+-activepen penName| Selects the line pen used for active elements or active points\&. The default is activeLine; an empty value disables the separate active pen\&.
+-areabackground color | Sets the background color used by an area stipple\&. The default is white\&.
+-areaforeground color | Sets the foreground color used by an area fill or stipple\&. The default is black\&.
+-areapattern pattern| Enables area filling with solid or a Tk bitmap stipple\&. An empty value disables the pattern\&.
+-areatile tile| Enables area filling with the named Rbc tile/image\&. An empty value disables the tile\&.
+-bindtags tags| Specifies additional graph binding tags for the element\&. The default is all\&.
+-color color| Sets the built-in normal pen's trace color\&.
+-dashes dashes| Sets the built-in normal pen's trace dash pattern\&. An empty value selects a solid line\&.
+-data data| Supplies an even-length list of alternating X and Y values\&.
+-errorbarcap width| Sets the error-bar cap width\&. The default is 1\&.
+-errorbarcolor color| Sets the error-bar color\&. defcolor uses the trace color\&.
+-errorbarwidth width| Sets the error-bar line width\&. The default is 1\&.
+-fill color| Sets the symbol fill color\&. defcolor uses the trace color; an empty value leaves symbols unfilled\&.
+-hide boolean| Controls whether the element is displayed\&. The default is no\&.
+-label text| Sets the element label used by the legend\&. The initial label is the element name\&.
+-labelrelief relief| Sets the relief used for the element's legend label\&. The default is flat\&.
+-linewidth width| Sets the built-in normal pen's trace width\&. The default is 1; 0 suppresses the trace\&.
+-mapx axisName| Selects the X axis used to map the element\&. The default is x\&.
+-mapy axisName| Selects the Y axis used to map the element\&. The default is y\&.
+-maxsymbols number| Controls symbol display density\&. 0 displays all eligible symbols\&.
+-offdash color| Sets the color of gaps in dashed traces\&. An empty value leaves the gaps transparent\&.
+-outline color| Sets the symbol outline color\&. defcolor uses the trace color\&.
+-outlinewidth width| Sets the symbol outline width\&. The default is 1\&.
+-pen penName| Selects a named line pen as the normal pen\&. An empty value selects the built-in pen\&.
+-pixels size| Sets the requested symbol size\&. The default is 0\&.125i\&.
+-reduce tolerance| Sets the screen-space line simplification tolerance\&. A non-positive value disables reduction\&.
+-scalesymbols boolean | Controls automatic symbol-size scaling as axis ranges change\&. The default is yes\&.
+-showerrorbars value| Selects the X and/or Y error bars to draw\&. The default is both\&.
+-showvalues value| Selects which coordinate values are displayed next to data points\&. The default is no\&.
+-smooth mode| Selects linear, step, natural, cubic, quadratic, or catrom line smoothing\&.
+-state state| Sets the element state\&. The default is normal\&.
+-styles styles| Maps weight ranges to named line pens\&.
+-symbol symbol| Selects the point symbol\&. The default is circle\&.
+-trace direction| Selects increasing, decreasing, or both X-direction trace behavior\&. The default is both\&.
+-valueanchor anchor| Sets the anchor of data-value labels\&. The default is s\&.
+-valuecolor color| Sets the data-value label color\&.
+-valuefont font| Sets the data-value label font\&.
+-valueformat format| Sets the validated floating-point format used for data-value labels\&. The default is %g\&.
+-valuerotate angle| Sets the rotation angle of data-value labels\&. The default is 0\&.0\&.
+-valueshadow shadow| Sets the optional shadow for data-value labels\&.
+-weights values| Supplies per-point weights used by -styles\&.
+-x values| Supplies X coordinates as a list or Rbc vector\&.
+-xdata values| Synonym for -x\&.
+-xerror values| Supplies symmetric X error magnitudes\&.
+-xhigh values| Supplies absolute upper X error-bar coordinates\&.
+-xlow values| Supplies absolute lower X error-bar coordinates\&.
+-y values| Supplies Y coordinates as a list or Rbc vector\&.
+-ydata values| Synonym for -y\&.
+-yerror values| Supplies symmetric Y error magnitudes\&.
+-yhigh values| Supplies absolute upper Y error-bar coordinates\&.
+-ylow values| Supplies absolute lower Y error-bar coordinates\&.
+.TE
+

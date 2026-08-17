@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Strip element STRIPELEMENT options &#8212; rbc  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Bar element BARELEMENT options" href="rbc-tk9-rbc-BARELEMENT.html" />
+    <link rel="prev" title="Line element LINEELEMENT options" href="rbc-tk9-rbc-LINEELEMENT.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-BARELEMENT.html" title="Bar element BARELEMENT options"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-LINEELEMENT.html" title="Line element LINEELEMENT options"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Strip element <code class="docutils literal notranslate"><span class="pre">STRIPELEMENT</span></code> options</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="strip-element-stripelement-options">
+<span id="r-strip-element-stripelement-options"></span><span id="r-strip20element2060stripelement6020options"></span><span id="r-3a3arbc3a3astripelement"></span><h1>Strip element <code class="docutils literal notranslate"><span class="pre">STRIPELEMENT</span></code> options<a class="headerlink" href="#strip-element-stripelement-options" title="Link to this heading">¶</a></h1>
+<p>This page documents the configuration and behavior of strip elements.</p>
+<p><code class="docutils literal notranslate"><span class="pre">STRIPELEMENT</span></code> denotes an element whose concrete type is <code class="docutils literal notranslate"><span class="pre">StripElement</span></code>. Strip elements are the default
+element type of a <code class="docutils literal notranslate"><span class="pre">stripchart</span></code> widget:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">stripchart</span><span class="w"> </span>.s
+<span class="nv">.s</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>signal
+</pre></div>
+</div>
+<p>The common element operations such as <code class="docutils literal notranslate"><span class="pre">create</span></code>, <code class="docutils literal notranslate"><span class="pre">configure</span></code>, <code class="docutils literal notranslate"><span class="pre">activate</span></code>, <code class="docutils literal notranslate"><span class="pre">closest</span></code>, <code class="docutils literal notranslate"><span class="pre">bind</span></code>, and <code class="docutils literal notranslate"><span class="pre">delete</span></code> are
+documented in <a class="reference internal" href="rbc-tk9-rbc-ELEMENT.html#r-3a3arbc3a3aelement"><span class="std std-ref">ELEMENT</span></a>.</p>
+<p>Strip elements use the same underlying line-rendering machinery as line elements. Their data handling, axis
+mapping, pens, smoothing, symbols, error bars, value labels, weights, and styles therefore have the same
+semantics as described in <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a>.</p>
+<section id="differences-from-line-elements">
+<span id="r-rbc-stripelement-differences-from-line-elements"></span><span id="r-3a3arbc3a3astripelementqzdifferences20from20line20elements"></span><h2>Differences from line elements<a class="headerlink" href="#differences-from-line-elements" title="Link to this heading">¶</a></h2>
+<p>A strip element exposes a restricted line-element option set intended for stripchart use.</p>
+<p>In particular, the following <code class="docutils literal notranslate"><span class="pre">LINEELEMENT</span></code> options are not available for strip elements:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Line-element feature</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-areabackground</span></code></p></td>
+<td><p>area-fill stipple background</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-areaforeground</span></code></p></td>
+<td><p>area-fill foreground</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-areapattern</span></code></p></td>
+<td><p>area filling with a solid or stipple pattern</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-areatile</span></code></p></td>
+<td><p>tiled area filling</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-reduce</span></code></p></td>
+<td><p>screen-space trace reduction</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-state</span></code></p></td>
+<td><p>line-element state option</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-trace</span></code></p></td>
+<td><p>filtering of increasing/decreasing X trace directions</p></td>
+</tr>
+</tbody>
+</table>
+<p>All other options listed below use the same interpretation as the corresponding option on <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a>.</p>
+</section>
+<section id="data">
+<span id="r-rbc-stripelement-data"></span><span id="r-3a3arbc3a3astripelementqzdata"></span><h2>Data<a class="headerlink" href="#data" title="Link to this heading">¶</a></h2>
+<p>Strip-element coordinates may be supplied with:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>-x
+-y
+-xdata
+-ydata
+-data
+</pre></div>
+</div>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.s</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>x<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>y<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span>
+</pre></div>
+</div>
+<p>Rbc vector names may be used instead of literal coordinate lists:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">vector</span><span class="w"> </span>create<span class="w"> </span>time<span class="w"> </span>voltage
+
+<span class="nb">time</span><span class="w"> </span>set<span class="w">    </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="k">}</span>
+<span class="nv">voltage</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span>
+
+<span class="nv">.s</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>x<span class="w"> </span>time<span class="w"> </span><span class="o">-</span>y<span class="w"> </span>voltage
+</pre></div>
+</div>
+<p>The same transactional and left-to-right data-option semantics described for <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a> apply.</p>
+<p>Non-finite data values and values outside the domain of a logarithmic axis form discontinuities in the
+rendered trace. Points on opposite sides of such a discontinuity are not connected.</p>
+</section>
+<section id="smoothing">
+<span id="r-rbc-stripelement-smoothing"></span><span id="r-3a3arbc3a3astripelementqzsmoothing"></span><h2>Smoothing<a class="headerlink" href="#smoothing" title="Link to this heading">¶</a></h2>
+<p>Strip elements support the same smoothing modes as line elements:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>linear
+step
+natural
+cubic
+quadratic
+catrom
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">linear</span></code> is the default.</p>
+<p>Spline smoothing operates in mapped screen coordinates. Natural, quadratic, and Catmull-Rom smoothing require
+at least three mapped points.</p>
+<p>As with line elements, spline smoothing is not allowed to bridge a discontinuity. If a discontinuity is
+present, the current implementation falls back to ordinary linear trace segments instead of constructing
+independent splines for each continuous run.</p>
+</section>
+<section id="pens-and-symbols">
+<span id="r-rbc-stripelement-pens-and-symbols"></span><span id="r-3a3arbc3a3astripelementqzpens20and20symbols"></span><h2>Pens and symbols<a class="headerlink" href="#pens-and-symbols" title="Link to this heading">¶</a></h2>
+<p>Strip elements use line pens.</p>
+<p>The built-in normal pen can be configured directly with options such as:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>-color
+-linewidth
+-dashes
+-offdash
+-fill
+-outline
+-outlinewidth
+-pixels
+-symbol
+</pre></div>
+</div>
+<p>A separately created line pen may be selected with <code class="docutils literal notranslate"><span class="pre">-pen</span></code>:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.s</span><span class="w"> </span>pen<span class="w"> </span>create<span class="w"> </span>tracePen<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>line<span class="w"> </span><span class="o">-</span>color<span class="w"> </span>blue<span class="w"> </span><span class="o">-</span>linewidth<span class="w"> </span><span class="mi">2</span>
+<span class="nv">.s</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>pen<span class="w"> </span>tracePen
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">-activepen</span></code> selects the pen used when the element or individual data points are active.</p>
+<p>See <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a> for detailed descriptions of line pens, symbols, symbol scaling, and symbol-density control.</p>
+</section>
+<section id="error-bars">
+<span id="r-rbc-stripelement-error-bars"></span><span id="r-3a3arbc3a3astripelementqzerror20bars"></span><h2>Error bars<a class="headerlink" href="#error-bars" title="Link to this heading">¶</a></h2>
+<p>Strip elements support the same symmetric and asymmetric error-bar data as line elements:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>-xerror
+-xlow
+-xhigh
+-yerror
+-ylow
+-yhigh
+</pre></div>
+</div>
+<p>Their appearance is controlled by:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>-showerrorbars
+-errorbarcolor
+-errorbarwidth
+-errorbarcap
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a> for the complete error-bar semantics.</p>
+</section>
+<section id="value-labels">
+<span id="r-rbc-stripelement-value-labels"></span><span id="r-3a3arbc3a3astripelementqzvalue20labels"></span><h2>Value labels<a class="headerlink" href="#value-labels" title="Link to this heading">¶</a></h2>
+<p>Strip elements can display coordinate values next to their data points using <code class="docutils literal notranslate"><span class="pre">-showvalues</span></code>.</p>
+<p>Label appearance is controlled by:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>-valueanchor
+-valuecolor
+-valuefont
+-valueformat
+-valuerotate
+-valueshadow
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a> for value-selection and formatting behavior.</p>
+</section>
+<section id="weights-and-styles">
+<span id="r-rbc-stripelement-weights-and-styles"></span><span id="r-3a3arbc3a3astripelementqzweights20and20styles"></span><h2>Weights and styles<a class="headerlink" href="#weights-and-styles" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">-weights</span></code> supplies a numeric weight for each data point and <code class="docutils literal notranslate"><span class="pre">-styles</span></code> maps weight ranges to named line pens.</p>
+<p>The syntax and precedence rules are identical to those described for <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a>.</p>
+</section>
+<section id="strip-element-options">
+<span id="r-rbc-stripelement-strip-element-options"></span><span id="r-3a3arbc3a3astripelementqzstrip20element20options"></span><h2>Strip element options<a class="headerlink" href="#strip-element-options" title="Link to this heading">¶</a></h2>
+<p>The complete strip-element option set is:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-activepen</span> <span class="pre">penName</span></code></p></td>
+<td><p>Selects the line pen used for active elements or active points. The default is <code class="docutils literal notranslate"><span class="pre">activeLine</span></code>; an empty value disables the separate active pen.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-bindtags</span> <span class="pre">tags</span></code></p></td>
+<td><p>Specifies additional graph binding tags for the element. The default is <code class="docutils literal notranslate"><span class="pre">all</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-color</span> <span class="pre">color</span></code></p></td>
+<td><p>Sets the built-in normal pen’s trace color.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-dashes</span> <span class="pre">dashes</span></code></p></td>
+<td><p>Sets the built-in normal pen’s trace dash pattern. An empty value selects a solid line.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-data</span> <span class="pre">data</span></code></p></td>
+<td><p>Supplies an even-length list of alternating X and Y values.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbarcap</span> <span class="pre">width</span></code></p></td>
+<td><p>Sets the error-bar cap width.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbarcolor</span> <span class="pre">color</span></code></p></td>
+<td><p>Sets the error-bar color. <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> uses the trace color.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbarwidth</span> <span class="pre">width</span></code></p></td>
+<td><p>Sets the error-bar line width.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-fill</span> <span class="pre">color</span></code></p></td>
+<td><p>Sets the symbol fill color. <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> uses the trace color; an empty value leaves symbols unfilled.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">boolean</span></code></p></td>
+<td><p>Controls whether the element is displayed.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-label</span> <span class="pre">text</span></code></p></td>
+<td><p>Sets the element label used by the legend. The initial label is the element name.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-labelrelief</span> <span class="pre">relief</span></code></p></td>
+<td><p>Sets the relief used for the element’s legend label.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-linewidth</span> <span class="pre">width</span></code></p></td>
+<td><p>Sets the built-in normal pen’s trace width. A value of <code class="docutils literal notranslate"><span class="pre">0</span></code> suppresses the connecting trace.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-mapx</span> <span class="pre">axisName</span></code></p></td>
+<td><p>Selects the X axis used to map the element. The default is <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-mapy</span> <span class="pre">axisName</span></code></p></td>
+<td><p>Selects the Y axis used to map the element. The default is <code class="docutils literal notranslate"><span class="pre">y</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-maxsymbols</span> <span class="pre">number</span></code></p></td>
+<td><p>Controls symbol display density. <code class="docutils literal notranslate"><span class="pre">0</span></code> displays all eligible symbols.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-offdash</span> <span class="pre">color</span></code></p></td>
+<td><p>Sets the color of gaps in dashed traces. An empty value leaves the gaps transparent.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-outline</span> <span class="pre">color</span></code></p></td>
+<td><p>Sets the symbol outline color. <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> uses the trace color.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-outlinewidth</span> <span class="pre">width</span></code></p></td>
+<td><p>Sets the symbol outline width.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-pen</span> <span class="pre">penName</span></code></p></td>
+<td><p>Selects a named line pen as the normal pen. An empty value selects the built-in pen.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-pixels</span> <span class="pre">size</span></code></p></td>
+<td><p>Sets the requested symbol size.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-scalesymbols</span> <span class="pre">boolean</span></code></p></td>
+<td><p>Controls automatic symbol-size scaling as axis ranges change.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-showerrorbars</span> <span class="pre">value</span></code></p></td>
+<td><p>Selects which X and/or Y error bars are drawn.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-showvalues</span> <span class="pre">value</span></code></p></td>
+<td><p>Selects which coordinate values are displayed next to data points.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-smooth</span> <span class="pre">mode</span></code></p></td>
+<td><p>Selects <code class="docutils literal notranslate"><span class="pre">linear</span></code>, <code class="docutils literal notranslate"><span class="pre">step</span></code>, <code class="docutils literal notranslate"><span class="pre">natural</span></code>, <code class="docutils literal notranslate"><span class="pre">cubic</span></code>, <code class="docutils literal notranslate"><span class="pre">quadratic</span></code>, or <code class="docutils literal notranslate"><span class="pre">catrom</span></code> smoothing.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-styles</span> <span class="pre">styles</span></code></p></td>
+<td><p>Maps ranges of per-point weights to named line pens.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-symbol</span> <span class="pre">symbol</span></code></p></td>
+<td><p>Selects the point symbol.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valueanchor</span> <span class="pre">anchor</span></code></p></td>
+<td><p>Sets the anchor of data-value labels.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valuecolor</span> <span class="pre">color</span></code></p></td>
+<td><p>Sets the data-value label color.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valuefont</span> <span class="pre">font</span></code></p></td>
+<td><p>Sets the data-value label font.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valueformat</span> <span class="pre">format</span></code></p></td>
+<td><p>Sets the validated floating-point format used for data-value labels.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valuerotate</span> <span class="pre">angle</span></code></p></td>
+<td><p>Sets the rotation angle of data-value labels.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valueshadow</span> <span class="pre">shadow</span></code></p></td>
+<td><p>Sets the optional shadow for data-value labels.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-weights</span> <span class="pre">values</span></code></p></td>
+<td><p>Supplies per-point numeric weights used by <code class="docutils literal notranslate"><span class="pre">-styles</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-x</span> <span class="pre">values</span></code></p></td>
+<td><p>Supplies X coordinates as a Tcl list or Rbc vector.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-xdata</span> <span class="pre">values</span></code></p></td>
+<td><p>Synonym for <code class="docutils literal notranslate"><span class="pre">-x</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-xerror</span> <span class="pre">values</span></code></p></td>
+<td><p>Supplies symmetric X error magnitudes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-xhigh</span> <span class="pre">values</span></code></p></td>
+<td><p>Supplies absolute upper X error-bar coordinates.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-xlow</span> <span class="pre">values</span></code></p></td>
+<td><p>Supplies absolute lower X error-bar coordinates.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-y</span> <span class="pre">values</span></code></p></td>
+<td><p>Supplies Y coordinates as a Tcl list or Rbc vector.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-ydata</span> <span class="pre">values</span></code></p></td>
+<td><p>Synonym for <code class="docutils literal notranslate"><span class="pre">-y</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-yerror</span> <span class="pre">values</span></code></p></td>
+<td><p>Supplies symmetric Y error magnitudes.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-yhigh</span> <span class="pre">values</span></code></p></td>
+<td><p>Supplies absolute upper Y error-bar coordinates.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-ylow</span> <span class="pre">values</span></code></p></td>
+<td><p>Supplies absolute lower Y error-bar coordinates.</p></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<p class="centered">
+<strong>Copyright (c) George Yashin</strong></p></section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Strip element <code class="docutils literal notranslate"><span class="pre">STRIPELEMENT</span></code> options</a><ul>
+<li><a class="reference internal" href="#differences-from-line-elements">Differences from line elements</a></li>
+<li><a class="reference internal" href="#data">Data</a></li>
+<li><a class="reference internal" href="#smoothing">Smoothing</a></li>
+<li><a class="reference internal" href="#pens-and-symbols">Pens and symbols</a></li>
+<li><a class="reference internal" href="#error-bars">Error bars</a></li>
+<li><a class="reference internal" href="#value-labels">Value labels</a></li>
+<li><a class="reference internal" href="#weights-and-styles">Weights and styles</a></li>
+<li><a class="reference internal" href="#strip-element-options">Strip element options</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rbc-tk9-rbc-LINEELEMENT.html"
+                          title="previous chapter">Line element <code class="docutils literal notranslate"><span class="pre">LINEELEMENT</span></code> options</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rbc-tk9-rbc-BARELEMENT.html"
+                          title="next chapter">Bar element <code class="docutils literal notranslate"><span class="pre">BARELEMENT</span></code> options</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rbc-tk9-rbc-STRIPELEMENT.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-BARELEMENT.html" title="Bar element BARELEMENT options"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-LINEELEMENT.html" title="Line element LINEELEMENT options"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Strip element <code class="docutils literal notranslate"><span class="pre">STRIPELEMENT</span></code> options</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright George Yashin.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    </div>
+  </body>
+</html>

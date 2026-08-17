@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Graph virtual axis AXIS command &#8212; rbc  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Graph margin axis MARGINAXIS command" href="rbc-tk9-rbc-MARGINAXIS.html" />
+    <link rel="prev" title="Graph widget instance GRAPHINST command" href="rbc-tk9-rbc-GRAPHINST.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-MARGINAXIS.html" title="Graph margin axis MARGINAXIS command"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-GRAPHINST.html" title="Graph widget instance GRAPHINST command"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Graph virtual axis <code class="docutils literal notranslate"><span class="pre">AXIS</span></code> command</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="graph-virtual-axis-axis-command">
+<span id="r-graph-virtual-axis-axis-command"></span><span id="r-graph20virtual20axis2060axis6020command"></span><span id="r-3a3arbc3a3aaxis"></span><h1>Graph virtual axis <code class="docutils literal notranslate"><span class="pre">AXIS</span></code> command<a class="headerlink" href="#graph-virtual-axis-axis-command" title="Link to this heading">¶</a></h1>
+<p>Commands in this namespace document operations accepted by the <code class="docutils literal notranslate"><span class="pre">axis</span></code> component of a graph, barchart, or
+stripchart widget.</p>
+<p><code class="docutils literal notranslate"><span class="pre">AXIS</span></code> is used below as a placeholder for:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">GRAPHINST</span><span class="w"> </span>axis
+</pre></div>
+</div>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">graph</span><span class="w"> </span>.g
+
+<span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>create<span class="w"> </span>temperature<span class="w"> </span><span class="o">-</span>title<span class="w"> </span><span class="s2">&quot;Temperature&quot;</span>
+<span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>temperature<span class="w"> </span><span class="o">-</span>min<span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">-</span>max<span class="w"> </span><span class="mi">100</span>
+</pre></div>
+</div>
+<section id="virtual-axes">
+<span id="r-rbc-axis-virtual-axes"></span><span id="r-3a3arbc3a3aaxisqzvirtual20axes"></span><h2>Virtual axes<a class="headerlink" href="#virtual-axes" title="Link to this heading">¶</a></h2>
+<p>Every graph widget initially contains four axes named <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, <code class="docutils literal notranslate"><span class="pre">x2</span></code>, and <code class="docutils literal notranslate"><span class="pre">y2</span></code>. The <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> axes are the
+primary axes and are displayed by default. The secondary <code class="docutils literal notranslate"><span class="pre">x2</span></code> and <code class="docutils literal notranslate"><span class="pre">y2</span></code> axes are created on the opposite
+margins and are hidden by default.</p>
+<p>Additional axes may be created with <code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">create</span></code>:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>create<span class="w"> </span>current<span class="w"> </span><span class="o">-</span>title<span class="w"> </span><span class="s2">&quot;Current&quot;</span>
+</pre></div>
+</div>
+<p>A newly created virtual axis does not have to be displayed. It may be used only for mapping elements, or it
+may later be assigned to one of the graph margins with the appropriate margin-axis <code class="docutils literal notranslate"><span class="pre">use</span></code> operation.</p>
+<p>An axis becomes an X or Y axis according to how it is first used. Once its type has been established, the
+same axis cannot subsequently be used as the opposite type.</p>
+<p>More than one axis may be displayed in the same margin.</p>
+</section>
+<section id="axis-ranges">
+<span id="r-rbc-axis-axis-ranges"></span><span id="r-3a3arbc3a3aaxisqzaxis20ranges"></span><h2>Axis ranges<a class="headerlink" href="#axis-ranges" title="Link to this heading">¶</a></h2>
+<p>By default an axis is automatically scaled from the data of the elements mapped to it. The <code class="docutils literal notranslate"><span class="pre">-min</span></code> and <code class="docutils literal notranslate"><span class="pre">-max</span></code>
+options override the automatically calculated lower and upper limits independently.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>min<span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">-</span>max<span class="w"> </span><span class="mi">10</span>
+</pre></div>
+</div>
+<p>Setting either option to an empty value restores automatic calculation of that limit.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">-loose</span></code> option determines whether automatically calculated limits stop at the data boundary or extend
+outward to convenient major tick positions.</p>
+<p>It accepts one or two values. If one value is supplied it applies to both limits. With two values, the first
+controls the minimum and the second controls the maximum.</p>
+<p>Each value may be a Tcl boolean or the literal <code class="docutils literal notranslate"><span class="pre">always</span></code>:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Value</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<td><p>Keep the corresponding axis limit tight to the data or explicitly requested limit.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Extend an automatically calculated limit to the next outer major tick, but keep an explicitly supplied <code class="docutils literal notranslate"><span class="pre">-min</span></code> or <code class="docutils literal notranslate"><span class="pre">-max</span></code> tight.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">always</span></code></p></td>
+<td><p>Extend the limit to an outer major tick even when the corresponding <code class="docutils literal notranslate"><span class="pre">-min</span></code> or <code class="docutils literal notranslate"><span class="pre">-max</span></code> was supplied explicitly.</p></td>
+</tr>
+</tbody>
+</table>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>loose<span class="w"> </span>yes
+<span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>loose<span class="w"> </span><span class="k">{</span><span class="nv">no</span><span class="w"> </span>yes<span class="k">}</span>
+<span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>loose<span class="w"> </span>always
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">limits</span></code> returns the effective limits currently used to display an axis, after automatic scaling,
+requested limits, logarithmic conversion, and loose-range processing have been applied.</p>
+</section>
+<section id="automatic-sliding-ranges">
+<span id="r-rbc-axis-automatic-sliding-ranges"></span><span id="r-3a3arbc3a3aaxisqzautomatic20sliding20ranges"></span><h2>Automatic sliding ranges<a class="headerlink" href="#automatic-sliding-ranges" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">-autorange</span></code> option provides a sliding axis window useful for continuously growing data.</p>
+<p>A positive value specifies the width of the displayed window in graph-coordinate units:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>autorange<span class="w"> </span><span class="mi">10</span>
+</pre></div>
+</div>
+<p>When new data move beyond the current upper limit, the window is shifted so that the latest values remain
+visible. Automatic sliding is active only while both <code class="docutils literal notranslate"><span class="pre">-min</span></code> and <code class="docutils literal notranslate"><span class="pre">-max</span></code> remain automatic.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-shiftby</span></code> can make the sliding window advance in discrete increments. A positive value rounds the advancing
+upper limit upward to the next multiple of the requested interval.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>autorange<span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="o">-</span>shiftby<span class="w"> </span><span class="mi">1</span>
+</pre></div>
+</div>
+<p>A non-positive <code class="docutils literal notranslate"><span class="pre">-autorange</span></code> value disables the sliding window.</p>
+</section>
+<section id="logarithmic-axes">
+<span id="r-rbc-axis-logarithmic-axes"></span><span id="r-3a3arbc3a3aaxisqzlogarithmic20axes"></span><h2>Logarithmic axes<a class="headerlink" href="#logarithmic-axes" title="Link to this heading">¶</a></h2>
+<p>Setting <code class="docutils literal notranslate"><span class="pre">-logscale</span></code> to true selects base-10 logarithmic mapping:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>logscale<span class="w"> </span>yes
+</pre></div>
+</div>
+<p>Logarithmic axes have a strictly positive data domain. Values mapped through a logarithmic axis must be
+greater than zero. Explicit <code class="docutils literal notranslate"><span class="pre">-min</span></code>, <code class="docutils literal notranslate"><span class="pre">-max</span></code>, <code class="docutils literal notranslate"><span class="pre">-scrollmin</span></code>, and <code class="docutils literal notranslate"><span class="pre">-scrollmax</span></code> values must likewise be positive.</p>
+<p><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">transform</span></code> accepts ordinary positive data values and <code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">limits</span></code> returns ordinary data values; callers
+do not need to apply <code class="docutils literal notranslate"><span class="pre">log10</span></code> themselves.</p>
+<p>Automatically generated major ticks normally correspond to powers of ten. For a normal logarithmic range,
+minor ticks represent the values 2 through 9 within each decade.</p>
+<p>Explicit <code class="docutils literal notranslate"><span class="pre">-majorticks</span></code> on a logarithmic axis are specified in base-10 exponent coordinates. For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>logscale<span class="w"> </span>yes<span class="w"> </span><span class="o">-</span>majorticks<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span>
+</pre></div>
+</div>
+<p>places major ticks at 1, 10, 100, and 1000.</p>
+</section>
+<section id="major-and-minor-ticks">
+<span id="r-rbc-axis-major-and-minor-ticks"></span><span id="r-3a3arbc3a3aaxisqzmajor20and20minor20ticks"></span><h2>Major and minor ticks<a class="headerlink" href="#major-and-minor-ticks" title="Link to this heading">¶</a></h2>
+<p>When <code class="docutils literal notranslate"><span class="pre">-majorticks</span></code> is empty, Rbc automatically chooses major tick positions.</p>
+<p>A custom list may be supplied:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>majorticks<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="mi">15</span><span class="w"> </span><span class="mi">20</span><span class="k">}</span>
+</pre></div>
+</div>
+<p>Each list element is evaluated as a Tcl numeric expression and must produce a finite value.</p>
+<p>When major ticks are generated automatically, <code class="docutils literal notranslate"><span class="pre">-stepsize</span></code> may request the interval between major ticks on a
+linear axis:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>stepsize<span class="w"> </span><span class="mf">0.5</span>
+</pre></div>
+</div>
+<p>A value less than or equal to zero selects automatic step calculation. If a requested step would produce an
+impractical number of ticks, Rbc falls back to an automatically selected interval.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">-subdivisions</span></code> option controls automatically generated minor ticks between major ticks. A value of <code class="docutils literal notranslate"><span class="pre">N</span></code>
+divides each major interval into <code class="docutils literal notranslate"><span class="pre">N</span></code> parts, producing <code class="docutils literal notranslate"><span class="pre">N-1</span></code> minor ticks. The default value is <code class="docutils literal notranslate"><span class="pre">2</span></code>, which
+produces one minor tick halfway between adjacent major ticks.</p>
+<p>Explicitly configuring <code class="docutils literal notranslate"><span class="pre">-majorticks</span></code> disables automatic minor subdivision. Minor ticks may still be supplied
+explicitly with <code class="docutils literal notranslate"><span class="pre">-minorticks</span></code>.</p>
+<p>Values in <code class="docutils literal notranslate"><span class="pre">-minorticks</span></code> are fractional offsets within a major interval. For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>minorticks<span class="w"> </span><span class="k">{</span><span class="nv">0.25</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="mf">0.75</span><span class="k">}</span>
+</pre></div>
+</div>
+<p>places three minor ticks within each major interval.</p>
+<p>An empty <code class="docutils literal notranslate"><span class="pre">-majorticks</span></code> or <code class="docutils literal notranslate"><span class="pre">-minorticks</span></code> value restores automatic generation for that tick class.</p>
+</section>
+<section id="tick-labels">
+<span id="r-rbc-axis-tick-labels"></span><span id="r-3a3arbc3a3aaxisqztick20labels"></span><h2>Tick labels<a class="headerlink" href="#tick-labels" title="Link to this heading">¶</a></h2>
+<p>Major tick labels are generated automatically. Linear-axis labels use a general floating-point
+representation, while logarithmic major labels use power-of-ten notation.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-command</span></code> may be used to replace the generated label text. Its value is a Tcl command prefix. For every
+major tick, Rbc appends two arguments:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>graphPath defaultLabel
+</pre></div>
+</div>
+<p>The result returned by the command becomes the displayed label.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">proc</span><span class="w"> </span>formatTick<span class="w"> </span><span class="k">{</span><span class="nv">graph</span><span class="w"> </span>label<span class="k">}</span><span class="w"> </span><span class="k">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="s2">&quot;$label V&quot;</span>
+<span class="k">}</span>
+
+<span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>command<span class="w"> </span>formatTick
+</pre></div>
+</div>
+<p>If the formatting command raises an error during drawing, the error is reported as a background error and
+the original default label is used.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-labeloffset</span></code> moves each tick label to the middle of the following major interval while leaving the major
+tick mark itself at the original position. This is useful for category-like axes.</p>
+<p>Tick labels may be rotated with <code class="docutils literal notranslate"><span class="pre">-rotate</span></code>:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>rotate<span class="w"> </span><span class="mi">45</span>
+</pre></div>
+</div>
+<p>Angles are specified in degrees and are normalized into the range from 0 through less than 360 degrees.</p>
+</section>
+<section id="axis-limits-display">
+<span id="r-rbc-axis-axis-limits-display"></span><span id="r-3a3arbc3a3aaxisqzaxis20limits20display"></span><h2>Axis limits display<a class="headerlink" href="#axis-limits-display" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">-limitsformat</span></code> optionally displays the minimum and maximum axis limits around the plotting area.</p>
+<p>The value is a Tcl list containing one or two printf-style floating-point formats. With one format, the same
+format is used for both limits. With two formats, the first formats the minimum and the second formats the
+maximum.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>limitsformat<span class="w"> </span><span class="k">{</span><span class="o">%</span><span class="nv">.3g</span><span class="k">}</span>
+<span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>limitsformat<span class="w"> </span><span class="k">{</span><span class="nv">Min</span><span class="o">=%</span>.3g<span class="w"> </span>Max<span class="o">=%</span>.3g<span class="k">}</span>
+</pre></div>
+</div>
+<p>An empty format element suppresses that particular limit:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>limitsformat<span class="w"> </span><span class="k">{{}</span><span class="w"> </span><span class="k">{</span><span class="o">%</span><span class="nv">.3g</span><span class="k">}}</span>
+</pre></div>
+</div>
+<p>suppresses the minimum while displaying the maximum.</p>
+<p>Limit formats are validated before being accepted. A format may contain at most one floating-point
+conversion and may use the standard <code class="docutils literal notranslate"><span class="pre">a</span></code>, <code class="docutils literal notranslate"><span class="pre">A</span></code>, <code class="docutils literal notranslate"><span class="pre">e</span></code>, <code class="docutils literal notranslate"><span class="pre">E</span></code>, <code class="docutils literal notranslate"><span class="pre">f</span></code>, <code class="docutils literal notranslate"><span class="pre">F</span></code>, <code class="docutils literal notranslate"><span class="pre">g</span></code>, or <code class="docutils literal notranslate"><span class="pre">G</span></code> conversions. Dynamic width and
+precision using <code class="docutils literal notranslate"><span class="pre">*</span></code> are not permitted.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-limitscolor</span></code>, <code class="docutils literal notranslate"><span class="pre">-limitsfont</span></code>, and <code class="docutils literal notranslate"><span class="pre">-limitsshadow</span></code> control the appearance of the displayed limits.</p>
+</section>
+<section id="axis-scrolling">
+<span id="r-rbc-axis-axis-scrolling"></span><span id="r-3a3arbc3a3aaxisqzaxis20scrolling"></span><h2>Axis scrolling<a class="headerlink" href="#axis-scrolling" title="Link to this heading">¶</a></h2>
+<p>An axis can expose a scrollable world range through the <code class="docutils literal notranslate"><span class="pre">view</span></code> operation.</p>
+<p>The scrolling region normally comes from the complete data range mapped to the axis. <code class="docutils literal notranslate"><span class="pre">-scrollmin</span></code> and
+<code class="docutils literal notranslate"><span class="pre">-scrollmax</span></code> may override its lower and upper boundaries.</p>
+<p>Querying the view:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>view<span class="w"> </span>x
+</pre></div>
+</div>
+<p>returns two normalized fractions:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>first last
+</pre></div>
+</div>
+<p>describing the visible portion of the scroll region. The values use the same left-to-right or top-to-bottom
+convention as a Tk scrollbar, including for descending axes.</p>
+<p>The view can be moved using standard Tk scrolling forms:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>view<span class="w"> </span>x<span class="w"> </span>moveto<span class="w"> </span><span class="mf">0.25</span>
+<span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>view<span class="w"> </span>x<span class="w"> </span>scroll<span class="w"> </span><span class="mi">1</span><span class="w"> </span>units
+<span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>view<span class="w"> </span>x<span class="w"> </span>scroll<span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="w"> </span>pages
+</pre></div>
+</div>
+<p>A page is 90 percent of the currently visible range.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-scrollincrement</span></code> specifies the screen distance represented by one <code class="docutils literal notranslate"><span class="pre">units</span></code> movement. It must be a positive
+screen distance.</p>
+<p>For compatibility, a single integer argument is also accepted and is treated as a unit scroll:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>view<span class="w"> </span>x<span class="w"> </span><span class="mi">1</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">-scrollcommand</span></code> specifies a Tcl command prefix to notify when the axis viewport is redrawn. Rbc appends the
+normalized first and last fractions to the command prefix, making it suitable for a Tk scrollbar’s <code class="docutils literal notranslate"><span class="pre">set</span></code>
+command.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">scrollbar</span><span class="w"> </span>.xs<span class="w"> </span><span class="o">-</span>orient<span class="w"> </span>horizontal<span class="w"> </span><span class="o">-</span>command<span class="w"> </span><span class="k">[</span><span class="nb">list</span><span class="w"> </span>.g<span class="w"> </span>axis<span class="w"> </span>view<span class="w"> </span>x<span class="k">]</span>
+
+<span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>scrollcommand<span class="w"> </span><span class="k">[</span><span class="nb">list</span><span class="w"> </span>.xs<span class="w"> </span>set<span class="k">]</span>
+</pre></div>
+</div>
+</section>
+<section id="axis-bindings">
+<span id="r-rbc-axis-axis-bindings"></span><span id="r-3a3arbc3a3aaxisqzaxis20bindings"></span><h2>Axis bindings<a class="headerlink" href="#axis-bindings" title="Link to this heading">¶</a></h2>
+<p>Axes participate in the graph binding system. <code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">bind</span></code> creates bindings for axis names, axis classes, or
+user-defined binding tags.</p>
+<p>The axis name and its X/Y class are always included in the binding-tag sequence. Additional tags may be
+supplied with <code class="docutils literal notranslate"><span class="pre">-bindtags</span></code>. The default additional tag is <code class="docutils literal notranslate"><span class="pre">all</span></code>.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>bind<span class="w"> </span>x<span class="w"> </span><span class="o">&lt;</span>ButtonPress-1<span class="o">&gt;</span><span class="w"> </span><span class="k">{</span>
+<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;x axis selected&quot;</span>
+<span class="k">}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">get</span> <span class="pre">current</span></code> returns the name of the axis currently selected by the binding machinery.</p>
+<p><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">get</span> <span class="pre">detail</span></code> identifies which part of the current axis was selected and returns one of:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">label</span></code> - a major tick label;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">title</span></code> - the axis title;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">line</span></code> - the axis line region.</p></li>
+</ul>
+<p>If there is no current axis, these operations return an empty result.</p>
+</section>
+<section id="axis-options">
+<span id="r-rbc-axis-axis-options"></span><span id="r-3a3arbc3a3aaxisqzaxis20options"></span><h2>Axis options<a class="headerlink" href="#axis-options" title="Link to this heading">¶</a></h2>
+<p>The following options apply to virtual axes and to axes displayed through the margin-axis commands.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-autorange</span> <span class="pre">range</span></code></p></td>
+<td><p>Sets the width of an automatic sliding range. A positive value enables sliding; a non-positive value disables it.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-background</span> <span class="pre">color</span></code></p></td>
+<td><p>Sets the optional background behind the displayed axis. An empty value disables the axis background. <code class="docutils literal notranslate"><span class="pre">-bg</span></code> is a synonym.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-bindtags</span> <span class="pre">tags</span></code></p></td>
+<td><p>Specifies additional binding tags associated with the axis. The axis name and axis class are included automatically. The default is <code class="docutils literal notranslate"><span class="pre">all</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-borderwidth</span> <span class="pre">width</span></code></p></td>
+<td><p>Sets the non-negative border width of the optional axis background. <code class="docutils literal notranslate"><span class="pre">-bd</span></code> is a synonym.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-color</span> <span class="pre">color</span></code></p></td>
+<td><p>Sets the color used for the axis line, tick marks, and tick labels.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-command</span> <span class="pre">commandPrefix</span></code></p></td>
+<td><p>Specifies a command prefix used to format major tick labels. The graph pathname and default label are appended to the prefix.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-descending</span> <span class="pre">boolean</span></code></p></td>
+<td><p>Reverses the direction in which axis values are displayed.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">boolean</span></code></p></td>
+<td><p>Hides the normal axis line, ticks, labels, and title without preventing elements from being mapped through the axis.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-justify</span> <span class="pre">justify</span></code></p></td>
+<td><p>Sets the justification of multi-line axis title text. Valid values are <code class="docutils literal notranslate"><span class="pre">left</span></code>, <code class="docutils literal notranslate"><span class="pre">center</span></code>, and <code class="docutils literal notranslate"><span class="pre">right</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-labeloffset</span> <span class="pre">boolean</span></code></p></td>
+<td><p>Positions major tick labels halfway into the following major interval instead of directly at their tick positions.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-limitscolor</span> <span class="pre">color</span></code></p></td>
+<td><p>Sets the color used for text generated by <code class="docutils literal notranslate"><span class="pre">-limitsformat</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-limitsfont</span> <span class="pre">fontName</span></code></p></td>
+<td><p>Sets the font used for text generated by <code class="docutils literal notranslate"><span class="pre">-limitsformat</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-limitsformat</span> <span class="pre">formats</span></code></p></td>
+<td><p>Specifies one or two validated printf-style floating-point formats for displaying the minimum and maximum axis limits. An empty value disables limit text.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-limitsshadow</span> <span class="pre">shadow</span></code></p></td>
+<td><p>Sets the text shadow for the displayed axis limits. An empty value disables the shadow.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-linewidth</span> <span class="pre">width</span></code></p></td>
+<td><p>Sets the non-negative width of the axis and tick lines. A value of <code class="docutils literal notranslate"><span class="pre">0</span></code> suppresses the line and tick strokes; tick labels may still be displayed.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-logscale</span> <span class="pre">boolean</span></code></p></td>
+<td><p>Selects base-10 logarithmic mapping. Values and explicit limits must be positive.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-loose</span> <span class="pre">value</span></code></p></td>
+<td><p>Controls whether the lower and upper displayed limits extend to outer major ticks. Accepts one or two booleans or the literal <code class="docutils literal notranslate"><span class="pre">always</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-majorticks</span> <span class="pre">ticks</span></code></p></td>
+<td><p>Specifies explicit major tick positions. An empty value restores automatic major tick generation.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-max</span> <span class="pre">value</span></code></p></td>
+<td><p>Sets the requested maximum axis value. An empty value restores automatic calculation.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-min</span> <span class="pre">value</span></code></p></td>
+<td><p>Sets the requested minimum axis value. An empty value restores automatic calculation.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-minorticks</span> <span class="pre">ticks</span></code></p></td>
+<td><p>Specifies explicit minor-tick offsets within major intervals. An empty value restores automatic minor ticks.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-relief</span> <span class="pre">relief</span></code></p></td>
+<td><p>Sets the relief used for the optional axis background.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-rotate</span> <span class="pre">angle</span></code></p></td>
+<td><p>Rotates major tick labels by the specified angle in degrees.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-scrollcommand</span> <span class="pre">commandPrefix</span></code></p></td>
+<td><p>Specifies a command prefix called with the normalized first and last fractions of the visible scrolling region.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-scrollincrement</span> <span class="pre">distance</span></code></p></td>
+<td><p>Sets the positive screen distance represented by one <code class="docutils literal notranslate"><span class="pre">view</span> <span class="pre">...</span> <span class="pre">scroll</span> <span class="pre">...</span> <span class="pre">units</span></code> operation. The default is <code class="docutils literal notranslate"><span class="pre">10</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-scrollmax</span> <span class="pre">value</span></code></p></td>
+<td><p>Overrides the upper boundary of the axis scrolling region. An empty value uses the data range.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-scrollmin</span> <span class="pre">value</span></code></p></td>
+<td><p>Overrides the lower boundary of the axis scrolling region. An empty value uses the data range.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-shiftby</span> <span class="pre">value</span></code></p></td>
+<td><p>Sets the increment used when advancing a positive <code class="docutils literal notranslate"><span class="pre">-autorange</span></code> window.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-showticks</span> <span class="pre">boolean</span></code></p></td>
+<td><p>Controls display of major/minor tick marks and major tick labels. The axis baseline and title are independent.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-stepsize</span> <span class="pre">value</span></code></p></td>
+<td><p>Requests the major-tick interval for a linear axis. A non-positive value selects automatic calculation.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-subdivisions</span> <span class="pre">number</span></code></p></td>
+<td><p>Sets the number of automatic subdivisions of each major interval. <code class="docutils literal notranslate"><span class="pre">N</span></code> subdivisions produce <code class="docutils literal notranslate"><span class="pre">N-1</span></code> minor ticks.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-tickfont</span> <span class="pre">fontName</span></code></p></td>
+<td><p>Sets the font used for major tick labels.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-ticklength</span> <span class="pre">distance</span></code></p></td>
+<td><p>Sets the length of major tick marks. A negative distance reverses the tick direction.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-tickshadow</span> <span class="pre">shadow</span></code></p></td>
+<td><p>Sets the shadow used for major tick labels. An empty value disables the shadow.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-title</span> <span class="pre">text</span></code></p></td>
+<td><p>Sets the axis title. An empty value suppresses the title.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-titlealternate</span> <span class="pre">boolean</span></code></p></td>
+<td><p>Selects the alternate end-oriented title position instead of the normal centered position.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-titlecolor</span> <span class="pre">color</span></code></p></td>
+<td><p>Sets the axis title color.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-titlefont</span> <span class="pre">fontName</span></code></p></td>
+<td><p>Sets the axis title font.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-titleshadow</span> <span class="pre">shadow</span></code></p></td>
+<td><p>Sets the axis title shadow. An empty value disables the shadow.</p></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<p class="centered">
+<strong>Copyright (c) George Yashin</strong></p></section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Graph virtual axis <code class="docutils literal notranslate"><span class="pre">AXIS</span></code> command</a><ul>
+<li><a class="reference internal" href="#virtual-axes">Virtual axes</a></li>
+<li><a class="reference internal" href="#axis-ranges">Axis ranges</a></li>
+<li><a class="reference internal" href="#automatic-sliding-ranges">Automatic sliding ranges</a></li>
+<li><a class="reference internal" href="#logarithmic-axes">Logarithmic axes</a></li>
+<li><a class="reference internal" href="#major-and-minor-ticks">Major and minor ticks</a></li>
+<li><a class="reference internal" href="#tick-labels">Tick labels</a></li>
+<li><a class="reference internal" href="#axis-limits-display">Axis limits display</a></li>
+<li><a class="reference internal" href="#axis-scrolling">Axis scrolling</a></li>
+<li><a class="reference internal" href="#axis-bindings">Axis bindings</a></li>
+<li><a class="reference internal" href="#axis-options">Axis options</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rbc-tk9-rbc-GRAPHINST.html"
+                          title="previous chapter">Graph widget instance <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code> command</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rbc-tk9-rbc-MARGINAXIS.html"
+                          title="next chapter">Graph margin axis <code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span></code> command</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rbc-tk9-rbc-AXIS.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-MARGINAXIS.html" title="Graph margin axis MARGINAXIS command"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-GRAPHINST.html" title="Graph widget instance GRAPHINST command"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Graph virtual axis <code class="docutils literal notranslate"><span class="pre">AXIS</span></code> command</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright George Yashin.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    </div>
+  </body>
+</html>

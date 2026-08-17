@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Graph element ELEMENT command &#8212; rbc  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Line element LINEELEMENT options" href="rbc-tk9-rbc-LINEELEMENT.html" />
+    <link rel="prev" title="Graph margin axis MARGINAXIS command" href="rbc-tk9-rbc-MARGINAXIS.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-LINEELEMENT.html" title="Line element LINEELEMENT options"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-MARGINAXIS.html" title="Graph margin axis MARGINAXIS command"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Graph element <code class="docutils literal notranslate"><span class="pre">ELEMENT</span></code> command</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="graph-element-element-command">
+<span id="r-graph-element-element-command"></span><span id="r-graph20element2060element6020command"></span><span id="r-3a3arbc3a3aelement"></span><h1>Graph element <code class="docutils literal notranslate"><span class="pre">ELEMENT</span></code> command<a class="headerlink" href="#graph-element-element-command" title="Link to this heading">¶</a></h1>
+<p>Commands in this namespace document operations on graph elements.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ELEMENT</span></code> is used below as a placeholder for any of:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">GRAPHINST</span><span class="w"> </span>element
+<span class="nv">GRAPHINST</span><span class="w"> </span>line
+<span class="nv">GRAPHINST</span><span class="w"> </span>bar
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">element</span></code> form uses the default element type of the graph widget:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Widget</p></th>
+<th class="head"><p>Default element type</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">graph</span></code></p></td>
+<td><p>line</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">barchart</span></code></p></td>
+<td><p>bar</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stripchart</span></code></p></td>
+<td><p>strip</p></td>
+</tr>
+</tbody>
+</table>
+<p>The <code class="docutils literal notranslate"><span class="pre">line</span></code> and <code class="docutils literal notranslate"><span class="pre">bar</span></code> forms explicitly select the type when creating a new element:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>line<span class="w"> </span>create<span class="w"> </span>voltage
+<span class="nv">.g</span><span class="w"> </span>bar<span class="w"> </span>create<span class="w"> </span>histogram
+</pre></div>
+</div>
+<p>All element types share the operations documented on this page. Configuration options depend on the concrete
+element type and are documented separately for line, strip, and bar elements.</p>
+<section id="element-names">
+<span id="r-rbc-element-element-names"></span><span id="r-3a3arbc3a3aelementqzelement20names"></span><h2>Element names<a class="headerlink" href="#element-names" title="Link to this heading">¶</a></h2>
+<p>Every element has a name that is unique within its graph widget.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>signal1
+</pre></div>
+</div>
+<p>Element names may not begin with <code class="docutils literal notranslate"><span class="pre">-</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">create</span></code> returns the name of the newly created element.</p>
+</section>
+<section id="element-data-and-axes">
+<span id="r-rbc-element-element-data-and-axes"></span><span id="r-3a3arbc3a3aelementqzelement20data20and20axes"></span><h2>Element data and axes<a class="headerlink" href="#element-data-and-axes" title="Link to this heading">¶</a></h2>
+<p>Elements contain X and Y data and are mapped through an X axis and a Y axis. The concrete element option
+reference describes the available ways to supply data, select axes, configure pens, error bars, labels, and
+other type-specific attributes.</p>
+<p>Element data may be supplied directly as Tcl lists or through Rbc vectors. When an element refers to an Rbc
+vector, changes to that vector cause the graph to update automatically.</p>
+</section>
+<section id="display-list">
+<span id="r-rbc-element-display-list"></span><span id="r-3a3arbc3a3aelementqzdisplay20list"></span><h2>Display list<a class="headerlink" href="#display-list" title="Link to this heading">¶</a></h2>
+<p>Graph elements have an explicit display list. The display list determines which elements are visible and the
+order in which they are drawn.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">show</span></code> queries or replaces this list:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>show
+</pre></div>
+</div>
+<p>To display only selected elements:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>show<span class="w"> </span><span class="k">{</span><span class="nv">signal1</span><span class="w"> </span>signal2<span class="k">}</span>
+</pre></div>
+</div>
+<p>Elements not present in the supplied list are hidden. An empty list hides all elements:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>show<span class="w"> </span><span class="k">{}</span>
+</pre></div>
+</div>
+<p>The order of the supplied list is the drawing order. Elements later in the list are drawn above elements
+earlier in the list.</p>
+<p>Unknown element names in a list supplied to <code class="docutils literal notranslate"><span class="pre">show</span></code> are ignored.</p>
+<p>The element <code class="docutils literal notranslate"><span class="pre">-hide</span></code> option and display-list membership are kept synchronized. Configuring an element as hidden
+removes it from the display list; making it visible adds it back to the display list.</p>
+</section>
+<section id="active-elements-and-points">
+<span id="r-rbc-element-active-elements-and-points"></span><span id="r-3a3arbc3a3aelementqzactive20elements20and20points"></span><h2>Active elements and points<a class="headerlink" href="#active-elements-and-points" title="Link to this heading">¶</a></h2>
+<p>Elements and individual data points may be marked active. Active items are normally drawn using the element’s
+active pen.</p>
+<p>With no arguments, <code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">activate</span></code> returns the names of all currently active elements:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>active<span class="w"> </span><span class="k">[</span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>activate<span class="k">]</span>
+</pre></div>
+</div>
+<p>Supplying only an element name activates the complete element:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>activate<span class="w"> </span>signal1
+</pre></div>
+</div>
+<p>Supplying one or more indices activates only those data points:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>activate<span class="w"> </span>signal1<span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">8</span>
+</pre></div>
+</div>
+<p>Each activation replaces the previous active-point selection for that element.</p>
+<p>The special index <code class="docutils literal notranslate"><span class="pre">end</span></code> selects the final data point. Other indices may be Tcl integer expressions.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>activate<span class="w"> </span>signal1<span class="w"> </span>end
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">deactivate</span></code> clears the active state of the named elements.</p>
+</section>
+<section id="element-bindings">
+<span id="r-rbc-element-element-bindings"></span><span id="r-3a3arbc3a3aelementqzelement20bindings"></span><h2>Element bindings<a class="headerlink" href="#element-bindings" title="Link to this heading">¶</a></h2>
+<p>Elements participate in the graph binding system.</p>
+<p>Each element contributes the following binding tags:</p>
+<ul class="simple">
+<li><p>its element name;</p></li>
+<li><p>its element class, such as <code class="docutils literal notranslate"><span class="pre">LineElement</span></code>, <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>, or <code class="docutils literal notranslate"><span class="pre">StripElement</span></code>;</p></li>
+<li><p>any additional tags configured with the element’s <code class="docutils literal notranslate"><span class="pre">-bindtags</span></code> option.</p></li>
+</ul>
+<p>A binding may therefore apply to one specific element:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>bind<span class="w"> </span>signal1<span class="w"> </span><span class="o">&lt;</span>ButtonPress-1<span class="o">&gt;</span><span class="w"> </span><span class="k">{</span>
+<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;signal1 selected&quot;</span>
+<span class="k">}</span>
+</pre></div>
+</div>
+<p>or to an element class:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>bind<span class="w"> </span>LineElement<span class="w"> </span><span class="o">&lt;</span>Enter<span class="o">&gt;</span><span class="w"> </span><span class="k">{</span>
+<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;pointer entered a line element&quot;</span>
+<span class="k">}</span>
+</pre></div>
+</div>
+<p>User-defined <code class="docutils literal notranslate"><span class="pre">-bindtags</span></code> can be used to bind several unrelated elements to the same behavior.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">get</span> <span class="pre">current</span></code> returns the element currently selected by this binding machinery.</p>
+</section>
+<section id="finding-the-closest-element">
+<span id="r-rbc-element-finding-the-closest-element"></span><span id="r-3a3arbc3a3aelementqzfinding20the20closest20element"></span><h2>Finding the closest element<a class="headerlink" href="#finding-the-closest-element" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">closest</span></code> finds the visible element or data point nearest to a window coordinate.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="k">{[</span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>closest<span class="w"> </span><span class="nv">$x</span><span class="w"> </span><span class="nv">$y</span><span class="w"> </span>info<span class="k">]}</span><span class="w"> </span><span class="k">{</span>
+<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;element </span><span class="o">=</span><span class="s2"> $info(name)&quot;</span>
+<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;index   </span><span class="o">=</span><span class="s2"> $info(index)&quot;</span>
+<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;x       </span><span class="o">=</span><span class="s2"> $info(x)&quot;</span>
+<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;y       </span><span class="o">=</span><span class="s2"> $info(y)&quot;</span>
+<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;distance </span><span class="o">=</span><span class="s2"> $info(dist)&quot;</span>
+<span class="k">}</span>
+</pre></div>
+</div>
+<p>The command returns <code class="docutils literal notranslate"><span class="pre">1</span></code> if a result is found within the search halo and <code class="docutils literal notranslate"><span class="pre">0</span></code> otherwise.</p>
+<p>On success, the named Tcl array receives:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Array element</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">name</span></code></p></td>
+<td><p>Name of the closest element.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">index</span></code></p></td>
+<td><p>Source data index associated with the result.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">x</span></code></p></td>
+<td><p>X coordinate of the result in graph coordinates.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">y</span></code></p></td>
+<td><p>Y coordinate of the result in graph coordinates.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dist</span></code></p></td>
+<td><p>Distance from the requested window coordinate, measured in screen pixels.</p></td>
+</tr>
+</tbody>
+</table>
+<p>If no match is found, <code class="docutils literal notranslate"><span class="pre">name</span></code> is set to an empty value. Other array elements should only be used when the
+command returns <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p>
+<p>The default search halo is the graph’s <code class="docutils literal notranslate"><span class="pre">-halo</span></code> value.</p>
+<p><code class="docutils literal notranslate"><span class="pre">closest</span></code> accepts the following options:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-halo</span> <span class="pre">distance</span></code></p></td>
+<td><p>Sets the maximum non-negative screen distance for this search.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-along</span> <span class="pre">direction</span></code></p></td>
+<td><p>Measures distance along <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, or <code class="docutils literal notranslate"><span class="pre">both</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">both</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-interpolate</span> <span class="pre">boolean</span></code></p></td>
+<td><p>For line and strip elements, searches along the rendered trace when true instead of considering only data points.</p></td>
+</tr>
+</tbody>
+</table>
+<p>With <code class="docutils literal notranslate"><span class="pre">-interpolate</span> <span class="pre">false</span></code>, line and strip searches return actual source data coordinates.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">-interpolate</span> <span class="pre">true</span></code>, the closest position may lie between source points. In that case <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> contain
+the interpolated graph coordinates of the closest point on the rendered trace, while <code class="docutils literal notranslate"><span class="pre">index</span></code> identifies the
+associated source segment.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">-along</span></code> and <code class="docutils literal notranslate"><span class="pre">-interpolate</span></code> options affect line and strip element searches. Bar elements are searched
+against their rendered rectangles.</p>
+<p>By default all visible elements are searched. One or more element names may be supplied after the options to
+restrict the search:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>closest<span class="w"> </span><span class="nv">$x</span><span class="w"> </span><span class="nv">$y</span><span class="w"> </span>info<span class="w"> </span><span class="o">-</span>halo<span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="o">-</span>interpolate<span class="w"> </span>yes<span class="w"> </span>signal1<span class="w"> </span>signal2
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">--</span></code> may be used to terminate option processing explicitly.</p>
+</section>
+<section id="element-types">
+<span id="r-rbc-element-element-types"></span><span id="r-3a3arbc3a3aelementqzelement20types"></span><h2>Element types<a class="headerlink" href="#element-types" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">type</span></code> reports the concrete class of an existing element. The current element classes are:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Result</p></th>
+<th class="head"><p>Element type</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LineElement</span></code></p></td>
+<td><p>line element</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">BarElement</span></code></p></td>
+<td><p>bar element</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">StripElement</span></code></p></td>
+<td><p>stripchart element</p></td>
+</tr>
+</tbody>
+</table>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">puts</span><span class="w"> </span><span class="k">[</span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>type<span class="w"> </span>signal1<span class="k">]</span>
+<span class="c"># -&gt; LineElement</span>
+
+<span class="nv">Configuration</span><span class="w"> </span>options<span class="w"> </span>are<span class="w"> </span>specific<span class="w"> </span>to<span class="w"> </span>the<span class="w"> </span>concrete<span class="w"> </span>element<span class="w"> </span>type:
+
+<span class="o">*</span><span class="w"> </span><span class="k">[</span><span class="nv">LINEELEMENT</span><span class="k">]</span><span class="w"> </span><span class="nv">-</span><span class="w"> </span>line<span class="w"> </span>elements<span class="k">;</span>
+<span class="o">*</span><span class="w"> </span><span class="k">[</span><span class="nv">STRIPELEMENT</span><span class="k">]</span><span class="w"> </span><span class="nv">-</span><span class="w"> </span>strip<span class="w"> </span>elements<span class="k">;</span>
+<span class="o">*</span><span class="w"> </span><span class="k">[</span><span class="nv">BARELEMENT</span><span class="k">]</span><span class="w"> </span><span class="nv">-</span><span class="w"> </span>bar<span class="w"> </span>elements.
+</pre></div>
+</div>
+<hr class="docutils" />
+<p class="centered">
+<strong>Copyright (c) George Yashin</strong></p></section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Graph element <code class="docutils literal notranslate"><span class="pre">ELEMENT</span></code> command</a><ul>
+<li><a class="reference internal" href="#element-names">Element names</a></li>
+<li><a class="reference internal" href="#element-data-and-axes">Element data and axes</a></li>
+<li><a class="reference internal" href="#display-list">Display list</a></li>
+<li><a class="reference internal" href="#active-elements-and-points">Active elements and points</a></li>
+<li><a class="reference internal" href="#element-bindings">Element bindings</a></li>
+<li><a class="reference internal" href="#finding-the-closest-element">Finding the closest element</a></li>
+<li><a class="reference internal" href="#element-types">Element types</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rbc-tk9-rbc-MARGINAXIS.html"
+                          title="previous chapter">Graph margin axis <code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span></code> command</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rbc-tk9-rbc-LINEELEMENT.html"
+                          title="next chapter">Line element <code class="docutils literal notranslate"><span class="pre">LINEELEMENT</span></code> options</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rbc-tk9-rbc-ELEMENT.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-LINEELEMENT.html" title="Line element LINEELEMENT options"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-MARGINAXIS.html" title="Graph margin axis MARGINAXIS command"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Graph element <code class="docutils literal notranslate"><span class="pre">ELEMENT</span></code> command</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright George Yashin.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    </div>
+  </body>
+</html>

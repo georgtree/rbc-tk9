@@ -1,0 +1,145 @@
+'\"
+'\" '\" Copyright (c) George Yashin
+'\"
+.TH "rbc::MARGINAXIS" 3tcl 0\&.5\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.SH NAME
+rbc::MARGINAXIS - Commands in namespace rbc::MARGINAXIS
+.SH "GRAPH MARGIN AXIS MARGINAXIS COMMAND"
+.PP
+Commands in this namespace document the logical margin-axis commands of graph, barchart, and stripchart
+widgets\&.
+.PP
+MARGINAXIS is used below as a placeholder for any of:
+.PP
+.RS 4n
+.nf
+GRAPHINST xaxis
+GRAPHINST x2axis
+GRAPHINST yaxis
+GRAPHINST y2axis
+.fi
+.RE
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+graph \&.g
+
+\&.g xaxis configure -title "Time"
+\&.g yaxis configure -title "Voltage"
+.fi
+.RE
+.PP
+These commands operate on axes assigned to one of the graph's four logical axis positions\&.
+.SH "LOGICAL AND PHYSICAL MARGINS"
+.PP
+With the normal graph orientation, the logical axes correspond to the following physical margins:
+.TS
+tab(|) box;
+l l.
+Command| Physical margin
+_
+xaxis| bottom
+x2axis | top
+yaxis| left
+y2axis | right
+.TE
+.PP
+When the graph is configured with -invertxy yes, the logical X and Y directions are exchanged and the
+physical margins become:
+.TS
+tab(|) box;
+l l.
+Command| Physical margin with -invertxy yes
+_
+xaxis| left
+x2axis | right
+yaxis| bottom
+y2axis | top
+.TE
+.PP
+Application code can therefore continue to use xaxis and yaxis as logical X and Y interfaces regardless
+of graph orientation\&.
+.SH "ASSIGNED AXES"
+.PP
+Each margin can contain one or more virtual axes\&. The use operation queries or changes the ordered list of
+axes assigned to the margin\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+\&.g axis create time
+\&.g axis create phase
+
+\&.g xaxis use {time phase}
+.fi
+.RE
+.PP
+The order is significant\&. The first axis in the list is the primary axis for that margin and is the axis
+addressed by the other MARGINAXIS operations such as configure, cget, transform, and limits\&.
+.PP
+Additional axes in the list are displayed farther away from the plotting area\&.
+.PP
+Querying use returns the complete ordered list:
+.PP
+.RS 4n
+.nf
+\&.g xaxis use
+# -> time phase
+.fi
+.RE
+.PP
+Assigning an axis to a new margin removes it from its previous margin\&.
+.PP
+An axis assigned through xaxis or x2axis must be an X-type axis\&. An axis assigned through yaxis or
+y2axis must be a Y-type axis\&. A previously untyped virtual axis acquires the required type when it is
+assigned\&.
+.PP
+An empty list removes all axes from the margin:
+.PP
+.RS 4n
+.nf
+\&.g x2axis use {}
+.fi
+.RE
+.SH "AXIS CONFIGURATION"
+.PP
+Margin axes use exactly the same axis configuration options as virtual axes\&.
+.PP
+See \fIAXIS\fP for the complete axis option reference and for detailed descriptions of axis ranges, logarithmic
+scaling, ticks, labels, scrolling, bindings, and automatic range handling\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+\&.g xaxis configure -title {Frequency (Hz)} -logscale yes -min 1 -max 1e9
+.fi
+.RE
+.PP
+This is equivalent to configuring the first virtual axis currently assigned to the logical X-axis margin\&.
+.SH "COORDINATE CONVERSION"
+.PP
+transform and invtransform use the first axis assigned to the margin\&.
+.PP
+transform converts a graph-coordinate value to the corresponding window coordinate:
+.PP
+.RS 4n
+.nf
+set pixel [\&.g xaxis transform 10\&.0]
+.fi
+.RE
+.PP
+invtransform performs the reverse operation:
+.PP
+.RS 4n
+.nf
+set value [\&.g xaxis invtransform $pixel]
+.fi
+.RE
+.PP
+The axis orientation, -descending setting, logarithmic mapping, and graph -invertxy setting are handled
+automatically\&.
+

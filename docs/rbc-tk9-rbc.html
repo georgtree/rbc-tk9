@@ -44,8 +44,263 @@
 <span id="r-rbc"></span><span id="r-3a3arbc"></span><h1>::rbc<a class="headerlink" href="#rbc" title="Link to this heading">¶</a></h1>
 <section id="commands">
 <span id="r-rbc-commands"></span><span id="r-3a3arbcqzcommands"></span><h2>Commands<a class="headerlink" href="#commands" title="Link to this heading">¶</a></h2>
+<section id="axis">
+<span id="r-3a3arbc3a3aaxis"></span><span id="index-1"></span><span id="index-0"></span><h3><code class="docutils literal notranslate"><span class="pre">AXIS</span></code><a class="headerlink" href="#axis" title="Link to this heading">¶</a></h3>
+<p>A
+command
+ensemble.</p>
+<pre class="literal-block"><strong>AXIS</strong> <em>subcommand ...</em></pre>
+<p class="rubric">Description</p>
+<p>The ensemble supports the following subcommands:</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#r-3a3arbc3a3aaxis20bind"><span class="std std-ref">bind</span></a></dt><dd><p>Queries or modifies bindings associated with axis binding tags. With no arguments, returns the currently registered axis binding tags. With a tag name, returns the event sequences bound to that tag. With a sequence, returns its binding script. With a command, creates or replaces the binding.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aaxis20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Returns the current value of an axis configuration option. See <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-3a3arbc3a3aaxisqzaxis20options"><span class="std std-ref">axis options</span></a> for the complete option reference. Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aaxis20configure"><span class="std std-ref">configure</span></a></dt><dd><p>Queries or modifies axis configuration. When querying, normally one axis name is supplied. When setting options, multiple axis names may precede the option/value pairs and the same configuration is applied to each named axis. See <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-3a3arbc3a3aaxisqzaxis20options"><span class="std std-ref">axis options</span></a> for the complete option reference.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aaxis20create"><span class="std std-ref">create</span></a></dt><dd><p>Creates a new virtual axis. The new axis is not displayed in a margin until it is assigned with a margin-axis <code class="docutils literal notranslate"><span class="pre">use</span></code> operation, although elements may be mapped to it while it remains virtual. Axis names must be unique within the graph and may not begin with <code class="docutils literal notranslate"><span class="pre">-</span></code>.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aaxis20delete"><span class="std std-ref">delete</span></a></dt><dd><p>Deletes one or more virtual axes. If an axis is still referenced by an element, physical destruction is deferred until the reference is released, but the deleted name immediately stops referring to that axis and may be reused for a newly created axis.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aaxis20get"><span class="std std-ref">get</span></a></dt><dd><p>Returns information about the axis currently selected by the graph binding machinery. <code class="docutils literal notranslate"><span class="pre">current</span></code> returns the axis name. <code class="docutils literal notranslate"><span class="pre">detail</span></code> returns <code class="docutils literal notranslate"><span class="pre">label</span></code>, <code class="docutils literal notranslate"><span class="pre">title</span></code>, or <code class="docutils literal notranslate"><span class="pre">line</span></code> depending on the part of the axis under the current binding position. If no axis is current, the result is empty. Current axis name, current axis detail, or an empty result.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aaxis20invtransform"><span class="std std-ref">invtransform</span></a></dt><dd><p>Converts an integer window coordinate to the corresponding graph value using the specified axis. The axis orientation and <code class="docutils literal notranslate"><span class="pre">-descending</span></code> setting are taken into account. Logarithmic axes return the corresponding positive data value.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aaxis20limits"><span class="std std-ref">limits</span></a></dt><dd><p>Returns the effective displayed minimum and maximum of the specified axis. Automatic scaling, explicit limits, loose-range processing, and logarithmic mapping are reflected in the returned values. Logarithmic limits are returned as ordinary positive data values rather than base-10 exponents. Two-element list <code class="docutils literal notranslate"><span class="pre">min</span> <span class="pre">max</span></code>.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aaxis20names"><span class="std std-ref">names</span></a></dt><dd><p>Returns the names of existing axes. If one or more Tcl glob patterns are supplied, an axis is returned when its name matches any pattern. Axes pending deletion are not returned. List of matching axis names.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aaxis20transform"><span class="std std-ref">transform</span></a></dt><dd><p>Converts a graph value to an integer window coordinate using the specified axis. <code class="docutils literal notranslate"><span class="pre">value</span></code> is evaluated as a Tcl numeric expression and must be finite. Values transformed through a logarithmic axis must be positive.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aaxis20view"><span class="std std-ref">view</span></a></dt><dd><p>Queries or changes the visible portion of an axis scrolling region. With no additional arguments, returns normalized <code class="docutils literal notranslate"><span class="pre">first</span> <span class="pre">last</span></code> fractions. <code class="docutils literal notranslate"><span class="pre">moveto</span></code> selects an absolute fraction. <code class="docutils literal notranslate"><span class="pre">scroll</span></code> moves by units or pages; a page is 90 percent of the current viewport. A single integer is accepted as a compatibility shorthand for scrolling that number of units.</p>
+</dd>
+</dl>
+<p>Refer to the documentation of each subcommand for details.</p>
+</section>
+<section id="axis-bind">
+<span id="r-3a3arbc3a3aaxis20bind"></span><span id="index-3"></span><span id="index-2"></span><h3><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">bind</span></code><a class="headerlink" href="#axis-bind" title="Link to this heading">¶</a></h3>
+<p>Queries or modifies bindings associated with axis binding tags. With no arguments, returns the currently
+registered axis binding tags. With a tag name, returns the event sequences bound to that tag. With a
+sequence, returns its binding script. With a command, creates or replaces the binding.</p>
+<pre class="literal-block"><strong>AXIS bind</strong> <em>tagName</em>
+<strong>AXIS bind</strong> <em>tagName sequence</em>
+<strong>AXIS bind</strong> <em>tagName sequence command</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">command</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tcl script to execute for the binding.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">sequence</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Tk event sequence.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">tagName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Axis name, axis class, or user-defined axis binding tag.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Binding tags, event sequences, or a binding script when querying; nothing when setting a binding.</p>
+</section>
+<section id="axis-cget">
+<span id="r-3a3arbc3a3aaxis20cget"></span><span id="index-5"></span><span id="index-4"></span><h3><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">cget</span></code><a class="headerlink" href="#axis-cget" title="Link to this heading">¶</a></h3>
+<p>Returns the current value of an axis configuration option. See <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-3a3arbc3a3aaxisqzaxis20options"><span class="std std-ref">axis options</span></a> for the complete
+option reference.
+Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+<pre class="literal-block"><strong>AXIS cget</strong> <em>axisName option</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">axisName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of the axis.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">option</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Axis configuration option.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Returns the current value of an axis configuration option. See <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-3a3arbc3a3aaxisqzaxis20options"><span class="std std-ref">axis options</span></a> for the complete
+option reference.
+Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+</section>
+<section id="axis-configure">
+<span id="r-3a3arbc3a3aaxis20configure"></span><span id="index-7"></span><span id="index-6"></span><h3><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">configure</span></code><a class="headerlink" href="#axis-configure" title="Link to this heading">¶</a></h3>
+<p>Queries or modifies axis configuration. When querying, normally one axis name is supplied. When setting
+options, multiple axis names may precede the option/value pairs and the same configuration is applied to
+each named axis. See <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-3a3arbc3a3aaxisqzaxis20options"><span class="std std-ref">axis options</span></a> for the complete option reference.</p>
+<pre class="literal-block"><strong>AXIS configure</strong> <em>axisName</em>
+<strong>AXIS configure</strong> <em>axisName option</em>
+<strong>AXIS configure</strong> <em>axisName ?axisName ...? ?option value ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">axisName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of an axis to query or configure.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">option</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Axis configuration option.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">value</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>New value for the option.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Configuration information when querying; nothing when setting options.</p>
+</section>
+<section id="axis-create">
+<span id="r-3a3arbc3a3aaxis20create"></span><span id="index-9"></span><span id="index-8"></span><h3><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">create</span></code><a class="headerlink" href="#axis-create" title="Link to this heading">¶</a></h3>
+<p>Creates a new virtual axis. The new axis is not displayed in a margin until it is assigned with a
+margin-axis <code class="docutils literal notranslate"><span class="pre">use</span></code> operation, although elements may be mapped to it while it remains virtual. Axis names must
+be unique within the graph and may not begin with <code class="docutils literal notranslate"><span class="pre">-</span></code>.</p>
+<pre class="literal-block"><strong>AXIS create</strong> <em>axisName ?option value ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">axisName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of the new axis.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">option</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Axis configuration option.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">value</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initial value for the option.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Name of the newly created axis.</p>
+</section>
+<section id="axis-delete">
+<span id="r-3a3arbc3a3aaxis20delete"></span><span id="index-11"></span><span id="index-10"></span><h3><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">delete</span></code><a class="headerlink" href="#axis-delete" title="Link to this heading">¶</a></h3>
+<p>Deletes one or more virtual axes. If an axis is still referenced by an element, physical destruction is
+deferred until the reference is released, but the deleted name immediately stops referring to that axis and
+may be reused for a newly created axis.</p>
+<pre class="literal-block"><strong>AXIS delete</strong> <em>?axisName ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">axisName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of an axis to delete.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Nothing.</p>
+</section>
+<section id="axis-get">
+<span id="r-3a3arbc3a3aaxis20get"></span><span id="index-13"></span><span id="index-12"></span><h3><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">get</span></code><a class="headerlink" href="#axis-get" title="Link to this heading">¶</a></h3>
+<p>Returns information about the axis currently selected by the graph binding machinery. <code class="docutils literal notranslate"><span class="pre">current</span></code> returns the
+axis name. <code class="docutils literal notranslate"><span class="pre">detail</span></code> returns <code class="docutils literal notranslate"><span class="pre">label</span></code>, <code class="docutils literal notranslate"><span class="pre">title</span></code>, or <code class="docutils literal notranslate"><span class="pre">line</span></code> depending on the part of the axis under the current
+binding position. If no axis is current, the result is empty.
+Current axis name, current axis detail, or an empty result.</p>
+<pre class="literal-block"><strong>AXIS get</strong> <em>name</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">name</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Information to retrieve; must be <code class="docutils literal notranslate"><span class="pre">current</span></code> or <code class="docutils literal notranslate"><span class="pre">detail</span></code>.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Returns information about the axis currently selected by the graph binding machinery. <code class="docutils literal notranslate"><span class="pre">current</span></code> returns the
+axis name. <code class="docutils literal notranslate"><span class="pre">detail</span></code> returns <code class="docutils literal notranslate"><span class="pre">label</span></code>, <code class="docutils literal notranslate"><span class="pre">title</span></code>, or <code class="docutils literal notranslate"><span class="pre">line</span></code> depending on the part of the axis under the current
+binding position. If no axis is current, the result is empty.
+Current axis name, current axis detail, or an empty result.</p>
+</section>
+<section id="axis-invtransform">
+<span id="r-3a3arbc3a3aaxis20invtransform"></span><span id="index-15"></span><span id="index-14"></span><h3><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">invtransform</span></code><a class="headerlink" href="#axis-invtransform" title="Link to this heading">¶</a></h3>
+<p>Converts an integer window coordinate to the corresponding graph value using the specified axis. The axis
+orientation and <code class="docutils literal notranslate"><span class="pre">-descending</span></code> setting are taken into account. Logarithmic axes return the corresponding
+positive data value.</p>
+<pre class="literal-block"><strong>AXIS invtransform</strong> <em>axisName value</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">axisName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of the axis used for the conversion.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">value</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Integer window coordinate.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Corresponding graph-coordinate value.</p>
+</section>
+<section id="axis-limits">
+<span id="r-3a3arbc3a3aaxis20limits"></span><span id="index-17"></span><span id="index-16"></span><h3><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">limits</span></code><a class="headerlink" href="#axis-limits" title="Link to this heading">¶</a></h3>
+<p>Returns the effective displayed minimum and maximum of the specified axis. Automatic scaling, explicit
+limits, loose-range processing, and logarithmic mapping are reflected in the returned values. Logarithmic
+limits are returned as ordinary positive data values rather than base-10 exponents.
+Two-element list <code class="docutils literal notranslate"><span class="pre">min</span> <span class="pre">max</span></code>.</p>
+<pre class="literal-block"><strong>AXIS limits</strong> <em>axisName</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">axisName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of the axis.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Returns the effective displayed minimum and maximum of the specified axis. Automatic scaling, explicit
+limits, loose-range processing, and logarithmic mapping are reflected in the returned values. Logarithmic
+limits are returned as ordinary positive data values rather than base-10 exponents.
+Two-element list <code class="docutils literal notranslate"><span class="pre">min</span> <span class="pre">max</span></code>.</p>
+</section>
+<section id="axis-names">
+<span id="r-3a3arbc3a3aaxis20names"></span><span id="index-19"></span><span id="index-18"></span><h3><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">names</span></code><a class="headerlink" href="#axis-names" title="Link to this heading">¶</a></h3>
+<p>Returns the names of existing axes. If one or more Tcl glob patterns are supplied, an axis is returned when
+its name matches any pattern. Axes pending deletion are not returned.
+List of matching axis names.</p>
+<pre class="literal-block"><strong>AXIS names</strong> <em>?pattern ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">pattern</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional Tcl glob pattern used to select axis names.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Returns the names of existing axes. If one or more Tcl glob patterns are supplied, an axis is returned when
+its name matches any pattern. Axes pending deletion are not returned.
+List of matching axis names.</p>
+</section>
+<section id="axis-transform">
+<span id="r-3a3arbc3a3aaxis20transform"></span><span id="index-21"></span><span id="index-20"></span><h3><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">transform</span></code><a class="headerlink" href="#axis-transform" title="Link to this heading">¶</a></h3>
+<p>Converts a graph value to an integer window coordinate using the specified axis. <code class="docutils literal notranslate"><span class="pre">value</span></code> is evaluated as a
+Tcl numeric expression and must be finite. Values transformed through a logarithmic axis must be positive.</p>
+<pre class="literal-block"><strong>AXIS transform</strong> <em>axisName value</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">axisName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of the axis used for the conversion.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">value</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Graph-coordinate value or Tcl numeric expression.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Corresponding integer window coordinate.</p>
+</section>
+<section id="axis-view">
+<span id="r-3a3arbc3a3aaxis20view"></span><span id="index-23"></span><span id="index-22"></span><h3><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">view</span></code><a class="headerlink" href="#axis-view" title="Link to this heading">¶</a></h3>
+<p>Queries or changes the visible portion of an axis scrolling region. With no additional arguments, returns
+normalized <code class="docutils literal notranslate"><span class="pre">first</span> <span class="pre">last</span></code> fractions. <code class="docutils literal notranslate"><span class="pre">moveto</span></code> selects an absolute fraction. <code class="docutils literal notranslate"><span class="pre">scroll</span></code> moves by units or pages;
+a page is 90 percent of the current viewport. A single integer is accepted as a compatibility shorthand for
+scrolling that number of units.</p>
+<pre class="literal-block"><strong>AXIS view</strong> <em>axisName</em>
+<strong>AXIS view</strong> <em>axisName moveto fraction</em>
+<strong>AXIS view</strong> <em>axisName scroll number units</em>
+<strong>AXIS view</strong> <em>axisName scroll number pages</em>
+<strong>AXIS view</strong> <em>axisName number</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">axisName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of the axis.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">fraction</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Normalized position used by <code class="docutils literal notranslate"><span class="pre">moveto</span></code>.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">number</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Signed number of units or pages to scroll.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">what</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Scrolling unit; must be <code class="docutils literal notranslate"><span class="pre">units</span></code> or <code class="docutils literal notranslate"><span class="pre">pages</span></code>.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Two-element list <code class="docutils literal notranslate"><span class="pre">first</span> <span class="pre">last</span></code> when querying; nothing when changing the view.</p>
+</section>
 <section id="barchart">
-<span id="r-3a3arbc3a3abarchart"></span><span id="index-1"></span><span id="index-0"></span><h3><code class="docutils literal notranslate"><span class="pre">barchart</span></code><a class="headerlink" href="#barchart" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3abarchart"></span><span id="index-25"></span><span id="index-24"></span><h3><code class="docutils literal notranslate"><span class="pre">barchart</span></code><a class="headerlink" href="#barchart" title="Link to this heading">¶</a></h3>
 <p>Creates a barchart widget. A barchart uses bar elements as its default element type. It uses the same graph
 widget infrastructure and common components as <code class="docutils literal notranslate"><span class="pre">graph</span></code>, but elements created through the generic
 <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">element</span></code> interface are bar elements by default. Configuration options supplied when the widget
@@ -72,8 +327,308 @@ is created are the same options accepted later by <code class="docutils literal 
 <p class="rubric">Return value</p>
 <p>The pathname of the newly created barchart widget.</p>
 </section>
+<section id="element">
+<span id="r-3a3arbc3a3aelement"></span><span id="index-27"></span><span id="index-26"></span><h3><code class="docutils literal notranslate"><span class="pre">ELEMENT</span></code><a class="headerlink" href="#element" title="Link to this heading">¶</a></h3>
+<p>A
+command
+ensemble.</p>
+<pre class="literal-block"><strong>ELEMENT</strong> <em>subcommand ...</em></pre>
+<p class="rubric">Description</p>
+<p>The ensemble supports the following subcommands:</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#r-3a3arbc3a3aelement20activate"><span class="std std-ref">activate</span></a></dt><dd><p>Queries or changes the active state of graph elements. With no arguments, returns the names of all active elements. With an element name and no indices, activates the complete element. With one or more indices, activates only those data points and replaces the element’s previous active-index selection.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aelement20bind"><span class="std std-ref">bind</span></a></dt><dd><p>Queries or modifies event bindings for element binding tags. With no arguments, returns the currently known element binding tags. With a tag name, returns the event sequences bound to that tag. With a tag and sequence, returns the corresponding binding script. With a command, creates or replaces the binding.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aelement20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Returns the current value of an element configuration option. The available options depend on the concrete element type. Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aelement20closest"><span class="std std-ref">closest</span></a></dt><dd><p>Finds the visible element nearest to the specified window coordinate. On success, stores information in the Tcl array <code class="docutils literal notranslate"><span class="pre">varName</span></code> using the keys <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">index</span></code>, <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, and <code class="docutils literal notranslate"><span class="pre">dist</span></code>. Searches all visible elements unless one or more element names are supplied after the options.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aelement20configure"><span class="std std-ref">configure</span></a></dt><dd><p>Queries or modifies element configuration. When querying, one element name is supplied. When setting options, multiple element names may precede the option/value pairs and the same configuration is applied to each named element.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aelement20create"><span class="std std-ref">create</span></a></dt><dd><p>Creates a new graph element. <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">element</span> <span class="pre">create</span></code> uses the widget’s default element type:</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aelement20deactivate"><span class="std std-ref">deactivate</span></a></dt><dd><p>Clears the active state and any active-point selection for one or more elements.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aelement20delete"><span class="std std-ref">delete</span></a></dt><dd><p>Deletes one or more elements and releases their associated resources, bindings, legend entries, vector references, and display-list entries.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aelement20exists"><span class="std std-ref">exists</span></a></dt><dd><p>Tests whether an element with the specified name exists in the graph.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aelement20get"><span class="std std-ref">get</span></a></dt><dd><p>Returns the element currently selected by the graph binding machinery. The only supported selector is <code class="docutils literal notranslate"><span class="pre">current</span></code>. If there is no current element, the result is empty. Current element name or an empty result.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aelement20names"><span class="std std-ref">names</span></a></dt><dd><p>Returns the names of existing graph elements. With no patterns, all element names are returned. With one or more Tcl glob patterns, an element is returned if its name matches any pattern. List of matching element names.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aelement20show"><span class="std std-ref">show</span></a></dt><dd><p>Queries or replaces the element display list. With no argument, returns the currently displayed elements in drawing order. With <code class="docutils literal notranslate"><span class="pre">elemList</span></code>, displays only the listed elements and hides all others. The list order determines drawing order; later elements are drawn above earlier elements. Unknown element names are ignored. An empty list hides all elements.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aelement20type"><span class="std std-ref">type</span></a></dt><dd><p>Returns the concrete class of the named element. Current results are <code class="docutils literal notranslate"><span class="pre">LineElement</span></code>, <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>, and <code class="docutils literal notranslate"><span class="pre">StripElement</span></code>. Element class name.</p>
+</dd>
+</dl>
+<p>Refer to the documentation of each subcommand for details.</p>
+</section>
+<section id="element-activate">
+<span id="r-3a3arbc3a3aelement20activate"></span><span id="index-29"></span><span id="index-28"></span><h3><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">activate</span></code><a class="headerlink" href="#element-activate" title="Link to this heading">¶</a></h3>
+<p>Queries or changes the active state of graph elements. With no arguments, returns the names of all active
+elements. With an element name and no indices, activates the complete element. With one or more indices,
+activates only those data points and replaces the element’s previous active-index selection.</p>
+<pre class="literal-block"><strong>ELEMENT activate</strong> <em>elemName ?index ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">elemName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of the element to activate.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">index</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Data index to activate; may be <code class="docutils literal notranslate"><span class="pre">end</span></code> or a Tcl integer expression.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>List of active element names when querying; nothing when changing activation.</p>
+</section>
+<section id="element-bind">
+<span id="r-3a3arbc3a3aelement20bind"></span><span id="index-31"></span><span id="index-30"></span><h3><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">bind</span></code><a class="headerlink" href="#element-bind" title="Link to this heading">¶</a></h3>
+<p>Queries or modifies event bindings for element binding tags. With no arguments, returns the currently known
+element binding tags. With a tag name, returns the event sequences bound to that tag. With a tag and
+sequence, returns the corresponding binding script. With a command, creates or replaces the binding.</p>
+<pre class="literal-block"><strong>ELEMENT bind</strong> <em>tagName</em>
+<strong>ELEMENT bind</strong> <em>tagName sequence</em>
+<strong>ELEMENT bind</strong> <em>tagName sequence command</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">command</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tcl script to execute for the binding.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">sequence</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Tk event sequence.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">tagName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Element name, element class, or user-defined binding tag.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Binding tags, event sequences, or a binding script when querying; nothing when setting a binding.</p>
+</section>
+<section id="element-cget">
+<span id="r-3a3arbc3a3aelement20cget"></span><span id="index-33"></span><span id="index-32"></span><h3><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">cget</span></code><a class="headerlink" href="#element-cget" title="Link to this heading">¶</a></h3>
+<p>Returns the current value of an element configuration option. The available options depend on the concrete
+element type.
+Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+<pre class="literal-block"><strong>ELEMENT cget</strong> <em>elemName option</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">elemName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of the element.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">option</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Element configuration option.</p>
+</dd>
+</dl>
+<p class="rubric">Description</p>
+<p>See <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a> for line-element options, <a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#r-3a3arbc3a3astripelement"><span class="std std-ref">STRIPELEMENT</span></a> for strip-element options, and <a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#r-3a3arbc3a3abarelement"><span class="std std-ref">BARELEMENT</span></a> for
+bar-element options.</p>
+<p class="rubric">Return value</p>
+<p>Returns the current value of an element configuration option. The available options depend on the concrete
+element type.
+Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+</section>
+<section id="element-closest">
+<span id="r-3a3arbc3a3aelement20closest"></span><span id="index-35"></span><span id="index-34"></span><h3><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">closest</span></code><a class="headerlink" href="#element-closest" title="Link to this heading">¶</a></h3>
+<p>Finds the visible element nearest to the specified window coordinate. On success, stores information in the
+Tcl array <code class="docutils literal notranslate"><span class="pre">varName</span></code> using the keys <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">index</span></code>, <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, and <code class="docutils literal notranslate"><span class="pre">dist</span></code>. Searches all visible elements
+unless one or more element names are supplied after the options.</p>
+<pre class="literal-block"><strong>ELEMENT closest</strong> <em>x y varName ?option value ...? ?--? ?elemName ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">x</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>X coordinate in window coordinates.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">y</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Y coordinate in window coordinates.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">varName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of the Tcl array in which result information is stored.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-along</span> <span class="pre">direction</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Measure distance along <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, or <code class="docutils literal notranslate"><span class="pre">both</span></code>; the default is <code class="docutils literal notranslate"><span class="pre">both</span></code>.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-halo</span> <span class="pre">distance</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Maximum non-negative search distance in screen pixels; the graph <code class="docutils literal notranslate"><span class="pre">-halo</span></code> value is the default.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-interpolate</span> <span class="pre">boolean</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>For line and strip elements, search along rendered traces instead of only data points.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">elemName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional element name restricting the search.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p><code class="docutils literal notranslate"><span class="pre">1</span></code> if an element is found within the halo, otherwise <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p>
+</section>
+<section id="element-configure">
+<span id="r-3a3arbc3a3aelement20configure"></span><span id="index-37"></span><span id="index-36"></span><h3><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">configure</span></code><a class="headerlink" href="#element-configure" title="Link to this heading">¶</a></h3>
+<p>Queries or modifies element configuration. When querying, one element name is supplied. When setting options,
+multiple element names may precede the option/value pairs and the same configuration is applied to each named
+element.</p>
+<pre class="literal-block"><strong>ELEMENT configure</strong> <em>elemName</em>
+<strong>ELEMENT configure</strong> <em>elemName option</em>
+<strong>ELEMENT configure</strong> <em>elemName ?elemName ...? ?option value ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">elemName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of an element to query or configure.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">option</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Element configuration option.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">value</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>New value for the option.</p>
+</dd>
+</dl>
+<p class="rubric">Description</p>
+<p>Available options depend on the concrete element type. See <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a> for line-element options,
+<a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#r-3a3arbc3a3astripelement"><span class="std std-ref">STRIPELEMENT</span></a> for strip-element options, and <a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#r-3a3arbc3a3abarelement"><span class="std std-ref">BARELEMENT</span></a> for bar-element options.</p>
+<p class="rubric">Return value</p>
+<p>Configuration information when querying; nothing when setting options.</p>
+</section>
+<section id="element-create">
+<span id="r-3a3arbc3a3aelement20create"></span><span id="index-39"></span><span id="index-38"></span><h3><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">create</span></code><a class="headerlink" href="#element-create" title="Link to this heading">¶</a></h3>
+<p>Creates a new graph element. <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">element</span> <span class="pre">create</span></code> uses the widget’s default element type:</p>
+<pre class="literal-block"><strong>ELEMENT create</strong> <em>elemName ?option value ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">elemName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Not documented.</p>
+</dd>
+</dl>
+<p class="rubric">Description</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">graph</span></code> creates a line element;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">barchart</span></code> creates a bar element;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stripchart</span></code> creates a strip element. <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">line</span> <span class="pre">create</span></code> always creates a line element and <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">bar</span> <span class="pre">create</span></code> always creates a bar element, regardless of the widget’s default element type.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">elemName<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of the new element.</p>
+</dd>
+<dt class="field-even">option<span class="colon">:</span></dt>
+<dd class="field-even"><p>Element configuration option.</p>
+</dd>
+<dt class="field-odd">value<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initial value for the option.</p>
+</dd>
+</dl>
+<p>See <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a> for line-element options, <a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#r-3a3arbc3a3astripelement"><span class="std std-ref">STRIPELEMENT</span></a> for strip-element options, and <a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#r-3a3arbc3a3abarelement"><span class="std std-ref">BARELEMENT</span></a> for
+bar-element options.</p>
+<p class="rubric">Return value</p>
+<p>Name of the newly created element.</p>
+</section>
+<section id="element-deactivate">
+<span id="r-3a3arbc3a3aelement20deactivate"></span><span id="index-41"></span><span id="index-40"></span><h3><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">deactivate</span></code><a class="headerlink" href="#element-deactivate" title="Link to this heading">¶</a></h3>
+<p>Clears the active state and any active-point selection for one or more elements.</p>
+<pre class="literal-block"><strong>ELEMENT deactivate</strong> <em>?elemName ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">elemName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of an element to deactivate.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Nothing.</p>
+</section>
+<section id="element-delete">
+<span id="r-3a3arbc3a3aelement20delete"></span><span id="index-43"></span><span id="index-42"></span><h3><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">delete</span></code><a class="headerlink" href="#element-delete" title="Link to this heading">¶</a></h3>
+<p>Deletes one or more elements and releases their associated resources, bindings, legend entries, vector
+references, and display-list entries.</p>
+<pre class="literal-block"><strong>ELEMENT delete</strong> <em>?elemName ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">elemName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of an element to delete.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Nothing.</p>
+</section>
+<section id="element-exists">
+<span id="r-3a3arbc3a3aelement20exists"></span><span id="index-45"></span><span id="index-44"></span><h3><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">exists</span></code><a class="headerlink" href="#element-exists" title="Link to this heading">¶</a></h3>
+<p>Tests whether an element with the specified name exists in the graph.</p>
+<pre class="literal-block"><strong>ELEMENT exists</strong> <em>elemName</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">elemName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Element name to test.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Boolean value.</p>
+</section>
+<section id="element-get">
+<span id="r-3a3arbc3a3aelement20get"></span><span id="index-47"></span><span id="index-46"></span><h3><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">get</span></code><a class="headerlink" href="#element-get" title="Link to this heading">¶</a></h3>
+<p>Returns the element currently selected by the graph binding machinery. The only supported selector is
+<code class="docutils literal notranslate"><span class="pre">current</span></code>. If there is no current element, the result is empty.
+Current element name or an empty result.</p>
+<pre class="literal-block"><strong>ELEMENT get</strong> <em>name</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">name</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Information to retrieve; must currently be <code class="docutils literal notranslate"><span class="pre">current</span></code>.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Returns the element currently selected by the graph binding machinery. The only supported selector is
+<code class="docutils literal notranslate"><span class="pre">current</span></code>. If there is no current element, the result is empty.
+Current element name or an empty result.</p>
+</section>
+<section id="element-names">
+<span id="r-3a3arbc3a3aelement20names"></span><span id="index-49"></span><span id="index-48"></span><h3><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">names</span></code><a class="headerlink" href="#element-names" title="Link to this heading">¶</a></h3>
+<p>Returns the names of existing graph elements. With no patterns, all element names are returned. With one or
+more Tcl glob patterns, an element is returned if its name matches any pattern.
+List of matching element names.</p>
+<pre class="literal-block"><strong>ELEMENT names</strong> <em>?pattern ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">pattern</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional Tcl glob pattern used to select element names.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Returns the names of existing graph elements. With no patterns, all element names are returned. With one or
+more Tcl glob patterns, an element is returned if its name matches any pattern.
+List of matching element names.</p>
+</section>
+<section id="element-show">
+<span id="r-3a3arbc3a3aelement20show"></span><span id="index-51"></span><span id="index-50"></span><h3><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">show</span></code><a class="headerlink" href="#element-show" title="Link to this heading">¶</a></h3>
+<p>Queries or replaces the element display list. With no argument, returns the currently displayed elements in
+drawing order. With <code class="docutils literal notranslate"><span class="pre">elemList</span></code>, displays only the listed elements and hides all others. The list order
+determines drawing order; later elements are drawn above earlier elements. Unknown element names are
+ignored. An empty list hides all elements.</p>
+<pre class="literal-block"><strong>ELEMENT show</strong> <em>elemList</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">elemList</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional Tcl list of element names to display.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Current element display list.</p>
+</section>
+<section id="element-type">
+<span id="r-3a3arbc3a3aelement20type"></span><span id="index-53"></span><span id="index-52"></span><h3><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">type</span></code><a class="headerlink" href="#element-type" title="Link to this heading">¶</a></h3>
+<p>Returns the concrete class of the named element. Current results are <code class="docutils literal notranslate"><span class="pre">LineElement</span></code>, <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">StripElement</span></code>.
+Element class name.</p>
+<pre class="literal-block"><strong>ELEMENT type</strong> <em>elemName</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">elemName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of the element.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Returns the concrete class of the named element. Current results are <code class="docutils literal notranslate"><span class="pre">LineElement</span></code>, <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">StripElement</span></code>.
+Element class name.</p>
+</section>
 <section id="graph">
-<span id="r-3a3arbc3a3agraph"></span><span id="index-3"></span><span id="index-2"></span><h3><code class="docutils literal notranslate"><span class="pre">graph</span></code><a class="headerlink" href="#graph" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3agraph"></span><span id="index-55"></span><span id="index-54"></span><h3><code class="docutils literal notranslate"><span class="pre">graph</span></code><a class="headerlink" href="#graph" title="Link to this heading">¶</a></h3>
 <p>Creates a graph widget. A graph uses line elements as its default element type. The widget supports the
 common graph components such as axes, elements, markers, pens, legends, grids, crosshairs, and PostScript
 output. Configuration options supplied when the widget is created are the same options accepted later by
@@ -101,7 +656,7 @@ output. Configuration options supplied when the widget is created are the same o
 <p>The pathname of the newly created graph widget.</p>
 </section>
 <section id="graphinst">
-<span id="r-3a3arbc3a3agraphinst"></span><span id="index-5"></span><span id="index-4"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code><a class="headerlink" href="#graphinst" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3agraphinst"></span><span id="index-57"></span><span id="index-56"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code><a class="headerlink" href="#graphinst" title="Link to this heading">¶</a></h3>
 <p>A
 command
 ensemble.</p>
@@ -155,16 +710,18 @@ ensemble.</p>
 <p>Refer to the documentation of each subcommand for details.</p>
 </section>
 <section id="graphinst-axis">
-<span id="r-3a3arbc3a3agraphinst20axis"></span><span id="index-7"></span><span id="index-6"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">axis</span></code><a class="headerlink" href="#graphinst-axis" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3agraphinst20axis"></span><span id="index-59"></span><span id="index-58"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">axis</span></code><a class="headerlink" href="#graphinst-axis" title="Link to this heading">¶</a></h3>
 <p>Performs an operation on the graph’s virtual axes. Virtual axes can be created, deleted, configured,
 transformed, bound to events, and mapped to graph margins.</p>
 <pre class="literal-block"><strong>GRAPHINST axis</strong> <em>operation ?args ...?</em></pre>
 <p class="rubric">Parameters</p>
+<p class="rubric">Description</p>
+<p>See <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-3a3arbc3a3aaxis"><span class="std std-ref">AXIS</span></a> for the complete virtual-axis command and option reference.</p>
 <p class="rubric">Return value</p>
 <p>Result of the selected axis operation.</p>
 </section>
 <section id="graphinst-bar">
-<span id="r-3a3arbc3a3agraphinst20bar"></span><span id="index-9"></span><span id="index-8"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">bar</span></code><a class="headerlink" href="#graphinst-bar" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3agraphinst20bar"></span><span id="index-61"></span><span id="index-60"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">bar</span></code><a class="headerlink" href="#graphinst-bar" title="Link to this heading">¶</a></h3>
 <p>Performs an element operation using bar elements explicitly, regardless of the default element type of the
 graph widget.</p>
 <pre class="literal-block"><strong>GRAPHINST bar</strong> <em>operation ?args ...?</em></pre>
@@ -173,7 +730,7 @@ graph widget.</p>
 <p>Result of the selected element operation.</p>
 </section>
 <section id="graphinst-cget">
-<span id="r-3a3arbc3a3agraphinst20cget"></span><span id="index-11"></span><span id="index-10"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">cget</span></code><a class="headerlink" href="#graphinst-cget" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3agraphinst20cget"></span><span id="index-63"></span><span id="index-62"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">cget</span></code><a class="headerlink" href="#graphinst-cget" title="Link to this heading">¶</a></h3>
 <p>Returns the current value of a graph widget configuration option.
 Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
 <pre class="literal-block"><strong>GRAPHINST cget</strong> <em>option</em></pre>
@@ -190,7 +747,7 @@ Current value of <code class="docutils literal notranslate"><span class="pre">op
 Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
 </section>
 <section id="graphinst-configure">
-<span id="r-3a3arbc3a3agraphinst20configure"></span><span id="index-13"></span><span id="index-12"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">configure</span></code><a class="headerlink" href="#graphinst-configure" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3agraphinst20configure"></span><span id="index-65"></span><span id="index-64"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">configure</span></code><a class="headerlink" href="#graphinst-configure" title="Link to this heading">¶</a></h3>
 <p>Queries or modifies graph widget configuration options. With no arguments, returns configuration information
 for all widget options. With one option, returns configuration information for that option. With one or more
 option/value pairs, changes the specified options.</p>
@@ -211,7 +768,7 @@ option/value pairs, changes the specified options.</p>
 <p>Configuration information when querying; nothing when setting options.</p>
 </section>
 <section id="graphinst-crosshairs">
-<span id="r-3a3arbc3a3agraphinst20crosshairs"></span><span id="index-15"></span><span id="index-14"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">crosshairs</span></code><a class="headerlink" href="#graphinst-crosshairs" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3agraphinst20crosshairs"></span><span id="index-67"></span><span id="index-66"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">crosshairs</span></code><a class="headerlink" href="#graphinst-crosshairs" title="Link to this heading">¶</a></h3>
 <p>Performs an operation on the graph crosshairs.</p>
 <pre class="literal-block"><strong>GRAPHINST crosshairs</strong> <em>operation ?args ...?</em></pre>
 <p class="rubric">Parameters</p>
@@ -219,7 +776,7 @@ option/value pairs, changes the specified options.</p>
 <p>Result of the selected crosshairs operation.</p>
 </section>
 <section id="graphinst-element">
-<span id="r-3a3arbc3a3agraphinst20element"></span><span id="index-17"></span><span id="index-16"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">element</span></code><a class="headerlink" href="#graphinst-element" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3agraphinst20element"></span><span id="index-69"></span><span id="index-68"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">element</span></code><a class="headerlink" href="#graphinst-element" title="Link to this heading">¶</a></h3>
 <p>Performs an operation on graph elements using the widget’s default element type. The default is a line
 element for <code class="docutils literal notranslate"><span class="pre">graph</span></code>, a bar element for <code class="docutils literal notranslate"><span class="pre">barchart</span></code>, and a strip element for <code class="docutils literal notranslate"><span class="pre">stripchart</span></code>.</p>
 <pre class="literal-block"><strong>GRAPHINST element</strong> <em>operation ?args ...?</em></pre>
@@ -228,7 +785,7 @@ element for <code class="docutils literal notranslate"><span class="pre">graph</
 <p>Result of the selected element operation.</p>
 </section>
 <section id="graphinst-extents">
-<span id="r-3a3arbc3a3agraphinst20extents"></span><span id="index-19"></span><span id="index-18"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">extents</span></code><a class="headerlink" href="#graphinst-extents" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3agraphinst20extents"></span><span id="index-71"></span><span id="index-70"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">extents</span></code><a class="headerlink" href="#graphinst-extents" title="Link to this heading">¶</a></h3>
 <p>Returns the size or geometry of a graph component.
 For <code class="docutils literal notranslate"><span class="pre">plotheight</span></code>, <code class="docutils literal notranslate"><span class="pre">plotwidth</span></code>, and the margin items, returns one size in pixels. For <code class="docutils literal notranslate"><span class="pre">plotarea</span></code> and
 <code class="docutils literal notranslate"><span class="pre">legend</span></code>, returns a list of four values in the form <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">y</span> <span class="pre">width</span> <span class="pre">height</span></code>.</p>
@@ -245,7 +802,7 @@ For <code class="docutils literal notranslate"><span class="pre">plotheight</spa
 <code class="docutils literal notranslate"><span class="pre">legend</span></code>, returns a list of four values in the form <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">y</span> <span class="pre">width</span> <span class="pre">height</span></code>.</p>
 </section>
 <section id="graphinst-grid">
-<span id="r-3a3arbc3a3agraphinst20grid"></span><span id="index-21"></span><span id="index-20"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">grid</span></code><a class="headerlink" href="#graphinst-grid" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3agraphinst20grid"></span><span id="index-73"></span><span id="index-72"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">grid</span></code><a class="headerlink" href="#graphinst-grid" title="Link to this heading">¶</a></h3>
 <p>Performs an operation on the graph grid.</p>
 <pre class="literal-block"><strong>GRAPHINST grid</strong> <em>operation ?args ...?</em></pre>
 <p class="rubric">Parameters</p>
@@ -253,7 +810,7 @@ For <code class="docutils literal notranslate"><span class="pre">plotheight</spa
 <p>Result of the selected grid operation.</p>
 </section>
 <section id="graphinst-inside">
-<span id="r-3a3arbc3a3agraphinst20inside"></span><span id="index-23"></span><span id="index-22"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">inside</span></code><a class="headerlink" href="#graphinst-inside" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3agraphinst20inside"></span><span id="index-75"></span><span id="index-74"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">inside</span></code><a class="headerlink" href="#graphinst-inside" title="Link to this heading">¶</a></h3>
 <p>Tests whether a window coordinate lies inside the graph plotting area.</p>
 <pre class="literal-block"><strong>GRAPHINST inside</strong> <em>winX winY</em></pre>
 <p class="rubric">Parameters</p>
@@ -269,7 +826,7 @@ For <code class="docutils literal notranslate"><span class="pre">plotheight</spa
 <p>Boolean value indicating whether the point is inside the plotting area.</p>
 </section>
 <section id="graphinst-invtransform">
-<span id="r-3a3arbc3a3agraphinst20invtransform"></span><span id="index-25"></span><span id="index-24"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">invtransform</span></code><a class="headerlink" href="#graphinst-invtransform" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3agraphinst20invtransform"></span><span id="index-77"></span><span id="index-76"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">invtransform</span></code><a class="headerlink" href="#graphinst-invtransform" title="Link to this heading">¶</a></h3>
 <p>Converts a point from window coordinates to graph coordinates using the graph’s primary X and Y axes.
 <code class="docutils literal notranslate"><span class="pre">winX</span></code> and <code class="docutils literal notranslate"><span class="pre">winY</span></code> may be Tcl expressions that evaluate to numeric values.</p>
 <pre class="literal-block"><strong>GRAPHINST invtransform</strong> <em>winX winY</em></pre>
@@ -286,7 +843,7 @@ For <code class="docutils literal notranslate"><span class="pre">plotheight</spa
 <p>A two-element list containing the corresponding graph coordinates <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">y</span></code>.</p>
 </section>
 <section id="graphinst-legend">
-<span id="r-3a3arbc3a3agraphinst20legend"></span><span id="index-27"></span><span id="index-26"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">legend</span></code><a class="headerlink" href="#graphinst-legend" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3agraphinst20legend"></span><span id="index-79"></span><span id="index-78"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">legend</span></code><a class="headerlink" href="#graphinst-legend" title="Link to this heading">¶</a></h3>
 <p>Performs an operation on the graph legend.</p>
 <pre class="literal-block"><strong>GRAPHINST legend</strong> <em>operation ?args ...?</em></pre>
 <p class="rubric">Parameters</p>
@@ -294,7 +851,7 @@ For <code class="docutils literal notranslate"><span class="pre">plotheight</spa
 <p>Result of the selected legend operation.</p>
 </section>
 <section id="graphinst-line">
-<span id="r-3a3arbc3a3agraphinst20line"></span><span id="index-29"></span><span id="index-28"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">line</span></code><a class="headerlink" href="#graphinst-line" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3agraphinst20line"></span><span id="index-81"></span><span id="index-80"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">line</span></code><a class="headerlink" href="#graphinst-line" title="Link to this heading">¶</a></h3>
 <p>Performs an element operation using line elements explicitly, regardless of the default element type of the
 graph widget.</p>
 <pre class="literal-block"><strong>GRAPHINST line</strong> <em>operation ?args ...?</em></pre>
@@ -303,7 +860,7 @@ graph widget.</p>
 <p>Result of the selected element operation.</p>
 </section>
 <section id="graphinst-marker">
-<span id="r-3a3arbc3a3agraphinst20marker"></span><span id="index-31"></span><span id="index-30"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">marker</span></code><a class="headerlink" href="#graphinst-marker" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3agraphinst20marker"></span><span id="index-83"></span><span id="index-82"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">marker</span></code><a class="headerlink" href="#graphinst-marker" title="Link to this heading">¶</a></h3>
 <p>Performs an operation on graph markers.</p>
 <pre class="literal-block"><strong>GRAPHINST marker</strong> <em>operation ?args ...?</em></pre>
 <p class="rubric">Parameters</p>
@@ -311,7 +868,7 @@ graph widget.</p>
 <p>Result of the selected marker operation.</p>
 </section>
 <section id="graphinst-pen">
-<span id="r-3a3arbc3a3agraphinst20pen"></span><span id="index-33"></span><span id="index-32"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">pen</span></code><a class="headerlink" href="#graphinst-pen" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3agraphinst20pen"></span><span id="index-85"></span><span id="index-84"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">pen</span></code><a class="headerlink" href="#graphinst-pen" title="Link to this heading">¶</a></h3>
 <p>Performs an operation on graph pens. Pens define reusable drawing attributes for line and bar elements.</p>
 <pre class="literal-block"><strong>GRAPHINST pen</strong> <em>operation ?args ...?</em></pre>
 <p class="rubric">Parameters</p>
@@ -319,7 +876,7 @@ graph widget.</p>
 <p>Result of the selected pen operation.</p>
 </section>
 <section id="graphinst-postscript">
-<span id="r-3a3arbc3a3agraphinst20postscript"></span><span id="index-35"></span><span id="index-34"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">postscript</span></code><a class="headerlink" href="#graphinst-postscript" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3agraphinst20postscript"></span><span id="index-87"></span><span id="index-86"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">postscript</span></code><a class="headerlink" href="#graphinst-postscript" title="Link to this heading">¶</a></h3>
 <p>Performs a PostScript output operation for the graph.</p>
 <pre class="literal-block"><strong>GRAPHINST postscript</strong> <em>operation ?args ...?</em></pre>
 <p class="rubric">Parameters</p>
@@ -327,7 +884,7 @@ graph widget.</p>
 <p>Result of the selected PostScript operation.</p>
 </section>
 <section id="graphinst-snap">
-<span id="r-3a3arbc3a3agraphinst20snap"></span><span id="index-37"></span><span id="index-36"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">snap</span></code><a class="headerlink" href="#graphinst-snap" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3agraphinst20snap"></span><span id="index-89"></span><span id="index-88"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">snap</span></code><a class="headerlink" href="#graphinst-snap" title="Link to this heading">¶</a></h3>
 <p>Renders a snapshot of the graph. By default the snapshot is written to an existing Tk photo image. On
 Windows, snapshots can also be written as Windows Metafile (<code class="docutils literal notranslate"><span class="pre">wmf</span></code>) or Enhanced Metafile (<code class="docutils literal notranslate"><span class="pre">emf</span></code>) output.</p>
 <pre class="literal-block"><strong>GRAPHINST snap</strong> <em>name ?-format format? ?-height height? ?-width width?</em></pre>
@@ -358,7 +915,7 @@ Windows, snapshots can also be written as Windows Metafile (<code class="docutil
 <p>Nothing.</p>
 </section>
 <section id="graphinst-transform">
-<span id="r-3a3arbc3a3agraphinst20transform"></span><span id="index-39"></span><span id="index-38"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">transform</span></code><a class="headerlink" href="#graphinst-transform" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3agraphinst20transform"></span><span id="index-91"></span><span id="index-90"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">transform</span></code><a class="headerlink" href="#graphinst-transform" title="Link to this heading">¶</a></h3>
 <p>Converts a point from graph coordinates to window coordinates using the graph’s primary X and Y axes.
 <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> may be Tcl expressions that evaluate to numeric values.</p>
 <pre class="literal-block"><strong>GRAPHINST transform</strong> <em>x y</em></pre>
@@ -375,7 +932,7 @@ Windows, snapshots can also be written as Windows Metafile (<code class="docutil
 <p>A two-element list containing the corresponding integer window coordinates <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">y</span></code>.</p>
 </section>
 <section id="graphinst-x2axis">
-<span id="r-3a3arbc3a3agraphinst20x2axis"></span><span id="index-41"></span><span id="index-40"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">x2axis</span></code><a class="headerlink" href="#graphinst-x2axis" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3agraphinst20x2axis"></span><span id="index-93"></span><span id="index-92"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">x2axis</span></code><a class="headerlink" href="#graphinst-x2axis" title="Link to this heading">¶</a></h3>
 <p>Performs an operation on the axis mapped to the secondary X-axis margin. With a normal graph orientation
 this is the top margin.</p>
 <pre class="literal-block"><strong>GRAPHINST x2axis</strong> <em>operation ?args ...?</em></pre>
@@ -384,7 +941,7 @@ this is the top margin.</p>
 <p>Result of the selected margin-axis operation.</p>
 </section>
 <section id="graphinst-xaxis">
-<span id="r-3a3arbc3a3agraphinst20xaxis"></span><span id="index-43"></span><span id="index-42"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">xaxis</span></code><a class="headerlink" href="#graphinst-xaxis" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3agraphinst20xaxis"></span><span id="index-95"></span><span id="index-94"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">xaxis</span></code><a class="headerlink" href="#graphinst-xaxis" title="Link to this heading">¶</a></h3>
 <p>Performs an operation on the axis mapped to the primary X-axis margin. With a normal graph orientation this
 is the bottom margin.</p>
 <pre class="literal-block"><strong>GRAPHINST xaxis</strong> <em>operation ?args ...?</em></pre>
@@ -393,7 +950,7 @@ is the bottom margin.</p>
 <p>Result of the selected margin-axis operation.</p>
 </section>
 <section id="graphinst-y2axis">
-<span id="r-3a3arbc3a3agraphinst20y2axis"></span><span id="index-45"></span><span id="index-44"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">y2axis</span></code><a class="headerlink" href="#graphinst-y2axis" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3agraphinst20y2axis"></span><span id="index-97"></span><span id="index-96"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">y2axis</span></code><a class="headerlink" href="#graphinst-y2axis" title="Link to this heading">¶</a></h3>
 <p>Performs an operation on the axis mapped to the secondary Y-axis margin. With a normal graph orientation
 this is the right margin.</p>
 <pre class="literal-block"><strong>GRAPHINST y2axis</strong> <em>operation ?args ...?</em></pre>
@@ -402,7 +959,7 @@ this is the right margin.</p>
 <p>Result of the selected margin-axis operation.</p>
 </section>
 <section id="graphinst-yaxis">
-<span id="r-3a3arbc3a3agraphinst20yaxis"></span><span id="index-47"></span><span id="index-46"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">yaxis</span></code><a class="headerlink" href="#graphinst-yaxis" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3agraphinst20yaxis"></span><span id="index-99"></span><span id="index-98"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">yaxis</span></code><a class="headerlink" href="#graphinst-yaxis" title="Link to this heading">¶</a></h3>
 <p>Performs an operation on the axis mapped to the primary Y-axis margin. With a normal graph orientation this
 is the left margin.</p>
 <pre class="literal-block"><strong>GRAPHINST yaxis</strong> <em>operation ?args ...?</em></pre>
@@ -410,8 +967,290 @@ is the left margin.</p>
 <p class="rubric">Return value</p>
 <p>Result of the selected margin-axis operation.</p>
 </section>
+<section id="marginaxis">
+<span id="r-3a3arbc3a3amarginaxis"></span><span id="index-101"></span><span id="index-100"></span><h3><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span></code><a class="headerlink" href="#marginaxis" title="Link to this heading">¶</a></h3>
+<p>A
+command
+ensemble.</p>
+<pre class="literal-block"><strong>MARGINAXIS</strong> <em>subcommand ...</em></pre>
+<p class="rubric">Description</p>
+<p>The ensemble supports the following subcommands:</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#r-3a3arbc3a3amarginaxis20bind"><span class="std std-ref">bind</span></a></dt><dd><p>Queries or modifies event bindings for the first axis assigned to this margin. With no arguments, returns the event sequences currently bound to the axis. With a sequence, returns the corresponding binding script. With both a sequence and command, creates or replaces the binding.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3amarginaxis20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Returns the current value of a configuration option for the first axis assigned to this margin. See <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-3a3arbc3a3aaxis"><span class="std std-ref">AXIS</span></a> for the complete axis option reference. Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3amarginaxis20configure"><span class="std std-ref">configure</span></a></dt><dd><p>Queries or modifies configuration options of the first axis assigned to this margin. With no arguments, returns configuration information for all axis options. With one option, returns configuration information for that option. With option/value pairs, changes the specified options. See <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-3a3arbc3a3aaxis"><span class="std std-ref">AXIS</span></a> for the complete axis option reference.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3amarginaxis20invtransform"><span class="std std-ref">invtransform</span></a></dt><dd><p>Converts an integer window coordinate to the corresponding graph-coordinate value using the first axis assigned to this margin. Axis orientation, descending direction, and logarithmic mapping are taken into account.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3amarginaxis20limits"><span class="std std-ref">limits</span></a></dt><dd><p>Returns the effective displayed limits of the first axis assigned to this margin. Automatic scaling, explicit limits, loose-range processing, and logarithmic mapping are reflected in the result. Logarithmic limits are returned as ordinary positive data values rather than base-10 exponents. Two-element list <code class="docutils literal notranslate"><span class="pre">min</span> <span class="pre">max</span></code>.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3amarginaxis20transform"><span class="std std-ref">transform</span></a></dt><dd><p>Converts a graph-coordinate value to an integer window coordinate using the first axis assigned to this margin. <code class="docutils literal notranslate"><span class="pre">value</span></code> may be a Tcl numeric expression and must evaluate to a finite value. Values transformed through a logarithmic axis must be positive.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3amarginaxis20use"><span class="std std-ref">use</span></a></dt><dd><p>Queries or changes the ordered list of virtual axes assigned to this margin. With no argument, returns all currently assigned axis names. With <code class="docutils literal notranslate"><span class="pre">axisList</span></code>, replaces the current assignment with the supplied list. The first axis becomes the primary axis addressed by the other <code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span></code> operations. Assigning an axis that is already displayed in another margin moves it to this margin. An empty list removes all axes.</p>
+</dd>
+</dl>
+<p>Refer to the documentation of each subcommand for details.</p>
+</section>
+<section id="marginaxis-bind">
+<span id="r-3a3arbc3a3amarginaxis20bind"></span><span id="index-103"></span><span id="index-102"></span><h3><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span> <span class="pre">bind</span></code><a class="headerlink" href="#marginaxis-bind" title="Link to this heading">¶</a></h3>
+<p>Queries or modifies event bindings for the first axis assigned to this margin. With no arguments, returns
+the event sequences currently bound to the axis. With a sequence, returns the corresponding binding script.
+With both a sequence and command, creates or replaces the binding.</p>
+<pre class="literal-block"><strong>MARGINAXIS bind</strong> <em>sequence</em>
+<strong>MARGINAXIS bind</strong> <em>sequence command</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">command</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tcl script to execute for the binding.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">sequence</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Tk event sequence.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Event sequences or a binding script when querying; nothing when setting a binding.</p>
+</section>
+<section id="marginaxis-cget">
+<span id="r-3a3arbc3a3amarginaxis20cget"></span><span id="index-105"></span><span id="index-104"></span><h3><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span> <span class="pre">cget</span></code><a class="headerlink" href="#marginaxis-cget" title="Link to this heading">¶</a></h3>
+<p>Returns the current value of a configuration option for the first axis assigned to this margin. See <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-3a3arbc3a3aaxis"><span class="std std-ref">AXIS</span></a>
+for the complete axis option reference.
+Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+<pre class="literal-block"><strong>MARGINAXIS cget</strong> <em>option</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">option</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Axis configuration option.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Returns the current value of a configuration option for the first axis assigned to this margin. See <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-3a3arbc3a3aaxis"><span class="std std-ref">AXIS</span></a>
+for the complete axis option reference.
+Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+</section>
+<section id="marginaxis-configure">
+<span id="r-3a3arbc3a3amarginaxis20configure"></span><span id="index-107"></span><span id="index-106"></span><h3><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span> <span class="pre">configure</span></code><a class="headerlink" href="#marginaxis-configure" title="Link to this heading">¶</a></h3>
+<p>Queries or modifies configuration options of the first axis assigned to this margin. With no arguments,
+returns configuration information for all axis options. With one option, returns configuration information
+for that option. With option/value pairs, changes the specified options. See <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-3a3arbc3a3aaxis"><span class="std std-ref">AXIS</span></a> for the complete axis
+option reference.</p>
+<pre class="literal-block"><strong>MARGINAXIS configure</strong> <em>option</em>
+<strong>MARGINAXIS configure</strong> <em>?option value ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">option</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Axis configuration option.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">value</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>New value for the option.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Configuration information when querying; nothing when setting options.</p>
+</section>
+<section id="marginaxis-invtransform">
+<span id="r-3a3arbc3a3amarginaxis20invtransform"></span><span id="index-109"></span><span id="index-108"></span><h3><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span> <span class="pre">invtransform</span></code><a class="headerlink" href="#marginaxis-invtransform" title="Link to this heading">¶</a></h3>
+<p>Converts an integer window coordinate to the corresponding graph-coordinate value using the first axis
+assigned to this margin. Axis orientation, descending direction, and logarithmic mapping are taken into
+account.</p>
+<pre class="literal-block"><strong>MARGINAXIS invtransform</strong> <em>value</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">value</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Integer window coordinate.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Corresponding graph-coordinate value.</p>
+</section>
+<section id="marginaxis-limits">
+<span id="r-3a3arbc3a3amarginaxis20limits"></span><span id="index-111"></span><span id="index-110"></span><h3><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span> <span class="pre">limits</span></code><a class="headerlink" href="#marginaxis-limits" title="Link to this heading">¶</a></h3>
+<p>Returns the effective displayed limits of the first axis assigned to this margin. Automatic scaling,
+explicit limits, loose-range processing, and logarithmic mapping are reflected in the result. Logarithmic
+limits are returned as ordinary positive data values rather than base-10 exponents.
+Two-element list <code class="docutils literal notranslate"><span class="pre">min</span> <span class="pre">max</span></code>.</p>
+<pre class="literal-block"><strong>MARGINAXIS limits</strong></pre>
+<p class="rubric">Return value</p>
+<p>Returns the effective displayed limits of the first axis assigned to this margin. Automatic scaling,
+explicit limits, loose-range processing, and logarithmic mapping are reflected in the result. Logarithmic
+limits are returned as ordinary positive data values rather than base-10 exponents.
+Two-element list <code class="docutils literal notranslate"><span class="pre">min</span> <span class="pre">max</span></code>.</p>
+</section>
+<section id="marginaxis-transform">
+<span id="r-3a3arbc3a3amarginaxis20transform"></span><span id="index-113"></span><span id="index-112"></span><h3><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span> <span class="pre">transform</span></code><a class="headerlink" href="#marginaxis-transform" title="Link to this heading">¶</a></h3>
+<p>Converts a graph-coordinate value to an integer window coordinate using the first axis assigned to this
+margin. <code class="docutils literal notranslate"><span class="pre">value</span></code> may be a Tcl numeric expression and must evaluate to a finite value. Values transformed
+through a logarithmic axis must be positive.</p>
+<pre class="literal-block"><strong>MARGINAXIS transform</strong> <em>value</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">value</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Graph-coordinate value or Tcl numeric expression.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Corresponding integer window coordinate.</p>
+</section>
+<section id="marginaxis-use">
+<span id="r-3a3arbc3a3amarginaxis20use"></span><span id="index-115"></span><span id="index-114"></span><h3><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span> <span class="pre">use</span></code><a class="headerlink" href="#marginaxis-use" title="Link to this heading">¶</a></h3>
+<p>Queries or changes the ordered list of virtual axes assigned to this margin. With no argument, returns all
+currently assigned axis names. With <code class="docutils literal notranslate"><span class="pre">axisList</span></code>, replaces the current assignment with the supplied list.
+The first axis becomes the primary axis addressed by the other <code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span></code> operations. Assigning an axis
+that is already displayed in another margin moves it to this margin. An empty list removes all axes.</p>
+<pre class="literal-block"><strong>MARGINAXIS use</strong> <em>axisList</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">axisList</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tcl list containing zero or more virtual axis names.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Ordered list of assigned axis names when querying; nothing when changing the assignment.</p>
+</section>
+<section id="pen">
+<span id="r-3a3arbc3a3apen"></span><span id="index-117"></span><span id="index-116"></span><h3><code class="docutils literal notranslate"><span class="pre">PEN</span></code><a class="headerlink" href="#pen" title="Link to this heading">¶</a></h3>
+<p>A
+command
+ensemble.</p>
+<pre class="literal-block"><strong>PEN</strong> <em>subcommand ...</em></pre>
+<p class="rubric">Description</p>
+<p>The ensemble supports the following subcommands:</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#r-3a3arbc3a3apen20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Returns the current value of a pen configuration option. Available options depend on whether the named pen is a line or bar pen. See <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzline20pen20options"><span class="std std-ref">line pen options</span></a> and <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzbar20pen20options"><span class="std std-ref">bar pen options</span></a>. Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3apen20configure"><span class="std std-ref">configure</span></a></dt><dd><p>Queries or modifies pen configuration. When querying, one pen name is used. When setting options, multiple pen names may precede the option/value pairs and the same configuration is applied to each named pen. All pens being configured must support the supplied options.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3apen20create"><span class="std std-ref">create</span></a></dt><dd><p>Creates a new named pen. <code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">line</span></code> creates a line pen, <code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">bar</span></code> creates a bar pen, and <code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">strip</span></code> creates a line pen suitable for strip elements. If <code class="docutils literal notranslate"><span class="pre">-type</span></code> is omitted, the graph widget’s default element type determines the pen type. See <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzline20pen20options"><span class="std std-ref">line pen options</span></a> and <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzbar20pen20options"><span class="std std-ref">bar pen options</span></a>.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3apen20delete"><span class="std std-ref">delete</span></a></dt><dd><p>Deletes one or more named pens. If a pen is still referenced by an element, destruction is deferred until its final reference is released. The deleted pen name immediately stops being available for new references.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3apen20names"><span class="std std-ref">names</span></a></dt><dd><p>Returns names of existing pens. With one or more Tcl glob patterns, a pen is returned when its name matches any pattern. Pens pending deletion are not returned. List of matching pen names.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3apen20type"><span class="std std-ref">type</span></a></dt><dd><p>Returns the concrete class of the named pen. Line and strip pens return <code class="docutils literal notranslate"><span class="pre">LineElement</span></code>; bar pens return <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>. This reports the actual pen implementation and is independent of the textual creation-time <code class="docutils literal notranslate"><span class="pre">-type</span></code> representation. <code class="docutils literal notranslate"><span class="pre">LineElement</span></code> or <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>.</p>
+</dd>
+</dl>
+<p>Refer to the documentation of each subcommand for details.</p>
+</section>
+<section id="pen-cget">
+<span id="r-3a3arbc3a3apen20cget"></span><span id="index-119"></span><span id="index-118"></span><h3><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">cget</span></code><a class="headerlink" href="#pen-cget" title="Link to this heading">¶</a></h3>
+<p>Returns the current value of a pen configuration option. Available options depend on whether the named pen is
+a line or bar pen. See <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzline20pen20options"><span class="std std-ref">line pen options</span></a> and <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzbar20pen20options"><span class="std std-ref">bar pen options</span></a>.
+Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+<pre class="literal-block"><strong>PEN cget</strong> <em>penName option</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">penName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of the pen.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">option</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Pen configuration option.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Returns the current value of a pen configuration option. Available options depend on whether the named pen is
+a line or bar pen. See <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzline20pen20options"><span class="std std-ref">line pen options</span></a> and <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzbar20pen20options"><span class="std std-ref">bar pen options</span></a>.
+Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+</section>
+<section id="pen-configure">
+<span id="r-3a3arbc3a3apen20configure"></span><span id="index-121"></span><span id="index-120"></span><h3><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">configure</span></code><a class="headerlink" href="#pen-configure" title="Link to this heading">¶</a></h3>
+<p>Queries or modifies pen configuration. When querying, one pen name is used. When setting options, multiple
+pen names may precede the option/value pairs and the same configuration is applied to each named pen. All
+pens being configured must support the supplied options.</p>
+<pre class="literal-block"><strong>PEN configure</strong> <em>penName</em>
+<strong>PEN configure</strong> <em>penName option</em>
+<strong>PEN configure</strong> <em>penName ?penName ...? ?option value ...?</em></pre>
+<p class="rubric">Parameters</p>
+<p class="rubric">Description</p>
+<p>See <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzline20pen20options"><span class="std std-ref">line pen options</span></a> and <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzbar20pen20options"><span class="std std-ref">bar pen options</span></a> for the complete option
+references.</p>
+<dl class="field-list simple">
+<dt class="field-odd">penName<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of a pen to query or configure.</p>
+</dd>
+<dt class="field-even">option<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pen configuration option.</p>
+</dd>
+<dt class="field-odd">value<span class="colon">:</span></dt>
+<dd class="field-odd"><p>New value for the option.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Configuration information when querying; nothing when setting options.</p>
+</section>
+<section id="pen-create">
+<span id="r-3a3arbc3a3apen20create"></span><span id="index-123"></span><span id="index-122"></span><h3><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">create</span></code><a class="headerlink" href="#pen-create" title="Link to this heading">¶</a></h3>
+<p>Creates a new named pen. <code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">line</span></code> creates a line pen, <code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">bar</span></code> creates a bar pen, and <code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">strip</span></code>
+creates a line pen suitable for strip elements. If <code class="docutils literal notranslate"><span class="pre">-type</span></code> is omitted, the graph widget’s default element
+type determines the pen type. See <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzline20pen20options"><span class="std std-ref">line pen options</span></a> and <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzbar20pen20options"><span class="std std-ref">bar pen options</span></a>.</p>
+<pre class="literal-block"><strong>PEN create</strong> <em>penName ?option value ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">penName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Unique name of the new pen.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">option</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Initial pen configuration option.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">value</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initial value for the option.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Name of the newly created pen.</p>
+</section>
+<section id="pen-delete">
+<span id="r-3a3arbc3a3apen20delete"></span><span id="index-125"></span><span id="index-124"></span><h3><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">delete</span></code><a class="headerlink" href="#pen-delete" title="Link to this heading">¶</a></h3>
+<p>Deletes one or more named pens. If a pen is still referenced by an element, destruction is deferred until
+its final reference is released. The deleted pen name immediately stops being available for new references.</p>
+<pre class="literal-block"><strong>PEN delete</strong> <em>?penName ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">penName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of a pen to delete.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Nothing.</p>
+</section>
+<section id="pen-names">
+<span id="r-3a3arbc3a3apen20names"></span><span id="index-127"></span><span id="index-126"></span><h3><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">names</span></code><a class="headerlink" href="#pen-names" title="Link to this heading">¶</a></h3>
+<p>Returns names of existing pens. With one or more Tcl glob patterns, a pen is returned when its name matches
+any pattern. Pens pending deletion are not returned.
+List of matching pen names.</p>
+<pre class="literal-block"><strong>PEN names</strong> <em>?pattern ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">pattern</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional Tcl glob pattern used to select pen names.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Returns names of existing pens. With one or more Tcl glob patterns, a pen is returned when its name matches
+any pattern. Pens pending deletion are not returned.
+List of matching pen names.</p>
+</section>
+<section id="pen-type">
+<span id="r-3a3arbc3a3apen20type"></span><span id="index-129"></span><span id="index-128"></span><h3><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">type</span></code><a class="headerlink" href="#pen-type" title="Link to this heading">¶</a></h3>
+<p>Returns the concrete class of the named pen. Line and strip pens return <code class="docutils literal notranslate"><span class="pre">LineElement</span></code>; bar pens return
+<code class="docutils literal notranslate"><span class="pre">BarElement</span></code>. This reports the actual pen implementation and is independent of the textual creation-time
+<code class="docutils literal notranslate"><span class="pre">-type</span></code> representation.
+<code class="docutils literal notranslate"><span class="pre">LineElement</span></code> or <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>.</p>
+<pre class="literal-block"><strong>PEN type</strong> <em>penName</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">penName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of the pen.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Returns the concrete class of the named pen. Line and strip pens return <code class="docutils literal notranslate"><span class="pre">LineElement</span></code>; bar pens return
+<code class="docutils literal notranslate"><span class="pre">BarElement</span></code>. This reports the actual pen implementation and is independent of the textual creation-time
+<code class="docutils literal notranslate"><span class="pre">-type</span></code> representation.
+<code class="docutils literal notranslate"><span class="pre">LineElement</span></code> or <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>.</p>
+</section>
 <section id="spline">
-<span id="r-3a3arbc3a3aspline"></span><span id="index-49"></span><span id="index-48"></span><h3><code class="docutils literal notranslate"><span class="pre">spline</span></code><a class="headerlink" href="#spline" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3aspline"></span><span id="index-131"></span><span id="index-130"></span><h3><code class="docutils literal notranslate"><span class="pre">spline</span></code><a class="headerlink" href="#spline" title="Link to this heading">¶</a></h3>
 <p>A
 command
 ensemble.</p>
@@ -427,7 +1266,7 @@ ensemble.</p>
 <p>Refer to the documentation of each subcommand for details.</p>
 </section>
 <section id="spline-natural">
-<span id="r-3a3arbc3a3aspline20natural"></span><span id="index-51"></span><span id="index-50"></span><h3><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">natural</span></code><a class="headerlink" href="#spline-natural" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3aspline20natural"></span><span id="index-133"></span><span id="index-132"></span><h3><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">natural</span></code><a class="headerlink" href="#spline-natural" title="Link to this heading">¶</a></h3>
 <p>Computes a natural cubic spline through the source vectors <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> and evaluates it at every X
 coordinate in <code class="docutils literal notranslate"><span class="pre">splX</span></code>. Evaluation coordinates may appear in any order. Coordinates outside the source
 X range are extrapolated using the cubic polynomial of the first or last spline interval.</p>
@@ -451,7 +1290,7 @@ X range are extrapolated using the cubic polynomial of the first or last spline 
 <p>Nothing.</p>
 </section>
 <section id="spline-quadratic">
-<span id="r-3a3arbc3a3aspline20quadratic"></span><span id="index-53"></span><span id="index-52"></span><h3><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">quadratic</span></code><a class="headerlink" href="#spline-quadratic" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3aspline20quadratic"></span><span id="index-135"></span><span id="index-134"></span><h3><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">quadratic</span></code><a class="headerlink" href="#spline-quadratic" title="Link to this heading">¶</a></h3>
 <p>Computes a shape-preserving quadratic spline through the source vectors <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> and evaluates it at
 every X coordinate in <code class="docutils literal notranslate"><span class="pre">splX</span></code>. Evaluation coordinates may appear in any order. Coordinates outside the
 source X range are extrapolated using the spline defined by the first or last source interval.</p>
@@ -475,7 +1314,7 @@ source X range are extrapolated using the spline defined by the first or last so
 <p>Nothing.</p>
 </section>
 <section id="stripchart">
-<span id="r-3a3arbc3a3astripchart"></span><span id="index-55"></span><span id="index-54"></span><h3><code class="docutils literal notranslate"><span class="pre">stripchart</span></code><a class="headerlink" href="#stripchart" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3astripchart"></span><span id="index-137"></span><span id="index-136"></span><h3><code class="docutils literal notranslate"><span class="pre">stripchart</span></code><a class="headerlink" href="#stripchart" title="Link to this heading">¶</a></h3>
 <p>Creates a stripchart widget. A stripchart uses strip elements as its default element type. It uses the same
 graph widget infrastructure and common components as <code class="docutils literal notranslate"><span class="pre">graph</span></code>, but elements created through the generic
 <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">element</span></code> interface are strip elements by default. Configuration options supplied when the widget
@@ -503,7 +1342,7 @@ is created are the same options accepted later by <code class="docutils literal 
 <p>The pathname of the newly created stripchart widget.</p>
 </section>
 <section id="vecinst">
-<span id="r-3a3arbc3a3avecinst"></span><span id="index-57"></span><span id="index-56"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span></code><a class="headerlink" href="#vecinst" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst"></span><span id="index-139"></span><span id="index-138"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span></code><a class="headerlink" href="#vecinst" title="Link to this heading">¶</a></h3>
 <p>A
 command
 ensemble.</p>
@@ -563,7 +1402,7 @@ ensemble.</p>
 <p>Refer to the documentation of each subcommand for details.</p>
 </section>
 <section id="r-3a3arbc3a3avecinst202a">
-<span id="index-59"></span><span id="index-58"></span><span id="id1"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">*</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202a" title="Link to this heading">¶</a></h3>
+<span id="index-141"></span><span id="index-140"></span><span id="id1"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">*</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202a" title="Link to this heading">¶</a></h3>
 <p>Multiplies every value of the vector by a scalar or by the corresponding value of another vector.
 <code class="docutils literal notranslate"><span class="pre">list</span></code> may name another vector or contain a scalar value. If another vector is used, it must have the same
 number of selected values.</p>
@@ -578,7 +1417,7 @@ number of selected values.</p>
 <p>A list containing the resulting values. The vector itself # is not modified.</p>
 </section>
 <section id="r-3a3arbc3a3avecinst202b">
-<span id="index-61"></span><span id="index-60"></span><span id="id2"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">+</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202b" title="Link to this heading">¶</a></h3>
+<span id="index-143"></span><span id="index-142"></span><span id="id2"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">+</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202b" title="Link to this heading">¶</a></h3>
 <p>Adds a scalar or another vector component-by-component.</p>
 <pre class="literal-block"><strong>VECINST +</strong> <em>list</em></pre>
 <p class="rubric">Parameters</p>
@@ -591,7 +1430,7 @@ number of selected values.</p>
 <p>A list containing the resulting values. The vector itself # is not modified.</p>
 </section>
 <section id="r-3a3arbc3a3avecinst202d">
-<span id="index-63"></span><span id="index-62"></span><span id="id3"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">-</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202d" title="Link to this heading">¶</a></h3>
+<span id="index-145"></span><span id="index-144"></span><span id="id3"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">-</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202d" title="Link to this heading">¶</a></h3>
 <p>Subtracts a scalar or another vector component-by-component.</p>
 <pre class="literal-block"><strong>VECINST -</strong> <em>list</em></pre>
 <p class="rubric">Parameters</p>
@@ -604,7 +1443,7 @@ number of selected values.</p>
 <p>A list containing the resulting values. The vector itself # is not modified.</p>
 </section>
 <section id="r-3a3arbc3a3avecinst202f">
-<span id="index-65"></span><span id="index-64"></span><span id="id4"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">/</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202f" title="Link to this heading">¶</a></h3>
+<span id="index-147"></span><span id="index-146"></span><span id="id4"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">/</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202f" title="Link to this heading">¶</a></h3>
 <p>Divides every vector value by a scalar or by the corresponding value of another vector.</p>
 <pre class="literal-block"><strong>VECINST /</strong> <em>list</em></pre>
 <p class="rubric">Parameters</p>
@@ -617,7 +1456,7 @@ number of selected values.</p>
 <p>A list containing the resulting values. The vector itself # is not modified.</p>
 </section>
 <section id="vecinst-append">
-<span id="r-3a3arbc3a3avecinst20append"></span><span id="index-67"></span><span id="index-66"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">append</span></code><a class="headerlink" href="#vecinst-append" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20append"></span><span id="index-149"></span><span id="index-148"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">append</span></code><a class="headerlink" href="#vecinst-append" title="Link to this heading">¶</a></h3>
 <p>Appends values to the vector. Each item may be another vector or a Tcl list of numeric values.</p>
 <pre class="literal-block"><strong>VECINST append</strong> <em>item ?item ...?</em></pre>
 <p class="rubric">Parameters</p>
@@ -630,7 +1469,7 @@ number of selected values.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-binread">
-<span id="r-3a3arbc3a3avecinst20binread"></span><span id="index-69"></span><span id="index-68"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">binread</span></code><a class="headerlink" href="#vecinst-binread" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20binread"></span><span id="index-151"></span><span id="index-150"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">binread</span></code><a class="headerlink" href="#vecinst-binread" title="Link to this heading">¶</a></h3>
 <p>Reads native binary numeric values from a Tcl channel into the vector.</p>
 <pre class="literal-block"><strong>VECINST binread</strong> <em>channel ?numValues? ?-at index? ?-format format? ?-swap?</em></pre>
 <p class="rubric">Parameters</p>
@@ -658,7 +1497,7 @@ restored before the command returns. A read that ends in the middle of a binary 
 <p>Number of complete values read.</p>
 </section>
 <section id="vecinst-clear">
-<span id="r-3a3arbc3a3avecinst20clear"></span><span id="index-71"></span><span id="index-70"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">clear</span></code><a class="headerlink" href="#vecinst-clear" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20clear"></span><span id="index-153"></span><span id="index-152"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">clear</span></code><a class="headerlink" href="#vecinst-clear" title="Link to this heading">¶</a></h3>
 <p>Clears cached elements of the Tcl array associated with the vector. This does not remove values from the
 vector. It can be used to release memory occupied by cached array-index entries.</p>
 <pre class="literal-block"><strong>VECINST clear</strong></pre>
@@ -666,7 +1505,7 @@ vector. It can be used to release memory occupied by cached array-index entries.
 <p>Nothing.</p>
 </section>
 <section id="vecinst-delete">
-<span id="r-3a3arbc3a3avecinst20delete"></span><span id="index-73"></span><span id="index-72"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">delete</span></code><a class="headerlink" href="#vecinst-delete" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20delete"></span><span id="index-155"></span><span id="index-154"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">delete</span></code><a class="headerlink" href="#vecinst-delete" title="Link to this heading">¶</a></h3>
 <p>Deletes one or more indices or index ranges from the vector. Remaining values are compacted after the
 deleted values are removed.</p>
 <pre class="literal-block"><strong>VECINST delete</strong> <em>index ?index ...?</em></pre>
@@ -680,7 +1519,7 @@ deleted values are removed.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-dup">
-<span id="r-3a3arbc3a3avecinst20dup"></span><span id="index-75"></span><span id="index-74"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">dup</span></code><a class="headerlink" href="#vecinst-dup" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20dup"></span><span id="index-157"></span><span id="index-156"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">dup</span></code><a class="headerlink" href="#vecinst-dup" title="Link to this heading">¶</a></h3>
 <p>Copies this vector into another vector. The destination vector is created if necessary. If it already
 exists, its contents are replaced.</p>
 <pre class="literal-block"><strong>VECINST dup</strong> <em>vecName</em></pre>
@@ -694,7 +1533,7 @@ exists, its contents are replaced.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-expr">
-<span id="r-3a3arbc3a3avecinst20expr"></span><span id="index-77"></span><span id="index-76"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">expr</span></code><a class="headerlink" href="#vecinst-expr" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20expr"></span><span id="index-159"></span><span id="index-158"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">expr</span></code><a class="headerlink" href="#vecinst-expr" title="Link to this heading">¶</a></h3>
 <p>Evaluates <code class="docutils literal notranslate"><span class="pre">expression</span></code> and stores the result in this vector.</p>
 <pre class="literal-block"><strong>VECINST expr</strong> <em>expression</em></pre>
 <p class="rubric">Parameters</p>
@@ -707,7 +1546,7 @@ exists, its contents are replaced.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-index">
-<span id="r-3a3arbc3a3avecinst20index"></span><span id="index-79"></span><span id="index-78"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">index</span></code><a class="headerlink" href="#vecinst-index" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20index"></span><span id="index-161"></span><span id="index-160"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">index</span></code><a class="headerlink" href="#vecinst-index" title="Link to this heading">¶</a></h3>
 <p>Reads or writes a vector value or range.  With no value argument, returns the value or values selected by
 <code class="docutils literal notranslate"><span class="pre">index</span></code>. With <code class="docutils literal notranslate"><span class="pre">value</span></code>, assigns that numeric value to every element selected by <code class="docutils literal notranslate"><span class="pre">index</span></code>. The special
 <code class="docutils literal notranslate"><span class="pre">++end</span></code> index may be used when setting a value to append one new element.</p>
@@ -726,7 +1565,7 @@ exists, its contents are replaced.</p>
 <p>Selected value(s) when querying, or the assigned value when setting.</p>
 </section>
 <section id="vecinst-length">
-<span id="r-3a3arbc3a3avecinst20length"></span><span id="index-81"></span><span id="index-80"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">length</span></code><a class="headerlink" href="#vecinst-length" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20length"></span><span id="index-163"></span><span id="index-162"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">length</span></code><a class="headerlink" href="#vecinst-length" title="Link to this heading">¶</a></h3>
 <p>Queries or changes the vector length. If <code class="docutils literal notranslate"><span class="pre">newSize</span></code> is supplied, the vector is resized. New elements
 created by enlarging the vector are initialized by the vector resizing machinery.</p>
 <pre class="literal-block"><strong>VECINST length</strong> <em>newSize</em></pre>
@@ -740,7 +1579,7 @@ created by enlarging the vector are initialized by the vector resizing machinery
 <p>Current vector length.</p>
 </section>
 <section id="vecinst-merge">
-<span id="r-3a3arbc3a3avecinst20merge"></span><span id="index-83"></span><span id="index-82"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">merge</span></code><a class="headerlink" href="#vecinst-merge" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20merge"></span><span id="index-165"></span><span id="index-164"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">merge</span></code><a class="headerlink" href="#vecinst-merge" title="Link to this heading">¶</a></h3>
 <p>Interleaves values from two or more vectors and stores the result in this vector. All input vectors must
 contain the same number of selected values.</p>
 <pre class="literal-block"><strong>VECINST merge</strong> <em>vecName ?vecName ...?</em></pre>
@@ -759,7 +1598,7 @@ contain the same number of selected values.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-normalize">
-<span id="r-3a3arbc3a3avecinst20normalize"></span><span id="index-85"></span><span id="index-84"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">normalize</span></code><a class="headerlink" href="#vecinst-normalize" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20normalize"></span><span id="index-167"></span><span id="index-166"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">normalize</span></code><a class="headerlink" href="#vecinst-normalize" title="Link to this heading">¶</a></h3>
 <p>Normalizes vector values to the range 0.0 through 1.0 using: <code class="docutils literal notranslate"><span class="pre">(value</span> <span class="pre">-</span> <span class="pre">minimum)</span> <span class="pre">/</span> <span class="pre">(maximum</span> <span class="pre">-</span> <span class="pre">minimum)</span></code>
 With no destination vector, returns the normalized values as a Tcl list. If <code class="docutils literal notranslate"><span class="pre">vecName</span></code> is supplied, that
 vector is created or resized and the normalized values are stored there.</p>
@@ -774,7 +1613,7 @@ vector is created or resized and the normalized values are stored there.</p>
 <p>Normalized list when no destination is specified; otherwise # nothing.</p>
 </section>
 <section id="vecinst-offset">
-<span id="r-3a3arbc3a3avecinst20offset"></span><span id="index-87"></span><span id="index-86"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">offset</span></code><a class="headerlink" href="#vecinst-offset" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20offset"></span><span id="index-169"></span><span id="index-168"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">offset</span></code><a class="headerlink" href="#vecinst-offset" title="Link to this heading">¶</a></h3>
 <p>Queries or changes the external index offset of the vector. The offset changes the numeric indices
 through which the vector is addressed without moving the underlying data.</p>
 <pre class="literal-block"><strong>VECINST offset</strong> <em>offset</em></pre>
@@ -788,7 +1627,7 @@ through which the vector is addressed without moving the underlying data.</p>
 <p>Current offset.</p>
 </section>
 <section id="vecinst-populate">
-<span id="r-3a3arbc3a3avecinst20populate"></span><span id="index-89"></span><span id="index-88"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">populate</span></code><a class="headerlink" href="#vecinst-populate" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20populate"></span><span id="index-171"></span><span id="index-170"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">populate</span></code><a class="headerlink" href="#vecinst-populate" title="Link to this heading">¶</a></h3>
 <p>Creates a more densely sampled vector using linear interpolation.  <code class="docutils literal notranslate"><span class="pre">density</span></code> intermediate values are
 inserted between every adjacent pair of source values. <code class="docutils literal notranslate"><span class="pre">density</span></code> must be at least 1. The destination may
 be the same vector as the source.</p>
@@ -806,7 +1645,7 @@ be the same vector as the source.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-random">
-<span id="r-3a3arbc3a3avecinst20random"></span><span id="index-91"></span><span id="index-90"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">random</span></code><a class="headerlink" href="#vecinst-random" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20random"></span><span id="index-173"></span><span id="index-172"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">random</span></code><a class="headerlink" href="#vecinst-random" title="Link to this heading">¶</a></h3>
 <p>Fills the vector with pseudo-random values in the range # <code class="docutils literal notranslate"><span class="pre">[0.0,</span> <span class="pre">1.0)</span></code>. The current vector length is
 preserved. Each existing component is replaced by a newly generated pseudo-random value. An empty vector
 remains empty.</p>
@@ -821,7 +1660,7 @@ remains empty.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-range">
-<span id="r-3a3arbc3a3avecinst20range"></span><span id="index-93"></span><span id="index-92"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">range</span></code><a class="headerlink" href="#vecinst-range" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20range"></span><span id="index-175"></span><span id="index-174"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">range</span></code><a class="headerlink" href="#vecinst-range" title="Link to this heading">¶</a></h3>
 <p>Returns an inclusive range of vector values. If <code class="docutils literal notranslate"><span class="pre">first</span></code> is less than or equal to <code class="docutils literal notranslate"><span class="pre">last</span></code>, values are
 returned in ascending index order. If <code class="docutils literal notranslate"><span class="pre">first</span></code> is greater than <code class="docutils literal notranslate"><span class="pre">last</span></code>, values are returned in descending
 index order. <code class="docutils literal notranslate"><span class="pre">first</span></code> and <code class="docutils literal notranslate"><span class="pre">last</span></code> are normal vector indices and may use forms such as <code class="docutils literal notranslate"><span class="pre">end</span></code>. This
@@ -856,7 +1695,7 @@ operation does not modify the vector.
 A list containing the selected vector values.</p>
 </section>
 <section id="vecinst-search">
-<span id="r-3a3arbc3a3avecinst20search"></span><span id="index-95"></span><span id="index-94"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">search</span></code><a class="headerlink" href="#vecinst-search" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20search"></span><span id="index-177"></span><span id="index-176"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">search</span></code><a class="headerlink" href="#vecinst-search" title="Link to this heading">¶</a></h3>
 <p>Searches the vector for values in a numeric range. With one numeric argument, returns matches equal to
 that value. With two numeric arguments, returns matches between <code class="docutils literal notranslate"><span class="pre">min</span></code> and <code class="docutils literal notranslate"><span class="pre">max</span></code>, inclusive within the
 implementation’s floating-point tolerance. By default matching vector indices are returned. With <code class="docutils literal notranslate"><span class="pre">-value</span></code>,
@@ -881,7 +1720,7 @@ matching vector values are returned instead.</p>
 <p>List of matching indices or values.</p>
 </section>
 <section id="vecinst-seq">
-<span id="r-3a3arbc3a3avecinst20seq"></span><span id="index-97"></span><span id="index-96"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">seq</span></code><a class="headerlink" href="#vecinst-seq" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20seq"></span><span id="index-179"></span><span id="index-178"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">seq</span></code><a class="headerlink" href="#vecinst-seq" title="Link to this heading">¶</a></h3>
 <p>Generates an arithmetic sequence.</p>
 <pre class="literal-block"><strong>VECINST seq</strong> <em>start end ?step?</em></pre>
 <p class="rubric">Parameters</p>
@@ -912,7 +1751,7 @@ matching vector values are returned instead.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-set">
-<span id="r-3a3arbc3a3avecinst20set"></span><span id="index-99"></span><span id="index-98"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">set</span></code><a class="headerlink" href="#vecinst-set" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20set"></span><span id="index-181"></span><span id="index-180"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">set</span></code><a class="headerlink" href="#vecinst-set" title="Link to this heading">¶</a></h3>
 <p>Replaces the contents of the vector. <code class="docutils literal notranslate"><span class="pre">list</span></code> may be a Tcl list of numeric values or the name of another
 vector.</p>
 <pre class="literal-block"><strong>VECINST set</strong> <em>list</em></pre>
@@ -926,7 +1765,7 @@ vector.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-sort">
-<span id="r-3a3arbc3a3avecinst20sort"></span><span id="index-101"></span><span id="index-100"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">sort</span></code><a class="headerlink" href="#vecinst-sort" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20sort"></span><span id="index-183"></span><span id="index-182"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">sort</span></code><a class="headerlink" href="#vecinst-sort" title="Link to this heading">¶</a></h3>
 <p>Sorts this vector. Additional vectors may be supplied. They must have the same length and are
 rearranged using the same permutation, allowing associated data to remain aligned. <code class="docutils literal notranslate"><span class="pre">-reverse</span></code> requests
 descending rather than ascending order.</p>
@@ -944,7 +1783,7 @@ descending rather than ascending order.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-split">
-<span id="r-3a3arbc3a3avecinst20split"></span><span id="index-103"></span><span id="index-102"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">split</span></code><a class="headerlink" href="#vecinst-split" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20split"></span><span id="index-185"></span><span id="index-184"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">split</span></code><a class="headerlink" href="#vecinst-split" title="Link to this heading">¶</a></h3>
 <p>Distributes values from this vector among destination vectors in round-robin order. The source vector
 length must be evenly divisible by the number of destination vectors. Existing destination contents are
 preserved and the split values are appended.</p>
@@ -965,7 +1804,7 @@ preserved and the split values are appended.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-variable">
-<span id="r-3a3arbc3a3avecinst20variable"></span><span id="index-105"></span><span id="index-104"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">variable</span></code><a class="headerlink" href="#vecinst-variable" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20variable"></span><span id="index-187"></span><span id="index-186"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">variable</span></code><a class="headerlink" href="#vecinst-variable" title="Link to this heading">¶</a></h3>
 <p>Queries or changes the Tcl array variable associated with the vector. Supplying an empty variable name
 removes the current mapping.</p>
 <pre class="literal-block"><strong>VECINST variable</strong> <em>varName</em></pre>
@@ -979,7 +1818,7 @@ removes the current mapping.</p>
 <p>Name of the currently mapped variable, or an empty result # if no variable is mapped.</p>
 </section>
 <section id="vector">
-<span id="r-3a3arbc3a3avector"></span><span id="index-107"></span><span id="index-106"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span></code><a class="headerlink" href="#vector" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avector"></span><span id="index-189"></span><span id="index-188"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span></code><a class="headerlink" href="#vector" title="Link to this heading">¶</a></h3>
 <p>A
 command
 ensemble.</p>
@@ -999,7 +1838,7 @@ ensemble.</p>
 <p>Refer to the documentation of each subcommand for details.</p>
 </section>
 <section id="vector-create">
-<span id="r-3a3arbc3a3avector20create"></span><span id="index-109"></span><span id="index-108"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">create</span></code><a class="headerlink" href="#vector-create" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avector20create"></span><span id="index-191"></span><span id="index-190"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">create</span></code><a class="headerlink" href="#vector-create" title="Link to this heading">¶</a></h3>
 <p>Creates one or more vectors.</p>
 <pre class="literal-block"><strong>vector create</strong> <em>vecName ?vecName ...? ?switch value ...?</em></pre>
 <p class="rubric">Parameters</p>
@@ -1035,7 +1874,7 @@ ensemble.</p>
 <p>The name of the last vector created.</p>
 </section>
 <section id="vector-destroy">
-<span id="r-3a3arbc3a3avector20destroy"></span><span id="index-111"></span><span id="index-110"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">destroy</span></code><a class="headerlink" href="#vector-destroy" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avector20destroy"></span><span id="index-193"></span><span id="index-192"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">destroy</span></code><a class="headerlink" href="#vector-destroy" title="Link to this heading">¶</a></h3>
 <p>Destroys one or more vectors. Destroying a vector removes its associated vector instance command and Tcl
 array variable and notifies clients that use the vector.</p>
 <pre class="literal-block"><strong>vector destroy</strong> <em>vecName ?vecName ...?</em></pre>
@@ -1049,7 +1888,7 @@ array variable and notifies clients that use the vector.</p>
 <p>Nothing.</p>
 </section>
 <section id="vector-expr">
-<span id="r-3a3arbc3a3avector20expr"></span><span id="index-113"></span><span id="index-112"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">expr</span></code><a class="headerlink" href="#vector-expr" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avector20expr"></span><span id="index-195"></span><span id="index-194"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">expr</span></code><a class="headerlink" href="#vector-expr" title="Link to this heading">¶</a></h3>
 <p>Evaluates a vector expression. <code class="docutils literal notranslate"><span class="pre">expression</span></code> may contain scalars, vectors, vector ranges, arithmetic
 operators, and the vector mathematical functions described in <a class="reference internal" href="rbc-tk9-rbc-VECINST.html#r-3a3arbc3a3avecinstqzvector20expressions"><span class="std std-ref">Vector expressions</span></a>. Unlike the instance
 [::rbc::VECINST::expr] operation, this command does not store the result in an existing vector.</p>
@@ -1064,7 +1903,7 @@ operators, and the vector mathematical functions described in <a class="referenc
 <p>The scalar value or list of vector values produced by the expression.</p>
 </section>
 <section id="vector-names">
-<span id="r-3a3arbc3a3avector20names"></span><span id="index-115"></span><span id="index-114"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">names</span></code><a class="headerlink" href="#vector-names" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avector20names"></span><span id="index-197"></span><span id="index-196"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">names</span></code><a class="headerlink" href="#vector-names" title="Link to this heading">¶</a></h3>
 <p>Returns the names of existing vectors. If <code class="docutils literal notranslate"><span class="pre">pattern</span></code> is supplied, only vector names matching the Tcl glob
 pattern are returned.
 A list of vector names.</p>
@@ -1097,7 +1936,33 @@ A list of vector names.</p>
     <ul>
 <li><a class="reference internal" href="#">::rbc</a><ul>
 <li><a class="reference internal" href="#commands">Commands</a><ul>
+<li><a class="reference internal" href="#axis"><code class="docutils literal notranslate"><span class="pre">AXIS</span></code></a></li>
+<li><a class="reference internal" href="#axis-bind"><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">bind</span></code></a></li>
+<li><a class="reference internal" href="#axis-cget"><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">cget</span></code></a></li>
+<li><a class="reference internal" href="#axis-configure"><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">configure</span></code></a></li>
+<li><a class="reference internal" href="#axis-create"><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">create</span></code></a></li>
+<li><a class="reference internal" href="#axis-delete"><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">delete</span></code></a></li>
+<li><a class="reference internal" href="#axis-get"><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">get</span></code></a></li>
+<li><a class="reference internal" href="#axis-invtransform"><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">invtransform</span></code></a></li>
+<li><a class="reference internal" href="#axis-limits"><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">limits</span></code></a></li>
+<li><a class="reference internal" href="#axis-names"><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">names</span></code></a></li>
+<li><a class="reference internal" href="#axis-transform"><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">transform</span></code></a></li>
+<li><a class="reference internal" href="#axis-view"><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">view</span></code></a></li>
 <li><a class="reference internal" href="#barchart"><code class="docutils literal notranslate"><span class="pre">barchart</span></code></a></li>
+<li><a class="reference internal" href="#element"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span></code></a></li>
+<li><a class="reference internal" href="#element-activate"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">activate</span></code></a></li>
+<li><a class="reference internal" href="#element-bind"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">bind</span></code></a></li>
+<li><a class="reference internal" href="#element-cget"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">cget</span></code></a></li>
+<li><a class="reference internal" href="#element-closest"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">closest</span></code></a></li>
+<li><a class="reference internal" href="#element-configure"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">configure</span></code></a></li>
+<li><a class="reference internal" href="#element-create"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">create</span></code></a></li>
+<li><a class="reference internal" href="#element-deactivate"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">deactivate</span></code></a></li>
+<li><a class="reference internal" href="#element-delete"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">delete</span></code></a></li>
+<li><a class="reference internal" href="#element-exists"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">exists</span></code></a></li>
+<li><a class="reference internal" href="#element-get"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">get</span></code></a></li>
+<li><a class="reference internal" href="#element-names"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">names</span></code></a></li>
+<li><a class="reference internal" href="#element-show"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">show</span></code></a></li>
+<li><a class="reference internal" href="#element-type"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">type</span></code></a></li>
 <li><a class="reference internal" href="#graph"><code class="docutils literal notranslate"><span class="pre">graph</span></code></a></li>
 <li><a class="reference internal" href="#graphinst"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code></a></li>
 <li><a class="reference internal" href="#graphinst-axis"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">axis</span></code></a></li>
@@ -1121,6 +1986,21 @@ A list of vector names.</p>
 <li><a class="reference internal" href="#graphinst-xaxis"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">xaxis</span></code></a></li>
 <li><a class="reference internal" href="#graphinst-y2axis"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">y2axis</span></code></a></li>
 <li><a class="reference internal" href="#graphinst-yaxis"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">yaxis</span></code></a></li>
+<li><a class="reference internal" href="#marginaxis"><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span></code></a></li>
+<li><a class="reference internal" href="#marginaxis-bind"><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span> <span class="pre">bind</span></code></a></li>
+<li><a class="reference internal" href="#marginaxis-cget"><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span> <span class="pre">cget</span></code></a></li>
+<li><a class="reference internal" href="#marginaxis-configure"><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span> <span class="pre">configure</span></code></a></li>
+<li><a class="reference internal" href="#marginaxis-invtransform"><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span> <span class="pre">invtransform</span></code></a></li>
+<li><a class="reference internal" href="#marginaxis-limits"><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span> <span class="pre">limits</span></code></a></li>
+<li><a class="reference internal" href="#marginaxis-transform"><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span> <span class="pre">transform</span></code></a></li>
+<li><a class="reference internal" href="#marginaxis-use"><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span> <span class="pre">use</span></code></a></li>
+<li><a class="reference internal" href="#pen"><code class="docutils literal notranslate"><span class="pre">PEN</span></code></a></li>
+<li><a class="reference internal" href="#pen-cget"><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">cget</span></code></a></li>
+<li><a class="reference internal" href="#pen-configure"><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">configure</span></code></a></li>
+<li><a class="reference internal" href="#pen-create"><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">create</span></code></a></li>
+<li><a class="reference internal" href="#pen-delete"><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">delete</span></code></a></li>
+<li><a class="reference internal" href="#pen-names"><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">names</span></code></a></li>
+<li><a class="reference internal" href="#pen-type"><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">type</span></code></a></li>
 <li><a class="reference internal" href="#spline"><code class="docutils literal notranslate"><span class="pre">spline</span></code></a></li>
 <li><a class="reference internal" href="#spline-natural"><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">natural</span></code></a></li>
 <li><a class="reference internal" href="#spline-quadratic"><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">quadratic</span></code></a></li>

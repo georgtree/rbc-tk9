@@ -1,0 +1,273 @@
+'\"
+'\" '\" Copyright (c) George Yashin
+'\"
+.TH "rbc::ELEMENT" 3tcl 0\&.5\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.SH NAME
+rbc::ELEMENT - Commands in namespace rbc::ELEMENT
+.SH "GRAPH ELEMENT ELEMENT COMMAND"
+.PP
+Commands in this namespace document operations on graph elements\&.
+.PP
+ELEMENT is used below as a placeholder for any of:
+.PP
+.RS 4n
+.nf
+GRAPHINST element
+GRAPHINST line
+GRAPHINST bar
+.fi
+.RE
+.PP
+The element form uses the default element type of the graph widget:
+.TS
+tab(|) box;
+l l.
+Widget| Default element type
+_
+graph| line
+barchart| bar
+stripchart | strip
+.TE
+.PP
+The line and bar forms explicitly select the type when creating a new element:
+.PP
+.RS 4n
+.nf
+\&.g line create voltage
+\&.g bar create histogram
+.fi
+.RE
+.PP
+All element types share the operations documented on this page\&. Configuration options depend on the concrete
+element type and are documented separately for line, strip, and bar elements\&.
+.SH "ELEMENT NAMES"
+.PP
+Every element has a name that is unique within its graph widget\&.
+.PP
+.RS 4n
+.nf
+\&.g element create signal1
+.fi
+.RE
+.PP
+Element names may not begin with -\&.
+.PP
+ELEMENT create returns the name of the newly created element\&.
+.SH "ELEMENT DATA AND AXES"
+.PP
+Elements contain X and Y data and are mapped through an X axis and a Y axis\&. The concrete element option
+reference describes the available ways to supply data, select axes, configure pens, error bars, labels, and
+other type-specific attributes\&.
+.PP
+Element data may be supplied directly as Tcl lists or through Rbc vectors\&. When an element refers to an Rbc
+vector, changes to that vector cause the graph to update automatically\&.
+.SH "DISPLAY LIST"
+.PP
+Graph elements have an explicit display list\&. The display list determines which elements are visible and the
+order in which they are drawn\&.
+.PP
+ELEMENT show queries or replaces this list:
+.PP
+.RS 4n
+.nf
+\&.g element show
+.fi
+.RE
+.PP
+To display only selected elements:
+.PP
+.RS 4n
+.nf
+\&.g element show {signal1 signal2}
+.fi
+.RE
+.PP
+Elements not present in the supplied list are hidden\&. An empty list hides all elements:
+.PP
+.RS 4n
+.nf
+\&.g element show {}
+.fi
+.RE
+.PP
+The order of the supplied list is the drawing order\&. Elements later in the list are drawn above elements
+earlier in the list\&.
+.PP
+Unknown element names in a list supplied to show are ignored\&.
+.PP
+The element -hide option and display-list membership are kept synchronized\&. Configuring an element as hidden
+removes it from the display list; making it visible adds it back to the display list\&.
+.SH "ACTIVE ELEMENTS AND POINTS"
+.PP
+Elements and individual data points may be marked active\&. Active items are normally drawn using the element's
+active pen\&.
+.PP
+With no arguments, ELEMENT activate returns the names of all currently active elements:
+.PP
+.RS 4n
+.nf
+set active [\&.g element activate]
+.fi
+.RE
+.PP
+Supplying only an element name activates the complete element:
+.PP
+.RS 4n
+.nf
+\&.g element activate signal1
+.fi
+.RE
+.PP
+Supplying one or more indices activates only those data points:
+.PP
+.RS 4n
+.nf
+\&.g element activate signal1 2 5 8
+.fi
+.RE
+.PP
+Each activation replaces the previous active-point selection for that element\&.
+.PP
+The special index end selects the final data point\&. Other indices may be Tcl integer expressions\&.
+.PP
+.RS 4n
+.nf
+\&.g element activate signal1 end
+.fi
+.RE
+.PP
+ELEMENT deactivate clears the active state of the named elements\&.
+.SH "ELEMENT BINDINGS"
+.PP
+Elements participate in the graph binding system\&.
+.PP
+Each element contributes the following binding tags:
+.TP
+\(bu
+its element name;
+.TP
+\(bu
+its element class, such as LineElement, BarElement, or StripElement;
+.TP
+\(bu
+any additional tags configured with the element's -bindtags option\&.
+.PP
+A binding may therefore apply to one specific element:
+.PP
+.RS 4n
+.nf
+\&.g element bind signal1 <ButtonPress-1> {
+    puts "signal1 selected"
+}
+.fi
+.RE
+.PP
+or to an element class:
+.PP
+.RS 4n
+.nf
+\&.g element bind LineElement <Enter> {
+    puts "pointer entered a line element"
+}
+.fi
+.RE
+.PP
+User-defined -bindtags can be used to bind several unrelated elements to the same behavior\&.
+.PP
+ELEMENT get current returns the element currently selected by this binding machinery\&.
+.SH "FINDING THE CLOSEST ELEMENT"
+.PP
+ELEMENT closest finds the visible element or data point nearest to a window coordinate\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+if {[\&.g element closest $x $y info]} {
+    puts "element = $info(name)"
+    puts "index   = $info(index)"
+    puts "x       = $info(x)"
+    puts "y       = $info(y)"
+    puts "distance = $info(dist)"
+}
+.fi
+.RE
+.PP
+The command returns 1 if a result is found within the search halo and 0 otherwise\&.
+.PP
+On success, the named Tcl array receives:
+.TS
+tab(|) box;
+l l.
+Array element | Description
+_
+name| Name of the closest element\&.
+index| Source data index associated with the result\&.
+x| X coordinate of the result in graph coordinates\&.
+y| Y coordinate of the result in graph coordinates\&.
+dist| Distance from the requested window coordinate, measured in screen pixels\&.
+.TE
+.PP
+If no match is found, name is set to an empty value\&. Other array elements should only be used when the
+command returns 1\&.
+.PP
+The default search halo is the graph's -halo value\&.
+.PP
+closest accepts the following options:
+.TS
+tab(|) box;
+l l.
+Option| Description
+_
+-halo distance| Sets the maximum non-negative screen distance for this search\&.
+-along direction| Measures distance along x, y, or both\&. The default is both\&.
+-interpolate boolean | For line and strip elements, searches along the rendered trace when true instead of considering only data points\&.
+.TE
+.PP
+With -interpolate false, line and strip searches return actual source data coordinates\&.
+.PP
+With -interpolate true, the closest position may lie between source points\&. In that case x and y contain
+the interpolated graph coordinates of the closest point on the rendered trace, while index identifies the
+associated source segment\&.
+.PP
+The -along and -interpolate options affect line and strip element searches\&. Bar elements are searched
+against their rendered rectangles\&.
+.PP
+By default all visible elements are searched\&. One or more element names may be supplied after the options to
+restrict the search:
+.PP
+.RS 4n
+.nf
+\&.g element closest $x $y info -halo 10 -interpolate yes signal1 signal2
+.fi
+.RE
+.PP
+-- may be used to terminate option processing explicitly\&.
+.SH "ELEMENT TYPES"
+.PP
+ELEMENT type reports the concrete class of an existing element\&. The current element classes are:
+.TS
+tab(|) box;
+l l.
+Result| Element type
+_
+LineElement| line element
+BarElement| bar element
+StripElement | stripchart element
+.TE
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+puts [\&.g element type signal1]
+# -> LineElement
+
+Configuration options are specific to the concrete element type:
+
+* [LINEELEMENT] - line elements;
+* [STRIPELEMENT] - strip elements;
+* [BARELEMENT] - bar elements\&.
+.fi
+.RE
+

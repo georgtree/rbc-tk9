@@ -1,0 +1,2360 @@
+# tcl-lsp: disable=W111
+namespace eval ::rbc::AXIS {
+    variable _ruff_ns_opts {
+        -heading {Graph virtual axis `AXIS` command}
+        -excludeprocs {.*}
+    }
+
+    variable _ruff_preamble {
+        Commands in this namespace document operations accepted by the `axis` component of a graph, barchart, or
+        stripchart widget.
+
+        `AXIS` is used below as a placeholder for:
+
+        ```tcl
+        GRAPHINST axis
+        ```
+
+        For example:
+        ```tcl
+        graph .g
+
+        .g axis create temperature -title "Temperature"
+        .g axis configure temperature -min 0 -max 100
+        ```
+
+        ## Virtual axes
+        Every graph widget initially contains four axes named `x`, `y`, `x2`, and `y2`. The `x` and `y` axes are the
+        primary axes and are displayed by default. The secondary `x2` and `y2` axes are created on the opposite
+        margins and are hidden by default.
+
+        Additional axes may be created with `AXIS create`:
+        ```tcl
+        .g axis create current -title "Current"
+        ```
+
+        A newly created virtual axis does not have to be displayed. It may be used only for mapping elements, or it
+        may later be assigned to one of the graph margins with the appropriate margin-axis `use` operation.
+
+        An axis becomes an X or Y axis according to how it is first used. Once its type has been established, the
+        same axis cannot subsequently be used as the opposite type.
+
+        More than one axis may be displayed in the same margin.
+
+        ## Axis ranges
+        By default an axis is automatically scaled from the data of the elements mapped to it. The `-min` and `-max`
+        options override the automatically calculated lower and upper limits independently.
+
+        For example:
+        ```tcl
+        .g axis configure y -min 0 -max 10
+        ```
+
+        Setting either option to an empty value restores automatic calculation of that limit.
+
+        The `-loose` option determines whether automatically calculated limits stop at the data boundary or extend
+        outward to convenient major tick positions.
+
+        It accepts one or two values. If one value is supplied it applies to both limits. With two values, the first
+        controls the minimum and the second controls the maximum.
+
+        Each value may be a Tcl boolean or the literal `always`:
+
+        | Value    | Description                                                                                                                    |
+        |----------|--------------------------------------------------------------------------------------------------------------------------------|
+        | `false`  | Keep the corresponding axis limit tight to the data or explicitly requested limit.                                             |
+        | `true`   | Extend an automatically calculated limit to the next outer major tick, but keep an explicitly supplied `-min` or `-max` tight. |
+        | `always` | Extend the limit to an outer major tick even when the corresponding `-min` or `-max` was supplied explicitly.                  |
+
+        For example:
+        ```tcl
+        .g axis configure y -loose yes
+        .g axis configure y -loose {no yes}
+        .g axis configure y -loose always
+        ```
+
+        `AXIS limits` returns the effective limits currently used to display an axis, after automatic scaling,
+        requested limits, logarithmic conversion, and loose-range processing have been applied.
+
+        ## Automatic sliding ranges
+        The `-autorange` option provides a sliding axis window useful for continuously growing data.
+
+        A positive value specifies the width of the displayed window in graph-coordinate units:
+        ```tcl
+        .g axis configure x -autorange 10
+        ```
+
+        When new data move beyond the current upper limit, the window is shifted so that the latest values remain
+        visible. Automatic sliding is active only while both `-min` and `-max` remain automatic.
+
+        `-shiftby` can make the sliding window advance in discrete increments. A positive value rounds the advancing
+        upper limit upward to the next multiple of the requested interval.
+
+        ```tcl
+        .g axis configure x -autorange 10 -shiftby 1
+        ```
+
+        A non-positive `-autorange` value disables the sliding window.
+
+        ## Logarithmic axes
+        Setting `-logscale` to true selects base-10 logarithmic mapping:
+        ```tcl
+        .g axis configure y -logscale yes
+        ```
+
+        Logarithmic axes have a strictly positive data domain. Values mapped through a logarithmic axis must be
+        greater than zero. Explicit `-min`, `-max`, `-scrollmin`, and `-scrollmax` values must likewise be positive.
+
+        `AXIS transform` accepts ordinary positive data values and `AXIS limits` returns ordinary data values; callers
+        do not need to apply `log10` themselves.
+
+        Automatically generated major ticks normally correspond to powers of ten. For a normal logarithmic range,
+        minor ticks represent the values 2 through 9 within each decade.
+
+        Explicit `-majorticks` on a logarithmic axis are specified in base-10 exponent coordinates. For example:
+        ```tcl
+        .g axis configure y -logscale yes -majorticks {0 1 2 3}
+        ```
+
+        places major ticks at 1, 10, 100, and 1000.
+
+        ## Major and minor ticks
+        When `-majorticks` is empty, Rbc automatically chooses major tick positions.
+
+        A custom list may be supplied:
+        ```tcl
+        .g axis configure x -majorticks {0 5 10 15 20}
+        ```
+
+        Each list element is evaluated as a Tcl numeric expression and must produce a finite value.
+
+        When major ticks are generated automatically, `-stepsize` may request the interval between major ticks on a
+        linear axis:
+        ```tcl
+        .g axis configure x -stepsize 0.5
+        ```
+
+        A value less than or equal to zero selects automatic step calculation. If a requested step would produce an
+        impractical number of ticks, Rbc falls back to an automatically selected interval.
+
+        The `-subdivisions` option controls automatically generated minor ticks between major ticks. A value of `N`
+        divides each major interval into `N` parts, producing `N-1` minor ticks. The default value is `2`, which
+        produces one minor tick halfway between adjacent major ticks.
+
+        Explicitly configuring `-majorticks` disables automatic minor subdivision. Minor ticks may still be supplied
+        explicitly with `-minorticks`.
+
+        Values in `-minorticks` are fractional offsets within a major interval. For example:
+        ```tcl
+        .g axis configure x -minorticks {0.25 0.5 0.75}
+        ```
+
+        places three minor ticks within each major interval.
+
+        An empty `-majorticks` or `-minorticks` value restores automatic generation for that tick class.
+
+        ## Tick labels
+        Major tick labels are generated automatically. Linear-axis labels use a general floating-point
+        representation, while logarithmic major labels use power-of-ten notation.
+
+        `-command` may be used to replace the generated label text. Its value is a Tcl command prefix. For every
+        major tick, Rbc appends two arguments:
+        ```text
+        graphPath defaultLabel
+        ```
+
+        The result returned by the command becomes the displayed label.
+
+        For example:
+        ```tcl
+        proc formatTick {graph label} {
+            return "$label V"
+        }
+
+        .g axis configure y -command formatTick
+        ```
+
+        If the formatting command raises an error during drawing, the error is reported as a background error and
+        the original default label is used.
+
+        `-labeloffset` moves each tick label to the middle of the following major interval while leaving the major
+        tick mark itself at the original position. This is useful for category-like axes.
+
+        Tick labels may be rotated with `-rotate`:
+        ```tcl
+        .g axis configure x -rotate 45
+        ```
+
+        Angles are specified in degrees and are normalized into the range from 0 through less than 360 degrees.
+
+        ## Axis limits display
+        `-limitsformat` optionally displays the minimum and maximum axis limits around the plotting area.
+
+        The value is a Tcl list containing one or two printf-style floating-point formats. With one format, the same
+        format is used for both limits. With two formats, the first formats the minimum and the second formats the
+        maximum.
+
+        ```tcl
+        .g axis configure y -limitsformat {%.3g}
+        .g axis configure y -limitsformat {Min=%.3g Max=%.3g}
+        ```
+
+        An empty format element suppresses that particular limit:
+        ```tcl
+        .g axis configure y -limitsformat {{} {%.3g}}
+        ```
+
+        suppresses the minimum while displaying the maximum.
+
+        Limit formats are validated before being accepted. A format may contain at most one floating-point
+        conversion and may use the standard `a`, `A`, `e`, `E`, `f`, `F`, `g`, or `G` conversions. Dynamic width and
+        precision using `*` are not permitted.
+
+        `-limitscolor`, `-limitsfont`, and `-limitsshadow` control the appearance of the displayed limits.
+
+        ## Axis scrolling
+        An axis can expose a scrollable world range through the `view` operation.
+
+        The scrolling region normally comes from the complete data range mapped to the axis. `-scrollmin` and
+        `-scrollmax` may override its lower and upper boundaries.
+
+        Querying the view:
+        ```tcl
+        .g axis view x
+        ```
+
+        returns two normalized fractions:
+        ```text
+        first last
+        ```
+
+        describing the visible portion of the scroll region. The values use the same left-to-right or top-to-bottom
+        convention as a Tk scrollbar, including for descending axes.
+
+        The view can be moved using standard Tk scrolling forms:
+        ```tcl
+        .g axis view x moveto 0.25
+        .g axis view x scroll 1 units
+        .g axis view x scroll -1 pages
+        ```
+
+        A page is 90 percent of the currently visible range.
+
+        `-scrollincrement` specifies the screen distance represented by one `units` movement. It must be a positive
+        screen distance.
+
+        For compatibility, a single integer argument is also accepted and is treated as a unit scroll:
+        ```tcl
+        .g axis view x 1
+        ```
+
+        `-scrollcommand` specifies a Tcl command prefix to notify when the axis viewport is redrawn. Rbc appends the
+        normalized first and last fractions to the command prefix, making it suitable for a Tk scrollbar's `set`
+        command.
+
+        For example:
+        ```tcl
+        scrollbar .xs -orient horizontal -command [list .g axis view x]
+
+        .g axis configure x -scrollcommand [list .xs set]
+        ```
+
+        ## Axis bindings
+        Axes participate in the graph binding system. `AXIS bind` creates bindings for axis names, axis classes, or
+        user-defined binding tags.
+
+        The axis name and its X/Y class are always included in the binding-tag sequence. Additional tags may be
+        supplied with `-bindtags`. The default additional tag is `all`.
+
+        For example:
+        ```tcl
+        .g axis bind x <ButtonPress-1> {
+            puts "x axis selected"
+        }
+        ```
+
+        `AXIS get current` returns the name of the axis currently selected by the binding machinery.
+
+        `AXIS get detail` identifies which part of the current axis was selected and returns one of:
+
+        * `label` - a major tick label;
+        * `title` - the axis title;
+        * `line` - the axis line region.
+
+        If there is no current axis, these operations return an empty result.
+
+        ## Axis options
+        The following options apply to virtual axes and to axes displayed through the margin-axis commands.
+
+        | Option                         | Description                                                                                                                                                |
+        |--------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+        | `-autorange range`             | Sets the width of an automatic sliding range. A positive value enables sliding; a non-positive value disables it.                                          |
+        | `-background color`            | Sets the optional background behind the displayed axis. An empty value disables the axis background. `-bg` is a synonym.                                   |
+        | `-bindtags tags`               | Specifies additional binding tags associated with the axis. The axis name and axis class are included automatically. The default is `all`.                 |
+        | `-borderwidth width`           | Sets the non-negative border width of the optional axis background. `-bd` is a synonym.                                                                    |
+        | `-color color`                 | Sets the color used for the axis line, tick marks, and tick labels.                                                                                        |
+        | `-command commandPrefix`       | Specifies a command prefix used to format major tick labels. The graph pathname and default label are appended to the prefix.                              |
+        | `-descending boolean`          | Reverses the direction in which axis values are displayed.                                                                                                 |
+        | `-hide boolean`                | Hides the normal axis line, ticks, labels, and title without preventing elements from being mapped through the axis.                                       |
+        | `-justify justify`             | Sets the justification of multi-line axis title text. Valid values are `left`, `center`, and `right`.                                                      |
+        | `-labeloffset boolean`         | Positions major tick labels halfway into the following major interval instead of directly at their tick positions.                                         |
+        | `-limitscolor color`           | Sets the color used for text generated by `-limitsformat`.                                                                                                 |
+        | `-limitsfont fontName`         | Sets the font used for text generated by `-limitsformat`.                                                                                                  |
+        | `-limitsformat formats`        | Specifies one or two validated printf-style floating-point formats for displaying the minimum and maximum axis limits. An empty value disables limit text. |
+        | `-limitsshadow shadow`         | Sets the text shadow for the displayed axis limits. An empty value disables the shadow.                                                                    |
+        | `-linewidth width`             | Sets the non-negative width of the axis and tick lines. A value of `0` suppresses the line and tick strokes; tick labels may still be displayed.           |
+        | `-logscale boolean`            | Selects base-10 logarithmic mapping. Values and explicit limits must be positive.                                                                          |
+        | `-loose value`                 | Controls whether the lower and upper displayed limits extend to outer major ticks. Accepts one or two booleans or the literal `always`.                    |
+        | `-majorticks ticks`            | Specifies explicit major tick positions. An empty value restores automatic major tick generation.                                                          |
+        | `-max value`                   | Sets the requested maximum axis value. An empty value restores automatic calculation.                                                                      |
+        | `-min value`                   | Sets the requested minimum axis value. An empty value restores automatic calculation.                                                                      |
+        | `-minorticks ticks`            | Specifies explicit minor-tick offsets within major intervals. An empty value restores automatic minor ticks.                                               |
+        | `-relief relief`               | Sets the relief used for the optional axis background.                                                                                                     |
+        | `-rotate angle`                | Rotates major tick labels by the specified angle in degrees.                                                                                               |
+        | `-scrollcommand commandPrefix` | Specifies a command prefix called with the normalized first and last fractions of the visible scrolling region.                                            |
+        | `-scrollincrement distance`    | Sets the positive screen distance represented by one `view ... scroll ... units` operation. The default is `10`.                                           |
+        | `-scrollmax value`             | Overrides the upper boundary of the axis scrolling region. An empty value uses the data range.                                                             |
+        | `-scrollmin value`             | Overrides the lower boundary of the axis scrolling region. An empty value uses the data range.                                                             |
+        | `-shiftby value`               | Sets the increment used when advancing a positive `-autorange` window.                                                                                     |
+        | `-showticks boolean`           | Controls display of major/minor tick marks and major tick labels. The axis baseline and title are independent.                                             |
+        | `-stepsize value`              | Requests the major-tick interval for a linear axis. A non-positive value selects automatic calculation.                                                    |
+        | `-subdivisions number`         | Sets the number of automatic subdivisions of each major interval. `N` subdivisions produce `N-1` minor ticks.                                              |
+        | `-tickfont fontName`           | Sets the font used for major tick labels.                                                                                                                  |
+        | `-ticklength distance`         | Sets the length of major tick marks. A negative distance reverses the tick direction.                                                                      |
+        | `-tickshadow shadow`           | Sets the shadow used for major tick labels. An empty value disables the shadow.                                                                            |
+        | `-title text`                  | Sets the axis title. An empty value suppresses the title.                                                                                                  |
+        | `-titlealternate boolean`      | Selects the alternate end-oriented title position instead of the normal centered position.                                                                 |
+        | `-titlecolor color`            | Sets the axis title color.                                                                                                                                 |
+        | `-titlefont fontName`          | Sets the axis title font.                                                                                                                                  |
+        | `-titleshadow shadow`          | Sets the axis title shadow. An empty value disables the shadow.                                                                                            |
+    }
+
+    proc bind {args} {
+        # Queries or modifies bindings associated with axis binding tags. With no arguments, returns the currently
+        # registered axis binding tags. With a tag name, returns the event sequences bound to that tag. With a
+        # sequence, returns its binding script. With a command, creates or replaces the binding.
+        # tagName - axis name, axis class, or user-defined axis binding tag.
+        # sequence - Tk event sequence.
+        # command - Tcl script to execute for the binding.
+        # Returns: Binding tags, event sequences, or a binding script when querying; nothing when setting a binding.
+        # Synopsis:
+        # Synopsis: tagName
+        # Synopsis: tagName sequence
+        # Synopsis: tagName sequence command
+    }
+
+    proc cget {axisName option} {
+        # Returns the current value of an axis configuration option. See [axis options][Axis options] for the complete
+        # option reference.
+        # axisName - name of the axis.
+        # option - axis configuration option.
+        # Returns: Current value of `option`.
+    }
+
+    proc configure {args} {
+        # Queries or modifies axis configuration. When querying, normally one axis name is supplied. When setting
+        # options, multiple axis names may precede the option/value pairs and the same configuration is applied to
+        # each named axis. See [axis options][Axis options] for the complete option reference.
+        # axisName - name of an axis to query or configure.
+        # option - axis configuration option.
+        # value - new value for the option.
+        # Returns: Configuration information when querying; nothing when setting options.
+        # Synopsis: axisName
+        # Synopsis: axisName option
+        # Synopsis: axisName ?axisName ...? ?option value ...?
+    }
+
+    proc create {axisName args} {
+        # Creates a new virtual axis. The new axis is not displayed in a margin until it is assigned with a
+        # margin-axis `use` operation, although elements may be mapped to it while it remains virtual. Axis names must
+        # be unique within the graph and may not begin with `-`.
+        # axisName - name of the new axis.
+        # option - axis configuration option.
+        # value - initial value for the option.
+        # Returns: Name of the newly created axis.
+        # Synopsis: axisName ?option value ...?
+    }
+
+    proc delete {args} {
+        # Deletes one or more virtual axes. If an axis is still referenced by an element, physical destruction is
+        # deferred until the reference is released, but the deleted name immediately stops referring to that axis and
+        # may be reused for a newly created axis.
+        # axisName - name of an axis to delete.
+        # Returns: Nothing.
+        # Synopsis: ?axisName ...?
+    }
+
+    proc get {name} {
+        # Returns information about the axis currently selected by the graph binding machinery. `current` returns the
+        # axis name. `detail` returns `label`, `title`, or `line` depending on the part of the axis under the current
+        # binding position. If no axis is current, the result is empty.
+        # name - information to retrieve; must be `current` or `detail`.
+        # Returns: Current axis name, current axis detail, or an empty result.
+    }
+
+    proc invtransform {axisName value} {
+        # Converts an integer window coordinate to the corresponding graph value using the specified axis. The axis
+        # orientation and `-descending` setting are taken into account. Logarithmic axes return the corresponding
+        # positive data value.
+        # axisName - name of the axis used for the conversion.
+        # value - integer window coordinate.
+        # Returns: Corresponding graph-coordinate value.
+    }
+
+    proc limits {axisName} {
+        # Returns the effective displayed minimum and maximum of the specified axis. Automatic scaling, explicit
+        # limits, loose-range processing, and logarithmic mapping are reflected in the returned values. Logarithmic
+        # limits are returned as ordinary positive data values rather than base-10 exponents.
+        # axisName - name of the axis.
+        # Returns: Two-element list `min max`.
+    }
+
+    proc names {args} {
+        # Returns the names of existing axes. If one or more Tcl glob patterns are supplied, an axis is returned when
+        # its name matches any pattern. Axes pending deletion are not returned.
+        # pattern - optional Tcl glob pattern used to select axis names.
+        # Returns: List of matching axis names.
+        # Synopsis: ?pattern ...?
+    }
+
+    proc transform {axisName value} {
+        # Converts a graph value to an integer window coordinate using the specified axis. `value` is evaluated as a
+        # Tcl numeric expression and must be finite. Values transformed through a logarithmic axis must be positive.
+        # axisName - name of the axis used for the conversion.
+        # value - graph-coordinate value or Tcl numeric expression.
+        # Returns: Corresponding integer window coordinate.
+    }
+
+    proc view {axisName args} {
+        # Queries or changes the visible portion of an axis scrolling region. With no additional arguments, returns
+        # normalized `first last` fractions. `moveto` selects an absolute fraction. `scroll` moves by units or pages;
+        # a page is 90 percent of the current viewport. A single integer is accepted as a compatibility shorthand for
+        # scrolling that number of units.
+        # axisName - name of the axis.
+        # fraction - normalized position used by `moveto`.
+        # number - signed number of units or pages to scroll.
+        # what - scrolling unit; must be `units` or `pages`.
+        # Returns: Two-element list `first last` when querying; nothing when changing the view.
+        # Synopsis: axisName
+        # Synopsis: axisName moveto fraction
+        # Synopsis: axisName scroll number units
+        # Synopsis: axisName scroll number pages
+        # Synopsis: axisName number
+    }
+
+    namespace export *
+    namespace ensemble create
+}
+
+namespace eval ::rbc::MARGINAXIS {
+    variable _ruff_ns_opts {
+        -heading {Graph margin axis `MARGINAXIS` command}
+        -excludeprocs {.*}
+    }
+
+    variable _ruff_preamble {
+        Commands in this namespace document the logical margin-axis commands of graph, barchart, and stripchart
+        widgets.
+
+        `MARGINAXIS` is used below as a placeholder for any of:
+        ```tcl
+        GRAPHINST xaxis
+        GRAPHINST x2axis
+        GRAPHINST yaxis
+        GRAPHINST y2axis
+        ```
+
+        For example:
+        ```tcl
+        graph .g
+
+        .g xaxis configure -title "Time"
+        .g yaxis configure -title "Voltage"
+        ```
+
+        These commands operate on axes assigned to one of the graph's four logical axis positions.
+
+        ## Logical and physical margins
+        With the normal graph orientation, the logical axes correspond to the following physical margins:
+
+        | Command  | Physical margin |
+        |----------|-----------------|
+        | `xaxis`  | bottom          |
+        | `x2axis` | top             |
+        | `yaxis`  | left            |
+        | `y2axis` | right           |
+
+        When the graph is configured with `-invertxy yes`, the logical X and Y directions are exchanged and the
+        physical margins become:
+
+        | Command  | Physical margin with `-invertxy yes` |
+        |----------|--------------------------------------|
+        | `xaxis`  | left                                 |
+        | `x2axis` | right                                |
+        | `yaxis`  | bottom                               |
+        | `y2axis` | top                                  |
+
+        Application code can therefore continue to use `xaxis` and `yaxis` as logical X and Y interfaces regardless
+        of graph orientation.
+
+        ## Assigned axes
+        Each margin can contain one or more virtual axes. The `use` operation queries or changes the ordered list of
+        axes assigned to the margin.
+
+        For example:
+        ```tcl
+        .g axis create time
+        .g axis create phase
+
+        .g xaxis use {time phase}
+        ```
+
+        The order is significant. The first axis in the list is the primary axis for that margin and is the axis
+        addressed by the other `MARGINAXIS` operations such as `configure`, `cget`, `transform`, and `limits`.
+
+        Additional axes in the list are displayed farther away from the plotting area.
+
+        Querying `use` returns the complete ordered list:
+        ```tcl
+        .g xaxis use
+        # -> time phase
+        ```
+
+        Assigning an axis to a new margin removes it from its previous margin.
+
+        An axis assigned through `xaxis` or `x2axis` must be an X-type axis. An axis assigned through `yaxis` or
+        `y2axis` must be a Y-type axis. A previously untyped virtual axis acquires the required type when it is
+        assigned.
+
+        An empty list removes all axes from the margin:
+        ```tcl
+        .g x2axis use {}
+        ```
+
+        ## Axis configuration
+        Margin axes use exactly the same axis configuration options as virtual axes.
+
+        See [AXIS] for the complete axis option reference and for detailed descriptions of axis ranges, logarithmic
+        scaling, ticks, labels, scrolling, bindings, and automatic range handling.
+
+        For example:
+        ```tcl
+        .g xaxis configure -title {Frequency (Hz)} -logscale yes -min 1 -max 1e9
+        ```
+
+        This is equivalent to configuring the first virtual axis currently assigned to the logical X-axis margin.
+
+        ## Coordinate conversion
+        `transform` and `invtransform` use the first axis assigned to the margin.
+
+        `transform` converts a graph-coordinate value to the corresponding window coordinate:
+        ```tcl
+        set pixel [.g xaxis transform 10.0]
+        ```
+
+        `invtransform` performs the reverse operation:
+        ```tcl
+        set value [.g xaxis invtransform $pixel]
+        ```
+
+        The axis orientation, `-descending` setting, logarithmic mapping, and graph `-invertxy` setting are handled
+        automatically.
+    }
+
+    proc bind {args} {
+        # Queries or modifies event bindings for the first axis assigned to this margin. With no arguments, returns
+        # the event sequences currently bound to the axis. With a sequence, returns the corresponding binding script.
+        # With both a sequence and command, creates or replaces the binding.
+        # sequence - Tk event sequence.
+        # command - Tcl script to execute for the binding.
+        # Returns: Event sequences or a binding script when querying; nothing when setting a binding.
+        # Synopsis:
+        # Synopsis: sequence
+        # Synopsis: sequence command
+    }
+
+    proc cget {option} {
+        # Returns the current value of a configuration option for the first axis assigned to this margin. See [AXIS]
+        # for the complete axis option reference.
+        # option - axis configuration option.
+        # Returns: Current value of `option`.
+    }
+
+    proc configure {args} {
+        # Queries or modifies configuration options of the first axis assigned to this margin. With no arguments,
+        # returns configuration information for all axis options. With one option, returns configuration information
+        # for that option. With option/value pairs, changes the specified options. See [AXIS] for the complete axis
+        # option reference.
+        # option - axis configuration option.
+        # value - new value for the option.
+        # Returns: Configuration information when querying; nothing when setting options.
+        # Synopsis:
+        # Synopsis: option
+        # Synopsis: ?option value ...?
+    }
+
+    proc invtransform {value} {
+        # Converts an integer window coordinate to the corresponding graph-coordinate value using the first axis
+        # assigned to this margin. Axis orientation, descending direction, and logarithmic mapping are taken into
+        # account.
+        # value - integer window coordinate.
+        # Returns: Corresponding graph-coordinate value.
+    }
+
+    proc limits {} {
+        # Returns the effective displayed limits of the first axis assigned to this margin. Automatic scaling,
+        # explicit limits, loose-range processing, and logarithmic mapping are reflected in the result. Logarithmic
+        # limits are returned as ordinary positive data values rather than base-10 exponents.
+        # Returns: Two-element list `min max`.
+    }
+
+    proc transform {value} {
+        # Converts a graph-coordinate value to an integer window coordinate using the first axis assigned to this
+        # margin. `value` may be a Tcl numeric expression and must evaluate to a finite value. Values transformed
+        # through a logarithmic axis must be positive.
+        # value - graph-coordinate value or Tcl numeric expression.
+        # Returns: Corresponding integer window coordinate.
+    }
+
+    proc use {args} {
+        # Queries or changes the ordered list of virtual axes assigned to this margin. With no argument, returns all
+        # currently assigned axis names. With `axisList`, replaces the current assignment with the supplied list.
+        # The first axis becomes the primary axis addressed by the other `MARGINAXIS` operations. Assigning an axis
+        # that is already displayed in another margin moves it to this margin. An empty list removes all axes.
+        # axisList - Tcl list containing zero or more virtual axis names.
+        # Returns: Ordered list of assigned axis names when querying; nothing when changing the assignment.
+        # Synopsis:
+        # Synopsis: axisList
+    }
+
+    namespace export *
+    namespace ensemble create
+}
+
+namespace eval ::rbc::ELEMENT {
+    variable _ruff_ns_opts {
+        -heading {Graph element `ELEMENT` command}
+        -excludeprocs {.*}
+    }
+
+    variable _ruff_preamble {
+        Commands in this namespace document operations on graph elements.
+
+        `ELEMENT` is used below as a placeholder for any of:
+
+        ```tcl
+        GRAPHINST element
+        GRAPHINST line
+        GRAPHINST bar
+        ```
+
+        The `element` form uses the default element type of the graph widget:
+
+        | Widget       | Default element type |
+        |--------------|----------------------|
+        | `graph`      | line                 |
+        | `barchart`   | bar                  |
+        | `stripchart` | strip                |
+
+        The `line` and `bar` forms explicitly select the type when creating a new element:
+        ```tcl
+        .g line create voltage
+        .g bar create histogram
+        ```
+
+        All element types share the operations documented on this page. Configuration options depend on the concrete
+        element type and are documented separately for line, strip, and bar elements.
+
+        ## Element names
+        Every element has a name that is unique within its graph widget.
+        ```tcl
+        .g element create signal1
+        ```
+
+        Element names may not begin with `-`.
+
+        `ELEMENT create` returns the name of the newly created element.
+
+        ## Element data and axes
+        Elements contain X and Y data and are mapped through an X axis and a Y axis. The concrete element option
+        reference describes the available ways to supply data, select axes, configure pens, error bars, labels, and
+        other type-specific attributes.
+
+        Element data may be supplied directly as Tcl lists or through Rbc vectors. When an element refers to an Rbc
+        vector, changes to that vector cause the graph to update automatically.
+
+        ## Display list
+        Graph elements have an explicit display list. The display list determines which elements are visible and the
+        order in which they are drawn.
+
+        `ELEMENT show` queries or replaces this list:
+        ```tcl
+        .g element show
+        ```
+
+        To display only selected elements:
+        ```tcl
+        .g element show {signal1 signal2}
+        ```
+
+        Elements not present in the supplied list are hidden. An empty list hides all elements:
+        ```tcl
+        .g element show {}
+        ```
+
+        The order of the supplied list is the drawing order. Elements later in the list are drawn above elements
+        earlier in the list.
+
+        Unknown element names in a list supplied to `show` are ignored.
+
+        The element `-hide` option and display-list membership are kept synchronized. Configuring an element as hidden
+        removes it from the display list; making it visible adds it back to the display list.
+
+        ## Active elements and points
+        Elements and individual data points may be marked active. Active items are normally drawn using the element's
+        active pen.
+
+        With no arguments, `ELEMENT activate` returns the names of all currently active elements:
+        ```tcl
+        set active [.g element activate]
+        ```
+
+        Supplying only an element name activates the complete element:
+        ```tcl
+        .g element activate signal1
+        ```
+
+        Supplying one or more indices activates only those data points:
+        ```tcl
+        .g element activate signal1 2 5 8
+        ```
+
+        Each activation replaces the previous active-point selection for that element.
+
+        The special index `end` selects the final data point. Other indices may be Tcl integer expressions.
+        ```tcl
+        .g element activate signal1 end
+        ```
+
+        `ELEMENT deactivate` clears the active state of the named elements.
+
+        ## Element bindings
+        Elements participate in the graph binding system.
+
+        Each element contributes the following binding tags:
+
+        * its element name;
+        * its element class, such as `LineElement`, `BarElement`, or `StripElement`;
+        * any additional tags configured with the element's `-bindtags` option.
+
+        A binding may therefore apply to one specific element:
+        ```tcl
+        .g element bind signal1 <ButtonPress-1> {
+            puts "signal1 selected"
+        }
+        ```
+
+        or to an element class:
+        ```tcl
+        .g element bind LineElement <Enter> {
+            puts "pointer entered a line element"
+        }
+        ```
+
+        User-defined `-bindtags` can be used to bind several unrelated elements to the same behavior.
+
+        `ELEMENT get current` returns the element currently selected by this binding machinery.
+
+        ## Finding the closest element
+        `ELEMENT closest` finds the visible element or data point nearest to a window coordinate.
+
+        For example:
+        ```tcl
+        if {[.g element closest $x $y info]} {
+            puts "element = $info(name)"
+            puts "index   = $info(index)"
+            puts "x       = $info(x)"
+            puts "y       = $info(y)"
+            puts "distance = $info(dist)"
+        }
+        ```
+
+        The command returns `1` if a result is found within the search halo and `0` otherwise.
+
+        On success, the named Tcl array receives:
+
+        | Array element | Description                                                               |
+        |---------------|---------------------------------------------------------------------------|
+        | `name`        | Name of the closest element.                                              |
+        | `index`       | Source data index associated with the result.                             |
+        | `x`           | X coordinate of the result in graph coordinates.                          |
+        | `y`           | Y coordinate of the result in graph coordinates.                          |
+        | `dist`        | Distance from the requested window coordinate, measured in screen pixels. |
+
+        If no match is found, `name` is set to an empty value. Other array elements should only be used when the
+        command returns `1`.
+
+        The default search halo is the graph's `-halo` value.
+
+        `closest` accepts the following options:
+
+        | Option                 | Description                                                                                                       |
+        |------------------------|-------------------------------------------------------------------------------------------------------------------|
+        | `-halo distance`       | Sets the maximum non-negative screen distance for this search.                                                    |
+        | `-along direction`     | Measures distance along `x`, `y`, or `both`. The default is `both`.                                               |
+        | `-interpolate boolean` | For line and strip elements, searches along the rendered trace when true instead of considering only data points. |
+
+        With `-interpolate false`, line and strip searches return actual source data coordinates.
+
+        With `-interpolate true`, the closest position may lie between source points. In that case `x` and `y` contain
+        the interpolated graph coordinates of the closest point on the rendered trace, while `index` identifies the
+        associated source segment.
+
+        The `-along` and `-interpolate` options affect line and strip element searches. Bar elements are searched
+        against their rendered rectangles.
+
+        By default all visible elements are searched. One or more element names may be supplied after the options to
+        restrict the search:
+        ```tcl
+        .g element closest $x $y info -halo 10 -interpolate yes signal1 signal2
+        ```
+
+        `--` may be used to terminate option processing explicitly.
+
+        ## Element types
+        `ELEMENT type` reports the concrete class of an existing element. The current element classes are:
+
+        | Result         | Element type       |
+        |----------------|--------------------|
+        | `LineElement`  | line element       |
+        | `BarElement`   | bar element        |
+        | `StripElement` | stripchart element |
+
+        For example:
+        ```tcl
+        puts [.g element type signal1]
+        # -> LineElement
+
+        Configuration options are specific to the concrete element type:
+
+        * [LINEELEMENT] - line elements;
+        * [STRIPELEMENT] - strip elements;
+        * [BARELEMENT] - bar elements.
+        ```
+    }
+
+    proc activate {args} {
+        # Queries or changes the active state of graph elements. With no arguments, returns the names of all active
+        # elements. With an element name and no indices, activates the complete element. With one or more indices,
+        # activates only those data points and replaces the element's previous active-index selection.
+        # elemName - name of the element to activate.
+        # index - data index to activate; may be `end` or a Tcl integer expression.
+        # Returns: List of active element names when querying; nothing when changing activation.
+        # Synopsis:
+        # Synopsis: elemName ?index ...?
+    }
+
+    proc bind {args} {
+        # Queries or modifies event bindings for element binding tags. With no arguments, returns the currently known
+        # element binding tags. With a tag name, returns the event sequences bound to that tag. With a tag and
+        # sequence, returns the corresponding binding script. With a command, creates or replaces the binding.
+        # tagName - element name, element class, or user-defined binding tag.
+        # sequence - Tk event sequence.
+        # command - Tcl script to execute for the binding.
+        # Returns: Binding tags, event sequences, or a binding script when querying; nothing when setting a binding.
+        # Synopsis:
+        # Synopsis: tagName
+        # Synopsis: tagName sequence
+        # Synopsis: tagName sequence command
+    }
+
+    proc cget {elemName option} {
+        # Returns the current value of an element configuration option. The available options depend on the concrete
+        # element type.
+        # elemName - name of the element.
+        # option - element configuration option.
+        #
+        # See [LINEELEMENT] for line-element options, [STRIPELEMENT] for strip-element options, and [BARELEMENT] for
+        # bar-element options.
+        # Returns: Current value of `option`.
+    }
+
+    proc closest {x y varName args} {
+        # Finds the visible element nearest to the specified window coordinate. On success, stores information in the
+        # Tcl array `varName` using the keys `name`, `index`, `x`, `y`, and `dist`. Searches all visible elements
+        # unless one or more element names are supplied after the options.
+        # x - X coordinate in window coordinates.
+        # y - Y coordinate in window coordinates.
+        # varName - name of the Tcl array in which result information is stored.
+        # -along direction - measure distance along `x`, `y`, or `both`; the default is `both`.
+        # -halo distance - maximum non-negative search distance in screen pixels; the graph `-halo` value is the
+        #   default.
+        # -interpolate boolean - for line and strip elements, search along rendered traces instead of only data points.
+        # elemName - optional element name restricting the search.
+        # Returns: `1` if an element is found within the halo, otherwise `0`.
+        # Synopsis: x y varName ?option value ...? ?--? ?elemName ...?
+    }
+
+    proc configure {args} {
+        # Queries or modifies element configuration. When querying, one element name is supplied. When setting options,
+        # multiple element names may precede the option/value pairs and the same configuration is applied to each named
+        # element.
+        # elemName - name of an element to query or configure.
+        # option - element configuration option.
+        # value - new value for the option.
+        #
+        # Available options depend on the concrete element type. See [LINEELEMENT] for line-element options,
+        # [STRIPELEMENT] for strip-element options, and [BARELEMENT] for bar-element options.
+        # Returns: Configuration information when querying; nothing when setting options.
+        # Synopsis: elemName
+        # Synopsis: elemName option
+        # Synopsis: elemName ?elemName ...? ?option value ...?
+    }
+
+    proc create {elemName args} {
+        # Creates a new graph element. `GRAPHINST element create` uses the widget's default element type:
+        # * `graph` creates a line element;
+        # * `barchart` creates a bar element;
+        # * `stripchart` creates a strip element.
+        # `GRAPHINST line create` always creates a line element and `GRAPHINST bar create` always creates a bar element,
+        # regardless of the widget's default element type.
+        # elemName - name of the new element.
+        # option - element configuration option.
+        # value - initial value for the option.
+        #
+        # See [LINEELEMENT] for line-element options, [STRIPELEMENT] for strip-element options, and [BARELEMENT] for
+        # bar-element options.
+        # Returns: Name of the newly created element.
+        # Synopsis: elemName ?option value ...?
+    }
+
+    proc deactivate {args} {
+        # Clears the active state and any active-point selection for one or more elements.
+        # elemName - name of an element to deactivate.
+        # Returns: Nothing.
+        # Synopsis: ?elemName ...?
+    }
+
+    proc delete {args} {
+        # Deletes one or more elements and releases their associated resources, bindings, legend entries, vector
+        # references, and display-list entries.
+        # elemName - name of an element to delete.
+        # Returns: Nothing.
+        # Synopsis: ?elemName ...?
+    }
+
+    proc exists {elemName} {
+        # Tests whether an element with the specified name exists in the graph.
+        # elemName - element name to test.
+        # Returns: Boolean value.
+    }
+
+    proc get {name} {
+        # Returns the element currently selected by the graph binding machinery. The only supported selector is
+        # `current`. If there is no current element, the result is empty.
+        # name - information to retrieve; must currently be `current`.
+        # Returns: Current element name or an empty result.
+    }
+
+    proc names {args} {
+        # Returns the names of existing graph elements. With no patterns, all element names are returned. With one or
+        # more Tcl glob patterns, an element is returned if its name matches any pattern.
+        # pattern - optional Tcl glob pattern used to select element names.
+        # Returns: List of matching element names.
+        # Synopsis: ?pattern ...?
+    }
+
+    proc show {args} {
+        # Queries or replaces the element display list. With no argument, returns the currently displayed elements in
+        # drawing order. With `elemList`, displays only the listed elements and hides all others. The list order
+        # determines drawing order; later elements are drawn above earlier elements. Unknown element names are
+        # ignored. An empty list hides all elements.
+        # elemList - optional Tcl list of element names to display.
+        # Returns: Current element display list.
+        # Synopsis:
+        # Synopsis: elemList
+    }
+
+    proc type {elemName} {
+        # Returns the concrete class of the named element. Current results are `LineElement`, `BarElement`, and
+        # `StripElement`.
+        # elemName - name of the element.
+        # Returns: Element class name.
+    }
+
+    namespace export *
+    namespace ensemble create
+}
+
+namespace eval ::rbc::LINEELEMENT {
+    variable _ruff_ns_opts {
+        -heading {Line element `LINEELEMENT` options}
+        -excludeprocs {.*}
+    }
+
+    variable _ruff_preamble {
+        This page documents the configuration and behavior of line elements.
+
+        `LINEELEMENT` denotes an element whose concrete type is `LineElement`. A line element may be created through
+        the default `element` interface of a graph widget:
+        ```tcl
+        graph .g
+        .g element create signal
+        ```
+
+        or explicitly with:
+        ```tcl
+        .g line create signal
+        ```
+
+        The common element operations such as `create`, `configure`, `activate`, `closest`, `bind`, and `delete` are
+        documented in [ELEMENT].
+
+        ## Data
+        X and Y coordinates may be supplied separately with `-x` and `-y`:
+        ```tcl
+        .g element create signal \
+            -x {0 1 2 3 4} \
+            -y {1 4 2 5 3}
+        ```
+
+        `-xdata` and `-ydata` are synonyms for `-x` and `-y`.
+
+        Each value may be a Tcl numeric expression. The option may also name an existing Rbc vector:
+        ```tcl
+        vector create time voltage
+
+        time set    {0 1 2 3 4}
+        voltage set {1 4 2 5 3}
+
+        .g element create signal -x time -y voltage
+        ```
+
+        When an Rbc vector is used, changes to the vector automatically invalidate and update the graph element.
+
+        The number of usable data points is the smaller of the X and Y vector lengths.
+
+        As an alternative, `-data` accepts one even-length list containing alternating X and Y coordinates:
+        ```tcl
+        .g element create signal -data {0 1 1 4 2 2 3 5 4 3}
+        ```
+
+        This is equivalent to:
+        ```tcl
+        -x {0 1 2 3 4} -y {1 4 2 5 3}
+        ```
+
+        When `-data`, `-x`, and `-y` occur in the same configuration command, they are processed from left to right;
+        the last option affecting a coordinate wins.
+
+        Configuring `-x` or `-y` separately invalidates the retained paired `-data` representation. Configuring
+        `-data` later restores a coherent paired representation.
+
+        Non-finite X or Y values are not drawn. They create a discontinuity in the trace rather than causing the
+        points on either side to be connected.
+
+        The same applies to values outside the domain of a logarithmic axis. In particular, non-positive values on
+        a logarithmic X or Y axis form breaks in the line.
+
+        ## Axis mapping
+        `-mapx` and `-mapy` select the virtual axes used to map the element. Their defaults are `x` and `y`.
+
+        ```tcl
+        .g axis create y2data
+        .g y2axis use y2data
+
+        .g element create signal -x time -y voltage -mapy y2data
+        ```
+
+        The selected axes must have the appropriate X or Y orientation.
+
+        ## Line drawing
+        The element contains a built-in normal line pen. The following options configure that built-in pen directly:
+
+        | Option             | Description                                                                                                                                     |
+        |--------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+        | `-color color`     | Sets the trace color. The default is navy blue.                                                                                                 |
+        | `-linewidth width` | Sets the non-negative trace width. A value of `0` suppresses the connecting line while symbols may still be displayed. The default is `1`.      |
+        | `-dashes dashes`   | Specifies the dash pattern for the trace. An empty value draws a solid line.                                                                    |
+        | `-offdash color`   | Specifies the color used for the gaps of a dashed line. An empty value leaves dash gaps transparent. `defcolor` selects the normal trace color. |
+
+        A separately created line pen may replace the built-in normal pen with `-pen`:
+        ```tcl
+        .g pen create traces -type line -color red -linewidth 2
+        .g element configure signal -pen traces
+        ```
+
+        An empty `-pen` value selects the element's built-in pen again.
+
+        `-activepen` selects the pen used when the element or individual points are active. Its default is
+        `activeLine`. An empty value disables the separate active pen.
+
+        ## Smoothing
+        `-smooth` controls how consecutive valid data points are connected.
+
+        | Value       | Description                                                                                           |
+        |-------------|-------------------------------------------------------------------------------------------------------|
+        | `linear`    | Connects points with ordinary straight line segments. This is the default.                            |
+        | `step`      | Uses step-and-hold interpolation: data X changes first while data Y remains constant, then Y changes. |
+        | `natural`   | Uses natural cubic spline interpolation in mapped screen coordinates.                                 |
+        | `cubic`     | Synonym for `natural`.                                                                                |
+        | `quadratic` | Uses the shape-preserving quadratic spline in mapped screen coordinates.                              |
+        | `catrom`    | Uses a Catmull-Rom parametric spline.                                                                 |
+
+        For example:
+        ```tcl
+        .g element configure signal -smooth natural
+        ```
+
+        Spline smoothing operates on mapped screen coordinates. This means it follows the actual displayed geometry,
+        including descending axes, inverted graphs, and logarithmic mapping.
+
+        Natural, quadratic, and Catmull-Rom smoothing require at least three mapped points.
+
+        Spline smoothing is not performed across missing or invalid data. If the mapped data contain a discontinuity,
+        the current implementation falls back to ordinary linear segments for the element rather than constructing
+        separate splines for each continuous run.
+
+        Step smoothing preserves discontinuities and never manufactures a step across a missing-data boundary.
+
+        ## Trace direction
+        `-trace` determines whether connecting segments are drawn when X values change direction.
+
+        | Value        | Description                                                                          |
+        |--------------|--------------------------------------------------------------------------------------|
+        | `both`       | Connects points regardless of whether X increases or decreases. This is the default. |
+        | `increasing` | Draws only portions whose X coordinates proceed in the increasing direction.         |
+        | `decreasing` | Draws only portions whose X coordinates proceed in the decreasing direction.         |
+
+        The option is useful for datasets that retrace their X coordinates and where only one sweep direction should
+        be displayed.
+
+        ## Point reduction
+        `-reduce` enables screen-space simplification of the mapped line.
+
+        A positive value specifies the reduction tolerance. A value less than or equal to zero disables reduction;
+        the default is `0.0`.
+
+        ```tcl
+        .g element configure signal -reduce 1.0
+        ```
+
+        Reduction is performed separately for every continuous data run, so it does not reconnect traces across
+        missing values.
+
+        Reduction affects rendered geometry only; it does not modify the element's source data.
+
+        ## Symbols
+        Symbols may be drawn at element data points using `-symbol`.
+
+        The built-in symbol names are:
+        ```text
+        none
+        circle
+        square
+        diamond
+        plus
+        cross
+        splus
+        scross
+        triangle
+        arrow
+        ```
+
+        The default is `circle`. An empty value is equivalent to `none`.
+
+        A Tk bitmap may also be used as a symbol. The value is a one- or two-element list:
+        ```tcl
+        -symbol bitmap
+        -symbol {bitmap mask}
+        ```
+
+        where `bitmap` and optional `mask` are names understood by Tk's bitmap machinery.
+
+        Symbol appearance is controlled by:
+
+        | Option                  | Description                                                                                             |
+        |-------------------------|---------------------------------------------------------------------------------------------------------|
+        | `-pixels size`          | Sets the requested symbol size. The default is `0.125i`.                                                |
+        | `-fill color`           | Sets the symbol fill color. `defcolor` uses the trace color. An empty value leaves the symbol unfilled. |
+        | `-outline color`        | Sets the symbol outline color. `defcolor` uses the trace color.                                         |
+        | `-outlinewidth width`   | Sets the non-negative symbol outline width. The default is `1`.                                         |
+        | `-scalesymbols boolean` | Controls whether symbol sizes change as the graph axis ranges change. The default is `yes`.             |
+        | `-maxsymbols number`    | Reduces the density of displayed symbols. `0` displays symbols at all eligible points.                  |
+
+        `-maxsymbols` is a display-density control rather than a modification of the source data. When positive, Rbc
+        computes an interval and draws approximately the requested number of symbols across the visible element.
+
+        ## Error bars
+        Error-bar data may be specified in either symmetric or asymmetric form.
+
+        Symmetric X errors use:
+        ```tcl
+        -xerror values
+        ```
+
+        and produce limits:
+        ```text
+        x - error
+        x + error
+        ```
+
+        Symmetric Y errors similarly use:
+        ```tcl
+        -yerror values
+        ```
+
+        Asymmetric or absolute limits may instead be supplied using:
+        ```text
+        -xlow
+        -xhigh
+        -ylow
+        -yhigh
+        ```
+
+        When `-xerror` contains values it takes precedence over `-xlow` and `-xhigh`. Likewise, `-yerror` takes
+        precedence over `-ylow` and `-yhigh`.
+
+        Error vectors may be Tcl lists or Rbc vector names, in the same way as X and Y data.
+
+        The drawing style is controlled by:
+
+        | Option                 | Description                                                     |
+        |------------------------|-----------------------------------------------------------------|
+        | `-showerrorbars value` | Selects which error bars are displayed. The default is `both`.  |
+        | `-errorbarcolor color` | Sets the error-bar color. `defcolor` uses the trace color.      |
+        | `-errorbarwidth width` | Sets the non-negative error-bar line width. The default is `1`. |
+        | `-errorbarcap width`   | Sets the requested non-negative cap width. The default is `1`.  |
+
+        ## Value labels
+        Data values may be displayed next to symbols with `-showvalues`.
+
+        The value may select X values, Y values, both coordinates, or no values. The default is `no`.
+
+        When both coordinates are requested, the formatted X and Y values are displayed together.
+
+        Value-label appearance is controlled by:
+
+        | Option                | Description                                                                          |
+        |-----------------------|--------------------------------------------------------------------------------------|
+        | `-valueanchor anchor` | Specifies the Tk anchor of the label relative to the data point. The default is `s`. |
+        | `-valuecolor color`   | Sets the label color. The default is black.                                          |
+        | `-valuefont font`     | Sets the label font.                                                                 |
+        | `-valueformat format` | Sets the printf-style floating-point format. The default is `%g`.                    |
+        | `-valuerotate angle`  | Rotates the label by the specified angle in degrees. The default is `0.0`.           |
+        | `-valueshadow shadow` | Specifies an optional text shadow. An empty value disables the shadow.               |
+
+        `-valueformat` is validated before it is accepted. It may contain at most one floating-point conversion,
+        using `a`, `A`, `e`, `E`, `f`, `F`, `g`, or `G`. Dynamic width or precision using `*` is not permitted.
+
+        ## Pens, weights, and styles
+        `-weights` associates one numeric weight with each data point. The value may be a Tcl list or the name of an
+        Rbc vector.
+
+        `-styles` maps ranges of those weights to named line pens.
+
+        Each entry in the `-styles` list has one of two forms:
+        ```text
+        penName
+        penName min max
+        ```
+
+        For example:
+        ```tcl
+        .g pen create low  -type line -color blue
+        .g pen create high -type line -color red
+
+        .g element configure signal -weights {0.2 0.4 1.2 1.8} -styles {{low 0 1} {high 1 2}}
+        ```
+
+        A style without explicit limits receives the legacy default range based on its position in the style list:
+        the first style covers 0 through 1, the second 1 through 2, and so on.
+
+        Points whose weights do not match a configured style use the element's normal pen.
+
+        Later style entries take precedence when weight ranges overlap.
+
+        The selected pen controls the drawing attributes associated with the mapped points, including symbols,
+        traces, and error bars.
+
+        ## Area under the line
+        Line elements, unlike strip elements, may fill the area beneath the rendered trace.
+
+        Area filling is enabled by either `-areapattern` or `-areatile`.
+
+        `-areapattern` accepts:
+        * an empty value to disable the pattern;
+        * `solid` for a solid fill;
+        * the name of a Tk bitmap to use as a stipple.
+
+        The stipple colors are controlled by `-areaforeground` and `-areabackground`.
+
+        For example:
+        ```tcl
+        .g element configure signal -areapattern solid -areaforeground lightblue
+        ```
+
+        `-areatile` specifies an Rbc tile/image used to fill the area. An empty value disables the tile.
+
+        The fill polygon follows the mapped line and is closed against the bottom of the plotting area.
+
+        Area filling uses the geometry after smoothing and point reduction.
+
+        The current implementation stores one fill polygon per line element. Consequently, if the mapped line
+        contains a discontinuity, area filling is suppressed rather than incorrectly filling across separate data
+        runs.
+
+        ## Line element options
+        The complete line-element option set is:
+
+        | Option                  | Description                                                                                                                                   |
+        |-------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+        | `-activepen penName`    | Selects the line pen used for active elements or active points. The default is `activeLine`; an empty value disables the separate active pen. |
+        | `-areabackground color` | Sets the background color used by an area stipple. The default is white.                                                                      |
+        | `-areaforeground color` | Sets the foreground color used by an area fill or stipple. The default is black.                                                              |
+        | `-areapattern pattern`  | Enables area filling with `solid` or a Tk bitmap stipple. An empty value disables the pattern.                                                |
+        | `-areatile tile`        | Enables area filling with the named Rbc tile/image. An empty value disables the tile.                                                         |
+        | `-bindtags tags`        | Specifies additional graph binding tags for the element. The default is `all`.                                                                |
+        | `-color color`          | Sets the built-in normal pen's trace color.                                                                                                   |
+        | `-dashes dashes`        | Sets the built-in normal pen's trace dash pattern. An empty value selects a solid line.                                                       |
+        | `-data data`            | Supplies an even-length list of alternating X and Y values.                                                                                   |
+        | `-errorbarcap width`    | Sets the error-bar cap width. The default is `1`.                                                                                             |
+        | `-errorbarcolor color`  | Sets the error-bar color. `defcolor` uses the trace color.                                                                                    |
+        | `-errorbarwidth width`  | Sets the error-bar line width. The default is `1`.                                                                                            |
+        | `-fill color`           | Sets the symbol fill color. `defcolor` uses the trace color; an empty value leaves symbols unfilled.                                          |
+        | `-hide boolean`         | Controls whether the element is displayed. The default is `no`.                                                                               |
+        | `-label text`           | Sets the element label used by the legend. The initial label is the element name.                                                             |
+        | `-labelrelief relief`   | Sets the relief used for the element's legend label. The default is `flat`.                                                                   |
+        | `-linewidth width`      | Sets the built-in normal pen's trace width. The default is `1`; `0` suppresses the trace.                                                     |
+        | `-mapx axisName`        | Selects the X axis used to map the element. The default is `x`.                                                                               |
+        | `-mapy axisName`        | Selects the Y axis used to map the element. The default is `y`.                                                                               |
+        | `-maxsymbols number`    | Controls symbol display density. `0` displays all eligible symbols.                                                                           |
+        | `-offdash color`        | Sets the color of gaps in dashed traces. An empty value leaves the gaps transparent.                                                          |
+        | `-outline color`        | Sets the symbol outline color. `defcolor` uses the trace color.                                                                               |
+        | `-outlinewidth width`   | Sets the symbol outline width. The default is `1`.                                                                                            |
+        | `-pen penName`          | Selects a named line pen as the normal pen. An empty value selects the built-in pen.                                                          |
+        | `-pixels size`          | Sets the requested symbol size. The default is `0.125i`.                                                                                      |
+        | `-reduce tolerance`     | Sets the screen-space line simplification tolerance. A non-positive value disables reduction.                                                 |
+        | `-scalesymbols boolean` | Controls automatic symbol-size scaling as axis ranges change. The default is `yes`.                                                           |
+        | `-showerrorbars value`  | Selects the X and/or Y error bars to draw. The default is `both`.                                                                             |
+        | `-showvalues value`     | Selects which coordinate values are displayed next to data points. The default is `no`.                                                       |
+        | `-smooth mode`          | Selects `linear`, `step`, `natural`, `cubic`, `quadratic`, or `catrom` line smoothing.                                                        |
+        | `-state state`          | Sets the element state. The default is `normal`.                                                                                              |
+        | `-styles styles`        | Maps weight ranges to named line pens.                                                                                                        |
+        | `-symbol symbol`        | Selects the point symbol. The default is `circle`.                                                                                            |
+        | `-trace direction`      | Selects `increasing`, `decreasing`, or `both` X-direction trace behavior. The default is `both`.                                              |
+        | `-valueanchor anchor`   | Sets the anchor of data-value labels. The default is `s`.                                                                                     |
+        | `-valuecolor color`     | Sets the data-value label color.                                                                                                              |
+        | `-valuefont font`       | Sets the data-value label font.                                                                                                               |
+        | `-valueformat format`   | Sets the validated floating-point format used for data-value labels. The default is `%g`.                                                     |
+        | `-valuerotate angle`    | Sets the rotation angle of data-value labels. The default is `0.0`.                                                                           |
+        | `-valueshadow shadow`   | Sets the optional shadow for data-value labels.                                                                                               |
+        | `-weights values`       | Supplies per-point weights used by `-styles`.                                                                                                 |
+        | `-x values`             | Supplies X coordinates as a list or Rbc vector.                                                                                               |
+        | `-xdata values`         | Synonym for `-x`.                                                                                                                             |
+        | `-xerror values`        | Supplies symmetric X error magnitudes.                                                                                                        |
+        | `-xhigh values`         | Supplies absolute upper X error-bar coordinates.                                                                                              |
+        | `-xlow values`          | Supplies absolute lower X error-bar coordinates.                                                                                              |
+        | `-y values`             | Supplies Y coordinates as a list or Rbc vector.                                                                                               |
+        | `-ydata values`         | Synonym for `-y`.                                                                                                                             |
+        | `-yerror values`        | Supplies symmetric Y error magnitudes.                                                                                                        |
+        | `-yhigh values`         | Supplies absolute upper Y error-bar coordinates.                                                                                              |
+        | `-ylow values`          | Supplies absolute lower Y error-bar coordinates.                                                                                              |
+    }
+}
+
+namespace eval ::rbc::STRIPELEMENT {
+    variable _ruff_ns_opts {
+        -heading {Strip element `STRIPELEMENT` options}
+        -excludeprocs {.*}
+    }
+
+    variable _ruff_preamble {
+        This page documents the configuration and behavior of strip elements.
+
+        `STRIPELEMENT` denotes an element whose concrete type is `StripElement`. Strip elements are the default
+        element type of a `stripchart` widget:
+
+        ```tcl
+        stripchart .s
+        .s element create signal
+        ```
+
+        The common element operations such as `create`, `configure`, `activate`, `closest`, `bind`, and `delete` are
+        documented in [ELEMENT].
+
+        Strip elements use the same underlying line-rendering machinery as line elements. Their data handling, axis
+        mapping, pens, smoothing, symbols, error bars, value labels, weights, and styles therefore have the same
+        semantics as described in [LINEELEMENT].
+
+        ## Differences from line elements
+        A strip element exposes a restricted line-element option set intended for stripchart use.
+
+        In particular, the following `LINEELEMENT` options are not available for strip elements:
+
+        | Option            | Line-element feature                                  |
+        |-------------------|-------------------------------------------------------|
+        | `-areabackground` | area-fill stipple background                          |
+        | `-areaforeground` | area-fill foreground                                  |
+        | `-areapattern`    | area filling with a solid or stipple pattern          |
+        | `-areatile`       | tiled area filling                                    |
+        | `-reduce`         | screen-space trace reduction                          |
+        | `-state`          | line-element state option                             |
+        | `-trace`          | filtering of increasing/decreasing X trace directions |
+
+        All other options listed below use the same interpretation as the corresponding option on [LINEELEMENT].
+
+        ## Data
+        Strip-element coordinates may be supplied with:
+        ```text
+        -x
+        -y
+        -xdata
+        -ydata
+        -data
+        ```
+
+        For example:
+        ```tcl
+        .s element create signal -x {0 1 2 3 4} -y {1 4 2 5 3}
+        ```
+
+        Rbc vector names may be used instead of literal coordinate lists:
+        ```tcl
+        vector create time voltage
+
+        time set    {0 1 2 3 4}
+        voltage set {1 4 2 5 3}
+
+        .s element create signal -x time -y voltage
+        ```
+
+        The same transactional and left-to-right data-option semantics described for [LINEELEMENT] apply.
+
+        Non-finite data values and values outside the domain of a logarithmic axis form discontinuities in the
+        rendered trace. Points on opposite sides of such a discontinuity are not connected.
+
+        ## Smoothing
+        Strip elements support the same smoothing modes as line elements:
+        ```text
+        linear
+        step
+        natural
+        cubic
+        quadratic
+        catrom
+        ```
+
+        `linear` is the default.
+
+        Spline smoothing operates in mapped screen coordinates. Natural, quadratic, and Catmull-Rom smoothing require
+        at least three mapped points.
+
+        As with line elements, spline smoothing is not allowed to bridge a discontinuity. If a discontinuity is
+        present, the current implementation falls back to ordinary linear trace segments instead of constructing
+        independent splines for each continuous run.
+
+        ## Pens and symbols
+        Strip elements use line pens.
+
+        The built-in normal pen can be configured directly with options such as:
+        ```text
+        -color
+        -linewidth
+        -dashes
+        -offdash
+        -fill
+        -outline
+        -outlinewidth
+        -pixels
+        -symbol
+        ```
+
+        A separately created line pen may be selected with `-pen`:
+        ```tcl
+        .s pen create tracePen -type line -color blue -linewidth 2
+        .s element configure signal -pen tracePen
+        ```
+
+        `-activepen` selects the pen used when the element or individual data points are active.
+
+        See [LINEELEMENT] for detailed descriptions of line pens, symbols, symbol scaling, and symbol-density control.
+
+        ## Error bars
+        Strip elements support the same symmetric and asymmetric error-bar data as line elements:
+
+        ```text
+        -xerror
+        -xlow
+        -xhigh
+        -yerror
+        -ylow
+        -yhigh
+        ```
+
+        Their appearance is controlled by:
+        ```text
+        -showerrorbars
+        -errorbarcolor
+        -errorbarwidth
+        -errorbarcap
+        ```
+
+        See [LINEELEMENT] for the complete error-bar semantics.
+
+        ## Value labels
+        Strip elements can display coordinate values next to their data points using `-showvalues`.
+
+        Label appearance is controlled by:
+        ```text
+        -valueanchor
+        -valuecolor
+        -valuefont
+        -valueformat
+        -valuerotate
+        -valueshadow
+        ```
+
+        See [LINEELEMENT] for value-selection and formatting behavior.
+
+        ## Weights and styles
+        `-weights` supplies a numeric weight for each data point and `-styles` maps weight ranges to named line pens.
+
+        The syntax and precedence rules are identical to those described for [LINEELEMENT].
+
+        ## Strip element options
+        The complete strip-element option set is:
+
+        | Option                  | Description                                                                                                                                   |
+        |-------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+        | `-activepen penName`    | Selects the line pen used for active elements or active points. The default is `activeLine`; an empty value disables the separate active pen. |
+        | `-bindtags tags`        | Specifies additional graph binding tags for the element. The default is `all`.                                                                |
+        | `-color color`          | Sets the built-in normal pen's trace color.                                                                                                   |
+        | `-dashes dashes`        | Sets the built-in normal pen's trace dash pattern. An empty value selects a solid line.                                                       |
+        | `-data data`            | Supplies an even-length list of alternating X and Y values.                                                                                   |
+        | `-errorbarcap width`    | Sets the error-bar cap width.                                                                                                                 |
+        | `-errorbarcolor color`  | Sets the error-bar color. `defcolor` uses the trace color.                                                                                    |
+        | `-errorbarwidth width`  | Sets the error-bar line width.                                                                                                                |
+        | `-fill color`           | Sets the symbol fill color. `defcolor` uses the trace color; an empty value leaves symbols unfilled.                                          |
+        | `-hide boolean`         | Controls whether the element is displayed.                                                                                                    |
+        | `-label text`           | Sets the element label used by the legend. The initial label is the element name.                                                             |
+        | `-labelrelief relief`   | Sets the relief used for the element's legend label.                                                                                          |
+        | `-linewidth width`      | Sets the built-in normal pen's trace width. A value of `0` suppresses the connecting trace.                                                   |
+        | `-mapx axisName`        | Selects the X axis used to map the element. The default is `x`.                                                                               |
+        | `-mapy axisName`        | Selects the Y axis used to map the element. The default is `y`.                                                                               |
+        | `-maxsymbols number`    | Controls symbol display density. `0` displays all eligible symbols.                                                                           |
+        | `-offdash color`        | Sets the color of gaps in dashed traces. An empty value leaves the gaps transparent.                                                          |
+        | `-outline color`        | Sets the symbol outline color. `defcolor` uses the trace color.                                                                               |
+        | `-outlinewidth width`   | Sets the symbol outline width.                                                                                                                |
+        | `-pen penName`          | Selects a named line pen as the normal pen. An empty value selects the built-in pen.                                                          |
+        | `-pixels size`          | Sets the requested symbol size.                                                                                                               |
+        | `-scalesymbols boolean` | Controls automatic symbol-size scaling as axis ranges change.                                                                                 |
+        | `-showerrorbars value`  | Selects which X and/or Y error bars are drawn.                                                                                                |
+        | `-showvalues value`     | Selects which coordinate values are displayed next to data points.                                                                            |
+        | `-smooth mode`          | Selects `linear`, `step`, `natural`, `cubic`, `quadratic`, or `catrom` smoothing.                                                             |
+        | `-styles styles`        | Maps ranges of per-point weights to named line pens.                                                                                          |
+        | `-symbol symbol`        | Selects the point symbol.                                                                                                                     |
+        | `-valueanchor anchor`   | Sets the anchor of data-value labels.                                                                                                         |
+        | `-valuecolor color`     | Sets the data-value label color.                                                                                                              |
+        | `-valuefont font`       | Sets the data-value label font.                                                                                                               |
+        | `-valueformat format`   | Sets the validated floating-point format used for data-value labels.                                                                          |
+        | `-valuerotate angle`    | Sets the rotation angle of data-value labels.                                                                                                 |
+        | `-valueshadow shadow`   | Sets the optional shadow for data-value labels.                                                                                               |
+        | `-weights values`       | Supplies per-point numeric weights used by `-styles`.                                                                                         |
+        | `-x values`             | Supplies X coordinates as a Tcl list or Rbc vector.                                                                                           |
+        | `-xdata values`         | Synonym for `-x`.                                                                                                                             |
+        | `-xerror values`        | Supplies symmetric X error magnitudes.                                                                                                        |
+        | `-xhigh values`         | Supplies absolute upper X error-bar coordinates.                                                                                              |
+        | `-xlow values`          | Supplies absolute lower X error-bar coordinates.                                                                                              |
+        | `-y values`             | Supplies Y coordinates as a Tcl list or Rbc vector.                                                                                           |
+        | `-ydata values`         | Synonym for `-y`.                                                                                                                             |
+        | `-yerror values`        | Supplies symmetric Y error magnitudes.                                                                                                        |
+        | `-yhigh values`         | Supplies absolute upper Y error-bar coordinates.                                                                                              |
+        | `-ylow values`          | Supplies absolute lower Y error-bar coordinates.                                                                                              |
+    }
+}
+
+namespace eval ::rbc::BARELEMENT {
+    variable _ruff_ns_opts {
+        -heading {Bar element `BARELEMENT` options}
+        -excludeprocs {.*}
+    }
+
+    variable _ruff_preamble {
+        This page documents the configuration and behavior of bar elements.
+
+        `BARELEMENT` denotes an element whose concrete type is `BarElement`. Bar elements are the default element
+        type of a `barchart` widget:
+        ```tcl
+        barchart .b
+        .b element create values
+        ```
+
+        A bar element may also be created explicitly in any graph widget:
+        ```tcl
+        .g bar create values
+        ```
+
+        The common element operations such as `create`, `configure`, `activate`, `closest`, `bind`, and `delete` are
+        documented in [ELEMENT].
+
+        ## Data
+        X and Y coordinates may be supplied separately with `-x` and `-y`:
+        ```tcl
+        .b element create values -x {1 2 3 4} -y {10 15 8 20}
+        ```
+
+        `-xdata` and `-ydata` are synonyms for `-x` and `-y`.
+
+        Each coordinate option may also name an existing Rbc vector:
+        ```tcl
+        vector create xValues yValues
+
+        xValues set {1 2 3 4}
+        yValues set {10 15 8 20}
+
+        .b element create values -x xValues -y yValues
+        ```
+
+        When an Rbc vector is used, changes to the vector automatically invalidate and update the element.
+
+        The number of usable data points is the smaller of the X and Y vector lengths.
+
+        `-data` provides an alternative paired representation containing alternating X and Y values:
+        ```tcl
+        .b element create values -data {1 10 2 15 3 8 4 20}
+        ```
+
+        This is equivalent to:
+        ```tcl
+        -x {1 2 3 4} -y {10 15 8 20}
+        ```
+
+        The same transactional and left-to-right data-option semantics described for [LINEELEMENT] apply to bar
+        elements.
+
+        Non-finite X or Y values are omitted from the rendered bars.
+
+        ## Axis mapping
+        `-mapx` and `-mapy` select the virtual axes through which the bar data are mapped. Their defaults are `x`
+        and `y`.
+
+        ```tcl
+        .b axis create secondaryY
+        .b y2axis use secondaryY
+
+        .b element configure values -mapy secondaryY
+        ```
+
+        The selected axes must have the appropriate X or Y orientation.
+
+        Bar grouping is performed only between bars mapped through the same X/Y axis pair.
+
+        ## Bar geometry
+        Each data point describes a bar centered on its X coordinate.
+
+        For an ordinary linear Y axis, the bar extends between the data Y value and the graph's `-baseline` value.
+
+        For example:
+        ```tcl
+        .b configure -baseline 0
+        .b element create values -x {1 2 3} -y {4 7 2}
+        ```
+
+        creates bars extending from Y=0 to the respective Y values.
+
+        Values below the baseline extend in the opposite direction:
+        ```tcl
+        .b element configure values -y {-4 7 -2}
+        ```
+
+        The baseline is a **graph widget option**, not a bar-element option:
+        ```tcl
+        .b configure -baseline -10
+        ```
+
+        See [GRAPHINST] for the graph widget option reference.
+
+        ## Bar width
+        `-barwidth` on the bar element overrides the graph-wide bar width.
+
+        ```tcl
+        .b element configure values -barwidth 0.5
+        ```
+
+        Width is expressed in graph-coordinate units along the X axis.
+
+        The element default is `0.0`. Any non-positive element `-barwidth` means to use the graph widget's
+        `-barwidth` value instead.
+
+        Therefore:
+        ```tcl
+        .b configure -barwidth 0.8
+        .b element configure values -barwidth 0
+        ```
+
+        gives `values` an effective width of `0.8`.
+
+        This permits most elements to share one graph-wide width while individual bar elements override it when
+        necessary.
+
+        ## Bar modes
+        The graph widget's `-barmode` option controls how bars that occur at the same X coordinate are arranged.
+
+        Bar mode is global to the graph rather than configured separately for each bar element.
+
+        The available modes are:
+
+        | Mode      | Description                                                                                           |
+        |-----------|-------------------------------------------------------------------------------------------------------|
+        | `normal`  | Equivalent to `infront`; bars retain the full width and are drawn according to element display order. |
+        | `infront` | Bars retain their ordinary position and width and may obscure bars drawn earlier.                     |
+        | `aligned` | Bars sharing an X coordinate are divided across the available bar width and displayed side by side.   |
+        | `overlap` | Bars sharing an X coordinate are offset while retaining enough width to overlap neighboring bars.     |
+        | `stacked` | Y values sharing an X coordinate are accumulated and drawn as successive vertical segments.           |
+
+        For example:
+        ```tcl
+        .b configure -barmode aligned
+        .b element create first -x {1 2 3} -y {5 7 4}
+        .b element create second -x {1 2 3} -y {3 6 8}
+        ```
+
+        places the bars from `first` and `second` beside each other at each shared X coordinate.
+
+        Changing to:
+        ```tcl
+        .b configure -barmode stacked
+        ```
+
+        stacks their Y values instead.
+
+        Only visible bar elements mapped through the same X/Y axis pair participate in the same grouping.
+
+        ## Stacked bars
+        In `stacked` mode, Y values at equal X coordinates are additive.
+
+        For example, if two visible bar values at X=1 are:
+
+        ```text
+        4
+        6
+        ```
+
+        they form successive stack boundaries at 4 and 10.
+
+        The graph's automatic Y-axis range takes the accumulated stack height into account rather than considering
+        only the individual source values.
+
+        Stacking changes rendered geometry only. The original element Y value remains the source data value.
+
+        Consequently, operations such as `ELEMENT closest` continue to report the original data point associated
+        with a rendered stacked segment rather than replacing its Y value with the cumulative stack height.
+
+        ## Appearance
+        A bar element contains a built-in normal bar pen.
+
+        Its basic appearance is controlled directly by:
+
+        | Option               | Description                                                                                                                  |
+        |----------------------|------------------------------------------------------------------------------------------------------------------------------|
+        | `-foreground color`  | Sets the primary fill color of the bar. `-fg` is a synonym. The default is `blue`.                                           |
+        | `-background color`  | Sets the 3-D border color and the background color used for opaque stippling. `-bg` is a synonym. The default is `navyblue`. |
+        | `-borderwidth width` | Sets the non-negative width of the 3-D bar border. `-bd` is a synonym. The default is `2`.                                   |
+        | `-relief relief`     | Sets the relief of the 3-D border. The default is `raised`.                                                                  |
+        | `-stipple bitmap`    | Fills bars through the specified Tk bitmap stipple. An empty value disables stippling.                                       |
+
+        The 3-D border is drawn only when a background border is present, `-borderwidth` is greater than zero, and
+        `-relief` is not `flat`.
+
+        For example:
+        ```tcl
+        q.b element configure values -foreground skyblue -background navy -borderwidth 2 -relief raised
+        ```
+
+        With a stipple:
+        ```tcl
+        .b element configure values -foreground blue -background white -stipple gray50
+        ```
+
+        the foreground and background colors form an opaque stippled fill.
+
+        ## Pens
+
+        A separately created bar pen may replace the element's built-in normal pen with `-pen`:
+
+        ```tcl
+        .b pen create normalBars -type bar -foreground steelblue -background navy
+        .b element configure values -pen normalBars
+        ```
+
+        An empty `-pen` value selects the built-in bar pen again.
+
+        `-activepen` selects the bar pen used when the element or individual data points are active. Its default is
+        `activeBar`.
+
+        Only bar pens may be used by bar elements and by bar-element styles.
+
+        See [PEN] for creation and configuration of named pens.
+
+        ## Error bars
+        Bar elements support symmetric and asymmetric error-bar data.
+
+        Symmetric errors are supplied with:
+        ```text
+        -xerror
+        -yerror
+        ```
+
+        For example:
+        ```tcl
+        .b element configure values -yerror {0.5 0.8 0.4 1.0}
+        ```
+
+        For a point `(x,y)`, a symmetric Y error value `e` represents the limits:
+        ```text
+        y - e
+        y + e
+        ```
+
+        Absolute asymmetric limits may instead be supplied with:
+        ```text
+        -xlow
+        -xhigh
+        -ylow
+        -yhigh
+        ```
+
+        When symmetric error data are present for an axis, they take precedence over the corresponding low/high
+        vectors.
+
+        Error data may be Tcl lists or Rbc vector names.
+
+        Their appearance is controlled by:
+
+        | Option                 | Description                                                                                |
+        |------------------------|--------------------------------------------------------------------------------------------|
+        | `-showerrorbars value` | Selects whether X errors, Y errors, both, or neither are displayed. The default is `both`. |
+        | `-errorbarcolor color` | Sets the error-bar color. `defcolor` uses the normal bar color.                            |
+        | `-errorbarwidth width` | Sets the non-negative error-bar line width. The default is `1`.                            |
+        | `-errorbarcap width`   | Sets the non-negative requested cap width. The default is `1`.                             |
+
+        If `-errorbarcap` is `0`, Rbc chooses a cap size from the rendered bar width.
+
+        Error-bar values also participate in automatic graph extents.
+
+        ## Value labels
+        `-showvalues` displays data values at the end of each rendered bar.
+
+        It may select X values, Y values, both coordinates, or no values. The default is `no`.
+
+        The label is positioned at the end of the bar away from the baseline. Bars extending below the baseline
+        therefore place their labels at the opposite end from bars extending above it.
+
+        For example:
+        ```tcl
+        .b element configure values -showvalues y -valueformat %.2f
+        ```
+
+        Label appearance is controlled by:
+
+        | Option                | Description                                                                |
+        |-----------------------|----------------------------------------------------------------------------|
+        | `-valueanchor anchor` | Sets the Tk anchor of the label. The default is `s`.                       |
+        | `-valuecolor color`   | Sets the label color. The default is black.                                |
+        | `-valuefont font`     | Sets the label font.                                                       |
+        | `-valueformat format` | Sets the printf-style floating-point format. The default is `%g`.          |
+        | `-valuerotate angle`  | Rotates the label by the specified angle in degrees. The default is `0.0`. |
+        | `-valueshadow shadow` | Specifies an optional text shadow. An empty value disables the shadow.     |
+
+        The displayed value is always formatted from the original X and Y source coordinates, including for bars
+        whose screen geometry has been aligned, overlapped, or stacked.
+
+        `-valueformat` is validated before it is accepted. It may contain at most one floating-point conversion using
+        `a`, `A`, `e`, `E`, `f`, `F`, `g`, or `G`; dynamic width or precision using `*` is not permitted.
+
+        ## Weights and styles
+
+        `-weights` associates numeric weights with data points. The value may be a Tcl list or an Rbc vector.
+
+        `-styles` maps ranges of those weights to named bar pens.
+
+        Each style specification has one of the forms:
+        ```text
+        penName
+        penName min max
+        ```
+
+        For example:
+        ```tcl
+        .b pen create low -type bar -foreground lightblue
+        .b pen create high -type bar -foreground red
+        .b element configure values -weights {0.2 0.8 1.2 1.7} -styles {{low 0 1} {high 1 2}}
+        ```
+
+        A style without explicit limits receives the legacy default range based on its position: the first style
+        covers 0 through 1, the second 1 through 2, and so on.
+
+        Points whose weights do not match a configured range use the normal pen.
+
+        When style ranges overlap, later style entries take precedence.
+
+        Only as many weights as there are data points are considered. Points without corresponding weights retain
+        the normal pen.
+
+        ## Logarithmic axes
+        Bar elements support logarithmic axes, with additional domain restrictions imposed by their rectangular
+        geometry.
+
+        On a logarithmic Y axis, the drawable baseline is `1.0` rather than the graph's linear `-baseline` value:
+        ```tcl
+        .b yaxis configure -logscale yes
+        ```
+
+        Non-positive Y data cannot be mapped to the logarithmic axis and are omitted.
+
+        In `stacked` mode, stack values remain ordinary additive data quantities. The stack accumulator therefore
+        starts from zero, but the first visible stacked segment uses 1.0 as its drawable lower edge because zero
+        cannot be represented on a logarithmic axis.
+
+        On a logarithmic X axis, the complete horizontal extent of a bar must remain inside the positive logarithmic
+        domain. A bar is omitted when its left edge, `x - barWidth/2`, is not positive.
+
+        This means that merely having a positive X center is not sufficient when the bar width would extend through
+        or beyond zero.
+
+        ## Closest searches
+        Bar elements are searched using their rendered rectangles.
+
+        If the requested window point lies inside a bar rectangle, its distance is zero. Otherwise Rbc measures the
+        distance to the rectangle boundary.
+
+        The result index and graph coordinates identify the original source data point represented by the selected
+        rectangle.
+
+        See `ELEMENT closest` in [ELEMENT] for the common search syntax and result array.
+
+        ## Bar element options
+        The complete bar-element option set is:
+
+        | Option                 | Description                                                                                                              |
+        |------------------------|--------------------------------------------------------------------------------------------------------------------------|
+        | `-activepen penName`   | Selects the bar pen used for active elements or active points. The default is `activeBar`.                               |
+        | `-background color`    | Sets the built-in pen's 3-D border/stipple background color. The default is `navyblue`.                                  |
+        | `-barwidth width`      | Overrides the graph-wide bar width when positive. A non-positive value uses the graph `-barwidth`. The default is `0.0`. |
+        | `-bd width`            | Synonym for `-borderwidth`.                                                                                              |
+        | `-bg color`            | Synonym for `-background`.                                                                                               |
+        | `-bindtags tags`       | Specifies additional graph binding tags for the element. The default is `all`.                                           |
+        | `-borderwidth width`   | Sets the non-negative width of the built-in pen's 3-D border. The default is `2`.                                        |
+        | `-data data`           | Supplies an even-length list of alternating X and Y values.                                                              |
+        | `-errorbarcap width`   | Sets the non-negative requested error-bar cap width. The default is `1`; `0` selects an automatically derived cap size.  |
+        | `-errorbarcolor color` | Sets the error-bar color. `defcolor` uses the bar's normal drawing color.                                                |
+        | `-errorbarwidth width` | Sets the non-negative error-bar line width. The default is `1`.                                                          |
+        | `-fg color`            | Synonym for `-foreground`.                                                                                               |
+        | `-foreground color`    | Sets the built-in pen's primary bar fill color. The default is `blue`.                                                   |
+        | `-hide boolean`        | Controls whether the element is displayed. The default is `no`.                                                          |
+        | `-label text`          | Sets the element label displayed in the legend. The initial label is the element name.                                   |
+        | `-labelrelief relief`  | Sets the relief used for the element's legend label. The default is `flat`.                                              |
+        | `-mapx axisName`       | Selects the X axis used to map the element. The default is `x`.                                                          |
+        | `-mapy axisName`       | Selects the Y axis used to map the element. The default is `y`.                                                          |
+        | `-pen penName`         | Selects a named bar pen as the normal pen. An empty value selects the built-in pen.                                      |
+        | `-relief relief`       | Sets the built-in pen's bar relief. The default is `raised`.                                                             |
+        | `-showerrorbars value` | Selects which X and/or Y error bars are displayed. The default is `both`.                                                |
+        | `-showvalues value`    | Selects which coordinate values are displayed next to bars. The default is `no`.                                         |
+        | `-state state`         | Sets the element state. The default is `normal`.                                                                         |
+        | `-stipple bitmap`      | Specifies a Tk bitmap used to stipple the bar fill. An empty value disables stippling.                                   |
+        | `-styles styles`       | Maps ranges of per-point weights to named bar pens.                                                                      |
+        | `-valueanchor anchor`  | Sets the anchor of data-value labels. The default is `s`.                                                                |
+        | `-valuecolor color`    | Sets the data-value label color. The default is black.                                                                   |
+        | `-valuefont font`      | Sets the data-value label font.                                                                                          |
+        | `-valueformat format`  | Sets the validated floating-point format used for data-value labels. The default is `%g`.                                |
+        | `-valuerotate angle`   | Sets the rotation angle of data-value labels. The default is `0.0`.                                                      |
+        | `-valueshadow shadow`  | Sets the optional shadow for data-value labels.                                                                          |
+        | `-weights values`      | Supplies per-point numeric weights used by `-styles`.                                                                    |
+        | `-x values`            | Supplies X coordinates as a Tcl list or Rbc vector.                                                                      |
+        | `-xdata values`        | Synonym for `-x`.                                                                                                        |
+        | `-xerror values`       | Supplies symmetric X error magnitudes.                                                                                   |
+        | `-xhigh values`        | Supplies absolute upper X error-bar coordinates.                                                                         |
+        | `-xlow values`         | Supplies absolute lower X error-bar coordinates.                                                                         |
+        | `-y values`            | Supplies Y coordinates as a Tcl list or Rbc vector.                                                                      |
+        | `-ydata values`        | Synonym for `-y`.                                                                                                        |
+        | `-yerror values`       | Supplies symmetric Y error magnitudes.                                                                                   |
+        | `-yhigh values`        | Supplies absolute upper Y error-bar coordinates.                                                                         |
+        | `-ylow values`         | Supplies absolute lower Y error-bar coordinates.                                                                         |
+    }
+}
+
+namespace eval ::rbc::PEN {
+    variable _ruff_ns_opts {
+        -heading {Graph pen `PEN` command}
+        -excludeprocs {.*}
+    }
+
+    variable _ruff_preamble {
+        Commands in this namespace document graph pens.
+
+        `PEN` is used below as a placeholder for:
+
+        ```tcl
+        GRAPHINST pen
+        ```
+
+        Pens define reusable drawing attributes for graph elements. An element may use a pen as its normal pen, as its
+        active pen, or select several pens through its `-weights` and `-styles` options.
+
+        For example:
+        ```tcl
+        graph .g
+        .g pen create tracePen -type line -color red -linewidth 2
+        .g element create signal -x {0 1 2 3} -y {1 4 2 5} -pen tracePen
+        ```
+
+        See [ELEMENT], [LINEELEMENT], [STRIPELEMENT], and [BARELEMENT] for how elements select and use pens.
+
+        ## Pen types
+        Rbc has two concrete pen implementations:
+
+        | Pen type | Used by                 |
+        |----------|-------------------------|
+        | line     | line and strip elements |
+        | bar      | bar elements            |
+
+        The `-type` option selects the pen type when the pen is created:
+        ```tcl
+        .g pen create lineStyle -type line
+        .g pen create barStyle -type bar
+        ```
+
+        `-type strip` also creates a line pen because strip elements use the same drawing implementation as line
+        elements.
+
+        If `-type` is omitted, the default follows the graph widget type:
+
+        | Widget       | Default pen type |
+        |--------------|------------------|
+        | `graph`      | line             |
+        | `barchart`   | bar              |
+        | `stripchart` | line             |
+
+        The actual concrete pen type may be queried with `PEN type`.
+
+        Line pens may be assigned to line and strip elements. Bar pens may be assigned only to bar elements. Rbc
+        rejects attempts to use a pen with an incompatible element type.
+
+        `-type` is a creation-time selector. Changing it after a pen has been created does not convert the existing
+        pen to another concrete type. Use `PEN type` to determine the actual type of an existing pen.
+
+        ## Built-in active pens
+        Every graph, barchart, and stripchart widget automatically creates two named pens:
+        ```text
+        activeLine
+        activeBar
+        ```
+
+        `activeLine` is the default active pen for line and strip elements. `activeBar` is the default active pen for
+        bar elements.
+
+        They may be configured like any other named pen:
+        ```tcl
+        .g pen configure activeLine -color red -symbol square
+        ```
+
+        Changing one of these pens changes the active appearance of all elements that reference it.
+
+        The normal defaults differ from the active defaults. A normal line pen uses navy blue while `activeLine` uses
+        blue. A normal bar pen uses blue foreground with navy-blue background while `activeBar` uses pink foreground
+        with red background.
+
+        ## Using named pens
+        `-pen` selects the normal pen of an element:
+        ```tcl
+        .g pen create normalStyle -type line -color navy -linewidth 2
+        .g element configure signal -pen normalStyle
+        ```
+
+        `-activepen` selects its active pen:
+        ```tcl
+        .g pen create selectedStyle -type line -color red -symbol diamond
+        .g element configure signal -activepen selectedStyle
+        ```
+
+        Pens can also be selected per data point through an element's `-weights` and `-styles` options:
+        ```tcl
+        .g pen create low  -type line -color blue
+        .g pen create high -type line -color red
+
+        .g element configure signal -weights {0.2 0.8 1.2 1.7} -styles {{low 0 1} {high 1 2}}
+        ```
+
+        See [LINEELEMENT] and [BARELEMENT] for the complete weight/style semantics.
+
+        ## Pen lifetime
+        Named pens belong to a single graph widget.
+
+        Deleting a pen removes its name immediately from the graph's visible pen collection. If an element is still
+        using that pen, physical destruction is deferred until the final reference is released.
+
+        This means it is safe to delete a pen currently referenced by an existing element: that element can continue
+        drawing with the retained pen. The deleted name is no longer available for new references.
+
+        ## Line pens
+        Line pens control connecting traces, symbols, error bars, and data-value labels for line and strip elements.
+
+        ### Traces
+        `-color`, `-linewidth`, `-dashes`, and `-offdash` control the connecting trace.
+
+        ```tcl
+        .g pen create dashed -type line -color blue -linewidth 2 -dashes {4 2}
+        ```
+
+        `-linewidth 0` suppresses the connecting trace while leaving symbols and other pen features available.
+
+        An empty `-dashes` value selects a solid trace.
+
+        `-offdash` optionally supplies a color for the normally empty portions of a dashed line. An empty value leaves
+        those portions transparent; `defcolor` uses the trace color.
+
+        ### Symbols
+        `-symbol` selects the symbol drawn at data points.
+
+        Built-in symbols are:
+        ```text
+        none
+        circle
+        square
+        diamond
+        plus
+        cross
+        splus
+        scross
+        triangle
+        arrow
+        ```
+
+        A Tk bitmap may also be specified:
+        ```tcl
+        -symbol bitmapName
+        -symbol {bitmapName maskName}
+        ```
+
+        Symbol appearance is controlled by:
+        ```text
+        -pixels
+        -fill
+        -outline
+        -outlinewidth
+        ```
+
+        `-fill defcolor` and `-outline defcolor` use the trace color. An empty `-fill` leaves the symbol interior
+        transparent.
+
+        ### Error bars
+        A line pen controls the appearance of error-bar data supplied by its element.
+        ```text
+        -showerrorbars
+        -errorbarcolor
+        -errorbarwidth
+        -errorbarcap
+        ```
+
+        `-showerrorbars` selects X errors, Y errors, both, or neither.
+
+        `-errorbarcolor defcolor` uses the trace color.
+
+        The pen does not contain error data itself. Error coordinates are supplied by the element through `-xerror`,
+        `-yerror`, `-xlow`, `-xhigh`, `-ylow`, and `-yhigh`.
+
+        ### Value labels
+        A line pen may display the element's data values with `-showvalues`.
+
+        Appearance is controlled by:
+        ```text
+        -valueanchor
+        -valuecolor
+        -valuefont
+        -valueformat
+        -valuerotate
+        -valueshadow
+        ```
+
+        The default value format is `%g`.
+
+        `-valueformat` is validated before it is accepted. It may contain at most one floating-point conversion using
+        `a`, `A`, `e`, `E`, `f`, `F`, `g`, or `G`, and dynamic width or precision using `*` is not permitted.
+
+        ### Line pen options
+
+        | Option                 | Description                                                                                                                     |
+        |------------------------|---------------------------------------------------------------------------------------------------------------------------------|
+        | `-color color`         | Sets the trace color. A normal line pen defaults to navy blue; `activeLine` defaults to blue.                                   |
+        | `-dashes dashes`       | Sets the trace dash pattern. An empty value selects a solid line.                                                               |
+        | `-errorbarcap width`   | Sets the non-negative error-bar cap width. The default is `1`.                                                                  |
+        | `-errorbarcolor color` | Sets the error-bar color. `defcolor` uses the trace color.                                                                      |
+        | `-errorbarwidth width` | Sets the non-negative error-bar line width. The default is `1`.                                                                 |
+        | `-fill color`          | Sets the symbol fill color. `defcolor` uses the trace color; an empty value leaves the symbol unfilled.                         |
+        | `-linewidth width`     | Sets the non-negative trace width. The default is `1`; `0` suppresses the trace.                                                |
+        | `-offdash color`       | Sets the color of the gaps in a dashed trace. An empty value leaves them transparent.                                           |
+        | `-outline color`       | Sets the symbol outline color. `defcolor` uses the trace color.                                                                 |
+        | `-outlinewidth width`  | Sets the non-negative symbol outline width. The default is `1`.                                                                 |
+        | `-pixels size`         | Sets the requested symbol size. The default is `0.125i`.                                                                        |
+        | `-showerrorbars value` | Selects which X and/or Y error bars are displayed. The default is `both`.                                                       |
+        | `-showvalues value`    | Selects which coordinate values are displayed. The default is `no`.                                                             |
+        | `-symbol symbol`       | Selects the point symbol. The default is `circle`.                                                                              |
+        | `-type type`           | Selects the concrete pen type when creating the pen. For line pens the normal value is `line`; `strip` also creates a line pen. |
+        | `-valueanchor anchor`  | Sets the anchor of value labels. The default is `s`.                                                                            |
+        | `-valuecolor color`    | Sets the value-label color. The default is black.                                                                               |
+        | `-valuefont font`      | Sets the value-label font.                                                                                                      |
+        | `-valueformat format`  | Sets the validated floating-point format used for value labels. The default is `%g`.                                            |
+        | `-valuerotate angle`   | Sets the finite rotation angle of value labels. The default is `0.0`.                                                           |
+        | `-valueshadow shadow`  | Sets the optional shadow for value labels. An empty value disables the shadow.                                                  |
+
+        ## Bar pens
+        Bar pens control bar fill, border appearance, error bars, and data-value labels.
+
+        ### Bar appearance
+        The principal options are:
+        ```text
+        -foreground
+        -background
+        -borderwidth
+        -relief
+        -stipple
+        ```
+
+        `-foreground` specifies the primary bar fill color.
+
+        `-background` supplies the Tk 3-D border and the background used for an opaque stipple.
+
+        For example:
+        ```tcl
+        .b pen create bars -type bar -foreground steelblue -background navy -borderwidth 2 -relief raised
+        ```
+
+        `-fg`, `-bg`, and `-bd` are synonyms for `-foreground`, `-background`, and `-borderwidth`.
+
+        An optional Tk bitmap may be supplied through `-stipple`.
+
+        ### Error bars
+        As with line pens, bar pens control error-bar appearance rather than the error data itself.
+        ```text
+        -showerrorbars
+        -errorbarcolor
+        -errorbarwidth
+        -errorbarcap
+        ```
+
+        `-errorbarcolor defcolor` uses the normal bar drawing color.
+
+        ### Value labels
+        Bar pens use the same value-label controls as line pens:
+        ```text
+        -showvalues
+        -valueanchor
+        -valuecolor
+        -valuefont
+        -valueformat
+        -valuerotate
+        -valueshadow
+        ```
+
+        See [BARELEMENT] for placement of value labels relative to the baseline and rendered bar geometry.
+
+        ### Bar pen options
+        | Option                 | Description                                                                                                  |
+        |------------------------|--------------------------------------------------------------------------------------------------------------|
+        | `-background color`    | Sets the bar border/stipple background. A normal bar pen defaults to navy blue; `activeBar` defaults to red. |
+        | `-bg color`            | Synonym for `-background`.                                                                                   |
+        | `-borderwidth width`   | Sets the non-negative 3-D border width. The default is `2`.                                                  |
+        | `-bd width`            | Synonym for `-borderwidth`.                                                                                  |
+        | `-errorbarcap width`   | Sets the non-negative error-bar cap width. The default is `1`.                                               |
+        | `-errorbarcolor color` | Sets the error-bar color. `defcolor` uses the normal bar color.                                              |
+        | `-errorbarwidth width` | Sets the non-negative error-bar line width. The default is `1`.                                              |
+        | `-foreground color`    | Sets the primary bar fill color. A normal bar pen defaults to blue; `activeBar` defaults to pink.            |
+        | `-fg color`            | Synonym for `-foreground`.                                                                                   |
+        | `-relief relief`       | Sets the bar's 3-D relief. The default is `raised`.                                                          |
+        | `-showerrorbars value` | Selects which X and/or Y error bars are displayed. The default is `both`.                                    |
+        | `-showvalues value`    | Selects which coordinate values are displayed. The default is `no`.                                          |
+        | `-stipple bitmap`      | Specifies a Tk bitmap for stippled bar filling. An empty value disables stippling.                           |
+        | `-type type`           | Selects the concrete pen type when creating the pen. Bar pens use `bar`.                                     |
+        | `-valueanchor anchor`  | Sets the anchor of value labels. The default is `s`.                                                         |
+        | `-valuecolor color`    | Sets the value-label color. The default is black.                                                            |
+        | `-valuefont font`      | Sets the value-label font.                                                                                   |
+        | `-valueformat format`  | Sets the validated floating-point format used for value labels. The default is `%g`.                         |
+        | `-valuerotate angle`   | Sets the finite rotation angle of value labels. The default is `0.0`.                                        |
+        | `-valueshadow shadow`  | Sets the optional shadow for value labels. An empty value disables the shadow.                               |
+
+        ## Option database
+        Named pens use the Tk option database with resource class `Pen`.
+
+        This allows common pen defaults or defaults for particular named pens to be supplied before a graph is
+        created.
+
+        For example:
+        ```tcl
+        option add *Graph.Pen.Color blue
+        option add *Graph.activeLine.color green
+        ```
+    }
+
+    proc cget {penName option} {
+        # Returns the current value of a pen configuration option. Available options depend on whether the named pen is
+        # a line or bar pen. See [line pen options][Line pen options] and [bar pen options][Bar pen options].
+        # penName - name of the pen.
+        # option - pen configuration option.
+        # Returns: Current value of `option`.
+    }
+
+    proc configure {args} {
+        # Queries or modifies pen configuration. When querying, one pen name is used. When setting options, multiple
+        # pen names may precede the option/value pairs and the same configuration is applied to each named pen. All
+        # pens being configured must support the supplied options.
+        #
+        # See [line pen options][Line pen options] and [bar pen options][Bar pen options] for the complete option
+        # references.
+        # penName - name of a pen to query or configure.
+        # option - pen configuration option.
+        # value - new value for the option.
+        # Returns: Configuration information when querying; nothing when setting options.
+        # Synopsis: penName
+        # Synopsis: penName option
+        # Synopsis: penName ?penName ...? ?option value ...?
+    }
+
+    proc create {penName args} {
+        # Creates a new named pen. `-type line` creates a line pen, `-type bar` creates a bar pen, and `-type strip`
+        # creates a line pen suitable for strip elements. If `-type` is omitted, the graph widget's default element
+        # type determines the pen type. See [line pen options][Line pen options] and [bar pen options][Bar pen options].
+        # penName - unique name of the new pen.
+        # option - initial pen configuration option.
+        # value - initial value for the option.
+        # Returns: Name of the newly created pen.
+        # Synopsis: penName ?option value ...?
+    }
+
+    proc delete {args} {
+        # Deletes one or more named pens. If a pen is still referenced by an element, destruction is deferred until
+        # its final reference is released. The deleted pen name immediately stops being available for new references.
+        # penName - name of a pen to delete.
+        # Returns: Nothing.
+        # Synopsis: ?penName ...?
+    }
+
+    proc names {args} {
+        # Returns names of existing pens. With one or more Tcl glob patterns, a pen is returned when its name matches
+        # any pattern. Pens pending deletion are not returned.
+        # pattern - optional Tcl glob pattern used to select pen names.
+        # Returns: List of matching pen names.
+        # Synopsis: ?pattern ...?
+    }
+
+    proc type {penName} {
+        # Returns the concrete class of the named pen. Line and strip pens return `LineElement`; bar pens return
+        # `BarElement`. This reports the actual pen implementation and is independent of the textual creation-time
+        # `-type` representation.
+        # penName - name of the pen.
+        # Returns: `LineElement` or `BarElement`.
+    }
+
+    namespace export *
+    namespace ensemble create
+}

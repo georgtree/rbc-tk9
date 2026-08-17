@@ -5,7 +5,83 @@
 .SH NAME
 rbc - Commands in namespace rbc
 .SH SYNOPSIS
+\fBAXIS\fP \fIsubcommand \&.\&.\&.\fP
+.br
+\fBAXIS bind\fP \fItagName\fP
+.br
+\fBAXIS bind\fP \fItagName sequence\fP
+.br
+\fBAXIS bind\fP \fItagName sequence command\fP
+.br
+\fBAXIS cget\fP \fIaxisName option\fP
+.br
+\fBAXIS configure\fP \fIaxisName\fP
+.br
+\fBAXIS configure\fP \fIaxisName option\fP
+.br
+\fBAXIS configure\fP \fIaxisName ?axisName \&.\&.\&.? ?option value \&.\&.\&.?\fP
+.br
+\fBAXIS create\fP \fIaxisName ?option value \&.\&.\&.?\fP
+.br
+\fBAXIS delete\fP \fI?axisName \&.\&.\&.?\fP
+.br
+\fBAXIS get\fP \fIname\fP
+.br
+\fBAXIS invtransform\fP \fIaxisName value\fP
+.br
+\fBAXIS limits\fP \fIaxisName\fP
+.br
+\fBAXIS names\fP \fI?pattern \&.\&.\&.?\fP
+.br
+\fBAXIS transform\fP \fIaxisName value\fP
+.br
+\fBAXIS view\fP \fIaxisName\fP
+.br
+\fBAXIS view\fP \fIaxisName moveto fraction\fP
+.br
+\fBAXIS view\fP \fIaxisName scroll number units\fP
+.br
+\fBAXIS view\fP \fIaxisName scroll number pages\fP
+.br
+\fBAXIS view\fP \fIaxisName number\fP
+.br
 \fBbarchart\fP \fIpathName ?option value \&.\&.\&.?\fP
+.br
+\fBELEMENT\fP \fIsubcommand \&.\&.\&.\fP
+.br
+\fBELEMENT activate\fP \fIelemName ?index \&.\&.\&.?\fP
+.br
+\fBELEMENT bind\fP \fItagName\fP
+.br
+\fBELEMENT bind\fP \fItagName sequence\fP
+.br
+\fBELEMENT bind\fP \fItagName sequence command\fP
+.br
+\fBELEMENT cget\fP \fIelemName option\fP
+.br
+\fBELEMENT closest\fP \fIx y varName ?option value \&.\&.\&.? ?--? ?elemName \&.\&.\&.?\fP
+.br
+\fBELEMENT configure\fP \fIelemName\fP
+.br
+\fBELEMENT configure\fP \fIelemName option\fP
+.br
+\fBELEMENT configure\fP \fIelemName ?elemName \&.\&.\&.? ?option value \&.\&.\&.?\fP
+.br
+\fBELEMENT create\fP \fIelemName ?option value \&.\&.\&.?\fP
+.br
+\fBELEMENT deactivate\fP \fI?elemName \&.\&.\&.?\fP
+.br
+\fBELEMENT delete\fP \fI?elemName \&.\&.\&.?\fP
+.br
+\fBELEMENT exists\fP \fIelemName\fP
+.br
+\fBELEMENT get\fP \fIname\fP
+.br
+\fBELEMENT names\fP \fI?pattern \&.\&.\&.?\fP
+.br
+\fBELEMENT show\fP \fIelemList\fP
+.br
+\fBELEMENT type\fP \fIelemName\fP
 .br
 \fBgraph\fP \fIpathName ?option value \&.\&.\&.?\fP
 .br
@@ -54,6 +130,44 @@ rbc - Commands in namespace rbc
 \fBGRAPHINST y2axis\fP \fIoperation ?args \&.\&.\&.?\fP
 .br
 \fBGRAPHINST yaxis\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+\fBMARGINAXIS\fP \fIsubcommand \&.\&.\&.\fP
+.br
+\fBMARGINAXIS bind\fP \fIsequence\fP
+.br
+\fBMARGINAXIS bind\fP \fIsequence command\fP
+.br
+\fBMARGINAXIS cget\fP \fIoption\fP
+.br
+\fBMARGINAXIS configure\fP \fIoption\fP
+.br
+\fBMARGINAXIS configure\fP \fI?option value \&.\&.\&.?\fP
+.br
+\fBMARGINAXIS invtransform\fP \fIvalue\fP
+.br
+\fBMARGINAXIS limits\fP
+.br
+\fBMARGINAXIS transform\fP \fIvalue\fP
+.br
+\fBMARGINAXIS use\fP \fIaxisList\fP
+.br
+\fBPEN\fP \fIsubcommand \&.\&.\&.\fP
+.br
+\fBPEN cget\fP \fIpenName option\fP
+.br
+\fBPEN configure\fP \fIpenName\fP
+.br
+\fBPEN configure\fP \fIpenName option\fP
+.br
+\fBPEN configure\fP \fIpenName ?penName \&.\&.\&.? ?option value \&.\&.\&.?\fP
+.br
+\fBPEN create\fP \fIpenName ?option value \&.\&.\&.?\fP
+.br
+\fBPEN delete\fP \fI?penName \&.\&.\&.?\fP
+.br
+\fBPEN names\fP \fI?pattern \&.\&.\&.?\fP
+.br
+\fBPEN type\fP \fIpenName\fP
 .br
 \fBspline\fP \fIsubcommand \&.\&.\&.\fP
 .br
@@ -135,6 +249,376 @@ rbc - Commands in namespace rbc
 .SH COMMANDS
 .PP
 .RS -4n
+\fBAXIS\fR (::rbc)
+.RE
+.PP
+A
+command
+ensemble\&.
+.RS 4n
+\fBAXIS\fP \fIsubcommand \&.\&.\&.\fP
+.br
+.RE
+.PP
+\fBDescription\fR
+.PP
+The ensemble supports the following subcommands:
+.RS 4n
+.TP
+\fIbind\fP
+Queries or modifies bindings associated with axis binding tags\&. With no arguments, returns the currently registered axis binding tags\&. With a tag name, returns the event sequences bound to that tag\&. With a sequence, returns its binding script\&. With a command, creates or replaces the binding\&.
+.TP
+\fIcget\fP
+Returns the current value of an axis configuration option\&. See \fIaxis options\fP for the complete option reference\&. Current value of option\&.
+.TP
+\fIconfigure\fP
+Queries or modifies axis configuration\&. When querying, normally one axis name is supplied\&. When setting options, multiple axis names may precede the option/value pairs and the same configuration is applied to each named axis\&. See \fIaxis options\fP for the complete option reference\&.
+.TP
+\fIcreate\fP
+Creates a new virtual axis\&. The new axis is not displayed in a margin until it is assigned with a margin-axis use operation, although elements may be mapped to it while it remains virtual\&. Axis names must be unique within the graph and may not begin with -\&.
+.TP
+\fIdelete\fP
+Deletes one or more virtual axes\&. If an axis is still referenced by an element, physical destruction is deferred until the reference is released, but the deleted name immediately stops referring to that axis and may be reused for a newly created axis\&.
+.TP
+\fIget\fP
+Returns information about the axis currently selected by the graph binding machinery\&. current returns the axis name\&. detail returns label, title, or line depending on the part of the axis under the current binding position\&. If no axis is current, the result is empty\&. Current axis name, current axis detail, or an empty result\&.
+.TP
+\fIinvtransform\fP
+Converts an integer window coordinate to the corresponding graph value using the specified axis\&. The axis orientation and -descending setting are taken into account\&. Logarithmic axes return the corresponding positive data value\&.
+.TP
+\fIlimits\fP
+Returns the effective displayed minimum and maximum of the specified axis\&. Automatic scaling, explicit limits, loose-range processing, and logarithmic mapping are reflected in the returned values\&. Logarithmic limits are returned as ordinary positive data values rather than base-10 exponents\&. Two-element list min max\&.
+.TP
+\fInames\fP
+Returns the names of existing axes\&. If one or more Tcl glob patterns are supplied, an axis is returned when its name matches any pattern\&. Axes pending deletion are not returned\&. List of matching axis names\&.
+.TP
+\fItransform\fP
+Converts a graph value to an integer window coordinate using the specified axis\&. value is evaluated as a Tcl numeric expression and must be finite\&. Values transformed through a logarithmic axis must be positive\&.
+.TP
+\fIview\fP
+Queries or changes the visible portion of an axis scrolling region\&. With no additional arguments, returns normalized first last fractions\&. moveto selects an absolute fraction\&. scroll moves by units or pages; a page is 90 percent of the current viewport\&. A single integer is accepted as a compatibility shorthand for scrolling that number of units\&.
+.RE
+.PP
+Refer to the documentation of each subcommand for details\&.
+.PP
+.RS -4n
+\fBAXIS bind\fR (::rbc)
+.RE
+.PP
+Queries or modifies bindings associated with axis binding tags\&. With no arguments, returns the currently
+registered axis binding tags\&. With a tag name, returns the event sequences bound to that tag\&. With a
+sequence, returns its binding script\&. With a command, creates or replaces the binding\&.
+.RS 4n
+\fBAXIS bind\fP \fItagName\fP
+.br
+\fBAXIS bind\fP \fItagName sequence\fP
+.br
+\fBAXIS bind\fP \fItagName sequence command\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+command
+Tcl script to execute for the binding\&.
+.TP
+sequence
+Tk event sequence\&.
+.TP
+tagName
+Axis name, axis class, or user-defined axis binding tag\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Binding tags, event sequences, or a binding script when querying; nothing when setting a binding\&.
+.PP
+.RS -4n
+\fBAXIS cget\fR (::rbc)
+.RE
+.PP
+Returns the current value of an axis configuration option\&. See \fIaxis options\fP for the complete
+option reference\&.
+Current value of option\&.
+.RS 4n
+\fBAXIS cget\fP \fIaxisName option\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+axisName
+Name of the axis\&.
+.TP
+option
+Axis configuration option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the current value of an axis configuration option\&. See \fIaxis options\fP for the complete
+option reference\&.
+Current value of option\&.
+.PP
+.RS -4n
+\fBAXIS configure\fR (::rbc)
+.RE
+.PP
+Queries or modifies axis configuration\&. When querying, normally one axis name is supplied\&. When setting
+options, multiple axis names may precede the option/value pairs and the same configuration is applied to
+each named axis\&. See \fIaxis options\fP for the complete option reference\&.
+.RS 4n
+\fBAXIS configure\fP \fIaxisName\fP
+.br
+\fBAXIS configure\fP \fIaxisName option\fP
+.br
+\fBAXIS configure\fP \fIaxisName ?axisName \&.\&.\&.? ?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+axisName
+Name of an axis to query or configure\&.
+.TP
+option
+Axis configuration option\&.
+.TP
+value
+New value for the option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Configuration information when querying; nothing when setting options\&.
+.PP
+.RS -4n
+\fBAXIS create\fR (::rbc)
+.RE
+.PP
+Creates a new virtual axis\&. The new axis is not displayed in a margin until it is assigned with a
+margin-axis use operation, although elements may be mapped to it while it remains virtual\&. Axis names must
+be unique within the graph and may not begin with -\&.
+.RS 4n
+\fBAXIS create\fP \fIaxisName ?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+axisName
+Name of the new axis\&.
+.TP
+option
+Axis configuration option\&.
+.TP
+value
+Initial value for the option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Name of the newly created axis\&.
+.PP
+.RS -4n
+\fBAXIS delete\fR (::rbc)
+.RE
+.PP
+Deletes one or more virtual axes\&. If an axis is still referenced by an element, physical destruction is
+deferred until the reference is released, but the deleted name immediately stops referring to that axis and
+may be reused for a newly created axis\&.
+.RS 4n
+\fBAXIS delete\fP \fI?axisName \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+axisName
+Name of an axis to delete\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBAXIS get\fR (::rbc)
+.RE
+.PP
+Returns information about the axis currently selected by the graph binding machinery\&. current returns the
+axis name\&. detail returns label, title, or line depending on the part of the axis under the current
+binding position\&. If no axis is current, the result is empty\&.
+Current axis name, current axis detail, or an empty result\&.
+.RS 4n
+\fBAXIS get\fP \fIname\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Information to retrieve; must be current or detail\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns information about the axis currently selected by the graph binding machinery\&. current returns the
+axis name\&. detail returns label, title, or line depending on the part of the axis under the current
+binding position\&. If no axis is current, the result is empty\&.
+Current axis name, current axis detail, or an empty result\&.
+.PP
+.RS -4n
+\fBAXIS invtransform\fR (::rbc)
+.RE
+.PP
+Converts an integer window coordinate to the corresponding graph value using the specified axis\&. The axis
+orientation and -descending setting are taken into account\&. Logarithmic axes return the corresponding
+positive data value\&.
+.RS 4n
+\fBAXIS invtransform\fP \fIaxisName value\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+axisName
+Name of the axis used for the conversion\&.
+.TP
+value
+Integer window coordinate\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Corresponding graph-coordinate value\&.
+.PP
+.RS -4n
+\fBAXIS limits\fR (::rbc)
+.RE
+.PP
+Returns the effective displayed minimum and maximum of the specified axis\&. Automatic scaling, explicit
+limits, loose-range processing, and logarithmic mapping are reflected in the returned values\&. Logarithmic
+limits are returned as ordinary positive data values rather than base-10 exponents\&.
+Two-element list min max\&.
+.RS 4n
+\fBAXIS limits\fP \fIaxisName\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+axisName
+Name of the axis\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the effective displayed minimum and maximum of the specified axis\&. Automatic scaling, explicit
+limits, loose-range processing, and logarithmic mapping are reflected in the returned values\&. Logarithmic
+limits are returned as ordinary positive data values rather than base-10 exponents\&.
+Two-element list min max\&.
+.PP
+.RS -4n
+\fBAXIS names\fR (::rbc)
+.RE
+.PP
+Returns the names of existing axes\&. If one or more Tcl glob patterns are supplied, an axis is returned when
+its name matches any pattern\&. Axes pending deletion are not returned\&.
+List of matching axis names\&.
+.RS 4n
+\fBAXIS names\fP \fI?pattern \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+pattern
+Optional Tcl glob pattern used to select axis names\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the names of existing axes\&. If one or more Tcl glob patterns are supplied, an axis is returned when
+its name matches any pattern\&. Axes pending deletion are not returned\&.
+List of matching axis names\&.
+.PP
+.RS -4n
+\fBAXIS transform\fR (::rbc)
+.RE
+.PP
+Converts a graph value to an integer window coordinate using the specified axis\&. value is evaluated as a
+Tcl numeric expression and must be finite\&. Values transformed through a logarithmic axis must be positive\&.
+.RS 4n
+\fBAXIS transform\fP \fIaxisName value\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+axisName
+Name of the axis used for the conversion\&.
+.TP
+value
+Graph-coordinate value or Tcl numeric expression\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Corresponding integer window coordinate\&.
+.PP
+.RS -4n
+\fBAXIS view\fR (::rbc)
+.RE
+.PP
+Queries or changes the visible portion of an axis scrolling region\&. With no additional arguments, returns
+normalized first last fractions\&. moveto selects an absolute fraction\&. scroll moves by units or pages;
+a page is 90 percent of the current viewport\&. A single integer is accepted as a compatibility shorthand for
+scrolling that number of units\&.
+.RS 4n
+\fBAXIS view\fP \fIaxisName\fP
+.br
+\fBAXIS view\fP \fIaxisName moveto fraction\fP
+.br
+\fBAXIS view\fP \fIaxisName scroll number units\fP
+.br
+\fBAXIS view\fP \fIaxisName scroll number pages\fP
+.br
+\fBAXIS view\fP \fIaxisName number\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+axisName
+Name of the axis\&.
+.TP
+fraction
+Normalized position used by moveto\&.
+.TP
+number
+Signed number of units or pages to scroll\&.
+.TP
+what
+Scrolling unit; must be units or pages\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Two-element list first last when querying; nothing when changing the view\&.
+.PP
+.RS -4n
 \fBbarchart\fR (::rbc)
 .RE
 .PP
@@ -174,6 +658,445 @@ pack \&.b -fill both -expand yes
 \fBReturn value\fR
 .PP
 The pathname of the newly created barchart widget\&.
+.PP
+.RS -4n
+\fBELEMENT\fR (::rbc)
+.RE
+.PP
+A
+command
+ensemble\&.
+.RS 4n
+\fBELEMENT\fP \fIsubcommand \&.\&.\&.\fP
+.br
+.RE
+.PP
+\fBDescription\fR
+.PP
+The ensemble supports the following subcommands:
+.RS 4n
+.TP
+\fIactivate\fP
+Queries or changes the active state of graph elements\&. With no arguments, returns the names of all active elements\&. With an element name and no indices, activates the complete element\&. With one or more indices, activates only those data points and replaces the element's previous active-index selection\&.
+.TP
+\fIbind\fP
+Queries or modifies event bindings for element binding tags\&. With no arguments, returns the currently known element binding tags\&. With a tag name, returns the event sequences bound to that tag\&. With a tag and sequence, returns the corresponding binding script\&. With a command, creates or replaces the binding\&.
+.TP
+\fIcget\fP
+Returns the current value of an element configuration option\&. The available options depend on the concrete element type\&. Current value of option\&.
+.TP
+\fIclosest\fP
+Finds the visible element nearest to the specified window coordinate\&. On success, stores information in the Tcl array varName using the keys name, index, x, y, and dist\&. Searches all visible elements unless one or more element names are supplied after the options\&.
+.TP
+\fIconfigure\fP
+Queries or modifies element configuration\&. When querying, one element name is supplied\&. When setting options, multiple element names may precede the option/value pairs and the same configuration is applied to each named element\&.
+.TP
+\fIcreate\fP
+Creates a new graph element\&. GRAPHINST element create uses the widget's default element type:
+.TP
+\fIdeactivate\fP
+Clears the active state and any active-point selection for one or more elements\&.
+.TP
+\fIdelete\fP
+Deletes one or more elements and releases their associated resources, bindings, legend entries, vector references, and display-list entries\&.
+.TP
+\fIexists\fP
+Tests whether an element with the specified name exists in the graph\&.
+.TP
+\fIget\fP
+Returns the element currently selected by the graph binding machinery\&. The only supported selector is current\&. If there is no current element, the result is empty\&. Current element name or an empty result\&.
+.TP
+\fInames\fP
+Returns the names of existing graph elements\&. With no patterns, all element names are returned\&. With one or more Tcl glob patterns, an element is returned if its name matches any pattern\&. List of matching element names\&.
+.TP
+\fIshow\fP
+Queries or replaces the element display list\&. With no argument, returns the currently displayed elements in drawing order\&. With elemList, displays only the listed elements and hides all others\&. The list order determines drawing order; later elements are drawn above earlier elements\&. Unknown element names are ignored\&. An empty list hides all elements\&.
+.TP
+\fItype\fP
+Returns the concrete class of the named element\&. Current results are LineElement, BarElement, and StripElement\&. Element class name\&.
+.RE
+.PP
+Refer to the documentation of each subcommand for details\&.
+.PP
+.RS -4n
+\fBELEMENT activate\fR (::rbc)
+.RE
+.PP
+Queries or changes the active state of graph elements\&. With no arguments, returns the names of all active
+elements\&. With an element name and no indices, activates the complete element\&. With one or more indices,
+activates only those data points and replaces the element's previous active-index selection\&.
+.RS 4n
+\fBELEMENT activate\fP \fIelemName ?index \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+elemName
+Name of the element to activate\&.
+.TP
+index
+Data index to activate; may be end or a Tcl integer expression\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+List of active element names when querying; nothing when changing activation\&.
+.PP
+.RS -4n
+\fBELEMENT bind\fR (::rbc)
+.RE
+.PP
+Queries or modifies event bindings for element binding tags\&. With no arguments, returns the currently known
+element binding tags\&. With a tag name, returns the event sequences bound to that tag\&. With a tag and
+sequence, returns the corresponding binding script\&. With a command, creates or replaces the binding\&.
+.RS 4n
+\fBELEMENT bind\fP \fItagName\fP
+.br
+\fBELEMENT bind\fP \fItagName sequence\fP
+.br
+\fBELEMENT bind\fP \fItagName sequence command\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+command
+Tcl script to execute for the binding\&.
+.TP
+sequence
+Tk event sequence\&.
+.TP
+tagName
+Element name, element class, or user-defined binding tag\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Binding tags, event sequences, or a binding script when querying; nothing when setting a binding\&.
+.PP
+.RS -4n
+\fBELEMENT cget\fR (::rbc)
+.RE
+.PP
+Returns the current value of an element configuration option\&. The available options depend on the concrete
+element type\&.
+Current value of option\&.
+.RS 4n
+\fBELEMENT cget\fP \fIelemName option\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+elemName
+Name of the element\&.
+.TP
+option
+Element configuration option\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+See \fILINEELEMENT\fP for line-element options, \fISTRIPELEMENT\fP for strip-element options, and \fIBARELEMENT\fP for
+bar-element options\&.
+.PP
+\fBReturn value\fR
+.PP
+Returns the current value of an element configuration option\&. The available options depend on the concrete
+element type\&.
+Current value of option\&.
+.PP
+.RS -4n
+\fBELEMENT closest\fR (::rbc)
+.RE
+.PP
+Finds the visible element nearest to the specified window coordinate\&. On success, stores information in the
+Tcl array varName using the keys name, index, x, y, and dist\&. Searches all visible elements
+unless one or more element names are supplied after the options\&.
+.RS 4n
+\fBELEMENT closest\fP \fIx y varName ?option value \&.\&.\&.? ?--? ?elemName \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+x
+X coordinate in window coordinates\&.
+.TP
+y
+Y coordinate in window coordinates\&.
+.TP
+varName
+Name of the Tcl array in which result information is stored\&.
+.TP
+-along direction
+Measure distance along x, y, or both; the default is both\&.
+.TP
+-halo distance
+Maximum non-negative search distance in screen pixels; the graph -halo value is the default\&.
+.TP
+-interpolate boolean
+For line and strip elements, search along rendered traces instead of only data points\&.
+.TP
+elemName
+Optional element name restricting the search\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+1 if an element is found within the halo, otherwise 0\&.
+.PP
+.RS -4n
+\fBELEMENT configure\fR (::rbc)
+.RE
+.PP
+Queries or modifies element configuration\&. When querying, one element name is supplied\&. When setting options,
+multiple element names may precede the option/value pairs and the same configuration is applied to each named
+element\&.
+.RS 4n
+\fBELEMENT configure\fP \fIelemName\fP
+.br
+\fBELEMENT configure\fP \fIelemName option\fP
+.br
+\fBELEMENT configure\fP \fIelemName ?elemName \&.\&.\&.? ?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+elemName
+Name of an element to query or configure\&.
+.TP
+option
+Element configuration option\&.
+.TP
+value
+New value for the option\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+Available options depend on the concrete element type\&. See \fILINEELEMENT\fP for line-element options,
+\fISTRIPELEMENT\fP for strip-element options, and \fIBARELEMENT\fP for bar-element options\&.
+.PP
+\fBReturn value\fR
+.PP
+Configuration information when querying; nothing when setting options\&.
+.PP
+.RS -4n
+\fBELEMENT create\fR (::rbc)
+.RE
+.PP
+Creates a new graph element\&. GRAPHINST element create uses the widget's default element type:
+.RS 4n
+\fBELEMENT create\fP \fIelemName ?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+elemName
+Not documented\&.
+.RE
+.PP
+\fBDescription\fR
+.TP
+\(bu
+graph creates a line element;
+.TP
+\(bu
+barchart creates a bar element;
+.TP
+\(bu
+stripchart creates a strip element\&. GRAPHINST line create always creates a line element and GRAPHINST bar create always creates a bar element, regardless of the widget's default element type\&.
+.RS 4n
+.TP
+elemName
+Name of the new element\&.
+.TP
+option
+Element configuration option\&.
+.TP
+value
+Initial value for the option\&.
+.RE
+.PP
+See \fILINEELEMENT\fP for line-element options, \fISTRIPELEMENT\fP for strip-element options, and \fIBARELEMENT\fP for
+bar-element options\&.
+.PP
+\fBReturn value\fR
+.PP
+Name of the newly created element\&.
+.PP
+.RS -4n
+\fBELEMENT deactivate\fR (::rbc)
+.RE
+.PP
+Clears the active state and any active-point selection for one or more elements\&.
+.RS 4n
+\fBELEMENT deactivate\fP \fI?elemName \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+elemName
+Name of an element to deactivate\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBELEMENT delete\fR (::rbc)
+.RE
+.PP
+Deletes one or more elements and releases their associated resources, bindings, legend entries, vector
+references, and display-list entries\&.
+.RS 4n
+\fBELEMENT delete\fP \fI?elemName \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+elemName
+Name of an element to delete\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBELEMENT exists\fR (::rbc)
+.RE
+.PP
+Tests whether an element with the specified name exists in the graph\&.
+.RS 4n
+\fBELEMENT exists\fP \fIelemName\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+elemName
+Element name to test\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Boolean value\&.
+.PP
+.RS -4n
+\fBELEMENT get\fR (::rbc)
+.RE
+.PP
+Returns the element currently selected by the graph binding machinery\&. The only supported selector is
+current\&. If there is no current element, the result is empty\&.
+Current element name or an empty result\&.
+.RS 4n
+\fBELEMENT get\fP \fIname\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Information to retrieve; must currently be current\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the element currently selected by the graph binding machinery\&. The only supported selector is
+current\&. If there is no current element, the result is empty\&.
+Current element name or an empty result\&.
+.PP
+.RS -4n
+\fBELEMENT names\fR (::rbc)
+.RE
+.PP
+Returns the names of existing graph elements\&. With no patterns, all element names are returned\&. With one or
+more Tcl glob patterns, an element is returned if its name matches any pattern\&.
+List of matching element names\&.
+.RS 4n
+\fBELEMENT names\fP \fI?pattern \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+pattern
+Optional Tcl glob pattern used to select element names\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the names of existing graph elements\&. With no patterns, all element names are returned\&. With one or
+more Tcl glob patterns, an element is returned if its name matches any pattern\&.
+List of matching element names\&.
+.PP
+.RS -4n
+\fBELEMENT show\fR (::rbc)
+.RE
+.PP
+Queries or replaces the element display list\&. With no argument, returns the currently displayed elements in
+drawing order\&. With elemList, displays only the listed elements and hides all others\&. The list order
+determines drawing order; later elements are drawn above earlier elements\&. Unknown element names are
+ignored\&. An empty list hides all elements\&.
+.RS 4n
+\fBELEMENT show\fP \fIelemList\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+elemList
+Optional Tcl list of element names to display\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Current element display list\&.
+.PP
+.RS -4n
+\fBELEMENT type\fR (::rbc)
+.RE
+.PP
+Returns the concrete class of the named element\&. Current results are LineElement, BarElement, and
+StripElement\&.
+Element class name\&.
+.RS 4n
+\fBELEMENT type\fP \fIelemName\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+elemName
+Name of the element\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the concrete class of the named element\&. Current results are LineElement, BarElement, and
+StripElement\&.
+Element class name\&.
 .PP
 .RS -4n
 \fBgraph\fR (::rbc)
@@ -313,6 +1236,10 @@ transformed, bound to events, and mapped to graph margins\&.
 \fBParameters\fR
 .RS 4n
 .RE
+.PP
+\fBDescription\fR
+.PP
+See \fIAXIS\fP for the complete virtual-axis command and option reference\&.
 .PP
 \fBReturn value\fR
 .PP
@@ -760,6 +1687,428 @@ is the left margin\&.
 \fBReturn value\fR
 .PP
 Result of the selected margin-axis operation\&.
+.PP
+.RS -4n
+\fBMARGINAXIS\fR (::rbc)
+.RE
+.PP
+A
+command
+ensemble\&.
+.RS 4n
+\fBMARGINAXIS\fP \fIsubcommand \&.\&.\&.\fP
+.br
+.RE
+.PP
+\fBDescription\fR
+.PP
+The ensemble supports the following subcommands:
+.RS 4n
+.TP
+\fIbind\fP
+Queries or modifies event bindings for the first axis assigned to this margin\&. With no arguments, returns the event sequences currently bound to the axis\&. With a sequence, returns the corresponding binding script\&. With both a sequence and command, creates or replaces the binding\&.
+.TP
+\fIcget\fP
+Returns the current value of a configuration option for the first axis assigned to this margin\&. See \fIAXIS\fP for the complete axis option reference\&. Current value of option\&.
+.TP
+\fIconfigure\fP
+Queries or modifies configuration options of the first axis assigned to this margin\&. With no arguments, returns configuration information for all axis options\&. With one option, returns configuration information for that option\&. With option/value pairs, changes the specified options\&. See \fIAXIS\fP for the complete axis option reference\&.
+.TP
+\fIinvtransform\fP
+Converts an integer window coordinate to the corresponding graph-coordinate value using the first axis assigned to this margin\&. Axis orientation, descending direction, and logarithmic mapping are taken into account\&.
+.TP
+\fIlimits\fP
+Returns the effective displayed limits of the first axis assigned to this margin\&. Automatic scaling, explicit limits, loose-range processing, and logarithmic mapping are reflected in the result\&. Logarithmic limits are returned as ordinary positive data values rather than base-10 exponents\&. Two-element list min max\&.
+.TP
+\fItransform\fP
+Converts a graph-coordinate value to an integer window coordinate using the first axis assigned to this margin\&. value may be a Tcl numeric expression and must evaluate to a finite value\&. Values transformed through a logarithmic axis must be positive\&.
+.TP
+\fIuse\fP
+Queries or changes the ordered list of virtual axes assigned to this margin\&. With no argument, returns all currently assigned axis names\&. With axisList, replaces the current assignment with the supplied list\&. The first axis becomes the primary axis addressed by the other MARGINAXIS operations\&. Assigning an axis that is already displayed in another margin moves it to this margin\&. An empty list removes all axes\&.
+.RE
+.PP
+Refer to the documentation of each subcommand for details\&.
+.PP
+.RS -4n
+\fBMARGINAXIS bind\fR (::rbc)
+.RE
+.PP
+Queries or modifies event bindings for the first axis assigned to this margin\&. With no arguments, returns
+the event sequences currently bound to the axis\&. With a sequence, returns the corresponding binding script\&.
+With both a sequence and command, creates or replaces the binding\&.
+.RS 4n
+\fBMARGINAXIS bind\fP \fIsequence\fP
+.br
+\fBMARGINAXIS bind\fP \fIsequence command\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+command
+Tcl script to execute for the binding\&.
+.TP
+sequence
+Tk event sequence\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Event sequences or a binding script when querying; nothing when setting a binding\&.
+.PP
+.RS -4n
+\fBMARGINAXIS cget\fR (::rbc)
+.RE
+.PP
+Returns the current value of a configuration option for the first axis assigned to this margin\&. See \fIAXIS\fP
+for the complete axis option reference\&.
+Current value of option\&.
+.RS 4n
+\fBMARGINAXIS cget\fP \fIoption\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+option
+Axis configuration option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the current value of a configuration option for the first axis assigned to this margin\&. See \fIAXIS\fP
+for the complete axis option reference\&.
+Current value of option\&.
+.PP
+.RS -4n
+\fBMARGINAXIS configure\fR (::rbc)
+.RE
+.PP
+Queries or modifies configuration options of the first axis assigned to this margin\&. With no arguments,
+returns configuration information for all axis options\&. With one option, returns configuration information
+for that option\&. With option/value pairs, changes the specified options\&. See \fIAXIS\fP for the complete axis
+option reference\&.
+.RS 4n
+\fBMARGINAXIS configure\fP \fIoption\fP
+.br
+\fBMARGINAXIS configure\fP \fI?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+option
+Axis configuration option\&.
+.TP
+value
+New value for the option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Configuration information when querying; nothing when setting options\&.
+.PP
+.RS -4n
+\fBMARGINAXIS invtransform\fR (::rbc)
+.RE
+.PP
+Converts an integer window coordinate to the corresponding graph-coordinate value using the first axis
+assigned to this margin\&. Axis orientation, descending direction, and logarithmic mapping are taken into
+account\&.
+.RS 4n
+\fBMARGINAXIS invtransform\fP \fIvalue\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+value
+Integer window coordinate\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Corresponding graph-coordinate value\&.
+.PP
+.RS -4n
+\fBMARGINAXIS limits\fR (::rbc)
+.RE
+.PP
+Returns the effective displayed limits of the first axis assigned to this margin\&. Automatic scaling,
+explicit limits, loose-range processing, and logarithmic mapping are reflected in the result\&. Logarithmic
+limits are returned as ordinary positive data values rather than base-10 exponents\&.
+Two-element list min max\&.
+.RS 4n
+\fBMARGINAXIS limits\fP
+.br
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the effective displayed limits of the first axis assigned to this margin\&. Automatic scaling,
+explicit limits, loose-range processing, and logarithmic mapping are reflected in the result\&. Logarithmic
+limits are returned as ordinary positive data values rather than base-10 exponents\&.
+Two-element list min max\&.
+.PP
+.RS -4n
+\fBMARGINAXIS transform\fR (::rbc)
+.RE
+.PP
+Converts a graph-coordinate value to an integer window coordinate using the first axis assigned to this
+margin\&. value may be a Tcl numeric expression and must evaluate to a finite value\&. Values transformed
+through a logarithmic axis must be positive\&.
+.RS 4n
+\fBMARGINAXIS transform\fP \fIvalue\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+value
+Graph-coordinate value or Tcl numeric expression\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Corresponding integer window coordinate\&.
+.PP
+.RS -4n
+\fBMARGINAXIS use\fR (::rbc)
+.RE
+.PP
+Queries or changes the ordered list of virtual axes assigned to this margin\&. With no argument, returns all
+currently assigned axis names\&. With axisList, replaces the current assignment with the supplied list\&.
+The first axis becomes the primary axis addressed by the other MARGINAXIS operations\&. Assigning an axis
+that is already displayed in another margin moves it to this margin\&. An empty list removes all axes\&.
+.RS 4n
+\fBMARGINAXIS use\fP \fIaxisList\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+axisList
+Tcl list containing zero or more virtual axis names\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Ordered list of assigned axis names when querying; nothing when changing the assignment\&.
+.PP
+.RS -4n
+\fBPEN\fR (::rbc)
+.RE
+.PP
+A
+command
+ensemble\&.
+.RS 4n
+\fBPEN\fP \fIsubcommand \&.\&.\&.\fP
+.br
+.RE
+.PP
+\fBDescription\fR
+.PP
+The ensemble supports the following subcommands:
+.RS 4n
+.TP
+\fIcget\fP
+Returns the current value of a pen configuration option\&. Available options depend on whether the named pen is a line or bar pen\&. See \fIline pen options\fP and \fIbar pen options\fP\&. Current value of option\&.
+.TP
+\fIconfigure\fP
+Queries or modifies pen configuration\&. When querying, one pen name is used\&. When setting options, multiple pen names may precede the option/value pairs and the same configuration is applied to each named pen\&. All pens being configured must support the supplied options\&.
+.TP
+\fIcreate\fP
+Creates a new named pen\&. -type line creates a line pen, -type bar creates a bar pen, and -type strip creates a line pen suitable for strip elements\&. If -type is omitted, the graph widget's default element type determines the pen type\&. See \fIline pen options\fP and \fIbar pen options\fP\&.
+.TP
+\fIdelete\fP
+Deletes one or more named pens\&. If a pen is still referenced by an element, destruction is deferred until its final reference is released\&. The deleted pen name immediately stops being available for new references\&.
+.TP
+\fInames\fP
+Returns names of existing pens\&. With one or more Tcl glob patterns, a pen is returned when its name matches any pattern\&. Pens pending deletion are not returned\&. List of matching pen names\&.
+.TP
+\fItype\fP
+Returns the concrete class of the named pen\&. Line and strip pens return LineElement; bar pens return BarElement\&. This reports the actual pen implementation and is independent of the textual creation-time -type representation\&. LineElement or BarElement\&.
+.RE
+.PP
+Refer to the documentation of each subcommand for details\&.
+.PP
+.RS -4n
+\fBPEN cget\fR (::rbc)
+.RE
+.PP
+Returns the current value of a pen configuration option\&. Available options depend on whether the named pen is
+a line or bar pen\&. See \fIline pen options\fP and \fIbar pen options\fP\&.
+Current value of option\&.
+.RS 4n
+\fBPEN cget\fP \fIpenName option\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+penName
+Name of the pen\&.
+.TP
+option
+Pen configuration option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the current value of a pen configuration option\&. Available options depend on whether the named pen is
+a line or bar pen\&. See \fIline pen options\fP and \fIbar pen options\fP\&.
+Current value of option\&.
+.PP
+.RS -4n
+\fBPEN configure\fR (::rbc)
+.RE
+.PP
+Queries or modifies pen configuration\&. When querying, one pen name is used\&. When setting options, multiple
+pen names may precede the option/value pairs and the same configuration is applied to each named pen\&. All
+pens being configured must support the supplied options\&.
+.RS 4n
+\fBPEN configure\fP \fIpenName\fP
+.br
+\fBPEN configure\fP \fIpenName option\fP
+.br
+\fBPEN configure\fP \fIpenName ?penName \&.\&.\&.? ?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.RE
+.PP
+\fBDescription\fR
+.PP
+See \fIline pen options\fP and \fIbar pen options\fP for the complete option
+references\&.
+.RS 4n
+.TP
+penName
+Name of a pen to query or configure\&.
+.TP
+option
+Pen configuration option\&.
+.TP
+value
+New value for the option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Configuration information when querying; nothing when setting options\&.
+.PP
+.RS -4n
+\fBPEN create\fR (::rbc)
+.RE
+.PP
+Creates a new named pen\&. -type line creates a line pen, -type bar creates a bar pen, and -type strip
+creates a line pen suitable for strip elements\&. If -type is omitted, the graph widget's default element
+type determines the pen type\&. See \fIline pen options\fP and \fIbar pen options\fP\&.
+.RS 4n
+\fBPEN create\fP \fIpenName ?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+penName
+Unique name of the new pen\&.
+.TP
+option
+Initial pen configuration option\&.
+.TP
+value
+Initial value for the option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Name of the newly created pen\&.
+.PP
+.RS -4n
+\fBPEN delete\fR (::rbc)
+.RE
+.PP
+Deletes one or more named pens\&. If a pen is still referenced by an element, destruction is deferred until
+its final reference is released\&. The deleted pen name immediately stops being available for new references\&.
+.RS 4n
+\fBPEN delete\fP \fI?penName \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+penName
+Name of a pen to delete\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBPEN names\fR (::rbc)
+.RE
+.PP
+Returns names of existing pens\&. With one or more Tcl glob patterns, a pen is returned when its name matches
+any pattern\&. Pens pending deletion are not returned\&.
+List of matching pen names\&.
+.RS 4n
+\fBPEN names\fP \fI?pattern \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+pattern
+Optional Tcl glob pattern used to select pen names\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns names of existing pens\&. With one or more Tcl glob patterns, a pen is returned when its name matches
+any pattern\&. Pens pending deletion are not returned\&.
+List of matching pen names\&.
+.PP
+.RS -4n
+\fBPEN type\fR (::rbc)
+.RE
+.PP
+Returns the concrete class of the named pen\&. Line and strip pens return LineElement; bar pens return
+BarElement\&. This reports the actual pen implementation and is independent of the textual creation-time
+-type representation\&.
+LineElement or BarElement\&.
+.RS 4n
+\fBPEN type\fP \fIpenName\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+penName
+Name of the pen\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the concrete class of the named pen\&. Line and strip pens return LineElement; bar pens return
+BarElement\&. This reports the actual pen implementation and is independent of the textual creation-time
+-type representation\&.
+LineElement or BarElement\&.
 .PP
 .RS -4n
 \fBspline\fR (::rbc)

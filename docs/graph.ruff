@@ -104,7 +104,6 @@ namespace eval ::rbc::GRAPHINST {
         These component interfaces are documented separately.
 
         ## Coordinate systems
-
         Graph widgets use two coordinate systems:
 
         * **graph coordinates** are the numeric data values represented by the axes
@@ -117,7 +116,6 @@ namespace eval ::rbc::GRAPHINST {
         value using a particular axis, use that axis's `transform` or `invtransform` operation.
 
         ## Widget options
-
         The following options configure the graph widget itself. They are shared by `graph`, `barchart`, and
         `stripchart` and may be specified when the widget is created or modified later with `GRAPHINST configure`.
 
@@ -167,7 +165,6 @@ namespace eval ::rbc::GRAPHINST {
         | `-width distance`            | Specifies the requested width of the graph widget. The default is `5i`.                                                                                                                                                                                                             |
 
         ### Bar modes
-
         The `-barmode` option determines how bars from different elements are arranged when they use the same X
         coordinate.
 
@@ -180,7 +177,6 @@ namespace eval ::rbc::GRAPHINST {
         | `overlap` | Places bars side by side with a small overlap.          |
 
         For example:
-
         ```tcl
         barchart .b
         .b configure -barmode stacked
@@ -190,12 +186,10 @@ namespace eval ::rbc::GRAPHINST {
         in the graph.
 
         ### Margins
-
         The graph has four margins surrounding the plotting area. Their sizes are normally calculated automatically
         from axes, axis titles, tick labels, the graph title, and the legend.
 
         The margin options:
-
         ```text
         -bottommargin
         -leftmargin
@@ -207,7 +201,6 @@ namespace eval ::rbc::GRAPHINST {
         restores automatic sizing.
 
         The corresponding options:
-
         ```text
         -bottomvariable
         -leftvariable
@@ -219,7 +212,6 @@ namespace eval ::rbc::GRAPHINST {
         size of each configured margin to the specified global Tcl variable.
 
         For example:
-
         ```tcl
         graph .g -leftvariable leftSize -bottomvariable bottomSize
 
@@ -231,7 +223,6 @@ namespace eval ::rbc::GRAPHINST {
         ```
 
         ### Plotting area
-
         The outer graph background and the plotting-area background are configured independently.
 
         ```tcl
@@ -244,30 +235,25 @@ namespace eval ::rbc::GRAPHINST {
 
         `-plotpadx` and `-plotpady` add space immediately around the plotting surface. Each option accepts either one
         distance:
-
         ```tcl
         .g configure -plotpadx 10
         ```
 
         or two distances for the two sides:
-
         ```tcl
         .g configure -plotpadx {5 15}
         .g configure -plotpady {10 20}
         ```
 
         ### Aspect ratio
-
         A positive `-aspect` value constrains the plotting area to a requested width-to-height ratio.
 
         For example:
-
         ```tcl
         .g configure -aspect 1.0
         ```
 
         requests a square plotting area, while:
-
         ```tcl
         .g configure -aspect 1.5
         ```
@@ -278,7 +264,6 @@ namespace eval ::rbc::GRAPHINST {
         enlarge the widget. Set `-aspect` to `0` to disable the constraint.
 
         ### Buffering
-
         Two separate buffering mechanisms are available.
 
         `-buffergraph` controls double-buffering of the complete widget. With double-buffering enabled, Rbc renders the
@@ -294,18 +279,15 @@ namespace eval ::rbc::GRAPHINST {
         a cache that cannot be reused.
 
         For example:
-
         ```tcl
         .g configure -buffergraph yes -bufferelements no
         ```
 
         ### Application data
-
         The `-data` option is an application-defined storage slot. Rbc stores the supplied value but does not interpret
         it in the C graph implementation.
 
         For example:
-
         ```tcl
         .g configure -data [dict create source simulation1 quantity voltage]
 
@@ -319,6 +301,8 @@ namespace eval ::rbc::GRAPHINST {
     proc axis {args} {
         # Performs an operation on the graph's virtual axes. Virtual axes can be created, deleted, configured,
         # transformed, bound to events, and mapped to graph margins.
+        #
+        # See [AXIS] for the complete virtual-axis command and option reference.
         # Returns: Result of the selected axis operation.
         # Synopsis: operation ?args ...?
     }
