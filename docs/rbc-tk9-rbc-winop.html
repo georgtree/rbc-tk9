@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>winop command &#8212; rbc  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Winop image WINOPIMAGE command" href="rbc-tk9-rbc-WINOPIMAGE.html" />
+    <link rel="prev" title="Spline interpolation" href="rbc-tk9-rbc-spline.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-WINOPIMAGE.html" title="Winop image WINOPIMAGE command"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-spline.html" title="Spline interpolation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="docutils literal notranslate"><span class="pre">winop</span></code> command</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="winop-command">
+<span id="r-winop-command"></span><span id="r-60winop6020command"></span><span id="r-3a3arbc3a3awinop"></span><h1><code class="docutils literal notranslate"><span class="pre">winop</span></code> command<a class="headerlink" href="#winop-command" title="Link to this heading">¶</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">::rbc::winop</span></code> command provides low-level Tk window operations and photo-image processing operations.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>winop<span class="w"> </span>query
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>winop<span class="w"> </span>raise<span class="w"> </span>.top
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>winop<span class="w"> </span>snap<span class="w"> </span>.g<span class="w"> </span>snapshot
+</pre></div>
+</div>
+<p>Some operations manipulate native windows more directly than the normal Tk commands. They are primarily useful
+when ordinary Tk window-management operations are not sufficient.</p>
+<p><code class="docutils literal notranslate"><span class="pre">winop</span></code> also contains image-processing operations for Tk photo images:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">image</span><span class="w"> </span>create<span class="w"> </span>photo<span class="w"> </span>source<span class="w"> </span><span class="o">-</span>file<span class="w"> </span>input.png
+<span class="nv">image</span><span class="w"> </span>create<span class="w"> </span>photo<span class="w"> </span>result
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>winop<span class="w"> </span>convolve<span class="w"> </span>source<span class="w"> </span>result<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="k">}</span>
+</pre></div>
+</div>
+<section id="command-layout">
+<span id="r-rbc-winop-command-layout"></span><span id="r-3a3arbc3a3awinopqzcommand20layout"></span><h2>Command layout<a class="headerlink" href="#command-layout" title="Link to this heading">¶</a></h2>
+<p>The current interface contains both direct image operations and an <code class="docutils literal notranslate"><span class="pre">image</span></code> subgroup.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Operation</p></th>
+<th class="head"><p>Direct form</p></th>
+<th class="head"><p><code class="docutils literal notranslate"><span class="pre">image</span></code> form</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>convolve</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">::rbc::winop</span> <span class="pre">convolve</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">::rbc::winop</span> <span class="pre">image</span> <span class="pre">convolve</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>gradient</p></td>
+<td><p>—</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">::rbc::winop</span> <span class="pre">image</span> <span class="pre">gradient</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>quantize</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">::rbc::winop</span> <span class="pre">quantize</span></code></p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-odd"><td><p>readjpeg</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">::rbc::winop</span> <span class="pre">readjpeg</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">::rbc::winop</span> <span class="pre">image</span> <span class="pre">readjpeg</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>resample</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">::rbc::winop</span> <span class="pre">resample</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">::rbc::winop</span> <span class="pre">image</span> <span class="pre">resample</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>rotate</p></td>
+<td><p>—</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">::rbc::winop</span> <span class="pre">image</span> <span class="pre">rotate</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>snap</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">::rbc::winop</span> <span class="pre">snap</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">::rbc::winop</span> <span class="pre">image</span> <span class="pre">snap</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>subsample</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">::rbc::winop</span> <span class="pre">subsample</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">::rbc::winop</span> <span class="pre">image</span> <span class="pre">subsample</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span></code> is used below as a placeholder for:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>winop<span class="w"> </span>image
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="rbc-tk9-rbc-WINOPIMAGE.html#r-3a3arbc3a3awinopimage"><span class="std std-ref">WINOPIMAGE</span></a> for the grouped image operations.</p>
+</section>
+<section id="window-operations">
+<span id="r-rbc-winop-window-operations"></span><span id="r-3a3arbc3a3awinopqzwindow20operations"></span><h2>Window operations<a class="headerlink" href="#window-operations" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">winop</span></code> can map, unmap, raise, lower, move, and capture Tk windows.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">toplevel</span><span class="w"> </span>.top
+
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>winop<span class="w"> </span>move<span class="w"> </span>.top<span class="w"> </span><span class="mi">100</span><span class="w"> </span><span class="mi">100</span>
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>winop<span class="w"> </span>raise<span class="w"> </span>.top
+</pre></div>
+</div>
+<p>Tk path names are the portable form of window identifier and should normally be used.</p>
+<p>Some low-level operations also accept integer native or X-style window identifiers. Such identifiers are
+platform dependent and should not be used by portable Tcl scripts.</p>
+<section id="mapping-and-stacking">
+<span id="r-rbc-winop-mapping-and-stacking"></span><span id="r-3a3arbc3a3awinopqzmapping20and20stacking"></span><h3>Mapping and stacking<a class="headerlink" href="#mapping-and-stacking" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">lower</span></code> and <code class="docutils literal notranslate"><span class="pre">raise</span></code> alter the stacking order of one or more Tk windows:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>winop<span class="w"> </span>raise<span class="w"> </span>.top
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>winop<span class="w"> </span>lower<span class="w"> </span>.other
+</pre></div>
+</div>
+<p>Multiple windows may be supplied:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>winop<span class="w"> </span>raise<span class="w"> </span>.one<span class="w"> </span>.two<span class="w"> </span>.three
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">map</span></code> and <code class="docutils literal notranslate"><span class="pre">unmap</span></code> directly map or unmap windows through the underlying window system:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>winop<span class="w"> </span>map<span class="w"> </span>.top
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>winop<span class="w"> </span>unmap<span class="w"> </span>.top
+</pre></div>
+</div>
+<p>These are low-level operations. Normal Tk applications should generally prefer Tk’s standard window and window
+manager commands when those provide the required behavior.</p>
+</section>
+<section id="pointer-position">
+<span id="r-rbc-winop-pointer-position"></span><span id="r-3a3arbc3a3awinopqzpointer20position"></span><h3>Pointer position<a class="headerlink" href="#pointer-position" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">query</span></code> returns the current pointer position in root-screen coordinates:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>position<span class="w"> </span><span class="k">[</span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>winop<span class="w"> </span>query<span class="k">]</span>
+
+<span class="c"># for example:</span>
+<span class="c"># @821,417</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">warpto</span></code> can move the pointer either to an explicit root-screen coordinate:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>winop<span class="w"> </span>warpto<span class="w"> </span>@100,200
+</pre></div>
+</div>
+<p>or to the center of a mapped Tk window:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>winop<span class="w"> </span>warpto<span class="w"> </span>.g
+</pre></div>
+</div>
+<p>In all forms, <code class="docutils literal notranslate"><span class="pre">warpto</span></code> returns the resulting pointer position in the same <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code> form as <code class="docutils literal notranslate"><span class="pre">query</span></code>.</p>
+<p>With no argument, <code class="docutils literal notranslate"><span class="pre">warpto</span></code> does not move the pointer and is equivalent to querying its current position:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>position<span class="w"> </span><span class="k">[</span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>winop<span class="w"> </span>warpto<span class="k">]</span>
+</pre></div>
+</div>
+<p>Pointer warping is generally most useful for testing or specialized interfaces where explicitly repositioning
+the pointer is required.</p>
+</section>
+</section>
+<section id="window-snapshots">
+<span id="r-rbc-winop-window-snapshots"></span><span id="r-3a3arbc3a3awinopqzwindow20snapshots"></span><h2>Window snapshots<a class="headerlink" href="#window-snapshots" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">snap</span></code> captures a window into an existing Tk photo image.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">image</span><span class="w"> </span>create<span class="w"> </span>photo<span class="w"> </span>snapshot
+
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>winop<span class="w"> </span>snap<span class="w"> </span>.g<span class="w"> </span>snapshot
+</pre></div>
+</div>
+<p>The destination photo must already exist.</p>
+<p>An optional output width and height may be supplied:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>winop<span class="w"> </span>snap<span class="w"> </span>.g<span class="w"> </span>snapshot<span class="w"> </span><span class="mi">640</span><span class="w"> </span><span class="mi">480</span>
+</pre></div>
+</div>
+<p>The dimensions are positive Tk screen distances. If a dimension is omitted, the corresponding source-window
+dimension is used.</p>
+<p>The captured image is resampled when its requested size differs from the source window.</p>
+<p>Capturing requires the underlying native window contents to be available. The operation may fail when the
+window cannot be grabbed, for example when the platform cannot provide the requested window pixels.</p>
+</section>
+<section id="photo-image-operations">
+<span id="r-rbc-winop-photo-image-operations"></span><span id="r-3a3arbc3a3awinopqzphoto2dimage20operations"></span><h2>Photo-image operations<a class="headerlink" href="#photo-image-operations" title="Link to this heading">¶</a></h2>
+<p>Image-processing operations operate on existing Tk photo images.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">image</span><span class="w"> </span>create<span class="w"> </span>photo<span class="w"> </span>source<span class="w"> </span><span class="o">-</span>file<span class="w"> </span>input.png
+<span class="nv">image</span><span class="w"> </span>create<span class="w"> </span>photo<span class="w"> </span>destination
+</pre></div>
+</div>
+<p>Unless stated otherwise, source and destination arguments must name Tk photo images rather than arbitrary Tk
+image types.</p>
+<section id="convolution">
+<span id="r-rbc-winop-convolution"></span><span id="r-3a3arbc3a3awinopqzconvolution"></span><h3>Convolution<a class="headerlink" href="#convolution" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">convolve</span></code> applies a two-dimensional convolution kernel.</p>
+<p>The kernel is a Tcl list containing a square number of finite numeric values:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>winop<span class="w"> </span>convolve<span class="w"> </span>source<span class="w"> </span>destination<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="k">}</span>
+</pre></div>
+</div>
+<p>The kernel above performs a simple averaging blur because the convolution result is normalized by the sum of
+the kernel values.</p>
+<p>A kernel must contain <code class="docutils literal notranslate"><span class="pre">n*n</span></code> values for some positive integer <code class="docutils literal notranslate"><span class="pre">n</span></code>. An empty or non-square kernel is rejected.</p>
+<p>Source-edge pixels are extended when the kernel reaches outside the image boundaries.</p>
+<p>The source and destination may name the same photo image.</p>
+</section>
+<section id="color-quantization">
+<span id="r-rbc-winop-color-quantization"></span><span id="r-3a3arbc3a3awinopqzcolor20quantization"></span><h3>Color quantization<a class="headerlink" href="#color-quantization" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">quantize</span></code> reduces the number of colors in a photo image:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">image</span><span class="w"> </span>create<span class="w"> </span>photo<span class="w"> </span>reduced
+
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>winop<span class="w"> </span>quantize<span class="w"> </span>source<span class="w"> </span>reduced<span class="w"> </span><span class="mi">16</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">nColors</span></code> must be between <code class="docutils literal notranslate"><span class="pre">1</span></code> and <code class="docutils literal notranslate"><span class="pre">256</span></code>. If omitted, it defaults to <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p>
+<p>The destination photo is resized to match the source when necessary.</p>
+</section>
+<section id="jpeg-input">
+<span id="r-rbc-winop-jpeg-input"></span><span id="r-3a3arbc3a3awinopqzjpeg20input"></span><h3>JPEG input<a class="headerlink" href="#jpeg-input" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">readjpeg</span></code> reads a JPEG file into an existing Tk photo:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">image</span><span class="w"> </span>create<span class="w"> </span>photo<span class="w"> </span>picture
+
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>winop<span class="w"> </span>readjpeg<span class="w"> </span>image.jpg<span class="w"> </span>picture
+</pre></div>
+</div>
+<p>JPEG support is optional at build time. If Rbc was built without JPEG support, the operation returns an error.</p>
+<p>Tk’s normal image facilities or an image extension may be preferable when they already provide the required
+JPEG support.</p>
+</section>
+<section id="image-resampling">
+<span id="r-rbc-winop-image-resampling"></span><span id="r-3a3arbc3a3awinopqzimage20resampling"></span><h3>Image resampling<a class="headerlink" href="#image-resampling" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">resample</span></code> copies or resizes one photo image into another.</p>
+<p>To request a particular output size, first create or resize the destination photo to that size:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">image</span><span class="w"> </span>create<span class="w"> </span>photo<span class="w"> </span>source<span class="w"> </span><span class="o">-</span>file<span class="w"> </span>input.png
+<span class="nv">image</span><span class="w"> </span>create<span class="w"> </span>photo<span class="w"> </span>small<span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">320</span><span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">200</span>
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>winop<span class="w"> </span>resample<span class="w"> </span>source<span class="w"> </span>small<span class="w"> </span>lanczos3
+</pre></div>
+</div>
+<p>If the destination has the same size as the source, the image is copied without resampling.</p>
+<p>If either destination dimension is <code class="docutils literal notranslate"><span class="pre">1</span></code> or less, the destination is resized to the source dimensions and the
+source is copied.</p>
+<p>One horizontal and one vertical filter may be supplied:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>winop<span class="w"> </span>resample<span class="w"> </span>source<span class="w"> </span>destination<span class="w"> </span>lanczos3<span class="w"> </span>gaussian
+</pre></div>
+</div>
+<p>With only one filter, the same filter is used horizontally and vertically.</p>
+<p>If no filter is specified, <code class="docutils literal notranslate"><span class="pre">none</span></code> is used.</p>
+<p>The available filters are:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Filter</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bell</span></code></p></td>
+<td><p>Bell filter</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">bessel</span></code></p></td>
+<td><p>Bessel filter</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">box</span></code></p></td>
+<td><p>Box filter</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">bspline</span></code></p></td>
+<td><p>B-spline filter</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">catrom</span></code></p></td>
+<td><p>Catmull-Rom filter</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">default</span></code></p></td>
+<td><p>Rbc default resampling filter</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dummy</span></code></p></td>
+<td><p>Dummy filter</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">gauss8</span></code></p></td>
+<td><p>Wide Gaussian filter</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gaussian</span></code></p></td>
+<td><p>Gaussian filter</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">gi</span></code></p></td>
+<td><p>Gaussian-integral approximation</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">lanczos3</span></code></p></td>
+<td><p>Lanczos-3 filter</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mitchell</span></code></p></td>
+<td><p>Mitchell filter</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">none</span></code></p></td>
+<td><p>Performs resizing without a resampling filter</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sinc</span></code></p></td>
+<td><p>Sinc filter</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">triangle</span></code></p></td>
+<td><p>Triangle filter</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="subsampling">
+<span id="r-rbc-winop-subsampling"></span><span id="r-3a3arbc3a3awinopqzsubsampling"></span><h3>Subsampling<a class="headerlink" href="#subsampling" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">subsample</span></code> extracts a rectangular region of a source photo and optionally resamples it into a destination
+photo.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">image</span><span class="w"> </span>create<span class="w"> </span>photo<span class="w"> </span>crop<span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">200</span><span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">100</span>
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>winop<span class="w"> </span>subsample<span class="w"> </span>source<span class="w"> </span>crop<span class="w"> </span><span class="mi">50</span><span class="w"> </span><span class="mi">40</span><span class="w"> </span><span class="mi">400</span><span class="w"> </span><span class="mi">200</span><span class="w"> </span>lanczos3
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> specify the upper-left source position and must be non-negative. <code class="docutils literal notranslate"><span class="pre">width</span></code> and <code class="docutils literal notranslate"><span class="pre">height</span></code> specify a
+positive source-region size.</p>
+<p>The complete requested region must lie inside the source photo.</p>
+<p>If either destination dimension is <code class="docutils literal notranslate"><span class="pre">1</span></code> or less, the destination is resized to the dimensions of the selected
+source region.</p>
+<p>As with <code class="docutils literal notranslate"><span class="pre">resample</span></code>, separate horizontal and vertical filters may be supplied. If only one is supplied it is
+used in both directions.</p>
+<p>The default filter for <code class="docutils literal notranslate"><span class="pre">subsample</span></code> is <code class="docutils literal notranslate"><span class="pre">box</span></code>.</p>
+</section>
+</section>
+<section id="platform-differences">
+<span id="r-rbc-winop-platform-differences"></span><span id="r-3a3arbc3a3awinopqzplatform20differences"></span><h2>Platform differences<a class="headerlink" href="#platform-differences" title="Link to this heading">¶</a></h2>
+<p>Most <code class="docutils literal notranslate"><span class="pre">winop</span></code> operations are available on all supported platforms through Tk’s platform drawing interfaces.</p>
+<p><code class="docutils literal notranslate"><span class="pre">colormap</span></code> is available only on non-Windows builds. It is a legacy X11-oriented operation that examines the
+colormap associated with a Tk window.</p>
+<p>JPEG availability is also build dependent.</p>
+<hr class="docutils" />
+<p class="centered">
+<strong>Copyright (c) George Yashin</strong></p></section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">winop</span></code> command</a><ul>
+<li><a class="reference internal" href="#command-layout">Command layout</a></li>
+<li><a class="reference internal" href="#window-operations">Window operations</a><ul>
+<li><a class="reference internal" href="#mapping-and-stacking">Mapping and stacking</a></li>
+<li><a class="reference internal" href="#pointer-position">Pointer position</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#window-snapshots">Window snapshots</a></li>
+<li><a class="reference internal" href="#photo-image-operations">Photo-image operations</a><ul>
+<li><a class="reference internal" href="#convolution">Convolution</a></li>
+<li><a class="reference internal" href="#color-quantization">Color quantization</a></li>
+<li><a class="reference internal" href="#jpeg-input">JPEG input</a></li>
+<li><a class="reference internal" href="#image-resampling">Image resampling</a></li>
+<li><a class="reference internal" href="#subsampling">Subsampling</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#platform-differences">Platform differences</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rbc-tk9-rbc-spline.html"
+                          title="previous chapter">Spline interpolation</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rbc-tk9-rbc-WINOPIMAGE.html"
+                          title="next chapter">Winop image <code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span></code> command</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rbc-tk9-rbc-winop.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-WINOPIMAGE.html" title="Winop image WINOPIMAGE command"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-spline.html" title="Spline interpolation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="docutils literal notranslate"><span class="pre">winop</span></code> command</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright George Yashin.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    </div>
+  </body>
+</html>

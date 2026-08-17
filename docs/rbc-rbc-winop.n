@@ -1,0 +1,328 @@
+'\"
+'\" '\" Copyright (c) George Yashin
+'\"
+.TH "rbc::winop" 3tcl 0\&.5\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.SH NAME
+rbc::winop - Commands in namespace rbc::winop
+.SH "WINOP COMMAND"
+.PP
+The ::rbc::winop command provides low-level Tk window operations and photo-image processing operations\&.
+.PP
+.RS 4n
+.nf
+::rbc::winop query
+::rbc::winop raise \&.top
+::rbc::winop snap \&.g snapshot
+.fi
+.RE
+.PP
+Some operations manipulate native windows more directly than the normal Tk commands\&. They are primarily useful
+when ordinary Tk window-management operations are not sufficient\&.
+.PP
+winop also contains image-processing operations for Tk photo images:
+.PP
+.RS 4n
+.nf
+image create photo source -file input\&.png
+image create photo result
+::rbc::winop convolve source result {1 1 1 1 1 1 1 1 1}
+.fi
+.RE
+.SH "COMMAND LAYOUT"
+.PP
+The current interface contains both direct image operations and an image subgroup\&.
+.TS
+tab(|) box;
+l l l.
+Operation | Direct form | image form
+_
+convolve | ::rbc::winop convolve | ::rbc::winop image convolve
+gradient | — | ::rbc::winop image gradient
+quantize | ::rbc::winop quantize | —
+readjpeg | ::rbc::winop readjpeg | ::rbc::winop image readjpeg
+resample | ::rbc::winop resample | ::rbc::winop image resample
+rotate | — | ::rbc::winop image rotate
+snap | ::rbc::winop snap | ::rbc::winop image snap
+subsample | ::rbc::winop subsample | ::rbc::winop image subsample
+.TE
+.PP
+WINOPIMAGE is used below as a placeholder for:
+.PP
+.RS 4n
+.nf
+::rbc::winop image
+.fi
+.RE
+.PP
+See \fIWINOPIMAGE\fP for the grouped image operations\&.
+.SH "WINDOW OPERATIONS"
+.PP
+winop can map, unmap, raise, lower, move, and capture Tk windows\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+toplevel \&.top
+
+::rbc::winop move \&.top 100 100
+::rbc::winop raise \&.top
+.fi
+.RE
+.PP
+Tk path names are the portable form of window identifier and should normally be used\&.
+.PP
+Some low-level operations also accept integer native or X-style window identifiers\&. Such identifiers are
+platform dependent and should not be used by portable Tcl scripts\&.
+.SS "MAPPING AND STACKING"
+.PP
+lower and raise alter the stacking order of one or more Tk windows:
+.PP
+.RS 4n
+.nf
+::rbc::winop raise \&.top
+::rbc::winop lower \&.other
+.fi
+.RE
+.PP
+Multiple windows may be supplied:
+.PP
+.RS 4n
+.nf
+::rbc::winop raise \&.one \&.two \&.three
+.fi
+.RE
+.PP
+map and unmap directly map or unmap windows through the underlying window system:
+.PP
+.RS 4n
+.nf
+::rbc::winop map \&.top
+::rbc::winop unmap \&.top
+.fi
+.RE
+.PP
+These are low-level operations\&. Normal Tk applications should generally prefer Tk's standard window and window
+manager commands when those provide the required behavior\&.
+.SS "POINTER POSITION"
+.PP
+query returns the current pointer position in root-screen coordinates:
+.PP
+.RS 4n
+.nf
+set position [::rbc::winop query]
+
+# for example:
+# @821,417
+.fi
+.RE
+.PP
+warpto can move the pointer either to an explicit root-screen coordinate:
+.PP
+.RS 4n
+.nf
+::rbc::winop warpto @100,200
+.fi
+.RE
+.PP
+or to the center of a mapped Tk window:
+.PP
+.RS 4n
+.nf
+::rbc::winop warpto \&.g
+.fi
+.RE
+.PP
+In all forms, warpto returns the resulting pointer position in the same @x,y form as query\&.
+.PP
+With no argument, warpto does not move the pointer and is equivalent to querying its current position:
+.PP
+.RS 4n
+.nf
+set position [::rbc::winop warpto]
+.fi
+.RE
+.PP
+Pointer warping is generally most useful for testing or specialized interfaces where explicitly repositioning
+the pointer is required\&.
+.SH "WINDOW SNAPSHOTS"
+.PP
+snap captures a window into an existing Tk photo image\&.
+.PP
+.RS 4n
+.nf
+image create photo snapshot
+
+::rbc::winop snap \&.g snapshot
+.fi
+.RE
+.PP
+The destination photo must already exist\&.
+.PP
+An optional output width and height may be supplied:
+.PP
+.RS 4n
+.nf
+::rbc::winop snap \&.g snapshot 640 480
+.fi
+.RE
+.PP
+The dimensions are positive Tk screen distances\&. If a dimension is omitted, the corresponding source-window
+dimension is used\&.
+.PP
+The captured image is resampled when its requested size differs from the source window\&.
+.PP
+Capturing requires the underlying native window contents to be available\&. The operation may fail when the
+window cannot be grabbed, for example when the platform cannot provide the requested window pixels\&.
+.SH "PHOTO-IMAGE OPERATIONS"
+.PP
+Image-processing operations operate on existing Tk photo images\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+image create photo source -file input\&.png
+image create photo destination
+.fi
+.RE
+.PP
+Unless stated otherwise, source and destination arguments must name Tk photo images rather than arbitrary Tk
+image types\&.
+.SS CONVOLUTION
+.PP
+convolve applies a two-dimensional convolution kernel\&.
+.PP
+The kernel is a Tcl list containing a square number of finite numeric values:
+.PP
+.RS 4n
+.nf
+::rbc::winop convolve source destination {1 1 1 1 1 1 1 1 1}
+.fi
+.RE
+.PP
+The kernel above performs a simple averaging blur because the convolution result is normalized by the sum of
+the kernel values\&.
+.PP
+A kernel must contain n*n values for some positive integer n\&. An empty or non-square kernel is rejected\&.
+.PP
+Source-edge pixels are extended when the kernel reaches outside the image boundaries\&.
+.PP
+The source and destination may name the same photo image\&.
+.SS "COLOR QUANTIZATION"
+.PP
+quantize reduces the number of colors in a photo image:
+.PP
+.RS 4n
+.nf
+image create photo reduced
+
+::rbc::winop quantize source reduced 16
+.fi
+.RE
+.PP
+nColors must be between 1 and 256\&. If omitted, it defaults to 1\&.
+.PP
+The destination photo is resized to match the source when necessary\&.
+.SS "JPEG INPUT"
+.PP
+readjpeg reads a JPEG file into an existing Tk photo:
+.PP
+.RS 4n
+.nf
+image create photo picture
+
+::rbc::winop readjpeg image\&.jpg picture
+.fi
+.RE
+.PP
+JPEG support is optional at build time\&. If Rbc was built without JPEG support, the operation returns an error\&.
+.PP
+Tk's normal image facilities or an image extension may be preferable when they already provide the required
+JPEG support\&.
+.SS "IMAGE RESAMPLING"
+.PP
+resample copies or resizes one photo image into another\&.
+.PP
+To request a particular output size, first create or resize the destination photo to that size:
+.PP
+.RS 4n
+.nf
+image create photo source -file input\&.png
+image create photo small -width 320 -height 200
+::rbc::winop resample source small lanczos3
+.fi
+.RE
+.PP
+If the destination has the same size as the source, the image is copied without resampling\&.
+.PP
+If either destination dimension is 1 or less, the destination is resized to the source dimensions and the
+source is copied\&.
+.PP
+One horizontal and one vertical filter may be supplied:
+.PP
+.RS 4n
+.nf
+::rbc::winop resample source destination lanczos3 gaussian
+.fi
+.RE
+.PP
+With only one filter, the same filter is used horizontally and vertically\&.
+.PP
+If no filter is specified, none is used\&.
+.PP
+The available filters are:
+.TS
+tab(|) box;
+l l.
+Filter | Description
+_
+bell | Bell filter
+bessel | Bessel filter
+box | Box filter
+bspline | B-spline filter
+catrom | Catmull-Rom filter
+default | Rbc default resampling filter
+dummy | Dummy filter
+gauss8 | Wide Gaussian filter
+gaussian | Gaussian filter
+gi | Gaussian-integral approximation
+lanczos3 | Lanczos-3 filter
+mitchell | Mitchell filter
+none | Performs resizing without a resampling filter
+sinc | Sinc filter
+triangle | Triangle filter
+.TE
+.SS SUBSAMPLING
+.PP
+subsample extracts a rectangular region of a source photo and optionally resamples it into a destination
+photo\&.
+.PP
+.RS 4n
+.nf
+image create photo crop -width 200 -height 100
+::rbc::winop subsample source crop 50 40 400 200 lanczos3
+.fi
+.RE
+.PP
+x and y specify the upper-left source position and must be non-negative\&. width and height specify a
+positive source-region size\&.
+.PP
+The complete requested region must lie inside the source photo\&.
+.PP
+If either destination dimension is 1 or less, the destination is resized to the dimensions of the selected
+source region\&.
+.PP
+As with resample, separate horizontal and vertical filters may be supplied\&. If only one is supplied it is
+used in both directions\&.
+.PP
+The default filter for subsample is box\&.
+.SH "PLATFORM DIFFERENCES"
+.PP
+Most winop operations are available on all supported platforms through Tk's platform drawing interfaces\&.
+.PP
+colormap is available only on non-Windows builds\&. It is a legacy X11-oriented operation that examines the
+colormap associated with a Tk window\&.
+.PP
+JPEG availability is also build dependent\&.
+

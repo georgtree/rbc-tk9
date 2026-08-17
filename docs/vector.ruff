@@ -188,7 +188,6 @@ namespace eval ::rbc::VECINST {
         ```
 
         ### Scalars and vectors
-
         A numeric scalar is treated as a single value. When one operand is a scalar and the other is a vector, the 
         scalar operation is applied to every component of the vector.
 

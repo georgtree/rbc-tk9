@@ -1,0 +1,580 @@
+namespace eval ::rbc::winop {
+    variable _ruff_ns_opts {
+        -heading {`winop` command}
+        -excludeprocs {.*}
+    }
+
+    variable _ruff_preamble {
+        The `::rbc::winop` command provides low-level Tk window operations and photo-image processing operations.
+
+        ```tcl
+        ::rbc::winop query
+        ::rbc::winop raise .top
+        ::rbc::winop snap .g snapshot
+        ```
+
+        Some operations manipulate native windows more directly than the normal Tk commands. They are primarily useful
+        when ordinary Tk window-management operations are not sufficient.
+
+        `winop` also contains image-processing operations for Tk photo images:
+
+        ```tcl
+        image create photo source -file input.png
+        image create photo result
+        ::rbc::winop convolve source result {1 1 1 1 1 1 1 1 1}
+        ```
+
+        ## Command layout
+        The current interface contains both direct image operations and an `image` subgroup.
+
+        | Operation | Direct form | `image` form |
+        | --- | --- | --- |
+        | convolve | `::rbc::winop convolve` | `::rbc::winop image convolve` |
+        | gradient | — | `::rbc::winop image gradient` |
+        | quantize | `::rbc::winop quantize` | — |
+        | readjpeg | `::rbc::winop readjpeg` | `::rbc::winop image readjpeg` |
+        | resample | `::rbc::winop resample` | `::rbc::winop image resample` |
+        | rotate | — | `::rbc::winop image rotate` |
+        | snap | `::rbc::winop snap` | `::rbc::winop image snap` |
+        | subsample | `::rbc::winop subsample` | `::rbc::winop image subsample` |
+
+        `WINOPIMAGE` is used below as a placeholder for:
+        ```tcl
+        ::rbc::winop image
+        ```
+
+        See [WINOPIMAGE] for the grouped image operations.
+
+        ## Window operations
+        `winop` can map, unmap, raise, lower, move, and capture Tk windows.
+
+        For example:
+        ```tcl
+        toplevel .top
+
+        ::rbc::winop move .top 100 100
+        ::rbc::winop raise .top
+        ```
+
+        Tk path names are the portable form of window identifier and should normally be used.
+
+        Some low-level operations also accept integer native or X-style window identifiers. Such identifiers are
+        platform dependent and should not be used by portable Tcl scripts.
+
+        ### Mapping and stacking
+        `lower` and `raise` alter the stacking order of one or more Tk windows:
+        ```tcl
+        ::rbc::winop raise .top
+        ::rbc::winop lower .other
+        ```
+
+        Multiple windows may be supplied:
+        ```tcl
+        ::rbc::winop raise .one .two .three
+        ```
+
+        `map` and `unmap` directly map or unmap windows through the underlying window system:
+        ```tcl
+        ::rbc::winop map .top
+        ::rbc::winop unmap .top
+        ```
+
+        These are low-level operations. Normal Tk applications should generally prefer Tk's standard window and window
+        manager commands when those provide the required behavior.
+
+        ### Pointer position
+        `query` returns the current pointer position in root-screen coordinates:
+        ```tcl
+        set position [::rbc::winop query]
+
+        # for example:
+        # @821,417
+        ```
+
+        `warpto` can move the pointer either to an explicit root-screen coordinate:
+        ```tcl
+        ::rbc::winop warpto @100,200
+        ```
+
+        or to the center of a mapped Tk window:
+        ```tcl
+        ::rbc::winop warpto .g
+        ```
+
+        In all forms, `warpto` returns the resulting pointer position in the same `@x,y` form as `query`.
+
+        With no argument, `warpto` does not move the pointer and is equivalent to querying its current position:
+        ```tcl
+        set position [::rbc::winop warpto]
+        ```
+
+        Pointer warping is generally most useful for testing or specialized interfaces where explicitly repositioning
+        the pointer is required.
+
+        ## Window snapshots
+        `snap` captures a window into an existing Tk photo image.
+
+        ```tcl
+        image create photo snapshot
+
+        ::rbc::winop snap .g snapshot
+        ```
+
+        The destination photo must already exist.
+
+        An optional output width and height may be supplied:
+        ```tcl
+        ::rbc::winop snap .g snapshot 640 480
+        ```
+
+        The dimensions are positive Tk screen distances. If a dimension is omitted, the corresponding source-window
+        dimension is used.
+
+        The captured image is resampled when its requested size differs from the source window.
+
+        Capturing requires the underlying native window contents to be available. The operation may fail when the
+        window cannot be grabbed, for example when the platform cannot provide the requested window pixels.
+
+        ## Photo-image operations
+        Image-processing operations operate on existing Tk photo images.
+
+        For example:
+        ```tcl
+        image create photo source -file input.png
+        image create photo destination
+        ```
+
+        Unless stated otherwise, source and destination arguments must name Tk photo images rather than arbitrary Tk
+        image types.
+
+        ### Convolution
+
+        `convolve` applies a two-dimensional convolution kernel.
+
+        The kernel is a Tcl list containing a square number of finite numeric values:
+        ```tcl
+        ::rbc::winop convolve source destination {1 1 1 1 1 1 1 1 1}
+        ```
+
+        The kernel above performs a simple averaging blur because the convolution result is normalized by the sum of
+        the kernel values.
+
+        A kernel must contain `n*n` values for some positive integer `n`. An empty or non-square kernel is rejected.
+
+        Source-edge pixels are extended when the kernel reaches outside the image boundaries.
+
+        The source and destination may name the same photo image.
+
+        ### Color quantization
+        `quantize` reduces the number of colors in a photo image:
+
+        ```tcl
+        image create photo reduced
+
+        ::rbc::winop quantize source reduced 16
+        ```
+
+        `nColors` must be between `1` and `256`. If omitted, it defaults to `1`.
+
+        The destination photo is resized to match the source when necessary.
+
+        ### JPEG input
+        `readjpeg` reads a JPEG file into an existing Tk photo:
+
+        ```tcl
+        image create photo picture
+
+        ::rbc::winop readjpeg image.jpg picture
+        ```
+
+        JPEG support is optional at build time. If Rbc was built without JPEG support, the operation returns an error.
+
+        Tk's normal image facilities or an image extension may be preferable when they already provide the required
+        JPEG support.
+
+        ### Image resampling
+        `resample` copies or resizes one photo image into another.
+
+        To request a particular output size, first create or resize the destination photo to that size:
+
+        ```tcl
+        image create photo source -file input.png
+        image create photo small -width 320 -height 200
+        ::rbc::winop resample source small lanczos3
+        ```
+
+        If the destination has the same size as the source, the image is copied without resampling.
+
+        If either destination dimension is `1` or less, the destination is resized to the source dimensions and the
+        source is copied.
+
+        One horizontal and one vertical filter may be supplied:
+        ```tcl
+        ::rbc::winop resample source destination lanczos3 gaussian
+        ```
+
+        With only one filter, the same filter is used horizontally and vertically.
+
+        If no filter is specified, `none` is used.
+
+        The available filters are:
+
+        | Filter | Description |
+        | --- | --- |
+        | `bell` | Bell filter |
+        | `bessel` | Bessel filter |
+        | `box` | Box filter |
+        | `bspline` | B-spline filter |
+        | `catrom` | Catmull-Rom filter |
+        | `default` | Rbc default resampling filter |
+        | `dummy` | Dummy filter |
+        | `gauss8` | Wide Gaussian filter |
+        | `gaussian` | Gaussian filter |
+        | `gi` | Gaussian-integral approximation |
+        | `lanczos3` | Lanczos-3 filter |
+        | `mitchell` | Mitchell filter |
+        | `none` | Performs resizing without a resampling filter |
+        | `sinc` | Sinc filter |
+        | `triangle` | Triangle filter |
+
+        ### Subsampling
+        `subsample` extracts a rectangular region of a source photo and optionally resamples it into a destination
+        photo.
+
+        ```tcl
+        image create photo crop -width 200 -height 100
+        ::rbc::winop subsample source crop 50 40 400 200 lanczos3
+        ```
+
+        `x` and `y` specify the upper-left source position and must be non-negative. `width` and `height` specify a
+        positive source-region size.
+
+        The complete requested region must lie inside the source photo.
+
+        If either destination dimension is `1` or less, the destination is resized to the dimensions of the selected
+        source region.
+
+        As with `resample`, separate horizontal and vertical filters may be supplied. If only one is supplied it is
+        used in both directions.
+
+        The default filter for `subsample` is `box`.
+
+        ## Platform differences
+        Most `winop` operations are available on all supported platforms through Tk's platform drawing interfaces.
+
+        `colormap` is available only on non-Windows builds. It is a legacy X11-oriented operation that examines the
+        colormap associated with a Tk window.
+
+        JPEG availability is also build dependent.
+    }
+
+    proc changes {window} {
+        # Realizes a Tk window if necessary. For a toplevel window, also requests backing-store and save-under
+        # attributes from the underlying window system.
+        # window - path name of the Tk window.
+        # Returns: Nothing.
+        # Synopsis: window
+    }
+
+    proc colormap {window} {
+        # Returns information about color cells in the colormap associated with a Tk window. This operation is
+        # available only on non-Windows builds and examines up to 256 colormap entries.
+        # window - path name of the Tk window.
+        # Returns: A flat list of color and pixel-value pairs in the form `color pixel color pixel ...`.
+        # Synopsis: window
+    }
+
+    proc convolve {srcPhoto destPhoto filter} {
+        # Applies a two-dimensional convolution kernel to a Tk photo image. `filter` must be a non-empty square list
+        # of finite numeric values. The output has the same dimensions as the source photo. The source and destination
+        # may be the same image.
+        # srcPhoto - source Tk photo image.
+        # destPhoto - destination Tk photo image.
+        # filter - square list of convolution-kernel values.
+        # Returns: Nothing.
+        # Synopsis: srcPhoto destPhoto filter
+    }
+
+    proc image {args} {
+        # Dispatches grouped image-processing operations. See [WINOPIMAGE] for the available subcommands.
+        # subcommand - image operation.
+        # Returns: Result of the selected image operation.
+        # Synopsis: subcommand ?arg ...?
+    }
+
+    proc lower {args} {
+        # Lowers one or more Tk windows to the bottom of their stacking order. Supplying no window names has no
+        # effect.
+        # window - path name of a Tk window.
+        # Returns: Nothing.
+        # Synopsis: ?window ...?
+    }
+
+    proc map {args} {
+        # Maps one or more windows through the underlying window system. Tk path names are the portable form of window
+        # identifier. Supplying no windows has no effect.
+        # window - window to map.
+        # Returns: Nothing.
+        # Synopsis: ?window ...?
+    }
+
+    proc move {window x y} {
+        # Moves a Tk window to the specified coordinates using Tk's window-moving operation. `x` and `y` are parsed as
+        # Tk screen distances.
+        # window - path name of the Tk window.
+        # x - new horizontal position.
+        # y - new vertical position.
+        # Returns: Nothing.
+        # Synopsis: window x y
+    }
+
+    proc quantize {srcPhoto destPhoto args} {
+        # Reduces the number of colors in a Tk photo image. `nColors` must be between `1` and `256`. If omitted it
+        # defaults to `1`. The destination is resized to the source dimensions when necessary.
+        # srcPhoto - source Tk photo image.
+        # destPhoto - destination Tk photo image.
+        # nColors - optional maximum number of colors.
+        # Returns: Nothing.
+        # Synopsis: srcPhoto destPhoto ?nColors?
+    }
+
+    proc query {} {
+        # Returns the current pointer location in root-screen coordinates.
+        # Returns: Pointer position in the form `@x,y`, or an empty result if the underlying pointer query fails.
+        # Synopsis:
+    }
+
+    proc raise {args} {
+        # Raises one or more Tk windows to the top of their stacking order. Supplying no window names has no effect.
+        # window - path name of a Tk window.
+        # Returns: Nothing.
+        # Synopsis: ?window ...?
+    }
+
+    proc readjpeg {fileName photoName} {
+        # Reads a JPEG file into an existing Tk photo image. The operation returns an error if JPEG support was not
+        # compiled into Rbc.
+        # fileName - JPEG file to read.
+        # photoName - destination Tk photo image.
+        # Returns: Nothing.
+        # Synopsis: fileName photoName
+    }
+
+    proc resample {srcPhoto destPhoto args} {
+        # Copies or resamples a source photo into a destination photo. The destination's existing dimensions determine
+        # the requested output size. One filter is used in both directions; two filters independently select horizontal
+        # and vertical filtering. With no filter, `none` is used. See [Image resampling][Image resampling].
+        # srcPhoto - source Tk photo image.
+        # destPhoto - destination Tk photo image.
+        # horzFilter - optional horizontal resampling filter.
+        # vertFilter - optional vertical resampling filter.
+        # Returns: Nothing.
+        # Synopsis: srcPhoto destPhoto ?horzFilter? ?vertFilter?
+    }
+
+    proc snap {window photoName args} {
+        # Captures a window into an existing Tk photo image. Optional positive width and height values request a
+        # resampled output size. If either dimension is omitted, the corresponding window dimension is used.
+        # window - window to capture.
+        # photoName - destination Tk photo image.
+        # width - optional positive output width.
+        # height - optional positive output height.
+        # Returns: Nothing.
+        # Synopsis: window photoName ?width? ?height?
+    }
+
+    proc subsample {srcPhoto destPhoto x y width height args} {
+        # Extracts a rectangular source region and copies or resamples it into a destination photo. `x` and `y` must
+        # be non-negative, while `width` and `height` must be positive. The region must lie completely inside the
+        # source image. The default filter is `box`. See [Subsampling][Subsampling].
+        # srcPhoto - source Tk photo image.
+        # destPhoto - destination Tk photo image.
+        # x - horizontal source-region origin.
+        # y - vertical source-region origin.
+        # width - source-region width.
+        # height - source-region height.
+        # horzFilter - optional horizontal resampling filter.
+        # vertFilter - optional vertical resampling filter.
+        # Returns: Nothing.
+        # Synopsis: srcPhoto destPhoto x y width height ?horzFilter? ?vertFilter?
+    }
+
+    proc unmap {args} {
+        # Unmaps one or more windows through the underlying window system. Tk path names are the portable form of
+        # window identifier. Supplying no windows has no effect.
+        # window - window to unmap.
+        # Returns: Nothing.
+        # Synopsis: ?window ...?
+    }
+
+    proc warpto {args} {
+        # Queries or changes the pointer position. With no argument, returns the current root-screen position. An
+        # `@x,y` argument moves the pointer to those root-screen coordinates. A Tk window pathname moves the pointer to
+        # the center of that window, which must be mapped. The resulting pointer position is returned.
+        # window - optional mapped Tk window pathname or root-screen position of the form `@x,y`.
+        # Returns: Current pointer position in the form `@x,y`.
+        # Synopsis: ?window?
+    }
+
+    namespace export *
+    namespace ensemble create
+}
+
+
+namespace eval ::rbc::WINOPIMAGE {
+    variable _ruff_ns_opts {
+        -heading {Winop image `WINOPIMAGE` command}
+        -excludeprocs {.*}
+    }
+
+    variable _ruff_preamble {
+        Commands in this namespace document the image subgroup of [winop].
+
+        `WINOPIMAGE` is used below as a placeholder for:
+
+        ```tcl
+        ::rbc::winop image
+        ```
+
+        For example:
+        ```tcl
+        image create photo source -file input.png
+        image create photo rotated
+
+        ::rbc::winop image rotate source rotated 30
+        ```
+
+        The current subgroup provides:
+        ```text
+        convolve
+        gradient
+        readjpeg
+        resample
+        rotate
+        snap
+        subsample
+        ```
+
+        Several of these also have direct `::rbc::winop` forms. `gradient` and `rotate` are currently available only
+        through the `image` subgroup.
+
+        `quantize`, conversely, is currently a direct [winop] operation and is not part of `WINOPIMAGE`.
+
+        ## Gradients
+        `WINOPIMAGE gradient` writes a generated gradient into an existing Tk photo image. The photo's current width
+        and height determine the output dimensions.
+
+        ```tcl
+        image create photo background -width 640 -height 480
+
+        ::rbc::winop image gradient background navy white radial
+        ```
+
+        The supported gradient types are:
+
+        | Type | Description |
+        | --- | --- |
+        | `linear` | Generates the built-in linear gradient form. |
+        | `radial` | Generates a gradient based on distance from the image center. |
+        | `rectangular` | Generates the built-in rectangular gradient form. |
+        | `blank` | Fills the image with opaque white. |
+
+        The `left` and `right` arguments must be valid Tk colors.
+
+        ## Rotation
+        `WINOPIMAGE rotate` rotates a source photo by a finite angle in degrees and writes the result to a destination
+        photo:
+        ```tcl
+        image create photo rotated
+
+        ::rbc::winop image rotate source rotated 45
+        ```
+
+        The angle is evaluated as a Tcl numeric expression:
+        ```tcl
+        ::rbc::winop image rotate source rotated {360.0 / 8.0}
+        ```
+
+        Angles are normalized modulo 360 degrees. The destination photo is resized to contain the rotated image.
+    }
+
+    proc convolve {srcPhoto destPhoto filter} {
+        # Applies a two-dimensional convolution kernel to a Tk photo image. This is the grouped form of
+        # [::rbc::winop::convolve].
+        # srcPhoto - source Tk photo image.
+        # destPhoto - destination Tk photo image.
+        # filter - square list of convolution-kernel values.
+        # Returns: Nothing.
+        # Synopsis: srcPhoto destPhoto filter
+    }
+
+    proc gradient {photo left right type} {
+        # Generates a gradient directly into an existing Tk photo image. `left` and `right` are Tk colors. `type` may
+        # be `linear`, `radial`, `rectangular`, or `blank`. The current dimensions of `photo` determine the generated
+        # image size.
+        # photo - Tk photo image to modify.
+        # left - first gradient color.
+        # right - second gradient color.
+        # type - gradient type.
+        # Returns: Nothing.
+        # Synopsis: photo left right type
+    }
+
+    proc readjpeg {fileName photoName} {
+        # Reads a JPEG file into an existing Tk photo image. This is the grouped form of
+        # [::rbc::winop::readjpeg].
+        # fileName - JPEG file to read.
+        # photoName - destination Tk photo image.
+        # Returns: Nothing.
+        # Synopsis: fileName photoName
+    }
+
+    proc resample {srcPhoto destPhoto args} {
+        # Copies or resamples a source photo into a destination photo. This is the grouped form of
+        # [::rbc::winop::resample].
+        # srcPhoto - source Tk photo image.
+        # destPhoto - destination Tk photo image.
+        # horzFilter - optional horizontal resampling filter.
+        # vertFilter - optional vertical resampling filter.
+        # Returns: Nothing.
+        # Synopsis: srcPhoto destPhoto ?horzFilter? ?vertFilter?
+    }
+
+    proc rotate {srcPhoto destPhoto angle} {
+        # Rotates a Tk photo image by a finite angle expressed in degrees. `angle` may be a Tcl numeric expression. The
+        # destination photo is resized to contain the rotated result.
+        # srcPhoto - source Tk photo image.
+        # destPhoto - destination Tk photo image.
+        # angle - rotation angle in degrees.
+        # Returns: Nothing.
+        # Synopsis: srcPhoto destPhoto angle
+    }
+
+    proc snap {window photoName args} {
+        # Captures a window into an existing Tk photo image. This is the grouped form of [::rbc::winop::snap].
+        # window - window to capture.
+        # photoName - destination Tk photo image.
+        # width - optional positive output width.
+        # height - optional positive output height.
+        # Returns: Nothing.
+        # Synopsis: window photoName ?width? ?height?
+    }
+
+    proc subsample {srcPhoto destPhoto x y width height args} {
+        # Extracts and optionally resamples a rectangular region of a source photo. This is the grouped form of
+        # [::rbc::winop::subsample].
+        # srcPhoto - source Tk photo image.
+        # destPhoto - destination Tk photo image.
+        # x - horizontal source-region origin.
+        # y - vertical source-region origin.
+        # width - source-region width.
+        # height - source-region height.
+        # horzFilter - optional horizontal resampling filter.
+        # vertFilter - optional vertical resampling filter.
+        # Returns: Nothing.
+        # Synopsis: srcPhoto destPhoto x y width height ?horzFilter? ?vertFilter?
+    }
+
+    namespace export *
+    namespace ensemble create
+}

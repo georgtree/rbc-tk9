@@ -9,6 +9,7 @@ source [file join $docDir graph.ruff]
 source [file join $docDir graphShared.ruff]
 source [file join $docDir vector.ruff]
 source [file join $docDir spline.ruff]
+source [file join $docDir winop.ruff]
 
 set packageVersion [package versions rbc]
 puts $packageVersion
@@ -26,7 +27,7 @@ set commonNroff [list -title $title -sortnamespaces false -preamble $startPage -
 set namespaces [list ::TclTk9Upgrade ::rbc ::rbc::GRAPHINST ::rbc::AXIS ::rbc::MARGINAXIS ::rbc::ELEMENT\
                         ::rbc::LINEELEMENT ::rbc::STRIPELEMENT ::rbc::BARELEMENT ::rbc::PEN ::rbc::MARKER\
                         ::rbc::LEGEND ::rbc::GRID ::rbc::CROSSHAIRS ::rbc::POSTSCRIPT\
-                        ::rbc::vector ::rbc::VECINST ::rbc::spline]
+                        ::rbc::vector ::rbc::VECINST ::rbc::spline ::rbc::winop ::rbc::WINOPIMAGE]
 
 ruff::document $namespaces -format sphinx -outfile rbc-tk9.rst -outdir [file join $docDir sphinx] {*}$commonSphinx
 ruff::document $namespaces -format nroff -outdir $docDir -outfile rbc.n {*}$commonNroff

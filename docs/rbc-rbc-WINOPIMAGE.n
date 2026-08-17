@@ -1,0 +1,96 @@
+'\"
+'\" '\" Copyright (c) George Yashin
+'\"
+.TH "rbc::WINOPIMAGE" 3tcl 0\&.5\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.SH NAME
+rbc::WINOPIMAGE - Commands in namespace rbc::WINOPIMAGE
+.SH "WINOP IMAGE WINOPIMAGE COMMAND"
+.PP
+Commands in this namespace document the image subgroup of \fIwinop\fP\&.
+.PP
+WINOPIMAGE is used below as a placeholder for:
+.PP
+.RS 4n
+.nf
+::rbc::winop image
+.fi
+.RE
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+image create photo source -file input\&.png
+image create photo rotated
+
+::rbc::winop image rotate source rotated 30
+.fi
+.RE
+.PP
+The current subgroup provides:
+.PP
+.RS 4n
+.nf
+convolve
+gradient
+readjpeg
+resample
+rotate
+snap
+subsample
+.fi
+.RE
+.PP
+Several of these also have direct ::rbc::winop forms\&. gradient and rotate are currently available only
+through the image subgroup\&.
+.PP
+quantize, conversely, is currently a direct \fIwinop\fP operation and is not part of WINOPIMAGE\&.
+.SH GRADIENTS
+.PP
+WINOPIMAGE gradient writes a generated gradient into an existing Tk photo image\&. The photo's current width
+and height determine the output dimensions\&.
+.PP
+.RS 4n
+.nf
+image create photo background -width 640 -height 480
+
+::rbc::winop image gradient background navy white radial
+.fi
+.RE
+.PP
+The supported gradient types are:
+.TS
+tab(|) box;
+l l.
+Type | Description
+_
+linear | Generates the built-in linear gradient form\&.
+radial | Generates a gradient based on distance from the image center\&.
+rectangular | Generates the built-in rectangular gradient form\&.
+blank | Fills the image with opaque white\&.
+.TE
+.PP
+The left and right arguments must be valid Tk colors\&.
+.SH ROTATION
+.PP
+WINOPIMAGE rotate rotates a source photo by a finite angle in degrees and writes the result to a destination
+photo:
+.PP
+.RS 4n
+.nf
+image create photo rotated
+
+::rbc::winop image rotate source rotated 45
+.fi
+.RE
+.PP
+The angle is evaluated as a Tcl numeric expression:
+.PP
+.RS 4n
+.nf
+::rbc::winop image rotate source rotated {360\&.0 / 8\&.0}
+.fi
+.RE
+.PP
+Angles are normalized modulo 360 degrees\&. The destination photo is resized to contain the rotated image\&.
+

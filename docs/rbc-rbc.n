@@ -313,6 +313,56 @@ rbc - Commands in namespace rbc
 .br
 \fBvector names\fP \fIpattern\fP
 .br
+\fBwinop\fP \fIsubcommand \&.\&.\&.\fP
+.br
+\fBwinop changes\fP \fIwindow\fP
+.br
+\fBwinop colormap\fP \fIwindow\fP
+.br
+\fBwinop convolve\fP \fIsrcPhoto destPhoto filter\fP
+.br
+\fBwinop image\fP \fIsubcommand ?arg \&.\&.\&.?\fP
+.br
+\fBwinop lower\fP \fI?window \&.\&.\&.?\fP
+.br
+\fBwinop map\fP \fI?window \&.\&.\&.?\fP
+.br
+\fBwinop move\fP \fIwindow x y\fP
+.br
+\fBwinop quantize\fP \fIsrcPhoto destPhoto ?nColors?\fP
+.br
+\fBwinop query\fP
+.br
+\fBwinop raise\fP \fI?window \&.\&.\&.?\fP
+.br
+\fBwinop readjpeg\fP \fIfileName photoName\fP
+.br
+\fBwinop resample\fP \fIsrcPhoto destPhoto ?horzFilter? ?vertFilter?\fP
+.br
+\fBwinop snap\fP \fIwindow photoName ?width? ?height?\fP
+.br
+\fBwinop subsample\fP \fIsrcPhoto destPhoto x y width height ?horzFilter? ?vertFilter?\fP
+.br
+\fBwinop unmap\fP \fI?window \&.\&.\&.?\fP
+.br
+\fBwinop warpto\fP \fI?window?\fP
+.br
+\fBWINOPIMAGE\fP \fIsubcommand \&.\&.\&.\fP
+.br
+\fBWINOPIMAGE convolve\fP \fIsrcPhoto destPhoto filter\fP
+.br
+\fBWINOPIMAGE gradient\fP \fIphoto left right type\fP
+.br
+\fBWINOPIMAGE readjpeg\fP \fIfileName photoName\fP
+.br
+\fBWINOPIMAGE resample\fP \fIsrcPhoto destPhoto ?horzFilter? ?vertFilter?\fP
+.br
+\fBWINOPIMAGE rotate\fP \fIsrcPhoto destPhoto angle\fP
+.br
+\fBWINOPIMAGE snap\fP \fIwindow photoName ?width? ?height?\fP
+.br
+\fBWINOPIMAGE subsample\fP \fIsrcPhoto destPhoto x y width height ?horzFilter? ?vertFilter?\fP
+.br
 .SH ::RBC
 .SH COMMANDS
 .PP
@@ -4117,4 +4167,741 @@ Optional Tcl glob pattern\&.
 Returns the names of existing vectors\&. If pattern is supplied, only vector names matching the Tcl glob
 pattern are returned\&.
 A list of vector names\&.
+.PP
+.RS -4n
+\fBwinop\fR (::rbc)
+.RE
+.PP
+A
+command
+ensemble\&.
+.RS 4n
+\fBwinop\fP \fIsubcommand \&.\&.\&.\fP
+.br
+.RE
+.PP
+\fBDescription\fR
+.PP
+The ensemble supports the following subcommands:
+.RS 4n
+.TP
+\fIchanges\fP
+Realizes a Tk window if necessary\&. For a toplevel window, also requests backing-store and save-under attributes from the underlying window system\&.
+.TP
+\fIcolormap\fP
+Returns information about color cells in the colormap associated with a Tk window\&. This operation is available only on non-Windows builds and examines up to 256 colormap entries\&. A flat list of color and pixel-value pairs in the form color pixel color pixel \&.\&.\&.\&.
+.TP
+\fIconvolve\fP
+Applies a two-dimensional convolution kernel to a Tk photo image\&. filter must be a non-empty square list of finite numeric values\&. The output has the same dimensions as the source photo\&. The source and destination may be the same image\&.
+.TP
+\fIimage\fP
+Dispatches grouped image-processing operations\&. See \fIWINOPIMAGE\fP for the available subcommands\&.
+.TP
+\fIlower\fP
+Lowers one or more Tk windows to the bottom of their stacking order\&. Supplying no window names has no effect\&.
+.TP
+\fImap\fP
+Maps one or more windows through the underlying window system\&. Tk path names are the portable form of window identifier\&. Supplying no windows has no effect\&.
+.TP
+\fImove\fP
+Moves a Tk window to the specified coordinates using Tk's window-moving operation\&. x and y are parsed as Tk screen distances\&.
+.TP
+\fIquantize\fP
+Reduces the number of colors in a Tk photo image\&. nColors must be between 1 and 256\&. If omitted it defaults to 1\&. The destination is resized to the source dimensions when necessary\&.
+.TP
+\fIquery\fP
+Returns the current pointer location in root-screen coordinates\&. Pointer position in the form @x,y, or an empty result if the underlying pointer query fails\&.
+.TP
+\fIraise\fP
+Raises one or more Tk windows to the top of their stacking order\&. Supplying no window names has no effect\&.
+.TP
+\fIreadjpeg\fP
+Reads a JPEG file into an existing Tk photo image\&. The operation returns an error if JPEG support was not compiled into Rbc\&.
+.TP
+\fIresample\fP
+Copies or resamples a source photo into a destination photo\&. The destination's existing dimensions determine the requested output size\&. One filter is used in both directions; two filters independently select horizontal and vertical filtering\&. With no filter, none is used\&. See \fIImage resampling\fP\&.
+.TP
+\fIsnap\fP
+Captures a window into an existing Tk photo image\&. Optional positive width and height values request a resampled output size\&. If either dimension is omitted, the corresponding window dimension is used\&.
+.TP
+\fIsubsample\fP
+Extracts a rectangular source region and copies or resamples it into a destination photo\&. x and y must be non-negative, while width and height must be positive\&. The region must lie completely inside the source image\&. The default filter is box\&. See \fISubsampling\fP\&.
+.TP
+\fIunmap\fP
+Unmaps one or more windows through the underlying window system\&. Tk path names are the portable form of window identifier\&. Supplying no windows has no effect\&.
+.TP
+\fIwarpto\fP
+Queries or changes the pointer position\&. With no argument, returns the current root-screen position\&. An @x,y argument moves the pointer to those root-screen coordinates\&. A Tk window pathname moves the pointer to the center of that window, which must be mapped\&. The resulting pointer position is returned\&.
+.RE
+.PP
+Refer to the documentation of each subcommand for details\&.
+.PP
+.RS -4n
+\fBwinop changes\fR (::rbc)
+.RE
+.PP
+Realizes a Tk window if necessary\&. For a toplevel window, also requests backing-store and save-under
+attributes from the underlying window system\&.
+.RS 4n
+\fBwinop changes\fP \fIwindow\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+window
+Path name of the Tk window\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBwinop colormap\fR (::rbc)
+.RE
+.PP
+Returns information about color cells in the colormap associated with a Tk window\&. This operation is
+available only on non-Windows builds and examines up to 256 colormap entries\&.
+A flat list of color and pixel-value pairs in the form color pixel color pixel \&.\&.\&.\&.
+.RS 4n
+\fBwinop colormap\fP \fIwindow\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+window
+Path name of the Tk window\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns information about color cells in the colormap associated with a Tk window\&. This operation is
+available only on non-Windows builds and examines up to 256 colormap entries\&.
+A flat list of color and pixel-value pairs in the form color pixel color pixel \&.\&.\&.\&.
+.PP
+.RS -4n
+\fBwinop convolve\fR (::rbc)
+.RE
+.PP
+Applies a two-dimensional convolution kernel to a Tk photo image\&. filter must be a non-empty square list
+of finite numeric values\&. The output has the same dimensions as the source photo\&. The source and destination
+may be the same image\&.
+.RS 4n
+\fBwinop convolve\fP \fIsrcPhoto destPhoto filter\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+srcPhoto
+Source Tk photo image\&.
+.TP
+destPhoto
+Destination Tk photo image\&.
+.TP
+filter
+Square list of convolution-kernel values\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBwinop image\fR (::rbc)
+.RE
+.PP
+Dispatches grouped image-processing operations\&. See \fIWINOPIMAGE\fP for the available subcommands\&.
+.RS 4n
+\fBwinop image\fP \fIsubcommand ?arg \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+subcommand
+Image operation\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Result of the selected image operation\&.
+.PP
+.RS -4n
+\fBwinop lower\fR (::rbc)
+.RE
+.PP
+Lowers one or more Tk windows to the bottom of their stacking order\&. Supplying no window names has no
+effect\&.
+.RS 4n
+\fBwinop lower\fP \fI?window \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+window
+Path name of a Tk window\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBwinop map\fR (::rbc)
+.RE
+.PP
+Maps one or more windows through the underlying window system\&. Tk path names are the portable form of window
+identifier\&. Supplying no windows has no effect\&.
+.RS 4n
+\fBwinop map\fP \fI?window \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+window
+Window to map\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBwinop move\fR (::rbc)
+.RE
+.PP
+Moves a Tk window to the specified coordinates using Tk's window-moving operation\&. x and y are parsed as
+Tk screen distances\&.
+.RS 4n
+\fBwinop move\fP \fIwindow x y\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+window
+Path name of the Tk window\&.
+.TP
+x
+New horizontal position\&.
+.TP
+y
+New vertical position\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBwinop quantize\fR (::rbc)
+.RE
+.PP
+Reduces the number of colors in a Tk photo image\&. nColors must be between 1 and 256\&. If omitted it
+defaults to 1\&. The destination is resized to the source dimensions when necessary\&.
+.RS 4n
+\fBwinop quantize\fP \fIsrcPhoto destPhoto ?nColors?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+srcPhoto
+Source Tk photo image\&.
+.TP
+destPhoto
+Destination Tk photo image\&.
+.TP
+nColors
+Optional maximum number of colors\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBwinop query\fR (::rbc)
+.RE
+.PP
+Returns the current pointer location in root-screen coordinates\&.
+Pointer position in the form @x,y, or an empty result if the underlying pointer query fails\&.
+.RS 4n
+\fBwinop query\fP
+.br
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the current pointer location in root-screen coordinates\&.
+Pointer position in the form @x,y, or an empty result if the underlying pointer query fails\&.
+.PP
+.RS -4n
+\fBwinop raise\fR (::rbc)
+.RE
+.PP
+Raises one or more Tk windows to the top of their stacking order\&. Supplying no window names has no effect\&.
+.RS 4n
+\fBwinop raise\fP \fI?window \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+window
+Path name of a Tk window\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBwinop readjpeg\fR (::rbc)
+.RE
+.PP
+Reads a JPEG file into an existing Tk photo image\&. The operation returns an error if JPEG support was not
+compiled into Rbc\&.
+.RS 4n
+\fBwinop readjpeg\fP \fIfileName photoName\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+fileName
+JPEG file to read\&.
+.TP
+photoName
+Destination Tk photo image\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBwinop resample\fR (::rbc)
+.RE
+.PP
+Copies or resamples a source photo into a destination photo\&. The destination's existing dimensions determine
+the requested output size\&. One filter is used in both directions; two filters independently select horizontal
+and vertical filtering\&. With no filter, none is used\&. See \fIImage resampling\fP\&.
+.RS 4n
+\fBwinop resample\fP \fIsrcPhoto destPhoto ?horzFilter? ?vertFilter?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+srcPhoto
+Source Tk photo image\&.
+.TP
+destPhoto
+Destination Tk photo image\&.
+.TP
+horzFilter
+Optional horizontal resampling filter\&.
+.TP
+vertFilter
+Optional vertical resampling filter\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBwinop snap\fR (::rbc)
+.RE
+.PP
+Captures a window into an existing Tk photo image\&. Optional positive width and height values request a
+resampled output size\&. If either dimension is omitted, the corresponding window dimension is used\&.
+.RS 4n
+\fBwinop snap\fP \fIwindow photoName ?width? ?height?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+window
+Window to capture\&.
+.TP
+photoName
+Destination Tk photo image\&.
+.TP
+height
+Optional positive output height\&.
+.TP
+width
+Optional positive output width\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBwinop subsample\fR (::rbc)
+.RE
+.PP
+Extracts a rectangular source region and copies or resamples it into a destination photo\&. x and y must
+be non-negative, while width and height must be positive\&. The region must lie completely inside the
+source image\&. The default filter is box\&. See \fISubsampling\fP\&.
+.RS 4n
+\fBwinop subsample\fP \fIsrcPhoto destPhoto x y width height ?horzFilter? ?vertFilter?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+srcPhoto
+Source Tk photo image\&.
+.TP
+destPhoto
+Destination Tk photo image\&.
+.TP
+x
+Horizontal source-region origin\&.
+.TP
+y
+Vertical source-region origin\&.
+.TP
+width
+Source-region width\&.
+.TP
+height
+Source-region height\&.
+.TP
+horzFilter
+Optional horizontal resampling filter\&.
+.TP
+vertFilter
+Optional vertical resampling filter\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBwinop unmap\fR (::rbc)
+.RE
+.PP
+Unmaps one or more windows through the underlying window system\&. Tk path names are the portable form of
+window identifier\&. Supplying no windows has no effect\&.
+.RS 4n
+\fBwinop unmap\fP \fI?window \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+window
+Window to unmap\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBwinop warpto\fR (::rbc)
+.RE
+.PP
+Queries or changes the pointer position\&. With no argument, returns the current root-screen position\&. An
+@x,y argument moves the pointer to those root-screen coordinates\&. A Tk window pathname moves the pointer to
+the center of that window, which must be mapped\&. The resulting pointer position is returned\&.
+.RS 4n
+\fBwinop warpto\fP \fI?window?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+window
+Optional mapped Tk window pathname or root-screen position of the form @x,y\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Current pointer position in the form @x,y\&.
+.PP
+.RS -4n
+\fBWINOPIMAGE\fR (::rbc)
+.RE
+.PP
+A
+command
+ensemble\&.
+.RS 4n
+\fBWINOPIMAGE\fP \fIsubcommand \&.\&.\&.\fP
+.br
+.RE
+.PP
+\fBDescription\fR
+.PP
+The ensemble supports the following subcommands:
+.RS 4n
+.TP
+\fIconvolve\fP
+Applies a two-dimensional convolution kernel to a Tk photo image\&. This is the grouped form of \fI::rbc::winop::convolve\fP\&.
+.TP
+\fIgradient\fP
+Generates a gradient directly into an existing Tk photo image\&. left and right are Tk colors\&. type may be linear, radial, rectangular, or blank\&. The current dimensions of photo determine the generated image size\&.
+.TP
+\fIreadjpeg\fP
+Reads a JPEG file into an existing Tk photo image\&. This is the grouped form of \fI::rbc::winop::readjpeg\fP\&.
+.TP
+\fIresample\fP
+Copies or resamples a source photo into a destination photo\&. This is the grouped form of \fI::rbc::winop::resample\fP\&.
+.TP
+\fIrotate\fP
+Rotates a Tk photo image by a finite angle expressed in degrees\&. angle may be a Tcl numeric expression\&. The destination photo is resized to contain the rotated result\&.
+.TP
+\fIsnap\fP
+Captures a window into an existing Tk photo image\&. This is the grouped form of \fI::rbc::winop::snap\fP\&.
+.TP
+\fIsubsample\fP
+Extracts and optionally resamples a rectangular region of a source photo\&. This is the grouped form of \fI::rbc::winop::subsample\fP\&.
+.RE
+.PP
+Refer to the documentation of each subcommand for details\&.
+.PP
+.RS -4n
+\fBWINOPIMAGE convolve\fR (::rbc)
+.RE
+.PP
+Applies a two-dimensional convolution kernel to a Tk photo image\&. This is the grouped form of
+\fI::rbc::winop::convolve\fP\&.
+.RS 4n
+\fBWINOPIMAGE convolve\fP \fIsrcPhoto destPhoto filter\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+srcPhoto
+Source Tk photo image\&.
+.TP
+destPhoto
+Destination Tk photo image\&.
+.TP
+filter
+Square list of convolution-kernel values\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBWINOPIMAGE gradient\fR (::rbc)
+.RE
+.PP
+Generates a gradient directly into an existing Tk photo image\&. left and right are Tk colors\&. type may
+be linear, radial, rectangular, or blank\&. The current dimensions of photo determine the generated
+image size\&.
+.RS 4n
+\fBWINOPIMAGE gradient\fP \fIphoto left right type\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+photo
+Tk photo image to modify\&.
+.TP
+left
+First gradient color\&.
+.TP
+right
+Second gradient color\&.
+.TP
+type
+Gradient type\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBWINOPIMAGE readjpeg\fR (::rbc)
+.RE
+.PP
+Reads a JPEG file into an existing Tk photo image\&. This is the grouped form of
+\fI::rbc::winop::readjpeg\fP\&.
+.RS 4n
+\fBWINOPIMAGE readjpeg\fP \fIfileName photoName\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+fileName
+JPEG file to read\&.
+.TP
+photoName
+Destination Tk photo image\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBWINOPIMAGE resample\fR (::rbc)
+.RE
+.PP
+Copies or resamples a source photo into a destination photo\&. This is the grouped form of
+\fI::rbc::winop::resample\fP\&.
+.RS 4n
+\fBWINOPIMAGE resample\fP \fIsrcPhoto destPhoto ?horzFilter? ?vertFilter?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+srcPhoto
+Source Tk photo image\&.
+.TP
+destPhoto
+Destination Tk photo image\&.
+.TP
+horzFilter
+Optional horizontal resampling filter\&.
+.TP
+vertFilter
+Optional vertical resampling filter\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBWINOPIMAGE rotate\fR (::rbc)
+.RE
+.PP
+Rotates a Tk photo image by a finite angle expressed in degrees\&. angle may be a Tcl numeric expression\&. The
+destination photo is resized to contain the rotated result\&.
+.RS 4n
+\fBWINOPIMAGE rotate\fP \fIsrcPhoto destPhoto angle\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+srcPhoto
+Source Tk photo image\&.
+.TP
+destPhoto
+Destination Tk photo image\&.
+.TP
+angle
+Rotation angle in degrees\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBWINOPIMAGE snap\fR (::rbc)
+.RE
+.PP
+Captures a window into an existing Tk photo image\&. This is the grouped form of \fI::rbc::winop::snap\fP\&.
+.RS 4n
+\fBWINOPIMAGE snap\fP \fIwindow photoName ?width? ?height?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+window
+Window to capture\&.
+.TP
+photoName
+Destination Tk photo image\&.
+.TP
+height
+Optional positive output height\&.
+.TP
+width
+Optional positive output width\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBWINOPIMAGE subsample\fR (::rbc)
+.RE
+.PP
+Extracts and optionally resamples a rectangular region of a source photo\&. This is the grouped form of
+\fI::rbc::winop::subsample\fP\&.
+.RS 4n
+\fBWINOPIMAGE subsample\fP \fIsrcPhoto destPhoto x y width height ?horzFilter? ?vertFilter?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+srcPhoto
+Source Tk photo image\&.
+.TP
+destPhoto
+Destination Tk photo image\&.
+.TP
+x
+Horizontal source-region origin\&.
+.TP
+y
+Vertical source-region origin\&.
+.TP
+width
+Source-region width\&.
+.TP
+height
+Source-region height\&.
+.TP
+horzFilter
+Optional horizontal resampling filter\&.
+.TP
+vertFilter
+Optional vertical resampling filter\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
 
