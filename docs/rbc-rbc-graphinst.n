@@ -1,0 +1,676 @@
+'\"
+'\" '\" Copyright (c) George Yashin
+'\"
+.TH "rbc::GRAPHINST" 3tcl 0\&.5\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.SH NAME
+rbc::GRAPHINST - Commands in namespace rbc::GRAPHINST
+.SH "GRAPH WIDGET INSTANCE GRAPHINST COMMAND"
+.PP
+Commands in this namespace document operations accepted by graph, barchart, and stripchart widget instances\&.
+.PP
+GRAPHINST is used below as a placeholder for the actual widget command:
+.PP
+.RS 4n
+.nf
+graph \&.g
+\&.g configure -title "Example"
+.fi
+.RE
+.PP
+The same widget instance interface is shared by all three graph types\&. The main difference is the default
+element type used by the element operation:
+.PP
+.RS 4n
+.nf
+┌───────────────────┬──────────────────────┐
+│ Widget created by │ Default element type │
+├───────────────────┼──────────────────────┤
+│ graph             │ line                 │
+│ barchart          │ bar                  │
+│ stripchart        │ strip                │
+└───────────────────┴──────────────────────┘
+.fi
+.RE
+.PP
+Explicit line and bar operations are also available independently of the widget's default element type\&.
+.PP
+Graph widgets contain several components with their own command interfaces:
+.PP
+.RS 4n
+.nf
+┌──────────────────────────────────────┬───────────────────────────────────────┐
+│ Operation                            │ Component                             │
+├──────────────────────────────────────┼───────────────────────────────────────┤
+│ axis                                 │ virtual axes                          │
+│ xaxis, x2axis, yaxis, y2axis         │ axes mapped to graph margins          │
+│ element                              │ elements of the widget's default type │
+│ line                                 │ line elements                         │
+│ bar                                  │ bar elements                          │
+│ marker                               │ graph markers                         │
+│ pen                                  │ drawing pens                          │
+│ legend                               │ graph legend                          │
+│ grid                                 │ graph grid                            │
+│ crosshairs                           │ interactive crosshairs                │
+│ postscript                           │ PostScript output                     │
+└──────────────────────────────────────┴───────────────────────────────────────┘
+.fi
+.RE
+.PP
+These component interfaces are documented separately\&.
+.SH "COORDINATE SYSTEMS"
+.PP
+Graph widgets use two coordinate systems:
+.TP
+\(bu
+\fBgraph coordinates\fP are the numeric data values represented by the axes
+.TP
+\(bu
+\fBwindow coordinates\fP are pixel positions within the widget\&.
+.PP
+The transform operation converts graph coordinates to window coordinates, while invtransform performs the
+reverse conversion\&.
+.PP
+The general transform and invtransform operations use the graph's primary X and Y axes\&. To transform a
+value using a particular axis, use that axis's transform or invtransform operation\&.
+.SH "WIDGET OPTIONS"
+.PP
+The following options configure the graph widget itself\&. They are shared by graph, barchart, and
+stripchart and may be specified when the widget is created or modified later with GRAPHINST configure\&.
+.PP
+Some options, such as -barmode, -barwidth, and -baseline, primarily affect bar elements but are available
+on all three graph widget types\&.
+.PP
+.RS 4n
+.nf
+┌────────────────────────────┬─────────────────────┬─────────────────────┬─────────────────────────────────────┐
+│ Option                     │ Database name       │ Database class      │ Description                         │
+├────────────────────────────┼─────────────────────┼─────────────────────┼─────────────────────────────────────┤
+│ -aspect ratio              │ aspect              │ Aspect              │ Sets a fixed width-to-height aspect │
+│                            │                     │                     │ ratio for the plotting area\&. A      │
+│                            │                     │                     │ positive value causes one dimension │
+│                            │                     │                     │ of the plotting area to be reduced  │
+│                            │                     │                     │ as necessary to maintain the        │
+│                            │                     │                     │ requested ratio\&. A value less than  │
+│                            │                     │                     │ or equal to zero disables           │
+│                            │                     │                     │ aspect-ratio enforcement\&. The       │
+│                            │                     │                     │ default is 0\&.0\&.                     │
+│ -background color          │ background          │ Background          │ Sets the background used for the    │
+│                            │                     │                     │ outer graph area and margins\&. The   │
+│                            │                     │                     │ plotting area has its own           │
+│                            │                     │                     │ -plotbackground option\&. -bg is a    │
+│                            │                     │                     │ synonym\&.                            │
+│ -barmode mode              │ barMode             │ BarMode             │ Controls how bar elements having    │
+│                            │                     │                     │ the same X coordinate are arranged\&. │
+│                            │                     │                     │ Valid modes are normal, infront,    │
+│                            │                     │                     │ aligned, overlap, and stacked\&.      │
+│                            │                     │                     │ normal is equivalent to infront\&.    │
+│                            │                     │                     │ The default is normal\&.              │
+│ -barwidth width            │ barWidth            │ BarWidth            │ Sets the default width of bar       │
+│                            │                     │                     │ elements in graph-coordinate units\&. │
+│                            │                     │                     │ The value must be finite\&. Values    │
+│                            │                     │                     │ less than or equal to zero are      │
+│                            │                     │                     │ normalized to 0\&.1\&. The default is   │
+│                            │                     │                     │ 0\&.8\&.                                │
+│ -baseline value            │ baseline            │ Baseline            │ Sets the baseline from which bars   │
+│                            │                     │                     │ are drawn\&. The value must be        │
+│                            │                     │                     │ finite\&. The default is 0\&.0\&.         │
+│ -borderwidth width         │ borderWidth         │ BorderWidth         │ Sets the width of the 3-D border    │
+│                            │                     │                     │ around the outside of the widget\&.   │
+│                            │                     │                     │ The appearance of the border is     │
+│                            │                     │                     │ controlled by -relief\&. -bd is a     │
+│                            │                     │                     │ synonym\&.                            │
+│ -bottommargin size         │ bottomMargin        │ Margin              │ Sets the requested size of the      │
+│                            │                     │                     │ bottom margin\&. A value of 0 lets    │
+│                            │                     │                     │ the graph calculate the required    │
+│                            │                     │                     │ size automatically\&. -bm is a        │
+│                            │                     │                     │ synonym\&.                            │
+│ -bottomvariable varName    │ bottomVariable      │ BottomVariable      │ Names a global Tcl variable that is │
+│                            │                     │                     │ updated with the actual size of the │
+│                            │                     │                     │ bottom margin after graph layout\&.   │
+│                            │                     │                     │ An empty value disables the         │
+│                            │                     │                     │ variable update\&.                    │
+│ -bufferelements boolean    │ bufferElements      │ BufferElements      │ Enables caching of the plotted      │
+│                            │                     │                     │ elements in a backing pixmap\&. This  │
+│                            │                     │                     │ can improve redraw performance when │
+│                            │                     │                     │ elements remain unchanged while     │
+│                            │                     │                     │ markers, legends, or other overlays │
+│                            │                     │                     │ are updated\&. The default is 1\&.      │
+│ -buffergraph boolean       │ bufferGraph         │ BufferGraph         │ Enables double-buffering of the     │
+│                            │                     │                     │ complete graph\&. When enabled, the   │
+│                            │                     │                     │ graph is first rendered into a      │
+│                            │                     │                     │ pixmap and then copied to the       │
+│                            │                     │                     │ widget window, reducing visible     │
+│                            │                     │                     │ redraw flicker\&. The default is 1\&.   │
+│ -cursor cursor             │ cursor              │ Cursor              │ Specifies the mouse cursor          │
+│                            │                     │                     │ displayed over the graph widget\&.    │
+│                            │                     │                     │ The default is crosshair\&.           │
+│ -data string               │ data                │ Data                │ Stores application-defined data     │
+│                            │                     │                     │ associated with the graph widget\&.   │
+│                            │                     │                     │ The graph rendering code does not   │
+│                            │                     │                     │ interpret this value; it may be     │
+│                            │                     │                     │ used by Tcl code or bindings to     │
+│                            │                     │                     │ associate additional information    │
+│                            │                     │                     │ with the widget\&.                    │
+│ -datacommand command       │ dataCommand         │ DataCommand         │ Stores an application-defined       │
+│                            │                     │                     │ command string associated with the  │
+│                            │                     │                     │ graph\&. The graph core currently     │
+│                            │                     │                     │ does not invoke this command        │
+│                            │                     │                     │ automatically\&.                      │
+│ -font fontName             │ font                │ Font                │ Specifies the font used for the     │
+│                            │                     │                     │ graph title\&.                        │
+│ -foreground color          │ foreground          │ Foreground          │ Specifies the foreground color of   │
+│                            │                     │                     │ the graph title\&. -fg is a synonym\&.  │
+│ -halo distance             │ halo                │ Halo                │ Sets the default maximum screen     │
+│                            │                     │                     │ distance used when searching for a  │
+│                            │                     │                     │ closest data point or element\&.      │
+│                            │                     │                     │ Operations that provide their own   │
+│                            │                     │                     │ halo value override this setting\&.   │
+│                            │                     │                     │ The default is 2m\&.                  │
+│ -height distance           │ height              │ Height              │ Specifies the requested height of   │
+│                            │                     │                     │ the graph widget\&. The default is    │
+│                            │                     │                     │ 4i\&.                                 │
+│ -highlightbackground color │ highlightBackground │ HighlightBackground │ Specifies the color used for the    │
+│                            │                     │                     │ traversal highlight area when the   │
+│                            │                     │                     │ widget does not have keyboard       │
+│                            │                     │                     │ focus\&.                              │
+│ -highlightcolor color      │ highlightColor      │ HighlightColor      │ Specifies the color used for the    │
+│                            │                     │                     │ traversal highlight when the widget │
+│                            │                     │                     │ has keyboard focus\&.                 │
+│ -highlightthickness width  │ highlightThickness  │ HighlightThickness  │ Specifies the width of the          │
+│                            │                     │                     │ keyboard-focus highlight around the │
+│                            │                     │                     │ widget\&. The default is 2\&.           │
+│ -invertxy boolean          │ invertXY            │ InvertXY            │ Swaps the placement and orientation │
+│                            │                     │                     │ of the logical X and Y axes\&. When   │
+│                            │                     │                     │ enabled, X axes are displayed       │
+│                            │                     │                     │ vertically and Y axes horizontally\&. │
+│                            │                     │                     │ The default is 0\&.                   │
+│ -justify justify           │ justify             │ Justify             │ Specifies the justification of      │
+│                            │                     │                     │ multi-line graph title text\&. Valid  │
+│                            │                     │                     │ values are left, center, and right\&. │
+│                            │                     │                     │ The default is center\&.              │
+│ -leftmargin size           │ leftMargin          │ Margin              │ Sets the requested size of the left │
+│                            │                     │                     │ margin\&. A value of 0 lets the graph │
+│                            │                     │                     │ calculate the required size         │
+│                            │                     │                     │ automatically\&. -lm is a synonym\&.    │
+│ -leftvariable varName      │ leftVariable        │ LeftVariable        │ Names a global Tcl variable that is │
+│                            │                     │                     │ updated with the actual size of the │
+│                            │                     │                     │ left margin after graph layout\&. An  │
+│                            │                     │                     │ empty value disables the variable   │
+│                            │                     │                     │ update\&.                             │
+│ -plotbackground color      │ plotBackground      │ Background          │ Specifies the background color of   │
+│                            │                     │                     │ the plotting area\&. This is          │
+│                            │                     │                     │ independent of the outer            │
+│                            │                     │                     │ -background color\&. The default is   │
+│                            │                     │                     │ white\&.                              │
+│ -plotborderwidth width     │ plotBorderWidth     │ BorderWidth         │ Sets the width of the 3-D border    │
+│                            │                     │                     │ surrounding the plotting area\&. Its  │
+│                            │                     │                     │ appearance is controlled by         │
+│                            │                     │                     │ -plotrelief\&.                        │
+│ -plotpadx pad              │ plotPadX            │ PlotPad             │ Sets horizontal padding around the  │
+│                            │                     │                     │ plotting area\&. pad may contain one  │
+│                            │                     │                     │ screen distance, applied to both    │
+│                            │                     │                     │ sides, or two distances specifying  │
+│                            │                     │                     │ the left and right padding          │
+│                            │                     │                     │ separately\&. The default is 8\&.       │
+│ -plotpady pad              │ plotPadY            │ PlotPad             │ Sets vertical padding around the    │
+│                            │                     │                     │ plotting area\&. pad may contain one  │
+│                            │                     │                     │ screen distance, applied to both    │
+│                            │                     │                     │ sides, or two distances specifying  │
+│                            │                     │                     │ the top and bottom padding          │
+│                            │                     │                     │ separately\&. The default is 8\&.       │
+│ -plotrelief relief         │ plotRelief          │ Relief              │ Specifies the 3-D relief of the     │
+│                            │                     │                     │ plotting area\&. Valid values are the │
+│                            │                     │                     │ standard Tk relief values\&. The      │
+│                            │                     │                     │ default is sunken\&.                  │
+│ -relief relief             │ relief              │ Relief              │ Specifies the 3-D relief of the     │
+│                            │                     │                     │ outer graph widget\&. Valid values    │
+│                            │                     │                     │ are the standard Tk relief values\&.  │
+│                            │                     │                     │ The default is flat\&.                │
+│ -rightmargin size          │ rightMargin         │ Margin              │ Sets the requested size of the      │
+│                            │                     │                     │ right margin\&. A value of 0 lets the │
+│                            │                     │                     │ graph calculate the required size   │
+│                            │                     │                     │ automatically\&. -rm is a synonym\&.    │
+│ -rightvariable varName     │ rightVariable       │ RightVariable       │ Names a global Tcl variable that is │
+│                            │                     │                     │ updated with the actual size of the │
+│                            │                     │                     │ right margin after graph layout\&. An │
+│                            │                     │                     │ empty value disables the variable   │
+│                            │                     │                     │ update\&.                             │
+│ -shadow shadow             │ shadow              │ Shadow              │ Specifies the shadow used when      │
+│                            │                     │                     │ drawing the graph title\&. An empty   │
+│                            │                     │                     │ value disables the title shadow\&.    │
+│ -takefocus focus           │ takeFocus           │ TakeFocus           │ Controls whether the graph          │
+│                            │                     │                     │ participates in keyboard focus      │
+│                            │                     │                     │ traversal\&. It has the same          │
+│                            │                     │                     │ interpretation as the standard Tk   │
+│                            │                     │                     │ -takefocus option\&. The default is   │
+│                            │                     │                     │ an empty value\&.                     │
+│ -tile image                │ tile                │ Tile                │ Specifies an image used to tile the │
+│                            │                     │                     │ background of the graph margins\&. An │
+│                            │                     │                     │ empty value disables tiling and     │
+│                            │                     │                     │ uses the normal -background         │
+│                            │                     │                     │ instead\&.                            │
+│ -title text                │ title               │ Title               │ Specifies the graph title\&. An empty │
+│                            │                     │                     │ value suppresses the title\&.         │
+│ -topmargin size            │ topMargin           │ Margin              │ Sets the requested size of the top  │
+│                            │                     │                     │ margin\&. A value of 0 lets the graph │
+│                            │                     │                     │ calculate the required size         │
+│                            │                     │                     │ automatically\&. -tm is a synonym\&.    │
+│ -topvariable varName       │ topVariable         │ TopVariable         │ Names a global Tcl variable that is │
+│                            │                     │                     │ updated with the actual size of the │
+│                            │                     │                     │ top margin after graph layout\&. An   │
+│                            │                     │                     │ empty value disables the variable   │
+│                            │                     │                     │ update\&.                             │
+│ -width distance            │ width               │ Width               │ Specifies the requested width of    │
+│                            │                     │                     │ the graph widget\&. The default is    │
+│                            │                     │                     │ 5i\&.                                 │
+└────────────────────────────┴─────────────────────┴─────────────────────┴─────────────────────────────────────┘
+.fi
+.RE
+.SH "TK OPTION DATABASE"
+.PP
+Graph widgets and their components participate in Tk's option database\&.
+.PP
+Every configurable option has three names:
+.PP
+.RS 4n
+.nf
+┌────────────────┬────────────┐
+│ Kind           │ Example    │
+├────────────────┼────────────┤
+│ Command option │ -linewidth │
+│ Database name  │ lineWidth  │
+│ Database class │ LineWidth  │
+└────────────────┴────────────┘
+.fi
+.RE
+.PP
+The command option is used with configure and cget:
+.PP
+.RS 4n
+.nf
+\&.g element configure signal -linewidth 2
+.fi
+.RE
+.PP
+The database name and database class are used by Tk's option command:
+.PP
+.RS 4n
+.nf
+option add *Graph\&.signal\&.lineWidth 2
+option add *Graph\&.Element\&.LineWidth 2
+.fi
+.RE
+.PP
+The first form targets the option by component and database name\&. The second targets all matching components by
+resource class and option database class\&.
+.PP
+RBC uses the same option-database mechanism for graph subcomponents even though most of them are not separate
+Tk widgets\&. When a component is initialized, RBC performs option lookup using a temporary child window having
+the component's resource name and resource class\&.
+.SS "COMPONENT RESOURCE NAMES AND CLASSES"
+.PP
+.RS 4n
+.nf
+┌────────────────┬───────────────────────────────────────────────┬─────────────────┐
+│ Component      │ Resource name                                 │ Resource class  │
+├────────────────┼───────────────────────────────────────────────┼─────────────────┤
+│ Axis           │ axis name, such as x, y, or temperature       │ Axis            │
+│ Element        │ element name                                  │ Element         │
+│ Pen            │ pen name                                      │ Pen             │
+│ Bitmap marker  │ marker name                                   │ BitmapMarker    │
+│ Image marker   │ marker name                                   │ ImageMarker     │
+│ Line marker    │ marker name                                   │ LineMarker      │
+│ Polygon marker │ marker name                                   │ PolygonMarker   │
+│ Text marker    │ marker name                                   │ TextMarker      │
+│ Window marker  │ marker name                                   │ WindowMarker    │
+│ Legend         │ legend                                        │ Legend          │
+│ Grid           │ grid                                          │ Grid            │
+│ Crosshairs     │ crosshairs                                    │ Crosshairs      │
+│ PostScript     │ postscript                                    │ Postscript      │
+└────────────────┴───────────────────────────────────────────────┴─────────────────┘
+.fi
+.RE
+.PP
+Thus an option-database entry can target either a whole component class:
+.PP
+.RS 4n
+.nf
+option add *Graph\&.Axis\&.Color navy
+option add *Graph\&.Element\&.LineWidth 2
+option add *Graph\&.Pen\&.Color blue
+option add *Graph\&.TextMarker\&.Foreground darkgreen
+.fi
+.RE
+.PP
+or a particular named component:
+.PP
+.RS 4n
+.nf
+option add *Graph\&.x\&.color red
+option add *Graph\&.signal\&.lineWidth 3
+option add *Graph\&.activeLine\&.color green
+option add *Graph\&.annotation\&.foreground purple
+.fi
+.RE
+.PP
+The graph widget class in these examples is Graph\&. For barchart and stripchart widgets, use their
+corresponding Barchart and Stripchart resource classes\&.
+.PP
+Named elements, pens, and markers are represented internally as component resource names\&. For these components,
+RBC converts the first character of the object name to lowercase for option-database lookup\&. For example, an
+element named Signal uses the component resource name signal\&.
+.SS "WHEN OPTION DATABASE VALUES ARE APPLIED"
+.PP
+Option database values are read when a component is initialized\&. They therefore normally need to be installed
+before that component is created\&.
+.PP
+For a dynamically created element:
+.PP
+.RS 4n
+.nf
+graph \&.g
+option add *Graph\&.Element\&.Color navy
+\&.g element create signal
+.fi
+.RE
+.PP
+the new element obtains its initial color from the option database\&.
+.PP
+To target one particular element:
+.PP
+.RS 4n
+.nf
+graph \&.g
+option add *Graph\&.signal\&.color red
+\&.g element create signal
+\&.g element create reference
+.fi
+.RE
+.PP
+only signal receives that instance-specific value\&.
+.PP
+Components created automatically with the graph, such as the built-in axes, active pens, legend, grid,
+crosshairs, and PostScript component, should have their option-database entries installed before the graph
+widget itself is created:
+.PP
+.RS 4n
+.nf
+option add *Graph\&.Grid\&.Color grey70
+option add *Graph\&.Legend\&.Foreground navy
+option add *Graph\&.activeLine\&.color red
+graph \&.g
+.fi
+.RE
+.PP
+Adding an option-database entry later does not reconfigure components that have already been initialized\&.
+Use the component's configure operation to change an existing object\&.
+.PP
+Explicit options supplied when an object is created override values obtained from the option database:
+.PP
+.RS 4n
+.nf
+option add *Graph\&.Element\&.Color navy
+\&.g element create signal -color red
+.fi
+.RE
+.PP
+Here signal is red\&.
+.SS "DISCOVERING DATABASE NAMES AND CLASSES"
+.PP
+The configure query forms report the exact database name and database class used by an option\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+set info [\&.g element configure signal -linewidth]
+lassign $info optionName databaseName databaseClass defaultValue currentValue
+.fi
+.RE
+.PP
+The five values correspond to:
+.PP
+.RS 4n
+.nf
+command option
+database name
+database class
+default value
+current value
+.fi
+.RE
+.PP
+The same technique works for axes, pens, markers, the legend, grid, crosshairs, PostScript, and the graph widget
+itself\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+\&.g axis configure x -color
+\&.g pen configure activeLine -color
+\&.g marker configure annotation -foreground
+\&.g legend configure -foreground
+\&.g grid configure -linewidth
+\&.g crosshairs configure -color
+\&.g postscript configure -landscape
+.fi
+.RE
+.PP
+Synonym options such as -bg, -fg, and -bd refer to the database name and class of their canonical option\&.
+.PP
+Some options intentionally have no option-database name or class\&. Such options can be set only through the
+component command\&. For example, a marker's -name option is not read from the option database\&.
+.SS "BAR MODES"
+.PP
+The -barmode option determines how bars from different elements are arranged when they use the same X
+coordinate\&.
+.PP
+.RS 4n
+.nf
+┌─────────┬─────────────────────────────────────────────────────────┐
+│ Mode    │ Description                                             │
+├─────────┼─────────────────────────────────────────────────────────┤
+│ normal  │ Equivalent to infront\&. This is the default\&.             │
+│ infront │ Draws each successive bar in front of the previous bar\&. │
+│ stacked │ Stacks successive bars vertically\&.                      │
+│ aligned │ Places bars side by side\&.                               │
+│ overlap │ Places bars side by side with a small overlap\&.          │
+└─────────┴─────────────────────────────────────────────────────────┘
+.fi
+.RE
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+barchart \&.b
+\&.b configure -barmode stacked
+.fi
+.RE
+.PP
+The -barmode, -barwidth, and -baseline options have no significant effect unless bar elements are present
+in the graph\&.
+.SS MARGINS
+.PP
+The graph has four margins surrounding the plotting area\&. Their sizes are normally calculated automatically
+from axes, axis titles, tick labels, the graph title, and the legend\&.
+.PP
+The margin options:
+.PP
+.RS 4n
+.nf
+-bottommargin
+-leftmargin
+-rightmargin
+-topmargin
+.fi
+.RE
+.PP
+override the automatically calculated size when set to a positive screen distance\&. Setting a margin size to 0
+restores automatic sizing\&.
+.PP
+The corresponding options:
+.PP
+.RS 4n
+.nf
+-bottomvariable
+-leftvariable
+-rightvariable
+-topvariable
+.fi
+.RE
+.PP
+can be used to observe the actual calculated margin sizes\&. After layout and drawing, Rbc writes the current
+size of each configured margin to the specified global Tcl variable\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+graph \&.g -leftvariable leftSize -bottomvariable bottomSize
+
+pack \&.g -fill both -expand yes
+update idletasks
+
+puts "left margin: $leftSize"
+puts "bottom margin: $bottomSize"
+.fi
+.RE
+.SS "PLOTTING AREA"
+.PP
+The outer graph background and the plotting-area background are configured independently\&.
+.PP
+.RS 4n
+.nf
+graph \&.g -background grey90 -plotbackground white -plotrelief sunken -plotborderwidth 2
+.fi
+.RE
+.PP
+-plotpadx and -plotpady add space immediately around the plotting surface\&. Each option accepts either one
+distance:
+.PP
+.RS 4n
+.nf
+\&.g configure -plotpadx 10
+.fi
+.RE
+.PP
+or two distances for the two sides:
+.PP
+.RS 4n
+.nf
+\&.g configure -plotpadx {5 15}
+\&.g configure -plotpady {10 20}
+.fi
+.RE
+.SS "ASPECT RATIO"
+.PP
+A positive -aspect value constrains the plotting area to a requested width-to-height ratio\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+\&.g configure -aspect 1\&.0
+.fi
+.RE
+.PP
+requests a square plotting area, while:
+.PP
+.RS 4n
+.nf
+\&.g configure -aspect 1\&.5
+.fi
+.RE
+.PP
+requests a plotting area whose width is 1\&.5 times its height\&.
+.PP
+Rbc satisfies the requested ratio by reducing the usable width or height of the plotting area; it does not
+enlarge the widget\&. Set -aspect to 0 to disable the constraint\&.
+.SS BUFFERING
+.PP
+Two separate buffering mechanisms are available\&.
+.PP
+-buffergraph controls double-buffering of the complete widget\&. With double-buffering enabled, Rbc renders the
+graph to an off-screen pixmap and copies the completed image to the window\&.
+.PP
+-bufferelements controls an additional backing store containing the plot region and data elements\&. It is
+useful when elements themselves are unchanged but the graph must frequently redraw objects placed above them,
+such as markers\&.
+.PP
+Element buffering is only used when graph double-buffering is also enabled\&.
+.PP
+For graphs whose element data or axes change very frequently, disabling -bufferelements may avoid maintaining
+a cache that cannot be reused\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+\&.g configure -buffergraph yes -bufferelements no
+.fi
+.RE
+.SS "APPLICATION DATA"
+.PP
+The -data option is an application-defined storage slot\&. Rbc stores the supplied value but does not interpret
+it in the C graph implementation\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+\&.g configure -data [dict create source simulation1 quantity voltage]
+set graphData [\&.g cget -data]
+.fi
+.RE
+.PP
+-datacommand similarly stores a command string\&. It is retained as part of the graph configuration interface,
+but the current graph core does not automatically execute it\&.
+
+
+.SH SEE ALSO
+rbc(n) - package's main page
+.br
+rbc-tcltk9upgrade(n) - list of upgrades comparing to Tcl/Tk8 RBC package
+.br
+.sp 1
+Public commands and classes documentation:
+.br
+rbc-rbc(n)
+.br
+rbc-rbc-graphinst(n)
+.br
+rbc-rbc-axis(n)
+.br
+rbc-rbc-marginaxis(n)
+.br
+rbc-rbc-element(n)
+.br
+rbc-rbc-lineelement(n)
+.br
+rbc-rbc-stripelement(n)
+.br
+rbc-rbc-barelement(n)
+.br
+rbc-rbc-pen(n)
+.br
+rbc-rbc-marker(n)
+.br
+rbc-rbc-legend(n)
+.br
+rbc-rbc-grid(n)
+.br
+rbc-rbc-crosshairs(n)
+.br
+rbc-rbc-postscript(n)
+.br
+rbc-rbc-vector(n)
+.br
+rbc-rbc-vecinst(n)
+.br
+rbc-rbc-spline(n)
+.br
+rbc-rbc-winop(n)
+.br
+rbc-rbc-winopimage(n)

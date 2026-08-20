@@ -158,21 +158,24 @@ vector expr {(x + y) / 2}
 .SS OPERATORS
 .PP
 The following operators are supported, listed from highest to lowest precedence\&.
-.TS
-tab(:) box;
-l l.
-Operators: Description
-_
-- !: Unary minus and logical NOT
-^: Exponentiation
-* / %: Multiplication, division, and remainder
-+ -: Addition and subtraction
-<< >>: Circular left and right vector shift
-< > <= >= : Relational comparison
-== !=: Equality and inequality comparison
-&&: Logical AND
-\\|\\|: Logical OR
-.TE
+.PP
+.RS 4n
+.nf
+┌───────────────────┬─────────────────────────────────────────┐
+│ Operators         │ Description                             │
+├───────────────────┼─────────────────────────────────────────┤
+│ - !               │ Unary minus and logical NOT             │
+│ ^                 │ Exponentiation                          │
+│ * / %             │ Multiplication, division, and remainder │
+│ + -               │ Addition and subtraction                │
+│ << >>             │ Circular left and right vector shift    │
+│ < > <= >=         │ Relational comparison                   │
+│ == !=             │ Equality and inequality comparison      │
+│ &&                │ Logical AND                             │
+│ ||                │ Logical OR                              │
+└───────────────────┴─────────────────────────────────────────┘
+.fi
+.RE
 .PP
 Binary operators at the same precedence level are evaluated from left to right\&.
 .PP
@@ -247,30 +250,33 @@ vector functions, which transform a vector into another vector\&.
 .PP
 Component functions apply the selected operation independently to every vector component and return a vector of
 the same length\&.
-.TS
-tab(|) box;
-l l.
-Function | Description
-_
-abs| Absolute value
-acos| Arc cosine
-asin| Arc sine
-atan| Arc tangent
-ceil| Smallest integral value not less than the component
-cos| Cosine
-cosh| Hyperbolic cosine
-exp| Exponential
-floor| Largest integral value not greater than the component
-log| Natural logarithm
-log10| Base-10 logarithm
-random | Generates a pseudo-random value in the range [0\&.0, 1\&.0) for each component
-round| Rounds to the nearest integral value
-sin| Sine
-sinh| Hyperbolic sine
-sqrt| Square root
-tan| Tangent
-tanh| Hyperbolic tangent
-.TE
+.PP
+.RS 4n
+.nf
+┌──────────┬──────────────────────────────────────────────────────────────────────────────┐
+│ Function │ Description                                                                  │
+├──────────┼──────────────────────────────────────────────────────────────────────────────┤
+│ abs      │ Absolute value                                                               │
+│ acos     │ Arc cosine                                                                   │
+│ asin     │ Arc sine                                                                     │
+│ atan     │ Arc tangent                                                                  │
+│ ceil     │ Smallest integral value not less than the component                          │
+│ cos      │ Cosine                                                                       │
+│ cosh     │ Hyperbolic cosine                                                            │
+│ exp      │ Exponential                                                                  │
+│ floor    │ Largest integral value not greater than the component                        │
+│ log      │ Natural logarithm                                                            │
+│ log10    │ Base-10 logarithm                                                            │
+│ random   │ Generates a pseudo-random value in the range [0\&.0, 1\&.0) for each component   │
+│ round    │ Rounds to the nearest integral value                                         │
+│ sin      │ Sine                                                                         │
+│ sinh     │ Hyperbolic sine                                                              │
+│ sqrt     │ Square root                                                                  │
+│ tan      │ Tangent                                                                      │
+│ tanh     │ Hyperbolic tangent                                                           │
+└──────────┴──────────────────────────────────────────────────────────────────────────────┘
+.fi
+.RE
 .PP
 For example:
 .PP
@@ -308,27 +314,30 @@ The number of generated values is therefore determined by the length of the argu
 \fBScalar functions\fR
 .PP
 Scalar functions reduce a vector to a single numeric value\&.
-.TS
-tab(|) box;
-l l.
-Function| Description
-_
-adev| Average absolute deviation from the mean
-kurtosis | Fisher excess kurtosis
-length| Number of finite components
-max| Maximum finite component
-mean| Arithmetic mean
-median| Median value
-min| Minimum finite component
-nz| Number of non-zero components
-prod| Product of the components
-q1| First quartile
-q3| Third quartile
-sdev| Sample standard deviation
-skew| Skewness
-sum| Sum of the components
-var| Sample variance
-.TE
+.PP
+.RS 4n
+.nf
+┌──────────┬──────────────────────────────────────────┐
+│ Function │ Description                              │
+├──────────┼──────────────────────────────────────────┤
+│ adev     │ Average absolute deviation from the mean │
+│ kurtosis │ Fisher excess kurtosis                   │
+│ length   │ Number of finite components              │
+│ max      │ Maximum finite component                 │
+│ mean     │ Arithmetic mean                          │
+│ median   │ Median value                             │
+│ min      │ Minimum finite component                 │
+│ nz       │ Number of non-zero components            │
+│ prod     │ Product of the components                │
+│ q1       │ First quartile                           │
+│ q3       │ Third quartile                           │
+│ sdev     │ Sample standard deviation                │
+│ skew     │ Skewness                                 │
+│ sum      │ Sum of the components                    │
+│ var      │ Sample variance                          │
+└──────────┴──────────────────────────────────────────┘
+.fi
+.RE
 .PP
 For example:
 .PP
@@ -362,14 +371,17 @@ vector expr {x / max(x)}
 \fBVector functions\fR
 .PP
 Vector functions transform their argument and return another vector\&.
-.TS
-tab(|) box;
-l l.
-Function | Description
-_
-norm| Normalizes the components to the range [0\&.0, 1\&.0]
-sort| Returns the components sorted in ascending order
-.TE
+.PP
+.RS 4n
+.nf
+┌──────────┬─────────────────────────────────────────────────────┐
+│ Function │ Description                                         │
+├──────────┼─────────────────────────────────────────────────────┤
+│ norm     │ Normalizes the components to the range [0\&.0, 1\&.0]   │
+│ sort     │ Returns the components sorted in ascending order    │
+└──────────┴─────────────────────────────────────────────────────┘
+.fi
+.RE
 .PP
 For example:
 .PP
@@ -476,23 +488,44 @@ structure fields\&.
 .SS "PUBLIC VECTOR FUNCTIONS"
 .PP
 The following vector functions are exported through the Rbc stubs interface:
-.TS
-tab(|) box;
-l l.
-Function | Description
-_
-int Rbc_CreateVector(Tcl_Interp *interp, const char *vecName, Tcl_Size size, Rbc_Vector **vecPtrPtr) | Creates the named vector and its normal Tcl command and array mappings\&. size specifies the initial length of a new vector\&. On success, stores a pointer to the vector in vecPtrPtr and returns TCL_OK\&.
-int Rbc_GetVector(Tcl_Interp *interp, const char *vecName, Rbc_Vector **vecPtrPtr) | Looks up an existing vector by name\&. On success, stores its pointer in vecPtrPtr and returns TCL_OK\&.
-int Rbc_ResizeVector(Rbc_Vector *vecPtr, Tcl_Size nValues) | Changes the logical length of a vector\&. Existing values are preserved as far as possible and clients of the vector are notified of the change\&.
-char *Rbc_NameOfVector(Rbc_Vector *vecPtr) | Returns the name of a vector\&. The returned string belongs to Rbc and must not be freed or modified by the caller\&.
-int Rbc_ResetVector(Rbc_Vector *vecPtr, double *dataArr, Tcl_Size nValues, Tcl_Size arraySize, Tcl_FreeProc *freeProc) | Replaces the vector's data array and records its ownership policy\&. Clients of the vector are notified of the change\&.
-double *Rbc_VectorData(Rbc_Vector *vecPtr) | Returns a pointer to the vector's current data array\&. The returned storage belongs to the vector and must not be freed by the caller\&.
-Tcl_Size Rbc_VectorLength(Rbc_Vector *vecPtr) | Returns the current logical number of values in the vector\&.
-Tcl_Size Rbc_VectorSize(Rbc_Vector *vecPtr) | Returns the current capacity of the vector's data array\&.
-int Rbc_VectorDirty(Rbc_Vector *vecPtr) | Returns the vector's update counter\&. The counter is incremented when the vector is changed\&.
-int Rbc_VectorExists2(Tcl_Interp *interp, const char *vecName) | Returns non-zero if the named vector exists and zero otherwise\&.
-void Rbc_FreeVector(Rbc_Vector *vecPtr) | Destroys the vector, removes its Tcl command and array mapping, releases its storage according to its ownership policy, and invalidates vecPtr\&.
-.TE
+.PP
+.RS 4n
+.nf
+┌────────────────────────────────────────────────────────────┬─────────────────────────────────────────────────────┐
+│ Function                                                   │ Description                                         │
+├────────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────┤
+│ int Rbc_CreateVector(Tcl_Interp *interp,                   │ Creates the named vector and its normal Tcl command │
+│     const char *vecName, Tcl_Size size,                    │ and array mappings\&. size specifies the initial      │
+│     Rbc_Vector **vecPtrPtr)                                │ length of a new vector\&. On success, stores a pointer│
+│                                                            │ to the vector in vecPtrPtr and returns TCL_OK\&.      │
+│ int Rbc_GetVector(Tcl_Interp *interp,                      │ Looks up an existing vector by name\&. On success,    │
+│     const char *vecName, Rbc_Vector **vecPtrPtr)           │ stores its pointer in vecPtrPtr and returns TCL_OK\&. │
+│ int Rbc_ResizeVector(Rbc_Vector *vecPtr,                   │ Changes the logical length of a vector\&. Existing    │
+│     Tcl_Size nValues)                                      │ values are preserved as far as possible and clients │
+│                                                            │ of the vector are notified of the change\&.           │
+│ char *Rbc_NameOfVector(Rbc_Vector *vecPtr)                 │ Returns the name of a vector\&. The returned string   │
+│                                                            │ belongs to Rbc and must not be freed or modified by │
+│                                                            │ the caller\&.                                         │
+│ int Rbc_ResetVector(Rbc_Vector *vecPtr, double *dataArr,   │ Replaces the vector's data array and records its    │
+│     Tcl_Size nValues, Tcl_Size arraySize,                  │ ownership policy\&. Clients of the vector are notified│
+│     Tcl_FreeProc *freeProc)                                │ of the change\&.                                      │
+│ double *Rbc_VectorData(Rbc_Vector *vecPtr)                 │ Returns a pointer to the vector's current data      │
+│                                                            │ array\&. The returned storage belongs to the vector   │
+│                                                            │ and must not be freed by the caller\&.                │
+│ Tcl_Size Rbc_VectorLength(Rbc_Vector *vecPtr)              │ Returns the current logical number of values in the │
+│                                                            │ vector\&.                                             │
+│ Tcl_Size Rbc_VectorSize(Rbc_Vector *vecPtr)                │ Returns the current capacity of the vector's data   │
+│                                                            │ array\&.                                              │
+│ int Rbc_VectorDirty(Rbc_Vector *vecPtr)                    │ Returns the vector's update counter\&. The counter is │
+│                                                            │ incremented when the vector is changed\&.             │
+│ int Rbc_VectorExists2(Tcl_Interp *interp,                  │ Returns non-zero if the named vector exists and     │
+│     const char *vecName)                                   │ zero otherwise\&.                                     │
+│ void Rbc_FreeVector(Rbc_Vector *vecPtr)                    │ Destroys the vector, removes its Tcl command and    │
+│                                                            │ array mapping, releases its storage according to its│
+│                                                            │ ownership policy, and invalidates vecPtr\&.           │
+└────────────────────────────────────────────────────────────┴─────────────────────────────────────────────────────┘
+.fi
+.RE
 .PP
 Functions returning int as a Tcl status return TCL_OK on success and TCL_ERROR on failure\&. When an
 interpreter is available, an explanatory error message is left in its result\&.
@@ -589,16 +622,24 @@ can update themselves without recreating the vectors\&.
 .PP
 The freeProc argument of Rbc_ResetVector specifies who owns dataArr and how it will eventually be
 released\&.
-.TS
-tab(|) box;
-l l.
-freeProc | Storage ownership
-_
-TCL_VOLATILE | Rbc copies the supplied data into its own storage\&. The caller retains ownership of dataArr and may reuse or release it immediately after the call returns\&.
-TCL_STATIC | Rbc uses dataArr directly but never frees it\&. The caller must keep the array valid for as long as the vector uses it\&.
-TCL_DYNAMIC | Rbc takes ownership of dataArr and releases it with Tcl's allocator when the storage is replaced or the vector is destroyed\&. The array must therefore have been allocated with compatible Tcl allocation routines such as Tcl_Alloc\&.
-custom Tcl_FreeProc * | Rbc takes ownership of dataArr and invokes the supplied deallocation procedure when the storage is no longer needed\&.
-.TE
+.PP
+.RS 4n
+.nf
+┌────────────────────────┬──────────────────────────────────────────────────────────────────────────────────────┐
+│ freeProc               │ Storage ownership                                                                    │
+├────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────┤
+│ TCL_VOLATILE           │ Rbc copies the supplied data into its own storage\&. The caller retains ownership of   │
+│                        │ dataArr and may reuse or release it immediately after the call returns\&.              │
+│ TCL_STATIC             │ Rbc uses dataArr directly but never frees it\&. The caller must keep the array valid   │
+│                        │ for as long as the vector uses it\&.                                                   │
+│ TCL_DYNAMIC            │ Rbc takes ownership of dataArr and releases it with Tcl's allocator when the storage │
+│                        │ is replaced or the vector is destroyed\&. The array must therefore have been allocated │
+│                        │ with compatible Tcl allocation routines such as Tcl_Alloc\&.                           │
+│ custom Tcl_FreeProc *  │ Rbc takes ownership of dataArr and invokes the supplied deallocation procedure when  │
+│                        │ the storage is no longer needed\&.                                                     │
+└────────────────────────┴──────────────────────────────────────────────────────────────────────────────────────┘
+.fi
+.RE
 .PP
 nValues specifies the logical number of values currently stored in the vector\&. arraySize specifies the
 capacity of the supplied array and must be greater than or equal to nValues\&.
@@ -733,3 +774,49 @@ interface and are intentionally not documented here\&.
 .PP
 Use the functions listed in \fIPublic vector functions\fP when writing new extensions\&.
 
+
+.SH SEE ALSO
+rbc(n) - package's main page
+.br
+rbc-tcltk9upgrade(n) - list of upgrades comparing to Tcl/Tk8 RBC package
+.br
+.sp 1
+Public commands and classes documentation:
+.br
+rbc-rbc(n)
+.br
+rbc-rbc-graphinst(n)
+.br
+rbc-rbc-axis(n)
+.br
+rbc-rbc-marginaxis(n)
+.br
+rbc-rbc-element(n)
+.br
+rbc-rbc-lineelement(n)
+.br
+rbc-rbc-stripelement(n)
+.br
+rbc-rbc-barelement(n)
+.br
+rbc-rbc-pen(n)
+.br
+rbc-rbc-marker(n)
+.br
+rbc-rbc-legend(n)
+.br
+rbc-rbc-grid(n)
+.br
+rbc-rbc-crosshairs(n)
+.br
+rbc-rbc-postscript(n)
+.br
+rbc-rbc-vector(n)
+.br
+rbc-rbc-vecinst(n)
+.br
+rbc-rbc-spline(n)
+.br
+rbc-rbc-winop(n)
+.br
+rbc-rbc-winopimage(n)

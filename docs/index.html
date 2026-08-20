@@ -237,7 +237,11 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html">Graph widget instance <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code> command</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#coordinate-systems">Coordinate systems</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#widget-options">Widget options</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#widget-options">Widget options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#tk-option-database">Tk option database</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#component-resource-names-and-classes">Component resource names and classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#when-option-database-values-are-applied">When option database values are applied</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#discovering-database-names-and-classes">Discovering database names and classes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#bar-modes">Bar modes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#margins">Margins</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#plotting-area">Plotting area</a></li>
@@ -286,8 +290,8 @@
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#trace-direction">Trace direction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#point-reduction">Point reduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#symbols">Symbols</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#error-bars">Error bars</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#value-labels">Value labels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#error-bars-of-line-elements">Error bars of line elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#value-labels-of-line-elements">Value labels of line elements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#pens-weights-and-styles">Pens, weights, and styles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#area-under-the-line">Area under the line</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#line-element-options">Line element options</a></li>
@@ -298,8 +302,8 @@
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#data">Data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#smoothing">Smoothing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#pens-and-symbols">Pens and symbols</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#error-bars">Error bars</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#value-labels">Value labels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#error-bars-of-strip-elements">Error bars of strip elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#value-labels-of-strip-elements">Value labels of strip elements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#weights-and-styles">Weights and styles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#strip-element-options">Strip element options</a></li>
 </ul>
@@ -313,12 +317,14 @@
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#stacked-bars">Stacked bars</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#appearance">Appearance</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#pens">Pens</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#error-bars">Error bars</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#value-labels">Value labels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#error-bars-of-bar-elements">Error bars of bar elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#value-labels-of-bar-elements">Value labels of bar elements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#weights-and-styles">Weights and styles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#logarithmic-axes">Logarithmic axes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#closest-searches">Closest searches</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#bar-element-options">Bar element options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#closest-searches">Closest searches</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#bar-element-options">Bar element options</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-PEN.html">Graph pen <code class="docutils literal notranslate"><span class="pre">PEN</span></code> command</a><ul>
@@ -329,15 +335,15 @@
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#line-pens">Line pens</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#traces">Traces</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#symbols">Symbols</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#error-bars">Error bars</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#value-labels">Value labels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#error-bars-of-line-element-pen">Error bars of line element pen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#value-labels-of-line-element-pen">Value labels of line element pen</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#line-pen-options">Line pen options</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#bar-pens">Bar pens</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#bar-appearance">Bar appearance</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#id2">Error bars</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#id5">Value labels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#error-bars-of-bar-element-pen">Error bars of bar element pen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#value-labels-of-bar-element-pen">Value labels of bar element pen</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#bar-pen-options">Bar pen options</a></li>
 </ul>
 </li>

@@ -19,15 +19,18 @@ GRAPHINST bar
 .RE
 .PP
 The element form uses the default element type of the graph widget:
-.TS
-tab(|) box;
-l l.
-Widget| Default element type
-_
-graph| line
-barchart| bar
-stripchart | strip
-.TE
+.PP
+.RS 4n
+.nf
+┌────────────┬──────────────────────┐
+│ Widget     │ Default element type │
+├────────────┼──────────────────────┤
+│ graph      │ line                 │
+│ barchart   │ bar                  │
+│ stripchart │ strip                │
+└────────────┴──────────────────────┘
+.fi
+.RE
 .PP
 The line and bar forms explicitly select the type when creating a new element:
 .PP
@@ -196,17 +199,20 @@ if {[\&.g element closest $x $y info]} {
 The command returns 1 if a result is found within the search halo and 0 otherwise\&.
 .PP
 On success, the named Tcl array receives:
-.TS
-tab(|) box;
-l l.
-Array element | Description
-_
-name| Name of the closest element\&.
-index| Source data index associated with the result\&.
-x| X coordinate of the result in graph coordinates\&.
-y| Y coordinate of the result in graph coordinates\&.
-dist| Distance from the requested window coordinate, measured in screen pixels\&.
-.TE
+.PP
+.RS 4n
+.nf
+┌───────────────┬───────────────────────────────────────────────────────────────────────────┐
+│ Array element │ Description                                                               │
+├───────────────┼───────────────────────────────────────────────────────────────────────────┤
+│ name          │ Name of the closest element\&.                                              │
+│ index         │ Source data index associated with the result\&.                             │
+│ x             │ X coordinate of the result in graph coordinates\&.                          │
+│ y             │ Y coordinate of the result in graph coordinates\&.                          │
+│ dist          │ Distance from the requested window coordinate, measured in screen pixels\&. │
+└───────────────┴───────────────────────────────────────────────────────────────────────────┘
+.fi
+.RE
 .PP
 If no match is found, name is set to an empty value\&. Other array elements should only be used when the
 command returns 1\&.
@@ -214,15 +220,19 @@ command returns 1\&.
 The default search halo is the graph's -halo value\&.
 .PP
 closest accepts the following options:
-.TS
-tab(|) box;
-l l.
-Option| Description
-_
--halo distance| Sets the maximum non-negative screen distance for this search\&.
--along direction| Measures distance along x, y, or both\&. The default is both\&.
--interpolate boolean | For line and strip elements, searches along the rendered trace when true instead of considering only data points\&.
-.TE
+.PP
+.RS 4n
+.nf
+┌──────────────────────┬─────────────────────────────────────────────────────────────────────────────────────┐
+│ Option               │ Description                                                                         │
+├──────────────────────┼─────────────────────────────────────────────────────────────────────────────────────┤
+│ -halo distance       │ Sets the maximum non-negative screen distance for this search\&.                      │
+│ -along direction     │ Measures distance along x, y, or both\&. The default is both\&.                         │
+│ -interpolate boolean │ For line and strip elements, searches along the rendered trace when true instead    │
+│                      │ of considering only data points\&.                                                    │
+└──────────────────────┴─────────────────────────────────────────────────────────────────────────────────────┘
+.fi
+.RE
 .PP
 With -interpolate false, line and strip searches return actual source data coordinates\&.
 .PP
@@ -246,15 +256,18 @@ restrict the search:
 .SH "ELEMENT TYPES"
 .PP
 ELEMENT type reports the concrete class of an existing element\&. The current element classes are:
-.TS
-tab(|) box;
-l l.
-Result| Element type
-_
-LineElement| line element
-BarElement| bar element
-StripElement | stripchart element
-.TE
+.PP
+.RS 4n
+.nf
+┌──────────────┬────────────────────┐
+│ Result       │ Element type       │
+├──────────────┼────────────────────┤
+│ LineElement  │ line element       │
+│ BarElement   │ bar element        │
+│ StripElement │ stripchart element │
+└──────────────┴────────────────────┘
+.fi
+.RE
 .PP
 For example:
 .PP
@@ -271,3 +284,49 @@ Configuration options are specific to the concrete element type:
 .fi
 .RE
 
+
+.SH SEE ALSO
+rbc(n) - package's main page
+.br
+rbc-tcltk9upgrade(n) - list of upgrades comparing to Tcl/Tk8 RBC package
+.br
+.sp 1
+Public commands and classes documentation:
+.br
+rbc-rbc(n)
+.br
+rbc-rbc-graphinst(n)
+.br
+rbc-rbc-axis(n)
+.br
+rbc-rbc-marginaxis(n)
+.br
+rbc-rbc-element(n)
+.br
+rbc-rbc-lineelement(n)
+.br
+rbc-rbc-stripelement(n)
+.br
+rbc-rbc-barelement(n)
+.br
+rbc-rbc-pen(n)
+.br
+rbc-rbc-marker(n)
+.br
+rbc-rbc-legend(n)
+.br
+rbc-rbc-grid(n)
+.br
+rbc-rbc-crosshairs(n)
+.br
+rbc-rbc-postscript(n)
+.br
+rbc-rbc-vector(n)
+.br
+rbc-rbc-vecinst(n)
+.br
+rbc-rbc-spline(n)
+.br
+rbc-rbc-winop(n)
+.br
+rbc-rbc-winopimage(n)

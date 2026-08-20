@@ -35,29 +35,35 @@ These commands operate on axes assigned to one of the graph's four logical axis 
 .SH "LOGICAL AND PHYSICAL MARGINS"
 .PP
 With the normal graph orientation, the logical axes correspond to the following physical margins:
-.TS
-tab(|) box;
-l l.
-Command| Physical margin
-_
-xaxis| bottom
-x2axis | top
-yaxis| left
-y2axis | right
-.TE
+.PP
+.RS 4n
+.nf
+┌─────────┬─────────────────┐
+│ Command │ Physical margin │
+├─────────┼─────────────────┤
+│ xaxis   │ bottom          │
+│ x2axis  │ top             │
+│ yaxis   │ left            │
+│ y2axis  │ right           │
+└─────────┴─────────────────┘
+.fi
+.RE
 .PP
 When the graph is configured with -invertxy yes, the logical X and Y directions are exchanged and the
 physical margins become:
-.TS
-tab(|) box;
-l l.
-Command| Physical margin with -invertxy yes
-_
-xaxis| left
-x2axis | right
-yaxis| bottom
-y2axis | top
-.TE
+.PP
+.RS 4n
+.nf
+┌─────────┬──────────────────────────────────────┐
+│ Command │ Physical margin with -invertxy yes   │
+├─────────┼──────────────────────────────────────┤
+│ xaxis   │ left                                 │
+│ x2axis  │ right                                │
+│ yaxis   │ bottom                               │
+│ y2axis  │ top                                  │
+└─────────┴──────────────────────────────────────┘
+.fi
+.RE
 .PP
 Application code can therefore continue to use xaxis and yaxis as logical X and Y interfaces regardless
 of graph orientation\&.
@@ -143,3 +149,49 @@ set value [\&.g xaxis invtransform $pixel]
 The axis orientation, -descending setting, logarithmic mapping, and graph -invertxy setting are handled
 automatically\&.
 
+
+.SH SEE ALSO
+rbc(n) - package's main page
+.br
+rbc-tcltk9upgrade(n) - list of upgrades comparing to Tcl/Tk8 RBC package
+.br
+.sp 1
+Public commands and classes documentation:
+.br
+rbc-rbc(n)
+.br
+rbc-rbc-graphinst(n)
+.br
+rbc-rbc-axis(n)
+.br
+rbc-rbc-marginaxis(n)
+.br
+rbc-rbc-element(n)
+.br
+rbc-rbc-lineelement(n)
+.br
+rbc-rbc-stripelement(n)
+.br
+rbc-rbc-barelement(n)
+.br
+rbc-rbc-pen(n)
+.br
+rbc-rbc-marker(n)
+.br
+rbc-rbc-legend(n)
+.br
+rbc-rbc-grid(n)
+.br
+rbc-rbc-crosshairs(n)
+.br
+rbc-rbc-postscript(n)
+.br
+rbc-rbc-vector(n)
+.br
+rbc-rbc-vecinst(n)
+.br
+rbc-rbc-spline(n)
+.br
+rbc-rbc-winop(n)
+.br
+rbc-rbc-winopimage(n)

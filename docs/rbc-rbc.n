@@ -387,7 +387,7 @@ The ensemble supports the following subcommands:
 Queries or modifies bindings associated with axis binding tags\&. With no arguments, returns the currently registered axis binding tags\&. With a tag name, returns the event sequences bound to that tag\&. With a sequence, returns its binding script\&. With a command, creates or replaces the binding\&.
 .TP
 \fIcget\fP
-Returns the current value of an axis configuration option\&. See \fIaxis options\fP for the complete option reference\&. Current value of option\&.
+Queries the current value of an axis configuration option\&. See \fIaxis options\fP for the complete option reference\&.
 .TP
 \fIconfigure\fP
 Queries or modifies axis configuration\&. When querying, normally one axis name is supplied\&. When setting options, multiple axis names may precede the option/value pairs and the same configuration is applied to each named axis\&. See \fIaxis options\fP for the complete option reference\&.
@@ -399,16 +399,16 @@ Creates a new virtual axis\&. The new axis is not displayed in a margin until it
 Deletes one or more virtual axes\&. If an axis is still referenced by an element, physical destruction is deferred until the reference is released, but the deleted name immediately stops referring to that axis and may be reused for a newly created axis\&.
 .TP
 \fIget\fP
-Returns information about the axis currently selected by the graph binding machinery\&. current returns the axis name\&. detail returns label, title, or line depending on the part of the axis under the current binding position\&. If no axis is current, the result is empty\&. Current axis name, current axis detail, or an empty result\&.
+Gives back information about the axis currently selected by the graph binding machinery\&. current returns the axis name\&. detail returns label, title, or line depending on the part of the axis under the current binding position\&. If no axis is current, the result is empty\&.
 .TP
 \fIinvtransform\fP
 Converts an integer window coordinate to the corresponding graph value using the specified axis\&. The axis orientation and -descending setting are taken into account\&. Logarithmic axes return the corresponding positive data value\&.
 .TP
 \fIlimits\fP
-Returns the effective displayed minimum and maximum of the specified axis\&. Automatic scaling, explicit limits, loose-range processing, and logarithmic mapping are reflected in the returned values\&. Logarithmic limits are returned as ordinary positive data values rather than base-10 exponents\&. Two-element list min max\&.
+Gives back the effective displayed minimum and maximum of the specified axis\&. Automatic scaling, explicit limits, loose-range processing, and logarithmic mapping are reflected in the returned values\&. Logarithmic limits are returned as ordinary positive data values rather than base-10 exponents\&.
 .TP
 \fInames\fP
-Returns the names of existing axes\&. If one or more Tcl glob patterns are supplied, an axis is returned when its name matches any pattern\&. Axes pending deletion are not returned\&. List of matching axis names\&.
+Gives back the names of existing axes\&. If one or more Tcl glob patterns are supplied, an axis is returned when its name matches any pattern\&. Axes pending deletion are not returned\&.
 .TP
 \fItransform\fP
 Converts a graph value to an integer window coordinate using the specified axis\&. value is evaluated as a Tcl numeric expression and must be finite\&. Values transformed through a logarithmic axis must be positive\&.
@@ -456,9 +456,8 @@ Binding tags, event sequences, or a binding script when querying; nothing when s
 \fBAXIS cget\fR (::rbc)
 .RE
 .PP
-Returns the current value of an axis configuration option\&. See \fIaxis options\fP for the complete
+Queries the current value of an axis configuration option\&. See \fIaxis options\fP for the complete
 option reference\&.
-Current value of option\&.
 .RS 4n
 \fBAXIS cget\fP \fIaxisName option\fP
 .br
@@ -476,8 +475,6 @@ Axis configuration option\&.
 .PP
 \fBReturn value\fR
 .PP
-Returns the current value of an axis configuration option\&. See \fIaxis options\fP for the complete
-option reference\&.
 Current value of option\&.
 .PP
 .RS -4n
@@ -569,10 +566,9 @@ Nothing\&.
 \fBAXIS get\fR (::rbc)
 .RE
 .PP
-Returns information about the axis currently selected by the graph binding machinery\&. current returns the
+Gives back information about the axis currently selected by the graph binding machinery\&. current returns the
 axis name\&. detail returns label, title, or line depending on the part of the axis under the current
 binding position\&. If no axis is current, the result is empty\&.
-Current axis name, current axis detail, or an empty result\&.
 .RS 4n
 \fBAXIS get\fP \fIname\fP
 .br
@@ -587,9 +583,6 @@ Information to retrieve; must be current or detail\&.
 .PP
 \fBReturn value\fR
 .PP
-Returns information about the axis currently selected by the graph binding machinery\&. current returns the
-axis name\&. detail returns label, title, or line depending on the part of the axis under the current
-binding position\&. If no axis is current, the result is empty\&.
 Current axis name, current axis detail, or an empty result\&.
 .PP
 .RS -4n
@@ -622,10 +615,9 @@ Corresponding graph-coordinate value\&.
 \fBAXIS limits\fR (::rbc)
 .RE
 .PP
-Returns the effective displayed minimum and maximum of the specified axis\&. Automatic scaling, explicit
+Gives back the effective displayed minimum and maximum of the specified axis\&. Automatic scaling, explicit
 limits, loose-range processing, and logarithmic mapping are reflected in the returned values\&. Logarithmic
 limits are returned as ordinary positive data values rather than base-10 exponents\&.
-Two-element list min max\&.
 .RS 4n
 \fBAXIS limits\fP \fIaxisName\fP
 .br
@@ -640,18 +632,14 @@ Name of the axis\&.
 .PP
 \fBReturn value\fR
 .PP
-Returns the effective displayed minimum and maximum of the specified axis\&. Automatic scaling, explicit
-limits, loose-range processing, and logarithmic mapping are reflected in the returned values\&. Logarithmic
-limits are returned as ordinary positive data values rather than base-10 exponents\&.
 Two-element list min max\&.
 .PP
 .RS -4n
 \fBAXIS names\fR (::rbc)
 .RE
 .PP
-Returns the names of existing axes\&. If one or more Tcl glob patterns are supplied, an axis is returned when
+Gives back the names of existing axes\&. If one or more Tcl glob patterns are supplied, an axis is returned when
 its name matches any pattern\&. Axes pending deletion are not returned\&.
-List of matching axis names\&.
 .RS 4n
 \fBAXIS names\fP \fI?pattern \&.\&.\&.?\fP
 .br
@@ -666,8 +654,6 @@ Optional Tcl glob pattern used to select axis names\&.
 .PP
 \fBReturn value\fR
 .PP
-Returns the names of existing axes\&. If one or more Tcl glob patterns are supplied, an axis is returned when
-its name matches any pattern\&. Axes pending deletion are not returned\&.
 List of matching axis names\&.
 .PP
 .RS -4n
@@ -795,7 +781,7 @@ The ensemble supports the following subcommands:
 .RS 4n
 .TP
 \fIcget\fP
-Returns the current value of one crosshairs configuration option\&. See \fICrosshairs options\fP\&. Current value of the requested option\&.
+Queries the current value of one crosshairs configuration option\&. See \fICrosshairs options\fP\&.
 .TP
 \fIconfigure\fP
 Queries or modifies crosshairs configuration options\&. With no arguments, returns all configuration information\&. With one option, returns information for that option\&. Otherwise args contains option/value pairs to change\&. See \fICrosshairs options\fP\&.
@@ -816,9 +802,8 @@ Refer to the documentation of each subcommand for details\&.
 \fBCROSSHAIRS cget\fR (::rbc)
 .RE
 .PP
-Returns the current value of one crosshairs configuration option\&. See
+Queries the current value of one crosshairs configuration option\&. See
 \fICrosshairs options\fP\&.
-Current value of the requested option\&.
 .RS 4n
 \fBCROSSHAIRS cget\fP \fIoption\fP
 .br
@@ -833,8 +818,6 @@ Crosshairs configuration option\&.
 .PP
 \fBReturn value\fR
 .PP
-Returns the current value of one crosshairs configuration option\&. See
-\fICrosshairs options\fP\&.
 Current value of the requested option\&.
 .PP
 .RS -4n
@@ -932,7 +915,7 @@ Queries or changes the active state of graph elements\&. With no arguments, retu
 Queries or modifies event bindings for element binding tags\&. With no arguments, returns the currently known element binding tags\&. With a tag name, returns the event sequences bound to that tag\&. With a tag and sequence, returns the corresponding binding script\&. With a command, creates or replaces the binding\&.
 .TP
 \fIcget\fP
-Returns the current value of an element configuration option\&. The available options depend on the concrete element type\&. Current value of option\&.
+Queries the current value of an element configuration option\&. The available options depend on the concrete element type\&.
 .TP
 \fIclosest\fP
 Finds the visible element nearest to the specified window coordinate\&. On success, stores information in the Tcl array varName using the keys name, index, x, y, and dist\&. Searches all visible elements unless one or more element names are supplied after the options\&.
@@ -953,16 +936,16 @@ Deletes one or more elements and releases their associated resources, bindings, 
 Tests whether an element with the specified name exists in the graph\&.
 .TP
 \fIget\fP
-Returns the element currently selected by the graph binding machinery\&. The only supported selector is current\&. If there is no current element, the result is empty\&. Current element name or an empty result\&.
+Gives back the element currently selected by the graph binding machinery\&. The only supported selector is current\&. If there is no current element, the result is empty\&.
 .TP
 \fInames\fP
-Returns the names of existing graph elements\&. With no patterns, all element names are returned\&. With one or more Tcl glob patterns, an element is returned if its name matches any pattern\&. List of matching element names\&.
+Gives back the names of existing graph elements\&. With no patterns, all element names are returned\&. With one or more Tcl glob patterns, an element is returned if its name matches any pattern\&.
 .TP
 \fIshow\fP
 Queries or replaces the element display list\&. With no argument, returns the currently displayed elements in drawing order\&. With elemList, displays only the listed elements and hides all others\&. The list order determines drawing order; later elements are drawn above earlier elements\&. Unknown element names are ignored\&. An empty list hides all elements\&.
 .TP
 \fItype\fP
-Returns the concrete class of the named element\&. Current results are LineElement, BarElement, and StripElement\&. Element class name\&.
+Gives back the concrete class of the named element\&. Current results are LineElement, BarElement, and StripElement\&.
 .RE
 .PP
 Refer to the documentation of each subcommand for details\&.
@@ -1030,9 +1013,8 @@ Binding tags, event sequences, or a binding script when querying; nothing when s
 \fBELEMENT cget\fR (::rbc)
 .RE
 .PP
-Returns the current value of an element configuration option\&. The available options depend on the concrete
+Queries the current value of an element configuration option\&. The available options depend on the concrete
 element type\&.
-Current value of option\&.
 .RS 4n
 \fBELEMENT cget\fP \fIelemName option\fP
 .br
@@ -1055,8 +1037,6 @@ bar-element options\&.
 .PP
 \fBReturn value\fR
 .PP
-Returns the current value of an element configuration option\&. The available options depend on the concrete
-element type\&.
 Current value of option\&.
 .PP
 .RS -4n
@@ -1252,9 +1232,8 @@ Boolean value\&.
 \fBELEMENT get\fR (::rbc)
 .RE
 .PP
-Returns the element currently selected by the graph binding machinery\&. The only supported selector is
+Gives back the element currently selected by the graph binding machinery\&. The only supported selector is
 current\&. If there is no current element, the result is empty\&.
-Current element name or an empty result\&.
 .RS 4n
 \fBELEMENT get\fP \fIname\fP
 .br
@@ -1269,17 +1248,14 @@ Information to retrieve; must currently be current\&.
 .PP
 \fBReturn value\fR
 .PP
-Returns the element currently selected by the graph binding machinery\&. The only supported selector is
-current\&. If there is no current element, the result is empty\&.
 Current element name or an empty result\&.
 .PP
 .RS -4n
 \fBELEMENT names\fR (::rbc)
 .RE
 .PP
-Returns the names of existing graph elements\&. With no patterns, all element names are returned\&. With one or
+Gives back the names of existing graph elements\&. With no patterns, all element names are returned\&. With one or
 more Tcl glob patterns, an element is returned if its name matches any pattern\&.
-List of matching element names\&.
 .RS 4n
 \fBELEMENT names\fP \fI?pattern \&.\&.\&.?\fP
 .br
@@ -1294,8 +1270,6 @@ Optional Tcl glob pattern used to select element names\&.
 .PP
 \fBReturn value\fR
 .PP
-Returns the names of existing graph elements\&. With no patterns, all element names are returned\&. With one or
-more Tcl glob patterns, an element is returned if its name matches any pattern\&.
 List of matching element names\&.
 .PP
 .RS -4n
@@ -1326,9 +1300,8 @@ Current element display list\&.
 \fBELEMENT type\fR (::rbc)
 .RE
 .PP
-Returns the concrete class of the named element\&. Current results are LineElement, BarElement, and
+Gives back the concrete class of the named element\&. Current results are LineElement, BarElement, and
 StripElement\&.
-Element class name\&.
 .RS 4n
 \fBELEMENT type\fP \fIelemName\fP
 .br
@@ -1343,8 +1316,6 @@ Name of the element\&.
 .PP
 \fBReturn value\fR
 .PP
-Returns the concrete class of the named element\&. Current results are LineElement, BarElement, and
-StripElement\&.
 Element class name\&.
 .PP
 .RS -4n
@@ -1412,7 +1383,7 @@ Performs an operation on the graph's virtual axes\&. Virtual axes can be created
 Performs an element operation using bar elements explicitly, regardless of the default element type of the graph widget\&.
 .TP
 \fIcget\fP
-Returns the current value of a graph widget configuration option\&. Current value of option\&.
+Queries the current value of a graph widget configuration option\&.
 .TP
 \fIconfigure\fP
 Queries or modifies graph widget configuration options\&. With no arguments, returns configuration information for all widget options\&. With one option, returns configuration information for that option\&. With one or more option/value pairs, changes the specified options\&.
@@ -1424,7 +1395,7 @@ Performs an operation on the graph crosshairs\&.
 Performs an operation on graph elements using the widget's default element type\&. The default is a line element for graph, a bar element for barchart, and a strip element for stripchart\&.
 .TP
 \fIextents\fP
-Returns the size or geometry of a graph component\&. For plotheight, plotwidth, and the margin items, returns one size in pixels\&. For plotarea and legend, returns a list of four values in the form x y width height\&.
+Gives back the size or geometry of a graph component\&.
 .TP
 \fIgrid\fP
 Performs an operation on the graph grid\&.
@@ -1517,8 +1488,7 @@ Result of the selected element operation\&.
 \fBGRAPHINST cget\fR (::rbc)
 .RE
 .PP
-Returns the current value of a graph widget configuration option\&.
-Current value of option\&.
+Queries the current value of a graph widget configuration option\&.
 .RS 4n
 \fBGRAPHINST cget\fP \fIoption\fP
 .br
@@ -1537,7 +1507,6 @@ See \fIWidget options\fP for the complete list of supported options and their de
 .PP
 \fBReturn value\fR
 .PP
-Returns the current value of a graph widget configuration option\&.
 Current value of option\&.
 .PP
 .RS -4n
@@ -1613,9 +1582,7 @@ Result of the selected element operation\&.
 \fBGRAPHINST extents\fR (::rbc)
 .RE
 .PP
-Returns the size or geometry of a graph component\&.
-For plotheight, plotwidth, and the margin items, returns one size in pixels\&. For plotarea and
-legend, returns a list of four values in the form x y width height\&.
+Gives back the size or geometry of a graph component\&.
 .RS 4n
 \fBGRAPHINST extents\fP \fIitem\fP
 .br
@@ -1630,7 +1597,6 @@ Component whose extents are requested\&. Must be plotheight, plotwidth, plotarea
 .PP
 \fBReturn value\fR
 .PP
-Returns the size or geometry of a graph component\&.
 For plotheight, plotwidth, and the margin items, returns one size in pixels\&. For plotarea and
 legend, returns a list of four values in the form x y width height\&.
 .PP
@@ -1955,7 +1921,7 @@ The ensemble supports the following subcommands:
 .RS 4n
 .TP
 \fIcget\fP
-Returns the current value of one grid configuration option\&. See \fIGrid options\fP\&. Current value of the requested option\&.
+Queries the current value of one grid configuration option\&. See \fIGrid options\fP\&.
 .TP
 \fIconfigure\fP
 Queries or modifies grid configuration options\&. With no arguments, returns all configuration information\&. With one option, returns information for that option\&. Otherwise args contains option/value pairs to change\&. See \fIGrid options\fP\&.
@@ -1976,8 +1942,7 @@ Refer to the documentation of each subcommand for details\&.
 \fBGRID cget\fR (::rbc)
 .RE
 .PP
-Returns the current value of one grid configuration option\&. See \fIGrid options\fP\&.
-Current value of the requested option\&.
+Queries the current value of one grid configuration option\&. See \fIGrid options\fP\&.
 .RS 4n
 \fBGRID cget\fP \fIoption\fP
 .br
@@ -1992,7 +1957,6 @@ Grid configuration option\&.
 .PP
 \fBReturn value\fR
 .PP
-Returns the current value of one grid configuration option\&. See \fIGrid options\fP\&.
 Current value of the requested option\&.
 .PP
 .RS -4n
@@ -2090,7 +2054,7 @@ Marks matching legend entries active\&. Each pattern is matched against element 
 Queries or changes event bindings for legend entries associated with tagName\&. Element names are implicit binding tags\&. With no sequence, returns the bound event sequences\&. With a sequence but no command, returns the current binding\&. With a sequence and command, creates or replaces the binding; a command beginning with + appends to an existing binding\&.
 .TP
 \fIcget\fP
-Returns the current value of one legend configuration option\&. See \fILegend options\fP\&. Current value of the requested option\&.
+Queries the current value of one legend configuration option\&. See \fILegend options\fP\&.
 .TP
 \fIconfigure\fP
 Queries or modifies legend configuration options\&. With no arguments, returns all configuration information\&. With one option, returns information for that option\&. Otherwise args contains option/value pairs to change\&. See \fILegend options\fP\&.
@@ -2099,7 +2063,7 @@ Queries or modifies legend configuration options\&. With no arguments, returns a
 Marks matching legend entries inactive\&. Each pattern is matched against element names\&. Inactive entries are drawn using the normal legend appearance\&. A pattern that matches no element has no effect\&.
 .TP
 \fIget\fP
-Returns the element name represented by the legend entry at position\&. position may be current, meaning the legend entry currently under the pointer, or an explicit screen coordinate of the form @x,y\&. If no legend entry is present at the requested position, an empty string is returned\&. Name of the corresponding graph element, or an empty string if no entry is found\&.
+Gives back the element name represented by the legend entry at position\&. position may be current, meaning the legend entry currently under the pointer, or an explicit screen coordinate of the form @x,y\&. If no legend entry is present at the requested position, an empty string is returned\&.
 .RE
 .PP
 Refer to the documentation of each subcommand for details\&.
@@ -2161,8 +2125,7 @@ Binding information when querying, otherwise nothing\&.
 \fBLEGEND cget\fR (::rbc)
 .RE
 .PP
-Returns the current value of one legend configuration option\&. See \fILegend options\fP\&.
-Current value of the requested option\&.
+Queries the current value of one legend configuration option\&. See \fILegend options\fP\&.
 .RS 4n
 \fBLEGEND cget\fP \fIoption\fP
 .br
@@ -2177,7 +2140,6 @@ Legend configuration option\&.
 .PP
 \fBReturn value\fR
 .PP
-Returns the current value of one legend configuration option\&. See \fILegend options\fP\&.
 Current value of the requested option\&.
 .PP
 .RS -4n
@@ -2232,10 +2194,9 @@ Nothing\&.
 \fBLEGEND get\fR (::rbc)
 .RE
 .PP
-Returns the element name represented by the legend entry at position\&. position may be current, meaning
+Gives back the element name represented by the legend entry at position\&. position may be current, meaning
 the legend entry currently under the pointer, or an explicit screen coordinate of the form @x,y\&. If no
 legend entry is present at the requested position, an empty string is returned\&.
-Name of the corresponding graph element, or an empty string if no entry is found\&.
 .RS 4n
 \fBLEGEND get\fP \fIcurrent|@x,y\fP
 .br
@@ -2250,9 +2211,6 @@ current or a screen position of the form @x,y\&.
 .PP
 \fBReturn value\fR
 .PP
-Returns the element name represented by the legend entry at position\&. position may be current, meaning
-the legend entry currently under the pointer, or an explicit screen coordinate of the form @x,y\&. If no
-legend entry is present at the requested position, an empty string is returned\&.
 Name of the corresponding graph element, or an empty string if no entry is found\&.
 .PP
 .RS -4n
@@ -2276,7 +2234,7 @@ The ensemble supports the following subcommands:
 Queries or modifies event bindings for the first axis assigned to this margin\&. With no arguments, returns the event sequences currently bound to the axis\&. With a sequence, returns the corresponding binding script\&. With both a sequence and command, creates or replaces the binding\&.
 .TP
 \fIcget\fP
-Returns the current value of a configuration option for the first axis assigned to this margin\&. See \fIAXIS\fP for the complete axis option reference\&. Current value of option\&.
+Queries the current value of a configuration option for the first axis assigned to this margin\&. See \fIAXIS\fP for the complete axis option reference\&.
 .TP
 \fIconfigure\fP
 Queries or modifies configuration options of the first axis assigned to this margin\&. With no arguments, returns configuration information for all axis options\&. With one option, returns configuration information for that option\&. With option/value pairs, changes the specified options\&. See \fIAXIS\fP for the complete axis option reference\&.
@@ -2285,7 +2243,7 @@ Queries or modifies configuration options of the first axis assigned to this mar
 Converts an integer window coordinate to the corresponding graph-coordinate value using the first axis assigned to this margin\&. Axis orientation, descending direction, and logarithmic mapping are taken into account\&.
 .TP
 \fIlimits\fP
-Returns the effective displayed limits of the first axis assigned to this margin\&. Automatic scaling, explicit limits, loose-range processing, and logarithmic mapping are reflected in the result\&. Logarithmic limits are returned as ordinary positive data values rather than base-10 exponents\&. Two-element list min max\&.
+Gives back the effective displayed limits of the first axis assigned to this margin\&. Automatic scaling, explicit limits, loose-range processing, and logarithmic mapping are reflected in the result\&. Logarithmic limits are returned as ordinary positive data values rather than base-10 exponents\&.
 .TP
 \fItransform\fP
 Converts a graph-coordinate value to an integer window coordinate using the first axis assigned to this margin\&. value may be a Tcl numeric expression and must evaluate to a finite value\&. Values transformed through a logarithmic axis must be positive\&.
@@ -2328,9 +2286,8 @@ Event sequences or a binding script when querying; nothing when setting a bindin
 \fBMARGINAXIS cget\fR (::rbc)
 .RE
 .PP
-Returns the current value of a configuration option for the first axis assigned to this margin\&. See \fIAXIS\fP
+Queries the current value of a configuration option for the first axis assigned to this margin\&. See \fIAXIS\fP
 for the complete axis option reference\&.
-Current value of option\&.
 .RS 4n
 \fBMARGINAXIS cget\fP \fIoption\fP
 .br
@@ -2345,8 +2302,6 @@ Axis configuration option\&.
 .PP
 \fBReturn value\fR
 .PP
-Returns the current value of a configuration option for the first axis assigned to this margin\&. See \fIAXIS\fP
-for the complete axis option reference\&.
 Current value of option\&.
 .PP
 .RS -4n
@@ -2405,10 +2360,9 @@ Corresponding graph-coordinate value\&.
 \fBMARGINAXIS limits\fR (::rbc)
 .RE
 .PP
-Returns the effective displayed limits of the first axis assigned to this margin\&. Automatic scaling,
+Gives back the effective displayed limits of the first axis assigned to this margin\&. Automatic scaling,
 explicit limits, loose-range processing, and logarithmic mapping are reflected in the result\&. Logarithmic
 limits are returned as ordinary positive data values rather than base-10 exponents\&.
-Two-element list min max\&.
 .RS 4n
 \fBMARGINAXIS limits\fP
 .br
@@ -2416,9 +2370,6 @@ Two-element list min max\&.
 .PP
 \fBReturn value\fR
 .PP
-Returns the effective displayed limits of the first axis assigned to this margin\&. Automatic scaling,
-explicit limits, loose-range processing, and logarithmic mapping are reflected in the result\&. Logarithmic
-limits are returned as ordinary positive data values rather than base-10 exponents\&.
 Two-element list min max\&.
 .PP
 .RS -4n
@@ -2495,7 +2446,7 @@ Changes the position of a marker in the marker display list\&. If beforeMarker i
 Queries or changes marker bindings\&. With no arguments, returns the known marker binding tags\&. With only a tag name, returns the event sequences bound to that tag\&. With a tag and sequence, returns the binding for that sequence\&. With a command as well, creates or replaces the binding; a command beginning with + appends to the existing binding\&.
 .TP
 \fIcget\fP
-Returns the current value of one configuration option of a marker\&. The available options depend on the concrete marker type\&. See \fIMarker types and options\fP\&. Current value of the requested option\&.
+Queries the current value of one configuration option of a marker\&. The available options depend on the concrete marker type\&. See \fIMarker types and options\fP\&.
 .TP
 \fIconfigure\fP
 Queries or modifies marker configuration options\&. One or more marker names may be supplied before the first option\&. With no option, returns all configuration information for the first marker\&. With one option, returns information for that option for the first marker\&. With option/value pairs, applies the same changes to every listed marker\&. See \fIMarker types and options\fP\&.
@@ -2513,13 +2464,13 @@ Reports whether a marker with the specified name exists\&.
 Finds the first displayed marker relative to a rectangular screen region\&. mode may be enclosed, which requires the marker to be contained by the region, or overlapping, which requires it to intersect the region\&. Hidden markers and markers associated with hidden elements are ignored\&.
 .TP
 \fIget\fP
-Returns the marker currently selected by the graph's binding machinery\&. The supported selector is current\&. If there is no current marker, an empty string is returned\&. Name of the current marker, or an empty string\&.
+Gives back the marker currently selected by the graph's binding machinery\&. The supported selector is current\&. If there is no current marker, an empty string is returned\&.
 .TP
 \fInames\fP
-Returns marker names\&. If patterns are supplied, only marker names matching at least one glob pattern are returned\&. List of marker names\&.
+Gives back marker names\&. If patterns are supplied, only marker names matching at least one glob pattern are returned\&.
 .TP
 \fItype\fP
-Returns the concrete type of an existing marker\&. Marker type: bitmap, image, line, polygon, text, or window\&.
+Gives back the concrete type of an existing marker\&.
 .RE
 .PP
 Refer to the documentation of each subcommand for details\&.
@@ -2609,9 +2560,8 @@ Binding tags or binding information when querying, otherwise nothing\&.
 \fBMARKER cget\fR (::rbc)
 .RE
 .PP
-Returns the current value of one configuration option of a marker\&. The available options depend on the
+Queries the current value of one configuration option of a marker\&. The available options depend on the
 concrete marker type\&. See \fIMarker types and options\fP\&.
-Current value of the requested option\&.
 .RS 4n
 \fBMARKER cget\fP \fImarkerName option\fP
 .br
@@ -2629,8 +2579,6 @@ Marker configuration option\&.
 .PP
 \fBReturn value\fR
 .PP
-Returns the current value of one configuration option of a marker\&. The available options depend on the
-concrete marker type\&. See \fIMarker types and options\fP\&.
 Current value of the requested option\&.
 .PP
 .RS -4n
@@ -2774,9 +2722,8 @@ Name of the first matching marker, or an empty string if none matches\&.
 \fBMARKER get\fR (::rbc)
 .RE
 .PP
-Returns the marker currently selected by the graph's binding machinery\&. The supported selector is current\&.
+Gives back the marker currently selected by the graph's binding machinery\&. The supported selector is current\&.
 If there is no current marker, an empty string is returned\&.
-Name of the current marker, or an empty string\&.
 .RS 4n
 \fBMARKER get\fP \fIcurrent\fP
 .br
@@ -2791,17 +2738,14 @@ Marker selector; currently current\&.
 .PP
 \fBReturn value\fR
 .PP
-Returns the marker currently selected by the graph's binding machinery\&. The supported selector is current\&.
-If there is no current marker, an empty string is returned\&.
 Name of the current marker, or an empty string\&.
 .PP
 .RS -4n
 \fBMARKER names\fR (::rbc)
 .RE
 .PP
-Returns marker names\&. If patterns are supplied, only marker names matching at least one glob pattern are
+Gives back marker names\&. If patterns are supplied, only marker names matching at least one glob pattern are
 returned\&.
-List of marker names\&.
 .RS 4n
 \fBMARKER names\fP \fI?pattern \&.\&.\&.?\fP
 .br
@@ -2816,16 +2760,13 @@ Optional glob pattern used to select marker names\&.
 .PP
 \fBReturn value\fR
 .PP
-Returns marker names\&. If patterns are supplied, only marker names matching at least one glob pattern are
-returned\&.
 List of marker names\&.
 .PP
 .RS -4n
 \fBMARKER type\fR (::rbc)
 .RE
 .PP
-Returns the concrete type of an existing marker\&.
-Marker type: bitmap, image, line, polygon, text, or window\&.
+Gives back the concrete type of an existing marker\&.
 .RS 4n
 \fBMARKER type\fP \fImarkerName\fP
 .br
@@ -2840,7 +2781,6 @@ Name of the marker\&.
 .PP
 \fBReturn value\fR
 .PP
-Returns the concrete type of an existing marker\&.
 Marker type: bitmap, image, line, polygon, text, or window\&.
 .PP
 .RS -4n
@@ -2861,7 +2801,7 @@ The ensemble supports the following subcommands:
 .RS 4n
 .TP
 \fIcget\fP
-Returns the current value of a pen configuration option\&. Available options depend on whether the named pen is a line or bar pen\&. See \fIline pen options\fP and \fIbar pen options\fP\&. Current value of option\&.
+Queries the current value of a pen configuration option\&. Available options depend on whether the named pen is a line or bar pen\&. See \fIline pen options\fP and \fIbar pen options\fP\&.
 .TP
 \fIconfigure\fP
 Queries or modifies pen configuration options\&. One or more pen names may be supplied before the first option\&. With no option, returns all configuration information for the first pen\&. With one option, returns information for that option for the first pen\&. With option/value pairs, applies the same changes to every listed pen\&. See \fIline pen options\fP and \fIbar pen options\fP\&.
@@ -2873,10 +2813,10 @@ Creates a new named pen\&. -type line creates a line pen, -type bar creates a ba
 Deletes one or more named pens\&. If a pen is still referenced by an element, destruction is deferred until its final reference is released\&. The deleted pen name immediately stops being available for new references\&.
 .TP
 \fInames\fP
-Returns names of existing pens\&. With one or more Tcl glob patterns, a pen is returned when its name matches any pattern\&. Pens pending deletion are not returned\&. List of matching pen names\&.
+Gives back names of existing pens\&. With one or more Tcl glob patterns, a pen is returned when its name matches any pattern\&. Pens pending deletion are not returned\&.
 .TP
 \fItype\fP
-Returns the concrete class of the named pen\&. Line and strip pens return LineElement; bar pens return BarElement\&. This reports the actual pen implementation and is independent of the textual creation-time -type representation\&. LineElement or BarElement\&.
+Gives back the concrete class of the named pen\&. Line and strip pens return LineElement; bar pens return BarElement\&. This reports the actual pen implementation and is independent of the textual creation-time -type representation\&.
 .RE
 .PP
 Refer to the documentation of each subcommand for details\&.
@@ -2885,9 +2825,8 @@ Refer to the documentation of each subcommand for details\&.
 \fBPEN cget\fR (::rbc)
 .RE
 .PP
-Returns the current value of a pen configuration option\&. Available options depend on whether the named pen is
+Queries the current value of a pen configuration option\&. Available options depend on whether the named pen is
 a line or bar pen\&. See \fIline pen options\fP and \fIbar pen options\fP\&.
-Current value of option\&.
 .RS 4n
 \fBPEN cget\fP \fIpenName option\fP
 .br
@@ -2905,8 +2844,6 @@ Pen configuration option\&.
 .PP
 \fBReturn value\fR
 .PP
-Returns the current value of a pen configuration option\&. Available options depend on whether the named pen is
-a line or bar pen\&. See \fIline pen options\fP and \fIbar pen options\fP\&.
 Current value of option\&.
 .PP
 .RS -4n
@@ -2994,9 +2931,8 @@ Nothing\&.
 \fBPEN names\fR (::rbc)
 .RE
 .PP
-Returns names of existing pens\&. With one or more Tcl glob patterns, a pen is returned when its name matches
+Gives back names of existing pens\&. With one or more Tcl glob patterns, a pen is returned when its name matches
 any pattern\&. Pens pending deletion are not returned\&.
-List of matching pen names\&.
 .RS 4n
 \fBPEN names\fP \fI?pattern \&.\&.\&.?\fP
 .br
@@ -3011,18 +2947,15 @@ Optional Tcl glob pattern used to select pen names\&.
 .PP
 \fBReturn value\fR
 .PP
-Returns names of existing pens\&. With one or more Tcl glob patterns, a pen is returned when its name matches
-any pattern\&. Pens pending deletion are not returned\&.
 List of matching pen names\&.
 .PP
 .RS -4n
 \fBPEN type\fR (::rbc)
 .RE
 .PP
-Returns the concrete class of the named pen\&. Line and strip pens return LineElement; bar pens return
+Gives back the concrete class of the named pen\&. Line and strip pens return LineElement; bar pens return
 BarElement\&. This reports the actual pen implementation and is independent of the textual creation-time
 -type representation\&.
-LineElement or BarElement\&.
 .RS 4n
 \fBPEN type\fP \fIpenName\fP
 .br
@@ -3037,9 +2970,6 @@ Name of the pen\&.
 .PP
 \fBReturn value\fR
 .PP
-Returns the concrete class of the named pen\&. Line and strip pens return LineElement; bar pens return
-BarElement\&. This reports the actual pen implementation and is independent of the textual creation-time
--type representation\&.
 LineElement or BarElement\&.
 .PP
 .RS -4n
@@ -3060,7 +2990,7 @@ The ensemble supports the following subcommands:
 .RS 4n
 .TP
 \fIcget\fP
-Returns the current value of one PostScript configuration option\&. See \fIPostScript options\fP\&. Current value of the requested option\&.
+Queries the current value of one PostScript configuration option\&. See \fIPostScript options\fP\&.
 .TP
 \fIconfigure\fP
 Queries or modifies PostScript configuration options\&. With no arguments, returns all configuration information\&. With one option, returns information for that option\&. Otherwise args contains option/value pairs to change\&. See \fIPostScript options\fP\&.
@@ -3075,9 +3005,8 @@ Refer to the documentation of each subcommand for details\&.
 \fBPOSTSCRIPT cget\fR (::rbc)
 .RE
 .PP
-Returns the current value of one PostScript configuration option\&. See
+Queries the current value of one PostScript configuration option\&. See
 \fIPostScript options\fP\&.
-Current value of the requested option\&.
 .RS 4n
 \fBPOSTSCRIPT cget\fP \fIoption\fP
 .br
@@ -3092,8 +3021,6 @@ PostScript configuration option\&.
 .PP
 \fBReturn value\fR
 .PP
-Returns the current value of one PostScript configuration option\&. See
-\fIPostScript options\fP\&.
 Current value of the requested option\&.
 .PP
 .RS -4n
@@ -3351,7 +3278,7 @@ Creates a more densely sampled vector using linear interpolation\&.  density int
 Fills the vector with pseudo-random values in the range [0\&.0, 1\&.0)\&. The current vector length is preserved\&. Each existing component is replaced by a newly generated pseudo-random value\&. An empty vector remains empty\&.
 .TP
 \fIrange\fP
-Returns an inclusive range of vector values\&. If first is less than or equal to last, values are returned in ascending index order\&. If first is greater than last, values are returned in descending index order\&. first and last are normal vector indices and may use forms such as end\&. This operation does not modify the vector\&. A list containing the selected vector values\&.
+Gives back an inclusive range of vector values\&. If first is less than or equal to last, values are returned in ascending index order\&. If first is greater than last, values are returned in descending index order\&. first and last are normal vector indices and may use forms such as end\&. This operation does not modify the vector\&.
 .TP
 \fIsearch\fP
 Searches the vector for values in a numeric range\&. With one numeric argument, returns matches equal to that value\&. With two numeric arguments, returns matches between min and max, inclusive within the implementation's floating-point tolerance\&. By default matching vector indices are returned\&. With -value, matching vector values are returned instead\&.
@@ -3783,11 +3710,10 @@ Nothing\&.
 \fBVECINST range\fR (::rbc)
 .RE
 .PP
-Returns an inclusive range of vector values\&. If first is less than or equal to last, values are
+Gives back an inclusive range of vector values\&. If first is less than or equal to last, values are
 returned in ascending index order\&. If first is greater than last, values are returned in descending
 index order\&. first and last are normal vector indices and may use forms such as end\&. This
 operation does not modify the vector\&.
-A list containing the selected vector values\&.
 .RS 4n
 \fBVECINST range\fP \fIfirst last\fP
 .br
@@ -3821,10 +3747,6 @@ x range 3 1
 .PP
 \fBReturn value\fR
 .PP
-Returns an inclusive range of vector values\&. If first is less than or equal to last, values are
-returned in ascending index order\&. If first is greater than last, values are returned in descending
-index order\&. first and last are normal vector indices and may use forms such as end\&. This
-operation does not modify the vector\&.
 A list containing the selected vector values\&.
 .PP
 .RS -4n
@@ -4044,7 +3966,7 @@ Destroys one or more vectors\&. Destroying a vector removes its associated vecto
 Evaluates a vector expression\&. expression may contain scalars, vectors, vector ranges, arithmetic operators, and the vector mathematical functions described in \fIVector expressions\fP\&. Unlike the instance \fIVECINST::expr\fP operation, this command does not store the result in an existing vector\&.
 .TP
 \fInames\fP
-Returns the names of existing vectors\&. If pattern is supplied, only vector names matching the Tcl glob pattern are returned\&. A list of vector names\&.
+Gives back the names of existing vectors\&. If pattern is supplied, only vector names matching the Tcl glob pattern are returned\&.
 .RE
 .PP
 Refer to the documentation of each subcommand for details\&.
@@ -4147,9 +4069,8 @@ The scalar value or list of vector values produced by the expression\&.
 \fBvector names\fR (::rbc)
 .RE
 .PP
-Returns the names of existing vectors\&. If pattern is supplied, only vector names matching the Tcl glob
+Gives back the names of existing vectors\&. If pattern is supplied, only vector names matching the Tcl glob
 pattern are returned\&.
-A list of vector names\&.
 .RS 4n
 \fBvector names\fP \fIpattern\fP
 .br
@@ -4164,8 +4085,6 @@ Optional Tcl glob pattern\&.
 .PP
 \fBReturn value\fR
 .PP
-Returns the names of existing vectors\&. If pattern is supplied, only vector names matching the Tcl glob
-pattern are returned\&.
 A list of vector names\&.
 .PP
 .RS -4n
@@ -4189,7 +4108,7 @@ The ensemble supports the following subcommands:
 Realizes a Tk window if necessary\&. For a toplevel window, also requests backing-store and save-under attributes from the underlying window system\&.
 .TP
 \fIcolormap\fP
-Returns information about color cells in the colormap associated with a Tk window\&. This operation is available only on non-Windows builds and examines up to 256 colormap entries\&. A flat list of color and pixel-value pairs in the form color pixel color pixel \&.\&.\&.\&.
+Gives back information about color cells in the colormap associated with a Tk window\&. This operation is available only on non-Windows builds and examines up to 256 colormap entries\&.
 .TP
 \fIconvolve\fP
 Applies a two-dimensional convolution kernel to a Tk photo image\&. filter must be a non-empty square list of finite numeric values\&. The output has the same dimensions as the source photo\&. The source and destination may be the same image\&.
@@ -4210,7 +4129,7 @@ Moves a Tk window to the specified coordinates using Tk's window-moving operatio
 Reduces the number of colors in a Tk photo image\&. nColors must be between 1 and 256\&. If omitted it defaults to 1\&. The destination is resized to the source dimensions when necessary\&.
 .TP
 \fIquery\fP
-Returns the current pointer location in root-screen coordinates\&. Pointer position in the form @x,y, or an empty result if the underlying pointer query fails\&.
+Gives back the current pointer location in root-screen coordinates\&.
 .TP
 \fIraise\fP
 Raises one or more Tk windows to the top of their stacking order\&. Supplying no window names has no effect\&.
@@ -4262,9 +4181,8 @@ Nothing\&.
 \fBwinop colormap\fR (::rbc)
 .RE
 .PP
-Returns information about color cells in the colormap associated with a Tk window\&. This operation is
+Gives back information about color cells in the colormap associated with a Tk window\&. This operation is
 available only on non-Windows builds and examines up to 256 colormap entries\&.
-A flat list of color and pixel-value pairs in the form color pixel color pixel \&.\&.\&.\&.
 .RS 4n
 \fBwinop colormap\fP \fIwindow\fP
 .br
@@ -4279,8 +4197,6 @@ Path name of the Tk window\&.
 .PP
 \fBReturn value\fR
 .PP
-Returns information about color cells in the colormap associated with a Tk window\&. This operation is
-available only on non-Windows builds and examines up to 256 colormap entries\&.
 A flat list of color and pixel-value pairs in the form color pixel color pixel \&.\&.\&.\&.
 .PP
 .RS -4n
@@ -4437,8 +4353,7 @@ Nothing\&.
 \fBwinop query\fR (::rbc)
 .RE
 .PP
-Returns the current pointer location in root-screen coordinates\&.
-Pointer position in the form @x,y, or an empty result if the underlying pointer query fails\&.
+Gives back the current pointer location in root-screen coordinates\&.
 .RS 4n
 \fBwinop query\fP
 .br
@@ -4446,7 +4361,6 @@ Pointer position in the form @x,y, or an empty result if the underlying pointer 
 .PP
 \fBReturn value\fR
 .PP
-Returns the current pointer location in root-screen coordinates\&.
 Pointer position in the form @x,y, or an empty result if the underlying pointer query fails\&.
 .PP
 .RS -4n
@@ -4905,3 +4819,49 @@ Optional vertical resampling filter\&.
 .PP
 Nothing\&.
 
+
+.SH SEE ALSO
+rbc(n) - package's main page
+.br
+rbc-tcltk9upgrade(n) - list of upgrades comparing to Tcl/Tk8 RBC package
+.br
+.sp 1
+Public commands and classes documentation:
+.br
+rbc-rbc(n)
+.br
+rbc-rbc-graphinst(n)
+.br
+rbc-rbc-axis(n)
+.br
+rbc-rbc-marginaxis(n)
+.br
+rbc-rbc-element(n)
+.br
+rbc-rbc-lineelement(n)
+.br
+rbc-rbc-stripelement(n)
+.br
+rbc-rbc-barelement(n)
+.br
+rbc-rbc-pen(n)
+.br
+rbc-rbc-marker(n)
+.br
+rbc-rbc-legend(n)
+.br
+rbc-rbc-grid(n)
+.br
+rbc-rbc-crosshairs(n)
+.br
+rbc-rbc-postscript(n)
+.br
+rbc-rbc-vector(n)
+.br
+rbc-rbc-vecinst(n)
+.br
+rbc-rbc-spline(n)
+.br
+rbc-rbc-winop(n)
+.br
+rbc-rbc-winopimage(n)

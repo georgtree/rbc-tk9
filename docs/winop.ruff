@@ -27,16 +27,34 @@ namespace eval ::rbc::winop {
         ## Command layout
         The current interface contains both direct image operations and an `image` subgroup.
 
-        | Operation | Direct form | `image` form |
-        | --- | --- | --- |
-        | convolve | `::rbc::winop convolve` | `::rbc::winop image convolve` |
-        | gradient | — | `::rbc::winop image gradient` |
-        | quantize | `::rbc::winop quantize` | — |
-        | readjpeg | `::rbc::winop readjpeg` | `::rbc::winop image readjpeg` |
-        | resample | `::rbc::winop resample` | `::rbc::winop image resample` |
-        | rotate | — | `::rbc::winop image rotate` |
-        | snap | `::rbc::winop snap` | `::rbc::winop image snap` |
+        #ruffopt excludedformats nroff
+        | Operation | Direct form              | `image` form                   |
+        |-----------|--------------------------|--------------------------------|
+        | convolve  | `::rbc::winop convolve`  | `::rbc::winop image convolve`  |
+        | gradient  | —                        | `::rbc::winop image gradient`  |
+        | quantize  | `::rbc::winop quantize`  | —                              |
+        | readjpeg  | `::rbc::winop readjpeg`  | `::rbc::winop image readjpeg`  |
+        | resample  | `::rbc::winop resample`  | `::rbc::winop image resample`  |
+        | rotate    | —                        | `::rbc::winop image rotate`    |
+        | snap      | `::rbc::winop snap`      | `::rbc::winop image snap`      |
         | subsample | `::rbc::winop subsample` | `::rbc::winop image subsample` |
+
+        #ruffopt includedformats nroff
+        ```
+        ┌───────────┬──────────────────────────┬────────────────────────────────┐
+        │ Operation │ Direct form              │ image form                     │
+        ├───────────┼──────────────────────────┼────────────────────────────────┤
+        │ convolve  │ ::rbc::winop convolve    │ ::rbc::winop image convolve    │
+        │ gradient  │ —                        │ ::rbc::winop image gradient    │
+        │ quantize  │ ::rbc::winop quantize    │ —                              │
+        │ readjpeg  │ ::rbc::winop readjpeg    │ ::rbc::winop image readjpeg    │
+        │ resample  │ ::rbc::winop resample    │ ::rbc::winop image resample    │
+        │ rotate    │ —                        │ ::rbc::winop image rotate      │
+        │ snap      │ ::rbc::winop snap        │ ::rbc::winop image snap        │
+        │ subsample │ ::rbc::winop subsample   │ ::rbc::winop image subsample   │
+        └───────────┴──────────────────────────┴────────────────────────────────┘
+        ```
+        #ruffopt excludedformats {}
 
         `WINOPIMAGE` is used below as a placeholder for:
         ```tcl
@@ -219,23 +237,48 @@ namespace eval ::rbc::winop {
 
         The available filters are:
 
-        | Filter | Description |
-        | --- | --- |
-        | `bell` | Bell filter |
-        | `bessel` | Bessel filter |
-        | `box` | Box filter |
-        | `bspline` | B-spline filter |
-        | `catrom` | Catmull-Rom filter |
-        | `default` | Rbc default resampling filter |
-        | `dummy` | Dummy filter |
-        | `gauss8` | Wide Gaussian filter |
-        | `gaussian` | Gaussian filter |
-        | `gi` | Gaussian-integral approximation |
-        | `lanczos3` | Lanczos-3 filter |
-        | `mitchell` | Mitchell filter |
-        | `none` | Performs resizing without a resampling filter |
-        | `sinc` | Sinc filter |
-        | `triangle` | Triangle filter |
+        #ruffopt excludedformats nroff
+        | Filter     | Description                                   |
+        |------------|-----------------------------------------------|
+        | `bell`     | Bell filter                                   |
+        | `bessel`   | Bessel filter                                 |
+        | `box`      | Box filter                                    |
+        | `bspline`  | B-spline filter                               |
+        | `catrom`   | Catmull-Rom filter                            |
+        | `default`  | Rbc default resampling filter                 |
+        | `dummy`    | Dummy filter                                  |
+        | `gauss8`   | Wide Gaussian filter                          |
+        | `gaussian` | Gaussian filter                               |
+        | `gi`       | Gaussian-integral approximation               |
+        | `lanczos3` | Lanczos-3 filter                              |
+        | `mitchell` | Mitchell filter                               |
+        | `none`     | Performs resizing without a resampling filter |
+        | `sinc`     | Sinc filter                                   |
+        | `triangle` | Triangle filter                               |
+
+        #ruffopt includedformats nroff
+        ```
+        ┌──────────┬───────────────────────────────────────────────┐
+        │ Filter   │ Description                                   │
+        ├──────────┼───────────────────────────────────────────────┤
+        │ bell     │ Bell filter                                   │
+        │ bessel   │ Bessel filter                                 │
+        │ box      │ Box filter                                    │
+        │ bspline  │ B-spline filter                               │
+        │ catrom   │ Catmull-Rom filter                            │
+        │ default  │ Rbc default resampling filter                 │
+        │ dummy    │ Dummy filter                                  │
+        │ gauss8   │ Wide Gaussian filter                          │
+        │ gaussian │ Gaussian filter                               │
+        │ gi       │ Gaussian-integral approximation               │
+        │ lanczos3 │ Lanczos-3 filter                              │
+        │ mitchell │ Mitchell filter                               │
+        │ none     │ Performs resizing without a resampling filter │
+        │ sinc     │ Sinc filter                                   │
+        │ triangle │ Triangle filter                               │
+        └──────────┴───────────────────────────────────────────────┘
+        ```
+        #ruffopt excludedformats {}
 
         ### Subsampling
         `subsample` extracts a rectangular region of a source photo and optionally resamples it into a destination
@@ -277,7 +320,7 @@ namespace eval ::rbc::winop {
     }
 
     proc colormap {window} {
-        # Returns information about color cells in the colormap associated with a Tk window. This operation is
+        # Gives back information about color cells in the colormap associated with a Tk window. This operation is
         # available only on non-Windows builds and examines up to 256 colormap entries.
         # window - path name of the Tk window.
         # Returns: A flat list of color and pixel-value pairs in the form `color pixel color pixel ...`.
@@ -339,7 +382,7 @@ namespace eval ::rbc::winop {
     }
 
     proc query {} {
-        # Returns the current pointer location in root-screen coordinates.
+        # Gives back the current pointer location in root-screen coordinates.
         # Returns: Pointer position in the form `@x,y`, or an empty result if the underlying pointer query fails.
         # Synopsis:
     }
@@ -472,12 +515,26 @@ namespace eval ::rbc::WINOPIMAGE {
 
         The supported gradient types are:
 
-        | Type | Description |
-        | --- | --- |
-        | `linear` | Generates the built-in linear gradient form. |
-        | `radial` | Generates a gradient based on distance from the image center. |
-        | `rectangular` | Generates the built-in rectangular gradient form. |
-        | `blank` | Fills the image with opaque white. |
+        #ruffopt excludedformats nroff
+        | Type          | Description                                                   |
+        |---------------|---------------------------------------------------------------|
+        | `linear`      | Generates the built-in linear gradient form.                  |
+        | `radial`      | Generates a gradient based on distance from the image center. |
+        | `rectangular` | Generates the built-in rectangular gradient form.             |
+        | `blank`       | Fills the image with opaque white.                            |
+
+        #ruffopt includedformats nroff
+        ```
+        ┌─────────────┬───────────────────────────────────────────────────────────────┐
+        │ Type        │ Description                                                   │
+        ├─────────────┼───────────────────────────────────────────────────────────────┤
+        │ linear      │ Generates the built-in linear gradient form.                  │
+        │ radial      │ Generates a gradient based on distance from the image center. │
+        │ rectangular │ Generates the built-in rectangular gradient form.             │
+        │ blank       │ Fills the image with opaque white.                            │
+        └─────────────┴───────────────────────────────────────────────────────────────┘
+        ```
+        #ruffopt excludedformats {}
 
         The `left` and `right` arguments must be valid Tk colors.
 

@@ -288,131 +288,223 @@ supplied with <code class="docutils literal notranslate"><span class="pre">-bind
 <p>The following options apply to virtual axes and to axes displayed through the margin-axis commands.</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 50.0%" />
-<col style="width: 50.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Database name</p></th>
+<th class="head"><p>Database class</p></th>
 <th class="head"><p>Description</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-autorange</span> <span class="pre">range</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">autoRange</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">AutoRange</span></code></p></td>
 <td><p>Specifies the size of a sliding automatic axis range. A positive value enables the sliding window when neither <code class="docutils literal notranslate"><span class="pre">-min</span></code> nor <code class="docutils literal notranslate"><span class="pre">-max</span></code> is explicitly set. <code class="docutils literal notranslate"><span class="pre">0</span></code> disables autoranging. The default is <code class="docutils literal notranslate"><span class="pre">0.0</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-background</span> <span class="pre">color</span></code></p></td>
-<td><p>Sets the optional background behind the displayed axis. An empty value disables the axis background. <code class="docutils literal notranslate"><span class="pre">-bg</span></code> is a synonym.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">background</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Background</span></code></p></td>
+<td><p>Specifies the background color of the axis. An empty value makes the axis background transparent.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-bindtags</span> <span class="pre">tags</span></code></p></td>
-<td><p>Specifies additional binding tags associated with the axis. The axis name and axis class are included automatically. The default is <code class="docutils literal notranslate"><span class="pre">all</span></code>.</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-bg</span> <span class="pre">color</span></code></p></td>
+<td><p>—</p></td>
+<td><p>—</p></td>
+<td><p>Synonym for <code class="docutils literal notranslate"><span class="pre">-background</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-borderwidth</span> <span class="pre">width</span></code></p></td>
-<td><p>Sets the non-negative border width of the optional axis background. <code class="docutils literal notranslate"><span class="pre">-bd</span></code> is a synonym.</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-bindtags</span> <span class="pre">tagList</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bindTags</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BindTags</span></code></p></td>
+<td><p>Specifies additional binding tags associated with the axis. The default is <code class="docutils literal notranslate"><span class="pre">all</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-bd</span> <span class="pre">distance</span></code></p></td>
+<td><p>—</p></td>
+<td><p>—</p></td>
+<td><p>Synonym for <code class="docutils literal notranslate"><span class="pre">-borderwidth</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-borderwidth</span> <span class="pre">distance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">borderWidth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BorderWidth</span></code></p></td>
+<td><p>Specifies the width of the border drawn around the axis. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-color</span> <span class="pre">color</span></code></p></td>
-<td><p>Sets the color used for the axis line, tick marks, and tick labels.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">color</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Color</span></code></p></td>
+<td><p>Specifies the color used to draw the axis line and tick labels. The default is <code class="docutils literal notranslate"><span class="pre">black</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-command</span> <span class="pre">command</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">command</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Command</span></code></p></td>
 <td><p>Specifies a Tcl command prefix used to format major tick labels. The graph pathname and the default tick-label string are appended as arguments. The command result replaces the default label. An empty value uses Rbc’s built-in formatting.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-descending</span> <span class="pre">boolean</span></code></p></td>
-<td><p>Reverses the direction in which axis values are displayed.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">descending</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Descending</span></code></p></td>
+<td><p>Specifies whether axis values increase in the reverse direction. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">hide</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Hide</span></code></p></td>
 <td><p>Specifies whether the axis is hidden. Newly created axes are normally visible. Of the four built-in axes, <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> are initially visible while <code class="docutils literal notranslate"><span class="pre">x2</span></code> and <code class="docutils literal notranslate"><span class="pre">y2</span></code> are initially hidden.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-justify</span> <span class="pre">justify</span></code></p></td>
-<td><p>Sets the justification of multi-line axis title text. Valid values are <code class="docutils literal notranslate"><span class="pre">left</span></code>, <code class="docutils literal notranslate"><span class="pre">center</span></code>, and <code class="docutils literal notranslate"><span class="pre">right</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">justify</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Justify</span></code></p></td>
+<td><p>Specifies the justification of the axis title. The default is <code class="docutils literal notranslate"><span class="pre">center</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-labeloffset</span> <span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">labelOffset</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LabelOffset</span></code></p></td>
 <td><p>Specifies whether major tick labels are positioned halfway into the following major tick interval. The tick marks remain at their normal positions and the label text still represents the original major tick value. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-limitscolor</span> <span class="pre">color</span></code></p></td>
-<td><p>Sets the color used for text generated by <code class="docutils literal notranslate"><span class="pre">-limitsformat</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">limitsColor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Color</span></code></p></td>
+<td><p>Specifies the color used to draw axis limit labels. The default is <code class="docutils literal notranslate"><span class="pre">black</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-limitsfont</span> <span class="pre">fontName</span></code></p></td>
-<td><p>Sets the font used for text generated by <code class="docutils literal notranslate"><span class="pre">-limitsformat</span></code>.</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-limitsfont</span> <span class="pre">font</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">limitsFont</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Font</span></code></p></td>
+<td><p>Specifies the font used to draw axis limit labels.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-limitsformat</span> <span class="pre">formatList</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">limitsFormat</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LimitsFormat</span></code></p></td>
 <td><p>Specifies printf-style formats for displaying the axis minimum and maximum in the plotting area. The value is a list containing at most two formats. One format is used for both limits; with two formats, the first formats the minimum and the second the maximum. An empty value disables limit labels.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-limitsshadow</span> <span class="pre">shadow</span></code></p></td>
-<td><p>Sets the text shadow for the displayed axis limits. An empty value disables the shadow.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">limitsShadow</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Shadow</span></code></p></td>
+<td><p>Specifies a shadow for the axis limit labels. An empty value disables the shadow.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-linewidth</span> <span class="pre">width</span></code></p></td>
-<td><p>Sets the non-negative width of the axis and tick lines. A value of <code class="docutils literal notranslate"><span class="pre">0</span></code> suppresses the line and tick strokes; tick labels may still be displayed.</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-linewidth</span> <span class="pre">distance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">lineWidth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LineWidth</span></code></p></td>
+<td><p>Specifies the width of the axis line. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-logscale</span> <span class="pre">boolean</span></code></p></td>
-<td><p>Selects base-10 logarithmic mapping. Values and explicit limits must be positive.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">logScale</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LogScale</span></code></p></td>
+<td><p>Specifies whether the axis uses logarithmic scaling. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-loose</span> <span class="pre">value</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">loose</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Loose</span></code></p></td>
 <td><p>Controls whether axis limits are extended to outer major tick boundaries. <code class="docutils literal notranslate"><span class="pre">value</span></code> may contain one or two elements; each is a boolean or <code class="docutils literal notranslate"><span class="pre">always</span></code>. One element applies to both limits, while two control the minimum and maximum separately. A true value makes an automatically determined limit loose, while <code class="docutils literal notranslate"><span class="pre">always</span></code> also keeps it loose when the corresponding <code class="docutils literal notranslate"><span class="pre">-min</span></code> or <code class="docutils literal notranslate"><span class="pre">-max</span></code> is explicitly set. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-majorticks</span> <span class="pre">tickList</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">majorTicks</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MajorTicks</span></code></p></td>
 <td><p>Specifies explicit major tick positions. Each list element is evaluated as a Tcl numeric expression. An empty value restores automatic major ticks. Supplying explicit major ticks disables automatic generation of minor ticks; explicit <code class="docutils literal notranslate"><span class="pre">-minorticks</span></code> may still be supplied.</p></td>
 </tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-max</span> <span class="pre">value</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">max</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Max</span></code></p></td>
+<td><p>Specifies the requested maximum value of the axis. An empty value selects an automatically determined maximum.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-min</span> <span class="pre">value</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">min</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Min</span></code></p></td>
+<td><p>Specifies the requested minimum value of the axis. An empty value selects an automatically determined minimum.</p></td>
+</tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-minorticks</span> <span class="pre">tickList</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">minorTicks</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MinorTicks</span></code></p></td>
 <td><p>Specifies explicit minor tick positions within each major tick interval. Each list element is evaluated as a Tcl numeric expression. An empty value restores automatic minor ticks.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-max</span> <span class="pre">value</span></code></p></td>
-<td><p>Sets the requested maximum axis value. An empty value restores automatic calculation.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-min</span> <span class="pre">value</span></code></p></td>
-<td><p>Sets the requested minimum axis value. An empty value restores automatic calculation.</p></td>
-</tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-relief</span> <span class="pre">relief</span></code></p></td>
-<td><p>Sets the relief used for the optional axis background.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">relief</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Relief</span></code></p></td>
+<td><p>Specifies the relief of the axis background and border. The default is <code class="docutils literal notranslate"><span class="pre">flat</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-rotate</span> <span class="pre">angle</span></code></p></td>
-<td><p>Rotates major tick labels by the specified angle in degrees.</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-rotate</span> <span class="pre">degrees</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rotate</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Rotate</span></code></p></td>
+<td><p>Specifies the rotation angle of tick labels in degrees. The default is <code class="docutils literal notranslate"><span class="pre">0.0</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-scrollcommand</span> <span class="pre">commandPrefix</span></code></p></td>
-<td><p>Specifies a command prefix called with the normalized first and last fractions of the visible scrolling region.</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-scrollcommand</span> <span class="pre">command</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scrollCommand</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ScrollCommand</span></code></p></td>
+<td><p>Specifies a Tcl command prefix invoked when the axis view changes. An empty value disables the scroll callback.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-scrollincrement</span> <span class="pre">distance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scrollIncrement</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ScrollIncrement</span></code></p></td>
 <td><p>Specifies the positive screen distance used for unit scrolling. The default is <code class="docutils literal notranslate"><span class="pre">10</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-scrollmax</span> <span class="pre">value</span></code></p></td>
-<td><p>Overrides the upper boundary of the axis scrolling region. An empty value uses the data range.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scrollMax</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ScrollMax</span></code></p></td>
+<td><p>Specifies the maximum value of the axis scrolling region. An empty value leaves the scrolling maximum unrestricted.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-scrollmin</span> <span class="pre">value</span></code></p></td>
-<td><p>Overrides the lower boundary of the axis scrolling region. An empty value uses the data range.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scrollMin</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ScrollMin</span></code></p></td>
+<td><p>Specifies the minimum value of the axis scrolling region. An empty value leaves the scrolling minimum unrestricted.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-shiftby</span> <span class="pre">value</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">shiftBy</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ShiftBy</span></code></p></td>
 <td><p>Specifies the increment used when advancing an autoranging axis. When positive, the upper end of the sliding range is advanced to the next multiple of <code class="docutils literal notranslate"><span class="pre">value</span></code>. It has effect only with a positive <code class="docutils literal notranslate"><span class="pre">-autorange</span></code> and automatic limits. The default is <code class="docutils literal notranslate"><span class="pre">0.0</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-showticks</span> <span class="pre">boolean</span></code></p></td>
-<td><p>Controls display of major/minor tick marks and major tick labels. The axis baseline and title are independent.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">showTicks</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ShowTicks</span></code></p></td>
+<td><p>Specifies whether axis tick marks and labels are displayed. The default is <code class="docutils literal notranslate"><span class="pre">yes</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-stepsize</span> <span class="pre">value</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">stepSize</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">StepSize</span></code></p></td>
 <td><p>Requests the major tick interval. A positive value is used as the starting interval and may be repeatedly halved if it is too large for the current axis range. A non-positive value selects automatic major tick spacing. The default is <code class="docutils literal notranslate"><span class="pre">0.0</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-subdivisions</span> <span class="pre">number</span></code></p></td>
-<td><p>Sets the number of automatic subdivisions of each major interval. <code class="docutils literal notranslate"><span class="pre">N</span></code> subdivisions produce <code class="docutils literal notranslate"><span class="pre">N-1</span></code> minor ticks.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">subdivisions</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Subdivisions</span></code></p></td>
+<td><p>Specifies the requested number of subdivisions between major ticks when minor ticks are generated automatically. The default is <code class="docutils literal notranslate"><span class="pre">2</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-tickfont</span> <span class="pre">fontName</span></code></p></td>
-<td><p>Sets the font used for major tick labels.</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-tickfont</span> <span class="pre">font</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tickFont</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Font</span></code></p></td>
+<td><p>Specifies the font used to draw tick labels.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-ticklength</span> <span class="pre">distance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tickLength</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">TickLength</span></code></p></td>
 <td><p>Specifies the length of major tick marks. Negative values reverse the direction of the ticks. The default is <code class="docutils literal notranslate"><span class="pre">8</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-tickshadow</span> <span class="pre">shadow</span></code></p></td>
-<td><p>Sets the shadow used for major tick labels. An empty value disables the shadow.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tickShadow</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Shadow</span></code></p></td>
+<td><p>Specifies a shadow for tick labels. An empty value disables the shadow.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-title</span> <span class="pre">text</span></code></p></td>
-<td><p>Sets the axis title. An empty value suppresses the title.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">title</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Title</span></code></p></td>
+<td><p>Specifies the axis title. An empty value disables the title.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-titlealternate</span> <span class="pre">boolean</span></code></p></td>
-<td><p>Selects the alternate end-oriented title position instead of the normal centered position.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">titleAlternate</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">TitleAlternate</span></code></p></td>
+<td><p>Specifies whether the axis title uses its alternate placement. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-titlecolor</span> <span class="pre">color</span></code></p></td>
-<td><p>Sets the axis title color.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">titleColor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Color</span></code></p></td>
+<td><p>Specifies the color used to draw the axis title. The default is <code class="docutils literal notranslate"><span class="pre">black</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-titlefont</span> <span class="pre">fontName</span></code></p></td>
-<td><p>Sets the axis title font.</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-titlefont</span> <span class="pre">font</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">titleFont</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Font</span></code></p></td>
+<td><p>Specifies the font used to draw the axis title.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-titleshadow</span> <span class="pre">shadow</span></code></p></td>
-<td><p>Sets the axis title shadow. An empty value disables the shadow.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">titleShadow</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Shadow</span></code></p></td>
+<td><p>Specifies a shadow for the axis title. An empty value disables the shadow.</p></td>
 </tr>
 </tbody>
 </table>

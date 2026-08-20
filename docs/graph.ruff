@@ -77,16 +77,30 @@ namespace eval ::rbc::GRAPHINST {
         The same widget instance interface is shared by all three graph types. The main difference is the default
         element type used by the `element` operation:
 
+        #ruffopt excludedformats nroff
         | Widget created by | Default element type |
         |-------------------|----------------------|
         | `graph`           | line                 |
         | `barchart`        | bar                  |
         | `stripchart`      | strip                |
 
+        #ruffopt includedformats nroff
+        ```
+        ┌───────────────────┬──────────────────────┐
+        │ Widget created by │ Default element type │
+        ├───────────────────┼──────────────────────┤
+        │ graph             │ line                 │
+        │ barchart          │ bar                  │
+        │ stripchart        │ strip                │
+        └───────────────────┴──────────────────────┘
+        ```
+        #ruffopt excludedformats {}
+
         Explicit `line` and `bar` operations are also available independently of the widget's default element type.
 
         Graph widgets contain several components with their own command interfaces:
 
+        #ruffopt excludedformats nroff
         | Operation                            | Component                             |
         |--------------------------------------|---------------------------------------|
         | `axis`                               | virtual axes                          |
@@ -100,6 +114,26 @@ namespace eval ::rbc::GRAPHINST {
         | `grid`                               | graph grid                            |
         | `crosshairs`                         | interactive crosshairs                |
         | `postscript`                         | PostScript output                     |
+
+        #ruffopt includedformats nroff
+        ```
+        ┌──────────────────────────────────────┬───────────────────────────────────────┐
+        │ Operation                            │ Component                             │
+        ├──────────────────────────────────────┼───────────────────────────────────────┤
+        │ axis                                 │ virtual axes                          │
+        │ xaxis, x2axis, yaxis, y2axis         │ axes mapped to graph margins          │
+        │ element                              │ elements of the widget's default type │
+        │ line                                 │ line elements                         │
+        │ bar                                  │ bar elements                          │
+        │ marker                               │ graph markers                         │
+        │ pen                                  │ drawing pens                          │
+        │ legend                               │ graph legend                          │
+        │ grid                                 │ graph grid                            │
+        │ crosshairs                           │ interactive crosshairs                │
+        │ postscript                           │ PostScript output                     │
+        └──────────────────────────────────────┴───────────────────────────────────────┘
+        ```
+        #ruffopt excludedformats {}
 
         These component interfaces are documented separately.
 
@@ -122,52 +156,428 @@ namespace eval ::rbc::GRAPHINST {
         Some options, such as `-barmode`, `-barwidth`, and `-baseline`, primarily affect bar elements but are available
         on all three graph widget types.
 
-        | Option                       | Description                                                                                                                                                                                                                                                                         |
-        |------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-        | `-aspect ratio`              | Sets a fixed width-to-height aspect ratio for the plotting area. A positive value causes one dimension of the plotting area to be reduced as necessary to maintain the requested ratio. A value less than or equal to zero disables aspect-ratio enforcement. The default is `0.0`. |
-        | `-background color`          | Sets the background used for the outer graph area and margins. The plotting area has its own `-plotbackground` option. `-bg` is a synonym.                                                                                                                                          |
-        | `-barmode mode`              | Controls how bar elements having the same X coordinate are arranged. Valid modes are `normal`, `infront`, `aligned`, `overlap`, and `stacked`. `normal` is equivalent to `infront`. The default is `normal`.                                                                        |
-        | `-barwidth width`            | Sets the default width of bar elements in graph-coordinate units. The value must be finite. Values less than or equal to zero are normalized to `0.1`. The default is `0.8`.                                                                                                        |
-        | `-baseline value`            | Sets the baseline from which bars are drawn. The value must be finite. The default is `0.0`.                                                                                                                                                                                        |
-        | `-borderwidth width`         | Sets the width of the 3-D border around the outside of the widget. The appearance of the border is controlled by `-relief`. `-bd` is a synonym.                                                                                                                                     |
-        | `-bottommargin size`         | Sets the requested size of the bottom margin. A value of `0` lets the graph calculate the required size automatically. `-bm` is a synonym.                                                                                                                                          |
-        | `-bottomvariable varName`    | Names a global Tcl variable that is updated with the actual size of the bottom margin after graph layout. An empty value disables the variable update.                                                                                                                              |
-        | `-bufferelements boolean`    | Enables caching of the plotted elements in a backing pixmap. This can improve redraw performance when elements remain unchanged while markers, legends, or other overlays are updated. The default is `1`.                                                                          |
-        | `-buffergraph boolean`       | Enables double-buffering of the complete graph. When enabled, the graph is first rendered into a pixmap and then copied to the widget window, reducing visible redraw flicker. The default is `1`.                                                                                  |
-        | `-cursor cursor`             | Specifies the mouse cursor displayed over the graph widget. The default is `crosshair`.                                                                                                                                                                                             |
-        | `-data string`               | Stores application-defined data associated with the graph widget. The graph rendering code does not interpret this value; it may be used by Tcl code or bindings to associate additional information with the widget.                                                               |
-        | `-datacommand command`       | Stores an application-defined command string associated with the graph. The graph core currently does not invoke this command automatically.                                                                                                                                        |
-        | `-font fontName`             | Specifies the font used for the graph title.                                                                                                                                                                                                                                        |
-        | `-foreground color`          | Specifies the foreground color of the graph title. `-fg` is a synonym.                                                                                                                                                                                                              |
-        | `-halo distance`             | Sets the default maximum screen distance used when searching for a closest data point or element. Operations that provide their own halo value override this setting. The default is `2m`.                                                                                          |
-        | `-height distance`           | Specifies the requested height of the graph widget. The default is `4i`.                                                                                                                                                                                                            |
-        | `-highlightbackground color` | Specifies the color used for the traversal highlight area when the widget does not have keyboard focus.                                                                                                                                                                             |
-        | `-highlightcolor color`      | Specifies the color used for the traversal highlight when the widget has keyboard focus.                                                                                                                                                                                            |
-        | `-highlightthickness width`  | Specifies the width of the keyboard-focus highlight around the widget. The default is `2`.                                                                                                                                                                                          |
-        | `-invertxy boolean`          | Swaps the placement and orientation of the logical X and Y axes. When enabled, X axes are displayed vertically and Y axes horizontally. The default is `0`.                                                                                                                         |
-        | `-justify justify`           | Specifies the justification of multi-line graph title text. Valid values are `left`, `center`, and `right`. The default is `center`.                                                                                                                                                |
-        | `-leftmargin size`           | Sets the requested size of the left margin. A value of `0` lets the graph calculate the required size automatically. `-lm` is a synonym.                                                                                                                                            |
-        | `-leftvariable varName`      | Names a global Tcl variable that is updated with the actual size of the left margin after graph layout. An empty value disables the variable update.                                                                                                                                |
-        | `-plotbackground color`      | Specifies the background color of the plotting area. This is independent of the outer `-background` color. The default is `white`.                                                                                                                                                  |
-        | `-plotborderwidth width`     | Sets the width of the 3-D border surrounding the plotting area. Its appearance is controlled by `-plotrelief`.                                                                                                                                                                      |
-        | `-plotpadx pad`              | Sets horizontal padding around the plotting area. `pad` may contain one screen distance, applied to both sides, or two distances specifying the left and right padding separately. The default is `8`.                                                                              |
-        | `-plotpady pad`              | Sets vertical padding around the plotting area. `pad` may contain one screen distance, applied to both sides, or two distances specifying the top and bottom padding separately. The default is `8`.                                                                                |
-        | `-plotrelief relief`         | Specifies the 3-D relief of the plotting area. Valid values are the standard Tk relief values. The default is `sunken`.                                                                                                                                                             |
-        | `-relief relief`             | Specifies the 3-D relief of the outer graph widget. Valid values are the standard Tk relief values. The default is `flat`.                                                                                                                                                          |
-        | `-rightmargin size`          | Sets the requested size of the right margin. A value of `0` lets the graph calculate the required size automatically. `-rm` is a synonym.                                                                                                                                           |
-        | `-rightvariable varName`     | Names a global Tcl variable that is updated with the actual size of the right margin after graph layout. An empty value disables the variable update.                                                                                                                               |
-        | `-shadow shadow`             | Specifies the shadow used when drawing the graph title. An empty value disables the title shadow.                                                                                                                                                                                   |
-        | `-takefocus focus`           | Controls whether the graph participates in keyboard focus traversal. It has the same interpretation as the standard Tk `-takefocus` option. The default is an empty value.                                                                                                          |
-        | `-tile image`                | Specifies an image used to tile the background of the graph margins. An empty value disables tiling and uses the normal `-background` instead.                                                                                                                                      |
-        | `-title text`                | Specifies the graph title. An empty value suppresses the title.                                                                                                                                                                                                                     |
-        | `-topmargin size`            | Sets the requested size of the top margin. A value of `0` lets the graph calculate the required size automatically. `-tm` is a synonym.                                                                                                                                             |
-        | `-topvariable varName`       | Names a global Tcl variable that is updated with the actual size of the top margin after graph layout. An empty value disables the variable update.                                                                                                                                 |
-        | `-width distance`            | Specifies the requested width of the graph widget. The default is `5i`.                                                                                                                                                                                                             |
+        #ruffopt excludedformats nroff
+        | Option                       | Database name         | Database class        | Description                                                                                                                                                                                                                                                                         |
+        |------------------------------|-----------------------|-----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+        | `-aspect ratio`              | `aspect`              | `Aspect`              | Sets a fixed width-to-height aspect ratio for the plotting area. A positive value causes one dimension of the plotting area to be reduced as necessary to maintain the requested ratio. A value less than or equal to zero disables aspect-ratio enforcement. The default is `0.0`. |
+        | `-background color`          | `background`          | `Background`          | Sets the background used for the outer graph area and margins. The plotting area has its own `-plotbackground` option. `-bg` is a synonym.                                                                                                                                          |
+        | `-barmode mode`              | `barMode`             | `BarMode`             | Controls how bar elements having the same X coordinate are arranged. Valid modes are `normal`, `infront`, `aligned`, `overlap`, and `stacked`. `normal` is equivalent to `infront`. The default is `normal`.                                                                        |
+        | `-barwidth width`            | `barWidth`            | `BarWidth`            | Sets the default width of bar elements in graph-coordinate units. The value must be finite. Values less than or equal to zero are normalized to `0.1`. The default is `0.8`.                                                                                                        |
+        | `-baseline value`            | `baseline`            | `Baseline`            | Sets the baseline from which bars are drawn. The value must be finite. The default is `0.0`.                                                                                                                                                                                        |
+        | `-borderwidth width`         | `borderWidth`         | `BorderWidth`         | Sets the width of the 3-D border around the outside of the widget. The appearance of the border is controlled by `-relief`. `-bd` is a synonym.                                                                                                                                     |
+        | `-bottommargin size`         | `bottomMargin`        | `Margin`              | Sets the requested size of the bottom margin. A value of `0` lets the graph calculate the required size automatically. `-bm` is a synonym.                                                                                                                                          |
+        | `-bottomvariable varName`    | `bottomVariable`      | `BottomVariable`      | Names a global Tcl variable that is updated with the actual size of the bottom margin after graph layout. An empty value disables the variable update.                                                                                                                              |
+        | `-bufferelements boolean`    | `bufferElements`      | `BufferElements`      | Enables caching of the plotted elements in a backing pixmap. This can improve redraw performance when elements remain unchanged while markers, legends, or other overlays are updated. The default is `1`.                                                                          |
+        | `-buffergraph boolean`       | `bufferGraph`         | `BufferGraph`         | Enables double-buffering of the complete graph. When enabled, the graph is first rendered into a pixmap and then copied to the widget window, reducing visible redraw flicker. The default is `1`.                                                                                  |
+        | `-cursor cursor`             | `cursor`              | `Cursor`              | Specifies the mouse cursor displayed over the graph widget. The default is `crosshair`.                                                                                                                                                                                             |
+        | `-data string`               | `data`                | `Data`                | Stores application-defined data associated with the graph widget. The graph rendering code does not interpret this value; it may be used by Tcl code or bindings to associate additional information with the widget.                                                               |
+        | `-datacommand command`       | `dataCommand`         | `DataCommand`         | Stores an application-defined command string associated with the graph. The graph core currently does not invoke this command automatically.                                                                                                                                        |
+        | `-font fontName`             | `font`                | `Font`                | Specifies the font used for the graph title.                                                                                                                                                                                                                                        |
+        | `-foreground color`          | `foreground`          | `Foreground`          | Specifies the foreground color of the graph title. `-fg` is a synonym.                                                                                                                                                                                                              |
+        | `-halo distance`             | `halo`                | `Halo`                | Sets the default maximum screen distance used when searching for a closest data point or element. Operations that provide their own halo value override this setting. The default is `2m`.                                                                                          |
+        | `-height distance`           | `height`              | `Height`              | Specifies the requested height of the graph widget. The default is `4i`.                                                                                                                                                                                                            |
+        | `-highlightbackground color` | `highlightBackground` | `HighlightBackground` | Specifies the color used for the traversal highlight area when the widget does not have keyboard focus.                                                                                                                                                                             |
+        | `-highlightcolor color`      | `highlightColor`      | `HighlightColor`      | Specifies the color used for the traversal highlight when the widget has keyboard focus.                                                                                                                                                                                            |
+        | `-highlightthickness width`  | `highlightThickness`  | `HighlightThickness`  | Specifies the width of the keyboard-focus highlight around the widget. The default is `2`.                                                                                                                                                                                          |
+        | `-invertxy boolean`          | `invertXY`            | `InvertXY`            | Swaps the placement and orientation of the logical X and Y axes. When enabled, X axes are displayed vertically and Y axes horizontally. The default is `0`.                                                                                                                         |
+        | `-justify justify`           | `justify`             | `Justify`             | Specifies the justification of multi-line graph title text. Valid values are `left`, `center`, and `right`. The default is `center`.                                                                                                                                                |
+        | `-leftmargin size`           | `leftMargin`          | `Margin`              | Sets the requested size of the left margin. A value of `0` lets the graph calculate the required size automatically. `-lm` is a synonym.                                                                                                                                            |
+        | `-leftvariable varName`      | `leftVariable`        | `LeftVariable`        | Names a global Tcl variable that is updated with the actual size of the left margin after graph layout. An empty value disables the variable update.                                                                                                                                |
+        | `-plotbackground color`      | `plotBackground`      | `Background`          | Specifies the background color of the plotting area. This is independent of the outer `-background` color. The default is white.                                                                                                                                                    |
+        | `-plotborderwidth width`     | `plotBorderWidth`     | `BorderWidth`         | Sets the width of the 3-D border surrounding the plotting area. Its appearance is controlled by `-plotrelief`.                                                                                                                                                                      |
+        | `-plotpadx pad`              | `plotPadX`            | `PlotPad`             | Sets horizontal padding around the plotting area. `pad` may contain one screen distance, applied to both sides, or two distances specifying the left and right padding separately. The default is `8`.                                                                              |
+        | `-plotpady pad`              | `plotPadY`            | `PlotPad`             | Sets vertical padding around the plotting area. `pad` may contain one screen distance, applied to both sides, or two distances specifying the top and bottom padding separately. The default is `8`.                                                                                |
+        | `-plotrelief relief`         | `plotRelief`          | `Relief`              | Specifies the 3-D relief of the plotting area. Valid values are the standard Tk relief values. The default is `sunken`.                                                                                                                                                             |
+        | `-relief relief`             | `relief`              | `Relief`              | Specifies the 3-D relief of the outer graph widget. Valid values are the standard Tk relief values. The default is `flat`.                                                                                                                                                          |
+        | `-rightmargin size`          | `rightMargin`         | `Margin`              | Sets the requested size of the right margin. A value of `0` lets the graph calculate the required size automatically. `-rm` is a synonym.                                                                                                                                           |
+        | `-rightvariable varName`     | `rightVariable`       | `RightVariable`       | Names a global Tcl variable that is updated with the actual size of the right margin after graph layout. An empty value disables the variable update.                                                                                                                               |
+        | `-shadow shadow`             | `shadow`              | `Shadow`              | Specifies the shadow used when drawing the graph title. An empty value disables the title shadow.                                                                                                                                                                                   |
+        | `-takefocus focus`           | `takeFocus`           | `TakeFocus`           | Controls whether the graph participates in keyboard focus traversal. It has the same interpretation as the standard Tk `-takefocus` option. The default is an empty value.                                                                                                          |
+        | `-tile image`                | `tile`                | `Tile`                | Specifies an image used to tile the background of the graph margins. An empty value disables tiling and uses the normal `-background` instead.                                                                                                                                      |
+        | `-title text`                | `title`               | `Title`               | Specifies the graph title. An empty value suppresses the title.                                                                                                                                                                                                                     |
+        | `-topmargin size`            | `topMargin`           | `Margin`              | Sets the requested size of the top margin. A value of `0` lets the graph calculate the required size automatically. `-tm` is a synonym.                                                                                                                                             |
+        | `-topvariable varName`       | `topVariable`         | `TopVariable`         | Names a global Tcl variable that is updated with the actual size of the top margin after graph layout. An empty value disables the variable update.                                                                                                                                 |
+        | `-width distance`            | `width`               | `Width`               | Specifies the requested width of the graph widget. The default is `5i`.                                                                                                                                                                                                             |
+        #ruffopt includedformats nroff
+        ```
+        ┌────────────────────────────┬─────────────────────┬─────────────────────┬─────────────────────────────────────┐
+        │ Option                     │ Database name       │ Database class      │ Description                         │
+        ├────────────────────────────┼─────────────────────┼─────────────────────┼─────────────────────────────────────┤
+        │ -aspect ratio              │ aspect              │ Aspect              │ Sets a fixed width-to-height aspect │
+        │                            │                     │                     │ ratio for the plotting area. A      │
+        │                            │                     │                     │ positive value causes one dimension │
+        │                            │                     │                     │ of the plotting area to be reduced  │
+        │                            │                     │                     │ as necessary to maintain the        │
+        │                            │                     │                     │ requested ratio. A value less than  │
+        │                            │                     │                     │ or equal to zero disables           │
+        │                            │                     │                     │ aspect-ratio enforcement. The       │
+        │                            │                     │                     │ default is 0.0.                     │
+        │ -background color          │ background          │ Background          │ Sets the background used for the    │
+        │                            │                     │                     │ outer graph area and margins. The   │
+        │                            │                     │                     │ plotting area has its own           │
+        │                            │                     │                     │ -plotbackground option. -bg is a    │
+        │                            │                     │                     │ synonym.                            │
+        │ -barmode mode              │ barMode             │ BarMode             │ Controls how bar elements having    │
+        │                            │                     │                     │ the same X coordinate are arranged. │
+        │                            │                     │                     │ Valid modes are normal, infront,    │
+        │                            │                     │                     │ aligned, overlap, and stacked.      │
+        │                            │                     │                     │ normal is equivalent to infront.    │
+        │                            │                     │                     │ The default is normal.              │
+        │ -barwidth width            │ barWidth            │ BarWidth            │ Sets the default width of bar       │
+        │                            │                     │                     │ elements in graph-coordinate units. │
+        │                            │                     │                     │ The value must be finite. Values    │
+        │                            │                     │                     │ less than or equal to zero are      │
+        │                            │                     │                     │ normalized to 0.1. The default is   │
+        │                            │                     │                     │ 0.8.                                │
+        │ -baseline value            │ baseline            │ Baseline            │ Sets the baseline from which bars   │
+        │                            │                     │                     │ are drawn. The value must be        │
+        │                            │                     │                     │ finite. The default is 0.0.         │
+        │ -borderwidth width         │ borderWidth         │ BorderWidth         │ Sets the width of the 3-D border    │
+        │                            │                     │                     │ around the outside of the widget.   │
+        │                            │                     │                     │ The appearance of the border is     │
+        │                            │                     │                     │ controlled by -relief. -bd is a     │
+        │                            │                     │                     │ synonym.                            │
+        │ -bottommargin size         │ bottomMargin        │ Margin              │ Sets the requested size of the      │
+        │                            │                     │                     │ bottom margin. A value of 0 lets    │
+        │                            │                     │                     │ the graph calculate the required    │
+        │                            │                     │                     │ size automatically. -bm is a        │
+        │                            │                     │                     │ synonym.                            │
+        │ -bottomvariable varName    │ bottomVariable      │ BottomVariable      │ Names a global Tcl variable that is │
+        │                            │                     │                     │ updated with the actual size of the │
+        │                            │                     │                     │ bottom margin after graph layout.   │
+        │                            │                     │                     │ An empty value disables the         │
+        │                            │                     │                     │ variable update.                    │
+        │ -bufferelements boolean    │ bufferElements      │ BufferElements      │ Enables caching of the plotted      │
+        │                            │                     │                     │ elements in a backing pixmap. This  │
+        │                            │                     │                     │ can improve redraw performance when │
+        │                            │                     │                     │ elements remain unchanged while     │
+        │                            │                     │                     │ markers, legends, or other overlays │
+        │                            │                     │                     │ are updated. The default is 1.      │
+        │ -buffergraph boolean       │ bufferGraph         │ BufferGraph         │ Enables double-buffering of the     │
+        │                            │                     │                     │ complete graph. When enabled, the   │
+        │                            │                     │                     │ graph is first rendered into a      │
+        │                            │                     │                     │ pixmap and then copied to the       │
+        │                            │                     │                     │ widget window, reducing visible     │
+        │                            │                     │                     │ redraw flicker. The default is 1.   │
+        │ -cursor cursor             │ cursor              │ Cursor              │ Specifies the mouse cursor          │
+        │                            │                     │                     │ displayed over the graph widget.    │
+        │                            │                     │                     │ The default is crosshair.           │
+        │ -data string               │ data                │ Data                │ Stores application-defined data     │
+        │                            │                     │                     │ associated with the graph widget.   │
+        │                            │                     │                     │ The graph rendering code does not   │
+        │                            │                     │                     │ interpret this value; it may be     │
+        │                            │                     │                     │ used by Tcl code or bindings to     │
+        │                            │                     │                     │ associate additional information    │
+        │                            │                     │                     │ with the widget.                    │
+        │ -datacommand command       │ dataCommand         │ DataCommand         │ Stores an application-defined       │
+        │                            │                     │                     │ command string associated with the  │
+        │                            │                     │                     │ graph. The graph core currently     │
+        │                            │                     │                     │ does not invoke this command        │
+        │                            │                     │                     │ automatically.                      │
+        │ -font fontName             │ font                │ Font                │ Specifies the font used for the     │
+        │                            │                     │                     │ graph title.                        │
+        │ -foreground color          │ foreground          │ Foreground          │ Specifies the foreground color of   │
+        │                            │                     │                     │ the graph title. -fg is a synonym.  │
+        │ -halo distance             │ halo                │ Halo                │ Sets the default maximum screen     │
+        │                            │                     │                     │ distance used when searching for a  │
+        │                            │                     │                     │ closest data point or element.      │
+        │                            │                     │                     │ Operations that provide their own   │
+        │                            │                     │                     │ halo value override this setting.   │
+        │                            │                     │                     │ The default is 2m.                  │
+        │ -height distance           │ height              │ Height              │ Specifies the requested height of   │
+        │                            │                     │                     │ the graph widget. The default is    │
+        │                            │                     │                     │ 4i.                                 │
+        │ -highlightbackground color │ highlightBackground │ HighlightBackground │ Specifies the color used for the    │
+        │                            │                     │                     │ traversal highlight area when the   │
+        │                            │                     │                     │ widget does not have keyboard       │
+        │                            │                     │                     │ focus.                              │
+        │ -highlightcolor color      │ highlightColor      │ HighlightColor      │ Specifies the color used for the    │
+        │                            │                     │                     │ traversal highlight when the widget │
+        │                            │                     │                     │ has keyboard focus.                 │
+        │ -highlightthickness width  │ highlightThickness  │ HighlightThickness  │ Specifies the width of the          │
+        │                            │                     │                     │ keyboard-focus highlight around the │
+        │                            │                     │                     │ widget. The default is 2.           │
+        │ -invertxy boolean          │ invertXY            │ InvertXY            │ Swaps the placement and orientation │
+        │                            │                     │                     │ of the logical X and Y axes. When   │
+        │                            │                     │                     │ enabled, X axes are displayed       │
+        │                            │                     │                     │ vertically and Y axes horizontally. │
+        │                            │                     │                     │ The default is 0.                   │
+        │ -justify justify           │ justify             │ Justify             │ Specifies the justification of      │
+        │                            │                     │                     │ multi-line graph title text. Valid  │
+        │                            │                     │                     │ values are left, center, and right. │
+        │                            │                     │                     │ The default is center.              │
+        │ -leftmargin size           │ leftMargin          │ Margin              │ Sets the requested size of the left │
+        │                            │                     │                     │ margin. A value of 0 lets the graph │
+        │                            │                     │                     │ calculate the required size         │
+        │                            │                     │                     │ automatically. -lm is a synonym.    │
+        │ -leftvariable varName      │ leftVariable        │ LeftVariable        │ Names a global Tcl variable that is │
+        │                            │                     │                     │ updated with the actual size of the │
+        │                            │                     │                     │ left margin after graph layout. An  │
+        │                            │                     │                     │ empty value disables the variable   │
+        │                            │                     │                     │ update.                             │
+        │ -plotbackground color      │ plotBackground      │ Background          │ Specifies the background color of   │
+        │                            │                     │                     │ the plotting area. This is          │
+        │                            │                     │                     │ independent of the outer            │
+        │                            │                     │                     │ -background color. The default is   │
+        │                            │                     │                     │ white.                              │
+        │ -plotborderwidth width     │ plotBorderWidth     │ BorderWidth         │ Sets the width of the 3-D border    │
+        │                            │                     │                     │ surrounding the plotting area. Its  │
+        │                            │                     │                     │ appearance is controlled by         │
+        │                            │                     │                     │ -plotrelief.                        │
+        │ -plotpadx pad              │ plotPadX            │ PlotPad             │ Sets horizontal padding around the  │
+        │                            │                     │                     │ plotting area. pad may contain one  │
+        │                            │                     │                     │ screen distance, applied to both    │
+        │                            │                     │                     │ sides, or two distances specifying  │
+        │                            │                     │                     │ the left and right padding          │
+        │                            │                     │                     │ separately. The default is 8.       │
+        │ -plotpady pad              │ plotPadY            │ PlotPad             │ Sets vertical padding around the    │
+        │                            │                     │                     │ plotting area. pad may contain one  │
+        │                            │                     │                     │ screen distance, applied to both    │
+        │                            │                     │                     │ sides, or two distances specifying  │
+        │                            │                     │                     │ the top and bottom padding          │
+        │                            │                     │                     │ separately. The default is 8.       │
+        │ -plotrelief relief         │ plotRelief          │ Relief              │ Specifies the 3-D relief of the     │
+        │                            │                     │                     │ plotting area. Valid values are the │
+        │                            │                     │                     │ standard Tk relief values. The      │
+        │                            │                     │                     │ default is sunken.                  │
+        │ -relief relief             │ relief              │ Relief              │ Specifies the 3-D relief of the     │
+        │                            │                     │                     │ outer graph widget. Valid values    │
+        │                            │                     │                     │ are the standard Tk relief values.  │
+        │                            │                     │                     │ The default is flat.                │
+        │ -rightmargin size          │ rightMargin         │ Margin              │ Sets the requested size of the      │
+        │                            │                     │                     │ right margin. A value of 0 lets the │
+        │                            │                     │                     │ graph calculate the required size   │
+        │                            │                     │                     │ automatically. -rm is a synonym.    │
+        │ -rightvariable varName     │ rightVariable       │ RightVariable       │ Names a global Tcl variable that is │
+        │                            │                     │                     │ updated with the actual size of the │
+        │                            │                     │                     │ right margin after graph layout. An │
+        │                            │                     │                     │ empty value disables the variable   │
+        │                            │                     │                     │ update.                             │
+        │ -shadow shadow             │ shadow              │ Shadow              │ Specifies the shadow used when      │
+        │                            │                     │                     │ drawing the graph title. An empty   │
+        │                            │                     │                     │ value disables the title shadow.    │
+        │ -takefocus focus           │ takeFocus           │ TakeFocus           │ Controls whether the graph          │
+        │                            │                     │                     │ participates in keyboard focus      │
+        │                            │                     │                     │ traversal. It has the same          │
+        │                            │                     │                     │ interpretation as the standard Tk   │
+        │                            │                     │                     │ -takefocus option. The default is   │
+        │                            │                     │                     │ an empty value.                     │
+        │ -tile image                │ tile                │ Tile                │ Specifies an image used to tile the │
+        │                            │                     │                     │ background of the graph margins. An │
+        │                            │                     │                     │ empty value disables tiling and     │
+        │                            │                     │                     │ uses the normal -background         │
+        │                            │                     │                     │ instead.                            │
+        │ -title text                │ title               │ Title               │ Specifies the graph title. An empty │
+        │                            │                     │                     │ value suppresses the title.         │
+        │ -topmargin size            │ topMargin           │ Margin              │ Sets the requested size of the top  │
+        │                            │                     │                     │ margin. A value of 0 lets the graph │
+        │                            │                     │                     │ calculate the required size         │
+        │                            │                     │                     │ automatically. -tm is a synonym.    │
+        │ -topvariable varName       │ topVariable         │ TopVariable         │ Names a global Tcl variable that is │
+        │                            │                     │                     │ updated with the actual size of the │
+        │                            │                     │                     │ top margin after graph layout. An   │
+        │                            │                     │                     │ empty value disables the variable   │
+        │                            │                     │                     │ update.                             │
+        │ -width distance            │ width               │ Width               │ Specifies the requested width of    │
+        │                            │                     │                     │ the graph widget. The default is    │
+        │                            │                     │                     │ 5i.                                 │
+        └────────────────────────────┴─────────────────────┴─────────────────────┴─────────────────────────────────────┘
+        ```
+        #ruffopt excludedformats {}
+
+        ## Tk option database
+        Graph widgets and their components participate in Tk's option database.
+
+        Every configurable option has three names:
+
+        #ruffopt excludedformats nroff
+        | Kind           | Example      |
+        |----------------|--------------|
+        | Command option | `-linewidth` |
+        | Database name  | `lineWidth`  |
+        | Database class | `LineWidth`  |
+
+        #ruffopt includedformats nroff
+        ```
+        ┌────────────────┬────────────┐
+        │ Kind           │ Example    │
+        ├────────────────┼────────────┤
+        │ Command option │ -linewidth │
+        │ Database name  │ lineWidth  │
+        │ Database class │ LineWidth  │
+        └────────────────┴────────────┘
+        ```
+        #ruffopt excludedformats {}
+
+        The command option is used with `configure` and `cget`:
+        ```tcl
+        .g element configure signal -linewidth 2
+        ```
+
+        The database name and database class are used by Tk's `option` command:
+        ```tcl
+        option add *Graph.signal.lineWidth 2
+        option add *Graph.Element.LineWidth 2
+        ```
+
+        The first form targets the option by component and database name. The second targets all matching components by
+        resource class and option database class.
+
+        RBC uses the same option-database mechanism for graph subcomponents even though most of them are not separate
+        Tk widgets. When a component is initialized, RBC performs option lookup using a temporary child window having
+        the component's resource name and resource class.
+
+        ### Component resource names and classes
+
+        #ruffopt excludedformats nroff
+        | Component      | Resource name                                 | Resource class  |
+        |----------------|-----------------------------------------------|-----------------|
+        | Axis           | axis name, such as `x`, `y`, or `temperature` | `Axis`          |
+        | Element        | element name                                  | `Element`       |
+        | Pen            | pen name                                      | `Pen`           |
+        | Bitmap marker  | marker name                                   | `BitmapMarker`  |
+        | Image marker   | marker name                                   | `ImageMarker`   |
+        | Line marker    | marker name                                   | `LineMarker`    |
+        | Polygon marker | marker name                                   | `PolygonMarker` |
+        | Text marker    | marker name                                   | `TextMarker`    |
+        | Window marker  | marker name                                   | `WindowMarker`  |
+        | Legend         | `legend`                                      | `Legend`        |
+        | Grid           | `grid`                                        | `Grid`          |
+        | Crosshairs     | `crosshairs`                                  | `Crosshairs`    |
+        | PostScript     | `postscript`                                  | `Postscript`    |
+
+        #ruffopt includedformats nroff
+        ```
+        ┌────────────────┬───────────────────────────────────────────────┬─────────────────┐
+        │ Component      │ Resource name                                 │ Resource class  │
+        ├────────────────┼───────────────────────────────────────────────┼─────────────────┤
+        │ Axis           │ axis name, such as x, y, or temperature       │ Axis            │
+        │ Element        │ element name                                  │ Element         │
+        │ Pen            │ pen name                                      │ Pen             │
+        │ Bitmap marker  │ marker name                                   │ BitmapMarker    │
+        │ Image marker   │ marker name                                   │ ImageMarker     │
+        │ Line marker    │ marker name                                   │ LineMarker      │
+        │ Polygon marker │ marker name                                   │ PolygonMarker   │
+        │ Text marker    │ marker name                                   │ TextMarker      │
+        │ Window marker  │ marker name                                   │ WindowMarker    │
+        │ Legend         │ legend                                        │ Legend          │
+        │ Grid           │ grid                                          │ Grid            │
+        │ Crosshairs     │ crosshairs                                    │ Crosshairs      │
+        │ PostScript     │ postscript                                    │ Postscript      │
+        └────────────────┴───────────────────────────────────────────────┴─────────────────┘
+        ```
+        #ruffopt excludedformats {}
+
+        Thus an option-database entry can target either a whole component class:
+        ```tcl
+        option add *Graph.Axis.Color navy
+        option add *Graph.Element.LineWidth 2
+        option add *Graph.Pen.Color blue
+        option add *Graph.TextMarker.Foreground darkgreen
+        ```
+
+        or a particular named component:
+        ```tcl
+        option add *Graph.x.color red
+        option add *Graph.signal.lineWidth 3
+        option add *Graph.activeLine.color green
+        option add *Graph.annotation.foreground purple
+        ```
+
+        The graph widget class in these examples is `Graph`. For `barchart` and `stripchart` widgets, use their
+        corresponding `Barchart` and `Stripchart` resource classes.
+
+        Named elements, pens, and markers are represented internally as component resource names. For these components,
+        RBC converts the first character of the object name to lowercase for option-database lookup. For example, an
+        element named `Signal` uses the component resource name `signal`.
+
+        ### When option database values are applied
+        Option database values are read when a component is initialized. They therefore normally need to be installed
+        before that component is created.
+
+        For a dynamically created element:
+        ```tcl
+        graph .g
+        option add *Graph.Element.Color navy
+        .g element create signal
+        ```
+
+        the new element obtains its initial color from the option database.
+
+        To target one particular element:
+        ```tcl
+        graph .g
+        option add *Graph.signal.color red
+        .g element create signal
+        .g element create reference
+        ```
+
+        only `signal` receives that instance-specific value.
+
+        Components created automatically with the graph, such as the built-in axes, active pens, legend, grid,
+        crosshairs, and PostScript component, should have their option-database entries installed before the graph
+        widget itself is created:
+        ```tcl
+        option add *Graph.Grid.Color grey70
+        option add *Graph.Legend.Foreground navy
+        option add *Graph.activeLine.color red
+        graph .g
+        ```
+
+        Adding an option-database entry later does not reconfigure components that have already been initialized.
+        Use the component's `configure` operation to change an existing object.
+
+        Explicit options supplied when an object is created override values obtained from the option database:
+        ```tcl
+        option add *Graph.Element.Color navy
+        .g element create signal -color red
+        ```
+
+        Here `signal` is red.
+
+        ### Discovering database names and classes
+        The `configure` query forms report the exact database name and database class used by an option.
+
+        For example:
+
+        ```tcl
+        set info [.g element configure signal -linewidth]
+        lassign $info optionName databaseName databaseClass defaultValue currentValue
+        ```
+
+        The five values correspond to:
+        ```text
+        command option
+        database name
+        database class
+        default value
+        current value
+        ```
+
+        The same technique works for axes, pens, markers, the legend, grid, crosshairs, PostScript, and the graph widget
+        itself.
+
+        For example:
+        ```tcl
+        .g axis configure x -color
+        .g pen configure activeLine -color
+        .g marker configure annotation -foreground
+        .g legend configure -foreground
+        .g grid configure -linewidth
+        .g crosshairs configure -color
+        .g postscript configure -landscape
+        ```
+
+        Synonym options such as `-bg`, `-fg`, and `-bd` refer to the database name and class of their canonical option.
+
+        Some options intentionally have no option-database name or class. Such options can be set only through the
+        component command. For example, a marker's `-name` option is not read from the option database.
 
         ### Bar modes
         The `-barmode` option determines how bars from different elements are arranged when they use the same X
         coordinate.
 
+        #ruffopt excludedformats nroff
         | Mode      | Description                                             |
         |-----------|---------------------------------------------------------|
         | `normal`  | Equivalent to `infront`. This is the default.           |
@@ -175,6 +585,20 @@ namespace eval ::rbc::GRAPHINST {
         | `stacked` | Stacks successive bars vertically.                      |
         | `aligned` | Places bars side by side.                               |
         | `overlap` | Places bars side by side with a small overlap.          |
+
+        #ruffopt includedformats nroff
+        ```
+        ┌─────────┬─────────────────────────────────────────────────────────┐
+        │ Mode    │ Description                                             │
+        ├─────────┼─────────────────────────────────────────────────────────┤
+        │ normal  │ Equivalent to infront. This is the default.             │
+        │ infront │ Draws each successive bar in front of the previous bar. │
+        │ stacked │ Stacks successive bars vertically.                      │
+        │ aligned │ Places bars side by side.                               │
+        │ overlap │ Places bars side by side with a small overlap.          │
+        └─────────┴─────────────────────────────────────────────────────────┘
+        ```
+        #ruffopt excludedformats {}
 
         For example:
         ```tcl
@@ -310,7 +734,7 @@ namespace eval ::rbc::GRAPHINST {
     }
 
     proc cget {option} {
-        # Returns the current value of a graph widget configuration option.
+        # Queries the current value of a graph widget configuration option.
         # option - graph widget configuration option.
         #
         # See [Widget options] for the complete list of supported options and their descriptions.
@@ -345,7 +769,7 @@ namespace eval ::rbc::GRAPHINST {
     }
 
     proc extents {item} {
-        # Returns the size or geometry of a graph component.
+        # Gives back the size or geometry of a graph component.
         # item - component whose extents are requested. Must be `plotheight`, `plotwidth`, `plotarea`, `legend`,
         #   `leftmargin`, `rightmargin`, `topmargin`, or `bottommargin`.
         # Returns: For `plotheight`, `plotwidth`, and the margin items, returns one size in pixels. For `plotarea` and

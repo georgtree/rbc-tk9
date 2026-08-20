@@ -55,7 +55,7 @@ ensemble.</p>
 <dl class="simple">
 <dt><a class="reference internal" href="#r-3a3arbc3a3aaxis20bind"><span class="std std-ref">bind</span></a></dt><dd><p>Queries or modifies bindings associated with axis binding tags. With no arguments, returns the currently registered axis binding tags. With a tag name, returns the event sequences bound to that tag. With a sequence, returns its binding script. With a command, creates or replaces the binding.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3aaxis20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Returns the current value of an axis configuration option. See <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-3a3arbc3a3aaxisqzaxis20options"><span class="std std-ref">axis options</span></a> for the complete option reference. Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aaxis20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Queries the current value of an axis configuration option. See <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-3a3arbc3a3aaxisqzaxis20options"><span class="std std-ref">axis options</span></a> for the complete option reference.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3aaxis20configure"><span class="std std-ref">configure</span></a></dt><dd><p>Queries or modifies axis configuration. When querying, normally one axis name is supplied. When setting options, multiple axis names may precede the option/value pairs and the same configuration is applied to each named axis. See <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-3a3arbc3a3aaxisqzaxis20options"><span class="std std-ref">axis options</span></a> for the complete option reference.</p>
 </dd>
@@ -63,13 +63,13 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3aaxis20delete"><span class="std std-ref">delete</span></a></dt><dd><p>Deletes one or more virtual axes. If an axis is still referenced by an element, physical destruction is deferred until the reference is released, but the deleted name immediately stops referring to that axis and may be reused for a newly created axis.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3aaxis20get"><span class="std std-ref">get</span></a></dt><dd><p>Returns information about the axis currently selected by the graph binding machinery. <code class="docutils literal notranslate"><span class="pre">current</span></code> returns the axis name. <code class="docutils literal notranslate"><span class="pre">detail</span></code> returns <code class="docutils literal notranslate"><span class="pre">label</span></code>, <code class="docutils literal notranslate"><span class="pre">title</span></code>, or <code class="docutils literal notranslate"><span class="pre">line</span></code> depending on the part of the axis under the current binding position. If no axis is current, the result is empty. Current axis name, current axis detail, or an empty result.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aaxis20get"><span class="std std-ref">get</span></a></dt><dd><p>Gives back information about the axis currently selected by the graph binding machinery. <code class="docutils literal notranslate"><span class="pre">current</span></code> returns the axis name. <code class="docutils literal notranslate"><span class="pre">detail</span></code> returns <code class="docutils literal notranslate"><span class="pre">label</span></code>, <code class="docutils literal notranslate"><span class="pre">title</span></code>, or <code class="docutils literal notranslate"><span class="pre">line</span></code> depending on the part of the axis under the current binding position. If no axis is current, the result is empty.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3aaxis20invtransform"><span class="std std-ref">invtransform</span></a></dt><dd><p>Converts an integer window coordinate to the corresponding graph value using the specified axis. The axis orientation and <code class="docutils literal notranslate"><span class="pre">-descending</span></code> setting are taken into account. Logarithmic axes return the corresponding positive data value.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3aaxis20limits"><span class="std std-ref">limits</span></a></dt><dd><p>Returns the effective displayed minimum and maximum of the specified axis. Automatic scaling, explicit limits, loose-range processing, and logarithmic mapping are reflected in the returned values. Logarithmic limits are returned as ordinary positive data values rather than base-10 exponents. Two-element list <code class="docutils literal notranslate"><span class="pre">min</span> <span class="pre">max</span></code>.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aaxis20limits"><span class="std std-ref">limits</span></a></dt><dd><p>Gives back the effective displayed minimum and maximum of the specified axis. Automatic scaling, explicit limits, loose-range processing, and logarithmic mapping are reflected in the returned values. Logarithmic limits are returned as ordinary positive data values rather than base-10 exponents.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3aaxis20names"><span class="std std-ref">names</span></a></dt><dd><p>Returns the names of existing axes. If one or more Tcl glob patterns are supplied, an axis is returned when its name matches any pattern. Axes pending deletion are not returned. List of matching axis names.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aaxis20names"><span class="std std-ref">names</span></a></dt><dd><p>Gives back the names of existing axes. If one or more Tcl glob patterns are supplied, an axis is returned when its name matches any pattern. Axes pending deletion are not returned.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3aaxis20transform"><span class="std std-ref">transform</span></a></dt><dd><p>Converts a graph value to an integer window coordinate using the specified axis. <code class="docutils literal notranslate"><span class="pre">value</span></code> is evaluated as a Tcl numeric expression and must be finite. Values transformed through a logarithmic axis must be positive.</p>
 </dd>
@@ -103,9 +103,8 @@ sequence, returns its binding script. With a command, creates or replaces the bi
 </section>
 <section id="axis-cget">
 <span id="r-3a3arbc3a3aaxis20cget"></span><span id="index-5"></span><span id="index-4"></span><h3><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">cget</span></code><a class="headerlink" href="#axis-cget" title="Link to this heading">¶</a></h3>
-<p>Returns the current value of an axis configuration option. See <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-3a3arbc3a3aaxisqzaxis20options"><span class="std std-ref">axis options</span></a> for the complete
-option reference.
-Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+<p>Queries the current value of an axis configuration option. See <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-3a3arbc3a3aaxisqzaxis20options"><span class="std std-ref">axis options</span></a> for the complete
+option reference.</p>
 <pre class="literal-block"><strong>AXIS cget</strong> <em>axisName option</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -117,9 +116,7 @@ Current value of <code class="docutils literal notranslate"><span class="pre">op
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Returns the current value of an axis configuration option. See <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-3a3arbc3a3aaxisqzaxis20options"><span class="std std-ref">axis options</span></a> for the complete
-option reference.
-Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+<p>Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
 </section>
 <section id="axis-configure">
 <span id="r-3a3arbc3a3aaxis20configure"></span><span id="index-7"></span><span id="index-6"></span><h3><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">configure</span></code><a class="headerlink" href="#axis-configure" title="Link to this heading">¶</a></h3>
@@ -182,10 +179,9 @@ may be reused for a newly created axis.</p>
 </section>
 <section id="axis-get">
 <span id="r-3a3arbc3a3aaxis20get"></span><span id="index-13"></span><span id="index-12"></span><h3><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">get</span></code><a class="headerlink" href="#axis-get" title="Link to this heading">¶</a></h3>
-<p>Returns information about the axis currently selected by the graph binding machinery. <code class="docutils literal notranslate"><span class="pre">current</span></code> returns the
+<p>Gives back information about the axis currently selected by the graph binding machinery. <code class="docutils literal notranslate"><span class="pre">current</span></code> returns the
 axis name. <code class="docutils literal notranslate"><span class="pre">detail</span></code> returns <code class="docutils literal notranslate"><span class="pre">label</span></code>, <code class="docutils literal notranslate"><span class="pre">title</span></code>, or <code class="docutils literal notranslate"><span class="pre">line</span></code> depending on the part of the axis under the current
-binding position. If no axis is current, the result is empty.
-Current axis name, current axis detail, or an empty result.</p>
+binding position. If no axis is current, the result is empty.</p>
 <pre class="literal-block"><strong>AXIS get</strong> <em>name</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -194,10 +190,7 @@ Current axis name, current axis detail, or an empty result.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Returns information about the axis currently selected by the graph binding machinery. <code class="docutils literal notranslate"><span class="pre">current</span></code> returns the
-axis name. <code class="docutils literal notranslate"><span class="pre">detail</span></code> returns <code class="docutils literal notranslate"><span class="pre">label</span></code>, <code class="docutils literal notranslate"><span class="pre">title</span></code>, or <code class="docutils literal notranslate"><span class="pre">line</span></code> depending on the part of the axis under the current
-binding position. If no axis is current, the result is empty.
-Current axis name, current axis detail, or an empty result.</p>
+<p>Current axis name, current axis detail, or an empty result.</p>
 </section>
 <section id="axis-invtransform">
 <span id="r-3a3arbc3a3aaxis20invtransform"></span><span id="index-15"></span><span id="index-14"></span><h3><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">invtransform</span></code><a class="headerlink" href="#axis-invtransform" title="Link to this heading">¶</a></h3>
@@ -219,10 +212,9 @@ positive data value.</p>
 </section>
 <section id="axis-limits">
 <span id="r-3a3arbc3a3aaxis20limits"></span><span id="index-17"></span><span id="index-16"></span><h3><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">limits</span></code><a class="headerlink" href="#axis-limits" title="Link to this heading">¶</a></h3>
-<p>Returns the effective displayed minimum and maximum of the specified axis. Automatic scaling, explicit
+<p>Gives back the effective displayed minimum and maximum of the specified axis. Automatic scaling, explicit
 limits, loose-range processing, and logarithmic mapping are reflected in the returned values. Logarithmic
-limits are returned as ordinary positive data values rather than base-10 exponents.
-Two-element list <code class="docutils literal notranslate"><span class="pre">min</span> <span class="pre">max</span></code>.</p>
+limits are returned as ordinary positive data values rather than base-10 exponents.</p>
 <pre class="literal-block"><strong>AXIS limits</strong> <em>axisName</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -231,16 +223,12 @@ Two-element list <code class="docutils literal notranslate"><span class="pre">mi
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Returns the effective displayed minimum and maximum of the specified axis. Automatic scaling, explicit
-limits, loose-range processing, and logarithmic mapping are reflected in the returned values. Logarithmic
-limits are returned as ordinary positive data values rather than base-10 exponents.
-Two-element list <code class="docutils literal notranslate"><span class="pre">min</span> <span class="pre">max</span></code>.</p>
+<p>Two-element list <code class="docutils literal notranslate"><span class="pre">min</span> <span class="pre">max</span></code>.</p>
 </section>
 <section id="axis-names">
 <span id="r-3a3arbc3a3aaxis20names"></span><span id="index-19"></span><span id="index-18"></span><h3><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">names</span></code><a class="headerlink" href="#axis-names" title="Link to this heading">¶</a></h3>
-<p>Returns the names of existing axes. If one or more Tcl glob patterns are supplied, an axis is returned when
-its name matches any pattern. Axes pending deletion are not returned.
-List of matching axis names.</p>
+<p>Gives back the names of existing axes. If one or more Tcl glob patterns are supplied, an axis is returned when
+its name matches any pattern. Axes pending deletion are not returned.</p>
 <pre class="literal-block"><strong>AXIS names</strong> <em>?pattern ...?</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -249,9 +237,7 @@ List of matching axis names.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Returns the names of existing axes. If one or more Tcl glob patterns are supplied, an axis is returned when
-its name matches any pattern. Axes pending deletion are not returned.
-List of matching axis names.</p>
+<p>List of matching axis names.</p>
 </section>
 <section id="axis-transform">
 <span id="r-3a3arbc3a3aaxis20transform"></span><span id="index-21"></span><span id="index-20"></span><h3><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">transform</span></code><a class="headerlink" href="#axis-transform" title="Link to this heading">¶</a></h3>
@@ -336,7 +322,7 @@ ensemble.</p>
 <p class="rubric">Description</p>
 <p>The ensemble supports the following subcommands:</p>
 <dl class="simple">
-<dt><a class="reference internal" href="#r-3a3arbc3a3acrosshairs20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Returns the current value of one crosshairs configuration option. See <a class="reference internal" href="rbc-tk9-rbc-CROSSHAIRS.html#r-3a3arbc3a3acrosshairsqzcrosshairs20options"><span class="std std-ref">Crosshairs options</span></a>. Current value of the requested option.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3acrosshairs20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Queries the current value of one crosshairs configuration option. See <a class="reference internal" href="rbc-tk9-rbc-CROSSHAIRS.html#r-3a3arbc3a3acrosshairsqzcrosshairs20options"><span class="std std-ref">Crosshairs options</span></a>.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3acrosshairs20configure"><span class="std std-ref">configure</span></a></dt><dd><p>Queries or modifies crosshairs configuration options. With no arguments, returns all configuration information. With one option, returns information for that option. Otherwise <code class="docutils literal notranslate"><span class="pre">args</span></code> contains option/value pairs to change. See <a class="reference internal" href="rbc-tk9-rbc-CROSSHAIRS.html#r-3a3arbc3a3acrosshairsqzcrosshairs20options"><span class="std std-ref">Crosshairs options</span></a>.</p>
 </dd>
@@ -351,9 +337,8 @@ ensemble.</p>
 </section>
 <section id="crosshairs-cget">
 <span id="r-3a3arbc3a3acrosshairs20cget"></span><span id="index-29"></span><span id="index-28"></span><h3><code class="docutils literal notranslate"><span class="pre">CROSSHAIRS</span> <span class="pre">cget</span></code><a class="headerlink" href="#crosshairs-cget" title="Link to this heading">¶</a></h3>
-<p>Returns the current value of one crosshairs configuration option. See
-<a class="reference internal" href="rbc-tk9-rbc-CROSSHAIRS.html#r-3a3arbc3a3acrosshairsqzcrosshairs20options"><span class="std std-ref">Crosshairs options</span></a>.
-Current value of the requested option.</p>
+<p>Queries the current value of one crosshairs configuration option. See
+<a class="reference internal" href="rbc-tk9-rbc-CROSSHAIRS.html#r-3a3arbc3a3acrosshairsqzcrosshairs20options"><span class="std std-ref">Crosshairs options</span></a>.</p>
 <pre class="literal-block"><strong>CROSSHAIRS cget</strong> <em>option</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -362,9 +347,7 @@ Current value of the requested option.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Returns the current value of one crosshairs configuration option. See
-<a class="reference internal" href="rbc-tk9-rbc-CROSSHAIRS.html#r-3a3arbc3a3acrosshairsqzcrosshairs20options"><span class="std std-ref">Crosshairs options</span></a>.
-Current value of the requested option.</p>
+<p>Current value of the requested option.</p>
 </section>
 <section id="crosshairs-configure">
 <span id="r-3a3arbc3a3acrosshairs20configure"></span><span id="index-31"></span><span id="index-30"></span><h3><code class="docutils literal notranslate"><span class="pre">CROSSHAIRS</span> <span class="pre">configure</span></code><a class="headerlink" href="#crosshairs-configure" title="Link to this heading">¶</a></h3>
@@ -421,7 +404,7 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3aelement20bind"><span class="std std-ref">bind</span></a></dt><dd><p>Queries or modifies event bindings for element binding tags. With no arguments, returns the currently known element binding tags. With a tag name, returns the event sequences bound to that tag. With a tag and sequence, returns the corresponding binding script. With a command, creates or replaces the binding.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3aelement20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Returns the current value of an element configuration option. The available options depend on the concrete element type. Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aelement20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Queries the current value of an element configuration option. The available options depend on the concrete element type.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3aelement20closest"><span class="std std-ref">closest</span></a></dt><dd><p>Finds the visible element nearest to the specified window coordinate. On success, stores information in the Tcl array <code class="docutils literal notranslate"><span class="pre">varName</span></code> using the keys <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">index</span></code>, <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, and <code class="docutils literal notranslate"><span class="pre">dist</span></code>. Searches all visible elements unless one or more element names are supplied after the options.</p>
 </dd>
@@ -435,13 +418,13 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3aelement20exists"><span class="std std-ref">exists</span></a></dt><dd><p>Tests whether an element with the specified name exists in the graph.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3aelement20get"><span class="std std-ref">get</span></a></dt><dd><p>Returns the element currently selected by the graph binding machinery. The only supported selector is <code class="docutils literal notranslate"><span class="pre">current</span></code>. If there is no current element, the result is empty. Current element name or an empty result.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aelement20get"><span class="std std-ref">get</span></a></dt><dd><p>Gives back the element currently selected by the graph binding machinery. The only supported selector is <code class="docutils literal notranslate"><span class="pre">current</span></code>. If there is no current element, the result is empty.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3aelement20names"><span class="std std-ref">names</span></a></dt><dd><p>Returns the names of existing graph elements. With no patterns, all element names are returned. With one or more Tcl glob patterns, an element is returned if its name matches any pattern. List of matching element names.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aelement20names"><span class="std std-ref">names</span></a></dt><dd><p>Gives back the names of existing graph elements. With no patterns, all element names are returned. With one or more Tcl glob patterns, an element is returned if its name matches any pattern.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3aelement20show"><span class="std std-ref">show</span></a></dt><dd><p>Queries or replaces the element display list. With no argument, returns the currently displayed elements in drawing order. With <code class="docutils literal notranslate"><span class="pre">elemList</span></code>, displays only the listed elements and hides all others. The list order determines drawing order; later elements are drawn above earlier elements. Unknown element names are ignored. An empty list hides all elements.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3aelement20type"><span class="std std-ref">type</span></a></dt><dd><p>Returns the concrete class of the named element. Current results are <code class="docutils literal notranslate"><span class="pre">LineElement</span></code>, <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>, and <code class="docutils literal notranslate"><span class="pre">StripElement</span></code>. Element class name.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aelement20type"><span class="std std-ref">type</span></a></dt><dd><p>Gives back the concrete class of the named element. Current results are <code class="docutils literal notranslate"><span class="pre">LineElement</span></code>, <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>, and <code class="docutils literal notranslate"><span class="pre">StripElement</span></code>.</p>
 </dd>
 </dl>
 <p>Refer to the documentation of each subcommand for details.</p>
@@ -489,9 +472,8 @@ sequence, returns the corresponding binding script. With a command, creates or r
 </section>
 <section id="element-cget">
 <span id="r-3a3arbc3a3aelement20cget"></span><span id="index-45"></span><span id="index-44"></span><h3><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">cget</span></code><a class="headerlink" href="#element-cget" title="Link to this heading">¶</a></h3>
-<p>Returns the current value of an element configuration option. The available options depend on the concrete
-element type.
-Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+<p>Queries the current value of an element configuration option. The available options depend on the concrete
+element type.</p>
 <pre class="literal-block"><strong>ELEMENT cget</strong> <em>elemName option</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -506,9 +488,7 @@ Current value of <code class="docutils literal notranslate"><span class="pre">op
 <p>See <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a> for line-element options, <a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#r-3a3arbc3a3astripelement"><span class="std std-ref">STRIPELEMENT</span></a> for strip-element options, and <a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#r-3a3arbc3a3abarelement"><span class="std std-ref">BARELEMENT</span></a> for
 bar-element options.</p>
 <p class="rubric">Return value</p>
-<p>Returns the current value of an element configuration option. The available options depend on the concrete
-element type.
-Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+<p>Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
 </section>
 <section id="element-closest">
 <span id="r-3a3arbc3a3aelement20closest"></span><span id="index-47"></span><span id="index-46"></span><h3><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">closest</span></code><a class="headerlink" href="#element-closest" title="Link to this heading">¶</a></h3>
@@ -643,9 +623,8 @@ references, and display-list entries.</p>
 </section>
 <section id="element-get">
 <span id="r-3a3arbc3a3aelement20get"></span><span id="index-59"></span><span id="index-58"></span><h3><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">get</span></code><a class="headerlink" href="#element-get" title="Link to this heading">¶</a></h3>
-<p>Returns the element currently selected by the graph binding machinery. The only supported selector is
-<code class="docutils literal notranslate"><span class="pre">current</span></code>. If there is no current element, the result is empty.
-Current element name or an empty result.</p>
+<p>Gives back the element currently selected by the graph binding machinery. The only supported selector is
+<code class="docutils literal notranslate"><span class="pre">current</span></code>. If there is no current element, the result is empty.</p>
 <pre class="literal-block"><strong>ELEMENT get</strong> <em>name</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -654,15 +633,12 @@ Current element name or an empty result.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Returns the element currently selected by the graph binding machinery. The only supported selector is
-<code class="docutils literal notranslate"><span class="pre">current</span></code>. If there is no current element, the result is empty.
-Current element name or an empty result.</p>
+<p>Current element name or an empty result.</p>
 </section>
 <section id="element-names">
 <span id="r-3a3arbc3a3aelement20names"></span><span id="index-61"></span><span id="index-60"></span><h3><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">names</span></code><a class="headerlink" href="#element-names" title="Link to this heading">¶</a></h3>
-<p>Returns the names of existing graph elements. With no patterns, all element names are returned. With one or
-more Tcl glob patterns, an element is returned if its name matches any pattern.
-List of matching element names.</p>
+<p>Gives back the names of existing graph elements. With no patterns, all element names are returned. With one or
+more Tcl glob patterns, an element is returned if its name matches any pattern.</p>
 <pre class="literal-block"><strong>ELEMENT names</strong> <em>?pattern ...?</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -671,9 +647,7 @@ List of matching element names.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Returns the names of existing graph elements. With no patterns, all element names are returned. With one or
-more Tcl glob patterns, an element is returned if its name matches any pattern.
-List of matching element names.</p>
+<p>List of matching element names.</p>
 </section>
 <section id="element-show">
 <span id="r-3a3arbc3a3aelement20show"></span><span id="index-63"></span><span id="index-62"></span><h3><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">show</span></code><a class="headerlink" href="#element-show" title="Link to this heading">¶</a></h3>
@@ -693,9 +667,8 @@ ignored. An empty list hides all elements.</p>
 </section>
 <section id="element-type">
 <span id="r-3a3arbc3a3aelement20type"></span><span id="index-65"></span><span id="index-64"></span><h3><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">type</span></code><a class="headerlink" href="#element-type" title="Link to this heading">¶</a></h3>
-<p>Returns the concrete class of the named element. Current results are <code class="docutils literal notranslate"><span class="pre">LineElement</span></code>, <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>, and
-<code class="docutils literal notranslate"><span class="pre">StripElement</span></code>.
-Element class name.</p>
+<p>Gives back the concrete class of the named element. Current results are <code class="docutils literal notranslate"><span class="pre">LineElement</span></code>, <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">StripElement</span></code>.</p>
 <pre class="literal-block"><strong>ELEMENT type</strong> <em>elemName</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -704,9 +677,7 @@ Element class name.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Returns the concrete class of the named element. Current results are <code class="docutils literal notranslate"><span class="pre">LineElement</span></code>, <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>, and
-<code class="docutils literal notranslate"><span class="pre">StripElement</span></code>.
-Element class name.</p>
+<p>Element class name.</p>
 </section>
 <section id="graph">
 <span id="r-3a3arbc3a3agraph"></span><span id="index-67"></span><span id="index-66"></span><h3><code class="docutils literal notranslate"><span class="pre">graph</span></code><a class="headerlink" href="#graph" title="Link to this heading">¶</a></h3>
@@ -749,7 +720,7 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20bar"><span class="std std-ref">bar</span></a></dt><dd><p>Performs an element operation using bar elements explicitly, regardless of the default element type of the graph widget.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Returns the current value of a graph widget configuration option. Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Queries the current value of a graph widget configuration option.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20configure"><span class="std std-ref">configure</span></a></dt><dd><p>Queries or modifies graph widget configuration options. With no arguments, returns configuration information for all widget options. With one option, returns configuration information for that option. With one or more option/value pairs, changes the specified options.</p>
 </dd>
@@ -757,7 +728,7 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20element"><span class="std std-ref">element</span></a></dt><dd><p>Performs an operation on graph elements using the widget’s default element type. The default is a line element for <code class="docutils literal notranslate"><span class="pre">graph</span></code>, a bar element for <code class="docutils literal notranslate"><span class="pre">barchart</span></code>, and a strip element for <code class="docutils literal notranslate"><span class="pre">stripchart</span></code>.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20extents"><span class="std std-ref">extents</span></a></dt><dd><p>Returns the size or geometry of a graph component. For <code class="docutils literal notranslate"><span class="pre">plotheight</span></code>, <code class="docutils literal notranslate"><span class="pre">plotwidth</span></code>, and the margin items, returns one size in pixels. For <code class="docutils literal notranslate"><span class="pre">plotarea</span></code> and <code class="docutils literal notranslate"><span class="pre">legend</span></code>, returns a list of four values in the form <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">y</span> <span class="pre">width</span> <span class="pre">height</span></code>.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20extents"><span class="std std-ref">extents</span></a></dt><dd><p>Gives back the size or geometry of a graph component.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3agraphinst20grid"><span class="std std-ref">grid</span></a></dt><dd><p>Performs an operation on the graph grid.</p>
 </dd>
@@ -812,8 +783,7 @@ graph widget.</p>
 </section>
 <section id="graphinst-cget">
 <span id="r-3a3arbc3a3agraphinst20cget"></span><span id="index-75"></span><span id="index-74"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">cget</span></code><a class="headerlink" href="#graphinst-cget" title="Link to this heading">¶</a></h3>
-<p>Returns the current value of a graph widget configuration option.
-Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+<p>Queries the current value of a graph widget configuration option.</p>
 <pre class="literal-block"><strong>GRAPHINST cget</strong> <em>option</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -824,8 +794,7 @@ Current value of <code class="docutils literal notranslate"><span class="pre">op
 <p class="rubric">Description</p>
 <p>See <a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#r-3a3arbc3a3agraphinstqzwidget20options"><span class="std std-ref">Widget options</span></a> for the complete list of supported options and their descriptions.</p>
 <p class="rubric">Return value</p>
-<p>Returns the current value of a graph widget configuration option.
-Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+<p>Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
 </section>
 <section id="graphinst-configure">
 <span id="r-3a3arbc3a3agraphinst20configure"></span><span id="index-77"></span><span id="index-76"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">configure</span></code><a class="headerlink" href="#graphinst-configure" title="Link to this heading">¶</a></h3>
@@ -867,9 +836,7 @@ element for <code class="docutils literal notranslate"><span class="pre">graph</
 </section>
 <section id="graphinst-extents">
 <span id="r-3a3arbc3a3agraphinst20extents"></span><span id="index-83"></span><span id="index-82"></span><h3><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">extents</span></code><a class="headerlink" href="#graphinst-extents" title="Link to this heading">¶</a></h3>
-<p>Returns the size or geometry of a graph component.
-For <code class="docutils literal notranslate"><span class="pre">plotheight</span></code>, <code class="docutils literal notranslate"><span class="pre">plotwidth</span></code>, and the margin items, returns one size in pixels. For <code class="docutils literal notranslate"><span class="pre">plotarea</span></code> and
-<code class="docutils literal notranslate"><span class="pre">legend</span></code>, returns a list of four values in the form <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">y</span> <span class="pre">width</span> <span class="pre">height</span></code>.</p>
+<p>Gives back the size or geometry of a graph component.</p>
 <pre class="literal-block"><strong>GRAPHINST extents</strong> <em>item</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -878,8 +845,7 @@ For <code class="docutils literal notranslate"><span class="pre">plotheight</spa
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Returns the size or geometry of a graph component.
-For <code class="docutils literal notranslate"><span class="pre">plotheight</span></code>, <code class="docutils literal notranslate"><span class="pre">plotwidth</span></code>, and the margin items, returns one size in pixels. For <code class="docutils literal notranslate"><span class="pre">plotarea</span></code> and
+<p>For <code class="docutils literal notranslate"><span class="pre">plotheight</span></code>, <code class="docutils literal notranslate"><span class="pre">plotwidth</span></code>, and the margin items, returns one size in pixels. For <code class="docutils literal notranslate"><span class="pre">plotarea</span></code> and
 <code class="docutils literal notranslate"><span class="pre">legend</span></code>, returns a list of four values in the form <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">y</span> <span class="pre">width</span> <span class="pre">height</span></code>.</p>
 </section>
 <section id="graphinst-grid">
@@ -1057,7 +1023,7 @@ ensemble.</p>
 <p class="rubric">Description</p>
 <p>The ensemble supports the following subcommands:</p>
 <dl class="simple">
-<dt><a class="reference internal" href="#r-3a3arbc3a3agrid20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Returns the current value of one grid configuration option. See <a class="reference internal" href="rbc-tk9-rbc-GRID.html#r-3a3arbc3a3agridqzgrid20options"><span class="std std-ref">Grid options</span></a>. Current value of the requested option.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agrid20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Queries the current value of one grid configuration option. See <a class="reference internal" href="rbc-tk9-rbc-GRID.html#r-3a3arbc3a3agridqzgrid20options"><span class="std std-ref">Grid options</span></a>.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3agrid20configure"><span class="std std-ref">configure</span></a></dt><dd><p>Queries or modifies grid configuration options. With no arguments, returns all configuration information. With one option, returns information for that option. Otherwise <code class="docutils literal notranslate"><span class="pre">args</span></code> contains option/value pairs to change. See <a class="reference internal" href="rbc-tk9-rbc-GRID.html#r-3a3arbc3a3agridqzgrid20options"><span class="std std-ref">Grid options</span></a>.</p>
 </dd>
@@ -1072,8 +1038,7 @@ ensemble.</p>
 </section>
 <section id="grid-cget">
 <span id="r-3a3arbc3a3agrid20cget"></span><span id="index-115"></span><span id="index-114"></span><h3><code class="docutils literal notranslate"><span class="pre">GRID</span> <span class="pre">cget</span></code><a class="headerlink" href="#grid-cget" title="Link to this heading">¶</a></h3>
-<p>Returns the current value of one grid configuration option. See <a class="reference internal" href="rbc-tk9-rbc-GRID.html#r-3a3arbc3a3agridqzgrid20options"><span class="std std-ref">Grid options</span></a>.
-Current value of the requested option.</p>
+<p>Queries the current value of one grid configuration option. See <a class="reference internal" href="rbc-tk9-rbc-GRID.html#r-3a3arbc3a3agridqzgrid20options"><span class="std std-ref">Grid options</span></a>.</p>
 <pre class="literal-block"><strong>GRID cget</strong> <em>option</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -1082,8 +1047,7 @@ Current value of the requested option.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Returns the current value of one grid configuration option. See <a class="reference internal" href="rbc-tk9-rbc-GRID.html#r-3a3arbc3a3agridqzgrid20options"><span class="std std-ref">Grid options</span></a>.
-Current value of the requested option.</p>
+<p>Current value of the requested option.</p>
 </section>
 <section id="grid-configure">
 <span id="r-3a3arbc3a3agrid20configure"></span><span id="index-117"></span><span id="index-116"></span><h3><code class="docutils literal notranslate"><span class="pre">GRID</span> <span class="pre">configure</span></code><a class="headerlink" href="#grid-configure" title="Link to this heading">¶</a></h3>
@@ -1140,13 +1104,13 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3alegend20bind"><span class="std std-ref">bind</span></a></dt><dd><p>Queries or changes event bindings for legend entries associated with <code class="docutils literal notranslate"><span class="pre">tagName</span></code>. Element names are implicit binding tags. With no sequence, returns the bound event sequences. With a sequence but no command, returns the current binding. With a sequence and command, creates or replaces the binding; a command beginning with <code class="docutils literal notranslate"><span class="pre">+</span></code> appends to an existing binding.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3alegend20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Returns the current value of one legend configuration option. See <a class="reference internal" href="rbc-tk9-rbc-LEGEND.html#r-3a3arbc3a3alegendqzlegend20options"><span class="std std-ref">Legend options</span></a>. Current value of the requested option.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3alegend20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Queries the current value of one legend configuration option. See <a class="reference internal" href="rbc-tk9-rbc-LEGEND.html#r-3a3arbc3a3alegendqzlegend20options"><span class="std std-ref">Legend options</span></a>.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3alegend20configure"><span class="std std-ref">configure</span></a></dt><dd><p>Queries or modifies legend configuration options. With no arguments, returns all configuration information. With one option, returns information for that option. Otherwise <code class="docutils literal notranslate"><span class="pre">args</span></code> contains option/value pairs to change. See <a class="reference internal" href="rbc-tk9-rbc-LEGEND.html#r-3a3arbc3a3alegendqzlegend20options"><span class="std std-ref">Legend options</span></a>.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3alegend20deactivate"><span class="std std-ref">deactivate</span></a></dt><dd><p>Marks matching legend entries inactive. Each pattern is matched against element names. Inactive entries are drawn using the normal legend appearance. A pattern that matches no element has no effect.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3alegend20get"><span class="std std-ref">get</span></a></dt><dd><p>Returns the element name represented by the legend entry at <code class="docutils literal notranslate"><span class="pre">position</span></code>. <code class="docutils literal notranslate"><span class="pre">position</span></code> may be <code class="docutils literal notranslate"><span class="pre">current</span></code>, meaning the legend entry currently under the pointer, or an explicit screen coordinate of the form <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code>. If no legend entry is present at the requested position, an empty string is returned. Name of the corresponding graph element, or an empty string if no entry is found.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3alegend20get"><span class="std std-ref">get</span></a></dt><dd><p>Gives back the element name represented by the legend entry at <code class="docutils literal notranslate"><span class="pre">position</span></code>. <code class="docutils literal notranslate"><span class="pre">position</span></code> may be <code class="docutils literal notranslate"><span class="pre">current</span></code>, meaning the legend entry currently under the pointer, or an explicit screen coordinate of the form <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code>. If no legend entry is present at the requested position, an empty string is returned.</p>
 </dd>
 </dl>
 <p>Refer to the documentation of each subcommand for details.</p>
@@ -1190,8 +1154,7 @@ appends to an existing binding.</p>
 </section>
 <section id="legend-cget">
 <span id="r-3a3arbc3a3alegend20cget"></span><span id="index-131"></span><span id="index-130"></span><h3><code class="docutils literal notranslate"><span class="pre">LEGEND</span> <span class="pre">cget</span></code><a class="headerlink" href="#legend-cget" title="Link to this heading">¶</a></h3>
-<p>Returns the current value of one legend configuration option. See <a class="reference internal" href="rbc-tk9-rbc-LEGEND.html#r-3a3arbc3a3alegendqzlegend20options"><span class="std std-ref">Legend options</span></a>.
-Current value of the requested option.</p>
+<p>Queries the current value of one legend configuration option. See <a class="reference internal" href="rbc-tk9-rbc-LEGEND.html#r-3a3arbc3a3alegendqzlegend20options"><span class="std std-ref">Legend options</span></a>.</p>
 <pre class="literal-block"><strong>LEGEND cget</strong> <em>option</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -1200,8 +1163,7 @@ Current value of the requested option.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Returns the current value of one legend configuration option. See <a class="reference internal" href="rbc-tk9-rbc-LEGEND.html#r-3a3arbc3a3alegendqzlegend20options"><span class="std std-ref">Legend options</span></a>.
-Current value of the requested option.</p>
+<p>Current value of the requested option.</p>
 </section>
 <section id="legend-configure">
 <span id="r-3a3arbc3a3alegend20configure"></span><span id="index-133"></span><span id="index-132"></span><h3><code class="docutils literal notranslate"><span class="pre">LEGEND</span> <span class="pre">configure</span></code><a class="headerlink" href="#legend-configure" title="Link to this heading">¶</a></h3>
@@ -1237,10 +1199,9 @@ drawn using the normal legend appearance. A pattern that matches no element has 
 </section>
 <section id="legend-get">
 <span id="r-3a3arbc3a3alegend20get"></span><span id="index-137"></span><span id="index-136"></span><h3><code class="docutils literal notranslate"><span class="pre">LEGEND</span> <span class="pre">get</span></code><a class="headerlink" href="#legend-get" title="Link to this heading">¶</a></h3>
-<p>Returns the element name represented by the legend entry at <code class="docutils literal notranslate"><span class="pre">position</span></code>. <code class="docutils literal notranslate"><span class="pre">position</span></code> may be <code class="docutils literal notranslate"><span class="pre">current</span></code>, meaning
+<p>Gives back the element name represented by the legend entry at <code class="docutils literal notranslate"><span class="pre">position</span></code>. <code class="docutils literal notranslate"><span class="pre">position</span></code> may be <code class="docutils literal notranslate"><span class="pre">current</span></code>, meaning
 the legend entry currently under the pointer, or an explicit screen coordinate of the form <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code>. If no
-legend entry is present at the requested position, an empty string is returned.
-Name of the corresponding graph element, or an empty string if no entry is found.</p>
+legend entry is present at the requested position, an empty string is returned.</p>
 <pre class="literal-block"><strong>LEGEND get</strong> <em>current|&#64;x,y</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -1249,10 +1210,7 @@ Name of the corresponding graph element, or an empty string if no entry is found
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Returns the element name represented by the legend entry at <code class="docutils literal notranslate"><span class="pre">position</span></code>. <code class="docutils literal notranslate"><span class="pre">position</span></code> may be <code class="docutils literal notranslate"><span class="pre">current</span></code>, meaning
-the legend entry currently under the pointer, or an explicit screen coordinate of the form <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code>. If no
-legend entry is present at the requested position, an empty string is returned.
-Name of the corresponding graph element, or an empty string if no entry is found.</p>
+<p>Name of the corresponding graph element, or an empty string if no entry is found.</p>
 </section>
 <section id="marginaxis">
 <span id="r-3a3arbc3a3amarginaxis"></span><span id="index-139"></span><span id="index-138"></span><h3><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span></code><a class="headerlink" href="#marginaxis" title="Link to this heading">¶</a></h3>
@@ -1265,13 +1223,13 @@ ensemble.</p>
 <dl class="simple">
 <dt><a class="reference internal" href="#r-3a3arbc3a3amarginaxis20bind"><span class="std std-ref">bind</span></a></dt><dd><p>Queries or modifies event bindings for the first axis assigned to this margin. With no arguments, returns the event sequences currently bound to the axis. With a sequence, returns the corresponding binding script. With both a sequence and command, creates or replaces the binding.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3amarginaxis20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Returns the current value of a configuration option for the first axis assigned to this margin. See <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-3a3arbc3a3aaxis"><span class="std std-ref">AXIS</span></a> for the complete axis option reference. Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3amarginaxis20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Queries the current value of a configuration option for the first axis assigned to this margin. See <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-3a3arbc3a3aaxis"><span class="std std-ref">AXIS</span></a> for the complete axis option reference.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3amarginaxis20configure"><span class="std std-ref">configure</span></a></dt><dd><p>Queries or modifies configuration options of the first axis assigned to this margin. With no arguments, returns configuration information for all axis options. With one option, returns configuration information for that option. With option/value pairs, changes the specified options. See <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-3a3arbc3a3aaxis"><span class="std std-ref">AXIS</span></a> for the complete axis option reference.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3amarginaxis20invtransform"><span class="std std-ref">invtransform</span></a></dt><dd><p>Converts an integer window coordinate to the corresponding graph-coordinate value using the first axis assigned to this margin. Axis orientation, descending direction, and logarithmic mapping are taken into account.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3amarginaxis20limits"><span class="std std-ref">limits</span></a></dt><dd><p>Returns the effective displayed limits of the first axis assigned to this margin. Automatic scaling, explicit limits, loose-range processing, and logarithmic mapping are reflected in the result. Logarithmic limits are returned as ordinary positive data values rather than base-10 exponents. Two-element list <code class="docutils literal notranslate"><span class="pre">min</span> <span class="pre">max</span></code>.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3amarginaxis20limits"><span class="std std-ref">limits</span></a></dt><dd><p>Gives back the effective displayed limits of the first axis assigned to this margin. Automatic scaling, explicit limits, loose-range processing, and logarithmic mapping are reflected in the result. Logarithmic limits are returned as ordinary positive data values rather than base-10 exponents.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3amarginaxis20transform"><span class="std std-ref">transform</span></a></dt><dd><p>Converts a graph-coordinate value to an integer window coordinate using the first axis assigned to this margin. <code class="docutils literal notranslate"><span class="pre">value</span></code> may be a Tcl numeric expression and must evaluate to a finite value. Values transformed through a logarithmic axis must be positive.</p>
 </dd>
@@ -1301,9 +1259,8 @@ With both a sequence and command, creates or replaces the binding.</p>
 </section>
 <section id="marginaxis-cget">
 <span id="r-3a3arbc3a3amarginaxis20cget"></span><span id="index-143"></span><span id="index-142"></span><h3><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span> <span class="pre">cget</span></code><a class="headerlink" href="#marginaxis-cget" title="Link to this heading">¶</a></h3>
-<p>Returns the current value of a configuration option for the first axis assigned to this margin. See <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-3a3arbc3a3aaxis"><span class="std std-ref">AXIS</span></a>
-for the complete axis option reference.
-Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+<p>Queries the current value of a configuration option for the first axis assigned to this margin. See <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-3a3arbc3a3aaxis"><span class="std std-ref">AXIS</span></a>
+for the complete axis option reference.</p>
 <pre class="literal-block"><strong>MARGINAXIS cget</strong> <em>option</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -1312,9 +1269,7 @@ Current value of <code class="docutils literal notranslate"><span class="pre">op
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Returns the current value of a configuration option for the first axis assigned to this margin. See <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-3a3arbc3a3aaxis"><span class="std std-ref">AXIS</span></a>
-for the complete axis option reference.
-Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+<p>Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
 </section>
 <section id="marginaxis-configure">
 <span id="r-3a3arbc3a3amarginaxis20configure"></span><span id="index-145"></span><span id="index-144"></span><h3><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span> <span class="pre">configure</span></code><a class="headerlink" href="#marginaxis-configure" title="Link to this heading">¶</a></h3>
@@ -1353,16 +1308,12 @@ account.</p>
 </section>
 <section id="marginaxis-limits">
 <span id="r-3a3arbc3a3amarginaxis20limits"></span><span id="index-149"></span><span id="index-148"></span><h3><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span> <span class="pre">limits</span></code><a class="headerlink" href="#marginaxis-limits" title="Link to this heading">¶</a></h3>
-<p>Returns the effective displayed limits of the first axis assigned to this margin. Automatic scaling,
+<p>Gives back the effective displayed limits of the first axis assigned to this margin. Automatic scaling,
 explicit limits, loose-range processing, and logarithmic mapping are reflected in the result. Logarithmic
-limits are returned as ordinary positive data values rather than base-10 exponents.
-Two-element list <code class="docutils literal notranslate"><span class="pre">min</span> <span class="pre">max</span></code>.</p>
+limits are returned as ordinary positive data values rather than base-10 exponents.</p>
 <pre class="literal-block"><strong>MARGINAXIS limits</strong></pre>
 <p class="rubric">Return value</p>
-<p>Returns the effective displayed limits of the first axis assigned to this margin. Automatic scaling,
-explicit limits, loose-range processing, and logarithmic mapping are reflected in the result. Logarithmic
-limits are returned as ordinary positive data values rather than base-10 exponents.
-Two-element list <code class="docutils literal notranslate"><span class="pre">min</span> <span class="pre">max</span></code>.</p>
+<p>Two-element list <code class="docutils literal notranslate"><span class="pre">min</span> <span class="pre">max</span></code>.</p>
 </section>
 <section id="marginaxis-transform">
 <span id="r-3a3arbc3a3amarginaxis20transform"></span><span id="index-151"></span><span id="index-150"></span><h3><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span> <span class="pre">transform</span></code><a class="headerlink" href="#marginaxis-transform" title="Link to this heading">¶</a></h3>
@@ -1410,7 +1361,7 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3amarker20bind"><span class="std std-ref">bind</span></a></dt><dd><p>Queries or changes marker bindings. With no arguments, returns the known marker binding tags. With only a tag name, returns the event sequences bound to that tag. With a tag and sequence, returns the binding for that sequence. With a command as well, creates or replaces the binding; a command beginning with <code class="docutils literal notranslate"><span class="pre">+</span></code> appends to the existing binding.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3amarker20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Returns the current value of one configuration option of a marker. The available options depend on the concrete marker type. See <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-3a3arbc3a3amarkerqzmarker20types20and20options"><span class="std std-ref">Marker types and options</span></a>. Current value of the requested option.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3amarker20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Queries the current value of one configuration option of a marker. The available options depend on the concrete marker type. See <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-3a3arbc3a3amarkerqzmarker20types20and20options"><span class="std std-ref">Marker types and options</span></a>.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3amarker20configure"><span class="std std-ref">configure</span></a></dt><dd><p>Queries or modifies marker configuration options. One or more marker names may be supplied before the first option. With no option, returns all configuration information for the first marker. With one option, returns information for that option for the first marker. With option/value pairs, applies the same changes to every listed marker. See <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-3a3arbc3a3amarkerqzmarker20types20and20options"><span class="std std-ref">Marker types and options</span></a>.</p>
 </dd>
@@ -1422,11 +1373,11 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3amarker20find"><span class="std std-ref">find</span></a></dt><dd><p>Finds the first displayed marker relative to a rectangular screen region. <code class="docutils literal notranslate"><span class="pre">mode</span></code> may be <code class="docutils literal notranslate"><span class="pre">enclosed</span></code>, which requires the marker to be contained by the region, or <code class="docutils literal notranslate"><span class="pre">overlapping</span></code>, which requires it to intersect the region. Hidden markers and markers associated with hidden elements are ignored.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3amarker20get"><span class="std std-ref">get</span></a></dt><dd><p>Returns the marker currently selected by the graph’s binding machinery. The supported selector is <code class="docutils literal notranslate"><span class="pre">current</span></code>. If there is no current marker, an empty string is returned. Name of the current marker, or an empty string.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3amarker20get"><span class="std std-ref">get</span></a></dt><dd><p>Gives back the marker currently selected by the graph’s binding machinery. The supported selector is <code class="docutils literal notranslate"><span class="pre">current</span></code>. If there is no current marker, an empty string is returned.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3amarker20names"><span class="std std-ref">names</span></a></dt><dd><p>Returns marker names. If patterns are supplied, only marker names matching at least one glob pattern are returned. List of marker names.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3amarker20names"><span class="std std-ref">names</span></a></dt><dd><p>Gives back marker names. If patterns are supplied, only marker names matching at least one glob pattern are returned.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3amarker20type"><span class="std std-ref">type</span></a></dt><dd><p>Returns the concrete type of an existing marker. Marker type: <code class="docutils literal notranslate"><span class="pre">bitmap</span></code>, <code class="docutils literal notranslate"><span class="pre">image</span></code>, <code class="docutils literal notranslate"><span class="pre">line</span></code>, <code class="docutils literal notranslate"><span class="pre">polygon</span></code>, <code class="docutils literal notranslate"><span class="pre">text</span></code>, or <code class="docutils literal notranslate"><span class="pre">window</span></code>.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3amarker20type"><span class="std std-ref">type</span></a></dt><dd><p>Gives back the concrete type of an existing marker.</p>
 </dd>
 </dl>
 <p>Refer to the documentation of each subcommand for details.</p>
@@ -1490,9 +1441,8 @@ to the existing binding.</p>
 </section>
 <section id="marker-cget">
 <span id="r-3a3arbc3a3amarker20cget"></span><span id="index-163"></span><span id="index-162"></span><h3><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">cget</span></code><a class="headerlink" href="#marker-cget" title="Link to this heading">¶</a></h3>
-<p>Returns the current value of one configuration option of a marker. The available options depend on the
-concrete marker type. See <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-3a3arbc3a3amarkerqzmarker20types20and20options"><span class="std std-ref">Marker types and options</span></a>.
-Current value of the requested option.</p>
+<p>Queries the current value of one configuration option of a marker. The available options depend on the
+concrete marker type. See <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-3a3arbc3a3amarkerqzmarker20types20and20options"><span class="std std-ref">Marker types and options</span></a>.</p>
 <pre class="literal-block"><strong>MARKER cget</strong> <em>markerName option</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -1504,9 +1454,7 @@ Current value of the requested option.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Returns the current value of one configuration option of a marker. The available options depend on the
-concrete marker type. See <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-3a3arbc3a3amarkerqzmarker20types20and20options"><span class="std std-ref">Marker types and options</span></a>.
-Current value of the requested option.</p>
+<p>Current value of the requested option.</p>
 </section>
 <section id="marker-configure">
 <span id="r-3a3arbc3a3amarker20configure"></span><span id="index-165"></span><span id="index-164"></span><h3><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">configure</span></code><a class="headerlink" href="#marker-configure" title="Link to this heading">¶</a></h3>
@@ -1607,9 +1555,8 @@ region. Hidden markers and markers associated with hidden elements are ignored.<
 </section>
 <section id="marker-get">
 <span id="r-3a3arbc3a3amarker20get"></span><span id="index-175"></span><span id="index-174"></span><h3><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">get</span></code><a class="headerlink" href="#marker-get" title="Link to this heading">¶</a></h3>
-<p>Returns the marker currently selected by the graph’s binding machinery. The supported selector is <code class="docutils literal notranslate"><span class="pre">current</span></code>.
-If there is no current marker, an empty string is returned.
-Name of the current marker, or an empty string.</p>
+<p>Gives back the marker currently selected by the graph’s binding machinery. The supported selector is <code class="docutils literal notranslate"><span class="pre">current</span></code>.
+If there is no current marker, an empty string is returned.</p>
 <pre class="literal-block"><strong>MARKER get</strong> <em>current</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -1618,15 +1565,12 @@ Name of the current marker, or an empty string.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Returns the marker currently selected by the graph’s binding machinery. The supported selector is <code class="docutils literal notranslate"><span class="pre">current</span></code>.
-If there is no current marker, an empty string is returned.
-Name of the current marker, or an empty string.</p>
+<p>Name of the current marker, or an empty string.</p>
 </section>
 <section id="marker-names">
 <span id="r-3a3arbc3a3amarker20names"></span><span id="index-177"></span><span id="index-176"></span><h3><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">names</span></code><a class="headerlink" href="#marker-names" title="Link to this heading">¶</a></h3>
-<p>Returns marker names. If patterns are supplied, only marker names matching at least one glob pattern are
-returned.
-List of marker names.</p>
+<p>Gives back marker names. If patterns are supplied, only marker names matching at least one glob pattern are
+returned.</p>
 <pre class="literal-block"><strong>MARKER names</strong> <em>?pattern ...?</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -1635,14 +1579,11 @@ List of marker names.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Returns marker names. If patterns are supplied, only marker names matching at least one glob pattern are
-returned.
-List of marker names.</p>
+<p>List of marker names.</p>
 </section>
 <section id="marker-type">
 <span id="r-3a3arbc3a3amarker20type"></span><span id="index-179"></span><span id="index-178"></span><h3><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">type</span></code><a class="headerlink" href="#marker-type" title="Link to this heading">¶</a></h3>
-<p>Returns the concrete type of an existing marker.
-Marker type: <code class="docutils literal notranslate"><span class="pre">bitmap</span></code>, <code class="docutils literal notranslate"><span class="pre">image</span></code>, <code class="docutils literal notranslate"><span class="pre">line</span></code>, <code class="docutils literal notranslate"><span class="pre">polygon</span></code>, <code class="docutils literal notranslate"><span class="pre">text</span></code>, or <code class="docutils literal notranslate"><span class="pre">window</span></code>.</p>
+<p>Gives back the concrete type of an existing marker.</p>
 <pre class="literal-block"><strong>MARKER type</strong> <em>markerName</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -1651,8 +1592,7 @@ Marker type: <code class="docutils literal notranslate"><span class="pre">bitmap
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Returns the concrete type of an existing marker.
-Marker type: <code class="docutils literal notranslate"><span class="pre">bitmap</span></code>, <code class="docutils literal notranslate"><span class="pre">image</span></code>, <code class="docutils literal notranslate"><span class="pre">line</span></code>, <code class="docutils literal notranslate"><span class="pre">polygon</span></code>, <code class="docutils literal notranslate"><span class="pre">text</span></code>, or <code class="docutils literal notranslate"><span class="pre">window</span></code>.</p>
+<p>Marker type: <code class="docutils literal notranslate"><span class="pre">bitmap</span></code>, <code class="docutils literal notranslate"><span class="pre">image</span></code>, <code class="docutils literal notranslate"><span class="pre">line</span></code>, <code class="docutils literal notranslate"><span class="pre">polygon</span></code>, <code class="docutils literal notranslate"><span class="pre">text</span></code>, or <code class="docutils literal notranslate"><span class="pre">window</span></code>.</p>
 </section>
 <section id="pen">
 <span id="r-3a3arbc3a3apen"></span><span id="index-181"></span><span id="index-180"></span><h3><code class="docutils literal notranslate"><span class="pre">PEN</span></code><a class="headerlink" href="#pen" title="Link to this heading">¶</a></h3>
@@ -1663,7 +1603,7 @@ ensemble.</p>
 <p class="rubric">Description</p>
 <p>The ensemble supports the following subcommands:</p>
 <dl class="simple">
-<dt><a class="reference internal" href="#r-3a3arbc3a3apen20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Returns the current value of a pen configuration option. Available options depend on whether the named pen is a line or bar pen. See <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzline20pen20options"><span class="std std-ref">line pen options</span></a> and <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzbar20pen20options"><span class="std std-ref">bar pen options</span></a>. Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3apen20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Queries the current value of a pen configuration option. Available options depend on whether the named pen is a line or bar pen. See <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzline20pen20options"><span class="std std-ref">line pen options</span></a> and <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzbar20pen20options"><span class="std std-ref">bar pen options</span></a>.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3apen20configure"><span class="std std-ref">configure</span></a></dt><dd><p>Queries or modifies pen configuration options. One or more pen names may be supplied before the first option. With no option, returns all configuration information for the first pen. With one option, returns information for that option for the first pen. With option/value pairs, applies the same changes to every listed pen. See <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzline20pen20options"><span class="std std-ref">line pen options</span></a> and <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzbar20pen20options"><span class="std std-ref">bar pen options</span></a>.</p>
 </dd>
@@ -1671,18 +1611,17 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3apen20delete"><span class="std std-ref">delete</span></a></dt><dd><p>Deletes one or more named pens. If a pen is still referenced by an element, destruction is deferred until its final reference is released. The deleted pen name immediately stops being available for new references.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3apen20names"><span class="std std-ref">names</span></a></dt><dd><p>Returns names of existing pens. With one or more Tcl glob patterns, a pen is returned when its name matches any pattern. Pens pending deletion are not returned. List of matching pen names.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3apen20names"><span class="std std-ref">names</span></a></dt><dd><p>Gives back names of existing pens. With one or more Tcl glob patterns, a pen is returned when its name matches any pattern. Pens pending deletion are not returned.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3apen20type"><span class="std std-ref">type</span></a></dt><dd><p>Returns the concrete class of the named pen. Line and strip pens return <code class="docutils literal notranslate"><span class="pre">LineElement</span></code>; bar pens return <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>. This reports the actual pen implementation and is independent of the textual creation-time <code class="docutils literal notranslate"><span class="pre">-type</span></code> representation. <code class="docutils literal notranslate"><span class="pre">LineElement</span></code> or <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3apen20type"><span class="std std-ref">type</span></a></dt><dd><p>Gives back the concrete class of the named pen. Line and strip pens return <code class="docutils literal notranslate"><span class="pre">LineElement</span></code>; bar pens return <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>. This reports the actual pen implementation and is independent of the textual creation-time <code class="docutils literal notranslate"><span class="pre">-type</span></code> representation.</p>
 </dd>
 </dl>
 <p>Refer to the documentation of each subcommand for details.</p>
 </section>
 <section id="pen-cget">
 <span id="r-3a3arbc3a3apen20cget"></span><span id="index-183"></span><span id="index-182"></span><h3><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">cget</span></code><a class="headerlink" href="#pen-cget" title="Link to this heading">¶</a></h3>
-<p>Returns the current value of a pen configuration option. Available options depend on whether the named pen is
-a line or bar pen. See <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzline20pen20options"><span class="std std-ref">line pen options</span></a> and <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzbar20pen20options"><span class="std std-ref">bar pen options</span></a>.
-Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+<p>Queries the current value of a pen configuration option. Available options depend on whether the named pen is
+a line or bar pen. See <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzline20pen20options"><span class="std std-ref">line pen options</span></a> and <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzbar20pen20options"><span class="std std-ref">bar pen options</span></a>.</p>
 <pre class="literal-block"><strong>PEN cget</strong> <em>penName option</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -1694,9 +1633,7 @@ Current value of <code class="docutils literal notranslate"><span class="pre">op
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Returns the current value of a pen configuration option. Available options depend on whether the named pen is
-a line or bar pen. See <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzline20pen20options"><span class="std std-ref">line pen options</span></a> and <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzbar20pen20options"><span class="std std-ref">bar pen options</span></a>.
-Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
+<p>Current value of <code class="docutils literal notranslate"><span class="pre">option</span></code>.</p>
 </section>
 <section id="pen-configure">
 <span id="r-3a3arbc3a3apen20configure"></span><span id="index-185"></span><span id="index-184"></span><h3><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">configure</span></code><a class="headerlink" href="#pen-configure" title="Link to this heading">¶</a></h3>
@@ -1757,9 +1694,8 @@ its final reference is released. The deleted pen name immediately stops being av
 </section>
 <section id="pen-names">
 <span id="r-3a3arbc3a3apen20names"></span><span id="index-191"></span><span id="index-190"></span><h3><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">names</span></code><a class="headerlink" href="#pen-names" title="Link to this heading">¶</a></h3>
-<p>Returns names of existing pens. With one or more Tcl glob patterns, a pen is returned when its name matches
-any pattern. Pens pending deletion are not returned.
-List of matching pen names.</p>
+<p>Gives back names of existing pens. With one or more Tcl glob patterns, a pen is returned when its name matches
+any pattern. Pens pending deletion are not returned.</p>
 <pre class="literal-block"><strong>PEN names</strong> <em>?pattern ...?</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -1768,16 +1704,13 @@ List of matching pen names.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Returns names of existing pens. With one or more Tcl glob patterns, a pen is returned when its name matches
-any pattern. Pens pending deletion are not returned.
-List of matching pen names.</p>
+<p>List of matching pen names.</p>
 </section>
 <section id="pen-type">
 <span id="r-3a3arbc3a3apen20type"></span><span id="index-193"></span><span id="index-192"></span><h3><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">type</span></code><a class="headerlink" href="#pen-type" title="Link to this heading">¶</a></h3>
-<p>Returns the concrete class of the named pen. Line and strip pens return <code class="docutils literal notranslate"><span class="pre">LineElement</span></code>; bar pens return
+<p>Gives back the concrete class of the named pen. Line and strip pens return <code class="docutils literal notranslate"><span class="pre">LineElement</span></code>; bar pens return
 <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>. This reports the actual pen implementation and is independent of the textual creation-time
-<code class="docutils literal notranslate"><span class="pre">-type</span></code> representation.
-<code class="docutils literal notranslate"><span class="pre">LineElement</span></code> or <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">-type</span></code> representation.</p>
 <pre class="literal-block"><strong>PEN type</strong> <em>penName</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -1786,10 +1719,7 @@ List of matching pen names.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Returns the concrete class of the named pen. Line and strip pens return <code class="docutils literal notranslate"><span class="pre">LineElement</span></code>; bar pens return
-<code class="docutils literal notranslate"><span class="pre">BarElement</span></code>. This reports the actual pen implementation and is independent of the textual creation-time
-<code class="docutils literal notranslate"><span class="pre">-type</span></code> representation.
-<code class="docutils literal notranslate"><span class="pre">LineElement</span></code> or <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">LineElement</span></code> or <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>.</p>
 </section>
 <section id="postscript">
 <span id="r-3a3arbc3a3apostscript"></span><span id="index-195"></span><span id="index-194"></span><h3><code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span></code><a class="headerlink" href="#postscript" title="Link to this heading">¶</a></h3>
@@ -1800,7 +1730,7 @@ ensemble.</p>
 <p class="rubric">Description</p>
 <p>The ensemble supports the following subcommands:</p>
 <dl class="simple">
-<dt><a class="reference internal" href="#r-3a3arbc3a3apostscript20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Returns the current value of one PostScript configuration option. See <a class="reference internal" href="rbc-tk9-rbc-POSTSCRIPT.html#r-3a3arbc3a3apostscriptqzpostscript20options"><span class="std std-ref">PostScript options</span></a>. Current value of the requested option.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3apostscript20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Queries the current value of one PostScript configuration option. See <a class="reference internal" href="rbc-tk9-rbc-POSTSCRIPT.html#r-3a3arbc3a3apostscriptqzpostscript20options"><span class="std std-ref">PostScript options</span></a>.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3apostscript20configure"><span class="std std-ref">configure</span></a></dt><dd><p>Queries or modifies PostScript configuration options. With no arguments, returns all configuration information. With one option, returns information for that option. Otherwise <code class="docutils literal notranslate"><span class="pre">args</span></code> contains option/value pairs to change. See <a class="reference internal" href="rbc-tk9-rbc-POSTSCRIPT.html#r-3a3arbc3a3apostscriptqzpostscript20options"><span class="std std-ref">PostScript options</span></a>.</p>
 </dd>
@@ -1811,9 +1741,8 @@ ensemble.</p>
 </section>
 <section id="postscript-cget">
 <span id="r-3a3arbc3a3apostscript20cget"></span><span id="index-197"></span><span id="index-196"></span><h3><code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span> <span class="pre">cget</span></code><a class="headerlink" href="#postscript-cget" title="Link to this heading">¶</a></h3>
-<p>Returns the current value of one PostScript configuration option. See
-<a class="reference internal" href="rbc-tk9-rbc-POSTSCRIPT.html#r-3a3arbc3a3apostscriptqzpostscript20options"><span class="std std-ref">PostScript options</span></a>.
-Current value of the requested option.</p>
+<p>Queries the current value of one PostScript configuration option. See
+<a class="reference internal" href="rbc-tk9-rbc-POSTSCRIPT.html#r-3a3arbc3a3apostscriptqzpostscript20options"><span class="std std-ref">PostScript options</span></a>.</p>
 <pre class="literal-block"><strong>POSTSCRIPT cget</strong> <em>option</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -1822,9 +1751,7 @@ Current value of the requested option.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Returns the current value of one PostScript configuration option. See
-<a class="reference internal" href="rbc-tk9-rbc-POSTSCRIPT.html#r-3a3arbc3a3apostscriptqzpostscript20options"><span class="std std-ref">PostScript options</span></a>.
-Current value of the requested option.</p>
+<p>Current value of the requested option.</p>
 </section>
 <section id="postscript-configure">
 <span id="r-3a3arbc3a3apostscript20configure"></span><span id="index-199"></span><span id="index-198"></span><h3><code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span> <span class="pre">configure</span></code><a class="headerlink" href="#postscript-configure" title="Link to this heading">¶</a></h3>
@@ -2000,7 +1927,7 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20random"><span class="std std-ref">random</span></a></dt><dd><p>Fills the vector with pseudo-random values in the range <code class="docutils literal notranslate"><span class="pre">[0.0,</span> <span class="pre">1.0)</span></code>. The current vector length is preserved. Each existing component is replaced by a newly generated pseudo-random value. An empty vector remains empty.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20range"><span class="std std-ref">range</span></a></dt><dd><p>Returns an inclusive range of vector values. If <code class="docutils literal notranslate"><span class="pre">first</span></code> is less than or equal to <code class="docutils literal notranslate"><span class="pre">last</span></code>, values are returned in ascending index order. If <code class="docutils literal notranslate"><span class="pre">first</span></code> is greater than <code class="docutils literal notranslate"><span class="pre">last</span></code>, values are returned in descending index order. <code class="docutils literal notranslate"><span class="pre">first</span></code> and <code class="docutils literal notranslate"><span class="pre">last</span></code> are normal vector indices and may use forms such as <code class="docutils literal notranslate"><span class="pre">end</span></code>. This operation does not modify the vector. A list containing the selected vector values.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20range"><span class="std std-ref">range</span></a></dt><dd><p>Gives back an inclusive range of vector values. If <code class="docutils literal notranslate"><span class="pre">first</span></code> is less than or equal to <code class="docutils literal notranslate"><span class="pre">last</span></code>, values are returned in ascending index order. If <code class="docutils literal notranslate"><span class="pre">first</span></code> is greater than <code class="docutils literal notranslate"><span class="pre">last</span></code>, values are returned in descending index order. <code class="docutils literal notranslate"><span class="pre">first</span></code> and <code class="docutils literal notranslate"><span class="pre">last</span></code> are normal vector indices and may use forms such as <code class="docutils literal notranslate"><span class="pre">end</span></code>. This operation does not modify the vector.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20search"><span class="std std-ref">search</span></a></dt><dd><p>Searches the vector for values in a numeric range. With one numeric argument, returns matches equal to that value. With two numeric arguments, returns matches between <code class="docutils literal notranslate"><span class="pre">min</span></code> and <code class="docutils literal notranslate"><span class="pre">max</span></code>, inclusive within the implementation’s floating-point tolerance. By default matching vector indices are returned. With <code class="docutils literal notranslate"><span class="pre">-value</span></code>, matching vector values are returned instead.</p>
 </dd>
@@ -2277,11 +2204,10 @@ remains empty.</p>
 </section>
 <section id="vecinst-range">
 <span id="r-3a3arbc3a3avecinst20range"></span><span id="index-247"></span><span id="index-246"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">range</span></code><a class="headerlink" href="#vecinst-range" title="Link to this heading">¶</a></h3>
-<p>Returns an inclusive range of vector values. If <code class="docutils literal notranslate"><span class="pre">first</span></code> is less than or equal to <code class="docutils literal notranslate"><span class="pre">last</span></code>, values are
+<p>Gives back an inclusive range of vector values. If <code class="docutils literal notranslate"><span class="pre">first</span></code> is less than or equal to <code class="docutils literal notranslate"><span class="pre">last</span></code>, values are
 returned in ascending index order. If <code class="docutils literal notranslate"><span class="pre">first</span></code> is greater than <code class="docutils literal notranslate"><span class="pre">last</span></code>, values are returned in descending
 index order. <code class="docutils literal notranslate"><span class="pre">first</span></code> and <code class="docutils literal notranslate"><span class="pre">last</span></code> are normal vector indices and may use forms such as <code class="docutils literal notranslate"><span class="pre">end</span></code>. This
-operation does not modify the vector.
-A list containing the selected vector values.</p>
+operation does not modify the vector.</p>
 <pre class="literal-block"><strong>VECINST range</strong> <em>first last</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -2304,11 +2230,7 @@ A list containing the selected vector values.</p>
 </pre></div>
 </div>
 <p class="rubric">Return value</p>
-<p>Returns an inclusive range of vector values. If <code class="docutils literal notranslate"><span class="pre">first</span></code> is less than or equal to <code class="docutils literal notranslate"><span class="pre">last</span></code>, values are
-returned in ascending index order. If <code class="docutils literal notranslate"><span class="pre">first</span></code> is greater than <code class="docutils literal notranslate"><span class="pre">last</span></code>, values are returned in descending
-index order. <code class="docutils literal notranslate"><span class="pre">first</span></code> and <code class="docutils literal notranslate"><span class="pre">last</span></code> are normal vector indices and may use forms such as <code class="docutils literal notranslate"><span class="pre">end</span></code>. This
-operation does not modify the vector.
-A list containing the selected vector values.</p>
+<p>A list containing the selected vector values.</p>
 </section>
 <section id="vecinst-search">
 <span id="r-3a3arbc3a3avecinst20search"></span><span id="index-249"></span><span id="index-248"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">search</span></code><a class="headerlink" href="#vecinst-search" title="Link to this heading">¶</a></h3>
@@ -2448,7 +2370,7 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3avector20expr"><span class="std std-ref">expr</span></a></dt><dd><p>Evaluates a vector expression. <code class="docutils literal notranslate"><span class="pre">expression</span></code> may contain scalars, vectors, vector ranges, arithmetic operators, and the vector mathematical functions described in <a class="reference internal" href="rbc-tk9-rbc-VECINST.html#r-3a3arbc3a3avecinstqzvector20expressions"><span class="std std-ref">Vector expressions</span></a>. Unlike the instance [VECINST::expr] operation, this command does not store the result in an existing vector.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3avector20names"><span class="std std-ref">names</span></a></dt><dd><p>Returns the names of existing vectors. If <code class="docutils literal notranslate"><span class="pre">pattern</span></code> is supplied, only vector names matching the Tcl glob pattern are returned. A list of vector names.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avector20names"><span class="std std-ref">names</span></a></dt><dd><p>Gives back the names of existing vectors. If <code class="docutils literal notranslate"><span class="pre">pattern</span></code> is supplied, only vector names matching the Tcl glob pattern are returned.</p>
 </dd>
 </dl>
 <p>Refer to the documentation of each subcommand for details.</p>
@@ -2520,9 +2442,8 @@ operators, and the vector mathematical functions described in <a class="referenc
 </section>
 <section id="vector-names">
 <span id="r-3a3arbc3a3avector20names"></span><span id="index-269"></span><span id="index-268"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">names</span></code><a class="headerlink" href="#vector-names" title="Link to this heading">¶</a></h3>
-<p>Returns the names of existing vectors. If <code class="docutils literal notranslate"><span class="pre">pattern</span></code> is supplied, only vector names matching the Tcl glob
-pattern are returned.
-A list of vector names.</p>
+<p>Gives back the names of existing vectors. If <code class="docutils literal notranslate"><span class="pre">pattern</span></code> is supplied, only vector names matching the Tcl glob
+pattern are returned.</p>
 <pre class="literal-block"><strong>vector names</strong> <em>pattern</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -2531,9 +2452,7 @@ A list of vector names.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Returns the names of existing vectors. If <code class="docutils literal notranslate"><span class="pre">pattern</span></code> is supplied, only vector names matching the Tcl glob
-pattern are returned.
-A list of vector names.</p>
+<p>A list of vector names.</p>
 </section>
 <section id="winop">
 <span id="r-3a3arbc3a3awinop"></span><span id="index-271"></span><span id="index-270"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span></code><a class="headerlink" href="#winop" title="Link to this heading">¶</a></h3>
@@ -2546,7 +2465,7 @@ ensemble.</p>
 <dl class="simple">
 <dt><a class="reference internal" href="#r-3a3arbc3a3awinop20changes"><span class="std std-ref">changes</span></a></dt><dd><p>Realizes a Tk window if necessary. For a toplevel window, also requests backing-store and save-under attributes from the underlying window system.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3awinop20colormap"><span class="std std-ref">colormap</span></a></dt><dd><p>Returns information about color cells in the colormap associated with a Tk window. This operation is available only on non-Windows builds and examines up to 256 colormap entries. A flat list of color and pixel-value pairs in the form <code class="docutils literal notranslate"><span class="pre">color</span> <span class="pre">pixel</span> <span class="pre">color</span> <span class="pre">pixel</span> <span class="pre">...</span></code>.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3awinop20colormap"><span class="std std-ref">colormap</span></a></dt><dd><p>Gives back information about color cells in the colormap associated with a Tk window. This operation is available only on non-Windows builds and examines up to 256 colormap entries.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3awinop20convolve"><span class="std std-ref">convolve</span></a></dt><dd><p>Applies a two-dimensional convolution kernel to a Tk photo image. <code class="docutils literal notranslate"><span class="pre">filter</span></code> must be a non-empty square list of finite numeric values. The output has the same dimensions as the source photo. The source and destination may be the same image.</p>
 </dd>
@@ -2560,7 +2479,7 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3awinop20quantize"><span class="std std-ref">quantize</span></a></dt><dd><p>Reduces the number of colors in a Tk photo image. <code class="docutils literal notranslate"><span class="pre">nColors</span></code> must be between <code class="docutils literal notranslate"><span class="pre">1</span></code> and <code class="docutils literal notranslate"><span class="pre">256</span></code>. If omitted it defaults to <code class="docutils literal notranslate"><span class="pre">1</span></code>. The destination is resized to the source dimensions when necessary.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3awinop20query"><span class="std std-ref">query</span></a></dt><dd><p>Returns the current pointer location in root-screen coordinates. Pointer position in the form <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code>, or an empty result if the underlying pointer query fails.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3awinop20query"><span class="std std-ref">query</span></a></dt><dd><p>Gives back the current pointer location in root-screen coordinates.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3awinop20raise"><span class="std std-ref">raise</span></a></dt><dd><p>Raises one or more Tk windows to the top of their stacking order. Supplying no window names has no effect.</p>
 </dd>
@@ -2595,9 +2514,8 @@ attributes from the underlying window system.</p>
 </section>
 <section id="winop-colormap">
 <span id="r-3a3arbc3a3awinop20colormap"></span><span id="index-275"></span><span id="index-274"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">colormap</span></code><a class="headerlink" href="#winop-colormap" title="Link to this heading">¶</a></h3>
-<p>Returns information about color cells in the colormap associated with a Tk window. This operation is
-available only on non-Windows builds and examines up to 256 colormap entries.
-A flat list of color and pixel-value pairs in the form <code class="docutils literal notranslate"><span class="pre">color</span> <span class="pre">pixel</span> <span class="pre">color</span> <span class="pre">pixel</span> <span class="pre">...</span></code>.</p>
+<p>Gives back information about color cells in the colormap associated with a Tk window. This operation is
+available only on non-Windows builds and examines up to 256 colormap entries.</p>
 <pre class="literal-block"><strong>winop colormap</strong> <em>window</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -2606,9 +2524,7 @@ A flat list of color and pixel-value pairs in the form <code class="docutils lit
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Returns information about color cells in the colormap associated with a Tk window. This operation is
-available only on non-Windows builds and examines up to 256 colormap entries.
-A flat list of color and pixel-value pairs in the form <code class="docutils literal notranslate"><span class="pre">color</span> <span class="pre">pixel</span> <span class="pre">color</span> <span class="pre">pixel</span> <span class="pre">...</span></code>.</p>
+<p>A flat list of color and pixel-value pairs in the form <code class="docutils literal notranslate"><span class="pre">color</span> <span class="pre">pixel</span> <span class="pre">color</span> <span class="pre">pixel</span> <span class="pre">...</span></code>.</p>
 </section>
 <section id="winop-convolve">
 <span id="r-3a3arbc3a3awinop20convolve"></span><span id="index-277"></span><span id="index-276"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">convolve</span></code><a class="headerlink" href="#winop-convolve" title="Link to this heading">¶</a></h3>
@@ -2714,12 +2630,10 @@ defaults to <code class="docutils literal notranslate"><span class="pre">1</span
 </section>
 <section id="winop-query">
 <span id="r-3a3arbc3a3awinop20query"></span><span id="index-289"></span><span id="index-288"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">query</span></code><a class="headerlink" href="#winop-query" title="Link to this heading">¶</a></h3>
-<p>Returns the current pointer location in root-screen coordinates.
-Pointer position in the form <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code>, or an empty result if the underlying pointer query fails.</p>
+<p>Gives back the current pointer location in root-screen coordinates.</p>
 <pre class="literal-block"><strong>winop query</strong></pre>
 <p class="rubric">Return value</p>
-<p>Returns the current pointer location in root-screen coordinates.
-Pointer position in the form <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code>, or an empty result if the underlying pointer query fails.</p>
+<p>Pointer position in the form <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code>, or an empty result if the underlying pointer query fails.</p>
 </section>
 <section id="winop-raise">
 <span id="r-3a3arbc3a3awinop20raise"></span><span id="index-291"></span><span id="index-290"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">raise</span></code><a class="headerlink" href="#winop-raise" title="Link to this heading">¶</a></h3>

@@ -95,7 +95,7 @@ namespace eval ::rbc::vector {
     }
 
     proc names {args} {
-        # Returns the names of existing vectors. If `pattern` is supplied, only vector names matching the Tcl glob
+        # Gives back the names of existing vectors. If `pattern` is supplied, only vector names matching the Tcl glob
         # pattern are returned.
         # pattern - optional Tcl glob pattern.
         # Returns: A list of vector names.
@@ -234,6 +234,7 @@ namespace eval ::rbc::VECINST {
         ### Operators
         The following operators are supported, listed from highest to lowest precedence.
 
+        #ruffopt excludedformats nroff
         | Operators         | Description                             |
         |-------------------|-----------------------------------------|
         | `-` `!`           | Unary minus and logical NOT             |
@@ -244,7 +245,25 @@ namespace eval ::rbc::VECINST {
         | `<` `>` `<=` `>=` | Relational comparison                   |
         | `==` `!=`         | Equality and inequality comparison      |
         | `&&`              | Logical AND                             |
-        | `\|\|`              | Logical OR                              |
+        | `\|\|`            | Logical OR                              |
+
+        #ruffopt includedformats nroff
+        ```
+        ┌───────────────────┬─────────────────────────────────────────┐
+        │ Operators         │ Description                             │
+        ├───────────────────┼─────────────────────────────────────────┤
+        │ - !               │ Unary minus and logical NOT             │
+        │ ^                 │ Exponentiation                          │
+        │ * / %             │ Multiplication, division, and remainder │
+        │ + -               │ Addition and subtraction                │
+        │ << >>             │ Circular left and right vector shift    │
+        │ < > <= >=         │ Relational comparison                   │
+        │ == !=             │ Equality and inequality comparison      │
+        │ &&                │ Logical AND                             │
+        │ ||                │ Logical OR                              │
+        └───────────────────┴─────────────────────────────────────────┘
+        ```
+        #ruffopt excludedformats {}
 
         Binary operators at the same precedence level are evaluated from left to right.
 
@@ -304,6 +323,7 @@ namespace eval ::rbc::VECINST {
         Component functions apply the selected operation independently to every vector component and return a vector of
         the same length.
 
+        #ruffopt excludedformats nroff
         | Function | Description                                                                  |
         |----------|------------------------------------------------------------------------------|
         | `abs`    | Absolute value                                                               |
@@ -324,6 +344,33 @@ namespace eval ::rbc::VECINST {
         | `sqrt`   | Square root                                                                  |
         | `tan`    | Tangent                                                                      |
         | `tanh`   | Hyperbolic tangent                                                           |
+
+        #ruffopt includedformats nroff
+        ```
+        ┌──────────┬──────────────────────────────────────────────────────────────────────────────┐
+        │ Function │ Description                                                                  │
+        ├──────────┼──────────────────────────────────────────────────────────────────────────────┤
+        │ abs      │ Absolute value                                                               │
+        │ acos     │ Arc cosine                                                                   │
+        │ asin     │ Arc sine                                                                     │
+        │ atan     │ Arc tangent                                                                  │
+        │ ceil     │ Smallest integral value not less than the component                          │
+        │ cos      │ Cosine                                                                       │
+        │ cosh     │ Hyperbolic cosine                                                            │
+        │ exp      │ Exponential                                                                  │
+        │ floor    │ Largest integral value not greater than the component                        │
+        │ log      │ Natural logarithm                                                            │
+        │ log10    │ Base-10 logarithm                                                            │
+        │ random   │ Generates a pseudo-random value in the range [0.0, 1.0) for each component   │
+        │ round    │ Rounds to the nearest integral value                                         │
+        │ sin      │ Sine                                                                         │
+        │ sinh     │ Hyperbolic sine                                                              │
+        │ sqrt     │ Square root                                                                  │
+        │ tan      │ Tangent                                                                      │
+        │ tanh     │ Hyperbolic tangent                                                           │
+        └──────────┴──────────────────────────────────────────────────────────────────────────────┘
+        ```
+        #ruffopt excludedformats {}
 
         For example:
         ```tcl
@@ -352,6 +399,7 @@ namespace eval ::rbc::VECINST {
         #### Scalar functions
         Scalar functions reduce a vector to a single numeric value.
 
+        #ruffopt excludedformats nroff
         | Function   | Description                              |
         |------------|------------------------------------------|
         | `adev`     | Average absolute deviation from the mean |
@@ -369,6 +417,30 @@ namespace eval ::rbc::VECINST {
         | `skew`     | Skewness                                 |
         | `sum`      | Sum of the components                    |
         | `var`      | Sample variance                          |
+
+        #ruffopt includedformats nroff
+        ```
+        ┌──────────┬──────────────────────────────────────────┐
+        │ Function │ Description                              │
+        ├──────────┼──────────────────────────────────────────┤
+        │ adev     │ Average absolute deviation from the mean │
+        │ kurtosis │ Fisher excess kurtosis                   │
+        │ length   │ Number of finite components              │
+        │ max      │ Maximum finite component                 │
+        │ mean     │ Arithmetic mean                          │
+        │ median   │ Median value                             │
+        │ min      │ Minimum finite component                 │
+        │ nz       │ Number of non-zero components            │
+        │ prod     │ Product of the components                │
+        │ q1       │ First quartile                           │
+        │ q3       │ Third quartile                           │
+        │ sdev     │ Sample standard deviation                │
+        │ skew     │ Skewness                                 │
+        │ sum      │ Sum of the components                    │
+        │ var      │ Sample variance                          │
+        └──────────┴──────────────────────────────────────────┘
+        ```
+        #ruffopt excludedformats {}
 
         For example:
         ```tcl
@@ -396,10 +468,22 @@ namespace eval ::rbc::VECINST {
         #### Vector functions
         Vector functions transform their argument and return another vector.
 
+        #ruffopt excludedformats nroff
         | Function | Description                                         |
         |----------|-----------------------------------------------------|
         | `norm`   | Normalizes the components to the range `[0.0, 1.0]` |
         | `sort`   | Returns the components sorted in ascending order    |
+
+        #ruffopt includedformats nroff
+        ```
+        ┌──────────┬─────────────────────────────────────────────────────┐
+        │ Function │ Description                                         │
+        ├──────────┼─────────────────────────────────────────────────────┤
+        │ norm     │ Normalizes the components to the range [0.0, 1.0]   │
+        │ sort     │ Returns the components sorted in ascending order    │
+        └──────────┴─────────────────────────────────────────────────────┘
+        ```
+        #ruffopt excludedformats {}
 
         For example:
 
@@ -486,6 +570,7 @@ namespace eval ::rbc::VECINST {
         ### Public vector functions
         The following vector functions are exported through the Rbc stubs interface:
 
+        #ruffopt excludedformats nroff
         | Function | Description |
         | --- | --- |
         | `int Rbc_CreateVector(Tcl_Interp *interp, const char *vecName, Tcl_Size size, Rbc_Vector **vecPtrPtr)` | Creates the named vector and its normal Tcl command and array mappings. `size` specifies the initial length of a new vector. On success, stores a pointer to the vector in `vecPtrPtr` and returns `TCL_OK`. |
@@ -499,6 +584,44 @@ namespace eval ::rbc::VECINST {
         | `int Rbc_VectorDirty(Rbc_Vector *vecPtr)` | Returns the vector's update counter. The counter is incremented when the vector is changed. |
         | `int Rbc_VectorExists2(Tcl_Interp *interp, const char *vecName)` | Returns non-zero if the named vector exists and zero otherwise. |
         | `void Rbc_FreeVector(Rbc_Vector *vecPtr)` | Destroys the vector, removes its Tcl command and array mapping, releases its storage according to its ownership policy, and invalidates `vecPtr`. |
+
+        #ruffopt includedformats nroff
+        ```
+        ┌────────────────────────────────────────────────────────────┬─────────────────────────────────────────────────────┐
+        │ Function                                                   │ Description                                         │
+        ├────────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────┤
+        │ int Rbc_CreateVector(Tcl_Interp *interp,                   │ Creates the named vector and its normal Tcl command │
+        │     const char *vecName, Tcl_Size size,                    │ and array mappings. size specifies the initial      │
+        │     Rbc_Vector **vecPtrPtr)                                │ length of a new vector. On success, stores a pointer│
+        │                                                            │ to the vector in vecPtrPtr and returns TCL_OK.      │
+        │ int Rbc_GetVector(Tcl_Interp *interp,                      │ Looks up an existing vector by name. On success,    │
+        │     const char *vecName, Rbc_Vector **vecPtrPtr)           │ stores its pointer in vecPtrPtr and returns TCL_OK. │
+        │ int Rbc_ResizeVector(Rbc_Vector *vecPtr,                   │ Changes the logical length of a vector. Existing    │
+        │     Tcl_Size nValues)                                      │ values are preserved as far as possible and clients │
+        │                                                            │ of the vector are notified of the change.           │
+        │ char *Rbc_NameOfVector(Rbc_Vector *vecPtr)                 │ Returns the name of a vector. The returned string   │
+        │                                                            │ belongs to Rbc and must not be freed or modified by │
+        │                                                            │ the caller.                                         │
+        │ int Rbc_ResetVector(Rbc_Vector *vecPtr, double *dataArr,   │ Replaces the vector's data array and records its    │
+        │     Tcl_Size nValues, Tcl_Size arraySize,                  │ ownership policy. Clients of the vector are notified│
+        │     Tcl_FreeProc *freeProc)                                │ of the change.                                      │
+        │ double *Rbc_VectorData(Rbc_Vector *vecPtr)                 │ Returns a pointer to the vector's current data      │
+        │                                                            │ array. The returned storage belongs to the vector   │
+        │                                                            │ and must not be freed by the caller.                │
+        │ Tcl_Size Rbc_VectorLength(Rbc_Vector *vecPtr)              │ Returns the current logical number of values in the │
+        │                                                            │ vector.                                             │
+        │ Tcl_Size Rbc_VectorSize(Rbc_Vector *vecPtr)                │ Returns the current capacity of the vector's data   │
+        │                                                            │ array.                                              │
+        │ int Rbc_VectorDirty(Rbc_Vector *vecPtr)                    │ Returns the vector's update counter. The counter is │
+        │                                                            │ incremented when the vector is changed.             │
+        │ int Rbc_VectorExists2(Tcl_Interp *interp,                  │ Returns non-zero if the named vector exists and     │
+        │     const char *vecName)                                   │ zero otherwise.                                     │
+        │ void Rbc_FreeVector(Rbc_Vector *vecPtr)                    │ Destroys the vector, removes its Tcl command and    │
+        │                                                            │ array mapping, releases its storage according to its│
+        │                                                            │ ownership policy, and invalidates vecPtr.           │
+        └────────────────────────────────────────────────────────────┴─────────────────────────────────────────────────────┘
+        ```
+        #ruffopt excludedformats {}
 
         Functions returning `int` as a Tcl status return `TCL_OK` on success and `TCL_ERROR` on failure. When an
         interpreter is available, an explanatory error message is left in its result.
@@ -591,12 +714,31 @@ namespace eval ::rbc::VECINST {
         The `freeProc` argument of `Rbc_ResetVector` specifies who owns `dataArr` and how it will eventually be
         released.
 
+        #ruffopt excludedformats nroff
         | `freeProc` | Storage ownership |
         | --- | --- |
         | `TCL_VOLATILE` | Rbc copies the supplied data into its own storage. The caller retains ownership of `dataArr` and may reuse or release it immediately after the call returns. |
         | `TCL_STATIC` | Rbc uses `dataArr` directly but never frees it. The caller must keep the array valid for as long as the vector uses it. |
         | `TCL_DYNAMIC` | Rbc takes ownership of `dataArr` and releases it with Tcl's allocator when the storage is replaced or the vector is destroyed. The array must therefore have been allocated with compatible Tcl allocation routines such as `Tcl_Alloc`. |
         | custom `Tcl_FreeProc *` | Rbc takes ownership of `dataArr` and invokes the supplied deallocation procedure when the storage is no longer needed. |
+
+        #ruffopt includedformats nroff
+        ```
+        ┌────────────────────────┬──────────────────────────────────────────────────────────────────────────────────────┐
+        │ freeProc               │ Storage ownership                                                                    │
+        ├────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────┤
+        │ TCL_VOLATILE           │ Rbc copies the supplied data into its own storage. The caller retains ownership of   │
+        │                        │ dataArr and may reuse or release it immediately after the call returns.              │
+        │ TCL_STATIC             │ Rbc uses dataArr directly but never frees it. The caller must keep the array valid   │
+        │                        │ for as long as the vector uses it.                                                   │
+        │ TCL_DYNAMIC            │ Rbc takes ownership of dataArr and releases it with Tcl's allocator when the storage │
+        │                        │ is replaced or the vector is destroyed. The array must therefore have been allocated │
+        │                        │ with compatible Tcl allocation routines such as Tcl_Alloc.                           │
+        │ custom Tcl_FreeProc *  │ Rbc takes ownership of dataArr and invokes the supplied deallocation procedure when  │
+        │                        │ the storage is no longer needed.                                                     │
+        └────────────────────────┴──────────────────────────────────────────────────────────────────────────────────────┘
+        ```
+        #ruffopt excludedformats {}
 
         `nValues` specifies the logical number of values currently stored in the vector. `arraySize` specifies the
         capacity of the supplied array and must be greater than or equal to `nValues`.
@@ -874,7 +1016,7 @@ namespace eval ::rbc::VECINST {
     }
 
     proc range {first last} {
-        # Returns an inclusive range of vector values. If `first` is less than or equal to `last`, values are
+        # Gives back an inclusive range of vector values. If `first` is less than or equal to `last`, values are
         # returned in ascending index order. If `first` is greater than `last`, values are returned in descending
         # index order. `first` and `last` are normal vector indices and may use forms such as `end`. This
         # operation does not modify the vector.

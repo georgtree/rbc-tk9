@@ -390,6 +390,7 @@ TEA_ENABLE_SHARED
 #--------------------------------------------------------------------
 
 TEA_CONFIG_CFLAGS
+TEA_ADD_CFLAGS([-DRBCAPI=MODULE_SCOPE])
 
 #--------------------------------------------------------------------
 # Set the default compiler switches based on the --enable-symbols option.
@@ -425,18 +426,6 @@ TEA_MAKE_LIB
 
 TEA_PROG_TCLSH
 TEA_PROG_WISH
-
-
-#------------------------------------------------------------------------
-# Define the PLATFORM variable in a very tcl-ish way for teapot.txt
-#------------------------------------------------------------------------
-PTL=`echo ${TCL_SRC_DIR}/library` 
-PLATFORM=`echo "catch { package require platform ; puts [[platform::identify]] } ; exit" | TCL_LIBRARY="$PTL" ${TCLSH_PROG}`
-if test X"$PLATFORM" = X
-then
-    PLATFORM=unknown
-fi
-AC_SUBST(PLATFORM)
 
 
 #--------------------------------------------------------------------

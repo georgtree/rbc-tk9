@@ -59,16 +59,19 @@ image create photo background -width 640 -height 480
 .RE
 .PP
 The supported gradient types are:
-.TS
-tab(|) box;
-l l.
-Type | Description
-_
-linear | Generates the built-in linear gradient form\&.
-radial | Generates a gradient based on distance from the image center\&.
-rectangular | Generates the built-in rectangular gradient form\&.
-blank | Fills the image with opaque white\&.
-.TE
+.PP
+.RS 4n
+.nf
+┌─────────────┬───────────────────────────────────────────────────────────────┐
+│ Type        │ Description                                                   │
+├─────────────┼───────────────────────────────────────────────────────────────┤
+│ linear      │ Generates the built-in linear gradient form\&.                  │
+│ radial      │ Generates a gradient based on distance from the image center\&. │
+│ rectangular │ Generates the built-in rectangular gradient form\&.             │
+│ blank       │ Fills the image with opaque white\&.                            │
+└─────────────┴───────────────────────────────────────────────────────────────┘
+.fi
+.RE
 .PP
 The left and right arguments must be valid Tk colors\&.
 .SH ROTATION
@@ -94,3 +97,49 @@ The angle is evaluated as a Tcl numeric expression:
 .PP
 Angles are normalized modulo 360 degrees\&. The destination photo is resized to contain the rotated image\&.
 
+
+.SH SEE ALSO
+rbc(n) - package's main page
+.br
+rbc-tcltk9upgrade(n) - list of upgrades comparing to Tcl/Tk8 RBC package
+.br
+.sp 1
+Public commands and classes documentation:
+.br
+rbc-rbc(n)
+.br
+rbc-rbc-graphinst(n)
+.br
+rbc-rbc-axis(n)
+.br
+rbc-rbc-marginaxis(n)
+.br
+rbc-rbc-element(n)
+.br
+rbc-rbc-lineelement(n)
+.br
+rbc-rbc-stripelement(n)
+.br
+rbc-rbc-barelement(n)
+.br
+rbc-rbc-pen(n)
+.br
+rbc-rbc-marker(n)
+.br
+rbc-rbc-legend(n)
+.br
+rbc-rbc-grid(n)
+.br
+rbc-rbc-crosshairs(n)
+.br
+rbc-rbc-postscript(n)
+.br
+rbc-rbc-vector(n)
+.br
+rbc-rbc-vecinst(n)
+.br
+rbc-rbc-spline(n)
+.br
+rbc-rbc-winop(n)
+.br
+rbc-rbc-winopimage(n)

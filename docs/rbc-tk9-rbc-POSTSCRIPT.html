@@ -244,62 +244,98 @@ file. They generate the corresponding binary EPS preview representation rather t
 <span id="r-rbc-postscript-postscript-options"></span><span id="r-3a3arbc3a3apostscriptqzpostscript20options"></span><h2>PostScript options<a class="headerlink" href="#postscript-options" title="Link to this heading">¶</a></h2>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 50.0%" />
-<col style="width: 50.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Database name</p></th>
+<th class="head"><p>Database class</p></th>
 <th class="head"><p>Description</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-center</span> <span class="pre">boolean</span></code></p></td>
-<td><p>Specifies whether the graph is centered on the page. The default is <code class="docutils literal notranslate"><span class="pre">yes</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">center</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Center</span></code></p></td>
+<td><p>Controls whether the plot is centered on the page. The default is <code class="docutils literal notranslate"><span class="pre">yes</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-colormap</span> <span class="pre">arrayName</span></code></p></td>
-<td><p>Specifies the name of a Tcl array containing custom PostScript color translations. An empty value disables custom mappings. The default is empty.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">colorMap</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ColorMap</span></code></p></td>
+<td><p>Specifies the name of a Tcl array used to override PostScript color definitions. An empty value uses the colors generated automatically from the graph’s Tk colors.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-colormode</span> <span class="pre">mode</span></code></p></td>
-<td><p>Specifies the output color mode. Accepted modes are <code class="docutils literal notranslate"><span class="pre">color</span></code>, <code class="docutils literal notranslate"><span class="pre">grayscale</span></code>, <code class="docutils literal notranslate"><span class="pre">greyscale</span></code>, and <code class="docutils literal notranslate"><span class="pre">monochrome</span></code>; non-empty prefixes are also accepted. The default is <code class="docutils literal notranslate"><span class="pre">color</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">colorMode</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ColorMode</span></code></p></td>
+<td><p>Selects the output color mode. Accepted values are non-empty prefixes of <code class="docutils literal notranslate"><span class="pre">color</span></code>, <code class="docutils literal notranslate"><span class="pre">grayscale</span></code>, <code class="docutils literal notranslate"><span class="pre">greyscale</span></code>, and <code class="docutils literal notranslate"><span class="pre">monochrome</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">color</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-decorations</span> <span class="pre">boolean</span></code></p></td>
-<td><p>Specifies whether graph backgrounds and decorative borders are reproduced. The default is <code class="docutils literal notranslate"><span class="pre">yes</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">decorations</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Decorations</span></code></p></td>
+<td><p>Controls whether graph backgrounds and 3-D borders are included in the PostScript output. The default is <code class="docutils literal notranslate"><span class="pre">yes</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-fontmap</span> <span class="pre">arrayName</span></code></p></td>
-<td><p>Specifies the name of a Tcl array containing custom Tk-to-PostScript font mappings. An empty value disables custom mappings. The default is empty.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fontMap</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FontMap</span></code></p></td>
+<td><p>Specifies the name of a Tcl array used to map Tk fonts to PostScript fonts. An empty value uses automatic font translation.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-footer</span> <span class="pre">boolean</span></code></p></td>
-<td><p>Specifies whether identifying footer information is added to the PostScript output. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">footer</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Footer</span></code></p></td>
+<td><p>Controls whether identifying information such as the date, user, and host is printed in the PostScript footer. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-height</span> <span class="pre">distance</span></code></p></td>
-<td><p>Specifies the requested output graph height as a non-negative screen distance. <code class="docutils literal notranslate"><span class="pre">0</span></code> uses the graph’s current height. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">height</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Height</span></code></p></td>
+<td><p>Specifies the requested height of the PostScript plot. <code class="docutils literal notranslate"><span class="pre">0</span></code> uses the current graph height. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-landscape</span> <span class="pre">boolean</span></code></p></td>
-<td><p>Specifies landscape rather than portrait orientation. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">landscape</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Landscape</span></code></p></td>
+<td><p>Controls whether the plot is generated in landscape orientation. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-maxpect</span> <span class="pre">boolean</span></code></p></td>
-<td><p>Specifies whether the graph is scaled to make maximum use of the available paper area while preserving its aspect ratio. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">maxpect</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Maxpect</span></code></p></td>
+<td><p>Controls whether the plot is scaled to the largest size that fits on the page while preserving its aspect ratio. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-padx</span> <span class="pre">padding</span></code></p></td>
-<td><p>Specifies horizontal padding between the graph and paper boundaries. The value may contain one or two non-negative screen distances. The default is <code class="docutils literal notranslate"><span class="pre">1.0i</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">padX</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PadX</span></code></p></td>
+<td><p>Specifies horizontal page padding as one or two non-negative screen distances. The default is <code class="docutils literal notranslate"><span class="pre">1.0i</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-pady</span> <span class="pre">padding</span></code></p></td>
-<td><p>Specifies vertical padding between the graph and paper boundaries. The value may contain one or two non-negative screen distances. The default is <code class="docutils literal notranslate"><span class="pre">1.0i</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">padY</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PadY</span></code></p></td>
+<td><p>Specifies vertical page padding as one or two non-negative screen distances. The default is <code class="docutils literal notranslate"><span class="pre">1.0i</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-paperheight</span> <span class="pre">distance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">paperHeight</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PaperHeight</span></code></p></td>
 <td><p>Specifies the positive paper height. The default is <code class="docutils literal notranslate"><span class="pre">11.0i</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-paperwidth</span> <span class="pre">distance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">paperWidth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PaperWidth</span></code></p></td>
 <td><p>Specifies the positive paper width. The default is <code class="docutils literal notranslate"><span class="pre">8.5i</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-preview</span> <span class="pre">boolean</span></code></p></td>
-<td><p>Specifies whether a preview image is included in the EPS output. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">preview</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Preview</span></code></p></td>
+<td><p>Controls whether a preview image is included in the generated output. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-previewformat</span> <span class="pre">format</span></code></p></td>
-<td><p>Specifies the preview format. <code class="docutils literal notranslate"><span class="pre">epsi</span></code> is always supported; Windows also supports <code class="docutils literal notranslate"><span class="pre">wmf</span></code>, and may support <code class="docutils literal notranslate"><span class="pre">tiff</span></code> when built with TIFF support. The default is <code class="docutils literal notranslate"><span class="pre">epsi</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">previewFormat</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PreviewFormat</span></code></p></td>
+<td><p>Selects the preview format. Accepted values are non-empty prefixes of the formats supported on the current platform: <code class="docutils literal notranslate"><span class="pre">epsi</span></code>, <code class="docutils literal notranslate"><span class="pre">wmf</span></code>, and <code class="docutils literal notranslate"><span class="pre">tiff</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">epsi</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-width</span> <span class="pre">distance</span></code></p></td>
-<td><p>Specifies the requested output graph width as a non-negative screen distance. <code class="docutils literal notranslate"><span class="pre">0</span></code> uses the graph’s current width. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">width</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Width</span></code></p></td>
+<td><p>Specifies the requested width of the PostScript plot. <code class="docutils literal notranslate"><span class="pre">0</span></code> uses the current graph width. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
 </tr>
 </tbody>
 </table>

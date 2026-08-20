@@ -120,29 +120,43 @@ contents to be redrawn.</p>
 <span id="r-rbc-crosshairs-crosshairs-options"></span><span id="r-3a3arbc3a3acrosshairsqzcrosshairs20options"></span><h2>Crosshairs options<a class="headerlink" href="#crosshairs-options" title="Link to this heading">¶</a></h2>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 50.0%" />
-<col style="width: 50.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Database name</p></th>
+<th class="head"><p>Database class</p></th>
 <th class="head"><p>Description</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-color</span> <span class="pre">color</span></code></p></td>
-<td><p>Specifies the color of the crosshair lines. The default is <code class="docutils literal notranslate"><span class="pre">black</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">color</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Color</span></code></p></td>
+<td><p>Sets the color used to draw the crosshairs. The default is black.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-dashes</span> <span class="pre">dashList</span></code></p></td>
-<td><p>Specifies the dash pattern used for the crosshair lines. An empty value selects solid lines. The default is empty.</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-dashes</span> <span class="pre">dashes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dashes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Dashes</span></code></p></td>
+<td><p>Sets the dash pattern used to draw the crosshairs. An empty value selects solid lines.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">boolean</span></code></p></td>
-<td><p>Specifies whether the crosshairs are hidden. The default is <code class="docutils literal notranslate"><span class="pre">yes</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">hide</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Hide</span></code></p></td>
+<td><p>Controls whether the crosshairs are enabled. The default is <code class="docutils literal notranslate"><span class="pre">yes</span></code>. When enabled, the crosshairs are visible only while their position is inside the plotting area.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-linewidth</span> <span class="pre">distance</span></code></p></td>
-<td><p>Specifies the width of the crosshair lines as a non-negative screen distance. Values <code class="docutils literal notranslate"><span class="pre">0</span></code> and <code class="docutils literal notranslate"><span class="pre">1</span></code> use the native thin-line representation. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">lineWidth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Linewidth</span></code></p></td>
+<td><p>Sets the non-negative width of the crosshair lines. Values <code class="docutils literal notranslate"><span class="pre">0</span></code> and <code class="docutils literal notranslate"><span class="pre">1</span></code> use the native thin-line width. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-position</span> <span class="pre">position</span></code></p></td>
-<td><p>Specifies the intersection of the crosshair lines as a widget screen position of the form <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code>. An empty value specifies no drawable position. The default is empty.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">position</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Position</span></code></p></td>
+<td><p>Specifies the crosshair position as <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code> in graph-window coordinates.</p></td>
 </tr>
 </tbody>
 </table>

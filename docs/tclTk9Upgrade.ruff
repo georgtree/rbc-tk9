@@ -337,6 +337,5 @@ namespace eval TclTk9Upgrade {
 
         These remaining interfaces can only be removed cleanly if equivalent public Tk APIs become available or if the
         relevant rendering code is replaced with an independent backend.
-
     }
 }

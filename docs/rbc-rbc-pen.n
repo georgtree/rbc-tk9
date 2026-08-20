@@ -1,0 +1,480 @@
+'\"
+'\" '\" Copyright (c) George Yashin
+'\"
+.TH "rbc::PEN" 3tcl 0\&.5\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.SH NAME
+rbc::PEN - Commands in namespace rbc::PEN
+.SH "GRAPH PEN PEN COMMAND"
+.PP
+Commands in this namespace document graph pens\&.
+.PP
+PEN is used below as a placeholder for:
+.PP
+.RS 4n
+.nf
+GRAPHINST pen
+.fi
+.RE
+.PP
+Pens define reusable drawing attributes for graph elements\&. An element may use a pen as its normal pen, as its
+active pen, or select several pens through its -weights and -styles options\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+graph \&.g
+\&.g pen create tracePen -type line -color red -linewidth 2
+\&.g element create signal -x {0 1 2 3} -y {1 4 2 5} -pen tracePen
+.fi
+.RE
+.PP
+See \fIELEMENT\fP, \fILINEELEMENT\fP, \fISTRIPELEMENT\fP, and \fIBARELEMENT\fP for how elements select and use pens\&.
+.SH "PEN TYPES"
+.PP
+Rbc has two concrete pen implementations:
+.PP
+.RS 4n
+.nf
+┌──────────┬─────────────────────────┐
+│ Pen type │ Used by                 │
+├──────────┼─────────────────────────┤
+│ line     │ line and strip elements │
+│ bar      │ bar elements            │
+└──────────┴─────────────────────────┘
+.fi
+.RE
+.PP
+The -type option selects the pen type when the pen is created:
+.PP
+.RS 4n
+.nf
+\&.g pen create lineStyle -type line
+\&.g pen create barStyle -type bar
+.fi
+.RE
+.PP
+-type strip also creates a line pen because strip elements use the same drawing implementation as line
+elements\&.
+.PP
+If -type is omitted, the default follows the graph widget type:
+.PP
+.RS 4n
+.nf
+┌────────────┬──────────────────┐
+│ Widget     │ Default pen type │
+├────────────┼──────────────────┤
+│ graph      │ line             │
+│ barchart   │ bar              │
+│ stripchart │ line             │
+└────────────┴──────────────────┘
+.fi
+.RE
+.PP
+The actual concrete pen type may be queried with PEN type\&.
+.PP
+Line pens may be assigned to line and strip elements\&. Bar pens may be assigned only to bar elements\&. Rbc
+rejects attempts to use a pen with an incompatible element type\&.
+.PP
+-type is a creation-time selector\&. Changing it after a pen has been created does not convert the existing
+pen to another concrete type\&. Use PEN type to determine the actual type of an existing pen\&.
+.SH "BUILT-IN ACTIVE PENS"
+.PP
+Every graph, barchart, and stripchart widget automatically creates two named pens:
+.PP
+.RS 4n
+.nf
+activeLine
+activeBar
+.fi
+.RE
+.PP
+activeLine is the default active pen for line and strip elements\&. activeBar is the default active pen for
+bar elements\&.
+.PP
+They may be configured like any other named pen:
+.PP
+.RS 4n
+.nf
+\&.g pen configure activeLine -color red -symbol square
+.fi
+.RE
+.PP
+Changing one of these pens changes the active appearance of all elements that reference it\&.
+.PP
+The normal defaults differ from the active defaults\&. A normal line pen uses navy blue while activeLine uses
+blue\&. A normal bar pen uses blue foreground with navy-blue background while activeBar uses pink foreground
+with red background\&.
+.SH "USING NAMED PENS"
+.PP
+-pen selects the normal pen of an element:
+.PP
+.RS 4n
+.nf
+\&.g pen create normalStyle -type line -color navy -linewidth 2
+\&.g element configure signal -pen normalStyle
+.fi
+.RE
+.PP
+-activepen selects its active pen:
+.PP
+.RS 4n
+.nf
+\&.g pen create selectedStyle -type line -color red -symbol diamond
+\&.g element configure signal -activepen selectedStyle
+.fi
+.RE
+.PP
+Pens can also be selected per data point through an element's -weights and -styles options:
+.PP
+.RS 4n
+.nf
+\&.g pen create low  -type line -color blue
+\&.g pen create high -type line -color red
+
+\&.g element configure signal -weights {0\&.2 0\&.8 1\&.2 1\&.7} -styles {{low 0 1} {high 1 2}}
+.fi
+.RE
+.PP
+See \fILINEELEMENT\fP and \fIBARELEMENT\fP for the complete weight/style semantics\&.
+.SH "PEN LIFETIME"
+.PP
+Named pens belong to a single graph widget\&.
+.PP
+Deleting a pen removes its name immediately from the graph's visible pen collection\&. If an element is still
+using that pen, physical destruction is deferred until the final reference is released\&.
+.PP
+This means it is safe to delete a pen currently referenced by an existing element: that element can continue
+drawing with the retained pen\&. The deleted name is no longer available for new references\&.
+.SH "LINE PENS"
+.PP
+Line pens control connecting traces, symbols, error bars, and data-value labels for line and strip elements\&.
+.SS TRACES
+.PP
+-color, -linewidth, -dashes, and -offdash control the connecting trace\&.
+.PP
+.RS 4n
+.nf
+\&.g pen create dashed -type line -color blue -linewidth 2 -dashes {4 2}
+.fi
+.RE
+.PP
+-linewidth 0 suppresses the connecting trace while leaving symbols and other pen features available\&.
+.PP
+An empty -dashes value selects a solid trace\&.
+.PP
+-offdash optionally supplies a color for the normally empty portions of a dashed line\&. An empty value leaves
+those portions transparent; defcolor uses the trace color\&.
+.SS SYMBOLS
+.PP
+-symbol selects the symbol drawn at data points\&.
+.PP
+Built-in symbols are:
+.PP
+.RS 4n
+.nf
+none
+circle
+square
+diamond
+plus
+cross
+splus
+scross
+triangle
+arrow
+.fi
+.RE
+.PP
+A Tk bitmap may also be specified:
+.PP
+.RS 4n
+.nf
+-symbol bitmapName
+-symbol {bitmapName maskName}
+.fi
+.RE
+.PP
+Symbol appearance is controlled by:
+.PP
+.RS 4n
+.nf
+-pixels
+-fill
+-outline
+-outlinewidth
+.fi
+.RE
+.PP
+-fill defcolor and -outline defcolor use the trace color\&. An empty -fill leaves the symbol interior
+transparent\&.
+.SS "ERROR BARS OF LINE ELEMENT PEN"
+.PP
+A line pen controls the appearance of error-bar data supplied by its element\&.
+.PP
+.RS 4n
+.nf
+-showerrorbars
+-errorbarcolor
+-errorbarwidth
+-errorbarcap
+.fi
+.RE
+.PP
+-showerrorbars selects X errors, Y errors, both, or neither\&.
+.PP
+-errorbarcolor defcolor uses the trace color\&.
+.PP
+The pen does not contain error data itself\&. Error coordinates are supplied by the element through -xerror,
+-yerror, -xlow, -xhigh, -ylow, and -yhigh\&.
+.SS "VALUE LABELS OF LINE ELEMENT PEN"
+.PP
+A line pen may display the element's data values with -showvalues\&.
+.PP
+Appearance is controlled by:
+.PP
+.RS 4n
+.nf
+-valueanchor
+-valuecolor
+-valuefont
+-valueformat
+-valuerotate
+-valueshadow
+.fi
+.RE
+.PP
+The default value format is %g\&.
+.PP
+-valueformat is validated before it is accepted\&. It may contain at most one floating-point conversion using
+a, A, e, E, f, F, g, or G, and dynamic width or precision using * is not permitted\&.
+.SS "LINE PEN OPTIONS"
+.PP
+.RS 4n
+.nf
+┌────────────────────────┬────────────────┬────────────────┬──────────────────────────────────────────────────────────┐
+│ Option                 │ Database name  │ Database class │ Description                                              │
+├────────────────────────┼────────────────┼────────────────┼──────────────────────────────────────────────────────────┤
+│ -color color           │ color          │ Color          │ Sets the trace color\&. The default is navy blue for       │
+│                        │                │                │ normal line pens and blue for activeLine\&.                │
+│ -dashes dashes         │ dashes         │ Dashes         │ Sets the trace dash pattern\&. An empty value selects a    │
+│                        │                │                │ solid line\&.                                              │
+│ -errorbarcap width     │ errorBarCap    │ ErrorBarCap    │ Sets the requested size of error-bar caps\&. A positive    │
+│                        │                │                │ value selects an explicit size; 0 automatically          │
+│                        │                │                │ derives the size from the symbol size\&. The default is 1\&. │
+│ -errorbarcolor color   │ errorBarColor  │ ErrorBarColor  │ Sets the error-bar color\&. defcolor uses the trace        │
+│                        │                │                │ color\&.                                                   │
+│ -errorbarwidth width   │ errorBarWidth  │ ErrorBarWidth  │ Sets the error-bar line width\&. The default is 1\&.         │
+│ -fill color            │ fill           │ Fill           │ Sets the symbol fill color\&. defcolor uses the trace      │
+│                        │                │                │ color; an empty value leaves symbols unfilled\&.           │
+│ -linewidth width       │ lineWidth      │ LineWidth      │ Sets the trace width\&. The default is 1; 0 suppresses     │
+│                        │                │                │ the trace\&.                                               │
+│ -offdash color         │ offDash        │ OffDash        │ Sets the color used for the gaps of a dashed trace\&. An   │
+│                        │                │                │ empty value leaves the gaps transparent; defcolor uses   │
+│                        │                │                │ the trace color\&.                                         │
+│ -outline color         │ outline        │ Outline        │ Sets the symbol outline color\&. defcolor uses the trace   │
+│                        │                │                │ color\&.                                                   │
+│ -outlinewidth width    │ outlineWidth   │ OutlineWidth   │ Sets the non-negative width of symbol outlines\&. The      │
+│                        │                │                │ default is 1\&.                                            │
+│ -pixels size           │ pixels         │ Pixels         │ Sets the requested symbol size\&. The default is 0\&.125i\&.   │
+│ -showerrorbars value   │ showErrorBars  │ ShowErrorBars  │ Selects which error bars are displayed: X, Y, both, or   │
+│                        │                │                │ neither\&. The default is both\&.                            │
+│ -showvalues value      │ showValues     │ ShowValues     │ Selects which coordinate values are displayed next to    │
+│                        │                │                │ data points\&. The default is no\&.                          │
+│ -symbol symbol         │ symbol         │ Symbol         │ Sets the symbol drawn at data points\&. The default is     │
+│                        │                │                │ circle\&.                                                  │
+│ -type type             │ —              │ —              │ Selects the pen type when the pen is created\&. line       │
+│                        │                │                │ creates a line pen; strip also creates a line pen\&. The   │
+│                        │                │                │ default is line\&.                                         │
+│ -valueanchor anchor    │ valueAnchor    │ ValueAnchor    │ Sets the anchor used to position value labels relative   │
+│                        │                │                │ to their data points\&. The default is s\&.                  │
+│ -valuecolor color      │ valueColor     │ ValueColor     │ Sets the color used to draw value labels\&. The default    │
+│                        │                │                │ is black\&.                                                │
+│ -valuefont font        │ valueFont      │ ValueFont      │ Sets the font used to draw value labels\&.                 │
+│ -valueformat format    │ valueFormat    │ ValueFormat    │ Sets the printf-style format used for value labels\&.      │
+│                        │                │                │ The default is %g\&.                                       │
+│ -valuerotate degrees   │ valueRotate    │ ValueRotate    │ Sets the rotation angle of value labels in degrees\&.      │
+│                        │                │                │ The default is 0\&.0\&.                                      │
+│ -valueshadow shadow    │ valueShadow    │ ValueShadow    │ Specifies a shadow for value labels\&. An empty value      │
+│                        │                │                │ disables the shadow\&.                                     │
+└────────────────────────┴────────────────┴────────────────┴──────────────────────────────────────────────────────────┘
+.fi
+.RE
+.SH "BAR PENS"
+.PP
+Bar pens control bar fill, border appearance, error bars, and data-value labels\&.
+.SS "BAR APPEARANCE"
+.PP
+The principal options are:
+.PP
+.RS 4n
+.nf
+-foreground
+-background
+-borderwidth
+-relief
+-stipple
+.fi
+.RE
+.PP
+-foreground specifies the primary bar fill color\&.
+.PP
+-background supplies the Tk 3-D border and the background used for an opaque stipple\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+\&.b pen create bars -type bar -foreground steelblue -background navy -borderwidth 2 -relief raised
+.fi
+.RE
+.PP
+-fg, -bg, and -bd are synonyms for -foreground, -background, and -borderwidth\&.
+.PP
+An optional Tk bitmap may be supplied through -stipple\&.
+.SS "ERROR BARS OF BAR ELEMENT PEN"
+.PP
+As with line pens, bar pens control error-bar appearance rather than the error data itself\&.
+.PP
+.RS 4n
+.nf
+-showerrorbars
+-errorbarcolor
+-errorbarwidth
+-errorbarcap
+.fi
+.RE
+.PP
+-errorbarcolor defcolor uses the normal bar drawing color\&.
+.SS "VALUE LABELS OF BAR ELEMENT PEN"
+.PP
+Bar pens use the same value-label controls as line pens:
+.PP
+.RS 4n
+.nf
+-showvalues
+-valueanchor
+-valuecolor
+-valuefont
+-valueformat
+-valuerotate
+-valueshadow
+.fi
+.RE
+.PP
+See \fIBARELEMENT\fP for placement of value labels relative to the baseline and rendered bar geometry\&.
+.SS "BAR PEN OPTIONS"
+.PP
+.RS 4n
+.nf
+┌───────────────────────┬────────────────┬────────────────┬──────────────────────────────────────────────────┐
+│ Option                │ Database name  │ Database class │ Description                                      │
+├───────────────────────┼────────────────┼────────────────┼──────────────────────────────────────────────────┤
+│ -background color     │ background     │ Background     │ Specifies the bar background and the color       │
+│                       │                │                │ resource used for its 3-D border\&. With a         │
+│                       │                │                │ stipple, it supplies the stipple background\&. An  │
+│                       │                │                │ empty value disables the background and 3-D      │
+│                       │                │                │ border\&. The default is navy blue; activeBar      │
+│                       │                │                │ defaults to red\&.                                 │
+│ -bg color             │ —              │ —              │ Synonym for -background\&.                         │
+│ -borderwidth width    │ borderWidth    │ BorderWidth    │ Sets the width of the 3-D border around bars\&.    │
+│                       │                │                │ The default is 2\&.                                │
+│ -bd width             │ —              │ —              │ Synonym for -borderwidth\&.                        │
+│ -errorbarcolor color  │ errorBarColor  │ ErrorBarColor  │ Sets the error-bar color\&. defcolor uses the bar  │
+│                       │                │                │ foreground color\&.                                │
+│ -errorbarwidth width  │ errorBarWidth  │ ErrorBarWidth  │ Sets the error-bar line width\&. The default is 1\&. │
+│ -errorbarcap width    │ errorBarCap    │ ErrorBarCap    │ Sets the requested size of error-bar caps\&. A     │
+│                       │                │                │ positive value selects an explicit size; 0       │
+│                       │                │                │ automatically derives the size from the bar      │
+│                       │                │                │ width\&. The default is 1\&.                         │
+│ -foreground color     │ foreground     │ Foreground     │ Specifies the primary bar fill color\&. With a     │
+│                       │                │                │ stipple, it supplies the stipple foreground\&. An  │
+│                       │                │                │ empty value disables the foreground fill\&. The    │
+│                       │                │                │ default is blue; activeBar defaults to pink\&.     │
+│ -fg color             │ —              │ —              │ Synonym for -foreground\&.                         │
+│ -relief relief        │ relief         │ Relief         │ Sets the relief used to draw bars\&. The default   │
+│                       │                │                │ is raised\&.                                       │
+│ -showerrorbars value  │ showErrorBars  │ ShowErrorBars  │ Selects which error bars are displayed: X, Y,    │
+│                       │                │                │ both, or neither\&. The default is both\&.           │
+│ -showvalues value     │ showValues     │ ShowValues     │ Selects which coordinate values are displayed    │
+│                       │                │                │ next to bars\&. The default is no\&.                 │
+│ -stipple bitmap       │ stipple        │ Stipple        │ Specifies a bitmap used to stipple the bar fill\&. │
+│                       │                │                │ An empty value selects a solid fill\&.             │
+│ -type type            │ —              │ —              │ Selects the pen type when the pen is created\&.    │
+│                       │                │                │ The default is bar\&.                              │
+│ -valueanchor anchor   │ valueAnchor    │ ValueAnchor    │ Sets the anchor used to position value labels    │
+│                       │                │                │ relative to bars\&. The default is s\&.              │
+│ -valuecolor color     │ valueColor     │ ValueColor     │ Sets the color used to draw value labels\&. The    │
+│                       │                │                │ default is black\&.                                │
+│ -valuefont font       │ valueFont      │ ValueFont      │ Sets the font used to draw value labels\&.         │
+│ -valueformat format   │ valueFormat    │ ValueFormat    │ Sets the printf-style format used for value      │
+│                       │                │                │ labels\&. The default is %g\&.                       │
+│ -valuerotate degrees  │ valueRotate    │ ValueRotate    │ Sets the rotation angle of value labels in       │
+│                       │                │                │ degrees\&. The default is 0\&.0\&.                     │
+│ -valueshadow shadow   │ valueShadow    │ ValueShadow    │ Specifies a shadow for value labels\&. An empty    │
+│                       │                │                │ value disables the shadow\&.                       │
+└───────────────────────┴────────────────┴────────────────┴──────────────────────────────────────────────────┘
+.fi
+.RE
+.SH "OPTION DATABASE"
+.PP
+Named pens use the Tk option database with resource class Pen\&.
+.PP
+This allows common pen defaults or defaults for particular named pens to be supplied before a graph is
+created\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+option add *Graph\&.Pen\&.Color blue
+option add *Graph\&.activeLine\&.color green
+.fi
+.RE
+
+
+.SH SEE ALSO
+rbc(n) - package's main page
+.br
+rbc-tcltk9upgrade(n) - list of upgrades comparing to Tcl/Tk8 RBC package
+.br
+.sp 1
+Public commands and classes documentation:
+.br
+rbc-rbc(n)
+.br
+rbc-rbc-graphinst(n)
+.br
+rbc-rbc-axis(n)
+.br
+rbc-rbc-marginaxis(n)
+.br
+rbc-rbc-element(n)
+.br
+rbc-rbc-lineelement(n)
+.br
+rbc-rbc-stripelement(n)
+.br
+rbc-rbc-barelement(n)
+.br
+rbc-rbc-pen(n)
+.br
+rbc-rbc-marker(n)
+.br
+rbc-rbc-legend(n)
+.br
+rbc-rbc-grid(n)
+.br
+rbc-rbc-crosshairs(n)
+.br
+rbc-rbc-postscript(n)
+.br
+rbc-rbc-vector(n)
+.br
+rbc-rbc-vecinst(n)
+.br
+rbc-rbc-spline(n)
+.br
+rbc-rbc-winop(n)
+.br
+rbc-rbc-winopimage(n)

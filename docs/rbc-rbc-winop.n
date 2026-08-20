@@ -31,20 +31,23 @@ image create photo result
 .SH "COMMAND LAYOUT"
 .PP
 The current interface contains both direct image operations and an image subgroup\&.
-.TS
-tab(|) box;
-l l l.
-Operation | Direct form | image form
-_
-convolve | ::rbc::winop convolve | ::rbc::winop image convolve
-gradient | — | ::rbc::winop image gradient
-quantize | ::rbc::winop quantize | —
-readjpeg | ::rbc::winop readjpeg | ::rbc::winop image readjpeg
-resample | ::rbc::winop resample | ::rbc::winop image resample
-rotate | — | ::rbc::winop image rotate
-snap | ::rbc::winop snap | ::rbc::winop image snap
-subsample | ::rbc::winop subsample | ::rbc::winop image subsample
-.TE
+.PP
+.RS 4n
+.nf
+┌───────────┬──────────────────────────┬────────────────────────────────┐
+│ Operation │ Direct form              │ image form                     │
+├───────────┼──────────────────────────┼────────────────────────────────┤
+│ convolve  │ ::rbc::winop convolve    │ ::rbc::winop image convolve    │
+│ gradient  │ —                        │ ::rbc::winop image gradient    │
+│ quantize  │ ::rbc::winop quantize    │ —                              │
+│ readjpeg  │ ::rbc::winop readjpeg    │ ::rbc::winop image readjpeg    │
+│ resample  │ ::rbc::winop resample    │ ::rbc::winop image resample    │
+│ rotate    │ —                        │ ::rbc::winop image rotate      │
+│ snap      │ ::rbc::winop snap        │ ::rbc::winop image snap        │
+│ subsample │ ::rbc::winop subsample   │ ::rbc::winop image subsample   │
+└───────────┴──────────────────────────┴────────────────────────────────┘
+.fi
+.RE
 .PP
 WINOPIMAGE is used below as a placeholder for:
 .PP
@@ -272,27 +275,30 @@ With only one filter, the same filter is used horizontally and vertically\&.
 If no filter is specified, none is used\&.
 .PP
 The available filters are:
-.TS
-tab(|) box;
-l l.
-Filter | Description
-_
-bell | Bell filter
-bessel | Bessel filter
-box | Box filter
-bspline | B-spline filter
-catrom | Catmull-Rom filter
-default | Rbc default resampling filter
-dummy | Dummy filter
-gauss8 | Wide Gaussian filter
-gaussian | Gaussian filter
-gi | Gaussian-integral approximation
-lanczos3 | Lanczos-3 filter
-mitchell | Mitchell filter
-none | Performs resizing without a resampling filter
-sinc | Sinc filter
-triangle | Triangle filter
-.TE
+.PP
+.RS 4n
+.nf
+┌──────────┬───────────────────────────────────────────────┐
+│ Filter   │ Description                                   │
+├──────────┼───────────────────────────────────────────────┤
+│ bell     │ Bell filter                                   │
+│ bessel   │ Bessel filter                                 │
+│ box      │ Box filter                                    │
+│ bspline  │ B-spline filter                               │
+│ catrom   │ Catmull-Rom filter                            │
+│ default  │ Rbc default resampling filter                 │
+│ dummy    │ Dummy filter                                  │
+│ gauss8   │ Wide Gaussian filter                          │
+│ gaussian │ Gaussian filter                               │
+│ gi       │ Gaussian-integral approximation               │
+│ lanczos3 │ Lanczos-3 filter                              │
+│ mitchell │ Mitchell filter                               │
+│ none     │ Performs resizing without a resampling filter │
+│ sinc     │ Sinc filter                                   │
+│ triangle │ Triangle filter                               │
+└──────────┴───────────────────────────────────────────────┘
+.fi
+.RE
 .SS SUBSAMPLING
 .PP
 subsample extracts a rectangular region of a source photo and optionally resamples it into a destination
@@ -326,3 +332,49 @@ colormap associated with a Tk window\&.
 .PP
 JPEG availability is also build dependent\&.
 
+
+.SH SEE ALSO
+rbc(n) - package's main page
+.br
+rbc-tcltk9upgrade(n) - list of upgrades comparing to Tcl/Tk8 RBC package
+.br
+.sp 1
+Public commands and classes documentation:
+.br
+rbc-rbc(n)
+.br
+rbc-rbc-graphinst(n)
+.br
+rbc-rbc-axis(n)
+.br
+rbc-rbc-marginaxis(n)
+.br
+rbc-rbc-element(n)
+.br
+rbc-rbc-lineelement(n)
+.br
+rbc-rbc-stripelement(n)
+.br
+rbc-rbc-barelement(n)
+.br
+rbc-rbc-pen(n)
+.br
+rbc-rbc-marker(n)
+.br
+rbc-rbc-legend(n)
+.br
+rbc-rbc-grid(n)
+.br
+rbc-rbc-crosshairs(n)
+.br
+rbc-rbc-postscript(n)
+.br
+rbc-rbc-vector(n)
+.br
+rbc-rbc-vecinst(n)
+.br
+rbc-rbc-spline(n)
+.br
+rbc-rbc-winop(n)
+.br
+rbc-rbc-winopimage(n)

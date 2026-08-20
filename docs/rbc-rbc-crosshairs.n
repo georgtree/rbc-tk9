@@ -1,0 +1,211 @@
+'\"
+'\" '\" Copyright (c) George Yashin
+'\"
+.TH "rbc::CROSSHAIRS" 3tcl 0\&.5\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.SH NAME
+rbc::CROSSHAIRS - Commands in namespace rbc::CROSSHAIRS
+.SH "GRAPH CROSSHAIRS CROSSHAIRS COMMAND"
+.PP
+Commands in this namespace document the graph crosshairs\&.
+.PP
+CROSSHAIRS is used below as a placeholder for:
+.PP
+.RS 4n
+.nf
+GRAPHINST crosshairs
+.fi
+.RE
+.PP
+Crosshairs are a pair of horizontal and vertical lines that intersect at a selected position in the plotting
+area\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+graph \&.g
+\&.g crosshairs configure -position @100,80 -hide no
+.fi
+.RE
+.PP
+The vertical line extends across the height of the plotting area and the horizontal line extends across its
+width\&.
+.PP
+The crosshairs are a single graph component\&. There are no named crosshair objects\&.
+.SH "CROSSHAIR POSITION"
+.PP
+The -position option specifies the point where the horizontal and vertical lines intersect\&.
+.PP
+Positions use widget screen coordinates rather than graph data coordinates and have the form:
+.PP
+.RS 4n
+.nf
+@x,y
+.fi
+.RE
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+\&.g crosshairs configure -position @120,75
+.fi
+.RE
+.PP
+Both x and y are Tk screen distances, so standard Tk distance units may be used:
+.PP
+.RS 4n
+.nf
+\&.g crosshairs configure -position @2c,1c
+.fi
+.RE
+.PP
+An empty -position value leaves the crosshairs without a drawable position\&.
+.PP
+Crosshairs are displayed only when their position lies inside the graph plotting area\&. Therefore making the
+crosshairs visible does not cause lines to be drawn if the configured position is outside that area\&.
+.PP
+Crosshair positions are commonly updated from pointer events:
+.PP
+.RS 4n
+.nf
+bind \&.g <Motion> {
+    %W crosshairs configure -position @%x,%y
+}
+.fi
+.RE
+.SH "SHOWING AND HIDING CROSSHAIRS"
+.PP
+-hide controls whether the crosshairs are enabled\&. Actual drawing also depends on the configured position\&.
+Crosshairs whose position is empty or outside the plotting area remain logically enabled but are not drawn\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+\&.g crosshairs configure -position {} -hide no
+.fi
+.RE
+.PP
+leaves -hide set to no, but no crosshair lines are visible until a drawable position is configured\&.
+.PP
+CROSSHAIRS on, CROSSHAIRS off, and CROSSHAIRS toggle provide convenient alternatives:
+.PP
+.RS 4n
+.nf
+\&.g crosshairs on
+\&.g crosshairs off
+\&.g crosshairs toggle
+.fi
+.RE
+.PP
+These operations change the same state represented by -hide\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+\&.g crosshairs off
+puts [\&.g crosshairs cget -hide]
+.fi
+.RE
+.PP
+reports a true value\&.
+.PP
+Crosshairs are hidden by default\&.
+.SH "CROSSHAIR APPEARANCE"
+.PP
+The crosshair lines may be configured independently of graph elements:
+.PP
+.RS 4n
+.nf
+\&.g crosshairs configure -color red -linewidth 1 -dashes {4 2}
+.fi
+.RE
+.PP
+An empty -dashes value selects solid lines\&.
+.PP
+Crosshairs are drawn directly over the graph and can therefore be moved or removed without requiring the graph
+contents to be redrawn\&.
+.SH "CROSSHAIRS OPTIONS"
+.PP
+.RS 4n
+.nf
+┌───────────────────────┬───────────────┬────────────────┬────────────────────────────────────────────────────────┐
+│ Option                │ Database name │ Database class │ Description                                            │
+├───────────────────────┼───────────────┼────────────────┼────────────────────────────────────────────────────────┤
+│ -color color          │ color         │ Color          │ Sets the color used to draw the crosshairs\&. The        │
+│                       │               │                │ default is black\&.                                      │
+│ -dashes dashes        │ dashes        │ Dashes         │ Sets the dash pattern used to draw the crosshairs\&. An  │
+│                       │               │                │ empty value selects solid lines\&.                       │
+│ -hide boolean         │ hide          │ Hide           │ Controls whether the crosshairs are enabled\&. The       │
+│                       │               │                │ default is yes\&. When enabled, the crosshairs are       │
+│                       │               │                │ visible only while their position is inside the        │
+│                       │               │                │ plotting area\&.                                         │
+│ -linewidth distance   │ lineWidth     │ Linewidth      │ Sets the non-negative width of the crosshair lines\&.    │
+│                       │               │                │ Values 0 and 1 use the native thin-line width\&. The     │
+│                       │               │                │ default is 0\&.                                          │
+│ -position position    │ position      │ Position       │ Specifies the crosshair position as @x,y in            │
+│                       │               │                │ graph-window coordinates\&.                              │
+└───────────────────────┴───────────────┴────────────────┴────────────────────────────────────────────────────────┘
+.fi
+.RE
+.PP
+Crosshair configuration options may also be supplied through Tk's option database\&. The resource name is
+crosshairs and the resource class is Crosshairs\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+option add *Graph\&.crosshairs\&.Color red
+option add *Graph\&.Crosshairs\&.Linewidth 1
+.fi
+.RE
+
+
+.SH SEE ALSO
+rbc(n) - package's main page
+.br
+rbc-tcltk9upgrade(n) - list of upgrades comparing to Tcl/Tk8 RBC package
+.br
+.sp 1
+Public commands and classes documentation:
+.br
+rbc-rbc(n)
+.br
+rbc-rbc-graphinst(n)
+.br
+rbc-rbc-axis(n)
+.br
+rbc-rbc-marginaxis(n)
+.br
+rbc-rbc-element(n)
+.br
+rbc-rbc-lineelement(n)
+.br
+rbc-rbc-stripelement(n)
+.br
+rbc-rbc-barelement(n)
+.br
+rbc-rbc-pen(n)
+.br
+rbc-rbc-marker(n)
+.br
+rbc-rbc-legend(n)
+.br
+rbc-rbc-grid(n)
+.br
+rbc-rbc-crosshairs(n)
+.br
+rbc-rbc-postscript(n)
+.br
+rbc-rbc-vector(n)
+.br
+rbc-rbc-vecinst(n)
+.br
+rbc-rbc-spline(n)
+.br
+rbc-rbc-winop(n)
+.br
+rbc-rbc-winopimage(n)

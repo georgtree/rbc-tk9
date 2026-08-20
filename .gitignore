@@ -12,3 +12,10 @@ configure~
 /docs/sphinx
 /docs/.doctrees
 /docs/*.bak
+/graph.tcl
+/graphtoolbar.tcl
+/rbcCanvEps.pro
+/rbcGraph.pro
+/circle.xbm
+/circle_mask.xbm
+/autom4te.cache

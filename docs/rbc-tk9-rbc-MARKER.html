@@ -208,46 +208,72 @@ option valid for one marker type is not necessarily valid for another.</p>
 <span id="r-rbc-marker-common-marker-options"></span><span id="r-3a3arbc3a3amarkerqzcommon20marker20options"></span><h3>Common marker options<a class="headerlink" href="#common-marker-options" title="Link to this heading">¶</a></h3>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 50.0%" />
-<col style="width: 50.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Database name</p></th>
+<th class="head"><p>Database class</p></th>
 <th class="head"><p>Description</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-bindtags</span> <span class="pre">tagList</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bindTags</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BindTags</span></code></p></td>
 <td><p>Specifies additional binding tags associated with the marker. The marker name is always an implicit binding tag. The default class tag depends on the marker type.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-coords</span> <span class="pre">coordList</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">coords</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Coords</span></code></p></td>
 <td><p>Specifies the graph coordinates of the marker. The required number of coordinates depends on the marker type. The default is empty.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-element</span> <span class="pre">elementName</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">element</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Element</span></code></p></td>
 <td><p>Associates the marker with an element. The marker is displayed only while that element is displayed. An empty value removes the association.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">hide</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Hide</span></code></p></td>
 <td><p>Specifies whether the marker is hidden. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-mapx</span> <span class="pre">axisName</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mapX</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MapX</span></code></p></td>
 <td><p>Specifies the X axis used to map marker coordinates. The axis must exist and must be an X axis. The default is <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-mapy</span> <span class="pre">axisName</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mapY</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MapY</span></code></p></td>
 <td><p>Specifies the Y axis used to map marker coordinates. The axis must exist and must be a Y axis. The default is <code class="docutils literal notranslate"><span class="pre">y</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-name</span> <span class="pre">markerName</span></code></p></td>
+<td><p>—</p></td>
+<td><p>—</p></td>
 <td><p>Specifies the marker name. During creation, an omitted name is generated automatically. Reconfiguring <code class="docutils literal notranslate"><span class="pre">-name</span></code> renames the marker; the new name must be non-empty, must not begin with <code class="docutils literal notranslate"><span class="pre">-</span></code>, and must not already belong to another marker.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-state</span> <span class="pre">state</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">state</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">State</span></code></p></td>
 <td><p>Specifies the marker state: <code class="docutils literal notranslate"><span class="pre">normal</span></code>, <code class="docutils literal notranslate"><span class="pre">active</span></code>, or <code class="docutils literal notranslate"><span class="pre">disabled</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">normal</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-under</span> <span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">under</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Under</span></code></p></td>
 <td><p>Specifies whether the marker is drawn below graph elements rather than above them. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-xoffset</span> <span class="pre">distance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">xOffset</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">XOffset</span></code></p></td>
 <td><p>Adds a horizontal screen-coordinate offset after the marker has been mapped. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-yoffset</span> <span class="pre">distance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">yOffset</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">YOffset</span></code></p></td>
 <td><p>Adds a vertical screen-coordinate offset after the marker has been mapped. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
 </tr>
 </tbody>
@@ -262,43 +288,67 @@ option valid for one marker type is not necessarily valid for another.</p>
 <p>In addition to the common marker options, bitmap markers support:</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 50.0%" />
-<col style="width: 50.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Database name</p></th>
+<th class="head"><p>Database class</p></th>
 <th class="head"><p>Description</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-anchor</span> <span class="pre">anchor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">anchor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Anchor</span></code></p></td>
 <td><p>Specifies how the bitmap is positioned relative to its reference coordinates. The default is <code class="docutils literal notranslate"><span class="pre">center</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-background</span> <span class="pre">color</span></code></p></td>
+<td><p>—</p></td>
+<td><p>—</p></td>
 <td><p>Specifies the bitmap background color. This is a synonym for <code class="docutils literal notranslate"><span class="pre">-fill</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-bg</span> <span class="pre">color</span></code></p></td>
+<td><p>—</p></td>
+<td><p>—</p></td>
 <td><p>Synonym for <code class="docutils literal notranslate"><span class="pre">-background</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-bitmap</span> <span class="pre">bitmap</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bitmap</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Bitmap</span></code></p></td>
 <td><p>Specifies the Tk bitmap to display.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-fill</span> <span class="pre">color</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">background</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Background</span></code></p></td>
 <td><p>Specifies the bitmap background color.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-foreground</span> <span class="pre">color</span></code></p></td>
+<td><p>—</p></td>
+<td><p>—</p></td>
 <td><p>Specifies the bitmap foreground color. This is a synonym for <code class="docutils literal notranslate"><span class="pre">-outline</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-fg</span> <span class="pre">color</span></code></p></td>
+<td><p>—</p></td>
+<td><p>—</p></td>
 <td><p>Synonym for <code class="docutils literal notranslate"><span class="pre">-foreground</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-mask</span> <span class="pre">bitmap</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mask</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Mask</span></code></p></td>
 <td><p>Specifies an optional bitmap mask.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-outline</span> <span class="pre">color</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">foreground</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Foreground</span></code></p></td>
 <td><p>Specifies the bitmap foreground color.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-rotate</span> <span class="pre">degrees</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rotate</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Rotate</span></code></p></td>
 <td><p>Specifies the rotation angle in degrees. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
 </tr>
 </tbody>
@@ -314,19 +364,27 @@ option valid for one marker type is not necessarily valid for another.</p>
 <p>In addition to the common marker options, image markers support:</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 50.0%" />
-<col style="width: 50.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Database name</p></th>
+<th class="head"><p>Database class</p></th>
 <th class="head"><p>Description</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-anchor</span> <span class="pre">anchor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">anchor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Anchor</span></code></p></td>
 <td><p>Specifies how the image is positioned relative to its coordinate. The default is <code class="docutils literal notranslate"><span class="pre">center</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-image</span> <span class="pre">imageName</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">image</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Image</span></code></p></td>
 <td><p>Specifies the Tk image to display.</p></td>
 </tr>
 </tbody>
@@ -341,37 +399,57 @@ option valid for one marker type is not necessarily valid for another.</p>
 <p>In addition to the common marker options, line markers support:</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 50.0%" />
-<col style="width: 50.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Database name</p></th>
+<th class="head"><p>Database class</p></th>
 <th class="head"><p>Description</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-cap</span> <span class="pre">style</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cap</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Cap</span></code></p></td>
 <td><p>Specifies the line cap style. Accepted styles are <code class="docutils literal notranslate"><span class="pre">butt</span></code>, <code class="docutils literal notranslate"><span class="pre">projecting</span></code>, and <code class="docutils literal notranslate"><span class="pre">round</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">butt</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-dashes</span> <span class="pre">dashList</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dashes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Dashes</span></code></p></td>
 <td><p>Specifies the dash pattern. An empty value selects a solid line.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-dashoffset</span> <span class="pre">distance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dashOffset</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DashOffset</span></code></p></td>
 <td><p>Specifies the offset into the dash pattern. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-fill</span> <span class="pre">color</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fill</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Fill</span></code></p></td>
 <td><p>Specifies the color used for the off portions of a dashed line. An empty value uses ordinary on/off dashes. The default is empty.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-join</span> <span class="pre">style</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">join</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Join</span></code></p></td>
 <td><p>Specifies how adjacent segments are joined. Accepted styles are <code class="docutils literal notranslate"><span class="pre">bevel</span></code>, <code class="docutils literal notranslate"><span class="pre">miter</span></code>, and <code class="docutils literal notranslate"><span class="pre">round</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">miter</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-linewidth</span> <span class="pre">distance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">lineWidth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LineWidth</span></code></p></td>
 <td><p>Specifies the line width. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-outline</span> <span class="pre">color</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">outline</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Outline</span></code></p></td>
 <td><p>Specifies the primary line color. The default is <code class="docutils literal notranslate"><span class="pre">black</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-xor</span> <span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">xor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Xor</span></code></p></td>
 <td><p>Specifies whether the line is drawn using XOR drawing. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
 </tr>
 </tbody>
@@ -386,37 +464,57 @@ option valid for one marker type is not necessarily valid for another.</p>
 <p>In addition to the common marker options, polygon markers support:</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 50.0%" />
-<col style="width: 50.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Database name</p></th>
+<th class="head"><p>Database class</p></th>
 <th class="head"><p>Description</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-cap</span> <span class="pre">style</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cap</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Cap</span></code></p></td>
 <td><p>Specifies the outline cap style. Accepted styles are <code class="docutils literal notranslate"><span class="pre">butt</span></code>, <code class="docutils literal notranslate"><span class="pre">projecting</span></code>, and <code class="docutils literal notranslate"><span class="pre">round</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">butt</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-dashes</span> <span class="pre">dashList</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dashes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Dashes</span></code></p></td>
 <td><p>Specifies the dash pattern used for the polygon outline. An empty value selects a solid outline.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-fill</span> <span class="pre">colorList</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fill</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Fill</span></code></p></td>
 <td><p>Specifies the polygon fill colors. The value may contain one foreground color or a foreground and background color. With <code class="docutils literal notranslate"><span class="pre">-stipple</span></code>, the second color supplies the stipple background. An empty value disables filling. The default foreground color is <code class="docutils literal notranslate"><span class="pre">red</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-join</span> <span class="pre">style</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">join</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Join</span></code></p></td>
 <td><p>Specifies how adjacent outline segments are joined. Accepted styles are <code class="docutils literal notranslate"><span class="pre">bevel</span></code>, <code class="docutils literal notranslate"><span class="pre">miter</span></code>, and <code class="docutils literal notranslate"><span class="pre">round</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">miter</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-linewidth</span> <span class="pre">distance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">lineWidth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LineWidth</span></code></p></td>
 <td><p>Specifies the width of the polygon outline. The value must be non-negative. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-outline</span> <span class="pre">colorList</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">outline</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Outline</span></code></p></td>
 <td><p>Specifies the polygon outline colors. The value may contain one foreground color or a foreground and background color. For dashed outlines, the second color is used for the off portions of the dash pattern. An empty value disables the outline color. The default foreground color is <code class="docutils literal notranslate"><span class="pre">black</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-stipple</span> <span class="pre">bitmap</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">stipple</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Stipple</span></code></p></td>
 <td><p>Specifies an optional stipple bitmap used when filling the polygon. An empty value selects an unstippled fill.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-xor</span> <span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">xor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Xor</span></code></p></td>
 <td><p>Specifies whether the polygon outline uses XOR drawing. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
 </tr>
 </tbody>
@@ -431,55 +529,87 @@ option valid for one marker type is not necessarily valid for another.</p>
 <p>In addition to the common marker options, text markers support:</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 50.0%" />
-<col style="width: 50.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Database name</p></th>
+<th class="head"><p>Database class</p></th>
 <th class="head"><p>Description</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-anchor</span> <span class="pre">anchor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">anchor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Anchor</span></code></p></td>
 <td><p>Specifies how the text is positioned relative to its coordinate. The default is <code class="docutils literal notranslate"><span class="pre">center</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-background</span> <span class="pre">color</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">background</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MarkerBackground</span></code></p></td>
 <td><p>Specifies the text background color. This is a synonym for <code class="docutils literal notranslate"><span class="pre">-fill</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-bg</span> <span class="pre">color</span></code></p></td>
+<td><p>—</p></td>
+<td><p>—</p></td>
 <td><p>Synonym for <code class="docutils literal notranslate"><span class="pre">-background</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-fill</span> <span class="pre">color</span></code></p></td>
+<td><p>—</p></td>
+<td><p>—</p></td>
 <td><p>Specifies the text background color.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-font</span> <span class="pre">font</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">font</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Font</span></code></p></td>
 <td><p>Specifies the font used to draw the text.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-foreground</span> <span class="pre">color</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">foreground</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Foreground</span></code></p></td>
 <td><p>Specifies the text color. This is a synonym for <code class="docutils literal notranslate"><span class="pre">-outline</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-fg</span> <span class="pre">color</span></code></p></td>
+<td><p>—</p></td>
+<td><p>—</p></td>
 <td><p>Synonym for <code class="docutils literal notranslate"><span class="pre">-foreground</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-justify</span> <span class="pre">justify</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">justify</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Justify</span></code></p></td>
 <td><p>Specifies justification of multiline text. The default is <code class="docutils literal notranslate"><span class="pre">left</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-outline</span> <span class="pre">color</span></code></p></td>
+<td><p>—</p></td>
+<td><p>—</p></td>
 <td><p>Specifies the text color. The default is <code class="docutils literal notranslate"><span class="pre">black</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-padx</span> <span class="pre">padding</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">padX</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PadX</span></code></p></td>
 <td><p>Specifies horizontal padding around the text. The default is <code class="docutils literal notranslate"><span class="pre">4</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-pady</span> <span class="pre">padding</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">padY</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PadY</span></code></p></td>
 <td><p>Specifies vertical padding around the text. The default is <code class="docutils literal notranslate"><span class="pre">4</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-rotate</span> <span class="pre">degrees</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rotate</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Rotate</span></code></p></td>
 <td><p>Specifies the text rotation angle in degrees. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-shadow</span> <span class="pre">shadow</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">shadow</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Shadow</span></code></p></td>
 <td><p>Specifies the text shadow.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-text</span> <span class="pre">text</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">text</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Text</span></code></p></td>
 <td><p>Specifies the text to display.</p></td>
 </tr>
 </tbody>
@@ -496,25 +626,37 @@ option valid for one marker type is not necessarily valid for another.</p>
 <p>In addition to the common marker options, window markers support:</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 50.0%" />
-<col style="width: 50.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Database name</p></th>
+<th class="head"><p>Database class</p></th>
 <th class="head"><p>Description</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-anchor</span> <span class="pre">anchor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">anchor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Anchor</span></code></p></td>
 <td><p>Specifies how the window is positioned relative to its coordinate. The default is <code class="docutils literal notranslate"><span class="pre">center</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-height</span> <span class="pre">distance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">height</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Height</span></code></p></td>
 <td><p>Specifies an explicit positive height for the embedded window. When left at its initial default of <code class="docutils literal notranslate"><span class="pre">0</span></code>, the child’s requested height is used. Explicitly configuring <code class="docutils literal notranslate"><span class="pre">0</span></code> is not accepted.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-width</span> <span class="pre">distance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">width</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Width</span></code></p></td>
 <td><p>Specifies an explicit positive width for the embedded window. When left at its initial default of <code class="docutils literal notranslate"><span class="pre">0</span></code>, the child’s requested width is used. Explicitly configuring <code class="docutils literal notranslate"><span class="pre">0</span></code> is not accepted.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-window</span> <span class="pre">pathName</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">window</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Window</span></code></p></td>
 <td><p>Specifies the Tk window managed by the marker. The window must be a direct child of the graph widget. An empty value removes the managed window.</p></td>
 </tr>
 </tbody>

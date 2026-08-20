@@ -1,0 +1,314 @@
+'\"
+'\" '\" Copyright (c) George Yashin
+'\"
+.TH "rbc::LEGEND" 3tcl 0\&.5\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.SH NAME
+rbc::LEGEND - Commands in namespace rbc::LEGEND
+.SH "GRAPH LEGEND LEGEND COMMAND"
+.PP
+Commands in this namespace document the graph legend\&.
+.PP
+LEGEND is used below as a placeholder for:
+.PP
+.RS 4n
+.nf
+GRAPHINST legend
+.fi
+.RE
+.PP
+The legend displays an entry for graph elements\&. Each entry contains the element's symbol and label and uses the
+drawing attributes of that element\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+graph \&.g
+
+\&.g element create signal1 -x {0 1 2 3} -y {1 4 2 5} -label "Input"
+\&.g element create signal2 -x {0 1 2 3} -y {3 2 5 4} -label "Output"
+\&.g legend configure -position rightmargin
+.fi
+.RE
+.PP
+The legend is a single component of the graph\&. Unlike elements, markers, or pens, there are no named legend
+objects\&.
+.SH "LEGEND ENTRIES"
+.PP
+Legend entries correspond to graph elements\&. The element's -label option supplies the text displayed in the
+legend\&.
+.PP
+The order of legend entries follows the element display order\&.
+.PP
+Legend entries may be made active independently of the corresponding graph elements:
+.PP
+.RS 4n
+.nf
+\&.g legend activate signal1
+\&.g legend deactivate signal1
+.fi
+.RE
+.PP
+Activating a legend entry changes only the appearance of the entry in the legend\&. It does not activate the
+corresponding data points or change how the element is drawn in the plotting area\&.
+.PP
+To activate both independently:
+.PP
+.RS 4n
+.nf
+\&.g legend activate signal1
+\&.g element activate signal1
+.fi
+.RE
+.SH "LEGEND POSITION"
+.PP
+The -position option determines where the legend is displayed\&.
+.PP
+.RS 4n
+.nf
+┌──────────────┬─────────────────────────────────────────────────────────────────────┐
+│ Position     │ Description                                                         │
+├──────────────┼─────────────────────────────────────────────────────────────────────┤
+│ leftmargin   │ Draws the legend in the left graph margin\&.                          │
+│ rightmargin  │ Draws the legend in the right graph margin\&. This is the default\&.    │
+│ topmargin    │ Draws the legend in the top graph margin\&.                           │
+│ bottommargin │ Draws the legend in the bottom graph margin\&.                        │
+│ plotarea     │ Draws the legend inside the plotting area\&.                          │
+│ @x,y         │ Places the legend at the specified screen coordinates\&.              │
+│ \&.window      │ Creates an external legend window with the specified Tk pathname\&.   │
+└──────────────┴─────────────────────────────────────────────────────────────────────┘
+.fi
+.RE
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+\&.g legend configure -position plotarea -anchor ne
+.fi
+.RE
+.PP
+places the legend in the upper-right part of the plotting area\&.
+.PP
+An explicit screen position may also be used:
+.PP
+.RS 4n
+.nf
+\&.g legend configure -position @20,30 -anchor nw
+.fi
+.RE
+.PP
+For an @x,y position, negative coordinates are measured from the opposite edge of the graph\&. For example, a
+negative X coordinate is relative to the right edge and a negative Y coordinate is relative to the bottom edge\&.
+.PP
+A pathname beginning with \&. selects an external legend window:
+.PP
+.RS 4n
+.nf
+\&.g legend configure -position \&.legend
+.fi
+.RE
+.PP
+Rbc creates the window at that pathname and draws the legend into it\&. If the external legend window is
+destroyed, the legend returns to rightmargin\&.
+.PP
+The -anchor option controls how the legend is positioned relative to its selected site or screen coordinate\&.
+.SH "LEGEND LAYOUT"
+.PP
+Legend entries are arranged as a table\&.
+.PP
+-rows and -columns can be used to request a particular table shape:
+.PP
+.RS 4n
+.nf
+\&.g legend configure -columns 2
+.fi
+.RE
+.PP
+A value of 0 leaves that dimension automatic\&.
+.PP
+-ipadx and -ipady specify padding inside individual legend entries\&. -padx and -pady specify padding
+around the outside of the complete legend\&.
+.PP
+Each padding value may contain either one screen distance or two:
+.PP
+.RS 4n
+.nf
+\&.g legend configure -ipadx {2 6} -pady {4 8}
+.fi
+.RE
+.PP
+A single value applies equally to both sides\&. Two values specify the two sides independently\&.
+.SH "ACTIVE ENTRIES"
+.PP
+LEGEND activate marks entries for drawing with the active legend style and returns the names of all entries
+that are currently active\&.
+.PP
+The active appearance is controlled by:
+.TP
+\(bu
+-activebackground
+.TP
+\(bu
+-activeborderwidth
+.TP
+\(bu
+-activeforeground
+.TP
+\(bu
+-activerelief
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+\&.g legend configure -activebackground lightblue -activeforeground navy -activerelief raised
+\&.g legend activate signal1
+.fi
+.RE
+.PP
+LEGEND deactivate restores the normal legend appearance\&.
+.SH "LEGEND BINDINGS"
+.PP
+Event bindings may be associated with legend entries using LEGEND bind\&.
+.PP
+Element names act as binding tags for their corresponding legend entries:
+.PP
+.RS 4n
+.nf
+\&.g legend bind signal1 <Button-1> {
+    puts "signal1"
+}
+.fi
+.RE
+.PP
+The element under the current pointer may be obtained with LEGEND get and used by a binding:
+.PP
+.RS 4n
+.nf
+\&.g legend bind all <Button-1> {
+    set element [\&.g legend get current]
+    puts $element
+}
+.fi
+.RE
+.PP
+LEGEND get can also identify the entry at an explicit screen position\&.
+.SH "LEGEND OPTIONS"
+.PP
+.RS 4n
+.nf
+┌─────────────────────────────┬─────────────────────┬─────────────────────┬─────────────────────────────────────────────┐
+│ Option                      │ Database name       │ Database class      │ Description                                 │
+├─────────────────────────────┼─────────────────────┼─────────────────────┼─────────────────────────────────────────────┤
+│ -activebackground color     │ activeBackground    │ ActiveBackground    │ Sets the background color used for active   │
+│                             │                     │                     │ legend entries\&.                             │
+│ -activeborderwidth distance │ activeBorderWidth   │ ActiveBorderWidth   │ Sets the width of the 3-D border around     │
+│                             │                     │                     │ active legend entries\&. The default is 2\&.    │
+│ -activeforeground color     │ activeForeground    │ ActiveForeground    │ Sets the foreground color used for active   │
+│                             │                     │                     │ legend entries\&.                             │
+│ -activerelief relief        │ activeRelief        │ ActiveRelief        │ Sets the relief used for active legend      │
+│                             │                     │                     │ entries\&. The default is flat\&.               │
+│ -anchor anchor              │ anchor              │ Anchor              │ Specifies how the legend is positioned      │
+│                             │                     │                     │ relative to the location selected by        │
+│                             │                     │                     │ -position\&. The default is center\&.           │
+│ -background color           │ background          │ Background          │ Sets the legend background color\&. An empty  │
+│                             │                     │                     │ value makes the legend background           │
+│                             │                     │                     │ transparent\&.                                │
+│ -bg color                   │ —                   │ —                   │ Synonym for -background\&.                    │
+│ -borderwidth distance       │ borderWidth         │ BorderWidth         │ Sets the width of the 3-D border around the │
+│                             │                     │                     │ legend\&. The default is 2\&.                   │
+│ -bd distance                │ —                   │ —                   │ Synonym for -borderwidth\&.                   │
+│ -columns number             │ columns             │ Columns             │ Specifies the requested number of columns   │
+│                             │                     │                     │ used to arrange legend entries\&. 0 selects   │
+│                             │                     │                     │ the automatic layout\&.                       │
+│ -font font                  │ font                │ Font                │ Sets the font used for legend labels\&.       │
+│ -foreground color           │ foreground          │ Foreground          │ Sets the foreground color used for legend   │
+│                             │                     │                     │ labels\&. The default is black\&.               │
+│ -fg color                   │ —                   │ —                   │ Synonym for -foreground\&.                    │
+│ -hide boolean               │ hide                │ Hide                │ Controls whether the legend is displayed\&.   │
+│                             │                     │                     │ The default is no\&.                          │
+│ -ipadx padding              │ iPadX               │ IPadX               │ Sets horizontal padding inside each legend  │
+│                             │                     │                     │ entry\&.                                      │
+│ -ipady padding              │ iPadY               │ IPadY               │ Sets vertical padding inside each legend    │
+│                             │                     │                     │ entry\&.                                      │
+│ -padx padding               │ padX                │ PadX                │ Sets horizontal padding around the exterior │
+│                             │                     │                     │ of the legend\&.                              │
+│ -pady padding               │ padY                │ PadY                │ Sets vertical padding around the exterior   │
+│                             │                     │                     │ of the legend\&.                              │
+│ -position position          │ position            │ Position            │ Specifies where the legend is displayed\&.    │
+│                             │                     │                     │ The value may select a graph margin,        │
+│                             │                     │                     │ plotarea, or an explicit @x,y window        │
+│                             │                     │                     │ position\&. The default is right\&.             │
+│ -raised boolean             │ raised              │ Raised              │ Controls whether a legend placed in the     │
+│                             │                     │                     │ plotting area is drawn above graph          │
+│                             │                     │                     │ elements\&. The default is no\&.                │
+│ -relief relief              │ relief              │ Relief              │ Sets the relief used for the legend border\&. │
+│                             │                     │                     │ The default is sunken\&.                      │
+│ -rows number                │ rows                │ Rows                │ Specifies the requested number of rows used │
+│                             │                     │                     │ to arrange legend entries\&. 0 selects the    │
+│                             │                     │                     │ automatic layout\&.                           │
+│ -shadow shadow              │ shadow              │ Shadow              │ Specifies a shadow for legend labels\&. An    │
+│                             │                     │                     │ empty value disables the shadow\&.            │
+└─────────────────────────────┴─────────────────────┴─────────────────────┴─────────────────────────────────────────────┘
+.fi
+.RE
+.PP
+Legend configuration options may also be set through Tk's option database\&. The resource name is legend and
+the resource class is Legend\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+option add *Graph\&.legend\&.Foreground navy
+option add *Graph\&.Legend\&.Relief raised
+.fi
+.RE
+
+
+.SH SEE ALSO
+rbc(n) - package's main page
+.br
+rbc-tcltk9upgrade(n) - list of upgrades comparing to Tcl/Tk8 RBC package
+.br
+.sp 1
+Public commands and classes documentation:
+.br
+rbc-rbc(n)
+.br
+rbc-rbc-graphinst(n)
+.br
+rbc-rbc-axis(n)
+.br
+rbc-rbc-marginaxis(n)
+.br
+rbc-rbc-element(n)
+.br
+rbc-rbc-lineelement(n)
+.br
+rbc-rbc-stripelement(n)
+.br
+rbc-rbc-barelement(n)
+.br
+rbc-rbc-pen(n)
+.br
+rbc-rbc-marker(n)
+.br
+rbc-rbc-legend(n)
+.br
+rbc-rbc-grid(n)
+.br
+rbc-rbc-crosshairs(n)
+.br
+rbc-rbc-postscript(n)
+.br
+rbc-rbc-vector(n)
+.br
+rbc-rbc-vecinst(n)
+.br
+rbc-rbc-spline(n)
+.br
+rbc-rbc-winop(n)
+.br
+rbc-rbc-winopimage(n)
