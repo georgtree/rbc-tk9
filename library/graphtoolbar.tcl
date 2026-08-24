@@ -111,6 +111,11 @@ namespace eval ::graphtoolbar::icons {
     }
 }
 
+# x / y                 physical widget pixels, exactly like Tk %x / %y
+# xPixel / yPixel       pixel coordinate along the X/Y data dimension
+#                       (swapped relative to x/y when -invertxy yes)
+# xValue / yValue       data value on a particular named X/Y axis
+
 oo::configurable create ::graphtoolbar::graphtoolbar {
     variable Subwidgets
     initialize {
@@ -354,7 +359,7 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
 
 
     #### general private methods
-    method AddBitmapPoint {name coords {mapx {}} {mapy {}}} {
+    method AddBitmapPoint {name xValue yValue {mapx {}} {mapy {}}} {
         set mapopts [list]
         if {$mapx ne {}} {
             lappend mapopts -mapx $mapx
@@ -362,7 +367,7 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         if {$mapy ne {}} {
             lappend mapopts -mapy $mapy
         }
-        $Subwidgets(graph) marker create bitmap -name $name -coords $coords\
+        $Subwidgets(graph) marker create bitmap -name $name -coords [list $xValue $yValue]\
                 -bitmap "@[file join $::graphtoolbar::libDir circle.xbm]"\
                 -mask "@[file join $::graphtoolbar::libDir circle_mask.xbm]" -under no {*}$mapopts
     }
@@ -485,11 +490,11 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         set vertical [expr {($y-$top) > ($bottom-$y) ? {s} : {n}}]
         return ${vertical}${horizontal}
     }
-    method VisibleAxes {type} {
-        # Returns all visible axes of the requested logical type, preserving their margin/use order.
-        #  type - `x` or `y`
+    method VisibleAxes {dimension} {
+        # Returns all visible named axes for the requested data dimension, preserving their margin/use order.
+        #  dimension - `x` or `y`
         set graph $Subwidgets(graph)
-        switch -- $type {
+        switch -- $dimension {
             x {
                 set margins {xaxis x2axis}
             }
@@ -510,23 +515,23 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         }
         return $axes
     }
-    method ScreenToAxisPixels {xScreen yScreen} {
-        # Converts physical window coordinates to the coordinates expected by X and Y axes.
+    method WidgetToAxisPixels {x y} {
+        # Converts physical widget pixels to pixels along the X/Y data dimensions.
         if {[$Subwidgets(graph) cget -invertxy]} {
-            return [list $yScreen $xScreen]
+            return [list $y $x]
         }
-        return [list $xScreen $yScreen]
+        return [list $x $y]
     }
-    method AxisPixelsToScreen {xPixel yPixel} {
-        # Converts coordinates expected by X and Y axes to the physical window coordinates.
+    method AxisPixelsToWidget {xPixel yPixel} {
+        # Converts pixels along the X/Y data dimensions to physical widget pixels.
         if {[$Subwidgets(graph) cget -invertxy]} {
             return [list $yPixel $xPixel]
         }
         return [list $xPixel $yPixel]
     }
     method AxisMarkerInfo {xPixel yPixel} {
-        # Returns text containing the values of all visible axes at the supplied window position. The first
-        # visible X/Y axes are also returned as the mapping axes for marker placement.
+        # Returns formatted values of all visible axes at xPixel/yPixel. The first visible X/Y axes are also used to
+        #  place the marker.
         set graph $Subwidgets(graph)
         set xAxes [my VisibleAxes x]
         set yAxes [my VisibleAxes y]
@@ -540,20 +545,20 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         set mapy [lindex $yAxes 0]
         set lines [list]
         foreach axis $xAxes {
-            set value [$graph axis invtransform $axis $xPixel]
-            lappend lines [format "%s=%.4g" $axis $value]
+            set xValue [$graph axis invtransform $axis $xPixel]
+            lappend lines [format "%s=%.4g" $axis $xValue]
             if {$axis eq $mapx} {
-                set x $value
+                set markerXValue $xValue
             }
         }
         foreach axis $yAxes {
-            set value [$graph axis invtransform $axis $yPixel]
-            lappend lines [format "%s=%.4g" $axis $value]
+            set yValue [$graph axis invtransform $axis $yPixel]
+            lappend lines [format "%s=%.4g" $axis $yValue]
             if {$axis eq $mapy} {
-                set y $value
+                set markerYValue $yValue
             }
         }
-        return [dict create text [join $lines \n] mapx $mapx mapy $mapy x $x y $y]
+        return [dict create text [join $lines \n] mapx $mapx mapy $mapy xValue $markerXValue yValue $markerYValue]
     }
 
     #### axes toggle methods
@@ -648,37 +653,38 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         return $activeAxes
     }
     #### crosshairs methods
-    method CreateClosestMarker {graph textMarker bitmapMarker element x y options} {
+    method CreateClosestMarker {graph textMarker bitmapMarker element xValue yValue options} {
         set mapx [$graph element cget $element -mapx]
         set mapy [$graph element cget $element -mapy]
-        # find the actual logical window position of the closest point.
-        set xPixel [$graph axis transform $mapx $x]
-        set yPixel [$graph axis transform $mapy $y]
-        # convert that position through every visible axis.
+        # Convert the element's axis values to pixels along its X/Y dimensions.
+        set xPixel [$graph axis transform $mapx $xValue]
+        set yPixel [$graph axis transform $mapy $yValue]
+        # Format this position through every visible axis.
         set info [my AxisMarkerInfo $xPixel $yPixel]
         set text "$element: [dict get $info text]"
-        # TextAnchor expects physical window coordinates.
-        lassign [my AxisPixelsToScreen $xPixel $yPixel] xScreen yScreen
-        dict set options -anchor [my TextAnchor $xScreen $yScreen $text $options]
-        $graph marker create text -name $textMarker -text $text -coords [list $x $y] -mapx $mapx -mapy $mapy {*}$options
-        my AddBitmapPoint $bitmapMarker [list $x $y] $mapx $mapy
+        # TextAnchor works in physical widget pixels.
+        lassign [my AxisPixelsToWidget $xPixel $yPixel] x y
+        dict set options -anchor [my TextAnchor $x $y $text $options]
+        $graph marker create text -name $textMarker -text $text -coords [list $xValue $yValue] -mapx $mapx -mapy $mapy\
+                {*}$options
+        my AddBitmapPoint $bitmapMarker $xValue $yValue $mapx $mapy
     }
-    method CrosshairsMarkerMotion {graph xScreen yScreen options mode interpolate halo single} {
-        if {![$graph inside $xScreen $yScreen]} {
+    method CrosshairsMarkerMotion {graph x y options mode interpolate halo single} {
+        if {![$graph inside $x $y]} {
             return
         }
         if {$mode eq {current}} {
-            lassign [my ScreenToAxisPixels $xScreen $yScreen] xPixel yPixel
+            lassign [my WidgetToAxisPixels $x $y] xPixel yPixel
             set info [my AxisMarkerInfo $xPixel $yPixel]
             set text [dict get $info text]
-            dict set options -anchor [my TextAnchor $xScreen $yScreen $text $options]
+            dict set options -anchor [my TextAnchor $x $y $text $options]
             $graph marker create text -name crosshairsText -text $text\
-                    -coords [list [dict get $info x] [dict get $info y]] -mapx [dict get $info mapx]\
+                    -coords [list [dict get $info xValue] [dict get $info yValue]] -mapx [dict get $info mapx]\
                     -mapy [dict get $info mapy] {*}$options
             return
         }
         if {$single} {
-            if {[$graph element closest $xScreen $yScreen pointVar -along both -interpolate $interpolate -halo $halo]} {
+            if {[$graph element closest $x $y pointVar -along both -interpolate $interpolate -halo $halo]} {
                 my CreateClosestMarker $graph crosshairsText crosshairsBitmap $pointVar(name) $pointVar(x) $pointVar(y)\
                         $options
             }
@@ -686,8 +692,7 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         }
         set i 0
         foreach elem [$graph element names] {
-            if {![$graph element closest $xScreen $yScreen pointVar -along both -interpolate $interpolate -halo $halo\
-                          $elem]} {
+            if {![$graph element closest $x $y pointVar -along both -interpolate $interpolate -halo $halo $elem]} {
                 continue
             }
             my CreateClosestMarker $graph crosshairsText$i crosshairsBitmap$i $pointVar(name) $pointVar(x) $pointVar(y)\
@@ -695,10 +700,10 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
             incr i
         }
     }
-    method CrosshairsMotion {graph xScreen yScreen} {
-        set markersNames [$graph marker names crosshairs*]
-        $graph marker delete {*}$markersNames
-        $graph crosshairs configure -position @${xScreen},$yScreen
+    method CrosshairsMotion {graph x y} {
+        set markerNames [$graph marker names crosshairs*]
+        $graph marker delete {*}$markerNames
+        $graph crosshairs configure -position @${x},$y
     }
     method SelectCrosshairsMode {widget} {
         set graph $Subwidgets(graph)
@@ -757,18 +762,21 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
     method InitZoomStack {} {
         # Initializes zoom stack as an array variable.
         #
-        # ZoomInfo array contains next variables:
-        # A,x - horizontal coordinate of the current first point (A) of the zoom box
-        # A,y - vertical coordinate of the current first point (A) of the zoom box
-        # B,x - horizontal coordinate of the current second point (B) of the zoom box
-        # B,y - vertical coordinate of the current second point (B) of the zoom box
-        # stack - list of lists containing all scale commands for all visible axes applied to the graph
-        # corner - current selection point during the zoom box selection operation, either A or B
+        # A,x/A,y - physical widget pixels of the first zoom-box point.
+        # A,xPixel/A,yPixel - pixels along the X/Y data dimensions of the first point.
+        # B,x/B,y - physical widget pixels of the second zoom-box point.
+        # B,xPixel/B,yPixel - pixels along the X/Y data dimensions of the second point.
+        # stack - saved scale commands.
+        # corner - current zoom-box point, A or B.
         array set ZoomInfo {
             A,x {}
             A,y {}
+            A,xPixel {}
+            A,yPixel {}
             B,x {}
             B,y {}
+            B,xPixel {}
+            B,yPixel {}
             stack {}
             corner A
         }
@@ -788,32 +796,27 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         }]
         my AddBindTag $graph zoom-$graph
     }
-    method GetCoords {x y index} {
-        # Saves current pointer coordinates into ZoomInfo
-        set ZoomInfo($index,screenX) $x
-        set ZoomInfo($index,screenY) $y
-        if {[$Subwidgets(graph) cget -invertxy]} {
-            set ZoomInfo($index,x) $y
-            set ZoomInfo($index,y) $x
-        } else {
-            set ZoomInfo($index,x) $x
-            set ZoomInfo($index,y) $y
-        }
+    method SaveZoomPoint {x y index} {
+        # x/y are physical widget pixels.
+        set ZoomInfo($index,x) $x
+        set ZoomInfo($index,y) $y
+        lassign [my WidgetToAxisPixels $x $y] xPixel yPixel
+        set ZoomInfo($index,xPixel) $xPixel
+        set ZoomInfo($index,yPixel) $yPixel
     }
     method MarkZoomPoint {index} {
-        # Creates marker at the start or end of zoom box selection.
         set graph $Subwidgets(graph)
-        set info [my AxisMarkerInfo $ZoomInfo($index,x) $ZoomInfo($index,y)]
+        set info [my AxisMarkerInfo $ZoomInfo($index,xPixel) $ZoomInfo($index,yPixel)]
         set marker gtbZoomText_$index
         set options [my configure -zoommarkopts]
         set text [dict get $info text]
-        set anchor [my TextAnchor $ZoomInfo($index,screenX) $ZoomInfo($index,screenY) $text $options]
+        set anchor [my TextAnchor $ZoomInfo($index,x) $ZoomInfo($index,y) $text $options]
         dict set options -anchor $anchor
         if {[$graph marker exists $marker]} {
-            $graph marker configure $marker -coords [list [dict get $info x] [dict get $info y]]\
+            $graph marker configure $marker -coords [list [dict get $info xValue] [dict get $info yValue]]\
                     -mapx [dict get $info mapx] -mapy [dict get $info mapy] -text $text -anchor $anchor
         } else {
-            $graph marker create text -name $marker -coords [list [dict get $info x] [dict get $info y]]\
+            $graph marker create text -name $marker -coords [list [dict get $info xValue] [dict get $info yValue]]\
                     -mapx [dict get $info mapx] -mapy [dict get $info mapy] -text $text {*}$options
         }
     }
@@ -858,12 +861,11 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         # accordingly.
         set graph $Subwidgets(graph)
         $graph marker delete {*}[$graph marker names gtbZoom*]
-        set x1 $ZoomInfo(A,x)
-        set y1 $ZoomInfo(A,y)
-        set x2 $ZoomInfo(B,x)
-        set y2 $ZoomInfo(B,y)
-        if {($x1 == $x2) || ($y1 == $y2)} {
-            # No delta, revert to start
+        set xPixel1 $ZoomInfo(A,xPixel)
+        set yPixel1 $ZoomInfo(A,yPixel)
+        set xPixel2 $ZoomInfo(B,xPixel)
+        set yPixel2 $ZoomInfo(B,yPixel)
+        if {($xPixel1 == $xPixel2) || ($yPixel1 == $yPixel2)} {
             return
         }
         set cmds [list]
@@ -878,8 +880,8 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         set ZoomInfo(stack) [linsert $ZoomInfo(stack) 0 $cmds]
         foreach margin {xaxis x2axis} {
             foreach axis [$graph $margin use] {
-                set min [$graph axis invtransform $axis $x1]
-                set max [$graph axis invtransform $axis $x2]
+                set min [$graph axis invtransform $axis $xPixel1]
+                set max [$graph axis invtransform $axis $xPixel2]
                 if {$min > $max} {
                     $graph axis configure $axis -min $max -max $min
                 } else {
@@ -889,8 +891,8 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         }
         foreach margin {yaxis y2axis} {
             foreach axis [$graph $margin use] {
-                set min [$graph axis invtransform $axis $y1]
-                set max [$graph axis invtransform $axis $y2]
+                set min [$graph axis invtransform $axis $yPixel1]
+                set max [$graph axis invtransform $axis $yPixel2]
                 if {$min > $max} {
                     $graph axis configure $axis -min $max -max $min
                 } else {
@@ -978,11 +980,11 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
             # Second point may be outside: clamp it to the plot edge.
             lassign [my ClampToPlot $x $y] x y
         }
-        my GetCoords $x $y $ZoomInfo(corner)
+        my SaveZoomPoint $x $y $ZoomInfo(corner)
         set modifier $ZoomMod
         bind select-region-$graph <${modifier}Motion> [namespace code {
             lassign [my ClampToPlot %x %y] x y
-            my GetCoords $x $y B
+            my SaveZoomPoint $x $y B
             if {$ZoomMark} {
                 my MarkZoomPoint B
             }
@@ -1025,26 +1027,24 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         }
     }
     method Box {} {
-        # Creates zoom box outline from A and B points coordinate saved in zoom stack.
+        # Creates zoom-box outline from the saved A/B points.
         set graph $Subwidgets(graph)
-        if {$ZoomInfo(A,x)>$ZoomInfo(B,x)} {
-            set x1 [$graph xaxis invtransform $ZoomInfo(B,x)]
-            set y1 [$graph yaxis invtransform $ZoomInfo(B,y)]
-            set x2 [$graph xaxis invtransform $ZoomInfo(A,x)]
-            set y2 [$graph yaxis invtransform $ZoomInfo(A,y)]
-        } else {
-            set x1 [$graph xaxis invtransform $ZoomInfo(A,x)]
-            set y1 [$graph yaxis invtransform $ZoomInfo(A,y)]
-            set x2 [$graph xaxis invtransform $ZoomInfo(B,x)]
-            set y2 [$graph yaxis invtransform $ZoomInfo(B,y)]
+        set xAxes [my VisibleAxes x]
+        set yAxes [my VisibleAxes y]
+        if {![llength $xAxes] || ![llength $yAxes]} {
+            return
         }
-        set coords [list $x1 $y1 $x2 $y1 $x2 $y2 $x1 $y2 $x1 $y1]
+        set mapx [lindex $xAxes 0]
+        set mapy [lindex $yAxes 0]
+        set xValue1 [$graph axis invtransform $mapx $ZoomInfo(A,xPixel)]
+        set yValue1 [$graph axis invtransform $mapy $ZoomInfo(A,yPixel)]
+        set xValue2 [$graph axis invtransform $mapx $ZoomInfo(B,xPixel)]
+        set yValue2 [$graph axis invtransform $mapy $ZoomInfo(B,yPixel)]
+        set coords [list $xValue1 $yValue1 $xValue2 $yValue1 $xValue2 $yValue2 $xValue1 $yValue2 $xValue1 $yValue1]
         if {[$graph marker exists gtbZoomOutline]} {
             $graph marker configure gtbZoomOutline -coords $coords
         } else {
-            set X [lindex [$graph xaxis use] 0]
-            set Y [lindex [$graph yaxis use] 0]
-            $graph marker create line -coords $coords -name gtbZoomOutline -mapx $X -mapy $Y\
+            $graph marker create line -name gtbZoomOutline -coords $coords -mapx $mapx -mapy $mapy\
                     {*}[my configure -zoomboxopts]
         }
     }
