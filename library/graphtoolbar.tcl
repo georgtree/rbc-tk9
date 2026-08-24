@@ -354,10 +354,17 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
 
 
     #### general private methods
-    method AddBitmapPoint {name coords {anchor w}} {
+    method AddBitmapPoint {name coords {mapx {}} {mapy {}}} {
+        set mapopts [list]
+        if {$mapx ne {}} {
+            lappend mapopts -mapx $mapx
+        }
+        if {$mapy ne {}} {
+            lappend mapopts -mapy $mapy
+        }
         $Subwidgets(graph) marker create bitmap -name $name -coords $coords\
                 -bitmap "@[file join $::graphtoolbar::libDir circle.xbm]"\
-                -mask "@[file join $::graphtoolbar::libDir circle_mask.xbm]" -under no
+                -mask "@[file join $::graphtoolbar::libDir circle_mask.xbm]" -under no {*}$mapopts
     }
     method AddBindTag {widget tag {after {}}} {
         set tags [bindtags $widget]
@@ -478,6 +485,76 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         set vertical [expr {($y-$top) > ($bottom-$y) ? {s} : {n}}]
         return ${vertical}${horizontal}
     }
+    method VisibleAxes {type} {
+        # Returns all visible axes of the requested logical type, preserving their margin/use order.
+        #  type - `x` or `y`
+        set graph $Subwidgets(graph)
+        switch -- $type {
+            x {
+                set margins {xaxis x2axis}
+            }
+            y {
+                set margins {yaxis y2axis}
+            }
+            default {
+                return -code error "unknown axis type '$type': must be x or y"
+            }
+        }
+        set axes [list]
+        foreach margin $margins {
+            foreach axis [$graph $margin use] {
+                if {![$graph axis cget $axis -hide]} {
+                    lappend axes $axis
+                }
+            }
+        }
+        return $axes
+    }
+    method ScreenToAxisPixels {xScreen yScreen} {
+        # Converts physical window coordinates to the coordinates expected by X and Y axes.
+        if {[$Subwidgets(graph) cget -invertxy]} {
+            return [list $yScreen $xScreen]
+        }
+        return [list $xScreen $yScreen]
+    }
+    method AxisPixelsToScreen {xPixel yPixel} {
+        # Converts coordinates expected by X and Y axes to the physical window coordinates.
+        if {[$Subwidgets(graph) cget -invertxy]} {
+            return [list $yPixel $xPixel]
+        }
+        return [list $xPixel $yPixel]
+    }
+    method AxisMarkerInfo {xPixel yPixel} {
+        # Returns text containing the values of all visible axes at the supplied window position. The first
+        # visible X/Y axes are also returned as the mapping axes for marker placement.
+        set graph $Subwidgets(graph)
+        set xAxes [my VisibleAxes x]
+        set yAxes [my VisibleAxes y]
+        if {[llength $xAxes] == 0} {
+            return -code error {graph has no visible X axis}
+        }
+        if {[llength $yAxes] == 0} {
+            return -code error {graph has no visible Y axis}
+        }
+        set mapx [lindex $xAxes 0]
+        set mapy [lindex $yAxes 0]
+        set lines [list]
+        foreach axis $xAxes {
+            set value [$graph axis invtransform $axis $xPixel]
+            lappend lines [format "%s=%.4g" $axis $value]
+            if {$axis eq $mapx} {
+                set x $value
+            }
+        }
+        foreach axis $yAxes {
+            set value [$graph axis invtransform $axis $yPixel]
+            lappend lines [format "%s=%.4g" $axis $value]
+            if {$axis eq $mapy} {
+                set y $value
+            }
+        }
+        return [dict create text [join $lines \n] mapx $mapx mapy $mapy x $x y $y]
+    }
 
     #### axes toggle methods
     method setAxisActiveScale {args} {
@@ -571,67 +648,51 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         return $activeAxes
     }
     #### crosshairs methods
+    method CreateClosestMarker {graph textMarker bitmapMarker element x y options} {
+        set mapx [$graph element cget $element -mapx]
+        set mapy [$graph element cget $element -mapy]
+        # find the actual logical window position of the closest point.
+        set xPixel [$graph axis transform $mapx $x]
+        set yPixel [$graph axis transform $mapy $y]
+        # convert that position through every visible axis.
+        set info [my AxisMarkerInfo $xPixel $yPixel]
+        set text "$element: [dict get $info text]"
+        # TextAnchor expects physical window coordinates.
+        lassign [my AxisPixelsToScreen $xPixel $yPixel] xScreen yScreen
+        dict set options -anchor [my TextAnchor $xScreen $yScreen $text $options]
+        $graph marker create text -name $textMarker -text $text -coords [list $x $y] -mapx $mapx -mapy $mapy {*}$options
+        my AddBitmapPoint $bitmapMarker [list $x $y] $mapx $mapy
+    }
     method CrosshairsMarkerMotion {graph xScreen yScreen options mode interpolate halo single} {
+        if {![$graph inside $xScreen $yScreen]} {
+            return
+        }
         if {$mode eq {current}} {
-            if {![$graph inside $xScreen $yScreen]} {
-                return
+            lassign [my ScreenToAxisPixels $xScreen $yScreen] xPixel yPixel
+            set info [my AxisMarkerInfo $xPixel $yPixel]
+            set text [dict get $info text]
+            dict set options -anchor [my TextAnchor $xScreen $yScreen $text $options]
+            $graph marker create text -name crosshairsText -text $text\
+                    -coords [list [dict get $info x] [dict get $info y]] -mapx [dict get $info mapx]\
+                    -mapy [dict get $info mapy] {*}$options
+            return
+        }
+        if {$single} {
+            if {[$graph element closest $xScreen $yScreen pointVar -along both -interpolate $interpolate -halo $halo]} {
+                my CreateClosestMarker $graph crosshairsText crosshairsBitmap $pointVar(name) $pointVar(x) $pointVar(y)\
+                        $options
             }
-            if {[$graph cget -invertxy]} {
-                set x [$graph xaxis invtransform $yScreen]
-                set y [$graph yaxis invtransform $xScreen]
-            } else {
-                set x [$graph xaxis invtransform $xScreen]
-                set y [$graph yaxis invtransform $yScreen]
+            return
+        }
+        set i 0
+        foreach elem [$graph element names] {
+            if {![$graph element closest $xScreen $yScreen pointVar -along both -interpolate $interpolate -halo $halo\
+                          $elem]} {
+                continue
             }
-            set text "x=[format %.4g $x]\ny=[format %.4g $y]"
-            set anchor [my TextAnchor $xScreen $yScreen $text $options]
-            dict set options -anchor $anchor
-            $graph marker create text -name crosshairsText -text $text -coords [list $x $y] {*}$options
-        } else {
-            if {$single} {
-                if {![$graph inside $xScreen $yScreen]} {
-                    return
-                }
-                if {[$graph cget -invertxy]} {
-                    set result [$graph element closest $yScreen $xScreen pointVar -along both -interpolate $interpolate\
-                                        -halo $halo]
-                } else {
-                    set result [$graph element closest $xScreen $yScreen pointVar -along both -interpolate $interpolate\
-                                        -halo $halo]
-                }
-                if {$result} {
-                    set text "$pointVar(name): x=[format %.4g $pointVar(x)]\ny=[format %.4g $pointVar(y)]"
-                    set anchor [my TextAnchor $xScreen $yScreen $text $options]
-                    dict set options -anchor $anchor
-                    $graph marker create text -name crosshairsText -text $text -coords [list $pointVar(x) $pointVar(y)]\
-                            {*}$options
-                    my AddBitmapPoint crosshairsBitmap [list $pointVar(x) $pointVar(y)]
-                }
-            } else {
-                set i 0
-                foreach elem [$graph element names] {
-                    if {![$graph inside $xScreen $yScreen]} {
-                        return
-                    }
-                    if {[$graph cget -invertxy]} {
-                        set result [$graph element closest $yScreen $xScreen pointVar -along both\
-                                            -interpolate $interpolate -halo $halo $elem]
-                    } else {
-                        set result [$graph element closest $xScreen $yScreen pointVar -along both\
-                                            -interpolate $interpolate -halo $halo $elem]
-                    }
-                    if {!$result} {
-                        continue
-                    }
-                    set text "$pointVar(name): x=[format %.4g $pointVar(x)]\ny=[format %.4g $pointVar(y)]"
-                    set anchor [my TextAnchor $xScreen $yScreen $text $options]
-                    dict set options -anchor $anchor
-                    $graph marker create text -name crosshairsText$i -text $text\
-                            -coords [list $pointVar(x) $pointVar(y)] {*}$options
-                    my AddBitmapPoint crosshairsBitmap$i [list $pointVar(x) $pointVar(y)]
-                    incr i
-                }
-            }
+            my CreateClosestMarker $graph crosshairsText$i crosshairsBitmap$i $pointVar(name) $pointVar(x) $pointVar(y)\
+                    $options
+            incr i
         }
     }
     method CrosshairsMotion {graph xScreen yScreen} {
@@ -740,21 +801,20 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         }
     }
     method MarkZoomPoint {index} {
-        # Creates marker at the start of zoom box selection, or at it's end
-        #  index - point A or point B selection
+        # Creates marker at the start or end of zoom box selection.
         set graph $Subwidgets(graph)
-        set x [$graph xaxis invtransform $ZoomInfo($index,x)]
-        set y [$graph yaxis invtransform $ZoomInfo($index,y)]
+        set info [my AxisMarkerInfo $ZoomInfo($index,x) $ZoomInfo($index,y)]
         set marker gtbZoomText_$index
         set options [my configure -zoommarkopts]
-        set text [format "x=%.4g\ny=%.4g" $x $y]
+        set text [dict get $info text]
         set anchor [my TextAnchor $ZoomInfo($index,screenX) $ZoomInfo($index,screenY) $text $options]
-        # dynamic anchor overrides the configured preferred anchor.
         dict set options -anchor $anchor
         if {[$graph marker exists $marker]} {
-            $graph marker configure $marker -coords [list $x $y] -text $text -anchor $anchor
+            $graph marker configure $marker -coords [list [dict get $info x] [dict get $info y]]\
+                    -mapx [dict get $info mapx] -mapy [dict get $info mapy] -text $text -anchor $anchor
         } else {
-            $graph marker create text -coords [list $x $y] -name $marker -text $text {*}$options
+            $graph marker create text -name $marker -coords [list [dict get $info x] [dict get $info y]]\
+                    -mapx [dict get $info mapx] -mapy [dict get $info mapy] -text $text {*}$options
         }
     }
     method DestroyZoomTitle {} {
