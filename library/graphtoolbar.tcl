@@ -14,12 +14,13 @@ namespace eval ::graphtoolbar {
     # zoom box default options
     option add *gtbZoomOutlineDashes 4 widgetDefault
     option add *gtbZoomOutlineLineWidth 1 widgetDefault
-    option add *gtbZoomOutlineXor yes widgetDefault
+    option add *gtbZoomOutlineXor no widgetDefault
 
     # zoom box corner markers default options
     option add *gtbZoomTextFont {Helvetica 10} widgetDefault
     option add *gtbZoomTextAnchor ne widgetDefault
-    option add *gtbZoomTextBackground {} widgetDefault
+    option add *gtbZoomTextBackground white widgetDefault
+    option add *gtbZoomTextForeground black widgetDefault
     option add *gtbZoomTextJustify left widgetDefault
     option add *gtbZoomTextPadX 4 widgetDefault
     option add *gtbZoomTextPadY 4 widgetDefault
@@ -32,7 +33,8 @@ namespace eval ::graphtoolbar {
     # crosshairs markers default options
     option add *gtbCrosshairsTextFont {Helvetica 10} widgetDefault
     option add *gtbCrosshairsTextAnchor nw widgetDefault
-    option add *gtbCrosshairsTextBackground {} widgetDefault
+    option add *gtbCrosshairsTextBackground white widgetDefault
+    option add *gtbCrosshairsTextForeground black widgetDefault
     option add *gtbCrosshairsTextJustify left widgetDefault
     option add *gtbCrosshairsTextPadX 4 widgetDefault
     option add *gtbCrosshairsTextPadY 4 widgetDefault
@@ -160,12 +162,14 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
                                            [option get $Subwidgets(graph) gtbZoomTextFont GtbZoomTextFont]]\
                                   [list -anchor= -key -anchor -default\
                                            [option get $Subwidgets(graph) gtbZoomTextAnchor GtbZoomTextAnchor]]\
-                                  [list -bg= -key -bg -default\
+                                  [list -background= -key -background -default\
                                            [option get $Subwidgets(graph) gtbZoomTextBackground GtbZoomTextBackground]]\
                                   [list -justify=  -key -justify -default\
                                            [option get $Subwidgets(graph) gtbZoomTextJustify GtbZoomTextJustify]]\
                                   [list -padx=  -key -padx -default\
                                            [option get $Subwidgets(graph) gtbZoomTextPadX GtbZoomTextPadX]]\
+                                  [list -foreground= -key -foreground -default \
+                                           [option get $Subwidgets(graph) gtbZoomTextForeground GtbZoomTextForeground]]\
                                   [list -pady=  -key -pady -default\
                                             [option get $Subwidgets(graph) gtbZoomTextPadY GtbZoomTextPadY]]]\
                          $value]
@@ -197,12 +201,14 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
                                   [list -anchor= -key -anchor -default\
                                            [option get $Subwidgets(graph) gtbCrosshairsTextAnchor\
                                                     GtbCrosshairsTextAnchor]]\
-                                  [list -bg= -key -bg -default\
+                                  [list -background= -key -background -default\
                                            [option get $Subwidgets(graph) gtbCrosshairsTextBackground\
                                                     GtbCrosshairsTextBackground]]\
                                   [list -justify=  -key -justify -default\
                                            [option get $Subwidgets(graph) gtbCrosshairsTextJustify\
                                                     GtbCrosshairsTextJustify]]\
+                                  [list -foreground= -key -foreground -default\
+                                           [option get $Subwidgets(graph) gtbCrosshairsTextForeground GtbCrosshairsTextForeground]]\
                                   [list -padx=  -key -padx -default\
                                            [option get $Subwidgets(graph) gtbCrosshairsTextPadX GtbCrosshairsTextPadX]]\
                                   [list -pady=  -key -pady -default\
@@ -420,75 +426,131 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
             return -code error "Action '$action' is unknown"
         }
     }
-    method TextSize {text font padx pady} {
-        # Calculates size of bounding box for text marker. 
-        #  text - marker text string
-        #  font - selected font
-        #  padx - horizontal padding of text marker
-        #  pady - vertical padding of text marker
+    method TextSize {text options} {
+        # Calculates size of a text marker in physical widget pixels.
+        # Result:
+        #   {width height}
         set graph $Subwidgets(graph)
+        set font [dict get $options -font]
+        set padx [winfo pixels $graph [dict get $options -padx]]
+        set pady [winfo pixels $graph [dict get $options -pady]]
         set width 0
         set lines [split $text \n]
         foreach line $lines {
-            set w [font measure $font -displayof $graph $line]
-            if {$w > $width} {
-                set width $w
+            set lineWidth [font measure $font -displayof $graph $line]
+            if {$lineWidth > $width} {
+                set width $lineWidth
             }
         }
         set height [expr {[llength $lines]*[font metrics $font -displayof $graph -linespace]}]
-        # padding adjustement
-        set padx [winfo pixels $graph $padx]
-        set pady [winfo pixels $graph $pady]
         incr width  [expr {2*$padx}]
         incr height [expr {2*$pady}]
         return [list $width $height]
     }
-    method TextAnchor {x y text options} {
-        # Selects text marker anchor depending on the availible space for the marker to be fully visible.
-        #  x - horizontal coordinate of marker location
-        #  y - vertical coordinate of marker location
-        #  text - string displayed by the marker
-        #  options - dictionary containing information about text font and text marker padding
-        set graph $Subwidgets(graph)
-        lassign [$graph extents plotarea] left top width height
-        set right  [expr {$left+$width-1}]
-        set bottom [expr {$top+$height-1}]
-        set font [dict get $options -font]
-        lassign [my TextSize $text $font [dict get $options -padx] [dict get $options -pady]] w h
-        set preferred [dict get $options -anchor]
-        foreach anchor [linsert {nw ne sw se} 0 $preferred] {
-            switch -- $anchor {
-                nw {
-                    set x0 $x
-                    set y0 $y
-                }
-                ne {
-                    set x0 [expr {$x - $w}]
-                    set y0 $y
-                }
-                sw {
-                    set x0 $x
-                    set y0 [expr {$y - $h}]
-                }
-                se {
-                    set x0 [expr {$x - $w}]
-                    set y0 [expr {$y - $h}]
-                }
-                default {
-                    continue
-                }
+    method TextBox {x y text options {anchor {}}} {
+        # Calculates text marker bounding box in physical widget pixels.
+        #
+        # x/y:
+        #   Physical widget coordinates of the marker position.
+        #
+        # Result:
+        #   {left top right bottom}
+        lassign [my TextSize $text $options] width height
+        if {$anchor eq {}} {
+            set anchor [dict get $options -anchor]
+        }
+        switch -- $anchor {
+            nw {
+                set left $x
+                set top $y
             }
-            set x1 [expr {$x0 + $w}]
-            set y1 [expr {$y0 + $h}]
+            n {
+                set left [expr {$x-$width/2}]
+                set top $y
+            }
+            ne {
+                set left [expr {$x-$width}]
+                set top $y
+            }
+            w {
+                set left $x
+                set top [expr {$y-$height/2}]
+            }
+            center {
+                set left [expr {$x-$width/2}]
+                set top [expr {$y-$height/2}]
+            }
+            e {
+                set left [expr {$x-$width}]
+                set top [expr {$y-$height/2}]
+            }
+            sw {
+                set left $x
+                set top [expr {$y-$height}]
+            }
+            s {
+                set left [expr {$x-$width/2}]
+                set top [expr {$y-$height}]
+            }
+            se {
+                set left [expr {$x-$width}]
+                set top [expr {$y-$height}]
+            }
+            default {
+                return -code error "unknown anchor '$anchor'"
+            }
+        }
+        # RBC's text-marker extents are inclusive:
+        # right = left + width - 1
+        # bottom = top + height - 1
+        set right [expr {$left+$width-1}]
+        set bottom [expr {$top+$height-1}]
+        return [list $left $top $right $bottom]
+    }
 
-            if {($x0>=$left) && ($y0>=$top) && ($x1<=$right) && ($y1<=$bottom)} {
+    method TextAnchor {x y text options} {
+        # Selects an anchor which keeps the complete text marker inside
+        # the plotting area.
+        #
+        # x/y are physical widget pixels.
+        set graph $Subwidgets(graph)
+        lassign [$graph extents plotarea] plotLeft plotTop plotWidth plotHeight
+        set plotRight [expr {$plotLeft+$plotWidth-1}]
+        set plotBottom [expr {$plotTop+$plotHeight-1}]
+        set preferred [dict get $options -anchor]
+        set anchors [list $preferred nw ne sw se n s w e center]
+        set tried [dict create]
+        foreach anchor $anchors {
+            if {[dict exists $tried $anchor]} {
+                continue
+            }
+            dict set tried $anchor true
+            lassign [my TextBox $x $y $text $options $anchor] left top right bottom
+            if {($left >= $plotLeft) && ($top >= $plotTop) && ($right <= $plotRight) && ($bottom <= $plotBottom)} {
                 return $anchor
             }
         }
-        # very small plot/very large text: pick the direction with the greatest available space.
-        set horizontal [expr {($x-$left) > ($right-$x) ? {e} : {w}}]
-        set vertical [expr {($y-$top) > ($bottom-$y) ? {s} : {n}}]
-        return ${vertical}${horizontal}
+        # No anchor can fully fit the marker.
+        return $preferred
+    }
+    method DrawTextBackground {name x y text options mapx mapy} {
+        set graph $Subwidgets(graph)
+        lassign [my TextBox $x $y $text $options] left top right bottom
+        lassign [my WidgetToAxisPixels $left $top] xPixel1 yPixel1
+        lassign [my WidgetToAxisPixels $right $bottom] xPixel2 yPixel2
+        set xValue1 [$graph axis invtransform $mapx $xPixel1]
+        set xValue2 [$graph axis invtransform $mapx $xPixel2]
+        set yValue1 [$graph axis invtransform $mapy $yPixel1]
+        set yValue2 [$graph axis invtransform $mapy $yPixel2]
+        set coords [list $xValue1 $yValue1 $xValue2 $yValue1 $xValue2 $yValue2 $xValue1 $yValue2]
+        set fill [dict get $options -background]
+        set outline [dict get $options -foreground]
+        if {[$graph marker exists $name]} {
+            $graph marker configure $name -coords $coords -mapx $mapx -mapy $mapy -fill $fill -outline $outline
+        } else {
+            $graph marker create polygon -name $name -coords $coords -mapx $mapx -mapy $mapy -fill $fill -outline\
+                    $outline -linewidth 1 -bindtags {} -under no
+        }
     }
     method VisibleAxes {dimension} {
         # Returns all visible named axes for the requested data dimension, preserving their margin/use order.
@@ -502,7 +564,7 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
                 set margins {yaxis y2axis}
             }
             default {
-                return -code error "unknown axis type '$type': must be x or y"
+                return -code error "unknown axis dimension '$dimension': must be x or y"
             }
         }
         set axes [list]
@@ -656,15 +718,14 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
     method CreateClosestMarker {graph textMarker bitmapMarker element xValue yValue options} {
         set mapx [$graph element cget $element -mapx]
         set mapy [$graph element cget $element -mapy]
-        # Convert the element's axis values to pixels along its X/Y dimensions.
         set xPixel [$graph axis transform $mapx $xValue]
         set yPixel [$graph axis transform $mapy $yValue]
-        # Format this position through every visible axis.
         set info [my AxisMarkerInfo $xPixel $yPixel]
         set text "$element: [dict get $info text]"
-        # TextAnchor works in physical widget pixels.
         lassign [my AxisPixelsToWidget $xPixel $yPixel] x y
         dict set options -anchor [my TextAnchor $x $y $text $options]
+        my DrawTextBackground ${textMarker}Box $x $y $text $options $mapx $mapy
+        dict set options -background {}
         $graph marker create text -name $textMarker -text $text -coords [list $xValue $yValue] -mapx $mapx -mapy $mapy\
                 {*}$options
         my AddBitmapPoint $bitmapMarker $xValue $yValue $mapx $mapy
@@ -678,27 +739,32 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
             set info [my AxisMarkerInfo $xPixel $yPixel]
             set text [dict get $info text]
             dict set options -anchor [my TextAnchor $x $y $text $options]
+            set mapx [dict get $info mapx]
+            set mapy [dict get $info mapy]
+            my DrawTextBackground crosshairsTextBox $x $y $text $options $mapx $mapy
+            dict set options -background {}
             $graph marker create text -name crosshairsText -text $text\
-                    -coords [list [dict get $info xValue] [dict get $info yValue]] -mapx [dict get $info mapx]\
-                    -mapy [dict get $info mapy] {*}$options
+                    -coords [list [dict get $info xValue] [dict get $info yValue]] -mapx $mapx -mapy $mapy {*}$options
             return
-        }
-        if {$single} {
-            if {[$graph element closest $x $y pointVar -along both -interpolate $interpolate -halo $halo]} {
-                my CreateClosestMarker $graph crosshairsText crosshairsBitmap $pointVar(name) $pointVar(x) $pointVar(y)\
-                        $options
+        } elseif {$mode eq {closest}} {
+            if {$single} {
+                if {[$graph element closest $x $y pointVar -along both -interpolate $interpolate -halo $halo]} {
+                    my CreateClosestMarker $graph crosshairsText crosshairsBitmap $pointVar(name) $pointVar(x) \
+                            $pointVar(y) $options
+                }
+            } else {
+                set i 0
+                foreach elem [$graph element names] {
+                    if {![$graph element closest $x $y pointVar -along both -interpolate $interpolate -halo $halo $elem]} {
+                        continue
+                    }
+                    my CreateClosestMarker $graph crosshairsText$i crosshairsBitmap$i $pointVar(name) $pointVar(x) \
+                            $pointVar(y) $options
+                    incr i
+                }
             }
-            return
         }
-        set i 0
-        foreach elem [$graph element names] {
-            if {![$graph element closest $x $y pointVar -along both -interpolate $interpolate -halo $halo $elem]} {
-                continue
-            }
-            my CreateClosestMarker $graph crosshairsText$i crosshairsBitmap$i $pointVar(name) $pointVar(x) $pointVar(y)\
-                    $options
-            incr i
-        }
+
     }
     method CrosshairsMotion {graph x y} {
         set markerNames [$graph marker names crosshairs*]
@@ -808,16 +874,21 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         set graph $Subwidgets(graph)
         set info [my AxisMarkerInfo $ZoomInfo($index,xPixel) $ZoomInfo($index,yPixel)]
         set marker gtbZoomText_$index
+        set boxMarker ${marker}Box
         set options [my configure -zoommarkopts]
         set text [dict get $info text]
         set anchor [my TextAnchor $ZoomInfo($index,x) $ZoomInfo($index,y) $text $options]
         dict set options -anchor $anchor
+        set mapx [dict get $info mapx]
+        set mapy [dict get $info mapy]
+        my DrawTextBackground ${marker}Box $ZoomInfo($index,x) $ZoomInfo($index,y) $text $options $mapx $mapy
+        dict set options -background {}
         if {[$graph marker exists $marker]} {
-            $graph marker configure $marker -coords [list [dict get $info xValue] [dict get $info yValue]]\
-                    -mapx [dict get $info mapx] -mapy [dict get $info mapy] -text $text -anchor $anchor
+                $graph marker configure $marker -coords [list [dict get $info xValue] [dict get $info yValue]]\
+                        -mapx $mapx -mapy $mapy -text $text -anchor $anchor -background {}
         } else {
             $graph marker create text -name $marker -coords [list [dict get $info xValue] [dict get $info yValue]]\
-                    -mapx [dict get $info mapx] -mapy [dict get $info mapy] -text $text {*}$options
+                    -mapx $mapx -mapy $mapy -text $text {*}$options
         }
     }
     method DestroyZoomTitle {} {
