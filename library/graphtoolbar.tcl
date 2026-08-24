@@ -23,6 +23,8 @@ namespace eval ::graphtoolbar {
     option add *gtbZoomTextJustify left widgetDefault
     option add *gtbZoomTextPadX 4 widgetDefault
     option add *gtbZoomTextPadY 4 widgetDefault
+    option add *gtbZoomTextXFormat .4g widgetDefault
+    option add *gtbZoomTextYFormat .4g widgetDefault
 
     # zoom box corner markers box default options
     option add *gtbZoomTextBoxFill #FFEB3B widgetDefault
@@ -41,6 +43,8 @@ namespace eval ::graphtoolbar {
     option add *gtbCrosshairsTextJustify left widgetDefault
     option add *gtbCrosshairsTextPadX 4 widgetDefault
     option add *gtbCrosshairsTextPadY 4 widgetDefault
+    option add *gtbCrosshairsTextXFormat .4g widgetDefault
+    option add *gtbCrosshairsTextYFormat .4g widgetDefault
 
     # crosshairs markers box default options
     option add *gtbCrosshairsTextBoxFill #FFEB3B widgetDefault
@@ -172,10 +176,14 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
                                            [option get $Subwidgets(graph) gtbZoomTextAnchor GtbZoomTextAnchor]]\
                                   [list -justify=  -key -justify -default\
                                            [option get $Subwidgets(graph) gtbZoomTextJustify GtbZoomTextJustify]]\
+                                  [list -foreground= -key -foreground -default\
+                                           [option get $Subwidgets(graph) gtbZoomTextForeground GtbZoomTextForeground]]\
                                   [list -padx=  -key -padx -default\
                                            [option get $Subwidgets(graph) gtbZoomTextPadX GtbZoomTextPadX]]\
-                                  [list -foreground= -key -foreground -default \
-                                           [option get $Subwidgets(graph) gtbZoomTextForeground GtbZoomTextForeground]]\
+                                  [list -formatx= -key -formatx -default\
+                                           [option get $Subwidgets(graph) gtbZoomTextXFormat GtbZoomTextXFormat]]\
+                                  [list -formaty= -key -formaty -default\
+                                           [option get $Subwidgets(graph) gtbZoomTextYFormat GtbZoomTextYFormat]]\
                                   [list -pady=  -key -pady -default\
                                             [option get $Subwidgets(graph) gtbZoomTextPadY GtbZoomTextPadY]]]\
                          $value]
@@ -225,6 +233,10 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
                                                     GtbCrosshairsTextJustify]]\
                                   [list -foreground= -key -foreground -default\
                                            [option get $Subwidgets(graph) gtbCrosshairsTextForeground GtbCrosshairsTextForeground]]\
+                                  [list -formatx= -key -formatx -default\
+                                           [option get $Subwidgets(graph) gtbCrosshairsTextXFormat GtbCrosshairsTextXFormat]]\
+                                  [list -formaty= -key -formaty -default\
+                                           [option get $Subwidgets(graph) gtbCrosshairsTextYFormat GtbCrosshairsTextYFormat]]\
                                   [list -padx=  -key -padx -default\
                                            [option get $Subwidgets(graph) gtbCrosshairsTextPadX GtbCrosshairsTextPadX]]\
                                   [list -pady=  -key -pady -default\
@@ -684,7 +696,7 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         set yValue [$graph axis invtransform $mapy $yPixel]
         return [list $xValue $yValue]
     }
-    method AxisMarkerInfo {xPixel yPixel} {
+    method AxisMarkerInfo {xPixel yPixel formatx formaty} {
         # Returns formatted values of all visible axes at xPixel/yPixel. The first visible X/Y axes are also used to
         #  place the marker.
         set graph $Subwidgets(graph)
@@ -699,16 +711,23 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         set mapx [lindex $xAxes 0]
         set mapy [lindex $yAxes 0]
         set lines [list]
+        if {[$Subwidgets(graph) cget -invertxy]} {
+            set xOrientation v
+            set yOrientation h
+        } else {
+            set xOrientation h
+            set yOrientation v
+        }
         foreach axis $xAxes {
             set xValue [$graph axis invtransform $axis $xPixel]
-            lappend lines [format "%s=%.4g" $axis $xValue]
+            lappend lines [format "%s($xOrientation)=%$formatx" $axis $xValue]
             if {$axis eq $mapx} {
                 set markerXValue $xValue
             }
         }
         foreach axis $yAxes {
             set yValue [$graph axis invtransform $axis $yPixel]
-            lappend lines [format "%s=%.4g" $axis $yValue]
+            lappend lines [format "%s($yOrientation)=%$formaty" $axis $yValue]
             if {$axis eq $mapy} {
                 set markerYValue $yValue
             }
@@ -813,22 +832,31 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         set mapy [$graph element cget $element -mapy]
         set xPixel [$graph axis transform $mapx $xValue]
         set yPixel [$graph axis transform $mapy $yValue]
-        # A closest marker belongs to a specific element, therefore show
-        # only the axes actually used by that element.
-        set text [format "%s\n%s=%.4g\n%s=%.4g" $element $mapx $xValue $mapy $yValue]
-        # Physical widget position of the actual closest point.
+        # a closest marker belongs to a specific element, therefore show only the axes actually used by that element.
+        if {[$Subwidgets(graph) cget -invertxy]} {
+            set xOrientation v
+            set yOrientation h
+        } else {
+            set xOrientation h
+            set yOrientation v
+        }
+        set formatx [dict get $options -formatx]
+        set formaty [dict get $options -formaty]
+        set text [format "%s\n%s($xOrientation)=%$formatx\n%s($yOrientation)=%$formaty" $element $mapx\
+                          $xValue $mapy $yValue]
+        # physical widget position of the actual closest point.
         lassign [my AxisPixelsToWidget $xPixel $yPixel] x y
         set anchor [my TextAnchor $x $y $text $options]
         dict set options -anchor $anchor
-        # Shift the label away from the actual point/crosshairs.
+        # shift the label away from the actual point/crosshairs.
         lassign [my TextOffset $x $y $anchor] textX textY
         set boxOptions [my configure -crosshairsmarkboxopts]
         my DrawTextBackground ${textMarker}Box $textX $textY $text $options $boxOptions $mapx $mapy
-        # The text marker itself must be shifted too.
+        # the text marker itself must be shifted too.
         lassign [my WidgetToAxisValues $textX $textY $mapx $mapy] textXValue textYValue
         $graph marker create text -name $textMarker -text $text -coords [list $textXValue $textYValue] -mapx $mapx\
-                -mapy $mapy {*}$options
-        # Bitmap remains exactly at the real element point.
+                -mapy $mapy {*}[dict remove $options -formatx -formaty]
+        # bitmap remains exactly at the real element point.
         my AddBitmapPoint $bitmapMarker $xValue $yValue $mapx $mapy
     }
     method CrosshairsMarkerMotion {graph x y options mode interpolate halo single} {
@@ -837,7 +865,7 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         }
         if {$mode eq {current}} {
             lassign [my WidgetToAxisPixels $x $y] xPixel yPixel
-            set info [my AxisMarkerInfo $xPixel $yPixel]
+            set info [my AxisMarkerInfo $xPixel $yPixel [dict get $options -formatx] [dict get $options -formaty]]
             set text [dict get $info text]
             set anchor [my TextAnchor $x $y $text $options]
             dict set options -anchor $anchor
@@ -848,7 +876,7 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
             my DrawTextBackground crosshairsTextBox $textX $textY $text $options $boxOptions $mapx $mapy
             lassign [my WidgetToAxisValues $textX $textY $mapx $mapy] textXValue textYValue
             $graph marker create text -name crosshairsText -text $text -coords [list $textXValue $textYValue] -mapx\
-                    $mapx -mapy $mapy {*}$options
+                    $mapx -mapy $mapy {*}[dict remove $options -formatx -formaty]
             return
          } elseif {$mode eq {closest}} {
             if {$single} {
@@ -983,10 +1011,11 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
     }
     method MarkZoomPoint {index} {
         set graph $Subwidgets(graph)
-        set info [my AxisMarkerInfo $ZoomInfo($index,xPixel) $ZoomInfo($index,yPixel)]
-        set marker gtbZoomText_$index
         set options [my configure -zoommarkopts]
         set boxOptions [my configure -zoommarkboxopts]
+        set info [my AxisMarkerInfo $ZoomInfo($index,xPixel) $ZoomInfo($index,yPixel) [dict get $options -formatx]\
+                          [dict get $options -formaty]]
+        set marker gtbZoomText_$index
         set text [dict get $info text]
         set x $ZoomInfo($index,x)
         set y $ZoomInfo($index,y)
@@ -997,12 +1026,17 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         lassign [my TextOffset $x $y $anchor] textX textY
         my DrawTextBackground ${marker}Box $textX $textY $text $options $boxOptions $mapx $mapy
         lassign [my WidgetToAxisValues $textX $textY $mapx $mapy] textXValue textYValue
+        if {$index eq {A}} {
+            my AddBitmapPoint ${marker}Bitmap\
+                    {*}[my WidgetToAxisValues $ZoomInfo($index,x) $ZoomInfo($index,y) $mapx $mapy] $mapx $mapy
+        }
         if {[$graph marker exists $marker]} {
             $graph marker configure $marker -coords [list $textXValue $textYValue] -mapx $mapx -mapy $mapy -text $text\
                     -anchor $anchor
         } else {
             $graph marker create text -name $marker -coords [list $textXValue $textYValue] -mapx $mapx -mapy $mapy\
-                    -text $text {*}$options
+                    -text $text {*}[dict remove $options -formatx -formaty]
+            
         }
     }
     method DestroyZoomTitle {} {
