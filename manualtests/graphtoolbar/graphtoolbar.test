@@ -259,7 +259,7 @@ test generalConfiguration-9 {options configuration} -setup {
     grid rowconfigure . 0 -weight 1
 } -body {
     $widget configure -zoomboxopts
-} -result {-linewidth 2 -dashes 4 -xor yes} -cleanup {
+} -result {-linewidth 2 -dashes 4 -xor no} -cleanup {
     destroy $widget
 }
 
@@ -271,7 +271,7 @@ test generalConfiguration-10 {options configuration} -setup {
     grid rowconfigure . 0 -weight 1
 } -body {
     $widget configure -zoommarkopts
-} -result {-font {Helvetica 10} -anchor ne -bg {} -justify left -padx 4 -pady 4} -cleanup {
+} -result {-font {Helvetica 10} -anchor ne -justify left -padx 4 -foreground black -pady 4} -cleanup {
     destroy $widget
 }
 
@@ -306,7 +306,29 @@ test generalConfiguration-13 {options configuration} -setup {
     grid rowconfigure . 0 -weight 1
 } -body {
     $widget configure -crosshairsmarkopts
-} -result {-font {Helvetica 15} -anchor nw -bg {} -justify left -padx 4 -pady 4} -cleanup {
+} -result {-font {Helvetica 15} -anchor nw -justify left -foreground black -padx 4 -pady 4} -cleanup {
+    destroy $widget
+}
+
+test generalConfiguration-14 {options configuration} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400 -zoom -zoommark -zoommarkboxopts {-fill {}}]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+} -body {
+    $widget configure -zoommarkboxopts
+} -result {-fill {} -outline grey -linewidth 1} -cleanup {
+    destroy $widget
+}
+
+test generalConfiguration-15 {options configuration} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400 -crosshairs -crosshairsmarkboxopts {-fill {}}]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+} -body {
+    $widget configure -crosshairsmarkboxopts
+} -result {-fill {} -outline grey -linewidth 1} -cleanup {
     destroy $widget
 }
 
@@ -563,6 +585,36 @@ test zoomInteractive-7 {interactive single-stage zoom, check clamping to visible
     lappend expectedStates [lindex $expectedStates 1]
     return [approxNestedEqual $actualStates $expectedStates]
 }  -result true  -cleanup {
+    destroy $widget
+}
+
+test zoomInteractive-8 {interactive single-stage zoom, no marker box} -match approxEqual\
+        -constraints {isInteractive isZoom} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
+                        -zoomboxopts {-linewidth 1} -zoommarkboxopts {-fill {} -outline {}}]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+    $widget graph configure -title {Interactive single-stage zoom, no marker box} {*}$titleFont
+    $widget graph element create line1 -xdata xVec1 -ydata yVec1
+    $widget graph element create line2 -xdata xVec2 -ydata yVec2
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] leftMargin topMargin plotWidth plotHeight
+    set aXPointBox [expr {$leftMargin+$plotWidth/3}]
+    set aYPointBox [expr {$topMargin+$plotHeight/3}]
+    set bXPointBox [expr {$leftMargin+$plotWidth*2/3}]
+    set bYPointBox [expr {$topMargin+$plotHeight*2/3}]
+    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox 500
+    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox 500
+    set markerExistence [$widget graph marker exists gtbZoomText_ABox]
+    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox 500
+    GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox 500
+    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox 500
+    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox 500
+    return $markerExistence
+}  -result 0  -cleanup {
     destroy $widget
 }
 
@@ -860,6 +912,72 @@ test crosshairsInteractive-9 {interactive crosshairs with current coordinate mar
     sleep 500
     return [list [$graph marker cget crosshairsText0 -anchor] [$graph marker cget crosshairsText1 -anchor]]
 }  -result {ne ne} -cleanup {
+    destroy $widget
+}
+
+test crosshairsInteractive-10 {interactive crosshairs with current coordinate marker and no marker box}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current\
+                        -crosshairsmarkboxopts {-fill {} -outline {}}]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+    $widget graph configure -title {Interactive crosshairs with current coordinate marker and no marker box}\
+            {*}$titleFont
+    $widget graph element create line1 -xdata xVec1 -ydata yVec1
+    $widget graph element create line2 -xdata xVec2 -ydata yVec2
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] leftMargin topMargin plotWidth plotHeight
+    set aXPointBox [expr {$leftMargin+$plotWidth/3}]
+    set aYPointBox [expr {$topMargin+$plotHeight/3}]
+    set bXPointBox [expr {$leftMargin+$plotWidth*2/3}]
+    set bYPointBox [expr {$topMargin+$plotHeight*2/3}]
+    set steps 100
+    set xlist [lseq $aXPointBox to $bXPointBox by [expr {($bXPointBox-$aXPointBox)/double($steps)}]]
+    set ylist [lseq $aYPointBox to $bYPointBox by [expr {($bYPointBox-$aYPointBox)/double($steps)}]]
+    set markerExistence 1
+    foreach x $xlist y $ylist {
+        GenerateGraphEvent $graph <Motion> $x $y 5
+        set markerExistence [expr {[$widget graph marker exists crosshairsTextBox] && $markerExistence}]
+    }
+    return $markerExistence
+}  -result 0 -cleanup {
+    destroy $widget
+}
+
+test crosshairsInteractive-11 {interactive crosshairs with closest element coordinate marker and no marker box}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
+                       -crosshairsmarkboxopts {-fill {} -outline {}}]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+    $widget graph configure -title {Interactive crosshairs with closest element coordinate marker and no marker box}\
+            {*}$titleFont
+    $widget graph element create line1 -xdata xVec1 -ydata yVec1
+    $widget graph element create line2 -xdata xVec2 -ydata yVec2
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] leftMargin topMargin plotWidth plotHeight
+    set aXPointBox [expr {$leftMargin+$plotWidth/3}]
+    set aYPointBox [expr {$topMargin+$plotHeight/3}]
+    set bXPointBox [expr {$leftMargin+$plotWidth*2/3}]
+    set bYPointBox [expr {$topMargin+$plotHeight*2/3}]
+    set steps 100
+    set xlist [lseq $aXPointBox to $bXPointBox by [expr {($bXPointBox-$aXPointBox)/double($steps)}]]
+    set ylist [lseq $aYPointBox to $bYPointBox by [expr {($bYPointBox-$aYPointBox)/double($steps)}]]
+    set markerExistence 1
+    foreach x $xlist y $ylist {
+        GenerateGraphEvent $graph <Motion> $x $y 5
+        if {[$widget graph marker exists crosshairsText]} {
+            set markerExistence [expr {[$widget graph marker exists crosshairsTextBox] && $markerExistence}]
+        }
+    }
+    return $markerExistence
+}  -result 0 -cleanup {
     destroy $widget
 }
 

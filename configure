@@ -5701,7 +5701,7 @@ printf "%s\n" "$ac_cv_c_bigendian" >&6; }
 
 
 
-    vars="library/graph.tcl library/graphtoolbar.tcl library/rbcCanvEps.pro library/rbcGraph.pro library/circle.xbm library/circle_mask.xbm"
+    vars="library/graph.tcl library/graphtoolbar.tcl library/rbcCanvEps.pro library/rbcGraph.pro library/pointer.xbm library/pointer_mask.xbm"
     for i in $vars; do
 	# check for existence, be strict because it is installed
 	if test ! -f "${srcdir}/$i" ; then

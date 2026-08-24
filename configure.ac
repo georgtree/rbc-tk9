@@ -72,7 +72,7 @@ TEA_ADD_INCLUDES([])
 TEA_ADD_LIBS([])
 TEA_ADD_CFLAGS([])
 TEA_ADD_STUB_SOURCES([generic/rbcStubLib.c])
-TEA_ADD_TCL_SOURCES([library/graph.tcl library/graphtoolbar.tcl library/rbcCanvEps.pro library/rbcGraph.pro library/circle.xbm library/circle_mask.xbm])
+TEA_ADD_TCL_SOURCES([library/graph.tcl library/graphtoolbar.tcl library/rbcCanvEps.pro library/rbcGraph.pro library/pointer.xbm library/pointer_mask.xbm])
 
 DOC_HTML_FILES="index.html objects.inv search.html searchindex.js genindex.html"
 DOC_SRCDIR="${srcdir}/docs"
