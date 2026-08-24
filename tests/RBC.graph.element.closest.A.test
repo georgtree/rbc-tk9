@@ -70,5 +70,54 @@ namespace eval graph.element {
         destroy .graph1
     } -result {1 Element1 0}
 
-	cleanupTests
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure element closest interprets its x and y arguments as window
+    # coordinates when -invertxy is enabled.  Element screen coordinates are already
+    # mapped according to -invertxy, so the query coordinates must not be swapped again.
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.element.closest.A.1.3 {
+        graph element closest: inverted graph point search uses window coordinates
+    } -setup {
+        graph .graph1 -width 600 -height 300 -invertxy yes
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 10
+        .graph1 axis configure y -min 0 -max 10
+        .graph1 element create Element1 -data {8 2} -symbol circle
+        update idletasks
+    } -body {
+        lassign [.graph1 transform 8 2] x y
+        set found [.graph1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        set index [expr {[info exists info(index)] ? $info(index) : -1}]
+        set name [expr {[info exists info(name)] ? $info(name) : {}}]
+        list $found $name $index
+    } -cleanup {
+        unset -nocomplain info
+        destroy .graph1
+    } -result {1 Element1 0}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure interpolated closest-element searches also use unmodified window
+    # coordinates when -invertxy is enabled.  The query is at the midpoint of the line
+    # segment, not at either data point, so this exercises the trace/interpolation path.
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.element.closest.A.1.4 {
+        graph element closest: inverted graph interpolated search uses window coordinates
+    } -setup {
+        graph .graph1 -width 600 -height 300 -invertxy yes
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 10
+        .graph1 axis configure y -min 0 -max 10
+        .graph1 element create Element1 -data {2 3 8 3} -symbol circle
+        update idletasks
+    } -body {
+        lassign [.graph1 transform 5 3] x y
+        set found [.graph1 element closest $x $y info -along both -interpolate 1 -halo 2 Element1]
+        set name [expr {[info exists info(name)] ? $info(name) : {}}]
+        list $found $name
+    } -cleanup {
+        unset -nocomplain info
+        destroy .graph1
+    } -result {1 Element1}
+
+    cleanupTests
 }

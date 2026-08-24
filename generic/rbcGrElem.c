@@ -4232,11 +4232,6 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size
         Rbc_AppendResultStrings(interp, ": bad window y-coordinate", (char *)NULL);
         return TCL_ERROR;
     }
-    if (graphPtr->inverted) {
-        int temp;
-
-        temp = x, x = y, y = temp;
-    }
     search.mode = SEARCH_POINTS;
     search.halo = graphPtr->halo;
     search.index = -1;
