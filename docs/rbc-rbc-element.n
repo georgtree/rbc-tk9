@@ -100,6 +100,16 @@ Unknown element names in a list supplied to show are ignored\&.
 .PP
 The element -hide option and display-list membership are kept synchronized\&. Configuring an element as hidden
 removes it from the display list; making it visible adds it back to the display list\&.
+.PP
+-hideplot is intentionally different from -hide\&. Setting -hideplot yes suppresses plotting of the element
+without removing it from the display list, so its legend entry remains available\&. A plot-hidden element does
+not contribute to automatic axis limits, closest-element searches, element hit testing, PostScript element
+output, or bar grouping and stacking calculations\&. Setting -hideplot no restores plotting without changing
+display-list order\&.
+.PP
+The two options are independent\&. -hide yes still removes an element from the display list even when
+-hideplot is set\&. Restoring the element with -hide no or ELEMENT show does not change its -hideplot
+value\&.
 .SH "ACTIVE ELEMENTS AND POINTS"
 .PP
 Elements and individual data points may be marked active\&. Active items are normally drawn using the element's

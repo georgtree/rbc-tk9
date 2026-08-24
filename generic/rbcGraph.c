@@ -1368,7 +1368,7 @@ static ClientData PickEntry(ClientData clientData, int x, int y, ClientData *con
                 Rbc_VectorNotifyPending(elemPtr->y.clientId)) {
                 continue;
             }
-            if ((!elemPtr->hidden) && (elemPtr->state == STATE_NORMAL)) {
+            if ((!elemPtr->hidden) && (!elemPtr->plotHidden) && (elemPtr->state == STATE_NORMAL)) {
                 (*elemPtr->procsPtr->closestProc)(graphPtr, elemPtr, &search);
             }
         }

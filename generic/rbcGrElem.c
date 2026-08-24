@@ -548,7 +548,7 @@ static void VectorChangedProc(Tcl_Interp *interp, ClientData clientData, Rbc_Vec
     }
     graphPtr->flags |= RESET_AXES;
     elemPtr->flags |= MAP_ITEM;
-    if (!elemPtr->hidden) {
+    if ((!elemPtr->hidden) && (!elemPtr->plotHidden)) {
         graphPtr->flags |= REDRAW_BACKING_STORE;
         Rbc_EventuallyRedrawGraph(graphPtr);
     }
@@ -3737,7 +3737,7 @@ void Rbc_MapElements(Graph *graphPtr) {
     for (linkPtr = Rbc_ChainFirstLink(graphPtr->elements.displayList); linkPtr != NULL;
          linkPtr = Rbc_ChainNextLink(linkPtr)) {
         elemPtr = Rbc_ChainGetValue(linkPtr);
-        if (elemPtr->hidden) {
+        if (elemPtr->hidden || elemPtr->plotHidden) {
             continue;
         }
         if ((graphPtr->flags & MAP_ALL) || (elemPtr->flags & MAP_ITEM)) {
@@ -3775,7 +3775,7 @@ void Rbc_DrawElements(Graph *graphPtr, Drawable drawable) {
     for (linkPtr = Rbc_ChainFirstLink(graphPtr->elements.displayList); linkPtr != NULL;
          linkPtr = Rbc_ChainNextLink(linkPtr)) {
         elemPtr = Rbc_ChainGetValue(linkPtr);
-        if (!elemPtr->hidden) {
+        if ((!elemPtr->hidden) && (!elemPtr->plotHidden)) {
             (*elemPtr->procsPtr->drawNormalProc)(graphPtr, drawable, elemPtr);
         }
     }
@@ -3809,7 +3809,7 @@ void Rbc_DrawActiveElements(Graph *graphPtr, Drawable drawable) {
     for (linkPtr = Rbc_ChainFirstLink(graphPtr->elements.displayList); linkPtr != NULL;
          linkPtr = Rbc_ChainNextLink(linkPtr)) {
         elemPtr = Rbc_ChainGetValue(linkPtr);
-        if ((!elemPtr->hidden) && (elemPtr->flags & ELEM_ACTIVE)) {
+        if ((!elemPtr->hidden) && (!elemPtr->plotHidden) && (elemPtr->flags & ELEM_ACTIVE)) {
             (*elemPtr->procsPtr->drawActiveProc)(graphPtr, drawable, elemPtr);
         }
     }
@@ -3842,7 +3842,7 @@ void Rbc_ElementsToPostScript(Graph *graphPtr, PsToken psToken) {
     for (linkPtr = Rbc_ChainFirstLink(graphPtr->elements.displayList); linkPtr != NULL;
          linkPtr = Rbc_ChainNextLink(linkPtr)) {
         elemPtr = Rbc_ChainGetValue(linkPtr);
-        if (!elemPtr->hidden) {
+        if ((!elemPtr->hidden) && (!elemPtr->plotHidden)) {
             /* Comment the PostScript to indicate the start of the element */
             Rbc_FormatToPostScript(psToken, "\n%% Element \"%s\"\n\n", elemPtr->name);
             (*elemPtr->procsPtr->printNormalProc)(graphPtr, psToken, elemPtr);
@@ -3876,7 +3876,7 @@ void Rbc_ActiveElementsToPostScript(Graph *graphPtr, PsToken psToken) {
     for (linkPtr = Rbc_ChainFirstLink(graphPtr->elements.displayList); linkPtr != NULL;
          linkPtr = Rbc_ChainNextLink(linkPtr)) {
         elemPtr = Rbc_ChainGetValue(linkPtr);
-        if ((!elemPtr->hidden) && (elemPtr->flags & ELEM_ACTIVE)) {
+        if ((!elemPtr->hidden) && (!elemPtr->plotHidden) && (elemPtr->flags & ELEM_ACTIVE)) {
             Rbc_FormatToPostScript(psToken, "\n%% Active Element \"%s\"\n\n", elemPtr->name);
             (*elemPtr->procsPtr->printActiveProc)(graphPtr, psToken, elemPtr);
         }
@@ -3908,7 +3908,7 @@ int Rbc_GraphUpdateNeeded(Graph *graphPtr) {
     for (linkPtr = Rbc_ChainFirstLink(graphPtr->elements.displayList); linkPtr != NULL;
          linkPtr = Rbc_ChainNextLink(linkPtr)) {
         elemPtr = Rbc_ChainGetValue(linkPtr);
-        if (elemPtr->hidden) {
+        if (elemPtr->hidden || elemPtr->plotHidden) {
             continue;
         }
         /* Check if the x or y vectors have notifications pending */
@@ -4251,6 +4251,11 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size
                 Rbc_AppendResultStrings(interp, "element \"", Tcl_GetString(objv[i]), "\" is hidden", (char *)NULL);
                 return TCL_ERROR; /* Element isn't visible */
             }
+            if (elemPtr->plotHidden) {
+                Rbc_AppendResultStrings(interp, "element \"", Tcl_GetString(objv[i]), "\" is not plotted",
+                                        (char *)NULL);
+                return TCL_ERROR;
+            }
             /* Check if the X or Y vectors have notifications pending */
             if ((elemPtr->flags & MAP_ITEM) || (Rbc_VectorNotifyPending(elemPtr->x.clientId)) ||
                 (Rbc_VectorNotifyPending(elemPtr->y.clientId))) {
@@ -4276,7 +4281,7 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size
                 (Rbc_VectorNotifyPending(elemPtr->y.clientId))) {
                 continue;
             }
-            if (!elemPtr->hidden) {
+            if ((!elemPtr->hidden) && (!elemPtr->plotHidden)) {
                 (*elemPtr->procsPtr->closestProc)(graphPtr, elemPtr, &search);
             }
         }

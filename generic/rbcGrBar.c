@@ -134,6 +134,7 @@ _Static_assert(offsetof(Bar, core) == 0, "Element core must be the first Bar mem
 #define DEF_BAR_ERRORBAR_CAP_WIDTH "1"
 #define DEF_BAR_FOREGROUND "blue"
 #define DEF_BAR_HIDE "no"
+#define DEF_BAR_HIDE_PLOT "no"
 #define DEF_BAR_LABEL (char *)NULL
 #define DEF_BAR_LABEL_RELIEF "flat"
 #define DEF_BAR_NORMAL_STIPPLE ""
@@ -200,6 +201,8 @@ static const Tk_OptionSpec barElemOptionSpecs[] = {
      BAR_BUILTIN_PEN_OFFSET(fgColor), TK_OPTION_NULL_OK, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
     {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_BAR_HIDE, -1, BAR_CORE_OFFSET(hidden), TK_OPTION_DONT_SET_DEFAULT,
      NULL, BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_BOOLEAN, "-hideplot", "hidePlot", "HidePlot", DEF_BAR_HIDE_PLOT, -1, BAR_CORE_OFFSET(plotHidden),
+     TK_OPTION_DONT_SET_DEFAULT, NULL, BAR_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_STRING, "-label", "label", "Label", DEF_BAR_LABEL, -1, BAR_CORE_OFFSET(label), TK_OPTION_NULL_OK, NULL,
      BAR_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_RELIEF, "-labelrelief", "labelRelief", "LabelRelief", DEF_BAR_LABEL_RELIEF, -1,
@@ -2605,6 +2608,7 @@ Element *Rbc_BarElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     elemPtr->name = RbcStrdup(name);
     elemPtr->graphPtr = graphPtr;
     elemPtr->hidden = FALSE;
+    elemPtr->plotHidden = FALSE;    
     /*
      * The embedded pen's direct option fields are initialized through
      * barElemOptionSpecs, while its derived resources use the normal
@@ -2679,7 +2683,7 @@ void Rbc_InitFreqTable(Graph *graphPtr) {
     for (linkPtr = Rbc_ChainFirstLink(graphPtr->elements.displayList); linkPtr != NULL;
          linkPtr = Rbc_ChainNextLink(linkPtr)) {
         elemPtr = Rbc_ChainGetValue(linkPtr);
-        if ((elemPtr->hidden) || (elemPtr->classUid != rbcBarElementUid)) {
+        if ((elemPtr->hidden) || (elemPtr->plotHidden) || (elemPtr->classUid != rbcBarElementUid)) {
             continue;
         }
         nSegs++;
@@ -2806,7 +2810,7 @@ void Rbc_ComputeStacks(Graph *graphPtr) {
     for (linkPtr = Rbc_ChainFirstLink(graphPtr->elements.displayList); linkPtr != NULL;
          linkPtr = Rbc_ChainNextLink(linkPtr)) {
         elemPtr = Rbc_ChainGetValue(linkPtr);
-        if ((elemPtr->hidden) || (elemPtr->classUid != rbcBarElementUid)) {
+        if ((elemPtr->hidden) || (elemPtr->plotHidden) || (elemPtr->classUid != rbcBarElementUid)) {
             continue;
         }
         barPtr = BAR_FROM_CORE(elemPtr);

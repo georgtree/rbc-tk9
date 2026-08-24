@@ -117,6 +117,14 @@ earlier in the list.</p>
 <p>Unknown element names in a list supplied to <code class="docutils literal notranslate"><span class="pre">show</span></code> are ignored.</p>
 <p>The element <code class="docutils literal notranslate"><span class="pre">-hide</span></code> option and display-list membership are kept synchronized. Configuring an element as hidden
 removes it from the display list; making it visible adds it back to the display list.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-hideplot</span></code> is intentionally different from <code class="docutils literal notranslate"><span class="pre">-hide</span></code>. Setting <code class="docutils literal notranslate"><span class="pre">-hideplot</span> <span class="pre">yes</span></code> suppresses plotting of the element
+without removing it from the display list, so its legend entry remains available. A plot-hidden element does
+not contribute to automatic axis limits, closest-element searches, element hit testing, PostScript element
+output, or bar grouping and stacking calculations. Setting <code class="docutils literal notranslate"><span class="pre">-hideplot</span> <span class="pre">no</span></code> restores plotting without changing
+display-list order.</p>
+<p>The two options are independent. <code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">yes</span></code> still removes an element from the display list even when
+<code class="docutils literal notranslate"><span class="pre">-hideplot</span></code> is set. Restoring the element with <code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">no</span></code> or <code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">show</span></code> does not change its <code class="docutils literal notranslate"><span class="pre">-hideplot</span></code>
+value.</p>
 </section>
 <section id="active-elements-and-points">
 <span id="r-rbc-element-active-elements-and-points"></span><span id="r-3a3arbc3a3aelementqzactive20elements20and20points"></span><h2>Active elements and points<a class="headerlink" href="#active-elements-and-points" title="Link to this heading">¶</a></h2>

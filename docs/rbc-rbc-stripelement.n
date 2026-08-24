@@ -224,6 +224,11 @@ The complete strip-element option set is:
 │                       │               │                │ unfilled\&.                                       │
 │ -hide boolean         │ hide          │ Hide           │ Controls whether the element is displayed\&. The  │
 │                       │               │                │ default is no\&.                                  │
+│ -hideplot boolean     │ hidePlot      │ HidePlot       │ Suppresses plotting of the element while keeping│
+│                       │               │                │ it in the display list and legend\&. A plot-hidden│
+│                       │               │                │ element does not contribute to automatic axis   │
+│                       │               │                │ limits and is ignored by closest searches and   │
+│                       │               │                │ element hit testing\&. The default is `no`\&.       │
 │ -label text           │ label         │ Label          │ Sets the element label used by the legend\&. The  │
 │                       │               │                │ initial label is the element name\&.              │
 │ -labelrelief relief   │ labelRelief   │ LabelRelief    │ Sets the relief used for the element's legend   │

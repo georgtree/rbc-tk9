@@ -1,0 +1,25 @@
+package provide graph.element
+
+package require rbc
+namespace import rbc::*
+package require tcltest
+namespace import tcltest::*
+
+namespace eval graph.element {
+    test RBC.graph.element.hideplot.A.1.1 {
+        graph element hideplot: hidden plot does not affect automatic limits
+    } -setup {
+        graph .graph1
+        .graph1 element create Element1 -data {0 0 1 10}
+        .graph1 element create Element2 -data {0 0 1 1000}
+    } -body {
+        set before [lindex [.graph1 axis limits y] 1]
+        .graph1 element configure Element2 -hideplot yes
+        set after [lindex [.graph1 axis limits y] 1]
+        expr {($before > 500.0) && ($after < 100.0)}
+    } -cleanup {
+        destroy .graph1
+    } -result {1}
+
+    cleanupTests
+}

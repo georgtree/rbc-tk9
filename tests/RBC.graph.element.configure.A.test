@@ -513,6 +513,118 @@ namespace eval graph.element {
 		destroy .graph1
 	} -result {0}
 
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure the element configure -hideplot command works correctly when given 1.
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.element.configure.A.7.8 {
+        graph element configure: hideplot - 1
+    } -setup {
+        graph .graph1
+        .graph1 element create Element1
+    } -body {
+        .graph1 element configure Element1 -hideplot 1
+        .graph1 element cget Element1 -hideplot
+    } -cleanup {
+        .graph1 element delete Element1
+        destroy .graph1
+    } -result {1}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure the element configure -hideplot command works correctly when given 0.
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.element.configure.A.7.9 {
+        graph element configure: hideplot - 0
+    } -setup {
+        graph .graph1
+        .graph1 element create Element1
+    } -body {
+        .graph1 element configure Element1 -hideplot 0
+        .graph1 element cget Element1 -hideplot
+    } -cleanup {
+        .graph1 element delete Element1
+        destroy .graph1
+    } -result {0}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure the element configure -hideplot command works correctly when given true.
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.element.configure.A.7.10 {
+        graph element configure: hideplot - true
+    } -setup {
+        graph .graph1
+        .graph1 element create Element1
+    } -body {
+        .graph1 element configure Element1 -hideplot true
+        .graph1 element cget Element1 -hideplot
+    } -cleanup {
+        .graph1 element delete Element1
+        destroy .graph1
+    } -result {1}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure the element configure -hideplot command works correctly when given false.
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.element.configure.A.7.11 {
+        graph element configure: hideplot - false
+    } -setup {
+        graph .graph1
+        .graph1 element create Element1
+    } -body {
+        .graph1 element configure Element1 -hideplot false
+        .graph1 element cget Element1 -hideplot
+    } -cleanup {
+        .graph1 element delete Element1
+        destroy .graph1
+    } -result {0}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure the element configure -hideplot command works correctly when given yes.
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.element.configure.A.7.12 {
+        graph element configure: hideplot - yes
+    } -setup {
+        graph .graph1
+        .graph1 element create Element1
+    } -body {
+        .graph1 element configure Element1 -hideplot yes
+        .graph1 element cget Element1 -hideplot
+    } -cleanup {
+        .graph1 element delete Element1
+        destroy .graph1
+    } -result {1}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure the element configure -hideplot command works correctly when given no.
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.element.configure.A.7.13 {
+        graph element configure: hideplot - no
+    } -setup {
+        graph .graph1
+        .graph1 element create Element1
+    } -body {
+        .graph1 element configure Element1 -hideplot no
+        .graph1 element cget Element1 -hideplot
+    } -cleanup {
+        .graph1 element delete Element1
+        destroy .graph1
+    } -result {0}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure the element configure -hideplot command works correctly when given invalid input.
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.element.configure.A.7.14 {
+        graph element configure: hideplot - invalid input
+    } -setup {
+        graph .graph1
+        .graph1 element create Element1
+    } -body {
+        catch {.graph1 element configure Element1 -hideplot invalid} errorStr
+        return $errorStr
+    } -cleanup {
+        .graph1 element delete Element1
+        destroy .graph1
+    } -result {expected boolean value but got "invalid"}
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -label command works correctly when given 
 	# valid text.

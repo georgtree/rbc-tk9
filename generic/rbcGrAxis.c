@@ -3720,6 +3720,9 @@ void Rbc_ResetAxes(Graph *graphPtr) {
     for (linkPtr = Rbc_ChainFirstLink(graphPtr->elements.displayList); linkPtr != NULL;
          linkPtr = Rbc_ChainNextLink(linkPtr)) {
         elemPtr = Rbc_ChainGetValue(linkPtr);
+        if (elemPtr->hidden || elemPtr->plotHidden) {
+            continue;
+        }
         (*elemPtr->procsPtr->extentsProc)(elemPtr, &exts);
         GetDataLimits(elemPtr->axes.x, exts.left, exts.right);
         GetDataLimits(elemPtr->axes.y, exts.top, exts.bottom);

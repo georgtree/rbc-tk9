@@ -1,0 +1,25 @@
+package provide barchart.element
+
+package require rbc
+namespace import rbc::*
+package require tcltest
+namespace import tcltest::*
+
+namespace eval barchart.element {
+    test RBC.barchart.element.hideplot.A.1.1 {
+        barchart element hideplot: hidden plot does not contribute to stack
+    } -setup {
+        barchart .barchart1 -barmode stacked
+        .barchart1 element create Element1 -data {1 10}
+        .barchart1 element create Element2 -data {1 1000}
+    } -body {
+        set before [lindex [.barchart1 axis limits y] 1]
+        .barchart1 element configure Element2 -hideplot yes
+        set after [lindex [.barchart1 axis limits y] 1]
+        expr {($before > 500.0) && ($after < 100.0)}
+    } -cleanup {
+        destroy .barchart1
+    } -result {1}
+
+    cleanupTests
+}

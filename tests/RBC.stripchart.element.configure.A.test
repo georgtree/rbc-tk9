@@ -513,6 +513,118 @@ namespace eval stripchart.element {
 		destroy .stripchart1
 	} -result {0}
 
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure the element configure -hideplot command works correctly when given 1.
+    # ------------------------------------------------------------------------------------
+    test RBC.stripchart.element.configure.A.7.8 {
+        stripchart element configure: hideplot - 1
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 element create Element1
+    } -body {
+        .stripchart1 element configure Element1 -hideplot 1
+        .stripchart1 element cget Element1 -hideplot
+    } -cleanup {
+        .stripchart1 element delete Element1
+        destroy .stripchart1
+    } -result {1}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure the element configure -hideplot command works correctly when given 0.
+    # ------------------------------------------------------------------------------------
+    test RBC.stripchart.element.configure.A.7.9 {
+        stripchart element configure: hideplot - 0
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 element create Element1
+    } -body {
+        .stripchart1 element configure Element1 -hideplot 0
+        .stripchart1 element cget Element1 -hideplot
+    } -cleanup {
+        .stripchart1 element delete Element1
+        destroy .stripchart1
+    } -result {0}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure the element configure -hideplot command works correctly when given true.
+    # ------------------------------------------------------------------------------------
+    test RBC.stripchart.element.configure.A.7.10 {
+        stripchart element configure: hideplot - true
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 element create Element1
+    } -body {
+        .stripchart1 element configure Element1 -hideplot true
+        .stripchart1 element cget Element1 -hideplot
+    } -cleanup {
+        .stripchart1 element delete Element1
+        destroy .stripchart1
+    } -result {1}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure the element configure -hideplot command works correctly when given false.
+    # ------------------------------------------------------------------------------------
+    test RBC.stripchart.element.configure.A.7.11 {
+        stripchart element configure: hideplot - false
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 element create Element1
+    } -body {
+        .stripchart1 element configure Element1 -hideplot false
+        .stripchart1 element cget Element1 -hideplot
+    } -cleanup {
+        .stripchart1 element delete Element1
+        destroy .stripchart1
+    } -result {0}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure the element configure -hideplot command works correctly when given yes.
+    # ------------------------------------------------------------------------------------
+    test RBC.stripchart.element.configure.A.7.12 {
+        stripchart element configure: hideplot - yes
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 element create Element1
+    } -body {
+        .stripchart1 element configure Element1 -hideplot yes
+        .stripchart1 element cget Element1 -hideplot
+    } -cleanup {
+        .stripchart1 element delete Element1
+        destroy .stripchart1
+    } -result {1}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure the element configure -hideplot command works correctly when given no.
+    # ------------------------------------------------------------------------------------
+    test RBC.stripchart.element.configure.A.7.13 {
+        stripchart element configure: hideplot - no
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 element create Element1
+    } -body {
+        .stripchart1 element configure Element1 -hideplot no
+        .stripchart1 element cget Element1 -hideplot
+    } -cleanup {
+        .stripchart1 element delete Element1
+        destroy .stripchart1
+    } -result {0}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure the element configure -hideplot command works correctly when given invalid input.
+    # ------------------------------------------------------------------------------------
+    test RBC.stripchart.element.configure.A.7.14 {
+        stripchart element configure: hideplot - invalid input
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 element create Element1
+    } -body {
+        catch {.stripchart1 element configure Element1 -hideplot invalid} errorStr
+        return $errorStr
+    } -cleanup {
+        .stripchart1 element delete Element1
+        destroy .stripchart1
+    } -result {expected boolean value but got "invalid"}
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element configure -label command works correctly when given 
 	# valid text.

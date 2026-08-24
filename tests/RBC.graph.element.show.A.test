@@ -72,6 +72,43 @@ namespace eval graph.element {
 	} -cleanup {
 		destroy .graph1
 	} -result {}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure -hideplot suppresses plotting without removing the element from the
+    # display list. This keeps its legend entry available.
+    # ------------------------------------------------------------------------------------
+    test RBC.element.show.A.1.4 {
+        element show: hideplot keeps element in display list
+    } -setup {
+        graph .graph1
+        .graph1 element create Element1
+    } -body {
+        .graph1 element configure Element1 -hideplot yes
+        list [.graph1 element show] [.graph1 element cget Element1 -hideplot]
+    } -cleanup {
+        .graph1 element delete Element1
+        destroy .graph1
+    } -result {Element1 1}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure -hide and -hideplot remain independent.
+    # ------------------------------------------------------------------------------------
+    test RBC.element.show.A.1.5 {
+        element show: hide and hideplot are independent
+    } -setup {
+        graph .graph1
+        .graph1 element create Element1 -hideplot yes
+    } -body {
+        set before [.graph1 element show]
+        .graph1 element configure Element1 -hide yes
+        set hidden [.graph1 element show]
+        .graph1 element configure Element1 -hide no
+        set restored [.graph1 element show]
+        list $before $hidden $restored [.graph1 element cget Element1 -hideplot]
+    } -cleanup {
+        .graph1 element delete Element1
+        destroy .graph1
+    } -result {Element1 {} Element1 1}
 	
 	cleanupTests
 }

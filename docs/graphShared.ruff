@@ -945,6 +945,16 @@ namespace eval ::rbc::ELEMENT {
         The element `-hide` option and display-list membership are kept synchronized. Configuring an element as hidden
         removes it from the display list; making it visible adds it back to the display list.
 
+        `-hideplot` is intentionally different from `-hide`. Setting `-hideplot yes` suppresses plotting of the element
+        without removing it from the display list, so its legend entry remains available. A plot-hidden element does
+        not contribute to automatic axis limits, closest-element searches, element hit testing, PostScript element
+        output, or bar grouping and stacking calculations. Setting `-hideplot no` restores plotting without changing
+        display-list order.
+
+        The two options are independent. `-hide yes` still removes an element from the display list even when
+        `-hideplot` is set. Restoring the element with `-hide no` or `ELEMENT show` does not change its `-hideplot`
+        value.
+
         ## Active elements and points
         Elements and individual data points may be marked active. Active items are normally drawn using the element's
         active pen.
@@ -1694,6 +1704,7 @@ namespace eval ::rbc::LINEELEMENT {
         | `-errorbarwidth width`  | `errorBarWidth`  | `ErrorBarWidth`  | Sets the error-bar line width. The default is `1`.                                                                                                                                                                |
         | `-fill color`           | `fill`           | `Fill`           | Sets the symbol fill color. `defcolor` uses the trace color; an empty value leaves symbols unfilled.                                                                                                              |
         | `-hide boolean`         | `hide`           | `Hide`           | Controls whether the element is displayed. The default is `no`.                                                                                                                                                   |
+        | `-hideplot boolean`     | `hidePlot`       | `HidePlot`       | Suppresses plotting of the element while keeping it in the display list and legend. A plot-hidden element does not contribute to automatic axis limits and is ignored by closest searches and element hit testing. The default is `no`. |
         | `-label text`           | `label`          | `Label`          | Sets the element label used by the legend. The initial label is the element name.                                                                                                                                 |
         | `-labelrelief relief`   | `labelRelief`    | `LabelRelief`    | Sets the relief used for the element's legend label. The default is `flat`.                                                                                                                                       |
         | `-linewidth width`      | `lineWidth`      | `LineWidth`      | Sets the built-in normal pen's trace width. The default is `1`; `0` suppresses the trace.                                                                                                                         |
@@ -1732,6 +1743,8 @@ namespace eval ::rbc::LINEELEMENT {
         | `-yhigh data`           | `yHigh`          | `YHigh`          | Supplies the upper Y error endpoints as a list or Rbc vector.                                                                                                                                                     |
         | `-ylow data`            | `yLow`           | `YLow`           | Supplies the lower Y error endpoints as a list or Rbc vector.                                                                                                                                                     |
 
+        | `-hideplot boolean`     | `hidePlot`       | `HidePlot`       | Suppresses plotting of the element while keeping it in the display list and legend. A plot-hidden element does not contribute to automatic axis limits and is ignored by closest searches and element hit testing. The default is `no`. |
+
         #ruffopt includedformats nroff
         ```
         ┌─────────────────────────┬──────────────────┬──────────────────┬─────────────────────────────────────────────────────────┐
@@ -1766,6 +1779,11 @@ namespace eval ::rbc::LINEELEMENT {
         │                         │                  │                  │ color; an empty value leaves symbols unfilled.          │
         │ -hide boolean           │ hide             │ Hide             │ Controls whether the element is displayed. The default  │
         │                         │                  │                  │ is no.                                                  │
+        │ -hideplot boolean       │ hidePlot         │ HidePlot         │ Suppresses plotting of the element while keeping it     │
+        │                         │                  │                  │ in the display list and legend. A plot-hidden element   │
+        │                         │                  │                  │ does not contribute to automatic axis limits and is     │
+        │                         │                  │                  │ ignored by closest searches and element hit testing.    │
+        │                         │                  │                  │ The default is `no`.                                    │
         │ -label text             │ label            │ Label            │ Sets the element label used by the legend. The initial  │
         │                         │                  │                  │ label is the element name.                              │
         │ -labelrelief relief     │ labelRelief      │ LabelRelief      │ Sets the relief used for the element's legend label.    │
@@ -2044,6 +2062,7 @@ namespace eval ::rbc::STRIPELEMENT {
         | `-errorbarwidth width`  | `errorBarWidth` | `ErrorBarWidth` | Sets the error-bar line width. The default is `1`.                                                                                                                                                                |
         | `-fill color`           | `fill`          | `Fill`          | Sets the symbol fill color. `defcolor` uses the trace color; an empty value leaves symbols unfilled.                                                                                                              |
         | `-hide boolean`         | `hide`          | `Hide`          | Controls whether the element is displayed. The default is `no`.                                                                                                                                                   |
+        | `-hideplot boolean`     | `hidePlot`      | `HidePlot`      | Suppresses plotting of the element while keeping it in the display list and legend. A plot-hidden element does not contribute to automatic axis limits and is ignored by closest searches and element hit testing. The default is `no`. |
         | `-label text`           | `label`         | `Label`         | Sets the element label used by the legend. The initial label is the element name.                                                                                                                                 |
         | `-labelrelief relief`   | `labelRelief`   | `LabelRelief`   | Sets the relief used for the element's legend label. The default is `flat`.                                                                                                                                       |
         | `-linewidth width`      | `lineWidth`     | `LineWidth`     | Sets the built-in normal pen's trace width. The default is `1`; `0` suppresses the trace.                                                                                                                         |
@@ -2108,6 +2127,11 @@ namespace eval ::rbc::STRIPELEMENT {
         │                       │               │                │ unfilled.                                       │
         │ -hide boolean         │ hide          │ Hide           │ Controls whether the element is displayed. The  │
         │                       │               │                │ default is no.                                  │
+        │ -hideplot boolean     │ hidePlot      │ HidePlot       │ Suppresses plotting of the element while keeping│
+        │                       │               │                │ it in the display list and legend. A plot-hidden│
+        │                       │               │                │ element does not contribute to automatic axis   │
+        │                       │               │                │ limits and is ignored by closest searches and   │
+        │                       │               │                │ element hit testing. The default is `no`.       │
         │ -label text           │ label         │ Label          │ Sets the element label used by the legend. The  │
         │                       │               │                │ initial label is the element name.              │
         │ -labelrelief relief   │ labelRelief   │ LabelRelief    │ Sets the relief used for the element's legend   │
@@ -2634,6 +2658,7 @@ namespace eval ::rbc::BARELEMENT {
         | `-fg color`             | —               | —               | Synonym for `-foreground`.                                                                                                                                                                                        |
         | `-foreground color`     | `foreground`    | `Foreground`    | Sets the primary bar fill color. The default is blue.                                                                                                                                                             |
         | `-hide boolean`         | `hide`          | `Hide`          | Controls whether the element is displayed. The default is `no`.                                                                                                                                                   |
+        | `-hideplot boolean`     | `hidePlot`      | `HidePlot`      | Suppresses plotting of the element while keeping it in the display list and legend. A plot-hidden bar does not contribute to automatic axis limits, bar grouping or stacking calculations, closest searches, or element hit testing. The default is `no`. |
         | `-label text`           | `label`         | `Label`         | Sets the element label used by the legend. The initial label is the element name.                                                                                                                                 |
         | `-labelrelief relief`   | `labelRelief`   | `LabelRelief`   | Sets the relief used for the element's legend label. The default is `flat`.                                                                                                                                       |
         | `-mapx axisName`        | `mapX`          | `MapX`          | Specifies the X axis used to map the element's X coordinates. The axis must exist and must be an X axis. The default is `x`.                                                                                      |
@@ -2699,6 +2724,12 @@ namespace eval ::rbc::BARELEMENT {
         │                         │                 │                  │ is blue.                                       │
         │ -hide boolean           │ hide            │ Hide             │ Controls whether the element is displayed. The │
         │                         │                 │                  │ default is no.                                 │
+        │ -hideplot boolean       │ hidePlot        │ HidePlot         │ Suppresses plotting of the element while       │
+        │                         │                 │                  │ keeping it in the display list and legend.     │
+        │                         │                 │                  │ A plot-hidden element does not contribute to   │
+        │                         │                 │                  │ automatic axis limits and is ignored by closest│
+        │                         │                 │                  │ searches and element hit testing. The default  │
+        │                         │                 │                  │ is `no`.                                       │
         │ -label text             │ label           │ Label            │ Sets the element label used by the legend. The │
         │                         │                 │                  │ initial label is the element name.             │
         │ -labelrelief relief     │ labelRelief     │ LabelRelief      │ Sets the relief used for the element's legend  │

@@ -248,6 +248,8 @@ struct ElementStruct {
 
     int hidden; /* If non-zero, don't display the element. */
 
+    int plotHidden; /* If non-zero, don't plot the element, but keep it
+                     * in the display list and legend. */
     Tcl_HashEntry *hashPtr;
 
     char *label; /* Label displayed in legend */
