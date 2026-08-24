@@ -136,6 +136,33 @@ proc FindAxisPoint {graph axis side} {
     return -code error "Could not find line of axis '$axis'"
 }
 
+proc FindLegendPoint {graph element} {
+    # Finds a physical widget position inside the legend entry
+    # corresponding to the requested element.
+    update idletasks
+    set width [winfo width $graph]
+    set height [winfo height $graph]
+    # Legend entries are much larger than a few pixels, so scan
+    # coarsely first to avoid unnecessary commands.
+    for {set y 0} {$y<$height} {incr y 3} {
+        for {set x 0} {$x<$width} {incr x 3} {
+            if {[$graph legend get @$x,$y] eq $element} {
+                return [list $x $y]
+            }
+        }
+    }
+    # defensive exact scan in case unusual geometry caused the
+    # coarse scan to miss the entry.
+    for {set y 0} {$y<$height} {incr y} {
+        for {set x 0} {$x<$width} {incr x} {
+            if {[$graph legend get @$x,$y] eq $element} {
+                return [list $x $y]
+            }
+        }
+    }
+    return -code error "could not find legend entry for element '$element'"
+}
+
 proc GenerateGraphEvent {graph sequence x y {time 500}} {
     sleep $time
     event generate $graph $sequence -x $x -y $y
@@ -160,6 +187,7 @@ testConstraint isZoom true
 testConstraint isCrosshairs true
 testConstraint isAxes true
 testConstraint isCross true
+testConstraint isActiveLegend true
 
 
 ### general configuration tests
@@ -918,7 +946,7 @@ test crosshairsInteractive-7 {interactive crosshairs with current coordinate mar
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
     grid rowconfigure . 0 -weight 1
-            $widget graph configure -title {Interactive crosshairs with current coordinate marker} {*}$titleFont
+    $widget graph configure -title {Interactive crosshairs with current coordinate marker} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
@@ -947,7 +975,7 @@ test crosshairsInteractive-8 {interactive crosshairs with current coordinate mar
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
     grid rowconfigure . 0 -weight 1
-            $widget graph configure -title {Interactive crosshairs with current coordinate marker} {*}$titleFont
+    $widget graph configure -title {Interactive crosshairs with current coordinate marker} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
@@ -977,7 +1005,7 @@ test crosshairsInteractive-9 {interactive crosshairs with current coordinate mar
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
     grid rowconfigure . 0 -weight 1
-            $widget graph configure -title {Interactive crosshairs with current coordinate marker} {*}$titleFont
+    $widget graph configure -title {Interactive crosshairs with current coordinate marker} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
@@ -1232,6 +1260,50 @@ test crossInteractive-3 {interactive single-stage zoom, check active axis disabl
     lappend scale [lindex [$graph axis configure $axis -logscale] end]
     return $scale
 }  -result {0 0 1}  -cleanup {
+    destroy $widget
+}
+
+#### active legend
+test activeLegendInteractive-1 {interactive three-state active legend} -constraints {isInteractive isActiveLegend}\
+        -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -activelegend]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+    $widget graph configure -title {Interactive three-state active legend} {*}$titleFont
+    $widget graph element create line1 -xdata xVec1 -ydata yVec1
+    $widget graph element create line2 -xdata xVec2 -ydata yVec2
+    set graph [$widget subwidget graph]
+    set element line1
+} -body {
+    WaitForWindow $graph
+    lassign [FindLegendPoint $graph $element] legendX legendY
+    set states [list]
+    # Initial state: normal.
+    lappend states [list [expr {$element in [$graph element activate]}] [$graph element cget $element -hideplot]\
+                            [$graph element cget $element -labelrelief]]
+    # first click: normal -> active.
+    GenerateGraphEvent $graph <Motion> $legendX $legendY 20
+    GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY 20
+    GenerateGraphEvent $graph <ButtonRelease-1> $legendX $legendY 20
+    lappend states [list [expr {$element in [$graph element activate]}] [$graph element cget $element -hideplot]\
+                            [$graph element cget $element -labelrelief]]
+    # second click: active -> plot-hidden.
+    GenerateGraphEvent $graph <Motion> $legendX $legendY 20
+    GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY 20
+    GenerateGraphEvent $graph <ButtonRelease-1> $legendX $legendY 20
+    lappend states [list [expr {$element in [$graph element activate]}] [$graph element cget $element -hideplot]\
+                            [$graph element cget $element -labelrelief]]
+    # the legend entry must still exist while the element is plot-hidden.
+    set legendStillPresent [expr {[$graph legend get @$legendX,$legendY] eq $element}]
+    # third click: plot-hidden -> normal.
+    GenerateGraphEvent $graph <Motion> $legendX $legendY 20
+    GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY 20
+    GenerateGraphEvent $graph <ButtonRelease-1> $legendX $legendY 20
+    lappend states [list [expr {$element in [$graph element activate]}] [$graph element cget $element -hideplot]\
+                            [$graph element cget $element -labelrelief]]
+    return [list $states $legendStillPresent]
+} -result {{{0 0 flat} {1 0 raised} {0 1 sunken} {0 0 flat}} 1} -cleanup {
     destroy $widget
 }
 

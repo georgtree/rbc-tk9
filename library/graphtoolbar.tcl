@@ -290,6 +290,7 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
             {-crosshairsmarkboxopts= -require crosshairs -type dict -default {}}
             {-crosshairsclosestopts= -require crosshairs -type dict -default {}}
             {-scaletoggle= -type list}
+            -activelegend
         }]
         my configure -crosshairsclosestopts [dict get $arguments crosshairsclosestopts]
         set ZoomMod [dict get $arguments zoommod]
@@ -365,6 +366,11 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         #### axes scales toggle activation
         if {[dict exists $arguments scaletoggle]} {
             my setAxisActiveScale [dict get $arguments scaletoggle]
+        }
+
+        #### active legend activation
+        if {[dict exists $arguments activelegend]} {
+            my EnableActiveLegend
         }
 
         grid columnconfigure $frameName 0 -weight 1
@@ -825,6 +831,62 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
             }
         }
         return $activeAxes
+    }
+    #### active legend methods
+    method EnableActiveLegend {} {
+        # Enables three-state legend interaction:
+        #
+        #   normal -> active -> plot-hidden -> normal
+        #
+        # Legend relief indicates the persistent state:
+        #
+        #   flat    normal
+        #   raised  active
+        #   sunken  plot-hidden
+        set graph $Subwidgets(graph)
+        $graph legend bind all <Enter> [namespace code {my ActivateLegend}]
+        $graph legend bind all <Leave> [namespace code {my DeactivateLegend}]
+        $graph legend bind all <ButtonPress-1> [namespace code {my ToggleLegendElement}]
+    }
+    method ActivateLegend {} {
+        set graph $Subwidgets(graph)
+        set elem [$graph legend get current]
+        if {$elem ne {}} {
+            $graph legend activate $elem
+        }
+    }
+    method DeactivateLegend {} {
+        set graph $Subwidgets(graph)
+        set elem [$graph legend get current]
+        if {$elem ne {}} {
+            $graph legend deactivate $elem
+        }
+    }
+    method ToggleLegendElement {} {
+        set graph $Subwidgets(graph)
+        set elem [$graph legend get current]
+        if {$elem eq {}} {
+            return
+        }
+        set hidePlot [$graph element cget $elem -hideplot]
+        set relief [$graph element cget $elem -labelrelief]
+        if {$hidePlot} {
+            # plot-hidden -> normal
+            # restore plotting and clear any persistent element activation.
+            $graph element configure $elem -hideplot no -labelrelief flat
+            $graph element deactivate $elem
+        } elseif {$relief eq {raised}} {
+            # active -> plot-hidden
+            # remove the active drawing first, then suppress normal plotting.
+            # -hideplot deliberately leaves the element in the display list,
+            # therefore its legend entry remains available for the next click.
+            $graph element deactivate $elem
+            $graph element configure $elem -hideplot yes -labelrelief sunken
+        } else {
+            # normal -> active
+            $graph element configure $elem -labelrelief raised
+            $graph element activate $elem
+        }
     }
     #### crosshairs methods
     method CreateClosestMarker {graph textMarker bitmapMarker element xValue yValue options} {

@@ -1743,8 +1743,6 @@ namespace eval ::rbc::LINEELEMENT {
         | `-yhigh data`           | `yHigh`          | `YHigh`          | Supplies the upper Y error endpoints as a list or Rbc vector.                                                                                                                                                     |
         | `-ylow data`            | `yLow`           | `YLow`           | Supplies the lower Y error endpoints as a list or Rbc vector.                                                                                                                                                     |
 
-        | `-hideplot boolean`     | `hidePlot`       | `HidePlot`       | Suppresses plotting of the element while keeping it in the display list and legend. A plot-hidden element does not contribute to automatic axis limits and is ignored by closest searches and element hit testing. The default is `no`. |
-
         #ruffopt includedformats nroff
         ```
         ┌─────────────────────────┬──────────────────┬──────────────────┬─────────────────────────────────────────────────────────┐
