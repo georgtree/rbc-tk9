@@ -1126,7 +1126,176 @@ test crosshairsInteractive-12 {interactive crosshairs with current coordinate ma
     destroy $widget
 }
 
-# add tests for multiple axes with marker text values check
+test crosshairsInteractive-13 {current crosshairs marker text with multiple axes}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current\
+                        -crosshairsmarkopts {-formatx .6g -formaty .6g}]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+    $widget graph configure -title {Current crosshairs marker text with multiple axes} {*}$titleFont
+    $widget graph element create line1 -xdata xVec1 -ydata yVec1
+    $widget graph axis create xAlt -min 100 -max 200
+    $widget graph axis create yAlt -min 1000 -max 2000
+    $widget graph x2axis use xAlt
+    $widget graph y2axis use yAlt
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    set x [expr {$left+$width/2}]
+    set y [expr {$top+$height/2}]
+    # not inverted:
+    #   xPixel -> physical horizontal coordinate
+    #   yPixel -> physical vertical coordinate
+    set xPixel $x
+    set yPixel $y
+    set expected [join [list [format "x(h)=%.6g" [$graph axis invtransform x $xPixel]]\
+                                [format "xAlt(h)=%.6g" [$graph axis invtransform xAlt $xPixel]]\
+                                [format "y(v)=%.6g" [$graph axis invtransform y $yPixel]]\
+                                [format "yAlt(v)=%.6g" [$graph axis invtransform yAlt $yPixel]]] \n]
+    GenerateGraphEvent $graph <Motion> $x $y 20
+    sleep 500
+    if {![$graph marker exists crosshairsText]} {
+        return {crosshairsText marker was not created}
+    }
+    set actual [$graph marker cget crosshairsText -text]
+    if {$actual ne $expected} {
+        return [list expected $expected actual $actual]
+    }
+    return
+} -result {} -cleanup {
+    destroy $widget
+}
+
+test crosshairsInteractive-14 {current crosshairs marker text with multiple inverted axes}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current\
+                        -crosshairsmarkopts {-formatx .6g -formaty .6g}]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+    $widget graph configure -title {Current crosshairs marker text with multiple inverted axes} -invertxy true\
+            {*}$titleFont
+    $widget graph element create line1 -xdata xVec1 -ydata yVec1
+    $widget graph axis create xAlt -min 100 -max 200
+    $widget graph axis create yAlt -min 1000 -max 2000
+    $widget graph x2axis use xAlt
+    $widget graph y2axis use yAlt
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    set x [expr {$left+$width/2}]
+    set y [expr {$top+$height/2}]
+    # inverted:
+    #   X data dimension is physically vertical.
+    #   Y data dimension is physically horizontal.
+    set xPixel $y
+    set yPixel $x
+    set expected [join [list [format "x(v)=%.6g" [$graph axis invtransform x $xPixel]]\
+                                [format "xAlt(v)=%.6g" [$graph axis invtransform xAlt $xPixel]]\
+                                [format "y(h)=%.6g" [$graph axis invtransform y $yPixel]]\
+                                [format "yAlt(h)=%.6g" [$graph axis invtransform yAlt $yPixel]]] \n]
+    GenerateGraphEvent $graph <Motion> $x $y 20
+    sleep 500
+    if {![$graph marker exists crosshairsText]} {
+        return {crosshairsText marker was not created}
+    }
+    set actual [$graph marker cget crosshairsText -text]
+    if {$actual ne $expected} {
+        return [list expected $expected actual $actual]
+    }
+    return
+} -result {} -cleanup {
+    destroy $widget
+}
+
+test crosshairsInteractive-15 {closest crosshairs marker text uses element mapped axes}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
+                        -crosshairsmarkopts {-formatx .6g -formaty .6g}\
+                        -crosshairsclosestopts {-interpolate no -halo 10}]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+    $widget graph configure -title {Closest crosshairs marker text with mapped axes} {*}$titleFont
+    $widget graph axis create time
+    $widget graph axis create voltage
+    $widget graph x2axis use time
+    $widget graph y2axis use voltage
+    $widget graph element create line1 -xdata xVec1 -ydata yVec1 -mapx time -mapy voltage
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    # exact point from line1.
+    set xValue 1.0
+    set yValue 111.86
+    # axis transform returns the pixel along the corresponding
+    # X/Y data dimension.
+    set xPixel [$graph axis transform time $xValue]
+    set yPixel [$graph axis transform voltage $yValue]
+    # Not inverted, so these are also physical widget x/y.
+    set x $xPixel
+    set y $yPixel
+    set expected [join [list line1 [format "time(h)=%.6g" $xValue] [format "voltage(v)=%.6g" $yValue]] \n]
+    GenerateGraphEvent $graph <Motion> $x $y 20
+    sleep 500
+    if {![$graph marker exists crosshairsText]} {
+        return {crosshairsText marker was not created}
+    }
+    set actual [$graph marker cget crosshairsText -text]
+    if {$actual ne $expected} {
+        return [list expected $expected actual $actual]
+    }
+    return
+} -result {} -cleanup {
+    destroy $widget
+}
+
+test crosshairsInteractive-16 {closest crosshairs marker text uses element mapped axes when inverted}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
+                        -crosshairsmarkopts {-formatx .6g -formaty .6g}\
+                        -crosshairsclosestopts {-interpolate no -halo 10}]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+    $widget graph configure -title {Closest crosshairs marker text with mapped inverted axes} -invertxy true\
+            {*}$titleFont
+    $widget graph axis create time
+    $widget graph axis create voltage
+    $widget graph x2axis use time
+    $widget graph y2axis use voltage
+    $widget graph element create line1 -xdata xVec1 -ydata yVec1 -mapx time -mapy voltage
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    # exact point from line1.
+    set xValue 1.0
+    set yValue 111.86
+    set xPixel [$graph axis transform time $xValue]
+    set yPixel [$graph axis transform voltage $yValue]
+    # with -invertxy:
+    #
+    #   xPixel is physically vertical -> widget y
+    #   yPixel is physically horizontal -> widget x
+    set x $yPixel
+    set y $xPixel
+    set expected [join [list line1 [format "time(v)=%.6g" $xValue] [format "voltage(h)=%.6g" $yValue]] \n]
+    GenerateGraphEvent $graph <Motion> $x $y 20
+    sleep 500
+    if {![$graph marker exists crosshairsText]} {
+        return {crosshairsText marker was not created}
+    }
+    set actual [$graph marker cget crosshairsText -text]
+    if {$actual ne $expected} {
+        return [list expected $expected actual $actual]
+    }
+    return
+} -result {} -cleanup {
+    destroy $widget
+}
 
 #### axes
 test axesInteractive-1 {interactive change of axis scale} -constraints {isInteractive isAxes} -setup {
@@ -1284,13 +1453,13 @@ test activeLegendInteractive-1 {interactive three-state active legend} -constrai
                             [$graph element cget $element -labelrelief]]
     # first click: normal -> active.
     GenerateGraphEvent $graph <Motion> $legendX $legendY 20
-    GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY 20
+    GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY
     GenerateGraphEvent $graph <ButtonRelease-1> $legendX $legendY 20
     lappend states [list [expr {$element in [$graph element activate]}] [$graph element cget $element -hideplot]\
                             [$graph element cget $element -labelrelief]]
     # second click: active -> plot-hidden.
     GenerateGraphEvent $graph <Motion> $legendX $legendY 20
-    GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY 20
+    GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY
     GenerateGraphEvent $graph <ButtonRelease-1> $legendX $legendY 20
     lappend states [list [expr {$element in [$graph element activate]}] [$graph element cget $element -hideplot]\
                             [$graph element cget $element -labelrelief]]
@@ -1298,7 +1467,7 @@ test activeLegendInteractive-1 {interactive three-state active legend} -constrai
     set legendStillPresent [expr {[$graph legend get @$legendX,$legendY] eq $element}]
     # third click: plot-hidden -> normal.
     GenerateGraphEvent $graph <Motion> $legendX $legendY 20
-    GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY 20
+    GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY
     GenerateGraphEvent $graph <ButtonRelease-1> $legendX $legendY 20
     lappend states [list [expr {$element in [$graph element activate]}] [$graph element cget $element -hideplot]\
                             [$graph element cget $element -labelrelief]]
