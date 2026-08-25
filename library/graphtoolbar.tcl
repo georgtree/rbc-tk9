@@ -256,7 +256,7 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
                  $value]
     }
     variable PsData ZoomInfo ZoomMod zoomtitle ZoomMark zoomtitleopts zoomboxopts zoommarkopts ZoomTransientChecks\
-            zoommarkboxopts
+            zoommarkboxopts GraphType
     variable CrosshairsSelector crosshairsmarkopts crosshairsclosestopts crosshairsopts crosshairsmarkboxopts
     variable AxisScaleInfo SavedToolbarStates
     classmethod unknown {w args} {
@@ -270,8 +270,9 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         classvariable CrosshairsModes
         set arguments [argparse -inline -pfirst {
             path
-            {-width=}
-            {-height=}
+            -width=
+            -height=
+            {-type= -default graph -enum {graph barchart stripchart}}
             {-toolbarside= -default bottom}
             -zoom
             {-zoomstartbut -default {ButtonPress-1}}
@@ -294,11 +295,12 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         }]
         my configure -crosshairsclosestopts [dict get $arguments crosshairsclosestopts]
         set ZoomMod [dict get $arguments zoommod]
+        set GraphType [dict get $arguments type]
         set currentNamespace [namespace current]
         set frameName [dict get $arguments path]
         ttk::frame $frameName -width [dict get $arguments width] -height [dict get $arguments height]
         set Subwidgets(toolbarFrame) [ttk::frame $frameName.toolbarFr]
-        set Subwidgets(graph) [::rbc::graph $frameName.graph]
+        set Subwidgets(graph) [::rbc::$GraphType $frameName.graph]
         grid $Subwidgets(graph) -row [expr {[dict get $arguments toolbarside] eq {bottom} ? 0 : 1}] -column 0\
                 -sticky nsew
         grid $Subwidgets(toolbarFrame) -row [expr {[dict get $arguments toolbarside] eq {bottom} ? 1 : 0}] -column 0\
