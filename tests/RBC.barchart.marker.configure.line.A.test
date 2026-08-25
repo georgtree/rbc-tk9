@@ -667,6 +667,157 @@ namespace eval barchart.marker {
     } -cleanup {
         catch {destroy .barchart1}
     } -result ok
+
+    test RBC.barchart.marker.configure.line.A.9.1 {
+        barchart marker configure line: arrow - default
+    } -setup {
+        barchart .barchart1
+        .barchart1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        .barchart1 marker cget Marker1 -arrow
+    } -cleanup {
+        destroy .barchart1
+    } -result {none}
+
+    test RBC.barchart.marker.configure.line.A.9.2 {
+        barchart marker configure line: arrow - none
+    } -setup {
+        barchart .barchart1
+        .barchart1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        .barchart1 marker configure Marker1 -arrow none
+        .barchart1 marker cget Marker1 -arrow
+    } -cleanup {
+        destroy .barchart1
+    } -result {none}
+
+    test RBC.barchart.marker.configure.line.A.9.3 {
+        barchart marker configure line: arrow - first
+    } -setup {
+        barchart .barchart1
+        .barchart1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        .barchart1 marker configure Marker1 -arrow first
+        .barchart1 marker cget Marker1 -arrow
+    } -cleanup {
+        destroy .barchart1
+    } -result {first}
+
+    test RBC.barchart.marker.configure.line.A.9.4 {
+        barchart marker configure line: arrow - last
+    } -setup {
+        barchart .barchart1
+        .barchart1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        .barchart1 marker configure Marker1 -arrow last
+        .barchart1 marker cget Marker1 -arrow
+    } -cleanup {
+        destroy .barchart1
+    } -result {last}
+
+    test RBC.barchart.marker.configure.line.A.9.5 {
+        barchart marker configure line: arrow - both
+    } -setup {
+        barchart .barchart1
+        .barchart1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        .barchart1 marker configure Marker1 -arrow both
+        .barchart1 marker cget Marker1 -arrow
+    } -cleanup {
+        destroy .barchart1
+    } -result {both}
+
+    test RBC.barchart.marker.configure.line.A.9.6 {
+        barchart marker configure line: arrow - invalid
+    } -setup {
+        barchart .barchart1
+        .barchart1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        catch {.barchart1 marker configure Marker1 -arrow bad}
+    } -cleanup {
+        destroy .barchart1
+    } -result {1}
+
+
+    test RBC.barchart.marker.configure.line.A.10.1 {
+        barchart marker configure line: arrowshape - default
+    } -setup {
+        barchart .barchart1
+        .barchart1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        .barchart1 marker cget Marker1 -arrowshape
+    } -cleanup {
+        destroy .barchart1
+    } -result {8 10 3}
+
+    test RBC.barchart.marker.configure.line.A.10.2 {
+        barchart marker configure line: arrowshape
+    } -setup {
+        barchart .barchart1
+        .barchart1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        .barchart1 marker configure Marker1 -arrowshape {12 15 5}
+        .barchart1 marker cget Marker1 -arrowshape
+    } -cleanup {
+        destroy .barchart1
+    } -result {12 15 5}
+
+    test RBC.barchart.marker.configure.line.A.10.3 {
+        barchart marker configure line: arrowshape - screen distances
+    } -setup {
+        barchart .barchart1
+        .barchart1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        .barchart1 marker configure Marker1 -arrowshape {8p 10p 3p}
+        .barchart1 marker cget Marker1 -arrowshape
+    } -cleanup {
+        destroy .barchart1
+    } -result {8p 10p 3p}
+
+    test RBC.barchart.marker.configure.line.A.10.4 {
+        barchart marker configure line: arrowshape - too few values
+    } -setup {
+        barchart .barchart1
+        .barchart1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        catch {.barchart1 marker configure Marker1 -arrowshape {8 10}}
+    } -cleanup {
+        destroy .barchart1
+    } -result {1}
+
+    test RBC.barchart.marker.configure.line.A.10.5 {
+        barchart marker configure line: arrowshape - too many values
+    } -setup {
+        barchart .barchart1
+        .barchart1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        catch {.barchart1 marker configure Marker1 -arrowshape {8 10 3 2}}
+    } -cleanup {
+        destroy .barchart1
+    } -result {1}
+
+    test RBC.barchart.marker.configure.line.A.10.6 {
+        barchart marker configure line: arrowshape - invalid screen distance
+    } -setup {
+        barchart .barchart1
+        .barchart1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        catch {.barchart1 marker configure Marker1 -arrowshape {8 bad 3}}
+    } -cleanup {
+        destroy .barchart1
+    } -result {1}
+
+    test RBC.barchart.marker.configure.line.A.10.7 {
+        barchart marker configure line: arrow and arrowshape - transactional rollback
+    } -setup {
+        barchart .barchart1
+        .barchart1 marker create line -name Marker1 -coords {0 0 1 1} -arrow first -arrowshape {8 10 3}
+    } -body {
+        set code [catch {.barchart1 marker configure Marker1 -arrow both -arrowshape {20 bad 5}}]
+        list $code [.barchart1 marker cget Marker1 -arrow] [.barchart1 marker cget Marker1 -arrowshape]
+    } -cleanup {
+        destroy .barchart1
+    } -result {1 first {8 10 3}}
 	
 	cleanupTests
 }

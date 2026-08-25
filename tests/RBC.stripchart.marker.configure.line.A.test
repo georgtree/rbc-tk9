@@ -668,5 +668,156 @@ namespace eval stripchart.marker {
         catch {destroy .stripchart1}
     } -result ok
 
+    test RBC.stripchart.marker.configure.line.A.9.1 {
+        stripchart marker configure line: arrow - default
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        .stripchart1 marker cget Marker1 -arrow
+    } -cleanup {
+        destroy .stripchart1
+    } -result {none}
+
+    test RBC.stripchart.marker.configure.line.A.9.2 {
+        stripchart marker configure line: arrow - none
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        .stripchart1 marker configure Marker1 -arrow none
+        .stripchart1 marker cget Marker1 -arrow
+    } -cleanup {
+        destroy .stripchart1
+    } -result {none}
+
+    test RBC.stripchart.marker.configure.line.A.9.3 {
+        stripchart marker configure line: arrow - first
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        .stripchart1 marker configure Marker1 -arrow first
+        .stripchart1 marker cget Marker1 -arrow
+    } -cleanup {
+        destroy .stripchart1
+    } -result {first}
+
+    test RBC.stripchart.marker.configure.line.A.9.4 {
+        stripchart marker configure line: arrow - last
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        .stripchart1 marker configure Marker1 -arrow last
+        .stripchart1 marker cget Marker1 -arrow
+    } -cleanup {
+        destroy .stripchart1
+    } -result {last}
+
+    test RBC.stripchart.marker.configure.line.A.9.5 {
+        stripchart marker configure line: arrow - both
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        .stripchart1 marker configure Marker1 -arrow both
+        .stripchart1 marker cget Marker1 -arrow
+    } -cleanup {
+        destroy .stripchart1
+    } -result {both}
+
+    test RBC.stripchart.marker.configure.line.A.9.6 {
+        stripchart marker configure line: arrow - invalid
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        catch {.stripchart1 marker configure Marker1 -arrow bad}
+    } -cleanup {
+        destroy .stripchart1
+    } -result {1}
+
+
+    test RBC.stripchart.marker.configure.line.A.10.1 {
+        stripchart marker configure line: arrowshape - default
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        .stripchart1 marker cget Marker1 -arrowshape
+    } -cleanup {
+        destroy .stripchart1
+    } -result {8 10 3}
+
+    test RBC.stripchart.marker.configure.line.A.10.2 {
+        stripchart marker configure line: arrowshape
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        .stripchart1 marker configure Marker1 -arrowshape {12 15 5}
+        .stripchart1 marker cget Marker1 -arrowshape
+    } -cleanup {
+        destroy .stripchart1
+    } -result {12 15 5}
+
+    test RBC.stripchart.marker.configure.line.A.10.3 {
+        stripchart marker configure line: arrowshape - screen distances
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        .stripchart1 marker configure Marker1 -arrowshape {8p 10p 3p}
+        .stripchart1 marker cget Marker1 -arrowshape
+    } -cleanup {
+        destroy .stripchart1
+    } -result {8p 10p 3p}
+
+    test RBC.stripchart.marker.configure.line.A.10.4 {
+        stripchart marker configure line: arrowshape - too few values
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        catch {.stripchart1 marker configure Marker1 -arrowshape {8 10}}
+    } -cleanup {
+        destroy .stripchart1
+    } -result {1}
+
+    test RBC.stripchart.marker.configure.line.A.10.5 {
+        stripchart marker configure line: arrowshape - too many values
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        catch {.stripchart1 marker configure Marker1 -arrowshape {8 10 3 2}}
+    } -cleanup {
+        destroy .stripchart1
+    } -result {1}
+
+    test RBC.stripchart.marker.configure.line.A.10.6 {
+        stripchart marker configure line: arrowshape - invalid screen distance
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        catch {.stripchart1 marker configure Marker1 -arrowshape {8 bad 3}}
+    } -cleanup {
+        destroy .stripchart1
+    } -result {1}
+
+    test RBC.stripchart.marker.configure.line.A.10.7 {
+        stripchart marker configure line: arrow and arrowshape - transactional rollback
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 marker create line -name Marker1 -coords {0 0 1 1} -arrow first -arrowshape {8 10 3}
+    } -body {
+        set code [catch {.stripchart1 marker configure Marker1 -arrow both -arrowshape {20 bad 5}}]
+        list $code [.stripchart1 marker cget Marker1 -arrow] [.stripchart1 marker cget Marker1 -arrowshape]
+    } -cleanup {
+        destroy .stripchart1
+    } -result {1 first {8 10 3}}
+
 	cleanupTests
 }

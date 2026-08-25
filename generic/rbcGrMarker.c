@@ -9,6 +9,7 @@
  * See "license.terms" for details.
  */
 
+#include <float.h>
 #include "rbcGraph.h"
 #include "rbcChain.h"
 #include "rbcGrAxis.h"
@@ -56,6 +57,9 @@
 #define DEF_MARKER_XOR "no"
 #define DEF_MARKER_X_OFFSET "0"
 #define DEF_MARKER_Y_OFFSET "0"
+#define DEF_MARKER_ARROW "none"
+#define DEF_MARKER_ARROW_SHAPE "8 10 3"
+#define PTS_IN_ARROW 6
 
 #define DEF_MARKER_TEXT_TAGS "Text all"
 #define DEF_MARKER_IMAGE_TAGS "Image all"
@@ -413,6 +417,9 @@ static const Tk_OptionSpec imageMarkerOptionSpecs[] = {
  *
  * -------------------------------------------------------------------
  */
+typedef enum { LINE_ARROW_NONE, LINE_ARROW_FIRST, LINE_ARROW_LAST, LINE_ARROW_BOTH } LineArrow;
+static const char *const arrowStrings[] = {"none", "first", "last", "both", NULL};
+
 typedef struct {
     Marker core;
 
@@ -425,6 +432,7 @@ typedef struct {
     Tcl_Obj *dashOffsetObjPtr;
     Tcl_Obj *joinObjPtr;
     Tcl_Obj *lineWidthObjPtr;
+    Tcl_Obj *arrowShapeObjPtr;
     
     /* Line specific attributes */
     XColor *fillColor;
@@ -434,6 +442,20 @@ typedef struct {
     int capStyle;      /* Cap style. */
     int joinStyle;     /* Join style.*/
     Rbc_Dashes dashes; /* Dash list values (max 11) */
+
+    LineArrow arrow;
+    double arrowShape[3];
+
+    /*
+     * Mapped arrowhead geometry.  The first and last point are
+     * identical so the polygon is explicitly closed.
+     */
+    Point2D firstArrow[PTS_IN_ARROW];
+    Point2D lastArrow[PTS_IN_ARROW];
+    Point2D firstShaftPoint;
+    Point2D lastShaftPoint;
+    int hasFirstArrow;
+    int hasLastArrow;    
 
     GC gc; /* Private graphic context */
 
@@ -453,6 +475,10 @@ typedef struct {
 static const Tk_OptionSpec lineMarkerOptionSpecs[] = {
     {TK_OPTION_STRING, "-bindtags", "bindTags", "BindTags", DEF_MARKER_LINE_TAGS, offsetof(Marker, bindTagsObjPtr), -1,
      TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING_TABLE, "-arrow", "arrow", "Arrow", DEF_MARKER_ARROW, -1, offsetof(LineMarker, arrow), 0,
+     (ClientData)arrowStrings, 0},
+    {TK_OPTION_STRING, "-arrowshape", "arrowShape", "ArrowShape", DEF_MARKER_ARROW_SHAPE,
+     offsetof(LineMarker, arrowShapeObjPtr), -1, 0, NULL, 0},
     {TK_OPTION_STRING, "-cap", "cap", "Cap", DEF_MARKER_CAP_STYLE, offsetof(LineMarker, capObjPtr), -1, 0, NULL, 0},
     {TK_OPTION_STRING, "-coords", "coords", "Coords", DEF_MARKER_COORDS, offsetof(Marker, coordsObjPtr), -1,
      TK_OPTION_NULL_OK, NULL, 0},
@@ -3977,6 +4003,58 @@ static void ChildCustodyProc(ClientData clientData, Tk_Window tkwin) {
     Rbc_EventuallyRedrawGraph(graphPtr);
 }
 
+static int ComputeArrowHead(Point2D tip, Point2D adjacent, double lineWidth, const double shape[3],
+                            Point2D arrow[PTS_IN_ARROW], Point2D *shaftPtr) {
+    double shapeA, shapeB, shapeC;
+    double dx, dy, length;
+    double cosTheta, sinTheta;
+    double fracHeight, backup;
+    double vertX, vertY, temp;
+
+    /*
+     * This follows Tk canvas line-arrow geometry.
+     */
+    shapeA = shape[0] + 0.001;
+    shapeB = shape[1] + 0.001;
+    shapeC = shape[2] + lineWidth * 0.5 + 0.001;
+    dx = tip.x - adjacent.x;
+    dy = tip.y - adjacent.y;
+    length = hypot(dx, dy);
+    if (length <= DBL_EPSILON) {
+        return FALSE;
+    }
+    cosTheta = dx / length;
+    sinTheta = dy / length;
+    fracHeight = (lineWidth * 0.5) / shapeC;
+    backup = fracHeight * shapeB + shapeA * (1.0 - fracHeight) * 0.5;
+    arrow[0] = tip;
+    arrow[5] = tip;
+    vertX = tip.x - shapeA * cosTheta;
+    vertY = tip.y - shapeA * sinTheta;
+    temp = shapeC * sinTheta;
+    arrow[1].x = tip.x - shapeB * cosTheta + temp;
+    arrow[4].x = arrow[1].x - 2.0 * temp;
+    temp = shapeC * cosTheta;
+    arrow[1].y = tip.y - shapeB * sinTheta - temp;
+    arrow[4].y = arrow[1].y + 2.0 * temp;
+    arrow[2].x = arrow[1].x * fracHeight + vertX * (1.0 - fracHeight);
+    arrow[2].y = arrow[1].y * fracHeight + vertY * (1.0 - fracHeight);
+    arrow[3].x = arrow[4].x * fracHeight + vertX * (1.0 - fracHeight);
+    arrow[3].y = arrow[4].y * fracHeight + vertY * (1.0 - fracHeight);
+    /*
+     * Stop the shaft at the neck instead of letting it protrude
+     * through the arrowhead.
+     */
+    shaftPtr->x = tip.x - backup * cosTheta;
+    shaftPtr->y = tip.y - backup * sinTheta;
+    return TRUE;
+}
+
+static int PointInsideExtents(const Point2D *pointPtr, const Extents2D *extsPtr) {
+    return ((pointPtr->x >= extsPtr->left) && (pointPtr->x <= extsPtr->right) && (pointPtr->y >= extsPtr->top) &&
+            (pointPtr->y <= extsPtr->bottom));
+}
+
 /*
  * ----------------------------------------------------------------------
  *
@@ -4012,6 +4090,8 @@ static void MapLineMarker(Marker *markerPtr) {
     lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
     lmPtr->nSegments = 0;
     lmPtr->core.clipped = TRUE;
+    lmPtr->hasFirstArrow = FALSE;
+    lmPtr->hasLastArrow = FALSE;
     if (lmPtr->segments != NULL) {
         ckfree(lmPtr->segments);
         lmPtr->segments = NULL;
@@ -4019,6 +4099,11 @@ static void MapLineMarker(Marker *markerPtr) {
     if (lmPtr->core.nWorldPts < 2) {
         return;
     }
+    /*
+     * Get the plotting-area extents before using them for either
+     * arrowhead endpoint tests or line clipping.
+     */
+    Rbc_GraphExtents(graphPtr, &exts);
     /*
      * One source edge can produce at most one clipped segment.
      */
@@ -4030,23 +4115,67 @@ static void MapLineMarker(Marker *markerPtr) {
     if (segments == NULL) {
         return;
     }
-    Rbc_GraphExtents(graphPtr, &exts);
+    /*
+     * Compute arrowhead geometry from mapped screen coordinates.
+     */
+    {
+        Point2D tip, adjacent;
+        double width;
+
+        width = (lmPtr->lineWidth > 0) ? (double)lmPtr->lineWidth : 1.0;
+        if ((lmPtr->arrow == LINE_ARROW_FIRST) || (lmPtr->arrow == LINE_ARROW_BOTH)) {
+            tip = MapPoint(graphPtr, lmPtr->core.worldPts, &lmPtr->core.axes);
+            adjacent = MapPoint(graphPtr, lmPtr->core.worldPts + 1, &lmPtr->core.axes);
+            tip.x += lmPtr->core.xOffset;
+            tip.y += lmPtr->core.yOffset;
+            adjacent.x += lmPtr->core.xOffset;
+            adjacent.y += lmPtr->core.yOffset;
+            if (PointInsideExtents(&tip, &exts)) {
+                lmPtr->hasFirstArrow = ComputeArrowHead(tip, adjacent, width, lmPtr->arrowShape, lmPtr->firstArrow,
+                                                        &lmPtr->firstShaftPoint);
+            }
+        }
+        if ((lmPtr->arrow == LINE_ARROW_LAST) || (lmPtr->arrow == LINE_ARROW_BOTH)) {
+            Point2D *lastPtr;
+
+            lastPtr = lmPtr->core.worldPts + (lmPtr->core.nWorldPts - 1);
+            tip = MapPoint(graphPtr, lastPtr, &lmPtr->core.axes);
+            adjacent = MapPoint(graphPtr, lastPtr - 1, &lmPtr->core.axes);
+            tip.x += lmPtr->core.xOffset;
+            tip.y += lmPtr->core.yOffset;
+            adjacent.x += lmPtr->core.xOffset;
+            adjacent.y += lmPtr->core.yOffset;
+            if (PointInsideExtents(&tip, &exts)) {
+                lmPtr->hasLastArrow =
+                    ComputeArrowHead(tip, adjacent, width, lmPtr->arrowShape, lmPtr->lastArrow, &lmPtr->lastShaftPoint);
+            }
+        }
+    }
+    /*
+     * Map and clip the line shaft.
+     */
     srcPtr = lmPtr->core.worldPts;
     p = MapPoint(graphPtr, srcPtr, &lmPtr->core.axes);
     p.x += lmPtr->core.xOffset;
     p.y += lmPtr->core.yOffset;
+    if (lmPtr->hasFirstArrow) {
+        p = lmPtr->firstShaftPoint;
+    }
     segPtr = segments;
     for (srcPtr++, endPtr = lmPtr->core.worldPts + lmPtr->core.nWorldPts; srcPtr < endPtr; srcPtr++) {
         next = MapPoint(graphPtr, srcPtr, &lmPtr->core.axes);
         next.x += lmPtr->core.xOffset;
         next.y += lmPtr->core.yOffset;
+        if ((srcPtr == (endPtr - 1)) && lmPtr->hasLastArrow) {
+            next = lmPtr->lastShaftPoint;
+        }
         if (Rbc_LineRectClip(&exts, &p, &next, segPtr)) {
             segPtr++;
         }
         p = next;
     }
     lmPtr->nSegments = (Tcl_Size)(segPtr - segments);
-    if (lmPtr->nSegments == 0) {
+    if ((lmPtr->nSegments == 0) && (!lmPtr->hasFirstArrow) && (!lmPtr->hasLastArrow)) {
         ckfree(segments);
         return;
     }
@@ -4076,6 +4205,21 @@ static void MapLineMarker(Marker *markerPtr) {
 static int PointInLineMarker(Marker *markerPtr, Point2D *samplePtr) {
     LineMarker *lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
 
+    /*
+     * Arrow arrays contain the tip twice: the final point closes the
+     * polygon for drawing.  Polygon hit testing needs only the five
+     * unique vertices.
+     */
+    if (lmPtr->hasFirstArrow) {
+        if (Rbc_PointInPolygon(samplePtr, lmPtr->firstArrow, PTS_IN_ARROW - 1)) {
+            return TRUE;
+        }
+    }
+    if (lmPtr->hasLastArrow) {
+        if (Rbc_PointInPolygon(samplePtr, lmPtr->lastArrow, PTS_IN_ARROW - 1)) {
+            return TRUE;
+        }
+    }
     return Rbc_PointInSegments(samplePtr, lmPtr->segments, lmPtr->nSegments, (double)lmPtr->core.graphPtr->halo);
 }
 
@@ -4111,6 +4255,10 @@ static int RegionInLineMarker(Marker *markerPtr, Extents2D *extsPtr, int enclose
     if (enclosed) {
         Point2D p;
 
+        /*
+         * First require every original line point to be inside the
+         * region, preserving the existing line-marker semantics.
+         */
         for (pointPtr = lmPtr->core.worldPts, endPtr = lmPtr->core.worldPts + lmPtr->core.nWorldPts; pointPtr < endPtr;
              pointPtr++) {
             p = MapPoint(lmPtr->core.graphPtr, pointPtr, &lmPtr->core.axes);
@@ -4120,11 +4268,29 @@ static int RegionInLineMarker(Marker *markerPtr, Extents2D *extsPtr, int enclose
                 return FALSE;
             }
         }
+        /*
+         * The complete arrowhead must also be enclosed.  Use only
+         * the five unique vertices; arrow[5] duplicates arrow[0].
+         */
+        if (lmPtr->hasFirstArrow) {
+            if (!Rbc_RegionInPolygon(extsPtr, lmPtr->firstArrow, PTS_IN_ARROW - 1, TRUE)) {
+                return FALSE;
+            }
+        }
+        if (lmPtr->hasLastArrow) {
+            if (!Rbc_RegionInPolygon(extsPtr, lmPtr->lastArrow, PTS_IN_ARROW - 1, TRUE)) {
+                return FALSE;
+            }
+        }
+
         return TRUE;
     } else {
         Point2D p;
         Point2D q;
 
+        /*
+         * Any intersection with the original line is enough.
+         */
         endPtr = lmPtr->core.worldPts + lmPtr->core.nWorldPts - 1;
         for (pointPtr = lmPtr->core.worldPts; pointPtr < endPtr; pointPtr++) {
             p = MapPoint(lmPtr->core.graphPtr, pointPtr, &lmPtr->core.axes);
@@ -4137,8 +4303,32 @@ static int RegionInLineMarker(Marker *markerPtr, Extents2D *extsPtr, int enclose
                 return TRUE;
             }
         }
+        /*
+         * Otherwise the region may intersect only an arrowhead.
+         */
+        if (lmPtr->hasFirstArrow) {
+            if (Rbc_RegionInPolygon(extsPtr, lmPtr->firstArrow, PTS_IN_ARROW - 1, FALSE)) {
+                return TRUE;
+            }
+        }
+        if (lmPtr->hasLastArrow) {
+            if (Rbc_RegionInPolygon(extsPtr, lmPtr->lastArrow, PTS_IN_ARROW - 1, FALSE)) {
+                return TRUE;
+            }
+        }
         return FALSE;
     }
+}
+
+static void DrawArrowHead(Graph *graphPtr, Drawable drawable, GC gc, const Point2D arrow[PTS_IN_ARROW]) {
+    XPoint points[PTS_IN_ARROW];
+    int i;
+
+    for (i = 0; i < PTS_IN_ARROW; i++) {
+        points[i].x = (short)round(arrow[i].x);
+        points[i].y = (short)round(arrow[i].y);
+    }
+    XFillPolygon(graphPtr->display, drawable, gc, points, PTS_IN_ARROW, Convex, CoordModeOrigin);
 }
 
 /*
@@ -4162,15 +4352,48 @@ static int RegionInLineMarker(Marker *markerPtr, Extents2D *extsPtr, int enclose
  */
 static void DrawLineMarker(Marker *markerPtr, Drawable drawable) {
     LineMarker *lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
+    Graph *graphPtr = markerPtr->graphPtr;
+    int drawn;
 
+    drawn = FALSE;
     if (lmPtr->nSegments > 0) {
-        Graph *graphPtr = markerPtr->graphPtr;
-
         Rbc_Draw2DSegments(graphPtr->display, drawable, lmPtr->gc, lmPtr->segments, lmPtr->nSegments);
-        if (lmPtr->xor) { /* Toggle the drawing state */
-            lmPtr->xorState = (lmPtr->xorState == 0);
+        drawn = TRUE;
+    }
+    if (lmPtr->hasFirstArrow) {
+        DrawArrowHead(graphPtr, drawable, lmPtr->gc, lmPtr->firstArrow);
+        drawn = TRUE;
+    }
+    if (lmPtr->hasLastArrow) {
+        DrawArrowHead(graphPtr, drawable, lmPtr->gc, lmPtr->lastArrow);
+        drawn = TRUE;
+    }
+    if (drawn && lmPtr->xor) {
+        lmPtr->xorState = !lmPtr->xorState;
+    }
+}
+
+static int ParseArrowShape(LineMarker *lmPtr, double shape[3]) {
+    Graph *graphPtr = lmPtr->core.graphPtr;
+    Tcl_Interp *interp = graphPtr->interp;
+    Tcl_Obj **objv;
+    Tcl_Size objc;
+    Tcl_Size i;
+
+    if (Tcl_ListObjGetElements(interp, lmPtr->arrowShapeObjPtr, &objc, &objv) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (objc != 3) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad arrow shape \"%s\": must be a list of three screen distances",
+                                               Tcl_GetString(lmPtr->arrowShapeObjPtr)));
+        return TCL_ERROR;
+    }
+    for (i = 0; i < 3; i++) {
+        if (Tk_GetDoublePixelsFromObj(interp, graphPtr->tkwin, objv[i], shape + i) != TCL_OK) {
+            return TCL_ERROR;
         }
     }
+    return TCL_OK;
 }
 
 /*
@@ -4201,6 +4424,7 @@ static int ConfigureLineMarker(Marker *markerPtr) {
     LineMarker *lmPtr;
     ParsedMarkerOptions markerOptions;
     Rbc_Dashes newDashes;
+    double newArrowShape[3];
     int newCapStyle;
     int newJoinStyle;
     int newLineWidth;
@@ -4234,6 +4458,9 @@ static int ConfigureLineMarker(Marker *markerPtr) {
      * Parse all line-marker-specific values without modifying the
      * currently active derived state.
      */
+    if (ParseArrowShape(lmPtr, newArrowShape) != TCL_OK) {
+        goto error;
+    }
     if (Tk_GetCapStyle(graphPtr->interp, Tcl_GetString(lmPtr->capObjPtr), &newCapStyle) != TCL_OK) {
         goto error;
     }
@@ -4317,6 +4544,9 @@ static int ConfigureLineMarker(Marker *markerPtr) {
     /*
      * Commit line-marker-specific derived values.
      */
+    lmPtr->arrowShape[0] = newArrowShape[0];
+    lmPtr->arrowShape[1] = newArrowShape[1];
+    lmPtr->arrowShape[2] = newArrowShape[2];
     lmPtr->capStyle = newCapStyle;
     lmPtr->joinStyle = newJoinStyle;
     lmPtr->lineWidth = newLineWidth;
@@ -4359,6 +4589,29 @@ error:
 /*
  * ----------------------------------------------------------------------
  *
+ * ArrowHeadToPostScript --
+ *
+ *      Emits PostScript commands for a filled line-marker arrowhead.
+ *      The arrowhead uses the marker's outline color.
+ *
+ *      arrow[PTS_IN_ARROW - 1] duplicates arrow[0], so only the
+ *      unique vertices are passed to Rbc_PathToPostScript.
+ *
+ * ----------------------------------------------------------------------
+ */
+static void ArrowHeadToPostScript(LineMarker *lmPtr, PsToken psToken, Point2D *arrow) {
+    if (lmPtr->outlineColor == NULL) {
+        return;
+    }
+    Rbc_PathToPostScript(psToken, arrow, PTS_IN_ARROW - 1);
+    Rbc_AppendToPostScript(psToken, "closepath\n", (char *)NULL);
+    Rbc_ForegroundToPostScript(psToken, lmPtr->outlineColor);
+    Rbc_AppendToPostScript(psToken, "Fill\n", (char *)NULL);
+}
+
+/*
+ * ----------------------------------------------------------------------
+ *
  * LineMarkerToPostScript --
  *
  *      Prints postscript commands to display the connect line.
@@ -4380,7 +4633,9 @@ error:
  */
 static void LineMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
     LineMarker *lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
-
+    /*
+     * Draw the line shaft.
+     */
     if (lmPtr->nSegments > 0) {
         Rbc_LineAttributesToPostScript(psToken, lmPtr->outlineColor, lmPtr->lineWidth, &lmPtr->dashes, lmPtr->capStyle,
                                        lmPtr->joinStyle);
@@ -4394,6 +4649,17 @@ static void LineMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
             Rbc_AppendToPostScript(psToken, "/DashesProc {} def\n", (char *)NULL);
         }
         Rbc_2DSegmentsToPostScript(psToken, lmPtr->segments, lmPtr->nSegments);
+    }
+    /*
+     * Draw arrowheads after the shaft.  The shaft endpoints have
+     * already been shortened by MapLineMarker so that they terminate
+     * at the neck of the arrowhead.
+     */
+    if (lmPtr->hasFirstArrow) {
+        ArrowHeadToPostScript(lmPtr, psToken, lmPtr->firstArrow);
+    }
+    if (lmPtr->hasLastArrow) {
+        ArrowHeadToPostScript(lmPtr, psToken, lmPtr->lastArrow);
     }
 }
 

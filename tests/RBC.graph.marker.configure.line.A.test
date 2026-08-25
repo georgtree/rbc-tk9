@@ -469,7 +469,7 @@ namespace eval graph.marker {
 	# Purpose: Ensure the marker configure -dashoffset command works correctly when given
 	# an integer pixel value.
 	# ------------------------------------------------------------------------------------
-	test RBC.graph.marker.configure.common.A.7.1 {
+	test RBC.graph.marker.configure.line.A.7.1 {
 		graph marker configure: dashoffset - integer input
 	} -setup {
 		graph .graph1
@@ -486,7 +486,7 @@ namespace eval graph.marker {
 	# Purpose: Ensure the marker configure -dashoffset command works correctly when given
 	# an invalid integer pixel value.
 	# ------------------------------------------------------------------------------------
-	test RBC.graph.marker.configure.common.A.7.2 {
+	test RBC.graph.marker.configure.line.A.7.2 {
 		graph marker configure: dashoffset - negative integer input
 	} -setup {
 		graph .graph1
@@ -506,7 +506,7 @@ namespace eval graph.marker {
 	# Purpose: Ensure the marker configure -dashoffset command works correctly when given
 	# a decimal pixel value.
 	# ------------------------------------------------------------------------------------
-	test RBC.graph.marker.configure.common.A.7.3 {
+	test RBC.graph.marker.configure.line.A.7.3 {
 		graph marker configure: dashoffset - decimal input
 	} -setup {
 		graph .graph1
@@ -523,7 +523,7 @@ namespace eval graph.marker {
 	# Purpose: Ensure the marker configure -dashoffset command works correctly when given
 	# an invalid decimal pixel value.
 	# ------------------------------------------------------------------------------------
-	test RBC.graph.marker.configure.common.A.7.4 {
+	test RBC.graph.marker.configure.line.A.7.4 {
 		graph marker configure: dashoffset - invalid decimal input
 	} -setup {
 		graph .graph1
@@ -543,7 +543,7 @@ namespace eval graph.marker {
 	# Purpose: Ensure the marker configure -dashoffset command works correctly when given
 	# a character as input.
 	# ------------------------------------------------------------------------------------
-	test RBC.graph.marker.configure.common.A.7.5 {
+	test RBC.graph.marker.configure.line.A.7.5 {
 		graph marker configure: dashoffset - character input
 	} -setup {
 		graph .graph1
@@ -563,7 +563,7 @@ namespace eval graph.marker {
 	# Purpose: Ensure the marker configure -dashoffset command works correctly when given
 	# 0 as input.
 	# ------------------------------------------------------------------------------------
-	test RBC.graph.marker.configure.common.A.7.6 {
+	test RBC.graph.marker.configure.line.A.7.6 {
 		graph marker configure: dashoffset - zero
 	} -setup {
 		graph .graph1
@@ -667,6 +667,157 @@ namespace eval graph.marker {
     } -cleanup {
         catch {destroy .graph1}
     } -result ok
-	
+
+    test RBC.graph.marker.configure.line.A.9.1 {
+        graph marker configure line: arrow - default
+    } -setup {
+        graph .graph1
+        .graph1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        .graph1 marker cget Marker1 -arrow
+    } -cleanup {
+        destroy .graph1
+    } -result {none}
+
+    test RBC.graph.marker.configure.line.A.9.2 {
+        graph marker configure line: arrow - none
+    } -setup {
+        graph .graph1
+        .graph1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        .graph1 marker configure Marker1 -arrow none
+        .graph1 marker cget Marker1 -arrow
+    } -cleanup {
+        destroy .graph1
+    } -result {none}
+
+    test RBC.graph.marker.configure.line.A.9.3 {
+        graph marker configure line: arrow - first
+    } -setup {
+        graph .graph1
+        .graph1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        .graph1 marker configure Marker1 -arrow first
+        .graph1 marker cget Marker1 -arrow
+    } -cleanup {
+        destroy .graph1
+    } -result {first}
+
+    test RBC.graph.marker.configure.line.A.9.4 {
+        graph marker configure line: arrow - last
+    } -setup {
+        graph .graph1
+        .graph1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        .graph1 marker configure Marker1 -arrow last
+        .graph1 marker cget Marker1 -arrow
+    } -cleanup {
+        destroy .graph1
+    } -result {last}
+
+    test RBC.graph.marker.configure.line.A.9.5 {
+        graph marker configure line: arrow - both
+    } -setup {
+        graph .graph1
+        .graph1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        .graph1 marker configure Marker1 -arrow both
+        .graph1 marker cget Marker1 -arrow
+    } -cleanup {
+        destroy .graph1
+    } -result {both}
+
+    test RBC.graph.marker.configure.line.A.9.6 {
+        graph marker configure line: arrow - invalid
+    } -setup {
+        graph .graph1
+        .graph1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        catch {.graph1 marker configure Marker1 -arrow bad}
+    } -cleanup {
+        destroy .graph1
+    } -result {1}
+
+
+    test RBC.graph.marker.configure.line.A.10.1 {
+        graph marker configure line: arrowshape - default
+    } -setup {
+        graph .graph1
+        .graph1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        .graph1 marker cget Marker1 -arrowshape
+    } -cleanup {
+        destroy .graph1
+    } -result {8 10 3}
+
+    test RBC.graph.marker.configure.line.A.10.2 {
+        graph marker configure line: arrowshape
+    } -setup {
+        graph .graph1
+        .graph1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        .graph1 marker configure Marker1 -arrowshape {12 15 5}
+        .graph1 marker cget Marker1 -arrowshape
+    } -cleanup {
+        destroy .graph1
+    } -result {12 15 5}
+
+    test RBC.graph.marker.configure.line.A.10.3 {
+        graph marker configure line: arrowshape - screen distances
+    } -setup {
+        graph .graph1
+        .graph1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        .graph1 marker configure Marker1 -arrowshape {8p 10p 3p}
+        .graph1 marker cget Marker1 -arrowshape
+    } -cleanup {
+        destroy .graph1
+    } -result {8p 10p 3p}
+
+    test RBC.graph.marker.configure.line.A.10.4 {
+        graph marker configure line: arrowshape - too few values
+    } -setup {
+        graph .graph1
+        .graph1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        catch {.graph1 marker configure Marker1 -arrowshape {8 10}}
+    } -cleanup {
+        destroy .graph1
+    } -result {1}
+
+    test RBC.graph.marker.configure.line.A.10.5 {
+        graph marker configure line: arrowshape - too many values
+    } -setup {
+        graph .graph1
+        .graph1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        catch {.graph1 marker configure Marker1 -arrowshape {8 10 3 2}}
+    } -cleanup {
+        destroy .graph1
+    } -result {1}
+
+    test RBC.graph.marker.configure.line.A.10.6 {
+        graph marker configure line: arrowshape - invalid screen distance
+    } -setup {
+        graph .graph1
+        .graph1 marker create line -name Marker1 -coords {0 0 1 1}
+    } -body {
+        catch {.graph1 marker configure Marker1 -arrowshape {8 bad 3}}
+    } -cleanup {
+        destroy .graph1
+    } -result {1}
+
+    test RBC.graph.marker.configure.line.A.10.7 {
+        graph marker configure line: arrow and arrowshape - transactional rollback
+    } -setup {
+        graph .graph1
+        .graph1 marker create line -name Marker1 -coords {0 0 1 1} -arrow first -arrowshape {8 10 3}
+    } -body {
+        set code [catch {.graph1 marker configure Marker1 -arrow both -arrowshape {20 bad 5}}]
+        list $code [.graph1 marker cget Marker1 -arrow] [.graph1 marker cget Marker1 -arrowshape]
+    } -cleanup {
+        destroy .graph1
+    } -result {1 first {8 10 3}}	
+
 	cleanupTests
 }

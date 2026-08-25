@@ -3604,6 +3604,8 @@ namespace eval ::rbc::MARKER {
         #ruffopt excludedformats nroff
         | Option                 | Database name | Database class | Description                                                                                                                       |
         |------------------------|---------------|----------------|-----------------------------------------------------------------------------------------------------------------------------------|
+        | `-arrow position` | `arrow` | `Arrow` | Specifies whether arrowheads are drawn at the ends of the line marker. `position` must be `none`, `first`, `last`, or `both`. `first` draws an arrowhead at the first coordinate, `last` at the final coordinate, and `both` at both ends. The shaft is shortened to the neck of each arrowhead so that it does not protrude through the arrowhead. Arrowheads use the marker's `-outline` color. The default is `none`. |
+        | `-arrowshape {a b c}` | `arrowShape` | `ArrowShape` | Specifies the arrowhead geometry as three screen distances. `a` is the distance from the arrowhead neck to its tip, `b` is the distance from the trailing points to the tip, and `c` is the distance from the outside edge of the line to the trailing points. The default is `{8 10 3}`. |
         | `-cap style`           | `cap`         | `Cap`          | Specifies the line cap style. Accepted styles are `butt`, `projecting`, and `round`. The default is `butt`.                       |
         | `-dashes dashList`     | `dashes`      | `Dashes`       | Specifies the dash pattern. An empty value selects a solid line.                                                                  |
         | `-dashoffset distance` | `dashOffset`  | `DashOffset`   | Specifies the offset into the dash pattern. The default is `0`.                                                                   |
@@ -3615,29 +3617,65 @@ namespace eval ::rbc::MARKER {
 
         #ruffopt includedformats nroff
         ```
-        ┌───────────────────────┬──────────────┬────────────────┬────────────────────────────────────────────────────┐
-        │ Option                │ Database name│ Database class │ Description                                        │
-        ├───────────────────────┼──────────────┼────────────────┼────────────────────────────────────────────────────┤
-        │ -cap style            │ cap          │ Cap            │ Specifies the line cap style. Accepted styles are  │
-        │                       │              │                │ butt, projecting, and round. The default is butt.  │
-        │ -dashes dashList      │ dashes       │ Dashes         │ Specifies the dash pattern. An empty value selects │
-        │                       │              │                │ a solid line.                                      │
-        │ -dashoffset distance  │ dashOffset   │ DashOffset     │ Specifies the offset into the dash pattern. The    │
-        │                       │              │                │ default is 0.                                      │
-        │ -fill color           │ fill         │ Fill           │ Specifies the color used for the off portions of a │
-        │                       │              │                │ dashed line. An empty value uses ordinary on/off   │
-        │                       │              │                │ dashes. The default is empty.                      │
-        │ -join style           │ join         │ Join           │ Specifies how adjacent segments are joined.        │
-        │                       │              │                │ Accepted styles are bevel, miter, and round. The   │
-        │                       │              │                │ default is miter.                                  │
-        │ -linewidth distance   │ lineWidth    │ LineWidth      │ Specifies the line width. The default is 1.        │
-        │ -outline color        │ outline      │ Outline        │ Specifies the primary line color. The default is   │
-        │                       │              │                │ black.                                             │
-        │ -xor boolean          │ xor          │ Xor            │ Specifies whether the line is drawn using XOR      │
-        │                       │              │                │ drawing. The default is no.                        │
-        └───────────────────────┴──────────────┴────────────────┴────────────────────────────────────────────────────┘
+        ┌────────────────────────┬──────────────┬────────────────┬──────────────────────────────────────────────────────┐
+        │ Option                 │ Database name│ Database class │ Description                                          │
+        ├────────────────────────┼──────────────┼────────────────┼──────────────────────────────────────────────────────┤
+        │ -arrow position        │ arrow        │ Arrow          │ Specifies whether arrowheads are drawn at the ends   │
+        │                        │              │                │ of the line marker. Accepted values are none, first, │
+        │                        │              │                │ last, and both. The default is none.                 │
+        │ -arrowshape {a b c}    │ arrowShape   │ ArrowShape     │ Specifies the arrowhead geometry as three screen     │
+        │                        │              │                │ distances. a is the distance from the arrowhead      │
+        │                        │              │                │ neck to its tip, b is the distance from the trailing │
+        │                        │              │                │ points to the tip, and c is the distance from the    │
+        │                        │              │                │ line edge to the trailing points. The default is     │
+        │                        │              │                │ {8 10 3}.                                            │
+        │ -cap style             │ cap          │ Cap            │ Specifies the line cap style. Accepted styles are    │
+        │                        │              │                │ butt, projecting, and round. The default is butt.    │
+        │ -dashes dashList       │ dashes       │ Dashes         │ Specifies the dash pattern. An empty value selects   │
+        │                        │              │                │ a solid line.                                        │
+        │ -dashoffset distance   │ dashOffset   │ DashOffset     │ Specifies the offset into the dash pattern. The      │
+        │                        │              │                │ default is 0.                                        │
+        │ -fill color            │ fill         │ Fill           │ Specifies the color used for the off portions of a   │
+        │                        │              │                │ dashed line. An empty value uses ordinary on/off     │
+        │                        │              │                │ dashes. The default is empty.                        │
+        │ -join style            │ join         │ Join           │ Specifies how adjacent segments are joined.          │
+        │                        │              │                │ Accepted styles are bevel, miter, and round. The     │
+        │                        │              │                │ default is miter.                                    │
+        │ -linewidth distance    │ lineWidth    │ LineWidth      │ Specifies the line width. The default is 1.          │
+        │ -outline color         │ outline      │ Outline        │ Specifies the primary line color. Arrowheads use     │
+        │                        │              │                │ this color. The default is black.                    │
+        │ -xor boolean           │ xor          │ Xor            │ Specifies whether the line is drawn using XOR        │
+        │                        │              │                │ drawing. The default is no.                          │
+        └────────────────────────┴──────────────┴────────────────┴──────────────────────────────────────────────────────┘
         ```
         #ruffopt excludedformats {}
+
+        ## Arrowheads
+        Line markers may draw an arrowhead at either end of the line by using the `-arrow` option. Accepted values
+        are `none`, `first`, `last`, and `both`.
+
+        For example:
+        ```tcl
+        graph .g
+        pack .g
+        .g marker create line -name direction -coords {0 0 5 4 10 2} -outline red -linewidth 2 -arrow last
+        ```
+
+        The arrowhead shape may be adjusted with `-arrowshape`. It accepts three screen distances `{a b c}`:
+        ```tcl
+        .g marker configure direction -arrow both -arrowshape {8 10 3}
+        ```
+
+        `a` specifies the distance from the arrowhead neck to its tip, `b` specifies the distance from the trailing
+        points to the tip, and `c` specifies the distance from the outside edge of the line to the trailing points.
+
+        The arrowhead uses the line marker's `-outline` color. The line shaft is shortened to the neck of the
+        arrowhead so that it does not protrude through the filled arrowhead.
+
+        Screen-distance units accepted by Tk may also be used:
+        ```tcl
+        .g marker configure direction -arrowshape {8p 10p 3p}
+        ```
 
         ### Polygon marker options
         Polygon markers draw the closed polygon formed by their coordinate pairs.

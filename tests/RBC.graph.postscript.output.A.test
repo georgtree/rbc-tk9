@@ -116,6 +116,34 @@ namespace eval graph.postscript {
         file delete -force $FileName
         destroy .graph1
     } -result {1 1}
+
+    test RBC.graph.postscript.output.arrow.A.1.1 {
+        graph postscript output: line marker arrowheads
+    } -setup {
+        graph .graph1 -width 400 -height 300
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 10
+        .graph1 axis configure y -min 0 -max 10
+        .graph1 legend configure -hide yes
+        .graph1 marker create line -name Marker1 -coords {2 5 8 5} -outline black -linewidth 2 -arrowshape {8 10 3}
+        update idletasks
+    } -body {
+        .graph1 marker configure Marker1 -arrow none
+        set ps [.graph1 postscript output]
+        set none [regexp -all -line -- {^[ \t]*Fill[ \t]*$} $ps]
+        .graph1 marker configure Marker1 -arrow first
+        set ps [.graph1 postscript output]
+        set first [regexp -all -line -- {^[ \t]*Fill[ \t]*$} $ps]
+        .graph1 marker configure Marker1 -arrow last
+        set ps [.graph1 postscript output]
+        set last [regexp -all -line -- {^[ \t]*Fill[ \t]*$} $ps]
+        .graph1 marker configure Marker1 -arrow both
+        set ps [.graph1 postscript output]
+        set both [regexp -all -line -- {^[ \t]*Fill[ \t]*$} $ps]
+        list [expr {$first - $none}] [expr {$last - $none}] [expr {$both - $none}]
+    } -cleanup {
+        destroy .graph1
+    } -result {1 1 2}
 	
 	cleanupTests
 }

@@ -412,6 +412,16 @@ option valid for one marker type is not necessarily valid for another.</p>
 </tr>
 </thead>
 <tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-arrow</span> <span class="pre">position</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">arrow</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Arrow</span></code></p></td>
+<td><p>Specifies whether arrowheads are drawn at the ends of the line marker. <code class="docutils literal notranslate"><span class="pre">position</span></code> must be <code class="docutils literal notranslate"><span class="pre">none</span></code>, <code class="docutils literal notranslate"><span class="pre">first</span></code>, <code class="docutils literal notranslate"><span class="pre">last</span></code>, or <code class="docutils literal notranslate"><span class="pre">both</span></code>. <code class="docutils literal notranslate"><span class="pre">first</span></code> draws an arrowhead at the first coordinate, <code class="docutils literal notranslate"><span class="pre">last</span></code> at the final coordinate, and <code class="docutils literal notranslate"><span class="pre">both</span></code> at both ends. The shaft is shortened to the neck of each arrowhead so that it does not protrude through the arrowhead. Arrowheads use the marker’s <code class="docutils literal notranslate"><span class="pre">-outline</span></code> color. The default is <code class="docutils literal notranslate"><span class="pre">none</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-arrowshape</span> <span class="pre">{a</span> <span class="pre">b</span> <span class="pre">c}</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">arrowShape</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ArrowShape</span></code></p></td>
+<td><p>Specifies the arrowhead geometry as three screen distances. <code class="docutils literal notranslate"><span class="pre">a</span></code> is the distance from the arrowhead neck to its tip, <code class="docutils literal notranslate"><span class="pre">b</span></code> is the distance from the trailing points to the tip, and <code class="docutils literal notranslate"><span class="pre">c</span></code> is the distance from the outside edge of the line to the trailing points. The default is <code class="docutils literal notranslate"><span class="pre">{8</span> <span class="pre">10</span> <span class="pre">3}</span></code>.</p></td>
+</tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-cap</span> <span class="pre">style</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">cap</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Cap</span></code></p></td>
@@ -455,6 +465,29 @@ option valid for one marker type is not necessarily valid for another.</p>
 </tbody>
 </table>
 </section>
+</section>
+<section id="arrowheads">
+<span id="r-rbc-marker-arrowheads"></span><span id="r-3a3arbc3a3amarkerqzarrowheads"></span><h2>Arrowheads<a class="headerlink" href="#arrowheads" title="Link to this heading">¶</a></h2>
+<p>Line markers may draw an arrowhead at either end of the line by using the <code class="docutils literal notranslate"><span class="pre">-arrow</span></code> option. Accepted values
+are <code class="docutils literal notranslate"><span class="pre">none</span></code>, <code class="docutils literal notranslate"><span class="pre">first</span></code>, <code class="docutils literal notranslate"><span class="pre">last</span></code>, and <code class="docutils literal notranslate"><span class="pre">both</span></code>.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">graph</span><span class="w"> </span>.g
+<span class="nv">pack</span><span class="w"> </span>.g
+<span class="nv">.g</span><span class="w"> </span>marker<span class="w"> </span>create<span class="w"> </span>line<span class="w"> </span><span class="o">-</span>name<span class="w"> </span>direction<span class="w"> </span><span class="o">-</span>coords<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>outline<span class="w"> </span>red<span class="w"> </span><span class="o">-</span>linewidth<span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">-</span>arrow<span class="w"> </span>last
+</pre></div>
+</div>
+<p>The arrowhead shape may be adjusted with <code class="docutils literal notranslate"><span class="pre">-arrowshape</span></code>. It accepts three screen distances <code class="docutils literal notranslate"><span class="pre">{a</span> <span class="pre">b</span> <span class="pre">c}</span></code>:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>marker<span class="w"> </span>configure<span class="w"> </span>direction<span class="w"> </span><span class="o">-</span>arrow<span class="w"> </span>both<span class="w"> </span><span class="o">-</span>arrowshape<span class="w"> </span><span class="k">{</span><span class="nv">8</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">a</span></code> specifies the distance from the arrowhead neck to its tip, <code class="docutils literal notranslate"><span class="pre">b</span></code> specifies the distance from the trailing
+points to the tip, and <code class="docutils literal notranslate"><span class="pre">c</span></code> specifies the distance from the outside edge of the line to the trailing points.</p>
+<p>The arrowhead uses the line marker’s <code class="docutils literal notranslate"><span class="pre">-outline</span></code> color. The line shaft is shortened to the neck of the
+arrowhead so that it does not protrude through the filled arrowhead.</p>
+<p>Screen-distance units accepted by Tk may also be used:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>marker<span class="w"> </span>configure<span class="w"> </span>direction<span class="w"> </span><span class="o">-</span>arrowshape<span class="w"> </span><span class="k">{</span><span class="nv">8p</span><span class="w"> </span><span class="mi">10</span>p<span class="w"> </span><span class="mi">3</span>p<span class="k">}</span>
+</pre></div>
+</div>
 <section id="polygon-marker-options">
 <span id="r-rbc-marker-polygon-marker-options"></span><span id="r-3a3arbc3a3amarkerqzpolygon20marker20options"></span><h3>Polygon marker options<a class="headerlink" href="#polygon-marker-options" title="Link to this heading">¶</a></h3>
 <p>Polygon markers draw the closed polygon formed by their coordinate pairs.</p>
@@ -729,6 +762,9 @@ class:</p>
 <li><a class="reference internal" href="#bitmap-marker-options">Bitmap marker options</a></li>
 <li><a class="reference internal" href="#image-marker-options">Image marker options</a></li>
 <li><a class="reference internal" href="#line-marker-options">Line marker options</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#arrowheads">Arrowheads</a><ul>
 <li><a class="reference internal" href="#polygon-marker-options">Polygon marker options</a></li>
 <li><a class="reference internal" href="#text-marker-options">Text marker options</a></li>
 <li><a class="reference internal" href="#window-marker-options">Window marker options</a></li>

@@ -1088,10 +1088,6 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         lassign [my TextOffset $x $y $anchor] textX textY
         my DrawTextBackground ${marker}Box $textX $textY $text $options $boxOptions $mapx $mapy
         lassign [my WidgetToAxisValues $textX $textY $mapx $mapy] textXValue textYValue
-        if {$index eq {A}} {
-            my AddBitmapPoint ${marker}Bitmap\
-                    {*}[my WidgetToAxisValues $ZoomInfo($index,x) $ZoomInfo($index,y) $mapx $mapy] $mapx $mapy
-        }
         if {[$graph marker exists $marker]} {
             $graph marker configure $marker -coords [list $textXValue $textYValue] -mapx $mapx -mapy $mapy -text $text\
                     -anchor $anchor
@@ -1322,6 +1318,7 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         set xValue2 [$graph axis invtransform $mapx $ZoomInfo(B,xPixel)]
         set yValue2 [$graph axis invtransform $mapy $ZoomInfo(B,yPixel)]
         set coords [list $xValue1 $yValue1 $xValue2 $yValue1 $xValue2 $yValue2 $xValue1 $yValue2 $xValue1 $yValue1]
+        my AddBitmapPoint gtbZoomBitmap $xValue1 $yValue1 $mapx $mapy
         if {[$graph marker exists gtbZoomOutline]} {
             $graph marker configure gtbZoomOutline -coords $coords
         } else {
