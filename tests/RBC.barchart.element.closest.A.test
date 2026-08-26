@@ -1,0 +1,124 @@
+package provide barchart.element
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval barchart.element {
+
+    test RBC.barchart.element.closest.A.2.1 {
+        barchart element closest: bar rectangle
+    } -setup {
+        barchart .barchart1 -width 400 -height 300 -barwidth 0.8 -baseline 0
+        pack .barchart1
+        .barchart1 axis configure x -min 0 -max 2
+        .barchart1 axis configure y -min 0 -max 10
+        .barchart1 element create Element1 -data {1 8}
+        update idletasks
+    } -body {
+        # Pick a point well inside the bar.
+        lassign [.barchart1 transform 1 4] x y
+        set found [.barchart1 element closest $x $y info -along both -halo 2 Element1]
+        # Expected physical positions of the baseline and bar value.
+        lassign [.barchart1 transform 1 0] baseX baseY
+        lassign [.barchart1 transform 1 8] valueX valueY
+        list $found\
+            [expr {[info exists info(left)] && [info exists info(top)] && [info exists info(right)] &&\
+                            [info exists info(bottom)]}]\
+            [expr {abs((($info(left) + $info(right)) * 0.5) - $x) <= 1.0}]\
+            [expr {abs($info(top) - min($baseY, $valueY)) <= 1.0}]\
+            [expr {abs($info(bottom) - max($baseY, $valueY)) <= 1.0 }]\
+            [expr {($info(left) <= $x) && ($x <= $info(right)) && ($info(top) <= $y) && ($y <= $info(bottom))}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .barchart1
+    } -result {1 1 1 1 1 1}
+
+    test RBC.barchart.element.closest.A.2.2 {
+        barchart element closest: stacked bar rectangle is selected segment
+    } -setup {
+        barchart .barchart1 -width 400 -height 300 -barwidth 0.8 -baseline 0 -barmode stacked
+        pack .barchart1
+        .barchart1 axis configure x -min 0 -max 2
+        .barchart1 axis configure y -min 0 -max 10
+        .barchart1 element create Element1 -data {1 3}
+        .barchart1 element create Element2 -data {1 5}
+        update idletasks
+    } -body {
+        # RBC maps Element2 first in this stack, so Element1 occupies
+        # the stacked interval 5..8.
+        lassign [.barchart1 transform 1 6.5] x y
+        set found [.barchart1 element closest $x $y info -along both -halo 2 Element1]
+        lassign [.barchart1 transform 1 5] lowerX lowerY
+        lassign [.barchart1 transform 1 8] upperX upperY
+        lassign [.barchart1 transform 1 0] baseX baseY
+
+        list $found $info(name) $info(index)\
+                [expr {abs($info(top) - min($lowerY, $upperY)) <= 1.0}]\
+                [expr { abs($info(bottom) - max($lowerY, $upperY)) <= 1.0 }]\
+                [expr {
+                    # This is the upper stacked segment, so it must not
+                    # extend back to the graph baseline.
+                    abs($info(bottom) - $baseY) > 1.0
+                }]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .barchart1
+    } -result {1 Element1 0 1 1 1}
+
+    test RBC.barchart.element.closest.A.2.3 {
+        barchart element closest: overlap returns rectangle of particular element
+    } -setup {
+        barchart .barchart1 -width 400 -height 300 -barwidth 0.8 -baseline 0 -barmode overlap
+        pack .barchart1
+        .barchart1 axis configure x -min 0 -max 2
+        .barchart1 axis configure y -min 0 -max 10
+        .barchart1 element create Element1 -data {1 4}
+        .barchart1 element create Element2 -data {1 6}
+        update idletasks
+    } -body {
+        lassign [.barchart1 transform 1 2] x y
+        set found1 [.barchart1 element closest $x $y info1 -along both -halo 100 Element1]
+        set found2 [.barchart1 element closest $x $y info2 -along both -halo 100 Element2]
+        set different [expr {($info1(left) != $info2(left)) || ($info1(right) != $info2(right))}]
+        set overlapping [expr {min($info1(right), $info2(right)) > max($info1(left), $info2(left))}]
+        list $found1 $found2 $different $overlapping [expr {$info1(left) < $info1(right)}]\
+                [expr {$info2(left) < $info2(right)}]
+    } -cleanup {
+        unset -nocomplain info1 info2
+        destroy .barchart1
+    } -result {1 1 1 1 1 1}
+
+    test RBC.barchart.element.closest.A.2.4 {
+        barchart element closest: inverted bar rectangle uses physical coordinates
+    } -setup {
+        barchart .barchart1 -width 400 -height 300 -barwidth 0.8 -baseline 0 -invertxy yes
+        pack .barchart1
+        .barchart1 axis configure x -min 0 -max 2
+        .barchart1 axis configure y -min 0 -max 10
+        .barchart1 element create Element1 -data {1 8}
+        update idletasks
+    } -body {
+        lassign [.barchart1 transform 1 4] x y
+        set found [.barchart1 element closest $x $y info -along both -halo 2 Element1]
+        lassign [.barchart1 transform 1 0] baseX baseY
+        lassign [.barchart1 transform 1 8] valueX valueY
+        list $found\
+            [expr {
+                # With -invertxy the X data dimension is physically
+                # vertical, so the bar is centred between top/bottom.
+                abs((($info(top) + $info(bottom)) * 0.5) - $y) <= 1.0
+            }]\
+            [expr {
+                # The Y/value dimension is physically horizontal.
+                abs($info(left) - min($baseX, $valueX)) <= 1.0
+            }]\
+            [expr {abs($info(right) - max($baseX, $valueX)) <= 1.0}]\
+            [expr {($info(left) <= $x) && ($x <= $info(right)) && ($info(top) <= $y) && ($y <= $info(bottom))}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .barchart1
+    } -result {1 1 1 1 1}
+
+}

@@ -368,6 +368,7 @@ struct ElementStruct {
 Element *Rbc_BarElement(Graph *, const char *, Rbc_Uid);
 Element *Rbc_LineElement(Graph *, const char *, Rbc_Uid);
 
+int Rbc_GetBarRectangle(Element *, Tcl_Size, Extents2D *);
 void Rbc_FreeElemVector(ElemVector *vPtr);
 int Rbc_ParseElemVectorObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, ElemVector *candidatePtr);
 int Rbc_ParseElemVectorPairsObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, ElemVector *xCandidatePtr,

@@ -224,6 +224,31 @@ On success, the named Tcl array receives:
 .fi
 .RE
 .PP
+For a bar element, the result array also contains the physical bounds of the selected mapped bar rectangle:
+.PP
+.RS 4n
+.nf
+┌───────────────┬──────────────────────────────────────────────────────────────────────────────────────────┐
+│ Array element │ Description                                                                              │
+├───────────────┼──────────────────────────────────────────────────────────────────────────────────────────┤
+│ left          │ Physical widget X coordinate of the left edge of the selected bar rectangle\&.             │
+│ top           │ Physical widget Y coordinate of the top edge of the selected bar rectangle\&.              │
+│ right         │ Physical widget X coordinate of the right edge of the selected bar rectangle\&.            │
+│ bottom        │ Physical widget Y coordinate of the bottom edge of the selected bar rectangle\&.           │
+└───────────────┴──────────────────────────────────────────────────────────────────────────────────────────┘
+.fi
+.RE
+.PP
+These four values describe the final mapped rectangle that is actually used to draw the selected bar\&. They
+therefore reflect the current bar mode\&. For a stacked bar they describe only the selected stacked segment,
+while aligned and overlapping bars return the adjusted rectangle belonging to the selected element\&.
+.PP
+left, top, right, and bottom are physical widget coordinates, not graph coordinates\&. Their meaning
+does not change when -invertxy is enabled: left and right always refer to physical widget X coordinates,
+and top and bottom always refer to physical widget Y coordinates\&.
+.PP
+These array elements are returned only when the closest element is a bar element\&.
+.PP
 If no match is found, name is set to an empty value\&. Other array elements should only be used when the
 command returns 1\&.
 .PP

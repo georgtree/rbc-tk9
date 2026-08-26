@@ -4188,6 +4188,11 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size ob
  *      -interpolate    Find closest point along element traces, not just
  *              data points.
  *      -along
+*
+ * Return the common closest-element information.  Bar elements
+ * additionally return the mapped screen rectangle of the selected
+ * bar segment as left, top, right, and bottom.
+ *
  *
  * Parameters:
  *      Graph *graphPtr
@@ -4275,7 +4280,6 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size
         for (linkPtr = Rbc_ChainLastLink(graphPtr->elements.displayList); linkPtr != NULL;
              linkPtr = Rbc_ChainPrevLink(linkPtr)) {
             elemPtr = Rbc_ChainGetValue(linkPtr);
-
             /* Check if the X or Y vectors have notifications pending */
             if ((elemPtr->flags & MAP_ITEM) || (Rbc_VectorNotifyPending(elemPtr->x.clientId)) ||
                 (Rbc_VectorNotifyPending(elemPtr->y.clientId))) {
@@ -4286,11 +4290,10 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size
             }
         }
     }
-
-    /*  varname = objv[5] */
+    /* varname = objv[5] */
     if (search.dist < (double)search.halo) {
         /*
-         *  Return an array of 5 elements
+         * Return the common closest-element information.
          */
         if (Tcl_ObjSetVar2(interp, objv[5], Tcl_NewStringObj("name", -1), Tcl_NewStringObj(search.elemPtr->name, -1),
                            flags) == NULL) {
@@ -4311,6 +4314,36 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size
         if (Tcl_ObjSetVar2(interp, objv[5], Tcl_NewStringObj("dist", -1), Tcl_NewDoubleObj(search.dist), flags) ==
             NULL) {
             return TCL_ERROR;
+        }
+        /*
+         * Bar elements additionally report the physical screen
+         * rectangle of the selected bar segment.
+         *
+         * The rectangle is the final mapped rectangle, so stacked,
+         * aligned, overlap, and inverted bar layouts are already
+         * reflected in these coordinates.
+         */
+        if (search.elemPtr->classUid == rbcBarElementUid) {
+            Extents2D exts;
+
+            if (Rbc_GetBarRectangle(search.elemPtr, search.index, &exts)) {
+                if (Tcl_ObjSetVar2(interp, objv[5], Tcl_NewStringObj("left", -1), Tcl_NewDoubleObj(exts.left), flags) ==
+                    NULL) {
+                    return TCL_ERROR;
+                }
+                if (Tcl_ObjSetVar2(interp, objv[5], Tcl_NewStringObj("top", -1), Tcl_NewDoubleObj(exts.top), flags) ==
+                    NULL) {
+                    return TCL_ERROR;
+                }
+                if (Tcl_ObjSetVar2(interp, objv[5], Tcl_NewStringObj("right", -1), Tcl_NewDoubleObj(exts.right),
+                                   flags) == NULL) {
+                    return TCL_ERROR;
+                }
+                if (Tcl_ObjSetVar2(interp, objv[5], Tcl_NewStringObj("bottom", -1), Tcl_NewDoubleObj(exts.bottom),
+                                   flags) == NULL) {
+                    return TCL_ERROR;
+                }
+            }
         }
         Tcl_SetObjResult(interp, Tcl_NewIntObj(1));
     } else {

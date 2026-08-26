@@ -1366,6 +1366,60 @@ static void ClosestBar(Graph *graphPtr, Element *elemPtr, ClosestSearch *searchP
 }
 
 /*
+ * ----------------------------------------------------------------------
+ *
+ * Rbc_GetBarRectangle --
+ *
+ *      Return the mapped screen rectangle corresponding to a data
+ *      point of a bar element.
+ *
+ *      The rectangle is the final rendered bar segment after bar-mode
+ *      processing.  Therefore stacked, aligned, overlap, and inverted
+ *      graphs are already accounted for.
+ *
+ * Parameters:
+ *      Element *elemPtr
+ *      Tcl_Size dataIndex
+ *      Extents2D *extsPtr
+ *
+ * Results:
+ *      TRUE if a visible rectangle corresponding to dataIndex was
+ *      found, FALSE otherwise.
+ *
+ * Side effects:
+ *      On success, *extsPtr is filled with physical graph-window
+ *      pixel coordinates.
+ *
+ * ----------------------------------------------------------------------
+ */
+int Rbc_GetBarRectangle(Element *elemPtr, Tcl_Size dataIndex, Extents2D *extsPtr) {
+    Bar *barPtr;
+    Tcl_Size i;
+
+    if ((elemPtr == NULL) || (extsPtr == NULL) || (dataIndex < 0)) {
+        return FALSE;
+    }
+    barPtr = BAR_FROM_CORE(elemPtr);
+    if ((barPtr->rectangles == NULL) || (barPtr->rectToData == NULL)) {
+        return FALSE;
+    }
+    for (i = 0; i < barPtr->nRects; i++) {
+        BarRectangle *rectPtr;
+
+        if (barPtr->rectToData[i] != dataIndex) {
+            continue;
+        }
+        rectPtr = barPtr->rectangles + i;
+        extsPtr->left = (double)rectPtr->x;
+        extsPtr->top = (double)rectPtr->y;
+        extsPtr->right = extsPtr->left + (double)rectPtr->width;
+        extsPtr->bottom = extsPtr->top + (double)rectPtr->height;
+        return TRUE;
+    }
+    return FALSE;
+}
+
+/*
  *----------------------------------------------------------------------
  *
  * MergePens --
