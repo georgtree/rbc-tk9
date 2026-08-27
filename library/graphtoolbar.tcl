@@ -50,6 +50,11 @@ namespace eval ::graphtoolbar {
     option add *gtbCrosshairsTextBoxFill #FFEB3B widgetDefault
     option add *gtbCrosshairsTextBoxOutline grey widgetDefault
     option add *gtbCrosshairsTextBoxLineWidth 1 widgetDefault
+
+    # crosshairs markers bar default options
+    option add *gtbCrosshairsBarLineOutline black widgetDefault
+    option add *gtbCrosshairsBarLineWidth 1 widgetDefault
+    option add *gtbCrosshairsBarLineArrowShape {8 10 3} widgetDefault
 }
 
 namespace eval ::graphtoolbar::icons {
@@ -255,9 +260,23 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
                            [option get $Subwidgets(graph) gtbCrosshairsTextBoxLineWidth GtbCrosshairsTextBoxLineWidth]]]\
                  $value]
     }
+    property crosshairsbarlineopts -set {
+        set crosshairsbarlineopts\
+            [argparse -inline\
+                 [list\
+                      [list -outline= -key -outline -default\
+                           [option get $Subwidgets(graph) gtbCrosshairsBarLineOutline GtbCrosshairsBarLineOutline]]\
+                      [list -linewidth= -key -linewidth -default\
+                           [option get $Subwidgets(graph) gtbCrosshairsBarLineWidth GtbCrosshairsBarLineWidth]]\
+                      [list -arrowshape= -key -arrowshape -default\
+                           [option get $Subwidgets(graph) gtbCrosshairsBarLineArrowShape\
+                                    GtbCrosshairsBarLineArrowShape]]]\
+                 $value]
+    }
     variable PsData ZoomInfo ZoomMod zoomtitle ZoomMark zoomtitleopts zoomboxopts zoommarkopts ZoomTransientChecks\
             zoommarkboxopts GraphType
-    variable CrosshairsSelector crosshairsmarkopts crosshairsclosestopts crosshairsopts crosshairsmarkboxopts
+    variable CrosshairsSelector crosshairsmarkopts crosshairsmarkboxopts crosshairsclosestopts crosshairsopts
+    variable crosshairsbarlineopts
     variable AxisScaleInfo SavedToolbarStates
     classmethod unknown {w args} {
         if {[string match .* $w]} {
@@ -290,10 +309,10 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
             {-crosshairsmarkopts= -require crosshairs -type dict -default {}}
             {-crosshairsmarkboxopts= -require crosshairs -type dict -default {}}
             {-crosshairsclosestopts= -require crosshairs -type dict -default {}}
+            {-crosshairsbarlineopts= -require crosshairs -type dict -default {}}
             {-scaletoggle= -type list}
             -activelegend
         }]
-        my configure -crosshairsclosestopts [dict get $arguments crosshairsclosestopts]
         set ZoomMod [dict get $arguments zoommod]
         set GraphType [dict get $arguments type]
         set currentNamespace [namespace current]
@@ -351,6 +370,8 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         if {[dict exists $arguments crosshairs]} {
             my configure -crosshairsopts [dict get $arguments crosshairsopts]
             my configure -crosshairsmarkopts [dict get $arguments crosshairsmarkopts]
+            my configure -crosshairsclosestopts [dict get $arguments crosshairsclosestopts]
+            my configure -crosshairsbarlineopts [dict get $arguments crosshairsbarlineopts]
             my configure -crosshairsmarkboxopts [dict get $arguments crosshairsmarkboxopts]
             set Subwidgets(crosshairsComBox) [ttk::combobox $Subwidgets(toolbarFrame).crosshairsComBox -width 10\
                                                       -values [dict values $CrosshairsModes]\
@@ -491,7 +512,7 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         set lines [split $text \n]
         foreach line $lines {
             set lineWidth [font measure $font -displayof $graph $line]
-            if {$lineWidth > $width} {
+            if {$lineWidth>$width} {
                 set width $lineWidth
             }
         }
@@ -627,7 +648,7 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
             # Test the actual shifted marker location.
             lassign [my TextOffset $x $y $anchor] textX textY
             lassign [my TextBox $textX $textY $text $options $anchor] left top right bottom
-            if {($left >= $plotLeft) && ($top >= $plotTop) && ($right <= $plotRight) && ($bottom <= $plotBottom)} {
+            if {($left>=$plotLeft) && ($top>=$plotTop) && ($right<=$plotRight) && ($bottom<=$plotBottom)} {
                 return $anchor
             }
         }
@@ -642,12 +663,8 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
             return
         }
         lassign [my TextBox $x $y $text $textOptions] left top right bottom
-        lassign [my WidgetToAxisPixels $left $top] xPixel1 yPixel1
-        lassign [my WidgetToAxisPixels $right $bottom] xPixel2 yPixel2
-        set xValue1 [$graph axis invtransform $mapx $xPixel1]
-        set xValue2 [$graph axis invtransform $mapx $xPixel2]
-        set yValue1 [$graph axis invtransform $mapy $yPixel1]
-        set yValue2 [$graph axis invtransform $mapy $yPixel2]
+        lassign [my WidgetToAxisValues $left $top $mapx $mapy] xValue1 yValue1
+        lassign [my WidgetToAxisValues $right $bottom $mapx $mapy] xValue2 yValue2
         set coords [list $xValue1 $yValue1 $xValue2 $yValue1 $xValue2 $yValue2 $xValue1 $yValue2]
         if {[$graph marker exists $name]} {
             $graph marker configure $name -coords $coords -mapx $mapx -mapy $mapy {*}$boxOptions
@@ -694,12 +711,13 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
             return [list $yPixel $xPixel]
         }
         return [list $xPixel $yPixel]
-    }
+        }
     method WidgetToAxisValues {x y mapx mapy} {
-        # Converts physical widget pixels to values on the specified
-        # X and Y axes.
         set graph $Subwidgets(graph)
         lassign [my WidgetToAxisPixels $x $y] xPixel yPixel
+        # axis invtransform takes integer pixel coordinates.
+        set xPixel [expr {round($xPixel)}]
+        set yPixel [expr {round($yPixel)}]
         set xValue [$graph axis invtransform $mapx $xPixel]
         set yValue [$graph axis invtransform $mapy $yPixel]
         return [list $xValue $yValue]
@@ -710,10 +728,10 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         set graph $Subwidgets(graph)
         set xAxes [my VisibleAxes x]
         set yAxes [my VisibleAxes y]
-        if {[llength $xAxes] == 0} {
+        if {[llength $xAxes]==0} {
             return -code error {graph has no visible X axis}
         }
-        if {[llength $yAxes] == 0} {
+        if {[llength $yAxes]==0} {
             return -code error {graph has no visible Y axis}
         }
         set mapx [lindex $xAxes 0]
@@ -801,7 +819,7 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         }]
         $graph axis bind $tag <Leave> {
             set axis [%W axis get current]
-            if {$axis ne ""} {
+            if {$axis ne {}} {
                 %W axis configure $axis -background {}
             }
         }
@@ -891,23 +909,28 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         }
     }
     #### crosshairs methods
-    method CreateClosestMarker {graph textMarker bitmapMarker element xValue yValue options} {
+    method ClosestMarkerText {element xValue yValue options} {
+        set graph $Subwidgets(graph)
         set mapx [$graph element cget $element -mapx]
         set mapy [$graph element cget $element -mapy]
-        set xPixel [$graph axis transform $mapx $xValue]
-        set yPixel [$graph axis transform $mapy $yValue]
-        # a closest marker belongs to a specific element, therefore show only the axes actually used by that element.
-        if {[$Subwidgets(graph) cget -invertxy]} {
+        if {[$graph cget -invertxy]} {
             set xOrientation v
             set yOrientation h
         } else {
             set xOrientation h
             set yOrientation v
         }
-        set formatx [dict get $options -formatx]
-        set formaty [dict get $options -formaty]
-        set text [format "%s\n%s($xOrientation)=%$formatx\n%s($yOrientation)=%$formaty" $element $mapx\
-                          $xValue $mapy $yValue]
+        set xText [format "%[dict get $options -formatx]" $xValue]
+        set yText [format "%[dict get $options -formaty]" $yValue]
+        return [format "%s\n%s(%s)=%s\n%s(%s)=%s" $element $mapx $xOrientation $xText $mapy $yOrientation $yText]
+    }
+    method CreateClosestMarker {graph textMarker bitmapMarker element xValue yValue options} {
+        set mapx [$graph element cget $element -mapx]
+        set mapy [$graph element cget $element -mapy]
+        set xPixel [$graph axis transform $mapx $xValue]
+        set yPixel [$graph axis transform $mapy $yValue]
+        # a closest marker belongs to a specific element, therefore show only the axes actually used by that element.
+        set text [my ClosestMarkerText $element $xValue $yValue $options]
         # physical widget position of the actual closest point.
         lassign [my AxisPixelsToWidget $xPixel $yPixel] x y
         set anchor [my TextAnchor $x $y $text $options]
@@ -922,6 +945,167 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
                 -mapy $mapy {*}[dict remove $options -formatx -formaty]
         # bitmap remains exactly at the real element point.
         my AddBitmapPoint $bitmapMarker $xValue $yValue $mapx $mapy
+    }
+    method ClosestBarLayout {left top right bottom text textOptions} {
+        set graph $Subwidgets(graph)
+        lassign [$graph extents plotarea] plotLeft plotTop plotWidth plotHeight
+        set plotRight [expr {$plotLeft+$plotWidth-1}]
+        set plotBottom [expr {$plotTop+$plotHeight-1}]
+        lassign [my TextSize $text $textOptions] textWidth textHeight
+        # Distance from the bar to the dimension line, and from the
+        # dimension line to the text box.
+        set lineGap 4
+        set textGap 4
+        if {![$graph cget -invertxy]} {
+            #
+            # Normal graph: bars extend physically in Y.
+            #
+            # Prefer:
+            #
+            #      text  <->   bar
+            #             |
+            #             |
+            #
+            # If there is insufficient room on the left, put the
+            # annotation on the right.
+            #
+            set centerY [expr {($top+$bottom)/2.0}]
+            # Keep vertically centred text inside the plot area.
+            set halfHeight [expr {($textHeight-1)/2.0}]
+            if {($plotBottom-$plotTop+1)>=$textHeight} {
+                set textY [expr {max($plotTop+$halfHeight, min($centerY, $plotBottom-$halfHeight))}]
+            } else {
+                set textY $centerY
+            }
+            set leftLineX [expr {$left-$lineGap}]
+            set leftTextX [expr {$leftLineX-$textGap}]
+            set rightLineX [expr {$right+$lineGap}]
+            set rightTextX [expr {$rightLineX+$textGap}]
+            set leftFits [expr {($leftLineX>=$plotLeft) && (($leftTextX-$textWidth+1) >= $plotLeft)}]
+            set rightFits [expr {($rightLineX<=$plotRight) && (($rightTextX+$textWidth-1) <= $plotRight)}]
+            if {$leftFits} {
+                set lineX $leftLineX
+                set textX $leftTextX
+                set anchor e
+            } elseif {$rightFits} {
+                set lineX $rightLineX
+                set textX $rightTextX
+                set anchor w
+            } elseif {($left-$plotLeft) >= ($plotRight-$right)} {
+                # Neither complete annotation fits. Prefer the side
+                # with more available space.
+                set lineX [expr {max($plotLeft,$leftLineX)}]
+                set textX [expr {$lineX-$textGap}]
+                set anchor e
+            } else {
+                set lineX [expr {min($plotRight,$rightLineX)}]
+                set textX [expr {$lineX+$textGap}]
+                set anchor w
+            }
+            return [list $lineX $top $lineX $bottom $textX $textY $anchor]
+        }
+        #
+        # Inverted graph: bars extend physically in X.
+        #
+        # Prefer the annotation above the bar; if there is insufficient
+        # room there, put it below.
+        #
+        set centerX [expr {($left+$right)/2.0}]
+        set halfWidth [expr {($textWidth-1)/2.0}]
+        if {($plotRight-$plotLeft+1) >= $textWidth} {
+            set textX [expr {max($plotLeft+$halfWidth,min($centerX,$plotRight-$halfWidth))}]
+        } else {
+            set textX $centerX
+        }
+        set topLineY [expr {$top-$lineGap}]
+        set topTextY [expr {$topLineY-$textGap}]
+        set bottomLineY [expr {$bottom+$lineGap}]
+        set bottomTextY [expr {$bottomLineY+$textGap}]
+        set topFits [expr {($topLineY>=$plotTop) && (($topTextY-$textHeight+1) >= $plotTop)}]
+        set bottomFits [expr {($bottomLineY<=$plotBottom) && (($bottomTextY+$textHeight-1) <= $plotBottom)}]
+        if {$topFits} {
+            set lineY $topLineY
+            set textY $topTextY
+            set anchor s
+        } elseif {$bottomFits} {
+            set lineY $bottomLineY
+            set textY $bottomTextY
+            set anchor n
+        } elseif {($top-$plotTop) >= ($plotBottom-$bottom)} {
+            set lineY [expr {max($plotTop,$topLineY)}]
+            set textY [expr {$lineY-$textGap}]
+            set anchor s
+        } else {
+            set lineY [expr {min($plotBottom,$bottomLineY)}]
+            set textY [expr {$lineY+$textGap}]
+            set anchor n
+        }
+        return [list $left  $lineY $right $lineY $textX $textY $anchor]
+    }
+    method CreateClosestBarMarker {marker element xValue yValue left top right bottom options boxOptions} {
+        set graph $Subwidgets(graph)
+        set mapx [$graph element cget $element -mapx]
+        set mapy [$graph element cget $element -mapy]
+        set text [my ClosestMarkerText $element $xValue $yValue $options]
+        #
+        # -formatx/-formaty are graphtoolbar formatting options, not
+        # RBC text-marker options.
+        #
+        set textOptions [dict remove $options -formatx -formaty]
+        lassign [my ClosestBarLayout $left $top $right $bottom $text $textOptions] lineX1 lineY1 lineX2 lineY2 textX\
+                textY anchor
+        #
+        # the anchor is geometry-dependent for the bar annotation, so
+        # it intentionally overrides -anchor from -crosshairsmarkopts.
+        # All other text options remain shared with the ordinary closest
+        # marker.
+        #
+        dict set textOptions -anchor $anchor
+        #
+        # convert the physical dimension-line endpoints back into the
+        # element's mapped axis coordinates.
+        #
+        lassign [my WidgetToAxisValues $lineX1 $lineY1 $mapx $mapy] lineXValue1 lineYValue1
+        lassign [my WidgetToAxisValues $lineX2 $lineY2 $mapx $mapy] lineXValue2 lineYValue2
+        set lineCoords [list $lineXValue1 $lineYValue1 $lineXValue2 $lineYValue2]
+        #
+        # cursorText      -> cursorBarLine
+        # cursorText0     -> cursorBarLine0
+        #
+        set lineMarker [string map {crosshairsClosestText crosshairsClosestBarLine} $marker]
+        set lineOptions [my configure -crosshairsbarlineopts]
+
+        if {[$graph marker exists $lineMarker]} {
+            $graph marker configure $lineMarker -coords $lineCoords -mapx $mapx -mapy $mapy {*}$lineOptions -arrow both
+        } else {
+            $graph marker create line -name $lineMarker -coords $lineCoords -mapx $mapx -mapy $mapy -bindtags {} -under\
+                    no {*}$lineOptions -arrow both
+        }
+        #
+        # a bar annotation does not use the ordinary closest-point
+        # bitmap.
+        #
+        set bitmapMarker [string map {crosshairsClosestText crosshairsClosestBitmap} $marker]
+        if {[$graph marker exists $bitmapMarker]} {
+            $graph marker delete $bitmapMarker
+        }
+        #
+        # convert the selected physical text position back through the
+        # element's mapped axes.
+        #
+        lassign [my WidgetToAxisValues $textX $textY $mapx $mapy] textXValue textYValue
+        #
+        # draw/update the separate text background before the text
+        # itself.
+        #
+        my DrawTextBackground ${marker}Box $textX $textY $text $textOptions $boxOptions $mapx $mapy
+        if {[$graph marker exists $marker]} {
+            $graph marker configure $marker -coords [list $textXValue $textYValue] -text $text -mapx $mapx -mapy $mapy\
+                    {*}$textOptions
+        } else {
+            $graph marker create text -name $marker -coords [list $textXValue $textYValue] -text $text -mapx $mapx\
+                    -mapy $mapy -bindtags {} -under no {*}$textOptions
+        }
     }
     method CrosshairsMarkerMotion {graph x y options mode interpolate halo single} {
         if {![$graph inside $x $y]} {
@@ -943,10 +1127,19 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
                     $mapx -mapy $mapy {*}[dict remove $options -formatx -formaty]
             return
          } elseif {$mode eq {closest}} {
+             set boxOptions [my configure -crosshairsmarkboxopts]
             if {$single} {
                 if {[$graph element closest $x $y pointVar -along both -interpolate $interpolate -halo $halo]} {
-                    my CreateClosestMarker $graph crosshairsText crosshairsBitmap $pointVar(name) $pointVar(x)\
-                            $pointVar(y) $options
+                    set element $pointVar(name)
+                    if {([$graph element type $element] eq {BarElement}) &&\
+                                 [info exists pointVar(left)] && [info exists pointVar(top)] &&\
+                                 [info exists pointVar(right)] && [info exists pointVar(bottom)]} {
+                        my CreateClosestBarMarker crosshairsClosestText $element $pointVar(x) $pointVar(y)\
+                                $pointVar(left) $pointVar(top) $pointVar(right) $pointVar(bottom) $options $boxOptions
+                    } else {
+                        my CreateClosestMarker $graph crosshairsClosestText crosshairsClosestBitmap $element\
+                                $pointVar(x) $pointVar(y) $options
+                    }
                 }
             } else {
                 set i 0
@@ -955,8 +1148,17 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
                                   $elem]} {
                         continue
                     }
-                    my CreateClosestMarker $graph crosshairsText$i crosshairsBitmap$i $pointVar(name) $pointVar(x)\
-                            $pointVar(y) $options
+                    set marker crosshairsClosestText$i
+                    set element $pointVar(name)
+                    if {([$graph element type $element] eq {BarElement}) &&\
+                                 [info exists pointVar(left)] && [info exists pointVar(top)] &&\
+                                 [info exists pointVar(right)] && [info exists pointVar(bottom)] } {
+                        my CreateClosestBarMarker $marker $element $pointVar(x) $pointVar(y) $pointVar(left)\
+                                $pointVar(top) $pointVar(right) $pointVar(bottom) $options $boxOptions
+                    } else {
+                        my CreateClosestMarker $graph crosshairsClosestText$i crosshairsClosestBitmap$i $element\
+                                $pointVar(x) $pointVar(y) $options
+                    }
                     incr i
                 }
             }
@@ -1144,7 +1346,7 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         set yPixel1 $ZoomInfo(A,yPixel)
         set xPixel2 $ZoomInfo(B,xPixel)
         set yPixel2 $ZoomInfo(B,yPixel)
-        if {($xPixel1 == $xPixel2) || ($yPixel1 == $yPixel2)} {
+        if {($xPixel1==$xPixel2) || ($yPixel1==$yPixel2)} {
             return
         }
         set cmds [list]

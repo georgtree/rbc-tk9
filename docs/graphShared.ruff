@@ -1054,12 +1054,12 @@ namespace eval ::rbc::ELEMENT {
         For a bar element, the result array also contains the physical bounds of the selected mapped bar rectangle:
 
         #ruffopt excludedformats nroff
-        | Array element | Description |
-        | --- | --- |
-        | `left` | Physical widget X coordinate of the left edge of the selected bar rectangle. |
-        | `top` | Physical widget Y coordinate of the top edge of the selected bar rectangle. |
-        | `right` | Physical widget X coordinate of the right edge of the selected bar rectangle. |
-        | `bottom` | Physical widget Y coordinate of the bottom edge of the selected bar rectangle. |
+        | Array element | Description                                                                    |
+        | ------------- | ------------------------------------------------------------------------------ |
+        | `left`        | Physical widget X coordinate of the left edge of the selected bar rectangle.   |
+        | `top`         | Physical widget Y coordinate of the top edge of the selected bar rectangle.    |
+        | `right`       | Physical widget X coordinate of the right edge of the selected bar rectangle.  |
+        | `bottom`      | Physical widget Y coordinate of the bottom edge of the selected bar rectangle. |
 
         #ruffopt includedformats nroff
         ```

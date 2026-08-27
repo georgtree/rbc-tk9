@@ -5,6 +5,7 @@ namespace import tcltest::*
 
 set atol 1e-8
 set rtol 1e-10
+set defaultDelay 500
 
 proc containsNumber {value} {
     if {[string is double -strict $value]} {
@@ -163,7 +164,7 @@ proc FindLegendPoint {graph element} {
     return -code error "could not find legend entry for element '$element'"
 }
 
-proc GenerateGraphEvent {graph sequence x y {time 500}} {
+proc GenerateGraphEvent {graph sequence x y time} {
     sleep $time
     event generate $graph $sequence -x $x -y $y
     update
@@ -178,6 +179,23 @@ proc WaitForWindow {window} {
     }
     update idletasks
     return [expr {[winfo viewable $window] && ([winfo width $window] > 1) && ([winfo height $window] > 1)}]
+}
+
+proc MarkerWidgetCoords {graph marker} {
+    set mapx [$graph marker cget $marker -mapx]
+    set mapy [$graph marker cget $marker -mapy]
+    set coords [$graph marker cget $marker -coords]
+    set result [list]
+    foreach {xValue yValue} $coords {
+        set xPixel [$graph axis transform $mapx $xValue]
+        set yPixel [$graph axis transform $mapy $yValue]
+        if {[$graph cget -invertxy]} {
+            lappend result $yPixel $xPixel
+        } else {
+            lappend result $xPixel $yPixel
+        }
+    }
+    return $result
 }
 
 customMatch approxEqual approxNestedEqual
@@ -363,7 +381,7 @@ test generalConfiguration-15 {options configuration} -setup {
 }
 
 ### interactive features tests
-set winSize {-width 400 -height 400}
+set winSize {-width 700 -height 400}
 set titleFont {-font {ArialNarrow 8}}
 
 #### zoom
@@ -381,13 +399,11 @@ proc ExpectedZoomLimits {graph x1 y1 x2 y2 {xaxis x} {yaxis y}} {
     return [list $xmin $xmax $ymin $ymax]
 }
 
-test zoomInteractive-1 {interactive single-stage zoom} -match approxEqual -constraints {isInteractive isZoom} -setup {
+test zoomInteractive-1 {single-stage zoom} -match approxEqual -constraints {isInteractive isZoom} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1}]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive single-stage zoom} {*}$titleFont
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {single-stage zoom} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
@@ -402,14 +418,14 @@ test zoomInteractive-1 {interactive single-stage zoom} -match approxEqual -const
     set bXPointBox [expr {$leftMargin+$plotWidth*2/3}]
     set bYPointBox [expr {$topMargin+$plotHeight*2/3}]
     lappend expectedStates [ExpectedZoomLimits $graph $aXPointBox $aYPointBox $bXPointBox $bYPointBox]
-    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox
-    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox
+    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
     lappend actualStates [list {*}[$widget widgetcommand graph axis limits x]\
                                   {*}[$widget widgetcommand graph axis limits y]]
-    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox
+    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox $defaultDelay
     lappend actualStates [list {*}[$widget graph axis limits x] {*}[$widget widgetcommand graph axis limits y]]
     lappend expectedStates [lindex $expectedStates 0]
     return [approxNestedEqual $actualStates $expectedStates]
@@ -417,13 +433,11 @@ test zoomInteractive-1 {interactive single-stage zoom} -match approxEqual -const
     destroy $widget
 }
 
-test zoomInteractive-2 {interactive multi-stage zoom} -match approxEqual -constraints {isInteractive isZoom} -setup {
+test zoomInteractive-2 {multi-stage zoom} -match approxEqual -constraints {isInteractive isZoom} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1}]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive multi-stage zoom} {*}$titleFont
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {multi-stage zoom} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
@@ -439,16 +453,16 @@ test zoomInteractive-2 {interactive multi-stage zoom} -match approxEqual -constr
     set bYPointBox [expr {$topMargin+$plotHeight*2/3}]
     for {set i 0} {$i<3} {incr i} {
         set expected [ExpectedZoomLimits $graph $aXPointBox $aYPointBox $bXPointBox $bYPointBox]
-        GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox
-        GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox
-        GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox
-        GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox
+        GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox $defaultDelay
+        GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox $defaultDelay
+        GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox $defaultDelay
+        GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
         lappend expectedStates $expected
         lappend actualStates [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
     }
     for {set i 0} {$i<3} {incr i} {
-        GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox
-        GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox
+        GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox $defaultDelay
+        GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox $defaultDelay
         lappend actualStates [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
         lappend expectedStates [lindex $expectedStates [expr {2 - $i}]]
     }
@@ -457,13 +471,11 @@ test zoomInteractive-2 {interactive multi-stage zoom} -match approxEqual -constr
     destroy $widget
 }
 
-test zoomInteractive-3 {interactive single-stage zoom with no title} -constraints {isInteractive isZoom} -setup {
+test zoomInteractive-3 {single-stage zoom with no title} -constraints {isInteractive isZoom} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoommark\
                         -zoomboxopts {-linewidth 1}]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive single-stage zoom with no title} {*}$titleFont
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {single-stage zoom with no title} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
@@ -474,25 +486,23 @@ test zoomInteractive-3 {interactive single-stage zoom with no title} -constraint
     set aYPointBox [expr {$topMargin+$plotHeight/3}]
     set bXPointBox [expr {$leftMargin+$plotWidth*2/3}]
     set bYPointBox [expr {$topMargin+$plotHeight*2/3}]
-    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox
-    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox
+    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox $defaultDelay
     set titleExistence [$widget graph marker exists gtbZoomTitle]
-    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox
+    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox $defaultDelay
     return $titleExistence
 }  -result 0 -cleanup {
     destroy $widget
 }
 
-test zoomInteractive-4 {interactive single-stage zoom with no zoom marker} -constraints {isInteractive isZoom} -setup {
+test zoomInteractive-4 {single-stage zoom with no zoom marker} -constraints {isInteractive isZoom} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomboxopts\
                         {-linewidth 1}]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive single-stage zoom with no zoom marker} {*}$titleFont
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {single-stage zoom with no zoom marker} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
@@ -503,26 +513,24 @@ test zoomInteractive-4 {interactive single-stage zoom with no zoom marker} -cons
     set aYPointBox [expr {$topMargin+$plotHeight/3}]
     set bXPointBox [expr {$leftMargin+$plotWidth*2/3}]
     set bYPointBox [expr {$topMargin+$plotHeight*2/3}]
-    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox
-    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox
+    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox $defaultDelay
     set markerExistence [$widget graph marker exists gtbZoomText_A]
-    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox
+    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox $defaultDelay
     return $markerExistence
 }  -result 0 -cleanup {
     destroy $widget
 }
 
-test zoomInteractive-5 {interactive single-stage zoom, check for disabled toolbar during selection} -match approxEqual\
+test zoomInteractive-5 {single-stage zoom, check for disabled toolbar during selection} -match approxEqual\
         -constraints {isInteractive isZoom} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1}]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive single-stage zoom, check for disabled toolbar during selection}\
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {single-stage zoom, check for disabled toolbar during selection}\
             {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
@@ -535,15 +543,15 @@ test zoomInteractive-5 {interactive single-stage zoom, check for disabled toolba
     set aYPointBox [expr {$topMargin+$plotHeight/3}]
     set bXPointBox [expr {$leftMargin+$plotWidth*2/3}]
     set bYPointBox [expr {$topMargin+$plotHeight*2/3}]
-    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox
-    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox
+    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox $defaultDelay
     foreach w [winfo children [$widget subwidget toolbarFrame]] {
         lappend states [$w cget -state]
     }
-    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox
+    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox $defaultDelay
     foreach w [winfo children [$widget subwidget toolbarFrame]] {
         lappend states [$w cget -state]
     }
@@ -552,14 +560,12 @@ test zoomInteractive-5 {interactive single-stage zoom, check for disabled toolba
     destroy $widget
 }
 
-test zoomInteractive-6 {interactive single-stage zoom, check marker positioning near the edge of plotting area}\
+test zoomInteractive-6 {single-stage zoom, check marker positioning near the edge of plotting area}\
         -constraints {isInteractive isZoom} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1}]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive single-stage zoom, check marker positioning near the edge of plotting\
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {single-stage zoom, check marker positioning near the edge of plotting\
                                             area} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
@@ -571,22 +577,20 @@ test zoomInteractive-6 {interactive single-stage zoom, check marker positioning 
     set aYPointBox [expr {$topMargin+5}]
     set bXPointBox [expr {$leftMargin+$plotWidth-5}]
     set bYPointBox [expr {$topMargin+$plotHeight-5}]
-    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox
-    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox
-    sleep 500
+    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox $defaultDelay
+    sleep $defaultDelay
     return [list [$graph marker cget gtbZoomText_A -anchor] [$graph marker cget gtbZoomText_B -anchor]]
 }  -result {nw se} -cleanup {
     destroy $widget
 }
 
-test zoomInteractive-7 {interactive single-stage zoom, check clamping to visible area} -match approxEqual\
+test zoomInteractive-7 {single-stage zoom, check clamping to visible area} -match approxEqual\
         -constraints {isInteractive isZoom} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1}]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive single-stage zoom, check clamping to visible area} {*}$titleFont
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {single-stage zoom, check clamping to visible area} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
@@ -603,14 +607,14 @@ test zoomInteractive-7 {interactive single-stage zoom, check clamping to visible
     set bXPointBoxLimit [expr {$leftMargin+$plotWidth-1}]
     set bYPointBoxLimit [expr {$topMargin+$plotHeight-1}]
     lappend expectedStates [ExpectedZoomLimits $graph $aXPointBox $aYPointBox $bXPointBoxLimit $bYPointBoxLimit]
-    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox
-    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox
+    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
     lappend actualStates [list {*}[$widget widgetcommand graph axis limits x]\
                                   {*}[$widget widgetcommand graph axis limits y]]
-    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox
+    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox $defaultDelay
     lappend actualStates [list {*}[$widget graph axis limits x] {*}[$widget widgetcommand graph axis limits y]]
     lappend expectedStates [lindex $expectedStates 1]
     return [approxNestedEqual $actualStates $expectedStates]
@@ -618,14 +622,12 @@ test zoomInteractive-7 {interactive single-stage zoom, check clamping to visible
     destroy $widget
 }
 
-test zoomInteractive-8 {interactive single-stage zoom, no marker box} -match approxEqual\
+test zoomInteractive-8 {single-stage zoom, no marker box} -match approxEqual\
         -constraints {isInteractive isZoom} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1} -zoommarkboxopts {-fill {} -outline {}}]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive single-stage zoom, no marker box} {*}$titleFont
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {single-stage zoom, no marker box} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
@@ -636,26 +638,24 @@ test zoomInteractive-8 {interactive single-stage zoom, no marker box} -match app
     set aYPointBox [expr {$topMargin+$plotHeight/3}]
     set bXPointBox [expr {$leftMargin+$plotWidth*2/3}]
     set bYPointBox [expr {$topMargin+$plotHeight*2/3}]
-    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox
-    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox
+    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox $defaultDelay
     set markerExistence [$widget graph marker exists gtbZoomText_ABox]
-    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox
+    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox $defaultDelay
     return $markerExistence
 }  -result 0  -cleanup {
     destroy $widget
 }
 
-test zoomInteractive-9 {interactive single-stage zoom with multiple axes} -match approxEqual\
+test zoomInteractive-9 {single-stage zoom with multiple axes} -match approxEqual\
         -constraints {isInteractive isZoom} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1}]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive single-stage zoom with multiple axes} {*}$titleFont
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {single-stage zoom with multiple axes} {*}$titleFont
     $widget graph axis create y3
     $widget graph axis create y4
     $widget graph yaxis use {y3 y4}
@@ -675,16 +675,16 @@ test zoomInteractive-9 {interactive single-stage zoom with multiple axes} -match
     set bYPointBox [expr {$topMargin+$plotHeight*2/3}]
     lappend expectedStates [list {*}[ExpectedZoomLimits $graph $aXPointBox $aYPointBox $bXPointBox $bYPointBox x y3]\
                                     {*}[ExpectedZoomLimits $graph $aXPointBox $aYPointBox $bXPointBox $bYPointBox x y4]]
-    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox
-    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox
+    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
     lappend actualStates [list {*}[$widget widgetcommand graph axis limits x]\
                                   {*}[$widget widgetcommand graph axis limits y3]\
                                   {*}[$widget widgetcommand graph axis limits x]\
                                   {*}[$widget widgetcommand graph axis limits y4]]
-    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox
+    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox $defaultDelay
     lappend actualStates [list {*}[$widget graph axis limits x] {*}[$widget widgetcommand graph axis limits y3]\
                                   {*}[$widget graph axis limits x] {*}[$widget widgetcommand graph axis limits y4]]
     lappend expectedStates [lindex $expectedStates 0]
@@ -693,14 +693,12 @@ test zoomInteractive-9 {interactive single-stage zoom with multiple axes} -match
     destroy $widget
 }
 
-test zoomInteractive-10 {interactive single-stage zoom with inverted axes} -match approxEqual\
+test zoomInteractive-10 {single-stage zoom with inverted axes} -match approxEqual\
         -constraints {isInteractive isZoom} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1}]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive single-stage zoom with inverted axes} {*}$titleFont
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {single-stage zoom with inverted axes} {*}$titleFont
     $widget graph configure -invertxy true
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
@@ -716,14 +714,14 @@ test zoomInteractive-10 {interactive single-stage zoom with inverted axes} -matc
     set bXPointBox [expr {$leftMargin+$plotWidth*2/3}]
     set bYPointBox [expr {$topMargin+$plotHeight*2/3}]
     lappend expectedStates [ExpectedZoomLimits $graph $aYPointBox $aXPointBox $bYPointBox $bXPointBox ]
-    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox
-    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox
+    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
     lappend actualStates [list {*}[$widget widgetcommand graph axis limits x]\
                                   {*}[$widget widgetcommand graph axis limits y]]
-    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox
+    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox $defaultDelay
     lappend actualStates [list {*}[$widget graph axis limits x] {*}[$widget widgetcommand graph axis limits y]]
     lappend expectedStates [lindex $expectedStates 0]
     return [approxNestedEqual $actualStates $expectedStates]
@@ -732,13 +730,12 @@ test zoomInteractive-10 {interactive single-stage zoom with inverted axes} -matc
 }
 
 #### crosshairs
-test crosshairsInteractive-1 {interactive crosshairs with current coordinate marker}\
+test crosshairsInteractive-1 {crosshairs with current coordinate marker}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current]
     grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-            $widget graph configure -title {Interactive crosshairs with current coordinate marker} {*}$titleFont
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {crosshairs with current coordinate marker} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
@@ -762,13 +759,11 @@ test crosshairsInteractive-1 {interactive crosshairs with current coordinate mar
     destroy $widget
 }
 
-test crosshairsInteractive-2 {interactive crosshairs with closest element coordinate marker}\
+test crosshairsInteractive-2 {crosshairs with closest element coordinate marker}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive crosshairs with closest element coordinate marker} {*}$titleFont
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {crosshairs with closest element coordinate marker} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
@@ -786,7 +781,7 @@ test crosshairsInteractive-2 {interactive crosshairs with closest element coordi
     foreach x $xlist y $ylist {
         set expected [$graph element closest $x $y pointVar -along both -interpolate yes -halo 10]
         GenerateGraphEvent $graph <Motion> $x $y 5
-        set actual [$graph marker exists crosshairsText]
+        set actual [$graph marker exists crosshairsClosestText]
         if {$actual != $expected} {
             lappend failures [list $x $y $expected $actual]
         }
@@ -796,13 +791,11 @@ test crosshairsInteractive-2 {interactive crosshairs with closest element coordi
     destroy $widget
 }
 
-test crosshairsInteractive-3 {interactive crosshairs with no marker}\
+test crosshairsInteractive-3 {crosshairs with no marker}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode none]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive crosshairs with no marker} {*}$titleFont
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {crosshairs with no marker} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
@@ -826,14 +819,12 @@ test crosshairsInteractive-3 {interactive crosshairs with no marker}\
     destroy $widget
 }
 
-test crosshairsInteractive-4 {interactive crosshairs with closest element coordinate marker, larger halo}\
+test crosshairsInteractive-4 {crosshairs with closest element coordinate marker, larger halo}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-halo 30 -hide no}]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive crosshairs with closest element coordinate marker, larger halo}\
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {crosshairs with closest element coordinate marker, larger halo}\
             {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
@@ -852,7 +843,7 @@ test crosshairsInteractive-4 {interactive crosshairs with closest element coordi
     foreach x $xlist y $ylist {
         set expected [$graph element closest $x $y pointVar -along both -interpolate yes -halo 30]
         GenerateGraphEvent $graph <Motion> $x $y 5
-        set actual [$graph marker exists crosshairsText]
+        set actual [$graph marker exists crosshairsClosestText]
         if {$actual != $expected} {
             lappend failures [list $x $y $expected $actual]
         }
@@ -862,14 +853,12 @@ test crosshairsInteractive-4 {interactive crosshairs with closest element coordi
     destroy $widget
 }
 
-test crosshairsInteractive-5 {interactive crosshairs with closes element coordinate marker, multiple elements}\
+test crosshairsInteractive-5 {crosshairs with closes element coordinate marker, multiple elements}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-single no -hide no}]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive crosshairs with closest element coordinate marker, multiple elements}\
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {crosshairs with closest element coordinate marker, multiple elements}\
             {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
@@ -894,7 +883,7 @@ test crosshairsInteractive-5 {interactive crosshairs with closes element coordin
         }
         set expected [list [expr {$count >= 1}] [expr {$count >= 2}]]
         GenerateGraphEvent $graph <Motion> $x $y 5
-        set actual [list [$graph marker exists crosshairsText0] [$graph marker exists crosshairsText1]]
+        set actual [list [$graph marker exists crosshairsClosestText0] [$graph marker exists crosshairsClosestText1]]
         if {$actual != $expected} {
             lappend failures [list $x $y $expected $actual]
         }
@@ -904,14 +893,12 @@ test crosshairsInteractive-5 {interactive crosshairs with closes element coordin
     destroy $widget
 }
 
-test crosshairsInteractive-6 {interactive crosshairs with closest element coordinate marker, no interpolaton}\
+test crosshairsInteractive-6 {crosshairs with closest element coordinate marker, no interpolaton}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 30 -hide no}]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive crosshairs with closest element coordinate marker, no interpolaton}\
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {crosshairs with closest element coordinate marker, no interpolaton}\
             {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
@@ -930,7 +917,7 @@ test crosshairsInteractive-6 {interactive crosshairs with closest element coordi
     foreach x $xlist y $ylist {
         set expected [$graph element closest $x $y pointVar -along both -interpolate no -halo 30]
         GenerateGraphEvent $graph <Motion> $x $y 5
-        set actual [$graph marker exists crosshairsText]
+        set actual [$graph marker exists crosshairsClosestText]
         if {$actual != $expected} {
             lappend failures [list $x $y $expected $actual]
         }
@@ -940,13 +927,11 @@ test crosshairsInteractive-6 {interactive crosshairs with closest element coordi
     destroy $widget
 }
 
-test crosshairsInteractive-7 {interactive crosshairs with current coordinate marker, check marker positioning near\
+test crosshairsInteractive-7 {crosshairs with current coordinate marker, check marker positioning near\
                                       the edge of plotting area} -constraints {isInteractive isCrosshairs} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive crosshairs with current coordinate marker} {*}$titleFont
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {crosshairs with current coordinate marker} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
@@ -963,19 +948,17 @@ test crosshairsInteractive-7 {interactive crosshairs with current coordinate mar
     foreach x $xlist y $ylist {
         GenerateGraphEvent $graph <Motion> $x $y 5
     }
-    sleep 500
+    sleep $defaultDelay
     return [$graph marker cget crosshairsText -anchor]
 }  -result se -cleanup {
     destroy $widget
 }
 
-test crosshairsInteractive-8 {interactive crosshairs with current coordinate marker, check marker positioning near\
+test crosshairsInteractive-8 {crosshairs with closest coordinate marker, check marker positioning near\
                                       the edge of plotting area} -constraints {isInteractive isCrosshairs} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive crosshairs with current coordinate marker} {*}$titleFont
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {crosshairs with current coordinate marker} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
@@ -992,20 +975,18 @@ test crosshairsInteractive-8 {interactive crosshairs with current coordinate mar
     foreach x $xlist y $ylist {
         GenerateGraphEvent $graph <Motion> $x $y 5
     }
-    sleep 500
-    return [$graph marker cget crosshairsText -anchor]
+    sleep $defaultDelay
+    return [$graph marker cget crosshairsClosestText -anchor]
 }  -result ne -cleanup {
     destroy $widget
 }
 
-test crosshairsInteractive-9 {interactive crosshairs with current coordinate marker, check marker positioning near\
+test crosshairsInteractive-9 {crosshairs with closest coordinate marker, check marker positioning near\
                                       the edge of plotting area} -constraints {isInteractive isCrosshairs} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-single no -halo 30 -hide no}]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive crosshairs with current coordinate marker} {*}$titleFont
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {crosshairs with current coordinate marker} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
@@ -1022,20 +1003,18 @@ test crosshairsInteractive-9 {interactive crosshairs with current coordinate mar
     foreach x $xlist y $ylist {
         GenerateGraphEvent $graph <Motion> $x $y 5
     }
-    sleep 500
-    return [list [$graph marker cget crosshairsText0 -anchor] [$graph marker cget crosshairsText1 -anchor]]
+    sleep $defaultDelay
+    return [list [$graph marker cget crosshairsClosestText0 -anchor] [$graph marker cget crosshairsClosestText1 -anchor]]
 }  -result {ne ne} -cleanup {
     destroy $widget
 }
 
-test crosshairsInteractive-10 {interactive crosshairs with current coordinate marker and no marker box}\
+test crosshairsInteractive-10 {crosshairs with current coordinate marker and no marker box}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current\
                         -crosshairsmarkboxopts {-fill {} -outline {}}]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive crosshairs with current coordinate marker and no marker box}\
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {crosshairs with current coordinate marker and no marker box}\
             {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
@@ -1053,21 +1032,19 @@ test crosshairsInteractive-10 {interactive crosshairs with current coordinate ma
     set markerExistence 1
     foreach x $xlist y $ylist {
         GenerateGraphEvent $graph <Motion> $x $y 5
-        set markerExistence [expr {[$widget graph marker exists crosshairsTextBox] && $markerExistence}]
+        set markerExistence [expr {[$widget graph marker exists crosshairsClosestTextBox] && $markerExistence}]
     }
     return $markerExistence
 }  -result 0 -cleanup {
     destroy $widget
 }
 
-test crosshairsInteractive-11 {interactive crosshairs with closest element coordinate marker and no marker box}\
+test crosshairsInteractive-11 {crosshairs with closest element coordinate marker and no marker box}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                        -crosshairsmarkboxopts {-fill {} -outline {}}]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive crosshairs with closest element coordinate marker and no marker box}\
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {crosshairs with closest element coordinate marker and no marker box}\
             {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
@@ -1085,8 +1062,8 @@ test crosshairsInteractive-11 {interactive crosshairs with closest element coord
     set markerExistence 1
     foreach x $xlist y $ylist {
         GenerateGraphEvent $graph <Motion> $x $y 5
-        if {[$widget graph marker exists crosshairsText]} {
-            set markerExistence [expr {[$widget graph marker exists crosshairsTextBox] && $markerExistence}]
+        if {[$widget graph marker exists crosshairsClosestText]} {
+            set markerExistence [expr {[$widget graph marker exists crosshairsClosestTextBox] && $markerExistence}]
         }
     }
     return $markerExistence
@@ -1094,13 +1071,11 @@ test crosshairsInteractive-11 {interactive crosshairs with closest element coord
     destroy $widget
 }
 
-test crosshairsInteractive-12 {interactive crosshairs with current coordinate marker and inverted axes}\
+test crosshairsInteractive-12 {crosshairs with current coordinate marker and inverted axes}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive crosshairs with current coordinate marker and inverted axes}\
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {crosshairs with current coordinate marker and inverted axes}\
             {*}$titleFont
     $widget graph configure -invertxy true
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
@@ -1130,9 +1105,7 @@ test crosshairsInteractive-13 {current crosshairs marker text with multiple axes
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current\
                         -crosshairsmarkopts {-formatx .6g -formaty .6g}]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
+    pack .gtb -fill both -expand yes
     $widget graph configure -title {Current crosshairs marker text with multiple axes} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph axis create xAlt -min 100 -max 200
@@ -1155,7 +1128,7 @@ test crosshairsInteractive-13 {current crosshairs marker text with multiple axes
                                 [format "y(v)=%.6g" [$graph axis invtransform y $yPixel]]\
                                 [format "yAlt(v)=%.6g" [$graph axis invtransform yAlt $yPixel]]] \n]
     GenerateGraphEvent $graph <Motion> $x $y 20
-    sleep 500
+    sleep $defaultDelay
     if {![$graph marker exists crosshairsText]} {
         return {crosshairsText marker was not created}
     }
@@ -1172,9 +1145,7 @@ test crosshairsInteractive-14 {current crosshairs marker text with multiple inve
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current\
                         -crosshairsmarkopts {-formatx .6g -formaty .6g}]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
+    pack .gtb -fill both -expand yes
     $widget graph configure -title {Current crosshairs marker text with multiple inverted axes} -invertxy true\
             {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
@@ -1198,7 +1169,7 @@ test crosshairsInteractive-14 {current crosshairs marker text with multiple inve
                                 [format "y(h)=%.6g" [$graph axis invtransform y $yPixel]]\
                                 [format "yAlt(h)=%.6g" [$graph axis invtransform yAlt $yPixel]]] \n]
     GenerateGraphEvent $graph <Motion> $x $y 20
-    sleep 500
+    sleep $defaultDelay
     if {![$graph marker exists crosshairsText]} {
         return {crosshairsText marker was not created}
     }
@@ -1216,9 +1187,7 @@ test crosshairsInteractive-15 {closest crosshairs marker text uses element mappe
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsmarkopts {-formatx .6g -formaty .6g}\
                         -crosshairsclosestopts {-interpolate no -halo 10}]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
+    pack .gtb -fill both -expand yes
     $widget graph configure -title {Closest crosshairs marker text with mapped axes} {*}$titleFont
     $widget graph axis create time
     $widget graph axis create voltage
@@ -1235,16 +1204,16 @@ test crosshairsInteractive-15 {closest crosshairs marker text uses element mappe
     # X/Y data dimension.
     set xPixel [$graph axis transform time $xValue]
     set yPixel [$graph axis transform voltage $yValue]
-    # Not inverted, so these are also physical widget x/y.
+    # not inverted, so these are also physical widget x/y.
     set x $xPixel
     set y $yPixel
     set expected [join [list line1 [format "time(h)=%.6g" $xValue] [format "voltage(v)=%.6g" $yValue]] \n]
     GenerateGraphEvent $graph <Motion> $x $y 20
-    sleep 500
-    if {![$graph marker exists crosshairsText]} {
-        return {crosshairsText marker was not created}
+    sleep $defaultDelay
+    if {![$graph marker exists crosshairsClosestText]} {
+        return {crosshairsClosestText marker was not created}
     }
-    set actual [$graph marker cget crosshairsText -text]
+    set actual [$graph marker cget crosshairsClosestText -text]
     if {$actual ne $expected} {
         return [list expected $expected actual $actual]
     }
@@ -1258,9 +1227,7 @@ test crosshairsInteractive-16 {closest crosshairs marker text uses element mappe
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsmarkopts {-formatx .6g -formaty .6g}\
                         -crosshairsclosestopts {-interpolate no -halo 10}]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
+    pack .gtb -fill both -expand yes
     $widget graph configure -title {Closest crosshairs marker text with mapped inverted axes} -invertxy true\
             {*}$titleFont
     $widget graph axis create time
@@ -1284,11 +1251,11 @@ test crosshairsInteractive-16 {closest crosshairs marker text uses element mappe
     set y $xPixel
     set expected [join [list line1 [format "time(v)=%.6g" $xValue] [format "voltage(h)=%.6g" $yValue]] \n]
     GenerateGraphEvent $graph <Motion> $x $y 20
-    sleep 500
-    if {![$graph marker exists crosshairsText]} {
-        return {crosshairsText marker was not created}
+    sleep $defaultDelay
+    if {![$graph marker exists crosshairsClosestText]} {
+        return {crosshairsClosestText marker was not created}
     }
-    set actual [$graph marker cget crosshairsText -text]
+    set actual [$graph marker cget crosshairsClosestText -text]
     if {$actual ne $expected} {
         return [list expected $expected actual $actual]
     }
@@ -1297,13 +1264,353 @@ test crosshairsInteractive-16 {closest crosshairs marker text uses element mappe
     destroy $widget
 }
 
+test crosshairsInteractive-17 {closest marker: ordinary line marker is removed outside halo}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {closest marker: ordinary line marker is removed outside halo} {*}$titleFont
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min 0 -max 10
+    $widget graph element create Element1 -data {5 5} -symbol circle
+    set graph [.gtb subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph transform 5 5] x1 y1
+    lassign [$graph transform 9 9] x2 y2
+    GenerateGraphEvent $graph <Motion> $x1 $y1 50
+    set before [list [$graph marker exists crosshairsClosestText] [$graph marker exists crosshairsClosestTextBox]\
+                        [$graph marker exists crosshairsClosestBitmap]]
+    GenerateGraphEvent $graph <Motion> $x2 $y2 50
+    sleep $defaultDelay
+    set after [$graph marker names crosshairsClosest*]
+    list $before $after
+} -cleanup {
+    destroy .gtb
+} -result {{1 1 1} {}}
+
+test crosshairsInteractive-18 {closest bar marker: bar annotation is removed outside halo}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {closest bar marker: bar annotation is removed outside halo} {*}$titleFont
+    $widget graph configure -barwidth 0.8
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min 0 -max 10
+    $widget graph element create Bar1 -data {2 8}
+    set graph [.gtb subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph transform 2 4] x1 y1
+    lassign [$graph transform 9 1] x2 y2
+    GenerateGraphEvent $graph <Motion> $x1 $y1 50
+    set before [list [$graph marker exists crosshairsClosestText] [$graph marker exists crosshairsClosestTextBox]\
+                        [$graph marker exists crosshairsClosestBarLine] [$graph marker exists crosshairsClosestBitmap]]
+    GenerateGraphEvent $graph <Motion> $x2 $y2 50
+    sleep $defaultDelay
+    set after [$graph marker names crosshairsClosest*]
+    list $before $after
+} -cleanup {
+    destroy .gtb
+} -result {{1 1 1 0} {}}
+
+test crosshairsInteractive-19 {closest bar marker: normal bar uses exact rectangle and preferred left placement}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {closest bar marker: normal bar uses exact rectangle and preferred left placement}\
+            {*}$titleFont
+    $widget graph configure -barwidth 0.8
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min 0 -max 10
+    $widget graph element create Bar1 -data {7 8}
+    set graph [.gtb subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph transform 7 4] x y
+    set found [$graph element closest $x $y info -along both -interpolate no -halo 2 Bar1]
+    GenerateGraphEvent $graph <Motion> $x $y 50
+    sleep $defaultDelay
+    lassign [MarkerWidgetCoords $graph crosshairsClosestBarLine] lineX1 lineY1 lineX2 lineY2
+    lassign [MarkerWidgetCoords $graph crosshairsClosestText] textX textY
+    list $found [$graph marker exists crosshairsClosestBarLine] [$graph marker exists crosshairsClosestText]\
+            [$graph marker exists crosshairsClosestTextBox] [expr {![$graph marker exists crosshairsClosestBitmap]}]\
+            [expr {[$graph marker cget crosshairsClosestText -anchor] eq {e}}]\
+            [expr {[$graph marker cget crosshairsClosestBarLine -arrow] eq {both}}]\
+            [expr {abs($lineX1 - ($info(left) - 4)) <= 1.0}] [expr {abs($lineX2 - ($info(left) - 4)) <= 1.0}]\
+            [expr {abs($lineY1 - $info(top)) <= 1.0}] [expr {abs($lineY2 - $info(bottom)) <= 1.0}]\
+            [expr {$textX < $lineX1}]
+} -cleanup {
+    unset -nocomplain info
+    destroy .gtb
+} -result {1 1 1 1 1 1 1 1 1 1 1 1}
+
+test crosshairsInteractive-20 {closest bar marker: uses right side when left has insufficient space}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {closest bar marker: uses right side when left has insufficient space}\
+            {*}$titleFont
+    $widget graph configure -barwidth 0.8
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min 0 -max 10
+    $widget graph element create VeryLongBarElementNameForPlacement -data {1 8}
+    set graph [.gtb subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph transform 1 4] x y
+    set found [$graph element closest $x $y info -along both -interpolate no -halo 2\
+                       VeryLongBarElementNameForPlacement]
+    GenerateGraphEvent $graph <Motion> $x $y 50
+    lassign [MarkerWidgetCoords $graph crosshairsClosestBarLine] lineX1 lineY1 lineX2 lineY2
+    lassign [MarkerWidgetCoords $graph crosshairsClosestText] textX textY
+    sleep $defaultDelay
+    list $found [expr {[$graph marker cget crosshairsClosestText -anchor] eq {w}}]\
+            [expr {abs($lineX1 - ($info(right) + 4)) <= 1.0}] [expr {abs($lineX2 - ($info(right) + 4)) <= 1.0}]\
+            [expr {abs($lineY1 - $info(top)) <= 1.0}] [expr {abs($lineY2 - $info(bottom)) <= 1.0}]\
+            [expr {$textX > $lineX1}]
+} -cleanup {
+    unset -nocomplain info
+    destroy .gtb
+} -result {1 1 1 1 1 1 1}
+
+test crosshairsInteractive-21 {closest bar marker: stacked mode marks only selected segment}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {closest bar marker: stacked mode marks only selected segment} {*}$titleFont
+    $widget graph configure -barwidth 0.8 -baseline 0 -barmode stacked
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min 0 -max 10
+    $widget graph element create Element1 -data {7 3}
+    $widget graph element create Element2 -data {7 5}
+    set graph [.gtb subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph transform 7 4] x y
+    $graph element closest $x $y info1 -along both -interpolate no -halo 1000 Element1
+    $graph element closest $x $y info2 -along both -interpolate no -halo 1000 Element2
+    lassign [$graph transform 7 0] baseX baseY
+    if {(abs($info1(top) - $baseY) > 1.0) && (abs($info1(bottom) - $baseY) > 1.0)} {
+        set element Element1
+        array set selected [array get info1]
+    } else {
+        set element Element2
+        array set selected [array get info2]
+    }
+    set x [expr {round(($selected(left) + $selected(right)) / 2.0)}]
+    set y [expr {round(($selected(top) + $selected(bottom)) / 2.0)}]
+    GenerateGraphEvent $graph <Motion> $x $y 50
+    sleep $defaultDelay
+    lassign [MarkerWidgetCoords $graph crosshairsClosestBarLine] lineX1 lineY1 lineX2 lineY2
+    set markedElement [lindex [split [$graph marker cget crosshairsClosestText -text] \n] 0]
+    list [expr {$markedElement eq $element}] [expr {abs($lineY1 - $selected(top)) <= 1.0}]\
+            [expr {abs($lineY2 - $selected(bottom)) <= 1.0}] [expr {abs($lineY1 - $baseY) > 1.0}]\
+            [expr {abs($lineY2 - $baseY) > 1.0}]
+} -cleanup {
+    unset -nocomplain info1 info2 selected
+    destroy .gtb
+} -result {1 1 1 1 1}
+
+test crosshairsInteractive-22 {closest bar marker: aligned mode uses selected rendered rectangle}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {closest bar marker: aligned mode uses selected rendered rectangle} {*}$titleFont
+    $widget graph configure -barwidth 0.8 -barmode aligned
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min 0 -max 10
+    $widget graph element create Element1 -data {7 4}
+    $widget graph element create Element2 -data {7 7}
+    set graph [.gtb subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph transform 7 2] x y
+    $graph element closest $x $y info1 -along both -interpolate no -halo 1000 Element1
+    $graph element closest $x $y info2 -along both -interpolate no -halo 1000 Element2
+    set x [expr {round(($info1(left) + $info1(right)) / 2.0)}]
+    set y [expr {round(($info1(top) + $info1(bottom)) / 2.0)}]
+    GenerateGraphEvent $graph <Motion> $x $y 50
+    sleep $defaultDelay
+    lassign [MarkerWidgetCoords $graph crosshairsClosestBarLine] lineX1 lineY1 lineX2 lineY2
+    set markedElement [lindex [split [$graph marker cget crosshairsClosestText -text] \n] 0]
+    list [expr {$markedElement eq {Element1}}]\
+            [expr {($info1(left) != $info2(left)) || ($info1(right) != $info2(right)) }]\
+            [expr {abs($lineY1 - $info1(top)) <= 1.0}] [expr {abs($lineY2 - $info1(bottom)) <= 1.0}]\
+            [expr {(abs($lineX1 - ($info1(left) - 4)) <= 1.0) || (abs($lineX1 - ($info1(right) + 4)) <= 1.0)}]
+} -cleanup {
+    unset -nocomplain info1 info2
+    destroy .gtb
+} -result {1 1 1 1 1}
+
+test crosshairsInteractive-23 {closest bar marker: overlap mode creates marker for each bar with single no}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-interpolate no -halo 500 -single no}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {closest bar marker: overlap mode creates marker for each bar with single no}\
+            {*}$titleFont
+    $widget graph configure -barwidth 0.8 -barmode overlap
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min 0 -max 10
+    $widget graph element create Element1 -data {7 4}
+    $widget graph element create Element2 -data {7 7}
+    set graph [.gtb subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph transform 7 2] x y
+    $graph element closest $x $y info1 -along both -interpolate no -halo 500 Element1
+    $graph element closest $x $y info2 -along both -interpolate no -halo 500 Element2
+    GenerateGraphEvent $graph <Motion> $x $y 50
+    sleep $defaultDelay
+    unset -nocomplain marker1 marker2
+    foreach i {0 1} {
+        set name [lindex [split [$graph marker cget crosshairsClosestText$i -text] \n] 0]
+        if {$name eq {Element1}} {
+            set marker1 crosshairsClosestBarLine$i
+        } elseif {$name eq {Element2}} {
+            set marker2 crosshairsClosestBarLine$i
+        }
+    }
+    lassign [MarkerWidgetCoords $graph $marker1] x11 y11 x12 y12
+    lassign [MarkerWidgetCoords $graph $marker2] x21 y21 x22 y22
+    list [info exists marker1] [info exists marker2] [expr {abs($y11 - $info1(top)) <= 1.0}]\
+            [expr {abs($y12 - $info1(bottom)) <= 1.0}] [expr {abs($y21 - $info2(top)) <= 1.0}]\
+            [expr {abs($y22 - $info2(bottom)) <= 1.0}]\
+            [expr {(abs($x11 - ($info1(left) - 4)) <= 1.0) || (abs($x11 - ($info1(right) + 4)) <= 1.0)}]\
+            [expr {(abs($x21 - ($info2(left) - 4)) <= 1.0) || (abs($x21 - ($info2(right) + 4)) <= 1.0)}]
+} -cleanup {
+    unset -nocomplain info1 info2 marker1 marker2
+    destroy .gtb
+} -result {1 1 1 1 1 1 1 1}
+
+test crosshairsInteractive-24 {closest bar marker: inverted graph uses horizontal dimension line}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {closest bar marker: inverted graph uses horizontal dimension line} {*}$titleFont
+    $widget graph configure -barwidth 0.8 -invertxy yes
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min 0 -max 10
+    $widget graph element create Bar1 -data {6 8}
+    set graph [.gtb subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph transform 6 4] x y
+    set found [$graph element closest $x $y info -along both -interpolate no -halo 2 Bar1]
+    GenerateGraphEvent $graph <Motion> $x $y 50
+    sleep $defaultDelay
+    lassign [MarkerWidgetCoords $graph crosshairsClosestBarLine] lineX1 lineY1 lineX2 lineY2
+    set anchor [$graph marker cget crosshairsClosestText -anchor]
+    if {$anchor eq {s}} {
+        set position [expr {abs($lineY1 - ($info(top) - 4)) <= 1.0}]
+    } elseif {$anchor eq {n}} {
+        set position [expr {abs($lineY1 - ($info(bottom) + 4)) <= 1.0}]
+    } else {
+        set position false
+    }
+    list $found [expr {abs($lineX1 - $info(left)) <= 1.0}] [expr {abs($lineX2 - $info(right)) <= 1.0}]\
+            [expr {abs($lineY1 - $lineY2) <= 1.0}] $position
+} -cleanup {
+    unset -nocomplain info
+    destroy .gtb
+} -result {1 1 1 1 1}
+
+test crosshairsInteractive-25 {closest marker: mixed bar and line elements select the correct marker type}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {closest marker: mixed bar and line elements select the correct marker type}\
+            {*}$titleFont
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min 0 -max 10
+    $widget graph bar create Bar1 -data {2 8}
+    $widget graph line create Line1 -data {6 2 7 2 8 2} -symbol circle
+    set graph [.gtb subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph transform 2 4] barX barY
+    GenerateGraphEvent $graph <Motion> $barX $barY 50
+    sleep $defaultDelay
+    set barText [lindex [split [$graph marker cget crosshairsClosestText -text] \n] 0]
+    set barResult [list [$graph element type Bar1] $barText [$graph marker exists crosshairsClosestText]\
+                           [$graph marker exists crosshairsClosestTextBox]\
+                           [$graph marker exists crosshairsClosestBarLine]\
+                           [$graph marker exists crosshairsClosestBitmap]]
+    lassign [$graph transform 7 2] lineX lineY
+    GenerateGraphEvent $graph <Motion> $lineX $lineY 50
+    sleep $defaultDelay
+    set lineText [lindex [split [$graph marker cget crosshairsClosestText -text] \n] 0]
+    set lineResult [list [$graph element type Line1] $lineText [$graph marker exists crosshairsClosestText]\
+                            [$graph marker exists crosshairsClosestTextBox]\
+                            [$graph marker exists crosshairsClosestBarLine]\
+                            [$graph marker exists crosshairsClosestBitmap]]
+    list $barResult $lineResult
+} -cleanup {
+    destroy .gtb
+} -result {{BarElement Bar1 1 1 1 0} {LineElement Line1 1 1 0 1}}
+
+test crosshairsInteractive-26 {closest marker: mixed bar and line elements use independent marker types with single no}\
+        -constraints {isInteractive isCrosshairs}  -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-interpolate no -halo 30 -single no}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {closest marker: mixed bar and line elements use independent marker types with\
+                                            single no} {*}$titleFont
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min 0 -max 10
+    $widget graph bar create Bar1 -data {5 8}
+    $widget graph line create Line1 -data {4 4 5 4 6 4} -symbol circle
+    set graph [.gtb subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph transform 5 4] x y
+    set barFound [$graph element closest $x $y barInfo -along both -interpolate no -halo 30 Bar1]
+    set lineFound [$graph element closest $x $y lineInfo -along both -interpolate no -halo 30 Line1]
+    GenerateGraphEvent $graph <Motion> $x $y 50
+    sleep $defaultDelay
+    unset -nocomplain barIndex lineIndex
+    foreach i {0 1} {
+        set marker crosshairsClosestText$i
+        if {![$graph marker exists $marker]} {
+            continue
+        }
+        set element [lindex [split [$graph marker cget $marker -text] \n] 0]
+        if {$element eq {Bar1}} {
+            set barIndex $i
+        } elseif {$element eq {Line1}} {
+            set lineIndex $i
+        }
+    }
+    if { ![info exists barIndex] || ![info exists lineIndex] } {
+        return [list found $barFound $lineFound indexes [info exists barIndex] [info exists lineIndex]]
+    }
+    set barResult [list [$graph marker exists crosshairsClosestText$barIndex]\
+                           [$graph marker exists crosshairsClosestText${barIndex}Box]\
+                           [$graph marker exists crosshairsClosestBarLine$barIndex]\
+                           [$graph marker exists crosshairsClosestBitmap$barIndex]]
+    set lineResult [list [$graph marker exists crosshairsClosestText$lineIndex]\
+                            [$graph marker exists crosshairsClosestText${lineIndex}Box]\
+                            [$graph marker exists crosshairsClosestBarLine$lineIndex]\
+                            [$graph marker exists crosshairsClosestBitmap$lineIndex]]
+    list $barFound $lineFound [$graph element type Bar1] [$graph element type Line1] $barResult $lineResult
+} -cleanup {
+    unset -nocomplain barInfo lineInfo barIndex lineIndex
+    destroy .gtb
+} -result {1 1 BarElement LineElement {1 1 1 0} {1 1 0 1}}
+
 #### axes
-test axesInteractive-1 {interactive change of axis scale} -constraints {isInteractive isAxes} -setup {
+test axesInteractive-1 {change of axis scale} -constraints {isInteractive isAxes} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -scaletoggle all]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive change of axis scale} {*}$titleFont
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {change of axis scale} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
@@ -1315,25 +1622,23 @@ test axesInteractive-1 {interactive change of axis scale} -constraints {isIntera
     set plotX [expr {[$graph extents leftmargin] + [$graph extents plotwidth] / 2}]
     set plotY [expr {[$graph extents topmargin] + [$graph extents plotheight] / 2}]
     lappend scale [lindex [$graph axis configure $axis -logscale] end]
-    GenerateGraphEvent $graph <Motion> $axisX $axisY
-    GenerateGraphEvent $graph <ButtonPress-1> $axisX $axisY
+    GenerateGraphEvent $graph <Motion> $axisX $axisY $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-1> $axisX $axisY $defaultDelay
     GenerateGraphEvent $graph <ButtonRelease-1> $axisX $axisY 20
     lappend scale [lindex [$graph axis configure $axis -logscale] end]
-    GenerateGraphEvent $graph <Motion> $plotX $plotY
+    GenerateGraphEvent $graph <Motion> $plotX $plotY $defaultDelay
     return $scale
 }  -result {0 1} -cleanup {
     destroy $widget
 }
 
 #### cross-interactions
-test crossInteractive-1 {interactive single-stage zoom, check crosshairs marking disabling during selection}\
+test crossInteractive-1 {single-stage zoom, check crosshairs marking disabling during selection}\
         -match approxEqual -constraints {isInteractive isCross} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1} -crosshairs -crosshairsmode current]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive single-stage zoom, check crosshairs marking disabling during\
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {single-stage zoom, check crosshairs marking disabling during\
                                             selection} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
@@ -1345,27 +1650,25 @@ test crossInteractive-1 {interactive single-stage zoom, check crosshairs marking
     set aYPointBox [expr {$topMargin+$plotHeight/3}]
     set bXPointBox [expr {$leftMargin+$plotWidth*2/3}]
     set bYPointBox [expr {$topMargin+$plotHeight*2/3}]
-    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox
-    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox
+    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox $defaultDelay
     set crosshairsMarkerExists [$widget graph marker exists crosshairsText]
-    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <Motion> [expr {$bXPointBox+1}] [expr {$bYPointBox+1}]
-    sleep 500
+    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <Motion> [expr {$bXPointBox+1}] [expr {$bYPointBox+1}] $defaultDelay
+    sleep $defaultDelay
     lappend crosshairsMarkerExists [$widget graph marker exists crosshairsText]
     return $crosshairsMarkerExists
 }  -result {0 1}  -cleanup {
     destroy $widget
 }
 
-test crossInteractive-2 {interactive single-stage zoom, check crosshairs marking disabling during selection}\
+test crossInteractive-2 {single-stage zoom, check crosshairs marking disabling during selection}\
         -match approxEqual -constraints {isInteractive isCross} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1} -crosshairs -crosshairsmode current]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive single-stage zoom, check crosshairs marking disabling during\
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {single-stage zoom, check crosshairs marking disabling during\
                                             selection} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
@@ -1377,27 +1680,25 @@ test crossInteractive-2 {interactive single-stage zoom, check crosshairs marking
     set aYPointBox [expr {$topMargin+$plotHeight/3}]
     set bXPointBox [expr {$leftMargin+$plotWidth*2/3}]
     set bYPointBox [expr {$topMargin+$plotHeight*2/3}]
-    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox
-    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox
+    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox $defaultDelay
     set crosshairsMarkerExists [$widget graph marker exists crosshairsText]
-    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox
-    GenerateGraphEvent $graph <Motion> [expr {$bXPointBox+1}] [expr {$bYPointBox+1}]
-    sleep 500
+    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <Motion> [expr {$bXPointBox+1}] [expr {$bYPointBox+1}] $defaultDelay
+    sleep $defaultDelay
     lappend crosshairsMarkerExists [$widget graph marker exists crosshairsText]
     return $crosshairsMarkerExists
 }  -result {0 1}  -cleanup {
     destroy $widget
 }
 
-test crossInteractive-3 {interactive single-stage zoom, check active axis disabling during selection}\
+test crossInteractive-3 {single-stage zoom, check active axis disabling during selection}\
         -match approxEqual -constraints {isInteractive isCross} -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1} -scaletoggle all]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive single-stage zoom, check active axis disabling during selection}\
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {single-stage zoom, check active axis disabling during selection}\
             {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
@@ -1417,15 +1718,15 @@ test crossInteractive-3 {interactive single-stage zoom, check active axis disabl
     set plotX [expr {[$graph extents leftmargin]+[$graph extents plotwidth]/2}]
     set plotY [expr {[$graph extents topmargin]+[$graph extents plotheight]/2}]
     set scale [lindex [$graph axis configure $axis -logscale] end]
-    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox
-    GenerateGraphEvent $graph <Motion> $axisX $axisY
-    GenerateGraphEvent $graph <ButtonPress-1> $axisX $axisY
+    GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox $defaultDelay
+    GenerateGraphEvent $graph <Motion> $axisX $axisY $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-1> $axisX $axisY $defaultDelay
     GenerateGraphEvent $graph <ButtonRelease-1> $axisX $axisY 20
     lappend scale [lindex [$graph axis configure $axis -logscale] end]
-    GenerateGraphEvent $graph <Motion> $axisX $axisY
-    GenerateGraphEvent $graph <ButtonPress-1> $axisX $axisY
+    GenerateGraphEvent $graph <Motion> $axisX $axisY $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-1> $axisX $axisY $defaultDelay
     GenerateGraphEvent $graph <ButtonRelease-1> $axisX $axisY 20
-    sleep 500
+    sleep $defaultDelay
     lappend scale [lindex [$graph axis configure $axis -logscale] end]
     return $scale
 }  -result {0 0 1}  -cleanup {
@@ -1433,13 +1734,11 @@ test crossInteractive-3 {interactive single-stage zoom, check active axis disabl
 }
 
 #### active legend
-test activeLegendInteractive-1 {interactive three-state active legend} -constraints {isInteractive isActiveLegend}\
+test activeLegendInteractive-1 {three-state active legend} -constraints {isInteractive isActiveLegend}\
         -setup {
     set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -activelegend]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    $widget graph configure -title {Interactive three-state active legend} {*}$titleFont
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {three-state active legend} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
@@ -1453,13 +1752,13 @@ test activeLegendInteractive-1 {interactive three-state active legend} -constrai
                             [$graph element cget $element -labelrelief]]
     # first click: normal -> active.
     GenerateGraphEvent $graph <Motion> $legendX $legendY 20
-    GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY
+    GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY $defaultDelay
     GenerateGraphEvent $graph <ButtonRelease-1> $legendX $legendY 20
     lappend states [list [expr {$element in [$graph element activate]}] [$graph element cget $element -hideplot]\
                             [$graph element cget $element -labelrelief]]
     # second click: active -> plot-hidden.
     GenerateGraphEvent $graph <Motion> $legendX $legendY 20
-    GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY
+    GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY $defaultDelay
     GenerateGraphEvent $graph <ButtonRelease-1> $legendX $legendY 20
     lappend states [list [expr {$element in [$graph element activate]}] [$graph element cget $element -hideplot]\
                             [$graph element cget $element -labelrelief]]
@@ -1467,7 +1766,7 @@ test activeLegendInteractive-1 {interactive three-state active legend} -constrai
     set legendStillPresent [expr {[$graph legend get @$legendX,$legendY] eq $element}]
     # third click: plot-hidden -> normal.
     GenerateGraphEvent $graph <Motion> $legendX $legendY 20
-    GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY
+    GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY $defaultDelay
     GenerateGraphEvent $graph <ButtonRelease-1> $legendX $legendY 20
     lappend states [list [expr {$element in [$graph element activate]}] [$graph element cget $element -hideplot]\
                             [$graph element cget $element -labelrelief]]
