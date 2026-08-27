@@ -2,7 +2,7 @@ package require argparse
 package require Tk
 package require rbc
 
-namespace eval ::graphtoolbar {
+namespace eval ::rbc::graphtoolbar {
     variable libDir [file dirname [file normalize [info script]]]
     # zoom title default options
     option add *gtbZoomTitleFont {Arial 18} widgetDefault
@@ -57,7 +57,7 @@ namespace eval ::graphtoolbar {
     option add *gtbCrosshairsBarLineArrowShape {8 10 3} widgetDefault
 }
 
-namespace eval ::graphtoolbar::icons {
+namespace eval ::rbc::graphtoolbar::icons {
     image create photo [namespace current]::removeAllMarkersIcon -data {
         R0lGODlhEAAQAIIAAASC/PwCBMQCBEQCBIQCBAAAAAAAAAAAACH5BAEAAAAA
         LAAAAAAQABAAAAMuCLrc/hCGFyYLQjQsquLDQ2ScEEJjZkYfyQKlJa2j7AQn
@@ -135,7 +135,7 @@ namespace eval ::graphtoolbar::icons {
 #                       (swapped relative to x/y when -invertxy yes)
 # xValue / yValue       data value on a particular named X/Y axis
 
-oo::configurable create ::graphtoolbar::graphtoolbar {
+oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     variable Subwidgets
     initialize {
         variable CrosshairsModes
@@ -337,11 +337,11 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
                 -sticky ew
         set butCount -1
         set Subwidgets(makeSnapshotBut) [ttk::button $Subwidgets(toolbarFrame).makeSnapshotBut -width 14\
-                                                 -image ::graphtoolbar::icons::makeSnapshotIcon\
+                                                 -image ::rbc::graphtoolbar::icons::makeSnapshotIcon\
                                                  -command [namespace code {my MakeSnapshot}]]
         grid $Subwidgets(makeSnapshotBut) -row 0 -column [incr butCount] -sticky ns
         set Subwidgets(postScriptDialogBut) [ttk::button $Subwidgets(toolbarFrame).postScriptDialogBut -width 14\
-                                                     -image ::graphtoolbar::icons::postScriptDialogIcon\
+                                                     -image ::rbc::graphtoolbar::icons::postScriptDialogIcon\
                                                      -command [namespace code {my PostScriptDialog}]]
         grid $Subwidgets(postScriptDialogBut) -row 0 -column [incr butCount] -sticky ns
 
@@ -366,11 +366,11 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
                 my EnableWheelZoom [dict get $arguments zoomwheelmod] [dict get $arguments zoomwheelscale]
             }
             set Subwidgets(resetZoomBut) [ttk::button $Subwidgets(toolbarFrame).resetZoomBut -width 14\
-                                                  -image ::graphtoolbar::icons::resetZoomIcon\
+                                                  -image ::rbc::graphtoolbar::icons::resetZoomIcon\
                                                   -command [namespace code {my ResetAllZoom}]]
             grid $Subwidgets(resetZoomBut) -row 0 -column [incr butCount] -sticky ns
             set Subwidgets(revertZoomBut) [ttk::button $Subwidgets(toolbarFrame).revertZoomBut -width 14\
-                                                   -image ::graphtoolbar::icons::revertZoomIcon\
+                                                   -image ::rbc::graphtoolbar::icons::revertZoomIcon\
                                                    -command [namespace code {my ResetZoom}]]
             grid $Subwidgets(revertZoomBut) -row 0 -column [incr butCount] -sticky ns
         }
@@ -451,7 +451,6 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         [set Subwidgets($widget)] {*}[lrange $args 1 end]
     }
 
-
     #### general private methods
     method AddBitmapPoint {name xValue yValue {mapx {}} {mapy {}}} {
         set mapopts [list]
@@ -462,8 +461,8 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
             lappend mapopts -mapy $mapy
         }
         $Subwidgets(graph) marker create bitmap -name $name -coords [list $xValue $yValue]\
-                -bitmap "@[file join $::graphtoolbar::libDir pointer.xbm]"\
-                -mask "@[file join $::graphtoolbar::libDir pointer_mask.xbm]" -under no {*}$mapopts
+                -bitmap "@[file join $::rbc::graphtoolbar::libDir pointer.xbm]"\
+                -mask "@[file join $::rbc::graphtoolbar::libDir pointer_mask.xbm]" -under no {*}$mapopts
     }
     method AddBindTag {widget tag {after {}}} {
         set tags [bindtags $widget]
@@ -1854,4 +1853,12 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
             return
         }
     }
+}
+
+namespace eval ::rbc {
+    namespace eval graphtoolbar {
+        namespace export graphtoolbar
+    }
+    namespace import ::rbc::graphtoolbar::graphtoolbar
+    namespace export graphtoolbar
 }

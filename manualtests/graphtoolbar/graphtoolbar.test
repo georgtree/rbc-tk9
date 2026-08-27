@@ -289,42 +289,41 @@ yVec2 set {16.18 60.46 82.85 103.31 121.86 138.47 153.14 165.85 176.60 185.38}
 
 
 test generalConfiguration-1 {names subcommand} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400]
+    set widget [graphtoolbar .gtb -width 400 -height 400]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
     grid rowconfigure . 0 -weight 1
 } -body {
     $widget names
-} -result {makeSnapshotBut postScriptDialogBut graph toolbarFrame removeAllMarkersBut} -cleanup {
+} -result {makeSnapshotBut postScriptDialogBut graph toolbarFrame} -cleanup {
     destroy $widget
 }
 
 test generalConfiguration-2 {names subcommand} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400 -zoom]
+    set widget [graphtoolbar .gtb -width 400 -height 400 -zoom]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
     grid rowconfigure . 0 -weight 1
 } -body {
     $widget names
-} -result {revertZoomBut makeSnapshotBut postScriptDialogBut graph toolbarFrame resetZoomBut removeAllMarkersBut}\
-        -cleanup {
+} -result {revertZoomBut makeSnapshotBut postScriptDialogBut graph toolbarFrame resetZoomBut} -cleanup {
     destroy $widget
 }
 
 test generalConfiguration-3 {names subcommand} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400 -zoom -crosshairs]
+    set widget [graphtoolbar .gtb -width 400 -height 400 -zoom -crosshairs]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
     grid rowconfigure . 0 -weight 1
 } -body {
     $widget names
-} -result {revertZoomBut crosshairsComBox makeSnapshotBut postScriptDialogBut graph toolbarFrame resetZoomBut\
-                   removeAllMarkersBut} -cleanup {
+} -result {revertZoomBut crosshairsComBox makeSnapshotBut postScriptDialogBut graph toolbarFrame resetZoomBut}\
+        -cleanup {
     destroy $widget
 }
 
 test generalConfiguration-4 {subwidget subcommand} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400]
+    set widget [graphtoolbar .gtb -width 400 -height 400]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
     grid rowconfigure . 0 -weight 1
@@ -335,7 +334,7 @@ test generalConfiguration-4 {subwidget subcommand} -setup {
 }
 
 test generalConfiguration-5 {subwidget subcommand} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400]
+    set widget [graphtoolbar .gtb -width 400 -height 400]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
     grid rowconfigure . 0 -weight 1
@@ -347,7 +346,7 @@ test generalConfiguration-5 {subwidget subcommand} -setup {
 }
 
 test generalConfiguration-7 {graph subcommand} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400]
+    set widget [graphtoolbar .gtb -width 400 -height 400]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
     grid rowconfigure . 0 -weight 1
@@ -359,7 +358,7 @@ test generalConfiguration-7 {graph subcommand} -setup {
 }
 
 test generalConfiguration-8 {widgetcommand subcommand} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400]
+    set widget [graphtoolbar .gtb -width 400 -height 400]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
     grid rowconfigure . 0 -weight 1
@@ -371,7 +370,7 @@ test generalConfiguration-8 {widgetcommand subcommand} -setup {
 }
 
 test generalConfiguration-9 {options configuration} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400 -zoom -zoomboxopts {-linewidth 2}]
+    set widget [graphtoolbar .gtb -width 400 -height 400 -zoom -zoomboxopts {-linewidth 2}]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
     grid rowconfigure . 0 -weight 1
@@ -382,7 +381,7 @@ test generalConfiguration-9 {options configuration} -setup {
 }
 
 test generalConfiguration-10 {options configuration} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400 -zoom -zoommark\
+    set widget [graphtoolbar .gtb -width 400 -height 400 -zoom -zoommark\
                         -zoommarkopts {-font {Helvetica 10}}]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
@@ -395,7 +394,7 @@ test generalConfiguration-10 {options configuration} -setup {
 }
 
 test generalConfiguration-11 {options configuration} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400 -zoom -zoommark\
+    set widget [graphtoolbar .gtb -width 400 -height 400 -zoom -zoommark\
                         -zoomtitleopts {-font {Helvetica 15}}]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
@@ -407,7 +406,7 @@ test generalConfiguration-11 {options configuration} -setup {
 }
 
 test generalConfiguration-12 {options configuration} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400  -crosshairs -crosshairsopts {-color red}]
+    set widget [graphtoolbar .gtb -width 400 -height 400  -crosshairs -crosshairsopts {-color red}]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
     grid rowconfigure . 0 -weight 1
@@ -418,7 +417,7 @@ test generalConfiguration-12 {options configuration} -setup {
 }
 
 test generalConfiguration-13 {options configuration} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400 -crosshairs\
+    set widget [graphtoolbar .gtb -width 400 -height 400 -crosshairs\
                         -crosshairsmarkopts {-font {Helvetica 15}}]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
@@ -431,7 +430,7 @@ test generalConfiguration-13 {options configuration} -setup {
 }
 
 test generalConfiguration-14 {options configuration} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400 -zoom -zoommark -zoommarkboxopts {-fill {}}]
+    set widget [graphtoolbar .gtb -width 400 -height 400 -zoom -zoommark -zoommarkboxopts {-fill {}}]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
     grid rowconfigure . 0 -weight 1
@@ -442,7 +441,7 @@ test generalConfiguration-14 {options configuration} -setup {
 }
 
 test generalConfiguration-15 {options configuration} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb -width 400 -height 400 -crosshairs -crosshairsmarkboxopts {-fill {}}]
+    set widget [graphtoolbar .gtb -width 400 -height 400 -crosshairs -crosshairsmarkboxopts {-fill {}}]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
     grid rowconfigure . 0 -weight 1
@@ -495,7 +494,7 @@ proc ExpectedWheelLimits {graph axis factor {pixel {}}} {
 }
 
 test zoomInteractive-1 {single-stage zoom} -match approxEqual -constraints {isInteractive isZoom} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {single-stage zoom} {*}$titleFont
@@ -529,7 +528,7 @@ test zoomInteractive-1 {single-stage zoom} -match approxEqual -constraints {isIn
 }
 
 test zoomInteractive-2 {multi-stage zoom} -match approxEqual -constraints {isInteractive isZoom} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {multi-stage zoom} {*}$titleFont
@@ -567,7 +566,7 @@ test zoomInteractive-2 {multi-stage zoom} -match approxEqual -constraints {isInt
 }
 
 test zoomInteractive-3 {single-stage zoom with no title} -constraints {isInteractive isZoom} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoommark\
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoommark\
                         -zoomboxopts {-linewidth 1}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {single-stage zoom with no title} {*}$titleFont
@@ -594,7 +593,7 @@ test zoomInteractive-3 {single-stage zoom with no title} -constraints {isInterac
 }
 
 test zoomInteractive-4 {single-stage zoom with no zoom marker} -constraints {isInteractive isZoom} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomboxopts\
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomboxopts\
                         {-linewidth 1}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {single-stage zoom with no zoom marker} {*}$titleFont
@@ -622,7 +621,7 @@ test zoomInteractive-4 {single-stage zoom with no zoom marker} -constraints {isI
 
 test zoomInteractive-5 {single-stage zoom, check for disabled toolbar during selection} -match approxEqual\
         -constraints {isInteractive isZoom} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {single-stage zoom, check for disabled toolbar during selection}\
@@ -651,13 +650,13 @@ test zoomInteractive-5 {single-stage zoom, check for disabled toolbar during sel
         lappend states [$w cget -state]
     }
     return $states
-}  -result {disabled disabled disabled disabled disabled normal normal normal normal normal} -cleanup {
+}  -result {disabled disabled disabled disabled normal normal normal normal} -cleanup {
     destroy $widget
 }
 
 test zoomInteractive-6 {single-stage zoom, check marker positioning near the edge of plotting area}\
         -constraints {isInteractive isZoom} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {single-stage zoom, check marker positioning near the edge of plotting\
@@ -682,7 +681,7 @@ test zoomInteractive-6 {single-stage zoom, check marker positioning near the edg
 
 test zoomInteractive-7 {single-stage zoom, check clamping to visible area} -match approxEqual\
         -constraints {isInteractive isZoom} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {single-stage zoom, check clamping to visible area} {*}$titleFont
@@ -719,7 +718,7 @@ test zoomInteractive-7 {single-stage zoom, check clamping to visible area} -matc
 
 test zoomInteractive-8 {single-stage zoom, no marker box} -match approxEqual\
         -constraints {isInteractive isZoom} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1} -zoommarkboxopts {-fill {} -outline {}}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {single-stage zoom, no marker box} {*}$titleFont
@@ -747,7 +746,7 @@ test zoomInteractive-8 {single-stage zoom, no marker box} -match approxEqual\
 
 test zoomInteractive-9 {single-stage zoom with multiple axes} -match approxEqual\
         -constraints {isInteractive isZoom} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {single-stage zoom with multiple axes} {*}$titleFont
@@ -790,7 +789,7 @@ test zoomInteractive-9 {single-stage zoom with multiple axes} -match approxEqual
 
 test zoomInteractive-10 {single-stage zoom with inverted axes} -match approxEqual\
         -constraints {isInteractive isZoom} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {single-stage zoom with inverted axes} {*}$titleFont
@@ -826,7 +825,7 @@ test zoomInteractive-10 {single-stage zoom with inverted axes} -match approxEqua
 
 
 test zoomInteractive-11 {wheel zoom in and out in plot area} -constraints {isInteractive isZoom} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {} -zoomwheelscale 2.0]
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {} -zoomwheelscale 2.0]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {wheel zoom in and out in plot area} {*}$titleFont
     $widget graph axis configure x -min 0 -max 10
@@ -853,7 +852,7 @@ test zoomInteractive-11 {wheel zoom in and out in plot area} -constraints {isInt
 }
 
 test zoomInteractive-12 {wheel over axis scales only current axis} -constraints {isInteractive isZoom} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {} -zoomwheelscale 2.0]
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {} -zoomwheelscale 2.0]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {wheel over axis scales only current axis} {*}$titleFont
     $widget graph axis configure x -min 0 -max 10
@@ -876,7 +875,7 @@ test zoomInteractive-12 {wheel over axis scales only current axis} -constraints 
 
 test zoomInteractive-13 {wheel zoom includes hidden used axes but not unused axes} -constraints {isInteractive isZoom}\
         -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {} -zoomwheelscale 2.0]
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {} -zoomwheelscale 2.0]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {wheel zoom includes hidden used axes but not unused axes} {*}$titleFont
     $widget graph axis configure x -min 0 -max 10
@@ -908,7 +907,7 @@ test zoomInteractive-13 {wheel zoom includes hidden used axes but not unused axe
 }
 
 test zoomInteractive-14 {wheel zoom with logarithmic axes in plot area} -constraints {isInteractive isZoom} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
                         -zoomwheelscale 2.0]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {wheel zoom with logarithmic axes in plot area} {*}$titleFont
@@ -933,7 +932,7 @@ test zoomInteractive-14 {wheel zoom with logarithmic axes in plot area} -constra
 
 test zoomInteractive-15 {wheel over logarithmic axis scales around logarithmic center}\
         -constraints {isInteractive isZoom} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
                         -zoomwheelscale 2.0]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {wheel over logarithmic axis scales around logarithmic center} {*}$titleFont
@@ -956,7 +955,7 @@ test zoomInteractive-15 {wheel over logarithmic axis scales around logarithmic c
 }
 
 test zoomInteractive-16 {wheel zoom with inverted axes} -constraints {isInteractive isZoom} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
                         -zoomwheelscale 2.0]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {wheel zoom with inverted axes} -invertxy yes {*}$titleFont
@@ -982,7 +981,7 @@ test zoomInteractive-16 {wheel zoom with inverted axes} -constraints {isInteract
 
 test zoomInteractive-17 {each wheel zoom step is reversible with right-click pop}\
         -constraints {isInteractive isZoom} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
                         -zoomwheelscale 2.0]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {each wheel zoom step is reversible with right-click pop} {*}$titleFont
@@ -1020,7 +1019,7 @@ test zoomInteractive-17 {each wheel zoom step is reversible with right-click pop
 #### crosshairs
 test crosshairsInteractive-1 {crosshairs with current coordinate marker}\
         -constraints {isInteractive isCrosshairs} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current]
+    set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current]
     grid .gtb -row 0 -column 0 -sticky nsew
     pack .gtb -fill both -expand yes
     $widget graph configure -title {crosshairs with current coordinate marker} {*}$titleFont
@@ -1049,7 +1048,7 @@ test crosshairsInteractive-1 {crosshairs with current coordinate marker}\
 
 test crosshairsInteractive-2 {crosshairs with closest element coordinate marker}\
         -constraints {isInteractive isCrosshairs} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest]
+    set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {crosshairs with closest element coordinate marker} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
@@ -1081,7 +1080,7 @@ test crosshairsInteractive-2 {crosshairs with closest element coordinate marker}
 
 test crosshairsInteractive-3 {crosshairs with no marker}\
         -constraints {isInteractive isCrosshairs} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode none]
+    set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode none]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {crosshairs with no marker} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
@@ -1109,7 +1108,7 @@ test crosshairsInteractive-3 {crosshairs with no marker}\
 
 test crosshairsInteractive-4 {crosshairs with closest element coordinate marker, larger halo}\
         -constraints {isInteractive isCrosshairs} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
+    set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-halo 30 -hide no}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {crosshairs with closest element coordinate marker, larger halo}\
@@ -1143,7 +1142,7 @@ test crosshairsInteractive-4 {crosshairs with closest element coordinate marker,
 
 test crosshairsInteractive-5 {crosshairs with closes element coordinate marker, multiple elements}\
         -constraints {isInteractive isCrosshairs} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
+    set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-single no -hide no}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {crosshairs with closest element coordinate marker, multiple elements}\
@@ -1183,7 +1182,7 @@ test crosshairsInteractive-5 {crosshairs with closes element coordinate marker, 
 
 test crosshairsInteractive-6 {crosshairs with closest element coordinate marker, no interpolaton}\
         -constraints {isInteractive isCrosshairs} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
+    set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 30 -hide no}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {crosshairs with closest element coordinate marker, no interpolaton}\
@@ -1217,7 +1216,7 @@ test crosshairsInteractive-6 {crosshairs with closest element coordinate marker,
 
 test crosshairsInteractive-7 {crosshairs with current coordinate marker, check marker positioning near\
                                       the edge of plotting area} -constraints {isInteractive isCrosshairs} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current]
+    set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {crosshairs with current coordinate marker} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
@@ -1244,7 +1243,7 @@ test crosshairsInteractive-7 {crosshairs with current coordinate marker, check m
 
 test crosshairsInteractive-8 {crosshairs with closest coordinate marker, check marker positioning near\
                                       the edge of plotting area} -constraints {isInteractive isCrosshairs} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest]
+    set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {crosshairs with current coordinate marker} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
@@ -1271,7 +1270,7 @@ test crosshairsInteractive-8 {crosshairs with closest coordinate marker, check m
 
 test crosshairsInteractive-9 {crosshairs with closest coordinate marker, check marker positioning near\
                                       the edge of plotting area} -constraints {isInteractive isCrosshairs} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
+    set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-single no -halo 30 -hide no}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {crosshairs with current coordinate marker} {*}$titleFont
@@ -1299,7 +1298,7 @@ test crosshairsInteractive-9 {crosshairs with closest coordinate marker, check m
 
 test crosshairsInteractive-10 {crosshairs with current coordinate marker and no marker box}\
         -constraints {isInteractive isCrosshairs} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current\
+    set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current\
                         -crosshairsmarkboxopts {-fill {} -outline {}}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {crosshairs with current coordinate marker and no marker box}\
@@ -1329,7 +1328,7 @@ test crosshairsInteractive-10 {crosshairs with current coordinate marker and no 
 
 test crosshairsInteractive-11 {crosshairs with closest element coordinate marker and no marker box}\
         -constraints {isInteractive isCrosshairs} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
+    set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                        -crosshairsmarkboxopts {-fill {} -outline {}}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {crosshairs with closest element coordinate marker and no marker box}\
@@ -1361,7 +1360,7 @@ test crosshairsInteractive-11 {crosshairs with closest element coordinate marker
 
 test crosshairsInteractive-12 {crosshairs with current coordinate marker and inverted axes}\
         -constraints {isInteractive isCrosshairs} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current]
+    set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {crosshairs with current coordinate marker and inverted axes}\
             {*}$titleFont
@@ -1391,7 +1390,7 @@ test crosshairsInteractive-12 {crosshairs with current coordinate marker and inv
 
 test crosshairsInteractive-13 {current crosshairs marker text with multiple axes}\
         -constraints {isInteractive isCrosshairs} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current\
+    set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current\
                         -crosshairsmarkopts {-formatx .6g -formaty .6g}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {Current crosshairs marker text with multiple axes} {*}$titleFont
@@ -1431,7 +1430,7 @@ test crosshairsInteractive-13 {current crosshairs marker text with multiple axes
 
 test crosshairsInteractive-14 {current crosshairs marker text with multiple inverted axes}\
         -constraints {isInteractive isCrosshairs} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current\
+    set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current\
                         -crosshairsmarkopts {-formatx .6g -formaty .6g}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {Current crosshairs marker text with multiple inverted axes} -invertxy true\
@@ -1472,7 +1471,7 @@ test crosshairsInteractive-14 {current crosshairs marker text with multiple inve
 
 test crosshairsInteractive-15 {closest crosshairs marker text uses element mapped axes}\
         -constraints {isInteractive isCrosshairs} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
+    set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsmarkopts {-formatx .6g -formaty .6g}\
                         -crosshairsclosestopts {-interpolate no -halo 10}]
     pack .gtb -fill both -expand yes
@@ -1512,7 +1511,7 @@ test crosshairsInteractive-15 {closest crosshairs marker text uses element mappe
 
 test crosshairsInteractive-16 {closest crosshairs marker text uses element mapped axes when inverted}\
         -constraints {isInteractive isCrosshairs} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
+    set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsmarkopts {-formatx .6g -formaty .6g}\
                         -crosshairsclosestopts {-interpolate no -halo 10}]
     pack .gtb -fill both -expand yes
@@ -1554,7 +1553,7 @@ test crosshairsInteractive-16 {closest crosshairs marker text uses element mappe
 
 test crosshairsInteractive-17 {closest marker: ordinary line marker is removed outside halo}\
         -constraints {isInteractive isCrosshairs} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
+    set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {closest marker: ordinary line marker is removed outside halo} {*}$titleFont
@@ -1579,7 +1578,7 @@ test crosshairsInteractive-17 {closest marker: ordinary line marker is removed o
 
 test crosshairsInteractive-18 {closest bar marker: bar annotation is removed outside halo}\
         -constraints {isInteractive isCrosshairs} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
+    set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {closest bar marker: bar annotation is removed outside halo} {*}$titleFont
@@ -1605,7 +1604,7 @@ test crosshairsInteractive-18 {closest bar marker: bar annotation is removed out
 
 test crosshairsInteractive-19 {closest bar marker: normal bar uses exact rectangle and preferred left placement}\
         -constraints {isInteractive isCrosshairs} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
+    set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {closest bar marker: normal bar uses exact rectangle and preferred left placement}\
@@ -1637,7 +1636,7 @@ test crosshairsInteractive-19 {closest bar marker: normal bar uses exact rectang
 
 test crosshairsInteractive-20 {closest bar marker: uses right side when left has insufficient space}\
         -constraints {isInteractive isCrosshairs} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
+    set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {closest bar marker: uses right side when left has insufficient space}\
@@ -1667,7 +1666,7 @@ test crosshairsInteractive-20 {closest bar marker: uses right side when left has
 
 test crosshairsInteractive-21 {closest bar marker: stacked mode marks only selected segment}\
         -constraints {isInteractive isCrosshairs} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
+    set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {closest bar marker: stacked mode marks only selected segment} {*}$titleFont
@@ -1706,7 +1705,7 @@ test crosshairsInteractive-21 {closest bar marker: stacked mode marks only selec
 
 test crosshairsInteractive-22 {closest bar marker: aligned mode uses selected rendered rectangle}\
         -constraints {isInteractive isCrosshairs} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
+    set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {closest bar marker: aligned mode uses selected rendered rectangle} {*}$titleFont
@@ -1738,7 +1737,7 @@ test crosshairsInteractive-22 {closest bar marker: aligned mode uses selected re
 
 test crosshairsInteractive-23 {closest bar marker: overlap mode creates marker for each bar with single no}\
         -constraints {isInteractive isCrosshairs} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
+    set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 500 -single no}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {closest bar marker: overlap mode creates marker for each bar with single no}\
@@ -1779,7 +1778,7 @@ test crosshairsInteractive-23 {closest bar marker: overlap mode creates marker f
 
 test crosshairsInteractive-24 {closest bar marker: inverted graph uses horizontal dimension line}\
         -constraints {isInteractive isCrosshairs} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
+    set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {closest bar marker: inverted graph uses horizontal dimension line} {*}$titleFont
@@ -1812,7 +1811,7 @@ test crosshairsInteractive-24 {closest bar marker: inverted graph uses horizonta
 
 test crosshairsInteractive-25 {closest marker: mixed bar and line elements select the correct marker type}\
         -constraints {isInteractive isCrosshairs} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
+    set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {closest marker: mixed bar and line elements select the correct marker type}\
@@ -1847,7 +1846,7 @@ test crosshairsInteractive-25 {closest marker: mixed bar and line elements selec
 
 test crosshairsInteractive-26 {closest marker: mixed bar and line elements use independent marker types with single no}\
         -constraints {isInteractive isCrosshairs}  -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
+    set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 30 -single no}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {closest marker: mixed bar and line elements use independent marker types with\
@@ -1896,7 +1895,7 @@ test crosshairsInteractive-26 {closest marker: mixed bar and line elements use i
 
 #### axes
 test axesInteractive-1 {change of axis scale} -constraints {isInteractive isAxes} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -scaletoggle all]
+    set widget [graphtoolbar .gtb {*}$winSize -scaletoggle all]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {change of axis scale} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
@@ -1923,7 +1922,7 @@ test axesInteractive-1 {change of axis scale} -constraints {isInteractive isAxes
 #### cross-interactions
 test crossInteractive-1 {single-stage zoom, check crosshairs marking disabling during selection}\
         -match approxEqual -constraints {isInteractive isCross} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1} -crosshairs -crosshairsmode current]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {single-stage zoom, check crosshairs marking disabling during\
@@ -1953,7 +1952,7 @@ test crossInteractive-1 {single-stage zoom, check crosshairs marking disabling d
 
 test crossInteractive-2 {single-stage zoom, check crosshairs marking disabling during selection}\
         -match approxEqual -constraints {isInteractive isCross} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1} -crosshairs -crosshairsmode current]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {single-stage zoom, check crosshairs marking disabling during\
@@ -1983,7 +1982,7 @@ test crossInteractive-2 {single-stage zoom, check crosshairs marking disabling d
 
 test crossInteractive-3 {single-stage zoom, check active axis disabling during selection}\
         -match approxEqual -constraints {isInteractive isCross} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1} -scaletoggle all]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {single-stage zoom, check active axis disabling during selection}\
@@ -2024,7 +2023,7 @@ test crossInteractive-3 {single-stage zoom, check active axis disabling during s
 
 test crossInteractive-4 {wheel zoom redraws current crosshairs marker box in widget pixels}\
         -constraints {isInteractive isCross} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
                         -zoomwheelscale 2.0 -crosshairs -crosshairsmode current]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {wheel zoom redraws current crosshairs marker box in widget pixels} {*}$titleFont
@@ -2055,7 +2054,7 @@ test crossInteractive-4 {wheel zoom redraws current crosshairs marker box in wid
 
 test crossInteractive-5 {right-click pop redraws current crosshairs marker box in widget pixels}\
         -constraints {isInteractive isCross} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
                         -zoomwheelscale 2.0 -crosshairs -crosshairsmode current]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {right-click pop redraws current crosshairs marker box in widget pixels} {*}$titleFont
@@ -2086,7 +2085,7 @@ test crossInteractive-5 {right-click pop redraws current crosshairs marker box i
 
 test crossInteractive-6 {wheel zoom redraws closest crosshairs markers}\
         -constraints {isInteractive isCross} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
                         -zoomwheelscale 2.0 -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 20 -single yes}]
     pack .gtb -fill both -expand yes
@@ -2125,7 +2124,7 @@ test crossInteractive-6 {wheel zoom redraws closest crosshairs markers}\
 
 test crossInteractive-7 {wheel zoom redraws current crosshairs marker box with inverted axes}\
         -constraints {isInteractive isCross} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
                         -zoomwheelscale 2.0 -crosshairs -crosshairsmode current]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {wheel zoom redraws current crosshairs marker box with inverted axes}\
@@ -2154,7 +2153,7 @@ test crossInteractive-7 {wheel zoom redraws current crosshairs marker box with i
 
 test crossInteractive-8 {closest marker with single no skips element hidden by active legend}\
         -constraints {isInteractive isCross} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
+    set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-single no -halo 100 -hide no} -activelegend]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {closest marker with single no skips element hidden by active legend} {*}$titleFont
@@ -2216,7 +2215,7 @@ test crossInteractive-8 {closest marker with single no skips element hidden by a
 
 test crossInteractive-9 {closest marker with single no handles all elements hidden by active legend}\
         -constraints {isInteractive isCross} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
+    set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-single no -halo 100 -hide no} -activelegend]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {closest marker with single no handles all elements hidden by active legend}\
@@ -2255,7 +2254,7 @@ test crossInteractive-9 {closest marker with single no handles all elements hidd
 
 test crossInteractive-10 {zoom pop restores linear axis with negative limits after logscale toggle}\
         -match approxEqual -constraints {isInteractive isCross} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -scaletoggle all]
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -scaletoggle all]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {zoom pop restores linear axis with negative limits after logscale toggle}\
             {*}$titleFont
@@ -2304,7 +2303,7 @@ test crossInteractive-10 {zoom pop restores linear axis with negative limits aft
 
 test crossInteractive-11 {zoom pop restores logarithmic scale after linear toggle}\
         -match approxEqual -constraints {isInteractive isCross} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -scaletoggle all]
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -scaletoggle all]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {zoom pop restores logarithmic scale after linear toggle} {*}$titleFont
     $widget graph axis configure x -logscale yes -min 0.1 -max 100
@@ -2346,7 +2345,7 @@ test crossInteractive-11 {zoom pop restores logarithmic scale after linear toggl
 
 test crossInteractive-12 {multi-stage zoom restores alternating linear and logarithmic axis states}\
         -match approxEqual -constraints {isInteractive isCross} -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -scaletoggle all]
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -scaletoggle all]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {multi-stage zoom restores alternating linear and logarithmic axis states}\
             {*}$titleFont
@@ -2441,7 +2440,7 @@ test crossInteractive-12 {multi-stage zoom restores alternating linear and logar
 #### active legend
 test activeLegendInteractive-1 {three-state active legend} -constraints {isInteractive isActiveLegend}\
         -setup {
-    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -activelegend]
+    set widget [graphtoolbar .gtb {*}$winSize -activelegend]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {three-state active legend} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
