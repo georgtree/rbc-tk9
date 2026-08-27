@@ -4,6 +4,8 @@ package require rbc
 
 namespace eval ::rbc::graphtoolbar {
     variable libDir [file dirname [file normalize [info script]]]
+
+    option add *Element.ScaleSymbols no widgetDefault
     # zoom title default options
     option add *gtbZoomTitleFont {Arial 18} widgetDefault
     option add *gtbZoomTitleShadow yellow4 widgetDefault
@@ -328,9 +330,10 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set GraphType [dict get $arguments type]
         set currentNamespace [namespace current]
         set frameName [dict get $arguments path]
-        ttk::frame $frameName -width [dict get $arguments width] -height [dict get $arguments height]
+        ttk::frame $frameName
         set Subwidgets(toolbarFrame) [ttk::frame $frameName.toolbarFr]
-        set Subwidgets(graph) [::rbc::$GraphType $frameName.graph]
+        set Subwidgets(graph) [::rbc::$GraphType $frameName.graph -width [dict get $arguments width]\
+                                       -height [dict get $arguments height]]
         grid $Subwidgets(graph) -row [expr {[dict get $arguments toolbarside] eq {bottom} ? 0 : 1}] -column 0\
                 -sticky nsew
         grid $Subwidgets(toolbarFrame) -row [expr {[dict get $arguments toolbarside] eq {bottom} ? 1 : 0}] -column 0\
@@ -687,28 +690,47 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
     }
     method UsedAxes {dimension} {
-        # Returns all used named axes for the requested data dimension,
-        # preserving their margin/use order.
+        # Returns all axes actually used by the graph for the requested
+        # data dimension:
         #
-        # dimension - x or y
+        #   - axes installed in the corresponding margins
+        #   - axes mapped by elements
+        #
+        # Completely unused axes are excluded.
         set graph $Subwidgets(graph)
         switch -- $dimension {
             x {
                 set margins {xaxis x2axis}
+                set mapOption -mapx
             }
             y {
                 set margins {yaxis y2axis}
+                set mapOption -mapy
             }
             default {
-                return -code error "unknown axis dimension '$dimension': must be x or y"
+                return -code error \
+                    "unknown axis dimension '$dimension': must be x or y"
             }
         }
         set axes [list]
+        #
+        # Axes explicitly installed in the graph margins.
+        #
         foreach margin $margins {
             foreach axis [$graph $margin use] {
                 if {($axis ne {}) && ($axis ni $axes)} {
                     lappend axes $axis
                 }
+            }
+        }
+        #
+        # Axes used by elements, including axes that are not currently
+        # displayed in any margin.
+        #
+        foreach elem [$graph element names] {
+            set axis [$graph element cget $elem $mapOption]
+            if {($axis ne {}) && ($axis ni $axes)} {
+                lappend axes $axis
             }
         }
         return $axes

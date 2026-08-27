@@ -1016,6 +1016,50 @@ test zoomInteractive-17 {each wheel zoom step is reversible with right-click pop
     destroy $widget
 }
 
+test zoomInteractive-18 {wheel zoom scales element-mapped axis not installed in a margin}\
+         -constraints {isInteractive isZoom} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {} -zoomwheelscale 2.0]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {wheel zoom scales element-mapped non-margin axis} {*}$titleFont
+    #
+    # time1 is the visible Y axis.  The default y axis is deliberately
+    # removed from the margin, but line1 remains mapped to it.
+    #
+    $widget graph axis create time1 -min 100 -max 200
+    $widget graph axis create unusedY -min 1000 -max 2000
+    $widget graph yaxis use time1
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min 0 -max 20
+    $widget graph element create line1 -data {2 4 5 10 8 16} -mapx x -mapy y -symbol circle
+    $widget graph element create line2 -data {2 120 5 150 8 180} -mapx x -mapy time1 -symbol circle
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    #
+    # Verify the setup: time1 is installed in the Y margin, while y is
+    # used only by line1 and unusedY is not used at all.
+    #
+    set marginAxes [$graph yaxis use]
+    lassign [$graph extents plotarea] left top width height
+    set x [expr {$left+$width/2}]
+    set yPixel [expr {$top+$height/2}]
+    set expectedX [ExpectedWheelLimits $graph x 0.5 $x]
+    set expectedY [ExpectedWheelLimits $graph y 0.5 $yPixel]
+    set expectedTime1 [ExpectedWheelLimits $graph time1 0.5 $yPixel]
+    set unusedBefore [$graph axis limits unusedY]
+    GenerateGraphWheelEvent $graph $x $yPixel 120 20
+    set zoomed [list [$graph axis limits x] [$graph axis limits y] [$graph axis limits time1] [$graph axis limits\
+                                                                                                       unusedY]]
+    set expected [list $expectedX $expectedY $expectedTime1 $unusedBefore]
+    set actual [list [expr {"time1" in $marginAxes}] [expr {"y" ni $marginAxes}]\
+            [expr {[$graph element cget line1 -mapy] eq "y"}]\
+                        [expr {[$graph element cget line2 -mapy] eq "time1"}] [expr {"unusedY" ni $marginAxes}] $zoomed]
+    set expected [list 1 1 1 1 1 $expected]
+    approxNestedEqual $actual $expected
+} -result true -cleanup {
+    destroy $widget
+}
+
 #### crosshairs
 test crosshairsInteractive-1 {crosshairs with current coordinate marker}\
         -constraints {isInteractive isCrosshairs} -setup {
