@@ -4321,14 +4321,23 @@ static int RegionInLineMarker(Marker *markerPtr, Extents2D *extsPtr, int enclose
 }
 
 static void DrawArrowHead(Graph *graphPtr, Drawable drawable, GC gc, const Point2D arrow[PTS_IN_ARROW]) {
-    XPoint points[PTS_IN_ARROW];
+    XPoint points[PTS_IN_ARROW - 1];
     int i;
 
-    for (i = 0; i < PTS_IN_ARROW; i++) {
+    /*
+     * ComputeArrowHead stores five unique vertices followed by a
+     * duplicate of the tip.  XFillPolygon closes the path
+     * automatically, so don't pass the duplicate point.
+     *
+     * The arrowhead is a simple concave polygon because of the two
+     * inset neck vertices.  It must therefore be declared Nonconvex,
+     * not Convex.
+     */
+    for (i = 0; i < PTS_IN_ARROW - 1; i++) {
         points[i].x = (short)round(arrow[i].x);
         points[i].y = (short)round(arrow[i].y);
     }
-    XFillPolygon(graphPtr->display, drawable, gc, points, PTS_IN_ARROW, Convex, CoordModeOrigin);
+    XFillPolygon(graphPtr->display, drawable, gc, points, PTS_IN_ARROW - 1, Nonconvex, CoordModeOrigin);
 }
 
 /*
