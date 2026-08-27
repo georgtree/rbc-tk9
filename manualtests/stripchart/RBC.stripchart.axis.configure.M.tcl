@@ -497,23 +497,6 @@ namespace eval stripchart.axis {
 	}
 	
 	# ------------------------------------------------------------------------------------
-	# Purpose: Ensure the axis tickdivider functions correctly. (NOTE: This doesn't seem to work.)
-	# ------------------------------------------------------------------------------------
-	proc RBC.stripchart.axis.configure.M.30.1.Setup {} {
-		stripchart .stripchart1
-		.stripchart1 axis configure x -title "This is the x-axis\n of the stripchart"
-		pack .stripchart1
-	}
-	
-	proc RBC.stripchart.axis.configure.M.30.1.Body {} {
-		.stripchart1 axis configure x -tickdivider 1.5
-	}
-	
-	proc RBC.stripchart.axis.configure.M.30.1.Cleanup {} {
-		destroy .stripchart1
-	}
-	
-	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the axis bind functions correctly.
 	# ------------------------------------------------------------------------------------
 	proc RBC.stripchart.axis.configure.M.31.1.Setup {} {

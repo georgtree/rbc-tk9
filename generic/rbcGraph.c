@@ -2002,8 +2002,9 @@ static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv
     }
     graphPtr = RbcCalloc(1, sizeof(Graph));
     assert(graphPtr);
-    /* Initialize the graph data structure. */
-
+    /*
+     * Initialize the graph data structure.
+     */
     graphPtr->tkwin = tkwin;
     graphPtr->display = Tk_Display(tkwin);
     graphPtr->interp = interp;
@@ -2012,18 +2013,17 @@ static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv
      * Graph option lifecycle state.
      */
     graphPtr->optionTable = NULL;
-
     ResetGraphOptionContext(graphPtr);
-
     graphPtr->optionsConfigured = FALSE;
     graphPtr->optionsInitialized = FALSE;
-    graphPtr->tkResourcesReleased = FALSE;    
+    graphPtr->tkResourcesReleased = FALSE;
+    graphPtr->cmdToken = NULL;
     graphPtr->backingStore = TRUE;
     graphPtr->doubleBuffer = TRUE;
     graphPtr->highlightWidth = 2;
     graphPtr->plotRelief = TK_RELIEF_SUNKEN;
     graphPtr->relief = TK_RELIEF_FLAT;
-    graphPtr->flags = (RESET_WORLD);
+    graphPtr->flags = RESET_WORLD;
     graphPtr->nextMarkerId = 1;
     graphPtr->padLeft = graphPtr->padRight = 8;
     graphPtr->padTop = graphPtr->padBottom = 8;
@@ -2032,7 +2032,6 @@ static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv
     graphPtr->topMargin.site = MARGIN_TOP;
     graphPtr->rightMargin.site = MARGIN_RIGHT;
     Rbc_InitTextStyle(&graphPtr->titleTextStyle);
-
     Tcl_InitHashTable(&graphPtr->axes.table, TCL_STRING_KEYS);
     Tcl_InitHashTable(&graphPtr->axes.tagTable, TCL_STRING_KEYS);
     Tcl_InitHashTable(&graphPtr->elements.table, TCL_STRING_KEYS);
@@ -2042,7 +2041,6 @@ static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv
     graphPtr->elements.displayList = Rbc_ChainCreate();
     graphPtr->markers.displayList = Rbc_ChainCreate();
     graphPtr->axes.displayList = Rbc_ChainCreate();
-
     if (classUid == rbcLineElementUid) {
         Tk_SetClass(tkwin, "Graph");
     } else if (classUid == rbcBarElementUid) {
@@ -2051,7 +2049,23 @@ static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv
         Tk_SetClass(tkwin, "Stripchart");
     }
     Rbc_SetWindowInstanceData(tkwin, graphPtr);
-
+    /*
+     * Establish the normal Tk widget lifecycle before performing any
+     * initialization that may fail.  In particular, initial configuration
+     * may request geometry changes and schedule redisplay.
+     */
+    graphPtr->cmdToken =
+        Tcl_CreateObjCommand2(interp, pathName, Rbc_GraphInstCmdProc, graphPtr, GraphInstCmdDeleteProc);
+#ifdef ITCL_NAMESPACES
+    Itk_SetWidgetCommand(graphPtr->tkwin, graphPtr->cmdToken);
+#endif
+    Tk_CreateEventHandler(graphPtr->tkwin, ExposureMask | StructureNotifyMask | FocusChangeMask, GraphEventProc,
+                          graphPtr);
+    /*
+     * Create the graph's component objects before configuring the graph.
+     * ConfigureGraph requires several of these components, particularly
+     * the crosshairs, to already exist.
+     */
     if (InitPens(graphPtr) != TCL_OK) {
         goto error;
     }
@@ -2059,7 +2073,6 @@ static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv
         goto error;
     }
     AdjustAxisPointers(graphPtr);
-
     if (Rbc_CreatePostScript(graphPtr) != TCL_OK) {
         goto error;
     }
@@ -2077,25 +2090,23 @@ static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv
      * option-database values and creation-time arguments, and construct
      * all derived graph resources.
      *
-     * ConfigureGraph requires the graph components, particularly the
-     * crosshairs, to exist. Perform this before installing the widget
-     * command because modern configuration can report an error.
+     * The event handler is already installed, so geometry and redraw
+     * activity generated during initial configuration participates in
+     * the normal widget event lifecycle.
      */
     if (ConfigureNewGraph(graphPtr, objc - 2, objv + 2) != TCL_OK) {
         goto error;
     }
-    Tk_CreateEventHandler(graphPtr->tkwin, ExposureMask | StructureNotifyMask | FocusChangeMask, GraphEventProc,
-                          graphPtr);
-
-    graphPtr->cmdToken = Tcl_CreateObjCommand2(interp, pathName, Rbc_GraphInstCmdProc, graphPtr, GraphInstCmdDeleteProc);
-#ifdef ITCL_NAMESPACES
-    Itk_SetWidgetCommand(graphPtr->tkwin, graphPtr->cmdToken);
-#endif
     graphPtr->bindTable = Rbc_CreateBindingTable(interp, tkwin, graphPtr, PickEntry, Rbc_GraphTags);
     return graphPtr;
 
 error:
-    DestroyGraph((DestroyData)graphPtr);
+    /*
+     * The widget command and event handler are already installed.
+     * Destroy the Tk window and let GraphEventProc perform the normal
+     * resource-release and deferred Graph destruction sequence.
+     */
+    Tk_DestroyWindow(graphPtr->tkwin);
     return NULL;
 }
 

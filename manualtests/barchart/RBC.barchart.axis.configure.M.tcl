@@ -497,23 +497,6 @@ namespace eval barchart.axis {
 	}
 	
 	# ------------------------------------------------------------------------------------
-	# Purpose: Ensure the axis tickdivider functions correctly. (NOTE: This doesn't seem to work.)
-	# ------------------------------------------------------------------------------------
-	proc RBC.barchart.axis.configure.M.30.1.Setup {} {
-		barchart .barchart1
-		.barchart1 axis configure x -title "This is the x-axis\n of the barchart"
-		pack .barchart1
-	}
-	
-	proc RBC.barchart.axis.configure.M.30.1.Body {} {
-		.barchart1 axis configure x -tickdivider 1.5
-	}
-	
-	proc RBC.barchart.axis.configure.M.30.1.Cleanup {} {
-		destroy .barchart1
-	}
-	
-	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the axis bind functions correctly.
 	# ------------------------------------------------------------------------------------
 	proc RBC.barchart.axis.configure.M.31.1.Setup {} {

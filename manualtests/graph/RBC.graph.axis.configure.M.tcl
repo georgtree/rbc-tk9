@@ -496,23 +496,7 @@ namespace eval graph.axis {
 		destroy .graph1
 	}
 	
-	# ------------------------------------------------------------------------------------
-	# Purpose: Ensure the axis tickdivider functions correctly. (NOTE: This doesn't seem to work.)
-	# ------------------------------------------------------------------------------------
-	proc RBC.graph.axis.configure.M.30.1.Setup {} {
-		graph .graph1
-		.graph1 axis configure x -title "This is the x-axis\n of the graph"
-		pack .graph1
-	}
-	
-	proc RBC.graph.axis.configure.M.30.1.Body {} {
-		.graph1 axis configure x -tickdivider 1.5
-	}
-	
-	proc RBC.graph.axis.configure.M.30.1.Cleanup {} {
-		destroy .graph1
-	}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the axis bind functions correctly.
 	# ------------------------------------------------------------------------------------
