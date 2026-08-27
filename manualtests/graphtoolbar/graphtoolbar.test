@@ -170,6 +170,53 @@ proc GenerateGraphEvent {graph sequence x y time} {
     update
 }
 
+proc GenerateGraphWheelEvent {graph x y delta time {modifier {}}} {
+    sleep $time
+    event generate $graph <${modifier}MouseWheel> -x $x -y $y -delta $delta
+    update
+}
+
+proc approxPixelCoordsEqual {a b {tolerance 1.0}} {
+    if {[llength $a] != [llength $b]} {
+        return false
+    }
+    foreach x $a y $b {
+        if {abs($x-$y) > $tolerance} {
+            return false
+        }
+    }
+    return true
+}
+
+proc ExpectedWheelLimits {graph axis factor {pixel {}}} {
+    lassign [$graph axis limits $axis] min max
+    set logscale [$graph axis cget $axis -logscale]
+    if {$pixel eq {}} {
+        if {$logscale} {
+            set center [expr {exp((log($min)+log($max))/2.0)}]
+        } else {
+            set center [expr {($min+$max)/2.0}]
+        }
+    } else {
+        set center [$graph axis invtransform $axis [expr {round($pixel)}]]
+    }
+    if {$logscale} {
+        set logCenter [expr {log($center)}]
+        set newMin [expr { exp($logCenter+(log($min)-$logCenter)*$factor) }]
+        set newMax [expr { exp($logCenter+(log($max)-$logCenter)*$factor) }]
+    } else {
+        set newMin [expr {$center+($min-$center)*$factor}]
+        set newMax [expr {$center+($max-$center)*$factor}]
+    }
+    return [list $newMin $newMax]
+}
+
+proc GenerateGraphWheelEvent {graph x y delta time {modifier {}}} {
+    sleep $time
+    event generate $graph <${modifier}MouseWheel> -x $x -y $y -delta $delta
+    update
+}
+
 proc WaitForWindow {window} {
     if {![winfo exists $window]} {
         return -code error "Window '$window' does not exist"
@@ -196,6 +243,31 @@ proc MarkerWidgetCoords {graph marker} {
         }
     }
     return $result
+}
+
+proc MarkerWidgetSize {graph marker} {
+    set coords [MarkerWidgetCoords $graph $marker]
+    set xs [list]
+    set ys [list]
+    foreach {x y} $coords {
+        lappend xs $x
+        lappend ys $y
+    }
+    set xs [lsort -real $xs]
+    set ys [lsort -real $ys]
+    return [list [expr {[lindex $xs end]-[lindex $xs 0]}] [expr {[lindex $ys end]-[lindex $ys 0]}]]
+}
+
+proc approxPixelCoordsEqual {a b {tolerance 1.0}} {
+    if {[llength $a] != [llength $b]} {
+        return false
+    }
+    foreach x $a y $b {
+        if {abs($x-$y) > $tolerance} {
+            return false
+        }
+    }
+    return true
 }
 
 customMatch approxEqual approxNestedEqual
@@ -397,6 +469,29 @@ proc ExpectedZoomLimits {graph x1 y1 x2 y2 {xaxis x} {yaxis y}} {
         lassign [list $ymax $ymin] ymin ymax
     }
     return [list $xmin $xmax $ymin $ymax]
+}
+
+proc ExpectedWheelLimits {graph axis factor {pixel {}}} {
+    lassign [$graph axis limits $axis] min max
+    set logscale [$graph axis cget $axis -logscale]
+    if {$pixel eq {}} {
+        if {$logscale} {
+            set center [expr {exp((log($min)+log($max))/2.0)}]
+        } else {
+            set center [expr {($min+$max)/2.0}]
+        }
+    } else {
+        set center [$graph axis invtransform $axis [expr {round($pixel)}]]
+    }
+    if {$logscale} {
+        set logCenter [expr {log($center)}]
+        set newMin [expr {exp($logCenter+(log($min)-$logCenter)*$factor)}]
+        set newMax [expr {exp($logCenter+(log($max)-$logCenter)*$factor)}]
+    } else {
+        set newMin [expr {$center+($min-$center)*$factor}]
+        set newMax [expr {$center+($max-$center)*$factor}]
+    }
+    return [list $newMin $newMax]
 }
 
 test zoomInteractive-1 {single-stage zoom} -match approxEqual -constraints {isInteractive isZoom} -setup {
@@ -726,6 +821,199 @@ test zoomInteractive-10 {single-stage zoom with inverted axes} -match approxEqua
     lappend expectedStates [lindex $expectedStates 0]
     return [approxNestedEqual $actualStates $expectedStates]
 }  -result true  -cleanup {
+    destroy $widget
+}
+
+
+test zoomInteractive-11 {wheel zoom in and out in plot area} -constraints {isInteractive isZoom} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {} -zoomwheelscale 2.0]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {wheel zoom in and out in plot area} {*}$titleFont
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min -100 -max 100
+    $widget graph element create line1 -data {0 -100 5 0 10 100}
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    set x [expr {$left+$width/3}]
+    set y [expr {$top+$height*2/3}]
+    set expectedIn [list {*}[ExpectedWheelLimits $graph x 0.5 $x] {*}[ExpectedWheelLimits $graph y 0.5 $y]]
+    sleep $defaultDelay
+    GenerateGraphWheelEvent $graph $x $y 120 20
+    set actualIn [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    set expectedOut [list {*}[ExpectedWheelLimits $graph x 2.0 $x] {*}[ExpectedWheelLimits $graph y 2.0 $y]]
+    sleep $defaultDelay
+    GenerateGraphWheelEvent $graph $x $y -120 20
+    set actualOut [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    sleep $defaultDelay
+    expr {[approxNestedEqual $actualIn $expectedIn] && [approxNestedEqual $actualOut $expectedOut]}
+} -result 1 -cleanup {
+    destroy $widget
+}
+
+test zoomInteractive-12 {wheel over axis scales only current axis} -constraints {isInteractive isZoom} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {} -zoomwheelscale 2.0]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {wheel over axis scales only current axis} {*}$titleFont
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min -100 -max 100
+    $widget graph element create line1 -data {0 -100 5 0 10 100}
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [FindAxisPoint $graph x bottom] axisX axisY
+    set expectedX [ExpectedWheelLimits $graph x 0.5]
+    set expectedY [$graph axis limits y]
+    GenerateGraphWheelEvent $graph $axisX $axisY 120 20
+    set actualX [$graph axis limits x]
+    set actualY [$graph axis limits y]
+    sleep $defaultDelay
+    expr {[approxNestedEqual $actualX $expectedX] && [approxNestedEqual $actualY $expectedY]}
+} -result 1 -cleanup {
+    destroy $widget
+}
+
+test zoomInteractive-13 {wheel zoom includes hidden used axes but not unused axes} -constraints {isInteractive isZoom}\
+        -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {} -zoomwheelscale 2.0]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {wheel zoom includes hidden used axes but not unused axes} {*}$titleFont
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min 0 -max 20
+    $widget graph axis create xHidden -min 100 -max 200 -hide yes
+    $widget graph axis create yHidden -min 1000 -max 2000 -hide yes
+    $widget graph axis create xUnused -min -10 -max -5
+    $widget graph axis create yUnused -min -100 -max -50
+    $widget graph x2axis use xHidden
+    $widget graph y2axis use yHidden
+    $widget graph element create line1 -data {0 0 5 10 10 20}
+    $widget graph element create line2 -data {100 1000 150 1500 200 2000} -mapx xHidden -mapy yHidden
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    set x [expr {$left+$width/3}]
+    set y [expr {$top+$height*2/3}]
+    set expected [list {*}[ExpectedWheelLimits $graph x 0.5 $x] {*}[ExpectedWheelLimits $graph y 0.5 $y]\
+                          {*}[ExpectedWheelLimits $graph xHidden 0.5 $x] {*}[ExpectedWheelLimits $graph yHidden 0.5 $y]\
+                          {*}[$graph axis limits xUnused] {*}[$graph axis limits yUnused]]
+    GenerateGraphWheelEvent $graph $x $y 120 20
+    sleep $defaultDelay
+    set actual [list {*}[$graph axis limits x] {*}[$graph axis limits y] {*}[$graph axis limits xHidden]\
+                        {*}[$graph axis limits yHidden] {*}[$graph axis limits xUnused] {*}[$graph axis limits yUnused]]
+    approxNestedEqual $actual $expected
+} -result true -cleanup {
+    destroy $widget
+}
+
+test zoomInteractive-14 {wheel zoom with logarithmic axes in plot area} -constraints {isInteractive isZoom} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
+                        -zoomwheelscale 2.0]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {wheel zoom with logarithmic axes in plot area} {*}$titleFont
+    $widget graph axis configure x -logscale yes -min 0.1 -max 10
+    $widget graph axis configure y -logscale yes -min 10 -max 1000
+    $widget graph element create line1 -data {0.2 20 1 100 5 500}
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    set x [expr {$left+$width/4}]
+    set y [expr {$top+$height*3/4}]
+    set expected [list {*}[ExpectedWheelLimits $graph x 0.5 $x]\
+                       {*}[ExpectedWheelLimits $graph y 0.5 $y]]
+    GenerateGraphWheelEvent $graph $x $y 120 20
+    sleep $defaultDelay
+    set actual [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    approxNestedEqual $actual $expected
+} -result true -cleanup {
+    destroy $widget
+}
+
+test zoomInteractive-15 {wheel over logarithmic axis scales around logarithmic center}\
+        -constraints {isInteractive isZoom} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
+                        -zoomwheelscale 2.0]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {wheel over logarithmic axis scales around logarithmic center} {*}$titleFont
+    $widget graph axis configure x -logscale yes -min 0.1 -max 1000
+    $widget graph axis configure y -min 0 -max 10
+    $widget graph element create line1 -data {0.2 1 1 3 10 5 100 7}
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [FindAxisPoint $graph x bottom] axisX axisY
+    set expectedX [ExpectedWheelLimits $graph x 0.5]
+    set expectedY [$graph axis limits y]
+    GenerateGraphWheelEvent $graph $axisX $axisY 120 20
+    set actualX [$graph axis limits x]
+    set actualY [$graph axis limits y]
+    sleep $defaultDelay
+    expr {[approxNestedEqual $actualX $expectedX] && [approxNestedEqual $actualY $expectedY]}
+} -result 1 -cleanup {
+    destroy $widget
+}
+
+test zoomInteractive-16 {wheel zoom with inverted axes} -constraints {isInteractive isZoom} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
+                        -zoomwheelscale 2.0]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {wheel zoom with inverted axes} -invertxy yes {*}$titleFont
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min -100 -max 100
+    $widget graph element create line1 -data {0 -100 5 0 10 100}
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    set x [expr {$left+$width/3}]
+    set y [expr {$top+$height*2/3}]
+    # With -invertxy, the X data dimension is physical widget Y and
+    # the Y data dimension is physical widget X.
+    set expected [list {*}[ExpectedWheelLimits $graph x 0.5 $y] {*}[ExpectedWheelLimits $graph y 0.5 $x]]
+    GenerateGraphWheelEvent $graph $x $y 120 20
+    set actual [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    sleep $defaultDelay
+    approxNestedEqual $actual $expected
+} -result true -cleanup {
+    destroy $widget
+}
+
+test zoomInteractive-17 {each wheel zoom step is reversible with right-click pop}\
+        -constraints {isInteractive isZoom} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
+                        -zoomwheelscale 2.0]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {each wheel zoom step is reversible with right-click pop} {*}$titleFont
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min -100 -max 100
+    $widget graph element create line1 -data {0 -100 5 0 10 100}
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    set x [expr {$left+$width/3}]
+    set y [expr {$top+$height*2/3}]
+    set state0 [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    sleep $defaultDelay
+    GenerateGraphWheelEvent $graph $x $y 120 20
+    set state1 [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    sleep $defaultDelay
+    GenerateGraphWheelEvent $graph $x $y 120 20
+    set state2 [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    sleep $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-3> $x $y 20
+    GenerateGraphEvent $graph <ButtonRelease-3> $x $y 20
+    set pop1 [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    sleep $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-3> $x $y 20
+    GenerateGraphEvent $graph <ButtonRelease-3> $x $y 20
+    set pop2 [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    sleep $defaultDelay
+    expr {![approxNestedEqual $state0 $state1] && ![approxNestedEqual $state1 $state2] &&\
+                  [approxNestedEqual $pop1 $state1] && [approxNestedEqual $pop2 $state0]}
+} -result 1 -cleanup {
     destroy $widget
 }
 
@@ -1730,6 +2018,423 @@ test crossInteractive-3 {single-stage zoom, check active axis disabling during s
     lappend scale [lindex [$graph axis configure $axis -logscale] end]
     return $scale
 }  -result {0 0 1}  -cleanup {
+    destroy $widget
+}
+
+
+test crossInteractive-4 {wheel zoom redraws current crosshairs marker box in widget pixels}\
+        -constraints {isInteractive isCross} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
+                        -zoomwheelscale 2.0 -crosshairs -crosshairsmode current]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {wheel zoom redraws current crosshairs marker box in widget pixels} {*}$titleFont
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min -100 -max 100
+    $widget graph element create line1 -data {0 -100 5 0 10 100}
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    set x [expr {$left+$width/3}]
+    set y [expr {$top+$height/3}]
+    GenerateGraphEvent $graph <Motion> $x $y 20
+    set beforeBox [MarkerWidgetCoords $graph crosshairsTextBox]
+    set beforeTextCoords [MarkerWidgetCoords $graph crosshairsText]
+    GenerateGraphWheelEvent $graph $x $y 120 20
+    set afterBox [MarkerWidgetCoords $graph crosshairsTextBox]
+    set afterTextCoords [MarkerWidgetCoords $graph crosshairsText]
+    set afterText [$graph marker cget crosshairsText -text]
+    set expectedText [join [list [format "x(h)=%.4g" [$graph axis invtransform x $x]]\
+                                    [format "y(v)=%.4g" [$graph axis invtransform y $y]]] \n]
+    sleep $defaultDelay
+    list [$graph marker exists crosshairsTextBox] [approxPixelCoordsEqual $beforeBox $afterBox]\
+            [approxPixelCoordsEqual $beforeTextCoords $afterTextCoords] [expr {$afterText eq $expectedText}]
+} -result {1 true true 1} -cleanup {
+    destroy $widget
+}
+
+test crossInteractive-5 {right-click pop redraws current crosshairs marker box in widget pixels}\
+        -constraints {isInteractive isCross} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
+                        -zoomwheelscale 2.0 -crosshairs -crosshairsmode current]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {right-click pop redraws current crosshairs marker box in widget pixels} {*}$titleFont
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min -100 -max 100
+    $widget graph element create line1 -data {0 -100 5 0 10 100}
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    set x [expr {$left+$width/3}]
+    set y [expr {$top+$height/3}]
+    set initialLimits [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    GenerateGraphEvent $graph <Motion> $x $y 20
+    set initialBox [MarkerWidgetCoords $graph crosshairsTextBox]
+    GenerateGraphWheelEvent $graph $x $y 120 20
+    set zoomedBox [MarkerWidgetCoords $graph crosshairsTextBox]
+    GenerateGraphEvent $graph <ButtonPress-3> $x $y 20
+    GenerateGraphEvent $graph <ButtonRelease-3> $x $y 20
+    set poppedBox [MarkerWidgetCoords $graph crosshairsTextBox]
+    set poppedLimits [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    sleep $defaultDelay
+    list [$graph marker exists crosshairsTextBox] [approxPixelCoordsEqual $initialBox $zoomedBox]\
+            [approxPixelCoordsEqual $zoomedBox $poppedBox] [approxNestedEqual $poppedLimits $initialLimits]
+} -result {1 true true true} -cleanup {
+    destroy $widget
+}
+
+test crossInteractive-6 {wheel zoom redraws closest crosshairs markers}\
+        -constraints {isInteractive isCross} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
+                        -zoomwheelscale 2.0 -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-interpolate no -halo 20 -single yes}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {wheel zoom redraws closest crosshairs markers} {*}$titleFont
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min 0 -max 10
+    $widget graph element create Element1 -data {3 3 5 5 7 7} -symbol circle
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph transform 5 5] x y
+    GenerateGraphEvent $graph <Motion> $x $y 20
+    set beforeBoxSize [MarkerWidgetSize $graph crosshairsClosestTextBox]
+    GenerateGraphWheelEvent $graph $x $y 120 20
+    set afterBoxSize [MarkerWidgetSize $graph crosshairsClosestTextBox]
+    set actualBitmap [MarkerWidgetCoords $graph crosshairsClosestBitmap]
+    set found [$graph element closest $x $y pointVar -along both -interpolate no -halo 20]
+    if {$found} {
+        set expectedBitmap [list [$graph axis transform x $pointVar(x)] [$graph axis transform y $pointVar(y)]]
+        set expectedText [join [list $pointVar(name) [format "x(h)=%.4g" $pointVar(x)]\
+                                        [format "y(v)=%.4g" $pointVar(y)]] \n]
+        set actualText [$graph marker cget crosshairsClosestText -text]
+    } else {
+        set expectedBitmap {}
+        set expectedText {}
+        set actualText {}
+    }
+    sleep $defaultDelay
+    list $found [$graph marker exists crosshairsClosestText] [$graph marker exists crosshairsClosestTextBox]\
+            [$graph marker exists crosshairsClosestBitmap] [approxPixelCoordsEqual $beforeBoxSize $afterBoxSize]\
+            [approxPixelCoordsEqual $actualBitmap $expectedBitmap] [expr {$actualText eq $expectedText}]
+} -result {1 1 1 1 true true 1} -cleanup {
+    unset -nocomplain pointVar
+    destroy $widget
+}
+
+test crossInteractive-7 {wheel zoom redraws current crosshairs marker box with inverted axes}\
+        -constraints {isInteractive isCross} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
+                        -zoomwheelscale 2.0 -crosshairs -crosshairsmode current]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {wheel zoom redraws current crosshairs marker box with inverted axes}\
+            -invertxy yes {*}$titleFont
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min -100 -max 100
+    $widget graph element create line1 -data {0 -100 5 0 10 100}
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    set x [expr {$left+$width/3}]
+    set y [expr {$top+$height/3}]
+    GenerateGraphEvent $graph <Motion> $x $y 20
+    set beforeBox [MarkerWidgetCoords $graph crosshairsTextBox]
+    set beforeText [MarkerWidgetCoords $graph crosshairsText]
+    GenerateGraphWheelEvent $graph $x $y 120 20
+    set afterBox [MarkerWidgetCoords $graph crosshairsTextBox]
+    set afterText [MarkerWidgetCoords $graph crosshairsText]
+    sleep $defaultDelay
+    list [$graph marker exists crosshairsTextBox] [approxPixelCoordsEqual $beforeBox $afterBox]\
+            [approxPixelCoordsEqual $beforeText $afterText]
+} -result {1 true true} -cleanup {
+    destroy $widget
+}
+
+test crossInteractive-8 {closest marker with single no skips element hidden by active legend}\
+        -constraints {isInteractive isCross} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-single no -halo 100 -hide no} -activelegend]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {closest marker with single no skips element hidden by active legend} {*}$titleFont
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min 0 -max 10
+    $widget graph element create line1 -data {4 5.0 5 5.0 6 5.0} -symbol circle
+    $widget graph element create line2 -data {4 5.2 5 5.2 6 5.2} -symbol circle
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    # Both elements are within the closest halo.
+    lassign [$graph transform 5 5.1] x y
+    GenerateGraphEvent $graph <Motion> $x $y 20
+    sleep $defaultDelay
+    set before [list]
+    foreach i {0 1} {
+        if {[$graph marker exists crosshairsClosestText$i]} {
+            lappend before [lindex [split [$graph marker cget crosshairsClosestText$i -text] \n] 0]
+        }
+    }
+    set before [lsort $before]
+    # normal -> active -> plot-hidden
+    lassign [FindLegendPoint $graph line1] legendX legendY
+    GenerateGraphEvent $graph <Motion> $legendX $legendY 20
+    GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $legendX $legendY 20
+    GenerateGraphEvent $graph <Motion> $legendX $legendY 20
+    GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $legendX $legendY 20
+    set hidden [$graph element cget line1 -hideplot]
+    # This Motion used to call "element closest" for hidden line1 and produce an error.
+    GenerateGraphEvent $graph <Motion> $x $y 20
+    sleep $defaultDelay
+    set whileHidden [list]
+    foreach i {0 1} {
+        if {[$graph marker exists crosshairsClosestText$i]} {
+            lappend whileHidden [lindex [split [$graph marker cget crosshairsClosestText$i -text] \n] 0]
+        }
+    }
+    set whileHidden [lsort $whileHidden]
+    set noSecondMarker [expr {![$graph marker exists crosshairsClosestText1]}]
+    # Third click: plot-hidden -> normal.
+    GenerateGraphEvent $graph <Motion> $legendX $legendY 20
+    GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $legendX $legendY 20
+    GenerateGraphEvent $graph <Motion> $x $y 20
+    sleep $defaultDelay
+    set restored [list]
+    foreach i {0 1} {
+        if {[$graph marker exists crosshairsClosestText$i]} {
+            lappend restored [lindex [split [$graph marker cget crosshairsClosestText$i -text] \n] 0]
+        }
+    }
+    set restored [lsort $restored]
+    list $before $hidden $whileHidden $noSecondMarker $restored
+} -result {{line1 line2} 1 line2 1 {line1 line2}} -cleanup {
+    destroy $widget
+}
+
+test crossInteractive-9 {closest marker with single no handles all elements hidden by active legend}\
+        -constraints {isInteractive isCross} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-single no -halo 100 -hide no} -activelegend]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {closest marker with single no handles all elements hidden by active legend}\
+            {*}$titleFont
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min 0 -max 10
+    $widget graph element create line1 -data {4 5.0 5 5.0 6 5.0} -symbol circle
+    $widget graph element create line2 -data {4 5.2 5 5.2 6 5.2} -symbol circle
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph transform 5 5.1] x y
+    # First create both markers, so the test also verifies that stale
+    # markers disappear once every element becomes plot-hidden.
+    GenerateGraphEvent $graph <Motion> $x $y 20
+    sleep $defaultDelay
+    foreach element {line1 line2} {
+        lassign [FindLegendPoint $graph $element] legendX legendY
+        # normal -> active
+        GenerateGraphEvent $graph <Motion> $legendX $legendY 20
+        GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY $defaultDelay
+        GenerateGraphEvent $graph <ButtonRelease-1> $legendX $legendY 20
+        # active -> plot-hidden
+        GenerateGraphEvent $graph <Motion> $legendX $legendY 20
+        GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY $defaultDelay
+        GenerateGraphEvent $graph <ButtonRelease-1> $legendX $legendY 20
+    }
+    # Must produce neither an error nor any closest markers.
+    GenerateGraphEvent $graph <Motion> $x $y 20
+    sleep $defaultDelay
+    list [$graph element cget line1 -hideplot] [$graph element cget line2 -hideplot] [$graph marker names\
+                                                                                              crosshairsClosest*]
+} -result {1 1 {}} -cleanup {
+    destroy $widget
+}
+
+test crossInteractive-10 {zoom pop restores linear axis with negative limits after logscale toggle}\
+        -match approxEqual -constraints {isInteractive isCross} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -scaletoggle all]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {zoom pop restores linear axis with negative limits after logscale toggle}\
+            {*}$titleFont
+    $widget graph axis configure x -min -10 -max 10
+    $widget graph axis configure y -min 1 -max 10
+    $widget graph element create line1 -data {-10 1 -5 2 0 3 2 4 4 5 6 6 8 7 10 8}
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    set initialLimits [$graph axis limits x]
+    set initialScale [$graph axis cget x -logscale]
+    #
+    # Zoom into an entirely positive X interval, so switching this
+    # zoomed view to logarithmic scale is valid.
+    #
+    set x1 [$graph axis transform x 2]
+    set x2 [$graph axis transform x 8]
+    set y1 [$graph axis transform y 2]
+    set y2 [$graph axis transform y 8]
+    GenerateGraphEvent $graph <ButtonPress-1> $x1 $y1 $defaultDelay
+    GenerateGraphEvent $graph <Motion> $x2 $y2 $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-1> $x2 $y2 $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $x2 $y2 20
+    #
+    # Toggle the now-positive X axis to logarithmic.
+    #
+    lassign [FindAxisPoint $graph x bottom] axisX axisY
+    GenerateGraphEvent $graph <Motion> $axisX $axisY $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-1> $axisX $axisY $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $axisX $axisY 20
+    set zoomedScale [$graph axis cget x -logscale]
+    #
+    # Pop while the pointer is in the plot area.
+    #
+    lassign [$graph extents plotarea] left top width height
+    set x [expr {$left+$width/2}]
+    set y [expr {$top+$height/2}]
+    GenerateGraphEvent $graph <ButtonPress-3> $x $y $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-3> $x $y 20
+    set restoredLimits [$graph axis limits x]
+    set restoredScale [$graph axis cget x -logscale]
+    list $initialScale $zoomedScale $restoredScale [approxNestedEqual $restoredLimits $initialLimits]
+} -result {0 1 0 true} -cleanup {
+    destroy $widget
+}
+
+test crossInteractive-11 {zoom pop restores logarithmic scale after linear toggle}\
+        -match approxEqual -constraints {isInteractive isCross} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -scaletoggle all]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {zoom pop restores logarithmic scale after linear toggle} {*}$titleFont
+    $widget graph axis configure x -logscale yes -min 0.1 -max 100
+    $widget graph axis configure y -min 1 -max 10
+    $widget graph element create line1 -data {0.1 1 1 3 10 6 100 9}
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    set initialLimits [$graph axis limits x]
+    set initialScale [$graph axis cget x -logscale]
+    lassign [$graph extents plotarea] left top width height
+    set x1 [expr {$left+$width/3}]
+    set y1 [expr {$top+$height/3}]
+    set x2 [expr {$left+$width*2/3}]
+    set y2 [expr {$top+$height*2/3}]
+    GenerateGraphEvent $graph <ButtonPress-1> $x1 $y1 $defaultDelay
+    GenerateGraphEvent $graph <Motion> $x2 $y2 $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-1> $x2 $y2 $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $x2 $y2 20
+    #
+    # Change logarithmic -> linear after the zoom.
+    #
+    lassign [FindAxisPoint $graph x bottom] axisX axisY
+    GenerateGraphEvent $graph <Motion> $axisX $axisY $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-1> $axisX $axisY $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $axisX $axisY 20
+    set zoomedScale [$graph axis cget x -logscale]
+    lassign [$graph extents plotarea] left top width height
+    set x [expr {$left+$width/2}]
+    set y [expr {$top+$height/2}]
+    GenerateGraphEvent $graph <ButtonPress-3> $x $y $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-3> $x $y 20
+    set restoredLimits [$graph axis limits x]
+    set restoredScale [$graph axis cget x -logscale]
+    list $initialScale $zoomedScale $restoredScale [approxNestedEqual $restoredLimits $initialLimits]
+} -result {1 0 1 true} -cleanup {
+    destroy $widget
+}
+
+test crossInteractive-12 {multi-stage zoom restores alternating linear and logarithmic axis states}\
+        -match approxEqual -constraints {isInteractive isCross} -setup {
+    set widget [::graphtoolbar::graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -scaletoggle all]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {multi-stage zoom restores alternating linear and logarithmic axis states}\
+            {*}$titleFont
+    #
+    # The initial X range deliberately contains negative values.
+    # It is valid only as a linear axis.
+    #
+    $widget graph axis configure x -logscale no -min -10 -max 10
+    $widget graph axis configure y -min 1 -max 10
+    $widget graph element create line1 -data {-10 1 -5 2 0 3 2 4 4 5 6 6 8 7 10 8}
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    #
+    # State 0:
+    #
+    #   x: linear, -10 .. 10
+    #   y: 1 .. 10
+    #
+    set state0 [list [$graph axis cget x -logscale] {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    #
+    # First zoom: select an entirely positive X interval so that the
+    # resulting X axis may subsequently be changed to logarithmic.
+    #
+    set x1 [$graph axis transform x 2]
+    set x2 [$graph axis transform x 8]
+    set y1 [$graph axis transform y 2]
+    set y2 [$graph axis transform y 8]
+    GenerateGraphEvent $graph <ButtonPress-1> $x1 $y1 $defaultDelay
+    GenerateGraphEvent $graph <Motion> $x2 $y2 $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-1> $x2 $y2 $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $x2 $y2 20
+    #
+    # Change the first zoomed state from linear to logarithmic.
+    #
+    lassign [FindAxisPoint $graph x bottom] axisX axisY
+    GenerateGraphEvent $graph <Motion> $axisX $axisY $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-1> $axisX $axisY $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $axisX $axisY 20
+    #
+    # State 1:
+    #
+    # This is the state which the second zoom operation must save:
+    # positive limits with -logscale yes.
+    #
+    set state1 [list [$graph axis cget x -logscale] {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    #
+    # Second zoom while X is logarithmic.
+    #
+    set x1 [$graph axis transform x 3]
+    set x2 [$graph axis transform x 6]
+    set y1 [$graph axis transform y 3]
+    set y2 [$graph axis transform y 7]
+    GenerateGraphEvent $graph <ButtonPress-1> $x1 $y1 $defaultDelay
+    GenerateGraphEvent $graph <Motion> $x2 $y2 $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-1> $x2 $y2 $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $x2 $y2 20
+    #
+    # Now deliberately change X back to linear before popping.
+    #
+    lassign [FindAxisPoint $graph x bottom] axisX axisY
+    GenerateGraphEvent $graph <Motion> $axisX $axisY $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-1> $axisX $axisY $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $axisX $axisY 20
+    set scaleBeforePop [$graph axis cget x -logscale]
+    #
+    # Pop the second zoom.
+    #
+    # Despite X currently being linear, the saved state must restore
+    # the logarithmic state which existed immediately before that zoom.
+    #
+    lassign [$graph extents plotarea] left top width height
+    set x [expr {$left+$width/2}]
+    set y [expr {$top+$height/2}]
+    GenerateGraphEvent $graph <ButtonPress-3> $x $y $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-3> $x $y 20
+    set pop1 [list [$graph axis cget x -logscale] {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    #
+    # Pop the first zoom.
+    #
+    # This must restore the original linear state, including its
+    # negative X minimum.
+    #
+    GenerateGraphEvent $graph <ButtonPress-3> $x $y $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-3> $x $y 20
+    set pop2 [list [$graph axis cget x -logscale] {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    list $scaleBeforePop [approxNestedEqual $pop1 $state1] [approxNestedEqual $pop2 $state0]
+} -result {0 true true} -cleanup {
     destroy $widget
 }
 

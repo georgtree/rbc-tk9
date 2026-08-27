@@ -150,7 +150,8 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
                                   [list -font= -key -font -default\
                                            [option get $Subwidgets(graph) gtbZoomTitleFont GtbZoomTitleFont]]\
                                   [list -foreground= -key -foreground -default\
-                                           [option get $Subwidgets(graph) gtbZoomTitleForeground GtbZoomTitleForeground]]\
+                                           [option get $Subwidgets(graph) gtbZoomTitleForeground\
+                                                    GtbZoomTitleForeground]]\
                                   [list -shadow= -key -shadow -default\
                                            [option get $Subwidgets(graph) gtbZoomTitleShadow GtbZoomTitleShadow]]\
                                   [list -anchor= -key -anchor -default\
@@ -166,7 +167,8 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
                                   [list -dashes= -key -dashes -default\
                                            [option get $Subwidgets(graph) gtbZoomOutlineDashes GtbZoomOutlineDashes]]\
                                   [list -linewidth= -key -linewidth -default\
-                                           [option get $Subwidgets(graph) gtbZoomOutlineLineWidth GtbZoomOutlineLineWidth]]\
+                                           [option get $Subwidgets(graph) gtbZoomOutlineLineWidth\
+                                                    GtbZoomOutlineLineWidth]]\
                                   [list -xor= -key -xor -default\
                                            [option get $Subwidgets(graph) gtbZoomOutlineXor GtbZoomOutlineXor]]]\
                          $value]
@@ -210,7 +212,8 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
                 [argparse -inline\
                          [list\
                                   [list -linewidth= -key -linewidth -default\
-                                           [option get $Subwidgets(graph) gtbCrosshairsLineWidth GtbCrosshairsLineWidth]]\
+                                           [option get $Subwidgets(graph) gtbCrosshairsLineWidth\
+                                                    GtbCrosshairsLineWidth]]\
                                   [list -color= -key -color -default\
                                            [option get $Subwidgets(graph) gtbCrosshairsColor GtbCrosshairsColor]]\
                                   [list -dashes= -key -dashes -default\
@@ -237,15 +240,19 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
                                            [option get $Subwidgets(graph) gtbCrosshairsTextJustify\
                                                     GtbCrosshairsTextJustify]]\
                                   [list -foreground= -key -foreground -default\
-                                           [option get $Subwidgets(graph) gtbCrosshairsTextForeground GtbCrosshairsTextForeground]]\
+                                           [option get $Subwidgets(graph) gtbCrosshairsTextForeground\
+                                                    GtbCrosshairsTextForeground]]\
                                   [list -formatx= -key -formatx -default\
-                                           [option get $Subwidgets(graph) gtbCrosshairsTextXFormat GtbCrosshairsTextXFormat]]\
+                                           [option get $Subwidgets(graph) gtbCrosshairsTextXFormat\
+                                                    GtbCrosshairsTextXFormat]]\
                                   [list -formaty= -key -formaty -default\
-                                           [option get $Subwidgets(graph) gtbCrosshairsTextYFormat GtbCrosshairsTextYFormat]]\
+                                           [option get $Subwidgets(graph) gtbCrosshairsTextYFormat\
+                                                    GtbCrosshairsTextYFormat]]\
                                   [list -padx=  -key -padx -default\
                                            [option get $Subwidgets(graph) gtbCrosshairsTextPadX GtbCrosshairsTextPadX]]\
                                   [list -pady=  -key -pady -default\
-                                            [option get $Subwidgets(graph) gtbCrosshairsTextPadY GtbCrosshairsTextPadY]]]\
+                                            [option get $Subwidgets(graph) gtbCrosshairsTextPadY\
+                                                     GtbCrosshairsTextPadY]]]\
                          $value]
     }
     property crosshairsmarkboxopts -set {
@@ -257,7 +264,8 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
                       [list -outline= -key -outline -default\
                            [option get $Subwidgets(graph) gtbCrosshairsTextBoxOutline GtbCrosshairsTextBoxOutline]]\
                       [list -linewidth= -key -linewidth -default\
-                           [option get $Subwidgets(graph) gtbCrosshairsTextBoxLineWidth GtbCrosshairsTextBoxLineWidth]]]\
+                           [option get $Subwidgets(graph) gtbCrosshairsTextBoxLineWidth\
+                                    GtbCrosshairsTextBoxLineWidth]]]\
                  $value]
     }
     property crosshairsbarlineopts -set {
@@ -276,7 +284,7 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
     variable PsData ZoomInfo ZoomMod zoomtitle ZoomMark zoomtitleopts zoomboxopts zoommarkopts ZoomTransientChecks\
             zoommarkboxopts GraphType
     variable CrosshairsSelector crosshairsmarkopts crosshairsmarkboxopts crosshairsclosestopts crosshairsopts
-    variable crosshairsbarlineopts
+    variable crosshairsbarlineopts CrosshairsMarkerInfo
     variable AxisScaleInfo SavedToolbarStates
     classmethod unknown {w args} {
         if {[string match .* $w]} {
@@ -297,6 +305,9 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
             {-zoomstartbut -default {ButtonPress-1}}
             {-zoombackbut -default {ButtonPress-3}}
             {-zoommod= -default {Any-}}
+            {-zoomwheel -require zoom}
+            {-zoomwheelscale= -require zoomwheel -default 1.1}
+            {-zoomwheelmod= -require zoomwheel -default {Control-}}
             {-zoomtitle -require zoom}
             {-zoomtitleopts= -require zoom -type dict -default {}}
             {-zoomboxopts= -require zoom -type dict -default {}}
@@ -324,12 +335,7 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
                 -sticky nsew
         grid $Subwidgets(toolbarFrame) -row [expr {[dict get $arguments toolbarside] eq {bottom} ? 1 : 0}] -column 0\
                 -sticky ew
-
-
         set butCount -1
-        set Subwidgets(removeAllMarkersBut) [ttk::button $Subwidgets(toolbarFrame).removeAllMarkersBut -width 14\
-                                                     -image ::graphtoolbar::icons::removeAllMarkersIcon]
-        grid $Subwidgets(removeAllMarkersBut) -row 0 -column [incr butCount] -sticky ns
         set Subwidgets(makeSnapshotBut) [ttk::button $Subwidgets(toolbarFrame).makeSnapshotBut -width 14\
                                                  -image ::graphtoolbar::icons::makeSnapshotIcon\
                                                  -command [namespace code {my MakeSnapshot}]]
@@ -356,6 +362,9 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
             my configure -zoommarkopts [dict get $arguments zoommarkopts]
             my configure -zoommarkboxopts [dict get $arguments zoommarkboxopts]
             my EnableZoom [dict get $arguments zoomstartbut] [dict get $arguments zoombackbut]
+            if {[dict exists $arguments zoomwheel]} {
+                my EnableWheelZoom [dict get $arguments zoomwheelmod] [dict get $arguments zoomwheelscale]
+            }
             set Subwidgets(resetZoomBut) [ttk::button $Subwidgets(toolbarFrame).resetZoomBut -width 14\
                                                   -image ::graphtoolbar::icons::resetZoomIcon\
                                                   -command [namespace code {my ResetAllZoom}]]
@@ -373,7 +382,11 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
             my configure -crosshairsclosestopts [dict get $arguments crosshairsclosestopts]
             my configure -crosshairsbarlineopts [dict get $arguments crosshairsbarlineopts]
             my configure -crosshairsmarkboxopts [dict get $arguments crosshairsmarkboxopts]
-            set Subwidgets(crosshairsComBox) [ttk::combobox $Subwidgets(toolbarFrame).crosshairsComBox -width 10\
+            foreach mode [dict values $CrosshairsModes] {
+                lappend stringLengths [string length $mode]
+            }
+            set Subwidgets(crosshairsComBox) [ttk::combobox $Subwidgets(toolbarFrame).crosshairsComBox\
+                                                      -width [expr {[::tcl::mathfunc::max {*}$stringLengths]}]\
                                                       -values [dict values $CrosshairsModes]\
                                                       -textvariable [self namespace]::CrosshairsSelector]
             if {[dict get $arguments crosshairsmode] ni [dict keys $CrosshairsModes]} {
@@ -395,7 +408,6 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         if {[dict exists $arguments activelegend]} {
             my EnableActiveLegend
         }
-
         grid columnconfigure $frameName 0 -weight 1
         if {[dict get $arguments toolbarside] eq "bottom"} {
             grid rowconfigure $frameName 0 -weight 1
@@ -409,8 +421,10 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         bind $frameName <Destroy> +[list [self] destroy]
     }
     destructor {
-        if {[info exists ZoomInfo(titleTimer)]} {
-            after cancel $ZoomInfo(titleTimer)
+        foreach timer {titleTimer} {
+            if {[info exists ZoomInfo($timer)]} {
+                after cancel $ZoomInfo($timer)
+            }
         }
     }
     method names {} {
@@ -673,9 +687,11 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
                     {*}$boxOptions
         }
     }
-    method VisibleAxes {dimension} {
-        # Returns all visible named axes for the requested data dimension, preserving their margin/use order.
-        #  dimension - `x` or `y`
+    method UsedAxes {dimension} {
+        # Returns all used named axes for the requested data dimension,
+        # preserving their margin/use order.
+        #
+        # dimension - x or y
         set graph $Subwidgets(graph)
         switch -- $dimension {
             x {
@@ -691,9 +707,20 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         set axes [list]
         foreach margin $margins {
             foreach axis [$graph $margin use] {
-                if {![$graph axis cget $axis -hide]} {
+                if {($axis ne {}) && ($axis ni $axes)} {
                     lappend axes $axis
                 }
+            }
+        }
+        return $axes
+    }
+    method VisibleAxes {dimension} {
+        # Returns all visible named axes for the requested data dimension, preserving their margin/use order.
+        set graph $Subwidgets(graph)
+        set axes [list]
+        foreach axis [my UsedAxes $dimension] {
+            if {![$graph axis cget $axis -hide]} {
+                lappend axes $axis
             }
         }
         return $axes
@@ -711,7 +738,7 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
             return [list $yPixel $xPixel]
         }
         return [list $xPixel $yPixel]
-        }
+    }
     method WidgetToAxisValues {x y mapx mapy} {
         set graph $Subwidgets(graph)
         lassign [my WidgetToAxisPixels $x $y] xPixel yPixel
@@ -909,6 +936,39 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         }
     }
     #### crosshairs methods
+    method CanRefreshCrosshairsMarker {x y} {
+        set graph $Subwidgets(graph)
+        if {![info exists CrosshairsMarkerInfo]} {
+            return false
+        }
+        if {![my CheckBindTagExistence $graph crosshairs-marker-$graph]} {
+            return false
+        }
+        # x/y are optional for zoom operations invoked without a graph
+        # pointer event, e.g. ResetAllZoom from the toolbar.
+        if {($x eq {}) || ($y eq {})} {
+            return false
+        }
+        if {![$graph inside $x $y]} {
+            return false
+        }
+        return true
+    }
+    method DeleteCrosshairsMarkers {} {
+        set graph $Subwidgets(graph)
+        set markerNames [$graph marker names crosshairs*]
+        if {[llength $markerNames]} {
+            $graph marker delete {*}$markerNames
+        }
+    }
+    method RefreshCrosshairsMarker {x y} {
+        set graph $Subwidgets(graph)
+        if {![my CanRefreshCrosshairsMarker $x $y]} {
+            return
+        }
+        my DeleteCrosshairsMarkers
+        my CrosshairsMarkerMotion $graph $x $y {*}$CrosshairsMarkerInfo
+    }
     method ClosestMarkerText {element xValue yValue options} {
         set graph $Subwidgets(graph)
         set mapx [$graph element cget $element -mapx]
@@ -1144,15 +1204,21 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
             } else {
                 set i 0
                 foreach elem [$graph element names] {
+                    # -hideplot keeps the element in the display list so its
+                    # legend entry remains available, but it must not participate
+                    # in closest-marker searches.
+                    if {[$graph element cget $elem -hideplot]} {
+                        continue
+                    }
                     if {![$graph element closest $x $y pointVar -along both -interpolate $interpolate -halo $halo\
                                   $elem]} {
                         continue
                     }
                     set marker crosshairsClosestText$i
                     set element $pointVar(name)
-                    if {([$graph element type $element] eq {BarElement}) &&\
-                                 [info exists pointVar(left)] && [info exists pointVar(top)] &&\
-                                 [info exists pointVar(right)] && [info exists pointVar(bottom)] } {
+                    if {([$graph element type $element] eq {BarElement}) && [info exists pointVar(left)] &&\
+                                [info exists pointVar(top)] && [info exists pointVar(right)] &&\
+                                [info exists pointVar(bottom)]} {
                         my CreateClosestBarMarker $marker $element $pointVar(x) $pointVar(y) $pointVar(left)\
                                 $pointVar(top) $pointVar(right) $pointVar(bottom) $options $boxOptions
                     } else {
@@ -1180,6 +1246,9 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         my RemoveBindTag $graph $tagCrosshairsMarker
         set options [my configure -crosshairsmarkopts]
         $graph crosshairs configure {*}[my configure -crosshairsopts]
+        # This is the canonical argument tuple used both by normal pointer
+        # motion and by redraw after an axis-transform change.
+        unset -nocomplain CrosshairsMarkerInfo
         if {$CrosshairsSelector eq {Current point}} {
             $graph crosshairs on
             bind $tagCrosshairs <Leave> {
@@ -1189,8 +1258,9 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
                 %W crosshairs on
             }
             bind $tagCrosshairs <Any-Motion> [namespace code [list my CrosshairsMotion %W %x %y]]
+            set CrosshairsMarkerInfo [list $options current {} {} {}]
             bind $tagCrosshairsMarker <Any-Motion>\
-                    [namespace code [list my CrosshairsMarkerMotion %W %x %y $options current {} {} {}]]
+                    [namespace code [list my CrosshairsMarkerMotion %W %x %y {*}$CrosshairsMarkerInfo]]
             my AddBindTag $graph $tagCrosshairs
             my AddBindTag $graph $tagCrosshairsMarker $tagCrosshairs
         } elseif {$CrosshairsSelector eq {Closest point}} {
@@ -1207,9 +1277,9 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
                 $graph crosshairs off
             }
             bind $tagCrosshairs <Any-Motion> [namespace code [list my CrosshairsMotion %W %x %y $hide]]
+            set CrosshairsMarkerInfo [list $options closest $interpolate $halo $single]
             bind $tagCrosshairsMarker <Any-Motion>\
-                    [namespace code [list my CrosshairsMarkerMotion %W %x %y $options closest $interpolate $halo\
-                                             $single]]
+                    [namespace code [list my CrosshairsMarkerMotion %W %x %y {*}$CrosshairsMarkerInfo]]
             my AddBindTag $graph $tagCrosshairs
             my AddBindTag $graph $tagCrosshairsMarker $tagCrosshairs
             unset -nocomplain {*}[dict keys $crosshairsclosestopts]
@@ -1262,10 +1332,36 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         bind zoom-$graph <${modifier}${start}> [namespace code {my SetZoomPoint %x %y}]
         bind zoom-$graph <${modifier}${reset}> [namespace code {
             if {[%W inside %x %y]} {
-                my ResetZoom
+                my ResetZoom %x %y
             }
         }]
         my AddBindTag $graph zoom-$graph
+    }
+    method EnableWheelZoom {modifier scale} {
+        set graph $Subwidgets(graph)
+        if {![string is double -strict $scale] || ($scale <= 1.0)} {
+            return -code error "wheel zoom scale must be a number greater than 1.0"
+        }
+        bind zoom-$graph <${modifier}MouseWheel> [namespace code [list my WheelZoom %W %D %x %y %s $scale]]
+    }
+    method SaveZoomState {} {
+        # Saves the current explicit axis limits and scale type as one
+        # reversible zoom operation.
+        #
+        # cget is intentionally used instead of "axis limits":
+        # an auto-scaled {} limit must be restored as {}, not as the
+        # numeric limit calculated from the current data.
+        set graph $Subwidgets(graph)
+        set cmds [list]
+        foreach dimension {x y} {
+            foreach axis [my UsedAxes $dimension] {
+                set min [$graph axis cget $axis -min]
+                set max [$graph axis cget $axis -max]
+                set logscale [$graph axis cget $axis -logscale]
+                lappend cmds [list $graph axis configure $axis -min $min -max $max -logscale $logscale]
+            }
+        }
+        set ZoomInfo(stack) [linsert $ZoomInfo(stack) 0 $cmds]
     }
     method SaveZoomPoint {x y index} {
         # x/y are physical widget pixels.
@@ -1307,7 +1403,101 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
             catch {$Subwidgets(graph) marker delete gtbZoomTitle} errorStr
         }
     }
-    method PopZoom {} {
+    method WheelZoom {graph delta x y state step} {
+        # Do not alter the graph underneath an unfinished rectangle selection.
+        if {[info exists ZoomInfo(corner)] && ($ZoomInfo(corner) ne {A})} {
+            return -code break
+        }
+        if {$delta > 0} {
+            # Wheel up: zoom in.
+            set factor [expr {1.0/$step}]
+        } elseif {$delta < 0} {
+            # Wheel down: zoom out.
+            set factor $step
+        } else {
+            return
+        }
+        set changes [dict create]
+        if {[$graph inside $x $y]} {
+            #
+            # Plot area:
+            #
+            # Scale all X and Y axes around the value underneath the
+            # physical mouse location.
+            #
+            lassign [my WidgetToAxisPixels $x $y] xPixel yPixel
+            # axis invtransform requires integer pixels.
+            set xPixel [expr {round($xPixel)}]
+            set yPixel [expr {round($yPixel)}]
+            foreach axis [my UsedAxes x] {
+                set center [$graph axis invtransform $axis $xPixel]
+                dict set changes $axis [my ScaledAxisLimits $axis $factor $center]
+            }
+            foreach axis [my UsedAxes y] {
+                set center [$graph axis invtransform $axis $yPixel]
+                dict set changes $axis [my ScaledAxisLimits $axis $factor $center]
+            }
+        } else {
+            #
+            # Axis area:
+            #
+            # Refresh RBC's "current" axis using the actual wheel-event
+            # position.  This avoids relying on a possibly stale current
+            # axis from the last Motion event.
+            #
+            event generate $graph <Motion> -x $x -y $y -state $state
+            set axis [$graph axis get current]
+            if {$axis eq {}} {
+                # Outside both the plot area and an axis: don't consume
+                # the wheel event.
+                return
+            }
+            #
+            # An individual axis is scaled around its own center.
+            #
+            dict set changes $axis [my ScaledAxisLimits $axis $factor]
+        }
+        if {[dict size $changes] == 0} {
+            return
+        }
+        #
+        # Every wheel step is a normal reversible zoom operation.
+        #
+        set refreshCrosshairs [my CanRefreshCrosshairsMarker $x $y]
+        #
+        # The crosshairs text boxes are pixel-sized objects represented
+        # internally by graph coordinates.  Remove them before changing the
+        # axis transform so they cannot be drawn using the new scale.
+        #
+        if {$refreshCrosshairs} {
+            my DeleteCrosshairsMarkers
+        }
+        my SaveZoomState
+        dict for {axis limits} $changes {
+            lassign $limits min max
+            $graph axis configure $axis -min $min -max $max
+        }
+        if {$refreshCrosshairs} {
+            #
+            # Make the new axis mapping current before converting widget
+            # pixels back into graph coordinates.
+            #
+            update idletasks
+            my RefreshCrosshairsMarker $x $y
+        }
+        #
+        # Keep -zoomtitle meaningful for wheel zoom as well.
+        #
+        if {[my configure -zoomtitle]} {
+            my ZoomTitleLast
+            if {[info exists ZoomInfo(titleTimer)]} {
+                after cancel $ZoomInfo(titleTimer)
+            }
+            set ZoomInfo(titleTimer) [after 2000 [namespace code {my DestroyZoomTitle}]]
+        }
+        return -code break
+    }
+    method PopZoom {{x {}} {y {}}} {
         # Removes last zoom box scale commands for all visible axes from the stack and restores graph scale to the
         # previous state on the stack.
         set graph $Subwidgets(graph)
@@ -1315,6 +1505,13 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         if {[llength $zoomStack] > 0} {
             set cmds [lindex $zoomStack 0]
             set ZoomInfo(stack) [lrange $zoomStack 1 end]
+            # A pop happens while the pointer is still in the
+            # plot area.  Remove the old graph-coordinate representation of
+            # the pixel-sized crosshair marker before changing the transform.
+            set refreshCrosshairs [my CanRefreshCrosshairsMarker $x $y]
+            if {$refreshCrosshairs} {
+                my DeleteCrosshairsMarkers
+            }
             foreach cmd $cmds {
                 {*}$cmd
             }
@@ -1325,6 +1522,9 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
             event generate $graph <Configure>
             update idletasks
             tk busy forget $graph
+            if {$refreshCrosshairs} {
+                my RefreshCrosshairsMarker $x $y
+            }
             if {[my configure -zoomtitle]} {
                 if {[info exists ZoomInfo(titleTimer)]} {
                     after cancel $ZoomInfo(titleTimer)
@@ -1349,44 +1549,74 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         if {($xPixel1==$xPixel2) || ($yPixel1==$yPixel2)} {
             return
         }
-        set cmds [list]
-        foreach margin {xaxis yaxis x2axis y2axis} {
-            foreach axis [$graph $margin use] {
-                set min [$graph axis cget $axis -min]
-                set max [$graph axis cget $axis -max]
-                set cmd [list $graph axis configure $axis -min $min -max $max]
-                lappend cmds $cmd
+        my SaveZoomState
+        foreach axis [my UsedAxes x] {
+            set min [$graph axis invtransform $axis $xPixel1]
+            set max [$graph axis invtransform $axis $xPixel2]
+            if {$min>$max} {
+                $graph axis configure $axis -min $max -max $min
+            } else {
+                $graph axis configure $axis -min $min -max $max
             }
         }
-        set ZoomInfo(stack) [linsert $ZoomInfo(stack) 0 $cmds]
-        foreach margin {xaxis x2axis} {
-            foreach axis [$graph $margin use] {
-                set min [$graph axis invtransform $axis $xPixel1]
-                set max [$graph axis invtransform $axis $xPixel2]
-                if {$min > $max} {
-                    $graph axis configure $axis -min $max -max $min
-                } else {
-                    $graph axis configure $axis -min $min -max $max
-                }
-            }
-        }
-        foreach margin {yaxis y2axis} {
-            foreach axis [$graph $margin use] {
-                set min [$graph axis invtransform $axis $yPixel1]
-                set max [$graph axis invtransform $axis $yPixel2]
-                if {$min > $max} {
-                    $graph axis configure $axis -min $max -max $min
-                } else {
-                    $graph axis configure $axis -min $min -max $max
-                }
+        foreach axis [my UsedAxes y] {
+            set min [$graph axis invtransform $axis $yPixel1]
+            set max [$graph axis invtransform $axis $yPixel2]
+            if {$min>$max} {
+                $graph axis configure $axis -min $max -max $min
+            } else {
+                $graph axis configure $axis -min $min -max $max
             }
         }
         tk busy hold $graph
         event generate $graph <Configure>
         update idletasks
         tk busy forget $graph
+        my RefreshCrosshairsMarker $ZoomInfo(B,x) $ZoomInfo(B,y)
     }
-    method ResetZoom {} {
+    method ScaledAxisLimits {axis factor {center {}}} {
+        # Returns new numeric limits for an axis.
+        #
+        # factor < 1.0 -> zoom in
+        # factor > 1.0 -> zoom out
+        #
+        # center {} uses the center of the current axis range.
+        #              center
+        # min ───────────┼─────────── max
+        #                ↑
+        #        zoom around axis center
+        #
+        #                mouse
+        #                  ↓
+        # min ─────────────●──────────── max
+        #                  ● remains at the same screen position
+        #
+        set graph $Subwidgets(graph)
+        lassign [$graph axis limits $axis] min max
+        if {[$graph axis cget $axis -logscale]} {
+            if {($min <= 0.0) || ($max <= 0.0)} {
+                return -code error "logarithmic axis limits must be greater than zero"
+            }
+            set logMin [expr {log($min)}]
+            set logMax [expr {log($max)}]
+            if {$center eq {}} {
+                set logCenter [expr {($logMin+$logMax)/2.0}]
+            } else {
+                if {$center <= 0.0} {
+                    return -code error "logarithmic axis center must be greater than zero"
+                }
+                set logCenter [expr {log($center)}]
+            }
+            set logMin [expr {$logCenter+($logMin-$logCenter)*$factor}]
+            set logMax [expr {$logCenter+($logMax-$logCenter)*$factor}]
+            return [list [expr {exp($logMin)}] [expr {exp($logMax)}]]
+        }
+        if {$center eq {}} {
+            set center [expr {($min+$max)/2.0}]
+        }
+        return [list [expr {$center+($min-$center)*$factor}] [expr {$center+($max-$center)*$factor}]]
+    }
+    method ResetZoom {{x {}} {y {}}} {
         # Restores graph scale to the previous state, or abort the current selection operation.
         set graph $Subwidgets(graph)
         if {![info exists ZoomInfo(corner)]} {
@@ -1408,7 +1638,7 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
         $graph marker delete {*}[$graph marker names gtbZoom*]
         if {$ZoomInfo(corner) eq {A}} {
             # Reset the whole axis
-            my PopZoom
+            my PopZoom $x $y
         } else {
             set modifier $ZoomMod
             set ZoomInfo(corner) A
@@ -1532,13 +1762,6 @@ oo::configurable create ::graphtoolbar::graphtoolbar {
     }
     method ResetAllZoom {} {
         set graph $Subwidgets(graph)
-        # variable AxesScaling
-        # if {[dict exists $AxesScaling $graph]} {
-        #     dict for {axis limits} [dict get $AxesScaling $graph] {
-        #         lassign $limits min max
-        #         $graph axis configure $axis -min $min -max $max
-        #     }
-        # }
         foreach state [set ZoomInfo(stack)] {
             my PopZoom
         }
