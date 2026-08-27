@@ -3435,8 +3435,17 @@ static void DisplayGraph(ClientData clientData) {
          */
         return;
     }
-    graphPtr->width = Tk_Width(graphPtr->tkwin);
-    graphPtr->height = Tk_Height(graphPtr->tkwin);
+    {
+        int width, height;
+
+        width = Tk_Width(graphPtr->tkwin);
+        height = Tk_Height(graphPtr->tkwin);
+        if ((width != graphPtr->width) || (height != graphPtr->height)) {
+            graphPtr->flags |= RESET_WORLD;
+        }
+        graphPtr->width = width;
+        graphPtr->height = height;
+    }
     Rbc_LayoutGraph(graphPtr);
     Rbc_UpdateCrosshairs(graphPtr);
     if (!Tk_IsMapped(graphPtr->tkwin)) {
