@@ -184,7 +184,7 @@ typedef struct {
  */
 static const Tk_OptionSpec graphOptionSpecs[] = {
     {TK_OPTION_DOUBLE, "-aspect", "aspect", "Aspect", DEF_GRAPH_ASPECT_RATIO, -1, offsetof(Graph, aspect),
-     TK_OPTION_DONT_SET_DEFAULT, NULL, GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
+     0, NULL, GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_BORDER, "-background", "background", "Background", DEF_GRAPH_BACKGROUND, -1, offsetof(Graph, border), 0,
      DEF_GRAPH_BG_MONO, GRAPH_GC_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING, "-barmode", "barMode", "BarMode", DEF_GRAPH_BAR_MODE, offsetof(Graph, barModeObjPtr), -1, 0,
@@ -206,15 +206,15 @@ static const Tk_OptionSpec graphOptionSpecs[] = {
     {TK_OPTION_STRING, "-bottomvariable", "bottomVariable", "BottomVariable", DEF_GRAPH_MARGIN_VAR, -1,
      offsetof(Graph, bottomMargin.varName), TK_OPTION_NULL_OK, NULL, GRAPH_REDRAW_MASK},
     {TK_OPTION_BOOLEAN, "-bufferelements", "bufferElements", "BufferElements", DEF_GRAPH_BUFFER_ELEMENTS, -1,
-     offsetof(Graph, backingStore), TK_OPTION_DONT_SET_DEFAULT, NULL, GRAPH_BACKING_STORE_MASK | GRAPH_REDRAW_MASK},
+     offsetof(Graph, backingStore), 0, NULL, GRAPH_BACKING_STORE_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_BOOLEAN, "-buffergraph", "bufferGraph", "BufferGraph", DEF_GRAPH_BUFFER_GRAPH, -1,
-     offsetof(Graph, doubleBuffer), TK_OPTION_DONT_SET_DEFAULT, NULL, GRAPH_REDRAW_MASK},
+     offsetof(Graph, doubleBuffer), 0, NULL, GRAPH_REDRAW_MASK},
     {TK_OPTION_CURSOR, "-cursor", "cursor", "Cursor", DEF_GRAPH_CURSOR, -1, offsetof(Graph, cursor), TK_OPTION_NULL_OK,
      NULL, GRAPH_REDRAW_MASK},
-    {TK_OPTION_STRING, "-data", "data", "Data", DEF_GRAPH_DATA, -1, offsetof(Graph, data), TK_OPTION_DONT_SET_DEFAULT,
+    {TK_OPTION_STRING, "-data", "data", "Data", DEF_GRAPH_DATA, -1, offsetof(Graph, data), 0,
      NULL, GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING, "-datacommand", "dataCommand", "DataCommand", DEF_GRAPH_DATA_COMMAND, -1,
-     offsetof(Graph, dataCmd), TK_OPTION_DONT_SET_DEFAULT, NULL, GRAPH_REDRAW_MASK},
+     offsetof(Graph, dataCmd), 0, NULL, GRAPH_REDRAW_MASK},
 
     {TK_OPTION_SYNONYM, "-fg", NULL, NULL, NULL, -1, -1, 0, "-foreground", 0},
 
@@ -235,9 +235,9 @@ static const Tk_OptionSpec graphOptionSpecs[] = {
     {TK_OPTION_PIXELS, "-highlightthickness", "highlightThickness", "HighlightThickness", DEF_GRAPH_HIGHLIGHT_WIDTH,
      offsetof(Graph, highlightWidthObjPtr), -1, 0, NULL, GRAPH_PIXELS_MASK | GRAPH_GEOMETRY_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_BOOLEAN, "-invertxy", "invertXY", "InvertXY", DEF_GRAPH_INVERT_XY, -1, offsetof(Graph, inverted),
-     TK_OPTION_DONT_SET_DEFAULT, NULL, GRAPH_INVERT_XY_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
+     0, NULL, GRAPH_INVERT_XY_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_JUSTIFY, "-justify", "justify", "Justify", DEF_GRAPH_JUSTIFY, -1,
-     offsetof(Graph, titleTextStyle.justify), TK_OPTION_DONT_SET_DEFAULT, NULL,
+     offsetof(Graph, titleTextStyle.justify), 0, NULL,
      GRAPH_TEXT_STYLE_MASK | GRAPH_REDRAW_MASK},
 
     {TK_OPTION_STRING, "-leftmargin", "leftMargin", "Margin", DEF_GRAPH_MARGIN, offsetof(Graph, leftMarginObjPtr), -1,
@@ -257,9 +257,9 @@ static const Tk_OptionSpec graphOptionSpecs[] = {
     {TK_OPTION_STRING, "-plotpady", "plotPadY", "PlotPad", DEF_GRAPH_PLOT_PADY, offsetof(Graph, plotPadYObjPtr), -1, 0,
      NULL, GRAPH_PADDING_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_RELIEF, "-plotrelief", "plotRelief", "Relief", DEF_GRAPH_PLOT_RELIEF, -1, offsetof(Graph, plotRelief),
-     TK_OPTION_DONT_SET_DEFAULT, NULL, GRAPH_REDRAW_MASK},
+     0, NULL, GRAPH_REDRAW_MASK},
     {TK_OPTION_RELIEF, "-relief", "relief", "Relief", DEF_GRAPH_RELIEF, -1, offsetof(Graph, relief),
-     TK_OPTION_DONT_SET_DEFAULT, NULL, GRAPH_REDRAW_MASK},
+     0, NULL, GRAPH_REDRAW_MASK},
 
     {TK_OPTION_STRING, "-rightmargin", "rightMargin", "Margin", DEF_GRAPH_MARGIN, offsetof(Graph, rightMarginObjPtr),
      -1, 0, NULL, GRAPH_PIXELS_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},

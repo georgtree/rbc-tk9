@@ -1154,13 +1154,14 @@ namespace eval ::rbc::ELEMENT {
         ```tcl
         puts [.g element type signal1]
         # -> LineElement
+        ```
 
         Configuration options are specific to the concrete element type:
 
         * [LINEELEMENT] - line elements;
         * [STRIPELEMENT] - strip elements;
         * [BARELEMENT] - bar elements.
-        ```
+
     }
 
     proc activate {args} {

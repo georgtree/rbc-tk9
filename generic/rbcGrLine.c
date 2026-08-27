@@ -482,7 +482,7 @@ typedef struct {
         DEF_LINE_REDUCE,                                                      \
         -1,                                                                   \
         offsetof(Line, rTolerance),                                           \
-        TK_OPTION_DONT_SET_DEFAULT,                                           \
+        0,                                                                    \
         NULL,                                                                 \
         LINE_ELEM_MAP_ITEM_MASK                                               \
     },
@@ -611,7 +611,7 @@ typedef struct {
          DEF_LINE_HIDE,                                                                                                \
          -1,                                                                                                           \
          LINE_CORE_OFFSET(hidden),                                                                                     \
-         TK_OPTION_DONT_SET_DEFAULT,                                                                                   \
+         0,                                                                                                            \
          NULL,                                                                                                         \
          LINE_ELEM_MAP_ITEM_MASK},                                                                                     \
         {TK_OPTION_BOOLEAN,                                                                                            \
@@ -621,7 +621,7 @@ typedef struct {
          DEF_LINE_HIDE_PLOT,                                                                                           \
          -1,                                                                                                           \
          LINE_CORE_OFFSET(plotHidden),                                                                                 \
-         TK_OPTION_DONT_SET_DEFAULT,                                                                                   \
+         0,                                                                                                            \
          NULL,                                                                                                         \
          LINE_ELEM_MAP_ITEM_MASK},                                                                                     \
         {TK_OPTION_STRING,                                                                                             \
@@ -641,7 +641,7 @@ typedef struct {
          DEF_LINE_LABEL_RELIEF,                                                                                        \
          -1,                                                                                                           \
          LINE_CORE_OFFSET(labelRelief),                                                                                \
-         TK_OPTION_DONT_SET_DEFAULT,                                                                                   \
+         0,                                                                                                            \
          NULL,                                                                                                         \
          LINE_ELEM_MAP_ITEM_MASK},                                                                                     \
         {TK_OPTION_STRING,                                                                                             \
@@ -741,7 +741,7 @@ typedef struct {
                      DEF_LINE_SCALE_SYMBOLS,                                                                           \
                      -1,                                                                                               \
                      LINE_CORE_OFFSET(scaleSymbols),                                                                   \
-                     TK_OPTION_DONT_SET_DEFAULT,                                                                       \
+                     0,                                                                                                \
                      NULL,                                                                                             \
                      LINE_ELEM_SCALE_SYMBOL_MASK},                                                                     \
         {TK_OPTION_STRING,                                                                                             \
