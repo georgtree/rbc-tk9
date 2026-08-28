@@ -99,6 +99,7 @@ static Rbc_Complex ComplexTanh(Rbc_Complex value);
 static Rbc_Complex ComplexAsin(Rbc_Complex value);
 static Rbc_Complex ComplexAcos(Rbc_Complex value);
 static Rbc_Complex ComplexAtan(Rbc_Complex value);
+static int ComplexPower(Tcl_Interp *interp, Rbc_Complex base, Rbc_Complex exponent, Rbc_Complex *resultPtr);
 static double Random(double value);
 static double Mean(Rbc_Vector *vecPtr);
 static double Sum(Rbc_Vector *vecPtr);
@@ -344,6 +345,8 @@ static int ApplyComplexBinaryValue(Tcl_Interp *interp, int operator, Rbc_Complex
         }
         *resultPtr = Rbc_ComplexDiv(a, b);
         return TCL_OK;
+    case EXPONENT:
+        return ComplexPower(interp, a, b, resultPtr);        
     }
     Tcl_SetObjResult(interp, Tcl_NewStringObj("operator is not supported for complex vectors", -1));
     return TCL_ERROR;
@@ -357,6 +360,7 @@ static int ApplyComplexBinaryOperator(Tcl_Interp *interp, int operator, VectorOb
     case MINUS:
     case MULT:
     case DIVIDE:
+    case EXPONENT:
         break;
     default:
         Tcl_SetObjResult(interp, Tcl_NewStringObj("operator is not supported for complex vectors", -1));
@@ -1570,6 +1574,91 @@ static Rbc_Complex ComplexAtan(Rbc_Complex value) {
     logMinus = LogHypot(value.real, value.imag - 1.0);
     result.imag = 0.5 * (logPlus - logMinus);
     return result;
+}
+
+static int ComplexPower(Tcl_Interp *interp, Rbc_Complex base, Rbc_Complex exponent, Rbc_Complex *resultPtr) {
+    Rbc_Complex one;
+
+    one = Rbc_ComplexFromReal(1.0);
+    /*
+     * A finite real integer exponent is branch-independent.  Use
+     * exponentiation by squaring instead of exp(exponent * log(base)).
+     *
+     * Keep the exponent as a double.  This avoids converting very
+     * large exactly-integral doubles to an integer type whose range
+     * may be smaller.
+     */
+    if ((exponent.imag == 0.0) && FINITE(exponent.real) && (floor(exponent.real) == exponent.real)) {
+        Rbc_Complex factor;
+        Rbc_Complex result;
+        double power;
+
+        result = one;
+        if (exponent.real == 0.0) {
+            /*
+             * Preserve the real expression convention: 0^0 == 1.
+             */
+            *resultPtr = result;
+            return TCL_OK;
+        }
+        if (exponent.real < 0.0) {
+            if (Rbc_ComplexIsZero(base)) {
+                Tcl_SetObjResult(interp, Tcl_NewStringObj("divide by zero", -1));
+                return TCL_ERROR;
+            }
+            factor = Rbc_ComplexDiv(one, base);
+            power = -exponent.real;
+        } else {
+            factor = base;
+            power = exponent.real;
+        }
+        while (power > 0.0) {
+            if (fmod(power, 2.0) != 0.0) {
+                result = Rbc_ComplexMul(result, factor);
+            }
+            power = floor(power * 0.5);
+            if (power > 0.0) {
+                factor = Rbc_ComplexMul(factor, factor);
+            }
+        }
+        *resultPtr = result;
+        return TCL_OK;
+    }
+    /*
+     * Zero to a finite non-integral real power needs special handling:
+     * log(0) cannot be used as an intermediate representation.
+     */
+    if (Rbc_ComplexIsZero(base) && FINITE(exponent.real) && FINITE(exponent.imag)) {
+        if (exponent.imag != 0.0) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("zero cannot be raised to a complex power", -1));
+            return TCL_ERROR;
+        }
+        if (exponent.real > 0.0) {
+            *resultPtr = Rbc_ComplexFromReal(0.0);
+            return TCL_OK;
+        }
+        /*
+         * exponent == 0 was handled by the integer path above.
+         */
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("divide by zero", -1));
+        return TCL_ERROR;
+    }
+    /*
+     * Principal value:
+     *
+     *     base^exponent = exp(exponent * Log(base))
+     *
+     * ComplexLog() supplies the principal logarithm.
+     */
+    {
+        Rbc_Complex logBase;
+        Rbc_Complex product;
+
+        logBase = ComplexLog(base);
+        product = Rbc_ComplexMul(exponent, logBase);
+        *resultPtr = ComplexExp(product);
+    }
+    return TCL_OK;
 }
 
 /*

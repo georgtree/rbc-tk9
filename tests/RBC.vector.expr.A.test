@@ -1479,5 +1479,102 @@ namespace eval vector.expr {
         catch {vector expr {atan({0 1})}}
     } -result 1
 
+    # ------------------------------------------------------------------------------------
+    # Purpose: Test complex exponentiation.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.expr.A.9.1 {
+        complex integer exponent
+    } -setup {
+        vector create C -type complex
+        C set {{1 1} {2 -1}}
+    } -body {
+        vector expr {C ^ 3}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {{-2.0 2.0} {2.0 -11.0}}
+
+    test RBC.vector.expr.A.9.2 {
+        complex negative integer exponent
+    } -body {
+        vector expr {{1 1} ^ -2}
+    } -result {{0.0 -0.5}}
+
+    test RBC.vector.expr.A.9.3 {
+        complex integer exponent on negative real axis
+    } -body {
+        vector expr {{-1 0} ^ 3}
+    } -result {{-1.0 0.0}}
+
+    test RBC.vector.expr.A.9.4 {
+        complex fractional exponent principal branch
+    } -body {
+        set value [lindex [ vector expr {{-1 0} ^ {0.5 0}} ] 0]
+        lassign $value real imag
+        expr { abs($real) < 1.0e-12 && abs($imag - 1.0) < 1.0e-12 }
+    } -result 1
+
+    test RBC.vector.expr.A.9.5 {
+        general complex exponent
+    } -setup {
+        vector create A -type complex
+        vector create B -type complex
+        A set {{2 3} {-1 2} {0.5 -0.75}}
+        B set {{1 0.5} {-0.5 1} {2.25 -0.25}}
+    } -body {
+        set actual [vector expr {A ^ B}]
+        set expected [vector expr {exp(B * log(A))}]
+        foreach a $actual e $expected {
+            lassign $a ar ai
+            lassign $e er ei
+            if {abs($ar - $er) > 1.0e-12 || abs($ai - $ei) > 1.0e-12} {
+                return 0
+            }
+        }
+        return 1
+    } -cleanup {
+        catch {vector destroy A}
+        catch {vector destroy B}
+    } -result 1
+
+    test RBC.vector.expr.A.9.6 {
+        complex scalar base real vector exponent
+    } -setup {
+        vector create R
+        R set {0 1 2 3}
+    } -body {
+        vector expr {{2 1} ^ R}
+    } -cleanup {
+        catch {vector destroy R}
+    } -result {{1.0 0.0} {2.0 1.0} {3.0 4.0} {2.0 11.0}}
+
+    test RBC.vector.expr.A.9.7 {
+        complex zero exponentiation
+    } -body {
+        list [vector expr {{0 0} ^ {0 0}}] [vector expr {{0 0} ^ 2.5}]
+    } -result {{{1.0 0.0}} {{0.0 0.0}}}
+
+    test RBC.vector.expr.A.9.8 {
+        complex zero negative exponent
+    } -body {
+        set code [catch {vector expr {{0 0} ^ -1}} message]
+        list $code $message
+    } -result {1 {divide by zero}}
+
+    test RBC.vector.expr.A.9.9 {
+        zero to complex exponent
+    } -body {
+        set code [catch {vector expr {{0 0} ^ {1 1}}} message]
+        list $code $message
+    } -result {1 {zero cannot be raised to a complex power}}
+
+    test RBC.vector.expr.A.9.10 {
+        real and complex exponent preserve type semantics
+    } -body {
+        set realCode [catch {vector expr {-1 ^ 0.5}}]
+        set complexValue [vector expr {{-1 0} ^ 0.5}]
+        lassign [lindex $complexValue 0] real imag
+        list $realCode [expr {abs($real) < 1.0e-12}] [expr {abs($imag - 1.0) < 1.0e-12}]
+    } -result {1 1 1}
+
 	cleanupTests
 }
