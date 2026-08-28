@@ -140,6 +140,16 @@ static MathFunction mathFunctions[] = {
     },
 };
 
+static int CheckExpressionVectorType(Tcl_Interp *interp, VectorObject *vPtr) {
+    if (vPtr->type != RBC_VECTOR_REAL) {
+        Tcl_SetObjResult(
+            interp, Tcl_ObjPrintf("vector \"%s\" is complex; vector expressions do not support complex vectors yet",
+                                  vPtr->name));
+        return TCL_ERROR;
+    }
+    return TCL_OK;
+}
+
 static int GetDoubleArrayByteCount(Tcl_Interp *interp, Tcl_Size count, size_t *byteCountPtr) {
     if (count < 0) {
         Tcl_SetObjResult(interp, Tcl_NewStringObj("array size cannot be negative", -1));
@@ -1470,7 +1480,9 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
          * 1st operand is a scalar.
          */
         scalar = vPtr->data.real[0];
-        Rbc_VectorDuplicate(vPtr, v2Ptr);
+        if (Rbc_VectorDuplicate(vPtr, v2Ptr) != TCL_OK) {
+            return TCL_ERROR;
+        }
         opnd = vPtr->data.real;
         switch (operator) {
         case MULT:
@@ -2036,7 +2048,12 @@ static int NextToken(Tcl_Interp *interp, ParseInfo *parsePtr, Value *valuePtr) {
             if (vPtr == NULL) {
                 return TCL_ERROR;
             }
-            Rbc_VectorDuplicate(valuePtr->vPtr, vPtr);
+            if (CheckExpressionVectorType(interp, vPtr) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            if (Rbc_VectorDuplicate(valuePtr->vPtr, vPtr) != TCL_OK) {
+                return TCL_ERROR;
+            }
             parsePtr->nextPtr = (char *)vectorEndPtr;
         }
     }
@@ -2126,6 +2143,9 @@ static int ParseString(Tcl_Interp *interp, const char *string, Value *valuePtr) 
         VectorObject *vPtr;
         vPtr = Rbc_VectorParseElement(interp, valuePtr->vPtr->dataPtr, string, &vectorEndPtr, NS_SEARCH_BOTH);
         if (vPtr == NULL) {
+            return TCL_ERROR;
+        }
+        if (CheckExpressionVectorType(interp, vPtr) != TCL_OK) {
             return TCL_ERROR;
         }
         if (*vectorEndPtr != '\0') {

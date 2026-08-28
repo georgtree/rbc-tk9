@@ -99,6 +99,49 @@ namespace import tcltest::*
         catch {vector destroy foo}
         catch {vector destroy bar}
     } -result {{1.0 2.0 3.0 4.0 1.0 3.0} {2.0 4.0}}
+
+    test RBC.vector.split.A.2.1 {
+        vector split: complex destinations
+    } -setup {
+        vector create foo -type complex
+        foo set {{1 10} {2 20} {3 30} {4 40} {5 50} {6 60}}
+    } -body {
+        foo split goo moo too
+        list [goo type] [goo range 0 end] [moo type] [moo range 0 end] [too type] [too range 0 end]
+    } -cleanup {
+        catch {vector destroy foo}
+        catch {vector destroy goo}
+        catch {vector destroy moo}
+        catch {vector destroy too}
+    } -result {complex {{1.0 10.0} {4.0 40.0}} complex {{2.0 20.0} {5.0 50.0}} complex {{3.0 30.0} {6.0 60.0}}}
+
+    test RBC.vector.split.A.2.2 {
+        vector split: complex source is also destination
+    } -setup {
+        vector create foo -type complex
+        foo set {{1 10} {2 20} {3 30} {4 40}}
+    } -body {
+        foo split foo bar
+        list [foo range 0 end] [bar range 0 end]
+    } -cleanup {
+        catch {vector destroy foo}
+        catch {vector destroy bar}
+    } -result {{{1.0 10.0} {2.0 20.0} {3.0 30.0} {4.0 40.0} {1.0 10.0} {3.0 30.0}} {{2.0 20.0} {4.0 40.0}}}
+
+    test RBC.vector.split.A.2.3 {
+        vector split: different destination type rejected
+    } -setup {
+        vector create foo -type complex
+        vector create bar
+        foo set {{1 10} {2 20}}
+        bar set {9}
+    } -body {
+        set code [catch {foo split bar}]
+        list $code [bar type] [bar range 0 end]
+    } -cleanup {
+        catch {vector destroy foo}
+        catch {vector destroy bar}
+    } -result {1 real 9.0}
 	
 	cleanupTests
 #}

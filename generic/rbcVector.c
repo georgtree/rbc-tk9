@@ -491,12 +491,11 @@ static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Siz
          * actually create the vector:
          */
         if (effectiveType == RBC_VECTOR_COMPLEX) {
-            if ((varName != NULL) && (varName[0] != '\0')) {
-                Tcl_SetObjResult(interp,
-                                 Tcl_NewStringObj("Tcl array mapping is not supported for complex vectors yet", -1));
-                goto error;
-            }
-            createVarName = NULL;
+            /*
+             * Complex vectors don't receive an automatic Tcl array mapping,
+             * but an explicitly requested mapping is allowed.
+             */
+            createVarName = (varName == NULL) ? NULL : varName;
         } else {
             createVarName = (varName == NULL) ? vecName : varName;
         }
@@ -815,10 +814,6 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
     nsPtr = NULL;
     vPtr = NULL;
 
-    if ((type == RBC_VECTOR_COMPLEX) && (varName != NULL) && (varName[0] != '\0')) {
-        Tcl_SetObjResult(interp, Tcl_NewStringObj("Tcl array mapping is not supported for complex vectors yet", -1));
-        return NULL;
-    }
     /* process the vector name: */
     vecName = BuildQualifiedName(interp, vecName, &qualVecNamePtr);
     if (ParseQualifiedName(interp, vecName, &nsPtr, &vecNameTail) != TCL_OK) {
@@ -2114,40 +2109,61 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
     last = vPtr->last;
     varFlags = TCL_LEAVE_ERR_MSG | (flags & (TCL_GLOBAL_ONLY | TCL_NAMESPACE_ONLY));
     if (flags & TCL_TRACE_WRITES) {
-        double value;
         Tcl_Obj *objPtr;
+        double realValue;
+        Rbc_Complex complexValue;
+        int result;
 
-        if (first == SPECIAL_INDEX || last == SPECIAL_INDEX) {
-            /* Tried to set "min" or "max" */
+        if ((first == SPECIAL_INDEX) || (last == SPECIAL_INDEX)) {
             return VectorTraceError(Tcl_NewStringObj("read-only index", -1));
         }
         objPtr = Tcl_GetVar2Ex(interp, part1, part2, varFlags);
         if (objPtr == NULL) {
             goto error;
         }
-        if (Rbc_GetDouble(interp, objPtr, &value) != TCL_OK) {
-            if ((last == first) && (first >= 0)) {
-                /* Single numeric index. Reset the array element to
-                 * its old value on errors */
-                Tcl_SetVar2Ex(interp, part1, part2, objPtr, varFlags);
-            }
+        switch (vPtr->type) {
+        case RBC_VECTOR_REAL:
+            result = Rbc_GetDouble(interp, objPtr, &realValue);
+            break;
+        case RBC_VECTOR_COMPLEX:
+            result = Rbc_GetComplex(interp, objPtr, &complexValue);
+            break;
+        default:
+            Tcl_Panic("bad vector type %d", (int)vPtr->type);
+            result = TCL_ERROR;
+            break;
+        }
+        if (result != TCL_OK) {
             goto error;
         }
-        if (first == vPtr->length || last == vPtr->length) {
+        if ((first == vPtr->length) || (last == vPtr->length)) {
             if (vPtr->length == TCL_SIZE_MAX) {
-                return VectorTraceError(Tcl_NewStringObj("vector is too large", -1));
+                return VectorTraceError(Tcl_NewStringObj("vector is too large to append", -1));
             }
             if (Rbc_VectorChangeLength(vPtr, vPtr->length + 1) != TCL_OK) {
                 return VectorTraceError(Tcl_NewStringObj("error resizing vector", -1));
             }
         }
-        /* Set possibly an entire range of values */
-        Rbc_ReplicateValue(vPtr, first, last, value);
+        switch (vPtr->type) {
+        case RBC_VECTOR_REAL:
+            Rbc_ReplicateValue(vPtr, first, last, realValue);
+            break;
+        case RBC_VECTOR_COMPLEX: {
+            Tcl_Size i;
+
+            for (i = first; i <= last; i++) {
+                vPtr->data.complex[i] = complexValue;
+            }
+            vPtr->notifyFlags |= UPDATE_RANGE;
+            break;
+        }
+        default:
+            Tcl_Panic("bad vector type %d", (int)vPtr->type);
+        }
     } else if (flags & TCL_TRACE_READS) {
-        double value;
         Tcl_Obj *objPtr;
 
-        if (first == vPtr->length || last == vPtr->length) {
+        if ((first == vPtr->length) || (last == vPtr->length)) {
             return VectorTraceError(Tcl_NewStringObj("write-only index", -1));
         }
         if (vPtr->length == 0) {
@@ -2158,12 +2174,23 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
         }
         if (first == last) {
             if (first >= 0) {
-                value = vPtr->data.real[first];
+                objPtr = Rbc_NewVectorValueObj(vPtr, first);
             } else {
-                vPtr->first = 0, vPtr->last = vPtr->length - 1;
+                double value;
+
+                /*
+                 * min/max/mean/sum/prod still use real-only
+                 * Rbc_VectorIndexProc callbacks.
+                 */
+                if (vPtr->type != RBC_VECTOR_REAL) {
+                    return VectorTraceError(
+                        Tcl_NewStringObj("special vector indices are not supported for complex vectors", -1));
+                }
+                vPtr->first = 0;
+                vPtr->last = vPtr->length - 1;
                 value = (*indexProc)((Rbc_Vector *)vPtr);
+                objPtr = Tcl_NewDoubleObj(value);
             }
-            objPtr = Tcl_NewDoubleObj(value);
             if (Tcl_SetVar2Ex(interp, part1, part2, objPtr, varFlags) == NULL) {
                 Tcl_DecrRefCount(objPtr);
                 goto error;
@@ -2187,7 +2214,16 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
          * reflected when the array variable is read.
          */
         for (i = first, j = last + 1; j < vPtr->length; i++, j++) {
-            vPtr->data.real[i] = vPtr->data.real[j];
+            switch (vPtr->type) {
+            case RBC_VECTOR_REAL:
+                vPtr->data.real[i] = vPtr->data.real[j];
+                break;
+            case RBC_VECTOR_COMPLEX:
+                vPtr->data.complex[i] = vPtr->data.complex[j];
+                break;
+            default:
+                Tcl_Panic("bad vector type %d", (int)vPtr->type);
+            }
         }
         vPtr->length -= ((last - first) + 1);
         if (vPtr->flush) {

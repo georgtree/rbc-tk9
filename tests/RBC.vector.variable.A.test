@@ -51,6 +51,103 @@ namespace import tcltest::*
 	} -cleanup {
 	    vector destroy Vector1
 	} -result {0}
+
+    test RBC.vector.variable.A.2.1 {
+        vector variable: complex reads
+    } -setup {
+        vector create Vector1 -type complex
+        Vector1 set {{1 2} {3 -4}}
+        Vector1 variable VarName
+    } -body {
+        list [array exists VarName] $VarName(0) $VarName(1)
+    } -cleanup {
+        catch {vector destroy Vector1}
+        catch {unset VarName}
+    } -result {1 {1.0 2.0} {3.0 -4.0}}
+
+    test RBC.vector.variable.A.2.2 {
+        vector variable: complex write
+    } -setup {
+        vector create Vector1 -type complex
+        Vector1 set {{1 2} {3 4}}
+        Vector1 variable VarName
+    } -body {
+        set VarName(1) {7 -8}
+        Vector1 range 0 end
+    } -cleanup {
+        catch {vector destroy Vector1}
+        catch {unset VarName}
+    } -result {{1.0 2.0} {7.0 -8.0}}
+
+    test RBC.vector.variable.A.2.3 {
+        vector variable: scalar write promoted to complex
+    } -setup {
+        vector create Vector1 -type complex
+        Vector1 set {{1 2} {3 4}}
+        Vector1 variable VarName
+    } -body {
+        set VarName(1) 9
+        Vector1 index 1
+    } -cleanup {
+        catch {vector destroy Vector1}
+        catch {unset VarName}
+    } -result {{9.0 0.0}}
+
+    test RBC.vector.variable.A.2.4 {
+        vector variable: unset complex element
+    } -setup {
+        vector create Vector1 -type complex
+        Vector1 set {{1 10} {2 20} {3 30} {4 40}}
+        Vector1 variable VarName
+    } -body {
+        # Materialize the lazy array element so that its unset trace fires.
+        set VarName(1)
+        unset VarName(1)
+        Vector1 range 0 end
+    } -cleanup {
+        catch {vector destroy Vector1}
+        catch {unset VarName}
+    } -result {{1.0 10.0} {3.0 30.0} {4.0 40.0}}
+
+    test RBC.vector.variable.A.2.5 {
+        vector variable: complex range read
+    } -setup {
+        vector create Vector1 -type complex
+        Vector1 set {{1 10} {2 20} {3 30}}
+        Vector1 variable VarName
+    } -body {
+        set VarName(0:1)
+    } -cleanup {
+        catch {vector destroy Vector1}
+        catch {unset VarName}
+    } -result {{1.0 10.0} {2.0 20.0}}
+
+    test RBC.vector.variable.A.2.6 {
+        vector variable: append complex element
+    } -setup {
+        vector create Vector1 -type complex
+        Vector1 set {{1 10} {2 20}}
+        Vector1 variable VarName
+    } -body {
+        set VarName(++end) {3 30}
+        Vector1 range 0 end
+    } -cleanup {
+        catch {vector destroy Vector1}
+        catch {unset VarName}
+    } -result {{1.0 10.0} {2.0 20.0} {3.0 30.0}}
+
+    test RBC.vector.variable.A.2.7 {
+        vector variable: unmap complex variable
+    } -setup {
+        vector create Vector1 -type complex
+        Vector1 variable VarName
+    } -body {
+        Vector1 variable ""
+        list [array exists VarName] [Vector1 variable]
+    } -cleanup {
+        catch {vector destroy Vector1}
+        catch {unset VarName}
+    } -result {0 {}}
 	
 	cleanupTests
 # }

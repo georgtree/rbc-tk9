@@ -359,14 +359,15 @@ namespace eval vector.create {
     # without leaving a partially created vector, command, or variable.
     # ------------------------------------------------------------------------------------
     test RBC.vector.create.A.5.6 {
-        vector create: complex vector variable mapping rejected
+        vector create: explicit complex variable mapping
     } -body {
-        set code [catch { vector create Vector1 -type complex -variable Foo } message]
-        list $code $message [vector names ::vector.create::Vector1] [info commands Vector1] [info exists Foo]
+        vector create Vector1 -type complex -variable Foo
+        Vector1 set {{1 2} {3 -4}}
+        list [Vector1 type] [array exists Foo] $Foo(0) $Foo(1)
     } -cleanup {
         catch {vector destroy Vector1}
         catch {unset Foo}
-    } -result {1 {Tcl array mapping is not supported for complex vectors yet} {} {} 0}
+    } -result {complex 1 {1.0 2.0} {3.0 -4.0}}
 
     # ------------------------------------------------------------------------------------
     # Purpose: Ensure that an existing real vector cannot be changed to complex.

@@ -978,5 +978,17 @@ namespace eval vector.expr {
     } -result {1 {domain error: argument not in valid range} {ARITH DOMAIN {domain error: argument not in valid\
                                                                                     range}}}
 
+    test RBC.vector.expr.A.complex.1 {
+        vector expr: complex vectors rejected until expression support exists
+    } -setup {
+        vector create Complex1 -type complex
+        Complex1 set {{1 2} {3 4}}
+    } -body {
+        set code [catch { vector expr {Complex1} } message]
+        list $code [string match {*complex*expressions do not support complex vectors yet} $message]
+    } -cleanup {
+        catch {vector destroy Complex1}
+    } -result {1 1}
+
 	cleanupTests
 }

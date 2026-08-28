@@ -128,8 +128,9 @@ static const VectorInstOpSpec vectorInstOpCmd[] = {{{"*", 3, 3, "list"}, ArithOp
                                                    {{NULL, 0, 0, NULL}, NULL}};
 
 static int ComplexOpSupported(RbcVectorCmdOp *proc) {
-    return ((proc == AppendOp) || (proc == ClearOp) || (proc == DeleteOp) || (proc == IndexOp) || (proc == LengthOp) ||
-            (proc == OffsetOp) || (proc == RangeOp) || (proc == SetOp) || (proc == TypeOp));
+    return ((proc == AppendOp) || (proc == ClearOp) || (proc == DeleteOp) || (proc == DupOp) || (proc == IndexOp) ||
+            (proc == LengthOp) || (proc == MergeOp) || (proc == OffsetOp) || (proc == RangeOp) || (proc == SetOp) ||
+            (proc == SplitOp) || (proc == TypeOp) || (proc == VariableOp));
 }
 
 /*
@@ -903,7 +904,8 @@ static int DupOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
 
     for (i = 2; i < objc; i++) {
         string = Tcl_GetString(objv[i]);
-        v2Ptr = Rbc_VectorCreate(vPtr->dataPtr, string, string, string, RBC_VECTOR_REAL, &isNew);
+        v2Ptr = Rbc_VectorCreate(vPtr->dataPtr, string, string, (vPtr->type == RBC_VECTOR_REAL) ? string : NULL,
+                                 vPtr->type, &isNew);
         if (v2Ptr == NULL) {
             return TCL_ERROR;
         }
@@ -1124,71 +1126,143 @@ static int LengthOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
  * -----------------------------------------------------------------------
  */
 static int MergeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    VectorObject *v2Ptr;
     VectorObject **vecArr;
-    VectorObject **vPtrPtr;
+    Tcl_Size *firstArr;
+    VectorData valueData;
+    Tcl_Size nVectors;
     Tcl_Size refSize;
-    Tcl_Size length;
     Tcl_Size nElem;
     Tcl_Size i;
+    Tcl_Size j;
     Tcl_Size valueIndex;
-    double *valuePtr;
-    double *valueArr;
+    Tcl_Size outIndex;
+    Tcl_Size length;
     size_t vectorBytes;
+    size_t firstBytes;
     size_t valueBytes;
+    size_t elementSize;
+    int result;
 
-    if (GetArrayByteCount(interp, objc, sizeof(*vecArr), &vectorBytes) != TCL_OK) {
-        return TCL_ERROR;
+    vecArr = NULL;
+    firstArr = NULL;
+    valueData.raw = NULL;
+    result = TCL_ERROR;
+
+    nVectors = objc - 2;
+
+    /*
+     * "merge" requires at least one source vector according to the
+     * operation table, so nVectors should always be positive here.
+     */
+    if (GetArrayByteCount(interp, nVectors, sizeof(*vecArr), &vectorBytes) != TCL_OK) {
+        goto cleanup;
+    }
+    if (GetArrayByteCount(interp, nVectors, sizeof(*firstArr), &firstBytes) != TCL_OK) {
+        goto cleanup;
     }
     vecArr = ckalloc(vectorBytes);
-    vPtrPtr = vecArr;
+    firstArr = ckalloc(firstBytes);
     refSize = -1;
-    nElem = 0;
-    for (i = 2; i < objc; i++) {
-        if (Rbc_VectorLookupName(vPtr->dataPtr, Tcl_GetString(objv[i]), &v2Ptr) != TCL_OK) {
-            ckfree(vecArr);
-            return TCL_ERROR;
+    /*
+     * Resolve and validate every source before modifying the
+     * destination.
+     */
+    for (i = 0; i < nVectors; i++) {
+        VectorObject *srcPtr;
+
+        if (Rbc_VectorLookupName(vPtr->dataPtr, Tcl_GetString(objv[i + 2]), &srcPtr) != TCL_OK) {
+            goto cleanup;
         }
-        length = v2Ptr->last - v2Ptr->first + 1;
+        if (srcPtr->type != vPtr->type) {
+            Tcl_SetObjResult(interp,
+                             Tcl_ObjPrintf("vectors \"%s\" and \"%s\" have different types", vPtr->name, srcPtr->name));
+            goto cleanup;
+        }
+        length = srcPtr->last - srcPtr->first + 1;
         if (refSize < 0) {
             refSize = length;
-
         } else if (length != refSize) {
-            Rbc_AppendResultStrings(interp, "vectors \"", vPtr->name, "\" and \"", v2Ptr->name, "\" differ in length",
-                             (char *)NULL);
-            ckfree(vecArr);
-            return TCL_ERROR;
+            Rbc_AppendResultStrings(interp, "vectors \"", vPtr->name, "\" and \"", srcPtr->name, "\" differ in length",
+                                    (char *)NULL);
+            goto cleanup;
         }
-        *vPtrPtr++ = v2Ptr;
-        if (AddVectorSizes(interp, nElem, refSize, &nElem) != TCL_OK) {
-            ckfree(vecArr);
-            return TCL_ERROR;
-        }
+        vecArr[i] = srcPtr;
+        /*
+         * Preserve the selected source range. This matters if the
+         * destination is itself one of the source vectors.
+         */
+        firstArr[i] = srcPtr->first;
     }
-    *vPtrPtr = NULL;
-    if (GetArrayByteCount(interp, nElem, sizeof(*valueArr), &valueBytes) != TCL_OK) {
-        ckfree(vecArr);
-        return TCL_ERROR;
+    if (MultiplyVectorSizes(interp, refSize, nVectors, &nElem) != TCL_OK) {
+        goto cleanup;
     }
-    if (nElem > 0) {
-        valueArr = ckalloc(valueBytes);
-    } else {
-        valueArr = NULL;
+    switch (vPtr->type) {
+    case RBC_VECTOR_REAL:
+        elementSize = sizeof(double);
+        break;
+    case RBC_VECTOR_COMPLEX:
+        elementSize = sizeof(Rbc_Complex);
+        break;
+    default:
+        Tcl_Panic("bad vector type %d", (int)vPtr->type);
+        goto cleanup;
     }
-    valuePtr = valueArr;
+    if (GetArrayByteCount(interp, nElem, elementSize, &valueBytes) != TCL_OK) {
+        goto cleanup;
+    }
+    if (valueBytes > 0) {
+        valueData.raw = ckalloc(valueBytes);
+    }
+    /*
+     * Build the complete result before changing vPtr. This makes
+     * "v merge v other" safe.
+     */
+    outIndex = 0;
     for (valueIndex = 0; valueIndex < refSize; valueIndex++) {
-        for (vPtrPtr = vecArr; *vPtrPtr != NULL; vPtrPtr++) {
-            *valuePtr++ = (*vPtrPtr)->data.real[valueIndex + (*vPtrPtr)->first];
+        for (j = 0; j < nVectors; j++) {
+            Tcl_Size sourceIndex;
+
+            sourceIndex = firstArr[j] + valueIndex;
+            switch (vPtr->type) {
+            case RBC_VECTOR_REAL:
+                valueData.real[outIndex] = vecArr[j]->data.real[sourceIndex];
+                break;
+            case RBC_VECTOR_COMPLEX:
+                valueData.complex[outIndex] = vecArr[j]->data.complex[sourceIndex];
+                break;
+            default:
+                Tcl_Panic("bad vector type %d", (int)vPtr->type);
+            }
+            outIndex++;
         }
     }
-    ckfree(vecArr);
-    if (Rbc_VectorReset(vPtr, valueArr, nElem, nElem, TCL_DYNAMIC) != TCL_OK) {
-        if (valueArr != NULL) {
-            ckfree(valueArr);
-        }
-        return TCL_ERROR;
+    /*
+     * Only now modify the destination.
+     */
+    if (Rbc_VectorChangeLength(vPtr, nElem) != TCL_OK) {
+        goto cleanup;
     }
-    return TCL_OK;
+    if (valueBytes > 0) {
+        memcpy(vPtr->data.raw, valueData.raw, valueBytes);
+    }
+    vPtr->notifyFlags |= UPDATE_RANGE;
+    if (vPtr->flush) {
+        Rbc_VectorFlushCache(vPtr);
+    }
+    Rbc_VectorUpdateClients(vPtr);
+    result = TCL_OK;
+
+cleanup:
+    if (valueData.raw != NULL) {
+        ckfree(valueData.raw);
+    }
+    if (firstArr != NULL) {
+        ckfree(firstArr);
+    }
+    if (vecArr != NULL) {
+        ckfree(vecArr);
+    }
+    return result;
 }
 
 /*
@@ -1953,7 +2027,8 @@ static int SplitOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
     tmpPtr = NULL;
     for (argIndex = 0; argIndex < nVectorArgs; argIndex++) {
         string = Tcl_GetString(objv[argIndex + 2]);
-        v2Ptr = Rbc_VectorCreate(vPtr->dataPtr, string, string, string, RBC_VECTOR_REAL, &isNew);
+        v2Ptr = Rbc_VectorCreate(vPtr->dataPtr, string, string, (vPtr->type == RBC_VECTOR_REAL) ? string : NULL,
+                                 vPtr->type, &isNew);
         if (v2Ptr == NULL) {
             goto error;
         }
@@ -1967,6 +2042,7 @@ static int SplitOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
                 Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate temporary vector", -1));
                 goto error;
             }
+            tmpPtr->type = vPtr->type;
             if (Rbc_VectorDuplicate(tmpPtr, vPtr) != TCL_OK) {
                 goto error;
             }
@@ -1982,7 +2058,16 @@ static int SplitOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
         sourceIndex = argIndex;
         destIndex = oldSize;
         while (sourceIndex < sourcePtr->length) {
-            v2Ptr->data.real[destIndex] = sourcePtr->data.real[sourceIndex];
+            switch (vPtr->type) {
+            case RBC_VECTOR_REAL:
+                v2Ptr->data.real[destIndex] = sourcePtr->data.real[sourceIndex];
+                break;
+            case RBC_VECTOR_COMPLEX:
+                v2Ptr->data.complex[destIndex] = sourcePtr->data.complex[sourceIndex];
+                break;
+            default:
+                Tcl_Panic("bad vector type %d", (int)vPtr->type);
+            }
             sourceIndex += nVectors;
             destIndex++;
         }
