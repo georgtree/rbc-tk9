@@ -102,6 +102,103 @@ namespace import tcltest::*
     } -cleanup {
         vector destroy foo
     } -result {1.0 2.0 3.0 4.0 2.0 3.0}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that complex values may be appended to a complex vector.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.append.A.2.1 {
+        vector append: complex values
+    } -setup {
+        vector create foo -type complex
+        foo set {{1 2} {3 4}}
+    } -body {
+        foo append {{5 -6} 7}
+        foo range 0 end
+    } -cleanup {
+        catch {vector destroy foo}
+    } -result {{1.0 2.0} {3.0 4.0} {5.0 -6.0} {7.0 0.0}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that scalar list elements are promoted to complex values with zero
+    # imaginary component.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.append.A.2.2 {
+        vector append: promote real values to complex
+    } -setup {
+        vector create foo -type complex
+        foo set {{1 2}}
+    } -body {
+        foo append {3 4}
+        foo range 0 end
+    } -cleanup {
+        catch {vector destroy foo}
+    } -result {{1.0 2.0} {3.0 0.0} {4.0 0.0}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that one complex vector may be appended to another complex vector.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.append.A.2.3 {
+        vector append: another complex vector
+    } -setup {
+        vector create foo -type complex
+        vector create bar -type complex
+        foo set {{1 2} {3 4}}
+        bar set {{5 6} {7 8}}
+    } -body {
+        foo append bar
+        foo range 0 end
+    } -cleanup {
+        catch {vector destroy foo}
+        catch {vector destroy bar}
+    } -result {{1.0 2.0} {3.0 4.0} {5.0 6.0} {7.0 8.0}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that a selected range of a complex vector can be appended to itself.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.append.A.2.4 {
+        vector append: selected complex range of itself
+    } -setup {
+        vector create foo -type complex
+        foo set {{1 2} {3 4} {5 6} {7 8}}
+    } -body {
+        foo append foo(1:2)
+        foo range 0 end
+    } -cleanup {
+        catch {vector destroy foo}
+    } -result {{1.0 2.0} {3.0 4.0} {5.0 6.0} {7.0 8.0} {3.0 4.0} {5.0 6.0}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that vectors with different numeric types cannot be appended.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.append.A.2.5 {
+        vector append: different vector types rejected
+    } -setup {
+        vector create foo -type complex
+        vector create bar
+        foo set {{1 2} {3 4}}
+        bar set {5 6}
+    } -body {
+        set code [catch {foo append bar} message]
+        list $code $message [foo range 0 end]
+    } -cleanup {
+        catch {vector destroy foo}
+        catch {vector destroy bar}
+    } -result {1 {can't append vectors of different types} {{1.0 2.0} {3.0 4.0}}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that an invalid complex value does not extend the vector.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.append.A.2.6 {
+        vector append: invalid complex value
+    } -setup {
+        vector create foo -type complex
+        foo set {{1 2} {3 4}}
+    } -body {
+        set code [catch { foo append {{5 6} {7 8 9}} } message]
+        list $code $message [foo length] [foo range 0 end]
+    } -cleanup {
+        catch {vector destroy foo}
+    } -result {1 {expected complex value as a real number or {real imag}} 2 {{1.0 2.0} {3.0 4.0}}}
 	
 	cleanupTests
 #}

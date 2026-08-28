@@ -128,8 +128,8 @@ static const VectorInstOpSpec vectorInstOpCmd[] = {{{"*", 3, 3, "list"}, ArithOp
                                                    {{NULL, 0, 0, NULL}, NULL}};
 
 static int ComplexOpSupported(RbcVectorCmdOp *proc) {
-    return ((proc == ClearOp) || (proc == IndexOp) || (proc == LengthOp) || (proc == OffsetOp) || (proc == RangeOp) ||
-            (proc == SetOp) || (proc == TypeOp));
+    return ((proc == AppendOp) || (proc == ClearOp) || (proc == IndexOp) || (proc == LengthOp) || (proc == OffsetOp) ||
+            (proc == RangeOp) || (proc == SetOp) || (proc == TypeOp));
 }
 
 /*
@@ -2052,10 +2052,18 @@ static int AppendVector(VectorObject *destPtr, VectorObject *srcPtr) {
     Tcl_Size oldSize;
     Tcl_Size newSize;
     size_t byteCount;
+    size_t elementSize;
 
     /*
+     * Do not reinterpret storage when appending one vector to another.
+     */
+    if (destPtr->type != srcPtr->type) {
+        Tcl_SetObjResult(destPtr->interp, Tcl_NewStringObj("can't append vectors of different types", -1));
+        return TCL_ERROR;
+    }
+    /*
      * Preserve the selected source range before resizing the
-     * destination.  destPtr and srcPtr may refer to the same vector,
+     * destination. destPtr and srcPtr may refer to the same vector,
      * and resizing resets its first/last selection.
      */
     sourceFirst = srcPtr->first;
@@ -2064,14 +2072,34 @@ static int AppendVector(VectorObject *destPtr, VectorObject *srcPtr) {
     if (AddVectorSizes(destPtr->interp, oldSize, sourceLength, &newSize) != TCL_OK) {
         return TCL_ERROR;
     }
-    if (GetArrayByteCount(destPtr->interp, sourceLength, sizeof(double), &byteCount) != TCL_OK) {
+    switch (destPtr->type) {
+    case RBC_VECTOR_REAL:
+        elementSize = sizeof(double);
+        break;
+    case RBC_VECTOR_COMPLEX:
+        elementSize = sizeof(Rbc_Complex);
+        break;
+    default:
+        Tcl_Panic("bad vector type %d", (int)destPtr->type);
+        return TCL_ERROR;
+    }
+    if (GetArrayByteCount(destPtr->interp, sourceLength, elementSize, &byteCount) != TCL_OK) {
         return TCL_ERROR;
     }
     if (Rbc_VectorChangeLength(destPtr, newSize) != TCL_OK) {
         return TCL_ERROR;
     }
     if (byteCount > 0) {
-        memmove(destPtr->data.real + oldSize, srcPtr->data.real + sourceFirst, byteCount);
+        switch (destPtr->type) {
+        case RBC_VECTOR_REAL:
+            memmove(destPtr->data.real + oldSize, srcPtr->data.real + sourceFirst, byteCount);
+            break;
+        case RBC_VECTOR_COMPLEX:
+            memmove(destPtr->data.complex + oldSize, srcPtr->data.complex + sourceFirst, byteCount);
+            break;
+        default:
+            Tcl_Panic("bad vector type %d", (int)destPtr->type);
+        }
     }
     destPtr->notifyFlags |= UPDATE_RANGE;
     return TCL_OK;
@@ -2101,7 +2129,6 @@ static int AppendList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]) 
     Tcl_Size oldSize;
     Tcl_Size newSize;
     Tcl_Size i;
-    double value;
 
     oldSize = vPtr->length;
     if (AddVectorSizes(vPtr->interp, oldSize, objc, &newSize) != TCL_OK) {
@@ -2110,12 +2137,26 @@ static int AppendList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]) 
     if (Rbc_VectorChangeLength(vPtr, newSize) != TCL_OK) {
         return TCL_ERROR;
     }
-    for (i = 0; i < objc; i++) {
-        if (Rbc_GetDouble(vPtr->interp, objv[i], &value) != TCL_OK) {
-            Rbc_VectorChangeLength(vPtr, oldSize);
-            return TCL_ERROR;
+    if (vPtr->type == RBC_VECTOR_COMPLEX) {
+        for (i = 0; i < objc; i++) {
+            Rbc_Complex value;
+
+            if (Rbc_GetComplex(vPtr->interp, objv[i], &value) != TCL_OK) {
+                Rbc_VectorChangeLength(vPtr, oldSize);
+                return TCL_ERROR;
+            }
+            vPtr->data.complex[oldSize + i] = value;
         }
-        vPtr->data.real[oldSize + i] = value;
+    } else {
+        for (i = 0; i < objc; i++) {
+            double value;
+
+            if (Rbc_GetDouble(vPtr->interp, objv[i], &value) != TCL_OK) {
+                Rbc_VectorChangeLength(vPtr, oldSize);
+                return TCL_ERROR;
+            }
+            vPtr->data.real[oldSize + i] = value;
+        }
     }
     vPtr->notifyFlags |= UPDATE_RANGE;
     return TCL_OK;
