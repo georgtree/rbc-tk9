@@ -84,6 +84,14 @@ static double ComplexImag(Rbc_Complex value);
 static Rbc_Complex ComplexConj(Rbc_Complex value);
 static int ComplexComponentFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr);
 static int ComplexRealFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr);
+static Rbc_Complex ComplexSqrt(Rbc_Complex value);
+static Rbc_Complex ComplexExp(Rbc_Complex value);
+static Rbc_Complex ComplexLog(Rbc_Complex value);
+static Rbc_Complex ComplexLog10(Rbc_Complex value);
+static Rbc_Complex ComplexSin(Rbc_Complex value);
+static Rbc_Complex ComplexCos(Rbc_Complex value);
+static Rbc_Complex ComplexSinh(Rbc_Complex value);
+static Rbc_Complex ComplexCosh(Rbc_Complex value);
 static double Random(double value);
 static double Mean(Rbc_Vector *vecPtr);
 static double Sum(Rbc_Vector *vecPtr);
@@ -123,6 +131,14 @@ static ComplexRealFunction argFunction = {Arg, ComplexArg};
 static ComplexRealFunction realFunction = {Identity, ComplexReal};
 static ComplexRealFunction imagFunction = {Zero, ComplexImag};
 static ComplexComponentFunction conjFunction = {Identity, ComplexConj};
+static ComplexComponentFunction sqrtFunction = {sqrt, ComplexSqrt};
+static ComplexComponentFunction expFunction = {exp, ComplexExp};
+static ComplexComponentFunction logFunction = {log, ComplexLog};
+static ComplexComponentFunction log10Function = {log10, ComplexLog10};
+static ComplexComponentFunction sinFunction = {sin, ComplexSin};
+static ComplexComponentFunction cosFunction = {cos, ComplexCos};
+static ComplexComponentFunction sinhFunction = {sinh, ComplexSinh};
+static ComplexComponentFunction coshFunction = {cosh, ComplexCosh};
 
 static MathFunction mathFunctions[] = {
     {"abs", (GenericMathProc *)ComplexRealFunc, (ClientData)&absFunction},
@@ -135,14 +151,14 @@ static MathFunction mathFunctions[] = {
     {"atan", (GenericMathProc *)ComponentFunc, (ClientData)atan},
     {"adev", (GenericMathProc *)ScalarFunc, (ClientData)AvgDeviation},
     {"ceil", (GenericMathProc *)ComponentFunc, (ClientData)ceil},
-    {"cos", (GenericMathProc *)ComponentFunc, (ClientData)cos},
-    {"cosh", (GenericMathProc *)ComponentFunc, (ClientData)cosh},
-    {"exp", (GenericMathProc *)ComponentFunc, (ClientData)exp},
+    {"cos", (GenericMathProc *)ComplexComponentFunc, (ClientData)&cosFunction},
+    {"cosh", (GenericMathProc *)ComplexComponentFunc, (ClientData)&coshFunction},
+    {"exp", (GenericMathProc *)ComplexComponentFunc, (ClientData)&expFunction},
     {"floor", (GenericMathProc *)ComponentFunc, (ClientData)floor},
     {"kurtosis", (GenericMathProc *)ScalarFunc, (ClientData)Kurtosis},
     {"length", (GenericMathProc *)ScalarFunc, (ClientData)Length},
-    {"log", (GenericMathProc *)ComponentFunc, (ClientData)log},
-    {"log10", (GenericMathProc *)ComponentFunc, (ClientData)log10},
+    {"log", (GenericMathProc *)ComplexComponentFunc, (ClientData)&logFunction},
+    {"log10", (GenericMathProc *)ComplexComponentFunc, (ClientData)&log10Function},
     {"max", (GenericMathProc *)ScalarFunc, (ClientData)Rbc_VecMax},
     {"mean", (GenericMathProc *)ScalarFunc, (ClientData)Mean},
     {"median", (GenericMathProc *)ScalarFunc, (ClientData)Median},
@@ -155,11 +171,11 @@ static MathFunction mathFunctions[] = {
     {"random", (GenericMathProc *)ComponentFunc, (ClientData)Random},
     {"round", (GenericMathProc *)ComponentFunc, (ClientData)Round},
     {"sdev", (GenericMathProc *)ScalarFunc, (ClientData)StdDeviation},
-    {"sin", (GenericMathProc *)ComponentFunc, (ClientData)sin},
-    {"sinh", (GenericMathProc *)ComponentFunc, (ClientData)sinh},
+    {"sin", (GenericMathProc *)ComplexComponentFunc, (ClientData)&sinFunction},
+    {"sinh", (GenericMathProc *)ComplexComponentFunc, (ClientData)&sinhFunction},
     {"skew", (GenericMathProc *)ScalarFunc, (ClientData)Skew},
     {"sort", (GenericMathProc *)VectorFunc, (ClientData)Sort},
-    {"sqrt", (GenericMathProc *)ComponentFunc, (ClientData)sqrt},
+    {"sqrt", (GenericMathProc *)ComplexComponentFunc, (ClientData)&sqrtFunction},
     {"sum", (GenericMathProc *)ScalarFunc, (ClientData)Sum},
     {"tan", (GenericMathProc *)ComponentFunc, (ClientData)tan},
     {"tanh", (GenericMathProc *)ComponentFunc, (ClientData)tanh},
@@ -1250,6 +1266,133 @@ static double ComplexImag(Rbc_Complex value) { return value.imag; }
 static Rbc_Complex ComplexConj(Rbc_Complex value) {
     value.imag = -value.imag;
     return value;
+}
+
+static Rbc_Complex ComplexSqrt(Rbc_Complex value) {
+    Rbc_Complex result;
+    double halfMagnitude;
+    double t;
+
+    if (Rbc_ComplexIsZero(value)) {
+        return value;
+    }
+    /*
+     * Compute hypot(value.real, value.imag) / 2 without introducing
+     * an avoidable overflow for very large finite components.
+     */
+    if ((FABS(value.real) > DBL_MAX * 0.5) || (FABS(value.imag) > DBL_MAX * 0.5)) {
+        halfMagnitude = hypot(value.real * 0.5, value.imag * 0.5);
+    } else {
+        halfMagnitude = 0.5 * hypot(value.real, value.imag);
+    }
+    if (value.real >= 0.0) {
+        t = sqrt(halfMagnitude + 0.5 * value.real);
+        result.real = t;
+        result.imag = value.imag / (2.0 * t);
+    } else {
+        t = sqrt(halfMagnitude - 0.5 * value.real);
+        result.real = FABS(value.imag) / (2.0 * t);
+        result.imag = (value.imag < 0.0) ? -t : t;
+    }
+    return result;
+}
+
+static Rbc_Complex ComplexExp(Rbc_Complex value) {
+    Rbc_Complex result;
+    double scale;
+
+    scale = exp(value.real);
+    result.real = scale * cos(value.imag);
+    result.imag = scale * sin(value.imag);
+    return result;
+}
+
+static Rbc_Complex ComplexLog(Rbc_Complex value) {
+    Rbc_Complex result;
+    double a, b;
+    double maximum, minimum;
+    double ratio;
+
+    a = FABS(value.real);
+    b = FABS(value.imag);
+    if (a >= b) {
+        maximum = a;
+        minimum = b;
+    } else {
+        maximum = b;
+        minimum = a;
+    }
+    if (maximum == 0.0) {
+        /*
+         * Let the system log() establish errno and the non-finite
+         * result. ComplexComponentFunc will report it through
+         * the normal MathError path.
+         */
+        result.real = log(0.0);
+    } else {
+        ratio = minimum / maximum;
+        result.real = log(maximum) + 0.5 * log(1.0 + ratio * ratio);
+    }
+    result.imag = atan2(value.imag, value.real);
+    return result;
+}
+
+static Rbc_Complex ComplexLog10(Rbc_Complex value) {
+    Rbc_Complex result;
+    const double invLn10 = 0.43429448190325182765;
+
+    result = ComplexLog(value);
+    result.real *= invLn10;
+    result.imag *= invLn10;
+    return result;
+}
+
+static Rbc_Complex ComplexSin(Rbc_Complex value) {
+    Rbc_Complex result;
+    double sinhImag;
+    double coshImag;
+
+    sinhImag = sinh(value.imag);
+    coshImag = cosh(value.imag);
+    result.real = sin(value.real) * coshImag;
+    result.imag = cos(value.real) * sinhImag;
+    return result;
+}
+
+static Rbc_Complex ComplexCos(Rbc_Complex value) {
+    Rbc_Complex result;
+    double sinhImag;
+    double coshImag;
+
+    sinhImag = sinh(value.imag);
+    coshImag = cosh(value.imag);
+    result.real = cos(value.real) * coshImag;
+    result.imag = -sin(value.real) * sinhImag;
+    return result;
+}
+
+static Rbc_Complex ComplexSinh(Rbc_Complex value) {
+    Rbc_Complex result;
+    double sinhReal;
+    double coshReal;
+
+    sinhReal = sinh(value.real);
+    coshReal = cosh(value.real);
+    result.real = sinhReal * cos(value.imag);
+    result.imag = coshReal * sin(value.imag);
+    return result;
+}
+
+static Rbc_Complex ComplexCosh(Rbc_Complex value) {
+    Rbc_Complex result;
+    double sinhReal;
+    double coshReal;
+
+    sinhReal = sinh(value.real);
+    coshReal = cosh(value.real);
+    result.real = coshReal * cos(value.imag);
+    result.imag = sinhReal * sin(value.imag);
+    return result;
 }
 
 /*

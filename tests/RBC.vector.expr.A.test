@@ -1219,5 +1219,124 @@ namespace eval vector.expr {
         catch {vector destroy C}
     } -result {complex {{5.0 0.0} {13.0 0.0}}}
 
+    # ------------------------------------------------------------------------------------
+    # Purpose: Test complex-valued transcendental math functions.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.expr.A.7.1 {
+        complex sqrt
+    } -setup {
+        vector create C -type complex
+        C set {{-1 0} {3 4} {3 -4}}
+    } -body {
+        vector expr {sqrt(C)}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {{0.0 1.0} {2.0 1.0} {2.0 -1.0}}
+
+    test RBC.vector.expr.A.7.2 {
+        complex log principal branch
+    } -setup {
+        vector create C -type complex
+        C set {{-1 0} {0 1}}
+    } -body {
+        set values [vector expr {log(C)}]
+        lassign $values a b
+        lassign $a ar ai
+        lassign $b br bi
+        set pi [expr {acos(-1.0)}]
+        expr {
+            abs($ar) < 1.0e-12 &&
+            abs($ai - $pi) < 1.0e-12 &&
+            abs($br) < 1.0e-12 &&
+            abs($bi - $pi / 2.0) < 1.0e-12
+        }
+    } -cleanup {
+        catch {vector destroy C}
+    } -result 1
+
+    test RBC.vector.expr.A.7.3 {
+        complex exp log round trip
+    } -setup {
+        vector create C -type complex
+        C set {{2 3} {-2 3} {0.5 -1.25}}
+    } -body {
+        set actual [vector expr {exp(log(C))}]
+        set expected [C range 0 end]
+        foreach a $actual e $expected {
+            lassign $a ar ai
+            lassign $e er ei
+            if {abs($ar - $er) > 1.0e-12 || abs($ai - $ei) > 1.0e-12} {
+                return 0
+            }
+        }
+        return 1
+    } -cleanup {
+        catch {vector destroy C}
+    } -result 1
+
+    test RBC.vector.expr.A.7.4 {
+        complex log10
+    } -setup {
+        vector create C -type complex
+        C set {{2 3} {-2 3} {0.5 -1.25}}
+    } -body {
+        set actual [vector expr {log10(C) * log(10)}]
+        set expected [vector expr {log(C)}]
+        foreach a $actual e $expected {
+            lassign $a ar ai
+            lassign $e er ei
+            if {abs($ar - $er) > 1.0e-12 || abs($ai - $ei) > 1.0e-12} {
+                return 0
+            }
+        }
+        return 1
+    } -cleanup {
+        catch {vector destroy C}
+    } -result 1
+
+    test RBC.vector.expr.A.7.5 {
+        complex sin cos identity
+    } -setup {
+        vector create C -type complex
+        C set {{0.5 1.25} {-1 0.75} {2 -0.5}}
+    } -body {
+        set values [vector expr { sin(C) * sin(C) + cos(C) * cos(C) }]
+        foreach value $values {
+            lassign $value real imag
+            if {abs($real - 1.0) > 1.0e-12 || abs($imag) > 1.0e-12} {
+                return 0
+            }
+        }
+        return 1
+    } -cleanup {
+        catch {vector destroy C}
+    } -result 1
+
+    test RBC.vector.expr.A.7.6 {
+        complex sinh cosh identity
+    } -setup {
+        vector create C -type complex
+        C set {{0.5 1.25} {-1 0.75} {2 -0.5}}
+    } -body {
+        set values [vector expr { cosh(C) * cosh(C) - sinh(C) * sinh(C) }]
+        foreach value $values {
+            lassign $value real imag
+            if {abs($real - 1.0) > 1.0e-12 || abs($imag) > 1.0e-12} {
+                return 0
+            }
+        }
+        return 1
+    } -cleanup {
+        catch {vector destroy C}
+    } -result 1
+
+    test RBC.vector.expr.A.7.7 {
+        real and complex sqrt preserve type semantics
+    } -body {
+        set realCode [catch { vector expr {sqrt(-1)} }]
+        set complexValue [ vector expr {sqrt({-1 0})} ]
+        list $realCode $complexValue
+    } -result {1 {{0.0 1.0}}}
+
 	cleanupTests
 }
