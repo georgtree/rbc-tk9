@@ -63,3 +63,11 @@ declare 9 {
 declare 10 {
     void Rbc_FreeVector (Rbc_Vector *v)
 }
+
+declare 11 {
+    Rbc_VectorType Rbc_VectorGetType(Rbc_Vector *vPtr)
+}
+
+declare 12 {
+    int Rbc_VectorGetRange(Rbc_Vector *vecPtr, double *minPtr, double *maxPtr)
+}

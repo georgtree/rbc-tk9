@@ -34,11 +34,11 @@ CommonHeader .header $HeaderText 9 $DemoDir .bc barchart1.ps
 ### Set option defaults for the barchart.
 option add *Barchart.title {A Simple Barchart}
 option add *Barchart.font {Helvetica 12 bold}
-option add *Axis.tickFont {Courier 10}
+option add *Axis.tickFont {TkFixedFont 10}
 option add *Axis.titleFont {Helvetica 12 bold}
 option add *x.Rotate 90
 option add *x.Command FormatLabel
-option add *x.Title {X Axis Label}
+option add *x.Title {Stipple type}
 option add *y.Title {Y Axis Label}
 option add *Element.Background white
 option add *Element.Relief solid
@@ -46,8 +46,9 @@ option add *Element.BorderWidth 1
 option add *Grid.dashes {2 4}
 option add *Grid.hide no
 option add *Grid.mapX {}
-option add *Legend.hide yes
-proc FormatLabel { w value } {
+option add *Legend.hide no
+option add *Legend.Font {TkFixedFont 10}
+proc FormatLabel {w value} {
     # Determine the element name from value (an integer index).
     set names [$w element show]
     set index [expr round($value)]
@@ -63,7 +64,8 @@ proc FormatLabel { w value } {
 }
 
 ### Create the barchart.
-barchart .bc -width 600 -height 400
+graphtoolbar .bc -width 800 -height 600 -type barchart -zoom -zoomtitle -zoommark -crosshairs -crosshairsmode closest\
+        -scaletoggle y -activelegend -zoomwheel
 
 ### Add a bar to .bc for each bitmap in the list.
 proc random {{max 1.0} {min 0.0}} {
@@ -85,37 +87,14 @@ foreach stipple $bitmaps {
     set y [random -2 10]
     set yhigh [expr {$y+0.5}]
     set ylow [expr {$y-0.5}]
-    .bc element create $label -y $y -x $count -fg brown -bg orange -stipple @$DemoDir/stipples/${stipple}.xbm\
+    .bc graph element create $label -y $y -x $count -fg brown -bg orange -stipple @$DemoDir/stipples/${stipple}.xbm\
             -yhigh $yhigh -ylow $ylow 
     set elemLabels($count) $label
     incr count
 }
 
-### Map everything, add Rbc_* commands and bindings.
-grid .header -sticky ew
+### Map everything
+#grid .header -sticky ew
 grid .bc -sticky nsew
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1
-Rbc_ZoomStack .bc
-Rbc_Crosshairs .bc
-Rbc_ActiveLegend .bc
-Rbc_ClosestPoint .bc
-Rbc_AxisScaleActive .bc y
-.bc axis bind x <Enter> {
-    set axis [%W axis get current]
-    %W axis configure $axis -color blue3 -titlecolor blue3
-}
-.bc axis bind x <Leave> {
-    set axis [%W axis get current]
-    %W axis configure $axis -color black -titlecolor black
-}
-
-# FIXME rbc - On X11 the x-axis labels are not correctly sized for their
-# text, possibly because they have an unexpected font.
-# This code doesn't change the font, but it does
-# size (MOST OF) the labels correctly.
-# This is the same "Font Size" bug as for the Legend in graph1.tcl
-# and other demos.
-if {[tk windowingsystem] eq {x11}} {
-    .bc xaxis configure -tickfont TkDefaultFont
-}

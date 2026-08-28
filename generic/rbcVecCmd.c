@@ -13,7 +13,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
-#include "rbcVector.h"
+#include "rbcVectorInt.h"
 
 static int AddVectorSizes(Tcl_Interp *interp, Tcl_Size a, Tcl_Size b, Tcl_Size *resultPtr) {
     if ((a < 0) || (b < 0) || (a > (TCL_SIZE_MAX - b))) {

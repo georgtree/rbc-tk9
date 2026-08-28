@@ -374,11 +374,10 @@ void Rbc_FormatValueLabel(char *buffer, size_t bufferSize, const char *format, i
  *----------------------------------------------------------------------
  */
 static void SyncElemVector(ElemVector *vPtr) {
-    vPtr->nValues = Rbc_VecLength(vPtr->vecPtr);
-    vPtr->arraySize = Rbc_VecSize(vPtr->vecPtr);
-    vPtr->valueArr = Rbc_VecData(vPtr->vecPtr);
-    vPtr->min = Rbc_VecMin(vPtr->vecPtr);
-    vPtr->max = Rbc_VecMax(vPtr->vecPtr);
+    vPtr->nValues = Rbc_VectorLength(vPtr->vecPtr);
+    vPtr->arraySize = Rbc_VectorSize(vPtr->vecPtr);
+    vPtr->valueArr = Rbc_VectorData(vPtr->vecPtr);
+    Rbc_VectorGetRange(vPtr->vecPtr, &vPtr->min, &vPtr->max);
 }
 
 /*

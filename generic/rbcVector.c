@@ -10,7 +10,7 @@
  */
 
 #include "tcl.h"
-#include "rbcVector.h"
+#include "rbcVectorInt.h"
 
 typedef int RbcVectorOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 
@@ -102,6 +102,13 @@ static int GetVectorByteCount(Tcl_Interp *interp, Tcl_Size count, size_t *byteCo
 static char *VectorTraceError(Tcl_Obj *objPtr) {
     Tcl_IncrRefCount(objPtr);
     return (char *)objPtr;
+}
+
+int Rbc_VectorGetRange(Rbc_Vector *vecPtr, double *minPtr, double *maxPtr) {
+    *minPtr = Rbc_VecMin(vecPtr);
+    *maxPtr = Rbc_VecMax(vecPtr);
+
+    return TCL_OK;
 }
 
 /*
@@ -643,7 +650,9 @@ VectorObject *Rbc_VectorNew(VectorInterpData *dataPtr) {
     VectorObject *vPtr;
 
     vPtr = RbcCalloc(1, sizeof(VectorObject));
-    /***    assert(vPtr); */
+
+    vPtr->type = RBC_VECTOR_REAL;
+
     vPtr->notifyFlags = NOTIFY_WHENIDLE;
     vPtr->freeProc = TCL_STATIC;
     vPtr->dataPtr = dataPtr;
@@ -654,6 +663,7 @@ VectorObject *Rbc_VectorNew(VectorInterpData *dataPtr) {
     vPtr->chainPtr = Rbc_ChainCreate();
     vPtr->flush = FALSE;
     vPtr->min = vPtr->max = rbcNaN;
+
     return vPtr;
 }
 
@@ -2910,7 +2920,15 @@ int Rbc_ResetVector(Rbc_Vector *vecPtr, double *valueArr, Tcl_Size length, Tcl_S
 }
 
 void Rbc_FreeVector(Rbc_Vector *v) { Rbc_VectorFree((VectorObject *)v); }
-double *Rbc_VectorData(Rbc_Vector *v) { return Rbc_VecData(v); }
-Tcl_Size Rbc_VectorLength(Rbc_Vector *v) { return Rbc_VecLength(v); }
-Tcl_Size Rbc_VectorSize(Rbc_Vector *v) { return Rbc_VecSize(v); }
-int Rbc_VectorDirty(Rbc_Vector *v) { return Rbc_VecDirty(v); }
+
+double *Rbc_VectorData(Rbc_Vector *vPtr) {
+    if (vPtr->type != RBC_VECTOR_REAL) {
+        return NULL;
+    }
+    return vPtr->valueArr;
+}
+
+Tcl_Size Rbc_VectorLength(Rbc_Vector *vPtr) { return vPtr->length; }
+Tcl_Size Rbc_VectorSize(Rbc_Vector *vPtr) { return vPtr->size; }
+int Rbc_VectorDirty(Rbc_Vector *vPtr) { return vPtr->dirty; }
+Rbc_VectorType Rbc_VectorGetType(Rbc_Vector *vPtr) { return vPtr->type; }

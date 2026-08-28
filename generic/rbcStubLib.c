@@ -17,6 +17,7 @@
 #endif
 
 #include "tcl.h"
+#include "rbcVector.h"
 #include "rbcDecls.h"
 
 const RbcStubs *rbcStubsPtr;

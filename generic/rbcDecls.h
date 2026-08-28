@@ -66,6 +66,11 @@ RBCAPI int		Rbc_VectorDirty(Rbc_Vector *v);
 RBCAPI int		Rbc_VectorExists2(Tcl_Interp *ip, const char *name);
 /* 10 */
 RBCAPI void		Rbc_FreeVector(Rbc_Vector *v);
+/* 11 */
+RBCAPI Rbc_VectorType	Rbc_VectorGetType(Rbc_Vector *vPtr);
+/* 12 */
+RBCAPI int		Rbc_VectorGetRange(Rbc_Vector *vecPtr,
+				double *minPtr, double *maxPtr);
 
 typedef struct RbcStubs {
     int magic;
@@ -82,6 +87,8 @@ typedef struct RbcStubs {
     int (*rbc_VectorDirty) (Rbc_Vector *v); /* 8 */
     int (*rbc_VectorExists2) (Tcl_Interp *ip, const char *name); /* 9 */
     void (*rbc_FreeVector) (Rbc_Vector *v); /* 10 */
+    Rbc_VectorType (*rbc_VectorGetType) (Rbc_Vector *vPtr); /* 11 */
+    int (*rbc_VectorGetRange) (Rbc_Vector *vecPtr, double *minPtr, double *maxPtr); /* 12 */
 } RbcStubs;
 
 extern const RbcStubs *rbcStubsPtr;
@@ -118,6 +125,10 @@ extern const RbcStubs *rbcStubsPtr;
 	(rbcStubsPtr->rbc_VectorExists2) /* 9 */
 #define Rbc_FreeVector \
 	(rbcStubsPtr->rbc_FreeVector) /* 10 */
+#define Rbc_VectorGetType \
+	(rbcStubsPtr->rbc_VectorGetType) /* 11 */
+#define Rbc_VectorGetRange \
+	(rbcStubsPtr->rbc_VectorGetRange) /* 12 */
 
 #endif /* defined(USE_RBC_STUBS) */
 

@@ -1120,12 +1120,12 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
         (Rbc_GetVector(interp, splXName, &splX) != TCL_OK)) {
         return TCL_ERROR;
     }
-    nOrigPts = Rbc_VecLength(x);
+    nOrigPts = Rbc_VectorLength(x);
     if (nOrigPts < 3) {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("length of vector \"%s\" is < 3", xName));
         return TCL_ERROR;
     }
-    if (nOrigPts != Rbc_VecLength(y)) {
+    if (nOrigPts != Rbc_VectorLength(y)) {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("vectors \"%s\" and \"%s\" have different lengths", xName, yName));
         return TCL_ERROR;
     }
@@ -1133,8 +1133,8 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
      * Validate source data before doing any work that can modify
      * another vector.
      */
-    xArr = Rbc_VecData(x);
-    yArr = Rbc_VecData(y);
+    xArr = Rbc_VectorData(x);
+    yArr = Rbc_VectorData(y);
     for (i = 0; i < nOrigPts; i++) {
         if ((!FINITE(xArr[i])) || (!FINITE(yArr[i]))) {
             Tcl_SetObjResult(interp, Tcl_ObjPrintf("vectors \"%s\" and \"%s\" "
@@ -1153,8 +1153,8 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
      * Validate all interpolation abscissas before creating or
      * resizing the result vector.
      */
-    nIntpPts = Rbc_VecLength(splX);
-    xArr = Rbc_VecData(splX);
+    nIntpPts = Rbc_VectorLength(splX);
+    xArr = Rbc_VectorData(splX);
     for (i = 0; i < nIntpPts; i++) {
         if (!FINITE(xArr[i])) {
             Tcl_SetObjResult(interp, Tcl_ObjPrintf("interpolation vector \"%s\" "
@@ -1190,13 +1190,13 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
 
         goto cleanup;
     }
-    xArr = Rbc_VecData(x);
-    yArr = Rbc_VecData(y);
+    xArr = Rbc_VectorData(x);
+    yArr = Rbc_VectorData(y);
     for (i = 0; i < nOrigPts; i++) {
         origPts[i].x = xArr[i];
         origPts[i].y = yArr[i];
     }
-    xArr = Rbc_VecData(splX);
+    xArr = Rbc_VectorData(splX);
     for (i = 0; i < nIntpPts; i++) {
         intpPts[i].x = xArr[i];
         intpPts[i].y = 0.0;
@@ -1217,16 +1217,16 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
         if (Rbc_CreateVector(interp, splYName, nIntpPts, &splY) != TCL_OK) {
             goto cleanup;
         }
-    } else if (nIntpPts != Rbc_VecLength(splY)) {
+    } else if (nIntpPts != Rbc_VectorLength(splY)) {
         if (Rbc_ResizeVector(splY, nIntpPts) != TCL_OK) {
             goto cleanup;
         }
     }
-    resultArr = Rbc_VecData(splY);
+    resultArr = Rbc_VectorData(splY);
     for (i = 0; i < nIntpPts; i++) {
         resultArr[i] = intpPts[i].y;
     }
-    if (Rbc_ResetVector(splY, Rbc_VecData(splY), Rbc_VecLength(splY), Rbc_VecSize(splY), TCL_STATIC) != TCL_OK) {
+    if (Rbc_ResetVector(splY, Rbc_VectorData(splY), Rbc_VectorLength(splY), Rbc_VectorSize(splY), TCL_STATIC) != TCL_OK) {
         goto cleanup;
     }
     result = TCL_OK;
