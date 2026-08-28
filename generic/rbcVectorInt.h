@@ -56,6 +56,12 @@ typedef struct {
     unsigned int nextId;
 } VectorInterpData;
 
+typedef union {
+    double *real;
+    Rbc_Complex *complex;
+    void *raw;
+} VectorData;
+
 /*
  *    A vector is an array of double precision values.  It can be
  *    accessed through a Tcl command, a Tcl array variable, or C
@@ -75,7 +81,7 @@ typedef struct {
 struct Rbc_Vector {
     Rbc_VectorType type;    
 
-    double *valueArr; /* Array of values (malloc-ed) */
+    VectorData data;
     Tcl_Size length;  /* Current number of values in the array. */
     Tcl_Size size;    /* Maximum number of values that can be stored
                        * in the value array. */
@@ -119,7 +125,7 @@ struct Rbc_Vector {
 struct Rbc_Vector_s {
     Rbc_VectorType type;
 
-    double *valueArr;
+    VectorData data;
 
     Tcl_Size length;
     Tcl_Size size;

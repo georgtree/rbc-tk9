@@ -273,25 +273,25 @@ static int ArithOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
         switch (string[0]) {
         case '*':
             for (i = 0, j = v2Ptr->first; i < vPtr->length; i++, j++) {
-                value = vPtr->valueArr[i] * v2Ptr->valueArr[j];
+                value = vPtr->data.real[i] * v2Ptr->data.real[j];
                 Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
             }
             break;
         case '/':
             for (i = 0, j = v2Ptr->first; i < vPtr->length; i++, j++) {
-                value = vPtr->valueArr[i] / v2Ptr->valueArr[j];
+                value = vPtr->data.real[i] / v2Ptr->data.real[j];
                 Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
             }
             break;
         case '-':
             for (i = 0, j = v2Ptr->first; i < vPtr->length; i++, j++) {
-                value = vPtr->valueArr[i] - v2Ptr->valueArr[j];
+                value = vPtr->data.real[i] - v2Ptr->data.real[j];
                 Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
             }
             break;
         case '+':
             for (i = 0, j = v2Ptr->first; i < vPtr->length; i++, j++) {
-                value = vPtr->valueArr[i] + v2Ptr->valueArr[j];
+                value = vPtr->data.real[i] + v2Ptr->data.real[j];
                 Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
             }
             break;
@@ -303,25 +303,25 @@ static int ArithOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
         switch (string[0]) {
         case '*':
             for (i = 0; i < vPtr->length; i++) {
-                value = vPtr->valueArr[i] * scalar;
+                value = vPtr->data.real[i] * scalar;
                 Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
             }
             break;
         case '/':
             for (i = 0; i < vPtr->length; i++) {
-                value = vPtr->valueArr[i] / scalar;
+                value = vPtr->data.real[i] / scalar;
                 Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
             }
             break;
         case '-':
             for (i = 0; i < vPtr->length; i++) {
-                value = vPtr->valueArr[i] - scalar;
+                value = vPtr->data.real[i] - scalar;
                 Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
             }
             break;
         case '+':
             for (i = 0; i < vPtr->length; i++) {
-                value = vPtr->valueArr[i] + scalar;
+                value = vPtr->data.real[i] + scalar;
                 Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
             }
             break;
@@ -813,7 +813,7 @@ static int DeleteOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
             continue; /* Skip elements marked for deletion. */
         }
         if (count < valueIndex) {
-            vPtr->valueArr[count] = vPtr->valueArr[valueIndex];
+            vPtr->data.real[count] = vPtr->data.real[valueIndex];
         }
         count++;
     }
@@ -1107,7 +1107,7 @@ static int MergeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
     valuePtr = valueArr;
     for (valueIndex = 0; valueIndex < refSize; valueIndex++) {
         for (vPtrPtr = vecArr; *vPtrPtr != NULL; vPtrPtr++) {
-            *valuePtr++ = (*vPtrPtr)->valueArr[valueIndex + (*vPtrPtr)->first];
+            *valuePtr++ = (*vPtrPtr)->data.real[valueIndex + (*vPtrPtr)->first];
         }
     }
     ckfree(vecArr);
@@ -1162,7 +1162,7 @@ static int NormalizeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tc
             return TCL_ERROR;
         }
         for (i = 0; i < vPtr->length; i++) {
-            v2Ptr->valueArr[i] = (vPtr->valueArr[i] - vPtr->min) / range;
+            v2Ptr->data.real[i] = (vPtr->data.real[i] - vPtr->min) / range;
         }
         Rbc_VectorUpdateRange(v2Ptr);
         if (!isNew) {
@@ -1177,7 +1177,7 @@ static int NormalizeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tc
 
         listObjPtr = Tcl_NewListObj(0, (Tcl_Obj **)NULL);
         for (i = 0; i < vPtr->length; i++) {
-            norm = (vPtr->valueArr[i] - vPtr->min) / range;
+            norm = (vPtr->data.real[i] - vPtr->min) / range;
             Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(norm));
         }
         Tcl_SetObjResult(interp, listObjPtr);
@@ -1331,9 +1331,9 @@ static int PopulateOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
     }
     if (sourcePtr->length > 0) {
         valuesPerInterval = density + 1;
-        valuePtr = v2Ptr->valueArr;
+        valuePtr = v2Ptr->data.real;
         for (i = 0; i < (sourcePtr->length - 1); i++) {
-            range = sourcePtr->valueArr[i + 1] - sourcePtr->valueArr[i];
+            range = sourcePtr->data.real[i + 1] - sourcePtr->data.real[i];
             slice = range / (double)valuesPerInterval;
             /*
              * Write the interval's starting value followed by the
@@ -1341,14 +1341,14 @@ static int PopulateOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
              * written as the start of the next interval.
              */
             for (j = 0; j < valuesPerInterval; j++) {
-                *valuePtr++ = sourcePtr->valueArr[i] + (slice * (double)j);
+                *valuePtr++ = sourcePtr->data.real[i] + (slice * (double)j);
             }
         }
         /*
          * The final source value is not written by the interval loop.
          */
-        *valuePtr++ = sourcePtr->valueArr[sourcePtr->length - 1];
-        assert(valuePtr == (v2Ptr->valueArr + v2Ptr->length));
+        *valuePtr++ = sourcePtr->data.real[sourcePtr->length - 1];
+        assert(valuePtr == (v2Ptr->data.real + v2Ptr->length));
     }
     if (tmpPtr != NULL) {
         Rbc_VectorFree(tmpPtr);
@@ -1395,7 +1395,7 @@ static int RandomOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
     (void)objc;
     (void)objv;
     for (i = 0; i < vPtr->length; i++) {
-        vPtr->valueArr[i] = Rbc_RandomDouble();
+        vPtr->data.real[i] = Rbc_RandomDouble();
     }
     if (vPtr->flush) {
         Rbc_VectorFlushCache(vPtr);
@@ -1441,11 +1441,11 @@ static int RangeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
     listObjPtr = Tcl_NewListObj(0, NULL);
     if (first > last) {
         for (i = first; i >= last; i--) {
-            Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(vPtr->valueArr[i]));
+            Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(vPtr->data.real[i]));
         }
     } else {
         for (i = first; i <= last; i++) {
-            Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(vPtr->valueArr[i]));
+            Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(vPtr->data.real[i]));
         }
     }
     Tcl_SetObjResult(interp, listObjPtr);
@@ -1502,11 +1502,11 @@ static int SearchOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
     listObjPtr = Tcl_NewListObj(0, NULL);
     Tcl_IncrRefCount(listObjPtr);
     for (i = 0; i < vPtr->length; i++) {
-        if (InRange(vPtr->valueArr[i], min, max)) {
+        if (InRange(vPtr->data.real[i], min, max)) {
             Tcl_Obj *objPtr;
 
             if (wantValue) {
-                objPtr = Tcl_NewDoubleObj(vPtr->valueArr[i]);
+                objPtr = Tcl_NewDoubleObj(vPtr->data.real[i]);
             } else {
                 Tcl_Size index;
                 if ((vPtr->offset > 0) && (i > (TCL_SIZE_MAX - vPtr->offset))) {
@@ -1618,7 +1618,7 @@ static int SeqOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
             return TCL_ERROR;
         }
         for (i = 0; i < nSteps; i++) {
-            vPtr->valueArr[i] = start + step * (double)i;
+            vPtr->data.real[i] = start + step * (double)i;
         }
         if (vPtr->flush) {
             Rbc_VectorFlushCache(vPtr);
@@ -1790,10 +1790,10 @@ static int SortOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
     }
     mergeArr = ckalloc(nBytes);
     if (nBytes > 0) {
-        memcpy(mergeArr, vPtr->valueArr, nBytes);
+        memcpy(mergeArr, vPtr->data.raw, nBytes);
     }
     for (n = 0; n < refSize; n++) {
-        vPtr->valueArr[n] = mergeArr[iArr[n]];
+        vPtr->data.real[n] = mergeArr[iArr[n]];
     }
     if (vPtr->flush) {
         Rbc_VectorFlushCache(vPtr);
@@ -1812,9 +1812,9 @@ static int SortOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
                              (char *)NULL);
             goto error;
         }
-        memcpy((char *)mergeArr, (char *)v2Ptr->valueArr, nBytes);
+        memcpy((char *)mergeArr, (char *)v2Ptr->data.raw, nBytes);
         for (n = 0; n < refSize; n++) {
-            v2Ptr->valueArr[n] = mergeArr[iArr[n]];
+            v2Ptr->data.real[n] = mergeArr[iArr[n]];
         }
         Rbc_VectorUpdateClients(v2Ptr);
         if (v2Ptr->flush) {
@@ -1910,7 +1910,7 @@ static int SplitOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
         sourceIndex = argIndex;
         destIndex = oldSize;
         while (sourceIndex < sourcePtr->length) {
-            v2Ptr->valueArr[destIndex] = sourcePtr->valueArr[sourceIndex];
+            v2Ptr->data.real[destIndex] = sourcePtr->data.real[sourceIndex];
             sourceIndex += nVectors;
             destIndex++;
         }
@@ -2008,7 +2008,7 @@ static int AppendVector(VectorObject *destPtr, VectorObject *srcPtr) {
         return TCL_ERROR;
     }
     if (byteCount > 0) {
-        memmove(destPtr->valueArr + oldSize, srcPtr->valueArr + sourceFirst, byteCount);
+        memmove(destPtr->data.real + oldSize, srcPtr->data.real + sourceFirst, byteCount);
     }
     destPtr->notifyFlags |= UPDATE_RANGE;
     return TCL_OK;
@@ -2052,7 +2052,7 @@ static int AppendList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]) 
             Rbc_VectorChangeLength(vPtr, oldSize);
             return TCL_ERROR;
         }
-        vPtr->valueArr[oldSize + i] = value;
+        vPtr->data.real[oldSize + i] = value;
     }
     vPtr->notifyFlags |= UPDATE_RANGE;
     return TCL_OK;
@@ -2136,7 +2136,7 @@ static int CopyValues(VectorObject *vPtr, char *byteArr, enum NativeFormats fmt,
 #define CopyArrayToVector(array)                                                                                       \
     do {                                                                                                               \
         for (i = 0, n = *indexPtr; i < length; i++, n++) {                                                             \
-            vPtr->valueArr[n] = (double)(array)[i];                                                                    \
+            vPtr->data.real[n] = (double)(array)[i];                                                                    \
         }                                                                                                              \
     } while (0)
 
@@ -2279,7 +2279,7 @@ static int CopyList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
             Rbc_VectorChangeLength(vPtr, i);
             return TCL_ERROR;
         }
-        vPtr->valueArr[i] = value;
+        vPtr->data.real[i] = value;
     }
     return TCL_OK;
 }
@@ -2415,8 +2415,8 @@ static int CompareVectorIndices(VectorObject *const *vectorArr, Tcl_Size nVector
         double value1;
         double value2;
 
-        value1 = vectorArr[vectorIndex]->valueArr[i1];
-        value2 = vectorArr[vectorIndex]->valueArr[i2];
+        value1 = vectorArr[vectorIndex]->data.real[i1];
+        value2 = vectorArr[vectorIndex]->data.real[i2];
         if (value1 < value2) {
             return -1;
         }

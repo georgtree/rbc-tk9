@@ -295,7 +295,7 @@ static Tcl_Size First(VectorObject *vPtr) {
     Tcl_Size i;
 
     for (i = vPtr->first; i <= vPtr->last; i++) {
-        if (FINITE(vPtr->valueArr[i])) {
+        if (FINITE(vPtr->data.real[i])) {
             return i;
         }
     }
@@ -329,7 +329,7 @@ static Tcl_Size Next(VectorObject *vPtr, Tcl_Size current) {
     Tcl_Size i;
 
     for (i = current + 1; i <= vPtr->last; i++) {
-        if (FINITE(vPtr->valueArr[i])) {
+        if (FINITE(vPtr->data.real[i])) {
             return i;
         }
     }
@@ -363,15 +363,15 @@ double Rbc_VecMin(Rbc_Vector *vecPtr) {
 
     min = rbcNaN;
     for (i = 0; i < vPtr->length; i++) {
-        if (FINITE(vPtr->valueArr[i])) {
-            min = vPtr->valueArr[i];
+        if (FINITE(vPtr->data.real[i])) {
+            min = vPtr->data.real[i];
             break;
         }
     }
     for (/* empty */; i < vPtr->length; i++) {
-        if (FINITE(vPtr->valueArr[i])) {
-            if (min > vPtr->valueArr[i]) {
-                min = vPtr->valueArr[i];
+        if (FINITE(vPtr->data.real[i])) {
+            if (min > vPtr->data.real[i]) {
+                min = vPtr->data.real[i];
             }
         }
     }
@@ -411,15 +411,15 @@ double Rbc_VecMax(Rbc_Vector *vecPtr) {
 
     max = rbcNaN;
     for (i = 0; i < vPtr->length; i++) {
-        if (FINITE(vPtr->valueArr[i])) {
-            max = vPtr->valueArr[i];
+        if (FINITE(vPtr->data.real[i])) {
+            max = vPtr->data.real[i];
             break;
         }
     }
     for (/* empty */; i < vPtr->length; i++) {
-        if (FINITE(vPtr->valueArr[i])) {
-            if (max < vPtr->valueArr[i]) {
-                max = vPtr->valueArr[i];
+        if (FINITE(vPtr->data.real[i])) {
+            if (max < vPtr->data.real[i]) {
+                max = vPtr->data.real[i];
             }
         }
     }
@@ -455,7 +455,7 @@ static double Mean(Rbc_Vector *vecPtr) {
     sum = 0.0;
     count = 0;
     for (i = First(vPtr); i >= 0; i = Next(vPtr, i)) {
-        sum += vPtr->valueArr[i];
+        sum += vPtr->data.real[i];
         count++;
     }
     return sum / (double)count;
@@ -487,7 +487,7 @@ static double Sum(Rbc_Vector *vecPtr) {
 
     sum = 0.0;
     for (i = First(vPtr); i >= 0; i = Next(vPtr, i)) {
-        sum += vPtr->valueArr[i];
+        sum += vPtr->data.real[i];
     }
     return sum;
 }
@@ -518,7 +518,7 @@ static double Product(Rbc_Vector *vecPtr) {
 
     prod = 1.0;
     for (i = First(vPtr); i >= 0; i = Next(vPtr, i)) {
-        prod *= vPtr->valueArr[i];
+        prod *= vPtr->data.real[i];
     }
     return prod;
 }
@@ -568,10 +568,10 @@ static int Sort(VectorObject *vPtr) {
         return TCL_ERROR;
     }
     for (i = 0; i < rangeLength; i++) {
-        tempArr[i] = vPtr->valueArr[indexArr[i]];
+        tempArr[i] = vPtr->data.real[indexArr[i]];
     }
     for (i = 0; i < rangeLength; i++) {
-        vPtr->valueArr[vPtr->first + i] = tempArr[i];
+        vPtr->data.real[vPtr->first + i] = tempArr[i];
     }
     ckfree(tempArr);
     ckfree(indexArr);
@@ -645,9 +645,9 @@ static double Median(Rbc_Vector *vecPtr) {
      * or even. For an even count, average the two middle values.
      */
     if (vPtr->length & 1) {
-        q2 = vPtr->valueArr[iArr[mid]];
+        q2 = vPtr->data.real[iArr[mid]];
     } else {
-        q2 = vPtr->valueArr[iArr[mid]] * 0.5 + vPtr->valueArr[iArr[mid + 1]] * 0.5;
+        q2 = vPtr->data.real[iArr[mid]] * 0.5 + vPtr->data.real[iArr[mid + 1]] * 0.5;
     }
     ckfree(iArr);
     return q2;
@@ -681,7 +681,7 @@ static double Variance(Rbc_Vector *vecPtr) {
     var = 0.0;
     count = 0;
     for (i = First(vPtr); i >= 0; i = Next(vPtr, i)) {
-        dx = vPtr->valueArr[i] - mean;
+        dx = vPtr->data.real[i] - mean;
         var += dx * dx;
         count++;
     }
@@ -720,7 +720,7 @@ static double Skew(Rbc_Vector *vecPtr) {
     var = skew = 0.0;
     count = 0;
     for (i = First(vPtr); i >= 0; i = Next(vPtr, i)) {
-        diff = vPtr->valueArr[i] - mean;
+        diff = vPtr->data.real[i] - mean;
         diff = FABS(diff);
         diffsq = diff * diff;
         var += diffsq;
@@ -791,7 +791,7 @@ static double AvgDeviation(Rbc_Vector *vecPtr) {
     avg = 0.0;
     count = 0;
     for (i = First(vPtr); i >= 0; i = Next(vPtr, i)) {
-        diff = vPtr->valueArr[i] - mean;
+        diff = vPtr->data.real[i] - mean;
         avg += FABS(diff);
         count++;
     }
@@ -830,7 +830,7 @@ static double Kurtosis(Rbc_Vector *vecPtr) {
     var = kurt = 0.0;
     count = 0;
     for (i = First(vPtr); i >= 0; i = Next(vPtr, i)) {
-        diff = vPtr->valueArr[i] - mean;
+        diff = vPtr->data.real[i] - mean;
         diffsq = diff * diff;
         var += diffsq;
         kurt += diffsq * diffsq;
@@ -878,16 +878,16 @@ static double Q1(Rbc_Vector *vecPtr) {
         return -DBL_MAX;
     }
     if (vPtr->length < 4) {
-        q1 = vPtr->valueArr[iArr[0]];
+        q1 = vPtr->data.real[iArr[0]];
     } else {
         Tcl_Size mid;
         Tcl_Size q;
         mid = (vPtr->length - 1) / 2;
         q = mid / 2;
         if (mid & 1) {
-            q1 = vPtr->valueArr[iArr[q]];
+            q1 = vPtr->data.real[iArr[q]];
         } else {
-            q1 = vPtr->valueArr[iArr[q]] * 0.5 + vPtr->valueArr[iArr[q + 1]] * 0.5;
+            q1 = vPtr->data.real[iArr[q]] * 0.5 + vPtr->data.real[iArr[q + 1]] * 0.5;
         }
     }
     ckfree(iArr);
@@ -925,16 +925,16 @@ static double Q3(Rbc_Vector *vecPtr) {
         return -DBL_MAX;
     }
     if (vPtr->length < 4) {
-        q3 = vPtr->valueArr[iArr[vPtr->length - 1]];
+        q3 = vPtr->data.real[iArr[vPtr->length - 1]];
     } else {
         Tcl_Size mid;
         Tcl_Size q;
         mid = (vPtr->length - 1) / 2;
         q = mid + (vPtr->length - mid) / 2;
         if (mid & 1) {
-            q3 = vPtr->valueArr[iArr[q]];
+            q3 = vPtr->data.real[iArr[q]];
         } else {
-            q3 = vPtr->valueArr[iArr[q]] * 0.5 + vPtr->valueArr[iArr[q + 1]] * 0.5;
+            q3 = vPtr->data.real[iArr[q]] * 0.5 + vPtr->data.real[iArr[q + 1]] * 0.5;
         }
     }
     ckfree(iArr);
@@ -968,8 +968,8 @@ static int Norm(Rbc_Vector *vecPtr) {
     max = Rbc_VecMax(vecPtr);
     range = max - min;
     for (i = 0; i < vPtr->length; i++) {
-        norm = (vPtr->valueArr[i] - min) / range;
-        vPtr->valueArr[i] = norm;
+        norm = (vPtr->data.real[i] - min) / range;
+        vPtr->data.real[i] = norm;
     }
     return TCL_OK;
 }
@@ -999,7 +999,7 @@ static double Nonzeros(Rbc_Vector *vecPtr) {
 
     count = 0;
     for (i = First(vPtr); i >= 0; i = Next(vPtr, i)) {
-        if (vPtr->valueArr[i] == 0.0) {
+        if (vPtr->data.real[i] == 0.0) {
             count++;
         }
     }
@@ -1110,7 +1110,7 @@ int Rbc_ExprVector(Tcl_Interp *interp, char *string, Rbc_Vector *vecPtr) {
 
         resultObj = Tcl_NewListObj(0, NULL);
         for (i = 0; i < value.vPtr->length; i++) {
-            Tcl_ListObjAppendElement(NULL, resultObj, Tcl_NewDoubleObj(value.vPtr->valueArr[i]));
+            Tcl_ListObjAppendElement(NULL, resultObj, Tcl_NewDoubleObj(value.vPtr->data.real[i]));
         }
         Tcl_SetObjResult(interp, resultObj);
     }
@@ -1167,11 +1167,11 @@ static int EvaluateExpression(Tcl_Interp *interp, char *string, Value *valuePtr)
 
     /* Check for NaN's and overflows. */
     for (i = 0; i < vPtr->length; i++) {
-        if (!FINITE(vPtr->valueArr[i])) {
+        if (!FINITE(vPtr->data.real[i])) {
             /*
              * IEEE floating-point error.
              */
-            MathError(interp, vPtr->valueArr[i]);
+            MathError(interp, vPtr->data.real[i]);
             return TCL_ERROR;
         }
     }
@@ -1257,12 +1257,12 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
         switch (operator) {
         case UNARY_MINUS:
             for (i = 0; i < vPtr->length; i++) {
-                vPtr->valueArr[i] = -(vPtr->valueArr[i]);
+                vPtr->data.real[i] = -(vPtr->data.real[i]);
             }
             break;
         case NOT:
             for (i = 0; i < vPtr->length; i++) {
-                vPtr->valueArr[i] = (double)(!vPtr->valueArr[i]);
+                vPtr->data.real[i] = (double)(!vPtr->data.real[i]);
             }
             break;
         default:
@@ -1318,8 +1318,8 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
         /*
          * 2nd operand is a scalar.
          */
-        scalar = v2Ptr->valueArr[0];
-        opnd = vPtr->valueArr;
+        scalar = v2Ptr->data.real[0];
+        opnd = vPtr->data.real;
         switch (operator) {
         case MULT:
             for (i = 0; i < vPtr->length; i++) {
@@ -1469,9 +1469,9 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
         /*
          * 1st operand is a scalar.
          */
-        scalar = vPtr->valueArr[0];
+        scalar = vPtr->data.real[0];
         Rbc_VectorDuplicate(vPtr, v2Ptr);
-        opnd = vPtr->valueArr;
+        opnd = vPtr->data.real;
         switch (operator) {
         case MULT:
             for (i = 0; i < vPtr->length; i++) {
@@ -1565,7 +1565,7 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
             Rbc_AppendResultStrings(interp, "vectors are different lengths", (char *)NULL);
             goto error;
         }
-        opnd1 = vPtr->valueArr, opnd2 = v2Ptr->valueArr;
+        opnd1 = vPtr->data.real, opnd2 = v2Ptr->data.real;
         switch (operator) {
         case MULT:
             for (i = 0; i < vPtr->length; i++) {
@@ -1888,7 +1888,7 @@ static int NextToken(Tcl_Interp *interp, ParseInfo *parsePtr, Value *valuePtr) {
             if (Rbc_VectorChangeLength(valuePtr->vPtr, 1) != TCL_OK) {
                 return TCL_ERROR;
             }
-            valuePtr->vPtr->valueArr[0] = value;
+            valuePtr->vPtr->data.real[0] = value;
             return TCL_OK;
         }
     }
@@ -2116,7 +2116,7 @@ static int ParseString(Tcl_Interp *interp, const char *string, Value *valuePtr) 
         if (Rbc_VectorChangeLength(valuePtr->vPtr, 1) != TCL_OK) {
             return TCL_ERROR;
         }
-        valuePtr->vPtr->valueArr[0] = value;
+        valuePtr->vPtr->data.real[0] = value;
         return TCL_OK;
     }
     while (isspace(UCHAR(*string))) {
@@ -2244,16 +2244,16 @@ static int ComponentFunc(ClientData clientData, Tcl_Interp *interp, VectorObject
 
     errno = 0;
     for (i = First(vPtr); i >= 0; i = Next(vPtr, i)) {
-        vPtr->valueArr[i] = (*procPtr)(vPtr->valueArr[i]);
+        vPtr->data.real[i] = (*procPtr)(vPtr->data.real[i]);
         if (errno != 0) {
-            MathError(interp, vPtr->valueArr[i]);
+            MathError(interp, vPtr->data.real[i]);
             return TCL_ERROR;
         }
-        if (!FINITE(vPtr->valueArr[i])) {
+        if (!FINITE(vPtr->data.real[i])) {
             /*
              * IEEE floating-point error.
              */
-            MathError(interp, vPtr->valueArr[i]);
+            MathError(interp, vPtr->data.real[i]);
             return TCL_ERROR;
         }
     }
@@ -2293,7 +2293,7 @@ static int ScalarFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *v
     if (Rbc_VectorChangeLength(vPtr, 1) != TCL_OK) {
         return TCL_ERROR;
     }
-    vPtr->valueArr[0] = value;
+    vPtr->data.real[0] = value;
     return TCL_OK;
 }
 
