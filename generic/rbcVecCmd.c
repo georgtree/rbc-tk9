@@ -42,6 +42,50 @@ static int GetArrayByteCount(Tcl_Interp *interp, Tcl_Size count, size_t elementS
     return TCL_OK;
 }
 
+static int GetArithmeticScalar(Tcl_Interp *interp, Tcl_Obj *objPtr, Rbc_Complex *valuePtr, int *isComplexPtr) {
+    Tcl_Size objc;
+    Tcl_Obj **objv;
+
+    /*
+     * A two-element Tcl list is explicitly a complex scalar.
+     *
+     * Do this test before Rbc_GetDouble(), because a value such
+     * as {3 -4} could otherwise be interpreted as the Tcl
+     * expression "3 - 4".
+     */
+    *isComplexPtr = FALSE;
+    if (Tcl_ListObjGetElements(NULL, objPtr, &objc, &objv) == TCL_OK) {
+        if (objc == 2) {
+            *isComplexPtr = TRUE;
+        }
+    }
+    return Rbc_GetComplex(interp, objPtr, valuePtr);
+}
+
+static int ComplexArithmetic(Tcl_Interp *interp, int operator, Rbc_Complex a, Rbc_Complex b, Rbc_Complex *resultPtr) {
+    switch (operator) {
+    case '+':
+        *resultPtr = Rbc_ComplexAdd(a, b);
+        break;
+    case '-':
+        *resultPtr = Rbc_ComplexSub(a, b);
+        break;
+    case '*':
+        *resultPtr = Rbc_ComplexMul(a, b);
+        break;
+    case '/':
+        if (Rbc_ComplexIsZero(b)) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("divide by zero", -1));
+            return TCL_ERROR;
+        }
+        *resultPtr = Rbc_ComplexDiv(a, b);
+        break;
+    default:
+        Tcl_Panic("bad complex arithmetic operator %c", operator);
+    }
+    return TCL_OK;
+}
+
 enum NativeFormats {
     FMT_UNKNOWN = -1,
     FMT_UCHAR,
@@ -128,9 +172,9 @@ static const VectorInstOpSpec vectorInstOpCmd[] = {{{"*", 3, 3, "list"}, ArithOp
                                                    {{NULL, 0, 0, NULL}, NULL}};
 
 static int ComplexOpSupported(RbcVectorCmdOp *proc) {
-    return ((proc == AppendOp) || (proc == ClearOp) || (proc == DeleteOp) || (proc == DupOp) || (proc == IndexOp) ||
-            (proc == LengthOp) || (proc == MergeOp) || (proc == OffsetOp) || (proc == RangeOp) || (proc == SetOp) ||
-            (proc == SplitOp) || (proc == TypeOp) || (proc == VariableOp));
+    return ((proc == AppendOp) || (proc == ArithOp) || (proc == ClearOp) || (proc == DeleteOp) || (proc == DupOp) ||
+            (proc == IndexOp) || (proc == LengthOp) || (proc == MergeOp) || (proc == OffsetOp) || (proc == RangeOp) ||
+            (proc == SetOp) || (proc == SplitOp) || (proc == TypeOp) || (proc == VariableOp));
 }
 
 /*
@@ -289,86 +333,131 @@ static int AppendOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
  * -----------------------------------------------------------------------
  */
 static int ArithOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const *objv) {
-    register double value;
-    Tcl_Size i;
     VectorObject *v2Ptr;
-    double scalar;
     Tcl_Obj *listObjPtr;
-    char *string;
+    const char *operatorString;
+    int operator;
+    Tcl_Size i;
 
+    operatorString = Tcl_GetString(objv[1]);
+    operator= operatorString[0];
     v2Ptr = Rbc_VectorParseElement(NULL, vPtr->dataPtr, Tcl_GetString(objv[2]), NULL, NS_SEARCH_BOTH);
+    listObjPtr = Tcl_NewListObj(0, NULL);
     if (v2Ptr != NULL) {
         Tcl_Size j;
         Tcl_Size length;
+        int complexResult;
 
         length = v2Ptr->last - v2Ptr->first + 1;
         if (length != vPtr->length) {
             Rbc_AppendResultStrings(interp, "vectors \"", Tcl_GetString(objv[0]), "\" and \"", Tcl_GetString(objv[2]),
-                             "\" are not the same length", (char *)NULL);
+                                    "\" are not the same length", (char *)NULL);
             return TCL_ERROR;
         }
-        string = Tcl_GetString(objv[1]);
-        listObjPtr = Tcl_NewListObj(0, (Tcl_Obj **)NULL);
-        switch (string[0]) {
-        case '*':
-            for (i = 0, j = v2Ptr->first; i < vPtr->length; i++, j++) {
-                value = vPtr->data.real[i] * v2Ptr->data.real[j];
-                Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
+        complexResult = ((vPtr->type == RBC_VECTOR_COMPLEX) || (v2Ptr->type == RBC_VECTOR_COMPLEX));
+        if (!complexResult) {
+            double value;
+
+            /*
+             * Keep the original real arithmetic path unchanged.
+             */
+            switch (operator) {
+            case '*':
+                for (i = 0, j = v2Ptr->first; i < vPtr->length; i++, j++) {
+                    value = vPtr->data.real[i] * v2Ptr->data.real[j];
+                    Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
+                }
+                break;
+            case '/':
+                for (i = 0, j = v2Ptr->first; i < vPtr->length; i++, j++) {
+                    value = vPtr->data.real[i] / v2Ptr->data.real[j];
+                    Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
+                }
+                break;
+            case '-':
+                for (i = 0, j = v2Ptr->first; i < vPtr->length; i++, j++) {
+                    value = vPtr->data.real[i] - v2Ptr->data.real[j];
+                    Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
+                }
+                break;
+            case '+':
+                for (i = 0, j = v2Ptr->first; i < vPtr->length; i++, j++) {
+                    value = vPtr->data.real[i] + v2Ptr->data.real[j];
+                    Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
+                }
+                break;
             }
-            break;
-        case '/':
+        } else {
             for (i = 0, j = v2Ptr->first; i < vPtr->length; i++, j++) {
-                value = vPtr->data.real[i] / v2Ptr->data.real[j];
-                Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
+                Rbc_Complex a;
+                Rbc_Complex b;
+                Rbc_Complex result;
+
+                a = Rbc_VectorValueAsComplex(vPtr, i);
+                b = Rbc_VectorValueAsComplex(v2Ptr, j);
+                if (ComplexArithmetic(interp, operator, a, b, &result) != TCL_OK) {
+                    return TCL_ERROR;
+                }
+                Tcl_ListObjAppendElement(interp, listObjPtr, Rbc_NewComplexObj(result));
             }
-            break;
-        case '-':
-            for (i = 0, j = v2Ptr->first; i < vPtr->length; i++, j++) {
-                value = vPtr->data.real[i] - v2Ptr->data.real[j];
-                Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
-            }
-            break;
-        case '+':
-            for (i = 0, j = v2Ptr->first; i < vPtr->length; i++, j++) {
-                value = vPtr->data.real[i] + v2Ptr->data.real[j];
-                Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
-            }
-            break;
         }
-        Tcl_SetObjResult(interp, listObjPtr);
-    } else if (Rbc_GetDouble(interp, objv[2], &scalar) == TCL_OK) {
-        listObjPtr = Tcl_NewListObj(0, (Tcl_Obj **)NULL);
-        string = Tcl_GetString(objv[1]);
-        switch (string[0]) {
-        case '*':
-            for (i = 0; i < vPtr->length; i++) {
-                value = vPtr->data.real[i] * scalar;
-                Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
-            }
-            break;
-        case '/':
-            for (i = 0; i < vPtr->length; i++) {
-                value = vPtr->data.real[i] / scalar;
-                Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
-            }
-            break;
-        case '-':
-            for (i = 0; i < vPtr->length; i++) {
-                value = vPtr->data.real[i] - scalar;
-                Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
-            }
-            break;
-        case '+':
-            for (i = 0; i < vPtr->length; i++) {
-                value = vPtr->data.real[i] + scalar;
-                Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
-            }
-            break;
-        }
-        Tcl_SetObjResult(interp, listObjPtr);
     } else {
-        return TCL_ERROR;
+        Rbc_Complex scalar;
+        int scalarIsComplex;
+        int complexResult;
+
+        if (GetArithmeticScalar(interp, objv[2], &scalar, &scalarIsComplex) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        complexResult = ((vPtr->type == RBC_VECTOR_COMPLEX) || scalarIsComplex);
+        if (!complexResult) {
+            double value;
+            double realScalar;
+
+            realScalar = scalar.real;
+            /*
+             * Again preserve the existing real implementation.
+             */
+            switch (operator) {
+            case '*':
+                for (i = 0; i < vPtr->length; i++) {
+                    value = vPtr->data.real[i] * realScalar;
+                    Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
+                }
+                break;
+            case '/':
+                for (i = 0; i < vPtr->length; i++) {
+                    value = vPtr->data.real[i] / realScalar;
+                    Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
+                }
+                break;
+            case '-':
+                for (i = 0; i < vPtr->length; i++) {
+                    value = vPtr->data.real[i] - realScalar;
+                    Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
+                }
+                break;
+            case '+':
+                for (i = 0; i < vPtr->length; i++) {
+                    value = vPtr->data.real[i] + realScalar;
+                    Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(value));
+                }
+                break;
+            }
+        } else {
+            for (i = 0; i < vPtr->length; i++) {
+                Rbc_Complex a;
+                Rbc_Complex result;
+
+                a = Rbc_VectorValueAsComplex(vPtr, i);
+                if (ComplexArithmetic(interp, operator, a, scalar, &result) != TCL_OK) {
+                    return TCL_ERROR;
+                }
+                Tcl_ListObjAppendElement(interp, listObjPtr, Rbc_NewComplexObj(result));
+            }
+        }
     }
+    Tcl_SetObjResult(interp, listObjPtr);
     return TCL_OK;
 }
 

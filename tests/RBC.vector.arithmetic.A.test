@@ -153,6 +153,140 @@ namespace eval vector.arithmetic {
 	} -cleanup {
 		vector destroy VectorX
 	} -result {0.0 0.2 1.0 -2.0 2.0}
+
+    # ------------------------------------------------------------------------------------
+    # Complex arithmetic
+    # ------------------------------------------------------------------------------------
+
+    test RBC.vector.arithmetic.A.2.1 {
+        vector arithmetic: complex vector addition
+    } -setup {
+        vector create VectorX -type complex
+        vector create VectorY -type complex
+
+        VectorX set {{1 2} {3 -1}}
+        VectorY set {{1 1} {2 0}}
+    } -body {
+        VectorX + VectorY
+    } -cleanup {
+        catch {vector destroy VectorX}
+        catch {vector destroy VectorY}
+    } -result {{2.0 3.0} {5.0 -1.0}}
+
+    test RBC.vector.arithmetic.A.2.2 {
+        vector arithmetic: complex vector subtraction
+    } -setup {
+        vector create VectorX -type complex
+        vector create VectorY -type complex
+        VectorX set {{1 2} {3 -1}}
+        VectorY set {{1 1} {2 0}}
+    } -body {
+        VectorX - VectorY
+    } -cleanup {
+        catch {vector destroy VectorX}
+        catch {vector destroy VectorY}
+    } -result {{0.0 1.0} {1.0 -1.0}}
+
+    test RBC.vector.arithmetic.A.2.3 {
+        vector arithmetic: complex vector multiplication
+    } -setup {
+        vector create VectorX -type complex
+        vector create VectorY -type complex
+        VectorX set {{1 2} {3 -1}}
+        VectorY set {{1 1} {2 0}}
+    } -body {
+        VectorX * VectorY
+    } -cleanup {
+        catch {vector destroy VectorX}
+        catch {vector destroy VectorY}
+    } -result {{-1.0 3.0} {6.0 -2.0}}
+
+    test RBC.vector.arithmetic.A.2.4 {
+        vector arithmetic: complex vector division
+    } -setup {
+        vector create VectorX -type complex
+        vector create VectorY -type complex
+        VectorX set {{1 2} {3 -1}}
+        VectorY set {{1 1} {2 0}}
+    } -body {
+        VectorX / VectorY
+    } -cleanup {
+        catch {vector destroy VectorX}
+        catch {vector destroy VectorY}
+    } -result {{1.5 0.5} {1.5 -0.5}}
+
+    test RBC.vector.arithmetic.A.2.5 {
+        vector arithmetic: complex scalar
+    } -setup {
+        vector create VectorX -type complex
+        VectorX set {{1 2} {3 -1}}
+    } -body {
+        list [VectorX + {1 -1}] [VectorX - {1 -1}] [VectorX * {1 -1}] [VectorX / {1 -1}]
+    } -cleanup {
+        catch {vector destroy VectorX}
+    } -result {{{2.0 1.0} {4.0 -2.0}} {{0.0 3.0} {2.0 0.0}} {{3.0 1.0} {2.0 -4.0}} {{-0.5 1.5} {2.0 1.0}}}
+
+    test RBC.vector.arithmetic.A.2.6 {
+        vector arithmetic: real scalar promoted for complex vector
+    } -setup {
+        vector create VectorX -type complex
+        VectorX set {{1 2} {3 -1}}
+    } -body {
+        VectorX + 2
+    } -cleanup {
+        catch {vector destroy VectorX}
+    } -result {{3.0 2.0} {5.0 -1.0}}
+
+    test RBC.vector.arithmetic.A.2.7 {
+        vector arithmetic: real vector promoted for complex operation
+    } -setup {
+        vector create VectorX -type complex
+        vector create VectorY
+        VectorX set {{1 2} {3 -1}}
+        VectorY set {10 20}
+    } -body {
+        VectorX + VectorY
+    } -cleanup {
+        catch {vector destroy VectorX}
+        catch {vector destroy VectorY}
+    } -result {{11.0 2.0} {23.0 -1.0}}
+
+    test RBC.vector.arithmetic.A.2.8 {
+        vector arithmetic: complex right operand promotes real vector
+    } -setup {
+        vector create VectorX
+        vector create VectorY -type complex
+        VectorX set {10 20}
+        VectorY set {{1 2} {3 -1}}
+    } -body {
+        VectorX - VectorY
+    } -cleanup {
+        catch {vector destroy VectorX}
+        catch {vector destroy VectorY}
+    } -result {{9.0 -2.0} {17.0 1.0}}
+
+    test RBC.vector.arithmetic.A.2.9 {
+        vector arithmetic: complex scalar promotes real vector
+    } -setup {
+        vector create VectorX
+        VectorX set {1 2}
+    } -body {
+        VectorX + {3 4}
+    } -cleanup {
+        catch {vector destroy VectorX}
+    } -result {{4.0 4.0} {5.0 4.0}}
+
+    test RBC.vector.arithmetic.A.2.10 {
+        vector arithmetic: division by zero complex value rejected
+    } -setup {
+        vector create VectorX -type complex
+        VectorX set {{1 2} {3 4}}
+    } -body {
+        set code [catch { VectorX / {0 0} } message]
+        list $code $message
+    } -cleanup {
+        catch {vector destroy VectorX}
+    } -result {1 {divide by zero}}
 	
 	cleanupTests
 }

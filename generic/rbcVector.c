@@ -2711,6 +2711,83 @@ int Rbc_GetComplex(Tcl_Interp *interp, Tcl_Obj *objPtr, Rbc_Complex *valuePtr) {
     return TCL_ERROR;
 }
 
+Rbc_Complex Rbc_ComplexFromReal(double value) {
+    Rbc_Complex result;
+
+    result.real = value;
+    result.imag = 0.0;
+    return result;
+}
+
+int Rbc_ComplexIsZero(Rbc_Complex value) { return ((value.real == 0.0) && (value.imag == 0.0)); }
+
+Rbc_Complex Rbc_ComplexAdd(Rbc_Complex a, Rbc_Complex b) {
+    Rbc_Complex result;
+
+    result.real = a.real + b.real;
+    result.imag = a.imag + b.imag;
+    return result;
+}
+
+Rbc_Complex Rbc_ComplexSub(Rbc_Complex a, Rbc_Complex b) {
+    Rbc_Complex result;
+
+    result.real = a.real - b.real;
+    result.imag = a.imag - b.imag;
+    return result;
+}
+
+Rbc_Complex Rbc_ComplexMul(Rbc_Complex a, Rbc_Complex b) {
+    Rbc_Complex result;
+
+    result.real = (a.real * b.real) - (a.imag * b.imag);
+    result.imag = (a.real * b.imag) + (a.imag * b.real);
+    return result;
+}
+
+Rbc_Complex Rbc_ComplexDiv(Rbc_Complex a, Rbc_Complex b) {
+    Rbc_Complex result;
+    /*
+     * Use the ratio form rather than directly computing
+     *
+     *     b.real*b.real + b.imag*b.imag
+     *
+     * to reduce unnecessary overflow/underflow.
+     *
+     * The caller must reject b == 0+0i.
+     */
+    if (fabs(b.real) >= fabs(b.imag)) {
+        double ratio;
+        double denominator;
+
+        ratio = b.imag / b.real;
+        denominator = b.real + b.imag * ratio;
+        result.real = (a.real + a.imag * ratio) / denominator;
+        result.imag = (a.imag - a.real * ratio) / denominator;
+
+    } else {
+        double ratio;
+        double denominator;
+
+        ratio = b.real / b.imag;
+        denominator = b.imag + b.real * ratio;
+        result.real = (a.real * ratio + a.imag) / denominator;
+        result.imag = (a.imag * ratio - a.real) / denominator;
+    }
+    return result;
+}
+
+Rbc_Complex Rbc_VectorValueAsComplex(VectorObject *vPtr, Tcl_Size index) {
+    switch (vPtr->type) {
+    case RBC_VECTOR_REAL:
+        return Rbc_ComplexFromReal(vPtr->data.real[index]);
+    case RBC_VECTOR_COMPLEX:
+        return vPtr->data.complex[index];
+    }
+    Tcl_Panic("bad vector type %d", (int)vPtr->type);
+    return Rbc_ComplexFromReal(0.0);
+}
+
 /*
  *--------------------------------------------------------------
  *
