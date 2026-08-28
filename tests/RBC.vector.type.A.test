@@ -1,0 +1,62 @@
+# RBC.vector.type.A.test --
+#
+###Abstract
+# This file tests the type function of the vector rbc component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+###Package Definition
+package provide vector.type
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval vector.type {
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that a default vector reports real type.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.type.A.1.1 {
+        vector type: default real vector
+    } -setup {
+        vector create TestVector
+    } -body {
+        TestVector type
+    } -cleanup {
+        catch {vector destroy TestVector}
+    } -result {real}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that a complex vector reports complex type.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.type.A.1.2 {
+        vector type: complex vector
+    } -setup {
+        vector create TestVector -type complex
+    } -body {
+        TestVector type
+    } -cleanup {
+        catch {vector destroy TestVector}
+    } -result {complex}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that resizing does not change the vector type.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.type.A.1.3 {
+        vector type: complex type survives resize
+    } -setup {
+        vector create TestVector -type complex
+    } -body {
+        TestVector length 20
+        TestVector type
+    } -cleanup {
+        catch {vector destroy TestVector}
+    } -result {complex}
+
+    cleanupTests
+}

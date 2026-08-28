@@ -148,5 +148,46 @@ namespace eval vector.length {
 	    vector destroy TestVector
 	} -result {1}
 
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that a complex vector can be created with an initial length.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.length.A.3.1 {
+        vector length: complex initial length
+    } -setup {
+        vector create TestVector(5) -type complex
+    } -body {
+        list [TestVector length] [TestVector type]
+    } -cleanup {
+        catch {vector destroy TestVector}
+    } -result {5 complex}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that a complex vector can be expanded.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.length.A.3.2 {
+        vector length: expand complex vector
+    } -setup {
+        vector create TestVector(5) -type complex
+    } -body {
+        TestVector length 10
+        list [TestVector length] [TestVector type]
+    } -cleanup {
+        catch {vector destroy TestVector}
+    } -result {10 complex}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that a complex vector can be shrunk.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.length.A.3.3 {
+        vector length: shrink complex vector
+    } -setup {
+        vector create TestVector(10) -type complex
+    } -body {
+        TestVector length 3
+        list [TestVector length] [TestVector type]
+    } -cleanup {
+        catch {vector destroy TestVector}
+    } -result {3 complex}
+
 	cleanupTests
 }

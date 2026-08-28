@@ -228,7 +228,7 @@ int Rbc_VectorChangeLength(VectorObject *vPtr, Tcl_Size length);
 void Rbc_VectorUpdateClients(VectorObject *vPtr);
 int Rbc_VectorMapVariable(Tcl_Interp *interp, VectorObject *vPtr, const char *name);
 VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, const char *cmdName, const char *varName,
-                               int *newPtr);
+                               Rbc_VectorType type, int *newPtr);
 int Rbc_VectorGetIndex(Tcl_Interp *interp, VectorObject *vPtr, const char *string, Tcl_Size *indexPtr, int flags,
                        Rbc_VectorIndexProc **procPtrPtr);
 int Rbc_GetDouble(Tcl_Interp *interp, Tcl_Obj *objPtr, double *valuePtr);

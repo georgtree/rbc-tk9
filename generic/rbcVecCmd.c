@@ -893,7 +893,7 @@ static int DupOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
 
     for (i = 2; i < objc; i++) {
         string = Tcl_GetString(objv[i]);
-        v2Ptr = Rbc_VectorCreate(vPtr->dataPtr, string, string, string, &isNew);
+        v2Ptr = Rbc_VectorCreate(vPtr->dataPtr, string, string, string, RBC_VECTOR_REAL, &isNew);
         if (v2Ptr == NULL) {
             return TCL_ERROR;
         }
@@ -1191,7 +1191,7 @@ static int NormalizeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tc
         char *string;
 
         string = Tcl_GetString(objv[2]);
-        v2Ptr = Rbc_VectorCreate(vPtr->dataPtr, string, string, string, &isNew);
+        v2Ptr = Rbc_VectorCreate(vPtr->dataPtr, string, string, string, RBC_VECTOR_REAL, &isNew);
         if (v2Ptr == NULL) {
             return TCL_ERROR;
         }
@@ -1336,7 +1336,7 @@ static int PopulateOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
         }
     }
     name = Tcl_GetString(objv[2]);
-    v2Ptr = Rbc_VectorCreate(vPtr->dataPtr, name, name, name, &isNew);
+    v2Ptr = Rbc_VectorCreate(vPtr->dataPtr, name, name, name, RBC_VECTOR_REAL, &isNew);
     if (v2Ptr == NULL) {
         return TCL_ERROR;
     }
@@ -1918,7 +1918,7 @@ static int SplitOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
     tmpPtr = NULL;
     for (argIndex = 0; argIndex < nVectorArgs; argIndex++) {
         string = Tcl_GetString(objv[argIndex + 2]);
-        v2Ptr = Rbc_VectorCreate(vPtr->dataPtr, string, string, string, &isNew);
+        v2Ptr = Rbc_VectorCreate(vPtr->dataPtr, string, string, string, RBC_VECTOR_REAL, &isNew);
         if (v2Ptr == NULL) {
             goto error;
         }

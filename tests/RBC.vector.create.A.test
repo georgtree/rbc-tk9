@@ -292,6 +292,134 @@ namespace eval vector.create {
     } -cleanup {
         catch {vector destroy Vector1}
     } -result {option "-length" requires an additional argument}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that vectors are real by default.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.create.A.5.1 {
+        vector create: default vector type
+    } -body {
+        vector create Vector1
+        Vector1 type
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {real}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that -type real explicitly creates a real vector.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.create.A.5.2 {
+        vector create: explicit real type
+    } -body {
+        vector create Vector1 -type real
+        Vector1 type
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {real}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that -type complex creates a complex vector.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.create.A.5.3 {
+        vector create: complex type
+    } -body {
+        vector create Vector1 -type complex
+        Vector1 type
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {complex}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that an invalid vector type is rejected without creating anything.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.create.A.5.4 {
+        vector create: invalid type
+    } -body {
+        set code [catch {vector create Vector1 -type imaginary} message]
+        list $code $message [vector names ::vector.create::Vector1] [info commands Vector1] [info exists Vector1]
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {1 {bad value "imaginary" for -type: must be real or complex} {} {} 0}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that complex vectors do not receive the legacy default Tcl array
+    # mapping while the complex variable interface is not implemented.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.create.A.5.5 {
+        vector create: complex vector has no default array variable
+    } -body {
+        vector create Vector1 -type complex
+        list [Vector1 type] [info commands Vector1] [info exists Vector1] [array exists Vector1]
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {complex Vector1 0 0}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that an explicit Tcl array mapping is rejected for complex vectors
+    # without leaving a partially created vector, command, or variable.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.create.A.5.6 {
+        vector create: complex vector variable mapping rejected
+    } -body {
+        set code [catch { vector create Vector1 -type complex -variable Foo } message]
+        list $code $message [vector names ::vector.create::Vector1] [info commands Vector1] [info exists Foo]
+    } -cleanup {
+        catch {vector destroy Vector1}
+        catch {unset Foo}
+    } -result {1 {Tcl array mapping is not supported for complex vectors yet} {} {} 0}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that an existing real vector cannot be changed to complex.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.create.A.5.7 {
+        vector create: real to complex type change rejected
+    } -body {
+        vector create Vector1
+        set code [catch { vector create Vector1 -type complex } message]
+        list $code $message [Vector1 type] [array exists Vector1]
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {1 {can't change vector "::vector.create::Vector1" from type "real" to "complex"} real 1}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that an existing complex vector cannot be changed to real.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.create.A.5.8 {
+        vector create: complex to real type change rejected
+    } -body {
+        vector create Vector1 -type complex
+        set code [catch { vector create Vector1 -type real } message]
+        list $code $message [Vector1 type] [array exists Vector1]
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {1 {can't change vector "::vector.create::Vector1" from type "complex" to "real"} complex 0}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that omitting -type when recreating an existing complex vector does
+    # not implicitly request a real vector.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.create.A.5.9 {
+        vector create: omitted type preserves existing complex type
+    } -body {
+        vector create Vector1 -type complex
+        vector create Vector1
+        list [Vector1 type] [array exists Vector1]
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {complex 0}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that -type applies to every vector in a multiple-vector create.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.create.A.5.10 {
+        vector create: multiple complex vectors
+    } -body {
+        vector create Vector1 Vector2 -type complex
+        list [Vector1 type] [Vector2 type] [array exists Vector1] [array exists Vector2]
+    } -cleanup {
+        catch {vector destroy Vector1}
+        catch {vector destroy Vector2}
+    } -result {complex complex 0 0}
 	
     cleanupTests
 }

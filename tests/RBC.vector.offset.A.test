@@ -68,5 +68,20 @@ namespace eval vector.offset {
 	    vector destroy TestVector
 	} -result {1}
 
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that offset remains available for complex vectors.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.offset.A.3.1 {
+        vector offset: complex vector
+    } -setup {
+        vector create TestVector(5:10) -type complex
+    } -body {
+        set before [TestVector offset]
+        TestVector offset 20
+        list $before [TestVector offset] [TestVector type]
+    } -cleanup {
+        catch {vector destroy TestVector}
+    } -result {5 20 complex}
+
 	cleanupTests
 }

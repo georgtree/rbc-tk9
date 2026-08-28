@@ -108,6 +108,36 @@ namespace import tcltest::*
 	} -cleanup {
 		vector destroy foo
 	} -result {1.0 2.0 3.0 4.0}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that complex index reads are rejected until complex value access
+    # is implemented.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.index.A.3.1 {
+        vector index: complex read not supported
+    } -setup {
+        vector create foo(4) -type complex
+    } -body {
+        catch {foo index 0} message
+        set message
+    } -cleanup {
+        catch {vector destroy foo}
+    } -result {operation "index" is not supported for complex vectors}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that complex index writes are rejected before the real-only index
+    # implementation is entered.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.index.A.3.2 {
+        vector index: complex write not supported
+    } -setup {
+        vector create foo(4) -type complex
+    } -body {
+        catch {foo index 0 1.0} message
+        set message
+    } -cleanup {
+        catch {vector destroy foo}
+    } -result {operation "index" is not supported for complex vectors}
 	
 	cleanupTests
 #}

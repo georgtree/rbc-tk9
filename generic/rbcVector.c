@@ -292,11 +292,46 @@ static int GetSizeFromString(Tcl_Interp *interp, const char *string, Tcl_Size *v
  *
  *----------------------------------------------------------------------
  */
+typedef struct {
+    Rbc_VectorType type;
+    int specified;
+} VectorTypeOption;
+
+static Tcl_Size ParseVectorType(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[],
+                                void *dstPtr) {
+    VectorTypeOption *optionPtr;
+    const char *string;
+    const char *optionName;
+
+    optionPtr = (VectorTypeOption *)dstPtr;
+    optionName = (const char *)clientData;
+
+    if (objc < 1) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("option \"%s\" requires an additional argument", optionName));
+        return -1;
+    }
+
+    string = Tcl_GetString(objv[0]);
+
+    if (strcmp(string, "real") == 0) {
+        optionPtr->type = RBC_VECTOR_REAL;
+    } else if (strcmp(string, "complex") == 0) {
+        optionPtr->type = RBC_VECTOR_COMPLEX;
+    } else {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad value \"%s\" for -type: must be real or complex", string));
+        return -1;
+    }
+
+    optionPtr->specified = TRUE;
+    return 1;
+}
+
 static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     VectorInterpData *dataPtr = clientData;
     VectorObject *vPtr;
     Tcl_Obj *resultPtr; /* for the result of this function */
     char *cmdName, *varName;
+    VectorTypeOption typeOption;
     int freeOnUnset;
     int flush;
     Tcl_Size defLen;
@@ -307,6 +342,7 @@ static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Siz
     const Tcl_ArgvInfo argsTable[] = {{TCL_ARGV_STRING, "-command", NULL, &cmdName, NULL, NULL},
                                       {TCL_ARGV_GENFUNC, "-flush", ParseBool, &flush, NULL, "-flush"},
                                       {TCL_ARGV_GENFUNC, "-length", ParseVectorLength, &defLen, NULL, "-length"},
+                                      {TCL_ARGV_GENFUNC, "-type", ParseVectorType, &typeOption, NULL, "-type"},
                                       {TCL_ARGV_STRING, "-variable", NULL, &varName, NULL, NULL},
                                       {TCL_ARGV_GENFUNC, "-watchunset", ParseBool, &freeOnUnset, NULL, "-watchunset"},
                                       TCL_ARGV_TABLE_END};
@@ -320,15 +356,17 @@ static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Siz
     freeOnUnset = 0; /* value of the user level '-watchunset' switch */
     defLen = 0;      /* default vector length */
     flush = FALSE;
+    typeOption.type = RBC_VECTOR_REAL;
+    typeOption.specified = FALSE;
 
     count = objc - 1; /* start at "create" */
     if (Tcl_ParseArgsObjv(interp, argsTable, &count, objv + 1, &objNameArray)) {
         return TCL_ERROR;
     }
-
     /* finished parsing arguments -> do some sanity checks: */
     Tcl_DStringInit(&ds);
     resultPtr = Tcl_NewObj();
+
     if (defLen < 0) {
         Tcl_AppendStringsToObj(resultPtr,
                                "value for \"-length\" option "
@@ -369,6 +407,9 @@ static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Siz
         Tcl_Size first;
         Tcl_Size last;
         char *vecName; /* name of a vector */
+        const char *createVarName;
+        VectorObject *existingPtr;
+        Rbc_VectorType effectiveType;
 
         Tcl_DStringFree(&ds);
         Tcl_DStringAppend(&ds, Tcl_GetString(objNameArray[i]), -1);
@@ -432,12 +473,45 @@ static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Siz
         if (leftParen != NULL) {
             *leftParen = '\0';
         }
+        
 
+        existingPtr = GetVectorObject(dataPtr, vecName, NS_SEARCH_BOTH);
+
+        if (existingPtr != NULL) {
+            if (typeOption.specified &&
+                (existingPtr->type != typeOption.type)) {
+
+                Tcl_SetObjResult(interp,
+                    Tcl_ObjPrintf(
+                        "can't change vector \"%s\" from type \"%s\" to \"%s\"",
+                        existingPtr->name,
+                        (existingPtr->type == RBC_VECTOR_REAL)
+                            ? "real" : "complex",
+                        (typeOption.type == RBC_VECTOR_REAL)
+                            ? "real" : "complex"));
+                goto error;
+            }
+
+            effectiveType = existingPtr->type;
+        } else {
+            effectiveType = typeOption.type;
+        }
         /*
          * actually create the vector:
          */
-        vPtr = Rbc_VectorCreate(dataPtr, vecName, (cmdName == NULL) ? vecName : cmdName,
-                                (varName == NULL) ? vecName : varName, &isNew);
+        if (effectiveType == RBC_VECTOR_COMPLEX) {
+            if ((varName != NULL) && (varName[0] != '\0')) {
+                Tcl_SetObjResult(interp,
+                                 Tcl_NewStringObj("Tcl array mapping is not supported for complex vectors yet", -1));
+                goto error;
+            }
+
+            createVarName = NULL;
+        } else {
+            createVarName = (varName == NULL) ? vecName : varName;
+        }
+        vPtr = Rbc_VectorCreate(dataPtr, vecName, (cmdName == NULL) ? vecName : cmdName, createVarName, effectiveType,
+                                &isNew);
 
         if (leftParen != NULL) {
             *leftParen = '(';
@@ -736,7 +810,7 @@ VectorObject *Rbc_VectorNew(VectorInterpData *dataPtr) {
  *
  * ---------------------------------------------------------------------- */
 VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, const char *cmdName, const char *varName,
-                               int *newPtr) {
+                               Rbc_VectorType type, int *newPtr) {
     Tcl_Obj *resultPtr = Tcl_NewStringObj("", -1);
     VectorObject *vPtr;
     int isNew;
@@ -752,6 +826,10 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
     nsPtr = NULL;
     vPtr = NULL;
 
+    if ((type == RBC_VECTOR_COMPLEX) && (varName != NULL) && (varName[0] != '\0')) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("Tcl array mapping is not supported for complex vectors yet", -1));
+        return NULL;
+    }
     /* process the vector name: */
     vecName = BuildQualifiedName(interp, vecName, &qualVecNamePtr);
     if (ParseQualifiedName(interp, vecName, &nsPtr, &vecNameTail) != TCL_OK) {
@@ -786,19 +864,28 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
         vPtr = Rbc_VectorParseElement(NULL, dataPtr, qualVecName, NULL, NS_SEARCH_CURRENT);
     }
 
+    /*
+     * A vector's numeric type is immutable.  Only reject a mismatch
+     * when -type was explicitly supplied; an omitted -type preserves
+     * the type of an existing vector.
+     */
     if (vPtr == NULL) {
         hPtr = Tcl_CreateHashEntry(&(dataPtr->vectorTable), qualVecName, &isNew);
-        vPtr = Rbc_VectorNew(dataPtr);
-        vPtr->hashPtr = hPtr;
 
+        vPtr = Rbc_VectorNew(dataPtr);
+        vPtr->type = type;
+
+        vPtr->hashPtr = hPtr;
         vPtr->name = Tcl_GetHashKey(&(dataPtr->vectorTable), hPtr);
 
-#ifdef NAMESPACE_DELETE_NOTIFY
-        /* Not Implemented Yet */
-        /***    Rbc_CreateNsDeleteNotify(interp, nsPtr, vPtr, VectorInstDeleteProc); */
-#endif /* NAMESPACE_DELETE_NOTIFY */
-
         Tcl_SetHashValue(hPtr, vPtr);
+    } else if (vPtr->type != type) {
+        /*
+         * Defensive internal invariant.  The Tcl create command should
+         * already have resolved the effective type.
+         */
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("vector type mismatch", -1));
+        goto error;
     }
 
     /* process the command name: */
@@ -2831,7 +2918,7 @@ int Rbc_CreateVector2(Tcl_Interp *interp, const char *vecName, const char *cmdNa
         return TCL_ERROR;
     }
     dataPtr = Rbc_VectorGetInterpData(interp);
-    vPtr = Rbc_VectorCreate(dataPtr, vecName, cmdName, varName, &isNew);
+    vPtr = Rbc_VectorCreate(dataPtr, vecName, cmdName, varName, RBC_VECTOR_REAL, &isNew);
     if (vPtr == NULL) {
         return TCL_ERROR;
     }
