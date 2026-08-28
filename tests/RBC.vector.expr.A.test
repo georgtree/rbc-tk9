@@ -978,17 +978,146 @@ namespace eval vector.expr {
     } -result {1 {domain error: argument not in valid range} {ARITH DOMAIN {domain error: argument not in valid\
                                                                                     range}}}
 
-    test RBC.vector.expr.A.complex.1 {
-        vector expr: complex vectors rejected until expression support exists
+    test RBC.vector.expr.A.3.1 {
+        complex vector expression: vector value
     } -setup {
-        vector create Complex1 -type complex
-        Complex1 set {{1 2} {3 4}}
+        vector create C -type complex
+        C set {{1 2} {3 -4}}
     } -body {
-        set code [catch { vector expr {Complex1} } message]
-        list $code [string match {*complex*expressions do not support complex vectors yet} $message]
+        vector expr {C}
     } -cleanup {
-        catch {vector destroy Complex1}
-    } -result {1 1}
+        catch {vector destroy C}
+    } -result {{1.0 2.0} {3.0 -4.0}}
+
+    test RBC.vector.expr.A.3.2 {
+        complex vector expression: unary minus
+    } -setup {
+        vector create C -type complex
+        C set {{1 2} {3 -4}}
+    } -body {
+        vector expr {-C}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {{-1.0 -2.0} {-3.0 4.0}}
+
+    test RBC.vector.expr.A.3.3 {
+        complex vector expression: addition
+    } -setup {
+        vector create A -type complex
+        vector create B -type complex
+        A set {{1 2} {3 -1}}
+        B set {{1 1} {2 0}}
+    } -body {
+        vector expr {A + B}
+    } -cleanup {
+        catch {vector destroy A}
+        catch {vector destroy B}
+    } -result {{2.0 3.0} {5.0 -1.0}}
+
+    test RBC.vector.expr.A.3.4 {
+        complex vector expression: scalar literal
+    } -setup {
+        vector create C -type complex
+        C set {{1 2} {3 -1}}
+    } -body {
+        vector expr {C + {1 -1}}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {{2.0 1.0} {4.0 -2.0}}
+
+    test RBC.vector.expr.A.3.5 {
+        complex vector expression: multiplication
+    } -setup {
+        vector create A -type complex
+        vector create B -type complex
+        A set {{1 2} {3 -1}}
+        B set {{1 1} {2 0}}
+    } -body {
+        vector expr {A * B}
+    } -cleanup {
+        catch {vector destroy A}
+        catch {vector destroy B}
+    } -result {{-1.0 3.0} {6.0 -2.0}}
+
+    test RBC.vector.expr.A.3.6 {
+        complex vector expression: division
+    } -setup {
+        vector create A -type complex
+        vector create B -type complex
+        A set {{1 2} {3 -1}}
+        B set {{1 1} {2 0}}
+    } -body {
+        vector expr {A / B}
+    } -cleanup {
+        catch {vector destroy A}
+        catch {vector destroy B}
+    } -result {{1.5 0.5} {1.5 -0.5}}
+
+    test RBC.vector.expr.A.3.7 {
+        complex vector expression: mixed real vector
+    } -setup {
+        vector create A -type complex
+        vector create B
+        A set {{1 2} {3 -1}}
+        B set {10 20}
+    } -body {
+        vector expr {A + B}
+    } -cleanup {
+        catch {vector destroy A}
+        catch {vector destroy B}
+    } -result {{11.0 2.0} {23.0 -1.0}}
+
+    test RBC.vector.expr.A.3.8 {
+        complex vector expression: scalar first
+    } -setup {
+        vector create C -type complex
+        C set {{1 2} {3 -1}}
+    } -body {
+        vector expr {{1 -1} - C}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {{0.0 -3.0} {-2.0 0.0}}
+
+    test RBC.vector.expr.A.3.9 {
+        complex vector expression: precedence
+    } -setup {
+        vector create A -type complex
+        vector create B -type complex
+        A set {{1 2}}
+        B set {{3 4}}
+    } -body {
+        vector expr {A + B * 2}
+    } -cleanup {
+        catch {vector destroy A}
+        catch {vector destroy B}
+    } -result {{7.0 10.0}}
+
+    test RBC.vector.expr.A.3.10 {
+        complex instance expr
+    } -setup {
+        vector create C -type complex
+        C set {{1 2} {3 4}}
+    } -body {
+        C expr {C * 2}
+        list [C type] [C range 0 end]
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {complex {{2.0 4.0} {6.0 8.0}}}
+
+    test RBC.vector.expr.A.3.11 {
+        real target rejects complex expression result
+    } -setup {
+        vector create R
+        vector create C -type complex
+        R set {10 20}
+        C set {{1 2} {3 4}}
+    } -body {
+        set code [catch {R expr {C + 1}} message]
+        list $code $message [R range 0 end]
+    } -cleanup {
+        catch {vector destroy R}
+        catch {vector destroy C}
+    } -result {1 {can't store complex expression result in real vector} {10.0 20.0}}
 
 	cleanupTests
 }

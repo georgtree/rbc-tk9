@@ -172,9 +172,9 @@ static const VectorInstOpSpec vectorInstOpCmd[] = {{{"*", 3, 3, "list"}, ArithOp
                                                    {{NULL, 0, 0, NULL}, NULL}};
 
 static int ComplexOpSupported(RbcVectorCmdOp *proc) {
-    return ((proc == AppendOp) || (proc == ArithOp) || (proc == ClearOp) || (proc == DeleteOp) || (proc == DupOp) ||
-            (proc == IndexOp) || (proc == LengthOp) || (proc == MergeOp) || (proc == OffsetOp) || (proc == RangeOp) ||
-            (proc == SetOp) || (proc == SplitOp) || (proc == TypeOp) || (proc == VariableOp));
+    return ((proc == ExprOp) || (proc == AppendOp) || (proc == ArithOp) || (proc == ClearOp) || (proc == DeleteOp) ||
+            (proc == DupOp) || (proc == IndexOp) || (proc == LengthOp) || (proc == MergeOp) || (proc == OffsetOp) ||
+            (proc == RangeOp) || (proc == SetOp) || (proc == SplitOp) || (proc == TypeOp) || (proc == VariableOp));
 }
 
 /*

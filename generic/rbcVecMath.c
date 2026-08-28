@@ -140,16 +140,6 @@ static MathFunction mathFunctions[] = {
     },
 };
 
-static int CheckExpressionVectorType(Tcl_Interp *interp, VectorObject *vPtr) {
-    if (vPtr->type != RBC_VECTOR_REAL) {
-        Tcl_SetObjResult(
-            interp, Tcl_ObjPrintf("vector \"%s\" is complex; vector expressions do not support complex vectors yet",
-                                  vPtr->name));
-        return TCL_ERROR;
-    }
-    return TCL_OK;
-}
-
 static int GetDoubleArrayByteCount(Tcl_Interp *interp, Tcl_Size count, size_t *byteCountPtr) {
     if (count < 0) {
         Tcl_SetObjResult(interp, Tcl_NewStringObj("array size cannot be negative", -1));
@@ -184,6 +174,202 @@ static int GetRotationOffset(Tcl_Interp *interp, double scalar, Tcl_Size length,
     remainder = fmod(scalar, (double)length);
     if (remainder > 0.0) {
         *offsetPtr = (Tcl_Size)remainder;
+    }
+    return TCL_OK;
+}
+
+static void ReleaseExpressionStorage(VectorObject *vPtr) {
+    if ((vPtr->data.raw != NULL) && (vPtr->freeProc != TCL_STATIC)) {
+        if (vPtr->freeProc == TCL_DYNAMIC) {
+            ckfree(vPtr->data.raw);
+        } else {
+            vPtr->freeProc(vPtr->data.raw);
+        }
+    }
+    vPtr->data.raw = NULL;
+    vPtr->length = 0;
+    vPtr->size = 0;
+    vPtr->first = 0;
+    vPtr->last = -1;
+    vPtr->freeProc = TCL_STATIC;
+}
+
+static void SetExpressionVectorType(VectorObject *vPtr, Rbc_VectorType type) {
+    if (vPtr->type == type) {
+        return;
+    }
+    /*
+     * Expression vectors are unnamed temporaries only.
+     */
+    assert(vPtr->hashPtr == NULL);
+    assert(vPtr->cmdToken == 0);
+    assert(vPtr->arrayName == NULL);
+    ReleaseExpressionStorage(vPtr);
+    vPtr->type = type;
+}
+
+static int CopyExpressionVector(VectorObject *destPtr, VectorObject *srcPtr) {
+    SetExpressionVectorType(destPtr, srcPtr->type);
+    return Rbc_VectorDuplicate(destPtr, srcPtr);
+}
+
+static int PromoteExpressionVectorToComplex(VectorObject *vPtr) {
+    Rbc_Complex *newArr;
+    size_t byteCount;
+    Tcl_Size i;
+
+    if (vPtr->type == RBC_VECTOR_COMPLEX) {
+        return TCL_OK;
+    }
+    assert(vPtr->type == RBC_VECTOR_REAL);
+    if ((Tcl_WideUInt)vPtr->size > (Tcl_WideUInt)(SIZE_MAX / sizeof(Rbc_Complex))) {
+        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("vector size is too large", -1));
+        return TCL_ERROR;
+    }
+    byteCount = (size_t)vPtr->size * sizeof(Rbc_Complex);
+    newArr = NULL;
+    if (byteCount > 0) {
+        newArr = Tcl_AttemptAlloc(byteCount);
+        if (newArr == NULL) {
+            Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("can't allocate complex expression vector", -1));
+            return TCL_ERROR;
+        }
+    }
+    for (i = 0; i < vPtr->length; i++) {
+        newArr[i].real = vPtr->data.real[i];
+        newArr[i].imag = 0.0;
+    }
+    if ((vPtr->data.raw != NULL) && (vPtr->freeProc != TCL_STATIC)) {
+        if (vPtr->freeProc == TCL_DYNAMIC) {
+            ckfree(vPtr->data.raw);
+        } else {
+            vPtr->freeProc(vPtr->data.raw);
+        }
+    }
+    vPtr->data.complex = newArr;
+    vPtr->type = RBC_VECTOR_COMPLEX;
+    vPtr->freeProc = (newArr == NULL) ? TCL_STATIC : TCL_DYNAMIC;
+    return TCL_OK;
+}
+
+static int SetExpressionRealScalar(VectorObject *vPtr, double value) {
+    SetExpressionVectorType(vPtr, RBC_VECTOR_REAL);
+    if (Rbc_VectorChangeLength(vPtr, 1) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    vPtr->data.real[0] = value;
+    return TCL_OK;
+}
+
+static int SetExpressionComplexScalar(VectorObject *vPtr, Rbc_Complex value) {
+    SetExpressionVectorType(vPtr, RBC_VECTOR_COMPLEX);
+    if (Rbc_VectorChangeLength(vPtr, 1) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    vPtr->data.complex[0] = value;
+    return TCL_OK;
+}
+
+static int ApplyComplexBinaryValue(Tcl_Interp *interp, int operator, Rbc_Complex a, Rbc_Complex b,
+                                   Rbc_Complex *resultPtr) {
+    switch (operator) {
+    case PLUS:
+        *resultPtr = Rbc_ComplexAdd(a, b);
+        return TCL_OK;
+    case MINUS:
+        *resultPtr = Rbc_ComplexSub(a, b);
+        return TCL_OK;
+    case MULT:
+        *resultPtr = Rbc_ComplexMul(a, b);
+        return TCL_OK;
+    case DIVIDE:
+        if (Rbc_ComplexIsZero(b)) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("divide by zero", -1));
+            return TCL_ERROR;
+        }
+        *resultPtr = Rbc_ComplexDiv(a, b);
+        return TCL_OK;
+    }
+    Tcl_SetObjResult(interp, Tcl_NewStringObj("operator is not supported for complex vectors", -1));
+    return TCL_ERROR;
+}
+
+static int ApplyComplexBinaryOperator(Tcl_Interp *interp, int operator, VectorObject * vPtr, VectorObject *v2Ptr) {
+    Tcl_Size i;
+
+    switch (operator) {
+    case PLUS:
+    case MINUS:
+    case MULT:
+    case DIVIDE:
+        break;
+    default:
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("operator is not supported for complex vectors", -1));
+        return TCL_ERROR;
+    }
+    /*
+     * Vector op scalar.
+     */
+    if (v2Ptr->length == 1) {
+        Rbc_Complex scalar;
+
+        scalar = Rbc_VectorValueAsComplex(v2Ptr, 0);
+        if (PromoteExpressionVectorToComplex(vPtr) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        for (i = 0; i < vPtr->length; i++) {
+            Rbc_Complex result;
+
+            if (ApplyComplexBinaryValue(interp, operator, vPtr->data.complex[i], scalar, &result) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            vPtr->data.complex[i] = result;
+        }
+        return TCL_OK;
+    }
+    /*
+     * Scalar op vector.
+     */
+    if (vPtr->length == 1) {
+        Rbc_Complex scalar;
+        Tcl_Size length;
+
+        scalar = Rbc_VectorValueAsComplex(vPtr, 0);
+        length = v2Ptr->length;
+        if (PromoteExpressionVectorToComplex(vPtr) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if (Rbc_VectorChangeLength(vPtr, length) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        for (i = 0; i < length; i++) {
+            Rbc_Complex operand;
+            Rbc_Complex result;
+
+            operand = Rbc_VectorValueAsComplex(v2Ptr, i);
+            if (ApplyComplexBinaryValue(interp, operator, scalar, operand, &result) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            vPtr->data.complex[i] = result;
+        }
+        return TCL_OK;
+    }
+    if (vPtr->length != v2Ptr->length) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("vectors are different lengths", -1));
+        return TCL_ERROR;
+    }
+    if (PromoteExpressionVectorToComplex(vPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    for (i = 0; i < vPtr->length; i++) {
+        Rbc_Complex operand;
+        Rbc_Complex result;
+
+        operand = Rbc_VectorValueAsComplex(v2Ptr, i);
+        if (ApplyComplexBinaryValue(interp, operator, vPtr->data.complex[i], operand, &result) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        vPtr->data.complex[i] = result;
     }
     return TCL_OK;
 }
@@ -1092,6 +1278,32 @@ static double Round(double value) {
  *
  *--------------------------------------------------------------
  */
+static int CopyExpressionResult(Tcl_Interp *interp, VectorObject *destPtr, VectorObject *srcPtr) {
+    Tcl_Size i;
+    Tcl_Size j;
+    Tcl_Size length;
+
+    if (destPtr->type == srcPtr->type) {
+        return Rbc_VectorDuplicate(destPtr, srcPtr);
+    }
+    /*
+     * A real expression can be promoted into a complex target.
+     */
+    if ((destPtr->type == RBC_VECTOR_COMPLEX) && (srcPtr->type == RBC_VECTOR_REAL)) {
+        length = srcPtr->last - srcPtr->first + 1;
+        if (Rbc_VectorChangeLength(destPtr, length) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        for (i = 0, j = srcPtr->first; i < length; i++, j++) {
+            destPtr->data.complex[i].real = srcPtr->data.real[j];
+            destPtr->data.complex[i].imag = 0.0;
+        }
+        return TCL_OK;
+    }
+    Tcl_SetObjResult(interp, Tcl_NewStringObj("can't store complex expression result in real vector", -1));
+    return TCL_ERROR;
+}
+
 int Rbc_ExprVector(Tcl_Interp *interp, char *string, Rbc_Vector *vecPtr) {
     VectorInterpData *dataPtr;
     VectorObject *vPtr;
@@ -1110,7 +1322,7 @@ int Rbc_ExprVector(Tcl_Interp *interp, char *string, Rbc_Vector *vecPtr) {
          * Propagate an allocation/size failure instead of silently
          * reporting a successful vector expression.
          */
-        result = Rbc_VectorDuplicate(vPtr, value.vPtr);
+        result = CopyExpressionResult(interp, vPtr, value.vPtr);
         if (result != TCL_OK) {
             goto done;
         }
@@ -1120,7 +1332,7 @@ int Rbc_ExprVector(Tcl_Interp *interp, char *string, Rbc_Vector *vecPtr) {
 
         resultObj = Tcl_NewListObj(0, NULL);
         for (i = 0; i < value.vPtr->length; i++) {
-            Tcl_ListObjAppendElement(NULL, resultObj, Tcl_NewDoubleObj(value.vPtr->data.real[i]));
+            Tcl_ListObjAppendElement(NULL, resultObj, Rbc_NewVectorValueObj(value.vPtr, i));
         }
         Tcl_SetObjResult(interp, resultObj);
     }
@@ -1174,15 +1386,27 @@ static int EvaluateExpression(Tcl_Interp *interp, char *string, Value *valuePtr)
         return TCL_ERROR;
     }
     vPtr = valuePtr->vPtr;
-
     /* Check for NaN's and overflows. */
     for (i = 0; i < vPtr->length; i++) {
-        if (!FINITE(vPtr->data.real[i])) {
-            /*
-             * IEEE floating-point error.
-             */
-            MathError(interp, vPtr->data.real[i]);
-            return TCL_ERROR;
+        switch (vPtr->type) {
+        case RBC_VECTOR_REAL:
+            if (!FINITE(vPtr->data.real[i])) {
+                MathError(interp, vPtr->data.real[i]);
+                return TCL_ERROR;
+            }
+            break;
+        case RBC_VECTOR_COMPLEX:
+            if (!FINITE(vPtr->data.complex[i].real)) {
+                MathError(interp, vPtr->data.complex[i].real);
+                return TCL_ERROR;
+            }
+            if (!FINITE(vPtr->data.complex[i].imag)) {
+                MathError(interp, vPtr->data.complex[i].imag);
+                return TCL_ERROR;
+            }
+            break;
+        default:
+            Tcl_Panic("bad vector type %d", (int)vPtr->type);
         }
     }
     return TCL_OK;
@@ -1266,11 +1490,23 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
         /* Process unary operators. */
         switch (operator) {
         case UNARY_MINUS:
-            for (i = 0; i < vPtr->length; i++) {
-                vPtr->data.real[i] = -(vPtr->data.real[i]);
+            if (vPtr->type == RBC_VECTOR_COMPLEX) {
+                for (i = 0; i < vPtr->length; i++) {
+                    vPtr->data.complex[i].real = -vPtr->data.complex[i].real;
+                    vPtr->data.complex[i].imag = -vPtr->data.complex[i].imag;
+                }
+            } else {
+                for (i = 0; i < vPtr->length; i++) {
+                    vPtr->data.real[i] = -vPtr->data.real[i];
+                }
             }
             break;
         case NOT:
+            if (vPtr->type == RBC_VECTOR_COMPLEX) {
+                Tcl_SetObjResult(interp, Tcl_NewStringObj("operator \"!\" is not supported for complex vectors", -1));
+                goto error;
+            }
+
             for (i = 0; i < vPtr->length; i++) {
                 vPtr->data.real[i] = (double)(!vPtr->data.real[i]);
             }
@@ -1320,8 +1556,12 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
     /*
      * At this point we have two vectors and an operator.
      */
-
-    if (v2Ptr->length == 1) {
+    if ((vPtr->type == RBC_VECTOR_COMPLEX) || (v2Ptr->type == RBC_VECTOR_COMPLEX)) {
+        result = ApplyComplexBinaryOperator(interp, operator, vPtr, v2Ptr);
+        if (result != TCL_OK) {
+            goto done;
+        }
+    } else if (v2Ptr->length == 1) {
         register double *opnd;
         register double scalar;
 
@@ -1897,11 +2137,7 @@ static int NextToken(Tcl_Interp *interp, ParseInfo *parsePtr, Value *valuePtr) {
             /*
              * Save the single floating-point value as an 1-component vector.
              */
-            if (Rbc_VectorChangeLength(valuePtr->vPtr, 1) != TCL_OK) {
-                return TCL_ERROR;
-            }
-            valuePtr->vPtr->data.real[0] = value;
-            return TCL_OK;
+            return SetExpressionRealScalar(valuePtr->vPtr, value);
         }
     }
     parsePtr->nextPtr = p + 1;
@@ -2048,10 +2284,7 @@ static int NextToken(Tcl_Interp *interp, ParseInfo *parsePtr, Value *valuePtr) {
             if (vPtr == NULL) {
                 return TCL_ERROR;
             }
-            if (CheckExpressionVectorType(interp, vPtr) != TCL_OK) {
-                return TCL_ERROR;
-            }
-            if (Rbc_VectorDuplicate(valuePtr->vPtr, vPtr) != TCL_OK) {
+            if (CopyExpressionVector(valuePtr->vPtr, vPtr) != TCL_OK) {
                 return TCL_ERROR;
             }
             parsePtr->nextPtr = (char *)vectorEndPtr;
@@ -2140,19 +2373,37 @@ static int ParseString(Tcl_Interp *interp, const char *string, Value *valuePtr) 
         string++;
     }
     {
+        Tcl_Obj *objPtr;
+        Tcl_Obj **objv;
+        Tcl_Size objc;
+
+        objPtr = Tcl_NewStringObj(string, -1);
+        Tcl_IncrRefCount(objPtr);
+        if ((Tcl_ListObjGetElements(NULL, objPtr, &objc, &objv) == TCL_OK) && (objc == 2)) {
+            Rbc_Complex value;
+            int result;
+
+            result = Rbc_GetComplex(interp, objPtr, &value);
+            if (result == TCL_OK) {
+                result = SetExpressionComplexScalar(valuePtr->vPtr, value);
+            }
+            Tcl_DecrRefCount(objPtr);
+            return result;
+        }
+        Tcl_DecrRefCount(objPtr);
+    }
+    {
         VectorObject *vPtr;
         vPtr = Rbc_VectorParseElement(interp, valuePtr->vPtr->dataPtr, string, &vectorEndPtr, NS_SEARCH_BOTH);
         if (vPtr == NULL) {
             return TCL_ERROR;
         }
-        if (CheckExpressionVectorType(interp, vPtr) != TCL_OK) {
-            return TCL_ERROR;
-        }
+
         if (*vectorEndPtr != '\0') {
             Tcl_SetObjResult(interp, Tcl_NewStringObj("extra characters after vector", -1));
             return TCL_ERROR;
         }
-        return Rbc_VectorDuplicate(valuePtr->vPtr, vPtr);
+        return CopyExpressionVector(valuePtr->vPtr, vPtr);
     }
 }
 
@@ -2262,6 +2513,10 @@ static int ComponentFunc(ClientData clientData, Tcl_Interp *interp, VectorObject
     ComponentProc *procPtr = (ComponentProc *)clientData;
     Tcl_Size i;
 
+    if (vPtr->type == RBC_VECTOR_COMPLEX) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("math function is not supported for complex vectors yet", -1));
+        return TCL_ERROR;
+    }
     errno = 0;
     for (i = First(vPtr); i >= 0; i = Next(vPtr, i)) {
         vPtr->data.real[i] = (*procPtr)(vPtr->data.real[i]);
@@ -2304,6 +2559,10 @@ static int ScalarFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *v
     double value;
     ScalarProc *procPtr = (ScalarProc *)clientData;
 
+    if (vPtr->type == RBC_VECTOR_COMPLEX) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("math function is not supported for complex vectors yet", -1));
+        return TCL_ERROR;
+    }
     errno = 0;
     value = (*procPtr)(vPtr);
     if (errno != 0) {
@@ -2339,5 +2598,9 @@ static int ScalarFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *v
  */
 static int VectorFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr) {
     VectorProc *procPtr = (VectorProc *)clientData;
+    if (vPtr->type == RBC_VECTOR_COMPLEX) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("math function is not supported for complex vectors yet", -1));
+        return TCL_ERROR;
+    }
     return (*procPtr)(vPtr);
 }
