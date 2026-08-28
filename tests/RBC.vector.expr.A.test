@@ -1338,5 +1338,146 @@ namespace eval vector.expr {
         list $realCode $complexValue
     } -result {1 {{0.0 1.0}}}
 
+    # ------------------------------------------------------------------------------------
+    # Purpose: Test complex tangent and inverse trigonometric functions.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.expr.A.8.1 {
+        complex tan agrees with sin/cos
+    } -setup {
+        vector create C -type complex
+        C set {{0.5 1.25} {-1 0.75} {2 -0.5}}
+    } -body {
+        set actual [vector expr {tan(C)}]
+        set expected [vector expr {sin(C) / cos(C)}]
+        foreach a $actual e $expected {
+            lassign $a ar ai
+            lassign $e er ei
+            if {abs($ar - $er) > 1.0e-12 || abs($ai - $ei) > 1.0e-12} {
+                return 0
+            }
+        }
+        return 1
+    } -cleanup {
+        catch {vector destroy C}
+    } -result 1
+
+    test RBC.vector.expr.A.8.2 {
+        complex tanh agrees with sinh/cosh
+    } -setup {
+        vector create C -type complex
+        C set {{0.5 1.25} {-1 0.75} {2 -0.5}}
+    } -body {
+        set actual [vector expr {tanh(C)}]
+        set expected [vector expr {sinh(C) / cosh(C)}]
+        foreach a $actual e $expected {
+            lassign $a ar ai
+            lassign $e er ei
+            if {abs($ar - $er) > 1.0e-12 || abs($ai - $ei) > 1.0e-12} {
+                return 0
+            }
+        }
+        return 1
+    } -cleanup {
+        catch {vector destroy C}
+    } -result 1
+
+    test RBC.vector.expr.A.8.3 {
+        complex tan large imaginary argument
+    } -body {
+        set value [lindex [vector expr {tan({1 400})}] 0]
+        lassign $value real imag
+        expr {
+            abs($real) < 1.0e-12 &&
+            abs($imag - 1.0) < 1.0e-12
+        }
+    } -result 1
+
+    test RBC.vector.expr.A.8.4 {
+        complex tanh large real argument
+    } -body {
+        set value [lindex [vector expr {tanh({400 1})}] 0]
+        lassign $value real imag
+        expr {
+            abs($real - 1.0) < 1.0e-12 &&
+            abs($imag) < 1.0e-12
+        }
+    } -result 1
+
+    test RBC.vector.expr.A.8.5 {
+        complex asin round trip
+    } -setup {
+        vector create C -type complex
+        C set {{0.5 1.25} {-1 0.75} {2 0} {-2 0}}
+    } -body {
+        set actual [vector expr {sin(asin(C))}]
+        set expected [C range 0 end]
+        foreach a $actual e $expected {
+            lassign $a ar ai
+            lassign $e er ei
+            if {abs($ar - $er) > 1.0e-12 || abs($ai - $ei) > 1.0e-12} {
+                return 0
+            }
+        }
+        return 1
+    } -cleanup {
+        catch {vector destroy C}
+    } -result 1
+
+    test RBC.vector.expr.A.8.6 {
+        complex acos round trip
+    } -setup {
+        vector create C -type complex
+        C set {{0.5 1.25} {-1 0.75} {2 0} {-2 0}}
+    } -body {
+        set actual [vector expr {cos(acos(C))}]
+        set expected [C range 0 end]
+        foreach a $actual e $expected {
+            lassign $a ar ai
+            lassign $e er ei
+            if {abs($ar - $er) > 1.0e-12 || abs($ai - $ei) > 1.0e-12} {
+                return 0
+            }
+        }
+        return 1
+    } -cleanup {
+        catch {vector destroy C}
+    } -result 1
+
+    test RBC.vector.expr.A.8.7 {
+        complex atan round trip
+    } -setup {
+        vector create C -type complex
+        C set {{0.5 0.25} {-1 0.75} {2 -0.5} {-2 -0.25}}
+    } -body {
+        set actual [vector expr {tan(atan(C))}]
+        set expected [C range 0 end]
+        foreach a $actual e $expected {
+            lassign $a ar ai
+            lassign $e er ei
+            if {abs($ar - $er) > 1.0e-12 || abs($ai - $ei) > 1.0e-12} {
+                return 0
+            }
+        }
+        return 1
+    } -cleanup {
+        catch {vector destroy C}
+    } -result 1
+
+    test RBC.vector.expr.A.8.8 {
+        real and complex asin preserve type semantics
+    } -body {
+        set realCode [catch {vector expr {asin(2)}}]
+        set value [lindex [vector expr {asin({2 0})}] 0]
+        lassign $value real imag
+        set expectedImag [ expr {log(2.0 + sqrt(3.0))} ]
+        list $realCode [expr {abs($real - acos(-1.0) / 2.0) < 1.0e-12}] [expr {abs($imag - $expectedImag) < 1.0e-12}]
+    } -result {1 1 1}
+
+    test RBC.vector.expr.A.8.9 {
+        complex atan pole
+    } -body {
+        catch {vector expr {atan({0 1})}}
+    } -result 1
+
 	cleanupTests
 }

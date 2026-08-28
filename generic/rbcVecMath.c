@@ -92,6 +92,13 @@ static Rbc_Complex ComplexSin(Rbc_Complex value);
 static Rbc_Complex ComplexCos(Rbc_Complex value);
 static Rbc_Complex ComplexSinh(Rbc_Complex value);
 static Rbc_Complex ComplexCosh(Rbc_Complex value);
+static double LogHypot(double x, double y);
+static double RealAcosh(double value);
+static Rbc_Complex ComplexTan(Rbc_Complex value);
+static Rbc_Complex ComplexTanh(Rbc_Complex value);
+static Rbc_Complex ComplexAsin(Rbc_Complex value);
+static Rbc_Complex ComplexAcos(Rbc_Complex value);
+static Rbc_Complex ComplexAtan(Rbc_Complex value);
 static double Random(double value);
 static double Mean(Rbc_Vector *vecPtr);
 static double Sum(Rbc_Vector *vecPtr);
@@ -139,6 +146,11 @@ static ComplexComponentFunction sinFunction = {sin, ComplexSin};
 static ComplexComponentFunction cosFunction = {cos, ComplexCos};
 static ComplexComponentFunction sinhFunction = {sinh, ComplexSinh};
 static ComplexComponentFunction coshFunction = {cosh, ComplexCosh};
+static ComplexComponentFunction tanFunction = {tan, ComplexTan};
+static ComplexComponentFunction tanhFunction = {tanh, ComplexTanh};
+static ComplexComponentFunction asinFunction = {asin, ComplexAsin};
+static ComplexComponentFunction acosFunction = {acos, ComplexAcos};
+static ComplexComponentFunction atanFunction = {atan, ComplexAtan};
 
 static MathFunction mathFunctions[] = {
     {"abs", (GenericMathProc *)ComplexRealFunc, (ClientData)&absFunction},
@@ -146,9 +158,9 @@ static MathFunction mathFunctions[] = {
     {"conj", (GenericMathProc *)ComplexComponentFunc, (ClientData)&conjFunction},
     {"imag", (GenericMathProc *)ComplexRealFunc, (ClientData)&imagFunction},
     {"real", (GenericMathProc *)ComplexRealFunc, (ClientData)&realFunction},
-    {"acos", (GenericMathProc *)ComponentFunc, (ClientData)acos},
-    {"asin", (GenericMathProc *)ComponentFunc, (ClientData)asin},
-    {"atan", (GenericMathProc *)ComponentFunc, (ClientData)atan},
+    {"acos", (GenericMathProc *)ComplexComponentFunc, (ClientData)&acosFunction},
+    {"asin", (GenericMathProc *)ComplexComponentFunc, (ClientData)&asinFunction},
+    {"atan", (GenericMathProc *)ComplexComponentFunc, (ClientData)&atanFunction},
     {"adev", (GenericMathProc *)ScalarFunc, (ClientData)AvgDeviation},
     {"ceil", (GenericMathProc *)ComponentFunc, (ClientData)ceil},
     {"cos", (GenericMathProc *)ComplexComponentFunc, (ClientData)&cosFunction},
@@ -177,8 +189,8 @@ static MathFunction mathFunctions[] = {
     {"sort", (GenericMathProc *)VectorFunc, (ClientData)Sort},
     {"sqrt", (GenericMathProc *)ComplexComponentFunc, (ClientData)&sqrtFunction},
     {"sum", (GenericMathProc *)ScalarFunc, (ClientData)Sum},
-    {"tan", (GenericMathProc *)ComponentFunc, (ClientData)tan},
-    {"tanh", (GenericMathProc *)ComponentFunc, (ClientData)tanh},
+    {"tan", (GenericMathProc *)ComplexComponentFunc, (ClientData)&tanFunction},
+    {"tanh", (GenericMathProc *)ComplexComponentFunc, (ClientData)&tanhFunction},
     {"var", (GenericMathProc *)ScalarFunc, (ClientData)Variance},
     {
         (char *)NULL,
@@ -1307,14 +1319,13 @@ static Rbc_Complex ComplexExp(Rbc_Complex value) {
     return result;
 }
 
-static Rbc_Complex ComplexLog(Rbc_Complex value) {
-    Rbc_Complex result;
+static double LogHypot(double x, double y) {
     double a, b;
     double maximum, minimum;
     double ratio;
 
-    a = FABS(value.real);
-    b = FABS(value.imag);
+    a = FABS(x);
+    b = FABS(y);
     if (a >= b) {
         maximum = a;
         minimum = b;
@@ -1323,16 +1334,16 @@ static Rbc_Complex ComplexLog(Rbc_Complex value) {
         minimum = a;
     }
     if (maximum == 0.0) {
-        /*
-         * Let the system log() establish errno and the non-finite
-         * result. ComplexComponentFunc will report it through
-         * the normal MathError path.
-         */
-        result.real = log(0.0);
-    } else {
-        ratio = minimum / maximum;
-        result.real = log(maximum) + 0.5 * log(1.0 + ratio * ratio);
+        return log(0.0);
     }
+    ratio = minimum / maximum;
+    return log(maximum) + 0.5 * log(1.0 + ratio * ratio);
+}
+
+static Rbc_Complex ComplexLog(Rbc_Complex value) {
+    Rbc_Complex result;
+
+    result.real = LogHypot(value.real, value.imag);
     result.imag = atan2(value.imag, value.real);
     return result;
 }
@@ -1392,6 +1403,172 @@ static Rbc_Complex ComplexCosh(Rbc_Complex value) {
     coshReal = cosh(value.real);
     result.real = coshReal * cos(value.imag);
     result.imag = sinhReal * sin(value.imag);
+    return result;
+}
+
+static Rbc_Complex ComplexTan(Rbc_Complex value) {
+    Rbc_Complex result;
+    double a;
+    double t;
+    double s, c;
+    double oneMinusT;
+    double denominator;
+
+    /*
+     * Preserve the ordinary real tan() behavior on the real axis.
+     * This is particularly useful near pi/2, where an algebraically
+     * equivalent doubled-angle formula can lose precision.
+     */
+    if (value.imag == 0.0) {
+        result.real = tan(value.real);
+        result.imag = value.imag;
+        return result;
+    }
+    a = FABS(value.imag);
+    /*
+     * Beyond this point exp(-2*a) is numerically irrelevant to the
+     * result. Avoid an otherwise harmless exp() underflow setting
+     * errno and turning a finite tan() result into an expression error.
+     */
+    if (a > 350.0) {
+        t = 0.0;
+    } else {
+        t = exp(-2.0 * a);
+    }
+    s = sin(value.real);
+    c = cos(value.real);
+    oneMinusT = 1.0 - t;
+    /*
+     * Equivalent to:
+     *
+     *     1 + t*t + 2*t*cos(2*x)
+     *
+     * but avoids cancellation near x = pi/2 and small imag.
+     */
+    denominator = oneMinusT * oneMinusT + 4.0 * t * c * c;
+    result.real = (4.0 * t * s * c) / denominator;
+    result.imag = copysign((1.0 - t * t) / denominator, value.imag);
+    return result;
+}
+
+static Rbc_Complex ComplexTanh(Rbc_Complex value) {
+    Rbc_Complex result;
+    double a;
+    double t;
+    double s, c;
+    double oneMinusT;
+    double denominator;
+
+    /*
+     * Preserve tanh(i*y) = i*tan(y), including behavior near
+     * the imaginary-axis poles.
+     */
+    if (value.real == 0.0) {
+        result.real = value.real;
+        result.imag = tan(value.imag);
+        return result;
+    }
+    a = FABS(value.real);
+    if (a > 350.0) {
+        t = 0.0;
+    } else {
+        t = exp(-2.0 * a);
+    }
+    s = sin(value.imag);
+    c = cos(value.imag);
+    oneMinusT = 1.0 - t;
+    denominator = oneMinusT * oneMinusT + 4.0 * t * c * c;
+    result.real = copysign((1.0 - t * t) / denominator, value.real);
+    result.imag = (4.0 * t * s * c) / denominator;
+    return result;
+}
+
+static double RealAcosh(double value) {
+    const double ln2 = 0.69314718055994530942;
+
+    if (value > DBL_MAX * 0.5) {
+        return log(value) + ln2;
+    }
+    return log(value + sqrt(value - 1.0) * sqrt(value + 1.0));
+}
+
+static Rbc_Complex ComplexAsin(Rbc_Complex value) {
+    Rbc_Complex result;
+    double rPlus;
+    double rMinus;
+    double alpha;
+    double beta;
+
+    rPlus = hypot(value.real + 1.0, value.imag);
+    rMinus = hypot(value.real - 1.0, value.imag);
+    /*
+     * Write this as two halves to avoid overflowing rPlus+rMinus
+     * when the final alpha itself is representable.
+     */
+    alpha = 0.5 * rPlus + 0.5 * rMinus;
+    /*
+     * Mathematically alpha >= 1, but rounding at points very close
+     * to [-1,1] may put it a tiny amount below one.
+     */
+    if (alpha < 1.0) {
+        alpha = 1.0;
+    }
+    /*
+     * alpha * beta == x.  Computing beta this way avoids the
+     * cancellation in (rPlus-rMinus)/2.
+     */
+    beta = value.real / alpha;
+    if (beta > 1.0) {
+        beta = 1.0;
+    } else if (beta < -1.0) {
+        beta = -1.0;
+    }
+    result.real = asin(beta);
+    result.imag = copysign(RealAcosh(alpha), value.imag);
+    return result;
+}
+
+static Rbc_Complex ComplexAcos(Rbc_Complex value) {
+    Rbc_Complex result;
+    Rbc_Complex asinValue;
+
+    asinValue = ComplexAsin(value);
+    result.real = M_PI_2 - asinValue.real;
+    result.imag = -asinValue.imag;
+    return result;
+}
+
+static Rbc_Complex ComplexAtan(Rbc_Complex value) {
+    Rbc_Complex result;
+    double scale;
+    double x;
+    double y;
+    double invScale;
+    double numerator;
+    double denominator;
+    double logPlus;
+    double logMinus;
+
+    scale = FABS(value.real);
+    if (FABS(value.imag) > scale) {
+        scale = FABS(value.imag);
+    }
+    if (scale < 1.0) {
+        scale = 1.0;
+    }
+    x = value.real / scale;
+    y = value.imag / scale;
+    invScale = 1.0 / scale;
+    numerator = 2.0 * x * invScale;
+    denominator = invScale * invScale - x * x - y * y;
+    result.real = 0.5 * atan2(numerator, denominator);
+    /*
+     * |z+i| and |z-i|.  LogHypot avoids forming a magnitude that
+     * can overflow before its logarithm is taken.
+     */
+    logPlus = LogHypot(value.real, value.imag + 1.0);
+    logMinus = LogHypot(value.real, value.imag - 1.0);
+    result.imag = 0.5 * (logPlus - logMinus);
     return result;
 }
 
@@ -2743,7 +2920,16 @@ static int ComplexComponentFunc(ClientData clientData, Tcl_Interp *interp, Vecto
         errno = 0;
         value = (*functionPtr->complexProc)(vPtr->data.complex[i]);
         if (errno != 0) {
-            MathError(interp, value.real);
+            double errorValue;
+
+            if (!FINITE(value.real)) {
+                errorValue = value.real;
+            } else if (!FINITE(value.imag)) {
+                errorValue = value.imag;
+            } else {
+                errorValue = value.real;
+            }
+            MathError(interp, errorValue);
             return TCL_ERROR;
         }
         if (!FINITE(value.real)) {
