@@ -473,25 +473,16 @@ static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Siz
         if (leftParen != NULL) {
             *leftParen = '\0';
         }
-        
-
         existingPtr = GetVectorObject(dataPtr, vecName, NS_SEARCH_BOTH);
-
         if (existingPtr != NULL) {
-            if (typeOption.specified &&
-                (existingPtr->type != typeOption.type)) {
+            if (typeOption.specified && (existingPtr->type != typeOption.type)) {
 
-                Tcl_SetObjResult(interp,
-                    Tcl_ObjPrintf(
-                        "can't change vector \"%s\" from type \"%s\" to \"%s\"",
-                        existingPtr->name,
-                        (existingPtr->type == RBC_VECTOR_REAL)
-                            ? "real" : "complex",
-                        (typeOption.type == RBC_VECTOR_REAL)
-                            ? "real" : "complex"));
+                Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't change vector \"%s\" from type \"%s\" to \"%s\"",
+                                                       existingPtr->name,
+                                                       (existingPtr->type == RBC_VECTOR_REAL) ? "real" : "complex",
+                                                       (typeOption.type == RBC_VECTOR_REAL) ? "real" : "complex"));
                 goto error;
             }
-
             effectiveType = existingPtr->type;
         } else {
             effectiveType = typeOption.type;
@@ -505,14 +496,12 @@ static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Siz
                                  Tcl_NewStringObj("Tcl array mapping is not supported for complex vectors yet", -1));
                 goto error;
             }
-
             createVarName = NULL;
         } else {
             createVarName = (varName == NULL) ? vecName : varName;
         }
         vPtr = Rbc_VectorCreate(dataPtr, vecName, (cmdName == NULL) ? vecName : cmdName, createVarName, effectiveType,
                                 &isNew);
-
         if (leftParen != NULL) {
             *leftParen = '(';
         }
@@ -1620,6 +1609,11 @@ void Rbc_VectorUpdateRange(VectorObject *vPtr) {
     double min, max;
     Tcl_Size i;
 
+    if (vPtr->type != RBC_VECTOR_REAL) {
+        vPtr->min = vPtr->max = rbcNaN;
+        vPtr->notifyFlags &= ~UPDATE_RANGE;
+        return;
+    }    
     min = DBL_MAX, max = -DBL_MAX;
     for (i = 0; i < vPtr->length; i++) {
         if (FINITE(vPtr->data.real[i])) {
@@ -2482,7 +2476,7 @@ Tcl_Obj *Rbc_GetValues(VectorObject *vPtr, Tcl_Size first, Tcl_Size last) {
 
     listObjPtr = Tcl_NewListObj(0, NULL);
     for (i = first; i <= last; i++) {
-        Tcl_ListObjAppendElement(vPtr->interp, listObjPtr, Tcl_NewDoubleObj(vPtr->data.real[i]));
+        Tcl_ListObjAppendElement(vPtr->interp, listObjPtr, Rbc_NewVectorValueObj(vPtr, i));
     }
     return listObjPtr;
 }
@@ -2620,6 +2614,64 @@ int Rbc_GetDouble(Tcl_Interp *interp, Tcl_Obj *objPtr, double *valuePtr) {
     if (Tcl_ExprDoubleObj(interp, objPtr, valuePtr) == TCL_OK) {
         return TCL_OK;
     }
+    return TCL_ERROR;
+}
+
+Tcl_Obj *Rbc_NewComplexObj(Rbc_Complex value) {
+    Tcl_Obj *objv[2];
+
+    objv[0] = Tcl_NewDoubleObj(value.real);
+    objv[1] = Tcl_NewDoubleObj(value.imag);
+    return Tcl_NewListObj(2, objv);
+}
+
+Tcl_Obj *Rbc_NewVectorValueObj(VectorObject *vPtr, Tcl_Size index) {
+    switch (vPtr->type) {
+    case RBC_VECTOR_REAL:
+        return Tcl_NewDoubleObj(vPtr->data.real[index]);
+    case RBC_VECTOR_COMPLEX:
+        return Rbc_NewComplexObj(vPtr->data.complex[index]);
+    }
+    Tcl_Panic("bad vector type %d", (int)vPtr->type);
+    return NULL;
+}
+
+int Rbc_GetComplex(Tcl_Interp *interp, Tcl_Obj *objPtr, Rbc_Complex *valuePtr) {
+    Tcl_Size objc;
+    Tcl_Obj **objv;
+    double real;
+
+    /*
+     * A two-element Tcl list is the canonical complex representation:
+     *
+     *     {real imag}
+     *
+     * Check this before Rbc_GetDouble(), because Rbc_GetDouble()
+     * also accepts Tcl expressions.  For example, {3 -4} would
+     * otherwise be evaluated as the expression "3 - 4".
+     */
+    if (Tcl_ListObjGetElements(NULL, objPtr, &objc, &objv) == TCL_OK) {
+        if (objc == 2) {
+            if (Rbc_GetDouble(interp, objv[0], &valuePtr->real) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            if (Rbc_GetDouble(interp, objv[1], &valuePtr->imag) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            return TCL_OK;
+        }
+    }
+    /*
+     * Otherwise accept a scalar real value (including an expression)
+     * and promote it to complex with zero imaginary part.
+     */
+    if (Rbc_GetDouble(interp, objPtr, &real) == TCL_OK) {
+        valuePtr->real = real;
+        valuePtr->imag = 0.0;
+        return TCL_OK;
+    }
+    Tcl_ResetResult(interp);
+    Tcl_SetObjResult(interp, Tcl_NewStringObj("expected complex value as a real number or {real imag}", -1));
     return TCL_ERROR;
 }
 

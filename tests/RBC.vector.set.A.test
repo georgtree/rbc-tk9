@@ -87,6 +87,83 @@ namespace import tcltest::*
 	} -cleanup {
 		vector destroy foo
 	} -result {0}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that a complex vector accepts two-element complex values and
+    # promotes scalar real values to zero imaginary part.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.set.A.2.1 {
+        vector set: complex values
+    } -setup {
+        vector create foo -type complex
+    } -body {
+        foo set {{1 2} {3 -4} 5}
+        foo range 0 end
+    } -cleanup {
+        catch {vector destroy foo}
+    } -result {{1.0 2.0} {3.0 -4.0} {5.0 0.0}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that a scalar value stored in a complex vector is promoted to a
+    # complex value with zero imaginary component.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.set.A.2.2 {
+        vector set: promote real values to complex
+    } -setup {
+        vector create foo -type complex
+    } -body {
+        foo set {1 2 3}
+        foo range 0 end
+    } -cleanup {
+        catch {vector destroy foo}
+    } -result {{1.0 0.0} {2.0 0.0} {3.0 0.0}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that one complex vector may be assigned to another complex vector.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.set.A.2.3 {
+        vector set: another complex vector
+    } -setup {
+        vector create foo -type complex
+        vector create bar -type complex
+        bar set {{1 2} {3 4} {5 6}}
+    } -body {
+        foo set bar
+        foo range 0 end
+    } -cleanup {
+        catch {vector destroy foo}
+        catch {vector destroy bar}
+    } -result {{1.0 2.0} {3.0 4.0} {5.0 6.0}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that assigning a complex vector to itself preserves its type and
+    # values. This exercises the temporary-vector copy path.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.set.A.2.4 {
+        vector set: complex vector self-copy
+    } -setup {
+        vector create foo -type complex
+        foo set {{1 2} {3 4} {5 6}}
+    } -body {
+        foo set foo
+        list [foo type] [foo range 0 end]
+    } -cleanup {
+        catch {vector destroy foo}
+    } -result {complex {{1.0 2.0} {3.0 4.0} {5.0 6.0}}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that a malformed complex value is rejected.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.set.A.2.5 {
+        vector set: invalid complex value
+    } -setup {
+        vector create foo -type complex
+    } -body {
+        set code [catch { foo set {{1 2 3}} } message]
+        list $code $message [foo length]
+    } -cleanup {
+        catch {vector destroy foo}
+    } -result {1 {expected complex value as a real number or {real imag}} 0}
 	
 	cleanupTests
 #}

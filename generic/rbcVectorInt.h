@@ -232,6 +232,10 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
 int Rbc_VectorGetIndex(Tcl_Interp *interp, VectorObject *vPtr, const char *string, Tcl_Size *indexPtr, int flags,
                        Rbc_VectorIndexProc **procPtrPtr);
 int Rbc_GetDouble(Tcl_Interp *interp, Tcl_Obj *objPtr, double *valuePtr);
+int Rbc_GetComplex(Tcl_Interp *interp, Tcl_Obj *objPtr, Rbc_Complex *valuePtr);
+Tcl_Obj *Rbc_NewComplexObj(Rbc_Complex value);
+Tcl_Obj *Rbc_NewVectorValueObj(VectorObject *vPtr, Tcl_Size index);
+
 void Rbc_VectorFree(VectorObject *vPtr);
 int Rbc_VectorGetIndexRange(Tcl_Interp *interp, VectorObject *vPtr, const char *string, int flags,
                             Rbc_VectorIndexProc **procPtrPtr);

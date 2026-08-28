@@ -110,34 +110,95 @@ namespace import tcltest::*
 	} -result {1.0 2.0 3.0 4.0}
 
     # ------------------------------------------------------------------------------------
-    # Purpose: Ensure that complex index reads are rejected until complex value access
-    # is implemented.
+    # Purpose: Ensure that a complex vector element can be read.
     # ------------------------------------------------------------------------------------
     test RBC.vector.index.A.3.1 {
-        vector index: complex read not supported
+        vector index: complex read
     } -setup {
-        vector create foo(4) -type complex
+        vector create foo -type complex
+        foo set {{1 2} {3 -4} {5 6}}
     } -body {
-        catch {foo index 0} message
-        set message
+        foo index 1
     } -cleanup {
         catch {vector destroy foo}
-    } -result {operation "index" is not supported for complex vectors}
+    } -result {{3.0 -4.0}}
 
     # ------------------------------------------------------------------------------------
-    # Purpose: Ensure that complex index writes are rejected before the real-only index
-    # implementation is entered.
+    # Purpose: Ensure that a complex vector element can be written using {real imag}.
     # ------------------------------------------------------------------------------------
     test RBC.vector.index.A.3.2 {
-        vector index: complex write not supported
+        vector index: complex write
     } -setup {
-        vector create foo(4) -type complex
+        vector create foo -type complex
+        foo set {{1 2} {3 4} {5 6}}
     } -body {
-        catch {foo index 0 1.0} message
-        set message
+        foo index 1 {10 20}
+        foo index 1
     } -cleanup {
         catch {vector destroy foo}
-    } -result {operation "index" is not supported for complex vectors}
+    } -result {{10.0 20.0}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that a scalar index value is promoted to complex with zero
+    # imaginary component.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.index.A.3.3 {
+        vector index: promote real value
+    } -setup {
+        vector create foo -type complex
+        foo set {{1 2} {3 4} {5 6}}
+    } -body {
+        foo index 1 10
+        foo index 1
+    } -cleanup {
+        catch {vector destroy foo}
+    } -result {{10.0 0.0}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that ++end appends a complex value.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.index.A.3.4 {
+        vector index: append complex value
+    } -setup {
+        vector create foo -type complex
+        foo set {{1 2} {3 4}}
+    } -body {
+        foo index ++end {5 6}
+        list [foo length] [foo range 0 end]
+    } -cleanup {
+        catch {vector destroy foo}
+    } -result {3 {{1.0 2.0} {3.0 4.0} {5.0 6.0}}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that ++end promotes a scalar value to complex.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.index.A.3.5 {
+        vector index: append promoted real value
+    } -setup {
+        vector create foo -type complex
+        foo set {{1 2} {3 4}}
+    } -body {
+        foo index ++end 5
+        foo index end
+    } -cleanup {
+        catch {vector destroy foo}
+    } -result {{5.0 0.0}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that an invalid complex value is rejected without changing the
+    # existing element.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.index.A.3.6 {
+        vector index: invalid complex value
+    } -setup {
+        vector create foo -type complex
+        foo set {{1 2} {3 4}}
+    } -body {
+        set code [catch { foo index 1 {7 8 9} } message]
+        list $code $message [foo index 1]
+    } -cleanup {
+        catch {vector destroy foo}
+    } -result {1 {expected complex value as a real number or {real imag}} {{3.0 4.0}}}
 	
 	cleanupTests
 #}

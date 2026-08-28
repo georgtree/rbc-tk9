@@ -128,7 +128,8 @@ static const VectorInstOpSpec vectorInstOpCmd[] = {{{"*", 3, 3, "list"}, ArithOp
                                                    {{NULL, 0, 0, NULL}, NULL}};
 
 static int ComplexOpSupported(RbcVectorCmdOp *proc) {
-    return ((proc == ClearOp) || (proc == LengthOp) || (proc == OffsetOp) || (proc == TypeOp));
+    return ((proc == ClearOp) || (proc == IndexOp) || (proc == LengthOp) || (proc == OffsetOp) || (proc == RangeOp) ||
+            (proc == SetOp) || (proc == TypeOp));
 }
 
 /*
@@ -989,26 +990,50 @@ static int IndexOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
         listObjPtr = Rbc_GetValues(vPtr, first, last);
         Tcl_SetObjResult(interp, listObjPtr);
     } else {
-        double value;
-
-        /* FIXME: huh? Why set values here?.  */
         if (first == SPECIAL_INDEX) {
             Rbc_AppendResultStrings(interp, "can't set index \"", string, "\"", (char *)NULL);
-            return TCL_ERROR; /* Tried to set "min" or "max" */
-        }
-        if (Rbc_GetDouble(vPtr->interp, objv[3], &value) != TCL_OK) {
             return TCL_ERROR;
         }
-        if (first == vPtr->length) {
-            Tcl_Size newSize;
-            if (AddVectorSizes(interp, vPtr->length, 1, &newSize) != TCL_OK) {
+
+        if (vPtr->type == RBC_VECTOR_COMPLEX) {
+            Rbc_Complex value;
+            Tcl_Size i;
+
+            if (Rbc_GetComplex(interp, objv[3], &value) != TCL_OK) {
                 return TCL_ERROR;
             }
-            if (Rbc_VectorChangeLength(vPtr, newSize) != TCL_OK) {
+            if (first == vPtr->length) {
+                Tcl_Size newSize;
+
+                if (AddVectorSizes(interp, vPtr->length, 1, &newSize) != TCL_OK) {
+                    return TCL_ERROR;
+                }
+                if (Rbc_VectorChangeLength(vPtr, newSize) != TCL_OK) {
+                    return TCL_ERROR;
+                }
+            }
+            for (i = first; i <= last; i++) {
+                vPtr->data.complex[i] = value;
+            }
+
+        } else {
+            double value;
+
+            if (Rbc_GetDouble(interp, objv[3], &value) != TCL_OK) {
                 return TCL_ERROR;
             }
+            if (first == vPtr->length) {
+                Tcl_Size newSize;
+
+                if (AddVectorSizes(interp, vPtr->length, 1, &newSize) != TCL_OK) {
+                    return TCL_ERROR;
+                }
+                if (Rbc_VectorChangeLength(vPtr, newSize) != TCL_OK) {
+                    return TCL_ERROR;
+                }
+            }
+            Rbc_ReplicateValue(vPtr, first, last, value);
         }
-        Rbc_ReplicateValue(vPtr, first, last, value);
         Tcl_SetObjResult(interp, objv[3]);
         if (vPtr->flush) {
             Rbc_VectorFlushCache(vPtr);
@@ -1478,11 +1503,11 @@ static int RangeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
     listObjPtr = Tcl_NewListObj(0, NULL);
     if (first > last) {
         for (i = first; i >= last; i--) {
-            Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(vPtr->data.real[i]));
+            Tcl_ListObjAppendElement(interp, listObjPtr, Rbc_NewVectorValueObj(vPtr, i));
         }
     } else {
         for (i = first; i <= last; i++) {
-            Tcl_ListObjAppendElement(interp, listObjPtr, Tcl_NewDoubleObj(vPtr->data.real[i]));
+            Tcl_ListObjAppendElement(interp, listObjPtr, Rbc_NewVectorValueObj(vPtr, i));
         }
     }
     Tcl_SetObjResult(interp, listObjPtr);
@@ -1707,6 +1732,7 @@ static int SetOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
              * overlaps.
              */
             tmpPtr = Rbc_VectorNew(vPtr->dataPtr);
+            tmpPtr->type = vPtr->type;
             result = Rbc_VectorDuplicate(tmpPtr, v2Ptr);
             if (result == TCL_OK) {
                 result = Rbc_VectorDuplicate(vPtr, tmpPtr);
@@ -2306,17 +2332,30 @@ static int InRange(double value, double min, double max) {
  */
 static int CopyList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Size i;
-    double value;
 
     if (Rbc_VectorChangeLength(vPtr, objc) != TCL_OK) {
         return TCL_ERROR;
     }
-    for (i = 0; i < objc; i++) {
-        if (Rbc_GetDouble(vPtr->interp, objv[i], &value) != TCL_OK) {
-            Rbc_VectorChangeLength(vPtr, i);
-            return TCL_ERROR;
+    if (vPtr->type == RBC_VECTOR_COMPLEX) {
+        for (i = 0; i < objc; i++) {
+            Rbc_Complex value;
+
+            if (Rbc_GetComplex(vPtr->interp, objv[i], &value) != TCL_OK) {
+                Rbc_VectorChangeLength(vPtr, i);
+                return TCL_ERROR;
+            }
+            vPtr->data.complex[i] = value;
         }
-        vPtr->data.real[i] = value;
+    } else {
+        for (i = 0; i < objc; i++) {
+            double value;
+
+            if (Rbc_GetDouble(vPtr->interp, objv[i], &value) != TCL_OK) {
+                Rbc_VectorChangeLength(vPtr, i);
+                return TCL_ERROR;
+            }
+            vPtr->data.real[i] = value;
+        }
     }
     return TCL_OK;
 }

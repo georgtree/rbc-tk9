@@ -93,6 +93,48 @@ namespace eval vector.range {
     } -cleanup {
         catch {vector destroy x}
     } -result {40.0 30.0 20.0}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that range returns complex values in ascending index order.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.range.A.2.1 {
+        vector range: complex values
+    } -setup {
+        vector create foo -type complex
+        foo set {{1 2} {3 -4} {5 6} 7}
+    } -body {
+        foo range 1 3
+    } -cleanup {
+        catch {vector destroy foo}
+    } -result {{3.0 -4.0} {5.0 6.0} {7.0 0.0}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that a complex range can be returned in descending index order.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.range.A.2.2 {
+        vector range: complex values reversed
+    } -setup {
+        vector create foo -type complex
+        foo set {{1 2} {3 4} {5 6} {7 8}}
+    } -body {
+        foo range 3 1
+    } -cleanup {
+        catch {vector destroy foo}
+    } -result {{7.0 8.0} {5.0 6.0} {3.0 4.0}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that the end index works for complex ranges.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.range.A.2.3 {
+        vector range: complex end index
+    } -setup {
+        vector create foo -type complex
+        foo set {{1 2} {3 4} {5 6} {7 8}}
+    } -body {
+        foo range 1 end
+    } -cleanup {
+        catch {vector destroy foo}
+    } -result {{3.0 4.0} {5.0 6.0} {7.0 8.0}}
 	
 	cleanupTests
 }
