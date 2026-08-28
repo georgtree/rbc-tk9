@@ -665,7 +665,13 @@ int Rbc_ParseElemVectorObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr
             memset(candidatePtr, 0, sizeof(*candidatePtr));
             return TCL_ERROR;
         }
-
+        if (Rbc_VectorGetType(candidatePtr->vecPtr) != RBC_VECTOR_REAL) {
+            Tcl_SetObjResult(interp,
+                             Tcl_ObjPrintf("vector \"%s\" is complex; graph elements require real vectors", string));
+            Rbc_FreeVectorId(clientId);
+            memset(candidatePtr, 0, sizeof(*candidatePtr));
+            return TCL_ERROR;
+        }
         candidatePtr->clientId = clientId;
         SyncElemVector(candidatePtr);
 

@@ -77,6 +77,7 @@ typedef struct {
     Rbc_OpSpecHeader header;
     RbcVectorCmdOp *proc;
 } VectorInstOpSpec;
+static RbcVectorCmdOp TypeOp;
 static RbcVectorCmdOp AppendOp;
 static RbcVectorCmdOp ArithOp;
 static RbcVectorCmdOp BinreadOp;
@@ -122,8 +123,13 @@ static const VectorInstOpSpec vectorInstOpCmd[] = {{{"*", 3, 3, "list"}, ArithOp
                                                    {{"set", 3, 3, "list"}, SetOp},
                                                    {{"sort", 2, 0, "?-reverse? ?vecName?..."}, SortOp},
                                                    {{"split", 2, 0, "?vecName?..."}, SplitOp},
+                                                   {{"type", 2, 2, ""}, TypeOp},
                                                    {{"variable", 2, 3, "?varName?"}, VariableOp},
                                                    {{NULL, 0, 0, NULL}, NULL}};
+
+static int ComplexOpSupported(RbcVectorCmdOp *proc) {
+    return ((proc == ClearOp) || (proc == LengthOp) || (proc == OffsetOp) || (proc == TypeOp));
+}
 
 /*
  * ----------------------------------------------------------------------
@@ -161,6 +167,17 @@ int Rbc_VectorInstanceObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size
         return TCL_ERROR;
     }
 
+    if (vPtr->type == RBC_VECTOR_COMPLEX) {
+        RbcVectorCmdOp *proc;
+
+        proc = vectorInstOpCmd[index].proc;
+        if (!ComplexOpSupported(proc)) {
+            Tcl_SetObjResult(
+                interp, Tcl_ObjPrintf("operation \"%s\" is not supported for complex vectors", Tcl_GetString(objv[1])));
+            return TCL_ERROR;
+        }
+    }
+
     /*
      * Reset the selected region before each instance operation.
      */
@@ -168,6 +185,26 @@ int Rbc_VectorInstanceObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size
     vPtr->last = vPtr->length - 1;
 
     return vectorInstOpCmd[index].proc(vPtr, interp, objc, objv);
+}
+
+static int TypeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    const char *typeName;
+
+    (void)objc;
+    (void)objv;
+    switch (vPtr->type) {
+    case RBC_VECTOR_REAL:
+        typeName = "real";
+        break;
+    case RBC_VECTOR_COMPLEX:
+        typeName = "complex";
+        break;
+    default:
+        Tcl_Panic("bad vector type %d", (int)vPtr->type);
+        return TCL_ERROR;
+    }
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(typeName, -1));
+    return TCL_OK;
 }
 
 /*
