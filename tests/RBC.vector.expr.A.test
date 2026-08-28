@@ -978,7 +978,7 @@ namespace eval vector.expr {
     } -result {1 {domain error: argument not in valid range} {ARITH DOMAIN {domain error: argument not in valid\
                                                                                     range}}}
 
-    test RBC.vector.expr.A.3.1 {
+    test RBC.vector.expr.A.5.1 {
         complex vector expression: vector value
     } -setup {
         vector create C -type complex
@@ -989,7 +989,7 @@ namespace eval vector.expr {
         catch {vector destroy C}
     } -result {{1.0 2.0} {3.0 -4.0}}
 
-    test RBC.vector.expr.A.3.2 {
+    test RBC.vector.expr.A.5.2 {
         complex vector expression: unary minus
     } -setup {
         vector create C -type complex
@@ -1000,7 +1000,7 @@ namespace eval vector.expr {
         catch {vector destroy C}
     } -result {{-1.0 -2.0} {-3.0 4.0}}
 
-    test RBC.vector.expr.A.3.3 {
+    test RBC.vector.expr.A.5.3 {
         complex vector expression: addition
     } -setup {
         vector create A -type complex
@@ -1014,7 +1014,7 @@ namespace eval vector.expr {
         catch {vector destroy B}
     } -result {{2.0 3.0} {5.0 -1.0}}
 
-    test RBC.vector.expr.A.3.4 {
+    test RBC.vector.expr.A.5.4 {
         complex vector expression: scalar literal
     } -setup {
         vector create C -type complex
@@ -1025,7 +1025,7 @@ namespace eval vector.expr {
         catch {vector destroy C}
     } -result {{2.0 1.0} {4.0 -2.0}}
 
-    test RBC.vector.expr.A.3.5 {
+    test RBC.vector.expr.A.5.5 {
         complex vector expression: multiplication
     } -setup {
         vector create A -type complex
@@ -1039,7 +1039,7 @@ namespace eval vector.expr {
         catch {vector destroy B}
     } -result {{-1.0 3.0} {6.0 -2.0}}
 
-    test RBC.vector.expr.A.3.6 {
+    test RBC.vector.expr.A.5.6 {
         complex vector expression: division
     } -setup {
         vector create A -type complex
@@ -1053,7 +1053,7 @@ namespace eval vector.expr {
         catch {vector destroy B}
     } -result {{1.5 0.5} {1.5 -0.5}}
 
-    test RBC.vector.expr.A.3.7 {
+    test RBC.vector.expr.A.5.7 {
         complex vector expression: mixed real vector
     } -setup {
         vector create A -type complex
@@ -1067,7 +1067,7 @@ namespace eval vector.expr {
         catch {vector destroy B}
     } -result {{11.0 2.0} {23.0 -1.0}}
 
-    test RBC.vector.expr.A.3.8 {
+    test RBC.vector.expr.A.5.8 {
         complex vector expression: scalar first
     } -setup {
         vector create C -type complex
@@ -1078,7 +1078,7 @@ namespace eval vector.expr {
         catch {vector destroy C}
     } -result {{0.0 -3.0} {-2.0 0.0}}
 
-    test RBC.vector.expr.A.3.9 {
+    test RBC.vector.expr.A.5.9 {
         complex vector expression: precedence
     } -setup {
         vector create A -type complex
@@ -1092,7 +1092,7 @@ namespace eval vector.expr {
         catch {vector destroy B}
     } -result {{7.0 10.0}}
 
-    test RBC.vector.expr.A.3.10 {
+    test RBC.vector.expr.A.5.10 {
         complex instance expr
     } -setup {
         vector create C -type complex
@@ -1104,7 +1104,7 @@ namespace eval vector.expr {
         catch {vector destroy C}
     } -result {complex {{2.0 4.0} {6.0 8.0}}}
 
-    test RBC.vector.expr.A.3.11 {
+    test RBC.vector.expr.A.5.11 {
         real target rejects complex expression result
     } -setup {
         vector create R
@@ -1118,6 +1118,106 @@ namespace eval vector.expr {
         catch {vector destroy R}
         catch {vector destroy C}
     } -result {1 {can't store complex expression result in real vector} {10.0 20.0}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Test complex-valued math functions that return real values.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.expr.A.6.1 {
+        complex abs
+    } -setup {
+        vector create C -type complex
+        C set {{3 4} {-3 4} {0 -2}}
+    } -body {
+        vector expr {abs(C)}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {5.0 5.0 2.0}
+
+    test RBC.vector.expr.A.6.2 {
+        complex arg
+    } -setup {
+        vector create C -type complex
+        C set {{1 0} {0 1} {-1 0} {0 -1}}
+    } -body {
+        set values [vector expr {arg(C)}]
+        lassign $values a b c d
+        set pi [expr {acos(-1.0)}]
+        expr {
+            abs($a) < 1.0e-12 &&
+            abs($b - $pi / 2.0) < 1.0e-12 &&
+            abs($c - $pi) < 1.0e-12 &&
+            abs($d + $pi / 2.0) < 1.0e-12
+        }
+    } -cleanup {
+        catch {vector destroy C}
+    } -result 1
+
+    test RBC.vector.expr.A.6.3 {
+        complex real
+    } -setup {
+        vector create C -type complex
+        C set {{1 2} {-3 4} {0 -5}}
+    } -body {
+        vector expr {real(C)}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {1.0 -3.0 0.0}
+
+    test RBC.vector.expr.A.6.4 {
+        complex imag
+    } -setup {
+        vector create C -type complex
+        C set {{1 2} {-3 4} {0 -5}}
+    } -body {
+        vector expr {imag(C)}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {2.0 4.0 -5.0}
+
+    test RBC.vector.expr.A.6.5 {
+        complex conj
+    } -setup {
+        vector create C -type complex
+        C set {{1 2} {-3 4} {0 -5}}
+    } -body {
+        vector expr {conj(C)}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {{1.0 -2.0} {-3.0 -4.0} {0.0 5.0}}
+
+    test RBC.vector.expr.A.6.6 {
+        complex projection participates in real expression
+    } -setup {
+        vector create C -type complex
+        C set {{1 2} {3 -4}}
+    } -body {
+        vector expr {real(C) + imag(C)}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {3.0 -1.0}
+
+    test RBC.vector.expr.A.6.7 {
+        real projection functions
+    } -setup {
+        vector create R
+        R set {-2 0 3}
+    } -body {
+        list [vector expr {real(R)}] [vector expr {imag(R)}] [vector expr {conj(R)}]
+    } -cleanup {
+        catch {vector destroy R}
+    } -result {{-2.0 0.0 3.0} {0.0 0.0 0.0} {-2.0 0.0 3.0}}
+
+    test RBC.vector.expr.A.6.8 {
+        complex target accepts real math result
+    } -setup {
+        vector create C -type complex
+        C set {{3 4} {5 12}}
+    } -body {
+        C expr {abs(C)}
+        list [C type] [C range 0 end]
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {complex {{5.0 0.0} {13.0 0.0}}}
 
 	cleanupTests
 }

@@ -15,11 +15,20 @@
 #include <errno.h>
 #include <math.h>
 
-typedef int(GenericMathProc)(
-    ClientData clientData,
-    Tcl_Interp *interp,
-    VectorObject *vPtr
-);
+typedef int(GenericMathProc)(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr);
+
+typedef Rbc_Complex(ComplexComponentProc)(Rbc_Complex value);
+typedef double(ComplexRealProc)(Rbc_Complex value);
+
+typedef struct {
+    ComponentProc *realProc;
+    ComplexComponentProc *complexProc;
+} ComplexComponentFunction;
+
+typedef struct {
+    ComponentProc *realProc;
+    ComplexRealProc *complexProc;
+} ComplexRealFunction;
 
 /*
  *    Contains information about math functions that can be called
@@ -65,6 +74,16 @@ static int precTable[] = {
 static void InstallIndexProc(Tcl_HashTable *tablePtr, char *string, Rbc_VectorIndexProc *procPtr);
 static Tcl_Size First(VectorObject *vPtr);
 static Tcl_Size Next(VectorObject *vPtr, Tcl_Size current);
+static double Identity(double value);
+static double Zero(double value);
+static double Arg(double value);
+static double ComplexAbs(Rbc_Complex value);
+static double ComplexArg(Rbc_Complex value);
+static double ComplexReal(Rbc_Complex value);
+static double ComplexImag(Rbc_Complex value);
+static Rbc_Complex ComplexConj(Rbc_Complex value);
+static int ComplexComponentFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr);
+static int ComplexRealFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr);
 static double Random(double value);
 static double Mean(Rbc_Vector *vecPtr);
 static double Sum(Rbc_Vector *vecPtr);
@@ -99,8 +118,18 @@ static int ParseBracketValue(Tcl_Interp *interp, const char *string, const char 
 static int ParseQuotedValue(Tcl_Interp *interp, const char *string, const char **termPtr, Value *valuePtr);
 static int ParseBracedValue(Tcl_Interp *interp, const char *string, const char **termPtr, Value *valuePtr);
 
+static ComplexRealFunction absFunction = {Fabs, ComplexAbs};
+static ComplexRealFunction argFunction = {Arg, ComplexArg};
+static ComplexRealFunction realFunction = {Identity, ComplexReal};
+static ComplexRealFunction imagFunction = {Zero, ComplexImag};
+static ComplexComponentFunction conjFunction = {Identity, ComplexConj};
+
 static MathFunction mathFunctions[] = {
-    {"abs", (GenericMathProc *)ComponentFunc, (ClientData)Fabs},
+    {"abs", (GenericMathProc *)ComplexRealFunc, (ClientData)&absFunction},
+    {"arg", (GenericMathProc *)ComplexRealFunc, (ClientData)&argFunction},
+    {"conj", (GenericMathProc *)ComplexComponentFunc, (ClientData)&conjFunction},
+    {"imag", (GenericMathProc *)ComplexRealFunc, (ClientData)&imagFunction},
+    {"real", (GenericMathProc *)ComplexRealFunc, (ClientData)&realFunction},
     {"acos", (GenericMathProc *)ComponentFunc, (ClientData)acos},
     {"asin", (GenericMathProc *)ComponentFunc, (ClientData)asin},
     {"atan", (GenericMathProc *)ComponentFunc, (ClientData)atan},
@@ -178,7 +207,7 @@ static int GetRotationOffset(Tcl_Interp *interp, double scalar, Tcl_Size length,
     return TCL_OK;
 }
 
-static void ReleaseExpressionStorage(VectorObject *vPtr) {
+static void FreeExpressionData(VectorObject *vPtr) {
     if ((vPtr->data.raw != NULL) && (vPtr->freeProc != TCL_STATIC)) {
         if (vPtr->freeProc == TCL_DYNAMIC) {
             ckfree(vPtr->data.raw);
@@ -186,6 +215,10 @@ static void ReleaseExpressionStorage(VectorObject *vPtr) {
             vPtr->freeProc(vPtr->data.raw);
         }
     }
+}
+
+static void ReleaseExpressionStorage(VectorObject *vPtr) {
+    FreeExpressionData(vPtr);
     vPtr->data.raw = NULL;
     vPtr->length = 0;
     vPtr->size = 0;
@@ -239,13 +272,7 @@ static int PromoteExpressionVectorToComplex(VectorObject *vPtr) {
         newArr[i].real = vPtr->data.real[i];
         newArr[i].imag = 0.0;
     }
-    if ((vPtr->data.raw != NULL) && (vPtr->freeProc != TCL_STATIC)) {
-        if (vPtr->freeProc == TCL_DYNAMIC) {
-            ckfree(vPtr->data.raw);
-        } else {
-            vPtr->freeProc(vPtr->data.raw);
-        }
-    }
+    FreeExpressionData(vPtr);
     vPtr->data.complex = newArr;
     vPtr->type = RBC_VECTOR_COMPLEX;
     vPtr->freeProc = (newArr == NULL) ? TCL_STATIC : TCL_DYNAMIC;
@@ -1200,6 +1227,29 @@ static double Nonzeros(Rbc_Vector *vecPtr) {
         }
     }
     return (double)count;
+}
+
+static double Identity(double value) { return value; }
+
+static double Zero(double value) {
+    (void)value;
+
+    return 0.0;
+}
+
+static double Arg(double value) { return atan2(0.0, value); }
+
+static double ComplexAbs(Rbc_Complex value) { return hypot(value.real, value.imag); }
+
+static double ComplexArg(Rbc_Complex value) { return atan2(value.imag, value.real); }
+
+static double ComplexReal(Rbc_Complex value) { return value.real; }
+
+static double ComplexImag(Rbc_Complex value) { return value.imag; }
+
+static Rbc_Complex ComplexConj(Rbc_Complex value) {
+    value.imag = -value.imag;
+    return value;
 }
 
 /*
@@ -2535,6 +2585,37 @@ static int ComponentFunc(ClientData clientData, Tcl_Interp *interp, VectorObject
     return TCL_OK;
 }
 
+static int ComplexComponentFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr) {
+    ComplexComponentFunction *functionPtr;
+    Tcl_Size i;
+
+    functionPtr = (ComplexComponentFunction *)clientData;
+    if (vPtr->type == RBC_VECTOR_REAL) {
+        return ComponentFunc((ClientData)functionPtr->realProc, interp, vPtr);
+    }
+    assert(vPtr->type == RBC_VECTOR_COMPLEX);
+    for (i = 0; i < vPtr->length; i++) {
+        Rbc_Complex value;
+
+        errno = 0;
+        value = (*functionPtr->complexProc)(vPtr->data.complex[i]);
+        if (errno != 0) {
+            MathError(interp, value.real);
+            return TCL_ERROR;
+        }
+        if (!FINITE(value.real)) {
+            MathError(interp, value.real);
+            return TCL_ERROR;
+        }
+        if (!FINITE(value.imag)) {
+            MathError(interp, value.imag);
+            return TCL_ERROR;
+        }
+        vPtr->data.complex[i] = value;
+    }
+    return TCL_OK;
+}
+
 /*
  *--------------------------------------------------------------
  *
@@ -2603,4 +2684,51 @@ static int VectorFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *v
         return TCL_ERROR;
     }
     return (*procPtr)(vPtr);
+}
+
+static int ComplexRealFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr) {
+    ComplexRealFunction *functionPtr;
+    double *newArr;
+    size_t byteCount;
+    Tcl_Size i;
+
+    functionPtr = (ComplexRealFunction *)clientData;
+    if (vPtr->type == RBC_VECTOR_REAL) {
+        return ComponentFunc((ClientData)functionPtr->realProc, interp, vPtr);
+    }
+    assert(vPtr->type == RBC_VECTOR_COMPLEX);
+    if (GetDoubleArrayByteCount(interp, vPtr->size, &byteCount) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    newArr = NULL;
+    if (byteCount > 0) {
+        newArr = Tcl_AttemptAlloc(byteCount);
+        if (newArr == NULL) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate real expression vector", -1));
+            return TCL_ERROR;
+        }
+    }
+    for (i = 0; i < vPtr->length; i++) {
+        errno = 0;
+        newArr[i] = (*functionPtr->complexProc)(vPtr->data.complex[i]);
+        if (errno != 0) {
+            MathError(interp, newArr[i]);
+            goto error;
+        }
+        if (!FINITE(newArr[i])) {
+            MathError(interp, newArr[i]);
+            goto error;
+        }
+    }
+    FreeExpressionData(vPtr);
+    vPtr->data.real = newArr;
+    vPtr->type = RBC_VECTOR_REAL;
+    vPtr->freeProc = (newArr == NULL) ? TCL_STATIC : TCL_DYNAMIC;
+    return TCL_OK;
+
+error:
+    if (newArr != NULL) {
+        ckfree(newArr);
+    }
+    return TCL_ERROR;
 }
