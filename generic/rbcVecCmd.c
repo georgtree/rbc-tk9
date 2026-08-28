@@ -128,8 +128,8 @@ static const VectorInstOpSpec vectorInstOpCmd[] = {{{"*", 3, 3, "list"}, ArithOp
                                                    {{NULL, 0, 0, NULL}, NULL}};
 
 static int ComplexOpSupported(RbcVectorCmdOp *proc) {
-    return ((proc == AppendOp) || (proc == ClearOp) || (proc == IndexOp) || (proc == LengthOp) || (proc == OffsetOp) ||
-            (proc == RangeOp) || (proc == SetOp) || (proc == TypeOp));
+    return ((proc == AppendOp) || (proc == ClearOp) || (proc == DeleteOp) || (proc == IndexOp) || (proc == LengthOp) ||
+            (proc == OffsetOp) || (proc == RangeOp) || (proc == SetOp) || (proc == TypeOp));
 }
 
 /*
@@ -848,10 +848,19 @@ static int DeleteOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
     count = 0;
     for (valueIndex = 0; valueIndex < vPtr->length; valueIndex++) {
         if (GetBit(valueIndex)) {
-            continue; /* Skip elements marked for deletion. */
+            continue;
         }
         if (count < valueIndex) {
-            vPtr->data.real[count] = vPtr->data.real[valueIndex];
+            switch (vPtr->type) {
+            case RBC_VECTOR_REAL:
+                vPtr->data.real[count] = vPtr->data.real[valueIndex];
+                break;
+            case RBC_VECTOR_COMPLEX:
+                vPtr->data.complex[count] = vPtr->data.complex[valueIndex];
+                break;
+            default:
+                Tcl_Panic("bad vector type %d", (int)vPtr->type);
+            }
         }
         count++;
     }

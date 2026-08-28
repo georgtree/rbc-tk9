@@ -89,6 +89,83 @@ namespace import tcltest::*
 	} -cleanup {
 		vector destroy foo
 	} -result {1.0 2.0 3.0 4.0}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that a single element can be deleted from a complex vector.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.delete.A.2.1 {
+        vector delete: complex single index
+    } -setup {
+        vector create foo -type complex
+        foo set {{1 2} {3 4} {5 6} {7 8}}
+    } -body {
+        foo delete 1
+        list [foo length] [foo range 0 end]
+    } -cleanup {
+        catch {vector destroy foo}
+    } -result {3 {{1.0 2.0} {5.0 6.0} {7.0 8.0}}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that multiple elements can be deleted from a complex vector.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.delete.A.2.2 {
+        vector delete: complex multiple indices
+    } -setup {
+        vector create foo -type complex
+        foo set {{1 2} {3 4} {5 6} {7 8} {9 10}}
+    } -body {
+        foo delete 0 2 4
+        foo range 0 end
+    } -cleanup {
+        catch {vector destroy foo}
+    } -result {{3.0 4.0} {7.0 8.0}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that a range of elements can be deleted from a complex vector.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.delete.A.2.3 {
+        vector delete: complex range
+    } -setup {
+        vector create foo -type complex
+        foo set {{1 2} {3 4} {5 6} {7 8} {9 10}}
+    } -body {
+        foo delete 1:3
+        list [foo length] [foo range 0 end]
+    } -cleanup {
+        catch {vector destroy foo}
+    } -result {2 {{1.0 2.0} {9.0 10.0}}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that overlapping delete specifications do not cause additional
+    # deletions.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.delete.A.2.4 {
+        vector delete: overlapping complex ranges
+    } -setup {
+        vector create foo -type complex
+        foo set {{1 2} {3 4} {5 6} {7 8} {9 10}}
+    } -body {
+        foo delete 1:3 2
+        foo range 0 end
+    } -cleanup {
+        catch {vector destroy foo}
+    } -result {{1.0 2.0} {9.0 10.0}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that an invalid delete specification leaves a complex vector
+    # unchanged.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.delete.A.2.5 {
+        vector delete: invalid complex index leaves vector unchanged
+    } -setup {
+        vector create foo -type complex
+        foo set {{1 2} {3 4} {5 6} {7 8}}
+    } -body {
+        set code [catch { foo delete 1 10 } message]
+        list $code [foo length] [foo range 0 end]
+    } -cleanup {
+        catch {vector destroy foo}
+    } -result {1 4 {{1.0 2.0} {3.0 4.0} {5.0 6.0} {7.0 8.0}}}
 	
 	cleanupTests
 #}
