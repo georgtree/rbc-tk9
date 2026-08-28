@@ -123,9 +123,11 @@ static char *VectorTraceError(Tcl_Obj *objPtr) {
 }
 
 int Rbc_VectorGetRange(Rbc_Vector *vecPtr, double *minPtr, double *maxPtr) {
+    if (vecPtr->type != RBC_VECTOR_REAL) {
+        return TCL_ERROR;
+    }
     *minPtr = Rbc_VecMin(vecPtr);
     *maxPtr = Rbc_VecMax(vecPtr);
-
     return TCL_OK;
 }
 
@@ -946,11 +948,11 @@ void Rbc_VectorFree(VectorObject *vPtr) {
         ckfree((char *)clientPtr);
     }
     Rbc_ChainDestroy(vPtr->chainPtr);
-    if ((vPtr->data.real != NULL) && (vPtr->freeProc != TCL_STATIC)) {
+    if ((vPtr->data.raw != NULL) && (vPtr->freeProc != TCL_STATIC)) {
         if (vPtr->freeProc == TCL_DYNAMIC) {
-            ckfree((char *)vPtr->data.real);
+            ckfree(vPtr->data.raw);
         } else {
-            (*vPtr->freeProc)((char *)vPtr->data.real);
+            (*vPtr->freeProc)(vPtr->data.raw);
         }
     }
     if (vPtr->hashPtr != NULL) {
@@ -988,15 +990,26 @@ int Rbc_VectorDuplicate(VectorObject *destPtr, VectorObject *srcPtr) {
     Tcl_Size length;
     size_t byteCount;
 
+    if (destPtr->type != srcPtr->type) {
+        Tcl_SetObjResult(destPtr->interp, Tcl_NewStringObj("can't duplicate vectors of different types", -1));
+        return TCL_ERROR;
+    }
     length = srcPtr->last - srcPtr->first + 1;
-    if (GetVectorByteCount(destPtr->interp, destPtr->type, length, &byteCount) != TCL_OK) {
+    if (GetVectorByteCount(destPtr->interp, srcPtr->type, length, &byteCount) != TCL_OK) {
         return TCL_ERROR;
     }
     if (Rbc_VectorChangeLength(destPtr, length) != TCL_OK) {
         return TCL_ERROR;
     }
     if (byteCount > 0) {
-        memmove(destPtr->data.real, srcPtr->data.real + srcPtr->first, byteCount);
+        switch (srcPtr->type) {
+        case RBC_VECTOR_REAL:
+            memmove(destPtr->data.real, srcPtr->data.real + srcPtr->first, byteCount);
+            break;
+        case RBC_VECTOR_COMPLEX:
+            memmove(destPtr->data.complex, srcPtr->data.complex + srcPtr->first, byteCount);
+            break;
+        }
     }
     destPtr->offset = srcPtr->offset;
     return TCL_OK;
@@ -1159,6 +1172,11 @@ int Rbc_VectorReset(VectorObject *vPtr, double *valueArr, Tcl_Size length, Tcl_S
     size_t sizeBytes;
     size_t lengthBytes;
 
+    if (vPtr->type != RBC_VECTOR_REAL) {
+        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("Rbc_ResetVector cannot reset a complex vector", -1));
+        return TCL_ERROR;
+    }
+
     if (length < 0) {
         Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("vector length cannot be negative", -1));
         return TCL_ERROR;
@@ -1171,8 +1189,8 @@ int Rbc_VectorReset(VectorObject *vPtr, double *valueArr, Tcl_Size length, Tcl_S
         Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("vector length exceeds array size", -1));
         return TCL_ERROR;
     }
-    if ((GetVectorByteCount(vPtr->interp, vPtr->type, size, &sizeBytes) != TCL_OK) ||
-        (GetVectorByteCount(vPtr->interp, vPtr->type,length, &lengthBytes) != TCL_OK)) {
+    if ((GetVectorByteCount(vPtr->interp, RBC_VECTOR_REAL, size, &sizeBytes) != TCL_OK) ||
+        (GetVectorByteCount(vPtr->interp, RBC_VECTOR_REAL, length, &lengthBytes) != TCL_OK)) {
         return TCL_ERROR;
     }
     /*
@@ -1198,11 +1216,12 @@ int Rbc_VectorReset(VectorObject *vPtr, double *valueArr, Tcl_Size length, Tcl_S
     /*
      * Release the old array only when it is actually being replaced.
      */
-    if ((vPtr->data.real != valueArr) && (vPtr->data.real != NULL) && (vPtr->freeProc != TCL_STATIC)) {
+    if ((vPtr->data.raw != valueArr) && (vPtr->data.raw != NULL) && (vPtr->freeProc != TCL_STATIC)) {
+
         if (vPtr->freeProc == TCL_DYNAMIC) {
-            ckfree(vPtr->data.real);
+            ckfree(vPtr->data.raw);
         } else {
-            vPtr->freeProc(vPtr->data.real);
+            vPtr->freeProc(vPtr->data.raw);
         }
     }
     /*

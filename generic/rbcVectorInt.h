@@ -63,7 +63,7 @@ typedef union {
 } VectorData;
 
 /*
- *    A vector is an array of double precision values.  It can be
+ *    A vector is an array of real or complex numeric values. It can be
  *    accessed through a Tcl command, a Tcl array variable, or C
  *    API. The storage for the array points initially to a
  *    statically allocated buffer, but to malloc-ed memory if more
@@ -78,7 +78,7 @@ typedef union {
  *    each client is notified of the change by their callback
  *    routine.
  */
-struct Rbc_Vector {
+struct Rbc_Vector_s {
     Rbc_VectorType type;    
 
     VectorData data;
@@ -122,34 +122,7 @@ struct Rbc_Vector {
                            * mostly for the math routines */
 };
 
-struct Rbc_Vector_s {
-    Rbc_VectorType type;
 
-    VectorData data;
-
-    Tcl_Size length;
-    Tcl_Size size;
-
-    double min;
-    double max;
-    int dirty;
-
-    char *name;
-    VectorInterpData *dataPtr;
-    Tcl_Interp *interp;
-    Tcl_HashEntry *hashPtr;
-    Tcl_FreeProc *freeProc;
-    char *arrayName;
-    Tcl_Size offset;
-    Tcl_Command cmdToken;
-    Rbc_Chain *chainPtr;
-    int notifyFlags;
-    int varFlags;
-    int freeOnUnset;
-    int flush;
-    Tcl_Size first;
-    Tcl_Size last;
-};
 
 typedef Rbc_Vector VectorObject;
 
