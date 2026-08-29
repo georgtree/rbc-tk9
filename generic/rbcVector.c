@@ -1224,7 +1224,7 @@ int Rbc_VectorMapVariable(Tcl_Interp *interp, VectorObject *vPtr, const char *na
  *      Tcl_Size length - Number of elements currently in the vector.
  *      Tcl_Size size   - Maximum number of elements the supplied
  *                        array can hold.
- *      Tcl_FreeProc *freeProc - Address of memory deallocation routine for the array of values.  Can also be 
+ *      Tcl_FreeProc *freeProc - Address of memory deallocation routine for the array of values.  Can also be
  *                               TCL_STATIC, TCL_DYNAMIC, or TCL_VOLATILE.
  *
  * Results:
@@ -1238,15 +1238,11 @@ int Rbc_VectorMapVariable(Tcl_Interp *interp, VectorObject *vPtr, const char *na
  *
  * -----------------------------------------------------------------------
  */
-int Rbc_VectorReset(VectorObject *vPtr, double *valueArr, Tcl_Size length, Tcl_Size size, Tcl_FreeProc *freeProc) {
-    double *newArr;
+static int ResetVectorStorage(VectorObject *vPtr, void *valueArr, Tcl_Size length, Tcl_Size size,
+                              Tcl_FreeProc *freeProc) {
+    void *newArr;
     size_t sizeBytes;
     size_t lengthBytes;
-
-    if (vPtr->type != RBC_VECTOR_REAL) {
-        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("Rbc_ResetVector cannot reset a complex vector", -1));
-        return TCL_ERROR;
-    }
 
     if (length < 0) {
         Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("vector length cannot be negative", -1));
@@ -1260,8 +1256,9 @@ int Rbc_VectorReset(VectorObject *vPtr, double *valueArr, Tcl_Size length, Tcl_S
         Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("vector length exceeds array size", -1));
         return TCL_ERROR;
     }
-    if ((GetVectorByteCount(vPtr->interp, RBC_VECTOR_REAL, size, &sizeBytes) != TCL_OK) ||
-        (GetVectorByteCount(vPtr->interp, RBC_VECTOR_REAL, length, &lengthBytes) != TCL_OK)) {
+
+    if ((GetVectorByteCount(vPtr->interp, vPtr->type, size, &sizeBytes) != TCL_OK) ||
+        (GetVectorByteCount(vPtr->interp, vPtr->type, length, &lengthBytes) != TCL_OK)) {
         return TCL_ERROR;
     }
     /*
@@ -1272,6 +1269,7 @@ int Rbc_VectorReset(VectorObject *vPtr, double *valueArr, Tcl_Size length, Tcl_S
         length = 0;
         size = 0;
         freeProc = TCL_STATIC;
+
     } else if (freeProc == TCL_VOLATILE) {
         /*
          * Volatile storage must be copied even when valueArr happens
@@ -1288,7 +1286,6 @@ int Rbc_VectorReset(VectorObject *vPtr, double *valueArr, Tcl_Size length, Tcl_S
      * Release the old array only when it is actually being replaced.
      */
     if ((vPtr->data.raw != valueArr) && (vPtr->data.raw != NULL) && (vPtr->freeProc != TCL_STATIC)) {
-
         if (vPtr->freeProc == TCL_DYNAMIC) {
             ckfree(vPtr->data.raw);
         } else {
@@ -1297,10 +1294,10 @@ int Rbc_VectorReset(VectorObject *vPtr, double *valueArr, Tcl_Size length, Tcl_S
     }
     /*
      * Record the complete new array contract even if the address did
-     * not change.  The caller may have resized storage in place.
+     * not change. The caller may have resized storage in place.
      */
     vPtr->freeProc = freeProc;
-    vPtr->data.real = valueArr;
+    vPtr->data.raw = valueArr;
     vPtr->size = size;
     vPtr->length = length;
     if (vPtr->flush) {
@@ -1308,6 +1305,14 @@ int Rbc_VectorReset(VectorObject *vPtr, double *valueArr, Tcl_Size length, Tcl_S
     }
     Rbc_VectorUpdateClients(vPtr);
     return TCL_OK;
+}
+
+int Rbc_VectorReset(VectorObject *vPtr, double *valueArr, Tcl_Size length, Tcl_Size size, Tcl_FreeProc *freeProc) {
+    if (vPtr->type != RBC_VECTOR_REAL) {
+        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("Rbc_ResetVector cannot reset a complex vector", -1));
+        return TCL_ERROR;
+    }
+    return ResetVectorStorage(vPtr, valueArr, length, size, freeProc);
 }
 
 /*
@@ -3073,7 +3078,7 @@ int Rbc_GetVector(Tcl_Interp *interp, const char *name, Rbc_Vector **vecPtrPtr) 
  * -----------------------------------------------------------------------
  */
 int Rbc_CreateVector2(Tcl_Interp *interp, const char *vecName, const char *cmdName, const char *varName,
-                      Tcl_Size initialSize, Rbc_Vector **vecPtrPtr) {
+                      Tcl_Size initialSize, Rbc_VectorType type, Rbc_Vector **vecPtrPtr) {
     VectorInterpData *dataPtr;
     VectorObject *vPtr;
     int isNew;
@@ -3082,8 +3087,12 @@ int Rbc_CreateVector2(Tcl_Interp *interp, const char *vecName, const char *cmdNa
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad vector size \"%" TCL_SIZE_MODIFIER "d\"", initialSize));
         return TCL_ERROR;
     }
+    if ((type != RBC_VECTOR_REAL) && (type != RBC_VECTOR_COMPLEX)) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad vector type %d", (int)type));
+        return TCL_ERROR;
+    }
     dataPtr = Rbc_VectorGetInterpData(interp);
-    vPtr = Rbc_VectorCreate(dataPtr, vecName, cmdName, varName, RBC_VECTOR_REAL, &isNew);
+    vPtr = Rbc_VectorCreate(dataPtr, vecName, cmdName, varName, type, &isNew);
     if (vPtr == NULL) {
         return TCL_ERROR;
     }
@@ -3120,7 +3129,20 @@ int Rbc_CreateVector2(Tcl_Interp *interp, const char *vecName, const char *cmdNa
  *--------------------------------------------------------------
  */
 int Rbc_CreateVector(Tcl_Interp *interp, const char *name, Tcl_Size size, Rbc_Vector **vecPtrPtr) {
-    return Rbc_CreateVector2(interp, name, name, name, size, vecPtrPtr);
+    return Rbc_CreateVector2(interp, name, name, name, size, RBC_VECTOR_REAL, vecPtrPtr);
+}
+
+int Rbc_CreateVectorWithType(Tcl_Interp *interp, const char *name, Tcl_Size size, Rbc_VectorType type,
+                             Rbc_Vector **vecPtrPtr) {
+    const char *varName;
+
+    /*
+     * Match the Tcl-level creation semantics: real vectors receive
+     * their traditional automatic array mapping, complex vectors do
+     * not.
+     */
+    varName = (type == RBC_VECTOR_REAL) ? name : NULL;
+    return Rbc_CreateVector2(interp, name, name, varName, size, type, vecPtrPtr);
 }
 
 /*
@@ -3183,6 +3205,18 @@ char *Rbc_NameOfVector(Rbc_Vector *vecPtr) {
     return vPtr->name;
 }
 
+int Rbc_ResetComplexVector(Rbc_Vector *vecPtr, Rbc_Complex *valueArr, Tcl_Size length, Tcl_Size size,
+                           Tcl_FreeProc *freeProc) {
+    VectorObject *vPtr;
+
+    vPtr = (VectorObject *)vecPtr;
+    if (vPtr->type != RBC_VECTOR_COMPLEX) {
+        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("Rbc_ResetComplexVector cannot reset a real vector", -1));
+        return TCL_ERROR;
+    }
+    return ResetVectorStorage(vPtr, valueArr, length, size, freeProc);
+}
+
 /*
  * -----------------------------------------------------------------------
  *
@@ -3217,6 +3251,13 @@ int Rbc_ResetVector(Rbc_Vector *vecPtr, double *valueArr, Tcl_Size length, Tcl_S
 }
 
 void Rbc_FreeVector(Rbc_Vector *v) { Rbc_VectorFree((VectorObject *)v); }
+
+Rbc_Complex *Rbc_VectorComplexData(Rbc_Vector *vPtr) {
+    if (vPtr->type != RBC_VECTOR_COMPLEX) {
+        return NULL;
+    }
+    return vPtr->data.complex;
+}
 
 double *Rbc_VectorData(Rbc_Vector *vPtr) {
     if (vPtr->type != RBC_VECTOR_REAL) {

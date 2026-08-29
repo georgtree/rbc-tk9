@@ -71,6 +71,16 @@ RBCAPI Rbc_VectorType	Rbc_VectorGetType(Rbc_Vector *vPtr);
 /* 12 */
 RBCAPI int		Rbc_VectorGetRange(Rbc_Vector *vecPtr,
 				double *minPtr, double *maxPtr);
+/* 13 */
+RBCAPI int		Rbc_CreateVectorWithType(Tcl_Interp *interp,
+				const char *vecName, Tcl_Size size,
+				Rbc_VectorType type, Rbc_Vector **vecPtrPtr);
+/* 14 */
+RBCAPI int		Rbc_ResetComplexVector(Rbc_Vector *vecPtr,
+				Rbc_Complex *dataArr, Tcl_Size nValues,
+				Tcl_Size arraySize, Tcl_FreeProc *freeProc);
+/* 15 */
+RBCAPI Rbc_Complex *	Rbc_VectorComplexData(Rbc_Vector *vPtr);
 
 typedef struct RbcStubs {
     int magic;
@@ -89,6 +99,9 @@ typedef struct RbcStubs {
     void (*rbc_FreeVector) (Rbc_Vector *v); /* 10 */
     Rbc_VectorType (*rbc_VectorGetType) (Rbc_Vector *vPtr); /* 11 */
     int (*rbc_VectorGetRange) (Rbc_Vector *vecPtr, double *minPtr, double *maxPtr); /* 12 */
+    int (*rbc_CreateVectorWithType) (Tcl_Interp *interp, const char *vecName, Tcl_Size size, Rbc_VectorType type, Rbc_Vector **vecPtrPtr); /* 13 */
+    int (*rbc_ResetComplexVector) (Rbc_Vector *vecPtr, Rbc_Complex *dataArr, Tcl_Size nValues, Tcl_Size arraySize, Tcl_FreeProc *freeProc); /* 14 */
+    Rbc_Complex * (*rbc_VectorComplexData) (Rbc_Vector *vPtr); /* 15 */
 } RbcStubs;
 
 extern const RbcStubs *rbcStubsPtr;
@@ -129,6 +142,12 @@ extern const RbcStubs *rbcStubsPtr;
 	(rbcStubsPtr->rbc_VectorGetType) /* 11 */
 #define Rbc_VectorGetRange \
 	(rbcStubsPtr->rbc_VectorGetRange) /* 12 */
+#define Rbc_CreateVectorWithType \
+	(rbcStubsPtr->rbc_CreateVectorWithType) /* 13 */
+#define Rbc_ResetComplexVector \
+	(rbcStubsPtr->rbc_ResetComplexVector) /* 14 */
+#define Rbc_VectorComplexData \
+	(rbcStubsPtr->rbc_VectorComplexData) /* 15 */
 
 #endif /* defined(USE_RBC_STUBS) */
 

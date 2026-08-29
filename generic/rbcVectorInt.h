@@ -254,7 +254,7 @@ VectorInterpData *Rbc_VectorGetInterpData(Tcl_Interp *interp);
  * This isn't part of the public stub API.
  */
 int Rbc_CreateVector2(Tcl_Interp *interp, const char *vecName, const char *cmdName, const char *varName,
-                      Tcl_Size initialSize, Rbc_Vector **vecPtrPtr);
+                      Tcl_Size initialSize, Rbc_VectorType type, Rbc_Vector **vecPtrPtr);
 
 /*
  * Vector instance command.
