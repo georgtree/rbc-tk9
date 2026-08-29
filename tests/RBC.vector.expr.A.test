@@ -1690,5 +1690,51 @@ namespace eval vector.expr {
         unset -nocomplain CVar
     } -result {1 1}
 
+    # ------------------------------------------------------------------------------------
+    # Purpose: Test real-valued scalar functions on complex vectors.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.expr.A.11.1 {
+        complex length
+    } -setup {
+        vector create C -type complex
+        C set {{1 2} {3 -4} {0 0} {-2 5}}
+    } -body {
+        vector expr {length(C)}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {4.0}
+
+    test RBC.vector.expr.A.11.2 {
+        complex length selected range
+    } -setup {
+        vector create C -type complex
+        C set {{1 10} {2 20} {3 30} {4 40}}
+    } -body {
+        vector expr {length(C(1:2))}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {2.0}
+
+    test RBC.vector.expr.A.11.3 {
+        complex length returns real scalar
+    } -setup {
+        vector create C -type complex
+        C set {{1 2} {3 4} {5 6}}
+    } -body {
+        vector expr {length(C) + 1}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {4.0}
+
+    test RBC.vector.expr.A.11.4 {
+        complex empty length
+    } -setup {
+        vector create C -type complex
+    } -body {
+        vector expr {length(C)}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {0.0}
+
 	cleanupTests
 }

@@ -36,6 +36,13 @@ typedef struct {
     ComplexScalarProc *complexProc;
 } ComplexScalarFunction;
 
+typedef double(ComplexRealScalarProc)(VectorObject *vPtr);
+
+typedef struct {
+    Rbc_VectorIndexProc *realProc;
+    ComplexRealScalarProc *complexProc;
+} ComplexRealScalarFunction;
+
 /*
  *    Contains information about math functions that can be called
  *    for vectors.  The table of math functions is global within the
@@ -111,6 +118,8 @@ static Rbc_Complex ComplexSum(VectorObject *vPtr);
 static Rbc_Complex ComplexMean(VectorObject *vPtr);
 static Rbc_Complex ComplexProduct(VectorObject *vPtr);
 static int ComplexScalarFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr);
+static double ComplexLength(VectorObject *vPtr);
+static int ComplexRealScalarFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr);
 static double Random(double value);
 static double Mean(Rbc_Vector *vecPtr);
 static double Sum(Rbc_Vector *vecPtr);
@@ -166,6 +175,7 @@ static ComplexComponentFunction atanFunction = {atan, ComplexAtan};
 static ComplexScalarFunction sumFunction = {Sum, ComplexSum};
 static ComplexScalarFunction meanFunction = {Mean, ComplexMean};
 static ComplexScalarFunction productFunction = {Product, ComplexProduct};
+static ComplexRealScalarFunction lengthFunction = {Length, ComplexLength};
 
 static MathFunction mathFunctions[] = {
     {"abs", (GenericMathProc *)ComplexRealFunc, (ClientData)&absFunction},
@@ -183,7 +193,7 @@ static MathFunction mathFunctions[] = {
     {"exp", (GenericMathProc *)ComplexComponentFunc, (ClientData)&expFunction},
     {"floor", (GenericMathProc *)ComponentFunc, (ClientData)floor},
     {"kurtosis", (GenericMathProc *)ScalarFunc, (ClientData)Kurtosis},
-    {"length", (GenericMathProc *)ScalarFunc, (ClientData)Length},
+    {"length", (GenericMathProc *)ComplexRealScalarFunc, (ClientData)&lengthFunction},
     {"log", (GenericMathProc *)ComplexComponentFunc, (ClientData)&logFunction},
     {"log10", (GenericMathProc *)ComplexComponentFunc, (ClientData)&log10Function},
     {"max", (GenericMathProc *)ScalarFunc, (ClientData)Rbc_VecMax},
@@ -1746,6 +1756,19 @@ static Rbc_Complex ComplexProduct(VectorObject *vPtr) {
     return product;
 }
 
+static double ComplexLength(VectorObject *vPtr) {
+    Tcl_Size count;
+    Tcl_Size i;
+
+    count = 0;
+    for (i = vPtr->first; i <= vPtr->last; i++) {
+        if (ComplexValueIsFinite(vPtr->data.complex[i])) {
+            count++;
+        }
+    }
+    return (double)count;
+}
+
 /*
  *--------------------------------------------------------------
  *
@@ -3209,6 +3232,29 @@ static int ComplexScalarFunc(ClientData clientData, Tcl_Interp *interp, VectorOb
         vPtr->data.complex[0] = value;
     }
     return TCL_OK;
+}
+
+static int ComplexRealScalarFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr) {
+    ComplexRealScalarFunction *functionPtr;
+    double value;
+
+    functionPtr = (ComplexRealScalarFunction *)clientData;
+    errno = 0;
+    if (vPtr->type == RBC_VECTOR_REAL) {
+        value = (*functionPtr->realProc)((Rbc_Vector *)vPtr);
+    } else {
+        assert(vPtr->type == RBC_VECTOR_COMPLEX);
+        /*
+         * Compute before changing the temporary from complex
+         * storage to real storage.
+         */
+        value = (*functionPtr->complexProc)(vPtr);
+    }
+    if (errno != 0) {
+        MathError(interp, value);
+        return TCL_ERROR;
+    }
+    return SetExpressionRealScalar(vPtr, value);
 }
 
 /*
