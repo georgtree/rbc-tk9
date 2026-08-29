@@ -19,6 +19,7 @@ typedef int(GenericMathProc)(ClientData clientData, Tcl_Interp *interp, VectorOb
 
 typedef Rbc_Complex(ComplexComponentProc)(Rbc_Complex value);
 typedef double(ComplexRealProc)(Rbc_Complex value);
+typedef Rbc_Complex(ComplexScalarProc)(VectorObject *vPtr);
 
 typedef struct {
     ComponentProc *realProc;
@@ -29,6 +30,11 @@ typedef struct {
     ComponentProc *realProc;
     ComplexRealProc *complexProc;
 } ComplexRealFunction;
+
+typedef struct {
+    Rbc_VectorIndexProc *realProc;
+    ComplexScalarProc *complexProc;
+} ComplexScalarFunction;
 
 /*
  *    Contains information about math functions that can be called
@@ -100,6 +106,11 @@ static Rbc_Complex ComplexAsin(Rbc_Complex value);
 static Rbc_Complex ComplexAcos(Rbc_Complex value);
 static Rbc_Complex ComplexAtan(Rbc_Complex value);
 static int ComplexPower(Tcl_Interp *interp, Rbc_Complex base, Rbc_Complex exponent, Rbc_Complex *resultPtr);
+static int ComplexValueIsFinite(Rbc_Complex value);
+static Rbc_Complex ComplexSum(VectorObject *vPtr);
+static Rbc_Complex ComplexMean(VectorObject *vPtr);
+static Rbc_Complex ComplexProduct(VectorObject *vPtr);
+static int ComplexScalarFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr);
 static double Random(double value);
 static double Mean(Rbc_Vector *vecPtr);
 static double Sum(Rbc_Vector *vecPtr);
@@ -152,6 +163,9 @@ static ComplexComponentFunction tanhFunction = {tanh, ComplexTanh};
 static ComplexComponentFunction asinFunction = {asin, ComplexAsin};
 static ComplexComponentFunction acosFunction = {acos, ComplexAcos};
 static ComplexComponentFunction atanFunction = {atan, ComplexAtan};
+static ComplexScalarFunction sumFunction = {Sum, ComplexSum};
+static ComplexScalarFunction meanFunction = {Mean, ComplexMean};
+static ComplexScalarFunction productFunction = {Product, ComplexProduct};
 
 static MathFunction mathFunctions[] = {
     {"abs", (GenericMathProc *)ComplexRealFunc, (ClientData)&absFunction},
@@ -173,14 +187,14 @@ static MathFunction mathFunctions[] = {
     {"log", (GenericMathProc *)ComplexComponentFunc, (ClientData)&logFunction},
     {"log10", (GenericMathProc *)ComplexComponentFunc, (ClientData)&log10Function},
     {"max", (GenericMathProc *)ScalarFunc, (ClientData)Rbc_VecMax},
-    {"mean", (GenericMathProc *)ScalarFunc, (ClientData)Mean},
+    {"mean", (GenericMathProc *)ComplexScalarFunc, (ClientData)&meanFunction},
     {"median", (GenericMathProc *)ScalarFunc, (ClientData)Median},
     {"min", (GenericMathProc *)ScalarFunc, (ClientData)Rbc_VecMin},
     {"norm", (GenericMathProc *)VectorFunc, (ClientData)Norm},
     {"nz", (GenericMathProc *)ScalarFunc, (ClientData)Nonzeros},
     {"q1", (GenericMathProc *)ScalarFunc, (ClientData)Q1},
     {"q3", (GenericMathProc *)ScalarFunc, (ClientData)Q3},
-    {"prod", (GenericMathProc *)ScalarFunc, (ClientData)Product},
+    {"prod", (GenericMathProc *)ComplexScalarFunc, (ClientData)&productFunction},
     {"random", (GenericMathProc *)ComponentFunc, (ClientData)Random},
     {"round", (GenericMathProc *)ComponentFunc, (ClientData)Round},
     {"sdev", (GenericMathProc *)ScalarFunc, (ClientData)StdDeviation},
@@ -189,7 +203,7 @@ static MathFunction mathFunctions[] = {
     {"skew", (GenericMathProc *)ScalarFunc, (ClientData)Skew},
     {"sort", (GenericMathProc *)VectorFunc, (ClientData)Sort},
     {"sqrt", (GenericMathProc *)ComplexComponentFunc, (ClientData)&sqrtFunction},
-    {"sum", (GenericMathProc *)ScalarFunc, (ClientData)Sum},
+    {"sum", (GenericMathProc *)ComplexScalarFunc, (ClientData)&sumFunction},
     {"tan", (GenericMathProc *)ComplexComponentFunc, (ClientData)&tanFunction},
     {"tanh", (GenericMathProc *)ComplexComponentFunc, (ClientData)&tanhFunction},
     {"var", (GenericMathProc *)ScalarFunc, (ClientData)Variance},
@@ -432,6 +446,8 @@ static int ApplyComplexBinaryOperator(Tcl_Interp *interp, int operator, VectorOb
     }
     return TCL_OK;
 }
+
+static int ComplexValueIsFinite(Rbc_Complex value) { return FINITE(value.real) && FINITE(value.imag); }
 
 /*
  *----------------------------------------------------------------------
@@ -1659,6 +1675,75 @@ static int ComplexPower(Tcl_Interp *interp, Rbc_Complex base, Rbc_Complex expone
         *resultPtr = ComplexExp(product);
     }
     return TCL_OK;
+}
+
+static Rbc_Complex ComplexSum(VectorObject *vPtr) {
+    Rbc_Complex sum;
+    Tcl_Size i;
+
+    sum.real = 0.0;
+    sum.imag = 0.0;
+    for (i = vPtr->first; i <= vPtr->last; i++) {
+        Rbc_Complex value;
+
+        value = vPtr->data.complex[i];
+        if (!ComplexValueIsFinite(value)) {
+            continue;
+        }
+        sum = Rbc_ComplexAdd(sum, value);
+    }
+    return sum;
+}
+
+static Rbc_Complex ComplexMean(VectorObject *vPtr) {
+    Rbc_Complex sum;
+    Rbc_Complex result;
+    Tcl_Size count;
+    Tcl_Size i;
+
+    sum.real = 0.0;
+    sum.imag = 0.0;
+    count = 0;
+    for (i = vPtr->first; i <= vPtr->last; i++) {
+        Rbc_Complex value;
+
+        value = vPtr->data.complex[i];
+        if (!ComplexValueIsFinite(value)) {
+            continue;
+        }
+        sum = Rbc_ComplexAdd(sum, value);
+        count++;
+    }
+    if (count == 0) {
+        /*
+         * Match the real Mean() behavior: the mean of no finite
+         * samples is not a valid finite expression result.
+         */
+        result.real = rbcNaN;
+        result.imag = rbcNaN;
+        return result;
+    }
+    result.real = sum.real / (double)count;
+    result.imag = sum.imag / (double)count;
+    return result;
+}
+
+static Rbc_Complex ComplexProduct(VectorObject *vPtr) {
+    Rbc_Complex product;
+    Tcl_Size i;
+
+    product.real = 1.0;
+    product.imag = 0.0;
+    for (i = vPtr->first; i <= vPtr->last; i++) {
+        Rbc_Complex value;
+
+        value = vPtr->data.complex[i];
+        if (!ComplexValueIsFinite(value)) {
+            continue;
+        }
+        product = Rbc_ComplexMul(product, value);
+    }
+    return product;
 }
 
 /*
@@ -3072,6 +3157,57 @@ static int ScalarFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *v
         return TCL_ERROR;
     }
     vPtr->data.real[0] = value;
+    return TCL_OK;
+}
+
+static int ComplexScalarFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr) {
+    ComplexScalarFunction *functionPtr;
+
+    functionPtr = (ComplexScalarFunction *)clientData;
+
+    if (vPtr->type == RBC_VECTOR_REAL) {
+        double value;
+
+        errno = 0;
+        value = (*functionPtr->realProc)((Rbc_Vector *)vPtr);
+        if (errno != 0) {
+            MathError(interp, value);
+            return TCL_ERROR;
+        }
+        if (Rbc_VectorChangeLength(vPtr, 1) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        vPtr->data.real[0] = value;
+        return TCL_OK;
+    }
+    assert(vPtr->type == RBC_VECTOR_COMPLEX);
+    {
+        Rbc_Complex value;
+
+        errno = 0;
+        value = (*functionPtr->complexProc)(vPtr);
+        if (errno != 0) {
+            double errorValue;
+
+            if (!FINITE(value.real)) {
+                errorValue = value.real;
+            } else if (!FINITE(value.imag)) {
+                errorValue = value.imag;
+            } else {
+                errorValue = value.real;
+            }
+            MathError(interp, errorValue);
+            return TCL_ERROR;
+        }
+        /*
+         * Compute the reduction before resizing: the source values
+         * still live in vPtr at this point.
+         */
+        if (Rbc_VectorChangeLength(vPtr, 1) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        vPtr->data.complex[0] = value;
+    }
     return TCL_OK;
 }
 

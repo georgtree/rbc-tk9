@@ -1576,5 +1576,119 @@ namespace eval vector.expr {
         list $realCode [expr {abs($real) < 1.0e-12}] [expr {abs($imag - 1.0) < 1.0e-12}]
     } -result {1 1 1}
 
+    # ------------------------------------------------------------------------------------
+    # Purpose: Test complex scalar reduction functions.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.expr.A.10.1 {
+        complex sum
+    } -setup {
+        vector create C -type complex
+        C set {{1 2} {3 -4} {-2 5}}
+    } -body {
+        vector expr {sum(C)}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {{2.0 3.0}}
+
+    test RBC.vector.expr.A.10.2 {
+        complex mean
+    } -setup {
+        vector create C -type complex
+        C set {{1 2} {3 4} {5 -3}}
+    } -body {
+        vector expr {mean(C)}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {{3.0 1.0}}
+
+    test RBC.vector.expr.A.10.3 {
+        complex product
+    } -setup {
+        vector create C -type complex
+        C set {{1 1} {2 -1} {-1 2}}
+    } -body {
+        vector expr {prod(C)}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {{-5.0 5.0}}
+
+    test RBC.vector.expr.A.10.4 {
+        complex reductions participate in expression
+    } -setup {
+        vector create C -type complex
+        C set {{1 2} {3 4}}
+    } -body {
+        vector expr {sum(C) + mean(C)}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {{6.0 9.0}}
+
+    test RBC.vector.expr.A.10.5 {
+        complex reduction selected range
+    } -setup {
+        vector create C -type complex
+        C set {{1 10} {2 20} {3 30} {4 40}}
+    } -body {
+        vector expr {sum(C(1:2))}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {{5.0 50.0}}
+
+    test RBC.vector.expr.A.10.6 {
+        complex instance reduction
+    } -setup {
+        vector create C -type complex
+        C set {{1 2} {3 4} {5 6}}
+    } -body {
+        C expr {sum(C)}
+        list [C type] [C length] [C range 0 end]
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {complex 1 {{9.0 12.0}}}
+
+    test RBC.vector.expr.A.10.7 {
+        real reduction dispatch unchanged
+    } -setup {
+        vector create R
+        R set {1 2 3 4}
+    } -body {
+        list [vector expr {sum(R)}] [vector expr {mean(R)}] [vector expr {prod(R)}]
+    } -cleanup {
+        catch {vector destroy R}
+    } -result {10.0 2.5 24.0}
+
+    test RBC.vector.expr.A.10.8 {
+        complex empty sum and product
+    } -setup {
+        vector create C -type complex
+    } -body {
+        list [vector expr {sum(C)}] [vector expr {prod(C)}]
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {{{0.0 0.0}} {{1.0 0.0}}}
+
+    test RBC.vector.expr.A.10.9 {
+        complex empty mean
+    } -setup {
+        vector create C -type complex
+    } -body {
+        catch {vector expr {mean(C)}}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result 1
+
+    test RBC.vector.expr.A.10.10 {
+        complex special reduction index remains unsupported
+    } -setup {
+        vector create C -type complex -variable CVar
+        C set {{1 2} {3 4}}
+    } -body {
+        set code [catch {set CVar(sum)} message]
+        list $code [string match {*special vector indices are not supported for complex vectors*} $message]
+    } -cleanup {
+        catch {vector destroy C}
+        unset -nocomplain CVar
+    } -result {1 1}
+
 	cleanupTests
 }
