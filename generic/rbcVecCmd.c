@@ -106,6 +106,8 @@ static int AppendVector(VectorObject *destPtr, VectorObject *srcPtr);
 static int AppendList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]);
 static int CopyValues(VectorObject *vPtr, char *byteArr, enum NativeFormats fmt, int size, Tcl_Size length, int swap,
                       Tcl_Size *indexPtr);
+static int CopyComplexValues(VectorObject *vPtr, char *byteArr, enum NativeFormats fmt, int size, Tcl_Size length,
+                             int swap, Tcl_Size *indexPtr);
 static int InRange(double value, double min, double max);
 static int CopyList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]);
 static Tcl_Size *SortVectors(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const *objv);
@@ -172,10 +174,11 @@ static const VectorInstOpSpec vectorInstOpCmd[] = {{{"*", 3, 3, "list"}, ArithOp
                                                    {{NULL, 0, 0, NULL}, NULL}};
 
 static int ComplexOpSupported(RbcVectorCmdOp *proc) {
-    return ((proc == ExprOp) || (proc == AppendOp) || (proc == ArithOp) || (proc == ClearOp) || (proc == DeleteOp) ||
-            (proc == DupOp) || (proc == IndexOp) || (proc == LengthOp) || (proc == MergeOp) || (proc == OffsetOp) ||
-            (proc == PopulateOp) || (proc == RandomOp) || (proc == RangeOp) || (proc == SearchOp) || (proc == SeqOp) ||
-            (proc == SetOp) || (proc == SplitOp) || (proc == TypeOp) || (proc == VariableOp));
+    return ((proc == ExprOp) || (proc == AppendOp) || (proc == ArithOp) || (proc == BinreadOp) || (proc == ClearOp) ||
+            (proc == DeleteOp) || (proc == DupOp) || (proc == IndexOp) || (proc == LengthOp) || (proc == MergeOp) ||
+            (proc == OffsetOp) || (proc == PopulateOp) || (proc == RandomOp) || (proc == RangeOp) ||
+            (proc == SearchOp) || (proc == SeqOp) || (proc == SetOp) || (proc == SplitOp) || (proc == TypeOp) ||
+            (proc == VariableOp));
 }
 
 /*
@@ -615,6 +618,8 @@ static int BinreadOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_
     Tcl_Size length;
     Tcl_Size newTotal;
     size_t bufferByteCount;
+    Tcl_Size componentsPerValue;
+    Tcl_Size bytesPerValue;
     int mode;
     int size;
     int swap;
@@ -696,13 +701,28 @@ static int BinreadOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_
         goto cleanup;
     }
 
+    switch (vPtr->type) {
+    case RBC_VECTOR_REAL:
+        componentsPerValue = 1;
+        break;
+    case RBC_VECTOR_COMPLEX:
+        componentsPerValue = 2;
+        break;
+    default:
+        Tcl_Panic("bad vector type %d", (int)vPtr->type);
+        goto cleanup;
+    }
+    if (MultiplyVectorSizes(interp, (Tcl_Size)size, componentsPerValue, &bytesPerValue) != TCL_OK) {
+        goto cleanup;
+    }
+
     /*
      * With no explicit count, read BUFFER_SIZE values per iteration.
      * With a count, allocate enough space for that one requested read.
      */
     bufferValues = (count == 0) ? (Tcl_Size)BUFFER_SIZE : count;
 
-    if (GetArrayByteCount(interp, bufferValues, (size_t)size, &bufferByteCount) != TCL_OK) {
+    if (GetArrayByteCount(interp, bufferValues, (size_t)bytesPerValue, &bufferByteCount) != TCL_OK) {
         goto cleanup;
     }
 
@@ -752,23 +772,39 @@ static int BinreadOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_
             break;
         }
 
-        if ((bytesRead % size) != 0) {
-            Tcl_SetObjResult(interp, Tcl_NewStringObj("error reading channel: "
-                                                      "input ended inside a binary value",
-                                                      -1));
+        if ((bytesRead % bytesPerValue) != 0) {
+            if (vPtr->type == RBC_VECTOR_COMPLEX) {
+                Tcl_SetObjResult(interp, Tcl_NewStringObj("error reading channel: "
+                                                          "input ended inside a complex binary value",
+                                                          -1));
+            } else {
+                Tcl_SetObjResult(interp, Tcl_NewStringObj("error reading channel: "
+                                                          "input ended inside a binary value",
+                                                          -1));
+            }
             goto cleanup;
         }
 
-        length = bytesRead / size;
+        length = bytesRead / bytesPerValue;
 
-        if (CopyValues(vPtr, byteArr, fmt, size, length, swap, &first) != TCL_OK) {
+        switch (vPtr->type) {
+        case RBC_VECTOR_REAL:
+            if (CopyValues(vPtr, byteArr, fmt, size, length, swap, &first) != TCL_OK) {
+                goto cleanup;
+            }
+            break;
+        case RBC_VECTOR_COMPLEX:
+            if (CopyComplexValues(vPtr, byteArr, fmt, size, length, swap, &first) != TCL_OK) {
+                goto cleanup;
+            }
+            break;
+        default:
+            Tcl_Panic("bad vector type %d", (int)vPtr->type);
             goto cleanup;
         }
-
         if (AddVectorSizes(interp, total, length, &newTotal) != TCL_OK) {
             goto cleanup;
         }
-
         total = newTotal;
 
         /*
@@ -2749,6 +2785,118 @@ static int CopyValues(VectorObject *vPtr, char *byteArr, enum NativeFormats fmt,
     *indexPtr = newSize;
     vPtr->notifyFlags |= UPDATE_RANGE;
 
+    return TCL_OK;
+}
+
+static int CopyComplexValues(VectorObject *vPtr, char *byteArr, enum NativeFormats fmt, int size, Tcl_Size length,
+                             int swap, Tcl_Size *indexPtr) {
+    Tcl_Size i;
+    Tcl_Size n;
+    Tcl_Size newSize;
+    Tcl_Size componentCount;
+
+    assert(vPtr->type == RBC_VECTOR_COMPLEX);
+    if ((length < 0) || (indexPtr == NULL) || (*indexPtr < 0) || (*indexPtr > vPtr->length)) {
+        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("invalid binary vector range", -1));
+        return TCL_ERROR;
+    }
+    if ((fmt == FMT_UNKNOWN) || (size <= 0)) {
+        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("invalid binary format", -1));
+        return TCL_ERROR;
+    }
+    if (AddVectorSizes(vPtr->interp, *indexPtr, length, &newSize) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    /*
+     * Each complex value contains two formatted scalar components.
+     */
+    if (MultiplyVectorSizes(vPtr->interp, length, 2, &componentCount) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    /*
+     * Swap each scalar component independently.  Do not swap the
+     * real/imaginary components themselves.
+     */
+    if (swap && (size > 1)) {
+        size_t nBytes;
+        size_t byteOffset;
+        unsigned char *p;
+        unsigned char temp;
+        int left;
+        int right;
+
+        if (GetArrayByteCount(vPtr->interp, componentCount, (size_t)size, &nBytes) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        for (byteOffset = 0; byteOffset < nBytes; byteOffset += (size_t)size) {
+            p = (unsigned char *)byteArr + byteOffset;
+            for (left = 0, right = size - 1; left < right; left++, right--) {
+                temp = p[left];
+                p[left] = p[right];
+                p[right] = temp;
+            }
+        }
+    }
+    if (newSize > vPtr->length) {
+        if (Rbc_VectorChangeLength(vPtr, newSize) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+    
+#define CopyArrayToComplexVector(array)                                                                                \
+    do {                                                                                                               \
+        for (i = 0, n = *indexPtr; i < length; i++, n++) {                                                             \
+            vPtr->data.complex[n].real = (double)(array)[2 * i];                                                       \
+            vPtr->data.complex[n].imag = (double)(array)[2 * i + 1];                                                   \
+        }                                                                                                              \
+    } while (0)
+
+    switch (fmt) {
+    case FMT_CHAR:
+        CopyArrayToComplexVector((char *)byteArr);
+        break;
+    case FMT_UCHAR:
+        CopyArrayToComplexVector((unsigned char *)byteArr);
+        break;
+    case FMT_SHORT:
+        CopyArrayToComplexVector((short *)byteArr);
+        break;
+    case FMT_USHORT:
+        CopyArrayToComplexVector((unsigned short *)byteArr);
+        break;
+    case FMT_INT:
+        CopyArrayToComplexVector((int *)byteArr);
+        break;
+    case FMT_UINT:
+        CopyArrayToComplexVector((unsigned int *)byteArr);
+        break;
+    case FMT_LONG:
+        CopyArrayToComplexVector((long *)byteArr);
+        break;
+    case FMT_ULONG:
+        CopyArrayToComplexVector((unsigned long *)byteArr);
+        break;
+    case FMT_LONGLONG:
+        CopyArrayToComplexVector((long long *)byteArr);
+        break;
+    case FMT_ULONGLONG:
+        CopyArrayToComplexVector((unsigned long long *)byteArr);
+        break;
+    case FMT_FLOAT:
+        CopyArrayToComplexVector((float *)byteArr);
+        break;
+    case FMT_DOUBLE:
+        CopyArrayToComplexVector((double *)byteArr);
+        break;
+    case FMT_UNKNOWN:
+        assert(0);
+        return TCL_ERROR;
+    }
+
+#undef CopyArrayToComplexVector
+
+    *indexPtr = newSize;
+    vPtr->notifyFlags |= UPDATE_RANGE;
     return TCL_OK;
 }
 

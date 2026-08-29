@@ -315,6 +315,110 @@ test RBC.vector.binread.A.5.2 {
     close $Channel
 } -result {option "-at" requires an additional argument}
 
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure binread interprets pairs of native values as real and imaginary
+# components of complex vector values.
+# ------------------------------------------------------------------------------------
+test RBC.vector.binread.A.6.1 {
+    vector binread: complex r8
+} -setup {
+    vector create Vector1 -type complex
+    set Channel [open [file join [file dirname [info script]] binReadTestFile.txt] r]
+} -body {
+    set count [Vector1 binread $Channel]
+    list $count [Vector1 type] [Vector1 range 0 end]
+} -cleanup {
+    catch {vector destroy Vector1}
+    catch {close $Channel}
+} -result {1 complex {{0.0 4.678870346324924e+163}}}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure numValues counts complex vector values rather than scalar
+# components.
+# ------------------------------------------------------------------------------------
+test RBC.vector.binread.A.6.2 {
+    vector binread: complex count
+} -setup {
+    vector create Vector1 -type complex
+    set Channel [open [file join [file dirname [info script]] binReadTestFile.txt] r]
+} -body {
+    set count [Vector1 binread $Channel 1 -format i4]
+    list $count [Vector1 length] [Vector1 range 0 end]
+} -cleanup {
+    catch {vector destroy Vector1}
+    catch {close $Channel}
+} -result {1 1 {{0.0 0.0}}}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure integer binary components are paired into complex values.
+# ------------------------------------------------------------------------------------
+test RBC.vector.binread.A.6.3 {
+    vector binread: complex i4
+} -setup {
+    vector create Vector1 -type complex
+    set Channel [open [file join [file dirname [info script]] binReadTestFile.txt] r]
+} -body {
+    set count [Vector1 binread $Channel -format i4]
+    list $count [Vector1 range 0 end]
+} -cleanup {
+    catch {vector destroy Vector1}
+    catch {close $Channel}
+} -result {2 {{0.0 0.0} {0.0 1642725376.0}}}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure -at indexes complex vector elements.
+# ------------------------------------------------------------------------------------
+test RBC.vector.binread.A.6.4 {
+    vector binread: complex at index
+} -setup {
+    vector create Vector1 -type complex
+    Vector1 set {{1 2} {3 4}}
+    set Channel [open [file join [file dirname [info script]] binReadTestFile.txt] r]
+} -body {
+    set count [Vector1 binread $Channel -at 1]
+    list $count [Vector1 length] [Vector1 range 0 end]
+} -cleanup {
+    catch {vector destroy Vector1}
+    catch {close $Channel}
+} -result {1 2 {{1.0 2.0} {0.0 4.678870346324924e+163}}}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure -swap reverses bytes within each real and imaginary component,
+# not the order of the two components.
+# ------------------------------------------------------------------------------------
+test RBC.vector.binread.A.6.5 {
+    vector binread: complex byte swap
+} -setup {
+    vector create Vector1 -type complex
+    set Channel [open [file join [file dirname [info script]] binReadTestFile.txt] r]
+} -body {
+    Vector1 binread $Channel -swap
+    Vector1 range 0 end
+} -cleanup {
+    catch {vector destroy Vector1}
+    catch {close $Channel}
+} -result {{0.0 2.96444e-319}}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure binary input must contain complete real/imaginary pairs.
+# ------------------------------------------------------------------------------------
+test RBC.vector.binread.A.6.6 {
+    vector binread: incomplete complex value
+} -setup {
+    vector create Vector1 -type complex
+    Vector1 set {{9 10}}
+    set Channel [open [file join [file dirname [info script]] binReadTestFile.txt] r]
+    seek $Channel 8 start
+} -body {
+    set code [catch {
+        Vector1 binread $Channel
+    } message]
+    list $code $message [Vector1 range 0 end]
+} -cleanup {
+    catch {vector destroy Vector1}
+    catch {close $Channel}
+} -result {1 {error reading channel: input ended inside a complex binary value} {{9.0 10.0}}}
+
 
 cleanupTests
 #}
