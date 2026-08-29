@@ -174,8 +174,8 @@ static const VectorInstOpSpec vectorInstOpCmd[] = {{{"*", 3, 3, "list"}, ArithOp
 static int ComplexOpSupported(RbcVectorCmdOp *proc) {
     return ((proc == ExprOp) || (proc == AppendOp) || (proc == ArithOp) || (proc == ClearOp) || (proc == DeleteOp) ||
             (proc == DupOp) || (proc == IndexOp) || (proc == LengthOp) || (proc == MergeOp) || (proc == OffsetOp) ||
-            (proc == PopulateOp) || (proc == RandomOp) || (proc == RangeOp) || (proc == SetOp) || (proc == SplitOp) ||
-            (proc == TypeOp) || (proc == VariableOp));
+            (proc == PopulateOp) || (proc == RandomOp) || (proc == RangeOp) || (proc == SeqOp) || (proc == SetOp) ||
+            (proc == SplitOp) || (proc == TypeOp) || (proc == VariableOp));
 }
 
 /*
@@ -1805,6 +1805,150 @@ static int SearchOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
     return TCL_OK;
 }
 
+static int GetComplexSequenceComponentLength(Tcl_Interp *interp, const char *componentName, double start, double finish,
+                                             double step, int *hasLengthPtr, Tcl_Size *lengthPtr) {
+    double span;
+    double steps;
+
+    *hasLengthPtr = FALSE;
+    *lengthPtr = 0;
+    if ((!FINITE(start)) || (!FINITE(finish)) || (!FINITE(step))) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("sequence bounds and step must be finite", -1));
+        return TCL_ERROR;
+    }
+    /*
+     * A zero step is valid for one component when that component is
+     * constant.  It then places no constraint on the sequence length;
+     * the other component determines it.
+     */
+    if (step == 0.0) {
+        if (start != finish) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("%s component of complex sequence has zero step "
+                                                   "but different bounds",
+                                                   componentName));
+            return TCL_ERROR;
+        }
+        return TCL_OK;
+    }
+    /*
+     * Use the same length calculation as the existing real SeqOp:
+     *
+     *     trunc((finish - start) / step) + 1
+     */
+    span = (finish - start) / step;
+    if (!FINITE(span)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("sequence size is too large", -1));
+        return TCL_ERROR;
+    }
+    steps = trunc(span) + 1.0;
+    *hasLengthPtr = TRUE;
+    if (steps <= 0.0) {
+        *lengthPtr = 0;
+        return TCL_OK;
+    }
+    if (steps >= (double)TCL_SIZE_MAX) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("sequence size is too large", -1));
+        return TCL_ERROR;
+    }
+    *lengthPtr = (Tcl_Size)steps;
+    return TCL_OK;
+}
+
+static int ComplexSeqOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    Rbc_Complex start;
+    Rbc_Complex finish;
+    Rbc_Complex step;
+    Tcl_Size realSteps;
+    Tcl_Size imagSteps;
+    Tcl_Size nSteps;
+    Tcl_Size i;
+    int realHasLength;
+    int imagHasLength;
+    int fillVector;
+    const char *string;
+
+    assert(vPtr->type == RBC_VECTOR_COMPLEX);
+    if (Rbc_GetComplex(interp, objv[2], &start) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    fillVector = FALSE;
+    string = Tcl_GetString(objv[3]);
+    if ((string[0] == 'e') && (strcmp(string, "end") == 0)) {
+        fillVector = TRUE;
+    } else {
+        if (Rbc_GetComplex(interp, objv[3], &finish) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+    /*
+     * Preserve the legacy default step of 1.  For a complex vector
+     * this means 1+0i.
+     */
+    step.real = 1.0;
+    step.imag = 0.0;
+    if (objc == 5) {
+        if (Rbc_GetComplex(interp, objv[4], &step) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+    if (fillVector) {
+        /*
+         * "end" means that the vector's existing length determines
+         * the number of values.  Either component of step may therefore
+         * be zero, including both components.
+         */
+        nSteps = vPtr->length;
+    } else {
+        realSteps = 0;
+        imagSteps = 0;
+        if (GetComplexSequenceComponentLength(interp, "real", start.real, finish.real, step.real, &realHasLength,
+                                              &realSteps) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if (GetComplexSequenceComponentLength(interp, "imaginary", start.imag, finish.imag, step.imag, &imagHasLength,
+                                              &imagSteps) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        /*
+         * If neither component changes, a zero complex step gives no
+         * way to determine the desired sequence length.
+         */
+        if ((!realHasLength) && (!imagHasLength)) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("sequence step cannot be zero", -1));
+            return TCL_ERROR;
+        }
+        if (realHasLength && imagHasLength) {
+            if (realSteps != imagSteps) {
+                Tcl_SetObjResult(interp, Tcl_NewStringObj("real and imaginary sequences have different lengths", -1));
+                return TCL_ERROR;
+            }
+            nSteps = realSteps;
+        } else if (realHasLength) {
+            nSteps = realSteps;
+        } else {
+            nSteps = imagSteps;
+        }
+    }
+    /*
+     * Match the existing real behavior: a sequence whose calculated
+     * length is non-positive leaves the vector unchanged.
+     */
+    if (nSteps > 0) {
+        if (Rbc_VectorChangeLength(vPtr, nSteps) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        for (i = 0; i < nSteps; i++) {
+            vPtr->data.complex[i].real = start.real + step.real * (double)i;
+            vPtr->data.complex[i].imag = start.imag + step.imag * (double)i;
+        }
+        if (vPtr->flush) {
+            Rbc_VectorFlushCache(vPtr);
+        }
+        Rbc_VectorUpdateClients(vPtr);
+    }
+    return TCL_OK;
+}
+
 /*
  * -----------------------------------------------------------------------
  *
@@ -1837,6 +1981,10 @@ static int SeqOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
     int fillVector;
     const char *string;
 
+    if (vPtr->type == RBC_VECTOR_COMPLEX) {
+        return ComplexSeqOp(vPtr, interp, objc, objv);
+    }
+    assert(vPtr->type == RBC_VECTOR_REAL);
     if (Rbc_GetDouble(interp, objv[2], &start) != TCL_OK) {
         return TCL_ERROR;
     }
