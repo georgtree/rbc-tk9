@@ -684,6 +684,7 @@ PKG_TCL_DEMOS
 DOC_HTML_FILES
 PKG_OBJECTS
 PKG_SOURCES
+SHLIB_SUFFIX
 RANLIB
 SET_MAKE
 CPP
@@ -5595,6 +5596,7 @@ printf "%s\n" "$ac_cv_c_bigendian" >&6; }
      as_fn_error $? "unknown endianness
  presetting ac_cv_c_bigendian=no (or yes) will help" "$LINENO" 5 ;;
  esac
+
 
 
 

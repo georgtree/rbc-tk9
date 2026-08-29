@@ -1,0 +1,190 @@
+# RBC.vector.capi.A.test --
+#
+# Tests the public Rbc vector C/stubs interface from a separately
+# compiled consumer extension.
+
+package provide vector.capi
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+if {[info exists ::env(RBC_CAPI_TEST_LIB)]} {
+    set capiTestLib $::env(RBC_CAPI_TEST_LIB)
+} else {
+    set capiTestLib [file normalize [file join [pwd] rbccapitest[info sharedlibextension]]]
+}
+
+if {![file exists $capiTestLib]} {
+    error "Rbc C API test library not found: $capiTestLib"
+}
+
+load $capiTestLib
+package require rbccapitest 1.0
+
+namespace eval vector.capi {
+
+    proc CleanupVectors {args} {
+        foreach name $args {
+            catch {::rbc::vector destroy $name}
+        }
+    }
+
+    test RBC.vector.capi.A.1.1 {
+        public C API: real and complex creation and accessors
+    } -setup {
+        CleanupVectors ::CapiReal ::CapiComplex ::CapiTypedReal
+    } -body {
+        ::rbccapitest create ::CapiReal real 3
+        ::rbccapitest create ::CapiComplex complex 2
+        ::rbccapitest create ::CapiTypedReal typed-real 1
+        set realInfo [::rbccapitest inspect ::CapiReal]
+        set complexInfo [::rbccapitest inspect ::CapiComplex]
+        set typedRealInfo [::rbccapitest inspect ::CapiTypedReal]
+        list\
+            [dict get $realInfo type]\
+            [dict get $realInfo length]\
+            [expr {[dict get $realInfo size] >= 3}]\
+            [dict get $realInfo realData]\
+            [dict get $realInfo complexData]\
+            [array exists ::CapiReal]\
+            [dict get $complexInfo type] \
+            [dict get $complexInfo length] \
+            [expr {[dict get $complexInfo size] >= 2}]\
+            [dict get $complexInfo realData]\
+            [dict get $complexInfo complexData]\
+            [array exists ::CapiComplex]\
+            [dict get $typedRealInfo type]\
+            [array exists ::CapiTypedReal]
+    } -cleanup {
+        CleanupVectors ::CapiReal ::CapiComplex ::CapiTypedReal
+    } -result {real 3 1 1 0 1 complex 2 1 0 1 0 real 1}
+
+    test RBC.vector.capi.A.1.2 {
+        public C API: exists and free
+    } -setup {
+        CleanupVectors ::CapiFree
+    } -body {
+        ::rbccapitest create ::CapiFree real 1
+        set before [::rbccapitest exists ::CapiFree]
+        ::rbccapitest free ::CapiFree
+        list $before [::rbccapitest exists ::CapiFree] [llength [info commands ::CapiFree]] [array exists ::CapiFree]
+    } -cleanup {
+        CleanupVectors ::CapiFree
+    } -result {1 0 0 0}
+
+    test RBC.vector.capi.A.1.3 {
+        public C API: resize preserves complex type and zero-fills
+    } -setup {
+        CleanupVectors ::CapiResize
+        ::rbccapitest create ::CapiResize complex 2
+        ::CapiResize set {{1 2} {3 -4}}
+    } -body {
+        set length [::rbccapitest resize ::CapiResize 4]
+        list $length [::CapiResize type] [::CapiResize range 0 end]
+    } -cleanup {
+        CleanupVectors ::CapiResize
+    } -result {4 complex {{1.0 2.0} {3.0 -4.0} {0.0 0.0} {0.0 0.0}}}
+
+    test RBC.vector.capi.A.1.4 {
+        public C API: range is real-only
+    } -setup {
+        CleanupVectors ::CapiRange ::CapiRangeComplex
+        ::rbccapitest create ::CapiRange real 4
+        ::CapiRange set {5 -2 9 3}
+        ::rbccapitest create ::CapiRangeComplex complex 2
+        ::CapiRangeComplex set {{1 2} {3 4}}
+    } -body {
+        set realRange [::rbccapitest range ::CapiRange]
+        set code [catch {::rbccapitest range ::CapiRangeComplex}]
+        list $realRange $code
+    } -cleanup {
+        CleanupVectors ::CapiRange ::CapiRangeComplex
+    } -result {{-2.0 9.0} 1}
+
+    test RBC.vector.capi.A.2.1 {
+        public C API: TCL_VOLATILE copies real storage
+    } -setup {
+        CleanupVectors ::CapiVolatileReal
+        ::rbccapitest create ::CapiVolatileReal real 1
+    } -body {
+        set fromC [::rbccapitest resetvolatile ::CapiVolatileReal]
+        list $fromC [::CapiVolatileReal range 0 end]
+    } -cleanup {
+        CleanupVectors ::CapiVolatileReal
+    } -result {{1.25 -2.5 3.75} {1.25 -2.5 3.75}}
+
+    test RBC.vector.capi.A.2.2 {
+        public C API: TCL_VOLATILE copies complex storage
+    } -setup {
+        CleanupVectors ::CapiVolatileComplex
+        ::rbccapitest create ::CapiVolatileComplex complex 1
+    } -body {
+        set fromC [::rbccapitest resetvolatile ::CapiVolatileComplex]
+        list $fromC [::CapiVolatileComplex range 0 end]
+    } -cleanup {
+        CleanupVectors ::CapiVolatileComplex
+    } -result {{{1.0 2.0} {3.0 -4.0}} {{1.0 2.0} {3.0 -4.0}}}
+
+    test RBC.vector.capi.A.2.3 {
+        public C API: reset functions reject wrong vector type
+    } -setup {
+        CleanupVectors ::CapiWrongReal ::CapiWrongComplex
+        ::rbccapitest create ::CapiWrongReal real 1
+        ::rbccapitest create ::CapiWrongComplex complex 1
+    } -body {
+        set realCode [catch {::rbccapitest resetwrong ::CapiWrongReal} realMessage]
+        set complexCode [catch {::rbccapitest resetwrong ::CapiWrongComplex} complexMessage]
+        list $realCode $realMessage $complexCode $complexMessage
+    } -cleanup {
+        CleanupVectors ::CapiWrongReal ::CapiWrongComplex
+    } -result {1 {Rbc_ResetComplexVector cannot reset a real vector}\
+                       1 {Rbc_ResetVector cannot reset a complex vector}}
+
+    test RBC.vector.capi.A.3.1 {
+        public C API: Rbc_VectorChanged updates dirty state and array cache
+    } -setup {
+        CleanupVectors ::CapiChanged
+        vector create ::CapiChanged -flush yes
+        ::CapiChanged set {1 2 3}
+    } -body {
+        # Force the array element to be read before the direct C write.
+        set oldValue $::CapiChanged(0)
+        lassign [::rbccapitest write ::CapiChanged 0 42] before after
+        list $oldValue $::CapiChanged(0) [expr {$after == ($before + 1)}]
+    } -cleanup {
+        CleanupVectors ::CapiChanged
+    } -result {1.0 42.0 1}
+
+    test RBC.vector.capi.A.3.2 {
+        public C API: Rbc_VectorChanged works with mapped complex array
+    } -setup {
+        CleanupVectors ::CapiChangedComplex
+        catch {unset ::CapiChangedArray}
+        vector create ::CapiChangedComplex -type complex -variable ::CapiChangedArray -flush yes
+        ::CapiChangedComplex set {{1 2} {3 4}}
+    } -body {
+        set oldValue $::CapiChangedArray(0)
+        lassign [::rbccapitest write ::CapiChangedComplex 0 7 -8] before after
+        list $oldValue $::CapiChangedArray(0) [expr {$after == ($before + 1)}]
+    } -cleanup {
+        CleanupVectors ::CapiChangedComplex
+        catch {unset ::CapiChangedArray}
+    } -result {{1.0 2.0} {7.0 -8.0} 1}
+
+    test RBC.vector.capi.A.4.1 {
+        public C API: custom storage free procedure
+    } -setup {
+        CleanupVectors ::CapiOwnedReal ::CapiOwnedComplex
+        ::rbccapitest create ::CapiOwnedReal real 1
+        ::rbccapitest create ::CapiOwnedComplex complex 1
+    } -body {
+        set realFreeCount [::rbccapitest ownership ::CapiOwnedReal]
+        set complexFreeCount [::rbccapitest ownership ::CapiOwnedComplex]
+        list $realFreeCount $complexFreeCount [::CapiOwnedReal range 0 end] [::CapiOwnedComplex range 0 end]
+    } -cleanup {
+        CleanupVectors ::CapiOwnedReal ::CapiOwnedComplex
+    } -result {1 1 7.0 {{7.0 -7.0}}}
+}

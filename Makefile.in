@@ -70,6 +70,14 @@ PKG_LIB_FILE8 = @PKG_LIB_FILE8@
 PKG_LIB_FILE9 = @PKG_LIB_FILE9@
 PKG_STUB_LIB_FILE = @PKG_STUB_LIB_FILE@
 
+# Public C/stubs API consumer used only by the test suite.
+TEST_CAPI_LIB = rbccapitest$(SHLIB_SUFFIX)
+TEST_CAPI_OBJECTS = \
+	rbcVectorApiTest.$(OBJEXT) \
+	rbcCapiStubLib.$(OBJEXT)
+
+TCL_STUB_LIB_SPEC = @TCL_STUB_LIB_SPEC@
+
 lib_BINARIES	= $(PKG_LIB_FILE) $(PKG_STUB_LIB_FILE)
 BINARIES	= $(lib_BINARIES)
 
@@ -128,6 +136,7 @@ SHLIB_CFLAGS = @SHLIB_CFLAGS@
 SHLIB_LD = @SHLIB_LD@
 SHLIB_LD_LIBS = @SHLIB_LD_LIBS@
 STLIB_LD = @STLIB_LD@
+SHLIB_SUFFIX = @SHLIB_SUFFIX@
 
 CPPFLAGS = @CPPFLAGS@
 LIBS = @PKG_LIBS@ @LIBS@
@@ -183,7 +192,7 @@ DEFS		= @DEFS@ $(PKG_CFLAGS)
 
 # Move pkgIndex.tcl to 'BINARIES' var if it is generated in the Makefile
 CONFIG_CLEAN_FILES = Makefile pkgIndex.tcl
-CLEANFILES	= @CLEANFILES@
+CLEANFILES	= @CLEANFILES@ $(TEST_CAPI_LIB)
 
 COMPILE		= $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 
@@ -301,7 +310,8 @@ install-doc:
 	  fi; \
 	done
 
-test: binaries libraries
+test: binaries libraries $(TEST_CAPI_LIB)
+	RBC_CAPI_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_CAPI_LIB)`" \
 	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/all.tcl` $(TESTFLAGS)
 
 shell: binaries libraries
@@ -348,6 +358,46 @@ $(PKG_STUB_LIB_FILE): $(PKG_STUB_OBJECTS)
 #========================================================================
 
 VPATH = $(srcdir):$(srcdir)/generic:$(srcdir)/unix:$(srcdir)/win
+
+#========================================================================
+# Public C API test extension.
+#
+# This intentionally builds as an external consumer:
+#
+#   tests/rbcVectorApiTest.c
+#       uses only public rbc.h / vector stubs
+#
+#   generic/rbcStubLib.c
+#       is compiled into the consumer exactly as documented for
+#       third-party extensions.
+#
+# The test library links to Tcl stubs, not directly to the Rbc library.
+#========================================================================
+
+rbcVectorApiTest.$(OBJEXT): \
+		$(srcdir)/tests/rbcVectorApiTest.c \
+		$(srcdir)/generic/rbc.h \
+		$(srcdir)/generic/rbcVector.h \
+		$(srcdir)/generic/rbcDecls.h
+	$(COMPILE) $(SHLIB_CFLAGS) \
+		-I`@CYGPATH@ $(srcdir)/generic` \
+		-c `@CYGPATH@ $(srcdir)/tests/rbcVectorApiTest.c` \
+		-o $@
+
+rbcCapiStubLib.$(OBJEXT): \
+		$(srcdir)/generic/rbcStubLib.c \
+		$(srcdir)/generic/rbcVector.h \
+		$(srcdir)/generic/rbcDecls.h
+	$(COMPILE) $(SHLIB_CFLAGS) \
+		-I`@CYGPATH@ $(srcdir)/generic` \
+		-c `@CYGPATH@ $(srcdir)/generic/rbcStubLib.c` \
+		-o $@
+
+$(TEST_CAPI_LIB): $(TEST_CAPI_OBJECTS)
+	-rm -f $@
+	$(SHLIB_LD) $(LDFLAGS_DEFAULT) $(LDFLAGS) \
+		-o $@ $(TEST_CAPI_OBJECTS) \
+		$(TCL_STUB_LIB_SPEC) $(SHLIB_LD_LIBS)
 
 .c.@OBJEXT@:
 	$(COMPILE) -c `@CYGPATH@ $<` -o $@
