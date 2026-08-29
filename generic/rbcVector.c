@@ -3221,11 +3221,15 @@ int Rbc_ResetComplexVector(Rbc_Vector *vecPtr, Rbc_Complex *valueArr, Tcl_Size l
  * -----------------------------------------------------------------------
  *
  * Rbc_ResetVector --
+*
+ * Replaces the vector's storage contract. The supplied array,
+ * length, capacity, and ownership policy become the vector's
+ * current storage description. Clients are notified after the
+ * reset succeeds.
  *
- *      Resets the vector data.  This is called by a client to
- *      indicate that the vector data has changed.  The vector does
- *      not need to point to different memory.  Any clients of the
- *      vector will be notified of the change.
+ * Use Rbc_VectorChanged() instead when modifying the existing
+ * vector storage in place without changing its ownership contract.
+ *
  *
  * Parameters:
  *      Rbc_Vector *vecPtr

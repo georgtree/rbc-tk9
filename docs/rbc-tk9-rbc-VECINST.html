@@ -72,8 +72,8 @@ value to append one element:</p>
 <span class="nv">x</span><span class="w"> </span>index<span class="w"> </span><span class="o">:</span>
 </pre></div>
 </div>
-<p>The associated Tcl array additionally supports the special calculated indices <code class="docutils literal notranslate"><span class="pre">min</span></code>, <code class="docutils literal notranslate"><span class="pre">max</span></code>, <code class="docutils literal notranslate"><span class="pre">mean</span></code>, <code class="docutils literal notranslate"><span class="pre">sum</span></code>, and
-<code class="docutils literal notranslate"><span class="pre">prod</span></code>.</p>
+<p>For real vectors, the associated Tcl array additionally supports the special calculated indices <code class="docutils literal notranslate"><span class="pre">min</span></code>, <code class="docutils literal notranslate"><span class="pre">max</span></code>,
+<code class="docutils literal notranslate"><span class="pre">mean</span></code>, <code class="docutils literal notranslate"><span class="pre">sum</span></code>, and <code class="docutils literal notranslate"><span class="pre">prod</span></code>. These calculated indices are not available for complex vectors.</p>
 </section>
 <section id="complex-vector-operations">
 <span id="r-rbc-vecinst-complex-vector-operations"></span><span id="r-3a3arbc3a3avecinstqzcomplex20vector20operations"></span><h2>Complex vector operations<a class="headerlink" href="#complex-vector-operations" title="Link to this heading">¶</a></h2>
@@ -626,7 +626,7 @@ generated independently in the range <code class="docutils literal notranslate">
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sdev</span></code></p></td>
 <td><p>Real</p></td>
-<td><p>Square root of the complex sample variance</p></td>
+<td><p>Square root of the Hermitian sample variance</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sum</span></code></p></td>
 <td><p>Complex</p></td>
@@ -634,7 +634,7 @@ generated independently in the range <code class="docutils literal notranslate">
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">var</span></code></p></td>
 <td><p>Real</p></td>
-<td><p>Sample mean of squared magnitudes about the complex mean</p></td>
+<td><p>Hermitian sample variance <code class="docutils literal notranslate"><span class="pre">Σ</span> <span class="pre">abs(z</span> <span class="pre">-</span> <span class="pre">mean(z))^2</span> <span class="pre">/</span> <span class="pre">(n</span> <span class="pre">-</span> <span class="pre">1)</span></code></p></td>
 </tr>
 </tbody>
 </table>
@@ -860,8 +860,7 @@ notification.</p>
 <p>Do not use <code class="docutils literal notranslate"><span class="pre">Rbc_ResetVector</span></code> or <code class="docutils literal notranslate"><span class="pre">Rbc_ResetComplexVector</span></code> merely to report an in-place modification. The reset
 functions define a new storage and ownership contract, even when the supplied address happens to equal the
 vector’s current data pointer.</p>
-<p>Graph elements or other Rbc clients using <code class="docutils literal notranslate"><span class="pre">X</span></code> and <code class="docutils literal notranslate"><span class="pre">Y</span></code> are notified that the vector contents have changed and
-can update themselves without recreating the vectors.</p>
+<p>Registered Rbc vector clients are notified that the vector contents have changed.</p>
 </section>
 <section id="replacing-vector-storage">
 <span id="r-rbc-vecinst-replacing-vector-storage"></span><span id="r-3a3arbc3a3avecinstqzreplacing20vector20storage"></span><h3>Replacing vector storage<a class="headerlink" href="#replacing-vector-storage" title="Link to this heading">¶</a></h3>
@@ -902,6 +901,8 @@ contents of already-installed storage have been modified.</p>
 <p><code class="docutils literal notranslate"><span class="pre">nValues</span></code> specifies the logical number of values currently stored in the vector. <code class="docutils literal notranslate"><span class="pre">arraySize</span></code> specifies the
 capacity of the supplied array and must be greater than or equal to <code class="docutils literal notranslate"><span class="pre">nValues</span></code>.</p>
 <p>Passing <code class="docutils literal notranslate"><span class="pre">NULL</span></code> for <code class="docutils literal notranslate"><span class="pre">dataArr</span></code>, or an <code class="docutils literal notranslate"><span class="pre">arraySize</span></code> of <code class="docutils literal notranslate"><span class="pre">0</span></code>, resets the vector to an empty vector.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">arraySize</span></code> is <code class="docutils literal notranslate"><span class="pre">0</span></code>, a non-NULL <code class="docutils literal notranslate"><span class="pre">dataArr</span></code> is not adopted by the vector and ownership does not transfer to
+Rbc. The caller remains responsible for that storage.</p>
 <p>For example, dynamically allocated storage can be transferred directly to a vector:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">SetGeneratedData</span><span class="p">(</span><span class="n">Tcl_Interp</span><span class="w"> </span><span class="o">*</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">Rbc_Vector</span><span class="w"> </span><span class="o">*</span><span class="n">vecPtr</span><span class="p">;</span>
@@ -982,17 +983,18 @@ traditional automatic Tcl array mapping, while a newly created complex vector do
 <span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_CreateVector</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;time&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">nValues</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">vecPtr</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
 <span class="w">    </span><span class="p">}</span>
-<span class="w">    </span><span class="n">dataArr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Rbc_VectorData</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">);</span>
 <span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">nValues</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="n">dataArr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">i</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1.0e-6</span><span class="p">;</span>
 <span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">Rbc_VectorChanged</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">);</span>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Directly modifying the array returned by <code class="docutils literal notranslate"><span class="pre">Rbc_VectorData</span></code> does not itself notify vector clients. If existing
-clients must observe a change, use <code class="docutils literal notranslate"><span class="pre">Rbc_ResetVector</span></code> to install the new data, or another Rbc vector operation
-that performs the appropriate update notification.</p>
+<p>Directly modifying storage returned by <code class="docutils literal notranslate"><span class="pre">Rbc_VectorData</span></code> or <code class="docutils literal notranslate"><span class="pre">Rbc_VectorComplexData</span></code> does not itself invalidate
+cached values or notify vector clients. Call <code class="docutils literal notranslate"><span class="pre">Rbc_VectorChanged</span></code> after an in-place modification.</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">Rbc_ResetVector</span></code> or <code class="docutils literal notranslate"><span class="pre">Rbc_ResetComplexVector</span></code> when replacing the vector’s storage or changing its ownership
+contract, not merely to announce that existing storage was modified.</p>
 </section>
 <section id="resizing-a-vector">
 <span id="r-rbc-vecinst-resizing-a-vector"></span><span id="r-3a3arbc3a3avecinstqzresizing20a20vector"></span><h3>Resizing a vector<a class="headerlink" href="#resizing-a-vector" title="Link to this heading">¶</a></h3>

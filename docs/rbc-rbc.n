@@ -3253,7 +3253,7 @@ Clears cached elements of the Tcl array associated with the vector\&. This does 
 Deletes one or more indices or index ranges from the vector\&. Remaining values are compacted after the deleted values are removed\&.
 .TP
 \fIdup\fP
-Copies this vector into another vector\&. The destination vector is created if necessary\&. If it already exists, its contents are replaced\&.
+Copies this vector into another vector\&. A newly created destination inherits the source vector's numeric type\&. If the destination already exists, it must have the same numeric type and its contents are replaced\&.
 .TP
 \fIexpr\fP
 Evaluates expression and stores the result in this vector\&.
@@ -3277,7 +3277,7 @@ Queries or changes the external index offset of the vector\&. The offset changes
 Creates a more densely sampled vector using linear interpolation\&. density intermediate values are inserted between every adjacent pair of source values\&. density must be at least 1\&. The destination may be the same vector as the source and has the same numeric type as the source\&. For complex vectors, the real and imaginary components are linearly interpolated independently\&.
 .TP
 \fIrandom\fP
-Fills the vector with pseudo-random values in the range [0\&.0, 1\&.0)\&. The current vector length is preserved\&. For real vectors, one random number is generated for each value\&. For complex vectors, the real and imaginary components are generated independently\&.
+Fills the vector with pseudo-random data while preserving its current length\&. For real vectors, one random value in the range [0\&.0, 1\&.0) is generated for each vector value\&. For complex vectors, the real and imaginary components are generated independently in that range\&.
 .TP
 \fIrange\fP
 Gives back an inclusive range of vector values\&. If first is less than or equal to last, values are returned in ascending index order\&. If first is greater than last, values are returned in descending index order\&. first and last are normal vector indices and may use forms such as end\&. This operation does not modify the vector\&.
@@ -3292,7 +3292,7 @@ Generates an arithmetic sequence\&.
 Replaces the contents of the vector\&. list may be a Tcl list of numeric values or the name of another vector\&. When the argument names another vector, the source and destination vector types must match\&. For a complex destination, list elements may be {real imag} values or real scalars\&.
 .TP
 \fIsort\fP
-Sorts this real vector\&. Additional real vectors may be supplied\&. They must have the same length and are rearranged using the same permutation, allowing associated data to remain aligned\&. -reverse requests descending rather than ascending order\&.
+Sorts this real vector\&. Additional real vectors may be supplied as secondary sort keys\&. All vectors must have the same length\&.
 .TP
 \fIsplit\fP
 Distributes values from this vector among destination vectors in round-robin order\&. The source vector length must be evenly divisible by the number of destination vectors\&. Existing destination contents are preserved and the split values are appended\&. Destination vectors have the same numeric type as the source vector\&.
@@ -3513,8 +3513,8 @@ Nothing\&.
 \fBVECINST dup\fR (::rbc)
 .RE
 .PP
-Copies this vector into another vector\&. The destination vector is created if necessary\&. If it already
-exists, its contents are replaced\&.
+Copies this vector into another vector\&. A newly created destination inherits the source vector's numeric
+type\&. If the destination already exists, it must have the same numeric type and its contents are replaced\&.
 .RS 4n
 \fBVECINST dup\fP \fIvecName\fP
 .br
@@ -3713,9 +3713,9 @@ Nothing\&.
 \fBVECINST random\fR (::rbc)
 .RE
 .PP
-Fills the vector with pseudo-random values in the range [0\&.0, 1\&.0)\&. The current vector length is
-preserved\&. For real vectors, one random number is generated for each value\&. For complex vectors, the real and
-imaginary components are generated independently\&.
+Fills the vector with pseudo-random data while preserving its current length\&. For real vectors, one random
+value in the range [0\&.0, 1\&.0) is generated for each vector value\&. For complex vectors, the real and
+imaginary components are generated independently in that range\&.
 .RS 4n
 \fBVECINST random\fP
 .br
@@ -3886,9 +3886,8 @@ Nothing\&.
 \fBVECINST sort\fR (::rbc)
 .RE
 .PP
-Sorts this real vector\&. Additional real vectors may be supplied\&. They must have the same length and are
-rearranged using the same permutation, allowing associated data to remain aligned\&. -reverse requests
-descending rather than ascending order\&.
+Sorts this real vector\&. Additional real vectors may be supplied as secondary sort keys\&. All vectors must
+have the same length\&.
 .RS 4n
 \fBVECINST sort\fP \fI?-reverse? ?vecName \&.\&.\&.?\fP
 .br
@@ -3900,14 +3899,21 @@ descending rather than ascending order\&.
 .PP
 \fBDescription\fR
 .PP
-Complex vectors are not supported because no natural ordering relation is defined for complex values\&.
+Values are compared lexicographically: this vector is the primary sort key, the first additional vector
+breaks ties in the primary vector, the next vector breaks any remaining ties, and so on\&. The resulting
+permutation is applied to every participating vector\&.
+.PP
+-reverse reverses the resulting sort order\&.
+.PP
+Complex vectors cannot participate as either the primary or an additional sort vector because no natural
+ordering relation is defined for complex values\&.
 .RS 4n
 .TP
 -reverse
 Sort in descending order\&.
 .TP
 vecName
-Optional associated vector to reorder\&.
+Optional additional real vector used as a successive sort key and reordered using the same permutation\&.
 .RE
 .PP
 \fBReturn value\fR

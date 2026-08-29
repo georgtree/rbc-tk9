@@ -57,8 +57,8 @@ x index :
 .fi
 .RE
 .PP
-The associated Tcl array additionally supports the special calculated indices min, max, mean, sum, and
-prod\&.
+For real vectors, the associated Tcl array additionally supports the special calculated indices min, max,
+mean, sum, and prod\&. These calculated indices are not available for complex vectors\&.
 .SH "COMPLEX VECTOR OPERATIONS"
 .PP
 Most vector instance operations support complex vectors\&. The following table summarizes the current status\&.
@@ -535,9 +535,9 @@ The following reductions support complex vectors:
 │ mean     │ Complex │ Arithmetic mean                                          │
 │ nz       │ Real    │ Number of values other than 0+0i                         │
 │ prod     │ Complex │ Product of the values                                    │
-│ sdev     │ Real    │ Square root of the complex sample variance               │
+│ sdev     │ Real    │ Square root of the Hermitian sample variance             │
 │ sum      │ Complex │ Sum of the values                                        │
-│ var      │ Real    │ Sample mean of squared magnitudes about the complex mean │
+│ var      │ Real    │ Hermitian sample variance Σ abs(z - mean(z))^2 / (n - 1) │
 └──────────┴─────────┴──────────────────────────────────────────────────────────┘
 .fi
 .RE
@@ -654,39 +654,42 @@ The following vector functions are exported through the Rbc stubs interface:
 .PP
 .RS 4n
 .nf
-┌────────────────────────────────────────────────────────────┬─────────────────────────────────────────────────────┐
-│ Function                                                   │ Description                                         │
-├────────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────┤
-│ int Rbc_CreateVector(Tcl_Interp *interp,                   │ Creates the named vector and its normal Tcl command │
-│     const char *vecName, Tcl_Size size,                    │ and array mappings\&. size specifies the initial      │
-│     Rbc_Vector **vecPtrPtr)                                │ length of a new vector\&. On success, stores a pointer│
-│                                                            │ to the vector in vecPtrPtr and returns TCL_OK\&.      │
-│ int Rbc_GetVector(Tcl_Interp *interp,                      │ Looks up an existing vector by name\&. On success,    │
-│     const char *vecName, Rbc_Vector **vecPtrPtr)           │ stores its pointer in vecPtrPtr and returns TCL_OK\&. │
-│ int Rbc_ResizeVector(Rbc_Vector *vecPtr,                   │ Changes the logical length of a vector\&. Existing    │
-│     Tcl_Size nValues)                                      │ values are preserved as far as possible and clients │
-│                                                            │ of the vector are notified of the change\&.           │
-│ char *Rbc_NameOfVector(Rbc_Vector *vecPtr)                 │ Returns the name of a vector\&. The returned string   │
-│                                                            │ belongs to Rbc and must not be freed or modified by │
-│                                                            │ the caller\&.                                         │
-│ int Rbc_ResetVector(Rbc_Vector *vecPtr, double *dataArr,   │ Replaces the vector's data array and records its    │
-│     Tcl_Size nValues, Tcl_Size arraySize,                  │ ownership policy\&. Clients of the vector are notified│
-│     Tcl_FreeProc *freeProc)                                │ of the change\&.                                      │
-│ double *Rbc_VectorData(Rbc_Vector *vecPtr)                 │ Returns a pointer to the vector's current data      │
-│                                                            │ array\&. The returned storage belongs to the vector   │
-│                                                            │ and must not be freed by the caller\&.                │
-│ Tcl_Size Rbc_VectorLength(Rbc_Vector *vecPtr)              │ Returns the current logical number of values in the │
-│                                                            │ vector\&.                                             │
-│ Tcl_Size Rbc_VectorSize(Rbc_Vector *vecPtr)                │ Returns the current capacity of the vector's data   │
-│                                                            │ array\&.                                              │
-│ int Rbc_VectorDirty(Rbc_Vector *vecPtr)                    │ Returns the vector's update counter\&. The counter is │
-│                                                            │ incremented when the vector is changed\&.             │
-│ int Rbc_VectorExists2(Tcl_Interp *interp,                  │ Returns non-zero if the named vector exists and     │
-│     const char *vecName)                                   │ zero otherwise\&.                                     │
-│ void Rbc_FreeVector(Rbc_Vector *vecPtr)                    │ Destroys the vector, removes its Tcl command and    │
-│                                                            │ array mapping, releases its storage according to its│
-│                                                            │ ownership policy, and invalidates vecPtr\&.           │
-└────────────────────────────────────────────────────────────┴─────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┬───────────────────────────────────────────────────────┐
+│ Function                                                 │ Description                                           │
+├──────────────────────────────────────────────────────────┼───────────────────────────────────────────────────────┤
+│ int Rbc_CreateVector(Tcl_Interp *interp, const char      │ Creates a real vector with its Tcl command and        │
+│ *vecName, Tcl_Size size, Rbc_Vector **vecPtrPtr)         │ traditional automatic array mapping\&.                  │
+│ int Rbc_GetVector(Tcl_Interp *interp, const char         │ Looks up an existing real or complex vector\&.          │
+│ *vecName, Rbc_Vector **vecPtrPtr)                        │                                                       │
+│ int Rbc_ResizeVector(Rbc_Vector *vecPtr, Tcl_Size        │ Changes the logical vector length while preserving    │
+│ nValues)                                                 │ its numeric type\&.                                     │
+│ char *Rbc_NameOfVector(Rbc_Vector *vecPtr)               │ Returns the vector name\&. The returned string belongs  │
+│                                                          │ to Rbc\&.                                               │
+│ int Rbc_ResetVector(Rbc_Vector *vecPtr, double *dataArr, │ Replaces the storage and ownership contract of a real │
+│ Tcl_Size nValues, Tcl_Size arraySize, Tcl_FreeProc       │ vector\&.                                               │
+│ *freeProc)                                               │                                                       │
+│ double *Rbc_VectorData(Rbc_Vector *vecPtr)               │ Returns real-vector storage, or NULL for a complex    │
+│                                                          │ vector\&.                                               │
+│ Tcl_Size Rbc_VectorLength(Rbc_Vector *vecPtr)            │ Returns the logical number of vector values\&.          │
+│ Tcl_Size Rbc_VectorSize(Rbc_Vector *vecPtr)              │ Returns the vector capacity in values\&.                │
+│ int Rbc_VectorDirty(Rbc_Vector *vecPtr)                  │ Returns the vector update counter\&.                    │
+│ int Rbc_VectorExists2(Tcl_Interp *interp, const char     │ Returns non-zero if the named vector exists\&.          │
+│ *vecName)                                                │                                                       │
+│ void Rbc_FreeVector(Rbc_Vector *vecPtr)                  │ Destroys the vector and releases its resources\&.       │
+│ Rbc_VectorType Rbc_VectorGetType(Rbc_Vector *vecPtr)     │ Returns RBC_VECTOR_REAL or RBC_VECTOR_COMPLEX\&.        │
+│ int Rbc_VectorGetRange(Rbc_Vector *vecPtr, double        │ Returns the minimum and maximum of a real vector;     │
+│ *minPtr, double *maxPtr)                                 │ returns TCL_ERROR for a complex vector\&.               │
+│ int Rbc_CreateVectorWithType(Tcl_Interp *interp, const   │ Creates a real or complex vector of the requested     │
+│ char *vecName, Tcl_Size size, Rbc_VectorType type,       │ type\&.                                                 │
+│ Rbc_Vector **vecPtrPtr)                                  │                                                       │
+│ int Rbc_ResetComplexVector(Rbc_Vector *vecPtr,           │ Replaces the storage and ownership contract of a      │
+│ Rbc_Complex *dataArr, Tcl_Size nValues, Tcl_Size         │ complex vector\&.                                       │
+│ arraySize, Tcl_FreeProc *freeProc)                       │                                                       │
+│ Rbc_Complex *Rbc_VectorComplexData(Rbc_Vector *vecPtr)   │ Returns complex-vector storage, or NULL for a real    │
+│                                                          │ vector\&.                                               │
+│ void Rbc_VectorChanged(Rbc_Vector *vecPtr)               │ Reports an in-place data change without changing      │
+│                                                          │ storage ownership\&.                                    │
+└──────────────────────────────────────────────────────────┴───────────────────────────────────────────────────────┘
 .fi
 .RE
 .PP
@@ -783,8 +786,7 @@ Do not use Rbc_ResetVector or Rbc_ResetComplexVector merely to report an in-plac
 functions define a new storage and ownership contract, even when the supplied address happens to equal the
 vector's current data pointer\&.
 .PP
-Graph elements or other Rbc clients using X and Y are notified that the vector contents have changed and
-can update themselves without recreating the vectors\&.
+Registered Rbc vector clients are notified that the vector contents have changed\&.
 .SS "REPLACING VECTOR STORAGE"
 .PP
 Rbc_ResetVector replaces the storage of a real vector\&. Rbc_ResetComplexVector performs the corresponding
@@ -823,6 +825,9 @@ nValues specifies the logical number of values currently stored in the vector\&.
 capacity of the supplied array and must be greater than or equal to nValues\&.
 .PP
 Passing NULL for dataArr, or an arraySize of 0, resets the vector to an empty vector\&.
+.PP
+If arraySize is 0, a non-NULL dataArr is not adopted by the vector and ownership does not transfer to
+Rbc\&. The caller remains responsible for that storage\&.
 .PP
 For example, dynamically allocated storage can be transferred directly to a vector:
 .PP
@@ -923,18 +928,20 @@ static int CreateTimeVector(Tcl_Interp *interp) {
     if (Rbc_CreateVector(interp, "time", nValues, &vecPtr) != TCL_OK) {
         return TCL_ERROR;
     }
-    dataArr = Rbc_VectorData(vecPtr);
     for (i = 0; i < nValues; i++) {
         dataArr[i] = (double)i * 1\&.0e-6;
     }
+    Rbc_VectorChanged(vecPtr);
     return TCL_OK;
 }
 .fi
 .RE
 .PP
-Directly modifying the array returned by Rbc_VectorData does not itself notify vector clients\&. If existing
-clients must observe a change, use Rbc_ResetVector to install the new data, or another Rbc vector operation
-that performs the appropriate update notification\&.
+Directly modifying storage returned by Rbc_VectorData or Rbc_VectorComplexData does not itself invalidate
+cached values or notify vector clients\&. Call Rbc_VectorChanged after an in-place modification\&.
+.PP
+Use Rbc_ResetVector or Rbc_ResetComplexVector when replacing the vector's storage or changing its ownership
+contract, not merely to announce that existing storage was modified\&.
 .SS "RESIZING A VECTOR"
 .PP
 Rbc_ResizeVector changes a vector's logical length and notifies clients of the change\&.

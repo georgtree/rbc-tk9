@@ -1909,7 +1909,7 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20delete"><span class="std std-ref">delete</span></a></dt><dd><p>Deletes one or more indices or index ranges from the vector. Remaining values are compacted after the deleted values are removed.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20dup"><span class="std std-ref">dup</span></a></dt><dd><p>Copies this vector into another vector. The destination vector is created if necessary. If it already exists, its contents are replaced.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20dup"><span class="std std-ref">dup</span></a></dt><dd><p>Copies this vector into another vector. A newly created destination inherits the source vector’s numeric type. If the destination already exists, it must have the same numeric type and its contents are replaced.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20expr"><span class="std std-ref">expr</span></a></dt><dd><p>Evaluates <code class="docutils literal notranslate"><span class="pre">expression</span></code> and stores the result in this vector.</p>
 </dd>
@@ -1925,7 +1925,7 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20populate"><span class="std std-ref">populate</span></a></dt><dd><p>Creates a more densely sampled vector using linear interpolation. <code class="docutils literal notranslate"><span class="pre">density</span></code> intermediate values are inserted between every adjacent pair of source values. <code class="docutils literal notranslate"><span class="pre">density</span></code> must be at least 1. The destination may be the same vector as the source and has the same numeric type as the source. For complex vectors, the real and imaginary components are linearly interpolated independently.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20random"><span class="std std-ref">random</span></a></dt><dd><p>Fills the vector with pseudo-random values in the range <code class="docutils literal notranslate"><span class="pre">[0.0,</span> <span class="pre">1.0)</span></code>. The current vector length is preserved. For real vectors, one random number is generated for each value. For complex vectors, the real and imaginary components are generated independently.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20random"><span class="std std-ref">random</span></a></dt><dd><p>Fills the vector with pseudo-random data while preserving its current length. For real vectors, one random value in the range <code class="docutils literal notranslate"><span class="pre">[0.0,</span> <span class="pre">1.0)</span></code> is generated for each vector value. For complex vectors, the real and imaginary components are generated independently in that range.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20range"><span class="std std-ref">range</span></a></dt><dd><p>Gives back an inclusive range of vector values. If <code class="docutils literal notranslate"><span class="pre">first</span></code> is less than or equal to <code class="docutils literal notranslate"><span class="pre">last</span></code>, values are returned in ascending index order. If <code class="docutils literal notranslate"><span class="pre">first</span></code> is greater than <code class="docutils literal notranslate"><span class="pre">last</span></code>, values are returned in descending index order. <code class="docutils literal notranslate"><span class="pre">first</span></code> and <code class="docutils literal notranslate"><span class="pre">last</span></code> are normal vector indices and may use forms such as <code class="docutils literal notranslate"><span class="pre">end</span></code>. This operation does not modify the vector.</p>
 </dd>
@@ -1935,7 +1935,7 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20set"><span class="std std-ref">set</span></a></dt><dd><p>Replaces the contents of the vector. <code class="docutils literal notranslate"><span class="pre">list</span></code> may be a Tcl list of numeric values or the name of another vector. When the argument names another vector, the source and destination vector types must match. For a complex destination, list elements may be <code class="docutils literal notranslate"><span class="pre">{real</span> <span class="pre">imag}</span></code> values or real scalars.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20sort"><span class="std std-ref">sort</span></a></dt><dd><p>Sorts this real vector. Additional real vectors may be supplied. They must have the same length and are rearranged using the same permutation, allowing associated data to remain aligned. <code class="docutils literal notranslate"><span class="pre">-reverse</span></code> requests descending rather than ascending order.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20sort"><span class="std std-ref">sort</span></a></dt><dd><p>Sorts this real vector. Additional real vectors may be supplied as secondary sort keys. All vectors must have the same length.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20split"><span class="std std-ref">split</span></a></dt><dd><p>Distributes values from this vector among destination vectors in round-robin order. The source vector length must be evenly divisible by the number of destination vectors. Existing destination contents are preserved and the split values are appended. Destination vectors have the same numeric type as the source vector.</p>
 </dd>
@@ -2080,8 +2080,8 @@ deleted values are removed.</p>
 </section>
 <section id="vecinst-dup">
 <span id="r-3a3arbc3a3avecinst20dup"></span><span id="index-229"></span><span id="index-228"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">dup</span></code><a class="headerlink" href="#vecinst-dup" title="Link to this heading">¶</a></h3>
-<p>Copies this vector into another vector. The destination vector is created if necessary. If it already
-exists, its contents are replaced.</p>
+<p>Copies this vector into another vector. A newly created destination inherits the source vector’s numeric
+type. If the destination already exists, it must have the same numeric type and its contents are replaced.</p>
 <pre class="literal-block"><strong>VECINST dup</strong> <em>vecName</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -2210,9 +2210,9 @@ For complex vectors, the real and imaginary components are linearly interpolated
 </section>
 <section id="vecinst-random">
 <span id="r-3a3arbc3a3avecinst20random"></span><span id="index-245"></span><span id="index-244"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">random</span></code><a class="headerlink" href="#vecinst-random" title="Link to this heading">¶</a></h3>
-<p>Fills the vector with pseudo-random values in the range <code class="docutils literal notranslate"><span class="pre">[0.0,</span> <span class="pre">1.0)</span></code>. The current vector length is
-preserved. For real vectors, one random number is generated for each value. For complex vectors, the real and
-imaginary components are generated independently.</p>
+<p>Fills the vector with pseudo-random data while preserving its current length. For real vectors, one random
+value in the range <code class="docutils literal notranslate"><span class="pre">[0.0,</span> <span class="pre">1.0)</span></code> is generated for each vector value. For complex vectors, the real and
+imaginary components are generated independently in that range.</p>
 <pre class="literal-block"><strong>VECINST random</strong></pre>
 <p class="rubric">Description</p>
 <p>An empty vector remains empty.</p>
@@ -2326,19 +2326,23 @@ For a complex destination, list elements may be <code class="docutils literal no
 </section>
 <section id="vecinst-sort">
 <span id="r-3a3arbc3a3avecinst20sort"></span><span id="index-255"></span><span id="index-254"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">sort</span></code><a class="headerlink" href="#vecinst-sort" title="Link to this heading">¶</a></h3>
-<p>Sorts this real vector. Additional real vectors may be supplied. They must have the same length and are
-rearranged using the same permutation, allowing associated data to remain aligned. <code class="docutils literal notranslate"><span class="pre">-reverse</span></code> requests
-descending rather than ascending order.</p>
+<p>Sorts this real vector. Additional real vectors may be supplied as secondary sort keys. All vectors must
+have the same length.</p>
 <pre class="literal-block"><strong>VECINST sort</strong> <em>?-reverse? ?vecName ...?</em></pre>
 <p class="rubric">Parameters</p>
 <p class="rubric">Description</p>
-<p>Complex vectors are not supported because no natural ordering relation is defined for complex values.</p>
+<p>Values are compared lexicographically: this vector is the primary sort key, the first additional vector
+breaks ties in the primary vector, the next vector breaks any remaining ties, and so on. The resulting
+permutation is applied to every participating vector.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-reverse</span></code> reverses the resulting sort order.</p>
+<p>Complex vectors cannot participate as either the primary or an additional sort vector because no natural
+ordering relation is defined for complex values.</p>
 <dl class="field-list simple">
 <dt class="field-odd">-reverse<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Sort in descending order.</p>
 </dd>
 <dt class="field-even">vecName<span class="colon">:</span></dt>
-<dd class="field-even"><p>Optional associated vector to reorder.</p>
+<dd class="field-even"><p>Optional additional real vector used as a successive sort key and reordered using the same permutation.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
