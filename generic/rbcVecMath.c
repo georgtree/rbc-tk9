@@ -146,6 +146,9 @@ static double Skew(Rbc_Vector *vecPtr);
 static int Sort(VectorObject *vPtr);
 static double Sum(Rbc_Vector *vecPtr);
 static double Variance(Rbc_Vector *vecPtr);
+static double ComplexAvgDeviation(VectorObject *vPtr);
+static double ComplexVariance(VectorObject *vPtr);
+static double ComplexStdDeviation(VectorObject *vPtr);
 static int EvaluateExpression(Tcl_Interp *interp, char *string, Value *valuePtr);
 static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *valuePtr);
 static void MathError(Tcl_Interp *interp, double value);
@@ -184,6 +187,9 @@ static ComplexScalarFunction meanFunction = {Mean, ComplexMean};
 static ComplexScalarFunction productFunction = {Product, ComplexProduct};
 static ComplexRealScalarFunction lengthFunction = {Length, ComplexLength};
 static ComplexRealScalarFunction nonzerosFunction = {Nonzeros, ComplexNonzeros};
+static ComplexRealScalarFunction avgDeviationFunction = {AvgDeviation, ComplexAvgDeviation};
+static ComplexRealScalarFunction varianceFunction = {Variance, ComplexVariance};
+static ComplexRealScalarFunction stdDeviationFunction = {StdDeviation, ComplexStdDeviation};
 static ComplexComponentFunction randomFunction = {Random, ComplexRandom};
 static ComplexComponentFunction ceilFunction = {ceil, ComplexCeil};
 static ComplexComponentFunction floorFunction = {floor, ComplexFloor};
@@ -198,7 +204,7 @@ static MathFunction mathFunctions[] = {
     {"acos", (GenericMathProc *)ComplexComponentFunc, (ClientData)&acosFunction},
     {"asin", (GenericMathProc *)ComplexComponentFunc, (ClientData)&asinFunction},
     {"atan", (GenericMathProc *)ComplexComponentFunc, (ClientData)&atanFunction},
-    {"adev", (GenericMathProc *)ScalarFunc, (ClientData)AvgDeviation},
+    {"adev", (GenericMathProc *)ComplexRealScalarFunc, (ClientData)&avgDeviationFunction},
     {"ceil", (GenericMathProc *)ComplexComponentFunc, (ClientData)&ceilFunction},
     {"cos", (GenericMathProc *)ComplexComponentFunc, (ClientData)&cosFunction},
     {"cosh", (GenericMathProc *)ComplexComponentFunc, (ClientData)&coshFunction},
@@ -219,7 +225,7 @@ static MathFunction mathFunctions[] = {
     {"prod", (GenericMathProc *)ComplexScalarFunc, (ClientData)&productFunction},
     {"random", (GenericMathProc *)ComplexComponentFunc, (ClientData)&randomFunction},
     {"round", (GenericMathProc *)ComplexComponentFunc, (ClientData)&roundFunction},
-    {"sdev", (GenericMathProc *)ScalarFunc, (ClientData)StdDeviation},
+    {"sdev", (GenericMathProc *)ComplexRealScalarFunc, (ClientData)&stdDeviationFunction},
     {"sin", (GenericMathProc *)ComplexComponentFunc, (ClientData)&sinFunction},
     {"sinh", (GenericMathProc *)ComplexComponentFunc, (ClientData)&sinhFunction},
     {"skew", (GenericMathProc *)ScalarFunc, (ClientData)Skew},
@@ -228,7 +234,7 @@ static MathFunction mathFunctions[] = {
     {"sum", (GenericMathProc *)ComplexScalarFunc, (ClientData)&sumFunction},
     {"tan", (GenericMathProc *)ComplexComponentFunc, (ClientData)&tanFunction},
     {"tanh", (GenericMathProc *)ComplexComponentFunc, (ClientData)&tanhFunction},
-    {"var", (GenericMathProc *)ScalarFunc, (ClientData)Variance},
+    {"var", (GenericMathProc *)ComplexRealScalarFunc, (ClientData)&varianceFunction},
     {
         (char *)NULL,
     },
@@ -2030,6 +2036,84 @@ static Rbc_Complex ComplexRound(Rbc_Complex value) {
     value.real = Round(value.real);
     value.imag = Round(value.imag);
     return value;
+}
+
+static double ComplexAvgDeviation(VectorObject *vPtr) {
+    Rbc_Complex mean;
+    double avg;
+    Tcl_Size count;
+    Tcl_Size i;
+
+    mean = ComplexMean(vPtr);
+    avg = 0.0;
+    count = 0;
+    for (i = vPtr->first; i <= vPtr->last; i++) {
+        Rbc_Complex value;
+        double realDiff;
+        double imagDiff;
+
+        value = vPtr->data.complex[i];
+        if (!ComplexValueIsFinite(value)) {
+            continue;
+        }
+        realDiff = value.real - mean.real;
+        imagDiff = value.imag - mean.imag;
+        avg += hypot(realDiff, imagDiff);
+        count++;
+    }
+    /*
+     * Preserve the real AvgDeviation() behavior.
+     */
+    if (count < 2) {
+        return 0.0;
+    }
+    avg /= (double)count;
+    return avg;
+}
+
+static double ComplexVariance(VectorObject *vPtr) {
+    Rbc_Complex mean;
+    double var;
+    Tcl_Size count;
+    Tcl_Size i;
+
+    mean = ComplexMean(vPtr);
+    var = 0.0;
+    count = 0;
+    for (i = vPtr->first; i <= vPtr->last; i++) {
+        Rbc_Complex value;
+        double realDiff;
+        double imagDiff;
+        double magnitude;
+
+        value = vPtr->data.complex[i];
+        if (!ComplexValueIsFinite(value)) {
+            continue;
+        }
+        realDiff = value.real - mean.real;
+        imagDiff = value.imag - mean.imag;
+        magnitude = hypot(realDiff, imagDiff);
+        var += magnitude * magnitude;
+        count++;
+    }
+    /*
+     * Preserve the real Variance() behavior.
+     */
+    if (count < 2) {
+        return 0.0;
+    }
+    var /= (double)(count - 1);
+    return var;
+}
+
+static double ComplexStdDeviation(VectorObject *vPtr) {
+    double var;
+
+    var = ComplexVariance(vPtr);
+    if (var > 0.0) {
+        return sqrt(var);
+    }
+    return 0.0;
 }
 
 /*
