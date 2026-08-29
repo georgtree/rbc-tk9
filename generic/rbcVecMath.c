@@ -123,6 +123,7 @@ static int ComplexRealScalarFunc(ClientData clientData, Tcl_Interp *interp, Vect
 static int ApplyComplexBooleanOperator(Tcl_Interp *interp, int operator, VectorObject * vPtr, VectorObject *v2Ptr);
 static int ApplyComplexNotOperator(Tcl_Interp *interp, VectorObject *vPtr);
 static double Random(double value);
+static Rbc_Complex ComplexRandom(Rbc_Complex value);
 static double Mean(Rbc_Vector *vecPtr);
 static double Sum(Rbc_Vector *vecPtr);
 static double Product(Rbc_Vector *vecPtr);
@@ -180,6 +181,7 @@ static ComplexScalarFunction meanFunction = {Mean, ComplexMean};
 static ComplexScalarFunction productFunction = {Product, ComplexProduct};
 static ComplexRealScalarFunction lengthFunction = {Length, ComplexLength};
 static ComplexRealScalarFunction nonzerosFunction = {Nonzeros, ComplexNonzeros};
+static ComplexComponentFunction randomFunction = {Random, ComplexRandom};
 
 static MathFunction mathFunctions[] = {
     {"abs", (GenericMathProc *)ComplexRealFunc, (ClientData)&absFunction},
@@ -209,7 +211,7 @@ static MathFunction mathFunctions[] = {
     {"q1", (GenericMathProc *)ScalarFunc, (ClientData)Q1},
     {"q3", (GenericMathProc *)ScalarFunc, (ClientData)Q3},
     {"prod", (GenericMathProc *)ComplexScalarFunc, (ClientData)&productFunction},
-    {"random", (GenericMathProc *)ComponentFunc, (ClientData)Random},
+    {"random", (GenericMathProc *)ComplexComponentFunc, (ClientData)&randomFunction},
     {"round", (GenericMathProc *)ComponentFunc, (ClientData)Round},
     {"sdev", (GenericMathProc *)ScalarFunc, (ClientData)StdDeviation},
     {"sin", (GenericMathProc *)ComplexComponentFunc, (ClientData)&sinFunction},
@@ -873,6 +875,15 @@ static double Random(double value) {
     (void)value;
 
     return Rbc_RandomDouble();
+}
+
+static Rbc_Complex ComplexRandom(Rbc_Complex value) {
+    Rbc_Complex result;
+
+    (void)value;
+    result.real = Rbc_RandomDouble();
+    result.imag = Rbc_RandomDouble();
+    return result;
 }
 
 /*
