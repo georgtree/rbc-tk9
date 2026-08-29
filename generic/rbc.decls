@@ -81,3 +81,7 @@ declare 14 {
 declare 15 {
     Rbc_Complex *Rbc_VectorComplexData(Rbc_Vector *vPtr)
 }
+
+declare 16 {
+    void Rbc_VectorChanged(Rbc_Vector *vecPtr)
+}

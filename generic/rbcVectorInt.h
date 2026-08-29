@@ -262,10 +262,11 @@ int Rbc_CreateVector2(Tcl_Interp *interp, const char *vecName, const char *cmdNa
 Tcl_ObjCmdProc2 Rbc_VectorInstanceObjCmd;
 
 /*
- * Vector math.
+ * Legacy real-valued vector math callback signatures.
  *
- * These signatures are still real-only.  They will be redesigned when
- * complex arithmetic is introduced.
+ * Complex-capable expression functions use private callback types and
+ * dispatch wrappers in rbcVecMath.c. Special index callbacks remain
+ * real-only for compatibility.
  */
 typedef double(ComponentProc)(double value);
 typedef int(VectorProc)(VectorObject *vPtr);

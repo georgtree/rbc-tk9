@@ -81,6 +81,8 @@ RBCAPI int		Rbc_ResetComplexVector(Rbc_Vector *vecPtr,
 				Tcl_Size arraySize, Tcl_FreeProc *freeProc);
 /* 15 */
 RBCAPI Rbc_Complex *	Rbc_VectorComplexData(Rbc_Vector *vPtr);
+/* 16 */
+RBCAPI void		Rbc_VectorChanged(Rbc_Vector *vecPtr);
 
 typedef struct RbcStubs {
     int magic;
@@ -102,6 +104,7 @@ typedef struct RbcStubs {
     int (*rbc_CreateVectorWithType) (Tcl_Interp *interp, const char *vecName, Tcl_Size size, Rbc_VectorType type, Rbc_Vector **vecPtrPtr); /* 13 */
     int (*rbc_ResetComplexVector) (Rbc_Vector *vecPtr, Rbc_Complex *dataArr, Tcl_Size nValues, Tcl_Size arraySize, Tcl_FreeProc *freeProc); /* 14 */
     Rbc_Complex * (*rbc_VectorComplexData) (Rbc_Vector *vPtr); /* 15 */
+    void (*rbc_VectorChanged) (Rbc_Vector *vecPtr); /* 16 */
 } RbcStubs;
 
 extern const RbcStubs *rbcStubsPtr;
@@ -148,6 +151,8 @@ extern const RbcStubs *rbcStubsPtr;
 	(rbcStubsPtr->rbc_ResetComplexVector) /* 14 */
 #define Rbc_VectorComplexData \
 	(rbcStubsPtr->rbc_VectorComplexData) /* 15 */
+#define Rbc_VectorChanged \
+	(rbcStubsPtr->rbc_VectorChanged) /* 16 */
 
 #endif /* defined(USE_RBC_STUBS) */
 

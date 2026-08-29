@@ -1243,9 +1243,7 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
     for (i = 0; i < nIntpPts; i++) {
         resultArr[i] = intpPts[i].y;
     }
-    if (Rbc_ResetVector(splY, Rbc_VectorData(splY), Rbc_VectorLength(splY), Rbc_VectorSize(splY), TCL_STATIC) != TCL_OK) {
-        goto cleanup;
-    }
+    Rbc_VectorChanged(splY);
     result = TCL_OK;
 
 cleanup:

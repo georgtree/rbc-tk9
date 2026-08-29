@@ -26,6 +26,7 @@ const RbcStubs rbcStubs = {
     Rbc_CreateVectorWithType, /* 13 */
     Rbc_ResetComplexVector, /* 14 */
     Rbc_VectorComplexData, /* 15 */
+    Rbc_VectorChanged, /* 16 */
 };
 
 /* !END!: Do not edit above this line. */

@@ -3250,6 +3250,16 @@ int Rbc_ResetVector(Rbc_Vector *vecPtr, double *valueArr, Tcl_Size length, Tcl_S
     return Rbc_VectorReset((VectorObject *)vecPtr, valueArr, length, size, freeProc);
 }
 
+void Rbc_VectorChanged(Rbc_Vector *vecPtr) {
+    VectorObject *vPtr;
+
+    vPtr = (VectorObject *)vecPtr;
+    if (vPtr->flush) {
+        Rbc_VectorFlushCache(vPtr);
+    }
+    Rbc_VectorUpdateClients(vPtr);
+}
+
 void Rbc_FreeVector(Rbc_Vector *v) { Rbc_VectorFree((VectorObject *)v); }
 
 Rbc_Complex *Rbc_VectorComplexData(Rbc_Vector *vPtr) {

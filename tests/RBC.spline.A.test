@@ -509,7 +509,7 @@ test RBC.spline.extrapolate.A.1.1 {
     catch {vector destroy splY}
 } -result 1
 
-test RBC.spline.extrapolate.A.1.1 {
+test RBC.spline.extrapolate.A.1.2 {
     quadratic spline extrapolates and accepts unordered interpolation X
 } -body {
     vector create x y splX splY
