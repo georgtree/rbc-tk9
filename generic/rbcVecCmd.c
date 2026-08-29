@@ -174,8 +174,8 @@ static const VectorInstOpSpec vectorInstOpCmd[] = {{{"*", 3, 3, "list"}, ArithOp
 static int ComplexOpSupported(RbcVectorCmdOp *proc) {
     return ((proc == ExprOp) || (proc == AppendOp) || (proc == ArithOp) || (proc == ClearOp) || (proc == DeleteOp) ||
             (proc == DupOp) || (proc == IndexOp) || (proc == LengthOp) || (proc == MergeOp) || (proc == OffsetOp) ||
-            (proc == PopulateOp) || (proc == RandomOp) || (proc == RangeOp) || (proc == SeqOp) || (proc == SetOp) ||
-            (proc == SplitOp) || (proc == TypeOp) || (proc == VariableOp));
+            (proc == PopulateOp) || (proc == RandomOp) || (proc == RangeOp) || (proc == SearchOp) || (proc == SeqOp) ||
+            (proc == SetOp) || (proc == SplitOp) || (proc == TypeOp) || (proc == VariableOp));
 }
 
 /*
@@ -1756,6 +1756,67 @@ static int RangeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
  *
  * -----------------------------------------------------------------------
  */
+static int ComplexSearchOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    Rbc_Complex target;
+    Tcl_Obj *listObjPtr;
+    Tcl_Size i;
+    int wantValue;
+    const char *string;
+
+    assert(vPtr->type == RBC_VECTOR_COMPLEX);
+    wantValue = FALSE;
+    string = Tcl_GetString(objv[2]);
+    if ((string[0] == '-') && (strcmp(string, "-value") == 0)) {
+        wantValue = TRUE;
+        objv++;
+        objc--;
+    }
+    /*
+     * Complex numbers have no natural interval ordering.  Support
+     * searching for one complex value, but keep the two-bound range
+     * form real-only.
+     */
+    if (objc > 3) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("range search is not supported for complex vectors", -1));
+        return TCL_ERROR;
+    }
+    if (Rbc_GetComplex(interp, objv[2], &target) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    listObjPtr = Tcl_NewListObj(0, NULL);
+    Tcl_IncrRefCount(listObjPtr);
+    for (i = 0; i < vPtr->length; i++) {
+        Rbc_Complex value;
+
+        value = vPtr->data.complex[i];
+        /*
+         * Match the tolerance used by the existing real search for a
+         * single value.  InRange(value, target, target) compares within
+         * DBL_EPSILON.
+         */
+        if (InRange(value.real, target.real, target.real) && InRange(value.imag, target.imag, target.imag)) {
+            Tcl_Obj *objPtr;
+
+            if (wantValue) {
+                objPtr = Rbc_NewVectorValueObj(vPtr, i);
+            } else {
+                Tcl_Size index;
+                if ((vPtr->offset > 0) && (i > (TCL_SIZE_MAX - vPtr->offset))) {
+                    Tcl_DecrRefCount(listObjPtr);
+                    Tcl_SetObjResult(interp, Tcl_NewStringObj("vector index is too large", -1));
+                    return TCL_ERROR;
+                }
+                index = i + vPtr->offset;
+                objPtr = Tcl_NewWideIntObj((Tcl_WideInt)index);
+            }
+            Tcl_ListObjAppendElement(interp, listObjPtr, objPtr);
+        }
+    }
+    Tcl_SetObjResult(interp, listObjPtr);
+    Tcl_DecrRefCount(listObjPtr);
+    return TCL_OK;
+}
+
 static int SearchOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     double min, max;
     Tcl_Size i;
@@ -1763,6 +1824,10 @@ static int SearchOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
     char *string;
     Tcl_Obj *listObjPtr;
 
+    if (vPtr->type == RBC_VECTOR_COMPLEX) {
+        return ComplexSearchOp(vPtr, interp, objc, objv);
+    }
+    assert(vPtr->type == RBC_VECTOR_REAL);
     wantValue = FALSE;
     string = Tcl_GetString(objv[2]);
     if ((string[0] == '-') && (strcmp(string, "-value") == 0)) {

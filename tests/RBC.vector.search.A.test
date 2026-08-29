@@ -118,6 +118,105 @@ namespace eval vector.search {
     } -cleanup {
         vector destroy Vector1
     } -result {3000000000 3000000002}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure search finds all occurrences of a complex value.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.search.A.2.1 {
+        vector search: complex value
+    } -setup {
+        vector create Vector1 -type complex
+        Vector1 set {{1 2} {3 4} {1 2} {5 6}}
+    } -body {
+        Vector1 search {1 2}
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {0 2}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure a real search value is promoted to a complex value with zero
+    # imaginary component.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.search.A.2.2 {
+        vector search: real value in complex vector
+    } -setup {
+        vector create Vector1 -type complex
+        Vector1 set {{1 0} {1 2} {3 0} {1 0}}
+    } -body {
+        Vector1 search 1
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {0 3}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure -value returns matching complex values rather than their indices.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.search.A.2.3 {
+        vector search: return complex values
+    } -setup {
+        vector create Vector1 -type complex
+        Vector1 set {{1 2} {3 4} {1 2}}
+    } -body {
+        Vector1 search -value {1 2}
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {{1.0 2.0} {1.0 2.0}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure search returns an empty list when a complex value is not present.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.search.A.2.4 {
+        vector search: complex value not found
+    } -setup {
+        vector create Vector1 -type complex
+        Vector1 set {{1 2} {3 4} {5 6}}
+    } -body {
+        Vector1 search {7 8}
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure the two-bound range form is rejected for complex vectors.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.search.A.2.5 {
+        vector search: complex range rejected
+    } -setup {
+        vector create Vector1 -type complex
+        Vector1 set {{1 2} {3 4} {5 6}}
+    } -body {
+        catch {Vector1 search {1 2} {5 6}} message
+        set message
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {range search is not supported for complex vectors}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure complex search applies the vector offset to returned indices.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.search.A.2.6 {
+        vector search: complex offset
+    } -setup {
+        vector create Vector1 -type complex
+        Vector1 set {{1 2} {3 4} {1 2}}
+        Vector1 offset 3000000000
+    } -body {
+        Vector1 search {1 2}
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {3000000000 3000000002}
+
+    test RBC.vector.search.A.2.7 {
+        vector search: complex value range rejected
+    } -setup {
+        vector create Vector1 -type complex
+        Vector1 set {{1 2} {3 4}}
+    } -body {
+        catch {Vector1 search -value {1 2} {3 4}} message
+        set message
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {range search is not supported for complex vectors}
 	
 	cleanupTests
 }
