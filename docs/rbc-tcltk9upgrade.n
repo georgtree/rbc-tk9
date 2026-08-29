@@ -355,6 +355,9 @@ Improved ownership of temporary data used by mathematical operations\&.
 .TP
 \(bu
 Added stricter handling of invalid and non-finite input\&.
+.TP
+\(bu
+Added first-class complex vectors, complex expression arithmetic and mathematical functions, and typed public C API access while retaining compatibility with the existing real-vector interface\&.
 .SS "GEOMETRY, TEXT AND DRAWING"
 .PP
 Many drawing routines inherited assumptions from old X11 APIs where coordinates and dimensions were commonly
@@ -574,6 +577,100 @@ Updated bind-tag handling after the option-system migration\&.
 .TP
 \(bu
 Added regression tests for the affected binding paths\&.
+.SS "USER-VISIBLE ADDITIONS"
+.PP
+In addition to the Tcl/Tk 9 modernization and correctness work, this fork adds several user-visible features that were
+not present in the original Rbc implementation\&.
+.PP
+\fBComplex vectors\fR
+.PP
+The vector subsystem now supports both real and complex numeric vectors\&. Complex vectors are created explicitly
+with -type complex, and Tcl-level complex values use the form {real imag}:
+.PP
+.RS 4n
+.nf
+::rbc::vector create z -type complex
+z set {{1 2} {3 -4} {5 0}}
+.fi
+.RE
+.PP
+Complex vectors are supported by most vector instance operations and by the vector expression engine, including
+arithmetic, complex exponentiation, trigonometric and logarithmic functions, projections such as real,
+imag, abs, and arg, and complex statistical reductions\&.
+.PP
+Operations that require an ordering of values remain real-only\&. In particular, sort and normalize are not
+supported for complex vectors\&. Graph element data and spline interpolation also remain real-valued and reject
+complex vectors; applications can explicitly derive a real vector using operations such as real, imag,
+abs, or arg\&.
+.PP
+The public C API was extended with typed vector access, including Rbc_VectorType, Rbc_Complex,
+Rbc_CreateVectorWithType(), Rbc_VectorComplexData(), Rbc_ResetComplexVector(), and
+Rbc_VectorChanged()\&. The original real-vector API remains available for compatibility\&.
+.PP
+\fBPlot-only element hiding\fR
+.PP
+Line, stripchart, and bar elements now support the -hideplot option\&.
+.PP
+Unlike -hide, which removes an element from the graph display list, -hideplot yes suppresses plotting while
+leaving the element in the display list\&. Its legend entry therefore remains available, making it possible for
+applications to hide and restore plotted data without rebuilding or reordering the legend\&.
+.PP
+A plot-hidden element is also excluded from automatic axis limits, closest-element searches, element hit
+testing, and PostScript element output\&. Plot-hidden bars are additionally excluded from bar grouping and
+stacking calculations\&.
+.PP
+-hide and -hideplot are independent, so changing the normal visibility of an element does not alter its
+-hideplot state\&.
+.PP
+\fBArrowheads for line markers\fR
+.PP
+Line markers now support arrowheads through the -arrow and -arrowshape options\&.
+.PP
+-arrow accepts none, first, last, or both, allowing an arrowhead to be drawn at either or both ends
+of a line marker\&. -arrowshape {a b c} controls the arrowhead geometry using screen distances\&.
+.PP
+.RS 4n
+.nf
+\&.g marker create line -name direction -coords {0 0 5 4 10 2} -outline red -linewidth 2 -arrow last
+
+\&.g marker configure direction -arrow both -arrowshape {8 10 3}
+.fi
+.RE
+.PP
+Arrowheads use the line marker's -outline color, and the line shaft is shortened to the arrowhead neck so
+that it does not extend through the filled arrowhead\&.
+.PP
+The drawing implementation was also corrected for X11/Linux\&. Arrowheads are concave polygons, so they are now
+passed to the native polygon renderer with the correct non-convex geometry and without the duplicate closing
+vertex\&. This keeps arrow rendering consistent across supported platforms\&.
+.PP
+\fBBar geometry from element closest\fR
+.PP
+The element closest operation now provides additional geometry information when the selected element is a bar\&.
+.PP
+In addition to the normal name, index, x, y, and dist entries, the result array contains:
+.TP
+\(bu
+left
+.TP
+\(bu
+top
+.TP
+\(bu
+right
+.TP
+\(bu
+bottom
+.PP
+These values are the physical widget coordinates of the final mapped bar rectangle that is actually drawn\&. They
+therefore reflect the current bar mode: stacked bars return the selected stacked segment, while aligned and
+overlapping bars return the adjusted rectangle belonging to the selected element\&.
+.PP
+The values remain physical widget coordinates when -invertxy is enabled: left and right always describe
+physical X coordinates, while top and bottom always describe physical Y coordinates\&.
+.PP
+This makes element closest directly usable for bar highlighting, overlays, annotations, and interactive
+interfaces without requiring applications to reconstruct bar geometry themselves\&.
 .SS "REGRESSION TESTING"
 .PP
 The modernization was accompanied by a substantial expansion of the test suite\&.
