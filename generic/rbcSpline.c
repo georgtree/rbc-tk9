@@ -1059,6 +1059,17 @@ static const SplineOpSpec splineOps[] = {{{"natural", 6, 6, "x y splx sply"}, Rb
                                          {{"quadratic", 6, 6, "x y splx sply"}, Rbc_QuadraticSpline},
                                          {{NULL, 0, 0, NULL}, NULL}};
 
+static int GetRealSplineVector(Tcl_Interp *interp, const char *name, Rbc_Vector **vecPtrPtr) {
+    if (Rbc_GetVector(interp, name, vecPtrPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (Rbc_VectorGetType(*vecPtrPtr) != RBC_VECTOR_REAL) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("spline vector \"%s\" must be real", name));
+        return TCL_ERROR;
+    }
+    return TCL_OK;
+}
+
 /*
  *--------------------------------------------------------------
  *
@@ -1116,8 +1127,8 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
     yName = Tcl_GetString(objv[3]);
     splXName = Tcl_GetString(objv[4]);
     splYName = Tcl_GetString(objv[5]);
-    if ((Rbc_GetVector(interp, xName, &x) != TCL_OK) || (Rbc_GetVector(interp, yName, &y) != TCL_OK) ||
-        (Rbc_GetVector(interp, splXName, &splX) != TCL_OK)) {
+    if ((GetRealSplineVector(interp, xName, &x) != TCL_OK) || (GetRealSplineVector(interp, yName, &y) != TCL_OK) ||
+        (GetRealSplineVector(interp, splXName, &splX) != TCL_OK)) {
         return TCL_ERROR;
     }
     nOrigPts = Rbc_VectorLength(x);
@@ -1217,9 +1228,15 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
         if (Rbc_CreateVector(interp, splYName, nIntpPts, &splY) != TCL_OK) {
             goto cleanup;
         }
-    } else if (nIntpPts != Rbc_VectorLength(splY)) {
-        if (Rbc_ResizeVector(splY, nIntpPts) != TCL_OK) {
+    } else {
+        if (Rbc_VectorGetType(splY) != RBC_VECTOR_REAL) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("spline vector \"%s\" must be real", splYName));
             goto cleanup;
+        }
+        if (nIntpPts != Rbc_VectorLength(splY)) {
+            if (Rbc_ResizeVector(splY, nIntpPts) != TCL_OK) {
+                goto cleanup;
+            }
         }
     }
     resultArr = Rbc_VectorData(splY);

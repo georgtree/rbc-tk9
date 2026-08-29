@@ -533,5 +533,98 @@ test RBC.spline.extrapolate.A.1.1 {
     catch {vector destroy splY}
 } -result 1
 
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure spline rejects a complex source X vector.
+# ------------------------------------------------------------------------------------
+test RBC.spline.A.6.1 {
+    spline: complex source x vector
+} -setup {
+    vector create X -type complex
+    X set {{0 0} {1 0} {2 0}}
+    vector create Y
+    Y set {0 1 4}
+    vector create SplX
+    SplX set {0 0.5 1 1.5 2}
+} -body {
+    catch {spline natural X Y SplX SplY} message
+    set message
+} -cleanup {
+    catch {vector destroy X}
+    catch {vector destroy Y}
+    catch {vector destroy SplX}
+    catch {vector destroy SplY}
+} -result {spline vector "X" must be real}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure spline rejects a complex source Y vector.
+# ------------------------------------------------------------------------------------
+test RBC.spline.A.6.2 {
+    spline: complex source y vector
+} -setup {
+    vector create X
+    X set {0 1 2}
+    vector create Y -type complex
+    Y set {{0 0} {1 0} {4 0}}
+    vector create SplX
+    SplX set {0 0.5 1 1.5 2}
+} -body {
+    catch {spline natural X Y SplX SplY} message
+    set message
+} -cleanup {
+    catch {vector destroy X}
+    catch {vector destroy Y}
+    catch {vector destroy SplX}
+    catch {vector destroy SplY}
+} -result {spline vector "Y" must be real}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure spline rejects a complex interpolation X vector.
+# ------------------------------------------------------------------------------------
+test RBC.spline.A.6.3 {
+    spline: complex interpolation x vector
+} -setup {
+    vector create X
+    X set {0 1 2}
+    vector create Y
+    Y set {0 1 4}
+    vector create SplX -type complex
+    SplX set {{0 0} {0.5 0} {1 0} {1.5 0} {2 0}}
+} -body {
+    catch {spline natural X Y SplX SplY} message
+    set message
+} -cleanup {
+    catch {vector destroy X}
+    catch {vector destroy Y}
+    catch {vector destroy SplX}
+    catch {vector destroy SplY}
+} -result {spline vector "SplX" must be real}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure spline rejects an existing complex result vector and leaves it
+# unchanged.
+# ------------------------------------------------------------------------------------
+test RBC.spline.A.6.4 {
+    spline: complex result vector
+} -setup {
+    vector create X
+    X set {0 1 2}
+    vector create Y
+    Y set {0 1 4}
+    vector create SplX
+    SplX set {0 0.5 1 1.5 2}
+    vector create SplY -type complex
+    SplY set {{9 10} {11 12}}
+} -body {
+    set code [catch {
+        spline natural X Y SplX SplY
+    } message]
+    list $code $message [SplY type] [SplY range 0 end]
+} -cleanup {
+    catch {vector destroy X}
+    catch {vector destroy Y}
+    catch {vector destroy SplX}
+    catch {vector destroy SplY}
+} -result {1 {spline vector "SplY" must be real} complex {{9.0 10.0} {11.0 12.0}}}
+
 
 cleanupTests
