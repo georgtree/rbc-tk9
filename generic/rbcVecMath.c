@@ -223,17 +223,21 @@ static MathFunction mathFunctions[] = {
     },
 };
 
-static int GetDoubleArrayByteCount(Tcl_Interp *interp, Tcl_Size count, size_t *byteCountPtr) {
+static int GetArrayByteCount(Tcl_Interp *interp, Tcl_Size count, size_t elementSize, size_t *byteCountPtr) {
     if (count < 0) {
         Tcl_SetObjResult(interp, Tcl_NewStringObj("array size cannot be negative", -1));
         return TCL_ERROR;
     }
-    if ((Tcl_WideUInt)count > (Tcl_WideUInt)(SIZE_MAX / sizeof(double))) {
+    if ((Tcl_WideUInt)count > (Tcl_WideUInt)(SIZE_MAX / elementSize)) {
         Tcl_SetObjResult(interp, Tcl_NewStringObj("array size is too large", -1));
         return TCL_ERROR;
     }
-    *byteCountPtr = (size_t)count * sizeof(double);
+    *byteCountPtr = (size_t)count * elementSize;
     return TCL_OK;
+}
+
+static int GetDoubleArrayByteCount(Tcl_Interp *interp, Tcl_Size count, size_t *byteCountPtr) {
+    return GetArrayByteCount(interp, count, sizeof(double), byteCountPtr);
 }
 
 static int GetRotationOffset(Tcl_Interp *interp, double scalar, Tcl_Size length, Tcl_Size *offsetPtr) {
@@ -258,6 +262,59 @@ static int GetRotationOffset(Tcl_Interp *interp, double scalar, Tcl_Size length,
     if (remainder > 0.0) {
         *offsetPtr = (Tcl_Size)remainder;
     }
+    return TCL_OK;
+}
+
+static int RotateExpressionVector(Tcl_Interp *interp, VectorObject *vPtr, int operator, double scalar) {
+    unsigned char *data;
+    unsigned char *hold;
+    Tcl_Size offset;
+    Tcl_Size remaining;
+    size_t elementSize;
+    size_t holdBytes;
+    size_t remainingBytes;
+
+    assert((operator== LEFT_SHIFT) || (operator== RIGHT_SHIFT));
+    if (GetRotationOffset(interp, scalar, vPtr->length, &offset) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (offset == 0) {
+        return TCL_OK;
+    }
+    switch (vPtr->type) {
+    case RBC_VECTOR_REAL:
+        elementSize = sizeof(double);
+        break;
+    case RBC_VECTOR_COMPLEX:
+        elementSize = sizeof(Rbc_Complex);
+        break;
+    default:
+        Tcl_Panic("bad vector type %d", (int)vPtr->type);
+        return TCL_ERROR;
+    }
+    remaining = vPtr->length - offset;
+    if (GetArrayByteCount(interp, offset, elementSize, &holdBytes) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (GetArrayByteCount(interp, remaining, elementSize, &remainingBytes) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    hold = Tcl_AttemptAlloc(holdBytes);
+    if (hold == NULL) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate vector rotation buffer", -1));
+        return TCL_ERROR;
+    }
+    data = (unsigned char *)vPtr->data.raw;
+    if (operator== LEFT_SHIFT) {
+        memcpy(hold, data, holdBytes);
+        memmove(data, data + holdBytes, remainingBytes);
+        memcpy(data + remainingBytes, hold, holdBytes);
+    } else {
+        memcpy(hold, data + remainingBytes, holdBytes);
+        memmove(data + holdBytes, data, remainingBytes);
+        memcpy(data, hold, holdBytes);
+    }
+    ckfree(hold);
     return TCL_OK;
 }
 
@@ -442,6 +499,25 @@ static int ApplyComplexEqualityOperator(Tcl_Interp *interp, int operator, Vector
     return TCL_OK;
 }
 
+static int ApplyComplexShiftOperator(Tcl_Interp *interp, int operator, VectorObject * vPtr, VectorObject *v2Ptr) {
+    Rbc_Complex shift;
+
+    if (v2Ptr->length != 1) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("second shift operand must be scalar", -1));
+        return TCL_ERROR;
+    }
+    shift = Rbc_VectorValueAsComplex(v2Ptr, 0);
+    /*
+     * A complex value with zero imaginary component is a valid
+     * real shift count, so C << {1 0} is equivalent to C << 1.
+     */
+    if (shift.imag != 0.0) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("shift count must be real", -1));
+        return TCL_ERROR;
+    }
+    return RotateExpressionVector(interp, vPtr, operator, shift.real);
+}
+
 static int ApplyComplexBinaryOperator(Tcl_Interp *interp, int operator, VectorObject * vPtr, VectorObject *v2Ptr) {
     Tcl_Size i;
 
@@ -449,6 +525,9 @@ static int ApplyComplexBinaryOperator(Tcl_Interp *interp, int operator, VectorOb
     case EQUAL:
     case NEQ:
         return ApplyComplexEqualityOperator(interp, operator, vPtr, v2Ptr);
+    case LEFT_SHIFT:
+    case RIGHT_SHIFT:
+        return ApplyComplexShiftOperator(interp, operator, vPtr, v2Ptr);
     case PLUS:
     case MINUS:
     case MULT:
@@ -2281,68 +2360,12 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
                 opnd[i] = (double)(opnd[i] || scalar);
             }
             break;
-        case LEFT_SHIFT: {
-            Tcl_Size offset;
-            Tcl_Size remaining;
-            size_t holdBytes;
-            size_t remainingBytes;
-            double *hold;
-
-            if (GetRotationOffset(interp, scalar, vPtr->length, &offset) != TCL_OK) {
+        case LEFT_SHIFT:
+        case RIGHT_SHIFT:
+            if (RotateExpressionVector(interp, vPtr, operator, scalar) != TCL_OK) {
                 goto error;
             }
-            if (offset == 0) {
-                break;
-            }
-            remaining = vPtr->length - offset;
-            if (GetDoubleArrayByteCount(interp, offset, &holdBytes) != TCL_OK) {
-                goto error;
-            }
-            if (GetDoubleArrayByteCount(interp, remaining, &remainingBytes) != TCL_OK) {
-                goto error;
-            }
-            hold = Tcl_AttemptAlloc(holdBytes);
-            if (hold == NULL) {
-                Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate vector rotation buffer", -1));
-                goto error;
-            }
-            memcpy(hold, opnd, holdBytes);
-            memmove(opnd, opnd + offset, remainingBytes);
-            memcpy(opnd + remaining, hold, holdBytes);
-            ckfree(hold);
             break;
-        }
-        case RIGHT_SHIFT: {
-            Tcl_Size offset;
-            Tcl_Size remaining;
-            size_t holdBytes;
-            size_t remainingBytes;
-            double *hold;
-
-            if (GetRotationOffset(interp, scalar, vPtr->length, &offset) != TCL_OK) {
-                goto error;
-            }
-            if (offset == 0) {
-                break;
-            }
-            remaining = vPtr->length - offset;
-            if (GetDoubleArrayByteCount(interp, offset, &holdBytes) != TCL_OK) {
-                goto error;
-            }
-            if (GetDoubleArrayByteCount(interp, remaining, &remainingBytes) != TCL_OK) {
-                goto error;
-            }
-            hold = Tcl_AttemptAlloc(holdBytes);
-            if (hold == NULL) {
-                Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate vector rotation buffer", -1));
-                goto error;
-            }
-            memcpy(hold, opnd + remaining, holdBytes);
-            memmove(opnd + offset, opnd, remainingBytes);
-            memcpy(opnd, hold, holdBytes);
-            ckfree(hold);
-            break;
-        }
         default:
             Rbc_AppendResultStrings(interp, "unknown operator in expression", (char *)NULL);
             goto error;

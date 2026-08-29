@@ -1833,5 +1833,101 @@ namespace eval vector.expr {
         catch {vector destroy B}
     } -result {1 {vectors are different lengths}}
 
+    # ------------------------------------------------------------------------------------
+    # Purpose: Test complex vector rotation operators.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.expr.A.13.1 {
+        complex shift left
+    } -setup {
+        vector create C -type complex
+        C set {{1 10} {2 20} {3 30} {4 40}}
+    } -body {
+        vector expr {C << 1}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {{2.0 20.0} {3.0 30.0} {4.0 40.0} {1.0 10.0}}
+
+    test RBC.vector.expr.A.13.2 {
+        complex shift right
+    } -setup {
+        vector create C -type complex
+        C set {{1 10} {2 20} {3 30} {4 40}}
+    } -body {
+        vector expr {C >> 1}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {{4.0 40.0} {1.0 10.0} {2.0 20.0} {3.0 30.0}}
+
+    test RBC.vector.expr.A.13.3 {
+        complex shift count wraps
+    } -setup {
+        vector create C -type complex
+        C set {{1 10} {2 20} {3 30} {4 40}}
+    } -body {
+        vector expr {C << 5}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {{2.0 20.0} {3.0 30.0} {4.0 40.0} {1.0 10.0}}
+
+    test RBC.vector.expr.A.13.4 {
+        complex negative shift count
+    } -setup {
+        vector create C -type complex
+        C set {{1 10} {2 20} {3 30}}
+    } -body {
+        vector expr {C << -1}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {{1.0 10.0} {2.0 20.0} {3.0 30.0}}
+
+    test RBC.vector.expr.A.13.5 {
+        complex-valued real shift count
+    } -setup {
+        vector create C -type complex
+        C set {{1 10} {2 20} {3 30}}
+    } -body {
+        vector expr {C << {1 0}}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {{2.0 20.0} {3.0 30.0} {1.0 10.0}}
+
+    test RBC.vector.expr.A.13.6 {
+        non-real complex shift count
+    } -setup {
+        vector create C -type complex
+        C set {{1 10} {2 20} {3 30}}
+    } -body {
+        set code [catch { vector expr {C << {1 1}} } message]
+        list $code $message
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {1 {shift count must be real}}
+
+    test RBC.vector.expr.A.13.7 {
+        complex shift requires scalar count
+    } -setup {
+        vector create C -type complex
+        vector create R
+        C set {{1 10} {2 20} {3 30}}
+        R set {1 2}
+    } -body {
+        set code [catch { vector expr {C << R} } message]
+        list $code $message
+    } -cleanup {
+        catch {vector destroy C}
+        catch {vector destroy R}
+    } -result {1 {second shift operand must be scalar}}
+
+    test RBC.vector.expr.A.13.8 {
+        real rotation unchanged after typed rotation
+    } -setup {
+        vector create R
+        R set {1 2 3 4}
+    } -body {
+        list [vector expr {R << 1}] [vector expr {R >> 1}]
+    } -cleanup {
+        catch {vector destroy R}
+    } -result {{2.0 3.0 4.0 1.0} {4.0 1.0 2.0 3.0}}
+
 	cleanupTests
 }
