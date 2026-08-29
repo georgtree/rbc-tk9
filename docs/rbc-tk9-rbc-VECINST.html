@@ -75,6 +75,106 @@ value to append one element:</p>
 <p>The associated Tcl array additionally supports the special calculated indices <code class="docutils literal notranslate"><span class="pre">min</span></code>, <code class="docutils literal notranslate"><span class="pre">max</span></code>, <code class="docutils literal notranslate"><span class="pre">mean</span></code>, <code class="docutils literal notranslate"><span class="pre">sum</span></code>, and
 <code class="docutils literal notranslate"><span class="pre">prod</span></code>.</p>
 </section>
+<section id="complex-vector-operations">
+<span id="r-rbc-vecinst-complex-vector-operations"></span><span id="r-3a3arbc3a3avecinstqzcomplex20vector20operations"></span><h2>Complex vector operations<a class="headerlink" href="#complex-vector-operations" title="Link to this heading">¶</a></h2>
+<p>Most vector instance operations support complex vectors. The following table summarizes the current status.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Operation</p></th>
+<th class="head"><p>Complex vectors</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">*</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">+</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">/</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">append</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">binread</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">clear</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">delete</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dup</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">expr</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">index</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">length</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">merge</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">normalize</span></code></p></td>
+<td><p>Not supported</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">offset</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">populate</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">random</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">range</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">search</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">seq</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">set</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sort</span></code></p></td>
+<td><p>Not supported</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">split</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">variable</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+</tbody>
+</table>
+<p>Operations that combine vector storage, such as <code class="docutils literal notranslate"><span class="pre">append</span></code>, <code class="docutils literal notranslate"><span class="pre">merge</span></code>, <code class="docutils literal notranslate"><span class="pre">set</span></code>, <code class="docutils literal notranslate"><span class="pre">dup</span></code>, and <code class="docutils literal notranslate"><span class="pre">split</span></code>, preserve vector
+types rather than reinterpreting real storage as complex storage or vice versa.</p>
+<p><code class="docutils literal notranslate"><span class="pre">normalize</span></code> remains real-only because its definition depends on a minimum and maximum ordering. <code class="docutils literal notranslate"><span class="pre">sort</span></code> likewise
+remains real-only because complex numbers have no natural ordering relation.</p>
+<p><code class="docutils literal notranslate"><span class="pre">search</span></code> supports exact-value searches on complex vectors. A two-bound range search is not defined for complex
+values and is rejected.</p>
+<p>The calculated Tcl array indices <code class="docutils literal notranslate"><span class="pre">min</span></code>, <code class="docutils literal notranslate"><span class="pre">max</span></code>, <code class="docutils literal notranslate"><span class="pre">mean</span></code>, <code class="docutils literal notranslate"><span class="pre">sum</span></code>, and <code class="docutils literal notranslate"><span class="pre">prod</span></code> remain real-only. Ordinary numeric
+indices and ranges work with an explicitly mapped complex vector.</p>
+</section>
 <section id="vector-expressions">
 <span id="r-rbc-vecinst-vector-expressions"></span><span id="r-3a3arbc3a3avecinstqzvector20expressions"></span><h2>Vector expressions<a class="headerlink" href="#vector-expressions" title="Link to this heading">¶</a></h2>
 <p>Vector expressions perform arithmetic, comparison, logical, and mathematical operations on vectors.</p>
@@ -220,6 +320,29 @@ operators.</p>
 </div>
 <p>Values shifted past one end of the vector reappear at the opposite end.</p>
 </section>
+<section id="complex-expression-operators">
+<span id="r-rbc-vecinst-complex-expression-operators"></span><span id="r-3a3arbc3a3avecinstqzcomplex20expression20operators"></span><h3>Complex expression operators<a class="headerlink" href="#complex-expression-operators" title="Link to this heading">¶</a></h3>
+<p>Real and complex vectors may be mixed in an expression. Real operands are promoted to complex values with zero
+imaginary component when required.</p>
+<p>Complex expressions support:</p>
+<ul class="simple">
+<li><p>unary <code class="docutils literal notranslate"><span class="pre">-</span></code></p></li>
+<li><p>unary <code class="docutils literal notranslate"><span class="pre">!</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">+</span></code>, <code class="docutils literal notranslate"><span class="pre">-</span></code>, <code class="docutils literal notranslate"><span class="pre">*</span></code>, and <code class="docutils literal notranslate"><span class="pre">/</span></code></p></li>
+<li><p>exponentiation with <code class="docutils literal notranslate"><span class="pre">^</span></code></p></li>
+<li><p>circular shifts <code class="docutils literal notranslate"><span class="pre">&lt;&lt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&gt;&gt;</span></code></p></li>
+<li><p>equality and inequality with <code class="docutils literal notranslate"><span class="pre">==</span></code> and <code class="docutils literal notranslate"><span class="pre">!=</span></code></p></li>
+<li><p>logical <code class="docutils literal notranslate"><span class="pre">&amp;&amp;</span></code> and <code class="docutils literal notranslate"><span class="pre">||</span></code>.</p></li>
+</ul>
+<p>The remainder operator <code class="docutils literal notranslate"><span class="pre">%</span></code> and the ordered comparisons <code class="docutils literal notranslate"><span class="pre">&lt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;=</span></code>, and <code class="docutils literal notranslate"><span class="pre">&gt;=</span></code> are not supported when either
+operand is complex.</p>
+<p>Complex exponentiation uses the principal complex value for non-integral exponents. A finite integral real
+exponent is handled directly and therefore does not depend on the logarithm branch.</p>
+<p>Equality compares both the real and imaginary components. Logical operations treat a complex value as false
+only when both components are zero. Equality and logical operations return real <code class="docutils literal notranslate"><span class="pre">0.0</span></code> or <code class="docutils literal notranslate"><span class="pre">1.0</span></code> values.</p>
+<p>Circular shifts preserve complete complex values. The shift count must be real; a complex scalar with zero
+imaginary component is accepted as a real shift count.</p>
+</section>
 <section id="mathematical-functions">
 <span id="r-rbc-vecinst-mathematical-functions"></span><span id="r-3a3arbc3a3avecinstqzmathematical20functions"></span><h3>Mathematical functions<a class="headerlink" href="#mathematical-functions" title="Link to this heading">¶</a></h3>
 <p>Vector expressions provide mathematical functions in three general categories:</p>
@@ -249,14 +372,20 @@ the same length.</p>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">acos</span></code></p></td>
 <td><p>Arc cosine</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">asin</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">arg</span></code></p></td>
+<td><p>Phase angle of the component</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">asin</span></code></p></td>
 <td><p>Arc sine</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">atan</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">atan</span></code></p></td>
 <td><p>Arc tangent</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ceil</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ceil</span></code></p></td>
 <td><p>Smallest integral value not less than the component</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">conj</span></code></p></td>
+<td><p>Complex conjugate</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">cos</span></code></p></td>
 <td><p>Cosine</p></td>
@@ -270,14 +399,20 @@ the same length.</p>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">floor</span></code></p></td>
 <td><p>Largest integral value not greater than the component</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">log</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">imag</span></code></p></td>
+<td><p>Imaginary component</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">log</span></code></p></td>
 <td><p>Natural logarithm</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">log10</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">log10</span></code></p></td>
 <td><p>Base-10 logarithm</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">random</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">random</span></code></p></td>
 <td><p>Generates a pseudo-random value in the range <code class="docutils literal notranslate"><span class="pre">[0.0,</span> <span class="pre">1.0)</span></code> for each component</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">real</span></code></p></td>
+<td><p>Real component</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">round</span></code></p></td>
 <td><p>Rounds to the nearest integral value</p></td>
@@ -440,21 +575,94 @@ component:</p>
 </pre></div>
 </div>
 </section>
+<section id="mathematical-functions-on-complex-vectors">
+<span id="r-rbc-vecinst-mathematical-functions-on-complex-vectors"></span><span id="r-3a3arbc3a3avecinstqzmathematical20functions20on20complex20vectors"></span><h4>Mathematical functions on complex vectors<a class="headerlink" href="#mathematical-functions-on-complex-vectors" title="Link to this heading">¶</a></h4>
+<p>Mathematical functions that have an unambiguous complex definition are supported directly.</p>
+<p>The projection functions return real values:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">abs(z)</span></code> returns the magnitude <code class="docutils literal notranslate"><span class="pre">|z|</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">arg(z)</span></code> returns the phase angle.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">real(z)</span></code> returns the real component.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">imag(z)</span></code> returns the imaginary component.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">conj</span></code>, <code class="docutils literal notranslate"><span class="pre">sqrt</span></code>, <code class="docutils literal notranslate"><span class="pre">exp</span></code>, <code class="docutils literal notranslate"><span class="pre">log</span></code>, <code class="docutils literal notranslate"><span class="pre">log10</span></code>, <code class="docutils literal notranslate"><span class="pre">sin</span></code>, <code class="docutils literal notranslate"><span class="pre">cos</span></code>, <code class="docutils literal notranslate"><span class="pre">tan</span></code>, <code class="docutils literal notranslate"><span class="pre">sinh</span></code>, <code class="docutils literal notranslate"><span class="pre">cosh</span></code>, <code class="docutils literal notranslate"><span class="pre">tanh</span></code>, <code class="docutils literal notranslate"><span class="pre">asin</span></code>, <code class="docutils literal notranslate"><span class="pre">acos</span></code>, and <code class="docutils literal notranslate"><span class="pre">atan</span></code>
+return complex values when their input is complex.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ceil</span></code>, <code class="docutils literal notranslate"><span class="pre">floor</span></code>, and <code class="docutils literal notranslate"><span class="pre">round</span></code> operate independently on the real and imaginary components.</p>
+<p><code class="docutils literal notranslate"><span class="pre">random</span></code> applied to a complex vector produces a complex vector in which the real and imaginary components are
+generated independently in the range <code class="docutils literal notranslate"><span class="pre">[0.0,</span> <span class="pre">1.0)</span></code>.</p>
+<p>The following reductions support complex vectors:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Function</p></th>
+<th class="head"><p>Result</p></th>
+<th class="head"><p>Complex definition</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">adev</span></code></p></td>
+<td><p>Real</p></td>
+<td><p>Mean of <code class="docutils literal notranslate"><span class="pre">abs(z</span> <span class="pre">-</span> <span class="pre">mean(z))</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">length</span></code></p></td>
+<td><p>Real</p></td>
+<td><p>Number of finite complex values</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mean</span></code></p></td>
+<td><p>Complex</p></td>
+<td><p>Arithmetic mean</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">nz</span></code></p></td>
+<td><p>Real</p></td>
+<td><p>Number of values other than <code class="docutils literal notranslate"><span class="pre">0+0i</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">prod</span></code></p></td>
+<td><p>Complex</p></td>
+<td><p>Product of the values</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sdev</span></code></p></td>
+<td><p>Real</p></td>
+<td><p>Square root of the complex sample variance</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sum</span></code></p></td>
+<td><p>Complex</p></td>
+<td><p>Sum of the values</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">var</span></code></p></td>
+<td><p>Real</p></td>
+<td><p>Sample mean of squared magnitudes about the complex mean</p></td>
+</tr>
+</tbody>
+</table>
+<p><code class="docutils literal notranslate"><span class="pre">kurtosis</span></code>, <code class="docutils literal notranslate"><span class="pre">max</span></code>, <code class="docutils literal notranslate"><span class="pre">median</span></code>, <code class="docutils literal notranslate"><span class="pre">min</span></code>, <code class="docutils literal notranslate"><span class="pre">q1</span></code>, <code class="docutils literal notranslate"><span class="pre">q3</span></code>, and <code class="docutils literal notranslate"><span class="pre">skew</span></code> remain real-only. The vector functions <code class="docutils literal notranslate"><span class="pre">norm</span></code> and
+<code class="docutils literal notranslate"><span class="pre">sort</span></code> are also real-only.</p>
+<p>No implicit ordering of complex numbers is introduced for these operations.</p>
+</section>
 </section>
 <section id="expression-results">
 <span id="r-rbc-vecinst-expression-results"></span><span id="r-3a3arbc3a3avecinstqzexpression20results"></span><h3>Expression results<a class="headerlink" href="#expression-results" title="Link to this heading">¶</a></h3>
-<p>The result of <code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">expr</span></code> is returned to the caller:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>result<span class="w"> </span><span class="k">[</span><span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="k">}]</span>
+<p>The result of <code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">expr</span></code> is returned to the caller. Complex values are returned as <code class="docutils literal notranslate"><span class="pre">{real</span> <span class="pre">imag}</span></code> pairs:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">vector</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="k">{</span><span class="nv">3</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="k">}}</span>
+<span class="c"># -&gt; {4.0 1.0}</span>
 </pre></div>
 </div>
 <p>The instance form stores the expression result directly in the vector:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span>
 </pre></div>
 </div>
-<p>This permits in-place transformations such as:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">x</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">x</span><span class="w"> </span><span class="o">-</span><span class="w"> </span>mean<span class="k">(</span><span class="nv">x</span><span class="k">)}</span>
-<span class="nv">x</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">abs</span><span class="k">(</span><span class="nv">x</span><span class="k">)}</span>
-<span class="nv">x</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">norm</span><span class="k">(</span><span class="nv">x</span><span class="k">)}</span>
+<p>A complex vector can store either a complex result or a real result; a real result is promoted to complex
+values with zero imaginary components.</p>
+<p>A real vector cannot store a complex expression result:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">vector</span><span class="w"> </span>create<span class="w"> </span>r
+<span class="nv">vector</span><span class="w"> </span>create<span class="w"> </span>c<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>complex
+
+<span class="nv">c</span><span class="w"> </span>set<span class="w"> </span><span class="k">{{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">3</span><span class="w"> </span><span class="mi">4</span><span class="k">}}</span>
+<span class="nv">r</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">c</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="k">}</span>
+<span class="c"># error: can&#39;t store complex expression result in real vector</span>
 </pre></div>
 </div>
 </section>
@@ -483,22 +691,28 @@ initialize it before calling Rbc functions:</p>
 Rbc package is loaded in the interpreter.</p>
 <section id="vector-representation">
 <span id="r-rbc-vecinst-vector-representation"></span><span id="r-3a3arbc3a3avecinstqzvector20representation"></span><h3>Vector representation<a class="headerlink" href="#vector-representation" title="Link to this heading">¶</a></h3>
-<p>The public vector structure is:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Rbc_Vector_s</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">valueArr</span><span class="p">;</span>
-<span class="w">    </span><span class="n">Tcl_Size</span><span class="w"> </span><span class="n">numValues</span><span class="p">;</span>
-<span class="w">    </span><span class="n">Tcl_Size</span><span class="w"> </span><span class="n">arraySize</span><span class="p">;</span>
-<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">min</span><span class="p">,</span><span class="w"> </span><span class="n">max</span><span class="p">;</span>
-<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">dirty</span><span class="p">;</span>
-<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">reserved</span><span class="p">;</span>
-<span class="p">}</span><span class="w"> </span><span class="n">Rbc_Vector</span><span class="p">;</span>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_Vector</span></code> is an opaque public type:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Rbc_Vector_s</span><span class="w"> </span><span class="n">Rbc_Vector</span><span class="p">;</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">valueArr</span></code> contains the double-precision vector components. <code class="docutils literal notranslate"><span class="pre">numValues</span></code> is the logical length of the vector,
-while <code class="docutils literal notranslate"><span class="pre">arraySize</span></code> is the capacity of the underlying array and is therefore greater than or equal to
-<code class="docutils literal notranslate"><span class="pre">numValues</span></code>.</p>
-<p>Applications should normally use the public accessor functions rather than directly accessing the corresponding
-structure fields.</p>
+<p>Applications must not access the internal vector structure directly. Use the public accessor and mutation
+functions described below.</p>
+<p>Every vector has one of two numeric types:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">enum</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">RBC_VECTOR_REAL</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">    </span><span class="n">RBC_VECTOR_COMPLEX</span>
+<span class="p">}</span><span class="w"> </span><span class="n">Rbc_VectorType</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Complex values use the portable public representation:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">real</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">imag</span><span class="p">;</span>
+<span class="p">}</span><span class="w"> </span><span class="n">Rbc_Complex</span><span class="p">;</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_Complex</span></code> deliberately does not use the native C complex type, so the public ABI does not depend on
+compiler-specific complex-number support.</p>
 </section>
 <section id="public-vector-functions">
 <span id="r-rbc-vecinst-public-vector-functions"></span><span id="r-3a3arbc3a3avecinstqzpublic20vector20functions"></span><h3>Public vector functions<a class="headerlink" href="#public-vector-functions" title="Link to this heading">¶</a></h3>
@@ -515,37 +729,55 @@ structure fields.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">Rbc_CreateVector(Tcl_Interp</span> <span class="pre">*interp,</span> <span class="pre">const</span> <span class="pre">char</span> <span class="pre">*vecName,</span> <span class="pre">Tcl_Size</span> <span class="pre">size,</span> <span class="pre">Rbc_Vector</span> <span class="pre">**vecPtrPtr)</span></code></p></td>
-<td><p>Creates the named vector and its normal Tcl command and array mappings. <code class="docutils literal notranslate"><span class="pre">size</span></code> specifies the initial length of a new vector. On success, stores a pointer to the vector in <code class="docutils literal notranslate"><span class="pre">vecPtrPtr</span></code> and returns <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code>.</p></td>
+<td><p>Creates a real vector using the traditional Tcl command and automatic array mapping.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">Rbc_GetVector(Tcl_Interp</span> <span class="pre">*interp,</span> <span class="pre">const</span> <span class="pre">char</span> <span class="pre">*vecName,</span> <span class="pre">Rbc_Vector</span> <span class="pre">**vecPtrPtr)</span></code></p></td>
-<td><p>Looks up an existing vector by name. On success, stores its pointer in <code class="docutils literal notranslate"><span class="pre">vecPtrPtr</span></code> and returns <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code>.</p></td>
+<td><p>Looks up an existing real or complex vector.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">Rbc_ResizeVector(Rbc_Vector</span> <span class="pre">*vecPtr,</span> <span class="pre">Tcl_Size</span> <span class="pre">nValues)</span></code></p></td>
-<td><p>Changes the logical length of a vector. Existing values are preserved as far as possible and clients of the vector are notified of the change.</p></td>
+<td><p>Changes the logical vector length while preserving its numeric type.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">char</span> <span class="pre">*Rbc_NameOfVector(Rbc_Vector</span> <span class="pre">*vecPtr)</span></code></p></td>
-<td><p>Returns the name of a vector. The returned string belongs to Rbc and must not be freed or modified by the caller.</p></td>
+<td><p>Returns the vector name. The returned string belongs to Rbc.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">Rbc_ResetVector(Rbc_Vector</span> <span class="pre">*vecPtr,</span> <span class="pre">double</span> <span class="pre">*dataArr,</span> <span class="pre">Tcl_Size</span> <span class="pre">nValues,</span> <span class="pre">Tcl_Size</span> <span class="pre">arraySize,</span> <span class="pre">Tcl_FreeProc</span> <span class="pre">*freeProc)</span></code></p></td>
-<td><p>Replaces the vector’s data array and records its ownership policy. Clients of the vector are notified of the change.</p></td>
+<td><p>Replaces the storage of a real vector.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">double</span> <span class="pre">*Rbc_VectorData(Rbc_Vector</span> <span class="pre">*vecPtr)</span></code></p></td>
-<td><p>Returns a pointer to the vector’s current data array. The returned storage belongs to the vector and must not be freed by the caller.</p></td>
+<td><p>Returns real-vector storage, or <code class="docutils literal notranslate"><span class="pre">NULL</span></code> for a complex vector.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tcl_Size</span> <span class="pre">Rbc_VectorLength(Rbc_Vector</span> <span class="pre">*vecPtr)</span></code></p></td>
-<td><p>Returns the current logical number of values in the vector.</p></td>
+<td><p>Returns the logical number of vector values.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tcl_Size</span> <span class="pre">Rbc_VectorSize(Rbc_Vector</span> <span class="pre">*vecPtr)</span></code></p></td>
-<td><p>Returns the current capacity of the vector’s data array.</p></td>
+<td><p>Returns the current vector capacity in values.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">Rbc_VectorDirty(Rbc_Vector</span> <span class="pre">*vecPtr)</span></code></p></td>
-<td><p>Returns the vector’s update counter. The counter is incremented when the vector is changed.</p></td>
+<td><p>Returns the vector update counter.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">Rbc_VectorExists2(Tcl_Interp</span> <span class="pre">*interp,</span> <span class="pre">const</span> <span class="pre">char</span> <span class="pre">*vecName)</span></code></p></td>
-<td><p>Returns non-zero if the named vector exists and zero otherwise.</p></td>
+<td><p>Tests whether a named vector exists.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">Rbc_FreeVector(Rbc_Vector</span> <span class="pre">*vecPtr)</span></code></p></td>
-<td><p>Destroys the vector, removes its Tcl command and array mapping, releases its storage according to its ownership policy, and invalidates <code class="docutils literal notranslate"><span class="pre">vecPtr</span></code>.</p></td>
+<td><p>Destroys the vector and releases its resources.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Rbc_VectorType</span> <span class="pre">Rbc_VectorGetType(Rbc_Vector</span> <span class="pre">*vecPtr)</span></code></p></td>
+<td><p>Returns <code class="docutils literal notranslate"><span class="pre">RBC_VECTOR_REAL</span></code> or <code class="docutils literal notranslate"><span class="pre">RBC_VECTOR_COMPLEX</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">Rbc_VectorGetRange(Rbc_Vector</span> <span class="pre">*vecPtr,</span> <span class="pre">double</span> <span class="pre">*minPtr,</span> <span class="pre">double</span> <span class="pre">*maxPtr)</span></code></p></td>
+<td><p>Returns the minimum and maximum of a real vector. Returns <code class="docutils literal notranslate"><span class="pre">TCL_ERROR</span></code> for a complex vector.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">Rbc_CreateVectorWithType(Tcl_Interp</span> <span class="pre">*interp,</span> <span class="pre">const</span> <span class="pre">char</span> <span class="pre">*vecName,</span> <span class="pre">Tcl_Size</span> <span class="pre">size,</span> <span class="pre">Rbc_VectorType</span> <span class="pre">type,</span> <span class="pre">Rbc_Vector</span> <span class="pre">**vecPtrPtr)</span></code></p></td>
+<td><p>Creates a real or complex vector of the requested type.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">Rbc_ResetComplexVector(Rbc_Vector</span> <span class="pre">*vecPtr,</span> <span class="pre">Rbc_Complex</span> <span class="pre">*dataArr,</span> <span class="pre">Tcl_Size</span> <span class="pre">nValues,</span> <span class="pre">Tcl_Size</span> <span class="pre">arraySize,</span> <span class="pre">Tcl_FreeProc</span> <span class="pre">*freeProc)</span></code></p></td>
+<td><p>Replaces the storage of a complex vector.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Rbc_Complex</span> <span class="pre">*Rbc_VectorComplexData(Rbc_Vector</span> <span class="pre">*vecPtr)</span></code></p></td>
+<td><p>Returns complex-vector storage, or <code class="docutils literal notranslate"><span class="pre">NULL</span></code> for a real vector.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">Rbc_VectorChanged(Rbc_Vector</span> <span class="pre">*vecPtr)</span></code></p></td>
+<td><p>Reports that the existing vector storage was modified in place without changing its storage or ownership contract.</p></td>
 </tr>
 </tbody>
 </table>
@@ -555,82 +787,89 @@ interpreter is available, an explanatory error message is left in its result.</p
 </section>
 <section id="reading-vector-data">
 <span id="r-rbc-vecinst-reading-vector-data"></span><span id="r-3a3arbc3a3avecinstqzreading20vector20data"></span><h3>Reading vector data<a class="headerlink" href="#reading-vector-data" title="Link to this heading">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_GetVector</span></code> obtains the C representation of a vector that already exists in the interpreter.</p>
-<p>For example, this function calculates the sum of a vector without converting its contents to a Tcl list:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">SumVector</span><span class="p">(</span><span class="n">Tcl_Interp</span><span class="w"> </span><span class="o">*</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">sumPtr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_GetVector</span></code> obtains the opaque representation of an existing real or complex vector. Use
+<code class="docutils literal notranslate"><span class="pre">Rbc_VectorGetType</span></code> before selecting the storage accessor.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">InspectVector</span><span class="p">(</span><span class="n">Tcl_Interp</span><span class="w"> </span><span class="o">*</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">Rbc_Vector</span><span class="w"> </span><span class="o">*</span><span class="n">vecPtr</span><span class="p">;</span>
-<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">dataArr</span><span class="p">;</span>
 <span class="w">    </span><span class="n">Tcl_Size</span><span class="w"> </span><span class="n">nValues</span><span class="p">;</span>
-<span class="w">    </span><span class="n">Tcl_Size</span><span class="w"> </span><span class="n">i</span><span class="p">;</span>
-<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">sum</span><span class="p">;</span>
 
 <span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_GetVector</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">vecPtr</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
 <span class="w">    </span><span class="p">}</span>
-<span class="w">    </span><span class="n">dataArr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Rbc_VectorData</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">);</span>
 <span class="w">    </span><span class="n">nValues</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Rbc_VectorLength</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">);</span>
-<span class="w">    </span><span class="n">sum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span>
-<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">nValues</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="n">sum</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">dataArr</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_VectorGetType</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="no">RBC_VECTOR_REAL</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">dataArr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Rbc_VectorData</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">);</span>
+<span class="w">        </span><span class="cm">/* Use dataArr[0] ... dataArr[nValues - 1]. */</span>
+<span class="w">        </span><span class="k">break</span><span class="p">;</span>
 <span class="w">    </span><span class="p">}</span>
-<span class="w">    </span><span class="o">*</span><span class="n">sumPtr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sum</span><span class="p">;</span>
+<span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="no">RBC_VECTOR_COMPLEX</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Rbc_Complex</span><span class="w"> </span><span class="o">*</span><span class="n">dataArr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Rbc_VectorComplexData</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">);</span>
+<span class="w">        </span><span class="cm">/* Use dataArr[i].real and dataArr[i].imag. */</span>
+<span class="w">        </span><span class="k">break</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The pointer returned by <code class="docutils literal notranslate"><span class="pre">Rbc_VectorData</span></code> remains owned by Rbc. Do not free it. It may also become invalid after
-an operation that resizes, resets, or destroys the vector, so obtain it again after such an operation.</p>
+<p>Storage returned by either accessor belongs to the vector and must not be freed by the caller. The pointer may
+become invalid after an operation that resizes, resets, or destroys the vector.</p>
 </section>
 <section id="updating-vectors-from-c">
 <span id="r-rbc-vecinst-updating-vectors-from-c"></span><span id="r-3a3arbc3a3avecinstqzupdating20vectors20from20c"></span><h3>Updating vectors from C<a class="headerlink" href="#updating-vectors-from-c" title="Link to this heading">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_ResetVector</span></code> is the normal way to install externally generated data into an Rbc vector. It also notifies
-clients of the vector that its contents have changed.</p>
-<p>For example, Tcl may create two vectors and use them as graph data:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>X<span class="w"> </span>Y
-<span class="nv">graph</span><span class="w"> </span>.g
-<span class="nv">.g</span><span class="w"> </span>line<span class="w"> </span>create<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>xdata<span class="w"> </span>X<span class="w"> </span><span class="o">-</span>ydata<span class="w"> </span>Y
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_VectorData</span></code> and <code class="docutils literal notranslate"><span class="pre">Rbc_VectorComplexData</span></code> return mutable storage. A caller may update that storage directly
+as long as no operation that can resize or replace the vector is performed while the pointer is being used.</p>
+<p>Direct writes do not automatically invalidate cached values or notify vector clients. After modifying existing
+storage in place, call:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">Rbc_VectorChanged</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>C code can then update both vectors:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;math.h&gt;</span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;rbc.h&gt;</span>
-
-<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">UpdateSignal</span><span class="p">(</span><span class="n">Tcl_Interp</span><span class="w"> </span><span class="o">*</span><span class="n">interp</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">Rbc_Vector</span><span class="w"> </span><span class="o">*</span><span class="n">xVecPtr</span><span class="p">;</span>
-<span class="w">    </span><span class="n">Rbc_Vector</span><span class="w"> </span><span class="o">*</span><span class="n">yVecPtr</span><span class="p">;</span>
-<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="mi">100</span><span class="p">];</span>
-<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">y</span><span class="p">[</span><span class="mi">100</span><span class="p">];</span>
+<p>For example:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">FillComplexVector</span><span class="p">(</span><span class="n">Tcl_Interp</span><span class="w"> </span><span class="o">*</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">Rbc_Vector</span><span class="w"> </span><span class="o">*</span><span class="n">vecPtr</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Rbc_Complex</span><span class="w"> </span><span class="o">*</span><span class="n">dataArr</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Tcl_Size</span><span class="w"> </span><span class="n">nValues</span><span class="p">;</span>
 <span class="w">    </span><span class="n">Tcl_Size</span><span class="w"> </span><span class="n">i</span><span class="p">;</span>
 
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_GetVector</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;X&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">xVecPtr</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_GetVector</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">vecPtr</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
 <span class="w">    </span><span class="p">}</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_GetVector</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Y&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">yVecPtr</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_VectorGetType</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">RBC_VECTOR_COMPLEX</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Tcl_SetObjResult</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span>
+<span class="w">            </span><span class="n">Tcl_NewStringObj</span><span class="p">(</span><span class="s">&quot;vector must be complex&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">-1</span><span class="p">));</span>
 <span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
 <span class="w">    </span><span class="p">}</span>
-<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">100</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">i</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">0.01</span><span class="p">;</span>
-<span class="w">        </span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+
+<span class="w">    </span><span class="n">dataArr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Rbc_VectorComplexData</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">);</span>
+<span class="w">    </span><span class="n">nValues</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Rbc_VectorLength</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">nValues</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">dataArr</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">real</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">i</span><span class="p">;</span>
+<span class="w">        </span><span class="n">dataArr</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">imag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">i</span><span class="p">;</span>
 <span class="w">    </span><span class="p">}</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_ResetVector</span><span class="p">(</span><span class="n">xVecPtr</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="n">TCL_VOLATILE</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
-<span class="w">    </span><span class="p">}</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_ResetVector</span><span class="p">(</span><span class="n">yVecPtr</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="n">TCL_VOLATILE</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
-<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">Rbc_VectorChanged</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">);</span>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">TCL_VOLATILE</span></code> is appropriate here because <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> are local arrays. Rbc copies the supplied values into
-storage that it owns before <code class="docutils literal notranslate"><span class="pre">Rbc_ResetVector</span></code> returns.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_VectorChanged</span></code> preserves the current data pointer, length, capacity, vector type, and storage ownership
+policy. It flushes the associated Tcl-array cache when required and performs the normal vector-client update
+notification.</p>
+<p>Do not use <code class="docutils literal notranslate"><span class="pre">Rbc_ResetVector</span></code> or <code class="docutils literal notranslate"><span class="pre">Rbc_ResetComplexVector</span></code> merely to report an in-place modification. The reset
+functions define a new storage and ownership contract, even when the supplied address happens to equal the
+vector’s current data pointer.</p>
 <p>Graph elements or other Rbc clients using <code class="docutils literal notranslate"><span class="pre">X</span></code> and <code class="docutils literal notranslate"><span class="pre">Y</span></code> are notified that the vector contents have changed and
 can update themselves without recreating the vectors.</p>
 </section>
-<section id="data-ownership">
-<span id="r-rbc-vecinst-data-ownership"></span><span id="r-3a3arbc3a3avecinstqzdata20ownership"></span><h3>Data ownership<a class="headerlink" href="#data-ownership" title="Link to this heading">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">freeProc</span></code> argument of <code class="docutils literal notranslate"><span class="pre">Rbc_ResetVector</span></code> specifies who owns <code class="docutils literal notranslate"><span class="pre">dataArr</span></code> and how it will eventually be
-released.</p>
+<section id="replacing-vector-storage">
+<span id="r-rbc-vecinst-replacing-vector-storage"></span><span id="r-3a3arbc3a3avecinstqzreplacing20vector20storage"></span><h3>Replacing vector storage<a class="headerlink" href="#replacing-vector-storage" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_ResetVector</span></code> replaces the storage of a real vector. <code class="docutils literal notranslate"><span class="pre">Rbc_ResetComplexVector</span></code> performs the corresponding
+operation for a complex vector.</p>
+<p>Calling the real reset function for a complex vector, or the complex reset function for a real vector, returns
+<code class="docutils literal notranslate"><span class="pre">TCL_ERROR</span></code>.</p>
+<p>Both functions accept <code class="docutils literal notranslate"><span class="pre">nValues</span></code>, <code class="docutils literal notranslate"><span class="pre">arraySize</span></code>, and <code class="docutils literal notranslate"><span class="pre">freeProc</span></code> with the same ownership rules.</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 50.0%" />
@@ -656,6 +895,10 @@ released.</p>
 </tr>
 </tbody>
 </table>
+<p>The ownership policy supplied to a reset operation becomes the vector’s storage contract. This is true even if
+the supplied data pointer is identical to the vector’s current data pointer.</p>
+<p>Therefore use a reset function when installing or replacing storage, and use <code class="docutils literal notranslate"><span class="pre">Rbc_VectorChanged</span></code> when only the
+contents of already-installed storage have been modified.</p>
 <p><code class="docutils literal notranslate"><span class="pre">nValues</span></code> specifies the logical number of values currently stored in the vector. <code class="docutils literal notranslate"><span class="pre">arraySize</span></code> specifies the
 capacity of the supplied array and must be greater than or equal to <code class="docutils literal notranslate"><span class="pre">nValues</span></code>.</p>
 <p>Passing <code class="docutils literal notranslate"><span class="pre">NULL</span></code> for <code class="docutils literal notranslate"><span class="pre">dataArr</span></code>, or an <code class="docutils literal notranslate"><span class="pre">arraySize</span></code> of <code class="docutils literal notranslate"><span class="pre">0</span></code>, resets the vector to an empty vector.</p>
@@ -687,10 +930,47 @@ capacity of the supplied array and must be greater than or equal to <code class=
 </pre></div>
 </div>
 <p>When <code class="docutils literal notranslate"><span class="pre">TCL_DYNAMIC</span></code> is used, ownership transfers to Rbc only after a successful <code class="docutils literal notranslate"><span class="pre">Rbc_ResetVector</span></code> call.</p>
+<p>Complex reset example:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">SetComplexData</span><span class="p">(</span><span class="n">Tcl_Interp</span><span class="w"> </span><span class="o">*</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">Rbc_Vector</span><span class="w"> </span><span class="o">*</span><span class="n">vecPtr</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Rbc_Complex</span><span class="w"> </span><span class="n">values</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_GetVector</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">vecPtr</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">real</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0</span><span class="p">;</span>
+<span class="w">    </span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">imag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2.0</span><span class="p">;</span>
+<span class="w">    </span><span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">real</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">3.0</span><span class="p">;</span>
+<span class="w">    </span><span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">imag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-4.0</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">Rbc_ResetComplexVector</span><span class="p">(</span>
+<span class="w">        </span><span class="n">vecPtr</span><span class="p">,</span><span class="w"> </span><span class="n">values</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">TCL_VOLATILE</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 </section>
 <section id="creating-vectors-from-c">
 <span id="r-rbc-vecinst-creating-vectors-from-c"></span><span id="r-3a3arbc3a3avecinstqzcreating20vectors20from20c"></span><h3>Creating vectors from C<a class="headerlink" href="#creating-vectors-from-c" title="Link to this heading">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_CreateVector</span></code> creates the Tcl-visible vector and returns its C representation in one operation.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_CreateVector</span></code> is the compatibility interface for creating a real vector:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">Rbc_Vector</span><span class="w"> </span><span class="o">*</span><span class="n">realPtr</span><span class="p">;</span>
+
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_CreateVector</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;x&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">realPtr</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>To select the numeric type explicitly, use <code class="docutils literal notranslate"><span class="pre">Rbc_CreateVectorWithType</span></code>:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">Rbc_Vector</span><span class="w"> </span><span class="o">*</span><span class="n">complexPtr</span><span class="p">;</span>
+
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_CreateVectorWithType</span><span class="p">(</span>
+<span class="w">        </span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;z&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="n">RBC_VECTOR_COMPLEX</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">complexPtr</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_CreateVectorWithType</span></code> follows the Tcl-level mapping convention: a newly created real vector receives its
+traditional automatic Tcl array mapping, while a newly created complex vector does not.</p>
 <p>For example:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">CreateTimeVector</span><span class="p">(</span><span class="n">Tcl_Interp</span><span class="w"> </span><span class="o">*</span><span class="n">interp</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">Rbc_Vector</span><span class="w"> </span><span class="o">*</span><span class="n">vecPtr</span><span class="p">;</span>
@@ -788,14 +1068,17 @@ interface and are intentionally not documented here.</p>
     <ul>
 <li><a class="reference internal" href="#">Vector instance <code class="docutils literal notranslate"><span class="pre">VECINST</span></code> command</a><ul>
 <li><a class="reference internal" href="#vector-indices">Vector indices</a></li>
+<li><a class="reference internal" href="#complex-vector-operations">Complex vector operations</a></li>
 <li><a class="reference internal" href="#vector-expressions">Vector expressions</a><ul>
 <li><a class="reference internal" href="#scalars-and-vectors">Scalars and vectors</a></li>
 <li><a class="reference internal" href="#operators">Operators</a></li>
 <li><a class="reference internal" href="#circular-shifts">Circular shifts</a></li>
+<li><a class="reference internal" href="#complex-expression-operators">Complex expression operators</a></li>
 <li><a class="reference internal" href="#mathematical-functions">Mathematical functions</a><ul>
 <li><a class="reference internal" href="#component-functions">Component functions</a></li>
 <li><a class="reference internal" href="#scalar-functions">Scalar functions</a></li>
 <li><a class="reference internal" href="#vector-functions">Vector functions</a></li>
+<li><a class="reference internal" href="#mathematical-functions-on-complex-vectors">Mathematical functions on complex vectors</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#expression-results">Expression results</a></li>
@@ -806,7 +1089,7 @@ interface and are intentionally not documented here.</p>
 <li><a class="reference internal" href="#public-vector-functions">Public vector functions</a></li>
 <li><a class="reference internal" href="#reading-vector-data">Reading vector data</a></li>
 <li><a class="reference internal" href="#updating-vectors-from-c">Updating vectors from C</a></li>
-<li><a class="reference internal" href="#data-ownership">Data ownership</a></li>
+<li><a class="reference internal" href="#replacing-vector-storage">Replacing vector storage</a></li>
 <li><a class="reference internal" href="#creating-vectors-from-c">Creating vectors from C</a></li>
 <li><a class="reference internal" href="#resizing-a-vector">Resizing a vector</a></li>
 <li><a class="reference internal" href="#testing-for-a-vector">Testing for a vector</a></li>

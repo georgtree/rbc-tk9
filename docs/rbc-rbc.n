@@ -301,6 +301,8 @@ rbc - Commands in namespace rbc
 .br
 \fBVECINST split\fP \fI?vecName \&.\&.\&.?\fP
 .br
+\fBVECINST type\fP
+.br
 \fBVECINST variable\fP \fIvarName\fP
 .br
 \fBvector\fP \fIsubcommand \&.\&.\&.\fP
@@ -3227,7 +3229,7 @@ The ensemble supports the following subcommands:
 .RS 4n
 .TP
 \fI*\fP
-Multiplies every value of the vector by a scalar or by the corresponding value of another vector\&. list may name another vector or contain a scalar value\&. If another vector is used, it must have the same number of selected values\&.
+Multiplies every value of the vector by a scalar or by the corresponding value of another vector\&. list may name another vector or contain a real or complex scalar\&. A complex scalar is written as {real imag}\&. If another vector is used, it must have the same number of selected values\&. Real operands are promoted to complex values when either operand is complex\&.
 .TP
 \fI+\fP
 Adds a scalar or another vector component-by-component\&.
@@ -3239,7 +3241,7 @@ Subtracts a scalar or another vector component-by-component\&.
 Divides every vector value by a scalar or by the corresponding value of another vector\&.
 .TP
 \fIappend\fP
-Appends values to the vector\&. Each item may be another vector or a Tcl list of numeric values\&.
+Appends values to the vector\&. Each item may be another vector or a Tcl list of values\&. A vector argument must have the same numeric type as this vector\&. For a complex vector, list elements may be {real imag} pairs or real scalars; real scalars are promoted to complex values with zero imaginary component\&.
 .TP
 \fIbinread\fP
 Reads native binary numeric values from a Tcl channel into the vector\&.
@@ -3257,46 +3259,49 @@ Copies this vector into another vector\&. The destination vector is created if n
 Evaluates expression and stores the result in this vector\&.
 .TP
 \fIindex\fP
-Reads or writes a vector value or range\&.  With no value argument, returns the value or values selected by index\&. With value, assigns that numeric value to every element selected by index\&. The special ++end index may be used when setting a value to append one new element\&.
+Reads or writes a vector value or range\&.  With no value argument, returns the value or values selected by index\&. With value, assigns that numeric value to every element selected by index\&. The special ++end index may be used when setting a value to append one new element\&. For complex vectors, values are returned as {real imag} pairs\&. A real assigned value is promoted to {value 0}\&.
 .TP
 \fIlength\fP
 Queries or changes the vector length\&. If newSize is supplied, the vector is resized\&. New elements created by enlarging the vector are initialized by the vector resizing machinery\&.
 .TP
 \fImerge\fP
-Interleaves values from two or more vectors and stores the result in this vector\&. All input vectors must contain the same number of selected values\&.
+Interleaves values from two or more vectors and stores the result in this vector\&. All input vectors must contain the same number of selected values\&. All input vectors must have the same numeric type as this vector\&.
 .TP
 \fInormalize\fP
-Normalizes vector values to the range 0\&.0 through 1\&.0 using: (value - minimum) / (maximum - minimum) With no destination vector, returns the normalized values as a Tcl list\&. If vecName is supplied, that vector is created or resized and the normalized values are stored there\&.
+Normalizes real vector values to the range 0\&.0 through 1\&.0 using:
 .TP
 \fIoffset\fP
 Queries or changes the external index offset of the vector\&. The offset changes the numeric indices through which the vector is addressed without moving the underlying data\&.
 .TP
 \fIpopulate\fP
-Creates a more densely sampled vector using linear interpolation\&.  density intermediate values are inserted between every adjacent pair of source values\&. density must be at least 1\&. The destination may be the same vector as the source\&.
+Creates a more densely sampled vector using linear interpolation\&. density intermediate values are inserted between every adjacent pair of source values\&. density must be at least 1\&. The destination may be the same vector as the source and has the same numeric type as the source\&. For complex vectors, the real and imaginary components are linearly interpolated independently\&.
 .TP
 \fIrandom\fP
-Fills the vector with pseudo-random values in the range [0\&.0, 1\&.0)\&. The current vector length is preserved\&. Each existing component is replaced by a newly generated pseudo-random value\&. An empty vector remains empty\&.
+Fills the vector with pseudo-random values in the range [0\&.0, 1\&.0)\&. The current vector length is preserved\&. For real vectors, one random number is generated for each value\&. For complex vectors, the real and imaginary components are generated independently\&.
 .TP
 \fIrange\fP
 Gives back an inclusive range of vector values\&. If first is less than or equal to last, values are returned in ascending index order\&. If first is greater than last, values are returned in descending index order\&. first and last are normal vector indices and may use forms such as end\&. This operation does not modify the vector\&.
 .TP
 \fIsearch\fP
-Searches the vector for values in a numeric range\&. With one numeric argument, returns matches equal to that value\&. With two numeric arguments, returns matches between min and max, inclusive within the implementation's floating-point tolerance\&. By default matching vector indices are returned\&. With -value, matching vector values are returned instead\&.
+Searches the vector for matching values\&. For real vectors, one numeric argument performs an exact-value search and two numeric arguments search the inclusive range from min to max, using the implementation's floating-point tolerance\&. For complex vectors, only the one-value exact search is supported\&. The search value may be {real imag} or a real scalar, which is promoted to {value 0}\&. A two-bound complex range search is not supported\&. By default matching vector indices are returned\&. With -value, matching vector values are returned\&. Complex values returned by -value use {real imag} representation\&.
 .TP
 \fIseq\fP
 Generates an arithmetic sequence\&.
 .TP
 \fIset\fP
-Replaces the contents of the vector\&. list may be a Tcl list of numeric values or the name of another vector\&.
+Replaces the contents of the vector\&. list may be a Tcl list of numeric values or the name of another vector\&. When the argument names another vector, the source and destination vector types must match\&. For a complex destination, list elements may be {real imag} values or real scalars\&.
 .TP
 \fIsort\fP
-Sorts this vector\&. Additional vectors may be supplied\&. They must have the same length and are rearranged using the same permutation, allowing associated data to remain aligned\&. -reverse requests descending rather than ascending order\&.
+Sorts this real vector\&. Additional real vectors may be supplied\&. They must have the same length and are rearranged using the same permutation, allowing associated data to remain aligned\&. -reverse requests descending rather than ascending order\&.
 .TP
 \fIsplit\fP
-Distributes values from this vector among destination vectors in round-robin order\&. The source vector length must be evenly divisible by the number of destination vectors\&. Existing destination contents are preserved and the split values are appended\&.
+Distributes values from this vector among destination vectors in round-robin order\&. The source vector length must be evenly divisible by the number of destination vectors\&. Existing destination contents are preserved and the split values are appended\&. Destination vectors have the same numeric type as the source vector\&.
+.TP
+\fItype\fP
+Returns the immutable numeric type of the vector\&. real or complex\&.
 .TP
 \fIvariable\fP
-Queries or changes the Tcl array variable associated with the vector\&. Supplying an empty variable name removes the current mapping\&.
+Queries or changes the Tcl array variable associated with the vector\&. Supplying an empty variable name removes the current mapping\&. Real vectors normally receive an automatic array mapping at creation\&. Complex vectors do not receive an automatic mapping, but an explicit mapping is supported\&. Ordinary complex array elements use {real imag} representation\&. The calculated array indices min, max, mean, sum, and prod are not supported for complex vectors\&.
 .RE
 .PP
 Refer to the documentation of each subcommand for details\&.
@@ -3306,8 +3311,9 @@ Refer to the documentation of each subcommand for details\&.
 .RE
 .PP
 Multiplies every value of the vector by a scalar or by the corresponding value of another vector\&.
-list may name another vector or contain a scalar value\&. If another vector is used, it must have the same
-number of selected values\&.
+list may name another vector or contain a real or complex scalar\&. A complex scalar is written as
+{real imag}\&. If another vector is used, it must have the same number of selected values\&.
+Real operands are promoted to complex values when either operand is complex\&.
 .RS 4n
 \fBVECINST *\fP \fIlist\fP
 .br
@@ -3322,7 +3328,8 @@ Vector name or scalar value\&.
 .PP
 \fBReturn value\fR
 .PP
-A list containing the resulting values\&. The vector itself is not modified\&.
+A list containing the resulting values\&. Complex results are returned as {real imag} pairs\&.
+The vector itself is not modified\&.
 .PP
 .RS -4n
 \fBVECINST +\fR (::rbc)
@@ -3391,7 +3398,10 @@ A list containing the resulting values\&. The vector itself is not modified\&.
 \fBVECINST append\fR (::rbc)
 .RE
 .PP
-Appends values to the vector\&. Each item may be another vector or a Tcl list of numeric values\&.
+Appends values to the vector\&. Each item may be another vector or a Tcl list of values\&.
+A vector argument must have the same numeric type as this vector\&.
+For a complex vector, list elements may be {real imag} pairs or real scalars; real scalars are promoted
+to complex values with zero imaginary component\&.
 .RS 4n
 \fBVECINST append\fP \fIitem ?item \&.\&.\&.?\fP
 .br
@@ -3401,7 +3411,7 @@ Appends values to the vector\&. Each item may be another vector or a Tcl list of
 .RS 4n
 .TP
 item
-Vector name or list of numeric values\&.
+Vector name or list of values\&.
 .RE
 .PP
 \fBReturn value\fR
@@ -3428,23 +3438,39 @@ Starts storing values at index\&. Existing values are overwritten from that posi
 Native numeric input representation\&. Formats have the form i#, u#, r#, or f#, where # is the native type size in bytes\&. The default is the native C double representation\&.
 .TP
 -swap
-Reverses the byte order of each input value\&.
+Reverses the byte order of each native scalar component\&.
 .TP
 channel
 Name of a readable Tcl channel\&.
 .TP
 numValues
-Optional maximum number of values to read\&. A value of zero, or omission of the argument, reads until EOF\&.
+Optional maximum number of vector values to read\&. A value of zero, or omission of the argument, reads until EOF\&.
 .RE
 .PP
 \fBDescription\fR
 .PP
+For a real vector, each formatted scalar becomes one vector value\&.
+.PP
+For a complex vector, consecutive formatted scalars are interpreted as interleaved real and imaginary
+components:
+.PP
+.RS 4n
+.nf
+real0 imag0 real1 imag1 \&.\&.\&.
+.fi
+.RE
+.PP
+-format describes each scalar component\&. numValues, -at, and the return value count complex vector
+values rather than individual scalar components\&. -swap swaps the bytes inside each real and imaginary
+component independently and does not exchange the real and imaginary components\&.
+.PP
 The channel is temporarily placed in binary translation mode and its previous translation setting is
-restored before the command returns\&. A read that ends in the middle of a binary value is an error\&.
+restored before the command returns\&. Input must end on a complete vector-value boundary\&. In particular,
+complex input must contain complete real/imaginary pairs\&.
 .PP
 \fBReturn value\fR
 .PP
-Number of complete values read\&.
+Number of complete vector values read\&.
 .PP
 .RS -4n
 \fBVECINST clear\fR (::rbc)
@@ -3533,6 +3559,8 @@ Nothing\&.
 Reads or writes a vector value or range\&.  With no value argument, returns the value or values selected by
 index\&. With value, assigns that numeric value to every element selected by index\&. The special
 ++end index may be used when setting a value to append one new element\&.
+For complex vectors, values are returned as {real imag} pairs\&. A real assigned value is promoted to
+{value 0}\&.
 .RS 4n
 \fBVECINST index\fP \fIindex\fP
 .br
@@ -3581,7 +3609,7 @@ Current vector length\&.
 .RE
 .PP
 Interleaves values from two or more vectors and stores the result in this vector\&. All input vectors must
-contain the same number of selected values\&.
+contain the same number of selected values\&. All input vectors must have the same numeric type as this vector\&.
 .RS 4n
 \fBVECINST merge\fP \fIvecName ?vecName \&.\&.\&.?\fP
 .br
@@ -3612,9 +3640,7 @@ Nothing\&.
 \fBVECINST normalize\fR (::rbc)
 .RE
 .PP
-Normalizes vector values to the range 0\&.0 through 1\&.0 using: (value - minimum) / (maximum - minimum)
-With no destination vector, returns the normalized values as a Tcl list\&. If vecName is supplied, that
-vector is created or resized and the normalized values are stored there\&.
+Normalizes real vector values to the range 0\&.0 through 1\&.0 using:
 .RS 4n
 \fBVECINST normalize\fP \fIvecName\fP
 .br
@@ -3622,6 +3648,9 @@ vector is created or resized and the normalized values are stored there\&.
 .PP
 \fBParameters\fR
 .RS 4n
+.TP
+`(value
+Minimum) / (maximum - minimum)\&. This operation is not supported for complex vectors because complex values have no natural minimum/maximum ordering\&. With no destination vector, returns the normalized values as a Tcl list\&. IfvecName` is supplied, that vector is created or resized and the normalized values are stored there\&.
 .TP
 vecName
 Optional destination vector\&.
@@ -3657,9 +3686,10 @@ Current offset\&.
 \fBVECINST populate\fR (::rbc)
 .RE
 .PP
-Creates a more densely sampled vector using linear interpolation\&.  density intermediate values are
+Creates a more densely sampled vector using linear interpolation\&. density intermediate values are
 inserted between every adjacent pair of source values\&. density must be at least 1\&. The destination may
-be the same vector as the source\&.
+be the same vector as the source and has the same numeric type as the source\&.
+For complex vectors, the real and imaginary components are linearly interpolated independently\&.
 .RS 4n
 \fBVECINST populate\fP \fIvecName density\fP
 .br
@@ -3684,8 +3714,8 @@ Nothing\&.
 .RE
 .PP
 Fills the vector with pseudo-random values in the range [0\&.0, 1\&.0)\&. The current vector length is
-preserved\&. Each existing component is replaced by a newly generated pseudo-random value\&. An empty vector
-remains empty\&.
+preserved\&. For real vectors, one random number is generated for each value\&. For complex vectors, the real and
+imaginary components are generated independently\&.
 .RS 4n
 \fBVECINST random\fP
 .br
@@ -3693,14 +3723,7 @@ remains empty\&.
 .PP
 \fBDescription\fR
 .PP
-Example:
-.PP
-.RS 4n
-.nf
-x length 100
-x random
-.fi
-.RE
+An empty vector remains empty\&.
 .PP
 \fBReturn value\fR
 .PP
@@ -3753,10 +3776,12 @@ A list containing the selected vector values\&.
 \fBVECINST search\fR (::rbc)
 .RE
 .PP
-Searches the vector for values in a numeric range\&. With one numeric argument, returns matches equal to
-that value\&. With two numeric arguments, returns matches between min and max, inclusive within the
-implementation's floating-point tolerance\&. By default matching vector indices are returned\&. With -value,
-matching vector values are returned instead\&.
+Searches the vector for matching values\&. For real vectors, one numeric argument performs an exact-value
+search and two numeric arguments search the inclusive range from min to max, using the implementation's
+floating-point tolerance\&. For complex vectors, only the one-value exact search is supported\&. The search value
+may be {real imag} or a real scalar, which is promoted to {value 0}\&. A two-bound complex range search is
+not supported\&. By default matching vector indices are returned\&. With -value, matching vector values are
+returned\&. Complex values returned by -value use {real imag} representation\&.
 .RS 4n
 \fBVECINST search\fP \fIvalue\fP
 .br
@@ -3775,10 +3800,10 @@ matching vector values are returned instead\&.
 Return values instead of indices\&.
 .TP
 max
-Optional upper bound\&.
+Optional upper bound for a real range search\&.
 .TP
 min
-Lower bound, or the exact value when max is omitted\&.
+Lower bound for a real range search, or the exact search value when max is omitted\&.
 .RE
 .PP
 \fBReturn value\fR
@@ -3799,7 +3824,7 @@ Generates an arithmetic sequence\&.
 .RS 4n
 .TP
 end
-Numeric end value or literal end\&.
+End value or literal end\&.
 .TP
 start
 First value\&.
@@ -3810,25 +3835,25 @@ Optional increment\&.
 .PP
 \fBDescription\fR
 .PP
-With a numeric end, the vector is resized to hold the generated sequence:
+For a real vector, sequence generation follows the normal scalar arithmetic sequence rules\&.
+For a complex vector, start, end, and step may be {real imag} values or real scalars\&. The real and
+imaginary components progress independently:
 .PP
 .RS 4n
 .nf
-x seq 0 10 0\&.5
+    z[i]\&.real = start\&.real + step\&.real * i
+    z[i]\&.imag = start\&.imag + step\&.imag * i
 .fi
 .RE
 .PP
-If the second argument is the literal end, the vector keeps its current length and is filled starting at
-start using step:
+With an explicit complex end value, every changing component must generate the same number of values\&. A
+component whose step is zero must have identical start and end components\&. An explicitly zero complex step
+{0 0} is invalid\&.
 .PP
-.RS 4n
-.nf
-x length 100
-x seq 0 end 0\&.1
-.fi
-.RE
+If end is the literal end, the vector keeps its current length and is filled from start\&. In this form
+{0 0} is permitted and fills the vector with a constant value\&.
 .PP
-step defaults to 1\&.0 and must be non-zero\&. Sequence bounds and step must be finite\&.
+The default step is 1 for real vectors and {1 0} for complex vectors\&.
 .PP
 \fBReturn value\fR
 .PP
@@ -3839,7 +3864,8 @@ Nothing\&.
 .RE
 .PP
 Replaces the contents of the vector\&. list may be a Tcl list of numeric values or the name of another
-vector\&.
+vector\&. When the argument names another vector, the source and destination vector types must match\&.
+For a complex destination, list elements may be {real imag} values or real scalars\&.
 .RS 4n
 \fBVECINST set\fP \fIlist\fP
 .br
@@ -3860,7 +3886,7 @@ Nothing\&.
 \fBVECINST sort\fR (::rbc)
 .RE
 .PP
-Sorts this vector\&. Additional vectors may be supplied\&. They must have the same length and are
+Sorts this real vector\&. Additional real vectors may be supplied\&. They must have the same length and are
 rearranged using the same permutation, allowing associated data to remain aligned\&. -reverse requests
 descending rather than ascending order\&.
 .RS 4n
@@ -3869,6 +3895,12 @@ descending rather than ascending order\&.
 .RE
 .PP
 \fBParameters\fR
+.RS 4n
+.RE
+.PP
+\fBDescription\fR
+.PP
+Complex vectors are not supported because no natural ordering relation is defined for complex values\&.
 .RS 4n
 .TP
 -reverse
@@ -3888,7 +3920,8 @@ Nothing\&.
 .PP
 Distributes values from this vector among destination vectors in round-robin order\&. The source vector
 length must be evenly divisible by the number of destination vectors\&. Existing destination contents are
-preserved and the split values are appended\&.
+preserved and the split values are appended\&. Destination vectors have the same numeric type as the source
+vector\&.
 .RS 4n
 \fBVECINST split\fP \fI?vecName \&.\&.\&.?\fP
 .br
@@ -3918,11 +3951,30 @@ into vectors x and y appends {1 2 3} to x and {10 20 30} to y\&.
 Nothing\&.
 .PP
 .RS -4n
+\fBVECINST type\fR (::rbc)
+.RE
+.PP
+Returns the immutable numeric type of the vector\&.
+real or complex\&.
+.RS 4n
+\fBVECINST type\fP
+.br
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the immutable numeric type of the vector\&.
+real or complex\&.
+.PP
+.RS -4n
 \fBVECINST variable\fR (::rbc)
 .RE
 .PP
 Queries or changes the Tcl array variable associated with the vector\&. Supplying an empty variable name
-removes the current mapping\&.
+removes the current mapping\&. Real vectors normally receive an automatic array mapping at creation\&.
+Complex vectors do not receive an automatic mapping, but an explicit mapping is supported\&.
+Ordinary complex array elements use {real imag} representation\&. The calculated array indices min,
+max, mean, sum, and prod are not supported for complex vectors\&.
 .RS 4n
 \fBVECINST variable\fP \fIvarName\fP
 .br
@@ -3988,13 +4040,16 @@ Creates one or more vectors\&.
 Sets the Tcl command associated with the vector\&. This option can only be used when creating one vector\&.
 .TP
 -flush boolean
-If true, cached entries in the associated Tcl array are flushed whenever the vector is modified\&.
+If true, cached entries in an associated Tcl array are flushed whenever the vector is modified\&.
 .TP
 -length size
 Sets the initial length when no size is included in the vector specification\&. size must be zero or greater\&.
 .TP
+-type type
+Selects the numeric vector type\&. type must be real or complex\&. The default for a new vector is real\&. The option applies to every vector named by the command\&. A vector's type cannot be changed after creation\&.
+.TP
 -variable varName
-Sets the Tcl array variable associated with the vector\&. This option can only be used when creating one vector\&.
+Sets the Tcl array variable associated with the vector\&. This option can only be used when creating one vector\&. Real vectors receive an automatic array mapping when this option is omitted\&. Complex vectors do not receive an automatic array mapping, but an explicit mapping is supported\&.
 .TP
 -watchunset boolean
 If true, unsetting the complete associated array variable destroys the vector\&.
@@ -4012,6 +4067,7 @@ Example:
 ::rbc::vector create x
 ::rbc::vector create y(100)
 ::rbc::vector create z(-10:10)
+::rbc::vector create c -type complex
 set v [::rbc::vector create #auto]
 .fi
 .RE

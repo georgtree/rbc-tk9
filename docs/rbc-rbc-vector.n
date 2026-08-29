@@ -6,7 +6,7 @@
 rbc::vector - Commands in namespace rbc::vector
 .SH "VECTOR COMMAND"
 .PP
-The ::rbc::vector command creates and manages vectors of double-precision floating-point values\&.
+The ::rbc::vector command creates and manages real or complex numeric vectors\&.
 .PP
 A vector can be accessed through:
 .TP
@@ -18,9 +18,79 @@ an associated Tcl array variable
 .TP
 \(bu
 the RBC C API\&.
+.SH "VECTOR TYPES"
 .PP
-Creating a vector normally creates both an instance command and an associated Tcl array variable with the same
-name\&.
+Each vector has an immutable numeric type:
+.TP
+\(bu
+real - the default type\&. Each vector value is a double-precision floating-point number\&.
+.TP
+\(bu
+complex - each vector value contains a double-precision real component and a double-precision imaginary component\&.
+.PP
+The type is selected when the vector is created:
+.PP
+.RS 4n
+.nf
+::rbc::vector create x
+::rbc::vector create z -type complex
+.fi
+.RE
+.PP
+The \fIVECINST::type\fP operation returns the type of an existing vector\&.
+.PP
+Complex values are represented at the Tcl level as two-element lists:
+.PP
+.RS 4n
+.nf
+{real imag}
+.fi
+.RE
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+::rbc::vector create z -type complex
+z set {{1 2} {3 -4} {-2 0\&.5}}
+
+z index 1
+# -> 3\&.0 -4\&.0
+.fi
+.RE
+.PP
+A real scalar is also accepted where a complex value is expected and is promoted to a complex value with zero
+imaginary component\&. For example, 5 is equivalent to {5 0}\&.
+.PP
+A vector's type cannot be changed after creation\&. Supplying -type for an existing vector is permitted only
+when the requested type is the same as its current type\&. Omitting -type when referring to an existing vector
+preserves its current type\&.
+.PP
+Real vectors retain the traditional automatic Tcl array mapping\&. Complex vectors do not receive an automatic
+array mapping, but one may be requested explicitly with -variable or later with \fIVECINST::variable\fP\&.
+.SH "GRAPH AND SPLINE RESTRICTIONS"
+.PP
+Complex vectors are supported by the vector subsystem, but graph element data and spline interpolation
+currently remain real-valued\&.
+.PP
+Graph, barchart, and stripchart element data vectors must be real\&. A complex vector used as graph element data
+is rejected rather than being implicitly converted to its real part, magnitude, or another projection\&.
+.PP
+The spline command likewise requires its source X vector, source Y vector, interpolation X vector, and result
+vector to be real\&.
+.PP
+A real vector suitable for graphing or interpolation can be derived explicitly from a complex vector using
+expression functions such as real, imag, abs, or arg:
+.PP
+.RS 4n
+.nf
+::rbc::vector create z -type complex
+::rbc::vector create magnitude
+
+z set {{1 2} {3 4} {5 0}}
+magnitude expr {abs(z)}
+.fi
+.RE
 .SH "VECTOR CREATION FORMS"
 .PP
 Vectors may be created with an initially empty value array:

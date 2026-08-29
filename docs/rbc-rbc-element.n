@@ -310,14 +310,19 @@ For example:
 .nf
 puts [\&.g element type signal1]
 # -> LineElement
-
-Configuration options are specific to the concrete element type:
-
-* [LINEELEMENT] - line elements;
-* [STRIPELEMENT] - strip elements;
-* [BARELEMENT] - bar elements\&.
 .fi
 .RE
+.PP
+Configuration options are specific to the concrete element type:
+.TP
+\(bu
+\fILINEELEMENT\fP - line elements;
+.TP
+\(bu
+\fISTRIPELEMENT\fP - strip elements;
+.TP
+\(bu
+\fIBARELEMENT\fP - bar elements\&.
 
 
 .SH SEE ALSO

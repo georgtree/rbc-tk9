@@ -6,18 +6,75 @@ namespace eval ::rbc::vector {
     }
 
     variable _ruff_preamble {
-        The `::rbc::vector` command creates and manages vectors of double-precision floating-point values.
+        The `::rbc::vector` command creates and manages real or complex numeric vectors.
 
         A vector can be accessed through:
         - its vector instance command
         - an associated Tcl array variable
         - the RBC C API.
 
-        Creating a vector normally creates both an instance command and an associated Tcl array variable with the same
-        name.
+        ## Vector types
+        Each vector has an immutable numeric type:
+
+        - `real` - the default type. Each vector value is a double-precision floating-point number.
+        - `complex` - each vector value contains a double-precision real component and a double-precision imaginary
+          component.
+
+        The type is selected when the vector is created:
+        ```tcl
+        ::rbc::vector create x
+        ::rbc::vector create z -type complex
+        ```
+
+        The [VECINST::type] operation returns the type of an existing vector.
+
+        Complex values are represented at the Tcl level as two-element lists:
+        ```tcl
+        {real imag}
+        ```
+
+        For example:
+        ```tcl
+        ::rbc::vector create z -type complex
+        z set {{1 2} {3 -4} {-2 0.5}}
+
+        z index 1
+        # -> 3.0 -4.0
+        ```
+
+        A real scalar is also accepted where a complex value is expected and is promoted to a complex value with zero
+        imaginary component. For example, `5` is equivalent to `{5 0}`.
+
+        A vector's type cannot be changed after creation. Supplying `-type` for an existing vector is permitted only
+        when the requested type is the same as its current type. Omitting `-type` when referring to an existing vector
+        preserves its current type.
+
+        Real vectors retain the traditional automatic Tcl array mapping. Complex vectors do not receive an automatic
+        array mapping, but one may be requested explicitly with `-variable` or later with [VECINST::variable].
+
+        ## Graph and spline restrictions
+        Complex vectors are supported by the vector subsystem, but graph element data and spline interpolation
+        currently remain real-valued.
+
+        Graph, barchart, and stripchart element data vectors must be real. A complex vector used as graph element data
+        is rejected rather than being implicitly converted to its real part, magnitude, or another projection.
+
+        The `spline` command likewise requires its source X vector, source Y vector, interpolation X vector, and result
+        vector to be real.
+
+        A real vector suitable for graphing or interpolation can be derived explicitly from a complex vector using
+        expression functions such as `real`, `imag`, `abs`, or `arg`:
+        ```tcl
+        ::rbc::vector create z -type complex
+        ::rbc::vector create magnitude
+
+        z set {{1 2} {3 4} {5 0}}
+        magnitude expr {abs(z)}
+        ```
 
         ## Vector creation forms
         Vectors may be created with an initially empty value array:
+
         ```tcl
         ::rbc::vector create x
         ```
@@ -30,6 +87,7 @@ namespace eval ::rbc::vector {
         This creates a vector containing 100 values.
 
         An explicit external index range may also be specified:
+
         ```tcl
         ::rbc::vector create x(-5:14)
         ```
@@ -55,16 +113,20 @@ namespace eval ::rbc::vector {
 
     proc create {args} {
         # Creates one or more vectors.
-        # vecName - vector name or vector specification. A specification may have the form `name`, `name(size)`, or 
-        #   `name(first:last)`.        
+        # vecName - vector name or vector specification. A specification may have the form `name`, `name(size)`, or
+        #   `name(first:last)`.
         # -command commandName - sets the Tcl command associated with the vector. This option can only be used when
         #   creating one vector.
-        # -flush boolean - if true, cached entries in the associated Tcl array are flushed whenever the vector is 
+        # -flush boolean - if true, cached entries in an associated Tcl array are flushed whenever the vector is
         #   modified.
         # -length size - sets the initial length when no size is included in the vector specification. `size` must be
         #   zero or greater.
+        # -type type - selects the numeric vector type. `type` must be `real` or `complex`. The default for a new
+        #   vector is `real`. The option applies to every vector named by the command. A vector's type cannot be
+        #   changed after creation.
         # -variable varName - sets the Tcl array variable associated with the vector. This option can only be used
-        #   when creating one vector.
+        #   when creating one vector. Real vectors receive an automatic array mapping when this option is omitted.
+        #   Complex vectors do not receive an automatic array mapping, but an explicit mapping is supported.
         # -watchunset boolean - if true, unsetting the complete associated array variable destroys the vector.
         # Returns: The name of the last vector created.
         #
@@ -73,6 +135,7 @@ namespace eval ::rbc::vector {
         # ::rbc::vector create x
         # ::rbc::vector create y(100)
         # ::rbc::vector create z(-10:10)
+        # ::rbc::vector create c -type complex
         # set v [::rbc::vector create #auto]
         # ```
         # Synopsis: vecName ?vecName ...? ?switch value ...?
@@ -155,6 +218,84 @@ namespace eval ::rbc::VECINST {
 
         The associated Tcl array additionally supports the special calculated indices `min`, `max`, `mean`, `sum`, and
         `prod`.
+
+        ## Complex vector operations
+        Most vector instance operations support complex vectors. The following table summarizes the current status.
+
+        #ruffopt excludedformats nroff
+        | Operation   | Complex vectors |
+        |-------------|-----------------|
+        | `*`         | Supported       |
+        | `+`         | Supported       |
+        | `-`         | Supported       |
+        | `/`         | Supported       |
+        | `append`    | Supported       |
+        | `binread`   | Supported       |
+        | `clear`     | Supported       |
+        | `delete`    | Supported       |
+        | `dup`       | Supported       |
+        | `expr`      | Supported       |
+        | `index`     | Supported       |
+        | `length`    | Supported       |
+        | `merge`     | Supported       |
+        | `normalize` | Not supported   |
+        | `offset`    | Supported       |
+        | `populate`  | Supported       |
+        | `random`    | Supported       |
+        | `range`     | Supported       |
+        | `search`    | Supported       |
+        | `seq`       | Supported       |
+        | `set`       | Supported       |
+        | `sort`      | Not supported   |
+        | `split`     | Supported       |
+        | `type`      | Supported       |
+        | `variable`  | Supported       |
+
+        #ruffopt includedformats nroff
+        ```
+        ┌───────────┬─────────────────┐
+        │ Operation │ Complex vectors │
+        ├───────────┼─────────────────┤
+        │ *         │ Supported       │
+        │ +         │ Supported       │
+        │ -         │ Supported       │
+        │ /         │ Supported       │
+        │ append    │ Supported       │
+        │ binread   │ Supported       │
+        │ clear     │ Supported       │
+        │ delete    │ Supported       │
+        │ dup       │ Supported       │
+        │ expr      │ Supported       │
+        │ index     │ Supported       │
+        │ length    │ Supported       │
+        │ merge     │ Supported       │
+        │ normalize │ Not supported   │
+        │ offset    │ Supported       │
+        │ populate  │ Supported       │
+        │ random    │ Supported       │
+        │ range     │ Supported       │
+        │ search    │ Supported       │
+        │ seq       │ Supported       │
+        │ set       │ Supported       │
+        │ sort      │ Not supported   │
+        │ split     │ Supported       │
+        │ type      │ Supported       │
+        │ variable  │ Supported       │
+        └───────────┴─────────────────┘
+        ```
+        #ruffopt excludedformats {}
+
+        Operations that combine vector storage, such as `append`, `merge`, `set`, `dup`, and `split`, preserve vector
+        types rather than reinterpreting real storage as complex storage or vice versa.
+
+        `normalize` remains real-only because its definition depends on a minimum and maximum ordering. `sort` likewise
+        remains real-only because complex numbers have no natural ordering relation.
+
+        `search` supports exact-value searches on complex vectors. A two-bound range search is not defined for complex
+        values and is rejected.
+
+        The calculated Tcl array indices `min`, `max`, `mean`, `sum`, and `prod` remain real-only. Ordinary numeric
+        indices and ranges work with an explicitly mapped complex vector.
 
         ## Vector expressions
         Vector expressions perform arithmetic, comparison, logical, and mathematical operations on vectors.
@@ -313,6 +454,32 @@ namespace eval ::rbc::VECINST {
 
         Values shifted past one end of the vector reappear at the opposite end.
 
+        ### Complex expression operators
+        Real and complex vectors may be mixed in an expression. Real operands are promoted to complex values with zero
+        imaginary component when required.
+
+        Complex expressions support:
+
+        - unary `-`
+        - unary `!`
+        - `+`, `-`, `*`, and `/`
+        - exponentiation with `^`
+        - circular shifts `<<` and `>>`
+        - equality and inequality with `==` and `!=`
+        - logical `&&` and `||`.
+
+        The remainder operator `%` and the ordered comparisons `<`, `>`, `<=`, and `>=` are not supported when either
+        operand is complex.
+
+        Complex exponentiation uses the principal complex value for non-integral exponents. A finite integral real
+        exponent is handled directly and therefore does not depend on the logarithm branch.
+
+        Equality compares both the real and imaginary components. Logical operations treat a complex value as false
+        only when both components are zero. Equality and logical operations return real `0.0` or `1.0` values.
+
+        Circular shifts preserve complete complex values. The shift count must be real; a complex scalar with zero
+        imaginary component is accepted as a real shift count.
+
         ### Mathematical functions
         Vector expressions provide mathematical functions in three general categories:
         - component functions, which operate independently on each vector component
@@ -328,16 +495,20 @@ namespace eval ::rbc::VECINST {
         |----------|------------------------------------------------------------------------------|
         | `abs`    | Absolute value                                                               |
         | `acos`   | Arc cosine                                                                   |
+        | `arg`    | Phase angle of the component                                                 |
         | `asin`   | Arc sine                                                                     |
         | `atan`   | Arc tangent                                                                  |
         | `ceil`   | Smallest integral value not less than the component                          |
+        | `conj`   | Complex conjugate                                                            |
         | `cos`    | Cosine                                                                       |
         | `cosh`   | Hyperbolic cosine                                                            |
         | `exp`    | Exponential                                                                  |
         | `floor`  | Largest integral value not greater than the component                        |
+        | `imag`   | Imaginary component                                                          |
         | `log`    | Natural logarithm                                                            |
         | `log10`  | Base-10 logarithm                                                            |
         | `random` | Generates a pseudo-random value in the range `[0.0, 1.0)` for each component |
+        | `real`   | Real component                                                               |
         | `round`  | Rounds to the nearest integral value                                         |
         | `sin`    | Sine                                                                         |
         | `sinh`   | Hyperbolic sine                                                              |
@@ -351,17 +522,21 @@ namespace eval ::rbc::VECINST {
         │ Function │ Description                                                                  │
         ├──────────┼──────────────────────────────────────────────────────────────────────────────┤
         │ abs      │ Absolute value                                                               │
+        │ arg      │ Phase angle of the component                                                 │
         │ acos     │ Arc cosine                                                                   │
         │ asin     │ Arc sine                                                                     │
         │ atan     │ Arc tangent                                                                  │
         │ ceil     │ Smallest integral value not less than the component                          │
+        │ conj     │ Complex conjugate                                                            │
         │ cos      │ Cosine                                                                       │
         │ cosh     │ Hyperbolic cosine                                                            │
         │ exp      │ Exponential                                                                  │
         │ floor    │ Largest integral value not greater than the component                        │
+        │ imag     │ Imaginary component                                                          │
         │ log      │ Natural logarithm                                                            │
         │ log10    │ Base-10 logarithm                                                            │
         │ random   │ Generates a pseudo-random value in the range [0.0, 1.0) for each component   │
+        │ real     │ Real component                                                               │
         │ round    │ Rounds to the nearest integral value                                         │
         │ sin      │ Sine                                                                         │
         │ sinh     │ Hyperbolic sine                                                              │
@@ -503,10 +678,65 @@ namespace eval ::rbc::VECINST {
         # -> 0.0 0.5 1.0
         ```
 
+        #### Mathematical functions on complex vectors
+        Mathematical functions that have an unambiguous complex definition are supported directly.
+
+        The projection functions return real values:
+
+        - `abs(z)` returns the magnitude `|z|`.
+        - `arg(z)` returns the phase angle.
+        - `real(z)` returns the real component.
+        - `imag(z)` returns the imaginary component.
+
+        `conj`, `sqrt`, `exp`, `log`, `log10`, `sin`, `cos`, `tan`, `sinh`, `cosh`, `tanh`, `asin`, `acos`, and `atan`
+        return complex values when their input is complex.
+
+        `ceil`, `floor`, and `round` operate independently on the real and imaginary components.
+
+        `random` applied to a complex vector produces a complex vector in which the real and imaginary components are
+        generated independently in the range `[0.0, 1.0)`.
+
+        The following reductions support complex vectors:
+
+        #ruffopt excludedformats nroff
+        | Function | Result  | Complex definition                                       |
+        |----------|---------|----------------------------------------------------------|
+        | `adev`   | Real    | Mean of `abs(z - mean(z))`                               |
+        | `length` | Real    | Number of finite complex values                          |
+        | `mean`   | Complex | Arithmetic mean                                          |
+        | `nz`     | Real    | Number of values other than `0+0i`                       |
+        | `prod`   | Complex | Product of the values                                    |
+        | `sdev`   | Real    | Square root of the complex sample variance               |
+        | `sum`    | Complex | Sum of the values                                        |
+        | `var`    | Real    | Sample mean of squared magnitudes about the complex mean |
+
+        #ruffopt includedformats nroff
+        ```
+        ┌──────────┬─────────┬──────────────────────────────────────────────────────────┐
+        │ Function │ Result  │ Complex definition                                       │
+        ├──────────┼─────────┼──────────────────────────────────────────────────────────┤
+        │ adev     │ Real    │ Mean of abs(z - mean(z))                                 │
+        │ length   │ Real    │ Number of finite complex values                          │
+        │ mean     │ Complex │ Arithmetic mean                                          │
+        │ nz       │ Real    │ Number of values other than 0+0i                         │
+        │ prod     │ Complex │ Product of the values                                    │
+        │ sdev     │ Real    │ Square root of the complex sample variance               │
+        │ sum      │ Complex │ Sum of the values                                        │
+        │ var      │ Real    │ Sample mean of squared magnitudes about the complex mean │
+        └──────────┴─────────┴──────────────────────────────────────────────────────────┘
+        ```
+        #ruffopt excludedformats {}
+
+        `kurtosis`, `max`, `median`, `min`, `q1`, `q3`, and `skew` remain real-only. The vector functions `norm` and
+        `sort` are also real-only.
+
+        No implicit ordering of complex numbers is introduced for these operations.
+
         ### Expression results
-        The result of `vector expr` is returned to the caller:
+        The result of `vector expr` is returned to the caller. Complex values are returned as `{real imag}` pairs:
         ```tcl
-        set result [vector expr {x * 2}]
+        vector expr {{1 2} + {3 -1}}
+        # -> {4.0 1.0}
         ```
 
         The instance form stores the expression result directly in the vector:
@@ -514,11 +744,17 @@ namespace eval ::rbc::VECINST {
         x expr {x * 2}
         ```
 
-        This permits in-place transformations such as:
+        A complex vector can store either a complex result or a real result; a real result is promoted to complex
+        values with zero imaginary components.
+
+        A real vector cannot store a complex expression result:
         ```tcl
-        x expr {x - mean(x)}
-        x expr {abs(x)}
-        x expr {norm(x)}
+        vector create r
+        vector create c -type complex
+
+        c set {{1 2} {3 4}}
+        r expr {c + 1}
+        # error: can't store complex expression result in real vector
         ```
 
         ## C language API
@@ -547,25 +783,32 @@ namespace eval ::rbc::VECINST {
         Rbc package is loaded in the interpreter.
 
         ### Vector representation
-        The public vector structure is:
-
+        `Rbc_Vector` is an opaque public type:
         ```c
-        typedef struct Rbc_Vector_s {
-            double *valueArr;
-            Tcl_Size numValues;
-            Tcl_Size arraySize;
-            double min, max;
-            int dirty;
-            int reserved;
-        } Rbc_Vector;
+        typedef struct Rbc_Vector_s Rbc_Vector;
         ```
 
-        `valueArr` contains the double-precision vector components. `numValues` is the logical length of the vector,
-        while `arraySize` is the capacity of the underlying array and is therefore greater than or equal to
-        `numValues`.
+        Applications must not access the internal vector structure directly. Use the public accessor and mutation
+        functions described below.
 
-        Applications should normally use the public accessor functions rather than directly accessing the corresponding
-        structure fields.
+        Every vector has one of two numeric types:
+        ```c
+        typedef enum {
+            RBC_VECTOR_REAL = 0,
+            RBC_VECTOR_COMPLEX
+        } Rbc_VectorType;
+        ```
+
+        Complex values use the portable public representation:
+        ```c
+        typedef struct {
+            double real;
+            double imag;
+        } Rbc_Complex;
+        ```
+
+        `Rbc_Complex` deliberately does not use the native C complex type, so the public ABI does not depend on
+        compiler-specific complex-number support.
 
         ### Public vector functions
         The following vector functions are exported through the Rbc stubs interface:
@@ -573,17 +816,23 @@ namespace eval ::rbc::VECINST {
         #ruffopt excludedformats nroff
         | Function | Description |
         | --- | --- |
-        | `int Rbc_CreateVector(Tcl_Interp *interp, const char *vecName, Tcl_Size size, Rbc_Vector **vecPtrPtr)` | Creates the named vector and its normal Tcl command and array mappings. `size` specifies the initial length of a new vector. On success, stores a pointer to the vector in `vecPtrPtr` and returns `TCL_OK`. |
-        | `int Rbc_GetVector(Tcl_Interp *interp, const char *vecName, Rbc_Vector **vecPtrPtr)` | Looks up an existing vector by name. On success, stores its pointer in `vecPtrPtr` and returns `TCL_OK`. |
-        | `int Rbc_ResizeVector(Rbc_Vector *vecPtr, Tcl_Size nValues)` | Changes the logical length of a vector. Existing values are preserved as far as possible and clients of the vector are notified of the change. |
-        | `char *Rbc_NameOfVector(Rbc_Vector *vecPtr)` | Returns the name of a vector. The returned string belongs to Rbc and must not be freed or modified by the caller. |
-        | `int Rbc_ResetVector(Rbc_Vector *vecPtr, double *dataArr, Tcl_Size nValues, Tcl_Size arraySize, Tcl_FreeProc *freeProc)` | Replaces the vector's data array and records its ownership policy. Clients of the vector are notified of the change. |
-        | `double *Rbc_VectorData(Rbc_Vector *vecPtr)` | Returns a pointer to the vector's current data array. The returned storage belongs to the vector and must not be freed by the caller. |
-        | `Tcl_Size Rbc_VectorLength(Rbc_Vector *vecPtr)` | Returns the current logical number of values in the vector. |
-        | `Tcl_Size Rbc_VectorSize(Rbc_Vector *vecPtr)` | Returns the current capacity of the vector's data array. |
-        | `int Rbc_VectorDirty(Rbc_Vector *vecPtr)` | Returns the vector's update counter. The counter is incremented when the vector is changed. |
-        | `int Rbc_VectorExists2(Tcl_Interp *interp, const char *vecName)` | Returns non-zero if the named vector exists and zero otherwise. |
-        | `void Rbc_FreeVector(Rbc_Vector *vecPtr)` | Destroys the vector, removes its Tcl command and array mapping, releases its storage according to its ownership policy, and invalidates `vecPtr`. |
+        | `int Rbc_CreateVector(Tcl_Interp *interp, const char *vecName, Tcl_Size size, Rbc_Vector **vecPtrPtr)` | Creates a real vector using the traditional Tcl command and automatic array mapping. |
+        | `int Rbc_GetVector(Tcl_Interp *interp, const char *vecName, Rbc_Vector **vecPtrPtr)` | Looks up an existing real or complex vector. |
+        | `int Rbc_ResizeVector(Rbc_Vector *vecPtr, Tcl_Size nValues)` | Changes the logical vector length while preserving its numeric type. |
+        | `char *Rbc_NameOfVector(Rbc_Vector *vecPtr)` | Returns the vector name. The returned string belongs to Rbc. |
+        | `int Rbc_ResetVector(Rbc_Vector *vecPtr, double *dataArr, Tcl_Size nValues, Tcl_Size arraySize, Tcl_FreeProc *freeProc)` | Replaces the storage of a real vector. |
+        | `double *Rbc_VectorData(Rbc_Vector *vecPtr)` | Returns real-vector storage, or `NULL` for a complex vector. |
+        | `Tcl_Size Rbc_VectorLength(Rbc_Vector *vecPtr)` | Returns the logical number of vector values. |
+        | `Tcl_Size Rbc_VectorSize(Rbc_Vector *vecPtr)` | Returns the current vector capacity in values. |
+        | `int Rbc_VectorDirty(Rbc_Vector *vecPtr)` | Returns the vector update counter. |
+        | `int Rbc_VectorExists2(Tcl_Interp *interp, const char *vecName)` | Tests whether a named vector exists. |
+        | `void Rbc_FreeVector(Rbc_Vector *vecPtr)` | Destroys the vector and releases its resources. |
+        | `Rbc_VectorType Rbc_VectorGetType(Rbc_Vector *vecPtr)` | Returns `RBC_VECTOR_REAL` or `RBC_VECTOR_COMPLEX`. |
+        | `int Rbc_VectorGetRange(Rbc_Vector *vecPtr, double *minPtr, double *maxPtr)` | Returns the minimum and maximum of a real vector. Returns `TCL_ERROR` for a complex vector. |
+        | `int Rbc_CreateVectorWithType(Tcl_Interp *interp, const char *vecName, Tcl_Size size, Rbc_VectorType type, Rbc_Vector **vecPtrPtr)` | Creates a real or complex vector of the requested type. |
+        | `int Rbc_ResetComplexVector(Rbc_Vector *vecPtr, Rbc_Complex *dataArr, Tcl_Size nValues, Tcl_Size arraySize, Tcl_FreeProc *freeProc)` | Replaces the storage of a complex vector. |
+        | `Rbc_Complex *Rbc_VectorComplexData(Rbc_Vector *vecPtr)` | Returns complex-vector storage, or `NULL` for a real vector. |
+        | `void Rbc_VectorChanged(Rbc_Vector *vecPtr)` | Reports that the existing vector storage was modified in place without changing its storage or ownership contract. |
 
         #ruffopt includedformats nroff
         ```
@@ -629,90 +878,98 @@ namespace eval ::rbc::VECINST {
         Vector lengths and capacities use `Tcl_Size`, allowing the C interface to represent Tcl 9-sized vectors.
 
         ### Reading vector data
-        `Rbc_GetVector` obtains the C representation of a vector that already exists in the interpreter.
-
-        For example, this function calculates the sum of a vector without converting its contents to a Tcl list:
+        `Rbc_GetVector` obtains the opaque representation of an existing real or complex vector. Use
+        `Rbc_VectorGetType` before selecting the storage accessor.
 
         ```c
-        static int SumVector(Tcl_Interp *interp, const char *name, double *sumPtr) {
+        static int InspectVector(Tcl_Interp *interp, const char *name) {
             Rbc_Vector *vecPtr;
-            double *dataArr;
             Tcl_Size nValues;
-            Tcl_Size i;
-            double sum;
 
             if (Rbc_GetVector(interp, name, &vecPtr) != TCL_OK) {
                 return TCL_ERROR;
             }
-            dataArr = Rbc_VectorData(vecPtr);
             nValues = Rbc_VectorLength(vecPtr);
-            sum = 0.0;
-            for (i = 0; i < nValues; i++) {
-                sum += dataArr[i];
+            switch (Rbc_VectorGetType(vecPtr)) {
+            case RBC_VECTOR_REAL: {
+                double *dataArr = Rbc_VectorData(vecPtr);
+                /* Use dataArr[0] ... dataArr[nValues - 1]. */
+                break;
             }
-            *sumPtr = sum;
+            case RBC_VECTOR_COMPLEX: {
+                Rbc_Complex *dataArr = Rbc_VectorComplexData(vecPtr);
+                /* Use dataArr[i].real and dataArr[i].imag. */
+                break;
+            }
+            }
             return TCL_OK;
         }
         ```
 
-        The pointer returned by `Rbc_VectorData` remains owned by Rbc. Do not free it. It may also become invalid after
-        an operation that resizes, resets, or destroys the vector, so obtain it again after such an operation.
+        Storage returned by either accessor belongs to the vector and must not be freed by the caller. The pointer may
+        become invalid after an operation that resizes, resets, or destroys the vector.
 
         ### Updating vectors from C
+        `Rbc_VectorData` and `Rbc_VectorComplexData` return mutable storage. A caller may update that storage directly
+        as long as no operation that can resize or replace the vector is performed while the pointer is being used.
 
-        `Rbc_ResetVector` is the normal way to install externally generated data into an Rbc vector. It also notifies
-        clients of the vector that its contents have changed.
-
-        For example, Tcl may create two vectors and use them as graph data:
-
-        ```tcl
-        ::rbc::vector create X Y
-        graph .g
-        .g line create signal -xdata X -ydata Y
-        ```
-
-        C code can then update both vectors:
+        Direct writes do not automatically invalidate cached values or notify vector clients. After modifying existing
+        storage in place, call:
 
         ```c
-        #include <math.h>
-        #include <rbc.h>
+        Rbc_VectorChanged(vecPtr);
+        ```
 
-        static int UpdateSignal(Tcl_Interp *interp) {
-            Rbc_Vector *xVecPtr;
-            Rbc_Vector *yVecPtr;
-            double x[100];
-            double y[100];
+        For example:
+
+        ```c
+        static int FillComplexVector(Tcl_Interp *interp, const char *name) {
+            Rbc_Vector *vecPtr;
+            Rbc_Complex *dataArr;
+            Tcl_Size nValues;
             Tcl_Size i;
 
-            if (Rbc_GetVector(interp, "X", &xVecPtr) != TCL_OK) {
+            if (Rbc_GetVector(interp, name, &vecPtr) != TCL_OK) {
                 return TCL_ERROR;
             }
-            if (Rbc_GetVector(interp, "Y", &yVecPtr) != TCL_OK) {
+            if (Rbc_VectorGetType(vecPtr) != RBC_VECTOR_COMPLEX) {
+                Tcl_SetObjResult(interp,
+                    Tcl_NewStringObj("vector must be complex", -1));
                 return TCL_ERROR;
             }
-            for (i = 0; i < 100; i++) {
-                x[i] = (double)i * 0.01;
-                y[i] = sin(x[i]);
+
+            dataArr = Rbc_VectorComplexData(vecPtr);
+            nValues = Rbc_VectorLength(vecPtr);
+
+            for (i = 0; i < nValues; i++) {
+                dataArr[i].real = (double)i;
+                dataArr[i].imag = -(double)i;
             }
-            if (Rbc_ResetVector(xVecPtr, x, 100, 100, TCL_VOLATILE) != TCL_OK) {
-                return TCL_ERROR;
-            }
-            if (Rbc_ResetVector(yVecPtr, y, 100, 100, TCL_VOLATILE) != TCL_OK) {
-                return TCL_ERROR;
-            }
+
+            Rbc_VectorChanged(vecPtr);
             return TCL_OK;
         }
         ```
 
-        `TCL_VOLATILE` is appropriate here because `x` and `y` are local arrays. Rbc copies the supplied values into
-        storage that it owns before `Rbc_ResetVector` returns.
+        `Rbc_VectorChanged` preserves the current data pointer, length, capacity, vector type, and storage ownership
+        policy. It flushes the associated Tcl-array cache when required and performs the normal vector-client update
+        notification.
+
+        Do not use `Rbc_ResetVector` or `Rbc_ResetComplexVector` merely to report an in-place modification. The reset
+        functions define a new storage and ownership contract, even when the supplied address happens to equal the
+        vector's current data pointer.
 
         Graph elements or other Rbc clients using `X` and `Y` are notified that the vector contents have changed and
         can update themselves without recreating the vectors.
 
-        ### Data ownership
-        The `freeProc` argument of `Rbc_ResetVector` specifies who owns `dataArr` and how it will eventually be
-        released.
+        ### Replacing vector storage
+        `Rbc_ResetVector` replaces the storage of a real vector. `Rbc_ResetComplexVector` performs the corresponding
+        operation for a complex vector.
+
+        Calling the real reset function for a complex vector, or the complex reset function for a real vector, returns
+        `TCL_ERROR`.
+
+        Both functions accept `nValues`, `arraySize`, and `freeProc` with the same ownership rules.
 
         #ruffopt excludedformats nroff
         | `freeProc` | Storage ownership |
@@ -739,6 +996,12 @@ namespace eval ::rbc::VECINST {
         └────────────────────────┴──────────────────────────────────────────────────────────────────────────────────────┘
         ```
         #ruffopt excludedformats {}
+
+        The ownership policy supplied to a reset operation becomes the vector's storage contract. This is true even if
+        the supplied data pointer is identical to the vector's current data pointer.
+
+        Therefore use a reset function when installing or replacing storage, and use `Rbc_VectorChanged` when only the
+        contents of already-installed storage have been modified.
 
         `nValues` specifies the logical number of values currently stored in the vector. `arraySize` specifies the
         capacity of the supplied array and must be greater than or equal to `nValues`.
@@ -776,11 +1039,51 @@ namespace eval ::rbc::VECINST {
 
         When `TCL_DYNAMIC` is used, ownership transfers to Rbc only after a successful `Rbc_ResetVector` call.
 
+        Complex reset example:
+        ```c
+        static int SetComplexData(Tcl_Interp *interp, const char *name) {
+            Rbc_Vector *vecPtr;
+            Rbc_Complex values[2];
+
+            if (Rbc_GetVector(interp, name, &vecPtr) != TCL_OK) {
+                return TCL_ERROR;
+            }
+
+            values[0].real = 1.0;
+            values[0].imag = 2.0;
+            values[1].real = 3.0;
+            values[1].imag = -4.0;
+
+            return Rbc_ResetComplexVector(
+                vecPtr, values, 2, 2, TCL_VOLATILE);
+        }
+        ```
+
         ### Creating vectors from C
-        `Rbc_CreateVector` creates the Tcl-visible vector and returns its C representation in one operation.
+
+        `Rbc_CreateVector` is the compatibility interface for creating a real vector:
+        ```c
+        Rbc_Vector *realPtr;
+
+        if (Rbc_CreateVector(interp, "x", 100, &realPtr) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        ```
+
+        To select the numeric type explicitly, use `Rbc_CreateVectorWithType`:
+        ```c
+        Rbc_Vector *complexPtr;
+
+        if (Rbc_CreateVectorWithType(
+                interp, "z", 100, RBC_VECTOR_COMPLEX, &complexPtr) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        ```
+
+        `Rbc_CreateVectorWithType` follows the Tcl-level mapping convention: a newly created real vector receives its
+        traditional automatic Tcl array mapping, while a newly created complex vector does not.
 
         For example:
-
         ```c
         static int CreateTimeVector(Tcl_Interp *interp) {
             Rbc_Vector *vecPtr;
@@ -865,11 +1168,13 @@ namespace eval ::rbc::VECINST {
     }
 
     proc multiply {list} {
-        # Multiplies every value of the vector by a scalar or by the corresponding value of another vector.  
-        # `list` may name another vector or contain a scalar value. If another vector is used, it must have the same
-        # number of selected values.
+        # Multiplies every value of the vector by a scalar or by the corresponding value of another vector.
+        # `list` may name another vector or contain a real or complex scalar. A complex scalar is written as
+        # `{real imag}`. If another vector is used, it must have the same number of selected values.
+        # Real operands are promoted to complex values when either operand is complex.
         # list - vector name or scalar value.
-        # Returns: A list containing the resulting values. The vector itself is not modified.
+        # Returns: A list containing the resulting values. Complex results are returned as `{real imag}` pairs.
+        # The vector itself is not modified.
     }
 
     proc + {list} {
@@ -891,8 +1196,11 @@ namespace eval ::rbc::VECINST {
     }
 
     proc append {args} {
-        # Appends values to the vector. Each item may be another vector or a Tcl list of numeric values.
-        # item - vector name or list of numeric values.
+        # Appends values to the vector. Each item may be another vector or a Tcl list of values.
+        # A vector argument must have the same numeric type as this vector.
+        # For a complex vector, list elements may be `{real imag}` pairs or real scalars; real scalars are promoted
+        # to complex values with zero imaginary component.
+        # item - vector name or list of values.
         # Returns: Nothing.
         # Synopsis: item ?item ...?
     }
@@ -900,17 +1208,29 @@ namespace eval ::rbc::VECINST {
     proc binread {args} {
         # Reads native binary numeric values from a Tcl channel into the vector.
         # channel - name of a readable Tcl channel.
-        # numValues - optional maximum number of values to read. A value of zero, or omission of the argument, reads
-        #   until EOF.
+        # numValues - optional maximum number of vector values to read. A value of zero, or omission of the argument,
+        #   reads until EOF.
         # -at index - starts storing values at `index`. Existing values are overwritten from that position. Without
         #   `-at`, values are appended to the vector.
         # -format format - native numeric input representation. Formats have the form `i#`, `u#`, `r#`, or `f#`,
         #   where `#` is the native type size in bytes. The default is the native C `double` representation.
-        # -swap - reverses the byte order of each input value.
+        # -swap - reverses the byte order of each native scalar component.
+        #
+        # For a real vector, each formatted scalar becomes one vector value.
+        #
+        # For a complex vector, consecutive formatted scalars are interpreted as interleaved real and imaginary
+        # components:
+        #
+        #     real0 imag0 real1 imag1 ...
+        #
+        # `-format` describes each scalar component. `numValues`, `-at`, and the return value count complex vector
+        # values rather than individual scalar components. `-swap` swaps the bytes inside each real and imaginary
+        # component independently and does not exchange the real and imaginary components.
         #
         # The channel is temporarily placed in binary translation mode and its previous translation setting is
-        # restored before the command returns. A read that ends in the middle of a binary value is an error.
-        # Returns: Number of complete values read.
+        # restored before the command returns. Input must end on a complete vector-value boundary. In particular,
+        # complex input must contain complete real/imaginary pairs.
+        # Returns: Number of complete vector values read.
         # Synopsis: channel ?numValues? ?-at index? ?-format format? ?-swap?
     }
 
@@ -945,6 +1265,8 @@ namespace eval ::rbc::VECINST {
         # Reads or writes a vector value or range.  With no value argument, returns the value or values selected by
         # `index`. With `value`, assigns that numeric value to every element selected by `index`. The special
         # `++end` index may be used when setting a value to append one new element.
+        # For complex vectors, values are returned as `{real imag}` pairs. A real assigned value is promoted to
+        # `{value 0}`.
         # index - vector index or range.
         # value - optional numeric value.
         # Returns: Selected value(s) when querying, or the assigned value when setting.
@@ -963,7 +1285,7 @@ namespace eval ::rbc::VECINST {
 
     proc merge {args} {
         # Interleaves values from two or more vectors and stores the result in this vector. All input vectors must
-        # contain the same number of selected values.
+        # contain the same number of selected values. All input vectors must have the same numeric type as this vector.
         # vecName - input vector.
         #
         # For vectors `a={1 2}` and `b={10 20}`, merging `a b` produces:
@@ -975,7 +1297,10 @@ namespace eval ::rbc::VECINST {
     }
 
     proc normalize {args} {
-        # Normalizes vector values to the range 0.0 through 1.0 using: `(value - minimum) / (maximum - minimum)`
+        # Normalizes real vector values to the range 0.0 through 1.0 using:
+        # `(value - minimum) / (maximum - minimum)`.
+        # This operation is not supported for complex vectors because complex values have no natural minimum/maximum
+        # ordering.
         # With no destination vector, returns the normalized values as a Tcl list. If `vecName` is supplied, that
         # vector is created or resized and the normalized values are stored there.
         # vecName - optional destination vector.
@@ -994,9 +1319,10 @@ namespace eval ::rbc::VECINST {
     }
 
     proc populate {vecName density} {
-        # Creates a more densely sampled vector using linear interpolation.  `density` intermediate values are
+        # Creates a more densely sampled vector using linear interpolation. `density` intermediate values are
         # inserted between every adjacent pair of source values. `density` must be at least 1. The destination may
-        # be the same vector as the source.
+        # be the same vector as the source and has the same numeric type as the source.
+        # For complex vectors, the real and imaginary components are linearly interpolated independently.
         # vecName - destination vector.
         # density - number of interpolated values inserted between each pair.
         # Returns: Nothing.
@@ -1004,14 +1330,10 @@ namespace eval ::rbc::VECINST {
 
     proc random {} {
         # Fills the vector with pseudo-random values in the range `[0.0, 1.0)`. The current vector length is
-        # preserved. Each existing component is replaced by a newly generated pseudo-random value. An empty vector
-        # remains empty.
+        # preserved. For real vectors, one random number is generated for each value. For complex vectors, the real and
+        # imaginary components are generated independently.
         #
-        # Example:
-        # ```tcl
-        # x length 100
-        # x random
-        # ```
+        # An empty vector remains empty.
         # Returns: Nothing.
     }
 
@@ -1037,13 +1359,15 @@ namespace eval ::rbc::VECINST {
     }
 
     proc search {args} {
-        # Searches the vector for values in a numeric range. With one numeric argument, returns matches equal to
-        # that value. With two numeric arguments, returns matches between `min` and `max`, inclusive within the
-        # implementation's floating-point tolerance. By default matching vector indices are returned. With `-value`,
-        # matching vector values are returned instead.
+        # Searches the vector for matching values. For real vectors, one numeric argument performs an exact-value
+        # search and two numeric arguments search the inclusive range from `min` to `max`, using the implementation's
+        # floating-point tolerance. For complex vectors, only the one-value exact search is supported. The search value
+        # may be `{real imag}` or a real scalar, which is promoted to `{value 0}`. A two-bound complex range search is
+        # not supported. By default matching vector indices are returned. With `-value`, matching vector values are
+        # returned. Complex values returned by `-value` use `{real imag}` representation.
         # -value - return values instead of indices.
-        # min - lower bound, or the exact value when `max` is omitted.
-        # max - optional upper bound.
+        # min - lower bound for a real range search, or the exact search value when `max` is omitted.
+        # max - optional upper bound for a real range search.
         # Returns: List of matching indices or values.
         # Synopsis: value
         # Synopsis: value1 value2
@@ -1054,35 +1378,42 @@ namespace eval ::rbc::VECINST {
     proc seq {args} {
         # Generates an arithmetic sequence.
         # start - first value.
-        # end - numeric end value or literal `end`.
+        # end - end value or literal `end`.
         # step - optional increment.
         #
-        # With a numeric `end`, the vector is resized to hold the generated sequence:
-        # ```tcl
-        # x seq 0 10 0.5
+        # For a real vector, sequence generation follows the normal scalar arithmetic sequence rules.
+        # For a complex vector, `start`, `end`, and `step` may be `{real imag}` values or real scalars. The real and
+        # imaginary components progress independently:
+        # ```c
+        #     z[i].real = start.real + step.real * i
+        #     z[i].imag = start.imag + step.imag * i
         # ```
-        # If the second argument is the literal `end`, the vector keeps its current length and is filled starting at
-        # `start` using `step`:
-        # ```tcl
-        # x length 100
-        # x seq 0 end 0.1
-        # ```
-        # `step` defaults to 1.0 and must be non-zero. Sequence bounds and step must be finite.
+        # With an explicit complex end value, every changing component must generate the same number of values. A
+        # component whose step is zero must have identical start and end components. An explicitly zero complex step
+        # `{0 0}` is invalid.
+        #
+        # If `end` is the literal `end`, the vector keeps its current length and is filled from `start`. In this form
+        # `{0 0}` is permitted and fills the vector with a constant value.
+        #
+        # The default step is `1` for real vectors and `{1 0}` for complex vectors.
         # Returns: Nothing.
         # Synopsis: start end ?step?
     }
 
     proc set {list} {
         # Replaces the contents of the vector. `list` may be a Tcl list of numeric values or the name of another
-        # vector.
+        # vector. When the argument names another vector, the source and destination vector types must match.
+        # For a complex destination, list elements may be `{real imag}` values or real scalars.
         # list - numeric list or vector name.
         # Returns: Nothing.
     }
 
     proc sort {args} {
-        # Sorts this vector. Additional vectors may be supplied. They must have the same length and are
+        # Sorts this real vector. Additional real vectors may be supplied. They must have the same length and are
         # rearranged using the same permutation, allowing associated data to remain aligned. `-reverse` requests
         # descending rather than ascending order.
+        #
+        # Complex vectors are not supported because no natural ordering relation is defined for complex values.
         # -reverse - sort in descending order.
         # vecName - optional associated vector to reorder.
         # Returns: Nothing.
@@ -1092,7 +1423,8 @@ namespace eval ::rbc::VECINST {
     proc split {args} {
         # Distributes values from this vector among destination vectors in round-robin order. The source vector
         # length must be evenly divisible by the number of destination vectors. Existing destination contents are
-        # preserved and the split values are appended.
+        # preserved and the split values are appended. Destination vectors have the same numeric type as the source
+        # vector.
         # vecName - destination vector.
         #
         # For example, splitting:
@@ -1104,9 +1436,17 @@ namespace eval ::rbc::VECINST {
         # Synopsis: ?vecName ...?
     }
 
+    proc type {} {
+        # Returns the immutable numeric type of the vector.
+        # Returns: `real` or `complex`.
+    }
+
     proc variable {args} {
         # Queries or changes the Tcl array variable associated with the vector. Supplying an empty variable name
-        # removes the current mapping.
+        # removes the current mapping. Real vectors normally receive an automatic array mapping at creation.
+        # Complex vectors do not receive an automatic mapping, but an explicit mapping is supported.
+        # Ordinary complex array elements use `{real imag}` representation. The calculated array indices `min`,
+        # `max`, `mean`, `sum`, and `prod` are not supported for complex vectors.
         # varName - optional Tcl array variable name.
         # Returns: Name of the currently mapped variable, or an empty result if no variable is mapped.
         # Synopsis:
@@ -1138,6 +1478,7 @@ namespace eval ::rbc::VECINST {
         set set 
         sort sort 
         split split 
+        type type
         variable variable 
     }
 }

@@ -42,15 +42,64 @@
             
   <section id="vector-command">
 <span id="r-vector-command"></span><span id="r-60vector6020command"></span><span id="r-3a3arbc3a3avector"></span><h1><code class="docutils literal notranslate"><span class="pre">vector</span></code> command<a class="headerlink" href="#vector-command" title="Link to this heading">¶</a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">::rbc::vector</span></code> command creates and manages vectors of double-precision floating-point values.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">::rbc::vector</span></code> command creates and manages real or complex numeric vectors.</p>
 <p>A vector can be accessed through:</p>
 <ul class="simple">
 <li><p>its vector instance command</p></li>
 <li><p>an associated Tcl array variable</p></li>
 <li><p>the RBC C API.</p></li>
 </ul>
-<p>Creating a vector normally creates both an instance command and an associated Tcl array variable with the same
-name.</p>
+<section id="vector-types">
+<span id="r-rbc-vector-vector-types"></span><span id="r-3a3arbc3a3avectorqzvector20types"></span><h2>Vector types<a class="headerlink" href="#vector-types" title="Link to this heading">¶</a></h2>
+<p>Each vector has an immutable numeric type:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">real</span></code> - the default type. Each vector value is a double-precision floating-point number.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">complex</span></code> - each vector value contains a double-precision real component and a double-precision imaginary component.</p></li>
+</ul>
+<p>The type is selected when the vector is created:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>x
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>z<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>complex
+</pre></div>
+</div>
+<p>The [VECINST::type] operation returns the type of an existing vector.</p>
+<p>Complex values are represented at the Tcl level as two-element lists:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">{</span><span class="nv">real</span><span class="w"> </span>imag<span class="k">}</span>
+</pre></div>
+</div>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>z<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>complex
+<span class="nv">z</span><span class="w"> </span>set<span class="w"> </span><span class="k">{{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">3</span><span class="w"> </span><span class="o">-</span><span class="mi">4</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">-2</span><span class="w"> </span><span class="mf">0.5</span><span class="k">}}</span>
+
+<span class="nv">z</span><span class="w"> </span>index<span class="w"> </span><span class="mi">1</span>
+<span class="c"># -&gt; 3.0 -4.0</span>
+</pre></div>
+</div>
+<p>A real scalar is also accepted where a complex value is expected and is promoted to a complex value with zero
+imaginary component. For example, <code class="docutils literal notranslate"><span class="pre">5</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">{5</span> <span class="pre">0}</span></code>.</p>
+<p>A vector’s type cannot be changed after creation. Supplying <code class="docutils literal notranslate"><span class="pre">-type</span></code> for an existing vector is permitted only
+when the requested type is the same as its current type. Omitting <code class="docutils literal notranslate"><span class="pre">-type</span></code> when referring to an existing vector
+preserves its current type.</p>
+<p>Real vectors retain the traditional automatic Tcl array mapping. Complex vectors do not receive an automatic
+array mapping, but one may be requested explicitly with <code class="docutils literal notranslate"><span class="pre">-variable</span></code> or later with [VECINST::variable].</p>
+</section>
+<section id="graph-and-spline-restrictions">
+<span id="r-rbc-vector-graph-and-spline-restrictions"></span><span id="r-3a3arbc3a3avectorqzgraph20and20spline20restrictions"></span><h2>Graph and spline restrictions<a class="headerlink" href="#graph-and-spline-restrictions" title="Link to this heading">¶</a></h2>
+<p>Complex vectors are supported by the vector subsystem, but graph element data and spline interpolation
+currently remain real-valued.</p>
+<p>Graph, barchart, and stripchart element data vectors must be real. A complex vector used as graph element data
+is rejected rather than being implicitly converted to its real part, magnitude, or another projection.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">spline</span></code> command likewise requires its source X vector, source Y vector, interpolation X vector, and result
+vector to be real.</p>
+<p>A real vector suitable for graphing or interpolation can be derived explicitly from a complex vector using
+expression functions such as <code class="docutils literal notranslate"><span class="pre">real</span></code>, <code class="docutils literal notranslate"><span class="pre">imag</span></code>, <code class="docutils literal notranslate"><span class="pre">abs</span></code>, or <code class="docutils literal notranslate"><span class="pre">arg</span></code>:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>z<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>complex
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>magnitude
+
+<span class="nv">z</span><span class="w"> </span>set<span class="w"> </span><span class="k">{{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">3</span><span class="w"> </span><span class="mi">4</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">5</span><span class="w"> </span><span class="mi">0</span><span class="k">}}</span>
+<span class="nv">magnitude</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">abs</span><span class="k">(</span><span class="nv">z</span><span class="k">)}</span>
+</pre></div>
+</div>
+</section>
 <section id="vector-creation-forms">
 <span id="r-rbc-vector-vector-creation-forms"></span><span id="r-3a3arbc3a3avectorqzvector20creation20forms"></span><h2>Vector creation forms<a class="headerlink" href="#vector-creation-forms" title="Link to this heading">¶</a></h2>
 <p>Vectors may be created with an initially empty value array:</p>
@@ -97,6 +146,8 @@ individual vector.</p>
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">vector</span></code> command</a><ul>
+<li><a class="reference internal" href="#vector-types">Vector types</a></li>
+<li><a class="reference internal" href="#graph-and-spline-restrictions">Graph and spline restrictions</a></li>
 <li><a class="reference internal" href="#vector-creation-forms">Vector creation forms</a></li>
 <li><a class="reference internal" href="#vector-instances">Vector instances</a></li>
 </ul>

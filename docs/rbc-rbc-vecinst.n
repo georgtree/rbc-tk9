@@ -59,6 +59,55 @@ x index :
 .PP
 The associated Tcl array additionally supports the special calculated indices min, max, mean, sum, and
 prod\&.
+.SH "COMPLEX VECTOR OPERATIONS"
+.PP
+Most vector instance operations support complex vectors\&. The following table summarizes the current status\&.
+.PP
+.RS 4n
+.nf
+┌───────────┬─────────────────┐
+│ Operation │ Complex vectors │
+├───────────┼─────────────────┤
+│ *         │ Supported       │
+│ +         │ Supported       │
+│ -         │ Supported       │
+│ /         │ Supported       │
+│ append    │ Supported       │
+│ binread   │ Supported       │
+│ clear     │ Supported       │
+│ delete    │ Supported       │
+│ dup       │ Supported       │
+│ expr      │ Supported       │
+│ index     │ Supported       │
+│ length    │ Supported       │
+│ merge     │ Supported       │
+│ normalize │ Not supported   │
+│ offset    │ Supported       │
+│ populate  │ Supported       │
+│ random    │ Supported       │
+│ range     │ Supported       │
+│ search    │ Supported       │
+│ seq       │ Supported       │
+│ set       │ Supported       │
+│ sort      │ Not supported   │
+│ split     │ Supported       │
+│ type      │ Supported       │
+│ variable  │ Supported       │
+└───────────┴─────────────────┘
+.fi
+.RE
+.PP
+Operations that combine vector storage, such as append, merge, set, dup, and split, preserve vector
+types rather than reinterpreting real storage as complex storage or vice versa\&.
+.PP
+normalize remains real-only because its definition depends on a minimum and maximum ordering\&. sort likewise
+remains real-only because complex numbers have no natural ordering relation\&.
+.PP
+search supports exact-value searches on complex vectors\&. A two-bound range search is not defined for complex
+values and is rejected\&.
+.PP
+The calculated Tcl array indices min, max, mean, sum, and prod remain real-only\&. Ordinary numeric
+indices and ranges work with an explicitly mapped complex vector\&.
 .SH "VECTOR EXPRESSIONS"
 .PP
 Vector expressions perform arithmetic, comparison, logical, and mathematical operations on vectors\&.
@@ -233,6 +282,45 @@ vector expr {x >> 1}
 .RE
 .PP
 Values shifted past one end of the vector reappear at the opposite end\&.
+.SS "COMPLEX EXPRESSION OPERATORS"
+.PP
+Real and complex vectors may be mixed in an expression\&. Real operands are promoted to complex values with zero
+imaginary component when required\&.
+.PP
+Complex expressions support:
+.TP
+\(bu
+unary -
+.TP
+\(bu
+unary !
+.TP
+\(bu
++, -, *, and /
+.TP
+\(bu
+exponentiation with ^
+.TP
+\(bu
+circular shifts << and >>
+.TP
+\(bu
+equality and inequality with == and !=
+.TP
+\(bu
+logical && and ||\&.
+.PP
+The remainder operator % and the ordered comparisons <, >, <=, and >= are not supported when either
+operand is complex\&.
+.PP
+Complex exponentiation uses the principal complex value for non-integral exponents\&. A finite integral real
+exponent is handled directly and therefore does not depend on the logarithm branch\&.
+.PP
+Equality compares both the real and imaginary components\&. Logical operations treat a complex value as false
+only when both components are zero\&. Equality and logical operations return real 0\&.0 or 1\&.0 values\&.
+.PP
+Circular shifts preserve complete complex values\&. The shift count must be real; a complex scalar with zero
+imaginary component is accepted as a real shift count\&.
 .SS "MATHEMATICAL FUNCTIONS"
 .PP
 Vector expressions provide mathematical functions in three general categories:
@@ -257,17 +345,21 @@ the same length\&.
 │ Function │ Description                                                                  │
 ├──────────┼──────────────────────────────────────────────────────────────────────────────┤
 │ abs      │ Absolute value                                                               │
+│ arg      │ Phase angle of the component                                                 │
 │ acos     │ Arc cosine                                                                   │
 │ asin     │ Arc sine                                                                     │
 │ atan     │ Arc tangent                                                                  │
 │ ceil     │ Smallest integral value not less than the component                          │
+│ conj     │ Complex conjugate                                                            │
 │ cos      │ Cosine                                                                       │
 │ cosh     │ Hyperbolic cosine                                                            │
 │ exp      │ Exponential                                                                  │
 │ floor    │ Largest integral value not greater than the component                        │
+│ imag     │ Imaginary component                                                          │
 │ log      │ Natural logarithm                                                            │
 │ log10    │ Base-10 logarithm                                                            │
 │ random   │ Generates a pseudo-random value in the range [0\&.0, 1\&.0) for each component   │
+│ real     │ Real component                                                               │
 │ round    │ Rounds to the nearest integral value                                         │
 │ sin      │ Sine                                                                         │
 │ sinh     │ Hyperbolic sine                                                              │
@@ -404,13 +496,64 @@ vector expr {norm(x)}
 # -> 0\&.0 0\&.5 1\&.0
 .fi
 .RE
-.SS "EXPRESSION RESULTS"
 .PP
-The result of vector expr is returned to the caller:
+\fBMathematical functions on complex vectors\fR
+.PP
+Mathematical functions that have an unambiguous complex definition are supported directly\&.
+.PP
+The projection functions return real values:
+.TP
+\(bu
+abs(z) returns the magnitude |z|\&.
+.TP
+\(bu
+arg(z) returns the phase angle\&.
+.TP
+\(bu
+real(z) returns the real component\&.
+.TP
+\(bu
+imag(z) returns the imaginary component\&.
+.PP
+conj, sqrt, exp, log, log10, sin, cos, tan, sinh, cosh, tanh, asin, acos, and atan
+return complex values when their input is complex\&.
+.PP
+ceil, floor, and round operate independently on the real and imaginary components\&.
+.PP
+random applied to a complex vector produces a complex vector in which the real and imaginary components are
+generated independently in the range [0\&.0, 1\&.0)\&.
+.PP
+The following reductions support complex vectors:
 .PP
 .RS 4n
 .nf
-set result [vector expr {x * 2}]
+┌──────────┬─────────┬──────────────────────────────────────────────────────────┐
+│ Function │ Result  │ Complex definition                                       │
+├──────────┼─────────┼──────────────────────────────────────────────────────────┤
+│ adev     │ Real    │ Mean of abs(z - mean(z))                                 │
+│ length   │ Real    │ Number of finite complex values                          │
+│ mean     │ Complex │ Arithmetic mean                                          │
+│ nz       │ Real    │ Number of values other than 0+0i                         │
+│ prod     │ Complex │ Product of the values                                    │
+│ sdev     │ Real    │ Square root of the complex sample variance               │
+│ sum      │ Complex │ Sum of the values                                        │
+│ var      │ Real    │ Sample mean of squared magnitudes about the complex mean │
+└──────────┴─────────┴──────────────────────────────────────────────────────────┘
+.fi
+.RE
+.PP
+kurtosis, max, median, min, q1, q3, and skew remain real-only\&. The vector functions norm and
+sort are also real-only\&.
+.PP
+No implicit ordering of complex numbers is introduced for these operations\&.
+.SS "EXPRESSION RESULTS"
+.PP
+The result of vector expr is returned to the caller\&. Complex values are returned as {real imag} pairs:
+.PP
+.RS 4n
+.nf
+vector expr {{1 2} + {3 -1}}
+# -> {4\&.0 1\&.0}
 .fi
 .RE
 .PP
@@ -422,13 +565,19 @@ x expr {x * 2}
 .fi
 .RE
 .PP
-This permits in-place transformations such as:
+A complex vector can store either a complex result or a real result; a real result is promoted to complex
+values with zero imaginary components\&.
+.PP
+A real vector cannot store a complex expression result:
 .PP
 .RS 4n
 .nf
-x expr {x - mean(x)}
-x expr {abs(x)}
-x expr {norm(x)}
+vector create r
+vector create c -type complex
+
+c set {{1 2} {3 4}}
+r expr {c + 1}
+# error: can't store complex expression result in real vector
 .fi
 .RE
 .SH "C LANGUAGE API"
@@ -464,27 +613,41 @@ version is the minimum Rbc package version required by the extension\&. Rbc_Init
 Rbc package is loaded in the interpreter\&.
 .SS "VECTOR REPRESENTATION"
 .PP
-The public vector structure is:
+Rbc_Vector is an opaque public type:
 .PP
 .RS 4n
 .nf
-typedef struct Rbc_Vector_s {
-    double *valueArr;
-    Tcl_Size numValues;
-    Tcl_Size arraySize;
-    double min, max;
-    int dirty;
-    int reserved;
-} Rbc_Vector;
+typedef struct Rbc_Vector_s Rbc_Vector;
 .fi
 .RE
 .PP
-valueArr contains the double-precision vector components\&. numValues is the logical length of the vector,
-while arraySize is the capacity of the underlying array and is therefore greater than or equal to
-numValues\&.
+Applications must not access the internal vector structure directly\&. Use the public accessor and mutation
+functions described below\&.
 .PP
-Applications should normally use the public accessor functions rather than directly accessing the corresponding
-structure fields\&.
+Every vector has one of two numeric types:
+.PP
+.RS 4n
+.nf
+typedef enum {
+    RBC_VECTOR_REAL = 0,
+    RBC_VECTOR_COMPLEX
+} Rbc_VectorType;
+.fi
+.RE
+.PP
+Complex values use the portable public representation:
+.PP
+.RS 4n
+.nf
+typedef struct {
+    double real;
+    double imag;
+} Rbc_Complex;
+.fi
+.RE
+.PP
+Rbc_Complex deliberately does not use the native C complex type, so the public ABI does not depend on
+compiler-specific complex-number support\&.
 .SS "PUBLIC VECTOR FUNCTIONS"
 .PP
 The following vector functions are exported through the Rbc stubs interface:
@@ -533,95 +696,104 @@ interpreter is available, an explanatory error message is left in its result\&.
 Vector lengths and capacities use Tcl_Size, allowing the C interface to represent Tcl 9-sized vectors\&.
 .SS "READING VECTOR DATA"
 .PP
-Rbc_GetVector obtains the C representation of a vector that already exists in the interpreter\&.
-.PP
-For example, this function calculates the sum of a vector without converting its contents to a Tcl list:
+Rbc_GetVector obtains the opaque representation of an existing real or complex vector\&. Use
+Rbc_VectorGetType before selecting the storage accessor\&.
 .PP
 .RS 4n
 .nf
-static int SumVector(Tcl_Interp *interp, const char *name, double *sumPtr) {
+static int InspectVector(Tcl_Interp *interp, const char *name) {
     Rbc_Vector *vecPtr;
-    double *dataArr;
     Tcl_Size nValues;
-    Tcl_Size i;
-    double sum;
 
     if (Rbc_GetVector(interp, name, &vecPtr) != TCL_OK) {
         return TCL_ERROR;
     }
-    dataArr = Rbc_VectorData(vecPtr);
     nValues = Rbc_VectorLength(vecPtr);
-    sum = 0\&.0;
-    for (i = 0; i < nValues; i++) {
-        sum += dataArr[i];
+    switch (Rbc_VectorGetType(vecPtr)) {
+    case RBC_VECTOR_REAL: {
+        double *dataArr = Rbc_VectorData(vecPtr);
+        /* Use dataArr[0] \&.\&.\&. dataArr[nValues - 1]\&. */
+        break;
     }
-    *sumPtr = sum;
+    case RBC_VECTOR_COMPLEX: {
+        Rbc_Complex *dataArr = Rbc_VectorComplexData(vecPtr);
+        /* Use dataArr[i]\&.real and dataArr[i]\&.imag\&. */
+        break;
+    }
+    }
     return TCL_OK;
 }
 .fi
 .RE
 .PP
-The pointer returned by Rbc_VectorData remains owned by Rbc\&. Do not free it\&. It may also become invalid after
-an operation that resizes, resets, or destroys the vector, so obtain it again after such an operation\&.
+Storage returned by either accessor belongs to the vector and must not be freed by the caller\&. The pointer may
+become invalid after an operation that resizes, resets, or destroys the vector\&.
 .SS "UPDATING VECTORS FROM C"
 .PP
-Rbc_ResetVector is the normal way to install externally generated data into an Rbc vector\&. It also notifies
-clients of the vector that its contents have changed\&.
+Rbc_VectorData and Rbc_VectorComplexData return mutable storage\&. A caller may update that storage directly
+as long as no operation that can resize or replace the vector is performed while the pointer is being used\&.
 .PP
-For example, Tcl may create two vectors and use them as graph data:
+Direct writes do not automatically invalidate cached values or notify vector clients\&. After modifying existing
+storage in place, call:
 .PP
 .RS 4n
 .nf
-::rbc::vector create X Y
-graph \&.g
-\&.g line create signal -xdata X -ydata Y
+Rbc_VectorChanged(vecPtr);
 .fi
 .RE
 .PP
-C code can then update both vectors:
+For example:
 .PP
 .RS 4n
 .nf
-#include <math\&.h>
-#include <rbc\&.h>
-
-static int UpdateSignal(Tcl_Interp *interp) {
-    Rbc_Vector *xVecPtr;
-    Rbc_Vector *yVecPtr;
-    double x[100];
-    double y[100];
+static int FillComplexVector(Tcl_Interp *interp, const char *name) {
+    Rbc_Vector *vecPtr;
+    Rbc_Complex *dataArr;
+    Tcl_Size nValues;
     Tcl_Size i;
 
-    if (Rbc_GetVector(interp, "X", &xVecPtr) != TCL_OK) {
+    if (Rbc_GetVector(interp, name, &vecPtr) != TCL_OK) {
         return TCL_ERROR;
     }
-    if (Rbc_GetVector(interp, "Y", &yVecPtr) != TCL_OK) {
+    if (Rbc_VectorGetType(vecPtr) != RBC_VECTOR_COMPLEX) {
+        Tcl_SetObjResult(interp,
+            Tcl_NewStringObj("vector must be complex", -1));
         return TCL_ERROR;
     }
-    for (i = 0; i < 100; i++) {
-        x[i] = (double)i * 0\&.01;
-        y[i] = sin(x[i]);
+
+    dataArr = Rbc_VectorComplexData(vecPtr);
+    nValues = Rbc_VectorLength(vecPtr);
+
+    for (i = 0; i < nValues; i++) {
+        dataArr[i]\&.real = (double)i;
+        dataArr[i]\&.imag = -(double)i;
     }
-    if (Rbc_ResetVector(xVecPtr, x, 100, 100, TCL_VOLATILE) != TCL_OK) {
-        return TCL_ERROR;
-    }
-    if (Rbc_ResetVector(yVecPtr, y, 100, 100, TCL_VOLATILE) != TCL_OK) {
-        return TCL_ERROR;
-    }
+
+    Rbc_VectorChanged(vecPtr);
     return TCL_OK;
 }
 .fi
 .RE
 .PP
-TCL_VOLATILE is appropriate here because x and y are local arrays\&. Rbc copies the supplied values into
-storage that it owns before Rbc_ResetVector returns\&.
+Rbc_VectorChanged preserves the current data pointer, length, capacity, vector type, and storage ownership
+policy\&. It flushes the associated Tcl-array cache when required and performs the normal vector-client update
+notification\&.
+.PP
+Do not use Rbc_ResetVector or Rbc_ResetComplexVector merely to report an in-place modification\&. The reset
+functions define a new storage and ownership contract, even when the supplied address happens to equal the
+vector's current data pointer\&.
 .PP
 Graph elements or other Rbc clients using X and Y are notified that the vector contents have changed and
 can update themselves without recreating the vectors\&.
-.SS "DATA OWNERSHIP"
+.SS "REPLACING VECTOR STORAGE"
 .PP
-The freeProc argument of Rbc_ResetVector specifies who owns dataArr and how it will eventually be
-released\&.
+Rbc_ResetVector replaces the storage of a real vector\&. Rbc_ResetComplexVector performs the corresponding
+operation for a complex vector\&.
+.PP
+Calling the real reset function for a complex vector, or the complex reset function for a real vector, returns
+TCL_ERROR\&.
+.PP
+Both functions accept nValues, arraySize, and freeProc with the same ownership rules\&.
 .PP
 .RS 4n
 .nf
@@ -640,6 +812,12 @@ released\&.
 └────────────────────────┴──────────────────────────────────────────────────────────────────────────────────────┘
 .fi
 .RE
+.PP
+The ownership policy supplied to a reset operation becomes the vector's storage contract\&. This is true even if
+the supplied data pointer is identical to the vector's current data pointer\&.
+.PP
+Therefore use a reset function when installing or replacing storage, and use Rbc_VectorChanged when only the
+contents of already-installed storage have been modified\&.
 .PP
 nValues specifies the logical number of values currently stored in the vector\&. arraySize specifies the
 capacity of the supplied array and must be greater than or equal to nValues\&.
@@ -678,9 +856,58 @@ static int SetGeneratedData(Tcl_Interp *interp, const char *name) {
 .RE
 .PP
 When TCL_DYNAMIC is used, ownership transfers to Rbc only after a successful Rbc_ResetVector call\&.
+.PP
+Complex reset example:
+.PP
+.RS 4n
+.nf
+static int SetComplexData(Tcl_Interp *interp, const char *name) {
+    Rbc_Vector *vecPtr;
+    Rbc_Complex values[2];
+
+    if (Rbc_GetVector(interp, name, &vecPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    values[0]\&.real = 1\&.0;
+    values[0]\&.imag = 2\&.0;
+    values[1]\&.real = 3\&.0;
+    values[1]\&.imag = -4\&.0;
+
+    return Rbc_ResetComplexVector(
+        vecPtr, values, 2, 2, TCL_VOLATILE);
+}
+.fi
+.RE
 .SS "CREATING VECTORS FROM C"
 .PP
-Rbc_CreateVector creates the Tcl-visible vector and returns its C representation in one operation\&.
+Rbc_CreateVector is the compatibility interface for creating a real vector:
+.PP
+.RS 4n
+.nf
+Rbc_Vector *realPtr;
+
+if (Rbc_CreateVector(interp, "x", 100, &realPtr) != TCL_OK) {
+    return TCL_ERROR;
+}
+.fi
+.RE
+.PP
+To select the numeric type explicitly, use Rbc_CreateVectorWithType:
+.PP
+.RS 4n
+.nf
+Rbc_Vector *complexPtr;
+
+if (Rbc_CreateVectorWithType(
+        interp, "z", 100, RBC_VECTOR_COMPLEX, &complexPtr) != TCL_OK) {
+    return TCL_ERROR;
+}
+.fi
+.RE
+.PP
+Rbc_CreateVectorWithType follows the Tcl-level mapping convention: a newly created real vector receives its
+traditional automatic Tcl array mapping, while a newly created complex vector does not\&.
 .PP
 For example:
 .PP
