@@ -1736,5 +1736,102 @@ namespace eval vector.expr {
         catch {vector destroy C}
     } -result {0.0}
 
+    # ------------------------------------------------------------------------------------
+    # Purpose: Test complex equality operators.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.expr.A.12.1 {
+        complex equality
+    } -setup {
+        vector create A -type complex
+        vector create B -type complex
+        A set {{1 2} {3 0} {-1 4}}
+        B set {{1 2} {3 1} {-1 4}}
+    } -body {
+        vector expr {A == B}
+    } -cleanup {
+        catch {vector destroy A}
+        catch {vector destroy B}
+    } -result {1.0 0.0 1.0}
+
+    test RBC.vector.expr.A.12.2 {
+        complex inequality
+    } -setup {
+        vector create A -type complex
+        vector create B -type complex
+
+        A set {{1 2} {3 0} {-1 4}}
+        B set {{1 2} {3 1} {-1 4}}
+    } -body {
+        vector expr {A != B}
+    } -cleanup {
+        catch {vector destroy A}
+        catch {vector destroy B}
+    } -result {0.0 1.0 0.0}
+
+    test RBC.vector.expr.A.12.3 {
+        complex vector equality with real scalar
+    } -setup {
+        vector create C -type complex
+        C set {{2 0} {2 1} {3 0}}
+    } -body {
+        vector expr {C == 2}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {1.0 0.0 0.0}
+
+    test RBC.vector.expr.A.12.4 {
+        mixed real complex equality
+    } -setup {
+        vector create R
+        R set {2 3 2}
+    } -body {
+        vector expr {R == {2 0}}
+    } -cleanup {
+        catch {vector destroy R}
+    } -result {1.0 0.0 1.0}
+
+    test RBC.vector.expr.A.12.5 {
+        complex scalar first equality
+    } -setup {
+        vector create R
+        R set {2 3 2 4}
+    } -body {
+        vector expr {{2 0} == R}
+    } -cleanup {
+        catch {vector destroy R}
+    } -result {1.0 0.0 1.0 0.0}
+
+    test RBC.vector.expr.A.12.6 {
+        complex comparison returns real vector
+    } -setup {
+        vector create C -type complex
+        C set {{1 2} {3 4} {1 2}}
+    } -body {
+        vector expr {(C == {1 2}) + 10}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {11.0 10.0 11.0}
+
+    test RBC.vector.expr.A.12.7 {
+        complex equality compares imaginary component
+    } -body {
+        list [vector expr {{1 0} == 1}] [vector expr {{1 1} == 1}] [vector expr {{1 1} != 1}]
+    } -result {1.0 0.0 1.0}
+
+    test RBC.vector.expr.A.12.8 {
+        complex equality different vector lengths
+    } -setup {
+        vector create A -type complex
+        vector create B -type complex
+        A set {{1 1} {2 2}}
+        B set {{1 1} {2 2} {3 3}}
+    } -body {
+        set code [catch { vector expr {A == B} } message]
+        list $code $message
+    } -cleanup {
+        catch {vector destroy A}
+        catch {vector destroy B}
+    } -result {1 {vectors are different lengths}}
+
 	cleanupTests
 }

@@ -120,6 +120,7 @@ static Rbc_Complex ComplexProduct(VectorObject *vPtr);
 static int ComplexScalarFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr);
 static double ComplexLength(VectorObject *vPtr);
 static int ComplexRealScalarFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr);
+static int ApplyComplexEqualityOperator(Tcl_Interp *interp, int operator, VectorObject * vPtr, VectorObject *v2Ptr);
 static double Random(double value);
 static double Mean(Rbc_Vector *vecPtr);
 static double Sum(Rbc_Vector *vecPtr);
@@ -376,10 +377,78 @@ static int ApplyComplexBinaryValue(Tcl_Interp *interp, int operator, Rbc_Complex
     return TCL_ERROR;
 }
 
+static int ApplyComplexEqualityOperator(Tcl_Interp *interp, int operator, VectorObject * vPtr, VectorObject *v2Ptr) {
+    double *newArr;
+    size_t byteCount;
+    Tcl_Size length;
+    Tcl_Size i;
+
+    assert((operator== EQUAL) || (operator== NEQ));
+    /*
+     * Preserve the existing expression broadcasting rules.
+     */
+    if (v2Ptr->length == 1) {
+        length = vPtr->length;
+    } else if (vPtr->length == 1) {
+        length = v2Ptr->length;
+    } else {
+        if (vPtr->length != v2Ptr->length) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("vectors are different lengths", -1));
+            return TCL_ERROR;
+        }
+        length = vPtr->length;
+    }
+    if (GetDoubleArrayByteCount(interp, length, &byteCount) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    newArr = NULL;
+    if (byteCount > 0) {
+        newArr = Tcl_AttemptAlloc(byteCount);
+        if (newArr == NULL) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate real expression vector", -1));
+            return TCL_ERROR;
+        }
+    }
+    /*
+     * Compute the complete result before replacing vPtr's storage,
+     * since vPtr is also one of the operands.
+     */
+    for (i = 0; i < length; i++) {
+        Rbc_Complex a;
+        Rbc_Complex b;
+        int equal;
+
+        if (vPtr->length == 1) {
+            a = Rbc_VectorValueAsComplex(vPtr, 0);
+        } else {
+            a = Rbc_VectorValueAsComplex(vPtr, i);
+        }
+        if (v2Ptr->length == 1) {
+            b = Rbc_VectorValueAsComplex(v2Ptr, 0);
+        } else {
+            b = Rbc_VectorValueAsComplex(v2Ptr, i);
+        }
+        equal = (a.real == b.real) && (a.imag == b.imag);
+        newArr[i] = (double)((operator== EQUAL) ? equal : !equal);
+    }
+    FreeExpressionData(vPtr);
+    vPtr->data.real = newArr;
+    vPtr->type = RBC_VECTOR_REAL;
+    vPtr->length = length;
+    vPtr->size = length;
+    vPtr->first = 0;
+    vPtr->last = length - 1;
+    vPtr->freeProc = (newArr == NULL) ? TCL_STATIC : TCL_DYNAMIC;
+    return TCL_OK;
+}
+
 static int ApplyComplexBinaryOperator(Tcl_Interp *interp, int operator, VectorObject * vPtr, VectorObject *v2Ptr) {
     Tcl_Size i;
 
     switch (operator) {
+    case EQUAL:
+    case NEQ:
+        return ApplyComplexEqualityOperator(interp, operator, vPtr, v2Ptr);
     case PLUS:
     case MINUS:
     case MULT:
