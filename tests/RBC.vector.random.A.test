@@ -60,6 +60,69 @@ namespace eval vector.random {
 	} -cleanup {
 		vector destroy Vector1
 	} -result {1}	
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Tests random to verify it fills both components of a complex vector with
+	# values in the range [0,1).
+	# ------------------------------------------------------------------------------------
+	test RBC.vector.random.A.2.1 {
+	    Test random: complex vector
+	} -setup {
+		vector create Vector1 -type complex
+		Vector1 length 5
+	} -body {
+		Vector1 random
+		foreach value [Vector1 range 0 end] {
+		    lassign $value real imag
+		    if {$real < 0.0 || $real >= 1.0 ||
+		        $imag < 0.0 || $imag >= 1.0} {
+		        return 0
+		    }
+		}
+		return 1
+	} -cleanup {
+		catch {vector destroy Vector1}
+	} -result {1}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Tests random to verify it replaces the values of an initialized complex
+	# vector while preserving its length and type.
+	# ------------------------------------------------------------------------------------
+	test RBC.vector.random.A.2.2 {
+	    Test random: initialized complex vector
+	} -setup {
+		vector create Vector1 -type complex
+		Vector1 set {{1 2} {3 4} {5 6} {7 8} {9 10}}
+	} -body {
+		Vector1 random
+		set valid 1
+		foreach value [Vector1 range 0 end] {
+		    lassign $value real imag
+		    if {$real < 0.0 || $real >= 1.0 ||
+		        $imag < 0.0 || $imag >= 1.0} {
+		        set valid 0
+		        break
+		    }
+		}
+		list $valid [Vector1 type] [Vector1 length]
+	} -cleanup {
+		catch {vector destroy Vector1}
+	} -result {1 complex 5}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Tests random to verify it works on an empty complex vector without changing
+	# its type or length.
+	# ------------------------------------------------------------------------------------
+	test RBC.vector.random.A.2.3 {
+	    Test random: empty complex vector
+	} -setup {
+		vector create Vector1 -type complex
+	} -body {
+		Vector1 random
+		list [Vector1 type] [Vector1 length]
+	} -cleanup {
+		catch {vector destroy Vector1}
+	} -result {complex 0}
 	
 	cleanupTests
 }

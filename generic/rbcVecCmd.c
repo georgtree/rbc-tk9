@@ -174,7 +174,8 @@ static const VectorInstOpSpec vectorInstOpCmd[] = {{{"*", 3, 3, "list"}, ArithOp
 static int ComplexOpSupported(RbcVectorCmdOp *proc) {
     return ((proc == ExprOp) || (proc == AppendOp) || (proc == ArithOp) || (proc == ClearOp) || (proc == DeleteOp) ||
             (proc == DupOp) || (proc == IndexOp) || (proc == LengthOp) || (proc == MergeOp) || (proc == OffsetOp) ||
-            (proc == RangeOp) || (proc == SetOp) || (proc == SplitOp) || (proc == TypeOp) || (proc == VariableOp));
+            (proc == RandomOp) || (proc == RangeOp) || (proc == SetOp) || (proc == SplitOp) || (proc == TypeOp) ||
+            (proc == VariableOp));
 }
 
 /*
@@ -1628,8 +1629,21 @@ static int RandomOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
     (void)interp;
     (void)objc;
     (void)objv;
-    for (i = 0; i < vPtr->length; i++) {
-        vPtr->data.real[i] = Rbc_RandomDouble();
+    switch (vPtr->type) {
+    case RBC_VECTOR_REAL:
+        for (i = 0; i < vPtr->length; i++) {
+            vPtr->data.real[i] = Rbc_RandomDouble();
+        }
+        break;
+    case RBC_VECTOR_COMPLEX:
+        for (i = 0; i < vPtr->length; i++) {
+            vPtr->data.complex[i].real = Rbc_RandomDouble();
+            vPtr->data.complex[i].imag = Rbc_RandomDouble();
+        }
+        break;
+    default:
+        Tcl_Panic("bad vector type %d", (int)vPtr->type);
+        return TCL_ERROR;
     }
     if (vPtr->flush) {
         Rbc_VectorFlushCache(vPtr);
