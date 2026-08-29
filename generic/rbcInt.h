@@ -35,6 +35,7 @@
 #define PTR2UINT(p) ((size_t)(p))
 #endif
 
+#include <stdint.h>
 #include <stdio.h>
 #include <assert.h>
 
