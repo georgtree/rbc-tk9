@@ -1929,5 +1929,101 @@ namespace eval vector.expr {
         catch {vector destroy R}
     } -result {{2.0 3.0 4.0 1.0} {4.0 1.0 2.0 3.0}}
 
+    # ------------------------------------------------------------------------------------
+    # Purpose: Test logical operators with complex vectors.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.expr.A.14.1 {
+        complex logical not
+    } -setup {
+        vector create C -type complex
+        C set {{0 0} {1 0} {0 2} {-3 4}}
+    } -body {
+        vector expr {!C}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {1.0 0.0 0.0 0.0}
+
+    test RBC.vector.expr.A.14.2 {
+        complex truth includes imaginary component
+    } -body {
+        list [vector expr {!{0 0}}] [vector expr {!{1 0}}] [vector expr {!{0 1}}]
+    } -result {1.0 0.0 0.0}
+
+    test RBC.vector.expr.A.14.3 {
+        complex logical and
+    } -setup {
+        vector create A -type complex
+        vector create B -type complex
+        A set {{0 0} {1 0} {0 2} {1 1}}
+        B set {{1 0} {0 0} {3 0} {0 4}}
+    } -body {
+        vector expr {A && B}
+    } -cleanup {
+        catch {vector destroy A}
+        catch {vector destroy B}
+    } -result {0.0 0.0 1.0 1.0}
+
+    test RBC.vector.expr.A.14.4 {
+        complex logical or
+    } -setup {
+        vector create A -type complex
+        vector create B -type complex
+        A set {{0 0} {1 0} {0 0} {1 1}}
+        B set {{0 0} {0 0} {0 3} {0 4}}
+    } -body {
+        vector expr {A || B}
+    } -cleanup {
+        catch {vector destroy A}
+        catch {vector destroy B}
+    } -result {0.0 1.0 1.0 1.0}
+
+    test RBC.vector.expr.A.14.5 {
+        complex logical and real scalar
+    } -setup {
+        vector create C -type complex
+        C set {{0 0} {1 0} {0 2}}
+    } -body {
+        vector expr {C && 1}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {0.0 1.0 1.0}
+
+    test RBC.vector.expr.A.14.6 {
+        complex logical scalar first
+    } -setup {
+        vector create C -type complex
+        C set {{0 0} {1 0} {0 2}}
+    } -body {
+        vector expr {{0 1} && C}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {0.0 1.0 1.0}
+
+    test RBC.vector.expr.A.14.7 {
+        complex logical result is real
+    } -setup {
+        vector create C -type complex
+        C set {{0 0} {1 2} {0 3}}
+    } -body {
+        vector expr {(C || 0) + 10}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {10.0 11.0 11.0}
+
+    test RBC.vector.expr.A.14.8 {
+        complex logical vectors different lengths
+    } -setup {
+        vector create A -type complex
+        vector create B -type complex
+        A set {{1 0} {0 0}}
+        B set {{1 0} {0 0} {2 0}}
+    } -body {
+        set code [catch {vector expr {A && B}} message]
+        list $code $message
+    } -cleanup {
+        catch {vector destroy A}
+        catch {vector destroy B}
+    } -result {1 {vectors are different lengths}}
+
 	cleanupTests
 }
