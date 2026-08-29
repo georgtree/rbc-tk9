@@ -174,8 +174,8 @@ static const VectorInstOpSpec vectorInstOpCmd[] = {{{"*", 3, 3, "list"}, ArithOp
 static int ComplexOpSupported(RbcVectorCmdOp *proc) {
     return ((proc == ExprOp) || (proc == AppendOp) || (proc == ArithOp) || (proc == ClearOp) || (proc == DeleteOp) ||
             (proc == DupOp) || (proc == IndexOp) || (proc == LengthOp) || (proc == MergeOp) || (proc == OffsetOp) ||
-            (proc == RandomOp) || (proc == RangeOp) || (proc == SetOp) || (proc == SplitOp) || (proc == TypeOp) ||
-            (proc == VariableOp));
+            (proc == PopulateOp) || (proc == RandomOp) || (proc == RangeOp) || (proc == SetOp) || (proc == SplitOp) ||
+            (proc == TypeOp) || (proc == VariableOp));
 }
 
 /*
@@ -1489,10 +1489,7 @@ static int PopulateOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
     Tcl_Size newSize;
     Tcl_Size i;
     Tcl_Size j;
-    double *valuePtr;
     const char *name;
-    double range;
-    double slice;
     int isNew;
 
     (void)objc;
@@ -1534,7 +1531,8 @@ static int PopulateOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
         }
     }
     name = Tcl_GetString(objv[2]);
-    v2Ptr = Rbc_VectorCreate(vPtr->dataPtr, name, name, name, RBC_VECTOR_REAL, &isNew);
+    v2Ptr =
+        Rbc_VectorCreate(vPtr->dataPtr, name, name, (vPtr->type == RBC_VECTOR_REAL) ? name : NULL, vPtr->type, &isNew);
     if (v2Ptr == NULL) {
         return TCL_ERROR;
     }
@@ -1552,6 +1550,7 @@ static int PopulateOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
             Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate temporary vector", -1));
             return TCL_ERROR;
         }
+        tmpPtr->type = vPtr->type;
         if (Rbc_VectorDuplicate(tmpPtr, vPtr) != TCL_OK) {
             Rbc_VectorFree(tmpPtr);
             return TCL_ERROR;
@@ -1566,24 +1565,57 @@ static int PopulateOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
     }
     if (sourcePtr->length > 0) {
         valuesPerInterval = density + 1;
-        valuePtr = v2Ptr->data.real;
-        for (i = 0; i < (sourcePtr->length - 1); i++) {
-            range = sourcePtr->data.real[i + 1] - sourcePtr->data.real[i];
-            slice = range / (double)valuesPerInterval;
-            /*
-             * Write the interval's starting value followed by the
-             * requested intermediate values. The ending value is
-             * written as the start of the next interval.
-             */
-            for (j = 0; j < valuesPerInterval; j++) {
-                *valuePtr++ = sourcePtr->data.real[i] + (slice * (double)j);
+        switch (sourcePtr->type) {
+        case RBC_VECTOR_REAL: {
+            double *valuePtr;
+            double range;
+            double slice;
+
+            valuePtr = v2Ptr->data.real;
+            for (i = 0; i < (sourcePtr->length - 1); i++) {
+                range = sourcePtr->data.real[i + 1] - sourcePtr->data.real[i];
+                slice = range / (double)valuesPerInterval;
+                /*
+                 * Write the interval's starting value followed by the
+                 * requested intermediate values. The ending value is
+                 * written as the start of the next interval.
+                 */
+                for (j = 0; j < valuesPerInterval; j++) {
+                    *valuePtr++ = sourcePtr->data.real[i] + (slice * (double)j);
+                }
             }
+            /*
+             * The final source value is not written by the interval loop.
+             */
+            *valuePtr++ = sourcePtr->data.real[sourcePtr->length - 1];
+            assert(valuePtr == (v2Ptr->data.real + v2Ptr->length));
+            break;
         }
-        /*
-         * The final source value is not written by the interval loop.
-         */
-        *valuePtr++ = sourcePtr->data.real[sourcePtr->length - 1];
-        assert(valuePtr == (v2Ptr->data.real + v2Ptr->length));
+        case RBC_VECTOR_COMPLEX: {
+            Rbc_Complex *valuePtr;
+            double realRange, imagRange;
+            double realSlice, imagSlice;
+
+            valuePtr = v2Ptr->data.complex;
+            for (i = 0; i < (sourcePtr->length - 1); i++) {
+                realRange = sourcePtr->data.complex[i + 1].real - sourcePtr->data.complex[i].real;
+                imagRange = sourcePtr->data.complex[i + 1].imag - sourcePtr->data.complex[i].imag;
+                realSlice = realRange / (double)valuesPerInterval;
+                imagSlice = imagRange / (double)valuesPerInterval;
+                for (j = 0; j < valuesPerInterval; j++) {
+                    valuePtr->real = sourcePtr->data.complex[i].real + (realSlice * (double)j);
+                    valuePtr->imag = sourcePtr->data.complex[i].imag + (imagSlice * (double)j);
+                    valuePtr++;
+                }
+            }
+            *valuePtr++ = sourcePtr->data.complex[sourcePtr->length - 1];
+            assert(valuePtr == (v2Ptr->data.complex + v2Ptr->length));
+            break;
+        }
+        default:
+            Tcl_Panic("bad vector type %d", (int)sourcePtr->type);
+            break;
+        }
     }
     if (tmpPtr != NULL) {
         Rbc_VectorFree(tmpPtr);
