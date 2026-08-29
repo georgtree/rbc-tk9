@@ -2182,5 +2182,74 @@ namespace eval vector.expr {
                 [expr {$imag >= 0.0 && $imag < 1.0}]
     } -result {1 2 1 1}
 
+    # ------------------------------------------------------------------------------------
+    # Purpose: Test componentwise rounding functions with complex vectors.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.expr.A.17.1 {
+        complex ceil
+    } -setup {
+        vector create C -type complex
+        C set {{1.2 2.8} {-1.2 -2.8} {3.0 -4.0}}
+    } -body {
+        vector expr {ceil(C)}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {{2.0 3.0} {-1.0 -2.0} {3.0 -4.0}}
+
+    test RBC.vector.expr.A.17.2 {
+        complex floor
+    } -setup {
+        vector create C -type complex
+        C set {{1.2 2.8} {-1.2 -2.8} {3.0 -4.0}}
+    } -body {
+        vector expr {floor(C)}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {{1.0 2.0} {-2.0 -3.0} {3.0 -4.0}}
+
+    test RBC.vector.expr.A.17.3 {
+        complex round
+    } -setup {
+        vector create C -type complex
+        C set {{1.4 1.5} {1.6 2.5} {-1.4 -1.5} {-1.6 -2.5}}
+    } -body {
+        vector expr {round(C)}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {{1.0 2.0} {2.0 3.0} {-1.0 -2.0} {-2.0 -3.0}}
+
+    test RBC.vector.expr.A.17.4 {
+        real rounding functions unchanged
+    } -setup {
+        vector create R
+        R set {1.2 -1.2 2.5 -2.5}
+    } -body {
+        list [vector expr {ceil(R)}] [vector expr {floor(R)}] [vector expr {round(R)}]
+    } -cleanup {
+        catch {vector destroy R}
+    } -result {{2.0 -1.0 3.0 -2.0} {1.0 -2.0 2.0 -3.0} {1.0 -1.0 3.0 -3.0}}
+
+    test RBC.vector.expr.A.17.5 {
+        complex round selected range
+    } -setup {
+        vector create C -type complex
+        C set {{1.1 1.2} {2.4 2.6} {-3.4 -3.6} {4.1 4.2}}
+    } -body {
+        vector expr {round(C(1:2))}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {{2.0 3.0} {-3.0 -4.0}}
+
+    test RBC.vector.expr.A.17.6 {
+        complex round result remains complex
+    } -setup {
+        vector create C -type complex
+        C set {{1.2 2.7} {-3.2 4.4}}
+    } -body {
+        vector expr {round(C) + {0.5 0.25}}
+    } -cleanup {
+        catch {vector destroy C}
+    } -result {{1.5 3.25} {-2.5 4.25}}
+
 	cleanupTests
 }

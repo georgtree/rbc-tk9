@@ -122,6 +122,9 @@ static double ComplexLength(VectorObject *vPtr);
 static int ComplexRealScalarFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr);
 static int ApplyComplexBooleanOperator(Tcl_Interp *interp, int operator, VectorObject * vPtr, VectorObject *v2Ptr);
 static int ApplyComplexNotOperator(Tcl_Interp *interp, VectorObject *vPtr);
+static Rbc_Complex ComplexCeil(Rbc_Complex value);
+static Rbc_Complex ComplexFloor(Rbc_Complex value);
+static Rbc_Complex ComplexRound(Rbc_Complex value);
 static double Random(double value);
 static Rbc_Complex ComplexRandom(Rbc_Complex value);
 static double Mean(Rbc_Vector *vecPtr);
@@ -182,6 +185,9 @@ static ComplexScalarFunction productFunction = {Product, ComplexProduct};
 static ComplexRealScalarFunction lengthFunction = {Length, ComplexLength};
 static ComplexRealScalarFunction nonzerosFunction = {Nonzeros, ComplexNonzeros};
 static ComplexComponentFunction randomFunction = {Random, ComplexRandom};
+static ComplexComponentFunction ceilFunction = {ceil, ComplexCeil};
+static ComplexComponentFunction floorFunction = {floor, ComplexFloor};
+static ComplexComponentFunction roundFunction = {Round, ComplexRound};
 
 static MathFunction mathFunctions[] = {
     {"abs", (GenericMathProc *)ComplexRealFunc, (ClientData)&absFunction},
@@ -193,11 +199,11 @@ static MathFunction mathFunctions[] = {
     {"asin", (GenericMathProc *)ComplexComponentFunc, (ClientData)&asinFunction},
     {"atan", (GenericMathProc *)ComplexComponentFunc, (ClientData)&atanFunction},
     {"adev", (GenericMathProc *)ScalarFunc, (ClientData)AvgDeviation},
-    {"ceil", (GenericMathProc *)ComponentFunc, (ClientData)ceil},
+    {"ceil", (GenericMathProc *)ComplexComponentFunc, (ClientData)&ceilFunction},
     {"cos", (GenericMathProc *)ComplexComponentFunc, (ClientData)&cosFunction},
     {"cosh", (GenericMathProc *)ComplexComponentFunc, (ClientData)&coshFunction},
     {"exp", (GenericMathProc *)ComplexComponentFunc, (ClientData)&expFunction},
-    {"floor", (GenericMathProc *)ComponentFunc, (ClientData)floor},
+    {"floor", (GenericMathProc *)ComplexComponentFunc, (ClientData)&floorFunction},
     {"kurtosis", (GenericMathProc *)ScalarFunc, (ClientData)Kurtosis},
     {"length", (GenericMathProc *)ComplexRealScalarFunc, (ClientData)&lengthFunction},
     {"log", (GenericMathProc *)ComplexComponentFunc, (ClientData)&logFunction},
@@ -212,7 +218,7 @@ static MathFunction mathFunctions[] = {
     {"q3", (GenericMathProc *)ScalarFunc, (ClientData)Q3},
     {"prod", (GenericMathProc *)ComplexScalarFunc, (ClientData)&productFunction},
     {"random", (GenericMathProc *)ComplexComponentFunc, (ClientData)&randomFunction},
-    {"round", (GenericMathProc *)ComponentFunc, (ClientData)Round},
+    {"round", (GenericMathProc *)ComplexComponentFunc, (ClientData)&roundFunction},
     {"sdev", (GenericMathProc *)ScalarFunc, (ClientData)StdDeviation},
     {"sin", (GenericMathProc *)ComplexComponentFunc, (ClientData)&sinFunction},
     {"sinh", (GenericMathProc *)ComplexComponentFunc, (ClientData)&sinhFunction},
@@ -2006,6 +2012,24 @@ static double ComplexNonzeros(VectorObject *vPtr) {
         }
     }
     return (double)count;
+}
+
+static Rbc_Complex ComplexCeil(Rbc_Complex value) {
+    value.real = ceil(value.real);
+    value.imag = ceil(value.imag);
+    return value;
+}
+
+static Rbc_Complex ComplexFloor(Rbc_Complex value) {
+    value.real = floor(value.real);
+    value.imag = floor(value.imag);
+    return value;
+}
+
+static Rbc_Complex ComplexRound(Rbc_Complex value) {
+    value.real = Round(value.real);
+    value.imag = Round(value.imag);
+    return value;
 }
 
 /*
