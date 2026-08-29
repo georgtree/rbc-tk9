@@ -3018,6 +3018,17 @@ Tcl_Size *Rbc_VectorSortIndex(VectorObject **vPtrPtr, Tcl_Size nVectors) {
     size_t byteCount;
 
     vPtr = *vPtrPtr;
+    /*
+     * Sorting requires an ordering relation.  Complex values have no
+     * natural ordering, and the sorting implementation operates on
+     * real vector storage.
+     */
+    for (i = 0; i < nVectors; i++) {
+        if (vPtrPtr[i]->type != RBC_VECTOR_REAL) {
+            Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("can't sort complex vectors", -1));
+            return NULL;
+        }
+    }
     length = vPtr->last - vPtr->first + 1;
     if (length == 0) {
         /*

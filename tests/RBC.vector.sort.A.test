@@ -163,6 +163,41 @@ namespace eval vector.sort {
     } -cleanup {
         vector destroy Vector1
     } -result {0 0}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure sort rejects a complex primary vector because complex values have
+    # no natural ordering.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.sort.A.4.1 {
+        vector sort: complex primary vector
+    } -setup {
+        vector create Vector1 -type complex
+        Vector1 set {{3 4} {1 2} {5 6}}
+    } -body {
+        set code [catch {Vector1 sort} message]
+        list $code $message [Vector1 range 0 end]
+    } -cleanup {
+        vector destroy Vector1
+    } -result {1 {operation "sort" is not supported for complex vectors} {{3.0 4.0} {1.0 2.0} {5.0 6.0}}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure a complex vector cannot participate as an auxiliary sort key and
+    # that neither vector is modified when the operation is rejected.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.sort.A.4.2 {
+        vector sort: complex auxiliary vector
+    } -setup {
+        vector create Vector1
+        Vector1 set {3 1 2}
+        vector create Vector2 -type complex
+        Vector2 set {{30 3} {10 1} {20 2}}
+    } -body {
+        set code [catch {Vector1 sort Vector2} message]
+        list $code $message [Vector1 range 0 end] [Vector2 range 0 end]
+    } -cleanup {
+        vector destroy Vector1
+        vector destroy Vector2
+    } -result {1 {can't sort complex vectors} {3.0 1.0 2.0} {{30.0 3.0} {10.0 1.0} {20.0 2.0}}}
 	
 	cleanupTests
 }

@@ -59,7 +59,23 @@ namespace eval vector.normalize {
 	    Vector1 normalize
 	} -cleanup {
 	    vector destroy Vector1
-	} -result {}	
+	} -result {}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure normalize rejects complex vectors because min-max normalization
+    # requires an ordering relation.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.normalize.A.2.1 {
+        vector normalize: complex vector
+    } -setup {
+        vector create Vector1 -type complex
+        Vector1 set {{1 2} {3 4} {5 6}}
+    } -body {
+        set code [catch {Vector1 normalize} message]
+        list $code $message [Vector1 range 0 end]
+    } -cleanup {
+        vector destroy Vector1
+    } -result {1 {operation "normalize" is not supported for complex vectors} {{1.0 2.0} {3.0 4.0} {5.0 6.0}}}
 	
 	cleanupTests
 }
