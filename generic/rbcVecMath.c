@@ -133,6 +133,7 @@ static double Length(Rbc_Vector *vecPtr);
 static double Median(Rbc_Vector *vecPtr);
 static int Norm(Rbc_Vector *vecPtr);
 static double Nonzeros(Rbc_Vector *vecPtr);
+static double ComplexNonzeros(VectorObject *vPtr);
 static double Q1(Rbc_Vector *vecPtr);
 static double Q3(Rbc_Vector *vecPtr);
 static double Round(double value);
@@ -178,6 +179,7 @@ static ComplexScalarFunction sumFunction = {Sum, ComplexSum};
 static ComplexScalarFunction meanFunction = {Mean, ComplexMean};
 static ComplexScalarFunction productFunction = {Product, ComplexProduct};
 static ComplexRealScalarFunction lengthFunction = {Length, ComplexLength};
+static ComplexRealScalarFunction nonzerosFunction = {Nonzeros, ComplexNonzeros};
 
 static MathFunction mathFunctions[] = {
     {"abs", (GenericMathProc *)ComplexRealFunc, (ClientData)&absFunction},
@@ -203,7 +205,7 @@ static MathFunction mathFunctions[] = {
     {"median", (GenericMathProc *)ScalarFunc, (ClientData)Median},
     {"min", (GenericMathProc *)ScalarFunc, (ClientData)Rbc_VecMin},
     {"norm", (GenericMathProc *)VectorFunc, (ClientData)Norm},
-    {"nz", (GenericMathProc *)ScalarFunc, (ClientData)Nonzeros},
+    {"nz", (GenericMathProc *)ComplexRealScalarFunc, (ClientData)&nonzerosFunction},
     {"q1", (GenericMathProc *)ScalarFunc, (ClientData)Q1},
     {"q3", (GenericMathProc *)ScalarFunc, (ClientData)Q3},
     {"prod", (GenericMathProc *)ComplexScalarFunc, (ClientData)&productFunction},
@@ -1487,7 +1489,7 @@ static double Nonzeros(Rbc_Vector *vecPtr) {
 
     count = 0;
     for (i = First(vPtr); i >= 0; i = Next(vPtr, i)) {
-        if (vPtr->data.real[i] == 0.0) {
+        if (vPtr->data.real[i] != 0.0) {
             count++;
         }
     }
@@ -1970,6 +1972,25 @@ static double ComplexLength(VectorObject *vPtr) {
     count = 0;
     for (i = vPtr->first; i <= vPtr->last; i++) {
         if (ComplexValueIsFinite(vPtr->data.complex[i])) {
+            count++;
+        }
+    }
+    return (double)count;
+}
+
+static double ComplexNonzeros(VectorObject *vPtr) {
+    Tcl_Size count;
+    Tcl_Size i;
+
+    count = 0;
+    for (i = vPtr->first; i <= vPtr->last; i++) {
+        Rbc_Complex value;
+
+        value = vPtr->data.complex[i];
+        if (!ComplexValueIsFinite(value)) {
+            continue;
+        }
+        if (!Rbc_ComplexIsZero(value)) {
             count++;
         }
     }
