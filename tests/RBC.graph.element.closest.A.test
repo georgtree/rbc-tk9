@@ -32,7 +32,7 @@ namespace eval graph.element {
         .graph1 axis configure x -min 0 -max 10
         .graph1 axis configure y -min 0 -max 10
         .graph1 element create Element1 -data {4 2 9 8} -symbol circle
-        update idletasks
+        update
     } -body {
         lassign [.graph1 transform 5 5] x y
         set found [.graph1 element closest $x $y info -along x -interpolate 0 -halo 1000 Element1]

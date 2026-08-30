@@ -111,6 +111,23 @@ typedef struct {
     Pixmap mask;
 } ParsedSymbol;
 
+typedef enum { LINE_DATA_XY, LINE_DATA_COMPLEX } LineDataMode;
+
+typedef struct {
+    Rbc_Vector *vecPtr;
+    Rbc_Complex *valueArr;
+    Tcl_Size nValues;
+    Tcl_Size arraySize;
+    Rbc_VectorId clientId;
+    Element *elemPtr;
+} ElemComplexVector;
+
+typedef struct {
+    int staged;
+    ElemComplexVector z;
+    LineDataMode mode;
+} LineComplexDataTransaction;
+
 typedef struct {
     Tcl_Size start;         /* Index into the X-Y coordinate
                              * arrays indicating where trace
@@ -224,6 +241,10 @@ typedef struct {
     Tcl_Obj *maxSymbolsObjPtr;
     Tcl_Obj *smoothObjPtr;
     Tcl_Obj *traceObjPtr;
+    Tcl_Obj *cDataObjPtr;
+
+    ElemComplexVector z;
+    LineDataMode dataMode;    
     
     /* Line smoothing */
     Smoothing reqSmooth; /* Requested smoothing function to use
@@ -394,6 +415,7 @@ _Static_assert(offsetof(Line, core) == 0, "Element core must be the first Line m
 #define LINE_ELEM_MAP_ITEM_MASK (1 << 10)
 #define LINE_ELEM_SCALE_SYMBOL_MASK (1 << 11)
 #define LINE_ELEM_MAX_SYMBOLS_MASK (1 << 12)
+#define LINE_ELEM_CDATA_MASK (1 << 13)
 
 #define LINE_ELEM_SCALAR_MASK (LINE_ELEM_MAX_SYMBOLS_MASK | LINE_ELEM_SMOOTH_MASK | LINE_ELEM_TRACE_MASK)
 
@@ -1178,6 +1200,15 @@ static const Tk_OptionSpec normalLinePenOptionSpecs[] = {LINE_PEN_OPTION_ENTRIES
 
 static const Tk_OptionSpec activeLinePenOptionSpecs[] = {LINE_PEN_OPTION_ENTRIES(DEF_PEN_ACTIVE_COLOR)};
 
+static const Tk_OptionSpec polarElemOptionSpecs[] = {
+    LINE_ELEMENT_OPTION_ENTRIES(LINE_ELEMENT_AREA_OPTION_ENTRIES, LINE_ELEMENT_REDUCE_OPTION_ENTRY,
+                                LINE_ELEMENT_STATE_OPTION_ENTRY, LINE_ELEMENT_TRACE_OPTION_ENTRY),
+
+    {TK_OPTION_STRING, "-cdata", "cData", "CData", NULL, offsetof(Line, cDataObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     LINE_ELEM_CDATA_MASK | LINE_ELEM_MAP_ITEM_MASK},
+
+    {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
+
 typedef double(DistanceProc)(int x, int y, Point2D *p, Point2D *q, Point2D *t);
 
 /* Forward declarations */
@@ -1313,6 +1344,238 @@ static int GetLineArrayByteCount(Tcl_Size count, size_t elementSize, size_t *byt
     }
     *bytesPtr = (size_t)count * elementSize;
     return TCL_OK;
+}
+
+static Tcl_Size LinePointCount(Element *elemPtr) {
+    Line *linePtr;
+
+    linePtr = LINE_FROM_CORE(elemPtr);
+    if (linePtr->dataMode == LINE_DATA_COMPLEX) {
+        return linePtr->z.nValues;
+    }
+    return NumberOfXYPoints(elemPtr);
+}
+
+static int GetLineDataPoint(Line *linePtr, Tcl_Size index, double *xPtr, double *yPtr) {
+    if (linePtr->dataMode == LINE_DATA_COMPLEX) {
+        if ((index < 0) || (index >= linePtr->z.nValues) || (linePtr->z.valueArr == NULL)) {
+            return FALSE;
+        }
+        *xPtr = linePtr->z.valueArr[index].real;
+        *yPtr = linePtr->z.valueArr[index].imag;
+    } else {
+        Tcl_Size nPoints;
+
+        nPoints = NumberOfXYPoints(&linePtr->core);
+        if ((index < 0) || (index >= nPoints) || (linePtr->core.x.valueArr == NULL) ||
+            (linePtr->core.y.valueArr == NULL)) {
+            return FALSE;
+        }
+        *xPtr = linePtr->core.x.valueArr[index];
+        *yPtr = linePtr->core.y.valueArr[index];
+    }
+    return TRUE;
+}
+
+static void SyncComplexVector(ElemComplexVector *vPtr) {
+    vPtr->nValues = Rbc_VectorLength(vPtr->vecPtr);
+    vPtr->arraySize = Rbc_VectorSize(vPtr->vecPtr);
+    vPtr->valueArr = Rbc_VectorComplexData(vPtr->vecPtr);
+}
+
+static void FreeComplexVector(ElemComplexVector *vPtr) {
+    if (vPtr->clientId != NULL) {
+        Rbc_FreeVectorId(vPtr->clientId);
+    }
+    memset(vPtr, 0, sizeof(*vPtr));
+}
+
+static void ComplexVectorChangedProc(Tcl_Interp *interp, ClientData clientData, Rbc_VectorNotify notify) {
+    ElemComplexVector *vPtr;
+    Element *elemPtr;
+    Graph *graphPtr;
+
+    vPtr = clientData;
+    elemPtr = vPtr->elemPtr;
+    graphPtr = elemPtr->graphPtr;
+    switch (notify) {
+    case RBC_VECTOR_NOTIFY_DESTROY:
+        vPtr->clientId = NULL;
+        vPtr->vecPtr = NULL;
+        vPtr->valueArr = NULL;
+        vPtr->nValues = 0;
+        vPtr->arraySize = 0;
+        break;
+    case RBC_VECTOR_NOTIFY_UPDATE:
+    default:
+        if (Rbc_GetVectorById(interp, vPtr->clientId, &vPtr->vecPtr) == TCL_OK) {
+            SyncComplexVector(vPtr);
+        }
+        break;
+    }
+    graphPtr->flags |= RESET_AXES;
+    elemPtr->flags |= MAP_ITEM;
+    if ((!elemPtr->hidden) && (!elemPtr->plotHidden)) {
+        graphPtr->flags |= REDRAW_BACKING_STORE;
+        Rbc_EventuallyRedrawGraph(graphPtr);
+    }
+}
+
+static int ParseComplexVectorObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr,
+                                 ElemComplexVector *candidatePtr) {
+    const char *name;
+    Rbc_VectorId clientId;
+
+    memset(candidatePtr, 0, sizeof(*candidatePtr));
+    candidatePtr->elemPtr = elemPtr;
+    if ((objPtr == NULL) || (Tcl_GetCharLength(objPtr) == 0)) {
+        return TCL_OK;
+    }
+    name = Tcl_GetString(objPtr);
+    clientId = Rbc_AllocVectorId(interp, name);
+    if (clientId == NULL) {
+        return TCL_ERROR;
+    }
+    if (Rbc_GetVectorById(interp, clientId, &candidatePtr->vecPtr) != TCL_OK) {
+        Rbc_FreeVectorId(clientId);
+        memset(candidatePtr, 0, sizeof(*candidatePtr));
+        return TCL_ERROR;
+    }
+    if (Rbc_VectorGetType(candidatePtr->vecPtr) != RBC_VECTOR_COMPLEX) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("vector \"%s\" is real; -cdata requires a complex vector", name));
+        Rbc_FreeVectorId(clientId);
+        memset(candidatePtr, 0, sizeof(*candidatePtr));
+        return TCL_ERROR;
+    }
+    candidatePtr->clientId = clientId;
+    SyncComplexVector(candidatePtr);
+    return TCL_OK;
+}
+
+static void ReplaceLineOptionObject(Tcl_Obj **objPtrPtr, Tcl_Obj *newObjPtr) {
+    Tcl_Obj *oldObjPtr;
+
+    oldObjPtr = *objPtrPtr;
+    if (oldObjPtr == newObjPtr) {
+        return;
+    }
+    if (newObjPtr != NULL) {
+        Tcl_IncrRefCount(newObjPtr);
+    }
+    *objPtrPtr = newObjPtr;
+    if (oldObjPtr != NULL) {
+        Tcl_DecrRefCount(oldObjPtr);
+    }
+}
+
+static int StageComplexData(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr,
+                            LineComplexDataTransaction *transactionPtr) {
+    ElemComplexVector candidate;
+
+    if (ParseComplexVectorObj(interp, elemPtr, objPtr, &candidate) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (transactionPtr->staged) {
+        FreeComplexVector(&transactionPtr->z);
+    }
+    transactionPtr->z = candidate;
+    transactionPtr->staged = TRUE;
+    return TCL_OK;
+}
+
+static int PrepareLineComplexDataTransaction(Graph *graphPtr, Element *elemPtr, Line *linePtr,
+                                             LineComplexDataTransaction *transactionPtr) {
+    int explicitCData;
+    Tcl_Size i;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+
+    transactionPtr->mode = linePtr->dataMode;
+    explicitCData = FALSE;
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        const char *name;
+
+        name = Rbc_GetCanonicalOptionName(elemPtr->optionObjv[i], elemPtr->optionSpecs);
+        if ((name != NULL) && (strcmp(name, "-cdata") == 0)) {
+            explicitCData = TRUE;
+        }
+    }
+    /*
+     * As with the ordinary data transaction, option-database values
+     * precede explicit caller options.
+     */
+    if (!elemPtr->optionsConfigured) {
+        transactionPtr->mode = LINE_DATA_XY;
+        if ((!explicitCData) && (linePtr->cDataObjPtr != NULL)) {
+            if (StageComplexData(graphPtr->interp, elemPtr, linePtr->cDataObjPtr, transactionPtr) != TCL_OK) {
+                goto error;
+            }
+            transactionPtr->mode = LINE_DATA_COMPLEX;
+        }
+    }
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        Tcl_Obj *valueObjPtr;
+        const char *name;
+
+        name = Rbc_GetCanonicalOptionName(elemPtr->optionObjv[i], elemPtr->optionSpecs);
+        if (name == NULL) {
+            continue;
+        }
+        valueObjPtr = elemPtr->optionObjv[i + 1];
+        if (strcmp(name, "-cdata") == 0) {
+            if (StageComplexData(graphPtr->interp, elemPtr, valueObjPtr, transactionPtr) != TCL_OK) {
+                goto error;
+            }
+            transactionPtr->mode =
+                ((valueObjPtr != NULL) && (Tcl_GetCharLength(valueObjPtr) > 0)) ? LINE_DATA_COMPLEX : LINE_DATA_XY;
+        } else if ((strcmp(name, "-data") == 0) || (strcmp(name, "-x") == 0) || (strcmp(name, "-y") == 0)) {
+            /*
+             * Ordinary X/Y input switches the element back to
+             * Cartesian X/Y storage.  Because canonical option names
+             * are used, -xdata and -ydata arrive here as -x/-y.
+             */
+            transactionPtr->mode = LINE_DATA_XY;
+        }
+    }
+    return TCL_OK;
+
+error:
+    if (transactionPtr->staged) {
+        FreeComplexVector(&transactionPtr->z);
+    }
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+    return TCL_ERROR;
+}
+
+static void CommitLineComplexDataTransaction(Line *linePtr, LineComplexDataTransaction *transactionPtr) {
+    if (transactionPtr->mode == LINE_DATA_COMPLEX) {
+        if (transactionPtr->staged) {
+            FreeComplexVector(&linePtr->z);
+            linePtr->z = transactionPtr->z;
+            memset(&transactionPtr->z, 0, sizeof(transactionPtr->z));
+            if (linePtr->z.clientId != NULL) {
+                Rbc_SetVectorChangedProc(linePtr->z.clientId, ComplexVectorChangedProc, &linePtr->z);
+            }
+        }
+    } else {
+        FreeComplexVector(&linePtr->z);
+        if (transactionPtr->staged) {
+            FreeComplexVector(&transactionPtr->z);
+        }
+        /*
+         * An explicit -data/-x/-y switches away from -cdata.
+         */
+        ReplaceLineOptionObject(&linePtr->cDataObjPtr, NULL);
+    }
+    linePtr->dataMode = transactionPtr->mode;
+    transactionPtr->staged = FALSE;
+}
+
+static void FreeLineComplexDataTransaction(LineComplexDataTransaction *transactionPtr) {
+    if (transactionPtr->staged) {
+        FreeComplexVector(&transactionPtr->z);
+    }
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 
 /*
@@ -2719,8 +2982,6 @@ static int ScaleSymbol(Element *elemPtr, int normalSize) {
  *----------------------------------------------------------------------
  */
 static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
-    const double *x;
-    const double *y;
     Point2D *screenPts;
     Tcl_Size *indices;
     unsigned char *breakBefore;
@@ -2737,15 +2998,30 @@ static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     mapPtr->breakBefore = NULL;
     mapPtr->nScreenPts = 0;
     nDataPoints = NumberOfPoints(&linePtr->core);
-    x = linePtr->core.x.valueArr;
-    y = linePtr->core.y.valueArr;
+    for (i = 0; i < nDataPoints; i++) {
+        double x;
+        double y;
+
+        if (!GetLineDataPoint(linePtr, i, &x, &y)) {
+            continue;
+        }
+        if (FINITE(x) && FINITE(y)) {
+            nScreenPoints++;
+        }
+    }
     /*
      * This is only an allocation upper bound.  Some finite raw data
      * may still be outside the domain of a logarithmic axis.
      */
     nScreenPoints = 0;
     for (i = 0; i < nDataPoints; i++) {
-        if (FINITE(x[i]) && FINITE(y[i])) {
+        double x;
+        double y;
+
+        if (!GetLineDataPoint(linePtr, i, &x, &y)) {
+            continue;
+        }
+        if (FINITE(x) && FINITE(y)) {
             nScreenPoints++;
         }
     }
@@ -2768,16 +3044,16 @@ static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     count = 0;
     for (i = 0; i < nDataPoints; i++) {
         Point2D point;
+        double x;
+        double y;
 
-        if ((!FINITE(x[i])) || (!FINITE(y[i]))) {
+        if (!GetLineDataPoint(linePtr, i, &x, &y)) {
             continue;
         }
-        point = Rbc_Map2D(graphPtr, x[i], y[i], &linePtr->core.axes);
-        /*
-         * Non-positive data on a logarithmic axis intentionally maps
-         * to a non-finite coordinate.  It represents a break in the
-         * data rather than a point to draw.
-         */
+        if ((!FINITE(x)) || (!FINITE(y))) {
+            continue;
+        }
+        point = Rbc_Map2D(graphPtr, x, y, &linePtr->core.axes);
         if ((!FINITE(point.x)) || (!FINITE(point.y))) {
             continue;
         }
@@ -3693,8 +3969,9 @@ static void MapActiveSymbols(Graph *graphPtr, Line *linePtr) {
         if ((pointIndex < 0) || (pointIndex >= nPoints)) {
             continue;
         }
-        x = linePtr->core.x.valueArr[pointIndex];
-        y = linePtr->core.y.valueArr[pointIndex];
+        if (!GetLineDataPoint(linePtr, pointIndex, &x, &y)) {
+            continue;
+        }
         if (!FINITE(x) || !FINITE(y)) {
             continue;
         }
@@ -4592,9 +4869,11 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
         stylePtr->errorBarCapWidth /= 2;
     }
     dataToStyle = Rbc_StyleMap(&linePtr->core);
-    if (((linePtr->core.yHigh.nValues > 0) && (linePtr->core.yLow.nValues > 0)) ||
-        ((linePtr->core.xHigh.nValues > 0) && (linePtr->core.xLow.nValues > 0)) || (linePtr->core.xError.nValues > 0) ||
-        (linePtr->core.yError.nValues > 0)) {
+    if ((linePtr->dataMode == LINE_DATA_XY) &&
+        (((linePtr->core.yHigh.nValues > 0) && (linePtr->core.yLow.nValues > 0)) ||
+         ((linePtr->core.xHigh.nValues > 0) && (linePtr->core.xLow.nValues > 0)) ||
+         (linePtr->core.xError.nValues > 0) || (linePtr->core.yError.nValues > 0))) {
+
         Rbc_MapErrorBars(graphPtr, &linePtr->core, dataToStyle);
     }
     MergePens(linePtr, dataToStyle);
@@ -4932,8 +5211,9 @@ static void ClosestPoint(Line *linePtr, ClosestSearch *searchPtr) {
         searchPtr->elemPtr = &linePtr->core;
         searchPtr->dist = minDist;
         searchPtr->index = dataIndex;
-        searchPtr->point.x = linePtr->core.x.valueArr[dataIndex];
-        searchPtr->point.y = linePtr->core.y.valueArr[dataIndex];
+        if (!GetLineDataPoint(linePtr, dataIndex, &searchPtr->point.x, &searchPtr->point.y)) {
+            return;
+        }
     }
 }
 
@@ -4957,13 +5237,50 @@ static void ClosestPoint(Line *linePtr, ClosestSearch *searchPtr) {
  *----------------------------------------------------------------------
  */
 static void GetLineExtents(Element *elemPtr, Extents2D *extsPtr) {
+    Line *linePtr;
     Tcl_Size nPoints;
 
+    linePtr = LINE_FROM_CORE(elemPtr);
     extsPtr->top = extsPtr->left = DBL_MAX;
     extsPtr->bottom = extsPtr->right = -DBL_MAX;
-
     nPoints = NumberOfPoints(elemPtr);
     if (nPoints < 1) {
+        return;
+    }
+    if (linePtr->dataMode == LINE_DATA_COMPLEX) {
+        double radius;
+        Tcl_Size i;
+        int found;
+
+        radius = 0.0;
+        found = FALSE;
+        for (i = 0; i < nPoints; i++) {
+            double x;
+            double y;
+            double r;
+
+            if (!GetLineDataPoint(linePtr, i, &x, &y)) {
+                continue;
+            }
+            if ((!FINITE(x)) || (!FINITE(y))) {
+                continue;
+            }
+            r = hypot(x, y);
+            if (!FINITE(r)) {
+                r = DBL_MAX;
+            }
+            if ((!found) || (r > radius)) {
+                radius = r;
+                found = TRUE;
+            }
+        }
+        if (!found) {
+            return;
+        }
+        extsPtr->left = -radius;
+        extsPtr->right = radius;
+        extsPtr->top = -radius;
+        extsPtr->bottom = radius;
         return;
     }
     extsPtr->right = elemPtr->x.max;
@@ -5041,7 +5358,8 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     ElemTagsTransaction tagsTransaction;
     ElemStylesTransaction stylesTransaction;
     LineScalarTransaction scalarTransaction;
-    LineAreaTransaction areaTransaction;    
+    LineAreaTransaction areaTransaction;
+    LineComplexDataTransaction complexDataTransaction;
     Rbc_ChainLink *linkPtr;
     int dataTransactionPrepared;
     int penTransactionPrepared;
@@ -5050,7 +5368,8 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     int tagsTransactionPrepared;
     int stylesTransactionPrepared;
     int scalarTransactionPrepared;
-    int areaTransactionPrepared;    
+    int areaTransactionPrepared;
+    int complexDataTransactionPrepared;
 
     linePtr = LINE_FROM_CORE(elemPtr);
 
@@ -5062,6 +5381,7 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     memset(&stylesTransaction, 0, sizeof(stylesTransaction));
     memset(&scalarTransaction, 0, sizeof(scalarTransaction));
     memset(&areaTransaction, 0, sizeof(areaTransaction));
+    memset(&complexDataTransaction, 0, sizeof(complexDataTransaction));
 
     dataTransactionPrepared = FALSE;
     penTransactionPrepared = FALSE;
@@ -5071,6 +5391,7 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     stylesTransactionPrepared = FALSE;
     scalarTransactionPrepared = FALSE;
     areaTransactionPrepared = FALSE;
+    complexDataTransactionPrepared = FALSE;
 
     /*
      * Parse all data-vector replacements before modifying the live
@@ -5082,6 +5403,14 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
         }
 
         dataTransactionPrepared = TRUE;
+    }
+
+    if ((elemPtr->classUid == rbcPolarElementUid) &&
+        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & (LINE_ELEM_DATA_MASK | LINE_ELEM_CDATA_MASK)))) {
+        if (PrepareLineComplexDataTransaction(graphPtr, elemPtr, linePtr, &complexDataTransaction) != TCL_OK) {
+            goto error;
+        }
+        complexDataTransactionPrepared = TRUE;
     }
 
     /*
@@ -5242,8 +5571,11 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
      */
     if (dataTransactionPrepared) {
         Rbc_CommitElemDataTransaction(elemPtr, &dataTransaction);
-
         Rbc_SyncElemDataOptionObjects(elemPtr);
+    }
+
+    if (complexDataTransactionPrepared) {
+        CommitLineComplexDataTransaction(linePtr, &complexDataTransaction);
     }
 
     if (!elemPtr->optionsConfigured || (elemPtr->optionMask & LINE_ELEM_SCALE_SYMBOL_MASK)) {
@@ -5279,6 +5611,10 @@ error:
 
     if (dataTransactionPrepared) {
         Rbc_FreeElemDataTransaction(&dataTransaction);
+    }
+
+    if (complexDataTransactionPrepared) {
+        FreeLineComplexDataTransaction(&complexDataTransaction);
     }
 
     return TCL_ERROR;
@@ -6355,8 +6691,9 @@ static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
         double x;
         double y;
         dataIndex = pointToData[count++];
-        x = linePtr->core.x.valueArr[dataIndex];
-        y = linePtr->core.y.valueArr[dataIndex];
+        if (!GetLineDataPoint(linePtr, dataIndex, &x, &y)) {
+            continue;
+        }
         Rbc_FormatValueLabel(string, sizeof(string), penPtr->valueFormat, penPtr->valueShow, x, y);
         Rbc_DrawText(graphPtr->tkwin, drawable, string, &penPtr->valueStyle, (int)pointPtr->x, (int)pointPtr->y);
     }
@@ -6883,8 +7220,9 @@ static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, 
         double y;
 
         dataIndex = pointToData[count++];
-        x = linePtr->core.x.valueArr[dataIndex];
-        y = linePtr->core.y.valueArr[dataIndex];
+        if (!GetLineDataPoint(linePtr, dataIndex, &x, &y)) {
+            continue;
+        }
         Rbc_FormatValueLabel(string, sizeof(string), penPtr->valueFormat, penPtr->valueShow, x, y);
         Rbc_TextToPostScript(psToken, string, &penPtr->valueStyle, pointPtr->x, pointPtr->y);
     }
@@ -7092,6 +7430,7 @@ static void DestroyLine(Graph *graphPtr, Element *elemPtr) {
     Rbc_FreeElemVector(&elemPtr->yHigh);
     Rbc_FreeElemVector(&elemPtr->yLow);
     Rbc_FreeElemVector(&elemPtr->yError);
+    FreeComplexVector(&linePtr->z);
     ResetLine(linePtr);
     if (elemPtr->palette != NULL) {
         Rbc_FreePalette(graphPtr, elemPtr->palette);
@@ -7136,7 +7475,23 @@ static ElementProcs lineProcs = {
     ActiveLineToPostScript, /* Prints active element. */
     NormalLineToPostScript, /* Prints normal element. */
     SymbolToPostScript,     /* Prints the line's symbol. */
-    MapLine                 /* Compute element's screen coordinates. */
+    MapLine,                /* Compute element's screen coordinates. */
+    NULL                    /* Ordinary X/Y point count. */
+};
+
+static ElementProcs polarLineProcs = {
+    ClosestLine,
+    ConfigureLine,
+    DestroyLine,
+    DrawActiveLine,
+    DrawNormalLine,
+    DrawSymbol,
+    GetLineExtents,
+    ActiveLineToPostScript,
+    NormalLineToPostScript,
+    SymbolToPostScript,
+    MapLine,
+    LinePointCount          /* X/Y or complex data. */
 };
 
 /*
@@ -7168,8 +7523,10 @@ Element *Rbc_LineElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
         return NULL;
     }
     elemPtr = &linePtr->core;
-    if ((classUid == rbcLineElementUid) || (classUid == rbcPolarElementUid)) {
+    if (classUid == rbcLineElementUid) {
         elemPtr->optionSpecs = lineElemOptionSpecs;
+    } else if (classUid == rbcPolarElementUid) {
+        elemPtr->optionSpecs = polarElemOptionSpecs;
     } else {
         elemPtr->optionSpecs = stripElemOptionSpecs;
     }
@@ -7183,7 +7540,11 @@ Element *Rbc_LineElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
 
     elemPtr->optionsInitialized = FALSE;
     elemPtr->tkResourcesReleased = FALSE;
-    elemPtr->procsPtr = &lineProcs;
+    if (classUid == rbcPolarElementUid) {
+        elemPtr->procsPtr = &polarLineProcs;
+    } else {
+        elemPtr->procsPtr = &lineProcs;
+    }
 
     /*
      * By default an element's name and label are the same.
@@ -7203,5 +7564,6 @@ Element *Rbc_LineElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
 
     linePtr->penDir = PEN_BOTH_DIRECTIONS;
     linePtr->reqSmooth = PEN_SMOOTH_NONE;
+    linePtr->dataMode = LINE_DATA_XY;
     return elemPtr;
 }

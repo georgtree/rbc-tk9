@@ -56,7 +56,7 @@
               * colors. */
 #define SCALE_SYMBOL (1 << 10)
 
-#define NumberOfPoints(e) MIN((e)->x.nValues, (e)->y.nValues)
+#define NumberOfXYPoints(e) MIN((e)->x.nValues, (e)->y.nValues)
 
 /*
  * -------------------------------------------------------------------
@@ -147,6 +147,7 @@ typedef void(ElementClosestProc)(Graph *graphPtr, Element *elemPtr, ClosestSearc
 typedef void(ElementDrawSymbolProc)(Graph *graphPtr, Drawable drawable, Element *elemPtr, int x, int y, int symbolSize);
 typedef void(ElementSymbolToPostScriptProc)(Graph *graphPtr, PsToken psToken, Element *elemPtr, double x, double y,
                                             int symSize);
+typedef Tcl_Size(ElementPointCountProc)(Element *elemPtr);
 
 typedef struct {
     ElementClosestProc *closestProc;
@@ -160,6 +161,7 @@ typedef struct {
     ElementToPostScriptProc *printNormalProc;
     ElementSymbolToPostScriptProc *printSymbolProc;
     ElementMapProc *mapProc;
+    ElementPointCountProc *pointCountProc;    
 } ElementProcs;
 
 /*
@@ -364,6 +366,12 @@ struct ElementStruct {
                             * symbol. */
     int state;
 };
+
+#define NumberOfPoints(e)                                                                                              \
+    (((e)->classUid == rbcPolarElementUid)                                                                             \
+         ? ((((e)->procsPtr != NULL) && ((e)->procsPtr->pointCountProc != NULL)) ? (e)->procsPtr->pointCountProc((e))  \
+                                                                                 : NumberOfXYPoints((e)))              \
+         : NumberOfXYPoints((e)))
 
 Element *Rbc_BarElement(Graph *, const char *, Rbc_Uid);
 Element *Rbc_LineElement(Graph *, const char *, Rbc_Uid);

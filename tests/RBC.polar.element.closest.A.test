@@ -1,0 +1,44 @@
+# RBC.polar.element.closest.A.test --
+#
+###Abstract
+# This file contains the automatic tests that test the element closest
+# function of the polar RBC component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide polar.element
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval polar.element {
+
+    test RBC.polar.element.closest.A.1.1 {
+        polar element closest: complex point maps real/imag
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0} {0 -1}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        .polar1 element create Element1 -cdata z -symbol circle
+        update idletasks
+    } -body {
+        lassign [.polar1 transform 1 0] x y
+        set found [ .polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list $found $info(name) $info(index) $info(x) $info(y)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1 Element1 0 1.0 0.0}
+
+	cleanupTests
+}

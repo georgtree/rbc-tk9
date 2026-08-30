@@ -2612,6 +2612,7 @@ static ElementProcs barProcs = {
     NormalBarToPostScript,
     SymbolToPostScript,
     MapBar,
+    NULL /* Uses ordinary X/Y point count. */
 };
 
 /*

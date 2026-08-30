@@ -73,5 +73,46 @@ namespace eval polar.element {
 		destroy .polar1
 	} -result {Pen1}
 
+    test RBC.polar.element.configure.A.cdata.1 {
+        polar element configure: complex vector
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0} {0 -1}}
+        polar .polar1
+        .polar1 element create Element1 -cdata z
+    } -body {
+        list [.polar1 element type Element1] [.polar1 element cget Element1 -cdata]
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {PolarElement z}
+
+    test RBC.polar.element.configure.A.cdata.2 {
+        polar element configure: reject real vector
+    } -setup {
+        vector create z
+        z set {1 2 3}
+        polar .polar1
+    } -body {
+        catch {.polar1 element create Element1 -cdata z} message
+        set message
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {vector "z" is real; -cdata requires a complex vector}
+
+    test RBC.polar.element.configure.A.cdata.3 {
+        graph line element does not expose -cdata
+    } -setup {
+        vector create z -type complex
+        graph .graph1
+        .graph1 element create Element1
+    } -body {
+        catch { .graph1 element configure Element1 -cdata z }
+    } -cleanup {
+        destroy .graph1
+        vector destroy z
+    } -result {1}
+
 	cleanupTests
 }
