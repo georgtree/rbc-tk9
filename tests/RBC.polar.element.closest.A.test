@@ -334,5 +334,75 @@ namespace eval polar.element {
         vector destroy z
     } -result {1 1 1}
 
+    test RBC.polar.element.closest.A.info.1 {
+        polar element closest: radius and angle
+    } -setup {
+        vector create z -type complex
+        z set {{3 4}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -6 -max 6
+        .polar1 axis configure y -min -6 -max 6
+        .polar1 element create Element1 -cdata z -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform 3 4] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list $found $info(dataFormat) [expr {abs($info(radius) - 5.0) < 1e-12}]\
+                [expr {abs($info(angle) - 53.13010235415598) < 1e-10}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1 gamma 1 1}
+
+    test RBC.polar.element.closest.A.info.2 {
+        polar element closest: angle is normalized to 0..360 degrees
+    } -setup {
+        vector create z -type complex
+        z set {{0 -2}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -3 -max 3
+        .polar1 axis configure y -min -3 -max 3
+        .polar1 element create Element1 -cdata z -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform 0 -2] x y
+        .polar1 element closest $x $y info -interpolate 0 -halo 2 Element1
+        list $info(radius) $info(angle)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {2.0 270.0}
+
+    test RBC.polar.element.closest.A.info.3 {
+        smith closest: gamma, impedance, and admittance information
+    } -setup {
+        vector create gamma -type complex
+        gamma set {{0.2 0.4}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 element create Element1 -cdata gamma -z0 50 -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform 0.2 0.4] x y
+        set found [.polar1 element closest $x $y info -interpolate 0 -halo 2 Element1]
+        lassign $info(gamma) gr gi
+        lassign $info(normalizedImpedance) r x
+        lassign $info(normalizedAdmittance) g b
+        lassign $info(impedance) R X
+        lassign $info(admittance) G B
+        list $found $info(dataFormat) [expr {abs($gr - 0.2) < 1e-12}] [expr {abs($gi - 0.4) < 1e-12}]\
+            [expr {abs($r - 1.0) < 1e-12}] [expr {abs($x - 1.0) < 1e-12}] [expr {abs($g - 0.5) < 1e-12}]\
+            [expr {abs($b + 0.5) < 1e-12}] [expr {abs($R - 50.0) < 1e-12}] [expr {abs($X - 50.0) < 1e-12}]\
+            [expr {abs($G - 0.01) < 1e-12}] [expr {abs($B + 0.01) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy gamma
+    } -result {1 gamma 1 1 1 1 1 1 1 1 1 1}
+
 	cleanupTests
 }

@@ -148,6 +148,8 @@ typedef void(ElementDrawSymbolProc)(Graph *graphPtr, Drawable drawable, Element 
 typedef void(ElementSymbolToPostScriptProc)(Graph *graphPtr, PsToken psToken, Element *elemPtr, double x, double y,
                                             int symSize);
 typedef Tcl_Size(ElementPointCountProc)(Element *elemPtr);
+typedef int(ElementClosestInfoProc)(Graph *graphPtr, Element *elemPtr, const ClosestSearch *searchPtr,
+                                    Tcl_Obj *varNameObjPtr);
 
 typedef struct {
     ElementClosestProc *closestProc;
@@ -161,7 +163,8 @@ typedef struct {
     ElementToPostScriptProc *printNormalProc;
     ElementSymbolToPostScriptProc *printSymbolProc;
     ElementMapProc *mapProc;
-    ElementPointCountProc *pointCountProc;    
+    ElementPointCountProc *pointCountProc;
+    ElementClosestInfoProc *closestInfoProc;    
 } ElementProcs;
 
 /*

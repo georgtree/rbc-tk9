@@ -1238,6 +1238,7 @@ typedef double(DistanceProc)(int x, int y, Point2D *p, Point2D *q, Point2D *t);
 static PenConfigureProc ConfigurePen;
 static PenDestroyProc DestroyPen;
 static ElementClosestProc ClosestLine;
+static ElementClosestInfoProc PolarClosestInfo;
 static ElementConfigProc ConfigureLine;
 static ElementDestroyProc DestroyLine;
 static ElementDrawProc DrawActiveLine;
@@ -1361,6 +1362,67 @@ static int ComplexDivide(double nr, double ni, double dr, double di, double *rea
         *imagPtr = (ni * ratio - nr) / denominator;
     }
     return FINITE(*realPtr) && FINITE(*imagPtr);
+}
+
+#define LINE_PI 3.14159265358979323846264338327950288
+#define LINE_RAD_TO_DEG (180.0 / LINE_PI)
+
+static int SetClosestInfoObj(Tcl_Interp *interp, Tcl_Obj *varNameObjPtr, const char *name, Tcl_Obj *valueObjPtr) {
+    Tcl_Obj *nameObjPtr;
+    Tcl_Obj *resultObjPtr;
+
+    nameObjPtr = Tcl_NewStringObj(name, -1);
+    Tcl_IncrRefCount(nameObjPtr);
+    Tcl_IncrRefCount(valueObjPtr);
+    resultObjPtr = Tcl_ObjSetVar2(interp, varNameObjPtr, nameObjPtr, valueObjPtr, TCL_LEAVE_ERR_MSG);
+    Tcl_DecrRefCount(valueObjPtr);
+    Tcl_DecrRefCount(nameObjPtr);
+    return (resultObjPtr != NULL) ? TCL_OK : TCL_ERROR;
+}
+
+static int SetClosestInfoDouble(Tcl_Interp *interp, Tcl_Obj *varNameObjPtr, const char *name, double value) {
+    return SetClosestInfoObj(interp, varNameObjPtr, name, Tcl_NewDoubleObj(value));
+}
+
+static int SetClosestInfoString(Tcl_Interp *interp, Tcl_Obj *varNameObjPtr, const char *name, const char *value) {
+    return SetClosestInfoObj(interp, varNameObjPtr, name, Tcl_NewStringObj(value, -1));
+}
+
+static int SetClosestInfoPair(Tcl_Interp *interp, Tcl_Obj *varNameObjPtr, const char *name, double real, double imag) {
+    Tcl_Obj *objv[2];
+
+    objv[0] = Tcl_NewDoubleObj(real);
+    objv[1] = Tcl_NewDoubleObj(imag);
+    return SetClosestInfoObj(interp, varNameObjPtr, name, Tcl_NewListObj(2, objv));
+}
+
+static int GammaToNormalizedImpedance(double gammaReal, double gammaImag, double *resistancePtr, double *reactancePtr) {
+    /*
+     * z = (1 + Gamma) / (1 - Gamma)
+     *
+     * Gamma = +1 is the open-circuit point.
+     */
+    if ((gammaReal == 1.0) && (gammaImag == 0.0)) {
+        *resistancePtr = HUGE_VAL;
+        *reactancePtr = 0.0;
+        return TRUE;
+    }
+    return ComplexDivide(1.0 + gammaReal, gammaImag, 1.0 - gammaReal, -gammaImag, resistancePtr, reactancePtr);
+}
+
+static int GammaToNormalizedAdmittance(double gammaReal, double gammaImag, double *conductancePtr,
+                                       double *susceptancePtr) {
+    /*
+     * y = (1 - Gamma) / (1 + Gamma)
+     *
+     * Gamma = -1 is the short-circuit point.
+     */
+    if ((gammaReal == -1.0) && (gammaImag == 0.0)) {
+        *conductancePtr = HUGE_VAL;
+        *susceptancePtr = 0.0;
+        return TRUE;
+    }
+    return ComplexDivide(1.0 - gammaReal, -gammaImag, 1.0 + gammaReal, gammaImag, conductancePtr, susceptancePtr);
 }
 
 static int GetComplexLineDataPoint(Line *linePtr, Tcl_Size index, double *xPtr, double *yPtr) {
@@ -5779,6 +5841,151 @@ static void ClosestLine(Graph *graphPtr, Element *elemPtr, ClosestSearch *search
     }
 }
 
+static int PolarClosestInfo(Graph *graphPtr, Element *elemPtr, const ClosestSearch *searchPtr, Tcl_Obj *varNameObjPtr) {
+    Line *linePtr;
+    Tcl_Interp *interp;
+    double real;
+    double imag;
+    double radius;
+    double angle;
+
+    linePtr = LINE_FROM_CORE(elemPtr);
+    interp = graphPtr->interp;
+    /*
+     * search.point is always the final plotted Cartesian coordinate.
+     *
+     * For Polar:
+     *
+     *     real = x
+     *     imag = y
+     *
+     * For Smith:
+     *
+     *     real = Re(Gamma)
+     *     imag = Im(Gamma)
+     */
+    real = searchPtr->point.x;
+    imag = searchPtr->point.y;
+    if ((!FINITE(real)) || (!FINITE(imag))) {
+        return TCL_OK;
+    }
+    radius = hypot(real, imag);
+    if (radius == 0.0) {
+        angle = 0.0;
+    } else {
+        angle = atan2(imag, real) * LINE_RAD_TO_DEG;
+        if (angle < 0.0) {
+            angle += 360.0;
+        }
+        /*
+         * Avoid exposing negative zero.
+         */
+        if (angle == 0.0) {
+            angle = 0.0;
+        }
+    }
+    if (SetClosestInfoDouble(interp, varNameObjPtr, "radius", radius) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (SetClosestInfoDouble(interp, varNameObjPtr, "angle", angle) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    /*
+     * Report the representation of the element's source.  This does
+     * not alter the meaning of x/y above.
+     */
+    if (linePtr->dataMode == LINE_DATA_COMPLEX) {
+        if (SetClosestInfoString(interp, varNameObjPtr, "dataFormat",
+                                 lineComplexDataFormatNames[linePtr->cDataFormat]) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    } else {
+        if (SetClosestInfoString(interp, varNameObjPtr, "dataFormat", "xy") != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+    /*
+     * Polar representation stops here.  In Smith representation the
+     * plotted Cartesian point is Gamma, from which all impedance and
+     * admittance quantities can be recovered.
+     */
+    if (graphPtr->representation != POLAR_REPRESENTATION_SMITH) {
+        return TCL_OK;
+    }
+    if (SetClosestInfoPair(interp, varNameObjPtr, "gamma", real, imag) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (SetClosestInfoDouble(interp, varNameObjPtr, "z0", linePtr->z0) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    {
+        double resistance;
+        double reactance;
+
+        if (GammaToNormalizedImpedance(real, imag, &resistance, &reactance)) {
+            double physicalResistance;
+            double physicalReactance;
+
+            physicalResistance = resistance * linePtr->z0;
+            physicalReactance = reactance * linePtr->z0;
+            if (SetClosestInfoDouble(interp, varNameObjPtr, "normalizedResistance", resistance) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            if (SetClosestInfoDouble(interp, varNameObjPtr, "normalizedReactance", reactance) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            if (SetClosestInfoPair(interp, varNameObjPtr, "normalizedImpedance", resistance, reactance) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            if (SetClosestInfoDouble(interp, varNameObjPtr, "resistance", physicalResistance) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            if (SetClosestInfoDouble(interp, varNameObjPtr, "reactance", physicalReactance) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            if (SetClosestInfoPair(interp, varNameObjPtr, "impedance", physicalResistance, physicalReactance) !=
+                TCL_OK) {
+                return TCL_ERROR;
+            }
+        }
+    }
+    {
+        double conductance;
+        double susceptance;
+
+        if (GammaToNormalizedAdmittance(real, imag, &conductance, &susceptance)) {
+            double physicalConductance;
+            double physicalSusceptance;
+
+            /*
+             * y = Y * Z0, therefore Y = y / Z0.
+             */
+            physicalConductance = conductance / linePtr->z0;
+            physicalSusceptance = susceptance / linePtr->z0;
+            if (SetClosestInfoDouble(interp, varNameObjPtr, "normalizedConductance", conductance) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            if (SetClosestInfoDouble(interp, varNameObjPtr, "normalizedSusceptance", susceptance) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            if (SetClosestInfoPair(interp, varNameObjPtr, "normalizedAdmittance", conductance, susceptance) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            if (SetClosestInfoDouble(interp, varNameObjPtr, "conductance", physicalConductance) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            if (SetClosestInfoDouble(interp, varNameObjPtr, "susceptance", physicalSusceptance) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            if (SetClosestInfoPair(interp, varNameObjPtr, "admittance", physicalConductance, physicalSusceptance) !=
+                TCL_OK) {
+                return TCL_ERROR;
+            }
+        }
+    }
+    return TCL_OK;
+}
+
 /*
  * XDrawLines() points: XMaxRequestSize(dpy) - 3
  * XFillPolygon() points:  XMaxRequestSize(dpy) - 4
@@ -7576,7 +7783,8 @@ static ElementProcs lineProcs = {
     NormalLineToPostScript, /* Prints normal element. */
     SymbolToPostScript,     /* Prints the line's symbol. */
     MapLine,                /* Compute element's screen coordinates. */
-    NULL                    /* Ordinary X/Y point count. */
+    NULL,                   /* Ordinary X/Y point count. */
+    NULL                    /* No extended closest information. */
 };
 
 static ElementProcs polarLineProcs = {
@@ -7591,7 +7799,8 @@ static ElementProcs polarLineProcs = {
     NormalLineToPostScript,
     SymbolToPostScript,
     MapLine,
-    LinePointCount          /* X/Y or complex data. */
+    LinePointCount,  /* X/Y or complex data. */
+    PolarClosestInfo /* Polar/Smith closest information. */
 };
 
 /*

@@ -4350,6 +4350,14 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size
                 }
             }
         }
+        /*
+         * Allow the concrete element type to append representation-specific
+         * closest information.
+         */
+        if ((search.elemPtr->procsPtr->closestInfoProc != NULL) &&
+            ((*search.elemPtr->procsPtr->closestInfoProc)(graphPtr, search.elemPtr, &search, objv[5]) != TCL_OK)) {
+            return TCL_ERROR;
+        }
         Tcl_SetObjResult(interp, Tcl_NewIntObj(1));
     } else {
         /* an array with values "name" -> "" */
