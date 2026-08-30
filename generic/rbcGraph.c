@@ -87,6 +87,7 @@ Rbc_Uid rbcWindowMarkerUid;
 #define DEF_GRAPH_SMITH_GRID "impedance"
 #define DEF_GRAPH_ANGLE_MAJOR_TICKS "0 30 60 90 120 150 180 210 240 270 300 330"
 #define DEF_GRAPH_ANGLE_MINOR_TICKS "15 45 75 105 135 165 195 225 255 285 315 345"
+#define DEF_GRAPH_ANGLE_COMMAND (char *)NULL
 
 /*
  * Graph option conversion and update masks.
@@ -113,6 +114,7 @@ Rbc_Uid rbcWindowMarkerUid;
 #define GRAPH_POLAR_REPRESENTATION_MASK (1u << 15)
 #define GRAPH_SMITH_GRID_MASK (1u << 16)
 #define GRAPH_POLAR_ANGLE_TICKS_MASK (1u << 17)
+#define GRAPH_POLAR_ANGLE_COMMAND_MASK (1u << 18)
 
 
 #define GRAPH_TRANSACTION_MASK                                                                                         \
@@ -122,7 +124,8 @@ Rbc_Uid rbcWindowMarkerUid;
 #define GRAPH_INITIALIZE_MASK                                                                                          \
     (GRAPH_TRANSACTION_MASK | GRAPH_TEXT_STYLE_MASK | GRAPH_GC_MASK | GRAPH_GEOMETRY_MASK | GRAPH_INVERT_XY_MASK |     \
      GRAPH_LAYOUT_MASK | GRAPH_BACKING_STORE_MASK | GRAPH_REDRAW_MASK | GRAPH_PLOT_BACKGROUND_MASK |                   \
-     GRAPH_POLAR_REPRESENTATION_MASK | GRAPH_SMITH_GRID_MASK | GRAPH_POLAR_ANGLE_TICKS_MASK)
+     GRAPH_POLAR_REPRESENTATION_MASK | GRAPH_SMITH_GRID_MASK | GRAPH_POLAR_ANGLE_TICKS_MASK |                          \
+     GRAPH_POLAR_ANGLE_COMMAND_MASK)
 
 typedef enum {
     GRAPH_BIND_CONTEXT_AXIS = 1,
@@ -216,6 +219,9 @@ static const char *const smithGridNames[] = {"impedance", "admittance", "both", 
 static const Tk_OptionSpec graphOptionSpecs[] = {
     {TK_OPTION_CUSTOM, "-anglelabelanchor", "angleLabelAnchor", "AngleLabelAnchor", DEF_GRAPH_ANGLE_LABEL_ANCHOR, -1,
      offsetof(Graph, angleLabelAnchor), 0, &polarLabelAnchorOption, GRAPH_POLAR_LABEL_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-anglecommand", "angleCommand", "AngleCommand", DEF_GRAPH_ANGLE_COMMAND,
+     offsetof(Graph, angleCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     GRAPH_POLAR_ANGLE_COMMAND_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING, "-anglemajorticks", "angleMajorTicks", "AngleMajorTicks", DEF_GRAPH_ANGLE_MAJOR_TICKS,
      offsetof(Graph, angleMajorTicksObjPtr), -1, 0, NULL, GRAPH_POLAR_ANGLE_TICKS_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING, "-angleminorticks", "angleMinorTicks", "AngleMinorTicks", DEF_GRAPH_ANGLE_MINOR_TICKS,
@@ -1269,6 +1275,16 @@ static void CommitGraphPolarAngleTicksTransaction(Graph *graphPtr, GraphPolarAng
     }
 }
 
+static int ValidateGraphCommandPrefix(Tcl_Interp *interp, Tcl_Obj *objPtr) {
+    Tcl_Obj **objv;
+    Tcl_Size objc;
+
+    if (objPtr == NULL) {
+        return TCL_OK;
+    }
+    return Tcl_ListObjGetElements(interp, objPtr, &objc, &objv);
+}
+
 /*
  *--------------------------------------------------------------
  *
@@ -2059,6 +2075,11 @@ static int ConfigureGraph(Graph *graphPtr) {
             goto error;
         }
         polarAngleTicksTransactionPrepared = TRUE;
+    }
+    if ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_POLAR_ANGLE_COMMAND_MASK)) {
+        if (ValidateGraphCommandPrefix(graphPtr->interp, graphPtr->angleCommandObjPtr) != TCL_OK) {
+            goto error;
+        }
     }
     /*
      * No operation below this point can report a configuration error.

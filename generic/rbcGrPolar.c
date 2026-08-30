@@ -335,6 +335,99 @@ static void DrawPolarRadialLabels(Graph *graphPtr, Drawable drawable, Grid *grid
     ckfree(ticksPtr);
 }
 
+static char *FormatPolarAngleLabel(Graph *graphPtr, double degrees, Tcl_DString *dsPtr) {
+    Tcl_Interp *interp;
+    char valueString[64];
+    int result;
+
+    Tcl_DStringInit(dsPtr);
+    /*
+     * Keep the default representation consistent with the existing
+     * Polar labels.
+     *
+     * The callback receives this numeric part without the degree
+     * suffix so that it can easily interpret it as a number.
+     */
+    snprintf(valueString, sizeof(valueString), "%g", degrees);
+    /*
+     * Default label.
+     */
+    Tcl_DStringAppend(dsPtr, valueString, -1);
+    Tcl_DStringAppend(dsPtr, "\xC2\xB0", 2);
+    if (graphPtr->angleCommandObjPtr == NULL) {
+        return Tcl_DStringValue(dsPtr);
+    }
+    interp = graphPtr->interp;
+    {
+        Tcl_Size prefixObjc;
+
+        result = Tcl_ListObjLength(interp, graphPtr->angleCommandObjPtr, &prefixObjc);
+        /*
+         * ConfigureGraph() normally guarantees that this object has
+         * a valid list representation.  Preserve drawing if that
+         * invariant is somehow violated.
+         */
+        if (result != TCL_OK) {
+            Tcl_BackgroundException(interp, result);
+            Tcl_ResetResult(interp);
+            return Tcl_DStringValue(dsPtr);
+        }
+        /*
+         * An empty command prefix selects normal formatting.
+         */
+        if (prefixObjc == 0) {
+            return Tcl_DStringValue(dsPtr);
+        }
+    }
+
+    {
+        Tcl_Obj *cmdObjPtr;
+        Tcl_Obj **objv;
+        Tcl_Size objc;
+
+        /*
+         * Never modify the Tk-managed option object itself.
+         */
+        cmdObjPtr = Tcl_DuplicateObj(graphPtr->angleCommandObjPtr);
+        Tcl_IncrRefCount(cmdObjPtr);
+        result = Tcl_ListObjAppendElement(interp, cmdObjPtr, Tcl_NewStringObj(Tk_PathName(graphPtr->tkwin), -1));
+        if (result == TCL_OK) {
+            result = Tcl_ListObjAppendElement(interp, cmdObjPtr, Tcl_NewStringObj(valueString, -1));
+        }
+        if (result == TCL_OK) {
+            result = Tcl_ListObjGetElements(interp, cmdObjPtr, &objc, &objv);
+        }
+        if (result == TCL_OK) {
+            Tcl_ResetResult(interp);
+            /*
+             * Match axis -command evaluation semantics.
+             */
+            result = Tcl_EvalObjv(interp, objc, objv, 0);
+        }
+        Tcl_DecrRefCount(cmdObjPtr);
+        if (result != TCL_OK) {
+            /*
+             * Formatting happens during redraw, so there is no
+             * synchronous widget command through which to return
+             * this error.
+             *
+             * Report it asynchronously and retain the default label.
+             */
+            Tcl_BackgroundException(interp, result);
+            Tcl_ResetResult(interp);
+            return Tcl_DStringValue(dsPtr);
+        }
+    }
+    /*
+     * The command result is the complete replacement label.
+     * An empty result deliberately suppresses the label.
+     */
+    Tcl_DStringSetLength(dsPtr, 0);
+    Tcl_DStringAppend(dsPtr, Tcl_GetString(Tcl_GetObjResult(interp)), -1);
+    Tcl_ResetResult(interp);
+    return Tcl_DStringValue(dsPtr);
+}
+
 static void DrawPolarAngularLabels(Graph *graphPtr, Drawable drawable, Grid *gridPtr, double maxRadius) {
     Axis *axisPtr;
     TextStyle style;
@@ -352,7 +445,6 @@ static void DrawPolarAngularLabels(Graph *graphPtr, Drawable drawable, Grid *gri
      */
     labelRadius = maxRadius * POLAR_ANGLE_LABEL_RADIUS;
     for (i = 0; i < graphPtr->nAngleMajorTicks; i++) {
-        char string[32];
         double degrees;
         double theta;
         Point2D point;
@@ -364,11 +456,16 @@ static void DrawPolarAngularLabels(Graph *graphPtr, Drawable drawable, Grid *gri
         if ((!FINITE(point.x)) || (!FINITE(point.y))) {
             continue;
         }
-        /*
-         * %g allows non-integral ticks such as 22.5 degrees.
-         */
-        snprintf(string, sizeof(string), "%g\xC2\xB0", degrees);
-        Rbc_DrawText(graphPtr->tkwin, drawable, string, &style, ROUND(point.x), ROUND(point.y));
+        {
+            Tcl_DString label;
+            char *string;
+
+            string = FormatPolarAngleLabel(graphPtr, degrees, &label);
+            if (string[0] != '\0') {
+                Rbc_DrawText(graphPtr->tkwin, drawable, string, &style, ROUND(point.x), ROUND(point.y));
+            }
+            Tcl_DStringFree(&label);
+        }
     }
 }
 
@@ -618,7 +715,6 @@ static void PolarAngularLabelsToPostScript(Graph *graphPtr, PsToken psToken, Gri
     style.theta = 0.0;
     labelRadius = maxRadius * POLAR_ANGLE_LABEL_RADIUS;
     for (i = 0; i < graphPtr->nAngleMajorTicks; i++) {
-        char string[32];
         double degrees;
         double theta;
         Point2D point;
@@ -630,8 +726,16 @@ static void PolarAngularLabelsToPostScript(Graph *graphPtr, PsToken psToken, Gri
         if ((!FINITE(point.x)) || (!FINITE(point.y))) {
             continue;
         }
-        snprintf(string, sizeof(string), "%g\xC2\xB0", degrees);
-        Rbc_TextToPostScript(psToken, string, &style, point.x, point.y);
+        {
+            Tcl_DString label;
+            char *string;
+
+            string = FormatPolarAngleLabel(graphPtr, degrees, &label);
+            if (string[0] != '\0') {
+                Rbc_TextToPostScript(psToken, string, &style, point.x, point.y);
+            }
+            Tcl_DStringFree(&label);
+        }
     }
 }
 

@@ -386,7 +386,8 @@ struct GraphStruct {
     Tcl_Obj *topMarginObjPtr;
     Tcl_Obj *widthObjPtr;
     Tcl_Obj *angleMajorTicksObjPtr;
-    Tcl_Obj *angleMinorTicksObjPtr;    
+    Tcl_Obj *angleMinorTicksObjPtr;
+    Tcl_Obj *angleCommandObjPtr;    
 
     /*
      * Temporary context for a modern option transaction.
