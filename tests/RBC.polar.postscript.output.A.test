@@ -122,5 +122,26 @@ namespace eval polar.postscript {
         destroy .polar1
     } -result {1}
 
+    test RBC.polar.postscript.output.A.smithgrid.1 {
+        smith postscript: live grid-domain switching
+    } -setup {
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        update
+    } -body {
+        .polar1 configure -smithgrid admittance
+        update
+        set code1 [catch {.polar1 postscript output}]
+        .polar1 configure -smithgrid both
+        update
+        set code2 [catch {.polar1 postscript output}]
+        .polar1 configure -smithgrid impedance
+        update
+        set code3 [catch {.polar1 postscript output}]
+        list $code1 $code2 $code3
+    } -cleanup {
+        destroy .polar1
+    } -result {0 0 0}
+
     cleanupTests
 }

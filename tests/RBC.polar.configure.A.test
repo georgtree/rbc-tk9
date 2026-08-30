@@ -231,6 +231,47 @@ namespace eval polar.configure {
         vector destroy z
     } -result {smith polar}
 
+    test RBC.polar.configure.A.smithgrid.1 {
+        polar smithgrid: default
+    } -setup {
+        polar .polar1
+    } -body {
+        .polar1 cget -smithgrid
+    } -cleanup {
+        destroy .polar1
+    } -result {impedance}
+
+    test RBC.polar.configure.A.smithgrid.2 {
+        polar smithgrid: admittance
+    } -setup {
+        polar .polar1 -smithgrid admittance
+    } -body {
+        .polar1 cget -smithgrid
+    } -cleanup {
+        destroy .polar1
+    } -result {admittance}
+
+    test RBC.polar.configure.A.smithgrid.3 {
+        polar smithgrid: both
+    } -setup {
+        polar .polar1 -smithgrid both
+    } -body {
+        .polar1 cget -smithgrid
+    } -cleanup {
+        destroy .polar1
+    } -result {both}
+
+    test RBC.polar.configure.A.smithgrid.4 {
+        polar smithgrid: invalid value rolls back
+    } -setup {
+        polar .polar1 -smithgrid admittance
+    } -body {
+        set code [catch {.polar1 configure -smithgrid bad}]
+        list $code [.polar1 cget -smithgrid]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 admittance}
+
 
 
 	cleanupTests

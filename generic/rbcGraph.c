@@ -84,6 +84,7 @@ Rbc_Uid rbcWindowMarkerUid;
 #define DEF_GRAPH_RADIAL_LABEL_ANCHOR "se"
 #define DEF_GRAPH_ANGLE_LABEL_ANCHOR "center"
 #define DEF_GRAPH_REPRESENTATION "polar"
+#define DEF_GRAPH_SMITH_GRID "impedance"
 
 /*
  * Graph option conversion and update masks.
@@ -108,6 +109,7 @@ Rbc_Uid rbcWindowMarkerUid;
 #define GRAPH_PLOT_BACKGROUND_MASK (1u << 13)
 #define GRAPH_POLAR_LABEL_MASK (1u << 14)
 #define GRAPH_POLAR_REPRESENTATION_MASK (1u << 15)
+#define GRAPH_SMITH_GRID_MASK (1u << 16)
 
 #define GRAPH_TRANSACTION_MASK                                                                                         \
     (GRAPH_BAR_MODE_MASK | GRAPH_BAR_WIDTH_MASK | GRAPH_PIXELS_MASK | GRAPH_PADDING_MASK | GRAPH_SHADOW_MASK |         \
@@ -116,7 +118,7 @@ Rbc_Uid rbcWindowMarkerUid;
 #define GRAPH_INITIALIZE_MASK                                                                                          \
     (GRAPH_TRANSACTION_MASK | GRAPH_TEXT_STYLE_MASK | GRAPH_GC_MASK | GRAPH_GEOMETRY_MASK | GRAPH_INVERT_XY_MASK |     \
      GRAPH_LAYOUT_MASK | GRAPH_BACKING_STORE_MASK | GRAPH_REDRAW_MASK | GRAPH_PLOT_BACKGROUND_MASK |                   \
-     GRAPH_POLAR_REPRESENTATION_MASK)
+     GRAPH_POLAR_REPRESENTATION_MASK | GRAPH_SMITH_GRID_MASK)
 
 typedef enum {
     GRAPH_BIND_CONTEXT_AXIS = 1,
@@ -193,6 +195,7 @@ static void FreePolarLabelAnchor(void *clientData, Tk_Window tkwin, char *intern
 static const Tk_ObjCustomOption polarLabelAnchorOption = {
     "polarLabelAnchor", SetPolarLabelAnchor, GetPolarLabelAnchor, RestorePolarLabelAnchor, FreePolarLabelAnchor, NULL};
 static const char *const polarRepresentationNames[] = {"polar", "smith", NULL};
+static const char *const smithGridNames[] = {"impedance", "admittance", "both", NULL};
 /*
  * Modern graph option table.
  */
@@ -289,6 +292,8 @@ static const Tk_OptionSpec graphOptionSpecs[] = {
 
     {TK_OPTION_STRING, "-shadow", "shadow", "Shadow", DEF_GRAPH_SHADOW_COLOR, offsetof(Graph, shadowObjPtr), -1,
      TK_OPTION_NULL_OK, NULL, GRAPH_SHADOW_MASK | GRAPH_TEXT_STYLE_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING_TABLE, "-smithgrid", "smithGrid", "SmithGrid", DEF_GRAPH_SMITH_GRID, -1,
+     offsetof(Graph, smithGrid), 0, (ClientData)smithGridNames, GRAPH_SMITH_GRID_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING, "-takefocus", "takeFocus", "TakeFocus", DEF_GRAPH_TAKE_FOCUS, -1, offsetof(Graph, takeFocus),
      TK_OPTION_NULL_OK, NULL, GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING, "-tile", "tile", "Tile", NULL, offsetof(Graph, tileObjPtr), -1, TK_OPTION_NULL_OK, NULL,
@@ -1780,6 +1785,7 @@ static int ConfigureGraph(Graph *graphPtr) {
     int plotBackgroundModified;
     int polarLabelsModified;
     int representationModified;
+    int smithGridModified;    
     XColor *colorPtr;
     GC newGC;
     XGCValues gcValues;
@@ -1868,6 +1874,7 @@ static int ConfigureGraph(Graph *graphPtr) {
     polarLabelsModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_POLAR_LABEL_MASK));
     representationModified =
         ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_POLAR_REPRESENTATION_MASK));
+    smithGridModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_SMITH_GRID_MASK));
     /*
      * Preserve the historical normalisation behaviour for -barwidth.
      */
@@ -1956,11 +1963,10 @@ static int ConfigureGraph(Graph *graphPtr) {
      *        -bottommargin, -leftmargin, -rightmargin, -topmargin,
      *        -barmode, -barwidth
      */
-    if (layoutModified || representationModified) {
+    if (layoutModified || representationModified || smithGridModified) {
         graphPtr->flags |= RESET_WORLD;
     }
-
-    if (plotBackgroundModified || polarLabelsModified || representationModified) {
+    if (plotBackgroundModified || polarLabelsModified || representationModified || smithGridModified) {
         graphPtr->flags |= REDRAW_BACKING_STORE;
     }
     graphPtr->flags |= REDRAW_WORLD;

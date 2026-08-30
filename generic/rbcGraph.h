@@ -95,10 +95,9 @@ typedef struct {
     int isAuto;
 } PolarLabelAnchor;
 
-typedef enum {
-    POLAR_REPRESENTATION_POLAR,
-    POLAR_REPRESENTATION_SMITH
-} PolarRepresentation;
+typedef enum { POLAR_REPRESENTATION_POLAR, POLAR_REPRESENTATION_SMITH } PolarRepresentation;
+
+typedef enum { SMITH_GRID_IMPEDANCE, SMITH_GRID_ADMITTANCE, SMITH_GRID_BOTH } SmithGridMode;
 
 /*
  * -------------------------------------------------------------------
@@ -484,6 +483,7 @@ struct GraphStruct {
      * Polar-specific presentation options.
      */
     PolarRepresentation representation;
+    SmithGridMode smithGrid;
     PolarLabelAnchor radialLabelAnchor;
     PolarLabelAnchor angleLabelAnchor;
 
