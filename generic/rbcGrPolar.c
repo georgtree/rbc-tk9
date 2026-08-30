@@ -26,6 +26,9 @@
 #define SMITH_CIRCLE_SEGMENTS 180
 #define SMITH_ARC_SEGMENTS 90
 
+#define SMITH_RESISTANCE_LABEL_OFFSET 2
+#define SMITH_REACTANCE_LABEL_RADIUS 0.94
+
 static const double smithMajorResistance[] = {
     0.0, 0.2, 0.5, 1.0, 2.0, 5.0
 };
@@ -226,14 +229,10 @@ static Tk_Anchor GetPolarRadialLabelAnchor(Graph *graphPtr) {
     if (graphPtr->radialLabelAnchor.isAuto) {
         return TK_ANCHOR_SE;
     }
-
     return graphPtr->radialLabelAnchor.anchor;
 }
 
-static Tk_Anchor GetPolarAngleLabelAnchor(Graph *graphPtr, double degrees) {
-    if (!graphPtr->angleLabelAnchor.isAuto) {
-        return graphPtr->angleLabelAnchor.anchor;
-    }
+static Tk_Anchor GetInwardLabelAnchor(double degrees) {
     if ((degrees < 22.5) || (degrees >= 337.5)) {
         return TK_ANCHOR_E;
     }
@@ -256,6 +255,13 @@ static Tk_Anchor GetPolarAngleLabelAnchor(Graph *graphPtr, double degrees) {
         return TK_ANCHOR_S;
     }
     return TK_ANCHOR_SE;
+}
+
+static Tk_Anchor GetPolarAngleLabelAnchor(Graph *graphPtr, double degrees) {
+    if (!graphPtr->angleLabelAnchor.isAuto) {
+        return graphPtr->angleLabelAnchor.anchor;
+    }
+    return GetInwardLabelAnchor(degrees);
 }
 
 static void DrawPolarRadialLabels(Graph *graphPtr, Drawable drawable, Grid *gridPtr, double maxRadius) {
@@ -356,6 +362,123 @@ void Rbc_DrawPolarLabels(Graph *graphPtr, Drawable drawable) {
     DrawPolarAngularLabels(graphPtr, drawable, gridPtr, maxRadius);
 }
 
+static void SmithImpedanceToGamma(double resistance, double reactance, double *realPtr, double *imagPtr) {
+    double denominator;
+
+    denominator = (resistance + 1.0) * (resistance + 1.0) + reactance * reactance;
+    *realPtr = (resistance * resistance + reactance * reactance - 1.0) / denominator;
+    *imagPtr = (2.0 * reactance) / denominator;
+}
+
+
+static void DrawSmithResistanceLabels(Graph *graphPtr, Drawable drawable, Grid *gridPtr) {
+    Axis *axisPtr;
+    TextStyle style;
+    Tcl_Size i;
+
+    axisPtr = gridPtr->axes.x;
+    if ((axisPtr == NULL) || (!axisPtr->showTicks)) {
+        return;
+    }
+    style = axisPtr->tickTextStyle;
+    style.theta = 0.0;
+    for (i = 0; i < (Tcl_Size)(sizeof(smithMajorResistance) / sizeof(smithMajorResistance[0])); i++) {
+        char string[32];
+        double resistance;
+        double real;
+        double imag;
+        Point2D point;
+        resistance = smithMajorResistance[i];
+        SmithImpedanceToGamma(resistance, 0.0, &real, &imag);
+        point = Rbc_Map2D(graphPtr, real, imag, &gridPtr->axes);
+        if ((!FINITE(point.x)) || (!FINITE(point.y))) {
+            continue;
+        }
+        snprintf(string, sizeof(string), "%g", resistance);
+        if (resistance == 0.0) {
+            /*
+             * Γ=-1 lies on the left edge.  Keep the label inside.
+             */
+            style.anchor = TK_ANCHOR_W;
+            Rbc_DrawText(graphPtr->tkwin, drawable, string, &style, ROUND(point.x) + SMITH_RESISTANCE_LABEL_OFFSET,
+                         ROUND(point.y));
+        } else {
+            /*
+             * Put the resistance labels immediately above the
+             * zero-reactance diameter.
+             */
+            style.anchor = TK_ANCHOR_S;
+            Rbc_DrawText(graphPtr->tkwin, drawable, string, &style, ROUND(point.x),
+                         ROUND(point.y) - SMITH_RESISTANCE_LABEL_OFFSET);
+        }
+    }
+}
+
+static void DrawSmithReactanceLabels(Graph *graphPtr, Drawable drawable, Grid *gridPtr) {
+    Axis *axisPtr;
+    TextStyle style;
+    Tcl_Size i;
+
+    axisPtr = gridPtr->axes.y;
+    if ((axisPtr == NULL) || (!axisPtr->showTicks)) {
+        return;
+    }
+    style = axisPtr->tickTextStyle;
+    style.theta = 0.0;
+    for (i = 0; i < (Tcl_Size)(sizeof(smithMajorReactance) / sizeof(smithMajorReactance[0])); i++) {
+        double magnitude;
+        int sign;
+
+        magnitude = smithMajorReactance[i];
+        for (sign = 1; sign >= -1; sign -= 2) {
+            char string[32];
+            double reactance;
+            double real;
+            double imag;
+            double degrees;
+            Point2D point;
+
+            reactance = sign * magnitude;
+            /*
+             * Intersection of this reactance arc with the
+             * r=0 unit-circle boundary.
+             */
+            SmithImpedanceToGamma(0.0, reactance, &real, &imag);
+            /*
+             * Pull the label slightly inside the unit circle.
+             */
+            real *= SMITH_REACTANCE_LABEL_RADIUS;
+            imag *= SMITH_REACTANCE_LABEL_RADIUS;
+            point = Rbc_Map2D(graphPtr, real, imag, &gridPtr->axes);
+            if ((!FINITE(point.x)) || (!FINITE(point.y))) {
+                continue;
+            }
+            degrees = atan2(imag, real) / POLAR_DEG_TO_RAD;
+            if (degrees < 0.0) {
+                degrees += 360.0;
+            }
+            style.anchor = GetInwardLabelAnchor(degrees);
+            if (reactance > 0.0) {
+                snprintf(string, sizeof(string), "+j%g", magnitude);
+            } else {
+                snprintf(string, sizeof(string), "-j%g", magnitude);
+            }
+            Rbc_DrawText(graphPtr->tkwin, drawable, string, &style, ROUND(point.x), ROUND(point.y));
+        }
+    }
+}
+
+void Rbc_DrawSmithLabels(Graph *graphPtr, Drawable drawable) {
+    Grid *gridPtr;
+
+    gridPtr = graphPtr->gridPtr;
+    if (gridPtr == NULL) {
+        return;
+    }
+    DrawSmithResistanceLabels(graphPtr, drawable, gridPtr);
+    DrawSmithReactanceLabels(graphPtr, drawable, gridPtr);
+}
+
 static void PolarRadialLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *gridPtr, double maxRadius) {
     Axis *axisPtr;
     TextStyle style;
@@ -370,8 +493,6 @@ static void PolarRadialLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid
     if (ticksPtr == NULL) {
         return;
     }
-    style = axisPtr->tickTextStyle;
-    style.theta = 0.0;
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
     style.anchor = GetPolarRadialLabelAnchor(graphPtr);
@@ -467,26 +588,18 @@ static void MapSmithResistanceCircle(Graph *graphPtr, Grid *gridPtr, double resi
 }
 
 static Point2D SmithReactancePoint(Graph *graphPtr, Grid *gridPtr, double reactance, double t) {
-    Point2D point;
     double resistance;
-    double denominator;
-    double x;
-    double y;
+    double real;
+    double imag;
 
-    /*
-     * t maps [0,1] onto resistance [0,+Inf].
-     */
     if (t >= 1.0) {
-        x = 1.0;
-        y = 0.0;
+        real = 1.0;
+        imag = 0.0;
     } else {
         resistance = t / (1.0 - t);
-        denominator = (resistance + 1.0) * (resistance + 1.0) + reactance * reactance;
-        x = (resistance * resistance + reactance * reactance - 1.0) / denominator;
-        y = (2.0 * reactance) / denominator;
+        SmithImpedanceToGamma(resistance, reactance, &real, &imag);
     }
-    point = Rbc_Map2D(graphPtr, x, y, &gridPtr->axes);
-    return point;
+    return Rbc_Map2D(graphPtr, real, imag, &gridPtr->axes);
 }
 
 static void MapSmithReactanceArc(Graph *graphPtr, Grid *gridPtr, double reactance, Segment2D *segments) {
@@ -608,4 +721,93 @@ void Rbc_MapSmithGrid(Graph *graphPtr, Grid *gridPtr) {
     }
     MapSmithResistanceGrid(graphPtr, gridPtr);
     MapSmithReactanceGrid(graphPtr, gridPtr);
+}
+
+static void SmithResistanceLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *gridPtr) {
+    Axis *axisPtr;
+    TextStyle style;
+    Tcl_Size i;
+
+    axisPtr = gridPtr->axes.x;
+    if ((axisPtr == NULL) || (!axisPtr->showTicks)) {
+        return;
+    }
+    style = axisPtr->tickTextStyle;
+    style.theta = 0.0;
+    for (i = 0; i < (Tcl_Size)(sizeof(smithMajorResistance) / sizeof(smithMajorResistance[0])); i++) {
+        char string[32];
+        double resistance;
+        double real;
+        double imag;
+        Point2D point;
+
+        resistance = smithMajorResistance[i];
+        SmithImpedanceToGamma(resistance, 0.0, &real, &imag);
+        point = Rbc_Map2D(graphPtr, real, imag, &gridPtr->axes);
+        if ((!FINITE(point.x)) || (!FINITE(point.y))) {
+            continue;
+        }
+        snprintf(string, sizeof(string), "%g", resistance);
+        if (resistance == 0.0) {
+            style.anchor = TK_ANCHOR_W;
+            Rbc_TextToPostScript(psToken, string, &style, point.x + SMITH_RESISTANCE_LABEL_OFFSET, point.y);
+        } else {
+            style.anchor = TK_ANCHOR_S;
+            Rbc_TextToPostScript(psToken, string, &style, point.x, point.y - SMITH_RESISTANCE_LABEL_OFFSET);
+        }
+    }
+}
+
+static void SmithReactanceLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *gridPtr) {
+    Axis *axisPtr;
+    TextStyle style;
+    Tcl_Size i;
+
+    axisPtr = gridPtr->axes.y;
+    if ((axisPtr == NULL) || (!axisPtr->showTicks)) {
+        return;
+    }
+    style = axisPtr->tickTextStyle;
+    style.theta = 0.0;
+    for (i = 0; i < (Tcl_Size)(sizeof(smithMajorReactance) / sizeof(smithMajorReactance[0])); i++) {
+        double magnitude;
+        int sign;
+
+        magnitude = smithMajorReactance[i];
+        for (sign = 1; sign >= -1; sign -= 2) {
+            char string[32];
+            double reactance;
+            double real;
+            double imag;
+            double degrees;
+            Point2D point;
+
+            reactance = sign * magnitude;
+            SmithImpedanceToGamma(0.0, reactance, &real, &imag);
+            real *= SMITH_REACTANCE_LABEL_RADIUS;
+            imag *= SMITH_REACTANCE_LABEL_RADIUS;
+            point = Rbc_Map2D(graphPtr, real, imag, &gridPtr->axes);
+            if ((!FINITE(point.x)) || (!FINITE(point.y))) {
+                continue;
+            }
+            degrees = atan2(imag, real) / POLAR_DEG_TO_RAD;
+            if (degrees < 0.0) {
+                degrees += 360.0;
+            }
+            style.anchor = GetInwardLabelAnchor(degrees);
+            snprintf(string, sizeof(string), (reactance > 0.0) ? "+j%g" : "-j%g", magnitude);
+            Rbc_TextToPostScript(psToken, string, &style, point.x, point.y);
+        }
+    }
+}
+
+void Rbc_SmithLabelsToPostScript(Graph *graphPtr, PsToken psToken) {
+    Grid *gridPtr;
+
+    gridPtr = graphPtr->gridPtr;
+    if (gridPtr == NULL) {
+        return;
+    }
+    SmithResistanceLabelsToPostScript(graphPtr, psToken, gridPtr);
+    SmithReactanceLabelsToPostScript(graphPtr, psToken, gridPtr);
 }

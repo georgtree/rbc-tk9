@@ -924,8 +924,15 @@ static int GraphToPostScript(Graph *graphPtr, const char *ident, PsToken psToken
     if (!graphPtr->gridPtr->hidden) {
         Rbc_GridToPostScript(graphPtr, psToken);
     }
-    if ((graphPtr->classUid == rbcPolarElementUid) && (graphPtr->representation == POLAR_REPRESENTATION_POLAR)) {
-        Rbc_PolarLabelsToPostScript(graphPtr, psToken);
+    if (graphPtr->classUid == rbcPolarElementUid) {
+        switch (graphPtr->representation) {
+        case POLAR_REPRESENTATION_POLAR:
+            Rbc_PolarLabelsToPostScript(graphPtr, psToken);
+            break;
+        case POLAR_REPRESENTATION_SMITH:
+            Rbc_SmithLabelsToPostScript(graphPtr, psToken);
+            break;
+        }
     }
     Rbc_MarkersToPostScript(graphPtr, psToken, TRUE);
     if ((Rbc_LegendSite(graphPtr->legend) & LEGEND_IN_PLOT) && (!Rbc_LegendIsRaised(graphPtr->legend))) {

@@ -3344,8 +3344,15 @@ static void DrawPlotRegion(Graph *graphPtr, Drawable drawable) {
     if (!graphPtr->gridPtr->hidden) {
         Rbc_DrawGrid(graphPtr, drawable);
     }
-    if ((graphPtr->classUid == rbcPolarElementUid) && (graphPtr->representation == POLAR_REPRESENTATION_POLAR)) {
-        Rbc_DrawPolarLabels(graphPtr, drawable);
+    if (graphPtr->classUid == rbcPolarElementUid) {
+        switch (graphPtr->representation) {
+        case POLAR_REPRESENTATION_POLAR:
+            Rbc_DrawPolarLabels(graphPtr, drawable);
+            break;
+        case POLAR_REPRESENTATION_SMITH:
+            Rbc_DrawSmithLabels(graphPtr, drawable);
+            break;
+        }
     }
     Rbc_DrawMarkers(graphPtr, drawable, MARKER_UNDER);
     if ((Rbc_LegendSite(graphPtr->legend) & LEGEND_IN_PLOT) && (!Rbc_LegendIsRaised(graphPtr->legend))) {

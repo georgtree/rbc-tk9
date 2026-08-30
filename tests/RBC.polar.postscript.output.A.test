@@ -93,5 +93,34 @@ namespace eval polar.postscript {
         rename FormatRadius {}
     } -result {1}
 
+    test RBC.polar.postscript.output.A.smith.1 {
+        smith postscript output: normalized reactance labels
+    } -setup {
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 grid configure -hide no
+        update
+    } -body {
+        set ps [.polar1 postscript output]
+        list [expr {[string first {+j0.2} $ps] >= 0}] [expr {[string first {-j0.2} $ps] >= 0}]\
+                [expr {[string first {+j5} $ps] >= 0}] [expr {[string first {-j5} $ps] >= 0}]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 1 1 1}
+
+    test RBC.polar.postscript.output.A.smith.2 {
+        smith postscript output: y -showticks hides reactance labels
+    } -setup {
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 axis configure y -showticks no
+        update
+    } -body {
+        set ps [.polar1 postscript output]
+        expr {[string first {+j0.2} $ps] < 0}
+    } -cleanup {
+        destroy .polar1
+    } -result {1}
+
     cleanupTests
 }
