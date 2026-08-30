@@ -85,6 +85,8 @@ Rbc_Uid rbcWindowMarkerUid;
 #define DEF_GRAPH_ANGLE_LABEL_ANCHOR "center"
 #define DEF_GRAPH_REPRESENTATION "polar"
 #define DEF_GRAPH_SMITH_GRID "impedance"
+#define DEF_GRAPH_ANGLE_MAJOR_TICKS "0 30 60 90 120 150 180 210 240 270 300 330"
+#define DEF_GRAPH_ANGLE_MINOR_TICKS "15 45 75 105 135 165 195 225 255 285 315 345"
 
 /*
  * Graph option conversion and update masks.
@@ -110,6 +112,8 @@ Rbc_Uid rbcWindowMarkerUid;
 #define GRAPH_POLAR_LABEL_MASK (1u << 14)
 #define GRAPH_POLAR_REPRESENTATION_MASK (1u << 15)
 #define GRAPH_SMITH_GRID_MASK (1u << 16)
+#define GRAPH_POLAR_ANGLE_TICKS_MASK (1u << 17)
+
 
 #define GRAPH_TRANSACTION_MASK                                                                                         \
     (GRAPH_BAR_MODE_MASK | GRAPH_BAR_WIDTH_MASK | GRAPH_PIXELS_MASK | GRAPH_PADDING_MASK | GRAPH_SHADOW_MASK |         \
@@ -118,7 +122,7 @@ Rbc_Uid rbcWindowMarkerUid;
 #define GRAPH_INITIALIZE_MASK                                                                                          \
     (GRAPH_TRANSACTION_MASK | GRAPH_TEXT_STYLE_MASK | GRAPH_GC_MASK | GRAPH_GEOMETRY_MASK | GRAPH_INVERT_XY_MASK |     \
      GRAPH_LAYOUT_MASK | GRAPH_BACKING_STORE_MASK | GRAPH_REDRAW_MASK | GRAPH_PLOT_BACKGROUND_MASK |                   \
-     GRAPH_POLAR_REPRESENTATION_MASK | GRAPH_SMITH_GRID_MASK)
+     GRAPH_POLAR_REPRESENTATION_MASK | GRAPH_SMITH_GRID_MASK | GRAPH_POLAR_ANGLE_TICKS_MASK)
 
 typedef enum {
     GRAPH_BIND_CONTEXT_AXIS = 1,
@@ -187,6 +191,16 @@ typedef struct {
     Rbc_Tile tile;
 } GraphTileTransaction;
 
+typedef struct {
+    int majorStaged;
+    double *majorTicks;
+    Tcl_Size nMajorTicks;
+
+    int minorStaged;
+    double *minorTicks;
+    Tcl_Size nMinorTicks;
+} GraphPolarAngleTicksTransaction;
+
 static int SetPolarLabelAnchor(void *clientData, Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj **valuePtrPtr,
                                char *widgRec, Tcl_Size offset, char *saveInternalPtr, int flags);
 static Tcl_Obj *GetPolarLabelAnchor(void *clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset);
@@ -202,6 +216,10 @@ static const char *const smithGridNames[] = {"impedance", "admittance", "both", 
 static const Tk_OptionSpec graphOptionSpecs[] = {
     {TK_OPTION_CUSTOM, "-anglelabelanchor", "angleLabelAnchor", "AngleLabelAnchor", DEF_GRAPH_ANGLE_LABEL_ANCHOR, -1,
      offsetof(Graph, angleLabelAnchor), 0, &polarLabelAnchorOption, GRAPH_POLAR_LABEL_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-anglemajorticks", "angleMajorTicks", "AngleMajorTicks", DEF_GRAPH_ANGLE_MAJOR_TICKS,
+     offsetof(Graph, angleMajorTicksObjPtr), -1, 0, NULL, GRAPH_POLAR_ANGLE_TICKS_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-angleminorticks", "angleMinorTicks", "AngleMinorTicks", DEF_GRAPH_ANGLE_MINOR_TICKS,
+     offsetof(Graph, angleMinorTicksObjPtr), -1, 0, NULL, GRAPH_POLAR_ANGLE_TICKS_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_DOUBLE, "-aspect", "aspect", "Aspect", DEF_GRAPH_ASPECT_RATIO, -1, offsetof(Graph, aspect), 0, NULL,
      GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_BORDER, "-background", "background", "Background", DEF_GRAPH_BACKGROUND, -1, offsetof(Graph, border), 0,
@@ -1070,6 +1088,187 @@ static void CommitGraphTileTransaction(Graph *graphPtr, GraphTileTransaction *tr
     }
 }
 
+static int ParsePolarAngleTicks(Tcl_Interp *interp, Tcl_Obj *objPtr, const char *optionName, double **ticksPtr,
+                                Tcl_Size *nTicksPtr) {
+    Tcl_Obj **objv;
+    Tcl_Size objc;
+    Tcl_Size i;
+    double *ticks;
+    size_t bytes;
+
+    *ticksPtr = NULL;
+    *nTicksPtr = 0;
+    if (Tcl_ListObjGetElements(interp, objPtr, &objc, &objv) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (objc == 0) {
+        return TCL_OK;
+    }
+    if ((Tcl_WideUInt)objc > (Tcl_WideUInt)(SIZE_MAX / sizeof(double))) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("%s contains too many angles", optionName));
+        return TCL_ERROR;
+    }
+    bytes = (size_t)objc * sizeof(double);
+    ticks = Tcl_AttemptAlloc(bytes);
+    if (ticks == NULL) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate polar angular tick array", -1));
+        return TCL_ERROR;
+    }
+    for (i = 0; i < objc; i++) {
+        double value;
+
+        if (Tcl_GetDoubleFromObj(interp, objv[i], &value) != TCL_OK) {
+            ckfree(ticks);
+            return TCL_ERROR;
+        }
+        if ((!FINITE(value)) || (value < 0.0) || (value >= 360.0)) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("%s angle \"%s\" must be finite "
+                                                   "and in the range 0 <= angle < 360",
+                                                   optionName, Tcl_GetString(objv[i])));
+            ckfree(ticks);
+            return TCL_ERROR;
+        }
+        /*
+         * Canonicalize negative zero.
+         */
+        if (value == 0.0) {
+            value = 0.0;
+        }
+        ticks[i] = value;
+    }
+    *ticksPtr = ticks;
+    *nTicksPtr = objc;
+    return TCL_OK;
+}
+
+static int StageGraphPolarAngleTicks(Graph *graphPtr, Tcl_Obj *objPtr, int major,
+                                     GraphPolarAngleTicksTransaction *transactionPtr) {
+    double *ticks;
+    Tcl_Size nTicks;
+    const char *optionName;
+
+    ticks = NULL;
+    nTicks = 0;
+    optionName = major ? "-anglemajorticks" : "-angleminorticks";
+    if (ParsePolarAngleTicks(graphPtr->interp, objPtr, optionName, &ticks, &nTicks) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    /*
+     * Only release an earlier staged value after the new
+     * value has parsed successfully.
+     */
+    if (major) {
+        if (transactionPtr->majorStaged && (transactionPtr->majorTicks != NULL)) {
+            ckfree(transactionPtr->majorTicks);
+        }
+        transactionPtr->majorTicks = ticks;
+        transactionPtr->nMajorTicks = nTicks;
+        transactionPtr->majorStaged = TRUE;
+    } else {
+        if (transactionPtr->minorStaged && (transactionPtr->minorTicks != NULL)) {
+            ckfree(transactionPtr->minorTicks);
+        }
+        transactionPtr->minorTicks = ticks;
+        transactionPtr->nMinorTicks = nTicks;
+        transactionPtr->minorStaged = TRUE;
+    }
+    return TCL_OK;
+}
+
+static void FreeGraphPolarAngleTicksTransaction(GraphPolarAngleTicksTransaction *transactionPtr) {
+    if (transactionPtr->majorTicks != NULL) {
+        ckfree(transactionPtr->majorTicks);
+    }
+    if (transactionPtr->minorTicks != NULL) {
+        ckfree(transactionPtr->minorTicks);
+    }
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+}
+
+static int PrepareGraphPolarAngleTicksTransaction(Graph *graphPtr, GraphPolarAngleTicksTransaction *transactionPtr) {
+    int explicitMajor;
+    int explicitMinor;
+    Tcl_Size i;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+    explicitMajor = FALSE;
+    explicitMinor = FALSE;
+    assert((graphPtr->optionObjc & 1) == 0);
+    /*
+     * Determine whether the caller explicitly supplied either
+     * option.  On initial configuration, option-database/default
+     * values must also be staged.
+     */
+    for (i = 0; i < graphPtr->optionObjc; i += 2) {
+        if (IsGraphOption(graphPtr->optionObjv[i], "-anglemajorticks")) {
+            explicitMajor = TRUE;
+        } else if (IsGraphOption(graphPtr->optionObjv[i], "-angleminorticks")) {
+            explicitMinor = TRUE;
+        }
+    }
+    if (!graphPtr->optionsConfigured) {
+        if ((!explicitMajor) && (graphPtr->angleMajorTicksObjPtr != NULL)) {
+            if (StageGraphPolarAngleTicks(graphPtr, graphPtr->angleMajorTicksObjPtr, TRUE, transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        }
+        if ((!explicitMinor) && (graphPtr->angleMinorTicksObjPtr != NULL)) {
+            if (StageGraphPolarAngleTicks(graphPtr, graphPtr->angleMinorTicksObjPtr, FALSE, transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        }
+    }
+    /*
+     * Process explicit values in caller order so that an invalid
+     * earlier duplicate is not hidden by a later valid value.
+     */
+    for (i = 0; i < graphPtr->optionObjc; i += 2) {
+        if (IsGraphOption(graphPtr->optionObjv[i], "-anglemajorticks")) {
+            if (StageGraphPolarAngleTicks(graphPtr, graphPtr->optionObjv[i + 1], TRUE, transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        } else if (IsGraphOption(graphPtr->optionObjv[i], "-angleminorticks")) {
+            if (StageGraphPolarAngleTicks(graphPtr, graphPtr->optionObjv[i + 1], FALSE, transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        }
+    }
+    return TCL_OK;
+
+error:
+    FreeGraphPolarAngleTicksTransaction(transactionPtr);
+    return TCL_ERROR;
+}
+
+static void CommitGraphPolarAngleTicksTransaction(Graph *graphPtr, GraphPolarAngleTicksTransaction *transactionPtr) {
+    if (transactionPtr->majorStaged) {
+        double *oldTicks;
+
+        oldTicks = graphPtr->angleMajorTicks;
+        graphPtr->angleMajorTicks = transactionPtr->majorTicks;
+        graphPtr->nAngleMajorTicks = transactionPtr->nMajorTicks;
+        transactionPtr->majorTicks = NULL;
+        transactionPtr->nMajorTicks = 0;
+        transactionPtr->majorStaged = FALSE;
+        if (oldTicks != NULL) {
+            ckfree(oldTicks);
+        }
+    }
+    if (transactionPtr->minorStaged) {
+        double *oldTicks;
+
+        oldTicks = graphPtr->angleMinorTicks;
+        graphPtr->angleMinorTicks = transactionPtr->minorTicks;
+        graphPtr->nAngleMinorTicks = transactionPtr->nMinorTicks;
+        transactionPtr->minorTicks = NULL;
+        transactionPtr->nMinorTicks = 0;
+        transactionPtr->minorStaged = FALSE;
+        if (oldTicks != NULL) {
+            ckfree(oldTicks);
+        }
+    }
+}
+
 /*
  *--------------------------------------------------------------
  *
@@ -1775,17 +1974,20 @@ static int ConfigureGraph(Graph *graphPtr) {
     GraphPixelTransaction pixelTransaction;
     GraphShadowTransaction shadowTransaction;
     GraphTileTransaction tileTransaction;
+    GraphPolarAngleTicksTransaction polarAngleTicksTransaction;
     int barModeTransactionPrepared;
     int paddingTransactionPrepared;
     int pixelTransactionPrepared;
     int shadowTransactionPrepared;
     int tileTransactionPrepared;
+    int polarAngleTicksTransactionPrepared;
     int invertXYModified;
     int layoutModified;
     int plotBackgroundModified;
     int polarLabelsModified;
     int representationModified;
-    int smithGridModified;    
+    int smithGridModified;
+    int polarAngleTicksModified;
     XColor *colorPtr;
     GC newGC;
     XGCValues gcValues;
@@ -1798,11 +2000,13 @@ static int ConfigureGraph(Graph *graphPtr) {
     memset(&pixelTransaction, 0, sizeof(pixelTransaction));
     memset(&shadowTransaction, 0, sizeof(shadowTransaction));
     memset(&tileTransaction, 0, sizeof(tileTransaction));
+    memset(&polarAngleTicksTransaction, 0, sizeof(polarAngleTicksTransaction));
     barModeTransactionPrepared = FALSE;
     paddingTransactionPrepared = FALSE;
     pixelTransactionPrepared = FALSE;
     shadowTransactionPrepared = FALSE;
     tileTransactionPrepared = FALSE;
+    polarAngleTicksTransactionPrepared = FALSE;
     /*
      * TK_OPTION_DOUBLE accepts the numeric value itself, but these
      * options participate directly in layout and graph-coordinate
@@ -1850,6 +2054,12 @@ static int ConfigureGraph(Graph *graphPtr) {
         }
         tileTransactionPrepared = TRUE;
     }
+    if ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_POLAR_ANGLE_TICKS_MASK)) {
+        if (PrepareGraphPolarAngleTicksTransaction(graphPtr, &polarAngleTicksTransaction) != TCL_OK) {
+            goto error;
+        }
+        polarAngleTicksTransactionPrepared = TRUE;
+    }
     /*
      * No operation below this point can report a configuration error.
      */
@@ -1868,6 +2078,10 @@ static int ConfigureGraph(Graph *graphPtr) {
     if (tileTransactionPrepared) {
         CommitGraphTileTransaction(graphPtr, &tileTransaction);
     }
+    if (polarAngleTicksTransactionPrepared) {
+        CommitGraphPolarAngleTicksTransaction(graphPtr, &polarAngleTicksTransaction);
+    }
+
     invertXYModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_INVERT_XY_MASK));
     layoutModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_LAYOUT_MASK));
     plotBackgroundModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_PLOT_BACKGROUND_MASK));
@@ -1875,6 +2089,7 @@ static int ConfigureGraph(Graph *graphPtr) {
     representationModified =
         ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_POLAR_REPRESENTATION_MASK));
     smithGridModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_SMITH_GRID_MASK));
+    polarAngleTicksModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_POLAR_ANGLE_TICKS_MASK));
     /*
      * Preserve the historical normalisation behaviour for -barwidth.
      */
@@ -1963,10 +2178,11 @@ static int ConfigureGraph(Graph *graphPtr) {
      *        -bottommargin, -leftmargin, -rightmargin, -topmargin,
      *        -barmode, -barwidth
      */
-    if (layoutModified || representationModified || smithGridModified) {
+    if (layoutModified || representationModified || smithGridModified || polarAngleTicksModified) {
         graphPtr->flags |= RESET_WORLD;
     }
-    if (plotBackgroundModified || polarLabelsModified || representationModified || smithGridModified) {
+    if (plotBackgroundModified || polarLabelsModified || representationModified || smithGridModified ||
+        polarAngleTicksModified) {
         graphPtr->flags |= REDRAW_BACKING_STORE;
     }
     graphPtr->flags |= REDRAW_WORLD;
@@ -1979,6 +2195,9 @@ error:
     }
     if (tileTransactionPrepared) {
         FreeGraphTileTransaction(&tileTransaction);
+    }
+    if (polarAngleTicksTransactionPrepared) {
+        FreeGraphPolarAngleTicksTransaction(&polarAngleTicksTransaction);
     }
     return TCL_ERROR;
 }
@@ -2060,6 +2279,14 @@ static void DestroyGraph(DestroyData dataPtr) {
     }
     if (graphPtr->tile != NULL) {
         Rbc_FreeTile(graphPtr->tile);
+    }
+    if (graphPtr->angleMajorTicks != NULL) {
+        ckfree(graphPtr->angleMajorTicks);
+        graphPtr->angleMajorTicks = NULL;
+    }
+    if (graphPtr->angleMinorTicks != NULL) {
+        ckfree(graphPtr->angleMinorTicks);
+        graphPtr->angleMinorTicks = NULL;
     }
     ckfree((char *)graphPtr);
 }

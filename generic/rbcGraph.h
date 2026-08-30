@@ -385,6 +385,8 @@ struct GraphStruct {
     Tcl_Obj *tileObjPtr;
     Tcl_Obj *topMarginObjPtr;
     Tcl_Obj *widthObjPtr;
+    Tcl_Obj *angleMajorTicksObjPtr;
+    Tcl_Obj *angleMinorTicksObjPtr;    
 
     /*
      * Temporary context for a modern option transaction.
@@ -486,6 +488,12 @@ struct GraphStruct {
     SmithGridMode smithGrid;
     PolarLabelAnchor radialLabelAnchor;
     PolarLabelAnchor angleLabelAnchor;
+
+    double *angleMajorTicks;
+    Tcl_Size nAngleMajorTicks;
+
+    double *angleMinorTicks;
+    Tcl_Size nAngleMinorTicks;
 
     int left, right; /* Coordinates of plot bounding box. */
     int top, bottom;

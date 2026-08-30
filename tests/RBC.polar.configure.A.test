@@ -272,6 +272,48 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {1 admittance}
 
+    test RBC.polar.configure.A.angleticks.1 {
+        polar angular ticks: defaults
+    } -setup {
+        polar .polar1
+    } -body {
+        list [.polar1 cget -anglemajorticks] [.polar1 cget -angleminorticks]
+    } -cleanup {
+        destroy .polar1
+    } -result {{0 30 60 90 120 150 180 210 240 270 300 330} {15 45 75 105 135 165 195 225 255 285 315 345}}
+
+    test RBC.polar.configure.A.angleticks.2 {
+        polar angular ticks: custom values
+    } -setup {
+        polar .polar1 -anglemajorticks {0 45 90 180 270} -angleminorticks {22.5 67.5}
+    } -body {
+        list [.polar1 cget -anglemajorticks] [.polar1 cget -angleminorticks]
+    } -cleanup {
+        destroy .polar1
+    } -result {{0 45 90 180 270} {22.5 67.5}}
+
+    test RBC.polar.configure.A.angleticks.3 {
+        polar angular ticks: invalid major tick rolls back
+    } -setup {
+        polar .polar1 -anglemajorticks {0 45 90}
+    } -body {
+        set code [catch {.polar1 configure -anglemajorticks {0 90 360}}]
+        list $code [.polar1 cget -anglemajorticks]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 {0 45 90}}
+
+    test RBC.polar.configure.A.angleticks.4 {
+        polar angular ticks: invalid earlier duplicate is not hidden
+    } -setup {
+        polar .polar1
+    } -body {
+        set code [catch {.polar1 configure -anglemajorticks {0 bad 90} -anglemajorticks {0 45 90}}]
+        list $code [.polar1 cget -anglemajorticks]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 {0 30 60 90 120 150 180 210 240 270 300 330}}
+
 
 
 	cleanupTests

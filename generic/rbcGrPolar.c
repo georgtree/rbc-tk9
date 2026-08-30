@@ -17,8 +17,6 @@
 #define POLAR_DEG_TO_RAD (POLAR_PI / 180.0)
 
 #define POLAR_CIRCLE_SEGMENTS 180
-#define POLAR_MAJOR_ANGLE_STEP 30.0
-#define POLAR_MINOR_ANGLE_STEP 15.0
 
 #define POLAR_ANGLE_LABEL_RADIUS 0.90
 #define POLAR_RADIAL_LABEL_OFFSET 2
@@ -100,6 +98,15 @@ static void MapCircle(Graph *graphPtr, Grid *gridPtr, double radius, Segment2D *
         segments[i - 1].q = next;
         previous = next;
     }
+}
+
+static void MapPolarSpoke(Graph *graphPtr, Grid *gridPtr, Point2D origin, double maxRadius, double degrees,
+                          Segment2D *segmentPtr) {
+    double theta;
+
+    theta = degrees * POLAR_DEG_TO_RAD;
+    segmentPtr->p = origin;
+    segmentPtr->q = Rbc_Map2D(graphPtr, maxRadius * cos(theta), maxRadius * sin(theta), &gridPtr->axes);
 }
 
 static double PolarGridSegmentValue(Graph *graphPtr, Grid *gridPtr, const Segment2D *segmentPtr) {
@@ -188,30 +195,47 @@ static void MapPolarCircles(Graph *graphPtr, Grid *gridPtr, double maxRadius) {
 static void MapPolarSpokes(Graph *graphPtr, Grid *gridPtr, double maxRadius) {
     Segment2D *segments;
     Point2D origin;
-    double step;
+    Tcl_Size nMajor;
+    Tcl_Size nMinor;
     Tcl_Size nSpokes;
+    Tcl_Size index;
     Tcl_Size i;
 
-    if (gridPtr->minorGrid) {
-        step = POLAR_MINOR_ANGLE_STEP;
-    } else {
-        step = POLAR_MAJOR_ANGLE_STEP;
+    nMajor = graphPtr->nAngleMajorTicks;
+    nMinor = gridPtr->minorGrid ? graphPtr->nAngleMinorTicks : 0;
+    if (nMinor > TCL_SIZE_MAX - nMajor) {
+        return;
     }
-    nSpokes = (Tcl_Size)(360.0 / step);
+    nSpokes = nMajor + nMinor;
+    if (nSpokes == 0) {
+        return;
+    }
+    if ((Tcl_WideUInt)nSpokes > (Tcl_WideUInt)(SIZE_MAX / sizeof(Segment2D))) {
+        return;
+    }
     segments = Tcl_AttemptAlloc((size_t)nSpokes * sizeof(Segment2D));
     if (segments == NULL) {
         return;
     }
     origin = Rbc_Map2D(graphPtr, 0.0, 0.0, &gridPtr->axes);
-    for (i = 0; i < nSpokes; i++) {
-        double theta;
-
-        theta = ((double)i * step) * POLAR_DEG_TO_RAD;
-        segments[i].p = origin;
-        segments[i].q = Rbc_Map2D(graphPtr, maxRadius * cos(theta), maxRadius * sin(theta), &gridPtr->axes);
+    index = 0;
+    /*
+     * Major spokes are always present.
+     */
+    for (i = 0; i < nMajor; i++) {
+        MapPolarSpoke(graphPtr, gridPtr, origin, maxRadius, graphPtr->angleMajorTicks[i], segments + index);
+        index++;
+    }
+    /*
+     * Minor spokes are controlled by the existing grid -minor
+     * option.
+     */
+    for (i = 0; i < nMinor; i++) {
+        MapPolarSpoke(graphPtr, gridPtr, origin, maxRadius, graphPtr->angleMinorTicks[i], segments + index);
+        index++;
     }
     gridPtr->y.segments = segments;
-    gridPtr->y.nSegments = nSpokes;
+    gridPtr->y.nSegments = index;
 }
 
 void Rbc_MapPolarGrid(Graph *graphPtr, Grid *gridPtr) {
@@ -325,23 +349,25 @@ static void DrawPolarAngularLabels(Graph *graphPtr, Drawable drawable, Grid *gri
     style.theta = 0.0;
     /*
      * Keep angular labels slightly inside the outer circle.
-     * This avoids requiring additional Polar-specific margins.
      */
     labelRadius = maxRadius * POLAR_ANGLE_LABEL_RADIUS;
-    for (i = 0; i < 12; i++) {
+    for (i = 0; i < graphPtr->nAngleMajorTicks; i++) {
         char string[32];
         double degrees;
         double theta;
         Point2D point;
 
-        degrees = (double)i * POLAR_MAJOR_ANGLE_STEP;
+        degrees = graphPtr->angleMajorTicks[i];
         theta = degrees * POLAR_DEG_TO_RAD;
         style.anchor = GetPolarAngleLabelAnchor(graphPtr, degrees);
         point = Rbc_Map2D(graphPtr, labelRadius * cos(theta), labelRadius * sin(theta), &gridPtr->axes);
         if ((!FINITE(point.x)) || (!FINITE(point.y))) {
             continue;
         }
-        snprintf(string, sizeof(string), "%d\xC2\xB0", (int)degrees);
+        /*
+         * %g allows non-integral ticks such as 22.5 degrees.
+         */
+        snprintf(string, sizeof(string), "%g\xC2\xB0", degrees);
         Rbc_DrawText(graphPtr->tkwin, drawable, string, &style, ROUND(point.x), ROUND(point.y));
     }
 }
@@ -591,20 +617,20 @@ static void PolarAngularLabelsToPostScript(Graph *graphPtr, PsToken psToken, Gri
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
     labelRadius = maxRadius * POLAR_ANGLE_LABEL_RADIUS;
-    for (i = 0; i < 12; i++) {
+    for (i = 0; i < graphPtr->nAngleMajorTicks; i++) {
         char string[32];
         double degrees;
         double theta;
         Point2D point;
 
-        degrees = (double)i * POLAR_MAJOR_ANGLE_STEP;
+        degrees = graphPtr->angleMajorTicks[i];
         theta = degrees * POLAR_DEG_TO_RAD;
         style.anchor = GetPolarAngleLabelAnchor(graphPtr, degrees);
         point = Rbc_Map2D(graphPtr, labelRadius * cos(theta), labelRadius * sin(theta), &gridPtr->axes);
         if ((!FINITE(point.x)) || (!FINITE(point.y))) {
             continue;
         }
-        snprintf(string, sizeof(string), "%d\xC2\xB0", (int)degrees);
+        snprintf(string, sizeof(string), "%g\xC2\xB0", degrees);
         Rbc_TextToPostScript(psToken, string, &style, point.x, point.y);
     }
 }
