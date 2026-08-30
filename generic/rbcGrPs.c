@@ -924,7 +924,7 @@ static int GraphToPostScript(Graph *graphPtr, const char *ident, PsToken psToken
     if (!graphPtr->gridPtr->hidden) {
         Rbc_GridToPostScript(graphPtr, psToken);
     }
-    if (graphPtr->classUid == rbcPolarElementUid) {
+    if ((graphPtr->classUid == rbcPolarElementUid) && (graphPtr->representation == POLAR_REPRESENTATION_POLAR)) {
         Rbc_PolarLabelsToPostScript(graphPtr, psToken);
     }
     Rbc_MarkersToPostScript(graphPtr, psToken, TRUE);

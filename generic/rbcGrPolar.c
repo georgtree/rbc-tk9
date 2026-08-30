@@ -23,6 +23,25 @@
 #define POLAR_ANGLE_LABEL_RADIUS 0.90
 #define POLAR_RADIAL_LABEL_OFFSET 2
 
+#define SMITH_CIRCLE_SEGMENTS 180
+#define SMITH_ARC_SEGMENTS 90
+
+static const double smithMajorResistance[] = {
+    0.0, 0.2, 0.5, 1.0, 2.0, 5.0
+};
+
+static const double smithMinorResistance[] = {
+    0.1, 0.3, 0.7, 1.5, 3.0, 10.0
+};
+
+static const double smithMajorReactance[] = {
+    0.2, 0.5, 1.0, 2.0, 5.0
+};
+
+static const double smithMinorReactance[] = {
+    0.1, 0.3, 0.7, 1.5, 3.0, 10.0
+};
+
 static double PolarMaximumRadius(Grid *gridPtr) {
     Axis *xAxisPtr;
     Axis *yAxisPtr;
@@ -424,4 +443,169 @@ void Rbc_PolarLabelsToPostScript(Graph *graphPtr, PsToken psToken) {
     }
     PolarRadialLabelsToPostScript(graphPtr, psToken, gridPtr, maxRadius);
     PolarAngularLabelsToPostScript(graphPtr, psToken, gridPtr, maxRadius);
+}
+
+static void MapSmithResistanceCircle(Graph *graphPtr, Grid *gridPtr, double resistance, Segment2D *segments) {
+    double center;
+    double radius;
+    Point2D previous;
+    Tcl_Size i;
+
+    center = resistance / (resistance + 1.0);
+    radius = 1.0 / (resistance + 1.0);
+    previous = Rbc_Map2D(graphPtr, center + radius, 0.0, &gridPtr->axes);
+    for (i = 1; i <= SMITH_CIRCLE_SEGMENTS; i++) {
+        double theta;
+        Point2D next;
+
+        theta = (2.0 * POLAR_PI * (double)i) / (double)SMITH_CIRCLE_SEGMENTS;
+        next = Rbc_Map2D(graphPtr, center + radius * cos(theta), radius * sin(theta), &gridPtr->axes);
+        segments[i - 1].p = previous;
+        segments[i - 1].q = next;
+        previous = next;
+    }
+}
+
+static Point2D SmithReactancePoint(Graph *graphPtr, Grid *gridPtr, double reactance, double t) {
+    Point2D point;
+    double resistance;
+    double denominator;
+    double x;
+    double y;
+
+    /*
+     * t maps [0,1] onto resistance [0,+Inf].
+     */
+    if (t >= 1.0) {
+        x = 1.0;
+        y = 0.0;
+    } else {
+        resistance = t / (1.0 - t);
+        denominator = (resistance + 1.0) * (resistance + 1.0) + reactance * reactance;
+        x = (resistance * resistance + reactance * reactance - 1.0) / denominator;
+        y = (2.0 * reactance) / denominator;
+    }
+    point = Rbc_Map2D(graphPtr, x, y, &gridPtr->axes);
+    return point;
+}
+
+static void MapSmithReactanceArc(Graph *graphPtr, Grid *gridPtr, double reactance, Segment2D *segments) {
+    Point2D previous;
+    Tcl_Size i;
+
+    previous = SmithReactancePoint(graphPtr, gridPtr, reactance, 0.0);
+    for (i = 1; i <= SMITH_ARC_SEGMENTS; i++) {
+        Point2D next;
+        double t;
+
+        t = (double)i / (double)SMITH_ARC_SEGMENTS;
+        next = SmithReactancePoint(graphPtr, gridPtr, reactance, t);
+        segments[i - 1].p = previous;
+        segments[i - 1].q = next;
+        previous = next;
+    }
+}
+
+static void MapSmithResistanceGrid(Graph *graphPtr, Grid *gridPtr) {
+    Tcl_Size nMajor;
+    Tcl_Size nMinor;
+    Tcl_Size nCircles;
+    Tcl_Size nSegments;
+    Segment2D *segments;
+    Tcl_Size i;
+    Tcl_Size index;
+
+    nMajor = sizeof(smithMajorResistance) / sizeof(smithMajorResistance[0]);
+    nMinor = gridPtr->minorGrid ? sizeof(smithMinorResistance) / sizeof(smithMinorResistance[0]) : 0;
+    nCircles = nMajor + nMinor;
+    if (nCircles > TCL_SIZE_MAX / SMITH_CIRCLE_SEGMENTS) {
+        return;
+    }
+    nSegments = nCircles * SMITH_CIRCLE_SEGMENTS;
+    if ((size_t)nSegments > SIZE_MAX / sizeof(Segment2D)) {
+        return;
+    }
+    segments = Tcl_AttemptAlloc((size_t)nSegments * sizeof(Segment2D));
+    if (segments == NULL) {
+        return;
+    }
+    index = 0;
+    for (i = 0; i < nMajor; i++) {
+        MapSmithResistanceCircle(graphPtr, gridPtr, smithMajorResistance[i], segments + index);
+        index += SMITH_CIRCLE_SEGMENTS;
+    }
+    for (i = 0; i < nMinor; i++) {
+        MapSmithResistanceCircle(graphPtr, gridPtr, smithMinorResistance[i], segments + index);
+        index += SMITH_CIRCLE_SEGMENTS;
+    }
+    gridPtr->x.segments = segments;
+    gridPtr->x.nSegments = index;
+}
+
+static void MapSmithReactanceGrid(Graph *graphPtr, Grid *gridPtr) {
+    Tcl_Size nMajor;
+    Tcl_Size nMinor;
+    Tcl_Size nArcs;
+    Tcl_Size nSegments;
+    Segment2D *segments;
+    Tcl_Size i;
+    Tcl_Size index;
+
+    nMajor = sizeof(smithMajorReactance) / sizeof(smithMajorReactance[0]);
+    nMinor = gridPtr->minorGrid ? sizeof(smithMinorReactance) / sizeof(smithMinorReactance[0]) : 0;
+    /*
+     * Positive and negative reactance for each value,
+     * plus one segment for x = 0.
+     */
+    nArcs = 2 * (nMajor + nMinor);
+    if (nArcs > (TCL_SIZE_MAX - 1) / SMITH_ARC_SEGMENTS) {
+        return;
+    }
+    nSegments = 1 + nArcs * SMITH_ARC_SEGMENTS;
+    if ((size_t)nSegments > SIZE_MAX / sizeof(Segment2D)) {
+        return;
+    }
+    segments = Tcl_AttemptAlloc((size_t)nSegments * sizeof(Segment2D));
+    if (segments == NULL) {
+        return;
+    }
+    /*
+     * Zero-reactance line.
+     */
+    segments[0].p = Rbc_Map2D(graphPtr, -1.0, 0.0, &gridPtr->axes);
+    segments[0].q = Rbc_Map2D(graphPtr, 1.0, 0.0, &gridPtr->axes);
+    index = 1;
+    for (i = 0; i < nMajor; i++) {
+        double x;
+
+        x = smithMajorReactance[i];
+        MapSmithReactanceArc(graphPtr, gridPtr, x, segments + index);
+        index += SMITH_ARC_SEGMENTS;
+        MapSmithReactanceArc(graphPtr, gridPtr, -x, segments + index);
+        index += SMITH_ARC_SEGMENTS;
+    }
+    for (i = 0; i < nMinor; i++) {
+        double x;
+
+        x = smithMinorReactance[i];
+        MapSmithReactanceArc(graphPtr, gridPtr, x, segments + index);
+        index += SMITH_ARC_SEGMENTS;
+        MapSmithReactanceArc(graphPtr, gridPtr, -x, segments + index);
+        index += SMITH_ARC_SEGMENTS;
+    }
+    gridPtr->y.segments = segments;
+    gridPtr->y.nSegments = index;
+}
+
+void Rbc_MapSmithGrid(Graph *graphPtr, Grid *gridPtr) {
+    Axis *xAxisPtr;
+    Axis *yAxisPtr;
+
+    xAxisPtr = gridPtr->axes.x;
+    yAxisPtr = gridPtr->axes.y;
+    if ((xAxisPtr == NULL) || (yAxisPtr == NULL) || xAxisPtr->logScale || yAxisPtr->logScale) {
+        return;
+    }
+    MapSmithResistanceGrid(graphPtr, gridPtr);
+    MapSmithReactanceGrid(graphPtr, gridPtr);
 }

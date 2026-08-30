@@ -145,5 +145,71 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {1 auto}
 
+    test RBC.polar.configure.A.representation.1 {
+        polar representation: default
+    } -setup {
+        polar .polar1
+    } -body {
+        .polar1 cget -representation
+    } -cleanup {
+        destroy .polar1
+    } -result {polar}
+
+
+    test RBC.polar.configure.A.representation.2 {
+        polar representation: smith
+    } -setup {
+        polar .polar1
+    } -body {
+        .polar1 configure -representation smith
+        .polar1 cget -representation
+    } -cleanup {
+        destroy .polar1
+    } -result {smith}
+
+
+    test RBC.polar.configure.A.representation.3 {
+        polar representation: creation-time smith
+    } -setup {
+        polar .polar1 -representation smith
+    } -body {
+        .polar1 cget -representation
+    } -cleanup {
+        destroy .polar1
+    } -result {smith}
+
+
+    test RBC.polar.configure.A.representation.4 {
+        polar representation: bad value rolls back
+    } -setup {
+        polar .polar1 -representation smith
+    } -body {
+        set code [catch {.polar1 configure -representation bad}]
+        list $code [.polar1 cget -representation]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 smith}
+
+    test RBC.polar.configure.A.representation.5 {
+        polar representation: live polar smith switching
+    } -setup {
+        vector create z -type complex
+        z set {{0 0} {0.5 0.25}}
+        polar .polar1
+        pack .polar1
+        .polar1 element create Element1 -cdata z
+        update
+    } -body {
+        .polar1 configure -representation smith
+        update
+        set first [.polar1 cget -representation]
+        .polar1 configure -representation polar
+        update
+        list $first [.polar1 cget -representation]
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {smith polar}
+
 	cleanupTests
 }

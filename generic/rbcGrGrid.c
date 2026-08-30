@@ -214,7 +214,14 @@ void Rbc_MapGrid(Graph *graphPtr) {
     }
     gridPtr->x.nSegments = gridPtr->y.nSegments = 0;
     if (graphPtr->classUid == rbcPolarElementUid) {
-        Rbc_MapPolarGrid(graphPtr, gridPtr);
+        switch (graphPtr->representation) {
+        case POLAR_REPRESENTATION_POLAR:
+            Rbc_MapPolarGrid(graphPtr, gridPtr);
+            break;
+        case POLAR_REPRESENTATION_SMITH:
+            Rbc_MapSmithGrid(graphPtr, gridPtr);
+            break;
+        }
         return;
     }
     /*

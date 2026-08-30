@@ -95,6 +95,11 @@ typedef struct {
     int isAuto;
 } PolarLabelAnchor;
 
+typedef enum {
+    POLAR_REPRESENTATION_POLAR,
+    POLAR_REPRESENTATION_SMITH
+} PolarRepresentation;
+
 /*
  * -------------------------------------------------------------------
  *
@@ -478,6 +483,7 @@ struct GraphStruct {
     /*
      * Polar-specific presentation options.
      */
+    PolarRepresentation representation;
     PolarLabelAnchor radialLabelAnchor;
     PolarLabelAnchor angleLabelAnchor;
 
@@ -666,6 +672,7 @@ void Rbc_MapElements(Graph *graphPtr);
 void Rbc_MapMarkers(Graph *graphPtr);
 void Rbc_MapGrid(Graph *graphPtr);
 void Rbc_MapPolarGrid(Graph *graphPtr, Grid *gridPtr);
+void Rbc_MapSmithGrid(Graph *graphPtr, Grid *gridPtr);
 void Rbc_DrawPolarLabels(Graph *graphPtr, Drawable drawable);
 void Rbc_PolarLabelsToPostScript(Graph *graphPtr, PsToken psToken);
 void Rbc_UpdateCrosshairs(Graph *graphPtr);

@@ -3757,6 +3757,26 @@ void Rbc_ResetAxes(Graph *graphPtr) {
         GetDataLimits(elemPtr->axes.y, exts.top, exts.bottom);
     }
     /*
+     * The Smith representation is defined in the reflection-coefficient
+     * plane.  Its unit circle is part of the graph representation itself,
+     * so the axes mapped to the Smith grid must always contain [-1,+1],
+     * independently of the element data.
+     */
+    if ((graphPtr->classUid == rbcPolarElementUid) && (graphPtr->representation == POLAR_REPRESENTATION_SMITH) &&
+        (graphPtr->gridPtr != NULL)) {
+        Axis *xAxisPtr;
+        Axis *yAxisPtr;
+
+        xAxisPtr = graphPtr->gridPtr->axes.x;
+        yAxisPtr = graphPtr->gridPtr->axes.y;
+        if ((xAxisPtr != NULL) && (!xAxisPtr->logScale)) {
+            GetDataLimits(xAxisPtr, -1.0, 1.0);
+        }
+        if ((yAxisPtr != NULL) && (!yAxisPtr->logScale)) {
+            GetDataLimits(yAxisPtr, -1.0, 1.0);
+        }
+    }
+    /*
      * Step 3:  Now that we know the range of data values for each axis,
      *        set axis limits and compute a sweep to generate tick values.
      */

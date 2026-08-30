@@ -65,5 +65,23 @@ namespace eval polar.axis {
         vector destroy z
     } -result {1 1}
 
+    test RBC.polar.axis.limits.A.smith.1 {
+        smith representation includes the unit circle
+    } -setup {
+        vector create z -type complex
+        z set {{0.25 0}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 element create Element1 -cdata z
+        update
+    } -body {
+        lassign [.polar1 axis limits x] xmin xmax
+        lassign [.polar1 axis limits y] ymin ymax
+        list [expr {$xmin <= -1.0}] [expr {$xmax >= 1.0}] [expr {$ymin <= -1.0}] [expr {$ymax >= 1.0}]
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {1 1 1 1}
+
     cleanupTests
 }

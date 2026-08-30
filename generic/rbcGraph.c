@@ -83,6 +83,7 @@ Rbc_Uid rbcWindowMarkerUid;
 #define DEF_GRAPH_DATA_COMMAND (char *)NULL
 #define DEF_GRAPH_RADIAL_LABEL_ANCHOR "se"
 #define DEF_GRAPH_ANGLE_LABEL_ANCHOR "center"
+#define DEF_GRAPH_REPRESENTATION "polar"
 
 /*
  * Graph option conversion and update masks.
@@ -106,6 +107,7 @@ Rbc_Uid rbcWindowMarkerUid;
 #define GRAPH_REDRAW_MASK (1u << 12)
 #define GRAPH_PLOT_BACKGROUND_MASK (1u << 13)
 #define GRAPH_POLAR_LABEL_MASK (1u << 14)
+#define GRAPH_POLAR_REPRESENTATION_MASK (1u << 15)
 
 #define GRAPH_TRANSACTION_MASK                                                                                         \
     (GRAPH_BAR_MODE_MASK | GRAPH_BAR_WIDTH_MASK | GRAPH_PIXELS_MASK | GRAPH_PADDING_MASK | GRAPH_SHADOW_MASK |         \
@@ -113,9 +115,8 @@ Rbc_Uid rbcWindowMarkerUid;
 
 #define GRAPH_INITIALIZE_MASK                                                                                          \
     (GRAPH_TRANSACTION_MASK | GRAPH_TEXT_STYLE_MASK | GRAPH_GC_MASK | GRAPH_GEOMETRY_MASK | GRAPH_INVERT_XY_MASK |     \
-     GRAPH_LAYOUT_MASK | GRAPH_BACKING_STORE_MASK | GRAPH_REDRAW_MASK | GRAPH_PLOT_BACKGROUND_MASK)
-
-#define GRAPH_PLOT_BACKGROUND_MASK (1u << 13)
+     GRAPH_LAYOUT_MASK | GRAPH_BACKING_STORE_MASK | GRAPH_REDRAW_MASK | GRAPH_PLOT_BACKGROUND_MASK |                   \
+     GRAPH_POLAR_REPRESENTATION_MASK)
 
 typedef enum {
     GRAPH_BIND_CONTEXT_AXIS = 1,
@@ -191,7 +192,7 @@ static void RestorePolarLabelAnchor(void *clientData, Tk_Window tkwin, char *int
 static void FreePolarLabelAnchor(void *clientData, Tk_Window tkwin, char *internalPtr);
 static const Tk_ObjCustomOption polarLabelAnchorOption = {
     "polarLabelAnchor", SetPolarLabelAnchor, GetPolarLabelAnchor, RestorePolarLabelAnchor, FreePolarLabelAnchor, NULL};
-
+static const char *const polarRepresentationNames[] = {"polar", "smith", NULL};
 /*
  * Modern graph option table.
  */
@@ -275,6 +276,9 @@ static const Tk_OptionSpec graphOptionSpecs[] = {
      -1, offsetof(Graph, radialLabelAnchor), 0, &polarLabelAnchorOption, GRAPH_POLAR_LABEL_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_RELIEF, "-relief", "relief", "Relief", DEF_GRAPH_RELIEF, -1, offsetof(Graph, relief), 0, NULL,
      GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING_TABLE, "-representation", "representation", "Representation", DEF_GRAPH_REPRESENTATION, -1,
+     offsetof(Graph, representation), 0, (ClientData)polarRepresentationNames,
+     GRAPH_POLAR_REPRESENTATION_MASK | GRAPH_REDRAW_MASK},
 
     {TK_OPTION_STRING, "-rightmargin", "rightMargin", "Margin", DEF_GRAPH_MARGIN, offsetof(Graph, rightMarginObjPtr),
      -1, 0, NULL, GRAPH_PIXELS_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
@@ -1774,7 +1778,8 @@ static int ConfigureGraph(Graph *graphPtr) {
     int invertXYModified;
     int layoutModified;
     int plotBackgroundModified;
-    int polarLabelsModified;    
+    int polarLabelsModified;
+    int representationModified;
     XColor *colorPtr;
     GC newGC;
     XGCValues gcValues;
@@ -1861,6 +1866,8 @@ static int ConfigureGraph(Graph *graphPtr) {
     layoutModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_LAYOUT_MASK));
     plotBackgroundModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_PLOT_BACKGROUND_MASK));
     polarLabelsModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_POLAR_LABEL_MASK));
+    representationModified =
+        ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_POLAR_REPRESENTATION_MASK));
     /*
      * Preserve the historical normalisation behaviour for -barwidth.
      */
@@ -1949,10 +1956,11 @@ static int ConfigureGraph(Graph *graphPtr) {
      *        -bottommargin, -leftmargin, -rightmargin, -topmargin,
      *        -barmode, -barwidth
      */
-    if (layoutModified) {
+    if (layoutModified || representationModified) {
         graphPtr->flags |= RESET_WORLD;
     }
-    if (plotBackgroundModified || polarLabelsModified) {
+
+    if (plotBackgroundModified || polarLabelsModified || representationModified) {
         graphPtr->flags |= REDRAW_BACKING_STORE;
     }
     graphPtr->flags |= REDRAW_WORLD;
@@ -3336,7 +3344,7 @@ static void DrawPlotRegion(Graph *graphPtr, Drawable drawable) {
     if (!graphPtr->gridPtr->hidden) {
         Rbc_DrawGrid(graphPtr, drawable);
     }
-    if (graphPtr->classUid == rbcPolarElementUid) {
+    if ((graphPtr->classUid == rbcPolarElementUid) && (graphPtr->representation == POLAR_REPRESENTATION_POLAR)) {
         Rbc_DrawPolarLabels(graphPtr, drawable);
     }
     Rbc_DrawMarkers(graphPtr, drawable, MARKER_UNDER);
