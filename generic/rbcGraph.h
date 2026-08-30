@@ -470,6 +470,12 @@ struct GraphStruct {
     /* If non-zero, force plot to conform to aspect ratio W/H */
     double aspect;
 
+    /*
+     * Polar-specific presentation options.
+     */
+    Tk_Anchor radialLabelAnchor;
+    Tk_Anchor angleLabelAnchor;    
+
     int left, right; /* Coordinates of plot bounding box. */
     int top, bottom;
 

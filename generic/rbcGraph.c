@@ -81,6 +81,8 @@ Rbc_Uid rbcWindowMarkerUid;
 #define DEF_GRAPH_WIDTH "5i"
 #define DEF_GRAPH_DATA (char *)NULL
 #define DEF_GRAPH_DATA_COMMAND (char *)NULL
+#define DEF_GRAPH_RADIAL_LABEL_ANCHOR "se"
+#define DEF_GRAPH_ANGLE_LABEL_ANCHOR "center"
 
 /*
  * Graph option conversion and update masks.
@@ -102,6 +104,8 @@ Rbc_Uid rbcWindowMarkerUid;
 #define GRAPH_LAYOUT_MASK (1u << 10)
 #define GRAPH_BACKING_STORE_MASK (1u << 11)
 #define GRAPH_REDRAW_MASK (1u << 12)
+#define GRAPH_PLOT_BACKGROUND_MASK (1u << 13)
+#define GRAPH_POLAR_LABEL_MASK (1u << 14)
 
 #define GRAPH_TRANSACTION_MASK                                                                                         \
     (GRAPH_BAR_MODE_MASK | GRAPH_BAR_WIDTH_MASK | GRAPH_PIXELS_MASK | GRAPH_PADDING_MASK | GRAPH_SHADOW_MASK |         \
@@ -184,8 +188,10 @@ typedef struct {
  * Modern graph option table.
  */
 static const Tk_OptionSpec graphOptionSpecs[] = {
-    {TK_OPTION_DOUBLE, "-aspect", "aspect", "Aspect", DEF_GRAPH_ASPECT_RATIO, -1, offsetof(Graph, aspect),
-     0, NULL, GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_ANCHOR, "-anglelabelanchor", "angleLabelAnchor", "AngleLabelAnchor", DEF_GRAPH_ANGLE_LABEL_ANCHOR, -1,
+     offsetof(Graph, angleLabelAnchor), 0, NULL, GRAPH_POLAR_LABEL_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_DOUBLE, "-aspect", "aspect", "Aspect", DEF_GRAPH_ASPECT_RATIO, -1, offsetof(Graph, aspect), 0, NULL,
+     GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_BORDER, "-background", "background", "Background", DEF_GRAPH_BACKGROUND, -1, offsetof(Graph, border), 0,
      DEF_GRAPH_BG_MONO, GRAPH_GC_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING, "-barmode", "barMode", "BarMode", DEF_GRAPH_BAR_MODE, offsetof(Graph, barModeObjPtr), -1, 0,
@@ -212,8 +218,7 @@ static const Tk_OptionSpec graphOptionSpecs[] = {
      offsetof(Graph, doubleBuffer), 0, NULL, GRAPH_REDRAW_MASK},
     {TK_OPTION_CURSOR, "-cursor", "cursor", "Cursor", DEF_GRAPH_CURSOR, -1, offsetof(Graph, cursor), TK_OPTION_NULL_OK,
      NULL, GRAPH_REDRAW_MASK},
-    {TK_OPTION_STRING, "-data", "data", "Data", DEF_GRAPH_DATA, -1, offsetof(Graph, data), 0,
-     NULL, GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-data", "data", "Data", DEF_GRAPH_DATA, -1, offsetof(Graph, data), 0, NULL, GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING, "-datacommand", "dataCommand", "DataCommand", DEF_GRAPH_DATA_COMMAND, -1,
      offsetof(Graph, dataCmd), 0, NULL, GRAPH_REDRAW_MASK},
 
@@ -235,11 +240,10 @@ static const Tk_OptionSpec graphOptionSpecs[] = {
      offsetof(Graph, highlightColor), 0, NULL, GRAPH_REDRAW_MASK},
     {TK_OPTION_PIXELS, "-highlightthickness", "highlightThickness", "HighlightThickness", DEF_GRAPH_HIGHLIGHT_WIDTH,
      offsetof(Graph, highlightWidthObjPtr), -1, 0, NULL, GRAPH_PIXELS_MASK | GRAPH_GEOMETRY_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_BOOLEAN, "-invertxy", "invertXY", "InvertXY", DEF_GRAPH_INVERT_XY, -1, offsetof(Graph, inverted),
-     0, NULL, GRAPH_INVERT_XY_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_BOOLEAN, "-invertxy", "invertXY", "InvertXY", DEF_GRAPH_INVERT_XY, -1, offsetof(Graph, inverted), 0,
+     NULL, GRAPH_INVERT_XY_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_JUSTIFY, "-justify", "justify", "Justify", DEF_GRAPH_JUSTIFY, -1,
-     offsetof(Graph, titleTextStyle.justify), 0, NULL,
-     GRAPH_TEXT_STYLE_MASK | GRAPH_REDRAW_MASK},
+     offsetof(Graph, titleTextStyle.justify), 0, NULL, GRAPH_TEXT_STYLE_MASK | GRAPH_REDRAW_MASK},
 
     {TK_OPTION_STRING, "-leftmargin", "leftMargin", "Margin", DEF_GRAPH_MARGIN, offsetof(Graph, leftMarginObjPtr), -1,
      0, NULL, GRAPH_PIXELS_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
@@ -257,10 +261,12 @@ static const Tk_OptionSpec graphOptionSpecs[] = {
      NULL, GRAPH_PADDING_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING, "-plotpady", "plotPadY", "PlotPad", DEF_GRAPH_PLOT_PADY, offsetof(Graph, plotPadYObjPtr), -1, 0,
      NULL, GRAPH_PADDING_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_RELIEF, "-plotrelief", "plotRelief", "Relief", DEF_GRAPH_PLOT_RELIEF, -1, offsetof(Graph, plotRelief),
-     0, NULL, GRAPH_REDRAW_MASK},
-    {TK_OPTION_RELIEF, "-relief", "relief", "Relief", DEF_GRAPH_RELIEF, -1, offsetof(Graph, relief),
-     0, NULL, GRAPH_REDRAW_MASK},
+    {TK_OPTION_RELIEF, "-plotrelief", "plotRelief", "Relief", DEF_GRAPH_PLOT_RELIEF, -1, offsetof(Graph, plotRelief), 0,
+     NULL, GRAPH_REDRAW_MASK},
+    {TK_OPTION_ANCHOR, "-radiallabelanchor", "radialLabelAnchor", "RadialLabelAnchor", DEF_GRAPH_RADIAL_LABEL_ANCHOR,
+     -1, offsetof(Graph, radialLabelAnchor), 0, NULL, GRAPH_POLAR_LABEL_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_RELIEF, "-relief", "relief", "Relief", DEF_GRAPH_RELIEF, -1, offsetof(Graph, relief), 0, NULL,
+     GRAPH_REDRAW_MASK},
 
     {TK_OPTION_STRING, "-rightmargin", "rightMargin", "Margin", DEF_GRAPH_MARGIN, offsetof(Graph, rightMarginObjPtr),
      -1, 0, NULL, GRAPH_PIXELS_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
@@ -1704,6 +1710,7 @@ static int ConfigureGraph(Graph *graphPtr) {
     int invertXYModified;
     int layoutModified;
     int plotBackgroundModified;
+    int polarLabelsModified;    
     XColor *colorPtr;
     GC newGC;
     XGCValues gcValues;
@@ -1789,6 +1796,7 @@ static int ConfigureGraph(Graph *graphPtr) {
     invertXYModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_INVERT_XY_MASK));
     layoutModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_LAYOUT_MASK));
     plotBackgroundModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_PLOT_BACKGROUND_MASK));
+    polarLabelsModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_POLAR_LABEL_MASK));
     /*
      * Preserve the historical normalisation behaviour for -barwidth.
      */
@@ -1880,7 +1888,7 @@ static int ConfigureGraph(Graph *graphPtr) {
     if (layoutModified) {
         graphPtr->flags |= RESET_WORLD;
     }
-    if (plotBackgroundModified) {
+    if (plotBackgroundModified || polarLabelsModified) {
         graphPtr->flags |= REDRAW_BACKING_STORE;
     }
     graphPtr->flags |= REDRAW_WORLD;

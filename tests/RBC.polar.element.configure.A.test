@@ -300,5 +300,47 @@ namespace eval polar.element {
         destroy .polar1
     } -result {0.75}
 
+    test RBC.polar.configure.A.1.6 {
+        polar configure: label anchor defaults
+    } -setup {
+        polar .polar1
+    } -body {
+        list [.polar1 cget -radiallabelanchor] [.polar1 cget -anglelabelanchor]
+    } -cleanup {
+        destroy .polar1
+    } -result {se center}
+
+    test RBC.polar.configure.A.1.7 {
+        polar configure: label anchors
+    } -setup {
+        polar .polar1
+    } -body {
+        .polar1 configure -radiallabelanchor nw -anglelabelanchor e
+        list [.polar1 cget -radiallabelanchor] [.polar1 cget -anglelabelanchor]
+    } -cleanup {
+        destroy .polar1
+    } -result {nw e}
+
+    test RBC.polar.configure.A.1.8 {
+        polar configure: creation-time label anchors
+    } -setup {
+        polar .polar1 -radiallabelanchor sw -anglelabelanchor n
+    } -body {
+        list [.polar1 cget -radiallabelanchor] [.polar1 cget -anglelabelanchor]
+    } -cleanup {
+        destroy .polar1
+    } -result {sw n}
+
+    test RBC.polar.configure.A.1.9 {
+        polar configure: invalid label anchor rolls back
+    } -setup {
+        polar .polar1
+    } -body {
+        set code [catch {.polar1 configure -anglelabelanchor badAnchor}]
+        list $code [.polar1 cget -anglelabelanchor]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 center}
+
 	cleanupTests
 }

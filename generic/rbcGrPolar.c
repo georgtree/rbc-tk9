@@ -222,7 +222,9 @@ static void DrawPolarRadialLabels(Graph *graphPtr, Drawable drawable, Grid *grid
      */
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
-    style.anchor = TK_ANCHOR_SE;
+    style = axisPtr->tickTextStyle;
+    style.theta = 0.0;
+    style.anchor = graphPtr->radialLabelAnchor;
     for (i = 0; i < ticksPtr->nTicks; i++) {
         TickLabel *labelPtr;
         Point2D point;
@@ -262,7 +264,9 @@ static void DrawPolarAngularLabels(Graph *graphPtr, Drawable drawable, Grid *gri
     }
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
-    style.anchor = TK_ANCHOR_CENTER;
+    style = axisPtr->tickTextStyle;
+    style.theta = 0.0;
+    style.anchor = graphPtr->angleLabelAnchor;
     /*
      * Keep angular labels slightly inside the outer circle.
      * This avoids requiring additional Polar-specific margins.
@@ -317,7 +321,9 @@ static void PolarRadialLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid
     }
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
-    style.anchor = TK_ANCHOR_SE;
+    style = axisPtr->tickTextStyle;
+    style.theta = 0.0;
+    style.anchor = graphPtr->radialLabelAnchor;
     for (i = 0; i < ticksPtr->nTicks; i++) {
         TickLabel *labelPtr;
         Point2D point;
@@ -353,7 +359,9 @@ static void PolarAngularLabelsToPostScript(Graph *graphPtr, PsToken psToken, Gri
     }
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
-    style.anchor = TK_ANCHOR_CENTER;
+    style = axisPtr->tickTextStyle;
+    style.theta = 0.0;
+    style.anchor = graphPtr->angleLabelAnchor;
     labelRadius = maxRadius * POLAR_ANGLE_LABEL_RADIUS;
     for (i = 0; i < 12; i++) {
         char string[32];
