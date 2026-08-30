@@ -59,5 +59,91 @@ namespace eval polar.configure {
 		destroy .polar1
 	} -result {1.0}
 
+    test RBC.polar.configure.A.1.4 {
+        polar configure: label anchor defaults
+    } -setup {
+        polar .polar1
+    } -body {
+        list [.polar1 cget -radiallabelanchor] [.polar1 cget -anglelabelanchor]
+    } -cleanup {
+        destroy .polar1
+    } -result {se center}
+
+    test RBC.polar.configure.A.1.5 {
+        polar configure: label anchors
+    } -setup {
+        polar .polar1
+    } -body {
+        .polar1 configure -radiallabelanchor nw -anglelabelanchor e
+        list [.polar1 cget -radiallabelanchor] [.polar1 cget -anglelabelanchor]
+    } -cleanup {
+        destroy .polar1
+    } -result {nw e}
+
+    test RBC.polar.configure.A.1.6 {
+        polar configure: creation-time label anchors
+    } -setup {
+        polar .polar1 -radiallabelanchor sw -anglelabelanchor n
+    } -body {
+        list [.polar1 cget -radiallabelanchor] [.polar1 cget -anglelabelanchor]
+    } -cleanup {
+        destroy .polar1
+    } -result {sw n}
+
+    test RBC.polar.configure.A.1.7 {
+        polar configure: invalid label anchor rolls back
+    } -setup {
+        polar .polar1
+    } -body {
+        set code [catch {.polar1 configure -anglelabelanchor badAnchor}]
+        list $code [.polar1 cget -anglelabelanchor]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 center}
+
+    test RBC.polar.configure.A.1.8 {
+        polar configure: anglelabelanchor accepts auto
+    } -setup {
+        polar .polar1
+    } -body {
+        .polar1 configure -anglelabelanchor auto
+        .polar1 cget -anglelabelanchor
+    } -cleanup {
+        destroy .polar1
+    } -result {auto}
+
+    test RBC.polar.configure.A.1.9 {
+        polar configure: radiallabelanchor accepts auto
+    } -setup {
+        polar .polar1
+    } -body {
+        .polar1 configure -radiallabelanchor auto
+        .polar1 cget -radiallabelanchor
+    } -cleanup {
+        destroy .polar1
+    } -result {auto}
+
+    test RBC.polar.configure.A.1.10 {
+        polar configure: creation-time auto anchors
+    } -setup {
+        polar .polar1 -radiallabelanchor auto -anglelabelanchor auto
+    } -body {
+        list [.polar1 cget -radiallabelanchor] [.polar1 cget -anglelabelanchor]
+    } -cleanup {
+        destroy .polar1
+    } -result {auto auto}
+
+    test RBC.polar.configure.A.1.11 {
+        polar configure: invalid auto-anchor value rolls back
+    } -setup {
+        polar .polar1
+        .polar1 configure -anglelabelanchor auto
+    } -body {
+        set code [catch {.polar1 configure -anglelabelanchor badAnchor}]
+        list $code [.polar1 cget -anglelabelanchor]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 auto}
+
 	cleanupTests
 }

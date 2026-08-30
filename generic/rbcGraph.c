@@ -184,12 +184,20 @@ typedef struct {
     Rbc_Tile tile;
 } GraphTileTransaction;
 
+static int SetPolarLabelAnchor(void *clientData, Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj **valuePtrPtr,
+                               char *widgRec, Tcl_Size offset, char *saveInternalPtr, int flags);
+static Tcl_Obj *GetPolarLabelAnchor(void *clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset);
+static void RestorePolarLabelAnchor(void *clientData, Tk_Window tkwin, char *internalPtr, char *saveInternalPtr);
+static void FreePolarLabelAnchor(void *clientData, Tk_Window tkwin, char *internalPtr);
+static const Tk_ObjCustomOption polarLabelAnchorOption = {
+    "polarLabelAnchor", SetPolarLabelAnchor, GetPolarLabelAnchor, RestorePolarLabelAnchor, FreePolarLabelAnchor, NULL};
+
 /*
  * Modern graph option table.
  */
 static const Tk_OptionSpec graphOptionSpecs[] = {
-    {TK_OPTION_ANCHOR, "-anglelabelanchor", "angleLabelAnchor", "AngleLabelAnchor", DEF_GRAPH_ANGLE_LABEL_ANCHOR, -1,
-     offsetof(Graph, angleLabelAnchor), 0, NULL, GRAPH_POLAR_LABEL_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_CUSTOM, "-anglelabelanchor", "angleLabelAnchor", "AngleLabelAnchor", DEF_GRAPH_ANGLE_LABEL_ANCHOR, -1,
+     offsetof(Graph, angleLabelAnchor), 0, &polarLabelAnchorOption, GRAPH_POLAR_LABEL_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_DOUBLE, "-aspect", "aspect", "Aspect", DEF_GRAPH_ASPECT_RATIO, -1, offsetof(Graph, aspect), 0, NULL,
      GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_BORDER, "-background", "background", "Background", DEF_GRAPH_BACKGROUND, -1, offsetof(Graph, border), 0,
@@ -263,8 +271,8 @@ static const Tk_OptionSpec graphOptionSpecs[] = {
      NULL, GRAPH_PADDING_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_RELIEF, "-plotrelief", "plotRelief", "Relief", DEF_GRAPH_PLOT_RELIEF, -1, offsetof(Graph, plotRelief), 0,
      NULL, GRAPH_REDRAW_MASK},
-    {TK_OPTION_ANCHOR, "-radiallabelanchor", "radialLabelAnchor", "RadialLabelAnchor", DEF_GRAPH_RADIAL_LABEL_ANCHOR,
-     -1, offsetof(Graph, radialLabelAnchor), 0, NULL, GRAPH_POLAR_LABEL_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_CUSTOM, "-radiallabelanchor", "radialLabelAnchor", "RadialLabelAnchor", DEF_GRAPH_RADIAL_LABEL_ANCHOR,
+     -1, offsetof(Graph, radialLabelAnchor), 0, &polarLabelAnchorOption, GRAPH_POLAR_LABEL_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_RELIEF, "-relief", "relief", "Relief", DEF_GRAPH_RELIEF, -1, offsetof(Graph, relief), 0, NULL,
      GRAPH_REDRAW_MASK},
 
@@ -365,6 +373,62 @@ static int GraphLayoutInt(Tcl_WideInt value) {
         return INT_MIN;
     }
     return (int)value;
+}
+
+static int SetPolarLabelAnchor(void *clientData, Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj **valuePtrPtr,
+                               char *widgRec, Tcl_Size offset, char *saveInternalPtr, int flags) {
+    PolarLabelAnchor *anchorPtr;
+    PolarLabelAnchor newAnchor;
+    const char *string;
+
+    (void)clientData;
+    (void)tkwin;
+    (void)flags;
+    anchorPtr = (PolarLabelAnchor *)(widgRec + offset);
+    /*
+     * Tk needs the old internal representation for transactional
+     * rollback.
+     */
+    if (saveInternalPtr != NULL) {
+        *((PolarLabelAnchor *)saveInternalPtr) = *anchorPtr;
+    }
+    string = Tcl_GetString(*valuePtrPtr);
+    if (strcmp(string, "auto") == 0) {
+        newAnchor.anchor = TK_ANCHOR_CENTER;
+        newAnchor.isAuto = TRUE;
+    } else {
+        if (Tk_GetAnchorFromObj(interp, *valuePtrPtr, &newAnchor.anchor) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        newAnchor.isAuto = FALSE;
+    }
+    *anchorPtr = newAnchor;
+    return TCL_OK;
+}
+
+static Tcl_Obj *GetPolarLabelAnchor(void *clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset) {
+    PolarLabelAnchor *anchorPtr;
+
+    (void)clientData;
+    (void)tkwin;
+    anchorPtr = (PolarLabelAnchor *)(widgRec + offset);
+    if (anchorPtr->isAuto) {
+        return Tcl_NewStringObj("auto", -1);
+    }
+    return Tcl_NewStringObj(Tk_NameOfAnchor(anchorPtr->anchor), -1);
+}
+
+static void RestorePolarLabelAnchor(void *clientData, Tk_Window tkwin, char *internalPtr, char *saveInternalPtr) {
+    (void)clientData;
+    (void)tkwin;
+
+    *((PolarLabelAnchor *)internalPtr) = *((PolarLabelAnchor *)saveInternalPtr);
+}
+
+static void FreePolarLabelAnchor(void *clientData, Tk_Window tkwin, char *internalPtr) {
+    (void)clientData;
+    (void)tkwin;
+    (void)internalPtr;
 }
 
 static int GetGraphOptionFromObj(Tcl_Obj *objPtr, const GraphOptionName *optionMap, size_t nOptions) {

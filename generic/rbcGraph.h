@@ -90,6 +90,11 @@ typedef enum {
 #define NORMAL_PEN (TK_CONFIG_USER_BIT << 7)
 #define ALL_PENS (NORMAL_PEN | ACTIVE_PEN)
 
+typedef struct {
+    Tk_Anchor anchor;
+    int isAuto;
+} PolarLabelAnchor;
+
 /*
  * -------------------------------------------------------------------
  *
@@ -473,8 +478,8 @@ struct GraphStruct {
     /*
      * Polar-specific presentation options.
      */
-    Tk_Anchor radialLabelAnchor;
-    Tk_Anchor angleLabelAnchor;    
+    PolarLabelAnchor radialLabelAnchor;
+    PolarLabelAnchor angleLabelAnchor;
 
     int left, right; /* Coordinates of plot bounding box. */
     int top, bottom;

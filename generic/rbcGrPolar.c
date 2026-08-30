@@ -203,6 +203,42 @@ void Rbc_MapPolarGrid(Graph *graphPtr, Grid *gridPtr) {
     MapPolarSpokes(graphPtr, gridPtr, maxRadius);
 }
 
+static Tk_Anchor GetPolarRadialLabelAnchor(Graph *graphPtr) {
+    if (graphPtr->radialLabelAnchor.isAuto) {
+        return TK_ANCHOR_SE;
+    }
+
+    return graphPtr->radialLabelAnchor.anchor;
+}
+
+static Tk_Anchor GetPolarAngleLabelAnchor(Graph *graphPtr, double degrees) {
+    if (!graphPtr->angleLabelAnchor.isAuto) {
+        return graphPtr->angleLabelAnchor.anchor;
+    }
+    if ((degrees < 22.5) || (degrees >= 337.5)) {
+        return TK_ANCHOR_E;
+    }
+    if (degrees < 67.5) {
+        return TK_ANCHOR_NE;
+    }
+    if (degrees < 112.5) {
+        return TK_ANCHOR_N;
+    }
+    if (degrees < 157.5) {
+        return TK_ANCHOR_NW;
+    }
+    if (degrees < 202.5) {
+        return TK_ANCHOR_W;
+    }
+    if (degrees < 247.5) {
+        return TK_ANCHOR_SW;
+    }
+    if (degrees < 292.5) {
+        return TK_ANCHOR_S;
+    }
+    return TK_ANCHOR_SE;
+}
+
 static void DrawPolarRadialLabels(Graph *graphPtr, Drawable drawable, Grid *gridPtr, double maxRadius) {
     Axis *axisPtr;
     TextStyle style;
@@ -222,9 +258,7 @@ static void DrawPolarRadialLabels(Graph *graphPtr, Drawable drawable, Grid *grid
      */
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
-    style = axisPtr->tickTextStyle;
-    style.theta = 0.0;
-    style.anchor = graphPtr->radialLabelAnchor;
+    style.anchor = GetPolarRadialLabelAnchor(graphPtr);
     for (i = 0; i < ticksPtr->nTicks; i++) {
         TickLabel *labelPtr;
         Point2D point;
@@ -264,9 +298,6 @@ static void DrawPolarAngularLabels(Graph *graphPtr, Drawable drawable, Grid *gri
     }
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
-    style = axisPtr->tickTextStyle;
-    style.theta = 0.0;
-    style.anchor = graphPtr->angleLabelAnchor;
     /*
      * Keep angular labels slightly inside the outer circle.
      * This avoids requiring additional Polar-specific margins.
@@ -280,6 +311,7 @@ static void DrawPolarAngularLabels(Graph *graphPtr, Drawable drawable, Grid *gri
 
         degrees = (double)i * POLAR_MAJOR_ANGLE_STEP;
         theta = degrees * POLAR_DEG_TO_RAD;
+        style.anchor = GetPolarAngleLabelAnchor(graphPtr, degrees);
         point = Rbc_Map2D(graphPtr, labelRadius * cos(theta), labelRadius * sin(theta), &gridPtr->axes);
         if ((!FINITE(point.x)) || (!FINITE(point.y))) {
             continue;
@@ -323,7 +355,7 @@ static void PolarRadialLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid
     style.theta = 0.0;
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
-    style.anchor = graphPtr->radialLabelAnchor;
+    style.anchor = GetPolarRadialLabelAnchor(graphPtr);
     for (i = 0; i < ticksPtr->nTicks; i++) {
         TickLabel *labelPtr;
         Point2D point;
@@ -359,9 +391,6 @@ static void PolarAngularLabelsToPostScript(Graph *graphPtr, PsToken psToken, Gri
     }
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
-    style = axisPtr->tickTextStyle;
-    style.theta = 0.0;
-    style.anchor = graphPtr->angleLabelAnchor;
     labelRadius = maxRadius * POLAR_ANGLE_LABEL_RADIUS;
     for (i = 0; i < 12; i++) {
         char string[32];
@@ -371,6 +400,7 @@ static void PolarAngularLabelsToPostScript(Graph *graphPtr, PsToken psToken, Gri
 
         degrees = (double)i * POLAR_MAJOR_ANGLE_STEP;
         theta = degrees * POLAR_DEG_TO_RAD;
+        style.anchor = GetPolarAngleLabelAnchor(graphPtr, degrees);
         point = Rbc_Map2D(graphPtr, labelRadius * cos(theta), labelRadius * sin(theta), &gridPtr->axes);
         if ((!FINITE(point.x)) || (!FINITE(point.y))) {
             continue;
