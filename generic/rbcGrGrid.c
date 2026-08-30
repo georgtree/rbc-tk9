@@ -213,6 +213,10 @@ void Rbc_MapGrid(Graph *graphPtr) {
         gridPtr->y.segments = NULL;
     }
     gridPtr->x.nSegments = gridPtr->y.nSegments = 0;
+    if (graphPtr->classUid == rbcPolarElementUid) {
+        Rbc_MapPolarGrid(graphPtr, gridPtr);
+        return;
+    }
     /*
      * Generate line segments to represent the grid.  Line segments
      * are calculated from the major tick intervals of each axis mapped.
