@@ -273,10 +273,10 @@ Pen *Rbc_CreatePen(Graph *graphPtr, const char *penName, Rbc_Uid classUid, Tcl_S
     }
 
     /*
-     * Stripchart pens use the same concrete implementation as line
-     * pens.
+     * Stripchart and polar elements use the same concrete implementation
+     * as line pens.
      */
-    if (classUid == rbcStripElementUid) {
+    if ((classUid == rbcStripElementUid) || (classUid == rbcPolarElementUid)) {
         classUid = rbcLineElementUid;
     }
 
@@ -389,7 +389,7 @@ int Rbc_GetPen(Graph *graphPtr, const char *name, Rbc_Uid classUid, Pen **penPtr
     if (penPtr == NULL) {
         return TCL_ERROR;
     }
-    if (classUid == rbcStripElementUid) {
+    if ((classUid == rbcStripElementUid) || (classUid == rbcPolarElementUid)) {
         classUid = rbcLineElementUid;
     }
     if (penPtr->classUid != classUid) {

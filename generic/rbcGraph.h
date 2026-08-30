@@ -81,8 +81,9 @@ typedef enum {
 #define GRAPH (TK_CONFIG_USER_BIT << 1)
 #define STRIPCHART (TK_CONFIG_USER_BIT << 2)
 #define BARCHART (TK_CONFIG_USER_BIT << 3)
-#define LINE_GRAPHS (GRAPH | STRIPCHART)
-#define ALL_GRAPHS (GRAPH | BARCHART | STRIPCHART)
+#define POLAR (TK_CONFIG_USER_BIT << 4)
+#define LINE_GRAPHS (GRAPH | STRIPCHART | POLAR)
+#define ALL_GRAPHS (GRAPH | BARCHART | STRIPCHART | POLAR)
 
 #define PEN_DELETE_PENDING (1 << 0)
 #define ACTIVE_PEN (TK_CONFIG_USER_BIT << 6)
@@ -698,6 +699,7 @@ int Rbc_GraphType(Graph *graphPtr);
 extern Rbc_Uid rbcBarElementUid;
 extern Rbc_Uid rbcLineElementUid;
 extern Rbc_Uid rbcStripElementUid;
+extern Rbc_Uid rbcPolarElementUid;
 extern Rbc_Uid rbcLineMarkerUid;
 extern Rbc_Uid rbcBitmapMarkerUid;
 extern Rbc_Uid rbcImageMarkerUid;

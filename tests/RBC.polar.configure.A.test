@@ -1,0 +1,63 @@
+# RBC.polar.configure.A.test --
+#
+###Abstract
+# This file contains the automatic tests that test the configure
+# function of the polar RBC component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+
+###Package Definition
+package provide polar.configure
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval polar.configure {
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the polar command creates a Tk widget with class Polar.
+	# ------------------------------------------------------------------------------------
+	test RBC.polar.configure.A.1.1 {
+		polar: Tk widget class
+	} -setup {
+		polar .polar1
+	} -body {
+		winfo class .polar1
+	} -cleanup {
+		destroy .polar1
+	} -result {Polar}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that graph configuration options are available to polar widgets.
+	# ------------------------------------------------------------------------------------
+	test RBC.polar.configure.A.1.2 {
+		polar configure: aspect
+	} -setup {
+		polar .polar1
+	} -body {
+		.polar1 configure -aspect 1.0
+		.polar1 cget -aspect
+	} -cleanup {
+		destroy .polar1
+	} -result {1.0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that configuration options can be supplied at creation time.
+	# ------------------------------------------------------------------------------------
+	test RBC.polar.configure.A.1.3 {
+		polar configure: creation-time aspect
+	} -setup {
+		polar .polar1 -aspect 1.0
+	} -body {
+		.polar1 cget -aspect
+	} -cleanup {
+		destroy .polar1
+	} -result {1.0}
+
+	cleanupTests
+}

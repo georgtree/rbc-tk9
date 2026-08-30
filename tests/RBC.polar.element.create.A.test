@@ -1,0 +1,72 @@
+# RBC.polar.element.create.A.test --
+#
+###Abstract
+# This file contains the automatic tests that test the element create
+# function of the polar RBC component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide polar.element
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval polar.element {
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the element create command works correctly when given a unique
+	# element name.
+	# ------------------------------------------------------------------------------------
+	test RBC.polar.element.create.A.1.1 {
+		polar element: create - unique name
+	} -setup {
+		polar .polar1
+	} -body {
+		.polar1 element create Element1
+		.polar1 element names
+	} -cleanup {
+		.polar1 element delete Element1
+		destroy .polar1
+	} -result {Element1}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the element create command rejects an existing element name.
+	# ------------------------------------------------------------------------------------
+	test RBC.polar.element.create.A.1.2 {
+		polar element: create - existing name
+	} -setup {
+		polar .polar1
+		.polar1 element create Element1
+	} -body {
+		if {[catch {.polar1 element create Element1}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.polar1 element delete Element1
+		destroy .polar1
+	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure a polar element can use the existing real X/Y data path.
+	# ------------------------------------------------------------------------------------
+	test RBC.polar.element.create.A.1.3 {
+		polar element: create - real x/y data
+	} -setup {
+		polar .polar1
+	} -body {
+		.polar1 element create Element1 -xdata {0.0 0.5 1.0 0.5 0.0} -ydata {1.0 0.5 0.0 -0.5 -1.0}
+		list [.polar1 element cget Element1 -x] [.polar1 element cget Element1 -y]
+	} -cleanup {
+		.polar1 element delete Element1
+		destroy .polar1
+	} -result {{0.0 0.5 1.0 0.5 0.0} {1.0 0.5 0.0 -0.5 -1.0}}
+
+	cleanupTests
+}

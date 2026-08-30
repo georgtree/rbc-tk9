@@ -1,0 +1,51 @@
+# RBC.polar.axis.create.A.test --
+#
+###Abstract
+# This file tests the axis create function of the polar RBC component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+
+###Package Definition
+package provide polar.axis
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval polar.axis {
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the axis create command works correctly on a polar widget.
+	# ------------------------------------------------------------------------------------
+	test RBC.polar.axis.create.A.1.1 {
+		polar axis create: unique name
+	} -setup {
+		polar .polar1
+	} -body {
+		.polar1 axis create Axis1
+		.polar1 axis names Axis1
+	} -cleanup {
+		destroy .polar1
+	} -result {Axis1}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure multiple axes may coexist on a polar widget.
+	# ------------------------------------------------------------------------------------
+    test RBC.polar.axis.create.A.1.2 {
+        polar axis create: multiple axes
+    } -setup {
+        polar .polar1
+    } -body {
+        .polar1 axis create Axis1
+        .polar1 axis create Axis2
+        list [.polar1 axis names Axis1] [.polar1 axis names Axis2]
+    } -cleanup {
+        destroy .polar1
+    } -result {Axis1 Axis2}
+
+	cleanupTests
+}

@@ -1,0 +1,77 @@
+# RBC.polar.element.configure.A.test --
+#
+###Abstract
+# This file contains the automatic tests that test the element configure
+# function of the polar RBC component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+
+###Package Definition
+package provide polar.element
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval polar.element {
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure PolarElement uses the graph-line option table rather than the
+	# stripchart option table.  -trace is present only for graph line elements.
+	# ------------------------------------------------------------------------------------
+	test RBC.polar.element.configure.A.1.1 {
+		polar element configure: graph-line option table
+	} -setup {
+		polar .polar1
+		.polar1 element create Element1
+	} -body {
+		.polar1 element configure Element1 -trace both
+		.polar1 element cget Element1 -trace
+	} -cleanup {
+		.polar1 element delete Element1
+		destroy .polar1
+	} -result {both}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure a line-type named pen created by a polar widget can be assigned to
+	# a PolarElement.
+	# ------------------------------------------------------------------------------------
+	test RBC.polar.element.configure.A.2.1 {
+		polar element configure: named line pen
+	} -setup {
+		polar .polar1
+		.polar1 pen create Pen1 -color blue
+		.polar1 element create Element1
+	} -body {
+		.polar1 element configure Element1 -pen Pen1
+		.polar1 element cget Element1 -pen
+	} -cleanup {
+		.polar1 pen delete Pen1
+		.polar1 element delete Element1
+		destroy .polar1
+	} -result {Pen1}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure PolarElement palettes accept ordinary line pens.
+	# ------------------------------------------------------------------------------------
+	test RBC.polar.element.configure.A.2.2 {
+		polar element configure: styles use line pens
+	} -setup {
+		polar .polar1
+		.polar1 pen create Pen1 -color blue
+		.polar1 element create Element1
+	} -body {
+		.polar1 element configure Element1 -styles {Pen1}
+		.polar1 element cget Element1 -styles
+	} -cleanup {
+		.polar1 pen delete Pen1
+		.polar1 element delete Element1
+		destroy .polar1
+	} -result {Pen1}
+
+	cleanupTests
+}

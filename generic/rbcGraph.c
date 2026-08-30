@@ -36,6 +36,7 @@ Rbc_Uid rbcYAxisUid;
 Rbc_Uid rbcBarElementUid;
 Rbc_Uid rbcLineElementUid;
 Rbc_Uid rbcStripElementUid;
+Rbc_Uid rbcPolarElementUid;
 Rbc_Uid rbcContourElementUid;
 Rbc_Uid rbcLineMarkerUid;
 Rbc_Uid rbcBitmapMarkerUid;
@@ -2047,6 +2048,8 @@ static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv
         Tk_SetClass(tkwin, "Barchart");
     } else if (classUid == rbcStripElementUid) {
         Tk_SetClass(tkwin, "Stripchart");
+    } else if (classUid == rbcPolarElementUid) {
+        Tk_SetClass(tkwin, "Polar");
     }
     Rbc_SetWindowInstanceData(tkwin, graphPtr);
     /*
@@ -3108,6 +3111,10 @@ static int StripchartObjCmd(void *clientData, Tcl_Interp *interp, Tcl_Size objc,
     return NewGraph(interp, objc, objv, rbcStripElementUid);
 }
 
+static int PolarObjCmd(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    return NewGraph(interp, objc, objv, rbcPolarElementUid);
+}
+
 static void FillMarginRectangle(Graph *graphPtr, Drawable drawable, int x, int y, int width, int height) {
     if ((width <= 0) || (height <= 0)) {
         return;
@@ -3118,6 +3125,8 @@ static void FillMarginRectangle(Graph *graphPtr, Drawable drawable, int x, int y
         XFillRectangle(graphPtr->display, drawable, graphPtr->fillGC, x, y, (unsigned int)width, (unsigned int)height);
     }
 }
+
+
 
 /*
  * -----------------------------------------------------------------------
@@ -3519,6 +3528,7 @@ int Rbc_GraphInit(Tcl_Interp *interp) {
     rbcBarElementUid = (Rbc_Uid)Tk_GetUid("BarElement");
     rbcLineElementUid = (Rbc_Uid)Tk_GetUid("LineElement");
     rbcStripElementUid = (Rbc_Uid)Tk_GetUid("StripElement");
+    rbcPolarElementUid = (Rbc_Uid)Tk_GetUid("PolarElement");    
     rbcContourElementUid = (Rbc_Uid)Tk_GetUid("ContourElement");
 
     rbcLineMarkerUid = (Rbc_Uid)Tk_GetUid("LineMarker");
@@ -3534,6 +3544,7 @@ int Rbc_GraphInit(Tcl_Interp *interp) {
     Tcl_CreateObjCommand2(interp, "rbc::graph", GraphObjCmd, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
     Tcl_CreateObjCommand2(interp, "rbc::barchart", BarchartObjCmd, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
     Tcl_CreateObjCommand2(interp, "rbc::stripchart", StripchartObjCmd, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
+    Tcl_CreateObjCommand2(interp, "rbc::polar", PolarObjCmd, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
     return TCL_OK;
 }
 
@@ -3593,6 +3604,8 @@ int Rbc_GraphType(Graph *graphPtr) {
         return BARCHART;
     } else if (graphPtr->classUid == rbcStripElementUid) {
         return STRIPCHART;
+    } else if (graphPtr->classUid == rbcPolarElementUid) {
+        return POLAR;
     }
     return 0;
 }

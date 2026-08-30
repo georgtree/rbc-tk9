@@ -1,0 +1,65 @@
+# RBC.polar.pen.create.A.test --
+#
+###Abstract
+# This file contains the automatic tests that test the pen create
+# function of the polar RBC component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+
+###Package Definition
+package provide polar.pen
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval polar.pen {
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that default pen creation on a polar widget creates a line pen.
+	# ------------------------------------------------------------------------------------
+	test RBC.polar.pen.create.A.1.1 {
+		polar pen create: default pen type
+	} -setup {
+		polar .polar1
+	} -body {
+		.polar1 pen create Pen1
+		.polar1 pen type Pen1
+	} -cleanup {
+		destroy .polar1
+	} -result {LineElement}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that polar pen creation accepts normal line-pen options.
+	# ------------------------------------------------------------------------------------
+	test RBC.polar.pen.create.A.1.2 {
+		polar pen create: line pen option
+	} -setup {
+		polar .polar1
+	} -body {
+		.polar1 pen create Pen1 -color blue
+		.polar1 pen cget Pen1 -color
+	} -cleanup {
+		destroy .polar1
+	} -result {blue}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure explicit -type line remains supported.
+	# ------------------------------------------------------------------------------------
+	test RBC.polar.pen.create.A.1.3 {
+		polar pen create: explicit line type
+	} -setup {
+		polar .polar1
+	} -body {
+		.polar1 pen create Pen1 -type line
+		.polar1 pen type Pen1
+	} -cleanup {
+		destroy .polar1
+	} -result {LineElement}
+
+	cleanupTests
+}

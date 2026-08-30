@@ -1,0 +1,38 @@
+# RBC.polar.marker.create.A.test --
+#
+###Abstract
+# This file contains the automatic tests that test the marker create
+# function of the polar RBC component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+
+###Package Definition
+package provide polar.marker
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval polar.marker {
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure creating a marker actually creates the marker on the polar widget.
+	# ------------------------------------------------------------------------------------
+	test RBC.polar.marker.create.A.1.1 {
+		polar marker: create
+	} -setup {
+		polar .polar1
+	} -body {
+		.polar1 marker create text -name marker1 -coords {0.0 0.0} -text origin
+		.polar1 marker exists marker1
+	} -cleanup {
+		.polar1 marker delete marker1
+		destroy .polar1
+	} -result {1}
+
+	cleanupTests
+}

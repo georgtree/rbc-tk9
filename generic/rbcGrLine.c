@@ -5086,7 +5086,7 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
 
     /*
      * Resolve named active and normal pens before modifying the live
-     * element. Line and strip elements both require line-type pens.
+     * element. Line, strip, and polar elements all require line-type pens.
      */
     if (((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_PEN_MASK))) {
         if (Rbc_PrepareElemPenTransaction(graphPtr, elemPtr, rbcLineElementUid, &penTransaction) != TCL_OK) {
@@ -5141,7 +5141,7 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
      * Parse the element's weighted pen styles before modifying the live
      * palette.
      *
-     * Line and strip elements both use line pens and LinePenStyle palette
+     * Line, strip, and polar elements all use line pens and LinePenStyle palette
      * records.
      */
     if (((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_STYLES_MASK))) {
@@ -7168,7 +7168,7 @@ Element *Rbc_LineElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
         return NULL;
     }
     elemPtr = &linePtr->core;
-    if (classUid == rbcLineElementUid) {
+    if ((classUid == rbcLineElementUid) || (classUid == rbcPolarElementUid)) {
         elemPtr->optionSpecs = lineElemOptionSpecs;
     } else {
         elemPtr->optionSpecs = stripElemOptionSpecs;

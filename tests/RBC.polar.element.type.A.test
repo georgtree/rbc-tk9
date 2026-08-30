@@ -1,0 +1,53 @@
+# RBC.polar.element.type.A.test --
+#
+###Abstract
+# This file contains the automatic tests that test the element type
+# function of the polar RBC component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+
+###Package Definition
+package provide polar.element
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval polar.element {
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the default element type of a polar widget is PolarElement.
+	# ------------------------------------------------------------------------------------
+	test RBC.polar.element.type.A.1.1 {
+		polar element type: default element
+	} -setup {
+		polar .polar1
+		.polar1 element create Element1
+	} -body {
+		.polar1 element type Element1
+	} -cleanup {
+		.polar1 element delete Element1
+		destroy .polar1
+	} -result {PolarElement}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure an explicitly created line remains a LineElement.
+	# ------------------------------------------------------------------------------------
+	test RBC.polar.element.type.A.1.2 {
+		polar element type: explicit line element
+	} -setup {
+		polar .polar1
+		.polar1 line create Element1
+	} -body {
+		.polar1 element type Element1
+	} -cleanup {
+		.polar1 element delete Element1
+		destroy .polar1
+	} -result {LineElement}
+
+	cleanupTests
+}

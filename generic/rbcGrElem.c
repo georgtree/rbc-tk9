@@ -4637,8 +4637,9 @@ static int GetOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size obj
     if ((str[0] == 'c') && (strcmp(str, "current") == 0)) {
         elemPtr = (Element *)Rbc_GetCurrentItem(graphPtr->bindTable);
         /* Report only on elements. */
-        if ((elemPtr != NULL) && ((elemPtr->classUid == rbcBarElementUid) || (elemPtr->classUid == rbcLineElementUid) ||
-                                  (elemPtr->classUid == rbcStripElementUid))) {
+        if ((elemPtr != NULL) &&
+            ((elemPtr->classUid == rbcBarElementUid) || (elemPtr->classUid == rbcLineElementUid) ||
+             (elemPtr->classUid == rbcStripElementUid) || (elemPtr->classUid == rbcPolarElementUid))) {
             Tcl_SetObjResult(interp, Tcl_NewStringObj(elemPtr->name, -1));
         }
     }
