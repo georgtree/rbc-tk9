@@ -404,5 +404,132 @@ namespace eval polar.element {
         vector destroy gamma
     } -result {1 gamma 1 1 1 1 1 1 1 1 1 1}
 
+    test RBC.polar.element.closest.A.info.4 {
+        smith closest: impedance source round trip
+    } -setup {
+        vector create z -type complex
+        z set {{50 50}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 element create Element1 -cdata z -cdataformat impedance -z0 50 -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform 0.2 0.4] px py
+        set found [.polar1 element closest $px $py info -interpolate 0 -halo 2 Element1]
+        lassign $info(gamma) gr gi
+        lassign $info(impedance) R X
+        lassign $info(admittance) G B
+        list $found $info(dataFormat) [expr {abs($gr - 0.2) < 1e-12}] [expr {abs($gi - 0.4) < 1e-12}]\
+            [expr {abs($R - 50.0) < 1e-12}] [expr {abs($X - 50.0) < 1e-12}] [expr {abs($G - 0.01) < 1e-12}]\
+            [expr {abs($B + 0.01) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1 impedance 1 1 1 1 1 1}
+
+    test RBC.polar.element.closest.A.info.5 {
+        smith closest: admittance source round trip
+    } -setup {
+        vector create y -type complex
+        y set {{0.02 0.02}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 element create Element1 -cdata y -cdataformat admittance -z0 50 -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform -0.2 -0.4] px py
+        set found [.polar1 element closest $px $py info -interpolate 0 -halo 2 Element1]
+        lassign $info(gamma) gr gi
+        lassign $info(admittance) G B
+        lassign $info(impedance) R X
+        list $found $info(dataFormat) [expr {abs($gr + 0.2) < 1e-12}] [expr {abs($gi + 0.4) < 1e-12}] \
+            [expr {abs($G - 0.02) < 1e-12}] [expr {abs($B - 0.02) < 1e-12}] [expr {abs($R - 25.0) < 1e-12}] \
+            [expr {abs($X + 25.0) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy y
+    } -result {1 admittance 1 1 1 1 1 1}
+
+    test RBC.polar.element.closest.A.info.6 {
+        smith closest: interpolated trace information uses plotted gamma
+    } -setup {
+        vector create gamma -type complex
+        gamma set {{0 0} {0.8 0}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 element create Element1 -cdata gamma -z0 50 -linewidth 2 -symbol none
+        update
+    } -body {
+        lassign [.polar1 transform 0.4 0] px py
+        set found [.polar1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1]
+        lassign $info(gamma) gr gi
+        lassign $info(impedance) R X
+        #
+        # Determine approximately one screen pixel in X-axis units.
+        #
+        set x0 [.polar1 axis invtransform x $px]
+        set x1 [.polar1 axis invtransform x [expr {$px + 1}]]
+        set tolerance [expr {abs($x1 - $x0) + 1e-12}]
+        #
+        # Expected impedance must be calculated from the actual
+        # interpolated Gamma returned by closest, not from the
+        # pre-quantized requested value 0.4.
+        #
+        set expectedR [expr {50.0 * (1.0 + $info(x)) / (1.0 - $info(x))}]
+        list $found [expr {abs($info(x) - 0.4) <= $tolerance}] [expr {abs($info(y)) < 1e-12}]\
+                [expr {abs($gr - $info(x)) < 1e-12}] [expr {abs($gi - $info(y)) < 1e-12}] \
+                [expr {abs($R - $expectedR) < 1e-10}] [expr {abs($X) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy gamma
+    } -result {1 1 1 1 1 1 1}
+
+    test RBC.polar.element.closest.A.info.7 {
+        smith closest: gamma +1 open circuit
+    } -setup {
+        vector create gamma -type complex
+        gamma set {{1 0}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 element create Element1 -cdata gamma -z0 50 -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform 1 0] px py
+        set found [.polar1 element closest $px $py info -interpolate 0 -halo 2 Element1]
+        lassign $info(normalizedAdmittance) g b
+        lassign $info(admittance) G B
+        list $found $info(radius) $info(angle) [expr {$g == 0.0}] [expr {$b == 0.0}] [expr {$G == 0.0}]\
+                [expr {$B == 0.0}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy gamma
+    } -result {1 1.0 0.0 1 1 1 1}
+
+    test RBC.polar.element.closest.A.info.8 {
+        smith closest: gamma -1 short circuit
+    } -setup {
+        vector create gamma -type complex
+        gamma set {{-1 0}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 element create Element1 -cdata gamma -z0 50 -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform -1 0] px py
+        set found [.polar1 element closest $px $py info -interpolate 0 -halo 2 Element1]
+        lassign $info(normalizedImpedance) r x
+        lassign $info(impedance) R X
+        list $found $info(radius) $info(angle) [expr {$r == 0.0}] [expr {$x == 0.0}] [expr {$R == 0.0}]\
+                [expr {$X == 0.0}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy gamma
+    } -result {1 1.0 180.0 1 1 1 1}
+
 	cleanupTests
 }
