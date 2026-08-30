@@ -162,5 +162,44 @@ namespace eval graph.element {
         destroy .graph1
     } -result {element "Element1" is not plotted}
 
+    test RBC.polar.element.closest.A.1.7 {
+        polar element closest: switching between complex and XY data
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 12
+        .polar1 axis configure y -min -2 -max 12
+        .polar1 element create Element1 -data {8 8} -cdata z -symbol circle
+        update
+    } -body {
+        # -cdata was last, so the element is complex.
+        lassign [.polar1 transform 1 0] px py
+        set found1 [.polar1 element closest $px $py info -along both -interpolate 0 -halo 2 Element1]
+        set first [list $found1 $info(index) $info(x) $info(y)]
+        unset info
+        # -data is now last, so switch back to ordinary XY.
+        .polar1 element configure Element1 -cdata z -data {8 8}
+        update
+        lassign [.polar1 transform 8 8] px py
+        set found2 [.polar1 element closest \
+            $px $py info -along both -interpolate 0 \
+            -halo 2 Element1]
+        set second [list $found2 $info(index) $info(x) $info(y)]
+        unset info
+        # And switch to complex again.
+        .polar1 element configure Element1 -data {8 8} -cdata z
+        update
+        lassign [.polar1 transform 0 1] px py
+        set found3 [.polar1 element closest $px $py info -along both -interpolate 0 -halo 2 Element1]
+        set third [list $found3 $info(index) $info(x) $info(y)]
+        list $first $second $third
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {{1 0 1.0 0.0} {1 0 8.0 8.0} {1 1 0.0 1.0}}
+
     cleanupTests
 }

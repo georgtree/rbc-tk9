@@ -114,5 +114,50 @@ namespace eval polar.element {
         vector destroy z
     } -result {1}
 
+    test RBC.polar.element.configure.A.cdata.4 {
+        polar element configure: later -cdata selects complex data
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0}}
+        polar .polar1
+        .polar1 element create Element1
+    } -body {
+        .polar1 element configure Element1 -data {10 10 20 20} -cdata z
+        .polar1 element cget Element1 -cdata
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {z}
+
+    test RBC.polar.element.configure.A.cdata.5 {
+        polar element configure: later -data selects XY data
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0}}
+        polar .polar1
+        .polar1 element create Element1
+    } -body {
+        .polar1 element configure Element1 -cdata z -data {10 10 20 20}
+        .polar1 element cget Element1 -cdata
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {}
+
+    test RBC.polar.element.configure.A.cdata.6 {
+        polar element configure: later -x selects XY data
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0}}
+        polar .polar1
+        .polar1 element create Element1 -y {3 4}
+    } -body {
+        .polar1 element configure Element1 -cdata z -x {1 2}
+        .polar1 element cget Element1 -cdata
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {}
+
 	cleanupTests
 }
