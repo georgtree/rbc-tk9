@@ -280,5 +280,25 @@ namespace eval polar.element {
         vector destroy r
     } -result {1 0}
 
+    test RBC.polar.configure.A.1.4 {
+        polar configure: default aspect is square
+    } -setup {
+        polar .polar1
+    } -body {
+        .polar1 cget -aspect
+    } -cleanup {
+        destroy .polar1
+    } -result {1.0}
+
+    test RBC.polar.configure.A.1.5 {
+        polar configure: explicit aspect overrides Polar default
+    } -setup {
+        polar .polar1 -aspect 0.75
+    } -body {
+        .polar1 cget -aspect
+    } -cleanup {
+        destroy .polar1
+    } -result {0.75}
+
 	cleanupTests
 }

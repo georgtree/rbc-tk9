@@ -1607,7 +1607,17 @@ static int ConfigureNewGraph(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv
     if (InitGraphOptions(graphPtr) != TCL_OK) {
         return TCL_ERROR;
     }
-
+    /*
+     * Polar plots are square by default.  Tk_InitOptions has already
+     * applied any option-database value, so only install the Polar
+     * class default when the option database did not specify aspect.
+     *
+     * Any explicit creation-time -aspect option is applied below by
+     * ConfigureGraphOptions() and therefore takes precedence.
+     */
+    if ((graphPtr->classUid == rbcPolarElementUid) && (Tk_GetOption(graphPtr->tkwin, "aspect", "Aspect") == NULL)) {
+        graphPtr->aspect = 1.0;
+    }
     return ConfigureGraphOptions(graphPtr, objc, objv, NULL);
 }
 

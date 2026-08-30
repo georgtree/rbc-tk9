@@ -5787,6 +5787,19 @@ int Rbc_DefaultAxes(Graph *graphPtr) {
         }
 
         /*
+         * Polar graphs use the ordinary Cartesian axes internally, but their
+         * rectangular axis decoration is not part of the default Polar
+         * presentation.
+         *
+         * Set this before ConfigureNewAxis().  The -hide option has no static
+         * default value, so an option-database value may still override this
+         * widget-class default.
+         */
+        if (graphPtr->classUid == rbcPolarElementUid) {
+            axisPtr->hidden = TRUE;
+        }        
+
+        /*
          * Default axes are assumed to be in use and visible on their
          * respective margins.
          */

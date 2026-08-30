@@ -47,5 +47,27 @@ namespace eval polar.axis {
         destroy .polar1
     } -result {Axis1 Axis2}
 
+    test RBC.polar.axis.create.A.1.3 {
+        polar axis: default Cartesian axes are hidden
+    } -setup {
+        polar .polar1
+    } -body {
+        list [.polar1 axis cget x -hide] [.polar1 axis cget y -hide] [.polar1 axis cget x2 -hide]\
+                [.polar1 axis cget y2 -hide]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 1 1 1}
+
+    test RBC.polar.axis.create.A.1.4 {
+        polar axis: default Cartesian axis may be shown explicitly
+    } -setup {
+        polar .polar1
+    } -body {
+        .polar1 axis configure x -hide no
+        .polar1 axis cget x -hide
+    } -cleanup {
+        destroy .polar1
+    } -result {0}
+
 	cleanupTests
 }
