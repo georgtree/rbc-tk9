@@ -318,7 +318,6 @@ static double InterpolateAxisValue(const AxisRange *rangePtr, double norm);
 static int InRange(register double x, AxisRange *rangePtr);
 static int AxisIsHorizontal(Graph *graphPtr, Axis *axisPtr);
 static void FreeLabels(Rbc_Chain *chainPtr);
-static TickLabel *MakeLabel(Graph *graphPtr, Axis *axisPtr, double value);
 static void GetDataLimits(Axis *axisPtr, double min, double max);
 static void FixAxisRange(Axis *axisPtr);
 static double NiceNum(double x, int round);
@@ -2015,7 +2014,7 @@ static TickLabel *NewTickLabel(const char *string) {
 /*
  * ----------------------------------------------------------------------
  *
- * MakeLabel --
+ * Rbc_AllocAxisTickLabel --
  *
  *      Converts a floating point tick value to a string to be used as its
  *      label.
@@ -2034,7 +2033,7 @@ static TickLabel *NewTickLabel(const char *string) {
  *
  * ----------------------------------------------------------------------
  */
-static TickLabel *MakeLabel(Graph *graphPtr, Axis *axisPtr, double value) {
+TickLabel *Rbc_AllocAxisTickLabel(Graph *graphPtr, Axis *axisPtr, double value) {
     char defaultLabel[TICK_LABEL_SIZE + 1];
 
     /*
@@ -3274,6 +3273,36 @@ static Ticks *GenerateTicks(TickSweep *sweepPtr) {
     }
     ticksPtr->nTicks = nSteps;
     return ticksPtr;
+}
+
+Ticks *Rbc_AllocAxisMajorTicks(Axis *axisPtr) {
+    Ticks *ticksPtr;
+    size_t size;
+
+    /*
+     * If the user explicitly supplied -majorticks, duplicate that
+     * array so the caller always owns the returned value.
+     */
+    if (axisPtr->t1Ptr != NULL) {
+        if (GetTicksByteCount(axisPtr->t1Ptr->nTicks, &size) != TCL_OK) {
+            return NULL;
+        }
+        ticksPtr = Tcl_AttemptAlloc(size);
+        if (ticksPtr == NULL) {
+            return NULL;
+        }
+        ticksPtr->nTicks = axisPtr->t1Ptr->nTicks;
+        if (ticksPtr->nTicks > 0) {
+            memcpy(ticksPtr->values, axisPtr->t1Ptr->values, (size_t)ticksPtr->nTicks * sizeof(double));
+        }
+        return ticksPtr;
+    }
+    /*
+     * Hidden Polar axes normally have no cached t1Ptr because their
+     * rectangular geometry is never constructed.  Generate the major
+     * ticks directly from the already-computed sweep.
+     */
+    return GenerateTicks(&axisPtr->majorSweep);
 }
 
 /*
@@ -4844,7 +4873,7 @@ static void GetAxisGeometry(Graph *graphPtr, Axis *axisPtr) {
             if (!InRange(x2, &axisPtr->axisRange)) {
                 continue;
             }
-            labelPtr = MakeLabel(graphPtr, axisPtr, x);
+            labelPtr = Rbc_AllocAxisTickLabel(graphPtr, axisPtr, x);
             Rbc_ChainAppend(axisPtr->tickLabels, labelPtr);
             /*
              * Get the dimensions of each tick label.

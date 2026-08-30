@@ -3264,6 +3264,9 @@ static void DrawPlotRegion(Graph *graphPtr, Drawable drawable) {
     if (!graphPtr->gridPtr->hidden) {
         Rbc_DrawGrid(graphPtr, drawable);
     }
+    if (graphPtr->classUid == rbcPolarElementUid) {
+        Rbc_DrawPolarLabels(graphPtr, drawable);
+    }
     Rbc_DrawMarkers(graphPtr, drawable, MARKER_UNDER);
     if ((Rbc_LegendSite(graphPtr->legend) & LEGEND_IN_PLOT) && (!Rbc_LegendIsRaised(graphPtr->legend))) {
         Rbc_DrawLegend(graphPtr->legend, drawable);

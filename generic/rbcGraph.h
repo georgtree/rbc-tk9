@@ -655,6 +655,8 @@ void Rbc_MapElements(Graph *graphPtr);
 void Rbc_MapMarkers(Graph *graphPtr);
 void Rbc_MapGrid(Graph *graphPtr);
 void Rbc_MapPolarGrid(Graph *graphPtr, Grid *gridPtr);
+void Rbc_DrawPolarLabels(Graph *graphPtr, Drawable drawable);
+void Rbc_PolarLabelsToPostScript(Graph *graphPtr, PsToken psToken);
 void Rbc_UpdateCrosshairs(Graph *graphPtr);
 void Rbc_DestroyPens(Graph *graphPtr);
 void Rbc_ReleasePenTkResources(Graph *graphPtr);

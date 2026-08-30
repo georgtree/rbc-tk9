@@ -56,5 +56,42 @@ namespace eval polar.postscript {
         vector destroy z
     } -result {0 1}
 
+    test RBC.polar.postscript.output.A.1.3 {
+        polar postscript output: angular labels
+    } -setup {
+        vector create z -type complex
+        z set {{0 0} {2 0}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 element create Element1 -cdata z
+        update
+    } -body {
+        set ps [.polar1 postscript output]
+        list [expr {[string first {30\260} $ps] >= 0}] [expr {[string first {330\260} $ps] >= 0}]
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {1 1}
+
+    test RBC.polar.postscript.output.A.1.4 {
+        polar postscript output: radial labels use x axis command
+    } -setup {
+        proc FormatRadius {w value} {
+            return "radius=$value"
+        }
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2 -majorticks {-2 -1 0 1 2} -command FormatRadius
+        .polar1 axis configure y -min -2 -max 2
+        .polar1 grid configure -hide no
+        update
+    } -body {
+        set ps [.polar1 postscript output]
+        expr {[string first {radius=1} $ps] >= 0}
+    } -cleanup {
+        destroy .polar1
+        rename FormatRadius {}
+    } -result {1}
+
     cleanupTests
 }

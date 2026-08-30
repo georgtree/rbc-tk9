@@ -20,6 +20,9 @@
 #define POLAR_MAJOR_ANGLE_STEP 30.0
 #define POLAR_MINOR_ANGLE_STEP 15.0
 
+#define POLAR_ANGLE_LABEL_RADIUS 0.90
+#define POLAR_RADIAL_LABEL_OFFSET 2
+
 static double PolarMaximumRadius(Grid *gridPtr) {
     Axis *xAxisPtr;
     Axis *yAxisPtr;
@@ -198,4 +201,189 @@ void Rbc_MapPolarGrid(Graph *graphPtr, Grid *gridPtr) {
     }
     MapPolarCircles(graphPtr, gridPtr, maxRadius);
     MapPolarSpokes(graphPtr, gridPtr, maxRadius);
+}
+
+static void DrawPolarRadialLabels(Graph *graphPtr, Drawable drawable, Grid *gridPtr, double maxRadius) {
+    Axis *axisPtr;
+    TextStyle style;
+    Ticks *ticksPtr;
+    Tcl_Size i;
+
+    axisPtr = gridPtr->axes.x;
+    if ((axisPtr == NULL) || (!axisPtr->showTicks)) {
+        return;
+    }
+    ticksPtr = Rbc_AllocAxisMajorTicks(axisPtr);
+    if (ticksPtr == NULL) {
+        return;
+    }
+    /*
+     * Use the X-axis tick style, but don't modify the live style.
+     */
+    style = axisPtr->tickTextStyle;
+    style.theta = 0.0;
+    style.anchor = TK_ANCHOR_SE;
+    for (i = 0; i < ticksPtr->nTicks; i++) {
+        TickLabel *labelPtr;
+        Point2D point;
+        double radius;
+
+        radius = ticksPtr->values[i];
+        /*
+         * Radius is unsigned.  Negative X ticks duplicate positive
+         * circles, and zero is the origin rather than a ring.
+         */
+        if ((!FINITE(radius)) || (radius <= 0.0) || (radius > maxRadius)) {
+            continue;
+        }
+        labelPtr = Rbc_AllocAxisTickLabel(graphPtr, axisPtr, radius);
+        if (labelPtr == NULL) {
+            continue;
+        }
+        point = Rbc_Map2D(graphPtr, radius, 0.0, &gridPtr->axes);
+        if (FINITE(point.x) && FINITE(point.y)) {
+            Rbc_DrawText(graphPtr->tkwin, drawable, labelPtr->string, &style,
+                         ROUND(point.x) - POLAR_RADIAL_LABEL_OFFSET, ROUND(point.y) - POLAR_RADIAL_LABEL_OFFSET);
+        }
+        ckfree(labelPtr);
+    }
+    ckfree(ticksPtr);
+}
+
+static void DrawPolarAngularLabels(Graph *graphPtr, Drawable drawable, Grid *gridPtr, double maxRadius) {
+    Axis *axisPtr;
+    TextStyle style;
+    double labelRadius;
+    Tcl_Size i;
+
+    axisPtr = gridPtr->axes.y;
+    if ((axisPtr == NULL) || (!axisPtr->showTicks)) {
+        return;
+    }
+    style = axisPtr->tickTextStyle;
+    style.theta = 0.0;
+    style.anchor = TK_ANCHOR_CENTER;
+    /*
+     * Keep angular labels slightly inside the outer circle.
+     * This avoids requiring additional Polar-specific margins.
+     */
+    labelRadius = maxRadius * POLAR_ANGLE_LABEL_RADIUS;
+    for (i = 0; i < 12; i++) {
+        char string[32];
+        double degrees;
+        double theta;
+        Point2D point;
+
+        degrees = (double)i * POLAR_MAJOR_ANGLE_STEP;
+        theta = degrees * POLAR_DEG_TO_RAD;
+        point = Rbc_Map2D(graphPtr, labelRadius * cos(theta), labelRadius * sin(theta), &gridPtr->axes);
+        if ((!FINITE(point.x)) || (!FINITE(point.y))) {
+            continue;
+        }
+        snprintf(string, sizeof(string), "%d\xC2\xB0", (int)degrees);
+        Rbc_DrawText(graphPtr->tkwin, drawable, string, &style, ROUND(point.x), ROUND(point.y));
+    }
+}
+
+void Rbc_DrawPolarLabels(Graph *graphPtr, Drawable drawable) {
+    Grid *gridPtr;
+    double maxRadius;
+
+    gridPtr = graphPtr->gridPtr;
+    if (gridPtr == NULL) {
+        return;
+    }
+    maxRadius = PolarMaximumRadius(gridPtr);
+    if ((!FINITE(maxRadius)) || (maxRadius <= 0.0)) {
+        return;
+    }
+    DrawPolarRadialLabels(graphPtr, drawable, gridPtr, maxRadius);
+    DrawPolarAngularLabels(graphPtr, drawable, gridPtr, maxRadius);
+}
+
+static void PolarRadialLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *gridPtr, double maxRadius) {
+    Axis *axisPtr;
+    TextStyle style;
+    Ticks *ticksPtr;
+    Tcl_Size i;
+
+    axisPtr = gridPtr->axes.x;
+    if ((axisPtr == NULL) || (!axisPtr->showTicks)) {
+        return;
+    }
+    ticksPtr = Rbc_AllocAxisMajorTicks(axisPtr);
+    if (ticksPtr == NULL) {
+        return;
+    }
+    style = axisPtr->tickTextStyle;
+    style.theta = 0.0;
+    style.anchor = TK_ANCHOR_SE;
+    for (i = 0; i < ticksPtr->nTicks; i++) {
+        TickLabel *labelPtr;
+        Point2D point;
+        double radius;
+
+        radius = ticksPtr->values[i];
+        if ((!FINITE(radius)) || (radius <= 0.0) || (radius > maxRadius)) {
+            continue;
+        }
+        labelPtr = Rbc_AllocAxisTickLabel(graphPtr, axisPtr, radius);
+        if (labelPtr == NULL) {
+            continue;
+        }
+        point = Rbc_Map2D(graphPtr, radius, 0.0, &gridPtr->axes);
+        if (FINITE(point.x) && FINITE(point.y)) {
+            Rbc_TextToPostScript(psToken, labelPtr->string, &style, point.x - POLAR_RADIAL_LABEL_OFFSET,
+                                 point.y - POLAR_RADIAL_LABEL_OFFSET);
+        }
+        ckfree(labelPtr);
+    }
+    ckfree(ticksPtr);
+}
+
+static void PolarAngularLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *gridPtr, double maxRadius) {
+    Axis *axisPtr;
+    TextStyle style;
+    double labelRadius;
+    Tcl_Size i;
+
+    axisPtr = gridPtr->axes.y;
+    if ((axisPtr == NULL) || (!axisPtr->showTicks)) {
+        return;
+    }
+    style = axisPtr->tickTextStyle;
+    style.theta = 0.0;
+    style.anchor = TK_ANCHOR_CENTER;
+    labelRadius = maxRadius * POLAR_ANGLE_LABEL_RADIUS;
+    for (i = 0; i < 12; i++) {
+        char string[32];
+        double degrees;
+        double theta;
+        Point2D point;
+
+        degrees = (double)i * POLAR_MAJOR_ANGLE_STEP;
+        theta = degrees * POLAR_DEG_TO_RAD;
+        point = Rbc_Map2D(graphPtr, labelRadius * cos(theta), labelRadius * sin(theta), &gridPtr->axes);
+        if ((!FINITE(point.x)) || (!FINITE(point.y))) {
+            continue;
+        }
+        snprintf(string, sizeof(string), "%d\xC2\xB0", (int)degrees);
+        Rbc_TextToPostScript(psToken, string, &style, point.x, point.y);
+    }
+}
+
+void Rbc_PolarLabelsToPostScript(Graph *graphPtr, PsToken psToken) {
+    Grid *gridPtr;
+    double maxRadius;
+
+    gridPtr = graphPtr->gridPtr;
+    if (gridPtr == NULL) {
+        return;
+    }
+    maxRadius = PolarMaximumRadius(gridPtr);
+    if ((!FINITE(maxRadius)) || (maxRadius <= 0.0)) {
+        return;
+    }
+    PolarRadialLabelsToPostScript(graphPtr, psToken, gridPtr, maxRadius);
+    PolarAngularLabelsToPostScript(graphPtr, psToken, gridPtr, maxRadius);
 }
