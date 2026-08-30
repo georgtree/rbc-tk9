@@ -1,0 +1,56 @@
+# RBC.polar.element.draw.A.test --
+#
+###Abstract
+# This file tests drawing complex-data PolarElements.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+###Package Definition
+package provide polar.element
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval polar.element {
+
+    test RBC.polar.element.draw.A.1.1 {
+        polar element draw: complex value labels
+    } -setup {
+        vector create z -type complex
+        z set {{1 2} {-3 4}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -5 -max 5
+        .polar1 axis configure y -min -5 -max 5
+        .polar1 element create Element1 -cdata z -symbol circle -showvalues both
+    } -body {
+        catch {update}
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {0}
+
+    test RBC.polar.element.draw.A.1.2 {
+        polar element draw: complex data ignores XY error bars safely
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        .polar1 element create Element1 -cdata z -xerror {0.1 0.2} -yerror {0.3 0.4} -symbol circle
+    } -body {
+        catch {update}
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {0}
+
+    cleanupTests
+}

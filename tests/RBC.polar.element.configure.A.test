@@ -159,5 +159,126 @@ namespace eval polar.element {
         vector destroy z
     } -result {}
 
+    test RBC.polar.element.configure.A.cdata.7 {
+        polar element configure: later -y selects XY data
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0}}
+        polar .polar1
+        .polar1 element create Element1 -x {3 4}
+    } -body {
+        .polar1 element configure Element1 -cdata z -y {1 2}
+        .polar1 element cget Element1 -cdata
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {}
+
+    test RBC.polar.element.configure.A.cdata.8 {
+        polar element configure: empty -cdata restores XY data
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 10
+        .polar1 axis configure y -min -2 -max 10
+        .polar1 element create Element1 -data {8 8} -cdata z -symbol circle
+        update
+    } -body {
+        .polar1 element configure Element1 -cdata {}
+        set cdata [.polar1 element cget Element1 -cdata]
+        # This must be safe: the element must no longer have a client
+        # attached to z.
+        set destroyCode [catch {vector destroy z}]
+        update
+        lassign [.polar1 transform 8 8] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list $cdata $destroyCode $found $info(index) $info(x) $info(y)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        catch {vector destroy z}
+    } -result {{} 0 1 0 8.0 8.0}
+
+    test RBC.polar.element.configure.A.cdata.9 {
+        polar element configure: real vector failure rolls back
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1}}
+        vector create r
+        r set {10 20}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        .polar1 element create Element1 -cdata z -symbol circle
+        update
+    } -body {
+        set code [catch {.polar1 element configure Element1 -cdata r}]
+        update
+        lassign [.polar1 transform 1 0] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list $code [.polar1 element cget Element1 -cdata] $found $info(index) $info(x) $info(y)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z r
+    } -result {1 z 1 0 1.0 0.0}
+
+    test RBC.polar.element.configure.A.cdata.10 {
+        polar element configure: missing vector failure rolls back
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        .polar1 element create Element1 -cdata z -symbol circle
+        update
+    } -body {
+        set code [catch {.polar1 element configure Element1 -cdata noSuchVector}]
+        update
+        lassign [.polar1 transform 1 0] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list $code [.polar1 element cget Element1 -cdata] $found $info(index) $info(x) $info(y)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1 z 1 0 1.0 0.0}
+
+    test RBC.polar.element.configure.A.cdata.11 {
+        polar element configure: deleting element releases complex vector client
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1}}
+        polar .polar1
+        .polar1 element create Element1 -cdata z
+    } -body {
+        .polar1 element delete Element1
+        set updateCode [catch { z set {{2 0} {0 2}} }]
+        set destroyCode [catch { vector destroy z }]
+        list $updateCode $destroyCode
+    } -cleanup {
+        destroy .polar1
+        catch {vector destroy z}
+    } -result {0 0}
+
+    test RBC.polar.element.configure.A.cdata.12 {
+        polar element configure: failed -cdata create leaves no element
+    } -setup {
+        vector create r
+        r set {1 2 3}
+        polar .polar1
+    } -body {
+        set code [catch {.polar1 element create Element1 -cdata r}]
+        list $code [.polar1 element exists Element1]
+    } -cleanup {
+        destroy .polar1
+        vector destroy r
+    } -result {1 0}
+
 	cleanupTests
 }

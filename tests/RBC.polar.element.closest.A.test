@@ -40,5 +40,240 @@ namespace eval polar.element {
         vector destroy z
     } -result {1 Element1 0 1.0 0.0}
 
+    test RBC.polar.element.closest.A.1.2 {
+        polar element closest: switching between complex and XY data
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 12
+        .polar1 axis configure y -min -2 -max 12
+        .polar1 element create Element1 -data {8 8} -cdata z -symbol circle
+        update
+    } -body {
+        # -cdata was last, so the element is complex.
+        lassign [.polar1 transform 1 0] px py
+        set found1 [.polar1 element closest $px $py info -along both -interpolate 0 -halo 2 Element1]
+        set first [list $found1 $info(index) $info(x) $info(y)]
+        unset info
+        # -data is now last, so switch back to ordinary XY.
+        .polar1 element configure Element1 -cdata z -data {8 8}
+        update
+        lassign [.polar1 transform 8 8] px py
+        set found2 [.polar1 element closest \
+            $px $py info -along both -interpolate 0 \
+            -halo 2 Element1]
+        set second [list $found2 $info(index) $info(x) $info(y)]
+        unset info
+        # And switch to complex again.
+        .polar1 element configure Element1 -data {8 8} -cdata z
+        update
+        lassign [.polar1 transform 0 1] px py
+        set found3 [.polar1 element closest $px $py info -along both -interpolate 0 -halo 2 Element1]
+        set third [list $found3 $info(index) $info(x) $info(y)]
+        list $first $second $third
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {{1 0 1.0 0.0} {1 0 8.0 8.0} {1 1 0.0 1.0}}
+
+    test RBC.polar.element.closest.A.1.3 {
+        polar element closest: live complex vector update
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -10 -max 10
+        .polar1 axis configure y -min -10 -max 10
+        .polar1 element create Element1 -cdata z -symbol circle
+        update
+    } -body {
+        z set {{4 -3} {0 1}}
+        update
+        lassign [.polar1 transform 4 -3] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list $found $info(index) $info(x) $info(y)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1 0 4.0 -3.0}
+
+    test RBC.polar.element.closest.A.1.4 {
+        polar element closest: complex vector storage growth
+    } -setup {
+        vector create z -type complex
+        z set {{0 0} {1 -1}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -150 -max 150
+        .polar1 axis configure y -min -150 -max 150
+        .polar1 element create Element1 -cdata z -symbol circle
+        update
+    } -body {
+        set values {}
+        for {set i 0} {$i < 128} {incr i} {
+            lappend values [list $i [expr {-$i}]]
+        }
+        z set $values
+        update
+        lassign [.polar1 transform 127 -127] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list $found $info(index) $info(x) $info(y)
+    } -cleanup {
+        unset -nocomplain info values
+        destroy .polar1
+        vector destroy z
+    } -result {1 127 127.0 -127.0}
+
+    test RBC.polar.element.closest.A.1.5 {
+        polar element closest: complex vector shrink updates point count
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0} {7 -6}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -10 -max 10
+        .polar1 axis configure y -min -10 -max 10
+        .polar1 element create Element1 -cdata z -symbol circle
+        update
+    } -body {
+        z set {{1 0}}
+        update
+        lassign [.polar1 transform 7 -6] x y
+        .polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {0}
+
+    test RBC.polar.element.closest.A.1.6 {
+        polar element closest: destroy and reattach complex vector
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        .polar1 element create Element1 -cdata z -symbol circle
+        update
+    } -body {
+        vector destroy z
+        update
+        lassign [.polar1 transform 1 0] x y
+        set afterDestroy [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        vector create z -type complex
+        z set {{-1 -1}}
+        # Deliberately configure the same vector name again.
+        .polar1 element configure Element1 -cdata z
+        update
+        lassign [.polar1 transform -1 -1] x y
+        set afterReattach [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list $afterDestroy $afterReattach $info(index) $info(x) $info(y)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        catch {vector destroy z}
+    } -result {0 1 0 -1.0 -1.0}
+
+    test RBC.polar.element.closest.A.1.7 {
+        polar element closest: automatic search with complex points
+    } -setup {
+        vector create z -type complex
+        z set {{-1 0} {1 0}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        .polar1 element create Element1 -cdata z -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform 1 0] x y
+        .polar1 element closest $x $y info -interpolate 0 -halo 2 Element1
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1}
+
+    test RBC.polar.element.closest.A.1.8 {
+        polar element closest: complex data with inverted axes
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0}}
+        polar .polar1 -width 400 -height 400 -invertxy yes
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        .polar1 element create Element1 -cdata z -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform 1 0] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list $found $info(index) $info(x) $info(y)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1 0 1.0 0.0}
+
+    test RBC.polar.element.closest.A.1.9 {
+        polar element closest: replacing complex vector releases old client
+    } -setup {
+        vector create z1 -type complex
+        z1 set {{1 0}}
+        vector create z2 -type complex
+        z2 set {{5 -2}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -10 -max 10
+        .polar1 axis configure y -min -10 -max 10
+        .polar1 element create Element1 -cdata z1 -symbol circle
+        update
+    } -body {
+        .polar1 element configure Element1 -cdata z2
+        # z1 must no longer own a callback into Element1.
+        vector destroy z1
+        update
+        lassign [.polar1 transform 5 -2] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list [.polar1 element cget Element1 -cdata] $found $info(index) $info(x) $info(y)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        catch {vector destroy z1}
+        catch {vector destroy z2}
+    } -result {z2 1 0 5.0 -2.0}
+
+    test RBC.polar.element.closest.A.1.10 {
+        polar element closest: complex vector shared by elements
+    } -setup {
+        vector create z -type complex
+        z set {{1 0}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -10 -max 10
+        .polar1 axis configure y -min -10 -max 10
+        .polar1 element create Element1 -cdata z
+        .polar1 element create Element2 -cdata z -symbol circle
+        update
+    } -body {
+        .polar1 element delete Element1
+        z set {{6 -4}}
+        update
+        lassign [.polar1 transform 6 -4] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element2]
+        list $found $info(name) $info(index) $info(x) $info(y)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1 Element2 0 6.0 -4.0}
+
 	cleanupTests
 }

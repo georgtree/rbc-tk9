@@ -1,0 +1,106 @@
+# RBC.polar.element.activate.A.test --
+#
+###Abstract
+# This file contains the automatic tests that test the element activate
+# function of the polar RBC component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+###Package Definition
+package provide polar.element
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval polar.element {
+
+    test RBC.polar.element.activate.A.1.1 {
+        polar element activate: complex last numeric index
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0} {0 -1}}
+        polar .polar1
+        .polar1 element create Element1 -cdata z
+    } -body {
+        catch {.polar1 element activate Element1 3}
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {0}
+
+    test RBC.polar.element.activate.A.1.2 {
+        polar element activate: complex end index
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0} {0 -1}}
+        polar .polar1
+        .polar1 element create Element1 -cdata z
+    } -body {
+        catch {.polar1 element activate Element1 end}
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {0}
+
+    test RBC.polar.element.activate.A.1.3 {
+        polar element activate: complex index out of range
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0} {0 -1}}
+        polar .polar1
+        .polar1 element create Element1 -cdata z
+    } -body {
+        catch {.polar1 element activate Element1 4}
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {1}
+
+    test RBC.polar.element.activate.A.1.4 {
+        polar element activate: live resize changes valid indices
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1}}
+        polar .polar1
+        .polar1 element create Element1 -cdata z
+    } -body {
+        set before [catch {.polar1 element activate Element1 2}]
+        z set {{1 0} {0 1} {-1 0}}
+        update
+        set grown [catch {.polar1 element activate Element1 2}]
+        z set {{1 0}}
+        update
+        set shrunk [catch {.polar1 element activate Element1 2}]
+        list $before $grown $shrunk
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {1 0 1}
+
+    test RBC.polar.element.activate.A.1.5 {
+        polar element activate: shrink below active index is safe
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        .polar1 element create Element1 -cdata z -symbol circle
+        .polar1 element activate Element1 2
+        update
+    } -body {
+        z set {{1 0}}
+        catch {update}
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {0}
+
+    cleanupTests
+}

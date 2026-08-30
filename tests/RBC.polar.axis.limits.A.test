@@ -1,0 +1,69 @@
+# RBC.polar.axis.limits.A.test --
+#
+###Abstract
+# This file tests axis limits for the polar RBC component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+###Package Definition
+package provide polar.axis
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval polar.axis {
+
+    test RBC.polar.axis.limits.A.1.1 {
+        polar axis limits: complex magnitude gives symmetric extents
+    } -setup {
+        vector create z -type complex
+        z set {{0 0} {3 4}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 element create Element1 -cdata z
+        update
+    } -body {
+        lassign [.polar1 axis limits x] xmin xmax
+        lassign [.polar1 axis limits y] ymin ymax
+        list [expr {$xmin <= -5.0}] [expr {$xmax >= 5.0}] [expr {$ymin <= -5.0}] [expr {$ymax >= 5.0}]
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {1 1 1 1}
+
+    test RBC.polar.axis.limits.A.1.2 {
+        polar axis limits: complex vector update expands and shrinks extents
+    } -setup {
+        vector create z -type complex
+        z set {{0 0} {0 1}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 element create Element1 -cdata z
+        update
+    } -body {
+        # Radius 10.
+        z set {{0 0} {6 8}}
+        update
+        lassign [.polar1 axis limits x] xmin xmax
+        lassign [.polar1 axis limits y] ymin ymax
+        set expanded [expr { ($xmin <= -10.0) && ($xmax >= 10.0) && ($ymin <= -10.0) && ($ymax >= 10.0) }]
+        # Radius 2.  The old radius-10 extent must not remain cached.
+        z set {{0 0} {0 2}}
+        update
+        lassign [.polar1 axis limits x] xmin xmax
+        lassign [.polar1 axis limits y] ymin ymax
+        set shrunk [expr { ($xmin <= -2.0) && ($xmax >= 2.0) && ($ymin <= -2.0) && ($ymax >= 2.0) && ($xmin > -5.0) &&\
+                                   ($xmax < 5.0) && ($ymin > -5.0) && ($ymax < 5.0) }]
+        list $expanded $shrunk
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {1 1}
+
+    cleanupTests
+}

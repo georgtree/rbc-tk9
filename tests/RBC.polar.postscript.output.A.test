@@ -1,0 +1,60 @@
+# RBC.polar.postscript.output.A.test --
+#
+###Abstract
+# This file tests PostScript output from the polar RBC component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+###Package Definition
+package provide polar.postscript
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval polar.postscript {
+
+    test RBC.polar.postscript.output.A.1.1 {
+        polar postscript output: complex element
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0} {0 -1}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        .polar1 element create Element1 -cdata z -symbol circle
+        update
+    } -body {
+        set code [catch {.polar1 postscript output} ps]
+        list $code [expr {[string length $ps] > 0}]
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {0 1}
+
+    test RBC.polar.postscript.output.A.1.2 {
+        polar postscript output: complex value labels
+    } -setup {
+        vector create z -type complex
+        z set {{1 2} {-3 4}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -5 -max 5
+        .polar1 axis configure y -min -5 -max 5
+        .polar1 element create Element1 -cdata z -symbol circle -showvalues both
+        update
+    } -body {
+        set code [catch {.polar1 postscript output} ps]
+        list $code [expr {[string length $ps] > 0}]
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {0 1}
+
+    cleanupTests
+}
