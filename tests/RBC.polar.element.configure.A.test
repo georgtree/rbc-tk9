@@ -280,25 +280,42 @@ namespace eval polar.element {
         vector destroy r
     } -result {1 0}
 
-    test RBC.polar.configure.A.1.4 {
-        polar configure: default aspect is square
+    test RBC.polar.element.configure.A.cformat.1 {
+        polar complex data format: defaults
     } -setup {
         polar .polar1
+        .polar1 element create Element1
     } -body {
-        .polar1 cget -aspect
+        list [.polar1 element cget Element1 -cdataformat] [expr {[.polar1 element cget Element1 -z0] == 50.0}]
     } -cleanup {
         destroy .polar1
-    } -result {1.0}
+    } -result {gamma 1}
 
-    test RBC.polar.configure.A.1.5 {
-        polar configure: explicit aspect overrides Polar default
+    test RBC.polar.element.configure.A.cformat.2 {
+        polar complex data format: invalid format
     } -setup {
-        polar .polar1 -aspect 0.75
+        polar .polar1
+        .polar1 element create Element1
     } -body {
-        .polar1 cget -aspect
+        set code [catch {.polar1 element configure Element1 -cdataformat bad}]
+        list $code [.polar1 element cget Element1 -cdataformat]
     } -cleanup {
         destroy .polar1
-    } -result {0.75}
+    } -result {1 gamma}
+
+    test RBC.polar.element.configure.A.cformat.3 {
+        polar complex data format: invalid z0 rolls back
+    } -setup {
+        polar .polar1
+        .polar1 element create Element1
+    } -body {
+        set code [catch {.polar1 element configure Element1 -z0 0}]
+        list $code [expr {[.polar1 element cget Element1 -z0] == 50.0}]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 1}
+
+
 
 	cleanupTests
 }

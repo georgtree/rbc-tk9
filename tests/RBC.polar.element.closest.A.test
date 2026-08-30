@@ -275,5 +275,64 @@ namespace eval polar.element {
         vector destroy z
     } -result {1 Element2 0 6.0 -4.0}
 
+    test RBC.polar.element.closest.A.impedance.1 {
+        polar complex impedance maps to gamma
+    } -setup {
+        vector create z -type complex
+        z set {{50 50}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 element create Element1 -cdata z -cdataformat impedance -z0 50 -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform 0.2 0.4] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list $found $info(index) [expr {abs($info(x) - 0.2) < 1e-12}] [expr {abs($info(y) - 0.4) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1 0 1 1}
+
+    test RBC.polar.element.closest.A.admittance.1 {
+        polar complex admittance maps to gamma
+    } -setup {
+        vector create y -type complex
+        y set {{0.02 0.02}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 element create Element1 -cdata y -cdataformat admittance -z0 50 -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform -0.2 -0.4] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list $found [expr {abs($info(x) + 0.2) < 1e-12}] [expr {abs($info(y) + 0.4) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy y
+    } -result {1 1 1}
+
+    test RBC.polar.element.closest.A.impedance.2 {
+        polar impedance: changing z0 remaps complex data
+    } -setup {
+        vector create z -type complex
+        z set {{100 0}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 element create Element1 -cdata z -cdataformat impedance -z0 50 -symbol circle
+        update
+    } -body {
+        .polar1 element configure Element1 -z0 100
+        update
+        lassign [.polar1 transform 0 0] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list $found [expr {abs($info(x)) < 1e-12}] [expr {abs($info(y)) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1 1 1}
+
 	cleanupTests
 }

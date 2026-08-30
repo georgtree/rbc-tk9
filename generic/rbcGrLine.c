@@ -128,6 +128,14 @@ typedef struct {
     LineDataMode mode;
 } LineComplexDataTransaction;
 
+typedef enum {
+    LINE_CDATA_GAMMA,
+    LINE_CDATA_IMPEDANCE,
+    LINE_CDATA_ADMITTANCE
+} LineComplexDataFormat;
+
+static const char *const lineComplexDataFormatNames[] = {"gamma", "impedance", "admittance", NULL};
+
 typedef struct {
     Tcl_Size start;         /* Index into the X-Y coordinate
                              * arrays indicating where trace
@@ -244,8 +252,10 @@ typedef struct {
     Tcl_Obj *cDataObjPtr;
 
     ElemComplexVector z;
-    LineDataMode dataMode;    
-    
+    LineDataMode dataMode;
+    LineComplexDataFormat cDataFormat;
+    double z0;
+
     /* Line smoothing */
     Smoothing reqSmooth; /* Requested smoothing function to use
                           * for connecting the data points */
@@ -396,6 +406,9 @@ _Static_assert(offsetof(Line, core) == 0, "Element core must be the first Line m
 #define DEF_PEN_VALUE_SHADOW (char *)NULL
 #define DEF_PEN_SHOW_VALUES "no"
 
+#define DEF_LINE_CDATA_FORMAT "gamma"
+#define DEF_LINE_Z0 "50.0"
+
 /*
  * Line and strip-element option conversion masks.
  *
@@ -416,6 +429,10 @@ _Static_assert(offsetof(Line, core) == 0, "Element core must be the first Line m
 #define LINE_ELEM_SCALE_SYMBOL_MASK (1 << 11)
 #define LINE_ELEM_MAX_SYMBOLS_MASK (1 << 12)
 #define LINE_ELEM_CDATA_MASK (1 << 13)
+#define LINE_ELEM_CDATA_FORMAT_MASK (1 << 14)
+#define LINE_ELEM_Z0_MASK (1 << 15)
+
+#define LINE_ELEM_COMPLEX_TRANSFORM_MASK (LINE_ELEM_CDATA_FORMAT_MASK | LINE_ELEM_Z0_MASK)
 
 #define LINE_ELEM_SCALAR_MASK (LINE_ELEM_MAX_SYMBOLS_MASK | LINE_ELEM_SMOOTH_MASK | LINE_ELEM_TRACE_MASK)
 
@@ -1206,6 +1223,12 @@ static const Tk_OptionSpec polarElemOptionSpecs[] = {
 
     {TK_OPTION_STRING, "-cdata", "cData", "CData", NULL, offsetof(Line, cDataObjPtr), -1, TK_OPTION_NULL_OK, NULL,
      LINE_ELEM_CDATA_MASK | LINE_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_STRING_TABLE, "-cdataformat", "cDataFormat", "CDataFormat", DEF_LINE_CDATA_FORMAT, -1,
+     offsetof(Line, cDataFormat), 0, (ClientData)lineComplexDataFormatNames,
+     LINE_ELEM_CDATA_FORMAT_MASK | LINE_ELEM_MAP_ITEM_MASK},
+
+    {TK_OPTION_DOUBLE, "-z0", "z0", "Z0", DEF_LINE_Z0, -1, offsetof(Line, z0), 0, NULL,
+     LINE_ELEM_Z0_MASK | LINE_ELEM_MAP_ITEM_MASK},
 
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
@@ -1291,27 +1314,98 @@ static int GetLinePenColorFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *
             *colorPtrPtr = NULL;
             return TCL_OK;
         }
-
         Tcl_SetObjResult(interp, Tcl_NewStringObj("color value may not be empty", -1));
-
         return TCL_ERROR;
     }
-
     string = Tcl_GetStringFromObj(objPtr, &length);
-
     if (IsLinePenPrefix(string, length, "defcolor")) {
         *colorPtrPtr = COLOR_DEFAULT;
         return TCL_OK;
     }
-
     colorPtr = Tk_GetColor(interp, tkwin, Tk_GetUid(string));
-
     if (colorPtr == NULL) {
         return TCL_ERROR;
     }
-
     *colorPtrPtr = colorPtr;
     return TCL_OK;
+}
+
+static int ComplexDivide(double nr, double ni, double dr, double di, double *realPtr, double *imagPtr) {
+    double ratio;
+    double denominator;
+
+    if ((!FINITE(nr)) || (!FINITE(ni)) || (!FINITE(dr)) || (!FINITE(di))) {
+        return FALSE;
+    }
+    if (fabs(dr) >= fabs(di)) {
+        if (dr == 0.0) {
+            return FALSE;
+        }
+        ratio = di / dr;
+        denominator = dr + di * ratio;
+        if (denominator == 0.0) {
+            return FALSE;
+        }
+        *realPtr = (nr + ni * ratio) / denominator;
+        *imagPtr = (ni - nr * ratio) / denominator;
+    } else {
+        if (di == 0.0) {
+            return FALSE;
+        }
+        ratio = dr / di;
+        denominator = di + dr * ratio;
+        if (denominator == 0.0) {
+            return FALSE;
+        }
+        *realPtr = (nr * ratio + ni) / denominator;
+        *imagPtr = (ni * ratio - nr) / denominator;
+    }
+    return FINITE(*realPtr) && FINITE(*imagPtr);
+}
+
+static int GetComplexLineDataPoint(Line *linePtr, Tcl_Size index, double *xPtr, double *yPtr) {
+    const Rbc_Complex *valuePtr;
+    double real;
+    double imag;
+
+    if ((index < 0) || (index >= linePtr->z.nValues) || (linePtr->z.valueArr == NULL)) {
+        return FALSE;
+    }
+    valuePtr = linePtr->z.valueArr + index;
+    real = valuePtr->real;
+    imag = valuePtr->imag;
+    switch (linePtr->cDataFormat) {
+    case LINE_CDATA_GAMMA:
+        *xPtr = real;
+        *yPtr = imag;
+        return TRUE;
+    case LINE_CDATA_IMPEDANCE: {
+        double r;
+        double x;
+        
+        /*
+         * z = Z / Z0
+         * Gamma = (z - 1) / (z + 1)
+         */
+        r = real / linePtr->z0;
+        x = imag / linePtr->z0;
+        return ComplexDivide(r - 1.0, x, r + 1.0, x, xPtr, yPtr);
+    }
+    case LINE_CDATA_ADMITTANCE: {
+        double g;
+        double b;
+
+        /*
+         * y = Y * Z0
+         * Gamma = (1 - y) / (1 + y)
+         */
+        g = real * linePtr->z0;
+        b = imag * linePtr->z0;
+        return ComplexDivide(1.0 - g, -b, 1.0 + g, b, xPtr, yPtr);
+    }
+    }
+    Tcl_Panic("bad complex data format %d", (int)linePtr->cDataFormat);
+    return FALSE;
 }
 
 static void FreeLinePenColor(XColor *colorPtr) {
@@ -1358,11 +1452,7 @@ static Tcl_Size LinePointCount(Element *elemPtr) {
 
 static int GetLineDataPoint(Line *linePtr, Tcl_Size index, double *xPtr, double *yPtr) {
     if (linePtr->dataMode == LINE_DATA_COMPLEX) {
-        if ((index < 0) || (index >= linePtr->z.nValues) || (linePtr->z.valueArr == NULL)) {
-            return FALSE;
-        }
-        *xPtr = linePtr->z.valueArr[index].real;
-        *yPtr = linePtr->z.valueArr[index].imag;
+        return GetComplexLineDataPoint(linePtr, index, xPtr, yPtr);
     } else {
         Tcl_Size nPoints;
 
@@ -1373,8 +1463,8 @@ static int GetLineDataPoint(Line *linePtr, Tcl_Size index, double *xPtr, double 
         }
         *xPtr = linePtr->core.x.valueArr[index];
         *yPtr = linePtr->core.y.valueArr[index];
+        return TRUE;
     }
-    return TRUE;
 }
 
 static void SyncComplexVector(ElemComplexVector *vPtr) {
@@ -5563,6 +5653,16 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
 
         stylePtr = Rbc_ChainGetValue(linkPtr);
         stylePtr->penPtr = LINE_PEN_FROM_CORE(elemPtr->normalPenPtr);
+    }
+
+    if ((elemPtr->classUid == rbcPolarElementUid) &&
+        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_Z0_MASK))) {
+        if ((!FINITE(linePtr->z0)) || (linePtr->z0 <= 0.0)) {
+            Tcl_SetObjResult(
+                graphPtr->interp,
+                Tcl_ObjPrintf("bad reference impedance \"%g\": must be a positive finite value", linePtr->z0));
+            goto error;
+        }
     }
 
     /*
