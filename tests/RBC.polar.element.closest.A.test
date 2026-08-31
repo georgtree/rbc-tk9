@@ -825,5 +825,208 @@ namespace eval polar.element {
         catch {vector destroy ref}
     } -result {1 0}
 
+    test RBC.polar.element.closest.A.smooth.loop.1 {
+        polar smoothing: closed loop preserves interval indices
+    } -setup {
+        vector create z -type complex
+        z set {{0 0} {1 1} {0 2} {-1 1} {0 0}}
+        polar .polar1 -width 500 -height 500
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        .polar1 element create Element1 -cdata z -smooth natural -symbol none -linewidth 2
+        update
+    } -body {
+        set result {}
+        foreach smooth {natural quadratic} {
+            spline parametric $smooth z ref 17
+            .polar1 element configure Element1 -smooth $smooth
+            update
+            #
+            # With four equal-length intervals and 17 samples,
+            # sample 2 lies halfway through source interval 0 and
+            # sample 14 halfway through source interval 3.
+            #
+            foreach {sample expectedIndex} {2 0 14 3} {
+                lassign [lindex [ref range 0 end] $sample] real imag
+                lassign [.polar1 transform $real $imag] px py
+                set found [.polar1 element closest $px $py info -along both -interpolate 1 -halo 4 Element1]
+                if {$found} {
+                    lappend result $smooth $found $info(index)
+                } else {
+                    lappend result $smooth $found -1
+                }
+                unset -nocomplain info
+            }
+        }
+        set result
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        catch {vector destroy z}
+        catch {vector destroy ref}
+    } -result {natural 1 0 natural 1 3 quadratic 1 0 quadratic 1 3}
+
+    test RBC.polar.element.closest.A.smooth.impedance.1 {
+        smith impedance: natural smoothing occurs after gamma conversion
+    } -setup {
+        vector create z -type complex
+        z set {{50 0} {50 100} {0 50}}
+        vector create gamma -type complex
+        gamma set {{0 0} {0.5 0.5} {0 1}}
+        spline parametric natural gamma ref 5
+        polar .polar1 -width 500 -height 500 -representation smith
+        pack .polar1
+        .polar1 axis configure x -min -1.2 -max 1.2
+        .polar1 axis configure y -min -1.2 -max 1.2
+        .polar1 element create Element1 -cdata z -cdataformat impedance -z0 50 -smooth natural -symbol none -linewidth\
+                2
+        update
+    } -body {
+        set result {}
+        foreach {sample expectedIndex} {1 0 3 1} {
+            lassign [lindex [ref range 0 end] $sample] real imag
+            lassign [.polar1 transform $real $imag] px py
+            set found [.polar1 element closest $px $py info -along both -interpolate 1 -halo 4 Element1]
+            if {$found} {
+                lappend result $found $info(index)
+            } else {
+                lappend result $found -1
+            }
+            unset -nocomplain info
+        }
+        set result
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        catch {vector destroy z}
+        catch {vector destroy gamma}
+        catch {vector destroy ref}
+    } -result {1 0 1 1}
+
+    test RBC.polar.element.closest.A.smooth.admittance.1 {
+        smith admittance: quadratic smoothing occurs after gamma conversion
+    } -setup {
+        vector create y -type complex
+        y set {{0.02 0} {0.004 -0.008} {0 -0.02}}
+        vector create gamma -type complex
+        gamma set {{0 0} {0.5 0.5} {0 1}}
+        spline parametric quadratic gamma ref 5
+        polar .polar1 -width 500 -height 500 -representation smith
+        pack .polar1
+        .polar1 axis configure x -min -1.2 -max 1.2
+        .polar1 axis configure y -min -1.2 -max 1.2
+        .polar1 element create Element1 -cdata y -cdataformat admittance -z0 50 -smooth quadratic -symbol none\
+                -linewidth 2
+        update
+    } -body {
+        set result {}
+        foreach {sample expectedIndex} {1 0 3 1} {
+            lassign [lindex [ref range 0 end] $sample] real imag
+            lassign [.polar1 transform $real $imag] px py
+            set found [.polar1 element closest $px $py info -along both -interpolate 1 -halo 4 Element1]
+            if {$found} {
+                lappend result $found $info(index)
+            } else {
+                lappend result $found -1
+            }
+            unset -nocomplain info
+        }
+        set result
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        catch {vector destroy y}
+        catch {vector destroy gamma}
+        catch {vector destroy ref}
+    } -result {1 0 1 1}
+
+    test RBC.polar.element.closest.A.smooth.invertxy.1 {
+        polar parametric smoothing works with inverted axes
+    } -setup {
+        vector create z -type complex
+        z set {{0 0} {2 2} {0 4}}
+        polar .polar1 -width 500 -height 500 -invertxy yes
+        pack .polar1
+        .polar1 axis configure x -min -1 -max 5
+        .polar1 axis configure y -min -1 -max 5
+        .polar1 element create Element1 -cdata z -smooth natural -symbol none -linewidth 2
+        update
+    } -body {
+        set result {}
+        foreach smooth {natural quadratic} {
+            spline parametric $smooth z ref 5
+            .polar1 element configure Element1 -smooth $smooth
+            update
+            lassign [lindex [ref range 0 end] 1] real imag
+            lassign [.polar1 transform $real $imag] px py
+            set found [.polar1 element closest $px $py info -along both -interpolate 1 -halo 4 Element1]
+            if {$found} {
+                lappend result $smooth $found $info(index)
+            } else {
+                lappend result $smooth $found -1
+            }
+            unset -nocomplain info
+        }
+        set result
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        catch {vector destroy z}
+        catch {vector destroy ref}
+    } -result {natural 1 0 quadratic 1 0}
+
+    test RBC.polar.element.closest.A.smooth.gap.1 {
+        smith impedance: valid runs are smoothed across a singular gap
+    } -setup {
+        #
+        # Gamma paths:
+        #
+        #   run 1:  0,0 -> 0.5,0.5 -> 0,1
+        #
+        #   Z=-50 is singular and creates the gap.
+        #
+        #   run 2: -1,0 -> -0.5,-0.5 -> 0,-1
+        #
+        vector create z -type complex
+        z set {{50 0} {50 100} {0 50} {-50 0} {0 0} {10 -20} {0 -50}}
+        vector create gamma -type complex
+        gamma set {{0 0} {0.5 0.5} {0 1}}
+        spline parametric natural gamma ref 5
+        polar .polar1 -width 500 -height 500 -representation smith
+        pack .polar1
+        .polar1 axis configure x -min -1.2 -max 1.2
+        .polar1 axis configure y -min -1.2 -max 1.2
+        .polar1 element create Element1 -cdata z -cdataformat impedance -z0 50 -smooth natural -symbol none -linewidth 2
+        update
+    } -body {
+        #
+        # First run must actually be smoothed.
+        #
+        lassign [lindex [ref range 0 end] 1] real imag
+        lassign [.polar1 transform $real $imag] px py
+        set smoothed [.polar1 element closest $px $py info -along both -interpolate 1 -halo 4 Element1]
+        if {$smoothed} {
+            set smoothIndex $info(index)
+        } else {
+            set smoothIndex -1
+        }
+        unset -nocomplain info
+        #
+        # But there must still be no segment across the singular gap.
+        # This is the midpoint between the end of run 1, Gamma=(0,1),
+        # and the beginning of run 2, Gamma=(-1,0).
+        #
+        lassign [.polar1 transform -0.5 0.5] px py
+        set acrossGap [.polar1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1]
+        list $smoothed $smoothIndex $acrossGap
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        catch {vector destroy z}
+        catch {vector destroy gamma}
+        catch {vector destroy ref}
+    } -result {1 0 0}
+
 	cleanupTests
 }

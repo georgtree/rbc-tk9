@@ -69,7 +69,6 @@ namespace eval polar.element {
         catch {vector destroy z}
     } -result {0}
 
-
     test RBC.polar.element.draw.A.1.4 {
         polar element draw: quadratic smoothing accepts vertical path
     } -setup {

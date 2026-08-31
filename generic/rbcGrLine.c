@@ -1262,6 +1262,7 @@ static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
 static void ReducePoints(MapInfo *mapPtr, double tolerance);
 static void GenerateSteps(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
 static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
+static void GenerateSplineRuns(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr, int parametric);
 static void GenerateParametricSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
 static void MapSymbols(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
 static void MapActiveSymbols(Graph *graphPtr, Line *linePtr);
@@ -3150,17 +3151,6 @@ static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     mapPtr->breakBefore = NULL;
     mapPtr->nScreenPts = 0;
     nDataPoints = NumberOfPoints(&linePtr->core);
-    for (i = 0; i < nDataPoints; i++) {
-        double x;
-        double y;
-
-        if (!GetLineDataPoint(linePtr, i, &x, &y)) {
-            continue;
-        }
-        if (FINITE(x) && FINITE(y)) {
-            nScreenPoints++;
-        }
-    }
     /*
      * This is only an allocation upper bound.  Some finite raw data
      * may still be outside the domain of a logarithmic axis.
@@ -3992,6 +3982,217 @@ fallback:
     /*
      * Preserve the original MapInfo arrays and fall back to straight
      * line segments.
+     */
+    linePtr->smooth = PEN_SMOOTH_NONE;
+}
+
+static void FreeMapRun(MapInfo *mapPtr) {
+    if (mapPtr->screenPts != NULL) {
+        ckfree(mapPtr->screenPts);
+    }
+    if (mapPtr->indices != NULL) {
+        ckfree(mapPtr->indices);
+    }
+    if (mapPtr->breakBefore != NULL) {
+        ckfree(mapPtr->breakBefore);
+    }
+    memset(mapPtr, 0, sizeof(*mapPtr));
+}
+
+static int CopyMapRun(const MapInfo *srcPtr, Tcl_Size first, Tcl_Size length, MapInfo *dstPtr) {
+    size_t pointBytes;
+    size_t indexBytes;
+
+    memset(dstPtr, 0, sizeof(*dstPtr));
+    if (length < 1) {
+        return FALSE;
+    }
+    if (((size_t)length > (SIZE_MAX / sizeof(*dstPtr->screenPts))) ||
+        ((size_t)length > (SIZE_MAX / sizeof(*dstPtr->indices)))) {
+        return FALSE;
+    }
+    pointBytes = (size_t)length * sizeof(*dstPtr->screenPts);
+    indexBytes = (size_t)length * sizeof(*dstPtr->indices);
+    dstPtr->screenPts = Tcl_AttemptAlloc(pointBytes);
+    if (dstPtr->screenPts == NULL) {
+        return FALSE;
+    }
+    dstPtr->indices = Tcl_AttemptAlloc(indexBytes);
+    if (dstPtr->indices == NULL) {
+        ckfree(dstPtr->screenPts);
+        dstPtr->screenPts = NULL;
+        return FALSE;
+    }
+    memcpy(dstPtr->screenPts, srcPtr->screenPts + first, pointBytes);
+    memcpy(dstPtr->indices, srcPtr->indices + first, indexBytes);
+    dstPtr->nScreenPts = length;
+    dstPtr->breakBefore = NULL;
+    return TRUE;
+}
+
+static void GenerateSplineRuns(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr, int parametric) {
+    MapInfo *runs;
+    Point2D *screenPts;
+    Tcl_Size *indices;
+    unsigned char *breakBefore;
+    Smoothing requestedSmooth;
+    Tcl_Size nRuns;
+    Tcl_Size runIndex;
+    Tcl_Size start;
+    Tcl_Size total;
+    Tcl_Size offset;
+    Tcl_Size i;
+    int smoothedAny;
+
+    assert(mapPtr->breakBefore != NULL);
+    assert(mapPtr->nScreenPts > 0);
+    runs = NULL;
+    screenPts = NULL;
+    indices = NULL;
+    breakBefore = NULL;
+    requestedSmooth = linePtr->smooth;
+    smoothedAny = FALSE;
+    /*
+     * Count continuous runs.
+     */
+    nRuns = 1;
+    for (i = 1; i < mapPtr->nScreenPts; i++) {
+        if (mapPtr->breakBefore[i]) {
+            nRuns++;
+        }
+    }
+    if ((size_t)nRuns > (SIZE_MAX / sizeof(*runs))) {
+        goto fallback;
+    }
+    runs = Tcl_AttemptAlloc((size_t)nRuns * sizeof(*runs));
+    if (runs == NULL) {
+        goto fallback;
+    }
+    memset(runs, 0, (size_t)nRuns * sizeof(*runs));
+    /*
+     * Copy and smooth each continuous run independently.
+     */
+    runIndex = 0;
+    start = 0;
+    for (i = 1; i <= mapPtr->nScreenPts; i++) {
+        int atEnd;
+        int atBreak;
+
+        atEnd = (i == mapPtr->nScreenPts);
+        atBreak = (!atEnd && mapPtr->breakBefore[i]);
+        if (atEnd || atBreak) {
+            Tcl_Size length;
+
+            length = i - start;
+            if (!CopyMapRun(mapPtr, start, length, runs + runIndex)) {
+                goto fallback;
+            }
+            if (length >= 3) {
+                /*
+                 * The individual spline generators use
+                 * linePtr->smooth to select/evaluate the algorithm.
+                 */
+                linePtr->smooth = requestedSmooth;
+                if (parametric) {
+                    GenerateParametricSpline(graphPtr, linePtr, runs + runIndex);
+                } else {
+                    GenerateSpline(graphPtr, linePtr, runs + runIndex);
+                }
+                if (linePtr->smooth == requestedSmooth) {
+                    smoothedAny = TRUE;
+                }
+                /*
+                 * A failed run falls back to its original copied
+                 * coordinates.  Restore the requested mode before
+                 * processing the next run.
+                 */
+                linePtr->smooth = requestedSmooth;
+            }
+            runIndex++;
+            start = i;
+        }
+    }
+    /*
+     * Determine the size of the combined result.
+     */
+    total = 0;
+    for (i = 0; i < nRuns; i++) {
+        if (runs[i].nScreenPts > (TCL_SIZE_MAX - total)) {
+            goto fallback;
+        }
+        total += runs[i].nScreenPts;
+    }
+    if ((total < 1) || ((size_t)total > (SIZE_MAX / sizeof(*screenPts))) ||
+        ((size_t)total > (SIZE_MAX / sizeof(*indices))) || ((size_t)total > (SIZE_MAX / sizeof(*breakBefore)))) {
+        goto fallback;
+    }
+    screenPts = Tcl_AttemptAlloc((size_t)total * sizeof(*screenPts));
+    if (screenPts == NULL) {
+        goto fallback;
+    }
+    indices = Tcl_AttemptAlloc((size_t)total * sizeof(*indices));
+    if (indices == NULL) {
+        goto fallback;
+    }
+    breakBefore = Tcl_AttemptAlloc((size_t)total * sizeof(*breakBefore));
+    if (breakBefore == NULL) {
+        goto fallback;
+    }
+    memset(breakBefore, 0, (size_t)total * sizeof(*breakBefore));
+    /*
+     * Concatenate the runs and recreate their boundaries.
+     */
+    offset = 0;
+    for (i = 0; i < nRuns; i++) {
+        Tcl_Size count;
+
+        count = runs[i].nScreenPts;
+        memcpy(screenPts + offset, runs[i].screenPts, (size_t)count * sizeof(*screenPts));
+        memcpy(indices + offset, runs[i].indices, (size_t)count * sizeof(*indices));
+        if (offset > 0) {
+            breakBefore[offset] = TRUE;
+        }
+        offset += count;
+    }
+    /*
+     * Commit atomically.
+     */
+    ckfree(mapPtr->screenPts);
+    ckfree(mapPtr->indices);
+    ckfree(mapPtr->breakBefore);
+    mapPtr->screenPts = screenPts;
+    mapPtr->indices = indices;
+    mapPtr->breakBefore = breakBefore;
+    mapPtr->nScreenPts = total;
+    screenPts = NULL;
+    indices = NULL;
+    breakBefore = NULL;
+    linePtr->smooth = smoothedAny ? requestedSmooth : PEN_SMOOTH_NONE;
+    for (i = 0; i < nRuns; i++) {
+        FreeMapRun(runs + i);
+    }
+    ckfree(runs);
+    return;
+
+fallback:
+    if (screenPts != NULL) {
+        ckfree(screenPts);
+    }
+    if (indices != NULL) {
+        ckfree(indices);
+    }
+    if (breakBefore != NULL) {
+        ckfree(breakBefore);
+    }
+    if (runs != NULL) {
+        for (i = 0; i < nRuns; i++) {
+            FreeMapRun(runs + i);
+        }
+        ckfree(runs);
+    }
+    /*
+     * The original mapPtr has not been modified.  Use its unsmoothed
+     * runs and retain their breakBefore boundaries.
      */
     linePtr->smooth = PEN_SMOOTH_NONE;
 }
@@ -4981,30 +5182,21 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
             break;
         case PEN_SMOOTH_NATURAL:
         case PEN_SMOOTH_QUADRATIC:
-            if ((mapInfo.nScreenPts < 3) || (mapInfo.breakBefore != NULL)) {
-                /*
-                 * Never interpolate through missing data.  Proper per-run
-                 * spline generation can be added separately.
-                 */
+            if (mapInfo.nScreenPts < 3) {
                 linePtr->smooth = PEN_SMOOTH_NONE;
+            } else if (mapInfo.breakBefore != NULL) {
+                GenerateSplineRuns(graphPtr, linePtr, &mapInfo, linePtr->core.classUid == rbcPolarElementUid);
             } else if (linePtr->core.classUid == rbcPolarElementUid) {
-                /*
-                 * Polar elements represent arbitrary 2-D paths.  Their
-                 * natural and quadratic splines must therefore be
-                 * parametric rather than functions of X.
-                 */
                 GenerateParametricSpline(graphPtr, linePtr, &mapInfo);
             } else {
-                /*
-                 * Ordinary graph line elements retain the historical
-                 * y=f(x) smoothing semantics.
-                 */
                 GenerateSpline(graphPtr, linePtr, &mapInfo);
             }
             break;
         case PEN_SMOOTH_CATROM:
-            if ((mapInfo.nScreenPts < 3) || (mapInfo.breakBefore != NULL)) {
+            if (mapInfo.nScreenPts < 3) {
                 linePtr->smooth = PEN_SMOOTH_NONE;
+            } else if (mapInfo.breakBefore != NULL) {
+                GenerateSplineRuns(graphPtr, linePtr, &mapInfo, TRUE);
             } else {
                 GenerateParametricSpline(graphPtr, linePtr, &mapInfo);
             }

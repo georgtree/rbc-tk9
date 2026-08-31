@@ -413,5 +413,33 @@ namespace eval polar.postscript {
         rename ::SmithInvertFormat {}
     } -result {1 1}
 
+    test RBC.polar.postscript.output.A.smooth.1 {
+        smith postscript: natural and quadratic output smoothed traces
+    } -setup {
+        vector create z -type complex
+        z set {{50 0} {50 100} {0 50}}
+        polar .polar1 -width 500 -height 500 -representation smith
+        pack .polar1
+        .polar1 axis configure x -min -1.2 -max 1.2
+        .polar1 axis configure y -min -1.2 -max 1.2
+        .polar1 element create Element1 -cdata z -cdataformat impedance -z0 50 -smooth linear -symbol none -linewidth 2
+        update
+    } -body {
+        set linearPs [.polar1 postscript output]
+        set nLinear [regexp -all { lineto} $linearPs]
+        .polar1 element configure Element1 -smooth natural
+        update
+        set naturalPs [.polar1 postscript output]
+        set nNatural [regexp -all { lineto} $naturalPs]
+        .polar1 element configure Element1 -smooth quadratic
+        update
+        set quadraticPs [.polar1 postscript output]
+        set nQuadratic [regexp -all { lineto} $quadraticPs]
+        list [expr {$nNatural > $nLinear}] [expr {$nQuadratic > $nLinear}]
+    } -cleanup {
+        destroy .polar1
+        catch {vector destroy z}
+    } -result {1 1}
+
     cleanupTests
 }
