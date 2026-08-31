@@ -27,21 +27,6 @@
 #define SMITH_RESISTANCE_LABEL_OFFSET 2
 #define SMITH_REACTANCE_LABEL_RADIUS 0.94
 
-static const double smithMajorResistance[] = {
-    0.0, 0.2, 0.5, 1.0, 2.0, 5.0
-};
-
-static const double smithMinorResistance[] = {
-    0.1, 0.3, 0.7, 1.5, 3.0, 10.0
-};
-
-static const double smithMajorReactance[] = {
-    0.2, 0.5, 1.0, 2.0, 5.0
-};
-
-static const double smithMinorReactance[] = {
-    0.1, 0.3, 0.7, 1.5, 3.0, 10.0
-};
 
 static double PolarMaximumRadius(Grid *gridPtr) {
     Axis *xAxisPtr;
@@ -509,6 +494,7 @@ static void SmithGridValueToGamma(int admittance, double realValue, double imagV
         *imagPtr = -*imagPtr;
     }
 }
+
 static void DrawSmithRealLabels(Graph *graphPtr, Drawable drawable, Grid *gridPtr, int admittance) {
     Axis *axisPtr;
     TextStyle style;
@@ -520,14 +506,14 @@ static void DrawSmithRealLabels(Graph *graphPtr, Drawable drawable, Grid *gridPt
     }
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
-    for (i = 0; i < (Tcl_Size)(sizeof(smithMajorResistance) / sizeof(smithMajorResistance[0])); i++) {
+    for (i = 0; i < graphPtr->nSmithRealMajorTicks; i++) {
         char string[32];
         double value;
         double real;
         double imag;
         Point2D point;
 
-        value = smithMajorResistance[i];
+        value = graphPtr->smithRealMajorTicks[i];
         SmithGridValueToGamma(admittance, value, 0.0, &real, &imag);
         point = Rbc_Map2D(graphPtr, real, imag, &gridPtr->axes);
         if ((!FINITE(point.x)) || (!FINITE(point.y))) {
@@ -573,11 +559,11 @@ static void DrawSmithReactiveLabels(Graph *graphPtr, Drawable drawable, Grid *gr
     }
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
-    for (i = 0; i < (Tcl_Size)(sizeof(smithMajorReactance) / sizeof(smithMajorReactance[0])); i++) {
+    for (i = 0; i < graphPtr->nSmithImagMajorTicks; i++) {
         double magnitude;
         int sign;
 
-        magnitude = smithMajorReactance[i];
+        magnitude = graphPtr->smithImagMajorTicks[i];
         for (sign = 1; sign >= -1; sign -= 2) {
             char string[32];
             double reactive;
@@ -823,7 +809,6 @@ static void MapSmithReactanceArc(Graph *graphPtr, Grid *gridPtr, double reactanc
 static void MapSmithResistanceGrid(Graph *graphPtr, Grid *gridPtr) {
     Tcl_Size nMajor;
     Tcl_Size nMinor;
-    Tcl_Size nDomains;
     Tcl_Size nCircles;
     Tcl_Size nSegments;
     Tcl_Size index;
@@ -834,16 +819,54 @@ static void MapSmithResistanceGrid(Graph *graphPtr, Grid *gridPtr) {
 
     doImpedance = (graphPtr->smithGrid == SMITH_GRID_IMPEDANCE) || (graphPtr->smithGrid == SMITH_GRID_BOTH);
     doAdmittance = (graphPtr->smithGrid == SMITH_GRID_ADMITTANCE) || (graphPtr->smithGrid == SMITH_GRID_BOTH);
-    nMajor = sizeof(smithMajorResistance) / sizeof(smithMajorResistance[0]);
-    nMinor = gridPtr->minorGrid ? sizeof(smithMinorResistance) / sizeof(smithMinorResistance[0]) : 0;
-    nDomains = doImpedance + doAdmittance;
-    nCircles = nDomains * (nMajor + nMinor);
+    nMajor = graphPtr->nSmithRealMajorTicks;
+    nMinor = gridPtr->minorGrid ? graphPtr->nSmithRealMinorTicks : 0;
     /*
-     * r=0 and g=0 are both the same unit circle.
-     * In "both" mode allocate/draw it only once.
+     * Count the actual circles that will be drawn.
+     *
+     * In "both" mode r=0 and g=0 are the same unit circle,
+     * so admittance zero contours are omitted when impedance
+     * contours are also present.
      */
-    if (doImpedance && doAdmittance) {
-        nCircles--;
+    nCircles = 0;
+    if (doImpedance) {
+        if (nMajor > TCL_SIZE_MAX - nCircles) {
+            return;
+        }
+        nCircles += nMajor;
+        if (nMinor > TCL_SIZE_MAX - nCircles) {
+            return;
+        }
+        nCircles += nMinor;
+    }
+    if (doAdmittance) {
+        for (i = 0; i < nMajor; i++) {
+            double value;
+
+            value = graphPtr->smithRealMajorTicks[i];
+            if (doImpedance && (value == 0.0)) {
+                continue;
+            }
+            if (nCircles == TCL_SIZE_MAX) {
+                return;
+            }
+            nCircles++;
+        }
+        for (i = 0; i < nMinor; i++) {
+            double value;
+
+            value = graphPtr->smithRealMinorTicks[i];
+            if (doImpedance && (value == 0.0)) {
+                continue;
+            }
+            if (nCircles == TCL_SIZE_MAX) {
+                return;
+            }
+            nCircles++;
+        }
+    }
+    if (nCircles == 0) {
+        return;
     }
     if (nCircles > TCL_SIZE_MAX / SMITH_CIRCLE_SEGMENTS) {
         return;
@@ -859,26 +882,37 @@ static void MapSmithResistanceGrid(Graph *graphPtr, Grid *gridPtr) {
     index = 0;
     if (doImpedance) {
         for (i = 0; i < nMajor; i++) {
-            MapSmithResistanceCircle(graphPtr, gridPtr, smithMajorResistance[i], FALSE, segments + index);
+            MapSmithResistanceCircle(graphPtr, gridPtr, graphPtr->smithRealMajorTicks[i], FALSE, segments + index);
             index += SMITH_CIRCLE_SEGMENTS;
         }
         for (i = 0; i < nMinor; i++) {
-            MapSmithResistanceCircle(graphPtr, gridPtr, smithMinorResistance[i], FALSE, segments + index);
+            MapSmithResistanceCircle(graphPtr, gridPtr, graphPtr->smithRealMinorTicks[i], FALSE, segments + index);
             index += SMITH_CIRCLE_SEGMENTS;
         }
     }
     if (doAdmittance) {
-        /*
-         * If impedance is also present, skip g=0 because
-         * it is the same unit circle as r=0.
-         */
-        i = doImpedance ? 1 : 0;
-        for (; i < nMajor; i++) {
-            MapSmithResistanceCircle(graphPtr, gridPtr, smithMajorResistance[i], TRUE, segments + index);
+        for (i = 0; i < nMajor; i++) {
+            double value;
+
+            value = graphPtr->smithRealMajorTicks[i];
+            /*
+             * If impedance is also present, r=0 has already drawn
+             * the same unit circle as g=0.
+             */
+            if (doImpedance && (value == 0.0)) {
+                continue;
+            }
+            MapSmithResistanceCircle(graphPtr, gridPtr, value, TRUE, segments + index);
             index += SMITH_CIRCLE_SEGMENTS;
         }
         for (i = 0; i < nMinor; i++) {
-            MapSmithResistanceCircle(graphPtr, gridPtr, smithMinorResistance[i], TRUE, segments + index);
+            double value;
+
+            value = graphPtr->smithRealMinorTicks[i];
+            if (doImpedance && (value == 0.0)) {
+                continue;
+            }
+            MapSmithResistanceCircle(graphPtr, gridPtr, value, TRUE, segments + index);
             index += SMITH_CIRCLE_SEGMENTS;
         }
     }
@@ -890,6 +924,7 @@ static void MapSmithReactanceGrid(Graph *graphPtr, Grid *gridPtr) {
     Tcl_Size nMajor;
     Tcl_Size nMinor;
     Tcl_Size nDomains;
+    Tcl_Size nValues;
     Tcl_Size nArcs;
     Tcl_Size nSegments;
     Tcl_Size index;
@@ -900,10 +935,25 @@ static void MapSmithReactanceGrid(Graph *graphPtr, Grid *gridPtr) {
 
     doImpedance = (graphPtr->smithGrid == SMITH_GRID_IMPEDANCE) || (graphPtr->smithGrid == SMITH_GRID_BOTH);
     doAdmittance = (graphPtr->smithGrid == SMITH_GRID_ADMITTANCE) || (graphPtr->smithGrid == SMITH_GRID_BOTH);
-    nMajor = sizeof(smithMajorReactance) / sizeof(smithMajorReactance[0]);
-    nMinor = gridPtr->minorGrid ? sizeof(smithMinorReactance) / sizeof(smithMinorReactance[0]) : 0;
+    nMajor = graphPtr->nSmithImagMajorTicks;
+    nMinor = gridPtr->minorGrid ? graphPtr->nSmithImagMinorTicks : 0;
     nDomains = doImpedance + doAdmittance;
-    nArcs = 2 * nDomains * (nMajor + nMinor);
+    if (nMajor > TCL_SIZE_MAX - nMinor) {
+        return;
+    }
+    nValues = nMajor + nMinor;
+    /*
+     * Each configured magnitude produces both its positive and
+     * negative reactive contour in every selected Smith domain.
+     */
+    if (nValues > TCL_SIZE_MAX / 2) {
+        return;
+    }
+    nArcs = 2 * nValues;
+    if ((nDomains > 0) && (nArcs > TCL_SIZE_MAX / nDomains)) {
+        return;
+    }
+    nArcs *= nDomains;
     if (nArcs > (TCL_SIZE_MAX - 1) / SMITH_ARC_SEGMENTS) {
         return;
     }
@@ -925,7 +975,7 @@ static void MapSmithReactanceGrid(Graph *graphPtr, Grid *gridPtr) {
 #define MAP_REACTIVE_DOMAIN(admittance_)                                                                               \
     do {                                                                                                               \
         for (i = 0; i < nMajor; i++) {                                                                                 \
-            double value = smithMajorReactance[i];                                                                     \
+            double value = graphPtr->smithImagMajorTicks[i];                                                           \
                                                                                                                        \
             MapSmithReactanceArc(graphPtr, gridPtr, value, admittance_, segments + index);                             \
             index += SMITH_ARC_SEGMENTS;                                                                               \
@@ -935,7 +985,7 @@ static void MapSmithReactanceGrid(Graph *graphPtr, Grid *gridPtr) {
         }                                                                                                              \
                                                                                                                        \
         for (i = 0; i < nMinor; i++) {                                                                                 \
-            double value = smithMinorReactance[i];                                                                     \
+            double value = graphPtr->smithImagMinorTicks[i];                                                           \
                                                                                                                        \
             MapSmithReactanceArc(graphPtr, gridPtr, value, admittance_, segments + index);                             \
             index += SMITH_ARC_SEGMENTS;                                                                               \
@@ -971,7 +1021,7 @@ void Rbc_MapSmithGrid(Graph *graphPtr, Grid *gridPtr) {
     MapSmithReactanceGrid(graphPtr, gridPtr);
 }
 
-static void SmithResistanceLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *gridPtr) {
+static void SmithRealLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *gridPtr, int admittance) {
     Axis *axisPtr;
     TextStyle style;
     Tcl_Size i;
@@ -982,23 +1032,37 @@ static void SmithResistanceLabelsToPostScript(Graph *graphPtr, PsToken psToken, 
     }
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
-    for (i = 0; i < (Tcl_Size)(sizeof(smithMajorResistance) / sizeof(smithMajorResistance[0])); i++) {
+    for (i = 0; i < graphPtr->nSmithRealMajorTicks; i++) {
         char string[32];
-        double resistance;
+        double value;
         double real;
         double imag;
         Point2D point;
 
-        resistance = smithMajorResistance[i];
-        SmithImpedanceToGamma(resistance, 0.0, &real, &imag);
+        value = graphPtr->smithRealMajorTicks[i];
+        SmithGridValueToGamma(admittance, value, 0.0, &real, &imag);
         point = Rbc_Map2D(graphPtr, real, imag, &gridPtr->axes);
         if ((!FINITE(point.x)) || (!FINITE(point.y))) {
             continue;
         }
-        snprintf(string, sizeof(string), "%g", resistance);
-        if (resistance == 0.0) {
-            style.anchor = TK_ANCHOR_W;
-            Rbc_TextToPostScript(psToken, string, &style, point.x + SMITH_RESISTANCE_LABEL_OFFSET, point.y);
+        snprintf(string, sizeof(string), "%g", value);
+        if (value == 0.0) {
+            if (admittance) {
+                /*
+                 * g=0 -> Gamma=+1.
+                 */
+                style.anchor = TK_ANCHOR_E;
+                Rbc_TextToPostScript(psToken, string, &style, point.x - SMITH_RESISTANCE_LABEL_OFFSET, point.y);
+            } else {
+                /*
+                 * r=0 -> Gamma=-1.
+                 */
+                style.anchor = TK_ANCHOR_W;
+                Rbc_TextToPostScript(psToken, string, &style, point.x + SMITH_RESISTANCE_LABEL_OFFSET, point.y);
+            }
+        } else if (admittance) {
+            style.anchor = TK_ANCHOR_N;
+            Rbc_TextToPostScript(psToken, string, &style, point.x, point.y + SMITH_RESISTANCE_LABEL_OFFSET);
         } else {
             style.anchor = TK_ANCHOR_S;
             Rbc_TextToPostScript(psToken, string, &style, point.x, point.y - SMITH_RESISTANCE_LABEL_OFFSET);
@@ -1006,7 +1070,7 @@ static void SmithResistanceLabelsToPostScript(Graph *graphPtr, PsToken psToken, 
     }
 }
 
-static void SmithReactanceLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *gridPtr) {
+static void SmithReactiveLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *gridPtr, int admittance) {
     Axis *axisPtr;
     TextStyle style;
     Tcl_Size i;
@@ -1017,21 +1081,21 @@ static void SmithReactanceLabelsToPostScript(Graph *graphPtr, PsToken psToken, G
     }
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
-    for (i = 0; i < (Tcl_Size)(sizeof(smithMajorReactance) / sizeof(smithMajorReactance[0])); i++) {
+    for (i = 0; i < graphPtr->nSmithImagMajorTicks; i++) {
         double magnitude;
         int sign;
 
-        magnitude = smithMajorReactance[i];
+        magnitude = graphPtr->smithImagMajorTicks[i];
         for (sign = 1; sign >= -1; sign -= 2) {
             char string[32];
-            double reactance;
+            double reactive;
             double real;
             double imag;
             double degrees;
             Point2D point;
 
-            reactance = sign * magnitude;
-            SmithImpedanceToGamma(0.0, reactance, &real, &imag);
+            reactive = (double)sign * magnitude;
+            SmithGridValueToGamma(admittance, 0.0, reactive, &real, &imag);
             real *= SMITH_REACTANCE_LABEL_RADIUS;
             imag *= SMITH_REACTANCE_LABEL_RADIUS;
             point = Rbc_Map2D(graphPtr, real, imag, &gridPtr->axes);
@@ -1043,7 +1107,7 @@ static void SmithReactanceLabelsToPostScript(Graph *graphPtr, PsToken psToken, G
                 degrees += 360.0;
             }
             style.anchor = GetInwardLabelAnchor(degrees);
-            snprintf(string, sizeof(string), (reactance > 0.0) ? "+j%g" : "-j%g", magnitude);
+            snprintf(string, sizeof(string), (reactive > 0.0) ? "+j%g" : "-j%g", magnitude);
             Rbc_TextToPostScript(psToken, string, &style, point.x, point.y);
         }
     }
@@ -1056,6 +1120,12 @@ void Rbc_SmithLabelsToPostScript(Graph *graphPtr, PsToken psToken) {
     if (gridPtr == NULL) {
         return;
     }
-    SmithResistanceLabelsToPostScript(graphPtr, psToken, gridPtr);
-    SmithReactanceLabelsToPostScript(graphPtr, psToken, gridPtr);
+    if ((graphPtr->smithGrid == SMITH_GRID_IMPEDANCE) || (graphPtr->smithGrid == SMITH_GRID_BOTH)) {
+        SmithRealLabelsToPostScript(graphPtr, psToken, gridPtr, FALSE);
+        SmithReactiveLabelsToPostScript(graphPtr, psToken, gridPtr, FALSE);
+    }
+    if ((graphPtr->smithGrid == SMITH_GRID_ADMITTANCE) || (graphPtr->smithGrid == SMITH_GRID_BOTH)) {
+        SmithRealLabelsToPostScript(graphPtr, psToken, gridPtr, TRUE);
+        SmithReactiveLabelsToPostScript(graphPtr, psToken, gridPtr, TRUE);
+    }
 }

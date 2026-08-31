@@ -272,6 +272,199 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {1 admittance}
 
+    test RBC.polar.configure.A.smithticks.1 {
+        polar Smith ticks: defaults
+    } -setup {
+        polar .polar1
+    } -body {
+        list [.polar1 cget -smithrealmajorticks] \
+             [.polar1 cget -smithrealminorticks] \
+             [.polar1 cget -smithimagmajorticks] \
+             [.polar1 cget -smithimagminorticks]
+    } -cleanup {
+        destroy .polar1
+    } -result {{0 0.2 0.5 1 2 5} {0.1 0.3 0.7 1.5 3 10} {0.2 0.5 1 2 5} {0.1 0.3 0.7 1.5 3 10}}
+
+    test RBC.polar.configure.A.smithticks.2 {
+        polar Smith ticks: custom creation-time values
+    } -setup {
+        polar .polar1 \
+            -smithrealmajorticks {0 0.25 0.5 1 4} \
+            -smithrealminorticks {0.1 0.75 3} \
+            -smithimagmajorticks {0.25 0.5 1 4} \
+            -smithimagminorticks {0.1 0.75 3}
+    } -body {
+        list [.polar1 cget -smithrealmajorticks] \
+             [.polar1 cget -smithrealminorticks] \
+             [.polar1 cget -smithimagmajorticks] \
+             [.polar1 cget -smithimagminorticks]
+    } -cleanup {
+        destroy .polar1
+    } -result {{0 0.25 0.5 1 4} {0.1 0.75 3} {0.25 0.5 1 4} {0.1 0.75 3}}
+
+    test RBC.polar.configure.A.smithticks.3 {
+        polar Smith ticks: live configuration
+    } -setup {
+        polar .polar1
+    } -body {
+        .polar1 configure \
+            -smithrealmajorticks {0 0.4 1 2} \
+            -smithrealminorticks {0.2 0.7} \
+            -smithimagmajorticks {0.4 1 2} \
+            -smithimagminorticks {0.2 0.7}
+        list [.polar1 cget -smithrealmajorticks] \
+             [.polar1 cget -smithrealminorticks] \
+             [.polar1 cget -smithimagmajorticks] \
+             [.polar1 cget -smithimagminorticks]
+    } -cleanup {
+        destroy .polar1
+    } -result {{0 0.4 1 2} {0.2 0.7} {0.4 1 2} {0.2 0.7}}
+
+    test RBC.polar.configure.A.smithticks.4 {
+        polar Smith ticks: empty lists
+    } -setup {
+        polar .polar1
+    } -body {
+        .polar1 configure \
+            -smithrealmajorticks {} \
+            -smithrealminorticks {} \
+            -smithimagmajorticks {} \
+            -smithimagminorticks {}
+        list [.polar1 cget -smithrealmajorticks] \
+             [.polar1 cget -smithrealminorticks] \
+             [.polar1 cget -smithimagmajorticks] \
+             [.polar1 cget -smithimagminorticks]
+    } -cleanup {
+        destroy .polar1
+    } -result {{} {} {} {}}
+
+    test RBC.polar.configure.A.smithticks.5 {
+        polar Smith ticks: zero is allowed for real contours
+    } -setup {
+        polar .polar1
+    } -body {
+        .polar1 configure -smithrealmajorticks {0 0.5 1} -smithrealminorticks {0 0.25 2}
+        list [.polar1 cget -smithrealmajorticks] [.polar1 cget -smithrealminorticks]
+    } -cleanup {
+        destroy .polar1
+    } -result {{0 0.5 1} {0 0.25 2}}
+
+    test RBC.polar.configure.A.smithticks.6 {
+        polar Smith ticks: negative real tick rolls back
+    } -setup {
+        polar .polar1 -smithrealmajorticks {0 0.5 1}
+    } -body {
+        set code [catch {.polar1 configure -smithrealmajorticks {0 -0.5 1}}]
+        list $code [.polar1 cget -smithrealmajorticks]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 {0 0.5 1}}
+
+    test RBC.polar.configure.A.smithticks.7 {
+        polar Smith ticks: zero imaginary tick rolls back
+    } -setup {
+        polar .polar1 -smithimagmajorticks {0.5 1 2}
+    } -body {
+        set code [catch {.polar1 configure -smithimagmajorticks {0 0.5 1}}]
+        list $code [.polar1 cget -smithimagmajorticks]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 {0.5 1 2}}
+
+    test RBC.polar.configure.A.smithticks.8 {
+        polar Smith ticks: negative imaginary tick rolls back
+    } -setup {
+        polar .polar1 -smithimagminorticks {0.25 0.75 3}
+    } -body {
+        set code [catch {.polar1 configure -smithimagminorticks {0.25 -0.75 3}}]
+        list $code [.polar1 cget -smithimagminorticks]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 {0.25 0.75 3}}
+
+    test RBC.polar.configure.A.smithticks.9 {
+        polar Smith ticks: non-finite tick rolls back
+    } -setup {
+        polar .polar1 -smithrealminorticks {0.1 0.3 0.7}
+    } -body {
+        set code [catch {.polar1 configure -smithrealminorticks {0.1 Inf 0.7}}]
+        list $code [.polar1 cget -smithrealminorticks]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 {0.1 0.3 0.7}}
+
+    test RBC.polar.configure.A.smithticks.10 {
+        polar Smith ticks: malformed list rolls back
+    } -setup {
+        polar .polar1 -smithrealmajorticks {0 0.5 1}
+    } -body {
+        set bad "{malformed"
+        set code [catch {.polar1 configure -smithrealmajorticks $bad}]
+        list $code [.polar1 cget -smithrealmajorticks]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 {0 0.5 1}}
+
+    test RBC.polar.configure.A.smithticks.11 {
+        polar Smith ticks: invalid earlier duplicate is not hidden
+    } -setup {
+        polar .polar1
+    } -body {
+        set code [catch {.polar1 configure -smithrealmajorticks {0 bad 1} -smithrealmajorticks {0 0.5 1}}]
+        list $code [.polar1 cget -smithrealmajorticks]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 {0 0.2 0.5 1 2 5}}
+
+    test RBC.polar.configure.A.smithticks.12 {
+        polar Smith ticks: failed multi-option transaction rolls back all values
+    } -setup {
+        polar .polar1 -smithrealmajorticks {0 0.5 1} -smithimagmajorticks {0.5 1 2}
+    } -body {
+        set code [catch {.polar1 configure -smithrealmajorticks {0 2 4} -smithimagmajorticks {0 1 2}}]
+        list $code [.polar1 cget -smithrealmajorticks] [.polar1 cget -smithimagmajorticks]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 {0 0.5 1} {0.5 1 2}}
+
+    test RBC.polar.configure.A.smithticks.13 {
+        polar Smith ticks: later valid duplicate wins
+    } -setup {
+        polar .polar1
+    } -body {
+        .polar1 configure -smithrealmajorticks {0 1 2} -smithrealmajorticks {0 2 4}
+        .polar1 cget -smithrealmajorticks
+    } -cleanup {
+        destroy .polar1
+    } -result {0 2 4}
+
+    test RBC.polar.configure.A.smithticks.14 {
+        polar Smith ticks: custom contours redraw
+    } -setup {
+        polar .polar1 -representation smith -smithgrid both -smithrealmajorticks {0 0.25 1 4} -smithrealminorticks\
+                {0 0.1 0.75 3} -smithimagmajorticks {0.25 1 4} -smithimagminorticks {0.1 0.75 3}
+        .polar1 grid configure -minor yes
+        pack .polar1
+    } -body {
+        update
+        winfo exists .polar1
+    } -cleanup {
+        destroy .polar1
+    } -result {1}
+
+    test RBC.polar.configure.A.smithticks.15 {
+        polar Smith ticks: empty contours redraw
+    } -setup {
+        polar .polar1 -representation smith -smithrealmajorticks {} -smithrealminorticks {} -smithimagmajorticks {}\
+                -smithimagminorticks {}
+        pack .polar1
+    } -body {
+        update
+        winfo exists .polar1
+    } -cleanup {
+        destroy .polar1
+    } -result {1}
+
     test RBC.polar.configure.A.angleticks.1 {
         polar angular ticks: defaults
     } -setup {

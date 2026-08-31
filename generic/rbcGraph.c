@@ -88,6 +88,10 @@ Rbc_Uid rbcWindowMarkerUid;
 #define DEF_GRAPH_ANGLE_MAJOR_TICKS "0 30 60 90 120 150 180 210 240 270 300 330"
 #define DEF_GRAPH_ANGLE_MINOR_TICKS "15 45 75 105 135 165 195 225 255 285 315 345"
 #define DEF_GRAPH_ANGLE_COMMAND (char *)NULL
+#define DEF_GRAPH_SMITH_REAL_MAJOR_TICKS "0 0.2 0.5 1 2 5"
+#define DEF_GRAPH_SMITH_REAL_MINOR_TICKS "0.1 0.3 0.7 1.5 3 10"
+#define DEF_GRAPH_SMITH_IMAG_MAJOR_TICKS "0.2 0.5 1 2 5"
+#define DEF_GRAPH_SMITH_IMAG_MINOR_TICKS "0.1 0.3 0.7 1.5 3 10"
 
 /*
  * Graph option conversion and update masks.
@@ -115,7 +119,7 @@ Rbc_Uid rbcWindowMarkerUid;
 #define GRAPH_SMITH_GRID_MASK (1u << 16)
 #define GRAPH_POLAR_ANGLE_TICKS_MASK (1u << 17)
 #define GRAPH_POLAR_ANGLE_COMMAND_MASK (1u << 18)
-
+#define GRAPH_SMITH_TICKS_MASK (1u << 19)
 
 #define GRAPH_TRANSACTION_MASK                                                                                         \
     (GRAPH_BAR_MODE_MASK | GRAPH_BAR_WIDTH_MASK | GRAPH_PIXELS_MASK | GRAPH_PADDING_MASK | GRAPH_SHADOW_MASK |         \
@@ -125,7 +129,7 @@ Rbc_Uid rbcWindowMarkerUid;
     (GRAPH_TRANSACTION_MASK | GRAPH_TEXT_STYLE_MASK | GRAPH_GC_MASK | GRAPH_GEOMETRY_MASK | GRAPH_INVERT_XY_MASK |     \
      GRAPH_LAYOUT_MASK | GRAPH_BACKING_STORE_MASK | GRAPH_REDRAW_MASK | GRAPH_PLOT_BACKGROUND_MASK |                   \
      GRAPH_POLAR_REPRESENTATION_MASK | GRAPH_SMITH_GRID_MASK | GRAPH_POLAR_ANGLE_TICKS_MASK |                          \
-     GRAPH_POLAR_ANGLE_COMMAND_MASK)
+     GRAPH_POLAR_ANGLE_COMMAND_MASK | GRAPH_SMITH_TICKS_MASK)
 
 typedef enum {
     GRAPH_BIND_CONTEXT_AXIS = 1,
@@ -198,11 +202,25 @@ typedef struct {
     int majorStaged;
     double *majorTicks;
     Tcl_Size nMajorTicks;
-
     int minorStaged;
     double *minorTicks;
     Tcl_Size nMinorTicks;
 } GraphPolarAngleTicksTransaction;
+
+typedef struct {
+    int realMajorStaged;
+    double *realMajorTicks;
+    Tcl_Size nRealMajorTicks;
+    int realMinorStaged;
+    double *realMinorTicks;
+    Tcl_Size nRealMinorTicks;
+    int imagMajorStaged;
+    double *imagMajorTicks;
+    Tcl_Size nImagMajorTicks;
+    int imagMinorStaged;
+    double *imagMinorTicks;
+    Tcl_Size nImagMinorTicks;
+} GraphSmithTicksTransaction;
 
 static int SetPolarLabelAnchor(void *clientData, Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj **valuePtrPtr,
                                char *widgRec, Tcl_Size offset, char *saveInternalPtr, int flags);
@@ -236,11 +254,9 @@ static const Tk_OptionSpec graphOptionSpecs[] = {
      GRAPH_BAR_WIDTH_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_DOUBLE, "-baseline", "baseline", "Baseline", DEF_GRAPH_BAR_BASELINE, -1, offsetof(Graph, baseline), 0,
      NULL, GRAPH_REDRAW_MASK},
-
     {TK_OPTION_SYNONYM, "-bd", NULL, NULL, NULL, -1, -1, 0, "-borderwidth", 0},
     {TK_OPTION_SYNONYM, "-bg", NULL, NULL, NULL, -1, -1, 0, "-background", 0},
     {TK_OPTION_SYNONYM, "-bm", NULL, NULL, NULL, -1, -1, 0, "-bottommargin", 0},
-
     {TK_OPTION_STRING, "-borderwidth", "borderWidth", "BorderWidth", DEF_GRAPH_BORDERWIDTH,
      offsetof(Graph, borderWidthObjPtr), -1, 0, NULL,
      GRAPH_PIXELS_MASK | GRAPH_GEOMETRY_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
@@ -257,9 +273,7 @@ static const Tk_OptionSpec graphOptionSpecs[] = {
     {TK_OPTION_STRING, "-data", "data", "Data", DEF_GRAPH_DATA, -1, offsetof(Graph, data), 0, NULL, GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING, "-datacommand", "dataCommand", "DataCommand", DEF_GRAPH_DATA_COMMAND, -1,
      offsetof(Graph, dataCmd), 0, NULL, GRAPH_REDRAW_MASK},
-
     {TK_OPTION_SYNONYM, "-fg", NULL, NULL, NULL, -1, -1, 0, "-foreground", 0},
-
     {TK_OPTION_FONT, "-font", "font", "Font", DEF_GRAPH_FONT, -1, offsetof(Graph, titleTextStyle.font), 0, NULL,
      GRAPH_TEXT_STYLE_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_COLOR, "-foreground", "foreground", "Foreground", DEF_GRAPH_TITLE_COLOR, -1,
@@ -285,9 +299,7 @@ static const Tk_OptionSpec graphOptionSpecs[] = {
      0, NULL, GRAPH_PIXELS_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING, "-leftvariable", "leftVariable", "LeftVariable", DEF_GRAPH_MARGIN_VAR, -1,
      offsetof(Graph, leftMargin.varName), TK_OPTION_NULL_OK, NULL, GRAPH_REDRAW_MASK},
-
     {TK_OPTION_SYNONYM, "-lm", NULL, NULL, NULL, -1, -1, 0, "-leftmargin", 0},
-
     {TK_OPTION_COLOR, "-plotbackground", "plotBackground", "Background", DEF_GRAPH_PLOT_BACKGROUND, -1,
      offsetof(Graph, plotBg), 0, DEF_GRAPH_PLOT_BG_MONO,
      GRAPH_GC_MASK | GRAPH_BACKING_STORE_MASK | GRAPH_PLOT_BACKGROUND_MASK | GRAPH_REDRAW_MASK},
@@ -306,34 +318,40 @@ static const Tk_OptionSpec graphOptionSpecs[] = {
     {TK_OPTION_STRING_TABLE, "-representation", "representation", "Representation", DEF_GRAPH_REPRESENTATION, -1,
      offsetof(Graph, representation), 0, (ClientData)polarRepresentationNames,
      GRAPH_POLAR_REPRESENTATION_MASK | GRAPH_REDRAW_MASK},
-
     {TK_OPTION_STRING, "-rightmargin", "rightMargin", "Margin", DEF_GRAPH_MARGIN, offsetof(Graph, rightMarginObjPtr),
      -1, 0, NULL, GRAPH_PIXELS_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING, "-rightvariable", "rightVariable", "RightVariable", DEF_GRAPH_MARGIN_VAR, -1,
      offsetof(Graph, rightMargin.varName), TK_OPTION_NULL_OK, NULL, GRAPH_REDRAW_MASK},
-
     {TK_OPTION_SYNONYM, "-rm", NULL, NULL, NULL, -1, -1, 0, "-rightmargin", 0},
-
     {TK_OPTION_STRING, "-shadow", "shadow", "Shadow", DEF_GRAPH_SHADOW_COLOR, offsetof(Graph, shadowObjPtr), -1,
      TK_OPTION_NULL_OK, NULL, GRAPH_SHADOW_MASK | GRAPH_TEXT_STYLE_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING_TABLE, "-smithgrid", "smithGrid", "SmithGrid", DEF_GRAPH_SMITH_GRID, -1,
      offsetof(Graph, smithGrid), 0, (ClientData)smithGridNames, GRAPH_SMITH_GRID_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-smithrealmajorticks", "smithRealMajorTicks", "SmithRealMajorTicks",
+     DEF_GRAPH_SMITH_REAL_MAJOR_TICKS, offsetof(Graph, smithRealMajorTicksObjPtr), -1, 0, NULL,
+     GRAPH_SMITH_TICKS_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-smithrealminorticks", "smithRealMinorTicks", "SmithRealMinorTicks",
+     DEF_GRAPH_SMITH_REAL_MINOR_TICKS, offsetof(Graph, smithRealMinorTicksObjPtr), -1, 0, NULL,
+     GRAPH_SMITH_TICKS_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-smithimagmajorticks", "smithImagMajorTicks", "SmithImagMajorTicks",
+     DEF_GRAPH_SMITH_IMAG_MAJOR_TICKS, offsetof(Graph, smithImagMajorTicksObjPtr), -1, 0, NULL,
+     GRAPH_SMITH_TICKS_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-smithimagminorticks", "smithImagMinorTicks", "SmithImagMinorTicks",
+     DEF_GRAPH_SMITH_IMAG_MINOR_TICKS, offsetof(Graph, smithImagMinorTicksObjPtr), -1, 0, NULL,
+     GRAPH_SMITH_TICKS_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING, "-takefocus", "takeFocus", "TakeFocus", DEF_GRAPH_TAKE_FOCUS, -1, offsetof(Graph, takeFocus),
      TK_OPTION_NULL_OK, NULL, GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING, "-tile", "tile", "Tile", NULL, offsetof(Graph, tileObjPtr), -1, TK_OPTION_NULL_OK, NULL,
      GRAPH_TILE_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING, "-title", "title", "Title", DEF_GRAPH_TITLE, -1, offsetof(Graph, title), TK_OPTION_NULL_OK, NULL,
      GRAPH_TEXT_STYLE_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
-
     {TK_OPTION_SYNONYM, "-tm", NULL, NULL, NULL, -1, -1, 0, "-topmargin", 0},
-
     {TK_OPTION_STRING, "-topmargin", "topMargin", "Margin", DEF_GRAPH_MARGIN, offsetof(Graph, topMarginObjPtr), -1, 0,
      NULL, GRAPH_PIXELS_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING, "-topvariable", "topVariable", "TopVariable", DEF_GRAPH_MARGIN_VAR, -1,
      offsetof(Graph, topMargin.varName), TK_OPTION_NULL_OK, NULL, GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING, "-width", "width", "Width", DEF_GRAPH_WIDTH, offsetof(Graph, widthObjPtr), -1, 0, NULL,
      GRAPH_PIXELS_MASK | GRAPH_GEOMETRY_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
-
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 typedef struct {
@@ -1147,6 +1165,59 @@ static int ParsePolarAngleTicks(Tcl_Interp *interp, Tcl_Obj *objPtr, const char 
     return TCL_OK;
 }
 
+static int ParseSmithTicks(Tcl_Interp *interp, Tcl_Obj *objPtr, const char *optionName, int allowZero,
+                           double **ticksPtr, Tcl_Size *nTicksPtr) {
+    Tcl_Obj **objv;
+    Tcl_Size objc;
+    Tcl_Size i;
+    double *ticks;
+    size_t bytes;
+
+    *ticksPtr = NULL;
+    *nTicksPtr = 0;
+    if (Tcl_ListObjGetElements(interp, objPtr, &objc, &objv) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (objc == 0) {
+        return TCL_OK;
+    }
+    if ((Tcl_WideUInt)objc > (Tcl_WideUInt)(SIZE_MAX / sizeof(double))) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("%s contains too many values", optionName));
+        return TCL_ERROR;
+    }
+    bytes = (size_t)objc * sizeof(double);
+    ticks = Tcl_AttemptAlloc(bytes);
+    if (ticks == NULL) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate Smith tick array", -1));
+        return TCL_ERROR;
+    }
+    for (i = 0; i < objc; i++) {
+        double value;
+
+        if (Tcl_GetDoubleFromObj(interp, objv[i], &value) != TCL_OK) {
+            ckfree(ticks);
+            return TCL_ERROR;
+        }
+        if ((!FINITE(value)) || (allowZero ? (value < 0.0) : (value <= 0.0))) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf(allowZero ? "%s value \"%s\" must be finite and non-negative"
+                                                             : "%s value \"%s\" must be finite and greater than zero",
+                                                   optionName, Tcl_GetString(objv[i])));
+            ckfree(ticks);
+            return TCL_ERROR;
+        }
+        /*
+         * Canonicalize negative zero.
+         */
+        if (value == 0.0) {
+            value = 0.0;
+        }
+        ticks[i] = value;
+    }
+    *ticksPtr = ticks;
+    *nTicksPtr = objc;
+    return TCL_OK;
+}
+
 static int StageGraphPolarAngleTicks(Graph *graphPtr, Tcl_Obj *objPtr, int major,
                                      GraphPolarAngleTicksTransaction *transactionPtr) {
     double *ticks;
@@ -1181,12 +1252,88 @@ static int StageGraphPolarAngleTicks(Graph *graphPtr, Tcl_Obj *objPtr, int major
     return TCL_OK;
 }
 
+static int StageGraphSmithTicks(Graph *graphPtr, Tcl_Obj *objPtr, int realPart, int major,
+                                GraphSmithTicksTransaction *transactionPtr) {
+    double *ticks;
+    Tcl_Size nTicks;
+    const char *optionName;
+    int allowZero;
+
+    ticks = NULL;
+    nTicks = 0;
+    allowZero = realPart;
+
+    if (realPart) {
+        optionName = major ? "-smithrealmajorticks" : "-smithrealminorticks";
+    } else {
+        optionName = major ? "-smithimagmajorticks" : "-smithimagminorticks";
+    }
+    if (ParseSmithTicks(graphPtr->interp, objPtr, optionName, allowZero, &ticks, &nTicks) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    /*
+     * Only release an earlier staged value after the new
+     * value has parsed successfully.
+     */
+    if (realPart) {
+        if (major) {
+            if (transactionPtr->realMajorStaged && (transactionPtr->realMajorTicks != NULL)) {
+                ckfree(transactionPtr->realMajorTicks);
+            }
+            transactionPtr->realMajorTicks = ticks;
+            transactionPtr->nRealMajorTicks = nTicks;
+            transactionPtr->realMajorStaged = TRUE;
+        } else {
+            if (transactionPtr->realMinorStaged && (transactionPtr->realMinorTicks != NULL)) {
+                ckfree(transactionPtr->realMinorTicks);
+            }
+            transactionPtr->realMinorTicks = ticks;
+            transactionPtr->nRealMinorTicks = nTicks;
+            transactionPtr->realMinorStaged = TRUE;
+        }
+    } else {
+        if (major) {
+            if (transactionPtr->imagMajorStaged && (transactionPtr->imagMajorTicks != NULL)) {
+                ckfree(transactionPtr->imagMajorTicks);
+            }
+            transactionPtr->imagMajorTicks = ticks;
+            transactionPtr->nImagMajorTicks = nTicks;
+            transactionPtr->imagMajorStaged = TRUE;
+        } else {
+            if (transactionPtr->imagMinorStaged && (transactionPtr->imagMinorTicks != NULL)) {
+                ckfree(transactionPtr->imagMinorTicks);
+            }
+            transactionPtr->imagMinorTicks = ticks;
+            transactionPtr->nImagMinorTicks = nTicks;
+            transactionPtr->imagMinorStaged = TRUE;
+        }
+    }
+    return TCL_OK;
+}
+
 static void FreeGraphPolarAngleTicksTransaction(GraphPolarAngleTicksTransaction *transactionPtr) {
     if (transactionPtr->majorTicks != NULL) {
         ckfree(transactionPtr->majorTicks);
     }
     if (transactionPtr->minorTicks != NULL) {
         ckfree(transactionPtr->minorTicks);
+    }
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+}
+
+static void FreeGraphSmithTicksTransaction(GraphSmithTicksTransaction *transactionPtr) {
+    if (transactionPtr->realMajorTicks != NULL) {
+        ckfree(transactionPtr->realMajorTicks);
+    }
+    if (transactionPtr->realMinorTicks != NULL) {
+        ckfree(transactionPtr->realMinorTicks);
+    }
+    if (transactionPtr->imagMajorTicks != NULL) {
+        ckfree(transactionPtr->imagMajorTicks);
+    }
+    if (transactionPtr->imagMinorTicks != NULL) {
+        ckfree(transactionPtr->imagMinorTicks);
     }
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
@@ -1246,6 +1393,97 @@ error:
     return TCL_ERROR;
 }
 
+static int PrepareGraphSmithTicksTransaction(Graph *graphPtr, GraphSmithTicksTransaction *transactionPtr) {
+    int explicitRealMajor;
+    int explicitRealMinor;
+    int explicitImagMajor;
+    int explicitImagMinor;
+    Tcl_Size i;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+    explicitRealMajor = FALSE;
+    explicitRealMinor = FALSE;
+    explicitImagMajor = FALSE;
+    explicitImagMinor = FALSE;
+    assert((graphPtr->optionObjc & 1) == 0);
+    /*
+     * Determine whether the caller explicitly supplied any of the
+     * Smith tick options.  On initial configuration,
+     * option-database/default values must also be staged.
+     */
+    for (i = 0; i < graphPtr->optionObjc; i += 2) {
+        if (IsGraphOption(graphPtr->optionObjv[i], "-smithrealmajorticks")) {
+            explicitRealMajor = TRUE;
+        } else if (IsGraphOption(graphPtr->optionObjv[i], "-smithrealminorticks")) {
+            explicitRealMinor = TRUE;
+        } else if (IsGraphOption(graphPtr->optionObjv[i], "-smithimagmajorticks")) {
+            explicitImagMajor = TRUE;
+        } else if (IsGraphOption(graphPtr->optionObjv[i], "-smithimagminorticks")) {
+            explicitImagMinor = TRUE;
+        }
+    }
+
+    if (!graphPtr->optionsConfigured) {
+        if ((!explicitRealMajor) && (graphPtr->smithRealMajorTicksObjPtr != NULL)) {
+            if (StageGraphSmithTicks(graphPtr, graphPtr->smithRealMajorTicksObjPtr, TRUE, TRUE,
+                                     transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        }
+        if ((!explicitRealMinor) && (graphPtr->smithRealMinorTicksObjPtr != NULL)) {
+            if (StageGraphSmithTicks(graphPtr, graphPtr->smithRealMinorTicksObjPtr, TRUE, FALSE,
+                                     transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        }
+        if ((!explicitImagMajor) && (graphPtr->smithImagMajorTicksObjPtr != NULL)) {
+            if (StageGraphSmithTicks(graphPtr, graphPtr->smithImagMajorTicksObjPtr, FALSE, TRUE,
+                                     transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        }
+        if ((!explicitImagMinor) && (graphPtr->smithImagMinorTicksObjPtr != NULL)) {
+            if (StageGraphSmithTicks(graphPtr, graphPtr->smithImagMinorTicksObjPtr, FALSE, FALSE,
+                                     transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        }
+    }
+
+    /*
+     * Process explicit values in caller order so that an invalid
+     * earlier duplicate is not hidden by a later valid value.
+     */
+    for (i = 0; i < graphPtr->optionObjc; i += 2) {
+        if (IsGraphOption(graphPtr->optionObjv[i], "-smithrealmajorticks")) {
+            if (StageGraphSmithTicks(graphPtr, graphPtr->optionObjv[i + 1], TRUE, TRUE,
+                                     transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        } else if (IsGraphOption(graphPtr->optionObjv[i], "-smithrealminorticks")) {
+            if (StageGraphSmithTicks(graphPtr, graphPtr->optionObjv[i + 1], TRUE, FALSE,
+                                     transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        } else if (IsGraphOption(graphPtr->optionObjv[i], "-smithimagmajorticks")) {
+            if (StageGraphSmithTicks(graphPtr, graphPtr->optionObjv[i + 1], FALSE, TRUE,
+                                     transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        } else if (IsGraphOption(graphPtr->optionObjv[i], "-smithimagminorticks")) {
+            if (StageGraphSmithTicks(graphPtr, graphPtr->optionObjv[i + 1], FALSE, FALSE,
+                                     transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        }
+    }
+    return TCL_OK;
+
+error:
+    FreeGraphSmithTicksTransaction(transactionPtr);
+    return TCL_ERROR;
+}
+
 static void CommitGraphPolarAngleTicksTransaction(Graph *graphPtr, GraphPolarAngleTicksTransaction *transactionPtr) {
     if (transactionPtr->majorStaged) {
         double *oldTicks;
@@ -1269,6 +1507,61 @@ static void CommitGraphPolarAngleTicksTransaction(Graph *graphPtr, GraphPolarAng
         transactionPtr->minorTicks = NULL;
         transactionPtr->nMinorTicks = 0;
         transactionPtr->minorStaged = FALSE;
+        if (oldTicks != NULL) {
+            ckfree(oldTicks);
+        }
+    }
+}
+
+static void CommitGraphSmithTicksTransaction(Graph *graphPtr, GraphSmithTicksTransaction *transactionPtr) {
+    if (transactionPtr->realMajorStaged) {
+        double *oldTicks;
+
+        oldTicks = graphPtr->smithRealMajorTicks;
+        graphPtr->smithRealMajorTicks = transactionPtr->realMajorTicks;
+        graphPtr->nSmithRealMajorTicks = transactionPtr->nRealMajorTicks;
+        transactionPtr->realMajorTicks = NULL;
+        transactionPtr->nRealMajorTicks = 0;
+        transactionPtr->realMajorStaged = FALSE;
+        if (oldTicks != NULL) {
+            ckfree(oldTicks);
+        }
+    }
+    if (transactionPtr->realMinorStaged) {
+        double *oldTicks;
+
+        oldTicks = graphPtr->smithRealMinorTicks;
+        graphPtr->smithRealMinorTicks = transactionPtr->realMinorTicks;
+        graphPtr->nSmithRealMinorTicks = transactionPtr->nRealMinorTicks;
+        transactionPtr->realMinorTicks = NULL;
+        transactionPtr->nRealMinorTicks = 0;
+        transactionPtr->realMinorStaged = FALSE;
+        if (oldTicks != NULL) {
+            ckfree(oldTicks);
+        }
+    }
+    if (transactionPtr->imagMajorStaged) {
+        double *oldTicks;
+
+        oldTicks = graphPtr->smithImagMajorTicks;
+        graphPtr->smithImagMajorTicks = transactionPtr->imagMajorTicks;
+        graphPtr->nSmithImagMajorTicks = transactionPtr->nImagMajorTicks;
+        transactionPtr->imagMajorTicks = NULL;
+        transactionPtr->nImagMajorTicks = 0;
+        transactionPtr->imagMajorStaged = FALSE;
+        if (oldTicks != NULL) {
+            ckfree(oldTicks);
+        }
+    }
+    if (transactionPtr->imagMinorStaged) {
+        double *oldTicks;
+
+        oldTicks = graphPtr->smithImagMinorTicks;
+        graphPtr->smithImagMinorTicks = transactionPtr->imagMinorTicks;
+        graphPtr->nSmithImagMinorTicks = transactionPtr->nImagMinorTicks;
+        transactionPtr->imagMinorTicks = NULL;
+        transactionPtr->nImagMinorTicks = 0;
+        transactionPtr->imagMinorStaged = FALSE;
         if (oldTicks != NULL) {
             ckfree(oldTicks);
         }
@@ -1991,12 +2284,14 @@ static int ConfigureGraph(Graph *graphPtr) {
     GraphShadowTransaction shadowTransaction;
     GraphTileTransaction tileTransaction;
     GraphPolarAngleTicksTransaction polarAngleTicksTransaction;
+    GraphSmithTicksTransaction smithTicksTransaction;
     int barModeTransactionPrepared;
     int paddingTransactionPrepared;
     int pixelTransactionPrepared;
     int shadowTransactionPrepared;
     int tileTransactionPrepared;
     int polarAngleTicksTransactionPrepared;
+    int smithTicksTransactionPrepared;
     int invertXYModified;
     int layoutModified;
     int plotBackgroundModified;
@@ -2004,6 +2299,7 @@ static int ConfigureGraph(Graph *graphPtr) {
     int representationModified;
     int smithGridModified;
     int polarAngleTicksModified;
+    int smithTicksModified;
     XColor *colorPtr;
     GC newGC;
     XGCValues gcValues;
@@ -2017,12 +2313,14 @@ static int ConfigureGraph(Graph *graphPtr) {
     memset(&shadowTransaction, 0, sizeof(shadowTransaction));
     memset(&tileTransaction, 0, sizeof(tileTransaction));
     memset(&polarAngleTicksTransaction, 0, sizeof(polarAngleTicksTransaction));
+    memset(&smithTicksTransaction, 0, sizeof(smithTicksTransaction));
     barModeTransactionPrepared = FALSE;
     paddingTransactionPrepared = FALSE;
     pixelTransactionPrepared = FALSE;
     shadowTransactionPrepared = FALSE;
     tileTransactionPrepared = FALSE;
     polarAngleTicksTransactionPrepared = FALSE;
+    smithTicksTransactionPrepared = FALSE;   
     /*
      * TK_OPTION_DOUBLE accepts the numeric value itself, but these
      * options participate directly in layout and graph-coordinate
@@ -2081,6 +2379,12 @@ static int ConfigureGraph(Graph *graphPtr) {
             goto error;
         }
     }
+    if ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_SMITH_TICKS_MASK)) {
+        if (PrepareGraphSmithTicksTransaction(graphPtr, &smithTicksTransaction) != TCL_OK) {
+            goto error;
+        }
+        smithTicksTransactionPrepared = TRUE;
+    }
     /*
      * No operation below this point can report a configuration error.
      */
@@ -2102,6 +2406,9 @@ static int ConfigureGraph(Graph *graphPtr) {
     if (polarAngleTicksTransactionPrepared) {
         CommitGraphPolarAngleTicksTransaction(graphPtr, &polarAngleTicksTransaction);
     }
+    if (smithTicksTransactionPrepared) {
+        CommitGraphSmithTicksTransaction(graphPtr, &smithTicksTransaction);
+    }
 
     invertXYModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_INVERT_XY_MASK));
     layoutModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_LAYOUT_MASK));
@@ -2111,6 +2418,7 @@ static int ConfigureGraph(Graph *graphPtr) {
         ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_POLAR_REPRESENTATION_MASK));
     smithGridModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_SMITH_GRID_MASK));
     polarAngleTicksModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_POLAR_ANGLE_TICKS_MASK));
+    smithTicksModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_SMITH_TICKS_MASK));
     /*
      * Preserve the historical normalisation behaviour for -barwidth.
      */
@@ -2199,11 +2507,13 @@ static int ConfigureGraph(Graph *graphPtr) {
      *        -bottommargin, -leftmargin, -rightmargin, -topmargin,
      *        -barmode, -barwidth
      */
-    if (layoutModified || representationModified || smithGridModified || polarAngleTicksModified) {
+    if (layoutModified || representationModified || smithGridModified || polarAngleTicksModified ||
+        smithTicksModified) {
         graphPtr->flags |= RESET_WORLD;
     }
+
     if (plotBackgroundModified || polarLabelsModified || representationModified || smithGridModified ||
-        polarAngleTicksModified) {
+        polarAngleTicksModified || smithTicksModified) {
         graphPtr->flags |= REDRAW_BACKING_STORE;
     }
     graphPtr->flags |= REDRAW_WORLD;
@@ -2219,6 +2529,9 @@ error:
     }
     if (polarAngleTicksTransactionPrepared) {
         FreeGraphPolarAngleTicksTransaction(&polarAngleTicksTransaction);
+    }
+    if (smithTicksTransactionPrepared) {
+        FreeGraphSmithTicksTransaction(&smithTicksTransaction);
     }
     return TCL_ERROR;
 }
