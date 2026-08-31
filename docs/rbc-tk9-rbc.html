@@ -406,7 +406,7 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3aelement20cget"><span class="std std-ref">cget</span></a></dt><dd><p>Queries the current value of an element configuration option. The available options depend on the concrete element type.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3aelement20closest"><span class="std std-ref">closest</span></a></dt><dd><p>Finds the visible element nearest to the specified window coordinate. On success, stores information in the Tcl array <code class="docutils literal notranslate"><span class="pre">varName</span></code> using the keys <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">index</span></code>, <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, and <code class="docutils literal notranslate"><span class="pre">dist</span></code>. Searches all visible elements unless one or more element names are supplied after the options.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aelement20closest"><span class="std std-ref">closest</span></a></dt><dd><p>Finds the visible element nearest to the specified window coordinate. On success, stores information in the Tcl array <code class="docutils literal notranslate"><span class="pre">varName</span></code> using the common keys <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">index</span></code>, <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, and <code class="docutils literal notranslate"><span class="pre">dist</span></code>. A selected bar element additionally reports its mapped rectangle geometry. A selected element in a polar widget additionally reports <code class="docutils literal notranslate"><span class="pre">radius</span></code> and <code class="docutils literal notranslate"><span class="pre">angle</span></code>; in Smith representation it also reports Gamma, normalized and physical impedance, normalized and physical admittance, and <code class="docutils literal notranslate"><span class="pre">z0</span></code>. See [Polar elements] for the complete Polar/Smith result set.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3aelement20configure"><span class="std std-ref">configure</span></a></dt><dd><p>Queries or modifies element configuration. When querying, one element name is supplied. When setting options, multiple element names may precede the option/value pairs and the same configuration is applied to each named element.</p>
 </dd>
@@ -424,7 +424,7 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3aelement20show"><span class="std std-ref">show</span></a></dt><dd><p>Queries or replaces the element display list. With no argument, returns the currently displayed elements in drawing order. With <code class="docutils literal notranslate"><span class="pre">elemList</span></code>, displays only the listed elements and hides all others. The list order determines drawing order; later elements are drawn above earlier elements. Unknown element names are ignored. An empty list hides all elements.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3aelement20type"><span class="std std-ref">type</span></a></dt><dd><p>Gives back the concrete class of the named element. Current results are <code class="docutils literal notranslate"><span class="pre">LineElement</span></code>, <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>, and <code class="docutils literal notranslate"><span class="pre">StripElement</span></code>.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aelement20type"><span class="std std-ref">type</span></a></dt><dd><p>Gives back the concrete class of the named element. Current results are <code class="docutils literal notranslate"><span class="pre">LineElement</span></code>, <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>, <code class="docutils literal notranslate"><span class="pre">StripElement</span></code>, and <code class="docutils literal notranslate"><span class="pre">PolarElement</span></code>.</p>
 </dd>
 </dl>
 <p>Refer to the documentation of each subcommand for details.</p>
@@ -493,8 +493,11 @@ bar-element options.</p>
 <section id="element-closest">
 <span id="r-3a3arbc3a3aelement20closest"></span><span id="index-47"></span><span id="index-46"></span><h3><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">closest</span></code><a class="headerlink" href="#element-closest" title="Link to this heading">¶</a></h3>
 <p>Finds the visible element nearest to the specified window coordinate. On success, stores information in the
-Tcl array <code class="docutils literal notranslate"><span class="pre">varName</span></code> using the keys <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">index</span></code>, <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, and <code class="docutils literal notranslate"><span class="pre">dist</span></code>. Searches all visible elements
-unless one or more element names are supplied after the options.</p>
+Tcl array <code class="docutils literal notranslate"><span class="pre">varName</span></code> using the common keys <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">index</span></code>, <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, and <code class="docutils literal notranslate"><span class="pre">dist</span></code>.
+A selected bar element additionally reports its mapped rectangle geometry. A selected element in a polar
+widget additionally reports <code class="docutils literal notranslate"><span class="pre">radius</span></code> and <code class="docutils literal notranslate"><span class="pre">angle</span></code>; in Smith representation it also reports Gamma, normalized
+and physical impedance, normalized and physical admittance, and <code class="docutils literal notranslate"><span class="pre">z0</span></code>. See [Polar elements] for the complete
+Polar/Smith result set.</p>
 <pre class="literal-block"><strong>ELEMENT closest</strong> <em>x y varName ?option value ...? ?--? ?elemName ...?</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -514,7 +517,7 @@ unless one or more element names are supplied after the options.</p>
 <dd class="field-odd"><p>Maximum non-negative search distance in screen pixels; the graph <code class="docutils literal notranslate"><span class="pre">-halo</span></code> value is the default.</p>
 </dd>
 <dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-interpolate</span> <span class="pre">boolean</span></code><span class="colon">:</span></dt>
-<dd class="field-even"><p>For line and strip elements, search along rendered traces instead of only data points.</p>
+<dd class="field-even"><p>For line, strip, and polar elements, searches along the rendered trace when true instead of considering only data points.</p>
 </dd>
 <dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">elemName</span></code><span class="colon">:</span></dt>
 <dd class="field-odd"><p>Optional element name restricting the search.</p>
@@ -563,7 +566,8 @@ element.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">graph</span></code> creates a line element;</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">barchart</span></code> creates a bar element;</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">stripchart</span></code> creates a strip element. <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">line</span> <span class="pre">create</span></code> always creates a line element and <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">bar</span> <span class="pre">create</span></code> always creates a bar element, regardless of the widget’s default element type.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stripchart</span></code> creates a strip element;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">polar</span></code> creates a polar element. <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">line</span> <span class="pre">create</span></code> always creates a line element and <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">bar</span> <span class="pre">create</span></code> always creates a bar element, regardless of the widget’s default element type.</p></li>
 </ul>
 <dl class="field-list simple">
 <dt class="field-odd">elemName<span class="colon">:</span></dt>
@@ -576,8 +580,8 @@ element.</p>
 <dd class="field-odd"><p>Initial value for the option.</p>
 </dd>
 </dl>
-<p>See <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a> for line-element options, <a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#r-3a3arbc3a3astripelement"><span class="std std-ref">STRIPELEMENT</span></a> for strip-element options, and <a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#r-3a3arbc3a3abarelement"><span class="std std-ref">BARELEMENT</span></a> for
-bar-element options.</p>
+<p>See <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a> for line-element options, <a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#r-3a3arbc3a3astripelement"><span class="std std-ref">STRIPELEMENT</span></a> for strip-element options, <a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#r-3a3arbc3a3abarelement"><span class="std std-ref">BARELEMENT</span></a> for
+bar-element options and [POLARELEMENT] for strip-element options</p>
 <p class="rubric">Return value</p>
 <p>Name of the newly created element.</p>
 </section>
@@ -667,8 +671,8 @@ ignored. An empty list hides all elements.</p>
 </section>
 <section id="element-type">
 <span id="r-3a3arbc3a3aelement20type"></span><span id="index-65"></span><span id="index-64"></span><h3><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">type</span></code><a class="headerlink" href="#element-type" title="Link to this heading">¶</a></h3>
-<p>Gives back the concrete class of the named element. Current results are <code class="docutils literal notranslate"><span class="pre">LineElement</span></code>, <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>, and
-<code class="docutils literal notranslate"><span class="pre">StripElement</span></code>.</p>
+<p>Gives back the concrete class of the named element. Current results are <code class="docutils literal notranslate"><span class="pre">LineElement</span></code>, <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>,
+<code class="docutils literal notranslate"><span class="pre">StripElement</span></code>, and <code class="docutils literal notranslate"><span class="pre">PolarElement</span></code>.</p>
 <pre class="literal-block"><strong>ELEMENT type</strong> <em>elemName</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
@@ -1721,8 +1725,45 @@ any pattern. Pens pending deletion are not returned.</p>
 <p class="rubric">Return value</p>
 <p><code class="docutils literal notranslate"><span class="pre">LineElement</span></code> or <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>.</p>
 </section>
+<section id="polar">
+<span id="r-3a3arbc3a3apolar"></span><span id="index-195"></span><span id="index-194"></span><h3><code class="docutils literal notranslate"><span class="pre">polar</span></code><a class="headerlink" href="#polar" title="Link to this heading">¶</a></h3>
+<p>Creates a polar graph widget. A polar widget uses polar elements as its default element type and represents
+data in the Cartesian complex plane, where X is the real coordinate and Y is the imaginary coordinate.</p>
+<pre class="literal-block"><strong>polar</strong> <em>pathName ?option value ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">pathName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tk pathname of the polar widget to create.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">option</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Graph widget configuration option.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">value</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Value for the configuration option.</p>
+</dd>
+</dl>
+<p class="rubric">Description</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">-representation</span></code> option selects either a conventional polar grid or a Smith-chart grid. The underlying
+element coordinates remain Cartesian in both representations.</p>
+<p>Polar elements may use ordinary X/Y data or may obtain their data directly from a complex Rbc vector with
+the element <code class="docutils literal notranslate"><span class="pre">-cdata</span></code> option. Complex data may represent reflection coefficient, impedance, or admittance.</p>
+<p>Unless <code class="docutils literal notranslate"><span class="pre">-aspect</span></code> is explicitly configured, a polar widget automatically adjusts the physical plotting-area
+aspect ratio so that one X data unit and one Y data unit have the same screen scale. This keeps polar circles
+and Smith-chart circles circular even when the mapped X and Y numerical ranges have different spans.</p>
+<p>Example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">vector</span><span class="w"> </span>create<span class="w"> </span>gamma<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>complex
+<span class="nv">gamma</span><span class="w"> </span>set<span class="w"> </span><span class="k">{{</span><span class="nv">0</span><span class="w"> </span><span class="mi">0</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">0.25</span><span class="w"> </span><span class="mf">0.4</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">-0.2</span><span class="w"> </span><span class="mf">0.6</span><span class="k">}}</span>
+
+<span class="nv">polar</span><span class="w"> </span>.p<span class="w"> </span><span class="o">-</span>representation<span class="w"> </span>smith<span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">600</span><span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">500</span>
+<span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>trace<span class="w"> </span><span class="o">-</span>cdata<span class="w"> </span>gamma<span class="w"> </span><span class="o">-</span>smooth<span class="w"> </span>natural
+<span class="nv">pack</span><span class="w"> </span>.p<span class="w"> </span><span class="o">-</span>fill<span class="w"> </span>both<span class="w"> </span><span class="o">-</span>expand<span class="w"> </span>yes
+</pre></div>
+</div>
+<p class="rubric">Return value</p>
+<p>The pathname of the newly created polar widget.</p>
+</section>
 <section id="postscript">
-<span id="r-3a3arbc3a3apostscript"></span><span id="index-195"></span><span id="index-194"></span><h3><code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span></code><a class="headerlink" href="#postscript" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3apostscript"></span><span id="index-197"></span><span id="index-196"></span><h3><code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span></code><a class="headerlink" href="#postscript" title="Link to this heading">¶</a></h3>
 <p>A
 command
 ensemble.</p>
@@ -1740,7 +1781,7 @@ ensemble.</p>
 <p>Refer to the documentation of each subcommand for details.</p>
 </section>
 <section id="postscript-cget">
-<span id="r-3a3arbc3a3apostscript20cget"></span><span id="index-197"></span><span id="index-196"></span><h3><code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span> <span class="pre">cget</span></code><a class="headerlink" href="#postscript-cget" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3apostscript20cget"></span><span id="index-199"></span><span id="index-198"></span><h3><code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span> <span class="pre">cget</span></code><a class="headerlink" href="#postscript-cget" title="Link to this heading">¶</a></h3>
 <p>Queries the current value of one PostScript configuration option. See
 <a class="reference internal" href="rbc-tk9-rbc-POSTSCRIPT.html#r-3a3arbc3a3apostscriptqzpostscript20options"><span class="std std-ref">PostScript options</span></a>.</p>
 <pre class="literal-block"><strong>POSTSCRIPT cget</strong> <em>option</em></pre>
@@ -1754,7 +1795,7 @@ ensemble.</p>
 <p>Current value of the requested option.</p>
 </section>
 <section id="postscript-configure">
-<span id="r-3a3arbc3a3apostscript20configure"></span><span id="index-199"></span><span id="index-198"></span><h3><code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span> <span class="pre">configure</span></code><a class="headerlink" href="#postscript-configure" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3apostscript20configure"></span><span id="index-201"></span><span id="index-200"></span><h3><code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span> <span class="pre">configure</span></code><a class="headerlink" href="#postscript-configure" title="Link to this heading">¶</a></h3>
 <p>Queries or modifies PostScript configuration options. With no arguments, returns all configuration
 information. With one option, returns information for that option. Otherwise <code class="docutils literal notranslate"><span class="pre">args</span></code> contains option/value
 pairs to change. See <a class="reference internal" href="rbc-tk9-rbc-POSTSCRIPT.html#r-3a3arbc3a3apostscriptqzpostscript20options"><span class="std std-ref">PostScript options</span></a>.</p>
@@ -1772,7 +1813,7 @@ pairs to change. See <a class="reference internal" href="rbc-tk9-rbc-POSTSCRIPT.
 <p>Configuration information when querying, otherwise nothing.</p>
 </section>
 <section id="postscript-output">
-<span id="r-3a3arbc3a3apostscript20output"></span><span id="index-201"></span><span id="index-200"></span><h3><code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span> <span class="pre">output</span></code><a class="headerlink" href="#postscript-output" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3apostscript20output"></span><span id="index-203"></span><span id="index-202"></span><h3><code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span> <span class="pre">output</span></code><a class="headerlink" href="#postscript-output" title="Link to this heading">¶</a></h3>
 <p>Generates an Encapsulated PostScript representation of the graph. If <code class="docutils literal notranslate"><span class="pre">fileName</span></code> is supplied, the output is
 written to that file; otherwise the generated PostScript is returned as the command result. Configuration
 options may be supplied after the optional filename and remain installed after successful output.</p>
@@ -1793,7 +1834,7 @@ options may be supplied after the optional filename and remain installed after s
 <p>Generated PostScript when no filename is supplied, otherwise nothing.</p>
 </section>
 <section id="spline">
-<span id="r-3a3arbc3a3aspline"></span><span id="index-203"></span><span id="index-202"></span><h3><code class="docutils literal notranslate"><span class="pre">spline</span></code><a class="headerlink" href="#spline" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3aspline"></span><span id="index-205"></span><span id="index-204"></span><h3><code class="docutils literal notranslate"><span class="pre">spline</span></code><a class="headerlink" href="#spline" title="Link to this heading">¶</a></h3>
 <p>A
 command
 ensemble.</p>
@@ -1801,63 +1842,94 @@ ensemble.</p>
 <p class="rubric">Description</p>
 <p>The ensemble supports the following subcommands:</p>
 <dl class="simple">
-<dt><a class="reference internal" href="#r-3a3arbc3a3aspline20natural"><span class="std std-ref">natural</span></a></dt><dd><p>Computes a natural cubic spline through the source vectors <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> and evaluates it at every X coordinate in <code class="docutils literal notranslate"><span class="pre">splX</span></code>. Evaluation coordinates may appear in any order. Coordinates outside the source X range are extrapolated using the cubic polynomial of the first or last spline interval.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aspline20natural"><span class="std std-ref">natural</span></a></dt><dd><p>Computes a scalar natural cubic spline through real source vectors <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> and evaluates it at every X coordinate in <code class="docutils literal notranslate"><span class="pre">splX</span></code>. Evaluation coordinates may appear in any order and may lie outside the source X range.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3aspline20quadratic"><span class="std std-ref">quadratic</span></a></dt><dd><p>Computes a shape-preserving quadratic spline through the source vectors <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> and evaluates it at every X coordinate in <code class="docutils literal notranslate"><span class="pre">splX</span></code>. Evaluation coordinates may appear in any order. Coordinates outside the source X range are extrapolated using the spline defined by the first or last source interval.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aspline20parametric"><span class="std std-ref">parametric</span></a></dt><dd><p>Computes a two-dimensional parametric spline through a complex source vector.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3aspline20quadratic"><span class="std std-ref">quadratic</span></a></dt><dd><p>Computes a scalar shape-preserving quadratic spline through real source vectors <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> and evaluates it at every X coordinate in <code class="docutils literal notranslate"><span class="pre">splX</span></code>. Evaluation coordinates may appear in any order and may lie outside the source X range.</p>
 </dd>
 </dl>
 <p>Refer to the documentation of each subcommand for details.</p>
 </section>
 <section id="spline-natural">
-<span id="r-3a3arbc3a3aspline20natural"></span><span id="index-205"></span><span id="index-204"></span><h3><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">natural</span></code><a class="headerlink" href="#spline-natural" title="Link to this heading">¶</a></h3>
-<p>Computes a natural cubic spline through the source vectors <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> and evaluates it at every X
-coordinate in <code class="docutils literal notranslate"><span class="pre">splX</span></code>. Evaluation coordinates may appear in any order. Coordinates outside the source
-X range are extrapolated using the cubic polynomial of the first or last spline interval.</p>
+<span id="r-3a3arbc3a3aspline20natural"></span><span id="index-207"></span><span id="index-206"></span><h3><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">natural</span></code><a class="headerlink" href="#spline-natural" title="Link to this heading">¶</a></h3>
+<p>Computes a scalar natural cubic spline through real source vectors <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> and evaluates it at every X
+coordinate in <code class="docutils literal notranslate"><span class="pre">splX</span></code>. Evaluation coordinates may appear in any order and may lie outside the source X range.</p>
 <pre class="literal-block"><strong>spline natural</strong> <em>x y splX splY</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
 <dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">x</span></code><span class="colon">:</span></dt>
-<dd class="field-odd"><p>Vector containing the finite, strictly increasing X coordinates of the source points.</p>
+<dd class="field-odd"><p>Real vector containing finite, strictly increasing X coordinates of the source points.</p>
 </dd>
 <dt class="field-even"><code class="docutils literal notranslate"><span class="pre">y</span></code><span class="colon">:</span></dt>
-<dd class="field-even"><p>Vector containing the finite Y coordinates of the source points; it must have the same length as <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p>
+<dd class="field-even"><p>Real vector containing finite Y coordinates; it must have the same length as <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p>
 </dd>
 <dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">splX</span></code><span class="colon">:</span></dt>
-<dd class="field-odd"><p>Vector containing finite X coordinates at which the spline is evaluated; values may be in any order and may lie outside the source X range.</p>
+<dd class="field-odd"><p>Real vector containing finite X coordinates at which the spline is evaluated.</p>
 </dd>
 <dt class="field-even"><code class="docutils literal notranslate"><span class="pre">splY</span></code><span class="colon">:</span></dt>
-<dd class="field-even"><p>Vector in which the interpolated or extrapolated Y coordinates are stored; it is created or resized as necessary.</p>
+<dd class="field-even"><p>Real result vector; it is created or resized as necessary.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
 <p>Nothing.</p>
 </section>
+<section id="spline-parametric">
+<span id="r-3a3arbc3a3aspline20parametric"></span><span id="index-209"></span><span id="index-208"></span><h3><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">parametric</span></code><a class="headerlink" href="#spline-parametric" title="Link to this heading">¶</a></h3>
+<p>Computes a two-dimensional parametric spline through a complex source vector.</p>
+<pre class="literal-block"><strong>spline parametric</strong> <em>operation source result samples</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">operation</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Interpolation algorithm; must be <code class="docutils literal notranslate"><span class="pre">natural</span></code> or <code class="docutils literal notranslate"><span class="pre">quadratic</span></code>.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">source</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Complex vector containing at least three finite two-dimensional source points. Consecutive points must be distinct.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">result</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Complex vector receiving the generated path. It is created or resized as necessary and may be the same vector as <code class="docutils literal notranslate"><span class="pre">source</span></code>.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">samples</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Number of generated points. Must be at least two.</p>
+</dd>
+</dl>
+<p class="rubric">Description</p>
+<p>Example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">vector</span><span class="w"> </span>create<span class="w"> </span>z<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>complex
+<span class="nv">z</span><span class="w"> </span>set<span class="w"> </span><span class="k">{{</span><span class="nv">0</span><span class="w"> </span><span class="mi">0</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">1</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">-1</span><span class="w"> </span><span class="mi">1</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">0</span><span class="k">}}</span>
+
+<span class="nv">spline</span><span class="w"> </span>parametric<span class="w"> </span>natural<span class="w"> </span>z<span class="w"> </span>smoothZ<span class="w"> </span><span class="mi">200</span>
+</pre></div>
+</div>
+<p class="rubric">Return value</p>
+<p>Nothing.</p>
+</section>
 <section id="spline-quadratic">
-<span id="r-3a3arbc3a3aspline20quadratic"></span><span id="index-207"></span><span id="index-206"></span><h3><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">quadratic</span></code><a class="headerlink" href="#spline-quadratic" title="Link to this heading">¶</a></h3>
-<p>Computes a shape-preserving quadratic spline through the source vectors <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> and evaluates it at
-every X coordinate in <code class="docutils literal notranslate"><span class="pre">splX</span></code>. Evaluation coordinates may appear in any order. Coordinates outside the
-source X range are extrapolated using the spline defined by the first or last source interval.</p>
+<span id="r-3a3arbc3a3aspline20quadratic"></span><span id="index-211"></span><span id="index-210"></span><h3><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">quadratic</span></code><a class="headerlink" href="#spline-quadratic" title="Link to this heading">¶</a></h3>
+<p>Computes a scalar shape-preserving quadratic spline through real source vectors <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> and evaluates it
+at every X coordinate in <code class="docutils literal notranslate"><span class="pre">splX</span></code>. Evaluation coordinates may appear in any order and may lie outside the
+source X range.</p>
 <pre class="literal-block"><strong>spline quadratic</strong> <em>x y splX splY</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
 <dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">x</span></code><span class="colon">:</span></dt>
-<dd class="field-odd"><p>Vector containing the finite, strictly increasing X coordinates of the source points.</p>
+<dd class="field-odd"><p>Real vector containing finite, strictly increasing X coordinates of the source points.</p>
 </dd>
 <dt class="field-even"><code class="docutils literal notranslate"><span class="pre">y</span></code><span class="colon">:</span></dt>
-<dd class="field-even"><p>Vector containing the finite Y coordinates of the source points; it must have the same length as <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p>
+<dd class="field-even"><p>Real vector containing finite Y coordinates; it must have the same length as <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p>
 </dd>
 <dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">splX</span></code><span class="colon">:</span></dt>
-<dd class="field-odd"><p>Vector containing finite X coordinates at which the spline is evaluated; values may be in any order and may lie outside the source X range.</p>
+<dd class="field-odd"><p>Real vector containing finite X coordinates at which the spline is evaluated.</p>
 </dd>
 <dt class="field-even"><code class="docutils literal notranslate"><span class="pre">splY</span></code><span class="colon">:</span></dt>
-<dd class="field-even"><p>Vector in which the interpolated or extrapolated Y coordinates are stored; it is created or resized as necessary.</p>
+<dd class="field-even"><p>Real result vector; it is created or resized as necessary.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
 <p>Nothing.</p>
 </section>
 <section id="stripchart">
-<span id="r-3a3arbc3a3astripchart"></span><span id="index-209"></span><span id="index-208"></span><h3><code class="docutils literal notranslate"><span class="pre">stripchart</span></code><a class="headerlink" href="#stripchart" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3astripchart"></span><span id="index-213"></span><span id="index-212"></span><h3><code class="docutils literal notranslate"><span class="pre">stripchart</span></code><a class="headerlink" href="#stripchart" title="Link to this heading">¶</a></h3>
 <p>Creates a stripchart widget. A stripchart uses strip elements as its default element type. It uses the same
 graph widget infrastructure and common components as <code class="docutils literal notranslate"><span class="pre">graph</span></code>, but elements created through the generic
 <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">element</span></code> interface are strip elements by default. Configuration options supplied when the widget
@@ -1885,7 +1957,7 @@ is created are the same options accepted later by <code class="docutils literal 
 <p>The pathname of the newly created stripchart widget.</p>
 </section>
 <section id="vecinst">
-<span id="r-3a3arbc3a3avecinst"></span><span id="index-211"></span><span id="index-210"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span></code><a class="headerlink" href="#vecinst" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst"></span><span id="index-215"></span><span id="index-214"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span></code><a class="headerlink" href="#vecinst" title="Link to this heading">¶</a></h3>
 <p>A
 command
 ensemble.</p>
@@ -1947,7 +2019,7 @@ ensemble.</p>
 <p>Refer to the documentation of each subcommand for details.</p>
 </section>
 <section id="r-3a3arbc3a3avecinst202a">
-<span id="index-213"></span><span id="index-212"></span><span id="id1"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">*</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202a" title="Link to this heading">¶</a></h3>
+<span id="index-217"></span><span id="index-216"></span><span id="id1"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">*</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202a" title="Link to this heading">¶</a></h3>
 <p>Multiplies every value of the vector by a scalar or by the corresponding value of another vector.
 <code class="docutils literal notranslate"><span class="pre">list</span></code> may name another vector or contain a real or complex scalar. A complex scalar is written as
 <code class="docutils literal notranslate"><span class="pre">{real</span> <span class="pre">imag}</span></code>. If another vector is used, it must have the same number of selected values.
@@ -1964,7 +2036,7 @@ Real operands are promoted to complex values when either operand is complex.</p>
 The vector itself is not modified.</p>
 </section>
 <section id="r-3a3arbc3a3avecinst202b">
-<span id="index-215"></span><span id="index-214"></span><span id="id2"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">+</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202b" title="Link to this heading">¶</a></h3>
+<span id="index-219"></span><span id="index-218"></span><span id="id2"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">+</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202b" title="Link to this heading">¶</a></h3>
 <p>Adds a scalar or another vector component-by-component.</p>
 <pre class="literal-block"><strong>VECINST +</strong> <em>list</em></pre>
 <p class="rubric">Parameters</p>
@@ -1977,7 +2049,7 @@ The vector itself is not modified.</p>
 <p>A list containing the resulting values. The vector itself is not modified.</p>
 </section>
 <section id="r-3a3arbc3a3avecinst202d">
-<span id="index-217"></span><span id="index-216"></span><span id="id3"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">-</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202d" title="Link to this heading">¶</a></h3>
+<span id="index-221"></span><span id="index-220"></span><span id="id3"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">-</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202d" title="Link to this heading">¶</a></h3>
 <p>Subtracts a scalar or another vector component-by-component.</p>
 <pre class="literal-block"><strong>VECINST -</strong> <em>list</em></pre>
 <p class="rubric">Parameters</p>
@@ -1990,7 +2062,7 @@ The vector itself is not modified.</p>
 <p>A list containing the resulting values. The vector itself is not modified.</p>
 </section>
 <section id="r-3a3arbc3a3avecinst202f">
-<span id="index-219"></span><span id="index-218"></span><span id="id4"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">/</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202f" title="Link to this heading">¶</a></h3>
+<span id="index-223"></span><span id="index-222"></span><span id="id4"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">/</span></code><a class="headerlink" href="#r-3a3arbc3a3avecinst202f" title="Link to this heading">¶</a></h3>
 <p>Divides every vector value by a scalar or by the corresponding value of another vector.</p>
 <pre class="literal-block"><strong>VECINST /</strong> <em>list</em></pre>
 <p class="rubric">Parameters</p>
@@ -2003,7 +2075,7 @@ The vector itself is not modified.</p>
 <p>A list containing the resulting values. The vector itself is not modified.</p>
 </section>
 <section id="vecinst-append">
-<span id="r-3a3arbc3a3avecinst20append"></span><span id="index-221"></span><span id="index-220"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">append</span></code><a class="headerlink" href="#vecinst-append" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20append"></span><span id="index-225"></span><span id="index-224"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">append</span></code><a class="headerlink" href="#vecinst-append" title="Link to this heading">¶</a></h3>
 <p>Appends values to the vector. Each item may be another vector or a Tcl list of values.
 A vector argument must have the same numeric type as this vector.
 For a complex vector, list elements may be <code class="docutils literal notranslate"><span class="pre">{real</span> <span class="pre">imag}</span></code> pairs or real scalars; real scalars are promoted
@@ -2019,7 +2091,7 @@ to complex values with zero imaginary component.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-binread">
-<span id="r-3a3arbc3a3avecinst20binread"></span><span id="index-223"></span><span id="index-222"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">binread</span></code><a class="headerlink" href="#vecinst-binread" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20binread"></span><span id="index-227"></span><span id="index-226"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">binread</span></code><a class="headerlink" href="#vecinst-binread" title="Link to this heading">¶</a></h3>
 <p>Reads native binary numeric values from a Tcl channel into the vector.</p>
 <pre class="literal-block"><strong>VECINST binread</strong> <em>channel ?numValues? ?-at index? ?-format format? ?-swap?</em></pre>
 <p class="rubric">Parameters</p>
@@ -2057,7 +2129,7 @@ complex input must contain complete real/imaginary pairs.</p>
 <p>Number of complete vector values read.</p>
 </section>
 <section id="vecinst-clear">
-<span id="r-3a3arbc3a3avecinst20clear"></span><span id="index-225"></span><span id="index-224"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">clear</span></code><a class="headerlink" href="#vecinst-clear" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20clear"></span><span id="index-229"></span><span id="index-228"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">clear</span></code><a class="headerlink" href="#vecinst-clear" title="Link to this heading">¶</a></h3>
 <p>Clears cached elements of the Tcl array associated with the vector. This does not remove values from the
 vector. It can be used to release memory occupied by cached array-index entries.</p>
 <pre class="literal-block"><strong>VECINST clear</strong></pre>
@@ -2065,7 +2137,7 @@ vector. It can be used to release memory occupied by cached array-index entries.
 <p>Nothing.</p>
 </section>
 <section id="vecinst-delete">
-<span id="r-3a3arbc3a3avecinst20delete"></span><span id="index-227"></span><span id="index-226"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">delete</span></code><a class="headerlink" href="#vecinst-delete" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20delete"></span><span id="index-231"></span><span id="index-230"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">delete</span></code><a class="headerlink" href="#vecinst-delete" title="Link to this heading">¶</a></h3>
 <p>Deletes one or more indices or index ranges from the vector. Remaining values are compacted after the
 deleted values are removed.</p>
 <pre class="literal-block"><strong>VECINST delete</strong> <em>index ?index ...?</em></pre>
@@ -2079,7 +2151,7 @@ deleted values are removed.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-dup">
-<span id="r-3a3arbc3a3avecinst20dup"></span><span id="index-229"></span><span id="index-228"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">dup</span></code><a class="headerlink" href="#vecinst-dup" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20dup"></span><span id="index-233"></span><span id="index-232"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">dup</span></code><a class="headerlink" href="#vecinst-dup" title="Link to this heading">¶</a></h3>
 <p>Copies this vector into another vector. A newly created destination inherits the source vector’s numeric
 type. If the destination already exists, it must have the same numeric type and its contents are replaced.</p>
 <pre class="literal-block"><strong>VECINST dup</strong> <em>vecName</em></pre>
@@ -2093,7 +2165,7 @@ type. If the destination already exists, it must have the same numeric type and 
 <p>Nothing.</p>
 </section>
 <section id="vecinst-expr">
-<span id="r-3a3arbc3a3avecinst20expr"></span><span id="index-231"></span><span id="index-230"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">expr</span></code><a class="headerlink" href="#vecinst-expr" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20expr"></span><span id="index-235"></span><span id="index-234"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">expr</span></code><a class="headerlink" href="#vecinst-expr" title="Link to this heading">¶</a></h3>
 <p>Evaluates <code class="docutils literal notranslate"><span class="pre">expression</span></code> and stores the result in this vector.</p>
 <pre class="literal-block"><strong>VECINST expr</strong> <em>expression</em></pre>
 <p class="rubric">Parameters</p>
@@ -2106,7 +2178,7 @@ type. If the destination already exists, it must have the same numeric type and 
 <p>Nothing.</p>
 </section>
 <section id="vecinst-index">
-<span id="r-3a3arbc3a3avecinst20index"></span><span id="index-233"></span><span id="index-232"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">index</span></code><a class="headerlink" href="#vecinst-index" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20index"></span><span id="index-237"></span><span id="index-236"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">index</span></code><a class="headerlink" href="#vecinst-index" title="Link to this heading">¶</a></h3>
 <p>Reads or writes a vector value or range.  With no value argument, returns the value or values selected by
 <code class="docutils literal notranslate"><span class="pre">index</span></code>. With <code class="docutils literal notranslate"><span class="pre">value</span></code>, assigns that numeric value to every element selected by <code class="docutils literal notranslate"><span class="pre">index</span></code>. The special
 <code class="docutils literal notranslate"><span class="pre">++end</span></code> index may be used when setting a value to append one new element.
@@ -2127,7 +2199,7 @@ For complex vectors, values are returned as <code class="docutils literal notran
 <p>Selected value(s) when querying, or the assigned value when setting.</p>
 </section>
 <section id="vecinst-length">
-<span id="r-3a3arbc3a3avecinst20length"></span><span id="index-235"></span><span id="index-234"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">length</span></code><a class="headerlink" href="#vecinst-length" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20length"></span><span id="index-239"></span><span id="index-238"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">length</span></code><a class="headerlink" href="#vecinst-length" title="Link to this heading">¶</a></h3>
 <p>Queries or changes the vector length. If <code class="docutils literal notranslate"><span class="pre">newSize</span></code> is supplied, the vector is resized. New elements
 created by enlarging the vector are initialized by the vector resizing machinery.</p>
 <pre class="literal-block"><strong>VECINST length</strong> <em>newSize</em></pre>
@@ -2141,7 +2213,7 @@ created by enlarging the vector are initialized by the vector resizing machinery
 <p>Current vector length.</p>
 </section>
 <section id="vecinst-merge">
-<span id="r-3a3arbc3a3avecinst20merge"></span><span id="index-237"></span><span id="index-236"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">merge</span></code><a class="headerlink" href="#vecinst-merge" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20merge"></span><span id="index-241"></span><span id="index-240"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">merge</span></code><a class="headerlink" href="#vecinst-merge" title="Link to this heading">¶</a></h3>
 <p>Interleaves values from two or more vectors and stores the result in this vector. All input vectors must
 contain the same number of selected values. All input vectors must have the same numeric type as this vector.</p>
 <pre class="literal-block"><strong>VECINST merge</strong> <em>vecName ?vecName ...?</em></pre>
@@ -2160,7 +2232,7 @@ contain the same number of selected values. All input vectors must have the same
 <p>Nothing.</p>
 </section>
 <section id="vecinst-normalize">
-<span id="r-3a3arbc3a3avecinst20normalize"></span><span id="index-239"></span><span id="index-238"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">normalize</span></code><a class="headerlink" href="#vecinst-normalize" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20normalize"></span><span id="index-243"></span><span id="index-242"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">normalize</span></code><a class="headerlink" href="#vecinst-normalize" title="Link to this heading">¶</a></h3>
 <p>Normalizes real vector values to the range 0.0 through 1.0 using:</p>
 <pre class="literal-block"><strong>VECINST normalize</strong> <em>vecName</em></pre>
 <p class="rubric">Parameters</p>
@@ -2176,7 +2248,7 @@ contain the same number of selected values. All input vectors must have the same
 <p>Normalized list when no destination is specified; otherwise nothing.</p>
 </section>
 <section id="vecinst-offset">
-<span id="r-3a3arbc3a3avecinst20offset"></span><span id="index-241"></span><span id="index-240"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">offset</span></code><a class="headerlink" href="#vecinst-offset" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20offset"></span><span id="index-245"></span><span id="index-244"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">offset</span></code><a class="headerlink" href="#vecinst-offset" title="Link to this heading">¶</a></h3>
 <p>Queries or changes the external index offset of the vector. The offset changes the numeric indices
 through which the vector is addressed without moving the underlying data.</p>
 <pre class="literal-block"><strong>VECINST offset</strong> <em>offset</em></pre>
@@ -2190,7 +2262,7 @@ through which the vector is addressed without moving the underlying data.</p>
 <p>Current offset.</p>
 </section>
 <section id="vecinst-populate">
-<span id="r-3a3arbc3a3avecinst20populate"></span><span id="index-243"></span><span id="index-242"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">populate</span></code><a class="headerlink" href="#vecinst-populate" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20populate"></span><span id="index-247"></span><span id="index-246"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">populate</span></code><a class="headerlink" href="#vecinst-populate" title="Link to this heading">¶</a></h3>
 <p>Creates a more densely sampled vector using linear interpolation. <code class="docutils literal notranslate"><span class="pre">density</span></code> intermediate values are
 inserted between every adjacent pair of source values. <code class="docutils literal notranslate"><span class="pre">density</span></code> must be at least 1. The destination may
 be the same vector as the source and has the same numeric type as the source.
@@ -2209,7 +2281,7 @@ For complex vectors, the real and imaginary components are linearly interpolated
 <p>Nothing.</p>
 </section>
 <section id="vecinst-random">
-<span id="r-3a3arbc3a3avecinst20random"></span><span id="index-245"></span><span id="index-244"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">random</span></code><a class="headerlink" href="#vecinst-random" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20random"></span><span id="index-249"></span><span id="index-248"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">random</span></code><a class="headerlink" href="#vecinst-random" title="Link to this heading">¶</a></h3>
 <p>Fills the vector with pseudo-random data while preserving its current length. For real vectors, one random
 value in the range <code class="docutils literal notranslate"><span class="pre">[0.0,</span> <span class="pre">1.0)</span></code> is generated for each vector value. For complex vectors, the real and
 imaginary components are generated independently in that range.</p>
@@ -2220,7 +2292,7 @@ imaginary components are generated independently in that range.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-range">
-<span id="r-3a3arbc3a3avecinst20range"></span><span id="index-247"></span><span id="index-246"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">range</span></code><a class="headerlink" href="#vecinst-range" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20range"></span><span id="index-251"></span><span id="index-250"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">range</span></code><a class="headerlink" href="#vecinst-range" title="Link to this heading">¶</a></h3>
 <p>Gives back an inclusive range of vector values. If <code class="docutils literal notranslate"><span class="pre">first</span></code> is less than or equal to <code class="docutils literal notranslate"><span class="pre">last</span></code>, values are
 returned in ascending index order. If <code class="docutils literal notranslate"><span class="pre">first</span></code> is greater than <code class="docutils literal notranslate"><span class="pre">last</span></code>, values are returned in descending
 index order. <code class="docutils literal notranslate"><span class="pre">first</span></code> and <code class="docutils literal notranslate"><span class="pre">last</span></code> are normal vector indices and may use forms such as <code class="docutils literal notranslate"><span class="pre">end</span></code>. This
@@ -2250,7 +2322,7 @@ operation does not modify the vector.</p>
 <p>A list containing the selected vector values.</p>
 </section>
 <section id="vecinst-search">
-<span id="r-3a3arbc3a3avecinst20search"></span><span id="index-249"></span><span id="index-248"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">search</span></code><a class="headerlink" href="#vecinst-search" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20search"></span><span id="index-253"></span><span id="index-252"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">search</span></code><a class="headerlink" href="#vecinst-search" title="Link to this heading">¶</a></h3>
 <p>Searches the vector for matching values. For real vectors, one numeric argument performs an exact-value
 search and two numeric arguments search the inclusive range from <code class="docutils literal notranslate"><span class="pre">min</span></code> to <code class="docutils literal notranslate"><span class="pre">max</span></code>, using the implementation’s
 floating-point tolerance. For complex vectors, only the one-value exact search is supported. The search value
@@ -2277,7 +2349,7 @@ returned. Complex values returned by <code class="docutils literal notranslate">
 <p>List of matching indices or values.</p>
 </section>
 <section id="vecinst-seq">
-<span id="r-3a3arbc3a3avecinst20seq"></span><span id="index-251"></span><span id="index-250"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">seq</span></code><a class="headerlink" href="#vecinst-seq" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20seq"></span><span id="index-255"></span><span id="index-254"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">seq</span></code><a class="headerlink" href="#vecinst-seq" title="Link to this heading">¶</a></h3>
 <p>Generates an arithmetic sequence.</p>
 <pre class="literal-block"><strong>VECINST seq</strong> <em>start end ?step?</em></pre>
 <p class="rubric">Parameters</p>
@@ -2310,7 +2382,7 @@ component whose step is zero must have identical start and end components. An ex
 <p>Nothing.</p>
 </section>
 <section id="vecinst-set">
-<span id="r-3a3arbc3a3avecinst20set"></span><span id="index-253"></span><span id="index-252"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">set</span></code><a class="headerlink" href="#vecinst-set" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20set"></span><span id="index-257"></span><span id="index-256"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">set</span></code><a class="headerlink" href="#vecinst-set" title="Link to this heading">¶</a></h3>
 <p>Replaces the contents of the vector. <code class="docutils literal notranslate"><span class="pre">list</span></code> may be a Tcl list of numeric values or the name of another
 vector. When the argument names another vector, the source and destination vector types must match.
 For a complex destination, list elements may be <code class="docutils literal notranslate"><span class="pre">{real</span> <span class="pre">imag}</span></code> values or real scalars.</p>
@@ -2325,7 +2397,7 @@ For a complex destination, list elements may be <code class="docutils literal no
 <p>Nothing.</p>
 </section>
 <section id="vecinst-sort">
-<span id="r-3a3arbc3a3avecinst20sort"></span><span id="index-255"></span><span id="index-254"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">sort</span></code><a class="headerlink" href="#vecinst-sort" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20sort"></span><span id="index-259"></span><span id="index-258"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">sort</span></code><a class="headerlink" href="#vecinst-sort" title="Link to this heading">¶</a></h3>
 <p>Sorts this real vector. Additional real vectors may be supplied as secondary sort keys. All vectors must
 have the same length.</p>
 <pre class="literal-block"><strong>VECINST sort</strong> <em>?-reverse? ?vecName ...?</em></pre>
@@ -2349,7 +2421,7 @@ ordering relation is defined for complex values.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-split">
-<span id="r-3a3arbc3a3avecinst20split"></span><span id="index-257"></span><span id="index-256"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">split</span></code><a class="headerlink" href="#vecinst-split" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20split"></span><span id="index-261"></span><span id="index-260"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">split</span></code><a class="headerlink" href="#vecinst-split" title="Link to this heading">¶</a></h3>
 <p>Distributes values from this vector among destination vectors in round-robin order. The source vector
 length must be evenly divisible by the number of destination vectors. Existing destination contents are
 preserved and the split values are appended. Destination vectors have the same numeric type as the source
@@ -2371,7 +2443,7 @@ vector.</p>
 <p>Nothing.</p>
 </section>
 <section id="vecinst-type">
-<span id="r-3a3arbc3a3avecinst20type"></span><span id="index-259"></span><span id="index-258"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">type</span></code><a class="headerlink" href="#vecinst-type" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20type"></span><span id="index-263"></span><span id="index-262"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">type</span></code><a class="headerlink" href="#vecinst-type" title="Link to this heading">¶</a></h3>
 <p>Returns the immutable numeric type of the vector.
 <code class="docutils literal notranslate"><span class="pre">real</span></code> or <code class="docutils literal notranslate"><span class="pre">complex</span></code>.</p>
 <pre class="literal-block"><strong>VECINST type</strong></pre>
@@ -2380,7 +2452,7 @@ vector.</p>
 <code class="docutils literal notranslate"><span class="pre">real</span></code> or <code class="docutils literal notranslate"><span class="pre">complex</span></code>.</p>
 </section>
 <section id="vecinst-variable">
-<span id="r-3a3arbc3a3avecinst20variable"></span><span id="index-261"></span><span id="index-260"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">variable</span></code><a class="headerlink" href="#vecinst-variable" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avecinst20variable"></span><span id="index-265"></span><span id="index-264"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">variable</span></code><a class="headerlink" href="#vecinst-variable" title="Link to this heading">¶</a></h3>
 <p>Queries or changes the Tcl array variable associated with the vector. Supplying an empty variable name
 removes the current mapping. Real vectors normally receive an automatic array mapping at creation.
 Complex vectors do not receive an automatic mapping, but an explicit mapping is supported.
@@ -2397,7 +2469,7 @@ Ordinary complex array elements use <code class="docutils literal notranslate"><
 <p>Name of the currently mapped variable, or an empty result if no variable is mapped.</p>
 </section>
 <section id="vector">
-<span id="r-3a3arbc3a3avector"></span><span id="index-263"></span><span id="index-262"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span></code><a class="headerlink" href="#vector" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avector"></span><span id="index-267"></span><span id="index-266"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span></code><a class="headerlink" href="#vector" title="Link to this heading">¶</a></h3>
 <p>A
 command
 ensemble.</p>
@@ -2417,7 +2489,7 @@ ensemble.</p>
 <p>Refer to the documentation of each subcommand for details.</p>
 </section>
 <section id="vector-create">
-<span id="r-3a3arbc3a3avector20create"></span><span id="index-265"></span><span id="index-264"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">create</span></code><a class="headerlink" href="#vector-create" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avector20create"></span><span id="index-269"></span><span id="index-268"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">create</span></code><a class="headerlink" href="#vector-create" title="Link to this heading">¶</a></h3>
 <p>Creates one or more vectors.</p>
 <pre class="literal-block"><strong>vector create</strong> <em>vecName ?vecName ...? ?switch value ...?</em></pre>
 <p class="rubric">Parameters</p>
@@ -2457,7 +2529,7 @@ ensemble.</p>
 <p>The name of the last vector created.</p>
 </section>
 <section id="vector-destroy">
-<span id="r-3a3arbc3a3avector20destroy"></span><span id="index-267"></span><span id="index-266"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">destroy</span></code><a class="headerlink" href="#vector-destroy" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avector20destroy"></span><span id="index-271"></span><span id="index-270"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">destroy</span></code><a class="headerlink" href="#vector-destroy" title="Link to this heading">¶</a></h3>
 <p>Destroys one or more vectors. Destroying a vector removes its associated vector instance command and Tcl
 array variable and notifies clients that use the vector.</p>
 <pre class="literal-block"><strong>vector destroy</strong> <em>vecName ?vecName ...?</em></pre>
@@ -2471,7 +2543,7 @@ array variable and notifies clients that use the vector.</p>
 <p>Nothing.</p>
 </section>
 <section id="vector-expr">
-<span id="r-3a3arbc3a3avector20expr"></span><span id="index-269"></span><span id="index-268"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">expr</span></code><a class="headerlink" href="#vector-expr" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avector20expr"></span><span id="index-273"></span><span id="index-272"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">expr</span></code><a class="headerlink" href="#vector-expr" title="Link to this heading">¶</a></h3>
 <p>Evaluates a vector expression. <code class="docutils literal notranslate"><span class="pre">expression</span></code> may contain scalars, vectors, vector ranges, arithmetic
 operators, and the vector mathematical functions described in <a class="reference internal" href="rbc-tk9-rbc-VECINST.html#r-3a3arbc3a3avecinstqzvector20expressions"><span class="std std-ref">Vector expressions</span></a>. Unlike the instance
 [VECINST::expr] operation, this command does not store the result in an existing vector.</p>
@@ -2486,7 +2558,7 @@ operators, and the vector mathematical functions described in <a class="referenc
 <p>The scalar value or list of vector values produced by the expression.</p>
 </section>
 <section id="vector-names">
-<span id="r-3a3arbc3a3avector20names"></span><span id="index-271"></span><span id="index-270"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">names</span></code><a class="headerlink" href="#vector-names" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3avector20names"></span><span id="index-275"></span><span id="index-274"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">names</span></code><a class="headerlink" href="#vector-names" title="Link to this heading">¶</a></h3>
 <p>Gives back the names of existing vectors. If <code class="docutils literal notranslate"><span class="pre">pattern</span></code> is supplied, only vector names matching the Tcl glob
 pattern are returned.</p>
 <pre class="literal-block"><strong>vector names</strong> <em>pattern</em></pre>
@@ -2500,7 +2572,7 @@ pattern are returned.</p>
 <p>A list of vector names.</p>
 </section>
 <section id="winop">
-<span id="r-3a3arbc3a3awinop"></span><span id="index-273"></span><span id="index-272"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span></code><a class="headerlink" href="#winop" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3awinop"></span><span id="index-277"></span><span id="index-276"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span></code><a class="headerlink" href="#winop" title="Link to this heading">¶</a></h3>
 <p>A
 command
 ensemble.</p>
@@ -2544,7 +2616,7 @@ ensemble.</p>
 <p>Refer to the documentation of each subcommand for details.</p>
 </section>
 <section id="winop-changes">
-<span id="r-3a3arbc3a3awinop20changes"></span><span id="index-275"></span><span id="index-274"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">changes</span></code><a class="headerlink" href="#winop-changes" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3awinop20changes"></span><span id="index-279"></span><span id="index-278"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">changes</span></code><a class="headerlink" href="#winop-changes" title="Link to this heading">¶</a></h3>
 <p>Realizes a Tk window if necessary. For a toplevel window, also requests backing-store and save-under
 attributes from the underlying window system.</p>
 <pre class="literal-block"><strong>winop changes</strong> <em>window</em></pre>
@@ -2558,7 +2630,7 @@ attributes from the underlying window system.</p>
 <p>Nothing.</p>
 </section>
 <section id="winop-colormap">
-<span id="r-3a3arbc3a3awinop20colormap"></span><span id="index-277"></span><span id="index-276"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">colormap</span></code><a class="headerlink" href="#winop-colormap" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3awinop20colormap"></span><span id="index-281"></span><span id="index-280"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">colormap</span></code><a class="headerlink" href="#winop-colormap" title="Link to this heading">¶</a></h3>
 <p>Gives back information about color cells in the colormap associated with a Tk window. This operation is
 available only on non-Windows builds and examines up to 256 colormap entries.</p>
 <pre class="literal-block"><strong>winop colormap</strong> <em>window</em></pre>
@@ -2572,7 +2644,7 @@ available only on non-Windows builds and examines up to 256 colormap entries.</p
 <p>A flat list of color and pixel-value pairs in the form <code class="docutils literal notranslate"><span class="pre">color</span> <span class="pre">pixel</span> <span class="pre">color</span> <span class="pre">pixel</span> <span class="pre">...</span></code>.</p>
 </section>
 <section id="winop-convolve">
-<span id="r-3a3arbc3a3awinop20convolve"></span><span id="index-279"></span><span id="index-278"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">convolve</span></code><a class="headerlink" href="#winop-convolve" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3awinop20convolve"></span><span id="index-283"></span><span id="index-282"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">convolve</span></code><a class="headerlink" href="#winop-convolve" title="Link to this heading">¶</a></h3>
 <p>Applies a two-dimensional convolution kernel to a Tk photo image. <code class="docutils literal notranslate"><span class="pre">filter</span></code> must be a non-empty square list
 of finite numeric values. The output has the same dimensions as the source photo. The source and destination
 may be the same image.</p>
@@ -2593,7 +2665,7 @@ may be the same image.</p>
 <p>Nothing.</p>
 </section>
 <section id="winop-image">
-<span id="r-3a3arbc3a3awinop20image"></span><span id="index-281"></span><span id="index-280"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">image</span></code><a class="headerlink" href="#winop-image" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3awinop20image"></span><span id="index-285"></span><span id="index-284"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">image</span></code><a class="headerlink" href="#winop-image" title="Link to this heading">¶</a></h3>
 <p>Dispatches grouped image-processing operations. See <a class="reference internal" href="rbc-tk9-rbc-WINOPIMAGE.html#r-3a3arbc3a3awinopimage"><span class="std std-ref">WINOPIMAGE</span></a> for the available subcommands.</p>
 <pre class="literal-block"><strong>winop image</strong> <em>subcommand ?arg ...?</em></pre>
 <p class="rubric">Parameters</p>
@@ -2606,7 +2678,7 @@ may be the same image.</p>
 <p>Result of the selected image operation.</p>
 </section>
 <section id="winop-lower">
-<span id="r-3a3arbc3a3awinop20lower"></span><span id="index-283"></span><span id="index-282"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">lower</span></code><a class="headerlink" href="#winop-lower" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3awinop20lower"></span><span id="index-287"></span><span id="index-286"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">lower</span></code><a class="headerlink" href="#winop-lower" title="Link to this heading">¶</a></h3>
 <p>Lowers one or more Tk windows to the bottom of their stacking order. Supplying no window names has no
 effect.</p>
 <pre class="literal-block"><strong>winop lower</strong> <em>?window ...?</em></pre>
@@ -2620,7 +2692,7 @@ effect.</p>
 <p>Nothing.</p>
 </section>
 <section id="winop-map">
-<span id="r-3a3arbc3a3awinop20map"></span><span id="index-285"></span><span id="index-284"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">map</span></code><a class="headerlink" href="#winop-map" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3awinop20map"></span><span id="index-289"></span><span id="index-288"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">map</span></code><a class="headerlink" href="#winop-map" title="Link to this heading">¶</a></h3>
 <p>Maps one or more windows through the underlying window system. Tk path names are the portable form of window
 identifier. Supplying no windows has no effect.</p>
 <pre class="literal-block"><strong>winop map</strong> <em>?window ...?</em></pre>
@@ -2634,7 +2706,7 @@ identifier. Supplying no windows has no effect.</p>
 <p>Nothing.</p>
 </section>
 <section id="winop-move">
-<span id="r-3a3arbc3a3awinop20move"></span><span id="index-287"></span><span id="index-286"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">move</span></code><a class="headerlink" href="#winop-move" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3awinop20move"></span><span id="index-291"></span><span id="index-290"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">move</span></code><a class="headerlink" href="#winop-move" title="Link to this heading">¶</a></h3>
 <p>Moves a Tk window to the specified coordinates using Tk’s window-moving operation. <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> are parsed as
 Tk screen distances.</p>
 <pre class="literal-block"><strong>winop move</strong> <em>window x y</em></pre>
@@ -2654,7 +2726,7 @@ Tk screen distances.</p>
 <p>Nothing.</p>
 </section>
 <section id="winop-quantize">
-<span id="r-3a3arbc3a3awinop20quantize"></span><span id="index-289"></span><span id="index-288"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">quantize</span></code><a class="headerlink" href="#winop-quantize" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3awinop20quantize"></span><span id="index-293"></span><span id="index-292"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">quantize</span></code><a class="headerlink" href="#winop-quantize" title="Link to this heading">¶</a></h3>
 <p>Reduces the number of colors in a Tk photo image. <code class="docutils literal notranslate"><span class="pre">nColors</span></code> must be between <code class="docutils literal notranslate"><span class="pre">1</span></code> and <code class="docutils literal notranslate"><span class="pre">256</span></code>. If omitted it
 defaults to <code class="docutils literal notranslate"><span class="pre">1</span></code>. The destination is resized to the source dimensions when necessary.</p>
 <pre class="literal-block"><strong>winop quantize</strong> <em>srcPhoto destPhoto ?nColors?</em></pre>
@@ -2674,14 +2746,14 @@ defaults to <code class="docutils literal notranslate"><span class="pre">1</span
 <p>Nothing.</p>
 </section>
 <section id="winop-query">
-<span id="r-3a3arbc3a3awinop20query"></span><span id="index-291"></span><span id="index-290"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">query</span></code><a class="headerlink" href="#winop-query" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3awinop20query"></span><span id="index-295"></span><span id="index-294"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">query</span></code><a class="headerlink" href="#winop-query" title="Link to this heading">¶</a></h3>
 <p>Gives back the current pointer location in root-screen coordinates.</p>
 <pre class="literal-block"><strong>winop query</strong></pre>
 <p class="rubric">Return value</p>
 <p>Pointer position in the form <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code>, or an empty result if the underlying pointer query fails.</p>
 </section>
 <section id="winop-raise">
-<span id="r-3a3arbc3a3awinop20raise"></span><span id="index-293"></span><span id="index-292"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">raise</span></code><a class="headerlink" href="#winop-raise" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3awinop20raise"></span><span id="index-297"></span><span id="index-296"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">raise</span></code><a class="headerlink" href="#winop-raise" title="Link to this heading">¶</a></h3>
 <p>Raises one or more Tk windows to the top of their stacking order. Supplying no window names has no effect.</p>
 <pre class="literal-block"><strong>winop raise</strong> <em>?window ...?</em></pre>
 <p class="rubric">Parameters</p>
@@ -2694,7 +2766,7 @@ defaults to <code class="docutils literal notranslate"><span class="pre">1</span
 <p>Nothing.</p>
 </section>
 <section id="winop-readjpeg">
-<span id="r-3a3arbc3a3awinop20readjpeg"></span><span id="index-295"></span><span id="index-294"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">readjpeg</span></code><a class="headerlink" href="#winop-readjpeg" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3awinop20readjpeg"></span><span id="index-299"></span><span id="index-298"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">readjpeg</span></code><a class="headerlink" href="#winop-readjpeg" title="Link to this heading">¶</a></h3>
 <p>Reads a JPEG file into an existing Tk photo image. The operation returns an error if JPEG support was not
 compiled into Rbc.</p>
 <pre class="literal-block"><strong>winop readjpeg</strong> <em>fileName photoName</em></pre>
@@ -2711,7 +2783,7 @@ compiled into Rbc.</p>
 <p>Nothing.</p>
 </section>
 <section id="winop-resample">
-<span id="r-3a3arbc3a3awinop20resample"></span><span id="index-297"></span><span id="index-296"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">resample</span></code><a class="headerlink" href="#winop-resample" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3awinop20resample"></span><span id="index-301"></span><span id="index-300"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">resample</span></code><a class="headerlink" href="#winop-resample" title="Link to this heading">¶</a></h3>
 <p>Copies or resamples a source photo into a destination photo. The destination’s existing dimensions determine
 the requested output size. One filter is used in both directions; two filters independently select horizontal
 and vertical filtering. With no filter, <code class="docutils literal notranslate"><span class="pre">none</span></code> is used. See <a class="reference internal" href="rbc-tk9-rbc-winop.html#r-3a3arbc3a3awinopqzimage20resampling"><span class="std std-ref">Image resampling</span></a>.</p>
@@ -2735,7 +2807,7 @@ and vertical filtering. With no filter, <code class="docutils literal notranslat
 <p>Nothing.</p>
 </section>
 <section id="winop-snap">
-<span id="r-3a3arbc3a3awinop20snap"></span><span id="index-299"></span><span id="index-298"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">snap</span></code><a class="headerlink" href="#winop-snap" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3awinop20snap"></span><span id="index-303"></span><span id="index-302"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">snap</span></code><a class="headerlink" href="#winop-snap" title="Link to this heading">¶</a></h3>
 <p>Captures a window into an existing Tk photo image. Optional positive width and height values request a
 resampled output size. If either dimension is omitted, the corresponding window dimension is used.</p>
 <pre class="literal-block"><strong>winop snap</strong> <em>window photoName ?width? ?height?</em></pre>
@@ -2758,7 +2830,7 @@ resampled output size. If either dimension is omitted, the corresponding window 
 <p>Nothing.</p>
 </section>
 <section id="winop-subsample">
-<span id="r-3a3arbc3a3awinop20subsample"></span><span id="index-301"></span><span id="index-300"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">subsample</span></code><a class="headerlink" href="#winop-subsample" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3awinop20subsample"></span><span id="index-305"></span><span id="index-304"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">subsample</span></code><a class="headerlink" href="#winop-subsample" title="Link to this heading">¶</a></h3>
 <p>Extracts a rectangular source region and copies or resamples it into a destination photo. <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> must
 be non-negative, while <code class="docutils literal notranslate"><span class="pre">width</span></code> and <code class="docutils literal notranslate"><span class="pre">height</span></code> must be positive. The region must lie completely inside the
 source image. The default filter is <code class="docutils literal notranslate"><span class="pre">box</span></code>. See <a class="reference internal" href="rbc-tk9-rbc-winop.html#r-3a3arbc3a3awinopqzsubsampling"><span class="std std-ref">Subsampling</span></a>.</p>
@@ -2794,7 +2866,7 @@ source image. The default filter is <code class="docutils literal notranslate"><
 <p>Nothing.</p>
 </section>
 <section id="winop-unmap">
-<span id="r-3a3arbc3a3awinop20unmap"></span><span id="index-303"></span><span id="index-302"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">unmap</span></code><a class="headerlink" href="#winop-unmap" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3awinop20unmap"></span><span id="index-307"></span><span id="index-306"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">unmap</span></code><a class="headerlink" href="#winop-unmap" title="Link to this heading">¶</a></h3>
 <p>Unmaps one or more windows through the underlying window system. Tk path names are the portable form of
 window identifier. Supplying no windows has no effect.</p>
 <pre class="literal-block"><strong>winop unmap</strong> <em>?window ...?</em></pre>
@@ -2808,7 +2880,7 @@ window identifier. Supplying no windows has no effect.</p>
 <p>Nothing.</p>
 </section>
 <section id="winop-warpto">
-<span id="r-3a3arbc3a3awinop20warpto"></span><span id="index-305"></span><span id="index-304"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">warpto</span></code><a class="headerlink" href="#winop-warpto" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3awinop20warpto"></span><span id="index-309"></span><span id="index-308"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">warpto</span></code><a class="headerlink" href="#winop-warpto" title="Link to this heading">¶</a></h3>
 <p>Queries or changes the pointer position. With no argument, returns the current root-screen position. An
 <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code> argument moves the pointer to those root-screen coordinates. A Tk window pathname moves the pointer to
 the center of that window, which must be mapped. The resulting pointer position is returned.</p>
@@ -2823,7 +2895,7 @@ the center of that window, which must be mapped. The resulting pointer position 
 <p>Current pointer position in the form <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code>.</p>
 </section>
 <section id="winopimage">
-<span id="r-3a3arbc3a3awinopimage"></span><span id="index-307"></span><span id="index-306"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span></code><a class="headerlink" href="#winopimage" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3awinopimage"></span><span id="index-311"></span><span id="index-310"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span></code><a class="headerlink" href="#winopimage" title="Link to this heading">¶</a></h3>
 <p>A
 command
 ensemble.</p>
@@ -2849,7 +2921,7 @@ ensemble.</p>
 <p>Refer to the documentation of each subcommand for details.</p>
 </section>
 <section id="winopimage-convolve">
-<span id="r-3a3arbc3a3awinopimage20convolve"></span><span id="index-309"></span><span id="index-308"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">convolve</span></code><a class="headerlink" href="#winopimage-convolve" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3awinopimage20convolve"></span><span id="index-313"></span><span id="index-312"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">convolve</span></code><a class="headerlink" href="#winopimage-convolve" title="Link to this heading">¶</a></h3>
 <p>Applies a two-dimensional convolution kernel to a Tk photo image. This is the grouped form of
 [::rbc::winop::convolve].</p>
 <pre class="literal-block"><strong>WINOPIMAGE convolve</strong> <em>srcPhoto destPhoto filter</em></pre>
@@ -2869,7 +2941,7 @@ ensemble.</p>
 <p>Nothing.</p>
 </section>
 <section id="winopimage-gradient">
-<span id="r-3a3arbc3a3awinopimage20gradient"></span><span id="index-311"></span><span id="index-310"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">gradient</span></code><a class="headerlink" href="#winopimage-gradient" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3awinopimage20gradient"></span><span id="index-315"></span><span id="index-314"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">gradient</span></code><a class="headerlink" href="#winopimage-gradient" title="Link to this heading">¶</a></h3>
 <p>Generates a gradient directly into an existing Tk photo image. <code class="docutils literal notranslate"><span class="pre">left</span></code> and <code class="docutils literal notranslate"><span class="pre">right</span></code> are Tk colors. <code class="docutils literal notranslate"><span class="pre">type</span></code> may
 be <code class="docutils literal notranslate"><span class="pre">linear</span></code>, <code class="docutils literal notranslate"><span class="pre">radial</span></code>, <code class="docutils literal notranslate"><span class="pre">rectangular</span></code>, or <code class="docutils literal notranslate"><span class="pre">blank</span></code>. The current dimensions of <code class="docutils literal notranslate"><span class="pre">photo</span></code> determine the generated
 image size.</p>
@@ -2893,7 +2965,7 @@ image size.</p>
 <p>Nothing.</p>
 </section>
 <section id="winopimage-readjpeg">
-<span id="r-3a3arbc3a3awinopimage20readjpeg"></span><span id="index-313"></span><span id="index-312"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">readjpeg</span></code><a class="headerlink" href="#winopimage-readjpeg" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3awinopimage20readjpeg"></span><span id="index-317"></span><span id="index-316"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">readjpeg</span></code><a class="headerlink" href="#winopimage-readjpeg" title="Link to this heading">¶</a></h3>
 <p>Reads a JPEG file into an existing Tk photo image. This is the grouped form of
 [::rbc::winop::readjpeg].</p>
 <pre class="literal-block"><strong>WINOPIMAGE readjpeg</strong> <em>fileName photoName</em></pre>
@@ -2910,7 +2982,7 @@ image size.</p>
 <p>Nothing.</p>
 </section>
 <section id="winopimage-resample">
-<span id="r-3a3arbc3a3awinopimage20resample"></span><span id="index-315"></span><span id="index-314"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">resample</span></code><a class="headerlink" href="#winopimage-resample" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3awinopimage20resample"></span><span id="index-319"></span><span id="index-318"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">resample</span></code><a class="headerlink" href="#winopimage-resample" title="Link to this heading">¶</a></h3>
 <p>Copies or resamples a source photo into a destination photo. This is the grouped form of
 [::rbc::winop::resample].</p>
 <pre class="literal-block"><strong>WINOPIMAGE resample</strong> <em>srcPhoto destPhoto ?horzFilter? ?vertFilter?</em></pre>
@@ -2933,7 +3005,7 @@ image size.</p>
 <p>Nothing.</p>
 </section>
 <section id="winopimage-rotate">
-<span id="r-3a3arbc3a3awinopimage20rotate"></span><span id="index-317"></span><span id="index-316"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">rotate</span></code><a class="headerlink" href="#winopimage-rotate" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3awinopimage20rotate"></span><span id="index-321"></span><span id="index-320"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">rotate</span></code><a class="headerlink" href="#winopimage-rotate" title="Link to this heading">¶</a></h3>
 <p>Rotates a Tk photo image by a finite angle expressed in degrees. <code class="docutils literal notranslate"><span class="pre">angle</span></code> may be a Tcl numeric expression. The
 destination photo is resized to contain the rotated result.</p>
 <pre class="literal-block"><strong>WINOPIMAGE rotate</strong> <em>srcPhoto destPhoto angle</em></pre>
@@ -2953,7 +3025,7 @@ destination photo is resized to contain the rotated result.</p>
 <p>Nothing.</p>
 </section>
 <section id="winopimage-snap">
-<span id="r-3a3arbc3a3awinopimage20snap"></span><span id="index-319"></span><span id="index-318"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">snap</span></code><a class="headerlink" href="#winopimage-snap" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3awinopimage20snap"></span><span id="index-323"></span><span id="index-322"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">snap</span></code><a class="headerlink" href="#winopimage-snap" title="Link to this heading">¶</a></h3>
 <p>Captures a window into an existing Tk photo image. This is the grouped form of [::rbc::winop::snap].</p>
 <pre class="literal-block"><strong>WINOPIMAGE snap</strong> <em>window photoName ?width? ?height?</em></pre>
 <p class="rubric">Parameters</p>
@@ -2975,7 +3047,7 @@ destination photo is resized to contain the rotated result.</p>
 <p>Nothing.</p>
 </section>
 <section id="winopimage-subsample">
-<span id="r-3a3arbc3a3awinopimage20subsample"></span><span id="index-321"></span><span id="index-320"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">subsample</span></code><a class="headerlink" href="#winopimage-subsample" title="Link to this heading">¶</a></h3>
+<span id="r-3a3arbc3a3awinopimage20subsample"></span><span id="index-325"></span><span id="index-324"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">subsample</span></code><a class="headerlink" href="#winopimage-subsample" title="Link to this heading">¶</a></h3>
 <p>Extracts and optionally resamples a rectangular region of a source photo. This is the grouped form of
 [::rbc::winop::subsample].</p>
 <pre class="literal-block"><strong>WINOPIMAGE subsample</strong> <em>srcPhoto destPhoto x y width height ?horzFilter? ?vertFilter?</em></pre>
@@ -3123,12 +3195,14 @@ destination photo is resized to contain the rotated result.</p>
 <li><a class="reference internal" href="#pen-delete"><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">delete</span></code></a></li>
 <li><a class="reference internal" href="#pen-names"><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">names</span></code></a></li>
 <li><a class="reference internal" href="#pen-type"><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">type</span></code></a></li>
+<li><a class="reference internal" href="#polar"><code class="docutils literal notranslate"><span class="pre">polar</span></code></a></li>
 <li><a class="reference internal" href="#postscript"><code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span></code></a></li>
 <li><a class="reference internal" href="#postscript-cget"><code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span> <span class="pre">cget</span></code></a></li>
 <li><a class="reference internal" href="#postscript-configure"><code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span> <span class="pre">configure</span></code></a></li>
 <li><a class="reference internal" href="#postscript-output"><code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span> <span class="pre">output</span></code></a></li>
 <li><a class="reference internal" href="#spline"><code class="docutils literal notranslate"><span class="pre">spline</span></code></a></li>
 <li><a class="reference internal" href="#spline-natural"><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">natural</span></code></a></li>
+<li><a class="reference internal" href="#spline-parametric"><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">parametric</span></code></a></li>
 <li><a class="reference internal" href="#spline-quadratic"><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">quadratic</span></code></a></li>
 <li><a class="reference internal" href="#stripchart"><code class="docutils literal notranslate"><span class="pre">stripchart</span></code></a></li>
 <li><a class="reference internal" href="#vecinst"><code class="docutils literal notranslate"><span class="pre">VECINST</span></code></a></li>

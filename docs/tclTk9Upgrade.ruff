@@ -142,21 +142,17 @@ namespace eval TclTk9Upgrade {
 
         ### Spline subsystem
 
-        The spline implementation received both Tcl 9 size conversion and significant correctness hardening.
+        The spline subsystem was subsequently extended with direct complex-vector parametric interpolation.
 
-        - Converted point counts and indexes to `Tcl_Size`.
-        - Added allocation-overflow checks.
-        - Added explicit validation of finite source and interpolation coordinates.
-        - Added validation that source X coordinates satisfy the requirements of the selected spline algorithm.
-        - Made spline command execution transactional.
-        - Source vectors are now validated and copied before modifying the output vector.
-        - Fixed aliasing cases where the destination vector is also one of the input vectors.
-        - Prevented partial modification of interpolation arrays when validation fails.
-        - Improved const-correctness of spline input arrays.
-        - Corrected natural/quadratic spline behavior for descending screen coordinates.
-        - Added support for descending X axes and inverted graph axes without incorrectly rejecting otherwise valid
-          spline data.
-        - Added regression tests for invalid values, duplicate coordinates, aliasing and direction handling.
+        - Added `spline parametric natural source result samples`.
+        - Added `spline parametric quadratic source result samples`.
+        - Parametric source and result vectors are first-class complex Rbc vectors.
+        - Parametric splines use cumulative two-dimensional chord length and do not require either Cartesian
+          coordinate to be monotonic.
+        - Vertical paths, reversing paths and loop-like trajectories are supported.
+        - Consecutive duplicate source points are rejected because they create a zero-length parameter interval.
+        - Parametric generation is transactional and supports source/result aliasing.
+        - The original scalar real-vector spline interface remains unchanged.
 
         ### Vector subsystem
 
@@ -317,16 +313,57 @@ namespace eval TclTk9Upgrade {
         `imag`, `abs`, and `arg`, and complex statistical reductions.
 
         Operations that require an ordering of values remain real-only. In particular, `sort` and `normalize` are not
-        supported for complex vectors. Graph element data and spline interpolation also remain real-valued and reject
-        complex vectors; applications can explicitly derive a real vector using operations such as `real`, `imag`,
-        `abs`, or `arg`.
+        supported for complex vectors.
+
+        Traditional graph, barchart, and stripchart X/Y element data remain real-valued. Polar elements can attach a
+        complex vector directly through `-cdata`, and the spline subsystem provides complex-vector parametric natural
+        and quadratic interpolation.
+
+        Applications can still explicitly derive real projections such as `real`, `imag`, `abs`, or `arg` when a
+        traditional Cartesian graph or scalar spline is required.
 
         The public C API was extended with typed vector access, including `Rbc_VectorType`, `Rbc_Complex`,
         `Rbc_CreateVectorWithType()`, `Rbc_VectorComplexData()`, `Rbc_ResetComplexVector()`, and
         `Rbc_VectorChanged()`. The original real-vector API remains available for compatibility.
 
-        #### Plot-only element hiding
+        #### Polar and Smith charts
+        This fork adds the `polar` graph widget for plotting Cartesian complex-plane data with either a conventional
+        Polar grid or a Smith-chart representation.
 
+        Polar element data remain Cartesian: X is the real coordinate and Y is the imaginary coordinate. Elements may
+        use ordinary X/Y data or attach first-class complex vectors directly with `-cdata`.
+
+        Complex data can be interpreted as:
+        - reflection coefficient with `-cdataformat gamma`;
+        - physical impedance with `-cdataformat impedance`;
+        - physical admittance with `-cdataformat admittance`.
+
+        The `-z0` option specifies the positive reference impedance used for impedance/admittance conversion.
+
+        Smith charts support impedance, admittance, or combined contour grids, configurable major/minor normalized
+        contour values, and Tcl callbacks for formatting real and imaginary contour labels.
+
+        Polar grids provide independently configurable angular major/minor spokes, angular label callbacks, radial
+        label formatting through the mapped X axis, and configurable label anchoring.
+
+        Polar and Smith grid geometry follows the axes selected by `grid -mapx/-mapy`.
+
+        Unless `-aspect` is explicitly configured, Polar widgets automatically maintain equal physical scale for X and
+        Y data units. This keeps circles circular even when the mapped numerical X/Y ranges have different spans.
+
+        Natural/cubic and quadratic smoothing on Polar elements is parametric, allowing vertical paths,
+        non-monotonic-X paths and loops. Catmull-Rom smoothing remains parametric as well.
+
+        Missing, non-finite, logarithmically invalid, or singular impedance/admittance points split a trace into
+        continuous runs. Smoothing is performed independently on those runs and never bridges a gap.
+
+        `element closest` on a Polar widget additionally reports radius and angle. In Smith representation it also
+        reports Gamma together with normalized and physical impedance and admittance quantities.
+
+        Polar/Smith grid rendering, labels, custom formatter callbacks and smoothed element traces are supported by
+        PostScript output as well as on-screen drawing.
+
+        #### Plot-only element hiding
         Line, stripchart, and bar elements now support the `-hideplot` option.
 
         Unlike `-hide`, which removes an element from the graph display list, `-hideplot yes` suppresses plotting while
@@ -341,7 +378,6 @@ namespace eval TclTk9Upgrade {
         `-hideplot` state.
 
         #### Arrowheads for line markers
-
         Line markers now support arrowheads through the `-arrow` and `-arrowshape` options.
 
         `-arrow` accepts `none`, `first`, `last`, or `both`, allowing an arrowhead to be drawn at either or both ends
@@ -361,7 +397,6 @@ namespace eval TclTk9Upgrade {
         vertex. This keeps arrow rendering consistent across supported platforms.
 
         #### Bar geometry from `element closest`
-
         The `element closest` operation now provides additional geometry information when the selected element is a bar.
 
         In addition to the normal `name`, `index`, `x`, `y`, and `dist` entries, the result array contains:

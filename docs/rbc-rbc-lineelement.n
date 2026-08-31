@@ -158,16 +158,23 @@ For example:
 .fi
 .RE
 .PP
-Spline smoothing operates on mapped screen coordinates\&. This means it follows the actual displayed geometry,
-including descending axes, inverted graphs, and logarithmic mapping\&.
+Smoothing is performed on mapped screen coordinates, so it follows the geometry that is actually displayed\&.
 .PP
-Natural, quadratic, and Catmull-Rom smoothing require at least three mapped points\&.
+For ordinary graph and stripchart elements, natural/cubic and quadratic retain the traditional
+function-style spline behavior\&. catrom is parametric\&.
 .PP
-Spline smoothing is not performed across missing or invalid data\&. If the mapped data contain a discontinuity,
-the current implementation falls back to ordinary linear segments for the element rather than constructing
-separate splines for each continuous run\&.
+For elements belonging to a polar widget, natural/cubic and quadratic are instead evaluated as
+parametric two-dimensional splines\&. Consequently a Polar trace may be vertical, may reverse direction in X,
+and may form a loop without forcing smoothing to fall back merely because X is non-monotonic\&.
 .PP
-Step smoothing preserves discontinuities and never manufactures a step across a missing-data boundary\&.
+Missing, non-finite, logarithmically invalid, or singular complex points create trace breaks\&. Spline smoothing
+is performed independently on each continuous run containing enough points\&. No smoothing mode interpolates
+across a trace break\&.
+.PP
+step remains Cartesian step-and-hold interpolation\&.
+.PP
+Smoothing never implicitly closes an element\&. Repeat the first source point as the final source point when a
+closed trace is required\&.
 .SH "TRACE DIRECTION"
 .PP
 -trace determines whether connecting segments are drawn when X values change direction\&.

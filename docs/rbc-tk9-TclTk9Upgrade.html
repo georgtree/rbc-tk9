@@ -180,20 +180,16 @@ time.</p>
 </section>
 <section id="spline-subsystem">
 <span id="r-tcltk9upgrade-spline-subsystem"></span><span id="r-3a3atcltk9upgradeqzspline20subsystem"></span><h3>Spline subsystem<a class="headerlink" href="#spline-subsystem" title="Link to this heading">¶</a></h3>
-<p>The spline implementation received both Tcl 9 size conversion and significant correctness hardening.</p>
+<p>The spline subsystem was subsequently extended with direct complex-vector parametric interpolation.</p>
 <ul class="simple">
-<li><p>Converted point counts and indexes to <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code>.</p></li>
-<li><p>Added allocation-overflow checks.</p></li>
-<li><p>Added explicit validation of finite source and interpolation coordinates.</p></li>
-<li><p>Added validation that source X coordinates satisfy the requirements of the selected spline algorithm.</p></li>
-<li><p>Made spline command execution transactional.</p></li>
-<li><p>Source vectors are now validated and copied before modifying the output vector.</p></li>
-<li><p>Fixed aliasing cases where the destination vector is also one of the input vectors.</p></li>
-<li><p>Prevented partial modification of interpolation arrays when validation fails.</p></li>
-<li><p>Improved const-correctness of spline input arrays.</p></li>
-<li><p>Corrected natural/quadratic spline behavior for descending screen coordinates.</p></li>
-<li><p>Added support for descending X axes and inverted graph axes without incorrectly rejecting otherwise valid spline data.</p></li>
-<li><p>Added regression tests for invalid values, duplicate coordinates, aliasing and direction handling.</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">parametric</span> <span class="pre">natural</span> <span class="pre">source</span> <span class="pre">result</span> <span class="pre">samples</span></code>.</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">parametric</span> <span class="pre">quadratic</span> <span class="pre">source</span> <span class="pre">result</span> <span class="pre">samples</span></code>.</p></li>
+<li><p>Parametric source and result vectors are first-class complex Rbc vectors.</p></li>
+<li><p>Parametric splines use cumulative two-dimensional chord length and do not require either Cartesian coordinate to be monotonic.</p></li>
+<li><p>Vertical paths, reversing paths and loop-like trajectories are supported.</p></li>
+<li><p>Consecutive duplicate source points are rejected because they create a zero-length parameter interval.</p></li>
+<li><p>Parametric generation is transactional and supports source/result aliasing.</p></li>
+<li><p>The original scalar real-vector spline interface remains unchanged.</p></li>
 </ul>
 </section>
 <section id="vector-subsystem">
@@ -347,12 +343,44 @@ with <code class="docutils literal notranslate"><span class="pre">-type</span> <
 arithmetic, complex exponentiation, trigonometric and logarithmic functions, projections such as <code class="docutils literal notranslate"><span class="pre">real</span></code>,
 <code class="docutils literal notranslate"><span class="pre">imag</span></code>, <code class="docutils literal notranslate"><span class="pre">abs</span></code>, and <code class="docutils literal notranslate"><span class="pre">arg</span></code>, and complex statistical reductions.</p>
 <p>Operations that require an ordering of values remain real-only. In particular, <code class="docutils literal notranslate"><span class="pre">sort</span></code> and <code class="docutils literal notranslate"><span class="pre">normalize</span></code> are not
-supported for complex vectors. Graph element data and spline interpolation also remain real-valued and reject
-complex vectors; applications can explicitly derive a real vector using operations such as <code class="docutils literal notranslate"><span class="pre">real</span></code>, <code class="docutils literal notranslate"><span class="pre">imag</span></code>,
-<code class="docutils literal notranslate"><span class="pre">abs</span></code>, or <code class="docutils literal notranslate"><span class="pre">arg</span></code>.</p>
+supported for complex vectors.</p>
+<p>Traditional graph, barchart, and stripchart X/Y element data remain real-valued. Polar elements can attach a
+complex vector directly through <code class="docutils literal notranslate"><span class="pre">-cdata</span></code>, and the spline subsystem provides complex-vector parametric natural
+and quadratic interpolation.</p>
+<p>Applications can still explicitly derive real projections such as <code class="docutils literal notranslate"><span class="pre">real</span></code>, <code class="docutils literal notranslate"><span class="pre">imag</span></code>, <code class="docutils literal notranslate"><span class="pre">abs</span></code>, or <code class="docutils literal notranslate"><span class="pre">arg</span></code> when a
+traditional Cartesian graph or scalar spline is required.</p>
 <p>The public C API was extended with typed vector access, including <code class="docutils literal notranslate"><span class="pre">Rbc_VectorType</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_Complex</span></code>,
 <code class="docutils literal notranslate"><span class="pre">Rbc_CreateVectorWithType()</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_VectorComplexData()</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_ResetComplexVector()</span></code>, and
 <code class="docutils literal notranslate"><span class="pre">Rbc_VectorChanged()</span></code>. The original real-vector API remains available for compatibility.</p>
+</section>
+<section id="polar-and-smith-charts">
+<span id="r-tcltk9upgrade-polar-and-smith-charts"></span><span id="r-3a3atcltk9upgradeqzpolar20and20smith20charts"></span><h4>Polar and Smith charts<a class="headerlink" href="#polar-and-smith-charts" title="Link to this heading">¶</a></h4>
+<p>This fork adds the <code class="docutils literal notranslate"><span class="pre">polar</span></code> graph widget for plotting Cartesian complex-plane data with either a conventional
+Polar grid or a Smith-chart representation.</p>
+<p>Polar element data remain Cartesian: X is the real coordinate and Y is the imaginary coordinate. Elements may
+use ordinary X/Y data or attach first-class complex vectors directly with <code class="docutils literal notranslate"><span class="pre">-cdata</span></code>.</p>
+<p>Complex data can be interpreted as:</p>
+<ul class="simple">
+<li><p>reflection coefficient with <code class="docutils literal notranslate"><span class="pre">-cdataformat</span> <span class="pre">gamma</span></code>;</p></li>
+<li><p>physical impedance with <code class="docutils literal notranslate"><span class="pre">-cdataformat</span> <span class="pre">impedance</span></code>;</p></li>
+<li><p>physical admittance with <code class="docutils literal notranslate"><span class="pre">-cdataformat</span> <span class="pre">admittance</span></code>.</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">-z0</span></code> option specifies the positive reference impedance used for impedance/admittance conversion.</p>
+<p>Smith charts support impedance, admittance, or combined contour grids, configurable major/minor normalized
+contour values, and Tcl callbacks for formatting real and imaginary contour labels.</p>
+<p>Polar grids provide independently configurable angular major/minor spokes, angular label callbacks, radial
+label formatting through the mapped X axis, and configurable label anchoring.</p>
+<p>Polar and Smith grid geometry follows the axes selected by <code class="docutils literal notranslate"><span class="pre">grid</span> <span class="pre">-mapx/-mapy</span></code>.</p>
+<p>Unless <code class="docutils literal notranslate"><span class="pre">-aspect</span></code> is explicitly configured, Polar widgets automatically maintain equal physical scale for X and
+Y data units. This keeps circles circular even when the mapped numerical X/Y ranges have different spans.</p>
+<p>Natural/cubic and quadratic smoothing on Polar elements is parametric, allowing vertical paths,
+non-monotonic-X paths and loops. Catmull-Rom smoothing remains parametric as well.</p>
+<p>Missing, non-finite, logarithmically invalid, or singular impedance/admittance points split a trace into
+continuous runs. Smoothing is performed independently on those runs and never bridges a gap.</p>
+<p><code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code> on a Polar widget additionally reports radius and angle. In Smith representation it also
+reports Gamma together with normalized and physical impedance and admittance quantities.</p>
+<p>Polar/Smith grid rendering, labels, custom formatter callbacks and smoothed element traces are supported by
+PostScript output as well as on-screen drawing.</p>
 </section>
 <section id="plot-only-element-hiding">
 <span id="r-tcltk9upgrade-plot-only-element-hiding"></span><span id="r-3a3atcltk9upgradeqzplot2donly20element20hiding"></span><h4>Plot-only element hiding<a class="headerlink" href="#plot-only-element-hiding" title="Link to this heading">¶</a></h4>
@@ -475,6 +503,7 @@ relevant rendering code is replaced with an independent backend.</p>
 <li><a class="reference internal" href="#bindings-and-tags">Bindings and tags</a></li>
 <li><a class="reference internal" href="#user-visible-additions">User-visible additions</a><ul>
 <li><a class="reference internal" href="#complex-vectors">Complex vectors</a></li>
+<li><a class="reference internal" href="#polar-and-smith-charts">Polar and Smith charts</a></li>
 <li><a class="reference internal" href="#plot-only-element-hiding">Plot-only element hiding</a></li>
 <li><a class="reference internal" href="#arrowheads-for-line-markers">Arrowheads for line markers</a></li>
 <li><a class="reference internal" href="#bar-geometry-from-element-closest">Bar geometry from <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code></a></li>

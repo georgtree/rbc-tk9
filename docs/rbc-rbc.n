@@ -229,6 +229,8 @@ rbc - Commands in namespace rbc
 .br
 \fBPEN type\fP \fIpenName\fP
 .br
+\fBpolar\fP \fIpathName ?option value \&.\&.\&.?\fP
+.br
 \fBPOSTSCRIPT\fP \fIsubcommand \&.\&.\&.\fP
 .br
 \fBPOSTSCRIPT cget\fP \fIoption\fP
@@ -240,6 +242,8 @@ rbc - Commands in namespace rbc
 \fBspline\fP \fIsubcommand \&.\&.\&.\fP
 .br
 \fBspline natural\fP \fIx y splX splY\fP
+.br
+\fBspline parametric\fP \fIoperation source result samples\fP
 .br
 \fBspline quadratic\fP \fIx y splX splY\fP
 .br
@@ -920,7 +924,7 @@ Queries or modifies event bindings for element binding tags\&. With no arguments
 Queries the current value of an element configuration option\&. The available options depend on the concrete element type\&.
 .TP
 \fIclosest\fP
-Finds the visible element nearest to the specified window coordinate\&. On success, stores information in the Tcl array varName using the keys name, index, x, y, and dist\&. Searches all visible elements unless one or more element names are supplied after the options\&.
+Finds the visible element nearest to the specified window coordinate\&. On success, stores information in the Tcl array varName using the common keys name, index, x, y, and dist\&. A selected bar element additionally reports its mapped rectangle geometry\&. A selected element in a polar widget additionally reports radius and angle; in Smith representation it also reports Gamma, normalized and physical impedance, normalized and physical admittance, and z0\&. See \fIPolar elements\fP for the complete Polar/Smith result set\&.
 .TP
 \fIconfigure\fP
 Queries or modifies element configuration\&. When querying, one element name is supplied\&. When setting options, multiple element names may precede the option/value pairs and the same configuration is applied to each named element\&.
@@ -947,7 +951,7 @@ Gives back the names of existing graph elements\&. With no patterns, all element
 Queries or replaces the element display list\&. With no argument, returns the currently displayed elements in drawing order\&. With elemList, displays only the listed elements and hides all others\&. The list order determines drawing order; later elements are drawn above earlier elements\&. Unknown element names are ignored\&. An empty list hides all elements\&.
 .TP
 \fItype\fP
-Gives back the concrete class of the named element\&. Current results are LineElement, BarElement, and StripElement\&.
+Gives back the concrete class of the named element\&. Current results are LineElement, BarElement, StripElement, and PolarElement\&.
 .RE
 .PP
 Refer to the documentation of each subcommand for details\&.
@@ -1046,8 +1050,11 @@ Current value of option\&.
 .RE
 .PP
 Finds the visible element nearest to the specified window coordinate\&. On success, stores information in the
-Tcl array varName using the keys name, index, x, y, and dist\&. Searches all visible elements
-unless one or more element names are supplied after the options\&.
+Tcl array varName using the common keys name, index, x, y, and dist\&.
+A selected bar element additionally reports its mapped rectangle geometry\&. A selected element in a polar
+widget additionally reports radius and angle; in Smith representation it also reports Gamma, normalized
+and physical impedance, normalized and physical admittance, and z0\&. See \fIPolar elements\fP for the complete
+Polar/Smith result set\&.
 .RS 4n
 \fBELEMENT closest\fP \fIx y varName ?option value \&.\&.\&.? ?--? ?elemName \&.\&.\&.?\fP
 .br
@@ -1072,7 +1079,7 @@ Measure distance along x, y, or both; the default is both\&.
 Maximum non-negative search distance in screen pixels; the graph -halo value is the default\&.
 .TP
 -interpolate boolean
-For line and strip elements, search along rendered traces instead of only data points\&.
+For line, strip, and polar elements, searches along the rendered trace when true instead of considering only data points\&.
 .TP
 elemName
 Optional element name restricting the search\&.
@@ -1146,7 +1153,10 @@ graph creates a line element;
 barchart creates a bar element;
 .TP
 \(bu
-stripchart creates a strip element\&. GRAPHINST line create always creates a line element and GRAPHINST bar create always creates a bar element, regardless of the widget's default element type\&.
+stripchart creates a strip element;
+.TP
+\(bu
+polar creates a polar element\&. GRAPHINST line create always creates a line element and GRAPHINST bar create always creates a bar element, regardless of the widget's default element type\&.
 .RS 4n
 .TP
 elemName
@@ -1159,8 +1169,8 @@ value
 Initial value for the option\&.
 .RE
 .PP
-See \fILINEELEMENT\fP for line-element options, \fISTRIPELEMENT\fP for strip-element options, and \fIBARELEMENT\fP for
-bar-element options\&.
+See \fILINEELEMENT\fP for line-element options, \fISTRIPELEMENT\fP for strip-element options, \fIBARELEMENT\fP for
+bar-element options and \fIPOLARELEMENT\fP for strip-element options
 .PP
 \fBReturn value\fR
 .PP
@@ -1302,8 +1312,8 @@ Current element display list\&.
 \fBELEMENT type\fR (::rbc)
 .RE
 .PP
-Gives back the concrete class of the named element\&. Current results are LineElement, BarElement, and
-StripElement\&.
+Gives back the concrete class of the named element\&. Current results are LineElement, BarElement,
+StripElement, and PolarElement\&.
 .RS 4n
 \fBELEMENT type\fP \fIelemName\fP
 .br
@@ -2975,6 +2985,59 @@ Name of the pen\&.
 LineElement or BarElement\&.
 .PP
 .RS -4n
+\fBpolar\fR (::rbc)
+.RE
+.PP
+Creates a polar graph widget\&. A polar widget uses polar elements as its default element type and represents
+data in the Cartesian complex plane, where X is the real coordinate and Y is the imaginary coordinate\&.
+.RS 4n
+\fBpolar\fP \fIpathName ?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+pathName
+Tk pathname of the polar widget to create\&.
+.TP
+option
+Graph widget configuration option\&.
+.TP
+value
+Value for the configuration option\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+The -representation option selects either a conventional polar grid or a Smith-chart grid\&. The underlying
+element coordinates remain Cartesian in both representations\&.
+.PP
+Polar elements may use ordinary X/Y data or may obtain their data directly from a complex Rbc vector with
+the element -cdata option\&. Complex data may represent reflection coefficient, impedance, or admittance\&.
+.PP
+Unless -aspect is explicitly configured, a polar widget automatically adjusts the physical plotting-area
+aspect ratio so that one X data unit and one Y data unit have the same screen scale\&. This keeps polar circles
+and Smith-chart circles circular even when the mapped X and Y numerical ranges have different spans\&.
+.PP
+Example:
+.PP
+.RS 4n
+.nf
+vector create gamma -type complex
+gamma set {{0 0} {0\&.25 0\&.4} {-0\&.2 0\&.6}}
+
+polar \&.p -representation smith -width 600 -height 500
+\&.p element create trace -cdata gamma -smooth natural
+pack \&.p -fill both -expand yes
+.fi
+.RE
+.PP
+\fBReturn value\fR
+.PP
+The pathname of the newly created polar widget\&.
+.PP
+.RS -4n
 \fBPOSTSCRIPT\fR (::rbc)
 .RE
 .PP
@@ -3098,10 +3161,13 @@ The ensemble supports the following subcommands:
 .RS 4n
 .TP
 \fInatural\fP
-Computes a natural cubic spline through the source vectors x and y and evaluates it at every X coordinate in splX\&. Evaluation coordinates may appear in any order\&. Coordinates outside the source X range are extrapolated using the cubic polynomial of the first or last spline interval\&.
+Computes a scalar natural cubic spline through real source vectors x and y and evaluates it at every X coordinate in splX\&. Evaluation coordinates may appear in any order and may lie outside the source X range\&.
+.TP
+\fIparametric\fP
+Computes a two-dimensional parametric spline through a complex source vector\&.
 .TP
 \fIquadratic\fP
-Computes a shape-preserving quadratic spline through the source vectors x and y and evaluates it at every X coordinate in splX\&. Evaluation coordinates may appear in any order\&. Coordinates outside the source X range are extrapolated using the spline defined by the first or last source interval\&.
+Computes a scalar shape-preserving quadratic spline through real source vectors x and y and evaluates it at every X coordinate in splX\&. Evaluation coordinates may appear in any order and may lie outside the source X range\&.
 .RE
 .PP
 Refer to the documentation of each subcommand for details\&.
@@ -3110,9 +3176,8 @@ Refer to the documentation of each subcommand for details\&.
 \fBspline natural\fR (::rbc)
 .RE
 .PP
-Computes a natural cubic spline through the source vectors x and y and evaluates it at every X
-coordinate in splX\&. Evaluation coordinates may appear in any order\&. Coordinates outside the source
-X range are extrapolated using the cubic polynomial of the first or last spline interval\&.
+Computes a scalar natural cubic spline through real source vectors x and y and evaluates it at every X
+coordinate in splX\&. Evaluation coordinates may appear in any order and may lie outside the source X range\&.
 .RS 4n
 \fBspline natural\fP \fIx y splX splY\fP
 .br
@@ -3122,16 +3187,59 @@ X range are extrapolated using the cubic polynomial of the first or last spline 
 .RS 4n
 .TP
 x
-Vector containing the finite, strictly increasing X coordinates of the source points\&.
+Real vector containing finite, strictly increasing X coordinates of the source points\&.
 .TP
 y
-Vector containing the finite Y coordinates of the source points; it must have the same length as x\&.
+Real vector containing finite Y coordinates; it must have the same length as x\&.
 .TP
 splX
-Vector containing finite X coordinates at which the spline is evaluated; values may be in any order and may lie outside the source X range\&.
+Real vector containing finite X coordinates at which the spline is evaluated\&.
 .TP
 splY
-Vector in which the interpolated or extrapolated Y coordinates are stored; it is created or resized as necessary\&.
+Real result vector; it is created or resized as necessary\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBspline parametric\fR (::rbc)
+.RE
+.PP
+Computes a two-dimensional parametric spline through a complex source vector\&.
+.RS 4n
+\fBspline parametric\fP \fIoperation source result samples\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+operation
+Interpolation algorithm; must be natural or quadratic\&.
+.TP
+source
+Complex vector containing at least three finite two-dimensional source points\&. Consecutive points must be distinct\&.
+.TP
+result
+Complex vector receiving the generated path\&. It is created or resized as necessary and may be the same vector as source\&.
+.TP
+samples
+Number of generated points\&. Must be at least two\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+Example:
+.PP
+.RS 4n
+.nf
+vector create z -type complex
+z set {{0 0} {1 1} {0 2} {-1 1} {0 0}}
+
+spline parametric natural z smoothZ 200
+.fi
 .RE
 .PP
 \fBReturn value\fR
@@ -3142,9 +3250,9 @@ Nothing\&.
 \fBspline quadratic\fR (::rbc)
 .RE
 .PP
-Computes a shape-preserving quadratic spline through the source vectors x and y and evaluates it at
-every X coordinate in splX\&. Evaluation coordinates may appear in any order\&. Coordinates outside the
-source X range are extrapolated using the spline defined by the first or last source interval\&.
+Computes a scalar shape-preserving quadratic spline through real source vectors x and y and evaluates it
+at every X coordinate in splX\&. Evaluation coordinates may appear in any order and may lie outside the
+source X range\&.
 .RS 4n
 \fBspline quadratic\fP \fIx y splX splY\fP
 .br
@@ -3154,16 +3262,16 @@ source X range are extrapolated using the spline defined by the first or last so
 .RS 4n
 .TP
 x
-Vector containing the finite, strictly increasing X coordinates of the source points\&.
+Real vector containing finite, strictly increasing X coordinates of the source points\&.
 .TP
 y
-Vector containing the finite Y coordinates of the source points; it must have the same length as x\&.
+Real vector containing finite Y coordinates; it must have the same length as x\&.
 .TP
 splX
-Vector containing finite X coordinates at which the spline is evaluated; values may be in any order and may lie outside the source X range\&.
+Real vector containing finite X coordinates at which the spline is evaluated\&.
 .TP
 splY
-Vector in which the interpolated or extrapolated Y coordinates are stored; it is created or resized as necessary\&.
+Real result vector; it is created or resized as necessary\&.
 .RE
 .PP
 \fBReturn value\fR

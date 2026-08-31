@@ -68,26 +68,73 @@ preserves its current type\&.
 .PP
 Real vectors retain the traditional automatic Tcl array mapping\&. Complex vectors do not receive an automatic
 array mapping, but one may be requested explicitly with -variable or later with \fIVECINST::variable\fP\&.
-.SH "GRAPH AND SPLINE RESTRICTIONS"
+.SH "GRAPH AND SPLINE INTEGRATION"
 .PP
-Complex vectors are supported by the vector subsystem, but graph element data and spline interpolation
-currently remain real-valued\&.
+Complex vectors are supported directly by Polar graph elements and by parametric spline interpolation\&.
 .PP
-Graph, barchart, and stripchart element data vectors must be real\&. A complex vector used as graph element data
-is rejected rather than being implicitly converted to its real part, magnitude, or another projection\&.
+Traditional graph, barchart, and stripchart element data remain real-valued\&. A complex vector supplied
+to their ordinary X/Y data options is rejected rather than being implicitly converted to a real part,
+magnitude, or another projection\&.
 .PP
-The spline command likewise requires its source X vector, source Y vector, interpolation X vector, and result
-vector to be real\&.
+A widget created by polar can attach a complex vector directly with the element -cdata option:
 .PP
-A real vector suitable for graphing or interpolation can be derived explicitly from a complex vector using
-expression functions such as real, imag, abs, or arg:
+.RS 4n
+.nf
+::rbc::vector create gamma -type complex
+gamma set {{0 0} {0\&.2 0\&.4} {0\&.5 0\&.2}}
+
+::rbc::polar \&.p -representation smith
+\&.p element create trace -cdata gamma
+.fi
+.RE
+.PP
+Polar complex elements support three data formats:
+.PP
+.RS 4n
+.nf
+gamma
+impedance
+admittance
+.fi
+.RE
+.PP
+selected with -cdataformat\&.
+.PP
+The scalar spline interface remains real-valued:
+.PP
+.RS 4n
+.nf
+spline natural x y splX splY
+spline quadratic x y splX splY
+.fi
+.RE
+.PP
+The parametric spline interface operates directly on complex vectors:
+.PP
+.RS 4n
+.nf
+spline parametric natural source result samples
+spline parametric quadratic source result samples
+.fi
+.RE
+.PP
+For example:
 .PP
 .RS 4n
 .nf
 ::rbc::vector create z -type complex
-::rbc::vector create magnitude
+z set {{0 0} {1 1} {0 2} {-1 1}}
 
-z set {{1 2} {3 4} {5 0}}
+spline parametric natural z smoothZ 100
+.fi
+.RE
+.PP
+When a real projection of a complex vector is required for a traditional graph or scalar spline, it can be
+derived explicitly with expression functions such as real, imag, abs, or arg:
+.PP
+.RS 4n
+.nf
+::rbc::vector create magnitude
 magnitude expr {abs(z)}
 .fi
 .RE

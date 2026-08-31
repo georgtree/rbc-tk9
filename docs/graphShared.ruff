@@ -878,6 +878,7 @@ namespace eval ::rbc::ELEMENT {
         | `graph`      | line                 |
         | `barchart`   | bar                  |
         | `stripchart` | strip                |
+        | `polar`      | polar                |
 
         #ruffopt includedformats nroff
         ```
@@ -887,6 +888,7 @@ namespace eval ::rbc::ELEMENT {
         │ graph      │ line                 │
         │ barchart   │ bar                  │
         │ stripchart │ strip                │
+        │ polar      │ polar                │
         └────────────┴──────────────────────┘
         ```
         #ruffopt excludedformats {}
@@ -989,7 +991,7 @@ namespace eval ::rbc::ELEMENT {
         Each element contributes the following binding tags:
 
         * its element name;
-        * its element class, such as `LineElement`, `BarElement`, or `StripElement`;
+        * its element class, such as `LineElement`, `BarElement`, `StripElement`, or `PolarElement`;
         * any additional tags configured with the element's `-bindtags` option.
 
         A binding may therefore apply to one specific element:
@@ -1105,20 +1107,20 @@ namespace eval ::rbc::ELEMENT {
         ├──────────────────────┼─────────────────────────────────────────────────────────────────────────────────────┤
         │ -halo distance       │ Sets the maximum non-negative screen distance for this search.                      │
         │ -along direction     │ Measures distance along x, y, or both. The default is both.                         │
-        │ -interpolate boolean │ For line and strip elements, searches along the rendered trace when true instead    │
-        │                      │ of considering only data points.                                                    │
+        │ -interpolate boolean │ For line, strip, and polar elements, searches along the rendered trace when true    │
+        │                      │ instead of considering only data points.                                            │
         └──────────────────────┴─────────────────────────────────────────────────────────────────────────────────────┘
         ```
         #ruffopt excludedformats {}
 
-        With `-interpolate false`, line and strip searches return actual source data coordinates.
+        With `-interpolate false`, line, strip, and polar searches return actual source data coordinates.
 
         With `-interpolate true`, the closest position may lie between source points. In that case `x` and `y` contain
         the interpolated graph coordinates of the closest point on the rendered trace, while `index` identifies the
         associated source segment.
 
-        The `-along` and `-interpolate` options affect line and strip element searches. Bar elements are searched
-        against their rendered rectangles.
+        The `-along` and `-interpolate` options affect line, strip, and polar element searches. Bar elements are
+        searched against their rendered rectangles.
 
         By default all visible elements are searched. One or more element names may be supplied after the options to
         restrict the search:
@@ -1127,6 +1129,9 @@ namespace eval ::rbc::ELEMENT {
         ```
 
         `--` may be used to terminate option processing explicitly.
+
+        Polar-element searches additionally report radius and angle. In Smith representation they also report Gamma
+        and equivalent impedance/admittance information. See [POLARELEMENT] for the complete result set.
 
         ## Element types
         `ELEMENT type` reports the concrete class of an existing element. The current element classes are:
@@ -1137,6 +1142,7 @@ namespace eval ::rbc::ELEMENT {
         | `LineElement`  | line element       |
         | `BarElement`   | bar element        |
         | `StripElement` | stripchart element |
+        | `PolarElement` | polar element      |
 
         #ruffopt includedformats nroff
         ```
@@ -1146,21 +1152,21 @@ namespace eval ::rbc::ELEMENT {
         │ LineElement  │ line element       │
         │ BarElement   │ bar element        │
         │ StripElement │ stripchart element │
+        │ PolarElement │ polar element      │
         └──────────────┴────────────────────┘
         ```
         #ruffopt excludedformats {}
 
-        For example:
-        ```tcl
-        puts [.g element type signal1]
-        # -> LineElement
-        ```
+        Polar elements are documented separately in [POLARELEMENT].
+
+        There is no separate `GRAPHINST polar` element operation. Polar elements are created through the generic
+        `GRAPHINST element create` operation when the owning widget's default element type is `PolarElement`.
 
         Configuration options are specific to the concrete element type:
-
         * [LINEELEMENT] - line elements;
         * [STRIPELEMENT] - strip elements;
-        * [BARELEMENT] - bar elements.
+        * [BARELEMENT] - bar elements;
+        * [POLARELEMENT] - polar elements.
 
     }
 
@@ -1202,15 +1208,19 @@ namespace eval ::rbc::ELEMENT {
 
     proc closest {x y varName args} {
         # Finds the visible element nearest to the specified window coordinate. On success, stores information in the
-        # Tcl array `varName` using the keys `name`, `index`, `x`, `y`, and `dist`. Searches all visible elements
-        # unless one or more element names are supplied after the options.
+        # Tcl array `varName` using the common keys `name`, `index`, `x`, `y`, and `dist`.
+        # A selected bar element additionally reports its mapped rectangle geometry. A selected element in a polar
+        # widget additionally reports `radius` and `angle`; in Smith representation it also reports Gamma, normalized
+        # and physical impedance, normalized and physical admittance, and `z0`. See [Polar elements] for the complete
+        # Polar/Smith result set.
         # x - X coordinate in window coordinates.
         # y - Y coordinate in window coordinates.
         # varName - name of the Tcl array in which result information is stored.
         # -along direction - measure distance along `x`, `y`, or `both`; the default is `both`.
         # -halo distance - maximum non-negative search distance in screen pixels; the graph `-halo` value is the
         #   default.
-        # -interpolate boolean - for line and strip elements, search along rendered traces instead of only data points.
+        # -interpolate boolean - for line, strip, and polar elements, searches along the rendered trace when true
+        #   instead of considering only data points.
         # elemName - optional element name restricting the search.
         # Returns: `1` if an element is found within the halo, otherwise `0`.
         # Synopsis: x y varName ?option value ...? ?--? ?elemName ...?
@@ -1236,15 +1246,16 @@ namespace eval ::rbc::ELEMENT {
         # Creates a new graph element. `GRAPHINST element create` uses the widget's default element type:
         # * `graph` creates a line element;
         # * `barchart` creates a bar element;
-        # * `stripchart` creates a strip element.
+        # * `stripchart` creates a strip element;
+        # * `polar` creates a polar element.
         # `GRAPHINST line create` always creates a line element and `GRAPHINST bar create` always creates a bar element,
         # regardless of the widget's default element type.
         # elemName - name of the new element.
         # option - element configuration option.
         # value - initial value for the option.
         #
-        # See [LINEELEMENT] for line-element options, [STRIPELEMENT] for strip-element options, and [BARELEMENT] for
-        # bar-element options.
+        # See [LINEELEMENT] for line-element options, [STRIPELEMENT] for strip-element options, [BARELEMENT] for
+        # bar-element options and [POLARELEMENT] for strip-element options
         # Returns: Name of the newly created element.
         # Synopsis: elemName ?option value ...?
     }
@@ -1297,8 +1308,8 @@ namespace eval ::rbc::ELEMENT {
     }
 
     proc type {elemName} {
-        # Gives back the concrete class of the named element. Current results are `LineElement`, `BarElement`, and
-        # `StripElement`.
+        # Gives back the concrete class of the named element. Current results are `LineElement`, `BarElement`,
+        # `StripElement`, and `PolarElement`.
         # elemName - name of the element.
         # Returns: Element class name.
     }
@@ -1458,16 +1469,23 @@ namespace eval ::rbc::LINEELEMENT {
         .g element configure signal -smooth natural
         ```
 
-        Spline smoothing operates on mapped screen coordinates. This means it follows the actual displayed geometry,
-        including descending axes, inverted graphs, and logarithmic mapping.
+        Smoothing is performed on mapped screen coordinates, so it follows the geometry that is actually displayed.
 
-        Natural, quadratic, and Catmull-Rom smoothing require at least three mapped points.
+        For ordinary graph and stripchart elements, `natural`/`cubic` and `quadratic` retain the traditional
+        function-style spline behavior. `catrom` is parametric.
 
-        Spline smoothing is not performed across missing or invalid data. If the mapped data contain a discontinuity,
-        the current implementation falls back to ordinary linear segments for the element rather than constructing
-        separate splines for each continuous run.
+        For elements belonging to a polar widget, `natural`/`cubic` and `quadratic` are instead evaluated as
+        parametric two-dimensional splines. Consequently a Polar trace may be vertical, may reverse direction in X,
+        and may form a loop without forcing smoothing to fall back merely because X is non-monotonic.
 
-        Step smoothing preserves discontinuities and never manufactures a step across a missing-data boundary.
+        Missing, non-finite, logarithmically invalid, or singular complex points create trace breaks. Spline smoothing
+        is performed independently on each continuous run containing enough points. No smoothing mode interpolates
+        across a trace break.
+
+        `step` remains Cartesian step-and-hold interpolation.
+
+        Smoothing never implicitly closes an element. Repeat the first source point as the final source point when a
+        closed trace is required.
 
         ## Trace direction
         `-trace` determines whether connecting segments are drawn when X values change direction.
@@ -2244,6 +2262,461 @@ namespace eval ::rbc::STRIPELEMENT {
         ```
         #ruffopt excludedformats {}
 
+    }
+}
+
+namespace eval ::rbc::POLARELEMENT {
+    variable _ruff_ns_opts {
+        -heading {Polar element `POLARELEMENT` options}
+        -excludeprocs {.*}
+    }
+
+    variable _ruff_preamble {
+        This page documents the configuration and behavior of polar elements.
+
+        `POLARELEMENT` denotes an element whose concrete type is `PolarElement`. Polar elements are the default
+        element type of a [::rbc::polar] widget:
+        ```tcl
+        polar .p
+        .p element create trace
+
+        .p element type trace
+        # -> PolarElement
+        ```
+
+        The common element operations such as `create`, `configure`, `activate`, `closest`, `bind`, `delete`, and
+        `show` are documented in [ELEMENT].
+
+        Polar elements use the same underlying line-rendering machinery as [LINEELEMENT]. Consequently they support
+        the normal line-element data, axis mapping, pens, styles, symbols, error bars, value labels, trace drawing,
+        area filling, and smoothing options.
+
+        Polar elements additionally support direct complex-vector data through `-cdata` and can interpret complex
+        values as reflection coefficient, impedance, or admittance.
+
+        ## Creating a polar element
+        The generic `element create` operation of a polar widget creates a `PolarElement`:
+
+        ```tcl
+        polar .p
+        .p element create trace -data {0 0 0.5 0.5 0 1}
+        ```
+
+        There is no separate `GRAPHINST polar create` operation.
+
+        An explicit line element may still be created in the same widget:
+        ```tcl
+        .p line create reference
+
+        .p element type reference
+        # -> LineElement
+        ```
+
+        Such an explicitly created `LineElement` does not acquire the complex-data behavior of a `PolarElement`.
+
+        ## Cartesian data
+        A polar element may use the normal line-element data options:
+        ```text
+        -data
+        -x
+        -y
+        ```
+
+        These always represent Cartesian coordinates:
+        ```text
+        x = horizontal Cartesian coordinate
+        y = vertical Cartesian coordinate
+        ```
+
+        They are not interpreted as `{radius angle}` pairs.
+
+        This remains true when the owning polar widget uses:
+        ```tcl
+        -representation smith
+        ```
+
+        For example:
+        ```tcl
+        polar .p -representation polar
+        .p element create trace -data {1.0 0.0 0.5 0.5 0.0 1.0 -0.5 0.5}
+        ```
+
+        ## Complex-vector data
+
+        `-cdata` names an Rbc complex vector whose values provide the two-dimensional element data directly.
+
+        For example:
+
+        ```tcl
+        vector create gamma -type complex
+        gamma set {{0.0 0.0} {0.2 0.4} {0.5 0.2} {0.7 -0.1}}
+        polar .p -representation smith
+        .p element create trace -cdata gamma
+        ```
+
+        A vector supplied to `-cdata` must have type `complex`. A real vector is rejected.
+
+        Complex vector attachment is live. If the vector contents or length change, the element is remapped and the
+        graph is redrawn automatically.
+
+        ## Selecting the active data source
+        A polar element has one active data mode at a time:
+        ```text
+        ordinary X/Y data
+        complex vector data
+        ```
+
+        Explicitly configuring a non-empty `-cdata` selects complex-vector mode.
+
+        Explicitly configuring `-data`, `-x`, or `-y` selects ordinary X/Y mode.
+
+        For example:
+        ```tcl
+        .p element configure trace -cdata gamma
+
+        # Switch back to ordinary Cartesian X/Y data.
+        .p element configure trace -data {0 0 0.5 0.5 1 0}
+        ```
+
+        When more than one data-source option is supplied by the same configuration command, the explicit options are
+        processed in caller order and the final data-source selection determines the active mode.
+
+        ## Complex data formats
+        `-cdataformat` controls how values from `-cdata` are interpreted.
+
+        The accepted values are:
+        ```text
+        gamma
+        impedance
+        admittance
+        ```
+
+        The default is `gamma`.
+
+        ### Gamma
+        With:
+        ```tcl
+        -cdataformat gamma
+        ```
+
+        each complex value is already a reflection coefficient:
+        ```text
+        Gamma = real + j*imag
+        ```
+
+        and is mapped directly as:
+        ```text
+        x = real(Gamma)
+        y = imag(Gamma)
+        ```
+
+        For example:
+        ```tcl
+        vector create gamma -type complex
+        gamma set {{0.0 0.0} {0.25 0.50} {-0.20 0.60}}
+        .p element create trace -cdata gamma -cdataformat gamma
+        ```
+
+        ### Impedance
+        With:
+        ```tcl
+        -cdataformat impedance
+        ```
+
+        each complex value represents physical impedance:
+        ```text
+        Z = R + jX
+        ```
+
+        The value is normalized by the reference impedance `Z0`:
+        ```text
+        z = Z / Z0
+        ```
+
+        and then converted to reflection coefficient:
+        ```text
+        Gamma = (z - 1) / (z + 1)
+        ```
+
+        For example:
+        ```tcl
+        vector create z -type complex
+        z set {{25 -20} {50 0} {75 30} {120 50}}
+        polar .p -representation smith
+        .p element create trace -cdata z -cdataformat impedance -z0 50
+        ```
+
+        ### Admittance
+        With:
+        ```tcl
+        -cdataformat admittance
+        ```
+
+        each complex value represents physical admittance:
+        ```text
+        Y = G + jB
+        ```
+
+        The normalized admittance is:
+        ```text
+        y = Y * Z0
+        ```
+
+        and the reflection coefficient is:
+        ```text
+        Gamma = (1 - y) / (1 + y)
+        ```
+
+        For example:
+        ```tcl
+        vector create y -type complex
+        y set {{0.010 -0.010} {0.020 0.000} {0.015 0.010}}
+        .p element create trace -cdata y -cdataformat admittance -z0 50
+        ```
+
+        The conversion to Gamma is performed independently of the widget's grid representation. For example, an
+        impedance data element may still be displayed while the Smith grid is configured for admittance contours.
+
+        ## Reference impedance
+        `-z0` specifies the reference impedance used by impedance and admittance conversion.
+
+        The default is:
+        ```text
+        50.0
+        ```
+
+        `-z0` must be finite and greater than zero.
+
+        Changing `-z0` remaps an attached impedance or admittance vector immediately:
+        ```tcl
+        .p element configure trace -z0 75
+        ```
+
+        `-z0` has no effect on complex data interpreted directly as `gamma`.
+
+        ## Singular conversions and trace gaps
+        Some physical impedance or admittance values cannot be mapped to a finite reflection coefficient.
+
+        For impedance, the conversion is singular when:
+        ```text
+        z + 1 = 0
+        ```
+
+        For example, if:
+        ```text
+        Z0 = 50
+        ```
+
+        then:
+        ```text
+        Z = -50 + j0
+        ```
+
+        is singular.
+
+        For admittance, the corresponding singular condition is:
+        ```text
+        y + 1 = 0
+        ```
+
+        Singular points are omitted from the mapped element. They create a real discontinuity in the rendered trace.
+
+        Points on opposite sides of such a discontinuity are never connected:
+        ```text
+        valid points ... | singular point | ... valid points
+                         ^
+                         trace break
+        ```
+
+        Non-finite data and values invalid for the mapped axes similarly create trace breaks.
+
+        ## Smoothing
+        Polar elements support the same `-smooth` names as line elements:
+        ```text
+        linear
+        step
+        natural
+        cubic
+        quadratic
+        catrom
+        ```
+
+        `cubic` is an alias for `natural`.
+
+        The important difference from an ordinary `LineElement` is that `natural`/`cubic` and `quadratic` smoothing
+        are parametric for a `PolarElement`.
+
+        Instead of requiring:
+        ```text
+        y = f(x)
+        ```
+
+        a Polar spline interpolates a two-dimensional path:
+        ```text
+        p(t) = {x(t), y(t)}
+        ```
+
+        This allows trajectories whose X coordinate reverses direction, vertical trajectories, and loops.
+
+        For example:
+        ```tcl
+        vector create z -type complex
+        z set {{ 0 0} { 1 1} { 0 2} {-1 1} { 0 0}}
+        .p element create loop -cdata z -smooth natural
+        ```
+
+        `catrom` is also parametric.
+
+        `linear` joins mapped points with straight segments.
+
+        `step` retains the normal Cartesian step-and-hold behavior; it does not perform radius/angle stepping.
+
+        Smoothing is performed on the actual mapped two-dimensional trace. For complex impedance and admittance data,
+        conversion to Gamma occurs before the displayed path is smoothed.
+
+        A discontinuity divides the element into independent continuous runs. Each run containing enough points is
+        smoothed separately. No spline is ever constructed through a missing or singular point.
+
+        Smoothing does not implicitly close a path. To request a closed visual trajectory, repeat the first source
+        point as the final source point:
+
+        ```tcl
+        z set {{1 0} {0 1} {-1 0} {0 -1} {1 0}}
+        ```
+
+        ## Axis mapping
+        Polar elements support the normal line-element `-mapx` and `-mapy` options:
+
+        ```tcl
+        .p element create trace -cdata gamma -mapx x2 -mapy y2
+        ```
+
+        These mappings are independent of the axes used to construct the Polar or Smith grid.
+
+        To display the element and grid through the same alternate coordinate system, configure both:
+
+        ```tcl
+        .p grid configure -mapx x2 -mapy y2
+        .p element configure trace -mapx x2 -mapy y2
+        ```
+
+        `-invertxy` on the owning polar widget is supported by Polar elements.
+
+        ## Data outside the Smith unit circle
+        Smith representation does not clip element data to:
+        ```text
+        |Gamma| <= 1
+        ```
+
+        Values outside the unit circle are valid plotted coordinates when they are contained by the mapped axis
+        ranges.
+
+        For example, negative-resistance impedance may produce:
+        ```text
+        |Gamma| > 1
+        ```
+
+        and remains visible if the graph limits include it.
+
+        The unit circle is therefore a Smith-chart reference contour, not an element clipping boundary.
+
+        ## Closest-point information
+        `ELEMENT closest` works with Polar elements in the same way as line elements:
+        ```tcl
+        .p element closest $x $y info -along both -interpolate yes
+        ```
+
+        With `-interpolate yes`, the search follows the rendered Polar trace, including spline-generated segments.
+
+        The normal result entries are:
+        ```text
+        info(name)
+        info(index)
+        info(x)
+        info(y)
+        info(dist)
+        ```
+
+        For a Polar element, the result additionally contains:
+        ```text
+        info(radius)
+        info(angle)
+        ```
+
+        `radius` is the magnitude of the selected Cartesian point.
+
+        `angle` is its angle in degrees, normalized from zero through less than 360 degrees. The angle at the origin is
+        reported as zero.
+
+        In Smith representation, closest information additionally includes the plotted reflection coefficient and
+        equivalent impedance and admittance quantities:
+        ```text
+        info(gamma)
+        info(z0)
+
+        info(normalizedResistance)
+        info(normalizedReactance)
+        info(normalizedImpedance)
+
+        info(resistance)
+        info(reactance)
+        info(impedance)
+
+        info(normalizedConductance)
+        info(normalizedSusceptance)
+        info(normalizedAdmittance)
+
+        info(conductance)
+        info(susceptance)
+        info(admittance)
+        ```
+
+        `gamma`, `normalizedImpedance`, `impedance`, `normalizedAdmittance`, and `admittance` are two-element
+        `{real imag}` values.
+
+        The Smith information describes the selected plotted Gamma position, not merely the original representation
+        used by `-cdataformat`. Consequently both equivalent impedance and admittance information are available whether
+        the source element was supplied as Gamma, impedance, or admittance.
+
+        The physical values are derived using the element's `-z0`.
+
+        At the Smith endpoints, an equivalent impedance or admittance may be infinite.
+
+        ## PostScript output
+        Polar elements use the same mapped trace for window drawing and PostScript output.
+
+        Complex-data conversion, trace breaks, parametric smoothing, symbols, pens, and other line-rendering
+        attributes therefore apply to PostScript output as well as on-screen drawing.
+
+        ## Polar element options
+        Polar elements support the configuration options documented for [LINEELEMENT], with the Polar-specific
+        additions below.
+
+        #ruffopt excludedformats nroff
+        | Option                | Database name | Database class | Description |
+        |-----------------------|---------------|----------------|-------------|
+        | `-cdata vectorName`   | `cData`       | `CData`        | Specifies a complex Rbc vector used as the element data source. An empty value selects ordinary X/Y data mode. |
+        | `-cdataformat format` | `cDataFormat` | `CDataFormat`  | Specifies how complex data are interpreted: `gamma`, `impedance`, or `admittance`. The default is `gamma`. |
+        | `-z0 value`           | `z0`          | `Z0`           | Specifies the positive finite reference impedance used for impedance/admittance conversion. The default is `50.0`. |
+
+        #ruffopt includedformats nroff
+        ```
+        ┌───────────────────────┬───────────────┬────────────────┬──────────────────────────────────────────────────────┐
+        │ Option                │ Database name │ Database class │ Description                                          │
+        ├───────────────────────┼───────────────┼────────────────┼──────────────────────────────────────────────────────┤
+        │ -cdata vectorName     │ cData         │ CData          │ Complex Rbc vector used as the data source. An empty │
+        │                       │               │                │ value selects ordinary X/Y data mode.                │
+        │ -cdataformat format   │ cDataFormat   │ CDataFormat    │ gamma, impedance, or admittance. Default gamma.      │
+        │ -z0 value             │ z0            │ Z0             │ Positive finite reference impedance. Default 50.0.   │
+        └───────────────────────┴───────────────┴────────────────┴──────────────────────────────────────────────────────┘
+        ```
+        #ruffopt excludedformats {}
+
+        The remaining options have the same database names, classes, defaults, and basic drawing semantics described
+        in [LINEELEMENT].
+
+        Where Polar behavior intentionally differs from ordinary line behavior, in particular parametric smoothing
+        and complex-data mapping, the differences are described above.
     }
 }
 

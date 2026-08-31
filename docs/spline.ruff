@@ -5,30 +5,68 @@ namespace eval ::rbc::spline {
     }
 
     variable _ruff_preamble {
-        The `spline` command performs spline interpolation and extrapolation on data stored in Rbc vectors. Two
-        interpolation methods are available:
+        The `spline` command performs scalar or parametric spline interpolation on data stored in Rbc vectors.
 
+        Two interpolation algorithms are available:
         * `natural` - natural cubic spline interpolation.
         * `quadratic` - shape-preserving quadratic spline interpolation.
 
-        Both operations use the same four-vector interface:
+        The command provides two interfaces.
 
+        ### Scalar spline interface
+
+        The traditional scalar interface treats Y as a function of X:
         ```tcl
-        spline method x y splX splY
+        spline natural x y splX splY
+        spline quadratic x y splX splY
         ```
 
-        The vectors `x` and `y` contain the source data points. The vector `splX` contains the X coordinates at
-        which the spline is evaluated, and `splY` receives the corresponding calculated Y coordinates.
+        All four vectors must be real vectors.
 
-        ### Source data
+        `x` and `y` contain the source points. `splX` contains the X coordinates at which the spline is evaluated and
+        `splY` receives the corresponding calculated Y values.
 
-        The source vectors `x` and `y` must have the same length and contain at least three values. All source
-        X and Y values must be finite.
+        ### Parametric complex interface
+        A two-dimensional parametric spline may instead be generated directly from a complex vector:
+        ```tcl
+        spline parametric natural source result samples
+        spline parametric quadratic source result samples
+        ```
 
-        Values in `x` must be strictly increasing. Duplicate or decreasing X coordinates are not permitted.
+        `source` and `result` are complex Rbc vectors. Each source value:
+        ```text
+        {real imag}
+        ```
+
+        represents one point in the two-dimensional plane.
+
+        The parametric form does not require either the real or imaginary coordinate to be monotonic. It can therefore
+        interpolate vertical paths, paths that reverse direction, and loop-like trajectories.
+
+        The source points are parameterized by cumulative Euclidean chord length:
+        ```text
+        t[0] = 0
+        t[i] = t[i-1] + hypot(real[i]-real[i-1], imag[i]-imag[i-1])
+        ```
+
+        The requested number of samples is distributed uniformly over that cumulative parameter.
+
+        The first generated point is exactly the first source point and the final generated point is exactly the final
+        source point.
+
+        Parametric interpolation does not implicitly close a path. Repeat the first point as the final source point if
+        a closed trace is required.
+
+        `catrom` is not currently exposed through the standalone `spline parametric` command. Catmull-Rom parametric
+        interpolation is available as a graph-element `-smooth catrom` mode.
+
+        ## Scalar source data
+        Scalar source vectors `x` and `y` must have the same length and contain at least three values. All source X and
+        Y values must be finite.
+
+        Values in `x` must be strictly increasing. Duplicate or decreasing source X coordinates are not permitted.
 
         For example:
-
         ```tcl
         vector create x y
 
@@ -38,151 +76,208 @@ namespace eval ::rbc::spline {
 
         If source data are not already ordered by X coordinate, the vector `sort` operation can reorder `x` while
         applying the same permutation to `y`:
-
         ```tcl
         x sort y
         ```
 
-        ### Evaluation coordinates
+        ## Scalar evaluation coordinates
+        `splX` specifies the X coordinates at which a scalar spline is evaluated. Every value must be finite.
 
-        The `splX` vector specifies the X coordinates at which the spline is evaluated. All values in `splX` must
-        be finite.
-
-        Unlike the source `x` vector, `splX` does not have to be sorted. Evaluation coordinates may appear in any
-        order, and the values in `splY` are produced in the corresponding order.
+        `splX` does not have to be sorted. Evaluation coordinates may appear in any order and `splY` is produced in
+        the corresponding order.
 
         For example:
-
         ```tcl
         splX set {2.5 0.5 4.5 -1.0 1.5}
         spline natural x y splX splY
         ```
 
-        Each component of `splY` corresponds to the component at the same position in `splX`.
+        Evaluation coordinates may lie outside the source X range. Both scalar spline methods extrapolate:
+        * values below the first source X coordinate use the first spline interval;
+        * values above the final source X coordinate use the final spline interval.
 
-        Evaluation coordinates may lie outside the range of the source `x` vector. Both spline methods extrapolate
-        such points:
+        No separate extrapolation option is required.
 
-        * values below the first source X coordinate are extrapolated using the first spline interval;
-        * values above the last source X coordinate are extrapolated using the last spline interval.
-
-        Thus interpolation and extrapolation use the same command and no separate extrapolation option is required.
-
-        ### Generating evaluation coordinates
-
-        The vector `populate` operation is convenient for generating a more densely sampled set of X coordinates
-        between the original source points:
+        ## Generating scalar evaluation coordinates
+        `VECINST populate` is convenient for constructing a denser real evaluation vector:
 
         ```tcl
         x populate splX 10
         spline natural x y splX splY
         ```
 
-        `populate` is not required. `splX` may contain any finite coordinates appropriate for the application.
+        `populate` is not required; `splX` may contain any finite coordinates appropriate for the application.
 
-        ### Output vector
+        ## Parametric source data
 
-        The result vector `splY` has the same length as `splX`.
+        A parametric source must be a complex Rbc vector containing at least three points.
 
-        If `splY` does not exist, it is created. If it already exists, it is resized when necessary and its previous
-        contents are replaced.
+        All real and imaginary components must be finite.
 
-        Spline generation is transactional. The source vectors and evaluation coordinates are validated and the
-        complete result is calculated before `splY` is created, resized, or modified. If spline generation fails,
-        an existing `splY` vector is left unchanged.
-
-        Because the inputs are copied before the output vector is modified, `splY` may safely be the same vector as
-        `x`, `y`, or `splX`.
-
-        ### Example
-
-        The following example generates both natural and quadratic spline values from the same source data:
-
+        Consecutive source points must be distinct. A repeated consecutive point has zero chord length and is rejected:
         ```tcl
-        vector create x y splX
+        vector create z -type complex
+        z set {{0 0} {1 1} {1 1} {2 0}}
 
-        x set {0 1 2 3 4}
-        y set {0 2 1 4 3}
-
-        splX set {-1.0 0.0 0.5 1.5 2.5 4.0 5.0}
-
-        spline natural x y splX naturalY
-        spline quadratic x y splX quadraticY
+        spline parametric natural z result 100
+        # error: consecutive duplicate points
         ```
 
-        The first and last evaluation coordinates lie outside the source range and are therefore extrapolated.
+        Non-consecutive repeated points are permitted. In particular, repeating the first point at the end is a normal
+        way to describe a closed geometric path.
 
-        ### Natural cubic spline
+        The requested sample count must be at least two.
 
-        A natural spline is a piecewise cubic interpolating function that passes through every source data point.
-        Its second derivative is zero at the first and last source points, providing the natural boundary
+        ## Parametric natural cubic spline
+        The parametric natural method constructs a natural cubic two-dimensional spline using chord length as the
+        independent parameter.
+
+        Distances in the standalone complex-vector command are isotropic: one real-coordinate unit and one
+        imaginary-coordinate unit have equal weight.
+
+        For example:
+        ```tcl
+        vector create z -type complex
+        z set {{0 0} {1 1} {0 2} {-1 1} {0 0}}
+
+        spline parametric natural z smoothZ 200
+        ```
+
+        The source real coordinate is intentionally non-monotonic; this is valid for the parametric interface.
+
+        ## Parametric quadratic spline
+        The parametric quadratic method uses the same cumulative chord-length parameter for both coordinates. It
+        applies the shape-preserving quadratic spline independently to:
+        ```text
+        real = f(t)
+        imag = g(t)
+        ```
+
+        and combines the two results into complex output points.
+
+        For example:
+        ```tcl
+        spline parametric quadratic z smoothZ 200
+        ```
+
+        ## Output vectors and transaction behavior
+        In the scalar interface, `splY` has the same length as `splX`.
+
+        In the parametric interface, `result` is a complex vector with exactly `samples` values.
+
+        If a result vector does not exist, it is created with the required type. If it already exists, its type must
+        match the requested operation and it is resized when necessary.
+
+        Spline generation is transactional. Source data and parameters are validated and the complete result is
+        calculated before an existing result vector is resized or modified. A failed command leaves an existing result
+        vector unchanged.
+
+        Input data are copied before the result vector is modified, so output aliasing is supported.
+
+        Scalar output may safely be the same vector as `x`, `y`, or `splX`.
+
+        Parametric output may safely be the same complex vector as `source`:
+        ```tcl
+        spline parametric natural z z 200
+        ```
+
+        ## Scalar natural cubic spline
+        A scalar natural spline is a piecewise cubic interpolating function that passes through every source data
+        point. Its second derivative is zero at the first and last source points, providing the natural boundary
         conditions.
 
-        For evaluation coordinates outside the source range, the cubic polynomial of the first or last spline
-        interval is continued beyond its endpoint.
+        Outside the source range, the cubic polynomial belonging to the first or last source interval is continued
+        beyond its endpoint.
 
-        Natural cubic splines generally produce smooth curves with continuous first and second derivatives.
+        Natural cubic splines generally provide continuous first and second derivatives.
 
-        ### Shape-preserving quadratic spline
+        ## Scalar shape-preserving quadratic spline
+        The scalar quadratic method generates an osculatory piecewise quadratic spline. Slopes at the source points
+        are selected to preserve monotonicity and convexity where those properties are compatible with the source
+        data.
 
-        The quadratic method generates an osculatory piecewise quadratic spline. Slopes at the source points are
-        selected to preserve monotonicity and convexity where those properties are compatible with the source data.
+        Outside the source range, the spline belonging to the first or last source interval is continued beyond its
+        endpoint.
 
-        For evaluation coordinates outside the source range, the spline defined by the first or last source
-        interval is continued beyond its endpoint.
+        This method can be useful when preserving the qualitative shape of source data is more important than the
+        additional smoothness of a cubic spline.
 
-        This method can be useful when preserving the qualitative shape of the source data is more important than
-        the additional smoothness of a cubic spline.
+        ## Errors
+        Scalar spline generation fails if the source vectors contain fewer than three values, have different lengths,
+        contain non-finite values, or have source X coordinates that are not strictly increasing. It also fails if an
+        evaluation X coordinate is non-finite.
 
-        ### Errors
+        Parametric spline generation fails if the source is not a complex vector, contains fewer than three points,
+        contains a non-finite real or imaginary component, contains consecutive duplicate points, or if `samples` is
+        less than two. An existing result vector must also be complex.
 
-        Spline generation fails if:
-        * either source vector contains fewer than three values;
-        * the source vectors have different lengths;
-        * a source X or Y value is not finite;
-        * the source X coordinates are not strictly increasing;
-        * an evaluation X coordinate is not finite;
-        * required temporary storage cannot be allocated;
-        * the spline calculation produces an invalid numerical result.
+        Both forms fail if required temporary storage cannot be allocated or the spline calculation produces an
+        invalid numerical result.
 
-        An error does not partially modify the output vector.
+        An error never partially modifies an existing output vector.
 
-        ### References
+        ## Graph smoothing
+        The standalone scalar and parametric spline commands operate on vector coordinates.
+
+        Graph element smoothing is performed after graph-coordinate mapping and should therefore not be assumed to
+        produce byte-for-byte identical points to a precomputed standalone spline.
+
+        Polar elements use parametric `natural`/`cubic`, `quadratic`, and `catrom` smoothing so that arbitrary
+        two-dimensional complex-plane trajectories can be displayed.
+
+        ## References
 
         The natural cubic spline implementation is based on:
+
         * R. L. Burden, J. D. Faires and A. C. Reynolds, *Numerical Analysis*, Prindle, Weber & Schmidt, 1981.
 
         The shape-preserving quadratic spline implementation is based on:
+
         * D. F. McAllister and J. A. Roulier, *An Algorithm for Computing a Shape-Preserving Osculatory Quadratic
           Spline*, ACM Transactions on Mathematical Software, Algorithm 574.
     }
 
     proc natural {x y splX splY} {
-        # Computes a natural cubic spline through the source vectors `x` and `y` and evaluates it at every X
-        # coordinate in `splX`. Evaluation coordinates may appear in any order. Coordinates outside the source
-        # X range are extrapolated using the cubic polynomial of the first or last spline interval.
-        # x - vector containing the finite, strictly increasing X coordinates of the source points.
-        # y - vector containing the finite Y coordinates of the source points; it must have the same length as `x`.
-        # splX - vector containing finite X coordinates at which the spline is evaluated; values may be in any order
-        #        and may lie outside the source X range.
-        # splY - vector in which the interpolated or extrapolated Y coordinates are stored; it is created or resized
-        #        as necessary.
+        # Computes a scalar natural cubic spline through real source vectors `x` and `y` and evaluates it at every X
+        # coordinate in `splX`. Evaluation coordinates may appear in any order and may lie outside the source X range.
+        # x - real vector containing finite, strictly increasing X coordinates of the source points.
+        # y - real vector containing finite Y coordinates; it must have the same length as `x`.
+        # splX - real vector containing finite X coordinates at which the spline is evaluated.
+        # splY - real result vector; it is created or resized as necessary.
         # Returns: Nothing.
         # Synopsis: x y splX splY
     }
 
     proc quadratic {x y splX splY} {
-        # Computes a shape-preserving quadratic spline through the source vectors `x` and `y` and evaluates it at
-        # every X coordinate in `splX`. Evaluation coordinates may appear in any order. Coordinates outside the
-        # source X range are extrapolated using the spline defined by the first or last source interval.
-        # x - vector containing the finite, strictly increasing X coordinates of the source points.
-        # y - vector containing the finite Y coordinates of the source points; it must have the same length as `x`.
-        # splX - vector containing finite X coordinates at which the spline is evaluated; values may be in any order
-        #        and may lie outside the source X range.
-        # splY - vector in which the interpolated or extrapolated Y coordinates are stored; it is created or resized
-        #        as necessary.
+        # Computes a scalar shape-preserving quadratic spline through real source vectors `x` and `y` and evaluates it
+        # at every X coordinate in `splX`. Evaluation coordinates may appear in any order and may lie outside the
+        # source X range.
+        # x - real vector containing finite, strictly increasing X coordinates of the source points.
+        # y - real vector containing finite Y coordinates; it must have the same length as `x`.
+        # splX - real vector containing finite X coordinates at which the spline is evaluated.
+        # splY - real result vector; it is created or resized as necessary.
         # Returns: Nothing.
         # Synopsis: x y splX splY
+    }
+
+    proc parametric {operation source result samples} {
+        # Computes a two-dimensional parametric spline through a complex source vector.
+        # operation - interpolation algorithm; must be `natural` or `quadratic`.
+        # source - complex vector containing at least three finite two-dimensional source points. Consecutive points
+        #          must be distinct.
+        # result - complex vector receiving the generated path. It is created or resized as necessary and may be the
+        #          same vector as `source`.
+        # samples - number of generated points. Must be at least two.
+        # Returns: Nothing.
+        #
+        # Example:
+        # ```tcl
+        # vector create z -type complex
+        # z set {{0 0} {1 1} {0 2} {-1 1} {0 0}}
+        #
+        # spline parametric natural z smoothZ 200
+        # ```
+        # Synopsis: operation source result samples
     }
 
     namespace export *

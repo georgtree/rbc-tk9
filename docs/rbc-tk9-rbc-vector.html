@@ -82,20 +82,47 @@ preserves its current type.</p>
 <p>Real vectors retain the traditional automatic Tcl array mapping. Complex vectors do not receive an automatic
 array mapping, but one may be requested explicitly with <code class="docutils literal notranslate"><span class="pre">-variable</span></code> or later with [VECINST::variable].</p>
 </section>
-<section id="graph-and-spline-restrictions">
-<span id="r-rbc-vector-graph-and-spline-restrictions"></span><span id="r-3a3arbc3a3avectorqzgraph20and20spline20restrictions"></span><h2>Graph and spline restrictions<a class="headerlink" href="#graph-and-spline-restrictions" title="Link to this heading">¶</a></h2>
-<p>Complex vectors are supported by the vector subsystem, but graph element data and spline interpolation
-currently remain real-valued.</p>
-<p>Graph, barchart, and stripchart element data vectors must be real. A complex vector used as graph element data
-is rejected rather than being implicitly converted to its real part, magnitude, or another projection.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">spline</span></code> command likewise requires its source X vector, source Y vector, interpolation X vector, and result
-vector to be real.</p>
-<p>A real vector suitable for graphing or interpolation can be derived explicitly from a complex vector using
-expression functions such as <code class="docutils literal notranslate"><span class="pre">real</span></code>, <code class="docutils literal notranslate"><span class="pre">imag</span></code>, <code class="docutils literal notranslate"><span class="pre">abs</span></code>, or <code class="docutils literal notranslate"><span class="pre">arg</span></code>:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>z<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>complex
-<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>magnitude
+<section id="graph-and-spline-integration">
+<span id="r-rbc-vector-graph-and-spline-integration"></span><span id="r-3a3arbc3a3avectorqzgraph20and20spline20integration"></span><h2>Graph and spline integration<a class="headerlink" href="#graph-and-spline-integration" title="Link to this heading">¶</a></h2>
+<p>Complex vectors are supported directly by Polar graph elements and by parametric spline interpolation.</p>
+<p>Traditional <code class="docutils literal notranslate"><span class="pre">graph</span></code>, <code class="docutils literal notranslate"><span class="pre">barchart</span></code>, and <code class="docutils literal notranslate"><span class="pre">stripchart</span></code> element data remain real-valued. A complex vector supplied
+to their ordinary X/Y data options is rejected rather than being implicitly converted to a real part,
+magnitude, or another projection.</p>
+<p>A widget created by <code class="docutils literal notranslate"><span class="pre">polar</span></code> can attach a complex vector directly with the element <code class="docutils literal notranslate"><span class="pre">-cdata</span></code> option:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>gamma<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>complex
+<span class="nv">gamma</span><span class="w"> </span>set<span class="w"> </span><span class="k">{{</span><span class="nv">0</span><span class="w"> </span><span class="mi">0</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">0.2</span><span class="w"> </span><span class="mf">0.4</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">0.5</span><span class="w"> </span><span class="mf">0.2</span><span class="k">}}</span>
 
-<span class="nv">z</span><span class="w"> </span>set<span class="w"> </span><span class="k">{{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">3</span><span class="w"> </span><span class="mi">4</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">5</span><span class="w"> </span><span class="mi">0</span><span class="k">}}</span>
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>polar<span class="w"> </span>.p<span class="w"> </span><span class="o">-</span>representation<span class="w"> </span>smith
+<span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>trace<span class="w"> </span><span class="o">-</span>cdata<span class="w"> </span>gamma
+</pre></div>
+</div>
+<p>Polar complex elements support three data formats:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>gamma
+impedance
+admittance
+</pre></div>
+</div>
+<p>selected with <code class="docutils literal notranslate"><span class="pre">-cdataformat</span></code>.</p>
+<p>The scalar spline interface remains real-valued:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">spline</span><span class="w"> </span>natural<span class="w"> </span>x<span class="w"> </span>y<span class="w"> </span>splX<span class="w"> </span>splY
+<span class="nv">spline</span><span class="w"> </span>quadratic<span class="w"> </span>x<span class="w"> </span>y<span class="w"> </span>splX<span class="w"> </span>splY
+</pre></div>
+</div>
+<p>The parametric spline interface operates directly on complex vectors:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">spline</span><span class="w"> </span>parametric<span class="w"> </span>natural<span class="w"> </span>source<span class="w"> </span>result<span class="w"> </span>samples
+<span class="nv">spline</span><span class="w"> </span>parametric<span class="w"> </span>quadratic<span class="w"> </span>source<span class="w"> </span>result<span class="w"> </span>samples
+</pre></div>
+</div>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>z<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>complex
+<span class="nv">z</span><span class="w"> </span>set<span class="w"> </span><span class="k">{{</span><span class="nv">0</span><span class="w"> </span><span class="mi">0</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">1</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">-1</span><span class="w"> </span><span class="mi">1</span><span class="k">}}</span>
+
+<span class="nv">spline</span><span class="w"> </span>parametric<span class="w"> </span>natural<span class="w"> </span>z<span class="w"> </span>smoothZ<span class="w"> </span><span class="mi">100</span>
+</pre></div>
+</div>
+<p>When a real projection of a complex vector is required for a traditional graph or scalar spline, it can be
+derived explicitly with expression functions such as <code class="docutils literal notranslate"><span class="pre">real</span></code>, <code class="docutils literal notranslate"><span class="pre">imag</span></code>, <code class="docutils literal notranslate"><span class="pre">abs</span></code>, or <code class="docutils literal notranslate"><span class="pre">arg</span></code>:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>magnitude
 <span class="nv">magnitude</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">abs</span><span class="k">(</span><span class="nv">z</span><span class="k">)}</span>
 </pre></div>
 </div>
@@ -147,7 +174,7 @@ individual vector.</p>
     <ul>
 <li><a class="reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">vector</span></code> command</a><ul>
 <li><a class="reference internal" href="#vector-types">Vector types</a></li>
-<li><a class="reference internal" href="#graph-and-spline-restrictions">Graph and spline restrictions</a></li>
+<li><a class="reference internal" href="#graph-and-spline-integration">Graph and spline integration</a></li>
 <li><a class="reference internal" href="#vector-creation-forms">Vector creation forms</a></li>
 <li><a class="reference internal" href="#vector-instances">Vector instances</a></li>
 </ul>

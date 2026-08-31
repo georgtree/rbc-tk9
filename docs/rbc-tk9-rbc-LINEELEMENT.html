@@ -176,13 +176,18 @@ a logarithmic X or Y axis form breaks in the line.</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>smooth<span class="w"> </span>natural
 </pre></div>
 </div>
-<p>Spline smoothing operates on mapped screen coordinates. This means it follows the actual displayed geometry,
-including descending axes, inverted graphs, and logarithmic mapping.</p>
-<p>Natural, quadratic, and Catmull-Rom smoothing require at least three mapped points.</p>
-<p>Spline smoothing is not performed across missing or invalid data. If the mapped data contain a discontinuity,
-the current implementation falls back to ordinary linear segments for the element rather than constructing
-separate splines for each continuous run.</p>
-<p>Step smoothing preserves discontinuities and never manufactures a step across a missing-data boundary.</p>
+<p>Smoothing is performed on mapped screen coordinates, so it follows the geometry that is actually displayed.</p>
+<p>For ordinary graph and stripchart elements, <code class="docutils literal notranslate"><span class="pre">natural</span></code>/<code class="docutils literal notranslate"><span class="pre">cubic</span></code> and <code class="docutils literal notranslate"><span class="pre">quadratic</span></code> retain the traditional
+function-style spline behavior. <code class="docutils literal notranslate"><span class="pre">catrom</span></code> is parametric.</p>
+<p>For elements belonging to a polar widget, <code class="docutils literal notranslate"><span class="pre">natural</span></code>/<code class="docutils literal notranslate"><span class="pre">cubic</span></code> and <code class="docutils literal notranslate"><span class="pre">quadratic</span></code> are instead evaluated as
+parametric two-dimensional splines. Consequently a Polar trace may be vertical, may reverse direction in X,
+and may form a loop without forcing smoothing to fall back merely because X is non-monotonic.</p>
+<p>Missing, non-finite, logarithmically invalid, or singular complex points create trace breaks. Spline smoothing
+is performed independently on each continuous run containing enough points. No smoothing mode interpolates
+across a trace break.</p>
+<p><code class="docutils literal notranslate"><span class="pre">step</span></code> remains Cartesian step-and-hold interpolation.</p>
+<p>Smoothing never implicitly closes an element. Repeat the first source point as the final source point when a
+closed trace is required.</p>
 </section>
 <section id="trace-direction">
 <span id="r-rbc-lineelement-trace-direction"></span><span id="r-3a3arbc3a3alineelementqztrace20direction"></span><h2>Trace direction<a class="headerlink" href="#trace-direction" title="Link to this heading">¶</a></h2>

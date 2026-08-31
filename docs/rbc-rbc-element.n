@@ -28,6 +28,7 @@ The element form uses the default element type of the graph widget:
 │ graph      │ line                 │
 │ barchart   │ bar                  │
 │ stripchart │ strip                │
+│ polar      │ polar                │
 └────────────┴──────────────────────┘
 .fi
 .RE
@@ -160,7 +161,7 @@ Each element contributes the following binding tags:
 its element name;
 .TP
 \(bu
-its element class, such as LineElement, BarElement, or StripElement;
+its element class, such as LineElement, BarElement, StripElement, or PolarElement;
 .TP
 \(bu
 any additional tags configured with the element's -bindtags option\&.
@@ -263,20 +264,20 @@ closest accepts the following options:
 ├──────────────────────┼─────────────────────────────────────────────────────────────────────────────────────┤
 │ -halo distance       │ Sets the maximum non-negative screen distance for this search\&.                      │
 │ -along direction     │ Measures distance along x, y, or both\&. The default is both\&.                         │
-│ -interpolate boolean │ For line and strip elements, searches along the rendered trace when true instead    │
-│                      │ of considering only data points\&.                                                    │
+│ -interpolate boolean │ For line, strip, and polar elements, searches along the rendered trace when true    │
+│                      │ instead of considering only data points\&.                                            │
 └──────────────────────┴─────────────────────────────────────────────────────────────────────────────────────┘
 .fi
 .RE
 .PP
-With -interpolate false, line and strip searches return actual source data coordinates\&.
+With -interpolate false, line, strip, and polar searches return actual source data coordinates\&.
 .PP
 With -interpolate true, the closest position may lie between source points\&. In that case x and y contain
 the interpolated graph coordinates of the closest point on the rendered trace, while index identifies the
 associated source segment\&.
 .PP
-The -along and -interpolate options affect line and strip element searches\&. Bar elements are searched
-against their rendered rectangles\&.
+The -along and -interpolate options affect line, strip, and polar element searches\&. Bar elements are
+searched against their rendered rectangles\&.
 .PP
 By default all visible elements are searched\&. One or more element names may be supplied after the options to
 restrict the search:
@@ -288,6 +289,9 @@ restrict the search:
 .RE
 .PP
 -- may be used to terminate option processing explicitly\&.
+.PP
+Polar-element searches additionally report radius and angle\&. In Smith representation they also report Gamma
+and equivalent impedance/admittance information\&. See \fIPOLARELEMENT\fP for the complete result set\&.
 .SH "ELEMENT TYPES"
 .PP
 ELEMENT type reports the concrete class of an existing element\&. The current element classes are:
@@ -300,18 +304,15 @@ ELEMENT type reports the concrete class of an existing element\&. The current el
 │ LineElement  │ line element       │
 │ BarElement   │ bar element        │
 │ StripElement │ stripchart element │
+│ PolarElement │ polar element      │
 └──────────────┴────────────────────┘
 .fi
 .RE
 .PP
-For example:
+Polar elements are documented separately in \fIPOLARELEMENT\fP\&.
 .PP
-.RS 4n
-.nf
-puts [\&.g element type signal1]
-# -> LineElement
-.fi
-.RE
+There is no separate GRAPHINST polar element operation\&. Polar elements are created through the generic
+GRAPHINST element create operation when the owning widget's default element type is PolarElement\&.
 .PP
 Configuration options are specific to the concrete element type:
 .TP
@@ -322,7 +323,10 @@ Configuration options are specific to the concrete element type:
 \fISTRIPELEMENT\fP - strip elements;
 .TP
 \(bu
-\fIBARELEMENT\fP - bar elements\&.
+\fIBARELEMENT\fP - bar elements;
+.TP
+\(bu
+\fIPOLARELEMENT\fP - polar elements\&.
 
 
 .SH SEE ALSO

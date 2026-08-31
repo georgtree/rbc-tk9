@@ -6,7 +6,8 @@
 rbc::GRAPHINST - Commands in namespace rbc::GRAPHINST
 .SH "GRAPH WIDGET INSTANCE GRAPHINST COMMAND"
 .PP
-Commands in this namespace document operations accepted by graph, barchart, and stripchart widget instances\&.
+Commands in this namespace document operations accepted by graph, barchart, stripchart, and polar widget
+instances\&.
 .PP
 GRAPHINST is used below as a placeholder for the actual widget command:
 .PP
@@ -28,6 +29,7 @@ element type used by the element operation:
 │ graph             │ line                 │
 │ barchart          │ bar                  │
 │ stripchart        │ strip                │
+│ polar             │ polar                │
 └───────────────────┴──────────────────────┘
 .fi
 .RE
@@ -72,6 +74,347 @@ reverse conversion\&.
 .PP
 The general transform and invtransform operations use the graph's primary X and Y axes\&. To transform a
 value using a particular axis, use that axis's transform or invtransform operation\&.
+.SH "POLAR AND SMITH CHARTS"
+.PP
+A widget created with \fI::rbc::polar\fP uses the ordinary Rbc graph coordinate system but provides specialized
+Polar and Smith-chart grid representations\&.
+.PP
+Polar data are always represented internally as Cartesian coordinates:
+.PP
+.RS 4n
+.nf
+x = real
+y = imaginary
+.fi
+.RE
+.PP
+The -representation option changes the grid and associated labels; it does not reinterpret ordinary X/Y
+element data as radius/angle pairs\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+polar \&.p -representation polar
+
+\&.p element create trace  -data {1 0  0\&.5 0\&.5  0 1  -0\&.5 0\&.5}
+.fi
+.RE
+.PP
+The same Cartesian coordinates may be displayed with a Smith grid:
+.PP
+.RS 4n
+.nf
+\&.p configure -representation smith
+.fi
+.RE
+.SS "AUTOMATIC EQUAL-UNIT ASPECT"
+.PP
+Polar and Smith geometry requires equal physical scaling of the Cartesian X and Y dimensions\&. Otherwise a
+circle in the complex plane would be displayed as an ellipse\&.
+.PP
+A newly created polar widget therefore uses automatic equal-unit aspect handling when -aspect has not been
+explicitly supplied\&. The nominal value returned by:
+.PP
+.RS 4n
+.nf
+\&.p cget -aspect
+.fi
+.RE
+.PP
+is 1\&.0, but the physical plotting-area width-to-height ratio is automatically derived from the current
+numerical spans of the grid's mapped X and Y axes\&.
+.PP
+For example, with:
+.PP
+.RS 4n
+.nf
+X range = -3\&.5 \&.\&. 1\&.3     span = 4\&.8
+Y range = -1\&.5 \&.\&. 1\&.5     span = 3\&.0
+.fi
+.RE
+.PP
+the plotting area is made approximately 4\&.8 / 3\&.0 = 1\&.6 times wider than it is high\&. One X unit and one Y
+unit therefore occupy the same number of pixels and the Smith unit circle remains circular\&.
+.PP
+This automatic calculation follows the axes selected by:
+.PP
+.RS 4n
+.nf
+\&.p grid configure -mapx axisName -mapy axisName
+.fi
+.RE
+.PP
+and is recalculated if those mappings or axis ranges change\&.
+.PP
+Supplying -aspect explicitly selects the normal fixed plotting-area aspect semantics instead:
+.PP
+.RS 4n
+.nf
+polar \&.p -aspect 1\&.0
+.fi
+.RE
+.PP
+An aspect supplied through the Tk option database is likewise considered explicit\&. With an explicit aspect,
+unequal numerical X and Y spans can intentionally distort circles\&.
+.PP
+-invertxy is supported by automatic equal-unit scaling\&.
+.SS "POLAR GRID"
+.PP
+In polar representation, circular radial grid lines are derived from positive ticks of the X axis selected by
+grid -mapx\&. Negative ticks are ignored because radius is unsigned\&. The zero tick represents the origin rather
+than a circle\&.
+.PP
+Radial labels use the mapped X axis's normal major-tick formatting machinery\&. This means an axis -command
+callback can be used to customize radial labels:
+.PP
+.RS 4n
+.nf
+proc formatRadius {widget value} {
+    if {$value < 0} {
+        return {}
+    }
+    return [format "r=%\&.2f" $value]
+}
+
+\&.p axis configure x -majorticks {-1 -0\&.75 -0\&.5 -0\&.25 0 0\&.25 0\&.5 0\&.75 1} -command formatRadius
+.fi
+.RE
+.PP
+Only positive radial values are displayed as radial labels\&.
+.PP
+Angular spokes are controlled separately from axis ticks\&. Major angular spokes come from
+-anglemajorticks; minor angular spokes come from -angleminorticks when:
+.PP
+.RS 4n
+.nf
+\&.p grid configure -minor yes
+.fi
+.RE
+.PP
+Only major angular ticks receive labels\&.
+.PP
+The default major angular ticks are:
+.PP
+.RS 4n
+.nf
+0 30 60 90 120 150 180 210 240 270 300 330
+.fi
+.RE
+.PP
+and the default minor angular ticks are:
+.PP
+.RS 4n
+.nf
+15 45 75 105 135 165 195 225 255 285 315 345
+.fi
+.RE
+.PP
+Angular labels use degrees\&. The built-in formatter appends the degree sign\&.
+.PP
+-anglecommand replaces the built-in angular label formatter\&. Its value is a Tcl command prefix\&. Rbc appends:
+.PP
+.RS 4n
+.nf
+widgetPath degrees
+.fi
+.RE
+.PP
+where degrees is the configured numeric angular-tick value without a degree suffix\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+proc formatAngle {widget degrees} {
+    return [format "%g deg" $degrees]
+}
+
+polar \&.p -anglemajorticks {0 45 90 135 180 225 270 315} -anglecommand formatAngle
+.fi
+.RE
+.PP
+The callback result is used as the complete label\&. Returning an empty string suppresses that label\&.
+.PP
+If an angular formatter raises an error while the graph is being drawn, the error is reported as a background
+Tcl error and Rbc keeps the built-in label for that tick\&.
+.PP
+-anglelabelanchor and -radiallabelanchor control label placement\&. They accept the normal Tk anchor values
+and the special value auto\&. Automatic angular anchors point inward according to the position around the
+circle\&. Automatic radial anchoring uses the standard radial-label placement\&.
+.SS "SMITH REPRESENTATION"
+.PP
+Smith representation is selected with:
+.PP
+.RS 4n
+.nf
+polar \&.p -representation smith
+.fi
+.RE
+.PP
+The Smith grid is drawn in reflection-coefficient coordinates, Gamma\&. The unit circle is a reference grid; it
+is not a clipping boundary\&. Data with |Gamma| > 1, such as data representing negative resistance, may be
+displayed when the axis ranges include those values\&.
+.PP
+-smithgrid controls the domain of the displayed contours:
+.PP
+.RS 4n
+.nf
+impedance
+admittance
+both
+.fi
+.RE
+.PP
+The default is impedance\&.
+.PP
+The impedance and admittance contours use normalized values\&. Major contour values determine both grid lines
+and labels\&. Minor contour values are drawn only when the grid's -minor option is enabled\&.
+.PP
+The default real contour values are:
+.PP
+.RS 4n
+.nf
+major: 0 0\&.2 0\&.5 1 2 5
+minor: 0\&.1 0\&.3 0\&.7 1\&.5 3 10
+.fi
+.RE
+.PP
+The default imaginary contour magnitudes are:
+.PP
+.RS 4n
+.nf
+major: 0\&.2 0\&.5 1 2 5
+minor: 0\&.1 0\&.3 0\&.7 1\&.5 3 10
+.fi
+.RE
+.PP
+Real contour values must be finite and non-negative\&. Zero is permitted\&. Imaginary contour values specify
+positive magnitudes, must be finite and greater than zero, and generate both positive and negative reactive
+contours\&.
+.PP
+Empty tick lists suppress the corresponding contour class\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+\&.p configure -smithrealmajorticks {0 0\&.25 0\&.5 1 2 5 10} -smithrealminorticks {0\&.1 0\&.75 1\&.5 3} -smithimagmajorticks {0\&.25 0\&.5 1 2 5} -smithimagminorticks {0\&.1 0\&.75 1\&.5 3}
+.fi
+.RE
+.SS "CUSTOM SMITH LABELS"
+.PP
+-smithrealcommand and -smithimagcommand are Tcl command prefixes used to format major Smith labels\&.
+.PP
+Rbc appends three arguments:
+.PP
+.RS 4n
+.nf
+widgetPath domain value
+.fi
+.RE
+.PP
+domain is either impedance or admittance\&.
+.PP
+For -smithrealcommand, value is the non-negative normalized resistance or conductance value\&.
+.PP
+For -smithimagcommand, value is signed and represents normalized reactance or susceptance\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+proc formatSmithReal {widget domain value} {
+    if {$domain eq "impedance"} {
+        return [format "r=%g" $value]
+    }
+    return [format "g=%g" $value]
+}
+
+proc formatSmithImag {widget domain value} {
+    if {$domain eq "impedance"} {
+        return [format "x=%+g" $value]
+    }
+    return [format "b=%+g" $value]
+}
+
+polar \&.p -representation smith -smithgrid both -smithrealcommand formatSmithReal -smithimagcommand formatSmithImag
+.fi
+.RE
+.PP
+Returning an empty string suppresses that label\&.
+.PP
+A formatter error raised during drawing is reported as a background Tcl error and the normal built-in label is
+retained\&.
+.PP
+The same formatter callbacks and label strings are used for window drawing and PostScript output\&.
+.SS "POLAR/SMITH MAPPED AXES"
+.PP
+The Polar and Smith grids use the X and Y axes selected by the grid component:
+.PP
+.RS 4n
+.nf
+\&.p grid configure -mapx x2 -mapy y2
+.fi
+.RE
+.PP
+Elements may independently be mapped to matching alternate axes:
+.PP
+.RS 4n
+.nf
+\&.p element create trace -cdata gamma -mapx x2 -mapy y2
+.fi
+.RE
+.PP
+Changing the grid-axis mapping also recalculates automatic equal-unit aspect handling\&.
+.SS "LIMITATIONS AND DOMAIN RULES"
+.PP
+Polar and Smith grids require linear Cartesian axes\&. If either mapped grid axis uses -logscale yes, the
+specialized grid and its labels are suppressed\&.
+.PP
+A conventional Polar grid also requires zero to lie strictly inside both mapped axis ranges\&. Its outer radius
+is the largest complete circle about the origin that fits inside the current viewport\&. If the origin is outside
+either range, no Polar grid is generated\&.
+.PP
+Smith grids do not clip element data to the unit circle\&.
+.PP
+Polar coordinates supplied through ordinary -data, -x, and -y options are Cartesian X/Y coordinates;
+they are not {radius angle} values\&.
+.PP
+Smoothing does not implicitly close a trace\&. To draw a closed data loop, include the first point again as the
+final point\&.
+.PP
+The step smoothing mode remains Cartesian step-and-hold interpolation\&. It is not a radial/angular stepping
+mode\&.
+.PP
+Singular impedance or admittance conversions are omitted from the mapped trace and create a real trace break\&.
+Smoothing is applied independently to valid continuous runs and never bridges such a gap\&.
+.SS "POLAR/SMITH WIDGET OPTIONS"
+.PP
+These options are meaningful for widgets created with \fI::rbc::polar\fP\&.
+.PP
+.RS 4n
+.nf
+┌──────────────────────────────┬───────────────────────┬───────────────────────┬───────────────────────────────┐
+│ Option                       │ Database name         │ Database class        │ Description                   │
+├──────────────────────────────┼───────────────────────┼───────────────────────┼───────────────────────────────┤
+│ -anglelabelanchor anchor     │ angleLabelAnchor      │ AngleLabelAnchor      │ Anchor for angular labels;    │
+│                              │                       │                       │ accepts Tk anchors or auto\&.   │
+│ -anglecommand command        │ angleCommand          │ AngleCommand          │ Formats major angular labels\&. │
+│ -anglemajorticks tickList    │ angleMajorTicks       │ AngleMajorTicks       │ Major spokes and labels\&.      │
+│ -angleminorticks tickList    │ angleMinorTicks       │ AngleMinorTicks       │ Minor angular spokes\&.         │
+│ -radiallabelanchor anchor    │ radialLabelAnchor     │ RadialLabelAnchor     │ Anchor for radial labels\&.     │
+│ -representation mode         │ representation        │ Representation        │ polar or smith\&.               │
+│ -smithgrid mode              │ smithGrid             │ SmithGrid             │ impedance, admittance, both\&.  │
+│ -smithrealcommand command    │ smithRealCommand      │ SmithRealCommand      │ Formats major real labels\&.    │
+│ -smithimagcommand command    │ smithImagCommand      │ SmithImagCommand      │ Formats major imag labels\&.    │
+│ -smithrealmajorticks list    │ smithRealMajorTicks   │ SmithRealMajorTicks   │ Major real contours\&.          │
+│ -smithrealminorticks list    │ smithRealMinorTicks   │ SmithRealMinorTicks   │ Minor real contours\&.          │
+│ -smithimagmajorticks list    │ smithImagMajorTicks   │ SmithImagMajorTicks   │ Major imaginary contours\&.     │
+│ -smithimagminorticks list    │ smithImagMinorTicks   │ SmithImagMinorTicks   │ Minor imaginary contours\&.     │
+└──────────────────────────────┴───────────────────────┴───────────────────────┴───────────────────────────────┘
+.fi
+.RE
 .SH "WIDGET OPTIONS"
 .PP
 The following options configure the graph widget itself\&. They are shared by graph, barchart, and
@@ -85,15 +428,14 @@ on all three graph widget types\&.
 ┌────────────────────────────┬─────────────────────┬─────────────────────┬─────────────────────────────────────┐
 │ Option                     │ Database name       │ Database class      │ Description                         │
 ├────────────────────────────┼─────────────────────┼─────────────────────┼─────────────────────────────────────┤
-│ -aspect ratio              │ aspect              │ Aspect              │ Sets a fixed width-to-height aspect │
-│                            │                     │                     │ ratio for the plotting area\&. A      │
-│                            │                     │                     │ positive value causes one dimension │
-│                            │                     │                     │ of the plotting area to be reduced  │
-│                            │                     │                     │ as necessary to maintain the        │
-│                            │                     │                     │ requested ratio\&. A value less than  │
-│                            │                     │                     │ or equal to zero disables           │
-│                            │                     │                     │ aspect-ratio enforcement\&. The       │
-│                            │                     │                     │ default is 0\&.0\&.                     │
+│ -aspect ratio              │ aspect              │ Aspect              │ Sets a fixed physical               │
+│                            │                     │                     │ width-to-height aspect ratio when   │
+│                            │                     │                     │ explicitly configured\&. Graph,       │
+│                            │                     │                     │ barchart, and stripchart default to │
+│                            │                     │                     │ 0\&.0\&. Polar reports 1\&.0, but an      │
+│                            │                     │                     │ implicit Polar value enables        │
+│                            │                     │                     │ automatic equal-X/Y-unit scaling    │
+│                            │                     │                     │ instead\&.                            │
 │ -background color          │ background          │ Background          │ Sets the background used for the    │
 │                            │                     │                     │ outer graph area and margins\&. The   │
 │                            │                     │                     │ plotting area has its own           │
