@@ -506,6 +506,14 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
         return TCL_ERROR;
     }
     Tk_FreeSavedOptions(&savedOptions);
+    if ((mask & GRID_AXES_CHANGED) && (graphPtr->classUid == rbcPolarElementUid) && graphPtr->polarAutoAspect) {
+        /*
+         * The automatic Polar aspect is derived from the grid's mapped
+         * axes.  A mapping change can therefore change the required plot
+         * geometry as well as the grid itself.
+         */
+        graphPtr->flags |= RESET_WORLD;
+    }
     if (mask & GRID_REDRAW) {
         graphPtr->flags |= REDRAW_BACKING_STORE;
         Rbc_EventuallyRedrawGraph(graphPtr);

@@ -101,5 +101,86 @@ namespace eval polar.axis {
         vector destroy z
     } -result {1 1 1 1}
 
+    test RBC.polar.axis.limits.A.aspect.1 {
+        smith geometry: unequal ranges preserve equal data-unit scale
+    } -setup {
+        polar .polar1 -width 650 -height 430 -representation smith
+        pack .polar1
+        .polar1 axis configure x -min -3.5 -max 1.3
+        .polar1 axis configure y -min -1.5 -max 1.5
+        update
+    } -body {
+        lassign [.polar1 transform 0 0] ox oy
+        lassign [.polar1 transform 1 0] xx xy
+        lassign [.polar1 transform 0 1] yx yy
+        set dx [expr {hypot($xx - $ox, $xy - $oy)}]
+        set dy [expr {hypot($yx - $ox, $yy - $oy)}]
+        expr {abs($dx - $dy) <= 1.0}
+    } -cleanup {
+        destroy .polar1
+    } -result {1}
+
+    test RBC.polar.axis.limits.A.aspect.2 {
+        smith geometry: inverted unequal ranges preserve equal data-unit scale
+    } -setup {
+        polar .polar1 -width 650 -height 430 -representation smith -invertxy yes
+        pack .polar1
+        .polar1 axis configure x -min -3.5 -max 1.3
+        .polar1 axis configure y -min -1.5 -max 1.5
+        update
+    } -body {
+        lassign [.polar1 transform 0 0] ox oy
+        lassign [.polar1 transform 1 0] xx xy
+        lassign [.polar1 transform 0 1] yx yy
+        set dx [expr {hypot($xx - $ox, $xy - $oy)}]
+        set dy [expr {hypot($yx - $ox, $yy - $oy)}]
+        expr {abs($dx - $dy) <= 1.0}
+    } -cleanup {
+        destroy .polar1
+    } -result {1}
+
+    test RBC.polar.axis.limits.A.aspect.3 {
+        polar geometry: explicit aspect overrides automatic equal-unit layout
+    } -setup {
+        polar .polar1 -width 650 -height 430 -representation smith -aspect 1.0
+        pack .polar1
+        .polar1 axis configure x -min -3.5 -max 1.3
+        .polar1 axis configure y -min -1.5 -max 1.5
+        update
+    } -body {
+        lassign [.polar1 transform 0 0] ox oy
+        lassign [.polar1 transform 1 0] xx xy
+        lassign [.polar1 transform 0 1] yx yy
+        set dx [expr {hypot($xx - $ox, $xy - $oy)}]
+        set dy [expr {hypot($yx - $ox, $yy - $oy)}]
+        list [.polar1 cget -aspect] [expr {$dx < $dy}]
+    } -cleanup {
+        destroy .polar1
+    } -result {1.0 1}
+
+    test RBC.polar.axis.limits.A.aspect.4 {
+        polar geometry: grid mapped axes drive automatic unit aspect
+    } -setup {
+        polar .polar1 -width 650 -height 430
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        .polar1 axis configure x2 -min -4 -max 4
+        .polar1 axis configure y2 -min -1 -max 1
+        update
+    } -body {
+        .polar1 grid configure -mapx x2 -mapy y2
+        update
+        set x0 [.polar1 axis transform x2 0]
+        set x1 [.polar1 axis transform x2 1]
+        set y0 [.polar1 axis transform y2 0]
+        set y1 [.polar1 axis transform y2 1]
+        set dx [expr {abs($x1 - $x0)}]
+        set dy [expr {abs($y1 - $y0)}]
+        expr {abs($dx - $dy) <= 1.0}
+    } -cleanup {
+        destroy .polar1
+    } -result {1}
+
     cleanupTests
 }

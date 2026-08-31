@@ -2103,12 +2103,23 @@ static void ResetGraphOptionContext(Graph *graphPtr) {
 static int ConfigureGraphOptions(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[], int *maskPtr) {
     Tk_SavedOptions savedOptions;
     Tcl_Obj *errorObjPtr;
+    Tcl_Size i;
+    int aspectSpecified;
     int mask;
 
     assert(graphPtr->optionsInitialized);
     assert(graphPtr->optionTable != NULL);
     assert((objc & 1) == 0);
 
+    aspectSpecified = FALSE;
+    if (graphPtr->classUid == rbcPolarElementUid) {
+        for (i = 0; i < objc; i += 2) {
+            if (IsGraphOption(objv[i], "-aspect")) {
+                aspectSpecified = TRUE;
+                break;
+            }
+        }
+    }
     /*
      * Clear stale transaction context before invoking Tk.
      */
@@ -2128,14 +2139,11 @@ static int ConfigureGraphOptions(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const 
      * database and Tk_SetOptions therefore returned a zero mask.
      */
     graphPtr->optionMask = (unsigned int)mask;
-
     if (!graphPtr->optionsConfigured) {
         graphPtr->optionMask |= GRAPH_INITIALIZE_MASK;
     }
-
     graphPtr->optionObjc = objc;
     graphPtr->optionObjv = objv;
-
     if (ConfigureGraph(graphPtr) != TCL_OK) {
         /*
          * Restoring Tk-managed options may alter the interpreter result.
@@ -2143,31 +2151,29 @@ static int ConfigureGraphOptions(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const 
          */
         errorObjPtr = Tcl_GetObjResult(graphPtr->interp);
         Tcl_IncrRefCount(errorObjPtr);
-
         /*
          * Never retain pointers to the caller-owned option vector while
          * restoring the configuration.
          */
         ResetGraphOptionContext(graphPtr);
-
         Tk_RestoreSavedOptions(&savedOptions);
-
         Tcl_SetObjResult(graphPtr->interp, errorObjPtr);
         Tcl_DecrRefCount(errorObjPtr);
-
         return TCL_ERROR;
     }
-
+    if (aspectSpecified) {
+        /*
+         * Once the user explicitly supplies -aspect, retain the normal
+         * fixed plot-area aspect semantics.
+         */
+        graphPtr->polarAutoAspect = FALSE;
+    }
     ResetGraphOptionContext(graphPtr);
-
     graphPtr->optionsConfigured = TRUE;
-
     Tk_FreeSavedOptions(&savedOptions);
-
     if (maskPtr != NULL) {
         *maskPtr = mask;
     }
-
     return TCL_OK;
 }
 
@@ -2204,16 +2210,26 @@ static int ConfigureNewGraph(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv
         return TCL_ERROR;
     }
     /*
-     * Polar plots are square by default.  Tk_InitOptions has already
-     * applied any option-database value, so only install the Polar
-     * class default when the option database did not specify aspect.
+     * Polar and Smith plots preserve equal physical X/Y data-unit scales
+     * by default.  Keep the public -aspect value at the historical Polar
+     * default of 1.0, but remember internally that this value was implicit.
      *
-     * Any explicit creation-time -aspect option is applied below by
-     * ConfigureGraphOptions() and therefore takes precedence.
+     * Tk_InitOptions has already applied any option-database value.  An
+     * option-database aspect therefore counts as an explicit fixed aspect.
+     *
+     * Any creation-time -aspect option is processed below by
+     * ConfigureGraphOptions(), which will also disable automatic Polar
+     * aspect handling after a successful configuration.
      */
-    if ((graphPtr->classUid == rbcPolarElementUid) && (Tk_GetOption(graphPtr->tkwin, "aspect", "Aspect") == NULL)) {
-        graphPtr->aspect = 1.0;
+    if (graphPtr->classUid == rbcPolarElementUid) {
+        if (Tk_GetOption(graphPtr->tkwin, "aspect", "Aspect") == NULL) {
+            graphPtr->aspect = 1.0;
+            graphPtr->polarAutoAspect = TRUE;
+        } else {
+            graphPtr->polarAutoAspect = FALSE;
+        }
     }
+
     return ConfigureGraphOptions(graphPtr, objc, objv, NULL);
 }
 

@@ -485,8 +485,9 @@ struct GraphStruct {
                     * solid background color. The fill color
                     * is stored in "plotBg". */
 
-    /* If non-zero, force plot to conform to aspect ratio W/H */
-    double aspect;
+    double aspect;       /* If non-zero, force plot to conform to aspect ratio W/H */
+    int polarAutoAspect; /* If non-zero, Polar/Smith layout preserves
+                          * equal physical X/Y data-unit scales. */
 
     /*
      * Polar-specific presentation options.

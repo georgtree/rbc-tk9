@@ -121,7 +121,7 @@ namespace eval polar.layout {
         polar .polar1 -width 650 -height 430 -representation smith -title "Smith: data outside unit circle"
         pack .polar1 -fill both -expand yes
         .polar1 axis configure x -min -3.5 -max 1.3
-        .polar1 axis configure y -min -2.4 -max 2.4
+        .polar1 axis configure y -min -1.5 -max 1.5
         .polar1 grid configure -hide no
         .polar1 element create Z -cdata z -cdataformat impedance -z0 50 -smooth natural -symbol circle -pixels 6\
                 -linewidth 2

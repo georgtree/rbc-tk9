@@ -5025,6 +5025,64 @@ static int GetMarginGeometry(Graph *graphPtr, Margin *marginPtr) {
     return marginPtr->axesOffset;
 }
 
+static int GetPolarAutoAspect(Graph *graphPtr, double *aspectPtr) {
+    Grid *gridPtr;
+    Axis *xAxisPtr;
+    Axis *yAxisPtr;
+    double xRange;
+    double yRange;
+    double aspect;
+
+    if ((graphPtr->classUid != rbcPolarElementUid) || (!graphPtr->polarAutoAspect)) {
+        return FALSE;
+    }
+    gridPtr = graphPtr->gridPtr;
+    if (gridPtr == NULL) {
+        return FALSE;
+    }
+    /*
+     * The Polar/Smith representation follows the axes selected by
+     * grid -mapx/-mapy, not necessarily the primary x/y axes.
+     */
+    xAxisPtr = gridPtr->axes.x;
+    yAxisPtr = gridPtr->axes.y;
+    if ((xAxisPtr == NULL) || (yAxisPtr == NULL) || xAxisPtr->logScale || yAxisPtr->logScale) {
+        return FALSE;
+    }
+    /*
+     * Use the actual mapped ranges.  These are the same ranges used
+     * by Rbc_HMap/Rbc_VMap, and therefore include autoscaling,
+     * requested limits, loose/tight handling, etc.
+     */
+    xRange = xAxisPtr->axisRange.range;
+    yRange = yAxisPtr->axisRange.range;
+    if ((!FINITE(xRange)) || (!FINITE(yRange)) || (xRange <= 0.0) || (yRange <= 0.0)) {
+        return FALSE;
+    }
+    /*
+     * Without -invertxy:
+     *
+     *     hRange / xRange == vRange / yRange
+     *
+     * therefore:
+     *
+     *     hRange / vRange == xRange / yRange
+     *
+     * With -invertxy, the two data dimensions swap their physical
+     * screen directions.
+     */
+    if (graphPtr->inverted) {
+        aspect = yRange / xRange;
+    } else {
+        aspect = xRange / yRange;
+    }
+    if ((!FINITE(aspect)) || (aspect <= 0.0)) {
+        return FALSE;
+    }
+    *aspectPtr = aspect;
+    return TRUE;
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -5101,39 +5159,84 @@ static void ComputeMargins(Graph *graphPtr) {
     width = graphPtr->width - (insets + left + right);
     height = graphPtr->height - (insets + top + bottom);
     /*
-     * Step 5:    If necessary, correct for the requested plot area
-     *        aspect ratio.
+     * Step 5: If necessary, correct the plot area aspect.
+     *
+     * Polar/Smith widgets use an automatically derived aspect by default
+     * so that one X data unit and one Y data unit occupy the same physical
+     * distance.  An explicitly configured -aspect retains the traditional
+     * fixed plot-area W/H semantics.
      */
-    if ((graphPtr->aspect > 0.0) && (width > 0) && (height > 0)) {
-        double ratio;
+    {
+        double autoAspect;
 
-        /*
-         * Shrink one dimension of the plotarea to fit the requested
-         * width/height aspect ratio.
-         */
-        ratio = (double)width / (double)height;
-        if (ratio > graphPtr->aspect) {
-            int scaledWidth;
+        if ((width > 0) && (height > 0) && GetPolarAutoAspect(graphPtr, &autoAspect)) {
+            int padX;
+            int padY;
+            int mappedWidth;
+            int mappedHeight;
 
-            /* Shrink the width. */
-            scaledWidth = (int)((double)height * graphPtr->aspect);
-            if (scaledWidth < 1) {
-                scaledWidth = 1;
+            padX = PADDING(graphPtr->padX);
+            padY = PADDING(graphPtr->padY);
+            mappedWidth = width - padX;
+            mappedHeight = height - padY;
+            if ((mappedWidth > 0) && (mappedHeight > 0)) {
+                double ratio;
+
+                ratio = (double)mappedWidth / (double)mappedHeight;
+                if (ratio > autoAspect) {
+                    int scaledWidth;
+                    /*
+                     * Preserve:
+                     *
+                     *     hRange / vRange == autoAspect
+                     *
+                     * and then add the X plot padding back to obtain the
+                     * outer plot-area width.
+                     */
+                    scaledWidth = padX + (int)((double)mappedHeight * autoAspect + 0.5);
+                    if (scaledWidth <= padX) {
+                        scaledWidth = padX + 1;
+                    }
+                    if (scaledWidth < width) {
+                        right += width - scaledWidth;
+                    }
+                } else {
+                    int scaledHeight;
+
+                    scaledHeight = padY + (int)((double)mappedWidth / autoAspect + 0.5);
+                    if (scaledHeight <= padY) {
+                        scaledHeight = padY + 1;
+                    }
+                    if (scaledHeight < height) {
+                        top += height - scaledHeight;
+                    }
+                }
             }
-            right += (width - scaledWidth); /* Add the difference to
-                                             * the right margin. */
-            /* CHECK THIS: width = scaledWidth; */
-        } else {
-            int scaledHeight;
+        } else if ((graphPtr->aspect > 0.0) && (width > 0) && (height > 0)) {
+            double ratio;
 
-            /* Shrink the height. */
-            scaledHeight = (int)((double)width / graphPtr->aspect);
-            if (scaledHeight < 1) {
-                scaledHeight = 1;
+            /*
+             * Explicit/fixed aspect semantics.  Leave the historical code
+             * unchanged.
+             */
+            ratio = (double)width / (double)height;
+            if (ratio > graphPtr->aspect) {
+                int scaledWidth;
+
+                scaledWidth = (int)((double)height * graphPtr->aspect);
+                if (scaledWidth < 1) {
+                    scaledWidth = 1;
+                }
+                right += width - scaledWidth;
+            } else {
+                int scaledHeight;
+
+                scaledHeight = (int)((double)width / graphPtr->aspect);
+                if (scaledHeight < 1) {
+                    scaledHeight = 1;
+                }
+                top += height - scaledHeight;
             }
-            top += (height - scaledHeight); /* Add the difference to
-                                             * the top margin. */
-            /* CHECK THIS: height = scaledHeight; */
         }
     }
     /*
