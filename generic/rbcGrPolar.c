@@ -27,8 +27,77 @@
 #define SMITH_RESISTANCE_LABEL_OFFSET 2
 #define SMITH_REACTANCE_LABEL_RADIUS 0.94
 
+typedef struct {
+    double min;
+    double max;
+} PolarRadiusRange;
 
-static double PolarMaximumRadius(Grid *gridPtr) {
+static int GetPolarRadiusRange(Grid *gridPtr, PolarRadiusRange *rangePtr) {
+    Axis *xAxisPtr;
+    Axis *yAxisPtr;
+    double dx;
+    double dy;
+    double r1, r2, r3, r4;
+
+    xAxisPtr = gridPtr->axes.x;
+    yAxisPtr = gridPtr->axes.y;
+    if ((xAxisPtr == NULL) || (yAxisPtr == NULL)) {
+        return FALSE;
+    }
+    /*
+     * Polar geometry is Cartesian and therefore requires linear
+     * mapped axes.
+     */
+    if (xAxisPtr->logScale || yAxisPtr->logScale) {
+        return FALSE;
+    }
+    if ((!FINITE(xAxisPtr->min)) || (!FINITE(xAxisPtr->max)) || (!FINITE(yAxisPtr->min)) || (!FINITE(yAxisPtr->max)) ||
+        (xAxisPtr->min >= xAxisPtr->max) || (yAxisPtr->min >= yAxisPtr->max)) {
+        return FALSE;
+    }
+    /*
+     * Minimum distance from the origin to the viewport rectangle.
+     *
+     * If zero lies inside a coordinate interval, the nearest
+     * distance in that dimension is zero.
+     */
+    if (xAxisPtr->min > 0.0) {
+        dx = xAxisPtr->min;
+    } else if (xAxisPtr->max < 0.0) {
+        dx = -xAxisPtr->max;
+    } else {
+        dx = 0.0;
+    }
+    if (yAxisPtr->min > 0.0) {
+        dy = yAxisPtr->min;
+    } else if (yAxisPtr->max < 0.0) {
+        dy = -yAxisPtr->max;
+    } else {
+        dy = 0.0;
+    }
+    rangePtr->min = hypot(dx, dy);
+    /*
+     * The maximum visible radius is the distance to the farthest
+     * viewport corner.
+     */
+    r1 = hypot(xAxisPtr->min, yAxisPtr->min);
+    r2 = hypot(xAxisPtr->min, yAxisPtr->max);
+    r3 = hypot(xAxisPtr->max, yAxisPtr->min);
+    r4 = hypot(xAxisPtr->max, yAxisPtr->max);
+    rangePtr->max = r1;
+    if (r2 > rangePtr->max) {
+        rangePtr->max = r2;
+    }
+    if (r3 > rangePtr->max) {
+        rangePtr->max = r3;
+    }
+    if (r4 > rangePtr->max) {
+        rangePtr->max = r4;
+    }
+    return FINITE(rangePtr->min) && FINITE(rangePtr->max) && (rangePtr->max > 0.0);
+}
+
+static double PolarCompleteCircleRadius(Grid *gridPtr) {
     Axis *xAxisPtr;
     Axis *yAxisPtr;
     double radius;
@@ -38,17 +107,12 @@ static double PolarMaximumRadius(Grid *gridPtr) {
     if ((xAxisPtr == NULL) || (yAxisPtr == NULL)) {
         return 0.0;
     }
-    /*
-     * A Cartesian log axis cannot represent the full complex plane,
-     * because the Polar representation requires values on both sides
-     * of zero.
-     */
     if (xAxisPtr->logScale || yAxisPtr->logScale) {
         return 0.0;
     }
     /*
-     * The origin must be visible on both axes.  Limit the radius to
-     * the largest complete circle contained in the current viewport.
+     * A complete circle centered at the origin can exist only when
+     * the origin lies strictly inside both mapped axis ranges.
      */
     if ((xAxisPtr->min >= 0.0) || (xAxisPtr->max <= 0.0) || (yAxisPtr->min >= 0.0) || (yAxisPtr->max <= 0.0)) {
         return 0.0;
@@ -64,6 +128,91 @@ static double PolarMaximumRadius(Grid *gridPtr) {
         radius = -yAxisPtr->min;
     }
     return radius;
+}
+
+static int ClipPolarRay(Grid *gridPtr, double degrees, Point2D *pPtr, Point2D *qPtr) {
+    Axis *xAxisPtr;
+    Axis *yAxisPtr;
+    double dx;
+    double dy;
+    double theta;
+    double tEnter;
+    double tExit;
+    double t1;
+    double t2;
+    double tmp;
+
+    xAxisPtr = gridPtr->axes.x;
+    yAxisPtr = gridPtr->axes.y;
+    if ((xAxisPtr == NULL) || (yAxisPtr == NULL)) {
+        return FALSE;
+    }
+    theta = degrees * POLAR_DEG_TO_RAD;
+    dx = cos(theta);
+    dy = sin(theta);
+    tEnter = 0.0;
+    tExit = DBL_MAX;
+    /*
+     * Clip against the X slab.
+     */
+    if (fabs(dx) <= DBL_EPSILON) {
+        if ((0.0 < xAxisPtr->min) || (0.0 > xAxisPtr->max)) {
+            return FALSE;
+        }
+    } else {
+        t1 = xAxisPtr->min / dx;
+        t2 = xAxisPtr->max / dx;
+        if (t1 > t2) {
+            tmp = t1;
+            t1 = t2;
+            t2 = tmp;
+        }
+        if (t1 > tEnter) {
+            tEnter = t1;
+        }
+        if (t2 < tExit) {
+            tExit = t2;
+        }
+    }
+    /*
+     * Clip against the Y slab.
+     */
+    if (fabs(dy) <= DBL_EPSILON) {
+        if ((0.0 < yAxisPtr->min) || (0.0 > yAxisPtr->max)) {
+            return FALSE;
+        }
+    } else {
+        t1 = yAxisPtr->min / dy;
+        t2 = yAxisPtr->max / dy;
+        if (t1 > t2) {
+            tmp = t1;
+            t1 = t2;
+            t2 = tmp;
+        }
+        if (t1 > tEnter) {
+            tEnter = t1;
+        }
+        if (t2 < tExit) {
+            tExit = t2;
+        }
+    }
+    /*
+     * No positive part of this ray intersects the viewport.
+     */
+    if ((tExit < tEnter) || (tExit < 0.0)) {
+        return FALSE;
+    }
+    if (tEnter < 0.0) {
+        tEnter = 0.0;
+    }
+    if (tEnter > tExit) {
+        return FALSE;
+    }
+    pPtr->x = tEnter * dx;
+    pPtr->y = tEnter * dy;
+    qPtr->x = tExit * dx;
+    qPtr->y = tExit * dy;
+    return TRUE;
 }
 
 static void MapCircle(Graph *graphPtr, Grid *gridPtr, double radius, Segment2D *segments) {
@@ -85,13 +234,72 @@ static void MapCircle(Graph *graphPtr, Grid *gridPtr, double radius, Segment2D *
     }
 }
 
-static void MapPolarSpoke(Graph *graphPtr, Grid *gridPtr, Point2D origin, double maxRadius, double degrees,
-                          Segment2D *segmentPtr) {
+static double PolarSpokeRadius(Grid *gridPtr, double degrees) {
+    Axis *xAxisPtr;
+    Axis *yAxisPtr;
+    double dx;
+    double dy;
+    double radius;
     double theta;
+    double t;
 
+    xAxisPtr = gridPtr->axes.x;
+    yAxisPtr = gridPtr->axes.y;
+    if ((xAxisPtr == NULL) || (yAxisPtr == NULL)) {
+        return 0.0;
+    }
     theta = degrees * POLAR_DEG_TO_RAD;
-    segmentPtr->p = origin;
-    segmentPtr->q = Rbc_Map2D(graphPtr, maxRadius * cos(theta), maxRadius * sin(theta), &gridPtr->axes);
+    dx = cos(theta);
+    dy = sin(theta);
+    /*
+     * Find the first intersection of the ray
+     *
+     *     p(t) = t * {cos(theta), sin(theta)}
+     *
+     * with the Cartesian viewport.
+     *
+     * The Polar grid is only mapped when the origin lies inside both
+     * axes, so every valid ray has one positive boundary intersection.
+     */
+    radius = HUGE_VAL;
+    if (dx > 0.0) {
+        t = xAxisPtr->max / dx;
+        if (FINITE(t) && (t > 0.0) && (t < radius)) {
+            radius = t;
+        }
+    } else if (dx < 0.0) {
+        t = xAxisPtr->min / dx;
+        if (FINITE(t) && (t > 0.0) && (t < radius)) {
+            radius = t;
+        }
+    }
+    if (dy > 0.0) {
+        t = yAxisPtr->max / dy;
+        if (FINITE(t) && (t > 0.0) && (t < radius)) {
+            radius = t;
+        }
+    } else if (dy < 0.0) {
+        t = yAxisPtr->min / dy;
+        if (FINITE(t) && (t > 0.0) && (t < radius)) {
+            radius = t;
+        }
+    }
+    if ((!FINITE(radius)) || (radius <= 0.0)) {
+        return 0.0;
+    }
+    return radius;
+}
+
+static int MapPolarSpoke(Graph *graphPtr, Grid *gridPtr, double degrees, Segment2D *segmentPtr) {
+    Point2D p;
+    Point2D q;
+
+    if (!ClipPolarRay(gridPtr, degrees, &p, &q)) {
+        return FALSE;
+    }
+    segmentPtr->p = Rbc_Map2D(graphPtr, p.x, p.y, &gridPtr->axes);
+    segmentPtr->q = Rbc_Map2D(graphPtr, q.x, q.y, &gridPtr->axes);
+    return TRUE;
 }
 
 static double PolarGridSegmentValue(Graph *graphPtr, Grid *gridPtr, const Segment2D *segmentPtr) {
@@ -113,7 +321,7 @@ static double PolarGridSegmentValue(Graph *graphPtr, Grid *gridPtr, const Segmen
     return point.x;
 }
 
-static void MapPolarCircles(Graph *graphPtr, Grid *gridPtr, double maxRadius) {
+static void MapPolarCircles(Graph *graphPtr, Grid *gridPtr, const PolarRadiusRange *rangePtr) {
     Segment2D *axisSegments;
     Segment2D *circleSegments;
     Tcl_Size nAxisSegments;
@@ -138,7 +346,7 @@ static void MapPolarCircles(Graph *graphPtr, Grid *gridPtr, double maxRadius) {
         double radius;
 
         radius = PolarGridSegmentValue(graphPtr, gridPtr, axisSegments + i);
-        if ((!FINITE(radius)) || (radius <= 0.0) || (radius > maxRadius)) {
+        if ((!FINITE(radius)) || (radius <= 0.0) || (radius < rangePtr->min) || (radius > rangePtr->max)) {
             continue;
         }
         nCircles++;
@@ -166,7 +374,7 @@ static void MapPolarCircles(Graph *graphPtr, Grid *gridPtr, double maxRadius) {
         double radius;
 
         radius = PolarGridSegmentValue(graphPtr, gridPtr, axisSegments + i);
-        if ((!FINITE(radius)) || (radius <= 0.0) || (radius > maxRadius)) {
+        if ((!FINITE(radius)) || (radius <= 0.0) || (radius < rangePtr->min) || (radius > rangePtr->max)) {
             continue;
         }
         MapCircle(graphPtr, gridPtr, radius, circleSegments + (nCircles * POLAR_CIRCLE_SEGMENTS));
@@ -177,9 +385,8 @@ static void MapPolarCircles(Graph *graphPtr, Grid *gridPtr, double maxRadius) {
     gridPtr->x.nSegments = nCircles * POLAR_CIRCLE_SEGMENTS;
 }
 
-static void MapPolarSpokes(Graph *graphPtr, Grid *gridPtr, double maxRadius) {
+static void MapPolarSpokes(Graph *graphPtr, Grid *gridPtr) {
     Segment2D *segments;
-    Point2D origin;
     Tcl_Size nMajor;
     Tcl_Size nMinor;
     Tcl_Size nSpokes;
@@ -202,36 +409,39 @@ static void MapPolarSpokes(Graph *graphPtr, Grid *gridPtr, double maxRadius) {
     if (segments == NULL) {
         return;
     }
-    origin = Rbc_Map2D(graphPtr, 0.0, 0.0, &gridPtr->axes);
     index = 0;
     /*
      * Major spokes are always present.
      */
     for (i = 0; i < nMajor; i++) {
-        MapPolarSpoke(graphPtr, gridPtr, origin, maxRadius, graphPtr->angleMajorTicks[i], segments + index);
-        index++;
+        if (MapPolarSpoke(graphPtr, gridPtr, graphPtr->angleMajorTicks[i], segments + index)) {
+            index++;
+        }
     }
     /*
-     * Minor spokes are controlled by the existing grid -minor
-     * option.
+     * Minor spokes are controlled by the existing grid -minor option.
      */
     for (i = 0; i < nMinor; i++) {
-        MapPolarSpoke(graphPtr, gridPtr, origin, maxRadius, graphPtr->angleMinorTicks[i], segments + index);
-        index++;
+        if (MapPolarSpoke(graphPtr, gridPtr, graphPtr->angleMinorTicks[i], segments + index)) {
+            index++;
+        }
+    }
+    if (index == 0) {
+        ckfree(segments);
+        return;
     }
     gridPtr->y.segments = segments;
     gridPtr->y.nSegments = index;
 }
 
 void Rbc_MapPolarGrid(Graph *graphPtr, Grid *gridPtr) {
-    double maxRadius;
+    PolarRadiusRange range;
 
-    maxRadius = PolarMaximumRadius(gridPtr);
-    if ((!FINITE(maxRadius)) || (maxRadius <= 0.0)) {
+    if (!GetPolarRadiusRange(gridPtr, &range)) {
         return;
     }
-    MapPolarCircles(graphPtr, gridPtr, maxRadius);
-    MapPolarSpokes(graphPtr, gridPtr, maxRadius);
+    MapPolarCircles(graphPtr, gridPtr, &range);
+    MapPolarSpokes(graphPtr, gridPtr);
 }
 
 static Tk_Anchor GetPolarRadialLabelAnchor(Graph *graphPtr) {
@@ -271,6 +481,69 @@ static Tk_Anchor GetPolarAngleLabelAnchor(Graph *graphPtr, double degrees) {
         return graphPtr->angleLabelAnchor.anchor;
     }
     return GetInwardLabelAnchor(degrees);
+}
+
+static Tk_Anchor GetPolarSpokeLabelAnchor(Graph *graphPtr, const Segment2D *segmentPtr) {
+    double dx;
+    double dy;
+    double degrees;
+
+    if (!graphPtr->angleLabelAnchor.isAuto) {
+        return graphPtr->angleLabelAnchor.anchor;
+    }
+    /*
+     * The label is placed at segmentPtr->q, the far end of the
+     * visible ray.  Determine its direction in screen coordinates
+     * and choose an anchor which makes the text extend back inward
+     * along the spoke.
+     *
+     * Screen Y increases downward, therefore negate dy before
+     * converting to the normal mathematical angle convention.
+     */
+    dx = segmentPtr->q.x - segmentPtr->p.x;
+    dy = segmentPtr->q.y - segmentPtr->p.y;
+    if ((fabs(dx) <= DBL_EPSILON) && (fabs(dy) <= DBL_EPSILON)) {
+        return TK_ANCHOR_CENTER;
+    }
+    degrees = atan2(-dy, dx) / POLAR_DEG_TO_RAD;
+    if (degrees < 0.0) {
+        degrees += 360.0;
+    }
+    return GetInwardLabelAnchor(degrees);
+}
+
+static int GetPolarAngularLabelPosition(Graph *graphPtr, Grid *gridPtr, double completeRadius, double degrees,
+                                        Point2D *pointPtr, Tk_Anchor *anchorPtr) {
+    if (completeRadius > 0.0) {
+        double labelRadius;
+        double theta;
+
+        /*
+         * A complete centered circle is visible.  Preserve the
+         * traditional circular angular-label layout.
+         */
+        labelRadius = completeRadius * POLAR_ANGLE_LABEL_RADIUS;
+        theta = degrees * POLAR_DEG_TO_RAD;
+        *pointPtr = Rbc_Map2D(graphPtr, labelRadius * cos(theta), labelRadius * sin(theta), &gridPtr->axes);
+        *anchorPtr = GetPolarAngleLabelAnchor(graphPtr, degrees);
+        return FINITE(pointPtr->x) && FINITE(pointPtr->y);
+    } else {
+        Segment2D segment;
+
+        /*
+         * No complete centered circle is visible.  Put the label at
+         * the far visible end of this angle's clipped spoke.
+         *
+         * If the positive ray does not cross the current viewport,
+         * there is neither a visible spoke nor a useful angle label.
+         */
+        if (!MapPolarSpoke(graphPtr, gridPtr, degrees, &segment)) {
+            return FALSE;
+        }
+        *pointPtr = segment.q;
+        *anchorPtr = GetPolarSpokeLabelAnchor(graphPtr, &segment);
+        return FINITE(pointPtr->x) && FINITE(pointPtr->y);
+    }
 }
 
 static void DrawPolarRadialLabels(Graph *graphPtr, Drawable drawable, Grid *gridPtr, double maxRadius) {
@@ -413,10 +686,9 @@ static char *FormatPolarAngleLabel(Graph *graphPtr, double degrees, Tcl_DString 
     return Tcl_DStringValue(dsPtr);
 }
 
-static void DrawPolarAngularLabels(Graph *graphPtr, Drawable drawable, Grid *gridPtr, double maxRadius) {
+static void DrawPolarAngularLabels(Graph *graphPtr, Drawable drawable, Grid *gridPtr, double completeRadius) {
     Axis *axisPtr;
     TextStyle style;
-    double labelRadius;
     Tcl_Size i;
 
     axisPtr = gridPtr->axes.y;
@@ -425,49 +697,49 @@ static void DrawPolarAngularLabels(Graph *graphPtr, Drawable drawable, Grid *gri
     }
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
-    /*
-     * Keep angular labels slightly inside the outer circle.
-     */
-    labelRadius = maxRadius * POLAR_ANGLE_LABEL_RADIUS;
     for (i = 0; i < graphPtr->nAngleMajorTicks; i++) {
         double degrees;
-        double theta;
         Point2D point;
+        Tk_Anchor anchor;
+        Tcl_DString label;
+        char *string;
 
         degrees = graphPtr->angleMajorTicks[i];
-        theta = degrees * POLAR_DEG_TO_RAD;
-        style.anchor = GetPolarAngleLabelAnchor(graphPtr, degrees);
-        point = Rbc_Map2D(graphPtr, labelRadius * cos(theta), labelRadius * sin(theta), &gridPtr->axes);
-        if ((!FINITE(point.x)) || (!FINITE(point.y))) {
+        if (!GetPolarAngularLabelPosition(graphPtr, gridPtr, completeRadius, degrees, &point, &anchor)) {
             continue;
         }
-        {
-            Tcl_DString label;
-            char *string;
-
-            string = FormatPolarAngleLabel(graphPtr, degrees, &label);
-            if (string[0] != '\0') {
-                Rbc_DrawText(graphPtr->tkwin, drawable, string, &style, ROUND(point.x), ROUND(point.y));
-            }
-            Tcl_DStringFree(&label);
+        style.anchor = anchor;
+        string = FormatPolarAngleLabel(graphPtr, degrees, &label);
+        if (string[0] != '\0') {
+            Rbc_DrawText(graphPtr->tkwin, drawable, string, &style, ROUND(point.x), ROUND(point.y));
         }
+        Tcl_DStringFree(&label);
     }
 }
 
 void Rbc_DrawPolarLabels(Graph *graphPtr, Drawable drawable) {
     Grid *gridPtr;
-    double maxRadius;
+    double completeRadius;
 
     gridPtr = graphPtr->gridPtr;
     if (gridPtr == NULL) {
         return;
     }
-    maxRadius = PolarMaximumRadius(gridPtr);
-    if ((!FINITE(maxRadius)) || (maxRadius <= 0.0)) {
-        return;
+    completeRadius = PolarCompleteCircleRadius(gridPtr);
+    /*
+     * Radial labels retain their existing centered-circle placement.
+     * They are useful only when a complete centered Polar reference
+     * circle exists.
+     */
+    if (FINITE(completeRadius) && (completeRadius > 0.0)) {
+        DrawPolarRadialLabels(graphPtr, drawable, gridPtr, completeRadius);
     }
-    DrawPolarRadialLabels(graphPtr, drawable, gridPtr, maxRadius);
-    DrawPolarAngularLabels(graphPtr, drawable, gridPtr, maxRadius);
+    /*
+     * Angular labels are always attempted.  With a complete circle
+     * they use the normal circular layout; otherwise they are placed
+     * at the ends of visible clipped spokes.
+     */
+    DrawPolarAngularLabels(graphPtr, drawable, gridPtr, completeRadius);
 }
 
 static void SmithImpedanceToGamma(double resistance, double reactance, double *realPtr, double *imagPtr) {
@@ -773,10 +1045,9 @@ static void PolarRadialLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid
     ckfree(ticksPtr);
 }
 
-static void PolarAngularLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *gridPtr, double maxRadius) {
+static void PolarAngularLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *gridPtr, double completeRadius) {
     Axis *axisPtr;
     TextStyle style;
-    double labelRadius;
     Tcl_Size i;
 
     axisPtr = gridPtr->axes.y;
@@ -785,46 +1056,39 @@ static void PolarAngularLabelsToPostScript(Graph *graphPtr, PsToken psToken, Gri
     }
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
-    labelRadius = maxRadius * POLAR_ANGLE_LABEL_RADIUS;
     for (i = 0; i < graphPtr->nAngleMajorTicks; i++) {
         double degrees;
-        double theta;
         Point2D point;
+        Tk_Anchor anchor;
+        Tcl_DString label;
+        char *string;
 
         degrees = graphPtr->angleMajorTicks[i];
-        theta = degrees * POLAR_DEG_TO_RAD;
-        style.anchor = GetPolarAngleLabelAnchor(graphPtr, degrees);
-        point = Rbc_Map2D(graphPtr, labelRadius * cos(theta), labelRadius * sin(theta), &gridPtr->axes);
-        if ((!FINITE(point.x)) || (!FINITE(point.y))) {
+        if (!GetPolarAngularLabelPosition(graphPtr, gridPtr, completeRadius, degrees, &point, &anchor)) {
             continue;
         }
-        {
-            Tcl_DString label;
-            char *string;
-
-            string = FormatPolarAngleLabel(graphPtr, degrees, &label);
-            if (string[0] != '\0') {
-                Rbc_TextToPostScript(psToken, string, &style, point.x, point.y);
-            }
-            Tcl_DStringFree(&label);
+        style.anchor = anchor;
+        string = FormatPolarAngleLabel(graphPtr, degrees, &label);
+        if (string[0] != '\0') {
+            Rbc_TextToPostScript(psToken, string, &style, point.x, point.y);
         }
+        Tcl_DStringFree(&label);
     }
 }
 
 void Rbc_PolarLabelsToPostScript(Graph *graphPtr, PsToken psToken) {
     Grid *gridPtr;
-    double maxRadius;
+    double completeRadius;
 
     gridPtr = graphPtr->gridPtr;
     if (gridPtr == NULL) {
         return;
     }
-    maxRadius = PolarMaximumRadius(gridPtr);
-    if ((!FINITE(maxRadius)) || (maxRadius <= 0.0)) {
-        return;
+    completeRadius = PolarCompleteCircleRadius(gridPtr);
+    if (FINITE(completeRadius) && (completeRadius > 0.0)) {
+        PolarRadialLabelsToPostScript(graphPtr, psToken, gridPtr, completeRadius);
     }
-    PolarRadialLabelsToPostScript(graphPtr, psToken, gridPtr, maxRadius);
-    PolarAngularLabelsToPostScript(graphPtr, psToken, gridPtr, maxRadius);
+    PolarAngularLabelsToPostScript(graphPtr, psToken, gridPtr, completeRadius);
 }
 
 static void MapSmithResistanceCircle(Graph *graphPtr, Grid *gridPtr, double resistance, int admittance,

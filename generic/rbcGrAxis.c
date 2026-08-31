@@ -3757,6 +3757,34 @@ void Rbc_ResetAxes(Graph *graphPtr) {
         GetDataLimits(elemPtr->axes.y, exts.top, exts.bottom);
     }
     /*
+     * A Polar representation needs a Cartesian range containing the
+     * origin in both dimensions in order to draw its circles and spokes.
+     *
+     * Normally that range comes from visible element data.  If an axis
+     * mapped to the Polar grid has no contributing visible element data,
+     * provide a neutral symmetric fallback range.
+     *
+     * Unlike Smith's intrinsic unit circle below, this is only a fallback:
+     * visible Polar element data remain free to determine their normal
+     * automatic range.
+     */
+    if ((graphPtr->classUid == rbcPolarElementUid) && (graphPtr->representation == POLAR_REPRESENTATION_POLAR) &&
+        (graphPtr->gridPtr != NULL)) {
+        Axis *xAxisPtr;
+        Axis *yAxisPtr;
+
+        xAxisPtr = graphPtr->gridPtr->axes.x;
+        yAxisPtr = graphPtr->gridPtr->axes.y;
+        if ((xAxisPtr != NULL) && (!xAxisPtr->logScale) && (xAxisPtr->valueRange.min == DBL_MAX) &&
+            (xAxisPtr->valueRange.max == -DBL_MAX)) {
+            GetDataLimits(xAxisPtr, -1.0, 1.0);
+        }
+        if ((yAxisPtr != NULL) && (!yAxisPtr->logScale) && (yAxisPtr->valueRange.min == DBL_MAX) &&
+            (yAxisPtr->valueRange.max == -DBL_MAX)) {
+            GetDataLimits(yAxisPtr, -1.0, 1.0);
+        }
+    }
+    /*
      * The Smith representation is defined in the reflection-coefficient
      * plane.  Its unit circle is part of the graph representation itself,
      * so the axes mapped to the Smith grid must always contain [-1,+1],

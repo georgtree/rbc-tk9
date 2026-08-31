@@ -301,7 +301,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             path
             -width=
             -height=
-            {-type= -default graph -enum {graph barchart stripchart}}
+            {-type= -default graph -enum {graph barchart stripchart polar}}
             {-toolbarside= -default bottom}
             -zoom
             {-zoomstartbut -default {ButtonPress-1}}
@@ -695,6 +695,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #
         #   - axes installed in the corresponding margins
         #   - axes mapped by elements
+        #   - for a polar widget, the axis mapped by the Polar/Smith grid
         #
         # Completely unused axes are excluded.
         set graph $Subwidgets(graph)
@@ -708,8 +709,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 set mapOption -mapy
             }
             default {
-                return -code error \
-                    "unknown axis dimension '$dimension': must be x or y"
+                return -code error "unknown axis dimension '$dimension': must be x or y"
             }
         }
         set axes [list]
@@ -733,6 +733,38 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 lappend axes $axis
             }
         }
+        #
+        # A Polar/Smith grid can use an axis that is neither installed in
+        # a margin nor mapped by an element.  It still participates in
+        # the displayed coordinate system and in Polar automatic aspect
+        # calculation, so it must participate in zoom/reset operations.
+        #
+        if {$GraphType eq {polar}} {
+            set axis [$graph grid cget $mapOption]
+            if {($axis ne {}) && ($axis ni $axes)} {
+                lappend axes $axis
+            }
+        }
+        return $axes
+    }
+    method PolarGridAxes {} {
+        # Returns the axes which control the Polar/Smith grid itself.
+        #
+        # This is deliberately different from UsedAxes: auxiliary,
+        # element-only, and margin-only axes do not determine whether
+        # the Polar/Smith representation can be drawn.
+        if {$GraphType ne {polar}} {
+            return {}
+        }
+        set graph $Subwidgets(graph)
+        set axes [list]
+        foreach option {-mapx -mapy} {
+            set axis [$graph grid cget $option]
+            if {($axis ne {}) && ($axis ni $axes)} {
+                lappend axes $axis
+            }
+        }
+
         return $axes
     }
     method VisibleAxes {dimension} {
@@ -743,6 +775,39 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             if {![$graph axis cget $axis -hide]} {
                 lappend axes $axis
             }
+        }
+        return $axes
+    }
+    method InteractionAxes {dimension} {
+        # Returns axes suitable for interactive overlays such as current
+        # crosshair text and the zoom-selection box.
+        #
+        # Normally these are the visible axes.  A Polar/Smith widget may
+        # intentionally hide its Cartesian margin axes while still using
+        # them to map the specialized grid.  In that case fall back to the
+        # corresponding grid-mapped axis.
+        set graph $Subwidgets(graph)
+        set axes [my VisibleAxes $dimension]
+        if {[llength $axes] > 0} {
+            return $axes
+        }
+        if {$GraphType ne {polar}} {
+            return $axes
+        }
+        switch -- $dimension {
+            x {
+                set mapOption -mapx
+            }
+            y {
+                set mapOption -mapy
+            }
+            default {
+                return -code error "unknown axis dimension '$dimension': must be x or y"
+            }
+        }
+        set axis [$graph grid cget $mapOption]
+        if {$axis ne {}} {
+            lappend axes $axis
         }
         return $axes
     }
@@ -771,21 +836,27 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         return [list $xValue $yValue]
     }
     method AxisMarkerInfo {xPixel yPixel formatx formaty} {
-        # Returns formatted values of all visible axes at xPixel/yPixel. The first visible X/Y axes are also used to
-        #  place the marker.
+        # Returns formatted values of the axes used for interactive
+        # coordinate display at xPixel/yPixel.
+        #
+        # Normally visible axes are used.  For a Polar/Smith widget with
+        # hidden Cartesian axes, InteractionAxes falls back to the axes
+        # mapped by the specialized grid.
+        #
+        # The first X/Y axes are also used to place the marker.
         set graph $Subwidgets(graph)
-        set xAxes [my VisibleAxes x]
-        set yAxes [my VisibleAxes y]
-        if {[llength $xAxes]==0} {
-            return -code error {graph has no visible X axis}
+        set xAxes [my InteractionAxes x]
+        set yAxes [my InteractionAxes y]
+        if {[llength $xAxes] == 0} {
+            return -code error {graph has no X axis available for coordinate display}
         }
-        if {[llength $yAxes]==0} {
-            return -code error {graph has no visible Y axis}
+        if {[llength $yAxes] == 0} {
+            return -code error {graph has no Y axis available for coordinate display}
         }
         set mapx [lindex $xAxes 0]
         set mapy [lindex $yAxes 0]
         set lines [list]
-        if {[$Subwidgets(graph) cget -invertxy]} {
+        if {[$graph cget -invertxy]} {
             set xOrientation v
             set yOrientation h
         } else {
@@ -810,6 +881,30 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     }
 
     #### axes toggle methods
+    method ToggleAxisScale {graph} {
+        set axis [$graph axis get current]
+
+        if {$axis eq {}} {
+            return
+        }
+        set logscale [$graph axis cget $axis -logscale]
+        set newLogscale [expr {!$logscale}]
+        #
+        # Polar and Smith grids require linear Cartesian grid axes.
+        #
+        # Prevent the toolbar from switching a visible Polar/Smith grid
+        # axis from linear to logarithmic.  Auxiliary axes remain free
+        # to use logarithmic scaling.
+        #
+        # Always allow logarithmic -> linear so that a grid which was
+        # made invalid by external configuration can be recovered.
+        #
+        if {$newLogscale && ($GraphType eq {polar}) && ![$graph grid cget -hide] && ($axis in [my PolarGridAxes])} {
+            bell 
+            return 
+        }
+        $graph axis configure $axis -logscale $newLogscale
+    }
     method setAxisActiveScale {args} {
         # Enables/disables active linear-logarithmic scale axis toggling.
         #  axes - list of axes names
@@ -871,13 +966,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 %W axis configure $axis -background {}
             }
         }
-        $graph axis bind $tag <$event> {
-            set axis [%W axis get current]
-            if {$axis ne {}} {
-                set logscale [lindex [%W axis configure $axis -logscale] end]
-                %W axis configure $axis -logscale [expr {!$logscale}]
-            }
-        }
+        $graph axis bind $tag <$event> [namespace code [list my ToggleAxisScale %W]]
         # update tags for provided axes
         foreach axis $axes {
             set tags [lindex [$graph axis configure $axis -bindtags] end]
@@ -1360,8 +1449,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     }
     method EnableWheelZoom {modifier scale} {
         set graph $Subwidgets(graph)
-        if {![string is double -strict $scale] || ($scale <= 1.0)} {
-            return -code error "wheel zoom scale must be a number greater than 1.0"
+        if {![string is double -strict $scale] || !isfinite($scale) || ($scale <= 1.0)} {
+            return -code error "wheel zoom scale must be a finite number greater than 1.0"
         }
         bind zoom-$graph <${modifier}MouseWheel> [namespace code [list my WheelZoom %W %D %x %y %s $scale]]
     }
@@ -1476,7 +1565,22 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             #
             # An individual axis is scaled around its own center.
             #
-            dict set changes $axis [my ScaledAxisLimits $axis $factor]
+            if {($GraphType eq {polar}) && ($axis in [my PolarGridAxes])} {
+                #
+                # A Polar grid is an equal-scale two-dimensional coordinate
+                # system.  Scaling only one of its grid axes would force RBC to
+                # resize the physical plot area.
+                #
+                # Scale both grid axes by the same factor instead.  The selected
+                # axis and its perpendicular partner each scale about their own
+                # numerical center.
+                #
+                foreach gridAxis [my PolarGridAxes] {
+                    dict set changes $gridAxis [my ScaledAxisLimits $gridAxis $factor]
+                }
+            } else {
+                dict set changes $axis [my ScaledAxisLimits $axis $factor]
+            }
         }
         if {[dict size $changes] == 0} {
             return
@@ -1612,8 +1716,16 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # min ─────────────●──────────── max
         #                  ● remains at the same screen position
         #
+        # Linear axes are scaled arithmetically.
+        # Logarithmic axes are scaled in logarithmic coordinate space.
         set graph $Subwidgets(graph)
+        if {![string is double -strict $factor] || !isfinite($factor) || ($factor <= 0.0)} {
+            return -code error "axis scaling factor must be a finite number greater than zero"
+        }
         lassign [$graph axis limits $axis] min max
+        if {!isfinite($min) || !isfinite($max) || !($min < $max)} {
+            return -code error "axis '$axis' has invalid limits"
+        }
         if {[$graph axis cget $axis -logscale]} {
             if {($min <= 0.0) || ($max <= 0.0)} {
                 return -code error "logarithmic axis limits must be greater than zero"
@@ -1623,19 +1735,44 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             if {$center eq {}} {
                 set logCenter [expr {($logMin+$logMax)/2.0}]
             } else {
-                if {$center <= 0.0} {
-                    return -code error "logarithmic axis center must be greater than zero"
+                if {![string is double -strict $center] || !isfinite($center) || ($center <= 0.0)} {
+                    return -code error "logarithmic axis center must be a finite number greater than zero"
                 }
                 set logCenter [expr {log($center)}]
             }
-            set logMin [expr {$logCenter+($logMin-$logCenter)*$factor}]
-            set logMax [expr {$logCenter+($logMax-$logCenter)*$factor}]
-            return [list [expr {exp($logMin)}] [expr {exp($logMax)}]]
+            set newLogMin [expr {$logCenter+($logMin-$logCenter)*$factor}]
+            set newLogMax [expr {$logCenter+($logMax-$logCenter)*$factor}]
+            if {!isfinite($newLogMin) || !isfinite($newLogMax) || !($newLogMin < $newLogMax)} {
+                return -code error "logarithmic axis scaling produced invalid limits"
+            }
+            #
+            # exp() can overflow even though its input is itself finite.
+            #
+            if {[catch {expr {exp($newLogMin)}} newMin] || [catch {expr {exp($newLogMax)}} newMax]} {
+                return -code error "logarithmic axis scaling exceeds the numeric range"
+            }
+            #
+            # Very large zoom operations can also underflow the lower
+            # limit to zero.
+            #
+            if {!isfinite($newMin) || !isfinite($newMax) || ($newMin <= 0.0) || !($newMin < $newMax)} {
+                return -code error "logarithmic axis scaling produced invalid limits"
+            }
+            return [list $newMin $newMax]
         }
         if {$center eq {}} {
             set center [expr {($min+$max)/2.0}]
+        } else {
+            if {![string is double -strict $center] || !isfinite($center)} {
+                return -code error "axis scaling center must be finite"
+            }
         }
-        return [list [expr {$center+($min-$center)*$factor}] [expr {$center+($max-$center)*$factor}]]
+        set newMin [expr {$center+($min-$center)*$factor}]
+        set newMax [expr {$center+($max-$center)*$factor}]
+        if {!isfinite($newMin) || !isfinite($newMax) || !($newMin < $newMax)} {
+            return -code error "axis scaling produced invalid limits"
+        }
+        return [list $newMin $newMax]
     }
     method ResetZoom {{x {}} {y {}}} {
         # Restores graph scale to the previous state, or abort the current selection operation.
@@ -1695,6 +1832,83 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set y [expr {max($top,min($bottom,$y))}]
         return [list $x $y]
     }
+    method ConstrainPolarZoomPoint {x y} {
+        # Polar/Smith automatic aspect keeps one X data unit and one Y
+        # data unit physically equal.
+        #
+        # An arbitrary rectangular zoom box changes the X/Y range ratio,
+        # which makes the Polar graph resize its physical plot area.
+        #
+        # Constrain the second zoom corner so that the zoom box has the
+        # same physical aspect ratio as the current plot area.  The new
+        # numerical X/Y ranges therefore preserve the existing equal-unit
+        # geometry without changing the plot-area size.
+        if {$GraphType ne {polar}} {
+            return [list $x $y]
+        }
+        set graph $Subwidgets(graph)
+        lassign [$graph extents plotarea] left top width height
+        if {($width <= 1) || ($height <= 1)} {
+            return [list $x $y]
+        }
+        set right  [expr {$left+$width-1}]
+        set bottom [expr {$top+$height-1}]
+        set ax $ZoomInfo(A,x)
+        set ay $ZoomInfo(A,y)
+        set dx [expr {$x-$ax}]
+        set dy [expr {$y-$ay}]
+        if {($dx == 0) || ($dy == 0)} {
+            return [list $x $y]
+        }
+        set signX [expr {$dx < 0 ? -1 : 1}]
+        set signY [expr {$dy < 0 ? -1 : 1}]
+        set absDx [expr {abs($dx)}]
+        set absDy [expr {abs($dy)}]
+        set aspect [expr {double($width-1)/double($height-1)}]
+        set boxAspect [expr {$absDx/$absDy}]
+        if {$boxAspect > $aspect} {
+            #
+            # The dragged box is too wide.  Prefer extending its height
+            # while retaining the user's horizontal selection.
+            #
+            set wantedDy [expr {$absDx/$aspect}]
+            if {$signY > 0} {
+                set availableDy [expr {$bottom-$ay}]
+            } else {
+                set availableDy [expr {$ay-$top}]
+            }
+            if {$wantedDy <= $availableDy} {
+                set absDy $wantedDy
+            } else {
+                #
+                # The required height does not fit.  Use all available
+                # height and reduce the width instead.
+                #
+                set absDy $availableDy
+                set absDx [expr {$absDy*$aspect}]
+            }
+        } else {
+            #
+            # The dragged box is too tall.  Prefer extending its width
+            # while retaining the user's vertical selection.
+            #
+            set wantedDx [expr {$absDy*$aspect}]
+            if {$signX > 0} {
+                set availableDx [expr {$right-$ax}]
+            } else {
+                set availableDx [expr {$ax-$left}]
+            }
+            if {$wantedDx <= $availableDx} {
+                set absDx $wantedDx
+            } else {
+                set absDx $availableDx
+                set absDy [expr {$absDx/$aspect}]
+            }
+        }
+        set x [expr {round($ax+$signX*$absDx)}]
+        set y [expr {round($ay+$signY*$absDy)}]
+        return [list $x $y]
+    }
     method SetZoomPoint {x y} {
         # Sets the first (A) or second (B) zoom box point
         #  x - horizontal coordinate of the pointer
@@ -1711,11 +1925,17 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         } else {
             # Second point may be outside: clamp it to the plot edge.
             lassign [my ClampToPlot $x $y] x y
+            if {$GraphType eq {polar}} {
+                lassign [my ConstrainPolarZoomPoint $x $y] x y
+            }
         }
         my SaveZoomPoint $x $y $ZoomInfo(corner)
         set modifier $ZoomMod
         bind select-region-$graph <${modifier}Motion> [namespace code {
             lassign [my ClampToPlot %x %y] x y
+            if {$GraphType eq {polar}} {
+                lassign [my ConstrainPolarZoomPoint $x $y] x y
+            }
             my SaveZoomPoint $x $y B
             if {$ZoomMark} {
                 my MarkZoomPoint B
@@ -1760,9 +1980,13 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     }
     method Box {} {
         # Creates zoom-box outline from the saved A/B points.
+        #
+        # The marker only needs one valid X/Y mapping pair.  Normally use
+        # visible axes; a Polar/Smith widget with hidden Cartesian axes
+        # falls back to the grid-mapped axes.
         set graph $Subwidgets(graph)
-        set xAxes [my VisibleAxes x]
-        set yAxes [my VisibleAxes y]
+        set xAxes [my InteractionAxes x]
+        set yAxes [my InteractionAxes y]
         if {![llength $xAxes] || ![llength $yAxes]} {
             return
         }
@@ -1775,9 +1999,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set coords [list $xValue1 $yValue1 $xValue2 $yValue1 $xValue2 $yValue2 $xValue1 $yValue2 $xValue1 $yValue1]
         my AddBitmapPoint gtbZoomBitmap $xValue1 $yValue1 $mapx $mapy
         if {[$graph marker exists gtbZoomOutline]} {
-            $graph marker configure gtbZoomOutline -coords $coords
+            $graph marker configure gtbZoomOutline -coords $coords -mapx $mapx -mapy $mapy
         } else {
-            $graph marker create line -name gtbZoomOutline -coords $coords -mapx $mapx -mapy $mapy\
+            $graph marker create line -name gtbZoomOutline -coords $coords -mapx $mapx -mapy $mapy \
                     {*}[my configure -zoomboxopts]
         }
     }
