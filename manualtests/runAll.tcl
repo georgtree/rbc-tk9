@@ -8,3 +8,5 @@ cd ../winop
 source [file join runAll.tcl]
 cd ../eps
 source [file join runAll.tcl]
+cd ../polar
+source [file join runAll.tcl]
