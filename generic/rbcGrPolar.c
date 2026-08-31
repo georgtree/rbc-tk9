@@ -767,6 +767,25 @@ static void SmithGridValueToGamma(int admittance, double realValue, double imagV
     }
 }
 
+static int SmithUnitCircleVisible(Grid *gridPtr) {
+    Axis *xAxisPtr;
+    Axis *yAxisPtr;
+
+    xAxisPtr = gridPtr->axes.x;
+    yAxisPtr = gridPtr->axes.y;
+    if ((xAxisPtr == NULL) || (yAxisPtr == NULL)) {
+        return FALSE;
+    }
+    if (xAxisPtr->logScale || yAxisPtr->logScale) {
+        return FALSE;
+    }
+    /*
+     * The complete Smith unit circle is visible only when the
+     * Gamma viewport contains [-1,+1] in both dimensions.
+     */
+    return (xAxisPtr->min <= -1.0) && (xAxisPtr->max >= 1.0) && (yAxisPtr->min <= -1.0) && (yAxisPtr->max >= 1.0);
+}
+
 static char *FormatSmithLabel(Graph *graphPtr, Tcl_Obj *commandObjPtr, int admittance, int imaginary, double value,
                               Tcl_DString *dsPtr) {
     Tcl_Interp *interp;
@@ -934,77 +953,6 @@ static void DrawSmithRealLabels(Graph *graphPtr, Drawable drawable, Grid *gridPt
     }
 }
 
-static void DrawSmithReactiveLabels(Graph *graphPtr, Drawable drawable, Grid *gridPtr, int admittance) {
-    Axis *axisPtr;
-    TextStyle style;
-    Tcl_Size i;
-
-    axisPtr = gridPtr->axes.y;
-    if ((axisPtr == NULL) || (!axisPtr->showTicks)) {
-        return;
-    }
-    style = axisPtr->tickTextStyle;
-    style.theta = 0.0;
-    for (i = 0; i < graphPtr->nSmithImagMajorTicks; i++) {
-        double magnitude;
-        int sign;
-
-        magnitude = graphPtr->smithImagMajorTicks[i];
-        for (sign = 1; sign >= -1; sign -= 2) {
-            double reactive;
-            double real;
-            double imag;
-            double degrees;
-            Point2D point;
-            Tcl_DString label;
-            char *string;
-
-            reactive = (double)sign * magnitude;
-            SmithGridValueToGamma(admittance, 0.0, reactive, &real, &imag);
-            /*
-             * Pull the label slightly inside the unit circle.
-             */
-            real *= SMITH_REACTANCE_LABEL_RADIUS;
-            imag *= SMITH_REACTANCE_LABEL_RADIUS;
-            point = Rbc_Map2D(graphPtr, real, imag, &gridPtr->axes);
-            if ((!FINITE(point.x)) || (!FINITE(point.y))) {
-                continue;
-            }
-            /*
-             * Choose an inward-facing anchor from the actual
-             * position in the Gamma plane.
-             */
-            degrees = atan2(imag, real) / POLAR_DEG_TO_RAD;
-            if (degrees < 0.0) {
-                degrees += 360.0;
-            }
-            style.anchor = GetInwardLabelAnchor(degrees);
-            string = FormatSmithLabel(graphPtr, graphPtr->smithImagCommandObjPtr, admittance, TRUE, reactive, &label);
-            if (string[0] != '\0') {
-                Rbc_DrawText(graphPtr->tkwin, drawable, string, &style, ROUND(point.x), ROUND(point.y));
-            }
-            Tcl_DStringFree(&label);
-        }
-    }
-}
-
-void Rbc_DrawSmithLabels(Graph *graphPtr, Drawable drawable) {
-    Grid *gridPtr;
-
-    gridPtr = graphPtr->gridPtr;
-    if (gridPtr == NULL) {
-        return;
-    }
-    if ((graphPtr->smithGrid == SMITH_GRID_IMPEDANCE) || (graphPtr->smithGrid == SMITH_GRID_BOTH)) {
-        DrawSmithRealLabels(graphPtr, drawable, gridPtr, FALSE);
-        DrawSmithReactiveLabels(graphPtr, drawable, gridPtr, FALSE);
-    }
-    if ((graphPtr->smithGrid == SMITH_GRID_ADMITTANCE) || (graphPtr->smithGrid == SMITH_GRID_BOTH)) {
-        DrawSmithRealLabels(graphPtr, drawable, gridPtr, TRUE);
-        DrawSmithReactiveLabels(graphPtr, drawable, gridPtr, TRUE);
-    }
-}
-
 static void PolarRadialLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *gridPtr, double maxRadius) {
     Axis *axisPtr;
     TextStyle style;
@@ -1116,26 +1064,235 @@ static void MapSmithResistanceCircle(Graph *graphPtr, Grid *gridPtr, double resi
     }
 }
 
-static Point2D SmithReactancePoint(Graph *graphPtr, Grid *gridPtr, double reactance, double t, int admittance) {
+static Point2D SmithReactanceGamma(double reactance, double t, int admittance) {
+    Point2D point;
     double resistance;
-    double real;
-    double imag;
 
     if (t >= 1.0) {
         /*
          * Infinite resistance/conductance.
          */
-        if (admittance) {
-            real = -1.0;
-        } else {
-            real = 1.0;
-        }
-        imag = 0.0;
+        point.x = admittance ? -1.0 : 1.0;
+        point.y = 0.0;
     } else {
         resistance = t / (1.0 - t);
-        SmithGridValueToGamma(admittance, resistance, reactance, &real, &imag);
+        SmithGridValueToGamma(admittance, resistance, reactance, &point.x, &point.y);
     }
-    return Rbc_Map2D(graphPtr, real, imag, &gridPtr->axes);
+    return point;
+}
+
+static Point2D SmithReactancePoint(Graph *graphPtr, Grid *gridPtr, double reactance, double t, int admittance) {
+    Point2D point;
+
+    point = SmithReactanceGamma(reactance, t, admittance);
+    return Rbc_Map2D(graphPtr, point.x, point.y, &gridPtr->axes);
+}
+
+static int ClipSegmentParameter(double p, double q, double *enterPtr, double *exitPtr) {
+    double r;
+
+    if (p == 0.0) {
+        return q >= 0.0;
+    }
+    r = q / p;
+    if (p < 0.0) {
+        if (r > *exitPtr) {
+            return FALSE;
+        }
+        if (r > *enterPtr) {
+            *enterPtr = r;
+        }
+    } else {
+        if (r < *enterPtr) {
+            return FALSE;
+        }
+        if (r < *exitPtr) {
+            *exitPtr = r;
+        }
+    }
+    return TRUE;
+}
+
+static int ClipSegmentToGridViewport(Grid *gridPtr, Point2D p, Point2D q, Point2D *enterPointPtr,
+                                     Point2D *exitPointPtr) {
+    Axis *xAxisPtr;
+    Axis *yAxisPtr;
+    double dx;
+    double dy;
+    double enter;
+    double exit;
+
+    xAxisPtr = gridPtr->axes.x;
+    yAxisPtr = gridPtr->axes.y;
+    if ((xAxisPtr == NULL) || (yAxisPtr == NULL)) {
+        return FALSE;
+    }
+    dx = q.x - p.x;
+    dy = q.y - p.y;
+    enter = 0.0;
+    exit = 1.0;
+    if (!ClipSegmentParameter(-dx, p.x - xAxisPtr->min, &enter, &exit) ||
+        !ClipSegmentParameter(dx, xAxisPtr->max - p.x, &enter, &exit) ||
+        !ClipSegmentParameter(-dy, p.y - yAxisPtr->min, &enter, &exit) ||
+        !ClipSegmentParameter(dy, yAxisPtr->max - p.y, &enter, &exit)) {
+        return FALSE;
+    }
+    if (enter > exit) {
+        return FALSE;
+    }
+    enterPointPtr->x = p.x + enter * dx;
+    enterPointPtr->y = p.y + enter * dy;
+    exitPointPtr->x = p.x + exit * dx;
+    exitPointPtr->y = p.y + exit * dy;
+    return FINITE(enterPointPtr->x) && FINITE(enterPointPtr->y) && FINITE(exitPointPtr->x) && FINITE(exitPointPtr->y);
+}
+
+static Tk_Anchor GetSmithReactiveEdgeAnchor(const Point2D *enterPtr, const Point2D *exitPtr) {
+    double dx;
+    double dy;
+    double degrees;
+
+    /*
+     * enterPtr is the outer visible end of the contour.
+     * Reverse the local contour direction so the resulting anchor
+     * makes the text extend back into the viewport.
+     */
+    dx = enterPtr->x - exitPtr->x;
+    dy = enterPtr->y - exitPtr->y;
+    if ((fabs(dx) <= DBL_EPSILON) && (fabs(dy) <= DBL_EPSILON)) {
+        return TK_ANCHOR_CENTER;
+    }
+    /*
+     * Screen Y grows downward.
+     */
+    degrees = atan2(-dy, dx) / POLAR_DEG_TO_RAD;
+    if (degrees < 0.0) {
+        degrees += 360.0;
+    }
+    return GetInwardLabelAnchor(degrees);
+}
+
+static int GetSmithReactiveLabelPosition(Graph *graphPtr, Grid *gridPtr, double reactive, int admittance,
+                                         Point2D *pointPtr, Tk_Anchor *anchorPtr) {
+    if (SmithUnitCircleVisible(gridPtr)) {
+        double real;
+        double imag;
+        double degrees;
+
+        /*
+         * Preserve the traditional placement slightly inside the
+         * Smith unit circle.
+         */
+        SmithGridValueToGamma(admittance, 0.0, reactive, &real, &imag);
+        real *= SMITH_REACTANCE_LABEL_RADIUS;
+        imag *= SMITH_REACTANCE_LABEL_RADIUS;
+        *pointPtr = Rbc_Map2D(graphPtr, real, imag, &gridPtr->axes);
+        if ((!FINITE(pointPtr->x)) || (!FINITE(pointPtr->y))) {
+            return FALSE;
+        }
+        degrees = atan2(imag, real) / POLAR_DEG_TO_RAD;
+        if (degrees < 0.0) {
+            degrees += 360.0;
+        }
+        *anchorPtr = GetInwardLabelAnchor(degrees);
+        return TRUE;
+    } else {
+        Point2D previous;
+        Tcl_Size i;
+
+        /*
+         * The outer Smith boundary is no longer fully visible.
+         * Walk the same polyline used to render this fixed
+         * reactance/susceptance contour, starting at its r=0/g=0
+         * unit-circle end.
+         *
+         * The first segment intersecting the viewport identifies the
+         * visible outer end of the contour.
+         */
+        previous = SmithReactanceGamma(reactive, 0.0, admittance);
+        for (i = 1; i <= SMITH_ARC_SEGMENTS; i++) {
+            Point2D next;
+            Point2D enter;
+            Point2D exit;
+            Point2D screenEnter;
+            Point2D screenExit;
+            double t;
+
+            t = (double)i / (double)SMITH_ARC_SEGMENTS;
+            next = SmithReactanceGamma(reactive, t, admittance);
+            if (!ClipSegmentToGridViewport(gridPtr, previous, next, &enter, &exit)) {
+                previous = next;
+                continue;
+            }
+            screenEnter = Rbc_Map2D(graphPtr, enter.x, enter.y, &gridPtr->axes);
+            screenExit = Rbc_Map2D(graphPtr, exit.x, exit.y, &gridPtr->axes);
+            if ((!FINITE(screenEnter.x)) || (!FINITE(screenEnter.y)) || (!FINITE(screenExit.x)) ||
+                (!FINITE(screenExit.y))) {
+                return FALSE;
+            }
+            *pointPtr = screenEnter;
+            *anchorPtr = GetSmithReactiveEdgeAnchor(&screenEnter, &screenExit);
+            return TRUE;
+        }
+    }
+    /*
+     * This reactive contour does not cross the visible viewport.
+     */
+    return FALSE;
+}
+
+static void DrawSmithReactiveLabels(Graph *graphPtr, Drawable drawable, Grid *gridPtr, int admittance) {
+    Axis *axisPtr;
+    TextStyle style;
+    Tcl_Size i;
+
+    axisPtr = gridPtr->axes.y;
+    if ((axisPtr == NULL) || (!axisPtr->showTicks)) {
+        return;
+    }
+    style = axisPtr->tickTextStyle;
+    style.theta = 0.0;
+    for (i = 0; i < graphPtr->nSmithImagMajorTicks; i++) {
+        double magnitude;
+        int sign;
+
+        magnitude = graphPtr->smithImagMajorTicks[i];
+        for (sign = 1; sign >= -1; sign -= 2) {
+            double reactive;
+            Point2D point;
+            Tk_Anchor anchor;
+            Tcl_DString label;
+            char *string;
+
+            reactive = (double)sign * magnitude;
+            if (!GetSmithReactiveLabelPosition(graphPtr, gridPtr, reactive, admittance, &point, &anchor)) {
+                continue;
+            }
+            style.anchor = anchor;
+            string = FormatSmithLabel(graphPtr, graphPtr->smithImagCommandObjPtr, admittance, TRUE, reactive, &label);
+            if (string[0] != '\0') {
+                Rbc_DrawText(graphPtr->tkwin, drawable, string, &style, ROUND(point.x), ROUND(point.y));
+            }
+            Tcl_DStringFree(&label);
+        }
+    }
+}
+
+void Rbc_DrawSmithLabels(Graph *graphPtr, Drawable drawable) {
+    Grid *gridPtr;
+
+    gridPtr = graphPtr->gridPtr;
+    if (gridPtr == NULL) {
+        return;
+    }
+    if ((graphPtr->smithGrid == SMITH_GRID_IMPEDANCE) || (graphPtr->smithGrid == SMITH_GRID_BOTH)) {
+        DrawSmithRealLabels(graphPtr, drawable, gridPtr, FALSE);
+        DrawSmithReactiveLabels(graphPtr, drawable, gridPtr, FALSE);
+    }
+    if ((graphPtr->smithGrid == SMITH_GRID_ADMITTANCE) || (graphPtr->smithGrid == SMITH_GRID_BOTH)) {
+        DrawSmithRealLabels(graphPtr, drawable, gridPtr, TRUE);
+        DrawSmithReactiveLabels(graphPtr, drawable, gridPtr, TRUE);
+    }
 }
 
 static void MapSmithReactanceArc(Graph *graphPtr, Grid *gridPtr, double reactance, int admittance,
@@ -1444,26 +1601,16 @@ static void SmithReactiveLabelsToPostScript(Graph *graphPtr, PsToken psToken, Gr
         magnitude = graphPtr->smithImagMajorTicks[i];
         for (sign = 1; sign >= -1; sign -= 2) {
             double reactive;
-            double real;
-            double imag;
-            double degrees;
             Point2D point;
+            Tk_Anchor anchor;
             Tcl_DString label;
             char *string;
 
             reactive = (double)sign * magnitude;
-            SmithGridValueToGamma(admittance, 0.0, reactive, &real, &imag);
-            real *= SMITH_REACTANCE_LABEL_RADIUS;
-            imag *= SMITH_REACTANCE_LABEL_RADIUS;
-            point = Rbc_Map2D(graphPtr, real, imag, &gridPtr->axes);
-            if ((!FINITE(point.x)) || (!FINITE(point.y))) {
+            if (!GetSmithReactiveLabelPosition(graphPtr, gridPtr, reactive, admittance, &point, &anchor)) {
                 continue;
             }
-            degrees = atan2(imag, real) / POLAR_DEG_TO_RAD;
-            if (degrees < 0.0) {
-                degrees += 360.0;
-            }
-            style.anchor = GetInwardLabelAnchor(degrees);
+            style.anchor = anchor;
             string = FormatSmithLabel(graphPtr, graphPtr->smithImagCommandObjPtr, admittance, TRUE, reactive, &label);
             if (string[0] != '\0') {
                 Rbc_TextToPostScript(psToken, string, &style, point.x, point.y);
