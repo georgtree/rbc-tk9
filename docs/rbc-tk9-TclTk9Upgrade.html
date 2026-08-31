@@ -373,6 +373,18 @@ label formatting through the mapped X axis, and configurable label anchoring.</p
 <p>Polar and Smith grid geometry follows the axes selected by <code class="docutils literal notranslate"><span class="pre">grid</span> <span class="pre">-mapx/-mapy</span></code>.</p>
 <p>Unless <code class="docutils literal notranslate"><span class="pre">-aspect</span></code> is explicitly configured, Polar widgets automatically maintain equal physical scale for X and
 Y data units. This keeps circles circular even when the mapped numerical X/Y ranges have different spans.</p>
+<p>Polar grid rendering remains meaningful when the origin is outside the current viewport. Radial circles which
+intersect the viewport are retained, angular spokes are clipped to the visible Cartesian area, and angular
+labels move from the normal circular layout to the visible ends of their spokes when no complete centered
+circle is available.</p>
+<p>Radial labels remain tied to the positive zero-degree ray and are displayed whenever their corresponding
+<code class="docutils literal notranslate"><span class="pre">{radius,0}</span></code> point is visible, even when the Polar origin itself is outside the viewport.</p>
+<p>Polar autoscaling also supplies a neutral fallback range when a grid-mapped axis has no contributing visible
+element data, allowing the Polar grid to remain usable when the widget is empty or all plotted elements are
+hidden.</p>
+<p>Smith reactive labels likewise adapt to zoomed views. When the complete unit circle is no longer visible,
+major reactance and susceptance labels are moved to the first visible boundary of their corresponding contour
+instead of disappearing with their normal unit-circle label position.</p>
 <p>Natural/cubic and quadratic smoothing on Polar elements is parametric, allowing vertical paths,
 non-monotonic-X paths and loops. Catmull-Rom smoothing remains parametric as well.</p>
 <p>Missing, non-finite, logarithmically invalid, or singular impedance/admittance points split a trace into

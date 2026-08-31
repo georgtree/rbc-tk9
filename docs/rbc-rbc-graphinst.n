@@ -165,6 +165,17 @@ In polar representation, circular radial grid lines are derived from positive ti
 grid -mapx\&. Negative ticks are ignored because radius is unsigned\&. The zero tick represents the origin rather
 than a circle\&.
 .PP
+The origin does not have to be visible\&. Rbc draws every configured radial circle that intersects the current
+plotting area\&. When only part of a circle lies inside the current Cartesian axis ranges, the visible portion is
+clipped to the plotting area\&.
+.PP
+Angular spokes are positive rays starting at the Polar origin\&. Each configured spoke is clipped independently
+to the current plotting area\&. If the origin is outside the visible area, a spoke is still drawn when its
+positive ray intersects the viewport\&. A spoke whose positive ray does not intersect the viewport is omitted\&.
+.PP
+This means that zooming into an arbitrary part of the Polar plane does not remove the Polar grid merely because
+(0,0) is no longer visible\&.
+.PP
 Radial labels use the mapped X axis's normal major-tick formatting machinery\&. This means an axis -command
 callback can be used to customize radial labels:
 .PP
@@ -176,12 +187,24 @@ proc formatRadius {widget value} {
     }
     return [format "r=%\&.2f" $value]
 }
-
 \&.p axis configure x -majorticks {-1 -0\&.75 -0\&.5 -0\&.25 0 0\&.25 0\&.5 0\&.75 1} -command formatRadius
 .fi
 .RE
 .PP
-Only positive radial values are displayed as radial labels\&.
+Only positive radial values are candidates for radial labels\&.
+.PP
+Radial labels are attached to the positive zero-degree ray at:
+.PP
+.RS 4n
+.nf
+x = radius
+y = 0
+.fi
+.RE
+.PP
+The origin itself does not need to be visible\&. A radial label remains visible whenever its corresponding point
+on the positive zero-degree ray lies inside the current viewport\&. If the zero-degree ray is outside the
+viewport, a radial circle may still be visible while its radial label is omitted\&.
 .PP
 Angular spokes are controlled separately from axis ticks\&. Major angular spokes come from
 -anglemajorticks; minor angular spokes come from -angleminorticks when:
@@ -212,6 +235,18 @@ and the default minor angular ticks are:
 .PP
 Angular labels use degrees\&. The built-in formatter appends the degree sign\&.
 .PP
+Angular-label placement adapts to the current viewport\&.
+.PP
+When a complete circle centered at the origin fits inside the plotting area, major angular labels are arranged
+on the normal circular label locus inside that circle\&.
+.PP
+When no complete centered circle is visible, each major angular label is instead placed at the far visible end
+of its clipped spoke\&. If the corresponding positive ray does not intersect the viewport, neither that spoke nor
+its angular label is displayed\&.
+.PP
+With -anglelabelanchor auto, Rbc chooses an inward-facing anchor from the actual label position\&. For clipped
+spokes this is based on the mapped screen direction, so the behavior also follows -invertxy\&.
+.PP
 -anglecommand replaces the built-in angular label formatter\&. Its value is a Tcl command prefix\&. Rbc appends:
 .PP
 .RS 4n
@@ -229,7 +264,6 @@ For example:
 proc formatAngle {widget degrees} {
     return [format "%g deg" $degrees]
 }
-
 polar \&.p -anglemajorticks {0 45 90 135 180 225 270 315} -anglecommand formatAngle
 .fi
 .RE
@@ -240,8 +274,20 @@ If an angular formatter raises an error while the graph is being drawn, the erro
 Tcl error and Rbc keeps the built-in label for that tick\&.
 .PP
 -anglelabelanchor and -radiallabelanchor control label placement\&. They accept the normal Tk anchor values
-and the special value auto\&. Automatic angular anchors point inward according to the position around the
-circle\&. Automatic radial anchoring uses the standard radial-label placement\&.
+and the special value auto\&. Automatic angular anchoring keeps labels directed inward from their circular or
+clipped-spoke positions\&. Automatic radial anchoring uses the standard radial-label placement\&.
+.SS "POLAR AUTOSCALING WITHOUT VISIBLE ELEMENTS"
+.PP
+Plot-hidden and normally hidden elements do not contribute to automatic axis limits\&.
+.PP
+For a Polar representation, if a grid-mapped axis has no contributing visible element data, Rbc supplies a
+neutral -1 to +1 fallback range for that axis\&. This keeps an empty Polar widget, or a Polar widget whose
+plotted elements have all been hidden with -hideplot, in a usable state with a visible Polar grid\&.
+.PP
+The fallback is used only when that grid axis has no visible data contribution\&. It does not constrain or extend
+an axis whose range is already determined by visible element data\&.
+.PP
+When a hidden element is made visible again, normal data-driven autoscaling resumes\&.
 .SS "SMITH REPRESENTATION"
 .PP
 Smith representation is selected with:
@@ -302,6 +348,27 @@ For example:
 \&.p configure -smithrealmajorticks {0 0\&.25 0\&.5 1 2 5 10} -smithrealminorticks {0\&.1 0\&.75 1\&.5 3} -smithimagmajorticks {0\&.25 0\&.5 1 2 5} -smithimagminorticks {0\&.1 0\&.75 1\&.5 3}
 .fi
 .RE
+.SS "SMITH LABELS DURING ZOOMING"
+.PP
+Major imaginary Smith labels normally appear near the unit-circle end of their corresponding reactance or
+susceptance contours\&.
+.PP
+When the complete Smith unit circle is visible, Rbc retains this normal placement slightly inside the unit
+circle\&.
+.PP
+When the current axis ranges show only part of the Smith chart, Rbc follows each major reactive contour from
+its zero-resistance or zero-conductance end and finds the first part of that contour which intersects the
+viewport\&. The corresponding +jx, -jx, +jb, or -jb label is placed at that visible contour boundary
+instead\&.
+.PP
+If a reactive contour does not intersect the visible viewport, its label is omitted\&.
+.PP
+The fallback placement uses the actual mapped contour direction to choose an inward-facing text anchor\&. It
+therefore works with -invertxy and with impedance, admittance, and combined Smith grids\&.
+.PP
+Real resistance and conductance labels retain their normal Smith-chart positions\&.
+.PP
+The same adaptive placement is used for on-screen rendering and PostScript output\&.
 .SS "CUSTOM SMITH LABELS"
 .PP
 -smithrealcommand and -smithimagcommand are Tcl command prefixes used to format major Smith labels\&.
@@ -372,9 +439,14 @@ Changing the grid-axis mapping also recalculates automatic equal-unit aspect han
 Polar and Smith grids require linear Cartesian axes\&. If either mapped grid axis uses -logscale yes, the
 specialized grid and its labels are suppressed\&.
 .PP
-A conventional Polar grid also requires zero to lie strictly inside both mapped axis ranges\&. Its outer radius
-is the largest complete circle about the origin that fits inside the current viewport\&. If the origin is outside
-either range, no Polar grid is generated\&.
+A conventional Polar grid does not require the origin to be visible\&. Radial circles are displayed whenever
+they intersect the current Cartesian viewport, and angular spokes are clipped positive rays from the Polar
+origin\&. When the origin is outside the viewport, only spokes whose positive rays cross the visible area are
+drawn\&.
+.PP
+Radial labels require their corresponding point on the positive zero-degree ray to be visible\&. Angular labels
+use the normal circular layout when a complete centered circle fits inside the viewport; otherwise they are
+placed at the visible ends of their clipped spokes\&.
 .PP
 Smith grids do not clip element data to the unit circle\&.
 .PP
@@ -398,12 +470,21 @@ These options are meaningful for widgets created with \fI::rbc::polar\fP\&.
 ┌──────────────────────────────┬───────────────────────┬───────────────────────┬───────────────────────────────┐
 │ Option                       │ Database name         │ Database class        │ Description                   │
 ├──────────────────────────────┼───────────────────────┼───────────────────────┼───────────────────────────────┤
-│ -anglelabelanchor anchor     │ angleLabelAnchor      │ AngleLabelAnchor      │ Anchor for angular labels;    │
-│                              │                       │                       │ accepts Tk anchors or auto\&.   │
+│ -anglelabelanchor anchor     │ angleLabelAnchor      │ AngleLabelAnchor      │ Sets the anchor used for major│
+│                              │                       │                       │ angular labels\&. Accepts a Tk  │
+│                              │                       │                       │ anchor or `auto`\&. With `auto`,│
+│                              │                       │                       │ Rbc selects an inward-facing  │
+│                              │                       │                       │ anchor for both circular and  │
+│                              │                       │                       │ clipped-spoke label placement\&.│
+│                              │                       │                       │ The default is `center`\&.      │
 │ -anglecommand command        │ angleCommand          │ AngleCommand          │ Formats major angular labels\&. │
 │ -anglemajorticks tickList    │ angleMajorTicks       │ AngleMajorTicks       │ Major spokes and labels\&.      │
 │ -angleminorticks tickList    │ angleMinorTicks       │ AngleMinorTicks       │ Minor angular spokes\&.         │
-│ -radiallabelanchor anchor    │ radialLabelAnchor     │ RadialLabelAnchor     │ Anchor for radial labels\&.     │
+│ -radiallabelanchor anchor    │ radialLabelAnchor     │ RadialLabelAnchor     │ Sets the anchor used for Polar│
+│                              │                       │                       │ radial labels on the positive │
+│                              │                       │                       │ zero-degree ray\&. Accepts a Tk │
+│                              │                       │                       │ anchor or `auto`\&. The default │
+│                              │                       │                       │ is `se`\&.                      │
 │ -representation mode         │ representation        │ Representation        │ polar or smith\&.               │
 │ -smithgrid mode              │ smithGrid             │ SmithGrid             │ impedance, admittance, both\&.  │
 │ -smithrealcommand command    │ smithRealCommand      │ SmithRealCommand      │ Formats major real labels\&.    │
