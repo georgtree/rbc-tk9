@@ -52,5 +52,40 @@ namespace eval polar.element {
         vector destroy z
     } -result {0}
 
+    test RBC.polar.element.draw.A.1.3 {
+        polar element draw: natural smoothing accepts vertical path
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {1 1} {1 2} {1 3}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 4
+        .polar1 axis configure y -min -2 -max 4
+        .polar1 element create Element1 -cdata z -smooth natural -symbol none
+    } -body {
+        catch {update}
+    } -cleanup {
+        destroy .polar1
+        catch {vector destroy z}
+    } -result {0}
+
+
+    test RBC.polar.element.draw.A.1.4 {
+        polar element draw: quadratic smoothing accepts vertical path
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {1 1} {1 2} {1 3}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 4
+        .polar1 axis configure y -min -2 -max 4
+        .polar1 element create Element1 -cdata z -smooth quadratic -symbol none
+    } -body {
+        catch {update}
+    } -cleanup {
+        destroy .polar1
+        catch {vector destroy z}
+    } -result {0}
+
     cleanupTests
 }

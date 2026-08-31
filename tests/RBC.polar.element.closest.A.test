@@ -713,5 +713,117 @@ namespace eval polar.element {
         vector destroy y
     } -result {1 0 1 1}
 
+    test RBC.polar.element.closest.A.smooth.1 {
+        polar element closest: natural smoothing is parametric and preserves interval indices
+    } -setup {
+        vector create z -type complex
+        z set {{0 0} {2 2} {0 4}}
+        # Generate reference points at:
+        #
+        #     source point 0
+        #     midpoint of interval 0
+        #     source point 1
+        #     midpoint of interval 1
+        #     source point 2
+        #
+        # The two source intervals have equal chord lengths.
+        spline parametric natural z ref 5
+
+        polar .polar1 -width 500 -height 500
+        pack .polar1
+        .polar1 axis configure x -min -1 -max 5
+        .polar1 axis configure y -min -1 -max 5
+        .polar1 element create Element1 -cdata z -smooth natural -symbol none -linewidth 2
+        update
+    } -body {
+        set result {}
+
+        foreach {sample expectedIndex} {1 0 3 1} {
+            lassign [lindex [ref range 0 end] $sample] real imag
+            lassign [.polar1 transform $real $imag] x y
+            set found [.polar1 element closest $x $y info -along both -interpolate 1 -halo 4 Element1]
+            lappend result $found
+            if {$found} {
+                lappend result $info(index)
+            } else {
+                lappend result -1
+            }
+            unset -nocomplain info
+        }
+        set result
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        catch {vector destroy z}
+        catch {vector destroy ref}
+    } -result {1 0 1 1}
+
+    test RBC.polar.element.closest.A.smooth.2 {
+        polar element closest: quadratic smoothing is parametric and preserves interval indices
+    } -setup {
+        vector create z -type complex
+        z set {{0 0} {2 2} {0 4}}
+        spline parametric quadratic z ref 5
+        polar .polar1 -width 500 -height 500
+        pack .polar1
+        .polar1 axis configure x -min -1 -max 5
+        .polar1 axis configure y -min -1 -max 5
+        .polar1 element create Element1 -cdata z -smooth quadratic -symbol none -linewidth 2
+        update
+    } -body {
+        set result {}
+        foreach {sample expectedIndex} {1 0 3 1} {
+            lassign [lindex [ref range 0 end] $sample] real imag
+            lassign [.polar1 transform $real $imag] x y
+            set found [.polar1 element closest $x $y info -along both -interpolate 1 -halo 4 Element1]
+            lappend result $found
+            if {$found} {
+                lappend result $info(index)
+            } else {
+                lappend result -1
+            }
+            unset -nocomplain info
+        }
+        set result
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        catch {vector destroy z}
+        catch {vector destroy ref}
+    } -result {1 0 1 1}
+
+
+    test RBC.polar.element.closest.A.smooth.3 {
+        polar element closest: XY natural smoothing is also parametric
+    } -setup {
+        # The reference is generated from the identical 2-D path using
+        # the public complex parametric spline command.
+        vector create z -type complex
+        z set {{0 0} {2 2} {0 4}}
+        spline parametric natural z ref 5
+        polar .polar1 -width 500 -height 500
+        pack .polar1
+        .polar1 axis configure x -min -1 -max 5
+        .polar1 axis configure y -min -1 -max 5
+        # Deliberately use ordinary XY data rather than -cdata.  Polar
+        # elements must still use parametric natural smoothing.
+        .polar1 element create Element1 -data {0 0 2 2 0 4} -smooth natural -symbol none -linewidth 2
+        update
+    } -body {
+        lassign [lindex [ref range 0 end] 1] real imag
+        lassign [.polar1 transform $real $imag] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 1 -halo 4 Element1]
+        if {$found} {
+            list $found $info(index)
+        } else {
+            list $found -1
+        }
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        catch {vector destroy z}
+        catch {vector destroy ref}
+    } -result {1 0}
+
 	cleanupTests
 }

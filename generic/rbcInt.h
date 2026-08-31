@@ -454,10 +454,12 @@ double Rbc_RandomDouble(void);
 
 int Rbc_NaturalSpline(const Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
 int Rbc_QuadraticSpline(const Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
-Tcl_Size Rbc_SimplifyLine(const Point2D *origPts, Tcl_Size low, Tcl_Size high, double tolerance, Tcl_Size indices[]);
+int Rbc_NaturalParametricSplineEval(const Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
+int Rbc_QuadraticParametricSplineEval(const Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
 Tcl_Size Rbc_NaturalParametricSpline(const Point2D *origPts, Tcl_Size nOrigPts, const Extents2D *extsPtr, int isClosed,
                                      Point2D *intpPts, Tcl_Size nIntpPts);
 int Rbc_CatromParametricSpline(const Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
+Tcl_Size Rbc_SimplifyLine(const Point2D *origPts, Tcl_Size low, Tcl_Size high, double tolerance, Tcl_Size indices[]);
 int Rbc_GetShadowFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, Shadow *shadowPtr);
 int Rbc_GetFillFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *fillPtr);
 int Rbc_GetStateFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *statePtr);

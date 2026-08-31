@@ -3955,7 +3955,20 @@ static void GenerateParametricSpline(Graph *graphPtr, Line *linePtr, MapInfo *ma
     indices[count] = mapPtr->indices[nOrigPts - 1];
     count++;
     nIntpPts = count;
-    result = Rbc_CatromParametricSpline(origPts, nOrigPts, intpPts, nIntpPts);
+    switch (linePtr->smooth) {
+    case PEN_SMOOTH_NATURAL:
+        result = Rbc_NaturalParametricSplineEval(origPts, nOrigPts, intpPts, nIntpPts);
+        break;
+    case PEN_SMOOTH_QUADRATIC:
+        result = Rbc_QuadraticParametricSplineEval(origPts, nOrigPts, intpPts, nIntpPts);
+        break;
+    case PEN_SMOOTH_CATROM:
+        result = Rbc_CatromParametricSpline(origPts, nOrigPts, intpPts, nIntpPts);
+        break;
+    default:
+        result = FALSE;
+        break;
+    }
     if (!result) {
         goto fallback;
     }
@@ -4958,17 +4971,14 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
      */
     if ((nPoints > 1) && ((graphPtr->classUid == rbcStripElementUid) || (linePtr->builtinPen.traceWidth > 0))) {
         linePtr->smooth = linePtr->reqSmooth;
-
         /*
          * Do smoothing if necessary.  This can extend the coordinate array,
          * so both mapInfo.points and mapInfo.nPoints may change.
          */
-
         switch (linePtr->smooth) {
         case PEN_SMOOTH_STEP:
             GenerateSteps(graphPtr, linePtr, &mapInfo);
             break;
-
         case PEN_SMOOTH_NATURAL:
         case PEN_SMOOTH_QUADRATIC:
             if ((mapInfo.nScreenPts < 3) || (mapInfo.breakBefore != NULL)) {
@@ -4977,11 +4987,21 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
                  * spline generation can be added separately.
                  */
                 linePtr->smooth = PEN_SMOOTH_NONE;
+            } else if (linePtr->core.classUid == rbcPolarElementUid) {
+                /*
+                 * Polar elements represent arbitrary 2-D paths.  Their
+                 * natural and quadratic splines must therefore be
+                 * parametric rather than functions of X.
+                 */
+                GenerateParametricSpline(graphPtr, linePtr, &mapInfo);
             } else {
+                /*
+                 * Ordinary graph line elements retain the historical
+                 * y=f(x) smoothing semantics.
+                 */
                 GenerateSpline(graphPtr, linePtr, &mapInfo);
             }
             break;
-
         case PEN_SMOOTH_CATROM:
             if ((mapInfo.nScreenPts < 3) || (mapInfo.breakBefore != NULL)) {
                 linePtr->smooth = PEN_SMOOTH_NONE;
@@ -4989,7 +5009,6 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
                 GenerateParametricSpline(graphPtr, linePtr, &mapInfo);
             }
             break;
-
         default:
             break;
         }
@@ -5010,7 +5029,6 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
     if (mapInfo.breakBefore != NULL) {
         ckfree(mapInfo.breakBefore);
     }
-
     /* Set the symbol size of all the pen styles. */
     for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
         stylePtr = Rbc_ChainGetValue(linkPtr);

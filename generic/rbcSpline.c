@@ -1761,6 +1761,46 @@ static CubicSpline *CubicSlopes(const Point2D points[], Tcl_Size nPoints, int is
     return spline;
 }
 
+static int CubicEvalPoint(const Point2D origPts[], const CubicSpline spline[], Tcl_Size interval, double t,
+                          Point2D *pointPtr) {
+    Point2D p;
+    Point2D q;
+    double d;
+    double hx;
+    double hy;
+    double dx0;
+    double dy0;
+    double dx01;
+    double dy01;
+
+    p = origPts[interval];
+    q = origPts[interval + 1];
+    d = spline[interval].t;
+    if ((!FINITE(d)) || (d <= 0.0) || (!FINITE(t)) || (t < 0.0) || (t > d)) {
+        return FALSE;
+    }
+    /*
+     * Preserve the original knots exactly.
+     */
+    if (t == 0.0) {
+        *pointPtr = p;
+        return TRUE;
+    }
+    if (t == d) {
+        *pointPtr = q;
+        return TRUE;
+    }
+    hx = (q.x - p.x) / d;
+    hy = (q.y - p.y) / d;
+    dx0 = (spline[interval + 1].x + 2.0 * spline[interval].x) / 6.0;
+    dy0 = (spline[interval + 1].y + 2.0 * spline[interval].y) / 6.0;
+    dx01 = (spline[interval + 1].x - spline[interval].x) / (6.0 * d);
+    dy01 = (spline[interval + 1].y - spline[interval].y) / (6.0 * d);
+    pointPtr->x = p.x + t * (hx + (t - d) * (dx0 + t * dx01));
+    pointPtr->y = p.y + t * (hy + (t - d) * (dy0 + t * dy01));
+    return FINITE(pointPtr->x) && FINITE(pointPtr->y);
+}
+
 /*
  *--------------------------------------------------------------
  *
@@ -1817,35 +1857,13 @@ static Tcl_Size CubicEval(const Point2D origPts[], Tcl_Size nOrigPts, Point2D in
     intpPts[count++] = origPts[0];
     t = tSkip;
     for (i = 0, j = 1; j < nOrigPts; i++, j++) {
-        Point2D p;
-        Point2D q;
         double d;
-        double hx;
-        double hy;
-        double dx0;
-        double dy0;
-        double dx01;
-        double dy01;
 
-        p = origPts[i];
-        q = origPts[j];
         d = spline[i].t;
-        hx = (q.x - p.x) / d;
-        hy = (q.y - p.y) / d;
-        dx0 = (spline[j].x + 2.0 * spline[i].x) / 6.0;
-        dy0 = (spline[j].y + 2.0 * spline[i].y) / 6.0;
-        dx01 = (spline[j].x - spline[i].x) / (6.0 * d);
-        dy01 = (spline[j].y - spline[i].y) / (6.0 * d);
         while ((t <= d) && (count < nIntpPts)) {
             Point2D value;
-            /*
-             * Evaluate each point relative to the fixed start of the
-             * interval. Do not accumulate on the previous generated
-             * point.
-             */
-            value.x = p.x + t * (hx + (t - d) * (dx0 + t * dx01));
-            value.y = p.y + t * (hy + (t - d) * (dy0 + t * dy01));
-            if ((!FINITE(value.x)) || (!FINITE(value.y))) {
+
+            if (!CubicEvalPoint(origPts, spline, i, t, &value)) {
                 return 0;
             }
             intpPts[count++] = value;
@@ -1854,6 +1872,273 @@ static Tcl_Size CubicEval(const Point2D origPts[], Tcl_Size nOrigPts, Point2D in
         t -= d;
     }
     return count;
+}
+
+int Rbc_NaturalParametricSplineEval(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts) {
+    CubicSpline *spline;
+    Point2D *resultPts;
+    Tcl_Size i;
+    size_t resultBytes;
+    int result;
+
+    spline = NULL;
+    resultPts = NULL;
+    result = FALSE;
+    if ((origPts == NULL) || (intpPts == NULL) || (nOrigPts < 3) || (nIntpPts < 0) ||
+        !SplinePointsAreFinite(origPts, nOrigPts)) {
+        return FALSE;
+    }
+    /*
+     * Validate every evaluation parameter before modifying intpPts.
+     *
+     * x = source interval number
+     * y = normalized position in the interval.
+     *
+     * The final source point uses interval nOrigPts - 1, t == 0.
+     */
+    for (i = 0; i < nIntpPts; i++) {
+        double intervalValue;
+        double t;
+
+        intervalValue = intpPts[i].x;
+        t = intpPts[i].y;
+        if ((!FINITE(intervalValue)) || (!FINITE(t)) || (intervalValue < 0.0) ||
+            (intervalValue > (double)(nOrigPts - 1)) || (floor(intervalValue) != intervalValue) || (t < 0.0) ||
+            (t > 1.0) || ((intervalValue == (double)(nOrigPts - 1)) && (t != 0.0))) {
+            return FALSE;
+        }
+    }
+    if (nIntpPts == 0) {
+        return TRUE;
+    }
+    if (GetSplineArrayByteCount(nIntpPts, sizeof(*resultPts), &resultBytes) != TCL_OK) {
+        return FALSE;
+    }
+    resultPts = Tcl_AttemptAlloc(resultBytes);
+    if (resultPts == NULL) {
+        return FALSE;
+    }
+    /*
+     * origPts are already mapped screen coordinates here, so use
+     * isotropic pixel units.
+     */
+    spline = CubicSlopes(origPts, nOrigPts, FALSE, 1.0, 1.0);
+    if (spline == NULL) {
+        goto cleanup;
+    }
+    for (i = 0; i < nIntpPts; i++) {
+        Tcl_Size interval;
+        double fraction;
+        double localT;
+
+        interval = (Tcl_Size)intpPts[i].x;
+        fraction = intpPts[i].y;
+        if (interval == nOrigPts - 1) {
+            resultPts[i] = origPts[nOrigPts - 1];
+            continue;
+        }
+        if (fraction == 0.0) {
+            resultPts[i] = origPts[interval];
+            continue;
+        }
+        if (fraction == 1.0) {
+            resultPts[i] = origPts[interval + 1];
+            continue;
+        }
+        localT = fraction * spline[interval].t;
+        if ((!FINITE(localT)) || (!CubicEvalPoint(origPts, spline, interval, localT, resultPts + i))) {
+            goto cleanup;
+        }
+    }
+    memcpy(intpPts, resultPts, (size_t)nIntpPts * sizeof(*intpPts));
+    result = TRUE;
+
+cleanup:
+    if (spline != NULL) {
+        ckfree(spline);
+    }
+    if (resultPts != NULL) {
+        ckfree(resultPts);
+    }
+    return result;
+}
+
+int Rbc_QuadraticParametricSplineEval(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[],
+                                      Tcl_Size nIntpPts) {
+    Point2D *realPts;
+    Point2D *imagPts;
+    Point2D *realEval;
+    Point2D *imagEval;
+    Point2D *resultPts;
+    Tcl_Size i;
+    size_t sourceBytes;
+    size_t evalBytes;
+    double tMax;
+    int result;
+
+    realPts = NULL;
+    imagPts = NULL;
+    realEval = NULL;
+    imagEval = NULL;
+    resultPts = NULL;
+    result = FALSE;
+    if ((origPts == NULL) || (intpPts == NULL) || (nOrigPts < 3) || (nIntpPts < 0) ||
+        !SplinePointsAreFinite(origPts, nOrigPts)) {
+        return FALSE;
+    }
+    /*
+     * Validate all interval parameters before modifying anything.
+     */
+    for (i = 0; i < nIntpPts; i++) {
+        double intervalValue;
+        double fraction;
+
+        intervalValue = intpPts[i].x;
+        fraction = intpPts[i].y;
+        if ((!FINITE(intervalValue)) || (!FINITE(fraction)) || (intervalValue < 0.0) ||
+            (intervalValue > (double)(nOrigPts - 1)) || (floor(intervalValue) != intervalValue) || (fraction < 0.0) ||
+            (fraction > 1.0) || ((intervalValue == (double)(nOrigPts - 1)) && (fraction != 0.0))) {
+            return FALSE;
+        }
+    }
+    if (nIntpPts == 0) {
+        return TRUE;
+    }
+    if ((GetSplineArrayByteCount(nOrigPts, sizeof(*realPts), &sourceBytes) != TCL_OK) ||
+        (GetSplineArrayByteCount(nIntpPts, sizeof(*realEval), &evalBytes) != TCL_OK)) {
+        return FALSE;
+    }
+    realPts = Tcl_AttemptAlloc(sourceBytes);
+    if (realPts == NULL) {
+        goto cleanup;
+    }
+    imagPts = Tcl_AttemptAlloc(sourceBytes);
+    if (imagPts == NULL) {
+        goto cleanup;
+    }
+    realEval = Tcl_AttemptAlloc(evalBytes);
+    if (realEval == NULL) {
+        goto cleanup;
+    }
+    imagEval = Tcl_AttemptAlloc(evalBytes);
+    if (imagEval == NULL) {
+        goto cleanup;
+    }
+    resultPts = Tcl_AttemptAlloc(evalBytes);
+    if (resultPts == NULL) {
+        goto cleanup;
+    }
+    /*
+     * Construct the common chord-length parameter.
+     */
+    tMax = 0.0;
+    realPts[0].x = 0.0;
+    realPts[0].y = origPts[0].x;
+    imagPts[0].x = 0.0;
+    imagPts[0].y = origPts[0].y;
+    for (i = 1; i < nOrigPts; i++) {
+        double dx;
+        double dy;
+        double dt;
+        double nextT;
+
+        dx = origPts[i].x - origPts[i - 1].x;
+        dy = origPts[i].y - origPts[i - 1].y;
+        dt = hypot(dx, dy);
+        if ((!FINITE(dt)) || (dt <= DBL_EPSILON)) {
+            goto cleanup;
+        }
+        if (tMax > DBL_MAX - dt) {
+            goto cleanup;
+        }
+        nextT = tMax + dt;
+        if ((!FINITE(nextT)) || (!(nextT > tMax))) {
+            goto cleanup;
+        }
+        tMax = nextT;
+        realPts[i].x = tMax;
+        realPts[i].y = origPts[i].x;
+        imagPts[i].x = tMax;
+        imagPts[i].y = origPts[i].y;
+    }
+    /*
+     * Convert interval/fraction parameters to the common absolute
+     * chord-length parameter.
+     */
+    for (i = 0; i < nIntpPts; i++) {
+        Tcl_Size interval;
+        double fraction;
+        double t;
+
+        interval = (Tcl_Size)intpPts[i].x;
+        fraction = intpPts[i].y;
+        if (interval == nOrigPts - 1) {
+            t = tMax;
+        } else {
+            double left;
+            double right;
+
+            left = realPts[interval].x;
+            right = realPts[interval + 1].x;
+            t = left + fraction * (right - left);
+        }
+        if (!FINITE(t)) {
+            goto cleanup;
+        }
+        realEval[i].x = t;
+        realEval[i].y = 0.0;
+        imagEval[i].x = t;
+        imagEval[i].y = 0.0;
+    }
+    if (!Rbc_QuadraticSpline(realPts, nOrigPts, realEval, nIntpPts)) {
+        goto cleanup;
+    }
+    if (!Rbc_QuadraticSpline(imagPts, nOrigPts, imagEval, nIntpPts)) {
+        goto cleanup;
+    }
+    for (i = 0; i < nIntpPts; i++) {
+        Tcl_Size interval;
+        double fraction;
+
+        interval = (Tcl_Size)intpPts[i].x;
+        fraction = intpPts[i].y;
+        /*
+         * Preserve source knots exactly.
+         */
+        if (interval == nOrigPts - 1) {
+            resultPts[i] = origPts[nOrigPts - 1];
+        } else if (fraction == 0.0) {
+            resultPts[i] = origPts[interval];
+        } else if (fraction == 1.0) {
+            resultPts[i] = origPts[interval + 1];
+        } else {
+            resultPts[i].x = realEval[i].y;
+            resultPts[i].y = imagEval[i].y;
+            if ((!FINITE(resultPts[i].x)) || (!FINITE(resultPts[i].y))) {
+                goto cleanup;
+            }
+        }
+    }
+    memcpy(intpPts, resultPts, (size_t)nIntpPts * sizeof(*intpPts));
+    result = TRUE;
+
+cleanup:
+    if (resultPts != NULL) {
+        ckfree(resultPts);
+    }
+    if (imagEval != NULL) {
+        ckfree(imagEval);
+    }
+    if (realEval != NULL) {
+        ckfree(realEval);
+    }
+    if (imagPts != NULL) {
+        ckfree(imagPts);
+    }
+    if (realPts != NULL) {
+        ckfree(realPts);
+    }
+    return result;
 }
 
 /*
