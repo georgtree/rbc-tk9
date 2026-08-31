@@ -749,5 +749,107 @@ test RBC.spline.parametric.A.3.3 {
     catch {vector destroy SplZ}
 } -result {vector "Z" must contain only finite values}
 
+test RBC.spline.parametric.quadratic.A.1.1 {
+    parametric quadratic: complex straight line
+} -setup {
+    vector create Z -type complex
+    Z set {{0 0} {1 1} {2 2}}
+} -body {
+    spline parametric quadratic Z SplZ 5
+    set values [SplZ range 0 end]
+    set expected {{0 0} {0.5 0.5} {1 1} {1.5 1.5} {2 2}}
+    set ok 1
+    foreach actual $values wanted $expected {
+        lassign $actual ar ai
+        lassign $wanted wr wi
+        if {(abs($ar - $wr) > 1.0e-6) || (abs($ai - $wi) > 1.0e-6)} {
+            set ok 0
+            break
+        }
+    }
+    list [SplZ type] [SplZ length] $ok
+} -cleanup {
+    catch {vector destroy Z}
+    catch {vector destroy SplZ}
+} -result {complex 5 1}
+
+test RBC.spline.parametric.quadratic.A.1.2 {
+    parametric quadratic: real coordinate need not be monotonic
+} -setup {
+    vector create Z -type complex
+    Z set {{0 0} {1 1} {0 2} {-1 1}}
+} -body {
+    spline parametric quadratic Z SplZ 17
+    set first [lindex [SplZ index 0] 0]
+    set last  [lindex [SplZ index end] 0]
+    list [SplZ type] [SplZ length] [expr {abs([lindex $first 0]) < 1.0e-12}] [expr {abs([lindex $first 1]) < 1.0e-12}]\
+            [expr {abs([lindex $last 0] + 1.0) < 1.0e-12}] [expr {abs([lindex $last 1] - 1.0) < 1.0e-12}]
+} -cleanup {
+    catch {vector destroy Z}
+    catch {vector destroy SplZ}
+} -result {complex 17 1 1 1 1}
+
+test RBC.spline.parametric.quadratic.A.1.3 {
+    parametric quadratic: vertical complex path
+} -setup {
+    vector create Z -type complex
+    Z set {{1 0} {1 1} {1 2} {1 3}}
+} -body {
+    spline parametric quadratic Z SplZ 13
+    set ok 1
+    foreach value [SplZ range 0 end] {
+        lassign $value real imag
+        if {abs($real - 1.0) > 1.0e-10} {
+            set ok 0
+            break
+        }
+    }
+    list [SplZ length] $ok
+} -cleanup {
+    catch {vector destroy Z}
+    catch {vector destroy SplZ}
+} -result {13 1}
+
+test RBC.spline.parametric.quadratic.A.1.4 {
+    parametric quadratic: source knot is preserved
+} -setup {
+    vector create Z -type complex
+    Z set {{0 0} {1 1} {0 2}}
+} -body {
+    spline parametric quadratic Z SplZ 3
+    set middle [lindex [SplZ index 1] 0]
+    list [expr {abs([lindex $middle 0] - 1.0) < 1.0e-12}] [expr {abs([lindex $middle 1] - 1.0) < 1.0e-12}]
+} -cleanup {
+    catch {vector destroy Z}
+    catch {vector destroy SplZ}
+} -result {1 1}
+
+test RBC.spline.parametric.quadratic.A.2.1 {
+    parametric quadratic: source may also be result
+} -setup {
+    vector create Z -type complex
+    Z set {{0 0} {1 1} {2 0}}
+} -body {
+    spline parametric quadratic Z Z 9
+    set first [lindex [Z index 0] 0]
+    set last  [lindex [Z index end] 0]
+    list [Z type] [Z length] $first $last
+} -cleanup {
+    catch {vector destroy Z}
+} -result {complex 9 {0.0 0.0} {2.0 0.0}}
+
+test RBC.spline.parametric.A.4.1 {
+    parametric spline: unknown operation
+} -setup {
+    vector create Z -type complex
+    Z set {{0 0} {1 1} {2 0}}
+} -body {
+    catch {spline parametric catrom Z SplZ 9} message
+    set message
+} -cleanup {
+    catch {vector destroy Z}
+    catch {vector destroy SplZ}
+} -result {bad parametric spline operation "catrom": must be natural or quadratic}
+
 
 cleanupTests

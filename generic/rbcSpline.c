@@ -71,6 +71,8 @@ static void CatromCoeffs(const Point2D *p, Point2D *a, Point2D *b, Point2D *c, P
 static int ParametricSplineObjCmd(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 static Tcl_Size NaturalParametricSplineCore(const Point2D origPts[], Tcl_Size nOrigPts, double unitX, double unitY,
                                             int isClosed, Point2D intpPts[], Tcl_Size nIntpPts);
+static Tcl_Size QuadraticParametricSplineCore(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[],
+                                              Tcl_Size nIntpPts);
 
 static int GetSplineArrayByteCount(Tcl_Size count, size_t elementSize, size_t *byteCountPtr) {
     if ((count < 0) || (elementSize == 0) || ((Tcl_WideUInt)count > (Tcl_WideUInt)(SIZE_MAX / elementSize))) {
@@ -1107,8 +1109,10 @@ static int ParametricSplineObjCmd(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *co
     intpPts = NULL;
     result = TCL_ERROR;
     operation = Tcl_GetString(objv[2]);
-    if (strcmp(operation, "natural") != 0) {
-        Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad parametric spline operation \"%s\": must be natural", operation));
+    if ((strcmp(operation, "natural") != 0) && (strcmp(operation, "quadratic") != 0)) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad parametric spline operation \"%s\": "
+                                               "must be natural or quadratic",
+                                               operation));
         return TCL_ERROR;
     }
     sourceName = Tcl_GetString(objv[3]);
@@ -1178,7 +1182,11 @@ static int ParametricSplineObjCmd(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *co
      * the complex plane.  Real and imaginary coordinates therefore
      * have equal scale.
      */
-    nGenerated = NaturalParametricSplineCore(origPts, nOrigPts, 1.0, 1.0, FALSE, intpPts, nIntpPts);
+    if (strcmp(operation, "natural") == 0) {
+        nGenerated = NaturalParametricSplineCore(origPts, nOrigPts, 1.0, 1.0, FALSE, intpPts, nIntpPts);
+    } else {
+        nGenerated = QuadraticParametricSplineCore(origPts, nOrigPts, intpPts, nIntpPts);
+    }
     if (nGenerated != nIntpPts) {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("error generating parametric spline for \"%s\"", resultName));
         goto cleanup;
@@ -1877,6 +1885,157 @@ static Tcl_Size CubicEval(const Point2D origPts[], Tcl_Size nOrigPts, Point2D in
  *
  *--------------------------------------------------------------
  */
+
+static Tcl_Size QuadraticParametricSplineCore(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[],
+                                              Tcl_Size nIntpPts) {
+    Point2D *realPts;
+    Point2D *imagPts;
+    Point2D *imagEval;
+    Tcl_Size i;
+    Tcl_Size result;
+    size_t sourceBytes;
+    size_t evalBytes;
+    double tMax;
+
+    realPts = NULL;
+    imagPts = NULL;
+    imagEval = NULL;
+    result = 0;
+    if ((origPts == NULL) || (intpPts == NULL) || (nOrigPts < 3) || (nIntpPts < 2) ||
+        !SplinePointsAreFinite(origPts, nOrigPts)) {
+        return 0;
+    }
+    if ((GetSplineArrayByteCount(nOrigPts, sizeof(*realPts), &sourceBytes) != TCL_OK) ||
+        (GetSplineArrayByteCount(nIntpPts, sizeof(*imagEval), &evalBytes) != TCL_OK)) {
+        return 0;
+    }
+    realPts = Tcl_AttemptAlloc(sourceBytes);
+    if (realPts == NULL) {
+        goto cleanup;
+    }
+    imagPts = Tcl_AttemptAlloc(sourceBytes);
+    if (imagPts == NULL) {
+        goto cleanup;
+    }
+    imagEval = Tcl_AttemptAlloc(evalBytes);
+    if (imagEval == NULL) {
+        goto cleanup;
+    }
+    /*
+     * Build a strictly increasing chord-length parameter.
+     *
+     * Both coordinate splines use this same parameter:
+     *
+     *     real = f(t)
+     *     imag = g(t)
+     */
+    tMax = 0.0;
+    realPts[0].x = 0.0;
+    realPts[0].y = origPts[0].x;
+    imagPts[0].x = 0.0;
+    imagPts[0].y = origPts[0].y;
+    for (i = 1; i < nOrigPts; i++) {
+        double dx;
+        double dy;
+        double dt;
+        double nextT;
+
+        dx = origPts[i].x - origPts[i - 1].x;
+        dy = origPts[i].y - origPts[i - 1].y;
+        dt = hypot(dx, dy);
+        if ((!FINITE(dt)) || (dt <= DBL_EPSILON)) {
+            goto cleanup;
+        }
+        if (tMax > DBL_MAX - dt) {
+            goto cleanup;
+        }
+        nextT = tMax + dt;
+        if ((!FINITE(nextT)) || (!(nextT > tMax))) {
+            goto cleanup;
+        }
+        tMax = nextT;
+        realPts[i].x = tMax;
+        realPts[i].y = origPts[i].x;
+        imagPts[i].x = tMax;
+        imagPts[i].y = origPts[i].y;
+    }
+    if ((!FINITE(tMax)) || (tMax <= 0.0)) {
+        goto cleanup;
+    }
+    /*
+     * Evaluate uniformly in chord-length parameter space.
+     *
+     * Calculate the fraction first so the multiplication cannot
+     * exceed tMax merely because of an intermediate i*tMax.
+     */
+    for (i = 0; i < nIntpPts; i++) {
+        double t;
+
+        if (i == nIntpPts - 1) {
+            t = tMax;
+        } else {
+            double fraction;
+
+            fraction = (double)i / (double)(nIntpPts - 1);
+            t = tMax * fraction;
+        }
+        if (!FINITE(t)) {
+            goto cleanup;
+        }
+        intpPts[i].x = t;
+        intpPts[i].y = 0.0;
+        imagEval[i].x = t;
+        imagEval[i].y = 0.0;
+    }
+    /*
+     * Rbc_QuadraticSpline treats Point2D.x as the independent
+     * coordinate and writes the interpolated value to Point2D.y.
+     */
+    if (!Rbc_QuadraticSpline(realPts, nOrigPts, intpPts, nIntpPts)) {
+        goto cleanup;
+    }
+    if (!Rbc_QuadraticSpline(imagPts, nOrigPts, imagEval, nIntpPts)) {
+        goto cleanup;
+    }
+    /*
+     * intpPts currently contains:
+     *
+     *     x = t
+     *     y = interpolated real
+     *
+     * Convert it into ordinary 2-D coordinates.
+     */
+    for (i = 0; i < nIntpPts; i++) {
+        double real;
+        double imag;
+
+        real = intpPts[i].y;
+        imag = imagEval[i].y;
+        if ((!FINITE(real)) || (!FINITE(imag))) {
+            goto cleanup;
+        }
+        intpPts[i].x = real;
+        intpPts[i].y = imag;
+    }
+    /*
+     * Preserve endpoints exactly.
+     */
+    intpPts[0] = origPts[0];
+    intpPts[nIntpPts - 1] = origPts[nOrigPts - 1];
+    result = nIntpPts;
+
+cleanup:
+    if (imagEval != NULL) {
+        ckfree(imagEval);
+    }
+    if (imagPts != NULL) {
+        ckfree(imagPts);
+    }
+    if (realPts != NULL) {
+        ckfree(realPts);
+    }
+    return result;
+}
 
 static Tcl_Size NaturalParametricSplineCore(const Point2D origPts[], Tcl_Size nOrigPts, double unitX, double unitY,
                                             int isClosed, Point2D intpPts[], Tcl_Size nIntpPts) {
