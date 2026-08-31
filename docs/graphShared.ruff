@@ -6,8 +6,8 @@ namespace eval ::rbc::AXIS {
     }
 
     variable _ruff_preamble {
-        Commands in this namespace document operations accepted by the `axis` component of a graph, barchart, or
-        stripchart widget.
+        Commands in this namespace document operations accepted by the `axis` component of a graph, barchart,
+        stripchart, or polar widget.
 
         `AXIS` is used below as a placeholder for:
 
@@ -647,7 +647,7 @@ namespace eval ::rbc::MARGINAXIS {
     }
 
     variable _ruff_preamble {
-        Commands in this namespace document the logical margin-axis commands of graph, barchart, and stripchart
+        Commands in this namespace document the logical margin-axis commands of graph, barchart, stripchart, and polar
         widgets.
 
         `MARGINAXIS` is used below as a placeholder for any of:
@@ -900,7 +900,7 @@ namespace eval ::rbc::ELEMENT {
         ```
 
         All element types share the operations documented on this page. Configuration options depend on the concrete
-        element type and are documented separately for line, strip, and bar elements.
+        element type and are documented separately for line, strip, bar, and polar elements.
 
         ## Element names
         Every element has a name that is unique within its graph widget.
@@ -1474,9 +1474,12 @@ namespace eval ::rbc::LINEELEMENT {
         For ordinary graph and stripchart elements, `natural`/`cubic` and `quadratic` retain the traditional
         function-style spline behavior. `catrom` is parametric.
 
-        For elements belonging to a polar widget, `natural`/`cubic` and `quadratic` are instead evaluated as
+        For elements whose concrete type is `PolarElement`, `natural`/`cubic` and `quadratic` are instead evaluated as
         parametric two-dimensional splines. Consequently a Polar trace may be vertical, may reverse direction in X,
         and may form a loop without forcing smoothing to fall back merely because X is non-monotonic.
+
+        An explicitly created `LineElement` retains the ordinary line-element smoothing semantics even when it belongs
+        to a polar widget. See [POLARELEMENT].
 
         Missing, non-finite, logarithmically invalid, or singular complex points create trace breaks. Spline smoothing
         is performed independently on each continuous run containing enough points. No smoothing mode interpolates
@@ -2024,9 +2027,9 @@ namespace eval ::rbc::STRIPELEMENT {
         Spline smoothing operates in mapped screen coordinates. Natural, quadratic, and Catmull-Rom smoothing require
         at least three mapped points.
 
-        As with line elements, spline smoothing is not allowed to bridge a discontinuity. If a discontinuity is
-        present, the current implementation falls back to ordinary linear trace segments instead of constructing
-        independent splines for each continuous run.
+        As with line elements, spline smoothing never bridges a discontinuity. Each continuous run containing at least
+        three mapped points is smoothed independently. Runs containing fewer than three mapped points remain ordinary
+        linear trace segments.
 
         ## Pens and symbols
         Strip elements use line pens.
@@ -3384,7 +3387,7 @@ namespace eval ::rbc::PEN {
         pen to another concrete type. Use `PEN type` to determine the actual type of an existing pen.
 
         ## Built-in active pens
-        Every graph, barchart, and stripchart widget automatically creates two named pens:
+        Every graph, barchart, stripchart, and polar widget automatically creates two named pens:
         ```text
         activeLine
         activeBar
@@ -4936,7 +4939,7 @@ namespace eval ::rbc::GRID {
         |-----------------------|---------------|----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
         | `-color color`        | `color`       | `Color`        | Sets the color used to draw grid lines. The default is grey64, or black on monochrome displays.                                                                                                                                     |
         | `-dashes dashes`      | `dashes`      | `Dashes`       | Sets the dash pattern used to draw grid lines. An empty value selects solid lines. The default is `dot`.                                                                                                                            |
-        | `-hide boolean`       | `hide`        | `Hide`         | Controls whether the grid is displayed. The default is `yes` for graph and stripchart widgets and `no` for barchart widgets.                                                                                                        |
+        | `-hide boolean`       | `hide`        | `Hide`         | Controls whether the grid is displayed. The default is `yes` for graph, stripchart, and polar widgets and `no` for barchart widgets.                                                                                                        |
         | `-linewidth distance` | `lineWidth`   | `Linewidth`    | Sets the non-negative width of grid lines. Values `0` and `1` use the native thin-line width. The default is `0`.                                                                                                                   |
         | `-mapx axisName`      | `mapX`        | `MapX`         | Specifies the X axis whose ticks generate vertical grid lines. The axis must exist and must be an X axis. An empty value disables X grid lines. The default is `x` for graph and stripchart widgets and empty for barchart widgets. |
         | `-mapy axisName`      | `mapY`        | `MapY`         | Specifies the Y axis whose ticks generate horizontal grid lines. The axis must exist and must be a Y axis. An empty value disables Y grid lines. The default is `y`.                                                                |
@@ -4952,15 +4955,15 @@ namespace eval ::rbc::GRID {
         │ -dashes dashes        │ dashes        │ Dashes         │ Sets the dash pattern used to draw grid lines. An empty │
         │                       │               │                │ value selects solid lines. The default is dot.          │
         │ -hide boolean         │ hide          │ Hide           │ Controls whether the grid is displayed. The default is  │
-        │                       │               │                │ yes for graph and stripchart widgets and no for         │
+        │                       │               │                │ yes for graph, stripchart, and polar widgets and no for │
         │                       │               │                │ barchart widgets.                                       │
         │ -linewidth distance   │ lineWidth     │ Linewidth      │ Sets the non-negative width of grid lines. Values 0 and │
         │                       │               │                │ 1 use the native thin-line width. The default is 0.     │
         │ -mapx axisName        │ mapX          │ MapX           │ Specifies the X axis whose ticks generate vertical grid │
         │                       │               │                │ lines. The axis must exist and must be an X axis. An    │
         │                       │               │                │ empty value disables X grid lines. The default is x for │
-        │                       │               │                │ graph and stripchart widgets and empty for barchart     │
-        │                       │               │                │ widgets.                                                │
+        │                       │               │                │ graph, stripchart, and polar widgets and empty for      │
+        │                       │               │                │ barchart widgets.                                       │
         │ -mapy axisName        │ mapY          │ MapY           │ Specifies the Y axis whose ticks generate horizontal    │
         │                       │               │                │ grid lines. The axis must exist and must be a Y axis.   │
         │                       │               │                │ An empty value disables Y grid lines. The default is y. │

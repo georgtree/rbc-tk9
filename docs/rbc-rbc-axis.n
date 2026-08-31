@@ -6,8 +6,8 @@
 rbc::AXIS - Commands in namespace rbc::AXIS
 .SH "GRAPH VIRTUAL AXIS AXIS COMMAND"
 .PP
-Commands in this namespace document operations accepted by the axis component of a graph, barchart, or
-stripchart widget\&.
+Commands in this namespace document operations accepted by the axis component of a graph, barchart,
+stripchart, or polar widget\&.
 .PP
 AXIS is used below as a placeholder for:
 .PP
@@ -563,6 +563,8 @@ rbc-rbc-element(n)
 rbc-rbc-lineelement(n)
 .br
 rbc-rbc-stripelement(n)
+.br
+rbc-rbc-polarelement(n)
 .br
 rbc-rbc-barelement(n)
 .br

@@ -179,9 +179,11 @@ a logarithmic X or Y axis form breaks in the line.</p>
 <p>Smoothing is performed on mapped screen coordinates, so it follows the geometry that is actually displayed.</p>
 <p>For ordinary graph and stripchart elements, <code class="docutils literal notranslate"><span class="pre">natural</span></code>/<code class="docutils literal notranslate"><span class="pre">cubic</span></code> and <code class="docutils literal notranslate"><span class="pre">quadratic</span></code> retain the traditional
 function-style spline behavior. <code class="docutils literal notranslate"><span class="pre">catrom</span></code> is parametric.</p>
-<p>For elements belonging to a polar widget, <code class="docutils literal notranslate"><span class="pre">natural</span></code>/<code class="docutils literal notranslate"><span class="pre">cubic</span></code> and <code class="docutils literal notranslate"><span class="pre">quadratic</span></code> are instead evaluated as
+<p>For elements whose concrete type is <code class="docutils literal notranslate"><span class="pre">PolarElement</span></code>, <code class="docutils literal notranslate"><span class="pre">natural</span></code>/<code class="docutils literal notranslate"><span class="pre">cubic</span></code> and <code class="docutils literal notranslate"><span class="pre">quadratic</span></code> are instead evaluated as
 parametric two-dimensional splines. Consequently a Polar trace may be vertical, may reverse direction in X,
 and may form a loop without forcing smoothing to fall back merely because X is non-monotonic.</p>
+<p>An explicitly created <code class="docutils literal notranslate"><span class="pre">LineElement</span></code> retains the ordinary line-element smoothing semantics even when it belongs
+to a polar widget. See <a class="reference internal" href="rbc-tk9-rbc-POLARELEMENT.html#r-3a3arbc3a3apolarelement"><span class="std std-ref">POLARELEMENT</span></a>.</p>
 <p>Missing, non-finite, logarithmically invalid, or singular complex points create trace breaks. Spline smoothing
 is performed independently on each continuous run containing enough points. No smoothing mode interpolates
 across a trace break.</p>

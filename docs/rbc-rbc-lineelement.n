@@ -163,9 +163,12 @@ Smoothing is performed on mapped screen coordinates, so it follows the geometry 
 For ordinary graph and stripchart elements, natural/cubic and quadratic retain the traditional
 function-style spline behavior\&. catrom is parametric\&.
 .PP
-For elements belonging to a polar widget, natural/cubic and quadratic are instead evaluated as
+For elements whose concrete type is PolarElement, natural/cubic and quadratic are instead evaluated as
 parametric two-dimensional splines\&. Consequently a Polar trace may be vertical, may reverse direction in X,
 and may form a loop without forcing smoothing to fall back merely because X is non-monotonic\&.
+.PP
+An explicitly created LineElement retains the ordinary line-element smoothing semantics even when it belongs
+to a polar widget\&. See \fIPOLARELEMENT\fP\&.
 .PP
 Missing, non-finite, logarithmically invalid, or singular complex points create trace breaks\&. Spline smoothing
 is performed independently on each continuous run containing enough points\&. No smoothing mode interpolates
@@ -572,6 +575,8 @@ rbc-rbc-element(n)
 rbc-rbc-lineelement(n)
 .br
 rbc-rbc-stripelement(n)
+.br
+rbc-rbc-polarelement(n)
 .br
 rbc-rbc-barelement(n)
 .br

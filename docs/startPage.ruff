@@ -26,7 +26,8 @@ variable startPage {
     Rbc is a subset of BLT, contains the essential components for developing data graphing applications. Some BLT
     components have been superseded by advances in Tcl and Tk, and some others have been extracted into separate 
     extensions.
-    Rbc contains the following BLT components:
+
+    Rbc provides the following graphing and data-processing components:
 
     - graph, barchart, stripchart, polar
 

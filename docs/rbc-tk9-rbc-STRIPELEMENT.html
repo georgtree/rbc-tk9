@@ -15,7 +15,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Bar element BARELEMENT options" href="rbc-tk9-rbc-BARELEMENT.html" />
+    <link rel="next" title="Polar element POLARELEMENT options" href="rbc-tk9-rbc-POLARELEMENT.html" />
     <link rel="prev" title="Line element LINEELEMENT options" href="rbc-tk9-rbc-LINEELEMENT.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="Related">
@@ -25,7 +25,7 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="rbc-tk9-rbc-BARELEMENT.html" title="Bar element BARELEMENT options"
+          <a href="rbc-tk9-rbc-POLARELEMENT.html" title="Polar element POLARELEMENT options"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="rbc-tk9-rbc-LINEELEMENT.html" title="Line element LINEELEMENT options"
@@ -135,9 +135,9 @@ catrom
 <p><code class="docutils literal notranslate"><span class="pre">linear</span></code> is the default.</p>
 <p>Spline smoothing operates in mapped screen coordinates. Natural, quadratic, and Catmull-Rom smoothing require
 at least three mapped points.</p>
-<p>As with line elements, spline smoothing is not allowed to bridge a discontinuity. If a discontinuity is
-present, the current implementation falls back to ordinary linear trace segments instead of constructing
-independent splines for each continuous run.</p>
+<p>As with line elements, spline smoothing never bridges a discontinuity. Each continuous run containing at least
+three mapped points is smoothed independently. Runs containing fewer than three mapped points remain ordinary
+linear trace segments.</p>
 </section>
 <section id="pens-and-symbols">
 <span id="r-rbc-stripelement-pens-and-symbols"></span><span id="r-3a3arbc3a3astripelementqzpens20and20symbols"></span><h2>Pens and symbols<a class="headerlink" href="#pens-and-symbols" title="Link to this heading">¶</a></h2>
@@ -482,8 +482,8 @@ independent splines for each continuous run.</p>
   </div>
   <div>
     <h4>Next topic</h4>
-    <p class="topless"><a href="rbc-tk9-rbc-BARELEMENT.html"
-                          title="next chapter">Bar element <code class="docutils literal notranslate"><span class="pre">BARELEMENT</span></code> options</a></p>
+    <p class="topless"><a href="rbc-tk9-rbc-POLARELEMENT.html"
+                          title="next chapter">Polar element <code class="docutils literal notranslate"><span class="pre">POLARELEMENT</span></code> options</a></p>
   </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
@@ -513,7 +513,7 @@ independent splines for each continuous run.</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="rbc-tk9-rbc-BARELEMENT.html" title="Bar element BARELEMENT options"
+          <a href="rbc-tk9-rbc-POLARELEMENT.html" title="Polar element POLARELEMENT options"
              >next</a> |</li>
         <li class="right" >
           <a href="rbc-tk9-rbc-LINEELEMENT.html" title="Line element LINEELEMENT options"

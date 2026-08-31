@@ -24,17 +24,29 @@ you need Tcl/Tk sources.
 Rbc is a subset of BLT, contains the essential components for developing data graphing applications. Some BLT
 components have been superseded by advances in Tcl and Tk, and some others have been extracted into separate 
 extensions.
-Rbc contains the following BLT components:
 
-- graph, barchart, stripchart
+Rbc provides the following graphing and data-processing components:
 
-These components use an X-Y coordinate system to plot data and are meant to be used with vector data objects. The
-graphs will automatically be redrawn should the vector data change.
+- graph, barchart, stripchart, polar
+
+These components plot data using the common Rbc graph infrastructure. `graph`, `barchart`, and `stripchart` use
+conventional Cartesian graph presentations. `polar` uses Cartesian complex-plane coordinates but can display them
+with either a polar grid or a Smith-chart grid.
+
+Graphs are designed to work with Rbc vector data objects and are automatically redrawn when an attached vector
+changes. Polar elements additionally support complex vectors directly.
 
 - vector
 
-This component is used to manage floating point values. They are meant to be used to handle data for the plotting
-components.
+This component manages real and complex double-precision numeric vectors. Real vectors are used throughout the
+traditional graph interfaces, while complex vectors may also be supplied directly to polar elements and to
+parametric spline interpolation.
+
+- spline
+
+This component provides natural cubic and shape-preserving quadratic interpolation. It supports both the
+traditional scalar `y=f(x)` interface for real vectors and parametric two-dimensional interpolation for complex
+vectors.
 
 - winop
 

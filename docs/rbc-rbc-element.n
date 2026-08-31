@@ -43,7 +43,7 @@ The line and bar forms explicitly select the type when creating a new element:
 .RE
 .PP
 All element types share the operations documented on this page\&. Configuration options depend on the concrete
-element type and are documented separately for line, strip, and bar elements\&.
+element type and are documented separately for line, strip, bar, and polar elements\&.
 .SH "ELEMENT NAMES"
 .PP
 Every element has a name that is unique within its graph widget\&.
@@ -350,6 +350,8 @@ rbc-rbc-element(n)
 rbc-rbc-lineelement(n)
 .br
 rbc-rbc-stripelement(n)
+.br
+rbc-rbc-polarelement(n)
 .br
 rbc-rbc-barelement(n)
 .br

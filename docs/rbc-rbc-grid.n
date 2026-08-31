@@ -145,15 +145,15 @@ The remaining grid defaults are common to all graph widget types\&.
 │ -dashes dashes        │ dashes        │ Dashes         │ Sets the dash pattern used to draw grid lines\&. An empty │
 │                       │               │                │ value selects solid lines\&. The default is dot\&.          │
 │ -hide boolean         │ hide          │ Hide           │ Controls whether the grid is displayed\&. The default is  │
-│                       │               │                │ yes for graph and stripchart widgets and no for         │
+│                       │               │                │ yes for graph, stripchart, and polar widgets and no for │
 │                       │               │                │ barchart widgets\&.                                       │
 │ -linewidth distance   │ lineWidth     │ Linewidth      │ Sets the non-negative width of grid lines\&. Values 0 and │
 │                       │               │                │ 1 use the native thin-line width\&. The default is 0\&.     │
 │ -mapx axisName        │ mapX          │ MapX           │ Specifies the X axis whose ticks generate vertical grid │
 │                       │               │                │ lines\&. The axis must exist and must be an X axis\&. An    │
 │                       │               │                │ empty value disables X grid lines\&. The default is x for │
-│                       │               │                │ graph and stripchart widgets and empty for barchart     │
-│                       │               │                │ widgets\&.                                                │
+│                       │               │                │ graph, stripchart, and polar widgets and empty for      │
+│                       │               │                │ barchart widgets\&.                                       │
 │ -mapy axisName        │ mapY          │ MapY           │ Specifies the Y axis whose ticks generate horizontal    │
 │                       │               │                │ grid lines\&. The axis must exist and must be a Y axis\&.   │
 │                       │               │                │ An empty value disables Y grid lines\&. The default is y\&. │
@@ -197,6 +197,8 @@ rbc-rbc-element(n)
 rbc-rbc-lineelement(n)
 .br
 rbc-rbc-stripelement(n)
+.br
+rbc-rbc-polarelement(n)
 .br
 rbc-rbc-barelement(n)
 .br

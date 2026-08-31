@@ -80,7 +80,7 @@ rejects attempts to use a pen with an incompatible element type\&.
 pen to another concrete type\&. Use PEN type to determine the actual type of an existing pen\&.
 .SH "BUILT-IN ACTIVE PENS"
 .PP
-Every graph, barchart, and stripchart widget automatically creates two named pens:
+Every graph, barchart, stripchart, and polar widget automatically creates two named pens:
 .PP
 .RS 4n
 .nf
@@ -454,6 +454,8 @@ rbc-rbc-element(n)
 rbc-rbc-lineelement(n)
 .br
 rbc-rbc-stripelement(n)
+.br
+rbc-rbc-polarelement(n)
 .br
 rbc-rbc-barelement(n)
 .br

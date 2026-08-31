@@ -31,7 +31,8 @@ you need Tcl/Tk sources\&.
 Rbc is a subset of BLT, contains the essential components for developing data graphing applications\&. Some BLT
 components have been superseded by advances in Tcl and Tk, and some others have been extracted into separate
 extensions\&.
-Rbc contains the following BLT components:
+.PP
+Rbc provides the following graphing and data-processing components:
 .TP
 \(bu
 graph, barchart, stripchart, polar
@@ -111,6 +112,8 @@ rbc-rbc-element(n)
 rbc-rbc-lineelement(n)
 .br
 rbc-rbc-stripelement(n)
+.br
+rbc-rbc-polarelement(n)
 .br
 rbc-rbc-barelement(n)
 .br

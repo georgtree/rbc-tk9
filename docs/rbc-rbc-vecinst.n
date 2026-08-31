@@ -1031,6 +1031,8 @@ rbc-rbc-lineelement(n)
 .br
 rbc-rbc-stripelement(n)
 .br
+rbc-rbc-polarelement(n)
+.br
 rbc-rbc-barelement(n)
 .br
 rbc-rbc-pen(n)

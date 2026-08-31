@@ -18,8 +18,8 @@ graph \&.g
 .fi
 .RE
 .PP
-The same widget instance interface is shared by all three graph types\&. The main difference is the default
-element type used by the element operation:
+The same widget instance interface is shared by all four graph types\&. The main difference is the default
+element type used by the element operation\&.
 .PP
 .RS 4n
 .nf
@@ -417,11 +417,11 @@ These options are meaningful for widgets created with \fI::rbc::polar\fP\&.
 .RE
 .SH "WIDGET OPTIONS"
 .PP
-The following options configure the graph widget itself\&. They are shared by graph, barchart, and
-stripchart and may be specified when the widget is created or modified later with GRAPHINST configure\&.
+The following options configure the graph widget itself\&. They are shared by graph, barchart, stripchart,
+and polar and may be specified when the widget is created or modified later with GRAPHINST configure\&.
 .PP
 Some options, such as -barmode, -barwidth, and -baseline, primarily affect bar elements but are available
-on all three graph widget types\&.
+on all four graph widget types\&.
 .PP
 .RS 4n
 .nf
@@ -992,6 +992,8 @@ rbc-rbc-element(n)
 rbc-rbc-lineelement(n)
 .br
 rbc-rbc-stripelement(n)
+.br
+rbc-rbc-polarelement(n)
 .br
 rbc-rbc-barelement(n)
 .br

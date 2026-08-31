@@ -105,8 +105,8 @@ namespace eval ::rbc::GRAPHINST {
         .g configure -title "Example"
         ```
 
-        The same widget instance interface is shared by all three graph types. The main difference is the default
-        element type used by the `element` operation:
+        The same widget instance interface is shared by all four graph types. The main difference is the default
+        element type used by the `element` operation.
 
         #ruffopt excludedformats nroff
         | Widget created by | Default element type |
@@ -489,11 +489,11 @@ namespace eval ::rbc::GRAPHINST {
         #ruffopt excludedformats {}
 
         ## Widget options
-        The following options configure the graph widget itself. They are shared by `graph`, `barchart`, and
-        `stripchart` and may be specified when the widget is created or modified later with `GRAPHINST configure`.
+        The following options configure the graph widget itself. They are shared by `graph`, `barchart`, `stripchart`,
+        and `polar` and may be specified when the widget is created or modified later with `GRAPHINST configure`.
 
         Some options, such as `-barmode`, `-barwidth`, and `-baseline`, primarily affect bar elements but are available
-        on all three graph widget types.
+        on all four graph widget types.
 
         #ruffopt excludedformats nroff
         | Option                       | Database name         | Database class        | Description                                                                                                                                                                                                                                                                         |

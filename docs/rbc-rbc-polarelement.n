@@ -1,0 +1,624 @@
+'\"
+'\" '\" Copyright (c) George Yashin
+'\"
+.TH "rbc::POLARELEMENT" 3tcl 0\&.5\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.SH NAME
+rbc::POLARELEMENT - Commands in namespace rbc::POLARELEMENT
+.SH "POLAR ELEMENT POLARELEMENT OPTIONS"
+.PP
+This page documents the configuration and behavior of polar elements\&.
+.PP
+POLARELEMENT denotes an element whose concrete type is PolarElement\&. Polar elements are the default
+element type of a \fI::rbc::polar\fP widget:
+.PP
+.RS 4n
+.nf
+polar \&.p
+\&.p element create trace
+
+\&.p element type trace
+# -> PolarElement
+.fi
+.RE
+.PP
+The common element operations such as create, configure, activate, closest, bind, delete, and
+show are documented in \fIELEMENT\fP\&.
+.PP
+Polar elements use the same underlying line-rendering machinery as \fILINEELEMENT\fP\&. Consequently they support
+the normal line-element data, axis mapping, pens, styles, symbols, error bars, value labels, trace drawing,
+area filling, and smoothing options\&.
+.PP
+Polar elements additionally support direct complex-vector data through -cdata and can interpret complex
+values as reflection coefficient, impedance, or admittance\&.
+.SH "CREATING A POLAR ELEMENT"
+.PP
+The generic element create operation of a polar widget creates a PolarElement:
+.PP
+.RS 4n
+.nf
+polar \&.p
+\&.p element create trace -data {0 0 0\&.5 0\&.5 0 1}
+.fi
+.RE
+.PP
+There is no separate GRAPHINST polar create operation\&.
+.PP
+An explicit line element may still be created in the same widget:
+.PP
+.RS 4n
+.nf
+\&.p line create reference
+
+\&.p element type reference
+# -> LineElement
+.fi
+.RE
+.PP
+Such an explicitly created LineElement does not acquire the complex-data behavior of a PolarElement\&.
+.SH "CARTESIAN DATA"
+.PP
+A polar element may use the normal line-element data options:
+.PP
+.RS 4n
+.nf
+-data
+-x
+-y
+.fi
+.RE
+.PP
+These always represent Cartesian coordinates:
+.PP
+.RS 4n
+.nf
+x = horizontal Cartesian coordinate
+y = vertical Cartesian coordinate
+.fi
+.RE
+.PP
+They are not interpreted as {radius angle} pairs\&.
+.PP
+This remains true when the owning polar widget uses:
+.PP
+.RS 4n
+.nf
+-representation smith
+.fi
+.RE
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+polar \&.p -representation polar
+\&.p element create trace -data {1\&.0 0\&.0 0\&.5 0\&.5 0\&.0 1\&.0 -0\&.5 0\&.5}
+.fi
+.RE
+.SH "COMPLEX-VECTOR DATA"
+.PP
+-cdata names an Rbc complex vector whose values provide the two-dimensional element data directly\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+vector create gamma -type complex
+gamma set {{0\&.0 0\&.0} {0\&.2 0\&.4} {0\&.5 0\&.2} {0\&.7 -0\&.1}}
+polar \&.p -representation smith
+\&.p element create trace -cdata gamma
+.fi
+.RE
+.PP
+A vector supplied to -cdata must have type complex\&. A real vector is rejected\&.
+.PP
+Complex vector attachment is live\&. If the vector contents or length change, the element is remapped and the
+graph is redrawn automatically\&.
+.SH "SELECTING THE ACTIVE DATA SOURCE"
+.PP
+A polar element has one active data mode at a time:
+.PP
+.RS 4n
+.nf
+ordinary X/Y data
+complex vector data
+.fi
+.RE
+.PP
+Explicitly configuring a non-empty -cdata selects complex-vector mode\&.
+.PP
+Explicitly configuring -data, -x, or -y selects ordinary X/Y mode\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+\&.p element configure trace -cdata gamma
+
+# Switch back to ordinary Cartesian X/Y data\&.
+\&.p element configure trace -data {0 0 0\&.5 0\&.5 1 0}
+.fi
+.RE
+.PP
+When more than one data-source option is supplied by the same configuration command, the explicit options are
+processed in caller order and the final data-source selection determines the active mode\&.
+.SH "COMPLEX DATA FORMATS"
+.PP
+-cdataformat controls how values from -cdata are interpreted\&.
+.PP
+The accepted values are:
+.PP
+.RS 4n
+.nf
+gamma
+impedance
+admittance
+.fi
+.RE
+.PP
+The default is gamma\&.
+.SS GAMMA
+.PP
+With:
+.PP
+.RS 4n
+.nf
+-cdataformat gamma
+.fi
+.RE
+.PP
+each complex value is already a reflection coefficient:
+.PP
+.RS 4n
+.nf
+Gamma = real + j*imag
+.fi
+.RE
+.PP
+and is mapped directly as:
+.PP
+.RS 4n
+.nf
+x = real(Gamma)
+y = imag(Gamma)
+.fi
+.RE
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+vector create gamma -type complex
+gamma set {{0\&.0 0\&.0} {0\&.25 0\&.50} {-0\&.20 0\&.60}}
+\&.p element create trace -cdata gamma -cdataformat gamma
+.fi
+.RE
+.SS IMPEDANCE
+.PP
+With:
+.PP
+.RS 4n
+.nf
+-cdataformat impedance
+.fi
+.RE
+.PP
+each complex value represents physical impedance:
+.PP
+.RS 4n
+.nf
+Z = R + jX
+.fi
+.RE
+.PP
+The value is normalized by the reference impedance Z0:
+.PP
+.RS 4n
+.nf
+z = Z / Z0
+.fi
+.RE
+.PP
+and then converted to reflection coefficient:
+.PP
+.RS 4n
+.nf
+Gamma = (z - 1) / (z + 1)
+.fi
+.RE
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+vector create z -type complex
+z set {{25 -20} {50 0} {75 30} {120 50}}
+polar \&.p -representation smith
+\&.p element create trace -cdata z -cdataformat impedance -z0 50
+.fi
+.RE
+.SS ADMITTANCE
+.PP
+With:
+.PP
+.RS 4n
+.nf
+-cdataformat admittance
+.fi
+.RE
+.PP
+each complex value represents physical admittance:
+.PP
+.RS 4n
+.nf
+Y = G + jB
+.fi
+.RE
+.PP
+The normalized admittance is:
+.PP
+.RS 4n
+.nf
+y = Y * Z0
+.fi
+.RE
+.PP
+and the reflection coefficient is:
+.PP
+.RS 4n
+.nf
+Gamma = (1 - y) / (1 + y)
+.fi
+.RE
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+vector create y -type complex
+y set {{0\&.010 -0\&.010} {0\&.020 0\&.000} {0\&.015 0\&.010}}
+\&.p element create trace -cdata y -cdataformat admittance -z0 50
+.fi
+.RE
+.PP
+The conversion to Gamma is performed independently of the widget's grid representation\&. For example, an
+impedance data element may still be displayed while the Smith grid is configured for admittance contours\&.
+.SH "REFERENCE IMPEDANCE"
+.PP
+-z0 specifies the reference impedance used by impedance and admittance conversion\&.
+.PP
+The default is:
+.PP
+.RS 4n
+.nf
+50\&.0
+.fi
+.RE
+.PP
+-z0 must be finite and greater than zero\&.
+.PP
+Changing -z0 remaps an attached impedance or admittance vector immediately:
+.PP
+.RS 4n
+.nf
+\&.p element configure trace -z0 75
+.fi
+.RE
+.PP
+-z0 has no effect on complex data interpreted directly as gamma\&.
+.SH "SINGULAR CONVERSIONS AND TRACE GAPS"
+.PP
+Some physical impedance or admittance values cannot be mapped to a finite reflection coefficient\&.
+.PP
+For impedance, the conversion is singular when:
+.PP
+.RS 4n
+.nf
+z + 1 = 0
+.fi
+.RE
+.PP
+For example, if:
+.PP
+.RS 4n
+.nf
+Z0 = 50
+.fi
+.RE
+.PP
+then:
+.PP
+.RS 4n
+.nf
+Z = -50 + j0
+.fi
+.RE
+.PP
+is singular\&.
+.PP
+For admittance, the corresponding singular condition is:
+.PP
+.RS 4n
+.nf
+y + 1 = 0
+.fi
+.RE
+.PP
+Singular points are omitted from the mapped element\&. They create a real discontinuity in the rendered trace\&.
+.PP
+Points on opposite sides of such a discontinuity are never connected:
+.PP
+.RS 4n
+.nf
+valid points \&.\&.\&. | singular point | \&.\&.\&. valid points
+                 ^
+                 trace break
+.fi
+.RE
+.PP
+Non-finite data and values invalid for the mapped axes similarly create trace breaks\&.
+.SH SMOOTHING
+.PP
+Polar elements support the same -smooth names as line elements:
+.PP
+.RS 4n
+.nf
+linear
+step
+natural
+cubic
+quadratic
+catrom
+.fi
+.RE
+.PP
+cubic is an alias for natural\&.
+.PP
+The important difference from an ordinary LineElement is that natural/cubic and quadratic smoothing
+are parametric for a PolarElement\&.
+.PP
+Instead of requiring:
+.PP
+.RS 4n
+.nf
+y = f(x)
+.fi
+.RE
+.PP
+a Polar spline interpolates a two-dimensional path:
+.PP
+.RS 4n
+.nf
+p(t) = {x(t), y(t)}
+.fi
+.RE
+.PP
+This allows trajectories whose X coordinate reverses direction, vertical trajectories, and loops\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+vector create z -type complex
+z set {{ 0 0} { 1 1} { 0 2} {-1 1} { 0 0}}
+\&.p element create loop -cdata z -smooth natural
+.fi
+.RE
+.PP
+catrom is also parametric\&.
+.PP
+linear joins mapped points with straight segments\&.
+.PP
+step retains the normal Cartesian step-and-hold behavior; it does not perform radius/angle stepping\&.
+.PP
+Smoothing is performed on the actual mapped two-dimensional trace\&. For complex impedance and admittance data,
+conversion to Gamma occurs before the displayed path is smoothed\&.
+.PP
+A discontinuity divides the element into independent continuous runs\&. Each run containing enough points is
+smoothed separately\&. No spline is ever constructed through a missing or singular point\&.
+.PP
+Smoothing does not implicitly close a path\&. To request a closed visual trajectory, repeat the first source
+point as the final source point:
+.PP
+.RS 4n
+.nf
+z set {{1 0} {0 1} {-1 0} {0 -1} {1 0}}
+.fi
+.RE
+.SH "AXIS MAPPING"
+.PP
+Polar elements support the normal line-element -mapx and -mapy options:
+.PP
+.RS 4n
+.nf
+\&.p element create trace -cdata gamma -mapx x2 -mapy y2
+.fi
+.RE
+.PP
+These mappings are independent of the axes used to construct the Polar or Smith grid\&.
+.PP
+To display the element and grid through the same alternate coordinate system, configure both:
+.PP
+.RS 4n
+.nf
+\&.p grid configure -mapx x2 -mapy y2
+\&.p element configure trace -mapx x2 -mapy y2
+.fi
+.RE
+.PP
+-invertxy on the owning polar widget is supported by Polar elements\&.
+.SH "DATA OUTSIDE THE SMITH UNIT CIRCLE"
+.PP
+Smith representation does not clip element data to:
+.PP
+.RS 4n
+.nf
+|Gamma| <= 1
+.fi
+.RE
+.PP
+Values outside the unit circle are valid plotted coordinates when they are contained by the mapped axis
+ranges\&.
+.PP
+For example, negative-resistance impedance may produce:
+.PP
+.RS 4n
+.nf
+|Gamma| > 1
+.fi
+.RE
+.PP
+and remains visible if the graph limits include it\&.
+.PP
+The unit circle is therefore a Smith-chart reference contour, not an element clipping boundary\&.
+.SH "CLOSEST-POINT INFORMATION"
+.PP
+ELEMENT closest works with Polar elements in the same way as line elements:
+.PP
+.RS 4n
+.nf
+\&.p element closest $x $y info -along both -interpolate yes
+.fi
+.RE
+.PP
+With -interpolate yes, the search follows the rendered Polar trace, including spline-generated segments\&.
+.PP
+The normal result entries are:
+.PP
+.RS 4n
+.nf
+info(name)
+info(index)
+info(x)
+info(y)
+info(dist)
+.fi
+.RE
+.PP
+For a Polar element, the result additionally contains:
+.PP
+.RS 4n
+.nf
+info(radius)
+info(angle)
+.fi
+.RE
+.PP
+radius is the magnitude of the selected Cartesian point\&.
+.PP
+angle is its angle in degrees, normalized from zero through less than 360 degrees\&. The angle at the origin is
+reported as zero\&.
+.PP
+In Smith representation, closest information additionally includes the plotted reflection coefficient and
+equivalent impedance and admittance quantities:
+.PP
+.RS 4n
+.nf
+info(gamma)
+info(z0)
+
+info(normalizedResistance)
+info(normalizedReactance)
+info(normalizedImpedance)
+
+info(resistance)
+info(reactance)
+info(impedance)
+
+info(normalizedConductance)
+info(normalizedSusceptance)
+info(normalizedAdmittance)
+
+info(conductance)
+info(susceptance)
+info(admittance)
+.fi
+.RE
+.PP
+gamma, normalizedImpedance, impedance, normalizedAdmittance, and admittance are two-element
+{real imag} values\&.
+.PP
+The Smith information describes the selected plotted Gamma position, not merely the original representation
+used by -cdataformat\&. Consequently both equivalent impedance and admittance information are available whether
+the source element was supplied as Gamma, impedance, or admittance\&.
+.PP
+The physical values are derived using the element's -z0\&.
+.PP
+At the Smith endpoints, an equivalent impedance or admittance may be infinite\&.
+.SH "POSTSCRIPT OUTPUT"
+.PP
+Polar elements use the same mapped trace for window drawing and PostScript output\&.
+.PP
+Complex-data conversion, trace breaks, parametric smoothing, symbols, pens, and other line-rendering
+attributes therefore apply to PostScript output as well as on-screen drawing\&.
+.SH "POLAR ELEMENT OPTIONS"
+.PP
+Polar elements support the configuration options documented for \fILINEELEMENT\fP, with the Polar-specific
+additions below\&.
+.PP
+.RS 4n
+.nf
+┌───────────────────────┬───────────────┬────────────────┬──────────────────────────────────────────────────────┐
+│ Option                │ Database name │ Database class │ Description                                          │
+├───────────────────────┼───────────────┼────────────────┼──────────────────────────────────────────────────────┤
+│ -cdata vectorName     │ cData         │ CData          │ Complex Rbc vector used as the data source\&. An empty │
+│                       │               │                │ value selects ordinary X/Y data mode\&.                │
+│ -cdataformat format   │ cDataFormat   │ CDataFormat    │ gamma, impedance, or admittance\&. Default gamma\&.      │
+│ -z0 value             │ z0            │ Z0             │ Positive finite reference impedance\&. Default 50\&.0\&.   │
+└───────────────────────┴───────────────┴────────────────┴──────────────────────────────────────────────────────┘
+.fi
+.RE
+.PP
+The remaining options have the same database names, classes, defaults, and basic drawing semantics described
+in \fILINEELEMENT\fP\&.
+.PP
+Where Polar behavior intentionally differs from ordinary line behavior, in particular parametric smoothing
+and complex-data mapping, the differences are described above\&.
+
+
+.SH SEE ALSO
+rbc(n) - package's main page
+.br
+rbc-tcltk9upgrade(n) - list of upgrades comparing to Tcl/Tk8 RBC package
+.br
+.sp 1
+Public commands and classes documentation:
+.br
+rbc-rbc(n)
+.br
+rbc-rbc-graphinst(n)
+.br
+rbc-rbc-axis(n)
+.br
+rbc-rbc-marginaxis(n)
+.br
+rbc-rbc-element(n)
+.br
+rbc-rbc-lineelement(n)
+.br
+rbc-rbc-stripelement(n)
+.br
+rbc-rbc-polarelement(n)
+.br
+rbc-rbc-barelement(n)
+.br
+rbc-rbc-pen(n)
+.br
+rbc-rbc-marker(n)
+.br
+rbc-rbc-legend(n)
+.br
+rbc-rbc-grid(n)
+.br
+rbc-rbc-crosshairs(n)
+.br
+rbc-rbc-postscript(n)
+.br
+rbc-rbc-vector(n)
+.br
+rbc-rbc-vecinst(n)
+.br
+rbc-rbc-spline(n)
+.br
+rbc-rbc-winop(n)
+.br
+rbc-rbc-winopimage(n)

@@ -106,9 +106,9 @@ linear is the default\&.
 Spline smoothing operates in mapped screen coordinates\&. Natural, quadratic, and Catmull-Rom smoothing require
 at least three mapped points\&.
 .PP
-As with line elements, spline smoothing is not allowed to bridge a discontinuity\&. If a discontinuity is
-present, the current implementation falls back to ordinary linear trace segments instead of constructing
-independent splines for each continuous run\&.
+As with line elements, spline smoothing never bridges a discontinuity\&. Each continuous run containing at least
+three mapped points is smoothed independently\&. Runs containing fewer than three mapped points remain ordinary
+linear trace segments\&.
 .SH "PENS AND SYMBOLS"
 .PP
 Strip elements use line pens\&.
@@ -331,6 +331,8 @@ rbc-rbc-element(n)
 rbc-rbc-lineelement(n)
 .br
 rbc-rbc-stripelement(n)
+.br
+rbc-rbc-polarelement(n)
 .br
 rbc-rbc-barelement(n)
 .br

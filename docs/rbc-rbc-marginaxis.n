@@ -6,7 +6,7 @@
 rbc::MARGINAXIS - Commands in namespace rbc::MARGINAXIS
 .SH "GRAPH MARGIN AXIS MARGINAXIS COMMAND"
 .PP
-Commands in this namespace document the logical margin-axis commands of graph, barchart, and stripchart
+Commands in this namespace document the logical margin-axis commands of graph, barchart, stripchart, and polar
 widgets\&.
 .PP
 MARGINAXIS is used below as a placeholder for any of:
@@ -171,6 +171,8 @@ rbc-rbc-element(n)
 rbc-rbc-lineelement(n)
 .br
 rbc-rbc-stripelement(n)
+.br
+rbc-rbc-polarelement(n)
 .br
 rbc-rbc-barelement(n)
 .br
