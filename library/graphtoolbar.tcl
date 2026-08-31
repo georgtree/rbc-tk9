@@ -143,6 +143,25 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         variable CrosshairsModes
         const CrosshairsModes [dict create current {Current point} closest {Closest point} none {No marker}\
                                          disabled Disabled]
+        variable CoordMarkModes
+        const CoordMarkModes {axis complex polar gamma}
+        variable CoordClosestMarkModes
+        const CoordClosestMarkModes {axis complex polar gamma normalizedimpedance impedance normalizedadmittance\
+                                             admittance}
+    }
+    property coordmark -set {
+        classvariable CoordMarkModes
+        if {$value ni $CoordMarkModes} {
+            return -code error "bad coordinate marker mode '$value': must be [join $CoordMarkModes {, }]"
+        }
+        set coordmark $value
+    }
+    property coordclosestmark -set {
+        classvariable CoordClosestMarkModes
+        if {$value ni $CoordClosestMarkModes} {
+            return -code error "bad closest coordinate marker mode '$value': must be [join $CoordClosestMarkModes {, }]"
+        }
+        set coordclosestmark $value
     }
     property zoomtitle
     property zoomtitleopts -set {
@@ -284,7 +303,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                  $value]
     }
     variable PsData ZoomInfo ZoomMod zoomtitle ZoomMark zoomtitleopts zoomboxopts zoommarkopts ZoomTransientChecks\
-            zoommarkboxopts GraphType
+            zoommarkboxopts GraphType coordmark coordclosestmark
     variable CrosshairsSelector crosshairsmarkopts crosshairsmarkboxopts crosshairsclosestopts crosshairsopts
     variable crosshairsbarlineopts CrosshairsMarkerInfo
     variable AxisScaleInfo SavedToolbarStates
@@ -296,12 +315,14 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         next $w {*}$args
     }
     constructor {args} {
-        classvariable CrosshairsModes
+        classvariable CrosshairsModes CoordClosestMarkModes
         set arguments [argparse -inline -pfirst {
             path
             -width=
             -height=
             {-type= -default graph -enum {graph barchart stripchart polar}}
+            {-coordmark= -default axis}
+            {-coordclosestmark= -default axis}
             {-toolbarside= -default bottom}
             -zoom
             {-zoomstartbut -default {ButtonPress-1}}
@@ -334,6 +355,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set Subwidgets(toolbarFrame) [ttk::frame $frameName.toolbarFr]
         set Subwidgets(graph) [::rbc::$GraphType $frameName.graph -width [dict get $arguments width]\
                                        -height [dict get $arguments height]]
+        my configure -coordmark [dict get $arguments coordmark] -coordclosestmark [dict get $arguments coordclosestmark]
         grid $Subwidgets(graph) -row [expr {[dict get $arguments toolbarside] eq {bottom} ? 0 : 1}] -column 0\
                 -sticky nsew
         grid $Subwidgets(toolbarFrame) -row [expr {[dict get $arguments toolbarside] eq {bottom} ? 1 : 0}] -column 0\
@@ -376,6 +398,16 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                                                    -image ::rbc::graphtoolbar::icons::revertZoomIcon\
                                                    -command [namespace code {my ResetZoom}]]
             grid $Subwidgets(revertZoomBut) -row 0 -column [incr butCount] -sticky ns
+            set closestCoordWidths [list]
+            foreach mode $CoordClosestMarkModes {
+                lappend closestCoordWidths [string length $mode]
+            }
+            set Subwidgets(closestCoordComBox)\
+                    [ttk::combobox $Subwidgets(toolbarFrame).closestCoordComBox\
+                             -width [expr { [::tcl::mathfunc::max {*}$closestCoordWidths]}]\
+                             -values $CoordClosestMarkModes -textvariable [self namespace]::coordclosestmark\
+                             -state disabled]
+            grid $Subwidgets(closestCoordComBox) -row 0 -column [incr butCount] -sticky ns
         }
 
         ##### crosshairs activation
@@ -779,18 +811,15 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         return $axes
     }
     method InteractionAxes {dimension} {
-        # Returns axes suitable for interactive overlays such as current
-        # crosshair text and the zoom-selection box.
+        # Returns axes used by current-coordinate overlays.
         #
-        # Normally these are the visible axes.  A Polar/Smith widget may
-        # intentionally hide its Cartesian margin axes while still using
-        # them to map the specialized grid.  In that case fall back to the
-        # corresponding grid-mapped axis.
+        # Ordinary graphs report all visible axes.
+        #
+        # A Polar/Smith widget additionally reports the axis mapped to the
+        # specialized grid, even if that axis itself is hidden or is not
+        # installed in a graph margin.
         set graph $Subwidgets(graph)
         set axes [my VisibleAxes $dimension]
-        if {[llength $axes] > 0} {
-            return $axes
-        }
         if {$GraphType ne {polar}} {
             return $axes
         }
@@ -805,9 +834,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 return -code error "unknown axis dimension '$dimension': must be x or y"
             }
         }
-        set axis [$graph grid cget $mapOption]
-        if {$axis ne {}} {
-            lappend axes $axis
+        set gridAxis [$graph grid cget $mapOption]
+        if {($gridAxis ne {}) && ($gridAxis ni $axes)} {
+            lappend axes $gridAxis
         }
         return $axes
     }
@@ -878,6 +907,104 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             }
         }
         return [dict create text [join $lines \n] mapx $mapx mapy $mapy xValue $markerXValue yValue $markerYValue]
+    }
+
+     method FormatComplexMarkerValue {name value formatReal formatImag {unit {}}} {
+         if {[llength $value]!=2} {
+             return -code error {complex marker value must contain real and imaginary components}
+         }
+         lassign $value real imag
+         #
+         # Suppress textual -0.
+         #
+         if {$real==0.0} {
+             set real 0.0
+         }
+         if {$imag==0.0} {
+             set imag 0.0
+         }
+         set realText [format "%$formatReal" $real]
+         set imagText [format "%$formatImag" [expr {abs($imag)}]]
+         if {$imag < 0.0} {
+             set sign -
+         } else {
+             set sign +
+         }
+         set text "${name}=${realText}${sign}j${imagText}"
+         if {$unit ne {}} {
+             append text " $unit"
+         }
+         return $text
+     }
+     method CartesianPolarValues {xValue yValue} {
+         set radius [expr {hypot($xValue,$yValue)}]
+         if {$radius==0.0} {
+             set angle 0.0
+         } else {
+             set angle [expr {atan2($yValue,$xValue)*180.0/acos(-1.0)}]
+             if {$angle < 0.0} {
+                 set angle [expr {$angle+360.0}]
+             }
+             if {$angle==0.0} {
+                 set angle 0.0
+             }
+         }
+         return [list $radius $angle]
+     }
+     method FormatPolarMarkerValue {radius angle formatRadius formatAngle} {
+         set radiusText [format "%$formatRadius" $radius]
+         set angleText [format "%$formatAngle" $angle]
+         return "r=$radiusText\nangle=$angleText deg"
+     }
+     method CoordinateMarkerInfo {xPixel yPixel formatx formaty mode} {
+         set graph $Subwidgets(graph)
+         #
+         # Axis mode is the historical behavior:
+         #
+         #   current marker -> all interaction axes
+         #   zoom marker    -> all interaction axes
+         #
+         if {$mode eq {axis}} {
+             return [my AxisMarkerInfo $xPixel $yPixel $formatx $formaty]
+         }
+         #
+         # Semantic Polar coordinates are based on the grid mapping itself.
+         #
+         if {$GraphType eq {polar}} {
+             set mapx [$graph grid cget -mapx]
+             set mapy [$graph grid cget -mapy]
+         } else {
+             set xAxes [my InteractionAxes x]
+             set yAxes [my InteractionAxes y]
+             if {![llength $xAxes] || ![llength $yAxes]} {
+                 return [my AxisMarkerInfo $xPixel $yPixel $formatx $formaty]
+             }
+             set mapx [lindex $xAxes 0]
+             set mapy [lindex $yAxes 0]
+         }
+         if {($mapx eq {}) || ($mapy eq {})} {
+             return [my AxisMarkerInfo $xPixel $yPixel $formatx $formaty]
+         }
+         set xPixel [expr {round($xPixel)}]
+         set yPixel [expr {round($yPixel)}]
+         set xValue [$graph axis invtransform $mapx $xPixel]
+         set yValue [$graph axis invtransform $mapy $yPixel]
+         switch -- $mode {
+             complex {
+                 set text [my FormatComplexMarkerValue {x+jy} [list $xValue $yValue] $formatx $formaty]
+             }
+             gamma {
+                 set text [my FormatComplexMarkerValue Gamma [list $xValue $yValue] $formatx $formaty]
+             }
+             polar {
+                 lassign [my CartesianPolarValues $xValue $yValue] radius angle
+                 set text [my FormatPolarMarkerValue $radius $angle $formatx $formaty]
+             }
+             default {
+                 return [my AxisMarkerInfo $xPixel $yPixel $formatx $formaty]
+             }
+         }
+         return [dict create text $text mapx $mapx mapy $mapy xValue $xValue yValue $yValue]
     }
 
     #### axes toggle methods
@@ -1079,7 +1206,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         my DeleteCrosshairsMarkers
         my CrosshairsMarkerMotion $graph $x $y {*}$CrosshairsMarkerInfo
     }
-    method ClosestMarkerText {element xValue yValue options} {
+    method ClosestAxisMarkerText {element xValue yValue options} {
         set graph $Subwidgets(graph)
         set mapx [$graph element cget $element -mapx]
         set mapy [$graph element cget $element -mapy]
@@ -1094,26 +1221,96 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set yText [format "%[dict get $options -formaty]" $yValue]
         return [format "%s\n%s(%s)=%s\n%s(%s)=%s" $element $mapx $xOrientation $xText $mapy $yOrientation $yText]
     }
-    method CreateClosestMarker {graph textMarker bitmapMarker element xValue yValue options} {
+    method ClosestMarkerText {element xValue yValue options closestInfo} {
+        set mode [my configure -coordclosestmark]
+        #
+        # Axis mode is deliberately element-specific. Unlike current
+        # and zoom markers, it does not enumerate all visible axes.
+        #
+        if {$mode eq {axis}} {
+            return [my ClosestAxisMarkerText $element $xValue $yValue $options]
+        }
+        set formatReal [dict get $options -formatx]
+        set formatImag [dict get $options -formaty]
+        switch -- $mode {
+            complex {
+                set valueText [my FormatComplexMarkerValue {x+jy} [list $xValue $yValue] $formatReal $formatImag]
+            }
+            polar {
+                #
+                # For a PolarElement the C closest result supplies radius
+                # and angle.  Do not manufacture them here for element
+                # classes which do not provide that information.
+                #
+                if {![dict exists $closestInfo radius] || ![dict exists $closestInfo angle]} {
+                    return [my ClosestAxisMarkerText $element $xValue $yValue $options]
+                }
+                set valueText [my FormatPolarMarkerValue [dict get $closestInfo radius] [dict get $closestInfo angle]\
+                                       $formatReal $formatImag]
+            }
+            gamma {
+                if {![dict exists $closestInfo gamma]} {
+                    return [my ClosestAxisMarkerText $element $xValue $yValue $options]
+                }
+                set valueText [my FormatComplexMarkerValue Gamma [dict get $closestInfo gamma] $formatReal $formatImag]
+            }
+            normalizedimpedance {
+                if {![dict exists $closestInfo normalizedImpedance]} {
+                    return [my ClosestAxisMarkerText $element $xValue $yValue $options]
+                }
+                set valueText [my FormatComplexMarkerValue z [dict get $closestInfo normalizedImpedance] $formatReal\
+                                       $formatImag]
+            }
+            impedance {
+                if {![dict exists $closestInfo impedance]} {
+                    return [my ClosestAxisMarkerText $element $xValue $yValue $options]
+                }
+                set valueText \
+                    [my FormatComplexMarkerValue Z [dict get $closestInfo impedance] $formatReal $formatImag Ohm]
+            }
+            normalizedadmittance {
+                if {![dict exists $closestInfo normalizedAdmittance]} {
+                    return [my ClosestAxisMarkerText $element $xValue $yValue $options]
+                }
+                set valueText \
+                    [my FormatComplexMarkerValue y [dict get $closestInfo normalizedAdmittance] $formatReal\
+                             $formatImag]
+            }
+            admittance {
+                if {![dict exists $closestInfo admittance]} {
+                    return [my ClosestAxisMarkerText $element $xValue $yValue $options]
+                }
+                set valueText [my FormatComplexMarkerValue Y [dict get $closestInfo admittance] $formatReal\
+                                       $formatImag S]
+            }
+            default {
+                return [my ClosestAxisMarkerText $element $xValue $yValue $options]
+            }
+        }
+        return "$element\n$valueText"
+    }
+    method CreateClosestMarker {graph textMarker bitmapMarker element xValue yValue options closestInfo} {
         set mapx [$graph element cget $element -mapx]
         set mapy [$graph element cget $element -mapy]
         set xPixel [$graph axis transform $mapx $xValue]
         set yPixel [$graph axis transform $mapy $yValue]
-        # a closest marker belongs to a specific element, therefore show only the axes actually used by that element.
-        set text [my ClosestMarkerText $element $xValue $yValue $options]
-        # physical widget position of the actual closest point.
+        set text [my ClosestMarkerText $element $xValue $yValue $options $closestInfo]
+        #
+        # Physical widget position of the actual closest point.
+        #
         lassign [my AxisPixelsToWidget $xPixel $yPixel] x y
         set anchor [my TextAnchor $x $y $text $options]
         dict set options -anchor $anchor
-        # shift the label away from the actual point/crosshairs.
         lassign [my TextOffset $x $y $anchor] textX textY
         set boxOptions [my configure -crosshairsmarkboxopts]
         my DrawTextBackground ${textMarker}Box $textX $textY $text $options $boxOptions $mapx $mapy
-        # the text marker itself must be shifted too.
         lassign [my WidgetToAxisValues $textX $textY $mapx $mapy] textXValue textYValue
+
         $graph marker create text -name $textMarker -text $text -coords [list $textXValue $textYValue] -mapx $mapx\
                 -mapy $mapy {*}[dict remove $options -formatx -formaty]
-        # bitmap remains exactly at the real element point.
+        #
+        # Bitmap remains exactly at the real selected element point.
+        #
         my AddBitmapPoint $bitmapMarker $xValue $yValue $mapx $mapy
     }
     method ClosestBarLayout {left top right bottom text textOptions} {
@@ -1212,11 +1409,11 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
         return [list $left  $lineY $right $lineY $textX $textY $anchor]
     }
-    method CreateClosestBarMarker {marker element xValue yValue left top right bottom options boxOptions} {
+    method CreateClosestBarMarker {marker element xValue yValue left top right bottom options boxOptions closestInfo} {
         set graph $Subwidgets(graph)
         set mapx [$graph element cget $element -mapx]
         set mapy [$graph element cget $element -mapy]
-        set text [my ClosestMarkerText $element $xValue $yValue $options]
+        set text [my ClosestMarkerText $element $xValue $yValue $options $closestInfo]
         #
         # -formatx/-formaty are graphtoolbar formatting options, not
         # RBC text-marker options.
@@ -1283,7 +1480,13 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
         if {$mode eq {current}} {
             lassign [my WidgetToAxisPixels $x $y] xPixel yPixel
-            set info [my AxisMarkerInfo $xPixel $yPixel [dict get $options -formatx] [dict get $options -formaty]]
+            #
+            # -coordmark is read at drawing time.  "axis" preserves the
+            # normal current-marker behaviour: all visible axes plus, for
+            # Polar/Smith, any additional axes mapped by the grid.
+            #
+            set info [my CoordinateMarkerInfo $xPixel $yPixel [dict get $options -formatx] [dict get $options -formaty]\
+                              [my configure -coordmark]]
             set text [dict get $info text]
             set anchor [my TextAnchor $x $y $text $options]
             dict set options -anchor $anchor
@@ -1296,50 +1499,66 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             $graph marker create text -name crosshairsText -text $text -coords [list $textXValue $textYValue] -mapx\
                     $mapx -mapy $mapy {*}[dict remove $options -formatx -formaty]
             return
-         } elseif {$mode eq {closest}} {
-             set boxOptions [my configure -crosshairsmarkboxopts]
-            if {$single} {
-                if {[$graph element closest $x $y pointVar -along both -interpolate $interpolate -halo $halo]} {
-                    set element $pointVar(name)
-                    if {([$graph element type $element] eq {BarElement}) &&\
-                                 [info exists pointVar(left)] && [info exists pointVar(top)] &&\
-                                 [info exists pointVar(right)] && [info exists pointVar(bottom)]} {
-                        my CreateClosestBarMarker crosshairsClosestText $element $pointVar(x) $pointVar(y)\
-                                $pointVar(left) $pointVar(top) $pointVar(right) $pointVar(bottom) $options $boxOptions
-                    } else {
-                        my CreateClosestMarker $graph crosshairsClosestText crosshairsClosestBitmap $element\
-                                $pointVar(x) $pointVar(y) $options
-                    }
-                }
-            } else {
-                set i 0
-                foreach elem [$graph element names] {
-                    # -hideplot keeps the element in the display list so its
-                    # legend entry remains available, but it must not participate
-                    # in closest-marker searches.
-                    if {[$graph element cget $elem -hideplot]} {
-                        continue
-                    }
-                    if {![$graph element closest $x $y pointVar -along both -interpolate $interpolate -halo $halo\
-                                  $elem]} {
-                        continue
-                    }
-                    set marker crosshairsClosestText$i
-                    set element $pointVar(name)
-                    if {([$graph element type $element] eq {BarElement}) && [info exists pointVar(left)] &&\
-                                [info exists pointVar(top)] && [info exists pointVar(right)] &&\
-                                [info exists pointVar(bottom)]} {
-                        my CreateClosestBarMarker $marker $element $pointVar(x) $pointVar(y) $pointVar(left)\
-                                $pointVar(top) $pointVar(right) $pointVar(bottom) $options $boxOptions
-                    } else {
-                        my CreateClosestMarker $graph crosshairsClosestText$i crosshairsClosestBitmap$i $element\
-                                $pointVar(x) $pointVar(y) $options
-                    }
-                    incr i
+        }
+        if {$mode ne {closest}} {
+            return
+        }
+        set boxOptions [my configure -crosshairsmarkboxopts]
+        if {$single} {
+            #
+            # pointVar may contain Polar/Smith-specific fields.  Always
+            # clear it before a new search so stale fields can never
+            # survive from a previous element.
+            #
+            unset -nocomplain pointVar
+            if {[$graph element closest $x $y pointVar -along both -interpolate $interpolate -halo $halo]} {
+                set element $pointVar(name)
+                set closestInfo [array get pointVar]
+                if {([$graph element type $element] eq {BarElement}) && [info exists pointVar(left)] &&\
+                            [info exists pointVar(top)] && [info exists pointVar(right)] &&\
+                            [info exists pointVar(bottom)]} {
+                    my CreateClosestBarMarker crosshairsClosestText $element $pointVar(x) $pointVar(y) $pointVar(left)\
+                            $pointVar(top) $pointVar(right) $pointVar(bottom) $options $boxOptions $closestInfo
+                } else {
+                    my CreateClosestMarker $graph crosshairsClosestText crosshairsClosestBitmap $element $pointVar(x)\
+                            $pointVar(y) $options $closestInfo
                 }
             }
+            return
         }
+        set i 0
+        foreach elem [$graph element names] {
+            #
+            # -hideplot leaves the legend entry available but the element
+            # must not participate in closest searches.
+            #
+            if {[$graph element cget $elem -hideplot]} {
+                continue
+            }
+            #
+            # Each element search starts with a completely fresh result
+            # array.  This is important when ordinary and PolarElements
+            # are mixed in the same graph.
+            #
+            unset -nocomplain pointVar
+            if {![$graph element closest $x $y pointVar -along both -interpolate $interpolate -halo $halo $elem]} {
+                continue
+            }
+            set element $pointVar(name)
+            set closestInfo [array get pointVar]
+            set marker crosshairsClosestText$i
 
+            if {([$graph element type $element] eq {BarElement}) && [info exists pointVar(left)] &&\
+                        [info exists pointVar(top)] && [info exists pointVar(right)] &&\
+                        [info exists pointVar(bottom)]} {
+                my CreateClosestBarMarker $marker $element $pointVar(x) $pointVar(y) $pointVar(left) $pointVar(top)\
+                        $pointVar(right) $pointVar(bottom) $options $boxOptions $closestInfo
+            } else {
+                my CreateClosestMarker $graph crosshairsClosestText$i crosshairsClosestBitmap$i $element $pointVar(x)\
+                        $pointVar(y) $options $closestInfo
+            }
+            incr i
+        }
     }
     method CrosshairsMotion {graph x y {hide no}} {
         set markerNames [$graph marker names crosshairs*]
@@ -1356,9 +1575,20 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         my RemoveBindTag $graph $tagCrosshairsMarker
         set options [my configure -crosshairsmarkopts]
         $graph crosshairs configure {*}[my configure -crosshairsopts]
-        # This is the canonical argument tuple used both by normal pointer
-        # motion and by redraw after an axis-transform change.
+        #
+        # This remains the canonical argument tuple used both by normal
+        # pointer motion and by redraw after an axis-transform change.
+        #
+        # Coordinate-marker modes are intentionally not stored here.
+        #
         unset -nocomplain CrosshairsMarkerInfo
+        #
+        # The closest-coordinate selector has meaning only in Closest
+        # point mode.
+        #
+        if {[info exists Subwidgets(closestCoordComBox)]} {
+            $Subwidgets(closestCoordComBox) configure -state disabled
+        }
         if {$CrosshairsSelector eq {Current point}} {
             $graph crosshairs on
             bind $tagCrosshairs <Leave> {
@@ -1369,12 +1599,15 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             }
             bind $tagCrosshairs <Any-Motion> [namespace code [list my CrosshairsMotion %W %x %y]]
             set CrosshairsMarkerInfo [list $options current {} {} {}]
-            bind $tagCrosshairsMarker <Any-Motion>\
-                    [namespace code [list my CrosshairsMarkerMotion %W %x %y {*}$CrosshairsMarkerInfo]]
+            bind $tagCrosshairsMarker <Any-Motion> [namespace code [list my CrosshairsMarkerMotion %W %x %y\
+                                                                            {*}$CrosshairsMarkerInfo]]
             my AddBindTag $graph $tagCrosshairs
             my AddBindTag $graph $tagCrosshairsMarker $tagCrosshairs
         } elseif {$CrosshairsSelector eq {Closest point}} {
             dict with crosshairsclosestopts {}
+            if {[info exists Subwidgets(closestCoordComBox)]} {
+                $Subwidgets(closestCoordComBox) configure -state readonly
+            }
             if {!$hide} {
                 $graph crosshairs on
                 bind $tagCrosshairs <Leave> {
@@ -1388,14 +1621,17 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             }
             bind $tagCrosshairs <Any-Motion> [namespace code [list my CrosshairsMotion %W %x %y $hide]]
             set CrosshairsMarkerInfo [list $options closest $interpolate $halo $single]
-            bind $tagCrosshairsMarker <Any-Motion>\
-                    [namespace code [list my CrosshairsMarkerMotion %W %x %y {*}$CrosshairsMarkerInfo]]
+            bind $tagCrosshairsMarker <Any-Motion> [namespace code [list my CrosshairsMarkerMotion %W %x %y\
+                                                                            {*}$CrosshairsMarkerInfo]]
             my AddBindTag $graph $tagCrosshairs
             my AddBindTag $graph $tagCrosshairsMarker $tagCrosshairs
             unset -nocomplain {*}[dict keys $crosshairsclosestopts]
         } elseif {$CrosshairsSelector eq {Disabled}} {
             $graph crosshairs off
         } else {
+            #
+            # "No marker": ordinary RBC crosshairs only.
+            #
             $graph crosshairs on
             bind $tagCrosshairs <Any-Motion> {
                 %W crosshairs configure -position @%x,%y
@@ -1485,8 +1721,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set graph $Subwidgets(graph)
         set options [my configure -zoommarkopts]
         set boxOptions [my configure -zoommarkboxopts]
-        set info [my AxisMarkerInfo $ZoomInfo($index,xPixel) $ZoomInfo($index,yPixel) [dict get $options -formatx]\
-                          [dict get $options -formaty]]
+        set info [my CoordinateMarkerInfo $ZoomInfo($index,xPixel) $ZoomInfo($index,yPixel)\
+                          [dict get $options -formatx] [dict get $options -formaty] [my configure -coordmark]]
         set marker gtbZoomText_$index
         set text [dict get $info text]
         set x $ZoomInfo($index,x)
