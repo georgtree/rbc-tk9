@@ -560,5 +560,130 @@ namespace eval polar.configure {
         unset -nocomplain ::polarAngleValues
     } -result {1 1 1}
 
-        cleanupTests
-    }
+    test RBC.polar.configure.A.smithcommand.1 {
+        polar Smith commands: defaults
+    } -setup {
+        polar .polar1
+    } -body {
+        list [.polar1 cget -smithrealcommand] \
+             [.polar1 cget -smithimagcommand]
+    } -cleanup {
+        destroy .polar1
+    } -result {{} {}}
+
+    test RBC.polar.configure.A.smithcommand.2 {
+        polar Smith commands: command prefixes
+    } -setup {
+        polar .polar1 -smithrealcommand [list FormatSmithReal prefix] -smithimagcommand [list FormatSmithImag prefix]
+    } -body {
+        list [.polar1 cget -smithrealcommand] [.polar1 cget -smithimagcommand]
+    } -cleanup {
+        destroy .polar1
+    } -result {{FormatSmithReal prefix} {FormatSmithImag prefix}}
+
+    test RBC.polar.configure.A.smithcommand.3 {
+        polar Smith real command: malformed prefix rolls back
+    } -setup {
+        polar .polar1 -smithrealcommand [list FormatSmithReal good]
+    } -body {
+        set bad "{malformed"
+        set code [catch {.polar1 configure -smithrealcommand $bad}]
+        list $code [.polar1 cget -smithrealcommand]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 {FormatSmithReal good}}
+
+    test RBC.polar.configure.A.smithcommand.4 {
+        polar Smith imaginary command: malformed prefix rolls back
+    } -setup {
+        polar .polar1 -smithimagcommand [list FormatSmithImag good]
+    } -body {
+        set bad "{malformed"
+        set code [catch {
+            .polar1 configure -smithimagcommand $bad
+        }]
+        list $code [.polar1 cget -smithimagcommand]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 {FormatSmithImag good}}
+
+    test RBC.polar.configure.A.smithcommand.5 {
+        polar Smith real command: receives impedance values
+    } -setup {
+        set ::smithRealValues {}
+        proc ::SmithRealFormat {widget domain value} {
+            lappend ::smithRealValues [list $domain $value]
+            return "r=$value"
+        }
+        polar .polar1 -representation smith -smithgrid impedance -smithrealmajorticks {0 0.5 1} -smithrealcommand\
+                ::SmithRealFormat
+        pack .polar1
+    } -body {
+        update
+        list [expr {[lsearch -exact $::smithRealValues {impedance 0}] >= 0}]\
+                [expr {[lsearch -exact $::smithRealValues {impedance 0.5}] >= 0}]\
+                [expr {[lsearch -exact $::smithRealValues {impedance 1}] >= 0}]
+    } -cleanup {
+        destroy .polar1
+        rename ::SmithRealFormat {}
+        unset -nocomplain ::smithRealValues
+    } -result {1 1 1}
+
+    test RBC.polar.configure.A.smithcommand.6 {
+        polar Smith imaginary command: receives signed impedance values
+    } -setup {
+        set ::smithImagValues {}
+        proc ::SmithImagFormat {widget domain value} {
+            lappend ::smithImagValues [list $domain $value]
+            return "x=$value"
+        }
+        polar .polar1 -representation smith -smithgrid impedance -smithimagmajorticks {0.5 1} -smithimagcommand\
+                ::SmithImagFormat
+        pack .polar1
+    } -body {
+        update
+        list [expr {[lsearch -exact $::smithImagValues {impedance 0.5}] >= 0}]\
+                [expr {[lsearch -exact $::smithImagValues {impedance -0.5}] >= 0}]\
+                [expr {[lsearch -exact $::smithImagValues {impedance 1}] >= 0}]\
+                [expr {[lsearch -exact $::smithImagValues {impedance -1}] >= 0}]
+    } -cleanup {
+        destroy .polar1
+        rename ::SmithImagFormat {}
+        unset -nocomplain ::smithImagValues
+    } -result {1 1 1 1}
+
+    test RBC.polar.configure.A.smithcommand.7 {
+        polar Smith commands: distinguish impedance and admittance
+    } -setup {
+        set ::smithDomains {}
+        proc ::SmithRealFormat {widget domain value} {
+            lappend ::smithDomains [list $domain $value]
+            return "$domain=$value"
+        }
+        polar .polar1 -representation smith -smithgrid both -smithrealmajorticks {0.5} -smithrealcommand\
+                ::SmithRealFormat
+        pack .polar1
+    } -body {
+        update
+        list [expr {[lsearch -exact $::smithDomains {impedance 0.5}] >= 0}]\
+                [expr {[lsearch -exact $::smithDomains {admittance 0.5}] >= 0}]
+    } -cleanup {
+        destroy .polar1
+        rename ::SmithRealFormat {}
+        unset -nocomplain ::smithDomains
+    } -result {1 1}
+
+    test RBC.polar.configure.A.smithcommand.8 {
+        polar Smith commands: failed configuration rolls back both
+    } -setup {
+        polar .polar1 -smithrealcommand [list FormatSmithReal old] -smithimagcommand [list FormatSmithImag old]
+    } -body {
+        set bad "{malformed"
+        set code [catch {.polar1 configure -smithrealcommand [list FormatSmithReal new] -smithimagcommand $bad}]
+        list $code [.polar1 cget -smithrealcommand] [.polar1 cget -smithimagcommand]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 {FormatSmithReal old} {FormatSmithImag old}}
+
+    cleanupTests
+}

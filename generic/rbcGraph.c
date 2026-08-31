@@ -92,6 +92,8 @@ Rbc_Uid rbcWindowMarkerUid;
 #define DEF_GRAPH_SMITH_REAL_MINOR_TICKS "0.1 0.3 0.7 1.5 3 10"
 #define DEF_GRAPH_SMITH_IMAG_MAJOR_TICKS "0.2 0.5 1 2 5"
 #define DEF_GRAPH_SMITH_IMAG_MINOR_TICKS "0.1 0.3 0.7 1.5 3 10"
+#define DEF_GRAPH_SMITH_REAL_COMMAND (char *)NULL
+#define DEF_GRAPH_SMITH_IMAG_COMMAND (char *)NULL
 
 /*
  * Graph option conversion and update masks.
@@ -120,6 +122,7 @@ Rbc_Uid rbcWindowMarkerUid;
 #define GRAPH_POLAR_ANGLE_TICKS_MASK (1u << 17)
 #define GRAPH_POLAR_ANGLE_COMMAND_MASK (1u << 18)
 #define GRAPH_SMITH_TICKS_MASK (1u << 19)
+#define GRAPH_SMITH_COMMAND_MASK (1u << 20)
 
 #define GRAPH_TRANSACTION_MASK                                                                                         \
     (GRAPH_BAR_MODE_MASK | GRAPH_BAR_WIDTH_MASK | GRAPH_PIXELS_MASK | GRAPH_PADDING_MASK | GRAPH_SHADOW_MASK |         \
@@ -129,7 +132,7 @@ Rbc_Uid rbcWindowMarkerUid;
     (GRAPH_TRANSACTION_MASK | GRAPH_TEXT_STYLE_MASK | GRAPH_GC_MASK | GRAPH_GEOMETRY_MASK | GRAPH_INVERT_XY_MASK |     \
      GRAPH_LAYOUT_MASK | GRAPH_BACKING_STORE_MASK | GRAPH_REDRAW_MASK | GRAPH_PLOT_BACKGROUND_MASK |                   \
      GRAPH_POLAR_REPRESENTATION_MASK | GRAPH_SMITH_GRID_MASK | GRAPH_POLAR_ANGLE_TICKS_MASK |                          \
-     GRAPH_POLAR_ANGLE_COMMAND_MASK | GRAPH_SMITH_TICKS_MASK)
+     GRAPH_POLAR_ANGLE_COMMAND_MASK | GRAPH_SMITH_TICKS_MASK | GRAPH_SMITH_COMMAND_MASK)
 
 typedef enum {
     GRAPH_BIND_CONTEXT_AXIS = 1,
@@ -327,6 +330,12 @@ static const Tk_OptionSpec graphOptionSpecs[] = {
      TK_OPTION_NULL_OK, NULL, GRAPH_SHADOW_MASK | GRAPH_TEXT_STYLE_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING_TABLE, "-smithgrid", "smithGrid", "SmithGrid", DEF_GRAPH_SMITH_GRID, -1,
      offsetof(Graph, smithGrid), 0, (ClientData)smithGridNames, GRAPH_SMITH_GRID_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-smithrealcommand", "smithRealCommand", "SmithRealCommand", DEF_GRAPH_SMITH_REAL_COMMAND,
+     offsetof(Graph, smithRealCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     GRAPH_SMITH_COMMAND_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-smithimagcommand", "smithImagCommand", "SmithImagCommand", DEF_GRAPH_SMITH_IMAG_COMMAND,
+     offsetof(Graph, smithImagCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     GRAPH_SMITH_COMMAND_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING, "-smithrealmajorticks", "smithRealMajorTicks", "SmithRealMajorTicks",
      DEF_GRAPH_SMITH_REAL_MAJOR_TICKS, offsetof(Graph, smithRealMajorTicksObjPtr), -1, 0, NULL,
      GRAPH_SMITH_TICKS_MASK | GRAPH_REDRAW_MASK},
@@ -2376,6 +2385,14 @@ static int ConfigureGraph(Graph *graphPtr) {
     }
     if ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_POLAR_ANGLE_COMMAND_MASK)) {
         if (ValidateGraphCommandPrefix(graphPtr->interp, graphPtr->angleCommandObjPtr) != TCL_OK) {
+            goto error;
+        }
+    }
+    if ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_SMITH_COMMAND_MASK)) {
+        if (ValidateGraphCommandPrefix(graphPtr->interp, graphPtr->smithRealCommandObjPtr) != TCL_OK) {
+            goto error;
+        }
+        if (ValidateGraphCommandPrefix(graphPtr->interp, graphPtr->smithImagCommandObjPtr) != TCL_OK) {
             goto error;
         }
     }

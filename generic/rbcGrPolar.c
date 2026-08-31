@@ -495,6 +495,114 @@ static void SmithGridValueToGamma(int admittance, double realValue, double imagV
     }
 }
 
+static char *FormatSmithLabel(Graph *graphPtr, Tcl_Obj *commandObjPtr, int admittance, int imaginary, double value,
+                              Tcl_DString *dsPtr) {
+    Tcl_Interp *interp;
+    const char *domain;
+    char valueString[64];
+    int result;
+
+    Tcl_DStringInit(dsPtr);
+
+    /*
+     * The callback always receives the original numeric quantity.
+     * For imaginary labels this is signed:
+     *
+     *     +x / -x for impedance
+     *     +b / -b for admittance
+     *
+     * The built-in textual representation adds the "j" notation.
+     */
+    snprintf(valueString, sizeof(valueString), "%g", value);
+    /*
+     * Default label.
+     */
+    if (imaginary) {
+        char labelString[64];
+
+        snprintf(labelString, sizeof(labelString), (value > 0.0) ? "+j%g" : "-j%g", fabs(value));
+        Tcl_DStringAppend(dsPtr, labelString, -1);
+    } else {
+        Tcl_DStringAppend(dsPtr, valueString, -1);
+    }
+    if (commandObjPtr == NULL) {
+        return Tcl_DStringValue(dsPtr);
+    }
+    interp = graphPtr->interp;
+    {
+        Tcl_Size prefixObjc;
+
+        result = Tcl_ListObjLength(interp, commandObjPtr, &prefixObjc);
+        /*
+         * ConfigureGraph() normally guarantees that this object has
+         * a valid list representation.  Preserve drawing if that
+         * invariant is somehow violated.
+         */
+        if (result != TCL_OK) {
+            Tcl_BackgroundException(interp, result);
+            Tcl_ResetResult(interp);
+            return Tcl_DStringValue(dsPtr);
+        }
+        /*
+         * An empty command prefix selects normal formatting.
+         */
+        if (prefixObjc == 0) {
+            return Tcl_DStringValue(dsPtr);
+        }
+    }
+    domain = admittance ? "admittance" : "impedance";
+    {
+        Tcl_Obj *cmdObjPtr;
+        Tcl_Obj **objv;
+        Tcl_Size objc;
+
+        /*
+         * Never modify the Tk-managed option object itself.
+         */
+        cmdObjPtr = Tcl_DuplicateObj(commandObjPtr);
+        Tcl_IncrRefCount(cmdObjPtr);
+        result = Tcl_ListObjAppendElement(interp, cmdObjPtr, Tcl_NewStringObj(Tk_PathName(graphPtr->tkwin), -1));
+        if (result == TCL_OK) {
+            result = Tcl_ListObjAppendElement(interp, cmdObjPtr, Tcl_NewStringObj(domain, -1));
+        }
+        if (result == TCL_OK) {
+            result = Tcl_ListObjAppendElement(interp, cmdObjPtr, Tcl_NewStringObj(valueString, -1));
+        }
+        if (result == TCL_OK) {
+            result = Tcl_ListObjGetElements(interp, cmdObjPtr, &objc, &objv);
+        }
+        if (result == TCL_OK) {
+            Tcl_ResetResult(interp);
+            /*
+             * Match axis -command and Polar -anglecommand
+             * evaluation semantics.
+             */
+            result = Tcl_EvalObjv(interp, objc, objv, 0);
+        }
+        Tcl_DecrRefCount(cmdObjPtr);
+        if (result != TCL_OK) {
+            /*
+             * Formatting happens during redraw, so there is no
+             * synchronous widget command through which to return
+             * this error.
+             *
+             * Report it asynchronously and retain the default label.
+             */
+            Tcl_BackgroundException(interp, result);
+            Tcl_ResetResult(interp);
+            return Tcl_DStringValue(dsPtr);
+        }
+    }
+    /*
+     * The command result is the complete replacement label.
+     * An empty result deliberately suppresses the label.
+     */
+    Tcl_DStringSetLength(dsPtr, 0);
+    Tcl_DStringAppend(dsPtr, Tcl_GetString(Tcl_GetObjResult(interp)), -1);
+    Tcl_ResetResult(interp);
+    return Tcl_DStringValue(dsPtr);
+}
+
 static void DrawSmithRealLabels(Graph *graphPtr, Drawable drawable, Grid *gridPtr, int admittance) {
     Axis *axisPtr;
     TextStyle style;
@@ -507,11 +615,12 @@ static void DrawSmithRealLabels(Graph *graphPtr, Drawable drawable, Grid *gridPt
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
     for (i = 0; i < graphPtr->nSmithRealMajorTicks; i++) {
-        char string[32];
         double value;
         double real;
         double imag;
         Point2D point;
+        Tcl_DString label;
+        char *string;
 
         value = graphPtr->smithRealMajorTicks[i];
         SmithGridValueToGamma(admittance, value, 0.0, &real, &imag);
@@ -519,7 +628,11 @@ static void DrawSmithRealLabels(Graph *graphPtr, Drawable drawable, Grid *gridPt
         if ((!FINITE(point.x)) || (!FINITE(point.y))) {
             continue;
         }
-        snprintf(string, sizeof(string), "%g", value);
+        string = FormatSmithLabel(graphPtr, graphPtr->smithRealCommandObjPtr, admittance, FALSE, value, &label);
+        if (string[0] == '\0') {
+            Tcl_DStringFree(&label);
+            continue;
+        }
         if (value == 0.0) {
             if (admittance) {
                 /*
@@ -545,6 +658,7 @@ static void DrawSmithRealLabels(Graph *graphPtr, Drawable drawable, Grid *gridPt
             Rbc_DrawText(graphPtr->tkwin, drawable, string, &style, ROUND(point.x),
                          ROUND(point.y) - SMITH_RESISTANCE_LABEL_OFFSET);
         }
+        Tcl_DStringFree(&label);
     }
 }
 
@@ -565,30 +679,15 @@ static void DrawSmithReactiveLabels(Graph *graphPtr, Drawable drawable, Grid *gr
 
         magnitude = graphPtr->smithImagMajorTicks[i];
         for (sign = 1; sign >= -1; sign -= 2) {
-            char string[32];
             double reactive;
             double real;
             double imag;
             double degrees;
             Point2D point;
+            Tcl_DString label;
+            char *string;
 
             reactive = (double)sign * magnitude;
-            /*
-             * For impedance:
-             *
-             *     z = r + jx
-             *
-             * and here r = 0.
-             *
-             * For admittance:
-             *
-             *     y = g + jb
-             *
-             * and here g = 0.
-             *
-             * SmithGridValueToGamma() performs the appropriate
-             * impedance/admittance transformation.
-             */
             SmithGridValueToGamma(admittance, 0.0, reactive, &real, &imag);
             /*
              * Pull the label slightly inside the unit circle.
@@ -601,31 +700,18 @@ static void DrawSmithReactiveLabels(Graph *graphPtr, Drawable drawable, Grid *gr
             }
             /*
              * Choose an inward-facing anchor from the actual
-             * position in the Gamma plane.  In admittance mode
-             * positive susceptance appears in the opposite half
-             * of the chart, so this must use the transformed
-             * coordinates rather than the sign of reactive.
+             * position in the Gamma plane.
              */
             degrees = atan2(imag, real) / POLAR_DEG_TO_RAD;
             if (degrees < 0.0) {
                 degrees += 360.0;
             }
             style.anchor = GetInwardLabelAnchor(degrees);
-            /*
-             * Keep the sign associated with the original physical
-             * quantity:
-             *
-             *     impedance  -> +jx / -jx
-             *     admittance -> +jb / -jb
-             *
-             * We retain the compact "+jN" notation for both.
-             */
-            if (reactive > 0.0) {
-                snprintf(string, sizeof(string), "+j%g", magnitude);
-            } else {
-                snprintf(string, sizeof(string), "-j%g", magnitude);
+            string = FormatSmithLabel(graphPtr, graphPtr->smithImagCommandObjPtr, admittance, TRUE, reactive, &label);
+            if (string[0] != '\0') {
+                Rbc_DrawText(graphPtr->tkwin, drawable, string, &style, ROUND(point.x), ROUND(point.y));
             }
-            Rbc_DrawText(graphPtr->tkwin, drawable, string, &style, ROUND(point.x), ROUND(point.y));
+            Tcl_DStringFree(&label);
         }
     }
 }
@@ -1033,11 +1119,12 @@ static void SmithRealLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
     for (i = 0; i < graphPtr->nSmithRealMajorTicks; i++) {
-        char string[32];
         double value;
         double real;
         double imag;
         Point2D point;
+        Tcl_DString label;
+        char *string;
 
         value = graphPtr->smithRealMajorTicks[i];
         SmithGridValueToGamma(admittance, value, 0.0, &real, &imag);
@@ -1045,7 +1132,11 @@ static void SmithRealLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *
         if ((!FINITE(point.x)) || (!FINITE(point.y))) {
             continue;
         }
-        snprintf(string, sizeof(string), "%g", value);
+        string = FormatSmithLabel(graphPtr, graphPtr->smithRealCommandObjPtr, admittance, FALSE, value, &label);
+        if (string[0] == '\0') {
+            Tcl_DStringFree(&label);
+            continue;
+        }
         if (value == 0.0) {
             if (admittance) {
                 /*
@@ -1067,6 +1158,7 @@ static void SmithRealLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *
             style.anchor = TK_ANCHOR_S;
             Rbc_TextToPostScript(psToken, string, &style, point.x, point.y - SMITH_RESISTANCE_LABEL_OFFSET);
         }
+        Tcl_DStringFree(&label);
     }
 }
 
@@ -1087,12 +1179,13 @@ static void SmithReactiveLabelsToPostScript(Graph *graphPtr, PsToken psToken, Gr
 
         magnitude = graphPtr->smithImagMajorTicks[i];
         for (sign = 1; sign >= -1; sign -= 2) {
-            char string[32];
             double reactive;
             double real;
             double imag;
             double degrees;
             Point2D point;
+            Tcl_DString label;
+            char *string;
 
             reactive = (double)sign * magnitude;
             SmithGridValueToGamma(admittance, 0.0, reactive, &real, &imag);
@@ -1107,8 +1200,11 @@ static void SmithReactiveLabelsToPostScript(Graph *graphPtr, PsToken psToken, Gr
                 degrees += 360.0;
             }
             style.anchor = GetInwardLabelAnchor(degrees);
-            snprintf(string, sizeof(string), (reactive > 0.0) ? "+j%g" : "-j%g", magnitude);
-            Rbc_TextToPostScript(psToken, string, &style, point.x, point.y);
+            string = FormatSmithLabel(graphPtr, graphPtr->smithImagCommandObjPtr, admittance, TRUE, reactive, &label);
+            if (string[0] != '\0') {
+                Rbc_TextToPostScript(psToken, string, &style, point.x, point.y);
+            }
+            Tcl_DStringFree(&label);
         }
     }
 }

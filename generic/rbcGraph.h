@@ -388,6 +388,8 @@ struct GraphStruct {
     Tcl_Obj *angleMajorTicksObjPtr;
     Tcl_Obj *angleMinorTicksObjPtr;
     Tcl_Obj *angleCommandObjPtr;
+    Tcl_Obj *smithRealCommandObjPtr;
+    Tcl_Obj *smithImagCommandObjPtr;
     Tcl_Obj *smithRealMajorTicksObjPtr;
     Tcl_Obj *smithRealMinorTicksObjPtr;
     Tcl_Obj *smithImagMajorTicksObjPtr;
