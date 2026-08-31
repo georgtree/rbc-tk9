@@ -259,5 +259,159 @@ namespace eval polar.postscript {
         rename ::SmithPsPrefixFormat {}
     } -result {1}
 
+    test RBC.polar.postscript.output.A.gridaxes.1 {
+        polar postscript: labels use grid mapped axes
+    } -setup {
+        proc ::PolarGridAxisFormat {widget degrees} {
+            return "GRIDANGLE-$degrees"
+        }
+        polar .polar1 -width 400 -height 400 -anglemajorticks {0 90} -anglecommand ::PolarGridAxisFormat
+        pack .polar1
+        #
+        # The normal x/y axes do not contain the origin, so they
+        # cannot define a Polar grid.
+        #
+        .polar1 axis configure x -min 10 -max 20
+        .polar1 axis configure y -min 10 -max 20
+        #
+        # The alternate axes do contain the origin.
+        #
+        .polar1 axis configure x2 -min -2 -max 2
+        .polar1 axis configure y2 -min -2 -max 2
+        .polar1 grid configure -mapx x2 -mapy y2
+        update
+    } -body {
+        set ps [.polar1 postscript output]
+        list [.polar1 grid cget -mapx] [.polar1 grid cget -mapy] [expr {[string first {GRIDANGLE-0} $ps] >= 0}]\
+                [expr {[string first {GRIDANGLE-90} $ps] >= 0}]
+    } -cleanup {
+        destroy .polar1
+        rename ::PolarGridAxisFormat {}
+    } -result {x2 y2 1 1}
+
+    test RBC.polar.postscript.output.A.gridaxes.2 {
+        polar postscript: live grid axis switching
+    } -setup {
+        proc ::PolarGridSwitchFormat {widget degrees} {
+            return "SWITCHANGLE-$degrees"
+        }
+        polar .polar1 -width 400 -height 400 -anglemajorticks {45} -anglecommand ::PolarGridSwitchFormat
+        pack .polar1
+        .polar1 axis configure x  -min 10 -max 20
+        .polar1 axis configure y  -min 10 -max 20
+        .polar1 axis configure x2 -min -2 -max 2
+        .polar1 axis configure y2 -min -2 -max 2
+        update
+    } -body {
+        #
+        # Valid Polar grid axes.
+        #
+        .polar1 grid configure -mapx x2 -mapy y2
+        update
+        set ps1 [.polar1 postscript output]
+        #
+        # These axes do not contain zero, so Polar labels should
+        # disappear.
+        #
+        .polar1 grid configure -mapx x -mapy y
+        update
+        set ps2 [.polar1 postscript output]
+        #
+        # Switch back again.
+        #
+        .polar1 grid configure -mapx x2 -mapy y2
+        update
+        set ps3 [.polar1 postscript output]
+
+        list [expr {[string first {SWITCHANGLE-45} $ps1] >= 0}] [expr {[string first {SWITCHANGLE-45} $ps2] < 0}]\
+                [expr {[string first {SWITCHANGLE-45} $ps3] >= 0}]
+    } -cleanup {
+        destroy .polar1
+        rename ::PolarGridSwitchFormat {}
+    } -result {1 1 1}
+
+    test RBC.polar.postscript.output.A.smith.logaxis.1 {
+        smith postscript: logarithmic mapped axes suppress Smith labels
+    } -setup {
+        proc ::SmithLogAxisFormat {widget domain value} {
+            return "SMITHLOG-$domain-$value"
+        }
+        polar .polar1 -width 400 -height 400 -representation smith -smithrealmajorticks {0.5 1 2} -smithrealcommand\
+                ::SmithLogAxisFormat
+        pack .polar1
+        .polar1 axis configure x -logscale yes -min 0.1 -max 10
+        .polar1 axis configure y -logscale yes -min 0.1 -max 10
+        update
+    } -body {
+        set ps [.polar1 postscript output]
+        expr {[string first {SMITHLOG-} $ps] < 0}
+    } -cleanup {
+        destroy .polar1
+        rename ::SmithLogAxisFormat {}
+    } -result {1}
+
+    test RBC.polar.postscript.output.A.geometry.1 {
+        polar postscript: off-centre ranges still produce angular labels
+    } -setup {
+        proc ::PolarOffCenterFormat {widget degrees} {
+            return "OFFCENTER-$degrees"
+        }
+        polar .polar1 -width 400 -height 400 -anglemajorticks {0 90 180 270} -anglecommand ::PolarOffCenterFormat
+        pack .polar1
+        #
+        # Both axes contain zero, but zero is deliberately not
+        # at the centre of either numerical range.
+        #
+        .polar1 axis configure x -min -5 -max 2
+        .polar1 axis configure y -min -3 -max 4
+        update
+    } -body {
+        set ps [.polar1 postscript output]
+        list [expr {[string first {OFFCENTER-0} $ps] >= 0}] [expr {[string first {OFFCENTER-90} $ps] >= 0}]\
+                [expr {[string first {OFFCENTER-180} $ps] >= 0}] [expr {[string first {OFFCENTER-270} $ps] >= 0}]
+    } -cleanup {
+        destroy .polar1
+        rename ::PolarOffCenterFormat {}
+    } -result {1 1 1 1}
+
+    test RBC.polar.postscript.output.A.geometry.2 {
+        polar geometry: non-square widget keeps equal X/Y scale
+    } -setup {
+        polar .polar1 -width 600 -height 300
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        update
+    } -body {
+        lassign [.polar1 transform 0 0] ox oy
+        lassign [.polar1 transform 1 0] xx xy
+        lassign [.polar1 transform 0 1] yx yy
+        set dx [expr {hypot($xx - $ox, $xy - $oy)}]
+        set dy [expr {hypot($yx - $ox, $yy - $oy)}]
+        expr {abs($dx - $dy) <= 1.0}
+    } -cleanup {
+        destroy .polar1
+    } -result {1}
+
+    test RBC.polar.postscript.output.A.smith.invertxy.1 {
+        smith postscript: inverted axes retain both-domain labels
+    } -setup {
+        proc ::SmithInvertFormat {widget domain value} {
+            return "INV-$domain-$value"
+        }
+        polar .polar1 -width 400 -height 400 -representation smith -smithgrid both -invertxy yes -smithrealmajorticks\
+                {0.5} -smithrealcommand ::SmithInvertFormat
+        pack .polar1
+        .polar1 axis configure x -min -1.2 -max 1.2
+        .polar1 axis configure y -min -1.2 -max 1.2
+        update
+    } -body {
+        set ps [.polar1 postscript output]
+        list [expr {[string first {INV-impedance-0.5} $ps] >= 0}] [expr {[string first {INV-admittance-0.5} $ps] >= 0}]
+    } -cleanup {
+        destroy .polar1
+        rename ::SmithInvertFormat {}
+    } -result {1 1}
+
     cleanupTests
 }

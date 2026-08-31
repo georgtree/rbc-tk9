@@ -531,5 +531,187 @@ namespace eval polar.element {
         vector destroy gamma
     } -result {1 1.0 180.0 1 1 1 1}
 
+    test RBC.polar.element.closest.A.impedance.singular.1 {
+        smith impedance: Z=-Z0 singular point is skipped
+    } -setup {
+        vector create z -type complex
+        z set {{-50 0} {50 0}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 axis configure x -min -1.2 -max 1.2
+        .polar1 axis configure y -min -1.2 -max 1.2
+        .polar1 element create Element1 -cdata z -cdataformat impedance -z0 50 -symbol circle
+        update
+    } -body {
+        #
+        # Z=50 -> normalized z=1 -> Gamma=0.
+        #
+        # The preceding Z=-50 point has z=-1, so z+1=0 and must
+        # have been omitted without disturbing the source index.
+        #
+        lassign [.polar1 transform 0 0] px py
+        set found [.polar1 element closest $px $py info -along both -interpolate 0 -halo 2 Element1]
+        list $found $info(index) [expr {abs($info(x)) < 1e-12}] [expr {abs($info(y)) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1 1 1 1}
+
+    test RBC.polar.element.closest.A.admittance.singular.1 {
+        smith admittance: Y=-1/Z0 singular point is skipped
+    } -setup {
+        vector create y -type complex
+        y set {{-0.02 0} {0.02 0}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 axis configure x -min -1.2 -max 1.2
+        .polar1 axis configure y -min -1.2 -max 1.2
+        .polar1 element create Element1 -cdata y -cdataformat admittance -z0 50 -symbol circle
+        update
+    } -body {
+        #
+        # Y=0.02 -> normalized y=1 -> Gamma=0.
+        #
+        # Y=-0.02 gives normalized y=-1, so 1+y=0 and the
+        # preceding source point must be omitted.
+        #
+        lassign [.polar1 transform 0 0] px py
+        set found [.polar1 element closest $px $py info -along both -interpolate 0 -halo 2 Element1]
+        list $found $info(index) [expr {abs($info(x)) < 1e-12}] [expr {abs($info(y)) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy y
+    } -result {1 1 1 1}
+
+    test RBC.polar.element.closest.A.impedance.singular.2 {
+        smith impedance: singular point breaks the trace
+    } -setup {
+        vector create z -type complex
+        z set {{50 0} {-50 0} {150 0}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 axis configure x -min -1.2 -max 1.2
+        .polar1 axis configure y -min -1.2 -max 1.2
+        .polar1 element create Element1 -cdata z -cdataformat impedance -z0 50 -symbol none -linewidth 2
+        update
+    } -body {
+        #
+        # Valid endpoints map to:
+        #
+        #     Z=50  -> Gamma=0
+        #     Z=150 -> Gamma=0.5
+        #
+        # Z=-50 between them is singular.  There must therefore be
+        # no interpolated segment joining Gamma=0 to Gamma=0.5.
+        #
+        lassign [.polar1 transform 0.25 0] px py
+        .polar1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {0}
+
+    test RBC.polar.element.closest.A.impedance.outside.1 {
+        smith impedance: negative resistance may map outside unit circle
+    } -setup {
+        vector create z -type complex
+        z set {{-25 0}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 axis configure x -min -4 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        .polar1 element create Element1 -cdata z -cdataformat impedance -z0 50 -symbol circle
+        update
+    } -body {
+        #
+        # z = -25/50 = -0.5
+        #
+        # Gamma = (z-1)/(z+1)
+        #       = -1.5/0.5
+        #       = -3
+        #
+        lassign [.polar1 transform -3 0] px py
+        set found [.polar1 element closest $px $py info -along both -interpolate 0 -halo 2 Element1]
+        list $found $info(index) [expr {abs($info(x) + 3.0) < 1e-12}] [expr {abs($info(y)) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1 0 1 1}
+
+    test RBC.polar.element.closest.A.axes.1 {
+        smith complex element: alternate mapped axes
+    } -setup {
+        vector create gamma -type complex
+        gamma set {{0.5 0}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 axis configure x2 -min -1.2 -max 1.2
+        .polar1 axis configure y2 -min -1.2 -max 1.2
+        .polar1 element create Element1 -cdata gamma -mapx x2 -mapy y2 -symbol circle
+        update
+    } -body {
+        set px [.polar1 axis transform x2 0.5]
+        set py [.polar1 axis transform y2 0.0]
+        set found [.polar1 element closest $px $py info -along both -interpolate 0 -halo 2 Element1]
+        list $found $info(index) [expr {abs($info(x) - 0.5) < 1e-12}] [expr {abs($info(y)) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy gamma
+    } -result {1 0 1 1}
+
+    test RBC.polar.element.closest.A.smith.invertxy.1 {
+        smith impedance: inverted axes preserve gamma mapping
+    } -setup {
+        vector create z -type complex
+        z set {{50 50}}
+        polar .polar1 -width 400 -height 400 -representation smith -invertxy yes
+        pack .polar1
+        .polar1 axis configure x -min -1.2 -max 1.2
+        .polar1 axis configure y -min -1.2 -max 1.2
+        .polar1 element create Element1 -cdata z -cdataformat impedance -z0 50 -symbol circle
+        update
+    } -body {
+        #
+        # 50+j50 at Z0=50 gives Gamma=0.2+j0.4.
+        #
+        lassign [.polar1 transform 0.2 0.4] px py
+        set found [.polar1 element closest $px $py info -along both -interpolate 0 -halo 2 Element1]
+
+        list $found $info(index) [expr {abs($info(x) - 0.2) < 1e-12}] [expr {abs($info(y) - 0.4) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1 0 1 1}
+
+    test RBC.polar.element.closest.A.smith.invertxy.2 {
+        smith admittance: inverted axes preserve gamma mapping
+    } -setup {
+        vector create y -type complex
+        y set {{0.02 0.02}}
+        polar .polar1 -width 400 -height 400 -representation smith -invertxy yes
+        pack .polar1
+        .polar1 axis configure x -min -1.2 -max 1.2
+        .polar1 axis configure y -min -1.2 -max 1.2
+        .polar1 element create Element1 -cdata y -cdataformat admittance -z0 50 -symbol circle
+        update
+    } -body {
+        #
+        # 0.02+j0.02 S at Z0=50 gives Gamma=-0.2-j0.4.
+        #
+        lassign [.polar1 transform -0.2 -0.4] px py
+        set found [.polar1 element closest $px $py info -along both -interpolate 0 -halo 2 Element1]
+        list $found $info(index) [expr {abs($info(x) + 0.2) < 1e-12}] [expr {abs($info(y) + 0.4) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy y
+    } -result {1 0 1 1}
+
 	cleanupTests
 }
