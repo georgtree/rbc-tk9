@@ -626,5 +626,128 @@ test RBC.spline.A.6.4 {
     catch {vector destroy SplY}
 } -result {1 {spline vector "SplY" must be real} complex {{9.0 10.0} {11.0 12.0}}}
 
+test RBC.spline.parametric.A.1.1 {
+    parametric natural: complex straight line
+} -setup {
+    vector create Z -type complex
+    Z set {{0 0} {1 1} {2 2}}
+} -body {
+    spline parametric natural Z SplZ 5
+    set values [SplZ range 0 end]
+    set expected {{0 0} {0.5 0.5} {1 1} {1.5 1.5} {2 2}}
+    set ok 1
+    foreach actual $values wanted $expected {
+        lassign $actual ar ai
+        lassign $wanted wr wi
+        if {(abs($ar - $wr) > 1.0e-6) || (abs($ai - $wi) > 1.0e-6)} {
+            set ok 0
+            break
+        }
+    }
+    list [SplZ type] [SplZ length] $ok
+} -cleanup {
+    catch {vector destroy Z}
+    catch {vector destroy SplZ}
+} -result {complex 5 1}
+
+test RBC.spline.parametric.A.1.2 {
+    parametric natural: real coordinate need not be monotonic
+} -setup {
+    vector create Z -type complex
+    Z set {{0 0} {1 1} {0 2} {-1 1}}
+} -body {
+    spline parametric natural Z SplZ 17
+    set first [lindex [SplZ index 0] 0]
+    set last  [lindex [SplZ index end] 0]
+    list [SplZ type] [SplZ length] [expr {abs([lindex $first 0]) < 1.0e-12}] [expr {abs([lindex $first 1]) < 1.0e-12}]\
+            [expr {abs([lindex $last 0] + 1.0) < 1.0e-12}] [expr {abs([lindex $last 1] - 1.0) < 1.0e-12}]
+} -cleanup {
+    catch {vector destroy Z}
+    catch {vector destroy SplZ}
+} -result {complex 17 1 1 1 1}
+
+test RBC.spline.parametric.A.2.1 {
+    parametric natural: source must be complex
+} -setup {
+    vector create Z
+    Z set {0 1 2}
+} -body {
+    catch {spline parametric natural Z SplZ 10} message
+    set message
+} -cleanup {
+    catch {vector destroy Z}
+    catch {vector destroy SplZ}
+} -result {spline vector "Z" must be complex}
+
+test RBC.spline.parametric.A.2.2 {
+    parametric natural: existing real result is rejected atomically
+} -setup {
+    vector create Z -type complex
+    Z set {{0 0} {1 1} {2 0}}
+    vector create SplZ
+    SplZ set {10 20 30}
+} -body {
+    set code [catch { spline parametric natural Z SplZ 9 } message]
+    list $code $message [SplZ type] [SplZ range 0 end]
+} -cleanup {
+    catch {vector destroy Z}
+    catch {vector destroy SplZ}
+} -result {1 {spline vector "SplZ" must be complex} real {10.0 20.0 30.0}}
+
+test RBC.spline.parametric.A.2.3 {
+    parametric natural: consecutive duplicate point
+} -setup {
+    vector create Z -type complex
+    Z set {{0 0} {1 1} {1 1} {2 0}}
+    vector create SplZ -type complex
+    SplZ set {{9 10} {11 12}}
+} -body {
+    set code [catch {spline parametric natural Z SplZ 9} message]
+    list $code $message [SplZ range 0 end]
+} -cleanup {
+    catch {vector destroy Z}
+    catch {vector destroy SplZ}
+} -result {1 {vector "Z" contains consecutive duplicate points} {{9.0 10.0} {11.0 12.0}}}
+
+test RBC.spline.parametric.A.3.1 {
+    parametric natural: source may also be result
+} -setup {
+    vector create Z -type complex
+    Z set {{0 0} {1 1} {2 0}}
+} -body {
+    spline parametric natural Z Z 9
+    set first [lindex [Z index 0] 0]
+    set last  [lindex [Z index end] 0]
+    list [Z type] [Z length] $first $last
+} -cleanup {
+    catch {vector destroy Z}
+} -result {complex 9 {0.0 0.0} {2.0 0.0}}
+
+test RBC.spline.parametric.A.3.2 {
+    parametric natural: requires at least two samples
+} -setup {
+    vector create Z -type complex
+    Z set {{0 0} {1 1} {2 0}}
+} -body {
+    catch {spline parametric natural Z SplZ 1} message
+    set message
+} -cleanup {
+    catch {vector destroy Z}
+    catch {vector destroy SplZ}
+} -result {number of parametric spline samples must be >= 2}
+
+test RBC.spline.parametric.A.3.3 {
+    parametric natural: non-finite complex source
+} -setup {
+    vector create Z -type complex
+    Z set {{0 0} {1 Inf} {2 0}}
+} -body {
+    catch {spline parametric natural Z SplZ 9} message
+    set message
+} -cleanup {
+    catch {vector destroy Z}
+    catch {vector destroy SplZ}
+} -result {vector "Z" must contain only finite values}
+
 
 cleanupTests

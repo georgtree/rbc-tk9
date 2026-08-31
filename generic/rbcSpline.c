@@ -68,7 +68,9 @@ static CubicSpline *CubicSlopes(const Point2D points[], Tcl_Size nPoints, int is
 static Tcl_Size CubicEval(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts,
                           const CubicSpline spline[]);
 static void CatromCoeffs(const Point2D *p, Point2D *a, Point2D *b, Point2D *c, Point2D *d);
-
+static int ParametricSplineObjCmd(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+static Tcl_Size NaturalParametricSplineCore(const Point2D origPts[], Tcl_Size nOrigPts, double unitX, double unitY,
+                                            int isClosed, Point2D intpPts[], Tcl_Size nIntpPts);
 
 static int GetSplineArrayByteCount(Tcl_Size count, size_t elementSize, size_t *byteCountPtr) {
     if ((count < 0) || (elementSize == 0) || ((Tcl_WideUInt)count > (Tcl_WideUInt)(SIZE_MAX / elementSize))) {
@@ -1056,6 +1058,7 @@ cleanup:
 }
 
 static const SplineOpSpec splineOps[] = {{{"natural", 6, 6, "x y splx sply"}, Rbc_NaturalSpline},
+                                         {{"parametric", 6, 6, "operation source result samples"}, NULL},
                                          {{"quadratic", 6, 6, "x y splx sply"}, Rbc_QuadraticSpline},
                                          {{NULL, 0, 0, NULL}, NULL}};
 
@@ -1068,6 +1071,154 @@ static int GetRealSplineVector(Tcl_Interp *interp, const char *name, Rbc_Vector 
         return TCL_ERROR;
     }
     return TCL_OK;
+}
+
+static int GetComplexSplineVector(Tcl_Interp *interp, const char *name, Rbc_Vector **vecPtrPtr) {
+    if (Rbc_GetVector(interp, name, vecPtrPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (Rbc_VectorGetType(*vecPtrPtr) != RBC_VECTOR_COMPLEX) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("spline vector \"%s\" must be complex", name));
+        return TCL_ERROR;
+    }
+    return TCL_OK;
+}
+
+static int ParametricSplineObjCmd(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    Rbc_Vector *source;
+    Rbc_Vector *resultVec;
+    const Rbc_Complex *sourceArr;
+    Rbc_Complex *resultArr;
+    Point2D *origPts;
+    Point2D *intpPts;
+    const char *operation;
+    const char *sourceName;
+    const char *resultName;
+    Tcl_Size nOrigPts;
+    Tcl_Size nIntpPts;
+    Tcl_Size nGenerated;
+    Tcl_Size i;
+    size_t origBytes;
+    size_t intpBytes;
+    int result;
+
+    (void)objc;
+    origPts = NULL;
+    intpPts = NULL;
+    result = TCL_ERROR;
+    operation = Tcl_GetString(objv[2]);
+    if (strcmp(operation, "natural") != 0) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad parametric spline operation \"%s\": must be natural", operation));
+        return TCL_ERROR;
+    }
+    sourceName = Tcl_GetString(objv[3]);
+    resultName = Tcl_GetString(objv[4]);
+    if (GetComplexSplineVector(interp, sourceName, &source) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (Tcl_GetSizeIntFromObj(interp, objv[5], &nIntpPts) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (nIntpPts < 2) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("number of parametric spline samples must be >= 2", -1));
+        return TCL_ERROR;
+    }
+    nOrigPts = Rbc_VectorLength(source);
+    if (nOrigPts < 3) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("length of vector \"%s\" is < 3", sourceName));
+        return TCL_ERROR;
+    }
+    /*
+     * Validate the complete source before creating or modifying the
+     * result vector.
+     */
+    sourceArr = Rbc_VectorComplexData(source);
+    for (i = 0; i < nOrigPts; i++) {
+        if ((!FINITE(sourceArr[i].real)) || (!FINITE(sourceArr[i].imag))) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("vector \"%s\" must contain only finite values", sourceName));
+            return TCL_ERROR;
+        }
+    }
+    /*
+     * Chord-length parameterization requires every interval to have
+     * non-zero length.
+     */
+    for (i = 1; i < nOrigPts; i++) {
+        if ((sourceArr[i].real == sourceArr[i - 1].real) && (sourceArr[i].imag == sourceArr[i - 1].imag)) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("vector \"%s\" contains consecutive duplicate points", sourceName));
+            return TCL_ERROR;
+        }
+    }
+    /*
+     * Make private copies before touching the result vector.  This
+     * makes source/result aliasing safe.
+     */
+    if ((GetSplineArrayByteCount(nOrigPts, sizeof(*origPts), &origBytes) != TCL_OK) ||
+        (GetSplineArrayByteCount(nIntpPts, sizeof(*intpPts), &intpBytes) != TCL_OK)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("spline point array is too large", -1));
+        return TCL_ERROR;
+    }
+    origPts = Tcl_AttemptAlloc(origBytes);
+    if (origPts == NULL) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't allocate %" TCL_SIZE_MODIFIER "d source points", nOrigPts));
+        return TCL_ERROR;
+    }
+    intpPts = Tcl_AttemptAlloc(intpBytes);
+    if (intpPts == NULL) {
+        Tcl_SetObjResult(interp,
+                         Tcl_ObjPrintf("can't allocate %" TCL_SIZE_MODIFIER "d interpolation points", nIntpPts));
+        goto cleanup;
+    }
+    for (i = 0; i < nOrigPts; i++) {
+        origPts[i].x = sourceArr[i].real;
+        origPts[i].y = sourceArr[i].imag;
+    }
+    /*
+     * Complex-vector splines use the ordinary Euclidean metric in
+     * the complex plane.  Real and imaginary coordinates therefore
+     * have equal scale.
+     */
+    nGenerated = NaturalParametricSplineCore(origPts, nOrigPts, 1.0, 1.0, FALSE, intpPts, nIntpPts);
+    if (nGenerated != nIntpPts) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("error generating parametric spline for \"%s\"", resultName));
+        goto cleanup;
+    }
+    /*
+     * Resolve/create/resize the output only after successful spline
+     * generation.
+     */
+    if (Rbc_GetVector(interp, resultName, &resultVec) != TCL_OK) {
+        Tcl_ResetResult(interp);
+        if (Rbc_CreateVectorWithType(interp, resultName, nIntpPts, RBC_VECTOR_COMPLEX, &resultVec) != TCL_OK) {
+            goto cleanup;
+        }
+    } else {
+        if (Rbc_VectorGetType(resultVec) != RBC_VECTOR_COMPLEX) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("spline vector \"%s\" must be complex", resultName));
+            goto cleanup;
+        }
+        if (Rbc_VectorLength(resultVec) != nIntpPts) {
+            if (Rbc_ResizeVector(resultVec, nIntpPts) != TCL_OK) {
+                goto cleanup;
+            }
+        }
+    }
+    resultArr = Rbc_VectorComplexData(resultVec);
+    for (i = 0; i < nIntpPts; i++) {
+        resultArr[i].real = intpPts[i].x;
+        resultArr[i].imag = intpPts[i].y;
+    }
+    Rbc_VectorChanged(resultVec);
+    result = TCL_OK;
+
+cleanup:
+    if (intpPts != NULL) {
+        ckfree(intpPts);
+    }
+    if (origPts != NULL) {
+        ckfree(origPts);
+    }
+    return result;
 }
 
 /*
@@ -1123,6 +1274,9 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
         return TCL_ERROR;
     }
     proc = splineOps[index].proc;
+    if (proc == NULL) {
+        return ParametricSplineObjCmd(interp, objc, objv);
+    }
     xName = Tcl_GetString(objv[2]);
     yName = Tcl_GetString(objv[3]);
     splXName = Tcl_GetString(objv[4]);
@@ -1723,23 +1877,22 @@ static Tcl_Size CubicEval(const Point2D origPts[], Tcl_Size nOrigPts, Point2D in
  *
  *--------------------------------------------------------------
  */
-Tcl_Size Rbc_NaturalParametricSpline(const Point2D origPts[], Tcl_Size nOrigPts, const Extents2D *extsPtr, int isClosed,
-                                     Point2D *intpPts, Tcl_Size nIntpPts) {
+
+static Tcl_Size NaturalParametricSplineCore(const Point2D origPts[], Tcl_Size nOrigPts, double unitX, double unitY,
+                                            int isClosed, Point2D intpPts[], Tcl_Size nIntpPts) {
     const Point2D *workPts;
     Point2D *ownedPts;
     CubicSpline *spline;
     Tcl_Size workCount;
     Tcl_Size result;
-    double unitX;
-    double unitY;
 
     workPts = origPts;
     ownedPts = NULL;
     spline = NULL;
     workCount = nOrigPts;
     result = 0;
-    if ((origPts == NULL) || (intpPts == NULL) || (extsPtr == NULL) || (nOrigPts < 3) || (nIntpPts < 2) ||
-        !SplinePointsAreFinite(origPts, nOrigPts)) {
+    if ((origPts == NULL) || (intpPts == NULL) || (nOrigPts < 3) || (nIntpPts < 2) || (!FINITE(unitX)) ||
+        (!FINITE(unitY)) || (unitX <= 0.0) || (unitY <= 0.0) || !SplinePointsAreFinite(origPts, nOrigPts)) {
         return 0;
     }
     if (isClosed) {
@@ -1749,6 +1902,7 @@ Tcl_Size Rbc_NaturalParametricSpline(const Point2D origPts[], Tcl_Size nOrigPts,
         if (!alreadyClosed) {
             Tcl_Size closedCount;
             size_t byteCount;
+
             if (nOrigPts == TCL_SIZE_MAX) {
                 return 0;
             }
@@ -1766,17 +1920,19 @@ Tcl_Size Rbc_NaturalParametricSpline(const Point2D origPts[], Tcl_Size nOrigPts,
             workCount = closedCount;
         }
     }
-    unitX = fabs(extsPtr->right - extsPtr->left);
-    unitY = fabs(extsPtr->bottom - extsPtr->top);
-    if (!FINITE(unitX) || (unitX < FLT_EPSILON)) {
-        unitX = FLT_EPSILON;
-    }
-    if (!FINITE(unitY) || (unitY < FLT_EPSILON)) {
-        unitY = FLT_EPSILON;
-    }
     spline = CubicSlopes(workPts, workCount, isClosed, unitX, unitY);
     if (spline != NULL) {
         result = CubicEval(workPts, workCount, intpPts, nIntpPts, spline);
+
+        /*
+         * CubicEval deliberately undershoots the total parameter
+         * length very slightly to avoid floating-point loss of the
+         * final sample.  When the requested number of samples was
+         * produced, make the endpoint exact.
+         */
+        if (result == nIntpPts) {
+            intpPts[nIntpPts - 1] = workPts[workCount - 1];
+        }
     }
     if (spline != NULL) {
         ckfree(spline);
@@ -1785,6 +1941,25 @@ Tcl_Size Rbc_NaturalParametricSpline(const Point2D origPts[], Tcl_Size nOrigPts,
         ckfree(ownedPts);
     }
     return result;
+}
+
+Tcl_Size Rbc_NaturalParametricSpline(const Point2D origPts[], Tcl_Size nOrigPts, const Extents2D *extsPtr, int isClosed,
+                                     Point2D intpPts[], Tcl_Size nIntpPts) {
+    double unitX;
+    double unitY;
+
+    if (extsPtr == NULL) {
+        return 0;
+    }
+    unitX = fabs(extsPtr->right - extsPtr->left);
+    unitY = fabs(extsPtr->bottom - extsPtr->top);
+    if ((!FINITE(unitX)) || (unitX < FLT_EPSILON)) {
+        unitX = FLT_EPSILON;
+    }
+    if ((!FINITE(unitY)) || (unitY < FLT_EPSILON)) {
+        unitY = FLT_EPSILON;
+    }
+    return NaturalParametricSplineCore(origPts, nOrigPts, unitX, unitY, isClosed, intpPts, nIntpPts);
 }
 
 /*
