@@ -143,5 +143,121 @@ namespace eval polar.postscript {
         destroy .polar1
     } -result {0 0 0}
 
+    test RBC.polar.postscript.output.A.anglecommand.1 {
+        polar postscript: custom angle command
+    } -setup {
+        proc ::PolarPsAngleFormat {widget degrees} {
+            return "ANGLE-$degrees"
+        }
+        polar .polar1 -width 400 -height 400 -anglemajorticks {0 45 90} -anglecommand ::PolarPsAngleFormat
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        update
+    } -body {
+        set ps [.polar1 postscript output]
+        list [expr {[string first {ANGLE-0} $ps] >= 0}] [expr {[string first {ANGLE-45} $ps] >= 0}]\
+                [expr {[string first {ANGLE-90} $ps] >= 0}]
+    } -cleanup {
+        destroy .polar1
+        rename ::PolarPsAngleFormat {}
+    } -result {1 1 1}
+
+    test RBC.polar.postscript.output.A.anglecommand.2 {
+        polar postscript: empty angle command result suppresses label
+    } -setup {
+        proc ::PolarPsAngleSuppress {widget degrees} {
+            return {}
+        }
+        polar .polar1 -width 400 -height 400 -anglemajorticks {13} -anglecommand ::PolarPsAngleSuppress
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        update
+    } -body {
+        set ps [.polar1 postscript output]
+        expr {[string first {13\260} $ps] < 0}
+    } -cleanup {
+        destroy .polar1
+        rename ::PolarPsAngleSuppress {}
+    } -result {1}
+
+    test RBC.polar.postscript.output.A.smithcommand.1 {
+        smith postscript: custom real label command
+    } -setup {
+        proc ::SmithPsRealFormat {widget domain value} {
+            return "REAL-$domain-$value"
+        }
+        polar .polar1 -width 400 -height 400 -representation smith -smithgrid impedance -smithrealmajorticks {0 0.5 1}\
+                -smithrealcommand ::SmithPsRealFormat
+        pack .polar1
+        update
+    } -body {
+        set ps [.polar1 postscript output]
+        list [expr {[string first {REAL-impedance-0} $ps] >= 0}] [expr {[string first {REAL-impedance-0.5} $ps] >= 0}]\
+                [expr {[string first {REAL-impedance-1} $ps] >= 0}]
+    } -cleanup {
+        destroy .polar1
+        rename ::SmithPsRealFormat {}
+    } -result {1 1 1}
+
+    test RBC.polar.postscript.output.A.smithcommand.2 {
+        smith postscript: custom imaginary command receives signed values
+    } -setup {
+        proc ::SmithPsImagFormat {widget domain value} {
+            return "IMAG-$domain-$value"
+        }
+        polar .polar1 -width 400 -height 400 -representation smith -smithgrid impedance -smithimagmajorticks {0.5 1}\
+                -smithimagcommand ::SmithPsImagFormat
+        pack .polar1
+        update
+    } -body {
+        set ps [.polar1 postscript output]
+        list [expr {[string first {IMAG-impedance-0.5} $ps] >= 0}]\
+                [expr {[string first {IMAG-impedance--0.5} $ps] >= 0}]\
+                [expr {[string first {IMAG-impedance-1} $ps] >= 0}]\
+                [expr {[string first {IMAG-impedance--1} $ps] >= 0}]
+    } -cleanup {
+        destroy .polar1
+        rename ::SmithPsImagFormat {}
+    } -result {1 1 1 1}
+
+    test RBC.polar.postscript.output.A.smithcommand.3 {
+        smith postscript: custom labels distinguish impedance and admittance
+    } -setup {
+        proc ::SmithPsDomainFormat {widget domain value} {
+            return "DOMAIN-$domain-$value"
+        }
+        polar .polar1 -width 400 -height 400 -representation smith -smithgrid both -smithrealmajorticks {0.5}\
+                -smithrealcommand ::SmithPsDomainFormat
+        pack .polar1
+        update
+    } -body {
+        set ps [.polar1 postscript output]
+        list [expr {[string first {DOMAIN-impedance-0.5} $ps] >= 0}]\
+            [expr {[string first {DOMAIN-admittance-0.5} $ps] >= 0}]
+    } -cleanup {
+        destroy .polar1
+        rename ::SmithPsDomainFormat {}
+    } -result {1 1}
+
+    test RBC.polar.postscript.output.A.smithcommand.4 {
+        smith postscript: command prefix
+    } -setup {
+        proc ::SmithPsPrefixFormat {prefix widget domain value} {
+            return "$prefix-$domain-$value"
+        }
+        polar .polar1 -width 400 -height 400 -representation smith -smithgrid impedance -smithrealmajorticks {0.5}\
+                -smithrealcommand [list ::SmithPsPrefixFormat PREFIX]
+        pack .polar1
+        update
+    } -body {
+        set ps [.polar1 postscript output]
+        expr {[string first {PREFIX-impedance-0.5} $ps] >= 0}
+    } -cleanup {
+        destroy .polar1
+        rename ::SmithPsPrefixFormat {}
+    } -result {1}
+
     cleanupTests
 }
