@@ -234,62 +234,6 @@ static void MapCircle(Graph *graphPtr, Grid *gridPtr, double radius, Segment2D *
     }
 }
 
-static double PolarSpokeRadius(Grid *gridPtr, double degrees) {
-    Axis *xAxisPtr;
-    Axis *yAxisPtr;
-    double dx;
-    double dy;
-    double radius;
-    double theta;
-    double t;
-
-    xAxisPtr = gridPtr->axes.x;
-    yAxisPtr = gridPtr->axes.y;
-    if ((xAxisPtr == NULL) || (yAxisPtr == NULL)) {
-        return 0.0;
-    }
-    theta = degrees * POLAR_DEG_TO_RAD;
-    dx = cos(theta);
-    dy = sin(theta);
-    /*
-     * Find the first intersection of the ray
-     *
-     *     p(t) = t * {cos(theta), sin(theta)}
-     *
-     * with the Cartesian viewport.
-     *
-     * The Polar grid is only mapped when the origin lies inside both
-     * axes, so every valid ray has one positive boundary intersection.
-     */
-    radius = HUGE_VAL;
-    if (dx > 0.0) {
-        t = xAxisPtr->max / dx;
-        if (FINITE(t) && (t > 0.0) && (t < radius)) {
-            radius = t;
-        }
-    } else if (dx < 0.0) {
-        t = xAxisPtr->min / dx;
-        if (FINITE(t) && (t > 0.0) && (t < radius)) {
-            radius = t;
-        }
-    }
-    if (dy > 0.0) {
-        t = yAxisPtr->max / dy;
-        if (FINITE(t) && (t > 0.0) && (t < radius)) {
-            radius = t;
-        }
-    } else if (dy < 0.0) {
-        t = yAxisPtr->min / dy;
-        if (FINITE(t) && (t > 0.0) && (t < radius)) {
-            radius = t;
-        }
-    }
-    if ((!FINITE(radius)) || (radius <= 0.0)) {
-        return 0.0;
-    }
-    return radius;
-}
-
 static int MapPolarSpoke(Graph *graphPtr, Grid *gridPtr, double degrees, Segment2D *segmentPtr) {
     Point2D p;
     Point2D q;
@@ -546,7 +490,36 @@ static int GetPolarAngularLabelPosition(Graph *graphPtr, Grid *gridPtr, double c
     }
 }
 
-static void DrawPolarRadialLabels(Graph *graphPtr, Drawable drawable, Grid *gridPtr, double maxRadius) {
+static int GetPolarRadialLabelPosition(Graph *graphPtr, Grid *gridPtr, double radius, Point2D *pointPtr) {
+    Axis *xAxisPtr;
+    Axis *yAxisPtr;
+
+    xAxisPtr = gridPtr->axes.x;
+    yAxisPtr = gridPtr->axes.y;
+    if ((xAxisPtr == NULL) || (yAxisPtr == NULL)) {
+        return FALSE;
+    }
+    if (xAxisPtr->logScale || yAxisPtr->logScale) {
+        return FALSE;
+    }
+    /*
+     * Radial labels are attached to the positive zero-degree ray:
+     *
+     *     (x, y) = (radius, 0)
+     *
+     * The origin itself does not have to be visible.  The label is
+     * useful whenever this particular point of the radial circle lies
+     * inside the current Cartesian viewport.
+     */
+    if ((!FINITE(radius)) || (radius <= 0.0) || (radius < xAxisPtr->min) || (radius > xAxisPtr->max) ||
+        (0.0 < yAxisPtr->min) || (0.0 > yAxisPtr->max)) {
+        return FALSE;
+    }
+    *pointPtr = Rbc_Map2D(graphPtr, radius, 0.0, &gridPtr->axes);
+    return FINITE(pointPtr->x) && FINITE(pointPtr->y);
+}
+
+static void DrawPolarRadialLabels(Graph *graphPtr, Drawable drawable, Grid *gridPtr) {
     Axis *axisPtr;
     TextStyle style;
     Ticks *ticksPtr;
@@ -576,18 +549,18 @@ static void DrawPolarRadialLabels(Graph *graphPtr, Drawable drawable, Grid *grid
          * Radius is unsigned.  Negative X ticks duplicate positive
          * circles, and zero is the origin rather than a ring.
          */
-        if ((!FINITE(radius)) || (radius <= 0.0) || (radius > maxRadius)) {
+        if ((!FINITE(radius)) || (radius <= 0.0)) {
+            continue;
+        }
+        if (!GetPolarRadialLabelPosition(graphPtr, gridPtr, radius, &point)) {
             continue;
         }
         labelPtr = Rbc_AllocAxisTickLabel(graphPtr, axisPtr, radius);
         if (labelPtr == NULL) {
             continue;
         }
-        point = Rbc_Map2D(graphPtr, radius, 0.0, &gridPtr->axes);
-        if (FINITE(point.x) && FINITE(point.y)) {
-            Rbc_DrawText(graphPtr->tkwin, drawable, labelPtr->string, &style,
-                         ROUND(point.x) - POLAR_RADIAL_LABEL_OFFSET, ROUND(point.y) - POLAR_RADIAL_LABEL_OFFSET);
-        }
+        Rbc_DrawText(graphPtr->tkwin, drawable, labelPtr->string, &style, ROUND(point.x) - POLAR_RADIAL_LABEL_OFFSET,
+                     ROUND(point.y) - POLAR_RADIAL_LABEL_OFFSET);
         ckfree(labelPtr);
     }
     ckfree(ticksPtr);
@@ -725,20 +698,17 @@ void Rbc_DrawPolarLabels(Graph *graphPtr, Drawable drawable) {
     if (gridPtr == NULL) {
         return;
     }
+    /*
+     * Radial labels don't require the origin or a complete circle to
+     * be visible.  Each one is independently displayed when its point
+     * on the positive zero-degree ray lies in the current viewport.
+     */
+    DrawPolarRadialLabels(graphPtr, drawable, gridPtr);
+    /*
+     * Angular labels still use the complete-circle radius to decide
+     * between circular placement and clipped-spoke-end placement.
+     */
     completeRadius = PolarCompleteCircleRadius(gridPtr);
-    /*
-     * Radial labels retain their existing centered-circle placement.
-     * They are useful only when a complete centered Polar reference
-     * circle exists.
-     */
-    if (FINITE(completeRadius) && (completeRadius > 0.0)) {
-        DrawPolarRadialLabels(graphPtr, drawable, gridPtr, completeRadius);
-    }
-    /*
-     * Angular labels are always attempted.  With a complete circle
-     * they use the normal circular layout; otherwise they are placed
-     * at the ends of visible clipped spokes.
-     */
     DrawPolarAngularLabels(graphPtr, drawable, gridPtr, completeRadius);
 }
 
@@ -953,7 +923,7 @@ static void DrawSmithRealLabels(Graph *graphPtr, Drawable drawable, Grid *gridPt
     }
 }
 
-static void PolarRadialLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *gridPtr, double maxRadius) {
+static void PolarRadialLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *gridPtr) {
     Axis *axisPtr;
     TextStyle style;
     Ticks *ticksPtr;
@@ -976,18 +946,18 @@ static void PolarRadialLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid
         double radius;
 
         radius = ticksPtr->values[i];
-        if ((!FINITE(radius)) || (radius <= 0.0) || (radius > maxRadius)) {
+        if ((!FINITE(radius)) || (radius <= 0.0)) {
+            continue;
+        }
+        if (!GetPolarRadialLabelPosition(graphPtr, gridPtr, radius, &point)) {
             continue;
         }
         labelPtr = Rbc_AllocAxisTickLabel(graphPtr, axisPtr, radius);
         if (labelPtr == NULL) {
             continue;
         }
-        point = Rbc_Map2D(graphPtr, radius, 0.0, &gridPtr->axes);
-        if (FINITE(point.x) && FINITE(point.y)) {
-            Rbc_TextToPostScript(psToken, labelPtr->string, &style, point.x - POLAR_RADIAL_LABEL_OFFSET,
-                                 point.y - POLAR_RADIAL_LABEL_OFFSET);
-        }
+        Rbc_TextToPostScript(psToken, labelPtr->string, &style, point.x - POLAR_RADIAL_LABEL_OFFSET,
+                             point.y - POLAR_RADIAL_LABEL_OFFSET);
         ckfree(labelPtr);
     }
     ckfree(ticksPtr);
@@ -1032,10 +1002,8 @@ void Rbc_PolarLabelsToPostScript(Graph *graphPtr, PsToken psToken) {
     if (gridPtr == NULL) {
         return;
     }
+    PolarRadialLabelsToPostScript(graphPtr, psToken, gridPtr);
     completeRadius = PolarCompleteCircleRadius(gridPtr);
-    if (FINITE(completeRadius) && (completeRadius > 0.0)) {
-        PolarRadialLabelsToPostScript(graphPtr, psToken, gridPtr, completeRadius);
-    }
     PolarAngularLabelsToPostScript(graphPtr, psToken, gridPtr, completeRadius);
 }
 
