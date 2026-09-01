@@ -140,9 +140,11 @@ namespace eval ::rbc::graphtoolbar::icons {
 oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     variable Subwidgets
     initialize {
-        variable CrosshairsModes
-        const CrosshairsModes [dict create current {Current point} closest {Closest point} none {No marker}\
-                                         disabled Disabled]
+        variable CrosshairsModeNames
+        const CrosshairsModeNames {current closest none disabled}
+        variable CrosshairsModeLabels
+        const CrosshairsModeLabels [dict create current {Current point} closest {Closest point} none {No marker}\
+                                            disabled Disabled]
         variable CoordMarkModes
         const CoordMarkModes {auto axis complex polar gamma normalizedimpedance normalizedimpedanceri\
                                       normalizedadmittance normalizedadmittanceri}
@@ -153,6 +155,17 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         const CoordClosestMarkLabels [dict create axis {Axis} complex {Complex} polar {Polar} gamma {Gamma}\
                                               normalizedimpedance {Normalized impedance} impedance {Impedance}\
                                               normalizedadmittance {Normalized admittance} admittance {Admittance}]
+    }
+    property crosshairsmode -set {
+        classvariable CrosshairsModeNames
+        if {$value ni $CrosshairsModeNames} {
+            return -code error "bad crosshairs mode '$value': must be [join $CrosshairsModeNames {, }]"
+        }
+        set crosshairsmode $value
+        set CrosshairsSelector [my CrosshairsModeLabel $value]
+        if {[info exists Subwidgets(crosshairsComBox)]} {
+            my ApplyCrosshairsMode
+        }
     }
     property coordmark -set {
         classvariable CoordMarkModes
@@ -401,7 +414,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
     }
     variable PsData ZoomInfo ZoomMod zoomtitle ZoomMark zoomtitleopts zoomboxopts zoommarkopts ZoomTransientChecks\
-            zoommarkboxopts GraphType coordmark coordclosestmark
+            zoommarkboxopts GraphType coordmark coordclosestmark crosshairsmode
     variable CrosshairsSelector crosshairsmarkopts crosshairsmarkboxopts crosshairsclosestopts crosshairsopts
     variable crosshairsbarlineopts CrosshairsMarkerInfo
     variable CrosshairsSelector ClosestCoordSelector
@@ -523,20 +536,19 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             my configure -crosshairsclosestopts [dict get $arguments crosshairsclosestopts]
             my configure -crosshairsbarlineopts [dict get $arguments crosshairsbarlineopts]
             my configure -crosshairsmarkboxopts [dict get $arguments crosshairsmarkboxopts]
-            foreach mode [dict values $CrosshairsModes] {
-                lappend stringLengths [string length $mode]
+            my configure -crosshairsmode [dict get $arguments crosshairsmode]
+
+            set crosshairsModeWidths [list]
+            foreach label [my CrosshairsModeLabels] {
+                lappend crosshairsModeWidths [string length $label]
             }
-            set Subwidgets(crosshairsComBox) [ttk::combobox $Subwidgets(toolbarFrame).crosshairsComBox\
-                                                      -width [expr {[::tcl::mathfunc::max {*}$stringLengths]}]\
-                                                      -values [dict values $CrosshairsModes]\
-                                                      -textvariable [self namespace]::CrosshairsSelector]
-            if {[dict get $arguments crosshairsmode] ni [dict keys $CrosshairsModes]} {
-                return -code error "Crosshair mode '[dict get $arguments crosshairsmode]' is not in the list of\
-                        availible modes '[dict keys $CrosshairsModes]'"
-            }
-            set CrosshairsSelector [dict get $CrosshairsModes [dict get $arguments crosshairsmode]]
+            set Subwidgets(crosshairsComBox) \
+                    [ttk::combobox $Subwidgets(toolbarFrame).crosshairsComBox -values [my CrosshairsModeLabels]\
+                             -width [expr {[::tcl::mathfunc::max {*}$crosshairsModeWidths]}]\
+                             -textvariable [self namespace]::CrosshairsSelector \
+                             -state readonly -postcommand [namespace code {my UpdateCrosshairsModes}]]
+            bind $Subwidgets(crosshairsComBox) <<ComboboxSelected>> [namespace code {my SelectCrosshairsMode}]
             grid $Subwidgets(crosshairsComBox) -row 0 -column [incr butCount] -sticky ns
-            bind $Subwidgets(crosshairsComBox) <<ComboboxSelected>> [namespace code {my SelectCrosshairsMode %W}]
 
             set closestCoordWidths [list]
             foreach mode $CoordClosestMarkModes {
@@ -549,8 +561,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                          -postcommand [namespace code {my UpdateClosestCoordinateModes}]]
             bind $Subwidgets(closestCoordComBox) <<ComboboxSelected>> [namespace code {my SelectClosestCoordinateMode}]
             grid $Subwidgets(closestCoordComBox) -row 0 -column [incr butCount] -sticky ns
+            my UpdateCrosshairsModes
             my UpdateClosestCoordinateModes
-            my SelectCrosshairsMode $Subwidgets(crosshairsComBox)
+            my ApplyCrosshairsMode
         }
         #### axes scales toggle activation
         if {[dict exists $arguments scaletoggle]} {
@@ -1539,7 +1552,42 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             $graph crosshairs configure -position @${x},$y
         }
     }
-    method SelectCrosshairsMode {widget} {
+    method CrosshairsModeLabel {mode} {
+        classvariable CrosshairsModeLabels
+        return [dict get $CrosshairsModeLabels $mode]
+    }
+    method CrosshairsModeFromLabel {label} {
+        classvariable CrosshairsModeLabels
+        dict for {mode text} $CrosshairsModeLabels {
+            if {$text eq $label} {
+                return $mode
+            }
+        }
+        return -code error "unknown crosshairs mode label '$label'"
+    }
+    method CrosshairsModes {} {
+        classvariable CrosshairsModeNames
+        return $CrosshairsModeNames
+    }
+    method CrosshairsModeLabels {} {
+        set labels [list]
+        foreach mode [my CrosshairsModes] {
+            lappend labels [my CrosshairsModeLabel $mode]
+        }
+        return $labels
+    }
+    method SelectCrosshairsMode {} {
+        set mode [my CrosshairsModeFromLabel $CrosshairsSelector]
+        my configure -crosshairsmode $mode
+    }
+    method UpdateCrosshairsModes {} {
+        if {![info exists Subwidgets(crosshairsComBox)]} {
+            return
+        }
+        $Subwidgets(crosshairsComBox) configure -values [my CrosshairsModeLabels]
+        set CrosshairsSelector [my CrosshairsModeLabel [my configure -crosshairsmode]]
+    }
+    method ApplyCrosshairsMode {} {
         set graph $Subwidgets(graph)
         set tagCrosshairs crosshairs-$graph
         set tagCrosshairsMarker crosshairs-marker-$graph
@@ -1562,26 +1610,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             my UpdateClosestCoordinateModes
             $Subwidgets(closestCoordComBox) configure -state disabled
         }
-        if {$CrosshairsSelector eq {Current point}} {
-            $graph crosshairs on
-            bind $tagCrosshairs <Leave> {
-                %W crosshairs off
-            }
-            bind $tagCrosshairs <Enter> {
-                %W crosshairs on
-            }
-            bind $tagCrosshairs <Any-Motion> [namespace code [list my CrosshairsMotion %W %x %y]]
-            set CrosshairsMarkerInfo [list $options current {} {} {}]
-            bind $tagCrosshairsMarker <Any-Motion> [namespace code [list my CrosshairsMarkerMotion %W %x %y\
-                                                                            {*}$CrosshairsMarkerInfo]]
-            my AddBindTag $graph $tagCrosshairs
-            my AddBindTag $graph $tagCrosshairsMarker $tagCrosshairs
-        } elseif {$CrosshairsSelector eq {Closest point}} {
-            dict with crosshairsclosestopts {}
-            if {[info exists Subwidgets(closestCoordComBox)]} {
-                $Subwidgets(closestCoordComBox) configure -state readonly
-            }
-            if {!$hide} {
+        switch -- [my configure -crosshairsmode] {
+            current {
                 $graph crosshairs on
                 bind $tagCrosshairs <Leave> {
                     %W crosshairs off
@@ -1589,33 +1619,56 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 bind $tagCrosshairs <Enter> {
                     %W crosshairs on
                 }
-            } else {
+                bind $tagCrosshairs <Any-Motion> [namespace code [list my CrosshairsMotion %W %x %y]]
+                set CrosshairsMarkerInfo [list $options current {} {} {}]
+                bind $tagCrosshairsMarker <Any-Motion> [namespace code [list my CrosshairsMarkerMotion %W %x %y\
+                                                                                {*}$CrosshairsMarkerInfo]]
+                my AddBindTag $graph $tagCrosshairs
+                my AddBindTag $graph $tagCrosshairsMarker $tagCrosshairs
+            } 
+            closest  {
+                dict with crosshairsclosestopts {}
+                if {[info exists Subwidgets(closestCoordComBox)]} {
+                    $Subwidgets(closestCoordComBox) configure -state readonly
+                }
+                if {!$hide} {
+                    $graph crosshairs on
+                    bind $tagCrosshairs <Leave> {
+                        %W crosshairs off
+                    }
+                    bind $tagCrosshairs <Enter> {
+                        %W crosshairs on
+                    }
+                } else {
+                    $graph crosshairs off
+                }
+                bind $tagCrosshairs <Any-Motion> [namespace code [list my CrosshairsMotion %W %x %y $hide]]
+                set CrosshairsMarkerInfo [list $options closest $interpolate $halo $single]
+                bind $tagCrosshairsMarker <Any-Motion> [namespace code [list my CrosshairsMarkerMotion %W %x %y\
+                                                                                {*}$CrosshairsMarkerInfo]]
+                my AddBindTag $graph $tagCrosshairs
+                my AddBindTag $graph $tagCrosshairsMarker $tagCrosshairs
+                unset -nocomplain {*}[dict keys $crosshairsclosestopts]
+            }
+            disabled  {
                 $graph crosshairs off
+            } 
+            none {
+                #
+                # "No marker": ordinary RBC crosshairs only.
+                #
+                $graph crosshairs on
+                bind $tagCrosshairs <Any-Motion> {
+                    %W crosshairs configure -position @%x,%y
+                }
+                bind $tagCrosshairs <Leave> {
+                    %W crosshairs off
+                }
+                bind $tagCrosshairs <Enter> {
+                    %W crosshairs on
+                }
+                my AddBindTag $graph $tagCrosshairs
             }
-            bind $tagCrosshairs <Any-Motion> [namespace code [list my CrosshairsMotion %W %x %y $hide]]
-            set CrosshairsMarkerInfo [list $options closest $interpolate $halo $single]
-            bind $tagCrosshairsMarker <Any-Motion> [namespace code [list my CrosshairsMarkerMotion %W %x %y\
-                                                                            {*}$CrosshairsMarkerInfo]]
-            my AddBindTag $graph $tagCrosshairs
-            my AddBindTag $graph $tagCrosshairsMarker $tagCrosshairs
-            unset -nocomplain {*}[dict keys $crosshairsclosestopts]
-        } elseif {$CrosshairsSelector eq {Disabled}} {
-            $graph crosshairs off
-        } else {
-            #
-            # "No marker": ordinary RBC crosshairs only.
-            #
-            $graph crosshairs on
-            bind $tagCrosshairs <Any-Motion> {
-                %W crosshairs configure -position @%x,%y
-            }
-            bind $tagCrosshairs <Leave> {
-                %W crosshairs off
-            }
-            bind $tagCrosshairs <Enter> {
-                %W crosshairs on
-            }
-            my AddBindTag $graph $tagCrosshairs
         }
     }
     ##### current crosshairs methods
