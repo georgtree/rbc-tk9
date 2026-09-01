@@ -270,6 +270,112 @@ proc approxPixelCoordsEqual {a b {tolerance 1.0}} {
     return true
 }
 
+proc ExpectedSmithNormalized {gammaReal gammaImag mode} {
+    switch -- $mode {
+        impedance {
+            set denom [expr {(1.0-$gammaReal)*(1.0-$gammaReal)+$gammaImag*$gammaImag}]
+            set real [expr {(1.0-$gammaReal*$gammaReal-$gammaImag*$gammaImag)/$denom}]
+            set imag [expr {2.0*$gammaImag/$denom}]
+        }
+        admittance {
+            set denom [expr {(1.0+$gammaReal)*(1.0+$gammaReal)+$gammaImag*$gammaImag}]
+            set real [expr {(1.0-$gammaReal*$gammaReal-$gammaImag*$gammaImag)/$denom}]
+            set imag [expr {-2.0*$gammaImag/$denom}]
+        }
+        default {
+            return -code error "Unknown Smith normalized mode '$mode'"
+        }
+    }
+    return [list $real $imag]
+}
+
+proc ExpectedComplexMarkerText {name real imag formatReal formatImag {unit {}}} {
+    set realText [format "%$formatReal" $real]
+    set imagText [format "%$formatImag" [expr {abs($imag)}]]
+    set sign [expr {$imag < 0.0 ? "-" : "+"}]
+    set text "${name}=${realText}${sign}j${imagText}"
+    if {$unit ne {}} {
+        append text " $unit"
+    }
+    return $text
+}
+
+proc ExpectedPolarMarkerText {real imag formatRadius formatAngle} {
+    set radius [expr {hypot($real,$imag)}]
+    if {$radius == 0.0} {
+        set angle 0.0
+    } else {
+        set angle [expr {atan2($imag,$real)*180.0/acos(-1.0)}]
+        if {$angle < 0.0} {
+            set angle [expr {$angle+360.0}]
+        }
+    }
+    return [format "r=%${formatRadius}\nangle=%${formatAngle} deg" $radius $angle]
+}
+
+proc ExpectedRealImagMarkerText {real imag formatReal formatImag {invert no}} {
+    if {$invert} {
+        set realOrientation v
+        set imagOrientation h
+    } else {
+        set realOrientation h
+        set imagOrientation v
+    }
+    return [format "real(%s)=%${formatReal}\nimag(%s)=%${formatImag}" $realOrientation $real $imagOrientation $imag]
+}
+
+proc ExpectedPolarZoomPoint {graph aX aY x y} {
+    # Expected physical second corner for a Polar/Smith zoom box.
+    # Clamp to the visible plot first, then preserve the current plot
+    # aspect ratio exactly as the interactive zoom contract requires.
+    lassign [$graph extents plotarea] left top width height
+    set right [expr {$left+$width-1}]
+    set bottom [expr {$top+$height-1}]
+    set x [expr {max($left,min($right,$x))}]
+    set y [expr {max($top,min($bottom,$y))}]
+    if {($width <= 1) || ($height <= 1)} {
+        return [list $x $y]
+    }
+    set dx [expr {$x-$aX}]
+    set dy [expr {$y-$aY}]
+    if {($dx == 0) || ($dy == 0)} {
+        return [list $x $y]
+    }
+    set signX [expr {$dx < 0 ? -1 : 1}]
+    set signY [expr {$dy < 0 ? -1 : 1}]
+    set absDx [expr {abs($dx)}]
+    set absDy [expr {abs($dy)}]
+    set aspect [expr {double($width-1)/double($height-1)}]
+    if {($absDx/$absDy) > $aspect} {
+        set wantedDy [expr {$absDx/$aspect}]
+        if {$signY > 0} {
+            set availableDy [expr {$bottom-$aY}]
+        } else {
+            set availableDy [expr {$aY-$top}]
+        }
+        if {$wantedDy <= $availableDy} {
+            set absDy $wantedDy
+        } else {
+            set absDy $availableDy
+            set absDx [expr {$absDy*$aspect}]
+        }
+    } else {
+        set wantedDx [expr {$absDy*$aspect}]
+        if {$signX > 0} {
+            set availableDx [expr {$right-$aX}]
+        } else {
+            set availableDx [expr {$aX-$left}]
+        }
+        if {$wantedDx <= $availableDx} {
+            set absDx $wantedDx
+        } else {
+            set absDx $availableDx
+            set absDy [expr {$absDx/$aspect}]
+        }
+    }
+    return [list [expr {round($aX+$signX*$absDx)}] [expr {round($aY+$signY*$absDy)}]]
+}
+
 customMatch approxEqual approxNestedEqual
 
 testConstraint isInteractive true
@@ -317,8 +423,8 @@ test generalConfiguration-3 {names subcommand} -setup {
     grid rowconfigure . 0 -weight 1
 } -body {
     $widget names
-} -result {revertZoomBut crosshairsComBox makeSnapshotBut postScriptDialogBut graph toolbarFrame resetZoomBut}\
-        -cleanup {
+} -result {closestCoordComBox revertZoomBut crosshairsComBox makeSnapshotBut postScriptDialogBut graph toolbarFrame\
+                   resetZoomBut} -cleanup {
     destroy $widget
 }
 
@@ -448,6 +554,31 @@ test generalConfiguration-15 {options configuration} -setup {
 } -body {
     $widget configure -crosshairsmarkboxopts
 } -result {-fill {} -outline grey -linewidth 1} -cleanup {
+    destroy $widget
+}
+
+test generalConfiguration-16 {crosshairs mode property and selector stay synchronized} -setup {
+    set widget [graphtoolbar .gtb -width 400 -height 400 -crosshairs -crosshairsmode current]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+    set crosshairsCombo [$widget subwidget crosshairsComBox]
+    set closestCombo [$widget subwidget closestCoordComBox]
+} -body {
+    set actual [list]
+    foreach {mode label closestState} {current {Current point} disabled closest {Closest point} readonly none\
+                                                {No marker} disabled disabled Disabled disabled} {
+        $widget configure -crosshairsmode $mode
+        update idletasks
+        lappend actual [list [$widget configure -crosshairsmode] [$crosshairsCombo get] [$closestCombo cget -state]]
+    }
+    $crosshairsCombo set {Current point}
+    event generate $crosshairsCombo <<ComboboxSelected>>
+    update
+    lappend actual [list [$widget configure -crosshairsmode] [$crosshairsCombo get] [$closestCombo cget -state]]
+    return $actual
+} -result {{current {Current point} disabled} {closest {Closest point} readonly} {none {No marker} disabled}\
+                   {disabled Disabled disabled} {current {Current point} disabled}} -cleanup {
     destroy $widget
 }
 
@@ -1060,6 +1191,186 @@ test zoomInteractive-18 {wheel zoom scales element-mapped axis not installed in 
     destroy $widget
 }
 
+test zoomInteractive-19 {polar zoom box preserves plot aspect and clamps the second corner}\
+        -constraints {isInteractive isZoom} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -zoom -zoommod {Any-}\
+                        -zoommark -zoomboxopts {-linewidth 1}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {polar zoom box preserves plot aspect and clamps the second corner} {*}$titleFont
+    $widget graph axis configure x -min -5 -max 5
+    $widget graph axis configure y -min -5 -max 5
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    set right [expr {$left+$width-1}]
+    set bottom [expr {$top+$height-1}]
+    set aX [expr {$left+$width/3}]
+    set aY [expr {$top+$height/3}]
+    set bX [expr {$right+100}]
+    set bY [expr {$bottom+100}]
+    lassign [ExpectedPolarZoomPoint $graph $aX $aY $bX $bY] expectedBX expectedBY
+    lassign [$graph axis limits x] oldXMin oldXMax
+    lassign [$graph axis limits y] oldYMin oldYMax
+    set oldRangeRatio [expr {($oldXMax-$oldXMin)/($oldYMax-$oldYMin)}]
+    set oldPlotSize [list $width $height]
+    GenerateGraphEvent $graph <ButtonPress-1> $aX $aY $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bX $bY $defaultDelay
+    set outline [MarkerWidgetCoords $graph gtbZoomOutline]
+    set actualAX [lindex $outline 0]
+    set actualAY [lindex $outline 1]
+    set actualBX [lindex $outline 2]
+    set actualBY [lindex $outline 5]
+    set inside [expr {($actualBX >= $left-1) && ($actualBX <= $right+1) &&\
+                          ($actualBY >= $top-1) && ($actualBY <= $bottom+1)}]
+    set constrained [approxPixelCoordsEqual [list $actualBX $actualBY] [list $expectedBX $expectedBY] 1.5]
+    GenerateGraphEvent $graph <ButtonPress-1> $bX $bY $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $bX $bY 20
+    lassign [$graph axis limits x] newXMin newXMax
+    lassign [$graph axis limits y] newYMin newYMax
+    set newRangeRatio [expr {($newXMax-$newXMin)/($newYMax-$newYMin)}]
+    lassign [$graph extents plotarea] newLeft newTop newWidth newHeight
+    list $inside $constrained [expr {abs($newRangeRatio-$oldRangeRatio) < 1e-6}]\
+            [approxPixelCoordsEqual $oldPlotSize [list $newWidth $newHeight] 1.0]
+} -result {1 true 1 true} -cleanup {
+    destroy $widget
+}
+
+test zoomInteractive-20 {polar zoom box scales hidden grid axes and multiple visible axes}\
+        -constraints {isInteractive isZoom} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -zoom -zoommod {Any-}\
+                        -zoommark -zoomboxopts {-linewidth 1}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {polar zoom box scales hidden grid axes and multiple visible axes} {*}$titleFont
+    $widget graph axis configure x -min -4 -max 4 -hide yes
+    $widget graph axis configure y -min -4 -max 4 -hide yes
+    $widget graph axis create xAlt -min 100 -max 200
+    $widget graph axis create yAlt -min 1000 -max 2000
+    $widget graph x2axis use xAlt
+    $widget graph y2axis use yAlt
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    set aX [expr {$left+$width/4}]
+    set aY [expr {$top+$height/4}]
+    set bX [expr {$left+$width*3/4}]
+    set bY [expr {$top+$height*2/3}]
+    lassign [ExpectedPolarZoomPoint $graph $aX $aY $bX $bY] expectedBX expectedBY
+    set expected [list [ExpectedZoomLimits $graph $aX $aY $expectedBX $expectedBY x y]\
+                           [ExpectedZoomLimits $graph $aX $aY $expectedBX $expectedBY xAlt yAlt]]
+    GenerateGraphEvent $graph <ButtonPress-1> $aX $aY $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bX $bY $defaultDelay
+    set outlineMap [list [$graph marker cget gtbZoomOutline -mapx] [$graph marker cget gtbZoomOutline -mapy]]
+    set outline [MarkerWidgetCoords $graph gtbZoomOutline]
+    set actualB [list [lindex $outline 2] [lindex $outline 5]]
+    GenerateGraphEvent $graph <ButtonPress-1> $bX $bY $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $bX $bY 20
+    set actual [list [list {*}[$graph axis limits x] {*}[$graph axis limits y]]\
+                         [list {*}[$graph axis limits xAlt] {*}[$graph axis limits yAlt]]]
+    list [approxNestedEqual $actual $expected] $outlineMap\
+            [approxPixelCoordsEqual $actualB [list $expectedBX $expectedBY] 1.5]
+} -result {true {xAlt yAlt} true} -cleanup {
+    destroy $widget
+}
+
+test zoomInteractive-21 {polar zoom corner markers use polar coordinates}\
+        -constraints {isInteractive isZoom} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -zoom -zoommod {Any-}\
+                        -zoommark -coordmark polar -zoommarkopts {-formatx .6g -formaty .6g}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {polar zoom corner markers use polar coordinates} {*}$titleFont
+    $widget graph axis configure x -min -6 -max 6
+    $widget graph axis configure y -min -6 -max 6
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    set aX [$graph axis transform x 3]
+    set aY [$graph axis transform y 4]
+    set bX [$graph axis transform x -2]
+    set bY [$graph axis transform y -1]
+    set aReal [$graph axis invtransform x $aX]
+    set aImag [$graph axis invtransform y $aY]
+    set expectedA [ExpectedPolarMarkerText $aReal $aImag .6g .6g]
+    GenerateGraphEvent $graph <ButtonPress-1> $aX $aY $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bX $bY $defaultDelay
+    set outline [MarkerWidgetCoords $graph gtbZoomOutline]
+    set actualBX [expr {round([lindex $outline 2])}]
+    set actualBY [expr {round([lindex $outline 5])}]
+    set bReal [$graph axis invtransform x $actualBX]
+    set bImag [$graph axis invtransform y $actualBY]
+    set expectedB [ExpectedPolarMarkerText $bReal $bImag .6g .6g]
+    set actual [list [$graph marker cget gtbZoomText_A -text] [$graph marker cget gtbZoomText_B -text]\
+                        [$graph marker cget gtbZoomText_A -mapx] [$graph marker cget gtbZoomText_A -mapy]]
+    set expected [list $expectedA $expectedB x y]
+    if {$actual ne $expected} {
+        return [list expected $expected actual $actual]
+    }
+    return
+} -result {} -cleanup {
+    destroy $widget
+}
+
+test zoomInteractive-22 {smith zoom corner markers use automatic normalized impedance coordinates}\
+        -constraints {isInteractive isZoom} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -type polar -representation smith -smithgrid impedance -zoom\
+                        -zoommod {Any-} -zoommark -coordmark auto -zoommarkopts {-formatx .6g -formaty .6g}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {smith zoom corner markers use automatic normalized impedance coordinates}\
+            {*}$titleFont
+    $widget graph axis configure x -min -1.2 -max 1.2
+    $widget graph axis configure y -min -1.2 -max 1.2
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    set aX [$graph axis transform x 0.2]
+    set aY [$graph axis transform y 0.4]
+    set bX [$graph axis transform x -0.2]
+    set bY [$graph axis transform y -0.1]
+    GenerateGraphEvent $graph <ButtonPress-1> $aX $aY $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bX $bY $defaultDelay
+    # For this test the Polar grid maps x/y, so the raw outline
+    # coordinates are the exact Gamma values used by MarkZoomPoint.
+    # Avoid a transform -> round -> invtransform round-trip here.
+    set coords [$graph marker cget gtbZoomOutline -coords]
+    set aGammaReal [lindex $coords 0]
+    set aGammaImag [lindex $coords 1]
+    set bGammaReal [lindex $coords 4]
+    set bGammaImag [lindex $coords 5]
+    lassign [ExpectedSmithNormalized $aGammaReal $aGammaImag impedance] aReal aImag
+    lassign [ExpectedSmithNormalized $bGammaReal $bGammaImag impedance] bReal bImag
+    set expectedA [ExpectedRealImagMarkerText $aReal $aImag .6g .6g]
+    set expectedB [ExpectedRealImagMarkerText $bReal $bImag .6g .6g]
+    set actual [list [$graph marker cget gtbZoomText_A -text] [$graph marker cget gtbZoomText_B -text]]
+    set expected [list $expectedA $expectedB]
+    if {$actual ne $expected} {
+        return [list expected $expected actual $actual]
+    }
+    return
+} -result {} -cleanup {
+    destroy $widget
+}
+
+test zoomInteractive-23 {wheel over polar grid axis scales both grid axes}\
+        -constraints {isInteractive isZoom} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -zoom -zoomwheel\
+                        -zoomwheelmod {} -zoomwheelscale 2.0]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {wheel over polar grid axis scales both grid axes} {*}$titleFont
+    $widget graph axis configure x -min -4 -max 4 -hide no
+    $widget graph axis configure y -min -4 -max 4 -hide no
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [FindAxisPoint $graph x bottom] axisX axisY
+    set expected [list [ExpectedWheelLimits $graph x 0.5] [ExpectedWheelLimits $graph y 0.5]]
+    GenerateGraphWheelEvent $graph $axisX $axisY 120 20
+    set actual [list [$graph axis limits x] [$graph axis limits y]]
+    approxNestedEqual $actual $expected
+} -result true -cleanup {
+    destroy $widget
+}
+
 #### crosshairs
 test crosshairsInteractive-1 {crosshairs with current coordinate marker}\
         -constraints {isInteractive isCrosshairs} -setup {
@@ -1363,7 +1674,7 @@ test crosshairsInteractive-10 {crosshairs with current coordinate marker and no 
     set markerExistence 1
     foreach x $xlist y $ylist {
         GenerateGraphEvent $graph <Motion> $x $y 5
-        set markerExistence [expr {[$widget graph marker exists crosshairsClosestTextBox] && $markerExistence}]
+        set markerExistence [expr {[$widget graph marker exists crosshairsTextBox] && $markerExistence}]
     }
     return $markerExistence
 }  -result 0 -cleanup {
@@ -1937,6 +2248,246 @@ test crosshairsInteractive-26 {closest marker: mixed bar and line elements use i
     destroy .gtb
 } -result {1 1 BarElement LineElement {1 1 1 0} {1 1 0 1}}
 
+test crosshairsInteractive-27 {polar current marker supports axis, complex, and polar representations}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -crosshairs\
+                        -crosshairsmode current -crosshairsmarkopts {-formatx .6g -formaty .6g}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {polar current marker representations} {*}$titleFont
+    $widget graph axis configure x -min -6 -max 6
+    $widget graph axis configure y -min -6 -max 6
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    set x [$graph axis transform x 3]
+    set y [$graph axis transform y 4]
+    set real [$graph axis invtransform x $x]
+    set imag [$graph axis invtransform y $y]
+    set axisText [ExpectedRealImagMarkerText $real $imag .6g .6g]
+    set expected [list $axisText $axisText [ExpectedComplexMarkerText z $real $imag .6g .6g]\
+                          [ExpectedPolarMarkerText $real $imag .6g .6g]]
+    set actual [list]
+    foreach mode {auto axis complex polar} {
+        $widget configure -coordmark $mode
+        GenerateGraphEvent $graph <Motion> $x $y 20
+        if {![$graph marker exists crosshairsText]} {
+            return "crosshairsText marker was not created for mode '$mode'"
+        }
+        lappend actual [$graph marker cget crosshairsText -text]
+    }
+    if {$actual ne $expected} {
+        return [list expected $expected actual $actual]
+    }
+    return
+} -result {} -cleanup {
+    destroy $widget
+}
+
+test crosshairsInteractive-28 {smith current marker supports all coordinate representations}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -type polar -representation smith -smithgrid impedance -crosshairs\
+                        -crosshairsmode current -crosshairsmarkopts {-formatx .6g -formaty .6g}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {smith current marker representations} {*}$titleFont
+    $widget graph axis configure x -min -1.2 -max 1.2
+    $widget graph axis configure y -min -1.2 -max 1.2
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    set x [$graph axis transform x 0.2]
+    set y [$graph axis transform y 0.4]
+    set gammaReal [$graph axis invtransform x $x]
+    set gammaImag [$graph axis invtransform y $y]
+    lassign [ExpectedSmithNormalized $gammaReal $gammaImag impedance] zReal zImag
+    lassign [ExpectedSmithNormalized $gammaReal $gammaImag admittance] yReal yImag
+    set axisText [ExpectedRealImagMarkerText $gammaReal $gammaImag .6g .6g]
+    set expected [list [ExpectedRealImagMarkerText $zReal $zImag .6g .6g] $axisText\
+                          [ExpectedComplexMarkerText z $gammaReal $gammaImag .6g .6g]\
+                          [ExpectedPolarMarkerText $gammaReal $gammaImag .6g .6g]\
+                          [ExpectedComplexMarkerText Gamma $gammaReal $gammaImag .6g .6g]\
+                          [ExpectedComplexMarkerText z $zReal $zImag .6g .6g]\
+                          [ExpectedRealImagMarkerText $zReal $zImag .6g .6g]\
+                          [ExpectedComplexMarkerText y $yReal $yImag .6g .6g]\
+                          [ExpectedRealImagMarkerText $yReal $yImag .6g .6g]]
+    set modes {auto axis complex polar gamma normalizedimpedance normalizedimpedanceri normalizedadmittance\
+                       normalizedadmittanceri}
+    set actual [list]
+    foreach mode $modes {
+        $widget configure -coordmark $mode
+        GenerateGraphEvent $graph <Motion> $x $y 20
+        lappend actual [$graph marker cget crosshairsText -text]
+    }
+    $widget configure -coordmark auto
+    foreach {gridMode expectedMode} {admittance admittance both impedance} {
+        $graph configure -smithgrid $gridMode
+        GenerateGraphEvent $graph <Motion> $x $y 20
+        if {$expectedMode eq {impedance}} {
+            lappend actual [$graph marker cget crosshairsText -text]
+            lappend expected [ExpectedRealImagMarkerText $zReal $zImag .6g .6g]
+        } else {
+            lappend actual [$graph marker cget crosshairsText -text]
+            lappend expected [ExpectedRealImagMarkerText $yReal $yImag .6g .6g]
+        }
+    }
+    if {$actual ne $expected} {
+        return [list expected $expected actual $actual]
+    }
+    return
+} -result {} -cleanup {
+    destroy $widget
+}
+
+test crosshairsInteractive-29 {polar current axis marker includes visible auxiliary axes and hidden grid axes}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -crosshairs\
+                        -crosshairsmode current -coordmark axis -crosshairsmarkopts {-formatx .6g -formaty .6g}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {polar current marker with multiple axes} {*}$titleFont
+    $widget graph axis configure x -min -2 -max 2 -hide yes
+    $widget graph axis configure y -min -2 -max 2 -hide yes
+    $widget graph axis create xAlt -min 100 -max 200
+    $widget graph axis create yAlt -min 1000 -max 2000
+    $widget graph x2axis use xAlt
+    $widget graph y2axis use yAlt
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    set x [expr {round($left+$width/2.0)}]
+    set y [expr {round($top+$height/2.0)}]
+    set expected [join [list [format "xAlt(h)=%.6g" [$graph axis invtransform xAlt $x]]\
+                                [format "real(h)=%.6g" [$graph axis invtransform x $x]]\
+                                [format "yAlt(v)=%.6g" [$graph axis invtransform yAlt $y]]\
+                                [format "imag(v)=%.6g" [$graph axis invtransform y $y]]] \n]
+    GenerateGraphEvent $graph <Motion> $x $y 20
+    sleep $defaultDelay
+    set actual [$graph marker cget crosshairsText -text]
+    list [expr {$actual eq $expected}] [$graph marker cget crosshairsText -mapx]\
+            [$graph marker cget crosshairsText -mapy]
+} -result {1 xAlt yAlt} -cleanup {
+    destroy $widget
+}
+
+test crosshairsInteractive-30 {polar closest marker supports axis, complex, and polar representations}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -crosshairs\
+                        -crosshairsmode closest -crosshairsmarkopts {-formatx .6g -formaty .6g}\
+                        -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {polar closest marker representations} {*}$titleFont
+    $widget graph axis configure x -min -6 -max 6
+    $widget graph axis configure y -min -6 -max 6
+    $widget graph element create Element1 -data {3 4} -symbol circle
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph transform 3 4] x y
+    set expected [list "Element1\n[ExpectedRealImagMarkerText 3 4 .6g .6g]"\
+                          "Element1\n[ExpectedComplexMarkerText z 3 4 .6g .6g]"\
+                          "Element1\n[ExpectedPolarMarkerText 3 4 .6g .6g]"]
+    set actual [list]
+    foreach mode {axis complex polar} {
+        $widget configure -coordclosestmark $mode
+        GenerateGraphEvent $graph <Motion> $x $y 20
+        if {![$graph marker exists crosshairsClosestText]} {
+            return "crosshairsClosestText marker was not created for mode '$mode'"
+        }
+        lappend actual [$graph marker cget crosshairsClosestText -text]
+    }
+    if {$actual ne $expected} {
+        return [list expected $expected actual $actual]
+    }
+    return
+} -result {} -cleanup {
+    destroy $widget
+}
+
+test crosshairsInteractive-31 {smith closest marker supports every available coordinate representation}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    vector create gtbSmithGamma -type complex
+    gtbSmithGamma set {{0.2 0.4}}
+    set widget [graphtoolbar .gtb {*}$winSize -type polar -representation smith -smithgrid impedance -crosshairs\
+                        -crosshairsmode closest -crosshairsmarkopts {-formatx .6g -formaty .6g}\
+                        -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {smith closest marker representations} {*}$titleFont
+    $widget graph axis configure x -min -1.2 -max 1.2
+    $widget graph axis configure y -min -1.2 -max 1.2
+    $widget graph element create Element1 -cdata gtbSmithGamma -z0 50 -symbol circle
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph transform 0.2 0.4] x y
+    set expected [list "Element1\n[ExpectedRealImagMarkerText 0.2 0.4 .6g .6g]"\
+                          "Element1\n[ExpectedComplexMarkerText Gamma 0.2 0.4 .6g .6g]"\
+                          "Element1\n[ExpectedComplexMarkerText z 1 1 .6g .6g]"\
+                          "Element1\n[ExpectedComplexMarkerText Z 50 50 .6g .6g Ohm]"\
+                          "Element1\n[ExpectedComplexMarkerText y 0.5 -0.5 .6g .6g]"\
+                          "Element1\n[ExpectedComplexMarkerText Y 0.01 -0.01 .6g .6g S]"]
+    set actual [list]
+    foreach mode {axis gamma normalizedimpedance impedance normalizedadmittance admittance} {
+        $widget configure -coordclosestmark $mode
+        GenerateGraphEvent $graph <Motion> $x $y 20
+        if {![$graph marker exists crosshairsClosestText]} {
+            return "crosshairsClosestText marker was not created for mode '$mode'"
+        }
+        lappend actual [$graph marker cget crosshairsClosestText -text]
+    }
+    if {$actual ne $expected} {
+        return [list expected $expected actual $actual]
+    }
+    return
+} -result {} -cleanup {
+    destroy $widget
+    catch {vector destroy gtbSmithGamma}
+}
+
+test crosshairsInteractive-32 {closest coordinate selector chooses valid default when polar changes to smith}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -crosshairs\
+                        -crosshairsmode closest]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {closest coordinate selector after representation change} {*}$titleFont
+    set graph [$widget subwidget graph]
+    set combo [$widget subwidget closestCoordComBox]
+} -body {
+    WaitForWindow $graph
+    $widget configure -coordclosestmark complex
+    $graph configure -representation smith -smithgrid admittance
+    uplevel #0 [$combo cget -postcommand]
+    list [$widget configure -coordclosestmark] [$combo get]\
+            [expr {{Normalized admittance} in [$combo cget -values]}]
+} -result {normalizedadmittance {Normalized admittance} 1} -cleanup {
+    destroy $widget
+}
+
+test crosshairsInteractive-33 {smith normalized real/imag current marker follows inverted physical orientations}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -type polar -representation smith -smithgrid impedance -crosshairs\
+                        -crosshairsmode current -coordmark normalizedimpedanceri\
+                        -crosshairsmarkopts {-formatx .6g -formaty .6g}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {smith normalized real imag marker with inverted axes} -invertxy yes {*}$titleFont
+    $widget graph axis configure x -min -1.2 -max 1.2
+    $widget graph axis configure y -min -1.2 -max 1.2
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph transform 0.2 0.4] x y
+    set gammaReal [$graph axis invtransform x $y]
+    set gammaImag [$graph axis invtransform y $x]
+    lassign [ExpectedSmithNormalized $gammaReal $gammaImag impedance] real imag
+    set expected [ExpectedRealImagMarkerText $real $imag .6g .6g yes]
+    GenerateGraphEvent $graph <Motion> $x $y 20
+    set actual [$graph marker cget crosshairsText -text]
+    if {$actual ne $expected} {
+        return [list expected $expected actual $actual]
+    }
+    return
+} -result {} -cleanup {
+    destroy $widget
+}
+
 #### axes
 test axesInteractive-1 {change of axis scale} -constraints {isInteractive isAxes} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -scaletoggle all]
@@ -1960,6 +2511,48 @@ test axesInteractive-1 {change of axis scale} -constraints {isInteractive isAxes
     GenerateGraphEvent $graph <Motion> $plotX $plotY $defaultDelay
     return $scale
 }  -result {0 1} -cleanup {
+    destroy $widget
+}
+
+test axesInteractive-2 {polar grid axis cannot be toggled to logarithmic scale}\
+        -constraints {isInteractive isAxes} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -scaletoggle all]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {polar grid axis cannot be logarithmic} {*}$titleFont
+    $widget graph axis configure x -min 1 -max 10 -hide no
+    $widget graph axis configure y -min 1 -max 10 -hide no
+    $widget graph grid configure -hide no
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [FindAxisPoint $graph x bottom] axisX axisY
+    set before [$graph axis cget x -logscale]
+    GenerateGraphEvent $graph <Motion> $axisX $axisY $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-1> $axisX $axisY $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $axisX $axisY 20
+    list $before [$graph axis cget x -logscale]
+} -result {0 0} -cleanup {
+    destroy $widget
+}
+
+test axesInteractive-3 {polar auxiliary axis can be toggled to logarithmic scale}\
+        -constraints {isInteractive isAxes} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -scaletoggle all]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {polar auxiliary axis can be logarithmic} {*}$titleFont
+    $widget graph axis create xAlt -min 1 -max 100
+    $widget graph x2axis use xAlt
+    $widget setAxisActiveScale all
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [FindAxisPoint $graph xAlt top] axisX axisY
+    set before [$graph axis cget xAlt -logscale]
+    GenerateGraphEvent $graph <Motion> $axisX $axisY $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-1> $axisX $axisY $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $axisX $axisY 20
+    list $before [$graph axis cget xAlt -logscale]
+} -result {0 1} -cleanup {
     destroy $widget
 }
 

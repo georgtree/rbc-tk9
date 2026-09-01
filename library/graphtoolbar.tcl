@@ -299,7 +299,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                  $value]
         }
     }
-    property crosshairsopts  -set {
+    property crosshairsopts -set {
         set crosshairsopts\
                 [argparse -inline\
                          [list\
@@ -437,7 +437,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             {-smithgrid= -default impedance -enum {impedance admittance both}}
             {-coordmark= -default auto}
             {-coordclosestmark= -default axis}
-            {-toolbarside= -default bottom}
+            {-toolbarside= -default bottom -enum {bottom top}}
             -zoom
             {-zoomstartbut -default {ButtonPress-1}}
             {-zoombackbut -default {ButtonPress-3}}
@@ -1747,7 +1747,16 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {[$graph cget -representation] ne {smith}} {
             return axis
         }
-        return [my DefaultSmithCoordinateMode]
+        switch -- [$graph cget -smithgrid] {
+            admittance {
+                return normalizedadmittance
+            }
+            impedance -
+            both {
+                return normalizedimpedance
+            }
+        }
+        return normalizedimpedance
     }
     method UpdateClosestCoordinateModes {} {
         if {![info exists Subwidgets(closestCoordComBox)]} {
