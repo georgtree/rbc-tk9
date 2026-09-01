@@ -1769,6 +1769,57 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         $Subwidgets(closestCoordComBox) configure -values [my ClosestCoordinateLabels]
         set ClosestCoordSelector [my ClosestCoordinateLabel $coordclosestmark]
     }
+    method ClosestAxisFormattedValue {axis value formatSpec} {
+        set graph $Subwidgets(graph)
+        #
+        # Existing graphtoolbar representation is always the fallback.
+        #
+        set fallback [format "%$formatSpec" $value]
+        set command [$graph axis cget $axis -command]
+        if {$command eq {}} {
+            return $fallback
+        }
+        #
+        # Reproduce the default label that RBC passes to an axis
+        # -command callback.
+        #
+        if {[$graph axis cget $axis -logscale]} {
+            #
+            # Rbc formats logarithmic tick coordinates as 1E<n>.
+            # The value here is the actual graph value, so convert it
+            # back to logarithmic coordinate space first.
+            #
+            if {![string is double -strict $value] ||
+                !isfinite($value) ||
+                ($value <= 0.0)} {
+                return $fallback
+            }
+            set exponent [expr {round(log($value)/log(10.0))}]
+            set defaultLabel [format "1E%d" $exponent]
+        } else {
+            #
+            # Keep this consistent with Rbc's NUMDIGITS == 15
+            # standard linear-axis label.
+            #
+            set defaultLabel [format %.15g $value]
+        }
+        #
+        # -command is a command prefix.  Append the same two arguments
+        # as the axis formatter:
+        #
+        #     widgetPath defaultLabel
+        #
+        # A formatter failure must never break crosshair motion.
+        #
+        if {[catch {uplevel #0 [list {*}$command $graph $defaultLabel]} result]} {
+            return $fallback
+        }
+        #
+        # An empty successful result is intentional: axis -command also
+        # permits an empty label.
+        #
+        return $result
+    }
     method ClosestAxisMarkerText {element xValue yValue options} {
         set graph $Subwidgets(graph)
         set mapx [$graph element cget $element -mapx]
@@ -1792,8 +1843,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             set xName $mapx
             set yName $mapy
         }
-        set xText [format "%[dict get $options -formatx]" $xValue]
-        set yText [format "%[dict get $options -formaty]" $yValue]
+        set xText [my ClosestAxisFormattedValue $mapx $xValue [dict get $options -formatx]]
+        set yText [my ClosestAxisFormattedValue $mapy $yValue [dict get $options -formaty]]
         return [format "%s\n%s(%s)=%s\n%s(%s)=%s" $element $xName $xOrientation $xText $yName $yOrientation $yText]
     }
     method ClosestMarkerText {element xValue yValue options closestInfo} {

@@ -2635,6 +2635,239 @@ test crosshairsInteractive-37 {closest bar marker: outside-arrow threshold follo
     destroy .gtb
 } -result {1 none 1 first 1 first}
 
+test crosshairsInteractive-38 {closest marker: axis commands format bar values}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    proc ::ClosestAxisFormat {prefix widget value} {
+        return "${prefix}:${widget}:${value}"
+    }
+    set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-interpolate no -halo 10 -single yes}\
+                        -crosshairsmarkopts {-formatx .2f -formaty .1f}]
+    pack .gtb -fill both -expand yes
+    set graph [.gtb subwidget graph]
+    $graph configure -title {closest marker: axis commands format bar values} {*}$titleFont
+    $graph configure -barwidth 0.8
+    $graph axis configure x -min 0 -max 10 -command [list ::ClosestAxisFormat {X label}]
+    $graph axis configure y -min 0 -max 10 -command [list ::ClosestAxisFormat {Y label}]
+    $graph element create Bar1 -data {2.34567 7.12549}
+} -body {
+    WaitForWindow $graph
+    set x [$graph axis transform x 2.34567]
+    set y [$graph axis transform y 4]
+    GenerateGraphEvent $graph <Motion> $x $y 50
+    sleep $defaultDelay
+    set lines [split [$graph marker cget crosshairsClosestText -text] \n]
+    list [lindex $lines 0] [lindex $lines 1] [lindex $lines 2]
+} -cleanup {
+    rename ::ClosestAxisFormat {}
+    destroy .gtb
+} -result {Bar1 {x(h)=X label:.gtb.graph:2.34567} {y(v)=Y label:.gtb.graph:7.12549}}
+
+test crosshairsInteractive-39 {closest bar marker: categorical x-axis command replaces raw value}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    proc ::ClosestCategoryFormat {widget value} {
+        set labels [dict create 1 January 2 February 3 March]
+        return [dict get $labels $value]
+    }
+    set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-interpolate no -halo 10 -single yes}\
+                        -crosshairsmarkopts {-formatx .3f -formaty .2f}]
+    pack .gtb -fill both -expand yes
+    set graph [.gtb subwidget graph]
+    $graph configure -title {closest bar marker: categorical x-axis command replaces raw value} {*}$titleFont
+    $graph configure -barwidth 0.8
+    $graph axis configure x -min 0 -max 4 -majorticks {1 2 3} -command ::ClosestCategoryFormat
+    $graph axis configure y -min 0 -max 10
+    $graph element create Bar1 -data {2 7.5}
+} -body {
+    WaitForWindow $graph
+    set x [$graph axis transform x 2]
+    set y [$graph axis transform y 4]
+    GenerateGraphEvent $graph <Motion> $x $y 50
+    sleep $defaultDelay
+    set lines [split [$graph marker cget crosshairsClosestText -text] \n]
+    list [lindex $lines 1] [lindex $lines 2]
+} -cleanup {
+    rename ::ClosestCategoryFormat {}
+    destroy .gtb
+} -result {x(h)=February y(v)=7.50}
+
+
+test crosshairsInteractive-40 {closest marker: failing axis command falls back to normal formatted value}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set ::closestAxisFailCalled 0
+    proc ::ClosestAxisFailFormat {widget value} {
+        #
+        # Normal major-tick formatting must succeed.  Only the
+        # selected bar value fails, so RBC's own axis redraw does
+        # not generate an unrelated background error.
+        #
+        if {$value eq {2.25}} {
+            set ::closestAxisFailCalled 1
+            error {intentional closest-marker formatter failure}
+        }
+        return "tick:$value"
+    }
+    set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-interpolate no -halo 10 -single yes}\
+                        -crosshairsmarkopts {-formatx .3f -formaty .1f}]
+    pack .gtb -fill both -expand yes
+    set graph [.gtb subwidget graph]
+    $graph configure -title {closest marker: failing axis command falls back to normal formatted value} {*}$titleFont
+    $graph configure -barwidth 0.8
+    $graph axis configure x -min 0 -max 10 -majorticks {0 2 4 6 8 10} -command ::ClosestAxisFailFormat
+    $graph axis configure y -min 0 -max 10
+    $graph element create Bar1 -data {2.25 7}
+} -body {
+    WaitForWindow $graph
+    #
+    # Clear any state from the initial graph layout.  2.25 is not
+    # one of the explicitly configured major ticks.
+    #
+    set ::closestAxisFailCalled 0
+    set x [$graph axis transform x 2.25]
+    set y [$graph axis transform y 4]
+    GenerateGraphEvent $graph <Motion> $x $y 50
+    sleep $defaultDelay
+    set lines [split [$graph marker cget crosshairsClosestText -text] \n]
+    list [lindex $lines 1] [lindex $lines 2] $::closestAxisFailCalled
+} -cleanup {
+    unset -nocomplain ::closestAxisFailCalled
+    rename ::ClosestAxisFailFormat {}
+    destroy .gtb
+} -result {x(h)=2.250 y(v)=7.0 1}
+
+
+test crosshairsInteractive-41 {closest marker: formatter follows element mapped axes}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    proc ::ClosestMappedAxisFormat {prefix widget value} {
+        return "${prefix}:$value"
+    }
+    set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
+    pack .gtb -fill both -expand yes
+    set graph [.gtb subwidget graph]
+    $graph configure -title {closest marker: formatter follows element mapped axes} {*}$titleFont
+    #
+    # Give the primary axes deliberately different formatters.  If
+    # ClosestAxisMarkerText accidentally uses x/y instead of the
+    # element's mappings, this test will expose it.
+    #
+    $graph axis configure x -min 0 -max 10 -command [list ::ClosestMappedAxisFormat PRIMARY-X]
+    $graph axis configure y -min 0 -max 10 -command [list ::ClosestMappedAxisFormat PRIMARY-Y]
+    $graph axis create xAlt -min 100 -max 200 -command [list ::ClosestMappedAxisFormat ALT-X]
+    $graph axis create yAlt -min 0 -max 2000 -command [list ::ClosestMappedAxisFormat ALT-Y]
+    $graph x2axis use xAlt
+    $graph y2axis use yAlt
+    $graph element create Bar1 -data {150 1250} -mapx xAlt -mapy yAlt
+} -body {
+    WaitForWindow $graph
+    set x [$graph axis transform xAlt 150]
+    set y [$graph axis transform yAlt 600]
+    GenerateGraphEvent $graph <Motion> $x $y 50
+    sleep $defaultDelay
+    set lines [split [$graph marker cget crosshairsClosestText -text] \n]
+    list [lindex $lines 1] [lindex $lines 2]
+} -cleanup {
+    rename ::ClosestMappedAxisFormat {}
+    destroy .gtb
+} -result {xAlt(h)=ALT-X:150 yAlt(v)=ALT-Y:1250}
+
+
+test crosshairsInteractive-42 {closest marker: log-axis command receives normal RBC log label}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    proc ::ClosestLogAxisFormat {widget value} {
+        return "log:$value"
+    }
+    set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-interpolate no -halo 10 -single yes}\
+                        -crosshairsmarkopts {-formatx .2f -formaty .2f}]
+    pack .gtb -fill both -expand yes
+    set graph [.gtb subwidget graph]
+    $graph configure -title {closest marker: log-axis command receives normal RBC log label} {*}$titleFont
+    $graph axis configure x -min 0 -max 10
+    $graph axis configure y -min 1 -max 1000 -logscale yes -command ::ClosestLogAxisFormat
+    $graph element create Line1 -data {1 10 2 100 3 1000} -symbol circle
+} -body {
+    WaitForWindow $graph
+    set x [$graph axis transform x 2]
+    set y [$graph axis transform y 100]
+    GenerateGraphEvent $graph <Motion> $x $y 50
+    sleep $defaultDelay
+    set lines [split [$graph marker cget crosshairsClosestText -text] \n]
+    list [lindex $lines 1] [lindex $lines 2]
+} -cleanup {
+    rename ::ClosestLogAxisFormat {}
+    destroy .gtb
+} -result {x(h)=2.00 y(v)=log:1E2}
+
+test crosshairsInteractive-43 {polar closest axis mode uses mapped axis commands}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    proc ::ClosestPolarAxisFormat {prefix widget value} {
+        return "${prefix}:$value"
+    }
+    set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar\
+                        -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-interpolate no -halo 10 -single yes}\
+                        -crosshairsmarkopts {-formatx .6g -formaty .6g}]
+    pack .gtb -fill both -expand yes
+    set graph [$widget subwidget graph]
+    $graph configure -title {polar closest axis mode uses mapped axis commands} {*}$titleFont
+    $graph axis configure x -min -1 -max 1 -command [list ::ClosestPolarAxisFormat REAL]
+    $graph axis configure y -min -1 -max 1 -command [list ::ClosestPolarAxisFormat IMAG]
+    $graph element create Trace1 -data {0.2 0.4}
+    $widget configure -coordclosestmark axis
+} -body {
+    WaitForWindow $graph
+    set x [$graph axis transform x 0.2]
+    set y [$graph axis transform y 0.4]
+    GenerateGraphEvent $graph <Motion> $x $y 50
+    sleep $defaultDelay
+    set lines [split [$graph marker cget crosshairsClosestText -text] \n]
+    list [lindex $lines 0] [lindex $lines 1] [lindex $lines 2]
+} -cleanup {
+    rename ::ClosestPolarAxisFormat {}
+    destroy .gtb
+} -result {Trace1 real(h)=REAL:0.2 imag(v)=IMAG:0.4}
+
+
+test crosshairsInteractive-44 {smith closest axis mode uses mapped axis commands}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    proc ::ClosestSmithAxisFormat {prefix widget value} {
+        return "${prefix}:$value"
+    }
+    set widget [graphtoolbar .gtb {*}$winSize -type polar -representation smith\
+                        -smithgrid impedance -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-interpolate no -halo 10 -single yes}\
+                        -crosshairsmarkopts {-formatx .6g -formaty .6g}]
+    pack .gtb -fill both -expand yes
+    set graph [$widget subwidget graph]
+    $graph configure -title {smith closest axis mode uses mapped axis commands} {*}$titleFont
+    $graph axis configure x -min -1.2 -max 1.2 -command [list ::ClosestSmithAxisFormat GAMMA-REAL]
+    $graph axis configure y -min -1.2 -max 1.2 -command [list ::ClosestSmithAxisFormat GAMMA-IMAG]
+    #
+    # Underlying Smith element coordinates are reflection
+    # coefficient coordinates, Gamma = 0.2 + j0.4.
+    #
+    $graph element create Trace1 -data {0.2 0.4}
+    #
+    # Smith closest mode normally defaults to normalized impedance,
+    # so select axis mode explicitly.
+    #
+    $widget configure -coordclosestmark axis
+} -body {
+    WaitForWindow $graph
+    set x [$graph axis transform x 0.2]
+    set y [$graph axis transform y 0.4]
+    GenerateGraphEvent $graph <Motion> $x $y 50
+    sleep $defaultDelay
+    set lines [split [$graph marker cget crosshairsClosestText -text] \n]
+    list [lindex $lines 0] [lindex $lines 1] [lindex $lines 2]
+} -cleanup {
+    rename ::ClosestSmithAxisFormat {}
+    destroy .gtb
+} -result {Trace1 real(h)=GAMMA-REAL:0.2 imag(v)=GAMMA-IMAG:0.4}
+
 #### axes
 test axesInteractive-1 {change of axis scale} -constraints {isInteractive isAxes} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -scaletoggle all]
