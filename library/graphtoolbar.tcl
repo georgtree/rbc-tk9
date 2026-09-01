@@ -1989,6 +1989,32 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
         return [list $left  $lineY $right $lineY $textX $textY $anchor]
     }
+    method ClosestBarArrowDepth {lineOptions} {
+        set graph $Subwidgets(graph)
+        set shape [dict get $lineOptions -arrowshape]
+        if {[llength $shape] != 3} {
+            return -code error "bad bar arrow shape '$shape': must contain three screen distances"
+        }
+        lassign $shape a b c
+        #
+        # Match the screen-distance interpretation used by the RBC line
+        # marker.  c controls the transverse width of the arrowhead;
+        # a and b determine how far it extends along the dimension line.
+        #
+        set a [winfo pixels $graph $a]
+        set b [winfo pixels $graph $b]
+        return [expr {double(max($a,$b))}]
+    }
+
+    method SetClosestBarLineMarker {marker coords mapx mapy lineOptions arrow} {
+        set graph $Subwidgets(graph)
+        if {[$graph marker exists $marker]} {
+            $graph marker configure $marker -coords $coords -mapx $mapx -mapy $mapy {*}$lineOptions -arrow $arrow
+        } else {
+            $graph marker create line -name $marker -coords $coords -mapx $mapx -mapy $mapy -bindtags {} -under no\
+                    {*}$lineOptions -arrow $arrow
+        }
+    }
     method CreateClosestBarMarker {marker element xValue yValue left top right bottom options boxOptions closestInfo} {
         set graph $Subwidgets(graph)
         set mapx [$graph element cget $element -mapx]
@@ -2024,12 +2050,100 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #
         set lineMarker [string map {crosshairsClosestText crosshairsClosestBarLine} $marker]
         set lineOptions [my configure -crosshairsbarlineopts]
-
-        if {[$graph marker exists $lineMarker]} {
-            $graph marker configure $lineMarker -coords $lineCoords -mapx $mapx -mapy $mapy {*}$lineOptions -arrow both
+        #
+        # The normal dimension marker uses arrowheads at both ends of
+        # the bar.  Each arrowhead extends inward from its endpoint.
+        #
+        # For a short displayed bar those two heads would overlap.
+        # In that case leave the central dimension line unarrowed and
+        # draw two additional arrow markers outside the measured span,
+        # with their tips at the bar boundaries and pointing inward.
+        #
+        set dx [expr {$lineX2-$lineX1}]
+        set dy [expr {$lineY2-$lineY1}]
+        set lineLength [expr {hypot($dx,$dy)}]
+        set arrowDepth [my ClosestBarArrowDepth $lineOptions]
+        #
+        # Leave a small visible gap between opposing internal heads.
+        #
+        set arrowGap 2.0
+        set minimumInsideLength [expr {2.0*$arrowDepth+$arrowGap}]
+        set firstArrowMarker ${lineMarker}FirstArrow
+        set lastArrowMarker  ${lineMarker}LastArrow
+        if {($arrowDepth <= 0.0) ||
+            ($lineLength >= $minimumInsideLength)} {
+            #
+            # Enough room: retain the existing representation.
+            #
+            my SetClosestBarLineMarker $lineMarker $lineCoords $mapx $mapy $lineOptions both
+            #
+            # Remove auxiliary markers if the bar was previously short.
+            #
+            set deleteMarkers [list]
+            foreach arrowMarker [list $firstArrowMarker $lastArrowMarker] {
+                if {[$graph marker exists $arrowMarker]} {
+                    lappend deleteMarkers $arrowMarker
+                }
+            }
+            if {[llength $deleteMarkers]} {
+                $graph marker delete {*}$deleteMarkers
+            }
         } else {
-            $graph marker create line -name $lineMarker -coords $lineCoords -mapx $mapx -mapy $mapy -bindtags {} -under\
-                    no {*}$lineOptions -arrow both
+            #
+            # Not enough room for both arrowheads inside the bar span.
+            #
+            # Keep the measured dimension line itself.
+            #
+            my SetClosestBarLineMarker $lineMarker $lineCoords $mapx $mapy $lineOptions none
+            #
+            # Unit vector from the first dimension endpoint to the
+            # second one.
+            #
+            if {$lineLength > 0.0} {
+                set ux [expr {$dx/$lineLength}]
+                set uy [expr {$dy/$lineLength}]
+            } elseif {[$graph cget -invertxy]} {
+                #
+                # Degenerate horizontal bar.
+                #
+                set ux 1.0
+                set uy 0.0
+            } else {
+                #
+                # Degenerate vertical bar.
+                #
+                set ux 0.0
+                set uy 1.0
+            }
+            #
+            # Put one complete arrowhead outside each endpoint.
+            #
+            set outsideLength $arrowDepth
+            set outerX1 [expr {$lineX1-$ux*$outsideLength}]
+            set outerY1 [expr {$lineY1-$uy*$outsideLength}]
+            set outerX2 [expr {$lineX2+$ux*$outsideLength}]
+            set outerY2 [expr {$lineY2+$uy*$outsideLength}]
+            lassign [my WidgetToAxisValues $outerX1 $outerY1 $mapx $mapy] outerXValue1 outerYValue1
+            lassign [my WidgetToAxisValues $outerX2 $outerY2 $mapx $mapy] outerXValue2 outerYValue2
+            #
+            # Both auxiliary markers put the arrow at their FIRST
+            # coordinate.
+            #
+            # First endpoint:
+            #
+            #     outer ----> tip | measured span
+            #
+            # Last endpoint:
+            #
+            #     measured span | tip <---- outer
+            #
+            # Therefore both heads point inward toward the bar.
+            #
+            my SetClosestBarLineMarker $firstArrowMarker [list $lineXValue1 $lineYValue1 $outerXValue1 $outerYValue1]\
+                    $mapx $mapy $lineOptions first
+
+            my SetClosestBarLineMarker $lastArrowMarker [list $lineXValue2 $lineYValue2 $outerXValue2 $outerYValue2] \
+                    $mapx $mapy $lineOptions first
         }
         #
         # a bar annotation does not use the ordinary closest-point

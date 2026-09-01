@@ -2488,6 +2488,153 @@ test crosshairsInteractive-33 {smith normalized real/imag current marker follows
     destroy $widget
 }
 
+test crosshairsInteractive-34 {closest bar marker: long bar keeps arrowheads inside dimension line}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-interpolate no -halo 10 -single yes}\
+                        -crosshairsbarlineopts {-arrowshape {8 10 3}}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {closest bar marker: long bar keeps arrowheads inside dimension line}\
+            {*}$titleFont
+    $widget graph configure -barwidth 0.8 -baseline 0
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min 0 -max 10
+    $widget graph element create Bar1 -data {5 8}
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph transform 5 4] x y
+    $graph element closest $x $y info -along both -interpolate no -halo 1000 Bar1
+    set x [expr {round(($info(left)+$info(right))/2.0)}]
+    set y [expr {round(($info(top)+$info(bottom))/2.0)}]
+    GenerateGraphEvent $graph <Motion> $x $y 50
+    sleep $defaultDelay
+    lassign [MarkerWidgetCoords $graph crosshairsClosestBarLine] lineX1 lineY1 lineX2 lineY2
+    list [$graph marker cget crosshairsClosestBarLine -arrow]\
+            [$graph marker exists crosshairsClosestBarLineFirstArrow]\
+            [$graph marker exists crosshairsClosestBarLineLastArrow]\
+            [expr {abs($lineY1-$info(top)) <= 1.0}]\
+            [expr {abs($lineY2-$info(bottom)) <= 1.0}]
+} -cleanup {
+    unset -nocomplain info
+    destroy .gtb
+} -result {both 0 0 1 1}
+
+
+test crosshairsInteractive-35 {closest bar marker: short vertical bar moves arrowheads outside and points inward}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-interpolate no -halo 10 -single yes}\
+                        -crosshairsbarlineopts {-arrowshape {8 10 3}}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {closest bar marker: short vertical bar moves arrowheads outside and points inward}\
+            {*}$titleFont
+    #
+    # Keep the short bar away from the plot boundary so this test
+    # exercises only the arrow layout, not marker clipping.
+    #
+    $widget graph configure -barwidth 0.8 -baseline 5
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min 0 -max 10
+    $widget graph element create Bar1 -data {5 5.2}
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph transform 5 5.1] x y
+    set found [$graph element closest $x $y info -along both -interpolate no -halo 1000 Bar1]
+    set x [expr {round(($info(left)+$info(right))/2.0)}]
+    set y [expr {round(($info(top)+$info(bottom))/2.0)}]
+    GenerateGraphEvent $graph <Motion> $x $y 50
+    sleep $defaultDelay
+    set firstMarker crosshairsClosestBarLineFirstArrow
+    set lastMarker crosshairsClosestBarLineLastArrow
+    lassign [MarkerWidgetCoords $graph crosshairsClosestBarLine] lineX1 lineY1 lineX2 lineY2
+    lassign [MarkerWidgetCoords $graph $firstMarker] firstTipX firstTipY firstOuterX firstOuterY
+    lassign [MarkerWidgetCoords $graph $lastMarker] lastTipX lastTipY lastOuterX lastOuterY
+    list $found [$graph marker cget crosshairsClosestBarLine -arrow]\
+            [$graph marker cget $firstMarker -arrow] [$graph marker cget $lastMarker -arrow]\
+            [expr {abs($lineY1-$info(top)) <= 1.0}] [expr {abs($lineY2-$info(bottom)) <= 1.0}]\
+            [expr {abs($firstTipX-$lineX1) <= 1.0}] [expr {abs($lastTipX-$lineX2) <= 1.0}]\
+            [expr {abs($firstTipY-$info(top)) <= 1.0}] [expr {$firstOuterY < $firstTipY}]\
+            [expr {abs($lastTipY-$info(bottom)) <= 1.0}] [expr {$lastOuterY > $lastTipY}]
+} -cleanup {
+    unset -nocomplain info
+    destroy .gtb
+} -result {1 none first first 1 1 1 1 1 1 1 1}
+
+
+test crosshairsInteractive-36 {closest bar marker: short inverted bar moves arrowheads outside and points inward}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-interpolate no -halo 10 -single yes}\
+                        -crosshairsbarlineopts {-arrowshape {8 10 3}}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {closest bar marker: short inverted bar moves arrowheads outside and points inward}\
+            {*}$titleFont
+    $widget graph configure -barwidth 0.8 -baseline 5 -invertxy yes
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min 0 -max 10
+    $widget graph element create Bar1 -data {5 5.2}
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph transform 5 5.1] x y
+    set found [$graph element closest $x $y info -along both -interpolate no -halo 1000 Bar1]
+    set x [expr {round(($info(left)+$info(right))/2.0)}]
+    set y [expr {round(($info(top)+$info(bottom))/2.0)}]
+    GenerateGraphEvent $graph <Motion> $x $y 50
+    sleep $defaultDelay
+    set firstMarker crosshairsClosestBarLineFirstArrow
+    set lastMarker crosshairsClosestBarLineLastArrow
+    lassign [MarkerWidgetCoords $graph crosshairsClosestBarLine] lineX1 lineY1 lineX2 lineY2
+    lassign [MarkerWidgetCoords $graph $firstMarker] firstTipX firstTipY firstOuterX firstOuterY
+    lassign [MarkerWidgetCoords $graph $lastMarker] lastTipX lastTipY lastOuterX lastOuterY
+    list $found [$graph marker cget crosshairsClosestBarLine -arrow]\
+            [$graph marker cget $firstMarker -arrow] [$graph marker cget $lastMarker -arrow]\
+            [expr {abs($lineX1-$info(left)) <= 1.0}] [expr {abs($lineX2-$info(right)) <= 1.0}]\
+            [expr {abs($firstTipY-$lineY1) <= 1.0}] [expr {abs($lastTipY-$lineY2) <= 1.0}]\
+            [expr {abs($firstTipX-$info(left)) <= 1.0}] [expr {$firstOuterX < $firstTipX}]\
+            [expr {abs($lastTipX-$info(right)) <= 1.0}] [expr {$lastOuterX > $lastTipX}]
+} -cleanup {
+    unset -nocomplain info
+    destroy .gtb
+} -result {1 none first first 1 1 1 1 1 1 1 1}
+
+test crosshairsInteractive-37 {closest bar marker: outside-arrow threshold follows configured arrow shape}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
+                        -crosshairsclosestopts {-interpolate no -halo 10 -single yes}\
+                        -crosshairsbarlineopts {-arrowshape {50 60 10}}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {closest bar marker: outside-arrow threshold follows configured arrow shape}\
+            {*}$titleFont
+    $widget graph configure -barwidth 0.8 -baseline 5
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min 0 -max 10
+    #
+    # This bar is much longer than the tiny-bar case above, but is
+    # deliberately too short for two 60-pixel arrowheads.
+    #
+    $widget graph element create Bar1 -data {5 7}
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph transform 5 6] x y
+    set found [$graph element closest $x $y info -along both -interpolate no -halo 1000 Bar1]
+    set x [expr {round(($info(left)+$info(right))/2.0)}]
+    set y [expr {round(($info(top)+$info(bottom))/2.0)}]
+    GenerateGraphEvent $graph <Motion> $x $y 50
+    sleep $defaultDelay
+    set firstMarker crosshairsClosestBarLineFirstArrow
+    set lastMarker crosshairsClosestBarLineLastArrow
+    list $found [$graph marker cget crosshairsClosestBarLine -arrow] [$graph marker exists $firstMarker]\
+            [$graph marker cget $firstMarker -arrow] [$graph marker exists $lastMarker]\
+            [$graph marker cget $lastMarker -arrow]
+} -cleanup {
+    unset -nocomplain info
+    destroy .gtb
+} -result {1 none 1 first 1 first}
+
 #### axes
 test axesInteractive-1 {change of axis scale} -constraints {isInteractive isAxes} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -scaletoggle all]
