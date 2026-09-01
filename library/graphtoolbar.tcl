@@ -982,6 +982,29 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set yValue [$graph axis invtransform $mapy $yPixel]
         return [list $xValue $yValue]
     }
+    method CoordinateOrientations {} {
+        if {[$Subwidgets(graph) cget -invertxy]} {
+            return {v h}
+        }
+        return {h v}
+    }
+    method FormatRealImagMarkerValue {value formatReal formatImag} {
+        if {[llength $value] != 2} {
+            return -code error {real/imag marker value must contain real and imaginary components}
+        }
+        lassign $value real imag
+        # Suppress textual -0.
+        if {$real == 0.0} {
+            set real 0.0
+        }
+        if {$imag == 0.0} {
+            set imag 0.0
+        }
+        lassign [my CoordinateOrientations] realOrientation imagOrientation
+        set realText [format "%$formatReal" $real]
+        set imagText [format "%$formatImag" $imag]
+        return "real($realOrientation)=$realText\nimag($imagOrientation)=$imagText"
+    }
     method AxisMarkerInfo {xPixel yPixel formatx formaty} {
         #
         # Returns formatted values of the axes used for current/zoom
@@ -1008,13 +1031,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set mapx [lindex $xAxes 0]
         set mapy [lindex $yAxes 0]
         set lines [list]
-        if {[$graph cget -invertxy]} {
-            set xOrientation v
-            set yOrientation h
-        } else {
-            set xOrientation h
-            set yOrientation v
-        }
+        lassign [my CoordinateOrientations] xOrientation yOrientation
         foreach axis $xAxes {
             set xValue [$graph axis invtransform $axis $xPixel]
             set name [my AxisMarkerName $axis x]
@@ -1205,13 +1222,23 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 lassign [my CartesianPolarValues $xValue $yValue] radius angle
                 set text [my FormatPolarMarkerValue $radius $angle $formatx $formaty]
             }
-            normalizedimpedance {
+            normalizedimpedance -
+            normalizedimpedanceri {
                 set value [my SmithGammaToNormalized $xValue $yValue normalizedimpedance]
-                set text [my FormatComplexMarkerValue z $value $formatx $formaty]
+                if {$mode eq {normalizedimpedanceri}} {
+                    set text [my FormatRealImagMarkerValue $value $formatx $formaty]
+                } else {
+                    set text [my FormatComplexMarkerValue z $value $formatx $formaty]
+                }
             }
-            normalizedadmittance {
+            normalizedadmittance -
+            normalizedadmittanceri {
                 set value [my SmithGammaToNormalized $xValue $yValue normalizedadmittance]
-                set text [my FormatComplexMarkerValue y $value $formatx $formaty]
+                if {$mode eq {normalizedadmittanceri}} {
+                    set text [my FormatRealImagMarkerValue $value $formatx $formaty]
+                } else {
+                    set text [my FormatComplexMarkerValue y $value $formatx $formaty]
+                }
             }
             default {
                 return [my AxisMarkerInfo $xPixel $yPixel $formatx $formaty]
@@ -1596,14 +1623,14 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set graph $Subwidgets(graph)
         switch -- [$graph cget -smithgrid] {
             admittance {
-                return normalizedadmittance
+                return normalizedadmittanceri
             }
             impedance -
             both {
-                return normalizedimpedance
+                return normalizedimpedanceri
             }
         }
-        return normalizedimpedance
+        return normalizedimpedanceri
     }
     method EffectiveCoordinateMode {} {
         set graph $Subwidgets(graph)
@@ -1680,17 +1707,11 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         $Subwidgets(closestCoordComBox) configure -values [my ClosestCoordinateLabels]
         set ClosestCoordSelector [my ClosestCoordinateLabel $coordclosestmark]
     }
-    method ClosestAxisMarkerText { element xValue yValue options } {
+    method ClosestAxisMarkerText {element xValue yValue options} {
         set graph $Subwidgets(graph)
         set mapx [$graph element cget $element -mapx]
         set mapy [$graph element cget $element -mapy]
-        if {[$graph cget -invertxy]} {
-            set xOrientation v
-            set yOrientation h
-        } else {
-            set xOrientation h
-            set yOrientation v
-        }
+        lassign [my CoordinateOrientations] xOrientation yOrientation
         #
         # PolarElement Cartesian coordinates have complex-plane semantics.
         #
