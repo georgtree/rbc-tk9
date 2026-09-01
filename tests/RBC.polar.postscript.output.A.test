@@ -268,8 +268,8 @@ namespace eval polar.postscript {
         polar .polar1 -width 400 -height 400 -anglemajorticks {0 90} -anglecommand ::PolarGridAxisFormat
         pack .polar1
         #
-        # The normal x/y axes do not contain the origin, so they
-        # cannot define a Polar grid.
+        # The normal x/y axes are deliberately off-centre.
+        # The Polar grid is instead mapped to x2/y2 below.
         #
         .polar1 axis configure x -min 10 -max 20
         .polar1 axis configure y -min 10 -max 20
@@ -297,8 +297,8 @@ namespace eval polar.postscript {
         }
         polar .polar1 -width 400 -height 400 -anglemajorticks {45} -anglecommand ::PolarGridSwitchFormat
         pack .polar1
-        .polar1 axis configure x  -min 10 -max 20
-        .polar1 axis configure y  -min 10 -max 20
+        .polar1 axis configure x -min 10 -max 20
+        .polar1 axis configure y -min 30 -max 40
         .polar1 axis configure x2 -min -2 -max 2
         .polar1 axis configure y2 -min -2 -max 2
         update

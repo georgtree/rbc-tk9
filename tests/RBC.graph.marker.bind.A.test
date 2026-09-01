@@ -153,8 +153,12 @@ namespace eval graph.marker {
         update idletasks
     } -body {
         lassign [.graph1 transform 7 5] tipX tipY
-        set x [expr {round($tipX - 25)}]
-        set y [expr {round($tipY + 5)}]
+        #
+        # Pick a point inside the forward part of the last arrowhead,
+        # but well outside the ordinary line shaft.
+        #
+        set x [expr {round($tipX - 18)}]
+        set y [expr {round($tipY + 6)}]
         set ::markerArrowHit 0
         event generate .graph1 <Motion> -x $x -y $y
         event generate .graph1 <ButtonPress-1> -x $x -y $y
