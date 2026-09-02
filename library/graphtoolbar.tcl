@@ -2094,24 +2094,12 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {$text eq {}} {
             return
         }
-        #
-        # -formatx/-formaty are graphtoolbar formatting options, not
-        # RBC text-marker options.
-        #
+        # -formatx/-formaty are graphtoolbar formatting options, not RBC text-marker options.
         set textOptions [dict remove $options -formatx -formaty]
         lassign [my ClosestBarLayout $left $top $right $bottom $text $textOptions] lineX1 lineY1 lineX2 lineY2 textX\
                 textY anchor
-        #
-        # the anchor is geometry-dependent for the bar annotation, so
-        # it intentionally overrides -anchor from -crosshairsmarkopts.
-        # All other text options remain shared with the ordinary closest
-        # marker.
-        #
         dict set textOptions -anchor $anchor
-        #
-        # convert the physical dimension-line endpoints back into the
-        # element's mapped axis coordinates.
-        #
+        # convert the physical dimension-line endpoints back into the element's mapped axis coordinates.
         lassign [my WidgetToAxisValues $lineX1 $lineY1 $mapx $mapy] lineXValue1 lineYValue1
         lassign [my WidgetToAxisValues $lineX2 $lineY2 $mapx $mapy] lineXValue2 lineYValue2
         set lineCoords [list $lineXValue1 $lineYValue1 $lineXValue2 $lineYValue2]
@@ -2143,13 +2131,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set lastArrowMarker  ${lineMarker}LastArrow
         if {($arrowDepth <= 0.0) ||
             ($lineLength >= $minimumInsideLength)} {
-            #
             # Enough room: retain the existing representation.
-            #
             my SetClosestBarLineMarker $lineMarker $lineCoords $mapx $mapy $lineOptions both
-            #
             # Remove auxiliary markers if the bar was previously short.
-            #
             set deleteMarkers [list]
             foreach arrowMarker [list $firstArrowMarker $lastArrowMarker] {
                 if {[$graph marker exists $arrowMarker]} {
@@ -2160,35 +2144,23 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 $graph marker delete {*}$deleteMarkers
             }
         } else {
-            #
             # Not enough room for both arrowheads inside the bar span.
-            #
             # Keep the measured dimension line itself.
-            #
             my SetClosestBarLineMarker $lineMarker $lineCoords $mapx $mapy $lineOptions none
-            #
-            # Unit vector from the first dimension endpoint to the
-            # second one.
-            #
+            # Unit vector from the first dimension endpoint to the second one.
             if {$lineLength > 0.0} {
                 set ux [expr {$dx/$lineLength}]
                 set uy [expr {$dy/$lineLength}]
             } elseif {[$graph cget -invertxy]} {
-                #
                 # Degenerate horizontal bar.
-                #
                 set ux 1.0
                 set uy 0.0
             } else {
-                #
                 # Degenerate vertical bar.
-                #
                 set ux 0.0
                 set uy 1.0
             }
-            #
             # Put one complete arrowhead outside each endpoint.
-            #
             set outsideLength $arrowDepth
             set outerX1 [expr {$lineX1-$ux*$outsideLength}]
             set outerY1 [expr {$lineY1-$uy*$outsideLength}]

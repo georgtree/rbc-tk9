@@ -1028,5 +1028,105 @@ namespace eval polar.element {
         catch {vector destroy ref}
     } -result {1 0 0}
 
+    test RBC.polar.element.closest.A.param.1 {
+        polar element closest: complex data parameter value
+    } -setup {
+        vector create z -type complex
+        z set {{3 4} {1 0}}
+        vector create p
+        p set {100 200}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -5 -max 5
+        .polar1 axis configure y -min -5 -max 5
+        .polar1 element create Element1 -cdata z -param p -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform 3 4] x y
+        set found [.polar1 element closest $x $y info -interpolate 0 -halo 2 Element1]
+        list $found $info(index) $info(param) [expr {[info exists info(radius)]}] [expr {[info exists info(angle)]}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z p
+    } -result {1 0 100.0 1 1}
+
+    test RBC.polar.element.closest.A.param.2 {
+        smith closest: parameter coexists with Smith information
+    } -setup {
+        vector create z -type complex
+        z set {{50 50}}
+        vector create frequency
+        frequency set {2.45e9}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 element create Element1 -cdata z -cdataformat impedance -z0 50 -param frequency -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform 0.2 0.4] x y
+        set found [.polar1 element closest $x $y info -interpolate 0 -halo 2 Element1]
+        list $found [expr {$info(param) == 2.45e9}] [info exists info(gamma)] [info exists info(normalizedImpedance)]\
+                [info exists info(impedance)]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z frequency
+    } -result {1 1 1 1 1}
+
+    test RBC.polar.element.closest.A.param.3 {
+        polar element closest: complex data resize mismatch and recovery
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1}}
+        vector create p
+        p set {10 20}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        .polar1 element create Element1 -cdata z -param p -symbol circle
+        update
+    } -body {
+        #
+        # Grow the plotted data independently.
+        #
+        z set {{1 0} {0 1} {-1 0}}
+        update
+        lassign [.polar1 transform -1 0] x y
+        set foundMismatch [.polar1 element closest $x $y info -interpolate 0 -halo 2 Element1]
+        set mismatchIndex $info(index)
+        set hasParamMismatch [info exists info(param)]
+        unset info
+        #
+        # Restore a one-to-one parameter mapping.
+        #
+        p set {10 20 30}
+        update
+        set foundRecovered [.polar1 element closest $x $y info -interpolate 0 -halo 2 Element1]
+        list $foundMismatch $mismatchIndex $hasParamMismatch $foundRecovered $info(index) $info(param)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z p
+    } -result {1 2 0 1 2 30.0}
+
+    test RBC.polar.element.closest.A.param.4 {
+        polar element closest: XY data parameter value
+    } -setup {
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        .polar1 element create Element1 -data {1 0 0 1} -param {10 20} -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform 0 1] x y
+        set found [.polar1 element closest $x $y info -interpolate 0 -halo 2 Element1]
+        list $found $info(index) $info(param) $info(dataFormat)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+    } -result {1 1 20.0 xy}
+
 	cleanupTests
 }

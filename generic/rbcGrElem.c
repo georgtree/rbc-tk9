@@ -1749,6 +1749,35 @@ void Rbc_FreeElemDataTransaction(ElemDataTransaction *transactionPtr) {
 /*
  *----------------------------------------------------------------------
  *
+ * Rbc_ElemDataTransactionPointCount --
+ *
+ *      Returns the number of X/Y data points that the element would
+ *      contain if the supplied staged data transaction were committed.
+ *
+ *      A NULL transaction means the current live X/Y vectors.
+ *
+ *----------------------------------------------------------------------
+ */
+Tcl_Size Rbc_ElemDataTransactionPointCount(Element *elemPtr, const ElemDataTransaction *transactionPtr) {
+    Tcl_Size nX;
+    Tcl_Size nY;
+
+    nX = elemPtr->x.nValues;
+    nY = elemPtr->y.nValues;
+    if (transactionPtr != NULL) {
+        if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X)) {
+            nX = transactionPtr->x.nValues;
+        }
+        if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y)) {
+            nY = transactionPtr->y.nValues;
+        }
+    }
+    return MIN(nX, nY);
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
  * StageElemDataVector --
  *
  *      Parses one element data-vector option into temporary transaction

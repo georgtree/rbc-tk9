@@ -162,5 +162,136 @@ namespace eval graph.element {
         destroy .graph1
     } -result {element "Element1" is not plotted}
 
+    test RBC.graph.element.closest.A.param.1 {
+        graph element closest: parameter value
+    } -setup {
+        graph .graph1 -width 400 -height 300
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 4
+        .graph1 axis configure y -min 0 -max 4
+        .graph1 element create Element1 -data {1 1 2 2 3 3} -param {10 20 30} -symbol circle
+        update
+    } -body {
+        lassign [.graph1 transform 2 2] x y
+        set found [.graph1 element closest $x $y info -interpolate 0 -halo 2 Element1]
+        list $found $info(index) $info(x) $info(y) $info(param)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .graph1
+    } -result {1 1 2.0 2.0 20.0}
+
+    test RBC.graph.element.closest.A.param.2 {
+        graph element closest: no parameter mapping produces no param key
+    } -setup {
+        graph .graph1 -width 400 -height 300
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 4
+        .graph1 axis configure y -min 0 -max 4
+        .graph1 element create Element1 -data {1 1 2 2 3 3} -symbol circle
+        update
+    } -body {
+        lassign [.graph1 transform 2 2] x y
+        set found [.graph1 element closest $x $y info -interpolate 0 -halo 2 Element1]
+        list $found [info exists info(param)]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .graph1
+    } -result {1 0}
+
+    test RBC.graph.element.closest.A.param.3 {
+        graph element closest: interpolated search reports source-index parameter
+    } -setup {
+        graph .graph1 -width 400 -height 300
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 4
+        .graph1 axis configure y -min 0 -max 4
+        .graph1 element create Element1 -data {1 2 3 2} -param {100 200} -symbol circle
+        update
+    } -body {
+        #
+        # This is halfway along the source segment.  x/y are
+        # interpolated, but index and param intentionally refer to
+        # the source point beginning that segment.
+        #
+        lassign [.graph1 transform 2 2] x y
+        set found [.graph1 element closest $x $y info -interpolate 1 -halo 2 Element1]
+        list $found $info(index) $info(param)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .graph1
+    } -result {1 0 100.0}
+
+    test RBC.graph.element.closest.A.param.4 {
+        graph element closest: external parameter resize mismatch and recovery
+    } -setup {
+        vector create p
+        p set {10 20 30}
+        graph .graph1 -width 400 -height 300
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 4
+        .graph1 axis configure y -min 0 -max 4
+        .graph1 element create Element1 -data {1 1 2 2 3 3} -param p -symbol circle
+        update
+    } -body {
+        lassign [.graph1 transform 3 3] x y
+        .graph1 element closest $x $y info -interpolate 0 -halo 2 Element1
+        set initial $info(param)
+        unset info
+        p set {10 20}
+        update
+        set foundMismatch [.graph1 element closest $x $y info -interpolate 0 -halo 2 Element1]
+        set hasParamMismatch [info exists info(param)]
+        unset info
+        p set {10 20 30}
+        update
+        set foundRecovered [.graph1 element closest $x $y info -interpolate 0 -halo 2 Element1]
+        list $initial $foundMismatch $hasParamMismatch $foundRecovered $info(param)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .graph1
+        vector destroy p
+    } -result {30.0 1 0 1 30.0}
+
+    test RBC.graph.element.closest.A.param.5 {
+        graph element closest: external data resize mismatch and recovery
+    } -setup {
+        vector create xv yv p
+        xv set {1 2 3}
+        yv set {1 2 3}
+        p set {10 20 30}
+        graph .graph1 -width 400 -height 300
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 5
+        .graph1 axis configure y -min 0 -max 5
+        .graph1 element create Element1 -x xv -y yv -param p -symbol circle
+        update
+    } -body {
+        #
+        # Grow both coordinate vectors independently.  Plotting now
+        # contains four points, while the parameter vector still has
+        # only three.
+        #
+        xv set {1 2 3 4}
+        yv set {1 2 3 4}
+        update
+        lassign [.graph1 transform 4 4] x y
+        set foundMismatch [.graph1 element closest $x $y info -interpolate 0 -halo 2 Element1]
+        set mismatchIndex $info(index)
+        set hasParamMismatch [info exists info(param)]
+        unset info
+        #
+        # Restoring matching length must automatically make the
+        # parameter mapping available again.
+        #
+        p set {10 20 30 40}
+        update
+        set foundRecovered [.graph1 element closest $x $y info -interpolate 0 -halo 2 Element1]
+        list $foundMismatch $mismatchIndex $hasParamMismatch $foundRecovered $info(index) $info(param)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .graph1
+        vector destroy xv yv p
+    } -result {1 3 0 1 3 40.0}
+
     cleanupTests
 }

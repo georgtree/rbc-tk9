@@ -128,6 +128,11 @@ typedef struct {
     LineDataMode mode;
 } LineComplexDataTransaction;
 
+typedef struct {
+    int staged;
+    ElemVector param;
+} LineParamTransaction;
+
 typedef enum {
     LINE_CDATA_GAMMA,
     LINE_CDATA_IMPEDANCE,
@@ -250,8 +255,11 @@ typedef struct {
     Tcl_Obj *smoothObjPtr;
     Tcl_Obj *traceObjPtr;
     Tcl_Obj *cDataObjPtr;
+    Tcl_Obj *paramObjPtr;
 
     ElemComplexVector z;
+    ElemVector param;
+
     LineDataMode dataMode;
     LineComplexDataFormat cDataFormat;
     double z0;
@@ -431,6 +439,7 @@ _Static_assert(offsetof(Line, core) == 0, "Element core must be the first Line m
 #define LINE_ELEM_CDATA_MASK (1 << 13)
 #define LINE_ELEM_CDATA_FORMAT_MASK (1 << 14)
 #define LINE_ELEM_Z0_MASK (1 << 15)
+#define LINE_ELEM_PARAM_MASK (1 << 16)
 
 #define LINE_ELEM_COMPLEX_TRANSFORM_MASK (LINE_ELEM_CDATA_FORMAT_MASK | LINE_ELEM_Z0_MASK)
 
@@ -965,20 +974,13 @@ typedef struct {
     }
 
 static const Tk_OptionSpec lineElemOptionSpecs[] = {
-    LINE_ELEMENT_OPTION_ENTRIES(
-        LINE_ELEMENT_AREA_OPTION_ENTRIES,
-        LINE_ELEMENT_REDUCE_OPTION_ENTRY,
-        LINE_ELEMENT_STATE_OPTION_ENTRY,
-        LINE_ELEMENT_TRACE_OPTION_ENTRY),
+    LINE_ELEMENT_OPTION_ENTRIES(LINE_ELEMENT_AREA_OPTION_ENTRIES, LINE_ELEMENT_REDUCE_OPTION_ENTRY,
+                                LINE_ELEMENT_STATE_OPTION_ENTRY, LINE_ELEMENT_TRACE_OPTION_ENTRY),
 
-    {
-        TK_OPTION_END,
-        NULL, NULL, NULL, NULL,
-        0, 0, 0,
-        NULL,
-        0
-    }
-};
+    {TK_OPTION_STRING, "-param", "param", "Param", NULL, offsetof(Line, paramObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     LINE_ELEM_PARAM_MASK},
+
+    {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 static const Tk_OptionSpec stripElemOptionSpecs[] = {
     LINE_ELEMENT_OPTION_ENTRIES(
@@ -1221,6 +1223,9 @@ static const Tk_OptionSpec polarElemOptionSpecs[] = {
     LINE_ELEMENT_OPTION_ENTRIES(LINE_ELEMENT_AREA_OPTION_ENTRIES, LINE_ELEMENT_REDUCE_OPTION_ENTRY,
                                 LINE_ELEMENT_STATE_OPTION_ENTRY, LINE_ELEMENT_TRACE_OPTION_ENTRY),
 
+    {TK_OPTION_STRING, "-param", "param", "Param", NULL, offsetof(Line, paramObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     LINE_ELEM_PARAM_MASK},
+
     {TK_OPTION_STRING, "-cdata", "cData", "CData", NULL, offsetof(Line, cDataObjPtr), -1, TK_OPTION_NULL_OK, NULL,
      LINE_ELEM_CDATA_MASK | LINE_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_STRING_TABLE, "-cdataformat", "cDataFormat", "CDataFormat", DEF_LINE_CDATA_FORMAT, -1,
@@ -1238,6 +1243,7 @@ typedef double(DistanceProc)(int x, int y, Point2D *p, Point2D *q, Point2D *t);
 static PenConfigureProc ConfigurePen;
 static PenDestroyProc DestroyPen;
 static ElementClosestProc ClosestLine;
+static ElementClosestInfoProc LineClosestInfo;
 static ElementClosestInfoProc PolarClosestInfo;
 static ElementConfigProc ConfigureLine;
 static ElementDestroyProc DestroyLine;
@@ -1729,6 +1735,209 @@ static void FreeLineComplexDataTransaction(LineComplexDataTransaction *transacti
         FreeComplexVector(&transactionPtr->z);
     }
     memset(transactionPtr, 0, sizeof(*transactionPtr));
+}
+
+static void SyncLineParamVector(ElemVector *vPtr) {
+    vPtr->nValues = Rbc_VectorLength(vPtr->vecPtr);
+    vPtr->arraySize = Rbc_VectorSize(vPtr->vecPtr);
+    vPtr->valueArr = Rbc_VectorData(vPtr->vecPtr);
+    Rbc_VectorGetRange(vPtr->vecPtr, &vPtr->min, &vPtr->max);
+}
+
+/*
+ * Parameter-vector changes do not affect element geometry, axes, or
+ * drawing.  Only keep the parallel parameter storage synchronized.
+ */
+static void LineParamVectorChangedProc(Tcl_Interp *interp, ClientData clientData, Rbc_VectorNotify notify) {
+    ElemVector *vPtr;
+
+    vPtr = clientData;
+    switch (notify) {
+    case RBC_VECTOR_NOTIFY_DESTROY:
+        vPtr->clientId = NULL;
+        vPtr->vecPtr = NULL;
+        vPtr->valueArr = NULL;
+        vPtr->nValues = 0;
+        vPtr->arraySize = 0;
+        break;
+    case RBC_VECTOR_NOTIFY_UPDATE:
+    default:
+        if (Rbc_GetVectorById(interp, vPtr->clientId, &vPtr->vecPtr) == TCL_OK) {
+            SyncLineParamVector(vPtr);
+        } else {
+            /*
+             * Never leave a potentially stale valueArr accessible if
+             * the vector can no longer be resolved.
+             */
+            vPtr->vecPtr = NULL;
+            vPtr->valueArr = NULL;
+            vPtr->nValues = 0;
+            vPtr->arraySize = 0;
+        }
+        break;
+    }
+}
+
+static int StageLineParam(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, LineParamTransaction *transactionPtr) {
+    ElemVector candidate;
+
+    memset(&candidate, 0, sizeof(candidate));
+    if (Rbc_ParseElemVectorObj(interp, elemPtr, objPtr, &candidate) != TCL_OK) {
+        Rbc_FreeElemVector(&candidate);
+        return TCL_ERROR;
+    }
+    if (transactionPtr->staged) {
+        Rbc_FreeElemVector(&transactionPtr->param);
+    }
+    transactionPtr->param = candidate;
+    transactionPtr->staged = TRUE;
+    return TCL_OK;
+}
+
+static int PrepareLineParamTransaction(Graph *graphPtr, Element *elemPtr, Line *linePtr,
+                                       LineParamTransaction *transactionPtr) {
+    int explicitParam;
+    Tcl_Size i;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+    explicitParam = FALSE;
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        const char *name;
+
+        name = Rbc_GetCanonicalOptionName(elemPtr->optionObjv[i], elemPtr->optionSpecs);
+        if ((name != NULL) && (strcmp(name, "-param") == 0)) {
+            explicitParam = TRUE;
+        }
+    }
+    /*
+     * Process an option-database value on the first configuration
+     * unless the caller explicitly supplied -param.
+     */
+    if (!elemPtr->optionsConfigured && !explicitParam && (linePtr->paramObjPtr != NULL)) {
+        if (StageLineParam(graphPtr->interp, elemPtr, linePtr->paramObjPtr, transactionPtr) != TCL_OK) {
+            goto error;
+        }
+    }
+    /*
+     * Process explicit occurrences in caller order.  Thus an invalid
+     * earlier repeated -param still makes the whole configure fail.
+     */
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        const char *name;
+
+        name = Rbc_GetCanonicalOptionName(elemPtr->optionObjv[i], elemPtr->optionSpecs);
+        if ((name != NULL) && (strcmp(name, "-param") == 0)) {
+            if (StageLineParam(graphPtr->interp, elemPtr, elemPtr->optionObjv[i + 1], transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        }
+    }
+    return TCL_OK;
+
+error:
+    if (transactionPtr->staged) {
+        Rbc_FreeElemVector(&transactionPtr->param);
+    }
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+    return TCL_ERROR;
+}
+
+static void CommitLineParamTransaction(Line *linePtr, LineParamTransaction *transactionPtr) {
+    if (!transactionPtr->staged) {
+        return;
+    }
+    Rbc_FreeElemVector(&linePtr->param);
+    linePtr->param = transactionPtr->param;
+    memset(&transactionPtr->param, 0, sizeof(transactionPtr->param));
+    linePtr->param.elemPtr = &linePtr->core;
+    if (linePtr->param.clientId != NULL) {
+        Rbc_SetVectorChangedProc(linePtr->param.clientId, LineParamVectorChangedProc, &linePtr->param);
+    }
+    transactionPtr->staged = FALSE;
+}
+
+static void FreeLineParamTransaction(LineParamTransaction *transactionPtr) {
+    if (transactionPtr->staged) {
+        Rbc_FreeElemVector(&transactionPtr->param);
+    }
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+}
+
+static int LineParamConfigured(Line *linePtr) {
+    return ((linePtr->paramObjPtr != NULL) && (Tcl_GetCharLength(linePtr->paramObjPtr) > 0));
+}
+
+/*
+ * Only changes capable of altering the point-to-parameter relationship
+ * require strict length validation.
+ *
+ * Other configuration changes remain legal while independently resized
+ * external data/parameter vectors are temporarily mismatched.
+ */
+static int LineParamLengthValidationNeeded(Element *elemPtr) {
+    Tcl_Size i;
+
+    if (!elemPtr->optionsConfigured) {
+        return TRUE;
+    }
+    for (i = 0; i < elemPtr->optionObjc; i += 2) {
+        const char *name;
+
+        name = Rbc_GetCanonicalOptionName(elemPtr->optionObjv[i], elemPtr->optionSpecs);
+        if (name == NULL) {
+            continue;
+        }
+        if ((strcmp(name, "-param") == 0) || (strcmp(name, "-data") == 0) || (strcmp(name, "-x") == 0) ||
+            (strcmp(name, "-y") == 0) || (strcmp(name, "-cdata") == 0)) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+static Tcl_Size ProspectiveLinePointCount(Line *linePtr, const ElemDataTransaction *dataTransactionPtr,
+                                          const LineComplexDataTransaction *complexDataTransactionPtr) {
+    LineDataMode mode;
+
+    mode = linePtr->dataMode;
+    if (complexDataTransactionPtr != NULL) {
+        mode = complexDataTransactionPtr->mode;
+    }
+    if (mode == LINE_DATA_COMPLEX) {
+        if ((complexDataTransactionPtr != NULL) && complexDataTransactionPtr->staged) {
+            return complexDataTransactionPtr->z.nValues;
+        }
+        return linePtr->z.nValues;
+    }
+    return Rbc_ElemDataTransactionPointCount(&linePtr->core, dataTransactionPtr);
+}
+
+static int ValidateLineParamLength(Graph *graphPtr, Line *linePtr, const ElemDataTransaction *dataTransactionPtr,
+                                   const LineComplexDataTransaction *complexDataTransactionPtr,
+                                   const LineParamTransaction *paramTransactionPtr) {
+    Tcl_Size nParam;
+    Tcl_Size nPoints;
+
+    /*
+     * Empty -param disables the parallel parameter mapping.
+     */
+    if (!LineParamConfigured(linePtr)) {
+        return TCL_OK;
+    }
+    if ((paramTransactionPtr != NULL) && paramTransactionPtr->staged) {
+        nParam = paramTransactionPtr->param.nValues;
+    } else {
+        nParam = linePtr->param.nValues;
+    }
+    nPoints = ProspectiveLinePointCount(linePtr, dataTransactionPtr, complexDataTransactionPtr);
+    if (nParam != nPoints) {
+        Tcl_SetObjResult(graphPtr->interp,
+                         Tcl_ObjPrintf("parameter vector has %" TCL_SIZE_MODIFIER
+                                       "d values, but element has %" TCL_SIZE_MODIFIER "d data points",
+                                       nParam, nPoints));
+        return TCL_ERROR;
+    }
+    return TCL_OK;
 }
 
 /*
@@ -5722,6 +5931,7 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     LineScalarTransaction scalarTransaction;
     LineAreaTransaction areaTransaction;
     LineComplexDataTransaction complexDataTransaction;
+    LineParamTransaction paramTransaction;
     Rbc_ChainLink *linkPtr;
     int dataTransactionPrepared;
     int penTransactionPrepared;
@@ -5732,6 +5942,7 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     int scalarTransactionPrepared;
     int areaTransactionPrepared;
     int complexDataTransactionPrepared;
+    int paramTransactionPrepared;    
 
     linePtr = LINE_FROM_CORE(elemPtr);
 
@@ -5744,6 +5955,7 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     memset(&scalarTransaction, 0, sizeof(scalarTransaction));
     memset(&areaTransaction, 0, sizeof(areaTransaction));
     memset(&complexDataTransaction, 0, sizeof(complexDataTransaction));
+    memset(&paramTransaction, 0, sizeof(paramTransaction));
 
     dataTransactionPrepared = FALSE;
     penTransactionPrepared = FALSE;
@@ -5754,6 +5966,7 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     scalarTransactionPrepared = FALSE;
     areaTransactionPrepared = FALSE;
     complexDataTransactionPrepared = FALSE;
+    paramTransactionPrepared = FALSE;
 
     /*
      * Parse all data-vector replacements before modifying the live
@@ -5766,7 +5979,6 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
 
         dataTransactionPrepared = TRUE;
     }
-
     if ((elemPtr->classUid == rbcPolarElementUid) &&
         ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & (LINE_ELEM_DATA_MASK | LINE_ELEM_CDATA_MASK)))) {
         if (PrepareLineComplexDataTransaction(graphPtr, elemPtr, linePtr, &complexDataTransaction) != TCL_OK) {
@@ -5774,7 +5986,31 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
         }
         complexDataTransactionPrepared = TRUE;
     }
+    /*
+     * -param is available for graph line and Polar elements, but not
+     * strip elements.
+     */
+    if (((elemPtr->classUid == rbcLineElementUid) || (elemPtr->classUid == rbcPolarElementUid)) &&
+        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_PARAM_MASK))) {
+        if (PrepareLineParamTransaction(graphPtr, elemPtr, linePtr, &paramTransaction) != TCL_OK) {
+            goto error;
+        }
 
+        paramTransactionPrepared = TRUE;
+    }
+
+    /*
+     * Validate the prospective complete data/parameter state before any
+     * transaction is committed.
+     */
+    if (((elemPtr->classUid == rbcLineElementUid) || (elemPtr->classUid == rbcPolarElementUid)) &&
+        LineParamLengthValidationNeeded(elemPtr)) {
+        if (ValidateLineParamLength(graphPtr, linePtr, dataTransactionPrepared ? &dataTransaction : NULL,
+                                    complexDataTransactionPrepared ? &complexDataTransaction : NULL,
+                                    paramTransactionPrepared ? &paramTransaction : NULL) != TCL_OK) {
+            goto error;
+        }
+    }
     /*
      * Resolve named active and normal pens before modifying the live
      * element. Line, strip, and polar elements all require line-type pens.
@@ -5786,7 +6022,6 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
 
         penTransactionPrepared = TRUE;
     }
-
     /*
      * Resolve the X and Y axis mappings before modifying the live
      * element.
@@ -5798,7 +6033,6 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
 
         axisTransactionPrepared = TRUE;
     }
-
     /*
      * Parse the element state before modifying the live element.
      *
@@ -5950,6 +6184,10 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
         CommitLineComplexDataTransaction(linePtr, &complexDataTransaction);
     }
 
+    if (paramTransactionPrepared) {
+        CommitLineParamTransaction(linePtr, &paramTransaction);
+    }
+
     if (!elemPtr->optionsConfigured || (elemPtr->optionMask & LINE_ELEM_SCALE_SYMBOL_MASK)) {
         elemPtr->flags |= MAP_ITEM | SCALE_SYMBOL;
     }
@@ -5987,6 +6225,10 @@ error:
 
     if (complexDataTransactionPrepared) {
         FreeLineComplexDataTransaction(&complexDataTransaction);
+    }
+
+    if (paramTransactionPrepared) {
+        FreeLineParamTransaction(&paramTransaction);
     }
 
     return TCL_ERROR;
@@ -6051,6 +6293,42 @@ static void ClosestLine(Graph *graphPtr, Element *elemPtr, ClosestSearch *search
     }
 }
 
+static int AppendLineParamClosestInfo(Graph *graphPtr, Line *linePtr, const ClosestSearch *searchPtr,
+                                      Tcl_Obj *varNameObjPtr) {
+    ElemVector *paramPtr;
+    Tcl_Size nPoints;
+
+    paramPtr = &linePtr->param;
+    /*
+     * A named parameter vector may have changed but not yet delivered
+     * its notification.  Never inspect a potentially stale valueArr.
+     */
+    if ((paramPtr->clientId != NULL) && Rbc_VectorNotifyPending(paramPtr->clientId)) {
+        return TCL_OK;
+    }
+    nPoints = NumberOfPoints(&linePtr->core);
+    /*
+     * Independent external-vector resizing is permitted.  While the
+     * lengths disagree, simply omit parameter information.
+     */
+    if ((nPoints <= 0) || (paramPtr->nValues != nPoints) || (paramPtr->valueArr == NULL)) {
+        return TCL_OK;
+    }
+    if ((searchPtr->index < 0) || (searchPtr->index >= paramPtr->nValues)) {
+        return TCL_OK;
+    }
+    /*
+     * For interpolated closest searches, param follows the same source
+     * index reported by info(index).  It is intentionally not a
+     * geometrically interpolated parameter value.
+     */
+    return SetClosestInfoDouble(graphPtr->interp, varNameObjPtr, "param", paramPtr->valueArr[searchPtr->index]);
+}
+
+static int LineClosestInfo(Graph *graphPtr, Element *elemPtr, const ClosestSearch *searchPtr, Tcl_Obj *varNameObjPtr) {
+    return AppendLineParamClosestInfo(graphPtr, LINE_FROM_CORE(elemPtr), searchPtr, varNameObjPtr);
+}
+
 static int PolarClosestInfo(Graph *graphPtr, Element *elemPtr, const ClosestSearch *searchPtr, Tcl_Obj *varNameObjPtr) {
     Line *linePtr;
     Tcl_Interp *interp;
@@ -6061,6 +6339,9 @@ static int PolarClosestInfo(Graph *graphPtr, Element *elemPtr, const ClosestSear
 
     linePtr = LINE_FROM_CORE(elemPtr);
     interp = graphPtr->interp;
+    if (AppendLineParamClosestInfo(graphPtr, linePtr, searchPtr, varNameObjPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
     /*
      * search.point is always the final plotted Cartesian coordinate.
      *
@@ -7947,6 +8228,7 @@ static void DestroyLine(Graph *graphPtr, Element *elemPtr) {
     Rbc_FreeElemVector(&elemPtr->yHigh);
     Rbc_FreeElemVector(&elemPtr->yLow);
     Rbc_FreeElemVector(&elemPtr->yError);
+    Rbc_FreeElemVector(&linePtr->param);
     FreeComplexVector(&linePtr->z);
     ResetLine(linePtr);
     if (elemPtr->palette != NULL) {
@@ -7994,7 +8276,7 @@ static ElementProcs lineProcs = {
     SymbolToPostScript,     /* Prints the line's symbol. */
     MapLine,                /* Compute element's screen coordinates. */
     NULL,                   /* Ordinary X/Y point count. */
-    NULL                    /* No extended closest information. */
+    LineClosestInfo         /* Optional parameter information. */
 };
 
 static ElementProcs polarLineProcs = {

@@ -4218,5 +4218,170 @@ namespace eval graph.element {
 		destroy .graph1
 	} -result {0}
 
+    # ------------------------------------------------------------------------------------
+    # Parameter vector
+    # ------------------------------------------------------------------------------------
+
+    test RBC.graph.element.configure.A.param.1 {
+        graph element configure: literal parameter vector
+    } -setup {
+        graph .graph1
+        .graph1 element create Element1 -data {1 1 2 2 3 3}
+    } -body {
+        .graph1 element configure Element1 -param {10 20 30}
+        .graph1 element cget Element1 -param
+    } -cleanup {
+        destroy .graph1
+    } -result {10 20 30}
+
+    test RBC.graph.element.configure.A.param.2 {
+        graph element configure: named parameter vector
+    } -setup {
+        vector create p
+        p set {10 20 30}
+        graph .graph1
+        .graph1 element create Element1 -data {1 1 2 2 3 3} -param p
+    } -body {
+        .graph1 element cget Element1 -param
+    } -cleanup {
+        destroy .graph1
+        vector destroy p
+    } -result {p}
+
+    test RBC.graph.element.configure.A.param.3 {
+        graph element configure: complex parameter vector rejected and rolled back
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {2 0} {3 0}}
+        graph .graph1
+        .graph1 element create Element1 -data {1 1 2 2 3 3} -param {10 20 30}
+    } -body {
+        set code [catch {.graph1 element configure Element1 -param z} message]
+        list $code $message [.graph1 element cget Element1 -param]
+    } -cleanup {
+        destroy .graph1
+        vector destroy z
+    } -result {1 {vector "z" is complex; graph elements require real vectors} {10 20 30}}
+
+    test RBC.graph.element.configure.A.param.4 {
+        graph element configure: wrong parameter length rolls back
+    } -setup {
+        graph .graph1
+        .graph1 element create Element1 -data {1 1 2 2 3 3} -param {10 20 30}
+    } -body {
+        set code [catch {.graph1 element configure Element1 -param {100 200}} message]
+        list $code $message [.graph1 element cget Element1 -param]
+    } -cleanup {
+        destroy .graph1
+    } -result {1 {parameter vector has 2 values, but element has 3 data points} {10 20 30}}
+
+    test RBC.graph.element.configure.A.param.5 {
+        graph element configure: data and parameter length change atomically
+    } -setup {
+        graph .graph1
+        .graph1 element create Element1 -data {1 1 2 2 3 3} -param {10 20 30}
+    } -body {
+        .graph1 element configure Element1 -data {1 1 2 2 3 3 4 4} -param {10 20 30 40}
+        list [.graph1 element cget Element1 -data] [.graph1 element cget Element1 -param]
+    } -cleanup {
+        destroy .graph1
+    } -result {{1 1 2 2 3 3 4 4} {10 20 30 40}}
+
+    test RBC.graph.element.configure.A.param.6 {
+        graph element configure: data length change alone is rejected
+    } -setup {
+        graph .graph1
+        .graph1 element create Element1 -data {1 1 2 2 3 3} -param {10 20 30}
+    } -body {
+        set code [catch {.graph1 element configure Element1 -data {1 1 2 2 3 3 4 4}} message]
+        list $code $message [.graph1 element cget Element1 -data] [.graph1 element cget Element1 -param]
+    } -cleanup {
+        destroy .graph1
+    } -result {1 {parameter vector has 3 values, but element has 4 data points} {1 1 2 2 3 3} {10 20 30}}
+
+    test RBC.graph.element.configure.A.param.7 {
+        graph element configure: empty parameter disables mapping
+    } -setup {
+        graph .graph1
+        .graph1 element create Element1 -data {1 1 2 2 3 3} -param {10 20 30}
+    } -body {
+        .graph1 element configure Element1 -param {}
+        .graph1 element configure Element1 -data {1 1 2 2 3 3 4 4}
+        list [.graph1 element cget Element1 -param] [.graph1 element cget Element1 -data]
+    } -cleanup {
+        destroy .graph1
+    } -result {{} {1 1 2 2 3 3 4 4}}
+
+    test RBC.graph.element.configure.A.param.8 {
+        graph element configure: external parameter mismatch does not block unrelated configure
+    } -setup {
+        vector create p
+        p set {10 20 30}
+        graph .graph1
+        .graph1 element create Element1 -data {1 1 2 2 3 3} -param p
+    } -body {
+        #
+        # External resizing may temporarily invalidate the parallel
+        # mapping, but must not make the element generally unconfigurable.
+        #
+        p set {10 20}
+        update
+        set code [catch {.graph1 element configure Element1 -color red}]
+        list $code [.graph1 element cget Element1 -color] [.graph1 element cget Element1 -param]
+    } -cleanup {
+        destroy .graph1
+        vector destroy p
+    } -result {0 red p}
+
+    test RBC.graph.element.configure.A.param.9 {
+        graph element configure: replacing parameter vector releases old client
+    } -setup {
+        vector create p1
+        p1 set {10 20 30}
+        vector create p2
+        p2 set {40 50 60}
+        graph .graph1
+        .graph1 element create Element1 -data {1 1 2 2 3 3} -param p1
+    } -body {
+        .graph1 element configure Element1 -param p2
+        #
+        # p1 must no longer own a callback into Element1.
+        #
+        set destroyCode [catch {vector destroy p1}]
+        list $destroyCode [.graph1 element cget Element1 -param]
+    } -cleanup {
+        destroy .graph1
+        catch {vector destroy p1}
+        catch {vector destroy p2}
+    } -result {0 p2}
+
+    test RBC.graph.element.configure.A.param.10 {
+        graph element configure: deleting element releases parameter vector client
+    } -setup {
+        vector create p
+        p set {10 20 30}
+        graph .graph1
+        .graph1 element create Element1 -data {1 1 2 2 3 3} -param p
+    } -body {
+        .graph1 element delete Element1
+        set updateCode [catch {p set {40 50 60}}]
+        set destroyCode [catch {vector destroy p}]
+        list $updateCode $destroyCode
+    } -cleanup {
+        destroy .graph1
+        catch {vector destroy p}
+    } -result {0 0}
+
+    test RBC.graph.element.configure.A.param.11 {
+        graph element configure: failed parameter create leaves no element
+    } -setup {
+        graph .graph1
+    } -body {
+        set code [catch {.graph1 element create Element1 -data {1 1 2 2 3 3} -param {10 20}} message]
+        list $code [.graph1 element exists Element1] $message
+    } -cleanup {
+        destroy .graph1
+    } -result {1 0 {parameter vector has 2 values, but element has 3 data points}}
+
 	cleanupTests
 }

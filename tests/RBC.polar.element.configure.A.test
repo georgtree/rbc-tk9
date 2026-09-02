@@ -280,6 +280,127 @@ namespace eval polar.element {
         vector destroy r
     } -result {1 0}
 
+    test RBC.polar.element.configure.A.param.1 {
+        polar element configure: complex data with parameter vector
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0}}
+        vector create p
+        p set {10 20 30}
+        polar .polar1
+        .polar1 element create Element1 -cdata z -param p
+    } -body {
+        list [.polar1 element cget Element1 -cdata] [.polar1 element cget Element1 -param]
+    } -cleanup {
+        destroy .polar1
+        vector destroy z p
+    } -result {z p}
+
+    test RBC.polar.element.configure.A.param.2 {
+        polar element configure: parameter length mismatch on create
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0}}
+        vector create p
+        p set {10 20}
+        polar .polar1
+    } -body {
+        set code [catch {.polar1 element create Element1 -cdata z -param p} message]
+        list $code [.polar1 element exists Element1] $message
+    } -cleanup {
+        destroy .polar1
+        vector destroy z p
+    } -result {1 0 {parameter vector has 2 values, but element has 3 data points}}
+
+    test RBC.polar.element.configure.A.param.3 {
+        polar element configure: complex data and parameter resize atomically
+    } -setup {
+        vector create z1 -type complex
+        z1 set {{1 0} {0 1}}
+        vector create z2 -type complex
+        z2 set {{1 0} {0 1} {-1 0}}
+        vector create p1
+        p1 set {10 20}
+        vector create p2
+        p2 set {10 20 30}
+        polar .polar1
+        .polar1 element create Element1 -cdata z1 -param p1
+    } -body {
+        .polar1 element configure Element1 -cdata z2 -param p2
+        list [.polar1 element cget Element1 -cdata] [.polar1 element cget Element1 -param]
+    } -cleanup {
+        destroy .polar1
+        vector destroy z1 z2 p1 p2
+    } -result {z2 p2}
+
+    test RBC.polar.element.configure.A.param.4 {
+        polar element configure: complex data length change alone rolls back
+    } -setup {
+        vector create z1 -type complex
+        z1 set {{1 0} {0 1}}
+        vector create z2 -type complex
+        z2 set {{1 0} {0 1} {-1 0}}
+        vector create p
+        p set {10 20}
+        polar .polar1
+        .polar1 element create Element1 -cdata z1 -param p
+    } -body {
+        set code [catch { .polar1 element configure Element1 -cdata z2 } message]
+        list $code $message [.polar1 element cget Element1 -cdata] [.polar1 element cget Element1 -param]
+    } -cleanup {
+        destroy .polar1
+        vector destroy z1 z2 p
+    } -result {1 {parameter vector has 2 values, but element has 3 data points} z1 p}
+
+    test RBC.polar.element.configure.A.param.5 {
+        polar element configure: switch complex to XY with matching parameter
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1}}
+        polar .polar1
+        .polar1 element create Element1 -cdata z -param {10 20}
+    } -body {
+        .polar1 element configure Element1 -data {8 8 9 9 10 10} -param {1 2 3}
+        list [.polar1 element cget Element1 -cdata] [.polar1 element cget Element1 -data] [.polar1 element cget\
+        Element1 -param]
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {{} {8 8 9 9 10 10} {1 2 3}}
+
+    test RBC.polar.element.configure.A.param.6 {
+        polar element configure: switch XY to complex with matching parameter
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0}}
+        polar .polar1
+        .polar1 element create Element1 -data {8 8 9 9} -param {1 2}
+    } -body {
+        .polar1 element configure Element1 -cdata z -param {10 20 30}
+        list [.polar1 element cget Element1 -cdata] [.polar1 element cget Element1 -param]
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {z {10 20 30}}
+
+    test RBC.polar.element.configure.A.param.7 {
+        polar element configure: empty parameter allows later complex data length change
+    } -setup {
+        vector create z1 -type complex
+        z1 set {{1 0} {0 1}}
+        vector create z2 -type complex
+        z2 set {{1 0} {0 1} {-1 0}}
+        polar .polar1
+        .polar1 element create Element1 -cdata z1 -param {10 20}
+    } -body {
+        .polar1 element configure Element1 -param {}
+        .polar1 element configure Element1 -cdata z2
+        list [.polar1 element cget Element1 -cdata] [.polar1 element cget Element1 -param]
+    } -cleanup {
+        destroy .polar1
+        vector destroy z1 z2
+    } -result {z2 {}}
+
     test RBC.polar.element.configure.A.cformat.1 {
         polar complex data format: defaults
     } -setup {

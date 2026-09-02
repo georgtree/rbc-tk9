@@ -3658,5 +3658,16 @@ namespace eval stripchart.element {
 		destroy .stripchart1
 	} -result {0}
 
+    test RBC.stripchart.element.configure.A.param.1 {
+        stripchart element configure: parameter option is not exposed
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 element create Element1 -data {1 1 2 2}
+    } -body {
+        catch {.stripchart1 element configure Element1 -param {10 20}}
+    } -cleanup {
+        destroy .stripchart1
+    } -result {1}
+
 	cleanupTests
 }

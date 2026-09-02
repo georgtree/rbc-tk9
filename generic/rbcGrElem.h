@@ -407,6 +407,10 @@ int Rbc_PrepareElemStylesTransaction(Graph *graphPtr, Element *elemPtr, Rbc_Uid 
                                      ElemStylesTransaction *transactionPtr);
 void Rbc_CommitElemStylesTransaction(Graph *graphPtr, Element *elemPtr, ElemStylesTransaction *transactionPtr);
 void Rbc_FreeElemStylesTransaction(Graph *graphPtr, ElemStylesTransaction *transactionPtr);
+int Rbc_PrepareElemDataTransaction(Graph *graphPtr, Element *elemPtr, ElemDataTransaction *transactionPtr);
+Tcl_Size Rbc_ElemDataTransactionPointCount(Element *elemPtr, const ElemDataTransaction *transactionPtr);
+void Rbc_CommitElemDataTransaction(Element *elemPtr, ElemDataTransaction *transactionPtr);
+void Rbc_FreeElemDataTransaction(ElemDataTransaction *transactionPtr);
 void Rbc_FreePalette(Graph *graphPtr, Rbc_Chain *palette);
 void Rbc_DestroyPalette(Graph *graphPtr, Rbc_Chain *palette);
 int Rbc_ParseStylesObj(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, size_t styleSize, Rbc_Chain **palettePtrPtr);
