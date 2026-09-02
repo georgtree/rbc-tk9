@@ -3454,6 +3454,142 @@ test crossInteractive-12 {multi-stage zoom restores alternating linear and logar
     destroy $widget
 }
 
+test crossInteractive-13 {zoom B motion passes through plotarea legend without activating it}\
+        -constraints {isInteractive isCross} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoommark -zoomboxopts {-linewidth 1} -activelegend]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {zoom B motion passes through plotarea legend without activating it} {*}$titleFont
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min 0 -max 10
+    $widget graph element create line1 -data {1 2 5 5 9 8}
+    $widget graph element create line2 -data {1 8 5 6 9 2}
+    $widget graph legend configure -position plotarea -anchor ne
+    set graph [$widget subwidget graph]
+    set element line1
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    lassign [FindLegendPoint $graph $element] legendX legendY
+    #
+    # Start A well away from the upper-right legend.
+    #
+    set aX [expr {$left+$width/4}]
+    set aY [expr {$top+$height*3/4}]
+    GenerateGraphEvent $graph <ButtonPress-1> $aX $aY $defaultDelay
+    #
+    # First move B somewhere outside the legend.
+    #
+    set beforeX [expr {$left+$width/2}]
+    set beforeY [expr {$top+$height/2}]
+    GenerateGraphEvent $graph <Motion> $beforeX $beforeY $defaultDelay
+    set before [MarkerWidgetCoords $graph gtbZoomOutline]
+    set beforeB [list [lindex $before 2] [lindex $before 5]]
+    #
+    # Now move directly onto a legend entry.  The zoom rectangle must
+    # continue following B instead of stopping at the legend boundary.
+    #
+    GenerateGraphEvent $graph <Motion> $legendX $legendY $defaultDelay
+    set after [MarkerWidgetCoords $graph gtbZoomOutline]
+    set afterB [list [lindex $after 2] [lindex $after 5]]
+    #
+    # Active-legend hover highlighting must be suppressed while B is
+    # being selected.
+    #
+    set legendActive [expr {$element in [$graph legend activate]}]
+    list [expr {![approxPixelCoordsEqual $beforeB $afterB]}]\
+            [approxPixelCoordsEqual $afterB [list $legendX $legendY] 1.5] $legendActive
+} -cleanup {
+    destroy $widget
+} -result {1 true 0}
+
+test crossInteractive-14 {clicking zoom B on plotarea legend cancels zoom and consumes legend click}\
+        -constraints {isInteractive isCross} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
+                        -zoomboxopts {-linewidth 1} -activelegend]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {clicking zoom B on plotarea legend cancels zoom and consumes legend click}\
+            {*}$titleFont
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min 0 -max 10
+    $widget graph element create line1 -data {1 2 5 5 9 8}
+    $widget graph element create line2 -data {1 8 5 6 9 2}
+    $widget graph legend configure -position plotarea -anchor ne
+    set graph [$widget subwidget graph]
+    set element line1
+} -body {
+    WaitForWindow $graph
+    set initialLimits [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    lassign [$graph extents plotarea] left top width height
+    lassign [FindLegendPoint $graph $element] legendX legendY
+    set aX [expr {$left+$width/4}]
+    set aY [expr {$top+$height*3/4}]
+    #
+    # Start the zoom and move B onto the legend.
+    #
+    GenerateGraphEvent $graph <ButtonPress-1> $aX $aY $defaultDelay
+    GenerateGraphEvent $graph <Motion> $legendX $legendY $defaultDelay
+    set boxBeforeClick [$graph marker exists gtbZoomOutline]
+    #
+    # Clicking B on the legend aborts the selection.  This same click
+    # must not perform normal -> active on the legend entry.
+    #
+    GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $legendX $legendY 20
+    set limitsAfterCancel [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    set zoomMarkersAfterCancel [$graph marker names gtbZoom*]
+    set stateAfterCancel [list [expr {$element in [$graph element activate]}]\
+                                  [$graph element cget $element -hideplot] [$graph element cget $element -labelrelief]\
+                                  [expr {$element in [$graph legend activate]}]]
+    #
+    # The suppression is only for that one physical click.  A second
+    # click at the same legend entry must work normally.
+    #
+    GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $legendX $legendY 20
+    set stateAfterSecondClick [list [expr {$element in [$graph element activate]}]\
+                                       [$graph element cget $element -hideplot]\
+                                       [$graph element cget $element -labelrelief]]
+    list $boxBeforeClick [approxNestedEqual $limitsAfterCancel $initialLimits] $zoomMarkersAfterCancel\
+            $stateAfterCancel $stateAfterSecondClick
+} -cleanup {
+    destroy $widget
+} -result {1 true {} {0 0 flat 0} {1 0 raised}}
+
+test crossInteractive-15 {plotarea legend remains normally interactive while zoom is waiting for A}\
+        -constraints {isInteractive isCross} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoommark -activelegend]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {plotarea legend remains normally interactive while zoom is waiting for A}\
+            {*}$titleFont
+    $widget graph axis configure x -min 0 -max 10
+    $widget graph axis configure y -min 0 -max 10
+    $widget graph element create line1 -data {1 2 5 5 9 8}
+    $widget graph element create line2 -data {1 8 5 6 9 2}
+    $widget graph legend configure -position plotarea -anchor ne
+    set graph [$widget subwidget graph]
+    set element line1
+} -body {
+    WaitForWindow $graph
+    lassign [FindLegendPoint $graph $element] legendX legendY
+    #
+    # With zoom waiting for A, normal legend hover behaviour is still
+    # enabled.
+    #
+    GenerateGraphEvent $graph <Motion> $legendX $legendY $defaultDelay
+    set hoverActive [expr {$element in [$graph legend activate]}]
+    #
+    # The click cannot become zoom point A because it is on the legend,
+    # but it must still perform the ordinary active-legend toggle.
+    #
+    GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $legendX $legendY 20
+    set persistentState [list [expr {$element in [$graph element activate]}] [$graph element cget $element -hideplot]\
+                                 [$graph element cget $element -labelrelief]]
+    list $hoverActive [$graph marker names gtbZoom*] $persistentState
+} -cleanup {
+    destroy $widget
+} -result {1 {} {1 0 raised}}
+
 #### active legend
 test activeLegendInteractive-1 {three-state active legend} -constraints {isInteractive isActiveLegend}\
         -setup {

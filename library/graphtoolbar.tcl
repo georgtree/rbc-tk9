@@ -1384,8 +1384,21 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         $graph legend bind all <Leave> [namespace code {my DeactivateLegend}]
         $graph legend bind all <ButtonPress-1> [namespace code {my ToggleLegendElement}]
     }
+    method LegendInteractionSuppressed {} {
+        if {[info exists ZoomInfo(suppressLegendToggle)]} {
+            return true
+        }
+        if {[info exists ZoomInfo(corner)] &&
+            ($ZoomInfo(corner) eq {B})} {
+            return true
+        }
+        return false
+    }
     method ActivateLegend {} {
         set graph $Subwidgets(graph)
+        if {[my LegendInteractionSuppressed]} {
+            return
+        }
         set elem [$graph legend get current]
         if {$elem ne {}} {
             $graph legend activate $elem
@@ -1400,6 +1413,13 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     }
     method ToggleLegendElement {} {
         set graph $Subwidgets(graph)
+        if {[my LegendInteractionSuppressed]} {
+            return
+        }
+        if {[info exists ZoomInfo(suppressLegendToggle)] || ([info exists ZoomInfo(corner)] &&\
+                                                                     ($ZoomInfo(corner) eq {B}))} {
+            return
+        }
         set elem [$graph legend get current]
         if {$elem eq {}} {
             return
@@ -2676,6 +2696,33 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set y [expr {max($top,min($bottom,$y))}]
         return [list $x $y]
     }
+    method ZoomPointInLegend {x y} {
+        set graph $Subwidgets(graph)
+        #
+        # Only an internally drawn legend in the plotting area can
+        # conflict with region selection.
+        #
+        if {[$graph legend cget -hide]} {
+            return false
+        }
+        if {[$graph legend cget -position] ne {plotarea}} {
+            return false
+        }
+        #
+        # RBC reports the final laid-out legend rectangle in physical
+        # graph-window coordinates.
+        #
+        lassign [$graph extents legend] left top width height
+        #
+        # An empty legend occupies no forbidden region.
+        #
+        if {($width <= 0) || ($height <= 0)} {
+            return false
+        }
+        set right  [expr {$left+$width-1}]
+        set bottom [expr {$top+$height-1}]
+        return [expr {($x >= $left) && ($x <= $right) && ($y >= $top) && ($y <= $bottom)}]
+    }
     method ConstrainPolarZoomPoint {x y} {
         # Polar/Smith automatic aspect keeps one X data unit and one Y
         # data unit physically equal.
@@ -2762,15 +2809,47 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             my InitZoomStack
         }
         if {$ZoomInfo(corner) eq {A}} {
+            #
             # First point must actually be inside the plotting area.
+            #
             if {![$graph inside $x $y]} {
                 return
             }
+            #
+            # A zoom selection cannot start on an inside legend.
+            # The legend itself remains interactive in this state.
+            #
+            if {[my ZoomPointInLegend $x $y]} {
+                return
+            }
         } else {
+            #
             # Second point may be outside: clamp it to the plot edge.
+            #
             lassign [my ClampToPlot $x $y] x y
             if {$GraphType eq {polar}} {
                 lassign [my ConstrainPolarZoomPoint $x $y] x y
+            }
+            #
+            # Motion is allowed through the legend, but clicking B there
+            # aborts the current selection.
+            #
+            if {[my ZoomPointInLegend $x $y]} {
+                #
+                # Set a one-event guard because the zoom widget binding
+                # and RBC legend binding are separate binding mechanisms.
+                # Whichever one runs first, this physical click must not
+                # toggle the active legend.
+                #
+                set ZoomInfo(suppressLegendToggle) true
+                my DeactivateLegend
+                my ResetZoom
+                #
+                # Keep the suppression only for this event turn.  The next
+                # physical click on the legend must work normally.
+                #
+                after idle [namespace code { unset -nocomplain ZoomInfo(suppressLegendToggle) }]
+                return -code break
             }
         }
         my SaveZoomPoint $x $y $ZoomInfo(corner)
