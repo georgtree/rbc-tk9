@@ -434,8 +434,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         classvariable CrosshairsModes CoordClosestMarkModes
         set arguments [argparse -inline -pfirst {
             path
-            -width=
-            -height=
+            {-width= -default 800}
+            {-height= -default 600}
             {-type= -default graph -enum {graph barchart stripchart polar}}
             {-representation= -default polar -enum {polar smith}}
             {-smithgrid= -default impedance -enum {impedance admittance both}}
@@ -443,8 +443,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             {-coordclosestmark= -default axis}
             {-toolbarside= -default bottom -enum {bottom top}}
             -zoom
-            {-zoomstartbut -default {ButtonPress-1}}
-            {-zoombackbut -default {ButtonPress-3}}
+            {-zoomstartbut= -default {ButtonPress-1}}
+            {-zoomendbut= -default {ButtonRelease-1}}
+            {-zoombackbut= -default {ButtonPress-3}}
             {-zoommod= -default {Any-}}
             {-zoomwheel -require zoom}
             {-zoomwheelscale= -require zoomwheel -default 1.1}
@@ -508,7 +509,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             my configure -zoomboxopts [dict get $arguments zoomboxopts]
             my configure -zoommarkopts [dict get $arguments zoommarkopts]
             my configure -zoommarkboxopts [dict get $arguments zoommarkboxopts]
-            my EnableZoom [dict get $arguments zoomstartbut] [dict get $arguments zoombackbut]
+            my EnableZoom [dict get $arguments zoomstartbut] [dict get $arguments zoomendbut]\
+                    [dict get $arguments zoombackbut]
             if {[dict exists $arguments zoomwheel]} {
                 my EnableWheelZoom [dict get $arguments zoomwheelmod] [dict get $arguments zoomwheelscale]
             }
@@ -1389,14 +1391,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         $graph legend bind all <ButtonPress-1> [namespace code {my ToggleLegendElement}]
     }
     method LegendInteractionSuppressed {} {
-        if {[info exists ZoomInfo(suppressLegendToggle)]} {
-            return true
-        }
-        if {[info exists ZoomInfo(corner)] &&
-            ($ZoomInfo(corner) eq {B})} {
-            return true
-        }
-        return false
+        return [expr {[info exists ZoomInfo(corner)] && ($ZoomInfo(corner) eq {B})}]
     }
     method ActivateLegend {} {
         set graph $Subwidgets(graph)
@@ -1418,10 +1413,6 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     method ToggleLegendElement {} {
         set graph $Subwidgets(graph)
         if {[my LegendInteractionSuppressed]} {
-            return
-        }
-        if {[info exists ZoomInfo(suppressLegendToggle)] || ([info exists ZoomInfo(corner)] &&\
-                                                                     ($ZoomInfo(corner) eq {B}))} {
             return
         }
         set elem [$graph legend get current]
@@ -2248,14 +2239,19 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             corner A
         }
     }
-    method EnableZoom {start reset} {
-        # Enables zoom for graph subwidget.
-        #  start - event that starts and ends the zoom box selection
-        #  reset - event that restore the previous scale of the graph, or abort selection of second point
+    method EnableZoom {start end reset} {
+        # Enables drag-selection zoom for graph subwidget.
+        #
+        # start - event that starts the zoom box selection
+        # end   - event that confirms the zoom box selection
+        # reset - event that restores the previous scale, or aborts
+        #         the current selection
         set graph $Subwidgets(graph)
         my InitZoomStack
         set modifier $ZoomMod
-        bind zoom-$graph <${modifier}${start}> [namespace code {my SetZoomPoint %x %y}]
+
+        bind zoom-$graph <${modifier}${start}> [namespace code {my StartZoom %x %y}]
+        bind zoom-$graph <${modifier}${end}> [namespace code {my FinishZoom %x %y}]
         bind zoom-$graph <${modifier}${reset}> [namespace code {
             if {[%W inside %x %y]} {
                 my ResetZoom %x %y
@@ -2783,106 +2779,104 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set y [expr {round($ay+$signY*$absDy)}]
         return [list $x $y]
     }
-    method SetZoomPoint {x y} {
-        # Sets the first (A) or second (B) zoom box point
-        #  x - horizontal coordinate of the pointer
-        #  y - vertical coordinate of the pointer
+    method StartZoom {x y} {
+        # Starts a drag-selection zoom.
+        #
+        # x/y are physical widget coordinates of corner A.
         set graph $Subwidgets(graph)
         if {![info exists ZoomInfo(corner)]} {
             my InitZoomStack
         }
-        if {$ZoomInfo(corner) eq {A}} {
-            #
-            # First point must actually be inside the plotting area.
-            #
-            if {![$graph inside $x $y]} {
-                return
-            }
-            #
-            # A zoom selection cannot start on an inside legend.
-            # The legend itself remains interactive in this state.
-            #
-            if {[my ZoomPointInLegend $x $y]} {
-                return
-            }
-        } else {
-            #
-            # Second point may be outside: clamp it to the plot edge.
-            #
-            lassign [my ClampToPlot $x $y] x y
-            if {$GraphType eq {polar}} {
-                lassign [my ConstrainPolarZoomPoint $x $y] x y
-            }
-            #
-            # Motion is allowed through the legend, but clicking B there
-            # aborts the current selection.
-            #
-            if {[my ZoomPointInLegend $x $y]} {
-                #
-                # Set a one-event guard because the zoom widget binding
-                # and RBC legend binding are separate binding mechanisms.
-                # Whichever one runs first, this physical click must not
-                # toggle the active legend.
-                #
-                set ZoomInfo(suppressLegendToggle) true
-                my DeactivateLegend
-                my ResetZoom
-                #
-                # Keep the suppression only for this event turn.  The next
-                # physical click on the legend must work normally.
-                #
-                after idle [namespace code { unset -nocomplain ZoomInfo(suppressLegendToggle) }]
-                return -code break
-            }
+        # Ignore another start event while a selection is already active.
+        if {$ZoomInfo(corner) ne {A}} {
+            return
         }
-        my SaveZoomPoint $x $y $ZoomInfo(corner)
+        # The first point must actually be inside the plotting area.
+        if {![$graph inside $x $y]} {
+            return
+        }
+        # Do not start zoom on an internally drawn legend.  The press is
+        # left available to the normal legend interaction machinery.
+        if {[my ZoomPointInLegend $x $y]} {
+            return
+        }
+        my SaveZoomPoint $x $y A
+        # During the drag, ordinary Motion events update corner B.  The
+        # select-region tag exists only until ButtonRelease.
         set modifier $ZoomMod
-        bind select-region-$graph <${modifier}Motion> [namespace code {
-            lassign [my ClampToPlot %x %y] x y
-            if {$GraphType eq {polar}} {
-                lassign [my ConstrainPolarZoomPoint $x $y] x y
-            }
-            my SaveZoomPoint $x $y B
-            if {$ZoomMark} {
-                my MarkZoomPoint B
-            }
-            my Box
-        }]
-        if {$ZoomInfo(corner) eq {A}} {
-            # disable active axes
-            set ZoomTransientChecks(activeAxes) [my getAxisActiveScale]
-            my setAxisActiveScale $ZoomTransientChecks(activeAxes) -disabled
-            # disable crosshairs marker
-            set ZoomTransientChecks(crosshairsMarker) false
-            if {[my CheckBindTagExistence $graph crosshairs-marker-$graph]} {
-                set ZoomTransientChecks(crosshairsMarker) true
-                my RemoveBindTag $graph crosshairs-marker-$graph
-            }
-            # First corner selected, start watching motion events
-            if {$ZoomMark} {
-                my MarkZoomPoint A
-            }
-            if {[my configure -zoomtitle]} {
-                my ZoomTitleNext
-            }
-            my AddBindTag $graph select-region-$graph
-            my ChangeToolbarState disable
-            set ZoomInfo(corner) B
-        } else {
-            # Delete the modal binding
-            my RemoveBindTag $graph select-region-$graph
-            # restore active axes behaviour
+        bind select-region-$graph <${modifier}Motion> [namespace code {my DragZoom %x %y}]
+        # Disable active-axis interaction while selecting.
+        set ZoomTransientChecks(activeAxes) [my getAxisActiveScale]
+        my setAxisActiveScale $ZoomTransientChecks(activeAxes) -disabled
+        # Disable closest/current crosshair marker interaction while
+        # selecting.
+        set ZoomTransientChecks(crosshairsMarker) false
+        if {[my CheckBindTagExistence $graph crosshairs-marker-$graph]} {
+            set ZoomTransientChecks(crosshairsMarker) true
+            my RemoveBindTag $graph crosshairs-marker-$graph
+        }
+        if {$ZoomMark} {
+            my MarkZoomPoint A
+        }
+        if {[my configure -zoomtitle]} {
+            my ZoomTitleNext
+        }
+        my AddBindTag $graph select-region-$graph
+        my ChangeToolbarState disable
+        # corner B also acts as the "drag selection active" flag.
+        set ZoomInfo(corner) B
+    }
+    method DragZoom {x y} {
+        # Updates corner B while the selection button is held.
+        set graph $Subwidgets(graph)
+        if {![info exists ZoomInfo(corner)] ||
+            ($ZoomInfo(corner) ne {B})} {
+            return
+        }
+        # The pointer may leave the plotting area while dragging.
+        lassign [my ClampToPlot $x $y] x y
+        if {$GraphType eq {polar}} {
+            lassign [my ConstrainPolarZoomPoint $x $y] x y
+        }
+        my SaveZoomPoint $x $y B
+        if {$ZoomMark} {
+            my MarkZoomPoint B
+        }
+        my Box
+    }
+    method FinishZoom {x y} {
+        # Finishes the active drag-selection and applies the selected range.
+        set graph $Subwidgets(graph)
+        if {![info exists ZoomInfo(corner)] ||
+            ($ZoomInfo(corner) ne {B})} {
+            return
+        }
+        # Release may occur outside the plot area.
+        lassign [my ClampToPlot $x $y] x y
+        if {$GraphType eq {polar}} {
+            lassign [my ConstrainPolarZoomPoint $x $y] x y
+        }
+        # Always use the actual release position as the final B point.
+        # This also makes press/release without an intervening Motion event
+        # well-defined.
+        my SaveZoomPoint $x $y B
+        # Stop region tracking before changing the graph transform.
+        my RemoveBindTag $graph select-region-$graph
+        # Restore active-axis behaviour.
+        if {[info exists ZoomTransientChecks(activeAxes)]} {
             my setAxisActiveScale $ZoomTransientChecks(activeAxes)
             unset ZoomTransientChecks(activeAxes)
+        }
+        # Restore crosshair-marker behaviour.
+        if {[info exists ZoomTransientChecks(crosshairsMarker)]} {
             if {$ZoomTransientChecks(crosshairsMarker)} {
-                # restore crosshair marker behaviour
                 my AddBindTag $graph crosshairs-marker-$graph crosshairs-$graph
             }
             unset ZoomTransientChecks(crosshairsMarker)
-            my PushZoom
-            my ChangeToolbarState restore
-            set ZoomInfo(corner) A
         }
+        my PushZoom
+        my ChangeToolbarState restore
+        set ZoomInfo(corner) A
     }
     method Box {} {
         # Creates zoom-box outline from the saved A/B points.

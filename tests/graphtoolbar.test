@@ -680,7 +680,6 @@ test zoomInteractive-2 {multi-stage zoom} -match approxEqual -constraints {isInt
         set expected [ExpectedZoomLimits $graph $aXPointBox $aYPointBox $bXPointBox $bYPointBox]
         GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox $defaultDelay
         GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox $defaultDelay
-        GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox $defaultDelay
         GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
         lappend expectedStates $expected
         lappend actualStates [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
@@ -714,7 +713,6 @@ test zoomInteractive-3 {single-stage zoom with no title} -constraints {isInterac
     GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox $defaultDelay
     GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox $defaultDelay
     set titleExistence [$widget graph marker exists gtbZoomTitle]
-    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox $defaultDelay
     GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
     GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox $defaultDelay
     GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox $defaultDelay
@@ -741,7 +739,6 @@ test zoomInteractive-4 {single-stage zoom with no zoom marker} -constraints {isI
     GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox $defaultDelay
     GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox $defaultDelay
     set markerExistence [$widget graph marker exists gtbZoomText_A]
-    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox $defaultDelay
     GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
     GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox $defaultDelay
     GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox $defaultDelay
@@ -773,7 +770,6 @@ test zoomInteractive-5 {single-stage zoom, check for disabled toolbar during sel
     foreach w [winfo children [$widget subwidget toolbarFrame]] {
         lappend states [$w cget -state]
     }
-    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox $defaultDelay
     GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
     GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox $defaultDelay
     GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox $defaultDelay
@@ -834,7 +830,6 @@ test zoomInteractive-7 {single-stage zoom, check clamping to visible area} -matc
     lappend expectedStates [ExpectedZoomLimits $graph $aXPointBox $aYPointBox $bXPointBoxLimit $bYPointBoxLimit]
     GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox $defaultDelay
     GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox $defaultDelay
-    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox $defaultDelay
     GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
     lappend actualStates [list {*}[$widget widgetcommand graph axis limits x]\
                                   {*}[$widget widgetcommand graph axis limits y]]
@@ -866,7 +861,6 @@ test zoomInteractive-8 {single-stage zoom, no marker box} -match approxEqual\
     GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox $defaultDelay
     GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox $defaultDelay
     set markerExistence [$widget graph marker exists gtbZoomText_ABox]
-    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox $defaultDelay
     GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
     GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox $defaultDelay
     GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox $defaultDelay
@@ -902,7 +896,6 @@ test zoomInteractive-9 {single-stage zoom with multiple axes} -match approxEqual
                                     {*}[ExpectedZoomLimits $graph $aXPointBox $aYPointBox $bXPointBox $bYPointBox x y4]]
     GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox $defaultDelay
     GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox $defaultDelay
-    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox $defaultDelay
     GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
     lappend actualStates [list {*}[$widget widgetcommand graph axis limits x]\
                                   {*}[$widget widgetcommand graph axis limits y3]\
@@ -941,7 +934,6 @@ test zoomInteractive-10 {single-stage zoom with inverted axes} -match approxEqua
     lappend expectedStates [ExpectedZoomLimits $graph $aYPointBox $aXPointBox $bYPointBox $bXPointBox ]
     GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox $defaultDelay
     GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox $defaultDelay
-    GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox $defaultDelay
     GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
     lappend actualStates [list {*}[$widget widgetcommand graph axis limits x]\
                                   {*}[$widget widgetcommand graph axis limits y]]
@@ -1224,7 +1216,6 @@ test zoomInteractive-19 {polar zoom box preserves plot aspect and clamps the sec
     set inside [expr {($actualBX >= $left-1) && ($actualBX <= $right+1) &&\
                           ($actualBY >= $top-1) && ($actualBY <= $bottom+1)}]
     set constrained [approxPixelCoordsEqual [list $actualBX $actualBY] [list $expectedBX $expectedBY] 1.5]
-    GenerateGraphEvent $graph <ButtonPress-1> $bX $bY $defaultDelay
     GenerateGraphEvent $graph <ButtonRelease-1> $bX $bY 20
     lassign [$graph axis limits x] newXMin newXMax
     lassign [$graph axis limits y] newYMin newYMax
@@ -1264,7 +1255,6 @@ test zoomInteractive-20 {polar zoom box scales hidden grid axes and multiple vis
     set outlineMap [list [$graph marker cget gtbZoomOutline -mapx] [$graph marker cget gtbZoomOutline -mapy]]
     set outline [MarkerWidgetCoords $graph gtbZoomOutline]
     set actualB [list [lindex $outline 2] [lindex $outline 5]]
-    GenerateGraphEvent $graph <ButtonPress-1> $bX $bY $defaultDelay
     GenerateGraphEvent $graph <ButtonRelease-1> $bX $bY 20
     set actual [list [list {*}[$graph axis limits x] {*}[$graph axis limits y]]\
                          [list {*}[$graph axis limits xAlt] {*}[$graph axis limits yAlt]]]
@@ -1368,6 +1358,32 @@ test zoomInteractive-23 {wheel over polar grid axis scales both grid axes}\
     set actual [list [$graph axis limits x] [$graph axis limits y]]
     approxNestedEqual $actual $expected
 } -result true -cleanup {
+    destroy $widget
+}
+
+test zoomInteractive-24 {zoom is committed by button release} -match approxEqual -constraints {isInteractive isZoom}\
+        -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoommark -zoomboxopts {-linewidth 1}]
+    pack .gtb -fill both -expand yes
+    $widget graph element create line1 -xdata xVec1 -ydata yVec1
+    set graph [$widget subwidget graph]
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    set ax [expr {$left+$width/3}]
+    set ay [expr {$top+$height/3}]
+    set bx [expr {$left+2*$width/3}]
+    set by [expr {$top+2*$height/3}]
+    set initial [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    set expected [ExpectedZoomLimits $graph $ax $ay $bx $by]
+    GenerateGraphEvent $graph <ButtonPress-1> $ax $ay $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bx $by $defaultDelay
+    # Motion alone must not change the axes.
+    set during [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    GenerateGraphEvent $graph <ButtonRelease-1> $bx $by $defaultDelay
+    set after [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    list [approxNestedEqual [list $during] [list $initial]] [approxNestedEqual [list $after] [list $expected]]
+} -result {1 1} -cleanup {
     destroy $widget
 }
 
@@ -3570,58 +3586,61 @@ test crossInteractive-13 {zoom B motion passes through plotarea legend without a
     destroy $widget
 } -result {1 true 0}
 
-test crossInteractive-14 {clicking zoom B on plotarea legend cancels zoom and consumes legend click}\
+test crossInteractive-14 {releasing zoom drag on plotarea legend completes zoom without toggling legend} \
         -constraints {isInteractive isCross} -setup {
-    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
-                        -zoomboxopts {-linewidth 1} -activelegend]
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -activelegend -zoommark -zoomboxopts\
+                        {-linewidth 1}]
     pack .gtb -fill both -expand yes
-    $widget graph configure -title {clicking zoom B on plotarea legend cancels zoom and consumes legend click}\
+    $widget graph configure -title {releasing zoom drag on plotarea legend completes zoom without toggling legend}\
             {*}$titleFont
-    $widget graph axis configure x -min 0 -max 10
-    $widget graph axis configure y -min 0 -max 10
-    $widget graph element create line1 -data {1 2 5 5 9 8}
-    $widget graph element create line2 -data {1 8 5 6 9 2}
-    $widget graph legend configure -position plotarea -anchor ne
+    $widget graph element create line1 -xdata xVec1 -ydata yVec1
+    $widget graph legend configure -position plotarea
     set graph [$widget subwidget graph]
     set element line1
 } -body {
     WaitForWindow $graph
-    set initialLimits [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
-    lassign [$graph extents plotarea] left top width height
     lassign [FindLegendPoint $graph $element] legendX legendY
+    lassign [$graph extents plotarea] left top width height
+    # Choose A well away from the plot-area legend.
     set aX [expr {$left+$width/4}]
-    set aY [expr {$top+$height*3/4}]
-    #
-    # Start the zoom and move B onto the legend.
-    #
+    set aY [expr {$top+3*$height/4}]
+    # Defensive fallback in case an unusual legend layout happens
+    # to cover the preferred A point.
+    if {[$graph legend get @$aX,$aY] ne {}} {
+        set aX [expr {$left+5}]
+        set aY [expr {$top+$height-6}]
+    }
+    set expectedZoom [ExpectedZoomLimits $graph $aX $aY $legendX $legendY]
+    # Initial legend state must be normal.
+    set initialLegend [list [expr {$element in [$graph element activate]}] [$graph element cget $element -hideplot]\
+                               [$graph element cget $element -labelrelief]]
+    # Start the drag outside the legend.
     GenerateGraphEvent $graph <ButtonPress-1> $aX $aY $defaultDelay
+    # Drag B onto the plot-area legend.  The legend must remain
+    # transiently suppressed while the zoom selection is active.
     GenerateGraphEvent $graph <Motion> $legendX $legendY $defaultDelay
-    set boxBeforeClick [$graph marker exists gtbZoomOutline]
-    #
-    # Clicking B on the legend aborts the selection.  This same click
-    # must not perform normal -> active on the legend entry.
-    #
+    set duringLegend [list [expr {$element in [$graph element activate]}] [$graph element cget $element -hideplot]\
+                              [$graph element cget $element -labelrelief]]
+    # Releasing over the legend now CONFIRMS the zoom.  It must not
+    # be interpreted as a legend interaction.
+    GenerateGraphEvent $graph <ButtonRelease-1> $legendX $legendY $defaultDelay
+    set actualZoom [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    set afterReleaseLegend [list [expr {$element in [$graph element activate]}]\
+                                    [$graph element cget $element -hideplot]\
+                                    [$graph element cget $element -labelrelief]]
+    # Once the drag has ended, ordinary legend interaction must be
+    # restored immediately.  The next normal click should perform
+    # normal -> active.
+    GenerateGraphEvent $graph <Motion> $legendX $legendY 20
     GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY $defaultDelay
     GenerateGraphEvent $graph <ButtonRelease-1> $legendX $legendY 20
-    set limitsAfterCancel [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
-    set zoomMarkersAfterCancel [$graph marker names gtbZoom*]
-    set stateAfterCancel [list [expr {$element in [$graph element activate]}]\
-                                  [$graph element cget $element -hideplot] [$graph element cget $element -labelrelief]\
-                                  [expr {$element in [$graph legend activate]}]]
-    #
-    # The suppression is only for that one physical click.  A second
-    # click at the same legend entry must work normally.
-    #
-    GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY $defaultDelay
-    GenerateGraphEvent $graph <ButtonRelease-1> $legendX $legendY 20
-    set stateAfterSecondClick [list [expr {$element in [$graph element activate]}]\
-                                       [$graph element cget $element -hideplot]\
-                                       [$graph element cget $element -labelrelief]]
-    list $boxBeforeClick [approxNestedEqual $limitsAfterCancel $initialLimits] $zoomMarkersAfterCancel\
-            $stateAfterCancel $stateAfterSecondClick
-} -cleanup {
+    set afterClickLegend [list [expr {$element in [$graph element activate]}] [$graph element cget $element -hideplot]\
+                                  [$graph element cget $element -labelrelief]]
+    list $initialLegend $duringLegend [approxNestedEqual $actualZoom $expectedZoom] $afterReleaseLegend\
+            $afterClickLegend
+} -result {{0 0 flat} {0 0 flat} true {0 0 flat} {1 0 raised}} -cleanup {
     destroy $widget
-} -result {1 true {} {0 0 flat 0} {1 0 raised}}
+}
 
 test crossInteractive-15 {plotarea legend remains normally interactive while zoom is waiting for A}\
         -constraints {isInteractive isCross} -setup {
