@@ -418,7 +418,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
     }
     variable PsData ZoomInfo ZoomMod zoomtitle ZoomMark zoomtitleopts zoomboxopts zoommarkopts ZoomTransientChecks\
-            zoommarkboxopts GraphType coordmark coordclosestmark crosshairsmode
+            zoommarkboxopts GraphType coordmark coordclosestmark crosshairsmode PanInfo PanTransientChecks
     variable CrosshairsSelector crosshairsmarkopts crosshairsmarkboxopts crosshairsclosestopts crosshairsopts
     variable crosshairsbarlineopts CrosshairsMarkerInfo
     variable CrosshairsSelector ClosestCoordSelector
@@ -456,6 +456,10 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             {-zoommark -require zoom}
             {-zoommarkopts= -require zoom -type dict -default {}}
             {-zoommarkboxopts= -require zoom -type dict -default {}}
+            {-pan -require zoom}
+            {-panstartbut= -require pan -default {ButtonPress-1}}
+            {-panendbut= -require pan -default {ButtonRelease-1}}
+            {-panmod= -require pan -default {Shift-}}
             -crosshairs
             {-crosshairsmode= -require crosshairs -default closest}
             {-crosshairsopts= -require crosshairs -type dict -default {}}
@@ -511,6 +515,10 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             my configure -zoommarkboxopts [dict get $arguments zoommarkboxopts]
             my EnableZoom [dict get $arguments zoomstartbut] [dict get $arguments zoomendbut]\
                     [dict get $arguments zoombackbut]
+            if {[dict exists $arguments pan]} {
+                my EnablePan [dict get $arguments panstartbut] [dict get $arguments panendbut]\
+                        [dict get $arguments panmod]
+            }
             if {[dict exists $arguments zoomwheel]} {
                 my EnableWheelZoom [dict get $arguments zoomwheelmod] [dict get $arguments zoomwheelscale]
             }
@@ -1391,7 +1399,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         $graph legend bind all <ButtonPress-1> [namespace code {my ToggleLegendElement}]
     }
     method LegendInteractionSuppressed {} {
-        return [expr {[info exists ZoomInfo(corner)] && ($ZoomInfo(corner) eq {B})}]
+        return [expr {([info exists ZoomInfo(corner)] && ($ZoomInfo(corner) eq {B})) ||\
+                              ([info exists PanInfo(active)] && $PanInfo(active))}]
     }
     method ActivateLegend {} {
         set graph $Subwidgets(graph)
@@ -2251,7 +2260,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set modifier $ZoomMod
 
         bind zoom-$graph <${modifier}${start}> [namespace code {my StartZoom %x %y}]
-        bind zoom-$graph <${modifier}${end}> [namespace code {my FinishZoom %x %y}]
+        bind zoom-$graph <${end}> [namespace code {my FinishZoom %x %y}]
         bind zoom-$graph <${modifier}${reset}> [namespace code {
             if {[%W inside %x %y]} {
                 my ResetZoom %x %y
@@ -2265,6 +2274,27 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             return -code error "wheel zoom scale must be a finite number greater than 1.0"
         }
         bind zoom-$graph <${modifier}MouseWheel> [namespace code [list my WheelZoom %W %D %x %y %s $scale]]
+    }
+    method EnablePan {start end modifier} {
+        # Enables drag panning of the visible plot area.
+        #
+        # The modifier is required only to start the operation.  Once a
+        # pan has begun, Motion and ButtonRelease continue the same pan
+        # even if the user releases the modifier first.
+        set graph $Subwidgets(graph)
+        bind pan-$graph <${modifier}${start}> [namespace code {
+            if {[my StartPan %x %y]} {
+                break
+            }
+        }]
+        # Deliberately do not include $modifier here.  Otherwise releasing
+        # Shift before Button-1 could leave the pan operation active.
+        bind pan-$graph <$end> [namespace code {
+            if {[my FinishPan %x %y]} {
+                break
+            }
+        }]
+        my AddBindTag $graph pan-$graph
     }
     method SaveZoomState {} {
         # Saves the current explicit axis limits and scale type as one
@@ -2328,6 +2358,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     method WheelZoom {graph delta x y state step} {
         # Do not alter the graph underneath an unfinished rectangle selection.
         if {[info exists ZoomInfo(corner)] && ($ZoomInfo(corner) ne {A})} {
+            return -code break
+        }
+        if {[info exists PanInfo(active)] && $PanInfo(active)} {
             return -code break
         }
         if {$delta > 0} {
@@ -2426,11 +2459,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Keep -zoomtitle meaningful for wheel zoom as well.
         #
         if {[my configure -zoomtitle]} {
-            my ZoomTitleLast
-            if {[info exists ZoomInfo(titleTimer)]} {
-                after cancel $ZoomInfo(titleTimer)
-            }
-            set ZoomInfo(titleTimer) [after 2000 [namespace code {my DestroyZoomTitle}]]
+            my FinishZoomTitle
         }
         return -code break
     }
@@ -2464,10 +2493,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                     my RefreshCrosshairsMarker $x $y
                 }
                 if {[my configure -zoomtitle]} {
-                    if {[info exists ZoomInfo(titleTimer)]} {
-                        after cancel $ZoomInfo(titleTimer)
-                    }
-                    set ZoomInfo(titleTimer) [after 2000 [namespace code {my DestroyZoomTitle}]]
+                    my FinishZoomTitle
                 }
             } else {
                 set cmds [lindex $zoomStack end]
@@ -2493,10 +2519,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                     my RefreshCrosshairsMarker $x $y
                 }
                 if {[my configure -zoomtitle]} {
-                    if {[info exists ZoomInfo(titleTimer)]} {
-                        after cancel $ZoomInfo(titleTimer)
-                    }
-                    set ZoomInfo(titleTimer) [after 2000 [namespace code {my DestroyZoomTitle}]]
+                    my FinishZoomTitle
                 }
             }
         } else {
@@ -2620,6 +2643,10 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     method ResetZoom {{x {}} {y {}}} {
         # Restores graph scale to the previous state, or abort the current selection operation.
         set graph $Subwidgets(graph)
+        if {[info exists PanInfo(active)] && $PanInfo(active)} {
+            my CancelPan $x $y
+            return
+        }
         if {![info exists ZoomInfo(corner)]} {
             my InitZoomStack
         }
@@ -2645,6 +2672,16 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             set ZoomInfo(corner) A
             my RemoveBindTag $graph select-region-$graph
         }
+    }
+    method FinishZoomTitle {} {
+        if {![my configure -zoomtitle]} {
+            return
+        }
+        my ZoomTitleLast
+        if {[info exists ZoomInfo(titleTimer)]} {
+            after cancel $ZoomInfo(titleTimer)
+        }
+        set ZoomInfo(titleTimer) [after 2000 [namespace code {my DestroyZoomTitle}]]
     }
     method ZoomTitleNext {} {
         set graph $Subwidgets(graph)
@@ -2784,6 +2821,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #
         # x/y are physical widget coordinates of corner A.
         set graph $Subwidgets(graph)
+        if {[info exists PanInfo(active)] && $PanInfo(active)} {
+            return
+        }
         if {![info exists ZoomInfo(corner)]} {
             my InitZoomStack
         }
@@ -2904,6 +2944,239 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             $graph marker create line -name gtbZoomOutline -coords $coords -mapx $mapx -mapy $mapy \
                     {*}[my configure -zoomboxopts]
         }
+    }
+    method StartPan {x y} {
+        set graph $Subwidgets(graph)
+        if {[info exists PanInfo(active)] && $PanInfo(active)} {
+            return true
+        }
+        # Do not start panning while a rectangle zoom is already active.
+        if {[info exists ZoomInfo(corner)] &&
+            ($ZoomInfo(corner) ne {A})} {
+            return false
+        }
+        # Panning must start inside the plotting area.
+        if {![$graph inside $x $y]} {
+            return false
+        }
+        # Leave an internally drawn plot-area legend available to its normal interaction bindings.
+        if {[my ZoomPointInLegend $x $y]} {
+            return false
+        }
+        lassign [my WidgetToAxisPixels $x $y] xPixel yPixel
+        set xPixel [expr {round($xPixel)}]
+        set yPixel [expr {round($yPixel)}]
+        # Capture the ORIGINAL mapping for every axis.  DragPan always
+        # calculates from this state rather than incrementally from the
+        # previous Motion event.
+        #
+        # This is important because graph redraw/remapping is idle-driven:
+        # several Motion events may arrive before the display catches up.
+        set axes [dict create]
+        foreach dimension {x y} {
+            foreach axis [my UsedAxes $dimension] {
+                lassign [$graph axis limits $axis] min max
+                set minPixel [$graph axis transform $axis $min]
+                set maxPixel [$graph axis transform $axis $max]
+                set pixelSpan [expr {$maxPixel-$minPixel}]
+                if {$pixelSpan == 0} {
+                    continue
+                }
+                set logscale [$graph axis cget $axis -logscale]
+                if {$logscale} {
+                    if {($min <= 0.0) || ($max <= 0.0)} {
+                        continue
+                    }
+                    set unitsPerPixel [expr {(log($max)-log($min))/double($pixelSpan)}]
+                } else {
+                    set unitsPerPixel [expr {($max-$min)/double($pixelSpan)}]
+                }
+                if {!isfinite($unitsPerPixel)} {
+                    continue
+                }
+                dict set axes $axis [list $dimension $min $max $logscale $unitsPerPixel]
+            }
+        }
+        if {![dict size $axes]} {
+            return false
+        }
+        array unset PanInfo
+        array set PanInfo [list active true historySaved false changed false start,xPixel $xPixel start,yPixel $yPixel\
+                                   dx 0 dy 0 axes $axes]
+        # Disable the same transient interactions which rectangle zoom disables.
+        array unset PanTransientChecks
+        set PanTransientChecks(activeAxes) [my getAxisActiveScale]
+        my setAxisActiveScale $PanTransientChecks(activeAxes) -disabled
+        # Disable all crosshair interaction while panning.
+        #
+        # Save both bind tags independently because the current crosshair mode
+        # determines which of them is installed.
+        set PanTransientChecks(crosshairs) [my CheckBindTagExistence $graph crosshairs-$graph]
+        set PanTransientChecks(crosshairsMarker) [my CheckBindTagExistence $graph crosshairs-marker-$graph]
+        # Preserve whether the RBC crosshairs themselves were displayed.
+        set PanTransientChecks(crosshairsHidden) [$graph crosshairs cget -hide]
+        my RemoveBindTag $graph crosshairs-marker-$graph
+        my RemoveBindTag $graph crosshairs-$graph
+        # Remove marker text/background before the axes begin moving.
+        if {$PanTransientChecks(crosshairsMarker)} {
+            my DeleteCrosshairsMarkers
+        }
+        # Erase the crosshair lines themselves.
+        $graph crosshairs off
+        bind pan-region-$graph <Motion> [namespace code {
+            my DragPan %x %y
+            break
+        }]
+        my AddBindTag $graph pan-region-$graph
+        my ChangeToolbarState disable
+        return true
+    }
+    method DragPan {x y} {
+        if {![info exists PanInfo(active)] ||
+            !$PanInfo(active)} {
+            return
+        }
+        set graph $Subwidgets(graph)
+        lassign [my WidgetToAxisPixels $x $y] xPixel yPixel
+        set xPixel [expr {round($xPixel)}]
+        set yPixel [expr {round($yPixel)}]
+        set dx [expr {$xPixel-$PanInfo(start,xPixel)}]
+        set dy [expr {$yPixel-$PanInfo(start,yPixel)}]
+        if {($dx == $PanInfo(dx)) && ($dy == $PanInfo(dy))} {
+            return
+        }
+        # Prepare every new limit pair first.  Do not leave some axes
+        # modified if another axis overflows.
+        set cmds [list]
+        set changed false
+        dict for {axis state} $PanInfo(axes) {
+            lassign $state dimension min max logscale unitsPerPixel
+            if {$dimension eq {x}} {
+                set deltaPixel $dx
+            } else {
+                set deltaPixel $dy
+            }
+            if {$logscale} {
+                # Translate in log space.  Multiplying both limits by
+                # the same factor preserves max/min exactly.
+                set logShift [expr {-$unitsPerPixel*$deltaPixel}]
+                if {[catch {expr {exp($logShift)}} factor] || ![string is double -strict $factor]\
+                            || !isfinite($factor) || ($factor <= 0.0)} {
+                    return
+                }
+                set newMin [expr {$min*$factor}]
+                set newMax [expr {$max*$factor}]
+            } else {
+                # Ordinary linear translation.  Adding the same shift
+                # to both limits preserves max-min exactly.
+                set shift [expr {-$unitsPerPixel*$deltaPixel}]
+                set newMin [expr {$min+$shift}]
+                set newMax [expr {$max+$shift}]
+            }
+            if {!isfinite($newMin) || !isfinite($newMax)} {
+                return
+            }
+            if {($newMin != $min) || ($newMax != $max)} {
+                set changed true
+            }
+            lappend cmds [list $graph axis configure $axis -min $newMin -max $newMax]
+        }
+        # Create the undo entry only when the view actually moves.
+        # Therefore press/release without movement does not pollute the
+        # zoom history.
+        if {$changed && !$PanInfo(historySaved)} {
+            if {[my configure -zoomtitle]} {
+                my ZoomTitleNext
+            }
+            my SaveZoomState
+            set PanInfo(historySaved) true
+        }
+        # If the pointer was previously moved and then returns to the
+        # starting location, these commands also restore the original
+        # limits.
+        if {$changed || $PanInfo(historySaved)} {
+            foreach cmd $cmds {
+                {*}$cmd
+            }
+        }
+        set PanInfo(dx) $dx
+        set PanInfo(dy) $dy
+        set PanInfo(changed) $changed
+    }
+    method RestorePanInteractions {x y} {
+        set graph $Subwidgets(graph)
+        my RemoveBindTag $graph pan-region-$graph
+        if {[info exists PanTransientChecks(activeAxes)]} {
+            my setAxisActiveScale $PanTransientChecks(activeAxes)
+            unset PanTransientChecks(activeAxes)
+        }
+        # Restore the ordinary crosshair Motion/Enter/Leave tag first.
+        if {[info exists PanTransientChecks(crosshairs)] && $PanTransientChecks(crosshairs)} {
+            my AddBindTag $graph crosshairs-$graph
+        }
+        # Restore the marker tag in its normal position after the
+        # crosshair tag.
+        set refreshCrosshairs false
+        if {[info exists PanTransientChecks(crosshairsMarker)] && $PanTransientChecks(crosshairsMarker)} {
+            my AddBindTag $graph crosshairs-marker-$graph crosshairs-$graph
+            set refreshCrosshairs true
+        }
+        my ChangeToolbarState restore
+        # The graph transform is now stable.  Recreate any fixed-pixel
+        # marker geometry at the release/cancel pointer position.
+        if {$refreshCrosshairs} {
+            update idletasks
+            my RefreshCrosshairsMarker $x $y
+        }
+        # Restore the RBC crosshair display state which existed before
+        # panning.  Do this last so the hairs are drawn using the final
+        # plot geometry.
+        if {[info exists PanTransientChecks(crosshairsHidden)] && !$PanTransientChecks(crosshairsHidden)} {
+            $graph crosshairs on
+        }
+    }
+    method FinishPan {x y} {
+        if {![info exists PanInfo(active)] ||
+            !$PanInfo(active)} {
+            return false
+        }
+        # Use the real release position even when there was no final Motion event.
+        my DragPan $x $y
+        set historySaved $PanInfo(historySaved)
+        set changed $PanInfo(changed)
+        set PanInfo(active) false
+        # If the user moved away and then returned exactly to the starting
+        # point, the resulting operation is a no-op.  Remove the temporary
+        # history entry again.
+        if {$historySaved && !$changed} {
+            set ZoomInfo(stack) [lrange $ZoomInfo(stack) 1 end]
+            if {[my configure -zoomtitle]} {
+                my ZoomTitleLast
+            }
+        }
+        if {$historySaved && $changed && [my configure -zoomtitle]} {
+            my FinishZoomTitle
+        }
+        my RestorePanInteractions $x $y
+        array unset PanInfo
+        array unset PanTransientChecks
+        return true
+    }
+    method CancelPan {{x {}} {y {}}} {
+        if {![info exists PanInfo(active)] || !$PanInfo(active)} {
+            return false
+        }
+        set graph $Subwidgets(graph)
+        set historySaved $PanInfo(historySaved)
+        set PanInfo(active) false
+        my RemoveBindTag $graph pan-region-$graph
+        if {$historySaved} {
+            my PopZoom yes $x $y
+        }
+        my RestorePanInteractions $x $y
+        array unset PanInfo
+        array unset PanTransientChecks
+        return true
     }
     method ResetAllZoom {} {
         set graph $Subwidgets(graph)
