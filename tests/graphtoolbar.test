@@ -487,8 +487,8 @@ test generalConfiguration-3 {names subcommand} -setup {
     grid rowconfigure . 0 -weight 1
 } -body {
     $widget names
-} -result {closestCoordComBox revertZoomBut crosshairsComBox makeSnapshotBut postScriptDialogBut graph toolbarFrame\
-                   resetZoomBut} -cleanup {
+} -result {closestCoordComBox closestCoordLabel revertZoomBut crosshairsComBox makeSnapshotBut crosshairsModeLabel\
+                   postScriptDialogBut graph toolbarFrame resetZoomBut} -cleanup {
     destroy $widget
 }
 
@@ -676,8 +676,8 @@ test zoomInteractive-1 {single-stage zoom} -match approxEqual -constraints {isIn
     GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
     lappend actualStates [list {*}[$widget widgetcommand graph axis limits x]\
                                   {*}[$widget widgetcommand graph axis limits y]]
-    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox $defaultDelay
-    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-2> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-2> $bXPointBox $bYPointBox $defaultDelay
     lappend actualStates [list {*}[$widget graph axis limits x] {*}[$widget widgetcommand graph axis limits y]]
     lappend expectedStates [lindex $expectedStates 0]
     return [approxNestedEqual $actualStates $expectedStates]
@@ -712,8 +712,8 @@ test zoomInteractive-2 {multi-stage zoom} -match approxEqual -constraints {isInt
         lappend actualStates [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
     }
     for {set i 0} {$i<3} {incr i} {
-        GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox $defaultDelay
-        GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox $defaultDelay
+        GenerateGraphEvent $graph <ButtonPress-2> $bXPointBox $bYPointBox $defaultDelay
+        GenerateGraphEvent $graph <ButtonRelease-2> $bXPointBox $bYPointBox $defaultDelay
         lappend actualStates [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
         lappend expectedStates [lindex $expectedStates [expr {2 - $i}]]
     }
@@ -741,8 +741,8 @@ test zoomInteractive-3 {single-stage zoom with no title} -constraints {isInterac
     GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox $defaultDelay
     set titleExistence [$widget graph marker exists gtbZoomTitle]
     GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
-    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox $defaultDelay
-    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-2> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-2> $bXPointBox $bYPointBox $defaultDelay
     return $titleExistence
 }  -result 0 -cleanup {
     destroy $widget
@@ -767,8 +767,8 @@ test zoomInteractive-4 {single-stage zoom with no zoom marker} -constraints {isI
     GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox $defaultDelay
     set markerExistence [$widget graph marker exists gtbZoomText_A]
     GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
-    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox $defaultDelay
-    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-2> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-2> $bXPointBox $bYPointBox $defaultDelay
     return $markerExistence
 }  -result 0 -cleanup {
     destroy $widget
@@ -798,8 +798,8 @@ test zoomInteractive-5 {single-stage zoom, check for disabled toolbar during sel
         lappend states [$w cget -state]
     }
     GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
-    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox $defaultDelay
-    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-2> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-2> $bXPointBox $bYPointBox $defaultDelay
     foreach w [winfo children [$widget subwidget toolbarFrame]] {
         lappend states [$w cget -state]
     }
@@ -860,8 +860,8 @@ test zoomInteractive-7 {single-stage zoom, check clamping to visible area} -matc
     GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
     lappend actualStates [list {*}[$widget widgetcommand graph axis limits x]\
                                   {*}[$widget widgetcommand graph axis limits y]]
-    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox $defaultDelay
-    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-2> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-2> $bXPointBox $bYPointBox $defaultDelay
     lappend actualStates [list {*}[$widget graph axis limits x] {*}[$widget widgetcommand graph axis limits y]]
     lappend expectedStates [lindex $expectedStates 1]
     return [approxNestedEqual $actualStates $expectedStates]
@@ -889,8 +889,8 @@ test zoomInteractive-8 {single-stage zoom, no marker box} -match approxEqual\
     GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox $defaultDelay
     set markerExistence [$widget graph marker exists gtbZoomText_ABox]
     GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
-    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox $defaultDelay
-    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-2> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-2> $bXPointBox $bYPointBox $defaultDelay
     return $markerExistence
 }  -result 0  -cleanup {
     destroy $widget
@@ -928,8 +928,8 @@ test zoomInteractive-9 {single-stage zoom with multiple axes} -match approxEqual
                                   {*}[$widget widgetcommand graph axis limits y3]\
                                   {*}[$widget widgetcommand graph axis limits x]\
                                   {*}[$widget widgetcommand graph axis limits y4]]
-    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox $defaultDelay
-    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-2> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-2> $bXPointBox $bYPointBox $defaultDelay
     lappend actualStates [list {*}[$widget graph axis limits x] {*}[$widget widgetcommand graph axis limits y3]\
                                   {*}[$widget graph axis limits x] {*}[$widget widgetcommand graph axis limits y4]]
     lappend expectedStates [lindex $expectedStates 0]
@@ -964,8 +964,8 @@ test zoomInteractive-10 {single-stage zoom with inverted axes} -match approxEqua
     GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
     lappend actualStates [list {*}[$widget widgetcommand graph axis limits x]\
                                   {*}[$widget widgetcommand graph axis limits y]]
-    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox $defaultDelay
-    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-2> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-2> $bXPointBox $bYPointBox $defaultDelay
     lappend actualStates [list {*}[$widget graph axis limits x] {*}[$widget widgetcommand graph axis limits y]]
     lappend expectedStates [lindex $expectedStates 0]
     return [approxNestedEqual $actualStates $expectedStates]
@@ -1152,12 +1152,12 @@ test zoomInteractive-17 {each wheel zoom step is reversible with right-click pop
     GenerateGraphWheelEvent $graph $x $y 120 20
     set state2 [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
     sleep $defaultDelay
-    GenerateGraphEvent $graph <ButtonPress-3> $x $y 20
-    GenerateGraphEvent $graph <ButtonRelease-3> $x $y 20
+    GenerateGraphEvent $graph <ButtonPress-2> $x $y 20
+    GenerateGraphEvent $graph <ButtonRelease-2> $x $y 20
     set pop1 [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
     sleep $defaultDelay
-    GenerateGraphEvent $graph <ButtonPress-3> $x $y 20
-    GenerateGraphEvent $graph <ButtonRelease-3> $x $y 20
+    GenerateGraphEvent $graph <ButtonPress-2> $x $y 20
+    GenerateGraphEvent $graph <ButtonRelease-2> $x $y 20
     set pop2 [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
     sleep $defaultDelay
     expr {![approxNestedEqual $state0 $state1] && ![approxNestedEqual $state1 $state2] &&\
@@ -1437,8 +1437,8 @@ test panInteractive-1 {pan translates linear axes and is reversible} -constraint
     set zoomBoxExists [$graph marker exists gtbZoomOutline]
     GenerateGraphEvent $graph <ButtonRelease-1> $bx $by $defaultDelay
     set after [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
-    GenerateGraphEvent $graph <ButtonPress-3> $bx $by $defaultDelay
-    GenerateGraphEvent $graph <ButtonRelease-3> $bx $by 20
+    GenerateGraphEvent $graph <ButtonPress-2> $bx $by $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-2> $bx $by 20
     set restored [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
     list [approxNestedEqual $after $expected] $zoomBoxExists [approxNestedEqual $restored $initial]
 } -result {true 0 true} -cleanup {
@@ -1532,9 +1532,9 @@ test panInteractive-4 {cancel pan restores view without consuming previous zoom 
     # The pending left release must now be harmless.
     GenerateGraphEvent $graph <ButtonRelease-1> $pbX $pbY 20
     set afterCancel [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
-    # Another right click must still undo the earlier box zoom.
-    GenerateGraphEvent $graph <ButtonPress-3> $pbX $pbY $defaultDelay
-    GenerateGraphEvent $graph <ButtonRelease-3> $pbX $pbY 20
+    # Another click must still undo the earlier box zoom.
+    GenerateGraphEvent $graph <ButtonPress-2> $pbX $pbY $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-2> $pbX $pbY 20
     set afterUndo [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
     list [expr {![approxNestedEqual $duringPan $beforePan]}] [approxNestedEqual $afterCancel $beforePan]\
             [approxNestedEqual $afterUndo $initial]
@@ -1602,8 +1602,8 @@ test panInteractive-6 {pan includes hidden used axes but not unused axes} -const
     set actual [list {*}[$graph axis limits x] {*}[$graph axis limits y] {*}[$graph axis limits xHidden]\
                         {*}[$graph axis limits yHidden] {*}[$graph axis limits xUnused] {*}[$graph axis limits yUnused]]
     # Undo must restore the hidden used axes too.
-    GenerateGraphEvent $graph <ButtonPress-3> $bx $by $defaultDelay
-    GenerateGraphEvent $graph <ButtonRelease-3> $bx $by 20
+    GenerateGraphEvent $graph <ButtonPress-2> $bx $by $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-2> $bx $by 20
     set restored [list {*}[$graph axis limits x] {*}[$graph axis limits y] {*}[$graph axis limits xHidden]\
                           {*}[$graph axis limits yHidden] {*}[$graph axis limits xUnused]\
                           {*}[$graph axis limits yUnused]]
@@ -1652,9 +1652,9 @@ test panInteractive-7 {returning pan to start is a no-op and removes temporary z
     set afterNoop [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
     set titleExists [$graph marker exists gtbZoomTitle]
     # The temporary pan history entry must also have disappeared:
-    # one right-click must undo the older box zoom.
-    GenerateGraphEvent $graph <ButtonPress-3> $paX $paY $defaultDelay
-    GenerateGraphEvent $graph <ButtonRelease-3> $paX $paY 20
+    # one click must undo the older box zoom.
+    GenerateGraphEvent $graph <ButtonPress-2> $paX $paY $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-2> $paX $paY 20
     set afterUndo [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
     list [expr {![approxNestedEqual $moved $beforePan]}] [approxNestedEqual $afterNoop $beforePan] $titleExists\
             [approxNestedEqual $afterUndo $initial]
@@ -1683,8 +1683,8 @@ test panInteractive-8 {undo pan restores automatic axis limits} -constraints {is
     GenerateGraphEvent $graph <ButtonRelease-1> $bx $by $defaultDelay
     set explicit [expr {([$graph axis cget x -min] ne {}) && ([$graph axis cget x -max] ne {}) &&\
                                  ([$graph axis cget y -min] ne {}) && ([$graph axis cget y -max] ne {})}]
-    GenerateGraphEvent $graph <ButtonPress-3> $bx $by $defaultDelay
-    GenerateGraphEvent $graph <ButtonRelease-3> $bx $by 20
+    GenerateGraphEvent $graph <ButtonPress-2> $bx $by $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-2> $bx $by 20
     set after [list [$graph axis cget x -min] [$graph axis cget x -max] [$graph axis cget y -min]\
                        [$graph axis cget y -max]]
     list $explicit [expr {$after eq $before}]
@@ -3464,8 +3464,8 @@ test crossInteractive-2 {single-stage zoom, check crosshairs marking disabling d
     GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox $defaultDelay
     GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox $defaultDelay
     set crosshairsMarkerExists [$widget graph marker exists crosshairsText]
-    GenerateGraphEvent $graph <ButtonPress-3> $bXPointBox $bYPointBox $defaultDelay
-    GenerateGraphEvent $graph <ButtonRelease-3> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonPress-2> $bXPointBox $bYPointBox $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-2> $bXPointBox $bYPointBox $defaultDelay
     GenerateGraphEvent $graph <Motion> [expr {$bXPointBox+1}] [expr {$bYPointBox+1}] $defaultDelay
     sleep $defaultDelay
     lappend crosshairsMarkerExists [$widget graph marker exists crosshairsText]
@@ -3566,8 +3566,8 @@ test crossInteractive-5 {right-click pop redraws current crosshairs marker box i
     set initialBox [MarkerWidgetCoords $graph crosshairsTextBox]
     GenerateGraphWheelEvent $graph $x $y 120 20
     set zoomedBox [MarkerWidgetCoords $graph crosshairsTextBox]
-    GenerateGraphEvent $graph <ButtonPress-3> $x $y 20
-    GenerateGraphEvent $graph <ButtonRelease-3> $x $y 20
+    GenerateGraphEvent $graph <ButtonPress-2> $x $y 20
+    GenerateGraphEvent $graph <ButtonRelease-2> $x $y 20
     set poppedBox [MarkerWidgetCoords $graph crosshairsTextBox]
     set poppedLimits [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
     sleep $defaultDelay
@@ -3786,8 +3786,8 @@ test crossInteractive-10 {zoom pop restores linear axis with negative limits aft
     lassign [$graph extents plotarea] left top width height
     set x [expr {$left+$width/2}]
     set y [expr {$top+$height/2}]
-    GenerateGraphEvent $graph <ButtonPress-3> $x $y $defaultDelay
-    GenerateGraphEvent $graph <ButtonRelease-3> $x $y 20
+    GenerateGraphEvent $graph <ButtonPress-2> $x $y $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-2> $x $y 20
     set restoredLimits [$graph axis limits x]
     set restoredScale [$graph axis cget x -logscale]
     list $initialScale $zoomedScale $restoredScale [approxNestedEqual $restoredLimits $initialLimits]
@@ -3828,8 +3828,8 @@ test crossInteractive-11 {zoom pop restores logarithmic scale after linear toggl
     lassign [$graph extents plotarea] left top width height
     set x [expr {$left+$width/2}]
     set y [expr {$top+$height/2}]
-    GenerateGraphEvent $graph <ButtonPress-3> $x $y $defaultDelay
-    GenerateGraphEvent $graph <ButtonRelease-3> $x $y 20
+    GenerateGraphEvent $graph <ButtonPress-2> $x $y $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-2> $x $y 20
     set restoredLimits [$graph axis limits x]
     set restoredScale [$graph axis cget x -logscale]
     list $initialScale $zoomedScale $restoredScale [approxNestedEqual $restoredLimits $initialLimits]
@@ -3914,8 +3914,8 @@ test crossInteractive-12 {multi-stage zoom restores alternating linear and logar
     lassign [$graph extents plotarea] left top width height
     set x [expr {$left+$width/2}]
     set y [expr {$top+$height/2}]
-    GenerateGraphEvent $graph <ButtonPress-3> $x $y $defaultDelay
-    GenerateGraphEvent $graph <ButtonRelease-3> $x $y 20
+    GenerateGraphEvent $graph <ButtonPress-2> $x $y $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-2> $x $y 20
     set pop1 [list [$graph axis cget x -logscale] {*}[$graph axis limits x] {*}[$graph axis limits y]]
     #
     # Pop the first zoom.
@@ -3923,8 +3923,8 @@ test crossInteractive-12 {multi-stage zoom restores alternating linear and logar
     # This must restore the original linear state, including its
     # negative X minimum.
     #
-    GenerateGraphEvent $graph <ButtonPress-3> $x $y $defaultDelay
-    GenerateGraphEvent $graph <ButtonRelease-3> $x $y 20
+    GenerateGraphEvent $graph <ButtonPress-2> $x $y $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-2> $x $y 20
     set pop2 [list [$graph axis cget x -logscale] {*}[$graph axis limits x] {*}[$graph axis limits y]]
     list $scaleBeforePop [approxNestedEqual $pop1 $state1] [approxNestedEqual $pop2 $state0]
 } -result {0 true true} -cleanup {

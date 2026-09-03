@@ -164,7 +164,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
         set crosshairsmode $value
         set CrosshairsSelector [my CrosshairsModeLabel $value]
-        if {[info exists Subwidgets(crosshairsComBox)]} {
+        if {[info exists Subwidgets(graph)] && (![info exists ContextMenuPosted] || !$ContextMenuPosted)} {
             my ApplyCrosshairsMode
         }
     }
@@ -418,11 +418,12 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
     }
     variable PsData ZoomInfo ZoomMod zoomtitle ZoomMark zoomtitleopts zoomboxopts zoommarkopts ZoomTransientChecks\
-            zoommarkboxopts GraphType coordmark coordclosestmark crosshairsmode PanInfo PanTransientChecks
+            zoommarkboxopts GraphType coordmark coordclosestmark crosshairsmode PanInfo PanTransientChecks ControlMode
     variable CrosshairsSelector crosshairsmarkopts crosshairsmarkboxopts crosshairsclosestopts crosshairsopts
     variable crosshairsbarlineopts CrosshairsMarkerInfo
     variable CrosshairsSelector ClosestCoordSelector
     variable AxisScaleInfo SavedToolbarStates
+    variable ContextMenuPosted
     classmethod unknown {w args} {
         if {[string match .* $w]} {
             [self] new $w {*}$args
@@ -436,6 +437,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             path
             {-width= -default 800}
             {-height= -default 600}
+            {-controlmode= -default toolbar -enum {toolbar contextmenu}}
             {-type= -default graph -enum {graph barchart stripchart polar}}
             {-representation= -default polar -enum {polar smith}}
             {-smithgrid= -default impedance -enum {impedance admittance both}}
@@ -445,7 +447,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             -zoom
             {-zoomstartbut= -default {ButtonPress-1}}
             {-zoomendbut= -default {ButtonRelease-1}}
-            {-zoombackbut= -default {ButtonPress-3}}
+            {-zoombackbut= -default {ButtonPress-2}}
             {-zoommod= -default {Any-}}
             {-zoomwheel -require zoom}
             {-zoomwheelscale= -require zoomwheel -default 1.1}
@@ -472,9 +474,14 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }]
         set ZoomMod [dict get $arguments zoommod]
         set GraphType [dict get $arguments type]
+        set ControlMode [dict get $arguments controlmode]
         set currentNamespace [namespace current]
         set frameName [dict get $arguments path]
         ttk::frame $frameName
+        # The toolbar frame exists in both control modes.  In context-menu
+        # mode it is simply not populated or managed.  Keeping the frame
+        # available means general toolbar-state code does not need special
+        # cases for the selected control surface.
         set Subwidgets(toolbarFrame) [ttk::frame $frameName.toolbarFr]
         set Subwidgets(graph) [::rbc::$GraphType $frameName.graph -width [dict get $arguments width]\
                                        -height [dict get $arguments height]]
@@ -483,20 +490,37 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                     -smithgrid [dict get $arguments smithgrid]
         }
         my configure -coordmark [dict get $arguments coordmark] -coordclosestmark [dict get $arguments coordclosestmark]
-        grid $Subwidgets(graph) -row [expr {[dict get $arguments toolbarside] eq {bottom} ? 0 : 1}] -column 0\
-                -sticky nsew
-        grid $Subwidgets(toolbarFrame) -row [expr {[dict get $arguments toolbarside] eq {bottom} ? 1 : 0}] -column 0\
-                -sticky ew
-        set butCount -1
-        set Subwidgets(makeSnapshotBut) [ttk::button $Subwidgets(toolbarFrame).makeSnapshotBut -width 14\
-                                                 -image ::rbc::graphtoolbar::icons::makeSnapshotIcon\
-                                                 -command [namespace code {my MakeSnapshot}]]
-        grid $Subwidgets(makeSnapshotBut) -row 0 -column [incr butCount] -sticky ns
-        set Subwidgets(postScriptDialogBut) [ttk::button $Subwidgets(toolbarFrame).postScriptDialogBut -width 14\
-                                                     -image ::rbc::graphtoolbar::icons::postScriptDialogIcon\
-                                                     -command [namespace code {my PostScriptDialog}]]
-        grid $Subwidgets(postScriptDialogBut) -row 0 -column [incr butCount] -sticky ns
 
+        # Layout of the graph/control surface.
+        grid columnconfigure $frameName 0 -weight 1
+        if {$ControlMode eq {toolbar}} {
+            if {[dict get $arguments toolbarside] eq {bottom}} {
+                set graphRow 0
+                set toolbarRow 1
+            } else {
+                set graphRow 1
+                set toolbarRow 0
+            }
+            grid $Subwidgets(graph) -row $graphRow -column 0 -sticky nsew
+            grid $Subwidgets(toolbarFrame) -row $toolbarRow -column 0 -sticky ew
+            grid rowconfigure $frameName $graphRow -weight 1
+        } else {
+            # No visible toolbar: the graph occupies the entire megawidget.
+            grid $Subwidgets(graph) -row 0 -column 0 -sticky nsew
+            grid rowconfigure $frameName 0 -weight 1
+        }
+        # Create visible toolbar controls only in toolbar mode.
+        if {$ControlMode eq {toolbar}} {
+            set butCount -1
+            set Subwidgets(makeSnapshotBut) [ttk::button $Subwidgets(toolbarFrame).makeSnapshotBut -width 14 -image\
+                                                     ::rbc::graphtoolbar::icons::makeSnapshotIcon\
+                                                     -command [namespace code {my MakeSnapshot}]]
+            grid $Subwidgets(makeSnapshotBut) -row 0 -column [incr butCount] -sticky ns
+            set Subwidgets(postScriptDialogBut) [ttk::button $Subwidgets(toolbarFrame).postScriptDialogBut -width 14\
+                                                         -image ::rbc::graphtoolbar::icons::postScriptDialogIcon\
+                                                         -command [namespace code {my PostScriptDialog}]]
+            grid $Subwidgets(postScriptDialogBut) -row 0 -column [incr butCount] -sticky ns
+        }
         ##### zoom activation
         if {[dict exists $arguments zoom]} {
             if {[dict exists $arguments zoomtitle]} {
@@ -513,6 +537,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             my configure -zoomboxopts [dict get $arguments zoomboxopts]
             my configure -zoommarkopts [dict get $arguments zoommarkopts]
             my configure -zoommarkboxopts [dict get $arguments zoommarkboxopts]
+
+            # Previous-view/reset is middle-button by default.
             my EnableZoom [dict get $arguments zoomstartbut] [dict get $arguments zoomendbut]\
                     [dict get $arguments zoombackbut]
             if {[dict exists $arguments pan]} {
@@ -522,23 +548,28 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             if {[dict exists $arguments zoomwheel]} {
                 my EnableWheelZoom [dict get $arguments zoomwheelmod] [dict get $arguments zoomwheelscale]
             }
-            set Subwidgets(resetZoomBut) [ttk::button $Subwidgets(toolbarFrame).resetZoomBut -width 14\
-                                                  -image ::rbc::graphtoolbar::icons::resetZoomIcon\
-                                                  -command [namespace code {my ResetAllZoom}]]
-            grid $Subwidgets(resetZoomBut) -row 0 -column [incr butCount] -sticky ns
-            set Subwidgets(revertZoomBut) [ttk::button $Subwidgets(toolbarFrame).revertZoomBut -width 14\
-                                                   -image ::rbc::graphtoolbar::icons::revertZoomIcon\
-                                                   -command [namespace code {my ResetZoom}]]
-            grid $Subwidgets(revertZoomBut) -row 0 -column [incr butCount] -sticky ns
+            if {$ControlMode eq {toolbar}} {
+                set Subwidgets(resetZoomBut) [ttk::button $Subwidgets(toolbarFrame).resetZoomBut -width 14\
+                                                      -image ::rbc::graphtoolbar::icons::resetZoomIcon\
+                                                      -command [namespace code {my ResetAllZoom}]]
+                grid $Subwidgets(resetZoomBut) -row 0 -column [incr butCount] -sticky ns
+                set Subwidgets(revertZoomBut) [ttk::button $Subwidgets(toolbarFrame).revertZoomBut -width 14\
+                                                       -image ::rbc::graphtoolbar::icons::revertZoomIcon\
+                                                       -command [namespace code {my ResetZoom}]]
+                grid $Subwidgets(revertZoomBut) -row 0 -column [incr butCount] -sticky ns
+            }
         }
 
         ##### crosshairs activation
         if {[dict exists $arguments crosshairs]} {
+            # Smith representation has a semantic default for the closest coordinate display.
             if {$GraphType eq {polar}} {
                 if {[dict get $arguments representation] eq {smith}} {
                     if {[dict get $arguments smithgrid] eq {impedance}} {
                         my configure -coordclosestmark normalizedimpedance
-                    } elseif {[dict get $arguments smithgrid] eq {admittance}} {
+                    } elseif {
+                        [dict get $arguments smithgrid] eq {admittance}
+                    } {
                         my configure -coordclosestmark normalizedadmittance
                     } else {
                         my configure -coordclosestmark normalizedimpedance
@@ -551,50 +582,66 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             my configure -crosshairsbarlineopts [dict get $arguments crosshairsbarlineopts]
             my configure -crosshairsmarkboxopts [dict get $arguments crosshairsmarkboxopts]
             my configure -crosshairsmode [dict get $arguments crosshairsmode]
-
-            set crosshairsModeWidths [list]
-            foreach label [my CrosshairsModeLabels] {
-                lappend crosshairsModeWidths [string length $label]
+            # The actual crosshair behaviour exists independently of its
+            # control surface. Only create the label/combobox widgets when
+            # the toolbar is visible.
+            if {$ControlMode eq {toolbar}} {
+                set crosshairsModeWidths [list]
+                foreach label [my CrosshairsModeLabels] {
+                    lappend crosshairsModeWidths [string length $label]
+                }
+                set Subwidgets(crosshairsModeLabel)\
+                    [ttk::label $Subwidgets(toolbarFrame).crosshairsModeLabel -text {Crosshairs mode}]
+                grid $Subwidgets(crosshairsModeLabel) -row 0 -column [incr butCount] -sticky e -padx {6 2}
+                set Subwidgets(crosshairsComBox)\
+                        [ttk::combobox $Subwidgets(toolbarFrame).crosshairsComBox -values [my CrosshairsModeLabels]\
+                                 -width [expr {[::tcl::mathfunc::max {*}$crosshairsModeWidths]}]\
+                                 -textvariable [self namespace]::CrosshairsSelector -state readonly\
+                                 -postcommand [namespace code {my UpdateCrosshairsModes}]]
+                bind $Subwidgets(crosshairsComBox) <<ComboboxSelected>> [namespace code {my SelectCrosshairsMode}]
+                grid $Subwidgets(crosshairsComBox) -row 0 -column [incr butCount] -sticky ns
+                set closestCoordWidths [list]
+                foreach mode $CoordClosestMarkModes {
+                    lappend closestCoordWidths [string length $mode]
+                }
+                set Subwidgets(closestCoordLabel) [ttk::label $Subwidgets(toolbarFrame).closestCoordLabel\
+                                                           -text {Closest crosshairs format:}]
+                grid $Subwidgets(closestCoordLabel) -row 0 -column [incr butCount] -sticky e -padx {6 2}
+                set Subwidgets(closestCoordComBox)\
+                        [ttk::combobox $Subwidgets(toolbarFrame).closestCoordComBox\
+                                 -values [my ClosestCoordinateLabels]\
+                                 -width [expr {[::tcl::mathfunc::max {*}$closestCoordWidths]}]\
+                                 -textvariable [self namespace]::ClosestCoordSelector -state disabled\
+                                 -postcommand [namespace code {my UpdateClosestCoordinateModes}]]
+                bind $Subwidgets(closestCoordComBox) <<ComboboxSelected>>\
+                        [namespace code {my SelectClosestCoordinateMode}]
+                grid $Subwidgets(closestCoordComBox) -row 0 -column [incr butCount] -sticky ns
             }
-            set Subwidgets(crosshairsComBox) \
-                    [ttk::combobox $Subwidgets(toolbarFrame).crosshairsComBox -values [my CrosshairsModeLabels]\
-                             -width [expr {[::tcl::mathfunc::max {*}$crosshairsModeWidths]}]\
-                             -textvariable [self namespace]::CrosshairsSelector \
-                             -state readonly -postcommand [namespace code {my UpdateCrosshairsModes}]]
-            bind $Subwidgets(crosshairsComBox) <<ComboboxSelected>> [namespace code {my SelectCrosshairsMode}]
-            grid $Subwidgets(crosshairsComBox) -row 0 -column [incr butCount] -sticky ns
-
-            set closestCoordWidths [list]
-            foreach mode $CoordClosestMarkModes {
-                lappend closestCoordWidths [string length $mode]
-            }
-            set Subwidgets(closestCoordComBox)\
-                [ttk::combobox $Subwidgets(toolbarFrame).closestCoordComBox -values [my ClosestCoordinateLabels]\
-                         -width [expr {[::tcl::mathfunc::max {*}$closestCoordWidths]}]\
-                         -textvariable [self namespace]::ClosestCoordSelector -state disabled\
-                         -postcommand [namespace code {my UpdateClosestCoordinateModes}]]
-            bind $Subwidgets(closestCoordComBox) <<ComboboxSelected>> [namespace code {my SelectClosestCoordinateMode}]
-            grid $Subwidgets(closestCoordComBox) -row 0 -column [incr butCount] -sticky ns
+            # These methods are valid in both toolbar and context-menu modes.
+            # They already tolerate the toolbar comboboxes not existing.
             my UpdateCrosshairsModes
             my UpdateClosestCoordinateModes
             my ApplyCrosshairsMode
         }
-        #### axes scales toggle activation
+        ##### axes scale-toggle activation
         if {[dict exists $arguments scaletoggle]} {
             my setAxisActiveScale [dict get $arguments scaletoggle]
         }
-
-        #### active legend activation
+        ##### active legend activation
         if {[dict exists $arguments activelegend]} {
             my EnableActiveLegend
         }
-        grid columnconfigure $frameName 0 -weight 1
-        if {[dict get $arguments toolbarside] eq "bottom"} {
-            grid rowconfigure $frameName 0 -weight 1
-        } else {
-            grid rowconfigure $frameName 1 -weight 1
+        ##### context-menu control surface
+        if {$ControlMode eq {contextmenu}} {
+            my CreateContextMenu [dict exists $arguments zoom] [dict exists $arguments crosshairs]
         }
-
+        # Right-click is installed in BOTH modes.
+        #
+        # During a transient zoom/pan operation it cancels that operation
+        # and consumes the event.  Otherwise, in context-menu mode, it posts
+        # the context menu.
+        my EnableRightClick
+        # Finish construction of the megawidget command.
         rename ::$frameName ::$frameName.fr
         rename [self] ::$frameName
 
@@ -632,6 +679,38 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     }
 
     #### general private methods
+    method CreateContextMenu {hasZoom hasCrosshairs} {
+        set graph $Subwidgets(graph)
+        set menu $graph.contextMenu
+        menu $menu -tearoff no
+        set Subwidgets(contextMenu) $menu
+        bind $menu <Unmap> [namespace code {
+            after idle [namespace code {
+                my RestoreContextMenuCrosshairs
+            }]
+        }]
+        $menu add command -label {Make snapshot...}  -command [namespace code {my MakeSnapshot}]
+        $menu add command -label {PostScript...}  -command [namespace code {my PostScriptDialog}]
+        if {$hasZoom} {
+            $menu add separator
+            $menu add command -label {Reset view} -command [namespace code {my ResetAllZoom}]
+            $menu add command -label {Previous view} -command [namespace code {my ResetZoom}]
+        }
+        if {$hasCrosshairs} {
+            $menu add separator
+            set crossMenu $menu.crosshairs
+            menu $crossMenu -tearoff no
+            foreach mode [my CrosshairsModes] {
+                set label [my CrosshairsModeLabel $mode]
+                $crossMenu add radiobutton -label $label -variable [self namespace]::CrosshairsSelector -value $label\
+                        -command [namespace code {my SelectCrosshairsMode}]
+            }
+            $menu add cascade -label {Crosshairs mode} -menu $crossMenu
+            set closestMenu $menu.closest
+            menu $closestMenu -tearoff no -postcommand [namespace code {my UpdateClosestContextMenu}]
+            $menu add cascade -label {Closest crosshairs format} -menu $closestMenu
+        }
+    }
     method AddBitmapPoint {name xValue yValue {mapx {}} {mapy {}}} {
         set mapopts [list]
         if {$mapx ne {}} {
@@ -1273,6 +1352,84 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
         return [dict create text $text mapx $mapx mapy $mapy xValue $xValue yValue $yValue]
     }
+    method CancelTransientOperation {x y} {
+        # Panning is modal from ButtonPress until ButtonRelease.
+        if {[info exists PanInfo(active)] && $PanInfo(active)} {
+            my CancelPan $x $y
+            return true
+        }
+        # Zoom corner B means a box selection is currently in progress.
+        if {[info exists ZoomInfo(corner)] && ($ZoomInfo(corner) eq {B})} {
+            my ResetZoom $x $y
+            return true
+        }
+        return false
+    }
+    method EnableRightClick {} {
+        set graph $Subwidgets(graph)
+        bind rightclick-$graph <ButtonPress-3> [namespace code {
+            if {[my CancelTransientOperation %x %y]} {
+                break
+            }
+            if {$ControlMode eq {contextmenu}} {
+                my PostContextMenu %x %y %X %Y
+                break
+            }
+        }]
+        my AddBindTag $graph rightclick-$graph
+    }
+    method PostContextMenu {x y rootX rootY} {
+        set graph $Subwidgets(graph)
+        set menu $Subwidgets(contextMenu)
+        set ContextMenuPosted true
+        # A popup menu does not give the graph its normal <Leave>
+        # handling, so explicitly suspend all crosshair graphics.
+        my DeleteCrosshairsMarkers
+        $graph crosshairs off
+        my UpdateContextMenu
+        if {[tk windowingsystem] eq {win32}} {
+            # On Windows tk_popup is synchronous.  It returns only after
+            # the popup has disappeared, so this is the reliable place to
+            # restore the crosshair state.
+            tk_popup $menu $rootX $rootY
+            set ContextMenuPosted false
+            my RestoreContextMenuCrosshairs
+        } else {
+            # On X11 tk_popup returns immediately.  There we need to wait
+            # for the menu to be unmapped.
+            bind $menu <Unmap> [namespace code {
+                bind %W <Unmap> {}
+                after idle [namespace code {
+                    set ContextMenuPosted false
+                    my RestoreContextMenuCrosshairs
+                }]
+            }]
+            tk_popup $menu $rootX $rootY
+        }
+    }
+    method RestoreContextMenuCrosshairs {} {
+        set graph $Subwidgets(graph)
+        # At this point the popup really is gone. Query the pointer now.
+        set rootX [winfo pointerx $graph]
+        set rootY [winfo pointery $graph]
+        set x [expr {$rootX-[winfo rootx $graph]}]
+        set y [expr {$rootY-[winfo rooty $graph]}]
+        # The pointer may no longer be over the graph.
+        if {[winfo containing $rootX $rootY] ne $graph} {
+            $graph crosshairs off
+            my DeleteCrosshairsMarkers
+            return
+        }
+        # Keep the hairs hidden while updating RBC's stored hotspot.
+        $graph crosshairs off
+        $graph crosshairs configure -position @${x},$y
+        # Restore whatever mode is currently selected.  If that mode uses
+        # visible RBC hairs they are now first drawn at the NEW hotspot.
+        my ApplyCrosshairsMode
+        # Recreate current/closest marker information at exactly the same
+        # location.
+        my RefreshCrosshairsMarker $x $y
+    }
 
     #### axes toggle methods
     method ToggleAxisScale {graph} {
@@ -1615,6 +1772,10 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set graph $Subwidgets(graph)
         set tagCrosshairs crosshairs-$graph
         set tagCrosshairsMarker crosshairs-marker-$graph
+        # A mode change invalidates any marker representation produced by
+        # the previous mode.  This is especially important when changing
+        # from current/closest to none or disabled.
+        my DeleteCrosshairsMarkers
         my RemoveBindTag $graph $tagCrosshairs
         my RemoveBindTag $graph $tagCrosshairsMarker
         set options [my configure -crosshairsmarkopts]
@@ -1792,6 +1953,34 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
         $Subwidgets(closestCoordComBox) configure -values [my ClosestCoordinateLabels]
         set ClosestCoordSelector [my ClosestCoordinateLabel $coordclosestmark]
+    }
+    method UpdateClosestContextMenu {} {
+        set menu $Subwidgets(contextMenu).closest
+        $menu delete 0 end
+        set modes [my ClosestCoordinateModes]
+        if {$coordclosestmark ni $modes} {
+            my configure -coordclosestmark [my DefaultClosestCoordinateMode]
+        }
+        set ClosestCoordSelector [my ClosestCoordinateLabel $coordclosestmark]
+        foreach mode $modes {
+            set label [my ClosestCoordinateLabel $mode]
+            $menu add radiobutton -label $label -variable [self namespace]::ClosestCoordSelector -value $label\
+                    -command [namespace code {my SelectClosestCoordinateMode}]
+        }
+    }
+    method UpdateContextMenu {} {
+        if {![info exists Subwidgets(contextMenu)]} {
+            return
+        }
+        set menu $Subwidgets(contextMenu)
+        if {[info exists CrosshairsSelector]} {
+            if {[my configure -crosshairsmode] eq {closest}} {
+                set state normal
+            } else {
+                set state disabled
+            }
+            $menu entryconfigure {Closest crosshairs format} -state $state
+        }
     }
     method ClosestAxisFormattedValue {axis value formatSpec} {
         set graph $Subwidgets(graph)
