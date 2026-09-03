@@ -1577,16 +1577,23 @@ static int ActivateOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
     }
     if ((redraw) && (!legendPtr->hidden)) {
         /*
-         * See if how much we need to draw. If the graph is already
-         * schedule for a redraw, just make sure the right flags are
-         * set.  Otherwise redraw only the legend: it's either in an
-         * external window or it's the only thing that need updating.
+         * A legend drawn inside the plotting area is part of the plot
+         * composition.  It cannot be redrawn directly into the graph
+         * window:
+         *
+         *  - the backing store would retain the old legend state;
+         *  - element/marker drawing order would not be preserved;
+         *  - the legend would not be clipped to the plotting area.
+         *
+         * Rebuild the plot backing store instead.  Legends in margins
+         * or external windows can still use the cheaper legend-only
+         * redraw when no graph redraw is already pending.
          */
-        if (graphPtr->flags & REDRAW_PENDING) {
-            if (legendPtr->site & LEGEND_IN_PLOT) {
-                graphPtr->flags |= REDRAW_BACKING_STORE;
-            }
-            graphPtr->flags |= REDRAW_WORLD; /* Redraw entire graph. */
+        if (legendPtr->site & LEGEND_IN_PLOT) {
+            graphPtr->flags |= REDRAW_WORLD | REDRAW_BACKING_STORE;
+            Rbc_EventuallyRedrawGraph(graphPtr);
+        } else if (graphPtr->flags & REDRAW_PENDING) {
+            graphPtr->flags |= REDRAW_WORLD;
         } else {
             EventuallyRedrawLegend(legendPtr);
         }
