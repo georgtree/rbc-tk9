@@ -3151,7 +3151,10 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {$historySaved && !$changed} {
             set ZoomInfo(stack) [lrange $ZoomInfo(stack) 1 end]
             if {[my configure -zoomtitle]} {
-                my ZoomTitleLast
+                if {[info exists ZoomInfo(titleTimer)]} {
+                    after cancel $ZoomInfo(titleTimer)
+                }
+                my DestroyZoomTitle
             }
         }
         if {$historySaved && $changed && [my configure -zoomtitle]} {

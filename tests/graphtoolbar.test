@@ -444,6 +444,7 @@ customMatch approxEqual approxNestedEqual
 
 testConstraint isInteractive true
 testConstraint isZoom true
+testConstraint isPan true
 testConstraint isCrosshairs true
 testConstraint isAxes true
 testConstraint isCross true
@@ -1414,9 +1415,10 @@ test zoomInteractive-24 {zoom is committed by button release} -match approxEqual
 }
 
 #### pan
-test panInteractive-1 {pan translates linear axes and is reversible} -constraints {isInteractive isZoom} -setup {
+test panInteractive-1 {pan translates linear axes and is reversible} -constraints {isInteractive isPan} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -pan -zoommod {Any-}]
     pack .gtb -fill both -expand yes
+    $widget graph configure -title {pan translates linear axes and is reversible} {*}$titleFont
     set graph [$widget subwidget graph]
     $graph axis configure x -min 0 -max 10
     $graph axis configure y -min 0 -max 20
@@ -1443,9 +1445,10 @@ test panInteractive-1 {pan translates linear axes and is reversible} -constraint
     destroy $widget
 }
 
-test panInteractive-2 {pan translates logarithmic axis in log space} -constraints {isInteractive isZoom} -setup {
+test panInteractive-2 {pan translates logarithmic axis in log space} -constraints {isInteractive isPan} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -pan]
     pack .gtb -fill both -expand yes
+    $widget graph configure -title {pan translates logarithmic axis in log space} {*}$titleFont
     set graph [$widget subwidget graph]
     $graph axis configure x -min 1 -max 1000 -logscale yes
     $graph axis configure y -min 0 -max 10
@@ -1467,9 +1470,10 @@ test panInteractive-2 {pan translates logarithmic axis in log space} -constraint
     destroy $widget
 }
 
-test panInteractive-3 {pan follows physical drag with invertxy} -constraints {isInteractive isZoom} -setup {
+test panInteractive-3 {pan follows physical drag with invertxy} -constraints {isInteractive isPan} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -pan]
     pack .gtb -fill both -expand yes
+    $widget graph configure -title {pan follows physical drag with invertxy} {*}$titleFont
     set graph [$widget subwidget graph]
     $graph configure -invertxy yes
     $graph axis configure x -min 0 -max 10
@@ -1493,9 +1497,10 @@ test panInteractive-3 {pan follows physical drag with invertxy} -constraints {is
 }
 
 test panInteractive-4 {cancel pan restores view without consuming previous zoom history}\
-        -constraints {isInteractive isZoom} -setup {
+        -constraints {isInteractive isPan} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -pan -zoommod {Any-}]
     pack .gtb -fill both -expand yes
+    $widget graph configure -title {cancel pan restores view without consuming previous zoom history} {*}$titleFont
     set graph [$widget subwidget graph]
     $graph axis configure x -min 0 -max 10
     $graph axis configure y -min 0 -max 10
@@ -1534,6 +1539,244 @@ test panInteractive-4 {cancel pan restores view without consuming previous zoom 
     list [expr {![approxNestedEqual $duringPan $beforePan]}] [approxNestedEqual $afterCancel $beforePan]\
             [approxNestedEqual $afterUndo $initial]
 } -result {1 true true} -cleanup {
+    destroy $widget
+}
+
+test panInteractive-5 {release position completes pan without Motion} -constraints {isInteractive isPan} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -pan]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {release position completes pan without Motion} {*}$titleFont
+    set graph [$widget subwidget graph]
+    $graph axis configure x -min 0 -max 10
+    $graph axis configure y -min 0 -max 20
+    $graph element create line1 -data {0 0 5 10 10 20}
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    set ax [expr {$left+$width/2}]
+    set ay [expr {$top+$height/2}]
+    set bx [expr {$ax+40}]
+    set by [expr {$ay+30}]
+    set expected [ExpectedPanLimits $graph $ax $ay $bx $by]
+    GenerateGraphEvent $graph <Shift-ButtonPress-1> $ax $ay $defaultDelay
+    # No Motion event: FinishPan must use the actual release point.
+    GenerateGraphEvent $graph <ButtonRelease-1> $bx $by $defaultDelay
+    set actual [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    approxNestedEqual $actual $expected
+} -result true -cleanup {
+    destroy $widget
+}
+
+test panInteractive-6 {pan includes hidden used axes but not unused axes} -constraints {isInteractive isPan} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -pan]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {pan includes hidden used axes but not unused axes} {*}$titleFont
+    set graph [$widget subwidget graph]
+    $graph axis configure x -min 0 -max 10
+    $graph axis configure y -min 0 -max 20
+    $graph axis create xHidden -min 100 -max 200 -hide yes
+    $graph axis create yHidden -min 1000 -max 2000 -hide yes
+    $graph axis create xUnused -min -10 -max -5
+    $graph axis create yUnused -min -100 -max -50
+    $graph element create line1 -data {0 0 5 10 10 20}
+    # These axes are hidden and are not installed in a margin, but are
+    # still used by an element and therefore must participate in pan.
+    $graph element create line2 -data {100 1000 150 1500 200 2000} -mapx xHidden -mapy yHidden
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    set ax [expr {$left+$width/2}]
+    set ay [expr {$top+$height/2}]
+    set bx [expr {$ax+35}]
+    set by [expr {$ay-25}]
+    set initial [list {*}[$graph axis limits x] {*}[$graph axis limits y] {*}[$graph axis limits xHidden]\
+                         {*}[$graph axis limits yHidden] {*}[$graph axis limits xUnused]\
+                         {*}[$graph axis limits yUnused]]
+    set expected [list {*}[ExpectedPanAxisLimits $graph x $ax $bx] {*}[ExpectedPanAxisLimits $graph y $ay $by]\
+                          {*}[ExpectedPanAxisLimits $graph xHidden $ax $bx]\
+                          {*}[ExpectedPanAxisLimits $graph yHidden $ay $by] {*}[$graph axis limits xUnused]\
+                          {*}[$graph axis limits yUnused]]
+    GenerateGraphEvent $graph <Shift-ButtonPress-1> $ax $ay $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bx $by $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $bx $by $defaultDelay
+    set actual [list {*}[$graph axis limits x] {*}[$graph axis limits y] {*}[$graph axis limits xHidden]\
+                        {*}[$graph axis limits yHidden] {*}[$graph axis limits xUnused] {*}[$graph axis limits yUnused]]
+    # Undo must restore the hidden used axes too.
+    GenerateGraphEvent $graph <ButtonPress-3> $bx $by $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-3> $bx $by 20
+    set restored [list {*}[$graph axis limits x] {*}[$graph axis limits y] {*}[$graph axis limits xHidden]\
+                          {*}[$graph axis limits yHidden] {*}[$graph axis limits xUnused]\
+                          {*}[$graph axis limits yUnused]]
+    list [approxNestedEqual $actual $expected] [approxNestedEqual $restored $initial]
+} -result {true true} -cleanup {
+    destroy $widget
+}
+
+test panInteractive-7 {returning pan to start is a no-op and removes temporary zoom title}\
+        -constraints {isInteractive isPan} -setup {
+    # Leave zoom titles disabled while establishing one older history
+    # entry, so there is no existing title timer involved in this test.
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -pan -zoommod {Any-}]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {returning pan to start is a no-op and removes temporary zoom title} {*}$titleFont
+    set graph [$widget subwidget graph]
+    $graph axis configure x -min 0 -max 10
+    $graph axis configure y -min 0 -max 10
+    $graph element create line1 -data {0 0 5 5 10 10}
+} -body {
+    WaitForWindow $graph
+    set initial [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    lassign [$graph extents plotarea] left top width height
+    # Establish one ordinary zoom-stack entry.
+    set zaX [expr {$left+$width/4}]
+    set zaY [expr {$top+$height/4}]
+    set zbX [expr {$left+3*$width/4}]
+    set zbY [expr {$top+3*$height/4}]
+    GenerateGraphEvent $graph <ButtonPress-1> $zaX $zaY $defaultDelay
+    GenerateGraphEvent $graph <Motion> $zbX $zbY $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $zbX $zbY $defaultDelay
+    set beforePan [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    # Enable titles only for the pan under test.
+    $widget configure -zoomtitle yes
+    set paX [expr {$left+$width/2}]
+    set paY [expr {$top+$height/2}]
+    set pbX [expr {$paX+35}]
+    set pbY [expr {$paY+25}]
+    GenerateGraphEvent $graph <Shift-ButtonPress-1> $paX $paY $defaultDelay
+    # Move enough to create the pan history entry/title.
+    GenerateGraphEvent $graph <Motion> $pbX $pbY $defaultDelay
+    set moved [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    # Return exactly to the starting point.
+    GenerateGraphEvent $graph <Motion> $paX $paY $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $paX $paY $defaultDelay
+    set afterNoop [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    set titleExists [$graph marker exists gtbZoomTitle]
+    # The temporary pan history entry must also have disappeared:
+    # one right-click must undo the older box zoom.
+    GenerateGraphEvent $graph <ButtonPress-3> $paX $paY $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-3> $paX $paY 20
+    set afterUndo [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    list [expr {![approxNestedEqual $moved $beforePan]}] [approxNestedEqual $afterNoop $beforePan] $titleExists\
+            [approxNestedEqual $afterUndo $initial]
+} -result {1 true 0 true} -cleanup {
+    destroy $widget
+}
+
+test panInteractive-8 {undo pan restores automatic axis limits} -constraints {isInteractive isPan} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -pan]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {undo pan restores automatic axis limits} {*}$titleFont
+    set graph [$widget subwidget graph]
+    # Deliberately leave all four limits automatic.
+    $graph element create line1 -data {0 0 5 10 10 20}
+} -body {
+    WaitForWindow $graph
+    set before [list [$graph axis cget x -min] [$graph axis cget x -max] [$graph axis cget y -min]\
+                        [$graph axis cget y -max]]
+    lassign [$graph extents plotarea] left top width height
+    set ax [expr {$left+$width/2}]
+    set ay [expr {$top+$height/2}]
+    set bx [expr {$ax+30}]
+    set by [expr {$ay+20}]
+    GenerateGraphEvent $graph <Shift-ButtonPress-1> $ax $ay $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bx $by $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $bx $by $defaultDelay
+    set explicit [expr {([$graph axis cget x -min] ne {}) && ([$graph axis cget x -max] ne {}) &&\
+                                 ([$graph axis cget y -min] ne {}) && ([$graph axis cget y -max] ne {})}]
+    GenerateGraphEvent $graph <ButtonPress-3> $bx $by $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-3> $bx $by 20
+    set after [list [$graph axis cget x -min] [$graph axis cget x -max] [$graph axis cget y -min]\
+                       [$graph axis cget y -max]]
+    list $explicit [expr {$after eq $before}]
+} -result {1 1} -cleanup {
+    destroy $widget
+}
+
+test panInteractive-9 {polar pan includes axes used only by specialized grid} -constraints {isInteractive isPan}\
+        -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -zoom -pan]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {polar pan includes axes used only by specialized grid} {*}$titleFont
+    set graph [$widget subwidget graph]
+    # Primary margin axes deliberately use unrelated ranges.
+    $graph axis configure x -min -10 -max 10
+    $graph axis configure y -min -20 -max 20
+    # xGrid/yGrid are not installed in a margin and are not mapped by
+    # an element.  Their only use is by the Polar grid.
+    $graph axis create xGrid -min -4 -max 4
+    $graph axis create yGrid -min -4 -max 4
+    $graph grid configure -hide no -mapx xGrid -mapy yGrid
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    set ax [expr {$left+$width/2}]
+    set ay [expr {$top+$height/2}]
+    set bx [expr {$ax+35}]
+    set by [expr {$ay-25}]
+    set expected [list {*}[ExpectedPanAxisLimits $graph xGrid $ax $bx] {*}[ExpectedPanAxisLimits $graph yGrid $ay $by]]
+    GenerateGraphEvent $graph <Shift-ButtonPress-1> $ax $ay $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bx $by $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $bx $by $defaultDelay
+    set actual [list {*}[$graph axis limits xGrid] {*}[$graph axis limits yGrid]]
+    approxNestedEqual $actual $expected
+} -result true -cleanup {
+    destroy $widget
+}
+
+test panInteractive-10 {completed pan zoom title is temporary} -constraints {isInteractive isPan} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -pan -zoomtitle]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {completed pan zoom title is temporary} {*}$titleFont
+    set graph [$widget subwidget graph]
+    $graph axis configure x -min 0 -max 10
+    $graph axis configure y -min 0 -max 10
+    $graph element create line1 -data {0 0 5 5 10 10}
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    set ax [expr {$left+$width/2}]
+    set ay [expr {$top+$height/2}]
+    set bx [expr {$ax+30}]
+    set by [expr {$ay+20}]
+    GenerateGraphEvent $graph <Shift-ButtonPress-1> $ax $ay $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bx $by $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $bx $by $defaultDelay
+    set immediatelyExists [$graph marker exists gtbZoomTitle]
+    if {$immediatelyExists} {
+        set title [$graph marker cget gtbZoomTitle -text]
+    } else {
+        set title {}
+    }
+    # FinishZoomTitle uses a 2000 ms timer.
+    sleep 2200
+    list $immediatelyExists $title [$graph marker exists gtbZoomTitle]
+} -result {1 {Zoom #1} 0} -cleanup {
+    destroy $widget
+}
+
+test panInteractive-11 {wheel zoom is ignored during active pan} -constraints {isInteractive isPan} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -pan -zoomwheel -zoomwheelmod {} -zoomwheelscale 2.0]
+    pack .gtb -fill both -expand yes
+    $widget graph configure -title {wheel zoom is ignored during active pan} {*}$titleFont
+    set graph [$widget subwidget graph]
+    $graph axis configure x -min 0 -max 10
+    $graph axis configure y -min 0 -max 20
+    $graph element create line1 -data {0 0 5 10 10 20}
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    set ax [expr {$left+$width/2}]
+    set ay [expr {$top+$height/2}]
+    set bx [expr {$ax+30}]
+    set by [expr {$ay+20}]
+    GenerateGraphEvent $graph <Shift-ButtonPress-1> $ax $ay $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bx $by $defaultDelay
+    set beforeWheel [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    GenerateGraphWheelEvent $graph $bx $by 120 $defaultDelay
+    set afterWheel [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    GenerateGraphEvent $graph <ButtonRelease-1> $bx $by $defaultDelay
+    approxNestedEqual $afterWheel $beforeWheel
+} -result true -cleanup {
     destroy $widget
 }
 
