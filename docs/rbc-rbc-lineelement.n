@@ -78,6 +78,67 @@ the last option affecting a coordinate wins\&.
 .PP
 Configuring -x or -y separately invalidates the retained paired -data representation\&. Configuring
 -data later restores a coherent paired representation\&.
+.SS "PARAMETER MAPPING"
+.PP
+-param associates one additional real parameter value with each element data point\&. It is intended for parametric
+data where the plotted X/Y coordinates alone do not identify the independent variable, for example time, frequency,
+bias voltage, or another sweep quantity\&.
+.PP
+The value may be a Tcl list of numeric values or the name of an existing real Rbc vector:
+.PP
+.RS 4n
+.nf
+vector create sweep xValues yValues
+
+sweep   set {0\&.0 0\&.1 0\&.2 0\&.3}
+xValues set {0\&.0 1\&.0 0\&.0 -1\&.0}
+yValues set {1\&.0 0\&.0 -1\&.0 0\&.0}
+
+\&.g element create trajectory -x xValues -y yValues -param sweep
+.fi
+.RE
+.PP
+A complex Rbc vector cannot be used as -param\&.
+.PP
+When a non-empty -param value is supplied while an element is created or configured, the number of parameter
+values must equal the resulting number of element data points\&. Data and parameter changes in the same
+configuration command are validated together before either is committed:
+.PP
+.RS 4n
+.nf
+\&.g element configure trajectory -x newX -y newY -param newSweep
+.fi
+.RE
+.PP
+If the final data-point count and parameter count differ, the configuration fails and the previous data and
+parameter mapping remain unchanged\&.
+.PP
+An empty value disables parameter mapping:
+.PP
+.RS 4n
+.nf
+\&.g element configure trajectory -param {}
+.fi
+.RE
+.PP
+When -param names an Rbc vector, later changes to that vector are tracked automatically\&. Parameter data do
+not affect the plotted geometry or axis limits\&.
+.PP
+Attached data and parameter vectors may be resized independently after configuration\&. A temporary length
+mismatch does not prevent the element from being drawn\&. While the lengths differ, ELEMENT closest simply omits
+info(param)\&. The parameter result becomes available automatically again when the lengths match\&.
+.PP
+When available, ELEMENT closest reports:
+.PP
+.RS 4n
+.nf
+info(param)
+.fi
+.RE
+.PP
+as the parameter value associated with info(index)\&. With -interpolate yes, the plotted x and y result may
+lie between source points, but param is not interpolated; it remains the parameter value corresponding to the
+reported source index\&.
 .PP
 Non-finite X or Y values are not drawn\&. They create a discontinuity in the trace rather than causing the
 points on either side to be connected\&.
@@ -492,6 +553,9 @@ The complete line-element option set is:
 │                         │                  │                  │ color\&.                                                  │
 │ -outlinewidth width     │ outlineWidth     │ OutlineWidth     │ Sets the non-negative width of symbol outlines\&. The     │
 │                         │                  │                  │ default is 1\&.                                           │
+│ -param data             │ param            │ Param            │ Associates one real parameter value with each data      │
+│                         │                  │                  │ point\&. Accepts a numeric list or real Rbc vector\&. An    │
+│                         │                  │                  │ empty value disables the mapping\&.                       │
 │ -pen penName            │ pen              │ Pen              │ Specifies a named line pen containing the element's     │
 │                         │                  │                  │ normal drawing attributes\&. An empty value uses the      │
 │                         │                  │                  │ element's built-in pen\&.                                 │

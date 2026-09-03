@@ -1053,6 +1053,22 @@ namespace eval ::rbc::ELEMENT {
         ```
         #ruffopt excludedformats {}
 
+        For a line or Polar element configured with a valid `-param` mapping, the result array also contains `param`.
+        Its value is the parameter value associated with the source data index reported by `index`.
+
+        For example:
+        ```tcl
+        if {[.g element closest $x $y info]} {
+            if {[info exists info(param)]} {
+                puts "parameter = $info(param)"
+            }
+        }
+        ```
+
+        The param entry is present only while the parameter vector has exactly the same number of values as the element
+        has data points. If attached Rbc vectors are resized independently and their lengths temporarily differ, the
+        closest search still succeeds normally but param is omitted until the lengths match again.
+
         For a bar element, the result array also contains the physical bounds of the selected mapped bar rectangle:
 
         #ruffopt excludedformats nroff
@@ -1118,6 +1134,9 @@ namespace eval ::rbc::ELEMENT {
         With `-interpolate true`, the closest position may lie between source points. In that case `x` and `y` contain
         the interpolated graph coordinates of the closest point on the rendered trace, while `index` identifies the
         associated source segment.
+
+        When `param` is present, it follows that same source index. The parameter value is not geometrically
+        interpolated: `param` is the value from `-param` corresponding to `index`.
 
         The `-along` and `-interpolate` options affect line, strip, and polar element searches. Bar elements are
         searched against their rendered rectangles.
@@ -1209,6 +1228,7 @@ namespace eval ::rbc::ELEMENT {
     proc closest {x y varName args} {
         # Finds the visible element nearest to the specified window coordinate. On success, stores information in the
         # Tcl array `varName` using the common keys `name`, `index`, `x`, `y`, and `dist`.
+        # A selected line or Polar element with a valid `-param` mapping additionally reports `param`.
         # A selected bar element additionally reports its mapped rectangle geometry. A selected element in a polar
         # widget additionally reports `radius` and `angle`; in Smith representation it also reports Gamma, normalized
         # and physical impedance, normalized and physical admittance, and `z0`. See [Polar elements] for the complete
@@ -1255,7 +1275,7 @@ namespace eval ::rbc::ELEMENT {
         # value - initial value for the option.
         #
         # See [LINEELEMENT] for line-element options, [STRIPELEMENT] for strip-element options, [BARELEMENT] for
-        # bar-element options and [POLARELEMENT] for strip-element options
+        # bar-element options and [POLARELEMENT] for polar-element options
         # Returns: Name of the newly created element.
         # Synopsis: elemName ?option value ...?
     }
@@ -1379,6 +1399,55 @@ namespace eval ::rbc::LINEELEMENT {
 
         Configuring `-x` or `-y` separately invalidates the retained paired `-data` representation. Configuring
         `-data` later restores a coherent paired representation.
+
+        ### Parameter mapping
+        `-param` associates one additional real parameter value with each element data point. It is intended for parametric
+        data where the plotted X/Y coordinates alone do not identify the independent variable, for example time, frequency,
+        bias voltage, or another sweep quantity.
+
+        The value may be a Tcl list of numeric values or the name of an existing real Rbc vector:
+        ```tcl
+        vector create sweep xValues yValues
+
+        sweep   set {0.0 0.1 0.2 0.3}
+        xValues set {0.0 1.0 0.0 -1.0}
+        yValues set {1.0 0.0 -1.0 0.0}
+
+        .g element create trajectory -x xValues -y yValues -param sweep
+        ```
+
+        A complex Rbc vector cannot be used as `-param`.
+
+        When a non-empty -param value is supplied while an element is created or configured, the number of parameter
+        values must equal the resulting number of element data points. Data and parameter changes in the same
+        configuration command are validated together before either is committed:
+        ```tcl
+        .g element configure trajectory -x newX -y newY -param newSweep
+        ```
+
+        If the final data-point count and parameter count differ, the configuration fails and the previous data and
+        parameter mapping remain unchanged.
+
+        An empty value disables parameter mapping:
+        ```tcl
+        .g element configure trajectory -param {}
+        ```
+
+        When `-param` names an Rbc vector, later changes to that vector are tracked automatically. Parameter data do
+        not affect the plotted geometry or axis limits.
+
+        Attached data and parameter vectors may be resized independently after configuration. A temporary length
+        mismatch does not prevent the element from being drawn. While the lengths differ, ELEMENT closest simply omits
+        `info(param)`. The parameter result becomes available automatically again when the lengths match.
+
+        When available, `ELEMENT closest` reports:
+        ```text
+        info(param)
+        ```
+
+        as the parameter value associated with `info(index)`. With `-interpolate yes`, the plotted x and y result may
+        lie between source points, but param is not interpolated; it remains the parameter value corresponding to the
+        reported source index.
 
         Non-finite X or Y values are not drawn. They create a discontinuity in the trace rather than causing the
         points on either side to be connected.
@@ -1769,6 +1838,7 @@ namespace eval ::rbc::LINEELEMENT {
         | `-offdash color`        | `offDash`        | `OffDash`        | Sets the color used for the gaps of a dashed trace. An empty value leaves the gaps transparent; `defcolor` uses the trace color.                                                                                  |
         | `-outline color`        | `outline`        | `Outline`        | Sets the symbol outline color. `defcolor` uses the trace color.                                                                                                                                                   |
         | `-outlinewidth width`   | `outlineWidth`   | `OutlineWidth`   | Sets the non-negative width of symbol outlines. The default is `1`.                                                                                                                                               |
+        | `-param data`           | `param`          | `Param`          | Associates one real parameter value with each data point. Accepts a numeric list or real Rbc vector. An empty value disables parameter mapping.                                             |
         | `-pen penName`          | `pen`            | `Pen`            | Specifies a named line pen containing the element's normal drawing attributes. An empty value uses the element's built-in pen.                                                                                    |
         | `-pixels size`          | `pixels`         | `Pixels`         | Sets the requested symbol size. The default is `0.125i`.                                                                                                                                                          |
         | `-reduce tolerance`     | `reduce`         | `Reduce`         | Sets the screen-space tolerance used to reduce the number of points in the displayed trace. A non-positive value disables reduction. The default is `0.0`.                                                        |
@@ -1859,6 +1929,9 @@ namespace eval ::rbc::LINEELEMENT {
         │                         │                  │                  │ color.                                                  │
         │ -outlinewidth width     │ outlineWidth     │ OutlineWidth     │ Sets the non-negative width of symbol outlines. The     │
         │                         │                  │                  │ default is 1.                                           │
+        │ -param data             │ param            │ Param            │ Associates one real parameter value with each data      │
+        │                         │                  │                  │ point. Accepts a numeric list or real Rbc vector. An    │
+        │                         │                  │                  │ empty value disables the mapping.                       │
         │ -pen penName            │ pen              │ Pen              │ Specifies a named line pen containing the element's     │
         │                         │                  │                  │ normal drawing attributes. An empty value uses the      │
         │                         │                  │                  │ element's built-in pen.                                 │
@@ -1959,6 +2032,7 @@ namespace eval ::rbc::STRIPELEMENT {
         | `-areaforeground` | area-fill foreground                                  |
         | `-areapattern`    | area filling with a solid or stipple pattern          |
         | `-areatile`       | tiled area filling                                    |
+        | `-param`          | per-point parameter mapping returned by `ELEMENT closest` |
         | `-reduce`         | screen-space trace reduction                          |
         | `-state`          | line-element state option                             |
         | `-trace`          | filtering of increasing/decreasing X trace directions |
@@ -1972,6 +2046,7 @@ namespace eval ::rbc::STRIPELEMENT {
         │ -areaforeground     │ area-fill foreground                                    │
         │ -areapattern        │ area filling with a solid or stipple pattern            │
         │ -areatile           │ tiled area filling                                      │
+        │ -param              │ per-point parameter mapping returned by ELEMENT closest │
         │ -reduce             │ screen-space trace reduction                            │
         │ -state              │ line-element state option                               │
         │ -trace              │ filtering of increasing/decreasing X trace directions   │
@@ -2384,6 +2459,33 @@ namespace eval ::rbc::POLARELEMENT {
         When more than one data-source option is supplied by the same configuration command, the explicit options are
         processed in caller order and the final data-source selection determines the active mode.
 
+        ## Parameter mapping
+        Polar elements support the line-element `-param` option with either ordinary X/Y data or `-cdata`. The
+        parameter is independent of the coordinate representation and is not used when mapping or drawing the trace.
+
+        A common use is to associate frequency with points on a Polar or Smith trace:
+        ```tcl
+        vector create gamma -type complex
+        vector create frequency
+        gamma set {{0.10 0.05} {0.20 0.15} {0.30 0.10} {0.25 -0.05}}
+        frequency set {1.0e9 2.0e9 3.0e9 4.0e9}
+        polar .p -representation smith
+        .p element create S11 -cdata gamma -param frequency
+        ```
+
+        A closest-point query can then recover both the plotted Smith-chart quantities and the corresponding frequency:
+        ```tcl
+        if {[.p element closest $x $y info -interpolate no S11]} {
+            puts "frequency = $info(param)"
+            puts "Gamma     = $info(gamma)"
+        }
+        ```
+
+        The same length and transactional rules described for [LINEELEMENT] apply. During element creation or
+        configuration, the parameter count must equal the final data-point count. If attached vectors are subsequently
+        resized independently and temporarily have different lengths, plotting continues but `info(param)` is omitted
+        until the counts match again.
+
         ## Complex data formats
         `-cdataformat` controls how values from `-cdata` are interpreted.
 
@@ -2639,6 +2741,14 @@ namespace eval ::rbc::POLARELEMENT {
         info(y)
         info(dist)
         ```
+
+        If the element has a valid `-param` mapping, the result also contains:
+        ```text
+        info(param)
+        ```
+
+        `param` is the parameter value associated with info(index). It uses the same source-index semantics described
+        for [LINEELEMENT]; it is not interpolated when `-interpolate yes` selects a point between source samples.
 
         For a Polar element, the result additionally contains:
         ```text

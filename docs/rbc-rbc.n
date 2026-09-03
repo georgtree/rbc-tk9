@@ -924,7 +924,7 @@ Queries or modifies event bindings for element binding tags\&. With no arguments
 Queries the current value of an element configuration option\&. The available options depend on the concrete element type\&.
 .TP
 \fIclosest\fP
-Finds the visible element nearest to the specified window coordinate\&. On success, stores information in the Tcl array varName using the common keys name, index, x, y, and dist\&. A selected bar element additionally reports its mapped rectangle geometry\&. A selected element in a polar widget additionally reports radius and angle; in Smith representation it also reports Gamma, normalized and physical impedance, normalized and physical admittance, and z0\&. See \fIPolar elements\fP for the complete Polar/Smith result set\&.
+Finds the visible element nearest to the specified window coordinate\&. On success, stores information in the Tcl array varName using the common keys name, index, x, y, and dist\&. A selected line or Polar element with a valid -param mapping additionally reports param\&. A selected bar element additionally reports its mapped rectangle geometry\&. A selected element in a polar widget additionally reports radius and angle; in Smith representation it also reports Gamma, normalized and physical impedance, normalized and physical admittance, and z0\&. See \fIPolar elements\fP for the complete Polar/Smith result set\&.
 .TP
 \fIconfigure\fP
 Queries or modifies element configuration\&. When querying, one element name is supplied\&. When setting options, multiple element names may precede the option/value pairs and the same configuration is applied to each named element\&.
@@ -1051,6 +1051,7 @@ Current value of option\&.
 .PP
 Finds the visible element nearest to the specified window coordinate\&. On success, stores information in the
 Tcl array varName using the common keys name, index, x, y, and dist\&.
+A selected line or Polar element with a valid -param mapping additionally reports param\&.
 A selected bar element additionally reports its mapped rectangle geometry\&. A selected element in a polar
 widget additionally reports radius and angle; in Smith representation it also reports Gamma, normalized
 and physical impedance, normalized and physical admittance, and z0\&. See \fIPolar elements\fP for the complete
@@ -1170,7 +1171,7 @@ Initial value for the option\&.
 .RE
 .PP
 See \fILINEELEMENT\fP for line-element options, \fISTRIPELEMENT\fP for strip-element options, \fIBARELEMENT\fP for
-bar-element options and \fIPOLARELEMENT\fP for strip-element options
+bar-element options and \fIPOLARELEMENT\fP for polar-element options
 .PP
 \fBReturn value\fR
 .PP

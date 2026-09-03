@@ -225,6 +225,25 @@ On success, the named Tcl array receives:
 .fi
 .RE
 .PP
+For a line or Polar element configured with a valid -param mapping, the result array also contains param\&.
+Its value is the parameter value associated with the source data index reported by index\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+if {[\&.g element closest $x $y info]} {
+    if {[info exists info(param)]} {
+        puts "parameter = $info(param)"
+    }
+}
+.fi
+.RE
+.PP
+The param entry is present only while the parameter vector has exactly the same number of values as the element
+has data points\&. If attached Rbc vectors are resized independently and their lengths temporarily differ, the
+closest search still succeeds normally but param is omitted until the lengths match again\&.
+.PP
 For a bar element, the result array also contains the physical bounds of the selected mapped bar rectangle:
 .PP
 .RS 4n
@@ -275,6 +294,9 @@ With -interpolate false, line, strip, and polar searches return actual source da
 With -interpolate true, the closest position may lie between source points\&. In that case x and y contain
 the interpolated graph coordinates of the closest point on the rendered trace, while index identifies the
 associated source segment\&.
+.PP
+When param is present, it follows that same source index\&. The parameter value is not geometrically
+interpolated: param is the value from -param corresponding to index\&.
 .PP
 The -along and -interpolate options affect line, strip, and polar element searches\&. Bar elements are
 searched against their rendered rectangles\&.

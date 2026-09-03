@@ -141,6 +141,39 @@ For example:
 .PP
 When more than one data-source option is supplied by the same configuration command, the explicit options are
 processed in caller order and the final data-source selection determines the active mode\&.
+.SH "PARAMETER MAPPING"
+.PP
+Polar elements support the line-element -param option with either ordinary X/Y data or -cdata\&. The
+parameter is independent of the coordinate representation and is not used when mapping or drawing the trace\&.
+.PP
+A common use is to associate frequency with points on a Polar or Smith trace:
+.PP
+.RS 4n
+.nf
+vector create gamma -type complex
+vector create frequency
+gamma set {{0\&.10 0\&.05} {0\&.20 0\&.15} {0\&.30 0\&.10} {0\&.25 -0\&.05}}
+frequency set {1\&.0e9 2\&.0e9 3\&.0e9 4\&.0e9}
+polar \&.p -representation smith
+\&.p element create S11 -cdata gamma -param frequency
+.fi
+.RE
+.PP
+A closest-point query can then recover both the plotted Smith-chart quantities and the corresponding frequency:
+.PP
+.RS 4n
+.nf
+if {[\&.p element closest $x $y info -interpolate no S11]} {
+    puts "frequency = $info(param)"
+    puts "Gamma     = $info(gamma)"
+}
+.fi
+.RE
+.PP
+The same length and transactional rules described for \fILINEELEMENT\fP apply\&. During element creation or
+configuration, the parameter count must equal the final data-point count\&. If attached vectors are subsequently
+resized independently and temporarily have different lengths, plotting continues but info(param) is omitted
+until the counts match again\&.
 .SH "COMPLEX DATA FORMATS"
 .PP
 -cdataformat controls how values from -cdata are interpreted\&.
@@ -493,6 +526,17 @@ info(y)
 info(dist)
 .fi
 .RE
+.PP
+If the element has a valid -param mapping, the result also contains:
+.PP
+.RS 4n
+.nf
+info(param)
+.fi
+.RE
+.PP
+param is the parameter value associated with info(index)\&. It uses the same source-index semantics described
+for \fILINEELEMENT\fP; it is not interpolated when -interpolate yes selects a point between source samples\&.
 .PP
 For a Polar element, the result additionally contains:
 .PP

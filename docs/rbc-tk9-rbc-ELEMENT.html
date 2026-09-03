@@ -219,6 +219,19 @@ active pen.</p>
 </tr>
 </tbody>
 </table>
+<p>For a line or Polar element configured with a valid <code class="docutils literal notranslate"><span class="pre">-param</span></code> mapping, the result array also contains <code class="docutils literal notranslate"><span class="pre">param</span></code>.
+Its value is the parameter value associated with the source data index reported by <code class="docutils literal notranslate"><span class="pre">index</span></code>.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="k">{[</span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>closest<span class="w"> </span><span class="nv">$x</span><span class="w"> </span><span class="nv">$y</span><span class="w"> </span>info<span class="k">]}</span><span class="w"> </span><span class="k">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="k">{[</span><span class="nb">info</span><span class="w"> </span>exists<span class="w"> </span>info<span class="k">(</span><span class="nv">param</span><span class="k">)]}</span><span class="w"> </span><span class="k">{</span>
+<span class="w">        </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;parameter </span><span class="o">=</span><span class="s2"> $info(param)&quot;</span>
+<span class="w">    </span><span class="k">}</span>
+<span class="k">}</span>
+</pre></div>
+</div>
+<p>The param entry is present only while the parameter vector has exactly the same number of values as the element
+has data points. If attached Rbc vectors are resized independently and their lengths temporarily differ, the
+closest search still succeeds normally but param is omitted until the lengths match again.</p>
 <p>For a bar element, the result array also contains the physical bounds of the selected mapped bar rectangle:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -282,6 +295,8 @@ command returns <code class="docutils literal notranslate"><span class="pre">1</
 <p>With <code class="docutils literal notranslate"><span class="pre">-interpolate</span> <span class="pre">true</span></code>, the closest position may lie between source points. In that case <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> contain
 the interpolated graph coordinates of the closest point on the rendered trace, while <code class="docutils literal notranslate"><span class="pre">index</span></code> identifies the
 associated source segment.</p>
+<p>When <code class="docutils literal notranslate"><span class="pre">param</span></code> is present, it follows that same source index. The parameter value is not geometrically
+interpolated: <code class="docutils literal notranslate"><span class="pre">param</span></code> is the value from <code class="docutils literal notranslate"><span class="pre">-param</span></code> corresponding to <code class="docutils literal notranslate"><span class="pre">index</span></code>.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">-along</span></code> and <code class="docutils literal notranslate"><span class="pre">-interpolate</span></code> options affect line, strip, and polar element searches. Bar elements are
 searched against their rendered rectangles.</p>
 <p>By default all visible elements are searched. One or more element names may be supplied after the options to
