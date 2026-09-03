@@ -1384,8 +1384,10 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set ContextMenuPosted true
         # A popup menu does not give the graph its normal <Leave>
         # handling, so explicitly suspend all crosshair graphics.
-        my DeleteCrosshairsMarkers
-        $graph crosshairs off
+        if {[info exists crosshairsopts]} {
+            my DeleteCrosshairsMarkers
+            $graph crosshairs off
+        }
         my UpdateContextMenu
         if {[tk windowingsystem] eq {win32}} {
             # On Windows tk_popup is synchronous.  It returns only after
@@ -1408,6 +1410,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
     }
     method RestoreContextMenuCrosshairs {} {
+        if {![info exists crosshairsopts]} {
+            return
+        }
         set graph $Subwidgets(graph)
         # At this point the popup really is gone. Query the pointer now.
         set rootX [winfo pointerx $graph]

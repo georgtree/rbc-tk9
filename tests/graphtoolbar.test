@@ -440,6 +440,23 @@ proc ExpectedWheelLimits {graph axis factor {pixel {}}} {
     return [list $newMin $newMax]
 }
 
+proc MenuDescription {menu} {
+    set result [list]
+    set last [$menu index last]
+    if {$last eq {none}} {
+        return $result
+    }
+    for {set i 0} {$i <= $last} {incr i} {
+        set type [$menu type $i]
+        if {$type eq {separator}} {
+            lappend result [list separator {}]
+        } else {
+            lappend result [list $type [$menu entrycget $i -label]]
+        }
+    }
+    return $result
+}
+
 customMatch approxEqual approxNestedEqual
 
 testConstraint isInteractive true
@@ -643,6 +660,102 @@ test generalConfiguration-16 {crosshairs mode property and selector stay synchro
     return $actual
 } -result {{current {Current point} disabled} {closest {Closest point} readonly} {none {No marker} disabled}\
                    {disabled Disabled disabled} {current {Current point} disabled}} -cleanup {
+    destroy $widget
+}
+
+test generalConfiguration-17 {toolbar crosshair controls have descriptive labels} -setup {
+    set widget [graphtoolbar .gtb -width 400 -height 400 -crosshairs]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+
+    set modeLabel [$widget subwidget crosshairsModeLabel]
+    set formatLabel [$widget subwidget closestCoordLabel]
+} -body {
+    list \
+        [$modeLabel cget -text] \
+        [$formatLabel cget -text]
+} -result {{Crosshairs mode} {Closest crosshairs format:}} -cleanup {
+    destroy $widget
+}
+
+
+test generalConfiguration-18 {context-menu mode has graph and menu but no visible toolbar controls} -setup {
+    set widget [graphtoolbar .gtb -width 400 -height 400 -controlmode contextmenu -zoom -crosshairs]
+    grid .gtb -row 0 -column 0 -sticky nsew
+    grid columnconfigure . 0 -weight 1
+    grid rowconfigure . 0 -weight 1
+    set graph [$widget subwidget graph]
+    set toolbar [$widget subwidget toolbarFrame]
+    set menu [$widget subwidget contextMenu]
+} -body {
+    list [lsort [$widget names]] [winfo manager $toolbar] [winfo children $toolbar] [winfo manager $graph]\
+            [winfo exists $menu]
+} -result {{contextMenu graph toolbarFrame} {} {} grid 1} -cleanup {
+    destroy $widget
+}
+
+test generalConfiguration-19 {context menu contains only controls for enabled features} -setup {
+    set widgets [list]
+
+    foreach {path options} {.ctx0 {} .ctx1 {-zoom} .ctx2 {-crosshairs} .ctx3 {-zoom -crosshairs}} {
+        lappend widgets [graphtoolbar $path -width 400 -height 400 -controlmode contextmenu {*}$options]
+    }
+} -body {
+    set actual [list]
+    foreach widget $widgets {
+        lappend actual [MenuDescription [$widget subwidget contextMenu]]
+    }
+    return $actual
+} -result {{{command {Make snapshot...}} {command PostScript...}}\
+    {{command {Make snapshot...}} {command PostScript...} {separator {}} {command {Reset view}}\
+             {command {Previous view}}}\
+    {{command {Make snapshot...}} {command PostScript...} {separator {}} {cascade {Crosshairs mode}}\
+             {cascade {Closest crosshairs format}}}\
+    {{command {Make snapshot...}} {command PostScript...} {separator {}} {command {Reset view}}\
+             {command {Previous view}} {separator {}} {cascade {Crosshairs mode}}\
+             {cascade {Closest crosshairs format}}}} -cleanup {
+    foreach widget $widgets {
+        destroy $widget
+    }
+}
+
+test generalConfiguration-20 {context-menu crosshair submenus expose correct modes} -setup {
+    set widget [graphtoolbar .gtb -width 400 -height 400 -type polar -controlmode contextmenu -crosshairs\
+                        -crosshairsmode closest]
+    set graph [$widget subwidget graph]
+    set menu [$widget subwidget contextMenu]
+    set crossMenu [$menu entrycget [$menu index {Crosshairs mode}] -menu]
+    set closestMenu [$menu entrycget [$menu index {Closest crosshairs format}] -menu]
+} -body {
+    set crossEntries [MenuDescription $crossMenu]
+    # Populate the dynamic closest-format menu exactly as posting it
+    # would do, without displaying a native popup.
+    uplevel #0 [$closestMenu cget -postcommand]
+    set polarLabels [list]
+    foreach entry [MenuDescription $closestMenu] {
+        lappend polarLabels [lindex $entry 1]
+    }
+    # Select Complex through the menu itself.
+    $closestMenu invoke [$closestMenu index Complex]
+    set polarSelection [$widget configure -coordclosestmark]
+    # Changing to Smith changes the permitted coordinate formats.
+    # The old Complex selection is invalid and must be reset to the
+    # Smith default.
+    $graph configure -representation smith
+    uplevel #0 [$closestMenu cget -postcommand]
+    set smithLabels [list]
+    foreach entry [MenuDescription $closestMenu] {
+        lappend smithLabels [lindex $entry 1]
+    }
+    set smithDefault [$widget configure -coordclosestmark]
+    # And a Smith-specific format must be selectable through the menu.
+    $closestMenu invoke [$closestMenu index Admittance]
+    set smithSelection [$widget configure -coordclosestmark]
+    list $crossEntries $polarLabels $polarSelection $smithLabels $smithDefault $smithSelection
+} -result {{{radiobutton {Current point}} {radiobutton {Closest point}} {radiobutton {No marker}} {radiobutton\
+Disabled}} {Axis Complex Polar} complex {Axis Gamma {Normalized impedance} Impedance {Normalized admittance}\
+Admittance} normalizedimpedance admittance} -cleanup {
     destroy $widget
 }
 
@@ -3514,7 +3627,6 @@ test crossInteractive-3 {single-stage zoom, check active axis disabling during s
     destroy $widget
 }
 
-
 test crossInteractive-4 {wheel zoom redraws current crosshairs marker box in widget pixels}\
         -constraints {isInteractive isCross} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
@@ -4069,6 +4181,191 @@ test crossInteractive-15 {plotarea legend remains normally interactive while zoo
 } -cleanup {
     destroy $widget
 } -result {1 {} {1 0 raised}}
+
+#### context menu
+test contextMenuInteractive-1 {Previous view menu command restores one zoom level} -constraints {isInteractive isZoom}\
+        -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -controlmode contextmenu -zoom -zoommod {Any-}]
+    pack .gtb -fill both -expand yes
+    set graph [$widget subwidget graph]
+    set menu [$widget subwidget contextMenu]
+    $graph configure -title {Previous view menu command restores one zoom level} {*}$titleFont
+    $graph axis configure x -min 0 -max 10
+    $graph axis configure y -min 0 -max 20
+    $graph element create line1 -data {0 0 5 10 10 20}
+} -body {
+    WaitForWindow $graph
+    set initial [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    lassign [$graph extents plotarea] left top width height
+    set ax [expr {$left+$width/4}]
+    set ay [expr {$top+$height/4}]
+    set bx [expr {$left+3*$width/4}]
+    set by [expr {$top+3*$height/4}]
+    GenerateGraphEvent $graph <ButtonPress-1> $ax $ay $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bx $by $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $bx $by $defaultDelay
+    set zoomed [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    $menu invoke [$menu index {Previous view}]
+    update idletasks
+    set restored [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    list [expr {![approxNestedEqual $zoomed $initial]}] [approxNestedEqual $restored $initial]
+} -result {1 true} -cleanup {
+    destroy $widget
+}
+
+test contextMenuInteractive-2 {Reset view menu command restores initial view and clears history}\
+        -constraints {isInteractive isZoom} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -controlmode contextmenu -zoom -zoommod {Any-}]
+    pack .gtb -fill both -expand yes
+    set graph [$widget subwidget graph]
+    set menu [$widget subwidget contextMenu]
+    $graph configure -title {Reset view menu command restores initial view and clears history} {*}$titleFont
+    $graph axis configure x -min 0 -max 10
+    $graph axis configure y -min 0 -max 20
+    $graph element create line1 -data {0 0 5 10 10 20}
+} -body {
+    WaitForWindow $graph
+    set initial [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    lassign [$graph extents plotarea] left top width height
+    set ax [expr {$left+$width/4}]
+    set ay [expr {$top+$height/4}]
+    set bx [expr {$left+3*$width/4}]
+    set by [expr {$top+3*$height/4}]
+    # Build two history levels.
+    GenerateGraphEvent $graph <ButtonPress-1> $ax $ay $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bx $by $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $bx $by $defaultDelay
+    set zoom1 [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    GenerateGraphEvent $graph <ButtonPress-1> $ax $ay $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bx $by $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $bx $by $defaultDelay
+    set zoom2 [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    $menu invoke [$menu index {Reset view}]
+    update idletasks
+    set reset [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    # Reset view also clears ZoomInfo(stack), so Previous view must
+    # now be a no-op.
+    $menu invoke [$menu index {Previous view}]
+    update idletasks
+    set afterPrevious [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    list [expr {![approxNestedEqual $zoom1 $initial]}] [expr {![approxNestedEqual $zoom2 $zoom1]}]\
+            [approxNestedEqual $reset $initial] [approxNestedEqual $afterPrevious $initial]
+} -result {1 1 true true} -cleanup {
+    destroy $widget
+}
+
+test contextMenuInteractive-3 {crosshair mode menu switches behaviour and removes stale markers} \
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -controlmode contextmenu -crosshairs -crosshairsmode current]
+    pack .gtb -fill both -expand yes
+    set graph [$widget subwidget graph]
+    set menu [$widget subwidget contextMenu]
+    set crossMenu [$menu entrycget [$menu index {Crosshairs mode}] -menu]
+    $graph configure -title {crosshair mode menu switches behaviour and removes stale markers} {*}$titleFont
+    $graph axis configure x -min 0 -max 10
+    $graph axis configure y -min 0 -max 10
+    $graph element create line1 -data {0 0 5 5 10 10}
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    set x [expr {$left+$width/2}]
+    set y [expr {$top+$height/2}]
+    # Current-point mode produces a marker.
+    GenerateGraphEvent $graph <Motion> $x $y $defaultDelay
+    set beforeMarker [$graph marker exists crosshairsText]
+    # Current point -> No marker.
+    $crossMenu invoke [$crossMenu index {No marker}]
+    update idletasks
+    set noMarkerOk [expr {([$widget configure -crosshairsmode] eq {none}) &&\
+                                   (![llength [$graph marker names crosshairs*]]) && (![$graph crosshairs cget -hide])}]
+    # No marker -> Disabled.
+    $crossMenu invoke [$crossMenu index Disabled]
+    update idletasks
+    set tags [bindtags $graph]
+    set disabledOk [expr {([$widget configure -crosshairsmode] eq {disabled}) && [$graph crosshairs cget -hide] &&\
+                                   ("crosshairs-$graph" ni $tags) && ("crosshairs-marker-$graph" ni $tags)}]
+    # Disabled -> Current point.
+    $crossMenu invoke [$crossMenu index {Current point}]
+    update idletasks
+    GenerateGraphEvent $graph <Motion> $x $y 20
+    set currentOk [expr {([$widget configure -crosshairsmode] eq {current}) &&\
+                                  [$graph marker exists crosshairsText]}]
+    list $beforeMarker $noMarkerOk $disabledOk $currentOk
+} -result {1 1 1 1} -cleanup {
+    destroy $widget
+}
+
+test contextMenuInteractive-4 {right click cancels active zoom without posting context menu}\
+        -constraints {isInteractive isZoom} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -controlmode contextmenu -zoom -zoommod {Any-}\
+                        -zoomboxopts {-linewidth 1}]
+    pack .gtb -fill both -expand yes
+    set graph [$widget subwidget graph]
+    set menu [$widget subwidget contextMenu]
+    $graph configure -title {right click cancels active zoom without posting context menu} {*}$titleFont
+    $graph axis configure x -min 0 -max 10
+    $graph axis configure y -min 0 -max 20
+    $graph element create line1 -data {0 0 5 10 10 20}
+} -body {
+    WaitForWindow $graph
+    set initial [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    lassign [$graph extents plotarea] left top width height
+    set ax [expr {$left+$width/4}]
+    set ay [expr {$top+$height/4}]
+    set bx [expr {$left+3*$width/4}]
+    set by [expr {$top+3*$height/4}]
+    GenerateGraphEvent $graph <ButtonPress-1> $ax $ay $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bx $by $defaultDelay
+    set outlineBefore [$graph marker exists gtbZoomOutline]
+    # The first right-click belongs to cancellation, not to the menu.
+    GenerateGraphEvent $graph <ButtonPress-3> $bx $by $defaultDelay
+    set menuMapped [winfo ismapped $menu]
+    set outlineAfter [$graph marker exists gtbZoomOutline]
+    set afterCancel [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    # Pending releases must not resurrect/commit the cancelled zoom.
+    GenerateGraphEvent $graph <ButtonRelease-3> $bx $by 20
+    GenerateGraphEvent $graph <ButtonRelease-1> $bx $by 20
+    set final [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    list $outlineBefore $outlineAfter $menuMapped [approxNestedEqual $afterCancel $initial]\
+            [approxNestedEqual $final $initial]
+} -result {1 0 0 true true} -cleanup {
+    destroy $widget
+}
+
+test contextMenuInteractive-5 {right click cancels active pan without posting context menu}\
+        -constraints {isInteractive isPan} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -controlmode contextmenu -zoom -pan]
+    pack .gtb -fill both -expand yes
+    set graph [$widget subwidget graph]
+    set menu [$widget subwidget contextMenu]
+    $graph configure -title {right click cancels active pan without posting context menu} {*}$titleFont
+    $graph axis configure x -min 0 -max 10
+    $graph axis configure y -min 0 -max 20
+    $graph element create line1 -data {0 0 5 10 10 20}
+} -body {
+    WaitForWindow $graph
+    set initial [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    lassign [$graph extents plotarea] left top width height
+    set ax [expr {$left+$width/2}]
+    set ay [expr {$top+$height/2}]
+    set bx [expr {$ax+45}]
+    set by [expr {$ay+30}]
+    GenerateGraphEvent $graph <Shift-ButtonPress-1> $ax $ay $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bx $by $defaultDelay
+    set moved [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    # First Button-3 cancels the modal pan and is consumed.
+    GenerateGraphEvent $graph <ButtonPress-3> $bx $by $defaultDelay
+    set menuMapped [winfo ismapped $menu]
+    set restored [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    # The original Button-1 release is now harmless.
+    GenerateGraphEvent $graph <ButtonRelease-3> $bx $by 20
+    GenerateGraphEvent $graph <ButtonRelease-1> $bx $by 20
+    set final [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    list [expr {![approxNestedEqual $moved $initial]}] $menuMapped [approxNestedEqual $restored $initial]\
+            [approxNestedEqual $final $initial]
+} -result {1 0 true true} -cleanup {
+    destroy $widget
+}
 
 #### active legend
 test activeLegendInteractive-1 {three-state active legend} -constraints {isInteractive isActiveLegend}\
