@@ -530,8 +530,8 @@ test generalConfiguration-13 {options configuration} -setup {
     grid rowconfigure . 0 -weight 1
 } -body {
     $widget configure -crosshairsmarkopts
-} -result {-font {Helvetica 15} -anchor nw -justify left -foreground black -formatx .4g -formaty .4g -padx 4 -pady 4}\
-        -cleanup {
+} -result {-font {Helvetica 15} -anchor nw -justify left -foreground black -formatx .4g -formaty .4g -formatparam .4g\
+                   -padx 4 -pady 4} -cleanup {
     destroy $widget
 }
 
@@ -2867,6 +2867,74 @@ test crosshairsInteractive-44 {smith closest axis mode uses mapped axis commands
     rename ::ClosestSmithAxisFormat {}
     destroy .gtb
 } -result {Trace1 real(h)=GAMMA-REAL:0.2 imag(v)=GAMMA-IMAG:0.4}
+
+test crosshairsInteractive-45 {closest line marker displays parameter mapping}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest -crosshairsclosestopts\
+                        {-interpolate no -halo 10 -single yes} -crosshairsmarkopts\
+                        {-formatx .4g -formaty .4g -formatparam .3e}]
+    pack .gtb -fill both -expand yes
+    set graph [$widget subwidget graph]
+    vector create param45
+    param45 set {1.0e9 2.0e9 3.0e9}
+    $graph element create Trace1 -x {0 1 2} -y {0 1 0} -param param45
+} -body {
+    WaitForWindow $graph
+    lassign [$graph transform 1 1] x y
+    GenerateGraphEvent $graph <Motion> $x $y $defaultDelay
+    split [$graph marker cget crosshairsClosestText -text] \n
+} -result {Trace1 x(h)=1 y(v)=1 param=2.000e+09} -cleanup {
+    catch {vector destroy param45}
+    destroy $widget
+}
+
+test crosshairsInteractive-46 {closest marker omits unavailable parameter mapping}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest -crosshairsclosestopts\
+                        {-interpolate no -halo 10 -single yes}]
+    pack .gtb -fill both -expand yes
+    set graph [$widget subwidget graph]
+    vector create x46 y46 param46
+    x46 set {0 1 2}
+    y46 set {0 1 0}
+    param46 set {10 20 30}
+    $graph element create Trace1 -x x46 -y y46 -param param46
+    # Valid after configuration, then deliberately make the live
+    # parameter mapping temporarily unavailable.
+    param46 length 2
+} -body {
+    WaitForWindow $graph
+    lassign [$graph transform 1 1] x y
+    GenerateGraphEvent $graph <Motion> $x $y $defaultDelay
+    set text [$graph marker cget crosshairsClosestText -text]
+    list [string match {*param=*} $text] [split $text \n]
+} -result {0 {Trace1 x(h)=1 y(v)=1}} -cleanup {
+    catch {vector destroy x46 y46 param46}
+    destroy $widget
+}
+
+test crosshairsInteractive-47 {smith closest marker displays parameter mapping} \
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -type polar -representation smith -crosshairs -crosshairsmode closest\
+                        -coordclosestmark gamma -crosshairsclosestopts {-interpolate no -halo 10 -single yes}\
+                        -crosshairsmarkopts {-formatx .3g -formaty .3g -formatparam .3e}]
+    pack .gtb -fill both -expand yes
+    set graph [$widget subwidget graph]
+    vector create gamma47 -type complex
+    vector create frequency47
+    gamma47 set {{0.0 0.0} {0.2 0.4} {0.4 0.2}}
+    frequency47 set { 1.0e9 2.0e9 3.0e9 }
+    $graph element create Trace1 -cdata gamma47 -param frequency47
+} -body {
+    WaitForWindow $graph
+    $widget configure -coordclosestmark gamma
+    lassign [$graph transform 0.2 0.4] x y
+    GenerateGraphEvent $graph <Motion> $x $y $defaultDelay
+    split [$graph marker cget crosshairsClosestText -text] \n
+} -result {Trace1 Gamma=0.2+j0.4 param=2.000e+09} -cleanup {
+    catch {vector destroy gamma47 frequency47}
+    destroy $widget
+}
 
 #### axes
 test axesInteractive-1 {change of axis scale} -constraints {isInteractive isAxes} -setup {

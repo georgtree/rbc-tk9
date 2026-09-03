@@ -47,6 +47,7 @@ namespace eval ::rbc::graphtoolbar {
     option add *gtbCrosshairsTextPadY 4 widgetDefault
     option add *gtbCrosshairsTextXFormat .4g widgetDefault
     option add *gtbCrosshairsTextYFormat .4g widgetDefault
+    option add *gtbCrosshairsTextParamFormat .4g widgetDefault
 
     # crosshairs markers box default options
     option add *gtbCrosshairsTextBoxFill #FFEB3B widgetDefault
@@ -358,6 +359,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                                                [list -formaty= -key -formaty -default\
                                                         [option get $Subwidgets(graph) gtbCrosshairsTextYFormat\
                                                                  GtbCrosshairsTextYFormat]]\
+                                               [list -formatparam= -key -formatparam -default\
+                                                        [option get $Subwidgets(graph) gtbCrosshairsTextParamFormat\
+                                                                 GtbCrosshairsTextParamFormat]]\
                                                [list -padx=  -key -padx -default\
                                                         [option get $Subwidgets(graph) gtbCrosshairsTextPadX\
                                                                  GtbCrosshairsTextPadX]]\
@@ -1502,7 +1506,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             my DrawTextBackground crosshairsTextBox $textX $textY $text $options $boxOptions $mapx $mapy
             lassign [my WidgetToAxisValues $textX $textY $mapx $mapy] textXValue textYValue
             $graph marker create text -name crosshairsText -text $text -coords [list $textXValue $textYValue] -mapx\
-                    $mapx -mapy $mapy {*}[dict remove $options -formatx -formaty]
+                    $mapx -mapy $mapy {*}[dict remove $options -formatx -formaty -formatparam]
             return
         }
         if {$mode ne {closest}} {
@@ -1869,73 +1873,80 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     }
     method ClosestMarkerText {element xValue yValue options closestInfo} {
         set mode [my configure -coordclosestmark]
-        #
         # Never silently reinterpret a requested marker mode.
         #
         # If the current graph representation does not support the
         # configured mode, no marker text is produced.
-        #
         if {$mode ni [my ClosestCoordinateModes]} {
-            return {}
+            return
         }
         if {$mode eq {axis}} {
-            return [my ClosestAxisMarkerText $element $xValue $yValue $options]
+            set text [my ClosestAxisMarkerText $element $xValue $yValue $options]
+        } else {
+            set formatReal [dict get $options -formatx]
+            set formatImag [dict get $options -formaty]
+            switch -- $mode {
+                complex {
+                    # Complex Cartesian value of a Polar point.
+                    set valueText [my FormatComplexMarkerValue z [list $xValue $yValue] $formatReal $formatImag]
+                }
+                polar {
+                    if {![dict exists $closestInfo radius] || ![dict exists $closestInfo angle]} {
+                        return
+                    }
+                    set valueText [my FormatPolarMarkerValue [dict get $closestInfo radius]\
+                                           [dict get $closestInfo angle] $formatReal $formatImag]
+                }
+                gamma {
+                    if {![dict exists $closestInfo gamma]} {
+                        return
+                    }
+                    set valueText [my FormatComplexMarkerValue Gamma [dict get $closestInfo gamma] $formatReal\
+                                           $formatImag]
+                }
+                normalizedimpedance {
+                    if {![dict exists $closestInfo normalizedImpedance]} {
+                        return
+                    }
+                    set valueText [my FormatComplexMarkerValue z [dict get $closestInfo normalizedImpedance]\
+                                           $formatReal $formatImag]
+                }
+                impedance {
+                    if {![dict exists $closestInfo impedance]} {
+                        return
+                    }
+                    set valueText [my FormatComplexMarkerValue Z [dict get $closestInfo impedance] $formatReal\
+                                           $formatImag Ohm]
+                }
+                normalizedadmittance {
+                    if {![dict exists $closestInfo normalizedAdmittance]} {
+                        return
+                    }
+                    set valueText [my FormatComplexMarkerValue y [dict get $closestInfo normalizedAdmittance]\
+                                           $formatReal $formatImag]
+                }
+                admittance {
+                    if {![dict exists $closestInfo admittance]} {
+                        return
+                    }
+                    set valueText [my FormatComplexMarkerValue Y [dict get $closestInfo admittance] $formatReal\
+                                           $formatImag S]
+                }
+                default {
+                    return
+                }
+            }
+            set text "$element\n$valueText"
         }
-        set formatReal [dict get $options -formatx]
-        set formatImag [dict get $options -formaty]
-        switch -- $mode {
-            complex {
-                #
-                # Complex Cartesian value of a Polar point.
-                #
-                set valueText [my FormatComplexMarkerValue z [list $xValue $yValue] $formatReal $formatImag]
-            }
-            polar {
-                if {![dict exists $closestInfo radius] || ![dict exists $closestInfo angle]} {
-                    return {}
-                }
-                set valueText [my FormatPolarMarkerValue [dict get $closestInfo radius] [dict get $closestInfo angle]\
-                                       $formatReal $formatImag]
-            }
-            gamma {
-                if {![dict exists $closestInfo gamma]} {
-                    return {}
-                }
-                set valueText [my FormatComplexMarkerValue Gamma [dict get $closestInfo gamma] $formatReal $formatImag]
-            }
-            normalizedimpedance {
-                if {![dict exists $closestInfo normalizedImpedance]} {
-                    return {}
-                }
-                set valueText [my FormatComplexMarkerValue z [dict get $closestInfo normalizedImpedance] $formatReal\
-                                       $formatImag]
-            }
-            impedance {
-                if {![dict exists $closestInfo impedance]} {
-                    return {}
-                }
-                set valueText [my FormatComplexMarkerValue Z [dict get $closestInfo impedance] $formatReal $formatImag\
-                                       Ohm]
-            }
-            normalizedadmittance {
-                if {![dict exists $closestInfo normalizedAdmittance]} {
-                    return {}
-                }
-                set valueText [my FormatComplexMarkerValue y [dict get $closestInfo normalizedAdmittance] $formatReal\
-                                       $formatImag]
-            }
-            admittance {
-                if {![dict exists $closestInfo admittance]} {
-                    return {}
-                }
-                set valueText [my FormatComplexMarkerValue Y [dict get $closestInfo admittance] $formatReal $formatImag\
-                                       S]
-            }
-            default {
-                return {}
-            }
+        # -param is optional metadata supplied by line and Polar elements.
+        # RBC omits it from the closest result whenever no valid parameter
+        # mapping exists, so its presence in closestInfo is sufficient.
+        if {[dict exists $closestInfo param]} {
+            set param [dict get $closestInfo param]
+            set formatParam [dict get $options -formatparam]
+            append text [format "\nparam=%$formatParam" $param]
         }
-        return "$element\n$valueText"
+        return $text
     }
     method CreateClosestMarker {graph textMarker bitmapMarker element xValue yValue options closestInfo} {
         set mapx [$graph element cget $element -mapx]
@@ -1958,7 +1969,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         lassign [my WidgetToAxisValues $textX $textY $mapx $mapy] textXValue textYValue
 
         $graph marker create text -name $textMarker -text $text -coords [list $textXValue $textYValue] -mapx $mapx\
-                -mapy $mapy {*}[dict remove $options -formatx -formaty]
+                -mapy $mapy {*}[dict remove $options -formatx -formaty -formatparam]
         #
         # Bitmap remains exactly at the real selected element point.
         #
@@ -2095,7 +2106,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             return
         }
         # -formatx/-formaty are graphtoolbar formatting options, not RBC text-marker options.
-        set textOptions [dict remove $options -formatx -formaty]
+        set textOptions [dict remove $options -formatx -formaty -formatparam]
         lassign [my ClosestBarLayout $left $top $right $bottom $text $textOptions] lineX1 lineY1 lineX2 lineY2 textX\
                 textY anchor
         dict set textOptions -anchor $anchor
@@ -2308,7 +2319,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                     -anchor $anchor
         } else {
             $graph marker create text -name $marker -coords [list $textXValue $textYValue] -mapx $mapx -mapy $mapy\
-                    -text $text {*}[dict remove $options -formatx -formaty]
+                    -text $text {*}[dict remove $options -formatx -formaty -formatparam]
             
         }
     }
