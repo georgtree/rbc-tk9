@@ -1488,7 +1488,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
         $Subwidgets(graph) marker create bitmap -name $name -coords [list $xValue $yValue]\
                 -bitmap "@[file join $::rbc::graphtoolbar::libDir pointer.xbm]"\
-                -mask "@[file join $::rbc::graphtoolbar::libDir pointer_mask.xbm]" -under no {*}$mapopts
+                -mask "@[file join $::rbc::graphtoolbar::libDir pointer_mask.xbm]" -under no -state disabled {*}$mapopts
     }
     method BindTagName {name} {
         # Returns the private graphtoolbar bindtag for one interaction.
@@ -1790,7 +1790,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             $graph marker configure $name -coords $coords -mapx $mapx -mapy $mapy {*}$boxOptions
         } else {
             $graph marker create polygon -name $name -coords $coords -mapx $mapx -mapy $mapy -bindtags {} -under no\
-                    {*}$boxOptions
+                    -state disabled {*}$boxOptions
         }
     }
     method UsedAxes {dimension} {
@@ -2741,7 +2741,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             my DrawTextBackground gtbCrosshairsTextBox $textX $textY $text $options $boxOptions $mapx $mapy
             lassign [my WidgetToAxisValues $textX $textY $mapx $mapy] textXValue textYValue
             $graph marker create text -name gtbCrosshairsText -text $text -coords [list $textXValue $textYValue] -mapx\
-                    $mapx -mapy $mapy {*}[dict remove $options -formatx -formaty -formatparam]
+                    $mapx -mapy $mapy -state disabled {*}[dict remove $options -formatx -formaty -formatparam]
             return
         }
         if {$mode ne {closest}} {
@@ -3381,7 +3381,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         lassign [my WidgetToAxisValues $textX $textY $mapx $mapy] textXValue textYValue
 
         $graph marker create text -name $textMarker -text $text -coords [list $textXValue $textYValue] -mapx $mapx\
-                -mapy $mapy {*}[dict remove $options -formatx -formaty -formatparam]
+                -mapy $mapy -state disabled {*}[dict remove $options -formatx -formaty -formatparam]
         #
         # Bitmap remains exactly at the real selected element point.
         #
@@ -3531,7 +3531,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             $graph marker configure $marker -coords $coords -mapx $mapx -mapy $mapy {*}$lineOptions -arrow $arrow
         } else {
             $graph marker create line -name $marker -coords $coords -mapx $mapx -mapy $mapy -bindtags {} -under no\
-                    {*}$lineOptions -arrow $arrow
+                    -state disabled {*}$lineOptions -arrow $arrow
         }
     }
     method CreateClosestBarMarker {marker element xValue yValue left top right bottom options boxOptions closestInfo} {
@@ -3668,7 +3668,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                     {*}$textOptions
         } else {
             $graph marker create text -name $marker -coords [list $textXValue $textYValue] -text $text -mapx $mapx\
-                    -mapy $mapy -bindtags {} -under no {*}$textOptions
+                    -mapy $mapy -bindtags {} -under no -state disabled {*}$textOptions
         }
     }
     #### zoom methods
@@ -3827,7 +3827,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                     -anchor $anchor
         } else {
             $graph marker create text -name $marker -coords [list $textXValue $textYValue] -mapx $mapx -mapy $mapy\
-                    -text $text {*}[dict remove $options -formatx -formaty -formatparam]
+                    -text $text -state disabled {*}[dict remove $options -formatx -formaty -formatparam]
             
         }
     }
@@ -4226,7 +4226,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         } else {
             set coords {-Inf Inf}
         }
-        $graph marker create text -name gtbZoomTitle -text "Zoom #$level" -coords $coords -bindtags {}\
+        $graph marker create text -name gtbZoomTitle -text "Zoom #$level" -coords $coords -bindtags {} -state disabled\
                 {*}[my configure -zoomtitleopts]
     }
     method ZoomTitleLast {} {
@@ -4235,7 +4235,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Returns: Nothing.
         set level [llength $ZoomInfo(stack)]
         if {$level > 0} {
-            $Subwidgets(graph) marker create text -name gtbZoomTitle -text "Zoom #$level"\
+            $Subwidgets(graph) marker create text -name gtbZoomTitle -text "Zoom #$level" -state disabled\
                     {*}[my configure -zoomtitleopts]
         }
     }
@@ -4533,7 +4533,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {[$graph marker exists gtbZoomOutline]} {
             $graph marker configure gtbZoomOutline -coords $coords -mapx $mapx -mapy $mapy
         } else {
-            $graph marker create line -name gtbZoomOutline -coords $coords -mapx $mapx -mapy $mapy \
+            $graph marker create line -name gtbZoomOutline -coords $coords -mapx $mapx -mapy $mapy -state disabled\
                     {*}[my configure -zoomboxopts]
         }
     }

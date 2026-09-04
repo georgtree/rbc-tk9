@@ -81,7 +81,7 @@ foreach {option value} $configOptions {
 #####  (3) Add elements to the graph
 $graph graph element create line1 -x $X -y $Y2
 $graph graph element create line2 -x $X -y $Y3
-$graph graph element create line3 -x $X -y $Y1
+$graph graph element create line3 -x $X -y $Y1 -mapy y2
 
 ####  Configuration of .g (apart from its elements)
 $graph graph axis configure x -scrollcommand {.xbar set} -scrollmax 10 -scrollmin 2 -title X
