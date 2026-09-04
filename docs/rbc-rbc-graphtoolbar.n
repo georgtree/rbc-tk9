@@ -1,0 +1,1017 @@
+'\"
+'\" '\" Copyright (c) George Yashin
+'\"
+.TH "rbc::graphtoolbar" 3tcl 0\&.5\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.SH NAME
+rbc::graphtoolbar - Commands in namespace rbc::graphtoolbar
+.SH SYNOPSIS
+\fBgraphtoolbar create OBJNAME\fP \fIpath ?option \&.\&.\&.?\fP
+.br
+\fBgraphtoolbar new\fP \fIpath ?option \&.\&.\&.?\fP
+.br
+\fBGRAPHTOOLBAROBJ destroy\fP
+.br
+\fBGRAPHTOOLBAROBJ getAxisActiveScale\fP
+.br
+\fBGRAPHTOOLBAROBJ graph\fP \fI?graphCommand \&.\&.\&.?\fP
+.br
+\fBGRAPHTOOLBAROBJ names\fP
+.br
+\fBGRAPHTOOLBAROBJ setAxisActiveScale\fP \fIaxes ?-disabled? ?-event event? ?-background color?\fP
+.br
+\fBGRAPHTOOLBAROBJ subwidget\fP \fIname\fP
+.br
+\fBGRAPHTOOLBAROBJ widgetcommand\fP \fIsubwidgetName ?command \&.\&.\&.?\fP
+.br
+.SH GRAPHTOOLBAR
+.PP
+The graphtoolbar command creates an Rbc graph megawidget with an optional toolbar or context-menu control
+surface and a set of coordinated interactive graph-navigation facilities\&.
+.PP
+The graph itself is a normal Rbc graph, barchart, stripchart, or polar widget\&.  The megawidget adds:
+.TP
+\(bu
+Drag-selection zoom\&.
+.TP
+\(bu
+Mouse-wheel zoom\&.
+.TP
+\(bu
+Plot-area panning\&.
+.TP
+\(bu
+Reversible navigation history shared by zoom and pan operations\&.
+.TP
+\(bu
+Current-position and closest-element crosshair annotations\&.
+.TP
+\(bu
+Polar and Smith-chart coordinate displays\&.
+.TP
+\(bu
+Interactive linear/logarithmic axis toggling\&.
+.TP
+\(bu
+Interactive three-state legend entries\&.
+.TP
+\(bu
+PNG snapshots and PostScript output\&.
+.TP
+\(bu
+Either a permanently visible toolbar or a right-click context menu\&.
+.PP
+The command is exported from the ::rbc namespace and may normally be used as:
+.PP
+.RS 4n
+.nf
+::rbc::graphtoolbar \&.gtb ?option \&.\&.\&.?
+.fi
+.RE
+.PP
+or, after importing the Rbc commands:
+.PP
+.RS 4n
+.nf
+namespace import ::rbc::*
+graphtoolbar \&.gtb ?option \&.\&.\&.?
+.fi
+.RE
+.SH "BASIC EXAMPLE"
+.PP
+The following creates a normal graph with rectangle zoom, wheel zoom, panning, crosshair annotations, active
+legend entries, and interactive axis scale selection:
+.PP
+.RS 4n
+.nf
+package require Tk
+package require rbc
+
+::rbc::graphtoolbar \&.gtb -width 800 -height 500 -zoom -zoomwheel -pan -crosshairs -crosshairsmode closest -scaletoggle all -activelegend
+
+pack \&.gtb -fill both -expand yes
+\&.gtb graph configure -title {Interactive graph}
+\&.gtb graph element create trace -data {0 0 1 1 2 4 3 9 4 16}
+.fi
+.RE
+.PP
+graph forwards the remaining arguments directly to the embedded Rbc graph widget\&. The graph pathname can
+alternatively be obtained with:
+.PP
+.RS 4n
+.nf
+set graph [\&.gtb subwidget graph]
+.fi
+.RE
+.SH "CONTROL SURFACES"
+.PP
+-controlmode toolbar, the default, creates a visible toolbar\&.  Snapshot and PostScript buttons are always
+present\&.  Enabling -zoom adds \fBReset view\fP and \fBPrevious view\fP controls\&.  Enabling -crosshairs adds
+selectors for crosshair mode and closest-coordinate format\&.
+.PP
+-controlmode contextmenu leaves the graph occupying the entire megawidget\&.  Right-clicking the graph displays the corresponding controls in a popup menu:
+.TP
+\(bu
+\fBMake snapshot\&.\&.\&.\fP
+.TP
+\(bu
+\fBPostScript\&.\&.\&.\fP
+.TP
+\(bu
+\fBReset view\fP, when -zoom is enabled\&.
+.TP
+\(bu
+\fBPrevious view\fP, when -zoom is enabled\&.
+.TP
+\(bu
+\fBCrosshairs mode\fP, when -crosshairs is enabled\&.
+.TP
+\(bu
+\fBClosest crosshairs format\fP, when -crosshairs is enabled\&.
+.PP
+The toolbar frame still exists in context-menu mode but is neither populated nor managed\&.
+.SH "ZOOMING AND NAVIGATION"
+.PP
+With -zoom, rectangle zoom is performed by pressing the event selected by -zoomstartbut, together with
+-zoommod, dragging over the plot, and releasing the event selected by -zoomendbut\&.
+.PP
+The defaults are:
+.PP
+.RS 4n
+.nf
+start       <Any-ButtonPress-1>
+finish      <ButtonRelease-1>
+previous    <Any-ButtonPress-2>
+.fi
+.RE
+.PP
+The finish binding intentionally does not require -zoommod\&. A selection therefore still finishes normally if
+the modifier is released before the mouse button\&.
+.PP
+The final release position is always used as the second zoom corner, even if no final Motion event occurred\&.
+.PP
+Dragging outside the plot area clamps the selected corner to the plot boundary\&.
+.PP
+Each completed rectangle zoom saves the preceding limits and scale type of every axis participating in the
+displayed coordinate system\&.  Previous view restores the latest saved state\&. Reset view restores the oldest
+state and clears the navigation history\&.
+.PP
+Automatic axis limits are saved as their actual configured value {}, rather than as the temporary numerical
+limits calculated from the data, so undoing a navigation operation correctly restores autoscaling\&.
+.PP
+-zoomtitle briefly displays Zoom #n after a navigation change\&. -zoommark annotates the corners of a
+rectangle selection\&.
+.SH "WHEEL ZOOM"
+.PP
+-zoomwheel requires -zoom\&. By default, \fBControl-MouseWheel\fP scales the graph by a factor of 1\&.1\&.
+.PP
+When the pointer is inside the plot area, every used X and Y axis is scaled around the value beneath the
+pointer\&. The value underneath the pointer therefore remains at the same physical screen position\&.
+.PP
+When the pointer is over an axis instead, only that axis is scaled, around the centre of its numerical range\&.
+.PP
+Linear axes are scaled arithmetically\&. Logarithmic axes are scaled in logarithmic space\&.
+.PP
+Every wheel step is added to the same navigation history used by rectangle zoom and panning\&.
+.SH PANNING
+.PP
+-pan requires -zoom\&.
+.PP
+With the defaults, holding \fBShift\fP and dragging \fBButton-1\fP inside the plotting area translates the visible
+coordinate system:
+.PP
+.RS 4n
+.nf
+start       <Shift-ButtonPress-1>
+drag        <Motion>
+finish      <ButtonRelease-1>
+.fi
+.RE
+.PP
+The \fBShift\fP modifier is required only when the operation starts\&. Releasing \fBShift\fP while \fBButton-1\fP
+remains held does not terminate or strand the pan\&.
+.PP
+Panning changes axis limits without changing their scale:
+.TP
+\(bu
+Linear axes preserve max-min\&.
+.TP
+\(bu
+Logarithmic axes preserve max/min\&.
+.PP
+All axes actually participating in the displayed coordinate system are moved together\&. This includes axes
+installed in margins, hidden axes mapped by elements, and the axes mapped by a Polar or Smith grid\&.  Completely
+unused axes are not changed\&.
+.PP
+Panning and zooming therefore operate correctly with multiple axes and with graph -invertxy\&.
+.PP
+A completed pan creates one normal navigation-history entry\&. Pressing and releasing without movement creates
+no history entry\&.  Moving away and returning exactly to the starting position is also treated as a no-op\&.
+.SH CROSS-INTERACTIONS
+.PP
+The navigation facilities deliberately suspend conflicting interactions while a transient operation is active\&.
+.PP
+During rectangle zoom:
+.TP
+\(bu
+active axis scale toggling is temporarily disabled;
+.TP
+\(bu
+current/closest crosshair marker interaction is temporarily disabled;
+.TP
+\(bu
+toolbar controls are temporarily disabled;
+.TP
+\(bu
+wheel zoom is ignored;
+.TP
+\(bu
+panning cannot start\&.
+.PP
+During panning:
+.TP
+\(bu
+active axis scale toggling is temporarily disabled;
+.TP
+\(bu
+both raw crosshair lines and crosshair marker interaction are suspended;
+.TP
+\(bu
+existing crosshair marker graphics are removed before axis limits move;
+.TP
+\(bu
+toolbar controls are temporarily disabled;
+.TP
+\(bu
+wheel zoom is ignored;
+.TP
+\(bu
+rectangle zoom cannot start\&.
+.PP
+At the end of the operation the previous interaction state is restored\&. Fixed-pixel crosshair annotation boxes
+are rebuilt only after the new graph transform is current, preventing their geometry from being stretched by
+the changed axis scale\&.
+.PP
+\fBButton-3\fP has a special role in both control modes\&. If a rectangle zoom or pan is currently active,
+\fBButton-3\fP cancels that operation and consumes the event\&. In context-menu mode, \fBButton-3\fP posts the menu
+only when there is no transient navigation operation to cancel\&.
+.PP
+Rectangle zoom and panning do not start when the initial press is on a legend drawn inside the plot area\&. The
+press is left for normal legend interaction instead\&.
+.PP
+While an already-started zoom or pan passes through an internal plot-area legend, active-legend hover and click
+changes are suppressed\&. Normal legend interaction resumes when the transient operation finishes\&.
+.SH CROSSHAIRS
+.PP
+-crosshairs enables the enhanced crosshair system\&. The -crosshairsmode property selects one of four modes:
+.TP
+\(bu
+current - show Rbc crosshair lines and annotate the current pointer coordinates\&.
+.TP
+\(bu
+closest - find plotted data near the pointer and annotate the selected point or points\&.
+.TP
+\(bu
+none - show ordinary Rbc crosshair lines without an annotation marker\&.
+.TP
+\(bu
+disabled - disable both the lines and the annotation marker\&.
+.PP
+The default is closest\&.
+.PP
+In closest mode, -crosshairsclosestopts controls the search:
+.TP
+\(bu
+-interpolate yes allows a closest point on an interpolated trace\&.
+.TP
+\(bu
+-halo 10 sets the search halo in pixels\&.
+.TP
+\(bu
+-single yes displays the globally closest result\&. With -single no, each visible element is searched independently\&.
+.TP
+\(bu
+-hide yes hides the ordinary Rbc crosshair lines while closest annotations are displayed\&.
+.PP
+Elements configured with -hideplot yes do not participate in closest searches\&.
+.PP
+A closest line, strip, or Polar point is marked by a bitmap together with its text annotation\&. A closest bar
+uses a dimension line with arrowheads spanning the displayed bar\&. Very short bars use external arrowheads when
+two internal heads would overlap\&.
+.PP
+When an element has a valid -param mapping, the parameter value reported by element closest is appended to
+the closest annotation\&.  Its format is controlled by -formatparam\&.
+.PP
+In axis-format closest mode, an axis -command formatter is honoured\&.  If the formatter fails, the
+graphtoolbar numeric format is used as a fallback\&.
+.PP
+Posting the context menu temporarily removes crosshair graphics\&.  After the menu is dismissed, the selected
+crosshair mode is restored at the pointer's current location rather than at the old popup location\&.
+.SH "COORDINATE MARKER FORMATS"
+.PP
+-coordmark controls current-position and rectangle-corner annotations\&. It accepts:
+.TP
+\(bu
+auto
+.TP
+\(bu
+axis
+.TP
+\(bu
+complex
+.TP
+\(bu
+polar
+.TP
+\(bu
+gamma
+.TP
+\(bu
+normalizedimpedance
+.TP
+\(bu
+normalizedimpedanceri
+.TP
+\(bu
+normalizedadmittance
+.TP
+\(bu
+normalizedadmittanceri
+.PP
+auto uses normal axis coordinates for ordinary and Polar graphs\&. For a Smith representation it selects
+real/imaginary normalized impedance or admittance according to -smithgrid\&.
+.PP
+-coordclosestmark controls closest-point annotation\&. The permitted formats depend on the graph
+representation:
+.TP
+\(bu
+ordinary graph, barchart, or stripchart: axis
+.TP
+\(bu
+Polar representation: axis, complex, polar
+.TP
+\(bu
+Smith representation: axis, gamma, normalizedimpedance, impedance, normalizedadmittance, admittance
+.PP
+The toolbar combobox and context-menu submenu expose only the modes valid for the current representation\&.
+.SH "POLAR AND SMITH INTERACTION"
+.PP
+A Polar/Smith graph uses its grid-mapped axes as part of the displayed coordinate system even when those axes
+are hidden or are not installed in graph margins\&. They therefore participate in zooming, panning, coordinate
+display, and navigation history\&.
+.PP
+Rectangle zoom preserves the physical plot-area aspect ratio\&. This keeps equal X and Y data units at equal
+physical scales and prevents Polar or Smith circles from becoming elliptical\&.
+.PP
+When wheel zoom is performed over one of the Polar/Smith grid axes, both grid axes are scaled by the same
+factor\&.  Scaling only one grid axis would otherwise force the automatic-aspect layout to resize the plotting
+area\&.
+.PP
+A visible Polar/Smith grid requires linear Cartesian grid axes\&. Interactive scale toggling therefore refuses
+to change a visible grid axis from linear to logarithmic\&. Auxiliary axes may still be logarithmic\&.
+.PP
+Example Smith chart:
+.PP
+.RS 4n
+.nf
+::rbc::graphtoolbar \&.smith -type polar -representation smith -smithgrid impedance -controlmode contextmenu -zoom -zoomwheel -pan -crosshairs -crosshairsmode closest -activelegend
+
+pack \&.smith -fill both -expand yes
+set g [\&.smith subwidget graph]
+::rbc::vector create gamma -type complex
+::rbc::vector create frequency
+gamma set {
+    {0\&.10  0\&.05}
+    {0\&.20  0\&.15}
+    {0\&.30  0\&.10}
+    {0\&.25 -0\&.05}
+}
+frequency set {1\&.0e9 2\&.0e9 3\&.0e9 4\&.0e9}
+$g element create S11 -cdata gamma -param frequency
+.fi
+.RE
+.SH "ACTIVE LEGEND"
+.PP
+-activelegend adds hover activation and a three-state \fBButton-1\fP cycle to every legend entry:
+.PP
+.RS 4n
+.nf
+normal -> active -> plot-hidden -> normal
+.fi
+.RE
+.PP
+The persistent state is also represented by the element's legend relief:
+.PP
+.RS 4n
+.nf
+flat       normal
+raised     active
+sunken     plot-hidden
+.fi
+.RE
+.PP
+Plot-hidden elements use element -hideplot yes; the plotted element disappears while its legend entry remains
+available for the next click\&.
+.SH "PUBLIC MEGAWIDGET ACCESS"
+.PP
+The most common access forms are:
+.PP
+.RS 4n
+.nf
+# Forward directly to the Rbc graph\&.
+\&.gtb graph axis configure x -min 0 -max 10
+\&.gtb graph element create e1 -data {0 0 1 1}
+
+# Obtain a real subwidget pathname\&.
+set graph [\&.gtb subwidget graph]
+
+# Send a command to any named subwidget\&.
+\&.gtb widgetcommand graph configure -title Example
+
+# Inspect the names which exist for this particular configuration\&.
+puts [\&.gtb names]
+.fi
+.RE
+.PP
+The exact subwidget set depends on -controlmode and on which optional facilities were enabled\&.
+.SH "TK OPTION DATABASE"
+.PP
+Most marker styling dictionaries take their initial defaults from the Tk option database\&. Applications can
+therefore customize the graphtoolbar before creating a widget:
+.PP
+.RS 4n
+.nf
+option add *gtbCrosshairsColor navy userDefault
+option add *gtbCrosshairsTextFont {TkDefaultFont 9} userDefault
+option add *gtbZoomTextBoxFill lightyellow userDefault
+
+::rbc::graphtoolbar \&.gtb -zoom -zoommark -crosshairs
+.fi
+.RE
+.PP
+The package itself also installs:
+.PP
+.RS 4n
+.nf
+option add *Element\&.ScaleSymbols no widgetDefault
+.fi
+.RE
+.PP
+so graph elements default to fixed-size symbols rather than scaling their symbols with the graph\&.
+.SS "ZOOM OPTION-DATABASE RESOURCES"
+.PP
+.RS 4n
+.nf
+┌───────────────────┬─────────────┬───────────────────────────┬────────────────────────────┬────────────────┐
+│ Property          │ Key         │ Database name             │ Database class             │ Default        │
+├───────────────────┼─────────────┼───────────────────────────┼────────────────────────────┼────────────────┤
+│ zoomtitleopts     │ -font       │ gtbZoomTitleFont          │ GtbZoomTitleFont           │ {Arial 18}     │
+│ zoomtitleopts     │ -foreground │ gtbZoomTitleForeground    │ GtbZoomTitleForeground     │ black          │
+│ zoomtitleopts     │ -shadow     │ gtbZoomTitleShadow        │ GtbZoomTitleShadow         │ yellow4        │
+│ zoomtitleopts     │ -anchor     │ gtbZoomTitleAnchor        │ GtbZoomTitleAnchor         │ nw             │
+│ zoomtitleopts     │ -coords     │ gtbZoomTitleCoords        │ GtbZoomTitleCoords         │ {-Inf Inf}     │
+│ zoomboxopts       │ -dashes     │ gtbZoomOutlineDashes      │ GtbZoomOutlineDashes       │ 4              │
+│ zoomboxopts       │ -linewidth  │ gtbZoomOutlineLineWidth   │ GtbZoomOutlineLineWidth    │ 1              │
+│ zoomboxopts       │ -xor        │ gtbZoomOutlineXor         │ GtbZoomOutlineXor          │ no             │
+│ zoommarkopts      │ -font       │ gtbZoomTextFont           │ GtbZoomTextFont            │ {ArialNarrow 8}│
+│ zoommarkopts      │ -anchor     │ gtbZoomTextAnchor         │ GtbZoomTextAnchor          │ ne             │
+│ zoommarkopts      │ -foreground │ gtbZoomTextForeground     │ GtbZoomTextForeground      │ black          │
+│ zoommarkopts      │ -justify    │ gtbZoomTextJustify        │ GtbZoomTextJustify         │ left           │
+│ zoommarkopts      │ -padx       │ gtbZoomTextPadX           │ GtbZoomTextPadX            │ 4              │
+│ zoommarkopts      │ -pady       │ gtbZoomTextPadY           │ GtbZoomTextPadY            │ 4              │
+│ zoommarkopts      │ -formatx    │ gtbZoomTextXFormat        │ GtbZoomTextXFormat         │ \&.4g            │
+│ zoommarkopts      │ -formaty    │ gtbZoomTextYFormat        │ GtbZoomTextYFormat         │ \&.4g            │
+│ zoommarkboxopts   │ -fill       │ gtbZoomTextBoxFill        │ GtbZoomTextBoxFill         │ #FFEB3B        │
+│ zoommarkboxopts   │ -outline    │ gtbZoomTextBoxOutline     │ GtbZoomTextBoxOutline      │ grey           │
+│ zoommarkboxopts   │ -linewidth  │ gtbZoomTextBoxLineWidth   │ GtbZoomTextBoxLineWidth    │ 1              │
+└───────────────────┴─────────────┴───────────────────────────┴────────────────────────────┴────────────────┘
+.fi
+.RE
+.SS "CROSSHAIR OPTION-DATABASE RESOURCES"
+.PP
+.RS 4n
+.nf
+┌──────────────────────┬─────────────┬───────────────────────────────┬───────────────────────────────┬───────────────┐
+│ Property             │ Key         │ Database name                 │ Database class                │ Default       │
+├──────────────────────┼─────────────┼───────────────────────────────┼───────────────────────────────┼───────────────┤
+│ crosshairsopts       │ -linewidth  │ gtbCrosshairsLineWidth        │ GtbCrosshairsLineWidth        │ 1             │
+│ crosshairsopts       │ -color      │ gtbCrosshairsColor            │ GtbCrosshairsColor            │ grey          │
+│ crosshairsopts       │ -dashes     │ gtbCrosshairsDashes           │ GtbCrosshairsDashes           │ {}            │
+│ crosshairsmarkopts   │ -font       │ gtbCrosshairsTextFont         │ GtbCrosshairsTextFont         │ ArialNarrow 8 │
+│ crosshairsmarkopts   │ -anchor     │ gtbCrosshairsTextAnchor       │ GtbCrosshairsTextAnchor       │ nw            │
+│ crosshairsmarkopts   │ -foreground │ gtbCrosshairsTextForeground   │ GtbCrosshairsTextForeground   │ black         │
+│ crosshairsmarkopts   │ -justify    │ gtbCrosshairsTextJustify      │ GtbCrosshairsTextJustify      │ left          │
+│ crosshairsmarkopts   │ -padx       │ gtbCrosshairsTextPadX         │ GtbCrosshairsTextPadX         │ 4             │
+│ crosshairsmarkopts   │ -pady       │ gtbCrosshairsTextPadY         │ GtbCrosshairsTextPadY         │ 4             │
+│ crosshairsmarkopts   │ -formatx    │ gtbCrosshairsTextXFormat      │ GtbCrosshairsTextXFormat      │ \&.4g           │
+│ crosshairsmarkopts   │ -formaty    │ gtbCrosshairsTextYFormat      │ GtbCrosshairsTextYFormat      │ \&.4g           │
+│ crosshairsmarkopts   │ -formatparam│ gtbCrosshairsTextParamFormat  │ GtbCrosshairsTextParamFormat  │ \&.4g           │
+│ crosshairsmarkboxopts│ -fill       │ gtbCrosshairsTextBoxFill      │ GtbCrosshairsTextBoxFill      │ #FFEB3B       │
+│ crosshairsmarkboxopts│ -outline    │ gtbCrosshairsTextBoxOutline   │ GtbCrosshairsTextBoxOutline   │ grey          │
+│ crosshairsmarkboxopts│ -linewidth  │ gtbCrosshairsTextBoxLineWidth │ GtbCrosshairsTextBoxLineWidth │ 1             │
+│ crosshairsbarlineopts│ -outline    │ gtbCrosshairsBarLineOutline   │ GtbCrosshairsBarLineOutline   │ black         │
+│ crosshairsbarlineopts│ -linewidth  │ gtbCrosshairsBarLineWidth     │ GtbCrosshairsBarLineWidth     │ 1             │
+│ crosshairsbarlineopts│ -arrowshape │ gtbCrosshairsBarLineArrowShape│ GtbCrosshairsBarLineArrowShape│ {8 10 3}      │
+└──────────────────────┴─────────────┴───────────────────────────────┴───────────────────────────────┴───────────────┘
+.fi
+.RE
+.PP
+crosshairsclosestopts has no Tk option-database resources\&. Its built-in defaults are:
+.PP
+.RS 4n
+.nf
+-interpolate yes
+-halo        10
+-single      yes
+-hide        yes
+.fi
+.RE
+.SH "STYLING EXAMPLE"
+.PP
+Dictionary properties may be changed after creation through the oo::configurable configure method:
+.PP
+.RS 4n
+.nf
+\&.gtb configure -zoomtitle yes -zoomtitleopts {-foreground navy -shadow {}} -crosshairsmarkopts {-font {TkDefaultFont 9} -formatx \&.6g -formaty \&.6g -formatparam \&.6g} -crosshairsmarkboxopts {-fill lightyellow -outline grey40}
+.fi
+.RE
+.PP
+For the dictionary properties a later configuration containing only some recognized keys updates those keys
+while retaining the other current values\&. Unknown dictionary keys are rejected\&.
+.SH CLASSES
+.PP
+.RS -4n
+\fBgraphtoolbar\fR (::rbc::graphtoolbar)
+.RE
+.PP
+Configurable TclOO class implementing the graphtoolbar megawidget\&.
+.PP
+A widget is normally created through the exported class command:
+.PP
+.RS 4n
+.nf
+::rbc::graphtoolbar \&.gtb ?option \&.\&.\&.?
+.fi
+.RE
+.PP
+The Tk pathname becomes the megawidget command\&.  Properties documented below may subsequently be read
+or changed through the oo::configurable interface:
+.PP
+.RS 4n
+.nf
+\&.gtb configure -crosshairsmode
+\&.gtb configure -crosshairsmode current
+\&.gtb configure -zoomtitle yes
+.fi
+.RE
+.PP
+Options such as -type, -controlmode, -zoom, -pan, and -crosshairs select structural features
+when the megawidget is created and are not configurable properties afterward\&.
+.PP
+\fBMethod summary\fR
+.RS 4n
+.TP
+constructor
+Constructor for the class\&.
+.TP
+destructor
+Destructor for the class\&.
+.TP
+\fIconfigure\fP [URL: https://www\&.tcl-lang\&.org/man/tcl9\&.0/TclCmd/index\&.html]
+Configure properties\&. See \fI::oo::configuresupport::configurable\fP [URL: https://www\&.tcl-lang\&.org/man/tcl9\&.0/TclCmd/index\&.html]\&.
+.TP
+getAxisActiveScale
+Returns axes currently enabled for interactive scale toggling\&. List of axis names carrying the graphtoolbar active-scale binding tag\&.
+.TP
+graph
+Forwards a command directly to the embedded Rbc graph widget\&.
+.TP
+names
+Returns the names of all subwidgets created for this instance\&. List of subwidget names\&.
+.TP
+setAxisActiveScale
+Configures interactive linear/logarithmic scale toggling for axes\&.
+.TP
+subwidget
+Returns the Tk pathname of a named subwidget\&. Tk pathname of the requested subwidget\&.
+.TP
+widgetcommand
+Invokes a command on a named graphtoolbar subwidget\&.
+.RE
+.PP
+\fBOptions\fR
+.RS 4n
+.TP
+-width pixels
+Initial requested width of the embedded Rbc graph\&. The default is 800\&.
+.TP
+-height pixels
+Initial requested height of the embedded Rbc graph\&. The default is 600\&.
+.TP
+-controlmode mode
+Selects the user-interface control surface\&. Must be toolbar or contextmenu\&. The default is toolbar\&.
+.TP
+-type type
+Selects the embedded Rbc widget\&. Must be graph, barchart, stripchart, or polar\&. The default is graph\&.
+.TP
+-representation mode
+For -type polar, selects polar or smith representation\&. The default is polar\&. It is ignored by the other graph types\&.
+.TP
+-smithgrid mode
+For a Smith representation, selects impedance, admittance, or both\&. The default is impedance\&.
+.TP
+-coordmark mode
+Initial value of the -coordmark configurable property\&. The default is auto\&.
+.TP
+-coordclosestmark mode
+Initial closest-point coordinate format\&. The default is axis\&. For a Smith widget with crosshairs enabled, initialization selects the normalized impedance or admittance format appropriate to -smithgrid\&.
+.TP
+-toolbarside side
+Places the visible toolbar at bottom or top\&. The default is bottom\&. This has no visible effect in context-menu mode\&.
+.TP
+-zoom
+Enables rectangle zoom and navigation history\&.
+.TP
+-zoomstartbut event
+Event component which starts rectangle zoom\&. The default is ButtonPress-1\&.
+.TP
+-zoomendbut event
+Event component which finishes rectangle zoom\&. The default is ButtonRelease-1\&. The finish event is intentionally not combined with -zoommod\&.
+.TP
+-zoombackbut event
+Event component which restores the previous view\&. The default is ButtonPress-2\&.
+.TP
+-zoommod modifier
+Tk event modifier prefix used for the zoom start and previous-view bindings\&. The default is Any-\&.
+.TP
+-zoomwheel
+Enables mouse-wheel zoom\&. Requires -zoom\&.
+.TP
+-zoomwheelscale factor
+Multiplicative wheel-zoom step\&.  Must be a finite number greater than 1\&.0\&. The default is 1\&.1\&.
+.TP
+-zoomwheelmod modifier
+Modifier prefix for MouseWheel zoom\&.  The default is Control-\&.
+.TP
+-zoomtitle
+Enables the transient Zoom #n marker\&. Requires -zoom\&.
+.TP
+-zoomtitleopts dictionary
+Initial -zoomtitleopts property\&. Requires -zoom\&.
+.TP
+-zoomboxopts dictionary
+Initial -zoomboxopts property\&. Requires -zoom\&.
+.TP
+-zoommark
+Displays coordinate annotations at rectangle-zoom corners\&. Requires -zoom\&.
+.TP
+-zoommarkopts dictionary
+Initial -zoommarkopts property\&. Requires -zoom\&.
+.TP
+-zoommarkboxopts dictionary
+Initial -zoommarkboxopts property\&. Requires -zoom\&.
+.TP
+-pan
+Enables plot-area panning\&. Requires -zoom because panning shares the zoom navigation history\&.
+.TP
+-panstartbut event
+Event component which starts a pan\&. The default is ButtonPress-1\&.
+.TP
+-panendbut event
+Event component which finishes a pan\&. The default is ButtonRelease-1\&. It is intentionally not combined with -panmod\&.
+.TP
+-panmod modifier
+Modifier prefix required to start panning\&.  The default is Shift-\&.
+.TP
+-crosshairs
+Enables enhanced crosshair interaction\&.
+.TP
+-crosshairsmode mode
+Initial crosshair mode\&. Must be current, closest, none, or disabled\&. The default is closest\&. Requires -crosshairs\&.
+.TP
+-crosshairsopts dictionary
+Initial Rbc crosshair line options\&. Requires -crosshairs\&.
+.TP
+-crosshairsmarkopts dictionary
+Initial text-marker and numeric-format options used by current and closest annotations\&. Requires -crosshairs\&.
+.TP
+-crosshairsmarkboxopts dictionary
+Initial background-box options for crosshair annotations\&. Requires -crosshairs\&.
+.TP
+-crosshairsclosestopts dictionary
+Initial closest-search options\&. Recognized keys are -interpolate, -halo, -single, and -hide\&. Requires -crosshairs\&.
+.TP
+-crosshairsbarlineopts dictionary
+Initial line-marker options for closest-bar dimension annotations\&. Requires -crosshairs\&.
+.TP
+-scaletoggle axes
+Enables interactive linear/logarithmic scale toggling on the specified axis list\&. all selects all axes existing at construction time\&.
+.TP
+-activelegend
+Enables hover activation and three-state Button-1 interaction on legend entries\&.
+.RE
+.PP
+\fBProperties\fR
+.RS 4n
+.TP
+-coordclosestmark
+Readable, writable\&. Selects the value representation used for closest-point annotations\&. The valid values depend on the current graph representation: - ordinary graph/barchart/stripchart: axis - Polar: axis, complex, polar - Smith: axis, gamma, normalizedimpedance, impedance, normalizedadmittance, admittance The toolbar and context-menu selectors are synchronized with this property\&.
+.TP
+-coordmark
+Readable, writable\&. Selects the coordinate representation used by current-position crosshair markers and rectangle-zoom corner markers\&. Accepted values are auto, axis, complex, polar, gamma, normalizedimpedance, normalizedimpedanceri, normalizedadmittance, and normalizedadmittanceri\&. auto uses ordinary axis values except on a Smith chart, where normalized impedance/admittance real and imaginary components are selected according to the Smith grid\&.
+.TP
+-crosshairsbarlineopts
+Readable, writable\&. Dictionary configuring the dimension line used when the closest result is a bar\&. Recognized keys are -outline, -linewidth, and -arrowshape\&. -arrowshape contains the three screen distances used by an Rbc line-marker arrowhead\&. Initial values come from the gtbCrosshairsBarLine* Tk option-database resources\&.
+.TP
+-crosshairsclosestopts
+Readable, writable\&. Dictionary controlling closest-element searches\&. Recognized keys and defaults are: tcl -interpolate yes -halo 10 -single yes -hide yes -interpolate is forwarded to element closest\&. -halo is the search distance in pixels\&. -single yes selects one globally closest result; -single no searches every visible element separately\&. -hide controls visibility of the ordinary Rbc crosshair lines while closest annotations are displayed\&.
+.TP
+-crosshairsmarkboxopts
+Readable, writable\&. Dictionary configuring the polygon background behind current and closest text annotations\&. Recognized keys are -fill, -outline, and -linewidth\&. If fill and outline are both empty, no background is drawn\&. Initial values come from the gtbCrosshairsTextBox* Tk option-database resources\&.
+.TP
+-crosshairsmarkopts
+Readable, writable\&. Dictionary configuring current/closest text annotations\&. Recognized keys are -font, -anchor, -justify, -foreground, -padx, -pady, -formatx, -formaty, and -formatparam\&. The three format keys are format conversion bodies, for example \&.4g\&. -formatparam is used when a closest element supplies info(param)\&. Initial values are obtained from the gtbCrosshairsText* Tk option-database resources\&.
+.TP
+-crosshairsmode
+Readable, writable\&. Selects enhanced crosshair behaviour\&. Accepted values are current, closest, none, and disabled\&. current annotates the current pointer coordinates\&. closest annotates nearby plotted data\&. none leaves only ordinary Rbc crosshair lines\&. disabled suppresses both lines and annotation markers\&. This property is intended for an instance created with -crosshairs\&.
+.TP
+-crosshairsopts
+Readable, writable\&. Dictionary configuring the underlying Rbc crosshair lines\&. Recognized keys are -linewidth, -color, and -dashes\&. Initial values come from gtbCrosshairsLineWidth, gtbCrosshairsColor, and gtbCrosshairsDashes\&.
+.TP
+-zoomboxopts
+Readable, writable\&. Dictionary configuring the rectangle-zoom outline\&. Recognized keys are -dashes, -linewidth, and -xor\&. Initial values are obtained from the gtbZoomOutline* Tk option-database resources\&.
+.TP
+-zoommarkboxopts
+Readable, writable\&. Dictionary configuring the polygon drawn behind each rectangle-corner text marker\&. Recognized keys are -fill, -outline, and -linewidth\&. If both fill and outline are empty, no background polygon is drawn\&. Initial values are obtained from the gtbZoomTextBox* option-database resources\&.
+.TP
+-zoommarkopts
+Readable, writable\&. Dictionary configuring rectangle-corner text annotations\&. Recognized keys are -font, -anchor, -justify, -foreground, -padx, -pady, -formatx, and -formaty\&. -formatx and -formaty are format conversion bodies such as \&.4g; the leading % is supplied internally\&. Initial values are obtained from the gtbZoomText* option-database resources\&.
+.TP
+-zoomtitle
+Readable, writable\&. Boolean controlling the transient Zoom #n annotation produced after a completed navigation operation\&. This property is meaningful for instances created with -zoom\&.
+.TP
+-zoomtitleopts
+Readable, writable\&. Dictionary of Rbc text-marker options used for the transient zoom-level title\&. Recognized keys are -font, -foreground, -shadow, -anchor, and -coords\&. Initial values are obtained from the corresponding gtbZoomTitle* Tk option-database resources\&.
+.RE
+.PP
+.RS -4n
+\fBconstructor\fR (::rbc::graphtoolbar::graphtoolbar)
+.RE
+.PP
+Creates a graphtoolbar megawidget\&.
+.RS 4n
+\fBgraphtoolbar create OBJNAME\fP \fIpath ?option \&.\&.\&.?\fP
+.br
+\fBgraphtoolbar new\fP \fIpath ?option \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+args
+Widget pathname followed by creation options documented in the class Options section\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+The first argument is the Tk pathname of the new megawidget\&. Structural facilities such as zoom, pan,
+crosshairs, control mode, graph type, and active legend interaction are selected here\&.
+.PP
+\fBReturn value\fR
+.PP
+The newly created megawidget object\&. When creation is  invoked through the exported class command
+with a pathname, the command result is the widget pathname\&.
+.PP
+.RS -4n
+\fBdestructor\fR (::rbc::graphtoolbar::graphtoolbar)
+.RE
+.PP
+Cancels asynchronous operations owned by the megawidget\&.
+.RS 4n
+\fBGRAPHTOOLBAROBJ destroy\fP
+.br
+.RE
+.PP
+\fBDescription\fR
+.PP
+Currently this includes the transient zoom-title timer\&.
+.PP
+.RS -4n
+\fBgetAxisActiveScale\fR (::rbc::graphtoolbar::graphtoolbar)
+.RE
+.PP
+Returns axes currently enabled for interactive scale toggling\&.
+List of axis names carrying the graphtoolbar active-scale binding tag\&.
+.RS 4n
+\fBGRAPHTOOLBAROBJ getAxisActiveScale\fP
+.br
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns axes currently enabled for interactive scale toggling\&.
+List of axis names carrying the graphtoolbar active-scale binding tag\&.
+.PP
+.RS -4n
+\fBgraph\fR (::rbc::graphtoolbar::graphtoolbar)
+.RE
+.PP
+Forwards a command directly to the embedded Rbc graph widget\&.
+.RS 4n
+\fBGRAPHTOOLBAROBJ graph\fP \fI?graphCommand \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+args
+Graph widget command and arguments\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+\&.gtb graph axis configure x -min 0 -max 10
+\&.gtb graph element create trace -data {0 0 1 1 2 4}
+.fi
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Result returned by the embedded graph command\&.
+.PP
+.RS -4n
+\fBnames\fR (::rbc::graphtoolbar::graphtoolbar)
+.RE
+.PP
+Returns the names of all subwidgets created for this instance\&.
+List of subwidget names\&.
+.RS 4n
+\fBGRAPHTOOLBAROBJ names\fP
+.br
+.RE
+.PP
+\fBDescription\fR
+.PP
+The set depends on -controlmode and on which optional features were enabled at construction time\&. graph
+and toolbarFrame always # exist\&.
+.PP
+\fBReturn value\fR
+.PP
+Returns the names of all subwidgets created for this instance\&.
+List of subwidget names\&.
+.PP
+.RS -4n
+\fBsetAxisActiveScale\fR (::rbc::graphtoolbar::graphtoolbar)
+.RE
+.PP
+Configures interactive linear/logarithmic scale toggling for axes\&.
+.RS 4n
+\fBGRAPHTOOLBAROBJ setAxisActiveScale\fP \fIaxes ?-disabled? ?-event event? ?-background color?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+-background color
+Temporary axis background displayed while the pointer is over the active axis line\&. The default is grey\&.
+.TP
+-disabled
+Removes interactive scale toggling from the selected axes instead of enabling it\&.
+.TP
+-event event
+Event which toggles the active axis\&. The default is ButtonPress-1\&.
+.TP
+axes
+List of axis names, or all for every current graph axis\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+Only the actual axis line responds to the toggle event\&.
+.PP
+A visible Polar/Smith grid axis cannot be toggled from linear to logarithmic because the specialized grid
+requires linear Cartesian axes\&. Logarithmic-to-linear conversion is still allowed so an externally
+misconfigured grid can be recovered\&.
+.PP
+Rectangle zoom and panning temporarily disable this interaction and # restore it when the transient operation
+finishes\&.
+.PP
+\fBReturn value\fR
+.PP
+Nothing\&.
+.PP
+.RS -4n
+\fBsubwidget\fR (::rbc::graphtoolbar::graphtoolbar)
+.RE
+.PP
+Returns the Tk pathname of a named subwidget\&.
+Tk pathname of the requested subwidget\&.
+.RS 4n
+\fBGRAPHTOOLBAROBJ subwidget\fP \fIname\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Subwidget name as returned by \fInames\fP\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+Common names include graph, toolbarFrame, and, in context-menu mode, contextMenu\&. Toolbar mode may
+additionally create snapshot, PostScript, zoom, and crosshair control widgets\&.
+.PP
+\fBReturn value\fR
+.PP
+Returns the Tk pathname of a named subwidget\&.
+Tk pathname of the requested subwidget\&.
+.PP
+.RS -4n
+\fBwidgetcommand\fR (::rbc::graphtoolbar::graphtoolbar)
+.RE
+.PP
+Invokes a command on a named graphtoolbar subwidget\&.
+.RS 4n
+\fBGRAPHTOOLBAROBJ widgetcommand\fP \fIsubwidgetName ?command \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+args
+Subwidget name followed by its command and arguments\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+\&.gtb widgetcommand graph configure -title Example
+.fi
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Result of the subwidget command\&.
+
+
+.SH SEE ALSO
+rbc(n) - package's main page
+.br
+rbc-tcltk9upgrade(n) - list of upgrades comparing to Tcl/Tk8 RBC package
+.br
+.sp 1
+Public commands and classes documentation:
+.br
+rbc-rbc(n)
+.br
+rbc-rbc-graphtoolbar(n)
+.br
+rbc-rbc-graphinst(n)
+.br
+rbc-rbc-axis(n)
+.br
+rbc-rbc-marginaxis(n)
+.br
+rbc-rbc-element(n)
+.br
+rbc-rbc-lineelement(n)
+.br
+rbc-rbc-stripelement(n)
+.br
+rbc-rbc-polarelement(n)
+.br
+rbc-rbc-barelement(n)
+.br
+rbc-rbc-pen(n)
+.br
+rbc-rbc-marker(n)
+.br
+rbc-rbc-legend(n)
+.br
+rbc-rbc-grid(n)
+.br
+rbc-rbc-crosshairs(n)
+.br
+rbc-rbc-postscript(n)
+.br
+rbc-rbc-vector(n)
+.br
+rbc-rbc-vecinst(n)
+.br
+rbc-rbc-spline(n)
+.br
+rbc-rbc-winop(n)
+.br
+rbc-rbc-winopimage(n)

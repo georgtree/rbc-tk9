@@ -198,6 +198,8 @@ Public commands and classes documentation:
 .br
 rbc-rbc(n)
 .br
+rbc-rbc-graphtoolbar(n)
+.br
 rbc-rbc-graphinst(n)
 .br
 rbc-rbc-axis(n)

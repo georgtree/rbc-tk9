@@ -1,5 +1,6 @@
 package require ruff
 package require fileutil
+package require rbc
 
 set docDir [file dirname [file normalize [info script]]]
 set sourceDir [file join $docDir ..]
@@ -11,12 +12,13 @@ source [file join $docDir vector.ruff]
 source [file join $docDir spline.ruff]
 source [file join $docDir winop.ruff]
 
+
 set packageVersion [package versions rbc]
 puts $packageVersion
 set title "Upgraded Tcl/Tk9.0-ready RBC package"
 
 set commonSphinx [list -title $title -sortnamespaces false -preamble $startPage -pagesplit namespace -recurse false\
-                    -includesource false -pagesplit namespace -autopunctuate true -compact false -includeprivate true\
+                    -includesource false -pagesplit namespace -autopunctuate true -compact false -includeprivate false\
                     -product rbc -diagrammer "ditaa --border-width 1" -version $packageVersion\
                     -copyright "George Yashin" {*}$::argv]
 set commonNroff [list -title $title -sortnamespaces false -preamble $startPage -pagesplit namespace -recurse false\
@@ -24,14 +26,25 @@ set commonNroff [list -title $title -sortnamespaces false -preamble $startPage -
                          -product rbc -diagrammer "ditaa --border-width 1" -version $packageVersion\
                          -copyright "George Yashin" {*}$::argv]
 
-set namespaces [list ::TclTk9Upgrade ::rbc ::rbc::GRAPHINST ::rbc::AXIS ::rbc::MARGINAXIS ::rbc::ELEMENT\
-                        ::rbc::LINEELEMENT ::rbc::STRIPELEMENT ::rbc::POLARELEMENT ::rbc::BARELEMENT ::rbc::PEN\
-                        ::rbc::MARKER ::rbc::LEGEND ::rbc::GRID ::rbc::CROSSHAIRS ::rbc::POSTSCRIPT\
+set namespaces [list ::TclTk9Upgrade ::rbc ::rbc::graphtoolbar ::rbc::GRAPHINST ::rbc::AXIS ::rbc::MARGINAXIS\
+                        ::rbc::ELEMENT ::rbc::LINEELEMENT ::rbc::STRIPELEMENT ::rbc::POLARELEMENT ::rbc::BARELEMENT\
+                        ::rbc::PEN ::rbc::MARKER ::rbc::LEGEND ::rbc::GRID ::rbc::CROSSHAIRS ::rbc::POSTSCRIPT\
                         ::rbc::vector ::rbc::VECINST ::rbc::spline ::rbc::winop ::rbc::WINOPIMAGE]
 set namespacesNroff $namespaces
 
-ruff::document $namespaces -format sphinx -outfile rbc-tk9.rst -outdir [file join $docDir sphinx] {*}$commonSphinx
-ruff::document $namespacesNroff -format nroff -outdir $docDir -outfile rbc.n {*}$commonNroff
+# Work around a Ruff ambiguity: ::rbc::graphtoolbar is both a namespace
+# and an imported alias for the graphtoolbar TclOO class.
+namespace eval ::rbc {
+    namespace forget graphtoolbar
+}
+try {
+    ruff::document $namespaces -format sphinx -outfile rbc-tk9.rst -outdir [file join $docDir sphinx] {*}$commonSphinx
+    ruff::document $namespacesNroff -format nroff -outdir $docDir -outfile rbc.n {*}$commonNroff
+} finally {
+    namespace eval ::rbc {
+        namespace import ::rbc::graphtoolbar::graphtoolbar
+    }
+}
 
 ::fileutil::appendToFile [file join $docDir sphinx conf.py] {html_theme = "classic"
 extensions = [

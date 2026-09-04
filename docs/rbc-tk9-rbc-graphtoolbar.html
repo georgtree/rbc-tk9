@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>graphtoolbar &#8212; rbc  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Graph widget instance GRAPHINST command" href="rbc-tk9-rbc-GRAPHINST.html" />
+    <link rel="prev" title="::rbc" href="rbc-tk9-rbc.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-GRAPHINST.html" title="Graph widget instance GRAPHINST command"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc.html" title="::rbc"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">graphtoolbar</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="graphtoolbar">
+<span id="r-graphtoolbar"></span><span id="r-3a3arbc3a3agraphtoolbar"></span><h1>graphtoolbar<a class="headerlink" href="#graphtoolbar" title="Link to this heading">¶</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code> command creates an Rbc graph megawidget with an optional toolbar or context-menu control
+surface and a set of coordinated interactive graph-navigation facilities.</p>
+<p>The graph itself is a normal Rbc <code class="docutils literal notranslate"><span class="pre">graph</span></code>, <code class="docutils literal notranslate"><span class="pre">barchart</span></code>, <code class="docutils literal notranslate"><span class="pre">stripchart</span></code>, or <code class="docutils literal notranslate"><span class="pre">polar</span></code> widget.  The megawidget adds:</p>
+<ul class="simple">
+<li><p>Drag-selection zoom.</p></li>
+<li><p>Mouse-wheel zoom.</p></li>
+<li><p>Plot-area panning.</p></li>
+<li><p>Reversible navigation history shared by zoom and pan operations.</p></li>
+<li><p>Current-position and closest-element crosshair annotations.</p></li>
+<li><p>Polar and Smith-chart coordinate displays.</p></li>
+<li><p>Interactive linear/logarithmic axis toggling.</p></li>
+<li><p>Interactive three-state legend entries.</p></li>
+<li><p>PNG snapshots and PostScript output.</p></li>
+<li><p>Either a permanently visible toolbar or a right-click context menu.</p></li>
+</ul>
+<p>The command is exported from the <code class="docutils literal notranslate"><span class="pre">::rbc</span></code> namespace and may normally be used as:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>graphtoolbar<span class="w"> </span>.gtb<span class="w"> </span><span class="o">?</span>option<span class="w"> </span>...<span class="o">?</span>
+</pre></div>
+</div>
+<p>or, after importing the Rbc commands:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">namespace</span><span class="w"> </span>import<span class="w"> </span><span class="o">::</span>rbc::<span class="o">*</span>
+<span class="nv">graphtoolbar</span><span class="w"> </span>.gtb<span class="w"> </span><span class="o">?</span>option<span class="w"> </span>...<span class="o">?</span>
+</pre></div>
+</div>
+<section id="basic-example">
+<span id="r-rbc-graphtoolbar-basic-example"></span><span id="r-3a3arbc3a3agraphtoolbarqzbasic20example"></span><h2>Basic example<a class="headerlink" href="#basic-example" title="Link to this heading">¶</a></h2>
+<p>The following creates a normal graph with rectangle zoom, wheel zoom, panning, crosshair annotations, active
+legend entries, and interactive axis scale selection:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>Tk
+<span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>rbc
+
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>graphtoolbar<span class="w"> </span>.gtb<span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">800</span><span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">500</span><span class="w"> </span><span class="o">-</span>zoom<span class="w"> </span><span class="o">-</span>zoomwheel<span class="w"> </span><span class="o">-</span>pan<span class="w"> </span><span class="o">-</span>crosshairs<span class="w"> </span><span class="o">-</span>crosshairsmode<span class="w"> </span>closest<span class="w"> </span><span class="o">-</span>scaletoggle<span class="w"> </span>all<span class="w"> </span><span class="o">-</span>activelegend
+
+<span class="nv">pack</span><span class="w"> </span>.gtb<span class="w"> </span><span class="o">-</span>fill<span class="w"> </span>both<span class="w"> </span><span class="o">-</span>expand<span class="w"> </span>yes
+<span class="nv">.gtb</span><span class="w"> </span>graph<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>title<span class="w"> </span><span class="k">{</span><span class="nv">Interactive</span><span class="w"> </span>graph<span class="k">}</span>
+<span class="nv">.gtb</span><span class="w"> </span>graph<span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>trace<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">9</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">16</span><span class="k">}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">graph</span></code> forwards the remaining arguments directly to the embedded Rbc graph widget. The graph pathname can
+alternatively be obtained with:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>graph<span class="w"> </span><span class="k">[</span><span class="nv">.gtb</span><span class="w"> </span>subwidget<span class="w"> </span>graph<span class="k">]</span>
+</pre></div>
+</div>
+</section>
+<section id="control-surfaces">
+<span id="r-rbc-graphtoolbar-control-surfaces"></span><span id="r-3a3arbc3a3agraphtoolbarqzcontrol20surfaces"></span><h2>Control surfaces<a class="headerlink" href="#control-surfaces" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">-controlmode</span> <span class="pre">toolbar</span></code>, the default, creates a visible toolbar.  Snapshot and PostScript buttons are always
+present.  Enabling <code class="docutils literal notranslate"><span class="pre">-zoom</span></code> adds <strong>Reset view</strong> and <strong>Previous view</strong> controls.  Enabling <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code> adds
+selectors for crosshair mode and closest-coordinate format.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-controlmode</span> <span class="pre">contextmenu</span></code> leaves the graph occupying the entire megawidget.  Right-clicking the graph displays the corresponding controls in a popup menu:</p>
+<ul class="simple">
+<li><p><strong>Make snapshot…</strong></p></li>
+<li><p><strong>PostScript…</strong></p></li>
+<li><p><strong>Reset view</strong>, when <code class="docutils literal notranslate"><span class="pre">-zoom</span></code> is enabled.</p></li>
+<li><p><strong>Previous view</strong>, when <code class="docutils literal notranslate"><span class="pre">-zoom</span></code> is enabled.</p></li>
+<li><p><strong>Crosshairs mode</strong>, when <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code> is enabled.</p></li>
+<li><p><strong>Closest crosshairs format</strong>, when <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code> is enabled.</p></li>
+</ul>
+<p>The toolbar frame still exists in context-menu mode but is neither populated nor managed.</p>
+</section>
+<section id="zooming-and-navigation">
+<span id="r-rbc-graphtoolbar-zooming-and-navigation"></span><span id="r-3a3arbc3a3agraphtoolbarqzzooming20and20navigation"></span><h2>Zooming and navigation<a class="headerlink" href="#zooming-and-navigation" title="Link to this heading">¶</a></h2>
+<p>With <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>, rectangle zoom is performed by pressing the event selected by <code class="docutils literal notranslate"><span class="pre">-zoomstartbut</span></code>, together with
+<code class="docutils literal notranslate"><span class="pre">-zoommod</span></code>, dragging over the plot, and releasing the event selected by <code class="docutils literal notranslate"><span class="pre">-zoomendbut</span></code>.</p>
+<p>The defaults are:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>start       &lt;Any-ButtonPress-1&gt;
+finish      &lt;ButtonRelease-1&gt;
+previous    &lt;Any-ButtonPress-2&gt;
+</pre></div>
+</div>
+<p>The finish binding intentionally does not require <code class="docutils literal notranslate"><span class="pre">-zoommod</span></code>. A selection therefore still finishes normally if
+the modifier is released before the mouse button.</p>
+<p>The final release position is always used as the second zoom corner, even if no final Motion event occurred.</p>
+<p>Dragging outside the plot area clamps the selected corner to the plot boundary.</p>
+<p>Each completed rectangle zoom saves the preceding limits and scale type of every axis participating in the
+displayed coordinate system.  Previous view restores the latest saved state. Reset view restores the oldest
+state and clears the navigation history.</p>
+<p>Automatic axis limits are saved as their actual configured value <code class="docutils literal notranslate"><span class="pre">{}</span></code>, rather than as the temporary numerical
+limits calculated from the data, so undoing a navigation operation correctly restores autoscaling.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-zoomtitle</span></code> briefly displays <code class="docutils literal notranslate"><span class="pre">Zoom</span> <span class="pre">#n</span></code> after a navigation change. <code class="docutils literal notranslate"><span class="pre">-zoommark</span></code> annotates the corners of a
+rectangle selection.</p>
+</section>
+<section id="wheel-zoom">
+<span id="r-rbc-graphtoolbar-wheel-zoom"></span><span id="r-3a3arbc3a3agraphtoolbarqzwheel20zoom"></span><h2>Wheel zoom<a class="headerlink" href="#wheel-zoom" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">-zoomwheel</span></code> requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>. By default, <strong>Control-MouseWheel</strong> scales the graph by a factor of <code class="docutils literal notranslate"><span class="pre">1.1</span></code>.</p>
+<p>When the pointer is inside the plot area, every used X and Y axis is scaled around the value beneath the
+pointer. The value underneath the pointer therefore remains at the same physical screen position.</p>
+<p>When the pointer is over an axis instead, only that axis is scaled, around the centre of its numerical range.</p>
+<p>Linear axes are scaled arithmetically. Logarithmic axes are scaled in logarithmic space.</p>
+<p>Every wheel step is added to the same navigation history used by rectangle zoom and panning.</p>
+</section>
+<section id="panning">
+<span id="r-rbc-graphtoolbar-panning"></span><span id="r-3a3arbc3a3agraphtoolbarqzpanning"></span><h2>Panning<a class="headerlink" href="#panning" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">-pan</span></code> requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
+<p>With the defaults, holding <strong>Shift</strong> and dragging <strong>Button-1</strong> inside the plotting area translates the visible
+coordinate system:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>start       &lt;Shift-ButtonPress-1&gt;
+drag        &lt;Motion&gt;
+finish      &lt;ButtonRelease-1&gt;
+</pre></div>
+</div>
+<p>The <strong>Shift</strong> modifier is required only when the operation starts. Releasing <strong>Shift</strong> while <strong>Button-1</strong>
+remains held does not terminate or strand the pan.</p>
+<p>Panning changes axis limits without changing their scale:</p>
+<ul class="simple">
+<li><p>Linear axes preserve <code class="docutils literal notranslate"><span class="pre">max-min</span></code>.</p></li>
+<li><p>Logarithmic axes preserve <code class="docutils literal notranslate"><span class="pre">max/min</span></code>.</p></li>
+</ul>
+<p>All axes actually participating in the displayed coordinate system are moved together. This includes axes
+installed in margins, hidden axes mapped by elements, and the axes mapped by a Polar or Smith grid.  Completely
+unused axes are not changed.</p>
+<p>Panning and zooming therefore operate correctly with multiple axes and with graph <code class="docutils literal notranslate"><span class="pre">-invertxy</span></code>.</p>
+<p>A completed pan creates one normal navigation-history entry. Pressing and releasing without movement creates
+no history entry.  Moving away and returning exactly to the starting position is also treated as a no-op.</p>
+</section>
+<section id="cross-interactions">
+<span id="r-rbc-graphtoolbar-cross-interactions"></span><span id="r-3a3arbc3a3agraphtoolbarqzcross2dinteractions"></span><h2>Cross-interactions<a class="headerlink" href="#cross-interactions" title="Link to this heading">¶</a></h2>
+<p>The navigation facilities deliberately suspend conflicting interactions while a transient operation is active.</p>
+<p>During rectangle zoom:</p>
+<ul class="simple">
+<li><p>active axis scale toggling is temporarily disabled;</p></li>
+<li><p>current/closest crosshair marker interaction is temporarily disabled;</p></li>
+<li><p>toolbar controls are temporarily disabled;</p></li>
+<li><p>wheel zoom is ignored;</p></li>
+<li><p>panning cannot start.</p></li>
+</ul>
+<p>During panning:</p>
+<ul class="simple">
+<li><p>active axis scale toggling is temporarily disabled;</p></li>
+<li><p>both raw crosshair lines and crosshair marker interaction are suspended;</p></li>
+<li><p>existing crosshair marker graphics are removed before axis limits move;</p></li>
+<li><p>toolbar controls are temporarily disabled;</p></li>
+<li><p>wheel zoom is ignored;</p></li>
+<li><p>rectangle zoom cannot start.</p></li>
+</ul>
+<p>At the end of the operation the previous interaction state is restored. Fixed-pixel crosshair annotation boxes
+are rebuilt only after the new graph transform is current, preventing their geometry from being stretched by
+the changed axis scale.</p>
+<p><strong>Button-3</strong> has a special role in both control modes. If a rectangle zoom or pan is currently active,
+<strong>Button-3</strong> cancels that operation and consumes the event. In context-menu mode, <strong>Button-3</strong> posts the menu
+only when there is no transient navigation operation to cancel.</p>
+<p>Rectangle zoom and panning do not start when the initial press is on a legend drawn inside the plot area. The
+press is left for normal legend interaction instead.</p>
+<p>While an already-started zoom or pan passes through an internal plot-area legend, active-legend hover and click
+changes are suppressed. Normal legend interaction resumes when the transient operation finishes.</p>
+</section>
+<section id="crosshairs">
+<span id="r-rbc-graphtoolbar-crosshairs"></span><span id="r-3a3arbc3a3agraphtoolbarqzcrosshairs"></span><h2>Crosshairs<a class="headerlink" href="#crosshairs" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code> enables the enhanced crosshair system. The <code class="docutils literal notranslate"><span class="pre">-crosshairsmode</span></code> property selects one of four modes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">current</span></code> - show Rbc crosshair lines and annotate the current pointer coordinates.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">closest</span></code> - find plotted data near the pointer and annotate the selected point or points.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">none</span></code> - show ordinary Rbc crosshair lines without an annotation marker.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">disabled</span></code> - disable both the lines and the annotation marker.</p></li>
+</ul>
+<p>The default is <code class="docutils literal notranslate"><span class="pre">closest</span></code>.</p>
+<p>In closest mode, <code class="docutils literal notranslate"><span class="pre">-crosshairsclosestopts</span></code> controls the search:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">-interpolate</span> <span class="pre">yes</span></code> allows a closest point on an interpolated trace.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-halo</span> <span class="pre">10</span></code> sets the search halo in pixels.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-single</span> <span class="pre">yes</span></code> displays the globally closest result. With <code class="docutils literal notranslate"><span class="pre">-single</span> <span class="pre">no</span></code>, each visible element is searched independently.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">yes</span></code> hides the ordinary Rbc crosshair lines while closest annotations are displayed.</p></li>
+</ul>
+<p>Elements configured with <code class="docutils literal notranslate"><span class="pre">-hideplot</span> <span class="pre">yes</span></code> do not participate in closest searches.</p>
+<p>A closest line, strip, or Polar point is marked by a bitmap together with its text annotation. A closest bar
+uses a dimension line with arrowheads spanning the displayed bar. Very short bars use external arrowheads when
+two internal heads would overlap.</p>
+<p>When an element has a valid <code class="docutils literal notranslate"><span class="pre">-param</span></code> mapping, the parameter value reported by <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code> is appended to
+the closest annotation.  Its format is controlled by <code class="docutils literal notranslate"><span class="pre">-formatparam</span></code>.</p>
+<p>In axis-format closest mode, an axis <code class="docutils literal notranslate"><span class="pre">-command</span></code> formatter is honoured.  If the formatter fails, the
+graphtoolbar numeric format is used as a fallback.</p>
+<p>Posting the context menu temporarily removes crosshair graphics.  After the menu is dismissed, the selected
+crosshair mode is restored at the pointer’s current location rather than at the old popup location.</p>
+</section>
+<section id="coordinate-marker-formats">
+<span id="r-rbc-graphtoolbar-coordinate-marker-formats"></span><span id="r-3a3arbc3a3agraphtoolbarqzcoordinate20marker20formats"></span><h2>Coordinate marker formats<a class="headerlink" href="#coordinate-marker-formats" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">-coordmark</span></code> controls current-position and rectangle-corner annotations. It accepts:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">auto</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">axis</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">complex</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">polar</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gamma</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">normalizedimpedance</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">normalizedimpedanceri</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">normalizedadmittance</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">normalizedadmittanceri</span></code></p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">auto</span></code> uses normal axis coordinates for ordinary and Polar graphs. For a Smith representation it selects
+real/imaginary normalized impedance or admittance according to <code class="docutils literal notranslate"><span class="pre">-smithgrid</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-coordclosestmark</span></code> controls closest-point annotation. The permitted formats depend on the graph
+representation:</p>
+<ul class="simple">
+<li><p>ordinary graph, barchart, or stripchart: <code class="docutils literal notranslate"><span class="pre">axis</span></code></p></li>
+<li><p>Polar representation: <code class="docutils literal notranslate"><span class="pre">axis</span></code>, <code class="docutils literal notranslate"><span class="pre">complex</span></code>, <code class="docutils literal notranslate"><span class="pre">polar</span></code></p></li>
+<li><p>Smith representation: <code class="docutils literal notranslate"><span class="pre">axis</span></code>, <code class="docutils literal notranslate"><span class="pre">gamma</span></code>, <code class="docutils literal notranslate"><span class="pre">normalizedimpedance</span></code>, <code class="docutils literal notranslate"><span class="pre">impedance</span></code>, <code class="docutils literal notranslate"><span class="pre">normalizedadmittance</span></code>, <code class="docutils literal notranslate"><span class="pre">admittance</span></code></p></li>
+</ul>
+<p>The toolbar combobox and context-menu submenu expose only the modes valid for the current representation.</p>
+</section>
+<section id="polar-and-smith-interaction">
+<span id="r-rbc-graphtoolbar-polar-and-smith-interaction"></span><span id="r-3a3arbc3a3agraphtoolbarqzpolar20and20smith20interaction"></span><h2>Polar and Smith interaction<a class="headerlink" href="#polar-and-smith-interaction" title="Link to this heading">¶</a></h2>
+<p>A Polar/Smith graph uses its grid-mapped axes as part of the displayed coordinate system even when those axes
+are hidden or are not installed in graph margins. They therefore participate in zooming, panning, coordinate
+display, and navigation history.</p>
+<p>Rectangle zoom preserves the physical plot-area aspect ratio. This keeps equal X and Y data units at equal
+physical scales and prevents Polar or Smith circles from becoming elliptical.</p>
+<p>When wheel zoom is performed over one of the Polar/Smith grid axes, both grid axes are scaled by the same
+factor.  Scaling only one grid axis would otherwise force the automatic-aspect layout to resize the plotting
+area.</p>
+<p>A visible Polar/Smith grid requires linear Cartesian grid axes. Interactive scale toggling therefore refuses
+to change a visible grid axis from linear to logarithmic. Auxiliary axes may still be logarithmic.</p>
+<p>Example Smith chart:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>graphtoolbar<span class="w"> </span>.smith<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>polar<span class="w"> </span><span class="o">-</span>representation<span class="w"> </span>smith<span class="w"> </span><span class="o">-</span>smithgrid<span class="w"> </span>impedance<span class="w"> </span><span class="o">-</span>controlmode<span class="w"> </span>contextmenu<span class="w"> </span><span class="o">-</span>zoom<span class="w"> </span><span class="o">-</span>zoomwheel<span class="w"> </span><span class="o">-</span>pan<span class="w"> </span><span class="o">-</span>crosshairs<span class="w"> </span><span class="o">-</span>crosshairsmode<span class="w"> </span>closest<span class="w"> </span><span class="o">-</span>activelegend
+
+<span class="nv">pack</span><span class="w"> </span>.smith<span class="w"> </span><span class="o">-</span>fill<span class="w"> </span>both<span class="w"> </span><span class="o">-</span>expand<span class="w"> </span>yes
+<span class="k">set</span><span class="w"> </span>g<span class="w"> </span><span class="k">[</span><span class="nv">.smith</span><span class="w"> </span>subwidget<span class="w"> </span>graph<span class="k">]</span>
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>gamma<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>complex
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>frequency
+<span class="nv">gamma</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span>
+<span class="w">    </span><span class="k">{</span><span class="nv">0.10</span><span class="w">  </span><span class="mf">0.05</span><span class="k">}</span>
+<span class="w">    </span><span class="k">{</span><span class="nv">0.20</span><span class="w">  </span><span class="mf">0.15</span><span class="k">}</span>
+<span class="w">    </span><span class="k">{</span><span class="nv">0.30</span><span class="w">  </span><span class="mf">0.10</span><span class="k">}</span>
+<span class="w">    </span><span class="k">{</span><span class="nv">0.25</span><span class="w"> </span><span class="o">-</span><span class="mf">0.05</span><span class="k">}</span>
+<span class="k">}</span>
+<span class="nv">frequency</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">1.0e9</span><span class="w"> </span><span class="mf">2.0</span>e9<span class="w"> </span><span class="mf">3.0</span>e9<span class="w"> </span><span class="mf">4.0</span>e9<span class="k">}</span>
+<span class="nv">$g</span><span class="w"> </span><span class="nv">element</span><span class="w"> </span>create<span class="w"> </span>S11<span class="w"> </span><span class="o">-</span>cdata<span class="w"> </span>gamma<span class="w"> </span><span class="o">-</span>param<span class="w"> </span>frequency
+</pre></div>
+</div>
+</section>
+<section id="active-legend">
+<span id="r-rbc-graphtoolbar-active-legend"></span><span id="r-3a3arbc3a3agraphtoolbarqzactive20legend"></span><h2>Active legend<a class="headerlink" href="#active-legend" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">-activelegend</span></code> adds hover activation and a three-state <strong>Button-1</strong> cycle to every legend entry:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>normal -&gt; active -&gt; plot-hidden -&gt; normal
+</pre></div>
+</div>
+<p>The persistent state is also represented by the element’s legend relief:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>flat       normal
+raised     active
+sunken     plot-hidden
+</pre></div>
+</div>
+<p>Plot-hidden elements use element <code class="docutils literal notranslate"><span class="pre">-hideplot</span> <span class="pre">yes</span></code>; the plotted element disappears while its legend entry remains
+available for the next click.</p>
+</section>
+<section id="public-megawidget-access">
+<span id="r-rbc-graphtoolbar-public-megawidget-access"></span><span id="r-3a3arbc3a3agraphtoolbarqzpublic20megawidget20access"></span><h2>Public megawidget access<a class="headerlink" href="#public-megawidget-access" title="Link to this heading">¶</a></h2>
+<p>The most common access forms are:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="c"># Forward directly to the Rbc graph.</span>
+<span class="nv">.gtb</span><span class="w"> </span>graph<span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>min<span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">-</span>max<span class="w"> </span><span class="mi">10</span>
+<span class="nv">.gtb</span><span class="w"> </span>graph<span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>e1<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="k">}</span>
+
+<span class="c"># Obtain a real subwidget pathname.</span>
+<span class="k">set</span><span class="w"> </span>graph<span class="w"> </span><span class="k">[</span><span class="nv">.gtb</span><span class="w"> </span>subwidget<span class="w"> </span>graph<span class="k">]</span>
+
+<span class="c"># Send a command to any named subwidget.</span>
+<span class="nv">.gtb</span><span class="w"> </span>widgetcommand<span class="w"> </span>graph<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>title<span class="w"> </span>Example
+
+<span class="c"># Inspect the names which exist for this particular configuration.</span>
+<span class="nb">puts</span><span class="w"> </span><span class="k">[</span><span class="nv">.gtb</span><span class="w"> </span>names<span class="k">]</span>
+</pre></div>
+</div>
+<p>The exact subwidget set depends on <code class="docutils literal notranslate"><span class="pre">-controlmode</span></code> and on which optional facilities were enabled.</p>
+</section>
+<section id="tk-option-database">
+<span id="r-rbc-graphtoolbar-tk-option-database"></span><span id="r-3a3arbc3a3agraphtoolbarqztk20option20database"></span><h2>Tk option database<a class="headerlink" href="#tk-option-database" title="Link to this heading">¶</a></h2>
+<p>Most marker styling dictionaries take their initial defaults from the Tk option database. Applications can
+therefore customize the graphtoolbar before creating a widget:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">option</span><span class="w"> </span>add<span class="w"> </span><span class="o">*</span>gtbCrosshairsColor<span class="w"> </span>navy<span class="w"> </span>userDefault
+<span class="nv">option</span><span class="w"> </span>add<span class="w"> </span><span class="o">*</span>gtbCrosshairsTextFont<span class="w"> </span><span class="k">{</span><span class="nv">TkDefaultFont</span><span class="w"> </span><span class="mi">9</span><span class="k">}</span><span class="w"> </span>userDefault
+<span class="nv">option</span><span class="w"> </span>add<span class="w"> </span><span class="o">*</span>gtbZoomTextBoxFill<span class="w"> </span>lightyellow<span class="w"> </span>userDefault
+
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>graphtoolbar<span class="w"> </span>.gtb<span class="w"> </span><span class="o">-</span>zoom<span class="w"> </span><span class="o">-</span>zoommark<span class="w"> </span><span class="o">-</span>crosshairs
+</pre></div>
+</div>
+<p>The package itself also installs:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">option</span><span class="w"> </span>add<span class="w"> </span><span class="o">*</span>Element.ScaleSymbols<span class="w"> </span>no<span class="w"> </span>widgetDefault
+</pre></div>
+</div>
+<p>so graph elements default to fixed-size symbols rather than scaling their symbols with the graph.</p>
+<section id="zoom-option-database-resources">
+<span id="r-rbc-graphtoolbar-zoom-option-database-resources"></span><span id="r-3a3arbc3a3agraphtoolbarqzzoom20option2ddatabase20resources"></span><h3>Zoom option-database resources<a class="headerlink" href="#zoom-option-database-resources" title="Link to this heading">¶</a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Property</p></th>
+<th class="head"><p>Key</p></th>
+<th class="head"><p>Database name</p></th>
+<th class="head"><p>Database class</p></th>
+<th class="head"><p>Default</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoomtitleopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-font</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTitleFont</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTitleFont</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{Arial</span> <span class="pre">18}</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zoomtitleopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-foreground</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTitleForeground</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTitleForeground</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">black</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoomtitleopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-shadow</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTitleShadow</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTitleShadow</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">yellow4</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zoomtitleopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-anchor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTitleAnchor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTitleAnchor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">nw</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoomtitleopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-coords</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTitleCoords</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTitleCoords</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{-Inf</span> <span class="pre">Inf}</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zoomboxopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-dashes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomOutlineDashes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomOutlineDashes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">4</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoomboxopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-linewidth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomOutlineLineWidth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomOutlineLineWidth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zoomboxopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-xor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomOutlineXor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomOutlineXor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">no</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-font</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTextFont</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTextFont</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{ArialNarrow</span> <span class="pre">8}</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-anchor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTextAnchor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTextAnchor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ne</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-foreground</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTextForeground</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTextForeground</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">black</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-justify</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTextJustify</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTextJustify</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">left</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-padx</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTextPadX</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTextPadX</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">4</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-pady</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTextPadY</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTextPadY</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">4</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-formatx</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTextXFormat</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTextXFormat</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.4g</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-formaty</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTextYFormat</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTextYFormat</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.4g</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkboxopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-fill</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTextBoxFill</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTextBoxFill</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#FFEB3B</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkboxopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-outline</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTextBoxOutline</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTextBoxOutline</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">grey</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkboxopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-linewidth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTextBoxLineWidth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTextBoxLineWidth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="crosshair-option-database-resources">
+<span id="r-rbc-graphtoolbar-crosshair-option-database-resources"></span><span id="r-3a3arbc3a3agraphtoolbarqzcrosshair20option2ddatabase20resources"></span><h3>Crosshair option-database resources<a class="headerlink" href="#crosshair-option-database-resources" title="Link to this heading">¶</a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Property</p></th>
+<th class="head"><p>Key</p></th>
+<th class="head"><p>Database name</p></th>
+<th class="head"><p>Database class</p></th>
+<th class="head"><p>Default</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">crosshairsopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-linewidth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbCrosshairsLineWidth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbCrosshairsLineWidth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">crosshairsopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-color</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbCrosshairsColor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbCrosshairsColor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">grey</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">crosshairsopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-dashes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbCrosshairsDashes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbCrosshairsDashes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{}</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">crosshairsmarkopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-font</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbCrosshairsTextFont</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbCrosshairsTextFont</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{ArialNarrow</span> <span class="pre">8}</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">crosshairsmarkopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-anchor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbCrosshairsTextAnchor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbCrosshairsTextAnchor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">nw</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">crosshairsmarkopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-foreground</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbCrosshairsTextForeground</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbCrosshairsTextForeground</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">black</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">crosshairsmarkopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-justify</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbCrosshairsTextJustify</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbCrosshairsTextJustify</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">left</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">crosshairsmarkopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-padx</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbCrosshairsTextPadX</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbCrosshairsTextPadX</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">4</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">crosshairsmarkopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-pady</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbCrosshairsTextPadY</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbCrosshairsTextPadY</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">4</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">crosshairsmarkopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-formatx</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbCrosshairsTextXFormat</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbCrosshairsTextXFormat</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.4g</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">crosshairsmarkopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-formaty</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbCrosshairsTextYFormat</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbCrosshairsTextYFormat</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.4g</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">crosshairsmarkopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-formatparam</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbCrosshairsTextParamFormat</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbCrosshairsTextParamFormat</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.4g</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">crosshairsmarkboxopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-fill</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbCrosshairsTextBoxFill</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbCrosshairsTextBoxFill</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#FFEB3B</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">crosshairsmarkboxopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-outline</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbCrosshairsTextBoxOutline</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbCrosshairsTextBoxOutline</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">grey</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">crosshairsmarkboxopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-linewidth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbCrosshairsTextBoxLineWidth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbCrosshairsTextBoxLineWidth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">crosshairsbarlineopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-outline</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbCrosshairsBarLineOutline</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbCrosshairsBarLineOutline</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">black</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">crosshairsbarlineopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-linewidth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbCrosshairsBarLineWidth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbCrosshairsBarLineWidth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">crosshairsbarlineopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-arrowshape</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbCrosshairsBarLineArrowShape</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbCrosshairsBarLineArrowShape</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{8</span> <span class="pre">10</span> <span class="pre">3}</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p><code class="docutils literal notranslate"><span class="pre">crosshairsclosestopts</span></code> has no Tk option-database resources. Its built-in defaults are:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">-interpolate</span><span class="w"> </span>yes
+<span class="nv">-halo</span><span class="w">        </span><span class="mi">10</span>
+<span class="nv">-single</span><span class="w">      </span>yes
+<span class="nv">-hide</span><span class="w">        </span>yes
+</pre></div>
+</div>
+</section>
+</section>
+<section id="styling-example">
+<span id="r-rbc-graphtoolbar-styling-example"></span><span id="r-3a3arbc3a3agraphtoolbarqzstyling20example"></span><h2>Styling example<a class="headerlink" href="#styling-example" title="Link to this heading">¶</a></h2>
+<p>Dictionary properties may be changed after creation through the <code class="docutils literal notranslate"><span class="pre">oo::configurable</span></code> <code class="docutils literal notranslate"><span class="pre">configure</span></code> method:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.gtb</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>zoomtitle<span class="w"> </span>yes<span class="w"> </span><span class="o">-</span>zoomtitleopts<span class="w"> </span><span class="k">{</span><span class="nv">-foreground</span><span class="w"> </span>navy<span class="w"> </span><span class="o">-</span>shadow<span class="w"> </span><span class="k">{}}</span><span class="w"> </span><span class="o">-</span>crosshairsmarkopts<span class="w"> </span><span class="k">{</span><span class="nv">-font</span><span class="w"> </span><span class="k">{</span><span class="nv">TkDefaultFont</span><span class="w"> </span><span class="mi">9</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>formatx<span class="w"> </span>.6g<span class="w"> </span><span class="o">-</span>formaty<span class="w"> </span>.6g<span class="w"> </span><span class="o">-</span>formatparam<span class="w"> </span>.6g<span class="k">}</span><span class="w"> </span><span class="o">-</span>crosshairsmarkboxopts<span class="w"> </span><span class="k">{</span><span class="nv">-fill</span><span class="w"> </span>lightyellow<span class="w"> </span><span class="o">-</span>outline<span class="w"> </span>grey40<span class="k">}</span>
+</pre></div>
+</div>
+<p>For the dictionary properties a later configuration containing only some recognized keys updates those keys
+while retaining the other current values. Unknown dictionary keys are rejected.</p>
+</section>
+<section id="classes">
+<span id="r-rbc-graphtoolbar-classes"></span><span id="r-3a3arbc3a3agraphtoolbarqzclasses"></span><h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">¶</a></h2>
+<section id="r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar">
+<span id="index-1"></span><span id="index-0"></span><span id="id1"></span><h3><code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code><a class="headerlink" href="#r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar" title="Link to this heading">¶</a></h3>
+<p>Configurable TclOO class implementing the <code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code> megawidget.</p>
+<p>A widget is normally created through the exported class command:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>graphtoolbar<span class="w"> </span>.gtb<span class="w"> </span><span class="o">?</span>option<span class="w"> </span>...<span class="o">?</span>
+</pre></div>
+</div>
+<p>The Tk pathname becomes the megawidget command.  Properties documented below may subsequently be read
+or changed through the <code class="docutils literal notranslate"><span class="pre">oo::configurable</span></code> interface:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.gtb</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>crosshairsmode
+<span class="nv">.gtb</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>crosshairsmode<span class="w"> </span>current
+<span class="nv">.gtb</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>zoomtitle<span class="w"> </span>yes
+</pre></div>
+</div>
+<p>Options such as <code class="docutils literal notranslate"><span class="pre">-type</span></code>, <code class="docutils literal notranslate"><span class="pre">-controlmode</span></code>, <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>, <code class="docutils literal notranslate"><span class="pre">-pan</span></code>, and <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code> select structural features
+when the megawidget is created and are not configurable properties afterward.</p>
+<p class="rubric">Method summary</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3aconstructor"><span class="std std-ref">constructor</span></a></dt><dd><p>Constructor for the class.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3adestructor"><span class="std std-ref">destructor</span></a></dt><dd><p>Destructor for the class.</p>
+</dd>
+<dt><a class="reference external" href="https://www.tcl-lang.org/man/tcl9.0/TclCmd/index.html">configure</a></dt><dd><p>Configure properties. See <a class="reference external" href="https://www.tcl-lang.org/man/tcl9.0/TclCmd/index.html">::oo::configuresupport::configurable</a>.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3agetaxisactivescale"><span class="std std-ref">getAxisActiveScale</span></a></dt><dd><p>Returns axes currently enabled for interactive scale toggling. List of axis names carrying the graphtoolbar active-scale binding tag.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3agraph"><span class="std std-ref">graph</span></a></dt><dd><p>Forwards a command directly to the embedded Rbc graph widget.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3anames"><span class="std std-ref">names</span></a></dt><dd><p>Returns the names of all subwidgets created for this instance. List of subwidget names.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3asetaxisactivescale"><span class="std std-ref">setAxisActiveScale</span></a></dt><dd><p>Configures interactive linear/logarithmic scale toggling for axes.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3asubwidget"><span class="std std-ref">subwidget</span></a></dt><dd><p>Returns the Tk pathname of a named subwidget. Tk pathname of the requested subwidget.</p>
+</dd>
+<dt><a class="reference internal" href="#r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3awidgetcommand"><span class="std std-ref">widgetcommand</span></a></dt><dd><p>Invokes a command on a named graphtoolbar subwidget.</p>
+</dd>
+</dl>
+<p class="rubric">Options</p>
+<dl class="field-list simple">
+<dt class="field-odd">-width pixels<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initial requested width of the embedded Rbc graph. The default is <code class="docutils literal notranslate"><span class="pre">800</span></code>.</p>
+</dd>
+<dt class="field-even">-height pixels<span class="colon">:</span></dt>
+<dd class="field-even"><p>Initial requested height of the embedded Rbc graph. The default is <code class="docutils literal notranslate"><span class="pre">600</span></code>.</p>
+</dd>
+<dt class="field-odd">-controlmode mode<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Selects the user-interface control surface. Must be <code class="docutils literal notranslate"><span class="pre">toolbar</span></code> or <code class="docutils literal notranslate"><span class="pre">contextmenu</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">toolbar</span></code>.</p>
+</dd>
+<dt class="field-even">-type type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Selects the embedded Rbc widget. Must be <code class="docutils literal notranslate"><span class="pre">graph</span></code>, <code class="docutils literal notranslate"><span class="pre">barchart</span></code>, <code class="docutils literal notranslate"><span class="pre">stripchart</span></code>, or <code class="docutils literal notranslate"><span class="pre">polar</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">graph</span></code>.</p>
+</dd>
+<dt class="field-odd">-representation mode<span class="colon">:</span></dt>
+<dd class="field-odd"><p>For <code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">polar</span></code>, selects <code class="docutils literal notranslate"><span class="pre">polar</span></code> or <code class="docutils literal notranslate"><span class="pre">smith</span></code> representation. The default is <code class="docutils literal notranslate"><span class="pre">polar</span></code>. It is ignored by the other graph types.</p>
+</dd>
+<dt class="field-even">-smithgrid mode<span class="colon">:</span></dt>
+<dd class="field-even"><p>For a Smith representation, selects <code class="docutils literal notranslate"><span class="pre">impedance</span></code>, <code class="docutils literal notranslate"><span class="pre">admittance</span></code>, or <code class="docutils literal notranslate"><span class="pre">both</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">impedance</span></code>.</p>
+</dd>
+<dt class="field-odd">-coordmark mode<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initial value of the <code class="docutils literal notranslate"><span class="pre">-coordmark</span></code> configurable property. The default is <code class="docutils literal notranslate"><span class="pre">auto</span></code>.</p>
+</dd>
+<dt class="field-even">-coordclosestmark mode<span class="colon">:</span></dt>
+<dd class="field-even"><p>Initial closest-point coordinate format. The default is <code class="docutils literal notranslate"><span class="pre">axis</span></code>. For a Smith widget with crosshairs enabled, initialization selects the normalized impedance or admittance format appropriate to <code class="docutils literal notranslate"><span class="pre">-smithgrid</span></code>.</p>
+</dd>
+<dt class="field-odd">-toolbarside side<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Places the visible toolbar at <code class="docutils literal notranslate"><span class="pre">bottom</span></code> or <code class="docutils literal notranslate"><span class="pre">top</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">bottom</span></code>. This has no visible effect in context-menu mode.</p>
+</dd>
+<dt class="field-even">-zoom<span class="colon">:</span></dt>
+<dd class="field-even"><p>Enables rectangle zoom and navigation history.</p>
+</dd>
+<dt class="field-odd">-zoomstartbut event<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Event component which starts rectangle zoom. The default is <code class="docutils literal notranslate"><span class="pre">ButtonPress-1</span></code>.</p>
+</dd>
+<dt class="field-even">-zoomendbut event<span class="colon">:</span></dt>
+<dd class="field-even"><p>Event component which finishes rectangle zoom. The default is <code class="docutils literal notranslate"><span class="pre">ButtonRelease-1</span></code>. The finish event is intentionally not combined with <code class="docutils literal notranslate"><span class="pre">-zoommod</span></code>.</p>
+</dd>
+<dt class="field-odd">-zoombackbut event<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Event component which restores the previous view. The default is <code class="docutils literal notranslate"><span class="pre">ButtonPress-2</span></code>.</p>
+</dd>
+<dt class="field-even">-zoommod modifier<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tk event modifier prefix used for the zoom start and previous-view bindings. The default is <code class="docutils literal notranslate"><span class="pre">Any-</span></code>.</p>
+</dd>
+<dt class="field-odd">-zoomwheel<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Enables mouse-wheel zoom. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
+</dd>
+<dt class="field-even">-zoomwheelscale factor<span class="colon">:</span></dt>
+<dd class="field-even"><p>Multiplicative wheel-zoom step.  Must be a finite number greater than <code class="docutils literal notranslate"><span class="pre">1.0</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">1.1</span></code>.</p>
+</dd>
+<dt class="field-odd">-zoomwheelmod modifier<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Modifier prefix for MouseWheel zoom.  The default is <code class="docutils literal notranslate"><span class="pre">Control-</span></code>.</p>
+</dd>
+<dt class="field-even">-zoomtitle<span class="colon">:</span></dt>
+<dd class="field-even"><p>Enables the transient <code class="docutils literal notranslate"><span class="pre">Zoom</span> <span class="pre">#n</span></code> marker. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
+</dd>
+<dt class="field-odd">-zoomtitleopts dictionary<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initial <code class="docutils literal notranslate"><span class="pre">-zoomtitleopts</span></code> property. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
+</dd>
+<dt class="field-even">-zoomboxopts dictionary<span class="colon">:</span></dt>
+<dd class="field-even"><p>Initial <code class="docutils literal notranslate"><span class="pre">-zoomboxopts</span></code> property. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
+</dd>
+<dt class="field-odd">-zoommark<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Displays coordinate annotations at rectangle-zoom corners. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
+</dd>
+<dt class="field-even">-zoommarkopts dictionary<span class="colon">:</span></dt>
+<dd class="field-even"><p>Initial <code class="docutils literal notranslate"><span class="pre">-zoommarkopts</span></code> property. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
+</dd>
+<dt class="field-odd">-zoommarkboxopts dictionary<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initial <code class="docutils literal notranslate"><span class="pre">-zoommarkboxopts</span></code> property. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
+</dd>
+<dt class="field-even">-pan<span class="colon">:</span></dt>
+<dd class="field-even"><p>Enables plot-area panning. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code> because panning shares the zoom navigation history.</p>
+</dd>
+<dt class="field-odd">-panstartbut event<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Event component which starts a pan. The default is <code class="docutils literal notranslate"><span class="pre">ButtonPress-1</span></code>.</p>
+</dd>
+<dt class="field-even">-panendbut event<span class="colon">:</span></dt>
+<dd class="field-even"><p>Event component which finishes a pan. The default is <code class="docutils literal notranslate"><span class="pre">ButtonRelease-1</span></code>. It is intentionally not combined with <code class="docutils literal notranslate"><span class="pre">-panmod</span></code>.</p>
+</dd>
+<dt class="field-odd">-panmod modifier<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Modifier prefix required to start panning.  The default is <code class="docutils literal notranslate"><span class="pre">Shift-</span></code>.</p>
+</dd>
+<dt class="field-even">-crosshairs<span class="colon">:</span></dt>
+<dd class="field-even"><p>Enables enhanced crosshair interaction.</p>
+</dd>
+<dt class="field-odd">-crosshairsmode mode<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initial crosshair mode. Must be <code class="docutils literal notranslate"><span class="pre">current</span></code>, <code class="docutils literal notranslate"><span class="pre">closest</span></code>, <code class="docutils literal notranslate"><span class="pre">none</span></code>, or <code class="docutils literal notranslate"><span class="pre">disabled</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">closest</span></code>. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
+</dd>
+<dt class="field-even">-crosshairsopts dictionary<span class="colon">:</span></dt>
+<dd class="field-even"><p>Initial Rbc crosshair line options. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
+</dd>
+<dt class="field-odd">-crosshairsmarkopts dictionary<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initial text-marker and numeric-format options used by current and closest annotations. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
+</dd>
+<dt class="field-even">-crosshairsmarkboxopts dictionary<span class="colon">:</span></dt>
+<dd class="field-even"><p>Initial background-box options for crosshair annotations. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
+</dd>
+<dt class="field-odd">-crosshairsclosestopts dictionary<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initial closest-search options. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-interpolate</span></code>, <code class="docutils literal notranslate"><span class="pre">-halo</span></code>, <code class="docutils literal notranslate"><span class="pre">-single</span></code>, and <code class="docutils literal notranslate"><span class="pre">-hide</span></code>. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
+</dd>
+<dt class="field-even">-crosshairsbarlineopts dictionary<span class="colon">:</span></dt>
+<dd class="field-even"><p>Initial line-marker options for closest-bar dimension annotations. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
+</dd>
+<dt class="field-odd">-scaletoggle axes<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Enables interactive linear/logarithmic scale toggling on the specified axis list. <code class="docutils literal notranslate"><span class="pre">all</span></code> selects all axes existing at construction time.</p>
+</dd>
+<dt class="field-even">-activelegend<span class="colon">:</span></dt>
+<dd class="field-even"><p>Enables hover activation and three-state Button-1 interaction on legend entries.</p>
+</dd>
+</dl>
+<p class="rubric">Properties</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-coordclosestmark</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Readable, writable. Selects the value representation used for closest-point annotations. The valid values depend on the current graph representation: - ordinary graph/barchart/stripchart: <code class="docutils literal notranslate"><span class="pre">axis</span></code> - Polar: <code class="docutils literal notranslate"><span class="pre">axis</span></code>, <code class="docutils literal notranslate"><span class="pre">complex</span></code>, <code class="docutils literal notranslate"><span class="pre">polar</span></code> - Smith: <code class="docutils literal notranslate"><span class="pre">axis</span></code>, <code class="docutils literal notranslate"><span class="pre">gamma</span></code>, <code class="docutils literal notranslate"><span class="pre">normalizedimpedance</span></code>, <code class="docutils literal notranslate"><span class="pre">impedance</span></code>, <code class="docutils literal notranslate"><span class="pre">normalizedadmittance</span></code>, <code class="docutils literal notranslate"><span class="pre">admittance</span></code> The toolbar and context-menu selectors are synchronized with this property.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-coordmark</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Readable, writable. Selects the coordinate representation used by current-position crosshair markers and rectangle-zoom corner markers. Accepted values are <code class="docutils literal notranslate"><span class="pre">auto</span></code>, <code class="docutils literal notranslate"><span class="pre">axis</span></code>, <code class="docutils literal notranslate"><span class="pre">complex</span></code>, <code class="docutils literal notranslate"><span class="pre">polar</span></code>, <code class="docutils literal notranslate"><span class="pre">gamma</span></code>, <code class="docutils literal notranslate"><span class="pre">normalizedimpedance</span></code>, <code class="docutils literal notranslate"><span class="pre">normalizedimpedanceri</span></code>, <code class="docutils literal notranslate"><span class="pre">normalizedadmittance</span></code>, and <code class="docutils literal notranslate"><span class="pre">normalizedadmittanceri</span></code>. <code class="docutils literal notranslate"><span class="pre">auto</span></code> uses ordinary axis values except on a Smith chart, where normalized impedance/admittance real and imaginary components are selected according to the Smith grid.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-crosshairsbarlineopts</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Readable, writable. Dictionary configuring the dimension line used when the closest result is a bar. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-outline</span></code>, <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code>, and <code class="docutils literal notranslate"><span class="pre">-arrowshape</span></code>. <code class="docutils literal notranslate"><span class="pre">-arrowshape</span></code> contains the three screen distances used by an Rbc line-marker arrowhead. Initial values come from the <code class="docutils literal notranslate"><span class="pre">gtbCrosshairsBarLine*</span></code> Tk option-database resources.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-crosshairsclosestopts</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Readable, writable. Dictionary controlling closest-element searches. Recognized keys and defaults are: <code class="docutils literal notranslate"><span class="pre">tcl</span> <span class="pre">-interpolate</span> <span class="pre">yes</span> <span class="pre">-halo</span> <span class="pre">10</span> <span class="pre">-single</span> <span class="pre">yes</span> <span class="pre">-hide</span> <span class="pre">yes</span></code> <code class="docutils literal notranslate"><span class="pre">-interpolate</span></code> is forwarded to <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code>. <code class="docutils literal notranslate"><span class="pre">-halo</span></code> is the search distance in pixels. <code class="docutils literal notranslate"><span class="pre">-single</span> <span class="pre">yes</span></code> selects one globally closest result; <code class="docutils literal notranslate"><span class="pre">-single</span> <span class="pre">no</span></code> searches every visible element separately. <code class="docutils literal notranslate"><span class="pre">-hide</span></code> controls visibility of the ordinary Rbc crosshair lines while closest annotations are displayed.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-crosshairsmarkboxopts</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Readable, writable. Dictionary configuring the polygon background behind current and closest text annotations. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-fill</span></code>, <code class="docutils literal notranslate"><span class="pre">-outline</span></code>, and <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code>. If fill and outline are both empty, no background is drawn. Initial values come from the <code class="docutils literal notranslate"><span class="pre">gtbCrosshairsTextBox*</span></code> Tk option-database resources.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-crosshairsmarkopts</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Readable, writable. Dictionary configuring current/closest text annotations. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-font</span></code>, <code class="docutils literal notranslate"><span class="pre">-anchor</span></code>, <code class="docutils literal notranslate"><span class="pre">-justify</span></code>, <code class="docutils literal notranslate"><span class="pre">-foreground</span></code>, <code class="docutils literal notranslate"><span class="pre">-padx</span></code>, <code class="docutils literal notranslate"><span class="pre">-pady</span></code>, <code class="docutils literal notranslate"><span class="pre">-formatx</span></code>, <code class="docutils literal notranslate"><span class="pre">-formaty</span></code>, and <code class="docutils literal notranslate"><span class="pre">-formatparam</span></code>. The three format keys are <code class="docutils literal notranslate"><span class="pre">format</span></code> conversion bodies, for example <code class="docutils literal notranslate"><span class="pre">.4g</span></code>. <code class="docutils literal notranslate"><span class="pre">-formatparam</span></code> is used when a closest element supplies <code class="docutils literal notranslate"><span class="pre">info(param)</span></code>. Initial values are obtained from the <code class="docutils literal notranslate"><span class="pre">gtbCrosshairsText*</span></code> Tk option-database resources.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-crosshairsmode</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Readable, writable. Selects enhanced crosshair behaviour. Accepted values are <code class="docutils literal notranslate"><span class="pre">current</span></code>, <code class="docutils literal notranslate"><span class="pre">closest</span></code>, <code class="docutils literal notranslate"><span class="pre">none</span></code>, and <code class="docutils literal notranslate"><span class="pre">disabled</span></code>. <code class="docutils literal notranslate"><span class="pre">current</span></code> annotates the current pointer coordinates. <code class="docutils literal notranslate"><span class="pre">closest</span></code> annotates nearby plotted data. <code class="docutils literal notranslate"><span class="pre">none</span></code> leaves only ordinary Rbc crosshair lines. <code class="docutils literal notranslate"><span class="pre">disabled</span></code> suppresses both lines and annotation markers. This property is intended for an instance created with <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-crosshairsopts</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Readable, writable. Dictionary configuring the underlying Rbc crosshair lines. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code>, <code class="docutils literal notranslate"><span class="pre">-color</span></code>, and <code class="docutils literal notranslate"><span class="pre">-dashes</span></code>. Initial values come from <code class="docutils literal notranslate"><span class="pre">gtbCrosshairsLineWidth</span></code>, <code class="docutils literal notranslate"><span class="pre">gtbCrosshairsColor</span></code>, and <code class="docutils literal notranslate"><span class="pre">gtbCrosshairsDashes</span></code>.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-zoomboxopts</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Readable, writable. Dictionary configuring the rectangle-zoom outline. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-dashes</span></code>, <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code>, and <code class="docutils literal notranslate"><span class="pre">-xor</span></code>. Initial values are obtained from the <code class="docutils literal notranslate"><span class="pre">gtbZoomOutline*</span></code> Tk option-database resources.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-zoommarkboxopts</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Readable, writable. Dictionary configuring the polygon drawn behind each rectangle-corner text marker. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-fill</span></code>, <code class="docutils literal notranslate"><span class="pre">-outline</span></code>, and <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code>. If both fill and outline are empty, no background polygon is drawn. Initial values are obtained from the <code class="docutils literal notranslate"><span class="pre">gtbZoomTextBox*</span></code> option-database resources.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-zoommarkopts</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Readable, writable. Dictionary configuring rectangle-corner text annotations. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-font</span></code>, <code class="docutils literal notranslate"><span class="pre">-anchor</span></code>, <code class="docutils literal notranslate"><span class="pre">-justify</span></code>, <code class="docutils literal notranslate"><span class="pre">-foreground</span></code>, <code class="docutils literal notranslate"><span class="pre">-padx</span></code>, <code class="docutils literal notranslate"><span class="pre">-pady</span></code>, <code class="docutils literal notranslate"><span class="pre">-formatx</span></code>, and <code class="docutils literal notranslate"><span class="pre">-formaty</span></code>. <code class="docutils literal notranslate"><span class="pre">-formatx</span></code> and <code class="docutils literal notranslate"><span class="pre">-formaty</span></code> are <code class="docutils literal notranslate"><span class="pre">format</span></code> conversion bodies such as <code class="docutils literal notranslate"><span class="pre">.4g</span></code>; the leading <code class="docutils literal notranslate"><span class="pre">%</span></code> is supplied internally. Initial values are obtained from the <code class="docutils literal notranslate"><span class="pre">gtbZoomText*</span></code> option-database resources.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-zoomtitle</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Readable, writable. Boolean controlling the transient <code class="docutils literal notranslate"><span class="pre">Zoom</span> <span class="pre">#n</span></code> annotation produced after a completed navigation operation. This property is meaningful for instances created with <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-zoomtitleopts</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Readable, writable. Dictionary of Rbc text-marker options used for the transient zoom-level title. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-font</span></code>, <code class="docutils literal notranslate"><span class="pre">-foreground</span></code>, <code class="docutils literal notranslate"><span class="pre">-shadow</span></code>, <code class="docutils literal notranslate"><span class="pre">-anchor</span></code>, and <code class="docutils literal notranslate"><span class="pre">-coords</span></code>. Initial values are obtained from the corresponding <code class="docutils literal notranslate"><span class="pre">gtbZoomTitle*</span></code> Tk option-database resources.</p>
+</dd>
+</dl>
+<section id="constructor">
+<span id="r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3aconstructor"></span><span id="index-3"></span><span id="index-2"></span><h4><code class="docutils literal notranslate"><span class="pre">constructor</span></code><a class="headerlink" href="#constructor" title="Link to this heading">¶</a></h4>
+<p>Creates a graphtoolbar megawidget.</p>
+<pre class="literal-block"><strong>graphtoolbar create OBJNAME</strong> <em>path ?option ...?</em>
+<strong>graphtoolbar new</strong> <em>path ?option ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">args</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Widget pathname followed by creation options documented in the class Options section.</p>
+</dd>
+</dl>
+<p class="rubric">Description</p>
+<p>The first argument is the Tk pathname of the new megawidget. Structural facilities such as zoom, pan,
+crosshairs, control mode, graph type, and active legend interaction are selected here.</p>
+<p class="rubric">Return value</p>
+<p>The newly created megawidget object. When creation is  invoked through the exported class command
+with a pathname, the command result is the widget pathname.</p>
+</section>
+<section id="destructor">
+<span id="r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3adestructor"></span><span id="index-5"></span><span id="index-4"></span><h4><code class="docutils literal notranslate"><span class="pre">destructor</span></code><a class="headerlink" href="#destructor" title="Link to this heading">¶</a></h4>
+<p>Cancels asynchronous operations owned by the megawidget.</p>
+<pre class="literal-block"><strong>GRAPHTOOLBAROBJ destroy</strong></pre>
+<p class="rubric">Description</p>
+<p>Currently this includes the transient zoom-title timer.</p>
+</section>
+<section id="getaxisactivescale">
+<span id="r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3agetaxisactivescale"></span><span id="index-7"></span><span id="index-6"></span><h4><code class="docutils literal notranslate"><span class="pre">getAxisActiveScale</span></code><a class="headerlink" href="#getaxisactivescale" title="Link to this heading">¶</a></h4>
+<p>Returns axes currently enabled for interactive scale toggling.
+List of axis names carrying the graphtoolbar active-scale binding tag.</p>
+<pre class="literal-block"><strong>GRAPHTOOLBAROBJ getAxisActiveScale</strong></pre>
+<p class="rubric">Return value</p>
+<p>Returns axes currently enabled for interactive scale toggling.
+List of axis names carrying the graphtoolbar active-scale binding tag.</p>
+</section>
+<section id="graph">
+<span id="r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3agraph"></span><span id="index-8"></span><h4><code class="docutils literal notranslate"><span class="pre">graph</span></code><a class="headerlink" href="#graph" title="Link to this heading">¶</a></h4>
+<p>Forwards a command directly to the embedded Rbc graph widget.</p>
+<pre class="literal-block"><strong>GRAPHTOOLBAROBJ graph</strong> <em>?graphCommand ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">args</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Graph widget command and arguments.</p>
+</dd>
+</dl>
+<p class="rubric">Description</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.gtb</span><span class="w"> </span>graph<span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>min<span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">-</span>max<span class="w"> </span><span class="mi">10</span>
+<span class="nv">.gtb</span><span class="w"> </span>graph<span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>trace<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">4</span><span class="k">}</span>
+</pre></div>
+</div>
+<p class="rubric">Return value</p>
+<p>Result returned by the embedded graph command.</p>
+</section>
+<section id="names">
+<span id="r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3anames"></span><span id="index-9"></span><h4><code class="docutils literal notranslate"><span class="pre">names</span></code><a class="headerlink" href="#names" title="Link to this heading">¶</a></h4>
+<p>Returns the names of all subwidgets created for this instance.
+List of subwidget names.</p>
+<pre class="literal-block"><strong>GRAPHTOOLBAROBJ names</strong></pre>
+<p class="rubric">Description</p>
+<p>The set depends on -controlmode and on which optional features were enabled at construction time. <code class="docutils literal notranslate"><span class="pre">graph</span></code>
+and <code class="docutils literal notranslate"><span class="pre">toolbarFrame</span></code> always # exist.</p>
+<p class="rubric">Return value</p>
+<p>Returns the names of all subwidgets created for this instance.
+List of subwidget names.</p>
+</section>
+<section id="setaxisactivescale">
+<span id="r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3asetaxisactivescale"></span><span id="index-11"></span><span id="index-10"></span><h4><code class="docutils literal notranslate"><span class="pre">setAxisActiveScale</span></code><a class="headerlink" href="#setaxisactivescale" title="Link to this heading">¶</a></h4>
+<p>Configures interactive linear/logarithmic scale toggling for axes.</p>
+<pre class="literal-block"><strong>GRAPHTOOLBAROBJ setAxisActiveScale</strong> <em>axes ?-disabled? ?-event event? ?-background color?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-background</span> <span class="pre">color</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Temporary axis background displayed while the pointer is over the active axis line. The default is <code class="docutils literal notranslate"><span class="pre">grey</span></code>.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-disabled</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Removes interactive scale toggling from the selected axes instead of enabling it.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-event</span> <span class="pre">event</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Event which toggles the active axis. The default is <code class="docutils literal notranslate"><span class="pre">ButtonPress-1</span></code>.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">axes</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>List of axis names, or <code class="docutils literal notranslate"><span class="pre">all</span></code> for every current graph axis.</p>
+</dd>
+</dl>
+<p class="rubric">Description</p>
+<p>Only the actual axis line responds to the toggle event.</p>
+<p>A visible Polar/Smith grid axis cannot be toggled from linear to logarithmic because the specialized grid
+requires linear Cartesian axes. Logarithmic-to-linear conversion is still allowed so an externally
+misconfigured grid can be recovered.</p>
+<p>Rectangle zoom and panning temporarily disable this interaction and # restore it when the transient operation
+finishes.</p>
+<p class="rubric">Return value</p>
+<p>Nothing.</p>
+</section>
+<section id="subwidget">
+<span id="r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3asubwidget"></span><span id="index-13"></span><span id="index-12"></span><h4><code class="docutils literal notranslate"><span class="pre">subwidget</span></code><a class="headerlink" href="#subwidget" title="Link to this heading">¶</a></h4>
+<p>Returns the Tk pathname of a named subwidget.
+Tk pathname of the requested subwidget.</p>
+<pre class="literal-block"><strong>GRAPHTOOLBAROBJ subwidget</strong> <em>name</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">name</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Subwidget name as returned by <a class="reference internal" href="#r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3anames"><span class="std std-ref">names</span></a>.</p>
+</dd>
+</dl>
+<p class="rubric">Description</p>
+<p>Common names include <code class="docutils literal notranslate"><span class="pre">graph</span></code>, <code class="docutils literal notranslate"><span class="pre">toolbarFrame</span></code>, and, in context-menu mode, <code class="docutils literal notranslate"><span class="pre">contextMenu</span></code>. Toolbar mode may
+additionally create snapshot, PostScript, zoom, and crosshair control widgets.</p>
+<p class="rubric">Return value</p>
+<p>Returns the Tk pathname of a named subwidget.
+Tk pathname of the requested subwidget.</p>
+</section>
+<section id="widgetcommand">
+<span id="r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3awidgetcommand"></span><span id="index-15"></span><span id="index-14"></span><h4><code class="docutils literal notranslate"><span class="pre">widgetcommand</span></code><a class="headerlink" href="#widgetcommand" title="Link to this heading">¶</a></h4>
+<p>Invokes a command on a named graphtoolbar subwidget.</p>
+<pre class="literal-block"><strong>GRAPHTOOLBAROBJ widgetcommand</strong> <em>subwidgetName ?command ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">args</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Subwidget name followed by its command and arguments.</p>
+</dd>
+</dl>
+<p class="rubric">Description</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.gtb</span><span class="w"> </span>widgetcommand<span class="w"> </span>graph<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>title<span class="w"> </span>Example
+</pre></div>
+</div>
+<p class="rubric">Return value</p>
+<p>Result of the subwidget command.</p>
+<hr class="docutils" />
+<p class="centered">
+<strong>Copyright (c) George Yashin</strong></p></section>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">graphtoolbar</a><ul>
+<li><a class="reference internal" href="#basic-example">Basic example</a></li>
+<li><a class="reference internal" href="#control-surfaces">Control surfaces</a></li>
+<li><a class="reference internal" href="#zooming-and-navigation">Zooming and navigation</a></li>
+<li><a class="reference internal" href="#wheel-zoom">Wheel zoom</a></li>
+<li><a class="reference internal" href="#panning">Panning</a></li>
+<li><a class="reference internal" href="#cross-interactions">Cross-interactions</a></li>
+<li><a class="reference internal" href="#crosshairs">Crosshairs</a></li>
+<li><a class="reference internal" href="#coordinate-marker-formats">Coordinate marker formats</a></li>
+<li><a class="reference internal" href="#polar-and-smith-interaction">Polar and Smith interaction</a></li>
+<li><a class="reference internal" href="#active-legend">Active legend</a></li>
+<li><a class="reference internal" href="#public-megawidget-access">Public megawidget access</a></li>
+<li><a class="reference internal" href="#tk-option-database">Tk option database</a><ul>
+<li><a class="reference internal" href="#zoom-option-database-resources">Zoom option-database resources</a></li>
+<li><a class="reference internal" href="#crosshair-option-database-resources">Crosshair option-database resources</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#styling-example">Styling example</a></li>
+<li><a class="reference internal" href="#classes">Classes</a><ul>
+<li><a class="reference internal" href="#r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar"><code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code></a><ul>
+<li><a class="reference internal" href="#constructor"><code class="docutils literal notranslate"><span class="pre">constructor</span></code></a></li>
+<li><a class="reference internal" href="#destructor"><code class="docutils literal notranslate"><span class="pre">destructor</span></code></a></li>
+<li><a class="reference internal" href="#getaxisactivescale"><code class="docutils literal notranslate"><span class="pre">getAxisActiveScale</span></code></a></li>
+<li><a class="reference internal" href="#graph"><code class="docutils literal notranslate"><span class="pre">graph</span></code></a></li>
+<li><a class="reference internal" href="#names"><code class="docutils literal notranslate"><span class="pre">names</span></code></a></li>
+<li><a class="reference internal" href="#setaxisactivescale"><code class="docutils literal notranslate"><span class="pre">setAxisActiveScale</span></code></a></li>
+<li><a class="reference internal" href="#subwidget"><code class="docutils literal notranslate"><span class="pre">subwidget</span></code></a></li>
+<li><a class="reference internal" href="#widgetcommand"><code class="docutils literal notranslate"><span class="pre">widgetcommand</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rbc-tk9-rbc.html"
+                          title="previous chapter">::rbc</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rbc-tk9-rbc-GRAPHINST.html"
+                          title="next chapter">Graph widget instance <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code> command</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rbc-tk9-rbc-graphtoolbar.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-GRAPHINST.html" title="Graph widget instance GRAPHINST command"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc.html" title="::rbc"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">graphtoolbar</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright George Yashin.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    </div>
+  </body>
+</html>

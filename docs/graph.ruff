@@ -1,6 +1,10 @@
 # tcl-lsp: disable=W111
 namespace eval ::rbc {
 
+    variable _ruff_ns_opts {
+        -includeimports false
+    }
+
     proc graph {pathName args} {
         # Creates a graph widget. A graph uses line elements as its default element type. The widget supports the
         # common graph components such as axes, elements, markers, pens, legends, grids, crosshairs, and PostScript
