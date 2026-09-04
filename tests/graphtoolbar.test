@@ -4480,6 +4480,41 @@ test contextMenuInteractive-5 {right click cancels active pan without posting co
     destroy $widget
 }
 
+test contextMenuInteractive-6 { current to hidden closest does not retain current-mode hairs } -constraints\
+{isInteractive isCrosshairs} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -controlmode contextmenu -crosshairs -crosshairsmode current\
+                        -crosshairsclosestopts {-interpolate yes -halo 100 -single yes -hide yes}]
+    pack .gtb -fill both -expand yes
+    set graph [$widget subwidget graph]
+    set menu [$widget subwidget contextMenu]
+    set crossMenu [$menu entrycget [$menu index {Crosshairs mode}] -menu]
+    $graph axis configure x -min 0 -max 10
+    $graph axis configure y -min 0 -max 10
+    $graph element create line1 -data {0 0 5 5 10 10}
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    set x [expr {$left+$width/2}]
+    set y [expr {$top+$height/2}]
+    # Establish visible current-mode hairs.
+    GenerateGraphEvent $graph <Motion> $x $y $defaultDelay
+    set currentVisible [expr {![$graph crosshairs cget -hide]}]
+    # Switch to closest mode.  -hide yes means only the closest marker
+    # should remain; native RBC hairs must stay hidden.
+    $crossMenu invoke [$crossMenu index {Closest point}]
+    update idletasks
+    # Exercise the transition which previously resurrected the stale
+    # current-mode <Enter> binding.
+    GenerateGraphEvent $graph <Leave> $x $y 20
+    GenerateGraphEvent $graph <Enter> $x $y 20
+    GenerateGraphEvent $graph <Motion> $x $y 20
+    set closestHidden [$graph crosshairs cget -hide]
+    set markerExists [expr {[llength [$graph marker names crosshairsClosest*]] > 0}]
+    list $currentVisible [$widget configure -crosshairsmode] $closestHidden $markerExists
+} -result {1 closest 1 1} -cleanup {
+    destroy $widget
+}
+
 #### active legend
 test activeLegendInteractive-1 {three-state active legend} -constraints {isInteractive isActiveLegend}\
         -setup {

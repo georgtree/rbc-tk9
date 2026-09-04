@@ -62,32 +62,13 @@ proc MakeLine {in} {
 # lines       - number of text display lines (allowing for word wrap and the
 #               height of embedded buttons.
 # DemoDir     - demo directory (used for loading button images)
-# win         - (optional) the window to be printed or snapshotted (an RBC widget)
-# psFile      - (optional) filename for PostScript file
-# imgFile     - (optional) filename for snapshot image file
 #
 # Return Value: Tk window path of the header window
 # ------------------------------------------------------------------------------
-proc CommonHeader {w txt lines DemoDir {win {}} {psFile {}} {imgFile {}}} {
+proc CommonHeader {w txt lines DemoDir {win {}} args} {
     text $w -wrap word -width 1 -height 1 -relief flat -padx 15 -pady 5 -highlightthickness 0
     ### Main Message
     $w insert end $txt
-    ### Print to PostScript File
-    if {($psFile ne {}) && ($win ne {})} {
-        ttk::button $w.print -text Print -command [list CommonPrint $win $psFile]
-        set msg "\n\nTo create a PostScript file \"$psFile\", press the "
-        $w insert end $msg
-        $w window create end -window $w.print
-        $w insert end {button.}
-    }
-    ### Snapshot to Image File
-    if {($imgFile ne {}) && ($win ne {})} {
-        set im [image create photo -file $DemoDir/images/qv100.t.gif]
-        ttk::button $w.snap -image $im -command [list MakeSnapshot $win $imgFile]
-        $w insert end "\nYou can click on the "
-        $w window create end -window $w.snap
-        $w insert end {button to see a photo image snapshot.}
-    }
     bind $w <Configure> {AdjustHeight %W 20}
     $w configure -state disabled
     return $w

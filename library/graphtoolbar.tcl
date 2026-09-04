@@ -2330,6 +2330,11 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {[info exists crosshairsopts]} {
             my DeleteCrosshairsMarkers
             $graph crosshairs off
+            # Do not let the old crosshair mode process Enter/Motion events
+            # while the popup is being dismissed.  The selected mode is
+            # rebuilt by RestoreContextMenuCrosshairs.
+            my RemoveBindTag $graph crosshairs-marker-$graph
+            my RemoveBindTag $graph crosshairs-$graph
         }
         my UpdateContextMenu
         if {[tk windowingsystem] eq {win32}} {
@@ -2858,6 +2863,19 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         my DeleteCrosshairsMarkers
         my RemoveBindTag $graph $tagCrosshairs
         my RemoveBindTag $graph $tagCrosshairsMarker
+        #
+        # The bindtags are reused by all crosshair modes.  Removing a tag
+        # from the widget does not remove the binding scripts stored on the
+        # tag itself.  Clear the previous mode's scripts before installing
+        # the new mode so, for example, a current-mode <Enter> binding cannot
+        # survive into closest mode with -hide yes.
+        #
+        foreach sequence [bind $tagCrosshairs] {
+            bind $tagCrosshairs $sequence {}
+        }
+        foreach sequence [bind $tagCrosshairsMarker] {
+            bind $tagCrosshairsMarker $sequence {}
+        }
         set options [my configure -crosshairsmarkopts]
         $graph crosshairs configure {*}[my configure -crosshairsopts]
         #

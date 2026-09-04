@@ -150,6 +150,11 @@ remains held does not terminate or strand the pan.</p>
 <li><p>Linear axes preserve <code class="docutils literal notranslate"><span class="pre">max-min</span></code>.</p></li>
 <li><p>Logarithmic axes preserve <code class="docutils literal notranslate"><span class="pre">max/min</span></code>.</p></li>
 </ul>
+<p>Axis scrolling limits are also honored during panning. If an axis has <code class="docutils literal notranslate"><span class="pre">-scrollmin</span></code> or <code class="docutils literal notranslate"><span class="pre">-scrollmax</span></code> configured,
+or uses <code class="docutils literal notranslate"><span class="pre">-scrollcommand</span></code>, the effective <code class="docutils literal notranslate"><span class="pre">axis</span> <span class="pre">view</span></code> scrolling region bounds the pan. When the viewport reaches
+a scrolling boundary it simply stops moving; its width or logarithmic ratio is never reduced.</p>
+<p>If several used axes belong to the same data dimension, their scrolling constraints are combined. The most
+restrictive axis limits the common physical drag displacement, so all mapped axes remain synchronized.</p>
 <p>All axes actually participating in the displayed coordinate system are moved together. This includes axes
 installed in margins, hidden axes mapped by elements, and the axes mapped by a Polar or Smith grid.  Completely
 unused axes are not changed.</p>

@@ -12,25 +12,6 @@ namespace import rbc::*
 ### The script can be run from any location. It loads the files it needs from the demo directory.
 set DemoDir [file normalize [file dirname [info script]]]
 
-### Load common commands and create non-rbc GUI elements.
-source $DemoDir/scripts/common.tcl
-
-# To use the demo's "PostScript Options" dialog, source the file
-# scripts/ps.tcl. If this is not done, the "Print" button will print to a
-# file without offering an options dialog.  See command CommonPrint in
-# scripts/common.tcl for choices, including the stock dialog
-# Rbc_PostScriptDialog which is not used in these demos.
-source $DemoDir/scripts/ps.tcl
-set HeaderText [MakeLine {
-    |The barchart has several components:
-    |coordinate axes, data elements, legend, crosshairs, grid,
-    |postscript, and markers.
-    |
-    |They each control various aspects of the barchart.  For example,
-    |the postscript component lets you generate PostScript output.
-}]
-CommonHeader .header $HeaderText 9 $DemoDir .bc barchart1.ps
-
 ### Set option defaults for the barchart.
 option add *Barchart.title {A Simple Barchart}
 option add *Barchart.font {Helvetica 12 bold}
@@ -48,6 +29,7 @@ option add *Grid.hide no
 option add *Grid.mapX {}
 option add *Legend.hide no
 option add *Legend.Font {TkFixedFont 10}
+
 proc FormatLabel {w value} {
     # Determine the element name from value (an integer index).
     set names [$w element show]
@@ -64,8 +46,8 @@ proc FormatLabel {w value} {
 }
 
 ### Create the barchart.
-graphtoolbar .bc -width 800 -height 600 -type barchart -zoom -zoomtitle -zoommark -crosshairs -crosshairsmode closest\
-        -scaletoggle y -activelegend -zoomwheel
+set barchart [graphtoolbar .bc -width 1200 -height 600 -type barchart -zoom -zoomtitle -zoommark -crosshairs\
+                      -crosshairsmode closest -scaletoggle y -activelegend -zoomwheel]
 
 ### Add a bar to .bc for each bitmap in the list.
 proc random {{max 1.0} {min 0.0}} {
@@ -75,11 +57,8 @@ proc random {{max 1.0} {min 0.0}} {
     return $num
 }
 set randomSeed 148230
-set bitmaps { 
-    bdiagonal1 bdiagonal2 checker2 checker3 cross1 cross2 cross3 crossdiag
-    dot1 dot2 dot3 dot4 fdiagonal1 fdiagonal2 hline1 hline2 lbottom ltop
-    rbottom rtop vline1 vline2
-}
+set bitmaps {bdiagonal1 bdiagonal2 checker2 checker3 cross1 cross2 cross3 crossdiag dot1 dot2 dot3 dot4 fdiagonal1\
+                      fdiagonal2 hline1 hline2 lbottom ltop rbottom rtop vline1 vline2}
 set count 1
 foreach stipple $bitmaps {
     set label [file tail $stipple]
@@ -87,14 +66,13 @@ foreach stipple $bitmaps {
     set y [random -2 10]
     set yhigh [expr {$y+0.5}]
     set ylow [expr {$y-0.5}]
-    .bc graph element create $label -y $y -x $count -fg brown -bg orange -stipple @$DemoDir/stipples/${stipple}.xbm\
-            -yhigh $yhigh -ylow $ylow 
+    $barchart graph element create $label -y $y -x $count -fg brown -bg orange -stipple\
+            @$DemoDir/stipples/${stipple}.xbm -yhigh $yhigh -ylow $ylow
     set elemLabels($count) $label
     incr count
 }
 
 ### Map everything
-#grid .header -sticky ew
-grid .bc -sticky nsew
+grid $barchart -sticky nsew
 grid columnconfigure . 0 -weight 1
-grid rowconfigure . 1 -weight 1
+grid rowconfigure . 0 -weight 1
