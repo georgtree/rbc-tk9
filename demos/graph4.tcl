@@ -30,10 +30,8 @@ CommonHeader .header $HeaderText 6 $DemoDir .graph {} graph4.ppm
 
 ### These options apply to the graph.
 option add *Graph.Legend.activeBackground grey
-option add *Graph.height 5i
 option add *Graph.plotBackground black
-option add *Graph.width 7i
-option add *Graph.halo 0
+option add *Graph.halo 5
 option add *Graph.title s27.out
 option add *Graph.font -*-helvetica-bold-r-*-*-18-*
 option add *Axis.tickFont -*-courier-medium-r-*-*-12-*
@@ -56,7 +54,7 @@ option add *Grid.hide no
 option add *Legend.ActiveRelief sunken
 option add *Legend.Position right
 option add *Legend.Relief flat
-option add *Legend.font -*-lucida-medium-r-*-*-12-*-*-*-*-*-*-*
+option add *Legend.font {LucidaMedium 10}
 option add *Legend.Pad 0
 option add *Legend.hide no
 option add *zoomOutline.outline yellow

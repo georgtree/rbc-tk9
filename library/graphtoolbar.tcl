@@ -224,9 +224,10 @@ namespace eval ::rbc::graphtoolbar {
 
         Elements configured with `-hideplot yes` do not participate in closest searches.
 
-        A closest line, strip, or Polar point is marked by a bitmap together with its text annotation. A closest bar
-        uses a dimension line with arrowheads spanning the displayed bar. Very short bars use external arrowheads when
-        two internal heads would overlap.
+        A closest line, strip, or Polar point is marked by a bitmap pointer together with its text annotation. The
+        `-pointeropts` property controls the appearance of this pointer. A closest bar instead uses a dimension line
+        with arrowheads spanning the displayed bar. Very short bars use external arrowheads when two internal heads
+        would overlap.
 
         When an element has a valid `-param` mapping, the parameter value reported by `element closest` is appended to
         the closest annotation.  Its format is controlled by `-formatparam`.
@@ -465,6 +466,8 @@ namespace eval ::rbc::graphtoolbar {
         | `crosshairsbarlineopts`   | `-outline`     | `gtbCrosshairsBarLineOutline`      | `GtbCrosshairsBarLineOutline`       | `black`           |
         | `crosshairsbarlineopts`   | `-linewidth`   | `gtbCrosshairsBarLineWidth`        | `GtbCrosshairsBarLineWidth`         | `1`               |
         | `crosshairsbarlineopts`   | `-arrowshape`  | `gtbCrosshairsBarLineArrowShape`   | `GtbCrosshairsBarLineArrowShape`    | `{8 10 3}`        |
+        | `pointeropts`             | `-outline`     | `gtbPointerOutline`                 | `GtbPointerOutline`                | `black`           |
+        | `pointeropts`             | `-rotate`      | `gtbPointerRotate`                  | `GtbPointerRotate`                 | `0`               |
 
         #ruffopt includedformats nroff
         ```text
@@ -489,6 +492,8 @@ namespace eval ::rbc::graphtoolbar {
         │ crosshairsbarlineopts│ -outline    │ gtbCrosshairsBarLineOutline   │ GtbCrosshairsBarLineOutline   │ black         │
         │ crosshairsbarlineopts│ -linewidth  │ gtbCrosshairsBarLineWidth     │ GtbCrosshairsBarLineWidth     │ 1             │
         │ crosshairsbarlineopts│ -arrowshape │ gtbCrosshairsBarLineArrowShape│ GtbCrosshairsBarLineArrowShape│ {8 10 3}      │
+        │ pointeropts          │ -outline    │ gtbPointerOutline              │ GtbPointerOutline            │ black         │
+        │ pointeropts          │ -rotate     │ gtbPointerRotate               │ GtbPointerRotate             │ 0             │
         └──────────────────────┴─────────────┴───────────────────────────────┴───────────────────────────────┴───────────────┘
         ```
         #ruffopt excludedformats {}
@@ -507,6 +512,7 @@ namespace eval ::rbc::graphtoolbar {
         ```tcl
         .gtb configure -zoomtitle yes\
                 -zoomtitleopts {-foreground navy -shadow {}}\
+                -pointeropts {-outline navy -rotate 0}\
                 -crosshairsmarkopts {-font {TkDefaultFont 9} -formatx .6g -formaty .6g -formatparam .6g}\
                 -crosshairsmarkboxopts {-fill lightyellow -outline grey40}
         ```
@@ -739,6 +745,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                  intentionally not combined with `-panmod`.
                 -panmod modifier - Modifier prefix required to start panning.  The default is `Shift-`.
                 -crosshairs - Enables enhanced crosshair interaction.
+                -pointeropts dictionary - Initial `-pointeropts` property. Configures the bitmap pointer used to mark
+                 closest line, strip, and Polar points. Recognized keys are `-outline` and `-rotate`.
                 -crosshairsmode mode - Initial crosshair mode. Must be `current`, `closest`, `none`, or `disabled`. The
                  default is `closest`. Requires `-crosshairs`.
                 -crosshairsopts dictionary - Initial Rbc crosshair line options. Requires `-crosshairs`.
@@ -805,7 +813,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 -zoomboxopts {
                     Dictionary configuring the rectangle-zoom outline.
 
-                    Recognized keys are `-dashes`, `-linewidth`, `color`, and `-xor`.
+                    Recognized keys are `-dashes`, `-linewidth`, `-outline`, and `-xor`.
 
                     Initial values are obtained from the `gtbZoomOutline*` Tk option-database resources.
                 }
@@ -838,6 +846,16 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                     Recognized keys are `-linewidth`, `-color`, and `-dashes`.
 
                     Initial values come from `gtbCrosshairsLineWidth`, `gtbCrosshairsColor`, and `gtbCrosshairsDashes`.
+                }
+
+                -pointeropts {
+                    Dictionary configuring the bitmap pointer used to identify closest line, strip, and Polar points.
+
+                    Recognized keys are `-outline` and `-rotate`.
+
+                    `-outline` specifies the bitmap foreground color. `-rotate` specifies its rotation angle in degrees.
+
+                    Initial values come from `gtbPointerOutline` and `gtbPointerRotate`.
                 }
 
                 -crosshairsclosestopts {
