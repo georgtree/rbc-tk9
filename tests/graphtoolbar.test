@@ -2029,7 +2029,7 @@ test crosshairsInteractive-1 {crosshairs with current coordinate marker}\
     set markerExistence 1
     foreach x $xlist y $ylist {
         GenerateGraphEvent $graph <Motion> $x $y 5
-        set markerExistence [expr {[$widget graph marker exists crosshairsText] && $markerExistence}]
+        set markerExistence [expr {[$widget graph marker exists gtbCrosshairsText] && $markerExistence}]
     }
     return $markerExistence
 }  -result 1 -cleanup {
@@ -2058,7 +2058,7 @@ test crosshairsInteractive-2 {crosshairs with closest element coordinate marker}
     foreach x $xlist y $ylist {
         set expected [$graph element closest $x $y pointVar -along both -interpolate yes -halo 10]
         GenerateGraphEvent $graph <Motion> $x $y 5
-        set actual [$graph marker exists crosshairsClosestText]
+        set actual [$graph marker exists gtbCrosshairsClosestText]
         if {$actual != $expected} {
             lappend failures [list $x $y $expected $actual]
         }
@@ -2089,7 +2089,7 @@ test crosshairsInteractive-3 {crosshairs with no marker}\
     set markerExistence 1
     foreach x $xlist y $ylist {
         GenerateGraphEvent $graph <Motion> $x $y 5
-        set markerExistence [expr {[$widget graph marker exists crosshairsText] && $markerExistence}]
+        set markerExistence [expr {[$widget graph marker exists gtbCrosshairsText] && $markerExistence}]
     }
     return $markerExistence
 }  -result 0 -cleanup {
@@ -2120,7 +2120,7 @@ test crosshairsInteractive-4 {crosshairs with closest element coordinate marker,
     foreach x $xlist y $ylist {
         set expected [$graph element closest $x $y pointVar -along both -interpolate yes -halo 30]
         GenerateGraphEvent $graph <Motion> $x $y 5
-        set actual [$graph marker exists crosshairsClosestText]
+        set actual [$graph marker exists gtbCrosshairsClosestText]
         if {$actual != $expected} {
             lappend failures [list $x $y $expected $actual]
         }
@@ -2160,7 +2160,7 @@ test crosshairsInteractive-5 {crosshairs with closes element coordinate marker, 
         }
         set expected [list [expr {$count >= 1}] [expr {$count >= 2}]]
         GenerateGraphEvent $graph <Motion> $x $y 5
-        set actual [list [$graph marker exists crosshairsClosestText0] [$graph marker exists crosshairsClosestText1]]
+        set actual [list [$graph marker exists gtbCrosshairsClosestText0] [$graph marker exists gtbCrosshairsClosestText1]]
         if {$actual != $expected} {
             lappend failures [list $x $y $expected $actual]
         }
@@ -2194,7 +2194,7 @@ test crosshairsInteractive-6 {crosshairs with closest element coordinate marker,
     foreach x $xlist y $ylist {
         set expected [$graph element closest $x $y pointVar -along both -interpolate no -halo 30]
         GenerateGraphEvent $graph <Motion> $x $y 5
-        set actual [$graph marker exists crosshairsClosestText]
+        set actual [$graph marker exists gtbCrosshairsClosestText]
         if {$actual != $expected} {
             lappend failures [list $x $y $expected $actual]
         }
@@ -2226,7 +2226,7 @@ test crosshairsInteractive-7 {crosshairs with current coordinate marker, check m
         GenerateGraphEvent $graph <Motion> $x $y 5
     }
     sleep $defaultDelay
-    return [$graph marker cget crosshairsText -anchor]
+    return [$graph marker cget gtbCrosshairsText -anchor]
 }  -result se -cleanup {
     destroy $widget
 }
@@ -2253,7 +2253,7 @@ test crosshairsInteractive-8 {crosshairs with closest coordinate marker, check m
         GenerateGraphEvent $graph <Motion> $x $y 5
     }
     sleep $defaultDelay
-    return [$graph marker cget crosshairsClosestText -anchor]
+    return [$graph marker cget gtbCrosshairsClosestText -anchor]
 }  -result ne -cleanup {
     destroy $widget
 }
@@ -2281,7 +2281,7 @@ test crosshairsInteractive-9 {crosshairs with closest coordinate marker, check m
         GenerateGraphEvent $graph <Motion> $x $y 5
     }
     sleep $defaultDelay
-    return [list [$graph marker cget crosshairsClosestText0 -anchor] [$graph marker cget crosshairsClosestText1 -anchor]]
+    return [list [$graph marker cget gtbCrosshairsClosestText0 -anchor] [$graph marker cget gtbCrosshairsClosestText1 -anchor]]
 }  -result {ne ne} -cleanup {
     destroy $widget
 }
@@ -2309,7 +2309,7 @@ test crosshairsInteractive-10 {crosshairs with current coordinate marker and no 
     set markerExistence 1
     foreach x $xlist y $ylist {
         GenerateGraphEvent $graph <Motion> $x $y 5
-        set markerExistence [expr {[$widget graph marker exists crosshairsTextBox] && $markerExistence}]
+        set markerExistence [expr {[$widget graph marker exists gtbCrosshairsTextBox] && $markerExistence}]
     }
     return $markerExistence
 }  -result 0 -cleanup {
@@ -2339,8 +2339,8 @@ test crosshairsInteractive-11 {crosshairs with closest element coordinate marker
     set markerExistence 1
     foreach x $xlist y $ylist {
         GenerateGraphEvent $graph <Motion> $x $y 5
-        if {[$widget graph marker exists crosshairsClosestText]} {
-            set markerExistence [expr {[$widget graph marker exists crosshairsClosestTextBox] && $markerExistence}]
+        if {[$widget graph marker exists gtbCrosshairsClosestText]} {
+            set markerExistence [expr {[$widget graph marker exists gtbCrosshairsClosestTextBox] && $markerExistence}]
         }
     }
     return $markerExistence
@@ -2371,7 +2371,7 @@ test crosshairsInteractive-12 {crosshairs with current coordinate marker and inv
     set markerExistence 1
     foreach x $xlist y $ylist {
         GenerateGraphEvent $graph <Motion> $x $y 5
-        set markerExistence [expr {[$widget graph marker exists crosshairsText] && $markerExistence}]
+        set markerExistence [expr {[$widget graph marker exists gtbCrosshairsText] && $markerExistence}]
     }
     return $markerExistence
 }  -result 1 -cleanup {
@@ -2406,10 +2406,10 @@ test crosshairsInteractive-13 {current crosshairs marker text with multiple axes
                                 [format "yAlt(v)=%.6g" [$graph axis invtransform yAlt $yPixel]]] \n]
     GenerateGraphEvent $graph <Motion> $x $y 20
     sleep $defaultDelay
-    if {![$graph marker exists crosshairsText]} {
-        return {crosshairsText marker was not created}
+    if {![$graph marker exists gtbCrosshairsText]} {
+        return {gtbCrosshairsText marker was not created}
     }
-    set actual [$graph marker cget crosshairsText -text]
+    set actual [$graph marker cget gtbCrosshairsText -text]
     if {$actual ne $expected} {
         return [list expected $expected actual $actual]
     }
@@ -2447,10 +2447,10 @@ test crosshairsInteractive-14 {current crosshairs marker text with multiple inve
                                 [format "yAlt(h)=%.6g" [$graph axis invtransform yAlt $yPixel]]] \n]
     GenerateGraphEvent $graph <Motion> $x $y 20
     sleep $defaultDelay
-    if {![$graph marker exists crosshairsText]} {
-        return {crosshairsText marker was not created}
+    if {![$graph marker exists gtbCrosshairsText]} {
+        return {gtbCrosshairsText marker was not created}
     }
-    set actual [$graph marker cget crosshairsText -text]
+    set actual [$graph marker cget gtbCrosshairsText -text]
     if {$actual ne $expected} {
         return [list expected $expected actual $actual]
     }
@@ -2487,10 +2487,10 @@ test crosshairsInteractive-15 {closest crosshairs marker text uses element mappe
     set expected [join [list line1 [format "time(h)=%.6g" $xValue] [format "voltage(v)=%.6g" $yValue]] \n]
     GenerateGraphEvent $graph <Motion> $x $y 20
     sleep $defaultDelay
-    if {![$graph marker exists crosshairsClosestText]} {
-        return {crosshairsClosestText marker was not created}
+    if {![$graph marker exists gtbCrosshairsClosestText]} {
+        return {gtbCrosshairsClosestText marker was not created}
     }
-    set actual [$graph marker cget crosshairsClosestText -text]
+    set actual [$graph marker cget gtbCrosshairsClosestText -text]
     if {$actual ne $expected} {
         return [list expected $expected actual $actual]
     }
@@ -2529,10 +2529,10 @@ test crosshairsInteractive-16 {closest crosshairs marker text uses element mappe
     set expected [join [list line1 [format "time(v)=%.6g" $xValue] [format "voltage(h)=%.6g" $yValue]] \n]
     GenerateGraphEvent $graph <Motion> $x $y 20
     sleep $defaultDelay
-    if {![$graph marker exists crosshairsClosestText]} {
-        return {crosshairsClosestText marker was not created}
+    if {![$graph marker exists gtbCrosshairsClosestText]} {
+        return {gtbCrosshairsClosestText marker was not created}
     }
-    set actual [$graph marker cget crosshairsClosestText -text]
+    set actual [$graph marker cget gtbCrosshairsClosestText -text]
     if {$actual ne $expected} {
         return [list expected $expected actual $actual]
     }
@@ -2556,11 +2556,11 @@ test crosshairsInteractive-17 {closest marker: ordinary line marker is removed o
     lassign [$graph transform 5 5] x1 y1
     lassign [$graph transform 9 9] x2 y2
     GenerateGraphEvent $graph <Motion> $x1 $y1 50
-    set before [list [$graph marker exists crosshairsClosestText] [$graph marker exists crosshairsClosestTextBox]\
-                        [$graph marker exists crosshairsClosestBitmap]]
+    set before [list [$graph marker exists gtbCrosshairsClosestText] [$graph marker exists gtbCrosshairsClosestTextBox]\
+                        [$graph marker exists gtbCrosshairsClosestBitmap]]
     GenerateGraphEvent $graph <Motion> $x2 $y2 50
     sleep $defaultDelay
-    set after [$graph marker names crosshairsClosest*]
+    set after [$graph marker names gtbCrosshairsClosest*]
     list $before $after
 } -cleanup {
     destroy .gtb
@@ -2582,11 +2582,11 @@ test crosshairsInteractive-18 {closest bar marker: bar annotation is removed out
     lassign [$graph transform 2 4] x1 y1
     lassign [$graph transform 9 1] x2 y2
     GenerateGraphEvent $graph <Motion> $x1 $y1 50
-    set before [list [$graph marker exists crosshairsClosestText] [$graph marker exists crosshairsClosestTextBox]\
-                        [$graph marker exists crosshairsClosestBarLine] [$graph marker exists crosshairsClosestBitmap]]
+    set before [list [$graph marker exists gtbCrosshairsClosestText] [$graph marker exists gtbCrosshairsClosestTextBox]\
+                        [$graph marker exists gtbCrosshairsClosestBarLine] [$graph marker exists gtbCrosshairsClosestBitmap]]
     GenerateGraphEvent $graph <Motion> $x2 $y2 50
     sleep $defaultDelay
-    set after [$graph marker names crosshairsClosest*]
+    set after [$graph marker names gtbCrosshairsClosest*]
     list $before $after
 } -cleanup {
     destroy .gtb
@@ -2610,12 +2610,12 @@ test crosshairsInteractive-19 {closest bar marker: normal bar uses exact rectang
     set found [$graph element closest $x $y info -along both -interpolate no -halo 2 Bar1]
     GenerateGraphEvent $graph <Motion> $x $y 50
     sleep $defaultDelay
-    lassign [MarkerWidgetCoords $graph crosshairsClosestBarLine] lineX1 lineY1 lineX2 lineY2
-    lassign [MarkerWidgetCoords $graph crosshairsClosestText] textX textY
-    list $found [$graph marker exists crosshairsClosestBarLine] [$graph marker exists crosshairsClosestText]\
-            [$graph marker exists crosshairsClosestTextBox] [expr {![$graph marker exists crosshairsClosestBitmap]}]\
-            [expr {[$graph marker cget crosshairsClosestText -anchor] eq {e}}]\
-            [expr {[$graph marker cget crosshairsClosestBarLine -arrow] eq {both}}]\
+    lassign [MarkerWidgetCoords $graph gtbCrosshairsClosestBarLine] lineX1 lineY1 lineX2 lineY2
+    lassign [MarkerWidgetCoords $graph gtbCrosshairsClosestText] textX textY
+    list $found [$graph marker exists gtbCrosshairsClosestBarLine] [$graph marker exists gtbCrosshairsClosestText]\
+            [$graph marker exists gtbCrosshairsClosestTextBox] [expr {![$graph marker exists gtbCrosshairsClosestBitmap]}]\
+            [expr {[$graph marker cget gtbCrosshairsClosestText -anchor] eq {e}}]\
+            [expr {[$graph marker cget gtbCrosshairsClosestBarLine -arrow] eq {both}}]\
             [expr {abs($lineX1 - ($info(left) - 4)) <= 1.0}] [expr {abs($lineX2 - ($info(left) - 4)) <= 1.0}]\
             [expr {abs($lineY1 - $info(top)) <= 1.0}] [expr {abs($lineY2 - $info(bottom)) <= 1.0}]\
             [expr {$textX < $lineX1}]
@@ -2642,10 +2642,10 @@ test crosshairsInteractive-20 {closest bar marker: uses right side when left has
     set found [$graph element closest $x $y info -along both -interpolate no -halo 2\
                        VeryLongBarElementNameForPlacement]
     GenerateGraphEvent $graph <Motion> $x $y 50
-    lassign [MarkerWidgetCoords $graph crosshairsClosestBarLine] lineX1 lineY1 lineX2 lineY2
-    lassign [MarkerWidgetCoords $graph crosshairsClosestText] textX textY
+    lassign [MarkerWidgetCoords $graph gtbCrosshairsClosestBarLine] lineX1 lineY1 lineX2 lineY2
+    lassign [MarkerWidgetCoords $graph gtbCrosshairsClosestText] textX textY
     sleep $defaultDelay
-    list $found [expr {[$graph marker cget crosshairsClosestText -anchor] eq {w}}]\
+    list $found [expr {[$graph marker cget gtbCrosshairsClosestText -anchor] eq {w}}]\
             [expr {abs($lineX1 - ($info(right) + 4)) <= 1.0}] [expr {abs($lineX2 - ($info(right) + 4)) <= 1.0}]\
             [expr {abs($lineY1 - $info(top)) <= 1.0}] [expr {abs($lineY2 - $info(bottom)) <= 1.0}]\
             [expr {$textX > $lineX1}]
@@ -2683,8 +2683,8 @@ test crosshairsInteractive-21 {closest bar marker: stacked mode marks only selec
     set y [expr {round(($selected(top) + $selected(bottom)) / 2.0)}]
     GenerateGraphEvent $graph <Motion> $x $y 50
     sleep $defaultDelay
-    lassign [MarkerWidgetCoords $graph crosshairsClosestBarLine] lineX1 lineY1 lineX2 lineY2
-    set markedElement [lindex [split [$graph marker cget crosshairsClosestText -text] \n] 0]
+    lassign [MarkerWidgetCoords $graph gtbCrosshairsClosestBarLine] lineX1 lineY1 lineX2 lineY2
+    set markedElement [lindex [split [$graph marker cget gtbCrosshairsClosestText -text] \n] 0]
     list [expr {$markedElement eq $element}] [expr {abs($lineY1 - $selected(top)) <= 1.0}]\
             [expr {abs($lineY2 - $selected(bottom)) <= 1.0}] [expr {abs($lineY1 - $baseY) > 1.0}]\
             [expr {abs($lineY2 - $baseY) > 1.0}]
@@ -2714,8 +2714,8 @@ test crosshairsInteractive-22 {closest bar marker: aligned mode uses selected re
     set y [expr {round(($info1(top) + $info1(bottom)) / 2.0)}]
     GenerateGraphEvent $graph <Motion> $x $y 50
     sleep $defaultDelay
-    lassign [MarkerWidgetCoords $graph crosshairsClosestBarLine] lineX1 lineY1 lineX2 lineY2
-    set markedElement [lindex [split [$graph marker cget crosshairsClosestText -text] \n] 0]
+    lassign [MarkerWidgetCoords $graph gtbCrosshairsClosestBarLine] lineX1 lineY1 lineX2 lineY2
+    set markedElement [lindex [split [$graph marker cget gtbCrosshairsClosestText -text] \n] 0]
     list [expr {$markedElement eq {Element1}}]\
             [expr {($info1(left) != $info2(left)) || ($info1(right) != $info2(right)) }]\
             [expr {abs($lineY1 - $info1(top)) <= 1.0}] [expr {abs($lineY2 - $info1(bottom)) <= 1.0}]\
@@ -2747,11 +2747,11 @@ test crosshairsInteractive-23 {closest bar marker: overlap mode creates marker f
     sleep $defaultDelay
     unset -nocomplain marker1 marker2
     foreach i {0 1} {
-        set name [lindex [split [$graph marker cget crosshairsClosestText$i -text] \n] 0]
+        set name [lindex [split [$graph marker cget gtbCrosshairsClosestText$i -text] \n] 0]
         if {$name eq {Element1}} {
-            set marker1 crosshairsClosestBarLine$i
+            set marker1 gtbCrosshairsClosestBarLine$i
         } elseif {$name eq {Element2}} {
-            set marker2 crosshairsClosestBarLine$i
+            set marker2 gtbCrosshairsClosestBarLine$i
         }
     }
     lassign [MarkerWidgetCoords $graph $marker1] x11 y11 x12 y12
@@ -2783,8 +2783,8 @@ test crosshairsInteractive-24 {closest bar marker: inverted graph uses horizonta
     set found [$graph element closest $x $y info -along both -interpolate no -halo 2 Bar1]
     GenerateGraphEvent $graph <Motion> $x $y 50
     sleep $defaultDelay
-    lassign [MarkerWidgetCoords $graph crosshairsClosestBarLine] lineX1 lineY1 lineX2 lineY2
-    set anchor [$graph marker cget crosshairsClosestText -anchor]
+    lassign [MarkerWidgetCoords $graph gtbCrosshairsClosestBarLine] lineX1 lineY1 lineX2 lineY2
+    set anchor [$graph marker cget gtbCrosshairsClosestText -anchor]
     if {$anchor eq {s}} {
         set position [expr {abs($lineY1 - ($info(top) - 4)) <= 1.0}]
     } elseif {$anchor eq {n}} {
@@ -2816,19 +2816,19 @@ test crosshairsInteractive-25 {closest marker: mixed bar and line elements selec
     lassign [$graph transform 2 4] barX barY
     GenerateGraphEvent $graph <Motion> $barX $barY 50
     sleep $defaultDelay
-    set barText [lindex [split [$graph marker cget crosshairsClosestText -text] \n] 0]
-    set barResult [list [$graph element type Bar1] $barText [$graph marker exists crosshairsClosestText]\
-                           [$graph marker exists crosshairsClosestTextBox]\
-                           [$graph marker exists crosshairsClosestBarLine]\
-                           [$graph marker exists crosshairsClosestBitmap]]
+    set barText [lindex [split [$graph marker cget gtbCrosshairsClosestText -text] \n] 0]
+    set barResult [list [$graph element type Bar1] $barText [$graph marker exists gtbCrosshairsClosestText]\
+                           [$graph marker exists gtbCrosshairsClosestTextBox]\
+                           [$graph marker exists gtbCrosshairsClosestBarLine]\
+                           [$graph marker exists gtbCrosshairsClosestBitmap]]
     lassign [$graph transform 7 2] lineX lineY
     GenerateGraphEvent $graph <Motion> $lineX $lineY 50
     sleep $defaultDelay
-    set lineText [lindex [split [$graph marker cget crosshairsClosestText -text] \n] 0]
-    set lineResult [list [$graph element type Line1] $lineText [$graph marker exists crosshairsClosestText]\
-                            [$graph marker exists crosshairsClosestTextBox]\
-                            [$graph marker exists crosshairsClosestBarLine]\
-                            [$graph marker exists crosshairsClosestBitmap]]
+    set lineText [lindex [split [$graph marker cget gtbCrosshairsClosestText -text] \n] 0]
+    set lineResult [list [$graph element type Line1] $lineText [$graph marker exists gtbCrosshairsClosestText]\
+                            [$graph marker exists gtbCrosshairsClosestTextBox]\
+                            [$graph marker exists gtbCrosshairsClosestBarLine]\
+                            [$graph marker exists gtbCrosshairsClosestBitmap]]
     list $barResult $lineResult
 } -cleanup {
     destroy .gtb
@@ -2855,7 +2855,7 @@ test crosshairsInteractive-26 {closest marker: mixed bar and line elements use i
     sleep $defaultDelay
     unset -nocomplain barIndex lineIndex
     foreach i {0 1} {
-        set marker crosshairsClosestText$i
+        set marker gtbCrosshairsClosestText$i
         if {![$graph marker exists $marker]} {
             continue
         }
@@ -2869,14 +2869,14 @@ test crosshairsInteractive-26 {closest marker: mixed bar and line elements use i
     if { ![info exists barIndex] || ![info exists lineIndex] } {
         return [list found $barFound $lineFound indexes [info exists barIndex] [info exists lineIndex]]
     }
-    set barResult [list [$graph marker exists crosshairsClosestText$barIndex]\
-                           [$graph marker exists crosshairsClosestText${barIndex}Box]\
-                           [$graph marker exists crosshairsClosestBarLine$barIndex]\
-                           [$graph marker exists crosshairsClosestBitmap$barIndex]]
-    set lineResult [list [$graph marker exists crosshairsClosestText$lineIndex]\
-                            [$graph marker exists crosshairsClosestText${lineIndex}Box]\
-                            [$graph marker exists crosshairsClosestBarLine$lineIndex]\
-                            [$graph marker exists crosshairsClosestBitmap$lineIndex]]
+    set barResult [list [$graph marker exists gtbCrosshairsClosestText$barIndex]\
+                           [$graph marker exists gtbCrosshairsClosestText${barIndex}Box]\
+                           [$graph marker exists gtbCrosshairsClosestBarLine$barIndex]\
+                           [$graph marker exists gtbCrosshairsClosestBitmap$barIndex]]
+    set lineResult [list [$graph marker exists gtbCrosshairsClosestText$lineIndex]\
+                            [$graph marker exists gtbCrosshairsClosestText${lineIndex}Box]\
+                            [$graph marker exists gtbCrosshairsClosestBarLine$lineIndex]\
+                            [$graph marker exists gtbCrosshairsClosestBitmap$lineIndex]]
     list $barFound $lineFound [$graph element type Bar1] [$graph element type Line1] $barResult $lineResult
 } -cleanup {
     unset -nocomplain barInfo lineInfo barIndex lineIndex
@@ -2905,10 +2905,10 @@ test crosshairsInteractive-27 {polar current marker supports axis, complex, and 
     foreach mode {auto axis complex polar} {
         $widget configure -coordmark $mode
         GenerateGraphEvent $graph <Motion> $x $y 20
-        if {![$graph marker exists crosshairsText]} {
-            return "crosshairsText marker was not created for mode '$mode'"
+        if {![$graph marker exists gtbCrosshairsText]} {
+            return "gtbCrosshairsText marker was not created for mode '$mode'"
         }
-        lappend actual [$graph marker cget crosshairsText -text]
+        lappend actual [$graph marker cget gtbCrosshairsText -text]
     }
     if {$actual ne $expected} {
         return [list expected $expected actual $actual]
@@ -2950,17 +2950,17 @@ test crosshairsInteractive-28 {smith current marker supports all coordinate repr
     foreach mode $modes {
         $widget configure -coordmark $mode
         GenerateGraphEvent $graph <Motion> $x $y 20
-        lappend actual [$graph marker cget crosshairsText -text]
+        lappend actual [$graph marker cget gtbCrosshairsText -text]
     }
     $widget configure -coordmark auto
     foreach {gridMode expectedMode} {admittance admittance both impedance} {
         $graph configure -smithgrid $gridMode
         GenerateGraphEvent $graph <Motion> $x $y 20
         if {$expectedMode eq {impedance}} {
-            lappend actual [$graph marker cget crosshairsText -text]
+            lappend actual [$graph marker cget gtbCrosshairsText -text]
             lappend expected [ExpectedRealImagMarkerText $zReal $zImag .6g .6g]
         } else {
-            lappend actual [$graph marker cget crosshairsText -text]
+            lappend actual [$graph marker cget gtbCrosshairsText -text]
             lappend expected [ExpectedRealImagMarkerText $yReal $yImag .6g .6g]
         }
     }
@@ -2996,9 +2996,9 @@ test crosshairsInteractive-29 {polar current axis marker includes visible auxili
                                 [format "imag(v)=%.6g" [$graph axis invtransform y $y]]] \n]
     GenerateGraphEvent $graph <Motion> $x $y 20
     sleep $defaultDelay
-    set actual [$graph marker cget crosshairsText -text]
-    list [expr {$actual eq $expected}] [$graph marker cget crosshairsText -mapx]\
-            [$graph marker cget crosshairsText -mapy]
+    set actual [$graph marker cget gtbCrosshairsText -text]
+    list [expr {$actual eq $expected}] [$graph marker cget gtbCrosshairsText -mapx]\
+            [$graph marker cget gtbCrosshairsText -mapy]
 } -result {1 xAlt yAlt} -cleanup {
     destroy $widget
 }
@@ -3024,10 +3024,10 @@ test crosshairsInteractive-30 {polar closest marker supports axis, complex, and 
     foreach mode {axis complex polar} {
         $widget configure -coordclosestmark $mode
         GenerateGraphEvent $graph <Motion> $x $y 20
-        if {![$graph marker exists crosshairsClosestText]} {
-            return "crosshairsClosestText marker was not created for mode '$mode'"
+        if {![$graph marker exists gtbCrosshairsClosestText]} {
+            return "gtbCrosshairsClosestText marker was not created for mode '$mode'"
         }
-        lappend actual [$graph marker cget crosshairsClosestText -text]
+        lappend actual [$graph marker cget gtbCrosshairsClosestText -text]
     }
     if {$actual ne $expected} {
         return [list expected $expected actual $actual]
@@ -3063,10 +3063,10 @@ test crosshairsInteractive-31 {smith closest marker supports every available coo
     foreach mode {axis gamma normalizedimpedance impedance normalizedadmittance admittance} {
         $widget configure -coordclosestmark $mode
         GenerateGraphEvent $graph <Motion> $x $y 20
-        if {![$graph marker exists crosshairsClosestText]} {
-            return "crosshairsClosestText marker was not created for mode '$mode'"
+        if {![$graph marker exists gtbCrosshairsClosestText]} {
+            return "gtbCrosshairsClosestText marker was not created for mode '$mode'"
         }
-        lappend actual [$graph marker cget crosshairsClosestText -text]
+        lappend actual [$graph marker cget gtbCrosshairsClosestText -text]
     }
     if {$actual ne $expected} {
         return [list expected $expected actual $actual]
@@ -3114,7 +3114,7 @@ test crosshairsInteractive-33 {smith normalized real/imag current marker follows
     lassign [ExpectedSmithNormalized $gammaReal $gammaImag impedance] real imag
     set expected [ExpectedRealImagMarkerText $real $imag .6g .6g yes]
     GenerateGraphEvent $graph <Motion> $x $y 20
-    set actual [$graph marker cget crosshairsText -text]
+    set actual [$graph marker cget gtbCrosshairsText -text]
     if {$actual ne $expected} {
         return [list expected $expected actual $actual]
     }
@@ -3144,10 +3144,10 @@ test crosshairsInteractive-34 {closest bar marker: long bar keeps arrowheads ins
     set y [expr {round(($info(top)+$info(bottom))/2.0)}]
     GenerateGraphEvent $graph <Motion> $x $y 50
     sleep $defaultDelay
-    lassign [MarkerWidgetCoords $graph crosshairsClosestBarLine] lineX1 lineY1 lineX2 lineY2
-    list [$graph marker cget crosshairsClosestBarLine -arrow]\
-            [$graph marker exists crosshairsClosestBarLineFirstArrow]\
-            [$graph marker exists crosshairsClosestBarLineLastArrow]\
+    lassign [MarkerWidgetCoords $graph gtbCrosshairsClosestBarLine] lineX1 lineY1 lineX2 lineY2
+    list [$graph marker cget gtbCrosshairsClosestBarLine -arrow]\
+            [$graph marker exists gtbCrosshairsClosestBarLineFirstArrow]\
+            [$graph marker exists gtbCrosshairsClosestBarLineLastArrow]\
             [expr {abs($lineY1-$info(top)) <= 1.0}]\
             [expr {abs($lineY2-$info(bottom)) <= 1.0}]
 } -cleanup {
@@ -3181,12 +3181,12 @@ test crosshairsInteractive-35 {closest bar marker: short vertical bar moves arro
     set y [expr {round(($info(top)+$info(bottom))/2.0)}]
     GenerateGraphEvent $graph <Motion> $x $y 50
     sleep $defaultDelay
-    set firstMarker crosshairsClosestBarLineFirstArrow
-    set lastMarker crosshairsClosestBarLineLastArrow
-    lassign [MarkerWidgetCoords $graph crosshairsClosestBarLine] lineX1 lineY1 lineX2 lineY2
+    set firstMarker gtbCrosshairsClosestBarLineFirstArrow
+    set lastMarker gtbCrosshairsClosestBarLineLastArrow
+    lassign [MarkerWidgetCoords $graph gtbCrosshairsClosestBarLine] lineX1 lineY1 lineX2 lineY2
     lassign [MarkerWidgetCoords $graph $firstMarker] firstTipX firstTipY firstOuterX firstOuterY
     lassign [MarkerWidgetCoords $graph $lastMarker] lastTipX lastTipY lastOuterX lastOuterY
-    list $found [$graph marker cget crosshairsClosestBarLine -arrow]\
+    list $found [$graph marker cget gtbCrosshairsClosestBarLine -arrow]\
             [$graph marker cget $firstMarker -arrow] [$graph marker cget $lastMarker -arrow]\
             [expr {abs($lineY1-$info(top)) <= 1.0}] [expr {abs($lineY2-$info(bottom)) <= 1.0}]\
             [expr {abs($firstTipX-$lineX1) <= 1.0}] [expr {abs($lastTipX-$lineX2) <= 1.0}]\
@@ -3219,12 +3219,12 @@ test crosshairsInteractive-36 {closest bar marker: short inverted bar moves arro
     set y [expr {round(($info(top)+$info(bottom))/2.0)}]
     GenerateGraphEvent $graph <Motion> $x $y 50
     sleep $defaultDelay
-    set firstMarker crosshairsClosestBarLineFirstArrow
-    set lastMarker crosshairsClosestBarLineLastArrow
-    lassign [MarkerWidgetCoords $graph crosshairsClosestBarLine] lineX1 lineY1 lineX2 lineY2
+    set firstMarker gtbCrosshairsClosestBarLineFirstArrow
+    set lastMarker gtbCrosshairsClosestBarLineLastArrow
+    lassign [MarkerWidgetCoords $graph gtbCrosshairsClosestBarLine] lineX1 lineY1 lineX2 lineY2
     lassign [MarkerWidgetCoords $graph $firstMarker] firstTipX firstTipY firstOuterX firstOuterY
     lassign [MarkerWidgetCoords $graph $lastMarker] lastTipX lastTipY lastOuterX lastOuterY
-    list $found [$graph marker cget crosshairsClosestBarLine -arrow]\
+    list $found [$graph marker cget gtbCrosshairsClosestBarLine -arrow]\
             [$graph marker cget $firstMarker -arrow] [$graph marker cget $lastMarker -arrow]\
             [expr {abs($lineX1-$info(left)) <= 1.0}] [expr {abs($lineX2-$info(right)) <= 1.0}]\
             [expr {abs($firstTipY-$lineY1) <= 1.0}] [expr {abs($lastTipY-$lineY2) <= 1.0}]\
@@ -3260,9 +3260,9 @@ test crosshairsInteractive-37 {closest bar marker: outside-arrow threshold follo
     set y [expr {round(($info(top)+$info(bottom))/2.0)}]
     GenerateGraphEvent $graph <Motion> $x $y 50
     sleep $defaultDelay
-    set firstMarker crosshairsClosestBarLineFirstArrow
-    set lastMarker crosshairsClosestBarLineLastArrow
-    list $found [$graph marker cget crosshairsClosestBarLine -arrow] [$graph marker exists $firstMarker]\
+    set firstMarker gtbCrosshairsClosestBarLineFirstArrow
+    set lastMarker gtbCrosshairsClosestBarLineLastArrow
+    list $found [$graph marker cget gtbCrosshairsClosestBarLine -arrow] [$graph marker exists $firstMarker]\
             [$graph marker cget $firstMarker -arrow] [$graph marker exists $lastMarker]\
             [$graph marker cget $lastMarker -arrow]
 } -cleanup {
@@ -3291,7 +3291,7 @@ test crosshairsInteractive-38 {closest marker: axis commands format bar values}\
     set y [$graph axis transform y 4]
     GenerateGraphEvent $graph <Motion> $x $y 50
     sleep $defaultDelay
-    set lines [split [$graph marker cget crosshairsClosestText -text] \n]
+    set lines [split [$graph marker cget gtbCrosshairsClosestText -text] \n]
     list [lindex $lines 0] [lindex $lines 1] [lindex $lines 2]
 } -cleanup {
     rename ::ClosestAxisFormat {}
@@ -3320,7 +3320,7 @@ test crosshairsInteractive-39 {closest bar marker: categorical x-axis command re
     set y [$graph axis transform y 4]
     GenerateGraphEvent $graph <Motion> $x $y 50
     sleep $defaultDelay
-    set lines [split [$graph marker cget crosshairsClosestText -text] \n]
+    set lines [split [$graph marker cget gtbCrosshairsClosestText -text] \n]
     list [lindex $lines 1] [lindex $lines 2]
 } -cleanup {
     rename ::ClosestCategoryFormat {}
@@ -3364,7 +3364,7 @@ test crosshairsInteractive-40 {closest marker: failing axis command falls back t
     set y [$graph axis transform y 4]
     GenerateGraphEvent $graph <Motion> $x $y 50
     sleep $defaultDelay
-    set lines [split [$graph marker cget crosshairsClosestText -text] \n]
+    set lines [split [$graph marker cget gtbCrosshairsClosestText -text] \n]
     list [lindex $lines 1] [lindex $lines 2] $::closestAxisFailCalled
 } -cleanup {
     unset -nocomplain ::closestAxisFailCalled
@@ -3401,7 +3401,7 @@ test crosshairsInteractive-41 {closest marker: formatter follows element mapped 
     set y [$graph axis transform yAlt 600]
     GenerateGraphEvent $graph <Motion> $x $y 50
     sleep $defaultDelay
-    set lines [split [$graph marker cget crosshairsClosestText -text] \n]
+    set lines [split [$graph marker cget gtbCrosshairsClosestText -text] \n]
     list [lindex $lines 1] [lindex $lines 2]
 } -cleanup {
     rename ::ClosestMappedAxisFormat {}
@@ -3429,7 +3429,7 @@ test crosshairsInteractive-42 {closest marker: log-axis command receives normal 
     set y [$graph axis transform y 100]
     GenerateGraphEvent $graph <Motion> $x $y 50
     sleep $defaultDelay
-    set lines [split [$graph marker cget crosshairsClosestText -text] \n]
+    set lines [split [$graph marker cget gtbCrosshairsClosestText -text] \n]
     list [lindex $lines 1] [lindex $lines 2]
 } -cleanup {
     rename ::ClosestLogAxisFormat {}
@@ -3458,7 +3458,7 @@ test crosshairsInteractive-43 {polar closest axis mode uses mapped axis commands
     set y [$graph axis transform y 0.4]
     GenerateGraphEvent $graph <Motion> $x $y 50
     sleep $defaultDelay
-    set lines [split [$graph marker cget crosshairsClosestText -text] \n]
+    set lines [split [$graph marker cget gtbCrosshairsClosestText -text] \n]
     list [lindex $lines 0] [lindex $lines 1] [lindex $lines 2]
 } -cleanup {
     rename ::ClosestPolarAxisFormat {}
@@ -3496,7 +3496,7 @@ test crosshairsInteractive-44 {smith closest axis mode uses mapped axis commands
     set y [$graph axis transform y 0.4]
     GenerateGraphEvent $graph <Motion> $x $y 50
     sleep $defaultDelay
-    set lines [split [$graph marker cget crosshairsClosestText -text] \n]
+    set lines [split [$graph marker cget gtbCrosshairsClosestText -text] \n]
     list [lindex $lines 0] [lindex $lines 1] [lindex $lines 2]
 } -cleanup {
     rename ::ClosestSmithAxisFormat {}
@@ -3517,7 +3517,7 @@ test crosshairsInteractive-45 {closest line marker displays parameter mapping}\
     WaitForWindow $graph
     lassign [$graph transform 1 1] x y
     GenerateGraphEvent $graph <Motion> $x $y $defaultDelay
-    split [$graph marker cget crosshairsClosestText -text] \n
+    split [$graph marker cget gtbCrosshairsClosestText -text] \n
 } -result {Trace1 x(h)=1 y(v)=1 param=2.000e+09} -cleanup {
     catch {vector destroy param45}
     destroy $widget
@@ -3541,7 +3541,7 @@ test crosshairsInteractive-46 {closest marker omits unavailable parameter mappin
     WaitForWindow $graph
     lassign [$graph transform 1 1] x y
     GenerateGraphEvent $graph <Motion> $x $y $defaultDelay
-    set text [$graph marker cget crosshairsClosestText -text]
+    set text [$graph marker cget gtbCrosshairsClosestText -text]
     list [string match {*param=*} $text] [split $text \n]
 } -result {0 {Trace1 x(h)=1 y(v)=1}} -cleanup {
     catch {vector destroy x46 y46 param46}
@@ -3565,9 +3565,41 @@ test crosshairsInteractive-47 {smith closest marker displays parameter mapping} 
     $widget configure -coordclosestmark gamma
     lassign [$graph transform 0.2 0.4] x y
     GenerateGraphEvent $graph <Motion> $x $y $defaultDelay
-    split [$graph marker cget crosshairsClosestText -text] \n
+    split [$graph marker cget gtbCrosshairsClosestText -text] \n
 } -result {Trace1 Gamma=0.2+j0.4 param=2.000e+09} -cleanup {
     catch {vector destroy gamma47 frequency47}
+    destroy $widget
+}
+
+test crosshairsInteractive-48 {graphtoolbar crosshair cleanup preserves application markers} -constraints\
+        {isInteractive isCrosshairs} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current]
+    pack .gtb -fill both -expand yes
+    set graph [$widget subwidget graph]
+    $graph axis configure x -min 0 -max 10
+    $graph axis configure y -min 0 -max 10
+    $graph element create line1 -data {0 0 5 5 10 10}
+    # Deliberately use the old generic private-name family. This marker
+    # belongs to the application and must survive graphtoolbar cleanup.
+    $graph marker create text -name crosshairsApplicationMarker -text {application marker} -coords {5 5}
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    set x [expr {$left+$width/2}]
+    set y [expr {$top+$height/2}]
+    GenerateGraphEvent $graph <Motion> $x $y $defaultDelay
+    set applicationAfterCurrent [$graph marker exists crosshairsApplicationMarker]
+    set privateCurrent [$graph marker exists gtbCrosshairsText]
+    $widget configure -crosshairsmode closest
+    GenerateGraphEvent $graph <Motion> $x $y $defaultDelay
+    set applicationAfterClosest [$graph marker exists crosshairsApplicationMarker]
+    set privateClosest [expr {[llength [$graph marker names gtbCrosshairsClosest*]] > 0}]
+    $widget configure -crosshairsmode disabled
+    set applicationAfterDisabled [$graph marker exists crosshairsApplicationMarker]
+    set privateRemaining [llength [$graph marker names gtbCrosshairs*]]
+    list $applicationAfterCurrent $privateCurrent $applicationAfterClosest $privateClosest $applicationAfterDisabled\
+            $privateRemaining
+} -result {1 1 1 1 1 0} -cleanup {
     destroy $widget
 }
 
@@ -3659,12 +3691,12 @@ test crossInteractive-1 {single-stage zoom, check crosshairs marking disabling d
     set bYPointBox [expr {$topMargin+$plotHeight*2/3}]
     GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox $defaultDelay
     GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox $defaultDelay
-    set crosshairsMarkerExists [$widget graph marker exists crosshairsText]
+    set crosshairsMarkerExists [$widget graph marker exists gtbCrosshairsText]
     GenerateGraphEvent $graph <ButtonPress-1> $bXPointBox $bYPointBox $defaultDelay
     GenerateGraphEvent $graph <ButtonRelease-1> $bXPointBox $bYPointBox $defaultDelay
     GenerateGraphEvent $graph <Motion> [expr {$bXPointBox+1}] [expr {$bYPointBox+1}] $defaultDelay
     sleep $defaultDelay
-    lappend crosshairsMarkerExists [$widget graph marker exists crosshairsText]
+    lappend crosshairsMarkerExists [$widget graph marker exists gtbCrosshairsText]
     return $crosshairsMarkerExists
 }  -result {0 1}  -cleanup {
     destroy $widget
@@ -3689,12 +3721,12 @@ test crossInteractive-2 {single-stage zoom, check crosshairs marking disabling d
     set bYPointBox [expr {$topMargin+$plotHeight*2/3}]
     GenerateGraphEvent $graph <ButtonPress-1> $aXPointBox $aYPointBox $defaultDelay
     GenerateGraphEvent $graph <Motion> $bXPointBox $bYPointBox $defaultDelay
-    set crosshairsMarkerExists [$widget graph marker exists crosshairsText]
+    set crosshairsMarkerExists [$widget graph marker exists gtbCrosshairsText]
     GenerateGraphEvent $graph <ButtonPress-2> $bXPointBox $bYPointBox $defaultDelay
     GenerateGraphEvent $graph <ButtonRelease-2> $bXPointBox $bYPointBox $defaultDelay
     GenerateGraphEvent $graph <Motion> [expr {$bXPointBox+1}] [expr {$bYPointBox+1}] $defaultDelay
     sleep $defaultDelay
-    lappend crosshairsMarkerExists [$widget graph marker exists crosshairsText]
+    lappend crosshairsMarkerExists [$widget graph marker exists gtbCrosshairsText]
     return $crosshairsMarkerExists
 }  -result {0 1}  -cleanup {
     destroy $widget
@@ -3756,16 +3788,16 @@ test crossInteractive-4 {wheel zoom redraws current crosshairs marker box in wid
     set x [expr {$left+$width/3}]
     set y [expr {$top+$height/3}]
     GenerateGraphEvent $graph <Motion> $x $y 20
-    set beforeBox [MarkerWidgetCoords $graph crosshairsTextBox]
-    set beforeTextCoords [MarkerWidgetCoords $graph crosshairsText]
+    set beforeBox [MarkerWidgetCoords $graph gtbCrosshairsTextBox]
+    set beforeTextCoords [MarkerWidgetCoords $graph gtbCrosshairsText]
     GenerateGraphWheelEvent $graph $x $y 120 20
-    set afterBox [MarkerWidgetCoords $graph crosshairsTextBox]
-    set afterTextCoords [MarkerWidgetCoords $graph crosshairsText]
-    set afterText [$graph marker cget crosshairsText -text]
+    set afterBox [MarkerWidgetCoords $graph gtbCrosshairsTextBox]
+    set afterTextCoords [MarkerWidgetCoords $graph gtbCrosshairsText]
+    set afterText [$graph marker cget gtbCrosshairsText -text]
     set expectedText [join [list [format "x(h)=%.4g" [$graph axis invtransform x $x]]\
                                     [format "y(v)=%.4g" [$graph axis invtransform y $y]]] \n]
     sleep $defaultDelay
-    list [$graph marker exists crosshairsTextBox] [approxPixelCoordsEqual $beforeBox $afterBox]\
+    list [$graph marker exists gtbCrosshairsTextBox] [approxPixelCoordsEqual $beforeBox $afterBox]\
             [approxPixelCoordsEqual $beforeTextCoords $afterTextCoords] [expr {$afterText eq $expectedText}]
 } -result {1 true true 1} -cleanup {
     destroy $widget
@@ -3788,15 +3820,15 @@ test crossInteractive-5 {right-click pop redraws current crosshairs marker box i
     set y [expr {$top+$height/3}]
     set initialLimits [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
     GenerateGraphEvent $graph <Motion> $x $y 20
-    set initialBox [MarkerWidgetCoords $graph crosshairsTextBox]
+    set initialBox [MarkerWidgetCoords $graph gtbCrosshairsTextBox]
     GenerateGraphWheelEvent $graph $x $y 120 20
-    set zoomedBox [MarkerWidgetCoords $graph crosshairsTextBox]
+    set zoomedBox [MarkerWidgetCoords $graph gtbCrosshairsTextBox]
     GenerateGraphEvent $graph <ButtonPress-2> $x $y 20
     GenerateGraphEvent $graph <ButtonRelease-2> $x $y 20
-    set poppedBox [MarkerWidgetCoords $graph crosshairsTextBox]
+    set poppedBox [MarkerWidgetCoords $graph gtbCrosshairsTextBox]
     set poppedLimits [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
     sleep $defaultDelay
-    list [$graph marker exists crosshairsTextBox] [approxPixelCoordsEqual $initialBox $zoomedBox]\
+    list [$graph marker exists gtbCrosshairsTextBox] [approxPixelCoordsEqual $initialBox $zoomedBox]\
             [approxPixelCoordsEqual $zoomedBox $poppedBox] [approxNestedEqual $poppedLimits $initialLimits]
 } -result {1 true true true} -cleanup {
     destroy $widget
@@ -3817,24 +3849,24 @@ test crossInteractive-6 {wheel zoom redraws closest crosshairs markers}\
     WaitForWindow $graph
     lassign [$graph transform 5 5] x y
     GenerateGraphEvent $graph <Motion> $x $y 20
-    set beforeBoxSize [MarkerWidgetSize $graph crosshairsClosestTextBox]
+    set beforeBoxSize [MarkerWidgetSize $graph gtbCrosshairsClosestTextBox]
     GenerateGraphWheelEvent $graph $x $y 120 20
-    set afterBoxSize [MarkerWidgetSize $graph crosshairsClosestTextBox]
-    set actualBitmap [MarkerWidgetCoords $graph crosshairsClosestBitmap]
+    set afterBoxSize [MarkerWidgetSize $graph gtbCrosshairsClosestTextBox]
+    set actualBitmap [MarkerWidgetCoords $graph gtbCrosshairsClosestBitmap]
     set found [$graph element closest $x $y pointVar -along both -interpolate no -halo 20]
     if {$found} {
         set expectedBitmap [list [$graph axis transform x $pointVar(x)] [$graph axis transform y $pointVar(y)]]
         set expectedText [join [list $pointVar(name) [format "x(h)=%.4g" $pointVar(x)]\
                                         [format "y(v)=%.4g" $pointVar(y)]] \n]
-        set actualText [$graph marker cget crosshairsClosestText -text]
+        set actualText [$graph marker cget gtbCrosshairsClosestText -text]
     } else {
         set expectedBitmap {}
         set expectedText {}
         set actualText {}
     }
     sleep $defaultDelay
-    list $found [$graph marker exists crosshairsClosestText] [$graph marker exists crosshairsClosestTextBox]\
-            [$graph marker exists crosshairsClosestBitmap] [approxPixelCoordsEqual $beforeBoxSize $afterBoxSize]\
+    list $found [$graph marker exists gtbCrosshairsClosestText] [$graph marker exists gtbCrosshairsClosestTextBox]\
+            [$graph marker exists gtbCrosshairsClosestBitmap] [approxPixelCoordsEqual $beforeBoxSize $afterBoxSize]\
             [approxPixelCoordsEqual $actualBitmap $expectedBitmap] [expr {$actualText eq $expectedText}]
 } -result {1 1 1 1 true true 1} -cleanup {
     unset -nocomplain pointVar
@@ -3858,13 +3890,13 @@ test crossInteractive-7 {wheel zoom redraws current crosshairs marker box with i
     set x [expr {$left+$width/3}]
     set y [expr {$top+$height/3}]
     GenerateGraphEvent $graph <Motion> $x $y 20
-    set beforeBox [MarkerWidgetCoords $graph crosshairsTextBox]
-    set beforeText [MarkerWidgetCoords $graph crosshairsText]
+    set beforeBox [MarkerWidgetCoords $graph gtbCrosshairsTextBox]
+    set beforeText [MarkerWidgetCoords $graph gtbCrosshairsText]
     GenerateGraphWheelEvent $graph $x $y 120 20
-    set afterBox [MarkerWidgetCoords $graph crosshairsTextBox]
-    set afterText [MarkerWidgetCoords $graph crosshairsText]
+    set afterBox [MarkerWidgetCoords $graph gtbCrosshairsTextBox]
+    set afterText [MarkerWidgetCoords $graph gtbCrosshairsText]
     sleep $defaultDelay
-    list [$graph marker exists crosshairsTextBox] [approxPixelCoordsEqual $beforeBox $afterBox]\
+    list [$graph marker exists gtbCrosshairsTextBox] [approxPixelCoordsEqual $beforeBox $afterBox]\
             [approxPixelCoordsEqual $beforeText $afterText]
 } -result {1 true true} -cleanup {
     destroy $widget
@@ -3889,8 +3921,8 @@ test crossInteractive-8 {closest marker with single no skips element hidden by a
     sleep $defaultDelay
     set before [list]
     foreach i {0 1} {
-        if {[$graph marker exists crosshairsClosestText$i]} {
-            lappend before [lindex [split [$graph marker cget crosshairsClosestText$i -text] \n] 0]
+        if {[$graph marker exists gtbCrosshairsClosestText$i]} {
+            lappend before [lindex [split [$graph marker cget gtbCrosshairsClosestText$i -text] \n] 0]
         }
     }
     set before [lsort $before]
@@ -3908,12 +3940,12 @@ test crossInteractive-8 {closest marker with single no skips element hidden by a
     sleep $defaultDelay
     set whileHidden [list]
     foreach i {0 1} {
-        if {[$graph marker exists crosshairsClosestText$i]} {
-            lappend whileHidden [lindex [split [$graph marker cget crosshairsClosestText$i -text] \n] 0]
+        if {[$graph marker exists gtbCrosshairsClosestText$i]} {
+            lappend whileHidden [lindex [split [$graph marker cget gtbCrosshairsClosestText$i -text] \n] 0]
         }
     }
     set whileHidden [lsort $whileHidden]
-    set noSecondMarker [expr {![$graph marker exists crosshairsClosestText1]}]
+    set noSecondMarker [expr {![$graph marker exists gtbCrosshairsClosestText1]}]
     # Third click: plot-hidden -> normal.
     GenerateGraphEvent $graph <Motion> $legendX $legendY 20
     GenerateGraphEvent $graph <ButtonPress-1> $legendX $legendY $defaultDelay
@@ -3922,8 +3954,8 @@ test crossInteractive-8 {closest marker with single no skips element hidden by a
     sleep $defaultDelay
     set restored [list]
     foreach i {0 1} {
-        if {[$graph marker exists crosshairsClosestText$i]} {
-            lappend restored [lindex [split [$graph marker cget crosshairsClosestText$i -text] \n] 0]
+        if {[$graph marker exists gtbCrosshairsClosestText$i]} {
+            lappend restored [lindex [split [$graph marker cget gtbCrosshairsClosestText$i -text] \n] 0]
         }
     }
     set restored [lsort $restored]
@@ -3966,7 +3998,7 @@ test crossInteractive-9 {closest marker with single no handles all elements hidd
     GenerateGraphEvent $graph <Motion> $x $y 20
     sleep $defaultDelay
     list [$graph element cget line1 -hideplot] [$graph element cget line2 -hideplot] [$graph marker names\
-                                                                                              crosshairsClosest*]
+                                                                                              gtbCrosshairsClosest*]
 } -result {1 1 {}} -cleanup {
     destroy $widget
 }
@@ -4385,24 +4417,24 @@ test contextMenuInteractive-3 {crosshair mode menu switches behaviour and remove
     set y [expr {$top+$height/2}]
     # Current-point mode produces a marker.
     GenerateGraphEvent $graph <Motion> $x $y $defaultDelay
-    set beforeMarker [$graph marker exists crosshairsText]
+    set beforeMarker [$graph marker exists gtbCrosshairsText]
     # Current point -> No marker.
     $crossMenu invoke [$crossMenu index {No marker}]
     update idletasks
     set noMarkerOk [expr {([$widget configure -crosshairsmode] eq {none}) &&\
-                                   (![llength [$graph marker names crosshairs*]]) && (![$graph crosshairs cget -hide])}]
+                                   (![llength [$graph marker names gtbCrosshairs*]]) && (![$graph crosshairs cget -hide])}]
     # No marker -> Disabled.
     $crossMenu invoke [$crossMenu index Disabled]
     update idletasks
     set tags [bindtags $graph]
     set disabledOk [expr {([$widget configure -crosshairsmode] eq {disabled}) && [$graph crosshairs cget -hide] &&\
-                                   ("crosshairs-$graph" ni $tags) && ("crosshairs-marker-$graph" ni $tags)}]
+                                   ("gtb-crosshairs-$graph" ni $tags) && ("gtb-crosshairs-marker-$graph" ni $tags)}]
     # Disabled -> Current point.
     $crossMenu invoke [$crossMenu index {Current point}]
     update idletasks
     GenerateGraphEvent $graph <Motion> $x $y 20
     set currentOk [expr {([$widget configure -crosshairsmode] eq {current}) &&\
-                                  [$graph marker exists crosshairsText]}]
+                                  [$graph marker exists gtbCrosshairsText]}]
     list $beforeMarker $noMarkerOk $disabledOk $currentOk
 } -result {1 1 1 1} -cleanup {
     destroy $widget
@@ -4509,9 +4541,49 @@ test contextMenuInteractive-6 { current to hidden closest does not retain curren
     GenerateGraphEvent $graph <Enter> $x $y 20
     GenerateGraphEvent $graph <Motion> $x $y 20
     set closestHidden [$graph crosshairs cget -hide]
-    set markerExists [expr {[llength [$graph marker names crosshairsClosest*]] > 0}]
+    set markerExists [expr {[llength [$graph marker names gtbCrosshairsClosest*]] > 0}]
     list $currentVisible [$widget configure -crosshairsmode] $closestHidden $markerExists
 } -result {1 closest 1 1} -cleanup {
+    destroy $widget
+}
+
+test contextMenuInteractive-7 {graphtoolbar crosshair mode changes preserve application bindtags} -constraints\
+        {isInteractive isCrosshairs} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -controlmode contextmenu -crosshairs -crosshairsmode current]
+    pack .gtb -fill both -expand yes
+    set graph [$widget subwidget graph]
+    set menu [$widget subwidget contextMenu]
+    set crossMenu [$menu entrycget [$menu index {Crosshairs mode}] -menu]
+    $graph axis configure x -min 0 -max 10
+    $graph axis configure y -min 0 -max 10
+    $graph element create line1 -data {0 0 5 5 10 10}
+    # Deliberately use the old generic graphtoolbar tag name. It is now
+    # application-owned and must not be modified by graphtoolbar.
+    set externalTag crosshairs-$graph
+    set ::gtbExternalBindingHit 0
+    bind $externalTag <Enter> {
+        set ::gtbExternalBindingHit 1
+    }
+    bindtags $graph [linsert [bindtags $graph] 0 $externalTag]
+} -body {
+    WaitForWindow $graph
+    set before [bind $externalTag <Enter>]
+    $crossMenu invoke [$crossMenu index {Closest point}]
+    update idletasks
+    $crossMenu invoke [$crossMenu index {No marker}]
+    update idletasks
+    $crossMenu invoke [$crossMenu index {Current point}]
+    update idletasks
+    set after [bind $externalTag <Enter>]
+    lassign [$graph extents plotarea] left top width height
+    set x [expr {$left+$width/2}]
+    set y [expr {$top+$height/2}]
+    GenerateGraphEvent $graph <Leave> $x $y 20
+    GenerateGraphEvent $graph <Enter> $x $y 20
+    list [expr {$before eq $after}] $::gtbExternalBindingHit [expr {"gtb-crosshairs-$graph" in [bindtags $graph]}]
+} -result {1 1 1} -cleanup {
+    catch {bind $externalTag <Enter> {}}
+    unset -nocomplain ::gtbExternalBindingHit externalTag
     destroy $widget
 }
 

@@ -310,6 +310,17 @@ available for the next click.</p>
 </div>
 <p>The exact subwidget set depends on <code class="docutils literal notranslate"><span class="pre">-controlmode</span></code> and on which optional facilities were enabled.</p>
 </section>
+<section id="reserved-internal-names">
+<span id="r-rbc-graphtoolbar-reserved-internal-names"></span><span id="r-3a3arbc3a3agraphtoolbarqzreserved20internal20names"></span><h2>Reserved internal names<a class="headerlink" href="#reserved-internal-names" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code> installs private binding tags and graph markers in the embedded Rbc graph.</p>
+<p>Binding tags whose names begin with <code class="docutils literal notranslate"><span class="pre">gtb-</span></code> are reserved for <code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code>. Applications should not create,
+modify, remove, or attach their own bindings to tags using this prefix.</p>
+<p>Rbc graph marker names beginning with <code class="docutils literal notranslate"><span class="pre">gtb</span></code> are likewise reserved for <code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code>. Applications using the
+embedded graph should choose marker names that do not begin with <code class="docutils literal notranslate"><span class="pre">gtb</span></code>.</p>
+<p>The exact private names are implementation details and may change. Applications should rely only on the
+reserved prefixes, and should use the public graphtoolbar interface rather than manipulating its internal
+bindings or markers.</p>
+</section>
 <section id="tk-option-database">
 <span id="r-rbc-graphtoolbar-tk-option-database"></span><span id="r-3a3arbc3a3agraphtoolbarqztk20option20database"></span><h2>Tk option database<a class="headerlink" href="#tk-option-database" title="Link to this heading">¶</a></h2>
 <p>Most marker styling dictionaries take their initial defaults from the Tk option database. Applications can
@@ -627,6 +638,9 @@ or changed through the <code class="docutils literal notranslate"><span class="p
 </div>
 <p>Options such as <code class="docutils literal notranslate"><span class="pre">-type</span></code>, <code class="docutils literal notranslate"><span class="pre">-controlmode</span></code>, <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>, <code class="docutils literal notranslate"><span class="pre">-pan</span></code>, and <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code> select structural features
 when the megawidget is created and are not configurable properties afterward.</p>
+<p>Private binding tags created by the class use the reserved <code class="docutils literal notranslate"><span class="pre">gtb-</span></code> prefix. Private Rbc graph markers
+use the reserved <code class="docutils literal notranslate"><span class="pre">gtb</span></code> prefix. Applications should not use either prefix for objects they create in
+the embedded graph.</p>
 <p class="rubric">Method summary</p>
 <dl class="simple">
 <dt><a class="reference internal" href="#r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3aconstructor"><span class="std std-ref">constructor</span></a></dt><dd><p>Constructor for the class.</p>
@@ -959,6 +973,7 @@ Tk pathname of the requested subwidget.</p>
 <li><a class="reference internal" href="#polar-and-smith-interaction">Polar and Smith interaction</a></li>
 <li><a class="reference internal" href="#active-legend">Active legend</a></li>
 <li><a class="reference internal" href="#public-megawidget-access">Public megawidget access</a></li>
+<li><a class="reference internal" href="#reserved-internal-names">Reserved internal names</a></li>
 <li><a class="reference internal" href="#tk-option-database">Tk option database</a><ul>
 <li><a class="reference internal" href="#zoom-option-database-resources">Zoom option-database resources</a></li>
 <li><a class="reference internal" href="#crosshair-option-database-resources">Crosshair option-database resources</a></li>

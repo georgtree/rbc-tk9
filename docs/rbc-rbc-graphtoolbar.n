@@ -440,6 +440,19 @@ puts [\&.gtb names]
 .RE
 .PP
 The exact subwidget set depends on -controlmode and on which optional facilities were enabled\&.
+.SH "RESERVED INTERNAL NAMES"
+.PP
+graphtoolbar installs private binding tags and graph markers in the embedded Rbc graph\&.
+.PP
+Binding tags whose names begin with gtb- are reserved for graphtoolbar\&. Applications should not create,
+modify, remove, or attach their own bindings to tags using this prefix\&.
+.PP
+Rbc graph marker names beginning with gtb are likewise reserved for graphtoolbar\&. Applications using the
+embedded graph should choose marker names that do not begin with gtb\&.
+.PP
+The exact private names are implementation details and may change\&. Applications should rely only on the
+reserved prefixes, and should use the public graphtoolbar interface rather than manipulating its internal
+bindings or markers\&.
 .SH "TK OPTION DATABASE"
 .PP
 Most marker styling dictionaries take their initial defaults from the Tk option database\&. Applications can
@@ -573,6 +586,10 @@ or changed through the oo::configurable interface:
 .PP
 Options such as -type, -controlmode, -zoom, -pan, and -crosshairs select structural features
 when the megawidget is created and are not configurable properties afterward\&.
+.PP
+Private binding tags created by the class use the reserved gtb- prefix\&. Private Rbc graph markers
+use the reserved gtb prefix\&. Applications should not use either prefix for objects they create in
+the embedded graph\&.
 .PP
 \fBMethod summary\fR
 .RS 4n

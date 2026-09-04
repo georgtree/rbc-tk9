@@ -311,6 +311,19 @@ namespace eval ::rbc::graphtoolbar {
 
         The exact subwidget set depends on `-controlmode` and on which optional facilities were enabled.
 
+        ## Reserved internal names
+        `graphtoolbar` installs private binding tags and graph markers in the embedded Rbc graph.
+
+        Binding tags whose names begin with `gtb-` are reserved for `graphtoolbar`. Applications should not create,
+        modify, remove, or attach their own bindings to tags using this prefix.
+
+        Rbc graph marker names beginning with `gtb` are likewise reserved for `graphtoolbar`. Applications using the
+        embedded graph should choose marker names that do not begin with `gtb`.
+
+        The exact private names are implementation details and may change. Applications should rely only on the
+        reserved prefixes, and should use the public graphtoolbar interface rather than manipulating its internal
+        bindings or markers.
+
         ## Tk option database
         Most marker styling dictionaries take their initial defaults from the Tk option database. Applications can
         therefore customize the graphtoolbar before creating a widget:
@@ -628,6 +641,10 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
 
                 Options such as `-type`, `-controlmode`, `-zoom`, `-pan`, and `-crosshairs` select structural features
                 when the megawidget is created and are not configurable properties afterward.
+
+                Private binding tags created by the class use the reserved `gtb-` prefix. Private Rbc graph markers
+                use the reserved `gtb` prefix. Applications should not use either prefix for objects they create in
+                the embedded graph.
             }
 
             options {
@@ -1473,6 +1490,16 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 -bitmap "@[file join $::rbc::graphtoolbar::libDir pointer.xbm]"\
                 -mask "@[file join $::rbc::graphtoolbar::libDir pointer_mask.xbm]" -under no {*}$mapopts
     }
+    method BindTagName {name} {
+        # Returns the private graphtoolbar bindtag for one interaction.
+        #  name - interaction-specific tag suffix.
+        #
+        # Every bindtag created by graphtoolbar uses the reserved `gtb-` prefix followed by the embedded graph
+        # pathname. Applications should not use this prefix for their own binding tags.
+        #
+        # Returns: Private bindtag name.
+        return "gtb-${name}-$Subwidgets(graph)"
+    }
     method AddBindTag {widget tag {after {}}} {
         # Adds or repositions a bindtag on a widget.
         #  widget - Tk widget pathname.
@@ -2297,7 +2324,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #
         # Returns: Nothing.
         set graph $Subwidgets(graph)
-        bind rightclick-$graph <ButtonPress-3> [namespace code {
+        bind [my BindTagName rightclick] <ButtonPress-3> [namespace code {
             if {[my CancelTransientOperation %x %y]} {
                 break
             }
@@ -2306,7 +2333,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 break
             }
         }]
-        my AddBindTag $graph rightclick-$graph
+        my AddBindTag $graph [my BindTagName rightclick]
     }
     method PostContextMenu {x y rootX rootY} {
         # Posts the right-click control menu.
@@ -2333,8 +2360,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             # Do not let the old crosshair mode process Enter/Motion events
             # while the popup is being dismissed.  The selected mode is
             # rebuilt by RestoreContextMenuCrosshairs.
-            my RemoveBindTag $graph crosshairs-marker-$graph
-            my RemoveBindTag $graph crosshairs-$graph
+            my RemoveBindTag $graph [my BindTagName crosshairs-marker]
+            my RemoveBindTag $graph [my BindTagName crosshairs]
         }
         my UpdateContextMenu
         if {[tk windowingsystem] eq {win32}} {
@@ -2450,7 +2477,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             {-background= -default grey}
         }
         set graph $Subwidgets(graph)
-        set tag active-axis-$graph
+        set tag [my BindTagName active-axis]
         if {$axes eq {all}} {
             set axes [$graph axis names]
         }
@@ -2512,7 +2539,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #
         # Returns: List of axis names carrying the graphtoolbar active-scale binding tag.
         set graph $Subwidgets(graph)
-        set tag active-axis-$graph
+        set tag [my BindTagName active-axis]
         set axes [$graph axis names]
         set activeAxes [list]
         foreach axis $axes {
@@ -2638,7 +2665,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {![info exists CrosshairsMarkerInfo]} {
             return false
         }
-        if {![my CheckBindTagExistence $graph crosshairs-marker-$graph]} {
+        if {![my CheckBindTagExistence $graph [my BindTagName crosshairs-marker]]} {
             return false
         }
         # x/y are optional for zoom operations invoked without a graph
@@ -2652,11 +2679,14 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         return true
     }
     method DeleteCrosshairsMarkers {} {
-        # Deletes every graphtoolbar marker whose name begins with `crosshairs`.
+        # Deletes every private graphtoolbar crosshair marker.
+        #
+        # All markers owned by the enhanced crosshair implementation use the reserved `gtbCrosshairs`
+        # prefix. Application markers are therefore never selected by this cleanup operation.
         #
         # Returns: Nothing.
         set graph $Subwidgets(graph)
-        set markerNames [$graph marker names crosshairs*]
+        set markerNames [$graph marker names gtbCrosshairs*]
         if {[llength $markerNames]} {
             $graph marker delete {*}$markerNames
         }
@@ -2708,9 +2738,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             set mapy [dict get $info mapy]
             lassign [my TextOffset $x $y $anchor] textX textY
             set boxOptions [my configure -crosshairsmarkboxopts]
-            my DrawTextBackground crosshairsTextBox $textX $textY $text $options $boxOptions $mapx $mapy
+            my DrawTextBackground gtbCrosshairsTextBox $textX $textY $text $options $boxOptions $mapx $mapy
             lassign [my WidgetToAxisValues $textX $textY $mapx $mapy] textXValue textYValue
-            $graph marker create text -name crosshairsText -text $text -coords [list $textXValue $textYValue] -mapx\
+            $graph marker create text -name gtbCrosshairsText -text $text -coords [list $textXValue $textYValue] -mapx\
                     $mapx -mapy $mapy {*}[dict remove $options -formatx -formaty -formatparam]
             return
         }
@@ -2731,11 +2761,12 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 if {([$graph element type $element] eq {BarElement}) && [info exists pointVar(left)] &&\
                             [info exists pointVar(top)] && [info exists pointVar(right)] &&\
                             [info exists pointVar(bottom)]} {
-                    my CreateClosestBarMarker crosshairsClosestText $element $pointVar(x) $pointVar(y) $pointVar(left)\
-                            $pointVar(top) $pointVar(right) $pointVar(bottom) $options $boxOptions $closestInfo
+                    my CreateClosestBarMarker gtbCrosshairsClosestText $element $pointVar(x) $pointVar(y)\
+                            $pointVar(left) $pointVar(top) $pointVar(right) $pointVar(bottom) $options $boxOptions\
+                            $closestInfo
                 } else {
-                    my CreateClosestMarker $graph crosshairsClosestText crosshairsClosestBitmap $element $pointVar(x)\
-                            $pointVar(y) $options $closestInfo
+                    my CreateClosestMarker $graph gtbCrosshairsClosestText gtbCrosshairsClosestBitmap $element\
+                            $pointVar(x) $pointVar(y) $options $closestInfo
                 }
             }
             return
@@ -2760,7 +2791,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             }
             set element $pointVar(name)
             set closestInfo [array get pointVar]
-            set marker crosshairsClosestText$i
+            set marker gtbCrosshairsClosestText$i
 
             if {([$graph element type $element] eq {BarElement}) && [info exists pointVar(left)] &&\
                         [info exists pointVar(top)] && [info exists pointVar(right)] &&\
@@ -2768,7 +2799,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 my CreateClosestBarMarker $marker $element $pointVar(x) $pointVar(y) $pointVar(left) $pointVar(top)\
                         $pointVar(right) $pointVar(bottom) $options $boxOptions $closestInfo
             } else {
-                my CreateClosestMarker $graph crosshairsClosestText$i crosshairsClosestBitmap$i $element $pointVar(x)\
+                my CreateClosestMarker $graph gtbCrosshairsClosestText$i gtbCrosshairsClosestBitmap$i $element $pointVar(x)\
                         $pointVar(y) $options $closestInfo
             }
             incr i
@@ -2784,7 +2815,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Existing enhanced crosshair marker graphics are removed before moving the hairs.
         #
         # Returns: Nothing.
-        set markerNames [$graph marker names crosshairs*]
+        set markerNames [$graph marker names gtbCrosshairs*]
         $graph marker delete {*}$markerNames
         if {!$hide} {
             $graph crosshairs configure -position @${x},$y
@@ -2855,8 +2886,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #
         # Returns: Nothing.
         set graph $Subwidgets(graph)
-        set tagCrosshairs crosshairs-$graph
-        set tagCrosshairsMarker crosshairs-marker-$graph
+        set tagCrosshairs [my BindTagName crosshairs]
+        set tagCrosshairsMarker [my BindTagName crosshairs-marker]
         # A mode change invalidates any marker representation produced by
         # the previous mode.  This is especially important when changing
         # from current/closest to none or disabled.
@@ -3533,7 +3564,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # cursorText      -> cursorBarLine
         # cursorText0     -> cursorBarLine0
         #
-        set lineMarker [string map {crosshairsClosestText crosshairsClosestBarLine} $marker]
+        set lineMarker [string map {gtbCrosshairsClosestText gtbCrosshairsClosestBarLine} $marker]
         set lineOptions [my configure -crosshairsbarlineopts]
         #
         # The normal dimension marker uses arrowheads at both ends of
@@ -3618,7 +3649,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # a bar annotation does not use the ordinary closest-point
         # bitmap.
         #
-        set bitmapMarker [string map {crosshairsClosestText crosshairsClosestBitmap} $marker]
+        set bitmapMarker [string map {gtbCrosshairsClosestText gtbCrosshairsClosestBitmap} $marker]
         if {[$graph marker exists $bitmapMarker]} {
             $graph marker delete $bitmapMarker
         }
@@ -3684,14 +3715,14 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set graph $Subwidgets(graph)
         my InitZoomStack
         set modifier $ZoomMod
-        bind zoom-$graph <${modifier}${start}> [namespace code {my StartZoom %x %y}]
-        bind zoom-$graph <${end}> [namespace code {my FinishZoom %x %y}]
-        bind zoom-$graph <${modifier}${reset}> [namespace code {
+        bind [my BindTagName zoom] <${modifier}${start}> [namespace code {my StartZoom %x %y}]
+        bind [my BindTagName zoom] <${end}> [namespace code {my FinishZoom %x %y}]
+        bind [my BindTagName zoom] <${modifier}${reset}> [namespace code {
             if {[%W inside %x %y]} {
                 my ResetZoom %x %y
             }
         }]
-        my AddBindTag $graph zoom-$graph
+        my AddBindTag $graph [my BindTagName zoom]
     }
     method EnableWheelZoom {modifier scale} {
         # Installs mouse-wheel zoom bindings.
@@ -3703,7 +3734,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {![string is double -strict $scale] || !isfinite($scale) || ($scale <= 1.0)} {
             return -code error "wheel zoom scale must be a finite number greater than 1.0"
         }
-        bind zoom-$graph <${modifier}MouseWheel> [namespace code [list my WheelZoom %W %D %x %y %s $scale]]
+        bind [my BindTagName zoom] <${modifier}MouseWheel> [namespace code [list my WheelZoom %W %D %x %y %s $scale]]
     }
     method EnablePan {start end modifier} {
         # Installs plot-area panning bindings.
@@ -3718,19 +3749,19 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #
         # Returns: Nothing.
         set graph $Subwidgets(graph)
-        bind pan-$graph <${modifier}${start}> [namespace code {
+        bind [my BindTagName pan] <${modifier}${start}> [namespace code {
             if {[my StartPan %x %y]} {
                 break
             }
         }]
         # Deliberately do not include $modifier here.  Otherwise releasing
         # Shift before Button-1 could leave the pan operation active.
-        bind pan-$graph <$end> [namespace code {
+        bind [my BindTagName pan] <$end> [namespace code {
             if {[my FinishPan %x %y]} {
                 break
             }
         }]
-        my AddBindTag $graph pan-$graph
+        my AddBindTag $graph [my BindTagName pan]
     }
     method SaveZoomState {} {
         # Saves the current graph view as one navigation-history entry.
@@ -4156,7 +4187,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {[info exists ZoomTransientChecks(crosshairsMarker)]} {
             if {$ZoomTransientChecks(crosshairsMarker)} {
                 # restore crosshair marker behaviour
-                my AddBindTag $graph crosshairs-marker-$graph crosshairs-$graph
+                my AddBindTag $graph [my BindTagName crosshairs-marker] [my BindTagName crosshairs]
             }
             unset ZoomTransientChecks(crosshairsMarker)
         }
@@ -4168,7 +4199,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         } else {
             set modifier $ZoomMod
             set ZoomInfo(corner) A
-            my RemoveBindTag $graph select-region-$graph
+            my RemoveBindTag $graph [my BindTagName select-region]
         }
     }
     method FinishZoomTitle {} {
@@ -4378,16 +4409,16 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # During the drag, ordinary Motion events update corner B.  The
         # select-region tag exists only until ButtonRelease.
         set modifier $ZoomMod
-        bind select-region-$graph <${modifier}Motion> [namespace code {my DragZoom %x %y}]
+        bind [my BindTagName select-region] <${modifier}Motion> [namespace code {my DragZoom %x %y}]
         # Disable active-axis interaction while selecting.
         set ZoomTransientChecks(activeAxes) [my getAxisActiveScale]
         my setAxisActiveScale $ZoomTransientChecks(activeAxes) -disabled
         # Disable closest/current crosshair marker interaction while
         # selecting.
         set ZoomTransientChecks(crosshairsMarker) false
-        if {[my CheckBindTagExistence $graph crosshairs-marker-$graph]} {
+        if {[my CheckBindTagExistence $graph [my BindTagName crosshairs-marker]]} {
             set ZoomTransientChecks(crosshairsMarker) true
-            my RemoveBindTag $graph crosshairs-marker-$graph
+            my RemoveBindTag $graph [my BindTagName crosshairs-marker]
         }
         if {$ZoomMark} {
             my MarkZoomPoint A
@@ -4395,7 +4426,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {[my configure -zoomtitle]} {
             my ZoomTitleNext
         }
-        my AddBindTag $graph select-region-$graph
+        my AddBindTag $graph [my BindTagName select-region]
         my ChangeToolbarState disable
         # corner B also acts as the "drag selection active" flag.
         set ZoomInfo(corner) B
@@ -4459,7 +4490,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # well-defined.
         my SaveZoomPoint $x $y B
         # Stop region tracking before changing the graph transform.
-        my RemoveBindTag $graph select-region-$graph
+        my RemoveBindTag $graph [my BindTagName select-region]
         # Restore active-axis behaviour.
         if {[info exists ZoomTransientChecks(activeAxes)]} {
             my setAxisActiveScale $ZoomTransientChecks(activeAxes)
@@ -4468,7 +4499,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Restore crosshair-marker behaviour.
         if {[info exists ZoomTransientChecks(crosshairsMarker)]} {
             if {$ZoomTransientChecks(crosshairsMarker)} {
-                my AddBindTag $graph crosshairs-marker-$graph crosshairs-$graph
+                my AddBindTag $graph [my BindTagName crosshairs-marker] [my BindTagName crosshairs]
             }
             unset ZoomTransientChecks(crosshairsMarker)
         }
@@ -4606,23 +4637,23 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #
         # Save both bind tags independently because the current crosshair mode
         # determines which of them is installed.
-        set PanTransientChecks(crosshairs) [my CheckBindTagExistence $graph crosshairs-$graph]
-        set PanTransientChecks(crosshairsMarker) [my CheckBindTagExistence $graph crosshairs-marker-$graph]
+        set PanTransientChecks(crosshairs) [my CheckBindTagExistence $graph [my BindTagName crosshairs]]
+        set PanTransientChecks(crosshairsMarker) [my CheckBindTagExistence $graph [my BindTagName crosshairs-marker]]
         # Preserve whether the RBC crosshairs themselves were displayed.
         set PanTransientChecks(crosshairsHidden) [$graph crosshairs cget -hide]
-        my RemoveBindTag $graph crosshairs-marker-$graph
-        my RemoveBindTag $graph crosshairs-$graph
+        my RemoveBindTag $graph [my BindTagName crosshairs-marker]
+        my RemoveBindTag $graph [my BindTagName crosshairs]
         # Remove marker text/background before the axes begin moving.
         if {$PanTransientChecks(crosshairsMarker)} {
             my DeleteCrosshairsMarkers
         }
         # Erase the crosshair lines themselves.
         $graph crosshairs off
-        bind pan-region-$graph <Motion> [namespace code {
+        bind [my BindTagName pan-region] <Motion> [namespace code {
             my DragPan %x %y
             break
         }]
-        my AddBindTag $graph pan-region-$graph
+        my AddBindTag $graph [my BindTagName pan-region]
         my ChangeToolbarState disable
         return true
     }
@@ -4816,13 +4847,13 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
         # Restore the ordinary crosshair Motion/Enter/Leave tag first.
         if {[info exists PanTransientChecks(crosshairs)] && $PanTransientChecks(crosshairs)} {
-            my AddBindTag $graph crosshairs-$graph
+            my AddBindTag $graph [my BindTagName crosshairs]
         }
         # Restore the marker tag in its normal position after the
         # crosshair tag.
         set refreshCrosshairs false
         if {[info exists PanTransientChecks(crosshairsMarker)] && $PanTransientChecks(crosshairsMarker)} {
-            my AddBindTag $graph crosshairs-marker-$graph crosshairs-$graph
+            my AddBindTag $graph [my BindTagName crosshairs-marker] [my BindTagName crosshairs]
             set refreshCrosshairs true
         }
         my ChangeToolbarState restore
@@ -4907,7 +4938,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Returns: Nothing.
         set graph $Subwidgets(graph)
         my PopZoom no
-        my RemoveBindTag $graph select-region-$graph
+        my RemoveBindTag $graph [my BindTagName select-region]
         my InitZoomStack
         $graph marker delete {*}[$graph marker names gtbZoom*]
     }
