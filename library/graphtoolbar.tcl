@@ -142,6 +142,27 @@ namespace eval ::rbc::graphtoolbar {
         If several used axes belong to the same data dimension, their scrolling constraints are combined. The most
         restrictive axis limits the common physical drag displacement, so all mapped axes remain synchronized.
 
+        When `-scrollcommand` is configured without explicit `-scrollmin` or `-scrollmax`, Rbc uses the complete data
+        range of the axis as the scrolling region.
+
+        If the current viewport already covers that complete range, `axis view` reports the full interval `0.0 1.0`.
+        The associated scrollbar thumb therefore fills the entire trough, and graphtoolbar panning is correspondingly
+        unable to move the viewport because there is no remaining scrollable region.
+
+        This normally occurs for an automatically scaled axis before any zoom has been performed. After zooming into a
+        smaller portion of the data range, the scrollbar represents that smaller viewport and panning can move it
+        within the complete data range.
+
+        Applications that want to permit panning beyond the data range should define a larger scrolling world
+        explicitly with `-scrollmin` and/or `-scrollmax`. For example:
+
+        ```tcl
+        $graph axis configure x -scrollmin 0 -scrollmax 12 -scrollcommand {.xbar set}
+        ```
+
+        With data occupying only part of that range, the viewport may then be panned through the additional empty
+        region while preserving its scale.
+
         All axes actually participating in the displayed coordinate system are moved together. This includes axes
         installed in margins, hidden axes mapped by elements, and the axes mapped by a Polar or Smith grid.  Completely
         unused axes are not changed.
@@ -324,6 +345,29 @@ namespace eval ::rbc::graphtoolbar {
         reserved prefixes, and should use the public graphtoolbar interface rather than manipulating its internal
         bindings or markers.
 
+        Graphtoolbar-created markers are visual overlays only. They are created with `-state disabled`, which keeps
+        them visible but excludes them from Rbc graph hit testing and binding dispatch. As a result, internal markers
+        such as closest-point symbols, annotation text, annotation backgrounds, zoom outlines, and zoom titles do not
+        become the graph's current marker and do not interfere with application element bindings.
+
+        This is particularly important for element bindings such as:
+        ```tcl
+        $graph element bind all <Enter> {
+            %W legend activate [%W element get current]
+        }
+
+        $graph element bind all <Leave> {
+            %W legend deactivate [%W element get current]
+        }
+        ```
+
+        Such bindings continue to track the underlying graph element even when a graphtoolbar marker is drawn above
+        that element.
+
+        Applications should not depend on the individual names or configuration of `gtb*` markers. Their names,
+        types, number, geometry, and other options are private implementation details. The only guaranteed convention
+        is that marker names beginning with `gtb` are reserved for graphtoolbar.
+
         ## Tk option database
         Most marker styling dictionaries take their initial defaults from the Tk option database. Applications can
         therefore customize the graphtoolbar before creating a widget:
@@ -355,6 +399,7 @@ namespace eval ::rbc::graphtoolbar {
         | `zoomtitleopts`      | `-coords`     | `gtbZoomTitleCoords`        | `GtbZoomTitleCoords`         | `{-Inf Inf}`     |
         | `zoomboxopts`        | `-dashes`     | `gtbZoomOutlineDashes`      | `GtbZoomOutlineDashes`       | `4`              |
         | `zoomboxopts`        | `-linewidth`  | `gtbZoomOutlineLineWidth`   | `GtbZoomOutlineLineWidth`    | `1`              |
+        | `zoomboxopts`        | `-outline`    | `gtbZoomOutlineColor`       | `GtbZoomOutlineColor`        | `grey`           |
         | `zoomboxopts`        | `-xor`        | `gtbZoomOutlineXor`         | `GtbZoomOutlineXor`          | `no`             |
         | `zoommarkopts`       | `-font`       | `gtbZoomTextFont`           | `GtbZoomTextFont`            | `{ArialNarrow 8}`|
         | `zoommarkopts`       | `-anchor`     | `gtbZoomTextAnchor`         | `GtbZoomTextAnchor`          | `ne`             |
@@ -380,6 +425,7 @@ namespace eval ::rbc::graphtoolbar {
         │ zoomtitleopts     │ -coords     │ gtbZoomTitleCoords        │ GtbZoomTitleCoords         │ {-Inf Inf}     │
         │ zoomboxopts       │ -dashes     │ gtbZoomOutlineDashes      │ GtbZoomOutlineDashes       │ 4              │
         │ zoomboxopts       │ -linewidth  │ gtbZoomOutlineLineWidth   │ GtbZoomOutlineLineWidth    │ 1              │
+        │ zoomboxopts       │ -outline    │ gtbZoomOutlineColor       │ GtbZoomOutlineColor        │ grey           │
         │ zoomboxopts       │ -xor        │ gtbZoomOutlineXor         │ GtbZoomOutlineXor          │ no             │
         │ zoommarkopts      │ -font       │ gtbZoomTextFont           │ GtbZoomTextFont            │ {ArialNarrow 8}│
         │ zoommarkopts      │ -anchor     │ gtbZoomTextAnchor         │ GtbZoomTextAnchor          │ ne             │
@@ -470,6 +516,11 @@ namespace eval ::rbc::graphtoolbar {
     }
 
     option add *Element.ScaleSymbols no widgetDefault
+
+    # bitmap pointer default options
+    option add *gtbPointerOutline black widgetDefault
+    option add *gtbPointerRotate 0 widgetDefault
+
     # zoom title default options
     option add *gtbZoomTitleFont {Arial 18} widgetDefault
     option add *gtbZoomTitleShadow yellow4 widgetDefault
@@ -481,6 +532,7 @@ namespace eval ::rbc::graphtoolbar {
     option add *gtbZoomOutlineDashes 4 widgetDefault
     option add *gtbZoomOutlineLineWidth 1 widgetDefault
     option add *gtbZoomOutlineXor no widgetDefault
+    option add *gtbZoomOutlineColor grey widgetDefault
 
     # zoom box corner markers default options
     option add *gtbZoomTextFont {ArialNarrow 8} widgetDefault
@@ -753,7 +805,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 -zoomboxopts {
                     Dictionary configuring the rectangle-zoom outline.
 
-                    Recognized keys are `-dashes`, `-linewidth`, and `-xor`.
+                    Recognized keys are `-dashes`, `-linewidth`, `color`, and `-xor`.
 
                     Initial values are obtained from the `gtbZoomOutline*` Tk option-database resources.
                 }
@@ -919,12 +971,16 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                                                [list -linewidth= -key -linewidth -default\
                                                         [option get $Subwidgets(graph) gtbZoomOutlineLineWidth\
                                                                  GtbZoomOutlineLineWidth]]\
+                                               [list -outline= -key -outline -default\
+                                                        [option get $Subwidgets(graph) gtbZoomOutlineColor\
+                                                                 GtbZoomOutlineColor]]\
                                                [list -xor= -key -xor -default\
                                                         [option get $Subwidgets(graph) gtbZoomOutlineXor\
                                                                  GtbZoomOutlineXor]]]\
                              $value]
         }
     }
+    
     property zoommarkopts -set {
         if {[info exists zoommarkopts]} {
             dict for {option optionValue} $value {
@@ -1004,6 +1060,26 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                                                [list -dashes= -key -dashes -default\
                                                         [option get $Subwidgets(graph) gtbCrosshairsDashes\
                                                                  GtbCrosshairsDashes]]]\
+                             $value]
+        }
+    }
+    property pointeropts -set {
+        if {[info exists pointeropts]} {
+            dict for {option optionValue} $value {
+                if {[dict exists $pointeropts $option]} {
+                    dict set pointeropts $option $optionValue
+                } else {
+                    return -code error "option with name '$option' does not exists in pointeropts"
+                }
+            }
+        } else {
+            set pointeropts\
+                    [argparse -inline [list [list -outline= -key -outline -default\
+                                                     [option get $Subwidgets(graph) gtbPointerOutline\
+                                                                 GtbPointerOutline]]\
+                                               [list -rotate= -key -rotate -default\
+                                                        [option get $Subwidgets(graph) gtbPointerRotate\
+                                                                 GtbPointerRotate]]]\
                              $value]
         }
     }
@@ -1114,7 +1190,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     variable PsData ZoomInfo ZoomMod zoomtitle ZoomMark zoomtitleopts zoomboxopts zoommarkopts ZoomTransientChecks\
             zoommarkboxopts GraphType coordmark coordclosestmark crosshairsmode PanInfo PanTransientChecks ControlMode
     variable CrosshairsSelector crosshairsmarkopts crosshairsmarkboxopts crosshairsclosestopts crosshairsopts
-    variable crosshairsbarlineopts CrosshairsMarkerInfo
+    variable crosshairsbarlineopts CrosshairsMarkerInfo pointeropts
     variable CrosshairsSelector ClosestCoordSelector
     variable AxisScaleInfo SavedToolbarStates
     variable ContextMenuPosted
@@ -1156,6 +1232,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             {-coordmark= -default auto}
             {-coordclosestmark= -default axis}
             {-toolbarside= -default bottom -enum {bottom top}}
+            {-pointeropts= -type dict -default {}}
             -zoom
             {-zoomstartbut= -default {ButtonPress-1}}
             {-zoomendbut= -default {ButtonRelease-1}}
@@ -1202,7 +1279,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                     -smithgrid [dict get $arguments smithgrid]
         }
         my configure -coordmark [dict get $arguments coordmark] -coordclosestmark [dict get $arguments coordclosestmark]
-
+        my configure -pointeropts [dict get $arguments pointeropts]
         # Layout of the graph/control surface.
         grid columnconfigure $frameName 0 -weight 1
         if {$ControlMode eq {toolbar}} {
@@ -1225,11 +1302,12 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {$ControlMode eq {toolbar}} {
             set butCount -1
             set Subwidgets(makeSnapshotBut) [ttk::button $Subwidgets(toolbarFrame).makeSnapshotBut -width 14 -image\
-                                                     ::rbc::graphtoolbar::icons::makeSnapshotIcon\
+                                                     ::rbc::graphtoolbar::icons::makeSnapshotIcon -style Toolbutton\
                                                      -command [namespace code {my MakeSnapshot}]]
             grid $Subwidgets(makeSnapshotBut) -row 0 -column [incr butCount] -sticky ns
             set Subwidgets(postScriptDialogBut) [ttk::button $Subwidgets(toolbarFrame).postScriptDialogBut -width 14\
                                                          -image ::rbc::graphtoolbar::icons::postScriptDialogIcon\
+                                                         -style Toolbutton\
                                                          -command [namespace code {my PostScriptDialog}]]
             grid $Subwidgets(postScriptDialogBut) -row 0 -column [incr butCount] -sticky ns
         }
@@ -1263,11 +1341,11 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             if {$ControlMode eq {toolbar}} {
                 set Subwidgets(resetZoomBut) [ttk::button $Subwidgets(toolbarFrame).resetZoomBut -width 14\
                                                       -image ::rbc::graphtoolbar::icons::resetZoomIcon\
-                                                      -command [namespace code {my ResetAllZoom}]]
+                                                      -command [namespace code {my ResetAllZoom}] -style Toolbutton]
                 grid $Subwidgets(resetZoomBut) -row 0 -column [incr butCount] -sticky ns
                 set Subwidgets(revertZoomBut) [ttk::button $Subwidgets(toolbarFrame).revertZoomBut -width 14\
                                                        -image ::rbc::graphtoolbar::icons::revertZoomIcon\
-                                                       -command [namespace code {my ResetZoom}]]
+                                                       -command [namespace code {my ResetZoom}] -style Toolbutton]
                 grid $Subwidgets(revertZoomBut) -row 0 -column [incr butCount] -sticky ns
             }
         }
@@ -1488,7 +1566,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
         $Subwidgets(graph) marker create bitmap -name $name -coords [list $xValue $yValue]\
                 -bitmap "@[file join $::rbc::graphtoolbar::libDir pointer.xbm]"\
-                -mask "@[file join $::rbc::graphtoolbar::libDir pointer_mask.xbm]" -under no -state disabled {*}$mapopts
+                -mask "@[file join $::rbc::graphtoolbar::libDir pointer_mask.xbm]" -under no\
+                -state disabled {*}$mapopts {*}[my configure -pointeropts]
     }
     method BindTagName {name} {
         # Returns the private graphtoolbar bindtag for one interaction.

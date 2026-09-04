@@ -13,18 +13,24 @@ set DemoDir [file normalize [file dirname [info script]]]
 
 ### Load common commands and create non-rbc GUI elements.
 source $DemoDir/scripts/common.tcl
-
 set HeaderText {This is an example of the graphtoolbar widget with context control mode. It displays two-variable data\
-with assorted line attributes and symbols. Region could be scrolled, also panning is enabled (Shift+LeftMouse button\
-hold). There are horizontal and vertical scroll-bars that control viewable area.}
+with assorted line attributes and symbols.
+Availible actions:
+    - Zoom box selection: left mouse button press + motion + button release;
+    - Reverse zoom/pan to the previous state:  middle mouse button click;
+    - Zoom with mouse wheel: press and hold Ctrl + wheel scroll;
+    - Selected axis zoom: put mouse pointer over axis + press and hold Ctrl + wheel scroll;
+    - Panning: press and hold Shift + left mouse button press and hold + motion;
+    - Toggle axive axis scale: left mouse button click over the selected axis;
+    - Highlight/hide certain plot: left mouse button click of legend, toggle between normal-active-hide state;
+    - Change crosshairs mode: right mouse button click, and select from four availible modes;}
 CommonHeader .header $HeaderText 6 $DemoDir
 
 ### Create the graph and configure its options
-set graph [graphtoolbar .g -width 800 -height 600 -type graph -controlmode context -zoom -zoomtitle -zoommark\
+set graph [graphtoolbar .g -width 800 -height 500 -type graph -controlmode context -zoom -zoomtitle -zoommark\
                    -crosshairs -crosshairsmode current -scaletoggle y -activelegend -zoomwheel -pan]
 proc MultiplexView {widget args} { 
     $widget graph axis view y {*}$args
-    $widget graph axis view y2 {*}$args
 }
 ttk::scrollbar .xbar -command [list $graph graph axis view x] -orient horizontal 
 ttk::scrollbar .ybar -command [list MultiplexView $graph] -orient vertical 
@@ -81,12 +87,11 @@ foreach {option value} $configOptions {
 #####  (3) Add elements to the graph
 $graph graph element create line1 -x $X -y $Y2
 $graph graph element create line2 -x $X -y $Y3
-$graph graph element create line3 -x $X -y $Y1 -mapy y2
+$graph graph element create line3 -x $X -y $Y1 
 
 ####  Configuration of .g (apart from its elements)
 $graph graph axis configure x -scrollcommand {.xbar set} -scrollmax 10 -scrollmin 2 -title X
 $graph graph axis configure y -scrollcommand {.ybar set} -title Y1 
-$graph graph axis configure y2 -scrollmin 0 -scrollmax 50 -hide no -title Y2
 $graph graph legend configure -activerelief flat -activeborderwidth 1 -position top -anchor ne -font {TkFixedFont 10}
 $graph graph pen configure activeLine -showvalues y
 $graph graph configure -title [pwd] -font {TkFixedFont 10} -plotpady {0.1i 0} 
@@ -104,6 +109,7 @@ grid .ybar -sticky ns
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1
 
+#### add bindings that highlight element in the legend when hover mouse over it
 $graph graph element bind all <Enter> {
     %W legend activate [%W element get current]
 }

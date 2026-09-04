@@ -14,15 +14,22 @@ set DemoDir [file normalize [file dirname [info script]]]
 
 ### Load common commands and create non-rbc GUI elements.
 source $DemoDir/scripts/common.tcl
-set HeaderText [MakeLine {
-    |To zoom in on a region of the graph, simply click once on the left
-    |mouse button to pick one corner of the area to be zoomed.  Move the
-    |mouse to the other corner and click again.
-}]
+set HeaderText {This is an example of displaying many waveforms curves. If you zoom closer, you can see individual\
+markers appear, hidden with default scale. Hover mouse over the certain waveform highlight name of that waveform\
+in the legend list.
+Availible actions:
+    - Zoom box selection: left mouse button press + motion + button release;
+    - Reverse zoom/pan to the previous state:  middle mouse button click;
+    - Zoom with mouse wheel: press and hold Ctrl + wheel scroll;
+    - Selected axis zoom: put mouse pointer over axis + press and hold Ctrl + wheel scroll;
+    - Panning: press and hold Shift + left mouse button press and hold + motion;
+    - Toggle axive axis scale: left mouse button click over the selected axis;
+    - Highlight/hide certain plot: left mouse button click of legend, toggle between normal-active-hide state;
+    - Change crosshairs mode: select from availible mods on toolbar;}
 CommonHeader .header $HeaderText 6 $DemoDir .graph {} graph4.ppm
 
 ### These options apply to the graph.
-option add *Graph.Legend.activeBackground white
+option add *Graph.Legend.activeBackground grey
 option add *Graph.height 5i
 option add *Graph.plotBackground black
 option add *Graph.width 7i
@@ -107,37 +114,21 @@ set attributes {
     V38 v38 magenta green  
     V39 v39 cyan    green  
 }
-graph .graph -width 600 -height 400
+set graph [graphtoolbar .g -width 800 -height 500 -type graph -controlmode toolbar -zoom -zoomtitle -zoommark\
+                   -crosshairs -crosshairsmode current -scaletoggle y -activelegend -zoomwheel -pan\
+                   -zoomboxopts {-outline white} -pointeropts {-outline white}]
 foreach {label yData outline color} $attributes {
-    .graph element create $label -x x -y $yData -outline $outline -color $color
+    $graph graph element create $label -x x -y $yData -outline $outline -color $color
 }
 
-### Map everything, add Rbc_* commands and bindings.
+### Map everything
 grid .header -sticky ew
-grid .graph -sticky nsew
+grid $graph -sticky nsew
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1
-Rbc_ZoomStack .graph
-Rbc_ActiveLegend .graph
-Rbc_ClosestPoint .graph
-Rbc_PrintKey .graph
-set toolbar [Rbc_Toolbar {} .graph]
-Rbc_CrosshairsClosest .graph
-grid $toolbar -sticky we
-.graph element bind all <Enter> {
+$graph graph element bind all <Enter> {
     %W legend activate [%W element get current]
 }
-.graph element bind all <Leave> {
+$graph graph  element bind all <Leave> {
     %W legend deactivate [%W element get current]
-}
-
-### The code below is not executed and is not part of the demo. It remains available for experimentation.
-####  (1) Unused Options
-if 0 {
-    option add *default normal
-    option add *Button.tile bgTexture
-    option add *Htext.font -*-times*-bold-r-*-*-18-*-*
-    option add *Text.font -*-times*-bold-r-*-*-18-*-*
-    option add *header.font -*-times*-medium-r-*-*-18-*-*
-    option add *footer.font -*-times*-medium-r-*-*-18-*-*
 }

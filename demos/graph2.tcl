@@ -12,33 +12,45 @@ namespace import rbc::*
 ### The script can be run from any location.It loads the files it needs from the demo directory.
 set DemoDir [file normalize [file dirname [info script]]]
 
-### Load common commands (MakeSnapshot is used below).
+### Load common commands
 source $DemoDir/scripts/common.tcl
+set HeaderText {This is an example of the graphtoolbar widget with toolbar control mode. In this example sine and\
+cosine curves are displayed with applied different styles pens. Also demonstrated custom X-axis tick markers and limits\
+labels.
+Availible actions:
+    - Zoom box selection: left mouse button press + motion + button release;
+    - Reverse zoom/pan to the previous state:  middle mouse button click;
+    - Zoom with mouse wheel: press and hold Ctrl + wheel scroll;
+    - Selected axis zoom: put mouse pointer over axis + press and hold Ctrl + wheel scroll;
+    - Panning: press and hold Shift + left mouse button press and hold + motion;
+    - Toggle axive axis scale: left mouse button click over the selected axis;
+    - Highlight/hide certain plot: left mouse button click of legend, toggle between normal-active-hide state;
+    - Change crosshairs mode: select from availible mods on toolbar;}
+CommonHeader .header $HeaderText 6 $DemoDir
 
 ### Create the graph.
-set graph [graph .g]
+set graph [graphtoolbar .g -width 800 -height 500 -type graph -controlmode toolbar -zoom -zoomtitle -zoommark\
+                   -crosshairs -crosshairsmode current -scaletoggle y -activelegend -zoomwheel -pan]
 
 ### The configuration of the graph .g
 ####  (1) Set values for use as option defaults for the graph and its components
 set configOptions {
-    Axis.TickFont {Helvetica 14 bold}
-    Axis.TitleFont {Helvetica 12 bold}
     Element.Pixels 8
     Element.ScaleSymbols true
     Element.Smooth cubic
     degrees.Command FormatAxisLabel
     degrees.LimitsFormat "Deg=%g"
-    degrees.Subdivisions 0 
-    degrees.Title Degrees 
-    degrees.stepSize 90 
+    degrees.Subdivisions 0
+    degrees.Title Degrees
+    degrees.stepSize 90
+    degrees.tickFont {Helvetica 10 bold}
+    degrees.limitsFont {Helvetica 10 bold}
 }
-set resource [string trimleft $graph .]
+set resource [string trimleft [$graph subwidget graph] .]
 foreach {option value} $configOptions {
     option add *$resource.$option $value
 }
 proc FormatAxisLabel {graph x} {
-    ### FIXME rbc - on X11, "graph" does not render the degree sign correctly.
-    ### This formula returns the integer followed by the Unicode character for the degree sign.
     format "%d%c" [expr int($x)] 0xB0
 }
 
@@ -49,33 +61,34 @@ set step 0.2
 set letters {A B C D E F G H I J K L}
 set count 0
 for {set level 30} {$level <= 100} {incr level 10} {
-    set color [format "#dd0d%0.2x" [expr round($level*2.55)]]
+    set color [format "#E07C%0.2x" [expr round($level*2.55)]]
     set pen pen$count
     ### No bitmap command in rbc - so
     ### use "-symbol circle" instead of "-symbol $symbol"
     ### set symbol "symbol$count"
     ### bitmap compose $symbol [lindex $letters $count]\
     ###	-font -*-helvetica-medium-r-*-*-34-*-*-*-*-*-*-*
-    $graph pen create $pen -color $color -symbol circle -fill {} -pixels 13
+    $graph graph pen create $pen -color $color -symbol circle -fill {} -pixels 13
     set min $max
     set max [expr {$max+$step}]
     lappend styles "$pen $min $max"
     incr count
 }
 
-#####   (2b) Create and configure graph axes
-$graph axis create degrees -rotate 90
-$graph xaxis use degrees
+#####  (2b) Create and configure graph axes
+$graph graph axis create degrees -rotate 90
+$graph graph xaxis use degrees
+$graph graph axis configure y -tickfont {Helvetica 10 bold}
+$graph graph legend configure -font {TkFixedFont 10}
+$graph graph grid on
 
-#####   (2c) Configure graph size and PostScript properties
-$graph postscript configure -maxpect yes -landscape yes
-$graph configure -width 600 -height 400
+#####  (2c) Configure graph size and PostScript properties
+$graph graph postscript configure -maxpect yes -landscape yes
 
 ####  (3) Define and compute the vectors
 set pi1_2 [expr {3.14159265358979323846/180.0}]
 vector create w x sinX cosX radians
 x seq -360.0 360.0 10.0
-#x seq -360.0 -180.0 30.0
 radians expr {x*$pi1_2}
 sinX expr sin(radians)
 cosX expr cos(radians)
@@ -92,85 +105,13 @@ xl expr {x-$pct}
 ####  (4) Add elements to the graph
 set bitmap [file join $DemoDir bitmaps spiral.xbm]
 set mask [file join $DemoDir bitmaps spiral_mask.xbm]
-$graph element create line3 -color green4 -fill green -label cos(x) -mapx degrees -styles $styles -weights w -x x\
+$graph graph element create line3 -color green4 -fill #90E07C -label cos(x) -mapx degrees -styles $styles -weights w -x x\
         -y cosX -yhigh yh -ylow yl
-$graph element create line1 -color orange -outline black -fill orange -fill blue -label sin(x) -linewidth 3\
+$graph graph element create line1 -color orange -outline black -fill orange -fill #7D7CE0 -label sin(x) -linewidth 3\
         -mapx degrees -pixels 6m -symbol [list @$bitmap @$mask] -x x -y sinX 
 
-### Map everything, add Rbc_* commands.
-grid .g -sticky nsew
+### Map everything
+grid .header -columnspan 1 -sticky ew
+grid $graph -sticky nsew
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 0 -weight 1
-Rbc_ZoomStack $graph
-Rbc_ActiveLegend $graph
-Rbc_ClosestPoint $graph
-Rbc_PrintKey $graph
-set toolbar [Rbc_ToolbarCrosshair {} $graph]
-grid $toolbar -sticky we
-# FIXME rbc - On X11 the legend is not correctly sized for its
-# text, possibly because it has an unexpected font.
-# On X11 this code doesn't change the font, but it does
-# size the legend correctly.
-#
-# Do this also for win32 (for which it does resize the font)
-# because on win32 the legend font is too small.
-if {[tk windowingsystem] in {x11 win32}} {
-    $graph legend configure -font TkDefaultFont
-}
-
-### The code below is not executed and is not part of the demo.It remains available for experimentation.
-####  (1) "Fill" experiment 1.
-#     Choose "if 1" to add an area fill.
-#     The original BLT demo did this, but the fill makes it hard to
-#     see other graph features.
-if 0 {
-    $graph element configure line1 -areapattern solid -areaforeground green
-    $graph element configure line3 -areapattern solid -areaforeground red
-}
-
-####  (2) "Fill" experiment 2.
-#     Use the -areatile option to use the image $img.
-if 0 {
-    set data {
-        R0lGODlhEAANAMIAAAAAAH9/f///////AL+/vwAA/wAAAAAAACH5BAEAAAUALAAAAAAQAA0A
-        AAM8WBrM+rAEQWmIb5KxiWjNInCkV32AJHRlGQBgDA7vdN4vUa8tC78qlrCWmvRKsJTquHkp
-        ZTKAsiCtWq0JADs=
-    }
-    set data {
-        R0lGODlhEAANAMIAAAAAAH9/f///////AL+/vwAA/wAAAAAAACH5BAEAAAUALAAAAAAQAA0A
-        AAM1WBrM+rAEMigJ8c3Kb3OSII6kGABhp1JnaK1VGwjwKwtvHqNzzd263M3H4n2OH1QBwGw6
-        nQkAOw==
-    }
-    set img [image create photo -format gif -data $data]
-    $graph element configure line1 -areapattern solid -areaforeground green -areatile $img 
-    $graph element configure line3 -areapattern @$DemoDir/bitmaps/sharky.xbm -areaforeground red -areabackground {}\
-            -areapattern solid
-}
-
-####  (3) Experiment with markers by placing a JPEG file at this location.
-set fileName testImg.jpg
-if { [file exists $fileName] } {
-    set img2 [image create photo]
-    winop readjpeg $fileName $img2
-    if 1 { 
-        puts stderr [time { 
-            $graph marker create image -image $img2 -coords {-360.0 -1.0 360.0 1.0} -under yes -mapx degrees\
-                    -name $fileName
-        }]
-    }
-} 
-
-####  (4) Experiment with image snapshots.
-# Facilities for PostScript output and an image snapshot can be added to any
-# demo by passing suitable arguments to the CommonHeader command.
-#
-# emf output (also to CLIPBOARD below) is available for Windows only.
-if 0 {
-    bind $graph <Control-ButtonPress-3> [list MakeSnapshot $graph demo2.ppm]
-    bind $graph <Shift-ButtonPress-3> { 
-        %W postscript output demo2.ps
-        if {$tcl_platform(platform) eq {windows} } {
-            %W snap demo2.emf -format emf
-        }
-    }
-}
