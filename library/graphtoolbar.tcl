@@ -135,6 +135,13 @@ namespace eval ::rbc::graphtoolbar {
         - Linear axes preserve `max-min`.
         - Logarithmic axes preserve `max/min`.
 
+        Axis scrolling limits are also honored during panning. If an axis has `-scrollmin` or `-scrollmax` configured,
+        or uses `-scrollcommand`, the effective `axis view` scrolling region bounds the pan. When the viewport reaches
+        a scrolling boundary it simply stops moving; its width or logarithmic ratio is never reduced.
+
+        If several used axes belong to the same data dimension, their scrolling constraints are combined. The most
+        restrictive axis limits the common physical drag displacement, so all mapped axes remain synchronized.
+
         All axes actually participating in the displayed coordinate system are moved together. This includes axes
         installed in margins, hidden axes mapped by elements, and the axes mapped by a Polar or Smith grid.  Completely
         unused axes are not changed.
@@ -4540,7 +4547,31 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 if {!isfinite($unitsPerPixel)} {
                     continue
                 }
-                dict set axes $axis [list $dimension $min $max $logscale $unitsPerPixel]
+                #
+                # An axis which has an explicit scrolling boundary, or which
+                # drives a scrollbar through -scrollcommand, constrains pan.
+                #
+                # "axis view" returns normalized fractions in physical screen
+                # orientation (left-to-right or top-to-bottom), already taking
+                # descending axes and graph orientation into account.
+                #
+                set scrollFirst {}
+                set scrollLast {}
+                set scrollMin [$graph axis cget $axis -scrollmin]
+                set scrollMax [$graph axis cget $axis -scrollmax]
+                set scrollCommand [$graph axis cget $axis -scrollcommand]
+                if {($scrollMin ne {}) || ($scrollMax ne {}) || ($scrollCommand ne {})} {
+                    if {![catch {$graph axis view $axis} scrollView]} {
+                        lassign $scrollView first last
+                        if {[string is double -strict $first] && [string is double -strict $last] &&\
+                                    isfinite($first) && isfinite($last) && ($last > $first)} {
+                            set scrollFirst $first
+                            set scrollLast $last
+                        }
+                    }
+                }
+                dict set axes $axis [list $dimension $min $max $logscale $unitsPerPixel\
+                                             [expr {abs(double($pixelSpan))}] $scrollFirst $scrollLast]
             }
         }
         if {![dict size $axes]} {
@@ -4577,13 +4608,103 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         my ChangeToolbarState disable
         return true
     }
+    method ConstrainPanDelta {dimension deltaPixel} {
+        # Constrains a physical pan displacement to axis scrolling regions.
+        #  dimension - data dimension, `x` or `y`.
+        #  deltaPixel - requested physical displacement along that data
+        #    dimension.
+        #
+        # For every scroll-constrained axis, the current viewport is known as
+        # normalized `first last` fractions of its scrolling world. Moving the
+        # plotted contents by `deltaPixel` moves that normalized viewport in
+        # the opposite direction.
+        #
+        # All axes of one data dimension must remain synchronized. Therefore
+        # this method intersects the displacement permitted by every
+        # constrained axis and returns one common physical displacement.
+        #
+        # Reaching -scrollmin or -scrollmax stops translation at the boundary;
+        # it never changes the width of a linear viewport or the ratio of a
+        # logarithmic viewport.
+        #
+        # Returns: Constrained physical displacement in pixels.
+        set minDelta {}
+        set maxDelta {}
+        dict for {axis state} $PanInfo(axes) {
+            lassign $state axisDimension min max logscale unitsPerPixel pixelSpan scrollFirst scrollLast
+            if {($axisDimension ne $dimension) || ($scrollFirst eq {}) || ($scrollLast eq {})} {
+                continue
+            }
+            set windowSize [expr {$scrollLast-$scrollFirst}]
+            if {($windowSize <= 0.0) || ($pixelSpan <= 0.0)} {
+                continue
+            }
+            #
+            # axis view reports:
+            #
+            #     scrollFirst ... scrollLast
+            #
+            # in physical scrollbar orientation.
+            #
+            # The current viewport occupies "windowSize" of the scrolling
+            # world and "pixelSpan" physical pixels. Therefore:
+            #
+            #     pixelsPerFraction = pixelSpan / windowSize
+            #
+            # Dragging the contents in the positive physical direction moves
+            # the scrollbar viewport toward zero.
+            #
+            set pixelsPerFraction [expr {$pixelSpan/$windowSize}]
+            #
+            # Lower displacement bound:
+            #
+            #     newLast <= 1
+            #
+            # Upper displacement bound:
+            #
+            #     newFirst >= 0
+            #
+            set axisMinDelta [expr {($scrollLast-1.0)*$pixelsPerFraction}]
+            set axisMaxDelta [expr {$scrollFirst*$pixelsPerFraction}]
+            if {($minDelta eq {}) || ($axisMinDelta > $minDelta)} {
+                set minDelta $axisMinDelta
+            }
+            if {($maxDelta eq {}) || ($axisMaxDelta < $maxDelta)} {
+                set maxDelta $axisMaxDelta
+            }
+        }
+        #
+        # Every valid axis-view interval contains zero, so this should only be
+        # possible because of inconsistent or numerically degenerate state.
+        # Freezing the displacement is safer than changing relative axis
+        # mappings.
+        #
+        if {($minDelta ne {}) && ($maxDelta ne {}) && ($minDelta > $maxDelta)} {
+            return 0.0
+        }
+        if {($minDelta ne {}) && ($deltaPixel < $minDelta)} {
+            set deltaPixel $minDelta
+        }
+        if {($maxDelta ne {}) && ($deltaPixel > $maxDelta)} {
+            set deltaPixel $maxDelta
+        }
+        return $deltaPixel
+    }
     method DragPan {x y} {
         # Updates an active pan from the current pointer position.
         #  x - physical pointer X coordinate.
         #  y - physical pointer Y coordinate.
         #
-        # Linear limits are translated additively; logarithmic limits are  translated multiplicatively in log
-        # space. The navigation-history entry is created only on the first real movement.
+        # Linear limits are translated additively; logarithmic limits are
+        # translated multiplicatively in log space.
+        #
+        # Axes with an explicit scrolling region or -scrollcommand constrain
+        # the common physical displacement for their data dimension. Reaching
+        # a scrolling boundary stops translation without changing viewport
+        # scale.
+        #
+        # The navigation-history entry is created only on the first real
+        # movement.
         #
         # Returns: Nothing.
         if {![info exists PanInfo(active)] || !$PanInfo(active)} {
@@ -4595,33 +4716,39 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set yPixel [expr {round($yPixel)}]
         set dx [expr {$xPixel-$PanInfo(start,xPixel)}]
         set dy [expr {$yPixel-$PanInfo(start,yPixel)}]
+        # Constrain the displacement itself rather than individual axis
+        # endpoints. This preserves both viewport scale and alignment between
+        # multiple axes mapped to the same data dimension.
+        set dx [my ConstrainPanDelta x $dx]
+        set dy [my ConstrainPanDelta y $dy]
         if {($dx == $PanInfo(dx)) && ($dy == $PanInfo(dy))} {
             return
         }
-        # Prepare every new limit pair first.  Do not leave some axes
-        # modified if another axis overflows.
+        # Prepare every new limit pair first. Do not leave some axes modified
+        # if another axis overflows.
         set cmds [list]
         set changed false
         dict for {axis state} $PanInfo(axes) {
-            lassign $state dimension min max logscale unitsPerPixel
+            lassign $state dimension min max logscale unitsPerPixel pixelSpan scrollFirst scrollLast
             if {$dimension eq {x}} {
                 set deltaPixel $dx
             } else {
                 set deltaPixel $dy
             }
             if {$logscale} {
-                # Translate in log space.  Multiplying both limits by
-                # the same factor preserves max/min exactly.
+                # Translate in log space. Multiplying both limits by the same
+                # factor preserves max/min exactly.
                 set logShift [expr {-$unitsPerPixel*$deltaPixel}]
-                if {[catch {expr {exp($logShift)}} factor] || ![string is double -strict $factor]\
-                            || !isfinite($factor) || ($factor <= 0.0)} {
+
+                if {[catch {expr {exp($logShift)}} factor] || ![string is double -strict $factor] ||\
+                            !isfinite($factor) || ($factor <= 0.0)} {
                     return
                 }
                 set newMin [expr {$min*$factor}]
                 set newMax [expr {$max*$factor}]
             } else {
-                # Ordinary linear translation.  Adding the same shift
-                # to both limits preserves max-min exactly.
+                # Ordinary linear translation. Adding the same shift to both
+                # limits preserves max-min exactly.
                 set shift [expr {-$unitsPerPixel*$deltaPixel}]
                 set newMin [expr {$min+$shift}]
                 set newMax [expr {$max+$shift}]
@@ -4645,8 +4772,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             set PanInfo(historySaved) true
         }
         # If the pointer was previously moved and then returns to the
-        # starting location, these commands also restore the original
-        # limits.
+        # starting location, these commands also restore the original limits.
         if {$changed || $PanInfo(historySaved)} {
             foreach cmd $cmds {
                 {*}$cmd

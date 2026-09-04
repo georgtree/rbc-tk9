@@ -1893,6 +1893,119 @@ test panInteractive-11 {wheel zoom is ignored during active pan} -constraints {i
     destroy $widget
 }
 
+test panInteractive-12 {pan stops at linear scroll boundaries without scaling} -constraints {isInteractive isPan}\
+        -setup {
+    proc ::PanScrollCallback12 {first last} {}
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -pan]
+    pack .gtb -fill both -expand yes
+    set graph [$widget subwidget graph]
+    $graph configure -title {pan stops at linear scroll boundaries without scaling} {*}$titleFont
+    $graph axis configure x -min 4 -max 8 -scrollmin 2 -scrollmax 10 -scrollcommand ::PanScrollCallback12
+    $graph axis configure y -min 0 -max 10
+    $graph element create line1 -data {4 0 6 5 8 10}
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    set ax [expr {$left+$width/2}]
+    set ay [expr {$top+$height/2}]
+    set rightX [expr {$left+$width+50}]
+    set leftX  [expr {$left-50}]
+    set initialView [$graph axis view x]
+    set initialViewSize [expr {[lindex $initialView 1]-[lindex $initialView 0]}]
+    # Drag farther than the lower scrolling boundary.
+    GenerateGraphEvent $graph <Shift-ButtonPress-1> $ax $ay $defaultDelay
+    GenerateGraphEvent $graph <Motion> $rightX $ay $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $rightX $ay $defaultDelay
+    set lower [$graph axis limits x]
+    set lowerView [$graph axis view x]
+    set lowerViewSize [expr {[lindex $lowerView 1]-[lindex $lowerView 0]}]
+    # Undo back to 4..8.
+    GenerateGraphEvent $graph <ButtonPress-2> $ax $ay $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-2> $ax $ay $defaultDelay
+    # Drag farther than the upper scrolling boundary.
+    GenerateGraphEvent $graph <Shift-ButtonPress-1> $ax $ay $defaultDelay
+    GenerateGraphEvent $graph <Motion> $leftX $ay $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $leftX $ay $defaultDelay
+    set upper [$graph axis limits x]
+    set upperView [$graph axis view x]
+    set upperViewSize [expr {[lindex $upperView 1]-[lindex $upperView 0]}]
+    list [approxNestedEqual $lower {2 6}] [expr {abs(([lindex $lower 1]-[lindex $lower 0])-4.0) < 1.0e-9}]\
+            [expr {abs($lowerViewSize-$initialViewSize) < 1.0e-9}]\
+            [approxNestedEqual $upper {6 10}] [expr {abs(([lindex $upper 1]-[lindex $upper 0])-4.0) < 1.0e-9}]\
+            [expr {abs($upperViewSize-$initialViewSize) < 1.0e-9}]
+} -result {true 1 1 true 1 1} -cleanup {
+    rename ::PanScrollCallback12 {}
+    destroy $widget
+}
+
+test panInteractive-13 {log pan stops at scroll boundary without changing ratio} -constraints {isInteractive isPan}\
+        -setup {
+    proc ::PanScrollCallback13 {first last} {}
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -pan]
+    pack .gtb -fill both -expand yes
+    set graph [$widget subwidget graph]
+    $graph configure -title {log pan stops at scroll boundary without changing ratio} {*}$titleFont
+    $graph axis configure x -min 10 -max 1000 -logscale yes -scrollmin 1 -scrollmax 10000 -scrollcommand\
+            ::PanScrollCallback13
+    $graph axis configure y -min 0 -max 10
+    $graph element create line1 -data {10 1 100 5 1000 9}
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    set ax [expr {$left+$width/2}]
+    set ay [expr {$top+$height/2}]
+    set bx [expr {$left+$width+50}]
+    set initialView [$graph axis view x]
+    set initialViewSize [expr {[lindex $initialView 1]-[lindex $initialView 0]}]
+    GenerateGraphEvent $graph <Shift-ButtonPress-1> $ax $ay $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bx $ay $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $bx $ay $defaultDelay
+    lassign [$graph axis limits x] min max
+    set finalView [$graph axis view x]
+    set finalViewSize [expr {[lindex $finalView 1]-[lindex $finalView 0]}]
+    list [approxNestedEqual [list $min $max] {1 100}] [expr {abs($max/$min-100.0) < 1.0e-8}]\
+            [expr {abs($finalViewSize-$initialViewSize) < 1.0e-9}]
+} -result {true 1 1} -cleanup {
+    rename ::PanScrollCallback13 {}
+    destroy $widget
+}
+
+test panInteractive-14 {pan uses common scroll constraint for mapped axes} -constraints {isInteractive isPan} -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -pan]
+    pack .gtb -fill both -expand yes
+    set graph [$widget subwidget graph]
+    $graph configure -title {pan uses common scroll constraint for mapped axes} {*}$titleFont
+    # Primary X can move half a viewport before reaching scrollmin.
+    $graph axis configure x -min 4 -max 8 -scrollmin 2 -scrollmax 10
+    $graph axis configure y -min 0 -max 10
+    # xAlt can move only 1/8 of a viewport before reaching scrollmin:
+    #
+    #     current       40 .. 80
+    #     scrollmin     35
+    #
+    # It must therefore constrain the physical drag for both X axes.
+    $graph axis create xAlt -min 40 -max 80 -scrollmin 35 -scrollmax 200 -hide yes
+    $graph element create line1 -data {4 0 6 5 8 10}
+    $graph element create line2 -data {40 0 60 5 80 10} -mapx xAlt
+} -body {
+    WaitForWindow $graph
+    lassign [$graph extents plotarea] left top width height
+    set ax [expr {$left+$width/2}]
+    set ay [expr {$top+$height/2}]
+    set bx [expr {$left+$width+50}]
+    GenerateGraphEvent $graph <Shift-ButtonPress-1> $ax $ay $defaultDelay
+    GenerateGraphEvent $graph <Motion> $bx $ay $defaultDelay
+    GenerateGraphEvent $graph <ButtonRelease-1> $bx $ay $defaultDelay
+    set primary [$graph axis limits x]
+    set alternate [$graph axis limits xAlt]
+
+    list [approxNestedEqual $primary {3.5 7.5}] [approxNestedEqual $alternate {35 75}]\
+            [expr {abs(([lindex $primary 1]-[lindex $primary 0])-4.0) < 1.0e-9 }]\
+            [expr {abs(([lindex $alternate 1]-[lindex $alternate 0])-40.0) < 1.0e-9}]
+} -result {true true 1 1} -cleanup {
+    destroy $widget
+}
+
 #### crosshairs
 test crosshairsInteractive-1 {crosshairs with current coordinate marker}\
         -constraints {isInteractive isCrosshairs} -setup {

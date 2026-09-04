@@ -4489,15 +4489,6 @@ static int GetAxisScrollState(Axis *axisPtr, AxisRange *rangePtr, double *viewMi
             viewMax = worldMax;
         }
     }
-    if (axisPtr->logScale) {
-        if ((worldMin <= 0.0) || (worldMax <= 0.0) || (viewMin <= 0.0) || (viewMax <= 0.0)) {
-            return FALSE;
-        }
-        worldMin = log10(worldMin);
-        worldMax = log10(worldMax);
-        viewMin = log10(viewMin);
-        viewMax = log10(viewMax);
-    }
     SetAxisRange(rangePtr, worldMin, worldMax);
     viewMinNorm = NormalizeAxisValue(rangePtr, viewMin);
     viewMaxNorm = NormalizeAxisValue(rangePtr, viewMax);
