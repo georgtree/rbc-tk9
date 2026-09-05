@@ -9,6 +9,7 @@
  *
  * See "license.terms" for details.
  */
+#include <math.h>
 #include <stdint.h>
 #include "rbcGraph.h"
 #include "rbcChain.h"
@@ -57,6 +58,10 @@ static SmoothingInfo smoothingInfo[] = {{"linear", PEN_SMOOTH_NONE},         {"s
                                         {"natural", PEN_SMOOTH_NATURAL},     {"cubic", PEN_SMOOTH_NATURAL},
                                         {"quadratic", PEN_SMOOTH_QUADRATIC}, {"catrom", PEN_SMOOTH_CATROM},
                                         {(char *)NULL, PEN_SMOOTH_LAST}};
+
+typedef enum { LINE_DECIMATE_NONE, LINE_DECIMATE_AUTO } LineDecimation;
+
+static const char *const lineDecimateNames[] = {"none", "auto", NULL};
 
 typedef struct {
     Point2D *screenPts;  /* Array of transformed coordinates */
@@ -272,6 +277,7 @@ typedef struct {
 
     double rTolerance; /* Tolerance to reduce the number of
                         * points displayed. */
+    LineDecimation decimate;    
     /*
      * Drawing related data structures.
      */
@@ -416,6 +422,8 @@ _Static_assert(offsetof(Line, core) == 0, "Element core must be the first Line m
 
 #define DEF_LINE_CDATA_FORMAT "gamma"
 #define DEF_LINE_Z0 "50.0"
+
+#define DEF_LINE_DECIMATE "none"
 
 /*
  * Line and strip-element option conversion masks.
@@ -977,6 +985,9 @@ static const Tk_OptionSpec lineElemOptionSpecs[] = {
     LINE_ELEMENT_OPTION_ENTRIES(LINE_ELEMENT_AREA_OPTION_ENTRIES, LINE_ELEMENT_REDUCE_OPTION_ENTRY,
                                 LINE_ELEMENT_STATE_OPTION_ENTRY, LINE_ELEMENT_TRACE_OPTION_ENTRY),
 
+    {TK_OPTION_STRING_TABLE, "-decimate", "decimate", "Decimate", DEF_LINE_DECIMATE, -1, offsetof(Line, decimate), 0,
+     (ClientData)lineDecimateNames, LINE_ELEM_MAP_ITEM_MASK},
+
     {TK_OPTION_STRING, "-param", "param", "Param", NULL, offsetof(Line, paramObjPtr), -1, TK_OPTION_NULL_OK, NULL,
      LINE_ELEM_PARAM_MASK},
 
@@ -1266,6 +1277,9 @@ static void InitPen(LinePen *penPtr, const Tk_OptionSpec *optionSpecs, unsigned 
 static int ScaleSymbol(Element *elemPtr, int normalSize);
 static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
 static void ReducePoints(MapInfo *mapPtr, double tolerance);
+static int CanPixelDecimateLine(Line *linePtr);
+static int IsMonotonicMappedAbscissa(Graph *graphPtr, MapInfo *mapPtr);
+static void DecimatePointsByPixels(Graph *graphPtr, MapInfo *mapPtr);
 static void GenerateSteps(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
 static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
 static void GenerateSplineRuns(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr, int parametric);
@@ -3458,6 +3472,381 @@ static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
 /*
  *----------------------------------------------------------------------
  *
+ * PixelAbscissa --
+ *
+ *      Returns the physical screen coordinate corresponding to the
+ *      element's data-X dimension.
+ *
+ *      Normally this is screen X.  With -invertxy it is screen Y.
+ *
+ *----------------------------------------------------------------------
+ */
+INLINE static double PixelAbscissa(Graph *graphPtr, const Point2D *pointPtr) {
+    return graphPtr->inverted ? pointPtr->y : pointPtr->x;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * PixelOrdinate --
+ *
+ *      Returns the physical screen coordinate perpendicular to the
+ *      element's data-X dimension.
+ *
+ *      The minimum and maximum of this coordinate preserve the visible
+ *      envelope of all samples falling into one data-X pixel.
+ *
+ *----------------------------------------------------------------------
+ */
+INLINE static double PixelOrdinate(Graph *graphPtr, const Point2D *pointPtr) {
+    return graphPtr->inverted ? pointPtr->x : pointPtr->y;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * CanPixelDecimateLine --
+ *
+ *      Tests the non-geometric conditions required by the initial
+ *      display-density reduction implementation.
+ *
+ *      Keep this deliberately conservative.  More cases can be enabled
+ *      after the basic implementation has been validated.
+ *
+ *----------------------------------------------------------------------
+ */
+static int CanPixelDecimateLine(Line *linePtr) {
+    if (linePtr->decimate != LINE_DECIMATE_AUTO) {
+        return FALSE;
+    }
+    /*
+     * Initially support ordinary graph XY line elements only.
+     */
+    if (linePtr->core.classUid != rbcLineElementUid) {
+        return FALSE;
+    }
+    if (linePtr->dataMode != LINE_DATA_XY) {
+        return FALSE;
+    }
+    /*
+     * "linear" is RBC's ordinary unsmoothed polyline mode.
+     */
+    if (linePtr->reqSmooth != PEN_SMOOTH_NONE) {
+        return FALSE;
+    }
+    /*
+     * Weighted/multiple pen styles can introduce a style transition at
+     * any source point.  Do not discard such points yet.
+     */
+    if (Rbc_ChainGetLength(linePtr->core.palette) >= 2) {
+        return FALSE;
+    }
+    /*
+     * Area filling depends on the precise mapped polygon.  Leave it on
+     * the original path until fill semantics have been considered
+     * separately.
+     */
+    if ((linePtr->fillTile != NULL) || (linePtr->fillStipple != None)) {
+        return FALSE;
+    }
+    return TRUE;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * IsMonotonicMappedAbscissa --
+ *
+ *      Tests whether each continuous mapped run is monotonic along the
+ *      physical screen dimension corresponding to data X.
+ *
+ *      Axis transforms are monotonic, so monotonic data X remains
+ *      monotonic here even with logarithmic axes, -descending, and
+ *      -invertxy.  The direction itself does not matter.
+ *
+ *      Discontinuous runs are tested independently because no segment
+ *      will ever connect two such runs.
+ *
+ *----------------------------------------------------------------------
+ */
+static int IsMonotonicMappedAbscissa(Graph *graphPtr, MapInfo *mapPtr) {
+    Tcl_Size i;
+    int direction;
+
+    if (mapPtr->nScreenPts < 2) {
+        return TRUE;
+    }
+    direction = 0;
+    for (i = 1; i < mapPtr->nScreenPts; i++) {
+        double previous;
+        double current;
+
+        if ((mapPtr->breakBefore != NULL) && mapPtr->breakBefore[i]) {
+            direction = 0;
+            continue;
+        }
+        previous = PixelAbscissa(graphPtr, mapPtr->screenPts + i - 1);
+        current = PixelAbscissa(graphPtr, mapPtr->screenPts + i);
+        if (current > previous) {
+            if (direction < 0) {
+                return FALSE;
+            }
+            direction = 1;
+        } else if (current < previous) {
+            if (direction > 0) {
+                return FALSE;
+            }
+            direction = -1;
+        }
+    }
+    return TRUE;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * AppendPixelBucket --
+ *
+ *      Adds the first, minimum-ordinate, maximum-ordinate, and last
+ *      point of one screen-pixel bucket.
+ *
+ *      The selected source positions are sorted into original data order
+ *      before being appended.  Duplicate representatives are removed.
+ *
+ *----------------------------------------------------------------------
+ */
+static void AppendPixelBucket(Tcl_Size first, Tcl_Size minIndex, Tcl_Size maxIndex, Tcl_Size last, Tcl_Size *selected,
+                              Tcl_Size *countPtr) {
+    Tcl_Size candidates[4];
+    int i;
+    int j;
+
+    candidates[0] = first;
+    candidates[1] = minIndex;
+    candidates[2] = maxIndex;
+    candidates[3] = last;
+    /*
+     * There are only four entries, so a tiny insertion sort is simpler
+     * than involving qsort().
+     */
+    for (i = 1; i < 4; i++) {
+        Tcl_Size value;
+
+        value = candidates[i];
+        j = i;
+        while ((j > 0) && (candidates[j - 1] > value)) {
+            candidates[j] = candidates[j - 1];
+            j--;
+        }
+        candidates[j] = value;
+    }
+    for (i = 0; i < 4; i++) {
+        if ((i == 0) || (candidates[i] != candidates[i - 1])) {
+            selected[*countPtr] = candidates[i];
+            (*countPtr)++;
+        }
+    }
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * DecimatePointsByPixels --
+ *
+ *      Reduces a mapped, monotonic XY line according to screen density.
+ *
+ *      Consecutive points mapping to the same physical data-X pixel are
+ *      represented by at most four points:
+ *
+ *          first
+ *          minimum ordinate
+ *          maximum ordinate
+ *          last
+ *
+ *      The representatives are emitted in original data order.
+ *
+ *      This preserves narrow positive and negative excursions instead
+ *      of averaging them away.
+ *
+ *      The original source indices and discontinuity information remain
+ *      attached to the retained mapped points.
+ *
+ *----------------------------------------------------------------------
+ */
+static void DecimatePointsByPixels(Graph *graphPtr, MapInfo *mapPtr) {
+    Point2D *screenPts;
+    Tcl_Size *indices;
+    unsigned char *breakBefore;
+    Tcl_Size *selected;
+    Tcl_Size nPoints;
+    Tcl_Size count;
+    Tcl_Size runStart;
+    size_t selectedBytes;
+    size_t pointBytes;
+    size_t indexBytes;
+
+    if ((mapPtr == NULL) || (mapPtr->screenPts == NULL) || (mapPtr->indices == NULL) || (mapPtr->nScreenPts < 5)) {
+        return;
+    }
+    /*
+     * Never apply pixel-column aggregation to an arbitrary XY path.
+     * A non-monotonic path can leave and later revisit the same pixel
+     * column, and combining those visits would change its topology.
+     */
+    if (!IsMonotonicMappedAbscissa(graphPtr, mapPtr)) {
+        return;
+    }
+    nPoints = mapPtr->nScreenPts;
+    if (GetLineArrayByteCount(nPoints, sizeof(*selected), &selectedBytes) != TCL_OK) {
+        return;
+    }
+    selected = Tcl_AttemptAlloc(selectedBytes);
+    if (selected == NULL) {
+        return;
+    }
+    count = 0;
+    runStart = 0;
+    while (runStart < nPoints) {
+        Tcl_Size runEnd;
+        Tcl_Size i;
+
+        /*
+         * Find the end of this continuous data run.
+         */
+        runEnd = runStart + 1;
+        while ((runEnd < nPoints) && ((mapPtr->breakBefore == NULL) || !mapPtr->breakBefore[runEnd])) {
+            runEnd++;
+        }
+        /*
+         * Reduce consecutive equal pixel buckets within this run.
+         */
+        i = runStart;
+        while (i < runEnd) {
+            Tcl_Size first;
+            Tcl_Size last;
+            Tcl_Size minIndex;
+            Tcl_Size maxIndex;
+            Tcl_Size j;
+            double bucket;
+            double minOrdinate;
+            double maxOrdinate;
+
+            first = i;
+            last = i;
+            minIndex = i;
+            maxIndex = i;
+            /*
+             * The native GDI/X11 paths truncate Point2D coordinates when
+             * converting them to integer drawable coordinates.
+             *
+             * trunc() gives us the same pixel grouping without risking
+             * overflow by casting a potentially far-offscreen coordinate
+             * to int here.
+             */
+            bucket = trunc(PixelAbscissa(graphPtr, mapPtr->screenPts + i));
+            minOrdinate = PixelOrdinate(graphPtr, mapPtr->screenPts + i);
+            maxOrdinate = minOrdinate;
+            for (j = i + 1; j < runEnd; j++) {
+                double nextBucket;
+                double ordinate;
+
+                nextBucket = trunc(PixelAbscissa(graphPtr, mapPtr->screenPts + j));
+                if (nextBucket != bucket) {
+                    break;
+                }
+                last = j;
+                ordinate = PixelOrdinate(graphPtr, mapPtr->screenPts + j);
+                if (ordinate < minOrdinate) {
+                    minOrdinate = ordinate;
+                    minIndex = j;
+                }
+                if (ordinate > maxOrdinate) {
+                    maxOrdinate = ordinate;
+                    maxIndex = j;
+                }
+            }
+            AppendPixelBucket(first, minIndex, maxIndex, last, selected, &count);
+            i = j;
+        }
+        runStart = runEnd;
+    }
+
+    /*
+     * Sparse data naturally produces one representative per original
+     * point.  In that case -decimate auto costs only the scan above and
+     * leaves the existing arrays untouched.
+     */
+    if (count == nPoints) {
+        ckfree(selected);
+        return;
+    }
+    if ((count <= 0) || (GetLineArrayByteCount(count, sizeof(*screenPts), &pointBytes) != TCL_OK) ||
+        (GetLineArrayByteCount(count, sizeof(*indices), &indexBytes) != TCL_OK)) {
+        ckfree(selected);
+        return;
+    }
+    screenPts = Tcl_AttemptAlloc(pointBytes);
+    if (screenPts == NULL) {
+        ckfree(selected);
+        return;
+    }
+    indices = Tcl_AttemptAlloc(indexBytes);
+    if (indices == NULL) {
+        ckfree(screenPts);
+        ckfree(selected);
+        return;
+    }
+    breakBefore = NULL;
+    if (mapPtr->breakBefore != NULL) {
+        size_t breakBytes;
+
+        if (GetLineArrayByteCount(count, sizeof(*breakBefore), &breakBytes) != TCL_OK) {
+            ckfree(screenPts);
+            ckfree(indices);
+            ckfree(selected);
+            return;
+        }
+        breakBefore = Tcl_AttemptAlloc(breakBytes);
+        if (breakBefore == NULL) {
+            ckfree(screenPts);
+            ckfree(indices);
+            ckfree(selected);
+            return;
+        }
+    }
+    /*
+     * Construct the reduced arrays atomically.  selected[] contains
+     * positions in the old MapInfo arrays, not source-data indices.
+     */
+    {
+        Tcl_Size i;
+
+        for (i = 0; i < count; i++) {
+            Tcl_Size k;
+
+            k = selected[i];
+            screenPts[i] = mapPtr->screenPts[k];
+            indices[i] = mapPtr->indices[k];
+            if (breakBefore != NULL) {
+                breakBefore[i] = mapPtr->breakBefore[k];
+            }
+        }
+    }
+    ckfree(selected);
+    ckfree(mapPtr->screenPts);
+    ckfree(mapPtr->indices);
+    if (mapPtr->breakBefore != NULL) {
+        ckfree(mapPtr->breakBefore);
+    }
+    mapPtr->screenPts = screenPts;
+    mapPtr->indices = indices;
+    mapPtr->breakBefore = breakBefore;
+    mapPtr->nScreenPts = count;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
  * ReducePoints --
  *
  *      Generates a coordinate array of transformed screen coordinates
@@ -5412,6 +5801,17 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
             break;
         default:
             break;
+        }
+        /*
+         * Screen-density reduction is deliberately performed after the full
+         * world-to-screen mapping in this first implementation.
+         *
+         * MapSymbols() has already run, so symbol/active-point semantics still
+         * refer to the complete source data.  Only the connecting trace is
+         * reduced.
+         */
+        if (CanPixelDecimateLine(linePtr)) {
+            DecimatePointsByPixels(graphPtr, &mapInfo);
         }
         if (linePtr->rTolerance > 0.0) {
             ReducePoints(&mapInfo, linePtr->rTolerance);
