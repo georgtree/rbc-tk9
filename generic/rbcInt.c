@@ -14,14 +14,6 @@
 
 extern RbcStubs rbcStubs;
 
-#ifndef RBC_LIBRARY
-#ifdef WIN32
-#define RBC_LIBRARY "c:/Program Files/Tcl/lib/rbc"
-#else
-#define RBC_LIBRARY "unknown"
-#endif
-#endif
-
 #ifdef WIN32
 /*
  *----------------------------------------------------------------------

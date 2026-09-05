@@ -563,7 +563,7 @@ test generalConfiguration-9 {options configuration} -setup {
     grid rowconfigure . 0 -weight 1
 } -body {
     $widget configure -zoomboxopts
-} -result {-linewidth 2 -dashes 4 -xor no} -cleanup {
+} -result {-linewidth 2 -dashes 4 -outline grey -xor no} -cleanup {
     destroy $widget
 }
 

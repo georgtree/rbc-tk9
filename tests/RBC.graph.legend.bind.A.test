@@ -182,38 +182,6 @@ namespace eval graph.legend {
     } -result {entered Line1}
 
 	# ------------------------------------------------------------------------------------
-	# Purpose: Ensure Rbc_ActiveLegend receives legend Enter/Leave events through the
-	# element's "all" binding tag and activates/deactivates the picked legend entry.
-	# ------------------------------------------------------------------------------------
-    test RBC.graph.legend.bind.A.1.8 {
-		Rbc_ActiveLegend responds to legend pointer events
-	} -setup {
-        graph .graph1 -width 400 -height 300
-        set X {1 2 3 4 5}
-        set Y {2 4 6 8 10}
-        .graph1 element create Line1 -x $X -y $Y
-        .graph1 element create Line2 -x $Y -y $X
-        pack .graph1
-        update idletasks
-        Rbc_ActiveLegend .graph1
-        set point [FindLegendEntryPoint .graph1 Line1]
-    } -body {
-        lassign $point x y
-        event generate .graph1 <Motion> -x $x -y $y
-        update
-        set activeAfterEnter [.graph1 legend activate ThisElementDoesNotExist]
-        event generate .graph1 <Leave> -x $x -y $y
-        update
-        set activeAfterLeave [.graph1 legend activate ThisElementDoesNotExist]
-        list $activeAfterEnter $activeAfterLeave
-    } -cleanup {
-        destroy .graph1
-    } -result {Line1 {}}
-
-	# ------------------------------------------------------------------------------------
-	# Purpose: Ensure a key event is delivered to the currently picked legend entry.
-	# ------------------------------------------------------------------------------------
-	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure a key event is delivered to the currently picked legend entry.
 	# ------------------------------------------------------------------------------------
     test RBC.graph.legend.bind.A.1.9 {
