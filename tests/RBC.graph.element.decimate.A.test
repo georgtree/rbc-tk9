@@ -255,24 +255,24 @@ namespace eval graph.element.decimate {
     } -result {1 2}
 
     # ------------------------------------------------------------------
-    # The persistent decimation cache must be invalidated when a named
-    # Y vector changes in place.
+    # Ranged updates to named data vectors must keep the persistent
+    # Stage-3 cache coherent.
     #
-    # Initially index 2 is not first/min/max/last, so it is omitted by
-    # the cached display geometry.  Changing only y[2] makes it the new
-    # maximum.  A stale cache would continue to omit index 2.
+    # These tests deliberately use enough source points to exceed the
+    # -decimate auto density threshold.  Small five-point tests would
+    # now take the ordinary full-mapping path and would therefore not
+    # exercise the cache at all.
     # ------------------------------------------------------------------
+
     test RBC.graph.element.decimate.A.5.1 {
-        graph element decimate: Y vector update invalidates cached extrema
+        graph element decimate: ranged Y update refreshes cached block
     } -setup {
+        set n 4096
+        set changedIndex 2050
         vector create CacheX
         vector create CacheY
-        CacheX set {50 50 50 50 50}
-        CacheY set {0 1 0.25 -1 0}
-        #
-        # Use a Tcl variable mapping so that the individual element can
-        # be changed without replacing the vector or changing its size.
-        #
+        CacheX set [lrepeat $n 50.0]
+        CacheY set [lrepeat $n 0.0]
         CacheY variable CacheYVar
         graph .graph1 -width 300 -height 250
         pack .graph1
@@ -280,22 +280,14 @@ namespace eval graph.element.decimate {
         .graph1 axis configure y -min -2 -max 3
         .graph1 element create Element1 -xdata CacheX -ydata CacheY -symbol none -showvalues no -linewidth 1\
                 -smooth linear -reduce 0.0 -decimate auto
-        #
-        # Build the initial persistent cache.
-        #
+        # Build the persistent cache. All 4096 source points occupy
+        # one physical data-X bucket, so an interior point such as
+        # changedIndex is not initially one of first/min/max/last.
         update
     } -body {
-        #
-        # Index 2 was not an original representative:
-        #
-        #     first = 0
-        #     max   = 1
-        #     min   = 3
-        #     last  = 4
-        #
-        # It must become the new cached maximum after this mutation.
-        #
-        set CacheYVar(2) 2.0
+        # This point must become the maximum representative of its
+        # 64-sample cache block.  A stale block summary would omit it.
+        set CacheYVar($changedIndex) 2.0
         update
         lassign [.graph1 transform 50 2.0] px py
         set found [.graph1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1]
@@ -303,36 +295,23 @@ namespace eval graph.element.decimate {
     } -cleanup {
         unset -nocomplain info
         unset -nocomplain CacheYVar
+        unset -nocomplain n
+        unset -nocomplain changedIndex
         catch {vector destroy CacheX}
         catch {vector destroy CacheY}
         destroy .graph1
     } -result {1 1}
 
-    # ------------------------------------------------------------------
-    # The persistent decimation cache must also be invalidated when a
-    # named X vector changes in place.
-    #
-    # Initially all samples have X=50, so the source is monotonic and
-    # index 2 is omitted from the cached first/min/max/last geometry.
-    #
-    # Moving only index 2 to X=60 changes the source sequence to:
-    #
-    #     50 50 60 50 50
-    #
-    # which is non-monotonic.  The Stage-3 cache must be rebuilt,
-    # rejected as unsupported, and the mapper must fall back to the
-    # full mapping path.
-    #
-    # A stale cache would still treat the source as one X bucket and
-    # omit index 2 entirely.
-    # ------------------------------------------------------------------
+
     test RBC.graph.element.decimate.A.5.2 {
-        graph element decimate: X vector update invalidates cached monotonicity
+        graph element decimate: ranged X update invalidates cached monotonicity
     } -setup {
+        set n 4096
+        set changedIndex 2050
         vector create CacheX
         vector create CacheY
-        CacheX set {50 50 50 50 50}
-        CacheY set {0 1 0.25 -1 0}
+        CacheX set [lrepeat $n 50.0]
+        CacheY set [lrepeat $n 0.0]
         CacheX variable CacheXVar
         graph .graph1 -width 300 -height 250
         pack .graph1
@@ -340,28 +319,216 @@ namespace eval graph.element.decimate {
         .graph1 axis configure y -min -2 -max 2
         .graph1 element create Element1 -xdata CacheX -ydata CacheY -symbol none -showvalues no -linewidth 1\
                 -smooth linear -reduce 0.0 -decimate auto
-        #
-        # Build the initial cache while X is monotonic.
-        #
+        # Build a valid Stage-3 cache for globally monotonic,
+        # all-equal X.
         update
     } -body {
+        # The source sequence becomes:
         #
-        # This makes the X sequence non-monotonic without replacing
-        # the vector object.
+        #     50 ... 50 60 50 ... 50
         #
-        set CacheXVar(2) 60.0
+        # which is non-monotonic.  X updates are deliberately not
+        # maintained incrementally, so the old cache must be discarded.
+        set CacheXVar($changedIndex) 60.0
         update
-        lassign [.graph1 transform 60 0.25] px py
+        lassign [.graph1 transform 60 0.0] px py
         set found [.graph1 element closest $px $py info -along both -interpolate 0 -halo 2 Element1]
         set index [expr {[info exists info(index)] ? $info(index) : -1}]
-        list $found $index [expr {$found && abs(double($info(x)) - 60.0) < 0.001 && abs(double($info(y))-0.25)<0.001}]
+        list $found $index [expr {$found && abs(double($info(x)) - 60.0) < 0.001}]
     } -cleanup {
         unset -nocomplain info
         unset -nocomplain CacheXVar
+        unset -nocomplain n
+        unset -nocomplain changedIndex
         catch {vector destroy CacheX}
         catch {vector destroy CacheY}
         destroy .graph1
-    } -result {1 2 1}
+    } -result {1 2050 1}
+
+    # ------------------------------------------------------------------
+    # A non-extremum ranged Y write must leave the exact cached global
+    # vector range unchanged.
+    #
+    # This specifically exercises the new GetReplicatedWriteRange()
+    # fast path.  Automatic graph limits consume ElemVector min/max,
+    # making stale cached values observable here.
+    # ------------------------------------------------------------------
+
+    test RBC.graph.element.decimate.A.5.3 {
+        graph element decimate: non-extremum Y update preserves automatic range
+    } -setup {
+        set n 4096
+        vector create CacheX
+        vector create CacheY
+        CacheX set [lrepeat $n 50.0]
+        CacheY set [lrepeat $n 0.0]
+        CacheY variable CacheYVar
+        # Establish unique, well-separated global extrema before the
+        # element is attached.
+        set CacheYVar(0) -2.0
+        set CacheYVar([expr {$n - 1}]) 5.0
+        graph .graph1 -width 300 -height 250
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 100
+        .graph1 axis configure y -loose no
+        .graph1 element create Element1 -xdata CacheX -ydata CacheY -symbol none -showvalues no -linewidth 1\
+                -smooth linear -reduce 0.0 -decimate auto
+        update
+    } -body {
+        lassign [.graph1 axis limits y] beforeMin beforeMax
+        # The old global -2/+5 extrema are untouched.  The cached
+        # global range should therefore remain valid without an O(N)
+        # recomputation.
+        set CacheYVar(1000) 1.5
+        update
+        lassign [.graph1 axis limits y] afterMin afterMax
+        list [expr {abs(double($beforeMin) + 2.0) < 1.0e-9}] [expr {abs(double($beforeMax) - 5.0) < 1.0e-9}]\
+                [expr {abs(double($afterMin) - double($beforeMin)) < 1.0e-9}]\
+                [expr {abs(double($afterMax) - double($beforeMax)) < 1.0e-9}]
+    } -cleanup {
+        unset -nocomplain CacheYVar
+        unset -nocomplain n
+        catch {vector destroy CacheX}
+        catch {vector destroy CacheY}
+        destroy .graph1
+    } -result {1 1 1 1}
+
+
+    # ------------------------------------------------------------------
+    # A ranged write may introduce a new global extremum without
+    # invalidating the complete vector range.  The new value should be
+    # incorporated incrementally.
+    # ------------------------------------------------------------------
+    test RBC.graph.element.decimate.A.5.4 {
+        graph element decimate: ranged Y update adds new global maximum
+    } -setup {
+        set n 4096
+        set changedIndex 2050
+        vector create CacheX
+        vector create CacheY
+        CacheX set [lrepeat $n 50.0]
+        CacheY set [lrepeat $n 0.0]
+        CacheY variable CacheYVar
+        set CacheYVar(0) -2.0
+        set CacheYVar([expr {$n - 1}]) 5.0
+        graph .graph1 -width 300 -height 250
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 100
+        .graph1 axis configure y -loose no
+        .graph1 element create Element1 -xdata CacheX -ydata CacheY -symbol none -showvalues no -linewidth 1\
+                -smooth linear -reduce 0.0 -decimate auto
+        update
+    } -body {
+        # The overwritten value is not an old extremum, so the vector
+        # range can be changed from {-2,5} to {-2,8} incrementally.
+        set CacheYVar($changedIndex) 8.0
+        update
+        lassign [.graph1 axis limits y] ymin ymax
+        # Also verify that the same ranged update refreshed the
+        # Stage-3 block extrema used by the rendered trace.
+        lassign [.graph1 transform 50 8.0] px py
+        set found [.graph1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1]
+        list [expr {abs(double($ymin) + 2.0) < 1.0e-9}] [expr {abs(double($ymax) - 8.0) < 1.0e-9}] $found\
+                [expr {$found && abs(double($info(y)) - 8.0) < 0.01}]
+    } -cleanup {
+        unset -nocomplain info
+        unset -nocomplain CacheYVar
+        unset -nocomplain n
+        unset -nocomplain changedIndex
+        catch {vector destroy CacheX}
+        catch {vector destroy CacheY}
+        destroy .graph1
+    } -result {1 1 1 1}
+
+    # ------------------------------------------------------------------
+    # Replacing the unique old global maximum cannot be handled from
+    # the changed range alone: another occurrence of that maximum might
+    # exist elsewhere.  GetReplicatedWriteRange() must therefore retain
+    # UPDATE_RANGE and let the normal complete range scan determine the
+    # new maximum.
+    # ------------------------------------------------------------------
+    test RBC.graph.element.decimate.A.5.5 {
+        graph element decimate: overwriting old Y maximum falls back safely
+    } -setup {
+        set n 4096
+        set maximumIndex 2050
+        vector create CacheX
+        vector create CacheY
+        CacheX set [lrepeat $n 50.0]
+        CacheY set [lrepeat $n 0.0]
+        CacheY variable CacheYVar
+        set CacheYVar(0) -2.0
+        set CacheYVar($maximumIndex) 5.0
+        graph .graph1 -width 300 -height 250
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 100
+        .graph1 axis configure y -loose no
+        .graph1 element create Element1 -xdata CacheX -ydata CacheY -symbol none -showvalues no -linewidth 1\
+                -smooth linear -reduce 0.0 -decimate auto
+        update
+    } -body {
+        lassign [.graph1 axis limits y] beforeMin beforeMax
+        # This overwrites the unique old global maximum.  Incremental
+        # range maintenance must reject the shortcut and the fallback
+        # scan must discover the new maximum of 3.
+        set CacheYVar($maximumIndex) 3.0
+        update
+        lassign [.graph1 axis limits y] afterMin afterMax
+        list [expr {abs(double($beforeMin) + 2.0) < 1.0e-9}] [expr {abs(double($beforeMax) - 5.0) < 1.0e-9}]\
+                [expr {abs(double($afterMin) + 2.0) < 1.0e-9}] [expr {abs(double($afterMax) - 3.0) < 1.0e-9}]
+    } -cleanup {
+        unset -nocomplain CacheYVar
+        unset -nocomplain n
+        unset -nocomplain maximumIndex
+        catch {vector destroy CacheX}
+        catch {vector destroy CacheY}
+        destroy .graph1
+    } -result {1 1 1 1}
+
+
+    test RBC.graph.element.decimate.A.5.6 {
+        graph element decimate: multiple ranged Y writes coalesce safely
+    } -setup {
+        set n 4096
+        set lowIndex 1000
+        set highIndex 3000
+        vector create CacheX
+        vector create CacheY
+        CacheX set [lrepeat $n 50.0]
+        CacheY set [lrepeat $n 0.0]
+        CacheY variable CacheYVar
+        graph .graph1 -width 300 -height 250
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 100
+        .graph1 axis configure y -loose no
+        .graph1 element create Element1 -xdata CacheX -ydata CacheY -symbol none -showvalues no -linewidth 1\
+                -smooth linear -reduce 0.0 -decimate auto
+        update
+    } -body {
+        # No update between these assignments: vector notification
+        # range must coalesce before delivery.
+        set CacheYVar($lowIndex) -4.0
+        set CacheYVar($highIndex) 8.0
+        update
+        lassign [.graph1 axis limits y] ymin ymax
+        lassign [.graph1 transform 50 -4.0] lowX lowY
+        set lowFound [.graph1 element closest $lowX $lowY lowInfo -along both -interpolate 1 -halo 2 Element1]
+        lassign [.graph1 transform 50 8.0] highX highY
+        set highFound [.graph1 element closest $highX $highY highInfo -along both -interpolate 1 -halo 2 Element1]
+        list [expr {abs(double($ymin) + 4.0) < 1.0e-9}] [expr {abs(double($ymax) - 8.0) < 1.0e-9}] $lowFound\
+                [expr {$lowFound && abs(double($lowInfo(y)) + 4.0) < 0.01}] $highFound\
+                [expr {$highFound && abs(double($highInfo(y)) - 8.0) < 0.01}]
+    } -cleanup {
+        unset -nocomplain lowInfo
+        unset -nocomplain highInfo
+        unset -nocomplain CacheYVar
+        unset -nocomplain n
+        unset -nocomplain lowIndex
+        unset -nocomplain highIndex
+        catch {vector destroy CacheX}
+        catch {vector destroy CacheY}
+        destroy .graph1
+    } -result {1 1 1 1 1 1}
 
     cleanupTests
 }
