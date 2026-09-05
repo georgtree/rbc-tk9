@@ -19,7 +19,44 @@ namespace import rbc::*
 
 package require tcltest
 namespace import tcltest::*
-namespace eval graph.postscript {    
+namespace eval graph.postscript {
+
+    proc MarkerPostScriptBlock {widget markerName nextMarkerName} {
+        set ps [$widget postscript output]
+        set startTag "% Marker \"$markerName\" is a "
+        set endTag "% Marker \"$nextMarkerName\" is a "
+        set first [string first $startTag $ps]
+        if {$first < 0} {
+            return -code error "PostScript block for marker \"$markerName\" was not found"
+        }
+        set last [string first $endTag $ps [expr {$first + [string length $startTag]}]]
+        if {$last < 0} {
+            set last [string length $ps]
+        }
+        return [string range $ps $first [expr {$last - 1}]]
+    }
+    proc PostScriptPathPoints {block} {
+        set points {}
+        foreach line [split $block \n] {
+            set line [string trim $line]
+            if {[regexp {^(?:newpath[ \t]+)?([-+0-9.eE]+)[ \t]+([-+0-9.eE]+)[ \t]+(?:moveto|lineto)$} \
+                    $line -> x y]} {
+                lappend points [list $x $y]
+            }
+        }
+        return $points
+    }
+    proc PathHasPoint {points x y {tolerance 0.01}} {
+        foreach point $points {
+            lassign $point px py
+            if {(abs($px - $x) <= $tolerance) &&
+                (abs($py - $y) <= $tolerance)} {
+                return 1
+            }
+        }
+        return 0
+    }
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure that output will print postscript to the console
 	# ------------------------------------------------------------------------------------ 
@@ -144,6 +181,95 @@ namespace eval graph.postscript {
     } -cleanup {
         destroy .graph1
     } -result {1 1 2}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose:
+    # Ensure an exactly horizontal polygon edge lying only a tiny distance inside the
+    # plot boundary is not incorrectly clipped.  This regresses the use of FLT_EPSILON
+    # as an artificial slope for double-precision polygon geometry.
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.postscript.output.polygon.A.1.1 {
+        graph postscript output: polygon horizontal edge near clipping boundary
+    } -setup {
+        graph .graph1 -width 320 -height 240
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 1
+        .graph1 axis configure y -min 0 -max 1
+        .graph1 legend configure -hide yes
+        update idletasks
+        lassign [.graph1 extents plotarea] left top width height
+        #
+        # Construct the rectangle in screen space.  Its top edge is
+        # only 1e-8 pixel inside the clipping rectangle: comfortably
+        # below FLT_EPSILON but far above DBL_EPSILON.
+        #
+        set leftPixel   [expr {$left + 30.0}]
+        set rightPixel  [expr {$left + 130.0}]
+        set topPixel    [expr {$top + 1.0e-8}]
+        set bottomPixel [expr {$top + 80.0}]
+        #
+        # graph invtransform accepts double screen coordinates.  Convert
+        # the desired screen rectangle to graph coordinates so that the
+        # normal marker mapping path reconstructs it.
+        #
+        lassign [.graph1 invtransform $leftPixel  $topPixel]    x1 y1
+        lassign [.graph1 invtransform $rightPixel $bottomPixel] x2 y2
+        .graph1 marker create polygon -name Marker1 -coords [list $x1 $y1 $x2 $y1 $x2 $y2 $x1 $y2] -fill red\
+                -outline {}
+        #
+        # Delimit Marker1's PostScript block.
+        #
+        .graph1 marker create text -name EndMarker -coords {0.95 0.95} -text end
+        update idletasks
+    } -body {
+        set block [MarkerPostScriptBlock .graph1 Marker1 EndMarker]
+        set points [PostScriptPathPoints $block]
+        list [PathHasPoint $points $leftPixel $topPixel] [PathHasPoint $points $rightPixel $topPixel]\
+                [PathHasPoint $points $rightPixel $bottomPixel] [PathHasPoint $points $leftPixel $bottomPixel]
+    } -cleanup {
+        destroy .graph1
+        unset -nocomplain block points left top width height leftPixel rightPixel topPixel bottomPixel x1 y1 x2 y2
+    } -result {1 1 1 1}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose:
+    # Ensure an exactly vertical polygon edge lying only a tiny distance inside the
+    # plot boundary is not incorrectly clipped.  This covers the corresponding dx == 0
+    # branch of Rbc_PolyRectClip().
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.postscript.output.polygon.A.1.2 {
+        graph postscript output: polygon vertical edge near clipping boundary
+    } -setup {
+        graph .graph1 -width 320 -height 240
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 1
+        .graph1 axis configure y -min 0 -max 1
+        .graph1 legend configure -hide yes
+        update idletasks
+        lassign [.graph1 extents plotarea] left top width height
+        #
+        # This time the left edge is only 1e-8 pixel inside the
+        # clipping rectangle.
+        #
+        set leftPixel   [expr {$left + 1.0e-8}]
+        set rightPixel  [expr {$left + 100.0}]
+        set topPixel    [expr {$top + 30.0}]
+        set bottomPixel [expr {$top + 110.0}]
+        lassign [.graph1 invtransform $leftPixel  $topPixel]    x1 y1
+        lassign [.graph1 invtransform $rightPixel $bottomPixel] x2 y2
+        .graph1 marker create polygon -name Marker1 -coords [list $x1 $y1 $x2 $y1 $x2 $y2 $x1 $y2] -fill red\
+                -outline {}
+        .graph1 marker create text -name EndMarker -coords {0.95 0.95} -text end
+        update idletasks
+    } -body {
+        set block [MarkerPostScriptBlock .graph1 Marker1 EndMarker]
+        set points [PostScriptPathPoints $block]
+        list [PathHasPoint $points $leftPixel $topPixel] [PathHasPoint $points $rightPixel $topPixel]\
+                [PathHasPoint $points $rightPixel $bottomPixel] [PathHasPoint $points $leftPixel $bottomPixel]
+    } -cleanup {
+        destroy .graph1
+        unset -nocomplain block points left top width height leftPixel rightPixel topPixel bottomPixel x1 y1 x2 y2
+    } -result {1 1 1 1}
 	
 	cleanupTests
 }
