@@ -355,6 +355,12 @@ namespace eval graph.element.decimate {
         set found [.graph1 element closest $px $py info -along both -interpolate 0 -halo 2 Element1]
         set index [expr {[info exists info(index)] ? $info(index) : -1}]
         list $found $index [expr {$found && abs(double($info(x)) - 60.0) < 0.001 && abs(double($info(y))-0.25)<0.001}]
+    } -cleanup {
+        unset -nocomplain info
+        unset -nocomplain CacheXVar
+        catch {vector destroy CacheX}
+        catch {vector destroy CacheY}
+        destroy .graph1
     } -result {1 2 1}
 
     cleanupTests

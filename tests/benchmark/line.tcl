@@ -42,7 +42,7 @@ Options:
       Decimation modes.
 
       Default:
-          none
+          none,auto
 
   -csv FILE
       Also write results as CSV.
@@ -158,7 +158,7 @@ proc ::rbcBenchmark::ParseArgs {argv} {
         error "-sizes must contain at least one size"
     }
     dict set options sizes $checked
-    ### We already reserve both values for the coming implementation.
+    ### Validate decimation modes.
     set checked {}
     foreach mode [dict get $options decimate] {
         if {$mode ni {none auto}} {
@@ -319,6 +319,29 @@ proc ::rbcBenchmark::MeasureRemap {iteration} {
     }]
 }
 
+#
+# Measure an exact source-point lookup.
+#
+# With -decimate none, the current implementation searches the complete
+# mapped point array.
+#
+# With -decimate auto and a valid Stage-3 monotonic-X cache, the source
+# candidate interval can be restricted by binary search before the
+# remaining points are mapped and compared.
+#
+proc ::rbcBenchmark::MeasureClosest {queries iteration} {
+    variable graph
+    set query [lindex $queries [expr {$iteration % [llength $queries]}]]
+    lassign $query px py
+    unset -nocomplain closestInfo
+    return [Time {
+        set found [$graph element closest $px $py closestInfo -along both -interpolate 0 -halo 2 signal]
+        if {!$found || ![info exists closestInfo(index)]} {
+            error "closest lookup failed"
+        }
+    }]
+}
+
 # The requested toplevel width is not necessarily the actual X-axis
 # drawable span.  Calculate the actual plot width from the axis.
 proc ::rbcBenchmark::PlotWidth {} {
@@ -332,6 +355,27 @@ proc ::rbcBenchmark::PlotWidth {} {
     return $width
 }
 
+#
+# Prepare several exact source-point queries for closest-point timing.
+#
+# The world-to-screen transformation is deliberately performed outside
+# the measured interval.  This benchmark is intended to measure
+# "element closest", not "graph transform".
+#
+proc ::rbcBenchmark::CreateClosestQueries {n} {
+    variable graph
+    variable xVector
+    variable yVector
+    set queries {}
+    foreach fraction {0.2 0.5 0.8} {
+        set index [expr {round(double($n - 1) * $fraction)}]
+        set x [$xVector index $index]
+        set y [$yVector index $index]
+        lappend queries [$graph transform $x $y]
+    }
+    return $queries
+}
+
 proc ::rbcBenchmark::OpenCsv {} {
     variable options
     set path [dict get $options csv]
@@ -342,7 +386,8 @@ proc ::rbcBenchmark::OpenCsv {} {
     puts $channel [join {platform os os_version machine tcl tk rbc decimate points requested_width requested_height\
                                  actual_width actual_height plot_width points_per_plot_pixel create_ms redraw_min_ms\
                                  redraw_median_ms redraw_mean_ms redraw_max_ms remap_min_ms remap_median_ms\
-                                 remap_mean_ms remap_max_ms} ,]
+                                 remap_mean_ms remap_max_ms closest_min_ms closest_median_ms closest_mean_ms\
+                                 closest_max_ms} ,]
     return $channel
 }
 
@@ -359,7 +404,7 @@ proc ::rbcBenchmark::WriteCsv {channel row} {
     foreach key {platform os os_version machine tcl tk rbc decimate points requested_width requested_height\
                          actual_width actual_height plot_width points_per_plot_pixel create_ms redraw_min_ms\
                          redraw_median_ms redraw_mean_ms redraw_max_ms remap_min_ms remap_median_ms remap_mean_ms\
-                         remap_max_ms} {
+                         remap_max_ms closest_min_ms closest_median_ms closest_mean_ms closest_max_ms} {
         lappend values [CsvQuote [dict get $row $key]]
     }
     puts $channel [join $values ,]
@@ -387,73 +432,121 @@ redraw:
 
 axis-remap:
     changes the X axis slightly, forcing line geometry to be remapped
-    and redrawn.  With -decimate auto, a persistent data-domain cache
-    may be reused across these axis-only changes.
+    and redrawn.  With -decimate auto, the persistent data-domain cache
+    may be reused across this axis-only change.
+
+closest:
+    performs an exact source-point search using:
+        -along both -interpolate 0 -halo 2
+
+    Query screen coordinates are calculated before timing.  The timed
+    interval therefore measures element closest itself, including its
+    result-array updates, but not graph transform or rendering.
 }
 
-    puts [format "%-8s %10s %13s %13s %11s %11s %12s %12s" mode points requested actual pts/xpixel create-ms redraw-med\
-                  axis-remap]
-    puts [string repeat - 102]
+    puts [format "%-8s %10s %13s %13s %11s %11s %12s %12s %12s" mode points requested actual pts/xpixel create-ms\
+                  redraw-med axis-remap closest-med]
+    puts [string repeat - 115]
 }
 
 proc ::rbcBenchmark::RunCase {mode n width height csv} {
     variable options
     variable graph
     lassign [SetSize $width $height] actualWidth actualHeight
+    #
     # Always start from exactly the same axis range.
+    #
     $graph axis configure x -max 1.0
     SyncDisplay
     set createMs [CreateElement $mode]
     set plotWidth [PlotWidth]
-    set density [expr {$n / double($plotWidth)}]
-    # Warm-up.
+    set density [expr {$n/double($plotWidth)}]
+    #
+    # Warm up redraw and axis-remap paths.
+    #
     set warmup [dict get $options warmup]
     for {set i 0} {$i < $warmup} {incr i} {
         MeasureRedraw
         MeasureRemap $i
     }
+    #
+    # Restore the canonical axis range before measurements.
+    #
     $graph axis configure x -max 1.0
     SyncDisplay
+    #
     # Timed redraw runs.
+    #
     set redrawTimes {}
     set iterations [dict get $options iterations]
     for {set i 0} {$i < $iterations} {incr i} {
         lappend redrawTimes [MeasureRedraw]
     }
-    # Timed remap runs.
+    #
+    # Timed axis-remap runs.
+    #
     set remapTimes {}
     for {set i 0} {$i < $iterations} {incr i} {
         lappend remapTimes [MeasureRemap $i]
     }
+    #
+    # Restore precisely x=[0,1] before preparing closest queries.
+    #
+    # This also guarantees that any pending axis remap has completed
+    # before closest timing begins.
+    #
+    $graph axis configure x -max 1.0
+    SyncDisplay
+    set closestQueries [CreateClosestQueries $n]
+    #
+    # Warm up the closest path separately.
+    #
+    for {set i 0} {$i < $warmup} {incr i} {
+        MeasureClosest $closestQueries $i
+    }
+    #
+    # Timed exact closest-point runs.
+    #
+    set closestTimes {}
+    for {set i 0} {$i < $iterations} {incr i} {
+        lappend closestTimes [MeasureClosest $closestQueries $i]
+    }
     set redraw [Stats $redrawTimes]
     set remap [Stats $remapTimes]
-    set row [dict create\
-        platform              $::tcl_platform(platform)\
-        os                    $::tcl_platform(os)\
-        os_version            $::tcl_platform(osVersion)\
-        machine               $::tcl_platform(machine)\
-        tcl                   [info patchlevel]\
-        tk                    [package provide Tk]\
-        rbc                   [package provide rbc]\
-        decimate              $mode\
-        points                $n\
-        requested_width       $width\
-        requested_height      $height\
-        actual_width          $actualWidth\
-        actual_height         $actualHeight\
-        plot_width            [format %.0f $plotWidth]\
-        points_per_plot_pixel [format %.3f $density]\
-        create_ms             [format %.3f $createMs]\
-        redraw_min_ms         [format %.3f [dict get $redraw min]]\
-        redraw_median_ms      [format %.3f [dict get $redraw median]]\
-        redraw_mean_ms        [format %.3f [dict get $redraw mean]]\
-        redraw_max_ms         [format %.3f [dict get $redraw max]]\
-        remap_min_ms          [format %.3f [dict get $remap min]]\
-        remap_median_ms       [format %.3f [dict get $remap median]]\
-        remap_mean_ms         [format %.3f [dict get $remap mean]]\
-        remap_max_ms          [format %.3f [dict get $remap max]]]
-    puts [format "%-8s %10d %6dx%-6d %6dx%-6d %11.1f %11.3f %12.3f %12.3f" $mode $n $width $height $actualWidth\
-                  $actualHeight $density $createMs [dict get $redraw median] [dict get $remap median]]
+    set closest [Stats $closestTimes]
+    set row [dict create \
+        platform              $::tcl_platform(platform) \
+        os                    $::tcl_platform(os) \
+        os_version            $::tcl_platform(osVersion) \
+        machine               $::tcl_platform(machine) \
+        tcl                   [info patchlevel] \
+        tk                    [package provide Tk] \
+        rbc                   [package provide rbc] \
+        decimate              $mode \
+        points                $n \
+        requested_width       $width \
+        requested_height      $height \
+        actual_width          $actualWidth \
+        actual_height         $actualHeight \
+        plot_width            [format %.0f $plotWidth] \
+        points_per_plot_pixel [format %.3f $density] \
+        create_ms             [format %.3f $createMs] \
+        redraw_min_ms         [format %.3f [dict get $redraw min]] \
+        redraw_median_ms      [format %.3f [dict get $redraw median]] \
+        redraw_mean_ms        [format %.3f [dict get $redraw mean]] \
+        redraw_max_ms         [format %.3f [dict get $redraw max]] \
+        remap_min_ms          [format %.3f [dict get $remap min]] \
+        remap_median_ms       [format %.3f [dict get $remap median]] \
+        remap_mean_ms         [format %.3f [dict get $remap mean]] \
+        remap_max_ms          [format %.3f [dict get $remap max]] \
+        closest_min_ms        [format %.3f [dict get $closest min]] \
+        closest_median_ms     [format %.3f [dict get $closest median]] \
+        closest_mean_ms       [format %.3f [dict get $closest mean]] \
+        closest_max_ms        [format %.3f [dict get $closest max]]]
+
+    puts [format "%-8s %10d %6dx%-6d %6dx%-6d %11.1f %11.3f %12.3f %12.3f %12.3f" $mode $n $width $height $actualWidth\
+                   $actualHeight $density $createMs [dict get $redraw median] [dict get $remap median]\
+                  [dict get $closest median]]
     flush stdout
     WriteCsv $csv $row
     $graph element delete signal

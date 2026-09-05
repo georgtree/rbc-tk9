@@ -78,6 +78,7 @@ typedef struct {
 } MapInfo;
 
 #define LINE_DECIMATE_BLOCK_SIZE 64
+#define LINE_DECIMATE_MIN_POINTS_PER_PIXEL 8
 
 typedef struct {
     Tcl_Size minIndex;
@@ -1325,6 +1326,7 @@ static int ScaleSymbol(Element *elemPtr, int normalSize);
 static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
 static void ReducePoints(MapInfo *mapPtr, double tolerance);
 static int CanPixelDecimateLine(Line *linePtr);
+static int LineNeedsPixelDecimation(Graph *graphPtr, Line *linePtr);
 static void InvalidateLineDecimateCache(Line *linePtr);
 static int CanPreMapDecimateLine(Line *linePtr);
 static double MapLineDataAbscissa(Graph *graphPtr, Line *linePtr, double x);
@@ -3611,6 +3613,56 @@ static int CanPixelDecimateLine(Line *linePtr) {
     return TRUE;
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * LineNeedsPixelDecimation --
+ *
+ *      Determines whether the source line is dense enough relative to
+ *      the physical data-X screen span for display decimation to be
+ *      worthwhile.
+ *
+ *      This is deliberately separate from CanPixelDecimateLine():
+ *
+ *          CanPixelDecimateLine
+ *              tests semantic eligibility.
+ *
+ *          LineNeedsPixelDecimation
+ *              makes the runtime performance decision.
+ *
+ *      The point count is the complete source count.  This is
+ *      intentional: the cost avoided by the pre-map path is primarily
+ *      the cost of mapping the complete source array.
+ *
+ *----------------------------------------------------------------------
+ */
+static int LineNeedsPixelDecimation(Graph *graphPtr, Line *linePtr) {
+    Extents2D exts;
+    Tcl_Size nPoints;
+    double span;
+    double density;
+
+    nPoints = NumberOfPoints(&linePtr->core);
+    if (nPoints < 1) {
+        return FALSE;
+    }
+    Rbc_GraphExtents(graphPtr, &exts);
+    /*
+     * Data X maps horizontally normally and vertically with
+     * -invertxy.
+     */
+    if (graphPtr->inverted) {
+        span = fabs(exts.bottom - exts.top);
+    } else {
+        span = fabs(exts.right - exts.left);
+    }
+    if ((!FINITE(span)) || (span < 1.0)) {
+        return FALSE;
+    }
+    density = (double)nPoints / span;
+    return density >= LINE_DECIMATE_MIN_POINTS_PER_PIXEL;
+}
+
 static void InvalidateLineDecimateCache(Line *linePtr) {
     LineDecimateCache *cachePtr;
 
@@ -4388,6 +4440,170 @@ static int BuildPixelDecimatedScreenPoints(Graph *graphPtr, Line *linePtr, MapIn
     mapPtr->indices = indices;
     mapPtr->breakBefore = breakBefore;
     mapPtr->nScreenPts = mappedCount;
+    return TRUE;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * GetCachedSourceRangeForAbscissa --
+ *
+ *      Finds the half-open source-index range [first,last) whose
+ *      physical mapped data-X coordinate lies between low and high.
+ *
+ *      The Stage-3 cache guarantees that source X is globally
+ *      monotonic.  The mapped direction may nevertheless be reversed
+ *      by axis -descending or graph -invertxy, so determine ordering
+ *      from the mapped endpoint abscissas.
+ *
+ * Results:
+ *      TRUE on success.  firstPtr and lastPtr receive a half-open
+ *      source range.  An empty range is represented by first == last.
+ *
+ *      FALSE if the mapped abscissa cannot safely be evaluated.
+ *
+ *----------------------------------------------------------------------
+ */
+static int GetCachedSourceRangeForAbscissa(Graph *graphPtr, Line *linePtr, double low, double high, Tcl_Size *firstPtr,
+                                           Tcl_Size *lastPtr) {
+    LineDecimateCache *cachePtr;
+    Tcl_Size nPoints;
+    Tcl_Size lo;
+    Tcl_Size hi;
+    Tcl_Size first;
+    double firstAbscissa;
+    double lastAbscissa;
+
+    cachePtr = &linePtr->decimateCache;
+    nPoints = cachePtr->nPoints;
+    *firstPtr = 0;
+    *lastPtr = 0;
+    if (nPoints < 1) {
+        return TRUE;
+    }
+    if (high < low) {
+        double tmp;
+
+        tmp = low;
+        low = high;
+        high = tmp;
+    }
+    firstAbscissa = MapLineDataAbscissa(graphPtr, linePtr, cachePtr->xValues[0]);
+    lastAbscissa = MapLineDataAbscissa(graphPtr, linePtr, cachePtr->xValues[nPoints - 1]);
+    if ((!FINITE(firstAbscissa)) || (!FINITE(lastAbscissa))) {
+        return FALSE;
+    }
+    if (lastAbscissa > firstAbscissa) {
+        /*
+         * Increasing mapped abscissa.
+         *
+         * Find the first source point with:
+         *
+         *     abscissa >= low
+         */
+        lo = 0;
+        hi = nPoints;
+        while (lo < hi) {
+            Tcl_Size middle;
+            double abscissa;
+
+            middle = lo + ((hi - lo) / 2);
+            abscissa = MapLineDataAbscissa(graphPtr, linePtr, cachePtr->xValues[middle]);
+            if (!FINITE(abscissa)) {
+                return FALSE;
+            }
+            if (abscissa < low) {
+                lo = middle + 1;
+            } else {
+                hi = middle;
+            }
+        }
+        first = lo;
+        /*
+         * Find the first source point with:
+         *
+         *     abscissa > high
+         */
+        lo = first;
+        hi = nPoints;
+        while (lo < hi) {
+            Tcl_Size middle;
+            double abscissa;
+
+            middle = lo + ((hi - lo) / 2);
+            abscissa = MapLineDataAbscissa(graphPtr, linePtr, cachePtr->xValues[middle]);
+            if (!FINITE(abscissa)) {
+                return FALSE;
+            }
+            if (abscissa <= high) {
+                lo = middle + 1;
+            } else {
+                hi = middle;
+            }
+        }
+        *firstPtr = first;
+        *lastPtr = lo;
+        return TRUE;
+    }
+    if (lastAbscissa < firstAbscissa) {
+        /*
+         * Decreasing mapped abscissa.
+         *
+         * Find the first source point with:
+         *
+         *     abscissa <= high
+         */
+        lo = 0;
+        hi = nPoints;
+        while (lo < hi) {
+            Tcl_Size middle;
+            double abscissa;
+
+            middle = lo + ((hi - lo) / 2);
+            abscissa = MapLineDataAbscissa(graphPtr, linePtr, cachePtr->xValues[middle]);
+            if (!FINITE(abscissa)) {
+                return FALSE;
+            }
+            if (abscissa > high) {
+                lo = middle + 1;
+            } else {
+                hi = middle;
+            }
+        }
+        first = lo;
+        /*
+         * Find the first source point with:
+         *
+         *     abscissa < low
+         */
+        lo = first;
+        hi = nPoints;
+        while (lo < hi) {
+            Tcl_Size middle;
+            double abscissa;
+
+            middle = lo + ((hi - lo) / 2);
+            abscissa = MapLineDataAbscissa(graphPtr, linePtr, cachePtr->xValues[middle]);
+            if (!FINITE(abscissa)) {
+                return FALSE;
+            }
+            if (abscissa >= low) {
+                lo = middle + 1;
+            } else {
+                hi = middle;
+            }
+        }
+        *firstPtr = first;
+        *lastPtr = lo;
+        return TRUE;
+    }
+    /*
+     * All source X values map to the same physical abscissa.
+     */
+    if ((firstAbscissa >= low) && (firstAbscissa <= high)) {
+        *firstPtr = 0;
+        *lastPtr = nPoints;
+    }
     return TRUE;
 }
 
@@ -6774,6 +6990,7 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
     Tcl_Size nPoints;
     int size;
     int preMapDecimated;
+    int pixelDecimation;    
     PenStyle **dataToStyle;
     Rbc_ChainLink *linkPtr;
     LinePenStyle *stylePtr;
@@ -6787,14 +7004,21 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
         return;
     }
     preMapDecimated = FALSE;
-    if (CanPreMapDecimateLine(linePtr)) {
+    /*
+     * Separate semantic eligibility from the runtime density decision.
+     *
+     * In particular, do not build the persistent decimation cache for a
+     * low-density line that is cheaper to map and draw normally.
+     */
+    pixelDecimation = CanPixelDecimateLine(linePtr) && LineNeedsPixelDecimation(graphPtr, linePtr);
+    if (pixelDecimation && CanPreMapDecimateLine(linePtr)) {
         preMapDecimated = BuildCachedPixelDecimatedScreenPoints(graphPtr, linePtr, &mapInfo);
         if (!preMapDecimated) {
-           /*
-            * Unsupported cached cases—non-monotonic X,
-            * discontinuities, log-domain breaks, etc.—retain
-            * the Stage-2 implementation.
-            */            
+            /*
+             * Unsupported cached cases—non-monotonic X,
+             * discontinuities, log-domain breaks, etc.—retain
+             * the Stage-2 implementation.
+             */
             preMapDecimated = BuildPixelDecimatedScreenPoints(graphPtr, linePtr, &mapInfo);
         }
     }
@@ -6857,7 +7081,7 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
         /*
          * The pre-map path already produced pixel-density geometry.
          */
-        if (!preMapDecimated && CanPixelDecimateLine(linePtr)) {
+        if (!preMapDecimated && pixelDecimation) {
             DecimatePointsByPixels(graphPtr, &mapInfo);
         }
         if (linePtr->rTolerance > 0.0) {
@@ -7239,6 +7463,8 @@ static void ClosestMappedPoint(Line *linePtr, ClosestSearch *searchPtr) {
 static void ClosestSourcePoint(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr) {
     Extents2D exts;
     Tcl_Size nPoints;
+    Tcl_Size first;
+    Tcl_Size last;
     Tcl_Size dataIndex;
     Tcl_Size i;
     double minDist;
@@ -7247,7 +7473,36 @@ static void ClosestSourcePoint(Graph *graphPtr, Line *linePtr, ClosestSearch *se
     nPoints = NumberOfPoints(&linePtr->core);
     minDist = searchPtr->dist;
     dataIndex = -1;
-    for (i = 0; i < nPoints; i++) {
+    first = 0;
+    last = nPoints;
+    /*
+     * For SEARCH_BOTH and SEARCH_X, no point whose physical data-X
+     * screen coordinate differs from the query by at least minDist can
+     * improve the current result.
+     *
+     * When the Stage-3 cache is valid, use monotonic source X to find
+     * only that candidate interval by binary search.
+     *
+     * SEARCH_Y cannot use this optimization because X distance is
+     * ignored by that search mode.
+     */
+    if (((searchPtr->along == SEARCH_BOTH) || (searchPtr->along == SEARCH_X)) && EnsureLineDecimateCache(linePtr)) {
+        double queryAbscissa;
+        Tcl_Size candidateFirst;
+        Tcl_Size candidateLast;
+
+        if (graphPtr->inverted) {
+            queryAbscissa = (double)searchPtr->y;
+        } else {
+            queryAbscissa = (double)searchPtr->x;
+        }
+        if (GetCachedSourceRangeForAbscissa(graphPtr, linePtr, queryAbscissa - minDist, queryAbscissa + minDist,
+                                            &candidateFirst, &candidateLast)) {
+            first = candidateFirst;
+            last = candidateLast;
+        }
+    }
+    for (i = first; i < last; i++) {
         Point2D point;
         double x;
         double y;
@@ -7267,7 +7522,7 @@ static void ClosestSourcePoint(Graph *graphPtr, Line *linePtr, ClosestSearch *se
         }
         /*
          * Match MapSymbols exactly: point searches consider only
-         * points inside the plotting region.
+         * source points inside the plotting region.
          */
         if (!PointInRegion(&exts, point.x, point.y)) {
             continue;
@@ -7296,9 +7551,7 @@ static void ClosestSourcePoint(Graph *graphPtr, Line *linePtr, ClosestSearch *se
         searchPtr->elemPtr = &linePtr->core;
         searchPtr->dist = minDist;
         searchPtr->index = dataIndex;
-        if (!GetLineDataPoint(linePtr, dataIndex, &searchPtr->point.x, &searchPtr->point.y)) {
-            return;
-        }
+        GetLineDataPoint(linePtr, dataIndex, &searchPtr->point.x, &searchPtr->point.y);
     }
 }
 
