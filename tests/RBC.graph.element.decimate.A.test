@@ -254,5 +254,113 @@ namespace eval graph.element.decimate {
         destroy .graph1
     } -result {1 2}
 
+    # ------------------------------------------------------------------
+    # The persistent decimation cache must be invalidated when a named
+    # Y vector changes in place.
+    #
+    # Initially index 2 is not first/min/max/last, so it is omitted by
+    # the cached display geometry.  Changing only y[2] makes it the new
+    # maximum.  A stale cache would continue to omit index 2.
+    # ------------------------------------------------------------------
+    test RBC.graph.element.decimate.A.5.1 {
+        graph element decimate: Y vector update invalidates cached extrema
+    } -setup {
+        vector create CacheX
+        vector create CacheY
+        CacheX set {50 50 50 50 50}
+        CacheY set {0 1 0.25 -1 0}
+        #
+        # Use a Tcl variable mapping so that the individual element can
+        # be changed without replacing the vector or changing its size.
+        #
+        CacheY variable CacheYVar
+        graph .graph1 -width 300 -height 250
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 100
+        .graph1 axis configure y -min -2 -max 3
+        .graph1 element create Element1 -xdata CacheX -ydata CacheY -symbol none -showvalues no -linewidth 1\
+                -smooth linear -reduce 0.0 -decimate auto
+        #
+        # Build the initial persistent cache.
+        #
+        update
+    } -body {
+        #
+        # Index 2 was not an original representative:
+        #
+        #     first = 0
+        #     max   = 1
+        #     min   = 3
+        #     last  = 4
+        #
+        # It must become the new cached maximum after this mutation.
+        #
+        set CacheYVar(2) 2.0
+        update
+        lassign [.graph1 transform 50 2.0] px py
+        set found [.graph1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1]
+        list $found [expr {$found && abs(double($info(y)) - 2.0) < 0.01}]
+    } -cleanup {
+        unset -nocomplain info
+        unset -nocomplain CacheYVar
+        catch {vector destroy CacheX}
+        catch {vector destroy CacheY}
+        destroy .graph1
+    } -result {1 1}
+
+    # ------------------------------------------------------------------
+    # The persistent decimation cache must also be invalidated when a
+    # named X vector changes in place.
+    #
+    # Initially all samples have X=50, so the source is monotonic and
+    # index 2 is omitted from the cached first/min/max/last geometry.
+    #
+    # Moving only index 2 to X=60 changes the source sequence to:
+    #
+    #     50 50 60 50 50
+    #
+    # which is non-monotonic.  The Stage-3 cache must be rebuilt,
+    # rejected as unsupported, and the mapper must fall back to the
+    # full mapping path.
+    #
+    # A stale cache would still treat the source as one X bucket and
+    # omit index 2 entirely.
+    # ------------------------------------------------------------------
+    test RBC.graph.element.decimate.A.5.2 {
+        graph element decimate: X vector update invalidates cached monotonicity
+    } -setup {
+        vector create CacheX
+        vector create CacheY
+        CacheX set {50 50 50 50 50}
+        CacheY set {0 1 0.25 -1 0}
+        CacheX variable CacheXVar
+        graph .graph1 -width 300 -height 250
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 100
+        .graph1 axis configure y -min -2 -max 2
+        .graph1 element create Element1 -xdata CacheX -ydata CacheY -symbol none -showvalues no -linewidth 1\
+                -smooth linear -reduce 0.0 -decimate auto
+        #
+        # Build the initial cache while X is monotonic.
+        #
+        update
+    } -body {
+        #
+        # This makes the X sequence non-monotonic without replacing
+        # the vector object.
+        #
+        set CacheXVar(2) 60.0
+        update
+        lassign [.graph1 transform 60 0.25] px py
+        set found [.graph1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1]
+        list $found [expr {$found && abs(double($info(x)) - 60.0) < 0.01 && abs(double($info(y)) - 0.25) < 0.01}]
+    } -cleanup {
+        unset -nocomplain info
+        unset -nocomplain CacheXVar
+        catch {vector destroy CacheX}
+        catch {vector destroy CacheY}
+        destroy .graph1
+    } -result {1 1}
+
     cleanupTests
 }

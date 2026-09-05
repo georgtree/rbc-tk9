@@ -77,6 +77,44 @@ typedef struct {
     unsigned char *breakBefore;
 } MapInfo;
 
+#define LINE_DECIMATE_BLOCK_SIZE 64
+
+typedef struct {
+    Tcl_Size minIndex;
+    Tcl_Size maxIndex;
+} LineDecimateBlock;
+
+typedef struct {
+    LineDecimateBlock *blocks;
+    Tcl_Size nBlocks;
+    Tcl_Size nPoints;
+
+    /*
+     * Retained only for detecting an unexpected data-array replacement.
+     * Cache entries themselves contain source indices, not pointers.
+     */
+    const double *xValues;
+    const double *yValues;
+
+    int built;
+    int supported;
+
+    /*
+     * Source X ordering:
+     *
+     *   -1  decreasing
+     *    0  all X values equal
+     *   +1  increasing
+     */
+    int xDirection;
+
+    /*
+     * These allow the same cache to survive axis linear/log changes.
+     */
+    int allPositiveX;
+    int allPositiveY;
+} LineDecimateCache;
+
 /*
  * Symbol types for line elements
  */
@@ -278,6 +316,7 @@ typedef struct {
     double rTolerance; /* Tolerance to reduce the number of
                         * points displayed. */
     LineDecimation decimate;
+    LineDecimateCache decimateCache;
 
     /*
      * True when the current screen mapping intentionally omitted the
@@ -1286,6 +1325,7 @@ static int ScaleSymbol(Element *elemPtr, int normalSize);
 static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
 static void ReducePoints(MapInfo *mapPtr, double tolerance);
 static int CanPixelDecimateLine(Line *linePtr);
+static void InvalidateLineDecimateCache(Line *linePtr);
 static int CanPreMapDecimateLine(Line *linePtr);
 static double MapLineDataAbscissa(Graph *graphPtr, Line *linePtr, double x);
 static int BuildPixelDecimatedScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
@@ -3571,6 +3611,252 @@ static int CanPixelDecimateLine(Line *linePtr) {
     return TRUE;
 }
 
+static void InvalidateLineDecimateCache(Line *linePtr) {
+    LineDecimateCache *cachePtr;
+
+    cachePtr = &linePtr->decimateCache;
+    if (cachePtr->blocks != NULL) {
+        ckfree(cachePtr->blocks);
+    }
+    memset(cachePtr, 0, sizeof(*cachePtr));
+}
+
+static int BuildLineDecimateCache(Line *linePtr) {
+    LineDecimateCache *cachePtr;
+    Element *elemPtr;
+    const double *xValues;
+    const double *yValues;
+    Tcl_Size nPoints;
+    Tcl_Size nBlocks;
+    Tcl_Size blockIndex;
+    Tcl_Size previousIndex;
+    int direction;
+    size_t blockBytes;
+
+    cachePtr = &linePtr->decimateCache;
+    elemPtr = &linePtr->core;
+    InvalidateLineDecimateCache(linePtr);
+    nPoints = NumberOfPoints(elemPtr);
+    xValues = elemPtr->x.valueArr;
+    yValues = elemPtr->y.valueArr;
+    cachePtr->built = TRUE;
+    cachePtr->nPoints = nPoints;
+    cachePtr->xValues = xValues;
+    cachePtr->yValues = yValues;
+    cachePtr->allPositiveX = TRUE;
+    cachePtr->allPositiveY = TRUE;
+    if ((nPoints < 1) || (xValues == NULL) || (yValues == NULL)) {
+        return FALSE;
+    }
+    nBlocks = (nPoints / LINE_DECIMATE_BLOCK_SIZE) + ((nPoints % LINE_DECIMATE_BLOCK_SIZE) != 0);
+    if (GetLineArrayByteCount(nBlocks, sizeof(*cachePtr->blocks), &blockBytes) != TCL_OK) {
+        return FALSE;
+    }
+    cachePtr->blocks = Tcl_AttemptAlloc(blockBytes);
+    if (cachePtr->blocks == NULL) {
+        return FALSE;
+    }
+    cachePtr->nBlocks = nBlocks;
+    direction = 0;
+    previousIndex = -1;
+    for (blockIndex = 0; blockIndex < nBlocks; blockIndex++) {
+        LineDecimateBlock *blockPtr;
+        Tcl_Size first;
+        Tcl_Size last;
+        Tcl_Size i;
+        Tcl_Size minIndex;
+        Tcl_Size maxIndex;
+
+        blockPtr = cachePtr->blocks + blockIndex;
+        first = blockIndex * LINE_DECIMATE_BLOCK_SIZE;
+        last = first + LINE_DECIMATE_BLOCK_SIZE;
+        if (last > nPoints) {
+            last = nPoints;
+        }
+        minIndex = first;
+        maxIndex = first;
+        for (i = first; i < last; i++) {
+            double x;
+            double y;
+
+            x = xValues[i];
+            y = yValues[i];
+            /*
+             * Initial cache implementation deliberately excludes
+             * discontinuities. Stage 2 remains the fallback.
+             */
+            if ((!FINITE(x)) || (!FINITE(y))) {
+                goto unsupported;
+            }
+            if (x <= 0.0) {
+                cachePtr->allPositiveX = FALSE;
+            }
+            if (y <= 0.0) {
+                cachePtr->allPositiveY = FALSE;
+            }
+            if (previousIndex >= 0) {
+                double previousX;
+
+                previousX = xValues[previousIndex];
+                if (x > previousX) {
+                    if (direction < 0) {
+                        goto unsupported;
+                    }
+                    direction = 1;
+                } else if (x < previousX) {
+                    if (direction > 0) {
+                        goto unsupported;
+                    }
+                    direction = -1;
+                }
+            }
+            previousIndex = i;
+            /*
+             * Strict comparisons intentionally preserve the earliest
+             * source index when extrema are equal, matching Stage 2.
+             */
+            if (y < yValues[minIndex]) {
+                minIndex = i;
+            }
+            if (y > yValues[maxIndex]) {
+                maxIndex = i;
+            }
+        }
+        blockPtr->minIndex = minIndex;
+        blockPtr->maxIndex = maxIndex;
+    }
+    cachePtr->xDirection = direction;
+    cachePtr->supported = TRUE;
+    return TRUE;
+
+unsupported:
+    ckfree(cachePtr->blocks);
+    cachePtr->blocks = NULL;
+    cachePtr->nBlocks = 0;
+    cachePtr->supported = FALSE;
+    cachePtr->xDirection = 0;
+    return FALSE;
+}
+
+static int EnsureLineDecimateCache(Line *linePtr) {
+    LineDecimateCache *cachePtr;
+    Tcl_Size nPoints;
+
+    cachePtr = &linePtr->decimateCache;
+    nPoints = NumberOfPoints(&linePtr->core);
+    /*
+     * MAP_ITEM invalidation should normally catch data replacement.
+     * These checks are an additional safeguard.
+     */
+    if (cachePtr->built && ((cachePtr->nPoints != nPoints) || (cachePtr->xValues != linePtr->core.x.valueArr) ||
+                            (cachePtr->yValues != linePtr->core.y.valueArr))) {
+        InvalidateLineDecimateCache(linePtr);
+    }
+    if (!cachePtr->built) {
+        BuildLineDecimateCache(linePtr);
+    }
+    if (!cachePtr->supported) {
+        return FALSE;
+    }
+    /*
+     * A non-positive value is perfectly valid on a linear axis. It
+     * prevents the simple cached path only while that axis is logarithmic,
+     * because it would introduce discontinuities.
+     */
+    if (linePtr->core.axes.x->logScale && !cachePtr->allPositiveX) {
+        return FALSE;
+    }
+    if (linePtr->core.axes.y->logScale && !cachePtr->allPositiveY) {
+        return FALSE;
+    }
+    return TRUE;
+}
+
+static void GetCachedRangeExtrema(Line *linePtr, Tcl_Size first, Tcl_Size last, Tcl_Size *minIndexPtr,
+                                  Tcl_Size *maxIndexPtr) {
+    LineDecimateCache *cachePtr;
+    const double *yValues;
+    Tcl_Size minIndex;
+    Tcl_Size maxIndex;
+    Tcl_Size i;
+
+    cachePtr = &linePtr->decimateCache;
+    yValues = cachePtr->yValues;
+    minIndex = first;
+    maxIndex = first;
+    i = first;
+    while (i <= last) {
+        if (((i % LINE_DECIMATE_BLOCK_SIZE) == 0) && ((last - i) >= (LINE_DECIMATE_BLOCK_SIZE - 1))) {
+            LineDecimateBlock *blockPtr;
+
+            blockPtr = cachePtr->blocks + (i / LINE_DECIMATE_BLOCK_SIZE);
+            if (yValues[blockPtr->minIndex] < yValues[minIndex]) {
+                minIndex = blockPtr->minIndex;
+            }
+            if (yValues[blockPtr->maxIndex] > yValues[maxIndex]) {
+                maxIndex = blockPtr->maxIndex;
+            }
+            i += LINE_DECIMATE_BLOCK_SIZE;
+        } else {
+            if (yValues[i] < yValues[minIndex]) {
+                minIndex = i;
+            }
+            if (yValues[i] > yValues[maxIndex]) {
+                maxIndex = i;
+            }
+            i++;
+        }
+    }
+    *minIndexPtr = minIndex;
+    *maxIndexPtr = maxIndex;
+}
+
+static int GetCachedPixelBucket(Graph *graphPtr, Line *linePtr, Tcl_Size index, double pixelMin, double pixelMax,
+                                double *bucketPtr) {
+    double x;
+    double abscissa;
+
+    x = linePtr->decimateCache.xValues[index];
+    abscissa = MapLineDataAbscissa(graphPtr, linePtr, x);
+    if (!FINITE(abscissa)) {
+        return FALSE;
+    }
+    if (abscissa < pixelMin) {
+        *bucketPtr = pixelMin - 1.0;
+    } else if (abscissa > pixelMax) {
+        *bucketPtr = pixelMax + 1.0;
+    } else {
+        *bucketPtr = trunc(abscissa);
+    }
+    return TRUE;
+}
+
+static Tcl_Size FindNextCachedPixelBucket(Graph *graphPtr, Line *linePtr, Tcl_Size first, double currentBucket,
+                                          int direction, double pixelMin, double pixelMax, int *okPtr) {
+    Tcl_Size low;
+    Tcl_Size high;
+
+    low = first + 1;
+    high = linePtr->decimateCache.nPoints;
+    while (low < high) {
+        Tcl_Size middle;
+        double bucket;
+
+        middle = low + ((high - low) / 2);
+        if (!GetCachedPixelBucket(graphPtr, linePtr, middle, pixelMin, pixelMax, &bucket)) {
+            *okPtr = FALSE;
+            return high;
+        }
+        if (((direction > 0) && (bucket <= currentBucket)) || ((direction < 0) && (bucket >= currentBucket))) {
+            low = middle + 1;
+        } else {
+            high = middle;
+        }
+    }
+    *okPtr = TRUE;
+    return low;
+}
+
 static int CanPreMapDecimateLine(Line *linePtr) {
     Element *elemPtr;
     LinePen *penPtr;
@@ -3728,6 +4014,7 @@ static int AppendSourcePixelBucket(Tcl_Size first, Tcl_Size minIndex, Tcl_Size m
     int i;
     int j;
     int firstOutput;
+    
     candidate[0] = first;
     candidate[1] = minIndex;
     candidate[2] = maxIndex;
@@ -4101,6 +4388,287 @@ static int BuildPixelDecimatedScreenPoints(Graph *graphPtr, Line *linePtr, MapIn
     mapPtr->indices = indices;
     mapPtr->breakBefore = breakBefore;
     mapPtr->nScreenPts = mappedCount;
+    return TRUE;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * BuildCachedPixelDecimatedScreenPoints --
+ *
+ *      Builds pixel-density line geometry from the persistent
+ *      data-domain decimation cache.
+ *
+ *      Unlike BuildPixelDecimatedScreenPoints(), this routine does not
+ *      scan every source sample during each remap.  Monotonic source X
+ *      allows source ranges belonging to each physical data-X pixel to
+ *      be located by binary search.  Minimum and maximum Y indices for
+ *      each range are then obtained from the cached block summaries.
+ *
+ *      Each pixel bucket contributes, in original source order:
+ *
+ *          first
+ *          minimum Y
+ *          maximum Y
+ *          last
+ *
+ *      Duplicate representatives are removed by
+ *      AppendSourcePixelBucket().
+ *
+ *      This initial cached implementation supports only a single
+ *      continuous run.  Non-finite values, non-monotonic X, and
+ *      logarithmic-domain discontinuities cause EnsureLineDecimateCache()
+ *      to reject the cache, allowing the caller to fall back to the
+ *      Stage-2 source scanner.
+ *
+ * Parameters:
+ *      Graph *graphPtr
+ *      Line *linePtr
+ *      MapInfo *mapPtr
+ *
+ * Results:
+ *      TRUE if the cached path was successfully handled.
+ *
+ *      FALSE if the caller should fall back to
+ *      BuildPixelDecimatedScreenPoints().
+ *
+ * Side Effects:
+ *      On success, mapPtr contains newly allocated mapped points and
+ *      source indices.  breakBefore is always NULL because this cached
+ *      path currently supports only continuous data.
+ *
+ *----------------------------------------------------------------------
+ */
+static int BuildCachedPixelDecimatedScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
+    LineDecimateCache *cachePtr;
+    Extents2D exts;
+    Tcl_Size nPoints;
+    Tcl_Size capacity;
+    Tcl_Size *selected;
+    unsigned char *selectedBreakBefore;
+    Tcl_Size count;
+    Tcl_Size first;
+    Tcl_Size i;
+    Point2D *screenPts;
+    Tcl_Size *indices;
+    size_t selectedBytes;
+    size_t selectedBreakBytes;
+    size_t pointBytes;
+    size_t indexBytes;
+    double pixelMin;
+    double pixelMax;
+    double pixelSpan;
+    double firstBucket;
+    double lastBucket;
+    int direction;
+
+    mapPtr->screenPts = NULL;
+    mapPtr->indices = NULL;
+    mapPtr->breakBefore = NULL;
+    mapPtr->nScreenPts = 0;
+    if (!EnsureLineDecimateCache(linePtr)) {
+        return FALSE;
+    }
+    cachePtr = &linePtr->decimateCache;
+    nPoints = cachePtr->nPoints;
+    if (nPoints < 1) {
+        return TRUE;
+    }
+    /*
+     * Data X is represented by screen X normally and by screen Y when
+     * the graph is inverted.
+     */
+    Rbc_GraphExtents(graphPtr, &exts);
+    if (graphPtr->inverted) {
+        pixelMin = exts.top;
+        pixelMax = exts.bottom;
+    } else {
+        pixelMin = exts.left;
+        pixelMax = exts.right;
+    }
+    if (pixelMax < pixelMin) {
+        double tmp;
+
+        tmp = pixelMin;
+        pixelMin = pixelMax;
+        pixelMax = tmp;
+    }
+    /*
+     * Match the BuildPixelDecimatedScreenPoints() allocation bound:
+     *
+     *     visible integer pixel buckets
+     *     + one collapsed bucket before the plot
+     *     + one collapsed bucket after the plot
+     *
+     * Each bucket can produce at most four representatives.
+     */
+    pixelSpan = ceil(pixelMax) - floor(pixelMin) + 3.0;
+    if ((!FINITE(pixelSpan)) || (pixelSpan < 1.0) || (pixelSpan > (double)TCL_SIZE_MAX / 4.0)) {
+        return FALSE;
+    }
+    capacity = (Tcl_Size)pixelSpan * 4;
+    if (capacity > nPoints) {
+        capacity = nPoints;
+    }
+    if (capacity < 1) {
+        capacity = 1;
+    }
+    if ((GetLineArrayByteCount(capacity, sizeof(*selected), &selectedBytes) != TCL_OK) ||
+        (GetLineArrayByteCount(capacity, sizeof(*selectedBreakBefore), &selectedBreakBytes) != TCL_OK)) {
+        return FALSE;
+    }
+    selected = Tcl_AttemptAlloc(selectedBytes);
+    if (selected == NULL) {
+        return FALSE;
+    }
+    /*
+     * AppendSourcePixelBucket() already accepts a break array.  The
+     * cached path currently has no discontinuities, so every entry
+     * remains zero, but using the existing helper keeps the
+     * first/min/max/last emission logic shared with BuildPixelDecimatedScreenPoints().
+     */
+    selectedBreakBefore = Tcl_AttemptAlloc(selectedBreakBytes);
+    if (selectedBreakBefore == NULL) {
+        ckfree(selected);
+        return FALSE;
+    }
+    /*
+     * Determine the direction in physical screen-pixel space, not from
+     * source-X ordering.
+     *
+     * Axis -descending and graph -invertxy can reverse the mapped
+     * direction even though source X itself is monotonic.
+     */
+    if (!GetCachedPixelBucket(graphPtr, linePtr, 0, pixelMin, pixelMax, &firstBucket)) {
+        ckfree(selectedBreakBefore);
+        ckfree(selected);
+        return FALSE;
+    }
+    if (!GetCachedPixelBucket(graphPtr, linePtr, nPoints - 1, pixelMin, pixelMax, &lastBucket)) {
+        ckfree(selectedBreakBefore);
+        ckfree(selected);
+        return FALSE;
+    }
+    if (lastBucket > firstBucket) {
+        direction = 1;
+    } else if (lastBucket < firstBucket) {
+        direction = -1;
+    } else {
+        direction = 0;
+    }
+    count = 0;
+    first = 0;
+    while (first < nPoints) {
+        Tcl_Size next;
+        Tcl_Size last;
+        Tcl_Size minIndex;
+        Tcl_Size maxIndex;
+        double bucket;
+        int ok;
+
+        if (!GetCachedPixelBucket(graphPtr, linePtr, first, pixelMin, pixelMax, &bucket)) {
+            ckfree(selectedBreakBefore);
+            ckfree(selected);
+            return FALSE;
+        }
+        /*
+         * If the first and final source points map to the same bucket,
+         * monotonicity guarantees that the complete source sequence is
+         * in that bucket.
+         *
+         * This also handles the all-X-equal case.
+         */
+        if (direction == 0) {
+            next = nPoints;
+        } else {
+            next = FindNextCachedPixelBucket(graphPtr, linePtr, first, bucket, direction, pixelMin, pixelMax, &ok);
+            if (!ok) {
+                ckfree(selectedBreakBefore);
+                ckfree(selected);
+                return FALSE;
+            }
+            /*
+             * Defensive check against a malformed binary-search result.
+             */
+            if ((next <= first) || (next > nPoints)) {
+                ckfree(selectedBreakBefore);
+                ckfree(selected);
+                return FALSE;
+            }
+        }
+        last = next - 1;
+        GetCachedRangeExtrema(linePtr, first, last, &minIndex, &maxIndex);
+        /*
+         * The cached implementation currently represents one continuous
+         * run, therefore startsRun is always FALSE.
+         */
+        if (!AppendSourcePixelBucket(first, minIndex, maxIndex, last, FALSE, capacity, selected, selectedBreakBefore,
+                                     &count)) {
+            ckfree(selectedBreakBefore);
+            ckfree(selected);
+            return FALSE;
+        }
+        first = next;
+    }
+    if (count < 1) {
+        ckfree(selectedBreakBefore);
+        ckfree(selected);
+        return TRUE;
+    }
+    if ((GetLineArrayByteCount(count, sizeof(*screenPts), &pointBytes) != TCL_OK) ||
+        (GetLineArrayByteCount(count, sizeof(*indices), &indexBytes) != TCL_OK)) {
+        ckfree(selectedBreakBefore);
+        ckfree(selected);
+        return FALSE;
+    }
+    screenPts = Tcl_AttemptAlloc(pointBytes);
+    if (screenPts == NULL) {
+        ckfree(selectedBreakBefore);
+        ckfree(selected);
+        return FALSE;
+    }
+    indices = Tcl_AttemptAlloc(indexBytes);
+    if (indices == NULL) {
+        ckfree(screenPts);
+        ckfree(selectedBreakBefore);
+        ckfree(selected);
+        return FALSE;
+    }
+    /*
+     * Only the retained representatives now require the full X/Y
+     * world-to-screen transformation.
+     */
+    for (i = 0; i < count; i++) {
+        Tcl_Size sourceIndex;
+        Point2D point;
+        double x;
+        double y;
+
+        sourceIndex = selected[i];
+        if (!GetLineDataPoint(linePtr, sourceIndex, &x, &y)) {
+            ckfree(indices);
+            ckfree(screenPts);
+            ckfree(selectedBreakBefore);
+            ckfree(selected);
+            return FALSE;
+        }
+        point = Rbc_Map2D(graphPtr, x, y, &linePtr->core.axes);
+        if ((!FINITE(point.x)) || (!FINITE(point.y))) {
+            ckfree(indices);
+            ckfree(screenPts);
+            ckfree(selectedBreakBefore);
+            ckfree(selected);
+            return FALSE;
+        }
+        screenPts[i] = point;
+        indices[i] = sourceIndex;
+    }
+    ckfree(selectedBreakBefore);
+    ckfree(selected);
+    mapPtr->screenPts = screenPts;
+    mapPtr->indices = indices;
+    mapPtr->breakBefore = NULL;
+    mapPtr->nScreenPts = count;
     return TRUE;
 }
 
@@ -6210,6 +6778,9 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
     Rbc_ChainLink *linkPtr;
     LinePenStyle *stylePtr;
 
+    if (elemPtr->flags & MAP_ITEM) {
+        InvalidateLineDecimateCache(linePtr);
+    }    
     ResetLine(linePtr);
     nPoints = NumberOfPoints(&linePtr->core);
     if (nPoints < 1) {
@@ -6217,7 +6788,15 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
     }
     preMapDecimated = FALSE;
     if (CanPreMapDecimateLine(linePtr)) {
-        preMapDecimated = BuildPixelDecimatedScreenPoints(graphPtr, linePtr, &mapInfo);
+        preMapDecimated = BuildCachedPixelDecimatedScreenPoints(graphPtr, linePtr, &mapInfo);
+        if (!preMapDecimated) {
+           /*
+            * Unsupported cached cases—non-monotonic X,
+            * discontinuities, log-domain breaks, etc.—retain
+            * the Stage-2 implementation.
+            */            
+            preMapDecimated = BuildPixelDecimatedScreenPoints(graphPtr, linePtr, &mapInfo);
+        }
     }
     if (!preMapDecimated) {
         GetScreenPoints(graphPtr, linePtr, &mapInfo);
@@ -9173,6 +9752,7 @@ static void DestroyLine(Graph *graphPtr, Element *elemPtr) {
     Rbc_FreeElemVector(&elemPtr->yError);
     Rbc_FreeElemVector(&linePtr->param);
     FreeComplexVector(&linePtr->z);
+    InvalidateLineDecimateCache(linePtr);
     ResetLine(linePtr);
     if (elemPtr->palette != NULL) {
         Rbc_FreePalette(graphPtr, elemPtr->palette);

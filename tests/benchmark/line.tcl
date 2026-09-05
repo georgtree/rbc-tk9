@@ -4,17 +4,12 @@ package require Tk
 package require rbc
 
 namespace eval ::rbcBenchmark {
-    variable options [dict create \
-        points     {10000 100000 1000000 5000000} \
-        sizes      {640x480 1280x720 1920x1080 2560x1440} \
-        iterations 3 \
-        warmup     1 \
-        decimate   {none} \
-        csv        {}]
+    variable options [dict create points {10000 100000 1000000 5000000} sizes {640x480 1280x720 1920x1080 2560x1440}\
+    iterations 3 warmup 1 decimate {none auto} csv {}]
 
     variable xVector ::rbcBenchmarkX
     variable yVector ::rbcBenchmarkY
-    variable top   .rbcLineBenchmark
+    variable top .rbcLineBenchmark
     variable graph .rbcLineBenchmark.g
 }
 
@@ -48,12 +43,6 @@ Options:
 
       Default:
           none
-
-      Once -decimate is implemented:
-
-          -decimate none,auto
-
-      can benchmark both implementations.
 
   -csv FILE
       Also write results as CSV.
@@ -279,20 +268,6 @@ proc ::rbcBenchmark::SetSize {width height} {
     return [list [winfo width $graph] [winfo height $graph]]
 }
 
-# This deliberately works both before and after -decimate is added.
-proc ::rbcBenchmark::ConfigureDecimate {mode} {
-    variable graph
-
-    if {![catch {$graph element cget signal -decimate}]} {
-        $graph element configure signal -decimate $mode
-        return
-    }
-    # Current RBC has no -decimate option yet.
-    if {$mode ne "none"} {
-        error "this RBC build does not provide -decimate yet; use -decimate none"
-    }
-}
-
 #
 # First mapping + first complete drawing.
 #
@@ -300,11 +275,11 @@ proc ::rbcBenchmark::CreateElement {mode} {
     variable graph
     variable xVector
     variable yVector
+
     catch {$graph element delete signal}
     return [Time {
         $graph element create signal -xdata $xVector -ydata $yVector -linewidth 1 -symbol none -smooth linear\
-                -reduce 0.0
-        ConfigureDecimate $mode
+                -reduce 0.0 -decimate $mode
         SyncDisplay
     }]
 }
@@ -324,13 +299,13 @@ proc ::rbcBenchmark::MeasureRedraw {} {
 # Force remapping while changing the visible range by an insignificant
 # amount.
 #
-# This exercises:
+# This exercises an axis-only remap.
 #
-#       GetScreenPoints
-#       MapTraces
-#       renderer
+# With -decimate none this maps the complete source data.
 #
-# without meaningfully changing how much of the waveform is visible.
+# With -decimate auto the persistent decimation cache should survive
+# the axis change, and only the pixel-density representatives should
+# require full world-to-screen mapping.
 proc ::rbcBenchmark::MeasureRemap {iteration} {
     variable graph
     if {$iteration & 1} {
@@ -410,13 +385,14 @@ proc ::rbcBenchmark::PrintHeader {} {
 redraw:
     redraws already-mapped geometry.
 
-remap:
-    changes the X axis slightly, therefore remapping and redrawing
-    the complete line.
+axis-remap:
+    changes the X axis slightly, forcing line geometry to be remapped
+    and redrawn.  With -decimate auto, a persistent data-domain cache
+    may be reused across these axis-only changes.
 }
 
     puts [format "%-8s %10s %13s %13s %11s %11s %12s %12s" mode points requested actual pts/xpixel create-ms redraw-med\
-                  remap-med]
+                  axis-remap]
     puts [string repeat - 102]
 }
 
