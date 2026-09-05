@@ -189,6 +189,19 @@ typedef struct {
 
     Element *elemPtr; /* Element associated with vector. */
 
+    /*
+     * Change information received from an external named vector.
+     *
+     * changePending is set when at least one notification has arrived
+     * since the element was last mapped.
+     *
+     * changeAll means that no exact source range is available.
+     */
+    int changePending;
+    int changeAll;
+    Tcl_Size changedFirst;
+    Tcl_Size changedLast;    
+
 } ElemVector;
 
 typedef struct {

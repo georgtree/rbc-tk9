@@ -79,14 +79,14 @@ typedef union {
  *    routine.
  */
 struct Rbc_Vector_s {
-    Rbc_VectorType type;    
+    Rbc_VectorType type;
 
     VectorData data;
-    Tcl_Size length;  /* Current number of values in the array. */
-    Tcl_Size size;    /* Maximum number of values that can be stored
-                       * in the value array. */
-    double min, max;  /* Minimum and maximum values in the vector */
-    int dirty;        /* Indicates if the vector has been updated */
+    Tcl_Size length; /* Current number of values in the array. */
+    Tcl_Size size;   /* Maximum number of values that can be stored
+                      * in the value array. */
+    double min, max; /* Minimum and maximum values in the vector */
+    int dirty;       /* Indicates if the vector has been updated */
 
     /* The following fields are local to this module  */
     char *name; /* The namespace-qualified name of the vector command.
@@ -118,11 +118,22 @@ struct Rbc_Vector_s {
                              * non-zero, free the vector when its
                              * variable is unset. */
     int flush;
+
     Tcl_Size first, last; /* Selected region of vector. This is used
                            * mostly for the math routines */
+
+    /*
+     * Coalesced source range modified since the previous client
+     * notification.
+     *
+     * updateAll means that the modified range is unknown or that the
+     * complete vector should be considered changed.
+     */
+    int updateAll;
+    int updateRangeValid;
+    Tcl_Size updateFirst;
+    Tcl_Size updateLast;
 };
-
-
 
 typedef Rbc_Vector VectorObject;
 
@@ -148,6 +159,14 @@ struct Rbc_VectorIdStruct {
                                   * change procedure is called. */
     Rbc_ChainLink *linkPtr;      /* Used to quickly remove this entry from
                                   * its server's client chain. */
+    /*
+     * Snapshot of the range associated with the notification currently
+     * being delivered to this client.
+     */
+    int updateAll;
+    int updateRangeValid;
+    Tcl_Size updateFirst;
+    Tcl_Size updateLast;    
 };
 
 typedef struct Rbc_VectorIdStruct VectorClient;
@@ -226,6 +245,8 @@ VectorObject *Rbc_VectorParseElement(Tcl_Interp *interp, VectorInterpData *dataP
                                      const char **endPtr, int flags);
 int Rbc_VectorChangeLength(VectorObject *vPtr, Tcl_Size length);
 void Rbc_VectorUpdateClients(VectorObject *vPtr);
+void Rbc_VectorUpdateClientsRange(VectorObject *vPtr, Tcl_Size first, Tcl_Size last);
+int Rbc_VectorGetChangedRange(Rbc_VectorId clientId, Tcl_Size *firstPtr, Tcl_Size *lastPtr);
 int Rbc_VectorMapVariable(Tcl_Interp *interp, VectorObject *vPtr, const char *name);
 VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, const char *cmdName, const char *varName,
                                Rbc_VectorType type, int *newPtr);

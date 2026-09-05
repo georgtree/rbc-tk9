@@ -123,11 +123,21 @@ static char *VectorTraceError(Tcl_Obj *objPtr) {
 }
 
 int Rbc_VectorGetRange(Rbc_Vector *vecPtr, double *minPtr, double *maxPtr) {
-    if (vecPtr->type != RBC_VECTOR_REAL) {
+    VectorObject *vPtr;
+
+    vPtr = (VectorObject *)vecPtr;
+    if (vPtr->type != RBC_VECTOR_REAL) {
         return TCL_ERROR;
     }
-    *minPtr = Rbc_VecMin(vecPtr);
-    *maxPtr = Rbc_VecMax(vecPtr);
+    /*
+     * min/max are cached in the vector.  Recompute both in one pass
+     * only when source data have invalidated that cache.
+     */
+    if (vPtr->notifyFlags & UPDATE_RANGE) {
+        Rbc_VectorUpdateRange(vPtr);
+    }
+    *minPtr = vPtr->min;
+    *maxPtr = vPtr->max;
     return TCL_OK;
 }
 
@@ -753,7 +763,7 @@ VectorObject *Rbc_VectorNew(VectorInterpData *dataPtr) {
 
     vPtr->type = RBC_VECTOR_REAL;
 
-    vPtr->notifyFlags = NOTIFY_WHENIDLE;
+    vPtr->notifyFlags = NOTIFY_WHENIDLE | UPDATE_RANGE;
     vPtr->freeProc = TCL_STATIC;
     vPtr->dataPtr = dataPtr;
     vPtr->data.raw = NULL;
@@ -1342,15 +1352,52 @@ static void VectorNotifyClients(ClientData clientData) {
     Rbc_ChainLink *linkPtr;
     VectorClient *clientPtr;
     Rbc_VectorNotify notify;
+    int updateAll;
+    int updateRangeValid;
+    Tcl_Size updateFirst;
+    Tcl_Size updateLast;
 
     notify = (vPtr->notifyFlags & NOTIFY_DESTROYED) ? RBC_VECTOR_NOTIFY_DESTROY : RBC_VECTOR_NOTIFY_UPDATE;
+    /*
+     * Snapshot the coalesced update before invoking clients.
+     *
+     * Clear the server-side pending range now so that an update caused
+     * from inside a callback starts a new notification range rather
+     * than modifying the range currently being delivered.
+     */
+    if (notify == RBC_VECTOR_NOTIFY_DESTROY) {
+        updateAll = TRUE;
+        updateRangeValid = FALSE;
+        updateFirst = 0;
+        updateLast = 0;
+    } else {
+        updateAll = vPtr->updateAll;
+        updateRangeValid = vPtr->updateRangeValid && !updateAll;
+        updateFirst = vPtr->updateFirst;
+        updateLast = vPtr->updateLast;
+    }
+    vPtr->updateAll = FALSE;
+    vPtr->updateRangeValid = FALSE;
+    vPtr->updateFirst = 0;
+    vPtr->updateLast = 0;
     vPtr->notifyFlags &= ~(NOTIFY_UPDATED | NOTIFY_DESTROYED | NOTIFY_PENDING);
-
     for (linkPtr = Rbc_ChainFirstLink(vPtr->chainPtr); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
         clientPtr = Rbc_ChainGetValue(linkPtr);
+        /*
+         * Give each client its own snapshot.  This avoids making the
+         * callback inspect mutable server-side notification state.
+         */
+        clientPtr->updateAll = updateAll;
+        clientPtr->updateRangeValid = updateRangeValid;
+        clientPtr->updateFirst = updateFirst;
+        clientPtr->updateLast = updateLast;
         if (clientPtr->proc != NULL) {
             (*clientPtr->proc)(vPtr->interp, clientPtr->clientData, notify);
         }
+        clientPtr->updateAll = FALSE;
+        clientPtr->updateRangeValid = FALSE;
+        clientPtr->updateFirst = 0;
+        clientPtr->updateLast = 0;
     }
     /*
      * Some clients may not handle the "destroy" callback properly
@@ -2034,6 +2081,53 @@ VectorObject *Rbc_VectorParseElement(Tcl_Interp *interp, VectorInterpData *dataP
 /*
  * ----------------------------------------------------------------------
  *
+ * ScheduleVectorUpdate --
+ *
+ *      Records an update and arranges for vector clients to be
+ *      notified according to the vector's notification policy.
+ *
+ *      A ranged update may be coalesced with another ranged update
+ *      while an idle notification is pending.  An unknown/full update
+ *      supersedes all ranged information.
+ *
+ * ----------------------------------------------------------------------
+ */
+static void ScheduleVectorUpdate(VectorObject *vPtr, int all, Tcl_Size first, Tcl_Size last) {
+    vPtr->dirty++;
+    if (vPtr->notifyFlags & NOTIFY_NEVER) {
+        return;
+    }
+    if (all) {
+        vPtr->updateAll = TRUE;
+        vPtr->updateRangeValid = FALSE;
+    } else if (!vPtr->updateAll) {
+        if (!vPtr->updateRangeValid) {
+            vPtr->updateFirst = first;
+            vPtr->updateLast = last;
+            vPtr->updateRangeValid = TRUE;
+        } else {
+            if (first < vPtr->updateFirst) {
+                vPtr->updateFirst = first;
+            }
+            if (last > vPtr->updateLast) {
+                vPtr->updateLast = last;
+            }
+        }
+    }
+    vPtr->notifyFlags |= NOTIFY_UPDATED;
+    if (vPtr->notifyFlags & NOTIFY_ALWAYS) {
+        VectorNotifyClients(vPtr);
+        return;
+    }
+    if (!(vPtr->notifyFlags & NOTIFY_PENDING)) {
+        vPtr->notifyFlags |= NOTIFY_PENDING;
+        Tcl_DoWhenIdle(VectorNotifyClients, vPtr);
+    }
+}
+
+/*
+ * ----------------------------------------------------------------------
+ *
  * Rbc_VectorUpdateClients --
  *
  *      Notifies each client of the vector that the vector has changed
@@ -2051,20 +2145,127 @@ VectorObject *Rbc_VectorParseElement(Tcl_Interp *interp, VectorInterpData *dataP
  * ----------------------------------------------------------------------
  */
 void Rbc_VectorUpdateClients(VectorObject *vPtr) {
-    vPtr->dirty++;
-    vPtr->max = vPtr->min = rbcNaN;
-    if (vPtr->notifyFlags & NOTIFY_NEVER) {
+    /*
+     * An unqualified update gives us no information from which the
+     * cached global range can safely be maintained.
+     */
+    vPtr->min = vPtr->max = rbcNaN;
+    vPtr->notifyFlags |= UPDATE_RANGE;
+
+    ScheduleVectorUpdate(vPtr, TRUE, 0, 0);
+}
+
+/*
+ * ----------------------------------------------------------------------
+ *
+ * Rbc_VectorUpdateClientsRange --
+ *
+ *      Notifies vector clients that a known inclusive source range was
+ *      modified.
+ *
+ *      Multiple ranged updates occurring before notification are
+ *      coalesced into one inclusive range.
+ *
+ *      Invalid ranges conservatively become full/unknown updates.
+ *
+ * ----------------------------------------------------------------------
+ */
+void Rbc_VectorUpdateClientsRange(VectorObject *vPtr, Tcl_Size first, Tcl_Size last) {
+    if ((first < 0) || (last < first) || (last >= vPtr->length)) {
+        Rbc_VectorUpdateClients(vPtr);
         return;
     }
-    vPtr->notifyFlags |= NOTIFY_UPDATED;
-    if (vPtr->notifyFlags & NOTIFY_ALWAYS) {
-        VectorNotifyClients(vPtr);
-        return;
+    ScheduleVectorUpdate(vPtr, FALSE, first, last);
+}
+
+/*
+ * ----------------------------------------------------------------------
+ *
+ * GetReplicatedWriteRange --
+ *
+ *      Determines whether the cached global min/max of a real vector
+ *      can remain exact after replacing the inclusive source range
+ *      [first,last] with one value.
+ *
+ *      The cached range can be maintained incrementally provided:
+ *
+ *        - it was valid before the write, and
+ *        - the overwritten source range did not contain the old global
+ *          minimum or maximum.
+ *
+ *      If either old extremum is overwritten, another occurrence may
+ *      or may not exist elsewhere in the vector, so a complete range
+ *      scan remains the conservative fallback.
+ *
+ * Results:
+ *      TRUE if newMinPtr/newMaxPtr contain the exact post-write range.
+ *      FALSE if the normal UPDATE_RANGE/full-scan path is required.
+ *
+ * ----------------------------------------------------------------------
+ */
+static int GetReplicatedWriteRange(VectorObject *vPtr, Tcl_Size first, Tcl_Size last, double value, double *newMinPtr,
+                                   double *newMaxPtr) {
+    double min;
+    double max;
+    Tcl_Size i;
+    
+    assert(vPtr->type == RBC_VECTOR_REAL);
+    /*
+     * The old global range must already be current.
+     */
+    if (vPtr->notifyFlags & UPDATE_RANGE) {
+        return FALSE;
     }
-    if (!(vPtr->notifyFlags & NOTIFY_PENDING)) {
-        vPtr->notifyFlags |= NOTIFY_PENDING;
-        Tcl_DoWhenIdle(VectorNotifyClients, vPtr);
+
+    min = vPtr->min;
+    max = vPtr->max;
+    /*
+     * If the old vector contained finite values, determine whether the
+     * write destroys information needed to identify either extremum.
+     *
+     * Exact equality is appropriate here: min/max were copied directly
+     * from source vector values.
+     */
+    if (min <= max) {
+        for (i = first; i <= last; i++) {
+            double oldValue;
+
+            oldValue = vPtr->data.real[i];
+            if (!FINITE(oldValue)) {
+                continue;
+            }
+            if ((oldValue == min) || (oldValue == max)) {
+                return FALSE;
+            }
+        }
     }
+    /*
+     * A non-finite replacement cannot introduce a new finite extremum.
+     * Since neither old extremum was removed above, the old range
+     * remains exact.
+     */
+    if (!FINITE(value)) {
+        *newMinPtr = min;
+        *newMaxPtr = max;
+        return TRUE;
+    }
+    /*
+     * min > max is the representation produced by
+     * Rbc_VectorUpdateRange() when no finite values exist.
+     */
+    if (min > max) {
+        min = max = value;
+    } else {
+        if (value < min) {
+            min = value;
+        }
+        if (value > max) {
+            max = value;
+        }
+    }
+    *newMinPtr = min;
+    *newMaxPtr = max;
+    return TRUE;
 }
 
 /*
@@ -2117,8 +2318,16 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
         Tcl_Obj *objPtr;
         double realValue;
         Rbc_Complex complexValue;
+        double newMin;
+        double newMax;
+        Tcl_Size oldLength;
+        int preserveRange;
         int result;
 
+        newMin = 0.0;
+        newMax = 0.0;
+        oldLength = vPtr->length;
+        preserveRange = FALSE;
         if ((first == SPECIAL_INDEX) || (last == SPECIAL_INDEX)) {
             return VectorTraceError(Tcl_NewStringObj("read-only index", -1));
         }
@@ -2141,6 +2350,17 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
         if (result != TCL_OK) {
             goto error;
         }
+        /*
+         * For an ordinary real-vector replacement, determine whether the
+         * cached global min/max can be maintained before overwriting the old
+         * source values.
+         *
+         * Appends are handled conservatively below because Rbc_VectorChangeLength()
+         * changes the temporary vector contents before the final value is stored.
+         */
+        if ((vPtr->type == RBC_VECTOR_REAL) && (first >= 0) && (last >= first) && (last < oldLength)) {
+            preserveRange = GetReplicatedWriteRange(vPtr, first, last, realValue, &newMin, &newMax);
+        }
         if ((first == vPtr->length) || (last == vPtr->length)) {
             if (vPtr->length == TCL_SIZE_MAX) {
                 return VectorTraceError(Tcl_NewStringObj("vector is too large to append", -1));
@@ -2152,6 +2372,16 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
         switch (vPtr->type) {
         case RBC_VECTOR_REAL:
             Rbc_ReplicateValue(vPtr, first, last, realValue);
+            /*
+             * Rbc_ReplicateValue conservatively marks UPDATE_RANGE.
+             * If we proved above that the old extrema were untouched, install
+             * the exact new range and cancel that unnecessary full rescan.
+             */
+            if (preserveRange) {
+                vPtr->min = newMin;
+                vPtr->max = newMax;
+                vPtr->notifyFlags &= ~UPDATE_RANGE;
+            }
             break;
         case RBC_VECTOR_COMPLEX: {
             Tcl_Size i;
@@ -2237,7 +2467,23 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
     } else {
         return VectorTraceError(Tcl_NewStringObj("unknown variable trace flag", -1));
     }
-    if (flags & (TCL_TRACE_UNSETS | TCL_TRACE_WRITES)) {
+    if (flags & TCL_TRACE_WRITES) {
+        /*
+         * The write path knows the exact inclusive source range that
+         * was modified.  Preserve it for clients such as graph display
+         * decimation caches.
+         *
+         * Appends are harmless here: if the vector length changed,
+         * clients will detect the length/storage mismatch and fall back
+         * to a complete rebuild.
+         */
+        Rbc_VectorUpdateClientsRange(vPtr, first, last);
+
+    } else if (flags & TCL_TRACE_UNSETS) {
+        /*
+         * Removing a range shifts every following source index, so the
+         * resulting modification is not restricted to the unset range.
+         */
         Rbc_VectorUpdateClients(vPtr);
     }
     Tcl_ResetResult(interp);
@@ -2863,7 +3109,14 @@ int Rbc_GetVectorById(Tcl_Interp *interp, Rbc_VectorId clientId, Rbc_Vector **ve
         Rbc_AppendResultStrings(interp, "vector no longer exists", (char *)NULL);
         return TCL_ERROR;
     }
-    Rbc_VectorUpdateRange(clientPtr->serverPtr);
+    /*
+     * Preserve the existing behaviour that obtaining a vector by ID
+     * leaves its cached range current, but do not rescan an already
+     * current vector.
+     */    
+    if (clientPtr->serverPtr->notifyFlags & UPDATE_RANGE) {
+        Rbc_VectorUpdateRange(clientPtr->serverPtr);
+    }
     *vecPtrPtr = (Rbc_Vector *)clientPtr->serverPtr;
     return TCL_OK;
 }
@@ -2987,6 +3240,39 @@ void Rbc_SetVectorChangedProc(Rbc_VectorId clientId, Rbc_VectorChangedProc *proc
     }
     clientPtr->clientData = clientData;
     clientPtr->proc = proc;
+}
+
+/*
+ * -----------------------------------------------------------------------
+ *
+ * Rbc_VectorGetChangedRange --
+ *
+ *      Returns the inclusive source range associated with the vector
+ *      update currently being delivered to a client.
+ *
+ * Results:
+ *      TRUE when an exact changed range is available.
+ *
+ *      FALSE when the update must be treated as affecting the complete
+ *      vector, or when the client token is invalid.
+ *
+ * -----------------------------------------------------------------------
+ */
+int Rbc_VectorGetChangedRange(Rbc_VectorId clientId, Tcl_Size *firstPtr, Tcl_Size *lastPtr) {
+    VectorClient *clientPtr;
+
+    clientPtr = (VectorClient *)clientId;
+    if ((clientPtr == NULL) || (clientPtr->magic != VECTOR_MAGIC) || (clientPtr->serverPtr == NULL) ||
+        clientPtr->updateAll || !clientPtr->updateRangeValid) {
+        return FALSE;
+    }
+    if (firstPtr != NULL) {
+        *firstPtr = clientPtr->updateFirst;
+    }
+    if (lastPtr != NULL) {
+        *lastPtr = clientPtr->updateLast;
+    }
+    return TRUE;
 }
 
 /*

@@ -18,6 +18,7 @@
 #include <X11/Xutil.h>
 
 #include "rbcGrElem.h"
+#include "rbcVectorInt.h"
 
 static Rbc_VectorChangedProc VectorChangedProc;
 
@@ -507,6 +508,41 @@ void Rbc_FreeElemVector(ElemVector *vPtr) {
     memset(vPtr, 0, sizeof(*vPtr));
 }
 
+static void RecordElemVectorChange(ElemVector *vPtr, int haveRange, Tcl_Size first, Tcl_Size last) {
+    if (!vPtr->changePending) {
+        vPtr->changePending = TRUE;
+        if (haveRange) {
+            vPtr->changeAll = FALSE;
+            vPtr->changedFirst = first;
+            vPtr->changedLast = last;
+        } else {
+            vPtr->changeAll = TRUE;
+            vPtr->changedFirst = 0;
+            vPtr->changedLast = 0;
+        }
+        return;
+    }
+    /*
+     * Once an unknown/full update has been observed, later ranged
+     * updates cannot make the combined pending change precise again.
+     */
+    if (vPtr->changeAll) {
+        return;
+    }
+    if (!haveRange) {
+        vPtr->changeAll = TRUE;
+        vPtr->changedFirst = 0;
+        vPtr->changedLast = 0;
+        return;
+    }
+    if (first < vPtr->changedFirst) {
+        vPtr->changedFirst = first;
+    }
+    if (last > vPtr->changedLast) {
+        vPtr->changedLast = last;
+    }
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -531,19 +567,34 @@ static void VectorChangedProc(Tcl_Interp *interp, ClientData clientData, Rbc_Vec
     ElemVector *vPtr = clientData;
     Element *elemPtr = vPtr->elemPtr;
     Graph *graphPtr = elemPtr->graphPtr;
-
     switch (notify) {
     case RBC_VECTOR_NOTIFY_DESTROY:
+        /*
+         * Destruction invalidates the complete source vector.
+         */
+        RecordElemVectorChange(vPtr, FALSE, 0, 0);
+
         vPtr->clientId = NULL;
         vPtr->valueArr = NULL;
         vPtr->nValues = 0;
         break;
-
     case RBC_VECTOR_NOTIFY_UPDATE:
-    default:
+    default: {
+        Tcl_Size first = 0;
+        Tcl_Size last = 0;
+        int haveRange;
+
+        /*
+         * Query the range while the vector callback is active.  The
+         * client-specific snapshot is intentionally valid only for the
+         * duration of this notification.
+         */
+        haveRange = Rbc_VectorGetChangedRange(vPtr->clientId, &first, &last);
+        RecordElemVectorChange(vPtr, haveRange, first, last);
         Rbc_GetVectorById(interp, vPtr->clientId, &vPtr->vecPtr);
         SyncElemVector(vPtr);
         break;
+    }
     }
     graphPtr->flags |= RESET_AXES;
     elemPtr->flags |= MAP_ITEM;

@@ -83,6 +83,12 @@ typedef struct {
 typedef struct {
     Tcl_Size minIndex;
     Tcl_Size maxIndex;
+
+    /*
+     * Needed so an incremental Y-block rebuild can update the cache's
+     * global logarithmic-domain eligibility without rescanning all Y.
+     */
+    Tcl_Size nonPositiveYCount;
 } LineDecimateBlock;
 
 typedef struct {
@@ -114,6 +120,8 @@ typedef struct {
      */
     int allPositiveX;
     int allPositiveY;
+
+    Tcl_Size nonPositiveYCount;
 } LineDecimateCache;
 
 /*
@@ -1403,6 +1411,22 @@ static int GetLinePenColorFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *
     }
     *colorPtrPtr = colorPtr;
     return TCL_OK;
+}
+
+static void ClearLineVectorChanges(Line *linePtr) {
+    ElemVector *xPtr;
+    ElemVector *yPtr;
+
+    xPtr = &linePtr->core.x;
+    yPtr = &linePtr->core.y;
+    xPtr->changePending = FALSE;
+    xPtr->changeAll = FALSE;
+    xPtr->changedFirst = 0;
+    xPtr->changedLast = 0;
+    yPtr->changePending = FALSE;
+    yPtr->changeAll = FALSE;
+    yPtr->changedFirst = 0;
+    yPtr->changedLast = 0;
 }
 
 static int ComplexDivide(double nr, double ni, double dr, double di, double *realPtr, double *imagPtr) {
@@ -3697,6 +3721,7 @@ static int BuildLineDecimateCache(Line *linePtr) {
     cachePtr->yValues = yValues;
     cachePtr->allPositiveX = TRUE;
     cachePtr->allPositiveY = TRUE;
+    cachePtr->nonPositiveYCount = 0;    
     if ((nPoints < 1) || (xValues == NULL) || (yValues == NULL)) {
         return FALSE;
     }
@@ -3720,6 +3745,7 @@ static int BuildLineDecimateCache(Line *linePtr) {
         Tcl_Size maxIndex;
 
         blockPtr = cachePtr->blocks + blockIndex;
+        blockPtr->nonPositiveYCount = 0;
         first = blockIndex * LINE_DECIMATE_BLOCK_SIZE;
         last = first + LINE_DECIMATE_BLOCK_SIZE;
         if (last > nPoints) {
@@ -3744,7 +3770,8 @@ static int BuildLineDecimateCache(Line *linePtr) {
                 cachePtr->allPositiveX = FALSE;
             }
             if (y <= 0.0) {
-                cachePtr->allPositiveY = FALSE;
+                blockPtr->nonPositiveYCount++;
+                cachePtr->nonPositiveYCount++;
             }
             if (previousIndex >= 0) {
                 double previousX;
@@ -3777,6 +3804,7 @@ static int BuildLineDecimateCache(Line *linePtr) {
         blockPtr->minIndex = minIndex;
         blockPtr->maxIndex = maxIndex;
     }
+    cachePtr->allPositiveY = (cachePtr->nonPositiveYCount == 0);
     cachePtr->xDirection = direction;
     cachePtr->supported = TRUE;
     return TRUE;
@@ -3788,6 +3816,93 @@ unsupported:
     cachePtr->supported = FALSE;
     cachePtr->xDirection = 0;
     return FALSE;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * RebuildLineDecimateYBlock --
+ *
+ *      Rebuilds the Y-dependent summary for one existing Stage-3
+ *      decimation block.
+ *
+ *      Source X is deliberately not inspected here: this helper is
+ *      used only when the graph has received a precisely ranged Y-only
+ *      update.
+ *
+ * Results:
+ *      TRUE if the block was rebuilt successfully.
+ *
+ *      FALSE if the new Y data cannot be represented by the cached
+ *      continuous-data path.
+ *
+ *----------------------------------------------------------------------
+ */
+static int RebuildLineDecimateYBlock(Line *linePtr, Tcl_Size blockIndex) {
+    LineDecimateCache *cachePtr;
+    LineDecimateBlock *blockPtr;
+    const double *yValues;
+    Tcl_Size first;
+    Tcl_Size last;
+    Tcl_Size minIndex;
+    Tcl_Size maxIndex;
+    Tcl_Size nonPositiveYCount;
+    Tcl_Size i;
+
+    cachePtr = &linePtr->decimateCache;
+    if ((blockIndex < 0) || (blockIndex >= cachePtr->nBlocks)) {
+        return FALSE;
+    }
+    yValues = cachePtr->yValues;
+    if (yValues == NULL) {
+        return FALSE;
+    }
+    blockPtr = cachePtr->blocks + blockIndex;
+    first = blockIndex * LINE_DECIMATE_BLOCK_SIZE;
+    last = first + LINE_DECIMATE_BLOCK_SIZE;
+    if (last > cachePtr->nPoints) {
+        last = cachePtr->nPoints;
+    }
+    if (first >= last) {
+        return FALSE;
+    }
+    minIndex = first;
+    maxIndex = first;
+    nonPositiveYCount = 0;
+    for (i = first; i < last; i++) {
+        double y;
+
+        y = yValues[i];
+        /*
+         * The simple cached path represents one continuous run.
+         */
+        if (!FINITE(y)) {
+            return FALSE;
+        }
+        if (y <= 0.0) {
+            nonPositiveYCount++;
+        }
+        /*
+         * Preserve the earliest source index on equal extrema,
+         * matching the full cache builder.
+         */
+        if (y < yValues[minIndex]) {
+            minIndex = i;
+        }
+        if (y > yValues[maxIndex]) {
+            maxIndex = i;
+        }
+    }
+    if (cachePtr->nonPositiveYCount < blockPtr->nonPositiveYCount) {
+        return FALSE;
+    }
+    cachePtr->nonPositiveYCount -= blockPtr->nonPositiveYCount;
+    cachePtr->nonPositiveYCount += nonPositiveYCount;
+    blockPtr->minIndex = minIndex;
+    blockPtr->maxIndex = maxIndex;
+    blockPtr->nonPositiveYCount = nonPositiveYCount;
+    cachePtr->allPositiveY = (cachePtr->nonPositiveYCount == 0);
+    return TRUE;
 }
 
 static int EnsureLineDecimateCache(Line *linePtr) {
@@ -3820,6 +3935,99 @@ static int EnsureLineDecimateCache(Line *linePtr) {
     }
     if (linePtr->core.axes.y->logScale && !cachePtr->allPositiveY) {
         return FALSE;
+    }
+    return TRUE;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * RefreshLineDecimateCache --
+ *
+ *      Attempts to preserve an already-built Stage-3 cache across an
+ *      element MAP_ITEM update.
+ *
+ *      Exact ranged Y-only changes rebuild only the affected 64-sample
+ *      summaries.
+ *
+ *      X changes, unknown Y changes, source-array replacement, point
+ *      count changes, and unsupported cached data require a complete
+ *      cache rebuild.
+ *
+ * Results:
+ *      TRUE if the existing cache remains valid.
+ *
+ *      FALSE if the caller must invalidate it.
+ *
+ *----------------------------------------------------------------------
+ */
+static int RefreshLineDecimateCache(Line *linePtr) {
+    LineDecimateCache *cachePtr;
+    Element *elemPtr;
+    Tcl_Size nPoints;
+    Tcl_Size first;
+    Tcl_Size last;
+    Tcl_Size firstBlock;
+    Tcl_Size lastBlock;
+    Tcl_Size blockIndex;
+
+    cachePtr = &linePtr->decimateCache;
+    elemPtr = &linePtr->core;
+    if (!cachePtr->built) {
+        return TRUE;
+    }
+    nPoints = NumberOfPoints(elemPtr);
+    /*
+     * A changed point count or backing array means source indices in
+     * the existing cache can no longer be trusted.
+     */
+    if ((cachePtr->nPoints != nPoints) || (cachePtr->xValues != elemPtr->x.valueArr) ||
+        (cachePtr->yValues != elemPtr->y.valueArr)) {
+        return FALSE;
+    }
+    /*
+     * Source X controls monotonicity and pixel-range binary searches.
+     * Do not attempt incremental X maintenance yet.
+     */
+    if (elemPtr->x.changePending) {
+        return FALSE;
+    }
+    /*
+     * MAP_ITEM may have been caused by a pen/style/state option rather
+     * than source data.  The data-domain cache itself survives those
+     * changes.
+     */
+    if (!elemPtr->y.changePending) {
+        return TRUE;
+    }
+    /*
+     * Incremental maintenance requires a cache that was previously
+     * known to support the Stage-3 path and an exact changed Y range.
+     */
+    if (!cachePtr->supported || elemPtr->y.changeAll) {
+        return FALSE;
+    }
+    first = elemPtr->y.changedFirst;
+    last = elemPtr->y.changedLast;
+    if ((first < 0) || (last < first)) {
+        return FALSE;
+    }
+    /*
+     * Y may be longer than X.  Changes wholly beyond NumberOfPoints()
+     * do not affect this line's mapped XY data.
+     */
+    if (first >= nPoints) {
+        return TRUE;
+    }
+    if (last >= nPoints) {
+        last = nPoints - 1;
+    }
+    firstBlock = first / LINE_DECIMATE_BLOCK_SIZE;
+    lastBlock = last / LINE_DECIMATE_BLOCK_SIZE;
+    for (blockIndex = firstBlock; blockIndex <= lastBlock; blockIndex++) {
+        if (!RebuildLineDecimateYBlock(linePtr, blockIndex)) {
+            return FALSE;
+        }
     }
     return TRUE;
 }
@@ -6996,8 +7204,23 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
     LinePenStyle *stylePtr;
 
     if (elemPtr->flags & MAP_ITEM) {
-        InvalidateLineDecimateCache(linePtr);
-    }    
+        /*
+         * Preserve the persistent Stage-3 cache across changes that do
+         * not affect its source-domain summaries.
+         *
+         * A precisely ranged Y-only vector update can refresh just the
+         * affected 64-sample blocks.  Anything less certain falls back
+         * to complete invalidation.
+         */
+        if (!RefreshLineDecimateCache(linePtr)) {
+            InvalidateLineDecimateCache(linePtr);
+        }
+    }
+    /*
+     * The pending vector-change metadata has now been consumed,
+     * regardless of whether the cache survived or was invalidated.
+     */
+    ClearLineVectorChanges(linePtr);
     ResetLine(linePtr);
     nPoints = NumberOfPoints(&linePtr->core);
     if (nPoints < 1) {
