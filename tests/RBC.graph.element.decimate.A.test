@@ -530,5 +530,76 @@ namespace eval graph.element.decimate {
         destroy .graph1
     } -result {1 1 1 1 1 1}
 
+    test RBC.graph.element.decimate.A.5.7 {
+        graph element decimate: vector index Y write uses ranged cache update
+    } -setup {
+        set n 4096
+        set changedIndex 2050
+        vector create CacheX
+        vector create CacheY
+        CacheX set [lrepeat $n 50.0]
+        CacheY set [lrepeat $n 0.0]
+        CacheY index 0 -2.0
+        CacheY index end 5.0
+        graph .graph1 -width 300 -height 250
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 100
+        .graph1 axis configure y -loose no
+        .graph1 element create Element1 -xdata CacheX -ydata CacheY -symbol none -showvalues no -linewidth 1\
+                -smooth linear -reduce 0.0 -decimate auto
+        update
+    } -body {
+        #
+        # This is deliberately the vector instance command, not a mapped
+        # Tcl-array write.
+        #
+        CacheY index $changedIndex 8.0
+        update
+        lassign [.graph1 axis limits y] ymin ymax
+        lassign [.graph1 transform 50 8.0] px py
+        set found [.graph1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1]
+
+        list [expr {abs(double($ymin) + 2.0) < 1.0e-9}] [expr {abs(double($ymax) - 8.0) < 1.0e-9}] $found\
+                [expr {$found && abs(double($info(y)) - 8.0) < 0.01}]
+    } -cleanup {
+        unset -nocomplain info
+        unset -nocomplain n
+        unset -nocomplain changedIndex
+        catch {vector destroy CacheX}
+        catch {vector destroy CacheY}
+        destroy .graph1
+    } -result {1 1 1 1}
+
+    test RBC.graph.element.decimate.A.5.8 {
+        graph element decimate: vector index overwrite of old maximum falls back safely
+    } -setup {
+        set n 4096
+        set maximumIndex 2050
+        vector create CacheX
+        vector create CacheY
+        CacheX set [lrepeat $n 50.0]
+        CacheY set [lrepeat $n 0.0]
+        CacheY index 0 -2.0
+        CacheY index $maximumIndex 5.0
+        graph .graph1 -width 300 -height 250
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 100
+        .graph1 axis configure y -loose no
+        .graph1 element create Element1 -xdata CacheX -ydata CacheY -symbol none -showvalues no -linewidth 1\
+                -smooth linear -reduce 0.0 -decimate auto
+        update
+    } -body {
+        CacheY index $maximumIndex 3.0
+        update
+        lassign [.graph1 axis limits y] ymin ymax
+        list [expr {abs(double($ymin) + 2.0) < 1.0e-9}] [expr {abs(double($ymax) - 3.0) < 1.0e-9}]
+    } -cleanup {
+        unset -nocomplain n
+        unset -nocomplain maximumIndex
+        catch {vector destroy CacheX}
+        catch {vector destroy CacheY}
+        destroy .graph1
+    } -result {1 1}
+
     cleanupTests
 }

@@ -2230,7 +2230,6 @@ static int GetReplicatedWriteRange(VectorObject *vPtr, Tcl_Size first, Tcl_Size 
     if (vPtr->notifyFlags & UPDATE_RANGE) {
         return FALSE;
     }
-
     min = vPtr->min;
     max = vPtr->max;
     haveFiniteRange = FINITE(min) && FINITE(max);
@@ -2274,6 +2273,45 @@ static int GetReplicatedWriteRange(VectorObject *vPtr, Tcl_Size first, Tcl_Size 
     *newMinPtr = min;
     *newMaxPtr = max;
     return TRUE;
+}
+
+/*
+ * ----------------------------------------------------------------------
+ *
+ * Rbc_ReplicateValuePreserveRange --
+ *
+ *      Replaces an existing inclusive range of a real vector while
+ *      preserving the cached global minimum/maximum whenever that can
+ *      be proven from the overwritten values.
+ *
+ *      The caller must supply an existing in-range source interval.
+ *      Appends and resizes must use the ordinary Rbc_ReplicateValue()
+ *      path instead.
+ *
+ * ----------------------------------------------------------------------
+ */
+void Rbc_ReplicateValuePreserveRange(VectorObject *vPtr, Tcl_Size first, Tcl_Size last, double value) {
+    double newMin;
+    double newMax;
+    int preserveRange;
+
+    assert(vPtr->type == RBC_VECTOR_REAL);
+    assert(first >= 0);
+    assert(last >= first);
+    assert(last < vPtr->length);
+    newMin = 0.0;
+    newMax = 0.0;
+    preserveRange = GetReplicatedWriteRange(vPtr, first, last, value, &newMin, &newMax);
+    Rbc_ReplicateValue(vPtr, first, last, value);
+    /*
+     * Rbc_ReplicateValue() conservatively sets UPDATE_RANGE.
+     * Cancel it when the new range has already been determined exactly.
+     */
+    if (preserveRange) {
+        vPtr->min = newMin;
+        vPtr->max = newMax;
+        vPtr->notifyFlags &= ~UPDATE_RANGE;
+    }
 }
 
 /*
@@ -2325,17 +2363,13 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
     if (flags & TCL_TRACE_WRITES) {
         Tcl_Obj *objPtr;
         double realValue;
+        int inPlaceRealWrite;
         Rbc_Complex complexValue;
-        double newMin;
-        double newMax;
         Tcl_Size oldLength;
-        int preserveRange;
         int result;
 
-        newMin = 0.0;
-        newMax = 0.0;
         oldLength = vPtr->length;
-        preserveRange = FALSE;
+        inPlaceRealWrite = FALSE;
         if ((first == SPECIAL_INDEX) || (last == SPECIAL_INDEX)) {
             return VectorTraceError(Tcl_NewStringObj("read-only index", -1));
         }
@@ -2367,7 +2401,7 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
          * changes the temporary vector contents before the final value is stored.
          */
         if ((vPtr->type == RBC_VECTOR_REAL) && (first >= 0) && (last >= first) && (last < oldLength)) {
-            preserveRange = GetReplicatedWriteRange(vPtr, first, last, realValue, &newMin, &newMax);
+            inPlaceRealWrite = TRUE;
         }
         if ((first == vPtr->length) || (last == vPtr->length)) {
             if (vPtr->length == TCL_SIZE_MAX) {
@@ -2379,16 +2413,10 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
         }
         switch (vPtr->type) {
         case RBC_VECTOR_REAL:
-            Rbc_ReplicateValue(vPtr, first, last, realValue);
-            /*
-             * Rbc_ReplicateValue conservatively marks UPDATE_RANGE.
-             * If we proved above that the old extrema were untouched, install
-             * the exact new range and cancel that unnecessary full rescan.
-             */
-            if (preserveRange) {
-                vPtr->min = newMin;
-                vPtr->max = newMax;
-                vPtr->notifyFlags &= ~UPDATE_RANGE;
+            if (inPlaceRealWrite) {
+                Rbc_ReplicateValuePreserveRange(vPtr, first, last, realValue);
+            } else {
+                Rbc_ReplicateValue(vPtr, first, last, realValue);
             }
             break;
         case RBC_VECTOR_COMPLEX: {

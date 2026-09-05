@@ -1110,8 +1110,12 @@ static int ExprOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
  */
 static int IndexOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Size first, last;
+    Tcl_Size oldLength;
+    int rangedRealWrite;
     char *string;
 
+    oldLength = vPtr->length;
+    rangedRealWrite = FALSE;    
     string = Tcl_GetString(objv[2]);
     if (Rbc_VectorGetIndexRange(interp, vPtr, string, INDEX_ALL_FLAGS, (Rbc_VectorIndexProc **)NULL) != TCL_OK) {
         return TCL_ERROR;
@@ -1159,6 +1163,14 @@ static int IndexOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
             if (Rbc_GetDouble(interp, objv[3], &value) != TCL_OK) {
                 return TCL_ERROR;
             }
+            /*
+             * An ordinary write to existing real-vector storage can carry an
+             * exact changed source range and can usually preserve cached
+             * min/max incrementally.
+             */
+            if ((first >= 0) && (last >= first) && (last < oldLength)) {
+                rangedRealWrite = TRUE;
+            }
             if (first == vPtr->length) {
                 Tcl_Size newSize;
 
@@ -1169,13 +1181,21 @@ static int IndexOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
                     return TCL_ERROR;
                 }
             }
-            Rbc_ReplicateValue(vPtr, first, last, value);
+            if (rangedRealWrite) {
+                Rbc_ReplicateValuePreserveRange(vPtr, first, last, value);
+            } else {
+                Rbc_ReplicateValue(vPtr, first, last, value);
+            }
         }
         Tcl_SetObjResult(interp, objv[3]);
         if (vPtr->flush) {
             Rbc_VectorFlushCache(vPtr);
         }
-        Rbc_VectorUpdateClients(vPtr);
+        if (rangedRealWrite) {
+            Rbc_VectorUpdateClientsRange(vPtr, first, last);
+        } else {
+            Rbc_VectorUpdateClients(vPtr);
+        }
     }
     return TCL_OK;
 }
