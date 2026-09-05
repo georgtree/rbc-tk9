@@ -42,37 +42,32 @@ for {set i 0} {$i<11} {incr i} {
 }
 
 ### Define graph and its elements:
-set graph .graph
-graph $graph -width 600 -height 400
+set graph [graphtoolbar .g -width 800 -height 500 -type graph -controlmode toolbar -zoom -zoomtitle -zoommark\
+                   -crosshairs -crosshairsmode current -scaletoggle all -activelegend -zoomwheel -pan]
 set Dem [file join $DemoDir bitmaps hobbes]
 set attributes [string map [list @ @$Dem] {
-    none     None     red     red4     y0
-    arrow    Arrow    brown   brown4   y10
-    circle   Circle   yellow  yellow4  y2
-    cross    Cross    cyan    cyan4    y6
-    diamond  Diamond  green   green4   y3
-    plus     Plus     magenta magenta4 y9
-    splus    Splus    Purple  purple4  y7
-    scross   Scross   red     red4     y8
-    square   Square   orange  orange4  y1
-    triangle Triangle blue    blue4    y4
+    none     None     #264653 red4     y0
+    arrow    Arrow    #287271 brown4   y10
+    circle   Circle   #2a9d8f yellow4  y2
+    cross    Cross    #8ab17d cyan4    y6
+    diamond  Diamond  #babb74 green4   y3
+    plus     Plus     #e9c46a magenta4 y9
+    splus    Splus    #efb366 purple4  y7
+    scross   Scross   #f4a261 red4     y8
+    square   Square   #ee8959 orange4  y1
+    triangle Triangle #e76f51 blue4    y4
     {{@.xbm} {@_mask.xbm}}
              Bitmap   yellow  black    y5
 }]
+
 set count 0
 foreach {symbol label fill color yVec} $attributes {
-    $graph element create line${count} -label $label -symbol $symbol -color $color -fill $fill -x x -y $yVec
+    $graph graph element create line${count} -label $label -symbol $symbol -color $color -fill $fill -x x -y $yVec
     incr count
 }
-$graph element configure line0 -dashes {2 4 2} -linewidth 2
+$graph graph element configure line0 -dashes {2 4 2} -linewidth 2
 
 ### Map everything, add Rbc_* commands.
 grid $graph -sticky nsew
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 0 -weight 1
-Rbc_ZoomStack $graph
-Rbc_ActiveLegend $graph
-Rbc_ClosestPoint $graph
-Rbc_PrintKey $graph
-set toolbar [Rbc_ToolbarCrosshair {} $graph]
-grid $toolbar -sticky we

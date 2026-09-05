@@ -5,14 +5,6 @@
 .SH NAME
 rbc - Commands in namespace rbc
 .SH SYNOPSIS
-\fBActivateLegend\fP \fIgraph\fP
-.br
-\fBAddBindTag\fP \fIwidget tag\fP
-.br
-\fBAddBitmapPoint\fP \fIgraph name coords ?anchor?\fP
-.br
-\fBAddLabelPoint\fP \fIgraph text coords ?anchor?\fP
-.br
 \fBAXIS\fP \fIsubcommand \&.\&.\&.\fP
 .br
 \fBAXIS bind\fP \fItagName\fP
@@ -53,17 +45,9 @@ rbc - Commands in namespace rbc
 .br
 \fBAXIS view\fP \fIaxisName number\fP
 .br
-\fBAxisScaleActive\fP \fIgraph axis ?event?\fP
-.br
 \fBbarchart\fP \fIpathName ?option value \&.\&.\&.?\fP
 .br
-\fBBox\fP \fIgraph\fP
-.br
-\fBClosestPoint\fP \fIgraph ?event?\fP
-.br
 \fBCROSSHAIRS\fP \fIsubcommand \&.\&.\&.\fP
-.br
-\fBCrosshairs\fP \fIgraph ?event? ?state?\fP
 .br
 \fBCROSSHAIRS cget\fP \fIoption\fP
 .br
@@ -74,14 +58,6 @@ rbc - Commands in namespace rbc
 \fBCROSSHAIRS on\fP
 .br
 \fBCROSSHAIRS toggle\fP
-.br
-\fBCrosshairsClosest\fP \fIgraph ?event? ?state? ?halo? ?interpolate? ?single?\fP
-.br
-\fBCrosshairsMarker\fP \fIgraph marker ?event? ?state?\fP
-.br
-\fBDeactivateLegend\fP \fIgraph\fP
-.br
-\fBDestroyZoomTitle\fP \fIgraph\fP
 .br
 \fBELEMENT\fP \fIsubcommand \&.\&.\&.\fP
 .br
@@ -118,14 +94,6 @@ rbc - Commands in namespace rbc
 \fBELEMENT show\fP \fIelemList\fP
 .br
 \fBELEMENT type\fP \fIelemName\fP
-.br
-\fBFindElement\fP \fIgraph x y\fP
-.br
-\fBFindElementMarkPoint\fP \fIgraph x y ?interpolate?\fP
-.br
-\fBFlashPoint\fP \fIgraph name index count\fP
-.br
-\fBGetCoords\fP \fIgraph x y index\fP
 .br
 \fBgraph\fP \fIpathName ?option value \&.\&.\&.?\fP
 .br
@@ -187,10 +155,6 @@ rbc - Commands in namespace rbc
 .br
 \fBGRID toggle\fP
 .br
-\fBHighlightLegend\fP \fIgraph\fP
-.br
-\fBInitStack\fP \fIgraph\fP
-.br
 \fBLEGEND\fP \fIsubcommand \&.\&.\&.\fP
 .br
 \fBLEGEND activate\fP \fIpattern ?pattern \&.\&.\&.?\fP
@@ -204,10 +168,6 @@ rbc - Commands in namespace rbc
 \fBLEGEND deactivate\fP \fIpattern ?pattern \&.\&.\&.?\fP
 .br
 \fBLEGEND get\fP \fIcurrent|@x,y\fP
-.br
-\fBMakeSnapshot\fP \fIgraph\fP
-.br
-\fBMarchingAnts\fP \fIgraph offset\fP
 .br
 \fBMARGINAXIS\fP \fIsubcommand \&.\&.\&.\fP
 .br
@@ -228,8 +188,6 @@ rbc - Commands in namespace rbc
 \fBMARGINAXIS transform\fP \fIvalue\fP
 .br
 \fBMARGINAXIS use\fP \fIaxisList\fP
-.br
-\fBMarkClosestPoint\fP \fIgraph ?event? ?interpolate?\fP
 .br
 \fBMARKER\fP \fIsubcommand \&.\&.\&.\fP
 .br
@@ -257,8 +215,6 @@ rbc - Commands in namespace rbc
 .br
 \fBMARKER type\fP \fImarkerName\fP
 .br
-\fBMarkPoint\fP \fIgraph index\fP
-.br
 \fBPEN\fP \fIsubcommand \&.\&.\&.\fP
 .br
 \fBPEN cget\fP \fIpenName option\fP
@@ -275,8 +231,6 @@ rbc - Commands in namespace rbc
 .br
 \fBpolar\fP \fIpathName ?option value \&.\&.\&.?\fP
 .br
-\fBPopZoom\fP \fIgraph\fP
-.br
 \fBPOSTSCRIPT\fP \fIsubcommand \&.\&.\&.\fP
 .br
 \fBPOSTSCRIPT cget\fP \fIoption\fP
@@ -284,24 +238,6 @@ rbc - Commands in namespace rbc
 \fBPOSTSCRIPT configure\fP \fI?option? ?value \&.\&.\&.?\fP
 .br
 \fBPOSTSCRIPT output\fP \fI?fileName? ?option value \&.\&.\&.?\fP
-.br
-\fBPostScriptDialog\fP \fIgraph\fP
-.br
-\fBPrintKey\fP \fIgraph ?event?\fP
-.br
-\fBPushZoom\fP \fIgraph\fP
-.br
-\fBRemoveAllMarkers\fP \fIgraph\fP
-.br
-\fBRemoveBindTag\fP \fIwidget tag\fP
-.br
-\fBResetAllZoom\fP \fIgraph\fP
-.br
-\fBResetPostScript\fP \fIgraph\fP
-.br
-\fBResetZoom\fP \fIgraph\fP
-.br
-\fBSetZoomPoint\fP \fIgraph x y\fP
 .br
 \fBspline\fP \fIsubcommand \&.\&.\&.\fP
 .br
@@ -312,12 +248,6 @@ rbc - Commands in namespace rbc
 \fBspline quadratic\fP \fIx y splX splY\fP
 .br
 \fBstripchart\fP \fIpathName ?option value \&.\&.\&.?\fP
-.br
-\fBToggleAxisScale\fP \fIgraph axis\fP
-.br
-\fBToolbar\fP \fIw graph\fP
-.br
-\fBToolbarCrosshair\fP \fIw graph ?event? ?state?\fP
 .br
 \fBVECINST\fP \fIsubcommand \&.\&.\&.\fP
 .br
@@ -439,95 +369,8 @@ rbc - Commands in namespace rbc
 .br
 \fBWINOPIMAGE subsample\fP \fIsrcPhoto destPhoto x y width height ?horzFilter? ?vertFilter?\fP
 .br
-\fBZoomStack\fP \fIgraph ?start? ?reset?\fP
-.br
-\fBZoomTitleLast\fP \fIgraph\fP
-.br
-\fBZoomTitleNext\fP \fIgraph\fP
-.br
 .SH ::RBC
 .SH COMMANDS
-.PP
-.RS -4n
-\fBActivateLegend\fR (::rbc)
-.RE
-.RS 4n
-\fBActivateLegend\fP \fIgraph\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.RE
-.PP
-.RS -4n
-\fBAddBindTag\fR (::rbc)
-.RE
-.RS 4n
-\fBAddBindTag\fP \fIwidget tag\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-widget
-Not documented\&.
-.TP
-tag
-Not documented\&.
-.RE
-.PP
-.RS -4n
-\fBAddBitmapPoint\fR (::rbc)
-.RE
-.RS 4n
-\fBAddBitmapPoint\fP \fIgraph name coords ?anchor?\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.TP
-name
-Not documented\&.
-.TP
-coords
-Not documented\&.
-.TP
-anchor
-Not documented\&. Optional, default w\&.
-.RE
-.PP
-.RS -4n
-\fBAddLabelPoint\fR (::rbc)
-.RE
-.RS 4n
-\fBAddLabelPoint\fP \fIgraph text coords ?anchor?\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.TP
-text
-Not documented\&.
-.TP
-coords
-Not documented\&.
-.TP
-anchor
-Not documented\&. Optional, default w\&.
-.RE
 .PP
 .RS -4n
 \fBAXIS\fR (::rbc)
@@ -886,27 +729,6 @@ Scrolling unit; must be units or pages\&.
 Two-element list first last when querying; nothing when changing the view\&.
 .PP
 .RS -4n
-\fBAxisScaleActive\fR (::rbc)
-.RE
-.RS 4n
-\fBAxisScaleActive\fP \fIgraph axis ?event?\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.TP
-axis
-Not documented\&.
-.TP
-event
-Not documented\&. Optional, default ButtonPress-1\&.
-.RE
-.PP
-.RS -4n
 \fBbarchart\fR (::rbc)
 .RE
 .PP
@@ -948,39 +770,6 @@ pack \&.b -fill both -expand yes
 The pathname of the newly created barchart widget\&.
 .PP
 .RS -4n
-\fBBox\fR (::rbc)
-.RE
-.RS 4n
-\fBBox\fP \fIgraph\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.RE
-.PP
-.RS -4n
-\fBClosestPoint\fR (::rbc)
-.RE
-.RS 4n
-\fBClosestPoint\fP \fIgraph ?event?\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.TP
-event
-Not documented\&. Optional, default Control-ButtonPress-2\&.
-.RE
-.PP
-.RS -4n
 \fBCROSSHAIRS\fR (::rbc)
 .RE
 .PP
@@ -1014,27 +803,6 @@ Toggles crosshair visibility\&. Enabled crosshairs become hidden and hidden cros
 .RE
 .PP
 Refer to the documentation of each subcommand for details\&.
-.PP
-.RS -4n
-\fBCrosshairs\fR (::rbc)
-.RE
-.RS 4n
-\fBCrosshairs\fP \fIgraph ?event? ?state?\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.TP
-event
-Not documented\&. Optional, default Any-Motion\&.
-.TP
-state
-Not documented\&. Optional, default on\&.
-.RE
 .PP
 .RS -4n
 \fBCROSSHAIRS cget\fR (::rbc)
@@ -1128,90 +896,6 @@ resulting state is reflected by the -hide configuration option\&.
 \fBReturn value\fR
 .PP
 Nothing\&.
-.PP
-.RS -4n
-\fBCrosshairsClosest\fR (::rbc)
-.RE
-.RS 4n
-\fBCrosshairsClosest\fP \fIgraph ?event? ?state? ?halo? ?interpolate? ?single?\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.TP
-event
-Not documented\&. Optional, default Any-Motion\&.
-.TP
-state
-Not documented\&. Optional, default on\&.
-.TP
-halo
-Not documented\&. Optional, default 10\&.
-.TP
-interpolate
-Not documented\&. Optional, default yes\&.
-.TP
-single
-Not documented\&. Optional, default yes\&.
-.RE
-.PP
-.RS -4n
-\fBCrosshairsMarker\fR (::rbc)
-.RE
-.RS 4n
-\fBCrosshairsMarker\fP \fIgraph marker ?event? ?state?\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.TP
-marker
-Not documented\&.
-.TP
-event
-Not documented\&. Optional, default Any-Motion\&.
-.TP
-state
-Not documented\&. Optional, default on\&.
-.RE
-.PP
-.RS -4n
-\fBDeactivateLegend\fR (::rbc)
-.RE
-.RS 4n
-\fBDeactivateLegend\fP \fIgraph\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.RE
-.PP
-.RS -4n
-\fBDestroyZoomTitle\fR (::rbc)
-.RE
-.RS 4n
-\fBDestroyZoomTitle\fP \fIgraph\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.RE
 .PP
 .RS -4n
 \fBELEMENT\fR (::rbc)
@@ -1646,99 +1330,6 @@ Name of the element\&.
 \fBReturn value\fR
 .PP
 Element class name\&.
-.PP
-.RS -4n
-\fBFindElement\fR (::rbc)
-.RE
-.RS 4n
-\fBFindElement\fP \fIgraph x y\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.TP
-x
-Not documented\&.
-.TP
-y
-Not documented\&.
-.RE
-.PP
-.RS -4n
-\fBFindElementMarkPoint\fR (::rbc)
-.RE
-.RS 4n
-\fBFindElementMarkPoint\fP \fIgraph x y ?interpolate?\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.TP
-x
-Not documented\&.
-.TP
-y
-Not documented\&.
-.TP
-interpolate
-Not documented\&. Optional, default yes\&.
-.RE
-.PP
-.RS -4n
-\fBFlashPoint\fR (::rbc)
-.RE
-.RS 4n
-\fBFlashPoint\fP \fIgraph name index count\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.TP
-name
-Not documented\&.
-.TP
-index
-Not documented\&.
-.TP
-count
-Not documented\&.
-.RE
-.PP
-.RS -4n
-\fBGetCoords\fR (::rbc)
-.RE
-.RS 4n
-\fBGetCoords\fP \fIgraph x y index\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.TP
-x
-Not documented\&.
-.TP
-y
-Not documented\&.
-.TP
-index
-Not documented\&.
-.RE
 .PP
 .RS -4n
 \fBgraph\fR (::rbc)
@@ -2453,36 +2044,6 @@ is reflected by the -hide configuration option\&.
 Nothing\&.
 .PP
 .RS -4n
-\fBHighlightLegend\fR (::rbc)
-.RE
-.RS 4n
-\fBHighlightLegend\fP \fIgraph\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.RE
-.PP
-.RS -4n
-\fBInitStack\fR (::rbc)
-.RE
-.RS 4n
-\fBInitStack\fP \fIgraph\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.RE
-.PP
-.RS -4n
 \fBLEGEND\fR (::rbc)
 .RE
 .PP
@@ -2664,39 +2225,6 @@ current or a screen position of the form @x,y\&.
 \fBReturn value\fR
 .PP
 Name of the corresponding graph element, or an empty string if no entry is found\&.
-.PP
-.RS -4n
-\fBMakeSnapshot\fR (::rbc)
-.RE
-.RS 4n
-\fBMakeSnapshot\fP \fIgraph\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.RE
-.PP
-.RS -4n
-\fBMarchingAnts\fR (::rbc)
-.RE
-.RS 4n
-\fBMarchingAnts\fP \fIgraph offset\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.TP
-offset
-Not documented\&.
-.RE
 .PP
 .RS -4n
 \fBMARGINAXIS\fR (::rbc)
@@ -2903,27 +2431,6 @@ Tcl list containing zero or more virtual axis names\&.
 \fBReturn value\fR
 .PP
 Ordered list of assigned axis names when querying; nothing when changing the assignment\&.
-.PP
-.RS -4n
-\fBMarkClosestPoint\fR (::rbc)
-.RE
-.RS 4n
-\fBMarkClosestPoint\fP \fIgraph ?event? ?interpolate?\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.TP
-event
-Not documented\&. Optional, default Control-ButtonPress-2\&.
-.TP
-interpolate
-Not documented\&. Optional, default yes\&.
-.RE
 .PP
 .RS -4n
 \fBMARKER\fR (::rbc)
@@ -3290,24 +2797,6 @@ Name of the marker\&.
 Marker type: bitmap, image, line, polygon, text, or window\&.
 .PP
 .RS -4n
-\fBMarkPoint\fR (::rbc)
-.RE
-.RS 4n
-\fBMarkPoint\fP \fIgraph index\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.TP
-index
-Not documented\&.
-.RE
-.PP
-.RS -4n
 \fBPEN\fR (::rbc)
 .RE
 .PP
@@ -3550,21 +3039,6 @@ pack \&.p -fill both -expand yes
 The pathname of the newly created polar widget\&.
 .PP
 .RS -4n
-\fBPopZoom\fR (::rbc)
-.RE
-.RS 4n
-\fBPopZoom\fP \fIgraph\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.RE
-.PP
-.RS -4n
 \fBPOSTSCRIPT\fR (::rbc)
 .RE
 .PP
@@ -3669,153 +3143,6 @@ Value for the configuration option\&.
 \fBReturn value\fR
 .PP
 Generated PostScript when no filename is supplied, otherwise nothing\&.
-.PP
-.RS -4n
-\fBPostScriptDialog\fR (::rbc)
-.RE
-.RS 4n
-\fBPostScriptDialog\fP \fIgraph\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.RE
-.PP
-.RS -4n
-\fBPrintKey\fR (::rbc)
-.RE
-.RS 4n
-\fBPrintKey\fP \fIgraph ?event?\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.TP
-event
-Not documented\&. Optional, default Shift-ButtonRelease-3\&.
-.RE
-.PP
-.RS -4n
-\fBPushZoom\fR (::rbc)
-.RE
-.RS 4n
-\fBPushZoom\fP \fIgraph\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.RE
-.PP
-.RS -4n
-\fBRemoveAllMarkers\fR (::rbc)
-.RE
-.RS 4n
-\fBRemoveAllMarkers\fP \fIgraph\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.RE
-.PP
-.RS -4n
-\fBRemoveBindTag\fR (::rbc)
-.RE
-.RS 4n
-\fBRemoveBindTag\fP \fIwidget tag\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-widget
-Not documented\&.
-.TP
-tag
-Not documented\&.
-.RE
-.PP
-.RS -4n
-\fBResetAllZoom\fR (::rbc)
-.RE
-.RS 4n
-\fBResetAllZoom\fP \fIgraph\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.RE
-.PP
-.RS -4n
-\fBResetPostScript\fR (::rbc)
-.RE
-.RS 4n
-\fBResetPostScript\fP \fIgraph\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.RE
-.PP
-.RS -4n
-\fBResetZoom\fR (::rbc)
-.RE
-.RS 4n
-\fBResetZoom\fP \fIgraph\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.RE
-.PP
-.RS -4n
-\fBSetZoomPoint\fR (::rbc)
-.RE
-.RS 4n
-\fBSetZoomPoint\fP \fIgraph x y\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.TP
-x
-Not documented\&.
-.TP
-y
-Not documented\&.
-.RE
 .PP
 .RS -4n
 \fBspline\fR (::rbc)
@@ -3992,66 +3319,6 @@ pack \&.s -fill both -expand yes
 \fBReturn value\fR
 .PP
 The pathname of the newly created stripchart widget\&.
-.PP
-.RS -4n
-\fBToggleAxisScale\fR (::rbc)
-.RE
-.RS 4n
-\fBToggleAxisScale\fP \fIgraph axis\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.TP
-axis
-Not documented\&.
-.RE
-.PP
-.RS -4n
-\fBToolbar\fR (::rbc)
-.RE
-.RS 4n
-\fBToolbar\fP \fIw graph\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-w
-Not documented\&.
-.TP
-graph
-Not documented\&.
-.RE
-.PP
-.RS -4n
-\fBToolbarCrosshair\fR (::rbc)
-.RE
-.RS 4n
-\fBToolbarCrosshair\fP \fIw graph ?event? ?state?\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-w
-Not documented\&.
-.TP
-graph
-Not documented\&.
-.TP
-event
-Not documented\&. Optional, default Any-Motion\&.
-.TP
-state
-Not documented\&. Optional, default on\&.
-.RE
 .PP
 .RS -4n
 \fBVECINST\fR (::rbc)
@@ -5722,57 +4989,6 @@ Optional vertical resampling filter\&.
 \fBReturn value\fR
 .PP
 Nothing\&.
-.PP
-.RS -4n
-\fBZoomStack\fR (::rbc)
-.RE
-.RS 4n
-\fBZoomStack\fP \fIgraph ?start? ?reset?\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.TP
-start
-Not documented\&. Optional, default ButtonPress-1\&.
-.TP
-reset
-Not documented\&. Optional, default ButtonPress-3\&.
-.RE
-.PP
-.RS -4n
-\fBZoomTitleLast\fR (::rbc)
-.RE
-.RS 4n
-\fBZoomTitleLast\fP \fIgraph\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.RE
-.PP
-.RS -4n
-\fBZoomTitleNext\fR (::rbc)
-.RE
-.RS 4n
-\fBZoomTitleNext\fP \fIgraph\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.RE
 
 
 .SH SEE ALSO

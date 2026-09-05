@@ -44,8 +44,9 @@ if {($visual ne {staticgray}) && ($visual ne {grayscale})} {
 }
 
 ### Create and configure barchart.
-barchart $graph -width 600 -height 400
-$graph xaxis configure -rotate 90 -stepsize 0
+set barchart [graphtoolbar .bc -width 800 -height 500 -type barchart -zoom -zoomtitle -zoommark -crosshairs\
+                      -crosshairsmode closest -scaletoggle y -activelegend -zoomwheel]
+$barchart graph xaxis configure -rotate 90 -stepsize 0
 set attributes { 
     red       bdiagonal1
     orange    bdiagonal2
@@ -60,7 +61,7 @@ set attributes {
 }
 set count 0
 foreach {color stipple} $attributes {
-    $graph pen create pen$count -fg ${color}1 -bg ${color}4 -stipple @$DemoDir/stipples/${stipple}.xbm
+    $barchart graph pen create pen$count -fg ${color}1 -bg ${color}4 -stipple @$DemoDir/stipples/${stipple}.xbm
     lappend styles [list pen$count $count $count]
     incr count
 }
@@ -80,16 +81,11 @@ w expr round(y/10.0)%$count
 y expr y+10.0
 
 ### Add elements to barchart.
-$graph element create data -label {} -x x -y y -weight w -styles $styles
+$barchart graph element create data -label {} -x x -y y -weight w -styles $styles
 
 ### Map everything, add Rbc_* commands.
 grid .header -sticky ew
-grid .graph  -sticky nsew
+grid .bc  -sticky nsew
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1
 wm min . 0 0
-Rbc_ZoomStack $graph
-Rbc_ActiveLegend $graph
-Rbc_ClosestPoint $graph
-set toolbar [Rbc_ToolbarCrosshair {} .graph]
-grid $toolbar -sticky we

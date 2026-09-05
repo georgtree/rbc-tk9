@@ -69,11 +69,11 @@ proc source_create {name color min max} {
     }
     $yvname append [random $max $min]
     $wvname append 0
-    catch {.sc element delete $name}
-    .sc element create $name -x $xvname -y $yvname -color $color 
+    catch {.sc graph element delete $name}
+    .sc graph element create $name -x $xvname -y $yvname -color $color 
     if {$name ne {default}} {
-        .sc axis create $name -title $name -limitscolor $color -limitsformat "%4.4g" -titlecolor $color
-        .sc element configure $name -mapy $name
+        .sc graph axis create $name -title $name -limitscolor $color -limitsformat "%4.4g" -titlecolor $color
+        .sc graph element configure $name -mapy $name
         global useAxes
         lappend useAxes $name
         # Arrange y axes
@@ -85,18 +85,18 @@ proc source_create {name color min max} {
             foreach axis $useAxes {
                 if {$count & 1} {
                     lappend yUse $axis
-                    .sc axis configure $axis -rotate 90
+                    .sc graph axis configure $axis -rotate 90
                 } else {
                     lappend y2Use $axis
-                    .sc axis configure $axis -rotate -90
+                    .sc graph axis configure $axis -rotate -90
                 }
                 incr count
             }
-            .sc y2axis use $y2Use
-            .sc yaxis use $yUse
+            .sc graph y2axis use $y2Use
+            .sc graph yaxis use $yUse
         } else {
             # All y axes on the left
-            .sc yaxis use $useAxes
+            .sc graph yaxis use $useAxes
         }
     }
     set cwin .sources.choices.rb$unique
@@ -112,20 +112,20 @@ proc source_create {name color min max} {
     label $win.limsl -text Limits:
     entry $win.lims
     bind $win.lims <KeyPress-Return> "
-            .sc yaxis configure -limits {%%g}
+            .sc graph yaxis configure -limits {%%g}
         "
     label $win.smoothl -text Smooth:
     frame $win.smooth
     radiobutton $win.smooth.linear -text Linear -variable smooth -value linear -command "
-            .sc element configure $name -smooth linear
+            .sc graph element configure $name -smooth linear
         "
     pack $win.smooth.linear -side left
     radiobutton $win.smooth.step -text Step -variable smooth -value step -command "
-            .sc element configure $name -smooth step
+            .sc graph element configure $name -smooth step
         "
     pack $win.smooth.step -side left
     radiobutton $win.smooth.natural -text Natural -variable smooth -value natural -command "
-            .sc element configure $name -smooth natural
+            .sc graph element configure $name -smooth natural
         "
     pack $win.smooth.natural -side left
     label $win.ratel -text {Sampling Rate:}
@@ -141,7 +141,7 @@ proc source_create {name color min max} {
         grid $win.del -sticky e -padx 4 -pady 4 -column 1
     }
     $win.rate set 100
-    catch {$win.smooth.[.sc element cget $name -smooth] invoke} mesg
+    catch {$win.smooth.[.sc graph element cget $name -smooth] invoke} mesg
     set sources($name-choice) $cwin
     set sources($name-controls) $win
     set sources($name-stream) [after 100 [list source_event $name 100]]
@@ -338,10 +338,12 @@ option add *Stripchart.width 6i
 #option add *x.descending yes
 
 ### Create and configure the stripchart; add the sources.
-stripchart .sc -title Stripchart -width 600 -height 400
-.sc xaxis configure -title {Time (s)} -autorange 2.0 -shiftby 0.5
-.sc yaxis configure -title Samples
-.sc legend configure -font TkTooltipFont
+set stripchart [graphtoolbar .sc -width 800 -height 500 -type stripchart -controlmode context -zoom -zoomtitle -zoommark\
+                   -crosshairs -crosshairsmode current -scaletoggle y -activelegend -zoomwheel -pan]
+$stripchart graph configure -title Stripchart -width 600 -height 400
+$stripchart graph xaxis configure -title {Time (s)} -autorange 2.0 -shiftby 0.5
+$stripchart graph yaxis configure -title Samples
+$stripchart graph legend configure -font TkTooltipFont
 # The default font is too small on win32.
 source_create default red 0 10
 source_create temp blue3 0 10
@@ -351,36 +353,7 @@ source_create power yellow3 0 0.01999
 source_create work magenta3 0 10
 
 ### Map everything, add Rbc_* commands and bindings.
-pack .sc -expand yes -fill both
-if 0 {
-    pack .sources -fill x -padx 10 -pady 4
-    pack .sources.nb -side right -expand yes -fill both -padx 4 -pady 4
-    pack .sources.title -side top -anchor w -padx 4
-    pack .sources.choices -expand yes -fill both -padx 4 -pady 4
-}
-Rbc_ZoomStack .sc
-.sc axis bind Y <Enter> {
-    set axis [%W axis get current]
-    set detail [%W axis get detail]
-    if {$detail eq {line}} {
-        %W axis configure $axis -background grey 
-    }
-}
-.sc axis bind Y <Leave> {
-    set axis [%W axis get current]
-    %W axis configure $axis -background {}
-}
-.sc axis bind Y <ButtonPress-1> {
-    set axis [%W axis get current] 
-    #   scan [%W axis limits $axis] "%%g %%g" min max
-    #   set min [expr $min + (($max - $min) * 0.1)]
-    #   set max [expr $max - (($max - $min) * 0.1)]
-    #   %W axis configure $axis -min $min -max $max
-    %W axis configure $axis -logscale yes
-}
-.sc axis bind Y <ButtonPress-3> {
-    set axis [%W axis get current] 
-    #   %W axis configure $axis -min {} -max {}
-    %W axis configure $axis -logscale no
-}
+pack $stripchart -expand yes -fill both
+
+
 

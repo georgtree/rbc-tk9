@@ -14,14 +14,17 @@ set DemoDir [file normalize [file dirname [info script]]]
 
 ### Load common commands and create non-rbc GUI elements.
 source $DemoDir/scripts/common.tcl
-set HeaderText [MakeLine {
-    |At this scale the 250,000 plotted points overlap.
-    |
-    |To zoom in on a region of the graph, simply click once on the left
-    |mouse button to pick one corner of the area to be zoomed.  Move the
-    |mouse to the other corner and click again.  To zoom back out, click
-    |the right mouse button.
-}]
+set HeaderText {At this scale the 250,000 plotted points overlap, zoom closer to see individual points.
+Availible actions:
+    - Zoom box selection: left mouse button press + motion + button release;
+    - Reverse zoom/pan to the previous state:  middle mouse button click;
+    - Zoom with mouse wheel: press and hold Ctrl + wheel scroll;
+    - Selected axis zoom: put mouse pointer over axis + press and hold Ctrl + wheel scroll;
+    - Panning: press and hold Shift + left mouse button press and hold + motion;
+    - Toggle axive axis scale: left mouse button click over the selected axis;
+    - Highlight/hide certain plot: left mouse button click of legend, toggle between normal-active-hide state;
+    - Change crosshairs mode: select from availible mods on toolbar;}
+
 CommonHeader .header $HeaderText 7 $DemoDir .graph
 
 ### Colors and other options for the graph:
@@ -32,31 +35,22 @@ option add *activeLine.Fill yellow
 option add *activeLine.LineWidth 0
 
 ### Define graph and its elements:
-set graph .graph
+set graph [graphtoolbar .g -width 800 -height 500 -type graph -controlmode toolbar -zoom -zoomtitle -zoommark\
+                   -crosshairs -crosshairsmode closest -crosshairsclosestopts {-interpolate no} -scaletoggle all\
+                   -activelegend -zoomwheel -pan]
 set length 250000
-graph $graph -title "Scatter Plot\n$length points"  -width 600 -height 400
-$graph xaxis configure -loose no -title {X Axis Label}
-$graph yaxis configure -title {Y Axis Label} 
-$graph legend configure -activerelief sunken -background {}
-$graph element create line3 -symbol square -color green4 -fill green2 -linewidth 0 -outlinewidth 1 -pixels 4
+$graph graph configure -title "Scatter Plot\n$length points"
+$graph graph xaxis configure -loose no -title {X Axis Label}
+$graph graph yaxis configure -title {Y Axis Label} 
+$graph graph legend configure -activerelief sunken -background {}
+$graph graph element create line3 -symbol square -color green4 -fill green2 -linewidth 0 -outlinewidth 1 -pixels 4
 
 ### Map everything
 grid .header -sticky ew
-grid .graph -sticky nsew
+grid $graph -sticky nsew
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1
 wm min . 0 0
-
-# FIXME rbc - On X11 the legend is not correctly sized for its
-# text, possibly because it has an unexpected font.
-# On X11 this code doesn't change the font, but it does
-# size the legend correctly.
-###
-##Do this also for win32 (for which it does resize the font)
-# because on win32 the legend font is too small.
-if {[tk windowingsystem] in {x11 win32}} {
-    .graph legend configure -font TkDefaultFont
-}
 
 ### Warn of delay calculating and drawing points:
 label .lab7 -text {Calculating ...} -bg yellow -fg red
@@ -68,7 +62,7 @@ vector create x($length) y($length)
 x expr random(x)
 y expr random(y)
 x sort y
-$graph element configure line3 -x x -y y
+$graph graph element configure line3 -x x -y y
 
 ### Disable the GUI while the points are being drawn.
 
@@ -83,10 +77,3 @@ grab .lab7
 catch update
 grab release .lab7
 destroy .lab7
-
-### Add Rbc_* commands
-Rbc_ZoomStack $graph
-Rbc_ActiveLegend $graph
-Rbc_ClosestPoint $graph
-set toolbar [Rbc_ToolbarCrosshair {} .graph]
-grid $toolbar -sticky we

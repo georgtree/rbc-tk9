@@ -113,8 +113,8 @@ set attributes {
     V39 v39 cyan    green  
 }
 set graph [graphtoolbar .g -width 800 -height 500 -type graph -controlmode toolbar -zoom -zoomtitle -zoommark\
-                   -crosshairs -crosshairsmode current -scaletoggle y -activelegend -zoomwheel -pan\
-                   -zoomboxopts {-outline white} -pointeropts {-outline white}]
+                   -crosshairs -crosshairsmode closest -scaletoggle y -activelegend -zoomwheel -pan\
+                   -zoomboxopts {-outline white} -pointeropts {-outline white} -zoomtitleopts {-foreground white}]
 foreach {label yData outline color} $attributes {
     $graph graph element create $label -x x -y $yData -outline $outline -color $color
 }

@@ -155,6 +155,21 @@ or uses <code class="docutils literal notranslate"><span class="pre">-scrollcomm
 a scrolling boundary it simply stops moving; its width or logarithmic ratio is never reduced.</p>
 <p>If several used axes belong to the same data dimension, their scrolling constraints are combined. The most
 restrictive axis limits the common physical drag displacement, so all mapped axes remain synchronized.</p>
+<p>When <code class="docutils literal notranslate"><span class="pre">-scrollcommand</span></code> is configured without explicit <code class="docutils literal notranslate"><span class="pre">-scrollmin</span></code> or <code class="docutils literal notranslate"><span class="pre">-scrollmax</span></code>, Rbc uses the complete data
+range of the axis as the scrolling region.</p>
+<p>If the current viewport already covers that complete range, <code class="docutils literal notranslate"><span class="pre">axis</span> <span class="pre">view</span></code> reports the full interval <code class="docutils literal notranslate"><span class="pre">0.0</span> <span class="pre">1.0</span></code>.
+The associated scrollbar thumb therefore fills the entire trough, and graphtoolbar panning is correspondingly
+unable to move the viewport because there is no remaining scrollable region.</p>
+<p>This normally occurs for an automatically scaled axis before any zoom has been performed. After zooming into a
+smaller portion of the data range, the scrollbar represents that smaller viewport and panning can move it
+within the complete data range.</p>
+<p>Applications that want to permit panning beyond the data range should define a larger scrolling world
+explicitly with <code class="docutils literal notranslate"><span class="pre">-scrollmin</span></code> and/or <code class="docutils literal notranslate"><span class="pre">-scrollmax</span></code>. For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">$graph</span><span class="w"> </span><span class="nv">axis</span><span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>scrollmin<span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">-</span>scrollmax<span class="w"> </span><span class="mi">12</span><span class="w"> </span><span class="o">-</span>scrollcommand<span class="w"> </span><span class="k">{</span><span class="nv">.xbar</span><span class="w"> </span>set<span class="k">}</span>
+</pre></div>
+</div>
+<p>With data occupying only part of that range, the viewport may then be panned through the additional empty
+region while preserving its scale.</p>
 <p>All axes actually participating in the displayed coordinate system are moved together. This includes axes
 installed in margins, hidden axes mapped by elements, and the axes mapped by a Polar or Smith grid.  Completely
 unused axes are not changed.</p>
@@ -211,9 +226,10 @@ changes are suppressed. Normal legend interaction resumes when the transient ope
 <li><p><code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">yes</span></code> hides the ordinary Rbc crosshair lines while closest annotations are displayed.</p></li>
 </ul>
 <p>Elements configured with <code class="docutils literal notranslate"><span class="pre">-hideplot</span> <span class="pre">yes</span></code> do not participate in closest searches.</p>
-<p>A closest line, strip, or Polar point is marked by a bitmap together with its text annotation. A closest bar
-uses a dimension line with arrowheads spanning the displayed bar. Very short bars use external arrowheads when
-two internal heads would overlap.</p>
+<p>A closest line, strip, or Polar point is marked by a bitmap pointer together with its text annotation. The
+<code class="docutils literal notranslate"><span class="pre">-pointeropts</span></code> property controls the appearance of this pointer. A closest bar instead uses a dimension line
+with arrowheads spanning the displayed bar. Very short bars use external arrowheads when two internal heads
+would overlap.</p>
 <p>When an element has a valid <code class="docutils literal notranslate"><span class="pre">-param</span></code> mapping, the parameter value reported by <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code> is appended to
 the closest annotation.  Its format is controlled by <code class="docutils literal notranslate"><span class="pre">-formatparam</span></code>.</p>
 <p>In axis-format closest mode, an axis <code class="docutils literal notranslate"><span class="pre">-command</span></code> formatter is honoured.  If the formatter fails, the
@@ -320,6 +336,25 @@ embedded graph should choose marker names that do not begin with <code class="do
 <p>The exact private names are implementation details and may change. Applications should rely only on the
 reserved prefixes, and should use the public graphtoolbar interface rather than manipulating its internal
 bindings or markers.</p>
+<p>Graphtoolbar-created markers are visual overlays only. They are created with <code class="docutils literal notranslate"><span class="pre">-state</span> <span class="pre">disabled</span></code>, which keeps
+them visible but excludes them from Rbc graph hit testing and binding dispatch. As a result, internal markers
+such as closest-point symbols, annotation text, annotation backgrounds, zoom outlines, and zoom titles do not
+become the graph’s current marker and do not interfere with application element bindings.</p>
+<p>This is particularly important for element bindings such as:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">$graph</span><span class="w"> </span><span class="nv">element</span><span class="w"> </span>bind<span class="w"> </span>all<span class="w"> </span><span class="o">&lt;</span>Enter<span class="o">&gt;</span><span class="w"> </span><span class="k">{</span>
+<span class="w">    </span><span class="o">%</span><span class="nv">W</span><span class="w"> </span>legend<span class="w"> </span>activate<span class="w"> </span><span class="k">[</span><span class="o">%</span><span class="nv">W</span><span class="w"> </span>element<span class="w"> </span>get<span class="w"> </span>current<span class="k">]</span>
+<span class="k">}</span>
+
+<span class="nv">$graph</span><span class="w"> </span><span class="nv">element</span><span class="w"> </span>bind<span class="w"> </span>all<span class="w"> </span><span class="o">&lt;</span>Leave<span class="o">&gt;</span><span class="w"> </span><span class="k">{</span>
+<span class="w">    </span><span class="o">%</span><span class="nv">W</span><span class="w"> </span>legend<span class="w"> </span>deactivate<span class="w"> </span><span class="k">[</span><span class="o">%</span><span class="nv">W</span><span class="w"> </span>element<span class="w"> </span>get<span class="w"> </span>current<span class="k">]</span>
+<span class="k">}</span>
+</pre></div>
+</div>
+<p>Such bindings continue to track the underlying graph element even when a graphtoolbar marker is drawn above
+that element.</p>
+<p>Applications should not depend on the individual names or configuration of <code class="docutils literal notranslate"><span class="pre">gtb*</span></code> markers. Their names,
+types, number, geometry, and other options are private implementation details. The only guaranteed convention
+is that marker names beginning with <code class="docutils literal notranslate"><span class="pre">gtb</span></code> are reserved for graphtoolbar.</p>
 </section>
 <section id="tk-option-database">
 <span id="r-rbc-graphtoolbar-tk-option-database"></span><span id="r-3a3arbc3a3agraphtoolbarqztk20option20database"></span><h2>Tk option database<a class="headerlink" href="#tk-option-database" title="Link to this heading">¶</a></h2>
@@ -399,72 +434,78 @@ therefore customize the graphtoolbar before creating a widget:</p>
 <td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zoomboxopts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-outline</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomOutlineColor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomOutlineColor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">grey</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoomboxopts</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">-xor</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomOutlineXor</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomOutlineXor</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">no</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkopts</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkopts</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">-font</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTextFont</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTextFont</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{ArialNarrow</span> <span class="pre">8}</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkopts</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkopts</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">-anchor</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTextAnchor</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTextAnchor</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ne</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkopts</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkopts</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">-foreground</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTextForeground</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTextForeground</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">black</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkopts</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkopts</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">-justify</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTextJustify</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTextJustify</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">left</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkopts</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkopts</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">-padx</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTextPadX</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTextPadX</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">4</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkopts</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkopts</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">-pady</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTextPadY</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTextPadY</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">4</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkopts</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkopts</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">-formatx</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTextXFormat</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTextXFormat</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.4g</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkopts</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkopts</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">-formaty</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTextYFormat</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTextYFormat</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.4g</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkboxopts</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkboxopts</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">-fill</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTextBoxFill</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTextBoxFill</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">#FFEB3B</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkboxopts</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkboxopts</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">-outline</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTextBoxOutline</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTextBoxOutline</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">grey</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkboxopts</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zoommarkboxopts</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">-linewidth</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">gtbZoomTextBoxLineWidth</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">GtbZoomTextBoxLineWidth</span></code></p></td>
@@ -600,6 +641,18 @@ therefore customize the graphtoolbar before creating a widget:</p>
 <td><p><code class="docutils literal notranslate"><span class="pre">GtbCrosshairsBarLineArrowShape</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{8</span> <span class="pre">10</span> <span class="pre">3}</span></code></p></td>
 </tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pointeropts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-outline</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbPointerOutline</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbPointerOutline</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">black</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">pointeropts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-rotate</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gtbPointerRotate</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GtbPointerRotate</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+</tr>
 </tbody>
 </table>
 <p><code class="docutils literal notranslate"><span class="pre">crosshairsclosestopts</span></code> has no Tk option-database resources. Its built-in defaults are:</p>
@@ -614,7 +667,7 @@ therefore customize the graphtoolbar before creating a widget:</p>
 <section id="styling-example">
 <span id="r-rbc-graphtoolbar-styling-example"></span><span id="r-3a3arbc3a3agraphtoolbarqzstyling20example"></span><h2>Styling example<a class="headerlink" href="#styling-example" title="Link to this heading">¶</a></h2>
 <p>Dictionary properties may be changed after creation through the <code class="docutils literal notranslate"><span class="pre">oo::configurable</span></code> <code class="docutils literal notranslate"><span class="pre">configure</span></code> method:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.gtb</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>zoomtitle<span class="w"> </span>yes<span class="w"> </span><span class="o">-</span>zoomtitleopts<span class="w"> </span><span class="k">{</span><span class="nv">-foreground</span><span class="w"> </span>navy<span class="w"> </span><span class="o">-</span>shadow<span class="w"> </span><span class="k">{}}</span><span class="w"> </span><span class="o">-</span>crosshairsmarkopts<span class="w"> </span><span class="k">{</span><span class="nv">-font</span><span class="w"> </span><span class="k">{</span><span class="nv">TkDefaultFont</span><span class="w"> </span><span class="mi">9</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>formatx<span class="w"> </span>.6g<span class="w"> </span><span class="o">-</span>formaty<span class="w"> </span>.6g<span class="w"> </span><span class="o">-</span>formatparam<span class="w"> </span>.6g<span class="k">}</span><span class="w"> </span><span class="o">-</span>crosshairsmarkboxopts<span class="w"> </span><span class="k">{</span><span class="nv">-fill</span><span class="w"> </span>lightyellow<span class="w"> </span><span class="o">-</span>outline<span class="w"> </span>grey40<span class="k">}</span>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.gtb</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>zoomtitle<span class="w"> </span>yes<span class="w"> </span><span class="o">-</span>zoomtitleopts<span class="w"> </span><span class="k">{</span><span class="nv">-foreground</span><span class="w"> </span>navy<span class="w"> </span><span class="o">-</span>shadow<span class="w"> </span><span class="k">{}}</span><span class="w"> </span><span class="o">-</span>pointeropts<span class="w"> </span><span class="k">{</span><span class="nv">-outline</span><span class="w"> </span>navy<span class="w"> </span><span class="o">-</span>rotate<span class="w"> </span><span class="mi">0</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>crosshairsmarkopts<span class="w"> </span><span class="k">{</span><span class="nv">-font</span><span class="w"> </span><span class="k">{</span><span class="nv">TkDefaultFont</span><span class="w"> </span><span class="mi">9</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>formatx<span class="w"> </span>.6g<span class="w"> </span><span class="o">-</span>formaty<span class="w"> </span>.6g<span class="w"> </span><span class="o">-</span>formatparam<span class="w"> </span>.6g<span class="k">}</span><span class="w"> </span><span class="o">-</span>crosshairsmarkboxopts<span class="w"> </span><span class="k">{</span><span class="nv">-fill</span><span class="w"> </span>lightyellow<span class="w"> </span><span class="o">-</span>outline<span class="w"> </span>grey40<span class="k">}</span>
 </pre></div>
 </div>
 <p>For the dictionary properties a later configuration containing only some recognized keys updates those keys
@@ -748,29 +801,32 @@ the embedded graph.</p>
 <dt class="field-even">-crosshairs<span class="colon">:</span></dt>
 <dd class="field-even"><p>Enables enhanced crosshair interaction.</p>
 </dd>
-<dt class="field-odd">-crosshairsmode mode<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Initial crosshair mode. Must be <code class="docutils literal notranslate"><span class="pre">current</span></code>, <code class="docutils literal notranslate"><span class="pre">closest</span></code>, <code class="docutils literal notranslate"><span class="pre">none</span></code>, or <code class="docutils literal notranslate"><span class="pre">disabled</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">closest</span></code>. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
+<dt class="field-odd">-pointeropts dictionary<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initial <code class="docutils literal notranslate"><span class="pre">-pointeropts</span></code> property. Configures the bitmap pointer used to mark closest line, strip, and Polar points. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-outline</span></code> and <code class="docutils literal notranslate"><span class="pre">-rotate</span></code>.</p>
 </dd>
-<dt class="field-even">-crosshairsopts dictionary<span class="colon">:</span></dt>
-<dd class="field-even"><p>Initial Rbc crosshair line options. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
+<dt class="field-even">-crosshairsmode mode<span class="colon">:</span></dt>
+<dd class="field-even"><p>Initial crosshair mode. Must be <code class="docutils literal notranslate"><span class="pre">current</span></code>, <code class="docutils literal notranslate"><span class="pre">closest</span></code>, <code class="docutils literal notranslate"><span class="pre">none</span></code>, or <code class="docutils literal notranslate"><span class="pre">disabled</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">closest</span></code>. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
 </dd>
-<dt class="field-odd">-crosshairsmarkopts dictionary<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Initial text-marker and numeric-format options used by current and closest annotations. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
+<dt class="field-odd">-crosshairsopts dictionary<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initial Rbc crosshair line options. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
 </dd>
-<dt class="field-even">-crosshairsmarkboxopts dictionary<span class="colon">:</span></dt>
-<dd class="field-even"><p>Initial background-box options for crosshair annotations. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
+<dt class="field-even">-crosshairsmarkopts dictionary<span class="colon">:</span></dt>
+<dd class="field-even"><p>Initial text-marker and numeric-format options used by current and closest annotations. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
 </dd>
-<dt class="field-odd">-crosshairsclosestopts dictionary<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Initial closest-search options. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-interpolate</span></code>, <code class="docutils literal notranslate"><span class="pre">-halo</span></code>, <code class="docutils literal notranslate"><span class="pre">-single</span></code>, and <code class="docutils literal notranslate"><span class="pre">-hide</span></code>. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
+<dt class="field-odd">-crosshairsmarkboxopts dictionary<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initial background-box options for crosshair annotations. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
 </dd>
-<dt class="field-even">-crosshairsbarlineopts dictionary<span class="colon">:</span></dt>
-<dd class="field-even"><p>Initial line-marker options for closest-bar dimension annotations. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
+<dt class="field-even">-crosshairsclosestopts dictionary<span class="colon">:</span></dt>
+<dd class="field-even"><p>Initial closest-search options. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-interpolate</span></code>, <code class="docutils literal notranslate"><span class="pre">-halo</span></code>, <code class="docutils literal notranslate"><span class="pre">-single</span></code>, and <code class="docutils literal notranslate"><span class="pre">-hide</span></code>. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
 </dd>
-<dt class="field-odd">-scaletoggle axes<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Enables interactive linear/logarithmic scale toggling on the specified axis list. <code class="docutils literal notranslate"><span class="pre">all</span></code> selects all axes existing at construction time.</p>
+<dt class="field-odd">-crosshairsbarlineopts dictionary<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initial line-marker options for closest-bar dimension annotations. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
 </dd>
-<dt class="field-even">-activelegend<span class="colon">:</span></dt>
-<dd class="field-even"><p>Enables hover activation and three-state Button-1 interaction on legend entries.</p>
+<dt class="field-even">-scaletoggle axes<span class="colon">:</span></dt>
+<dd class="field-even"><p>Enables interactive linear/logarithmic scale toggling on the specified axis list. <code class="docutils literal notranslate"><span class="pre">all</span></code> selects all axes existing at construction time.</p>
+</dd>
+<dt class="field-odd">-activelegend<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Enables hover activation and three-state Button-1 interaction on legend entries.</p>
 </dd>
 </dl>
 <p class="rubric">Properties</p>
@@ -799,20 +855,23 @@ the embedded graph.</p>
 <dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-crosshairsopts</span></code><span class="colon">:</span></dt>
 <dd class="field-even"><p>Readable, writable. Dictionary configuring the underlying Rbc crosshair lines. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code>, <code class="docutils literal notranslate"><span class="pre">-color</span></code>, and <code class="docutils literal notranslate"><span class="pre">-dashes</span></code>. Initial values come from <code class="docutils literal notranslate"><span class="pre">gtbCrosshairsLineWidth</span></code>, <code class="docutils literal notranslate"><span class="pre">gtbCrosshairsColor</span></code>, and <code class="docutils literal notranslate"><span class="pre">gtbCrosshairsDashes</span></code>.</p>
 </dd>
-<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-zoomboxopts</span></code><span class="colon">:</span></dt>
-<dd class="field-odd"><p>Readable, writable. Dictionary configuring the rectangle-zoom outline. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-dashes</span></code>, <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code>, and <code class="docutils literal notranslate"><span class="pre">-xor</span></code>. Initial values are obtained from the <code class="docutils literal notranslate"><span class="pre">gtbZoomOutline*</span></code> Tk option-database resources.</p>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-pointeropts</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Readable, writable. Dictionary configuring the bitmap pointer used to identify closest line, strip, and Polar points. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-outline</span></code> and <code class="docutils literal notranslate"><span class="pre">-rotate</span></code>. <code class="docutils literal notranslate"><span class="pre">-outline</span></code> specifies the bitmap foreground color. <code class="docutils literal notranslate"><span class="pre">-rotate</span></code> specifies its rotation angle in degrees. Initial values come from <code class="docutils literal notranslate"><span class="pre">gtbPointerOutline</span></code> and <code class="docutils literal notranslate"><span class="pre">gtbPointerRotate</span></code>.</p>
 </dd>
-<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-zoommarkboxopts</span></code><span class="colon">:</span></dt>
-<dd class="field-even"><p>Readable, writable. Dictionary configuring the polygon drawn behind each rectangle-corner text marker. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-fill</span></code>, <code class="docutils literal notranslate"><span class="pre">-outline</span></code>, and <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code>. If both fill and outline are empty, no background polygon is drawn. Initial values are obtained from the <code class="docutils literal notranslate"><span class="pre">gtbZoomTextBox*</span></code> option-database resources.</p>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-zoomboxopts</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Readable, writable. Dictionary configuring the rectangle-zoom outline. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-dashes</span></code>, <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code>, <code class="docutils literal notranslate"><span class="pre">-outline</span></code>, and <code class="docutils literal notranslate"><span class="pre">-xor</span></code>. Initial values are obtained from the <code class="docutils literal notranslate"><span class="pre">gtbZoomOutline*</span></code> Tk option-database resources.</p>
 </dd>
-<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-zoommarkopts</span></code><span class="colon">:</span></dt>
-<dd class="field-odd"><p>Readable, writable. Dictionary configuring rectangle-corner text annotations. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-font</span></code>, <code class="docutils literal notranslate"><span class="pre">-anchor</span></code>, <code class="docutils literal notranslate"><span class="pre">-justify</span></code>, <code class="docutils literal notranslate"><span class="pre">-foreground</span></code>, <code class="docutils literal notranslate"><span class="pre">-padx</span></code>, <code class="docutils literal notranslate"><span class="pre">-pady</span></code>, <code class="docutils literal notranslate"><span class="pre">-formatx</span></code>, and <code class="docutils literal notranslate"><span class="pre">-formaty</span></code>. <code class="docutils literal notranslate"><span class="pre">-formatx</span></code> and <code class="docutils literal notranslate"><span class="pre">-formaty</span></code> are <code class="docutils literal notranslate"><span class="pre">format</span></code> conversion bodies such as <code class="docutils literal notranslate"><span class="pre">.4g</span></code>; the leading <code class="docutils literal notranslate"><span class="pre">%</span></code> is supplied internally. Initial values are obtained from the <code class="docutils literal notranslate"><span class="pre">gtbZoomText*</span></code> option-database resources.</p>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-zoommarkboxopts</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Readable, writable. Dictionary configuring the polygon drawn behind each rectangle-corner text marker. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-fill</span></code>, <code class="docutils literal notranslate"><span class="pre">-outline</span></code>, and <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code>. If both fill and outline are empty, no background polygon is drawn. Initial values are obtained from the <code class="docutils literal notranslate"><span class="pre">gtbZoomTextBox*</span></code> option-database resources.</p>
 </dd>
-<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-zoomtitle</span></code><span class="colon">:</span></dt>
-<dd class="field-even"><p>Readable, writable. Boolean controlling the transient <code class="docutils literal notranslate"><span class="pre">Zoom</span> <span class="pre">#n</span></code> annotation produced after a completed navigation operation. This property is meaningful for instances created with <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-zoommarkopts</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Readable, writable. Dictionary configuring rectangle-corner text annotations. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-font</span></code>, <code class="docutils literal notranslate"><span class="pre">-anchor</span></code>, <code class="docutils literal notranslate"><span class="pre">-justify</span></code>, <code class="docutils literal notranslate"><span class="pre">-foreground</span></code>, <code class="docutils literal notranslate"><span class="pre">-padx</span></code>, <code class="docutils literal notranslate"><span class="pre">-pady</span></code>, <code class="docutils literal notranslate"><span class="pre">-formatx</span></code>, and <code class="docutils literal notranslate"><span class="pre">-formaty</span></code>. <code class="docutils literal notranslate"><span class="pre">-formatx</span></code> and <code class="docutils literal notranslate"><span class="pre">-formaty</span></code> are <code class="docutils literal notranslate"><span class="pre">format</span></code> conversion bodies such as <code class="docutils literal notranslate"><span class="pre">.4g</span></code>; the leading <code class="docutils literal notranslate"><span class="pre">%</span></code> is supplied internally. Initial values are obtained from the <code class="docutils literal notranslate"><span class="pre">gtbZoomText*</span></code> option-database resources.</p>
 </dd>
-<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-zoomtitleopts</span></code><span class="colon">:</span></dt>
-<dd class="field-odd"><p>Readable, writable. Dictionary of Rbc text-marker options used for the transient zoom-level title. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-font</span></code>, <code class="docutils literal notranslate"><span class="pre">-foreground</span></code>, <code class="docutils literal notranslate"><span class="pre">-shadow</span></code>, <code class="docutils literal notranslate"><span class="pre">-anchor</span></code>, and <code class="docutils literal notranslate"><span class="pre">-coords</span></code>. Initial values are obtained from the corresponding <code class="docutils literal notranslate"><span class="pre">gtbZoomTitle*</span></code> Tk option-database resources.</p>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-zoomtitle</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Readable, writable. Boolean controlling the transient <code class="docutils literal notranslate"><span class="pre">Zoom</span> <span class="pre">#n</span></code> annotation produced after a completed navigation operation. This property is meaningful for instances created with <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-zoomtitleopts</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Readable, writable. Dictionary of Rbc text-marker options used for the transient zoom-level title. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-font</span></code>, <code class="docutils literal notranslate"><span class="pre">-foreground</span></code>, <code class="docutils literal notranslate"><span class="pre">-shadow</span></code>, <code class="docutils literal notranslate"><span class="pre">-anchor</span></code>, and <code class="docutils literal notranslate"><span class="pre">-coords</span></code>. Initial values are obtained from the corresponding <code class="docutils literal notranslate"><span class="pre">gtbZoomTitle*</span></code> Tk option-database resources.</p>
 </dd>
 </dl>
 <section id="constructor">

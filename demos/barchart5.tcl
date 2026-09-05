@@ -44,9 +44,10 @@ if {($visual ne {staticgray}) && ($visual ne {grayscale})} {
 }
 
 ### Create and configure barchart.
-barchart $graph -width 600 -height 400
-$graph configure -relief raised -bd 2
-$graph xaxis configure -rotate 90 -stepsize 0 
+set barchart [graphtoolbar .bc -width 800 -height 500 -type barchart -zoom -zoomtitle -zoommark -crosshairs\
+                      -crosshairsmode closest -scaletoggle y -activelegend -zoomwheel]
+$barchart graph configure -relief raised -bd 2
+$barchart graph xaxis configure -rotate 90 -stepsize 0 
 
 ### Define and compute vectors.
 vector create x
@@ -56,40 +57,11 @@ y expr sin(x)
 set barWidth 0.19
 
 ### Add barchart element.
-$graph element create sin -relief raised -bd 1 -x x -y y  -barwidth $barWidth
+$barchart graph element create sin -relief raised -bd 1 -x x -y y  -barwidth $barWidth
 
 ### Map everything, add Rbc_* commands.
 grid .header -sticky ew
-grid $graph -sticky nsew -padx 4
+grid $barchart -sticky nsew -padx 4
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1
 wm min . 0 0
-Rbc_ZoomStack $graph
-Rbc_ActiveLegend $graph
-Rbc_ClosestPoint $graph
-set toolbar [Rbc_ToolbarCrosshair {} $graph]
-grid $toolbar -sticky we
-# FIXME rbc - On X11 the legend is not correctly sized for its
-# text, possibly because it has an unexpected font.
-# On X11 this code doesn't change the font, but it does
-# size the legend correctly.
-#
-# Do this also for win32 (for which it does resize the font)
-# because on win32 the legend font is too small.
-if {[tk windowingsystem] in {x11 win32}} {
-    $graph legend configure -font TkDefaultFont
-}
-
-### The code below is not executed and is not part of the demo.
-# It remains available for experimentation.
-if 0 {
-    set names {One Two Three Four Five Six Seven Eight}
-    if {($visual eq {staticgray}) || ($visual eq {grayscale})} {
-        set fgcolors {white white white white white white white white}
-        set bgcolors {black black black black black black black black}
-    } else {
-        set fgcolors {yellow orange red magenta purple blue cyan green}
-        set bgcolors {yellow4 orange4 red4 magenta4 purple4 blue4 cyan4 green4}
-    }
-    set numColors [llength $names]
-}

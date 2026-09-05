@@ -37,10 +37,11 @@ proc FormatLabel {w value} {
     set info [$w element configure $name -label]
     return [lindex $info 4]
 }
-set graph [barchart .b -width 600 -height 400]
-$graph configure -invert true -baseline 1.2
-$graph xaxis configure -command FormatLabel -descending true
-$graph legend configure -hide yes
+set barchart [graphtoolbar .bc -width 800 -height 500 -type barchart -zoom -zoomtitle -zoommark -crosshairs\
+                      -crosshairsmode closest -scaletoggle y -activelegend -zoomwheel]
+$barchart graph configure -invert true -baseline 1.2
+$barchart graph xaxis configure -command FormatLabel -descending true
+$barchart graph legend configure -hide yes
 
 ### Define names, fgcolors, bgcolors, bitmaps - used to configure elements.
 set visual [winfo screenvisual .]
@@ -60,49 +61,18 @@ set bitmaps {
 # Use names, fgcolors, bgcolors, bitmaps to configure each element.
 set numColors [llength $names]
 for {set i 0} {$i<$numColors} {incr i} {
-    $graph element create [lindex $names $i] -data {$i+1 $i+1} -fg [lindex $fgcolors $i] -bg [lindex $bgcolors $i]\
-            -stipple @$DemoDir/stipples/[lindex $bitmaps $i].xbm -relief raised -bd 2 
+    $barchart graph element create [lindex $names $i] -data {$i+1 $i+1} -fg [lindex $fgcolors $i]\
+            -bg [lindex $bgcolors $i] -stipple @$DemoDir/stipples/[lindex $bitmaps $i].xbm -relief raised -bd 2
 }
-$graph element create Nine -data {9 -1.0} -fg red -relief sunken
-$graph element create Ten -data {10 2} -fg seagreen -stipple @$DemoDir/stipples/hobbes.xbm -background palegreen
-$graph element create Eleven -data {11 3.3} -fg blue
+$barchart graph element create Nine -data {9 -1.0} -fg red -relief sunken
+$barchart graph element create Ten -data {10 2} -fg seagreen -stipple @$DemoDir/stipples/hobbes.xbm\
+        -background palegreen
+$barchart graph element create Eleven -data {11 3.3} -fg blue
 
-### Map everything, add Rbc_* commands.
+### Map everything
 grid .header -sticky ew -padx 15
-grid $graph -sticky news
+grid $barchart -sticky news
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1
 wm min . 0 0
-Rbc_ZoomStack $graph
-Rbc_Crosshairs $graph
-Rbc_ActiveLegend $graph
-Rbc_ClosestPoint $graph
 
-### The code below is not executed and is not part of the demo.
-# It remains available for experimentation.
-if 0 {
-    # These bitmaps are unused.
-    set unusedBitmaps {
-        dot1 dot2 dot3 dot4 fdiagonal1 fdiagonal2 hline1 hline2 lbottom ltop
-        rbottom rtop vline1 vline2
-    }
-    ### These markers from the original BLT demo serve no useful purpose.
-    $graph marker create bitmap -coords {11 3.3} -anchor center -bitmap @$DemoDir/bitmaps/sharky.xbm -name bitmap\
-            -fill {}
-    $graph marker create polygon -coords {5 0 7 2 10 10 10 2} -name poly -linewidth 0 -fill {}
-    $graph marker bind all <B3-Motion> {
-        set coords [%W invtransform %x %y]
-        catch {%W marker configure [%W marker get current] -coords $coords}
-    }
-    $graph marker bind all <Enter> {
-        set marker [%W marker get current]
-        catch {%W marker configure $marker -fill green -outline black}
-    }
-    $graph marker bind all <Leave> {
-        set marker [%W marker get current]
-        catch { 
-            set default [lindex [%W marker configure $marker -fill] 3]
-            %W marker configure $marker -fill $default
-        }
-    }
-}

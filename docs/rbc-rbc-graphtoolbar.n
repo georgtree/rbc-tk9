@@ -205,6 +205,29 @@ a scrolling boundary it simply stops moving; its width or logarithmic ratio is n
 If several used axes belong to the same data dimension, their scrolling constraints are combined\&. The most
 restrictive axis limits the common physical drag displacement, so all mapped axes remain synchronized\&.
 .PP
+When -scrollcommand is configured without explicit -scrollmin or -scrollmax, Rbc uses the complete data
+range of the axis as the scrolling region\&.
+.PP
+If the current viewport already covers that complete range, axis view reports the full interval 0\&.0 1\&.0\&.
+The associated scrollbar thumb therefore fills the entire trough, and graphtoolbar panning is correspondingly
+unable to move the viewport because there is no remaining scrollable region\&.
+.PP
+This normally occurs for an automatically scaled axis before any zoom has been performed\&. After zooming into a
+smaller portion of the data range, the scrollbar represents that smaller viewport and panning can move it
+within the complete data range\&.
+.PP
+Applications that want to permit panning beyond the data range should define a larger scrolling world
+explicitly with -scrollmin and/or -scrollmax\&. For example:
+.PP
+.RS 4n
+.nf
+$graph axis configure x -scrollmin 0 -scrollmax 12 -scrollcommand {\&.xbar set}
+.fi
+.RE
+.PP
+With data occupying only part of that range, the viewport may then be panned through the additional empty
+region while preserving its scale\&.
+.PP
 All axes actually participating in the displayed coordinate system are moved together\&. This includes axes
 installed in margins, hidden axes mapped by elements, and the axes mapped by a Polar or Smith grid\&.  Completely
 unused axes are not changed\&.
@@ -301,9 +324,10 @@ In closest mode, -crosshairsclosestopts controls the search:
 .PP
 Elements configured with -hideplot yes do not participate in closest searches\&.
 .PP
-A closest line, strip, or Polar point is marked by a bitmap together with its text annotation\&. A closest bar
-uses a dimension line with arrowheads spanning the displayed bar\&. Very short bars use external arrowheads when
-two internal heads would overlap\&.
+A closest line, strip, or Polar point is marked by a bitmap pointer together with its text annotation\&. The
+-pointeropts property controls the appearance of this pointer\&. A closest bar instead uses a dimension line
+with arrowheads spanning the displayed bar\&. Very short bars use external arrowheads when two internal heads
+would overlap\&.
 .PP
 When an element has a valid -param mapping, the parameter value reported by element closest is appended to
 the closest annotation\&.  Its format is controlled by -formatparam\&.
@@ -453,6 +477,32 @@ embedded graph should choose marker names that do not begin with gtb\&.
 The exact private names are implementation details and may change\&. Applications should rely only on the
 reserved prefixes, and should use the public graphtoolbar interface rather than manipulating its internal
 bindings or markers\&.
+.PP
+Graphtoolbar-created markers are visual overlays only\&. They are created with -state disabled, which keeps
+them visible but excludes them from Rbc graph hit testing and binding dispatch\&. As a result, internal markers
+such as closest-point symbols, annotation text, annotation backgrounds, zoom outlines, and zoom titles do not
+become the graph's current marker and do not interfere with application element bindings\&.
+.PP
+This is particularly important for element bindings such as:
+.PP
+.RS 4n
+.nf
+$graph element bind all <Enter> {
+    %W legend activate [%W element get current]
+}
+
+$graph element bind all <Leave> {
+    %W legend deactivate [%W element get current]
+}
+.fi
+.RE
+.PP
+Such bindings continue to track the underlying graph element even when a graphtoolbar marker is drawn above
+that element\&.
+.PP
+Applications should not depend on the individual names or configuration of gtb* markers\&. Their names,
+types, number, geometry, and other options are private implementation details\&. The only guaranteed convention
+is that marker names beginning with gtb are reserved for graphtoolbar\&.
 .SH "TK OPTION DATABASE"
 .PP
 Most marker styling dictionaries take their initial defaults from the Tk option database\&. Applications can
@@ -491,6 +541,7 @@ so graph elements default to fixed-size symbols rather than scaling their symbol
 │ zoomtitleopts     │ -coords     │ gtbZoomTitleCoords        │ GtbZoomTitleCoords         │ {-Inf Inf}     │
 │ zoomboxopts       │ -dashes     │ gtbZoomOutlineDashes      │ GtbZoomOutlineDashes       │ 4              │
 │ zoomboxopts       │ -linewidth  │ gtbZoomOutlineLineWidth   │ GtbZoomOutlineLineWidth    │ 1              │
+│ zoomboxopts       │ -outline    │ gtbZoomOutlineColor       │ GtbZoomOutlineColor        │ grey           │
 │ zoomboxopts       │ -xor        │ gtbZoomOutlineXor         │ GtbZoomOutlineXor          │ no             │
 │ zoommarkopts      │ -font       │ gtbZoomTextFont           │ GtbZoomTextFont            │ {ArialNarrow 8}│
 │ zoommarkopts      │ -anchor     │ gtbZoomTextAnchor         │ GtbZoomTextAnchor          │ ne             │
@@ -531,6 +582,8 @@ so graph elements default to fixed-size symbols rather than scaling their symbol
 │ crosshairsbarlineopts│ -outline    │ gtbCrosshairsBarLineOutline   │ GtbCrosshairsBarLineOutline   │ black         │
 │ crosshairsbarlineopts│ -linewidth  │ gtbCrosshairsBarLineWidth     │ GtbCrosshairsBarLineWidth     │ 1             │
 │ crosshairsbarlineopts│ -arrowshape │ gtbCrosshairsBarLineArrowShape│ GtbCrosshairsBarLineArrowShape│ {8 10 3}      │
+│ pointeropts          │ -outline    │ gtbPointerOutline              │ GtbPointerOutline            │ black         │
+│ pointeropts          │ -rotate     │ gtbPointerRotate               │ GtbPointerRotate             │ 0             │
 └──────────────────────┴─────────────┴───────────────────────────────┴───────────────────────────────┴───────────────┘
 .fi
 .RE
@@ -551,7 +604,7 @@ Dictionary properties may be changed after creation through the oo::configurable
 .PP
 .RS 4n
 .nf
-\&.gtb configure -zoomtitle yes -zoomtitleopts {-foreground navy -shadow {}} -crosshairsmarkopts {-font {TkDefaultFont 9} -formatx \&.6g -formaty \&.6g -formatparam \&.6g} -crosshairsmarkboxopts {-fill lightyellow -outline grey40}
+\&.gtb configure -zoomtitle yes -zoomtitleopts {-foreground navy -shadow {}} -pointeropts {-outline navy -rotate 0} -crosshairsmarkopts {-font {TkDefaultFont 9} -formatx \&.6g -formaty \&.6g -formatparam \&.6g} -crosshairsmarkboxopts {-fill lightyellow -outline grey40}
 .fi
 .RE
 .PP
@@ -709,6 +762,9 @@ Modifier prefix required to start panning\&.  The default is Shift-\&.
 -crosshairs
 Enables enhanced crosshair interaction\&.
 .TP
+-pointeropts dictionary
+Initial -pointeropts property\&. Configures the bitmap pointer used to mark closest line, strip, and Polar points\&. Recognized keys are -outline and -rotate\&.
+.TP
 -crosshairsmode mode
 Initial crosshair mode\&. Must be current, closest, none, or disabled\&. The default is closest\&. Requires -crosshairs\&.
 .TP
@@ -761,8 +817,11 @@ Readable, writable\&. Selects enhanced crosshair behaviour\&. Accepted values ar
 -crosshairsopts
 Readable, writable\&. Dictionary configuring the underlying Rbc crosshair lines\&. Recognized keys are -linewidth, -color, and -dashes\&. Initial values come from gtbCrosshairsLineWidth, gtbCrosshairsColor, and gtbCrosshairsDashes\&.
 .TP
+-pointeropts
+Readable, writable\&. Dictionary configuring the bitmap pointer used to identify closest line, strip, and Polar points\&. Recognized keys are -outline and -rotate\&. -outline specifies the bitmap foreground color\&. -rotate specifies its rotation angle in degrees\&. Initial values come from gtbPointerOutline and gtbPointerRotate\&.
+.TP
 -zoomboxopts
-Readable, writable\&. Dictionary configuring the rectangle-zoom outline\&. Recognized keys are -dashes, -linewidth, and -xor\&. Initial values are obtained from the gtbZoomOutline* Tk option-database resources\&.
+Readable, writable\&. Dictionary configuring the rectangle-zoom outline\&. Recognized keys are -dashes, -linewidth, -outline, and -xor\&. Initial values are obtained from the gtbZoomOutline* Tk option-database resources\&.
 .TP
 -zoommarkboxopts
 Readable, writable\&. Dictionary configuring the polygon drawn behind each rectangle-corner text marker\&. Recognized keys are -fill, -outline, and -linewidth\&. If both fill and outline are empty, no background polygon is drawn\&. Initial values are obtained from the gtbZoomTextBox* option-database resources\&.

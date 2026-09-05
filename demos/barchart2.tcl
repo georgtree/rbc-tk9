@@ -14,6 +14,7 @@ set DemoDir [file normalize [file dirname [info script]]]
 ### Load common commands and create non-rbc GUI elements.
 source $DemoDir/scripts/common.tcl
 proc CustomHeader {w graph} {
+    puts $graph
     ttk::frame $w
     text $w.title -wrap word -width 0 -height 4 -relief flat -highlightthickness 0 -padx 15 -pady 5
     $w.title insert end [MakeLine {
@@ -23,24 +24,24 @@ proc CustomHeader {w graph} {
     $w.title configure -state disabled
     bind $w.title <Configure> {AdjustHeight %W 20}
     ttk::radiobutton $w.stacked -text stacked -variable barMode -value stacked -command {
-        $graph configure -barmode $barMode
+        $graph graph configure -barmode $barMode
     } 
     ttk::label $w.stackedlabel -justify left -text [MakeLine {
         |Bars are stacked on top of each other.
         |The overall height is the sum of the y-coordinates.
     }]
     ttk::radiobutton $w.aligned -text aligned -variable barMode -value aligned -command {
-        $graph configure -barmode $barMode
+        $graph graph configure -barmode $barMode
     }
     ttk::label $w.alignedlabel -justify left -text [MakeLine {
         |Bars are drawn side-by-side at a fraction of their normal width.
     }]
     ttk::radiobutton $w.overlap -text overlap -variable barMode -value overlap -command {
-        $graph configure -barmode $barMode
+        $graph graph configure -barmode $barMode
     } 
     ttk::label $w.overlaplabel -justify left -text {Bars overlap slightly.}
     ttk::radiobutton $w.normal -text normal -variable barMode -value normal -command {
-        $graph configure -barmode $barMode
+        $graph graph configure -barmode $barMode
     } 
     ttk::label $w.normallabel -justify left -text {Bars are overlayed one on top of the next.}
     grid $w.title -columnspan 2 -sticky ew
@@ -52,8 +53,8 @@ proc CustomHeader {w graph} {
     return $w
 }
 set barMode stacked
-set graph .graph
-CustomHeader .header $graph
+set graph .bc
+CustomHeader .header .bc
 
 ### Set options for barchart.
 # Both kinds of font description work on win32 and both fail on x11.
@@ -98,7 +99,8 @@ proc FormatXTicks {w value} {
 }
 
 ### Create the barchart.
-barchart $graph -width 600 -height 400
+set barchart [graphtoolbar .bc -width 800 -height 500 -type barchart -zoom -zoomtitle -zoommark -crosshairs\
+                      -crosshairsmode closest -scaletoggle y -activelegend -zoomwheel]
 
 ### Define vectors and their contents.
 vector create X Y0 Y1 Y2 Y3 Y4
@@ -137,37 +139,17 @@ set attributes {
     Load      Y2 lightblue3      lightblue1      fdiagonal1 1
 }
 foreach {label yData fg bg stipple bd} $attributes {
-    $graph element create $yData -label $label -bd $bd -y $yData -x X -fg {} -bg $bg\
+    $barchart graph element create $yData -label $label -bd $bd -y $yData -x X -fg {} -bg $bg\
             -stipple @$DemoDir/stipples/${stipple}.xbm
 }
 
 ### Initial configuration.
-$graph configure -barmode $barMode
+$barchart graph configure -barmode $barMode
 
-### Map everything, add Rbc_* commands and bindings.
+### Map everything
 grid .header -sticky ew
-grid $graph -sticky nsew
+grid $barchart -sticky nsew
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1
-Rbc_ZoomStack $graph
-Rbc_Crosshairs $graph
-Rbc_ActiveLegend $graph
-Rbc_ClosestPoint $graph
-Rbc_AxisScaleActive $graph y
-$graph marker bind all <B2-Motion> {
-    set coords [%W invtransform %x %y]
-    catch {%W marker configure [%W marker get current] -coords $coords}
-}
-$graph marker bind all <Enter> {
-    set marker [%W marker get current]
-    catch {%W marker configure $marker -bg green}
-}
-$graph marker bind all <Leave> {
-    set marker [%W marker get current]
-    catch { %W marker configure $marker -bg {}}
-}
-$graph element bind all <Enter> {
-    $graph element closest %x %y info
-    ## catch {puts stderr "$info(x) $info(y)"}
-}
+
 

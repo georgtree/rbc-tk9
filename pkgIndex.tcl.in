@@ -7,7 +7,6 @@ if {[package vsatisfies [package provide Tcl] 9.0-]} {
 package ifneeded @PACKAGE_NAME@ @PACKAGE_VERSION@ [list apply {{dir lib} {
     package require Tk
     load [file join $dir $lib]
-    source [file join $dir graph.tcl]
     source [file join $dir graphtoolbar.tcl]
 }} $dir $rbcLib]
 

@@ -46,7 +46,7 @@ proc FormatLabel {w value} {
 }
 
 ### Create the barchart.
-set barchart [graphtoolbar .bc -width 1200 -height 600 -type barchart -zoom -zoomtitle -zoommark -crosshairs\
+set barchart [graphtoolbar .bc -width 800 -height 500 -type barchart -zoom -zoomtitle -zoommark -crosshairs\
                       -crosshairsmode closest -scaletoggle y -activelegend -zoomwheel]
 
 ### Add a bar to .bc for each bitmap in the list.
