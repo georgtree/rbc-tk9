@@ -1,0 +1,186 @@
+# RBC.graph.element.decimate.A.test --
+#
+###Abstract
+# Regression tests for line-element screen-density decimation.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+###Package Definition
+package provide graph.element.decimate
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+
+namespace eval graph.element.decimate {
+
+    test RBC.graph.element.decimate.A.1.1 {
+        graph element decimate: option default and configure
+    } -setup {
+        graph .graph1
+        .graph1 element create Element1
+    } -body {
+        set default [.graph1 element cget Element1 -decimate]
+        .graph1 element configure Element1 -decimate auto
+        set configured [.graph1 element cget Element1 -decimate]
+        list $default $configured
+    } -cleanup {
+        destroy .graph1
+    } -result {none auto}
+
+    test RBC.graph.element.decimate.A.1.2 {
+        graph element decimate: invalid value
+    } -setup {
+        graph .graph1
+        .graph1 element create Element1
+    } -body {
+        set code [catch {.graph1 element configure Element1 -decimate bogus} message]
+        list $code [expr {[string first "none" $message] >= 0 && [string first "auto" $message] >= 0}]\
+                [.graph1 element cget Element1 -decimate]
+    } -cleanup {
+        destroy .graph1
+    } -result {1 1 none}
+
+
+    # ------------------------------------------------------------------
+    # -decimate must never change PostScript resolution.
+    # ------------------------------------------------------------------
+    test RBC.graph.element.decimate.A.2.1 {
+        graph element decimate: PostScript uses full trace
+    } -setup {
+        set x {}
+        set y {}
+        for {set i 0} {$i < 1000} {incr i} {
+            lappend x $i
+            lappend y [expr {($i % 19) - 9}]
+        }
+        graph .graph1 -width 120 -height 160
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 999
+        .graph1 axis configure y -min -10 -max 10
+        .graph1 element create Element1 -xdata $x -ydata $y -symbol none -linewidth 1 -smooth linear -reduce 0.0\
+                -decimate none
+        update
+    } -body {
+        set fullPs [.graph1 postscript output]
+        set fullCount [regexp -all { lineto} $fullPs]
+        .graph1 element configure Element1 -decimate auto
+        update
+        set autoPs [.graph1 postscript output]
+        set autoCount [regexp -all { lineto} $autoPs]
+        list [expr {$fullCount > 0}] [expr {$autoCount == $fullCount}]
+    } -cleanup {
+        destroy .graph1
+    } -result {1 1}
+
+    # ------------------------------------------------------------------
+    # first/min/max/last reduction must preserve a narrow extreme.
+    #
+    # All ten samples have the same data X, so they occupy one
+    # data-X screen-pixel bucket.  The +10 point must survive as the
+    # maximum representative.
+    # ------------------------------------------------------------------
+    test RBC.graph.element.decimate.A.3.1 {
+        graph element decimate: narrow maximum is preserved
+    } -setup {
+        graph .graph1 -width 400 -height 300
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 100
+        .graph1 axis configure y -min -12 -max 12
+        .graph1 element create Element1 -xdata {50 50 50 50 50 50 50 50 50 50} -ydata {0 1 2 10 3 -10 -2 -1 0 0}\
+                -symbol none -linewidth 1 -smooth linear -decimate auto
+        update
+    } -body {
+        lassign [.graph1 transform 50 10] x y
+        set found [.graph1 element closest $x $y info -along both -interpolate 1 -halo 2 Element1]
+        list $found [expr {$found && abs(double($info(y)) - 10.0) < 0.1}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .graph1
+    } -result {1 1}
+
+    # ------------------------------------------------------------------
+    # A non-finite/log-domain-invalid sample creates a break.  Reduction
+    # of the dense buckets on either side must not reconnect the runs.
+    # ------------------------------------------------------------------
+    test RBC.graph.element.decimate.A.3.2 {
+        graph element decimate: discontinuity is preserved
+    } -setup {
+        graph .graph1 -width 400 -height 300
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 4
+        .graph1 axis configure y -logscale yes -min 0.5 -max 2.0
+        .graph1 element create Element1 -xdata {1 1 1 1 1 2 3 3 3 3 3} -ydata {1 1.1 1.2 1.1 1 -1 1 1.1 1.2 1.1 1}\
+                -symbol none -linewidth 1 -smooth linear -decimate auto
+        update
+    } -body {
+        #
+        # If the break at x=2 were lost, the decimated trace would
+        # contain a segment from the x=1 run to the x=3 run and this
+        # point would lie directly on it.
+        #
+        lassign [.graph1 transform 2 1] x y
+        .graph1 element closest $x $y info -along both -interpolate 1 -halo 2 Element1
+    } -cleanup {
+        unset -nocomplain info
+        destroy .graph1
+    } -result 0
+
+    test RBC.graph.element.decimate.A.3.3 {
+        graph element decimate: decreasing X preserves narrow maximum
+    } -setup {
+        set x {}
+        set y {}
+        for {set i 0} {$i < 1000} {incr i} {
+            lappend x [expr {999 - $i}]
+            lappend y [expr {$i == 500 ? 10.0 : 0.0}]
+        }
+        graph .graph1 -width 200 -height 300
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 999
+        .graph1 axis configure y -min -1 -max 11
+        .graph1 element create Element1 -xdata $x -ydata $y -symbol none -linewidth 1 -smooth linear -reduce 0.0\
+                -decimate auto
+        update
+    } -body {
+        set spikeX [lindex $x 500]
+        lassign [.graph1 transform $spikeX 10.0] px py
+        set found [.graph1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1]
+        list $found [expr {$found && abs(double($info(y)) - 10.0) < 0.1}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .graph1
+    } -result {1 1}
+
+    test RBC.graph.element.decimate.A.3.4 {
+        graph element decimate: invertxy preserves narrow maximum
+    } -setup {
+        set x {}
+        set y {}
+        for {set i 0} {$i < 1000} {incr i} {
+            lappend x $i
+            lappend y [expr {$i == 500 ? 10.0 : 0.0}]
+        }
+        graph .graph1 -width 300 -height 200 -invertxy yes
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 999
+        .graph1 axis configure y -min -1 -max 11
+        .graph1 element create Element1 -xdata $x -ydata $y -symbol none -linewidth 1 -smooth linear -reduce 0.0\
+                -decimate auto
+        update
+    } -body {
+        lassign [.graph1 transform 500 10.0] px py
+        set found [.graph1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1]
+        list $found [expr {$found && abs(double($info(y)) - 10.0) < 0.1}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .graph1
+    } -result {1 1}
+
+    cleanupTests
+}

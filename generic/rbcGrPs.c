@@ -898,6 +898,11 @@ static int GraphToPostScript(Graph *graphPtr, const char *ident, PsToken psToken
     if (graphPtr->width <= 1) {
         graphPtr->width = Tk_ReqWidth(graphPtr->tkwin);
     }
+    /*
+     * PostScript has its own layout/remapping pass.  Disable
+     * screen-density element decimation during that pass.
+     */
+    graphPtr->flags |= GRAPH_POSTSCRIPT;
     result = PostScriptPreamble(graphPtr, ident, psToken);
     if (result != TCL_OK) {
         goto error;
@@ -950,16 +955,14 @@ static int GraphToPostScript(Graph *graphPtr, const char *ident, PsToken psToken
     Rbc_AppendToPostScript(psToken, "\n", "% Unset clipping\n", "grestore\n\n", (char *)NULL);
     MarginsToPostScript(graphPtr, psToken);
     Rbc_AppendToPostScript(psToken, "showpage\n", "%Trailer\n", "grestore\n", "end\n", "%EOF\n", (char *)NULL);
+    
 error:
-    /* Reset height and width of graph window */
+    graphPtr->flags &= ~GRAPH_POSTSCRIPT;
+
     graphPtr->width = Tk_Width(graphPtr->tkwin);
     graphPtr->height = Tk_Height(graphPtr->tkwin);
     graphPtr->flags = MAP_WORLD;
 
-    /*
-     * Redraw the graph in order to re-calculate the layout as soon as
-     * possible. This is in the case the crosshairs are active.
-     */
     Rbc_EventuallyRedrawGraph(graphPtr);
     return result;
 }

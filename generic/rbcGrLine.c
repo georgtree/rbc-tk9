@@ -3516,6 +3516,14 @@ INLINE static double PixelOrdinate(Graph *graphPtr, const Point2D *pointPtr) {
  *----------------------------------------------------------------------
  */
 static int CanPixelDecimateLine(Line *linePtr) {
+    /*
+     * Screen-density decimation is a display optimization.  PostScript
+     * output remaps the graph for its own layout and must retain the
+     * full line geometry.
+     */
+    if (linePtr->core.graphPtr->flags & GRAPH_POSTSCRIPT) {
+        return FALSE;
+    }
     if (linePtr->decimate != LINE_DECIMATE_AUTO) {
         return FALSE;
     }
