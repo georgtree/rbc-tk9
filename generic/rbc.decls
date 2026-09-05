@@ -85,3 +85,7 @@ declare 15 {
 declare 16 {
     void Rbc_VectorChanged(Rbc_Vector *vecPtr)
 }
+
+declare 17 {
+    void Rbc_VectorChangedRange(Rbc_Vector *vecPtr, Tcl_Size first, Tcl_Size last)
+}

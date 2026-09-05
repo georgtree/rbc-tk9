@@ -1181,11 +1181,7 @@ static int IndexOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
                     return TCL_ERROR;
                 }
             }
-            if (rangedRealWrite) {
-                Rbc_ReplicateValuePreserveRange(vPtr, first, last, value);
-            } else {
-                Rbc_ReplicateValue(vPtr, first, last, value);
-            }
+            Rbc_ReplicateValue(vPtr, first, last, value);
         }
         Tcl_SetObjResult(interp, objv[3]);
         if (vPtr->flush) {

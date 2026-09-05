@@ -252,6 +252,44 @@ static int WriteCmd(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return TCL_OK;
 }
 
+static int WriteRangeCmd(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    Rbc_Vector *vecPtr;
+    double *dataArr;
+    double value;
+    Tcl_Size index;
+    Tcl_Size length;
+    Tcl_Obj *resultObjv[2];
+    int before;
+    int after;
+
+    if (objc != 5) {
+        Tcl_WrongNumArgs(interp, 2, objv, "name index value");
+        return TCL_ERROR;
+    }
+    if ((GetVector(interp, objv[2], &vecPtr) != TCL_OK) || (Tcl_GetSizeIntFromObj(interp, objv[3], &index) != TCL_OK) ||
+        (Tcl_GetDoubleFromObj(interp, objv[4], &value) != TCL_OK)) {
+        return TCL_ERROR;
+    }
+    if (Rbc_VectorGetType(vecPtr) != RBC_VECTOR_REAL) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("expected real vector", -1));
+        return TCL_ERROR;
+    }
+    length = Rbc_VectorLength(vecPtr);
+    if ((index < 0) || (index >= length)) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("index %" TCL_SIZE_MODIFIER "d is out of range", index));
+        return TCL_ERROR;
+    }
+    dataArr = Rbc_VectorData(vecPtr);
+    before = Rbc_VectorDirty(vecPtr);
+    dataArr[index] = value;
+    Rbc_VectorChangedRange(vecPtr, index, index);
+    after = Rbc_VectorDirty(vecPtr);
+    resultObjv[0] = Tcl_NewIntObj(before);
+    resultObjv[1] = Tcl_NewIntObj(after);
+    Tcl_SetObjResult(interp, Tcl_NewListObj(2, resultObjv));
+    return TCL_OK;
+}
+
 static int ResetVolatileCmd(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Rbc_Vector *vecPtr;
     Rbc_VectorType type;
@@ -390,7 +428,7 @@ static int OwnershipCmd(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]
 
 static int RbcCapiTestObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     static const char *const subcommands[] = {"create",        "exists",     "free",   "inspect", "ownership", "range",
-                                              "resetvolatile", "resetwrong", "resize", "write",   NULL};
+                                              "resetvolatile", "resetwrong", "resize", "write", "writerange",  NULL};
     enum {
         CMD_CREATE,
         CMD_EXISTS,
@@ -401,7 +439,8 @@ static int RbcCapiTestObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size
         CMD_RESETVOLATILE,
         CMD_RESETWRONG,
         CMD_RESIZE,
-        CMD_WRITE
+        CMD_WRITE,
+        CMD_WRITERANGE        
     };
     int index;
 
@@ -434,6 +473,8 @@ static int RbcCapiTestObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size
         return ResizeCmd(interp, objc, objv);
     case CMD_WRITE:
         return WriteCmd(interp, objc, objv);
+    case CMD_WRITERANGE:
+        return WriteRangeCmd(interp, objc, objv);        
     }
     Tcl_Panic("bad rbccapitest subcommand");
     return TCL_ERROR;

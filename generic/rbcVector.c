@@ -760,9 +760,7 @@ VectorObject *Rbc_VectorNew(VectorInterpData *dataPtr) {
     VectorObject *vPtr;
 
     vPtr = RbcCalloc(1, sizeof(VectorObject));
-
     vPtr->type = RBC_VECTOR_REAL;
-
     vPtr->notifyFlags = NOTIFY_WHENIDLE | UPDATE_RANGE;
     vPtr->freeProc = TCL_STATIC;
     vPtr->dataPtr = dataPtr;
@@ -773,7 +771,7 @@ VectorObject *Rbc_VectorNew(VectorInterpData *dataPtr) {
     vPtr->chainPtr = Rbc_ChainCreate();
     vPtr->flush = FALSE;
     vPtr->min = vPtr->max = rbcNaN;
-
+    vPtr->minIndex = vPtr->maxIndex = -1;
     return vPtr;
 }
 
@@ -1655,17 +1653,20 @@ int Rbc_VectorLookupName(VectorInterpData *dataPtr, const char *vecName, VectorO
 void Rbc_VectorUpdateRange(VectorObject *vPtr) {
     double min;
     double max;
+    Tcl_Size minIndex;
+    Tcl_Size maxIndex;
     Tcl_Size i;
 
     if (vPtr->type != RBC_VECTOR_REAL) {
         vPtr->min = vPtr->max = rbcNaN;
+        vPtr->minIndex = vPtr->maxIndex = -1;
         vPtr->notifyFlags &= ~UPDATE_RANGE;
         return;
     }
     min = max = rbcNaN;
+    minIndex = maxIndex = -1;
     /*
-     * Find the first finite value.  If there isn't one, the cached
-     * range remains NaN/NaN, matching Rbc_VecMin/Rbc_VecMax.
+     * Find the first finite value.
      */
     for (i = 0; i < vPtr->length; i++) {
         double value;
@@ -1673,6 +1674,7 @@ void Rbc_VectorUpdateRange(VectorObject *vPtr) {
         value = vPtr->data.real[i];
         if (FINITE(value)) {
             min = max = value;
+            minIndex = maxIndex = i;
             i++;
             break;
         }
@@ -1686,12 +1688,17 @@ void Rbc_VectorUpdateRange(VectorObject *vPtr) {
         }
         if (value < min) {
             min = value;
-        } else if (value > max) {
+            minIndex = i;
+        }
+        if (value > max) {
             max = value;
+            maxIndex = i;
         }
     }
     vPtr->min = min;
     vPtr->max = max;
+    vPtr->minIndex = minIndex;
+    vPtr->maxIndex = maxIndex;
     vPtr->notifyFlags &= ~UPDATE_RANGE;
 }
 
@@ -2138,6 +2145,12 @@ static void ScheduleVectorUpdate(VectorObject *vPtr, int all, Tcl_Size first, Tc
     }
 }
 
+static void InvalidateVectorRange(VectorObject *vPtr) {
+    vPtr->min = vPtr->max = rbcNaN;
+    vPtr->minIndex = vPtr->maxIndex = -1;
+    vPtr->notifyFlags |= UPDATE_RANGE;
+}
+
 /*
  * ----------------------------------------------------------------------
  *
@@ -2158,14 +2171,98 @@ static void ScheduleVectorUpdate(VectorObject *vPtr, int all, Tcl_Size first, Tc
  * ----------------------------------------------------------------------
  */
 void Rbc_VectorUpdateClients(VectorObject *vPtr) {
-    /*
-     * An unqualified update gives us no information from which the
-     * cached global range can safely be maintained.
-     */
-    vPtr->min = vPtr->max = rbcNaN;
-    vPtr->notifyFlags |= UPDATE_RANGE;
-
+    InvalidateVectorRange(vPtr);
     ScheduleVectorUpdate(vPtr, TRUE, 0, 0);
+}
+
+/*
+ * ----------------------------------------------------------------------
+ *
+ * UpdateVectorRangeForChangedRange --
+ *
+ *      Maintains the cached global range after the caller has already
+ *      modified an exact inclusive source range.
+ *
+ *      If the changed range did not contain either cached global
+ *      extremum, only the changed source values need to be examined.
+ *
+ *      If an old extremum was touched, a complete scan is required
+ *      because another equal extremum may or may not exist elsewhere.
+ *
+ * Results:
+ *      TRUE if the cached range remains exact.
+ *      FALSE if a complete range recomputation is required.
+ *
+ * ----------------------------------------------------------------------
+ */
+static int UpdateVectorRangeForChangedRange(VectorObject *vPtr, Tcl_Size first, Tcl_Size last) {
+    double min;
+    double max;
+    Tcl_Size minIndex;
+    Tcl_Size maxIndex;
+    Tcl_Size i;
+    int haveFiniteRange;
+
+    assert(vPtr->type == RBC_VECTOR_REAL);
+    if (vPtr->notifyFlags & UPDATE_RANGE) {
+        return FALSE;
+    }
+    if ((first < 0) || (last < first) || (last >= vPtr->length)) {
+        return FALSE;
+    }
+    /*
+     * If either previously cached extremum was overwritten, its
+     * replacement cannot be determined from the changed range alone.
+     */
+    if (((vPtr->minIndex >= first) && (vPtr->minIndex <= last)) ||
+        ((vPtr->maxIndex >= first) && (vPtr->maxIndex <= last))) {
+        return FALSE;
+    }
+    min = vPtr->min;
+    max = vPtr->max;
+    minIndex = vPtr->minIndex;
+    maxIndex = vPtr->maxIndex;
+    haveFiniteRange = FINITE(min) && FINITE(max) && (minIndex >= 0) && (maxIndex >= 0);
+    /*
+     * NaN/NaN with -1/-1 is the valid cached representation of a
+     * vector containing no finite values.
+     */
+    if (!haveFiniteRange) {
+        if (FINITE(min) || FINITE(max) || (minIndex >= 0) || (maxIndex >= 0)) {
+            return FALSE;
+        }
+    }
+    for (i = first; i <= last; i++) {
+        double value;
+
+        value = vPtr->data.real[i];
+        if (!FINITE(value)) {
+            continue;
+        }
+        if (!haveFiniteRange) {
+            min = max = value;
+            minIndex = maxIndex = i;
+            haveFiniteRange = TRUE;
+            continue;
+        }
+        if (value < min) {
+            min = value;
+            minIndex = i;
+        } else if ((value == min) && (i < minIndex)) {
+            minIndex = i;
+        }
+        if (value > max) {
+            max = value;
+            maxIndex = i;
+        } else if ((value == max) && (i < maxIndex)) {
+            maxIndex = i;
+        }
+    }
+    vPtr->min = min;
+    vPtr->max = max;
+    vPtr->minIndex = minIndex;
+    vPtr->maxIndex = maxIndex;
+    return TRUE;
 }
 
 /*
@@ -2188,130 +2285,16 @@ void Rbc_VectorUpdateClientsRange(VectorObject *vPtr, Tcl_Size first, Tcl_Size l
         Rbc_VectorUpdateClients(vPtr);
         return;
     }
+    /*
+     * Real vectors can usually maintain their cached global range from
+     * the changed source interval alone.
+     */
+    if (vPtr->type == RBC_VECTOR_REAL) {
+        if (!UpdateVectorRangeForChangedRange(vPtr, first, last)) {
+            InvalidateVectorRange(vPtr);
+        }
+    }
     ScheduleVectorUpdate(vPtr, FALSE, first, last);
-}
-
-/*
- * ----------------------------------------------------------------------
- *
- * GetReplicatedWriteRange --
- *
- *      Determines whether the cached global min/max of a real vector
- *      can remain exact after replacing the inclusive source range
- *      [first,last] with one value.
- *
- *      The cached range can be maintained incrementally provided:
- *
- *        - it was valid before the write, and
- *        - the overwritten source range did not contain the old global
- *          minimum or maximum.
- *
- *      If either old extremum is overwritten, another occurrence may
- *      or may not exist elsewhere in the vector, so a complete range
- *      scan remains the conservative fallback.
- *
- * Results:
- *      TRUE if newMinPtr/newMaxPtr contain the exact post-write range.
- *      FALSE if the normal UPDATE_RANGE/full-scan path is required.
- *
- * ----------------------------------------------------------------------
- */
-static int GetReplicatedWriteRange(VectorObject *vPtr, Tcl_Size first, Tcl_Size last, double value, double *newMinPtr,
-                                   double *newMaxPtr) {
-    double min;
-    double max;
-    int haveFiniteRange;
-    Tcl_Size i;
-    
-    assert(vPtr->type == RBC_VECTOR_REAL);
-    /*
-     * The old global range must already be current.
-     */
-    if (vPtr->notifyFlags & UPDATE_RANGE) {
-        return FALSE;
-    }
-    min = vPtr->min;
-    max = vPtr->max;
-    haveFiniteRange = FINITE(min) && FINITE(max);
-    /*
-     * If the old vector contained finite values, determine whether the
-     * write destroys information needed to identify either extremum.
-     */
-    if (haveFiniteRange) {
-        for (i = first; i <= last; i++) {
-            double oldValue;
-
-            oldValue = vPtr->data.real[i];
-            if (!FINITE(oldValue)) {
-                continue;
-            }
-            if ((oldValue == min) || (oldValue == max)) {
-                return FALSE;
-            }
-        }
-    }
-    /*
-     * A non-finite replacement cannot introduce a new finite extremum.
-     * Since neither old extremum was removed above, the old range
-     * remains exact.
-     */
-    if (!FINITE(value)) {
-        *newMinPtr = min;
-        *newMaxPtr = max;
-        return TRUE;
-    }
-    if (!haveFiniteRange) {
-        min = max = value;
-    } else {
-        if (value < min) {
-            min = value;
-        }
-        if (value > max) {
-            max = value;
-        }
-    }
-    *newMinPtr = min;
-    *newMaxPtr = max;
-    return TRUE;
-}
-
-/*
- * ----------------------------------------------------------------------
- *
- * Rbc_ReplicateValuePreserveRange --
- *
- *      Replaces an existing inclusive range of a real vector while
- *      preserving the cached global minimum/maximum whenever that can
- *      be proven from the overwritten values.
- *
- *      The caller must supply an existing in-range source interval.
- *      Appends and resizes must use the ordinary Rbc_ReplicateValue()
- *      path instead.
- *
- * ----------------------------------------------------------------------
- */
-void Rbc_ReplicateValuePreserveRange(VectorObject *vPtr, Tcl_Size first, Tcl_Size last, double value) {
-    double newMin;
-    double newMax;
-    int preserveRange;
-
-    assert(vPtr->type == RBC_VECTOR_REAL);
-    assert(first >= 0);
-    assert(last >= first);
-    assert(last < vPtr->length);
-    newMin = 0.0;
-    newMax = 0.0;
-    preserveRange = GetReplicatedWriteRange(vPtr, first, last, value, &newMin, &newMax);
-    Rbc_ReplicateValue(vPtr, first, last, value);
-    /*
-     * Rbc_ReplicateValue() conservatively sets UPDATE_RANGE.
-     * Cancel it when the new range has already been determined exactly.
-     */
-    if (preserveRange) {
-        vPtr->min = newMin;
-        vPtr->max = newMax;
-        vPtr->notifyFlags &= ~UPDATE_RANGE;
-    }
 }
 
 /*
@@ -2363,13 +2346,9 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
     if (flags & TCL_TRACE_WRITES) {
         Tcl_Obj *objPtr;
         double realValue;
-        int inPlaceRealWrite;
         Rbc_Complex complexValue;
-        Tcl_Size oldLength;
         int result;
 
-        oldLength = vPtr->length;
-        inPlaceRealWrite = FALSE;
         if ((first == SPECIAL_INDEX) || (last == SPECIAL_INDEX)) {
             return VectorTraceError(Tcl_NewStringObj("read-only index", -1));
         }
@@ -2400,9 +2379,6 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
          * Appends are handled conservatively below because Rbc_VectorChangeLength()
          * changes the temporary vector contents before the final value is stored.
          */
-        if ((vPtr->type == RBC_VECTOR_REAL) && (first >= 0) && (last >= first) && (last < oldLength)) {
-            inPlaceRealWrite = TRUE;
-        }
         if ((first == vPtr->length) || (last == vPtr->length)) {
             if (vPtr->length == TCL_SIZE_MAX) {
                 return VectorTraceError(Tcl_NewStringObj("vector is too large to append", -1));
@@ -2413,11 +2389,7 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
         }
         switch (vPtr->type) {
         case RBC_VECTOR_REAL:
-            if (inPlaceRealWrite) {
-                Rbc_ReplicateValuePreserveRange(vPtr, first, last, realValue);
-            } else {
-                Rbc_ReplicateValue(vPtr, first, last, realValue);
-            }
+            Rbc_ReplicateValue(vPtr, first, last, realValue);
             break;
         case RBC_VECTOR_COMPLEX: {
             Tcl_Size i;
@@ -2831,7 +2803,6 @@ void Rbc_ReplicateValue(VectorObject *vPtr, Tcl_Size first, Tcl_Size last, doubl
     for (i = first; i <= last; i++) {
         vPtr->data.real[i] = value;
     }
-    vPtr->notifyFlags |= UPDATE_RANGE;
 }
 
 /*
@@ -3586,6 +3557,31 @@ void Rbc_VectorChanged(Rbc_Vector *vecPtr) {
         Rbc_VectorFlushCache(vPtr);
     }
     Rbc_VectorUpdateClients(vPtr);
+}
+
+/*
+ * ----------------------------------------------------------------------
+ *
+ * Rbc_VectorChangedRange --
+ *
+ *      Reports that an inclusive range of existing vector storage was
+ *      modified in place.
+ *
+ *      This is the ranged equivalent of Rbc_VectorChanged().  Storage,
+ *      vector length, and ownership must remain unchanged.
+ *
+ *      Invalid ranges conservatively become complete vector changes.
+ *
+ * ----------------------------------------------------------------------
+ */
+void Rbc_VectorChangedRange(Rbc_Vector *vecPtr, Tcl_Size first, Tcl_Size last) {
+    VectorObject *vPtr;
+
+    vPtr = (VectorObject *)vecPtr;
+    if (vPtr->flush) {
+        Rbc_VectorFlushCache(vPtr);
+    }
+    Rbc_VectorUpdateClientsRange(vPtr, first, last);
 }
 
 void Rbc_FreeVector(Rbc_Vector *v) { Rbc_VectorFree((VectorObject *)v); }

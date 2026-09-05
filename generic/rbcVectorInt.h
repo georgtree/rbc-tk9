@@ -86,6 +86,15 @@ struct Rbc_Vector_s {
     Tcl_Size size;   /* Maximum number of values that can be stored
                       * in the value array. */
     double min, max; /* Minimum and maximum values in the vector */
+
+    /*
+     * Source indices of the cached finite extrema.
+     *
+     * -1 means that no finite extremum is currently cached.
+     */
+    Tcl_Size minIndex;
+    Tcl_Size maxIndex;
+    
     int dirty;       /* Indicates if the vector has been updated */
 
     /* The following fields are local to this module  */
@@ -263,7 +272,6 @@ int Rbc_VectorGetIndexRange(Tcl_Interp *interp, VectorObject *vPtr, const char *
 int Rbc_VectorDuplicate(VectorObject *destPtr, VectorObject *srcPtr);
 Tcl_Obj *Rbc_GetValues(VectorObject *vPtr, Tcl_Size first, Tcl_Size last);
 void Rbc_ReplicateValue(VectorObject *vPtr, Tcl_Size first, Tcl_Size last, double value);
-void Rbc_ReplicateValuePreserveRange(VectorObject *vPtr, Tcl_Size first, Tcl_Size last, double value);
 int Rbc_VectorLookupName(VectorInterpData *dataPtr, const char *vecName, VectorObject **vPtrPtr);
 int Rbc_VectorReset(VectorObject *vPtr, double *valueArr, Tcl_Size length, Tcl_Size size, Tcl_FreeProc *freeProc);
 void Rbc_VectorUpdateRange(VectorObject *vPtr);

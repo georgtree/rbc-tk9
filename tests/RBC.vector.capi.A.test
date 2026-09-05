@@ -174,6 +174,36 @@ namespace eval vector.capi {
         catch {unset ::CapiChangedArray}
     } -result {{1.0 2.0} {7.0 -8.0} 1}
 
+    test RBC.vector.capi.A.3.3 {
+        public C API: Rbc_VectorChangedRange updates an exact source range
+    } -setup {
+        CleanupVectors ::CapiChangedRange
+        vector create ::CapiChangedRange -flush yes
+        ::CapiChangedRange set {1 2 3}
+        # Force this array entry into Tcl's mapped-variable cache.
+        set dummy $::CapiChangedRange(1)
+    } -body {
+        lassign [::rbccapitest writerange ::CapiChangedRange 1 10] before after
+        list $::CapiChangedRange(1) [::rbccapitest range ::CapiChangedRange] [expr {$after == ($before + 1)}]
+    } -cleanup {
+        CleanupVectors ::CapiChangedRange
+    } -result {10.0 {1.0 10.0} 1}
+
+    test RBC.vector.capi.A.3.4 {
+        public C API: Rbc_VectorChangedRange rescans when old extremum changes
+    } -setup {
+        CleanupVectors ::CapiChangedRangeMax
+        vector create ::CapiChangedRangeMax
+        ::CapiChangedRangeMax set {1 5 3}
+        # Establish the cached extrema and their source indices.
+        ::rbccapitest range ::CapiChangedRangeMax
+    } -body {
+        ::rbccapitest writerange ::CapiChangedRangeMax 1 2
+        ::rbccapitest range ::CapiChangedRangeMax
+    } -cleanup {
+        CleanupVectors ::CapiChangedRangeMax
+    } -result {1.0 3.0}
+
     test RBC.vector.capi.A.4.1 {
         public C API: custom storage free procedure
     } -setup {
