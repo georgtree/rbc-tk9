@@ -684,8 +684,6 @@ int Rbc_LineRectClip(const Extents2D *extsPtr, const Point2D *p, const Point2D *
     return TRUE;
 }
 
-#define EPSILON FLT_EPSILON
-
 /*
  *----------------------------------------------------------------------
  *
@@ -759,11 +757,11 @@ Tcl_Size Rbc_PolyRectClip(const Extents2D *extsPtr, const Point2D *points, Tcl_S
         q = (i + 1 < nPoints) ? (points + i + 1) : points;
         dx = q->x - p->x;
         dy = q->y - p->y;
-        if (FABS(dx) < EPSILON) {
-            dx = (p->x > extsPtr->left) ? -EPSILON : EPSILON;
+        if (dx == 0.0) {
+            dx = (p->x > extsPtr->left) ? -DBL_EPSILON : DBL_EPSILON;
         }
-        if (FABS(dy) < EPSILON) {
-            dy = (p->y > extsPtr->top) ? -EPSILON : EPSILON;
+        if (dy == 0.0) {
+            dy = (p->y > extsPtr->top) ? -DBL_EPSILON : DBL_EPSILON;
         }
         if (dx > 0.0) {
             xin = extsPtr->left;
