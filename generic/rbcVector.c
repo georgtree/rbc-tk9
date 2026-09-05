@@ -1653,28 +1653,41 @@ int Rbc_VectorLookupName(VectorInterpData *dataPtr, const char *vecName, VectorO
  * ----------------------------------------------------------------------
  */
 void Rbc_VectorUpdateRange(VectorObject *vPtr) {
-    double min, max;
+    double min;
+    double max;
     Tcl_Size i;
 
     if (vPtr->type != RBC_VECTOR_REAL) {
         vPtr->min = vPtr->max = rbcNaN;
         vPtr->notifyFlags &= ~UPDATE_RANGE;
         return;
-    }    
-    min = DBL_MAX, max = -DBL_MAX;
+    }
+    min = max = rbcNaN;
+    /*
+     * Find the first finite value.  If there isn't one, the cached
+     * range remains NaN/NaN, matching Rbc_VecMin/Rbc_VecMax.
+     */
     for (i = 0; i < vPtr->length; i++) {
-        if (FINITE(vPtr->data.real[i])) {
-            min = max = vPtr->data.real[i];
+        double value;
+
+        value = vPtr->data.real[i];
+        if (FINITE(value)) {
+            min = max = value;
+            i++;
             break;
         }
     }
-    for (/* empty */; i < vPtr->length; i++) {
-        if (FINITE(vPtr->data.real[i])) {
-            if (min > vPtr->data.real[i]) {
-                min = vPtr->data.real[i];
-            } else if (max < vPtr->data.real[i]) {
-                max = vPtr->data.real[i];
-            }
+    for (; i < vPtr->length; i++) {
+        double value;
+
+        value = vPtr->data.real[i];
+        if (!FINITE(value)) {
+            continue;
+        }
+        if (value < min) {
+            min = value;
+        } else if (value > max) {
+            max = value;
         }
     }
     vPtr->min = min;
@@ -2207,6 +2220,7 @@ static int GetReplicatedWriteRange(VectorObject *vPtr, Tcl_Size first, Tcl_Size 
                                    double *newMaxPtr) {
     double min;
     double max;
+    int haveFiniteRange;
     Tcl_Size i;
     
     assert(vPtr->type == RBC_VECTOR_REAL);
@@ -2219,14 +2233,12 @@ static int GetReplicatedWriteRange(VectorObject *vPtr, Tcl_Size first, Tcl_Size 
 
     min = vPtr->min;
     max = vPtr->max;
+    haveFiniteRange = FINITE(min) && FINITE(max);
     /*
      * If the old vector contained finite values, determine whether the
      * write destroys information needed to identify either extremum.
-     *
-     * Exact equality is appropriate here: min/max were copied directly
-     * from source vector values.
      */
-    if (min <= max) {
+    if (haveFiniteRange) {
         for (i = first; i <= last; i++) {
             double oldValue;
 
@@ -2249,11 +2261,7 @@ static int GetReplicatedWriteRange(VectorObject *vPtr, Tcl_Size first, Tcl_Size 
         *newMaxPtr = max;
         return TRUE;
     }
-    /*
-     * min > max is the representation produced by
-     * Rbc_VectorUpdateRange() when no finite values exist.
-     */
-    if (min > max) {
+    if (!haveFiniteRange) {
         min = max = value;
     } else {
         if (value < min) {
@@ -3332,7 +3340,9 @@ int Rbc_GetVector(Tcl_Interp *interp, const char *name, Rbc_Vector **vecPtrPtr) 
     if (Rbc_VectorLookupName(dataPtr, name, &vPtr) != TCL_OK) {
         return TCL_ERROR;
     }
-    Rbc_VectorUpdateRange(vPtr);
+    if (vPtr->notifyFlags & UPDATE_RANGE) {
+        Rbc_VectorUpdateRange(vPtr);
+    }
     *vecPtrPtr = (Rbc_Vector *)vPtr;
     return TCL_OK;
 }
