@@ -182,5 +182,77 @@ namespace eval graph.element.decimate {
         destroy .graph1
     } -result {1 1}
 
+    test RBC.graph.element.decimate.A.4.1 {
+        graph element decimate: exact point search survives pre-map reduction
+    } -setup {
+        graph .graph1 -width 300 -height 250
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 100
+        .graph1 axis configure y -min -2 -max 2
+        #
+        # All five samples occupy the same X-pixel bucket.
+        #
+        # The pre-map reducer retains:
+        #
+        #     index 0   first
+        #     index 1   maximum
+        #     index 3   minimum
+        #     index 4   last
+        #
+        # Index 2 is deliberately not part of the display LOD.
+        #
+        .graph1 element create Element1 -xdata {50 50 50 50 50} -ydata {0 1 0.25 -1 0} -symbol none -showvalues no\
+                -linewidth 1 -smooth linear -reduce 0.0 -decimate auto
+        update
+    } -body {
+        lassign [.graph1 transform 50 0.25] px py
+        set found [.graph1 element closest $px $py info -along both -interpolate 0 -halo 2 Element1]
+        set index [expr {[info exists info(index)] ? $info(index) : -1}]
+        set value [expr {[info exists info(y)] ? $info(y) : -999.0}]
+        list $found $index [expr {abs(double($value) - 0.25) < 0.001}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .graph1
+    } -result {1 2 1}
+
+    test RBC.graph.element.decimate.A.4.2 {
+        graph element decimate: non-monotonic X falls back safely
+    } -setup {
+        graph .graph1 -width 160 -height 250
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 10
+        .graph1 axis configure y -min -1 -max 11
+        .graph1 element create Element1 -xdata {0 1 2 3 4 5 4 3 2 1 0} -ydata {0 0 0 0 0 10 0 0 0 0 0} -symbol none\
+                -linewidth 1 -smooth linear -reduce 0.0 -decimate auto
+        update
+    } -body {
+        lassign [.graph1 transform 5 10] px py
+        set found [.graph1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1]
+        list $found [expr {$found && abs(double($info(y)) - 10.0) < 0.1}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .graph1
+    } -result {1 1}
+
+    test RBC.graph.element.decimate.A.4.3 {
+        graph element decimate: visible symbols retain exact source points
+    } -setup {
+        graph .graph1 -width 300 -height 250
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 100
+        .graph1 axis configure y -min -2 -max 2
+        .graph1 element create Element1 -xdata {50 50 50 50 50} -ydata {0 1 0.25 -1 0} -symbol circle -linewidth 1\
+                -smooth linear -reduce 0.0 -decimate auto
+        update
+    } -body {
+        lassign [.graph1 transform 50 0.25] px py
+        set found [.graph1 element closest $px $py info -along both -interpolate 0 -halo 2 Element1]
+        set index [expr {[info exists info(index)] ? $info(index) : -1}]
+        list $found $index
+    } -cleanup {
+        unset -nocomplain info
+        destroy .graph1
+    } -result {1 2}
+
     cleanupTests
 }

@@ -277,7 +277,15 @@ typedef struct {
 
     double rTolerance; /* Tolerance to reduce the number of
                         * points displayed. */
-    LineDecimation decimate;    
+    LineDecimation decimate;
+
+    /*
+     * True when the current screen mapping intentionally omitted the
+     * full symbolPts/symbolToData arrays because the trace was reduced
+     * before world-to-screen mapping.
+     */
+    int pointMapOmitted;
+
     /*
      * Drawing related data structures.
      */
@@ -1278,6 +1286,9 @@ static int ScaleSymbol(Element *elemPtr, int normalSize);
 static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
 static void ReducePoints(MapInfo *mapPtr, double tolerance);
 static int CanPixelDecimateLine(Line *linePtr);
+static int CanPreMapDecimateLine(Line *linePtr);
+static double MapLineDataAbscissa(Graph *graphPtr, Line *linePtr, double x);
+static int BuildPixelDecimatedScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
 static int IsMonotonicMappedAbscissa(Graph *graphPtr, MapInfo *mapPtr);
 static void DecimatePointsByPixels(Graph *graphPtr, MapInfo *mapPtr);
 static void GenerateSteps(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
@@ -1298,7 +1309,7 @@ static void MapFillArea(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
 static void ResetLine(Line *linePtr);
 static int ClosestTrace(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr, DistanceProc *distProc);
 static int ClosestStrip(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr, DistanceProc *distProc);
-static void ClosestPoint(Line *linePtr, ClosestSearch *searchPtr);
+static void ClosestPoint(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr);
 static void DrawCircles(Display *display, Drawable drawable, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts,
                         Point2D *symbolPts, int radius);
 static void DrawSquares(Display *display, Drawable drawable, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts,
@@ -3560,6 +3571,53 @@ static int CanPixelDecimateLine(Line *linePtr) {
     return TRUE;
 }
 
+static int CanPreMapDecimateLine(Line *linePtr) {
+    Element *elemPtr;
+    LinePen *penPtr;
+
+    if (!CanPixelDecimateLine(linePtr)) {
+        return FALSE;
+    }
+    elemPtr = &linePtr->core;
+    penPtr = LINE_PEN_FROM_CORE(elemPtr->normalPenPtr);
+    /*
+     * The first pre-map implementation is trace-only.  If the normal
+     * pen needs mapped data points for symbols or value labels, retain
+     * the existing full mapping path.
+     */
+    if (penPtr->symbol.type != SYMBOL_NONE) {
+        return FALSE;
+    }
+    if (penPtr->valueShow != SHOW_NONE) {
+        return FALSE;
+    }
+    /*
+     * Error bars currently use the per-source-point style map and have
+     * their own world-to-screen mapping.  Leave them on the existing
+     * path for now.
+     */
+    if ((elemPtr->xError.nValues > 0) || (elemPtr->yError.nValues > 0) || (elemPtr->xHigh.nValues > 0) ||
+        (elemPtr->xLow.nValues > 0) || (elemPtr->yHigh.nValues > 0) || (elemPtr->yLow.nValues > 0)) {
+        return FALSE;
+    }
+    /*
+     * If "all points active" uses symbols or value labels, the active
+     * renderer also needs the complete symbolPts array.
+     *
+     * Explicit active indices (> 0) are fine: MapActiveSymbols()
+     * maps those indices independently.
+     */
+    if ((elemPtr->nActiveIndices < 0) && (elemPtr->activePenPtr != NULL)) {
+        LinePen *activePenPtr;
+
+        activePenPtr = LINE_PEN_FROM_CORE(elemPtr->activePenPtr);
+        if ((activePenPtr->symbol.type != SYMBOL_NONE) || (activePenPtr->valueShow != SHOW_NONE)) {
+            return FALSE;
+        }
+    }
+    return TRUE;
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -3654,6 +3712,396 @@ static void AppendPixelBucket(Tcl_Size first, Tcl_Size minIndex, Tcl_Size maxInd
             (*countPtr)++;
         }
     }
+}
+
+INLINE static double MapLineDataAbscissa(Graph *graphPtr, Line *linePtr, double x) {
+    if (graphPtr->inverted) {
+        return Rbc_VMap(graphPtr, linePtr->core.axes.x, x);
+    }
+    return Rbc_HMap(graphPtr, linePtr->core.axes.x, x);
+}
+
+static int AppendSourcePixelBucket(Tcl_Size first, Tcl_Size minIndex, Tcl_Size maxIndex, Tcl_Size last, int startsRun,
+                                   Tcl_Size capacity, Tcl_Size *selected, unsigned char *selectedBreakBefore,
+                                   Tcl_Size *countPtr) {
+    Tcl_Size candidate[4];
+    int i;
+    int j;
+    int firstOutput;
+    candidate[0] = first;
+    candidate[1] = minIndex;
+    candidate[2] = maxIndex;
+    candidate[3] = last;
+    /*
+     * Sort the four source indices into original data order.
+     */
+    for (i = 1; i < 4; i++) {
+        Tcl_Size value;
+
+        value = candidate[i];
+        j = i;
+
+        while ((j > 0) && (candidate[j - 1] > value)) {
+            candidate[j] = candidate[j - 1];
+            j--;
+        }
+        candidate[j] = value;
+    }
+    firstOutput = TRUE;
+    for (i = 0; i < 4; i++) {
+        if ((i > 0) && (candidate[i] == candidate[i - 1])) {
+            continue;
+        }
+        if (*countPtr >= capacity) {
+            return FALSE;
+        }
+        selected[*countPtr] = candidate[i];
+        selectedBreakBefore[*countPtr] = (unsigned char)(startsRun && firstOutput && (*countPtr > 0));
+        (*countPtr)++;
+        firstOutput = FALSE;
+    }
+    return TRUE;
+}
+
+static int BuildPixelDecimatedScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
+    Extents2D exts;
+    Tcl_Size nPoints;
+    Tcl_Size capacity;
+    Tcl_Size *selected;
+    unsigned char *selectedBreakBefore;
+    Point2D *screenPts;
+    Tcl_Size *indices;
+    unsigned char *breakBefore;
+    Tcl_Size count;
+    Tcl_Size mappedCount;
+    Tcl_Size i;
+    size_t selectedBytes;
+    size_t breakBytes;
+    size_t pointBytes;
+    size_t indexBytes;
+    double pixelMin;
+    double pixelMax;
+    double pixelSpan;
+
+    int haveBucket;
+    double currentBucket;
+
+    Tcl_Size first;
+    Tcl_Size last;
+    Tcl_Size minIndex;
+    Tcl_Size maxIndex;
+    double minY;
+    double maxY;
+
+    int startsRun;
+    int nextStartsRun;
+    int havePreviousX;
+    double previousX;
+    int direction;
+
+    mapPtr->screenPts = NULL;
+    mapPtr->indices = NULL;
+    mapPtr->breakBefore = NULL;
+    mapPtr->nScreenPts = 0;
+    nPoints = NumberOfPoints(&linePtr->core);
+    if (nPoints < 1) {
+        return TRUE;
+    }
+    Rbc_GraphExtents(graphPtr, &exts);
+    /*
+     * Data X maps horizontally in a normal graph and vertically under
+     * -invertxy.
+     */
+    if (graphPtr->inverted) {
+        pixelMin = exts.top;
+        pixelMax = exts.bottom;
+    } else {
+        pixelMin = exts.left;
+        pixelMax = exts.right;
+    }
+    if (pixelMax < pixelMin) {
+        double tmp;
+
+        tmp = pixelMin;
+        pixelMin = pixelMax;
+        pixelMax = tmp;
+    }
+    /*
+     * We retain at most four representatives for each visible pixel
+     * bucket, plus two collapsed off-screen buckets.
+     *
+     * Multiple discontinuous runs could exceed this bound.  If that
+     * happens, abandon the fast path and let the ordinary mapper handle
+     * the element.
+     */
+    pixelSpan = ceil(pixelMax) - floor(pixelMin) + 3.0;
+    if ((!FINITE(pixelSpan)) || (pixelSpan < 1.0) || (pixelSpan > (double)TCL_SIZE_MAX / 4.0)) {
+        return FALSE;
+    }
+    capacity = (Tcl_Size)pixelSpan * 4;
+    if (capacity > nPoints) {
+        capacity = nPoints;
+    }
+    if (capacity < 1) {
+        capacity = 1;
+    }
+    if ((GetLineArrayByteCount(capacity, sizeof(*selected), &selectedBytes) != TCL_OK) ||
+        (GetLineArrayByteCount(capacity, sizeof(*selectedBreakBefore), &breakBytes) != TCL_OK)) {
+        return FALSE;
+    }
+    selected = Tcl_AttemptAlloc(selectedBytes);
+    if (selected == NULL) {
+        return FALSE;
+    }
+    selectedBreakBefore = Tcl_AttemptAlloc(breakBytes);
+    if (selectedBreakBefore == NULL) {
+        ckfree(selected);
+        return FALSE;
+    }
+    count = 0;
+    haveBucket = FALSE;
+    currentBucket = 0.0;
+    first = 0;
+    last = 0;
+    minIndex = 0;
+    maxIndex = 0;
+    minY = 0.0;
+    maxY = 0.0;
+    startsRun = FALSE;
+    nextStartsRun = FALSE;
+    havePreviousX = FALSE;
+    previousX = 0.0;
+    direction = 0;
+    for (i = 0; i < nPoints; i++) {
+        double x;
+        double y;
+        double abscissa;
+        double bucket;
+        int valid;
+
+        valid = GetLineDataPoint(linePtr, i, &x, &y);
+        if (valid) {
+            valid = FINITE(x) && FINITE(y);
+        }
+        /*
+         * Match Rbc_HMap/Rbc_VMap logarithmic-domain behavior without
+         * performing the Y transformation for every source sample.
+         */
+        if (valid && linePtr->core.axes.x->logScale && (x <= 0.0)) {
+            valid = FALSE;
+        }
+        if (valid && linePtr->core.axes.y->logScale && (y <= 0.0)) {
+            valid = FALSE;
+        }
+        if (valid) {
+            abscissa = MapLineDataAbscissa(graphPtr, linePtr, x);
+            if (!FINITE(abscissa)) {
+                valid = FALSE;
+            }
+        }
+        if (!valid) {
+            /*
+             * Finish the current continuous run.
+             */
+            if (haveBucket) {
+                if (!AppendSourcePixelBucket(first, minIndex, maxIndex, last, startsRun, capacity, selected,
+                                             selectedBreakBefore, &count)) {
+                    ckfree(selected);
+                    ckfree(selectedBreakBefore);
+                    return FALSE;
+                }
+                haveBucket = FALSE;
+            }
+            nextStartsRun = (count > 0);
+            havePreviousX = FALSE;
+            direction = 0;
+            continue;
+        }
+        /*
+         * Check source-X monotonicity within each continuous run.
+         *
+         * Axis transformations are monotonic, so we do not need to
+         * transform every X merely to establish ordering.
+         */
+        if (havePreviousX) {
+            if (x > previousX) {
+                if (direction < 0) {
+                    ckfree(selected);
+                    ckfree(selectedBreakBefore);
+                    return FALSE;
+                }
+                direction = 1;
+            } else if (x < previousX) {
+                if (direction > 0) {
+                    ckfree(selected);
+                    ckfree(selectedBreakBefore);
+                    return FALSE;
+                }
+                direction = -1;
+            }
+        }
+        previousX = x;
+        havePreviousX = TRUE;
+        /*
+         * Collapse everything left/before and right/after the visible
+         * data-X extent into one bucket each.  For a monotonic run only
+         * the boundary-neighbour representatives can participate in a
+         * visible clipped segment.
+         */
+        if (abscissa < pixelMin) {
+            bucket = pixelMin - 1.0;
+        } else if (abscissa > pixelMax) {
+            bucket = pixelMax + 1.0;
+        } else {
+            /*
+             * Match the integer conversion used by the native
+             * rendering paths.
+             */
+            bucket = trunc(abscissa);
+        }
+        if (!haveBucket) {
+            currentBucket = bucket;
+            first = i;
+            last = i;
+            minIndex = i;
+            maxIndex = i;
+            minY = y;
+            maxY = y;
+            startsRun = nextStartsRun;
+            nextStartsRun = FALSE;
+            haveBucket = TRUE;
+            continue;
+        }
+        if (bucket == currentBucket) {
+            last = i;
+            if (y < minY) {
+                minY = y;
+                minIndex = i;
+            }
+            if (y > maxY) {
+                maxY = y;
+                maxIndex = i;
+            }
+            continue;
+        }
+        /*
+         * The data-X pixel changed.  Finish the previous bucket.
+         */
+        if (!AppendSourcePixelBucket(first, minIndex, maxIndex, last, startsRun, capacity, selected,
+                                     selectedBreakBefore, &count)) {
+            ckfree(selected);
+            ckfree(selectedBreakBefore);
+            return FALSE;
+        }
+        currentBucket = bucket;
+        first = i;
+        last = i;
+        minIndex = i;
+        maxIndex = i;
+        minY = y;
+        maxY = y;
+        startsRun = FALSE;
+    }
+    if (haveBucket) {
+        if (!AppendSourcePixelBucket(first, minIndex, maxIndex, last, startsRun, capacity, selected,
+                                     selectedBreakBefore, &count)) {
+            ckfree(selected);
+            ckfree(selectedBreakBefore);
+            return FALSE;
+        }
+    }
+    if (count < 1) {
+        ckfree(selected);
+        ckfree(selectedBreakBefore);
+        return TRUE;
+    }
+    if ((GetLineArrayByteCount(count, sizeof(*screenPts), &pointBytes) != TCL_OK) ||
+        (GetLineArrayByteCount(count, sizeof(*indices), &indexBytes) != TCL_OK) ||
+        (GetLineArrayByteCount(count, sizeof(*breakBefore), &breakBytes) != TCL_OK)) {
+        ckfree(selected);
+        ckfree(selectedBreakBefore);
+        return FALSE;
+    }
+    screenPts = Tcl_AttemptAlloc(pointBytes);
+    if (screenPts == NULL) {
+        ckfree(selected);
+        ckfree(selectedBreakBefore);
+        return FALSE;
+    }
+    indices = Tcl_AttemptAlloc(indexBytes);
+    if (indices == NULL) {
+        ckfree(screenPts);
+        ckfree(selected);
+        ckfree(selectedBreakBefore);
+        return FALSE;
+    }
+    breakBefore = Tcl_AttemptAlloc(breakBytes);
+    if (breakBefore == NULL) {
+        ckfree(indices);
+        ckfree(screenPts);
+        ckfree(selected);
+        ckfree(selectedBreakBefore);
+        return FALSE;
+    }
+    mappedCount = 0;
+    nextStartsRun = FALSE;
+    for (i = 0; i < count; i++) {
+        Point2D point;
+        Tcl_Size sourceIndex;
+        double x;
+        double y;
+
+        sourceIndex = selected[i];
+        if (selectedBreakBefore[i]) {
+            nextStartsRun = TRUE;
+        }
+        if (!GetLineDataPoint(linePtr, sourceIndex, &x, &y)) {
+            nextStartsRun = TRUE;
+            continue;
+        }
+        point = Rbc_Map2D(graphPtr, x, y, &linePtr->core.axes);
+        if ((!FINITE(point.x)) || (!FINITE(point.y))) {
+            nextStartsRun = TRUE;
+            continue;
+        }
+        screenPts[mappedCount] = point;
+        indices[mappedCount] = sourceIndex;
+        breakBefore[mappedCount] = (unsigned char)(nextStartsRun && (mappedCount > 0));
+        nextStartsRun = FALSE;
+        mappedCount++;
+    }
+    ckfree(selected);
+    ckfree(selectedBreakBefore);
+    if (mappedCount < 1) {
+        ckfree(screenPts);
+        ckfree(indices);
+        ckfree(breakBefore);
+        return TRUE;
+    }
+    /*
+     * Avoid carrying a break array when none exists, matching
+     * GetScreenPoints().
+     */
+    {
+        int hasBreaks;
+
+        hasBreaks = FALSE;
+        for (i = 1; i < mappedCount; i++) {
+            if (breakBefore[i]) {
+                hasBreaks = TRUE;
+                break;
+            }
+        }
+        if (!hasBreaks) {
+            ckfree(breakBefore);
+            breakBefore = NULL;
+        }
+    }
+    mapPtr->screenPts = screenPts;
+    mapPtr->indices = indices;
+    mapPtr->breakBefore = breakBefore;
+    mapPtr->nScreenPts = mappedCount;
+    return TRUE;
 }
 
 /*
@@ -5727,6 +6175,7 @@ static void ResetLine(Line *linePtr) {
     linePtr->nActivePts = 0;
     linePtr->nSymbolPts = 0;
     linePtr->nStrips = 0;
+    linePtr->pointMapOmitted = FALSE;    
     linePtr->core.xErrorBarCnt = 0;
     linePtr->core.yErrorBarCnt = 0;
 }
@@ -5756,6 +6205,7 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
     MapInfo mapInfo = {0};
     Tcl_Size nPoints;
     int size;
+    int preMapDecimated;
     PenStyle **dataToStyle;
     Rbc_ChainLink *linkPtr;
     LinePenStyle *stylePtr;
@@ -5765,11 +6215,26 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
     if (nPoints < 1) {
         return;
     }
-    GetScreenPoints(graphPtr, linePtr, &mapInfo);
+    preMapDecimated = FALSE;
+    if (CanPreMapDecimateLine(linePtr)) {
+        preMapDecimated = BuildPixelDecimatedScreenPoints(graphPtr, linePtr, &mapInfo);
+    }
+    if (!preMapDecimated) {
+        GetScreenPoints(graphPtr, linePtr, &mapInfo);
+    }
     if (mapInfo.nScreenPts < 1) {
         return;
     }
-    MapSymbols(graphPtr, linePtr, &mapInfo);
+    if (preMapDecimated) {
+        /*
+         * Full symbolPts/symbolToData arrays were intentionally
+         * omitted.  Exact point searches will map source points on
+         * demand.
+         */
+        linePtr->pointMapOmitted = TRUE;
+    } else {
+        MapSymbols(graphPtr, linePtr, &mapInfo);
+    }
     if ((linePtr->core.flags & ACTIVE_PENDING) && (linePtr->core.nActiveIndices > 0)) {
         MapActiveSymbols(graphPtr, linePtr);
     }
@@ -5811,14 +6276,9 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
             break;
         }
         /*
-         * Screen-density reduction is deliberately performed after the full
-         * world-to-screen mapping in this first implementation.
-         *
-         * MapSymbols() has already run, so symbol/active-point semantics still
-         * refer to the complete source data.  Only the connecting trace is
-         * reduced.
+         * The pre-map path already produced pixel-density geometry.
          */
-        if (CanPixelDecimateLine(linePtr)) {
+        if (!preMapDecimated && CanPixelDecimateLine(linePtr)) {
             DecimatePointsByPixels(graphPtr, &mapInfo);
         }
         if (linePtr->rTolerance > 0.0) {
@@ -5837,6 +6297,16 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
     ckfree(mapInfo.indices);
     if (mapInfo.breakBefore != NULL) {
         ckfree(mapInfo.breakBefore);
+    }
+    /*
+     * The pre-map path is deliberately restricted to a single trace pen
+     * with no symbols, values, styles, or error bars.
+     *
+     * Avoid Rbc_StyleMap(): for a multi-million-point waveform that array
+     * alone would otherwise contain one pointer per source point.
+     */
+    if (preMapDecimated) {
+        return;
     }
     /* Set the symbol size of all the pen styles. */
     for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
@@ -6145,7 +6615,7 @@ static int ClosestStrip(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr
  *
  *----------------------------------------------------------------------
  */
-static void ClosestPoint(Line *linePtr, ClosestSearch *searchPtr) {
+static void ClosestMappedPoint(Line *linePtr, ClosestSearch *searchPtr) {
     Point2D *pointPtr;
     double minDist;
     Tcl_Size count;
@@ -6153,13 +6623,6 @@ static void ClosestPoint(Line *linePtr, ClosestSearch *searchPtr) {
 
     minDist = searchPtr->dist;
     dataIndex = -1;
-    /*
-     * Instead of testing each data point in graph coordinates, look at
-     * the array of mapped screen coordinates.  The advantages are:
-     *
-     * 1) only visible, unclipped points are examined;
-     * 2) distances are already measured in screen coordinates.
-     */
     pointPtr = linePtr->symbolPts;
     for (count = 0; count < linePtr->nSymbolPts; count++, pointPtr++) {
         double dx;
@@ -6190,10 +6653,82 @@ static void ClosestPoint(Line *linePtr, ClosestSearch *searchPtr) {
         searchPtr->elemPtr = &linePtr->core;
         searchPtr->dist = minDist;
         searchPtr->index = dataIndex;
+        GetLineDataPoint(linePtr, dataIndex, &searchPtr->point.x, &searchPtr->point.y);
+    }
+}
+
+static void ClosestSourcePoint(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr) {
+    Extents2D exts;
+    Tcl_Size nPoints;
+    Tcl_Size dataIndex;
+    Tcl_Size i;
+    double minDist;
+
+    Rbc_GraphExtents(graphPtr, &exts);
+    nPoints = NumberOfPoints(&linePtr->core);
+    minDist = searchPtr->dist;
+    dataIndex = -1;
+    for (i = 0; i < nPoints; i++) {
+        Point2D point;
+        double x;
+        double y;
+        double dx;
+        double dy;
+        double dist;
+
+        if (!GetLineDataPoint(linePtr, i, &x, &y)) {
+            continue;
+        }
+        if ((!FINITE(x)) || (!FINITE(y))) {
+            continue;
+        }
+        point = Rbc_Map2D(graphPtr, x, y, &linePtr->core.axes);
+        if ((!FINITE(point.x)) || (!FINITE(point.y))) {
+            continue;
+        }
+        /*
+         * Match MapSymbols exactly: point searches consider only
+         * points inside the plotting region.
+         */
+        if (!PointInRegion(&exts, point.x, point.y)) {
+            continue;
+        }
+        dx = fabs((double)searchPtr->x - point.x);
+        dy = fabs((double)searchPtr->y - point.y);
+        switch (searchPtr->along) {
+        case SEARCH_BOTH:
+            dist = hypot(dx, dy);
+            break;
+        case SEARCH_X:
+            dist = dx;
+            break;
+        case SEARCH_Y:
+            dist = dy;
+            break;
+        default:
+            continue;
+        }
+        if (dist < minDist) {
+            minDist = dist;
+            dataIndex = i;
+        }
+    }
+    if ((dataIndex >= 0) && (minDist < searchPtr->dist)) {
+        searchPtr->elemPtr = &linePtr->core;
+        searchPtr->dist = minDist;
+        searchPtr->index = dataIndex;
         if (!GetLineDataPoint(linePtr, dataIndex, &searchPtr->point.x, &searchPtr->point.y)) {
             return;
         }
     }
+}
+
+static void ClosestPoint(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr) {
+    if (!linePtr->pointMapOmitted) {
+        ClosestMappedPoint(linePtr, searchPtr);
+        return;
+    }
+    ClosestSourcePoint(graphPtr, linePtr, searchPtr);
 }
 
 /*
@@ -6678,7 +7213,7 @@ static void ClosestLine(Graph *graphPtr, Element *elemPtr, ClosestSearch *search
         }
     }
     if (mode == SEARCH_POINTS) {
-        ClosestPoint(linePtr, searchPtr);
+        ClosestPoint(graphPtr, linePtr, searchPtr);
     } else {
         DistanceProc *distProc;
         int found;
@@ -6696,7 +7231,7 @@ static void ClosestLine(Graph *graphPtr, Element *elemPtr, ClosestSearch *search
             found = ClosestTrace(graphPtr, linePtr, searchPtr, distProc);
         }
         if ((!found) && (searchPtr->along != SEARCH_BOTH)) {
-            ClosestPoint(linePtr, searchPtr);
+            ClosestPoint(graphPtr, linePtr, searchPtr);
         }
     }
 }
