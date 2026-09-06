@@ -9234,7 +9234,19 @@ static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int
  */
 static void DrawStrips(Graph *graphPtr, Drawable drawable, GC gc, const Segment2D *segments, Tcl_Size nSegments) {
 #ifdef WIN32
-    enum { STRIP_BATCH_SEGMENTS = 16384, STRIP_WIDE_BATCH_SEGMENTS = 1024 };
+    enum {
+        /*
+         * GDI/EMF permits 16K points in one polyline operation.
+         * Each strip is an independent two-point polyline.
+         */
+        STRIP_BATCH_SEGMENTS = 8192,
+
+        /*
+         * Devices without wide-line support may have a 1360-point
+         * limit for wide lines.
+         */
+        STRIP_WIDE_BATCH_SEGMENTS = 680
+    };
 
     Rbc_WinDrawableDC *dcStatePtr;
     HDC dc;

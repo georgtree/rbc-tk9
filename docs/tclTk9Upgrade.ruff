@@ -139,7 +139,7 @@ namespace eval TclTk9Upgrade {
         - Corrected several element formatting and `-valueformat` paths.
         - Fixed step-generation behavior.
         - Corrected line `-trace` behavior.
-        - Added optional screen-density decimation for large ordinary line elements through `-decimate none|auto`.
+        - Added optional screen-density decimation for large line and strip elements through -decimate none|auto.
         - Automatic line decimation preserves the first, minimum, maximum, and last source representatives associated
           with each physical data-X pixel rather than averaging dense waveform data.
         - Added density-based selection so sparse data continues through the normal mapping path while dense eligible

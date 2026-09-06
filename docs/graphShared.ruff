@@ -2195,7 +2195,6 @@ namespace eval ::rbc::STRIPELEMENT {
         | `-areaforeground` | area-fill foreground                                  |
         | `-areapattern`    | area filling with a solid or stipple pattern          |
         | `-areatile`       | tiled area filling                                    |
-        | `-decimate`       | automatic screen-density trace decimation             |
         | `-param`          | per-point parameter mapping returned by `ELEMENT closest` |
         | `-reduce`         | screen-space trace reduction                          |
         | `-state`          | line-element state option                             |
@@ -2210,7 +2209,6 @@ namespace eval ::rbc::STRIPELEMENT {
         │ -areaforeground     │ area-fill foreground                                    │
         │ -areapattern        │ area filling with a solid or stipple pattern            │
         │ -areatile           │ tiled area filling                                      │
-        │ -decimate           │ automatic screen-density trace decimation               │
         │ -param              │ per-point parameter mapping returned by ELEMENT closest │
         │ -reduce             │ screen-space trace reduction                            │
         │ -state              │ line-element state option                               │
