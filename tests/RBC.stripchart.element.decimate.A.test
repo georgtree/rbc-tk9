@@ -1,0 +1,536 @@
+# RBC.stripchart.element.decimate.A.test --
+#
+###Abstract
+# Regression tests for strip-element screen-density decimation.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+###Package Definition
+package provide stripchart.element.decimate
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+
+namespace eval stripchart.element.decimate {
+
+    # ------------------------------------------------------------------
+    # Option surface.
+    # ------------------------------------------------------------------
+
+    test RBC.stripchart.element.decimate.A.1.1 {
+        stripchart element decimate: option default and configure
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 element create Element1
+    } -body {
+        set default [.stripchart1 element cget Element1 -decimate]
+        .stripchart1 element configure Element1 -decimate auto
+        set configured [.stripchart1 element cget Element1 -decimate]
+        list $default $configured
+    } -cleanup {
+        destroy .stripchart1
+    } -result {none auto}
+
+    test RBC.stripchart.element.decimate.A.1.2 {
+        stripchart element decimate: invalid value
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 element create Element1
+    } -body {
+        set code [catch {.stripchart1 element configure Element1 -decimate bogus} message]
+        list $code [expr {[string first "none" $message] >= 0 && [string first "auto" $message] >= 0}]\
+                [.stripchart1 element cget Element1 -decimate]
+    } -cleanup {
+        destroy .stripchart1
+    } -result {1 1 none}
+
+    # ------------------------------------------------------------------
+    # PostScript must always retain full-resolution geometry.
+    #
+    # 4096 points in a 120-pixel-wide widget also guarantees that the
+    # ordinary display is dense enough to qualify for -decimate auto.
+    # ------------------------------------------------------------------
+    test RBC.stripchart.element.decimate.A.2.1 {
+        stripchart element decimate: PostScript uses full trace
+    } -setup {
+        set n 4096
+        set x {}
+        set y {}
+        for {set i 0} {$i < $n} {incr i} {
+            lappend x $i
+            lappend y [expr {($i % 19) - 9}]
+        }
+        stripchart .stripchart1 -width 120 -height 160
+        pack .stripchart1
+
+        .stripchart1 axis configure x -min 0 -max [expr {$n - 1}]
+        .stripchart1 axis configure y -min -10 -max 10
+        .stripchart1 element create Element1 -xdata $x -ydata $y -symbol none -linewidth 1 -smooth linear\
+                -decimate none
+        update
+    } -body {
+        set fullPs [.stripchart1 postscript output]
+        set fullCount [regexp -all { lineto} $fullPs]
+        .stripchart1 element configure Element1 -decimate auto
+        update
+        set autoPs [.stripchart1 postscript output]
+        set autoCount [regexp -all { lineto} $autoPs]
+        list [expr {$fullCount > 0}] [expr {$autoCount == $fullCount}]
+    } -cleanup {
+        unset -nocomplain n x y fullPs autoPs fullCount autoCount
+        destroy .stripchart1
+    } -result {1 1}
+
+    # ------------------------------------------------------------------
+    # first/min/max/last envelope preservation.
+    #
+    # Every source sample has the same X coordinate, so all 4096 points
+    # occupy one data-X pixel bucket.  Both extrema must survive.
+    # ------------------------------------------------------------------
+    test RBC.stripchart.element.decimate.A.3.1 {
+        stripchart element decimate: one-pixel envelope preserves extrema
+    } -setup {
+        set n 4096
+        set maxIndex 1000
+        set minIndex 3000
+        set x [lrepeat $n 50.0]
+        set y [lrepeat $n 0.0]
+        lset y $maxIndex 10.0
+        lset y $minIndex -10.0
+        stripchart .stripchart1 -width 300 -height 250
+        pack .stripchart1
+        .stripchart1 axis configure x -min 0 -max 100
+        .stripchart1 axis configure y -min -12 -max 12
+        .stripchart1 element create Element1 -xdata $x -ydata $y -symbol none -showvalues none -linewidth 1\
+                -smooth linear -decimate auto
+        update
+    } -body {
+        lassign [.stripchart1 transform 50 10.0] px py
+        set maxFound [.stripchart1 element closest $px $py maxInfo -along both -interpolate 1 -halo 2 Element1]
+        lassign [.stripchart1 transform 50 -10.0] px py
+        set minFound [.stripchart1 element closest $px $py minInfo -along both -interpolate 1 -halo 2 Element1]
+        list $maxFound [expr {$maxFound && abs(double($maxInfo(y)) - 10.0) < 0.1}] $minFound\
+                [expr {$minFound && abs(double($minInfo(y)) + 10.0) < 0.1}]
+    } -cleanup {
+        unset -nocomplain maxInfo minInfo
+        unset -nocomplain n maxIndex minIndex x y
+        destroy .stripchart1
+    } -result {1 1 1 1}
+
+    # ------------------------------------------------------------------
+    # Monotonically increasing source X.
+    # ------------------------------------------------------------------
+    test RBC.stripchart.element.decimate.A.3.2 {
+        stripchart element decimate: increasing X preserves narrow maximum
+    } -setup {
+        set n 4096
+        set spikeIndex 2050
+        set x {}
+        set y [lrepeat $n 0.0]
+        for {set i 0} {$i < $n} {incr i} {
+            lappend x $i
+        }
+        lset y $spikeIndex 10.0
+        stripchart .stripchart1 -width 220 -height 250
+        pack .stripchart1
+        .stripchart1 axis configure x -min 0 -max [expr {$n - 1}]
+        .stripchart1 axis configure y -min -1 -max 11
+        .stripchart1 element create Element1 -xdata $x -ydata $y -symbol none -showvalues none -linewidth 1\
+                -smooth linear -decimate auto
+        update
+    } -body {
+        set spikeX [lindex $x $spikeIndex]
+        lassign [.stripchart1 transform $spikeX 10.0] px py
+        set found [.stripchart1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1]
+        list $found [expr {$found && abs(double($info(y)) - 10.0) < 0.1 }]} -cleanup {
+        unset -nocomplain info
+        unset -nocomplain n spikeIndex spikeX x y
+        destroy .stripchart1
+    } -result {1 1}
+
+    # ------------------------------------------------------------------
+    # Monotonically decreasing source X.
+    # ------------------------------------------------------------------
+    test RBC.stripchart.element.decimate.A.3.3 {
+        stripchart element decimate: decreasing X preserves narrow maximum
+    } -setup {
+        set n 4096
+        set spikeIndex 2050
+        set x {}
+        set y [lrepeat $n 0.0]
+        for {set i 0} {$i < $n} {incr i} {
+            lappend x [expr {$n - 1 - $i}]
+        }
+        lset y $spikeIndex 10.0
+        stripchart .stripchart1 -width 220 -height 250
+        pack .stripchart1
+        .stripchart1 axis configure x -min 0 -max [expr {$n - 1}]
+        .stripchart1 axis configure y -min -1 -max 11
+        .stripchart1 element create Element1 -xdata $x -ydata $y -symbol none -showvalues none -linewidth 1\
+                -smooth linear -decimate auto
+        update
+    } -body {
+        set spikeX [lindex $x $spikeIndex]
+        lassign [.stripchart1 transform $spikeX 10.0] px py
+        set found [.stripchart1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1]
+        list $found [expr {$found && abs(double($info(y)) - 10.0) < 0.1}]
+    } -cleanup {
+        unset -nocomplain info
+        unset -nocomplain n spikeIndex spikeX x y
+        destroy .stripchart1
+    } -result {1 1}
+
+    # ------------------------------------------------------------------
+    # -invertxy changes the physical data-X dimension from horizontal
+    # to vertical.  Pixel decimation must follow that dimension.
+    # ------------------------------------------------------------------
+    test RBC.stripchart.element.decimate.A.3.4 {
+        stripchart element decimate: invertxy preserves narrow maximum
+    } -setup {
+        set n 4096
+        set spikeIndex 2050
+        set x {}
+        set y [lrepeat $n 0.0]
+        for {set i 0} {$i < $n} {incr i} {
+            lappend x $i
+        }
+        lset y $spikeIndex 10.0
+        stripchart .stripchart1 -width 300 -height 200 -invertxy yes
+        pack .stripchart1
+        .stripchart1 axis configure x -min 0 -max [expr {$n - 1}]
+        .stripchart1 axis configure y -min -1 -max 11
+        .stripchart1 element create Element1 -xdata $x -ydata $y -symbol none -showvalues none -linewidth 1\
+                -smooth linear -decimate auto
+        update
+    } -body {
+        set spikeX [lindex $x $spikeIndex]
+        lassign [.stripchart1 transform $spikeX 10.0] px py
+        set found [.stripchart1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1]
+        list $found [expr {$found && abs(double($info(y)) - 10.0) < 0.1}]
+    } -cleanup {
+        unset -nocomplain info
+        unset -nocomplain n spikeIndex spikeX x y
+        destroy .stripchart1
+    } -result {1 1}
+
+    # ------------------------------------------------------------------
+    # Exact point closest searches must operate on source data even
+    # when the complete symbolPts map was deliberately omitted.
+    #
+    # targetIndex is neither first, last, minimum nor maximum and
+    # therefore is not retained by the display LOD.
+    # ------------------------------------------------------------------
+    test RBC.stripchart.element.decimate.A.4.1 {
+        stripchart element decimate: exact point search survives pre-map reduction
+    } -setup {
+        set n 4096
+        set targetIndex 2050
+        set x [lrepeat $n 50.0]
+        set y [lrepeat $n 0.0]
+        lset y 1000 1.0
+        lset y $targetIndex 0.25
+        lset y 3000 -1.0
+        stripchart .stripchart1 -width 300 -height 250
+        pack .stripchart1
+        .stripchart1 axis configure x -min 0 -max 100
+        .stripchart1 axis configure y -min -2 -max 2
+        .stripchart1 element create Element1 -xdata $x -ydata $y -symbol none -showvalues none -linewidth 1\
+                -smooth linear -decimate auto
+        update
+    } -body {
+        lassign [.stripchart1 transform 50 0.25] px py
+        set found [.stripchart1 element closest $px $py info -along both -interpolate 0 -halo 2 Element1]
+        set index [expr {[info exists info(index)] ? $info(index) : -1}]
+        set value [expr {[info exists info(y)] ? $info(y) : -999.0}]
+        list $found $index [expr {abs(double($value) - 0.25) < 0.001}]
+    } -cleanup {
+        unset -nocomplain info
+        unset -nocomplain n targetIndex x y
+        destroy .stripchart1
+    } -result {1 2050 1}
+
+    # ------------------------------------------------------------------
+    # Non-monotonic source X is unsupported by the persistent Stage-3
+    # cache and must fall back safely.
+    #
+    # The sequence rises to 2047 and then falls back to zero.
+    # ------------------------------------------------------------------
+    test RBC.stripchart.element.decimate.A.4.2 {
+        stripchart element decimate: non-monotonic X falls back safely
+    } -setup {
+        set n 4096
+        set turnIndex 2048
+        set x {}
+        set y [lrepeat $n 0.0]
+        for {set i 0} {$i < $n} {incr i} {
+            if {$i < $turnIndex} {
+                lappend x $i
+            } else {
+                lappend x [expr {$n - 1 - $i}]
+            }
+        }
+        lset y $turnIndex 10.0
+        stripchart .stripchart1 -width 220 -height 250
+        pack .stripchart1
+        .stripchart1 axis configure x -min 0 -max 2047
+        .stripchart1 axis configure y -min -1 -max 11
+        .stripchart1 element create Element1 -xdata $x -ydata $y -symbol none -showvalues none -linewidth 1\
+                -smooth linear -decimate auto
+        update
+    } -body {
+        set spikeX [lindex $x $turnIndex]
+        lassign [.stripchart1 transform $spikeX 10.0] px py
+        set found [.stripchart1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1]
+        list $found [expr {$found && abs(double($info(y)) - 10.0) < 0.1}]
+    } -cleanup {
+        unset -nocomplain info
+        unset -nocomplain n turnIndex spikeX x y
+        destroy .stripchart1
+    } -result {1 1}
+
+    # ------------------------------------------------------------------
+    # A log-domain-invalid point creates a discontinuity.
+    #
+    # The valid runs occupy x=0..1 and x=99..100.  If the break at
+    # x=50 were lost, the strip would contain a long connecting segment
+    # through the query point (50,1).
+    # ------------------------------------------------------------------
+    test RBC.stripchart.element.decimate.A.4.3 {
+        stripchart element decimate: logarithmic discontinuity is preserved
+    } -setup {
+        set n 4096
+        set gapIndex 2048
+        set x {}
+        set y [lrepeat $n 1.0]
+        for {set i 0} {$i < $n} {incr i} {
+            if {$i < $gapIndex} {
+                lappend x [expr {double($i) / double($gapIndex - 1)}]
+            } elseif {$i == $gapIndex} {
+                lappend x 50.0
+            } else {
+                lappend x [expr {99.0 + double($i - $gapIndex - 1) / double($n - $gapIndex - 2)}]
+            }
+        }
+        lset y $gapIndex -1.0
+        stripchart .stripchart1 -width 300 -height 250
+        pack .stripchart1
+        .stripchart1 axis configure x -min 0 -max 100
+        .stripchart1 axis configure y -logscale yes -min 0.5 -max 2.0
+        .stripchart1 element create Element1 -xdata $x -ydata $y -symbol none -showvalues none -linewidth 1\
+                -smooth linear -decimate auto
+        update
+    } -body {
+        lassign [.stripchart1 transform 50 1.0] px py
+        .stripchart1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1
+    } -cleanup {
+        unset -nocomplain info
+        unset -nocomplain n gapIndex x y
+        destroy .stripchart1
+    } -result 0
+
+    # ------------------------------------------------------------------
+    # Visible symbols require the complete source-point map and
+    # therefore force the existing full MapSymbols path.
+    # ------------------------------------------------------------------
+    test RBC.stripchart.element.decimate.A.4.4 {
+        stripchart element decimate: visible symbols retain exact source points
+    } -setup {
+        set n 4096
+        set targetIndex 2050
+        set x [lrepeat $n 50.0]
+        set y [lrepeat $n 0.0]
+        lset y 1000 1.0
+        lset y $targetIndex 0.25
+        lset y 3000 -1.0
+        stripchart .stripchart1 -width 300 -height 250
+        pack .stripchart1
+        .stripchart1 axis configure x -min 0 -max 100
+        .stripchart1 axis configure y -min -2 -max 2
+
+        .stripchart1 element create Element1 -xdata $x -ydata $y -symbol circle -pixels 3 -showvalues none -linewidth 1\
+                -smooth linear -decimate auto
+        update
+    } -body {
+        lassign [.stripchart1 transform 50 0.25] px py
+        set found [.stripchart1 element closest $px $py info -along both -interpolate 0 -halo 2 Element1]
+        set index [expr {[info exists info(index)] ? $info(index) : -1}]
+        list $found $index
+    } -cleanup {
+        unset -nocomplain info
+        unset -nocomplain n targetIndex x y
+        destroy .stripchart1
+    } -result {1 2050}
+
+    # ------------------------------------------------------------------
+    # Persistent Stage-3 cache maintenance.
+    #
+    # A precisely ranged Y update should rebuild only the affected
+    # 64-sample block rather than discarding the complete source cache.
+    # ------------------------------------------------------------------
+    test RBC.stripchart.element.decimate.A.5.1 {
+        stripchart element decimate: ranged Y update refreshes cached block
+    } -setup {
+        set n 4096
+        set changedIndex 2050
+        vector create CacheX
+        vector create CacheY
+        CacheX set [lrepeat $n 50.0]
+        CacheY set [lrepeat $n 0.0]
+        CacheY variable CacheYVar
+        stripchart .stripchart1 -width 300 -height 250
+        pack .stripchart1
+        .stripchart1 axis configure x -min 0 -max 100
+        .stripchart1 axis configure y -min -2 -max 3
+        .stripchart1 element create Element1 -xdata CacheX -ydata CacheY -symbol none -showvalues none -linewidth 1\
+                -smooth linear -decimate auto
+        # Build the persistent cache.
+        update
+    } -body {
+        # changedIndex was not initially first/min/max/last.  It must
+        # become the maximum representative of its cache block.
+        set CacheYVar($changedIndex) 2.0
+        update
+        lassign [.stripchart1 transform 50 2.0] px py
+        set found [.stripchart1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1]
+        list $found [expr {$found && abs(double($info(y)) - 2.0) < 0.1}]
+    } -cleanup {
+        unset -nocomplain info
+        unset -nocomplain CacheYVar
+        unset -nocomplain n changedIndex
+        catch {vector destroy CacheX}
+        catch {vector destroy CacheY}
+        destroy .stripchart1
+    } -result {1 1}
+
+    # ------------------------------------------------------------------
+    # Source X controls monotonicity and the Stage-3 binary searches.
+    #
+    # Any ranged X modification currently invalidates the complete
+    # cache.  This modification changes:
+    #
+    #     50 ... 50 60 50 ... 50
+    #
+    # and therefore makes source X non-monotonic.
+    #
+    # Use interpolated closest here deliberately: this checks the
+    # displayed strip geometry rather than the exact source-point path.
+    # ------------------------------------------------------------------
+    test RBC.stripchart.element.decimate.A.5.2 {
+        stripchart element decimate: ranged X update invalidates cached monotonicity
+    } -setup {
+        set n 4096
+        set changedIndex 2050
+        vector create CacheX
+        vector create CacheY
+        CacheX set [lrepeat $n 50.0]
+        CacheY set [lrepeat $n 0.0]
+        CacheX variable CacheXVar
+        stripchart .stripchart1 -width 300 -height 250
+        pack .stripchart1
+        .stripchart1 axis configure x -min 0 -max 100
+        .stripchart1 axis configure y -min -2 -max 2
+        .stripchart1 element create Element1 -xdata CacheX -ydata CacheY -symbol none -showvalues none -linewidth 1\
+                -smooth linear -decimate auto
+        update
+    } -body {
+        set CacheXVar($changedIndex) 60.0
+        update
+        lassign [.stripchart1 transform 60 0.0] px py
+        set found [.stripchart1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1]
+        list $found [expr {$found && abs(double($info(x)) - 60.0) < 0.1}]
+    } -cleanup {
+        unset -nocomplain info
+        unset -nocomplain CacheXVar
+        unset -nocomplain n changedIndex
+        catch {vector destroy CacheX}
+        catch {vector destroy CacheY}
+        destroy .stripchart1
+    } -result {1 1}
+
+    # ------------------------------------------------------------------
+    # Multiple ranged writes before notification delivery must coalesce
+    # into a range covering both modified cache blocks.
+    # ------------------------------------------------------------------
+    test RBC.stripchart.element.decimate.A.5.3 {
+        stripchart element decimate: multiple ranged Y writes coalesce safely
+    } -setup {
+        set n 4096
+        set lowIndex 1000
+        set highIndex 3000
+        vector create CacheX
+        vector create CacheY
+        CacheX set [lrepeat $n 50.0]
+        CacheY set [lrepeat $n 0.0]
+        CacheY variable CacheYVar
+        stripchart .stripchart1 -width 300 -height 250
+        pack .stripchart1
+        .stripchart1 axis configure x -min 0 -max 100
+        .stripchart1 axis configure y -min -5 -max 9
+        .stripchart1 element create Element1 -xdata CacheX -ydata CacheY -symbol none -showvalues none -linewidth 1\
+                -smooth linear -decimate auto
+        update
+    } -body {
+        # No update between these assignments.  The pending ranged
+        # notification must cover both affected Stage-3 cache blocks.
+        set CacheYVar($lowIndex) -4.0
+        set CacheYVar($highIndex) 8.0
+        update
+        lassign [.stripchart1 transform 50 -4.0] px py
+        set lowFound [.stripchart1 element closest $px $py lowInfo -along both -interpolate 1 -halo 2 Element1]
+        lassign [.stripchart1 transform 50 8.0] px py
+        set highFound [.stripchart1 element closest $px $py highInfo -along both -interpolate 1 -halo 2 Element1]
+        list $lowFound [expr {$lowFound && abs(double($lowInfo(y)) + 4.0) < 0.1}] $highFound\
+                [expr {$highFound && abs(double($highInfo(y)) - 8.0) < 0.1}]
+    } -cleanup {
+        unset -nocomplain lowInfo highInfo
+        unset -nocomplain CacheYVar
+        unset -nocomplain n lowIndex highIndex
+        catch {vector destroy CacheX}
+        catch {vector destroy CacheY}
+        destroy .stripchart1
+    } -result {1 1 1 1}
+
+    # ------------------------------------------------------------------
+    # The vector instance "index" write path must provide the same
+    # precise ranged-change metadata as a mapped Tcl-array write.
+    # ------------------------------------------------------------------
+    test RBC.stripchart.element.decimate.A.5.4 {
+        stripchart element decimate: vector index Y write refreshes cached block
+    } -setup {
+        set n 4096
+        set changedIndex 2050
+        vector create CacheX
+        vector create CacheY
+        CacheX set [lrepeat $n 50.0]
+        CacheY set [lrepeat $n 0.0]
+        stripchart .stripchart1 -width 300 -height 250
+        pack .stripchart1
+        .stripchart1 axis configure x -min 0 -max 100
+        .stripchart1 axis configure y -min -2 -max 9
+        .stripchart1 element create Element1 -xdata CacheX -ydata CacheY -symbol none -showvalues none -linewidth 1\
+                -smooth linear -decimate auto
+        update
+    } -body {
+        CacheY index $changedIndex 8.0
+        update
+        lassign [.stripchart1 transform 50 8.0] px py
+        set found [.stripchart1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1]
+        list $found [expr {$found && abs(double($info(y)) - 8.0) < 0.1}]
+    } -cleanup {
+        unset -nocomplain info
+        unset -nocomplain n changedIndex
+        catch {vector destroy CacheX}
+        catch {vector destroy CacheY}
+
+        destroy .stripchart1
+    } -result {1 1}
+
+
+    cleanupTests
+}

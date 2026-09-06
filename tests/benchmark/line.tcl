@@ -5,7 +5,7 @@ package require rbc
 
 namespace eval ::rbcBenchmark {
     variable options [dict create points {10000 100000 1000000 5000000} sizes {640x480 1280x720 1920x1080 2560x1440}\
-    iterations 3 warmup 1 decimate {none auto} csv {}]
+                              iterations 3 warmup 1 decimate {none auto} stripchart 0 csv {}]
 
     variable xVector ::rbcBenchmarkX
     variable yVector ::rbcBenchmarkY
@@ -17,6 +17,10 @@ proc ::rbcBenchmark::Usage {} {
     puts {Usage: line.tcl ?options?
 
 Options:
+
+  -stripchart
+      Benchmark strip elements in a stripchart instead of line
+      elements in a graph.
 
   -points LIST
       Comma-separated point counts.
@@ -59,6 +63,10 @@ Examples:
   tclsh line.tcl -iterations 5 -csv benchmark.csv
 
   tclsh line.tcl -decimate none,auto
+
+  tclsh line.tcl -stripchart
+
+  tclsh line.tcl -stripchart -points 1000000,5000000 -decimate none,auto
 }
 }
 
@@ -85,6 +93,9 @@ proc ::rbcBenchmark::ParseArgs {argv} {
             -h {
                 Usage
                 exit 0
+            }
+            -stripchart {
+                dict set options stripchart 1
             }
             -points -
             -sizes -
@@ -251,14 +262,22 @@ proc ::rbcBenchmark::CreateVectors {n} {
 }
 
 proc ::rbcBenchmark::CreateGraph {} {
+    variable options
     variable top
     variable graph
+    set stripchart [dict get $options stripchart]
     wm withdraw .
     catch {destroy $top}
     toplevel $top
-    wm title $top "RBC line benchmark"
+    if {$stripchart} {
+        wm title $top "RBC strip element benchmark"
+        set widgetCommand ::rbc::stripchart
+    } else {
+        wm title $top "RBC line element benchmark"
+        set widgetCommand ::rbc::graph
+    }
     wm overrideredirect $top 1
-    ::rbc::graph $graph -bufferelements 0 -buffergraph 1 -borderwidth 0 -highlightthickness 0 -plotborderwidth 0\
+    $widgetCommand $graph -bufferelements 0 -buffergraph 1 -borderwidth 0 -highlightthickness 0 -plotborderwidth 0\
             -plotpadx 0 -plotpady 0 -title {}
     pack $graph -fill both -expand yes
     $graph legend configure -hide yes
@@ -288,14 +307,18 @@ proc ::rbcBenchmark::SetSize {width height} {
 # First mapping + first complete drawing.
 #
 proc ::rbcBenchmark::CreateElement {mode} {
+    variable options
     variable graph
     variable xVector
     variable yVector
-
     catch {$graph element delete signal}
+    set elementOptions [list -xdata $xVector -ydata $yVector -linewidth 1 -symbol none -smooth linear -decimate $mode]
+    # Ordinary line elements support -reduce.  Strip elements do not.
+    if {![dict get $options stripchart]} {
+        lappend elementOptions -reduce 0.0
+    }
     return [Time {
-        $graph element create signal -xdata $xVector -ydata $yVector -linewidth 1 -symbol none -smooth linear\
-                -reduce 0.0 -decimate $mode
+        $graph element create signal {*}$elementOptions
         SyncDisplay
     }]
 }
@@ -432,13 +455,14 @@ proc ::rbcBenchmark::OpenCsv {} {
         return {}
     }
     set channel [open $path w]
-    puts $channel [join {platform os os_version machine tcl tk rbc decimate points requested_width requested_height\
-                                 actual_width actual_height plot_width points_per_plot_pixel create_ms redraw_min_ms\
-                                 redraw_median_ms redraw_mean_ms redraw_max_ms remap_min_ms remap_median_ms\
-                                 remap_mean_ms remap_max_ms data_array_remap_min_ms data_array_remap_median_ms\
-                                 data_array_remap_mean_ms data_array_remap_max_ms data_index_remap_min_ms\
-                                 data_index_remap_median_ms data_index_remap_mean_ms data_index_remap_max_ms\
-                                 closest_min_ms closest_median_ms closest_mean_ms closest_max_ms} ,]
+    puts $channel [join {platform os os_version machine tcl tk rbc element_type decimate points requested_width\
+                                 requested_height actual_width actual_height plot_width points_per_plot_pixel create_ms\
+                                 redraw_min_ms redraw_median_ms redraw_mean_ms redraw_max_ms remap_min_ms\
+                                 remap_median_ms remap_mean_ms remap_max_ms data_array_remap_min_ms\
+                                 data_array_remap_median_ms data_array_remap_mean_ms data_array_remap_max_ms\
+                                 data_index_remap_min_ms data_index_remap_median_ms data_index_remap_mean_ms\
+                                 data_index_remap_max_ms closest_min_ms closest_median_ms closest_mean_ms\
+                                 closest_max_ms} ,]
     return $channel
 }
 
@@ -452,13 +476,13 @@ proc ::rbcBenchmark::WriteCsv {channel row} {
         return
     }
     set values {}
-    foreach key {platform os os_version machine tcl tk rbc decimate points requested_width requested_height\
-                         actual_width actual_height plot_width points_per_plot_pixel create_ms redraw_min_ms\
-                         redraw_median_ms redraw_mean_ms redraw_max_ms remap_min_ms remap_median_ms remap_mean_ms\
-                         remap_max_ms data_array_remap_min_ms data_array_remap_median_ms data_array_remap_mean_ms\
-                         data_array_remap_max_ms data_index_remap_min_ms data_index_remap_median_ms\
-                         data_index_remap_mean_ms data_index_remap_max_ms closest_min_ms closest_median_ms\
-                         closest_mean_ms closest_max_ms} {
+    foreach key {platform os os_version machine tcl tk rbc element_type decimate points requested_width\
+                         requested_height actual_width actual_height plot_width points_per_plot_pixel create_ms\
+                         redraw_min_ms redraw_median_ms redraw_mean_ms redraw_max_ms remap_min_ms remap_median_ms\
+                         remap_mean_ms remap_max_ms data_array_remap_min_ms data_array_remap_median_ms\
+                         data_array_remap_mean_ms data_array_remap_max_ms data_index_remap_min_ms\
+                         data_index_remap_median_ms data_index_remap_mean_ms data_index_remap_max_ms closest_min_ms\
+                         closest_median_ms closest_mean_ms closest_max_ms} {
         lappend values [CsvQuote [dict get $row $key]]
     }
     puts $channel [join $values ,]
@@ -467,8 +491,13 @@ proc ::rbcBenchmark::WriteCsv {channel row} {
 
 proc ::rbcBenchmark::PrintHeader {} {
     variable options
+    if {[dict get $options stripchart]} {
+        set elementType strip
+    } else {
+        set elementType line
+    }
     puts {}
-    puts {RBC line rendering benchmark}
+    puts "RBC $elementType element rendering benchmark"
     puts {}
     puts [format " %-10s %s" "platform:" $::tcl_platform(platform)]
     puts [format " %-10s %s %s" "OS:" $::tcl_platform(os) $::tcl_platform(osVersion)]
@@ -485,7 +514,7 @@ redraw:
     redraws already-mapped geometry.
 
 axis-remap:
-    changes the X axis slightly, forcing line geometry to be remapped
+    changes the X axis slightly, forcing element geometry to be remapped
     and redrawn.  With -decimate auto, a persistent data-domain cache
     may be reused across this axis-only change.
 
@@ -526,6 +555,7 @@ proc ::rbcBenchmark::RunCase {mode n width height csv} {
     set density [expr { $n / double($plotWidth)}]
     set warmup [dict get $options warmup]
     set iterations [dict get $options iterations]
+    set elementType [expr {[dict get $options stripchart] ? "strip" : "line"}]
     # Warm up redraw and axis-remap paths.
     for {set i 0} {$i < $warmup} {incr i} {
         MeasureRedraw
@@ -646,6 +676,7 @@ proc ::rbcBenchmark::RunCase {mode n width height csv} {
         tcl                         [info patchlevel] \
         tk                          [package provide Tk] \
         rbc                         [package provide rbc] \
+        element_type                $elementType \
         decimate                    $mode \
         points                      $n \
         requested_width             $width \

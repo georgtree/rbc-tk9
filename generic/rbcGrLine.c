@@ -1050,20 +1050,13 @@ static const Tk_OptionSpec lineElemOptionSpecs[] = {
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 static const Tk_OptionSpec stripElemOptionSpecs[] = {
-    LINE_ELEMENT_OPTION_ENTRIES(
-        LINE_ELEMENT_NO_OPTION_ENTRIES,
-        LINE_ELEMENT_NO_OPTION_ENTRIES,
-        LINE_ELEMENT_NO_OPTION_ENTRIES,
-        LINE_ELEMENT_NO_OPTION_ENTRIES),
+    LINE_ELEMENT_OPTION_ENTRIES(LINE_ELEMENT_NO_OPTION_ENTRIES, LINE_ELEMENT_NO_OPTION_ENTRIES,
+                                LINE_ELEMENT_NO_OPTION_ENTRIES, LINE_ELEMENT_NO_OPTION_ENTRIES),
 
-    {
-        TK_OPTION_END,
-        NULL, NULL, NULL, NULL,
-        0, 0, 0,
-        NULL,
-        0
-    }
-};
+    {TK_OPTION_STRING_TABLE, "-decimate", "decimate", "Decimate", DEF_LINE_DECIMATE, -1, offsetof(Line, decimate), 0,
+     (ClientData)lineDecimateNames, LINE_ELEM_MAP_ITEM_MASK},
+
+    {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 #define LINE_PEN_OPTION_ENTRIES(DEFAULT_COLOR)                         \
     {                                                                 \
@@ -3605,9 +3598,10 @@ static int CanPixelDecimateLine(Line *linePtr) {
         return FALSE;
     }
     /*
-     * Initially support ordinary graph XY line elements only.
+     * Support ordinary XY line and strip elements.  Polar elements retain
+     * the full mapping path.
      */
-    if (linePtr->core.classUid != rbcLineElementUid) {
+    if ((linePtr->core.classUid != rbcLineElementUid) && (linePtr->core.classUid != rbcStripElementUid)) {
         return FALSE;
     }
     if (linePtr->dataMode != LINE_DATA_XY) {
