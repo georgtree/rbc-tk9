@@ -177,11 +177,13 @@ time.</p>
 <li><p>Fixed step-generation behavior.</p></li>
 <li><p>Corrected line <code class="docutils literal notranslate"><span class="pre">-trace</span></code> behavior.</p></li>
 <li><p>Added optional screen-density decimation for large line and strip elements through -decimate none|auto.</p></li>
-<li><p>Automatic line decimation preserves the first, minimum, maximum, and last source representatives associated with each physical data-X pixel rather than averaging dense waveform data.</p></li>
+<li><p>Automatic line and strip decimation preserves the first, minimum, maximum, and last source representatives associated with each physical data-X pixel rather than averaging dense waveform data.</p></li>
 <li><p>Added density-based selection so sparse data continues through the normal mapping path while dense eligible traces can avoid mapping and drawing millions of redundant screen points.</p></li>
-<li><p>Added a persistent data-domain decimation cache for finite, monotonic-X line data. The cache survives ordinary axis remapping and supports increasing, decreasing, and equal X coordinates as well as <code class="docutils literal notranslate"><span class="pre">-invertxy</span></code> and descending axes.</p></li>
+<li><p>Added a persistent data-domain decimation cache for finite, monotonic-X line and strip data. The cache survives ordinary axis remapping and supports increasing, decreasing, and equal X coordinates as well as <code class="docutils literal notranslate"><span class="pre">-invertxy</span></code> and descending axes.</p></li>
 <li><p>Added conservative fallback paths for discontinuities, logarithmically invalid data, non-monotonic paths, symbols, value labels, error data, multiple styles, and other combinations that require full source geometry.</p></li>
-<li><p>Added incremental maintenance of persistent line decimation summaries for ranged Y-vector updates; X changes, vector resizing, storage replacement, and unknown/full-vector changes retain complete invalidation semantics.</p></li>
+<li><p>Added incremental maintenance of persistent line and strip decimation summaries for ranged Y-vector updates and monotonic tail growth.</p></li>
+<li><p>Vector <code class="docutils literal notranslate"><span class="pre">append</span></code> and <code class="docutils literal notranslate"><span class="pre">index</span> <span class="pre">++end</span></code> now provide exact ranged tail notifications, allowing persistent display caches and cached real-vector extrema to be extended without rescanning the unchanged source prefix.</p></li>
+<li><p>Pure tail growth can preserve the decimation cache even when vector capacity growth relocates its backing storage.  Shrinkage, changes inside the cached X prefix, non-monotonic growth, arbitrary storage replacement, and unknown/full changes retain conservative invalidation semantics.</p></li>
 <li><p>Accelerated exact <code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">closest</span> <span class="pre">-interpolate</span> <span class="pre">no</span></code> searches for decimated monotonic-X lines while preserving exact source-point results.</p></li>
 <li><p>Screen-density decimation affects window rendering only. PostScript output continues to use full source resolution.</p></li>
 </ul>

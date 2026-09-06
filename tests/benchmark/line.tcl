@@ -203,6 +203,11 @@ proc ::rbcBenchmark::Stats {values} {
     return [dict create min [lindex $values 0] median [Median $values] mean [Mean $values] max [lindex $values end]]
 }
 
+proc ::rbcBenchmark::WaveformValue {x} {
+    return [expr {0.60 * sin($x * 106.81415022205297) + 0.25 * sin($x * 823.0972752405258) + 0.10 *\
+                           sin($x * 6264.335751258144)}]
+}
+
 proc ::rbcBenchmark::SyncDisplay {} {
     variable graph
     # RBC redraws are normally scheduled using an idle callback.
@@ -392,6 +397,30 @@ proc ::rbcBenchmark::MeasureDataIndexRemap {index value} {
 }
 
 #
+# Measure a one-sample tail append to both source vectors.
+#
+# X and Y are appended before SyncDisplay, so the timed interval includes:
+#
+#   vector growth
+#   ranged vector notification
+#   Stage-3 cache growth/invalidation
+#   element remapping
+#   redraw
+#
+# With -decimate auto, a pure monotonic tail append should extend the
+# persistent data-domain cache without rebuilding its existing prefix.
+#
+proc ::rbcBenchmark::MeasureAppendRemap {x y} {
+    variable xVector
+    variable yVector
+    return [Time {
+        $xVector append $x
+        $yVector append $y
+        SyncDisplay
+    }]
+}
+
+#
 # Measure an exact source-point lookup.
 #
 # With -decimate none, the current implementation searches the complete
@@ -461,8 +490,9 @@ proc ::rbcBenchmark::OpenCsv {} {
                                  remap_median_ms remap_mean_ms remap_max_ms data_array_remap_min_ms\
                                  data_array_remap_median_ms data_array_remap_mean_ms data_array_remap_max_ms\
                                  data_index_remap_min_ms data_index_remap_median_ms data_index_remap_mean_ms\
-                                 data_index_remap_max_ms closest_min_ms closest_median_ms closest_mean_ms\
-                                 closest_max_ms} ,]
+                                 data_index_remap_max_ms append_remap_min_ms append_remap_median_ms\
+                                 append_remap_mean_ms append_remap_max_ms closest_min_ms closest_median_ms\
+                                 closest_mean_ms closest_max_ms} ,]
     return $channel
 }
 
@@ -481,8 +511,9 @@ proc ::rbcBenchmark::WriteCsv {channel row} {
                          redraw_min_ms redraw_median_ms redraw_mean_ms redraw_max_ms remap_min_ms remap_median_ms\
                          remap_mean_ms remap_max_ms data_array_remap_min_ms data_array_remap_median_ms\
                          data_array_remap_mean_ms data_array_remap_max_ms data_index_remap_min_ms\
-                         data_index_remap_median_ms data_index_remap_mean_ms data_index_remap_max_ms closest_min_ms\
-                         closest_median_ms closest_mean_ms closest_max_ms} {
+                         data_index_remap_median_ms data_index_remap_mean_ms data_index_remap_max_ms\
+                         append_remap_min_ms append_remap_median_ms append_remap_mean_ms append_remap_max_ms\
+                         closest_min_ms closest_median_ms closest_mean_ms closest_max_ms} {
         lappend values [CsvQuote [dict get $row $key]]
     }
     puts $channel [join $values ,]
@@ -528,6 +559,15 @@ index-remap:
     instance "index" command.  It uses the same source index and values
     as array-remap so the two update paths are directly comparable.
 
+append-remap:
+    appends one new monotonically increasing X sample and its Y value
+    to the ends of the two source vectors.  The timed interval includes
+    vector growth, ranged notification, cache maintenance, remapping,
+    and redraw.
+
+    With -decimate auto, a pure tail append can extend the persistent
+    Stage-3 cache instead of rebuilding its existing source prefix.
+
 closest:
     performs an exact source-point search using:
         -along both -interpolate 0 -halo 2
@@ -537,14 +577,15 @@ closest:
     result-array updates, but not graph transform or rendering.
 }
 
-    puts [format "%-8s %10s %13s %13s %11s %11s %12s %12s %12s %12s %12s" mode points requested actual pts/xpixel\
-                  create-ms redraw-med axis-remap array-remap index-remap closest-med]
-    puts [string repeat - 141]
+    puts [format "%-8s %10s %13s %13s %11s %11s %12s %12s %12s %12s %12s %12s" mode points requested actual pts/xpixel\
+                  create-ms redraw-med axis-remap array-remap index-remap append-remap closest-med]
+    puts [string repeat - 154]
 }
 
 proc ::rbcBenchmark::RunCase {mode n width height csv} {
     variable options
     variable graph
+    variable xVector
     variable yVector
     lassign [SetSize $width $height] actualWidth actualHeight
     # Always start from exactly the same axis range.
@@ -663,10 +704,47 @@ proc ::rbcBenchmark::RunCase {mode n width height csv} {
         $yVector index $dataIndex $dataOriginal
         SyncDisplay
     }
+    # --------------------------------------------------------------
+    # Tail append.
+    # --------------------------------------------------------------
+    #
+    # Continue the original monotonically increasing X sequence.
+    #
+    # The graph's visible X range deliberately remains fixed at [0,1].
+    # The newly appended points therefore lie immediately beyond the
+    # right edge.  This isolates source-growth/cache-maintenance cost
+    # from a simultaneous axis-range change.
+    #
+    set appendStep [expr {1.0 / double($n - 1)}]
+    set appendX [$xVector index end]
+    # Warmup appends are retained while the timed appends run.  This
+    # ensures timed iterations exercise steady-state incremental growth
+    # rather than rebuilding state after a shrink.
+    for {set i 0} {$i < $warmup} {incr i} {
+        set appendX [expr {$appendX + $appendStep}]
+        set appendY [WaveformValue $appendX]
+
+        MeasureAppendRemap $appendX $appendY
+    }
+    set appendRemapTimes {}
+    for {set i 0} {$i < $iterations} {incr i} {
+        set appendX [expr {$appendX + $appendStep}]
+        set appendY [WaveformValue $appendX]
+
+        lappend appendRemapTimes \
+            [MeasureAppendRemap $appendX $appendY]
+    }
+    # Main reuses these vectors for all size/mode combinations belonging
+    # to the same nominal point count.  Restore their exact original
+    # length outside the timed interval.
+    $xVector length $n
+    $yVector length $n
+    SyncDisplay
     set redraw [Stats $redrawTimes]
     set remap [Stats $remapTimes]
     set dataArrayRemap [Stats $dataArrayRemapTimes]
     set dataIndexRemap [Stats $dataIndexRemapTimes]
+    set appendRemap [Stats $appendRemapTimes]
     set closest [Stats $closestTimes]
     set row [dict create \
         platform                    $::tcl_platform(platform) \
@@ -702,15 +780,19 @@ proc ::rbcBenchmark::RunCase {mode n width height csv} {
         data_index_remap_median_ms  [format %.3f [dict get $dataIndexRemap median]] \
         data_index_remap_mean_ms    [format %.3f [dict get $dataIndexRemap mean]] \
         data_index_remap_max_ms     [format %.3f [dict get $dataIndexRemap max]] \
+        append_remap_min_ms         [format %.3f [dict get $appendRemap min]] \
+        append_remap_median_ms      [format %.3f [dict get $appendRemap median]] \
+        append_remap_mean_ms        [format %.3f [dict get $appendRemap mean]] \
+        append_remap_max_ms         [format %.3f [dict get $appendRemap max]] \
         closest_min_ms              [format %.3f [dict get $closest min]] \
         closest_median_ms           [format %.3f [dict get $closest median]] \
         closest_mean_ms             [format %.3f [dict get $closest mean]] \
         closest_max_ms              [format %.3f [dict get $closest max]]]
 
-    puts [format "%-8s %10d %6dx%-6d %6dx%-6d %11.1f %11.3f %12.3f %12.3f %12.3f %12.3f %12.3f" $mode $n $width\
-                   $height $actualWidth $actualHeight $density $createMs [dict get $redraw median] [dict get $remap\
-                   median] [dict get $dataArrayRemap median] [dict get $dataIndexRemap median] [dict get $closest\
-                   median]]
+    puts [format "%-8s %10d %6dx%-6d %6dx%-6d %11.1f %11.3f %12.3f %12.3f %12.3f %12.3f %12.3f %12.3f" $mode $n $width\
+                  $height $actualWidth $actualHeight $density $createMs [dict get $redraw median] [dict get $remap\
+                  median] [dict get $dataArrayRemap median] [dict get $dataIndexRemap median] [dict get $appendRemap\
+                  median] [dict get $closest median]]
     flush stdout
     WriteCsv $csv $row
     $graph element delete signal

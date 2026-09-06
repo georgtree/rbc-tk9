@@ -282,10 +282,12 @@ static int TypeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
  * -----------------------------------------------------------------------
  */
 static int AppendOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    Tcl_Size oldLength;
     Tcl_Size i;
     int result;
     VectorObject *v2Ptr;
 
+    oldLength = vPtr->length;
     for (i = 2; i < objc; i++) {
         v2Ptr = Rbc_VectorParseElement(NULL, vPtr->dataPtr, Tcl_GetString(objv[i]), NULL, NS_SEARCH_BOTH);
         if (v2Ptr != NULL) {
@@ -295,11 +297,23 @@ static int AppendOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
             Tcl_Obj **elemObjArr;
 
             if (Tcl_ListObjGetElements(interp, objv[i], &nElem, &elemObjArr) != TCL_OK) {
-                return TCL_ERROR;
+                result = TCL_ERROR;
+            } else {
+                result = AppendList(vPtr, nElem, elemObjArr);
             }
-            result = AppendList(vPtr, nElem, elemObjArr);
         }
         if (result != TCL_OK) {
+            /*
+             * Earlier append arguments may already have changed the
+             * vector.  Keep clients and the cached range coherent even
+             * though a later argument failed.
+             */
+            if (vPtr->length > oldLength) {
+                if (vPtr->flush) {
+                    Rbc_VectorFlushCache(vPtr);
+                }
+                Rbc_VectorUpdateClientsRange(vPtr, oldLength, vPtr->length - 1);
+            }
             return TCL_ERROR;
         }
     }
@@ -307,7 +321,19 @@ static int AppendOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
         if (vPtr->flush) {
             Rbc_VectorFlushCache(vPtr);
         }
-        Rbc_VectorUpdateClients(vPtr);
+        if (vPtr->length > oldLength) {
+            /*
+             * Appending preserves every source value before oldLength.
+             * Report only the newly created inclusive source range.
+             */
+            Rbc_VectorUpdateClientsRange(vPtr, oldLength, vPtr->length - 1);
+        } else {
+            /*
+             * Preserve the existing notification behaviour for an
+             * append operation that happened not to grow the vector.
+             */
+            Rbc_VectorUpdateClients(vPtr);
+        }
     }
     return TCL_OK;
 }
@@ -1112,15 +1138,20 @@ static int IndexOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
     Tcl_Size first, last;
     Tcl_Size oldLength;
     int rangedRealWrite;
+    int appendWrite;
     char *string;
 
     oldLength = vPtr->length;
-    rangedRealWrite = FALSE;    
+    rangedRealWrite = FALSE;
+    appendWrite = FALSE;
     string = Tcl_GetString(objv[2]);
     if (Rbc_VectorGetIndexRange(interp, vPtr, string, INDEX_ALL_FLAGS, (Rbc_VectorIndexProc **)NULL) != TCL_OK) {
         return TCL_ERROR;
     }
     first = vPtr->first, last = vPtr->last;
+    if ((first == oldLength) && (last == oldLength)) {
+        appendWrite = TRUE;
+    }
     if (objc == 3) {
         Tcl_Obj *listObjPtr;
 
@@ -1135,7 +1166,6 @@ static int IndexOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
             Rbc_AppendResultStrings(interp, "can't set index \"", string, "\"", (char *)NULL);
             return TCL_ERROR;
         }
-
         if (vPtr->type == RBC_VECTOR_COMPLEX) {
             Rbc_Complex value;
             Tcl_Size i;
@@ -1156,7 +1186,6 @@ static int IndexOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
             for (i = first; i <= last; i++) {
                 vPtr->data.complex[i] = value;
             }
-
         } else {
             double value;
 
@@ -1187,7 +1216,7 @@ static int IndexOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
         if (vPtr->flush) {
             Rbc_VectorFlushCache(vPtr);
         }
-        if (rangedRealWrite) {
+        if (rangedRealWrite || appendWrite) {
             Rbc_VectorUpdateClientsRange(vPtr, first, last);
         } else {
             Rbc_VectorUpdateClients(vPtr);
@@ -2595,7 +2624,6 @@ static int AppendVector(VectorObject *destPtr, VectorObject *srcPtr) {
             Tcl_Panic("bad vector type %d", (int)destPtr->type);
         }
     }
-    destPtr->notifyFlags |= UPDATE_RANGE;
     return TCL_OK;
 }
 
@@ -2652,7 +2680,6 @@ static int AppendList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]) 
             vPtr->data.real[oldSize + i] = value;
         }
     }
-    vPtr->notifyFlags |= UPDATE_RANGE;
     return TCL_OK;
 }
 

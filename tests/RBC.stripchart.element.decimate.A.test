@@ -527,10 +527,132 @@ namespace eval stripchart.element.decimate {
         unset -nocomplain n changedIndex
         catch {vector destroy CacheX}
         catch {vector destroy CacheY}
-
         destroy .stripchart1
     } -result {1 1}
 
+    test RBC.stripchart.element.decimate.A.6.1 {
+        stripchart element decimate: tail append grows persistent cache
+    } -setup {
+        set n 4096
+        vector create CacheX
+        vector create CacheY
+        CacheX seq 0 [expr {$n - 1}]
+        CacheY set [lrepeat $n 0.0]
+        stripchart .stripchart1 -width 300 -height 250
+        pack .stripchart1
+        .stripchart1 axis configure x -min 0 -max $n
+        .stripchart1 axis configure y -min -1 -max 9
+        .stripchart1 element create Element1 -xdata CacheX -ydata CacheY -symbol none -showvalues none -linewidth 1\
+                -smooth linear -decimate auto
+        update
+    } -body {
+        # 4096 -> 4097 crosses the vector's power-of-two allocation
+        # boundary, deliberately allowing the backing arrays to relocate.
+        CacheX append $n
+        CacheY append 8.0
+        update
+        lassign [.stripchart1 transform $n 8.0] px py
+        set found [.stripchart1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1]
+        list $found [expr {$found && abs(double($info(y)) - 8.0) < 0.1}]
+    } -cleanup {
+        unset -nocomplain info n
+        catch {vector destroy CacheX}
+        catch {vector destroy CacheY}
+        destroy .stripchart1
+    } -result {1 1}
+
+    test RBC.stripchart.element.decimate.A.6.2 {
+        stripchart element decimate: staggered X then Y tail append preserves cache
+    } -setup {
+        set n 4096
+        vector create CacheX
+        vector create CacheY
+        CacheX seq 0 [expr {$n - 1}]
+        CacheY set [lrepeat $n 0.0]
+        stripchart .stripchart1 -width 300 -height 250
+        pack .stripchart1
+        .stripchart1 axis configure x -min 0 -max $n
+        .stripchart1 axis configure y -min -1 -max 9
+        .stripchart1 element create Element1 -xdata CacheX -ydata CacheY -symbol none -showvalues none -linewidth 1\
+                -smooth linear -decimate auto
+        update
+    } -body {
+        # X grows first. NumberOfPoints() is still 4096, but the X
+        # allocation may already have moved.
+        CacheX append $n
+        update
+        # Y now catches up and exposes source index 4096.
+        CacheY append 8.0
+        update
+        lassign [.stripchart1 transform $n 8.0] px py
+        set found [.stripchart1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1]
+        list $found [expr {$found && abs(double($info(y)) - 8.0) < 0.1}]
+    } -cleanup {
+        unset -nocomplain info n
+        catch {vector destroy CacheX}
+        catch {vector destroy CacheY}
+        destroy .stripchart1
+    } -result {1 1}
+
+    test RBC.stripchart.element.decimate.A.6.3 {
+        stripchart element decimate: vector ++end grows persistent cache
+    } -setup {
+        set n 4096
+        vector create CacheX
+        vector create CacheY
+        CacheX seq 0 [expr {$n - 1}]
+        CacheY set [lrepeat $n 0.0]
+        stripchart .stripchart1 -width 300 -height 250
+        pack .stripchart1
+        .stripchart1 axis configure x -min 0 -max $n
+        .stripchart1 axis configure y -min -1 -max 9
+        .stripchart1 element create Element1 -xdata CacheX -ydata CacheY -symbol none -showvalues none -linewidth 1\
+                -smooth linear -decimate auto
+        update
+    } -body {
+        CacheX index ++end $n
+        CacheY index ++end 8.0
+        update
+        lassign [.stripchart1 transform $n 8.0] px py
+        set found [.stripchart1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1]
+        list $found [expr {$found && abs(double($info(y)) - 8.0) < 0.1}]
+    } -cleanup {
+        unset -nocomplain info n
+        catch {vector destroy CacheX}
+        catch {vector destroy CacheY}
+        destroy .stripchart1
+    } -result {1 1}
+
+    test RBC.stripchart.element.decimate.A.6.4 {
+        stripchart element decimate: non-monotonic tail append falls back safely
+    } -setup {
+        set n 4096
+        vector create CacheX
+        vector create CacheY
+        CacheX seq 0 [expr {$n - 1}]
+        CacheY set [lrepeat $n 0.0]
+        stripchart .stripchart1 -width 300 -height 250
+        pack .stripchart1
+        .stripchart1 axis configure x -min -2 -max $n
+        .stripchart1 axis configure y -min -1 -max 9
+        .stripchart1 element create Element1 -xdata CacheX -ydata CacheY -symbol none -showvalues none -linewidth 1\
+                -smooth linear -decimate auto
+        update
+    } -body {
+        # This breaks increasing-X monotonicity. Incremental cache growth
+        # must reject it and the ordinary fallback path must remain correct.
+        CacheX append -1.0
+        CacheY append 8.0
+        update
+        lassign [.stripchart1 transform -1.0 8.0] px py
+        set found [.stripchart1 element closest $px $py info -along both -interpolate 0 -halo 2 Element1]
+        list $found [expr {$found && $info(index) == $n && abs(double($info(y)) - 8.0) < 0.001}]
+    } -cleanup {
+        unset -nocomplain info n
+        catch {vector destroy CacheX}
+        catch {vector destroy CacheY}
+        destroy .stripchart1
+    } -result {1 1}
 
     cleanupTests
 }

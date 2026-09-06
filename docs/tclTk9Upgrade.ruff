@@ -140,17 +140,22 @@ namespace eval TclTk9Upgrade {
         - Fixed step-generation behavior.
         - Corrected line `-trace` behavior.
         - Added optional screen-density decimation for large line and strip elements through -decimate none|auto.
-        - Automatic line decimation preserves the first, minimum, maximum, and last source representatives associated
-          with each physical data-X pixel rather than averaging dense waveform data.
+        - Automatic line and strip decimation preserves the first, minimum, maximum, and last source representatives
+          associated with each physical data-X pixel rather than averaging dense waveform data.
         - Added density-based selection so sparse data continues through the normal mapping path while dense eligible
           traces can avoid mapping and drawing millions of redundant screen points.
-        - Added a persistent data-domain decimation cache for finite, monotonic-X line data. The cache survives ordinary
-          axis remapping and supports increasing, decreasing, and equal X coordinates as well as `-invertxy` and
-          descending axes.
+        - Added a persistent data-domain decimation cache for finite, monotonic-X line and strip data. The cache
+          survives ordinary axis remapping and supports increasing, decreasing, and equal X coordinates as well as
+          `-invertxy` and descending axes.
         - Added conservative fallback paths for discontinuities, logarithmically invalid data, non-monotonic paths,
           symbols, value labels, error data, multiple styles, and other combinations that require full source geometry.
-        - Added incremental maintenance of persistent line decimation summaries for ranged Y-vector updates; X changes,
-          vector resizing, storage replacement, and unknown/full-vector changes retain complete invalidation semantics.
+        - Added incremental maintenance of persistent line and strip decimation summaries for ranged Y-vector updates and
+          monotonic tail growth.
+        - Vector `append` and `index ++end` now provide exact ranged tail notifications, allowing persistent display
+          caches and cached real-vector extrema to be extended without rescanning the unchanged source prefix.
+        - Pure tail growth can preserve the decimation cache even when vector capacity growth relocates its backing
+          storage.  Shrinkage, changes inside the cached X prefix, non-monotonic growth, arbitrary storage replacement,
+          and unknown/full changes retain conservative invalidation semantics.
         - Accelerated exact `ELEMENT closest -interpolate no` searches for decimated monotonic-X lines while preserving
           exact source-point results.
         - Screen-density decimation affects window rendering only. PostScript output continues to use full source

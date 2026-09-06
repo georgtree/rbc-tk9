@@ -87,6 +87,32 @@ The same transactional and left-to-right data-option semantics described for \fI
 .PP
 Non-finite data values and values outside the domain of a logarithmic axis form discontinuities in the
 rendered trace\&. Points on opposite sides of such a discontinuity are not connected\&.
+.SH "DISPLAY DECIMATION"
+.PP
+Strip elements support -decimate none|auto with the same screen-density decimation semantics described for
+\fILINEELEMENT\fP\&.
+.PP
+With -decimate auto, dense eligible strip data can be reduced before full world-to-screen mapping\&. The
+persistent data-domain cache supports monotonic X data, ranged Y updates, and pure tail growth of attached Rbc
+vectors\&.
+.PP
+This makes -decimate auto particularly suitable for continuously growing stripchart waveforms:
+.PP
+.RS 4n
+.nf
+stripchart \&.s
+vector create time voltage
+\&.s element create signal -xdata time -ydata voltage -symbol none -showvalues no -smooth linear -decimate auto
+time append $newTime
+voltage append $newVoltage
+.fi
+.RE
+.PP
+If appended X values preserve the existing monotonic direction, only the newly exposed source data and affected
+cache summaries need to be examined\&. Shrinkage, non-monotonic growth, invalid data, or unknown source changes
+automatically fall back to the more general mapping path\&.
+.PP
+Decimation affects screen rendering only\&. PostScript output retains full source resolution\&.
 .SH SMOOTHING
 .PP
 Strip elements support the same smoothing modes as line elements:
@@ -212,6 +238,9 @@ The complete strip-element option set is:
 │                       │               │                │ pattern\&. An empty value selects a solid line\&.   │
 │ -data data            │ data          │ Data           │ Supplies an even-length list of alternating X   │
 │                       │               │                │ and Y values\&.                                   │
+│ -decimate mode        │ decimate      │ Decimate       │ Selects automatic screen-density trace          │
+│                       │               │                │ decimation\&. Accepted values are none and auto\&.  │
+│                       │               │                │ The default is none\&.                            │
 │ -errorbarcap width    │ errorBarCap   │ ErrorBarCap    │ Sets the requested error-bar cap width\&. A       │
 │                       │               │                │ positive value selects an explicit size; 0      │
 │                       │               │                │ automatically derives the size from the symbol  │

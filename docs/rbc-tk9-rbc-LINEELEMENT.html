@@ -262,7 +262,7 @@ be displayed.</p>
 </section>
 <section id="display-decimation-for-large-data-sets">
 <span id="r-rbc-lineelement-display-decimation-for-large-data-sets"></span><span id="r-3a3arbc3a3alineelementqzdisplay20decimation20for20large20data20sets"></span><h2>Display decimation for large data sets<a class="headerlink" href="#display-decimation-for-large-data-sets" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">-decimate</span></code> controls automatic screen-density reduction for large line data sets.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-decimate</span></code> controls automatic screen-density reduction for large line and strip data sets.</p>
 <p>It is intended for dense waveforms where many source samples map to each physical display pixel. Without
 decimation, mapping and drawing millions of source points can dominate redraw, zoom, pan, and source-update
 time even though most of those points cannot be distinguished on screen.</p>
@@ -315,8 +315,8 @@ operate on the rendered trace geometry.</p>
 </section>
 <section id="when-automatic-decimation-is-used">
 <span id="r-rbc-lineelement-when-automatic-decimation-is-used"></span><span id="r-3a3arbc3a3alineelementqzwhen20automatic20decimation20is20used"></span><h3>When automatic decimation is used<a class="headerlink" href="#when-automatic-decimation-is-used" title="Link to this heading">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">auto</span></code> does not force every line through the decimation path. Rbc first checks whether decimation is useful and
-whether it can preserve the line’s drawing semantics.</p>
+<p><code class="docutils literal notranslate"><span class="pre">auto</span></code> does not force every line or strip element through the decimation path. Rbc first checks whether
+decimation is useful and whether it can preserve the element’s drawing semantics.</p>
 <p>The source density must currently be at least approximately eight source points per physical data-X plot
 pixel. Sparse lines continue through the ordinary mapping path because decimation would provide little or no
 benefit.</p>
@@ -335,7 +335,7 @@ benefit.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Automatic trace decimation</p></td>
-<td><p>Ordinary <code class="docutils literal notranslate"><span class="pre">LineElement</span></code>; X/Y data mode; <code class="docutils literal notranslate"><span class="pre">-smooth</span> <span class="pre">linear</span></code>; no area fill; no multiple weight-selected pen styles; sufficient display density</p></td>
+<td><p>Ordinary <code class="docutils literal notranslate"><span class="pre">LineElement</span></code> or <code class="docutils literal notranslate"><span class="pre">StripElement</span></code>; X/Y data mode; <code class="docutils literal notranslate"><span class="pre">-smooth</span> <span class="pre">linear</span></code>; no area fill; no multiple weight-selected pen styles; sufficient display density</p></td>
 <td><p>The displayed trace may be reduced to pixel-density geometry.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Pre-map decimation</p></td>
@@ -344,7 +344,7 @@ benefit.</p>
 </tr>
 <tr class="row-even"><td><p>Persistent cached decimation</p></td>
 <td><p>Pre-map conditions, plus globally monotonic X and finite data valid for the current logarithmic domains</p></td>
-<td><p>Axis-only remaps can reuse a persistent data-domain cache instead of scanning the complete source vector.</p></td>
+<td><p>Axis-only remaps, ranged Y updates, and valid tail growth can reuse the persistent data-domain cache instead of rescanning the complete source vector.</p></td>
 </tr>
 </tbody>
 </table>
@@ -372,15 +372,15 @@ falls back to a more general mapping path rather than changing the plotted topol
 <li><p>symbols, value labels, or error data may require full source-point mapping even when the connecting trace can still be reduced;</p></li>
 <li><p>unsupported combinations simply retain the ordinary full-resolution screen mapping.</p></li>
 </ul>
-<p>Therefore <code class="docutils literal notranslate"><span class="pre">-decimate</span> <span class="pre">auto</span></code> may safely be left enabled for eligible large line elements. It is not necessary for
-an application to switch the option on and off as the graph is zoomed: Rbc makes the density decision again for
-the current plotting area.</p>
+<p>Therefore <code class="docutils literal notranslate"><span class="pre">-decimate</span> <span class="pre">auto</span></code> may safely be left enabled for eligible large line and strip elements. It is not
+necessary for an application to switch the option on and off as the graph is zoomed: Rbc makes the density
+decision again for the current plotting area.</p>
 </section>
 <section id="updates-to-vector-data">
 <span id="r-rbc-lineelement-updates-to-vector-data"></span><span id="r-3a3arbc3a3alineelementqzupdates20to20vector20data"></span><h3>Updates to vector data<a class="headerlink" href="#updates-to-vector-data" title="Link to this heading">¶</a></h3>
 <p>Persistent decimation is particularly useful when <code class="docutils literal notranslate"><span class="pre">-xdata</span></code> and <code class="docutils literal notranslate"><span class="pre">-ydata</span></code> refer to Rbc vectors.</p>
-<p>A ranged modification of Y data can update only the affected cached summaries while retaining the X ordering
-information. This applies to ordinary vector-index writes and mapped Tcl-array writes, for example:</p>
+<p>A ranged modification of existing Y data can update only the affected cached summaries while retaining the X
+ordering information. This applies to ordinary vector-index writes and mapped Tcl-array writes, for example:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">yVector</span><span class="w"> </span>index<span class="w"> </span><span class="mi">100000</span><span class="w"> </span><span class="mf">1.25</span>
 </pre></div>
 </div>
@@ -388,11 +388,32 @@ information. This applies to ordinary vector-index writes and mapped Tcl-array w
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>yArray<span class="k">(</span><span class="nv">100000</span><span class="k">)</span><span class="w"> </span><span class="mf">1.25</span>
 </pre></div>
 </div>
-<p>C extensions can provide the same information with <code class="docutils literal notranslate"><span class="pre">Rbc_VectorChangedRange</span></code>.</p>
-<p>Changes to X are handled more conservatively because X determines source ordering and pixel-bucket lookup. An X
-modification therefore invalidates the persistent decimation cache.</p>
-<p>Changes that resize a vector, replace its storage, or report an unknown/full-vector modification likewise use
-the complete invalidation path.</p>
+<p>C extensions can provide the same information for in-place modifications with <code class="docutils literal notranslate"><span class="pre">Rbc_VectorChangedRange</span></code>.</p>
+<p>Pure tail growth is also maintained incrementally. The vector <code class="docutils literal notranslate"><span class="pre">append</span></code> operation and a write using the special
+<code class="docutils literal notranslate"><span class="pre">++end</span></code> index report the newly appended source range:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">xVector</span><span class="w"> </span>append<span class="w"> </span><span class="nv">$newX</span>
+<span class="nv">yVector</span><span class="w"> </span>append<span class="w"> </span><span class="nv">$newY</span>
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">xVector</span><span class="w"> </span>index<span class="w"> </span><span class="o">++</span>end<span class="w"> </span><span class="nv">$newX</span>
+<span class="nv">yVector</span><span class="w"> </span>index<span class="w"> </span><span class="o">++</span>end<span class="w"> </span><span class="nv">$newY</span>
+</pre></div>
+</div>
+<p>When the new X values preserve the existing monotonic direction and the appended X/Y values remain finite and
+valid for the current logarithmic domains, Rbc extends the persistent decimation cache rather than rebuilding
+its existing source prefix. Only the new samples and, when necessary, the previous partial 64-sample summary
+block need to be examined.</p>
+<p>Vector growth may relocate the vector’s backing storage. An exact tail-growth notification allows the cache to
+survive such relocation because the already cached source prefix is known to be unchanged.</p>
+<p>X modifications inside the existing cached prefix remain conservative: because X determines source ordering and
+pixel-bucket lookup, such a modification invalidates the persistent cache.</p>
+<p>Shrinking a source vector, non-monotonic tail growth, non-finite appended data, arbitrary storage replacement,
+and unknown/full-vector modifications also fall back to complete cache invalidation or to the ordinary mapping
+path as appropriate.</p>
+<p>X and Y vectors may be appended independently. While their lengths differ, the element continues to use the
+shorter length. When the second vector catches up, the newly exposed XY points can extend the same persistent
+cache if the tail-growth conditions remain satisfied.</p>
 </section>
 <section id="interaction-with-reduce">
 <span id="r-rbc-lineelement-interaction-with-reduce"></span><span id="r-3a3arbc3a3alineelementqzinteraction20with20602dreduce60"></span><h3>Interaction with <code class="docutils literal notranslate"><span class="pre">-reduce</span></code><a class="headerlink" href="#interaction-with-reduce" title="Link to this heading">¶</a></h3>

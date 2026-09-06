@@ -1986,7 +1986,7 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20expr"><span class="std std-ref">expr</span></a></dt><dd><p>Evaluates <code class="docutils literal notranslate"><span class="pre">expression</span></code> and stores the result in this vector.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20index"><span class="std std-ref">index</span></a></dt><dd><p>Reads or writes a vector value or range.  With no value argument, returns the value or values selected by <code class="docutils literal notranslate"><span class="pre">index</span></code>. With <code class="docutils literal notranslate"><span class="pre">value</span></code>, assigns that numeric value to every element selected by <code class="docutils literal notranslate"><span class="pre">index</span></code>. The special <code class="docutils literal notranslate"><span class="pre">++end</span></code> index may be used when setting a value to append one new element. For complex vectors, values are returned as <code class="docutils literal notranslate"><span class="pre">{real</span> <span class="pre">imag}</span></code> pairs. A real assigned value is promoted to <code class="docutils literal notranslate"><span class="pre">{value</span> <span class="pre">0}</span></code>.</p>
+<dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20index"><span class="std std-ref">index</span></a></dt><dd><p>Reads or writes a vector value or range. With no value argument, returns the value or values selected by <code class="docutils literal notranslate"><span class="pre">index</span></code>. With <code class="docutils literal notranslate"><span class="pre">value</span></code>, assigns that numeric value to every element selected by <code class="docutils literal notranslate"><span class="pre">index</span></code>. The special <code class="docutils literal notranslate"><span class="pre">++end</span></code> index may be used when setting a value to append one new element.</p>
 </dd>
 <dt><a class="reference internal" href="#r-3a3arbc3a3avecinst20length"><span class="std std-ref">length</span></a></dt><dd><p>Queries or changes the vector length. If <code class="docutils literal notranslate"><span class="pre">newSize</span></code> is supplied, the vector is resized. New elements created by enlarging the vector are initialized by the vector resizing machinery.</p>
 </dd>
@@ -2083,8 +2083,12 @@ For a complex vector, list elements may be <code class="docutils literal notrans
 to complex values with zero imaginary component.</p>
 <pre class="literal-block"><strong>VECINST append</strong> <em>item ?item ...?</em></pre>
 <p class="rubric">Parameters</p>
+<p class="rubric">Description</p>
+<p>Clients are notified with the exact inclusive source range occupied by the newly appended values. This lets
+clients that maintain ranged caches update only the new tail instead of treating the operation as an
+unknown/full-vector modification.</p>
 <dl class="field-list simple">
-<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">item</span></code><span class="colon">:</span></dt>
+<dt class="field-odd">item<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Vector name or list of values.</p>
 </dd>
 </dl>
@@ -2180,19 +2184,21 @@ type. If the destination already exists, it must have the same numeric type and 
 </section>
 <section id="vecinst-index">
 <span id="r-3a3arbc3a3avecinst20index"></span><span id="index-236"></span><span id="index-235"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">index</span></code><a class="headerlink" href="#vecinst-index" title="Link to this heading">¶</a></h3>
-<p>Reads or writes a vector value or range.  With no value argument, returns the value or values selected by
+<p>Reads or writes a vector value or range. With no value argument, returns the value or values selected by
 <code class="docutils literal notranslate"><span class="pre">index</span></code>. With <code class="docutils literal notranslate"><span class="pre">value</span></code>, assigns that numeric value to every element selected by <code class="docutils literal notranslate"><span class="pre">index</span></code>. The special
-<code class="docutils literal notranslate"><span class="pre">++end</span></code> index may be used when setting a value to append one new element.
-For complex vectors, values are returned as <code class="docutils literal notranslate"><span class="pre">{real</span> <span class="pre">imag}</span></code> pairs. A real assigned value is promoted to
-<code class="docutils literal notranslate"><span class="pre">{value</span> <span class="pre">0}</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">++end</span></code> index may be used when setting a value to append one new element.</p>
 <pre class="literal-block"><strong>VECINST index</strong> <em>index</em>
 <strong>VECINST index</strong> <em>index value</em></pre>
 <p class="rubric">Parameters</p>
+<p class="rubric">Description</p>
+<p>A write through <code class="docutils literal notranslate"><span class="pre">++end</span></code> is reported to vector clients as an exact ranged tail update, just like <code class="docutils literal notranslate"><span class="pre">append</span></code>.
+For complex vectors, values are returned as <code class="docutils literal notranslate"><span class="pre">{real</span> <span class="pre">imag}</span></code> pairs. A real assigned value is promoted to
+<code class="docutils literal notranslate"><span class="pre">{value</span> <span class="pre">0}</span></code>.</p>
 <dl class="field-list simple">
-<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">index</span></code><span class="colon">:</span></dt>
+<dt class="field-odd">index<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Vector index or range.</p>
 </dd>
-<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">value</span></code><span class="colon">:</span></dt>
+<dt class="field-even">value<span class="colon">:</span></dt>
 <dd class="field-even"><p>Optional numeric value.</p>
 </dd>
 </dl>

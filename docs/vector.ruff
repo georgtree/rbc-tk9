@@ -1293,6 +1293,10 @@ namespace eval ::rbc::VECINST {
         # A vector argument must have the same numeric type as this vector.
         # For a complex vector, list elements may be `{real imag}` pairs or real scalars; real scalars are promoted
         # to complex values with zero imaginary component.
+        #
+        # Clients are notified with the exact inclusive source range occupied by the newly appended values. This lets
+        # clients that maintain ranged caches update only the new tail instead of treating the operation as an
+        # unknown/full-vector modification.
         # item - vector name or list of values.
         # Returns: Nothing.
         # Synopsis: item ?item ...?
@@ -1355,9 +1359,11 @@ namespace eval ::rbc::VECINST {
     }
 
     proc index {args} {
-        # Reads or writes a vector value or range.  With no value argument, returns the value or values selected by
+        # Reads or writes a vector value or range. With no value argument, returns the value or values selected by
         # `index`. With `value`, assigns that numeric value to every element selected by `index`. The special
         # `++end` index may be used when setting a value to append one new element.
+        #
+        # A write through `++end` is reported to vector clients as an exact ranged tail update, just like `append`.
         # For complex vectors, values are returned as `{real imag}` pairs. A real assigned value is promoted to
         # `{value 0}`.
         # index - vector index or range.

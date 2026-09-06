@@ -1333,6 +1333,8 @@ static int CanPreMapDecimateLine(Line *linePtr);
 static double MapLineDataAbscissa(Graph *graphPtr, Line *linePtr, double x);
 static int BuildPixelDecimatedScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
 static int IsMonotonicMappedAbscissa(Graph *graphPtr, MapInfo *mapPtr);
+static int CanRetainLineDecimatePrefix(const ElemVector *vPtr, const double *cachedValues, Tcl_Size nPoints);
+static int GrowLineDecimateCache(Line *linePtr, Tcl_Size nPoints);
 static void DecimatePointsByPixels(Graph *graphPtr, MapInfo *mapPtr);
 static void GenerateSteps(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
 static void GenerateSpline(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr);
@@ -3945,9 +3947,12 @@ static int EnsureLineDecimateCache(Line *linePtr) {
  *      Exact ranged Y-only changes rebuild only the affected 64-sample
  *      summaries.
  *
- *      X changes, unknown Y changes, source-array replacement, point
- *      count changes, and unsupported cached data require a complete
- *      cache rebuild.
+ *      Pure tail growth can extend the existing cache, including when
+ *      vector growth relocates its backing storage.
+ *
+ *      Changes inside the cached X prefix, unknown Y changes, shrinkage,
+ *      arbitrary storage replacement, and unsupported appended data
+ *      require a complete cache rebuild.
  *
  * Results:
  *      TRUE if the existing cache remains valid.
@@ -3973,12 +3978,15 @@ static int RefreshLineDecimateCache(Line *linePtr) {
     }
     nPoints = NumberOfPoints(elemPtr);
     /*
-     * A changed point count or backing array means source indices in
-     * the existing cache can no longer be trusted.
+     * A pure tail append can preserve and extend the Stage-3 cache even
+     * when vector growth relocates the backing arrays.
+     *
+     * Shrinkage, replacement, changes inside the cached prefix, or
+     * unsupported new X ordering still fall back to full invalidation.
      */
     if ((cachePtr->nPoints != nPoints) || (cachePtr->xValues != elemPtr->x.valueArr) ||
         (cachePtr->yValues != elemPtr->y.valueArr)) {
-        return FALSE;
+        return GrowLineDecimateCache(linePtr, nPoints);
     }
     /*
      * Source X controls monotonicity and pixel-range binary searches.
@@ -4157,6 +4165,40 @@ static int CanPreMapDecimateLine(Line *linePtr) {
         }
     }
     return TRUE;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * CanRetainLineDecimatePrefix --
+ *
+ *      Determines whether the first nPoints source values represented
+ *      by an existing Stage-3 cache are known to be unchanged.
+ *
+ *      A vector append may relocate its backing array.  Pointer
+ *      equality therefore is not required when the vector supplied an
+ *      exact changed range beginning at or beyond the cached prefix.
+ *
+ *----------------------------------------------------------------------
+ */
+static int CanRetainLineDecimatePrefix(const ElemVector *vPtr, const double *cachedValues, Tcl_Size nPoints) {
+    if (!vPtr->changePending) {
+        /*
+         * With no reported source change, an unexpected backing-array
+         * replacement remains unsafe.
+         */
+        return vPtr->valueArr == cachedValues;
+    }
+    if (vPtr->changeAll) {
+        return FALSE;
+    }
+    /*
+     * Every reported change is outside the already-cached prefix.
+     */
+    if (vPtr->changedFirst >= nPoints) {
+        return TRUE;
+    }
+    return FALSE;
 }
 
 /*
@@ -5088,6 +5130,211 @@ static int BuildCachedPixelDecimatedScreenPoints(Graph *graphPtr, Line *linePtr,
     mapPtr->indices = indices;
     mapPtr->breakBefore = NULL;
     mapPtr->nScreenPts = count;
+    return TRUE;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * GrowLineDecimateCache --
+ *
+ *      Extends an existing supported Stage-3 cache when the source XY
+ *      data have only grown at the end.
+ *
+ *      The cached prefix is preserved.  Only newly exposed source
+ *      samples are checked for finite values, X monotonicity, and
+ *      logarithmic-domain eligibility.
+ *
+ *      If the old final block was partial, that block is rebuilt
+ *      because newly appended samples now belong to it.  Additional
+ *      64-sample blocks are constructed as necessary.
+ *
+ *      Backing-array relocation is allowed when exact vector change
+ *      information proves that the cached prefix was not modified.
+ *
+ * Results:
+ *      TRUE if the cache was successfully retained/grown.
+ *
+ *      FALSE if the caller must invalidate and rebuild/fall back.
+ *
+ *----------------------------------------------------------------------
+ */
+static int GrowLineDecimateCache(Line *linePtr, Tcl_Size nPoints) {
+    LineDecimateCache *cachePtr;
+    Element *elemPtr;
+    const double *xValues;
+    const double *yValues;
+    LineDecimateBlock *blocks;
+    Tcl_Size oldPoints;
+    Tcl_Size newBlocks;
+    Tcl_Size firstBlock;
+    Tcl_Size blockIndex;
+    Tcl_Size i;
+    Tcl_Size addedNonPositiveY;
+    int direction;
+    int allPositiveX;
+    size_t blockBytes;
+
+    cachePtr = &linePtr->decimateCache;
+    elemPtr = &linePtr->core;
+    if ((!cachePtr->built) || (!cachePtr->supported)) {
+        return FALSE;
+    }
+    oldPoints = cachePtr->nPoints;
+    if (nPoints < oldPoints) {
+        return FALSE;
+    }
+    xValues = elemPtr->x.valueArr;
+    yValues = elemPtr->y.valueArr;
+    if ((xValues == NULL) || (yValues == NULL)) {
+        return FALSE;
+    }
+    /*
+     * Appending may move either vector to a new allocation.  Exact
+     * ranged notifications are what make that relocation safe.
+     */
+    if (!CanRetainLineDecimatePrefix(&elemPtr->x, cachePtr->xValues, oldPoints) ||
+        !CanRetainLineDecimatePrefix(&elemPtr->y, cachePtr->yValues, oldPoints)) {
+        return FALSE;
+    }
+    /*
+     * One source vector may have grown while the other is still the
+     * shorter vector. NumberOfPoints() therefore may not have changed
+     * yet.  Rebind the retained source pointers so a later append of
+     * the other vector can still extend this cache.
+     */
+    if (nPoints == oldPoints) {
+        cachePtr->xValues = xValues;
+        cachePtr->yValues = yValues;
+        return TRUE;
+    }
+    if (oldPoints < 1) {
+        return FALSE;
+    }
+    /*
+     * First validate the new source interval without modifying the
+     * existing cache.
+     */
+    direction = cachePtr->xDirection;
+    allPositiveX = cachePtr->allPositiveX;
+    addedNonPositiveY = 0;
+    for (i = oldPoints; i < nPoints; i++) {
+        double previousX;
+        double x;
+        double y;
+
+        x = xValues[i];
+        y = yValues[i];
+        if ((!FINITE(x)) || (!FINITE(y))) {
+            return FALSE;
+        }
+        if (x <= 0.0) {
+            allPositiveX = FALSE;
+        }
+        if (y <= 0.0) {
+            addedNonPositiveY++;
+        }
+        previousX = xValues[i - 1];
+        if (x > previousX) {
+            if (direction < 0) {
+                return FALSE;
+            }
+            direction = 1;
+        } else if (x < previousX) {
+            if (direction > 0) {
+                return FALSE;
+            }
+            direction = -1;
+        }
+    }
+    newBlocks = (nPoints / LINE_DECIMATE_BLOCK_SIZE) + ((nPoints % LINE_DECIMATE_BLOCK_SIZE) != 0);
+    blocks = cachePtr->blocks;
+    if (newBlocks > cachePtr->nBlocks) {
+        LineDecimateBlock *newBlockArr;
+
+        if (GetLineArrayByteCount(newBlocks, sizeof(*newBlockArr), &blockBytes) != TCL_OK) {
+            return FALSE;
+        }
+        newBlockArr = Tcl_AttemptAlloc(blockBytes);
+        if (newBlockArr == NULL) {
+            return FALSE;
+        }
+        if (cachePtr->nBlocks > 0) {
+            size_t oldBytes;
+
+            if (GetLineArrayByteCount(cachePtr->nBlocks, sizeof(*newBlockArr), &oldBytes) != TCL_OK) {
+                ckfree(newBlockArr);
+                return FALSE;
+            }
+            memcpy(newBlockArr, cachePtr->blocks, oldBytes);
+        }
+        blocks = newBlockArr;
+    }
+
+    /*
+     * If oldPoints was not block-aligned, its old final block has
+     * acquired new members and must be rebuilt.  If it was aligned,
+     * oldPoints / block-size is simply the first new block.
+     */
+    firstBlock = oldPoints / LINE_DECIMATE_BLOCK_SIZE;
+    for (blockIndex = firstBlock; blockIndex < newBlocks; blockIndex++) {
+        LineDecimateBlock *blockPtr;
+        Tcl_Size first;
+        Tcl_Size last;
+        Tcl_Size minIndex;
+        Tcl_Size maxIndex;
+        Tcl_Size nonPositiveYCount;
+
+        blockPtr = blocks + blockIndex;
+        first = blockIndex * LINE_DECIMATE_BLOCK_SIZE;
+        last = first + LINE_DECIMATE_BLOCK_SIZE;
+        if (last > nPoints) {
+            last = nPoints;
+        }
+        minIndex = first;
+        maxIndex = first;
+        nonPositiveYCount = 0;
+        for (i = first; i < last; i++) {
+            double y;
+
+            y = yValues[i];
+            /*
+             * New samples were validated above and cached-prefix
+             * samples were validated when the cache was built.
+             */
+            if (y <= 0.0) {
+                nonPositiveYCount++;
+            }
+            /*
+             * Strict comparisons retain the earliest equal extremum,
+             * matching BuildLineDecimateCache().
+             */
+            if (y < yValues[minIndex]) {
+                minIndex = i;
+            }
+            if (y > yValues[maxIndex]) {
+                maxIndex = i;
+            }
+        }
+        blockPtr->minIndex = minIndex;
+        blockPtr->maxIndex = maxIndex;
+        blockPtr->nonPositiveYCount = nonPositiveYCount;
+    }
+    /*
+     * Commit only after all validation/allocation has succeeded.
+     */
+    if (blocks != cachePtr->blocks) {
+        ckfree(cachePtr->blocks);
+        cachePtr->blocks = blocks;
+    }
+    cachePtr->nBlocks = newBlocks;
+    cachePtr->nPoints = nPoints;
+    cachePtr->xValues = xValues;
+    cachePtr->yValues = yValues;
+    cachePtr->xDirection = direction;
+    cachePtr->allPositiveX = allPositiveX;
+    cachePtr->nonPositiveYCount += addedNonPositiveY;
+    cachePtr->allPositiveY = (cachePtr->nonPositiveYCount == 0);
     return TRUE;
 }
 

@@ -3368,7 +3368,7 @@ Copies this vector into another vector\&. A newly created destination inherits t
 Evaluates expression and stores the result in this vector\&.
 .TP
 \fIindex\fP
-Reads or writes a vector value or range\&.  With no value argument, returns the value or values selected by index\&. With value, assigns that numeric value to every element selected by index\&. The special ++end index may be used when setting a value to append one new element\&. For complex vectors, values are returned as {real imag} pairs\&. A real assigned value is promoted to {value 0}\&.
+Reads or writes a vector value or range\&. With no value argument, returns the value or values selected by index\&. With value, assigns that numeric value to every element selected by index\&. The special ++end index may be used when setting a value to append one new element\&.
 .TP
 \fIlength\fP
 Queries or changes the vector length\&. If newSize is supplied, the vector is resized\&. New elements created by enlarging the vector are initialized by the vector resizing machinery\&.
@@ -3518,6 +3518,14 @@ to complex values with zero imaginary component\&.
 .PP
 \fBParameters\fR
 .RS 4n
+.RE
+.PP
+\fBDescription\fR
+.PP
+Clients are notified with the exact inclusive source range occupied by the newly appended values\&. This lets
+clients that maintain ranged caches update only the new tail instead of treating the operation as an
+unknown/full-vector modification\&.
+.RS 4n
 .TP
 item
 Vector name or list of values\&.
@@ -3665,11 +3673,9 @@ Nothing\&.
 \fBVECINST index\fR (::rbc)
 .RE
 .PP
-Reads or writes a vector value or range\&.  With no value argument, returns the value or values selected by
+Reads or writes a vector value or range\&. With no value argument, returns the value or values selected by
 index\&. With value, assigns that numeric value to every element selected by index\&. The special
 ++end index may be used when setting a value to append one new element\&.
-For complex vectors, values are returned as {real imag} pairs\&. A real assigned value is promoted to
-{value 0}\&.
 .RS 4n
 \fBVECINST index\fP \fIindex\fP
 .br
@@ -3678,6 +3684,14 @@ For complex vectors, values are returned as {real imag} pairs\&. A real assigned
 .RE
 .PP
 \fBParameters\fR
+.RS 4n
+.RE
+.PP
+\fBDescription\fR
+.PP
+A write through ++end is reported to vector clients as an exact ranged tail update, just like append\&.
+For complex vectors, values are returned as {real imag} pairs\&. A real assigned value is promoted to
+{value 0}\&.
 .RS 4n
 .TP
 index
