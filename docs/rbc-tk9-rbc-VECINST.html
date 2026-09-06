@@ -779,6 +779,9 @@ compiler-specific complex-number support.</p>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">Rbc_VectorChanged(Rbc_Vector</span> <span class="pre">*vecPtr)</span></code></p></td>
 <td><p>Reports that the existing vector storage was modified in place without changing its storage or ownership contract.</p></td>
 </tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">Rbc_VectorChangedRange(Rbc_Vector</span> <span class="pre">*vecPtr,</span> <span class="pre">Tcl_Size</span> <span class="pre">first,</span> <span class="pre">Tcl_Size</span> <span class="pre">last)</span></code></p></td>
+<td><p>Reports that the inclusive range <code class="docutils literal notranslate"><span class="pre">first</span></code> through <code class="docutils literal notranslate"><span class="pre">last</span></code> of existing vector storage was modified in place. Storage, length, capacity, type, and ownership remain unchanged.</p></td>
+</tr>
 </tbody>
 </table>
 <p>Functions returning <code class="docutils literal notranslate"><span class="pre">int</span></code> as a Tcl status return <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code> on success and <code class="docutils literal notranslate"><span class="pre">TCL_ERROR</span></code> on failure. When an
@@ -819,13 +822,59 @@ become invalid after an operation that resizes, resets, or destroys the vector.<
 <section id="updating-vectors-from-c">
 <span id="r-rbc-vecinst-updating-vectors-from-c"></span><span id="r-3a3arbc3a3avecinstqzupdating20vectors20from20c"></span><h3>Updating vectors from C<a class="headerlink" href="#updating-vectors-from-c" title="Link to this heading">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">Rbc_VectorData</span></code> and <code class="docutils literal notranslate"><span class="pre">Rbc_VectorComplexData</span></code> return mutable storage. A caller may update that storage directly
-as long as no operation that can resize or replace the vector is performed while the pointer is being used.</p>
-<p>Direct writes do not automatically invalidate cached values or notify vector clients. After modifying existing
-storage in place, call:</p>
+as long as no operation that can resize, replace, or destroy the vector is performed while the pointer is being
+used.</p>
+<p>Direct writes do not themselves invalidate cached vector information or notify vector clients. After modifying
+existing storage in place, the caller must report the change with either:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">Rbc_VectorChanged</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>For example:</p>
+<p>or:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">Rbc_VectorChangedRange</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">,</span><span class="w"> </span><span class="n">first</span><span class="p">,</span><span class="w"> </span><span class="n">last</span><span class="p">);</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_VectorChangedRange</span></code> should be preferred when the exact modified source interval is known.</p>
+<p><code class="docutils literal notranslate"><span class="pre">first</span></code> and <code class="docutils literal notranslate"><span class="pre">last</span></code> are zero-based inclusive source indices and must describe values already present in the
+vector. The operation reports a content change only; it does not resize the vector or change its storage
+ownership.</p>
+<p>For example, a C extension updating part of a real waveform can write directly into the vector and then report
+exactly which samples changed:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">UpdateSamples</span><span class="p">(</span><span class="n">Tcl_Interp</span><span class="w"> </span><span class="o">*</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">Tcl_Size</span><span class="w"> </span><span class="n">first</span><span class="p">,</span><span class="w"> </span><span class="n">Tcl_Size</span><span class="w"> </span><span class="n">last</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span>
+<span class="w">    </span><span class="o">*</span><span class="n">values</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">Rbc_Vector</span><span class="w"> </span><span class="o">*</span><span class="n">vecPtr</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">dataArr</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Tcl_Size</span><span class="w"> </span><span class="n">nValues</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Tcl_Size</span><span class="w"> </span><span class="n">i</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_GetVector</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">vecPtr</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_VectorGetType</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">RBC_VECTOR_REAL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Tcl_SetObjResult</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="n">Tcl_NewStringObj</span><span class="p">(</span><span class="s">&quot;vector must be real&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">-1</span><span class="p">));</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">nValues</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Rbc_VectorLength</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">first</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="p">(</span><span class="n">last</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">first</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="p">(</span><span class="n">last</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">nValues</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Tcl_SetObjResult</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="n">Tcl_NewStringObj</span><span class="p">(</span><span class="s">&quot;changed range is outside the vector&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">-1</span><span class="p">));</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">dataArr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Rbc_VectorData</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">);</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">first</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">last</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">dataArr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">first</span><span class="p">];</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">Rbc_VectorChangedRange</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">,</span><span class="w"> </span><span class="n">first</span><span class="p">,</span><span class="w"> </span><span class="n">last</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Supplying the changed range allows Rbc clients to preserve caches that are independent of the modified samples.
+For real vectors, Rbc also attempts to maintain the cached global minimum and maximum from the changed interval.
+If the modification touches information needed to determine an old global extremum, Rbc automatically falls
+back to a complete range calculation when required.</p>
+<p>Graph line elements can use ranged Y-vector notifications to update only the affected part of a persistent
+display-decimation cache instead of rebuilding source-domain summaries for the complete vector.</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">Rbc_VectorChanged</span></code> when the modified source interval is unknown, when changes cover effectively the whole
+vector, or when a caller does not need to provide more precise change information:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">FillComplexVector</span><span class="p">(</span><span class="n">Tcl_Interp</span><span class="w"> </span><span class="o">*</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">Rbc_Vector</span><span class="w"> </span><span class="o">*</span><span class="n">vecPtr</span><span class="p">;</span>
 <span class="w">    </span><span class="n">Rbc_Complex</span><span class="w"> </span><span class="o">*</span><span class="n">dataArr</span><span class="p">;</span>
@@ -836,31 +885,29 @@ storage in place, call:</p>
 <span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_VectorGetType</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">RBC_VECTOR_COMPLEX</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="n">Tcl_SetObjResult</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span>
-<span class="w">            </span><span class="n">Tcl_NewStringObj</span><span class="p">(</span><span class="s">&quot;vector must be complex&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">-1</span><span class="p">));</span>
+<span class="w">        </span><span class="n">Tcl_SetObjResult</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="n">Tcl_NewStringObj</span><span class="p">(</span><span class="s">&quot;vector must be complex&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">-1</span><span class="p">));</span>
 <span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
 <span class="w">    </span><span class="p">}</span>
-
 <span class="w">    </span><span class="n">dataArr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Rbc_VectorComplexData</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">);</span>
 <span class="w">    </span><span class="n">nValues</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Rbc_VectorLength</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">);</span>
-
 <span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">nValues</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="n">dataArr</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">real</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">i</span><span class="p">;</span>
 <span class="w">        </span><span class="n">dataArr</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">imag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">i</span><span class="p">;</span>
 <span class="w">    </span><span class="p">}</span>
-
 <span class="w">    </span><span class="n">Rbc_VectorChanged</span><span class="p">(</span><span class="n">vecPtr</span><span class="p">);</span>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_VectorChanged</span></code> preserves the current data pointer, length, capacity, vector type, and storage ownership
-policy. It flushes the associated Tcl-array cache when required and performs the normal vector-client update
-notification.</p>
-<p>Do not use <code class="docutils literal notranslate"><span class="pre">Rbc_ResetVector</span></code> or <code class="docutils literal notranslate"><span class="pre">Rbc_ResetComplexVector</span></code> merely to report an in-place modification. The reset
-functions define a new storage and ownership contract, even when the supplied address happens to equal the
-vector’s current data pointer.</p>
-<p>Registered Rbc vector clients are notified that the vector contents have changed.</p>
+<p>Both notification functions preserve the current data pointer, vector length, capacity, numeric type, and
+storage ownership policy. They flush the associated Tcl-array cache when required and notify registered vector
+clients.</p>
+<p>Multiple modifications may be reported as one inclusive changed range when convenient. The range may therefore
+conservatively include unchanged samples; correctness does not require every value inside the reported interval
+to have actually changed.</p>
+<p>Do not use <code class="docutils literal notranslate"><span class="pre">Rbc_VectorChanged</span></code> or <code class="docutils literal notranslate"><span class="pre">Rbc_VectorChangedRange</span></code> to report a resize or storage replacement. Use
+<code class="docutils literal notranslate"><span class="pre">Rbc_ResizeVector</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_ResetVector</span></code>, or <code class="docutils literal notranslate"><span class="pre">Rbc_ResetComplexVector</span></code> for operations that change vector length,
+storage, or ownership.</p>
 </section>
 <section id="replacing-vector-storage">
 <span id="r-rbc-vecinst-replacing-vector-storage"></span><span id="r-3a3arbc3a3avecinstqzreplacing20vector20storage"></span><h3>Replacing vector storage<a class="headerlink" href="#replacing-vector-storage" title="Link to this heading">¶</a></h3>
@@ -896,8 +943,9 @@ operation for a complex vector.</p>
 </table>
 <p>The ownership policy supplied to a reset operation becomes the vector’s storage contract. This is true even if
 the supplied data pointer is identical to the vector’s current data pointer.</p>
-<p>Therefore use a reset function when installing or replacing storage, and use <code class="docutils literal notranslate"><span class="pre">Rbc_VectorChanged</span></code> when only the
-contents of already-installed storage have been modified.</p>
+<p>Therefore use a reset function when installing or replacing storage. When only the contents of already-installed
+storage have been modified, use <code class="docutils literal notranslate"><span class="pre">Rbc_VectorChangedRange</span></code> if the modified interval is known, or
+<code class="docutils literal notranslate"><span class="pre">Rbc_VectorChanged</span></code> for an unknown/full-vector modification.</p>
 <p><code class="docutils literal notranslate"><span class="pre">nValues</span></code> specifies the logical number of values currently stored in the vector. <code class="docutils literal notranslate"><span class="pre">arraySize</span></code> specifies the
 capacity of the supplied array and must be greater than or equal to <code class="docutils literal notranslate"><span class="pre">nValues</span></code>.</p>
 <p>Passing <code class="docutils literal notranslate"><span class="pre">NULL</span></code> for <code class="docutils literal notranslate"><span class="pre">dataArr</span></code>, or an <code class="docutils literal notranslate"><span class="pre">arraySize</span></code> of <code class="docutils literal notranslate"><span class="pre">0</span></code>, resets the vector to an empty vector.</p>
@@ -992,7 +1040,8 @@ traditional automatic Tcl array mapping, while a newly created complex vector do
 </pre></div>
 </div>
 <p>Directly modifying storage returned by <code class="docutils literal notranslate"><span class="pre">Rbc_VectorData</span></code> or <code class="docutils literal notranslate"><span class="pre">Rbc_VectorComplexData</span></code> does not itself invalidate
-cached values or notify vector clients. Call <code class="docutils literal notranslate"><span class="pre">Rbc_VectorChanged</span></code> after an in-place modification.</p>
+cached values or notify vector clients. Call <code class="docutils literal notranslate"><span class="pre">Rbc_VectorChangedRange</span></code> after a known ranged modification, or
+<code class="docutils literal notranslate"><span class="pre">Rbc_VectorChanged</span></code> when the changed interval is unknown.</p>
 <p>Use <code class="docutils literal notranslate"><span class="pre">Rbc_ResetVector</span></code> or <code class="docutils literal notranslate"><span class="pre">Rbc_ResetComplexVector</span></code> when replacing the vector’s storage or changing its ownership
 contract, not merely to announce that existing storage was modified.</p>
 </section>

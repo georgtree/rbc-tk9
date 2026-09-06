@@ -1584,6 +1584,166 @@ namespace eval ::rbc::LINEELEMENT {
         The option is useful for datasets that retrace their X coordinates and where only one sweep direction should
         be displayed.
 
+        ## Display decimation for large data sets
+        `-decimate` controls automatic screen-density reduction for large line data sets.
+
+        It is intended for dense waveforms where many source samples map to each physical display pixel. Without
+        decimation, mapping and drawing millions of source points can dominate redraw, zoom, pan, and source-update
+        time even though most of those points cannot be distinguished on screen.
+
+        Accepted values are:
+
+        #ruffopt excludedformats nroff
+        | Value  | Description |
+        |--------|-------------|
+        | `none` | Disables automatic display decimation. This is the default. |
+        | `auto` | Enables automatic screen-density decimation when the line and current display density are suitable. |
+
+        #ruffopt includedformats nroff
+        ```
+        ┌───────┬──────────────────────────────────────────────────────────────────────────────────────────────┐
+        │ Value │ Description                                                                                  │
+        ├───────┼──────────────────────────────────────────────────────────────────────────────────────────────┤
+        │ none  │ Disables automatic display decimation. This is the default.                                  │
+        │ auto  │ Enables automatic screen-density decimation when the line and display density are suitable.  │
+        └───────┴──────────────────────────────────────────────────────────────────────────────────────────────┘
+        ```
+        #ruffopt excludedformats {}
+
+        For example:
+        ```tcl
+        .g element configure signal -decimate auto
+        ```
+
+        ### Decimation principle
+        Automatic decimation operates in the physical screen dimension corresponding to data X. Normally this is the
+        horizontal plotting dimension; with `-invertxy` it is the vertical plotting dimension.
+
+        Source samples that occupy the same physical data-X pixel are represented by at most four source points:
+        ```text
+        first
+        minimum ordinate
+        maximum ordinate
+        last
+        ```
+
+        The retained representatives remain in source-data order. This preserves narrow positive and negative
+        excursions that could be lost by averaging or by retaining only every Nth source sample.
+
+        Decimation never modifies the source vectors or lists.
+
+        It is a screen-display optimization only. PostScript output is always remapped at full source resolution and
+        is not reduced by `-decimate`.
+
+        Exact source-point searches using:
+        ```tcl
+        ELEMENT closest x y varName -interpolate no
+        ```
+
+        retain source-data semantics even when the displayed trace is decimated. Searches with `-interpolate yes`
+        operate on the rendered trace geometry.
+
+        ### When automatic decimation is used
+        `auto` does not force every line through the decimation path. Rbc first checks whether decimation is useful and
+        whether it can preserve the line's drawing semantics.
+
+        The source density must currently be at least approximately eight source points per physical data-X plot
+        pixel. Sparse lines continue through the ordinary mapping path because decimation would provide little or no
+        benefit.
+
+        The following conditions determine how far the optimization can proceed:
+
+        #ruffopt excludedformats nroff
+        | Optimization level | Conditions | Effect |
+        |--------------------|------------|--------|
+        | Automatic trace decimation | Ordinary `LineElement`; X/Y data mode; `-smooth linear`; no area fill; no multiple weight-selected pen styles; sufficient display density | The displayed trace may be reduced to pixel-density geometry. |
+        | Pre-map decimation | Above conditions, plus no normal symbols or value labels, no error/high/low data, and no all-points-active symbols or values | Rbc can avoid constructing complete per-source mapped point, symbol, and style arrays. |
+        | Persistent cached decimation | Pre-map conditions, plus globally monotonic X and finite data valid for the current logarithmic domains | Axis-only remaps can reuse a persistent data-domain cache instead of scanning the complete source vector. |
+
+        #ruffopt includedformats nroff
+        ```
+        ┌──────────────────────┬──────────────────────────────────────────────────┬───────────────────────────────────┐
+        │ Optimization level   │ Principal conditions                             │ Effect                            │
+        ├──────────────────────┼──────────────────────────────────────────────────┼───────────────────────────────────┤
+        │ Automatic trace      │ LineElement, X/Y data, linear smoothing, no area │ Displayed trace may be reduced to │
+        │ decimation           │ fill, no multiple weight-selected pen styles,    │ pixel-density geometry.           │
+        │                      │ and sufficient display density.                  │                                   │
+        │ Pre-map decimation   │ Above, plus no normal symbols/value labels, no   │ Avoids complete per-source mapped │
+        │                      │ error/high/low data, and no all-points-active     │ point, symbol, and style arrays.  │
+        │                      │ symbols or values.                               │                                   │
+        │ Persistent cached    │ Above, plus globally monotonic X and finite data │ Axis-only remaps can reuse a      │
+        │ decimation           │ valid for the current logarithmic domains.       │ persistent data-domain cache.     │
+        └──────────────────────┴──────────────────────────────────────────────────┴───────────────────────────────────┘
+        ```
+        #ruffopt excludedformats {}
+
+        For the strongest optimization, a large waveform should normally be configured similarly to:
+        ```tcl
+        .g element create signal -xdata xVector -ydata yVector -symbol none -showvalues no -smooth linear\
+                -decimate auto
+        ```
+
+        X may increase, decrease, or remain equal; it need not increase specifically. Axis `-descending` and graph
+        `-invertxy` do not prevent the persistent cached path.
+
+        Explicitly activated individual source points are compatible with the pre-map path because those points can be
+        mapped independently. Activating all points with an active pen that draws symbols or value labels requires the
+        complete point mapping and therefore disables that path.
+
+        Supplying error-bar data also prevents the pre-map optimization even if error-bar display is subsequently
+        hidden, because the error data remain associated with individual source points.
+
+        ### Fallback behavior
+        `-decimate auto` is deliberately conservative. If a faster path cannot safely represent a particular line, Rbc
+        falls back to a more general mapping path rather than changing the plotted topology.
+
+        For example:
+        * non-finite values and logarithmically invalid values create normal trace discontinuities;
+        * continuous monotonic runs may still be decimated independently even when a persistent cache cannot be used;
+        * a path that reverses direction in X is not combined across repeated pixel columns;
+        * symbols, value labels, or error data may require full source-point mapping even when the connecting trace can
+          still be reduced;
+        * unsupported combinations simply retain the ordinary full-resolution screen mapping.
+
+        Therefore `-decimate auto` may safely be left enabled for eligible large line elements. It is not necessary for
+        an application to switch the option on and off as the graph is zoomed: Rbc makes the density decision again for
+        the current plotting area.
+
+        ### Updates to vector data
+        Persistent decimation is particularly useful when `-xdata` and `-ydata` refer to Rbc vectors.
+
+        A ranged modification of Y data can update only the affected cached summaries while retaining the X ordering
+        information. This applies to ordinary vector-index writes and mapped Tcl-array writes, for example:
+        ```tcl
+        yVector index 100000 1.25
+        ```
+
+        or:
+        ```tcl
+        set yArray(100000) 1.25
+        ```
+
+        C extensions can provide the same information with `Rbc_VectorChangedRange`.
+
+        Changes to X are handled more conservatively because X determines source ordering and pixel-bucket lookup. An X
+        modification therefore invalidates the persistent decimation cache.
+
+        Changes that resize a vector, replace its storage, or report an unknown/full-vector modification likewise use
+        the complete invalidation path.
+
+        ### Interaction with `-reduce`
+        `-decimate` and `-reduce` solve different problems and may be used together.
+
+        `-decimate auto` is a display-density optimization. It removes source samples that are redundant at the current
+        pixel resolution while retaining the first, minimum, maximum, and last sample associated with a pixel bucket.
+
+        `-reduce` is a geometric screen-space simplification controlled by a user-specified tolerance.
+
+        When both are active, automatic density decimation is performed first and `-reduce` is subsequently applied to
+        the resulting trace.
+
+        Unlike `-decimate`, an explicitly configured `-reduce` tolerance also applies when generating PostScript.
+
         ## Point reduction
         `-reduce` enables screen-space simplification of the mapped line.
 
@@ -1823,6 +1983,7 @@ namespace eval ::rbc::LINEELEMENT {
         | `-color color`          | `color`          | `Color`          | Sets the built-in normal pen's trace color. The default is navy blue.                                                                                                                                             |
         | `-dashes dashes`        | `dashes`         | `Dashes`         | Sets the built-in normal pen's trace dash pattern. An empty value selects a solid line.                                                                                                                           |
         | `-data data`            | `data`           | `Data`           | Supplies an even-length list of alternating X and Y values.                                                                                                                                                       |
+        | `-decimate mode`        | `decimate`       | `Decimate`       | Selects automatic screen-density trace decimation. Accepted values are `none` and `auto`. The default is `none`. `auto` is applied only when the line and current display density are suitable. |
         | `-errorbarcap width`    | `errorBarCap`    | `ErrorBarCap`    | Sets the requested error-bar cap width. A positive value selects an explicit size; `0` automatically derives the size from the symbol size. The default is `1`.                                                   |
         | `-errorbarcolor color`  | `errorBarColor`  | `ErrorBarColor`  | Sets the error-bar color. `defcolor` uses the trace color.                                                                                                                                                        |
         | `-errorbarwidth width`  | `errorBarWidth`  | `ErrorBarWidth`  | Sets the error-bar line width. The default is `1`.                                                                                                                                                                |
@@ -1892,6 +2053,8 @@ namespace eval ::rbc::LINEELEMENT {
         │                         │                  │                  │ empty value selects a solid line.                       │
         │ -data data              │ data             │ Data             │ Supplies an even-length list of alternating X and Y     │
         │                         │                  │                  │ values.                                                 │
+        │ -decimate mode          │ decimate         │ Decimate         │ Selects automatic screen-density trace decimation.      │
+        │                         │                  │                  │ Accepted values are none and auto. The default is none. │
         │ -errorbarcap width      │ errorBarCap      │ ErrorBarCap      │ Sets the requested error-bar cap width. A positive      │
         │                         │                  │                  │ value selects an explicit size; 0 automatically derives │
         │                         │                  │                  │ the size from the symbol size. The default is 1.        │
@@ -2032,6 +2195,7 @@ namespace eval ::rbc::STRIPELEMENT {
         | `-areaforeground` | area-fill foreground                                  |
         | `-areapattern`    | area filling with a solid or stipple pattern          |
         | `-areatile`       | tiled area filling                                    |
+        | `-decimate`       | automatic screen-density trace decimation             |
         | `-param`          | per-point parameter mapping returned by `ELEMENT closest` |
         | `-reduce`         | screen-space trace reduction                          |
         | `-state`          | line-element state option                             |
@@ -2046,6 +2210,7 @@ namespace eval ::rbc::STRIPELEMENT {
         │ -areaforeground     │ area-fill foreground                                    │
         │ -areapattern        │ area filling with a solid or stipple pattern            │
         │ -areatile           │ tiled area filling                                      │
+        │ -decimate           │ automatic screen-density trace decimation               │
         │ -param              │ per-point parameter mapping returned by ELEMENT closest │
         │ -reduce             │ screen-space trace reduction                            │
         │ -state              │ line-element state option                               │
@@ -2802,7 +2967,8 @@ namespace eval ::rbc::POLARELEMENT {
         attributes therefore apply to PostScript output as well as on-screen drawing.
 
         ## Polar element options
-        Polar elements support the configuration options documented for [LINEELEMENT], with the Polar-specific
+        Polar elements support the configuration options documented for [LINEELEMENT], except for `-decimate`, which
+        is currently available only on ordinary `LineElement` objects. Polar elements also provide the Polar-specific
         additions below.
 
         #ruffopt excludedformats nroff
@@ -2825,8 +2991,8 @@ namespace eval ::rbc::POLARELEMENT {
         ```
         #ruffopt excludedformats {}
 
-        The remaining options have the same database names, classes, defaults, and basic drawing semantics described
-        in [LINEELEMENT].
+        Except for `-decimate`, the remaining options have the same database names, classes, defaults, and basic
+        drawing semantics described in [LINEELEMENT].
 
         Where Polar behavior intentionally differs from ordinary line behavior, in particular parametric smoothing
         and complex-data mapping, the differences are described above.

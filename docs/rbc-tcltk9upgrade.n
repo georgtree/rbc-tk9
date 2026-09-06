@@ -280,6 +280,30 @@ Fixed step-generation behavior\&.
 .TP
 \(bu
 Corrected line -trace behavior\&.
+.TP
+\(bu
+Added optional screen-density decimation for large ordinary line elements through -decimate none|auto\&.
+.TP
+\(bu
+Automatic line decimation preserves the first, minimum, maximum, and last source representatives associated with each physical data-X pixel rather than averaging dense waveform data\&.
+.TP
+\(bu
+Added density-based selection so sparse data continues through the normal mapping path while dense eligible traces can avoid mapping and drawing millions of redundant screen points\&.
+.TP
+\(bu
+Added a persistent data-domain decimation cache for finite, monotonic-X line data\&. The cache survives ordinary axis remapping and supports increasing, decreasing, and equal X coordinates as well as -invertxy and descending axes\&.
+.TP
+\(bu
+Added conservative fallback paths for discontinuities, logarithmically invalid data, non-monotonic paths, symbols, value labels, error data, multiple styles, and other combinations that require full source geometry\&.
+.TP
+\(bu
+Added incremental maintenance of persistent line decimation summaries for ranged Y-vector updates; X changes, vector resizing, storage replacement, and unknown/full-vector changes retain complete invalidation semantics\&.
+.TP
+\(bu
+Accelerated exact ELEMENT closest -interpolate no searches for decimated monotonic-X lines while preserving exact source-point results\&.
+.TP
+\(bu
+Screen-density decimation affects window rendering only\&. PostScript output continues to use full source resolution\&.
 .SS "SPLINE SUBSYSTEM"
 .PP
 The spline subsystem was subsequently extended with direct complex-vector parametric interpolation\&.
@@ -345,7 +369,22 @@ Improved ownership of temporary data used by mathematical operations\&.
 Added stricter handling of invalid and non-finite input\&.
 .TP
 \(bu
-Added first-class complex vectors, complex expression arithmetic and mathematical functions, and typed public C API access while retaining compatibility with the existing real-vector interface\&.
+Added first-class complex vectors, complex expression arithmetic and mathematical functions, typed public C API access, and precise ranged in-place update notification while retaining compatibility with the existing real-vector interface\&.
+.TP
+\(bu
+Added cached real-vector range maintenance so repeated clients do not rescan unchanged vectors merely to obtain minimum and maximum values\&.
+.TP
+\(bu
+Added ranged vector-change notifications\&. Mapped Tcl-array writes and ordinary vector index writes report the affected source interval when an existing real-vector range is modified in place\&.
+.TP
+\(bu
+Added Rbc_VectorChangedRange(Rbc_Vector *, Tcl_Size first, Tcl_Size last) to the public C/stubs API so C producers can report precise in-place source modifications without changing vector storage or ownership\&.
+.TP
+\(bu
+Ranged real-vector updates maintain cached extrema incrementally when possible and conservatively fall back to a complete range scan when a modified interval invalidates an existing global extremum\&.
+.TP
+\(bu
+Retained Rbc_VectorChanged() as the full/unknown-range notification interface for callers that cannot provide a precise changed interval\&.
 .SS "GEOMETRY, TEXT AND DRAWING"
 .PP
 Many drawing routines inherited assumptions from old X11 APIs where coordinates and dimensions were commonly

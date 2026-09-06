@@ -596,7 +596,8 @@ Complex-data conversion, trace breaks, parametric smoothing, symbols, pens, and 
 attributes therefore apply to PostScript output as well as on-screen drawing\&.
 .SH "POLAR ELEMENT OPTIONS"
 .PP
-Polar elements support the configuration options documented for \fILINEELEMENT\fP, with the Polar-specific
+Polar elements support the configuration options documented for \fILINEELEMENT\fP, except for -decimate, which
+is currently available only on ordinary LineElement objects\&. Polar elements also provide the Polar-specific
 additions below\&.
 .PP
 .RS 4n
@@ -612,8 +613,8 @@ additions below\&.
 .fi
 .RE
 .PP
-The remaining options have the same database names, classes, defaults, and basic drawing semantics described
-in \fILINEELEMENT\fP\&.
+Except for -decimate, the remaining options have the same database names, classes, defaults, and basic
+drawing semantics described in \fILINEELEMENT\fP\&.
 .PP
 Where Polar behavior intentionally differs from ordinary line behavior, in particular parametric smoothing
 and complex-data mapping, the differences are described above\&.

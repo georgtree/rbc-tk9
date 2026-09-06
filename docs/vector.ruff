@@ -864,6 +864,7 @@ namespace eval ::rbc::VECINST {
         | `int Rbc_ResetComplexVector(Rbc_Vector *vecPtr, Rbc_Complex *dataArr, Tcl_Size nValues, Tcl_Size arraySize, Tcl_FreeProc *freeProc)` | Replaces the storage of a complex vector. |
         | `Rbc_Complex *Rbc_VectorComplexData(Rbc_Vector *vecPtr)` | Returns complex-vector storage, or `NULL` for a real vector. |
         | `void Rbc_VectorChanged(Rbc_Vector *vecPtr)` | Reports that the existing vector storage was modified in place without changing its storage or ownership contract. |
+        | `void Rbc_VectorChangedRange(Rbc_Vector *vecPtr, Tcl_Size first, Tcl_Size last)` | Reports that the inclusive range `first` through `last` of existing vector storage was modified in place. Storage, length, capacity, type, and ownership remain unchanged. |
 
         #ruffopt includedformats nroff
         ```
@@ -902,6 +903,8 @@ namespace eval ::rbc::VECINST {
         │                                                          │ vector.                                               │
         │ void Rbc_VectorChanged(Rbc_Vector *vecPtr)               │ Reports an in-place data change without changing      │
         │                                                          │ storage ownership.                                    │
+        │ void Rbc_VectorChangedRange(Rbc_Vector *vecPtr,          │ Reports that an exact inclusive range of existing     │
+        │ Tcl_Size first, Tcl_Size last)                           │ vector storage was modified in place.                 │
         └──────────────────────────────────────────────────────────┴───────────────────────────────────────────────────────┘
         ```
         #ruffopt excludedformats {}
@@ -945,16 +948,68 @@ namespace eval ::rbc::VECINST {
 
         ### Updating vectors from C
         `Rbc_VectorData` and `Rbc_VectorComplexData` return mutable storage. A caller may update that storage directly
-        as long as no operation that can resize or replace the vector is performed while the pointer is being used.
+        as long as no operation that can resize, replace, or destroy the vector is performed while the pointer is being
+        used.
 
-        Direct writes do not automatically invalidate cached values or notify vector clients. After modifying existing
-        storage in place, call:
-
+        Direct writes do not themselves invalidate cached vector information or notify vector clients. After modifying
+        existing storage in place, the caller must report the change with either:
         ```c
         Rbc_VectorChanged(vecPtr);
         ```
 
-        For example:
+        or:
+        ```c
+        Rbc_VectorChangedRange(vecPtr, first, last);
+        ```
+
+        `Rbc_VectorChangedRange` should be preferred when the exact modified source interval is known.
+
+        `first` and `last` are zero-based inclusive source indices and must describe values already present in the
+        vector. The operation reports a content change only; it does not resize the vector or change its storage
+        ownership.
+
+        For example, a C extension updating part of a real waveform can write directly into the vector and then report
+        exactly which samples changed:
+
+        ```c
+        static int UpdateSamples(Tcl_Interp *interp, const char *name, Tcl_Size first, Tcl_Size last, const double
+            *values) {
+            Rbc_Vector *vecPtr;
+            double *dataArr;
+            Tcl_Size nValues;
+            Tcl_Size i;
+
+            if (Rbc_GetVector(interp, name, &vecPtr) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            if (Rbc_VectorGetType(vecPtr) != RBC_VECTOR_REAL) {
+                Tcl_SetObjResult(interp, Tcl_NewStringObj("vector must be real", -1));
+                return TCL_ERROR;
+            }
+            nValues = Rbc_VectorLength(vecPtr);
+            if ((first < 0) || (last < first) || (last >= nValues)) {
+                Tcl_SetObjResult(interp, Tcl_NewStringObj("changed range is outside the vector", -1));
+                return TCL_ERROR;
+            }
+            dataArr = Rbc_VectorData(vecPtr);
+            for (i = first; i <= last; i++) {
+                dataArr[i] = values[i - first];
+            }
+            Rbc_VectorChangedRange(vecPtr, first, last);
+            return TCL_OK;
+        }
+        ```
+
+        Supplying the changed range allows Rbc clients to preserve caches that are independent of the modified samples.
+        For real vectors, Rbc also attempts to maintain the cached global minimum and maximum from the changed interval.
+        If the modification touches information needed to determine an old global extremum, Rbc automatically falls
+        back to a complete range calculation when required.
+
+        Graph line elements can use ranged Y-vector notifications to update only the affected part of a persistent
+        display-decimation cache instead of rebuilding source-domain summaries for the complete vector.
+
+        Use `Rbc_VectorChanged` when the modified source interval is unknown, when changes cover effectively the whole
+        vector, or when a caller does not need to provide more precise change information:
 
         ```c
         static int FillComplexVector(Tcl_Interp *interp, const char *name) {
@@ -967,33 +1022,31 @@ namespace eval ::rbc::VECINST {
                 return TCL_ERROR;
             }
             if (Rbc_VectorGetType(vecPtr) != RBC_VECTOR_COMPLEX) {
-                Tcl_SetObjResult(interp,
-                    Tcl_NewStringObj("vector must be complex", -1));
+                Tcl_SetObjResult(interp, Tcl_NewStringObj("vector must be complex", -1));
                 return TCL_ERROR;
             }
-
             dataArr = Rbc_VectorComplexData(vecPtr);
             nValues = Rbc_VectorLength(vecPtr);
-
             for (i = 0; i < nValues; i++) {
                 dataArr[i].real = (double)i;
                 dataArr[i].imag = -(double)i;
             }
-
             Rbc_VectorChanged(vecPtr);
             return TCL_OK;
         }
         ```
 
-        `Rbc_VectorChanged` preserves the current data pointer, length, capacity, vector type, and storage ownership
-        policy. It flushes the associated Tcl-array cache when required and performs the normal vector-client update
-        notification.
+        Both notification functions preserve the current data pointer, vector length, capacity, numeric type, and
+        storage ownership policy. They flush the associated Tcl-array cache when required and notify registered vector
+        clients.
 
-        Do not use `Rbc_ResetVector` or `Rbc_ResetComplexVector` merely to report an in-place modification. The reset
-        functions define a new storage and ownership contract, even when the supplied address happens to equal the
-        vector's current data pointer.
+        Multiple modifications may be reported as one inclusive changed range when convenient. The range may therefore
+        conservatively include unchanged samples; correctness does not require every value inside the reported interval
+        to have actually changed.
 
-        Registered Rbc vector clients are notified that the vector contents have changed.
+        Do not use `Rbc_VectorChanged` or `Rbc_VectorChangedRange` to report a resize or storage replacement. Use
+        `Rbc_ResizeVector`, `Rbc_ResetVector`, or `Rbc_ResetComplexVector` for operations that change vector length,
+        storage, or ownership.
 
         ### Replacing vector storage
         `Rbc_ResetVector` replaces the storage of a real vector. `Rbc_ResetComplexVector` performs the corresponding
@@ -1033,8 +1086,9 @@ namespace eval ::rbc::VECINST {
         The ownership policy supplied to a reset operation becomes the vector's storage contract. This is true even if
         the supplied data pointer is identical to the vector's current data pointer.
 
-        Therefore use a reset function when installing or replacing storage, and use `Rbc_VectorChanged` when only the
-        contents of already-installed storage have been modified.
+        Therefore use a reset function when installing or replacing storage. When only the contents of already-installed
+        storage have been modified, use `Rbc_VectorChangedRange` if the modified interval is known, or
+        `Rbc_VectorChanged` for an unknown/full-vector modification.
 
         `nValues` specifies the logical number of values currently stored in the vector. `arraySize` specifies the
         capacity of the supplied array and must be greater than or equal to `nValues`.
@@ -1140,7 +1194,8 @@ namespace eval ::rbc::VECINST {
         ```
 
         Directly modifying storage returned by `Rbc_VectorData` or `Rbc_VectorComplexData` does not itself invalidate
-        cached values or notify vector clients. Call `Rbc_VectorChanged` after an in-place modification.
+        cached values or notify vector clients. Call `Rbc_VectorChangedRange` after a known ranged modification, or
+        `Rbc_VectorChanged` when the changed interval is unknown.
 
         Use `Rbc_ResetVector` or `Rbc_ResetComplexVector` when replacing the vector's storage or changing its ownership
         contract, not merely to announce that existing storage was modified.

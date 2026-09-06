@@ -260,6 +260,151 @@ closed trace is required.</p>
 <p>The option is useful for datasets that retrace their X coordinates and where only one sweep direction should
 be displayed.</p>
 </section>
+<section id="display-decimation-for-large-data-sets">
+<span id="r-rbc-lineelement-display-decimation-for-large-data-sets"></span><span id="r-3a3arbc3a3alineelementqzdisplay20decimation20for20large20data20sets"></span><h2>Display decimation for large data sets<a class="headerlink" href="#display-decimation-for-large-data-sets" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">-decimate</span></code> controls automatic screen-density reduction for large line data sets.</p>
+<p>It is intended for dense waveforms where many source samples map to each physical display pixel. Without
+decimation, mapping and drawing millions of source points can dominate redraw, zoom, pan, and source-update
+time even though most of those points cannot be distinguished on screen.</p>
+<p>Accepted values are:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Value</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">none</span></code></p></td>
+<td><p>Disables automatic display decimation. This is the default.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">auto</span></code></p></td>
+<td><p>Enables automatic screen-density decimation when the line and current display density are suitable.</p></td>
+</tr>
+</tbody>
+</table>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>decimate<span class="w"> </span>auto
+</pre></div>
+</div>
+<section id="decimation-principle">
+<span id="r-rbc-lineelement-decimation-principle"></span><span id="r-3a3arbc3a3alineelementqzdecimation20principle"></span><h3>Decimation principle<a class="headerlink" href="#decimation-principle" title="Link to this heading">¶</a></h3>
+<p>Automatic decimation operates in the physical screen dimension corresponding to data X. Normally this is the
+horizontal plotting dimension; with <code class="docutils literal notranslate"><span class="pre">-invertxy</span></code> it is the vertical plotting dimension.</p>
+<p>Source samples that occupy the same physical data-X pixel are represented by at most four source points:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>first
+minimum ordinate
+maximum ordinate
+last
+</pre></div>
+</div>
+<p>The retained representatives remain in source-data order. This preserves narrow positive and negative
+excursions that could be lost by averaging or by retaining only every Nth source sample.</p>
+<p>Decimation never modifies the source vectors or lists.</p>
+<p>It is a screen-display optimization only. PostScript output is always remapped at full source resolution and
+is not reduced by <code class="docutils literal notranslate"><span class="pre">-decimate</span></code>.</p>
+<p>Exact source-point searches using:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">ELEMENT</span><span class="w"> </span>closest<span class="w"> </span>x<span class="w"> </span>y<span class="w"> </span>varName<span class="w"> </span><span class="o">-</span>interpolate<span class="w"> </span>no
+</pre></div>
+</div>
+<p>retain source-data semantics even when the displayed trace is decimated. Searches with <code class="docutils literal notranslate"><span class="pre">-interpolate</span> <span class="pre">yes</span></code>
+operate on the rendered trace geometry.</p>
+</section>
+<section id="when-automatic-decimation-is-used">
+<span id="r-rbc-lineelement-when-automatic-decimation-is-used"></span><span id="r-3a3arbc3a3alineelementqzwhen20automatic20decimation20is20used"></span><h3>When automatic decimation is used<a class="headerlink" href="#when-automatic-decimation-is-used" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">auto</span></code> does not force every line through the decimation path. Rbc first checks whether decimation is useful and
+whether it can preserve the line’s drawing semantics.</p>
+<p>The source density must currently be at least approximately eight source points per physical data-X plot
+pixel. Sparse lines continue through the ordinary mapping path because decimation would provide little or no
+benefit.</p>
+<p>The following conditions determine how far the optimization can proceed:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Optimization level</p></th>
+<th class="head"><p>Conditions</p></th>
+<th class="head"><p>Effect</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Automatic trace decimation</p></td>
+<td><p>Ordinary <code class="docutils literal notranslate"><span class="pre">LineElement</span></code>; X/Y data mode; <code class="docutils literal notranslate"><span class="pre">-smooth</span> <span class="pre">linear</span></code>; no area fill; no multiple weight-selected pen styles; sufficient display density</p></td>
+<td><p>The displayed trace may be reduced to pixel-density geometry.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Pre-map decimation</p></td>
+<td><p>Above conditions, plus no normal symbols or value labels, no error/high/low data, and no all-points-active symbols or values</p></td>
+<td><p>Rbc can avoid constructing complete per-source mapped point, symbol, and style arrays.</p></td>
+</tr>
+<tr class="row-even"><td><p>Persistent cached decimation</p></td>
+<td><p>Pre-map conditions, plus globally monotonic X and finite data valid for the current logarithmic domains</p></td>
+<td><p>Axis-only remaps can reuse a persistent data-domain cache instead of scanning the complete source vector.</p></td>
+</tr>
+</tbody>
+</table>
+<p>For the strongest optimization, a large waveform should normally be configured similarly to:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>xdata<span class="w"> </span>xVector<span class="w"> </span><span class="o">-</span>ydata<span class="w"> </span>yVector<span class="w"> </span><span class="o">-</span>symbol<span class="w"> </span>none<span class="w"> </span><span class="o">-</span>showvalues<span class="w"> </span>no<span class="w"> </span><span class="o">-</span>smooth<span class="w"> </span>linear<span class="w"> </span><span class="o">-</span>decimate<span class="w"> </span>auto
+</pre></div>
+</div>
+<p>X may increase, decrease, or remain equal; it need not increase specifically. Axis <code class="docutils literal notranslate"><span class="pre">-descending</span></code> and graph
+<code class="docutils literal notranslate"><span class="pre">-invertxy</span></code> do not prevent the persistent cached path.</p>
+<p>Explicitly activated individual source points are compatible with the pre-map path because those points can be
+mapped independently. Activating all points with an active pen that draws symbols or value labels requires the
+complete point mapping and therefore disables that path.</p>
+<p>Supplying error-bar data also prevents the pre-map optimization even if error-bar display is subsequently
+hidden, because the error data remain associated with individual source points.</p>
+</section>
+<section id="fallback-behavior">
+<span id="r-rbc-lineelement-fallback-behavior"></span><span id="r-3a3arbc3a3alineelementqzfallback20behavior"></span><h3>Fallback behavior<a class="headerlink" href="#fallback-behavior" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">-decimate</span> <span class="pre">auto</span></code> is deliberately conservative. If a faster path cannot safely represent a particular line, Rbc
+falls back to a more general mapping path rather than changing the plotted topology.</p>
+<p>For example:</p>
+<ul class="simple">
+<li><p>non-finite values and logarithmically invalid values create normal trace discontinuities;</p></li>
+<li><p>continuous monotonic runs may still be decimated independently even when a persistent cache cannot be used;</p></li>
+<li><p>a path that reverses direction in X is not combined across repeated pixel columns;</p></li>
+<li><p>symbols, value labels, or error data may require full source-point mapping even when the connecting trace can still be reduced;</p></li>
+<li><p>unsupported combinations simply retain the ordinary full-resolution screen mapping.</p></li>
+</ul>
+<p>Therefore <code class="docutils literal notranslate"><span class="pre">-decimate</span> <span class="pre">auto</span></code> may safely be left enabled for eligible large line elements. It is not necessary for
+an application to switch the option on and off as the graph is zoomed: Rbc makes the density decision again for
+the current plotting area.</p>
+</section>
+<section id="updates-to-vector-data">
+<span id="r-rbc-lineelement-updates-to-vector-data"></span><span id="r-3a3arbc3a3alineelementqzupdates20to20vector20data"></span><h3>Updates to vector data<a class="headerlink" href="#updates-to-vector-data" title="Link to this heading">¶</a></h3>
+<p>Persistent decimation is particularly useful when <code class="docutils literal notranslate"><span class="pre">-xdata</span></code> and <code class="docutils literal notranslate"><span class="pre">-ydata</span></code> refer to Rbc vectors.</p>
+<p>A ranged modification of Y data can update only the affected cached summaries while retaining the X ordering
+information. This applies to ordinary vector-index writes and mapped Tcl-array writes, for example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">yVector</span><span class="w"> </span>index<span class="w"> </span><span class="mi">100000</span><span class="w"> </span><span class="mf">1.25</span>
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>yArray<span class="k">(</span><span class="nv">100000</span><span class="k">)</span><span class="w"> </span><span class="mf">1.25</span>
+</pre></div>
+</div>
+<p>C extensions can provide the same information with <code class="docutils literal notranslate"><span class="pre">Rbc_VectorChangedRange</span></code>.</p>
+<p>Changes to X are handled more conservatively because X determines source ordering and pixel-bucket lookup. An X
+modification therefore invalidates the persistent decimation cache.</p>
+<p>Changes that resize a vector, replace its storage, or report an unknown/full-vector modification likewise use
+the complete invalidation path.</p>
+</section>
+<section id="interaction-with-reduce">
+<span id="r-rbc-lineelement-interaction-with-reduce"></span><span id="r-3a3arbc3a3alineelementqzinteraction20with20602dreduce60"></span><h3>Interaction with <code class="docutils literal notranslate"><span class="pre">-reduce</span></code><a class="headerlink" href="#interaction-with-reduce" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">-decimate</span></code> and <code class="docutils literal notranslate"><span class="pre">-reduce</span></code> solve different problems and may be used together.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-decimate</span> <span class="pre">auto</span></code> is a display-density optimization. It removes source samples that are redundant at the current
+pixel resolution while retaining the first, minimum, maximum, and last sample associated with a pixel bucket.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-reduce</span></code> is a geometric screen-space simplification controlled by a user-specified tolerance.</p>
+<p>When both are active, automatic density decimation is performed first and <code class="docutils literal notranslate"><span class="pre">-reduce</span></code> is subsequently applied to
+the resulting trace.</p>
+<p>Unlike <code class="docutils literal notranslate"><span class="pre">-decimate</span></code>, an explicitly configured <code class="docutils literal notranslate"><span class="pre">-reduce</span></code> tolerance also applies when generating PostScript.</p>
+</section>
+</section>
 <section id="point-reduction">
 <span id="r-rbc-lineelement-point-reduction"></span><span id="r-3a3arbc3a3alineelementqzpoint20reduction"></span><h2>Point reduction<a class="headerlink" href="#point-reduction" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">-reduce</span></code> enables screen-space simplification of the mapped line.</p>
@@ -532,222 +677,227 @@ runs.</p>
 <td><p><code class="docutils literal notranslate"><span class="pre">Data</span></code></p></td>
 <td><p>Supplies an even-length list of alternating X and Y values.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbarcap</span> <span class="pre">width</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-decimate</span> <span class="pre">mode</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">decimate</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Decimate</span></code></p></td>
+<td><p>Selects automatic screen-density trace decimation. Accepted values are <code class="docutils literal notranslate"><span class="pre">none</span></code> and <code class="docutils literal notranslate"><span class="pre">auto</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">none</span></code>. <code class="docutils literal notranslate"><span class="pre">auto</span></code> is applied only when the line and current display density are suitable.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbarcap</span> <span class="pre">width</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">errorBarCap</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ErrorBarCap</span></code></p></td>
 <td><p>Sets the requested error-bar cap width. A positive value selects an explicit size; <code class="docutils literal notranslate"><span class="pre">0</span></code> automatically derives the size from the symbol size. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbarcolor</span> <span class="pre">color</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbarcolor</span> <span class="pre">color</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">errorBarColor</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ErrorBarColor</span></code></p></td>
 <td><p>Sets the error-bar color. <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> uses the trace color.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbarwidth</span> <span class="pre">width</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbarwidth</span> <span class="pre">width</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">errorBarWidth</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ErrorBarWidth</span></code></p></td>
 <td><p>Sets the error-bar line width. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-fill</span> <span class="pre">color</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-fill</span> <span class="pre">color</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">fill</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Fill</span></code></p></td>
 <td><p>Sets the symbol fill color. <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> uses the trace color; an empty value leaves symbols unfilled.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">boolean</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">boolean</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">hide</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Hide</span></code></p></td>
 <td><p>Controls whether the element is displayed. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-hideplot</span> <span class="pre">boolean</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-hideplot</span> <span class="pre">boolean</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">hidePlot</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">HidePlot</span></code></p></td>
 <td><p>Suppresses plotting of the element while keeping it in the display list and legend. A plot-hidden element does not contribute to automatic axis limits and is ignored by closest searches and element hit testing. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-label</span> <span class="pre">text</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-label</span> <span class="pre">text</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">label</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Label</span></code></p></td>
 <td><p>Sets the element label used by the legend. The initial label is the element name.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-labelrelief</span> <span class="pre">relief</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-labelrelief</span> <span class="pre">relief</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">labelRelief</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">LabelRelief</span></code></p></td>
 <td><p>Sets the relief used for the element’s legend label. The default is <code class="docutils literal notranslate"><span class="pre">flat</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-linewidth</span> <span class="pre">width</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-linewidth</span> <span class="pre">width</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">lineWidth</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">LineWidth</span></code></p></td>
 <td><p>Sets the built-in normal pen’s trace width. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>; <code class="docutils literal notranslate"><span class="pre">0</span></code> suppresses the trace.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-mapx</span> <span class="pre">axisName</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-mapx</span> <span class="pre">axisName</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">mapX</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">MapX</span></code></p></td>
 <td><p>Specifies the X axis used to map the element’s X coordinates. The axis must exist and must be an X axis. The default is <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-mapy</span> <span class="pre">axisName</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-mapy</span> <span class="pre">axisName</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">mapY</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">MapY</span></code></p></td>
 <td><p>Specifies the Y axis used to map the element’s Y coordinates. The axis must exist and must be a Y axis. The default is <code class="docutils literal notranslate"><span class="pre">y</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-maxsymbols</span> <span class="pre">number</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-maxsymbols</span> <span class="pre">number</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">maxSymbols</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">MaxSymbols</span></code></p></td>
 <td><p>Requests a reduced symbol display density when the element contains many points. <code class="docutils literal notranslate"><span class="pre">0</span></code> draws symbols without this reduction. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-offdash</span> <span class="pre">color</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-offdash</span> <span class="pre">color</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">offDash</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">OffDash</span></code></p></td>
 <td><p>Sets the color used for the gaps of a dashed trace. An empty value leaves the gaps transparent; <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> uses the trace color.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-outline</span> <span class="pre">color</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-outline</span> <span class="pre">color</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">outline</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Outline</span></code></p></td>
 <td><p>Sets the symbol outline color. <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> uses the trace color.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-outlinewidth</span> <span class="pre">width</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-outlinewidth</span> <span class="pre">width</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">outlineWidth</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">OutlineWidth</span></code></p></td>
 <td><p>Sets the non-negative width of symbol outlines. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-param</span> <span class="pre">data</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-param</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">param</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Param</span></code></p></td>
 <td><p>Associates one real parameter value with each data point. Accepts a numeric list or real Rbc vector. An empty value disables parameter mapping.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-pen</span> <span class="pre">penName</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-pen</span> <span class="pre">penName</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pen</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Pen</span></code></p></td>
 <td><p>Specifies a named line pen containing the element’s normal drawing attributes. An empty value uses the element’s built-in pen.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-pixels</span> <span class="pre">size</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-pixels</span> <span class="pre">size</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pixels</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Pixels</span></code></p></td>
 <td><p>Sets the requested symbol size. The default is <code class="docutils literal notranslate"><span class="pre">0.125i</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-reduce</span> <span class="pre">tolerance</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-reduce</span> <span class="pre">tolerance</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">reduce</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Reduce</span></code></p></td>
 <td><p>Sets the screen-space tolerance used to reduce the number of points in the displayed trace. A non-positive value disables reduction. The default is <code class="docutils literal notranslate"><span class="pre">0.0</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-scalesymbols</span> <span class="pre">boolean</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-scalesymbols</span> <span class="pre">boolean</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">scaleSymbols</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ScaleSymbols</span></code></p></td>
 <td><p>Controls whether symbol sizes are automatically scaled as the axis ranges change. The default is <code class="docutils literal notranslate"><span class="pre">yes</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-showerrorbars</span> <span class="pre">value</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-showerrorbars</span> <span class="pre">value</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">showErrorBars</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ShowErrorBars</span></code></p></td>
 <td><p>Selects which error bars are displayed: X, Y, both, or neither. The default is <code class="docutils literal notranslate"><span class="pre">both</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-showvalues</span> <span class="pre">value</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-showvalues</span> <span class="pre">value</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">showValues</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ShowValues</span></code></p></td>
 <td><p>Selects which coordinate values are displayed next to data points. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-smooth</span> <span class="pre">mode</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-smooth</span> <span class="pre">mode</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">smooth</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Smooth</span></code></p></td>
 <td><p>Selects line smoothing. Accepted modes are <code class="docutils literal notranslate"><span class="pre">linear</span></code>, <code class="docutils literal notranslate"><span class="pre">step</span></code>, <code class="docutils literal notranslate"><span class="pre">natural</span></code>, <code class="docutils literal notranslate"><span class="pre">cubic</span></code>, <code class="docutils literal notranslate"><span class="pre">quadratic</span></code>, and <code class="docutils literal notranslate"><span class="pre">catrom</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">linear</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-state</span> <span class="pre">state</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-state</span> <span class="pre">state</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">state</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">State</span></code></p></td>
 <td><p>Sets the element state. The default is <code class="docutils literal notranslate"><span class="pre">normal</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-styles</span> <span class="pre">styles</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-styles</span> <span class="pre">styles</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">styles</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Styles</span></code></p></td>
 <td><p>Specifies pens selected according to <code class="docutils literal notranslate"><span class="pre">-weights</span></code>. Each style is either <code class="docutils literal notranslate"><span class="pre">penName</span></code> or <code class="docutils literal notranslate"><span class="pre">{penName</span> <span class="pre">min</span> <span class="pre">max}</span></code>. Bare pen names receive successive implicit weight ranges. An empty value disables weight-selected styles.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-symbol</span> <span class="pre">symbol</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-symbol</span> <span class="pre">symbol</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">symbol</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Symbol</span></code></p></td>
 <td><p>Sets the symbol drawn at data points. The default is <code class="docutils literal notranslate"><span class="pre">circle</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-trace</span> <span class="pre">direction</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-trace</span> <span class="pre">direction</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">trace</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Trace</span></code></p></td>
 <td><p>Controls which line segments are drawn according to the direction of successive X coordinates. Accepted values are <code class="docutils literal notranslate"><span class="pre">increasing</span></code>, <code class="docutils literal notranslate"><span class="pre">decreasing</span></code>, and <code class="docutils literal notranslate"><span class="pre">both</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">both</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valueanchor</span> <span class="pre">anchor</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valueanchor</span> <span class="pre">anchor</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueAnchor</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueAnchor</span></code></p></td>
 <td><p>Sets the anchor used to position value labels relative to their data points. The default is <code class="docutils literal notranslate"><span class="pre">s</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valuecolor</span> <span class="pre">color</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valuecolor</span> <span class="pre">color</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueColor</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueColor</span></code></p></td>
 <td><p>Sets the color used to draw value labels.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valuefont</span> <span class="pre">font</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valuefont</span> <span class="pre">font</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueFont</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueFont</span></code></p></td>
 <td><p>Sets the font used to draw value labels.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valueformat</span> <span class="pre">format</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valueformat</span> <span class="pre">format</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueFormat</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueFormat</span></code></p></td>
 <td><p>Sets the printf-style format used for value labels. The default is <code class="docutils literal notranslate"><span class="pre">%g</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valuerotate</span> <span class="pre">degrees</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valuerotate</span> <span class="pre">degrees</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueRotate</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueRotate</span></code></p></td>
 <td><p>Sets the rotation angle of value labels in degrees. The default is <code class="docutils literal notranslate"><span class="pre">0.0</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valueshadow</span> <span class="pre">shadow</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valueshadow</span> <span class="pre">shadow</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueShadow</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueShadow</span></code></p></td>
 <td><p>Specifies a shadow for value labels. An empty value disables the shadow.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-weights</span> <span class="pre">weights</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-weights</span> <span class="pre">weights</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">weights</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Weights</span></code></p></td>
 <td><p>Supplies per-point numeric weights used to select pens through <code class="docutils literal notranslate"><span class="pre">-styles</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-x</span> <span class="pre">data</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-x</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">xData</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">XData</span></code></p></td>
 <td><p>Supplies the element’s X coordinates as a list or Rbc vector.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-xdata</span> <span class="pre">data</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-xdata</span> <span class="pre">data</span></code></p></td>
 <td><p>—</p></td>
 <td><p>—</p></td>
 <td><p>Synonym for <code class="docutils literal notranslate"><span class="pre">-x</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-xerror</span> <span class="pre">data</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-xerror</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">xError</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">XError</span></code></p></td>
 <td><p>Supplies symmetric X error magnitudes as a list or Rbc vector.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-xhigh</span> <span class="pre">data</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-xhigh</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">xHigh</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">XHigh</span></code></p></td>
 <td><p>Supplies the upper X error endpoints as a list or Rbc vector.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-xlow</span> <span class="pre">data</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-xlow</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">xLow</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">XLow</span></code></p></td>
 <td><p>Supplies the lower X error endpoints as a list or Rbc vector.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-y</span> <span class="pre">data</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-y</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">yData</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">YData</span></code></p></td>
 <td><p>Supplies the element’s Y coordinates as a list or Rbc vector.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-ydata</span> <span class="pre">data</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-ydata</span> <span class="pre">data</span></code></p></td>
 <td><p>—</p></td>
 <td><p>—</p></td>
 <td><p>Synonym for <code class="docutils literal notranslate"><span class="pre">-y</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-yerror</span> <span class="pre">data</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-yerror</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">yError</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">YError</span></code></p></td>
 <td><p>Supplies symmetric Y error magnitudes as a list or Rbc vector.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-yhigh</span> <span class="pre">data</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-yhigh</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">yHigh</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">YHigh</span></code></p></td>
 <td><p>Supplies the upper Y error endpoints as a list or Rbc vector.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-ylow</span> <span class="pre">data</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-ylow</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">yLow</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">YLow</span></code></p></td>
 <td><p>Supplies the lower Y error endpoints as a list or Rbc vector.</p></td>
@@ -778,6 +928,14 @@ runs.</p>
 <li><a class="reference internal" href="#line-drawing">Line drawing</a></li>
 <li><a class="reference internal" href="#smoothing">Smoothing</a></li>
 <li><a class="reference internal" href="#trace-direction">Trace direction</a></li>
+<li><a class="reference internal" href="#display-decimation-for-large-data-sets">Display decimation for large data sets</a><ul>
+<li><a class="reference internal" href="#decimation-principle">Decimation principle</a></li>
+<li><a class="reference internal" href="#when-automatic-decimation-is-used">When automatic decimation is used</a></li>
+<li><a class="reference internal" href="#fallback-behavior">Fallback behavior</a></li>
+<li><a class="reference internal" href="#updates-to-vector-data">Updates to vector data</a></li>
+<li><a class="reference internal" href="#interaction-with-reduce">Interaction with <code class="docutils literal notranslate"><span class="pre">-reduce</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#point-reduction">Point reduction</a></li>
 <li><a class="reference internal" href="#symbols">Symbols</a></li>
 <li><a class="reference internal" href="#error-bars-of-line-elements">Error bars of line elements</a></li>

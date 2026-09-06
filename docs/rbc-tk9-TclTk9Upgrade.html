@@ -176,6 +176,14 @@ time.</p>
 <li><p>Corrected several element formatting and <code class="docutils literal notranslate"><span class="pre">-valueformat</span></code> paths.</p></li>
 <li><p>Fixed step-generation behavior.</p></li>
 <li><p>Corrected line <code class="docutils literal notranslate"><span class="pre">-trace</span></code> behavior.</p></li>
+<li><p>Added optional screen-density decimation for large ordinary line elements through <code class="docutils literal notranslate"><span class="pre">-decimate</span> <span class="pre">none|auto</span></code>.</p></li>
+<li><p>Automatic line decimation preserves the first, minimum, maximum, and last source representatives associated with each physical data-X pixel rather than averaging dense waveform data.</p></li>
+<li><p>Added density-based selection so sparse data continues through the normal mapping path while dense eligible traces can avoid mapping and drawing millions of redundant screen points.</p></li>
+<li><p>Added a persistent data-domain decimation cache for finite, monotonic-X line data. The cache survives ordinary axis remapping and supports increasing, decreasing, and equal X coordinates as well as <code class="docutils literal notranslate"><span class="pre">-invertxy</span></code> and descending axes.</p></li>
+<li><p>Added conservative fallback paths for discontinuities, logarithmically invalid data, non-monotonic paths, symbols, value labels, error data, multiple styles, and other combinations that require full source geometry.</p></li>
+<li><p>Added incremental maintenance of persistent line decimation summaries for ranged Y-vector updates; X changes, vector resizing, storage replacement, and unknown/full-vector changes retain complete invalidation semantics.</p></li>
+<li><p>Accelerated exact <code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">closest</span> <span class="pre">-interpolate</span> <span class="pre">no</span></code> searches for decimated monotonic-X lines while preserving exact source-point results.</p></li>
+<li><p>Screen-density decimation affects window rendering only. PostScript output continues to use full source resolution.</p></li>
 </ul>
 </section>
 <section id="spline-subsystem">
@@ -207,7 +215,12 @@ time.</p>
 <li><p>Removed legacy parser dependencies.</p></li>
 <li><p>Improved ownership of temporary data used by mathematical operations.</p></li>
 <li><p>Added stricter handling of invalid and non-finite input.</p></li>
-<li><p>Added first-class complex vectors, complex expression arithmetic and mathematical functions, and typed public C API access while retaining compatibility with the existing real-vector interface.</p></li>
+<li><p>Added first-class complex vectors, complex expression arithmetic and mathematical functions, typed public C API access, and precise ranged in-place update notification while retaining compatibility with the existing real-vector interface.</p></li>
+<li><p>Added cached real-vector range maintenance so repeated clients do not rescan unchanged vectors merely to obtain minimum and maximum values.</p></li>
+<li><p>Added ranged vector-change notifications. Mapped Tcl-array writes and ordinary vector <code class="docutils literal notranslate"><span class="pre">index</span></code> writes report the affected source interval when an existing real-vector range is modified in place.</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">Rbc_VectorChangedRange(Rbc_Vector</span> <span class="pre">*,</span> <span class="pre">Tcl_Size</span> <span class="pre">first,</span> <span class="pre">Tcl_Size</span> <span class="pre">last)</span></code> to the public C/stubs API so C producers can report precise in-place source modifications without changing vector storage or ownership.</p></li>
+<li><p>Ranged real-vector updates maintain cached extrema incrementally when possible and conservatively fall back to a complete range scan when a modified interval invalidates an existing global extremum.</p></li>
+<li><p>Retained <code class="docutils literal notranslate"><span class="pre">Rbc_VectorChanged()</span></code> as the full/unknown-range notification interface for callers that cannot provide a precise changed interval.</p></li>
 </ul>
 </section>
 <section id="geometry-text-and-drawing">
