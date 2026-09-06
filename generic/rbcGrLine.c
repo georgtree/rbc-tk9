@@ -1359,6 +1359,7 @@ static void DrawSquares(Display *display, Drawable drawable, Line *linePtr, Line
                         register Point2D *symbolPts, int r);
 static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, int size,
                         Tcl_Size nSymbolPts, Point2D *symbolPts);
+static void DrawStrips(Graph *graphPtr, Drawable drawable, GC gc, const Segment2D *segments, Tcl_Size nSegments);
 static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr);
 static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts,
                        Point2D *symbolPts, const Tcl_Size *pointToData);
@@ -9214,6 +9215,112 @@ static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int
         DrawSymbols(graphPtr, drawable, linePtr, penPtr, size, 1, &point);
     }
 }
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * DrawStrips --
+ *
+ *      Draws independent stripchart segments.
+ *
+ *      On Windows, drawing each segment through XDrawSegments is very
+ *      expensive because RBC's Xlib emulation implements it as one
+ *      MoveToEx/LineTo pair per segment.  Batch independent two-point
+ *      polylines with PolyPolyline instead.
+ *
+ *      Other platforms retain the existing Rbc_Draw2DSegments path.
+ *
+ *----------------------------------------------------------------------
+ */
+static void DrawStrips(Graph *graphPtr, Drawable drawable, GC gc, const Segment2D *segments, Tcl_Size nSegments) {
+#ifdef WIN32
+    enum { STRIP_BATCH_SEGMENTS = 16384, STRIP_WIDE_BATCH_SEGMENTS = 1024 };
+
+    Rbc_WinDrawableDC *dcStatePtr;
+    HDC dc;
+    HPEN pen, oldPen;
+    POINT *points;
+    DWORD *counts;
+    Tcl_Size maxSegments;
+    Tcl_Size first;
+    Tcl_Size i;
+    
+    if ((drawable == None) || (gc == NULL) || (segments == NULL) || (nSegments <= 0)) {
+        return;
+    }
+    /*
+     * Long operations using wide geometric pens can themselves become
+     * expensive in GDI.  Use a smaller batch for wide lines, matching
+     * the same concern handled by DrawTraces().
+     */
+    if (gc->line_width > 1) {
+        maxSegments = STRIP_WIDE_BATCH_SEGMENTS;
+    } else {
+        maxSegments = STRIP_BATCH_SEGMENTS;
+    }
+    if (maxSegments > nSegments) {
+        maxSegments = nSegments;
+    }
+    /*
+     * Each independent strip consists of exactly two POINTs.
+     */
+    if ((size_t)maxSegments > SIZE_MAX / (2u * sizeof(*points))) {
+        return;
+    }
+    points = Tcl_AttemptAlloc((size_t)maxSegments * 2u * sizeof(*points));
+    if (points == NULL) {
+        return;
+    }
+
+    if ((size_t)maxSegments > SIZE_MAX / sizeof(*counts)) {
+        ckfree(points);
+        return;
+    }
+    counts = Tcl_AttemptAlloc((size_t)maxSegments * sizeof(*counts));
+    if (counts == NULL) {
+        ckfree(points);
+        return;
+    }
+    /*
+     * Every PolyPolyline entry is a separate two-point polyline.
+     * This array is invariant across all chunks.
+     */
+    for (i = 0; i < maxSegments; i++) {
+        counts[i] = 2;
+    }
+    dc = Rbc_WinAcquireDrawableDC(graphPtr->display, drawable, &dcStatePtr);
+    Rbc_WinSetROP2(dc, gc->function);
+    pen = Rbc_GCToPen(dc, gc);
+    oldPen = SelectPen(dc, pen);
+    first = 0;
+    while (first < nSegments) {
+        Tcl_Size count;
+
+        count = nSegments - first;
+        if (count > maxSegments) {
+            count = maxSegments;
+        }
+        for (i = 0; i < count; i++) {
+            const Segment2D *segPtr;
+
+            segPtr = segments + first + i;
+            points[2 * i].x = (LONG)segPtr->p.x;
+            points[2 * i].y = (LONG)segPtr->p.y;
+            points[2 * i + 1].x = (LONG)segPtr->q.x;
+            points[2 * i + 1].y = (LONG)segPtr->q.y;
+        }
+        PolyPolyline(dc, points, counts, (DWORD)count);
+        first += count;
+    }
+    DeletePen(SelectPen(dc, oldPen));
+    Rbc_WinReleaseDrawableDC(dcStatePtr);
+    ckfree(counts);
+    ckfree(points);
+#else
+    Rbc_Draw2DSegments(graphPtr->display, drawable, gc, segments, nSegments);
+#endif
+}
+
 #ifdef WIN32
 
 /*
@@ -9545,7 +9652,7 @@ static void DrawActiveLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
     } else if (elemPtr->nActiveIndices < 0) {
         if (penPtr->traceWidth > 0) {
             if (linePtr->nStrips > 0) {
-                Rbc_Draw2DSegments(graphPtr->display, drawable, penPtr->traceGC, linePtr->strips, linePtr->nStrips);
+                DrawStrips(graphPtr, drawable, penPtr->traceGC, linePtr->strips, linePtr->nStrips);
             } else if (Rbc_ChainGetLength(linePtr->traces) > 0) {
                 DrawTraces(graphPtr, drawable, linePtr, penPtr);
             }
@@ -9619,11 +9726,12 @@ static void DrawNormalLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
     }
     /* Lines: stripchart segments or graph traces. */
     if (linePtr->nStrips > 0) {
-        for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL;
+             linkPtr = Rbc_ChainNextLink(linkPtr)) {
             stylePtr = Rbc_ChainGetValue(linkPtr);
             penPtr = stylePtr->penPtr;
             if ((stylePtr->nStrips > 0) && (penPtr->errorBarLineWidth > 0)) {
-                Rbc_Draw2DSegments(graphPtr->display, drawable, penPtr->traceGC, stylePtr->strips, stylePtr->nStrips);
+                DrawStrips(graphPtr, drawable, penPtr->traceGC, stylePtr->strips, stylePtr->nStrips);
             }
         }
     } else if ((Rbc_ChainGetLength(linePtr->traces) > 0) && (normalPenPtr->traceWidth > 0)) {
