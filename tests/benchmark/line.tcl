@@ -3,6 +3,8 @@
 package require Tk
 package require rbc
 
+source [file join [file dirname [file normalize [info script]]] common.tcl]
+
 namespace eval ::rbcBenchmark {
     variable options [dict create points {10000 100000 1000000 5000000} sizes {640x480 1280x720 1920x1080 2560x1440}\
                               iterations 3 warmup 1 decimate {none auto} stripchart 0 csv {}]
@@ -17,6 +19,16 @@ proc ::rbcBenchmark::Usage {} {
     puts {Usage: line.tcl ?options?
 
 Options:
+
+  -profile NAME
+      Select workload defaults.
+
+      Values:
+          smoke
+          standard
+          stress
+
+      If omitted, the historical line.tcl defaults are retained.
 
   -stripchart
       Benchmark strip elements in a stripchart instead of line
@@ -70,19 +82,18 @@ Examples:
 }
 }
 
-proc ::rbcBenchmark::ParseList {value} {
-    set result {}
-    foreach item [split $value ,] {
-        set item [string trim $item]
-        if {$item ne {}} {
-            lappend result $item
-        }
-    }
-    return $result
-}
 
 proc ::rbcBenchmark::ParseArgs {argv} {
     variable options
+
+    # No -profile keeps the historical standalone line.tcl defaults.
+    # A supplied profile replaces the common workload dimensions before
+    # explicit command-line options are applied, so explicit options win
+    # regardless of argument ordering.
+    set profile [FindProfile $argv {}]
+    if {$profile ne {}} {
+        set options [dict merge $options [ProfileDefaults line $profile]]
+    }
 
     for {set i 0} {$i < [llength $argv]} {incr i} {
         set arg [lindex $argv $i]
@@ -97,6 +108,7 @@ proc ::rbcBenchmark::ParseArgs {argv} {
             -stripchart {
                 dict set options stripchart 1
             }
+            -profile -
             -points -
             -sizes -
             -iterations -
@@ -109,6 +121,9 @@ proc ::rbcBenchmark::ParseArgs {argv} {
                 }
                 set value [lindex $argv $i]
                 switch -- $arg {
+                    -profile {
+                        # Already applied before this parsing pass.
+                    }
                     -points {
                         dict set options points [ParseList $value]
                     }
@@ -180,51 +195,9 @@ proc ::rbcBenchmark::ParseArgs {argv} {
     dict set options decimate $checked
 }
 
-proc ::rbcBenchmark::Mean {values} {
-    set sum 0.0
-    foreach value $values {
-        set sum [expr {$sum + $value}]
-    }
-    return [expr {$sum / double([llength $values])}]
-}
-
-proc ::rbcBenchmark::Median {values} {
-    set values [lsort -real $values]
-    set n [llength $values]
-    set middle [expr {$n / 2}]
-    if {$n & 1} {
-        return [lindex $values $middle]
-    }
-    return [expr {([lindex $values [expr {$middle - 1}]] + [lindex $values $middle]) / 2.0}]
-}
-
-proc ::rbcBenchmark::Stats {values} {
-    set values [lsort -real $values]
-    return [dict create min [lindex $values 0] median [Median $values] mean [Mean $values] max [lindex $values end]]
-}
 
 proc ::rbcBenchmark::WaveformValue {x} {
-    return [expr {0.60 * sin($x * 106.81415022205297) + 0.25 * sin($x * 823.0972752405258) + 0.10 *\
-                           sin($x * 6264.335751258144)}]
-}
-
-proc ::rbcBenchmark::SyncDisplay {} {
-    variable graph
-    # RBC redraws are normally scheduled using an idle callback.
-    update idletasks
-    # On X11 this causes a server round trip.  This is important:
-    # otherwise XDrawLines() may merely enqueue requests and our timer
-    # would stop before the X server had consumed them.
-    #
-    # On Windows this is a cheap native query.
-    catch {winfo pointerx $graph}
-}
-
-proc ::rbcBenchmark::Time {script} {
-    set start [clock microseconds]
-    uplevel 1 $script
-    set stop [clock microseconds]
-    return [expr {($stop - $start)/1000.0}]
+    return [expr {0.60*sin($x*106.81415022205297)+0.25*sin($x*823.0972752405258)+0.10*sin($x*6264.335751258144)}]
 }
 
 # Generate the source data once per point count.
@@ -297,17 +270,6 @@ proc ::rbcBenchmark::CreateGraph {} {
     update
 }
 
-proc ::rbcBenchmark::SetSize {width height} {
-    variable top
-    variable graph
-    wm geometry $top [format "%dx%d+0+0" $width $height]
-    # Process native Configure events.  update idletasks alone does not
-    # guarantee that winfo width/height reflects the requested native
-    # window size.
-    update
-    return [list [winfo width $graph] [winfo height $graph]]
-}
-
 #
 # First mapping + first complete drawing.
 #
@@ -324,18 +286,6 @@ proc ::rbcBenchmark::CreateElement {mode} {
     }
     return [Time {
         $graph element create signal {*}$elementOptions
-        SyncDisplay
-    }]
-}
-
-# Redraw already mapped geometry.
-#
-# Because -bufferelements is off, RBC cannot satisfy this simply by
-# copying its cached element backing pixmap.
-proc ::rbcBenchmark::MeasureRedraw {} {
-    variable graph
-    return [Time {
-        event generate $graph <Expose>
         SyncDisplay
     }]
 }
@@ -494,11 +444,6 @@ proc ::rbcBenchmark::OpenCsv {} {
                                  append_remap_mean_ms append_remap_max_ms closest_min_ms closest_median_ms\
                                  closest_mean_ms closest_max_ms} ,]
     return $channel
-}
-
-proc ::rbcBenchmark::CsvQuote {value} {
-    set value [string map {\" \"\"} $value]
-    return "\"$value\""
 }
 
 proc ::rbcBenchmark::WriteCsv {channel row} {
