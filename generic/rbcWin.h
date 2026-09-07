@@ -142,6 +142,8 @@ void Rbc_WinGet3DBorderColors(Tk_Window tkwin, Tk_3DBorder border, Rbc_Win3DBord
 void Rbc_WinFillRect(HDC dc, int x, int y, int width, int height, COLORREF color);
 int Rbc_WinFillOpaqueStippledRectangles(Display *display, Drawable drawable, GC gc, const XRectangle *rectangles,
                                         int nRectangles);
+int Rbc_WinCopyOpaqueBitmapBatch(Display *display, Drawable drawable, Pixmap bitmap, GC gc, int width, int height,
+                                 const POINT *positions, Tcl_Size nPositions);
 
 EXTERN void Rbc_EmulateXDrawArcs(Display *display, Drawable drawable, GC gc, XArc *arcArr, int nArcs);
 EXTERN void Rbc_EmulateXDrawPoints(Display *display, Drawable drawable, GC gc, XPoint *pointArr, int nPoints, int mode);

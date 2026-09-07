@@ -568,6 +568,74 @@ int Rbc_WinFillOpaqueStippledRectangles(Display *display, Drawable drawable, GC 
 }
 
 /*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_WinCopyOpaqueBitmapBatch --
+ *
+ *      Copy one monochrome bitmap to many destination positions while
+ *      sharing the source and destination device contexts.
+ *
+ *      This implements the simple opaque XCopyPlane case used by
+ *      unmasked bitmap markers.
+ *
+ * Results:
+ *      TRUE on success, FALSE if the fast path could not be completed.
+ *
+ *----------------------------------------------------------------------
+ */
+int Rbc_WinCopyOpaqueBitmapBatch(Display *display, Drawable drawable, Pixmap bitmap, GC gc, int width, int height,
+                                 const POINT *positions, Tcl_Size nPositions) {
+    Rbc_WinDrawableDC *dcStatePtr;
+    TkWinDCState srcState;
+    HDC srcDC;
+    HDC dc;
+    COLORREF oldBkColor;
+    COLORREF oldTextColor;
+    int oldBkMode;
+    Tcl_Size i;
+    int result;
+
+    if ((display == NULL) || (drawable == None) || (bitmap == None) || (gc == NULL) || (positions == NULL) ||
+        (nPositions <= 0) || (width <= 0) || (height <= 0)) {
+        return FALSE;
+    }
+    dc = Rbc_WinAcquireDrawableDC(display, drawable, &dcStatePtr);
+    if (dc == NULL) {
+        return FALSE;
+    }
+    /*
+     * Acquire the monochrome source bitmap DC once for the whole run.
+     */
+    srcDC = TkWinGetDrawableDC(display, bitmap, &srcState);
+    if (srcDC == NULL) {
+        Rbc_WinReleaseDrawableDC(dcStatePtr);
+        return FALSE;
+    }
+    /*
+     * Match Tk's opaque XCopyPlane conversion exactly:
+     *
+     *      bitmap bit 0 -> gc foreground
+     *      bitmap bit 1 -> gc background
+     */
+    oldBkMode = SetBkMode(dc, OPAQUE);
+    oldBkColor = SetBkColor(dc, (COLORREF)gc->foreground);
+    oldTextColor = SetTextColor(dc, (COLORREF)gc->background);
+    result = TRUE;
+    for (i = 0; i < nPositions; i++) {
+        if (!BitBlt(dc, positions[i].x, positions[i].y, width, height, srcDC, 0, 0, SRCCOPY)) {
+            result = FALSE;
+            break;
+        }
+    }
+    SetTextColor(dc, oldTextColor);
+    SetBkColor(dc, oldBkColor);
+    SetBkMode(dc, oldBkMode);
+    TkWinReleaseDrawableDC(bitmap, srcDC, &srcState);
+    Rbc_WinReleaseDrawableDC(dcStatePtr);
+    return result;
+}
+
+/*
  *--------------------------------------------------------------
  *
  * Rbc_EmulateXMaxRequestSize --

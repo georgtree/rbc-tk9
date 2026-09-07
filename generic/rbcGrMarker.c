@@ -6238,6 +6238,72 @@ void Rbc_MarkersToPostScript(Graph *graphPtr, PsToken psToken, int under) {
 
 #ifdef WIN32
 
+static void DrawWinTextMarkerRun(Graph *graphPtr, Drawable drawable, TextMarker **markers, Tcl_Size nMarkers) {
+    Rbc_WinDrawableDC *dcStatePtr;
+    Drawable dcDrawable;
+    HDC dc;
+    Tcl_Size i;
+
+    if ((markers == NULL) || (nMarkers <= 0)) {
+        return;
+    }
+
+    dc = Rbc_WinAcquireDrawableDC(graphPtr->display, drawable, &dcStatePtr);
+
+    if (dc == NULL) {
+        for (i = 0; i < nMarkers; i++) {
+            DrawTextMarker(&markers[i]->core, drawable);
+        }
+        return;
+    }
+
+    dcDrawable = Rbc_WinCreateDrawableFromDC(dc);
+
+    if (dcDrawable == None) {
+        Rbc_WinReleaseDrawableDC(dcStatePtr);
+
+        for (i = 0; i < nMarkers; i++) {
+            DrawTextMarker(&markers[i]->core, drawable);
+        }
+        return;
+    }
+
+    for (i = 0; i < nMarkers; i++) {
+        DrawTextMarker(&markers[i]->core, dcDrawable);
+    }
+
+    Rbc_WinFreeDrawableFromDC(dcDrawable);
+    Rbc_WinReleaseDrawableDC(dcStatePtr);
+}
+
+static int CanBatchWinTextMarker(TextMarker *tmPtr) {
+    if ((tmPtr == NULL) || (tmPtr->string == NULL) || (tmPtr->style.color == NULL) || (tmPtr->textPtr == NULL)) {
+        return FALSE;
+    }
+
+    /*
+     * Initially exclude marker backgrounds.  That keeps this test
+     * focused on the text renderer.
+     */
+    if (tmPtr->fillGC != NULL) {
+        return FALSE;
+    }
+
+    /*
+     * Disabled/emphasis/shadow/active rendering may change the GC
+     * foreground while drawing.  Keep the first fast path narrow.
+     */
+    if (tmPtr->style.state & (STATE_DISABLED | STATE_EMPHASIS | STATE_ACTIVE)) {
+        return FALSE;
+    }
+
+    if ((tmPtr->style.shadow.offset > 0) && (tmPtr->style.shadow.color != NULL)) {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -6351,6 +6417,38 @@ static int CanBatchWinPolygonFillMarker(PolygonMarker *pmPtr) {
     return TRUE;
 }
 
+static int CanBatchWinBitmapMarker(BitmapMarker *bmPtr) {
+    double theta;
+
+    if ((bmPtr == NULL) || (bmPtr->gc == NULL) || (bmPtr->destBitmap == None) || (bmPtr->destWidth <= 0) ||
+        (bmPtr->destHeight <= 0)) {
+        return FALSE;
+    }
+    /*
+     * Only the simple opaque XCopyPlane case.
+     */
+    if (bmPtr->destMask != None) {
+        return FALSE;
+    }
+    if ((bmPtr->outlineColor == NULL) || (bmPtr->fillColor == NULL)) {
+        return FALSE;
+    }
+    /*
+     * Arbitrary rotation with an opaque background uses the special
+     * polygon-background + bitmap-mask path in DrawBitmapMarker().
+     *
+     * Right-angle rotations do not need that workaround.
+     */
+    theta = FMOD(bmPtr->theta, 90.0);
+    if (theta < 0.0) {
+        theta += 90.0;
+    }
+    if (fabs(theta) > DBL_EPSILON) {
+        return FALSE;
+    }
+    return TRUE;
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -6384,6 +6482,15 @@ static int SameWinPolygonFillStyle(PolygonMarker *aPtr, PolygonMarker *bPtr) {
         return FALSE;
     }
     return (aPtr->fill.fgColor->pixel == bPtr->fill.fgColor->pixel);
+}
+
+static int SameWinBitmapStyle(BitmapMarker *aPtr, BitmapMarker *bPtr) {
+    if ((aPtr == NULL) || (bPtr == NULL)) {
+        return FALSE;
+    }
+    return (aPtr->destBitmap == bPtr->destBitmap) && (aPtr->destWidth == bPtr->destWidth) &&
+           (aPtr->destHeight == bPtr->destHeight) && (aPtr->gc->foreground == bPtr->gc->foreground) &&
+           (aPtr->gc->background == bPtr->gc->background);
 }
 
 /*
@@ -6510,7 +6617,38 @@ static void FlushWinPolygonFillBatch(Graph *graphPtr, Drawable drawable, Polygon
     *nMarkersPtr = 0;
 }
 
+static void FlushWinTextMarkerBatch(Graph *graphPtr, Drawable drawable, TextMarker **markers, Tcl_Size *nMarkersPtr) {
+    if (*nMarkersPtr > 0) {
+        DrawWinTextMarkerRun(graphPtr, drawable, markers, *nMarkersPtr);
+    }
+    *nMarkersPtr = 0;
+}
 
+static void FlushWinBitmapMarkerBatch(Graph *graphPtr, Drawable drawable, BitmapMarker **stylePtrPtr, POINT *positions,
+                                      Tcl_Size *nPositionsPtr) {
+    BitmapMarker *bmPtr;
+    Tcl_Size i;
+
+    bmPtr = *stylePtrPtr;
+    if ((bmPtr != NULL) && (*nPositionsPtr > 0)) {
+        if (!Rbc_WinCopyOpaqueBitmapBatch(graphPtr->display, drawable, bmPtr->destBitmap, bmPtr->gc, bmPtr->destWidth,
+                                          bmPtr->destHeight, positions, *nPositionsPtr)) {
+            /*
+             * The fast path is GXcopy-equivalent, so if it failed
+             * after drawing a partial run it is safe to redraw the
+             * complete run through the normal XCopyPlane path.
+             */
+            XSetClipMask(graphPtr->display, bmPtr->gc, None);
+            XSetClipOrigin(graphPtr->display, bmPtr->gc, 0, 0);
+            for (i = 0; i < *nPositionsPtr; i++) {
+                XCopyPlane(graphPtr->display, bmPtr->destBitmap, drawable, bmPtr->gc, 0, 0, bmPtr->destWidth,
+                           bmPtr->destHeight, positions[i].x, positions[i].y, 1);
+            }
+        }
+    }
+    *stylePtrPtr = NULL;
+    *nPositionsPtr = 0;
+}
 
 #endif /* WIN32 */
 
@@ -6570,7 +6708,16 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
     Tcl_Size nPolygonFillMarkers;
     size_t polygonFillCapacity;
     int polygonFillCapacityValid;
-    
+    TextMarker **textMarkers;
+    Tcl_Size nTextMarkers;
+    size_t textCapacity;
+    int textCapacityValid;
+    POINT *bitmapPositions;
+    BitmapMarker *bitmapStylePtr;
+    Tcl_Size nBitmapPositions;
+    size_t bitmapCapacity;
+    int bitmapCapacityValid;
+
     polygonFillCapacityValid = TRUE;    
     lineCapacityValid = TRUE;
     polygonCapacityValid = TRUE;
@@ -6586,6 +6733,15 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
     polygonFillStylePtr = NULL;
     nPolygonFillMarkers = 0;
     polygonFillCapacity = 0;
+    textMarkers = NULL;
+    nTextMarkers = 0;
+    textCapacity = 0;
+    textCapacityValid = TRUE;
+    bitmapPositions = NULL;
+    bitmapStylePtr = NULL;
+    nBitmapPositions = 0;
+    bitmapCapacity = 0;
+    bitmapCapacityValid = TRUE;
     /*
      * Determine the maximum storage that could be needed by the
      * simple line-marker batches.
@@ -6600,6 +6756,7 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
         markerPtr = Rbc_ChainGetValue(linkPtr);
         if (markerPtr->classUid == rbcLineMarkerUid) {
             LineMarker *lmPtr;
+            
             lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
             if (lineCapacityValid && CanBatchWinLineMarker(lmPtr)) {
                 if ((size_t)lmPtr->nSegments > (SIZE_MAX / sizeof(*lineSegments)) - lineCapacity) {
@@ -6615,11 +6772,9 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
             PolygonMarker *pmPtr;
 
             pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
-
             if (CanBatchWinPolygonOutlineMarker(pmPtr)) {
                 if (polygonCapacityValid) {
                     if ((size_t)pmPtr->nOutlinePts > (SIZE_MAX / sizeof(*polygonSegments)) - polygonCapacity) {
-
                         polygonCapacity = 0;
                         polygonCapacityValid = FALSE;
                     } else {
@@ -6628,7 +6783,6 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
                 }
                 continue;
             }
-
             if (CanBatchWinPolygonFillMarker(pmPtr)) {
                 if (polygonFillCapacityValid) {
                     if (polygonFillCapacity == SIZE_MAX) {
@@ -6640,6 +6794,34 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
                 }
                 continue;
             }
+        }
+        if (markerPtr->classUid == rbcTextMarkerUid) {
+            TextMarker *tmPtr;
+
+            tmPtr = TEXT_MARKER_FROM_CORE(markerPtr);
+            if (textCapacityValid && CanBatchWinTextMarker(tmPtr)) {
+                if (textCapacity == SIZE_MAX) {
+                    textCapacity = 0;
+                    textCapacityValid = FALSE;
+                } else {
+                    textCapacity++;
+                }
+            }
+            continue;
+        }
+        if (markerPtr->classUid == rbcBitmapMarkerUid) {
+            BitmapMarker *bmPtr;
+
+            bmPtr = BITMAP_MARKER_FROM_CORE(markerPtr);
+            if (bitmapCapacityValid && CanBatchWinBitmapMarker(bmPtr)) {
+                if (bitmapCapacity == SIZE_MAX) {
+                    bitmapCapacity = 0;
+                    bitmapCapacityValid = FALSE;
+                } else {
+                    bitmapCapacity++;
+                }
+            }
+            continue;
         }
     }
     if (lineCapacity > 0) {
@@ -6661,6 +6843,26 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
             polygonFillMarkers = Tcl_AttemptAlloc(polygonFillCapacity * sizeof(*polygonFillMarkers));
             if (polygonFillMarkers == NULL) {
                 polygonFillCapacity = 0;
+            }
+        }
+    }
+    if (textCapacity > 0) {
+        if (textCapacity > SIZE_MAX / sizeof(*textMarkers)) {
+            textCapacity = 0;
+        } else {
+            textMarkers = Tcl_AttemptAlloc(textCapacity * sizeof(*textMarkers));
+            if (textMarkers == NULL) {
+                textCapacity = 0;
+            }
+        }
+    }
+    if (bitmapCapacity > 0) {
+        if (bitmapCapacity > SIZE_MAX / sizeof(*bitmapPositions)) {
+            bitmapCapacity = 0;
+        } else {
+            bitmapPositions = Tcl_AttemptAlloc(bitmapCapacity * sizeof(*bitmapPositions));
+            if (bitmapPositions == NULL) {
+                bitmapCapacity = 0;
             }
         }
     }
@@ -6702,6 +6904,8 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
 
             lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
             if (CanBatchWinLineMarker(lmPtr)) {
+                FlushWinBitmapMarkerBatch(graphPtr, drawable, &bitmapStylePtr, bitmapPositions, &nBitmapPositions);
+                FlushWinTextMarkerBatch(graphPtr, drawable, textMarkers, &nTextMarkers);
                 FlushWinPolygonMarkerBatch(graphPtr, drawable, &polygonStylePtr, polygonSegments, &nPolygonSegments);
                 FlushWinPolygonFillBatch(graphPtr, drawable, &polygonFillStylePtr, polygonFillMarkers,
                                          &nPolygonFillMarkers);
@@ -6731,6 +6935,8 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
                 /*
                  * Preserve display-list ordering across marker classes.
                  */
+                FlushWinBitmapMarkerBatch(graphPtr, drawable, &bitmapStylePtr, bitmapPositions, &nBitmapPositions);
+                FlushWinTextMarkerBatch(graphPtr, drawable, textMarkers, &nTextMarkers);                
                 FlushWinLineMarkerBatch(graphPtr, drawable, &lineStylePtr, lineSegments, &nLineSegments);
                 FlushWinPolygonFillBatch(graphPtr, drawable, &polygonFillStylePtr, polygonFillMarkers,
                                          &nPolygonFillMarkers);
@@ -6755,6 +6961,8 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
                 /*
                  * Preserve ordering with preceding line and outline markers.
                  */
+                FlushWinBitmapMarkerBatch(graphPtr, drawable, &bitmapStylePtr, bitmapPositions, &nBitmapPositions);
+                FlushWinTextMarkerBatch(graphPtr, drawable, textMarkers, &nTextMarkers);
                 FlushWinLineMarkerBatch(graphPtr, drawable, &lineStylePtr, lineSegments, &nLineSegments);
                 FlushWinPolygonMarkerBatch(graphPtr, drawable, &polygonStylePtr, polygonSegments, &nPolygonSegments);
                 if ((polygonFillStylePtr != NULL) && (!SameWinPolygonFillStyle(polygonFillStylePtr, pmPtr))) {
@@ -6768,10 +6976,55 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
                 continue;
             }
         }
+        if ((textMarkers != NULL) && (markerPtr->classUid == rbcTextMarkerUid)) {
+            TextMarker *tmPtr;
+
+            tmPtr = TEXT_MARKER_FROM_CORE(markerPtr);
+            if (CanBatchWinTextMarker(tmPtr)) {
+                /*
+                 * Preserve marker display-list ordering.
+                 */
+                FlushWinBitmapMarkerBatch(graphPtr, drawable, &bitmapStylePtr, bitmapPositions, &nBitmapPositions);
+                FlushWinLineMarkerBatch(graphPtr, drawable, &lineStylePtr, lineSegments, &nLineSegments);
+                FlushWinPolygonMarkerBatch(graphPtr, drawable, &polygonStylePtr, polygonSegments, &nPolygonSegments);
+                FlushWinPolygonFillBatch(graphPtr, drawable, &polygonFillStylePtr, polygonFillMarkers,
+                                         &nPolygonFillMarkers);
+                textMarkers[nTextMarkers++] = tmPtr;
+                continue;
+            }
+        }
+        if ((bitmapPositions != NULL) && (markerPtr->classUid == rbcBitmapMarkerUid)) {
+            BitmapMarker *bmPtr;
+
+            bmPtr = BITMAP_MARKER_FROM_CORE(markerPtr);
+            if (CanBatchWinBitmapMarker(bmPtr)) {
+                /*
+                 * Everything preceding this bitmap marker must already
+                 * have been rendered.
+                 */
+                FlushWinLineMarkerBatch(graphPtr, drawable, &lineStylePtr, lineSegments, &nLineSegments);
+                FlushWinPolygonMarkerBatch(graphPtr, drawable, &polygonStylePtr, polygonSegments, &nPolygonSegments);
+                FlushWinPolygonFillBatch(graphPtr, drawable, &polygonFillStylePtr, polygonFillMarkers,
+                                         &nPolygonFillMarkers);
+                FlushWinTextMarkerBatch(graphPtr, drawable, textMarkers, &nTextMarkers);
+                if ((bitmapStylePtr != NULL) && (!SameWinBitmapStyle(bitmapStylePtr, bmPtr))) {
+                    FlushWinBitmapMarkerBatch(graphPtr, drawable, &bitmapStylePtr, bitmapPositions, &nBitmapPositions);
+                }
+                if (bitmapStylePtr == NULL) {
+                    bitmapStylePtr = bmPtr;
+                }
+                bitmapPositions[nBitmapPositions].x = (LONG)(int)bmPtr->anchorPos.x;
+                bitmapPositions[nBitmapPositions].y = (LONG)(int)bmPtr->anchorPos.y;
+                nBitmapPositions++;
+                continue;
+            }
+        }
         /*
          * Anything that must be drawn individually has to appear
          * after all preceding batched line markers.
          */
+        FlushWinBitmapMarkerBatch(graphPtr, drawable, &bitmapStylePtr, bitmapPositions, &nBitmapPositions);
+        FlushWinTextMarkerBatch(graphPtr, drawable, textMarkers, &nTextMarkers);
         FlushWinLineMarkerBatch(graphPtr, drawable, &lineStylePtr, lineSegments, &nLineSegments);
         FlushWinPolygonMarkerBatch(graphPtr, drawable, &polygonStylePtr, polygonSegments, &nPolygonSegments);
         FlushWinPolygonFillBatch(graphPtr, drawable, &polygonFillStylePtr, polygonFillMarkers, &nPolygonFillMarkers);
@@ -6782,6 +7035,8 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
     /*
      * Flush a batch ending at the end of the display list.
      */
+    FlushWinBitmapMarkerBatch(graphPtr, drawable, &bitmapStylePtr, bitmapPositions, &nBitmapPositions);
+    FlushWinTextMarkerBatch(graphPtr, drawable, textMarkers, &nTextMarkers);
     FlushWinLineMarkerBatch(graphPtr, drawable, &lineStylePtr, lineSegments, &nLineSegments);
     FlushWinPolygonMarkerBatch(graphPtr, drawable, &polygonStylePtr, polygonSegments, &nPolygonSegments);
     FlushWinPolygonFillBatch(graphPtr, drawable, &polygonFillStylePtr, polygonFillMarkers, &nPolygonFillMarkers);    
@@ -6793,6 +7048,9 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
     }
     if (polygonFillMarkers != NULL) {
         ckfree(polygonFillMarkers);
+    }
+    if (bitmapPositions != NULL) {
+        ckfree(bitmapPositions);
     }
 #endif /* WIN32 */
 }
