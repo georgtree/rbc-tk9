@@ -6236,6 +6236,284 @@ void Rbc_MarkersToPostScript(Graph *graphPtr, PsToken psToken, int under) {
     }
 }
 
+#ifdef WIN32
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * CanBatchWinLineMarker --
+ *
+ *      Return non-zero when a line marker can safely participate in
+ *      the simple Windows marker batch.
+ *
+ *      Keep this deliberately narrow initially.  The benchmark case
+ *      consists of solid, one-pixel, non-XOR line markers without
+ *      arrowheads.
+ *
+ *----------------------------------------------------------------------
+ */
+static int CanBatchWinLineMarker(LineMarker *lmPtr) {
+    if ((lmPtr == NULL) || (lmPtr->gc == NULL) || (lmPtr->segments == NULL) || (lmPtr->nSegments <= 0)) {
+        return FALSE;
+    }
+    if (lmPtr->xor) {
+        return FALSE;
+    }
+    if (lmPtr->arrow != LINE_ARROW_NONE) {
+        return FALSE;
+    }
+    if (LineIsDashed(lmPtr->dashes)) {
+        return FALSE;
+    }
+    /*
+     * First optimize exactly the common/default marker geometry.
+     */
+    if (lmPtr->lineWidth != 1) {
+        return FALSE;
+    }
+    if (lmPtr->capStyle != CapButt) {
+        return FALSE;
+    }
+    if (lmPtr->joinStyle != JoinMiter) {
+        return FALSE;
+    }
+    if (lmPtr->outlineColor == NULL) {
+        return FALSE;
+    }
+
+    /*
+     * -fill only matters for double-dashed lines.  Since this fast
+     * path accepts only solid lines, it does not affect rendering.
+     */
+    return TRUE;
+}
+
+static int CanBatchWinPolygonOutlineMarker(PolygonMarker *pmPtr) {
+    if ((pmPtr == NULL) || (pmPtr->outlineGC == NULL) || (pmPtr->outlinePts == NULL) || (pmPtr->nOutlinePts <= 0)) {
+        return FALSE;
+    }
+    /*
+     * This fast path is strictly outline-only.  A filled polygon must
+     * retain its normal fill-before-outline drawing order.
+     */
+    if ((pmPtr->nFillPts >= 3) && (pmPtr->fill.fgColor != NULL)) {
+        return FALSE;
+    }
+    if (pmPtr->xor) {
+        return FALSE;
+    }
+    if (LineIsDashed(pmPtr->dashes)) {
+        return FALSE;
+    }
+    if (pmPtr->lineWidth != 1) {
+        return FALSE;
+    }
+    if (pmPtr->capStyle != CapButt) {
+        return FALSE;
+    }
+    if (pmPtr->joinStyle != JoinMiter) {
+        return FALSE;
+    }
+    if (pmPtr->outline.fgColor == NULL) {
+        return FALSE;
+    }
+    return TRUE;
+}
+
+static int CanBatchWinPolygonFillMarker(PolygonMarker *pmPtr) {
+    if ((pmPtr == NULL) || (pmPtr->fillGC == NULL) || (pmPtr->fillPts == NULL) || (pmPtr->nFillPts < 3) ||
+        (pmPtr->nFillPts > INT_MAX) || (pmPtr->fill.fgColor == NULL)) {
+        return FALSE;
+    }
+    /*
+     * Initially optimize only normal solid fills.
+     */
+    if (pmPtr->xor) {
+        return FALSE;
+    }
+    if (pmPtr->stipple != None) {
+        return FALSE;
+    }
+    /*
+     * Keep this path strictly fill-only so the normal
+     * fill-before-outline ordering cannot be changed.
+     */
+    if ((pmPtr->nOutlinePts > 0) && (pmPtr->lineWidth > 0) && (pmPtr->outline.fgColor != NULL)) {
+        return FALSE;
+    }
+    /*
+     * A background color is only meaningful for stippling, but keep
+     * the initial fast path deliberately narrow.
+     */
+    if (pmPtr->fill.bgColor != NULL) {
+        return FALSE;
+    }
+    return TRUE;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * SameWinLineMarkerStyle --
+ *
+ *      Return non-zero when two already-eligible line markers can be
+ *      rendered with the same GC.
+ *
+ *----------------------------------------------------------------------
+ */
+static int SameWinLineMarkerStyle(LineMarker *aPtr, LineMarker *bPtr) {
+    if ((aPtr == NULL) || (bPtr == NULL)) {
+        return FALSE;
+    }
+    /*
+     * CanBatchWinLineMarker has already established identical
+     * linewidth/cap/join/dash/XOR characteristics.
+     */
+    return (aPtr->outlineColor->pixel == bPtr->outlineColor->pixel);
+}
+
+static int SameWinPolygonOutlineStyle(PolygonMarker *aPtr, PolygonMarker *bPtr) {
+    if ((aPtr == NULL) || (bPtr == NULL)) {
+        return FALSE;
+    }
+    return (aPtr->outline.fgColor->pixel == bPtr->outline.fgColor->pixel);
+}
+
+static int SameWinPolygonFillStyle(PolygonMarker *aPtr, PolygonMarker *bPtr) {
+    if ((aPtr == NULL) || (bPtr == NULL)) {
+        return FALSE;
+    }
+    return (aPtr->fill.fgColor->pixel == bPtr->fill.fgColor->pixel);
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * FlushWinLineMarkerBatch --
+ *
+ *----------------------------------------------------------------------
+ */
+static void FlushWinLineMarkerBatch(Graph *graphPtr, Drawable drawable, LineMarker **stylePtrPtr, Segment2D *segments,
+                                    Tcl_Size *nSegmentsPtr) {
+    if ((*stylePtrPtr != NULL) && (*nSegmentsPtr > 0)) {
+        Rbc_Draw2DSegments(graphPtr->display, drawable, (*stylePtrPtr)->gc, segments, *nSegmentsPtr);
+    }
+    *stylePtrPtr = NULL;
+    *nSegmentsPtr = 0;
+}
+
+static void FlushWinPolygonMarkerBatch(Graph *graphPtr, Drawable drawable, PolygonMarker **stylePtrPtr,
+                                       Segment2D *segments, Tcl_Size *nSegmentsPtr) {
+    if ((*stylePtrPtr != NULL) && (*nSegmentsPtr > 0)) {
+        Rbc_Draw2DSegments(graphPtr->display, drawable, (*stylePtrPtr)->outlineGC, segments, *nSegmentsPtr);
+    }
+    *stylePtrPtr = NULL;
+    *nSegmentsPtr = 0;
+}
+
+static void DrawWinPolygonFillMarkers(Graph *graphPtr, Drawable drawable, PolygonMarker *stylePtr,
+                                      PolygonMarker **markers, Tcl_Size nMarkers) {
+    Rbc_WinDrawableDC *dcStatePtr;
+    POINT *points;
+    HBRUSH brush;
+    HBRUSH oldBrush;
+    HPEN oldPen;
+    HDC dc;
+    GC gc;
+    Tcl_Size maxPoints;
+    Tcl_Size i;
+    int oldFillMode;
+
+    if ((stylePtr == NULL) || (markers == NULL) || (nMarkers <= 0)) {
+        return;
+    }
+    /*
+     * One temporary POINT array is reused for every polygon.
+     */
+    maxPoints = 0;
+    for (i = 0; i < nMarkers; i++) {
+        if (markers[i]->nFillPts > maxPoints) {
+            maxPoints = markers[i]->nFillPts;
+        }
+    }
+    if ((maxPoints <= 0) || ((size_t)maxPoints > SIZE_MAX / sizeof(*points))) {
+        goto fallback;
+    }
+    points = Tcl_AttemptAlloc((size_t)maxPoints * sizeof(*points));
+    if (points == NULL) {
+        goto fallback;
+    }
+    gc = stylePtr->fillGC;
+    brush = CreateSolidBrush(gc->foreground);
+    if (brush == NULL) {
+        ckfree(points);
+        goto fallback;
+    }
+    dc = Rbc_WinAcquireDrawableDC(graphPtr->display, drawable, &dcStatePtr);
+    Rbc_WinSetROP2(dc, gc->function);
+    oldBrush = SelectBrush(dc, brush);
+    oldPen = SelectPen(dc, GetStockPen(NULL_PEN));
+    /*
+     * Preserve XFillPolygon's fill-rule selection.
+     */
+    oldFillMode = SetPolyFillMode(dc, (gc->fill_rule == EvenOddRule) ? ALTERNATE : WINDING);
+    for (i = 0; i < nMarkers; i++) {
+        PolygonMarker *pmPtr;
+        Tcl_Size j;
+        int nPoints;
+
+        pmPtr = markers[i];
+        nPoints = GetMarkerPolygonPointCount(graphPtr->display, pmPtr->nFillPts);
+        if (nPoints <= 0) {
+            continue;
+        }
+        /*
+         * Preserve the conversion currently used by
+         * DrawPolygonMarker().
+         */
+        for (j = 0; j < pmPtr->nFillPts; j++) {
+            points[j].x = (LONG)(short int)pmPtr->fillPts[j].x;
+            points[j].y = (LONG)(short int)pmPtr->fillPts[j].y;
+        }
+        /*
+         * NULL_PEN makes this a fill-only polygon.
+         *
+         * Keep polygons as independent operations initially.
+         */
+        Polygon(dc, points, nPoints);
+    }
+    if (oldFillMode != 0) {
+        SetPolyFillMode(dc, oldFillMode);
+    }
+    SelectPen(dc, oldPen);
+    DeleteBrush(SelectBrush(dc, oldBrush));
+    Rbc_WinReleaseDrawableDC(dcStatePtr);
+    ckfree(points);
+    return;
+
+fallback:
+    /*
+     * Preserve rendering if the optimized temporary allocation/setup
+     * cannot be performed.
+     */
+    for (i = 0; i < nMarkers; i++) {
+        DrawPolygonMarker(&markers[i]->core, drawable);
+    }
+}
+
+static void FlushWinPolygonFillBatch(Graph *graphPtr, Drawable drawable, PolygonMarker **stylePtrPtr,
+                                     PolygonMarker **markers, Tcl_Size *nMarkersPtr) {
+    if ((*stylePtrPtr != NULL) && (*nMarkersPtr > 0)) {
+        DrawWinPolygonFillMarkers(graphPtr, drawable, *stylePtrPtr, markers, *nMarkersPtr);
+    }
+    *stylePtrPtr = NULL;
+    *nMarkersPtr = 0;
+}
+
+
+
+#endif /* WIN32 */
+
 /*
  * -------------------------------------------------------------------------
  *
@@ -6276,11 +6554,121 @@ void Rbc_MarkersToPostScript(Graph *graphPtr, PsToken psToken, int under) {
 void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
     Rbc_ChainLink *linkPtr;
     Marker *markerPtr;
-
+#ifdef WIN32
+    Segment2D *lineSegments;
+    LineMarker *lineStylePtr;
+    Tcl_Size nLineSegments;
+    size_t lineCapacity;
+    Segment2D *polygonSegments;
+    PolygonMarker *polygonStylePtr;
+    Tcl_Size nPolygonSegments;
+    size_t polygonCapacity;
+    int lineCapacityValid;
+    int polygonCapacityValid;
+    PolygonMarker **polygonFillMarkers;
+    PolygonMarker *polygonFillStylePtr;
+    Tcl_Size nPolygonFillMarkers;
+    size_t polygonFillCapacity;
+    int polygonFillCapacityValid;
+    
+    polygonFillCapacityValid = TRUE;    
+    lineCapacityValid = TRUE;
+    polygonCapacityValid = TRUE;
+    lineSegments = NULL;
+    lineStylePtr = NULL;
+    nLineSegments = 0;
+    lineCapacity = 0;
+    polygonSegments = NULL;
+    polygonStylePtr = NULL;
+    nPolygonSegments = 0;
+    polygonCapacity = 0;
+    polygonFillMarkers = NULL;
+    polygonFillStylePtr = NULL;
+    nPolygonFillMarkers = 0;
+    polygonFillCapacity = 0;
+    /*
+     * Determine the maximum storage that could be needed by the
+     * simple line-marker batches.
+     *
+     * This deliberately overestimates: hidden/clipped markers are
+     * counted too.  That keeps the actual drawing pass simple and
+     * guarantees that allocation failure cannot occur halfway through
+     * rendering a batch.
+     */
     for (linkPtr = Rbc_ChainFirstLink(graphPtr->markers.displayList); linkPtr != NULL;
          linkPtr = Rbc_ChainNextLink(linkPtr)) {
         markerPtr = Rbc_ChainGetValue(linkPtr);
+        if (markerPtr->classUid == rbcLineMarkerUid) {
+            LineMarker *lmPtr;
+            lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
+            if (lineCapacityValid && CanBatchWinLineMarker(lmPtr)) {
+                if ((size_t)lmPtr->nSegments > (SIZE_MAX / sizeof(*lineSegments)) - lineCapacity) {
+                    lineCapacity = 0;
+                    lineCapacityValid = FALSE;
+                } else {
+                    lineCapacity += (size_t)lmPtr->nSegments;
+                }
+            }
+            continue;
+        }
+        if (markerPtr->classUid == rbcPolygonMarkerUid) {
+            PolygonMarker *pmPtr;
 
+            pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
+
+            if (CanBatchWinPolygonOutlineMarker(pmPtr)) {
+                if (polygonCapacityValid) {
+                    if ((size_t)pmPtr->nOutlinePts > (SIZE_MAX / sizeof(*polygonSegments)) - polygonCapacity) {
+
+                        polygonCapacity = 0;
+                        polygonCapacityValid = FALSE;
+                    } else {
+                        polygonCapacity += (size_t)pmPtr->nOutlinePts;
+                    }
+                }
+                continue;
+            }
+
+            if (CanBatchWinPolygonFillMarker(pmPtr)) {
+                if (polygonFillCapacityValid) {
+                    if (polygonFillCapacity == SIZE_MAX) {
+                        polygonFillCapacity = 0;
+                        polygonFillCapacityValid = FALSE;
+                    } else {
+                        polygonFillCapacity++;
+                    }
+                }
+                continue;
+            }
+        }
+    }
+    if (lineCapacity > 0) {
+        lineSegments = Tcl_AttemptAlloc(lineCapacity * sizeof(*lineSegments));
+        if (lineSegments == NULL) {
+            lineCapacity = 0;
+        }
+    }
+    if (polygonCapacity > 0) {
+        polygonSegments = Tcl_AttemptAlloc(polygonCapacity * sizeof(*polygonSegments));
+        if (polygonSegments == NULL) {
+            polygonCapacity = 0;
+        }
+    }
+    if (polygonFillCapacity > 0) {
+        if (polygonFillCapacity > SIZE_MAX / sizeof(*polygonFillMarkers)) {
+            polygonFillCapacity = 0;
+        } else {
+            polygonFillMarkers = Tcl_AttemptAlloc(polygonFillCapacity * sizeof(*polygonFillMarkers));
+            if (polygonFillMarkers == NULL) {
+                polygonFillCapacity = 0;
+            }
+        }
+    }
+
+#endif /* WIN32 */
+    for (linkPtr = Rbc_ChainFirstLink(graphPtr->markers.displayList); linkPtr != NULL;
+         linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        markerPtr = Rbc_ChainGetValue(linkPtr);
         if ((markerPtr->nWorldPts == 0) || (markerPtr->drawUnder != under) || (markerPtr->hidden) ||
             (markerPtr->clipped)) {
             continue;
@@ -6288,7 +6676,9 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
         if (markerPtr->elemName != NULL) {
             Tcl_HashEntry *hPtr;
 
-            /* Look up the named element and see if it's hidden */
+            /*
+             * Look up the named element and see if it is hidden.
+             */
             hPtr = Tcl_FindHashEntry(&graphPtr->elements.table, markerPtr->elemName);
             if (hPtr != NULL) {
                 Element *elemPtr;
@@ -6300,8 +6690,111 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
             }
         }
 
+#ifdef WIN32
+        /*
+         * Batch consecutive compatible simple line markers.
+         *
+         * A non-line marker or incompatible line marker flushes the
+         * batch before it is drawn, preserving display-list order.
+         */
+        if ((lineSegments != NULL) && (markerPtr->classUid == rbcLineMarkerUid)) {
+            LineMarker *lmPtr;
+
+            lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
+            if (CanBatchWinLineMarker(lmPtr)) {
+                FlushWinPolygonMarkerBatch(graphPtr, drawable, &polygonStylePtr, polygonSegments, &nPolygonSegments);
+                FlushWinPolygonFillBatch(graphPtr, drawable, &polygonFillStylePtr, polygonFillMarkers,
+                                         &nPolygonFillMarkers);
+                if ((lineStylePtr != NULL) && (!SameWinLineMarkerStyle(lineStylePtr, lmPtr))) {
+                    FlushWinLineMarkerBatch(graphPtr, drawable, &lineStylePtr, lineSegments, &nLineSegments);
+                }
+                if (lineStylePtr == NULL) {
+                    lineStylePtr = lmPtr;
+                }
+                /*
+                 * lineCapacity was calculated over every eligible
+                 * marker, so this copy cannot exceed the allocation.
+                 */
+                memcpy(lineSegments + nLineSegments, lmPtr->segments, (size_t)lmPtr->nSegments * sizeof(*lineSegments));
+                nLineSegments += lmPtr->nSegments;
+                /*
+                 * Do not call the marker's individual drawProc.
+                 */
+                continue;
+            }
+        }
+        if ((polygonSegments != NULL) && (markerPtr->classUid == rbcPolygonMarkerUid)) {
+            PolygonMarker *pmPtr;
+
+            pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
+            if (CanBatchWinPolygonOutlineMarker(pmPtr)) {
+                /*
+                 * Preserve display-list ordering across marker classes.
+                 */
+                FlushWinLineMarkerBatch(graphPtr, drawable, &lineStylePtr, lineSegments, &nLineSegments);
+                FlushWinPolygonFillBatch(graphPtr, drawable, &polygonFillStylePtr, polygonFillMarkers,
+                                         &nPolygonFillMarkers);
+                if ((polygonStylePtr != NULL) && (!SameWinPolygonOutlineStyle(polygonStylePtr, pmPtr))) {
+                    FlushWinPolygonMarkerBatch(graphPtr, drawable, &polygonStylePtr, polygonSegments,
+                                               &nPolygonSegments);
+                }
+                if (polygonStylePtr == NULL) {
+                    polygonStylePtr = pmPtr;
+                }
+                memcpy(polygonSegments + nPolygonSegments, pmPtr->outlinePts,
+                       (size_t)pmPtr->nOutlinePts * sizeof(*polygonSegments));
+                nPolygonSegments += pmPtr->nOutlinePts;
+                continue;
+            }
+        }
+        if ((polygonFillMarkers != NULL) && (markerPtr->classUid == rbcPolygonMarkerUid)) {
+            PolygonMarker *pmPtr;
+
+            pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
+            if (CanBatchWinPolygonFillMarker(pmPtr)) {
+                /*
+                 * Preserve ordering with preceding line and outline markers.
+                 */
+                FlushWinLineMarkerBatch(graphPtr, drawable, &lineStylePtr, lineSegments, &nLineSegments);
+                FlushWinPolygonMarkerBatch(graphPtr, drawable, &polygonStylePtr, polygonSegments, &nPolygonSegments);
+                if ((polygonFillStylePtr != NULL) && (!SameWinPolygonFillStyle(polygonFillStylePtr, pmPtr))) {
+                    FlushWinPolygonFillBatch(graphPtr, drawable, &polygonFillStylePtr, polygonFillMarkers,
+                                             &nPolygonFillMarkers);
+                }
+                if (polygonFillStylePtr == NULL) {
+                    polygonFillStylePtr = pmPtr;
+                }
+                polygonFillMarkers[nPolygonFillMarkers++] = pmPtr;
+                continue;
+            }
+        }
+        /*
+         * Anything that must be drawn individually has to appear
+         * after all preceding batched line markers.
+         */
+        FlushWinLineMarkerBatch(graphPtr, drawable, &lineStylePtr, lineSegments, &nLineSegments);
+        FlushWinPolygonMarkerBatch(graphPtr, drawable, &polygonStylePtr, polygonSegments, &nPolygonSegments);
+        FlushWinPolygonFillBatch(graphPtr, drawable, &polygonFillStylePtr, polygonFillMarkers, &nPolygonFillMarkers);
+#endif /* WIN32 */
         (*markerPtr->classPtr->drawProc)(markerPtr, drawable);
     }
+#ifdef WIN32
+    /*
+     * Flush a batch ending at the end of the display list.
+     */
+    FlushWinLineMarkerBatch(graphPtr, drawable, &lineStylePtr, lineSegments, &nLineSegments);
+    FlushWinPolygonMarkerBatch(graphPtr, drawable, &polygonStylePtr, polygonSegments, &nPolygonSegments);
+    FlushWinPolygonFillBatch(graphPtr, drawable, &polygonFillStylePtr, polygonFillMarkers, &nPolygonFillMarkers);    
+    if (lineSegments != NULL) {
+        ckfree(lineSegments);
+    }
+    if (polygonSegments != NULL) {
+        ckfree(polygonSegments);
+    }
+    if (polygonFillMarkers != NULL) {
+        ckfree(polygonFillMarkers);
+    }
+#endif /* WIN32 */
 }
 
 /*
