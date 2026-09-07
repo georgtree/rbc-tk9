@@ -1,87 +1,17 @@
-variable startPage {
+# startPage.ruff --
+#
+# Use the repository README as the documentation landing page so that
+# the overview, build instructions, and credits stay synchronized.
+#
+# Resolve the README relative to this file, independently of the
+# directory from which documentation generation was started.
 
-    # Rbc - Refactored BLT Components
-    This is version 0.5 of the Rbc library.
-
-    Rbc is an extension of the Tcl/Tk toolkit and contains refactored components from version 2.4z of the BLT library.
-    These components were refactored so that they would function with version Tcl/Tk 8.5.
-
-    Later, it was updated by Emiliano Gavilán to work with Tcl/Tk 9.0.
-
-    This is my personal fork of Emiliano [repository](https://chiselapp.com/user/egavilan/repository/rbc-tk9). 
-
-    There are multiple additions and improvements that were added to upgrade package to full Tcl/Tk9.0 support, it 
-    is described on a [separate page](https://georgtree.github.io/rbc-tk9/rbc-tk9-TclTk9Upgrade.html)
-
-    Rbc is available from:
-    https://github.com/georgtree/rbc-tk9
-
-    More information on BLT is available from:
-    http://www.sourceforge.net/projects/blt/files
-
-    Rbc is intended to work **only** Tcl/Tk version 9.0, although it may work with others. Rbc is a TEA compliant
-    extension, although it is not (yet) entirely free of dependency on Tcl/Tk private structures. So, for compilation
-    you need Tcl/Tk sources.
-
-    Rbc is a subset of BLT, contains the essential components for developing data graphing applications. Some BLT
-    components have been superseded by advances in Tcl and Tk, and some others have been extracted into separate 
-    extensions.
-
-    Rbc provides the following graphing and data-processing components:
-
-    - graph, barchart, stripchart, polar
-
-    These components plot data using the common Rbc graph infrastructure. `graph`, `barchart`, and `stripchart` use
-    conventional Cartesian graph presentations. `polar` uses Cartesian complex-plane coordinates but can display them
-    with either a polar grid or a Smith-chart grid.
-
-    Graphs are designed to work with Rbc vector data objects and are automatically redrawn when an attached vector
-    changes. Polar elements additionally support complex vectors directly.
-
-    - vector
-
-    This component manages real and complex double-precision numeric vectors. Real vectors are used throughout the
-    traditional graph interfaces, while complex vectors may also be supplied directly to polar elements and to
-    parametric spline interpolation.
-
-    - spline
-
-    This component provides natural cubic and shape-preserving quadratic interpolation. It supports both the
-    traditional scalar `y=f(x)` interface for real vectors and parametric two-dimensional interpolation for complex
-    vectors.
-
-    - winop
-
-    This component provides basic window operations.
-
-
-    ## Installation
-    For binary installations, just unzip or untar the package into your Tcl library.
-
-    ## Building from Source
-    Rbc is a TEA compliant extension. You should be able to unpack the source code, and perform the usual
-    `configure/make/make install` procedure. Making the test target will run the automated test suite.
-
-    Since Rbc still depends on some Tcl/Tk private data structures, you may experience some difficulty in bulding it \
-    against some Tcl distributions which do not have the complete set of public and private headers.
-
-
-    ## Documentation
-    - Documentation could be found [here](https://georgtree.github.io/rbc-tk9/).
-
-
-    ## History
-    In order to fulfill degree requirements, the four of us undertook the refactoring of a few commonly used BLT
-    components.  The project was proposed by an alumnus of the students' institute and was accepted by the school's
-    Computer Science and Software Engineering Department. The project began in the Fall of 2008 and culminated on the
-    students' graduation in the Spring of 2009. In addition to refactoring parts of BLT, we also began developing a
-    graphical data analysis tool that is designed to work with Rbc (and BLT) and be easily extensible. For more
-    information see the GDAT project available at: http://www.sourceforge.net/projects/gdat/
-
-    In keeping with the spirit of BLT, we have released this project to the open source community in hopes that you will
-    continue development and add more components from the BLT library that are compatible with version 8.5 and later of
-    Tcl/Tk.
-
-    sjg,njh,sjs,jms
-
-}
+variable startPage [apply {{readmePath} {
+    set channel [open $readmePath r]
+    try {
+        fconfigure $channel -encoding utf-8 -translation auto
+        return [read $channel]
+    } finally {
+        close $channel
+    }
+}} [file join [file dirname [file normalize [info script]]] .. README.md]]

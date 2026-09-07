@@ -4,91 +4,516 @@
 .TH "rbc" 3tcl 0\&.5\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
 .SH NAME
 Introduction - Upgraded Tcl/Tk9\&.0-ready RBC package
-.SH "RBC - REFACTORED BLT COMPONENTS"
+.SH "RBC — REFACTORED BLT COMPONENTS FOR TCL/TK 9"
 .PP
-This is version 0\&.5 of the Rbc library\&.
+Rbc is a Tcl/Tk extension for scientific plotting, interactive data visualization, and numerical data processing\&. It
+provides graph widgets, real and complex vectors, spline interpolation, and window and image operations\&.
 .PP
-Rbc is an extension of the Tcl/Tk toolkit and contains refactored components from version 2\&.4z of the BLT library\&.
-These components were refactored so that they would function with version Tcl/Tk 8\&.5\&.
-.PP
-Later, it was updated by Emiliano Gavilán to work with Tcl/Tk 9\&.0\&.
-.PP
-This is my personal fork of Emiliano \fIrepository\fP [URL: https://chiselapp\&.com/user/egavilan/repository/rbc-tk9]\&.
-.PP
-There are multiple additions and improvements that were added to upgrade package to full Tcl/Tk9\&.0 support, it
-is described on a \fIseparate page\fP [URL: https://georgtree\&.github\&.io/rbc-tk9/rbc-tk9-TclTk9Upgrade\&.html]
-.PP
-Rbc is available from:
-https://github\&.com/georgtree/rbc-tk9
-.PP
-More information on BLT is available from:
-http://www\&.sourceforge\&.net/projects/blt/files
-.PP
-Rbc is intended to work \fBonly\fP Tcl/Tk version 9\&.0, although it may work with others\&. Rbc is a TEA compliant
-extension, although it is not (yet) entirely free of dependency on Tcl/Tk private structures\&. So, for compilation
-you need Tcl/Tk sources\&.
-.PP
-Rbc is a subset of BLT, contains the essential components for developing data graphing applications\&. Some BLT
-components have been superseded by advances in Tcl and Tk, and some others have been extracted into separate
-extensions\&.
-.PP
-Rbc provides the following graphing and data-processing components:
+This repository maintains and extends Rbc for Tcl/Tk 9\&.0\&. The current package version is \fB0\&.5\&.0\fP\&.
 .TP
 \(bu
-graph, barchart, stripchart, polar
-.PP
-These components plot data using the common Rbc graph infrastructure\&. graph, barchart, and stripchart use
-conventional Cartesian graph presentations\&. polar uses Cartesian complex-plane coordinates but can display them
-with either a polar grid or a Smith-chart grid\&.
-.PP
-Graphs are designed to work with Rbc vector data objects and are automatically redrawn when an attached vector
-changes\&. Polar elements additionally support complex vectors directly\&.
+\fISource code\fP [URL: https://github\&.com/georgtree/rbc-tk9]
 .TP
 \(bu
-vector
-.PP
-This component manages real and complex double-precision numeric vectors\&. Real vectors are used throughout the
-traditional graph interfaces, while complex vectors may also be supplied directly to polar elements and to
-parametric spline interpolation\&.
+\fIDocumentation\fP [URL: https://georgtree\&.github\&.io/rbc-tk9/]
 .TP
 \(bu
-spline
-.PP
-This component provides natural cubic and shape-preserving quadratic interpolation\&. It supports both the
-traditional scalar y=f(x) interface for real vectors and parametric two-dimensional interpolation for complex
-vectors\&.
+\fIChanges and modernization\fP [URL: https://georgtree\&.github\&.io/rbc-tk9/rbc-tk9-TclTk9Upgrade\&.html]
 .TP
 \(bu
-winop
+\fIIssue tracker\fP [URL: https://github\&.com/georgtree/rbc-tk9/issues]
+.SH COMPONENTS
+.TP
+\(bu
+\fBgraph\fP — Cartesian plots with line elements, symbols, multiple axes, error bars, markers, legends, and PostScript output\&.
+.TP
+\(bu
+\fBbarchart\fP — Bar plots with normal, aligned, stacked, and overlapping presentations\&.
+.TP
+\(bu
+\fBstripchart\fP — Plots using independent line segments, suitable for waveform and continuously updated data displays\&.
+.TP
+\(bu
+\fBpolar\fP — Complex-plane plots with polar or Smith-chart grids\&. Data coordinates remain Cartesian; elements can use real X/Y vectors or complex vectors directly\&.
+.TP
+\(bu
+\fBgraphtoolbar\fP — A TclOO megawidget providing graph interaction, including zooming, panning, crosshairs, closest-point information, legend interaction, and context controls\&.
+.TP
+\(bu
+\fBvector\fP — Real and complex double-precision vectors, with numerical operations and automatic notification of attached graph elements\&.
+.TP
+\(bu
+\fBspline\fP — Natural cubic and shape-preserving quadratic interpolation, including parametric interpolation of complex vectors\&.
+.TP
+\(bu
+\fBwinop\fP — Window operations and image-processing utilities\&.
 .PP
-This component provides basic window operations\&.
-.SH INSTALLATION
+Graphs redraw automatically when their attached vectors change\&. Eligible dense line and strip elements support display
+decimation, including persistent summaries that can be reused for axis changes, ranged value updates, and monotonic tail
+appends\&.
 .PP
-For binary installations, just unzip or untar the package into your Tcl library\&.
+Rbc contains selected components derived from BLT\&. It is not a complete replacement for the BLT toolkit\&.
+.SH REQUIREMENTS
+.SS "RUNNING RBC"
+.TP
+\(bu
+Tcl and Tk 9\&.0\&.
+.TP
+\(bu
+The Tcl \fIargparse package\fP [URL: https://github\&.com/georgtree/argparse]\&.
+.TP
+\(bu
+A graphical environment supported by the Tk installation\&.
+.PP
+The supported build environments described here are Linux with X11 Tk and Windows with MSYS2/UCRT64\&. Tcl/Tk 8\&.x
+compatibility is not a target of this fork\&.
+.PP
+The current package loader loads graphtoolbar\&.tcl as part of package require rbc, so argparse is required even
+when an application uses only the basic graph or vector commands\&. Make corresponding adjustements to pkgIndex\&.tcl file
+to exclude it from standard loading sequence\&.
+.PP
+Rbc initializes Tk when loaded\&. Tests and documentation generation therefore also need a working graphical display\&.
+.SS "BUILDING RBC"
+.TP
+\(bu
+A C compiler and linker compatible with the selected Tcl/Tk build\&.
+.TP
+\(bu
+GNU Make and a Unix-style shell\&.
+.TP
+\(bu
+Tcl/Tk development files, including tclConfig\&.sh and tkConfig\&.sh\&.
+.TP
+\(bu
+Matching Tk private headers\&.
+.TP
+\(bu
+On Linux, the X11 development headers and libraries\&.
+.PP
+Rbc still uses a small number of private Tk interfaces\&. Retain the matching Tk source tree unless the development
+installation provides all required private headers\&. The configure script uses the source location recorded in
+tkConfig\&.sh when locating these headers\&.
+.PP
+Keep the corresponding Tcl source tree available as well when using the provided development targets: the Makefile sets
+TCL_LIBRARY from the source location recorded in tclConfig\&.sh\&.
+.PP
+The repository includes a generated configure script\&. Autoconf is needed only when regenerating it after changes to
+the build configuration\&.
 .SH "BUILDING FROM SOURCE"
 .PP
-Rbc is a TEA compliant extension\&. You should be able to unpack the source code, and perform the usual
-configure/make/make install procedure\&. Making the test target will run the automated test suite\&.
+Obtain the sources:
 .PP
-Since Rbc still depends on some Tcl/Tk private data structures, you may experience some difficulty in bulding it  against some Tcl distributions which do not have the complete set of public and private headers\&.
-.SH DOCUMENTATION
+.RS 4n
+.nf
+git clone https://github\&.com/georgtree/rbc-tk9\&.git
+cd rbc-tk9
+.fi
+.RE
+.PP
+The examples below build in the repository root\&. Replace the Tcl/Tk paths with paths for your installation or build
+trees\&.
+.PP
+--with-tcl and --with-tk take the \fBdirectories containing\fP tclConfig\&.sh and tkConfig\&.sh, not the configuration
+filenames themselves\&.
+.PP
+Install argparse for the same Tcl interpreter before running Rbc, its tests, or its demos\&.
+.SS LINUX
+.PP
+For example, using Tcl/Tk build trees and a user-local installation prefix:
+.PP
+.RS 4n
+.nf
+\&./configure \\
+    --with-tcl=/path/to/tcl9\&.0/unix \\
+    --with-tk=/path/to/tk9\&.0/unix \\
+    --prefix="$HOME/\&.local"
+
+make -j4
+make test
+
+make install DOC_INSTALL_DIR="$HOME/\&.local/share/rbc0\&.5\&.0/doc"
+.fi
+.RE
+.PP
+The Tcl/Tk directories can instead refer to installed configuration files, provided that the required headers and source
+locations remain accessible\&.
+.PP
+The selected Tcl/Tk shared libraries must also be discoverable by the system dynamic loader\&. The Makefile supplies the
+build-directory environment for its test and shell targets\&.
+.SS "WINDOWS WITH MSYS2/UCRT64"
+.PP
+Run the following commands in an \fBMSYS2 UCRT64 shell\fP, using Tcl and Tk built with a compatible toolchain and
+architecture:
+.PP
+.RS 4n
+.nf
+\&./configure \\
+    --with-tcl=/path/to/tcl9\&.0/win \\
+    --with-tk=/path/to/tk9\&.0/win \\
+    --prefix=/ucrt64
+
+make -j4
+make test
+
+make install DOC_INSTALL_DIR=/ucrt64/share/rbc0\&.5\&.0/doc
+.fi
+.RE
+.PP
+Ensure that the selected Tcl/Tk DLLs and compiler runtime DLLs are available through PATH\&.
+.PP
+The UCRT64 shell does not automatically determine Rbc's installation prefix\&.  Specify --prefix=/ucrt64 when that is
+the intended destination\&.
+.SS "INSTALLATION LOCATIONS"
+.PP
+With the default directory layout, installation places:
 .TP
 \(bu
-Documentation could be found \fIhere\fP [URL: https://georgtree\&.github\&.io/rbc-tk9/]\&.
-.SH HISTORY
+The package library, pkgIndex\&.tcl, runtime scripts, and supporting resources in PREFIX/lib/rbc0\&.5\&.0\&.
+.TP
+\(bu
+Demos in PREFIX/lib/rbc0\&.5\&.0/demos\&.
+.TP
+\(bu
+Manual pages in PREFIX/share/man/mann\&.
 .PP
-In order to fulfill degree requirements, the four of us undertook the refactoring of a few commonly used BLT
-components\&.  The project was proposed by an alumnus of the students' institute and was accepted by the school's
-Computer Science and Software Engineering Department\&. The project began in the Fall of 2008 and culminated on the
-students' graduation in the Spring of 2009\&. In addition to refactoring parts of BLT, we also began developing a
-graphical data analysis tool that is designed to work with Rbc (and BLT) and be easily extensible\&. For more
-information see the GDAT project available at: http://www\&.sourceforge\&.net/projects/gdat/
+The current Makefile has a separate DOC_INSTALL_DIR setting for HTML documentation\&. The commands above explicitly set
+it to a location under the chosen prefix\&.
 .PP
-In keeping with the spirit of BLT, we have released this project to the open source community in hopes that you will
-continue development and add more components from the BLT library that are compatible with version 8\&.5 and later of
-Tcl/Tk\&.
+If --prefix is omitted, the build system normally inherits the prefix from the selected Tcl configuration\&.
 .PP
-sjg,njh,sjs,jms
+For other configure options, run:
+.PP
+.RS 4n
+.nf
+\&./configure --help
+.fi
+.RE
+.SH "LOADING THE PACKAGE"
+.PP
+Start the Tcl/Tk interpreter associated with your build and run:
+.PP
+.RS 4n
+.nf
+package require rbc 0\&.5\&.0
+.fi
+.RE
+.PP
+To check the versions in use:
+.PP
+.RS 4n
+.nf
+puts "Tcl: [info patchlevel]"
+puts "Tk:  [package provide Tk]"
+puts "Rbc: [package provide rbc]"
+.fi
+.RE
+.PP
+If Rbc is installed outside Tcl's normal package search locations, add its library directory before loading it:
+.PP
+.RS 4n
+.nf
+lappend auto_path /path/to/prefix/lib
+package require rbc 0\&.5\&.0
+.fi
+.RE
+.PP
+The same applies to argparse if it is installed in a separate location\&.
+.PP
+When installing a prebuilt package, preserve the complete package directory, including pkgIndex\&.tcl, the shared
+library, graphtoolbar\&.tcl, PostScript prologs, and bitmap resources\&. Copying only the DLL or shared library is not
+sufficient\&.
+.SS "USING AN UNINSTALLED BUILD"
+.PP
+From the Rbc build directory:
+.PP
+.RS 4n
+.nf
+make shell
+.fi
+.RE
+.PP
+This starts the configured Tcl interpreter with the build directory in its package search path\&. Then load Rbc normally:
+.PP
+.RS 4n
+.nf
+package require rbc
+.fi
+.RE
+.SH "RUNNING TESTS"
+.PP
+Run the automated test suite from the build directory:
+.PP
+.RS 4n
+.nf
+make test
+.fi
+.RE
+.PP
+This target builds the package and the public C API test extension, then runs tests/all\&.tcl with the appropriate build
+environment\&.
+.PP
+The suite uses tcltest\&. Pass test selection options through TESTFLAGS\&.
+.PP
+For example, run the line-decimation test file:
+.PP
+.RS 4n
+.nf
+make test TESTFLAGS="-file RBC\&.graph\&.element\&.decimate\&.A\&.test"
+.fi
+.RE
+.PP
+Or select tests by name:
+.PP
+.RS 4n
+.nf
+make test TESTFLAGS="-match RBC\&.graph\&.element\&.decimate\&.*"
+.fi
+.RE
+.PP
+On a headless Linux system, an X11 virtual display can be used if Xvfb is installed:
+.PP
+.RS 4n
+.nf
+xvfb-run -a make test
+.fi
+.RE
+.PP
+Review the test summary and any skipped-test constraints\&. The manualtests directory contains additional visual and
+interactive checks that are separate from the automated suite\&.
+.SH "RUNNING DEMOS"
+.PP
+From an in-tree build, start the demo browser with:
+.PP
+.RS 4n
+.nf
+make shell SCRIPT=demos/demos\&.tcl
+.fi
+.RE
+.PP
+The browser launches individual demos when their thumbnails are selected\&.
+.PP
+An individual demo can also be started directly:
+.PP
+.RS 4n
+.nf
+make shell SCRIPT=demos/graph1\&.tcl
+.fi
+.RE
+.PP
+After installation, use the matching Tcl/Tk 9 interpreter:
+.PP
+.RS 4n
+.nf
+wish9\&.0 /path/to/prefix/lib/rbc0\&.5\&.0/demos/demos\&.tcl
+.fi
+.RE
+.PP
+The executable may instead be named wish, depending on the Tcl/Tk installation\&. On Windows, use the corresponding
+wish\&.exe\&.
+.PP
+The demos locate their supporting files relative to their own script directory\&. Keep the demo scripts, images, bitmaps,
+stipples, and helper scripts together\&.
+.PP
+The current demos cover graphs, bar charts, stripcharts, symbols, spline interpolation, and window/image operations\&.
+.SH "RENDERING BENCHMARKS"
+.PP
+Performance benchmarks are separate from the correctness tests\&. They can create large data sets and should be run
+deliberately\&.
+.PP
+In addition to Rbc and argparse, the benchmark scripts require the Tcllib packages csv, report, and
+struct::matrix\&.
+.PP
+Run the small smoke profile from an in-tree build:
+.PP
+.RS 4n
+.nf
+make shell SCRIPT="tests/benchmark/run\&.tcl -profile smoke"
+.fi
+.RE
+.PP
+Run the standard benchmark suite:
+.PP
+.RS 4n
+.nf
+make shell SCRIPT="tests/benchmark/run\&.tcl -profile standard"
+.fi
+.RE
+.PP
+Run a focused line/strip comparison and save CSV results:
+.PP
+.RS 4n
+.nf
+make shell SCRIPT="tests/benchmark/run\&.tcl -profile standard -benchmarks line,strip -csv-dir benchmark-results"
+.fi
+.RE
+.PP
+The suite includes line, strip, symbol, error-bar, bar, marker, and mixed workloads\&. For individual line-benchmark
+measurements and options, see the \fIbenchmark README\fP [URL: https://github\&.com/georgtree/rbc-tk9/blob/main/tests/benchmark/README\&.md]\&.
+.SH DOCUMENTATION
+.PP
+The generated HTML documentation is available online:
+.TP
+\(bu
+\fIDocumentation home\fP [URL: https://georgtree\&.github\&.io/rbc-tk9/]
+.TP
+\(bu
+\fIPackage commands\fP [URL: https://georgtree\&.github\&.io/rbc-tk9/rbc-tk9-rbc\&.html]
+.TP
+\(bu
+\fIGraph widget operations\fP [URL: https://georgtree\&.github\&.io/rbc-tk9/rbc-tk9-rbc-GRAPHINST\&.html]
+.TP
+\(bu
+\fIgraphtoolbar\fP [URL: https://georgtree\&.github\&.io/rbc-tk9/rbc-tk9-rbc-graphtoolbar\&.html]
+.TP
+\(bu
+\fIVector commands\fP [URL: https://georgtree\&.github\&.io/rbc-tk9/rbc-tk9-rbc-vector\&.html]
+.TP
+\(bu
+\fIVector instance operations\fP [URL: https://georgtree\&.github\&.io/rbc-tk9/rbc-tk9-rbc-VECINST\&.html]
+.TP
+\(bu
+\fISpline interpolation\fP [URL: https://georgtree\&.github\&.io/rbc-tk9/rbc-tk9-rbc-spline\&.html]
+.TP
+\(bu
+\fITcl/Tk 9 modernization and additions\fP [URL: https://georgtree\&.github\&.io/rbc-tk9/rbc-tk9-TclTk9Upgrade\&.html]
+.PP
+The repository also includes generated HTML under docs/ and manual pages as docs/*\&.n\&. Open docs/index\&.html to
+browse the local HTML documentation\&.
+.SS "REGENERATING DOCUMENTATION"
+.PP
+Documentation generation requires:
+.TP
+\(bu
+A working Rbc build and its runtime dependencies\&.
+.TP
+\(bu
+The Tcl ruff package with Sphinx and nroff output support\&.
+.TP
+\(bu
+Tcllib's fileutil package\&.
+.TP
+\(bu
+Python Sphinx, with sphinx-build available through PATH\&.
+.TP
+\(bu
+ditaa and its Java runtime when rendering diagrams that use the configured diagram generator\&.
+.PP
+To build this particular documentation, the modified version of Ruff package was used, that is not availible publicly at
+this moment, so resulted documentation could differ from the provided in the current repository\&.
+.PP
+From an in-tree build, run:
+.PP
+.RS 4n
+.nf
+make doc
+.fi
+.RE
+.PP
+The generator reads the \&.ruff sources and Tcl API documentation, writes Sphinx sources under docs/sphinx, builds
+HTML under docs, and generates the \&.n manual pages\&.
+.PP
+Review the generator output and resulting pages before publishing\&.  The current generator prints Sphinx diagnostics, so
+the Make command's exit status alone is not a complete documentation-build check\&.
+.PP
+README\&.md supplies the shared introduction and build instructions\&.
+docs/startPage\&.ruff reads that file as the documentation preamble\&.
+.SH "REPORTING PROBLEMS"
+.PP
+Please use the \fIissue tracker\fP [URL: https://github\&.com/georgtree/rbc-tk9/issues]\&.
+.PP
+For build or runtime problems, include:
+.TP
+\(bu
+The Rbc version or commit\&.
+.TP
+\(bu
+Operating system and architecture\&.
+.TP
+\(bu
+Tcl/Tk versions and, on Windows, the compiler/MSYS2 environment\&.
+.TP
+\(bu
+Configure options and the relevant error output\&.
+.TP
+\(bu
+A small Tcl script reproducing the problem, when applicable\&.
+.PP
+For rendering problems, include a screenshot and the relevant graph, element, pen, or marker options\&.
+.SH "HISTORY AND ACKNOWLEDGMENTS"
+.PP
+Rbc originated as a refactoring of selected components from version 2\&.4z of the BLT toolkit, developed by George Howlett
+and other contributors\&.
+.PP
+Samuel Green, Nicholas Hudson, Stanton Sievers, and Jarrod Stormo carried out the original Rbc project at Rose-Hulman
+Institute of Technology during 2008–2009\&. The project adapted commonly used BLT components for Tcl/Tk 8\&.5 and was
+associated with the
+\fIGDAT graphical data-analysis project\fP [URL: https://sourceforge\&.net/projects/gdat/]\&.
+.PP
+Subsequent work included additional maintenance, demo improvements, and C stubs support\&. The stubs implementation
+includes work by Ashok P\&. Nadkarni\&.
+.PP
+Emiliano Gavilán adapted Rbc for Tcl/Tk 9\&.0\&. This repository is based on his
+\fIRbc Tcl/Tk 9 repository\fP [URL: https://chiselapp\&.com/user/egavilan/repository/rbc-tk9]\&.
+.PP
+George Yashin maintains this fork and its further Tcl/Tk 9 modernization, new functionality, tests, performance
+improvements, and documentation\&.
+.PP
+The project also acknowledges the Tcl/Tk developers, the maintainers of the Tcl Extension Architecture build system, and
+the contributors whose code and resources remain part of Rbc\&.
+.TP
+\(bu
+\fIBLT project\fP [URL: https://sourceforge\&.net/projects/blt/]
+.TP
+\(bu
+\fIUpstream Tcl/Tk 9 adaptation\fP [URL: https://chiselapp\&.com/user/egavilan/repository/rbc-tk9]
+.TP
+\(bu
+\fICurrent development history\fP [URL: https://github\&.com/georgtree/rbc-tk9/commits/main/]
+.SH "COPYRIGHT AND LICENSING"
+.PP
+Rbc includes material from several authors and projects\&. The applicable copyright notices, permission conditions, and
+warranty disclaimers are retained in the source distribution\&.
+.PP
+The main
+\fIlicense\&.terms\fP [URL: https://github\&.com/georgtree/rbc-tk9/blob/main/license\&.terms]
+contains:
+.TP
+\(bu
+Copyright (c) 2009, Samuel Green, Nicholas Hudson, Stanton Sievers, and Jarrod Stormo\&. All rights reserved\&.
+.TP
+\(bu
+Copyright 1998 Lucent Technologies, Inc\&.
+.TP
+\(bu
+The associated redistribution conditions and warranty disclaimers\&.
+.PP
+Additional notices include:
+.TP
+\(bu
+Copyright (c) 2018 Ashok P\&. Nadkarni in \fIgeneric/rbcStubLib\&.c\fP [URL: https://github\&.com/georgtree/rbc-tk9/blob/main/generic/rbcStubLib\&.c]\&.
+.TP
+\(bu
+Copyright 1989–1992 Regents of the University of California and copyright 1991–1997 Bell Labs Innovations for Lucent Technologies in \fIlibrary/rbcGraph\&.pro\fP [URL: https://github\&.com/georgtree/rbc-tk9/blob/main/library/rbcGraph\&.pro]\&.
+.TP
+\(bu
+Copyright 1991–1997 Bell Labs Innovations for Lucent Technologies in \fIlibrary/rbcCanvEps\&.pro\fP [URL: https://github\&.com/georgtree/rbc-tk9/blob/main/library/rbcCanvEps\&.pro]\&.
+.TP
+\(bu
+Notices for the Regents of the University of California, Sun Microsystems, Scriptics, ActiveState, and other contributors in the bundled \fITcl configuration support license\fP [URL: https://github\&.com/georgtree/rbc-tk9/blob/main/tclconfig/license\&.terms]\&.
+.TP
+\(bu
+Ajuba Solutions and ActiveState notices in \fItclconfig/tcl\&.m4\fP [URL: https://github\&.com/georgtree/rbc-tk9/blob/main/tclconfig/tcl\&.m4], and Scriptics and ActiveState notices in \fIMakefile\&.in\fP [URL: https://github\&.com/georgtree/rbc-tk9/blob/main/Makefile\&.in]\&.
+.TP
+\(bu
+Copyright (C) 1994 X Consortium in the bundled \fIinstallation helper\fP [URL: https://github\&.com/georgtree/rbc-tk9/blob/main/tclconfig/install-sh]\&.
+.TP
+\(bu
+George Yashin's copyright attribution in the generated documentation\&.
+.PP
+This overview does not replace the full license texts or individual file notices\&. Preserve the applicable notices,
+conditions, and disclaimers when redistributing source or binary packages\&.
+.PP
+External dependencies retain their own licenses\&.
 
 
 .SH SEE ALSO

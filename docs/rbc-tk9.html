@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Rbc - Refactored BLT Components &#8212; rbc  documentation</title>
+    <title>Rbc — Refactored BLT Components for Tcl/Tk 9 &#8212; rbc  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
     
@@ -31,7 +31,7 @@
           <a href="index.html" title="&lt;no title&gt;"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Rbc - Refactored BLT Components</a></li> 
+        <li class="nav-item nav-item-this"><a href="">Rbc — Refactored BLT Components for Tcl/Tk 9</a></li> 
       </ul>
     </div>  
 
@@ -40,78 +40,333 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="rbc-refactored-blt-components">
-<span id="r-rbc-refactored-blt-components"></span><span id="r-rbc202d20refactored20blt20components"></span><h1>Rbc - Refactored BLT Components<a class="headerlink" href="#rbc-refactored-blt-components" title="Link to this heading">¶</a></h1>
-<p>This is version 0.5 of the Rbc library.</p>
-<p>Rbc is an extension of the Tcl/Tk toolkit and contains refactored components from version 2.4z of the BLT library.
-These components were refactored so that they would function with version Tcl/Tk 8.5.</p>
-<p>Later, it was updated by Emiliano Gavilán to work with Tcl/Tk 9.0.</p>
-<p>This is my personal fork of Emiliano <a class="reference external" href="https://chiselapp.com/user/egavilan/repository/rbc-tk9">repository</a>.</p>
-<p>There are multiple additions and improvements that were added to upgrade package to full Tcl/Tk9.0 support, it
-is described on a <a class="reference external" href="https://georgtree.github.io/rbc-tk9/rbc-tk9-TclTk9Upgrade.html">separate page</a></p>
-<p>Rbc is available from:
-<a class="reference external" href="https://github.com/georgtree/rbc-tk9">https://github.com/georgtree/rbc-tk9</a></p>
-<p>More information on BLT is available from:
-<a class="reference external" href="http://www.sourceforge.net/projects/blt/files">http://www.sourceforge.net/projects/blt/files</a></p>
-<p>Rbc is intended to work <strong>only</strong> Tcl/Tk version 9.0, although it may work with others. Rbc is a TEA compliant
-extension, although it is not (yet) entirely free of dependency on Tcl/Tk private structures. So, for compilation
-you need Tcl/Tk sources.</p>
-<p>Rbc is a subset of BLT, contains the essential components for developing data graphing applications. Some BLT
-components have been superseded by advances in Tcl and Tk, and some others have been extracted into separate
-extensions.</p>
-<p>Rbc provides the following graphing and data-processing components:</p>
+  <section id="rbc-refactored-blt-components-for-tcl-tk-9">
+<span id="r-rbc-refactored-blt-components-for-tcl-tk-9"></span><span id="r-rbc20201420refactored20blt20components20for20tcl2ftk209"></span><h1>Rbc — Refactored BLT Components for Tcl/Tk 9<a class="headerlink" href="#rbc-refactored-blt-components-for-tcl-tk-9" title="Link to this heading">¶</a></h1>
+<p>Rbc is a Tcl/Tk extension for scientific plotting, interactive data visualization, and numerical data processing. It
+provides graph widgets, real and complex vectors, spline interpolation, and window and image operations.</p>
+<p>This repository maintains and extends Rbc for Tcl/Tk 9.0. The current package version is <strong>0.5.0</strong>.</p>
 <ul class="simple">
-<li><p>graph, barchart, stripchart, polar</p></li>
+<li><p><a class="reference external" href="https://github.com/georgtree/rbc-tk9">Source code</a></p></li>
+<li><p><a class="reference external" href="https://georgtree.github.io/rbc-tk9/">Documentation</a></p></li>
+<li><p><a class="reference external" href="https://georgtree.github.io/rbc-tk9/rbc-tk9-TclTk9Upgrade.html">Changes and modernization</a></p></li>
+<li><p><a class="reference external" href="https://github.com/georgtree/rbc-tk9/issues">Issue tracker</a></p></li>
 </ul>
-<p>These components plot data using the common Rbc graph infrastructure. <code class="docutils literal notranslate"><span class="pre">graph</span></code>, <code class="docutils literal notranslate"><span class="pre">barchart</span></code>, and <code class="docutils literal notranslate"><span class="pre">stripchart</span></code> use
-conventional Cartesian graph presentations. <code class="docutils literal notranslate"><span class="pre">polar</span></code> uses Cartesian complex-plane coordinates but can display them
-with either a polar grid or a Smith-chart grid.</p>
-<p>Graphs are designed to work with Rbc vector data objects and are automatically redrawn when an attached vector
-changes. Polar elements additionally support complex vectors directly.</p>
+<section id="components">
+<span id="r-components"></span><h2>Components<a class="headerlink" href="#components" title="Link to this heading">¶</a></h2>
 <ul class="simple">
-<li><p>vector</p></li>
+<li><p><strong>graph</strong> — Cartesian plots with line elements, symbols, multiple axes, error bars, markers, legends, and PostScript output.</p></li>
+<li><p><strong>barchart</strong> — Bar plots with normal, aligned, stacked, and overlapping presentations.</p></li>
+<li><p><strong>stripchart</strong> — Plots using independent line segments, suitable for waveform and continuously updated data displays.</p></li>
+<li><p><strong>polar</strong> — Complex-plane plots with polar or Smith-chart grids. Data coordinates remain Cartesian; elements can use real X/Y vectors or complex vectors directly.</p></li>
+<li><p><strong>graphtoolbar</strong> — A TclOO megawidget providing graph interaction, including zooming, panning, crosshairs, closest-point information, legend interaction, and context controls.</p></li>
+<li><p><strong>vector</strong> — Real and complex double-precision vectors, with numerical operations and automatic notification of attached graph elements.</p></li>
+<li><p><strong>spline</strong> — Natural cubic and shape-preserving quadratic interpolation, including parametric interpolation of complex vectors.</p></li>
+<li><p><strong>winop</strong> — Window operations and image-processing utilities.</p></li>
 </ul>
-<p>This component manages real and complex double-precision numeric vectors. Real vectors are used throughout the
-traditional graph interfaces, while complex vectors may also be supplied directly to polar elements and to
-parametric spline interpolation.</p>
+<p>Graphs redraw automatically when their attached vectors change. Eligible dense line and strip elements support display
+decimation, including persistent summaries that can be reused for axis changes, ranged value updates, and monotonic tail
+appends.</p>
+<p>Rbc contains selected components derived from BLT. It is not a complete replacement for the BLT toolkit.</p>
+</section>
+<section id="requirements">
+<span id="r-requirements"></span><h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading">¶</a></h2>
+<section id="running-rbc">
+<span id="r-running-rbc"></span><span id="r-running20rbc"></span><h3>Running Rbc<a class="headerlink" href="#running-rbc" title="Link to this heading">¶</a></h3>
 <ul class="simple">
-<li><p>spline</p></li>
+<li><p>Tcl and Tk 9.0.</p></li>
+<li><p>The Tcl <a class="reference external" href="https://github.com/georgtree/argparse">argparse package</a>.</p></li>
+<li><p>A graphical environment supported by the Tk installation.</p></li>
 </ul>
-<p>This component provides natural cubic and shape-preserving quadratic interpolation. It supports both the
-traditional scalar <code class="docutils literal notranslate"><span class="pre">y=f(x)</span></code> interface for real vectors and parametric two-dimensional interpolation for complex
-vectors.</p>
+<p>The supported build environments described here are Linux with X11 Tk and Windows with MSYS2/UCRT64. Tcl/Tk 8.x
+compatibility is not a target of this fork.</p>
+<p>The current package loader loads <code class="docutils literal notranslate"><span class="pre">graphtoolbar.tcl</span></code> as part of <code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc</span></code>, so <code class="docutils literal notranslate"><span class="pre">argparse</span></code> is required even
+when an application uses only the basic graph or vector commands. Make corresponding adjustements to pkgIndex.tcl file
+to exclude it from standard loading sequence.</p>
+<p>Rbc initializes Tk when loaded. Tests and documentation generation therefore also need a working graphical display.</p>
+</section>
+<section id="building-rbc">
+<span id="r-building-rbc"></span><span id="r-building20rbc"></span><h3>Building Rbc<a class="headerlink" href="#building-rbc" title="Link to this heading">¶</a></h3>
 <ul class="simple">
-<li><p>winop</p></li>
+<li><p>A C compiler and linker compatible with the selected Tcl/Tk build.</p></li>
+<li><p>GNU Make and a Unix-style shell.</p></li>
+<li><p>Tcl/Tk development files, including <code class="docutils literal notranslate"><span class="pre">tclConfig.sh</span></code> and <code class="docutils literal notranslate"><span class="pre">tkConfig.sh</span></code>.</p></li>
+<li><p>Matching Tk private headers.</p></li>
+<li><p>On Linux, the X11 development headers and libraries.</p></li>
 </ul>
-<p>This component provides basic window operations.</p>
-<section id="installation">
-<span id="r-installation"></span><h2>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h2>
-<p>For binary installations, just unzip or untar the package into your Tcl library.</p>
+<p>Rbc still uses a small number of private Tk interfaces. Retain the matching Tk source tree unless the development
+installation provides all required private headers. The configure script uses the source location recorded in
+<code class="docutils literal notranslate"><span class="pre">tkConfig.sh</span></code> when locating these headers.</p>
+<p>Keep the corresponding Tcl source tree available as well when using the provided development targets: the Makefile sets
+<code class="docutils literal notranslate"><span class="pre">TCL_LIBRARY</span></code> from the source location recorded in <code class="docutils literal notranslate"><span class="pre">tclConfig.sh</span></code>.</p>
+<p>The repository includes a generated <code class="docutils literal notranslate"><span class="pre">configure</span></code> script. Autoconf is needed only when regenerating it after changes to
+the build configuration.</p>
+</section>
 </section>
 <section id="building-from-source">
-<span id="r-building-from-source"></span><span id="r-building20from20source"></span><h2>Building from Source<a class="headerlink" href="#building-from-source" title="Link to this heading">¶</a></h2>
-<p>Rbc is a TEA compliant extension. You should be able to unpack the source code, and perform the usual
-<code class="docutils literal notranslate"><span class="pre">configure/make/make</span> <span class="pre">install</span></code> procedure. Making the test target will run the automated test suite.</p>
-<p>Since Rbc still depends on some Tcl/Tk private data structures, you may experience some difficulty in bulding it  against some Tcl distributions which do not have the complete set of public and private headers.</p>
+<span id="r-building-from-source"></span><span id="r-building20from20source"></span><h2>Building from source<a class="headerlink" href="#building-from-source" title="Link to this heading">¶</a></h2>
+<p>Obtain the sources:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/georgtree/rbc-tk9.git
+<span class="nb">cd</span><span class="w"> </span>rbc-tk9
+</pre></div>
+</div>
+<p>The examples below build in the repository root. Replace the Tcl/Tk paths with paths for your installation or build
+trees.</p>
+<p><code class="docutils literal notranslate"><span class="pre">--with-tcl</span></code> and <code class="docutils literal notranslate"><span class="pre">--with-tk</span></code> take the <strong>directories containing</strong> <code class="docutils literal notranslate"><span class="pre">tclConfig.sh</span></code> and <code class="docutils literal notranslate"><span class="pre">tkConfig.sh</span></code>, not the configuration
+filenames themselves.</p>
+<p>Install <code class="docutils literal notranslate"><span class="pre">argparse</span></code> for the same Tcl interpreter before running Rbc, its tests, or its demos.</p>
+<section id="linux">
+<span id="r-linux"></span><h3>Linux<a class="headerlink" href="#linux" title="Link to this heading">¶</a></h3>
+<p>For example, using Tcl/Tk build trees and a user-local installation prefix:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>./configure<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--with-tcl<span class="o">=</span>/path/to/tcl9.0/unix<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--with-tk<span class="o">=</span>/path/to/tk9.0/unix<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--prefix<span class="o">=</span><span class="s2">&quot;</span><span class="nv">$HOME</span><span class="s2">/.local&quot;</span>
+
+make<span class="w"> </span>-j4
+make<span class="w"> </span><span class="nb">test</span>
+
+make<span class="w"> </span>install<span class="w"> </span><span class="nv">DOC_INSTALL_DIR</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$HOME</span><span class="s2">/.local/share/rbc0.5.0/doc&quot;</span>
+</pre></div>
+</div>
+<p>The Tcl/Tk directories can instead refer to installed configuration files, provided that the required headers and source
+locations remain accessible.</p>
+<p>The selected Tcl/Tk shared libraries must also be discoverable by the system dynamic loader. The Makefile supplies the
+build-directory environment for its <code class="docutils literal notranslate"><span class="pre">test</span></code> and <code class="docutils literal notranslate"><span class="pre">shell</span></code> targets.</p>
 </section>
-<section id="documentation">
-<span id="r-documentation"></span><h2>Documentation<a class="headerlink" href="#documentation" title="Link to this heading">¶</a></h2>
+<section id="windows-with-msys2-ucrt64">
+<span id="r-windows-with-msys2-ucrt64"></span><span id="r-windows20with20msys22fucrt64"></span><h3>Windows with MSYS2/UCRT64<a class="headerlink" href="#windows-with-msys2-ucrt64" title="Link to this heading">¶</a></h3>
+<p>Run the following commands in an <strong>MSYS2 UCRT64 shell</strong>, using Tcl and Tk built with a compatible toolchain and
+architecture:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>./configure<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--with-tcl<span class="o">=</span>/path/to/tcl9.0/win<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--with-tk<span class="o">=</span>/path/to/tk9.0/win<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--prefix<span class="o">=</span>/ucrt64
+
+make<span class="w"> </span>-j4
+make<span class="w"> </span><span class="nb">test</span>
+
+make<span class="w"> </span>install<span class="w"> </span><span class="nv">DOC_INSTALL_DIR</span><span class="o">=</span>/ucrt64/share/rbc0.5.0/doc
+</pre></div>
+</div>
+<p>Ensure that the selected Tcl/Tk DLLs and compiler runtime DLLs are available through <code class="docutils literal notranslate"><span class="pre">PATH</span></code>.</p>
+<p>The UCRT64 shell does not automatically determine Rbc’s installation prefix.  Specify <code class="docutils literal notranslate"><span class="pre">--prefix=/ucrt64</span></code> when that is
+the intended destination.</p>
+</section>
+<section id="installation-locations">
+<span id="r-installation-locations"></span><span id="r-installation20locations"></span><h3>Installation locations<a class="headerlink" href="#installation-locations" title="Link to this heading">¶</a></h3>
+<p>With the default directory layout, installation places:</p>
 <ul class="simple">
-<li><p>Documentation could be found <a class="reference external" href="https://georgtree.github.io/rbc-tk9/">here</a>.</p></li>
+<li><p>The package library, <code class="docutils literal notranslate"><span class="pre">pkgIndex.tcl</span></code>, runtime scripts, and supporting resources in <code class="docutils literal notranslate"><span class="pre">PREFIX/lib/rbc0.5.0</span></code>.</p></li>
+<li><p>Demos in <code class="docutils literal notranslate"><span class="pre">PREFIX/lib/rbc0.5.0/demos</span></code>.</p></li>
+<li><p>Manual pages in <code class="docutils literal notranslate"><span class="pre">PREFIX/share/man/mann</span></code>.</p></li>
+</ul>
+<p>The current Makefile has a separate <code class="docutils literal notranslate"><span class="pre">DOC_INSTALL_DIR</span></code> setting for HTML documentation. The commands above explicitly set
+it to a location under the chosen prefix.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">--prefix</span></code> is omitted, the build system normally inherits the prefix from the selected Tcl configuration.</p>
+<p>For other configure options, run:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>./configure<span class="w"> </span>--help
+</pre></div>
+</div>
+</section>
+</section>
+<section id="loading-the-package">
+<span id="r-loading-the-package"></span><span id="r-loading20the20package"></span><h2>Loading the package<a class="headerlink" href="#loading-the-package" title="Link to this heading">¶</a></h2>
+<p>Start the Tcl/Tk interpreter associated with your build and run:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>rbc<span class="w"> </span><span class="mf">0.5</span>.0
+</pre></div>
+</div>
+<p>To check the versions in use:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Tcl: [info patchlevel]&quot;</span>
+<span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Tk:  [package provide Tk]&quot;</span>
+<span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Rbc: [package provide rbc]&quot;</span>
+</pre></div>
+</div>
+<p>If Rbc is installed outside Tcl’s normal package search locations, add its library directory before loading it:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">lappend</span><span class="w"> </span>auto_path<span class="w"> </span><span class="o">/</span>path<span class="o">/</span>to<span class="o">/</span>prefix<span class="o">/</span>lib
+<span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>rbc<span class="w"> </span><span class="mf">0.5</span>.0
+</pre></div>
+</div>
+<p>The same applies to <code class="docutils literal notranslate"><span class="pre">argparse</span></code> if it is installed in a separate location.</p>
+<p>When installing a prebuilt package, preserve the complete package directory, including <code class="docutils literal notranslate"><span class="pre">pkgIndex.tcl</span></code>, the shared
+library, <code class="docutils literal notranslate"><span class="pre">graphtoolbar.tcl</span></code>, PostScript prologs, and bitmap resources. Copying only the DLL or shared library is not
+sufficient.</p>
+<section id="using-an-uninstalled-build">
+<span id="r-using-an-uninstalled-build"></span><span id="r-using20an20uninstalled20build"></span><h3>Using an uninstalled build<a class="headerlink" href="#using-an-uninstalled-build" title="Link to this heading">¶</a></h3>
+<p>From the Rbc build directory:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>shell
+</pre></div>
+</div>
+<p>This starts the configured Tcl interpreter with the build directory in its package search path. Then load Rbc normally:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>rbc
+</pre></div>
+</div>
+</section>
+</section>
+<section id="running-tests">
+<span id="r-running-tests"></span><span id="r-running20tests"></span><h2>Running tests<a class="headerlink" href="#running-tests" title="Link to this heading">¶</a></h2>
+<p>Run the automated test suite from the build directory:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="nb">test</span>
+</pre></div>
+</div>
+<p>This target builds the package and the public C API test extension, then runs <code class="docutils literal notranslate"><span class="pre">tests/all.tcl</span></code> with the appropriate build
+environment.</p>
+<p>The suite uses <code class="docutils literal notranslate"><span class="pre">tcltest</span></code>. Pass test selection options through <code class="docutils literal notranslate"><span class="pre">TESTFLAGS</span></code>.</p>
+<p>For example, run the line-decimation test file:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="nv">TESTFLAGS</span><span class="o">=</span><span class="s2">&quot;-file RBC.graph.element.decimate.A.test&quot;</span>
+</pre></div>
+</div>
+<p>Or select tests by name:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="nv">TESTFLAGS</span><span class="o">=</span><span class="s2">&quot;-match RBC.graph.element.decimate.*&quot;</span>
+</pre></div>
+</div>
+<p>On a headless Linux system, an X11 virtual display can be used if Xvfb is installed:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>xvfb-run<span class="w"> </span>-a<span class="w"> </span>make<span class="w"> </span><span class="nb">test</span>
+</pre></div>
+</div>
+<p>Review the test summary and any skipped-test constraints. The <code class="docutils literal notranslate"><span class="pre">manualtests</span></code> directory contains additional visual and
+interactive checks that are separate from the automated suite.</p>
+</section>
+<section id="running-demos">
+<span id="r-running-demos"></span><span id="r-running20demos"></span><h2>Running demos<a class="headerlink" href="#running-demos" title="Link to this heading">¶</a></h2>
+<p>From an in-tree build, start the demo browser with:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>shell<span class="w"> </span><span class="nv">SCRIPT</span><span class="o">=</span>demos/demos.tcl
+</pre></div>
+</div>
+<p>The browser launches individual demos when their thumbnails are selected.</p>
+<p>An individual demo can also be started directly:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>shell<span class="w"> </span><span class="nv">SCRIPT</span><span class="o">=</span>demos/graph1.tcl
+</pre></div>
+</div>
+<p>After installation, use the matching Tcl/Tk 9 interpreter:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>wish9.0<span class="w"> </span>/path/to/prefix/lib/rbc0.5.0/demos/demos.tcl
+</pre></div>
+</div>
+<p>The executable may instead be named <code class="docutils literal notranslate"><span class="pre">wish</span></code>, depending on the Tcl/Tk installation. On Windows, use the corresponding
+<code class="docutils literal notranslate"><span class="pre">wish.exe</span></code>.</p>
+<p>The demos locate their supporting files relative to their own script directory. Keep the demo scripts, images, bitmaps,
+stipples, and helper scripts together.</p>
+<p>The current demos cover graphs, bar charts, stripcharts, symbols, spline interpolation, and window/image operations.</p>
+</section>
+<section id="rendering-benchmarks">
+<span id="r-rendering-benchmarks"></span><span id="r-rendering20benchmarks"></span><h2>Rendering benchmarks<a class="headerlink" href="#rendering-benchmarks" title="Link to this heading">¶</a></h2>
+<p>Performance benchmarks are separate from the correctness tests. They can create large data sets and should be run
+deliberately.</p>
+<p>In addition to Rbc and <code class="docutils literal notranslate"><span class="pre">argparse</span></code>, the benchmark scripts require the Tcllib packages <code class="docutils literal notranslate"><span class="pre">csv</span></code>, <code class="docutils literal notranslate"><span class="pre">report</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">struct::matrix</span></code>.</p>
+<p>Run the small smoke profile from an in-tree build:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>shell<span class="w"> </span><span class="nv">SCRIPT</span><span class="o">=</span><span class="s2">&quot;tests/benchmark/run.tcl -profile smoke&quot;</span>
+</pre></div>
+</div>
+<p>Run the standard benchmark suite:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>shell<span class="w"> </span><span class="nv">SCRIPT</span><span class="o">=</span><span class="s2">&quot;tests/benchmark/run.tcl -profile standard&quot;</span>
+</pre></div>
+</div>
+<p>Run a focused line/strip comparison and save CSV results:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>shell<span class="w"> </span><span class="nv">SCRIPT</span><span class="o">=</span><span class="s2">&quot;tests/benchmark/run.tcl -profile standard -benchmarks line,strip -csv-dir benchmark-results&quot;</span>
+</pre></div>
+</div>
+<p>The suite includes line, strip, symbol, error-bar, bar, marker, and mixed workloads. For individual line-benchmark
+measurements and options, see the <a class="reference external" href="https://github.com/georgtree/rbc-tk9/blob/main/tests/benchmark/README.md">benchmark README</a>.</p>
+</section>
+<section id="r-documentation">
+<span id="id1"></span><h2>Documentation<a class="headerlink" href="#r-documentation" title="Link to this heading">¶</a></h2>
+<p>The generated HTML documentation is available online:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://georgtree.github.io/rbc-tk9/">Documentation home</a></p></li>
+<li><p><a class="reference external" href="https://georgtree.github.io/rbc-tk9/rbc-tk9-rbc.html">Package commands</a></p></li>
+<li><p><a class="reference external" href="https://georgtree.github.io/rbc-tk9/rbc-tk9-rbc-GRAPHINST.html">Graph widget operations</a></p></li>
+<li><p><a class="reference external" href="https://georgtree.github.io/rbc-tk9/rbc-tk9-rbc-graphtoolbar.html">graphtoolbar</a></p></li>
+<li><p><a class="reference external" href="https://georgtree.github.io/rbc-tk9/rbc-tk9-rbc-vector.html">Vector commands</a></p></li>
+<li><p><a class="reference external" href="https://georgtree.github.io/rbc-tk9/rbc-tk9-rbc-VECINST.html">Vector instance operations</a></p></li>
+<li><p><a class="reference external" href="https://georgtree.github.io/rbc-tk9/rbc-tk9-rbc-spline.html">Spline interpolation</a></p></li>
+<li><p><a class="reference external" href="https://georgtree.github.io/rbc-tk9/rbc-tk9-TclTk9Upgrade.html">Tcl/Tk 9 modernization and additions</a></p></li>
+</ul>
+<p>The repository also includes generated HTML under <code class="docutils literal notranslate"><span class="pre">docs/</span></code> and manual pages as <code class="docutils literal notranslate"><span class="pre">docs/*.n</span></code>. Open <code class="docutils literal notranslate"><span class="pre">docs/index.html</span></code> to
+browse the local HTML documentation.</p>
+<section id="regenerating-documentation">
+<span id="r-regenerating-documentation"></span><span id="r-regenerating20documentation"></span><h3>Regenerating documentation<a class="headerlink" href="#regenerating-documentation" title="Link to this heading">¶</a></h3>
+<p>Documentation generation requires:</p>
+<ul class="simple">
+<li><p>A working Rbc build and its runtime dependencies.</p></li>
+<li><p>The Tcl <code class="docutils literal notranslate"><span class="pre">ruff</span></code> package with Sphinx and nroff output support.</p></li>
+<li><p>Tcllib’s <code class="docutils literal notranslate"><span class="pre">fileutil</span></code> package.</p></li>
+<li><p>Python Sphinx, with <code class="docutils literal notranslate"><span class="pre">sphinx-build</span></code> available through <code class="docutils literal notranslate"><span class="pre">PATH</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ditaa</span></code> and its Java runtime when rendering diagrams that use the configured diagram generator.</p></li>
+</ul>
+<p>To build this particular documentation, the modified version of Ruff package was used, that is not availible publicly at
+this moment, so resulted documentation could differ from the provided in the current repository.</p>
+<p>From an in-tree build, run:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>doc
+</pre></div>
+</div>
+<p>The generator reads the <code class="docutils literal notranslate"><span class="pre">.ruff</span></code> sources and Tcl API documentation, writes Sphinx sources under <code class="docutils literal notranslate"><span class="pre">docs/sphinx</span></code>, builds
+HTML under <code class="docutils literal notranslate"><span class="pre">docs</span></code>, and generates the <code class="docutils literal notranslate"><span class="pre">.n</span></code> manual pages.</p>
+<p>Review the generator output and resulting pages before publishing.  The current generator prints Sphinx diagnostics, so
+the Make command’s exit status alone is not a complete documentation-build check.</p>
+<p><code class="docutils literal notranslate"><span class="pre">README.md</span></code> supplies the shared introduction and build instructions.
+<code class="docutils literal notranslate"><span class="pre">docs/startPage.ruff</span></code> reads that file as the documentation preamble.</p>
+</section>
+</section>
+<section id="reporting-problems">
+<span id="r-reporting-problems"></span><span id="r-reporting20problems"></span><h2>Reporting problems<a class="headerlink" href="#reporting-problems" title="Link to this heading">¶</a></h2>
+<p>Please use the <a class="reference external" href="https://github.com/georgtree/rbc-tk9/issues">issue tracker</a>.</p>
+<p>For build or runtime problems, include:</p>
+<ul class="simple">
+<li><p>The Rbc version or commit.</p></li>
+<li><p>Operating system and architecture.</p></li>
+<li><p>Tcl/Tk versions and, on Windows, the compiler/MSYS2 environment.</p></li>
+<li><p>Configure options and the relevant error output.</p></li>
+<li><p>A small Tcl script reproducing the problem, when applicable.</p></li>
+</ul>
+<p>For rendering problems, include a screenshot and the relevant graph, element, pen, or marker options.</p>
+</section>
+<section id="history-and-acknowledgments">
+<span id="r-history-and-acknowledgments"></span><span id="r-history20and20acknowledgments"></span><h2>History and acknowledgments<a class="headerlink" href="#history-and-acknowledgments" title="Link to this heading">¶</a></h2>
+<p>Rbc originated as a refactoring of selected components from version 2.4z of the BLT toolkit, developed by George Howlett
+and other contributors.</p>
+<p>Samuel Green, Nicholas Hudson, Stanton Sievers, and Jarrod Stormo carried out the original Rbc project at Rose-Hulman
+Institute of Technology during 2008–2009. The project adapted commonly used BLT components for Tcl/Tk 8.5 and was
+associated with the
+<a class="reference external" href="https://sourceforge.net/projects/gdat/">GDAT graphical data-analysis project</a>.</p>
+<p>Subsequent work included additional maintenance, demo improvements, and C stubs support. The stubs implementation
+includes work by Ashok P. Nadkarni.</p>
+<p>Emiliano Gavilán adapted Rbc for Tcl/Tk 9.0. This repository is based on his
+<a class="reference external" href="https://chiselapp.com/user/egavilan/repository/rbc-tk9">Rbc Tcl/Tk 9 repository</a>.</p>
+<p>George Yashin maintains this fork and its further Tcl/Tk 9 modernization, new functionality, tests, performance
+improvements, and documentation.</p>
+<p>The project also acknowledges the Tcl/Tk developers, the maintainers of the Tcl Extension Architecture build system, and
+the contributors whose code and resources remain part of Rbc.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://sourceforge.net/projects/blt/">BLT project</a></p></li>
+<li><p><a class="reference external" href="https://chiselapp.com/user/egavilan/repository/rbc-tk9">Upstream Tcl/Tk 9 adaptation</a></p></li>
+<li><p><a class="reference external" href="https://github.com/georgtree/rbc-tk9/commits/main/">Current development history</a></p></li>
 </ul>
 </section>
-<section id="history">
-<span id="r-history"></span><h2>History<a class="headerlink" href="#history" title="Link to this heading">¶</a></h2>
-<p>In order to fulfill degree requirements, the four of us undertook the refactoring of a few commonly used BLT
-components.  The project was proposed by an alumnus of the students’ institute and was accepted by the school’s
-Computer Science and Software Engineering Department. The project began in the Fall of 2008 and culminated on the
-students’ graduation in the Spring of 2009. In addition to refactoring parts of BLT, we also began developing a
-graphical data analysis tool that is designed to work with Rbc (and BLT) and be easily extensible. For more
-information see the GDAT project available at: <a class="reference external" href="http://www.sourceforge.net/projects/gdat/">http://www.sourceforge.net/projects/gdat/</a></p>
-<p>In keeping with the spirit of BLT, we have released this project to the open source community in hopes that you will
-continue development and add more components from the BLT library that are compatible with version 8.5 and later of
-Tcl/Tk.</p>
-<p>sjg,njh,sjs,jms</p>
+<section id="copyright-and-licensing">
+<span id="r-copyright-and-licensing"></span><span id="r-copyright20and20licensing"></span><h2>Copyright and licensing<a class="headerlink" href="#copyright-and-licensing" title="Link to this heading">¶</a></h2>
+<p>Rbc includes material from several authors and projects. The applicable copyright notices, permission conditions, and
+warranty disclaimers are retained in the source distribution.</p>
+<p>The main
+<a class="reference external" href="https://github.com/georgtree/rbc-tk9/blob/main/license.terms">license.terms</a>
+contains:</p>
+<ul class="simple">
+<li><p>Copyright (c) 2009, Samuel Green, Nicholas Hudson, Stanton Sievers, and Jarrod Stormo. All rights reserved.</p></li>
+<li><p>Copyright 1998 Lucent Technologies, Inc.</p></li>
+<li><p>The associated redistribution conditions and warranty disclaimers.</p></li>
+</ul>
+<p>Additional notices include:</p>
+<ul class="simple">
+<li><p>Copyright (c) 2018 Ashok P. Nadkarni in <a class="reference external" href="https://github.com/georgtree/rbc-tk9/blob/main/generic/rbcStubLib.c">generic/rbcStubLib.c</a>.</p></li>
+<li><p>Copyright 1989–1992 Regents of the University of California and copyright 1991–1997 Bell Labs Innovations for Lucent Technologies in <a class="reference external" href="https://github.com/georgtree/rbc-tk9/blob/main/library/rbcGraph.pro">library/rbcGraph.pro</a>.</p></li>
+<li><p>Copyright 1991–1997 Bell Labs Innovations for Lucent Technologies in <a class="reference external" href="https://github.com/georgtree/rbc-tk9/blob/main/library/rbcCanvEps.pro">library/rbcCanvEps.pro</a>.</p></li>
+<li><p>Notices for the Regents of the University of California, Sun Microsystems, Scriptics, ActiveState, and other contributors in the bundled <a class="reference external" href="https://github.com/georgtree/rbc-tk9/blob/main/tclconfig/license.terms">Tcl configuration support license</a>.</p></li>
+<li><p>Ajuba Solutions and ActiveState notices in <a class="reference external" href="https://github.com/georgtree/rbc-tk9/blob/main/tclconfig/tcl.m4">tclconfig/tcl.m4</a>, and Scriptics and ActiveState notices in <a class="reference external" href="https://github.com/georgtree/rbc-tk9/blob/main/Makefile.in">Makefile.in</a>.</p></li>
+<li><p>Copyright (C) 1994 X Consortium in the bundled <a class="reference external" href="https://github.com/georgtree/rbc-tk9/blob/main/tclconfig/install-sh">installation helper</a>.</p></li>
+<li><p>George Yashin’s copyright attribution in the generated documentation.</p></li>
+</ul>
+<p>This overview does not replace the full license texts or individual file notices. Preserve the applicable notices,
+conditions, and disclaimers when redistributing source or binary packages.</p>
+<p>External dependencies retain their own licenses.</p>
 <hr class="docutils" />
 <p class="centered">
 <strong>Copyright (c) George Yashin</strong></p></section>
@@ -127,11 +382,33 @@ Tcl/Tk.</p>
   <div>
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
-<li><a class="reference internal" href="#">Rbc - Refactored BLT Components</a><ul>
-<li><a class="reference internal" href="#installation">Installation</a></li>
-<li><a class="reference internal" href="#building-from-source">Building from Source</a></li>
-<li><a class="reference internal" href="#documentation">Documentation</a></li>
-<li><a class="reference internal" href="#history">History</a></li>
+<li><a class="reference internal" href="#">Rbc — Refactored BLT Components for Tcl/Tk 9</a><ul>
+<li><a class="reference internal" href="#components">Components</a></li>
+<li><a class="reference internal" href="#requirements">Requirements</a><ul>
+<li><a class="reference internal" href="#running-rbc">Running Rbc</a></li>
+<li><a class="reference internal" href="#building-rbc">Building Rbc</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#building-from-source">Building from source</a><ul>
+<li><a class="reference internal" href="#linux">Linux</a></li>
+<li><a class="reference internal" href="#windows-with-msys2-ucrt64">Windows with MSYS2/UCRT64</a></li>
+<li><a class="reference internal" href="#installation-locations">Installation locations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#loading-the-package">Loading the package</a><ul>
+<li><a class="reference internal" href="#using-an-uninstalled-build">Using an uninstalled build</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#running-tests">Running tests</a></li>
+<li><a class="reference internal" href="#running-demos">Running demos</a></li>
+<li><a class="reference internal" href="#rendering-benchmarks">Rendering benchmarks</a></li>
+<li><a class="reference internal" href="#r-documentation">Documentation</a><ul>
+<li><a class="reference internal" href="#regenerating-documentation">Regenerating documentation</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#reporting-problems">Reporting problems</a></li>
+<li><a class="reference internal" href="#history-and-acknowledgments">History and acknowledgments</a></li>
+<li><a class="reference internal" href="#copyright-and-licensing">Copyright and licensing</a></li>
 </ul>
 </li>
 </ul>
@@ -181,7 +458,7 @@ Tcl/Tk.</p>
           <a href="index.html" title="&lt;no title&gt;"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Rbc - Refactored BLT Components</a></li> 
+        <li class="nav-item nav-item-this"><a href="">Rbc — Refactored BLT Components for Tcl/Tk 9</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
