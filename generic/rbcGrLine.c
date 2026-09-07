@@ -8731,66 +8731,592 @@ static int PolarClosestInfo(Graph *graphPtr, Element *elemPtr, const ClosestSear
 #define MAX_DRAWSEGMENTS(d) Rbc_MaxRequestSize(d, sizeof(XSegment))
 #define MAX_DRAWRECTANGLES(d) Rbc_MaxRequestSize(d, sizeof(XRectangle))
 #define MAX_DRAWARCS(d) Rbc_MaxRequestSize(d, sizeof(XArc))
-
 #ifdef WIN32
+
+enum {
+    /*
+     * Filled paths have the same overlap-complexity issue we saw with
+     * PolyPolygon, so keep their batches deliberately small.
+     */
+    CIRCLE_FILL_BATCH = 32,
+
+    /*
+     * Outline-only PolyDraw does not perform polygon/path filling and
+     * can therefore use much larger batches.
+     */
+    CIRCLE_OUTLINE_BATCH = 512,
+    CIRCLE_WIDE_OUTLINE_BATCH = 64
+};
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * GetCirclePathTemplate --
+ *
+ *      Ask GDI to construct one Ellipse path and retrieve the POINT/type
+ *      representation that GDI itself generated.
+ *
+ *      The ellipse is generated in the rectangle:
+ *
+ *          0,0 .. 2*radius+1,2*radius+1
+ *
+ *      Therefore reproducing it at center x,y requires translating the
+ *      returned path by x-radius,y-radius.
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+GetCirclePathTemplate(
+    HDC dc,
+    int radius,
+    POINT **pointsPtrPtr,
+    BYTE **typesPtrPtr,
+    int *nPointsPtr)
+{
+    POINT *points;
+    BYTE *types;
+    int diameter;
+    int nPoints;
+    int result;
+
+    *pointsPtrPtr = NULL;
+    *typesPtrPtr = NULL;
+    *nPointsPtr = 0;
+
+    if (radius < 1) {
+        return FALSE;
+    }
+
+    diameter = radius + radius + 1;
+
+    if (!BeginPath(dc)) {
+        return FALSE;
+    }
+
+    if (!Ellipse(dc, 0, 0, diameter, diameter)) {
+        AbortPath(dc);
+        return FALSE;
+    }
+
+    if (!EndPath(dc)) {
+        AbortPath(dc);
+        return FALSE;
+    }
+
+    /*
+     * With a zero buffer size GetPath returns the number of path points
+     * without writing any output.
+     */
+    nPoints = GetPath(dc, NULL, NULL, 0);
+    if (nPoints <= 0) {
+        AbortPath(dc);
+        return FALSE;
+    }
+
+    if ((size_t)nPoints > SIZE_MAX / sizeof(*points)) {
+        AbortPath(dc);
+        return FALSE;
+    }
+
+    points = Tcl_AttemptAlloc(
+        (size_t)nPoints * sizeof(*points));
+    if (points == NULL) {
+        AbortPath(dc);
+        return FALSE;
+    }
+
+    types = Tcl_AttemptAlloc(
+        (size_t)nPoints * sizeof(*types));
+    if (types == NULL) {
+        ckfree(points);
+        AbortPath(dc);
+        return FALSE;
+    }
+
+    result = GetPath(dc, points, types, nPoints);
+
+    /*
+     * We only needed the path as a reusable template.
+     */
+    AbortPath(dc);
+
+    if (result != nPoints) {
+        ckfree(types);
+        ckfree(points);
+        return FALSE;
+    }
+
+    *pointsPtrPtr = points;
+    *typesPtrPtr = types;
+    *nPointsPtr = nPoints;
+
+    return TRUE;
+}
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * LoadCirclePath --
+ *
+ *      Copy one GDI-generated ellipse path into a PolyDraw batch,
+ *      translating it to the requested symbol center.
+ *
+ *----------------------------------------------------------------------
+ */
+static void
+LoadCirclePath(
+    POINT *dstPoints,
+    BYTE *dstTypes,
+    const POINT *templatePoints,
+    const BYTE *templateTypes,
+    int nTemplatePoints,
+    LONG x,
+    LONG y,
+    int radius)
+{
+    LONG dx;
+    LONG dy;
+    int i;
+
+    dx = x - radius;
+    dy = y - radius;
+
+    for (i = 0; i < nTemplatePoints; i++) {
+        dstPoints[i].x = templatePoints[i].x + dx;
+        dstPoints[i].y = templatePoints[i].y + dy;
+    }
+
+    memcpy(
+        dstTypes,
+        templateTypes,
+        (size_t)nTemplatePoints * sizeof(*dstTypes));
+}
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * DrawCircleCentersDirect --
+ *
+ *      Existing one-Ellipse-per-symbol fallback.
+ *
+ *----------------------------------------------------------------------
+ */
+static void
+DrawCircleCentersDirect(
+    HDC dc,
+    const POINT *centers,
+    int nCenters,
+    int radius)
+{
+    int i;
+
+    for (i = 0; i < nCenters; i++) {
+        Ellipse(
+            dc,
+            centers[i].x - radius,
+            centers[i].y - radius,
+            centers[i].x + radius + 1,
+            centers[i].y + radius + 1);
+    }
+}
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * DrawCirclePathBatch --
+ *
+ *      Render several translated copies of the GDI-generated ellipse
+ *      path.
+ *
+ *      Outline-only circles can be sent directly to PolyDraw.
+ *
+ *      Filled circles require a path bracket so FillPath or
+ *      StrokeAndFillPath can consume the combined figures.
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+DrawCirclePathBatch(
+    HDC dc,
+    const POINT *points,
+    const BYTE *types,
+    int nPoints,
+    int doFill,
+    int doOutline)
+{
+    if (!doFill) {
+        /*
+         * PolyDraw directly strokes all disjoint figures.
+         */
+        return PolyDraw(dc, points, types, nPoints);
+    }
+
+    if (!BeginPath(dc)) {
+        return FALSE;
+    }
+
+    if (!PolyDraw(dc, points, types, nPoints)) {
+        AbortPath(dc);
+        return FALSE;
+    }
+
+    if (!EndPath(dc)) {
+        AbortPath(dc);
+        return FALSE;
+    }
+
+    if (doOutline) {
+        return StrokeAndFillPath(dc);
+    }
+
+    return FillPath(dc);
+}
+
 
 /*
  *----------------------------------------------------------------------
  *
  * DrawCircles --
  *
- *      TODO: Description
- *
- * Parameters:
- *      Display *display
- *      Drawable drawable
- *      Line *linePtr
- *      LinePen *penPtr
- *      int nSymbolPts
- *      Point2D *symbolPts
- *      int radius
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
+ *      Batched Windows circle-symbol renderer.
  *
  *----------------------------------------------------------------------
  */
-static void DrawCircles(Display *display, Drawable drawable, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts,
-                        Point2D *symbolPts, int radius) {
-    HBRUSH brush, oldBrush;
-    HPEN pen, oldPen;
-    HDC dc;
+static void
+DrawCircles(
+    Display *display,
+    Drawable drawable,
+    Line *linePtr,
+    LinePen *penPtr,
+    Tcl_Size nSymbolPts,
+    Point2D *symbolPts,
+    int radius)
+{
     Rbc_WinDrawableDC *dcStatePtr;
-    register Point2D *pointPtr, *endPtr;
+    Point2D *pointPtr;
+    Point2D *endPtr;
+    POINT *templatePoints;
+    POINT *batchPoints;
+    POINT *batchCenters;
+    BYTE *templateTypes;
+    BYTE *batchTypes;
+    HBRUSH brush;
+    HBRUSH oldBrush;
+    HPEN pen;
+    HPEN oldPen;
+    HDC dc;
+    Tcl_Size maxBatch;
+    Tcl_Size nBuffered;
+    size_t nBatchPoints;
+    int nTemplatePoints;
+    int doFill;
+    int doOutline;
+    int oldFillMode;
+    int useBatch;
 
-    if (drawable == None) {
-        return; /* Huh? */
-    }
-    if ((penPtr->symbol.fillGC == NULL) && (penPtr->symbol.outlineWidth == 0)) {
+    if ((drawable == None) || (nSymbolPts <= 0)) {
         return;
     }
-    dc = Rbc_WinAcquireDrawableDC(display, drawable, &dcStatePtr);
-    if (penPtr->symbol.fillGC != NULL) {
-        brush = CreateSolidBrush(penPtr->symbol.fillGC->foreground);
+
+    doFill = (penPtr->symbol.fillGC != NULL);
+
+    doOutline =
+        ((penPtr->symbol.outlineGC != NULL) &&
+         (penPtr->symbol.outlineWidth > 0));
+
+    if (!doFill && !doOutline) {
+        return;
+    }
+
+    templatePoints = NULL;
+    templateTypes = NULL;
+    batchPoints = NULL;
+    batchTypes = NULL;
+    batchCenters = NULL;
+
+    dc = Rbc_WinAcquireDrawableDC(
+        display, drawable, &dcStatePtr);
+
+    /*
+     * Set up the same brush and pen used by the old Ellipse renderer.
+     */
+    if (doFill) {
+        brush = CreateSolidBrush(
+            penPtr->symbol.fillGC->foreground);
     } else {
         brush = GetStockBrush(NULL_BRUSH);
     }
-    if (penPtr->symbol.outlineWidth > 0) {
-        pen = Rbc_GCToPen(dc, penPtr->symbol.outlineGC);
+
+    if (doOutline) {
+        pen = Rbc_GCToPen(
+            dc, penPtr->symbol.outlineGC);
     } else {
         pen = GetStockPen(NULL_PEN);
     }
-    oldPen = SelectPen(dc, pen);
+
     oldBrush = SelectBrush(dc, brush);
-    for (pointPtr = symbolPts, endPtr = symbolPts + nSymbolPts; pointPtr < endPtr; pointPtr++) {
-        Ellipse(dc, (int)pointPtr->x - radius, (int)pointPtr->y - radius, (int)pointPtr->x + radius + 1,
-                (int)pointPtr->y + radius + 1);
+    oldPen = SelectPen(dc, pen);
+
+    /*
+     * Combining overlapping symbols into one filled path is only
+     * equivalent to the old renderer for the normal GXcopy case.
+     *
+     * When both fill and outline are used, require equal colors too:
+     * otherwise drawing all figures as one path would change which
+     * outlines remain visible where symbols overlap.
+     */
+    useBatch = TRUE;
+
+    if (doFill &&
+        (penPtr->symbol.fillGC->function != GXcopy)) {
+        useBatch = FALSE;
     }
-    DeleteBrush(SelectBrush(dc, oldBrush));
-    DeletePen(SelectPen(dc, oldPen));
+
+    if (doOutline &&
+        (penPtr->symbol.outlineGC->function != GXcopy)) {
+        useBatch = FALSE;
+    }
+
+    if (doFill && doOutline &&
+        (penPtr->symbol.fillGC->foreground !=
+         penPtr->symbol.outlineGC->foreground)) {
+        useBatch = FALSE;
+    }
+
+    if (useBatch) {
+        Rbc_WinSetROP2(dc, GXcopy);
+
+        if (!GetCirclePathTemplate(
+                dc,
+                radius,
+                &templatePoints,
+                &templateTypes,
+                &nTemplatePoints)) {
+            useBatch = FALSE;
+        }
+    }
+
+    if (useBatch) {
+        if (doFill) {
+            maxBatch = CIRCLE_FILL_BATCH;
+        } else if (penPtr->symbol.outlineWidth > 1) {
+            maxBatch = CIRCLE_WIDE_OUTLINE_BATCH;
+        } else {
+            maxBatch = CIRCLE_OUTLINE_BATCH;
+        }
+
+        if ((size_t)nTemplatePoints >
+            SIZE_MAX / (size_t)maxBatch) {
+            useBatch = FALSE;
+        } else {
+            nBatchPoints =
+                (size_t)nTemplatePoints *
+                (size_t)maxBatch;
+
+            if (nBatchPoints >
+                SIZE_MAX / sizeof(*batchPoints)) {
+                useBatch = FALSE;
+            }
+        }
+
+        if (useBatch) {
+            batchPoints = Tcl_AttemptAlloc(
+                nBatchPoints * sizeof(*batchPoints));
+
+            batchTypes = Tcl_AttemptAlloc(
+                nBatchPoints * sizeof(*batchTypes));
+
+            batchCenters = Tcl_AttemptAlloc(
+                (size_t)maxBatch *
+                sizeof(*batchCenters));
+
+            if ((batchPoints == NULL) ||
+                (batchTypes == NULL) ||
+                (batchCenters == NULL)) {
+                useBatch = FALSE;
+            }
+        }
+    }
+
+    if (!useBatch) {
+        /*
+         * Preserve the old implementation for unusual GCs or if the
+         * batching setup cannot be constructed.
+         */
+        for (pointPtr = symbolPts,
+                 endPtr = symbolPts + nSymbolPts;
+             pointPtr < endPtr;
+             pointPtr++) {
+            int draw;
+
+            if (linePtr->symbolInterval > 0) {
+                draw = DRAW_SYMBOL(linePtr);
+                linePtr->symbolCounter++;
+            } else {
+                draw = TRUE;
+            }
+
+            if (!draw) {
+                continue;
+            }
+
+            Ellipse(
+                dc,
+                (int)pointPtr->x - radius,
+                (int)pointPtr->y - radius,
+                (int)pointPtr->x + radius + 1,
+                (int)pointPtr->y + radius + 1);
+        }
+
+        goto done;
+    }
+
+    oldFillMode = 0;
+
+    if (doFill) {
+        /*
+         * All circle figures have the same winding direction.  WINDING
+         * therefore gives their union instead of parity cancellation in
+         * overlapping areas.
+         */
+        oldFillMode = SetPolyFillMode(dc, WINDING);
+    }
+
+    nBuffered = 0;
+
+    for (pointPtr = symbolPts,
+             endPtr = symbolPts + nSymbolPts;
+         pointPtr < endPtr;
+         pointPtr++) {
+        POINT center;
+        POINT *dstPoints;
+        BYTE *dstTypes;
+        int draw;
+
+        if (linePtr->symbolInterval > 0) {
+            draw = DRAW_SYMBOL(linePtr);
+            linePtr->symbolCounter++;
+        } else {
+            draw = TRUE;
+        }
+
+        if (!draw) {
+            continue;
+        }
+
+        center.x = (LONG)pointPtr->x;
+        center.y = (LONG)pointPtr->y;
+
+        batchCenters[nBuffered] = center;
+
+        dstPoints =
+            batchPoints +
+            nBuffered * nTemplatePoints;
+
+        dstTypes =
+            batchTypes +
+            nBuffered * nTemplatePoints;
+
+        LoadCirclePath(
+            dstPoints,
+            dstTypes,
+            templatePoints,
+            templateTypes,
+            nTemplatePoints,
+            center.x,
+            center.y,
+            radius);
+
+        nBuffered++;
+
+        if (nBuffered == maxBatch) {
+            int nPoints;
+
+            nPoints =
+                (int)(nBuffered *
+                      (Tcl_Size)nTemplatePoints);
+
+            if (!DrawCirclePathBatch(
+                    dc,
+                    batchPoints,
+                    batchTypes,
+                    nPoints,
+                    doFill,
+                    doOutline)) {
+
+                /*
+                 * GXcopy makes it safe to redraw a failed batch with
+                 * the old implementation.
+                 */
+                DrawCircleCentersDirect(
+                    dc,
+                    batchCenters,
+                    (int)nBuffered,
+                    radius);
+            }
+
+            nBuffered = 0;
+        }
+    }
+
+    if (nBuffered > 0) {
+        int nPoints;
+
+        nPoints =
+            (int)(nBuffered *
+                  (Tcl_Size)nTemplatePoints);
+
+        if (!DrawCirclePathBatch(
+                dc,
+                batchPoints,
+                batchTypes,
+                nPoints,
+                doFill,
+                doOutline)) {
+
+            DrawCircleCentersDirect(
+                dc,
+                batchCenters,
+                (int)nBuffered,
+                radius);
+        }
+    }
+
+    if (doFill && (oldFillMode != 0)) {
+        SetPolyFillMode(dc, oldFillMode);
+    }
+
+done:
+    if (batchCenters != NULL) {
+        ckfree(batchCenters);
+    }
+    if (batchTypes != NULL) {
+        ckfree(batchTypes);
+    }
+    if (batchPoints != NULL) {
+        ckfree(batchPoints);
+    }
+    if (templateTypes != NULL) {
+        ckfree(templateTypes);
+    }
+    if (templatePoints != NULL) {
+        ckfree(templatePoints);
+    }
+
+    SelectPen(dc, oldPen);
+    SelectBrush(dc, oldBrush);
+
+    if (doOutline) {
+        DeletePen(pen);
+    }
+    if (doFill) {
+        DeleteBrush(brush);
+    }
+
     Rbc_WinReleaseDrawableDC(dcStatePtr);
 }
 
@@ -8886,35 +9412,125 @@ static void DrawCircles(Display *display, Drawable drawable, Line *linePtr, Line
 
 #endif
 
+#ifdef WIN32
+
+static void DrawPolygonSymbols(Display *display, Drawable drawable, LinePen *penPtr, const XPoint *polygons,
+                               Tcl_Size nPolygons, int stride, int nVertices);
+
+#endif /* WIN32 */
+
+#ifdef WIN32
+
 /*
  *----------------------------------------------------------------------
  *
  * DrawSquares --
  *
- *      TODO: Description
+ *      Draw square symbols on Windows using the batched polygon-symbol
+ *      renderer.  X11 retains its native XFillRectangles/XDrawRectangles
+ *      implementation below.
  *
- * Parameters:
- *      Display *display
- *      Drawable drawable
- *      Line *linePtr
- *      LinePen *penPtr
- *      int nSymbolPts
- *      register Point2D *symbolPts
- *      int r
+ *      Each square is represented by four vertices plus a repeated first
+ *      vertex for the closed outline:
  *
- * Results:
- *      TODO: Results
+ *          0 ----- 1
+ *          |       |
+ *          |       |
+ *          3 ----- 2
  *
- * Side Effects:
- *      TODO: Side Effects
+ *          4 == 0
  *
  *----------------------------------------------------------------------
  */
 static void DrawSquares(Display *display, Drawable drawable, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts,
-                        register Point2D *symbolPts, int r) {
+                        Point2D *symbolPts, int r) {
+    XPoint *polygons;
+    XPoint *p;
+    Point2D *pointPtr;
+    Point2D *endPtr;
+    Tcl_Size count;
+    int s;
+
+    if ((drawable == None) || (nSymbolPts <= 0)) {
+        return;
+    }
+    if ((penPtr->symbol.fillGC == NULL) && ((penPtr->symbol.outlineGC == NULL) || (penPtr->symbol.outlineWidth <= 0))) {
+        return;
+    }
+    if ((size_t)nSymbolPts > SIZE_MAX / (5u * sizeof(*polygons))) {
+        return;
+    }
+    polygons = Tcl_AttemptAlloc((size_t)nSymbolPts * 5u * sizeof(*polygons));
+    if (polygons == NULL) {
+        return;
+    }
+    s = r + r;
+    p = polygons;
+    if (linePtr->symbolInterval > 0) {
+        count = 0;
+
+        for (pointPtr = symbolPts, endPtr = symbolPts + nSymbolPts; pointPtr < endPtr; pointPtr++) {
+            if (DRAW_SYMBOL(linePtr)) {
+                short x;
+                short y;
+
+                x = (short)(pointPtr->x - r);
+                y = (short)(pointPtr->y - r);
+                p[0].x = x;
+                p[0].y = y;
+                p[1].x = (short)(x + s);
+                p[1].y = y;
+                p[2].x = (short)(x + s);
+                p[2].y = (short)(y + s);
+                p[3].x = x;
+                p[3].y = (short)(y + s);
+                p[4] = p[0];
+                p += 5;
+                count++;
+            }
+            linePtr->symbolCounter++;
+        }
+    } else {
+        count = nSymbolPts;
+
+        for (pointPtr = symbolPts, endPtr = symbolPts + nSymbolPts; pointPtr < endPtr; pointPtr++) {
+            short x;
+            short y;
+
+            x = (short)(pointPtr->x - r);
+            y = (short)(pointPtr->y - r);
+            p[0].x = x;
+            p[0].y = y;
+            p[1].x = (short)(x + s);
+            p[1].y = y;
+            p[2].x = (short)(x + s);
+            p[2].y = (short)(y + s);
+            p[3].x = x;
+            p[3].y = (short)(y + s);
+            p[4] = p[0];
+            p += 5;
+        }
+    }
+    DrawPolygonSymbols(display, drawable, penPtr, polygons, count, 5, 4);
+    ckfree(polygons);
+}
+
+#else
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * DrawSquares --
+ *
+ *      Draw square symbols using native X11 rectangle operations.
+ *
+ *----------------------------------------------------------------------
+ */
+static void DrawSquares(Display *display, Drawable drawable, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts,
+                        Point2D *symbolPts, int r) {
     XRectangle *rectArr;
-    register Point2D *pointPtr, *endPtr;
-    register XRectangle *rectPtr;
+    Point2D *pointPtr, *endPtr;
+    XRectangle *rectPtr;
     int reqSize;
     int nRects;
     int s;
@@ -8930,7 +9546,6 @@ static void DrawSquares(Display *display, Drawable drawable, Line *linePtr, Line
         return;
     }
     rectPtr = rectArr;
-
     if (linePtr->symbolInterval > 0) {
         count = 0;
         for (pointPtr = symbolPts, endPtr = symbolPts + nSymbolPts; pointPtr < endPtr; pointPtr++) {
@@ -8938,7 +9553,8 @@ static void DrawSquares(Display *display, Drawable drawable, Line *linePtr, Line
                 rectPtr->x = (short int)(pointPtr->x - r);
                 rectPtr->y = (short int)(pointPtr->y - r);
                 rectPtr->width = rectPtr->height = (unsigned short)s;
-                rectPtr++, count++;
+                rectPtr++;
+                count++;
             }
             linePtr->symbolCounter++;
         }
@@ -8968,8 +9584,10 @@ static void DrawSquares(Display *display, Drawable drawable, Line *linePtr, Line
             XDrawRectangles(display, drawable, penPtr->symbol.outlineGC, rectArr + i, nRects);
         }
     }
-    ckfree((char *)rectArr);
+    ckfree(rectArr);
 }
+
+#endif /* WIN32 */
 
 #ifdef WIN32
 
@@ -9028,7 +9646,7 @@ static void LoadPolygonBatch(POINT *points, const XPoint *polygons, Tcl_Size fir
  *
  *----------------------------------------------------------------------
  */
-static void DrawPolygonSymbols(Graph *graphPtr, Drawable drawable, LinePen *penPtr, const XPoint *polygons,
+static void DrawPolygonSymbols(Display *display, Drawable drawable, LinePen *penPtr, const XPoint *polygons,
                                Tcl_Size nPolygons, int stride, int nVertices) {
     enum {
         /*
@@ -9102,7 +9720,7 @@ static void DrawPolygonSymbols(Graph *graphPtr, Drawable drawable, LinePen *penP
     case SYMBOL_CROSS:
         maxFillPolygons = POLYGON_CROSS_FILL_BATCH;
         break;
-
+    case SYMBOL_SQUARE:    
     case SYMBOL_DIAMOND:
     case SYMBOL_TRIANGLE:
     case SYMBOL_ARROW:
@@ -9151,7 +9769,7 @@ static void DrawPolygonSymbols(Graph *graphPtr, Drawable drawable, LinePen *penP
         polylineCounts[i] = (DWORD)stride;
     }
 
-    dc = Rbc_WinAcquireDrawableDC(graphPtr->display, drawable, &dcStatePtr);
+    dc = Rbc_WinAcquireDrawableDC(display, drawable, &dcStatePtr);
 
     /*
      * Fill pass.
@@ -9535,7 +10153,7 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
             }
         }
 #ifdef WIN32
-        DrawPolygonSymbols(graphPtr, drawable, penPtr, polygon, count, 13, 12);
+        DrawPolygonSymbols(graphPtr->display, drawable, penPtr, polygon, count, 13, 12);
 #else
         if (penPtr->symbol.fillGC != NULL) {
             for (p = polygon, i = 0; i < count; i++, p += 13) {
@@ -9600,7 +10218,7 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
             }
         }
 #ifdef WIN32
-        DrawPolygonSymbols(graphPtr, drawable, penPtr, polygon, count, 5, 4);
+        DrawPolygonSymbols(graphPtr->display, drawable, penPtr, polygon, count, 5, 4);
 #else
         if (penPtr->symbol.fillGC != NULL) {
             for (p = polygon, i = 0; i < count; i++, p += 5) {
@@ -9687,7 +10305,7 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
             }
         }
 #ifdef WIN32
-        DrawPolygonSymbols(graphPtr, drawable, penPtr, polygon, count, 4, 3);
+        DrawPolygonSymbols(graphPtr->display, drawable, penPtr, polygon, count, 4, 3);
 #else
         if (penPtr->symbol.fillGC != NULL) {
             for (p = polygon, i = 0; i < count; i++, p += 4) {
