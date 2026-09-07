@@ -10,123 +10,31 @@ namespace eval ::rbcMarkersBenchmark {
     variable graph .rbcMarkersBenchmark.g
     variable imageName ::rbcMarkerBenchmarkImage
     variable options {}
-}
-
-proc ::rbcMarkersBenchmark::Usage {} {
-    puts {Usage: markers.tcl ?options?
-
-Options:
-
-  -profile NAME
-      smoke, standard, or stress.
-      Default: standard
-
-  -counts LIST
-      Comma-separated marker counts.
-
-  -sizes LIST
-      Comma-separated WIDTHxHEIGHT values.
-
-  -cases LIST
-      line
-      polygon-fill
-      polygon-outline
-      text-0
-      text-45
-      bitmap
-      image
-
-  -iterations N
-      Measured iterations.
-
-  -warmup N
-      Warm-up iterations.
-
-  -csv FILE
-      Write long-format CSV.
-
-  -help
-      Show this message.
-
-Examples:
-
-  tclsh markers.tcl
-
-  tclsh markers.tcl -profile stress
-
-  tclsh markers.tcl -counts 1000,5000,10000 -cases line,polygon-fill,text-45
-}
-}
-
-proc ::rbcMarkersBenchmark::InitOptions {argv} {
-    variable options
-
-    set profile [::rbcBenchmark::FindProfile $argv standard]
-
-    set options [dict merge [dict create profile $profile\
-                                     cases {line polygon-fill polygon-outline text-0 text-45 bitmap image} csv {}]\
-                         [::rbcBenchmark::ProfileDefaults markers $profile]]
+    variable resultReport {}
 }
 
 proc ::rbcMarkersBenchmark::ParseArgs {argv} {
     variable options
-    for {set i 0} {$i < [llength $argv]} {incr i} {
-        set arg [lindex $argv $i]
-        switch -- $arg {
-            -help -
-            --help -
-            -h {
-                Usage
-                exit 0
-            }
-            -profile -
-            -counts -
-            -sizes -
-            -cases -
-            -iterations -
-            -warmup -
-            -csv {
-                incr i
-                if {$i >= [llength $argv]} {
-                    error "missing value for $arg"
-                }
-                set value [lindex $argv $i]
-                switch -- $arg {
-                    -profile {
-                    }
-                    -counts {
-                        dict set options counts [::rbcBenchmark::ParseList $value]
-                    }
-                    -sizes {
-                        dict set options sizes [::rbcBenchmark::ParseList $value]
-                    }
-                    -cases {
-                        dict set options cases [::rbcBenchmark::ParseList $value]
-                    }
-                    -iterations {
-                        dict set options iterations $value
-                    }
-                    -warmup {
-                        dict set options warmup $value
-                    }
-                    -csv {
-                        dict set options csv $value
-                    }
-                }
-            }
-            default {
-                error "unknown option '$arg'; use -help"
-            }
-        }
+    set parsed [argparse -inline -exact -long\
+                        -help {Benchmark RBC marker rendering for line, polygon, text, bitmap, and image marker\
+                                       primitives.} {
+            {-profile= -enum {smoke standard stress} -default standard -help {Select benchmark workload profile}}
+            {-counts= -validate {[::rbcBenchmark::IsCountList $arg 1]} -errormsg {-counts must contain integers >= 1}}
+            {-sizes= -validate {[::rbcBenchmark::IsSizeList $arg]} -errormsg {-sizes must contain WIDTHxHEIGHT values}}
+            {-cases= -validate {[::rbcBenchmark::IsEnumList $arg {line polygon-fill polygon-outline text-0 text-45\
+                                                                          bitmap image}]}\
+                     -errormsg {invalid marker benchmark case}}
+            {-iterations= -type integer -validate {$arg >= 1} -errormsg {-iterations must be >= 1}}
+            {-warmup= -type integer -validate {$arg >= 0} -errormsg {-warmup must be >= 0}}
+            {-csv= -default {} -help {Write long-format CSV results}}
+        } $argv]
+    set profile [dict get $parsed profile]
+    set options [dict merge [dict create cases {line polygon-fill polygon-outline text-0 text-45 bitmap image} csv\
+                                     {}] [::rbcBenchmark::ProfileDefaults markers $profile] $parsed]
+    foreach key {counts cases} {
+        dict set options $key [::rbcBenchmark::ParseList [dict get $options $key]]
     }
-    dict set options counts [::rbcBenchmark::ValidateCounts [dict get $options counts] 1]
-    dict set options sizes [::rbcBenchmark::ParseSizes [join [dict get $options sizes] ,]]
-    ::rbcBenchmark::ValidateIterations [dict get $options iterations] [dict get $options warmup]
-    foreach case [dict get $options cases] {
-        if {$case ni {line polygon-fill polygon-outline text-0 text-45 bitmap image}} {
-            error "unknown marker case '$case'"
-        }
-    }
+    dict set options sizes [::rbcBenchmark::ParseSizes [dict get $options sizes]]
 }
 
 proc ::rbcMarkersBenchmark::CreateGraph {} {
@@ -201,6 +109,7 @@ proc ::rbcMarkersBenchmark::CreateMarkers {caseName n} {
 proc ::rbcMarkersBenchmark::RunCase {caseName n width height csv} {
     variable options
     variable graph
+    variable resultReport
     lassign [::rbcBenchmark::SetSize $width $height] actualWidth actualHeight
     $graph axis configure x -max 1.0
     ::rbcBenchmark::SyncDisplay
@@ -211,8 +120,9 @@ proc ::rbcMarkersBenchmark::RunCase {caseName n width height csv} {
     set remap [::rbcBenchmark::CollectIndexed $warmup $iterations [list ::rbcBenchmark::MeasureAxisRemap x 1.0]]
     $graph axis configure x -max 1.0
     ::rbcBenchmark::SyncDisplay
-    puts [format "%-18s %10d %6dx%-6d %6dx%-6d %11.3f %11.3f %11.3f" $caseName $n $width $height $actualWidth\
-                  $actualHeight $createMs [dict get $redraw median] [dict get $remap median]]
+    ::rbcBenchmark::ReportAdd resultReport [list $caseName $n "${width}x${height}" "${actualWidth}x${actualHeight}"\
+                                                    [format %.3f $createMs] [format %.3f [dict get $redraw median]]\
+                                                    [format %.3f [dict get $remap median]]]
     flush stdout
     ::rbcBenchmark::WriteStandardMetrics $csv markers $caseName $n $width $height $actualWidth $actualHeight $createMs\
             $redraw $remap
@@ -238,9 +148,12 @@ Window markers are intentionally excluded: large numbers of child Tk
 windows are primarily a Tk/window-management benchmark rather than a
 graph renderer benchmark.
 }
+}
 
-    puts [format "%-18s %10s %13s %13s %11s %11s %11s" case markers requested actual create-ms redraw-med axis-remap]
-    puts [string repeat - 100]
+proc ::rbcMarkersBenchmark::InitResultReport {} {
+    variable resultReport
+    set resultReport [::rbcBenchmark::NewReport {case markers requested actual create-ms redraw-med axis-remap}\
+                              {left right right right right right right}]
 }
 
 proc ::rbcMarkersBenchmark::Cleanup {} {
@@ -252,10 +165,11 @@ proc ::rbcMarkersBenchmark::Cleanup {} {
 
 proc ::rbcMarkersBenchmark::Main {argv} {
     variable options
-    InitOptions $argv
+    variable resultReport
     ParseArgs $argv
     CreateGraph
     CreateImage
+    InitResultReport
     PrintHeader
     set csv [::rbcBenchmark::OpenLongCsv [dict get $options csv]]
     try {
@@ -267,6 +181,7 @@ proc ::rbcMarkersBenchmark::Main {argv} {
                 }
             }
         }
+        ::rbcBenchmark::PrintReport $resultReport
     } finally {
         if {$csv ne {}} {
             close $csv

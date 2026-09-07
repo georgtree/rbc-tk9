@@ -13,117 +13,34 @@ namespace eval ::rbcErrorBenchmark {
     variable xError ::rbcErrorDX
     variable yError ::rbcErrorDY
     variable options {}
+    variable resultReport {}
 }
 
-proc ::rbcErrorBenchmark::Usage {} {
-    puts {Usage: errorbars.tcl ?options?
-
-Options:
-
-  -profile NAME
-      smoke, standard, or stress.
-      Default: standard
-
-  -points LIST
-      Comma-separated source-point counts.
-
-  -sizes LIST
-      Comma-separated WIDTHxHEIGHT values.
-
-  -cases LIST
-      Comma-separated cases:
-          y
-          xy
-          y+circle
-
-  -iterations N
-      Measured iterations.
-
-  -warmup N
-      Warm-up iterations.
-
-  -csv FILE
-      Write long-format CSV.
-
-  -help
-      Show this message.
-
-Examples:
-
-  tclsh errorbars.tcl
-
-  tclsh errorbars.tcl -profile stress
-
-  tclsh errorbars.tcl -points 10000,100000 -cases y,xy
-}
-}
-
-proc ::rbcErrorBenchmark::InitOptions {argv} {
-    variable options
-    set profile [::rbcBenchmark::FindProfile $argv standard]
-    set options [dict merge [dict create profile $profile cases {y xy y+circle} csv {}]\
-                         [::rbcBenchmark::ProfileDefaults errorbars $profile]]
-}
 
 proc ::rbcErrorBenchmark::ParseArgs {argv} {
     variable options
-    for {set i 0} {$i < [llength $argv]} {incr i} {
-        set arg [lindex $argv $i]
-        switch -- $arg {
-            -help -
-            --help -
-            -h {
-                Usage
-                exit 0
-            }
-            -profile -
-            -points -
-            -sizes -
-            -cases -
-            -iterations -
-            -warmup -
-            -csv {
-                incr i
-                if {$i >= [llength $argv]} {
-                    error "missing value for $arg"
-                }
-                set value [lindex $argv $i]
-                switch -- $arg {
-                    -profile {
-                    }
-                    -points {
-                        dict set options points [::rbcBenchmark::ParseList $value]
-                    }
-                    -sizes {
-                        dict set options sizes [::rbcBenchmark::ParseList $value]
-                    }
-                    -cases {
-                        dict set options cases [::rbcBenchmark::ParseList $value]
-                    }
-                    -iterations {
-                        dict set options iterations $value
-                    }
-                    -warmup {
-                        dict set options warmup $value
-                    }
-                    -csv {
-                        dict set options csv $value
-                    }
-                }
-            }
-            default {
-                error "unknown option \"$arg\"; use -help"
-            }
-        }
+    set parsed [argparse -inline -exact -long\
+        -help {Benchmark RBC error-bar rendering, including workloads dominated by large numbers of independent line\
+                       segments.} {
+            {-profile= -enum {smoke standard stress} -default standard -help {Select benchmark workload profile}}
+            {-points= -validate {[::rbcBenchmark::IsCountList $arg 2]} -errormsg {-points must contain integers >= 2}\
+                     -help {Comma-separated source-point counts}}
+            {-sizes= -validate {[::rbcBenchmark::IsSizeList $arg]} -errormsg {-sizes must contain WIDTHxHEIGHT values}\
+                     -help {Comma-separated graph sizes}}
+            {-cases= -validate {[::rbcBenchmark::IsEnumList $arg {y xy y+circle}]} -errormsg {-cases must contain y,\
+                                                                                                      xy, or y+circle}\
+                     -help {Comma-separated error-bar workloads}}
+            {-iterations= -type integer -validate {$arg >= 1} -errormsg {-iterations must be >= 1}}
+            {-warmup= -type integer -validate {$arg >= 0} -errormsg {-warmup must be >= 0}}\
+            {-csv= -default {} -help {Write long-format CSV results}}
+        } $argv]
+    set profile [dict get $parsed profile]
+    set options [dict merge [dict create cases {y xy y+circle} csv {}] [::rbcBenchmark::ProfileDefaults errorbars\
+                                                                                $profile] $parsed]
+    foreach key {points cases} {
+        dict set options $key [::rbcBenchmark::ParseList [dict get $options $key]]
     }
-    dict set options points [::rbcBenchmark::ValidateCounts [dict get $options points] 2]
-    dict set options sizes [::rbcBenchmark::ParseSizes [join [dict get $options sizes] ,]]
-    ::rbcBenchmark::ValidateIterations [dict get $options iterations] [dict get $options warmup]
-    foreach case [dict get $options cases] {
-        if {$case ni {y xy y+circle}} {
-            error "unknown error-bar case '$case'"
-        }
-    }
+    dict set options sizes [::rbcBenchmark::ParseSizes [dict get $options sizes]]
 }
 
 proc ::rbcErrorBenchmark::CreateVectors {n} {
@@ -183,6 +100,7 @@ proc ::rbcErrorBenchmark::CreateElement {caseName} {
 proc ::rbcErrorBenchmark::RunCase {caseName n width height csv} {
     variable options
     variable graph
+    variable resultReport
     lassign [::rbcBenchmark::SetSize $width $height] actualWidth actualHeight
     $graph axis configure x -max 1.0
     ::rbcBenchmark::SyncDisplay
@@ -193,8 +111,9 @@ proc ::rbcErrorBenchmark::RunCase {caseName n width height csv} {
     set remap [::rbcBenchmark::CollectIndexed $warmup $iterations [list ::rbcBenchmark::MeasureAxisRemap x 1.0]]
     $graph axis configure x -max 1.0
     ::rbcBenchmark::SyncDisplay
-    puts [format "%-14s %10d %6dx%-6d %6dx%-6d %11.3f %11.3f %11.3f" $caseName $n $width $height $actualWidth\
-                  $actualHeight $createMs [dict get $redraw median] [dict get $remap median]]
+    ::rbcBenchmark::ReportAdd resultReport [list $caseName $n "${width}x${height}" "${actualWidth}x${actualHeight}"\
+                                                    [format %.3f $createMs] [format %.3f [dict get $redraw median]]\
+                                                    [format %.3f [dict get $remap median]]]
     flush stdout
     ::rbcBenchmark::WriteStandardMetrics $csv errorbars $caseName $n $width $height $actualWidth $actualHeight\
             $createMs $redraw $remap
@@ -204,7 +123,6 @@ proc ::rbcErrorBenchmark::RunCase {caseName n width height csv} {
 
 proc ::rbcErrorBenchmark::PrintHeader {} {
     ::rbcBenchmark::PrintEnvironment "RBC error-bar rendering benchmark"
-
     puts {
 -bufferelements is disabled.
 
@@ -217,9 +135,12 @@ redraw-med is the primary renderer metric.
 
 axis-remap includes mapping plus drawing.
 }
+}
 
-    puts [format "%-14s %10s %13s %13s %11s %11s %11s" case points requested actual create-ms redraw-med axis-remap]
-    puts [string repeat - 96]
+proc ::rbcErrorBenchmark::InitResultReport {} {
+    variable resultReport
+    set resultReport [::rbcBenchmark::NewReport {case points requested actual create-ms redraw-med axis-remap}\
+                              {left right right right right right right}]
 }
 
 proc ::rbcErrorBenchmark::Cleanup {} {
@@ -236,9 +157,10 @@ proc ::rbcErrorBenchmark::Cleanup {} {
 
 proc ::rbcErrorBenchmark::Main {argv} {
     variable options
-    InitOptions $argv
+    variable resultReport
     ParseArgs $argv
     CreateGraph
+    InitResultReport
     PrintHeader
     set csv [::rbcBenchmark::OpenLongCsv [dict get $options csv]]
     try {
@@ -251,6 +173,7 @@ proc ::rbcErrorBenchmark::Main {argv} {
                 }
             }
         }
+        ::rbcBenchmark::PrintReport $resultReport
     } finally {
         if {$csv ne {}} {
             close $csv
@@ -259,7 +182,7 @@ proc ::rbcErrorBenchmark::Main {argv} {
     }
 }
 
-if {[catch { ::rbcErrorBenchmark::Main $argv } message opts]} {
+if {[catch {::rbcErrorBenchmark::Main $argv} message opts]} {
     puts stderr "benchmark failed: $message"
     if {[dict exists $opts -errorinfo]} {
         puts stderr [dict get $opts -errorinfo]

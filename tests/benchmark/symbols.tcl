@@ -11,160 +11,40 @@ namespace eval ::rbcSymbolsBenchmark {
     variable xVector ::rbcSymbolsX
     variable yVector ::rbcSymbolsY
     variable options {}
-}
-
-proc ::rbcSymbolsBenchmark::Usage {} {
-    puts {Usage: symbols.tcl ?options?
-
-Options:
-
-  -profile NAME
-      smoke, standard, or stress.
-      Default: standard
-
-  -points LIST
-      Comma-separated source-point counts.
-
-  -sizes LIST
-      Comma-separated WIDTHxHEIGHT values.
-
-  -symbols LIST
-      Comma-separated symbols.
-
-  -pixels LIST
-      Comma-separated symbol sizes in pixels.
-
-  -trace
-      Also benchmark line+circle cases.
-
-  -no-trace
-      Do not benchmark line+circle cases.
-
-  -iterations N
-      Measured iterations.
-
-  -warmup N
-      Warm-up iterations.
-
-  -csv FILE
-      Write long-format CSV.
-
-  -help
-      Show this message.
-
-Examples:
-
-  tclsh symbols.tcl
-
-  tclsh symbols.tcl -profile stress
-
-  tclsh symbols.tcl -points 10000,100000 -symbols circle,square -pixels 3,7,15
-}
-}
-
-proc ::rbcSymbolsBenchmark::InitOptions {argv} {
-    variable options
-    set profile [::rbcBenchmark::FindProfile $argv standard]
-    set options [dict merge [dict create profile $profile symbols {circle square diamond plus} trace 1 csv {}]\
-                         [::rbcBenchmark::ProfileDefaults symbols $profile]]
+    variable resultReport {}
 }
 
 proc ::rbcSymbolsBenchmark::ParseArgs {argv} {
     variable options
-
-    for {set i 0} {$i < [llength $argv]} {incr i} {
-        set arg [lindex $argv $i]
-
-        switch -- $arg {
-            -help -
-            --help -
-            -h {
-                Usage
-                exit 0
-            }
-
-            -trace {
-                dict set options trace 1
-            }
-
-            -no-trace {
-                dict set options trace 0
-            }
-
-            -profile -
-            -points -
-            -sizes -
-            -symbols -
-            -pixels -
-            -iterations -
-            -warmup -
-            -csv {
-                incr i
-
-                if {$i >= [llength $argv]} {
-                    error "missing value for $arg"
-                }
-
-                set value [lindex $argv $i]
-
-                switch -- $arg {
-                    -profile {
-                    }
-
-                    -points {
-                        dict set options points [::rbcBenchmark::ParseList $value]
-                    }
-
-                    -sizes {
-                        dict set options sizes [::rbcBenchmark::ParseList $value]
-                    }
-
-                    -symbols {
-                        dict set options symbols [::rbcBenchmark::ParseList $value]
-                    }
-
-                    -pixels {
-                        dict set options pixels [::rbcBenchmark::ParseList $value]
-                    }
-
-                    -iterations {
-                        dict set options iterations $value
-                    }
-
-                    -warmup {
-                        dict set options warmup $value
-                    }
-
-                    -csv {
-                        dict set options csv $value
-                    }
-                }
-            }
-
-            default {
-                error "unknown option \"$arg\"; use -help"
-            }
-        }
+    set parsed [argparse -inline -exact -long\
+        -help {Benchmark RBC scatter/symbol rendering. Data generation is excluded from timed rendering intervals.} {
+            {-profile= -enum {smoke standard stress} -default standard -help {Select benchmark workload profile}}
+            {-points= -validate {[::rbcBenchmark::IsCountList $arg 2]}\
+                     -errormsg {-points must contain integers >= 2} -help {Comma-separated source-point counts}}
+            {-sizes= -validate {[::rbcBenchmark::IsSizeList $arg]}\
+                     -errormsg {-sizes must contain WIDTHxHEIGHT values} -help {Comma-separated graph sizes}}
+            {-symbols= -validate {[::rbcBenchmark::IsEnumList $arg {circle square diamond plus cross splus scross\
+                                                                            triangle arrow}]}\
+                     -errormsg {invalid symbol list} -help {Comma-separated symbol types}}
+            {-pixels= -validate {[::rbcBenchmark::IsCountList $arg 1]} -errormsg {-pixels must contain integers >= 1}\
+                     -help {Comma-separated symbol sizes in pixels}}
+            {-trace -key trace -value 1 -default 1 -help {Also benchmark trace+circle cases}}
+            {-no-trace -key trace -value 0 -help {Disable trace+circle cases}}
+            {-iterations= -type integer -validate {$arg >= 1}\
+                     -errormsg {-iterations must be >= 1} -help {Number of measured iterations}}
+            {-warmup= -type integer -validate {$arg >= 0} -errormsg {-warmup must be >= 0} -help {Number of warm-up\
+                                                                                                          iterations}}
+            {-csv= -default {} -help {Write long-format CSV results to this file}}
+        } $argv]
+    set profile [dict get $parsed profile]
+    set options \
+    [dict merge [dict create symbols {circle square diamond plus} trace 1 csv {}] [::rbcBenchmark::ProfileDefaults\
+                                                                                           symbols $profile] $parsed]
+    foreach key {points symbols pixels} {
+        dict set options $key [::rbcBenchmark::ParseList [dict get $options $key]]
     }
-
-    dict set options points [::rbcBenchmark::ValidateCounts [dict get $options points] 2]
-    dict set options sizes [::rbcBenchmark::ParseSizes [join [dict get $options sizes] ,]]
-    ::rbcBenchmark::ValidateIterations [dict get $options iterations] [dict get $options warmup]
-    set validSymbols {circle square diamond plus cross splus scross triangle arrow}
-    foreach symbol [dict get $options symbols] {
-        if {$symbol ni $validSymbols} {
-            error "unknown symbol '$symbol'"
-        }
-    }
-    set pixels {}
-    foreach value [dict get $options pixels] {
-        if {![string is integer -strict $value] ||
-            $value < 1} {
-            error "symbol size \"$value\" must be an integer >= 1"
-        }
-        lappend pixels $value
-    }
-    dict set options pixels $pixels
+    dict set options sizes [::rbcBenchmark::ParseSizes [dict get $options sizes]]
+    
 }
 
 proc ::rbcSymbolsBenchmark::CreateVectors {n} {
@@ -206,6 +86,7 @@ proc ::rbcSymbolsBenchmark::CreateElement {symbol pixels trace} {
 proc ::rbcSymbolsBenchmark::RunCase {caseName symbol pixels trace n width height csv} {
     variable options
     variable graph
+    variable resultReport
     lassign [::rbcBenchmark::SetSize $width $height] actualWidth actualHeight
     $graph axis configure x -max 1.0
     ::rbcBenchmark::SyncDisplay
@@ -216,8 +97,9 @@ proc ::rbcSymbolsBenchmark::RunCase {caseName symbol pixels trace n width height
     set remap [::rbcBenchmark::CollectIndexed $warmup $iterations [list ::rbcBenchmark::MeasureAxisRemap x 1.0]]
     $graph axis configure x -max 1.0
     ::rbcBenchmark::SyncDisplay
-    puts [format "%-20s %10d %6dx%-6d %6dx%-6d %11.3f %11.3f %11.3f" $caseName $n $width $height $actualWidth\
-                  $actualHeight $createMs [dict get $redraw median] [dict get $remap median]]
+    ::rbcBenchmark::ReportAdd resultReport [list $caseName $n "${width}x${height}" "${actualWidth}x${actualHeight}"\
+                                                    [format %.3f $createMs] [format %.3f [dict get $redraw median]]\
+                                                    [format %.3f [dict get $remap median]]]
     flush stdout
     ::rbcBenchmark::WriteStandardMetrics $csv symbols $caseName $n $width $height $actualWidth $actualHeight $createMs\
             $redraw $remap
@@ -226,7 +108,9 @@ proc ::rbcSymbolsBenchmark::RunCase {caseName symbol pixels trace n width height
 }
 
 proc ::rbcSymbolsBenchmark::PrintHeader {} {
+    variable resultReport
     ::rbcBenchmark::PrintEnvironment "RBC symbol/scatter rendering benchmark"
+
     puts {
 -bufferelements is disabled.
 
@@ -234,15 +118,20 @@ create-ms:
     creates the element, maps all source points, and performs its first draw.
 
 redraw-med:
-    redraws already-mapped symbol geometry.  This is the primary
+    redraws already-mapped symbol geometry. This is the primary
     renderer metric.
 
 axis-remap:
     changes the X axis slightly, forcing mapping and drawing again.
 }
-    puts [format "%-20s %10s %13s %13s %11s %11s %11s" case points requested actual create-ms redraw-med axis-remap]
-    puts [string repeat - 102]
 }
+
+proc ::rbcSymbolsBenchmark::InitResultReport {} {
+    variable resultReport
+    set resultReport [::rbcBenchmark::NewReport {case points requested actual create-ms redraw-med axis-remap}\
+                              {left right right right right right right}]
+}
+
 
 proc ::rbcSymbolsBenchmark::Cleanup {} {
     variable top
@@ -255,9 +144,10 @@ proc ::rbcSymbolsBenchmark::Cleanup {} {
 
 proc ::rbcSymbolsBenchmark::Main {argv} {
     variable options
-    InitOptions $argv
+    variable resultReport
     ParseArgs $argv
     CreateGraph
+    InitResultReport
     PrintHeader
     set csv [::rbcBenchmark::OpenLongCsv [dict get $options csv]]
     try {
@@ -280,6 +170,7 @@ proc ::rbcSymbolsBenchmark::Main {argv} {
                 }
             }
         }
+        ::rbcBenchmark::PrintReport $resultReport
     } finally {
         if {$csv ne {}} {
             close $csv

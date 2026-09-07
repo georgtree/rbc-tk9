@@ -10,104 +10,25 @@ namespace eval ::rbcMixedBenchmark {
     variable graph .rbcMixedBenchmark.g
     variable options {}
     variable vectors {}
-}
-
-proc ::rbcMixedBenchmark::Usage {} {
-    puts {Usage: mixed.tcl ?options?
-
-Options:
-
-  -profile NAME
-      smoke, standard, or stress.
-      Default: standard
-
-  -scales LIST
-      Comma-separated scene scale factors.
-
-  -sizes LIST
-      Comma-separated WIDTHxHEIGHT values.
-
-  -iterations N
-      Measured iterations.
-
-  -warmup N
-      Warm-up iterations.
-
-  -csv FILE
-      Write long-format CSV.
-
-  -help
-      Show this message.
-
-Scale 1 contains approximately:
-
-    4 x 50000-point connected line traces
-    20000 scatter symbols
-    10000 Y error bars
-    2000 bars
-    250 line markers
-    250 polygon markers
-    250 text markers
-}
-}
-
-proc ::rbcMixedBenchmark::InitOptions {argv} {
-    variable options
-    set profile [::rbcBenchmark::FindProfile $argv standard]
-    set options [dict merge [dict create profile $profile csv {}] [::rbcBenchmark::ProfileDefaults mixed $profile]]
+    variable resultReport {}
 }
 
 proc ::rbcMixedBenchmark::ParseArgs {argv} {
     variable options
-    for {set i 0} {$i < [llength $argv]} {incr i} {
-        set arg [lindex $argv $i]
-        switch -- $arg {
-            -help -
-            --help -
-            -h {
-                Usage
-                exit 0
-            }
-
-            -profile -
-            -scales -
-            -sizes -
-            -iterations -
-            -warmup -
-            -csv {
-                incr i
-                if {$i >= [llength $argv]} {
-                    error "missing value for $arg"
-                }
-                set value [lindex $argv $i]
-                switch -- $arg {
-                    -profile {
-                    }
-                    -scales {
-                        dict set options scales [::rbcBenchmark::ParseList $value]
-                    }
-                    -sizes {
-                        dict set options sizes [::rbcBenchmark::ParseList $value]
-                    }
-                    -iterations {
-                        dict set options iterations $value
-                    }
-                    -warmup {
-                        dict set options warmup $value
-                    }
-                    -csv {
-                        dict set options csv $value
-                    }
-                }
-            }
-            default {
-                error "unknown option '$arg'; use -help"
-            }
-        }
-    }
-    dict set options scales [::rbcBenchmark::ValidateCounts [dict get $options scales] 1]
-    dict set options sizes [::rbcBenchmark::ParseSizes [join [dict get $options sizes] ,]]
-    ::rbcBenchmark::ValidateIterations [dict get $options iterations] [dict get $options warmup]
+    set parsed [argparse -inline -exact -long\
+                -help {Benchmark a mixed engineering-style graph containing lines, scatter symbols, error bars, bars,\
+                               and several marker types.} {
+            {-profile= -enum {smoke standard stress} -default standard -help {Select benchmark workload profile}}
+            {-scales= -validate {[::rbcBenchmark::IsCountList $arg 1]} -errormsg {-scales must contain integers >= 1}}
+            {-sizes= -validate {[::rbcBenchmark::IsSizeList $arg]} -errormsg {-sizes must contain WIDTHxHEIGHT values}}
+            {-iterations= -type integer -validate {$arg >= 1} -errormsg {-iterations must be >= 1}}
+            {-warmup= -type integer -validate {$arg >= 0} -errormsg {-warmup must be >= 0}}
+            {-csv= -default {} -help {Write long-format CSV results}}
+        } $argv]
+    set profile [dict get $parsed profile]
+    set options [dict merge [dict create csv {}] [::rbcBenchmark::ProfileDefaults mixed $profile] $parsed]
+    dict set options scales [::rbcBenchmark::ParseList [dict get $options scales]]
+    dict set options sizes [::rbcBenchmark::ParseSizes [dict get $options sizes]]
 }
 
 proc ::rbcMixedBenchmark::NewVector {name n} {
@@ -220,6 +141,7 @@ proc ::rbcMixedBenchmark::CreateScene {data} {
 proc ::rbcMixedBenchmark::RunCase {scale data width height csv} {
     variable options
     variable graph
+    variable resultReport
     lassign [::rbcBenchmark::SetSize $width $height] actualWidth actualHeight
     $graph axis configure x -max 1.0
     ::rbcBenchmark::SyncDisplay
@@ -234,8 +156,10 @@ proc ::rbcMixedBenchmark::RunCase {scale data width height csv} {
                                       [dict get $data error_points]+[dict get $data bar_points]+\
                                       3*[dict get $data marker_count]}]
     set caseName scale-$scale
-    puts [format "%-10s %12d %6dx%-6d %6dx%-6d %11.3f %11.3f %11.3f" $caseName $primitiveCount $width $height\
-                  $actualWidth $actualHeight $createMs [dict get $redraw median] [dict get $remap median]]
+    ::rbcBenchmark::ReportAdd resultReport [list $caseName $primitiveCount "${width}x${height}"\
+                                                    "${actualWidth}x${actualHeight}"\
+                                                    [format %.3f $createMs] [format %.3f [dict get $redraw median]]\
+                                                    [format %.3f [dict get $remap median]]]
     flush stdout
     ::rbcBenchmark::WriteStandardMetrics $csv mixed $caseName $primitiveCount $width $height $actualWidth $actualHeight\
             $createMs $redraw $remap
@@ -258,10 +182,12 @@ It is a whole-graph throughput benchmark.
 Use the isolated workload scripts to identify which primitive causes
 any regression or improvement.
 }
+}
 
-    puts [format "%-10s %12s %13s %13s %11s %11s %11s" case primitives requested actual create-ms redraw-med\
-                  axis-remap]
-    puts [string repeat - 98]
+proc ::rbcMixedBenchmark::InitResultReport {} {
+    variable resultReport
+    set resultReport [::rbcBenchmark::NewReport {case markers requested actual create-ms redraw-med axis-remap} {left\
+    right right right right right right}]
 }
 
 proc ::rbcMixedBenchmark::Cleanup {} {
@@ -276,9 +202,10 @@ proc ::rbcMixedBenchmark::Cleanup {} {
 
 proc ::rbcMixedBenchmark::Main {argv} {
     variable options
-    InitOptions $argv
+    variable resultReport
     ParseArgs $argv
     CreateGraph
+    InitResultReport
     PrintHeader
     set csv [::rbcBenchmark::OpenLongCsv [dict get $options csv]]
     try {
@@ -289,6 +216,7 @@ proc ::rbcMixedBenchmark::Main {argv} {
                 RunCase $scale $data $width $height $csv
             }
         }
+        ::rbcBenchmark::PrintReport $resultReport
     } finally {
         if {$csv ne {}} {
             close $csv

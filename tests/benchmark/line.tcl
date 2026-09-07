@@ -13,188 +13,35 @@ namespace eval ::rbcBenchmark {
     variable yVector ::rbcBenchmarkY
     variable top .rbcLineBenchmark
     variable graph .rbcLineBenchmark.g
+    variable resultReport {}
 }
-
-proc ::rbcBenchmark::Usage {} {
-    puts {Usage: line.tcl ?options?
-
-Options:
-
-  -profile NAME
-      Select workload defaults.
-
-      Values:
-          smoke
-          standard
-          stress
-
-      If omitted, the historical line.tcl defaults are retained.
-
-  -stripchart
-      Benchmark strip elements in a stripchart instead of line
-      elements in a graph.
-
-  -points LIST
-      Comma-separated point counts.
-
-      Default:
-          10000,100000,1000000,5000000
-
-  -sizes LIST
-      Comma-separated graph sizes.
-
-      Default:
-          640x480,1280x720,1920x1080,2560x1440
-
-  -iterations N
-      Number of measured iterations.
-      Default: 3
-
-  -warmup N
-      Number of warm-up iterations.
-      Default: 1
-
-  -decimate LIST
-      Decimation modes.
-
-      Default:
-          none,auto
-
-  -csv FILE
-      Also write results as CSV.
-
-  -help
-      Show this message.
-
-Examples:
-
-  tclsh line.tcl
-
-  tclsh line.tcl -points 100000,1000000 -sizes 800x600,1920x1080
-
-  tclsh line.tcl -iterations 5 -csv benchmark.csv
-
-  tclsh line.tcl -decimate none,auto
-
-  tclsh line.tcl -stripchart
-
-  tclsh line.tcl -stripchart -points 1000000,5000000 -decimate none,auto
-}
-}
-
 
 proc ::rbcBenchmark::ParseArgs {argv} {
     variable options
-
-    # No -profile keeps the historical standalone line.tcl defaults.
-    # A supplied profile replaces the common workload dimensions before
-    # explicit command-line options are applied, so explicit options win
-    # regardless of argument ordering.
-    set profile [FindProfile $argv {}]
-    if {$profile ne {}} {
-        set options [dict merge $options [ProfileDefaults line $profile]]
+    set parsed [argparse -inline -exact -long\
+                        -help {Benchmark RBC line or strip elements, including redraw, remapping, ranged vector\
+                                       updates, tail append, closest-point search, and optional display decimation.} {
+            {-profile= -enum {smoke standard stress} -help {Select workload profile. If omitted, historical standalone\
+                                                                    line.tcl defaults are retained}}
+            {-stripchart -boolean -help {Benchmark a strip element in a stripchart}}
+            {-points= -validate {[::rbcBenchmark::IsCountList $arg 2]} -errormsg {-points must contain integers >= 2}}
+            {-sizes= -validate {[::rbcBenchmark::IsSizeList $arg]} -errormsg {-sizes must contain WIDTHxHEIGHT values}}
+            {-iterations= -type integer -validate {$arg >= 1} -errormsg {-iterations must be >= 1}}
+            {-warmup= -type integer -validate {$arg >= 0} -errormsg {-warmup must be >= 0}}
+            {-decimate= -validate {[::rbcBenchmark::IsEnumList $arg {none auto}]}\
+                     -errormsg {-decimate must contain none or auto}}
+            {-csv= -default {} -help {Write benchmark results to CSV}}
+        } $argv]
+    # Keep the historical namespace defaults unless an explicit profile was supplied.
+    if {[dict exists $parsed profile]} {
+        set options [dict merge $options [ProfileDefaults line [dict get $parsed profile]]]
     }
-
-    for {set i 0} {$i < [llength $argv]} {incr i} {
-        set arg [lindex $argv $i]
-
-        switch -- $arg {
-            -help -
-            --help -
-            -h {
-                Usage
-                exit 0
-            }
-            -stripchart {
-                dict set options stripchart 1
-            }
-            -profile -
-            -points -
-            -sizes -
-            -iterations -
-            -warmup -
-            -decimate -
-            -csv {
-                incr i
-                if {$i >= [llength $argv]} {
-                    error "missing value for $arg"
-                }
-                set value [lindex $argv $i]
-                switch -- $arg {
-                    -profile {
-                        # Already applied before this parsing pass.
-                    }
-                    -points {
-                        dict set options points [ParseList $value]
-                    }
-                    -sizes {
-                        dict set options sizes [ParseList $value]
-                    }
-                    -iterations {
-                        dict set options iterations $value
-                    }
-                    -warmup {
-                        dict set options warmup $value
-                    }
-                    -decimate {
-                        dict set options decimate [ParseList $value]
-                    }
-                    -csv {
-                        dict set options csv $value
-                    }
-                }
-            }
-            default {
-                error "unknown option \"$arg\"; use -help"
-            }
-        }
+    set options [dict merge $options $parsed]
+    foreach key {points decimate} {
+        dict set options $key [ParseList [dict get $options $key]]
     }
-    ### Validate iterations.
-    foreach name {iterations warmup} {
-        set value [dict get $options $name]
-        if {![string is integer -strict $value] || $value < 0} {
-            error "-$name must be a non-negative integer"
-        }
-    }
-    if {[dict get $options iterations] < 1} {
-        error "-iterations must be at least 1"
-    }
-
-    ### Validate point counts.
-    set checked {}
-    foreach n [dict get $options points] {
-        if {![string is entier -strict $n] || $n < 2} {
-            error "point count \"$n\" must be an integer >= 2"
-        }
-        lappend checked $n
-    }
-    if {[llength $checked] == 0} {
-        error "-points must contain at least one value"
-    }
-    dict set options points $checked
-    ### Validate requested graph dimensions.
-    set checked {}
-    foreach size [dict get $options sizes] {
-        if {![regexp {^([1-9][0-9]*)x([1-9][0-9]*)$} $size -> width height]} {
-            error "size \"$size\" must have the form WIDTHxHEIGHT"
-        }
-        lappend checked [list $width $height]
-    }
-    if {[llength $checked] == 0} {
-        error "-sizes must contain at least one size"
-    }
-    dict set options sizes $checked
-    ### Validate decimation modes.
-    set checked {}
-    foreach mode [dict get $options decimate] {
-        if {$mode ni {none auto}} {
-            error "decimation mode must be none or auto"
-        }
-        lappend checked $mode
-    }
-    dict set options decimate $checked
+    dict set options sizes [ParseSizes [dict get $options sizes]]
 }
-
 
 proc ::rbcBenchmark::WaveformValue {x} {
     return [expr {0.60*sin($x*106.81415022205297)+0.25*sin($x*823.0972752405258)+0.10*sin($x*6264.335751258144)}]
@@ -521,10 +368,13 @@ closest:
     interval therefore measures element closest itself, including its
     result-array updates, but not graph transform or rendering.
 }
+}
 
-    puts [format "%-8s %10s %13s %13s %11s %11s %12s %12s %12s %12s %12s %12s" mode points requested actual pts/xpixel\
-                  create-ms redraw-med axis-remap array-remap index-remap append-remap closest-med]
-    puts [string repeat - 154]
+proc ::rbcBenchmark::InitResultReport {} {
+    variable resultReport
+    set resultReport [NewReport {mode points requested actual pts/xpixel create-ms redraw-med axis-remap array-remap\
+                                         index-remap append-remap closest-med}\
+                              {left right right right right right right right right right right right}]
 }
 
 proc ::rbcBenchmark::RunCase {mode n width height csv} {
@@ -532,6 +382,7 @@ proc ::rbcBenchmark::RunCase {mode n width height csv} {
     variable graph
     variable xVector
     variable yVector
+    variable resultReport
     lassign [SetSize $width $height] actualWidth actualHeight
     # Always start from exactly the same axis range.
     $graph axis configure x -max 1.0
@@ -734,10 +585,13 @@ proc ::rbcBenchmark::RunCase {mode n width height csv} {
         closest_mean_ms             [format %.3f [dict get $closest mean]] \
         closest_max_ms              [format %.3f [dict get $closest max]]]
 
-    puts [format "%-8s %10d %6dx%-6d %6dx%-6d %11.1f %11.3f %12.3f %12.3f %12.3f %12.3f %12.3f %12.3f" $mode $n $width\
-                  $height $actualWidth $actualHeight $density $createMs [dict get $redraw median] [dict get $remap\
-                  median] [dict get $dataArrayRemap median] [dict get $dataIndexRemap median] [dict get $appendRemap\
-                  median] [dict get $closest median]]
+    ReportAdd resultReport [list $mode $n "${width}x${height}" "${actualWidth}x${actualHeight}" [format %.1f $density]\
+                                    [format %.3f $createMs] [format %.3f [dict get $redraw median]]\
+                                    [format %.3f [dict get $remap median]]\
+                                    [format %.3f [dict get $dataArrayRemap median]]\
+                                    [format %.3f [dict get $dataIndexRemap median]]\
+                                    [format %.3f [dict get $appendRemap median]]\
+                                    [format %.3f [dict get $closest median]]]
     flush stdout
     WriteCsv $csv $row
     $graph element delete signal
@@ -757,8 +611,10 @@ proc ::rbcBenchmark::Cleanup {} {
 
 proc ::rbcBenchmark::Main {argv} {
     variable options
+    variable resultReport
     ParseArgs $argv
     CreateGraph
+    InitResultReport
     PrintHeader
     set csv [OpenCsv]
     try {
@@ -773,6 +629,7 @@ proc ::rbcBenchmark::Main {argv} {
                 }
             }
         }
+        ::rbcBenchmark::PrintReport $resultReport
     } finally {
         if {$csv ne {}} {
             close $csv
@@ -781,7 +638,7 @@ proc ::rbcBenchmark::Main {argv} {
     }
 }
 
-if {[catch {::rbcBenchmark::Main $argv } message options]} {
+if {[catch {::rbcBenchmark::Main $argv} message options]} {
     puts stderr "benchmark failed: $message"
     if {[dict exists $options -errorinfo]} {
         puts stderr [dict get $options -errorinfo]

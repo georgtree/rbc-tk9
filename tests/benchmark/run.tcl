@@ -10,132 +10,30 @@ namespace eval ::rbcSuite {
                               {} iterations {} warmup {} csv_dir {}]
 }
 
-proc ::rbcSuite::Usage {} {
-    puts {Usage: run.tcl ?options?
-
-Options:
-
-  -profile NAME
-      smoke, standard, or stress.
-      Default: standard
-
-  -benchmarks LIST
-      line
-      strip
-      symbols
-      errorbars
-      bars
-      markers
-      mixed
-
-  -sizes LIST
-      Override graph sizes for every workload.
-
-  -iterations N
-      Override measured iterations for every workload.
-
-  -warmup N
-      Override warm-up iterations for every workload.
-
-  -csv-dir DIR
-      Write one CSV file per benchmark.
-
-  -help
-      Show this message.
-
-Examples:
-
-  tclsh tests/benchmark/run.tcl
-
-  tclsh tests/benchmark/run.tcl \
-      -profile smoke
-
-  tclsh tests/benchmark/run.tcl \
-      -profile stress \
-      -benchmarks symbols,errorbars,bars,markers
-
-  tclsh tests/benchmark/run.tcl \
-      -profile standard \
-      -csv-dir benchmark-results
-}
-}
-
 proc ::rbcSuite::ParseArgs {argv} {
     variable options
-    for {set i 0} {$i < [llength $argv]} {incr i} {
-        set arg [lindex $argv $i]
-        switch -- $arg {
-            -help -
-            --help -
-            -h {
-                Usage
-                exit 0
-            }
-            -profile -
-            -benchmarks -
-            -sizes -
-            -iterations -
-            -warmup -
-            -csv-dir {
-                incr i
-                if {$i >= [llength $argv]} {
-                    error "missing value for $arg"
-                }
-                set value [lindex $argv $i]
-                switch -- $arg {
-                    -profile {
-                        dict set options profile $value
-                    }
-                    -benchmarks {
-                        dict set options benchmarks [::rbcBenchmark::ParseList $value]
-                    }
-                    -sizes {
-                        dict set options sizes $value
-                    }
-                    -iterations {
-                        dict set options iterations $value
-                    }
-                    -warmup {
-                        dict set options warmup $value
-                    }
-                    -csv-dir {
-                        dict set options csv_dir $value
-                    }
-                }
-            }
-            default {
-                error "unknown option '$arg'; use -help"
-            }
-        }
-    }
-
-    set profile [dict get $options profile]
-
-    if {$profile ni {smoke standard stress}} {
-        error "profile must be smoke, standard, or stress"
-    }
-    set valid {line strip symbols errorbars bars markers mixed}
-    foreach benchmark [dict get $options benchmarks] {
-        if {$benchmark ni $valid} {
-            error "unknown benchmark '$benchmark'"
-        }
-    }
-    if {[dict get $options iterations] ne {} || [dict get $options warmup] ne {}} {
-        if {[dict get $options iterations] eq {}} {
-            set iterations 1
-        } else {
-            set iterations [dict get $options iterations]
-        }
-        if {[dict get $options warmup] eq {}} {
-            set warmup 0
-        } else {
-            set warmup [dict get $options warmup]
-        }
-        ::rbcBenchmark::ValidateIterations $iterations $warmup
-    }
-    if {[dict get $options sizes] ne {}} {
-        ::rbcBenchmark::ParseSizes [dict get $options sizes]
-    }
+    set parsed [argparse -inline -exact -long\
+                        -help {Run one or more RBC rendering benchmarks as separate Tcl processes using a common\
+                                       workload profile.} {
+            {-profile= -enum {smoke standard stress} -default standard -help {Select workload profile}}
+            {-benchmarks= -default {line,strip,symbols,errorbars,bars,markers,mixed}\
+                     -validate {[::rbcBenchmark::IsEnumList $arg {line strip symbols errorbars bars markers mixed}]}\
+                     -errormsg {invalid benchmark list} -help {Comma-separated benchmarks to execute}}
+            {-sizes= -validate {[::rbcBenchmark::IsSizeList $arg]} -errormsg {-sizes must contain WIDTHxHEIGHT values}\
+                     -help {Override graph sizes for all workloads}}
+            {-iterations= -type integer -validate {$arg >= 1} -errormsg {-iterations must be >= 1}\
+                     -help {Override measured iteration count}}
+            {-warmup= -type integer -validate {$arg >= 0} -errormsg {-warmup must be >= 0}\
+                     -help {Override warm-up iteration count}}
+            {-csv-dir= -key csv_dir -default {} -help {Write one CSV file per benchmark into this directory}}
+        } $argv]
+    dict set parsed benchmarks [::rbcBenchmark::ParseList [dict get $parsed benchmarks]]
+    #
+    # argparse omits optional switches without defaults. Preserve the
+    # suite-level empty defaults for optional overrides that were not
+    # supplied.
+    #
+    set options [dict merge $options $parsed]
 }
 
 proc ::rbcSuite::BenchmarkCommand {benchmark} {

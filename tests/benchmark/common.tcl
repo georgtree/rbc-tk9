@@ -5,9 +5,29 @@
 # data generation belongs to each workload and remains outside timed
 # rendering intervals.
 
-namespace eval ::rbcBenchmark {
-    variable renderer native
+package require argparse
+package require csv
+package require report
+package require struct::matrix
 
+if {{rbcBenchmarkTable} ni [::report::styles]} {
+    ::report::defstyle rbcBenchmarkTable {} {
+        # Header is represented as a one-row top caption.
+        data set [split "[string repeat "| " [columns]]|"]
+        top set [split "[string repeat "+ - " [columns]]+"]
+        topdata set [data get]
+        topcapsep set [top get]
+        bottom set [top get]
+        top enable
+        topcapsep enable
+        bottom enable
+        tcaption 1
+    }
+}
+
+namespace eval ::rbcBenchmark {
+    variable reportSerial 0
+    variable renderer native
     # This can later be set to "cairo", "gdi", etc. without changing
     # the CSV schema.
     if {[info exists ::env(RBC_BENCH_RENDERER)] && $::env(RBC_BENCH_RENDERER) ne {}} {
@@ -15,29 +35,132 @@ namespace eval ::rbcBenchmark {
     }
 }
 
+proc ::rbcBenchmark::NewReport {headers {justifications {}}} {
+    if {$justifications eq {}} {
+        set justifications [lrepeat [llength $headers] left]
+    }
+    if {[llength $justifications]!=[llength $headers]} {
+        error {report justification count does not match column count}
+    }
+    return [dict create headers $headers justifications $justifications rows {}]
+}
+
+proc ::rbcBenchmark::ReportAdd {reportVar row} {
+    upvar 1 $reportVar report
+    set columns [llength [dict get $report headers]]
+    if {[llength $row]!=$columns} {
+        error "report row has [llength $row] columns, expected $columns"
+    }
+    dict lappend report rows $row
+}
+
+proc ::rbcBenchmark::FormatReport {report} {
+    variable reportSerial
+    set headers [dict get $report headers]
+    set columns [llength $headers]
+    set serial [incr reportSerial]
+    set matrixName ::rbcBenchmark::matrix$serial
+    set reportName ::rbcBenchmark::table$serial
+    ::struct::matrix $matrixName
+    ::report::report $reportName $columns style rbcBenchmarkTable
+    try {
+        $matrixName add columns $columns
+        # First row is the table caption/header.
+        $matrixName add row $headers
+        foreach row [dict get $report rows] {
+            $matrixName add row $row
+        }
+        # Let struct::matrix determine the natural width of each
+        # column from all results.
+        $reportName sizes [lrepeat $columns dyn]
+        set column 0
+        foreach justification [dict get $report justifications] {
+            $reportName justify $column $justification
+            $reportName pad $column both { }
+            incr column
+        }
+        return [$reportName printmatrix $matrixName]
+    } finally {
+        $reportName destroy
+        $matrixName destroy
+    }
+}
+
+proc ::rbcBenchmark::PrintReport {report} {
+    puts [FormatReport $report]
+}
+
 proc ::rbcBenchmark::ParseList {value} {
+    # Accept both the command-line comma form:
+    #
+    #     1000,10000,100000
+    #
+    # and an ordinary Tcl list, as used internally by ProfileDefaults.
+    if {[string first , $value] >= 0} {
+        set items [split $value ,]
+    } else {
+        set items $value
+    }
     set result {}
-    foreach item [split $value ,] {
+    foreach item $items {
         set item [string trim $item]
         if {$item ne {}} {
             lappend result $item
         }
     }
+
     return $result
 }
 
 proc ::rbcBenchmark::ParseSizes {value} {
     set result {}
+
     foreach size [ParseList $value] {
-        if {![regexp {^([1-9][0-9]*)x([1-9][0-9]*)$} $size -> width height]} {
-            error "size '$size' must have the form WIDTHxHEIGHT"
+        if {![regexp {^([1-9][0-9]*)x([1-9][0-9]*)$} \
+                $size -> width height]} {
+            error "size \"$size\" must have the form WIDTHxHEIGHT"
         }
+
         lappend result [list $width $height]
     }
+
     if {[llength $result] == 0} {
         error "size list must contain at least one value"
     }
+
     return $result
+}
+
+# These predicates are intended for argparse -validate expressions.
+proc ::rbcBenchmark::IsCountList {value minimum} {
+    set values [ParseList $value]
+    if {[llength $values] == 0} {
+        return false
+    }
+    foreach item $values {
+        if {![string is entier -strict $item] ||
+            $item < $minimum} {
+            return false
+        }
+    }
+    return true
+}
+
+proc ::rbcBenchmark::IsSizeList {value} {
+    return [expr {![catch {ParseSizes $value}]}]
+}
+
+proc ::rbcBenchmark::IsEnumList {value allowed} {
+    set values [ParseList $value]
+    if {[llength $values] == 0} {
+        return false
+    }
+    foreach item $values {
+        if {$item ni $allowed} {
+            return false
+        }
+    }
+    return true
 }
 
 proc ::rbcBenchmark::ValidateCounts {values {minimum 1}} {
@@ -61,23 +184,6 @@ proc ::rbcBenchmark::ValidateIterations {iterations warmup} {
     if {![string is integer -strict $warmup] || $warmup < 0} {
         error "-warmup must be a non-negative integer"
     }
-}
-
-proc ::rbcBenchmark::FindProfile {argv {default {}}} {
-    set profile $default
-    for {set i 0} {$i < [llength $argv]} {incr i} {
-        if {[lindex $argv $i] eq "-profile"} {
-            incr i
-            if {$i >= [llength $argv]} {
-                error "missing value for -profile"
-            }
-            set profile [lindex $argv $i]
-        }
-    }
-    if {$profile ne {} && $profile ni {smoke standard stress}} {
-        error "profile must be smoke, standard, or stress"
-    }
-    return $profile
 }
 
 proc ::rbcBenchmark::ProfileDefaults {family profile} {
@@ -287,33 +393,50 @@ proc ::rbcBenchmark::PrintEnvironment {title} {
     puts {}
     puts $title
     puts {}
-    puts [format " %-12s %s" "platform:" $::tcl_platform(platform)]
-    puts [format " %-12s %s %s" "OS:" $::tcl_platform(os) $::tcl_platform(osVersion)]
-    puts [format " %-12s %s" "machine:" $::tcl_platform(machine)]
-    puts [format " %-12s %s" "Tcl:" [info patchlevel]]
-    puts [format " %-12s %s" "Tk:" [package provide Tk]]
-    puts [format " %-12s %s" "RBC:" [package provide rbc]]
-    puts [format " %-12s %s" "renderer:" $renderer]
-    puts [format " %-12s %s" "windowing:" [tk windowingsystem]]
-    puts [format " %-12s %g" "Tk scaling:" [tk scaling]]
-    puts [format " %-12s %dx%d depth=%d" "screen:" [winfo screenwidth .]  [winfo screenheight .]  [winfo screendepth .]]
+    set environment [NewReport {property value} {left left}]
+    ReportAdd environment [list platform $::tcl_platform(platform)]
+    ReportAdd environment [list OS "$::tcl_platform(os) $::tcl_platform(osVersion)"]
+    ReportAdd environment [list machine $::tcl_platform(machine)]
+    ReportAdd environment [list Tcl [info patchlevel]]
+    ReportAdd environment [list Tk [package provide Tk]]
+    ReportAdd environment [list RBC [package provide rbc]]
+    ReportAdd environment [list renderer $renderer]
+    ReportAdd environment [list windowing [tk windowingsystem]]
+    ReportAdd environment [list "Tk scaling" [tk scaling]]
+    ReportAdd environment [list screen [format "%dx%d depth=%d" [winfo screenwidth .]  [winfo screenheight .]\
+                                                [winfo screendepth .]]]
+    PrintReport $environment
     puts {}
 }
 
-proc ::rbcBenchmark::CsvQuote {value} {
-    set value [string map {\" \"\"} $value]
-    return "\"$value\""
+
+namespace eval ::rbcBenchmark {
+    variable longCsvHeader {platform os os_version machine tcl tk rbc renderer windowing benchmark case count\
+                                    requested_width requested_height actual_width actual_height metric min_ms median_ms\
+                                    mean_ms max_ms}
 }
 
-proc ::rbcBenchmark::OpenLongCsv {path} {
+proc ::rbcBenchmark::OpenCsvFile {path header} {
     if {$path eq {}} {
         return
     }
     set channel [open $path w]
-    puts $channel [join {platform os os_version machine tcl tk rbc renderer windowing benchmark case count\
-                                 requested_width requested_height actual_width actual_height metric min_ms median_ms\
-                                 mean_ms max_ms} ,]
+    puts $channel [::csv::join $header]
+    flush $channel
     return $channel
+}
+
+proc ::rbcBenchmark::WriteCsvRecord {channel values} {
+    if {$channel eq {}} {
+        return
+    }
+    puts $channel [::csv::join $values]
+    flush $channel
+}
+
+proc ::rbcBenchmark::OpenLongCsv {path} {
+    variable longCsvHeader
+    return [OpenCsvFile $path $longCsvHeader]
 }
 
 proc ::rbcBenchmark::WriteLongMetric {channel benchmark case count width height actualWidth actualHeight metric stats} {
@@ -321,18 +444,40 @@ proc ::rbcBenchmark::WriteLongMetric {channel benchmark case count width height 
     if {$channel eq {}} {
         return
     }
+    WriteCsvRecord $channel [list $::tcl_platform(platform) $::tcl_platform(os) $::tcl_platform(osVersion)\
+                                     $::tcl_platform(machine) [info patchlevel] [package provide Tk]\
+                                     [package provide rbc] $renderer [tk windowingsystem] $benchmark $case $count\
+                                     $width $height $actualWidth $actualHeight $metric\
+                                     [format %.3f [dict get $stats min]] [format %.3f [dict get $stats median]]\
+                                     [format %.3f [dict get $stats mean]] [format %.3f [dict get $stats max]]]
+}
 
-    set values [list $::tcl_platform(platform) $::tcl_platform(os) $::tcl_platform(osVersion) $::tcl_platform(machine)\
-                        [info patchlevel] [package provide Tk] [package provide rbc] $renderer [tk windowingsystem]\
-                        $benchmark $case $count $width $height $actualWidth $actualHeight $metric\
-                        [format %.3f [dict get $stats min]] [format %.3f [dict get $stats median]]\
-                        [format %.3f [dict get $stats mean]] [format %.3f [dict get $stats max]]]
-    set quoted {}
-    foreach value $values {
-        lappend quoted [CsvQuote $value]
+proc ::rbcBenchmark::LoadCsv {path} {
+    set matrixName [::struct::matrix]
+    set channel [open $path r]
+    try {
+        ::csv::read2matrix $channel $matrixName
+    } finally {
+        close $channel
     }
-    puts $channel [join $quoted ,]
-    flush $channel
+    try {
+        if {[$matrixName rows]==0} {
+            return
+        }
+        set header [$matrixName get row 0]
+        set result {}
+        for {set row 1} {$row < [$matrixName rows]} {incr row} {
+            set values [$matrixName get row $row]
+            set record {}
+            foreach key $header value $values {
+                dict set record $key $value
+            }
+            lappend result $record
+        }
+        return $result
+    } finally {
+        $matrixName destroy
+    }
 }
 
 proc ::rbcBenchmark::WriteStandardMetrics {channel benchmark case count width height actualWidth actualHeight createMs\
