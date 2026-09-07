@@ -2007,6 +2007,238 @@ static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int
     XSetTSOrigin(graphPtr->display, penPtr->gc, 0, 0);
 }
 
+#ifdef WIN32
+
+/*
+ * Draw the Windows geometry produced by:
+ *
+ *     Tk_Draw3DRectangle(..., borderWidth=1, ...)
+ *
+ * using an already-acquired HDC.
+ */
+static void DrawWin3DRectangle1(HDC dc, const Rbc_Win3DBorderColors *colorsPtr, int x, int y, int width, int height,
+                                int relief) {
+    COLORREF nearColor;
+    COLORREF farColor;
+    int borderWidth;
+
+    borderWidth = 1;
+    /*
+     * Same border-width clamping as Tk_Draw3DRectangle.
+     */
+    if (width < 2 * borderWidth) {
+        borderWidth = width / 2;
+    }
+    if (height < 2 * borderWidth) {
+        borderWidth = height / 2;
+    }
+    if (borderWidth == 0) {
+        return;
+    }
+    switch (relief) {
+    case TK_RELIEF_RAISED:
+        nearColor = colorsPtr->light;
+        farColor = colorsPtr->dark2;
+        break;
+    case TK_RELIEF_SUNKEN:
+        nearColor = colorsPtr->dark;
+        farColor = colorsPtr->light;
+        break;
+    default:
+        return;
+    }
+    /*
+     * Same order as Tk_Draw3DRectangle:
+     *
+     *     left vertical
+     *     right vertical
+     *     top horizontal
+     *     bottom horizontal
+     */
+    Rbc_WinFillRect(dc, x, y, 1, height, nearColor);
+    Rbc_WinFillRect(dc, x + width - 1, y, 1, height, farColor);
+    Rbc_WinFillRect(dc, x + 1, y, width - 2, 1, nearColor);
+    Rbc_WinFillRect(dc, x, y + height - 1, width - 1, 1, farColor);
+}
+
+static void DrawWinRbcOuter3DBorder(HDC dc, const Rbc_Win3DBorderColors *colorsPtr, int x, int y, int width, int height,
+                                    int relief) {
+    COLORREF lightColor;
+    COLORREF darkColor;
+    int x2;
+    int y2;
+    if ((width <= 2) || (height <= 2)) {
+        return;
+    }
+    switch (relief) {
+    case TK_RELIEF_RAISED:
+        /*
+         * Current Rbc_Draw3DRectangle Windows behavior:
+         *
+         *     "light" = flat GC
+         *     "dark"  = dark GC
+         */
+        lightColor = colorsPtr->flat;
+        darkColor = colorsPtr->dark;
+        break;
+    case TK_RELIEF_SUNKEN:
+        /*
+         * Current Windows behavior:
+         *
+         *     "light" = light GC
+         *     "dark"  = flat GC
+         */
+        lightColor = colorsPtr->light;
+        darkColor = colorsPtr->flat;
+        break;
+    default:
+        return;
+    }
+    x2 = x + width - 1;
+    y2 = y + height - 1;
+    /*
+     * Preserve the exact XDrawLine ordering from
+     * Rbc_Draw3DRectangle.
+     */
+
+    /* Right. */
+    Rbc_WinFillRect(dc, x2, y, 1, height, darkColor);
+    /* Top. */
+    Rbc_WinFillRect(dc, x, y, width, 1, lightColor);
+    /* Bottom. */
+    Rbc_WinFillRect(dc, x, y2, width, 1, darkColor);
+    /* Left, drawn last. */
+    Rbc_WinFillRect(dc, x, y, 1, height, lightColor);
+}
+
+static int Clamp3DBorderWidth(int width, int height, int borderWidth) {
+    if (width < 2 * borderWidth) {
+        borderWidth = width / 2;
+    }
+    if (height < 2 * borderWidth) {
+        borderWidth = height / 2;
+    }
+    return borderWidth;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * DrawWin3DBarBorders1 --
+ *
+ *      Draw one-pixel raised/sunken bar borders using a single Windows
+ *      device context for the complete bar set.
+ *
+ *      This reproduces Tk_Draw3DRectangle(..., borderWidth=1) on
+ *      Windows, but avoids four drawable-DC acquire/release cycles for
+ *      every bar.
+ *
+ * Results:
+ *      TRUE if the border configuration was handled here.
+ *      FALSE if the caller must use Rbc_Draw3DRectangle instead.
+ *
+ *----------------------------------------------------------------------
+ */
+static int DrawWin3DBarBorders(Graph *graphPtr, Drawable drawable, BarPen *penPtr, BarRectangle *rectangles,
+                               Tcl_Size nRects) {
+    Rbc_Win3DBorderColors colors;
+    Rbc_WinDrawableDC *dcStatePtr;
+    HDC dc;
+    Tcl_Size i;
+
+    if (penPtr->border == NULL) {
+        return FALSE;
+    }
+    if ((penPtr->relief != TK_RELIEF_RAISED) && (penPtr->relief != TK_RELIEF_SUNKEN)) {
+        return FALSE;
+    }
+    /*
+     * Optimize only the cases whose exact Windows geometry we
+     * reproduce here.  Larger border widths still use Tk.
+     */
+    if ((penPtr->borderWidth != 1) && (penPtr->borderWidth != 2)) {
+        return FALSE;
+    }
+    Rbc_WinGet3DBorderColors(graphPtr->tkwin, penPtr->border, &colors);
+    dc = Rbc_WinAcquireDrawableDC(graphPtr->display, drawable, &dcStatePtr);
+    for (i = 0; i < nRects; i++) {
+        BarRectangle *rectPtr;
+        int x;
+        int y;
+        int width;
+        int height;
+
+        rectPtr = rectangles + i;
+        x = rectPtr->x;
+        y = rectPtr->y;
+        width = rectPtr->width;
+        height = rectPtr->height;
+        if ((width <= 0) || (height <= 0)) {
+            continue;
+        }
+        /*
+         * borderWidth == 1:
+         * reproduce Tk_Draw3DRectangle(..., 1, ...).
+         */
+        if (penPtr->borderWidth == 1) {
+            DrawWin3DRectangle1(dc, &colors, x, y, width, height, penPtr->relief);
+
+            continue;
+        }
+        /*
+         * borderWidth == 2.
+         */
+        if (penPtr->borderWidth == 2) {
+            if ((width > 2) && (height > 2)) {
+                /*
+                 * Rbc_Draw3DRectangle first draws its special outer
+                 * one-pixel border.
+                 */
+                DrawWinRbcOuter3DBorder(dc, &colors, x, y, width, height, penPtr->relief);
+                /*
+                 * Then it shrinks the rectangle and reduces
+                 * borderWidth from 2 to 1.
+                 */
+                x++;
+                y++;
+                width -= 2;
+                height -= 2;
+                DrawWin3DRectangle1(dc, &colors, x, y, width, height, penPtr->relief);
+            } else {
+                int effectiveWidth;
+
+                /*
+                 * For tiny rectangles Rbc_Draw3DRectangle skips its
+                 * special outer layer and calls Tk_Draw3DRectangle
+                 * directly with borderWidth == 2.  Reproduce Tk's
+                 * border-width clamping here.
+                 */
+                effectiveWidth = Clamp3DBorderWidth(width, height, 2);
+
+                if (effectiveWidth == 1) {
+                    DrawWin3DRectangle1(dc, &colors, x, y, width, height, penPtr->relief);
+                }
+                /*
+                 * effectiveWidth == 0 means Tk draws no bevel.
+                 */
+            }
+        }
+    }
+    Rbc_WinReleaseDrawableDC(dcStatePtr);
+    return TRUE;
+}
+
+#endif /* WIN32 */
+
+static void FillBarRectangles(Graph *graphPtr, Drawable drawable, BarPen *penPtr, XRectangle *rectangles, int nRects) {
+#ifdef WIN32
+    if (Rbc_WinFillOpaqueStippledRectangles(graphPtr->display, drawable, penPtr->gc, rectangles, nRects)) {
+        return;
+    }
+#endif
+    XFillRectangles(graphPtr->display, drawable, penPtr->gc, rectangles, nRects);
+}
+
 /*
  * -----------------------------------------------------------------
  *
@@ -2069,7 +2301,7 @@ static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, 
             xRects[nBuffered].height = (unsigned short)srcPtr->height;
             nBuffered++;
             if (nBuffered == maxRects) {
-                XFillRectangles(graphPtr->display, drawable, penPtr->gc, xRects, nBuffered);
+                FillBarRectangles(graphPtr, drawable, penPtr, xRects, nBuffered);
                 nBuffered = 0;
             }
         } else {
@@ -2078,7 +2310,7 @@ static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, 
              * wider int-coordinate API call.
              */
             if (nBuffered > 0) {
-                XFillRectangles(graphPtr->display, drawable, penPtr->gc, xRects, nBuffered);
+                FillBarRectangles(graphPtr, drawable, penPtr, xRects, nBuffered);
                 nBuffered = 0;
             }
             if ((srcPtr->width > 0) && (srcPtr->height > 0)) {
@@ -2088,14 +2320,20 @@ static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, 
         }
     }
     if (nBuffered > 0) {
-        XFillRectangles(graphPtr->display, drawable, penPtr->gc, xRects, nBuffered);
+        FillBarRectangles(graphPtr, drawable, penPtr, xRects, nBuffered);
     }
     ckfree(xRects);
     if ((penPtr->border != NULL) && (penPtr->borderWidth > 0) && (penPtr->relief != TK_RELIEF_FLAT)) {
-        for (rectPtr = rectangles, endPtr = rectangles + nRects; rectPtr < endPtr; rectPtr++) {
-            Rbc_Draw3DRectangle(graphPtr->tkwin, drawable, penPtr->border, rectPtr->x, rectPtr->y, rectPtr->width,
-                                rectPtr->height, penPtr->borderWidth, penPtr->relief);
+#ifdef WIN32
+        if (!DrawWin3DBarBorders(graphPtr, drawable, penPtr, rectangles, nRects)) {
+#endif
+            for (rectPtr = rectangles, endPtr = rectangles + nRects; rectPtr < endPtr; rectPtr++) {
+                Rbc_Draw3DRectangle(graphPtr->tkwin, drawable, penPtr->border, rectPtr->x, rectPtr->y, rectPtr->width,
+                                    rectPtr->height, penPtr->borderWidth, penPtr->relief);
+            }
+#ifdef WIN32
         }
+#endif
     }
 }
 

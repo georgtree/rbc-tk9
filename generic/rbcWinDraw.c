@@ -438,6 +438,135 @@ unsigned char *Rbc_GetBitmapData(Display *display, Pixmap bitmap, int width, int
     return bits;
 }
 
+void Rbc_WinGet3DBorderColors(Tk_Window tkwin, Tk_3DBorder border, Rbc_Win3DBorderColors *colorsPtr) {
+    colorsPtr->flat = TkWinGetBorderPixels(tkwin, border, TK_3D_FLAT_GC);
+    colorsPtr->light = TkWinGetBorderPixels(tkwin, border, TK_3D_LIGHT_GC);
+    colorsPtr->dark = TkWinGetBorderPixels(tkwin, border, TK_3D_DARK_GC);
+    colorsPtr->light2 = TkWinGetBorderPixels(tkwin, border, TK_3D_LIGHT2);
+    colorsPtr->dark2 = TkWinGetBorderPixels(tkwin, border, TK_3D_DARK2);
+}
+
+void Rbc_WinFillRect(HDC dc, int x, int y, int width, int height, COLORREF color) {
+    if ((width <= 0) || (height <= 0)) {
+        return;
+    }
+    /*
+     * Use Tk's own Windows rectangle primitive so this reproduces
+     * Tk_3DVerticalBevel/Tk_3DHorizontalBevel exactly.
+     */
+    TkWinFillRect(dc, x, y, width, height, (int)color);
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_WinFillOpaqueStippledRectangles --
+ *
+ *      Fast Windows implementation of the normal GXcopy
+ *      FillOpaqueStippled rectangle case.
+ *
+ *      Tk's XFillRectangles implementation creates and destroys a
+ *      compatible bitmap for every rectangle.  For large bar charts
+ *      that setup dominates rendering time.
+ *
+ *      A monochrome Windows pattern brush can instead expand the
+ *      stipple directly using the DC text/background colors.
+ *
+ * Results:
+ *      TRUE if the rectangles were handled here.
+ *      FALSE if the caller should use XFillRectangles.
+ *
+ *----------------------------------------------------------------------
+ */
+int Rbc_WinFillOpaqueStippledRectangles(Display *display, Drawable drawable, GC gc, const XRectangle *rectangles,
+                                        int nRectangles) {
+    Rbc_WinDrawableDC *dcStatePtr;
+    TkWinDrawable *stipplePtr;
+    HBRUSH patternBrush;
+    HBRUSH oldBrush;
+    COLORREF oldTextColor;
+    COLORREF oldBkColor;
+    POINT oldOrigin;
+    HDC dc;
+    int i;
+    int result;
+
+    if ((display == NULL) || (drawable == None) || (gc == NULL) || (rectangles == NULL) || (nRectangles <= 0)) {
+        return FALSE;
+    }
+    /*
+     * Keep this optimization deliberately narrow initially.
+     */
+    if ((gc->function != GXcopy) || (gc->fill_style != FillOpaqueStippled) || (gc->stipple == None)) {
+        return FALSE;
+    }
+    stipplePtr = (TkWinDrawable *)gc->stipple;
+    if (stipplePtr->type != TWD_BITMAP) {
+        return FALSE;
+    }
+    patternBrush = CreatePatternBrush(stipplePtr->bitmap.handle);
+    if (patternBrush == NULL) {
+        return FALSE;
+    }
+    dc = Rbc_WinAcquireDrawableDC(display, drawable, &dcStatePtr);
+    if (dc == NULL) {
+        DeleteObject(patternBrush);
+        return FALSE;
+    }
+    oldBrush = (HBRUSH)SelectObject(dc, patternBrush);
+    if (oldBrush == NULL) {
+        Rbc_WinReleaseDrawableDC(dcStatePtr);
+        DeleteObject(patternBrush);
+        return FALSE;
+    }
+    /*
+     * CreatePatternBrush with a monochrome bitmap maps:
+     *
+     *      bitmap 0 -> DC text color
+     *      bitmap 1 -> DC background color
+     *
+     * X stipple semantics are:
+     *
+     *      stipple 0 -> background
+     *      stipple 1 -> foreground
+     *
+     * Hence the apparently reversed assignments below.
+     */
+    oldTextColor = SetTextColor(dc, (COLORREF)gc->background);
+    oldBkColor = SetBkColor(dc, (COLORREF)gc->foreground);
+    /*
+     * Preserve Tk's existing tile/stipple origin convention.
+     */
+    if (!SetBrushOrgEx(dc, gc->ts_x_origin, gc->ts_y_origin, &oldOrigin)) {
+        SetBkColor(dc, oldBkColor);
+        SetTextColor(dc, oldTextColor);
+        SelectObject(dc, oldBrush);
+        Rbc_WinReleaseDrawableDC(dcStatePtr);
+        DeleteObject(patternBrush);
+        return FALSE;
+    }
+    result = TRUE;
+    for (i = 0; i < nRectangles; i++) {
+        const XRectangle *rectPtr;
+
+        rectPtr = rectangles + i;
+        if ((rectPtr->width == 0) || (rectPtr->height == 0)) {
+            continue;
+        }
+        if (!PatBlt(dc, rectPtr->x, rectPtr->y, rectPtr->width, rectPtr->height, PATCOPY)) {
+            result = FALSE;
+            break;
+        }
+    }
+    SetBrushOrgEx(dc, oldOrigin.x, oldOrigin.y, NULL);
+    SetBkColor(dc, oldBkColor);
+    SetTextColor(dc, oldTextColor);
+    SelectObject(dc, oldBrush);
+    Rbc_WinReleaseDrawableDC(dcStatePtr);
+    DeleteObject(patternBrush);
+    return result;
+}
+
 /*
  *--------------------------------------------------------------
  *

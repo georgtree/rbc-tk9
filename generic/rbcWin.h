@@ -130,6 +130,18 @@ extern char *Rbc_LastError(void);
 #define XLowerWindow Rbc_EmulateXLowerWindow
 #define XMaxRequestSize Rbc_EmulateXMaxRequestSize
 
+typedef struct {
+    COLORREF flat;
+    COLORREF light;
+    COLORREF dark;
+    COLORREF light2;
+    COLORREF dark2;
+} Rbc_Win3DBorderColors;
+
+void Rbc_WinGet3DBorderColors(Tk_Window tkwin, Tk_3DBorder border, Rbc_Win3DBorderColors *colorsPtr);
+void Rbc_WinFillRect(HDC dc, int x, int y, int width, int height, COLORREF color);
+int Rbc_WinFillOpaqueStippledRectangles(Display *display, Drawable drawable, GC gc, const XRectangle *rectangles,
+                                        int nRectangles);
 
 EXTERN void Rbc_EmulateXDrawArcs(Display *display, Drawable drawable, GC gc, XArc *arcArr, int nArcs);
 EXTERN void Rbc_EmulateXDrawPoints(Display *display, Drawable drawable, GC gc, XPoint *pointArr, int nPoints, int mode);
