@@ -117,6 +117,34 @@ previous valid object state instead of leaving partially modified graph objects.
 <p>The EPS canvas item remains on <code class="docutils literal notranslate"><span class="pre">Tk_ConfigSpec</span></code>/<code class="docutils literal notranslate"><span class="pre">Tk_ConfigureWidget()</span></code> because the public Tk 9 <code class="docutils literal notranslate"><span class="pre">Tk_ItemType</span></code>
 canvas-item interface still exposes the legacy configuration mechanism.</p>
 </section>
+<section id="component-option-database-lookup">
+<span id="r-tcltk9upgrade-component-option-database-lookup"></span><span id="r-3a3atcltk9upgradeqzcomponent20option2ddatabase20lookup"></span><h3>Component option-database lookup<a class="headerlink" href="#component-option-database-lookup" title="Link to this heading">¶</a></h3>
+<p>Graph components such as elements, markers, pens, axes, the legend, grid, crosshairs, and PostScript settings
+are not ordinary Tk child widgets, but they participate in Tk’s option database using component resource names
+and classes.</p>
+<p>The previous implementation created and destroyed a temporary Tk child window whenever a pseudo-component was
+initialized so that <code class="docutils literal notranslate"><span class="pre">Tk_InitOptions()</span></code> could perform the appropriate name/class lookup. With large numbers of
+objects, particularly markers or elements, this made component creation dominated by Tk window-management
+overhead.</p>
+<p>Each graph now owns a single anonymous Tk option-proxy window which is reused for pseudo-component option
+lookup. Before initializing a component, the proxy is temporarily given the component’s resource name and
+class and is then passed to Tk’s normal option-table machinery.</p>
+<p>This preserves the existing option-database hierarchy and precedence, including both class-wide resources such
+as:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">option</span><span class="w"> </span>add<span class="w"> </span><span class="o">*</span>Graph.TextMarker.Foreground<span class="w"> </span>darkgreen
+</pre></div>
+</div>
+<p>and resources for particular named components such as:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">option</span><span class="w"> </span>add<span class="w"> </span><span class="o">*</span>Graph.annotation.foreground<span class="w"> </span>purple
+</pre></div>
+</div>
+<p>without constructing a real Tk child for every component.</p>
+<p>The proxy is anonymous and is not entered into Tk’s pathname hierarchy. It exists only for the lifetime of its
+graph and is destroyed with the graph. Explicit component options continue to override option-database defaults
+normally.</p>
+<p>Removing the temporary-window creation path substantially reduces the cost of creating large numbers of graph
+objects while retaining the established option-database behavior.</p>
+</section>
 <section id="graph-object-and-resource-lifetime">
 <span id="r-tcltk9upgrade-graph-object-and-resource-lifetime"></span><span id="r-3a3atcltk9upgradeqzgraph20object20and20resource20lifetime"></span><h3>Graph object and resource lifetime<a class="headerlink" href="#graph-object-and-resource-lifetime" title="Link to this heading">¶</a></h3>
 <p>Configuration modernization exposed a number of ownership and rollback problems that were corrected at the same
@@ -298,6 +326,32 @@ code was reorganized behind an Rbc-owned Windows abstraction.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">TWD_*</span></code></p></li>
 </ul>
 <p>to a single Windows implementation unit, <code class="docutils literal notranslate"><span class="pre">rbcWinDraw.c</span></code>.</p>
+</section>
+<section id="windows-rendering-performance">
+<span id="r-tcltk9upgrade-windows-rendering-performance"></span><span id="r-3a3atcltk9upgradeqzwindows20rendering20performance"></span><h3>Windows rendering performance<a class="headerlink" href="#windows-rendering-performance" title="Link to this heading">¶</a></h3>
+<p>The Windows graph renderer was also optimized to reduce repeated GDI setup for large drawing workloads.</p>
+<p>Several older drawing paths performed native device-context, pen, brush, or bitmap setup separately for every
+individual primitive. This was particularly expensive for large scatter plots, bar charts, error bars, and
+collections of graph markers.</p>
+<p>The Windows backend now batches or shares native drawing state where the original drawing semantics permit it:</p>
+<ul class="simple">
+<li><p>independent line and error-bar segments are grouped into <code class="docutils literal notranslate"><span class="pre">PolyPolyline()</span></code> calls;</p></li>
+<li><p>polygon-based symbols use batched native polygon and polyline drawing;</p></li>
+<li><p>square and circle symbol rendering uses dedicated Windows fast paths;</p></li>
+<li><p>raised bars share an acquired drawable <code class="docutils literal notranslate"><span class="pre">HDC</span></code> and precomputed 3-D border colors instead of repeatedly entering Tk’s per-rectangle drawing path;</p></li>
+<li><p>opaque stippled bars use a reusable monochrome pattern brush and <code class="docutils literal notranslate"><span class="pre">PatBlt()</span></code> instead of creating temporary bitmap state for every rectangle;</p></li>
+<li><p>compatible consecutive line-marker and polygon-outline markers are combined into segment batches while preserving marker display-list order;</p></li>
+<li><p>solid fill-only polygon markers share their destination <code class="docutils literal notranslate"><span class="pre">HDC</span></code> and brush across a compatible run;</p></li>
+<li><p>compatible bitmap markers share both source and destination device-context setup;</p></li>
+<li><p>compatible text-marker runs reuse an acquired destination <code class="docutils literal notranslate"><span class="pre">HDC</span></code> while continuing to use Tk’s font renderer.</p></li>
+</ul>
+<p>The fast paths are deliberately conservative. XOR drawing, dashed or otherwise incompatible line styles, marker
+arrowheads, masked or rotated bitmap cases, mixed polygon fill/outline cases, and other operations whose
+semantics depend on individual drawing order continue through the normal drawing paths.</p>
+<p>Batching never reorders visible graph objects. A pending batch is flushed whenever an incompatible object or
+another visible marker class is encountered, preserving the graph’s existing stacking and overlap semantics.</p>
+<p>These changes affect the Windows native renderer only. The X11 drawing paths and PostScript output retain their
+existing behavior.</p>
 </section>
 <section id="remaining-private-tk-dependencies">
 <span id="r-tcltk9upgrade-remaining-private-tk-dependencies"></span><span id="r-3a3atcltk9upgradeqzremaining20private20tk20dependencies"></span><h3>Remaining private Tk dependencies<a class="headerlink" href="#remaining-private-tk-dependencies" title="Link to this heading">¶</a></h3>
@@ -516,6 +570,7 @@ relevant rendering code is replaced with an independent backend.</p>
 <li><a class="reference internal" href="#tcl-9-command-and-object-api">Tcl 9 command and object API</a></li>
 <li><a class="reference internal" href="#bit-and-tcl-size-support">64-bit and <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code> support</a></li>
 <li><a class="reference internal" href="#modern-tk-option-handling">Modern Tk option handling</a></li>
+<li><a class="reference internal" href="#component-option-database-lookup">Component option-database lookup</a></li>
 <li><a class="reference internal" href="#graph-object-and-resource-lifetime">Graph object and resource lifetime</a></li>
 <li><a class="reference internal" href="#axis-and-coordinate-system-modernization">Axis and coordinate-system modernization</a></li>
 <li><a class="reference internal" href="#line-bar-and-element-processing">Line, bar and element processing</a></li>
@@ -525,6 +580,7 @@ relevant rendering code is replaced with an independent backend.</p>
 <li><a class="reference internal" href="#image-and-bitmap-handling">Image and bitmap handling</a></li>
 <li><a class="reference internal" href="#postscript-output">PostScript output</a></li>
 <li><a class="reference internal" href="#windows-drawing-backend">Windows drawing backend</a></li>
+<li><a class="reference internal" href="#windows-rendering-performance">Windows rendering performance</a></li>
 <li><a class="reference internal" href="#remaining-private-tk-dependencies">Remaining private Tk dependencies</a></li>
 <li><a class="reference internal" href="#c-safety-and-hardening">C safety and hardening</a></li>
 <li><a class="reference internal" href="#bindings-and-tags">Bindings and tags</a></li>

@@ -82,6 +82,40 @@ namespace eval TclTk9Upgrade {
         The EPS canvas item remains on `Tk_ConfigSpec`/`Tk_ConfigureWidget()` because the public Tk 9 `Tk_ItemType`
         canvas-item interface still exposes the legacy configuration mechanism.
 
+        ### Component option-database lookup
+        Graph components such as elements, markers, pens, axes, the legend, grid, crosshairs, and PostScript settings
+        are not ordinary Tk child widgets, but they participate in Tk's option database using component resource names
+        and classes.
+
+        The previous implementation created and destroyed a temporary Tk child window whenever a pseudo-component was
+        initialized so that `Tk_InitOptions()` could perform the appropriate name/class lookup. With large numbers of
+        objects, particularly markers or elements, this made component creation dominated by Tk window-management
+        overhead.
+
+        Each graph now owns a single anonymous Tk option-proxy window which is reused for pseudo-component option
+        lookup. Before initializing a component, the proxy is temporarily given the component's resource name and
+        class and is then passed to Tk's normal option-table machinery.
+
+        This preserves the existing option-database hierarchy and precedence, including both class-wide resources such
+        as:
+        ```tcl
+        option add *Graph.TextMarker.Foreground darkgreen
+        ```
+
+        and resources for particular named components such as:
+        ```tcl
+        option add *Graph.annotation.foreground purple
+        ```
+
+        without constructing a real Tk child for every component.
+
+        The proxy is anonymous and is not entered into Tk's pathname hierarchy. It exists only for the lifetime of its
+        graph and is destroyed with the graph. Explicit component options continue to override option-database defaults
+        normally.
+
+        Removing the temporary-window creation path substantially reduces the cost of creating large numbers of graph
+        objects while retaining the established option-database behavior.
+
         ### Graph object and resource lifetime
 
         Configuration modernization exposed a number of ownership and rollback problems that were corrected at the same
@@ -280,6 +314,37 @@ namespace eval TclTk9Upgrade {
         - `TWD_*`
 
         to a single Windows implementation unit, `rbcWinDraw.c`.
+
+        ### Windows rendering performance
+        The Windows graph renderer was also optimized to reduce repeated GDI setup for large drawing workloads.
+
+        Several older drawing paths performed native device-context, pen, brush, or bitmap setup separately for every
+        individual primitive. This was particularly expensive for large scatter plots, bar charts, error bars, and
+        collections of graph markers.
+
+        The Windows backend now batches or shares native drawing state where the original drawing semantics permit it:
+        - independent line and error-bar segments are grouped into `PolyPolyline()` calls;
+        - polygon-based symbols use batched native polygon and polyline drawing;
+        - square and circle symbol rendering uses dedicated Windows fast paths;
+        - raised bars share an acquired drawable `HDC` and precomputed 3-D border colors instead of repeatedly entering
+          Tk's per-rectangle drawing path;
+        - opaque stippled bars use a reusable monochrome pattern brush and `PatBlt()` instead of creating temporary
+          bitmap state for every rectangle;
+        - compatible consecutive line-marker and polygon-outline markers are combined into segment batches while
+          preserving marker display-list order;
+        - solid fill-only polygon markers share their destination `HDC` and brush across a compatible run;
+        - compatible bitmap markers share both source and destination device-context setup;
+        - compatible text-marker runs reuse an acquired destination `HDC` while continuing to use Tk's font renderer.
+
+        The fast paths are deliberately conservative. XOR drawing, dashed or otherwise incompatible line styles, marker
+        arrowheads, masked or rotated bitmap cases, mixed polygon fill/outline cases, and other operations whose
+        semantics depend on individual drawing order continue through the normal drawing paths.
+
+        Batching never reorders visible graph objects. A pending batch is flushed whenever an incompatible object or
+        another visible marker class is encountered, preserving the graph's existing stacking and overlap semantics.
+
+        These changes affect the Windows native renderer only. The X11 drawing paths and PostScript output retain their
+        existing behavior.
 
         ### Remaining private Tk dependencies
 

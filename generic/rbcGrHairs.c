@@ -460,8 +460,8 @@ int Rbc_CreateCrosshairs(Graph *graphPtr) {
     assert(chPtr != NULL);
     graphPtr->crosshairs = chPtr;
     chPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, crosshairsOptionSpecs);
-    if (Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, "crosshairs", "Crosshairs", (char *)chPtr,
-                                 chPtr->optionTable) != TCL_OK) {
+    if (Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, graphPtr->optionProxy, "crosshairs", "Crosshairs",
+                                 (char *)chPtr, chPtr->optionTable) != TCL_OK) {
         goto error;
     }
     if (ConfigureCrosshairs(graphPtr, chPtr, HAIRS_INITIALIZE_MASK) != TCL_OK) {

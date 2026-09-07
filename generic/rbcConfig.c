@@ -740,26 +740,62 @@ Tk_Window Rbc_FindChild(Tk_Window parent, const char *name) {
     return result;
 }
 
-int Rbc_InitComponentOptions(Tcl_Interp *interp, Tk_Window parent, const char *name, const char *className,
-                             char *recordPtr, Tk_OptionTable optionTable) {
+int Rbc_InitComponentOptions(Tcl_Interp *interp, Tk_Window parent, Tk_Window proxy, const char *name,
+                             const char *className, char *recordPtr, Tk_OptionTable optionTable) {
     Tk_Window tkwin;
-    int isTemporary;
-    int result;
 
+    /*
+     * Preserve the old behavior when an actual child with this name
+     * exists.
+     */
     tkwin = Rbc_FindChild(parent, name);
-    isTemporary = FALSE;
-    if (tkwin == NULL) {
-        tkwin = Tk_CreateWindow(interp, parent, name, (char *)NULL);
-        if (tkwin == NULL) {
-            return TCL_ERROR;
-        }
-        Tk_SetClass(tkwin, className);
-        isTemporary = TRUE;
+    if (tkwin != NULL) {
+        return Tk_InitOptions(interp, recordPtr, optionTable, tkwin);
     }
-    result = Tk_InitOptions(interp, recordPtr, optionTable, tkwin);
-    if (isTemporary) {
-        Tk_DestroyWindow(tkwin);
-    }
-    return result;
-}
+    /*
+     * There is no real child corresponding to this pseudo-component.
+     * Reuse the graph's anonymous option proxy instead.
+     */
+    if (proxy != NULL) {
+        Tk_FakeWin *winPtr;
+        Tcl_DString pathName;
+        int result;
 
+        winPtr = (Tk_FakeWin *)proxy;
+        /*
+         * Tk's option database matcher identifies this level of the
+         * hierarchy by nameUid and classUid.
+         *
+         * Set the pseudo-component name first, then call Tk_SetClass().
+         * Tk_SetClass() also invalidates Tk's cached option-stack level,
+         * ensuring that the new name/class pair is used by the next
+         * Tk_GetOption().
+         */
+        winPtr->nameUid = Tk_GetUid(name);
+        Tk_SetClass(proxy, className);
+        /*
+         * Anonymous windows normally have no pathname.  Tk_InitOptions()
+         * only needs one for error reporting, so temporarily supply the
+         * pathname that the old temporary child would have had.
+         *
+         * Do not leave pathName set after Tk_InitOptions(): the anonymous
+         * window is deliberately absent from Tk's pathname hash table.
+         */
+        Tcl_DStringInit(&pathName);
+        Tcl_DStringAppend(&pathName, Tk_PathName(parent), TCL_INDEX_NONE);
+        if (strcmp(Tk_PathName(parent), ".") != 0) {
+            Tcl_DStringAppend(&pathName, ".", 1);
+        }
+        Tcl_DStringAppend(&pathName, name, TCL_INDEX_NONE);
+        winPtr->pathName = Tcl_DStringValue(&pathName);
+        result = Tk_InitOptions(interp, recordPtr, optionTable, proxy);
+        winPtr->pathName = NULL;
+        Tcl_DStringFree(&pathName);
+        return result;
+    }
+    /*
+     * Defensive fallback.  This should not normally occur once every
+     * graph owns an option proxy.
+     */
+    return Tk_InitOptions(interp, recordPtr, optionTable, parent);
+}

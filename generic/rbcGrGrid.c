@@ -393,8 +393,8 @@ int Rbc_CreateGrid(Graph *graphPtr) {
      * static template.
      */
     gridPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, specsPtr);
-    if (Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, "grid", "Grid", (char *)gridPtr,
-                                 gridPtr->optionTable) != TCL_OK) {
+    if (Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, graphPtr->optionProxy, "grid", "Grid",
+                                 (char *)gridPtr, gridPtr->optionTable) != TCL_OK) {
         goto error;
     }
     if (ConfigureGrid(graphPtr, gridPtr, GRID_INITIALIZE_MASK) != TCL_OK) {

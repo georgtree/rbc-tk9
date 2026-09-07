@@ -2704,6 +2704,7 @@ static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv
      * Graph option lifecycle state.
      */
     graphPtr->optionTable = NULL;
+    graphPtr->optionProxy = NULL;
     ResetGraphOptionContext(graphPtr);
     graphPtr->optionsConfigured = FALSE;
     graphPtr->optionsInitialized = FALSE;
@@ -2740,6 +2741,10 @@ static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv
         Tk_SetClass(tkwin, "Stripchart");
     } else if (classUid == rbcPolarElementUid) {
         Tk_SetClass(tkwin, "Polar");
+    }
+    graphPtr->optionProxy = Tk_CreateAnonymousWindow(interp, tkwin, NULL);
+    if (graphPtr->optionProxy == NULL) {
+        goto error;
     }
     Rbc_SetWindowInstanceData(tkwin, graphPtr);
     /*

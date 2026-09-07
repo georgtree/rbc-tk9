@@ -785,8 +785,8 @@ static int InitMarkerOptions(Marker *markerPtr) {
         componentName[0] = (char)tolower((unsigned char)componentName[0]);
     }
 
-    result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, componentName, markerPtr->classUid,
-                                      (char *)markerPtr, markerPtr->optionTable);
+    result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, graphPtr->optionProxy, componentName,
+                                      markerPtr->classUid, (char *)markerPtr, markerPtr->optionTable);
 
     ckfree(componentName);
 

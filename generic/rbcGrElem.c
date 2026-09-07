@@ -3470,8 +3470,8 @@ static int InitElementOptions(Graph *graphPtr, Element *elemPtr) {
     if (componentName[0] != '\0') {
         componentName[0] = (char)tolower((unsigned char)componentName[0]);
     }
-    result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, componentName, "Element", (char *)elemPtr,
-                                      elemPtr->optionTable);
+    result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, graphPtr->optionProxy, componentName,
+                                      "Element", (char *)elemPtr, elemPtr->optionTable);
     ckfree(componentName);
     if (result != TCL_OK) {
         elemPtr->optionTable = NULL;

@@ -367,6 +367,13 @@ struct GraphStruct {
     Tk_OptionTable optionTable;
 
     /*
+     * Anonymous Tk window used to perform option-database lookup for
+     * graph pseudo-components without creating a temporary child window
+     * for every element, marker, pen, etc.
+     */
+    Tk_Window optionProxy;    
+
+    /*
      * Original Tcl representations for values requiring additional
      * conversion or validation.
      */

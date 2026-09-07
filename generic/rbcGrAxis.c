@@ -1312,9 +1312,8 @@ static int InitAxisOptions(Graph *graphPtr, Axis *axisPtr) {
         componentName[0] = (char)tolower((unsigned char)componentName[0]);
     }
 
-    result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, componentName, "Axis", (char *)axisPtr,
-                                      axisPtr->optionTable);
-
+    result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, graphPtr->optionProxy, componentName, "Axis",
+                                      (char *)axisPtr, axisPtr->optionTable);
     ckfree(componentName);
 
     if (result != TCL_OK) {

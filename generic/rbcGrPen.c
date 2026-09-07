@@ -46,8 +46,8 @@ static int InitPenOptions(Graph *graphPtr, Pen *penPtr) {
     if (componentName[0] != '\0') {
         componentName[0] = (char)tolower((unsigned char)componentName[0]);
     }
-    result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, componentName, "Pen", (char *)penPtr,
-                                      penPtr->optionTable);
+    result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, graphPtr->optionProxy, componentName, "Pen",
+                                      (char *)penPtr, penPtr->optionTable);
     ckfree(componentName);
     if (result != TCL_OK) {
         penPtr->optionTable = NULL;

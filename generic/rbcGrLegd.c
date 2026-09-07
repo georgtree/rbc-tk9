@@ -1462,8 +1462,8 @@ int Rbc_CreateLegend(Graph *graphPtr) {
     legendPtr->bindTable =
         Rbc_CreateBindingTable(graphPtr->interp, graphPtr->tkwin, graphPtr, PickLegendEntry, LegendTags);
     legendPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, legendOptionSpecs);
-    if (Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, "legend", "Legend", (char *)legendPtr,
-                                 legendPtr->optionTable) != TCL_OK) {
+    if (Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, graphPtr->optionProxy, "legend", "Legend",
+                                 (char *)legendPtr, legendPtr->optionTable) != TCL_OK) {
         goto error;
     }
     legendPtr->optionsInitialized = TRUE;

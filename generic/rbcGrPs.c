@@ -1286,8 +1286,8 @@ int Rbc_CreatePostScript(Graph *graphPtr) {
     assert(psPtr != NULL);
     graphPtr->postscript = psPtr;
     psPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, postScriptOptionSpecs);
-    if (Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, "postscript", "Postscript", (char *)psPtr,
-                                 psPtr->optionTable) != TCL_OK) {
+    if (Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, graphPtr->optionProxy, "postscript", "Postscript",
+                                 (char *)psPtr, psPtr->optionTable) != TCL_OK) {
         goto error;
     }
     if (ConfigurePostScript(graphPtr, psPtr, PS_INITIALIZE_MASK) != TCL_OK) {

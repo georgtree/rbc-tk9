@@ -478,8 +478,8 @@ void Rbc_InitEpsCanvasItem(Tcl_Interp *interp);
 void Rbc_TranslateAnchor(int x, int y, int width, int height, Tk_Anchor anchor, int *transXPtr, int *transYPtr);
 Point2D Rbc_TranslatePoint(Point2D *pointPtr, int width, int height, Tk_Anchor anchor);
 Tk_Window Rbc_FindChild(Tk_Window parent, const char *name);
-int Rbc_InitComponentOptions(Tcl_Interp *interp, Tk_Window parent, const char *name, const char *className,
-                             char *recordPtr, Tk_OptionTable optionTable);
+int Rbc_InitComponentOptions(Tcl_Interp *interp, Tk_Window parent, Tk_Window proxy, const char *name,
+                             const char *className, char *recordPtr, Tk_OptionTable optionTable);
 int Rbc_MaxRequestSize(Display *display, unsigned int elemSize);
 Window Rbc_GetRealWindowId(Tk_Window tkwin);
 ClientData Rbc_GetWindowInstanceData(Tk_Window tkwin);

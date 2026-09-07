@@ -764,7 +764,6 @@ static char *FormatSmithLabel(Graph *graphPtr, Tcl_Obj *commandObjPtr, int admit
     int result;
 
     Tcl_DStringInit(dsPtr);
-
     /*
      * The callback always receives the original numeric quantity.
      * For imaginary labels this is signed:
