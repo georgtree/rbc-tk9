@@ -78,7 +78,7 @@ proc ::rbcSymbolsBenchmark::CreateElement {symbol pixels trace} {
     set width [expr {$trace ? 1 : 0}]
     return [::rbcBenchmark::Time {
         $graph element create signal -xdata $xVector -ydata $yVector -linewidth $width -symbol $symbol -pixels $pixels\
-                -maxsymbols 0 -scalesymbols no -showvalues no -smooth linear -decimate none -reduce 0.0
+                -maxsymbols 0 -scalesymbols no -showvalues no -smooth linear -decimate none -reduce 0.0 
         ::rbcBenchmark::SyncDisplay
     }]
 }

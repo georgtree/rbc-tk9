@@ -864,25 +864,105 @@ void Rbc_EmulateXFillArcs(Display *display, Drawable drawable, GC gc, XArc *arcA
  *----------------------------------------------------------------------
  */
 void Rbc_EmulateXDrawSegments(Display *display, Drawable drawable, GC gc, XSegment *segArr, int nSegments) {
+    enum {
+        /*
+         * GDI/EMF permits 16K points in one PolyPolyline operation.
+         * Each XSegment is represented by one independent two-point
+         * polyline.
+         */
+        SEGMENT_BATCH = 8192,
+
+        /*
+         * Be conservative for wide geometric pens.  This is the same
+         * limit currently used by the optimized strip-element path.
+         */
+        SEGMENT_WIDE_BATCH = 680
+    };
+
+    Rbc_WinDrawableDC *dcStatePtr;
     HDC dc;
     HPEN pen, oldPen;
-    XSegment *segPtr, *endPtr;
-    Rbc_WinDrawableDC *dcStatePtr;
+    POINT *points;
+    DWORD *counts;
+    int maxSegments;
+    int first;
+    int i;
 
-    if ((drawable == None) || (segArr == NULL) || (nSegments <= 0)) {
+    if ((drawable == None) || (gc == NULL) || (segArr == NULL) || (nSegments <= 0)) {
         return;
+    }
+    maxSegments = (gc->line_width > 1) ? SEGMENT_WIDE_BATCH : SEGMENT_BATCH;
+    if (maxSegments > nSegments) {
+        maxSegments = nSegments;
+    }
+    /*
+     * Each independent segment requires exactly two POINTs.
+     */
+    if ((size_t)maxSegments > SIZE_MAX / (2u * sizeof(*points))) {
+        return;
+    }
+    points = Tcl_AttemptAlloc((size_t)maxSegments * 2u * sizeof(*points));
+    if (points == NULL) {
+        return;
+    }
+    if ((size_t)maxSegments > SIZE_MAX / sizeof(*counts)) {
+        ckfree(points);
+        return;
+    }
+    counts = Tcl_AttemptAlloc((size_t)maxSegments * sizeof(*counts));
+    if (counts == NULL) {
+        ckfree(points);
+        return;
+    }
+    /*
+     * Every PolyPolyline entry is an independent two-point polyline.
+     * The count array is therefore invariant across all chunks.
+     */
+    for (i = 0; i < maxSegments; i++) {
+        counts[i] = 2;
     }
     dc = Rbc_WinAcquireDrawableDC(display, drawable, &dcStatePtr);
     Rbc_WinSetROP2(dc, gc->function);
     pen = Rbc_GCToPen(dc, gc);
     oldPen = SelectPen(dc, pen);
-    endPtr = segArr + nSegments;
-    for (segPtr = segArr; segPtr < endPtr; segPtr++) {
-        MoveToEx(dc, segPtr->x1, segPtr->y1, NULL);
-        LineTo(dc, segPtr->x2, segPtr->y2);
+    first = 0;
+    while (first < nSegments) {
+        int count;
+
+        count = nSegments - first;
+        if (count > maxSegments) {
+            count = maxSegments;
+        }
+        for (i = 0; i < count; i++) {
+            const XSegment *segPtr;
+
+            segPtr = segArr + first + i;
+            points[2 * i].x = (LONG)segPtr->x1;
+            points[2 * i].y = (LONG)segPtr->y1;
+
+            points[2 * i + 1].x = (LONG)segPtr->x2;
+            points[2 * i + 1].y = (LONG)segPtr->y2;
+        }
+        /*
+         * PolyPolyline preserves the independent-segment nature of
+         * XDrawSegments because every sub-polyline has exactly two
+         * points.
+         *
+         * Fall back to the old per-segment implementation if the
+         * device rejects the batched operation.
+         */
+        if (!PolyPolyline(dc, points, counts, (DWORD)count)) {
+            for (i = 0; i < count; i++) {
+                MoveToEx(dc, points[2 * i].x, points[2 * i].y, NULL);
+                LineTo(dc, points[2 * i + 1].x, points[2 * i + 1].y);
+            }
+        }
+        first += count;
     }
     DeletePen(SelectPen(dc, oldPen));
     Rbc_WinReleaseDrawableDC(dcStatePtr);
+    ckfree(counts);
+    ckfree(points);
 }
 
 /*

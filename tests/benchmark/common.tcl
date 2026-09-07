@@ -208,12 +208,12 @@ proc ::rbcBenchmark::ProfileDefaults {family profile} {
                     return [dict create points {1000 10000} sizes {640x480} iterations 1 warmup 1 pixels 7]
                 }
                 standard {
-                    return [dict create points {1000 10000 100000 500000} sizes {640x480 1920x1080} iterations 3\
-                                    warmup 1 pixels 7]
+                    return [dict create points {1000 10000 100000} sizes {640x480 1920x1080} iterations 3 warmup 1\
+                                    pixels 7]
                 }
                 stress {
-                    return [dict create points {1000 10000 100000 500000 1000000}\
-                                    sizes {640x480 1280x720 1920x1080 2560x1440} iterations 5 warmup 1 pixels {3 7 15}]
+                    return [dict create points {100000 500000 1000000} sizes {1920x1080} iterations 3 warmup 1\
+                                    pixels 7]
                 }
             }
         }
@@ -223,12 +223,10 @@ proc ::rbcBenchmark::ProfileDefaults {family profile} {
                     return [dict create points {1000 10000} sizes {640x480} iterations 1 warmup 1]
                 }
                 standard {
-                    return [dict create points {1000 10000 100000 500000} sizes {640x480 1920x1080} iterations 3\
-                                    warmup 1]
+                    return [dict create points {1000 10000 100000} sizes {640x480 1920x1080} iterations 3 warmup 1]
                 }
                 stress {
-                    return [dict create points {1000 10000 100000 500000 1000000}\
-                                    sizes {640x480 1280x720 1920x1080 2560x1440} iterations 5 warmup 1]
+                    return [dict create points {100000 500000 1000000} sizes {1920x1080} iterations 3 warmup 1]
                 }
             }
         }
@@ -239,12 +237,12 @@ proc ::rbcBenchmark::ProfileDefaults {family profile} {
                                     warmup 1]
                 }
                 standard {
-                    return [dict create points {100 1000 10000 50000} element_counts {100 1000 5000}\
-                                    sizes {640x480 1920x1080} iterations 3 warmup 1]
+                    return [dict create points {100 1000 10000} element_counts {100 1000} sizes {640x480 1920x1080}\
+                                    iterations 3 warmup 1]
                 }
                 stress {
-                    return [dict create points {100 1000 10000 50000 100000} element_counts {100 1000 5000 10000}\
-                                    sizes {640x480 1280x720 1920x1080 2560x1440} iterations 5 warmup 1]
+                    return [dict create points {10000 50000 100000} element_counts {1000 5000 10000} sizes {1920x1080}\
+                                    iterations 3 warmup 1]
                 }
             }
         }
@@ -253,12 +251,13 @@ proc ::rbcBenchmark::ProfileDefaults {family profile} {
                 smoke {
                     return [dict create counts {100 1000} sizes {640x480} iterations 1 warmup 1]
                 }
+
                 standard {
-                    return [dict create counts {100 1000 5000 10000} sizes {640x480 1920x1080} iterations 3 warmup 1]
+                    return [dict create counts {100 1000 5000} sizes {640x480 1920x1080} iterations 3 warmup 1]
                 }
+
                 stress {
-                    return [dict create counts {100 1000 5000 10000 20000}\
-                                    sizes {640x480 1280x720 1920x1080 2560x1440} iterations 5 warmup 1]
+                    return [dict create counts {5000 10000 20000} sizes {1920x1080} iterations 3 warmup 1]
                 }
             }
         }

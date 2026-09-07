@@ -1437,16 +1437,40 @@ void Rbc_Draw2DSegments(Display *display, Drawable drawable, GC gc, const Segmen
         chunk = (remaining > (Tcl_Size)maxSegments) ? maxSegments : (int)remaining;
         nDrawn = 0;
         for (i = 0; i < chunk; i++) {
-            Segment2D clipped;
+            const Segment2D *segPtr;
 
-            if (!Rbc_LineRectClip(&protocolExtents, &segments[i].p, &segments[i].q, &clipped)) {
-                continue;
+            segPtr = segments + i;
+            /*
+             * Most graph geometry is already clipped to the graph extents
+             * before it reaches this routine.  Avoid running the general
+             * line-rectangle clipper again when both endpoints are already
+             * representable by the signed 16-bit XSegment protocol type.
+             */
+            if ((segPtr->p.x >= protocolExtents.left) && (segPtr->p.x <= protocolExtents.right) &&
+                (segPtr->p.y >= protocolExtents.top) && (segPtr->p.y <= protocolExtents.bottom) &&
+                (segPtr->q.x >= protocolExtents.left) && (segPtr->q.x <= protocolExtents.right) &&
+                (segPtr->q.y >= protocolExtents.top) && (segPtr->q.y <= protocolExtents.bottom)) {
+                xSegments[nDrawn].x1 = (short)segPtr->p.x;
+                xSegments[nDrawn].y1 = (short)segPtr->p.y;
+                xSegments[nDrawn].x2 = (short)segPtr->q.x;
+                xSegments[nDrawn].y2 = (short)segPtr->q.y;
+                nDrawn++;
+            } else {
+                Segment2D clipped;
+
+                /*
+                 * Retain the existing clipping behavior for geometry outside
+                 * the X11 signed-16-bit protocol coordinate range.
+                 */
+                if (!Rbc_LineRectClip(&protocolExtents, &segPtr->p, &segPtr->q, &clipped)) {
+                    continue;
+                }
+                xSegments[nDrawn].x1 = (short)clipped.p.x;
+                xSegments[nDrawn].y1 = (short)clipped.p.y;
+                xSegments[nDrawn].x2 = (short)clipped.q.x;
+                xSegments[nDrawn].y2 = (short)clipped.q.y;
+                nDrawn++;
             }
-            xSegments[nDrawn].x1 = (short)clipped.p.x;
-            xSegments[nDrawn].y1 = (short)clipped.p.y;
-            xSegments[nDrawn].x2 = (short)clipped.q.x;
-            xSegments[nDrawn].y2 = (short)clipped.q.y;
-            nDrawn++;
         }
         if (nDrawn > 0) {
             XDrawSegments(display, drawable, gc, xSegments, nDrawn);

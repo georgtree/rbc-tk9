@@ -8971,6 +8971,335 @@ static void DrawSquares(Display *display, Drawable drawable, Line *linePtr, Line
     ckfree((char *)rectArr);
 }
 
+#ifdef WIN32
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * LoadPolygonBatch --
+ *
+ *      Convert a batch of RBC XPoint polygon data to Windows POINTs.
+ *
+ *      "stride" is the number of XPoints occupied by one source
+ *      polygon.  "nPoints" is the number copied for this operation.
+ *
+ *      For fills, nPoints excludes RBC's repeated closing point.
+ *      For outlines, nPoints == stride and therefore includes it.
+ *
+ *----------------------------------------------------------------------
+ */
+static void LoadPolygonBatch(POINT *points, const XPoint *polygons, Tcl_Size first, Tcl_Size count, int stride,
+                             int nPoints) {
+    Tcl_Size i;
+    int j;
+
+    for (i = 0; i < count; i++) {
+        const XPoint *srcPtr;
+        POINT *dstPtr;
+
+        srcPtr = polygons + (first + i) * stride;
+        dstPtr = points + i * nPoints;
+
+        for (j = 0; j < nPoints; j++) {
+            dstPtr[j].x = (LONG)srcPtr[j].x;
+            dstPtr[j].y = (LONG)srcPtr[j].y;
+        }
+    }
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * DrawPolygonSymbols --
+ *
+ *      Batch Windows rendering of independent polygon symbols.
+ *
+ *      Under GXcopy, overlapping solid fills are visually equivalent
+ *      to the union of the individual polygons.  Use WINDING mode so
+ *      overlapping polygons do not cancel one another as they would
+ *      if thousands of independent symbols were combined under the
+ *      default EvenOddRule.
+ *
+ *      Outlines are independent closed polylines and therefore map
+ *      naturally to PolyPolyline.
+ *
+ *      For non-GXcopy raster operations, retain per-polygon drawing so
+ *      overlapping symbols preserve repeated raster-operation effects.
+ *
+ *----------------------------------------------------------------------
+ */
+static void DrawPolygonSymbols(Graph *graphPtr, Drawable drawable, LinePen *penPtr, const XPoint *polygons,
+                               Tcl_Size nPolygons, int stride, int nVertices) {
+    enum {
+        /*
+         * GDI/EMF point budget for polygon outlines.  PolyPolyline scales
+         * well with large batches.
+         */
+        POLYGON_BATCH_POINTS = 16384,
+
+        /*
+         * Filled polygon symbols behave very differently under
+         * PolyPolygon when many symbols overlap.  These batch sizes were
+         * selected from the Windows rendering benchmark.
+         */
+        POLYGON_PLUS_FILL_BATCH = 16,
+        POLYGON_CROSS_FILL_BATCH = 8,
+        POLYGON_CONVEX_FILL_BATCH = 32,
+
+        /*
+         * Conservative point budget for wide geometric outline pens.
+         */
+        POLYGON_WIDE_BATCH_POINTS = 1360
+    };
+
+    Rbc_WinDrawableDC *dcStatePtr;
+    HDC dc;
+    POINT *points;
+    INT *polygonCounts;
+    DWORD *polylineCounts;
+    Tcl_Size maxPolygons;
+    Tcl_Size maxFillPolygons;
+    Tcl_Size first;
+    Tcl_Size i;
+    int maxPoints;
+
+    if ((drawable == None) || (polygons == NULL) || (nPolygons <= 0) || (nVertices < 3) || (stride < nVertices)) {
+        return;
+    }
+
+    if ((penPtr->symbol.fillGC == NULL) && ((penPtr->symbol.outlineGC == NULL) || (penPtr->symbol.outlineWidth <= 0))) {
+        return;
+    }
+
+    /*
+     * Size the shared buffer for the larger, closed outline
+     * representation.
+     */
+    if (penPtr->symbol.outlineWidth > 1) {
+        maxPoints = POLYGON_WIDE_BATCH_POINTS;
+    } else {
+        maxPoints = POLYGON_BATCH_POINTS;
+    }
+
+    maxPolygons = maxPoints / stride;
+    if (maxPolygons < 1) {
+        maxPolygons = 1;
+    }
+    if (maxPolygons > nPolygons) {
+        maxPolygons = nPolygons;
+    }
+
+    /*
+     * Polygon outlines scale well with large PolyPolyline batches, but
+     * large overlapping PolyPolygon fills are extremely expensive on
+     * Windows.  Limit only the fill batch size.
+     */
+    switch (penPtr->symbol.type) {
+    case SYMBOL_PLUS:
+        maxFillPolygons = POLYGON_PLUS_FILL_BATCH;
+        break;
+
+    case SYMBOL_CROSS:
+        maxFillPolygons = POLYGON_CROSS_FILL_BATCH;
+        break;
+
+    case SYMBOL_DIAMOND:
+    case SYMBOL_TRIANGLE:
+    case SYMBOL_ARROW:
+    default:
+        maxFillPolygons = POLYGON_CONVEX_FILL_BATCH;
+        break;
+    }
+
+    if (maxFillPolygons > maxPolygons) {
+        maxFillPolygons = maxPolygons;
+    }
+
+    if ((size_t)maxPolygons > SIZE_MAX / (size_t)stride / sizeof(*points)) {
+        return;
+    }
+
+    points = Tcl_AttemptAlloc((size_t)maxPolygons * (size_t)stride * sizeof(*points));
+    if (points == NULL) {
+        return;
+    }
+
+    if ((size_t)maxPolygons > SIZE_MAX / sizeof(*polygonCounts)) {
+        ckfree(points);
+        return;
+    }
+    polygonCounts = Tcl_AttemptAlloc((size_t)maxPolygons * sizeof(*polygonCounts));
+    if (polygonCounts == NULL) {
+        ckfree(points);
+        return;
+    }
+
+    if ((size_t)maxPolygons > SIZE_MAX / sizeof(*polylineCounts)) {
+        ckfree(polygonCounts);
+        ckfree(points);
+        return;
+    }
+    polylineCounts = Tcl_AttemptAlloc((size_t)maxPolygons * sizeof(*polylineCounts));
+    if (polylineCounts == NULL) {
+        ckfree(polygonCounts);
+        ckfree(points);
+        return;
+    }
+
+    for (i = 0; i < maxPolygons; i++) {
+        polygonCounts[i] = nVertices;
+        polylineCounts[i] = (DWORD)stride;
+    }
+
+    dc = Rbc_WinAcquireDrawableDC(graphPtr->display, drawable, &dcStatePtr);
+
+    /*
+     * Fill pass.
+     */
+    if (penPtr->symbol.fillGC != NULL) {
+        GC gc;
+        HBRUSH brush, oldBrush;
+        HPEN oldPen;
+        int oldFillMode;
+
+        gc = penPtr->symbol.fillGC;
+
+        Rbc_WinSetROP2(dc, gc->function);
+
+        brush = CreateSolidBrush(gc->foreground);
+        oldBrush = SelectBrush(dc, brush);
+        oldPen = SelectPen(dc, GetStockPen(NULL_PEN));
+
+        if (gc->function == GXcopy) {
+            /*
+             * Every RBC symbol polygon is an independent simple
+             * polygon with the same orientation.  For GXcopy,
+             * combining them under WINDING gives the same final
+             * solid-color result as painting them independently,
+             * including where symbols overlap.
+             */
+            oldFillMode = SetPolyFillMode(dc, WINDING);
+
+            first = 0;
+            while (first < nPolygons) {
+                Tcl_Size count;
+
+                count = nPolygons - first;
+                if (count > maxFillPolygons) {
+                    count = maxFillPolygons;
+                }
+
+                LoadPolygonBatch(points, polygons, first, count, stride, nVertices);
+
+                if (!PolyPolygon(dc, points, polygonCounts, (int)count)) {
+                    for (i = 0; i < count; i++) {
+                        Polygon(dc, points + i * nVertices, nVertices);
+                    }
+                }
+
+                first += count;
+            }
+        } else {
+            int fillMode;
+
+            /*
+             * Non-copy raster operations are order-sensitive when
+             * symbols overlap.  Draw each polygon separately.
+             */
+            fillMode = (gc->fill_rule == EvenOddRule) ? ALTERNATE : WINDING;
+
+            oldFillMode = SetPolyFillMode(dc, fillMode);
+
+            first = 0;
+            while (first < nPolygons) {
+                Tcl_Size count;
+
+                count = nPolygons - first;
+                if (count > maxFillPolygons) {
+                    count = maxFillPolygons;
+                }
+
+                LoadPolygonBatch(points, polygons, first, count, stride, nVertices);
+
+                for (i = 0; i < count; i++) {
+                    Polygon(dc, points + i * nVertices, nVertices);
+                }
+
+                first += count;
+            }
+        }
+
+        if (oldFillMode != 0) {
+            SetPolyFillMode(dc, oldFillMode);
+        }
+
+        SelectPen(dc, oldPen);
+        DeleteBrush(SelectBrush(dc, oldBrush));
+    }
+
+    /*
+     * Outline pass.
+     */
+    if ((penPtr->symbol.outlineGC != NULL) && (penPtr->symbol.outlineWidth > 0)) {
+        GC gc;
+        HPEN pen, oldPen;
+        HBRUSH oldBrush;
+
+        gc = penPtr->symbol.outlineGC;
+
+        Rbc_WinSetROP2(dc, gc->function);
+
+        pen = Rbc_GCToPen(dc, gc);
+        oldPen = SelectPen(dc, pen);
+        oldBrush = SelectBrush(dc, GetStockBrush(NULL_BRUSH));
+
+        first = 0;
+        while (first < nPolygons) {
+            Tcl_Size count;
+
+            count = nPolygons - first;
+            if (count > maxPolygons) {
+                count = maxPolygons;
+            }
+
+            /*
+             * The source polygon includes RBC's repeated first
+             * vertex, so each PolyPolyline entry is already closed.
+             */
+            LoadPolygonBatch(points, polygons, first, count, stride, stride);
+
+            if (gc->function == GXcopy) {
+                if (!PolyPolyline(dc, points, polylineCounts, (DWORD)count)) {
+                    for (i = 0; i < count; i++) {
+                        Polyline(dc, points + i * stride, stride);
+                    }
+                }
+            } else {
+                /*
+                 * Preserve repeated raster-operation effects for
+                 * overlapping non-copy outlines.
+                 */
+                for (i = 0; i < count; i++) {
+                    Polyline(dc, points + i * stride, stride);
+                }
+            }
+
+            first += count;
+        }
+
+        SelectBrush(dc, oldBrush);
+        DeletePen(SelectPen(dc, oldPen));
+    }
+
+    Rbc_WinReleaseDrawableDC(dcStatePtr);
+
+    ckfree(polylineCounts);
+    ckfree(polygonCounts);
+    ckfree(points);
+}
+
+#endif /* WIN32 */
+
 /*
  * -----------------------------------------------------------------
  *
@@ -9205,6 +9534,9 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
                 }
             }
         }
+#ifdef WIN32
+        DrawPolygonSymbols(graphPtr, drawable, penPtr, polygon, count, 13, 12);
+#else
         if (penPtr->symbol.fillGC != NULL) {
             for (p = polygon, i = 0; i < count; i++, p += 13) {
                 XFillPolygon(graphPtr->display, drawable, penPtr->symbol.fillGC, p, 13, Complex, CoordModeOrigin);
@@ -9215,6 +9547,7 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
                 XDrawLines(graphPtr->display, drawable, penPtr->symbol.outlineGC, p, 13, CoordModeOrigin);
             }
         }
+#endif
         ckfree((char *)polygon);
     } break;
 
@@ -9266,6 +9599,9 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
                 }
             }
         }
+#ifdef WIN32
+        DrawPolygonSymbols(graphPtr, drawable, penPtr, polygon, count, 5, 4);
+#else
         if (penPtr->symbol.fillGC != NULL) {
             for (p = polygon, i = 0; i < count; i++, p += 5) {
                 XFillPolygon(graphPtr->display, drawable, penPtr->symbol.fillGC, p, 5, Convex, CoordModeOrigin);
@@ -9276,6 +9612,7 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
                 XDrawLines(graphPtr->display, drawable, penPtr->symbol.outlineGC, p, 5, CoordModeOrigin);
             }
         }
+#endif
         ckfree((char *)polygon);
     } break;
 
@@ -9349,6 +9686,9 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
                 }
             }
         }
+#ifdef WIN32
+        DrawPolygonSymbols(graphPtr, drawable, penPtr, polygon, count, 4, 3);
+#else
         if (penPtr->symbol.fillGC != NULL) {
             for (p = polygon, i = 0; i < count; i++, p += 4) {
                 XFillPolygon(graphPtr->display, drawable, penPtr->symbol.fillGC, p, 4, Convex, CoordModeOrigin);
@@ -9359,6 +9699,7 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
                 XDrawLines(graphPtr->display, drawable, penPtr->symbol.outlineGC, p, 4, CoordModeOrigin);
             }
         }
+#endif
         ckfree((char *)polygon);
     } break;
     case SYMBOL_BITMAP: {
