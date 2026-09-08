@@ -201,6 +201,62 @@ static int GetCrosshairPositionFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_
     return TCL_OK;
 }
 
+#ifdef WIN32
+/*
+ * Move XOR crosshairs with one segment submission. The first two
+ * segments erase the old image; the following two draw the new one.
+ * All use the same GC, so this is only for position-only changes.
+ */
+static void MoveCrosshairs(Graph *graphPtr, Crosshairs *chPtr, const Point2D *hotSpotPtr) {
+    Segment2D newSegments[2];
+    Segment2D segments[4];
+    int mapped;
+    int oldVisible;
+    int newVisible;
+    int unchanged;
+    int nSegments;
+    int i;
+
+    newSegments[0].p.x = newSegments[0].q.x = hotSpotPtr->x;
+    newSegments[0].p.y = (double)graphPtr->bottom;
+    newSegments[0].q.y = (double)graphPtr->top;
+    newSegments[1].p.y = newSegments[1].q.y = hotSpotPtr->y;
+    newSegments[1].p.x = (double)graphPtr->left;
+    newSegments[1].q.x = (double)graphPtr->right;
+    mapped = Tk_IsMapped(graphPtr->tkwin);
+    oldVisible = mapped && chPtr->visible;
+    newVisible = mapped && !chPtr->hidden && PointInGraph(graphPtr, hotSpotPtr->x, hotSpotPtr->y);
+    unchanged = (oldVisible == newVisible);
+    if (unchanged && oldVisible) {
+        for (i = 0; i < 2; i++) {
+            if ((chPtr->segArr[i].p.x != newSegments[i].p.x) || (chPtr->segArr[i].p.y != newSegments[i].p.y) ||
+                (chPtr->segArr[i].q.x != newSegments[i].q.x) || (chPtr->segArr[i].q.y != newSegments[i].q.y)) {
+                unchanged = FALSE;
+                break;
+            }
+        }
+    }
+    nSegments = 0;
+    if (!unchanged) {
+        if (oldVisible) {
+            segments[nSegments++] = chPtr->segArr[0];
+            segments[nSegments++] = chPtr->segArr[1];
+        }
+        if (newVisible) {
+            segments[nSegments++] = newSegments[0];
+            segments[nSegments++] = newSegments[1];
+        }
+        if (nSegments > 0) {
+            Rbc_Draw2DSegments(graphPtr->display, Tk_WindowId(graphPtr->tkwin), chPtr->gc, segments, nSegments);
+        }
+    }
+    chPtr->hotSpot = *hotSpotPtr;
+    chPtr->segArr[0] = newSegments[0];
+    chPtr->segArr[1] = newSegments[1];
+    chPtr->visible = newVisible;
+}
+#endif /* WIN32 */
+
 /*
  *----------------------------------------------------------------------
  *
@@ -254,6 +310,20 @@ static int ConfigureCrosshairs(Graph *graphPtr, Crosshairs *chPtr, int mask) {
             return TCL_ERROR;
         }
     }
+#ifdef WIN32
+    /*
+     * Ordinary pointer motion changes only -position. Erase and
+     * redraw with one submission, avoiding a second DC acquisition
+     * and pen allocation after the old hairs have been erased.
+     *
+     * Changes involving GC attributes or visibility continue through
+     * the general configuration path below.
+     */
+    if (mask == HAIRS_POSITION_CHANGED) {
+        MoveCrosshairs(graphPtr, chPtr, &newHotSpot);
+        return TCL_OK;
+    }
+#endif    
     /*
      * Build the replacement GC before erasing the old crosshairs.
      */
@@ -399,6 +469,78 @@ void Rbc_UpdateCrosshairs(Graph *graphPtr) {
     chPtr->segArr[0].q.y = (double)graphPtr->top;
     chPtr->segArr[1].p.x = (double)graphPtr->left;
     chPtr->segArr[1].q.x = (double)graphPtr->right;
+}
+
+/*
+ * A plot-only copy must cover every pixel belonging to the old and
+ * new crosshairs. Use a full frame for wide strokes or old segments
+ * extending beyond the current plot rectangle.
+ */
+int Rbc_CrosshairsNeedFullRedraw(Graph *graphPtr) {
+    Crosshairs *chPtr = graphPtr->crosshairs;
+    int i;
+
+    if (chPtr == NULL) {
+        return FALSE;
+    }
+    if ((chPtr->lineWidth > 1) && (chPtr->visible || !chPtr->hidden)) {
+        return TRUE;
+    }
+    if (!chPtr->visible) {
+        return FALSE;
+    }
+    for (i = 0; i < 2; i++) {
+        const Segment2D *segPtr = chPtr->segArr + i;
+
+        if ((segPtr->p.x < graphPtr->left) || (segPtr->p.x > graphPtr->right) || (segPtr->p.y < graphPtr->top) ||
+            (segPtr->p.y > graphPtr->bottom) || (segPtr->q.x < graphPtr->left) || (segPtr->q.x > graphPtr->right) ||
+            (segPtr->q.y < graphPtr->top) || (segPtr->q.y > graphPtr->bottom)) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+/*
+ * Present a completed on-screen frame from a temporary pixmap.
+ * The pixmap initially contains no crosshairs. Do not pass the
+ * reusable element backing store or an export drawable here.
+ *
+ * No Tcl callbacks or event processing may occur between updating
+ * segment geometry and committing the visible state below.
+ */
+void Rbc_PresentGraphWithCrosshairs(Graph *graphPtr, Drawable drawable) {
+    Crosshairs *chPtr = graphPtr->crosshairs;
+    int visible = FALSE;
+
+    assert(drawable != Tk_WindowId(graphPtr->tkwin));
+    assert(Tk_IsMapped(graphPtr->tkwin));
+    if (chPtr != NULL) {
+        Rbc_UpdateCrosshairs(graphPtr);
+        if (!chPtr->hidden && PointInGraph(graphPtr, chPtr->hotSpot.x, chPtr->hotSpot.y)) {
+            Rbc_Draw2DSegments(graphPtr->display, drawable, chPtr->gc, chPtr->segArr, 2);
+            visible = TRUE;
+        }
+    }
+    /*
+     * Replace the old window pixels, including its old XOR hairs,
+     * with the completed frame in a single copy.
+     */
+    if (graphPtr->flags & DRAW_MARGINS) {
+        XCopyArea(graphPtr->display, drawable, Tk_WindowId(graphPtr->tkwin), graphPtr->drawGC, 0, 0, graphPtr->width,
+                  graphPtr->height, 0, 0);
+    } else {
+        XCopyArea(graphPtr->display, drawable, Tk_WindowId(graphPtr->tkwin), graphPtr->drawGC, graphPtr->left,
+                  graphPtr->top, graphPtr->right - graphPtr->left + 1, graphPtr->bottom - graphPtr->top + 1,
+                  graphPtr->left, graphPtr->top);
+    }
+    /*
+     * The next direct XOR move must erase the hairs just copied to
+     * the window. Do not call TurnOnHairs: that would erase them.
+     */
+    if (chPtr != NULL) {
+        chPtr->visible = visible;
+    }
 }
 
 /*
@@ -678,12 +820,13 @@ static const CrosshairsOpSpec xhairOps[] = {{{"cget", 4, 4, "option"}, CgetOp},
  *
  * Rbc_CrosshairsOp --
  *
- *      User routine to configure crosshair simulation.  Crosshairs
- *      are simulated by drawing line segments parallel to both axes
- *      using the XOR drawing function. The allows the lines to be
- *      erased (by drawing them again) without redrawing the entire
- *      graph.  Care must be taken to erase crosshairs before redrawing
- *      the graph and redraw them after the graph is redraw.
+ *      User routine to configure crosshair simulation. Crosshairs
+ *      are drawn using XOR so ordinary pointer motion can erase
+ *      and replace them without redrawing the graph.
+ *
+ *      Buffered on-screen redraws compose the crosshairs into the
+ *      completed frame before copying it to the window. Direct,
+ *      unbuffered redraws erase and restore them around drawing.
  *
  * Parameters:
  *      Graph *graphPtr

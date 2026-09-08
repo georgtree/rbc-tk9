@@ -1,0 +1,98 @@
+# RBC.graph.changed.A.test --
+#
+# Regression tests for <<RbcGraphChanged>> notifications.
+#
+# See license.terms for copyright and redistribution terms.
+
+package require rbc
+package require tcltest
+
+namespace eval ::rbcGraphChangedTest {
+    variable count 0
+
+    proc CreateGraph {} {
+        ::rbc::graph .graphChanged -width 400 -height 300
+        pack .graphChanged
+        .graphChanged axis configure x -min 0 -max 10
+        .graphChanged axis configure y -min 0 -max 10
+        update
+        set ::rbcGraphChangedTest::count 0
+        bind .graphChanged <<RbcGraphChanged>> {
+            incr ::rbcGraphChangedTest::count
+        }
+    }
+    proc Cleanup {} {
+        catch {destroy .graphChanged}
+        update
+    }
+}
+
+::tcltest::test RBC.graph.changed.A.1.1 {
+    axis changes notify after display
+} -setup {
+    ::rbcGraphChangedTest::CreateGraph
+} -body {
+    .graphChanged axis configure x -min 1 -max 11
+    update
+    expr {$::rbcGraphChangedTest::count > 0}
+} -cleanup {
+    ::rbcGraphChangedTest::Cleanup
+} -result 1
+
+::tcltest::test RBC.graph.changed.A.1.2 {
+    vector appends notify with fixed axis limits
+} -setup {
+    ::rbcGraphChangedTest::CreateGraph
+    ::rbc::vector create ::changedX ::changedY
+    ::changedX set {0 1}
+    ::changedY set {2 3}
+    .graphChanged element create signal -xdata ::changedX -ydata ::changedY -symbol none
+    update
+    set ::rbcGraphChangedTest::count 0
+} -body {
+    ::changedX append 2
+    ::changedY append 4
+    update
+    expr {$::rbcGraphChangedTest::count > 0}
+} -cleanup {
+    ::rbcGraphChangedTest::Cleanup
+    catch {::rbc::vector destroy ::changedX ::changedY}
+} -result 1
+
+::tcltest::test RBC.graph.changed.A.1.3 {
+    marker creation configuration and deletion do not notify
+} -setup {
+    ::rbcGraphChangedTest::CreateGraph
+} -body {
+    .graphChanged marker create text -name annotation -coords {5 5} -text first
+    update
+    set created $::rbcGraphChangedTest::count
+    .graphChanged marker configure annotation -text second
+    update
+    set configured $::rbcGraphChangedTest::count
+    .graphChanged marker delete annotation
+    update
+
+    list $created $configured $::rbcGraphChangedTest::count
+} -cleanup {
+    ::rbcGraphChangedTest::Cleanup
+} -result {0 0 0}
+
+::tcltest::test RBC.graph.changed.A.1.4 {
+    destroyed graph does not receive a queued notification
+} -setup {
+    ::rbcGraphChangedTest::CreateGraph
+} -body {
+    .graphChanged axis configure x -min 1 -max 11
+    # Run display idles, which queue the virtual event, without
+    # dispatching the queued window event.
+    update idletasks
+    destroy .graphChanged
+    update
+    set ::rbcGraphChangedTest::count
+} -cleanup {
+    ::rbcGraphChangedTest::Cleanup
+} -result 0
+
+namespace delete ::rbcGraphChangedTest
+::tcltest::cleanupTests

@@ -705,6 +705,8 @@ void Rbc_ResetStacks(Graph *graphPtr);
 void Rbc_GraphExtents(Graph *graphPtr, Extents2D *extsPtr);
 void Rbc_DisableCrosshairs(Graph *graphPtr);
 void Rbc_EnableCrosshairs(Graph *graphPtr);
+int Rbc_CrosshairsNeedFullRedraw(Graph *graphPtr);
+void Rbc_PresentGraphWithCrosshairs(Graph *graphPtr, Drawable drawable);
 void Rbc_MapAxes(Graph *graphPtr);
 void Rbc_MapElements(Graph *graphPtr);
 void Rbc_MapMarkers(Graph *graphPtr);

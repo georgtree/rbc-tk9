@@ -4189,52 +4189,52 @@ static void DisplayGraph(ClientData clientData) {
         return;
     }
 
-    /*
-     * With double buffering,, leave the existing crosshairs visible
-     * while preparing the next frame off-screen.
-     *
-     * Without double buffering, erase them before drawing directly
-     * into the window.
-     */
-    if (graphPtr->doubleBuffer) {
-        drawable = Tk_GetPixmap(graphPtr->display, Tk_WindowId(graphPtr->tkwin), graphPtr->width, graphPtr->height,
-                                Tk_Depth(graphPtr->tkwin));
-    } else {
-        Rbc_DisableCrosshairs(graphPtr);
-        Rbc_UpdateCrosshairs(graphPtr);
-        drawable = Tk_WindowId(graphPtr->tkwin);
-    }
-
-#ifdef WIN32
-    assert(drawable != None);
-#endif
-
-    Rbc_DrawGraph(graphPtr, drawable, graphPtr->backingStore && graphPtr->doubleBuffer);
-
     if (graphPtr->doubleBuffer) {
         /*
-         * The new frame is ready. Erase the old XOR image using
-         * its original endpoints, then update the segment geometry.
+         * Check the old segment geometry before updating it.
+         * A full copy may be needed to remove old crosshair pixels
+         * outside the current plotting area.
          *
-         * Keep the interval between erasure and restoration short.
+         * Request margin rendering as well, so every pixel in a
+         * full-widget copy has been initialized.
+         */
+        if (Rbc_CrosshairsNeedFullRedraw(graphPtr)) {
+            graphPtr->flags |= DRAW_MARGINS;
+        }
+
+        drawable = Tk_GetPixmap(graphPtr->display, Tk_WindowId(graphPtr->tkwin), graphPtr->width, graphPtr->height,
+                                Tk_Depth(graphPtr->tkwin));
+
+#ifdef WIN32
+        assert(drawable != None);
+#endif
+
+        /*
+         * Leave the visible window untouched while preparing the
+         * complete frame. The element backing store contains only
+         * graph content, never crosshairs.
+         */
+        Rbc_DrawGraph(graphPtr, drawable, graphPtr->backingStore);
+
+        /*
+         * Compose the hairs into the final pixmap and present once.
+         * Do not erase or enable window crosshairs around this call.
+         */
+        Rbc_PresentGraphWithCrosshairs(graphPtr, drawable);
+
+        Tk_FreePixmap(graphPtr->display, drawable);
+    } else {
+        /*
+         * Direct rendering retains the existing XOR lifecycle.
+         * Erase using the old endpoints before updating geometry.
          */
         Rbc_DisableCrosshairs(graphPtr);
         Rbc_UpdateCrosshairs(graphPtr);
-    }
 
-    if (graphPtr->flags & DRAW_MARGINS) {
-        XCopyArea(graphPtr->display, drawable, Tk_WindowId(graphPtr->tkwin), graphPtr->drawGC, 0, 0, graphPtr->width,
-                  graphPtr->height, 0, 0);
-    } else {
-        XCopyArea(graphPtr->display, drawable, Tk_WindowId(graphPtr->tkwin), graphPtr->drawGC, graphPtr->left,
-                  graphPtr->top, graphPtr->right - graphPtr->left + 1, graphPtr->bottom - graphPtr->top + 1,
-                  graphPtr->left, graphPtr->top);
-    }
+        drawable = Tk_WindowId(graphPtr->tkwin);
+        Rbc_DrawGraph(graphPtr, drawable, FALSE);
 
-    Rbc_EnableCrosshairs(graphPtr);
-
-    if (graphPtr->doubleBuffer) {
-        Tk_FreePixmap(graphPtr->display, drawable);
+        Rbc_EnableCrosshairs(graphPtr);
     }
     graphPtr->flags &= ~RESET_WORLD;
     /*
