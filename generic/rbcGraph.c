@@ -4183,41 +4183,59 @@ static void DisplayGraph(ClientData clientData) {
         graphPtr->height = height;
     }
     Rbc_LayoutGraph(graphPtr);
-    Rbc_UpdateCrosshairs(graphPtr);
+
     if (!Tk_IsMapped(graphPtr->tkwin)) {
-        /* The graph's window isn't displayed, so don't bother
-         * drawing anything.  By getting this far, we've at least
-         * computed the coordinates of the graph's new layout.  */
+        Rbc_UpdateCrosshairs(graphPtr);
         return;
     }
 
-    /* Disable crosshairs before redisplaying to the screen */
-    Rbc_DisableCrosshairs(graphPtr);
     /*
-     * Create a pixmap the size of the window for double buffering.
+     * With double buffering,, leave the existing crosshairs visible
+     * while preparing the next frame off-screen.
+     *
+     * Without double buffering, erase them before drawing directly
+     * into the window.
      */
     if (graphPtr->doubleBuffer) {
         drawable = Tk_GetPixmap(graphPtr->display, Tk_WindowId(graphPtr->tkwin), graphPtr->width, graphPtr->height,
                                 Tk_Depth(graphPtr->tkwin));
     } else {
+        Rbc_DisableCrosshairs(graphPtr);
+        Rbc_UpdateCrosshairs(graphPtr);
         drawable = Tk_WindowId(graphPtr->tkwin);
     }
+
 #ifdef WIN32
     assert(drawable != None);
 #endif
+
     Rbc_DrawGraph(graphPtr, drawable, graphPtr->backingStore && graphPtr->doubleBuffer);
+
+    if (graphPtr->doubleBuffer) {
+        /*
+         * The new frame is ready. Erase the old XOR image using
+         * its original endpoints, then update the segment geometry.
+         *
+         * Keep the interval between erasure and restoration short.
+         */
+        Rbc_DisableCrosshairs(graphPtr);
+        Rbc_UpdateCrosshairs(graphPtr);
+    }
+
     if (graphPtr->flags & DRAW_MARGINS) {
         XCopyArea(graphPtr->display, drawable, Tk_WindowId(graphPtr->tkwin), graphPtr->drawGC, 0, 0, graphPtr->width,
                   graphPtr->height, 0, 0);
     } else {
         XCopyArea(graphPtr->display, drawable, Tk_WindowId(graphPtr->tkwin), graphPtr->drawGC, graphPtr->left,
-                  graphPtr->top, (graphPtr->right - graphPtr->left + 1), (graphPtr->bottom - graphPtr->top + 1),
+                  graphPtr->top, graphPtr->right - graphPtr->left + 1, graphPtr->bottom - graphPtr->top + 1,
                   graphPtr->left, graphPtr->top);
     }
+
+    Rbc_EnableCrosshairs(graphPtr);
+
     if (graphPtr->doubleBuffer) {
         Tk_FreePixmap(graphPtr->display, drawable);
     }
-    Rbc_EnableCrosshairs(graphPtr);
     graphPtr->flags &= ~RESET_WORLD;
     /*
      * Notify after the native display has consumed the mapped geometry.

@@ -2856,8 +2856,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #
         # Returns: Nothing.
         if {![info exists CrosshairsRefreshAfter]} {
-            set CrosshairsRefreshAfter \
-                    [after idle [namespace code {my RefreshCrosshairsAtPointer}]]
+            set CrosshairsRefreshAfter [after idle [namespace code {my RefreshCrosshairsAtPointer}]]
         }
     }
 
@@ -2895,12 +2894,23 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             my DeleteCrosshairsMarkers
             return
         }
-        # Keep the underlying pixel-positioned hairs aligned as well.
-        # Closest mode with -hide yes must retain hidden hairs.
+        # Motion handling already positions the native XOR hairs.
+        # Reposition them here only when the physical pointer has a
+        # different graph-local position, for example after the window
+        # moves beneath it.
+        #
+        # Axis scrolling changes the annotation values, but does not
+        # require erasing and redrawing hairs at the same pixel position.
         set mode [lindex $CrosshairsMarkerInfo 1]
-        if {$mode eq "current" || ![dict get [my configure -crosshairsclosestopts] hide]} {
-            $graph crosshairs configure -position @${x},$y
+        if {$mode eq "current" ||
+            ![dict get [my configure -crosshairsclosestopts] hide]} {
+            set position @${x},$y
+            if {[$graph crosshairs cget -position] ne $position} {
+                $graph crosshairs configure -position $position
+            }
         }
+        # Always refresh the annotation after a graph change: its values
+        # or closest result can change without any pointer movement.
         my RefreshCrosshairsMarker $x $y
     }
     method CrosshairsMarkerMotion {graph x y options mode interpolate halo single} {
