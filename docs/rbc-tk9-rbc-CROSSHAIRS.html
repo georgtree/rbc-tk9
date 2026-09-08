@@ -81,6 +81,18 @@ crosshairs visible does not cause lines to be drawn if the configured position i
 <span class="k">}</span>
 </pre></div>
 </div>
+<section id="crosshairs-when-the-graph-changes">
+<span id="r-rbc-crosshairs-crosshairs-when-the-graph-changes"></span><span id="r-3a3arbc3a3acrosshairsqzcrosshairs20when20the20graph20changes"></span><h3>Crosshairs when the graph changes<a class="headerlink" href="#crosshairs-when-the-graph-changes" title="Link to this heading">¶</a></h3>
+<p>Ordinary crosshair lines retain their configured widget-coordinate position when axis ranges or plotted data
+change. The graph coordinates beneath that position can therefore change while the lines remain at the same
+screen location.</p>
+<p><code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcGraphChanged&gt;&gt;</span></code> reports changes to the displayed mapping or plotted element geometry, but does not itself
+modify the crosshair <code class="docutils literal notranslate"><span class="pre">-position</span></code>. Applications can use this event to update coordinate readouts or other
+annotations without waiting for a <code class="docutils literal notranslate"><span class="pre">&lt;Motion&gt;</span></code> event.</p>
+<p>The graphtoolbar provides this behavior automatically for its enhanced <code class="docutils literal notranslate"><span class="pre">current</span></code> and <code class="docutils literal notranslate"><span class="pre">closest</span></code>
+modes. Current-position annotations follow the physical pointer, while closest-point annotations are
+recalculated from the current plotted data.</p>
+</section>
 </section>
 <section id="showing-and-hiding-crosshairs">
 <span id="r-rbc-crosshairs-showing-and-hiding-crosshairs"></span><span id="r-3a3arbc3a3acrosshairsqzshowing20and20hiding20crosshairs"></span><h2>Showing and hiding crosshairs<a class="headerlink" href="#showing-and-hiding-crosshairs" title="Link to this heading">¶</a></h2>
@@ -183,7 +195,10 @@ contents to be redrawn.</p>
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#">Graph crosshairs <code class="docutils literal notranslate"><span class="pre">CROSSHAIRS</span></code> command</a><ul>
-<li><a class="reference internal" href="#crosshair-position">Crosshair position</a></li>
+<li><a class="reference internal" href="#crosshair-position">Crosshair position</a><ul>
+<li><a class="reference internal" href="#crosshairs-when-the-graph-changes">Crosshairs when the graph changes</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#showing-and-hiding-crosshairs">Showing and hiding crosshairs</a></li>
 <li><a class="reference internal" href="#crosshair-appearance">Crosshair appearance</a></li>
 <li><a class="reference internal" href="#crosshairs-options">Crosshairs options</a></li>

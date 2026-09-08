@@ -238,6 +238,61 @@ namespace eval ::rbc::graphtoolbar {
         Posting the context menu temporarily removes crosshair graphics.  After the menu is dismissed, the selected
         crosshair mode is restored at the pointer's current location rather than at the old popup location.
 
+        ### Refreshing beneath a stationary pointer
+        Enhanced crosshair annotations refresh when the displayed graph changes, even if the pointer has not
+        moved. This is useful for streaming stripcharts, where automatic X-axis scrolling changes the coordinates
+        beneath a stationary pointer.
+
+        The refresh behavior follows the selected crosshair mode:
+
+        * `current` keeps the annotation anchored to the pointer's current position within the plotting
+          area and recalculates the displayed coordinates. As the axes scroll, the values change while
+          the annotation remains beside the pointer.
+        * `closest` repeats the closest-point search using the pointer's current position and the current
+          plotted data. The selected point and annotation can move or change even though the pointer
+          remains stationary. The configured interpolation, halo, and single-result settings still apply.
+        * `none` displays ordinary crosshair lines without an enhanced annotation.
+        * `disabled` displays neither crosshair lines nor an annotation.
+
+        In `closest` mode, `-crosshairsclosestopts {-hide yes}` continues to hide the ordinary crosshair lines during
+        automatic refreshes.
+
+        Annotation positions and background boxes are recalculated using the current coordinate mapping.  This prevents
+        axis scrolling or scaling from carrying a current-position annotation away from the pointer. Box dimensions
+        follow the newly formatted text.
+
+        ### Refresh scheduling
+        The toolbar listens for `<<RbcGraphChanged>>` on its embedded graph. Geometry, mapping, and pointer entry
+        events also request a refresh, allowing the toolbar to account for the graph or its containing window moving
+        beneath a stationary pointer.
+
+        Refresh requests are combined into an idle callback. The callback reads the actual pointer position at that
+        time; it does not reuse coordinates from the last motion event. No polling timer or synthetic pointer-motion
+        event is required.
+
+        Refreshing respects temporary crosshair suspension during interactions such as rectangle zooming and
+        panning. It does not recreate annotations while the context menu is posted. When a refresh finds that the
+        pointer is outside the graph's plotting area or over another window, it removes stale annotations.
+
+        Pending refresh callbacks are cancelled when the toolbar is destroyed.
+
+        ### Streaming graphs
+        Automatic refresh requires no additional option or application binding. Enable enhanced crosshairs and select
+        the desired mode:
+
+        ```tcl
+        ::rbc::graphtoolbar .gtb -type stripchart -crosshairs -crosshairsmode current
+        pack .gtb -fill both -expand yes
+        set graph [.gtb subwidget graph]
+        $graph axis configure x -autorange 2.0 -shiftby 0.5
+        ```
+
+        As the application updates plotted data and returns control to the Tk event loop, the graph redraws and the
+        toolbar refreshes the annotation beneath the pointer.
+
+        Applications that also need graph-change notifications should bind to the embedded graph returned by `.gtb
+        subwidget graph`. The event is generated on that widget, not on the toolbar container.
+
         ## Coordinate marker formats
         `-coordmark` controls current-position and rectangle-corner annotations. It accepts:
         - `auto`

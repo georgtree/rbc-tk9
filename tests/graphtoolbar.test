@@ -502,6 +502,26 @@ proc ExpectedCurrentText {graph x y} {
     return [format "x(%s)=%08.3f\ny(%s)=%08.3f" $xOrientation $xValue $yOrientation $yValue]
 }
 
+proc PlaceGraphPointer {graph x y} {
+    WaitForWindow $graph
+    update
+    set x [expr {round($x)}]
+    set y [expr {round($y)}]
+    # Move the physical pointer once. Subsequent graph changes must
+    # refresh annotations without another pointer-motion event.
+    event generate $graph <Motion> -x $x -y $y -warp 1
+    update
+    sleep 20
+    update
+    lassign [winfo pointerxy $graph] rootX rootY
+    set actualX [expr {$rootX - [winfo rootx $graph]}]
+    set actualY [expr {$rootY - [winfo rooty $graph]}]
+    if {[winfo containing $rootX $rootY] ne $graph ||
+        $actualX != $x || $actualY != $y} {
+        return -code error "Could not place pointer at $graph ($x,$y): actual position is ($actualX,$actualY)"
+    }
+}
+
 customMatch approxEqual approxNestedEqual
 
 testConstraint isInteractive true
@@ -3985,7 +4005,7 @@ test crossInteractive-4 {wheel zoom redraws current crosshairs marker box in wid
     lassign [$graph extents plotarea] left top width height
     set x [expr {$left+$width/3}]
     set y [expr {$top+$height/3}]
-    GenerateGraphEvent $graph <Motion> $x $y 20
+    PlaceGraphPointer $graph $x $y
     set beforeBox [MarkerWidgetCoords $graph gtbCrosshairsTextBox]
     set beforeTextCoords [MarkerWidgetCoords $graph gtbCrosshairsText]
     GenerateGraphWheelEvent $graph $x $y 120 20
@@ -4017,7 +4037,7 @@ test crossInteractive-5 {right-click pop redraws current crosshairs marker box i
     set x [expr {$left+$width/3}]
     set y [expr {$top+$height/3}]
     set initialLimits [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
-    GenerateGraphEvent $graph <Motion> $x $y 20
+    PlaceGraphPointer $graph $x $y
     set initialBox [MarkerWidgetCoords $graph gtbCrosshairsTextBox]
     GenerateGraphWheelEvent $graph $x $y 120 20
     set zoomedBox [MarkerWidgetCoords $graph gtbCrosshairsTextBox]
@@ -4046,7 +4066,7 @@ test crossInteractive-6 {wheel zoom redraws closest crosshairs markers}\
 } -body {
     WaitForWindow $graph
     lassign [$graph transform 5 5] x y
-    GenerateGraphEvent $graph <Motion> $x $y 20
+    PlaceGraphPointer $graph $x $y
     set beforeBoxSize [MarkerWidgetSize $graph gtbCrosshairsClosestTextBox]
     GenerateGraphWheelEvent $graph $x $y 120 20
     set afterBoxSize [MarkerWidgetSize $graph gtbCrosshairsClosestTextBox]
@@ -4087,7 +4107,7 @@ test crossInteractive-7 {wheel zoom redraws current crosshairs marker box with i
     lassign [$graph extents plotarea] left top width height
     set x [expr {$left+$width/3}]
     set y [expr {$top+$height/3}]
-    GenerateGraphEvent $graph <Motion> $x $y 20
+    PlaceGraphPointer $graph $x $y
     set beforeBox [MarkerWidgetCoords $graph gtbCrosshairsTextBox]
     set beforeText [MarkerWidgetCoords $graph gtbCrosshairsText]
     GenerateGraphWheelEvent $graph $x $y 120 20

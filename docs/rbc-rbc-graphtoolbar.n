@@ -869,15 +869,11 @@ with a pathname, the command result is the widget pathname\&.
 \fBdestructor\fR (::rbc::graphtoolbar::graphtoolbar)
 .RE
 .PP
-Cancels asynchronous operations owned by the megawidget\&.
+Cancel asynchronous work before the object namespace disappears\&.
 .RS 4n
 \fBGRAPHTOOLBAROBJ destroy\fP
 .br
 .RE
-.PP
-\fBDescription\fR
-.PP
-Currently this includes the transient zoom-title timer\&.
 .PP
 .RS -4n
 \fBgetAxisActiveScale\fR (::rbc::graphtoolbar::graphtoolbar)

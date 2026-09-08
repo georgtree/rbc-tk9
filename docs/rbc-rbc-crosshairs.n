@@ -74,6 +74,19 @@ bind \&.g <Motion> {
 }
 .fi
 .RE
+.SS "CROSSHAIRS WHEN THE GRAPH CHANGES"
+.PP
+Ordinary crosshair lines retain their configured widget-coordinate position when axis ranges or plotted data
+change\&. The graph coordinates beneath that position can therefore change while the lines remain at the same
+screen location\&.
+.PP
+<<RbcGraphChanged>> reports changes to the displayed mapping or plotted element geometry, but does not itself
+modify the crosshair -position\&. Applications can use this event to update coordinate readouts or other
+annotations without waiting for a <Motion> event\&.
+.PP
+The graphtoolbar provides this behavior automatically for its enhanced current and closest
+modes\&. Current-position annotations follow the physical pointer, while closest-point annotations are
+recalculated from the current plotted data\&.
 .SH "SHOWING AND HIDING CROSSHAIRS"
 .PP
 -hide controls whether the crosshairs are enabled\&. Actual drawing also depends on the configured position\&.

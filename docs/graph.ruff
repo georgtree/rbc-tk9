@@ -186,8 +186,60 @@ namespace eval ::rbc::GRAPHINST {
         The general `transform` and `invtransform` operations use the graph's primary X and Y axes. To transform a
         value using a particular axis, use that axis's `transform` or `invtransform` operation.
 
-        ## Polar and Smith charts
+        ## Graph change notification
+        Graph, barchart, stripchart, and polar widgets generate `<<RbcGraphChanged>>` when changes to the
+        on-screen coordinate mapping or plotted element geometry have been processed for display.
 
+        Applications can use this event to refresh information that depends on the displayed graph without
+        waiting for pointer motion. Typical causes include:
+
+        * Axis range changes, including zooming, panning, and stripchart automatic scrolling.
+        * Widget resizing or layout changes that alter the plotting area.
+        * Element data changes that require plotted geometry to be remapped, even when axis limits remain fixed.
+
+        The event is also generated for the initial mapped display. It is a notification that mapping work
+        occurred, not a comparison of old and new coordinates: reconfiguration can generate an event even
+        when the resulting axis limits or geometry are unchanged.
+
+        ### Delivery and event data
+        The event is queued on the graph widget after its on-screen display pass completes. Delivery is
+        asynchronous; it does not occur immediately inside the command that changes an axis or element.
+
+        Several changes handled by one display pass are combined into one notification. Changes requiring
+        further display passes can produce further notifications. Applications must not assume one event
+        per configuration command or data update.
+
+        An unmapped widget defers notification until it can complete an on-screen display with a usable
+        plotting area.
+
+        No application data payload is attached to the event. Use `%W` to identify the graph and query its
+        current state. Because delivery is queued, that state may include changes made after the display
+        pass that queued the event.
+
+        For example, this binding records the current primary axis limits:
+
+        ```tcl
+        bind .g <<RbcGraphChanged>> {
+            set ::graphView [dict create x [%W axis limits x] y [%W axis limits y]]
+        }
+        ```
+
+        ### Scope
+        `<<RbcGraphChanged>>` is not a notification for every repaint. Exposure or focus redraws and
+        marker-only updates do not generate it unless coordinate mapping or element remapping is also
+        required.
+
+        Temporary mappings used for PostScript output do not generate this event. A subsequent on-screen
+        display that restores or changes the screen mapping can generate it normally.
+
+        The event does not reposition ordinary graph markers or change the configured crosshair position.
+        Applications implement any additional tracking behavior in their bindings. The graphtoolbar
+        already uses this notification to refresh its enhanced crosshair annotations.
+
+        Event handlers should avoid repeatedly changing axes or element data in response to the notification:
+        such changes can schedule another display and another notification.
+
+        ## Polar and Smith charts
         A widget created with [::rbc::polar] uses the ordinary Rbc graph coordinate system but provides specialized
         Polar and Smith-chart grid representations.
 

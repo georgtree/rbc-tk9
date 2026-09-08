@@ -137,6 +137,53 @@ reverse conversion.</p>
 <p>The general <code class="docutils literal notranslate"><span class="pre">transform</span></code> and <code class="docutils literal notranslate"><span class="pre">invtransform</span></code> operations use the graph’s primary X and Y axes. To transform a
 value using a particular axis, use that axis’s <code class="docutils literal notranslate"><span class="pre">transform</span></code> or <code class="docutils literal notranslate"><span class="pre">invtransform</span></code> operation.</p>
 </section>
+<section id="graph-change-notification">
+<span id="r-rbc-graphinst-graph-change-notification"></span><span id="r-3a3arbc3a3agraphinstqzgraph20change20notification"></span><h2>Graph change notification<a class="headerlink" href="#graph-change-notification" title="Link to this heading">¶</a></h2>
+<p>Graph, barchart, stripchart, and polar widgets generate <code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcGraphChanged&gt;&gt;</span></code> when changes to the
+on-screen coordinate mapping or plotted element geometry have been processed for display.</p>
+<p>Applications can use this event to refresh information that depends on the displayed graph without
+waiting for pointer motion. Typical causes include:</p>
+<ul class="simple">
+<li><p>Axis range changes, including zooming, panning, and stripchart automatic scrolling.</p></li>
+<li><p>Widget resizing or layout changes that alter the plotting area.</p></li>
+<li><p>Element data changes that require plotted geometry to be remapped, even when axis limits remain fixed.</p></li>
+</ul>
+<p>The event is also generated for the initial mapped display. It is a notification that mapping work
+occurred, not a comparison of old and new coordinates: reconfiguration can generate an event even
+when the resulting axis limits or geometry are unchanged.</p>
+<section id="delivery-and-event-data">
+<span id="r-rbc-graphinst-delivery-and-event-data"></span><span id="r-3a3arbc3a3agraphinstqzdelivery20and20event20data"></span><h3>Delivery and event data<a class="headerlink" href="#delivery-and-event-data" title="Link to this heading">¶</a></h3>
+<p>The event is queued on the graph widget after its on-screen display pass completes. Delivery is
+asynchronous; it does not occur immediately inside the command that changes an axis or element.</p>
+<p>Several changes handled by one display pass are combined into one notification. Changes requiring
+further display passes can produce further notifications. Applications must not assume one event
+per configuration command or data update.</p>
+<p>An unmapped widget defers notification until it can complete an on-screen display with a usable
+plotting area.</p>
+<p>No application data payload is attached to the event. Use <code class="docutils literal notranslate"><span class="pre">%W</span></code> to identify the graph and query its
+current state. Because delivery is queued, that state may include changes made after the display
+pass that queued the event.</p>
+<p>For example, this binding records the current primary axis limits:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">bind</span><span class="w"> </span>.g<span class="w"> </span><span class="o">&lt;&lt;</span>RbcGraphChanged<span class="o">&gt;&gt;</span><span class="w"> </span><span class="k">{</span>
+<span class="w">    </span><span class="k">set</span><span class="w"> </span><span class="o">::</span>graphView<span class="w"> </span><span class="k">[</span><span class="nb">dict</span><span class="w"> </span>create<span class="w"> </span>x<span class="w"> </span><span class="k">[</span><span class="o">%</span><span class="nv">W</span><span class="w"> </span>axis<span class="w"> </span>limits<span class="w"> </span>x<span class="k">]</span><span class="w"> </span>y<span class="w"> </span><span class="k">[</span><span class="o">%</span><span class="nv">W</span><span class="w"> </span>axis<span class="w"> </span>limits<span class="w"> </span>y<span class="k">]]</span>
+<span class="k">}</span>
+</pre></div>
+</div>
+</section>
+<section id="scope">
+<span id="r-rbc-graphinst-scope"></span><span id="r-3a3arbc3a3agraphinstqzscope"></span><h3>Scope<a class="headerlink" href="#scope" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcGraphChanged&gt;&gt;</span></code> is not a notification for every repaint. Exposure or focus redraws and
+marker-only updates do not generate it unless coordinate mapping or element remapping is also
+required.</p>
+<p>Temporary mappings used for PostScript output do not generate this event. A subsequent on-screen
+display that restores or changes the screen mapping can generate it normally.</p>
+<p>The event does not reposition ordinary graph markers or change the configured crosshair position.
+Applications implement any additional tracking behavior in their bindings. The graphtoolbar
+already uses this notification to refresh its enhanced crosshair annotations.</p>
+<p>Event handlers should avoid repeatedly changing axes or element data in response to the notification:
+such changes can schedule another display and another notification.</p>
+</section>
+</section>
 <section id="polar-and-smith-charts">
 <span id="r-rbc-graphinst-polar-and-smith-charts"></span><span id="r-3a3arbc3a3agraphinstqzpolar20and20smith20charts"></span><h2>Polar and Smith charts<a class="headerlink" href="#polar-and-smith-charts" title="Link to this heading">¶</a></h2>
 <p>A widget created with <a class="reference internal" href="rbc-tk9-rbc.html#r-3a3arbc3a3apolar"><span class="std std-ref">::rbc::polar</span></a> uses the ordinary Rbc graph coordinate system but provides specialized
@@ -1069,6 +1116,11 @@ but the current graph core does not automatically execute it.</p>
     <ul>
 <li><a class="reference internal" href="#">Graph widget instance <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code> command</a><ul>
 <li><a class="reference internal" href="#coordinate-systems">Coordinate systems</a></li>
+<li><a class="reference internal" href="#graph-change-notification">Graph change notification</a><ul>
+<li><a class="reference internal" href="#delivery-and-event-data">Delivery and event data</a></li>
+<li><a class="reference internal" href="#scope">Scope</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#polar-and-smith-charts">Polar and Smith charts</a><ul>
 <li><a class="reference internal" href="#automatic-equal-unit-aspect">Automatic equal-unit aspect</a></li>
 <li><a class="reference internal" href="#polar-grid">Polar grid</a></li>
