@@ -644,6 +644,13 @@ struct GraphStruct {
 #define GRAPH_FOCUS (1 << 12)  /* 0x1000 */
 #define DATA_CHANGED (1 << 13) /* 0x2000 */
 #define GRAPH_POSTSCRIPT (1 << 14) /* 0x4000 */
+/*
+ * Native view or element geometry changed. Retained until the next
+ * completed on-screen display queues <<RbcGraphChanged>>.
+ *
+ * Marker-only updates must not set this flag.
+ */
+#define GRAPH_CHANGED (1 << 15)
 
 #define MAP_WORLD (MAP_ALL | RESET_AXES | GET_AXIS_GEOMETRY)
 #define REDRAW_WORLD (DRAW_MARGINS | DRAW_LEGEND)

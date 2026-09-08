@@ -3826,6 +3826,14 @@ void Rbc_MapElements(Graph *graphPtr) {
             continue;
         }
         if ((graphPtr->flags & MAP_ALL) || (elemPtr->flags & MAP_ITEM)) {
+            /*
+             * Closest-point annotations can change even when the axes
+             * remain fixed. Record native element remapping separately
+             * from marker-only redraws.
+             */
+            if (!(graphPtr->flags & GRAPH_POSTSCRIPT)) {
+                graphPtr->flags |= GRAPH_CHANGED;
+            }
             (*elemPtr->procsPtr->mapProc)(graphPtr, elemPtr);
             elemPtr->flags &= ~MAP_ITEM;
         }

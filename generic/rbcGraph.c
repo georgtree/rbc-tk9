@@ -3986,6 +3986,17 @@ static void DrawPlotRegion(Graph *graphPtr, Drawable drawable) {
  *----------------------------------------------------------------------
  */
 void Rbc_LayoutGraph(Graph *graphPtr) {
+    /*
+     * Record native view invalidation before mapping consumes the flags.
+     * Layout may also be requested by a transform or picking operation,
+     * so retain this state until DisplayGraph completes.
+     *
+     * PostScript uses a temporary export layout and must not announce
+     * that layout as an on-screen view change.
+     */
+    if (!(graphPtr->flags & GRAPH_POSTSCRIPT) && (graphPtr->flags & (MAP_WORLD | LAYOUT_NEEDED))) {
+        graphPtr->flags |= GRAPH_CHANGED;
+    }
     if (graphPtr->flags & RESET_AXES) {
         Rbc_ResetAxes(graphPtr);
     }
@@ -4208,6 +4219,19 @@ static void DisplayGraph(ClientData clientData) {
     }
     Rbc_EnableCrosshairs(graphPtr);
     graphPtr->flags &= ~RESET_WORLD;
+    /*
+     * Notify after the native display has consumed the mapped geometry.
+     * Tk_SendVirtualEvent queues the event; it does not execute Tcl
+     * bindings synchronously here.
+     *
+     * Keep GRAPH_CHANGED pending while the plot is too small to map.
+     */
+    if ((graphPtr->flags & GRAPH_CHANGED) && !(graphPtr->flags & GRAPH_POSTSCRIPT) && (graphPtr->hRange > 1) &&
+        (graphPtr->vRange > 1)) {
+        graphPtr->flags &= ~GRAPH_CHANGED;
+        Tk_SendVirtualEvent(graphPtr->tkwin, "RbcGraphChanged", NULL);
+    }
+
     UpdateMarginTraces(graphPtr);
 }
 

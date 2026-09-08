@@ -457,6 +457,51 @@ proc MenuDescription {menu} {
     return $result
 }
 
+proc ParkPointer {graph x y} {
+    # Unlike ordinary synthetic Motion tests, the refresh callback reads
+    # the physical pointer. Warp it once, then allow native events to drain.
+    raise [winfo toplevel $graph]
+    update
+    event generate $graph <Motion> -warp 1 -x $x -y $y
+    sleep 100
+    update
+    lassign [winfo pointerxy $graph] rootX rootY
+    set actualX [expr {$rootX - [winfo rootx $graph]}]
+    set actualY [expr {$rootY - [winfo rooty $graph]}]
+    if {[winfo containing $rootX $rootY] ne $graph || abs($actualX - $x) > 1 || abs($actualY - $y) > 1} {
+        error "Could not position the physical pointer over the test graph"
+    }
+    return [list $actualX $actualY]
+}
+
+proc RestorePointer {position} {
+    if {[llength $position] != 2 || ![winfo exists .]} {
+        return
+    }
+    lassign $position rootX rootY
+    event generate . <Motion> -warp 1 -x [expr {$rootX - [winfo rootx .]}]  -y [expr {$rootY - [winfo rooty .]}]
+    update
+}
+
+proc ExpectedCurrentText {graph x y} {
+    # These tests expose only the ordinary x and y axes and use
+    # fixed-width formatting to keep the annotation box size constant.
+    if {[$graph cget -invertxy]} {
+        set xPixel $y
+        set yPixel $x
+        set xOrientation v
+        set yOrientation h
+    } else {
+        set xPixel $x
+        set yPixel $y
+        set xOrientation h
+        set yOrientation v
+    }
+    set xValue [$graph axis invtransform x $xPixel]
+    set yValue [$graph axis invtransform y $yPixel]
+    return [format "x(%s)=%08.3f\ny(%s)=%08.3f" $xOrientation $xValue $yOrientation $yValue]
+}
+
 customMatch approxEqual approxNestedEqual
 
 testConstraint isInteractive true
@@ -3602,6 +3647,159 @@ test crosshairsInteractive-48 {graphtoolbar crosshair cleanup preserves applicat
 } -result {1 1 1 1 1 0} -cleanup {
     destroy $widget
 }
+
+foreach invert {0 1} {
+    test crosshairsStreaming-[expr {$invert + 1}]\
+            "current annotation follows stationary pointer during autorange, invertxy=$invert"\
+            -constraints {isInteractive isCrosshairs} -setup {
+        set savedPointer [winfo pointerxy .]
+        set motionTag StreamingMotionObserver
+        set ::gtbStreamingMotionCount 0
+        rbc::vector create ::gtbStreamingX ::gtbStreamingY
+        set initialX {}
+        set initialY {}
+        for {set i 0} {$i <= 8} {incr i} {
+            set t [expr {$i * 0.25}]
+            lappend initialX $t
+            lappend initialY [expr {5.0 + 3.0 * sin(3.0 * $t)}]
+        }
+        ::gtbStreamingX set $initialX
+        ::gtbStreamingY set $initialY
+        set widget [graphtoolbar .gtb {*}$winSize -type stripchart -controlmode contextmenu -crosshairs\
+                            -crosshairsmode current -coordmark axis\
+                            -crosshairsmarkopts {-font TkFixedFont -formatx 08.3f -formaty 08.3f}]
+        pack $widget -fill both -expand yes
+        set graph [$widget subwidget graph]
+        # Fixed margins prevent changing tick-label widths from changing
+        # the plot's pixel geometry during this particular regression.
+        $graph configure -invertxy $invert -leftmargin 100 -rightmargin 40 -topmargin 60 -bottommargin 60\
+                -title "Stationary pointer: streaming stripchart, invertxy=$invert"
+        $graph xaxis use x
+        $graph yaxis use y
+        $graph x2axis use {}
+        $graph y2axis use {}
+        $graph axis configure x -min {} -max {} -autorange 2.0 -shiftby 0.5
+        $graph axis configure y -min 0 -max 10
+        $graph legend configure -hide yes
+        $graph element create signal -xdata ::gtbStreamingX -ydata ::gtbStreamingY -symbol none -color blue
+        WaitForWindow $graph
+        update
+        lassign [$graph extents plotarea] left top width height
+        set pointerX [expr {round($left + $width / 2.0)}]
+        set pointerY [expr {round($top + $height / 2.0)}]
+        lassign [ParkPointer $graph $pointerX $pointerY] pointerX pointerY
+        if {![$graph marker exists gtbCrosshairsText] || ![$graph marker exists gtbCrosshairsTextBox]} {
+            error "Initial current-point annotation was not created"
+        }
+        set stationaryPointer [winfo pointerxy $graph]
+        set initialLimits [$graph axis limits x]
+        set initialText [$graph marker cget gtbCrosshairsText -text]
+        set initialPosition [MarkerWidgetCoords $graph gtbCrosshairsText]
+        set initialBoxSize [MarkerWidgetSize $graph gtbCrosshairsTextBox]
+        # Observe all subsequent Motion events without changing toolbar
+        # bindings. None should be needed during the streaming phase.
+        bind $motionTag <Motion> {incr ::gtbStreamingMotionCount}
+        bindtags $graph [linsert [bindtags $graph] 0 $motionTag]
+        set ::gtbStreamingMotionCount 0
+    } -body {
+        set pointerStayed 1
+        set positionStayed 1
+        set boxStayed 1
+        set textCorrect 1
+        # Animate several automatic X-axis shifts. There are deliberately
+        # no Motion events, explicit refresh calls, or generated
+        # <<RbcGraphChanged>> events in this loop.
+        for {set i 1} {$i <= 12} {incr i} {
+            set t [expr {2.0 + $i * 0.25}]
+            ::gtbStreamingX append $t
+            ::gtbStreamingY append [expr {5.0 + 3.0 * sin(3.0 * $t)}]
+            # Process vector notifications, graph display, queued virtual
+            # events, and the toolbar's idle refresh.
+            sleep 100
+            update
+            if {![$graph marker exists gtbCrosshairsText] || ![$graph marker exists gtbCrosshairsTextBox]} {
+                error "Current-point annotation disappeared at streaming step $i"
+            }
+            set pointerStayed [expr {$pointerStayed && ([winfo pointerxy $graph] eq $stationaryPointer)}]
+            set positionStayed [expr {$positionStayed && [approxPixelCoordsEqual\
+                                                                  [MarkerWidgetCoords $graph gtbCrosshairsText]\
+                                                                  $initialPosition 2.0]}]
+            set boxStayed [expr {$boxStayed && [approxPixelCoordsEqual [MarkerWidgetSize $graph gtbCrosshairsTextBox]\
+                                                        $initialBoxSize 2.0]}]
+            set expectedText [ExpectedCurrentText $graph $pointerX $pointerY]
+            set textCorrect [expr {$textCorrect && ([$graph marker cget gtbCrosshairsText -text] eq $expectedText)}]
+        }
+        set finalLimits [$graph axis limits x]
+        set finalText [$graph marker cget gtbCrosshairsText -text]
+        list [expr {[lindex $finalLimits 0] > [lindex $initialLimits 0]}] [expr {$finalText ne $initialText}]\
+                $pointerStayed [expr {$::gtbStreamingMotionCount == 0}] $positionStayed $boxStayed $textCorrect
+    } -cleanup {
+        catch {bind $motionTag <Motion> {}}
+        catch {destroy $widget}
+        catch {rbc::vector destroy ::gtbStreamingX ::gtbStreamingY}
+        catch {RestorePointer $savedPointer}
+        unset -nocomplain ::gtbStreamingMotionCount
+    } -result {1 1 1 1 1 1 1}
+}
+
+test crosshairsStreaming-3 {closest annotation refreshes with fixed axes and preserves hidden hairs} \
+        -constraints {isInteractive isCrosshairs} -setup {
+    set savedPointer [winfo pointerxy .]
+    set motionTag GtbStreamingMotionObserver
+    set ::gtbStreamingMotionCount 0
+    rbc::vector create ::gtbStreamingX ::gtbStreamingY
+    ::gtbStreamingX set {0 5 10}
+    ::gtbStreamingY set {2 2 2}
+
+    set widget [graphtoolbar .gtb {*}$winSize -type stripchart -controlmode contextmenu -crosshairs\
+                        -crosshairsmode closest -crosshairsclosestopts {-interpolate no -halo 10000 -single yes\
+                                                                                 -hide yes}]
+    pack $widget -fill both -expand yes
+    set graph [$widget subwidget graph]
+    $graph configure -title {Stationary pointer: closest point changes with the data}
+    $graph axis configure x -min 0 -max 10
+    $graph axis configure y -min 0 -max 10
+    $graph legend configure -hide yes
+    $graph element create signal -xdata ::gtbStreamingX -ydata ::gtbStreamingY -symbol none
+    WaitForWindow $graph
+    update
+    set pointerX [$graph axis transform x 5]
+    set pointerY [$graph axis transform y 5]
+    ParkPointer $graph $pointerX $pointerY
+    set bitmap gtbCrosshairsClosestBitmap
+    set textMarker gtbCrosshairsClosestText
+    if {![$graph marker exists $bitmap] || ![$graph marker exists $textMarker]} {
+        error "Initial closest-point annotation was not created"
+    }
+    set stationaryPointer [winfo pointerxy $graph]
+    set initialLimits [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    set initialPoint [$graph marker cget $bitmap -coords]
+    set initialText [$graph marker cget $textMarker -text]
+    bind $motionTag <Motion> {incr ::gtbStreamingMotionCount}
+    bindtags $graph [linsert [bindtags $graph] 0 $motionTag]
+    set ::gtbStreamingMotionCount 0
+} -body {
+    # Change the data without moving the pointer or changing either axis.
+    ::gtbStreamingY set {8 8 8}
+    sleep 100
+    update
+    if {![$graph marker exists $bitmap] || ![$graph marker exists $textMarker]} {
+        error "Closest-point annotation disappeared after the data update"
+    }
+    set finalLimits [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+    set finalPoint [$graph marker cget $bitmap -coords]
+    set finalText [$graph marker cget $textMarker -text]
+    list [expr {[approxNestedEqual $initialPoint {5 2}]}] [expr {[approxNestedEqual $finalPoint {5 8}]}]\
+            [expr {[approxNestedEqual $initialLimits $finalLimits]}] [expr {$finalText ne $initialText}]\
+            [expr {[winfo pointerxy $graph] eq $stationaryPointer}] [expr {$::gtbStreamingMotionCount == 0}]\
+            [expr {!![$graph crosshairs cget -hide]}]
+} -cleanup {
+    catch {bind $motionTag <Motion> {}}
+    catch {destroy $widget}
+    catch {rbc::vector destroy ::gtbStreamingX ::gtbStreamingY}
+    catch {GtbRestorePointer $savedPointer}
+    unset -nocomplain ::gtbStreamingMotionCount
+} -result {true true true 1 1 1 1}
 
 #### axes
 test axesInteractive-1 {change of axis scale} -constraints {isInteractive isAxes} -setup {

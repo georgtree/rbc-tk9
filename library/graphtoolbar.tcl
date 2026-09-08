@@ -1210,6 +1210,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     variable CrosshairsSelector crosshairsmarkopts crosshairsmarkboxopts crosshairsclosestopts crosshairsopts
     variable crosshairsbarlineopts CrosshairsMarkerInfo pointeropts
     variable CrosshairsSelector ClosestCoordSelector
+    variable CrosshairsRefreshAfter CrosshairsRefreshTag CrosshairsRefreshTop
     variable AxisScaleInfo SavedToolbarStates
     variable ContextMenuPosted
     classmethod unknown {w args} {
@@ -1430,6 +1431,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             my UpdateCrosshairsModes
             my UpdateClosestCoordinateModes
             my ApplyCrosshairsMode
+            my InstallCrosshairsRefresh
         }
         ##### axes scale-toggle activation
         if {[dict exists $arguments scaletoggle]} {
@@ -1456,12 +1458,26 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         bind $frameName <Destroy> +[list [self] destroy]
     }
     destructor {
-        # Cancels asynchronous operations owned by the megawidget.
-        #
-        # Currently this includes the transient zoom-title timer.
+        # Cancel asynchronous work before the object namespace disappears.
+        my CancelCrosshairsRefresh
         foreach timer {titleTimer} {
             if {[info exists ZoomInfo($timer)]} {
                 after cancel $ZoomInfo($timer)
+            }
+        }
+        # The toplevel normally outlives this megawidget. Remove its
+        # reference to  private tag and clear the tag's binding scripts.
+        if {[info exists CrosshairsRefreshTag]} {
+            if {[info exists Subwidgets(graph)] &&
+                [winfo exists $Subwidgets(graph)]} {
+                my RemoveBindTag $Subwidgets(graph) $CrosshairsRefreshTag
+            }
+            if {[info exists CrosshairsRefreshTop] &&
+                [winfo exists $CrosshairsRefreshTop]} {
+                my RemoveBindTag $CrosshairsRefreshTop $CrosshairsRefreshTag
+            }
+            foreach sequence [bind $CrosshairsRefreshTag] {
+                bind $CrosshairsRefreshTag $sequence {}
             }
         }
     }
@@ -2800,6 +2816,92 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
         my DeleteCrosshairsMarkers
         my CrosshairsMarkerMotion $graph $x $y {*}$CrosshairsMarkerInfo
+    }
+    method InstallCrosshairsRefresh {} {
+        # Observes graph view/data changes and window geometry changes.
+        #
+        # The dedicated tag remains installed while zoom, pan, or a
+        # popup temporarily suspends crosshair interaction. The refresh
+        # callback checks that interaction is enabled before drawing.
+        #
+        # Watching the toplevel also handles the window moving beneath
+        # a stationary pointer.
+        #
+        # Returns: Nothing.
+        set graph $Subwidgets(graph)
+        set CrosshairsRefreshTag [my BindTagName crosshairs-refresh]
+        set CrosshairsRefreshTop [winfo toplevel $graph]
+        foreach sequence {<<RbcGraphChanged>> <Configure> <Map> <Enter>} {
+            bind $CrosshairsRefreshTag $sequence [namespace code {my QueueCrosshairsRefresh}]
+        }
+        my AddBindTag $graph $CrosshairsRefreshTag
+        my AddBindTag $CrosshairsRefreshTop $CrosshairsRefreshTag
+    }
+
+    method CancelCrosshairsRefresh {} {
+        # Cancels the pending annotation refresh, if any.
+        #
+        # Returns: Nothing.
+        if {[info exists CrosshairsRefreshAfter]} {
+            after cancel $CrosshairsRefreshAfter
+            unset CrosshairsRefreshAfter
+        }
+    }
+
+    method QueueCrosshairsRefresh {} {
+        # Coalesces graph and geometry notifications into one idle refresh.
+        #
+        # No nested event processing is required. The callback queries
+        # the pointer when it runs instead of retaining event coordinates.
+        #
+        # Returns: Nothing.
+        if {![info exists CrosshairsRefreshAfter]} {
+            set CrosshairsRefreshAfter \
+                    [after idle [namespace code {my RefreshCrosshairsAtPointer}]]
+        }
+    }
+
+    method RefreshCrosshairsAtPointer {} {
+        # Rebuilds current/closest annotations beneath the physical pointer.
+        #
+        # Axis scrolling and data updates can change the information
+        # beneath a stationary pointer. Window movement can also change
+        # the pointer's graph-local coordinates.
+        #
+        # Existing marker bindtags determine whether zoom or pan has
+        # temporarily suspended annotation interaction.
+        #
+        # Returns: Nothing.
+        unset -nocomplain CrosshairsRefreshAfter
+        if {![info exists Subwidgets(graph)] || ![info exists CrosshairsMarkerInfo]} {
+            return
+        }
+        set graph $Subwidgets(graph)
+        if {![winfo exists $graph] || ![winfo ismapped $graph]} {
+            return
+        }
+        if {[info exists ContextMenuPosted] && $ContextMenuPosted} {
+            return
+        }
+        if {![my CheckBindTagExistence $graph [my BindTagName crosshairs-marker]]} {
+            return
+        }
+        lassign [winfo pointerxy $graph] rootX rootY
+        set x [expr {$rootX - [winfo rootx $graph]}]
+        set y [expr {$rootY - [winfo rooty $graph]}]
+        # Do not leave an old annotation behind if the graph has moved
+        # away from the pointer or its plot area no longer contains it.
+        if {[winfo containing $rootX $rootY] ne $graph || ![$graph inside $x $y]} {
+            my DeleteCrosshairsMarkers
+            return
+        }
+        # Keep the underlying pixel-positioned hairs aligned as well.
+        # Closest mode with -hide yes must retain hidden hairs.
+        set mode [lindex $CrosshairsMarkerInfo 1]
+        if {$mode eq "current" || ![dict get [my configure -crosshairsclosestopts] hide]} {
+            $graph crosshairs configure -position @${x},$y
+        }
+        my RefreshCrosshairsMarker $x $y
     }
     method CrosshairsMarkerMotion {graph x y options mode interpolate halo single} {
         # Implements Motion handling for current and closest annotation markers.
