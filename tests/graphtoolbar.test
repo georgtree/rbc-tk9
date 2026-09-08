@@ -176,6 +176,19 @@ proc GenerateGraphWheelEvent {graph x y delta time {modifier {}}} {
     update
 }
 
+proc GenerateGraphTouchpadEvent {graph x y deltaX deltaY time {modifier {}}} {
+    # Pack signed horizontal and vertical deltas into TouchpadScroll %D.
+    foreach value [list $deltaX $deltaY] {
+        if {![string is integer -strict $value] || $value < -32768 || $value > 32767} {
+            error "touchpad delta must be a signed 16-bit integer"
+        }
+    }
+    set packed [expr {($deltaX << 16) | ($deltaY & 0xffff)}]
+    sleep $time
+    event generate $graph <${modifier}TouchpadScroll> -x [expr {round($x)}] -y [expr {round($y)}] -delta $packed
+    update
+}
+
 proc approxPixelCoordsEqual {a b {tolerance 1.0}} {
     if {[llength $a] != [llength $b]} {
         return false
@@ -1590,6 +1603,120 @@ test zoomInteractive-24 {zoom is committed by button release} -match approxEqual
     list [approxNestedEqual [list $during] [list $initial]] [approxNestedEqual [list $after] [list $expected]]
 } -result {1 1} -cleanup {
     destroy $widget
+}
+
+foreach {variant inverted logarithmic} {normal 0 0 inverted 1 0 logarithmic 0 1} {
+    test touchpadZoom-$variant "touchpad zoom: deltas, modifiers and propagation ($variant)"\
+            -constraints {isInteractive isZoom} -setup {
+        set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelscale 4.0]
+        pack $widget -fill both -expand yes
+        set graph [$widget subwidget graph]
+        $graph configure -title "Touchpad zoom: $variant" -invertxy $inverted -leftmargin 90 -rightmargin 60\
+                -topmargin 60 -bottommargin 60
+        $graph xaxis use x
+        $graph yaxis use y
+        $graph x2axis use {}
+        $graph y2axis use {}
+        $graph legend configure -hide yes
+        if {$logarithmic} {
+            $graph axis configure x -logscale yes -min 1 -max 100
+            $graph axis configure y -logscale yes -min 1 -max 100
+            $graph element create signal -data {1 1 10 10 100 100}
+        } else {
+            $graph axis configure x -min 0 -max 100
+            $graph axis configure y -min -100 -max 100
+            $graph element create signal -data {0 -100 50 0 100 100}
+        }
+        WaitForWindow $graph
+        update
+        lassign [$graph extents plotarea] left top width height
+        set x [expr {round($left + $width / 3.0)}]
+        set y [expr {round($top + 2.0 * $height / 3.0)}]
+        # Axis transforms take pixels along the data dimensions.
+        if {$inverted} {
+            set xPixel $y
+            set yPixel $x
+        } else {
+            set xPixel $x
+            set yPixel $y
+        }
+        # Observe events immediately after the zoom binding.
+        # Handled zoom events must return break and never reach this tag.
+        set observerTag TouchpadZoomObserver
+        set ::gtbTouchpadPassed 0
+        bind $observerTag <TouchpadScroll> {
+            incr ::gtbTouchpadPassed
+        }
+        bind $observerTag <MouseWheel> {
+            incr ::gtbTouchpadPassed
+        }
+        set tags [bindtags $graph]
+        set zoomIndex [lsearch -exact $tags "gtb-zoom-$graph"]
+        if {$zoomIndex < 0} {
+            error "Zoom bindtag is missing"
+        }
+        bindtags $graph [linsert $tags [expr {$zoomIndex + 1}] $observerTag]
+    } -body {
+        set failures {}
+        # Columns:
+        # name, deltaX, deltaY, modifier, expected scale factor,
+        # whether the event should reach the observer.
+        #
+        # With step=4:
+        #   +60 -> 1/2; -60 -> 2
+        #  +120 -> 1/4; -120 -> 4
+        #   +12 -> 4^(-1/10)
+        set cases {
+            {fractional-in      0   60 Control- 0.5                0}
+            {fractional-out     0  -60 Control- 2.0                0}
+            {small-in           0   12 Control- 0.8705505632961241 0}
+            {full-in            0  120 Control- 0.25               0}
+            {full-out           0 -120 Control- 4.0                0}
+            {mixed-negative-x  -7   60 Control- 0.5                0}
+            {mixed-negative-y   7  -60 Control- 2.0                0}
+            {horizontal-right 120    0 Control- 1.0                1}
+            {horizontal-left -120    0 Control- 1.0                1}
+            {zero               0    0 Control- 1.0                1}
+            {missing-control    0   60 {}       1.0                1}
+        }
+        foreach case $cases {
+            lassign $case name dx dy modifier factor passed
+            set before [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+            if {$factor == 1.0} {
+                set expected $before
+            } else {
+                set expected [list {*}[ExpectedWheelLimits $graph x $factor $xPixel]\
+                                      {*}[ExpectedWheelLimits $graph y $factor $yPixel]]
+            }
+            set ::gtbTouchpadPassed 0
+            GenerateGraphTouchpadEvent $graph $x $y $dx $dy 20 $modifier
+            set actual [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+            if {![approxNestedEqual $actual $expected]} {
+                lappend failures [list $name limits expected $expected actual $actual]
+            }
+            if {$::gtbTouchpadPassed != $passed} {
+                lappend failures [list $name propagation expected $passed actual $::gtbTouchpadPassed]
+            }
+        }
+        # The optional amount argument must preserve ordinary wheel zoom.
+        set expected [list {*}[ExpectedWheelLimits $graph x 0.25 $xPixel]\
+                              {*}[ExpectedWheelLimits $graph y 0.25 $yPixel]]
+        set ::gtbTouchpadPassed 0
+        GenerateGraphWheelEvent $graph $x $y 120 20 Control-
+        set actual [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+        if {![approxNestedEqual $actual $expected]} {
+            lappend failures [list mouse-wheel limits expected $expected actual $actual]
+        }
+        if {$::gtbTouchpadPassed != 0} {
+            lappend failures [list mouse-wheel propagation expected 0 actual $::gtbTouchpadPassed]
+        }
+        set failures
+    } -result {} -cleanup {
+        catch {bind $observerTag <TouchpadScroll> {}}
+        catch {bind $observerTag <MouseWheel> {}}
+        catch {destroy $widget}
+        unset -nocomplain ::gtbTouchpadPassed
+    }
 }
 
 #### pan

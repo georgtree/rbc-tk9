@@ -3454,9 +3454,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             # The value here is the actual graph value, so convert it
             # back to logarithmic coordinate space first.
             #
-            if {![string is double -strict $value] ||
-                !isfinite($value) ||
-                ($value <= 0.0)} {
+            if {![string is double -strict $value] || !isfinite($value) || ($value <= 0.0)} {
                 return $fallback
             }
             set exponent [expr {round(log($value)/log(10.0))}]
@@ -3998,7 +3996,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {![string is double -strict $scale] || !isfinite($scale) || ($scale <= 1.0)} {
             return -code error "wheel zoom scale must be a finite number greater than 1.0"
         }
-        bind [my BindTagName zoom] <${modifier}MouseWheel> [namespace code [list my WheelZoom %W %D %x %y %s $scale]]
+        set tag [my BindTagName zoom]
+        bind $tag <${modifier}MouseWheel> [namespace code [list my WheelZoom %W %D %x %y %s $scale]]
+        bind $tag <${modifier}TouchpadScroll> [namespace code [list my TouchpadZoom %W %D %x %y %s $scale]]
     }
     method EnablePan {start end modifier} {
         # Installs plot-area panning bindings.
@@ -4104,7 +4104,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             catch {$Subwidgets(graph) marker delete gtbZoomTitle} errorStr
         }
     }
-    method WheelZoom {graph delta x y state step} {
+    method WheelZoom {graph delta x y state step {amount 1.0}} {
         # Applies one reversible wheel-zoom operation.
         #  graph - graph pathname.
         #  delta - MouseWheel delta.
@@ -4112,6 +4112,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #  y - event Y coordinate.
         #  state - Tk event state mask.
         #  step - multiplicative zoom step.
+        #  amount - positive number of wheel steps; fractional for touchpad input.
         #
         # Inside the plot area every used axis scales around the value beneath the pointer. Over an axis only that
         # axis is normally scaled; Polar grid axes are scaled as a pair to preserve equal-unit geometry.
@@ -4132,6 +4133,16 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             # Wheel down: zoom out.
             set factor $step
         } else {
+            return
+        }
+        # MouseWheel retains its existing one-step behavior.
+        # TouchpadScroll supplies a fractional or multiple-step amount.
+        if {$amount != 1.0} {
+            set factor [expr {pow($factor, $amount)}]
+        }
+        # Avoid applying an unrepresentable scale or recording a no-op.
+        if {!isfinite($factor) || ($factor <= 0.0) ||
+            ($factor == 1.0)} {
             return
         }
         set changes [dict create]
@@ -4224,6 +4235,25 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             my FinishZoomTitle
         }
         return -code break
+    }
+    method TouchpadZoom {graph packedDelta x y state step} {
+        # Converts high-resolution vertical scrolling into proportional zoom.
+        #  graph - graph pathname.
+        #  packedDelta - TouchpadScroll %D containing both scroll deltas.
+        #  x - physical pointer X coordinate.
+        #  y - physical pointer Y coordinate.
+        #  state - Tk event state mask.
+        #  step - configured mouse-wheel zoom step.
+        #
+        # Returns: The result of WheelZoom, including its break code.
+        lassign [tk::PreciseScrollDeltas $packedDelta] deltaX deltaY
+        if {$deltaY == 0} {
+            return
+        }
+        # Sensitivity policy: 120 vertical delta units correspond to
+        # one configured wheel step. Preserve fractional input.
+        set amount [expr {abs($deltaY) / 120.0}]
+        tailcall my WheelZoom $graph $deltaY $x $y $state $step $amount
     }
     method PopZoom {{single yes} {x {}} {y {}}} {
         # Restores saved graph navigation state.
