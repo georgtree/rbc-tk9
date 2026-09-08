@@ -1523,17 +1523,29 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # The toplevel normally outlives this megawidget. Remove its
         # reference to  private tag and clear the tag's binding scripts.
         if {[info exists CrosshairsRefreshTag]} {
-            if {[info exists Subwidgets(graph)] &&
-                [winfo exists $Subwidgets(graph)]} {
+            if {[info exists Subwidgets(graph)] && [winfo exists $Subwidgets(graph)]} {
                 my RemoveBindTag $Subwidgets(graph) $CrosshairsRefreshTag
             }
-            if {[info exists CrosshairsRefreshTop] &&
-                [winfo exists $CrosshairsRefreshTop]} {
+            if {[info exists CrosshairsRefreshTop] && [winfo exists $CrosshairsRefreshTop]} {
                 my RemoveBindTag $CrosshairsRefreshTop $CrosshairsRefreshTag
             }
             foreach sequence [bind $CrosshairsRefreshTag] {
                 bind $CrosshairsRefreshTag $sequence {}
             }
+        }
+        # Custom Tk bindtags outlive widgets. Remove all scripts that
+        # may reference this object's namespace before it disappears.
+        my variable PrivateBindTags
+        if {[info exists PrivateBindTags]} {
+            foreach tag [dict keys $PrivateBindTags] {
+                if {[info exists Subwidgets(graph)] && [winfo exists $Subwidgets(graph)]} {
+                    my RemoveBindTag $Subwidgets(graph) $tag
+                }
+                foreach sequence [bind $tag] {
+                    bind $tag $sequence {}
+                }
+            }
+            unset PrivateBindTags
         }
     }
     method names {} {
@@ -1659,14 +1671,13 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 -state disabled {*}$mapopts {*}[my configure -pointeropts]
     }
     method BindTagName {name} {
-        # Returns the private graphtoolbar bindtag for one interaction.
-        #  name - interaction-specific tag suffix.
-        #
-        # Every bindtag created by graphtoolbar uses the reserved `gtb-` prefix followed by the embedded graph
-        # pathname. Applications should not use this prefix for their own binding tags.
-        #
-        # Returns: Private bindtag name.
-        return "gtb-${name}-$Subwidgets(graph)"
+        # Returns and records an owned interaction tag so its binding
+        # scripts can be removed when this object is destroyed.
+        my variable PrivateBindTags
+
+        set tag "gtb-${name}-$Subwidgets(graph)"
+        dict set PrivateBindTags $tag 1
+        return $tag
     }
     method AddBindTag {widget tag {after {}}} {
         # Adds or repositions a bindtag on a widget.

@@ -6486,6 +6486,51 @@ fallback:
 }
 
 /*
+ * Conservative symbol reach in pixels, including outlines and
+ * integer-coordinate rounding.
+ */
+static double SymbolPadding(LinePen *penPtr, int size) {
+    if ((penPtr == NULL) || (penPtr->symbol.type == SYMBOL_NONE)) {
+        return 0.0;
+    }
+    return (double)size + 2.0 * (double)penPtr->symbol.outlineWidth + 2.0;
+}
+
+/*
+ * Keep outside centers that may still contribute visible symbol pixels.
+ * Include every normal style and the active pen: activating all points
+ * can reuse the normal symbol array.
+ */
+static void GetSymbolMapExtents(Graph *graphPtr, Line *linePtr, Extents2D *extsPtr) {
+    Rbc_ChainLink *linkPtr;
+    double padding = 0.0;
+
+    Rbc_GraphExtents(graphPtr, extsPtr);
+    for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        LinePenStyle *stylePtr = Rbc_ChainGetValue(linkPtr);
+        int size = ScaleSymbol(&linePtr->core, stylePtr->penPtr->symbol.size);
+        double reach = SymbolPadding(stylePtr->penPtr, size);
+
+        if (reach > padding) {
+            padding = reach;
+        }
+    }
+    if (linePtr->core.activePenPtr != NULL) {
+        LinePen *penPtr = LINE_PEN_FROM_CORE(linePtr->core.activePenPtr);
+        int size = ScaleSymbol(&linePtr->core, penPtr->symbol.size);
+        double reach = SymbolPadding(penPtr, size);
+
+        if (reach > padding) {
+            padding = reach;
+        }
+    }
+    extsPtr->left -= padding;
+    extsPtr->right += padding;
+    extsPtr->top -= padding;
+    extsPtr->bottom += padding;
+}
+
+/*
  *----------------------------------------------------------------------
  *
  * MapSymbols --
@@ -6531,7 +6576,7 @@ static void MapSymbols(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
         ckfree(symbolPts);
         return;
     }
-    Rbc_GraphExtents(graphPtr, &exts);
+    GetSymbolMapExtents(graphPtr, linePtr, &exts);
     count = 0;
     for (i = 0; i < mapPtr->nScreenPts; i++) {
         if (PointInRegion(&exts, mapPtr->screenPts[i].x, mapPtr->screenPts[i].y)) {
@@ -6612,7 +6657,7 @@ static void MapActiveSymbols(Graph *graphPtr, Line *linePtr) {
             return;
         }
     }
-    Rbc_GraphExtents(graphPtr, &exts);
+    GetSymbolMapExtents(graphPtr, linePtr, &exts);
     nPoints = NumberOfPoints(&linePtr->core);
     count = 0;
     for (i = 0; i < linePtr->core.nActiveIndices; i++) {
@@ -7886,9 +7931,11 @@ static int ClosestStrip(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr
 static void ClosestMappedPoint(Line *linePtr, ClosestSearch *searchPtr) {
     Point2D *pointPtr;
     double minDist;
+    Extents2D exts;    
     Tcl_Size count;
     Tcl_Size dataIndex;
 
+    Rbc_GraphExtents(linePtr->core.graphPtr, &exts);    
     minDist = searchPtr->dist;
     dataIndex = -1;
     pointPtr = linePtr->symbolPts;
@@ -7897,6 +7944,9 @@ static void ClosestMappedPoint(Line *linePtr, ClosestSearch *searchPtr) {
         double dy;
         double dist;
 
+        if (!PointInRegion(&exts, pointPtr->x, pointPtr->y)) {
+            continue;
+        }        
         dx = fabs((double)searchPtr->x - pointPtr->x);
         dy = fabs((double)searchPtr->y - pointPtr->y);
         switch (searchPtr->along) {
@@ -7986,8 +8036,7 @@ static void ClosestSourcePoint(Graph *graphPtr, Line *linePtr, ClosestSearch *se
             continue;
         }
         /*
-         * Match MapSymbols exactly: point searches consider only
-         * source points inside the plotting region.
+         * Match ClosestMappedPoint exactly: point searches considering only centers inside the original graph extents
          */
         if (!PointInRegion(&exts, point.x, point.y)) {
             continue;
@@ -9918,35 +9967,8 @@ static void DrawPolygonSymbols(Display *display, Drawable drawable, LinePen *pen
 
 #endif /* WIN32 */
 
-/*
- * -----------------------------------------------------------------
- *
- * DrawSymbols --
- *
- *      Draw the symbols centered at the each given x,y coordinate
- *      in the array of points.
- *
- * Parameters:
- *      Graph *graphPtr - Graph widget record
- *      Drawable drawable - Pixmap or window to draw into
- *      Line *linePtr
- *      LinePen *penPtr
- *      int size - Size of element
- *      int nSymbolPts - Number of coordinates in array
- *      Point2D *symbolPts - Array of x,y coordinates for line
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Draws a symbol at each coordinate given.  If active,
- *      only those coordinates which are currently active are
- *      drawn.
- *
- * -----------------------------------------------------------------
- */
-static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, int size,
-                        Tcl_Size nSymbolPts, Point2D *symbolPts) {
+static void DrawSymbolsUnclipped(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, int size,
+                                 Tcl_Size nSymbolPts, Point2D *symbolPts) {
     XPoint pattern[13]; /* Template for polygon symbols */
     int r1, r2;
     Tcl_Size i, n;
@@ -10386,6 +10408,126 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
 /*
  * -----------------------------------------------------------------
  *
+ * DrawSymbols --
+ *
+ *      Draw the symbols centered at the each given x,y coordinate
+ *      in the array of points.
+ *
+ * Parameters:
+ *      Graph *graphPtr - Graph widget record
+ *      Drawable drawable - Pixmap or window to draw into
+ *      Line *linePtr
+ *      LinePen *penPtr
+ *      int size - Size of element
+ *      int nSymbolPts - Number of coordinates in array
+ *      Point2D *symbolPts - Array of x,y coordinates for line
+ *
+ * Results:
+ *      None.
+ *
+ * Side Effects:
+ *      Draws a symbol at each coordinate given.  If active,
+ *      only those coordinates which are currently active are
+ *      drawn.
+ *
+ * -----------------------------------------------------------------
+ */
+
+/*
+ * Draw element symbols clipped to the plot area.
+ * Batches entirely inside the plot retain the existing drawing path.
+ */
+static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, int size,
+                        Tcl_Size nSymbolPts, Point2D *symbolPts) {
+    double padding;
+    Tcl_Size i;
+    int needsClip = FALSE;
+    int left, top, right, bottom;
+
+    if ((nSymbolPts <= 0) || (penPtr->symbol.type == SYMBOL_NONE)) {
+        return;
+    }
+    left = MAX(0, graphPtr->left);
+    top = MAX(0, graphPtr->top);
+    right = MIN(graphPtr->width - 1, graphPtr->right);
+    bottom = MIN(graphPtr->height - 1, graphPtr->bottom);
+    if ((right < left) || (bottom < top)) {
+        return;
+    }
+    padding = SymbolPadding(penPtr, size);
+    for (i = 0; i < nSymbolPts; i++) {
+        if ((symbolPts[i].x - padding < left) || (symbolPts[i].x + padding > right) ||
+            (symbolPts[i].y - padding < top) || (symbolPts[i].y + padding > bottom)) {
+            needsClip = TRUE;
+            break;
+        }
+    }
+    if (!needsClip) {
+        DrawSymbolsUnclipped(graphPtr, drawable, linePtr, penPtr, size, nSymbolPts, symbolPts);
+        return;
+    }
+#ifdef WIN32
+    {
+        Rbc_WinDrawableDC *dcStatePtr;
+        HDC dc;
+        int saved;
+        Drawable clippedDrawable;
+
+        dc = Rbc_WinAcquireDrawableDC(graphPtr->display, drawable, &dcStatePtr);
+        if (dc == NULL) {
+            Rbc_WinReleaseDrawableDC(dcStatePtr);
+            return;
+        }
+        saved = SaveDC(dc);
+        if (saved == 0) {
+            Rbc_WinReleaseDrawableDC(dcStatePtr);
+            return;
+        }
+        /*
+         * Preserve the plot boundary even when bitmap drawing
+         * installs its own clipping mask.
+         */
+        if ((IntersectClipRect(dc, left, top, right + 1, bottom + 1) != ERROR) && (SetMetaRgn(dc) != ERROR)) {
+            clippedDrawable = Rbc_WinCreateDrawableFromDC(dc);
+            if (clippedDrawable != None) {
+                DrawSymbolsUnclipped(graphPtr, clippedDrawable, linePtr, penPtr, size, nSymbolPts, symbolPts);
+                Rbc_WinFreeDrawableFromDC(clippedDrawable);
+            }
+        }
+        RestoreDC(dc, saved);
+        Rbc_WinReleaseDrawableDC(dcStatePtr);
+    }
+#else
+    {
+        Pixmap clippedPixmap;
+        unsigned int width = (unsigned int)(right - left + 1);
+        unsigned int height = (unsigned int)(bottom - top + 1);
+
+        /*
+         * Preserve absolute coordinates and existing bitmap masks.
+         * Seed the plot pixels, draw normally, then copy only the plot.
+         * The temporary pixmap is needed only for boundary batches.
+         */
+        clippedPixmap =
+            Tk_GetPixmap(graphPtr->display, drawable, graphPtr->width, graphPtr->height, Tk_Depth(graphPtr->tkwin));
+        if (clippedPixmap == None) {
+            return;
+        }
+
+        XCopyArea(graphPtr->display, drawable, clippedPixmap, graphPtr->drawGC, left, top, width, height, left, top);
+
+        DrawSymbolsUnclipped(graphPtr, clippedPixmap, linePtr, penPtr, size, nSymbolPts, symbolPts);
+
+        XCopyArea(graphPtr->display, clippedPixmap, drawable, graphPtr->drawGC, left, top, width, height, left, top);
+
+        Tk_FreePixmap(graphPtr->display, clippedPixmap);
+    }
+#endif
+}
+
+/*
+ * -----------------------------------------------------------------
+ *
  * DrawSymbol --
  *
  *      Draw the symbol centered at the each given x,y coordinate.
@@ -10418,7 +10560,7 @@ static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int
         Point2D point;
         point.x = x;
         point.y = y;
-        DrawSymbols(graphPtr, drawable, linePtr, penPtr, size, 1, &point);
+        DrawSymbolsUnclipped(graphPtr, drawable, linePtr, penPtr, size, 1, &point);
     }
 }
 
@@ -10798,14 +10940,19 @@ static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
     Point2D *pointPtr;
     Point2D *endPtr;
     Tcl_Size count;
+    Extents2D exts;
     char string[RBC_VALUE_LABEL_SIZE];
 
+    Rbc_GraphExtents(linePtr->core.graphPtr, &exts);    
     count = 0;
     for (pointPtr = symbolPts, endPtr = symbolPts + nSymbolPts; pointPtr < endPtr; pointPtr++) {
         Tcl_Size dataIndex;
         double x;
         double y;
         dataIndex = pointToData[count++];
+        if (!PointInRegion(&exts, pointPtr->x, pointPtr->y)) {
+            continue;
+        }
         if (!GetLineDataPoint(linePtr, dataIndex, &x, &y)) {
             continue;
         }
@@ -11327,8 +11474,10 @@ static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, 
     Point2D *pointPtr;
     Point2D *endPtr;
     Tcl_Size count;
+    Extents2D exts;    
     char string[RBC_VALUE_LABEL_SIZE];
 
+    Rbc_GraphExtents(linePtr->core.graphPtr, &exts);    
     count = 0;
     for (pointPtr = symbolPts, endPtr = symbolPts + nSymbolPts; pointPtr < endPtr; pointPtr++) {
         Tcl_Size dataIndex;
@@ -11336,6 +11485,9 @@ static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, 
         double y;
 
         dataIndex = pointToData[count++];
+        if (!PointInRegion(&exts, pointPtr->x, pointPtr->y)) {
+            continue;
+        }
         if (!GetLineDataPoint(linePtr, dataIndex, &x, &y)) {
             continue;
         }
