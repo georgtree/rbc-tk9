@@ -4115,6 +4115,89 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             catch {$Subwidgets(graph) marker delete gtbZoomTitle} errorStr
         }
     }
+    method ClearWheelAxisTarget {} {
+        # Clears the retained wheel-zoom axis.
+        #
+        # Returns: Nothing.
+        my variable WheelAxisTargetInfo
+        unset -nocomplain WheelAxisTargetInfo
+    }
+
+    method CheckWheelAxisPointer {rootX rootY} {
+        # Clears axis retention after pointer movement beyond six pixels.
+        #  rootX - screen X coordinate.
+        #  rootY - screen Y coordinate.
+        #
+        # Returns: Nothing.
+        my variable WheelAxisTargetInfo
+        if {![info exists WheelAxisTargetInfo]} {
+            return
+        }
+        lassign $WheelAxisTargetInfo axis startX startY lastTime
+        set dx [expr {$rootX - $startX}]
+        set dy [expr {$rootY - $startY}]
+        if {$dx*$dx + $dy*$dy > 36} {
+            my ClearWheelAxisTarget
+        }
+    }
+    method WheelAxisTarget {graph x y state} {
+        # Resolves the retained or currently pointed-to axis.
+        #  graph - graph pathname.
+        #  x - widget X coordinate.
+        #  y - widget Y coordinate.
+        #  state - Tk event state mask.
+        #
+        # Retention overrides plot hit testing and expires after 300 ms, pointer movement, or axis removal.
+        #
+        # Returns: Axis name, or an empty string when no axis is targeted.
+        my variable WheelAxisTargetInfo
+        set rootX [expr {[winfo rootx $graph] + $x}]
+        set rootY [expr {[winfo rooty $graph] + $y}]
+        my CheckWheelAxisPointer $rootX $rootY
+        if {[info exists WheelAxisTargetInfo]} {
+            lassign $WheelAxisTargetInfo axis startX startY lastTime
+            set elapsed [expr {[clock clicks -milliseconds] - $lastTime}]
+            if {($elapsed >= 0) && ($elapsed < 300) && ([lsearch -exact [$graph axis names] $axis] >= 0)} {
+                return $axis
+            }
+            my ClearWheelAxisTarget
+        }
+        if {[$graph inside $x $y]} {
+            return {}
+        }
+        event generate $graph <Motion> -x $x -y $y -state $state
+        return [$graph axis get current]
+    }
+
+    method RememberWheelAxisTarget {graph axis x y} {
+        # Renews axis retention after successful wheel zoom.
+        #  graph - graph pathname.
+        #  axis - axis name, or an empty string to clear retention.
+        #  x - widget X coordinate.
+        #  y - widget Y coordinate.
+        #
+        # Preserves the initial pointer position. Motion, departure, or button presses can clear retention.
+        # [WheelAxisTarget] checks the timeout; no timer is scheduled.
+        #
+        # Returns: Nothing.
+        my variable WheelAxisTargetInfo
+        if {$axis eq {}} {
+            my ClearWheelAxisTarget
+            return
+        }
+        if {[info exists WheelAxisTargetInfo]} {
+            lassign $WheelAxisTargetInfo oldAxis rootX rootY lastTime
+        } else {
+            set rootX [expr {[winfo rootx $graph] + $x}]
+            set rootY [expr {[winfo rooty $graph] + $y}]
+        }
+        set WheelAxisTargetInfo [list $axis $rootX $rootY [clock clicks -milliseconds]]
+        set tag [my BindTagName wheel-axis-target]
+        bind $tag <Motion> [namespace code {my CheckWheelAxisPointer %X %Y}]
+        bind $tag <Leave> [namespace code {my ClearWheelAxisTarget}]
+        bind $tag <ButtonPress> [namespace code {my ClearWheelAxisTarget}]
+        my AddBindTag $graph $tag
+    }
     method WheelZoom {graph delta x y state step {amount 1.0}} {
         # Applies one reversible wheel-zoom operation.
         #  graph - graph pathname.
@@ -4132,9 +4215,11 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
 
         # Do not alter the graph underneath an unfinished rectangle selection.
         if {[info exists ZoomInfo(corner)] && ($ZoomInfo(corner) ne {A})} {
+            my ClearWheelAxisTarget
             return -code break
         }
         if {[info exists PanInfo(active)] && $PanInfo(active)} {
+            my ClearWheelAxisTarget
             return -code break
         }
         if {$delta > 0} {
@@ -4157,15 +4242,13 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             return
         }
         set changes [dict create]
-        if {[$graph inside $x $y]} {
-            #
-            # Plot area:
-            #
-            # Scale all X and Y axes around the value underneath the
-            # physical mouse location.
-            #
+        set wheelAxis [my WheelAxisTarget $graph $x $y $state]
+        if {$wheelAxis eq {}} {
+            if {![$graph inside $x $y]} {
+                return
+            }
+            # Plot-area scrolling scales all used axes around the pointer.
             lassign [my WidgetToAxisPixels $x $y] xPixel yPixel
-            # axis invtransform requires integer pixels.
             set xPixel [expr {round($xPixel)}]
             set yPixel [expr {round($yPixel)}]
             foreach axis [my UsedAxes x] {
@@ -4177,52 +4260,25 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 dict set changes $axis [my ScaledAxisLimits $axis $factor $center]
             }
         } else {
-            #
-            # Axis area:
-            #
-            # Refresh RBC's "current" axis using the actual wheel-event
-            # position.  This avoids relying on a possibly stale current
-            # axis from the last Motion event.
-            #
-            event generate $graph <Motion> -x $x -y $y -state $state
-            set axis [$graph axis get current]
-            if {$axis eq {}} {
-                # Outside both the plot area and an axis: don't consume
-                # the wheel event.
-                return
-            }
-            #
-            # An individual axis is scaled around its own center.
-            #
-            if {($GraphType eq {polar}) && ($axis in [my PolarGridAxes])} {
-                #
-                # A Polar grid is an equal-scale two-dimensional coordinate
-                # system.  Scaling only one of its grid axes would force RBC to
-                # resize the physical plot area.
-                #
-                # Scale both grid axes by the same factor instead.  The selected
-                # axis and its perpendicular partner each scale about their own
-                # numerical center.
-                #
+            # Axis scrolling remains centered on the selected axis.
+            # Polar grid axes continue to scale together.
+            if {($GraphType eq {polar}) &&
+                ($wheelAxis in [my PolarGridAxes])} {
                 foreach gridAxis [my PolarGridAxes] {
                     dict set changes $gridAxis [my ScaledAxisLimits $gridAxis $factor]
                 }
             } else {
-                dict set changes $axis [my ScaledAxisLimits $axis $factor]
+                dict set changes $wheelAxis [my ScaledAxisLimits $wheelAxis $factor]
             }
         }
         if {[dict size $changes] == 0} {
             return
         }
-        #
         # Every wheel step is a normal reversible zoom operation.
-        #
         set refreshCrosshairs [my CanRefreshCrosshairsMarker $x $y]
-        #
         # The crosshairs text boxes are pixel-sized objects represented
         # internally by graph coordinates.  Remove them before changing the
         # axis transform so they cannot be drawn using the new scale.
-        #
         if {$refreshCrosshairs} {
             my DeleteCrosshairsMarkers
         }
@@ -4231,17 +4287,14 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             lassign $limits min max
             $graph axis configure $axis -min $min -max $max
         }
+        my RememberWheelAxisTarget $graph $wheelAxis $x $y
         if {$refreshCrosshairs} {
-            #
             # Make the new axis mapping current before converting widget
             # pixels back into graph coordinates.
-            #
             update idletasks
             my RefreshCrosshairsMarker $x $y
         }
-        #
         # Keep -zoomtitle meaningful for wheel zoom as well.
-        #
         if {[my configure -zoomtitle]} {
             my FinishZoomTitle
         }
@@ -4282,6 +4335,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #
         # Returns: Nothing.
         set graph $Subwidgets(graph)
+        my ClearWheelAxisTarget
         set zoomStack $ZoomInfo(stack)
         if {[llength $zoomStack] > 0} {
             if {$single} {
@@ -4691,6 +4745,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #
         # Returns: Nothing.
         set graph $Subwidgets(graph)
+        my ClearWheelAxisTarget
         if {[info exists PanInfo(active)] && $PanInfo(active)} {
             return
         }
@@ -4854,6 +4909,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #
         # Returns: True when the press is consumed as a pan start, otherwise false.
         set graph $Subwidgets(graph)
+        my ClearWheelAxisTarget
         if {[info exists PanInfo(active)] && $PanInfo(active)} {
             return true
         }

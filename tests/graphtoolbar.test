@@ -5,7 +5,7 @@ namespace import tcltest::*
 
 set atol 1e-8
 set rtol 1e-10
-set defaultDelay 500
+set defaultDelay 100
 
 proc containsNumber {value} {
     if {[string is double -strict $value]} {
@@ -533,6 +533,24 @@ proc PlaceGraphPointer {graph x y} {
         $actualX != $x || $actualY != $y} {
         return -code error "Could not place pointer at $graph ($x,$y): actual position is ($actualX,$actualY)"
     }
+}
+
+proc SendRetainedAxisScroll {graph device x y} {
+    # With step 4, mouse +120 scales by 1/4; touchpad +60 by 1/2.
+    if {$device eq {mouse}} {
+        event generate $graph <MouseWheel> -x $x -y $y -delta 120 -when now
+    } else {
+        event generate $graph <TouchpadScroll> -x $x -y $y -delta 60 -when now
+    }
+    update idletasks
+}
+
+proc SetRetainedAxisAge {widget milliseconds} {
+    # Control elapsed time without sleeping or replacing the clock.
+    set var [info object namespace $widget]::WheelAxisTargetInfo
+    set target [set $var]
+    lset target 3 [expr {[clock clicks -milliseconds] - $milliseconds}]
+    set $var $target
 }
 
 customMatch approxEqual approxNestedEqual
@@ -1716,6 +1734,125 @@ foreach {variant inverted logarithmic} {normal 0 0 inverted 1 0 logarithmic 0 1}
         catch {bind $observerTag <MouseWheel> {}}
         catch {destroy $widget}
         unset -nocomplain ::gtbTouchpadPassed
+    }
+}
+
+foreach device {mouse touchpad} {
+    foreach selectedAxis {x y} {
+        foreach action {retain expire motion-return leave click} {
+            test wheelAxisRetention-$device-$selectedAxis-$action\
+                    "axis scroll retention: $device, $selectedAxis, $action"\
+                    -constraints {isInteractive isZoom} -setup {
+                set widget [graphtoolbar .gtb -width 600 -height 450 -zoom -zoomwheel -zoomwheelmod {}\
+                                    -zoomwheelscale 4.0]
+                pack $widget -fill both -expand yes
+                set graph [$widget subwidget graph]
+                $graph configure -leftmargin 120 -bottommargin 120 -rightmargin 40 -topmargin 40
+                $graph xaxis use x
+                $graph yaxis use y
+                $graph x2axis use {}
+                $graph y2axis use {}
+                $graph legend configure -hide yes
+                $graph axis configure x -min 0 -max 100
+                $graph axis configure y -min 0 -max 100
+                $graph element create signal -data {0 0 50 50 100 100}
+                WaitForWindow $graph
+                update
+                if {$selectedAxis eq {x}} {
+                    set side bottom
+                    set margin -bottommargin
+                } else {
+                    set side left
+                    set margin -leftmargin
+                }
+                lassign [FindAxisPoint $graph $selectedAxis $side] x y
+                # Find an axis hit strictly outside the plot.
+                for {set i 0} {$i < 40} {incr i} {
+                    event generate $graph <Motion> -x $x -y $y -when now
+                    if {![$graph inside $x $y] && ([$graph axis get current] eq $selectedAxis)} {
+                        break
+                    }
+                    if {$side eq {bottom}} {
+                        incr y
+                    } else {
+                        incr x -1
+                    }
+                }
+                if {$i == 40} {
+                    error "Could not find an outside-plot point on $selectedAxis"
+                }
+                set factor [expr {$device eq {mouse} ? 0.25 : 0.5}]
+                set initialExpected {}
+                foreach axis {x y} {
+                    if {$axis eq $selectedAxis} {
+                        lappend initialExpected {*}[ExpectedWheelLimits $graph $axis $factor]
+                    } else {
+                        lappend initialExpected {*}[$graph axis limits $axis]
+                    }
+                }
+                SendRetainedAxisScroll $graph $device $x $y
+                set initialActual [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+                # Move the axis while keeping the event coordinates fixed.
+                $graph configure $margin 40
+                update idletasks
+                if {![$graph inside $x $y]} {
+                    error "Margin change did not move the old axis point into the plot"
+                }
+            } -body {
+                set targetVar [info object namespace $widget]::WheelAxisTargetInfo
+                SetRetainedAxisAge $widget 100
+                set previousTime [lindex [set $targetVar] 3]
+                switch -- $action {
+                    retain {}
+                    expire {
+                        SetRetainedAxisAge $widget 1000
+                    }
+                    motion-return {
+                        # Returning must not restore the previous gesture.
+                        foreach offset {12 0} {
+                            set mx [expr {$x + $offset}]
+                            event generate $graph <Motion> -x $mx -y $y -rootx [expr {[winfo rootx $graph] + $mx}]\
+                                    -rooty [expr {[winfo rooty $graph] + $y}] -when now
+                        }
+                    }
+                    leave {
+                        event generate $graph <Leave> -x $x -y $y -when now
+                    }
+                    click {
+                        # Avoid starting rectangle zoom or pan.
+                        event generate $graph <ButtonPress-4> -x $x -y $y -when now
+                        event generate $graph <ButtonRelease-4> -x $x -y $y -when now
+                    }
+                }
+                set expected {}
+                foreach axis {x y} pixel [list $x $y] {
+                    if {$action eq {retain}} {
+                        if {$axis eq $selectedAxis} {
+                            lappend expected {*}[ExpectedWheelLimits $graph $axis $factor]
+                        } else {
+                            lappend expected {*}[$graph axis limits $axis]
+                        }
+                    } else {
+                        # After cancellation, the same point targets the plot.
+                        lappend expected {*}[ExpectedWheelLimits $graph $axis $factor $pixel]
+                    }
+                }
+                SendRetainedAxisScroll $graph $device $x $y
+                set actual [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+                if {$action eq {retain}} {
+                    lassign [set $targetVar] targetAxis rootX rootY timestamp
+                    set stateOK [expr {($targetAxis eq $selectedAxis) && ($timestamp > $previousTime)}]
+                } else {
+                    set stateOK [expr {![info exists $targetVar]}]
+                }
+                set tag gtb-wheel-axis-target-$graph
+                destroy $widget
+                list [expr {!![approxNestedEqual $initialActual $initialExpected]}]\
+                        [expr {!![approxNestedEqual $actual $expected]}] $stateOK [expr {[bind $tag] eq {}}]
+            } -result {1 1 1 1} -cleanup {
+                catch {destroy .gtb}
+            }
+        }
     }
 }
 
@@ -4220,8 +4357,9 @@ test crossInteractive-6 {wheel zoom redraws closest crosshairs markers}\
 
 test crossInteractive-7 {wheel zoom redraws current crosshairs marker box with inverted axes}\
         -constraints {isInteractive isCross} -setup {
-    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
-                        -zoomwheelscale 2.0 -crosshairs -crosshairsmode current]
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {} -zoomwheelscale 2.0 -crosshairs\
+                        -crosshairsmode current\
+                        -crosshairsmarkopts {-font TkFixedFont -formatx +012.4f -formaty +012.4f}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {wheel zoom redraws current crosshairs marker box with inverted axes}\
             -invertxy yes {*}$titleFont
@@ -4240,10 +4378,14 @@ test crossInteractive-7 {wheel zoom redraws current crosshairs marker box with i
     GenerateGraphWheelEvent $graph $x $y 120 20
     set afterBox [MarkerWidgetCoords $graph gtbCrosshairsTextBox]
     set afterText [MarkerWidgetCoords $graph gtbCrosshairsText]
+    # With invertxy, physical Y maps to data X and physical X to data Y.
+    set expectedText [join [list [format "x(v)=%+012.4f" [$graph axis invtransform x $y]]\
+                                    [format "y(h)=%+012.4f" [$graph axis invtransform y $x]]] \n]
+    set actualText [$graph marker cget gtbCrosshairsText -text]
     sleep $defaultDelay
     list [$graph marker exists gtbCrosshairsTextBox] [approxPixelCoordsEqual $beforeBox $afterBox]\
-            [approxPixelCoordsEqual $beforeText $afterText]
-} -result {1 true true} -cleanup {
+            [approxPixelCoordsEqual $beforeText $afterText] [expr {$actualText eq $expectedText}]
+} -result {1 true true 1} -cleanup {
     destroy $widget
 }
 
