@@ -629,10 +629,14 @@ traces, and error bars.</p>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">-areatile</span></code> specifies an Rbc tile/image used to fill the area. An empty value disables the tile.</p>
-<p>With <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code>, solid and stippled areas use the graph’s <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> setting.
+<p>With <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code>, solid, stippled, and photo-tiled areas use the graph’s <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> setting.
 Stipple pixels remain sharp and aligned to the widget origin; antialiasing affects the polygon edge.
-An empty <code class="docutils literal notranslate"><span class="pre">-areabackground</span></code> leaves gaps transparent. Image tiles take precedence over patterns and
-retain native rendering, as do areas with an empty <code class="docutils literal notranslate"><span class="pre">-areaforeground</span></code> (the native GC default).</p>
+An empty <code class="docutils literal notranslate"><span class="pre">-areabackground</span></code> leaves gaps transparent. Image tiles take precedence over patterns.
+Photo tiles align to the toplevel window origin and preserve their alpha, including partial transparency.
+Image edits and resizing refresh the displayed fill; deleting a photo removes it without enabling
+the underlying pattern. Recreating the image with the same name restores the tile.</p>
+<p>Non-photo image tiles retain native rendering. Solid/stippled areas with an empty <code class="docutils literal notranslate"><span class="pre">-areaforeground</span></code>
+also use the native GC default. Native photo tiles retain their existing transparency-mask behavior.</p>
 <p>The fill polygon follows the mapped line and is closed against the bottom of the plotting area.</p>
 <p>Area filling uses the geometry after smoothing and point reduction.</p>
 <p>The current implementation stores one fill polygon per line element. Consequently, if the mapped line

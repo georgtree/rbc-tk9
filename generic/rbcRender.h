@@ -29,5 +29,7 @@ void Rbc_RenderEnd(Rbc_RenderContext *ctx);
 /* None means a solid fill; FALSE requests native drawing. */
 int Rbc_RenderArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
                    const XColor *foreground, const XColor *background, Pixmap stipple);
+int Rbc_RenderTileArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
+                       const Tk_PhotoImageBlock *block);
 
 #endif

@@ -8185,7 +8185,7 @@ static void TileChangedProc(ClientData clientData, Rbc_Tile tile) {
 
     graphPtr = linePtr->core.graphPtr;
     if (graphPtr->tkwin != NULL) {
-        graphPtr->flags |= REDRAW_WORLD;
+        graphPtr->flags |= REDRAW_WORLD | REDRAW_BACKING_STORE;
         Rbc_EventuallyRedrawGraph(graphPtr);
     }
 }
@@ -11244,6 +11244,27 @@ static void DrawActiveLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
     }
 }
 
+/* Tiles take precedence, including when the image is empty or unsupported. */
+static int DrawRenderedArea(Graph *graphPtr, Drawable drawable, Line *linePtr) {
+    if (graphPtr->renderer != RBC_RENDERER_CAIRO) {
+        return FALSE;
+    }
+    if (linePtr->fillTile != NULL) {
+        Tk_PhotoImageBlock block;
+
+        if (!Rbc_GetTilePhoto(linePtr->fillTile, &block)) {
+            return FALSE;
+        }
+        return Rbc_RenderTileArea(graphPtr, drawable, linePtr->fillPts, linePtr->nFillPts, &block);
+    }
+    if (linePtr->fillStipple == None) {
+        return FALSE;
+    }
+    return Rbc_RenderArea(graphPtr, drawable, linePtr->fillPts, linePtr->nFillPts,
+        linePtr->fillFgColor, linePtr->fillBgColor,
+        (linePtr->fillStipple == PATTERN_SOLID) ? None : linePtr->fillStipple);
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -11278,11 +11299,7 @@ static void DrawNormalLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
     Tcl_Size count;
 
     /* Fill area under the curve */
-    if ((linePtr->fillPts != NULL) &&
-        !((linePtr->fillTile == NULL) && (linePtr->fillStipple != None) &&
-          Rbc_RenderArea(graphPtr, drawable, linePtr->fillPts, linePtr->nFillPts,
-              linePtr->fillFgColor, linePtr->fillBgColor,
-              (linePtr->fillStipple == PATTERN_SOLID) ? None : linePtr->fillStipple))) {
+    if ((linePtr->fillPts != NULL) && !DrawRenderedArea(graphPtr, drawable, linePtr)) {
         XPoint *points;
         int nPoints;
 

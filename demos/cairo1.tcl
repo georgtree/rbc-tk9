@@ -10,13 +10,27 @@ ttk::combobox .controls.mode -state readonly -width 10 \
 .controls.mode set default
 pack .controls.label .controls.mode -side left -padx 4 -pady 4
 set showAreas 1
-ttk::checkbutton .controls.areas -text {Area fills} -variable showAreas -command {
+set usePhotoTile 0
+set tileVariant 0
+set areaTile [image create photo -width 8 -height 8]
+$areaTile put #e6eef8 -to 0 0 8 8
+$areaTile put #cedef0 -to 0 0 4 8
+proc CairoDemoAreas {} {
+    global showAreas usePhotoTile areaTile
     foreach g {.native .cairo} {
         $g element configure signal -areapattern [expr {$showAreas ? "solid" : ""}]
         $g element configure dashed -areapattern [expr {$showAreas ? "gray50" : ""}]
+        $g element configure signal -areatile [expr {$showAreas && $usePhotoTile ? $areaTile : ""}]
     }
 }
+ttk::checkbutton .controls.areas -text {Area fills} -variable showAreas -command CairoDemoAreas
 pack .controls.areas -side left -padx 12
+ttk::checkbutton .controls.tile -text {Photo tile} -variable usePhotoTile -command CairoDemoAreas
+ttk::button .controls.recolor -text {Recolor tile} -command {
+    set tileVariant [expr {!$tileVariant}]
+    $areaTile put [expr {$tileVariant ? "#e4c7b3" : "#cedef0"}] -to 0 0 4 8
+}
+pack .controls.tile .controls.recolor -side left -padx 4
 pack .controls -side top -fill x
 ttk::label .description -text {Top: error bars. Middle: strokes and areas. Bottom: symbols and edge clipping.}
 pack .description -side top -pady 4

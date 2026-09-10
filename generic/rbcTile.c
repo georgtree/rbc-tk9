@@ -114,7 +114,7 @@ static void RedrawTile(Tk_Window tkwin, Tile *tilePtr) {
     Tk_SizeOfImage(tilePtr->tkImage, &width, &height);
 
     Tk_MakeWindowExist(tkwin);
-    if ((width != tilePtr->width) || (height != tilePtr->height)) {
+    if ((tilePtr->pixmap == None) || (width != tilePtr->width) || (height != tilePtr->height)) {
         Pixmap pixmap;
 
         /*
@@ -637,6 +637,23 @@ Pixmap Rbc_PixmapOfTile(TileClient *clientPtr) {
         return None;
     }
     return clientPtr->tilePtr->pixmap;
+}
+
+/* Borrow photo pixels until the next image change. Deleted images are empty. */
+int Rbc_GetTilePhoto(TileClient *clientPtr, Tk_PhotoImageBlock *blockPtr) {
+    Tile *tilePtr;
+    Tk_PhotoHandle photo;
+
+    memset(blockPtr, 0, sizeof(*blockPtr));
+    if ((clientPtr == NULL) || (clientPtr->magic != TILE_MAGIC)) {
+        return FALSE;
+    }
+    tilePtr = clientPtr->tilePtr;
+    if (Tk_ImageIsDeleted(tilePtr->tkImage)) {
+        return TRUE;
+    }
+    photo = Tk_FindPhoto(tilePtr->interp, Rbc_NameOfImage(tilePtr->tkImage));
+    return (photo != NULL) && Tk_PhotoGetImage(photo, blockPtr);
 }
 
 /*

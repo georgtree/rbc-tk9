@@ -293,12 +293,29 @@ static cairo_pattern_t *CreateRenderStipple(Graph *graphPtr, Pixmap stipple,
     return pattern;
 }
 
+/* Area vertices are boundaries, not the pixel centers used by strokes. */
+static void FillRenderArea(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count,
+                           cairo_pattern_t *pattern) {
+    Tcl_Size i;
+
+    cairo_translate(ctx->cr, -0.5, -0.5);
+    cairo_set_fill_rule(ctx->cr, CAIRO_FILL_RULE_EVEN_ODD);
+    if (pattern != NULL) {
+        cairo_set_source(ctx->cr, pattern);
+    }
+    cairo_move_to(ctx->cr, points[0].x, points[0].y);
+    for (i = 1; i < count; i++) {
+        cairo_line_to(ctx->cr, points[i].x, points[i].y);
+    }
+    cairo_close_path(ctx->cr);
+    cairo_fill(ctx->cr);
+}
+
 /* Fill one mapped polygon with the native even-odd rule and widget pattern origin. */
 int Rbc_RenderArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
                    const XColor *foreground, const XColor *background, Pixmap stipple) {
     Rbc_RenderContext *ctx;
     cairo_pattern_t *pattern = NULL;
-    Tcl_Size i;
 
     if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (foreground == NULL) || (count < 3)) {
         return FALSE;
@@ -316,19 +333,97 @@ int Rbc_RenderArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tc
         }
         return FALSE;
     }
-    /* Area vertices are boundaries, not the pixel centers used by strokes. */
-    cairo_translate(ctx->cr, -0.5, -0.5);
-    cairo_set_fill_rule(ctx->cr, CAIRO_FILL_RULE_EVEN_ODD);
+    FillRenderArea(ctx, points, count, pattern);
     if (pattern != NULL) {
-        cairo_set_source(ctx->cr, pattern);
         cairo_pattern_destroy(pattern);
     }
-    cairo_move_to(ctx->cr, points[0].x, points[0].y);
-    for (i = 1; i < count; i++) {
-        cairo_line_to(ctx->cr, points[i].x, points[i].y);
+    Rbc_RenderEnd(ctx);
+    return TRUE;
+}
+
+/* Copy straight-alpha Tk pixels into an owned, premultiplied Cairo tile. */
+static cairo_pattern_t *CreateRenderPhoto(const Tk_PhotoImageBlock *block) {
+    cairo_surface_t *surface;
+    cairo_pattern_t *pattern;
+    unsigned char *data;
+    int x, y, stride, hasAlpha;
+
+    if ((block->pixelPtr == NULL) || (block->pixelSize <= 0)) {
+        return NULL;
     }
-    cairo_close_path(ctx->cr);
-    cairo_fill(ctx->cr);
+    for (x = 0; x < 3; x++) {
+        if ((block->offset[x] < 0) || (block->offset[x] >= block->pixelSize)) {
+            return NULL;
+        }
+    }
+    hasAlpha = (block->offset[3] >= 0) && (block->offset[3] < block->pixelSize) &&
+        (block->offset[3] != block->offset[0]) && (block->offset[3] != block->offset[1]) &&
+        (block->offset[3] != block->offset[2]);
+    surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, block->width, block->height);
+    if (cairo_surface_status(surface) != CAIRO_STATUS_SUCCESS) {
+        cairo_surface_destroy(surface);
+        return NULL;
+    }
+    cairo_surface_flush(surface);
+    data = cairo_image_surface_get_data(surface);
+    stride = cairo_image_surface_get_stride(surface);
+    for (y = 0; y < block->height; y++) {
+        const unsigned char *src = block->pixelPtr + (ptrdiff_t)y * block->pitch;
+        uint32_t *dst = (uint32_t *)(data + (size_t)y * stride);
+
+        for (x = 0; x < block->width; x++, src += block->pixelSize) {
+            uint32_t a = hasAlpha ? src[block->offset[3]] : 255;
+            uint32_t r = (src[block->offset[0]] * a + 127) / 255;
+            uint32_t g = (src[block->offset[1]] * a + 127) / 255;
+            uint32_t b = (src[block->offset[2]] * a + 127) / 255;
+            dst[x] = (a << 24) | (r << 16) | (g << 8) | b;
+        }
+    }
+    cairo_surface_mark_dirty(surface);
+    pattern = cairo_pattern_create_for_surface(surface);
+    cairo_surface_destroy(surface);
+    cairo_pattern_set_extend(pattern, CAIRO_EXTEND_REPEAT);
+    cairo_pattern_set_filter(pattern, CAIRO_FILTER_NEAREST);
+    if (cairo_pattern_status(pattern) != CAIRO_STATUS_SUCCESS) {
+        cairo_pattern_destroy(pattern);
+        return NULL;
+    }
+    return pattern;
+}
+
+/* Repeat photo tiles from the toplevel origin, as Rbc_SetTileOrigin does. */
+int Rbc_RenderTileArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
+                       const Tk_PhotoImageBlock *block) {
+    Rbc_RenderContext *ctx;
+    cairo_pattern_t *pattern;
+    cairo_matrix_t matrix;
+    Tk_Window tkwin;
+    XColor unusedColor = {0};
+    double x = 0.0, y = 0.0;
+
+    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (count < 3)) {
+        return FALSE;
+    }
+    if ((block->width <= 0) || (block->height <= 0)) {
+        return TRUE; /* Empty or deleted photo; preserve tile precedence. */
+    }
+    pattern = CreateRenderPhoto(block);
+    if (pattern == NULL) {
+        return FALSE;
+    }
+    for (tkwin = graphPtr->tkwin; !Tk_IsTopLevel(tkwin); tkwin = Tk_Parent(tkwin)) {
+        x += Tk_X(tkwin) + Tk_Changes(tkwin)->border_width;
+        y += Tk_Y(tkwin) + Tk_Changes(tkwin)->border_width;
+    }
+    cairo_matrix_init_translate(&matrix, x, y);
+    cairo_pattern_set_matrix(pattern, &matrix);
+    ctx = Rbc_RenderBegin(graphPtr, drawable, &unusedColor, 1.0, NULL, NULL);
+    if (ctx == NULL) {
+        cairo_pattern_destroy(pattern);
+        return FALSE;
+    }
+    FillRenderArea(ctx, points, count, pattern);
+    cairo_pattern_destroy(pattern);
     Rbc_RenderEnd(ctx);
     return TRUE;
 }
@@ -377,6 +472,11 @@ int Rbc_RenderArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tc
                    const XColor *foreground, const XColor *background, Pixmap stipple) {
     (void)graphPtr; (void)drawable; (void)points; (void)count;
     (void)foreground; (void)background; (void)stipple;
+    return FALSE;
+}
+int Rbc_RenderTileArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
+                       const Tk_PhotoImageBlock *block) {
+    (void)graphPtr; (void)drawable; (void)points; (void)count; (void)block;
     return FALSE;
 }
 #endif

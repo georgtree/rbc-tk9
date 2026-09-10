@@ -33,6 +33,7 @@ void Rbc_TilePolygon(Tk_Window tkwin, Drawable drawable, Rbc_Tile tile, XPoint *
 Pixmap Rbc_PixmapOfTile(Rbc_Tile tile);
 
 void Rbc_SizeOfTile(Rbc_Tile tile, int *widthPtr, int *heightPtr);
+int Rbc_GetTilePhoto(Rbc_Tile tile, Tk_PhotoImageBlock *blockPtr);
 
 void Rbc_SetTileOrigin(Tk_Window tkwin, Rbc_Tile tile, int x, int y);
 

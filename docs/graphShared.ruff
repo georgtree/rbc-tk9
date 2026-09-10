@@ -1988,10 +1988,15 @@ namespace eval ::rbc::LINEELEMENT {
 
         `-areatile` specifies an Rbc tile/image used to fill the area. An empty value disables the tile.
 
-        With `-renderer cairo`, solid and stippled areas use the graph's `-antialias` setting.
+        With `-renderer cairo`, solid, stippled, and photo-tiled areas use the graph's `-antialias` setting.
         Stipple pixels remain sharp and aligned to the widget origin; antialiasing affects the polygon edge.
-        An empty `-areabackground` leaves gaps transparent. Image tiles take precedence over patterns and
-        retain native rendering, as do areas with an empty `-areaforeground` (the native GC default).
+        An empty `-areabackground` leaves gaps transparent. Image tiles take precedence over patterns.
+        Photo tiles align to the toplevel window origin and preserve their alpha, including partial transparency.
+        Image edits and resizing refresh the displayed fill; deleting a photo removes it without enabling
+        the underlying pattern. Recreating the image with the same name restores the tile.
+
+        Non-photo image tiles retain native rendering. Solid/stippled areas with an empty `-areaforeground`
+        also use the native GC default. Native photo tiles retain their existing transparency-mask behavior.
 
         The fill polygon follows the mapped line and is closed against the bottom of the plotting area.
 
