@@ -688,6 +688,11 @@ For example:
 .PP
 -areatile specifies an Rbc tile/image used to fill the area\&. An empty value disables the tile\&.
 .PP
+With -renderer cairo, solid and stippled areas use the graph's -antialias setting\&.
+Stipple pixels remain sharp and aligned to the widget origin; antialiasing affects the polygon edge\&.
+An empty -areabackground leaves gaps transparent\&. Image tiles take precedence over patterns and
+retain native rendering, as do areas with an empty -areaforeground (the native GC default)\&.
+.PP
 The fill polygon follows the mapped line and is closed against the bottom of the plotting area\&.
 .PP
 Area filling uses the geometry after smoothing and point reduction\&.

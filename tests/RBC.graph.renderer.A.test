@@ -464,5 +464,150 @@ namespace eval ::rbcRendererTest {
         destroy .renderer
     } -result 1
 
+
+    foreach pattern {solid gray25 gray50 gray75} {
+        test renderer-5.1-$pattern {area edges use Cairo antialias selection} \
+                -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer element configure signal -data {1 3 5 7 9 4} -linewidth 0 \
+                -areapattern $pattern -areaforeground black -areabackground {}
+            set photo [image create photo]
+        } -body {
+            set results {}
+            foreach mode {none gray none} {
+                .renderer configure -antialias $mode
+                .renderer snap $photo
+                lappend results [expr {[CountPhotoColor $photo {0 0 0}] > 0}] \
+                    [expr {[PartialGrayPixels $photo] > 0}]
+            }
+            .renderer element configure signal -areapattern {}
+            .renderer snap $photo
+            lappend results [expr {[PlotInk $photo] eq {0 0}}]
+            set results
+        } -cleanup {
+            catch {image delete $photo}
+            destroy .renderer
+        } -result {1 0 1 1 1 0 1}
+    }
+
+    proc AreaInterior {photo} {
+        lassign [.renderer extents plotarea] left top width height
+        set result {}
+        # Safely inside the constant-height fill used by renderer-5.2.
+        for {set y [expr {$top+$height/2}]} {$y < $top+3*$height/4} {incr y} {
+            for {set x [expr {$left+$width/3}]} {$x < $left+2*$width/3} {incr x} {
+                lappend result [$photo get $x $y]
+            }
+        }
+        return $result
+    }
+
+    foreach pattern {gray25 gray50 warning} {
+        test renderer-5.2-$pattern {stipple pixels, colors and origin match native after remapping} \
+                -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer configure -plotbackground red -antialias none
+            .renderer element configure signal -data {1 8 5 8 9 8} -linewidth 0 \
+                -areapattern $pattern -areaforeground black
+            set photo [image create photo]
+        } -body {
+            set failures {}
+            foreach background {{} blue} {
+                .renderer element configure signal -areabackground $background
+                foreach limits {{0 10} {-1 11}} {
+                    .renderer axis configure x -min [lindex $limits 0] -max [lindex $limits 1]
+                    .renderer configure -renderer native
+                    .renderer snap $photo
+                    set native [AreaInterior $photo]
+                    .renderer configure -renderer cairo
+                    .renderer snap $photo
+                    set cairo [AreaInterior $photo]
+                    set gap [expr {$background eq {} ? {255 0 0} : {0 0 255}}]
+                    if {$native ne $cairo || {0 0 0} ni $cairo || $gap ni $cairo} {
+                        lappend failures [list $background $limits]
+                    }
+                }
+            }
+            set failures
+        } -cleanup {
+            catch {image delete $photo}
+            destroy .renderer
+        } -result {}
+    }
+
+    foreach invert {no yes} {
+        test renderer-5.3-$invert {area fills clip to the plot with inverted axes too} \
+                -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer configure -invertxy $invert -antialias gray
+            .renderer element configure signal -data {-5 3 5 13 15 -3} -linewidth 0 \
+                -areapattern solid -areaforeground red
+            set photo [image create photo]
+        } -body {
+            .renderer snap $photo
+            lassign [PlotInk $photo] inside outside
+            list [expr {$inside > 0}] $outside
+        } -cleanup {
+            catch {image delete $photo}
+            destroy .renderer
+        } -result {1 0}
+    }
+
+    test renderer-5.4 {area fills precede traces and symbols} \
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element configure signal -data {1 4 5 6 9 4} -linewidth 3 \
+            -symbol circle -pixels 17 -color blue -areapattern solid -areaforeground red
+        set photo [image create photo]
+    } -body {
+        .renderer snap $photo
+        lassign [.renderer transform 5 6] x y
+        list [expr {[CountPhotoColor $photo {255 0 0}] > 0}] \
+            [$photo get [expr {int($x)}] [expr {int($y)+3}]]
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result {1 {0 0 255}}
+
+    test renderer-5.5 {image tiles retain native rendering and precedence over stipples} \
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        set tile [image create photo -width 2 -height 2]
+        $tile put {{red blue} {blue red}}
+        .renderer element configure signal -data {1 3 5 7 9 4} -linewidth 0 \
+            -areapattern solid -areaforeground black -areatile $tile
+        set photo [image create photo]
+    } -body {
+        .renderer configure -renderer native
+        .renderer snap $photo
+        set native [$photo data]
+        .renderer configure -renderer cairo
+        .renderer snap $photo
+        list [expr {$native eq [$photo data]}] \
+            [expr {[CountPhotoColor $photo {255 0 0}] > 0}] \
+            [expr {[CountPhotoColor $photo {0 0 255}] > 0}]
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo $tile}
+    } -result {1 1 1}
+
+    test renderer-5.6 {empty foreground retains the native GC default} \
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element configure signal -data {1 3 5 7 9 4} -linewidth 0 \
+            -areapattern solid -areaforeground {}
+        set photo [image create photo]
+    } -body {
+        .renderer configure -renderer native
+        .renderer snap $photo
+        set native [$photo data]
+        .renderer configure -renderer cairo
+        .renderer snap $photo
+        expr {$native eq [$photo data]}
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result 1
+
     cleanupTests
 }

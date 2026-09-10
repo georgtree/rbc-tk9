@@ -1,4 +1,4 @@
-# Compare native and Cairo strokes, symbols and error bars. Requires --enable-cairo.
+# Compare native and Cairo areas, strokes, symbols and error bars. Requires --enable-cairo.
 package require Tk
 package require rbc
 
@@ -9,8 +9,16 @@ ttk::combobox .controls.mode -state readonly -width 10 \
     -values {default none gray fast good best}
 .controls.mode set default
 pack .controls.label .controls.mode -side left -padx 4 -pady 4
+set showAreas 1
+ttk::checkbutton .controls.areas -text {Area fills} -variable showAreas -command {
+    foreach g {.native .cairo} {
+        $g element configure signal -areapattern [expr {$showAreas ? "solid" : ""}]
+        $g element configure dashed -areapattern [expr {$showAreas ? "gray50" : ""}]
+    }
+}
+pack .controls.areas -side left -padx 12
 pack .controls -side top -fill x
-ttk::label .description -text {Top: error bars. Middle: strokes. Bottom: symbols and edge clipping.}
+ttk::label .description -text {Top: error bars. Middle: strokes and areas. Bottom: symbols and edge clipping.}
 pack .description -side top -pady 4
 bind .controls.mode <<ComboboxSelected>> {
     .cairo configure -antialias [.controls.mode get]
@@ -32,9 +40,11 @@ foreach renderer {native cairo} {
     $g legend configure -hide yes
     $g axis configure x -min 0 -max 10
     $g axis configure y -min -3 -max 3
-    $g element create signal -data $data -symbol none -linewidth 1 -color navy
+    $g element create signal -data $data -symbol none -linewidth 1 -color navy \
+        -areapattern solid -areaforeground #e6eef8
     $g element create dashed -data $dashedData -symbol none -linewidth 2 \
-        -color firebrick -dashes {8 4} -offdash steelblue
+        -color firebrick -dashes {8 4} -offdash steelblue \
+        -areapattern gray50 -areaforeground #e3beb0 -areabackground {}
     $g element create errors -data {1 2.3 3 2.3 5 2.3 7 2.3 9 2.3} \
         -linewidth 0 -symbol circle -pixels 7 -color darkgreen \
         -xerror {0.3 0.3 0.3 0.3 0.3} -yerror {0.25 0.25 0.25 0.25 0.25} \

@@ -560,8 +560,9 @@ Requesting <code class="docutils literal notranslate"><span class="pre">cairo</s
 <span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>renderer<span class="w"> </span>native
 </pre></div>
 </div>
-<p>Cairo draws solid and dashed line traces, strip segments, geometric symbols, and line/strip
-error bars. Active traces and symbols use Cairo too. Mapping, decimation, and point selection
+<p>Cairo draws solid and dashed line traces, strip segments, geometric symbols, line/strip
+error bars, and solid or stippled line areas. Active traces and symbols use Cairo too.
+Mapping, decimation, and point selection
 remain shared with native rendering.</p>
 <p>Supported symbols are <code class="docutils literal notranslate"><span class="pre">circle</span></code>, <code class="docutils literal notranslate"><span class="pre">square</span></code>, <code class="docutils literal notranslate"><span class="pre">diamond</span></code>, <code class="docutils literal notranslate"><span class="pre">plus</span></code>, <code class="docutils literal notranslate"><span class="pre">cross</span></code>, <code class="docutils literal notranslate"><span class="pre">splus</span></code>, <code class="docutils literal notranslate"><span class="pre">scross</span></code>,
 <code class="docutils literal notranslate"><span class="pre">triangle</span></code>, and <code class="docutils literal notranslate"><span class="pre">arrow</span></code>. Their size, fill, outline, and <code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code> settings are preserved.
@@ -569,7 +570,12 @@ Symbols remain partially visible at plot edges, including when their centers are
 Fill passes precede outline passes, using bounded batches.</p>
 <p>Error bars retain their color, cap geometry, and <code class="docutils literal notranslate"><span class="pre">-showerrorbars</span></code> settings. They are solid,
 independent of trace dashes. A zero error-bar width retains the native one-pixel hairline.</p>
-<p>Bitmap symbols, symbols smaller than three pixels, legend samples, area fills, bar elements,
+<p>Line areas use the existing mapped polygon and even-odd fill rule. Stipples repeat from the
+widget origin, with crisp pattern pixels and antialiased polygon edges. An empty
+<code class="docutils literal notranslate"><span class="pre">-areabackground</span></code> leaves stipple gaps transparent; a color paints them. Solid fills use
+<code class="docutils literal notranslate"><span class="pre">-areaforeground</span></code>. Areas are drawn before the line’s traces, error bars, and symbols.</p>
+<p>Image-tiled areas and areas with an empty <code class="docutils literal notranslate"><span class="pre">-areaforeground</span></code> retain native rendering.
+Bitmap symbols, symbols smaller than three pixels, legend samples, bar elements,
 axes, text, markers, and crosshairs currently retain native rendering.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-antialias</span> <span class="pre">default|none|gray|fast|good|best</span></code> selects antialiasing for Cairo geometry.
 Its default is <code class="docutils literal notranslate"><span class="pre">default</span></code>; its option-database name and class are <code class="docutils literal notranslate"><span class="pre">antialias</span></code> and <code class="docutils literal notranslate"><span class="pre">Antialias</span></code>.

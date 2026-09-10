@@ -7555,7 +7555,8 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
     /*
      * Map connecting line segments if they are to be displayed.
      */
-    if ((nPoints > 1) && ((graphPtr->classUid == rbcStripElementUid) || (linePtr->builtinPen.traceWidth > 0))) {
+    if ((nPoints > 1) && ((graphPtr->classUid == rbcStripElementUid) || (linePtr->builtinPen.traceWidth > 0) ||
+                          (linePtr->fillTile != NULL) || (linePtr->fillStipple != None))) {
         linePtr->smooth = linePtr->reqSmooth;
         /*
          * Do smoothing if necessary.  This can extend the coordinate array,
@@ -11277,7 +11278,11 @@ static void DrawNormalLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
     Tcl_Size count;
 
     /* Fill area under the curve */
-    if (linePtr->fillPts != NULL) {
+    if ((linePtr->fillPts != NULL) &&
+        !((linePtr->fillTile == NULL) && (linePtr->fillStipple != None) &&
+          Rbc_RenderArea(graphPtr, drawable, linePtr->fillPts, linePtr->nFillPts,
+              linePtr->fillFgColor, linePtr->fillBgColor,
+              (linePtr->fillStipple == PATTERN_SOLID) ? None : linePtr->fillStipple))) {
         XPoint *points;
         int nPoints;
 

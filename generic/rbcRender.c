@@ -238,6 +238,101 @@ void Rbc_RenderSymbols(Rbc_RenderContext *ctx, const Rbc_RenderShape *shape,
     cairo_restore(ctx->cr);
 }
 
+static uint32_t RenderAreaPixel(const XColor *color) {
+    if (color == NULL) {
+        return 0; /* Transparent stipple gap. */
+    }
+    return 0xff000000u | (((uint32_t)color->red + 128u) / 257u << 16) |
+        (((uint32_t)color->green + 128u) / 257u << 8) | ((uint32_t)color->blue + 128u) / 257u;
+}
+
+/* Read the native bitmap before acquiring the destination drawing context. */
+static cairo_pattern_t *CreateRenderStipple(Graph *graphPtr, Pixmap stipple,
+                                           const XColor *foreground, const XColor *background) {
+    cairo_surface_t *surface;
+    cairo_pattern_t *pattern;
+    XImage *image;
+    unsigned char *data;
+    uint32_t fg = RenderAreaPixel(foreground), bg = RenderAreaPixel(background);
+    int width, height, stride, x, y;
+
+    Tk_SizeOfBitmap(graphPtr->display, stipple, &width, &height);
+    if ((width <= 0) || (height <= 0)) {
+        return NULL;
+    }
+    surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+    if (cairo_surface_status(surface) != CAIRO_STATUS_SUCCESS) {
+        cairo_surface_destroy(surface);
+        return NULL;
+    }
+    /* Read stipple bits directly; Tk/Windows ZPixmap inverts monochrome data. */
+    image = XGetImage(graphPtr->display, stipple, 0, 0, width, height, 1, XYPixmap);
+    if (image == NULL) {
+        cairo_surface_destroy(surface);
+        return NULL;
+    }
+    cairo_surface_flush(surface);
+    data = cairo_image_surface_get_data(surface);
+    stride = cairo_image_surface_get_stride(surface);
+    for (y = 0; y < height; y++) {
+        uint32_t *row = (uint32_t *)(data + (size_t)y * stride);
+        for (x = 0; x < width; x++) {
+            row[x] = XGetPixel(image, x, y) ? fg : bg;
+        }
+    }
+    XDestroyImage(image);
+    cairo_surface_mark_dirty(surface);
+    pattern = cairo_pattern_create_for_surface(surface);
+    cairo_surface_destroy(surface);
+    cairo_pattern_set_extend(pattern, CAIRO_EXTEND_REPEAT);
+    cairo_pattern_set_filter(pattern, CAIRO_FILTER_NEAREST);
+    if (cairo_pattern_status(pattern) != CAIRO_STATUS_SUCCESS) {
+        cairo_pattern_destroy(pattern);
+        return NULL;
+    }
+    return pattern;
+}
+
+/* Fill one mapped polygon with the native even-odd rule and widget pattern origin. */
+int Rbc_RenderArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
+                   const XColor *foreground, const XColor *background, Pixmap stipple) {
+    Rbc_RenderContext *ctx;
+    cairo_pattern_t *pattern = NULL;
+    Tcl_Size i;
+
+    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (foreground == NULL) || (count < 3)) {
+        return FALSE;
+    }
+    if (stipple != None) {
+        pattern = CreateRenderStipple(graphPtr, stipple, foreground, background);
+        if (pattern == NULL) {
+            return FALSE;
+        }
+    }
+    ctx = Rbc_RenderBegin(graphPtr, drawable, foreground, 1.0, NULL, NULL);
+    if (ctx == NULL) {
+        if (pattern != NULL) {
+            cairo_pattern_destroy(pattern);
+        }
+        return FALSE;
+    }
+    /* Area vertices are boundaries, not the pixel centers used by strokes. */
+    cairo_translate(ctx->cr, -0.5, -0.5);
+    cairo_set_fill_rule(ctx->cr, CAIRO_FILL_RULE_EVEN_ODD);
+    if (pattern != NULL) {
+        cairo_set_source(ctx->cr, pattern);
+        cairo_pattern_destroy(pattern);
+    }
+    cairo_move_to(ctx->cr, points[0].x, points[0].y);
+    for (i = 1; i < count; i++) {
+        cairo_line_to(ctx->cr, points[i].x, points[i].y);
+    }
+    cairo_close_path(ctx->cr);
+    cairo_fill(ctx->cr);
+    Rbc_RenderEnd(ctx);
+    return TRUE;
+}
+
 /* Flush before any native drawing resumes on the same drawable. */
 void Rbc_RenderEnd(Rbc_RenderContext *ctx) {
     cairo_status_t status;
@@ -277,5 +372,11 @@ void Rbc_RenderSymbols(Rbc_RenderContext *ctx, const Rbc_RenderShape *shape,
 }
 void Rbc_RenderEnd(Rbc_RenderContext *ctx) {
     (void)ctx;
+}
+int Rbc_RenderArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
+                   const XColor *foreground, const XColor *background, Pixmap stipple) {
+    (void)graphPtr; (void)drawable; (void)points; (void)count;
+    (void)foreground; (void)background; (void)stipple;
+    return FALSE;
 }
 #endif

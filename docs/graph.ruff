@@ -639,8 +639,9 @@ The default is `se`. |
         .g configure -renderer native
         ```
 
-        Cairo draws solid and dashed line traces, strip segments, geometric symbols, and line/strip
-        error bars. Active traces and symbols use Cairo too. Mapping, decimation, and point selection
+        Cairo draws solid and dashed line traces, strip segments, geometric symbols, line/strip
+        error bars, and solid or stippled line areas. Active traces and symbols use Cairo too.
+        Mapping, decimation, and point selection
         remain shared with native rendering.
 
         Supported symbols are `circle`, `square`, `diamond`, `plus`, `cross`, `splus`, `scross`,
@@ -651,7 +652,13 @@ The default is `se`. |
         Error bars retain their color, cap geometry, and `-showerrorbars` settings. They are solid,
         independent of trace dashes. A zero error-bar width retains the native one-pixel hairline.
 
-        Bitmap symbols, symbols smaller than three pixels, legend samples, area fills, bar elements,
+        Line areas use the existing mapped polygon and even-odd fill rule. Stipples repeat from the
+        widget origin, with crisp pattern pixels and antialiased polygon edges. An empty
+        `-areabackground` leaves stipple gaps transparent; a color paints them. Solid fills use
+        `-areaforeground`. Areas are drawn before the line's traces, error bars, and symbols.
+
+        Image-tiled areas and areas with an empty `-areaforeground` retain native rendering.
+        Bitmap symbols, symbols smaller than three pixels, legend samples, bar elements,
         axes, text, markers, and crosshairs currently retain native rendering.
 
         `-antialias default|none|gray|fast|good|best` selects antialiasing for Cairo geometry.
