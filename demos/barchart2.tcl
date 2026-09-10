@@ -101,6 +101,7 @@ proc FormatXTicks {w value} {
 ### Create the barchart.
 set barchart [graphtoolbar .bc -width 800 -height 500 -type barchart -zoom -zoomtitle -zoommark -crosshairs\
                       -crosshairsmode closest -scaletoggle y -activelegend -zoomwheel]
+$barchart graph configure -renderer cairo
 
 ### Define vectors and their contents.
 vector create X Y0 Y1 Y2 Y3 Y4

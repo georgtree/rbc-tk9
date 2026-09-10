@@ -46,6 +46,7 @@ if {($visual ne {staticgray}) && ($visual ne {grayscale})} {
 ### Create and configure barchart.
 set barchart [graphtoolbar .bc -width 800 -height 500 -type barchart -zoom -zoomtitle -zoommark -crosshairs\
                       -crosshairsmode closest -scaletoggle y -activelegend -zoomwheel]
+$barchart graph configure -renderer cairo
 $barchart graph configure -relief raised -bd 2
 $barchart graph xaxis configure -rotate 90 -stepsize 0 
 

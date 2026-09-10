@@ -39,6 +39,8 @@ proc FormatLabel {w value} {
 }
 set barchart [graphtoolbar .bc -width 800 -height 500 -type barchart -zoom -zoomtitle -zoommark -crosshairs\
                       -crosshairsmode closest -scaletoggle y -activelegend -zoomwheel]
+
+$barchart graph configure -renderer cairo
 $barchart graph configure -invert true -baseline 1.2
 $barchart graph xaxis configure -command FormatLabel -descending true
 $barchart graph legend configure -hide yes

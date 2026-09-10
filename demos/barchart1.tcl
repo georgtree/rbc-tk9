@@ -48,6 +48,7 @@ proc FormatLabel {w value} {
 ### Create the barchart.
 set barchart [graphtoolbar .bc -width 800 -height 500 -type barchart -zoom -zoomtitle -zoommark -crosshairs\
                       -crosshairsmode closest -scaletoggle y -activelegend -zoomwheel]
+$barchart graph configure -renderer cairo
 
 ### Add a bar to .bc for each bitmap in the list.
 proc random {{max 1.0} {min 0.0}} {

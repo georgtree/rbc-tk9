@@ -1910,5 +1910,81 @@ namespace eval ::rbcRendererTest {
         }
     }
 
+    foreach kind {graph stripchart} {
+        foreach shape {circle splus bitmap} {
+            foreach fill {black defcolor {}} {
+                test renderer-15.1-$kind-$shape-$fill {tiny symbols preserve pixels, fill and selection rules} \
+                        -constraints rbcCairo -setup {
+                    lassign [BitmapSymbolFixture $kind] bitmap mask
+                    set symbol [expr {$shape eq "bitmap" ? "@$bitmap" : $shape}]
+                    .renderer element configure signal -symbol $symbol -pixels 1 -fill $fill \
+                        -outline red -color black -maxsymbols 1 -data {2 2 Inf Inf 5 5 Inf Inf 5 5 Inf Inf 8 8}
+                    set photo [image create photo]
+                } -body {
+                    .renderer configure -renderer native
+                    .renderer snap $photo
+                    set native [$photo data]
+                    set results {}
+                    foreach mode {none gray none} {
+                        .renderer configure -renderer cairo -antialias $mode
+                        .renderer snap $photo
+                        lappend results [expr {$native eq [$photo data]}] \
+                            [expr {[CountPhotoColor $photo {0 0 0}] == ($fill eq {} ? 0 : 3)}] \
+                            [expr {[PartialGrayPixels $photo] == 0}]
+                    }
+                    set results
+                } -cleanup {
+                    destroy .renderer
+                    catch {image delete $photo}
+                    removeFile $bitmap
+                    removeFile $mask
+                } -result {1 1 1 1 1 1 1 1 1}
+            }
+        }
+    }
+
+    foreach inverted {no yes} {
+        test renderer-15.2-$inverted {tiny symbols retain plot clipping with inverted axes} \
+                -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer configure -invertxy $inverted -plotpadx 0 -plotpady 0
+            .renderer element configure signal -symbol square -pixels 1 -fill black -linewidth 0 \
+                -data {-1 5 0 0 0 10 5 5 10 0 10 10 11 5}
+            set photo [image create photo]
+        } -body {
+            .renderer configure -renderer native
+            .renderer snap $photo
+            set native [$photo data]
+            .renderer configure -renderer cairo
+            .renderer snap $photo
+            lassign [PlotInk $photo] inside outside
+            list [expr {$native eq [$photo data]}] [expr {$inside > 0}] $outside
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+        } -result {1 1 0}
+    }
+
+    test renderer-15.3 {tiny active pens survive repeated snapshots and renderer switching} \
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element configure signal -data {2 2 5 5 8 8} -linewidth 0 -symbol circle -pixels 1 -fill black
+        .renderer pen create selected -type line -linewidth 0 -symbol square -pixels 1 -fill red -outline blue
+        .renderer element configure signal -activepen selected
+        .renderer element activate signal 1
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach backend {native cairo cairo native} {
+            .renderer configure -renderer $backend
+            .renderer snap $photo
+            lappend results [expr {[CountPhotoColor $photo {255 0 0}] == 1}]
+        }
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 1 1 1}
+
     cleanupTests
 }

@@ -239,6 +239,21 @@ static void AppendRenderSymbol(cairo_t *cr, const Rbc_RenderShape *shape, const 
 }
 
 /* Callers supply bounded batches. Symbol outlines are solid with miter joins. */
+/* Tiny symbols retain their integer, one-pixel footprint in every AA mode. */
+void Rbc_RenderPoints(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
+    Tcl_Size i;
+
+    cairo_save(ctx->cr);
+    cairo_translate(ctx->cr, -0.5, -0.5);
+    cairo_set_fill_rule(ctx->cr, CAIRO_FILL_RULE_WINDING);
+    for (i = 0; i < count; i++) {
+        cairo_rectangle(ctx->cr, (int)points[i].x, (int)points[i].y, 1, 1);
+        if ((i % 8192) == 8191) cairo_fill(ctx->cr);
+    }
+    cairo_fill(ctx->cr);
+    cairo_restore(ctx->cr);
+}
+
 void Rbc_RenderSymbols(Rbc_RenderContext *ctx, const Rbc_RenderShape *shape,
                        const Point2D *centers, Tcl_Size count, const XColor *fillColor, int outline) {
     Tcl_Size i;
@@ -737,6 +752,9 @@ void Rbc_RenderSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_S
 }
 void Rbc_RenderLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle) {
     (void)ctx; (void)capStyle; (void)joinStyle;
+}
+void Rbc_RenderPoints(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
+    (void)ctx; (void)points; (void)count;
 }
 void Rbc_RenderSymbols(Rbc_RenderContext *ctx, const Rbc_RenderShape *shape,
                        const Point2D *centers, Tcl_Size count, const XColor *fillColor, int outline) {

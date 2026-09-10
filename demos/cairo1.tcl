@@ -109,6 +109,8 @@ foreach renderer {native cairo} {
     }
     $g element create clipped -label {} -data {0 -2.4 10 -2.4} -linewidth 0 \
         -symbol circle -pixels 21 -fill salmon -outline firebrick
+    $g element create tinySample -label {} -data {6.5 -1.7 6.7 -1.7 6.9 -1.7 7.1 -1.7 7.3 -1.7} \
+        -linewidth 0 -symbol circle -pixels 1 -fill navy
     $g element create bitmapSample -label Bitmap -data {2.7 -1.7 5.5 -1.7} -linewidth 0 \
         -symbol $markerBitmap -pixels 17 -outline #885577 -fill {}
     $g marker create line -name demoArrow -coords {1.2 2.7 2 1.8} \

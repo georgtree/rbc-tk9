@@ -340,6 +340,7 @@ option add *Stripchart.width 6i
 ### Create and configure the stripchart; add the sources.
 set stripchart [graphtoolbar .sc -width 800 -height 500 -type stripchart -controlmode context -zoom -zoomtitle -zoommark\
                    -crosshairs -crosshairsmode current -scaletoggle y -activelegend -zoomwheel -pan]
+$stripchart graph configure -renderer cairo
 $stripchart graph configure -title Stripchart -width 600 -height 400
 $stripchart graph xaxis configure -title {Time (s)} -autorange 2.0 -shiftby 0.5
 $stripchart graph yaxis configure -title Samples

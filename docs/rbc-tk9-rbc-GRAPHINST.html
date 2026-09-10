@@ -589,12 +589,13 @@ legends. Swatch stipples restart at the sample origin. Legend text, backgrounds,
 They draw across the widget margins, independently of the plot clip. Axis labels, titles, and relief
 backgrounds remain native. A zero axis <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code> hides strokes, as with native rendering.</p>
 <p>Non-photo image tiles and solid/stippled areas with an empty <code class="docutils literal notranslate"><span class="pre">-areaforeground</span></code> retain native rendering.
-Symbols smaller than three pixels,
-all text, window markers, non-photo image markers, and crosshairs retain native rendering.</p>
+All text, window markers, non-photo image markers, and crosshairs retain native rendering.</p>
 <p>Grid and marker geometry is clipped to the plotting area. Marker color pairs, stipples, dash offsets,
 caps, and under/over ordering are preserved. Mapped segments remain independent, retaining their
 existing dash restarts. XOR markers keep native drawing and erase behavior. A line marker with an
 empty <code class="docutils literal notranslate"><span class="pre">-outline</span></code> also keeps its native GC default.</p>
+<p>Symbols smaller than three mapped pixels use Cairo one-pixel fills, sharp in every antialias mode.
+As with native drawing, they use only the fill color and bypass <code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code>; an empty fill hides them.</p>
 <p>Bitmap element symbols and their legend samples use Cairo with existing aspect-preserving scaling
 and mask behavior. Pixels stay sharp in every antialias mode. Active pens and <code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code> retain
 their existing selection rules; legend samples do not consume that limit. The scaled bitmap is

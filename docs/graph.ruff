@@ -676,13 +676,15 @@ The default is `se`. |
         backgrounds remain native. A zero axis `-linewidth` hides strokes, as with native rendering.
 
         Non-photo image tiles and solid/stippled areas with an empty `-areaforeground` retain native rendering.
-        Symbols smaller than three pixels,
-        all text, window markers, non-photo image markers, and crosshairs retain native rendering.
+        All text, window markers, non-photo image markers, and crosshairs retain native rendering.
 
         Grid and marker geometry is clipped to the plotting area. Marker color pairs, stipples, dash offsets,
         caps, and under/over ordering are preserved. Mapped segments remain independent, retaining their
         existing dash restarts. XOR markers keep native drawing and erase behavior. A line marker with an
         empty `-outline` also keeps its native GC default.
+
+        Symbols smaller than three mapped pixels use Cairo one-pixel fills, sharp in every antialias mode.
+        As with native drawing, they use only the fill color and bypass `-maxsymbols`; an empty fill hides them.
 
         Bitmap element symbols and their legend samples use Cairo with existing aspect-preserving scaling
         and mask behavior. Pixels stay sharp in every antialias mode. Active pens and `-maxsymbols` retain
