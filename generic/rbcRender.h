@@ -5,6 +5,9 @@
 #include "rbcGraph.h"
 
 typedef struct Rbc_RenderContext Rbc_RenderContext;
+typedef struct Rbc_RenderTarget Rbc_RenderTarget;
+Rbc_RenderTarget *Rbc_RenderBeginMarkerPass(Graph *graphPtr, Drawable *drawablePtr);
+void Rbc_RenderEndMarkerPass(Rbc_RenderTarget *target);
 
 /* Keep bar geometry in full-width widget coordinates. */
 typedef struct {

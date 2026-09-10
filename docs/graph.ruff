@@ -724,6 +724,9 @@ The default is `se`. |
 
         Snapshots use the selected renderer for these primitives. PostScript and Windows metafile output
         retain their existing exporters. Switching renderers invalidates the cached element image.
+        On Windows, mixed/Cairo marker passes share a temporary DIB drawing target. Existing pixels are copied
+        once into the target and once back; native text and fallbacks retain display-list order. Text-only passes
+        keep native batching. The target is released at the end of each pass, including snapshot rendering.
         Native rendering remains the fallback when a Cairo drawing surface cannot be opened.
 
         ## Widget options

@@ -12,6 +12,79 @@
 #include <cairo-xlib.h>
 #endif
 
+#ifdef WIN32
+struct Rbc_RenderTarget {
+    Graph *graphPtr;
+    cairo_surface_t *surface;
+    cairo_surface_t *image;
+    Rbc_WinDrawableDC *destinationState;
+    HDC destinationDC, dc;
+    Drawable drawable;
+};
+
+/* One DIB for the marker pass avoids per-marker DDB readback. */
+Rbc_RenderTarget *Rbc_RenderBeginMarkerPass(Graph *graphPtr, Drawable *drawablePtr) {
+    Rbc_RenderTarget *target;
+
+    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (graphPtr->renderTarget != NULL) ||
+        (graphPtr->width <= 0) || (graphPtr->height <= 0)) return NULL;
+    target = Tcl_AttemptAlloc(sizeof(*target));
+    if (target == NULL) return NULL;
+    memset(target, 0, sizeof(*target));
+    target->graphPtr = graphPtr;
+    target->destinationDC = Rbc_WinAcquireDrawableDC(graphPtr->display, *drawablePtr, &target->destinationState);
+    if ((target->destinationDC == NULL) ||
+        ((GetObjectType(target->destinationDC) != OBJ_DC) && (GetObjectType(target->destinationDC) != OBJ_MEMDC)) ||
+        (GetDeviceCaps(target->destinationDC, TECHNOLOGY) != DT_RASDISPLAY)) goto fail;
+    target->surface = cairo_win32_surface_create_with_dib(CAIRO_FORMAT_RGB24, graphPtr->width, graphPtr->height);
+    if (cairo_surface_status(target->surface) != CAIRO_STATUS_SUCCESS) goto fail;
+    target->dc = cairo_win32_surface_get_dc(target->surface);
+    target->image = cairo_win32_surface_get_image(target->surface);
+    if ((target->dc == NULL) || (target->image == NULL) ||
+        (cairo_surface_status(target->image) != CAIRO_STATUS_SUCCESS)) goto fail;
+    GdiFlush();
+    if (!BitBlt(target->dc, 0, 0, graphPtr->width, graphPtr->height, target->destinationDC, 0, 0, SRCCOPY)) goto fail;
+    GdiFlush();
+    cairo_surface_mark_dirty(target->image);
+    target->drawable = Rbc_WinCreateDrawableFromDC(target->dc);
+    if (target->drawable == None) goto fail;
+    graphPtr->renderTarget = target;
+    *drawablePtr = target->drawable;
+    return target;
+
+fail:
+    if (target->surface != NULL) cairo_surface_destroy(target->surface);
+    Rbc_WinReleaseDrawableDC(target->destinationState);
+    ckfree(target);
+    return NULL;
+}
+
+void Rbc_RenderEndMarkerPass(Rbc_RenderTarget *target) {
+    if (target == NULL) return;
+    cairo_surface_flush(target->image);
+    GdiFlush();
+    if (!BitBlt(target->destinationDC, 0, 0, target->graphPtr->width, target->graphPtr->height, target->dc, 0, 0, SRCCOPY)) {
+        Tcl_Interp *interp = target->graphPtr->interp;
+        Tcl_InterpState saved = Tcl_SaveInterpState(interp, TCL_OK);
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("Cairo marker target copy failed", -1));
+        Tcl_BackgroundException(interp, TCL_ERROR);
+        Tcl_RestoreInterpState(interp, saved);
+    }
+    GdiFlush();
+    target->graphPtr->renderTarget = NULL;
+    Rbc_WinFreeDrawableFromDC(target->drawable);
+    cairo_surface_destroy(target->surface);
+    Rbc_WinReleaseDrawableDC(target->destinationState);
+    ckfree(target);
+}
+#else
+Rbc_RenderTarget *Rbc_RenderBeginMarkerPass(Graph *graphPtr, Drawable *drawablePtr) {
+    (void)graphPtr; (void)drawablePtr;
+    return NULL;
+}
+void Rbc_RenderEndMarkerPass(Rbc_RenderTarget *target) { (void)target; }
+#endif
+
 struct Rbc_RenderContext {
     Graph *graphPtr;
     cairo_surface_t *surface;
@@ -135,23 +208,30 @@ static Rbc_RenderContext *BeginRenderTarget(Graph *graphPtr, Drawable drawable,
         }
     }
 #ifdef WIN32
-    ctx->dc = Rbc_WinAcquireDrawableDC(graphPtr->display, drawable, &ctx->dcState);
-    if (ctx->dc == NULL) {
-        goto fail;
+    if ((graphPtr->renderTarget != NULL) && (graphPtr->renderTarget->drawable == drawable)) {
+        /* Native text/fallbacks may have touched the shared DIB since the last draw. */
+        GdiFlush();
+        cairo_surface_mark_dirty(graphPtr->renderTarget->image);
+        ctx->surface = cairo_surface_reference(graphPtr->renderTarget->image);
+    } else {
+        ctx->dc = Rbc_WinAcquireDrawableDC(graphPtr->display, drawable, &ctx->dcState);
+        if (ctx->dc == NULL) {
+            goto fail;
+        }
+        /* Keep metafile/printing output on its existing native path. */
+        if ((GetObjectType(ctx->dc) != OBJ_DC) && (GetObjectType(ctx->dc) != OBJ_MEMDC)) {
+            goto fail;
+        }
+        if (GetDeviceCaps(ctx->dc, TECHNOLOGY) != DT_RASDISPLAY) {
+            goto fail;
+        }
+        ctx->savedDC = SaveDC(ctx->dc);
+        if (ctx->savedDC == 0) {
+            goto fail;
+        }
+        GdiFlush();
+        ctx->surface = cairo_win32_surface_create(ctx->dc);
     }
-    /* Keep metafile/printing output on its existing native path. */
-    if ((GetObjectType(ctx->dc) != OBJ_DC) && (GetObjectType(ctx->dc) != OBJ_MEMDC)) {
-        goto fail;
-    }
-    if (GetDeviceCaps(ctx->dc, TECHNOLOGY) != DT_RASDISPLAY) {
-        goto fail;
-    }
-    ctx->savedDC = SaveDC(ctx->dc);
-    if (ctx->savedDC == 0) {
-        goto fail;
-    }
-    GdiFlush();
-    ctx->surface = cairo_win32_surface_create(ctx->dc);
 #else
     ctx->surface = cairo_xlib_surface_create(graphPtr->display, drawable,
         Tk_Visual(graphPtr->tkwin), targetWidth, targetHeight);
@@ -756,6 +836,11 @@ int Rbc_RenderLegendBar(Graph *graphPtr, Drawable drawable, int width, int heigh
     (void)foreground; (void)background; (void)stipple;
     return FALSE;
 }
+Rbc_RenderTarget *Rbc_RenderBeginMarkerPass(Graph *graphPtr, Drawable *drawablePtr) {
+    (void)graphPtr; (void)drawablePtr;
+    return NULL;
+}
+void Rbc_RenderEndMarkerPass(Rbc_RenderTarget *target) { (void)target; }
 Rbc_RenderContext *Rbc_RenderBegin(Graph *graphPtr, Drawable drawable,
                                    const XColor *colorPtr, double width,
                                    const Rbc_Dashes *dashesPtr, const XColor *offColorPtr) {

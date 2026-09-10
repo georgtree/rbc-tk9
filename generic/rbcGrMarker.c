@@ -6753,6 +6753,26 @@ static void FlushWinBitmapMarkerBatch(Graph *graphPtr, Drawable drawable, Bitmap
 
 #endif /* WIN32 */
 
+#ifdef WIN32
+/* Text-only passes keep their native batching without an extra target copy. */
+static int MarkersNeedRenderTarget(Graph *graphPtr, int under) {
+    Rbc_ChainLink *link;
+
+    if (graphPtr->renderer != RBC_RENDERER_CAIRO) return FALSE;
+    for (link = Rbc_ChainFirstLink(graphPtr->markers.displayList); link != NULL; link = Rbc_ChainNextLink(link)) {
+        Marker *marker = Rbc_ChainGetValue(link);
+
+        if (marker->hidden || marker->clipped || (marker->nWorldPts == 0) || (marker->drawUnder != under)) continue;
+        if (marker->classUid == rbcWindowMarkerUid) continue;
+        if ((marker->classUid == rbcTextMarkerUid) && (TEXT_MARKER_FROM_CORE(marker)->fillGC == NULL)) continue;
+        if ((marker->classUid == rbcLineMarkerUid) && LINE_MARKER_FROM_CORE(marker)->xor) continue;
+        if ((marker->classUid == rbcPolygonMarkerUid) && POLYGON_MARKER_FROM_CORE(marker)->xor) continue;
+        return TRUE;
+    }
+    return FALSE;
+}
+#endif
+
 /*
  * -------------------------------------------------------------------------
  *
@@ -6794,6 +6814,7 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
     Rbc_ChainLink *linkPtr;
     Marker *markerPtr;
 #ifdef WIN32
+    Rbc_RenderTarget *renderTarget = NULL;
     Segment2D *lineSegments;
     LineMarker *lineStylePtr;
     Tcl_Size nLineSegments;
@@ -6819,6 +6840,9 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
     size_t bitmapCapacity;
     int bitmapCapacityValid;
 
+    if (MarkersNeedRenderTarget(graphPtr, under)) {
+        renderTarget = Rbc_RenderBeginMarkerPass(graphPtr, &drawable);
+    }
     polygonFillCapacityValid = TRUE;    
     lineCapacityValid = TRUE;
     polygonCapacityValid = TRUE;
@@ -7153,6 +7177,7 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
     if (bitmapPositions != NULL) {
         ckfree(bitmapPositions);
     }
+    Rbc_RenderEndMarkerPass(renderTarget);
 #endif /* WIN32 */
 }
 

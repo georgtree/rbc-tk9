@@ -539,6 +539,7 @@ struct GraphStruct {
     double vScale, hScale;
 
     int antialias;             /* Rbc_Antialias; applies to Cairo geometry. */
+    struct Rbc_RenderTarget *renderTarget; /* Active, synchronous marker drawing target. */
     int renderer;              /* Rbc_Renderer selected by -renderer. */
     int doubleBuffer;          /* If non-zero, draw the graph into a pixmap
                                 * first to reduce flashing. */

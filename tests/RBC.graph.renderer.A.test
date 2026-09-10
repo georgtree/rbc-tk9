@@ -2135,5 +2135,78 @@ namespace eval ::rbcRendererTest {
         catch {image delete $photo}
     } -result {1 1 1 1 1 1}
 
+    foreach mode {none default} {
+        test renderer-18.1-$mode {marker target preserves geometry and native text ordering} \
+                -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer element delete signal
+            .renderer configure -antialias $mode
+            for {set i 0} {$i < 300} {incr i} {
+                .renderer marker create polygon -coords {1 1 9 1 9 9 1 9} -fill red -outline {}
+            }
+            .renderer marker create text -coords {5 5} -anchor center -text {MMMMMMMM} \
+                -font {Arial 20} -foreground black -background blue
+            .renderer marker create polygon -coords {5 4 7 4 7 6 5 6} -fill #008000 -outline {}
+            set photo [image create photo]
+        } -body {
+            set results {}
+            foreach renderer {native cairo native cairo} {
+                .renderer configure -renderer $renderer
+                .renderer snap $photo
+                lassign [.renderer transform 6 5] x y
+                lappend results [expr {[$photo get [expr {int($x)}] [expr {int($y)}]] eq {0 128 0}}] \
+                    [expr {[CountPhotoColor $photo {255 0 0}] > 0}] \
+                    [expr {[CountPhotoColor $photo {0 0 255}] > 0}] \
+                    [expr {[CountPhotoColor $photo {0 0 0}] > 0}]
+            }
+            set results
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+        } -result {1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1}
+    }
+
+    test renderer-18.2 {marker target retains existing element pixels across under and over passes} \
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element configure signal -data {2 5 8 5} -color blue -linewidth 5
+        .renderer marker create polygon -name under -under yes -coords {1 1 9 1 9 9 1 9} -fill red -outline {}
+        .renderer marker create polygon -name over -coords {4 4 6 4 6 6 4 6} -fill #008000 -outline {}
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach renderer {native cairo native cairo} {
+            .renderer configure -renderer $renderer
+            .renderer snap $photo
+            foreach {x y expected} {3 5 {0 0 255} 5 5 {0 128 0} 3 3 {255 0 0}} {
+                lassign [.renderer transform $x $y] px py
+                lappend results [expr {[$photo get [expr {int($px)}] [expr {int($py)}]] eq $expected}]
+            }
+        }
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 1 1 1 1 1 1 1 1 1 1 1}
+
+    test renderer-18.3 {marker targets are recreated for resized snapshot drawables} \
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element delete signal
+        .renderer marker create polygon -coords {1 1 9 1 9 9 1 9} -fill red -outline {}
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach {width height} {320 240 480 320 240 180} {
+            .renderer snap $photo -width $width -height $height
+            lappend results [expr {[image width $photo] == $width && [image height $photo] == $height}] \
+                [expr {[CountPhotoColor $photo {255 0 0}] > 0}]
+        }
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 1 1 1 1 1}
+
     cleanupTests
 }
