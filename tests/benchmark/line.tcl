@@ -103,7 +103,7 @@ proc ::rbcBenchmark::CreateGraph {} {
     }
     wm overrideredirect $top 1
     $widgetCommand $graph -bufferelements 0 -buffergraph 1 -borderwidth 0 -highlightthickness 0 -plotborderwidth 0\
-            -plotpadx 0 -plotpady 0 -title {}
+            -plotpadx 0 -plotpady 0 -title {} -renderer cairo
     pack $graph -fill both -expand yes
     $graph legend configure -hide yes
     $graph grid configure -hide yes

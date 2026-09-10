@@ -556,6 +556,29 @@ These options are meaningful for widgets created with \fI::rbc::polar\fP\&.
 └──────────────────────────────┴───────────────────────┴───────────────────────┴───────────────────────────────┘
 .fi
 .RE
+.SH "RENDERING BACKEND"
+.PP
+-renderer native|cairo selects the screen renderer\&. The default is native\&.
+Its option-database name is renderer and its class is Renderer\&.
+.PP
+Cairo is optional and requires a build configured with --enable-cairo\&.
+Requesting cairo from a build without Cairo support returns an error\&.
+.PP
+.RS 4n
+.nf
+graph \&.g -renderer cairo
+\&.g element create signal -data {0 0 1 2 2 1} -symbol none
+\&.g configure -renderer native
+.fi
+.RE
+.PP
+The initial Cairo backend antialiases solid line traces and strip segments, including active traces\&.
+It uses the existing mapped and decimated geometry\&. Dashed strokes, symbols, fills, error bars,
+axes, text, markers, and crosshairs currently retain native rendering\&.
+.PP
+Snapshots use the selected renderer for these strokes\&. PostScript and Windows metafile output
+retain their existing exporters\&. Switching renderers invalidates the cached element image\&.
+Native rendering remains the fallback when a Cairo drawing surface cannot be opened\&.
 .SH "WIDGET OPTIONS"
 .PP
 The following options configure the graph widget itself\&. They are shared by graph, barchart, stripchart,

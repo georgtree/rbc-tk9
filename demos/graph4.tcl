@@ -116,8 +116,9 @@ set graph [graphtoolbar .g -width 800 -height 500 -type graph -controlmode toolb
                    -crosshairs -crosshairsmode closest -scaletoggle y -activelegend -zoomwheel -pan\
                    -zoomboxopts {-outline white} -pointeropts {-outline white} -zoomtitleopts {-foreground white}]
 foreach {label yData outline color} $attributes {
-    $graph graph element create $label -x x -y $yData -outline $outline -color $color
+    $graph graph element create $label -x x -y $yData -outline $outline -color $color -linewidth 2
 }
+$graph graph configure -renderer cairo
 
 ### Map everything
 grid .header -sticky ew

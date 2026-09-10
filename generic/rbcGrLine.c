@@ -12,6 +12,7 @@
 #include <math.h>
 #include <stdint.h>
 #include "rbcGraph.h"
+#include "rbcRender.h"
 #include "rbcChain.h"
 #include <X11/Xutil.h>
 
@@ -9967,6 +9968,42 @@ static void DrawPolygonSymbols(Display *display, Drawable drawable, LinePen *pen
 
 #endif /* WIN32 */
 
+/* Try the optional renderer before entering the native trace implementation. */
+static int DrawRenderedTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr) {
+    Rbc_RenderContext *ctx;
+    Rbc_ChainLink *linkPtr;
+
+    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || LineIsDashed(penPtr->traceDashes)) {
+        return FALSE;
+    }
+    ctx = Rbc_RenderBegin(graphPtr, drawable, penPtr->traceColor, penPtr->traceWidth);
+    if (ctx == NULL) {
+        return FALSE;
+    }
+    for (linkPtr = Rbc_ChainFirstLink(linePtr->traces); linkPtr != NULL;
+         linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        LineTrace *tracePtr = Rbc_ChainGetValue(linkPtr);
+        Rbc_RenderPolyline(ctx, tracePtr->screenPts, tracePtr->nScreenPts);
+    }
+    Rbc_RenderEnd(ctx);
+    return TRUE;
+}
+
+static void DrawRenderedStrips(Graph *graphPtr, Drawable drawable, LinePen *penPtr,
+                               const Segment2D *segments, Tcl_Size count) {
+    Rbc_RenderContext *ctx = NULL;
+
+    if ((graphPtr->renderer == RBC_RENDERER_CAIRO) && !LineIsDashed(penPtr->traceDashes)) {
+        ctx = Rbc_RenderBegin(graphPtr, drawable, penPtr->traceColor, penPtr->traceWidth);
+    }
+    if (ctx != NULL) {
+        Rbc_RenderSegments(ctx, segments, count);
+        Rbc_RenderEnd(ctx);
+    } else {
+        DrawStrips(graphPtr, drawable, penPtr->traceGC, segments, count);
+    }
+}
+
 static void DrawSymbolsUnclipped(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, int size,
                                  Tcl_Size nSymbolPts, Point2D *symbolPts) {
     XPoint pattern[13]; /* Template for polygon symbols */
@@ -10705,6 +10742,10 @@ static void DrawStrips(Graph *graphPtr, Drawable drawable, GC gc, const Segment2
  *----------------------------------------------------------------------
  */
 static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr) {
+    if (DrawRenderedTraces(graphPtr, drawable, linePtr, penPtr)) {
+        return;
+    }
+
     Rbc_ChainLink *linkPtr;
     HBRUSH brush, oldBrush;
     HDC dc;
@@ -10830,6 +10871,10 @@ static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
  *----------------------------------------------------------------------
  */
 static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr) {
+    if (DrawRenderedTraces(graphPtr, drawable, linePtr, penPtr)) {
+        return;
+    }
+
     Rbc_ChainLink *linkPtr;
     LineTrace *tracePtr;
     XPoint *points;
@@ -11017,7 +11062,7 @@ static void DrawActiveLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
     } else if (elemPtr->nActiveIndices < 0) {
         if (penPtr->traceWidth > 0) {
             if (linePtr->nStrips > 0) {
-                DrawStrips(graphPtr, drawable, penPtr->traceGC, linePtr->strips, linePtr->nStrips);
+                DrawRenderedStrips(graphPtr, drawable, penPtr, linePtr->strips, linePtr->nStrips);
             } else if (Rbc_ChainGetLength(linePtr->traces) > 0) {
                 DrawTraces(graphPtr, drawable, linePtr, penPtr);
             }
@@ -11096,7 +11141,7 @@ static void DrawNormalLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
             stylePtr = Rbc_ChainGetValue(linkPtr);
             penPtr = stylePtr->penPtr;
             if ((stylePtr->nStrips > 0) && (penPtr->errorBarLineWidth > 0)) {
-                DrawStrips(graphPtr, drawable, penPtr->traceGC, stylePtr->strips, stylePtr->nStrips);
+                DrawRenderedStrips(graphPtr, drawable, penPtr, stylePtr->strips, stylePtr->nStrips);
             }
         }
     } else if ((Rbc_ChainGetLength(linePtr->traces) > 0) && (normalPenPtr->traceWidth > 0)) {

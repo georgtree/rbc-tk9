@@ -549,6 +549,24 @@ Smoothing is applied independently to valid continuous runs and never bridges su
 </table>
 </section>
 </section>
+<section id="rendering-backend">
+<span id="r-rbc-graphinst-rendering-backend"></span><span id="r-3a3arbc3a3agraphinstqzrendering20backend"></span><h2>Rendering backend<a class="headerlink" href="#rendering-backend" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">native|cairo</span></code> selects the screen renderer. The default is <code class="docutils literal notranslate"><span class="pre">native</span></code>.
+Its option-database name is <code class="docutils literal notranslate"><span class="pre">renderer</span></code> and its class is <code class="docutils literal notranslate"><span class="pre">Renderer</span></code>.</p>
+<p>Cairo is optional and requires a build configured with <code class="docutils literal notranslate"><span class="pre">--enable-cairo</span></code>.
+Requesting <code class="docutils literal notranslate"><span class="pre">cairo</span></code> from a build without Cairo support returns an error.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">graph</span><span class="w"> </span>.g<span class="w"> </span><span class="o">-</span>renderer<span class="w"> </span>cairo
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">1</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>symbol<span class="w"> </span>none
+<span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>renderer<span class="w"> </span>native
+</pre></div>
+</div>
+<p>The initial Cairo backend antialiases solid line traces and strip segments, including active traces.
+It uses the existing mapped and decimated geometry. Dashed strokes, symbols, fills, error bars,
+axes, text, markers, and crosshairs currently retain native rendering.</p>
+<p>Snapshots use the selected renderer for these strokes. PostScript and Windows metafile output
+retain their existing exporters. Switching renderers invalidates the cached element image.
+Native rendering remains the fallback when a Cairo drawing surface cannot be opened.</p>
+</section>
 <section id="widget-options">
 <span id="r-rbc-graphinst-widget-options"></span><span id="r-3a3arbc3a3agraphinstqzwidget20options"></span><h2>Widget options<a class="headerlink" href="#widget-options" title="Link to this heading">¶</a></h2>
 <p>The following options configure the graph widget itself. They are shared by <code class="docutils literal notranslate"><span class="pre">graph</span></code>, <code class="docutils literal notranslate"><span class="pre">barchart</span></code>, <code class="docutils literal notranslate"><span class="pre">stripchart</span></code>,
@@ -1133,6 +1151,7 @@ but the current graph core does not automatically execute it.</p>
 <li><a class="reference internal" href="#polar-smith-widget-options">Polar/Smith widget options</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#rendering-backend">Rendering backend</a></li>
 <li><a class="reference internal" href="#widget-options">Widget options</a></li>
 <li><a class="reference internal" href="#tk-option-database">Tk option database</a><ul>
 <li><a class="reference internal" href="#component-resource-names-and-classes">Component resource names and classes</a></li>

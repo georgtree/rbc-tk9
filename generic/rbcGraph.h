@@ -20,6 +20,8 @@
 #include "rbcVector.h"
 /*#include "rbcWin.h"*/
 
+typedef enum { RBC_RENDERER_NATIVE, RBC_RENDERER_CAIRO } Rbc_Renderer;
+
 typedef struct GraphStruct Graph;
 typedef struct ElementStruct Element;
 typedef struct LegendStruct Legend;
@@ -530,6 +532,7 @@ struct GraphStruct {
                           * transform horizontal axes */
     double vScale, hScale;
 
+    int renderer;              /* Rbc_Renderer selected by -renderer. */
     int doubleBuffer;          /* If non-zero, draw the graph into a pixmap
                                 * first to reduce flashing. */
     int backingStore;          /* If non-zero, cache elements by drawing

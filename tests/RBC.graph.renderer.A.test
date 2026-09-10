@@ -1,0 +1,97 @@
+# Optional Cairo renderer: configuration and snapshot regressions.
+# See license.terms for details.
+package require rbc
+package require tcltest
+
+namespace eval ::rbcRendererTest {
+    namespace import ::tcltest::*
+
+    ::rbc::graph .rendererProbe
+    set code [catch {.rendererProbe configure -renderer cairo} message]
+    destroy .rendererProbe
+    if {$code && $message ne {Cairo renderer is not available in this build}} {
+        error $message
+    }
+    testConstraint rbcCairo [expr {!$code}]
+    testConstraint rbcNoCairo $code
+
+    proc PartialGrayPixels {photo} {
+        set count 0
+        # Axes, symbols, borders and text are disabled in these fixtures.
+        for {set y 21} {$y < [image height $photo]-21} {incr y} {
+            for {set x 21} {$x < [image width $photo]-21} {incr x} {
+                lassign [$photo get $x $y] r g b
+                if {$r == $g && $g == $b && $r > 0 && $r < 255} {
+                    incr count
+                }
+            }
+        }
+        return $count
+    }
+
+    test renderer-1.1 {native default and invalid-option rollback} -setup {
+        ::rbc::graph .renderer -title original
+    } -body {
+        set initial [.renderer cget -renderer]
+        set code [catch {.renderer configure -title changed -renderer bogus}]
+        list $initial $code [.renderer cget -renderer] [.renderer cget -title]
+    } -cleanup {
+        destroy .renderer
+    } -result {native 1 native original}
+
+    test renderer-1.2 {unavailable Cairo restores other options} \
+            -constraints rbcNoCairo -setup {
+        ::rbc::graph .renderer -title original
+    } -body {
+        set code [catch {.renderer configure -title changed -renderer cairo} message]
+        list $code $message [.renderer cget -renderer] [.renderer cget -title]
+    } -cleanup {
+        destroy .renderer
+    } -result {1 {Cairo renderer is not available in this build} native original}
+
+    test renderer-1.3 {failed derived configuration restores renderer} \
+            -constraints rbcCairo -setup {
+        ::rbc::graph .renderer -renderer native -title original
+    } -body {
+        set code [catch {.renderer configure -renderer cairo -title changed -aspect Inf}]
+        list $code [.renderer cget -renderer] [.renderer cget -title]
+    } -cleanup {
+        destroy .renderer
+    } -result {1 native original}
+
+    foreach kind {graph stripchart} {
+        test renderer-2.1-$kind {solid strokes use Cairo and can switch back} \
+                -constraints rbcCairo -setup {
+            ::rbc::$kind .renderer -width 240 -height 180 \
+                -background white -plotbackground white -borderwidth 0 \
+                -plotborderwidth 0 -highlightthickness 0 \
+                -leftmargin 20 -rightmargin 20 -topmargin 20 -bottommargin 20
+            pack .renderer
+            .renderer legend configure -hide yes
+            .renderer grid configure -hide yes
+            foreach axis {x y x2 y2} {
+                .renderer axis configure $axis -hide yes
+            }
+            .renderer axis configure x -min 0 -max 10
+            .renderer axis configure y -min 0 -max 10
+            .renderer element create signal -data {1 2 9 7} \
+                -symbol none -color black -linewidth 1
+            set photo [image create photo]
+            update
+        } -body {
+            set results {}
+            foreach renderer {native cairo native} {
+                .renderer configure -renderer $renderer
+                update idletasks
+                .renderer snap $photo
+                lappend results [expr {[PartialGrayPixels $photo] > 0}]
+            }
+            set results
+        } -cleanup {
+            catch {image delete $photo}
+            destroy .renderer
+        } -result {0 1 0}
+    }
+
+    cleanupTests
+}

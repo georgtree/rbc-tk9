@@ -236,6 +236,52 @@ the closest annotation.  Its format is controlled by <code class="docutils liter
 graphtoolbar numeric format is used as a fallback.</p>
 <p>Posting the context menu temporarily removes crosshair graphics.  After the menu is dismissed, the selected
 crosshair mode is restored at the pointer’s current location rather than at the old popup location.</p>
+<section id="refreshing-beneath-a-stationary-pointer">
+<span id="r-rbc-graphtoolbar-refreshing-beneath-a-stationary-pointer"></span><span id="r-3a3arbc3a3agraphtoolbarqzrefreshing20beneath20a20stationary20pointer"></span><h3>Refreshing beneath a stationary pointer<a class="headerlink" href="#refreshing-beneath-a-stationary-pointer" title="Link to this heading">¶</a></h3>
+<p>Enhanced crosshair annotations refresh when the displayed graph changes, even if the pointer has not
+moved. This is useful for streaming stripcharts, where automatic X-axis scrolling changes the coordinates
+beneath a stationary pointer.</p>
+<p>The refresh behavior follows the selected crosshair mode:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">current</span></code> keeps the annotation anchored to the pointer’s current position within the plotting area and recalculates the displayed coordinates. As the axes scroll, the values change while the annotation remains beside the pointer.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">closest</span></code> repeats the closest-point search using the pointer’s current position and the current plotted data. The selected point and annotation can move or change even though the pointer remains stationary. The configured interpolation, halo, and single-result settings still apply.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">none</span></code> displays ordinary crosshair lines without an enhanced annotation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">disabled</span></code> displays neither crosshair lines nor an annotation.</p></li>
+</ul>
+<p>In <code class="docutils literal notranslate"><span class="pre">closest</span></code> mode, <code class="docutils literal notranslate"><span class="pre">-crosshairsclosestopts</span> <span class="pre">{-hide</span> <span class="pre">yes}</span></code> continues to hide the ordinary crosshair lines during
+automatic refreshes.</p>
+<p>Annotation positions and background boxes are recalculated using the current coordinate mapping.  This prevents
+axis scrolling or scaling from carrying a current-position annotation away from the pointer. Box dimensions
+follow the newly formatted text.</p>
+</section>
+<section id="refresh-scheduling">
+<span id="r-rbc-graphtoolbar-refresh-scheduling"></span><span id="r-3a3arbc3a3agraphtoolbarqzrefresh20scheduling"></span><h3>Refresh scheduling<a class="headerlink" href="#refresh-scheduling" title="Link to this heading">¶</a></h3>
+<p>The toolbar listens for <code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcGraphChanged&gt;&gt;</span></code> on its embedded graph. Geometry, mapping, and pointer entry
+events also request a refresh, allowing the toolbar to account for the graph or its containing window moving
+beneath a stationary pointer.</p>
+<p>Refresh requests are combined into an idle callback. The callback reads the actual pointer position at that
+time; it does not reuse coordinates from the last motion event. No polling timer or synthetic pointer-motion
+event is required.</p>
+<p>Refreshing respects temporary crosshair suspension during interactions such as rectangle zooming and
+panning. It does not recreate annotations while the context menu is posted. When a refresh finds that the
+pointer is outside the graph’s plotting area or over another window, it removes stale annotations.</p>
+<p>Pending refresh callbacks are cancelled when the toolbar is destroyed.</p>
+</section>
+<section id="streaming-graphs">
+<span id="r-rbc-graphtoolbar-streaming-graphs"></span><span id="r-3a3arbc3a3agraphtoolbarqzstreaming20graphs"></span><h3>Streaming graphs<a class="headerlink" href="#streaming-graphs" title="Link to this heading">¶</a></h3>
+<p>Automatic refresh requires no additional option or application binding. Enable enhanced crosshairs and select
+the desired mode:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>graphtoolbar<span class="w"> </span>.gtb<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>stripchart<span class="w"> </span><span class="o">-</span>crosshairs<span class="w"> </span><span class="o">-</span>crosshairsmode<span class="w"> </span>current
+<span class="nv">pack</span><span class="w"> </span>.gtb<span class="w"> </span><span class="o">-</span>fill<span class="w"> </span>both<span class="w"> </span><span class="o">-</span>expand<span class="w"> </span>yes
+<span class="k">set</span><span class="w"> </span>graph<span class="w"> </span><span class="k">[</span><span class="nv">.gtb</span><span class="w"> </span>subwidget<span class="w"> </span>graph<span class="k">]</span>
+<span class="nv">$graph</span><span class="w"> </span><span class="nv">axis</span><span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>autorange<span class="w"> </span><span class="mf">2.0</span><span class="w"> </span><span class="o">-</span>shiftby<span class="w"> </span><span class="mf">0.5</span>
+</pre></div>
+</div>
+<p>As the application updates plotted data and returns control to the Tk event loop, the graph redraws and the
+toolbar refreshes the annotation beneath the pointer.</p>
+<p>Applications that also need graph-change notifications should bind to the embedded graph returned by <code class="docutils literal notranslate"><span class="pre">.gtb</span>
+<span class="pre">subwidget</span> <span class="pre">graph</span></code>. The event is generated on that widget, not on the toolbar container.</p>
+</section>
 </section>
 <section id="coordinate-marker-formats">
 <span id="r-rbc-graphtoolbar-coordinate-marker-formats"></span><span id="r-3a3arbc3a3agraphtoolbarqzcoordinate20marker20formats"></span><h2>Coordinate marker formats<a class="headerlink" href="#coordinate-marker-formats" title="Link to this heading">¶</a></h2>
@@ -1025,7 +1071,12 @@ Tk pathname of the requested subwidget.</p>
 <li><a class="reference internal" href="#wheel-zoom">Wheel zoom</a></li>
 <li><a class="reference internal" href="#panning">Panning</a></li>
 <li><a class="reference internal" href="#cross-interactions">Cross-interactions</a></li>
-<li><a class="reference internal" href="#crosshairs">Crosshairs</a></li>
+<li><a class="reference internal" href="#crosshairs">Crosshairs</a><ul>
+<li><a class="reference internal" href="#refreshing-beneath-a-stationary-pointer">Refreshing beneath a stationary pointer</a></li>
+<li><a class="reference internal" href="#refresh-scheduling">Refresh scheduling</a></li>
+<li><a class="reference internal" href="#streaming-graphs">Streaming graphs</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#coordinate-marker-formats">Coordinate marker formats</a></li>
 <li><a class="reference internal" href="#polar-and-smith-interaction">Polar and Smith interaction</a></li>
 <li><a class="reference internal" href="#active-legend">Active legend</a></li>

@@ -67,7 +67,7 @@ AC_SUBST([SHLIB_SUFFIX])
 # and PKG_TCL_SOURCES.
 #-----------------------------------------------------------------------
 
-TEA_ADD_SOURCES([rbcAlloc.c rbcBind.c rbcCanvEps.c rbcChain.c rbcColor.c rbcConfig.c rbcGraph.c rbcGrAxis.c rbcGrBar.c rbcGrElem.c rbcGrGrid.c rbcGrHairs.c rbcGrLegd.c rbcGrLine.c rbcGrMarker.c rbcGrMisc.c rbcGrPen.c rbcGrPolar.c rbcGrPs.c rbcImage.c rbcInt.c rbcList.c rbcPs.c rbcSpline.c rbcText.c rbcTile.c rbcUtil.c rbcVecMath.c rbcVecCmd.c rbcVector.c rbcWindow.c rbcWinop.c rbcStubInit.c])
+TEA_ADD_SOURCES([rbcRender.c rbcAlloc.c rbcBind.c rbcCanvEps.c rbcChain.c rbcColor.c rbcConfig.c rbcGraph.c rbcGrAxis.c rbcGrBar.c rbcGrElem.c rbcGrGrid.c rbcGrHairs.c rbcGrLegd.c rbcGrLine.c rbcGrMarker.c rbcGrMisc.c rbcGrPen.c rbcGrPolar.c rbcGrPs.c rbcImage.c rbcInt.c rbcList.c rbcPs.c rbcSpline.c rbcText.c rbcTile.c rbcUtil.c rbcVecMath.c rbcVecCmd.c rbcVector.c rbcWindow.c rbcWinop.c rbcStubInit.c])
 TEA_ADD_HEADERS([])
 TEA_ADD_INCLUDES([])
 TEA_ADD_LIBS([])
@@ -136,6 +136,7 @@ AC_DEFUN([RBC_ADD_TCL_DEMOS], [
 ])
 
 RBC_ADD_TCL_DEMOS([
+demos/cairo1.tcl
 demos/barchart1.tcl
 demos/barchart2.tcl
 demos/barchart3.tcl
@@ -392,6 +393,73 @@ TEA_ENABLE_SHARED
 
 TEA_CONFIG_CFLAGS
 TEA_ADD_CFLAGS([-DRBCAPI=MODULE_SCOPE])
+
+# Optional Cairo support. Native builds have no Cairo dependency.
+AC_ARG_ENABLE([cairo],
+    [AS_HELP_STRING([--enable-cairo], [build the optional Cairo renderer (default: no)])],
+    [], [enable_cairo=no])
+AC_ARG_VAR([CAIRO_CFLAGS], [compiler flags for Cairo])
+AC_ARG_VAR([CAIRO_LIBS], [linker flags for Cairo])
+AS_CASE([$enable_cairo], [yes|no], [],
+    [AC_MSG_ERROR([--enable-cairo accepts only yes or no])])
+
+AS_IF([test "x$enable_cairo" = xyes], [
+    AS_IF([test "x$TEA_PLATFORM" = xwindows],
+        [rbc_cairo_module=cairo-win32], [rbc_cairo_module=cairo-xlib])
+    AS_IF([test -z "$CAIRO_CFLAGS" || test -z "$CAIRO_LIBS"], [
+        AC_PATH_TOOL([PKG_CONFIG], [pkg-config], [no])
+        AS_IF([test "x$PKG_CONFIG" = xno],
+            [AC_MSG_ERROR([Cairo requires pkg-config or CAIRO_CFLAGS and CAIRO_LIBS])])
+        AS_IF([$PKG_CONFIG --exists "$rbc_cairo_module >= 1.12"], [],
+            [AC_MSG_ERROR([Cairo >= 1.12 with $rbc_cairo_module support is required])])
+        AS_IF([test -z "$CAIRO_CFLAGS"],
+            [CAIRO_CFLAGS=`$PKG_CONFIG --cflags "$rbc_cairo_module"`])
+        AS_IF([test -z "$CAIRO_LIBS"],
+            [CAIRO_LIBS=`$PKG_CONFIG --libs "$rbc_cairo_module"`])
+    ])
+    rbc_saved_CPPFLAGS=$CPPFLAGS
+    rbc_saved_LIBS=$LIBS
+    CPPFLAGS="$CPPFLAGS $CAIRO_CFLAGS"
+    LIBS="$CAIRO_LIBS $LIBS"
+    AC_MSG_CHECKING([whether the Cairo platform backend links])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+#include <cairo.h>
+#if CAIRO_VERSION < CAIRO_VERSION_ENCODE(1, 12, 0)
+#error Cairo 1.12 or newer is required
+#endif
+#ifdef WIN32
+#include <cairo-win32.h>
+#if !CAIRO_HAS_WIN32_SURFACE
+#error Cairo Win32 surfaces are required
+#endif
+#else
+#include <cairo-xlib.h>
+#if !CAIRO_HAS_XLIB_SURFACE
+#error Cairo Xlib surfaces are required
+#endif
+#endif
+    ]], [[
+#ifdef WIN32
+        cairo_surface_t *s = cairo_win32_surface_create((HDC)0);
+#else
+        cairo_surface_t *s = cairo_xlib_surface_create((Display *)0,
+            (Drawable)0, (Visual *)0, 1, 1);
+#endif
+        cairo_t *cr = cairo_create(s);
+        cairo_stroke(cr);
+        cairo_destroy(cr);
+        cairo_surface_destroy(s);
+    ]])], [rbc_cairo_link=yes], [rbc_cairo_link=no])
+    CPPFLAGS=$rbc_saved_CPPFLAGS
+    LIBS=$rbc_saved_LIBS
+    AC_MSG_RESULT([$rbc_cairo_link])
+    AS_IF([test "x$rbc_cairo_link" != xyes],
+        [AC_MSG_ERROR([Cairo backend link failed; check CAIRO_CFLAGS, CAIRO_LIBS and config.log])])
+    AC_DEFINE([RBC_HAVE_CAIRO], [1], [Build the optional Cairo renderer])
+    TEA_ADD_INCLUDES([$CAIRO_CFLAGS])
+    TEA_ADD_LIBS([$CAIRO_LIBS])
+])
+
 
 #--------------------------------------------------------------------
 # Set the default compiler switches based on the --enable-symbols option.

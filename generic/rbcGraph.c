@@ -123,6 +123,7 @@ Rbc_Uid rbcWindowMarkerUid;
 #define GRAPH_POLAR_ANGLE_COMMAND_MASK (1u << 18)
 #define GRAPH_SMITH_TICKS_MASK (1u << 19)
 #define GRAPH_SMITH_COMMAND_MASK (1u << 20)
+#define GRAPH_RENDERER_MASK (1u << 21)
 
 #define GRAPH_TRANSACTION_MASK                                                                                         \
     (GRAPH_BAR_MODE_MASK | GRAPH_BAR_WIDTH_MASK | GRAPH_PIXELS_MASK | GRAPH_PADDING_MASK | GRAPH_SHADOW_MASK |         \
@@ -237,7 +238,12 @@ static const char *const smithGridNames[] = {"impedance", "admittance", "both", 
 /*
  * Modern graph option table.
  */
+static const char *const graphRendererNames[] = {"native", "cairo", NULL};
+
 static const Tk_OptionSpec graphOptionSpecs[] = {
+    {TK_OPTION_STRING_TABLE, "-renderer", "renderer", "Renderer", "native", -1,
+     offsetof(Graph, renderer), 0, (ClientData)graphRendererNames,
+     GRAPH_RENDERER_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_CUSTOM, "-anglelabelanchor", "angleLabelAnchor", "AngleLabelAnchor", DEF_GRAPH_ANGLE_LABEL_ANCHOR, -1,
      offsetof(Graph, angleLabelAnchor), 0, &polarLabelAnchorOption, GRAPH_POLAR_LABEL_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING, "-anglecommand", "angleCommand", "AngleCommand", DEF_GRAPH_ANGLE_COMMAND,
@@ -2332,6 +2338,13 @@ static int ConfigureGraph(Graph *graphPtr) {
 
     assert(graphPtr->optionsInitialized);
     assert(graphPtr->optionTable != NULL);    
+#ifndef RBC_HAVE_CAIRO
+    if (graphPtr->renderer == RBC_RENDERER_CAIRO) {
+        Tcl_SetObjResult(graphPtr->interp,
+            Tcl_NewStringObj("Cairo renderer is not available in this build", -1));
+        return TCL_ERROR;
+    }
+#endif
     memset(&barModeTransaction, 0, sizeof(barModeTransaction));
     memset(&paddingTransaction, 0, sizeof(paddingTransaction));
     memset(&pixelTransaction, 0, sizeof(pixelTransaction));
@@ -2547,6 +2560,9 @@ static int ConfigureGraph(Graph *graphPtr) {
 
     if (plotBackgroundModified || polarLabelsModified || representationModified || smithGridModified ||
         polarAngleTicksModified || smithTicksModified) {
+        graphPtr->flags |= REDRAW_BACKING_STORE;
+    }
+    if (graphPtr->optionMask & GRAPH_RENDERER_MASK) {
         graphPtr->flags |= REDRAW_BACKING_STORE;
     }
     graphPtr->flags |= REDRAW_WORLD;

@@ -569,3 +569,7 @@ uninstall:
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
+
+# Private renderer and graph record dependencies.
+rbcRender.$(OBJEXT) rbcGrLine.$(OBJEXT): $(srcdir)/generic/rbcRender.h
+$(PKG_OBJECTS): $(srcdir)/generic/rbcGraph.h
