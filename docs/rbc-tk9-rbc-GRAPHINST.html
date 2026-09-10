@@ -562,6 +562,7 @@ Requesting <code class="docutils literal notranslate"><span class="pre">cairo</s
 </div>
 <p>Cairo draws solid and dashed line traces, strip segments, geometric symbols, line/strip
 error bars, and solid, stippled, or photo-tiled line areas. Active traces and symbols use Cairo too.
+Grid lines, non-XOR line markers (including arrowheads), and polygon markers also use Cairo.
 Mapping, decimation, and point selection
 remain shared with native rendering.</p>
 <p>Supported symbols are <code class="docutils literal notranslate"><span class="pre">circle</span></code>, <code class="docutils literal notranslate"><span class="pre">square</span></code>, <code class="docutils literal notranslate"><span class="pre">diamond</span></code>, <code class="docutils literal notranslate"><span class="pre">plus</span></code>, <code class="docutils literal notranslate"><span class="pre">cross</span></code>, <code class="docutils literal notranslate"><span class="pre">splus</span></code>, <code class="docutils literal notranslate"><span class="pre">scross</span></code>,
@@ -580,7 +581,11 @@ including partially transparent pixels, against the existing graph contents. Nat
 their existing transparency-mask behavior. Image edits invalidate the cached element image.</p>
 <p>Non-photo image tiles and solid/stippled areas with an empty <code class="docutils literal notranslate"><span class="pre">-areaforeground</span></code> retain native rendering.
 Bitmap symbols, symbols smaller than three pixels, legend samples, bar elements,
-axes, text, markers, and crosshairs currently retain native rendering.</p>
+axes, all text, bitmap/image/window markers, and crosshairs retain native rendering.</p>
+<p>Grid and marker geometry is clipped to the plotting area. Marker color pairs, stipples, dash offsets,
+caps, and under/over ordering are preserved. Mapped segments remain independent, retaining their
+existing dash restarts. XOR markers keep native drawing and erase behavior. A line marker with an
+empty <code class="docutils literal notranslate"><span class="pre">-outline</span></code> also keeps its native GC default.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-antialias</span> <span class="pre">default|none|gray|fast|good|best</span></code> selects antialiasing for Cairo geometry.
 Its default is <code class="docutils literal notranslate"><span class="pre">default</span></code>; its option-database name and class are <code class="docutils literal notranslate"><span class="pre">antialias</span></code> and <code class="docutils literal notranslate"><span class="pre">Antialias</span></code>.
 Native rendering ignores this option. Changing it invalidates the cached element image.</p>

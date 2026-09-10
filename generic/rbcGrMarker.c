@@ -14,6 +14,7 @@
 #include "rbcChain.h"
 #include "rbcGrAxis.h"
 #include "rbcGrElem.h"
+#include "rbcRender.h"
 
 #define MAX_OUTLINE_POINTS 12
 
@@ -4320,6 +4321,25 @@ static int RegionInLineMarker(Marker *markerPtr, Extents2D *extsPtr, int enclose
     }
 }
 
+/* Keep clipped segments independent, as in native marker drawing. */
+static int DrawRenderedMarkerSegments(Graph *graphPtr, Drawable drawable, const Segment2D *segments,
+                                      Tcl_Size count, const XColor *color, const XColor *gapColor,
+                                      int width, const Rbc_Dashes *dashes, int cap, int join, int xorMode) {
+    Rbc_RenderContext *ctx;
+
+    if (xorMode) {
+        return FALSE;
+    }
+    ctx = Rbc_RenderBegin(graphPtr, drawable, color, MAX(1, width), dashes, gapColor);
+    if (ctx == NULL) {
+        return FALSE;
+    }
+    Rbc_RenderLineStyle(ctx, cap, join);
+    Rbc_RenderSegments(ctx, segments, count);
+    Rbc_RenderEnd(ctx);
+    return TRUE;
+}
+
 static void DrawArrowHead(Graph *graphPtr, Drawable drawable, GC gc, const Point2D arrow[PTS_IN_ARROW]) {
     XPoint points[PTS_IN_ARROW - 1];
     int i;
@@ -4366,15 +4386,25 @@ static void DrawLineMarker(Marker *markerPtr, Drawable drawable) {
 
     drawn = FALSE;
     if (lmPtr->nSegments > 0) {
-        Rbc_Draw2DSegments(graphPtr->display, drawable, lmPtr->gc, lmPtr->segments, lmPtr->nSegments);
+        if (!DrawRenderedMarkerSegments(graphPtr, drawable, lmPtr->segments, lmPtr->nSegments,
+                lmPtr->outlineColor, lmPtr->fillColor, lmPtr->lineWidth, &lmPtr->dashes,
+                lmPtr->capStyle, lmPtr->joinStyle, lmPtr->xor)) {
+            Rbc_Draw2DSegments(graphPtr->display, drawable, lmPtr->gc, lmPtr->segments, lmPtr->nSegments);
+        }
         drawn = TRUE;
     }
     if (lmPtr->hasFirstArrow) {
-        DrawArrowHead(graphPtr, drawable, lmPtr->gc, lmPtr->firstArrow);
+        if (lmPtr->xor || !Rbc_RenderArea(graphPtr, drawable, lmPtr->firstArrow, PTS_IN_ARROW - 1,
+                lmPtr->outlineColor, NULL, None)) {
+            DrawArrowHead(graphPtr, drawable, lmPtr->gc, lmPtr->firstArrow);
+        }
         drawn = TRUE;
     }
     if (lmPtr->hasLastArrow) {
-        DrawArrowHead(graphPtr, drawable, lmPtr->gc, lmPtr->lastArrow);
+        if (lmPtr->xor || !Rbc_RenderArea(graphPtr, drawable, lmPtr->lastArrow, PTS_IN_ARROW - 1,
+                lmPtr->outlineColor, NULL, None)) {
+            DrawArrowHead(graphPtr, drawable, lmPtr->gc, lmPtr->lastArrow);
+        }
         drawn = TRUE;
     }
     if (drawn && lmPtr->xor) {
@@ -4978,7 +5008,9 @@ static void DrawPolygonMarker(Marker *markerPtr, Drawable drawable) {
      * Draw the polygon fill.  XFillPolygon requires an int count and
      * the complete polygon must fit in one native request.
      */
-    if ((pmPtr->nFillPts >= 3) && (pmPtr->fill.fgColor != NULL)) {
+    if ((pmPtr->nFillPts >= 3) && (pmPtr->fill.fgColor != NULL) &&
+        (pmPtr->xor || !Rbc_RenderArea(graphPtr, drawable, pmPtr->fillPts, pmPtr->nFillPts,
+            pmPtr->fill.fgColor, pmPtr->fill.bgColor, pmPtr->stipple))) {
         XPoint *pointArr;
         Tcl_Size i;
         int nPoints;
@@ -5001,7 +5033,11 @@ static void DrawPolygonMarker(Marker *markerPtr, Drawable drawable) {
      * Rbc_Draw2DSegments().
      */
     if ((pmPtr->nOutlinePts > 0) && (pmPtr->lineWidth > 0) && (pmPtr->outline.fgColor != NULL)) {
-        Rbc_Draw2DSegments(graphPtr->display, drawable, pmPtr->outlineGC, pmPtr->outlinePts, pmPtr->nOutlinePts);
+        if (!DrawRenderedMarkerSegments(graphPtr, drawable, pmPtr->outlinePts, pmPtr->nOutlinePts,
+                pmPtr->outline.fgColor, pmPtr->outline.bgColor, pmPtr->lineWidth, &pmPtr->dashes,
+                pmPtr->capStyle, pmPtr->joinStyle, pmPtr->xor)) {
+            Rbc_Draw2DSegments(graphPtr->display, drawable, pmPtr->outlineGC, pmPtr->outlinePts, pmPtr->nOutlinePts);
+        }
     }
 }
 
@@ -6322,6 +6358,9 @@ static int CanBatchWinLineMarker(LineMarker *lmPtr) {
     if ((lmPtr == NULL) || (lmPtr->gc == NULL) || (lmPtr->segments == NULL) || (lmPtr->nSegments <= 0)) {
         return FALSE;
     }
+    if (lmPtr->core.graphPtr->renderer == RBC_RENDERER_CAIRO) {
+        return FALSE;
+    }
     if (lmPtr->xor) {
         return FALSE;
     }
@@ -6358,6 +6397,9 @@ static int CanBatchWinPolygonOutlineMarker(PolygonMarker *pmPtr) {
     if ((pmPtr == NULL) || (pmPtr->outlineGC == NULL) || (pmPtr->outlinePts == NULL) || (pmPtr->nOutlinePts <= 0)) {
         return FALSE;
     }
+    if (pmPtr->core.graphPtr->renderer == RBC_RENDERER_CAIRO) {
+        return FALSE;
+    }
     /*
      * This fast path is strictly outline-only.  A filled polygon must
      * retain its normal fill-before-outline drawing order.
@@ -6389,6 +6431,9 @@ static int CanBatchWinPolygonOutlineMarker(PolygonMarker *pmPtr) {
 static int CanBatchWinPolygonFillMarker(PolygonMarker *pmPtr) {
     if ((pmPtr == NULL) || (pmPtr->fillGC == NULL) || (pmPtr->fillPts == NULL) || (pmPtr->nFillPts < 3) ||
         (pmPtr->nFillPts > INT_MAX) || (pmPtr->fill.fgColor == NULL)) {
+        return FALSE;
+    }
+    if (pmPtr->core.graphPtr->renderer == RBC_RENDERER_CAIRO) {
         return FALSE;
     }
     /*

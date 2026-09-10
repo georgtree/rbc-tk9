@@ -4160,6 +4160,12 @@ namespace eval ::rbc::MARKER {
         Markers are graph annotations. They are independent of graph elements and do not contribute to the calculation
         of axis limits.
 
+        With `-renderer cairo`, line markers, arrowheads, and polygon fills/outlines use `-antialias`.
+        Solid and stippled fills, colored dash gaps, caps, clipping, and `-under` ordering are supported.
+        Mapped outline segments remain independent, as in native drawing. XOR markers remain native.
+        Text, bitmap, image, and window markers keep their existing Tk rendering; line markers with an empty
+        `-outline` retain the native GC default.
+
         Rbc provides six marker types:
 
         #ruffopt excludedformats nroff
@@ -5173,6 +5179,10 @@ namespace eval ::rbc::GRID {
         ```
 
         The grid draws horizontal and vertical lines across the plotting area at axis tick positions.
+
+        The grid follows the graph's `-renderer` and `-antialias` settings. Cairo preserves its axis mappings,
+        major/minor tick selection, dash pattern, and color. A zero `-linewidth` remains a one-pixel hairline.
+        Grid labels and all other text remain native.
 
         For example:
         ```tcl

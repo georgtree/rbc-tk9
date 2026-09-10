@@ -31,6 +31,19 @@ ttk::button .controls.recolor -text {Recolor tile} -command {
     $areaTile put [expr {$tileVariant ? "#e4c7b3" : "#cedef0"}] -to 0 0 4 8
 }
 pack .controls.tile .controls.recolor -side left -padx 4
+set showGrid 1
+set showMarkers 1
+ttk::checkbutton .controls.grid -text {Grid} -variable showGrid -command {
+    foreach g {.native .cairo} {$g grid configure -hide [expr {!$showGrid}]}
+}
+ttk::checkbutton .controls.markers -text {Markers} -variable showMarkers -command {
+    foreach g {.native .cairo} {
+        foreach marker {demoArrow demoPolygon demoText} {
+            $g marker configure $marker -hide [expr {!$showMarkers}]
+        }
+    }
+}
+pack .controls.grid .controls.markers -side left -padx 4
 pack .controls -side top -fill x
 ttk::label .description -text {Top: error bars. Middle: strokes and areas. Bottom: symbols and edge clipping.}
 pack .description -side top -pady 4
@@ -54,6 +67,7 @@ foreach renderer {native cairo} {
     $g legend configure -hide yes
     $g axis configure x -min 0 -max 10
     $g axis configure y -min -3 -max 3
+    $g grid configure -hide no -color grey85 -dashes dot -linewidth 1 -minor no
     $g element create signal -data $data -symbol none -linewidth 1 -color navy \
         -areapattern solid -areaforeground #e6eef8
     $g element create dashed -data $dashedData -symbol none -linewidth 2 \
@@ -71,4 +85,9 @@ foreach renderer {native cairo} {
     }
     $g element create clipped -data {0 -2.4 10 -2.4} -linewidth 0 \
         -symbol circle -pixels 21 -fill salmon -outline firebrick
+    $g marker create line -name demoArrow -coords {1.2 2.7 2 1.8} \
+        -outline #885577 -linewidth 2 -arrow last -cap round
+    $g marker create polygon -name demoPolygon -coords {7.5 -1 8.6 -0.6 9 -1.4} \
+        -fill #f1ddc6 -stipple gray50 -outline #a56c32 -linewidth 2 -dashes {6 3}
+    $g marker create text -name demoText -coords {4.8 2.75} -text {Native text} -foreground grey30
 }

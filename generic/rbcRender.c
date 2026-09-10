@@ -173,6 +173,14 @@ void Rbc_RenderPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size 
     StrokeRenderPath(ctx);
 }
 
+/* Marker options use X cap/join constants; keep them out of Cairo callers. */
+void Rbc_RenderLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle) {
+    cairo_set_line_cap(ctx->cr, (capStyle == CapRound) ? CAIRO_LINE_CAP_ROUND :
+        (capStyle == CapProjecting) ? CAIRO_LINE_CAP_SQUARE : CAIRO_LINE_CAP_BUTT);
+    cairo_set_line_join(ctx->cr, (joinStyle == JoinRound) ? CAIRO_LINE_JOIN_ROUND :
+        (joinStyle == JoinBevel) ? CAIRO_LINE_JOIN_BEVEL : CAIRO_LINE_JOIN_MITER);
+}
+
 /* Separate subpaths preserve strip-segment boundaries. Bound path storage. */
 void Rbc_RenderSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count) {
     Tcl_Size i;
@@ -460,6 +468,9 @@ void Rbc_RenderPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size 
 }
 void Rbc_RenderSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count) {
     (void)ctx; (void)segments; (void)count;
+}
+void Rbc_RenderLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle) {
+    (void)ctx; (void)capStyle; (void)joinStyle;
 }
 void Rbc_RenderSymbols(Rbc_RenderContext *ctx, const Rbc_RenderShape *shape,
                        const Point2D *centers, Tcl_Size count, const XColor *fillColor, int outline) {

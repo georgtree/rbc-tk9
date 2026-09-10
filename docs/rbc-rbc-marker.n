@@ -19,6 +19,12 @@ GRAPHINST marker
 Markers are graph annotations\&. They are independent of graph elements and do not contribute to the calculation
 of axis limits\&.
 .PP
+With -renderer cairo, line markers, arrowheads, and polygon fills/outlines use -antialias\&.
+Solid and stippled fills, colored dash gaps, caps, clipping, and -under ordering are supported\&.
+Mapped outline segments remain independent, as in native drawing\&. XOR markers remain native\&.
+Text, bitmap, image, and window markers keep their existing Tk rendering; line markers with an empty
+-outline retain the native GC default\&.
+.PP
 Rbc provides six marker types:
 .PP
 .RS 4n

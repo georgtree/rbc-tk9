@@ -769,5 +769,220 @@ namespace eval ::rbcRendererTest {
         catch {image delete $photo $tile}
     } -result {1 1 1}
 
+
+    foreach pattern {{} {6 4}} {
+        set suffix [join $pattern -]
+        test renderer-7.1-$suffix {grid strokes use Cairo AA and retain hide/axis settings} \
+                -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer element delete signal
+            .renderer grid configure -hide no -color black -linewidth 2 -dashes $pattern \
+                -mapx x -mapy y -minor no
+            set photo [image create photo]
+        } -body {
+            set results {}
+            foreach mode {none gray none} {
+                .renderer configure -antialias $mode
+                .renderer snap $photo
+                lappend results [expr {[CountPhotoColor $photo {0 0 0}] > 0}] \
+                    [expr {[PartialGrayPixels $photo] > 0}]
+            }
+            .renderer grid configure -hide yes
+            .renderer snap $photo
+            lappend results [expr {[PlotInk $photo] eq {0 0}}]
+            set results
+        } -cleanup {
+            catch {image delete $photo}
+            destroy .renderer
+        } -result {1 0 1 1 1 0 1}
+    }
+
+    foreach shape {line polygonFill polygonOutline} {
+        test renderer-8.1-$shape {simple markers reach Cairo, including Windows batch candidates} \
+                -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer element delete signal
+            switch $shape {
+                line {
+                    .renderer marker create line -name m -coords {1 2 9 7} -outline black -linewidth 1
+                }
+                polygonFill {
+                    .renderer marker create polygon -name m -coords {1 2 5 8 9 3} -fill black -outline {}
+                }
+                polygonOutline {
+                    .renderer marker create polygon -name m -coords {1 2 5 8 9 3} \
+                        -fill {} -outline black -linewidth 1
+                }
+            }
+            set photo [image create photo]
+        } -body {
+            set results {}
+            foreach mode {none gray none} {
+                .renderer configure -antialias $mode
+                .renderer snap $photo
+                lappend results [expr {[lindex [PlotInk $photo] 0] > 0}] \
+                        [expr {[PartialGrayPixels $photo] > 0}]
+            }
+            set results
+        } -cleanup {
+            catch {image delete $photo}
+            destroy .renderer
+        } -result {1 0 1 1 1 0}
+    }
+
+    test renderer-8.2 {line arrowheads add solid geometry to a dashed hairline} \
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element delete signal
+        .renderer marker create line -name m -coords {2 2 8 8} -outline black \
+            -linewidth 0 -dashes {6 4} -arrow none
+        set photo [image create photo]
+    } -body {
+        .renderer snap $photo
+        set before [lindex [PlotInk $photo] 0]
+        .renderer marker configure m -arrow both -arrowshape {12 16 6}
+        .renderer snap $photo
+        list [expr {[lindex [PlotInk $photo] 0] > $before}] \
+            [expr {[PartialGrayPixels $photo] > 0}]
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result {1 1}
+
+    test renderer-8.3 {line dash offset and gap color are preserved} \
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element delete signal
+        .renderer configure -antialias none
+        .renderer marker create line -name m -coords {1 5 9 5} -linewidth 3 \
+            -outline black -fill red -dashes {6 4} -dashoffset 0
+        set photo [image create photo]
+    } -body {
+        .renderer snap $photo
+        set before [$photo data]
+        set results [list [expr {[CountPhotoColor $photo {0 0 0}] > 0}] \
+            [expr {[CountPhotoColor $photo {255 0 0}] > 0}]]
+        .renderer marker configure m -dashoffset 4
+        .renderer snap $photo
+        lappend results [expr {$before ne [$photo data]}]
+        .renderer marker configure m -dashes {}
+        .renderer snap $photo
+        lappend results [expr {[CountPhotoColor $photo {255 0 0}] == 0}]
+        set results
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result {1 1 1 1}
+
+    test renderer-8.4 {polygon stipple and dashed outline keep separate color pairs} \
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element delete signal
+        .renderer configure -antialias none
+        .renderer marker create polygon -name m -coords {2 2 2 8 8 8 8 2} \
+            -fill {black red} -stipple gray50 -outline {blue #00ff00} -dashes {8 4} -linewidth 3
+        set photo [image create photo]
+    } -body {
+        .renderer snap $photo
+        set results {}
+        foreach rgb {{0 0 0} {255 0 0} {0 0 255} {0 255 0}} {
+            lappend results [expr {[CountPhotoColor $photo $rgb] > 0}]
+        }
+        .renderer marker configure m -fill {}
+        .renderer snap $photo
+        lappend results [expr {[CountPhotoColor $photo {255 0 0}] == 0}]
+        set results
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result {1 1 1 1 1}
+
+    test renderer-8.5 {marker under/over ordering is preserved} \
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element configure signal -data {1 8 5 8 9 8} -linewidth 0 \
+            -areapattern solid -areaforeground red
+        .renderer marker create line -name m -coords {2 5 8 5} -outline blue -linewidth 3 -under yes
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach under {yes no yes} {
+            .renderer marker configure m -under $under
+            .renderer snap $photo
+            lassign [.renderer transform 5 5] x y
+            lappend results [$photo get [expr {int($x)}] [expr {int($y)}]]
+        }
+        set results
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result {{255 0 0} {0 0 255} {255 0 0}}
+
+    foreach kind {text xorLine xorPolygon} {
+        test renderer-8.6-$kind {text and XOR markers retain native rendering} \
+                -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer element delete signal
+            switch $kind {
+                text {.renderer marker create text -coords {5 5} -text {Native text} -foreground black}
+                xorLine {.renderer marker create line -coords {2 2 8 8} -outline blue -xor yes}
+                xorPolygon {
+                    .renderer marker create polygon -coords {2 2 5 8 8 2} -outline blue -fill {} -xor yes
+                }
+            }
+            set photo [image create photo]
+        } -body {
+            .renderer configure -renderer native
+            .renderer snap $photo
+            set native [$photo data]
+            .renderer configure -renderer cairo -antialias gray
+            .renderer snap $photo
+            list [expr {$native eq [$photo data]}] [expr {[lindex [PlotInk $photo] 0] > 0}]
+        } -cleanup {
+            catch {image delete $photo}
+            destroy .renderer
+        } -result {1 1}
+    }
+
+    foreach invert {no yes} {
+        test renderer-8.7-$invert {geometric markers clip to the plotting area} \
+                -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer element delete signal
+            .renderer configure -invertxy $invert
+            .renderer marker create polygon -coords {-2 2 5 12 12 2} -fill black -outline blue -linewidth 5
+            .renderer marker create line -coords {-2 4 12 8} -outline red -linewidth 5 -arrow both
+            set photo [image create photo]
+        } -body {
+            .renderer snap $photo
+            lassign [PlotInk $photo] inside outside
+            list [expr {$inside > 0}] $outside
+        } -cleanup {
+            catch {image delete $photo}
+            destroy .renderer
+        } -result {1 0}
+    }
+
+    test renderer-8.8 {marker caps retain their endpoint extent} \
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element delete signal
+        .renderer configure -antialias none
+        set coords [concat [.renderer invtransform 88 100] [.renderer invtransform 148 100]]
+        .renderer marker create line -name m -coords $coords -outline black -linewidth 6
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach cap {butt round projecting} {
+            .renderer marker configure m -cap $cap
+            .renderer snap $photo
+            lappend results [$photo get 86 100]
+        }
+        set results
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result {{255 255 255} {0 0 0} {0 0 0}}
+
     cleanupTests
 }

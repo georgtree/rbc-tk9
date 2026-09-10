@@ -10,6 +10,7 @@
  */
 
 #include "rbcGraph.h"
+#include "rbcRender.h"
 
 #define DEF_GRID_DASHES "dot"
 #define DEF_GRID_FOREGROUND RGB_GREY64
@@ -261,8 +262,17 @@ void Rbc_MapGrid(Graph *graphPtr) {
  */
 void Rbc_DrawGrid(Graph *graphPtr, Drawable drawable) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
+    Rbc_RenderContext *ctx;
 
     if (gridPtr->hidden) {
+        return;
+    }
+    ctx = Rbc_RenderBegin(graphPtr, drawable, gridPtr->colorPtr, MAX(1, gridPtr->lineWidth),
+        &gridPtr->dashes, NULL);
+    if (ctx != NULL) {
+        Rbc_RenderSegments(ctx, gridPtr->x.segments, gridPtr->x.nSegments);
+        Rbc_RenderSegments(ctx, gridPtr->y.segments, gridPtr->y.nSegments);
+        Rbc_RenderEnd(ctx);
         return;
     }
     if (gridPtr->x.nSegments > 0) {
