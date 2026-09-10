@@ -577,13 +577,11 @@ namespace eval ::rbc::GRAPHINST {
         #ruffopt excludedformats nroff
         | Option                         | Database name          | Database class         | Description |
         |--------------------------------|------------------------|------------------------|-------------|
-        | `-anglelabelanchor anchor`     | `angleLabelAnchor`     | `AngleLabelAnchor`     | Sets the anchor used for major angular labels. Accepts a Tk anchor or `auto`. With `auto`, Rbc selects an
-inward-facing anchor for both circular and clipped-spoke label placement. The default is `center`. |
+        | `-anglelabelanchor anchor`     | `angleLabelAnchor`     | `AngleLabelAnchor`     | Sets the anchor used for major angular labels. Accepts a Tk anchor or `auto`. With `auto`, Rbc selects an inward-facing anchor for both circular and clipped-spoke label placement. The default is `center`. |
         | `-anglecommand command`        | `angleCommand`         | `AngleCommand`         | Specifies a Tcl command prefix for formatting major angular labels. Rbc appends `widgetPath degrees`. An empty value uses built-in degree labels. |
         | `-anglemajorticks tickList`    | `angleMajorTicks`      | `AngleMajorTicks`      | Specifies major angular spokes and labels in degrees. The default is `0 30 60 90 120 150 180 210 240 270 300 330`. |
         | `-angleminorticks tickList`    | `angleMinorTicks`      | `AngleMinorTicks`      | Specifies minor angular spokes in degrees. They are drawn when `grid -minor` is true. The default is `15 45 75 105 135 165 195 225 255 285 315 345`. |
-        | `-radiallabelanchor anchor`    | `radialLabelAnchor`    | `RadialLabelAnchor`    | Sets the anchor used for Polar radial labels on the positive zero-degree ray. Accepts a Tk anchor or `auto`.
-The default is `se`. |
+        | `-radiallabelanchor anchor`    | `radialLabelAnchor`    | `RadialLabelAnchor`    | Sets the anchor used for Polar radial labels on the positive zero-degree ray. Accepts a Tk anchor or `auto`. The default is `se`. |
         | `-representation mode`         | `representation`       | `Representation`       | Selects `polar` or `smith` representation. The default is `polar`. |
         | `-smithgrid mode`              | `smithGrid`            | `SmithGrid`            | Selects `impedance`, `admittance`, or `both` Smith contour families. The default is `impedance`. |
         | `-smithrealcommand command`    | `smithRealCommand`     | `SmithRealCommand`     | Specifies a Tcl command prefix for major real Smith labels. Rbc appends `widgetPath domain value`. |
