@@ -10,7 +10,7 @@ This page documents the configuration and behavior of bar elements\&.
 .PP
 With -renderer cairo, solid/stippled bar fills and error bars use Cairo, including active bars and
 named pens\&. Integer rectangle edges and stipple pixels stay sharp; -antialias applies to error strokes\&.
-Bar layout, clipping, color defaults, and stipple origin are preserved\&. Tk relief borders, legend samples,
+Bar layout, clipping, color defaults, and stipple origin are preserved\&. Tk relief borders
 and value labels retain native rendering\&.
 .PP
 BARELEMENT denotes an element whose concrete type is BarElement\&. Bar elements are the default element

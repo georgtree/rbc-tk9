@@ -376,6 +376,15 @@ static void EventuallyRedrawLegend(Legend *legendPtr) {
     }
 }
 
+/* External legends have their own idle redraw and drawable. */
+void Rbc_RedrawExternalLegend(Graph *graphPtr) {
+    Legend *legendPtr = graphPtr->legend;
+
+    if ((legendPtr != NULL) && !legendPtr->tkResourcesReleased && (legendPtr->site == LEGEND_WINDOW)) {
+        EventuallyRedrawLegend(legendPtr);
+    }
+}
+
 static int PrepareLegendWindow(Tcl_Interp *interp, Legend *legendPtr, const char *pathName, Tk_Window *tkwinPtr,
                                Tcl_Command *cmdTokenPtr) {
     Tk_Window mainWindow;
@@ -1023,7 +1032,7 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
                                     legendPtr->style.height, legendPtr->entryBorderWidth, elemPtr->labelRelief);
             }
         }
-        (*elemPtr->procsPtr->drawSymbolProc)(graphPtr, pixmap, elemPtr, x + symbolX, y + symbolY, symbolSize);
+        (*elemPtr->procsPtr->drawSymbolProc)(graphPtr, pixmap, elemPtr, x + symbolX, y + symbolY, symbolSize, width, height);
         Rbc_DrawText(legendPtr->tkwin, pixmap, elemPtr->label, &legendPtr->style, x + labelX,
                      y + legendPtr->entryBorderWidth + legendPtr->ipadY.side1);
         count++;

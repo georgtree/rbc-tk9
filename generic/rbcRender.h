@@ -43,4 +43,11 @@ int Rbc_RenderPhoto(Graph *graphPtr, Drawable drawable, const Tk_PhotoImageBlock
 int Rbc_RenderRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *rectangles,
                          Tcl_Size count, const XColor *foreground, const XColor *background, Pixmap stipple);
 
+Rbc_RenderContext *Rbc_RenderBeginLegend(Graph *graphPtr, Drawable drawable, int width, int height,
+                                         const XColor *color, double lineWidth,
+                                         const Rbc_Dashes *dashes, const XColor *offColor);
+int Rbc_RenderLegendBar(Graph *graphPtr, Drawable drawable, int width, int height,
+                        const Rbc_RenderRectangle *r, const XColor *foreground,
+                        const XColor *background, Pixmap stipple);
+
 #endif

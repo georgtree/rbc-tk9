@@ -31,6 +31,11 @@ ttk::button .controls.recolor -text {Recolor tile} -command {
     $areaTile put [expr {$tileVariant ? "#e4c7b3" : "#cedef0"}] -to 0 0 4 8
 }
 pack .controls.tile .controls.recolor -side left -padx 4
+set showLegend 1
+ttk::checkbutton .controls.legend -text {Legends} -variable showLegend -command {
+    foreach g {.native .cairo .nativeBar .cairoBar} {$g legend configure -hide [expr {!$showLegend}]}
+}
+pack .controls.legend -side left -padx 4
 set showGrid 1
 set showMarkers 1
 ttk::checkbutton .controls.grid -text {Grid} -variable showGrid -command {
@@ -72,26 +77,26 @@ foreach renderer {native cairo} {
     ::rbc::graph $g -renderer $renderer -width 500 -height 350 \
         -title $renderer -plotbackground white
     pack $g -in .traces -side left -fill both -expand yes
-    $g legend configure -hide yes
+    $g legend configure -hide no -position rightmargin -font {Arial 10}
     $g axis configure x -min 0 -max 10
     $g axis configure y -min -3 -max 3
     $g grid configure -hide no -color grey85 -dashes dot -linewidth 1 -minor no
-    $g element create signal -data $data -symbol none -linewidth 1 -color navy \
+    $g element create signal -label Signal -data $data -symbol none -linewidth 1 -color navy \
         -areapattern solid -areaforeground #e6eef8
-    $g element create dashed -data $dashedData -symbol none -linewidth 2 \
+    $g element create dashed -label Dashed -data $dashedData -symbol none -linewidth 2 \
         -color firebrick -dashes {8 4} -offdash steelblue \
         -areapattern gray50 -areaforeground #e3beb0 -areabackground {}
-    $g element create errors -data {1 2.3 3 2.3 5 2.3 7 2.3 9 2.3} \
+    $g element create errors -label {} -data {1 2.3 3 2.3 5 2.3 7 2.3 9 2.3} \
         -linewidth 0 -symbol circle -pixels 7 -color darkgreen \
         -xerror {0.3 0.3 0.3 0.3 0.3} -yerror {0.25 0.25 0.25 0.25 0.25} \
         -errorbarwidth 2 -errorbarcap 8 -showerrorbars both
     set x 0
     foreach symbol {circle square diamond plus cross splus scross triangle arrow} {
         incr x
-        $g element create $symbol -data [list $x -2.4] -linewidth 0 \
+        $g element create $symbol -label [expr {$symbol in {circle triangle} ? $symbol : ""}] -data [list $x -2.4] -linewidth 0 \
             -symbol $symbol -pixels 15 -fill lightsteelblue -outline navy -outlinewidth 1
     }
-    $g element create clipped -data {0 -2.4 10 -2.4} -linewidth 0 \
+    $g element create clipped -label {} -data {0 -2.4 10 -2.4} -linewidth 0 \
         -symbol circle -pixels 21 -fill salmon -outline firebrick
     $g marker create line -name demoArrow -coords {1.2 2.7 2 1.8} \
         -outline #885577 -linewidth 2 -arrow last -cap round
@@ -135,15 +140,15 @@ foreach renderer {native cairo} {
     ::rbc::barchart $g -renderer $renderer -width 500 -height 240 \
         -title "$renderer bars" -plotbackground white -barmode $barMode
     pack $g -in .bars -side left -fill both -expand yes
-    $g legend configure -hide yes
+    $g legend configure -hide no -position rightmargin -font {Arial 10}
     $g grid configure -hide no -color grey85 -dashes dot -linewidth 1 -minor no
     $g axis configure x -min 0 -max 5
     $g axis configure y -min -8 -max 12
     # First: transparent stipple gaps. Second: colored gaps and Tk relief.
-    $g element create first -data {1 5 2 -4 3 7 4 3} -foreground steelblue -background {} \
+    $g element create first -label First -data {1 5 2 -4 3 7 4 3} -foreground steelblue -background {} \
         -relief flat -borderwidth 0 -yerror {1 0.8 1.2 0.6} -errorbarcolor black \
         -errorbarwidth 2 -errorbarcap 8 -showvalues y
-    $g element create second -data {1 3 2 -2 3 4 4 5} -foreground salmon -background firebrick \
+    $g element create second -label Second -data {1 3 2 -2 3 4 4 5} -foreground salmon -background firebrick \
         -relief raised -borderwidth 2 -yerror {0.6 0.5 0.8 0.7} -errorbarcolor black \
         -errorbarwidth 2 -errorbarcap 8 -showvalues y
     $g pen configure activeBar -foreground gold -background darkgoldenrod -borderwidth 2 -relief raised

@@ -1623,6 +1623,7 @@ void Rbc_EventuallyRedrawGraph(Graph *graphPtr) {
     if ((graphPtr->tkwin != NULL) && !(graphPtr->flags & REDRAW_PENDING)) {
         Tcl_DoWhenIdle(DisplayGraph, graphPtr);
         graphPtr->flags |= REDRAW_PENDING;
+        Rbc_RedrawExternalLegend(graphPtr);
     }
 }
 

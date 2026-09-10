@@ -1341,5 +1341,151 @@ namespace eval ::rbcRendererTest {
         catch {image delete $photo}
     } -result {1 1 1 1}
 
+    proc LegendPixels {photo {color {}}} {
+        set ink 0
+        set gray 0
+        set matching 0
+        for {set y 0} {$y < [image height $photo]} {incr y} {
+            for {set x 0} {$x < [image width $photo]} {incr x} {
+                set rgb [$photo get $x $y]
+                lassign $rgb r g b
+                incr ink [expr {$rgb ne {255 255 255}}]
+                incr gray [expr {$r == $g && $g == $b && $r > 0 && $r < 255}]
+                incr matching [expr {$rgb eq $color}]
+            }
+        }
+        return [list $ink $gray $matching]
+    }
+
+    proc ShowSampleLegend {} {
+        .renderer element configure signal -label Sample -hideplot yes
+        .renderer legend configure -hide no -position rightmargin -background white \
+            -foreground white -borderwidth 0 -relief flat -font {Arial 18}
+        update
+    }
+
+    foreach kind {graph stripchart} {
+        foreach shape {circle diamond triangle scross arrow} {
+            test renderer-11.1-$kind-$shape {legend geometry uses Cairo outside the plot area} \
+                    -constraints rbcCairo -setup {
+                StrokeFixture $kind
+                .renderer element configure signal -symbol $shape -linewidth 0 -fill black -outline black
+                ShowSampleLegend
+                set photo [image create photo]
+            } -body {
+                set results {}
+                foreach aa {none gray none} {
+                    .renderer configure -antialias $aa
+                    .renderer snap $photo
+                    lassign [LegendPixels $photo] ink gray
+                    lappend results [expr {$ink > 0}] [expr {$gray > 0}]
+                }
+                set results
+            } -cleanup {
+                destroy .renderer
+                catch {image delete $photo}
+            } -result {1 0 1 1 1 0}
+        }
+    }
+
+    test renderer-11.2 {legend dashes preserve both colors and reconfiguration} \
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element configure signal -symbol none -linewidth 2 -color red -offdash blue -dashes {6 4}
+        ShowSampleLegend
+        set photo [image create photo]
+    } -body {
+        .renderer snap $photo
+        set results [list [expr {[lindex [LegendPixels $photo {255 0 0}] 2] > 0}] \
+            [expr {[lindex [LegendPixels $photo {0 0 255}] 2] > 0}]]
+        .renderer element configure signal -dashes {}
+        .renderer snap $photo
+        lappend results [expr {[lindex [LegendPixels $photo {0 0 255}] 2] == 0}]
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 1 1}
+
+    foreach pattern {{} gray25 gray50 warning} {
+        foreach background {{} red} {
+            test renderer-11.3-$pattern-$background {bar legend stipples restart at the swatch origin} \
+                    -constraints rbcCairo -setup {
+                BarFixture
+                .renderer element configure signal -stipple $pattern -foreground black -background $background
+                ShowSampleLegend
+                set photo [image create photo]
+            } -body {
+                set results {}
+                foreach position {rightmargin @40,30} {
+                    .renderer legend configure -position $position
+                    .renderer configure -renderer native
+                    .renderer snap $photo
+                    set native [$photo data]
+                    .renderer configure -renderer cairo
+                    .renderer snap $photo
+                    lappend results [expr {$native eq [$photo data]}] \
+                        [expr {[lindex [LegendPixels $photo {0 0 0}] 2] > 0}]
+                }
+                set results
+            } -cleanup {
+                destroy .renderer
+                catch {image delete $photo}
+            } -result {1 1 1 1}
+        }
+    }
+
+    test renderer-11.4 {legend text, activation backgrounds and borders stay native} \
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element configure signal -symbol none -linewidth 0
+        ShowSampleLegend
+        .renderer legend configure -foreground black -borderwidth 2 -relief raised \
+            -activebackground yellow -activeforeground blue -activeborderwidth 2 -activerelief sunken
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach active {no yes} {
+            if {$active} {.renderer legend activate signal} else {.renderer legend deactivate signal}
+            .renderer configure -renderer native
+            .renderer snap $photo
+            set native [$photo data]
+            .renderer configure -renderer cairo
+            .renderer snap $photo
+            lappend results [expr {$native eq [$photo data]}]
+        }
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 1}
+
+    test renderer-11.5 {external legend pixmaps use their own dimensions after resizing} \
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element configure signal -symbol circle -linewidth 0 -fill black -outline black
+        ShowSampleLegend
+        .renderer legend configure -position .sampleLegend
+        pack .sampleLegend -fill x
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach size {18 26 18} {
+            .renderer legend configure -font [list Arial $size]
+            foreach aa {none gray} {
+                .renderer configure -antialias $aa
+                update
+                rbc::winop snap .sampleLegend $photo
+                lassign [LegendPixels $photo] ink gray
+                lappend results [expr {$ink > 0}] [expr {$gray > 0}]
+            }
+        }
+        set results
+    } -cleanup {
+        catch {destroy .sampleLegend}
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 0 1 1 1 0 1 1 1 0 1 1}
+
     cleanupTests
 }

@@ -144,7 +144,8 @@ typedef int(ElementConfigProc)(Graph *graphPtr, Element *elemPtr);
 typedef void(ElementMapProc)(Graph *graphPtr, Element *elemPtr);
 typedef void(ElementExtentsProc)(Element *elemPtr, Extents2D *extsPtr);
 typedef void(ElementClosestProc)(Graph *graphPtr, Element *elemPtr, ClosestSearch *searchPtr);
-typedef void(ElementDrawSymbolProc)(Graph *graphPtr, Drawable drawable, Element *elemPtr, int x, int y, int symbolSize);
+typedef void(ElementDrawSymbolProc)(Graph *graphPtr, Drawable drawable, Element *elemPtr, int x, int y, int symbolSize,
+                                    int width, int height);
 typedef void(ElementSymbolToPostScriptProc)(Graph *graphPtr, PsToken psToken, Element *elemPtr, double x, double y,
                                             int symSize);
 typedef Tcl_Size(ElementPointCountProc)(Element *elemPtr);

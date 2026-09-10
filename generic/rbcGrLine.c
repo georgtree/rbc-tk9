@@ -10752,18 +10752,46 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
  *
  * -----------------------------------------------------------------
  */
-static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int x, int y, int size) {
+static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int x, int y, int size,
+                       int width, int height) {
     Line *linePtr = LINE_FROM_CORE(elemPtr);
     LinePen *penPtr = LINE_PEN_FROM_CORE(elemPtr->normalPenPtr);
+    Rbc_RenderContext *ctx;
 
     if (penPtr->traceWidth > 0) {
-        XDrawLine(graphPtr->display, drawable, penPtr->traceGC, x - size, y, x + size, y);
-        XDrawLine(graphPtr->display, drawable, penPtr->traceGC, x - size, y + 1, x + size, y + 1);
+        ctx = Rbc_RenderBeginLegend(graphPtr, drawable, width, height, penPtr->traceColor,
+            penPtr->traceWidth, &penPtr->traceDashes, penPtr->traceOffColor);
+        if (ctx != NULL) {
+            Segment2D segments[2] = {{{x - size, y}, {x + size, y}},
+                                     {{x - size, y + 1}, {x + size, y + 1}}};
+            Rbc_RenderSegments(ctx, segments, 2);
+            Rbc_RenderEnd(ctx);
+        } else {
+            XDrawLine(graphPtr->display, drawable, penPtr->traceGC, x - size, y, x + size, y);
+            XDrawLine(graphPtr->display, drawable, penPtr->traceGC, x - size, y + 1, x + size, y + 1);
+        }
     }
     if (penPtr->symbol.type != SYMBOL_NONE) {
-        Point2D point;
-        point.x = x;
-        point.y = y;
+        Point2D point = {x, y};
+        Rbc_RenderShape shape;
+
+        if ((size >= 3) && GetRenderedSymbolShape(penPtr->symbol.type, size, &shape)) {
+            XColor *fill = (penPtr->symbol.fillColor == COLOR_DEFAULT) ? penPtr->traceColor : penPtr->symbol.fillColor;
+            XColor *outline = (penPtr->symbol.outlineColor == COLOR_DEFAULT) ? penPtr->traceColor : penPtr->symbol.outlineColor;
+            int drawOutline = (penPtr->symbol.outlineWidth > 0) && (outline != NULL);
+
+            if (shape.type == RBC_RENDER_SEGMENTS) {
+                fill = NULL;
+                drawOutline = (outline != NULL);
+            }
+            ctx = Rbc_RenderBeginLegend(graphPtr, drawable, width, height,
+                (outline != NULL) ? outline : fill, MAX(1, penPtr->symbol.outlineWidth), NULL, NULL);
+            if (ctx != NULL) {
+                Rbc_RenderSymbols(ctx, &shape, &point, 1, fill, drawOutline);
+                Rbc_RenderEnd(ctx);
+                return;
+            }
+        }
         DrawSymbolsUnclipped(graphPtr, drawable, linePtr, penPtr, size, 1, &point);
     }
 }

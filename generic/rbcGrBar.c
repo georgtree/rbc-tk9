@@ -1984,7 +1984,8 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
  *
  * -----------------------------------------------------------------
  */
-static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int x, int y, int size) {
+static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int x, int y, int size,
+                       int width, int height) {
     BarPen *penPtr;
     int radius;
 
@@ -1998,6 +1999,14 @@ static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int
 
     x -= radius;
     y -= radius;
+    {
+        Rbc_RenderRectangle r = {x, y, size, size};
+        const XColor *background = (penPtr->border != NULL) ? Tk_3DBorderColor(penPtr->border) : NULL;
+        const XColor *foreground = (penPtr->fgColor != NULL) ? penPtr->fgColor : background;
+
+        if (Rbc_RenderLegendBar(graphPtr, drawable, width, height, &r, foreground,
+                (penPtr->fgColor != NULL) ? background : NULL, penPtr->stipple)) return;
+    }
     XSetTSOrigin(graphPtr->display, penPtr->gc, x, y);
     XFillRectangle(graphPtr->display, drawable, penPtr->gc, x, y, size, size);
     XSetTSOrigin(graphPtr->display, penPtr->gc, 0, 0);

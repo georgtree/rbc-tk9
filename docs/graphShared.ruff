@@ -3073,7 +3073,7 @@ namespace eval ::rbc::BARELEMENT {
 
         With `-renderer cairo`, solid/stippled bar fills and error bars use Cairo, including active bars and
         named pens. Integer rectangle edges and stipple pixels stay sharp; `-antialias` applies to error strokes.
-        Bar layout, clipping, color defaults, and stipple origin are preserved. Tk relief borders, legend samples,
+        Bar layout, clipping, color defaults, and stipple origin are preserved. Tk relief borders
         and value labels retain native rendering.
 
         `BARELEMENT` denotes an element whose concrete type is `BarElement`. Bar elements are the default element
@@ -4858,6 +4858,11 @@ namespace eval ::rbc::LEGEND {
     }
 
     variable _ruff_preamble {
+        With `-renderer cairo`, legend line samples, geometric symbols, and bar swatches use Cairo.
+        They follow `-antialias` and the normal element pen, including dash colors and stipples.
+        Swatch stipples restart at the sample origin. Text, backgrounds, relief borders, and bitmap samples
+        remain native. The same behavior applies to external legend windows.
+
         Commands in this namespace document the graph legend.
 
         `LEGEND` is used below as a placeholder for:
