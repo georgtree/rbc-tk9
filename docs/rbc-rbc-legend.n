@@ -6,10 +6,9 @@
 rbc::LEGEND - Commands in namespace rbc::LEGEND
 .SH "GRAPH LEGEND LEGEND COMMAND"
 .PP
-With -renderer cairo, legend line samples, geometric symbols, and bar swatches use Cairo\&.
+With -renderer cairo, legend line samples, geometric and bitmap symbols, and bar swatches use Cairo\&.
 They follow -antialias and the normal element pen, including dash colors and stipples\&.
-Swatch stipples restart at the sample origin\&. Text, backgrounds, relief borders, and bitmap samples
-remain native\&. The same behavior applies to external legend windows\&.
+Swatch stipples restart at the sample origin\&. Text, backgrounds, and relief borders remain native\&. The same behavior applies to external legend windows\&.
 .PP
 Commands in this namespace document the graph legend\&.
 .PP

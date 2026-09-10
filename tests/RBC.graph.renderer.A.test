@@ -423,7 +423,7 @@ namespace eval ::rbcRendererTest {
         destroy .renderer
     } -result {1 0 1 1 1 0 1}
 
-    test renderer-4.7 {bitmap symbols retain native rendering} \
+    test renderer-4.7 {bitmap symbols preserve native pixels} \
             -constraints rbcCairo -setup {
         StrokeFixture graph
         .renderer element configure signal -data {5 5} -linewidth 0 -symbol warning -pixels 21
@@ -1746,6 +1746,169 @@ namespace eval ::rbcRendererTest {
         removeFile $bitmap
         removeFile $mask
     } -result {1 1 1 1}
+
+    proc BitmapSymbolFixture {kind} {
+        lassign [BitmapFixture] bitmap mask
+        destroy .renderer
+        StrokeFixture $kind
+        .renderer element configure signal -data {2 2 5 5 8 8} -linewidth 0 \
+            -symbol @$bitmap -pixels 17 -outline black -fill blue
+        return [list $bitmap $mask]
+    }
+
+    foreach kind {graph stripchart} {
+        foreach masked {no yes} {
+            foreach fill {{} blue} {
+                test renderer-14.1-$kind-$masked-$fill {bitmap symbol colors and masks match native pixels} \
+                        -constraints rbcCairo -setup {
+                    lassign [BitmapSymbolFixture $kind] bitmap mask
+                    .renderer element configure signal -fill $fill \
+                        -symbol [list @$bitmap [expr {$masked ? "@$mask" : ""}]]
+                    set photo [image create photo]
+                } -body {
+                    .renderer configure -renderer native
+                    .renderer snap $photo
+                    set native [$photo data]
+                    set results {}
+                    foreach aa {none gray} {
+                        .renderer configure -renderer cairo -antialias $aa
+                        .renderer snap $photo
+                        lappend results [expr {$native eq [$photo data]}] \
+                            [expr {[CountPhotoColor $photo {0 0 0}] > 0}]
+                    }
+                    set results
+                } -cleanup {
+                    destroy .renderer
+                    catch {image delete $photo}
+                    removeFile $bitmap
+                    removeFile $mask
+                } -result {1 1 1 1}
+            }
+        }
+    }
+
+    foreach invert {no yes} {
+        test renderer-14.2-$invert {bitmap symbols remain partially visible at plot edges} \
+                -constraints rbcCairo -setup {
+            lassign [BitmapSymbolFixture graph] bitmap mask
+            .renderer configure -invertxy $invert -plotpadx 0 -plotpady 0
+            .renderer element configure signal -data {0 0 0 10 10 0 10 10} -pixels 25 -fill {}
+            set photo [image create photo]
+        } -body {
+            .renderer snap $photo
+            lassign [PlotInk $photo] inside outside
+            list [expr {$inside > 0}] $outside
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+            removeFile $bitmap
+            removeFile $mask
+        } -result {1 0}
+    }
+
+    test renderer-14.3 {bitmap symbol limits preserve native point selection} \
+            -constraints rbcCairo -setup {
+        lassign [BitmapSymbolFixture graph] bitmap mask
+        .renderer element configure signal -data {1 5 2 5 3 5 4 5 5 5 6 5 7 5 8 5 9 5} -pixels 9 -fill {}
+        set photo [image create photo]
+    } -body {
+        .renderer snap $photo
+        set all [CountPhotoColor $photo {0 0 0}]
+        .renderer element configure signal -maxsymbols 3
+        .renderer configure -renderer native
+        .renderer snap $photo
+        set native [$photo data]
+        .renderer configure -renderer cairo
+        .renderer snap $photo
+        set limited [CountPhotoColor $photo {0 0 0}]
+        list [expr {$native eq [$photo data]}] [expr {$limited > 0 && $limited < $all}]
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+        removeFile $bitmap
+        removeFile $mask
+    } -result {1 1}
+
+    test renderer-14.4 {active bitmap pens retain their colors and renderer switching} \
+            -constraints rbcCairo -setup {
+        lassign [BitmapSymbolFixture graph] bitmap mask
+        .renderer pen create selected -type line -linewidth 0 -symbol @$bitmap \
+            -pixels 17 -outline red -fill {}
+        .renderer element configure signal -activepen selected
+        .renderer element activate signal 1
+        set photo [image create photo]
+    } -body {
+        .renderer configure -renderer native
+        .renderer snap $photo
+        set native [$photo data]
+        .renderer configure -renderer cairo
+        .renderer snap $photo
+        set results [list [expr {$native eq [$photo data]}] \
+            [expr {[CountPhotoColor $photo {255 0 0}] > 0}]]
+        .renderer element deactivate signal
+        .renderer snap $photo
+        lappend results [expr {[CountPhotoColor $photo {255 0 0}] == 0}]
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+        removeFile $bitmap
+        removeFile $mask
+    } -result {1 1 1}
+
+    test renderer-14.5 {bitmap legend samples use local bounds and preserve native pixels} \
+            -constraints rbcCairo -setup {
+        lassign [BitmapSymbolFixture graph] bitmap mask
+        .renderer element configure signal -symbol [list @$bitmap @$mask]
+        ShowSampleLegend
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach position {rightmargin @40,30} {
+            .renderer legend configure -position $position
+            .renderer configure -renderer native
+            .renderer snap $photo
+            set native [$photo data]
+            .renderer configure -renderer cairo
+            .renderer snap $photo
+            lappend results [expr {$native eq [$photo data]}] \
+                [expr {[lindex [LegendPixels $photo {0 0 0}] 2] > 0}]
+        }
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+        removeFile $bitmap
+        removeFile $mask
+    } -result {1 1 1 1}
+
+    foreach backend {native cairo} {
+        foreach shape {circle bitmap} {
+            test renderer-14.6-$backend-$shape {explicit active points survive repeated snapshot remapping} \
+                    -constraints rbcCairo -setup {
+                lassign [BitmapSymbolFixture graph] bitmap mask
+                .renderer configure -renderer $backend
+                set symbol [expr {$shape eq "bitmap" ? "@$bitmap" : "circle"}]
+                .renderer pen create selected -type line -linewidth 0 -symbol $symbol \
+                    -pixels 17 -outline red -fill red
+                .renderer element configure signal -activepen selected
+                .renderer element activate signal 1
+                set photo [image create photo]
+            } -body {
+                set results {}
+                for {set i 0} {$i < 3} {incr i} {
+                    .renderer snap $photo
+                    lappend results [expr {[CountPhotoColor $photo {255 0 0}] > 0}]
+                }
+                set results
+            } -cleanup {
+                destroy .renderer
+                catch {image delete $photo}
+                removeFile $bitmap
+                removeFile $mask
+            } -result {1 1 1}
+        }
+    }
 
     cleanupTests
 }

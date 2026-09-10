@@ -669,21 +669,25 @@ The default is `se`. |
         colored gaps. Tk relief borders and value labels remain native.
 
         Legend line/strip samples, geometric symbols, and bar swatches also use Cairo, including external
-        legends. Swatch stipples restart at the sample origin. Legend text, backgrounds, borders, and bitmap
-        samples retain native drawing. Samples use the normal pen and do not consume plot symbol limits.
+        legends. Swatch stipples restart at the sample origin. Legend text, backgrounds, and borders retain native drawing. Samples use the normal pen and do not consume plot symbol limits.
 
         Axis lines and tick marks use Cairo with the existing color, width, and projecting caps.
         They draw across the widget margins, independently of the plot clip. Axis labels, titles, and relief
         backgrounds remain native. A zero axis `-linewidth` hides strokes, as with native rendering.
 
         Non-photo image tiles and solid/stippled areas with an empty `-areaforeground` retain native rendering.
-        Bitmap symbols, symbols smaller than three pixels,
+        Symbols smaller than three pixels,
         all text, window markers, non-photo image markers, and crosshairs retain native rendering.
 
         Grid and marker geometry is clipped to the plotting area. Marker color pairs, stipples, dash offsets,
         caps, and under/over ordering are preserved. Mapped segments remain independent, retaining their
         existing dash restarts. XOR markers keep native drawing and erase behavior. A line marker with an
         empty `-outline` also keeps its native GC default.
+
+        Bitmap element symbols and their legend samples use Cairo with existing aspect-preserving scaling
+        and mask behavior. Pixels stay sharp in every antialias mode. Active pens and `-maxsymbols` retain
+        their existing selection rules; legend samples do not consume that limit. The scaled bitmap is
+        converted once per pen drawing pass and reused for its selected symbols.
 
         Bitmap markers use their existing mapped bitmap and mask with Cairo clipping and color composition.
         Scaling, rotation, anchors, offsets, and layer order are preserved. Bitmap pixels stay sharp;

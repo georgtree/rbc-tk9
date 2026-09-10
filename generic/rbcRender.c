@@ -16,6 +16,8 @@ struct Rbc_RenderContext {
     Graph *graphPtr;
     cairo_surface_t *surface;
     cairo_t *cr;
+    cairo_pattern_t *bitmapPattern;
+    int bitmapWidth, bitmapHeight;
     XColor foreground;
     XColor offColor;
     int doubleDash;
@@ -30,6 +32,7 @@ struct Rbc_RenderContext {
 };
 
 static void FreeRenderContext(Rbc_RenderContext *ctx) {
+    if (ctx->bitmapPattern != NULL) cairo_pattern_destroy(ctx->bitmapPattern);
     if (ctx->cr != NULL) {
         cairo_destroy(ctx->cr);
     }
@@ -457,6 +460,48 @@ static cairo_pattern_t *CreateRenderBitmap(Graph *graphPtr, Pixmap bitmap, Pixma
     return pattern;
 }
 
+/* Convert once per pen pass; zero target dimensions select the plot clip. */
+Rbc_RenderContext *Rbc_RenderBeginBitmapSymbols(Graph *graphPtr, Drawable drawable,
+    Pixmap bitmap, Pixmap mask, int width, int height, const XColor *foreground,
+    const XColor *background, int targetWidth, int targetHeight) {
+    cairo_pattern_t *pattern;
+    Rbc_RenderContext *ctx;
+
+    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (bitmap == None) ||
+        (foreground == NULL) || (width <= 0) || (height <= 0)) return NULL;
+    pattern = CreateRenderBitmap(graphPtr, bitmap, mask, width, height, foreground, background);
+    if (pattern == NULL) return NULL;
+    ctx = (targetWidth > 0) ?
+        Rbc_RenderBeginDrawable(graphPtr, drawable, targetWidth, targetHeight, foreground, 1.0, NULL, NULL) :
+        Rbc_RenderBegin(graphPtr, drawable, foreground, 1.0, NULL, NULL);
+    if (ctx == NULL) {
+        cairo_pattern_destroy(pattern);
+        return NULL;
+    }
+    ctx->bitmapPattern = pattern;
+    ctx->bitmapWidth = width;
+    ctx->bitmapHeight = height;
+    cairo_translate(ctx->cr, -0.5, -0.5);
+    return ctx;
+}
+
+/* Paint in source order without repeating or resampling bitmap pixels. */
+void Rbc_RenderBitmapSymbols(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_Size count) {
+    Tcl_Size i;
+
+    for (i = 0; i < count; i++) {
+        int x = (int)centers[i].x - ctx->bitmapWidth / 2;
+        int y = (int)centers[i].y - ctx->bitmapHeight / 2;
+
+        cairo_save(ctx->cr);
+        cairo_translate(ctx->cr, x, y);
+        cairo_set_source(ctx->cr, ctx->bitmapPattern);
+        cairo_rectangle(ctx->cr, 0, 0, ctx->bitmapWidth, ctx->bitmapHeight);
+        cairo_fill(ctx->cr);
+        cairo_restore(ctx->cr);
+    }
+}
+
 /* Prepare all bitmap resources before drawing the optional rotated background. */
 int Rbc_RenderBitmap(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *r,
                       Pixmap bitmap, Pixmap mask, const XColor *foreground, const XColor *background,
@@ -702,6 +747,16 @@ int Rbc_RenderRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderRec
     (void)graphPtr; (void)drawable; (void)rectangles; (void)count;
     (void)foreground; (void)background; (void)stipple;
     return FALSE;
+}
+Rbc_RenderContext *Rbc_RenderBeginBitmapSymbols(Graph *graphPtr, Drawable drawable,
+    Pixmap bitmap, Pixmap mask, int width, int height, const XColor *foreground,
+    const XColor *background, int targetWidth, int targetHeight) {
+    (void)graphPtr; (void)drawable; (void)bitmap; (void)mask; (void)width; (void)height;
+    (void)foreground; (void)background; (void)targetWidth; (void)targetHeight;
+    return NULL;
+}
+void Rbc_RenderBitmapSymbols(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_Size count) {
+    (void)ctx; (void)centers; (void)count;
 }
 int Rbc_RenderBitmap(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *r,
                       Pixmap bitmap, Pixmap mask, const XColor *foreground, const XColor *background,

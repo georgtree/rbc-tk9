@@ -7453,6 +7453,9 @@ static void ResetLine(Line *linePtr) {
     linePtr->core.xErrorToData = NULL;
     linePtr->core.yErrorToData = NULL;
     linePtr->nActivePts = 0;
+    if (linePtr->core.nActiveIndices > 0) {
+        linePtr->core.flags |= ACTIVE_PENDING;
+    }
     linePtr->nSymbolPts = 0;
     linePtr->nStrips = 0;
     linePtr->pointMapOmitted = FALSE;    
@@ -10094,6 +10097,65 @@ static int GetRenderedSymbolShape(SymbolType type, int size, Rbc_RenderShape *sh
 }
 
 /* Draw plot symbols in bounded fill/outline passes; leave legends native. */
+/* Share one scaled bitmap and Cairo source across this symbol pass. */
+static int DrawRenderedBitmapSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr,
+    int size, Tcl_Size nPoints, const Point2D *points, int targetWidth, int targetHeight) {
+    Pixmap bitmap, mask = None;
+    Rbc_RenderContext *ctx;
+    XColor *foreground, *background;
+    int width, height, scaledWidth, scaledHeight;
+    double scale;
+    Point2D centers[256];
+    Tcl_Size i, count = 0, counter = linePtr->symbolCounter;
+
+    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (penPtr->symbol.type != SYMBOL_BITMAP) ||
+        (size < 3) || (nPoints <= 0)) return FALSE;
+    foreground = (penPtr->symbol.outlineColor == COLOR_DEFAULT) ? penPtr->traceColor : penPtr->symbol.outlineColor;
+    background = (penPtr->symbol.fillColor == COLOR_DEFAULT) ? penPtr->traceColor : penPtr->symbol.fillColor;
+    if (foreground == NULL) return FALSE;
+    Tk_SizeOfBitmap(graphPtr->display, penPtr->symbol.bitmap, &width, &height);
+    if ((width <= 0) || (height <= 0)) return FALSE;
+    scale = MIN((double)size / width, (double)size / height);
+    scaledWidth = (int)(width * scale);
+    scaledHeight = (int)(height * scale);
+    if ((scaledWidth <= 0) || (scaledHeight <= 0)) return FALSE;
+    bitmap = Rbc_ScaleBitmap(graphPtr->tkwin, penPtr->symbol.bitmap, width, height, scaledWidth, scaledHeight);
+    if (bitmap == None) return FALSE;
+    if (background == NULL) {
+        mask = bitmap; /* Native transparent symbols use their own bitmap as the mask. */
+    } else if (penPtr->symbol.mask != None) {
+        mask = Rbc_ScaleBitmap(graphPtr->tkwin, penPtr->symbol.mask, width, height, scaledWidth, scaledHeight);
+        if (mask == None) {
+            Tk_FreePixmap(graphPtr->display, bitmap);
+            return FALSE;
+        }
+    }
+    ctx = Rbc_RenderBeginBitmapSymbols(graphPtr, drawable, bitmap, mask, scaledWidth, scaledHeight,
+        foreground, background, targetWidth, targetHeight);
+    if ((mask != None) && (mask != bitmap)) Tk_FreePixmap(graphPtr->display, mask);
+    Tk_FreePixmap(graphPtr->display, bitmap);
+    if (ctx == NULL) return FALSE;
+    for (i = 0; i < nPoints; i++) {
+        int draw = TRUE;
+
+        if ((targetWidth == 0) && (linePtr->symbolInterval > 0)) {
+            draw = ((counter % linePtr->symbolInterval) == 0);
+            counter++;
+        }
+        if (draw) {
+            centers[count++] = points[i];
+            if (count == 256) {
+                Rbc_RenderBitmapSymbols(ctx, centers, count);
+                count = 0;
+            }
+        }
+    }
+    Rbc_RenderBitmapSymbols(ctx, centers, count);
+    Rbc_RenderEnd(ctx);
+    if ((targetWidth == 0) && (linePtr->symbolInterval > 0)) linePtr->symbolCounter = counter;
+    return TRUE;
+}
+
 static int DrawRenderedSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr,
                                int size, Tcl_Size nSymbolPts, const Point2D *symbolPts) {
     Rbc_RenderContext *ctx;
@@ -10648,7 +10710,8 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
     if ((nSymbolPts <= 0) || (penPtr->symbol.type == SYMBOL_NONE)) {
         return;
     }
-    if (DrawRenderedSymbols(graphPtr, drawable, linePtr, penPtr, size, nSymbolPts, symbolPts)) {
+    if (DrawRenderedBitmapSymbols(graphPtr, drawable, linePtr, penPtr, size, nSymbolPts, symbolPts, 0, 0) ||
+        DrawRenderedSymbols(graphPtr, drawable, linePtr, penPtr, size, nSymbolPts, symbolPts)) {
         return;
     }
     left = MAX(0, graphPtr->left);
@@ -10775,6 +10838,7 @@ static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int
         Point2D point = {x, y};
         Rbc_RenderShape shape;
 
+        if (DrawRenderedBitmapSymbols(graphPtr, drawable, linePtr, penPtr, size, 1, &point, width, height)) return;
         if ((size >= 3) && GetRenderedSymbolShape(penPtr->symbol.type, size, &shape)) {
             XColor *fill = (penPtr->symbol.fillColor == COLOR_DEFAULT) ? penPtr->traceColor : penPtr->symbol.fillColor;
             XColor *outline = (penPtr->symbol.outlineColor == COLOR_DEFAULT) ? penPtr->traceColor : penPtr->symbol.outlineColor;
