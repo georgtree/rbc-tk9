@@ -231,5 +231,238 @@ namespace eval ::rbcRendererTest {
         destroy .renderer
     } -result {0 1}
 
+
+    # Count ink on either side of the plot clip, with all decorations hidden.
+    proc PlotInk {photo} {
+        lassign [.renderer extents plotarea] left top width height
+        set right [expr {$left+$width}]
+        set bottom [expr {$top+$height}]
+        set inside 0
+        set outside 0
+        for {set y 0} {$y < [image height $photo]} {incr y} {
+            for {set x 0} {$x < [image width $photo]} {incr x} {
+                if {[$photo get $x $y] eq {255 255 255}} {continue}
+                if {$x >= $left && $x < $right && $y >= $top && $y < $bottom} {
+                    incr inside
+                } else {
+                    incr outside
+                }
+            }
+        }
+        list $inside $outside
+    }
+
+    foreach kind {graph stripchart} {
+        foreach symbol {circle square diamond plus cross splus scross triangle arrow} {
+            test renderer-4.1-$kind-$symbol {geometric symbols use Cairo antialias selection} \
+                    -constraints rbcCairo -setup {
+                StrokeFixture $kind
+                .renderer element configure signal -data {5 5} -linewidth 0 \
+                    -symbol $symbol -pixels 17 -outlinewidth 2 -fill defcolor -outline defcolor
+                set photo [image create photo]
+            } -body {
+                set results {}
+                foreach mode {none gray none} {
+                    .renderer configure -antialias $mode
+                    .renderer snap $photo
+                    lappend results [expr {[CountPhotoColor $photo {0 0 0}] > 0}] \
+                        [expr {[PartialGrayPixels $photo] > 0}]
+                }
+                set results
+            } -cleanup {
+                catch {image delete $photo}
+                destroy .renderer
+            } -result {1 0 1 1 1 0}
+        }
+
+        test renderer-4.2-$kind {partial symbols clip at all plot edges, also with inverted axes} \
+                -constraints rbcCairo -setup {
+            StrokeFixture $kind
+            .renderer configure -antialias gray
+            .renderer element configure signal -linewidth 0 -pixels 17 -outlinewidth 2
+            set photo [image create photo]
+        } -body {
+            set failures {}
+            foreach invert {no yes} {
+                .renderer configure -invertxy $invert
+                update idletasks
+                lassign [.renderer extents plotarea] left top width height
+                set right [expr {$left+$width-1}]
+                set bottom [expr {$top+$height-1}]
+                set midx [expr {($left+$right)/2}]
+                set midy [expr {($top+$bottom)/2}]
+                set positions [list [list [expr {$left-3}] $midy] \
+                    [list [expr {$right+3}] $midy] [list $midx [expr {$top-3}]] \
+                    [list $midx [expr {$bottom+3}]]]
+                foreach symbol {circle square diamond plus cross splus scross triangle arrow} {
+                    .renderer element configure signal -symbol $symbol
+                    foreach position $positions {
+                        .renderer element configure signal -data [.renderer invtransform {*}$position]
+                        .renderer snap $photo
+                        lassign [PlotInk $photo] inside outside
+                        if {$inside == 0 || $outside != 0} {
+                            lappend failures [list $invert $symbol $position $inside $outside]
+                        }
+                    }
+                }
+                .renderer element configure signal -data \
+                    [.renderer invtransform [expr {$left-40}] $midy]
+                .renderer snap $photo
+                if {[PlotInk $photo] ne {0 0}} {lappend failures fullyOutside}
+            }
+            set failures
+        } -cleanup {
+            catch {image delete $photo}
+            destroy .renderer
+        } -result {}
+
+        test renderer-4.3-$kind {symbol fill and outline remain independent} \
+                -constraints rbcCairo -setup {
+            StrokeFixture $kind
+            .renderer element configure signal -data {5 5} -linewidth 0 \
+                -symbol circle -pixels 21 -fill red -outline blue -outlinewidth 2
+            set photo [image create photo]
+        } -body {
+            set results {}
+            foreach {fill width} {red 2 {} 2 red 0 {} 0} {
+                .renderer element configure signal -fill $fill -outlinewidth $width
+                .renderer snap $photo
+                lappend results [expr {[CountPhotoColor $photo {255 0 0}] > 0}] \
+                    [expr {[CountPhotoColor $photo {0 0 255}] > 0}]
+            }
+            set results
+        } -cleanup {
+            catch {image delete $photo}
+            destroy .renderer
+        } -result {1 1 0 1 1 0 0 0}
+
+        foreach invert {no yes} {
+            test renderer-4.4-$kind-$invert {error bars are solid, colored, clipped and antialiased} \
+                    -constraints rbcCairo -setup {
+                StrokeFixture $kind
+                .renderer configure -invertxy $invert
+                .renderer element configure signal -data {5.137 5.193} -linewidth 0 -symbol none \
+                    -dashes {8 4} -offdash red -xerror {8} -yerror {8} \
+                    -showerrorbars both -errorbarwidth 2 -errorbarcolor defcolor
+                set photo [image create photo]
+            } -body {
+                set results {}
+                foreach mode {none gray none} {
+                    .renderer configure -antialias $mode
+                    .renderer snap $photo
+                    lappend results [expr {[CountPhotoColor $photo {0 0 0}] > 0}] \
+                        [expr {[PartialGrayPixels $photo] > 0}]
+                }
+                lappend results [expr {[lindex [PlotInk $photo] 1] == 0}]
+                set dashed [$photo data]
+                .renderer element configure signal -dashes {} -offdash {}
+                .renderer snap $photo
+                lappend results [expr {$dashed eq [$photo data]}]
+                .renderer element configure signal -errorbarcolor blue -errorbarwidth 0
+                .renderer snap $photo
+                lappend results [expr {[CountPhotoColor $photo {0 0 255}] > 0}]
+                .renderer element configure signal -showerrorbars none
+                .renderer snap $photo
+                lappend results [expr {[PlotInk $photo] eq {0 0}}]
+                set results
+            } -cleanup {
+                catch {image delete $photo}
+                destroy .renderer
+            } -result {1 0 1 1 1 0 1 1 1 1}
+        }
+    }
+
+    test renderer-4.5 {maxsymbols selects the same points for both symbol passes} \
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element configure signal -data {1 5 3 5 5 5 7 5 9 5} -linewidth 0 \
+            -symbol circle -pixels 13 -outlinewidth 2 -maxsymbols 2
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach max {2 0 2} {
+            .renderer element configure signal -maxsymbols $max
+            .renderer snap $photo
+            set selected {}
+            foreach x {1 3 5 7 9} {
+                lassign [.renderer transform $x 5] px py
+                lappend selected [expr {[$photo get [expr {int($px)}] [expr {int($py)}]] eq {0 0 0}}]
+            }
+            lappend results $selected
+        }
+        set results
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result {{1 0 1 0 1} {1 1 1 1 1} {1 0 1 0 1}}
+
+    test renderer-4.6 {active symbol pens and renderer switching} \
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element configure signal -data {5 5} -linewidth 0 -symbol circle \
+            -pixels 17 -color white -outlinewidth 2
+        .renderer pen create selected -type line -color black -linewidth 0 \
+            -symbol circle -pixels 17 -outlinewidth 2
+        .renderer element configure signal -activepen selected
+        .renderer element activate signal
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach renderer {native cairo native} {
+            .renderer configure -renderer $renderer -antialias gray
+            .renderer snap $photo
+            lappend results [expr {[CountPhotoColor $photo {0 0 0}] > 0}] \
+                [expr {[PartialGrayPixels $photo] > 0}]
+        }
+        .renderer element deactivate signal
+        .renderer snap $photo
+        lappend results [expr {[PlotInk $photo] eq {0 0}}]
+        set results
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result {1 0 1 1 1 0 1}
+
+    test renderer-4.7 {bitmap symbols retain native rendering} \
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element configure signal -data {5 5} -linewidth 0 -symbol warning -pixels 21
+        set photo [image create photo]
+    } -body {
+        .renderer configure -renderer native
+        .renderer snap $photo
+        set native [$photo data]
+        .renderer configure -renderer cairo
+        .renderer snap $photo
+        expr {$native eq [$photo data] && [lindex [PlotInk $photo] 0] > 0}
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result 1
+
+
+    test renderer-4.8 {later symbol fill batches do not erase earlier outlines} \
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer configure -antialias none
+        .renderer element configure signal -linewidth 0 -symbol circle -pixels 21 \
+            -fill red -outline black -outlinewidth 2
+        set photo [image create photo]
+    } -body {
+        # The second symbol overlaps the first outline, across a batch boundary.
+        set data {}
+        for {set i 0} {$i < 256} {incr i} {lappend data 4.8 5}
+        lappend data 5.2 5
+        .renderer element configure signal -data $data
+        .renderer snap $photo
+        set batched [$photo data]
+        .renderer element configure signal -data {4.8 5 5.2 5}
+        .renderer snap $photo
+        expr {$batched eq [$photo data]}
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result 1
+
     cleanupTests
 }

@@ -639,8 +639,19 @@ The default is `se`. |
         .g configure -renderer native
         ```
 
-        Cairo draws solid and dashed line traces and strip segments, including active traces.
-        It uses the existing mapped and decimated geometry. Symbols, fills, error bars,
+        Cairo draws solid and dashed line traces, strip segments, geometric symbols, and line/strip
+        error bars. Active traces and symbols use Cairo too. Mapping, decimation, and point selection
+        remain shared with native rendering.
+
+        Supported symbols are `circle`, `square`, `diamond`, `plus`, `cross`, `splus`, `scross`,
+        `triangle`, and `arrow`. Their size, fill, outline, and `-maxsymbols` settings are preserved.
+        Symbols remain partially visible at plot edges, including when their centers are outside.
+        Fill passes precede outline passes, using bounded batches.
+
+        Error bars retain their color, cap geometry, and `-showerrorbars` settings. They are solid,
+        independent of trace dashes. A zero error-bar width retains the native one-pixel hairline.
+
+        Bitmap symbols, symbols smaller than three pixels, legend samples, area fills, bar elements,
         axes, text, markers, and crosshairs currently retain native rendering.
 
         `-antialias default|none|gray|fast|good|best` selects antialiasing for Cairo geometry.
@@ -665,7 +676,7 @@ The default is `se`. |
         Two-color strip segments are stroked individually to preserve drawing order at intersections.
         Solid and single-color strip segments retain batching.
 
-        Snapshots use the selected renderer for these strokes. PostScript and Windows metafile output
+        Snapshots use the selected renderer for these primitives. PostScript and Windows metafile output
         retain their existing exporters. Switching renderers invalidates the cached element image.
         Native rendering remains the fallback when a Cairo drawing surface cannot be opened.
 

@@ -10008,6 +10008,165 @@ static void DrawRenderedStrips(Graph *graphPtr, Drawable drawable, LinePen *penP
     }
 }
 
+/* Use the native symbol proportions and integer template vertices. */
+static int GetRenderedSymbolShape(SymbolType type, int size, Rbc_RenderShape *shape) {
+    int r1 = (int)ceil(size * 0.5);
+    int r2 = (int)ceil(size * 0.886226925452758 * 0.5);
+    int i;
+
+    memset(shape, 0, sizeof(*shape));
+    shape->type = RBC_RENDER_POLYGON;
+    switch (type) {
+    case SYMBOL_CIRCLE:
+        shape->type = RBC_RENDER_CIRCLE;
+        shape->radius = r1;
+        break;
+    case SYMBOL_SQUARE:
+        shape->nPoints = 4;
+        shape->points[0] = (Point2D){-r2, -r2};
+        shape->points[1] = (Point2D){ r2, -r2};
+        shape->points[2] = (Point2D){ r2,  r2};
+        shape->points[3] = (Point2D){-r2,  r2};
+        break;
+    case SYMBOL_DIAMOND:
+        shape->nPoints = 4;
+        shape->points[0] = (Point2D){-r1, 0};
+        shape->points[1] = (Point2D){0, -r1};
+        shape->points[2] = (Point2D){r1, 0};
+        shape->points[3] = (Point2D){0, r1};
+        break;
+    case SYMBOL_SPLUS:
+    case SYMBOL_SCROSS:
+        shape->type = RBC_RENDER_SEGMENTS;
+        shape->nPoints = 4;
+        if (type == SYMBOL_SCROSS) {
+            r2 = Round(r2 * M_SQRT1_2);
+            shape->points[0] = (Point2D){-r2, -r2};
+            shape->points[1] = (Point2D){ r2,  r2};
+            shape->points[2] = (Point2D){-r2,  r2};
+            shape->points[3] = (Point2D){ r2, -r2};
+        } else {
+            shape->points[0] = (Point2D){-r2, 0};
+            shape->points[1] = (Point2D){ r2, 0};
+            shape->points[2] = (Point2D){0, -r2};
+            shape->points[3] = (Point2D){0,  r2};
+        }
+        break;
+    case SYMBOL_PLUS:
+    case SYMBOL_CROSS: {
+        int d = r2 / 3;
+        Point2D points[] = {
+            {-r2,-d}, {-d,-d}, {-d,-r2}, {d,-r2}, {d,-d}, {r2,-d},
+            {r2,d}, {d,d}, {d,r2}, {-d,r2}, {-d,d}, {-r2,d}
+        };
+
+        shape->nPoints = 12;
+        memcpy(shape->points, points, sizeof(points));
+        if (type == SYMBOL_CROSS) {
+            for (i = 0; i < 12; i++) {
+                double dx = shape->points[i].x * M_SQRT1_2;
+                double dy = shape->points[i].y * M_SQRT1_2;
+                shape->points[i].x = Round(dx - dy);
+                shape->points[i].y = Round(dx + dy);
+            }
+        }
+        break;
+    }
+    case SYMBOL_TRIANGLE:
+    case SYMBOL_ARROW: {
+        int b = Round(size * 1.3467736870885982 * 0.7);
+        int b2 = Round(b * 0.5);
+        int h2 = Round(0.57735026918962573 * b2);
+        int h1 = Round(b2 / 0.86602540378443871);
+        int direction = (type == SYMBOL_ARROW) ? -1 : 1;
+
+        shape->nPoints = 3;
+        shape->points[0] = (Point2D){0, -direction * h1};
+        shape->points[1] = (Point2D){b2, direction * h2};
+        shape->points[2] = (Point2D){-b2, direction * h2};
+        break;
+    }
+    default:
+        return FALSE;
+    }
+    return TRUE;
+}
+
+/* Draw plot symbols in bounded fill/outline passes; leave legends native. */
+static int DrawRenderedSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr,
+                               int size, Tcl_Size nSymbolPts, const Point2D *symbolPts) {
+    Rbc_RenderContext *ctx;
+    Rbc_RenderShape shape;
+    XColor *fillColor, *outlineColor;
+    Point2D centers[256];
+    Tcl_Size i, count, counter;
+    int pass, outline;
+
+    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (size < 3) ||
+        !GetRenderedSymbolShape(penPtr->symbol.type, size, &shape)) {
+        return FALSE;
+    }
+    fillColor = (penPtr->symbol.fillColor == COLOR_DEFAULT) ?
+        penPtr->traceColor : penPtr->symbol.fillColor;
+    outlineColor = (penPtr->symbol.outlineColor == COLOR_DEFAULT) ?
+        penPtr->traceColor : penPtr->symbol.outlineColor;
+    outline = (penPtr->symbol.outlineWidth > 0);
+    if (shape.type == RBC_RENDER_SEGMENTS) {
+        fillColor = NULL;
+        outline = TRUE; /* Native splus/scross retain a hairline at width zero. */
+    }
+    ctx = Rbc_RenderBegin(graphPtr, drawable, outlineColor,
+        MAX(1, penPtr->symbol.outlineWidth), NULL, NULL);
+    if (ctx == NULL) {
+        return FALSE;
+    }
+    for (pass = 0; pass < 2; pass++) {
+        if (((pass == 0) && (fillColor == NULL)) || ((pass == 1) && !outline)) {
+            continue;
+        }
+        count = 0;
+        counter = linePtr->symbolCounter;
+        for (i = 0; i < nSymbolPts; i++) {
+            int draw = TRUE;
+
+            if (linePtr->symbolInterval > 0) {
+                draw = ((counter % linePtr->symbolInterval) == 0);
+                counter++;
+            }
+            if (draw) {
+                centers[count].x = (int)symbolPts[i].x;
+                centers[count].y = (int)symbolPts[i].y;
+                count++;
+                if (count == 256) {
+                    Rbc_RenderSymbols(ctx, &shape, centers, count, (pass == 0) ? fillColor : NULL, pass == 1);
+                    count = 0;
+                }
+            }
+        }
+        Rbc_RenderSymbols(ctx, &shape, centers, count, (pass == 0) ? fillColor : NULL, pass == 1);
+    }
+    if (linePtr->symbolInterval > 0) {
+        linePtr->symbolCounter += nSymbolPts;
+    }
+    Rbc_RenderEnd(ctx);
+    return TRUE;
+}
+
+/* Error bars are solid and keep the native zero-width hairline convention. */
+static void DrawRenderedErrorBars(Graph *graphPtr, Drawable drawable, LinePen *penPtr,
+                                 const Segment2D *segments, Tcl_Size count) {
+    XColor *color = (penPtr->errorBarColor == COLOR_DEFAULT) ? penPtr->traceColor : penPtr->errorBarColor;
+    Rbc_RenderContext *ctx = Rbc_RenderBegin(graphPtr, drawable, color,
+        MAX(1, penPtr->errorBarLineWidth), NULL, NULL);
+
+    if (ctx != NULL) {
+        Rbc_RenderSegments(ctx, segments, count);
+        Rbc_RenderEnd(ctx);
+    } else {
+        Rbc_Draw2DSegments(graphPtr->display, drawable, penPtr->errorBarGC, segments, count);
+    }
+}
+
 static void DrawSymbolsUnclipped(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, int size,
                                  Tcl_Size nSymbolPts, Point2D *symbolPts) {
     XPoint pattern[13]; /* Template for polygon symbols */
@@ -10486,6 +10645,9 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
     int left, top, right, bottom;
 
     if ((nSymbolPts <= 0) || (penPtr->symbol.type == SYMBOL_NONE)) {
+        return;
+    }
+    if (DrawRenderedSymbols(graphPtr, drawable, linePtr, penPtr, size, nSymbolPts, symbolPts)) {
         return;
     }
     left = MAX(0, graphPtr->left);
@@ -11172,12 +11334,10 @@ static void DrawNormalLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
         stylePtr = Rbc_ChainGetValue(linkPtr);
         penPtr = stylePtr->penPtr;
         if ((stylePtr->xErrorBarCnt > 0) && (penPtr->errorBarShow & SHOW_X)) {
-            Rbc_Draw2DSegments(graphPtr->display, drawable, penPtr->errorBarGC, stylePtr->xErrorBars,
-                               stylePtr->xErrorBarCnt);
+            DrawRenderedErrorBars(graphPtr, drawable, penPtr, stylePtr->xErrorBars, stylePtr->xErrorBarCnt);
         }
         if ((stylePtr->yErrorBarCnt > 0) && (penPtr->errorBarShow & SHOW_Y)) {
-            Rbc_Draw2DSegments(graphPtr->display, drawable, penPtr->errorBarGC, stylePtr->yErrorBars,
-                               stylePtr->yErrorBarCnt);
+            DrawRenderedErrorBars(graphPtr, drawable, penPtr, stylePtr->yErrorBars, stylePtr->yErrorBarCnt);
         }
         if ((stylePtr->nSymbolPts > 0) && (penPtr->symbol.type != SYMBOL_NONE)) {
             DrawSymbols(graphPtr, drawable, linePtr, penPtr, stylePtr->symbolSize, stylePtr->nSymbolPts,

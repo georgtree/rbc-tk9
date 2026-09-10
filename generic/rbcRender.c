@@ -1,5 +1,5 @@
 /*
- * rbcRender.c -- Optional stroke renderer for mapped graph geometry.
+ * rbcRender.c -- Optional renderer for mapped graph geometry.
  * See license.terms for details.
  */
 #include "rbcRender.h"
@@ -188,6 +188,56 @@ void Rbc_RenderSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_S
     StrokeRenderPath(ctx);
 }
 
+/* Append independent shapes; never connect adjacent circle or segment symbols. */
+static void AppendRenderSymbol(cairo_t *cr, const Rbc_RenderShape *shape, const Point2D *center) {
+    int i;
+
+    if (shape->type == RBC_RENDER_CIRCLE) {
+        cairo_new_sub_path(cr);
+        cairo_arc(cr, center->x, center->y, shape->radius, 0.0, 2.0 * M_PI);
+        cairo_close_path(cr);
+    } else if (shape->type == RBC_RENDER_SEGMENTS) {
+        for (i = 0; i + 1 < shape->nPoints; i += 2) {
+            cairo_move_to(cr, center->x + shape->points[i].x, center->y + shape->points[i].y);
+            cairo_line_to(cr, center->x + shape->points[i+1].x, center->y + shape->points[i+1].y);
+        }
+    } else if (shape->nPoints > 0) {
+        cairo_move_to(cr, center->x + shape->points[0].x, center->y + shape->points[0].y);
+        for (i = 1; i < shape->nPoints; i++) {
+            cairo_line_to(cr, center->x + shape->points[i].x, center->y + shape->points[i].y);
+        }
+        cairo_close_path(cr);
+    }
+}
+
+/* Callers supply bounded batches. Symbol outlines are solid with miter joins. */
+void Rbc_RenderSymbols(Rbc_RenderContext *ctx, const Rbc_RenderShape *shape,
+                       const Point2D *centers, Tcl_Size count, const XColor *fillColor, int outline) {
+    Tcl_Size i;
+
+    if ((count <= 0) || ((fillColor == NULL) && !outline)) {
+        return;
+    }
+    cairo_save(ctx->cr);
+    cairo_set_dash(ctx->cr, NULL, 0, 0.0);
+    cairo_set_line_join(ctx->cr, CAIRO_LINE_JOIN_MITER);
+    cairo_set_fill_rule(ctx->cr, CAIRO_FILL_RULE_WINDING);
+    for (i = 0; i < count; i++) {
+        AppendRenderSymbol(ctx->cr, shape, centers + i);
+    }
+    if ((fillColor != NULL) && (shape->type != RBC_RENDER_SEGMENTS)) {
+        SetStrokeColor(ctx->cr, fillColor);
+        cairo_fill_preserve(ctx->cr);
+    }
+    if (outline) {
+        SetStrokeColor(ctx->cr, &ctx->foreground);
+        cairo_stroke(ctx->cr);
+    } else {
+        cairo_new_path(ctx->cr);
+    }
+    cairo_restore(ctx->cr);
+}
+
 /* Flush before any native drawing resumes on the same drawable. */
 void Rbc_RenderEnd(Rbc_RenderContext *ctx) {
     cairo_status_t status;
@@ -220,6 +270,10 @@ void Rbc_RenderPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size 
 }
 void Rbc_RenderSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count) {
     (void)ctx; (void)segments; (void)count;
+}
+void Rbc_RenderSymbols(Rbc_RenderContext *ctx, const Rbc_RenderShape *shape,
+                       const Point2D *centers, Tcl_Size count, const XColor *fillColor, int outline) {
+    (void)ctx; (void)shape; (void)centers; (void)count; (void)fillColor; (void)outline;
 }
 void Rbc_RenderEnd(Rbc_RenderContext *ctx) {
     (void)ctx;

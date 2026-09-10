@@ -560,8 +560,16 @@ Requesting <code class="docutils literal notranslate"><span class="pre">cairo</s
 <span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>renderer<span class="w"> </span>native
 </pre></div>
 </div>
-<p>Cairo draws solid and dashed line traces and strip segments, including active traces.
-It uses the existing mapped and decimated geometry. Symbols, fills, error bars,
+<p>Cairo draws solid and dashed line traces, strip segments, geometric symbols, and line/strip
+error bars. Active traces and symbols use Cairo too. Mapping, decimation, and point selection
+remain shared with native rendering.</p>
+<p>Supported symbols are <code class="docutils literal notranslate"><span class="pre">circle</span></code>, <code class="docutils literal notranslate"><span class="pre">square</span></code>, <code class="docutils literal notranslate"><span class="pre">diamond</span></code>, <code class="docutils literal notranslate"><span class="pre">plus</span></code>, <code class="docutils literal notranslate"><span class="pre">cross</span></code>, <code class="docutils literal notranslate"><span class="pre">splus</span></code>, <code class="docutils literal notranslate"><span class="pre">scross</span></code>,
+<code class="docutils literal notranslate"><span class="pre">triangle</span></code>, and <code class="docutils literal notranslate"><span class="pre">arrow</span></code>. Their size, fill, outline, and <code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code> settings are preserved.
+Symbols remain partially visible at plot edges, including when their centers are outside.
+Fill passes precede outline passes, using bounded batches.</p>
+<p>Error bars retain their color, cap geometry, and <code class="docutils literal notranslate"><span class="pre">-showerrorbars</span></code> settings. They are solid,
+independent of trace dashes. A zero error-bar width retains the native one-pixel hairline.</p>
+<p>Bitmap symbols, symbols smaller than three pixels, legend samples, area fills, bar elements,
 axes, text, markers, and crosshairs currently retain native rendering.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-antialias</span> <span class="pre">default|none|gray|fast|good|best</span></code> selects antialiasing for Cairo geometry.
 Its default is <code class="docutils literal notranslate"><span class="pre">default</span></code>; its option-database name and class are <code class="docutils literal notranslate"><span class="pre">antialias</span></code> and <code class="docutils literal notranslate"><span class="pre">Antialias</span></code>.
@@ -580,7 +588,7 @@ leaves gaps transparent. A color paints the gaps using the existing PostScript u
 convention; <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> uses the foreground color and produces a solid stroke.</p>
 <p>Two-color strip segments are stroked individually to preserve drawing order at intersections.
 Solid and single-color strip segments retain batching.</p>
-<p>Snapshots use the selected renderer for these strokes. PostScript and Windows metafile output
+<p>Snapshots use the selected renderer for these primitives. PostScript and Windows metafile output
 retain their existing exporters. Switching renderers invalidates the cached element image.
 Native rendering remains the fallback when a Cairo drawing surface cannot be opened.</p>
 </section>

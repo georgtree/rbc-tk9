@@ -1,4 +1,4 @@
-# Compare native and Cairo line rendering. Requires --enable-cairo.
+# Compare native and Cairo strokes, symbols and error bars. Requires --enable-cairo.
 package require Tk
 package require rbc
 
@@ -10,6 +10,8 @@ ttk::combobox .controls.mode -state readonly -width 10 \
 .controls.mode set default
 pack .controls.label .controls.mode -side left -padx 4 -pady 4
 pack .controls -side top -fill x
+ttk::label .description -text {Top: error bars. Middle: strokes. Bottom: symbols and edge clipping.}
+pack .description -side top -pady 4
 bind .controls.mode <<ComboboxSelected>> {
     .cairo configure -antialias [.controls.mode get]
 }
@@ -29,8 +31,20 @@ foreach renderer {native cairo} {
     pack $g -side left -fill both -expand yes
     $g legend configure -hide yes
     $g axis configure x -min 0 -max 10
-    $g axis configure y -min -2 -max 2
+    $g axis configure y -min -3 -max 3
     $g element create signal -data $data -symbol none -linewidth 1 -color navy
     $g element create dashed -data $dashedData -symbol none -linewidth 2 \
         -color firebrick -dashes {8 4} -offdash steelblue
+    $g element create errors -data {1 2.3 3 2.3 5 2.3 7 2.3 9 2.3} \
+        -linewidth 0 -symbol circle -pixels 7 -color darkgreen \
+        -xerror {0.3 0.3 0.3 0.3 0.3} -yerror {0.25 0.25 0.25 0.25 0.25} \
+        -errorbarwidth 2 -errorbarcap 8 -showerrorbars both
+    set x 0
+    foreach symbol {circle square diamond plus cross splus scross triangle arrow} {
+        incr x
+        $g element create $symbol -data [list $x -2.4] -linewidth 0 \
+            -symbol $symbol -pixels 15 -fill lightsteelblue -outline navy -outlinewidth 1
+    }
+    $g element create clipped -data {0 -2.4 10 -2.4} -linewidth 0 \
+        -symbol circle -pixels 21 -fill salmon -outline firebrick
 }
