@@ -6753,6 +6753,50 @@ static void FlushWinBitmapMarkerBatch(Graph *graphPtr, Drawable drawable, Bitmap
 
 #endif /* WIN32 */
 
+/* Share context state while preserving each marker's separate stroke. */
+typedef struct {
+    const Segment2D *segments;
+    Tcl_Size count;
+    const XColor *color;
+    int width, cap, join;
+} MarkerStroke;
+
+static int GetMarkerStroke(Marker *markerPtr, MarkerStroke *stroke) {
+    if (markerPtr->graphPtr->renderer != RBC_RENDERER_CAIRO) return FALSE;
+    if (markerPtr->classUid == rbcLineMarkerUid) {
+        LineMarker *line = LINE_MARKER_FROM_CORE(markerPtr);
+
+        if (line->xor || (line->arrow != LINE_ARROW_NONE) || LineIsDashed(line->dashes) ||
+            (line->gc == NULL)) return FALSE;
+        stroke->segments = line->segments;
+        stroke->count = line->nSegments;
+        stroke->color = line->outlineColor;
+        stroke->width = MAX(1, line->lineWidth);
+        stroke->cap = line->capStyle;
+        stroke->join = line->joinStyle;
+    } else if (markerPtr->classUid == rbcPolygonMarkerUid) {
+        PolygonMarker *polygon = POLYGON_MARKER_FROM_CORE(markerPtr);
+
+        if (polygon->xor || LineIsDashed(polygon->dashes) || (polygon->outlineGC == NULL) ||
+            ((polygon->nFillPts >= 3) && (polygon->fill.fgColor != NULL))) return FALSE;
+        stroke->segments = polygon->outlinePts;
+        stroke->count = polygon->nOutlinePts;
+        stroke->color = polygon->outline.fgColor;
+        stroke->width = MAX(1, polygon->lineWidth);
+        stroke->cap = polygon->capStyle;
+        stroke->join = polygon->joinStyle;
+    } else {
+        return FALSE;
+    }
+    return (stroke->segments != NULL) && (stroke->count > 0) && (stroke->color != NULL);
+}
+
+static int SameMarkerStroke(const MarkerStroke *a, const MarkerStroke *b) {
+    return (a->width == b->width) && (a->cap == b->cap) && (a->join == b->join) &&
+        (a->color->red == b->color->red) && (a->color->green == b->color->green) &&
+        (a->color->blue == b->color->blue);
+}
+
 #ifdef WIN32
 /* Text-only passes keep their native batching without an extra target copy. */
 static int MarkersNeedRenderTarget(Graph *graphPtr, int under) {
@@ -6813,6 +6857,9 @@ static int MarkersNeedRenderTarget(Graph *graphPtr, int under) {
 void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
     Rbc_ChainLink *linkPtr;
     Marker *markerPtr;
+    Rbc_RenderContext *strokeContext = NULL;
+    MarkerStroke stroke, runStyle;
+    int canStroke;
 #ifdef WIN32
     Rbc_RenderTarget *renderTarget = NULL;
     Segment2D *lineSegments;
@@ -7017,6 +7064,12 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
             }
         }
 
+        canStroke = GetMarkerStroke(markerPtr, &stroke);
+        if ((strokeContext != NULL) && (!canStroke || !SameMarkerStroke(&runStyle, &stroke))) {
+            Rbc_RenderEnd(strokeContext);
+            strokeContext = NULL;
+        }
+
 #ifdef WIN32
         /*
          * Batch consecutive compatible simple line markers.
@@ -7154,8 +7207,23 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
         FlushWinPolygonMarkerBatch(graphPtr, drawable, &polygonStylePtr, polygonSegments, &nPolygonSegments);
         FlushWinPolygonFillBatch(graphPtr, drawable, &polygonFillStylePtr, polygonFillMarkers, &nPolygonFillMarkers);
 #endif /* WIN32 */
+        if (canStroke) {
+            if (strokeContext == NULL) {
+                strokeContext = Rbc_RenderBegin(graphPtr, drawable, stroke.color, stroke.width, NULL, NULL);
+                if (strokeContext != NULL) {
+                    Rbc_RenderLineStyle(strokeContext, stroke.cap, stroke.join);
+                    runStyle = stroke;
+                }
+            }
+            if (strokeContext != NULL) {
+                /* Do not merge paths: overlapping AA markers must composite separately. */
+                Rbc_RenderSegments(strokeContext, stroke.segments, stroke.count);
+                continue;
+            }
+        }
         (*markerPtr->classPtr->drawProc)(markerPtr, drawable);
     }
+    if (strokeContext != NULL) Rbc_RenderEnd(strokeContext);
 #ifdef WIN32
     /*
      * Flush a batch ending at the end of the display list.

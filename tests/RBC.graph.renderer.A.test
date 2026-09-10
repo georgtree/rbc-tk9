@@ -2208,5 +2208,73 @@ namespace eval ::rbcRendererTest {
         catch {image delete $photo}
     } -result {1 1 1 1 1 1}
 
+    foreach mode {none gray default} {
+        foreach kind {line polygon} {
+            test renderer-19.1-$mode-$kind {shared stroke contexts preserve overlapping marker pixels} \
+                    -constraints rbcCairo -setup {
+                StrokeFixture graph
+                .renderer element delete signal
+                .renderer configure -antialias $mode
+                set barriers {}
+                for {set i 0} {$i < 40} {incr i} {
+                    set y [expr {3.0 + ($i % 4)*0.03}]
+                    if {$kind eq "line"} {
+                        .renderer marker create line -coords [list 2 $y 8 7] -outline black -linewidth 1
+                    } else {
+                        .renderer marker create polygon -coords [list 2 $y 8 7 8 3] -fill {} -outline black -linewidth 1
+                    }
+                    # A whitespace text marker ends the run without painting pixels.
+                    lappend barriers [.renderer marker create text -coords {5 5} -text { } -foreground white]
+                }
+                set photo [image create photo]
+            } -body {
+                .renderer snap $photo
+                set separate [$photo data]
+                .renderer marker delete {*}$barriers
+                .renderer snap $photo
+                list [expr {$separate eq [$photo data]}] [expr {[CountPhotoColor $photo {0 0 0}] > 0}]
+            } -cleanup {
+                destroy .renderer
+                catch {image delete $photo}
+            } -result {1 1}
+        }
+    }
+
+    test renderer-19.2 {stroke runs preserve style changes and native drawing boundaries} \
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element delete signal
+        set barriers {}
+        set specs {
+            {line -coords {2 2 8 8} -outline red -linewidth 1}
+            {polygon -coords {2 2 8 8 8 2} -outline red -fill {} -linewidth 1}
+            {line -coords {2 8 8 2} -outline blue -linewidth 5 -cap round}
+            {line -coords {2 8 8 2} -outline blue -linewidth 5 -cap round}
+            {line -coords {2 3 8 7} -outline black -linewidth 2 -dashes {4 3} -arrow both}
+            {text -coords {5 5} -text {Native text} -foreground black -background yellow}
+            {polygon -coords {3 3 7 3 7 7 3 7} -outline red -fill blue}
+            {line -coords {2 7 8 3} -outline black -linewidth 1}
+            {line -coords {2 7 8 3} -outline black -linewidth 1}
+        }
+        foreach spec $specs {
+            .renderer marker create {*}$spec
+            lappend barriers [.renderer marker create text -coords {5 5} -text { } -foreground white]
+        }
+        set photo [image create photo]
+    } -body {
+        .renderer snap $photo
+        set separate [$photo data]
+        .renderer marker delete {*}$barriers
+        set results {}
+        for {set i 0} {$i < 3} {incr i} {
+            .renderer snap $photo
+            lappend results [expr {$separate eq [$photo data]}]
+        }
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 1 1}
+
     cleanupTests
 }

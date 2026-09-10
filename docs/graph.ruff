@@ -727,6 +727,9 @@ The default is `se`. |
         On Windows, mixed/Cairo marker passes share a temporary DIB drawing target. Existing pixels are copied
         once into the target and once back; native text and fallbacks retain display-list order. Text-only passes
         keep native batching. The target is released at the end of each pass, including snapshot rendering.
+        Consecutive compatible solid line and outline-only polygon markers share a Cairo context. Each marker
+        retains a separate stroke so overlapping antialiased edges keep their appearance. Style changes, arrows,
+        dashes, fills, and native drawing end the run. The context is released before the marker pass ends.
         Native rendering remains the fallback when a Cairo drawing surface cannot be opened.
 
         ## Widget options
