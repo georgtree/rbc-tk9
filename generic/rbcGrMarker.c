@@ -2158,6 +2158,17 @@ static void DrawBitmapMarker(Marker *markerPtr, Drawable drawable) {
     theta = FMOD(bmPtr->theta, 90.0);
     clipMask = bmPtr->destMask;
 
+    /* An empty foreground keeps the native GC default. */
+    if (bmPtr->outlineColor != NULL) {
+        Rbc_RenderRectangle r = {(int)bmPtr->anchorPos.x, (int)bmPtr->anchorPos.y,
+                                 bmPtr->destWidth, bmPtr->destHeight};
+        int rotatedBackground = (bmPtr->srcMask == None) && (bmPtr->fillColor != NULL) && (theta != 0.0);
+
+        if (Rbc_RenderBitmap(graphPtr, drawable, &r, bmPtr->destBitmap,
+                rotatedBackground ? bmPtr->destBitmap : clipMask, bmPtr->outlineColor, bmPtr->fillColor,
+                rotatedBackground ? bmPtr->outline : NULL, rotatedBackground ? bmPtr->nOutlinePts : 0)) return;
+    }
+
     /*
      * Preserve the existing arbitrary-rotation workaround when
      * there is a background colour but no explicit mask.
@@ -6485,6 +6496,9 @@ static int CanBatchWinBitmapMarker(BitmapMarker *bmPtr) {
 
     if ((bmPtr == NULL) || (bmPtr->gc == NULL) || (bmPtr->destBitmap == None) || (bmPtr->destWidth <= 0) ||
         (bmPtr->destHeight <= 0)) {
+        return FALSE;
+    }
+    if (bmPtr->core.graphPtr->renderer == RBC_RENDERER_CAIRO) {
         return FALSE;
     }
     /*

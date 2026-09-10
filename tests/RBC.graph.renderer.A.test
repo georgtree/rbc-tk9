@@ -1603,5 +1603,149 @@ namespace eval ::rbcRendererTest {
         catch {image delete $photo}
     } -result {1 1 1 1 1 1}
 
+    proc BitmapFixture {} {
+        StrokeFixture graph
+        .renderer element delete signal
+        set bitmap [makeFile {
+            #define sample_width 8
+            #define sample_height 8
+            static unsigned char sample_bits[] = {
+                0x55, 0xaa, 0x55, 0xaa, 0x55, 0xaa, 0x55, 0xaa
+            };
+        } renderer-bitmap.xbm]
+        set mask [makeFile {
+            #define sample_width 8
+            #define sample_height 8
+            static unsigned char sample_bits[] = {
+                0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f
+            };
+        } renderer-mask.xbm]
+        .renderer marker create bitmap -name m -coords {5 5} -bitmap @$bitmap \
+            -foreground black -background blue -anchor center
+        return [list $bitmap $mask]
+    }
+
+    foreach angle {0 90 180 270} {
+        foreach masked {no yes} {
+            test renderer-13.1-$angle-$masked {mapped bitmap pixels and masks match native rendering} \
+                    -constraints rbcCairo -setup {
+                lassign [BitmapFixture] bitmap mask
+                .renderer marker configure m -rotate $angle -mask [expr {$masked ? "@$mask" : ""}]
+                set photo [image create photo]
+            } -body {
+                set results {}
+                foreach coords {{5 5} {3 3 7 7}} {
+                    .renderer marker configure m -coords $coords
+                    .renderer configure -renderer native
+                    .renderer snap $photo
+                    set native [$photo data]
+                    .renderer configure -renderer cairo
+                    .renderer snap $photo
+                    lappend results [expr {$native eq [$photo data]}] \
+                        [expr {[CountPhotoColor $photo {0 0 0}] > 0}] \
+                        [expr {[CountPhotoColor $photo {0 0 255}] > 0}]
+                }
+                set results
+            } -cleanup {
+                destroy .renderer
+                catch {image delete $photo}
+                removeFile $bitmap
+                removeFile $mask
+            } -result {1 1 1 1 1 1}
+        }
+    }
+
+    foreach angle {0 27 90} {
+      foreach masked {no yes} {
+        test renderer-13.2-$angle-$masked {transparent bitmap markers retain sharp mapped pixels} \
+                -constraints rbcCairo -setup {
+            lassign [BitmapFixture] bitmap mask
+            .renderer marker configure m -background {} -rotate $angle -coords {3 3 7 7} \
+                -mask [expr {$masked ? "@$mask" : ""}]
+            set photo [image create photo]
+        } -body {
+            .renderer configure -renderer native
+            .renderer snap $photo
+            set native [$photo data]
+            set results {}
+            foreach aa {none gray} {
+                .renderer configure -renderer cairo -antialias $aa
+                .renderer snap $photo
+                lappend results [expr {$native eq [$photo data]}] \
+                    [expr {[CountPhotoColor $photo {0 0 0}] > 0}] [expr {[PartialGrayPixels $photo] == 0}]
+            }
+            set results
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+            removeFile $bitmap
+            removeFile $mask
+        } -result {1 1 1 1 1 1}
+      }
+    }
+
+    test renderer-13.3 {rotated bitmap backgrounds use Cairo antialiasing} \
+            -constraints rbcCairo -setup {
+        lassign [BitmapFixture] bitmap mask
+        .renderer marker configure m -background black -foreground black -rotate 27 -coords {3 3 7 7}
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach aa {none gray none} {
+            .renderer configure -antialias $aa
+            .renderer snap $photo
+            lappend results [expr {[CountPhotoColor $photo {0 0 0}] > 0}] \
+                [expr {[PartialGrayPixels $photo] > 0}]
+        }
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+        removeFile $bitmap
+        removeFile $mask
+    } -result {1 0 1 1 1 0}
+
+    foreach invert {no yes} {
+        test renderer-13.4-$invert {bitmap markers clip to the plot after rotation and scaling} \
+                -constraints rbcCairo -setup {
+            lassign [BitmapFixture] bitmap mask
+            .renderer configure -invertxy $invert
+            .renderer marker configure m -rotate 27 -coords {-2 2 5 12}
+            set photo [image create photo]
+        } -body {
+            .renderer snap $photo
+            lassign [PlotInk $photo] inside outside
+            list [expr {$inside > 0}] $outside
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+            removeFile $bitmap
+            removeFile $mask
+        } -result {1 0}
+    }
+
+    test renderer-13.5 {bitmap marker color, mask and bitmap changes invalidate drawing} \
+            -constraints rbcCairo -setup {
+        lassign [BitmapFixture] bitmap mask
+        set photo [image create photo]
+    } -body {
+        .renderer snap $photo
+        set before [CountPhotoColor $photo {0 0 0}]
+        .renderer marker configure m -foreground red -mask @$mask
+        .renderer snap $photo
+        set results [list [expr {[CountPhotoColor $photo {0 0 0}] == 0}] \
+            [expr {[CountPhotoColor $photo {255 0 0}] > 0}] \
+            [expr {[CountPhotoColor $photo {255 0 0}] < $before}]]
+        .renderer marker configure m -bitmap {}
+        .renderer snap $photo
+        lappend results [expr {[PlotInk $photo] eq {0 0}}]
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+        removeFile $bitmap
+        removeFile $mask
+    } -result {1 1 1 1}
+
     cleanupTests
 }

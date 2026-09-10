@@ -50,4 +50,8 @@ int Rbc_RenderLegendBar(Graph *graphPtr, Drawable drawable, int width, int heigh
                         const Rbc_RenderRectangle *r, const XColor *foreground,
                         const XColor *background, Pixmap stipple);
 
+int Rbc_RenderBitmap(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *r,
+                      Pixmap bitmap, Pixmap mask, const XColor *foreground, const XColor *background,
+                      const Point2D *polygon, Tcl_Size nPoints);
+
 #endif

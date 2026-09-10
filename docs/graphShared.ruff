@@ -4174,7 +4174,9 @@ namespace eval ::rbc::MARKER {
         Mapped outline segments remain independent, as in native drawing. XOR markers remain native.
         Photo image markers use Cairo alpha compositing with existing placement and scaling. They clip to
         the plot; `-antialias` does not resample their pixels. Source image changes refresh the marker.
-        Text, bitmap, window, and non-photo image markers keep their Tk rendering; line markers with an
+        Bitmap markers use Cairo with existing scaling, rotation, and masks. Their mapped pixels stay sharp;
+        `-antialias` affects rotated background polygons. An empty foreground retains the native GC default.
+        Text, window, and non-photo image markers keep their Tk rendering; line markers with an
         empty `-outline` retain the native GC default.
 
         Rbc provides six marker types:

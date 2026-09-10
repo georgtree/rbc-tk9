@@ -52,7 +52,7 @@ ttk::checkbutton .controls.grid -text {Grid} -variable showGrid -command {
 }
 ttk::checkbutton .controls.markers -text {Markers} -variable showMarkers -command {
     foreach g {.native .cairo} {
-        foreach marker {demoArrow demoPolygon demoText demoPhoto} {
+        foreach marker {demoArrow demoPolygon demoText demoPhoto demoBitmap} {
             $g marker configure $marker -hide [expr {!$showMarkers}]
         }
     }
@@ -69,6 +69,7 @@ set markerSource [image create photo -data {iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYA
 set markerPhoto [image create photo]
 $markerPhoto copy $markerSource -zoom 12 12
 image delete $markerSource
+set markerBitmap @[file join [file dirname [info script]] cairo-bitmap.xbm]
 set data {}
 set dashedData {}
 for {set i 0} {$i <= 400} {incr i} {
@@ -112,6 +113,8 @@ foreach renderer {native cairo} {
         -outline #885577 -linewidth 2 -arrow last -cap round
     $g marker create polygon -name demoPolygon -coords {7.5 -1 8.6 -0.6 9 -1.4} \
         -fill #f1ddc6 -stipple gray50 -outline #a56c32 -linewidth 2 -dashes {6 3}
+    $g marker create bitmap -name demoBitmap -bitmap $markerBitmap -coords {3.6 -1.8 4.2 -1.2} \
+        -foreground #885577 -background #f1ddc6 -rotate 27
     $g marker create image -name demoPhoto -coords {6.2 -1.5} -image $markerPhoto -anchor center
     $g marker create text -name demoText -coords {4.8 2.75} -text {Native text} -foreground grey30
 }
