@@ -665,12 +665,16 @@ The default is `se`. |
 
         Non-photo image tiles and solid/stippled areas with an empty `-areaforeground` retain native rendering.
         Bitmap symbols, symbols smaller than three pixels, legend samples, bar elements,
-        axes, all text, bitmap/image/window markers, and crosshairs retain native rendering.
+        axes, all text, bitmap/window markers, non-photo image markers, and crosshairs retain native rendering.
 
         Grid and marker geometry is clipped to the plotting area. Marker color pairs, stipples, dash offsets,
         caps, and under/over ordering are preserved. Mapped segments remain independent, retaining their
         existing dash restarts. XOR markers keep native drawing and erase behavior. A line marker with an
         empty `-outline` also keeps its native GC default.
+
+        Photo image markers also use Cairo. Their existing anchors, offsets, scaling, and layer order are
+        preserved. Cairo composites photo alpha at the mapped integer position and clips to the plot;
+        `-antialias` does not resample image pixels. Source edits, resizing, and deletion refresh the marker.
 
         `-antialias default|none|gray|fast|good|best` selects antialiasing for Cairo geometry.
         Its default is `default`; its option-database name and class are `antialias` and `Antialias`.

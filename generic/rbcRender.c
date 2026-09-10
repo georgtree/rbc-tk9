@@ -436,6 +436,41 @@ int Rbc_RenderTileArea(Graph *graphPtr, Drawable drawable, const Point2D *points
     return TRUE;
 }
 
+/* Paint a mapped photo once, at the same integer origin as Tk. */
+int Rbc_RenderPhoto(Graph *graphPtr, Drawable drawable, const Tk_PhotoImageBlock *block, int x, int y) {
+    Rbc_RenderContext *ctx;
+    cairo_pattern_t *pattern;
+    cairo_matrix_t matrix;
+    XColor unusedColor = {0};
+
+    if (graphPtr->renderer != RBC_RENDERER_CAIRO) {
+        return FALSE;
+    }
+    if ((block->width <= 0) || (block->height <= 0)) {
+        return TRUE;
+    }
+    pattern = CreateRenderPhoto(block);
+    if (pattern == NULL) {
+        return FALSE;
+    }
+    cairo_pattern_set_extend(pattern, CAIRO_EXTEND_NONE);
+    cairo_matrix_init_translate(&matrix, -(double)x, -(double)y);
+    cairo_pattern_set_matrix(pattern, &matrix);
+    ctx = Rbc_RenderBegin(graphPtr, drawable, &unusedColor, 1.0, NULL, NULL);
+    if (ctx == NULL) {
+        cairo_pattern_destroy(pattern);
+        return FALSE;
+    }
+    /* Photos already contain pixel coverage; do not offset or resample it. */
+    cairo_translate(ctx->cr, -0.5, -0.5);
+    cairo_set_source(ctx->cr, pattern);
+    cairo_rectangle(ctx->cr, x, y, block->width, block->height);
+    cairo_fill(ctx->cr);
+    cairo_pattern_destroy(pattern);
+    Rbc_RenderEnd(ctx);
+    return TRUE;
+}
+
 /* Flush before any native drawing resumes on the same drawable. */
 void Rbc_RenderEnd(Rbc_RenderContext *ctx) {
     cairo_status_t status;
@@ -475,6 +510,10 @@ void Rbc_RenderLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle) {
 void Rbc_RenderSymbols(Rbc_RenderContext *ctx, const Rbc_RenderShape *shape,
                        const Point2D *centers, Tcl_Size count, const XColor *fillColor, int outline) {
     (void)ctx; (void)shape; (void)centers; (void)count; (void)fillColor; (void)outline;
+}
+int Rbc_RenderPhoto(Graph *graphPtr, Drawable drawable, const Tk_PhotoImageBlock *block, int x, int y) {
+    (void)graphPtr; (void)drawable; (void)block; (void)x; (void)y;
+    return FALSE;
 }
 void Rbc_RenderEnd(Rbc_RenderContext *ctx) {
     (void)ctx;

@@ -984,5 +984,184 @@ namespace eval ::rbcRendererTest {
         destroy .renderer
     } -result {{255 255 255} {0 0 0} {0 0 0}}
 
+    foreach anchor {nw center se} {
+        test renderer-9.1-$anchor {opaque photo markers preserve native placement and pixels} \
+                -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer element delete signal
+            set tile [image create photo -width 12 -height 8]
+            $tile put red -to 0 0 6 8
+            $tile put blue -to 6 0 12 8
+            .renderer marker create image -name m -coords {5 5} -image $tile \
+                -anchor $anchor -xoffset 3 -yoffset -4
+            set photo [image create photo]
+        } -body {
+            .renderer configure -renderer native
+            .renderer snap $photo
+            set native [$photo data]
+            set results {}
+            foreach mode {none gray} {
+                .renderer configure -renderer cairo -antialias $mode
+                .renderer snap $photo
+                lappend results [expr {$native eq [$photo data]}] \
+                    [expr {[CountPhotoColor $photo {255 0 0}] == 48}] \
+                    [expr {[CountPhotoColor $photo {0 0 255}] == 48}]
+            }
+            set results
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo $tile}
+        } -result {1 1 1 1 1 1}
+    }
+
+    test renderer-9.2 {photo marker alpha and integer origin are preserved without tiling} \
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element delete signal
+        set tile [image create photo -data {iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAE0lEQVR4nGP4z8AAQUDcACT+AwA2XgZ7cJWRwAAAAABJRU5ErkJggg==}]
+        .renderer marker create image -name m -coords [.renderer invtransform 80 80] -anchor nw -image $tile
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach mode {none gray} {
+            .renderer configure -antialias $mode
+            .renderer snap $photo
+            foreach {x y} {80 80 81 80 80 81 81 81 79 80 82 80} {
+                lappend results [$photo get $x $y]
+            }
+        }
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo $tile}
+    } -result {{255 0 0} {255 255 255} {127 255 127} {0 0 255} {255 255 255} {255 255 255} {255 0 0} {255 255 255} {127 255 127} {0 0 255} {255 255 255} {255 255 255}}
+
+    foreach renderer {native cairo} {
+        test renderer-9.3-$renderer {source resizing discards a stale scaled photo} \
+                -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer element delete signal
+            .renderer configure -renderer $renderer -plotpadx 0 -plotpady 0
+            update
+            set tile [image create photo -width 12 -height 8]
+            $tile put red -to 0 0 12 8
+            .renderer marker create image -name m -coords {2 2 8 8} -image $tile
+            lassign [.renderer extents plotarea] left top plotWidth plotHeight
+            # The image mapper uses unrounded coordinates, unlike transform.
+            set width [expr {int(0.6*($plotWidth-1))+1}]
+            set height [expr {int(0.6*($plotHeight-1))+1}]
+            set photo [image create photo]
+        } -body {
+            .renderer snap $photo
+            set results [list [expr {[CountPhotoColor $photo {255 0 0}] > 96}]]
+            # Match the mapped size without reconfiguring the marker.
+            $tile configure -width $width -height $height
+            $tile put blue -to 0 0 $width $height
+            .renderer snap $photo
+            lappend results [expr {[CountPhotoColor $photo {0 0 255}] == $width*$height}] \
+                [expr {[CountPhotoColor $photo {255 0 0}] == 0}]
+            $tile configure -width 12 -height 8
+            $tile put red -to 0 0 12 8
+            .renderer snap $photo
+            lappend results [expr {[CountPhotoColor $photo {255 0 0}] > 96}]
+            set results
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo $tile}
+        } -result {1 1 1 1}
+    }
+
+    foreach invert {no yes} {
+        test renderer-9.4-$invert {natural and scaled photo markers clip at plot edges} \
+                -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer element delete signal
+            .renderer configure -invertxy $invert -plotpadx 0 -plotpady 0
+            update
+            set tile [image create photo -width 12 -height 8]
+            $tile put black -to 0 0 12 8
+            .renderer marker create image -name m -image $tile -anchor center -coords {0 10}
+            set photo [image create photo]
+        } -body {
+            set results {}
+            foreach coords {{0 10} {-2 -2 12 12} {-10 -10}} {
+                .renderer marker configure m -coords $coords
+                .renderer snap $photo
+                lassign [PlotInk $photo] inside outside
+                lappend results [expr {$inside > 0}] $outside
+            }
+            set results
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo $tile}
+        } -result {1 0 1 0 0 0}
+    }
+
+    test renderer-9.5 {photo edits, resizing, deletion and recreation refresh under markers} \
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element delete signal
+        set tile [image create photo -width 12 -height 8]
+        $tile put red -to 0 0 12 8
+        .renderer marker create image -name m -image $tile -coords {5 5} -under yes
+        set photo [image create photo]
+    } -body {
+        set results {}
+        update
+        rbc::winop snap .renderer $photo
+        lappend results [CountPhotoColor $photo {255 0 0}]
+        $tile put blue -to 0 0 12 8
+        update
+        rbc::winop snap .renderer $photo
+        lappend results [CountPhotoColor $photo {0 0 255}] [CountPhotoColor $photo {255 0 0}]
+        $tile configure -width 6 -height 4
+        update
+        rbc::winop snap .renderer $photo
+        lappend results [CountPhotoColor $photo {0 0 255}]
+        image delete $tile
+        update
+        .renderer snap $photo
+        lappend results [expr {[PlotInk $photo] eq {0 0}}]
+        image create photo $tile -width 3 -height 2
+        $tile put red -to 0 0 3 2
+        update
+        .renderer snap $photo
+        lappend results [CountPhotoColor $photo {255 0 0}]
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo $tile}
+    } -result {96 96 0 24 1 6}
+
+    test renderer-9.6 {non-photo image markers retain native drawing after a scaled photo} \
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element delete signal
+        set tile [image create photo -width 2 -height 2]
+        $tile put red -to 0 0 2 2
+        .renderer marker create image -name m -image $tile -coords {2 2 8 8}
+        set photo [image create photo]
+        .renderer snap $photo
+        image delete $tile
+        image create bitmap $tile -foreground black -background white -data {
+            #define tile_width 2
+            #define tile_height 2
+            static unsigned char tile_bits[] = {
+                0x01, 0x02
+            };
+        }
+    } -body {
+        .renderer configure -renderer native
+        .renderer snap $photo
+        set native [$photo data]
+        .renderer configure -renderer cairo
+        .renderer snap $photo
+        list [expr {$native eq [$photo data]}] [CountPhotoColor $photo {0 0 0}] \
+            [CountPhotoColor $photo {255 0 0}]
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo $tile}
+    } -result {1 2 0}
+
     cleanupTests
 }

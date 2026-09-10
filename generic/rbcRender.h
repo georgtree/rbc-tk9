@@ -33,4 +33,6 @@ int Rbc_RenderArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tc
 int Rbc_RenderTileArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
                        const Tk_PhotoImageBlock *block);
 
+int Rbc_RenderPhoto(Graph *graphPtr, Drawable drawable, const Tk_PhotoImageBlock *block, int x, int y);
+
 #endif

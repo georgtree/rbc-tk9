@@ -581,11 +581,14 @@ including partially transparent pixels, against the existing graph contents. Nat
 their existing transparency-mask behavior. Image edits invalidate the cached element image.</p>
 <p>Non-photo image tiles and solid/stippled areas with an empty <code class="docutils literal notranslate"><span class="pre">-areaforeground</span></code> retain native rendering.
 Bitmap symbols, symbols smaller than three pixels, legend samples, bar elements,
-axes, all text, bitmap/image/window markers, and crosshairs retain native rendering.</p>
+axes, all text, bitmap/window markers, non-photo image markers, and crosshairs retain native rendering.</p>
 <p>Grid and marker geometry is clipped to the plotting area. Marker color pairs, stipples, dash offsets,
 caps, and under/over ordering are preserved. Mapped segments remain independent, retaining their
 existing dash restarts. XOR markers keep native drawing and erase behavior. A line marker with an
 empty <code class="docutils literal notranslate"><span class="pre">-outline</span></code> also keeps its native GC default.</p>
+<p>Photo image markers also use Cairo. Their existing anchors, offsets, scaling, and layer order are
+preserved. Cairo composites photo alpha at the mapped integer position and clips to the plot;
+<code class="docutils literal notranslate"><span class="pre">-antialias</span></code> does not resample image pixels. Source edits, resizing, and deletion refresh the marker.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-antialias</span> <span class="pre">default|none|gray|fast|good|best</span></code> selects antialiasing for Cairo geometry.
 Its default is <code class="docutils literal notranslate"><span class="pre">default</span></code>; its option-database name and class are <code class="docutils literal notranslate"><span class="pre">antialias</span></code> and <code class="docutils literal notranslate"><span class="pre">Antialias</span></code>.
 Native rendering ignores this option. Changing it invalidates the cached element image.</p>

@@ -2627,12 +2627,16 @@ static void MapImageMarker(Marker *markerPtr) {
     int scaledWidth, scaledHeight;
     int srcWidth, srcHeight;
 
-    if (imPtr->tkImage == NULL) {
+    if ((imPtr->tkImage == NULL) || Tk_ImageIsDeleted(imPtr->tkImage)) {
         return;
     }
     graphPtr = imPtr->core.graphPtr;
     corner1 = MapPoint(graphPtr, imPtr->core.worldPts, &imPtr->core.axes);
     if (imPtr->srcImage == NULL) {
+        if (imPtr->tmpImage != NULL) {
+            Rbc_DestroyTemporaryImage(graphPtr->interp, imPtr->tmpImage);
+            imPtr->tmpImage = NULL;
+        }
         /*
          * Don't scale or rotate non-photo images.
          */
@@ -2743,6 +2747,10 @@ static void MapImageMarker(Marker *markerPtr) {
         Rbc_FreeColorImage(destImage);
         imPtr->width = width;
         imPtr->height = height;
+    } else if (imPtr->tmpImage != NULL) {
+        /* Returning to natural size must not reuse the last scaled photo. */
+        Rbc_DestroyTemporaryImage(graphPtr->interp, imPtr->tmpImage);
+        imPtr->tmpImage = NULL;
     }
     imPtr->anchorPos = anchorPos;
 }
@@ -2896,6 +2904,16 @@ static void DrawImageMarker(Marker *markerPtr, Drawable drawable) {
         Tk_Image tkImage;
 
         tkImage = (imPtr->tmpImage != NULL) ? imPtr->tmpImage : imPtr->tkImage;
+        if (markerPtr->graphPtr->renderer == RBC_RENDERER_CAIRO) {
+            Tk_PhotoHandle photo = Tk_FindPhoto(markerPtr->graphPtr->interp, Rbc_NameOfImage(tkImage));
+            Tk_PhotoImageBlock block;
+
+            if ((photo != NULL) && Tk_PhotoGetImage(photo, &block) &&
+                Rbc_RenderPhoto(markerPtr->graphPtr, drawable, &block,
+                    (int)imPtr->anchorPos.x, (int)imPtr->anchorPos.y)) {
+                return;
+            }
+        }
         Tk_SizeOfImage(tkImage, &width, &height);
         /* pixmap = Tk_ImageGetPhotoPixmap(tkImage); */
         pixmap = None;

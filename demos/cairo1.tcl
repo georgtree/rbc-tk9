@@ -1,4 +1,4 @@
-# Compare native and Cairo areas, strokes, symbols and error bars. Requires --enable-cairo.
+# Compare native and Cairo geometry and photo markers. Requires --enable-cairo.
 package require Tk
 package require rbc
 
@@ -38,7 +38,7 @@ ttk::checkbutton .controls.grid -text {Grid} -variable showGrid -command {
 }
 ttk::checkbutton .controls.markers -text {Markers} -variable showMarkers -command {
     foreach g {.native .cairo} {
-        foreach marker {demoArrow demoPolygon demoText} {
+        foreach marker {demoArrow demoPolygon demoText demoPhoto} {
             $g marker configure $marker -hide [expr {!$showMarkers}]
         }
     }
@@ -50,6 +50,11 @@ pack .description -side top -pady 4
 bind .controls.mode <<ComboboxSelected>> {
     .cairo configure -antialias [.controls.mode get]
 }
+# Enlarge RGBA pixels to show opaque, transparent and half-alpha samples.
+set markerSource [image create photo -data {iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAE0lEQVR4nGP4z8AAQUDcACT+AwA2XgZ7cJWRwAAAAABJRU5ErkJggg==}]
+set markerPhoto [image create photo]
+$markerPhoto copy $markerSource -zoom 12 12
+image delete $markerSource
 set data {}
 set dashedData {}
 for {set i 0} {$i <= 400} {incr i} {
@@ -89,5 +94,6 @@ foreach renderer {native cairo} {
         -outline #885577 -linewidth 2 -arrow last -cap round
     $g marker create polygon -name demoPolygon -coords {7.5 -1 8.6 -0.6 9 -1.4} \
         -fill #f1ddc6 -stipple gray50 -outline #a56c32 -linewidth 2 -dashes {6 3}
+    $g marker create image -name demoPhoto -coords {6.2 -1.5} -image $markerPhoto -anchor center
     $g marker create text -name demoText -coords {4.8 2.75} -text {Native text} -foreground grey30
 }
