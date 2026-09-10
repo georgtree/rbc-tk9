@@ -2000,7 +2000,7 @@ namespace eval ::rbc::LINEELEMENT {
         the underlying pattern. Recreating the image with the same name restores the tile.
 
         Non-photo image tiles retain native rendering. Solid/stippled areas with an empty `-areaforeground`
-        also use the native GC default. Native photo tiles retain their existing transparency-mask behavior.
+        use Cairo with the native GC color. Native photo tiles retain their existing transparency-mask behavior.
 
         The fill polygon follows the mapped line and is closed against the bottom of the plotting area.
 
@@ -4175,9 +4175,9 @@ namespace eval ::rbc::MARKER {
         Photo image markers use Cairo alpha compositing with existing placement and scaling. They clip to
         the plot; `-antialias` does not resample their pixels. Source image changes refresh the marker.
         Bitmap markers use Cairo with existing scaling, rotation, and masks. Their mapped pixels stay sharp;
-        `-antialias` affects rotated background polygons. An empty foreground retains the native GC default.
+        `-antialias` affects rotated background polygons. An empty foreground uses Cairo with the native GC color.
         Text, window, and non-photo image markers keep their Tk rendering; line markers with an
-        empty `-outline` retain the native GC default.
+        empty `-outline` use Cairo with the native GC color.
 
         Rbc provides six marker types:
 

@@ -675,13 +675,13 @@ The default is `se`. |
         They draw across the widget margins, independently of the plot clip. Axis labels, titles, and relief
         backgrounds remain native. A zero axis `-linewidth` hides strokes, as with native rendering.
 
-        Non-photo image tiles and solid/stippled areas with an empty `-areaforeground` retain native rendering.
+        Non-photo image tiles retain native rendering. Empty `-areaforeground` values use Cairo with the native GC color.
         All text, window markers, non-photo image markers, and crosshairs retain native rendering.
 
         Grid and marker geometry is clipped to the plotting area. Marker color pairs, stipples, dash offsets,
         caps, and under/over ordering are preserved. Mapped segments remain independent, retaining their
         existing dash restarts. XOR markers keep native drawing and erase behavior. A line marker with an
-        empty `-outline` also keeps its native GC default.
+        empty `-outline` also uses Cairo with its native GC color.
 
         Symbols smaller than three mapped pixels use Cairo one-pixel fills, sharp in every antialias mode.
         As with native drawing, they use only the fill color and bypass `-maxsymbols`; an empty fill hides them.
@@ -693,7 +693,7 @@ The default is `se`. |
 
         Bitmap markers use their existing mapped bitmap and mask with Cairo clipping and color composition.
         Scaling, rotation, anchors, offsets, and layer order are preserved. Bitmap pixels stay sharp;
-        `-antialias` affects the polygon background of arbitrarily rotated markers. An empty foreground retains the native GC default.
+        `-antialias` affects the polygon background of arbitrarily rotated markers. An empty foreground uses Cairo with the native GC color.
 
         Photo image markers also use Cairo. Their existing anchors, offsets, scaling, and layer order are
         preserved. Cairo composites photo alpha at the mapped integer position and clips to the plot;

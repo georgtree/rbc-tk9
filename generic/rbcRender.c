@@ -76,6 +76,25 @@ static void StrokeRenderPath(Rbc_RenderContext *ctx) {
     cairo_stroke(ctx->cr);
 }
 
+/* Resolve GC defaults without treating an empty option as transparency. */
+int Rbc_RenderGCForeground(Graph *graphPtr, GC gc, XColor *color) {
+    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (gc == NULL)) return FALSE;
+    memset(color, 0, sizeof(*color));
+#ifdef WIN32
+    color->pixel = gc->foreground;
+    color->red = GetRValue(color->pixel) * 257;
+    color->green = GetGValue(color->pixel) * 257;
+    color->blue = GetBValue(color->pixel) * 257;
+#else
+    XGCValues values;
+
+    if (!XGetGCValues(graphPtr->display, gc, GCForeground, &values)) return FALSE;
+    color->pixel = values.foreground;
+    XQueryColors(graphPtr->display, Tk_Colormap(graphPtr->tkwin), color, 1);
+#endif
+    return TRUE;
+}
+
 /* Open one uninterrupted Cairo drawing batch; NULL requests native drawing. */
 static Rbc_RenderContext *BeginRenderTarget(Graph *graphPtr, Drawable drawable,
                                    const XColor *colorPtr, double width,
@@ -752,6 +771,10 @@ void Rbc_RenderSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_S
 }
 void Rbc_RenderLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle) {
     (void)ctx; (void)capStyle; (void)joinStyle;
+}
+int Rbc_RenderGCForeground(Graph *graphPtr, GC gc, XColor *color) {
+    (void)graphPtr; (void)gc; (void)color;
+    return FALSE;
 }
 void Rbc_RenderPoints(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
     (void)ctx; (void)points; (void)count;

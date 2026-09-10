@@ -2158,14 +2158,19 @@ static void DrawBitmapMarker(Marker *markerPtr, Drawable drawable) {
     theta = FMOD(bmPtr->theta, 90.0);
     clipMask = bmPtr->destMask;
 
-    /* An empty foreground keeps the native GC default. */
-    if (bmPtr->outlineColor != NULL) {
+    /* Preserve the native foreground when the option is empty. */
+    XColor gcColor;
+    XColor *foreground = bmPtr->outlineColor;
+    if ((foreground == NULL) && Rbc_RenderGCForeground(graphPtr, bmPtr->gc, &gcColor)) {
+        foreground = &gcColor;
+    }
+    if (foreground != NULL) {
         Rbc_RenderRectangle r = {(int)bmPtr->anchorPos.x, (int)bmPtr->anchorPos.y,
                                  bmPtr->destWidth, bmPtr->destHeight};
         int rotatedBackground = (bmPtr->srcMask == None) && (bmPtr->fillColor != NULL) && (theta != 0.0);
 
         if (Rbc_RenderBitmap(graphPtr, drawable, &r, bmPtr->destBitmap,
-                rotatedBackground ? bmPtr->destBitmap : clipMask, bmPtr->outlineColor, bmPtr->fillColor,
+                rotatedBackground ? bmPtr->destBitmap : clipMask, foreground, bmPtr->fillColor,
                 rotatedBackground ? bmPtr->outline : NULL, rotatedBackground ? bmPtr->nOutlinePts : 0)) return;
     }
 
@@ -4412,11 +4417,17 @@ static void DrawLineMarker(Marker *markerPtr, Drawable drawable) {
     LineMarker *lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
     Graph *graphPtr = markerPtr->graphPtr;
     int drawn;
+    XColor gcColor;
+    XColor *outline = lmPtr->outlineColor;
+
+    if ((outline == NULL) && !lmPtr->xor && Rbc_RenderGCForeground(graphPtr, lmPtr->gc, &gcColor)) {
+        outline = &gcColor;
+    }
 
     drawn = FALSE;
     if (lmPtr->nSegments > 0) {
         if (!DrawRenderedMarkerSegments(graphPtr, drawable, lmPtr->segments, lmPtr->nSegments,
-                lmPtr->outlineColor, lmPtr->fillColor, lmPtr->lineWidth, &lmPtr->dashes,
+                outline, lmPtr->fillColor, lmPtr->lineWidth, &lmPtr->dashes,
                 lmPtr->capStyle, lmPtr->joinStyle, lmPtr->xor)) {
             Rbc_Draw2DSegments(graphPtr->display, drawable, lmPtr->gc, lmPtr->segments, lmPtr->nSegments);
         }
@@ -4424,14 +4435,14 @@ static void DrawLineMarker(Marker *markerPtr, Drawable drawable) {
     }
     if (lmPtr->hasFirstArrow) {
         if (lmPtr->xor || !Rbc_RenderArea(graphPtr, drawable, lmPtr->firstArrow, PTS_IN_ARROW - 1,
-                lmPtr->outlineColor, NULL, None)) {
+                outline, NULL, None)) {
             DrawArrowHead(graphPtr, drawable, lmPtr->gc, lmPtr->firstArrow);
         }
         drawn = TRUE;
     }
     if (lmPtr->hasLastArrow) {
         if (lmPtr->xor || !Rbc_RenderArea(graphPtr, drawable, lmPtr->lastArrow, PTS_IN_ARROW - 1,
-                lmPtr->outlineColor, NULL, None)) {
+                outline, NULL, None)) {
             DrawArrowHead(graphPtr, drawable, lmPtr->gc, lmPtr->lastArrow);
         }
         drawn = TRUE;

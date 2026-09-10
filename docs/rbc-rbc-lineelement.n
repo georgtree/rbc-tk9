@@ -696,7 +696,7 @@ Image edits and resizing refresh the displayed fill; deleting a photo removes it
 the underlying pattern\&. Recreating the image with the same name restores the tile\&.
 .PP
 Non-photo image tiles retain native rendering\&. Solid/stippled areas with an empty -areaforeground
-also use the native GC default\&. Native photo tiles retain their existing transparency-mask behavior\&.
+use Cairo with the native GC color\&. Native photo tiles retain their existing transparency-mask behavior\&.
 .PP
 The fill polygon follows the mapped line and is closed against the bottom of the plotting area\&.
 .PP

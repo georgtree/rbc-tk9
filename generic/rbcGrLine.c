@@ -11358,6 +11358,9 @@ static void DrawActiveLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
 
 /* Tiles take precedence, including when the image is empty or unsupported. */
 static int DrawRenderedArea(Graph *graphPtr, Drawable drawable, Line *linePtr) {
+    XColor gcColor;
+    XColor *foreground = linePtr->fillFgColor;
+
     if (graphPtr->renderer != RBC_RENDERER_CAIRO) {
         return FALSE;
     }
@@ -11372,8 +11375,12 @@ static int DrawRenderedArea(Graph *graphPtr, Drawable drawable, Line *linePtr) {
     if (linePtr->fillStipple == None) {
         return FALSE;
     }
+    if (foreground == NULL) {
+        if (!Rbc_RenderGCForeground(graphPtr, linePtr->fillGC, &gcColor)) return FALSE;
+        foreground = &gcColor;
+    }
     return Rbc_RenderArea(graphPtr, drawable, linePtr->fillPts, linePtr->nFillPts,
-        linePtr->fillFgColor, linePtr->fillBgColor,
+        foreground, linePtr->fillBgColor,
         (linePtr->fillStipple == PATTERN_SOLID) ? None : linePtr->fillStipple);
 }
 

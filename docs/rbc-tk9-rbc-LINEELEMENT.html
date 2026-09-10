@@ -636,7 +636,7 @@ Photo tiles align to the toplevel window origin and preserve their alpha, includ
 Image edits and resizing refresh the displayed fill; deleting a photo removes it without enabling
 the underlying pattern. Recreating the image with the same name restores the tile.</p>
 <p>Non-photo image tiles retain native rendering. Solid/stippled areas with an empty <code class="docutils literal notranslate"><span class="pre">-areaforeground</span></code>
-also use the native GC default. Native photo tiles retain their existing transparency-mask behavior.</p>
+use Cairo with the native GC color. Native photo tiles retain their existing transparency-mask behavior.</p>
 <p>The fill polygon follows the mapped line and is closed against the bottom of the plotting area.</p>
 <p>Area filling uses the geometry after smoothing and point reduction.</p>
 <p>The current implementation stores one fill polygon per line element. Consequently, if the mapped line
