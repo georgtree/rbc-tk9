@@ -2121,6 +2121,7 @@ static int ConfigureGraphOptions(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const 
     Tcl_Size i;
     int aspectSpecified;
     int mask;
+    int oldRenderer = graphPtr->renderer;
 
     assert(graphPtr->optionsInitialized);
     assert(graphPtr->optionTable != NULL);
@@ -2175,6 +2176,10 @@ static int ConfigureGraphOptions(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const 
         Tcl_SetObjResult(graphPtr->interp, errorObjPtr);
         Tcl_DecrRefCount(errorObjPtr);
         return TCL_ERROR;
+    }
+    if (graphPtr->renderer != oldRenderer) {
+        /* Auto-decimation density depends on the selected renderer. */
+        graphPtr->flags |= MAP_ALL | REDRAW_BACKING_STORE;
     }
     if (aspectSpecified) {
         /*

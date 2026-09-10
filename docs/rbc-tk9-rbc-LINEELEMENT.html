@@ -263,6 +263,9 @@ be displayed.</p>
 <section id="display-decimation-for-large-data-sets">
 <span id="r-rbc-lineelement-display-decimation-for-large-data-sets"></span><span id="r-3a3arbc3a3alineelementqzdisplay20decimation20for20large20data20sets"></span><h2>Display decimation for large data sets<a class="headerlink" href="#display-decimation-for-large-data-sets" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">-decimate</span></code> controls automatic screen-density reduction for large line and strip data sets.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">auto</span></code>, reduction is considered at 8 source points per physical data-X pixel for native rendering,
+or 4 for Cairo. Density uses the complete source count divided by the plot span, including with <code class="docutils literal notranslate"><span class="pre">-invertxy</span></code>.
+Switching renderers remaps the data. Eligibility and point-selection rules are unchanged.</p>
 <p>It is intended for dense waveforms where many source samples map to each physical display pixel. Without
 decimation, mapping and drawing millions of source points can dominate redraw, zoom, pan, and source-update
 time even though most of those points cannot be distinguished on screen.</p>

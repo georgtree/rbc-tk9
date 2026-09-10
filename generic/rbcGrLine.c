@@ -79,7 +79,8 @@ typedef struct {
 } MapInfo;
 
 #define LINE_DECIMATE_BLOCK_SIZE 64
-#define LINE_DECIMATE_MIN_POINTS_PER_PIXEL 8
+#define LINE_DECIMATE_NATIVE_POINTS_PER_PIXEL 8
+#define LINE_DECIMATE_CAIRO_POINTS_PER_PIXEL 4
 
 typedef struct {
     Tcl_Size minIndex;
@@ -3682,7 +3683,8 @@ static int LineNeedsPixelDecimation(Graph *graphPtr, Line *linePtr) {
         return FALSE;
     }
     density = (double)nPoints / span;
-    return density >= LINE_DECIMATE_MIN_POINTS_PER_PIXEL;
+    return density >= ((graphPtr->renderer == RBC_RENDERER_CAIRO) ?
+        LINE_DECIMATE_CAIRO_POINTS_PER_PIXEL : LINE_DECIMATE_NATIVE_POINTS_PER_PIXEL);
 }
 
 static void InvalidateLineDecimateCache(Line *linePtr) {

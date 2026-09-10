@@ -1591,6 +1591,10 @@ namespace eval ::rbc::LINEELEMENT {
         ## Display decimation for large data sets
         `-decimate` controls automatic screen-density reduction for large line and strip data sets.
 
+        With `auto`, reduction is considered at 8 source points per physical data-X pixel for native rendering,
+        or 4 for Cairo. Density uses the complete source count divided by the plot span, including with `-invertxy`.
+        Switching renderers remaps the data. Eligibility and point-selection rules are unchanged.
+
         It is intended for dense waveforms where many source samples map to each physical display pixel. Without
         decimation, mapping and drawing millions of source points can dominate redraw, zoom, pan, and source-update
         time even though most of those points cannot be distinguished on screen.

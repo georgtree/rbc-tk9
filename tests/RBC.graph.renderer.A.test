@@ -2276,5 +2276,52 @@ namespace eval ::rbcRendererTest {
         catch {image delete $photo}
     } -result {1 1 1}
 
+    foreach kind {graph stripchart} {
+        foreach inverted {no yes} {
+            test renderer-20.1-$kind-$inverted {renderer switching refreshes auto-decimation geometry} \
+                    -constraints rbcCairo -setup {
+                StrokeFixture $kind
+                .renderer configure -invertxy $inverted
+                update
+                # Six points per data-X pixel: between the two thresholds.
+                lassign [.renderer transform 0 0] x0 y0
+                lassign [.renderer transform 10 10] x1 y1
+                set span [expr {$inverted eq "yes" ? abs($y1-$y0) : abs($x1-$x0)}]
+                set count [expr {6*$span}]
+                set data {}
+                for {set i 0} {$i < $count} {incr i} {
+                    lappend data [expr {10.0*$i/($count-1)}] [expr {2+($i%7)}]
+                }
+                .renderer element configure signal -data $data -decimate auto
+                set photo [image create photo]
+                update
+            } -body {
+                set results {}
+                foreach backend {native cairo native cairo} {
+                    .renderer configure -renderer $backend
+                    update idletasks
+                    .renderer snap $photo
+                    set switched [$photo data]
+                    # Explicit remapping must agree with renderer-switch remapping.
+                    .renderer element configure signal -decimate auto
+                    update idletasks
+                    .renderer snap $photo
+                    lappend results [expr {$switched eq [$photo data]}]
+                    if {$backend eq "native"} {
+                        set automatic [$photo data]
+                        .renderer element configure signal -decimate none
+                        .renderer snap $photo
+                        lappend results [expr {$automatic eq [$photo data]}]
+                        .renderer element configure signal -decimate auto
+                    }
+                }
+                set results
+            } -cleanup {
+                destroy .renderer
+                catch {image delete $photo}
+            } -result {1 1 1 1 1 1}
+        }
+    }
+
     cleanupTests
 }
