@@ -1,0 +1,101 @@
+# Standalone, headless tests: tclsh tests/benchmark/compare.test
+package require tcltest
+package require csv
+namespace import ::tcltest::*
+source [file join [file dirname [info script]] compare.tcl]
+
+proc SampleRow {{renderer native} {time 4}} {
+    dict create platform unix os Linux os_version 6 machine x86_64 tcl 9.0.4 tk 9.0.4 rbc 0.5.0 \
+        renderer $renderer antialias gray windowing x11 benchmark symbols case {circle,"filled"} count 100 \
+        requested_width 640 requested_height 480 actual_width 640 actual_height 480 metric redraw median_ms $time
+}
+proc SampleCsv {rows} {
+    set header [dict keys [lindex $rows 0]]
+    set text "[::csv::join $header]\n"
+    foreach row $rows {
+        set values {}; foreach k $header {lappend values [dict get $row $k]}
+        append text [::csv::join $values] \n
+    }
+    makeFile $text compare-input.csv
+}
+
+test compare-1 {quoted commas and quotes survive CSV parsing} -body {
+    set path [SampleCsv [list [SampleRow]]]
+    dict get [lindex [::rbcCompare::ReadCsv $path] 0] case
+} -cleanup {removeFile compare-input.csv} -result {circle,"filled"}
+
+test compare-2 {paired measurements and repeated run medians} -body {
+    set path [SampleCsv [list [SampleRow native 4] [SampleRow native 8] [SampleRow cairo 2]]]
+    set data [::rbcCompare::Load [list desktop $path]]
+    set key [lindex [dict keys $data] 0]
+    list [dict get $data $key 100 native] [::rbcCompare::Series [dict get $data $key] 1]
+} -cleanup {removeFile compare-input.csv} -result {{6.0 2} {cairo/gray {{100 3.0}}}}
+
+test compare-3 {different hosts are not paired} -body {
+    set path [SampleCsv [list [SampleRow]]]
+    dict size [::rbcCompare::Load [list Windows-PC $path Linux-PC $path]]
+} -cleanup {removeFile compare-input.csv} -result 2
+
+test compare-4 {zero times and missing baselines are not divided or invented} -body {
+    ::rbcCompare::Series {100 {native {4 1} cairo/gray {0 1}} 200 {cairo/gray {2 1}}} 1
+} -result {}
+
+test compare-5 {old renderer labels without verified settings are rejected} -body {
+    ::rbcCompare::Normalize [dict remove [SampleRow] antialias] host old.csv
+} -returnCodes error -match glob -result {*missing antialias*rerun*}
+
+test compare-6 {wide line CSV expands all seven metrics} -body {
+    set row [dict remove [SampleRow] benchmark case count metric median_ms]
+    dict set row element_type strip; dict set row decimate auto; dict set row points 1000
+    foreach k {create_ms redraw_median_ms remap_median_ms data_array_remap_median_ms data_index_remap_median_ms append_remap_median_ms closest_median_ms} {
+        dict set row $k 2.5
+    }
+    set rows [::rbcCompare::Normalize $row desktop line.csv]
+    list [llength $rows] [dict get [lindex $rows 0] benchmark] [dict get [lindex $rows end] metric]
+} -result {7 strip closest}
+
+test compare-7 {AA variants remain separate and share native baseline} -body {
+    set none [SampleRow cairo 1]; dict set none antialias none
+    set path [SampleCsv [list [SampleRow native 4] [SampleRow cairo 2] $none]]
+    set data [::rbcCompare::Load [list host $path]]
+    set key [lindex [dict keys $data] 0]
+    ::rbcCompare::Series [dict get $data $key] 1
+} -cleanup {removeFile compare-input.csv} -result {cairo/gray {{100 2.0}} cairo/none {{100 4.0}}}
+
+test compare-8 {CSV output and text show missing pairs explicitly} -body {
+    set path [SampleCsv [list [SampleRow cairo 2]]]
+    set dir [makeDirectory compare-output]
+    set text [::rbcCompare::Report [::rbcCompare::Load [list host $path]] $dir]
+    set row [lindex [::rbcCompare::ReadCsv [file join $dir comparison.csv]] 0]
+    list [dict get $row native_ms] [dict get $row native_over_cairo] [string match {*n/a*} $text]
+} -cleanup {removeFile compare-input.csv; removeDirectory compare-output} -result {{} {} 1}
+
+test compare-9 {non-finite timings are rejected} -body {
+    set path [SampleCsv [list [SampleRow cairo Inf]]]
+    ::rbcCompare::Load [list host $path]
+} -cleanup {removeFile compare-input.csv} -returnCodes error -match glob -result {*invalid timing*}
+
+test compare-10 {geometry and runtime changes create separate comparison groups} -body {
+    set other [SampleRow cairo]; dict set other actual_width 639
+    set version [SampleRow cairo]; dict set version tk 9.0.3
+    set path [SampleCsv [list [SampleRow] $other $version]]
+    dict size [::rbcCompare::Load [list host $path]]
+} -cleanup {removeFile compare-input.csv} -result 3
+test compare-11 {integer timing strings still produce fractional ratios} -body {
+    set result [::rbcCompare::Series {100 {native {4 1} cairo/gray {3 1}}} 1]
+    expr {abs([lindex [dict get $result cairo/gray] 0 1] - 4.0/3.0) < 1e-12}
+} -result 1
+
+test compare-12 {multiline quoted CSV fields are preserved} -body {
+    set row [SampleRow]; dict set row case "two\nlines"
+    set path [SampleCsv [list $row]]
+    expr {[dict get [lindex [::rbcCompare::ReadCsv $path] 0] case] eq "two\nlines"}
+} -cleanup {removeFile compare-input.csv} -result 1
+test compare-13 {default antialiasing has its own comparison series} -body {
+    set row [SampleRow cairo 2]; dict set row antialias default
+    set path [SampleCsv [list [SampleRow native 4] $row [SampleRow cairo 3]]]
+    set data [::rbcCompare::Load [list host $path]]
+    set key [lindex [dict keys $data] 0]
+    lsort [dict keys [::rbcCompare::Series [dict get $data $key] 1]]
+} -cleanup {removeFile compare-input.csv} -result {cairo/default cairo/gray}
+cleanupTests

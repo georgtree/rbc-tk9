@@ -22,6 +22,8 @@ proc ::rbcErrorBenchmark::ParseArgs {argv} {
     set parsed [argparse -inline -exact -long\
         -help {Benchmark RBC error-bar rendering, including workloads dominated by large numbers of independent line\
                        segments.} {
+            {-renderer= -enum {native cairo} -default native -help {Select the graph renderer}}
+            {-antialias= -enum {default none gray} -default default -help {Select Cairo antialiasing}}
             {-profile= -enum {smoke standard stress} -default standard -help {Select benchmark workload profile}}
             {-points= -validate {[::rbcBenchmark::IsCountList $arg 2]} -errormsg {-points must contain integers >= 2}\
                      -help {Comma-separated source-point counts}}
@@ -34,6 +36,7 @@ proc ::rbcErrorBenchmark::ParseArgs {argv} {
             {-warmup= -type integer -validate {$arg >= 0} -errormsg {-warmup must be >= 0}}\
             {-csv= -default {} -help {Write long-format CSV results}}
         } $argv]
+    ::rbcBenchmark::SetRendererOptions $parsed
     set profile [dict get $parsed profile]
     set options [dict merge [dict create cases {y xy y+circle} csv {}] [::rbcBenchmark::ProfileDefaults errorbars\
                                                                                 $profile] $parsed]

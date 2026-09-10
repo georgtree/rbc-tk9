@@ -21,6 +21,8 @@ proc ::rbcBenchmark::ParseArgs {argv} {
     set parsed [argparse -inline -exact -long\
                         -help {Benchmark RBC line or strip elements, including redraw, remapping, ranged vector\
                                        updates, tail append, closest-point search, and optional display decimation.} {
+            {-renderer= -enum {native cairo} -default native -help {Select the graph renderer}}
+            {-antialias= -enum {default none gray} -default default -help {Select Cairo antialiasing}}
             {-profile= -enum {smoke standard stress} -help {Select workload profile. If omitted, historical standalone\
                                                                     line.tcl defaults are retained}}
             {-stripchart -boolean -help {Benchmark a strip element in a stripchart}}
@@ -32,6 +34,7 @@ proc ::rbcBenchmark::ParseArgs {argv} {
                      -errormsg {-decimate must contain none or auto}}
             {-csv= -default {} -help {Write benchmark results to CSV}}
         } $argv]
+    ::rbcBenchmark::SetRendererOptions $parsed
     # Keep the historical namespace defaults unless an explicit profile was supplied.
     if {[dict exists $parsed profile]} {
         set options [dict merge $options [ProfileDefaults line [dict get $parsed profile]]]
@@ -104,6 +107,7 @@ proc ::rbcBenchmark::CreateGraph {} {
     wm overrideredirect $top 1
     $widgetCommand $graph -bufferelements 0 -buffergraph 1 -borderwidth 0 -highlightthickness 0 -plotborderwidth 0\
             -plotpadx 0 -plotpady 0 -title {}
+    ::rbcBenchmark::ConfigureRenderer $graph
     pack $graph -fill both -expand yes
     $graph legend configure -hide yes
     $graph grid configure -hide yes
@@ -281,7 +285,7 @@ proc ::rbcBenchmark::OpenCsv {} {
         return {}
     }
     set channel [open $path w]
-    puts $channel [join {platform os os_version machine tcl tk rbc element_type decimate points requested_width\
+    puts $channel [join {platform os os_version machine tcl tk rbc renderer antialias windowing element_type decimate points requested_width\
                                  requested_height actual_width actual_height plot_width points_per_plot_pixel create_ms\
                                  redraw_min_ms redraw_median_ms redraw_mean_ms redraw_max_ms remap_min_ms\
                                  remap_median_ms remap_mean_ms remap_max_ms data_array_remap_min_ms\
@@ -298,7 +302,7 @@ proc ::rbcBenchmark::WriteCsv {channel row} {
         return
     }
     set values {}
-    foreach key {platform os os_version machine tcl tk rbc element_type decimate points requested_width\
+    foreach key {platform os os_version machine tcl tk rbc renderer antialias windowing element_type decimate points requested_width\
                          requested_height actual_width actual_height plot_width points_per_plot_pixel create_ms\
                          redraw_min_ms redraw_median_ms redraw_mean_ms redraw_max_ms remap_min_ms remap_median_ms\
                          remap_mean_ms remap_max_ms data_array_remap_min_ms data_array_remap_median_ms\
@@ -306,9 +310,9 @@ proc ::rbcBenchmark::WriteCsv {channel row} {
                          data_index_remap_median_ms data_index_remap_mean_ms data_index_remap_max_ms\
                          append_remap_min_ms append_remap_median_ms append_remap_mean_ms append_remap_max_ms\
                          closest_min_ms closest_median_ms closest_mean_ms closest_max_ms} {
-        lappend values [CsvQuote [dict get $row $key]]
+        lappend values [dict get $row $key]
     }
-    puts $channel [join $values ,]
+    puts $channel [::csv::join $values]
     flush $channel
 }
 
@@ -550,6 +554,9 @@ proc ::rbcBenchmark::RunCase {mode n width height csv} {
         tcl                         [info patchlevel] \
         tk                          [package provide Tk] \
         rbc                         [package provide rbc] \
+        renderer                    $::rbcBenchmark::renderer \
+        antialias                   $::rbcBenchmark::antialias \
+        windowing                   [tk windowingsystem] \
         element_type                $elementType \
         decimate                    $mode \
         points                      $n \

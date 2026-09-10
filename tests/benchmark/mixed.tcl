@@ -18,6 +18,8 @@ proc ::rbcMixedBenchmark::ParseArgs {argv} {
     set parsed [argparse -inline -exact -long\
                 -help {Benchmark a mixed engineering-style graph containing lines, scatter symbols, error bars, bars,\
                                and several marker types.} {
+            {-renderer= -enum {native cairo} -default native -help {Select the graph renderer}}
+            {-antialias= -enum {default none gray} -default default -help {Select Cairo antialiasing}}
             {-profile= -enum {smoke standard stress} -default standard -help {Select benchmark workload profile}}
             {-scales= -validate {[::rbcBenchmark::IsCountList $arg 1]} -errormsg {-scales must contain integers >= 1}}
             {-sizes= -validate {[::rbcBenchmark::IsSizeList $arg]} -errormsg {-sizes must contain WIDTHxHEIGHT values}}
@@ -25,6 +27,7 @@ proc ::rbcMixedBenchmark::ParseArgs {argv} {
             {-warmup= -type integer -validate {$arg >= 0} -errormsg {-warmup must be >= 0}}
             {-csv= -default {} -help {Write long-format CSV results}}
         } $argv]
+    ::rbcBenchmark::SetRendererOptions $parsed
     set profile [dict get $parsed profile]
     set options [dict merge [dict create csv {}] [::rbcBenchmark::ProfileDefaults mixed $profile] $parsed]
     dict set options scales [::rbcBenchmark::ParseList [dict get $options scales]]

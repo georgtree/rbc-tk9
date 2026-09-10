@@ -18,6 +18,8 @@ proc ::rbcMarkersBenchmark::ParseArgs {argv} {
     set parsed [argparse -inline -exact -long\
                         -help {Benchmark RBC marker rendering for line, polygon, text, bitmap, and image marker\
                                        primitives.} {
+            {-renderer= -enum {native cairo} -default native -help {Select the graph renderer}}
+            {-antialias= -enum {default none gray} -default default -help {Select Cairo antialiasing}}
             {-profile= -enum {smoke standard stress} -default standard -help {Select benchmark workload profile}}
             {-counts= -validate {[::rbcBenchmark::IsCountList $arg 1]} -errormsg {-counts must contain integers >= 1}}
             {-sizes= -validate {[::rbcBenchmark::IsSizeList $arg]} -errormsg {-sizes must contain WIDTHxHEIGHT values}}
@@ -28,6 +30,7 @@ proc ::rbcMarkersBenchmark::ParseArgs {argv} {
             {-warmup= -type integer -validate {$arg >= 0} -errormsg {-warmup must be >= 0}}
             {-csv= -default {} -help {Write long-format CSV results}}
         } $argv]
+    ::rbcBenchmark::SetRendererOptions $parsed
     set profile [dict get $parsed profile]
     set options [dict merge [dict create cases {line polygon-fill polygon-outline text-0 text-45 bitmap image} csv\
                                      {}] [::rbcBenchmark::ProfileDefaults markers $profile] $parsed]

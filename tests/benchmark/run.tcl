@@ -15,6 +15,8 @@ proc ::rbcSuite::ParseArgs {argv} {
     set parsed [argparse -inline -exact -long\
                         -help {Run one or more RBC rendering benchmarks as separate Tcl processes using a common\
                                        workload profile.} {
+            {-renderer= -enum {native cairo} -default native -help {Select the graph renderer}}
+            {-antialias= -enum {default none gray} -default default -help {Select Cairo antialiasing}}
             {-profile= -enum {smoke standard stress} -default standard -help {Select workload profile}}
             {-benchmarks= -default {line,strip,symbols,errorbars,bars,markers,mixed}\
                      -validate {[::rbcBenchmark::IsEnumList $arg {line strip symbols errorbars bars markers mixed}]}\
@@ -73,7 +75,7 @@ proc ::rbcSuite::BenchmarkCommand {benchmark} {
 
     set cmd [list [info nameofexecutable] [file join $benchmarkDir $script] -profile [dict get $options profile]\
                      {*}$extra]
-    foreach {key optionName} {sizes -sizes iterations -iterations warmup -warmup} {
+    foreach {key optionName} {renderer -renderer antialias -antialias sizes -sizes iterations -iterations warmup -warmup} {
         set value [dict get $options $key]
         if {$value ne {}} {
             lappend cmd $optionName $value

@@ -28,12 +28,24 @@ if {{rbcBenchmarkTable} ni [::report::styles]} {
 namespace eval ::rbcBenchmark {
     variable reportSerial 0
     variable renderer native
-    # This can later be set to "cairo", "gdi", etc. without changing
-    # the CSV schema.
-    if {[info exists ::env(RBC_BENCH_RENDERER)] && $::env(RBC_BENCH_RENDERER) ne {}} {
-        set renderer $::env(RBC_BENCH_RENDERER)
-    }
+    variable antialias default
 }
+
+# Parsed options are explicit; inherited environment variables are ignored.
+proc ::rbcBenchmark::SetRendererOptions {options} {
+    variable renderer [dict get $options renderer]
+    variable antialias [dict get $options antialias]
+}
+
+proc ::rbcBenchmark::ConfigureRenderer {graph} {
+    variable renderer
+    variable antialias
+    $graph configure -renderer $renderer -antialias $antialias
+    # Record the settings accepted by the widget, not a separate CSV label.
+    set renderer [$graph cget -renderer]
+    set antialias [$graph cget -antialias]
+}
+
 
 proc ::rbcBenchmark::NewReport {headers {justifications {}}} {
     if {$justifications eq {}} {
@@ -400,6 +412,7 @@ proc ::rbcBenchmark::PrintEnvironment {title} {
     ReportAdd environment [list Tk [package provide Tk]]
     ReportAdd environment [list RBC [package provide rbc]]
     ReportAdd environment [list renderer $renderer]
+    ReportAdd environment [list antialias $::rbcBenchmark::antialias]
     ReportAdd environment [list windowing [tk windowingsystem]]
     ReportAdd environment [list "Tk scaling" [tk scaling]]
     ReportAdd environment [list screen [format "%dx%d depth=%d" [winfo screenwidth .]  [winfo screenheight .]\
@@ -410,7 +423,7 @@ proc ::rbcBenchmark::PrintEnvironment {title} {
 
 
 namespace eval ::rbcBenchmark {
-    variable longCsvHeader {platform os os_version machine tcl tk rbc renderer windowing benchmark case count\
+    variable longCsvHeader {platform os os_version machine tcl tk rbc renderer antialias windowing benchmark case count\
                                     requested_width requested_height actual_width actual_height metric min_ms median_ms\
                                     mean_ms max_ms}
 }
@@ -445,7 +458,7 @@ proc ::rbcBenchmark::WriteLongMetric {channel benchmark case count width height 
     }
     WriteCsvRecord $channel [list $::tcl_platform(platform) $::tcl_platform(os) $::tcl_platform(osVersion)\
                                      $::tcl_platform(machine) [info patchlevel] [package provide Tk]\
-                                     [package provide rbc] $renderer [tk windowingsystem] $benchmark $case $count\
+                                     [package provide rbc] $renderer $::rbcBenchmark::antialias [tk windowingsystem] $benchmark $case $count\
                                      $width $height $actualWidth $actualHeight $metric\
                                      [format %.3f [dict get $stats min]] [format %.3f [dict get $stats median]]\
                                      [format %.3f [dict get $stats mean]] [format %.3f [dict get $stats max]]]
@@ -497,6 +510,7 @@ proc ::rbcBenchmark::CreateBareGraph {widgetCommand title} {
     wm overrideredirect $top 1
     $widgetCommand $graph -bufferelements 0 -buffergraph 1 -borderwidth 0 -highlightthickness 0 -plotborderwidth 0\
             -plotpadx 0 -plotpady 0 -title {}
+    ::rbcBenchmark::ConfigureRenderer $graph
     pack $graph -fill both -expand yes
     $graph legend configure -hide yes
     $graph grid configure -hide yes

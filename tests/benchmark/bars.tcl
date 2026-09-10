@@ -20,6 +20,8 @@ proc ::rbcBarsBenchmark::ParseArgs {argv} {
     set parsed [argparse -inline -exact -long\
                         -help {Benchmark RBC bar rendering using both large single bar elements and large numbers of\
                                        independent bar elements.} {
+            {-renderer= -enum {native cairo} -default native -help {Select the graph renderer}}
+            {-antialias= -enum {default none gray} -default default -help {Select Cairo antialiasing}}
             {-profile= -enum {smoke standard stress} -default standard -help {Select benchmark workload profile}}
             {-points= -validate {[::rbcBenchmark::IsCountList $arg 1]} -errormsg {-points must contain integers >= 1}\
                      -help {Bar counts for single-element workloadso}}
@@ -33,6 +35,7 @@ proc ::rbcBarsBenchmark::ParseArgs {argv} {
             {-warmup= -type integer -validate {$arg >= 0} -errormsg {-warmup must be >= 0}}
             {-csv= -default {} -help {Write long-format CSV results}}
         } $argv]
+    ::rbcBenchmark::SetRendererOptions $parsed
     set profile [dict get $parsed profile]
     set options [dict merge [dict create cases {flat raised stipple yerror many-elements} csv {}]\
                          [::rbcBenchmark::ProfileDefaults bars $profile] $parsed]

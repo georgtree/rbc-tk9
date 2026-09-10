@@ -18,6 +18,8 @@ proc ::rbcSymbolsBenchmark::ParseArgs {argv} {
     variable options
     set parsed [argparse -inline -exact -long\
         -help {Benchmark RBC scatter/symbol rendering. Data generation is excluded from timed rendering intervals.} {
+            {-renderer= -enum {native cairo} -default native -help {Select the graph renderer}}
+            {-antialias= -enum {default none gray} -default default -help {Select Cairo antialiasing}}
             {-profile= -enum {smoke standard stress} -default standard -help {Select benchmark workload profile}}
             {-points= -validate {[::rbcBenchmark::IsCountList $arg 2]}\
                      -errormsg {-points must contain integers >= 2} -help {Comma-separated source-point counts}}
@@ -36,6 +38,7 @@ proc ::rbcSymbolsBenchmark::ParseArgs {argv} {
                                                                                                           iterations}}
             {-csv= -default {} -help {Write long-format CSV results to this file}}
         } $argv]
+    ::rbcBenchmark::SetRendererOptions $parsed
     set profile [dict get $parsed profile]
     set options \
     [dict merge [dict create symbols {circle square diamond plus} trace 1 csv {}] [::rbcBenchmark::ProfileDefaults\
