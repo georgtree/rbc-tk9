@@ -6,6 +6,10 @@
 rbc::AXIS - Commands in namespace rbc::AXIS
 .SH "GRAPH VIRTUAL AXIS AXIS COMMAND"
 .PP
+Axis lines and tick marks follow the graph's -renderer and -antialias settings\&.
+Cairo preserves their mapped geometry, color, width, and projecting caps, including axes in margins\&.
+A zero -linewidth hides strokes\&. Tick labels, titles, and relief backgrounds remain native\&.
+.PP
 Commands in this namespace document operations accepted by the axis component of a graph, barchart,
 stripchart, or polar widget\&.
 .PP

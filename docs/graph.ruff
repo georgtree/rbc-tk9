@@ -672,9 +672,13 @@ The default is `se`. |
         legends. Swatch stipples restart at the sample origin. Legend text, backgrounds, borders, and bitmap
         samples retain native drawing. Samples use the normal pen and do not consume plot symbol limits.
 
+        Axis lines and tick marks use Cairo with the existing color, width, and projecting caps.
+        They draw across the widget margins, independently of the plot clip. Axis labels, titles, and relief
+        backgrounds remain native. A zero axis `-linewidth` hides strokes, as with native rendering.
+
         Non-photo image tiles and solid/stippled areas with an empty `-areaforeground` retain native rendering.
         Bitmap symbols, symbols smaller than three pixels,
-        axes, all text, bitmap/window markers, non-photo image markers, and crosshairs retain native rendering.
+        all text, bitmap/window markers, non-photo image markers, and crosshairs retain native rendering.
 
         Grid and marker geometry is clipped to the plotting area. Marker color pairs, stipples, dash offsets,
         caps, and under/over ordering are preserved. Mapped segments remain independent, retaining their

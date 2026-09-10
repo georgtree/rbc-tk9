@@ -10,6 +10,7 @@
  */
 
 #include "rbcGraph.h"
+#include "rbcRender.h"
 #include "rbcGrElem.h"
 #include <X11/Xutil.h>
 #include <stdint.h>
@@ -4669,7 +4670,16 @@ static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
     }
     if ((axisPtr->nSegments > 0) && (axisPtr->lineWidth > 0)) {
         /* Draw the tick marks and axis line. */
-        Rbc_Draw2DSegments(graphPtr->display, drawable, axisPtr->tickGC, axisPtr->segments, axisPtr->nSegments);
+        Rbc_RenderContext *ctx = Rbc_RenderBeginDrawable(graphPtr, drawable, graphPtr->width, graphPtr->height,
+            axisPtr->tickTextStyle.color, axisPtr->lineWidth, NULL, NULL);
+
+        if (ctx != NULL) {
+            Rbc_RenderLineStyle(ctx, CapProjecting, JoinMiter);
+            Rbc_RenderSegments(ctx, axisPtr->segments, axisPtr->nSegments);
+            Rbc_RenderEnd(ctx);
+        } else {
+            Rbc_Draw2DSegments(graphPtr->display, drawable, axisPtr->tickGC, axisPtr->segments, axisPtr->nSegments);
+        }
     }
 }
 

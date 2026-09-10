@@ -1487,5 +1487,121 @@ namespace eval ::rbcRendererTest {
         catch {image delete $photo}
     } -result {1 0 1 1 1 0 1 1 1 0 1 1}
 
+    proc EmptyAxisLabel {args} {return {}}
+
+    proc AxisFixture {axis} {
+        StrokeFixture graph
+        .renderer element delete signal
+        .renderer configure -leftmargin 40 -rightmargin 40 -topmargin 40 -bottommargin 40
+        .renderer axis configure $axis -hide no -color black -linewidth 2 -showticks yes \
+            -command ::rbcRendererTest::EmptyAxisLabel -title {} -min 0 -max 10
+        update
+    }
+
+    foreach axis {x y x2 y2} {
+        foreach invert {no yes} {
+            test renderer-12.1-$axis-$invert {axis strokes use Cairo throughout the widget margins} \
+                    -constraints rbcCairo -setup {
+                AxisFixture $axis
+                .renderer configure -invertxy $invert
+                set photo [image create photo]
+            } -body {
+                set results {}
+                foreach aa {none gray none} {
+                    .renderer configure -antialias $aa
+                    .renderer snap $photo
+                    lassign [LegendPixels $photo] ink gray
+                    lappend results [expr {$ink > 0}] [expr {$gray > 0}]
+                }
+                .renderer axis configure $axis -hide yes
+                .renderer snap $photo
+                lappend results [expr {[lindex [LegendPixels $photo] 0] == 0}]
+                set results
+            } -cleanup {
+                destroy .renderer
+                catch {image delete $photo}
+            } -result {1 0 1 1 1 0 1}
+        }
+    }
+
+    test renderer-12.2 {zero axis width hides strokes and tick visibility changes geometry} \
+            -constraints rbcCairo -setup {
+        AxisFixture x
+        .renderer configure -antialias none
+        .renderer axis configure x -majorticks {0 2 4 6 8 10} -ticklength 12
+        set photo [image create photo]
+    } -body {
+        .renderer snap $photo
+        set ticks [lindex [LegendPixels $photo] 0]
+        .renderer axis configure x -showticks no
+        .renderer snap $photo
+        set baseline [lindex [LegendPixels $photo] 0]
+        .renderer axis configure x -linewidth 0
+        .renderer snap $photo
+        list [expr {$ticks > $baseline}] [expr {$baseline > 0}] [lindex [LegendPixels $photo] 0]
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 1 0}
+
+    foreach log {no yes} {
+        test renderer-12.3-$log {descending and logarithmic axis remaps preserve Cairo strokes} \
+                -constraints rbcCairo -setup {
+            AxisFixture y
+            .renderer axis configure y -min 1 -max 100 -logscale $log -color blue
+            set photo [image create photo]
+        } -body {
+            set results {}
+            foreach descending {no yes no} {
+                .renderer axis configure y -descending $descending
+                .renderer snap $photo
+                lappend results [expr {[lindex [LegendPixels $photo {0 0 255}] 2] > 0}]
+            }
+            set results
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+        } -result {1 1 1}
+    }
+
+    test renderer-12.4 {axis titles and tick labels retain native rendering} \
+            -constraints rbcCairo -setup {
+        AxisFixture x
+        .renderer axis configure x -linewidth 0 -command {} -title {Native axis title}
+        set photo [image create photo]
+    } -body {
+        .renderer configure -renderer native
+        .renderer snap $photo
+        set native [$photo data]
+        .renderer configure -renderer cairo
+        .renderer snap $photo
+        list [expr {$native eq [$photo data]}] [expr {[lindex [LegendPixels $photo] 0] > 0}]
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 1}
+
+    test renderer-12.5 {multiple axes retain their own colors after renderer switching} \
+            -constraints rbcCairo -setup {
+        AxisFixture y
+        .renderer axis configure y -color red
+        .renderer axis create extra -hide no -min 0 -max 10 -color blue -linewidth 2 \
+            -command ::rbcRendererTest::EmptyAxisLabel -title {}
+        .renderer yaxis use {y extra}
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach backend {cairo native cairo} {
+            .renderer configure -renderer $backend
+            .renderer snap $photo
+            lappend results [expr {[lindex [LegendPixels $photo {255 0 0}] 2] > 0}] \
+                [expr {[lindex [LegendPixels $photo {0 0 255}] 2] > 0}]
+        }
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 1 1 1 1 1}
+
     cleanupTests
 }

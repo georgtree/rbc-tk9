@@ -10759,7 +10759,7 @@ static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int
     Rbc_RenderContext *ctx;
 
     if (penPtr->traceWidth > 0) {
-        ctx = Rbc_RenderBeginLegend(graphPtr, drawable, width, height, penPtr->traceColor,
+        ctx = Rbc_RenderBeginDrawable(graphPtr, drawable, width, height, penPtr->traceColor,
             penPtr->traceWidth, &penPtr->traceDashes, penPtr->traceOffColor);
         if (ctx != NULL) {
             Segment2D segments[2] = {{{x - size, y}, {x + size, y}},
@@ -10784,7 +10784,7 @@ static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int
                 fill = NULL;
                 drawOutline = (outline != NULL);
             }
-            ctx = Rbc_RenderBeginLegend(graphPtr, drawable, width, height,
+            ctx = Rbc_RenderBeginDrawable(graphPtr, drawable, width, height,
                 (outline != NULL) ? outline : fill, MAX(1, penPtr->symbol.outlineWidth), NULL, NULL);
             if (ctx != NULL) {
                 Rbc_RenderSymbols(ctx, &shape, &point, 1, fill, drawOutline);

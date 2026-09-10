@@ -31,6 +31,15 @@ ttk::button .controls.recolor -text {Recolor tile} -command {
     $areaTile put [expr {$tileVariant ? "#e4c7b3" : "#cedef0"}] -to 0 0 4 8
 }
 pack .controls.tile .controls.recolor -side left -padx 4
+set axisWidth 2
+ttk::label .controls.axisLabel -text {Axis width:}
+ttk::combobox .controls.axisWidth -state readonly -width 2 -textvariable axisWidth -values {0 1 2 3}
+bind .controls.axisWidth <<ComboboxSelected>> {
+    foreach g {.native .cairo .nativeBar .cairoBar} {
+        foreach axis {x y} {$g axis configure $axis -linewidth $axisWidth}
+    }
+}
+pack .controls.axisLabel .controls.axisWidth -side left -padx 4
 set showLegend 1
 ttk::checkbutton .controls.legend -text {Legends} -variable showLegend -command {
     foreach g {.native .cairo .nativeBar .cairoBar} {$g legend configure -hide [expr {!$showLegend}]}
@@ -78,6 +87,7 @@ foreach renderer {native cairo} {
         -title $renderer -plotbackground white
     pack $g -in .traces -side left -fill both -expand yes
     $g legend configure -hide no -position rightmargin -font {Arial 10}
+    foreach axis {x y} {$g axis configure $axis -linewidth $axisWidth}
     $g axis configure x -min 0 -max 10
     $g axis configure y -min -3 -max 3
     $g grid configure -hide no -color grey85 -dashes dot -linewidth 1 -minor no
@@ -142,6 +152,7 @@ foreach renderer {native cairo} {
     pack $g -in .bars -side left -fill both -expand yes
     $g legend configure -hide no -position rightmargin -font {Arial 10}
     $g grid configure -hide no -color grey85 -dashes dot -linewidth 1 -minor no
+    foreach axis {x y} {$g axis configure $axis -linewidth $axisWidth}
     $g axis configure x -min 0 -max 5
     $g axis configure y -min -8 -max 12
     # First: transparent stipple gaps. Second: colored gaps and Tk relief.

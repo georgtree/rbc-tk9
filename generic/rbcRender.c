@@ -167,8 +167,8 @@ Rbc_RenderContext *Rbc_RenderBegin(Graph *graphPtr, Drawable drawable,
         graphPtr->width, graphPtr->height, graphPtr->left, graphPtr->top, graphPtr->right, graphPtr->bottom);
 }
 
-/* Legend coordinates belong to its own pixmap, including external legends. */
-Rbc_RenderContext *Rbc_RenderBeginLegend(Graph *graphPtr, Drawable drawable, int width, int height,
+/* Draw in full drawable coordinates, outside the plot-area clip. */
+Rbc_RenderContext *Rbc_RenderBeginDrawable(Graph *graphPtr, Drawable drawable, int width, int height,
                                          const XColor *color, double lineWidth,
                                          const Rbc_Dashes *dashes, const XColor *offColor) {
     if ((width <= 0) || (height <= 0)) return NULL;
@@ -334,7 +334,7 @@ int Rbc_RenderLegendBar(Graph *graphPtr, Drawable drawable, int width, int heigh
         cairo_matrix_init_translate(&matrix, -(double)r->x, -(double)r->y);
         cairo_pattern_set_matrix(pattern, &matrix);
     }
-    ctx = Rbc_RenderBeginLegend(graphPtr, drawable, width, height, foreground, 1.0, NULL, NULL);
+    ctx = Rbc_RenderBeginDrawable(graphPtr, drawable, width, height, foreground, 1.0, NULL, NULL);
     if (ctx == NULL) {
         if (pattern != NULL) cairo_pattern_destroy(pattern);
         return FALSE;
@@ -576,7 +576,7 @@ void Rbc_RenderEnd(Rbc_RenderContext *ctx) {
     }
 }
 #else
-Rbc_RenderContext *Rbc_RenderBeginLegend(Graph *graphPtr, Drawable drawable, int width, int height,
+Rbc_RenderContext *Rbc_RenderBeginDrawable(Graph *graphPtr, Drawable drawable, int width, int height,
                                          const XColor *color, double lineWidth,
                                          const Rbc_Dashes *dashes, const XColor *offColor) {
     (void)graphPtr; (void)drawable; (void)width; (void)height;
