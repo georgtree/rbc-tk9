@@ -398,7 +398,7 @@ namespace eval polar.configure {
     } -setup {
         polar .polar1 -smithrealmajorticks {0 0.5 1}
     } -body {
-        set bad "{malformed"
+        set bad "\{malformed"
         set code [catch {.polar1 configure -smithrealmajorticks $bad}]
         list $code [.polar1 cget -smithrealmajorticks]
     } -cleanup {
@@ -532,7 +532,7 @@ namespace eval polar.configure {
     } -setup {
         polar .polar1 -anglecommand [list FormatAngle good]
     } -body {
-        set bad "{malformed"
+        set bad "\{malformed"
         set code [catch {.polar1 configure -anglecommand $bad}]
         list $code [.polar1 cget -anglecommand]
     } -cleanup {
@@ -586,7 +586,7 @@ namespace eval polar.configure {
     } -setup {
         polar .polar1 -smithrealcommand [list FormatSmithReal good]
     } -body {
-        set bad "{malformed"
+        set bad "\{malformed"
         set code [catch {.polar1 configure -smithrealcommand $bad}]
         list $code [.polar1 cget -smithrealcommand]
     } -cleanup {
@@ -598,7 +598,7 @@ namespace eval polar.configure {
     } -setup {
         polar .polar1 -smithimagcommand [list FormatSmithImag good]
     } -body {
-        set bad "{malformed"
+        set bad "\{malformed"
         set code [catch {
             .polar1 configure -smithimagcommand $bad
         }]
@@ -678,7 +678,7 @@ namespace eval polar.configure {
     } -setup {
         polar .polar1 -smithrealcommand [list FormatSmithReal old] -smithimagcommand [list FormatSmithImag old]
     } -body {
-        set bad "{malformed"
+        set bad "\{malformed"
         set code [catch {.polar1 configure -smithrealcommand [list FormatSmithReal new] -smithimagcommand $bad}]
         list $code [.polar1 cget -smithrealcommand] [.polar1 cget -smithimagcommand]
     } -cleanup {
