@@ -301,6 +301,44 @@ static cairo_pattern_t *CreateRenderStipple(Graph *graphPtr, Pixmap stipple,
     return pattern;
 }
 
+/* Integer bar edges stay sharp; bound path storage independently of bar count. */
+int Rbc_RenderRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *rectangles,
+                         Tcl_Size count, const XColor *foreground, const XColor *background, Pixmap stipple) {
+    Rbc_RenderContext *ctx;
+    cairo_pattern_t *pattern = NULL;
+    Tcl_Size i;
+
+    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (foreground == NULL) || (count <= 0)) {
+        return FALSE;
+    }
+    if (stipple != None) {
+        pattern = CreateRenderStipple(graphPtr, stipple, foreground, background);
+        if (pattern == NULL) {
+            return FALSE;
+        }
+    }
+    ctx = Rbc_RenderBegin(graphPtr, drawable, foreground, 1.0, NULL, NULL);
+    if (ctx == NULL) {
+        if (pattern != NULL) cairo_pattern_destroy(pattern);
+        return FALSE;
+    }
+    cairo_translate(ctx->cr, -0.5, -0.5);
+    cairo_set_fill_rule(ctx->cr, CAIRO_FILL_RULE_WINDING);
+    if (pattern != NULL) cairo_set_source(ctx->cr, pattern);
+    for (i = 0; i < count; i++) {
+        const Rbc_RenderRectangle *r = rectangles + i;
+
+        if ((r->width > 0) && (r->height > 0)) {
+            cairo_rectangle(ctx->cr, r->x, r->y, r->width, r->height);
+        }
+        if ((i + 1) % 8192 == 0) cairo_fill(ctx->cr);
+    }
+    cairo_fill(ctx->cr);
+    if (pattern != NULL) cairo_pattern_destroy(pattern);
+    Rbc_RenderEnd(ctx);
+    return TRUE;
+}
+
 /* Area vertices are boundaries, not the pixel centers used by strokes. */
 static void FillRenderArea(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count,
                            cairo_pattern_t *pattern) {
@@ -510,6 +548,12 @@ void Rbc_RenderLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle) {
 void Rbc_RenderSymbols(Rbc_RenderContext *ctx, const Rbc_RenderShape *shape,
                        const Point2D *centers, Tcl_Size count, const XColor *fillColor, int outline) {
     (void)ctx; (void)shape; (void)centers; (void)count; (void)fillColor; (void)outline;
+}
+int Rbc_RenderRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *rectangles,
+                         Tcl_Size count, const XColor *foreground, const XColor *background, Pixmap stipple) {
+    (void)graphPtr; (void)drawable; (void)rectangles; (void)count;
+    (void)foreground; (void)background; (void)stipple;
+    return FALSE;
 }
 int Rbc_RenderPhoto(Graph *graphPtr, Drawable drawable, const Tk_PhotoImageBlock *block, int x, int y) {
     (void)graphPtr; (void)drawable; (void)block; (void)x; (void)y;

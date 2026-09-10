@@ -6,6 +6,11 @@
 
 typedef struct Rbc_RenderContext Rbc_RenderContext;
 
+/* Keep bar geometry in full-width widget coordinates. */
+typedef struct {
+    int x, y, width, height;
+} Rbc_RenderRectangle;
+
 /* Screen-space symbol template; segment vertices are endpoint pairs. */
 typedef enum {
     RBC_RENDER_CIRCLE, RBC_RENDER_POLYGON, RBC_RENDER_SEGMENTS
@@ -34,5 +39,8 @@ int Rbc_RenderTileArea(Graph *graphPtr, Drawable drawable, const Point2D *points
                        const Tk_PhotoImageBlock *block);
 
 int Rbc_RenderPhoto(Graph *graphPtr, Drawable drawable, const Tk_PhotoImageBlock *block, int x, int y);
+
+int Rbc_RenderRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *rectangles,
+                         Tcl_Size count, const XColor *foreground, const XColor *background, Pixmap stipple);
 
 #endif

@@ -1686,6 +1686,7 @@ static void GraphEventProc(ClientData clientData, register XEvent *eventPtr) {
                 Rbc_ReleaseLegendTkResources(graphPtr);
             }
             Rbc_ReleaseMarkerTkResources(graphPtr);
+            Rbc_ReleaseElementTkResources(graphPtr);
             Rbc_ReleasePenTkResources(graphPtr);
             ReleaseGraphOptionResources(graphPtr);
 
@@ -1746,6 +1747,7 @@ static void GraphInstCmdDeleteProc(ClientData clientData) {
             Rbc_ReleaseLegendTkResources(graphPtr);
         }
         Rbc_ReleaseMarkerTkResources(graphPtr);
+        Rbc_ReleaseElementTkResources(graphPtr);
         Rbc_ReleasePenTkResources(graphPtr);
         ReleaseGraphOptionResources(graphPtr);
 

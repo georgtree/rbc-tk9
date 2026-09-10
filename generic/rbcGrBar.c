@@ -16,6 +16,7 @@
 #include <tcl.h>
 
 #include "rbcGrElem.h"
+#include "rbcRender.h"
 
 typedef struct {
     /*
@@ -54,12 +55,7 @@ typedef struct {
     TextStyle valueStyle;
 } BarPen;
 
-typedef struct {
-    int x;
-    int y;
-    int width;
-    int height;
-} BarRectangle;
+typedef Rbc_RenderRectangle BarRectangle;
 
 #define BAR_PEN_FROM_CORE(penPtr) ((BarPen *)((char *)(penPtr) - offsetof(BarPen, core)))
 
@@ -2273,56 +2269,64 @@ static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, 
     if ((nRects <= 0) || ((penPtr->border == NULL) && (penPtr->fgColor == NULL))) {
         return;
     }
-    maxRects = Rbc_MaxRequestSize(graphPtr->display, sizeof(XRectangle));
-    if (maxRects < 1) {
-        return;
-    }
-    xRects = Tcl_AttemptAlloc((size_t)maxRects * sizeof(*xRects));
-    if (xRects == NULL) {
-        return;
-    }
-    nBuffered = 0;
-    for (i = 0; i < nRects; i++) {
-        BarRectangle *srcPtr;
+    {
+        const XColor *background = (penPtr->border != NULL) ? Tk_3DBorderColor(penPtr->border) : NULL;
+        const XColor *foreground = (penPtr->fgColor != NULL) ? penPtr->fgColor : background;
 
-        srcPtr = rectangles + i;
-        /*
-         * XRectangle itself uses signed 16-bit coordinates and
-         * unsigned 16-bit dimensions.  Preserve batching for the
-         * normal case and fall back to the int-based Xlib call when
-         * a rectangle does not fit that representation.
-         */
-        if ((srcPtr->x >= SHRT_MIN) && (srcPtr->x <= SHRT_MAX) && (srcPtr->y >= SHRT_MIN) && (srcPtr->y <= SHRT_MAX) &&
-            (srcPtr->width >= 0) && (srcPtr->width <= USHRT_MAX) && (srcPtr->height >= 0) &&
-            (srcPtr->height <= USHRT_MAX)) {
-            xRects[nBuffered].x = (short)srcPtr->x;
-            xRects[nBuffered].y = (short)srcPtr->y;
-            xRects[nBuffered].width = (unsigned short)srcPtr->width;
-            xRects[nBuffered].height = (unsigned short)srcPtr->height;
-            nBuffered++;
-            if (nBuffered == maxRects) {
-                FillBarRectangles(graphPtr, drawable, penPtr, xRects, nBuffered);
-                nBuffered = 0;
+        if (!Rbc_RenderRectangles(graphPtr, drawable, rectangles, nRects, foreground,
+                (penPtr->fgColor != NULL) ? background : NULL, penPtr->stipple)) {
+            maxRects = Rbc_MaxRequestSize(graphPtr->display, sizeof(XRectangle));
+            if (maxRects < 1) {
+                return;
             }
-        } else {
-            /*
-             * Flush the batched XRectangle request before issuing the
-             * wider int-coordinate API call.
-             */
+            xRects = Tcl_AttemptAlloc((size_t)maxRects * sizeof(*xRects));
+            if (xRects == NULL) {
+                return;
+            }
+            nBuffered = 0;
+            for (i = 0; i < nRects; i++) {
+                BarRectangle *srcPtr;
+
+                srcPtr = rectangles + i;
+                /*
+                 * XRectangle itself uses signed 16-bit coordinates and
+                 * unsigned 16-bit dimensions.  Preserve batching for the
+                 * normal case and fall back to the int-based Xlib call when
+                 * a rectangle does not fit that representation.
+                 */
+                if ((srcPtr->x >= SHRT_MIN) && (srcPtr->x <= SHRT_MAX) && (srcPtr->y >= SHRT_MIN) && (srcPtr->y <= SHRT_MAX) &&
+                    (srcPtr->width >= 0) && (srcPtr->width <= USHRT_MAX) && (srcPtr->height >= 0) &&
+                    (srcPtr->height <= USHRT_MAX)) {
+                    xRects[nBuffered].x = (short)srcPtr->x;
+                    xRects[nBuffered].y = (short)srcPtr->y;
+                    xRects[nBuffered].width = (unsigned short)srcPtr->width;
+                    xRects[nBuffered].height = (unsigned short)srcPtr->height;
+                    nBuffered++;
+                    if (nBuffered == maxRects) {
+                        FillBarRectangles(graphPtr, drawable, penPtr, xRects, nBuffered);
+                        nBuffered = 0;
+                    }
+                } else {
+                    /*
+                     * Flush the batched XRectangle request before issuing the
+                     * wider int-coordinate API call.
+                     */
+                    if (nBuffered > 0) {
+                        FillBarRectangles(graphPtr, drawable, penPtr, xRects, nBuffered);
+                        nBuffered = 0;
+                    }
+                    if ((srcPtr->width > 0) && (srcPtr->height > 0)) {
+                        XFillRectangle(graphPtr->display, drawable, penPtr->gc, srcPtr->x, srcPtr->y,
+                                       (unsigned int)srcPtr->width, (unsigned int)srcPtr->height);
+                    }
+                }
+            }
             if (nBuffered > 0) {
                 FillBarRectangles(graphPtr, drawable, penPtr, xRects, nBuffered);
-                nBuffered = 0;
             }
-            if ((srcPtr->width > 0) && (srcPtr->height > 0)) {
-                XFillRectangle(graphPtr->display, drawable, penPtr->gc, srcPtr->x, srcPtr->y,
-                               (unsigned int)srcPtr->width, (unsigned int)srcPtr->height);
-            }
+            ckfree(xRects);
         }
     }
-    if (nBuffered > 0) {
-        FillBarRectangles(graphPtr, drawable, penPtr, xRects, nBuffered);
-    }
-    ckfree(xRects);
     if ((penPtr->border != NULL) && (penPtr->borderWidth > 0) && (penPtr->relief != TK_RELIEF_FLAT)) {
 #ifdef WIN32
         if (!DrawWin3DBarBorders(graphPtr, drawable, penPtr, rectangles, nRects)) {
@@ -2395,6 +2399,27 @@ static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPe
     }
 }
 
+/* Error strokes share bar color defaults and native hairline widths. */
+static void DrawBarErrorSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr,
+                                  const Segment2D *segments, Tcl_Size count) {
+    const XColor *color = penPtr->errorBarColor;
+    Rbc_RenderContext *ctx;
+
+    if ((color == NULL) || (color == COLOR_DEFAULT)) {
+        color = penPtr->fgColor;
+        if ((color == NULL) && (penPtr->border != NULL)) {
+            color = Tk_3DBorderColor(penPtr->border);
+        }
+    }
+    ctx = Rbc_RenderBegin(graphPtr, drawable, color, MAX(1, penPtr->errorBarLineWidth), NULL, NULL);
+    if (ctx != NULL) {
+        Rbc_RenderSegments(ctx, segments, count);
+        Rbc_RenderEnd(ctx);
+    } else {
+        Rbc_Draw2DSegments(graphPtr->display, drawable, penPtr->errorBarGC, segments, count);
+    }
+}
+
 /*
  * ----------------------------------------------------------------------
  *
@@ -2436,11 +2461,11 @@ static void DrawNormalBar(Graph *graphPtr, Drawable drawable, Element *elemPtr) 
             DrawBarSegments(graphPtr, drawable, penPtr, stylePtr->rectangles, stylePtr->nRects);
         }
         if ((stylePtr->xErrorBarCnt > 0) && (penPtr->errorBarShow & SHOW_X)) {
-            Rbc_Draw2DSegments(graphPtr->display, drawable, penPtr->errorBarGC, stylePtr->xErrorBars,
+            DrawBarErrorSegments(graphPtr, drawable, penPtr, stylePtr->xErrorBars,
                                stylePtr->xErrorBarCnt);
         }
         if ((stylePtr->yErrorBarCnt > 0) && (penPtr->errorBarShow & SHOW_Y)) {
-            Rbc_Draw2DSegments(graphPtr->display, drawable, penPtr->errorBarGC, stylePtr->yErrorBars,
+            DrawBarErrorSegments(graphPtr, drawable, penPtr, stylePtr->yErrorBars,
                                stylePtr->yErrorBarCnt);
         }
         if (penPtr->valueShow != SHOW_NONE) {

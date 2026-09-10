@@ -3575,6 +3575,19 @@ static void ReleaseElementResources(Graph *graphPtr, Element *elemPtr) {
     elemPtr->tkResourcesReleased = TRUE;
 }
 
+/* Bitmap options require a live Tk window during resource release. */
+void Rbc_ReleaseElementTkResources(Graph *graphPtr) {
+    Tcl_HashEntry *hPtr;
+    Tcl_HashSearch cursor;
+
+    for (hPtr = Tcl_FirstHashEntry(&graphPtr->elements.table, &cursor); hPtr != NULL;
+         hPtr = Tcl_NextHashEntry(&cursor)) {
+        Element *elemPtr = Tcl_GetHashValue(hPtr);
+
+        ReleaseElementResources(graphPtr, elemPtr);
+    }
+}
+
 /*
  *----------------------------------------------------------------------
  *

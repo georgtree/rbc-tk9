@@ -596,8 +596,13 @@ Their pixels remain sharp; -antialias controls polygon edges\&. Cairo composites
 including partially transparent pixels, against the existing graph contents\&. Native tiles retain
 their existing transparency-mask behavior\&. Image edits invalidate the cached element image\&.
 .PP
+Bar elements use Cairo for solid/stippled fills and error bars, including active bars and named pens\&.
+Existing bar modes, baselines, axes, and selection mapping are shared with native rendering\&.
+Mapped rectangles retain crisp integer edges\&. Stipples retain their widget origin and transparent or
+colored gaps\&. Tk relief borders, legend samples, and value labels remain native\&.
+.PP
 Non-photo image tiles and solid/stippled areas with an empty -areaforeground retain native rendering\&.
-Bitmap symbols, symbols smaller than three pixels, legend samples, bar elements,
+Bitmap symbols, symbols smaller than three pixels, legend samples,
 axes, all text, bitmap/window markers, non-photo image markers, and crosshairs retain native rendering\&.
 .PP
 Grid and marker geometry is clipped to the plotting area\&. Marker color pairs, stipples, dash offsets,

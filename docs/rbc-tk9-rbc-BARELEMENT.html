@@ -43,6 +43,10 @@
   <section id="bar-element-barelement-options">
 <span id="r-bar-element-barelement-options"></span><span id="r-bar20element2060barelement6020options"></span><span id="r-3a3arbc3a3abarelement"></span><h1>Bar element <code class="docutils literal notranslate"><span class="pre">BARELEMENT</span></code> options<a class="headerlink" href="#bar-element-barelement-options" title="Link to this heading">¶</a></h1>
 <p>This page documents the configuration and behavior of bar elements.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code>, solid/stippled bar fills and error bars use Cairo, including active bars and
+named pens. Integer rectangle edges and stipple pixels stay sharp; <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> applies to error strokes.
+Bar layout, clipping, color defaults, and stipple origin are preserved. Tk relief borders, legend samples,
+and value labels retain native rendering.</p>
 <p><code class="docutils literal notranslate"><span class="pre">BARELEMENT</span></code> denotes an element whose concrete type is <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>. Bar elements are the default element
 type of a <code class="docutils literal notranslate"><span class="pre">barchart</span></code> widget:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">barchart</span><span class="w"> </span>.b

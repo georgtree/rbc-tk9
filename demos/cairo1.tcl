@@ -34,7 +34,7 @@ pack .controls.tile .controls.recolor -side left -padx 4
 set showGrid 1
 set showMarkers 1
 ttk::checkbutton .controls.grid -text {Grid} -variable showGrid -command {
-    foreach g {.native .cairo} {$g grid configure -hide [expr {!$showGrid}]}
+    foreach g {.native .cairo .nativeBar .cairoBar} {$g grid configure -hide [expr {!$showGrid}]}
 }
 ttk::checkbutton .controls.markers -text {Markers} -variable showMarkers -command {
     foreach g {.native .cairo} {
@@ -48,7 +48,7 @@ pack .controls -side top -fill x
 ttk::label .description -text {Top: error bars. Middle: strokes and areas. Bottom: symbols and edge clipping.}
 pack .description -side top -pady 4
 bind .controls.mode <<ComboboxSelected>> {
-    .cairo configure -antialias [.controls.mode get]
+    foreach g {.cairo .cairoBar} {$g configure -antialias [.controls.mode get]}
 }
 # Enlarge RGBA pixels to show opaque, transparent and half-alpha samples.
 set markerSource [image create photo -data {iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAE0lEQVR4nGP4z8AAQUDcACT+AwA2XgZ7cJWRwAAAAABJRU5ErkJggg==}]
@@ -64,11 +64,14 @@ for {set i 0} {$i <= 400} {incr i} {
     lappend dashedData $x [expr {$y - 0.6}]
 }
 
+ttk::frame .traces
+pack .traces -side top -fill both -expand yes
+
 foreach renderer {native cairo} {
     set g .$renderer
     ::rbc::graph $g -renderer $renderer -width 500 -height 350 \
         -title $renderer -plotbackground white
-    pack $g -side left -fill both -expand yes
+    pack $g -in .traces -side left -fill both -expand yes
     $g legend configure -hide yes
     $g axis configure x -min 0 -max 10
     $g axis configure y -min -3 -max 3
@@ -96,4 +99,52 @@ foreach renderer {native cairo} {
         -fill #f1ddc6 -stipple gray50 -outline #a56c32 -linewidth 2 -dashes {6 3}
     $g marker create image -name demoPhoto -coords {6.2 -1.5} -image $markerPhoto -anchor center
     $g marker create text -name demoText -coords {4.8 2.75} -text {Native text} -foreground grey30
+}
+
+# Separate bar plots keep the trace and symbol examples visible.
+set barMode aligned
+set barStipple 0
+set barInvert 0
+set barActive 0
+proc CairoDemoBars {} {
+    global barMode barStipple barInvert barActive
+    foreach g {.nativeBar .cairoBar} {
+        $g configure -barmode $barMode -invertxy $barInvert
+        foreach element {first second} {
+            $g element configure $element -stipple [expr {$barStipple ? "gray50" : ""}]
+        }
+        $g element deactivate first
+        if {$barActive} {$g element activate first 1}
+    }
+}
+ttk::frame .barControls
+ttk::label .barControls.label -text {Bar layout:}
+ttk::combobox .barControls.mode -state readonly -width 9 -textvariable barMode \
+    -values {normal aligned overlap stacked}
+bind .barControls.mode <<ComboboxSelected>> {CairoDemoBars}
+ttk::checkbutton .barControls.stipple -text {Stipple fills} -variable barStipple -command CairoDemoBars
+ttk::checkbutton .barControls.invert -text {Invert bar axes} -variable barInvert -command CairoDemoBars
+ttk::checkbutton .barControls.active -text {Active bar} -variable barActive -command CairoDemoBars
+pack .barControls.label .barControls.mode .barControls.stipple .barControls.invert .barControls.active \
+    -side left -padx 4 -pady 4
+pack .barControls -side top -fill x
+ttk::frame .bars
+pack .bars -side top -fill both -expand yes
+foreach renderer {native cairo} {
+    set g .${renderer}Bar
+    ::rbc::barchart $g -renderer $renderer -width 500 -height 240 \
+        -title "$renderer bars" -plotbackground white -barmode $barMode
+    pack $g -in .bars -side left -fill both -expand yes
+    $g legend configure -hide yes
+    $g grid configure -hide no -color grey85 -dashes dot -linewidth 1 -minor no
+    $g axis configure x -min 0 -max 5
+    $g axis configure y -min -8 -max 12
+    # First: transparent stipple gaps. Second: colored gaps and Tk relief.
+    $g element create first -data {1 5 2 -4 3 7 4 3} -foreground steelblue -background {} \
+        -relief flat -borderwidth 0 -yerror {1 0.8 1.2 0.6} -errorbarcolor black \
+        -errorbarwidth 2 -errorbarcap 8 -showvalues y
+    $g element create second -data {1 3 2 -2 3 4 4 5} -foreground salmon -background firebrick \
+        -relief raised -borderwidth 2 -yerror {0.6 0.5 0.8 0.7} -errorbarcolor black \
+        -errorbarwidth 2 -errorbarcap 8 -showvalues y
+    $g pen configure activeBar -foreground gold -background darkgoldenrod -borderwidth 2 -relief raised
 }

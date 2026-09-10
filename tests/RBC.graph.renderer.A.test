@@ -1163,5 +1163,183 @@ namespace eval ::rbcRendererTest {
         catch {image delete $photo $tile}
     } -result {1 2 0}
 
+    proc BarFixture {} {
+        ::rbc::barchart .renderer -renderer cairo -width 240 -height 180 \
+            -background white -plotbackground white -borderwidth 0 -plotborderwidth 0 \
+            -highlightthickness 0 -leftmargin 20 -rightmargin 20 -topmargin 20 -bottommargin 20
+        pack .renderer
+        .renderer legend configure -hide yes
+        .renderer grid configure -hide yes
+        foreach axis {x y x2 y2} {.renderer axis configure $axis -hide yes}
+        .renderer axis configure x -min 0 -max 10
+        .renderer axis configure y -min -10 -max 10
+        .renderer element create signal -data {2 5 5 -5 8 7} -foreground black \
+            -background {} -relief flat -borderwidth 0 -showvalues no -showerrorbars none
+        update
+    }
+
+    foreach mode {normal aligned overlap stacked} {
+        foreach invert {no yes} {
+            test renderer-10.1-$mode-$invert {bar layouts and integer fill pixels match native} \
+                    -constraints rbcCairo -setup {
+                BarFixture
+                .renderer configure -barmode $mode -invertxy $invert
+                .renderer element create other -data {2 3 5 -3 8 2} -foreground blue \
+                    -background {} -borderwidth 0 -relief flat -showerrorbars none
+                set photo [image create photo]
+            } -body {
+                .renderer configure -renderer native
+                .renderer snap $photo
+                set native [$photo data]
+                set results {}
+                foreach aa {none gray} {
+                    .renderer configure -renderer cairo -antialias $aa
+                    .renderer snap $photo
+                    lappend results [expr {$native eq [$photo data]}] \
+                        [expr {[lindex [PlotInk $photo] 0] > 0}]
+                }
+                set results
+            } -cleanup {
+                destroy .renderer
+                catch {image delete $photo}
+            } -result {1 1 1 1}
+        }
+    }
+
+    foreach colors {{black {}} {black red} {{} blue}} {
+        foreach pattern {gray25 gray50 warning} {
+            test renderer-10.2-$colors-$pattern {bar stipple colors and origin match native after remapping} \
+                    -constraints rbcCairo -setup {
+                BarFixture
+                .renderer element configure signal -foreground [lindex $colors 0] \
+                    -background [lindex $colors 1] -stipple $pattern
+                set photo [image create photo]
+            } -body {
+                set results {}
+                foreach limits {{0 10} {-1 11}} {
+                    .renderer axis configure x -min [lindex $limits 0] -max [lindex $limits 1]
+                    .renderer configure -renderer native
+                    .renderer snap $photo
+                    set native [$photo data]
+                    .renderer configure -renderer cairo
+                    .renderer snap $photo
+                    lappend results [expr {$native eq [$photo data]}] \
+                        [expr {[lindex [PlotInk $photo] 0] > 0}]
+                }
+                set results
+            } -cleanup {
+                destroy .renderer
+                catch {image delete $photo}
+            } -result {1 1 1 1}
+        }
+    }
+
+    foreach relief {flat raised sunken ridge groove solid} {
+        test renderer-10.3-$relief {bar relief borders and value labels retain native rendering} \
+                -constraints rbcCairo -setup {
+            BarFixture
+            .renderer element configure signal -foreground blue -background navy \
+                -borderwidth 2 -relief $relief -showvalues y
+            set photo [image create photo]
+        } -body {
+            .renderer configure -renderer native
+            .renderer snap $photo
+            set native [$photo data]
+            .renderer configure -renderer cairo
+            .renderer snap $photo
+            list [expr {$native eq [$photo data]}] [expr {[lindex [PlotInk $photo] 0] > 0}]
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+        } -result {1 1}
+    }
+
+    test renderer-10.4 {active bar selections and pens use the same fill path} \
+            -constraints rbcCairo -setup {
+        BarFixture
+        .renderer pen configure activeBar -foreground red -background {} -borderwidth 0 -relief flat
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach selection {{1} {}} {
+            .renderer element deactivate signal
+            .renderer element activate signal {*}$selection
+            .renderer configure -renderer native
+            .renderer snap $photo
+            set native [$photo data]
+            .renderer configure -renderer cairo
+            .renderer snap $photo
+            lappend results [expr {$native eq [$photo data]}] \
+                [expr {[CountPhotoColor $photo {255 0 0}] > 0}]
+        }
+        .renderer element deactivate signal
+        .renderer snap $photo
+        lappend results [expr {[CountPhotoColor $photo {255 0 0}] == 0}]
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 1 1 1 1}
+
+    test renderer-10.5 {bar error strokes honor Cairo antialiasing, hairlines and visibility} \
+            -constraints rbcCairo -setup {
+        BarFixture
+        .renderer element configure signal -foreground {} -background {} -data {5.13 4.17} \
+            -xerror 1 -yerror 2 -errorbarcolor black -errorbarwidth 0 -errorbarcap 10 -showerrorbars both
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach aa {none gray none} {
+            .renderer configure -antialias $aa
+            .renderer snap $photo
+            lappend results [expr {[lindex [PlotInk $photo] 0] > 0}] \
+                [expr {[PartialGrayPixels $photo] > 0}]
+        }
+        .renderer element configure signal -showerrorbars none
+        .renderer snap $photo
+        lappend results [expr {[PlotInk $photo] eq {0 0}}]
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 0 1 1 1 0 1}
+
+    foreach invert {no yes} {
+        test renderer-10.6-$invert {wide and negative bars clip to the plot} \
+                -constraints rbcCairo -setup {
+            BarFixture
+            .renderer configure -invertxy $invert
+            .renderer element configure signal -data {0 30 5 -30 10 30} -barwidth 4
+            set photo [image create photo]
+        } -body {
+            .renderer snap $photo
+            lassign [PlotInk $photo] inside outside
+            list [expr {$inside > 0}] $outside
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+        } -result {1 0}
+    }
+
+    test renderer-10.7 {weighted bar pens preserve their separate fills} \
+            -constraints rbcCairo -setup {
+        BarFixture
+        .renderer pen create low -type bar -foreground red -background {} -relief flat -borderwidth 0
+        .renderer pen create high -type bar -foreground blue -background {} -relief flat -borderwidth 0
+        .renderer element configure signal -weights {0.5 1.5 3} -styles {{low 0 1} {high 1 2}}
+        set photo [image create photo]
+    } -body {
+        .renderer configure -renderer native
+        .renderer snap $photo
+        set native [$photo data]
+        .renderer configure -renderer cairo
+        .renderer snap $photo
+        list [expr {$native eq [$photo data]}] [expr {[CountPhotoColor $photo {255 0 0}] > 0}] \
+            [expr {[CountPhotoColor $photo {0 0 255}] > 0}] [expr {[CountPhotoColor $photo {0 0 0}] > 0}]
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 1 1 1}
+
     cleanupTests
 }
