@@ -560,9 +560,26 @@ Requesting <code class="docutils literal notranslate"><span class="pre">cairo</s
 <span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>renderer<span class="w"> </span>native
 </pre></div>
 </div>
-<p>The initial Cairo backend antialiases solid line traces and strip segments, including active traces.
-It uses the existing mapped and decimated geometry. Dashed strokes, symbols, fills, error bars,
+<p>Cairo draws solid and dashed line traces and strip segments, including active traces.
+It uses the existing mapped and decimated geometry. Symbols, fills, error bars,
 axes, text, markers, and crosshairs currently retain native rendering.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-antialias</span> <span class="pre">default|none|gray|fast|good|best</span></code> selects antialiasing for Cairo geometry.
+Its default is <code class="docutils literal notranslate"><span class="pre">default</span></code>; its option-database name and class are <code class="docutils literal notranslate"><span class="pre">antialias</span></code> and <code class="docutils literal notranslate"><span class="pre">Antialias</span></code>.
+Native rendering ignores this option. Changing it invalidates the cached element image.</p>
+<p><code class="docutils literal notranslate"><span class="pre">none</span></code> disables antialiasing. <code class="docutils literal notranslate"><span class="pre">gray</span></code> requests coverage antialiasing. <code class="docutils literal notranslate"><span class="pre">fast</span></code>, <code class="docutils literal notranslate"><span class="pre">good</span></code>, and <code class="docutils literal notranslate"><span class="pre">best</span></code>
+are backend-dependent quality hints; they need not produce different images. Antialiasing can
+vary the apparent brightness of a one-pixel diagonal. A wider line or <code class="docutils literal notranslate"><span class="pre">none</span></code> can make that
+effect less noticeable.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>renderer<span class="w"> </span>cairo<span class="w"> </span><span class="o">-</span>antialias<span class="w"> </span>gray
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>dashes<span class="w"> </span><span class="k">{</span><span class="nv">8</span><span class="w"> </span><span class="mi">4</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>offdash<span class="w"> </span>red
+</pre></div>
+</div>
+<p>Dash lengths and offsets use the existing pen values in screen pixels. Phase continues within
+each mapped line trace and restarts for each independent strip segment. An empty <code class="docutils literal notranslate"><span class="pre">-offdash</span></code>
+leaves gaps transparent. A color paints the gaps using the existing PostScript underlay
+convention; <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> uses the foreground color and produces a solid stroke.</p>
+<p>Two-color strip segments are stroked individually to preserve drawing order at intersections.
+Solid and single-color strip segments retain batching.</p>
 <p>Snapshots use the selected renderer for these strokes. PostScript and Windows metafile output
 retain their existing exporters. Switching renderers invalidates the cached element image.
 Native rendering remains the fallback when a Cairo drawing surface cannot be opened.</p>

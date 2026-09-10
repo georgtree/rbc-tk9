@@ -572,9 +572,33 @@ graph \&.g -renderer cairo
 .fi
 .RE
 .PP
-The initial Cairo backend antialiases solid line traces and strip segments, including active traces\&.
-It uses the existing mapped and decimated geometry\&. Dashed strokes, symbols, fills, error bars,
+Cairo draws solid and dashed line traces and strip segments, including active traces\&.
+It uses the existing mapped and decimated geometry\&. Symbols, fills, error bars,
 axes, text, markers, and crosshairs currently retain native rendering\&.
+.PP
+-antialias default|none|gray|fast|good|best selects antialiasing for Cairo geometry\&.
+Its default is default; its option-database name and class are antialias and Antialias\&.
+Native rendering ignores this option\&. Changing it invalidates the cached element image\&.
+.PP
+none disables antialiasing\&. gray requests coverage antialiasing\&. fast, good, and best
+are backend-dependent quality hints; they need not produce different images\&. Antialiasing can
+vary the apparent brightness of a one-pixel diagonal\&. A wider line or none can make that
+effect less noticeable\&.
+.PP
+.RS 4n
+.nf
+\&.g configure -renderer cairo -antialias gray
+\&.g element configure signal -dashes {8 4} -offdash red
+.fi
+.RE
+.PP
+Dash lengths and offsets use the existing pen values in screen pixels\&. Phase continues within
+each mapped line trace and restarts for each independent strip segment\&. An empty -offdash
+leaves gaps transparent\&. A color paints the gaps using the existing PostScript underlay
+convention; defcolor uses the foreground color and produces a solid stroke\&.
+.PP
+Two-color strip segments are stroked individually to preserve drawing order at intersections\&.
+Solid and single-color strip segments retain batching\&.
 .PP
 Snapshots use the selected renderer for these strokes\&. PostScript and Windows metafile output
 retain their existing exporters\&. Switching renderers invalidates the cached element image\&.

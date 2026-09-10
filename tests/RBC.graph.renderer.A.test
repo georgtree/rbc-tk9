@@ -93,5 +93,143 @@ namespace eval ::rbcRendererTest {
         } -result {0 1 0}
     }
 
+    proc StrokeFixture {kind} {
+        ::rbc::$kind .renderer -renderer cairo -width 240 -height 180 \
+            -background white -plotbackground white -borderwidth 0 \
+            -plotborderwidth 0 -highlightthickness 0 \
+            -leftmargin 20 -rightmargin 20 -topmargin 20 -bottommargin 20
+        pack .renderer
+        .renderer legend configure -hide yes
+        .renderer grid configure -hide yes
+        foreach axis {x y x2 y2} {
+            .renderer axis configure $axis -hide yes
+        }
+        .renderer axis configure x -min 0 -max 10
+        .renderer axis configure y -min 0 -max 10
+        .renderer element create signal -data {1 2 9 7} \
+            -symbol none -color black -linewidth 1
+        update
+    }
+
+    proc CountPhotoColor {photo color} {
+        set count 0
+        for {set y 21} {$y < [image height $photo]-21} {incr y} {
+            for {set x 21} {$x < [image width $photo]-21} {incr x} {
+                if {[$photo get $x $y] eq $color} {incr count}
+            }
+        }
+        return $count
+    }
+
+    test renderer-3.1 {antialias modes and transactional validation} -setup {
+        ::rbc::graph .renderer -title original
+    } -body {
+        set initial [.renderer cget -antialias]
+        set modes {}
+        foreach mode {default none gray fast good best} {
+            .renderer configure -antialias $mode
+            lappend modes [.renderer cget -antialias]
+        }
+        set invalid [catch {.renderer configure -title changed -antialias bogus}]
+        set derived [catch {.renderer configure -antialias none -aspect Inf}]
+        list $initial $modes $invalid $derived \
+            [.renderer cget -antialias] [.renderer cget -title]
+    } -cleanup {
+        destroy .renderer
+    } -result {default {default none gray fast good best} 1 1 best original}
+
+    foreach kind {graph stripchart} {
+        foreach pattern {{} {8 4} {3 5 7} {5}} {
+            set suffix [join $pattern -]
+            test renderer-3.2-$kind-$suffix {Cairo antialias applies to solid and dashed strokes} \
+                    -constraints rbcCairo -setup {
+                StrokeFixture $kind
+                .renderer element configure signal -dashes $pattern
+                set photo [image create photo]
+            } -body {
+                set results {}
+                foreach mode {none gray none} {
+                    .renderer configure -antialias $mode
+                    update idletasks
+                    .renderer snap $photo
+                    lappend results [expr {[PartialGrayPixels $photo] > 0}]
+                }
+                set results
+            } -cleanup {
+                catch {image delete $photo}
+                destroy .renderer
+            } -result {0 1 0}
+        }
+
+        test renderer-3.3-$kind {offdash colors and defcolor handling} \
+                -constraints rbcCairo -setup {
+            StrokeFixture $kind
+            .renderer configure -antialias none
+            .renderer element configure signal -data {1 5 9 5} -linewidth 3 -dashes {8 4}
+            set photo [image create photo]
+        } -body {
+            .renderer element configure signal -offdash red
+            .renderer snap $photo
+            set colors [list [expr {[CountPhotoColor $photo {0 0 0}] > 0}] \
+                [expr {[CountPhotoColor $photo {255 0 0}] > 0}]]
+
+            .renderer element configure signal -offdash {}
+            .renderer snap $photo
+            lappend colors [expr {[CountPhotoColor $photo {255 0 0}] == 0}]
+
+            # Equal foreground/gap colors must match one solid AA stroke.
+            .renderer configure -antialias gray
+            .renderer element configure signal -data {1 2 9 7} -linewidth 1 -offdash defcolor
+            .renderer snap $photo
+            set sameColor [$photo data]
+            .renderer element configure signal -dashes {} -offdash {}
+            .renderer snap $photo
+            lappend colors [expr {$sameColor eq [$photo data]}]
+            set colors
+        } -cleanup {
+            catch {image delete $photo}
+            destroy .renderer
+        } -result {1 1 1 1}
+    }
+
+    test renderer-3.4 {dash phase continues through line vertices} \
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer configure -antialias none
+        .renderer element configure signal -data {1 5 9 5} -dashes {8 4}
+        set photo [image create photo]
+    } -body {
+        .renderer snap $photo
+        set before [$photo data]
+        .renderer element configure signal -data {1 5 3.13 5 5.77 5 9 5}
+        .renderer snap $photo
+        expr {$before eq [$photo data]}
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result 1
+
+    test renderer-3.5 {active dashed pen uses Cairo antialias selection} \
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element configure signal -color white
+        .renderer pen create selected -type line -color black -linewidth 1 \
+            -symbol none -dashes {8 4}
+        .renderer element configure signal -activepen selected
+        .renderer element activate signal
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach mode {none gray} {
+            .renderer configure -antialias $mode
+            .renderer snap $photo
+            lappend results [expr {[PartialGrayPixels $photo] > 0}]
+        }
+        set results
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result {0 1}
+
     cleanupTests
 }

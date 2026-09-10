@@ -9973,10 +9973,12 @@ static int DrawRenderedTraces(Graph *graphPtr, Drawable drawable, Line *linePtr,
     Rbc_RenderContext *ctx;
     Rbc_ChainLink *linkPtr;
 
-    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || LineIsDashed(penPtr->traceDashes)) {
+    if (graphPtr->renderer != RBC_RENDERER_CAIRO) {
         return FALSE;
     }
-    ctx = Rbc_RenderBegin(graphPtr, drawable, penPtr->traceColor, penPtr->traceWidth);
+    ctx = Rbc_RenderBegin(graphPtr, drawable, penPtr->traceColor, penPtr->traceWidth,
+        &penPtr->traceDashes, (penPtr->traceOffColor == COLOR_DEFAULT) ?
+        penPtr->traceColor : penPtr->traceOffColor);
     if (ctx == NULL) {
         return FALSE;
     }
@@ -9993,8 +9995,10 @@ static void DrawRenderedStrips(Graph *graphPtr, Drawable drawable, LinePen *penP
                                const Segment2D *segments, Tcl_Size count) {
     Rbc_RenderContext *ctx = NULL;
 
-    if ((graphPtr->renderer == RBC_RENDERER_CAIRO) && !LineIsDashed(penPtr->traceDashes)) {
-        ctx = Rbc_RenderBegin(graphPtr, drawable, penPtr->traceColor, penPtr->traceWidth);
+    if (graphPtr->renderer == RBC_RENDERER_CAIRO) {
+        ctx = Rbc_RenderBegin(graphPtr, drawable, penPtr->traceColor, penPtr->traceWidth,
+            &penPtr->traceDashes, (penPtr->traceOffColor == COLOR_DEFAULT) ?
+            penPtr->traceColor : penPtr->traceOffColor);
     }
     if (ctx != NULL) {
         Rbc_RenderSegments(ctx, segments, count);

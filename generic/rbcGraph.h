@@ -22,6 +22,12 @@
 
 typedef enum { RBC_RENDERER_NATIVE, RBC_RENDERER_CAIRO } Rbc_Renderer;
 
+typedef enum {
+    RBC_ANTIALIAS_DEFAULT, RBC_ANTIALIAS_NONE, RBC_ANTIALIAS_GRAY,
+    RBC_ANTIALIAS_FAST, RBC_ANTIALIAS_GOOD, RBC_ANTIALIAS_BEST
+} Rbc_Antialias;
+
+
 typedef struct GraphStruct Graph;
 typedef struct ElementStruct Element;
 typedef struct LegendStruct Legend;
@@ -532,6 +538,7 @@ struct GraphStruct {
                           * transform horizontal axes */
     double vScale, hScale;
 
+    int antialias;             /* Rbc_Antialias; applies to Cairo geometry. */
     int renderer;              /* Rbc_Renderer selected by -renderer. */
     int doubleBuffer;          /* If non-zero, draw the graph into a pixmap
                                 * first to reduce flashing. */

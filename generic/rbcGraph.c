@@ -239,8 +239,14 @@ static const char *const smithGridNames[] = {"impedance", "admittance", "both", 
  * Modern graph option table.
  */
 static const char *const graphRendererNames[] = {"native", "cairo", NULL};
+static const char *const graphAntialiasNames[] = {
+    "default", "none", "gray", "fast", "good", "best", NULL
+};
 
 static const Tk_OptionSpec graphOptionSpecs[] = {
+    {TK_OPTION_STRING_TABLE, "-antialias", "antialias", "Antialias", "default", -1,
+     offsetof(Graph, antialias), 0, (ClientData)graphAntialiasNames,
+     GRAPH_RENDERER_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING_TABLE, "-renderer", "renderer", "Renderer", "native", -1,
      offsetof(Graph, renderer), 0, (ClientData)graphRendererNames,
      GRAPH_RENDERER_MASK | GRAPH_REDRAW_MASK},
