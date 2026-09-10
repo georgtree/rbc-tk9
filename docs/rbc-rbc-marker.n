@@ -26,7 +26,8 @@ Photo image markers use Cairo alpha compositing with existing placement and scal
 the plot; -antialias does not resample their pixels\&. Source image changes refresh the marker\&.
 Bitmap markers use Cairo with existing scaling, rotation, and masks\&. Their mapped pixels stay sharp;
 -antialias affects rotated background polygons\&. An empty foreground uses Cairo with the native GC color\&.
-Text, window, and non-photo image markers keep their Tk rendering; line markers with an
+Text-marker backgrounds use Cairo, including rotated edges, and clip to the plot\&. Text itself stays native\&.
+Window and non-photo image markers keep their Tk rendering; line markers with an
 empty -outline use Cairo with the native GC color\&.
 .PP
 Rbc provides six marker types:

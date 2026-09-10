@@ -589,6 +589,7 @@ legends. Swatch stipples restart at the sample origin. Legend text, backgrounds,
 They draw across the widget margins, independently of the plot clip. Axis labels, titles, and relief
 backgrounds remain native. A zero axis <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code> hides strokes, as with native rendering.</p>
 <p>Non-photo image tiles retain native rendering. Empty <code class="docutils literal notranslate"><span class="pre">-areaforeground</span></code> values use Cairo with the native GC color.
+Text-marker backgrounds use Cairo antialiasing and plot clipping, including rotated backgrounds.
 All text, window markers, non-photo image markers, and crosshairs retain native rendering.</p>
 <p>Grid and marker geometry is clipped to the plotting area. Marker color pairs, stipples, dash offsets,
 caps, and under/over ordering are preserved. Mapped segments remain independent, retaining their

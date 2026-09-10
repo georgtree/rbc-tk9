@@ -3393,6 +3393,19 @@ static int RegionInTextMarker(Marker *markerPtr, Extents2D *extsPtr, int enclose
              ((tmPtr->anchorPos.y + tmPtr->height) <= extsPtr->top));
 }
 
+/* Keep background geometry native-sized while antialiasing its edges. */
+static int DrawRenderedTextBackground(Graph *graphPtr, Drawable drawable, TextMarker *tmPtr) {
+    Point2D points[4];
+    int i;
+
+    if (graphPtr->renderer != RBC_RENDERER_CAIRO) return FALSE;
+    for (i = 0; i < 4; i++) {
+        points[i].x = (int)(tmPtr->outline[i].x + tmPtr->anchorPos.x);
+        points[i].y = (int)(tmPtr->outline[i].y + tmPtr->anchorPos.y);
+    }
+    return Rbc_RenderArea(graphPtr, drawable, points, 4, tmPtr->fillColor, NULL, None);
+}
+
 /*
  * ----------------------------------------------------------------------
  *
@@ -3420,7 +3433,7 @@ static void DrawTextMarker(Marker *markerPtr, Drawable drawable) {
     if (tmPtr->string == NULL) {
         return;
     }
-    if (tmPtr->fillGC != NULL) {
+    if ((tmPtr->fillGC != NULL) && !DrawRenderedTextBackground(graphPtr, drawable, tmPtr)) {
         XPoint pointArr[4];
         register int i;
 

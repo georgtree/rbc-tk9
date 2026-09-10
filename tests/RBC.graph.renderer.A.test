@@ -2065,5 +2065,75 @@ namespace eval ::rbcRendererTest {
         } -result {1 1 1 1 1 1 1 1}
     }
 
+    foreach angle {0 27 90} {
+        test renderer-17.1-$angle {text background edges follow Cairo antialias selection} \
+                -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer element delete signal
+            .renderer marker create text -name m -coords {5 5} -text {            } -font {Arial 14} -foreground black\
+                    -background black -rotate $angle
+            set photo [image create photo]
+        } -body {
+            set results {}
+            foreach mode {none gray none} {
+                .renderer configure -antialias $mode
+                .renderer snap $photo
+                lappend results [expr {[CountPhotoColor $photo {0 0 0}] > 0}] \
+                    [expr {([PartialGrayPixels $photo] > 0) == ($mode eq "gray" && $angle == 27)}]
+            }
+            set results
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+        } -result {1 1 1 1 1 1}
+    }
+
+    foreach inverted {no yes} {
+        test renderer-17.2-$inverted {rotated text backgrounds clip to the plot} \
+                -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer element delete signal
+            .renderer configure -invertxy $inverted
+            foreach {name x y} {left 0 5 right 10 5 top 5 10 bottom 5 0} {
+                .renderer marker create text -name $name -coords [list $x $y] -text {            } -font {Arial 14}\
+                        -foreground black -background black -rotate 27 -anchor center
+            }
+            set photo [image create photo]
+        } -body {
+            .renderer snap $photo
+            lassign [PlotInk $photo] inside outside
+            list [expr {$inside > 0}] $outside
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+        } -result {1 0}
+    }
+
+    test renderer-17.3 {text background changes and renderer switching preserve redraws} \
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element delete signal
+        .renderer marker create text -name m -coords {5 5} -text {            } -font {Arial 14} -foreground black\
+                -background black -rotate 27
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach backend {native cairo native cairo} {
+            .renderer configure -renderer $backend
+            .renderer snap $photo
+            lappend results [expr {[CountPhotoColor $photo {0 0 0}] > 0}]
+        }
+        .renderer marker configure m -background red
+        .renderer snap $photo
+        lappend results [expr {[CountPhotoColor $photo {255 0 0}] > 0}]
+        .renderer marker configure m -background {}
+        .renderer snap $photo
+        lappend results [expr {[PlotInk $photo] eq {0 0}}]
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 1 1 1 1 1}
+
     cleanupTests
 }

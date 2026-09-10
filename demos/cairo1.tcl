@@ -120,7 +120,8 @@ foreach renderer {native cairo} {
     $g marker create bitmap -name demoBitmap -bitmap $markerBitmap -coords {3.6 -1.8 4.2 -1.2} \
         -foreground #885577 -background #f1ddc6 -rotate 27
     $g marker create image -name demoPhoto -coords {6.2 -1.5} -image $markerPhoto -anchor center
-    $g marker create text -name demoText -coords {4.8 2.75} -text {Native text} -foreground grey30
+    $g marker create text -name demoText -coords {4.8 2.75} -text {Native text} -foreground grey30 \
+        -background lightsteelblue -rotate 17
 }
 
 # Separate bar plots keep the trace and symbol examples visible.

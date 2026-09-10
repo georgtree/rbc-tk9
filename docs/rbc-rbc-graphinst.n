@@ -609,6 +609,7 @@ They draw across the widget margins, independently of the plot clip\&. Axis labe
 backgrounds remain native\&. A zero axis -linewidth hides strokes, as with native rendering\&.
 .PP
 Non-photo image tiles retain native rendering\&. Empty -areaforeground values use Cairo with the native GC color\&.
+Text-marker backgrounds use Cairo antialiasing and plot clipping, including rotated backgrounds\&.
 All text, window markers, non-photo image markers, and crosshairs retain native rendering\&.
 .PP
 Grid and marker geometry is clipped to the plotting area\&. Marker color pairs, stipples, dash offsets,
