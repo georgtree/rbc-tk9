@@ -6,8 +6,8 @@
 Introduction - Upgraded Tcl/Tk9\&.0-ready RBC package
 .SH "RBC — REFACTORED BLT COMPONENTS FOR TCL/TK 9"
 .PP
-Rbc is a Tcl/Tk extension for scientific plotting, interactive data visualization, and numerical data processing\&. It
-provides graph widgets, real and complex vectors, spline interpolation, and window and image operations\&.
+Rbc extends Tcl/Tk 9 with scientific plots, interactive graph controls, real and complex vectors, spline interpolation,
+and window and image utilities\&. Graphs update automatically when their attached vectors change\&.
 .PP
 This repository maintains and extends Rbc for Tcl/Tk 9\&.0\&. The current package version is \fB0\&.5\&.0\fP\&.
 .TP
@@ -48,9 +48,11 @@ This repository maintains and extends Rbc for Tcl/Tk 9\&.0\&. The current packag
 \(bu
 \fBwinop\fP — Window operations and image-processing utilities\&.
 .PP
-Graphs redraw automatically when their attached vectors change\&. Eligible dense line and strip elements support display
-decimation, including persistent summaries that can be reused for axis changes, ranged value updates, and monotonic tail
-appends\&.
+Eligible dense line and strip elements support -decimate auto\&. The reduction preserves waveform extrema and reuses
+cached summaries across axis changes, ranged value updates, and monotonic tail appends\&.
+.PP
+An optional Cairo backend adds antialiased plotting\&. Cairo-enabled builds select it by default; applications can choose
+-renderer native for workloads where native drawing is faster\&. Text continues to use Tk in either mode\&.
 .PP
 Rbc contains selected components derived from BLT\&. It is not a complete replacement for the BLT toolkit\&.
 .SH REQUIREMENTS
@@ -69,8 +71,8 @@ The supported build environments described here are Linux with X11 Tk and Window
 compatibility is not a target of this fork\&.
 .PP
 The current package loader loads graphtoolbar\&.tcl as part of package require rbc, so argparse is required even
-when an application uses only the basic graph or vector commands\&. Make corresponding adjustements to pkgIndex\&.tcl file
-to exclude it from standard loading sequence\&.
+when an application uses only graph or vector commands\&. A custom package loader can omit the toolbar, but the supplied
+loader expects this dependency\&.
 .PP
 Rbc initializes Tk when loaded\&. Tests and documentation generation therefore also need a working graphical display\&.
 .SS "BUILDING RBC"
@@ -89,6 +91,9 @@ Matching Tk private headers\&.
 .TP
 \(bu
 On Linux, the X11 development headers and libraries\&.
+.TP
+\(bu
+For --enable-cairo, Cairo 1\&.12 or newer with its platform backend and development headers\&. Configure uses pkg-config unless both CAIRO_CFLAGS and CAIRO_LIBS are supplied\&.
 .PP
 Rbc still uses a small number of private Tk interfaces\&. Retain the matching Tk source tree unless the development
 installation provides all required private headers\&. The configure script uses the source location recorded in
@@ -126,7 +131,8 @@ For example, using Tcl/Tk build trees and a user-local installation prefix:
 \&./configure \\
     --with-tcl=/path/to/tcl9\&.0/unix \\
     --with-tk=/path/to/tk9\&.0/unix \\
-    --prefix="$HOME/\&.local"
+    --prefix="$HOME/\&.local" \\
+    --enable-cairo
 
 make -j4
 make test
@@ -150,7 +156,8 @@ architecture:
 \&./configure \\
     --with-tcl=/path/to/tcl9\&.0/win \\
     --with-tk=/path/to/tk9\&.0/win \\
-    --prefix=/ucrt64
+    --prefix=/ucrt64 \\
+    --enable-cairo
 
 make -j4
 make test
@@ -159,10 +166,48 @@ make install DOC_INSTALL_DIR=/ucrt64/share/rbc0\&.5\&.0/doc
 .fi
 .RE
 .PP
-Ensure that the selected Tcl/Tk DLLs and compiler runtime DLLs are available through PATH\&.
+Ensure that the selected Tcl/Tk DLLs, Cairo DLLs and their dependencies, and compiler runtime DLLs are available through
+PATH\&. Use Cairo and pkg-config from the same UCRT64 toolchain as Tcl/Tk and Rbc\&.
 .PP
 The UCRT64 shell does not automatically determine Rbc's installation prefix\&.  Specify --prefix=/ucrt64 when that is
 the intended destination\&.
+.SS "CONFIGURE OPTIONS AND RENDERER DEFAULTS"
+.TS
+tab(|) box;
+l l.
+Option | Effect
+_
+--enable-cairo | Builds Cairo support and makes cairo the default renderer\&. Requires cairo-xlib on Linux or cairo-win32 on Windows\&.
+--disable-cairo | Builds without Cairo; native is the renderer default\&. This is also the configure default when neither flag is supplied\&.
+--enable-symbols | Builds with debugging symbols for crash diagnosis\&.
+--with-tcl=DIR, --with-tk=DIR | Select directories containing the matching Tcl/Tk configuration files\&.
+--prefix=DIR | Selects the installation prefix\&.
+.TE
+.PP
+The examples above enable Cairo\&. Omit --enable-cairo, or replace it with --disable-cairo, for a native-only build\&.
+If Cairo is requested but its headers or platform backend cannot be linked, configure fails rather than silently
+building without it\&.
+.PP
+For a nonstandard Cairo installation, set PKG_CONFIG_PATH to its pkg-config directory, or supply \fBboth\fP
+CAIRO_CFLAGS and CAIRO_LIBS to configure\&. Inspect config\&.log if the backend link check fails\&.
+After changing build features in an existing build directory, run make clean and rebuild\&.
+.PP
+Choose a renderer for one graph, or set an application-wide default before creating widgets:
+.PP
+.RS 4n
+.nf
+::rbc::graph \&.g -renderer native
+\&.g configure -renderer cairo -antialias default
+
+foreach class {Graph Barchart Stripchart Polar} {
+    option add *${class}\&.renderer native
+}
+.fi
+.RE
+.PP
+Explicit widget options take precedence over the option database\&. -renderer cairo is unavailable in native-only
+builds\&. Cairo is not uniformly faster: dense traces, symbols and error bars may favour native rendering; image-heavy
+workloads may favour Cairo\&. Use the benchmark suite to compare the workloads relevant to your application\&.
 .SS "INSTALLATION LOCATIONS"
 .PP
 With the default directory layout, installation places:
@@ -250,7 +295,9 @@ make test
 .RE
 .PP
 This target builds the package and the public C API test extension, then runs tests/all\&.tcl with the appropriate build
-environment\&.
+environment\&. The automated runner sets native as the option-database default to preserve the existing pixel tests\&.
+Dedicated renderer tests explicitly select Cairo and verify the compiled default\&. Manual tests and demos retain the
+build default: Cairo when enabled, native otherwise\&.
 .PP
 The suite uses tcltest\&. Pass test selection options through TESTFLAGS\&.
 .PP
@@ -343,9 +390,12 @@ Run a focused line/strip comparison and save CSV results:
 .PP
 .RS 4n
 .nf
-make shell SCRIPT="tests/benchmark/run\&.tcl -profile standard -benchmarks line,strip -csv-dir benchmark-results"
+make shell SCRIPT="tests/benchmark/run\&.tcl -profile standard -benchmarks line,strip -renderer cairo -antialias default -csv-dir benchmark-results"
 .fi
 .RE
+.PP
+Benchmarks explicitly default to -renderer native -antialias default, independently of the build default\&. Select
+-renderer cairo for the Cairo comparison and keep results from different builds and power conditions separate\&.
 .PP
 The suite includes line, strip, symbol, error-bar, bar, marker, and mixed workloads\&. For individual line-benchmark
 measurements and options, see the \fIbenchmark README\fP [URL: https://github\&.com/georgtree/rbc-tk9/blob/main/tests/benchmark/README\&.md]\&.
@@ -398,8 +448,8 @@ Python Sphinx, with sphinx-build available through PATH\&.
 \(bu
 ditaa and its Java runtime when rendering diagrams that use the configured diagram generator\&.
 .PP
-To build this particular documentation, the modified version of Ruff package was used, that is not availible publicly at
-this moment, so resulted documentation could differ from the provided in the current repository\&.
+The published documentation uses a modified Ruff package that is not currently public\&. Other Ruff versions may produce
+different output or lack the required output formats\&.
 .PP
 From an in-tree build, run:
 .PP
@@ -513,7 +563,7 @@ George Yashin's copyright attribution in the generated documentation\&.
 This overview does not replace the full license texts or individual file notices\&. Preserve the applicable notices,
 conditions, and disclaimers when redistributing source or binary packages\&.
 .PP
-External dependencies retain their own licenses\&.
+External dependencies, including Tcl/Tk, Cairo, argparse and Tcllib, retain their own licenses\&.
 
 
 .SH SEE ALSO

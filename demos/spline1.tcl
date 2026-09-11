@@ -49,7 +49,7 @@ spline quadratic x y x2 y2
 ### make plot
 set graph [graphtoolbar .g -width 800 -height 500 -type graph -controlmode context -zoom -zoomtitle -zoommark\
                    -crosshairs -crosshairsmode current -scaletoggle y -activelegend -zoomwheel -pan]
-$graph graph configure -renderer cairo
+
 $graph graph xaxis configure -title "x\u00b2"
 $graph graph yaxis configure -title "sin(y\u00b3)"
 $graph graph pen configure activeLine -pixels 5

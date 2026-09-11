@@ -78,7 +78,6 @@ source $DemoDir/scripts/graph46.tcl
 set graph [graphtoolbar .g -width 800 -height 500 -type graph -controlmode toolbar -zoom -zoomtitle -zoommark\
                    -crosshairs -crosshairsmode closest -scaletoggle y -activelegend -zoomwheel -pan\
                    -zoomboxopts {-outline white} -pointeropts {-outline white} -zoomtitleopts {-foreground white}]
-$graph graph configure -renderer cairo
 $graph graph legend configure -anchor nw -position .legend
 for {set i 1} {$i<=39} {incr i} {
     $graph graph element create V$i -x x -y v$i

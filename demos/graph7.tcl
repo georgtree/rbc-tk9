@@ -39,7 +39,6 @@ set graph [graphtoolbar .g -width 800 -height 500 -type graph -controlmode toolb
                    -crosshairs -crosshairsmode closest -crosshairsclosestopts {-interpolate no} -scaletoggle all\
                    -activelegend -zoomwheel -pan]
 set length 250000
-$graph graph configure -renderer cairo
 $graph graph configure -title "Scatter Plot\n$length points"
 $graph graph xaxis configure -loose no -title {X Axis Label}
 $graph graph yaxis configure -title {Y Axis Label} 

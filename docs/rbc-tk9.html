@@ -15,7 +15,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Tcl/Tk9.0 upgrade" href="rbc-tk9-TclTk9Upgrade.html" />
+    <link rel="next" title="Tcl/Tk 9 upgrade and additions" href="rbc-tk9-TclTk9Upgrade.html" />
     <link rel="prev" title="&lt;no title&gt;" href="index.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="Related">
@@ -25,7 +25,7 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="rbc-tk9-TclTk9Upgrade.html" title="Tcl/Tk9.0 upgrade"
+          <a href="rbc-tk9-TclTk9Upgrade.html" title="Tcl/Tk 9 upgrade and additions"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="index.html" title="&lt;no title&gt;"
@@ -42,8 +42,8 @@
             
   <section id="rbc-refactored-blt-components-for-tcl-tk-9">
 <span id="r-rbc-refactored-blt-components-for-tcl-tk-9"></span><span id="r-rbc20201420refactored20blt20components20for20tcl2ftk209"></span><h1>Rbc — Refactored BLT Components for Tcl/Tk 9<a class="headerlink" href="#rbc-refactored-blt-components-for-tcl-tk-9" title="Link to this heading">¶</a></h1>
-<p>Rbc is a Tcl/Tk extension for scientific plotting, interactive data visualization, and numerical data processing. It
-provides graph widgets, real and complex vectors, spline interpolation, and window and image operations.</p>
+<p>Rbc extends Tcl/Tk 9 with scientific plots, interactive graph controls, real and complex vectors, spline interpolation,
+and window and image utilities. Graphs update automatically when their attached vectors change.</p>
 <p>This repository maintains and extends Rbc for Tcl/Tk 9.0. The current package version is <strong>0.5.0</strong>.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/georgtree/rbc-tk9">Source code</a></p></li>
@@ -63,9 +63,10 @@ provides graph widgets, real and complex vectors, spline interpolation, and wind
 <li><p><strong>spline</strong> — Natural cubic and shape-preserving quadratic interpolation, including parametric interpolation of complex vectors.</p></li>
 <li><p><strong>winop</strong> — Window operations and image-processing utilities.</p></li>
 </ul>
-<p>Graphs redraw automatically when their attached vectors change. Eligible dense line and strip elements support display
-decimation, including persistent summaries that can be reused for axis changes, ranged value updates, and monotonic tail
-appends.</p>
+<p>Eligible dense line and strip elements support <code class="docutils literal notranslate"><span class="pre">-decimate</span> <span class="pre">auto</span></code>. The reduction preserves waveform extrema and reuses
+cached summaries across axis changes, ranged value updates, and monotonic tail appends.</p>
+<p>An optional Cairo backend adds antialiased plotting. Cairo-enabled builds select it by default; applications can choose
+<code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">native</span></code> for workloads where native drawing is faster. Text continues to use Tk in either mode.</p>
 <p>Rbc contains selected components derived from BLT. It is not a complete replacement for the BLT toolkit.</p>
 </section>
 <section id="requirements">
@@ -80,8 +81,8 @@ appends.</p>
 <p>The supported build environments described here are Linux with X11 Tk and Windows with MSYS2/UCRT64. Tcl/Tk 8.x
 compatibility is not a target of this fork.</p>
 <p>The current package loader loads <code class="docutils literal notranslate"><span class="pre">graphtoolbar.tcl</span></code> as part of <code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc</span></code>, so <code class="docutils literal notranslate"><span class="pre">argparse</span></code> is required even
-when an application uses only the basic graph or vector commands. Make corresponding adjustements to pkgIndex.tcl file
-to exclude it from standard loading sequence.</p>
+when an application uses only graph or vector commands. A custom package loader can omit the toolbar, but the supplied
+loader expects this dependency.</p>
 <p>Rbc initializes Tk when loaded. Tests and documentation generation therefore also need a working graphical display.</p>
 </section>
 <section id="building-rbc">
@@ -92,6 +93,7 @@ to exclude it from standard loading sequence.</p>
 <li><p>Tcl/Tk development files, including <code class="docutils literal notranslate"><span class="pre">tclConfig.sh</span></code> and <code class="docutils literal notranslate"><span class="pre">tkConfig.sh</span></code>.</p></li>
 <li><p>Matching Tk private headers.</p></li>
 <li><p>On Linux, the X11 development headers and libraries.</p></li>
+<li><p>For <code class="docutils literal notranslate"><span class="pre">--enable-cairo</span></code>, Cairo 1.12 or newer with its platform backend and development headers. Configure uses <code class="docutils literal notranslate"><span class="pre">pkg-config</span></code> unless both <code class="docutils literal notranslate"><span class="pre">CAIRO_CFLAGS</span></code> and <code class="docutils literal notranslate"><span class="pre">CAIRO_LIBS</span></code> are supplied.</p></li>
 </ul>
 <p>Rbc still uses a small number of private Tk interfaces. Retain the matching Tk source tree unless the development
 installation provides all required private headers. The configure script uses the source location recorded in
@@ -120,7 +122,8 @@ filenames themselves.</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>./configure<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--with-tcl<span class="o">=</span>/path/to/tcl9.0/unix<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--with-tk<span class="o">=</span>/path/to/tk9.0/unix<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--prefix<span class="o">=</span><span class="s2">&quot;</span><span class="nv">$HOME</span><span class="s2">/.local&quot;</span>
+<span class="w">    </span>--prefix<span class="o">=</span><span class="s2">&quot;</span><span class="nv">$HOME</span><span class="s2">/.local&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--enable-cairo
 
 make<span class="w"> </span>-j4
 make<span class="w"> </span><span class="nb">test</span>
@@ -140,7 +143,8 @@ architecture:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>./configure<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--with-tcl<span class="o">=</span>/path/to/tcl9.0/win<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--with-tk<span class="o">=</span>/path/to/tk9.0/win<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--prefix<span class="o">=</span>/ucrt64
+<span class="w">    </span>--prefix<span class="o">=</span>/ucrt64<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--enable-cairo
 
 make<span class="w"> </span>-j4
 make<span class="w"> </span><span class="nb">test</span>
@@ -148,9 +152,59 @@ make<span class="w"> </span><span class="nb">test</span>
 make<span class="w"> </span>install<span class="w"> </span><span class="nv">DOC_INSTALL_DIR</span><span class="o">=</span>/ucrt64/share/rbc0.5.0/doc
 </pre></div>
 </div>
-<p>Ensure that the selected Tcl/Tk DLLs and compiler runtime DLLs are available through <code class="docutils literal notranslate"><span class="pre">PATH</span></code>.</p>
+<p>Ensure that the selected Tcl/Tk DLLs, Cairo DLLs and their dependencies, and compiler runtime DLLs are available through
+<code class="docutils literal notranslate"><span class="pre">PATH</span></code>. Use Cairo and <code class="docutils literal notranslate"><span class="pre">pkg-config</span></code> from the same UCRT64 toolchain as Tcl/Tk and Rbc.</p>
 <p>The UCRT64 shell does not automatically determine Rbc’s installation prefix.  Specify <code class="docutils literal notranslate"><span class="pre">--prefix=/ucrt64</span></code> when that is
 the intended destination.</p>
+</section>
+<section id="configure-options-and-renderer-defaults">
+<span id="r-configure-options-and-renderer-defaults"></span><span id="r-configure20options20and20renderer20defaults"></span><h3>Configure options and renderer defaults<a class="headerlink" href="#configure-options-and-renderer-defaults" title="Link to this heading">¶</a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Effect</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--enable-cairo</span></code></p></td>
+<td><p>Builds Cairo support and makes <code class="docutils literal notranslate"><span class="pre">cairo</span></code> the default renderer. Requires <code class="docutils literal notranslate"><span class="pre">cairo-xlib</span></code> on Linux or <code class="docutils literal notranslate"><span class="pre">cairo-win32</span></code> on Windows.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--disable-cairo</span></code></p></td>
+<td><p>Builds without Cairo; <code class="docutils literal notranslate"><span class="pre">native</span></code> is the renderer default. This is also the configure default when neither flag is supplied.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--enable-symbols</span></code></p></td>
+<td><p>Builds with debugging symbols for crash diagnosis.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--with-tcl=DIR</span></code>, <code class="docutils literal notranslate"><span class="pre">--with-tk=DIR</span></code></p></td>
+<td><p>Select directories containing the matching Tcl/Tk configuration files.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--prefix=DIR</span></code></p></td>
+<td><p>Selects the installation prefix.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The examples above enable Cairo. Omit <code class="docutils literal notranslate"><span class="pre">--enable-cairo</span></code>, or replace it with <code class="docutils literal notranslate"><span class="pre">--disable-cairo</span></code>, for a native-only build.
+If Cairo is requested but its headers or platform backend cannot be linked, configure fails rather than silently
+building without it.</p>
+<p>For a nonstandard Cairo installation, set <code class="docutils literal notranslate"><span class="pre">PKG_CONFIG_PATH</span></code> to its pkg-config directory, or supply <strong>both</strong>
+<code class="docutils literal notranslate"><span class="pre">CAIRO_CFLAGS</span></code> and <code class="docutils literal notranslate"><span class="pre">CAIRO_LIBS</span></code> to configure. Inspect <code class="docutils literal notranslate"><span class="pre">config.log</span></code> if the backend link check fails.
+After changing build features in an existing build directory, run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">clean</span></code> and rebuild.</p>
+<p>Choose a renderer for one graph, or set an application-wide default before creating widgets:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>graph<span class="w"> </span>.g<span class="w"> </span><span class="o">-</span>renderer<span class="w"> </span>native
+<span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>renderer<span class="w"> </span>cairo<span class="w"> </span><span class="o">-</span>antialias<span class="w"> </span>default
+
+<span class="k">foreach</span><span class="w"> </span>class<span class="w"> </span><span class="k">{</span><span class="nv">Graph</span><span class="w"> </span>Barchart<span class="w"> </span>Stripchart<span class="w"> </span>Polar<span class="k">}</span><span class="w"> </span><span class="k">{</span>
+<span class="w">    </span><span class="nv">option</span><span class="w"> </span>add<span class="w"> </span><span class="o">*</span><span class="nv">${class}</span>.renderer<span class="w"> </span>native
+<span class="k">}</span>
+</pre></div>
+</div>
+<p>Explicit widget options take precedence over the option database. <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code> is unavailable in native-only
+builds. Cairo is not uniformly faster: dense traces, symbols and error bars may favour native rendering; image-heavy
+workloads may favour Cairo. Use the benchmark suite to compare the workloads relevant to your application.</p>
 </section>
 <section id="installation-locations">
 <span id="r-installation-locations"></span><span id="r-installation20locations"></span><h3>Installation locations<a class="headerlink" href="#installation-locations" title="Link to this heading">¶</a></h3>
@@ -209,7 +263,9 @@ sufficient.</p>
 </pre></div>
 </div>
 <p>This target builds the package and the public C API test extension, then runs <code class="docutils literal notranslate"><span class="pre">tests/all.tcl</span></code> with the appropriate build
-environment.</p>
+environment. The automated runner sets native as the option-database default to preserve the existing pixel tests.
+Dedicated renderer tests explicitly select Cairo and verify the compiled default. Manual tests and demos retain the
+build default: Cairo when enabled, native otherwise.</p>
 <p>The suite uses <code class="docutils literal notranslate"><span class="pre">tcltest</span></code>. Pass test selection options through <code class="docutils literal notranslate"><span class="pre">TESTFLAGS</span></code>.</p>
 <p>For example, run the line-decimation test file:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="nv">TESTFLAGS</span><span class="o">=</span><span class="s2">&quot;-file RBC.graph.element.decimate.A.test&quot;</span>
@@ -262,9 +318,11 @@ deliberately.</p>
 </pre></div>
 </div>
 <p>Run a focused line/strip comparison and save CSV results:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>shell<span class="w"> </span><span class="nv">SCRIPT</span><span class="o">=</span><span class="s2">&quot;tests/benchmark/run.tcl -profile standard -benchmarks line,strip -csv-dir benchmark-results&quot;</span>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>shell<span class="w"> </span><span class="nv">SCRIPT</span><span class="o">=</span><span class="s2">&quot;tests/benchmark/run.tcl -profile standard -benchmarks line,strip -renderer cairo -antialias default -csv-dir benchmark-results&quot;</span>
 </pre></div>
 </div>
+<p>Benchmarks explicitly default to <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">native</span> <span class="pre">-antialias</span> <span class="pre">default</span></code>, independently of the build default. Select
+<code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code> for the Cairo comparison and keep results from different builds and power conditions separate.</p>
 <p>The suite includes line, strip, symbol, error-bar, bar, marker, and mixed workloads. For individual line-benchmark
 measurements and options, see the <a class="reference external" href="https://github.com/georgtree/rbc-tk9/blob/main/tests/benchmark/README.md">benchmark README</a>.</p>
 </section>
@@ -293,8 +351,8 @@ browse the local HTML documentation.</p>
 <li><p>Python Sphinx, with <code class="docutils literal notranslate"><span class="pre">sphinx-build</span></code> available through <code class="docutils literal notranslate"><span class="pre">PATH</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">ditaa</span></code> and its Java runtime when rendering diagrams that use the configured diagram generator.</p></li>
 </ul>
-<p>To build this particular documentation, the modified version of Ruff package was used, that is not availible publicly at
-this moment, so resulted documentation could differ from the provided in the current repository.</p>
+<p>The published documentation uses a modified Ruff package that is not currently public. Other Ruff versions may produce
+different output or lack the required output formats.</p>
 <p>From an in-tree build, run:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>doc
 </pre></div>
@@ -366,7 +424,7 @@ contains:</p>
 </ul>
 <p>This overview does not replace the full license texts or individual file notices. Preserve the applicable notices,
 conditions, and disclaimers when redistributing source or binary packages.</p>
-<p>External dependencies retain their own licenses.</p>
+<p>External dependencies, including Tcl/Tk, Cairo, argparse and Tcllib, retain their own licenses.</p>
 <hr class="docutils" />
 <p class="centered">
 <strong>Copyright (c) George Yashin</strong></p></section>
@@ -392,6 +450,7 @@ conditions, and disclaimers when redistributing source or binary packages.</p>
 <li><a class="reference internal" href="#building-from-source">Building from source</a><ul>
 <li><a class="reference internal" href="#linux">Linux</a></li>
 <li><a class="reference internal" href="#windows-with-msys2-ucrt64">Windows with MSYS2/UCRT64</a></li>
+<li><a class="reference internal" href="#configure-options-and-renderer-defaults">Configure options and renderer defaults</a></li>
 <li><a class="reference internal" href="#installation-locations">Installation locations</a></li>
 </ul>
 </li>
@@ -422,7 +481,7 @@ conditions, and disclaimers when redistributing source or binary packages.</p>
   <div>
     <h4>Next topic</h4>
     <p class="topless"><a href="rbc-tk9-TclTk9Upgrade.html"
-                          title="next chapter">Tcl/Tk9.0 upgrade</a></p>
+                          title="next chapter">Tcl/Tk 9 upgrade and additions</a></p>
   </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
@@ -452,7 +511,7 @@ conditions, and disclaimers when redistributing source or binary packages.</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="rbc-tk9-TclTk9Upgrade.html" title="Tcl/Tk9.0 upgrade"
+          <a href="rbc-tk9-TclTk9Upgrade.html" title="Tcl/Tk 9 upgrade and additions"
              >next</a> |</li>
         <li class="right" >
           <a href="index.html" title="&lt;no title&gt;"

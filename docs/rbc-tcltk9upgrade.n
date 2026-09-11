@@ -4,15 +4,217 @@
 .TH "TclTk9Upgrade" 3tcl 0\&.5\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
 .SH NAME
 TclTk9Upgrade - Commands in namespace TclTk9Upgrade
-.SH "TCL/TK9\&.0 UPGRADE"
-.SH "TCL/TK 9 MODERNIZATION"
+.SH "TCL/TK 9 UPGRADE AND ADDITIONS"
 .PP
-The original Rbc codebase was designed around Tcl/Tk 8\&.x APIs and data-size assumptions\&. Although an earlier
-port made Rbc build with Tcl/Tk 9, this fork has undergone a much broader modernization to use Tcl/Tk 9
-interfaces correctly, remove obsolete compatibility infrastructure, improve 64-bit safety, and harden the
-graphing code against numerical, memory, and platform-specific edge cases\&.
+Rbc 0\&.5\&.0 targets Tcl/Tk 9 on Windows and Linux\&. This page summarizes the visible additions first,
+followed by the API, numerical and resource-management changes behind them\&. Tcl/Tk 8\&.x compatibility
+is not a goal of this fork\&. Build instructions and dependency details are in the documentation overview\&.
+.SH "USER-VISIBLE ADDITIONS"
 .PP
-The modernization covers the following areas\&.
+This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration\&.
+.SS "OPTIONAL CAIRO RENDERING"
+.PP
+Configure with --enable-cairo to build the antialiased renderer\&. Cairo-enabled builds default to
+-renderer cairo; builds without Cairo default to -renderer native\&. Applications can select either
+available renderer explicitly or through Tk's option database\&.
+.PP
+.RS 4n
+.nf
+::rbc::graph \&.g -renderer cairo -antialias default
+\&.g element create signal -data {0 0 1 2 2 1} -symbol none
+\&.g configure -renderer native
+.fi
+.RE
+.PP
+Cairo covers line and strip traces, symbols, error bars, bars, grid and axis lines, ticks, legend symbols,
+and supported marker geometry, bitmaps and photos\&. Text glyphs remain native, as do XOR crosshairs,
+window markers, Tk relief drawing and unsupported image types\&. Snapshots use the selected renderer;
+PostScript and Windows metafile output retain their existing exporters\&.
+.PP
+Cairo improves edge quality but is not a universal speed improvement\&. Native rendering remains useful
+for dense geometry; image-heavy workloads can favour Cairo\&. Windows marker passes share a drawing target,
+and compatible marker strokes reuse their Cairo context while retaining separate drawing operations\&.
+.PP
+The automated test runner defaults to native through the option database\&. Dedicated renderer tests select
+Cairo explicitly\&. Manual tests and demos use the compiled default unless they request another renderer\&.
+Benchmark scripts have their own explicit -renderer and -antialias settings and CSV comparison tools\&.
+.SS "DISPLAY DECIMATION AND STREAMING UPDATES"
+.PP
+Line and strip elements support -decimate none|auto; none remains the default\&. Eligible monotonic
+waveforms retain first/minimum/maximum/last representatives in each physical data-X pixel, preserving
+narrow extrema rather than averaging them away\&. Source data and PostScript resolution remain unchanged\&.
+.PP
+With auto, the activation threshold is 4 source points per plot pixel for Cairo and 8 for native\&.
+Renderer changes remap the data\&. The persistent cache supports axis changes, ranged Y updates and
+monotonic tail appends, while unsupported data combinations use the full or fallback mapping paths\&.
+.SS "GRAPH INTERACTION AND TOOLBAR"
+.PP
+graphtoolbar provides zooming, panning, closest-point annotations, legend controls and configurable
+pointer appearance\&. Windows touchpad scrolling is supported alongside mouse-wheel zoom\&. Consecutive
+axis-scroll actions retain their selected axis when rescaling moves it away from the pointer\&.
+.PP
+Crosshair annotations refresh beneath a stationary pointer when streaming data or axis mapping changes\&.
+Current-coordinate annotations stay beside the pointer; closest-point annotations repeat the search\&.
+Annotation boxes are recalculated after zooming, including with inverted axes\&.
+.PP
+Graph widgets emit <<RbcGraphChanged>> after relevant display changes\&. The toolbar combines refresh
+requests into an idle callback and respects temporary suspension during zooming, panning and menus\&.
+Windows crosshair motion was corrected to avoid flicker\&. Symbols crossing the plot boundary are clipped
+to the visible area instead of disappearing while still partially visible\&.
+.SS "COMPLEX VECTORS"
+.PP
+The vector subsystem now supports both real and complex numeric vectors\&. Complex vectors are created explicitly
+with -type complex, and Tcl-level complex values use the form {real imag}:
+.PP
+.RS 4n
+.nf
+::rbc::vector create z -type complex
+z set {{1 2} {3 -4} {5 0}}
+.fi
+.RE
+.PP
+Complex vectors are supported by most vector instance operations and by the vector expression engine, including
+arithmetic, complex exponentiation, trigonometric and logarithmic functions, projections such as real,
+imag, abs, and arg, and complex statistical reductions\&.
+.PP
+Operations that require an ordering of values remain real-only\&. In particular, sort and normalize are not
+supported for complex vectors\&.
+.PP
+Traditional graph, barchart, and stripchart X/Y element data remain real-valued\&. Polar elements can attach a
+complex vector directly through -cdata, and the spline subsystem provides complex-vector parametric natural
+and quadratic interpolation\&.
+.PP
+Applications can still explicitly derive real projections such as real, imag, abs, or arg when a
+traditional Cartesian graph or scalar spline is required\&.
+.PP
+The public C API was extended with typed vector access, including Rbc_VectorType, Rbc_Complex,
+Rbc_CreateVectorWithType(), Rbc_VectorComplexData(), Rbc_ResetComplexVector(), and
+Rbc_VectorChanged()\&. The original real-vector API remains available for compatibility\&.
+.SS "POLAR AND SMITH CHARTS"
+.PP
+This fork adds the polar graph widget for plotting Cartesian complex-plane data with either a conventional
+Polar grid or a Smith-chart representation\&.
+.PP
+Polar element data remain Cartesian: X is the real coordinate and Y is the imaginary coordinate\&. Elements may
+use ordinary X/Y data or attach first-class complex vectors directly with -cdata\&.
+.PP
+Complex data can be interpreted as:
+.TP
+\(bu
+reflection coefficient with -cdataformat gamma;
+.TP
+\(bu
+physical impedance with -cdataformat impedance;
+.TP
+\(bu
+physical admittance with -cdataformat admittance\&.
+.PP
+The -z0 option specifies the positive reference impedance used for impedance/admittance conversion\&.
+.PP
+Smith charts support impedance, admittance, or combined contour grids, configurable major/minor normalized
+contour values, and Tcl callbacks for formatting real and imaginary contour labels\&.
+.PP
+Polar grids provide independently configurable angular major/minor spokes, angular label callbacks, radial
+label formatting through the mapped X axis, and configurable label anchoring\&.
+.PP
+Polar and Smith grid geometry follows the axes selected by grid -mapx/-mapy\&.
+.PP
+Unless -aspect is explicitly configured, Polar widgets automatically maintain equal physical scale for X and
+Y data units\&. This keeps circles circular even when the mapped numerical X/Y ranges have different spans\&.
+.PP
+Polar grid rendering remains meaningful when the origin is outside the current viewport\&. Radial circles which
+intersect the viewport are retained, angular spokes are clipped to the visible Cartesian area, and angular
+labels move from the normal circular layout to the visible ends of their spokes when no complete centered
+circle is available\&.
+.PP
+Radial labels remain tied to the positive zero-degree ray and are displayed whenever their corresponding
+{radius,0} point is visible, even when the Polar origin itself is outside the viewport\&.
+.PP
+Polar autoscaling also supplies a neutral fallback range when a grid-mapped axis has no contributing visible
+element data, allowing the Polar grid to remain usable when the widget is empty or all plotted elements are
+hidden\&.
+.PP
+Smith reactive labels likewise adapt to zoomed views\&. When the complete unit circle is no longer visible,
+major reactance and susceptance labels are moved to the first visible boundary of their corresponding contour
+instead of disappearing with their normal unit-circle label position\&.
+.PP
+Natural/cubic and quadratic smoothing on Polar elements is parametric, allowing vertical paths,
+non-monotonic-X paths and loops\&. Catmull-Rom smoothing remains parametric as well\&.
+.PP
+Missing, non-finite, logarithmically invalid, or singular impedance/admittance points split a trace into
+continuous runs\&. Smoothing is performed independently on those runs and never bridges a gap\&.
+.PP
+element closest on a Polar widget additionally reports radius and angle\&. In Smith representation it also
+reports Gamma together with normalized and physical impedance and admittance quantities\&.
+.PP
+Polar/Smith grid rendering, labels, custom formatter callbacks and smoothed element traces are supported by
+PostScript output as well as on-screen drawing\&.
+.SS "PLOT-ONLY ELEMENT HIDING"
+.PP
+Line, stripchart, and bar elements now support the -hideplot option\&.
+.PP
+Unlike -hide, which removes an element from the graph display list, -hideplot yes suppresses plotting while
+leaving the element in the display list\&. Its legend entry therefore remains available, making it possible for
+applications to hide and restore plotted data without rebuilding or reordering the legend\&.
+.PP
+A plot-hidden element is also excluded from automatic axis limits, closest-element searches, element hit
+testing, and PostScript element output\&. Plot-hidden bars are additionally excluded from bar grouping and
+stacking calculations\&.
+.PP
+-hide and -hideplot are independent, so changing the normal visibility of an element does not alter its
+-hideplot state\&.
+.SS "ARROWHEADS FOR LINE MARKERS"
+.PP
+Line markers now support arrowheads through the -arrow and -arrowshape options\&.
+.PP
+-arrow accepts none, first, last, or both, allowing an arrowhead to be drawn at either or both ends
+of a line marker\&. -arrowshape {a b c} controls the arrowhead geometry using screen distances\&.
+.PP
+.RS 4n
+.nf
+\&.g marker create line -name direction -coords {0 0 5 4 10 2} -outline red -linewidth 2 -arrow last
+
+\&.g marker configure direction -arrow both -arrowshape {8 10 3}
+.fi
+.RE
+.PP
+Arrowheads use the line marker's -outline color, and the line shaft is shortened to the arrowhead neck so
+that it does not extend through the filled arrowhead\&.
+.PP
+The drawing implementation was also corrected for X11/Linux\&. Arrowheads are concave polygons, so they are now
+passed to the native polygon renderer with the correct non-convex geometry and without the duplicate closing
+vertex\&. This keeps arrow rendering consistent across supported platforms\&.
+.SS "BAR GEOMETRY FROM ELEMENT CLOSEST"
+.PP
+The element closest operation now provides additional geometry information when the selected element is a bar\&.
+.PP
+In addition to the normal name, index, x, y, and dist entries, the result array contains:
+.TP
+\(bu
+left
+.TP
+\(bu
+top
+.TP
+\(bu
+right
+.TP
+\(bu
+bottom
+.PP
+These values are the physical widget coordinates of the final mapped bar rectangle that is actually drawn\&. They
+therefore reflect the current bar mode: stacked bars return the selected stacked segment, while aligned and
+overlapping bars return the adjusted rectangle belonging to the selected element\&.
+.PP
+The values remain physical widget coordinates when -invertxy is enabled: left and right always describe
+physical X coordinates, while top and bottom always describe physical Y coordinates\&.
+.PP
+This makes element closest directly usable for bar highlighting, overlays, annotations, and interactive
+interfaces without requiring applications to reconstruct bar geometry themselves\&.
+.SH "IMPLEMENTATION MODERNIZATION"
+.PP
+The migration replaces obsolete Tcl/Tk interfaces, widens collection sizes and indexes, and improves
+configuration rollback, numerical boundaries and resource lifetime management\&.
 .SS "TCL 9 COMMAND AND OBJECT API"
 .TP
 \(bu
@@ -696,165 +898,6 @@ Updated bind-tag handling after the option-system migration\&.
 .TP
 \(bu
 Added regression tests for the affected binding paths\&.
-.SS "USER-VISIBLE ADDITIONS"
-.PP
-In addition to the Tcl/Tk 9 modernization and correctness work, this fork adds several user-visible features that were
-not present in the original Rbc implementation\&.
-.PP
-\fBComplex vectors\fR
-.PP
-The vector subsystem now supports both real and complex numeric vectors\&. Complex vectors are created explicitly
-with -type complex, and Tcl-level complex values use the form {real imag}:
-.PP
-.RS 4n
-.nf
-::rbc::vector create z -type complex
-z set {{1 2} {3 -4} {5 0}}
-.fi
-.RE
-.PP
-Complex vectors are supported by most vector instance operations and by the vector expression engine, including
-arithmetic, complex exponentiation, trigonometric and logarithmic functions, projections such as real,
-imag, abs, and arg, and complex statistical reductions\&.
-.PP
-Operations that require an ordering of values remain real-only\&. In particular, sort and normalize are not
-supported for complex vectors\&.
-.PP
-Traditional graph, barchart, and stripchart X/Y element data remain real-valued\&. Polar elements can attach a
-complex vector directly through -cdata, and the spline subsystem provides complex-vector parametric natural
-and quadratic interpolation\&.
-.PP
-Applications can still explicitly derive real projections such as real, imag, abs, or arg when a
-traditional Cartesian graph or scalar spline is required\&.
-.PP
-The public C API was extended with typed vector access, including Rbc_VectorType, Rbc_Complex,
-Rbc_CreateVectorWithType(), Rbc_VectorComplexData(), Rbc_ResetComplexVector(), and
-Rbc_VectorChanged()\&. The original real-vector API remains available for compatibility\&.
-.PP
-\fBPolar and Smith charts\fR
-.PP
-This fork adds the polar graph widget for plotting Cartesian complex-plane data with either a conventional
-Polar grid or a Smith-chart representation\&.
-.PP
-Polar element data remain Cartesian: X is the real coordinate and Y is the imaginary coordinate\&. Elements may
-use ordinary X/Y data or attach first-class complex vectors directly with -cdata\&.
-.PP
-Complex data can be interpreted as:
-.TP
-\(bu
-reflection coefficient with -cdataformat gamma;
-.TP
-\(bu
-physical impedance with -cdataformat impedance;
-.TP
-\(bu
-physical admittance with -cdataformat admittance\&.
-.PP
-The -z0 option specifies the positive reference impedance used for impedance/admittance conversion\&.
-.PP
-Smith charts support impedance, admittance, or combined contour grids, configurable major/minor normalized
-contour values, and Tcl callbacks for formatting real and imaginary contour labels\&.
-.PP
-Polar grids provide independently configurable angular major/minor spokes, angular label callbacks, radial
-label formatting through the mapped X axis, and configurable label anchoring\&.
-.PP
-Polar and Smith grid geometry follows the axes selected by grid -mapx/-mapy\&.
-.PP
-Unless -aspect is explicitly configured, Polar widgets automatically maintain equal physical scale for X and
-Y data units\&. This keeps circles circular even when the mapped numerical X/Y ranges have different spans\&.
-.PP
-Polar grid rendering remains meaningful when the origin is outside the current viewport\&. Radial circles which
-intersect the viewport are retained, angular spokes are clipped to the visible Cartesian area, and angular
-labels move from the normal circular layout to the visible ends of their spokes when no complete centered
-circle is available\&.
-.PP
-Radial labels remain tied to the positive zero-degree ray and are displayed whenever their corresponding
-{radius,0} point is visible, even when the Polar origin itself is outside the viewport\&.
-.PP
-Polar autoscaling also supplies a neutral fallback range when a grid-mapped axis has no contributing visible
-element data, allowing the Polar grid to remain usable when the widget is empty or all plotted elements are
-hidden\&.
-.PP
-Smith reactive labels likewise adapt to zoomed views\&. When the complete unit circle is no longer visible,
-major reactance and susceptance labels are moved to the first visible boundary of their corresponding contour
-instead of disappearing with their normal unit-circle label position\&.
-.PP
-Natural/cubic and quadratic smoothing on Polar elements is parametric, allowing vertical paths,
-non-monotonic-X paths and loops\&. Catmull-Rom smoothing remains parametric as well\&.
-.PP
-Missing, non-finite, logarithmically invalid, or singular impedance/admittance points split a trace into
-continuous runs\&. Smoothing is performed independently on those runs and never bridges a gap\&.
-.PP
-element closest on a Polar widget additionally reports radius and angle\&. In Smith representation it also
-reports Gamma together with normalized and physical impedance and admittance quantities\&.
-.PP
-Polar/Smith grid rendering, labels, custom formatter callbacks and smoothed element traces are supported by
-PostScript output as well as on-screen drawing\&.
-.PP
-\fBPlot-only element hiding\fR
-.PP
-Line, stripchart, and bar elements now support the -hideplot option\&.
-.PP
-Unlike -hide, which removes an element from the graph display list, -hideplot yes suppresses plotting while
-leaving the element in the display list\&. Its legend entry therefore remains available, making it possible for
-applications to hide and restore plotted data without rebuilding or reordering the legend\&.
-.PP
-A plot-hidden element is also excluded from automatic axis limits, closest-element searches, element hit
-testing, and PostScript element output\&. Plot-hidden bars are additionally excluded from bar grouping and
-stacking calculations\&.
-.PP
--hide and -hideplot are independent, so changing the normal visibility of an element does not alter its
--hideplot state\&.
-.PP
-\fBArrowheads for line markers\fR
-.PP
-Line markers now support arrowheads through the -arrow and -arrowshape options\&.
-.PP
--arrow accepts none, first, last, or both, allowing an arrowhead to be drawn at either or both ends
-of a line marker\&. -arrowshape {a b c} controls the arrowhead geometry using screen distances\&.
-.PP
-.RS 4n
-.nf
-\&.g marker create line -name direction -coords {0 0 5 4 10 2} -outline red -linewidth 2 -arrow last
-
-\&.g marker configure direction -arrow both -arrowshape {8 10 3}
-.fi
-.RE
-.PP
-Arrowheads use the line marker's -outline color, and the line shaft is shortened to the arrowhead neck so
-that it does not extend through the filled arrowhead\&.
-.PP
-The drawing implementation was also corrected for X11/Linux\&. Arrowheads are concave polygons, so they are now
-passed to the native polygon renderer with the correct non-convex geometry and without the duplicate closing
-vertex\&. This keeps arrow rendering consistent across supported platforms\&.
-.PP
-\fBBar geometry from element closest\fR
-.PP
-The element closest operation now provides additional geometry information when the selected element is a bar\&.
-.PP
-In addition to the normal name, index, x, y, and dist entries, the result array contains:
-.TP
-\(bu
-left
-.TP
-\(bu
-top
-.TP
-\(bu
-right
-.TP
-\(bu
-bottom
-.PP
-These values are the physical widget coordinates of the final mapped bar rectangle that is actually drawn\&. They
-therefore reflect the current bar mode: stacked bars return the selected stacked segment, while aligned and
-overlapping bars return the adjusted rectangle belonging to the selected element\&.
-.PP
-The values remain physical widget coordinates when -invertxy is enabled: left and right always describe
-physical X coordinates, while top and bottom always describe physical Y coordinates\&.
-.PP
-This makes element closest directly usable for bar highlighting, overlays, annotations, and interactive
-interfaces without requiring applications to reconstruct bar geometry themselves\&.
 .SS "REGRESSION TESTING"
 .PP
 The modernization was accompanied by a substantial expansion of the test suite\&.
@@ -912,12 +955,7 @@ coordinate and integer-boundary cases\&.
 Manual graph tests and demos were also repeatedly exercised during the migration\&.
 .PP
 The resulting code has been tested on both Windows and Linux with Tcl/Tk 9\&.x\&.
-.SS RESULT
-.PP
-The current codebase is no longer merely an older Rbc implementation adjusted until it compiles with Tcl/Tk9\&.0\&.
-The major subsystems now use Tcl/Tk 9-sized interfaces and modern Tk configuration machinery, large-dataset
-index handling is based on Tcl_Size, numerical and allocation boundaries are explicitly checked, and the
-unavoidable private Tk dependencies are confined to narrow platform/rendering interfaces\&.
+.SH "REMAINING COMPATIBILITY INTERFACES"
 .PP
 The remaining use of legacy or private Tk interfaces is intentional:
 .TP

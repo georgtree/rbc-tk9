@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Tcl/Tk9.0 upgrade &#8212; rbc  documentation</title>
+    <title>Tcl/Tk 9 upgrade and additions &#8212; rbc  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
     
@@ -31,7 +31,7 @@
           <a href="rbc-tk9.html" title="Rbc — Refactored BLT Components for Tcl/Tk 9"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Tcl/Tk9.0 upgrade</a></li> 
+        <li class="nav-item nav-item-this"><a href="">Tcl/Tk 9 upgrade and additions</a></li> 
       </ul>
     </div>  
 
@@ -40,15 +40,171 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="tcl-tk9-0-upgrade">
-<span id="r-tcl-tk9-0-upgrade"></span><span id="r-tcl2ftk92e020upgrade"></span><span id="r-3a3atcltk9upgrade"></span><h1>Tcl/Tk9.0 upgrade<a class="headerlink" href="#tcl-tk9-0-upgrade" title="Link to this heading">¶</a></h1>
-<section id="tcl-tk-9-modernization">
-<span id="r-tcltk9upgrade-tcl-tk-9-modernization"></span><span id="r-3a3atcltk9upgradeqztcl2ftk20920modernization"></span><h2>Tcl/Tk 9 Modernization<a class="headerlink" href="#tcl-tk-9-modernization" title="Link to this heading">¶</a></h2>
-<p>The original Rbc codebase was designed around Tcl/Tk 8.x APIs and data-size assumptions. Although an earlier
-port made Rbc build with Tcl/Tk 9, this fork has undergone a much broader modernization to use Tcl/Tk 9
-interfaces correctly, remove obsolete compatibility infrastructure, improve 64-bit safety, and harden the
-graphing code against numerical, memory, and platform-specific edge cases.</p>
-<p>The modernization covers the following areas.</p>
+  <section id="tcl-tk-9-upgrade-and-additions">
+<span id="r-tcl-tk-9-upgrade-and-additions"></span><span id="r-tcl2ftk20920upgrade20and20additions"></span><span id="r-3a3atcltk9upgrade"></span><h1>Tcl/Tk 9 upgrade and additions<a class="headerlink" href="#tcl-tk-9-upgrade-and-additions" title="Link to this heading">¶</a></h1>
+<p>Rbc 0.5.0 targets Tcl/Tk 9 on Windows and Linux. This page summarizes the visible additions first,
+followed by the API, numerical and resource-management changes behind them. Tcl/Tk 8.x compatibility
+is not a goal of this fork. Build instructions and dependency details are in the documentation overview.</p>
+<section id="user-visible-additions">
+<span id="r-tcltk9upgrade-user-visible-additions"></span><span id="r-3a3atcltk9upgradeqzuser2dvisible20additions"></span><h2>User-visible additions<a class="headerlink" href="#user-visible-additions" title="Link to this heading">¶</a></h2>
+<p>This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration.</p>
+<section id="optional-cairo-rendering">
+<span id="r-tcltk9upgrade-optional-cairo-rendering"></span><span id="r-3a3atcltk9upgradeqzoptional20cairo20rendering"></span><h3>Optional Cairo rendering<a class="headerlink" href="#optional-cairo-rendering" title="Link to this heading">¶</a></h3>
+<p>Configure with <code class="docutils literal notranslate"><span class="pre">--enable-cairo</span></code> to build the antialiased renderer. Cairo-enabled builds default to
+<code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code>; builds without Cairo default to <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">native</span></code>. Applications can select either
+available renderer explicitly or through Tk’s option database.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>graph<span class="w"> </span>.g<span class="w"> </span><span class="o">-</span>renderer<span class="w"> </span>cairo<span class="w"> </span><span class="o">-</span>antialias<span class="w"> </span>default
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">1</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>symbol<span class="w"> </span>none
+<span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>renderer<span class="w"> </span>native
+</pre></div>
+</div>
+<p>Cairo covers line and strip traces, symbols, error bars, bars, grid and axis lines, ticks, legend symbols,
+and supported marker geometry, bitmaps and photos. Text glyphs remain native, as do XOR crosshairs,
+window markers, Tk relief drawing and unsupported image types. Snapshots use the selected renderer;
+PostScript and Windows metafile output retain their existing exporters.</p>
+<p>Cairo improves edge quality but is not a universal speed improvement. Native rendering remains useful
+for dense geometry; image-heavy workloads can favour Cairo. Windows marker passes share a drawing target,
+and compatible marker strokes reuse their Cairo context while retaining separate drawing operations.</p>
+<p>The automated test runner defaults to native through the option database. Dedicated renderer tests select
+Cairo explicitly. Manual tests and demos use the compiled default unless they request another renderer.
+Benchmark scripts have their own explicit <code class="docutils literal notranslate"><span class="pre">-renderer</span></code> and <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> settings and CSV comparison tools.</p>
+</section>
+<section id="display-decimation-and-streaming-updates">
+<span id="r-tcltk9upgrade-display-decimation-and-streaming-updates"></span><span id="r-3a3atcltk9upgradeqzdisplay20decimation20and20streaming20updates"></span><h3>Display decimation and streaming updates<a class="headerlink" href="#display-decimation-and-streaming-updates" title="Link to this heading">¶</a></h3>
+<p>Line and strip elements support <code class="docutils literal notranslate"><span class="pre">-decimate</span> <span class="pre">none|auto</span></code>; <code class="docutils literal notranslate"><span class="pre">none</span></code> remains the default. Eligible monotonic
+waveforms retain first/minimum/maximum/last representatives in each physical data-X pixel, preserving
+narrow extrema rather than averaging them away. Source data and PostScript resolution remain unchanged.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">auto</span></code>, the activation threshold is 4 source points per plot pixel for Cairo and 8 for native.
+Renderer changes remap the data. The persistent cache supports axis changes, ranged Y updates and
+monotonic tail appends, while unsupported data combinations use the full or fallback mapping paths.</p>
+</section>
+<section id="graph-interaction-and-toolbar">
+<span id="r-tcltk9upgrade-graph-interaction-and-toolbar"></span><span id="r-3a3atcltk9upgradeqzgraph20interaction20and20toolbar"></span><h3>Graph interaction and toolbar<a class="headerlink" href="#graph-interaction-and-toolbar" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code> provides zooming, panning, closest-point annotations, legend controls and configurable
+pointer appearance. Windows touchpad scrolling is supported alongside mouse-wheel zoom. Consecutive
+axis-scroll actions retain their selected axis when rescaling moves it away from the pointer.</p>
+<p>Crosshair annotations refresh beneath a stationary pointer when streaming data or axis mapping changes.
+Current-coordinate annotations stay beside the pointer; closest-point annotations repeat the search.
+Annotation boxes are recalculated after zooming, including with inverted axes.</p>
+<p>Graph widgets emit <code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcGraphChanged&gt;&gt;</span></code> after relevant display changes. The toolbar combines refresh
+requests into an idle callback and respects temporary suspension during zooming, panning and menus.
+Windows crosshair motion was corrected to avoid flicker. Symbols crossing the plot boundary are clipped
+to the visible area instead of disappearing while still partially visible.</p>
+</section>
+<section id="complex-vectors">
+<span id="r-tcltk9upgrade-complex-vectors"></span><span id="r-3a3atcltk9upgradeqzcomplex20vectors"></span><h3>Complex vectors<a class="headerlink" href="#complex-vectors" title="Link to this heading">¶</a></h3>
+<p>The vector subsystem now supports both real and complex numeric vectors. Complex vectors are created explicitly
+with <code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">complex</span></code>, and Tcl-level complex values use the form <code class="docutils literal notranslate"><span class="pre">{real</span> <span class="pre">imag}</span></code>:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>z<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>complex
+<span class="nv">z</span><span class="w"> </span>set<span class="w"> </span><span class="k">{{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">3</span><span class="w"> </span><span class="o">-</span><span class="mi">4</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">5</span><span class="w"> </span><span class="mi">0</span><span class="k">}}</span>
+</pre></div>
+</div>
+<p>Complex vectors are supported by most vector instance operations and by the vector expression engine, including
+arithmetic, complex exponentiation, trigonometric and logarithmic functions, projections such as <code class="docutils literal notranslate"><span class="pre">real</span></code>,
+<code class="docutils literal notranslate"><span class="pre">imag</span></code>, <code class="docutils literal notranslate"><span class="pre">abs</span></code>, and <code class="docutils literal notranslate"><span class="pre">arg</span></code>, and complex statistical reductions.</p>
+<p>Operations that require an ordering of values remain real-only. In particular, <code class="docutils literal notranslate"><span class="pre">sort</span></code> and <code class="docutils literal notranslate"><span class="pre">normalize</span></code> are not
+supported for complex vectors.</p>
+<p>Traditional graph, barchart, and stripchart X/Y element data remain real-valued. Polar elements can attach a
+complex vector directly through <code class="docutils literal notranslate"><span class="pre">-cdata</span></code>, and the spline subsystem provides complex-vector parametric natural
+and quadratic interpolation.</p>
+<p>Applications can still explicitly derive real projections such as <code class="docutils literal notranslate"><span class="pre">real</span></code>, <code class="docutils literal notranslate"><span class="pre">imag</span></code>, <code class="docutils literal notranslate"><span class="pre">abs</span></code>, or <code class="docutils literal notranslate"><span class="pre">arg</span></code> when a
+traditional Cartesian graph or scalar spline is required.</p>
+<p>The public C API was extended with typed vector access, including <code class="docutils literal notranslate"><span class="pre">Rbc_VectorType</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_Complex</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Rbc_CreateVectorWithType()</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_VectorComplexData()</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_ResetComplexVector()</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">Rbc_VectorChanged()</span></code>. The original real-vector API remains available for compatibility.</p>
+</section>
+<section id="polar-and-smith-charts">
+<span id="r-tcltk9upgrade-polar-and-smith-charts"></span><span id="r-3a3atcltk9upgradeqzpolar20and20smith20charts"></span><h3>Polar and Smith charts<a class="headerlink" href="#polar-and-smith-charts" title="Link to this heading">¶</a></h3>
+<p>This fork adds the <code class="docutils literal notranslate"><span class="pre">polar</span></code> graph widget for plotting Cartesian complex-plane data with either a conventional
+Polar grid or a Smith-chart representation.</p>
+<p>Polar element data remain Cartesian: X is the real coordinate and Y is the imaginary coordinate. Elements may
+use ordinary X/Y data or attach first-class complex vectors directly with <code class="docutils literal notranslate"><span class="pre">-cdata</span></code>.</p>
+<p>Complex data can be interpreted as:</p>
+<ul class="simple">
+<li><p>reflection coefficient with <code class="docutils literal notranslate"><span class="pre">-cdataformat</span> <span class="pre">gamma</span></code>;</p></li>
+<li><p>physical impedance with <code class="docutils literal notranslate"><span class="pre">-cdataformat</span> <span class="pre">impedance</span></code>;</p></li>
+<li><p>physical admittance with <code class="docutils literal notranslate"><span class="pre">-cdataformat</span> <span class="pre">admittance</span></code>.</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">-z0</span></code> option specifies the positive reference impedance used for impedance/admittance conversion.</p>
+<p>Smith charts support impedance, admittance, or combined contour grids, configurable major/minor normalized
+contour values, and Tcl callbacks for formatting real and imaginary contour labels.</p>
+<p>Polar grids provide independently configurable angular major/minor spokes, angular label callbacks, radial
+label formatting through the mapped X axis, and configurable label anchoring.</p>
+<p>Polar and Smith grid geometry follows the axes selected by <code class="docutils literal notranslate"><span class="pre">grid</span> <span class="pre">-mapx/-mapy</span></code>.</p>
+<p>Unless <code class="docutils literal notranslate"><span class="pre">-aspect</span></code> is explicitly configured, Polar widgets automatically maintain equal physical scale for X and
+Y data units. This keeps circles circular even when the mapped numerical X/Y ranges have different spans.</p>
+<p>Polar grid rendering remains meaningful when the origin is outside the current viewport. Radial circles which
+intersect the viewport are retained, angular spokes are clipped to the visible Cartesian area, and angular
+labels move from the normal circular layout to the visible ends of their spokes when no complete centered
+circle is available.</p>
+<p>Radial labels remain tied to the positive zero-degree ray and are displayed whenever their corresponding
+<code class="docutils literal notranslate"><span class="pre">{radius,0}</span></code> point is visible, even when the Polar origin itself is outside the viewport.</p>
+<p>Polar autoscaling also supplies a neutral fallback range when a grid-mapped axis has no contributing visible
+element data, allowing the Polar grid to remain usable when the widget is empty or all plotted elements are
+hidden.</p>
+<p>Smith reactive labels likewise adapt to zoomed views. When the complete unit circle is no longer visible,
+major reactance and susceptance labels are moved to the first visible boundary of their corresponding contour
+instead of disappearing with their normal unit-circle label position.</p>
+<p>Natural/cubic and quadratic smoothing on Polar elements is parametric, allowing vertical paths,
+non-monotonic-X paths and loops. Catmull-Rom smoothing remains parametric as well.</p>
+<p>Missing, non-finite, logarithmically invalid, or singular impedance/admittance points split a trace into
+continuous runs. Smoothing is performed independently on those runs and never bridges a gap.</p>
+<p><code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code> on a Polar widget additionally reports radius and angle. In Smith representation it also
+reports Gamma together with normalized and physical impedance and admittance quantities.</p>
+<p>Polar/Smith grid rendering, labels, custom formatter callbacks and smoothed element traces are supported by
+PostScript output as well as on-screen drawing.</p>
+</section>
+<section id="plot-only-element-hiding">
+<span id="r-tcltk9upgrade-plot-only-element-hiding"></span><span id="r-3a3atcltk9upgradeqzplot2donly20element20hiding"></span><h3>Plot-only element hiding<a class="headerlink" href="#plot-only-element-hiding" title="Link to this heading">¶</a></h3>
+<p>Line, stripchart, and bar elements now support the <code class="docutils literal notranslate"><span class="pre">-hideplot</span></code> option.</p>
+<p>Unlike <code class="docutils literal notranslate"><span class="pre">-hide</span></code>, which removes an element from the graph display list, <code class="docutils literal notranslate"><span class="pre">-hideplot</span> <span class="pre">yes</span></code> suppresses plotting while
+leaving the element in the display list. Its legend entry therefore remains available, making it possible for
+applications to hide and restore plotted data without rebuilding or reordering the legend.</p>
+<p>A plot-hidden element is also excluded from automatic axis limits, closest-element searches, element hit
+testing, and PostScript element output. Plot-hidden bars are additionally excluded from bar grouping and
+stacking calculations.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-hide</span></code> and <code class="docutils literal notranslate"><span class="pre">-hideplot</span></code> are independent, so changing the normal visibility of an element does not alter its
+<code class="docutils literal notranslate"><span class="pre">-hideplot</span></code> state.</p>
+</section>
+<section id="arrowheads-for-line-markers">
+<span id="r-tcltk9upgrade-arrowheads-for-line-markers"></span><span id="r-3a3atcltk9upgradeqzarrowheads20for20line20markers"></span><h3>Arrowheads for line markers<a class="headerlink" href="#arrowheads-for-line-markers" title="Link to this heading">¶</a></h3>
+<p>Line markers now support arrowheads through the <code class="docutils literal notranslate"><span class="pre">-arrow</span></code> and <code class="docutils literal notranslate"><span class="pre">-arrowshape</span></code> options.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-arrow</span></code> accepts <code class="docutils literal notranslate"><span class="pre">none</span></code>, <code class="docutils literal notranslate"><span class="pre">first</span></code>, <code class="docutils literal notranslate"><span class="pre">last</span></code>, or <code class="docutils literal notranslate"><span class="pre">both</span></code>, allowing an arrowhead to be drawn at either or both ends
+of a line marker. <code class="docutils literal notranslate"><span class="pre">-arrowshape</span> <span class="pre">{a</span> <span class="pre">b</span> <span class="pre">c}</span></code> controls the arrowhead geometry using screen distances.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>marker<span class="w"> </span>create<span class="w"> </span>line<span class="w"> </span><span class="o">-</span>name<span class="w"> </span>direction<span class="w"> </span><span class="o">-</span>coords<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>outline<span class="w"> </span>red<span class="w"> </span><span class="o">-</span>linewidth<span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">-</span>arrow<span class="w"> </span>last
+
+<span class="nv">.g</span><span class="w"> </span>marker<span class="w"> </span>configure<span class="w"> </span>direction<span class="w"> </span><span class="o">-</span>arrow<span class="w"> </span>both<span class="w"> </span><span class="o">-</span>arrowshape<span class="w"> </span><span class="k">{</span><span class="nv">8</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span>
+</pre></div>
+</div>
+<p>Arrowheads use the line marker’s <code class="docutils literal notranslate"><span class="pre">-outline</span></code> color, and the line shaft is shortened to the arrowhead neck so
+that it does not extend through the filled arrowhead.</p>
+<p>The drawing implementation was also corrected for X11/Linux. Arrowheads are concave polygons, so they are now
+passed to the native polygon renderer with the correct non-convex geometry and without the duplicate closing
+vertex. This keeps arrow rendering consistent across supported platforms.</p>
+</section>
+<section id="bar-geometry-from-element-closest">
+<span id="r-tcltk9upgrade-bar-geometry-from-element-closest"></span><span id="r-3a3atcltk9upgradeqzbar20geometry20from2060element20closest60"></span><h3>Bar geometry from <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code><a class="headerlink" href="#bar-geometry-from-element-closest" title="Link to this heading">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code> operation now provides additional geometry information when the selected element is a bar.</p>
+<p>In addition to the normal <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">index</span></code>, <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, and <code class="docutils literal notranslate"><span class="pre">dist</span></code> entries, the result array contains:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">left</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">top</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">right</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bottom</span></code></p></li>
+</ul>
+<p>These values are the physical widget coordinates of the final mapped bar rectangle that is actually drawn. They
+therefore reflect the current bar mode: stacked bars return the selected stacked segment, while aligned and
+overlapping bars return the adjusted rectangle belonging to the selected element.</p>
+<p>The values remain physical widget coordinates when <code class="docutils literal notranslate"><span class="pre">-invertxy</span></code> is enabled: <code class="docutils literal notranslate"><span class="pre">left</span></code> and <code class="docutils literal notranslate"><span class="pre">right</span></code> always describe
+physical X coordinates, while <code class="docutils literal notranslate"><span class="pre">top</span></code> and <code class="docutils literal notranslate"><span class="pre">bottom</span></code> always describe physical Y coordinates.</p>
+<p>This makes <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code> directly usable for bar highlighting, overlays, annotations, and interactive
+interfaces without requiring applications to reconstruct bar geometry themselves.</p>
+</section>
+</section>
+<section id="implementation-modernization">
+<span id="r-tcltk9upgrade-implementation-modernization"></span><span id="r-3a3atcltk9upgradeqzimplementation20modernization"></span><h2>Implementation modernization<a class="headerlink" href="#implementation-modernization" title="Link to this heading">¶</a></h2>
+<p>The migration replaces obsolete Tcl/Tk interfaces, widens collection sizes and indexes, and improves
+configuration rollback, numerical boundaries and resource lifetime management.</p>
 <section id="tcl-9-command-and-object-api">
 <span id="r-tcltk9upgrade-tcl-9-command-and-object-api"></span><span id="r-3a3atcltk9upgradeqztcl20920command20and20object20api"></span><h3>Tcl 9 command and object API<a class="headerlink" href="#tcl-9-command-and-object-api" title="Link to this heading">¶</a></h3>
 <ul class="simple">
@@ -396,120 +552,6 @@ around those specific includes; warnings remain enabled for Rbc’s own source c
 <li><p>Added regression tests for the affected binding paths.</p></li>
 </ul>
 </section>
-<section id="user-visible-additions">
-<span id="r-tcltk9upgrade-user-visible-additions"></span><span id="r-3a3atcltk9upgradeqzuser2dvisible20additions"></span><h3>User-visible additions<a class="headerlink" href="#user-visible-additions" title="Link to this heading">¶</a></h3>
-<p>In addition to the Tcl/Tk 9 modernization and correctness work, this fork adds several user-visible features that were
-not present in the original Rbc implementation.</p>
-<section id="complex-vectors">
-<span id="r-tcltk9upgrade-complex-vectors"></span><span id="r-3a3atcltk9upgradeqzcomplex20vectors"></span><h4>Complex vectors<a class="headerlink" href="#complex-vectors" title="Link to this heading">¶</a></h4>
-<p>The vector subsystem now supports both real and complex numeric vectors. Complex vectors are created explicitly
-with <code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">complex</span></code>, and Tcl-level complex values use the form <code class="docutils literal notranslate"><span class="pre">{real</span> <span class="pre">imag}</span></code>:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>z<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>complex
-<span class="nv">z</span><span class="w"> </span>set<span class="w"> </span><span class="k">{{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">3</span><span class="w"> </span><span class="o">-</span><span class="mi">4</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">5</span><span class="w"> </span><span class="mi">0</span><span class="k">}}</span>
-</pre></div>
-</div>
-<p>Complex vectors are supported by most vector instance operations and by the vector expression engine, including
-arithmetic, complex exponentiation, trigonometric and logarithmic functions, projections such as <code class="docutils literal notranslate"><span class="pre">real</span></code>,
-<code class="docutils literal notranslate"><span class="pre">imag</span></code>, <code class="docutils literal notranslate"><span class="pre">abs</span></code>, and <code class="docutils literal notranslate"><span class="pre">arg</span></code>, and complex statistical reductions.</p>
-<p>Operations that require an ordering of values remain real-only. In particular, <code class="docutils literal notranslate"><span class="pre">sort</span></code> and <code class="docutils literal notranslate"><span class="pre">normalize</span></code> are not
-supported for complex vectors.</p>
-<p>Traditional graph, barchart, and stripchart X/Y element data remain real-valued. Polar elements can attach a
-complex vector directly through <code class="docutils literal notranslate"><span class="pre">-cdata</span></code>, and the spline subsystem provides complex-vector parametric natural
-and quadratic interpolation.</p>
-<p>Applications can still explicitly derive real projections such as <code class="docutils literal notranslate"><span class="pre">real</span></code>, <code class="docutils literal notranslate"><span class="pre">imag</span></code>, <code class="docutils literal notranslate"><span class="pre">abs</span></code>, or <code class="docutils literal notranslate"><span class="pre">arg</span></code> when a
-traditional Cartesian graph or scalar spline is required.</p>
-<p>The public C API was extended with typed vector access, including <code class="docutils literal notranslate"><span class="pre">Rbc_VectorType</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_Complex</span></code>,
-<code class="docutils literal notranslate"><span class="pre">Rbc_CreateVectorWithType()</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_VectorComplexData()</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_ResetComplexVector()</span></code>, and
-<code class="docutils literal notranslate"><span class="pre">Rbc_VectorChanged()</span></code>. The original real-vector API remains available for compatibility.</p>
-</section>
-<section id="polar-and-smith-charts">
-<span id="r-tcltk9upgrade-polar-and-smith-charts"></span><span id="r-3a3atcltk9upgradeqzpolar20and20smith20charts"></span><h4>Polar and Smith charts<a class="headerlink" href="#polar-and-smith-charts" title="Link to this heading">¶</a></h4>
-<p>This fork adds the <code class="docutils literal notranslate"><span class="pre">polar</span></code> graph widget for plotting Cartesian complex-plane data with either a conventional
-Polar grid or a Smith-chart representation.</p>
-<p>Polar element data remain Cartesian: X is the real coordinate and Y is the imaginary coordinate. Elements may
-use ordinary X/Y data or attach first-class complex vectors directly with <code class="docutils literal notranslate"><span class="pre">-cdata</span></code>.</p>
-<p>Complex data can be interpreted as:</p>
-<ul class="simple">
-<li><p>reflection coefficient with <code class="docutils literal notranslate"><span class="pre">-cdataformat</span> <span class="pre">gamma</span></code>;</p></li>
-<li><p>physical impedance with <code class="docutils literal notranslate"><span class="pre">-cdataformat</span> <span class="pre">impedance</span></code>;</p></li>
-<li><p>physical admittance with <code class="docutils literal notranslate"><span class="pre">-cdataformat</span> <span class="pre">admittance</span></code>.</p></li>
-</ul>
-<p>The <code class="docutils literal notranslate"><span class="pre">-z0</span></code> option specifies the positive reference impedance used for impedance/admittance conversion.</p>
-<p>Smith charts support impedance, admittance, or combined contour grids, configurable major/minor normalized
-contour values, and Tcl callbacks for formatting real and imaginary contour labels.</p>
-<p>Polar grids provide independently configurable angular major/minor spokes, angular label callbacks, radial
-label formatting through the mapped X axis, and configurable label anchoring.</p>
-<p>Polar and Smith grid geometry follows the axes selected by <code class="docutils literal notranslate"><span class="pre">grid</span> <span class="pre">-mapx/-mapy</span></code>.</p>
-<p>Unless <code class="docutils literal notranslate"><span class="pre">-aspect</span></code> is explicitly configured, Polar widgets automatically maintain equal physical scale for X and
-Y data units. This keeps circles circular even when the mapped numerical X/Y ranges have different spans.</p>
-<p>Polar grid rendering remains meaningful when the origin is outside the current viewport. Radial circles which
-intersect the viewport are retained, angular spokes are clipped to the visible Cartesian area, and angular
-labels move from the normal circular layout to the visible ends of their spokes when no complete centered
-circle is available.</p>
-<p>Radial labels remain tied to the positive zero-degree ray and are displayed whenever their corresponding
-<code class="docutils literal notranslate"><span class="pre">{radius,0}</span></code> point is visible, even when the Polar origin itself is outside the viewport.</p>
-<p>Polar autoscaling also supplies a neutral fallback range when a grid-mapped axis has no contributing visible
-element data, allowing the Polar grid to remain usable when the widget is empty or all plotted elements are
-hidden.</p>
-<p>Smith reactive labels likewise adapt to zoomed views. When the complete unit circle is no longer visible,
-major reactance and susceptance labels are moved to the first visible boundary of their corresponding contour
-instead of disappearing with their normal unit-circle label position.</p>
-<p>Natural/cubic and quadratic smoothing on Polar elements is parametric, allowing vertical paths,
-non-monotonic-X paths and loops. Catmull-Rom smoothing remains parametric as well.</p>
-<p>Missing, non-finite, logarithmically invalid, or singular impedance/admittance points split a trace into
-continuous runs. Smoothing is performed independently on those runs and never bridges a gap.</p>
-<p><code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code> on a Polar widget additionally reports radius and angle. In Smith representation it also
-reports Gamma together with normalized and physical impedance and admittance quantities.</p>
-<p>Polar/Smith grid rendering, labels, custom formatter callbacks and smoothed element traces are supported by
-PostScript output as well as on-screen drawing.</p>
-</section>
-<section id="plot-only-element-hiding">
-<span id="r-tcltk9upgrade-plot-only-element-hiding"></span><span id="r-3a3atcltk9upgradeqzplot2donly20element20hiding"></span><h4>Plot-only element hiding<a class="headerlink" href="#plot-only-element-hiding" title="Link to this heading">¶</a></h4>
-<p>Line, stripchart, and bar elements now support the <code class="docutils literal notranslate"><span class="pre">-hideplot</span></code> option.</p>
-<p>Unlike <code class="docutils literal notranslate"><span class="pre">-hide</span></code>, which removes an element from the graph display list, <code class="docutils literal notranslate"><span class="pre">-hideplot</span> <span class="pre">yes</span></code> suppresses plotting while
-leaving the element in the display list. Its legend entry therefore remains available, making it possible for
-applications to hide and restore plotted data without rebuilding or reordering the legend.</p>
-<p>A plot-hidden element is also excluded from automatic axis limits, closest-element searches, element hit
-testing, and PostScript element output. Plot-hidden bars are additionally excluded from bar grouping and
-stacking calculations.</p>
-<p><code class="docutils literal notranslate"><span class="pre">-hide</span></code> and <code class="docutils literal notranslate"><span class="pre">-hideplot</span></code> are independent, so changing the normal visibility of an element does not alter its
-<code class="docutils literal notranslate"><span class="pre">-hideplot</span></code> state.</p>
-</section>
-<section id="arrowheads-for-line-markers">
-<span id="r-tcltk9upgrade-arrowheads-for-line-markers"></span><span id="r-3a3atcltk9upgradeqzarrowheads20for20line20markers"></span><h4>Arrowheads for line markers<a class="headerlink" href="#arrowheads-for-line-markers" title="Link to this heading">¶</a></h4>
-<p>Line markers now support arrowheads through the <code class="docutils literal notranslate"><span class="pre">-arrow</span></code> and <code class="docutils literal notranslate"><span class="pre">-arrowshape</span></code> options.</p>
-<p><code class="docutils literal notranslate"><span class="pre">-arrow</span></code> accepts <code class="docutils literal notranslate"><span class="pre">none</span></code>, <code class="docutils literal notranslate"><span class="pre">first</span></code>, <code class="docutils literal notranslate"><span class="pre">last</span></code>, or <code class="docutils literal notranslate"><span class="pre">both</span></code>, allowing an arrowhead to be drawn at either or both ends
-of a line marker. <code class="docutils literal notranslate"><span class="pre">-arrowshape</span> <span class="pre">{a</span> <span class="pre">b</span> <span class="pre">c}</span></code> controls the arrowhead geometry using screen distances.</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>marker<span class="w"> </span>create<span class="w"> </span>line<span class="w"> </span><span class="o">-</span>name<span class="w"> </span>direction<span class="w"> </span><span class="o">-</span>coords<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>outline<span class="w"> </span>red<span class="w"> </span><span class="o">-</span>linewidth<span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">-</span>arrow<span class="w"> </span>last
-
-<span class="nv">.g</span><span class="w"> </span>marker<span class="w"> </span>configure<span class="w"> </span>direction<span class="w"> </span><span class="o">-</span>arrow<span class="w"> </span>both<span class="w"> </span><span class="o">-</span>arrowshape<span class="w"> </span><span class="k">{</span><span class="nv">8</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span>
-</pre></div>
-</div>
-<p>Arrowheads use the line marker’s <code class="docutils literal notranslate"><span class="pre">-outline</span></code> color, and the line shaft is shortened to the arrowhead neck so
-that it does not extend through the filled arrowhead.</p>
-<p>The drawing implementation was also corrected for X11/Linux. Arrowheads are concave polygons, so they are now
-passed to the native polygon renderer with the correct non-convex geometry and without the duplicate closing
-vertex. This keeps arrow rendering consistent across supported platforms.</p>
-</section>
-<section id="bar-geometry-from-element-closest">
-<span id="r-tcltk9upgrade-bar-geometry-from-element-closest"></span><span id="r-3a3atcltk9upgradeqzbar20geometry20from2060element20closest60"></span><h4>Bar geometry from <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code><a class="headerlink" href="#bar-geometry-from-element-closest" title="Link to this heading">¶</a></h4>
-<p>The <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code> operation now provides additional geometry information when the selected element is a bar.</p>
-<p>In addition to the normal <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">index</span></code>, <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, and <code class="docutils literal notranslate"><span class="pre">dist</span></code> entries, the result array contains:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">left</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">top</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">right</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">bottom</span></code></p></li>
-</ul>
-<p>These values are the physical widget coordinates of the final mapped bar rectangle that is actually drawn. They
-therefore reflect the current bar mode: stacked bars return the selected stacked segment, while aligned and
-overlapping bars return the adjusted rectangle belonging to the selected element.</p>
-<p>The values remain physical widget coordinates when <code class="docutils literal notranslate"><span class="pre">-invertxy</span></code> is enabled: <code class="docutils literal notranslate"><span class="pre">left</span></code> and <code class="docutils literal notranslate"><span class="pre">right</span></code> always describe
-physical X coordinates, while <code class="docutils literal notranslate"><span class="pre">top</span></code> and <code class="docutils literal notranslate"><span class="pre">bottom</span></code> always describe physical Y coordinates.</p>
-<p>This makes <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code> directly usable for bar highlighting, overlays, annotations, and interactive
-interfaces without requiring applications to reconstruct bar geometry themselves.</p>
-</section>
-</section>
 <section id="regression-testing">
 <span id="r-tcltk9upgrade-regression-testing"></span><span id="r-3a3atcltk9upgradeqzregression20testing"></span><h3>Regression testing<a class="headerlink" href="#regression-testing" title="Link to this heading">¶</a></h3>
 <p>The modernization was accompanied by a substantial expansion of the test suite.</p>
@@ -535,12 +577,9 @@ interfaces without requiring applications to reconstruct bar geometry themselves
 <p>Manual graph tests and demos were also repeatedly exercised during the migration.</p>
 <p>The resulting code has been tested on both Windows and Linux with Tcl/Tk 9.x.</p>
 </section>
-<section id="result">
-<span id="r-tcltk9upgrade-result"></span><span id="r-3a3atcltk9upgradeqzresult"></span><h3>Result<a class="headerlink" href="#result" title="Link to this heading">¶</a></h3>
-<p>The current codebase is no longer merely an older Rbc implementation adjusted until it compiles with Tcl/Tk9.0.
-The major subsystems now use Tcl/Tk 9-sized interfaces and modern Tk configuration machinery, large-dataset
-index handling is based on <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code>, numerical and allocation boundaries are explicitly checked, and the
-unavoidable private Tk dependencies are confined to narrow platform/rendering interfaces.</p>
+</section>
+<section id="remaining-compatibility-interfaces">
+<span id="r-tcltk9upgrade-remaining-compatibility-interfaces"></span><span id="r-3a3atcltk9upgradeqzremaining20compatibility20interfaces"></span><h2>Remaining compatibility interfaces<a class="headerlink" href="#remaining-compatibility-interfaces" title="Link to this heading">¶</a></h2>
 <p>The remaining use of legacy or private Tk interfaces is intentional:</p>
 <ul class="simple">
 <li><p>the EPS canvas item uses the configuration API still required by Tk’s public custom-canvas-item interface;</p></li>
@@ -553,7 +592,6 @@ relevant rendering code is replaced with an independent backend.</p>
 <p class="centered">
 <strong>Copyright (c) George Yashin</strong></p></section>
 </section>
-</section>
 
 
             <div class="clearer"></div>
@@ -565,8 +603,19 @@ relevant rendering code is replaced with an independent backend.</p>
   <div>
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
-<li><a class="reference internal" href="#">Tcl/Tk9.0 upgrade</a><ul>
-<li><a class="reference internal" href="#tcl-tk-9-modernization">Tcl/Tk 9 Modernization</a><ul>
+<li><a class="reference internal" href="#">Tcl/Tk 9 upgrade and additions</a><ul>
+<li><a class="reference internal" href="#user-visible-additions">User-visible additions</a><ul>
+<li><a class="reference internal" href="#optional-cairo-rendering">Optional Cairo rendering</a></li>
+<li><a class="reference internal" href="#display-decimation-and-streaming-updates">Display decimation and streaming updates</a></li>
+<li><a class="reference internal" href="#graph-interaction-and-toolbar">Graph interaction and toolbar</a></li>
+<li><a class="reference internal" href="#complex-vectors">Complex vectors</a></li>
+<li><a class="reference internal" href="#polar-and-smith-charts">Polar and Smith charts</a></li>
+<li><a class="reference internal" href="#plot-only-element-hiding">Plot-only element hiding</a></li>
+<li><a class="reference internal" href="#arrowheads-for-line-markers">Arrowheads for line markers</a></li>
+<li><a class="reference internal" href="#bar-geometry-from-element-closest">Bar geometry from <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#implementation-modernization">Implementation modernization</a><ul>
 <li><a class="reference internal" href="#tcl-9-command-and-object-api">Tcl 9 command and object API</a></li>
 <li><a class="reference internal" href="#bit-and-tcl-size-support">64-bit and <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code> support</a></li>
 <li><a class="reference internal" href="#modern-tk-option-handling">Modern Tk option handling</a></li>
@@ -584,18 +633,10 @@ relevant rendering code is replaced with an independent backend.</p>
 <li><a class="reference internal" href="#remaining-private-tk-dependencies">Remaining private Tk dependencies</a></li>
 <li><a class="reference internal" href="#c-safety-and-hardening">C safety and hardening</a></li>
 <li><a class="reference internal" href="#bindings-and-tags">Bindings and tags</a></li>
-<li><a class="reference internal" href="#user-visible-additions">User-visible additions</a><ul>
-<li><a class="reference internal" href="#complex-vectors">Complex vectors</a></li>
-<li><a class="reference internal" href="#polar-and-smith-charts">Polar and Smith charts</a></li>
-<li><a class="reference internal" href="#plot-only-element-hiding">Plot-only element hiding</a></li>
-<li><a class="reference internal" href="#arrowheads-for-line-markers">Arrowheads for line markers</a></li>
-<li><a class="reference internal" href="#bar-geometry-from-element-closest">Bar geometry from <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code></a></li>
-</ul>
-</li>
 <li><a class="reference internal" href="#regression-testing">Regression testing</a></li>
-<li><a class="reference internal" href="#result">Result</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#remaining-compatibility-interfaces">Remaining compatibility interfaces</a></li>
 </ul>
 </li>
 </ul>
@@ -645,7 +686,7 @@ relevant rendering code is replaced with an independent backend.</p>
           <a href="rbc-tk9.html" title="Rbc — Refactored BLT Components for Tcl/Tk 9"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Tcl/Tk9.0 upgrade</a></li> 
+        <li class="nav-item nav-item-this"><a href="">Tcl/Tk 9 upgrade and additions</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

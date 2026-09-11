@@ -29,8 +29,8 @@ namespace eval ::rbcRendererTest {
         return $count
     }
 
-    test renderer-1.1 {native default and invalid-option rollback} -setup {
-        ::rbc::graph .renderer -title original
+    test renderer-1.1 {explicit native renderer and invalid-option rollback} -setup {
+        ::rbc::graph .renderer -renderer native -title original
     } -body {
         set initial [.renderer cget -renderer]
         set code [catch {.renderer configure -title changed -renderer bogus}]
@@ -58,6 +58,36 @@ namespace eval ::rbcRendererTest {
     } -cleanup {
         destroy .renderer
     } -result {1 native original}
+
+    foreach kind {graph barchart stripchart polar} {
+        test renderer-1.4-$kind {compiled renderer default follows Cairo availability} -setup {
+            ::rbc::$kind .renderer
+        } -body {
+            # The descriptor exposes the compiled default even under the suite's option database.
+            expr {[lindex [.renderer configure -renderer] 3] eq
+                ([testConstraint rbcCairo] ? "cairo" : "native")}
+        } -cleanup {
+            destroy .renderer
+        } -result 1
+
+        test renderer-1.6-$kind {automated suite keeps native as its effective default} \
+                -constraints rbcNativeSuiteDefault -setup {
+            ::rbc::$kind .renderer
+        } -body {
+            .renderer cget -renderer
+        } -cleanup {
+            destroy .renderer
+        } -result native
+
+        test renderer-1.5-$kind {explicit Cairo overrides the automated native default} \
+                -constraints rbcCairo -setup {
+            ::rbc::$kind .renderer -renderer cairo
+        } -body {
+            .renderer cget -renderer
+        } -cleanup {
+            destroy .renderer
+        } -result cairo
+    }
 
     foreach kind {graph stripchart} {
         test renderer-2.1-$kind {solid strokes use Cairo and can switch back} \

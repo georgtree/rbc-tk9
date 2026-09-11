@@ -44,7 +44,7 @@ for {set i 0} {$i<11} {incr i} {
 ### Define graph and its elements:
 set graph [graphtoolbar .g -width 800 -height 500 -type graph -controlmode toolbar -zoom -zoomtitle -zoommark\
                    -crosshairs -crosshairsmode current -scaletoggle all -activelegend -zoomwheel -pan]
-$graph graph configure -renderer cairo
+
 set Dem [file join $DemoDir bitmaps hobbes]
 set attributes [string map [list @ @$Dem] {
     none     None     #264653 red4     y0

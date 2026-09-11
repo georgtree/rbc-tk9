@@ -76,7 +76,6 @@ for {set level 30} {$level <= 100} {incr level 10} {
 }
 
 #####  (2b) Create and configure graph axes
-$graph graph configure -renderer cairo
 $graph graph axis create degrees -rotate 90
 $graph graph xaxis use degrees
 $graph graph axis configure y -tickfont {Helvetica 10 bold}

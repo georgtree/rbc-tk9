@@ -243,11 +243,18 @@ static const char *const graphAntialiasNames[] = {
     "default", "none", "gray", "fast", "good", "best", NULL
 };
 
+/* Cairo-enabled builds use Cairo unless the option database or caller overrides it. */
+#ifdef RBC_HAVE_CAIRO
+#define DEF_GRAPH_RENDERER "cairo"
+#else
+#define DEF_GRAPH_RENDERER "native"
+#endif
+
 static const Tk_OptionSpec graphOptionSpecs[] = {
     {TK_OPTION_STRING_TABLE, "-antialias", "antialias", "Antialias", "default", -1,
      offsetof(Graph, antialias), 0, (ClientData)graphAntialiasNames,
      GRAPH_RENDERER_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_STRING_TABLE, "-renderer", "renderer", "Renderer", "native", -1,
+    {TK_OPTION_STRING_TABLE, "-renderer", "renderer", "Renderer", DEF_GRAPH_RENDERER, -1,
      offsetof(Graph, renderer), 0, (ClientData)graphRendererNames,
      GRAPH_RENDERER_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_CUSTOM, "-anglelabelanchor", "angleLabelAnchor", "AngleLabelAnchor", DEF_GRAPH_ANGLE_LABEL_ANCHOR, -1,

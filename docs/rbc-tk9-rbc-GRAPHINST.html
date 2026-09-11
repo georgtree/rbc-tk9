@@ -529,7 +529,8 @@ Smoothing is applied independently to valid continuous runs and never bridges su
 </section>
 <section id="rendering-backend">
 <span id="r-rbc-graphinst-rendering-backend"></span><span id="r-3a3arbc3a3agraphinstqzrendering20backend"></span><h2>Rendering backend<a class="headerlink" href="#rendering-backend" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">native|cairo</span></code> selects the screen renderer. The default is <code class="docutils literal notranslate"><span class="pre">native</span></code>.
+<p><code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">native|cairo</span></code> selects the screen renderer. Builds configured with <code class="docutils literal notranslate"><span class="pre">--enable-cairo</span></code> default to
+<code class="docutils literal notranslate"><span class="pre">cairo</span></code>; builds without Cairo default to <code class="docutils literal notranslate"><span class="pre">native</span></code>. Explicit options override option-database defaults.
 Its option-database name is <code class="docutils literal notranslate"><span class="pre">renderer</span></code> and its class is <code class="docutils literal notranslate"><span class="pre">Renderer</span></code>.</p>
 <p>Cairo is optional and requires a build configured with <code class="docutils literal notranslate"><span class="pre">--enable-cairo</span></code>.
 Requesting <code class="docutils literal notranslate"><span class="pre">cairo</span></code> from a build without Cairo support returns an error.</p>

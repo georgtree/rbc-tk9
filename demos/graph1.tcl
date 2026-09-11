@@ -84,8 +84,6 @@ foreach {option value} $configOptions {
     option add *$resource.$option $value
 }
 
-$graph graph configure -renderer cairo
-
 #####  (3) Add elements to the graph
 $graph graph element create line1 -x $X -y $Y2
 $graph graph element create line2 -x $X -y $Y3

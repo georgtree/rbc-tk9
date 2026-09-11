@@ -34,7 +34,6 @@ option add *HighlightThickness 0
 set graph [graphtoolbar .g -width 800 -height 500 -type graph -controlmode toolbar -zoom -zoomtitle -zoommark\
                    -crosshairs -crosshairsmode closest -scaletoggle y -activelegend -zoomwheel -pan]
 
-$graph graph configure -renderer cairo
 $graph graph legend configure -font {TkFixedFont 10}
 
 ### The construction of the graph .g

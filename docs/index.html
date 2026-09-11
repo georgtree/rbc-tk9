@@ -49,6 +49,7 @@
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#building-from-source">Building from source</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#linux">Linux</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#windows-with-msys2-ucrt64">Windows with MSYS2/UCRT64</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#configure-options-and-renderer-defaults">Configure options and renderer defaults</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#installation-locations">Installation locations</a></li>
 </ul>
 </li>
@@ -68,8 +69,19 @@
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#copyright-and-licensing">Copyright and licensing</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html">Tcl/Tk9.0 upgrade</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#tcl-tk-9-modernization">Tcl/Tk 9 Modernization</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html">Tcl/Tk 9 upgrade and additions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#user-visible-additions">User-visible additions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#optional-cairo-rendering">Optional Cairo rendering</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#display-decimation-and-streaming-updates">Display decimation and streaming updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#graph-interaction-and-toolbar">Graph interaction and toolbar</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#complex-vectors">Complex vectors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#polar-and-smith-charts">Polar and Smith charts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#plot-only-element-hiding">Plot-only element hiding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#arrowheads-for-line-markers">Arrowheads for line markers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#bar-geometry-from-element-closest">Bar geometry from <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#implementation-modernization">Implementation modernization</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#tcl-9-command-and-object-api">Tcl 9 command and object API</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#bit-and-tcl-size-support">64-bit and <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code> support</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#modern-tk-option-handling">Modern Tk option handling</a></li>
@@ -87,18 +99,10 @@
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#remaining-private-tk-dependencies">Remaining private Tk dependencies</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#c-safety-and-hardening">C safety and hardening</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#bindings-and-tags">Bindings and tags</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#user-visible-additions">User-visible additions</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#complex-vectors">Complex vectors</a></li>
-<li class="toctree-l4"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#polar-and-smith-charts">Polar and Smith charts</a></li>
-<li class="toctree-l4"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#plot-only-element-hiding">Plot-only element hiding</a></li>
-<li class="toctree-l4"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#arrowheads-for-line-markers">Arrowheads for line markers</a></li>
-<li class="toctree-l4"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#bar-geometry-from-element-closest">Bar geometry from <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code></a></li>
-</ul>
-</li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#regression-testing">Regression testing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#result">Result</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#remaining-compatibility-interfaces">Remaining compatibility interfaces</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc.html">::rbc</a><ul>

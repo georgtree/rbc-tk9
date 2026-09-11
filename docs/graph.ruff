@@ -625,7 +625,8 @@ namespace eval ::rbc::GRAPHINST {
 
         ## Rendering backend
 
-        `-renderer native|cairo` selects the screen renderer. The default is `native`.
+        `-renderer native|cairo` selects the screen renderer. Builds configured with `--enable-cairo` default to
+        `cairo`; builds without Cairo default to `native`. Explicit options override option-database defaults.
         Its option-database name is `renderer` and its class is `Renderer`.
 
         Cairo is optional and requires a build configured with `--enable-cairo`.
